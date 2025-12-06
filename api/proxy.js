@@ -110,34 +110,3 @@ export default async function handler(request) {
     });
   }
 }
-```
-
----
-
-## 🔧 Cambios realizados:
-
-1. ✅ **Función `getSecondsUntilMidnight()`** (líneas 4-12)
-   - Calcula segundos hasta las 00:00 del día siguiente
-   - Mínimo 60 segundos para evitar problemas
-
-2. ✅ **Headers de caché actualizados** (líneas 89-91)
-   - `Cache-Control: public, s-maxage=${ttl}` → Caché en CDN
-   - `CDN-Cache-Control: max-age=${ttl}` → Refuerzo para CDN
-   - TTL dinámico hasta medianoche
-
----
-
-## 📋 Aplica el cambio:
-
-1. **GitHub** → `api/proxy.js`
-2. **Reemplaza** todo el contenido por el código de arriba
-3. **Commit**: `"Añadir caché CDN hasta medianoche"`
-4. **Espera 30-60 segundos**
-
----
-
-## 🧪 Prueba que funciona:
-
-### Test 1: Verificar que no se rompió
-```
-https://luzfija-es.vercel.app/api/proxy?url=test
