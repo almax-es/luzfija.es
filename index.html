@@ -42,7 +42,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" as="style">
-  <link rel="preload" href="tarifas.json" as="fetch" crossorigin="anonymous">
 
   <title>Comparador de Tarifas de Luz en España | Calcula tu factura y ahorra</title>
 
@@ -1601,14 +1600,73 @@
       return true;
     }
 
+    // ===== CACHÉ ROBUSTA TARIFAS.JSON (memoria + localStorage + TTL) =====
+    const TARIFAS_CACHE_KEY = 'luzfija_tarifas_v1';
+    const TARIFAS_CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+
+    function readTarifasCache(opts){
+      const allowExpired = Boolean(opts && opts.allowExpired);
+      try{
+        const raw = localStorage.getItem(TARIFAS_CACHE_KEY);
+        if(!raw) return null;
+
+        const parsed = JSON.parse(raw);
+        const data = parsed && parsed.data;
+        const ts = (parsed && parsed.timestamp) ? Number(parsed.timestamp) : 0;
+
+        if(!Array.isArray(data) || !data.length) return null;
+
+        const age = Date.now() - ts;
+        const expired = age > TARIFAS_CACHE_TTL;
+
+        if(expired && !allowExpired) return null;
+
+        return { data, expired, ageMs: age, meta: parsed };
+      }catch(e){
+        return null;
+      }
+    }
+
+    function writeTarifasCache(tarifas, meta){
+      try{
+        const payload = Object.assign({}, meta || {}, {
+          data: tarifas,
+          timestamp: Date.now()
+        });
+        localStorage.setItem(TARIFAS_CACHE_KEY, JSON.stringify(payload));
+      }catch(e){}
+    }
+
     async function fetchTarifas(forceRefresh = false) {
-      if (!forceRefresh && baseTarifasCache.length > 0) return true;
+      // 0) Prioridad: memoria (baseTarifasCache)
+      if (!forceRefresh && Array.isArray(baseTarifasCache) && baseTarifasCache.length > 0) {
+        return true;
+      }
+
+      // 1) Prioridad: localStorage (válido)
+      if (!forceRefresh) {
+        const cached = readTarifasCache({ allowExpired: false });
+        if (cached && Array.isArray(cached.data) && cached.data.length > 0) {
+          baseTarifasCache = cached.data;
+          return true;
+        }
+      }
+
+      // 2) Red
       setStatus('Cargando tarifas...', 'loading');
+
       try {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-        const response = await fetch(JSON_URL, { signal: controller.signal, cache: forceRefresh ? 'no-cache' : 'default' });
+        // Query-buster SOLO si forzamos refresh manual
+        const url = forceRefresh ? `${JSON_URL}?v=${Date.now()}` : JSON_URL;
+
+        const response = await fetch(url, {
+          signal: controller.signal,
+          cache: 'default'
+        });
+
         clearTimeout(timeoutId);
 
         if (!response.ok) throw new Error('HTTP ' + response.status);
@@ -1616,15 +1674,29 @@
         const data = await response.json();
         const tarifas = Array.isArray(data.tarifas) ? data.tarifas : null;
 
-        if (tarifas && tarifas.length) {
-          baseTarifasCache = tarifas;
-          setStatus('Datos actualizados', 'ok');
-          setTimeout(() => setStatus('Listo para calcular', 'idle'), 1500);
-          return true;
-        } else {
+        if (!tarifas || tarifas.length === 0) {
           throw new Error('JSON sin tarifas válidas');
         }
+
+        baseTarifasCache = tarifas;
+
+        // Persistir para recargas/pestañas
+        writeTarifasCache(tarifas, { version: data.version || null });
+
+        setStatus('Datos actualizados', 'ok');
+        setTimeout(() => setStatus('Listo para calcular', 'idle'), 1500);
+        return true;
+
       } catch (e) {
+        // 3) Fallback: usar caché expirada si hay problemas de red
+        const cached = readTarifasCache({ allowExpired: true });
+        if (cached && Array.isArray(cached.data) && cached.data.length > 0) {
+          baseTarifasCache = cached.data;
+          toast('Sin conexión: usando tarifas cacheadas', 'err');
+          setStatus('Tarifas cacheadas', 'err');
+          return true;
+        }
+
         console.error('Error cargando tarifas JSON:', e);
         setStatus('Error conexión', 'err');
         toast('Error cargando tarifas desde el servidor.', 'err');
@@ -2110,7 +2182,7 @@
 
       el.btnCalc.addEventListener('click',(e)=>{
         createRipple(el.btnCalc,e);
-        calculate(true, true);
+        calculate(true, false);
       });
 
       el.btnMenu.addEventListener('click',(e)=>{
