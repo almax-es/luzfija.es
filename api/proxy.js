@@ -2,6 +2,16 @@ export const config = {
   runtime: 'edge',
 };
 
+// Calcular segundos hasta medianoche en España
+function getSecondsUntilMidnight() {
+  const now = new Date();
+  const tomorrow = new Date(now);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  tomorrow.setHours(0, 0, 0, 0);
+  const diff = tomorrow - now;
+  return Math.max(60, Math.floor(diff / 1000));
+}
+
 export default async function handler(request) {
   // CORS preflight
   if (request.method === 'OPTIONS') {
@@ -76,12 +86,17 @@ export default async function handler(request) {
 
     const data = await response.text();
 
+    // Calcular TTL hasta medianoche
+    const ttl = getSecondsUntilMidnight();
+
     return new Response(data, {
       status: response.status,
       headers: {
         'Content-Type': 'application/json',
         'Access-Control-Allow-Origin': '*',
-        'Cache-Control': 'public, max-age=3600',
+        // Caché en Vercel CDN hasta medianoche
+        'Cache-Control': `public, s-maxage=${ttl}, stale-while-revalidate=60`,
+        'CDN-Cache-Control': `max-age=${ttl}`,
       },
     });
 
@@ -95,3 +110,34 @@ export default async function handler(request) {
     });
   }
 }
+```
+
+---
+
+## 🔧 Cambios realizados:
+
+1. ✅ **Función `getSecondsUntilMidnight()`** (líneas 4-12)
+   - Calcula segundos hasta las 00:00 del día siguiente
+   - Mínimo 60 segundos para evitar problemas
+
+2. ✅ **Headers de caché actualizados** (líneas 89-91)
+   - `Cache-Control: public, s-maxage=${ttl}` → Caché en CDN
+   - `CDN-Cache-Control: max-age=${ttl}` → Refuerzo para CDN
+   - TTL dinámico hasta medianoche
+
+---
+
+## 📋 Aplica el cambio:
+
+1. **GitHub** → `api/proxy.js`
+2. **Reemplaza** todo el contenido por el código de arriba
+3. **Commit**: `"Añadir caché CDN hasta medianoche"`
+4. **Espera 30-60 segundos**
+
+---
+
+## 🧪 Prueba que funciona:
+
+### Test 1: Verificar que no se rompió
+```
+https://luzfija-es.vercel.app/api/proxy?url=test
