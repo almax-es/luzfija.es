@@ -2220,6 +2220,7 @@
       window.__LF_restoreFocusEl = null;
       window.__LF_focusTrapCleanup = null;
       window.__LF_scrollY = 0;
+      window.__LF_lastParsedData = null;
 
       function __LF_ensurePdfWorker(){
         if (!window.pdfjsLib) return false;
@@ -2230,13 +2231,18 @@
         return true;
       }
 
-      function __LF_normNum(raw){
+      function __LF_toNumber(raw, context){
         if (raw == null) return null;
+        const ctx = ((raw + ' ' + (context || '')).toLowerCase());
+        const allowedCtx = /(kwh|kw|k w|dia|d[ií]a|p1|p2|p3|punta|llano|valle|energ|potenc|per[ií]odo|periodo)/i;
+        if (!allowedCtx.test(ctx)) return null;
+
         let s = String(raw)
+          .replace(/€/gi,'')
+          .replace(/eur/gi,'')
           .replace(/\s+/g,'')
-          .replace(/[€$]/g,'')
-          .replace(/kwh|kw/gi,'')
-          .replace(/[^0-9,.\-]/g,'');
+          .replace(/kwh|kw|dias?|d[ií]as?/gi,'')
+          .replace(/[^0-9,.-]/g,'');
         if (!s) return null;
 
         const hasComma = s.includes(',');
@@ -2248,8 +2254,14 @@
             s = s.replace(/,/g,'');
           }
         } else if (hasComma && !hasDot){
-          s = s.replace(',', '.');
-        } else {
+          const parts = s.split(',');
+          if (parts.length > 2){
+            const last = parts.pop();
+            s = parts.join('') + '.' + last;
+          } else {
+            s = s.replace(',', '.');
+          }
+        } else if (!hasComma && hasDot){
           const parts = s.split('.');
           if (parts.length > 2){
             const last = parts.pop();
@@ -2260,14 +2272,40 @@
         return Number.isFinite(n) ? n : null;
       }
 
-      function __LF_daysInclusive(a, b){
-        const [da,ma,ya] = a.split('/').map(Number);
-        const [db,mb,yb] = b.split('/').map(Number);
-        // FIX: calcular días en UTC para evitar DST
-        const A = Date.UTC(ya, ma-1, da);
-        const B = Date.UTC(yb, mb-1, db);
+      function __LF_normNum(raw, ctx){ return __LF_toNumber(raw, ctx); }
+
+      function __LF_parseDateFlexible(str){
+        if (!str) return null;
+        const s = str.trim().toLowerCase();
+        const reNumeric = /^(\d{1,2})[\/.-](\d{1,2})[\/.-](\d{4})$/;
+        const mNum = reNumeric.exec(s);
+        if (mNum){
+          const [_, d, mo, y] = mNum;
+          return { y: parseInt(y,10), m: parseInt(mo,10), d: parseInt(d,10) };
+        }
+        const months = {
+          'enero':1,'febrero':2,'marzo':3,'abril':4,'mayo':5,'junio':6,
+          'julio':7,'agosto':8,'septiembre':9,'setiembre':9,'octubre':10,'noviembre':11,'diciembre':12
+        };
+        const reText = /^(\d{1,2})\s+de\s+([a-záéíóúñ]+)\s+de\s+(\d{4})$/i;
+        const mTxt = reText.exec(s.normalize('NFD').replace(/\p{Diacritic}/gu,''));
+        if (mTxt){
+          const d = parseInt(mTxt[1],10);
+          const monthName = mTxt[2].normalize('NFD').replace(/\p{Diacritic}/gu,'');
+          const m = months[monthName];
+          const y = parseInt(mTxt[3],10);
+          if (m) return { y, m, d };
+        }
+        return null;
+      }
+
+      function __LF_diffDays(a, b, inclusive = false){
+        if (!a || !b) return null;
+        const A = Date.UTC(a.y, a.m - 1, a.d);
+        const B = Date.UTC(b.y, b.m - 1, b.d);
         const diff = Math.round((B - A) / 86400000);
-        return diff >= 0 ? (diff + 1) : null;
+        if (diff < 0) return null;
+        return inclusive ? diff + 1 : diff;
       }
 
       async function __LF_extraerTextoPDF(file){
@@ -2315,146 +2353,279 @@
         return { textLines, textCompact, textRawLen: (textCompact || '').length };
       }
 
-      function __LF_extraerNumero(texto, patrones, min, max){
-        const hits = [];
-        for (const re of patrones){
-          const r = new RegExp(re.source, re.flags.includes('g') ? re.flags : (re.flags + 'g'));
-          let m;
-          while ((m = r.exec(texto)) !== null){
-            const raw = m[1] ?? m[0];
-            const n = __LF_normNum(raw);
-            if (n == null) continue;
-            if (min != null && n < min) continue;
-            if (max != null && n > max) continue;
-            hits.push(n);
-          }
-        }
-        if (!hits.length) return null;
-
-        const freq = new Map();
-        for (const n of hits){
-          const k = (Math.round(n*1000)/1000).toString();
-          freq.set(k, (freq.get(k)||0)+1);
-        }
-        let best = null, bestCount = -1;
-        for (const [k,c] of freq.entries()){
-          if (c > bestCount){ bestCount = c; best = parseFloat(k); }
-        }
-        return Number.isFinite(best) ? best : hits[0];
+      function __LF_pickBest(cands){
+        if (!Array.isArray(cands) || !cands.length) return { value:null, strength:0 };
+        cands.sort((a,b)=> (b.strength||0) - (a.strength||0));
+        return cands[0];
       }
 
-      // FIX: extraer triple consumo explícito "Consumo en el periodo"
-      function __LF_extractTripleConsumo(str){
-        if(!str) return null;
-        const re = /Consumo\s+en\s+el\s+periodo\s+([\d.,]+)\s*k\s*wh\s+([\d.,]+)\s*k\s*wh\s+([\d.,]+)\s*k\s*wh/i;
-        const m = re.exec(str);
-        if(!m) return null;
-        return {
-          consumoPunta: __LF_normNum(m[1]),
-          consumoLlano: __LF_normNum(m[2]),
-          consumoValle: __LF_normNum(m[3])
+      function __LF_extractDias(linesArr, compact, warnings){
+        const lines = linesArr || [];
+        const w = warnings || [];
+        const explicit = [];
+        const badCtx = /(\/\s*365|€\s*\/\s*d[ií]a|bono\s+social|alquiler|financiaci[oó]n|otros\s+conceptos|media|promedio)/i;
+        const goodCtx = /(period|factur|consum)/i;
+        for (const line of lines){
+          if (!/d[ií]a/.test(line)) continue;
+          if (badCtx.test(line)) continue;
+          const re = /(\d{1,3})\s*d[ií]a[s]?/gi;
+          let m;
+          while ((m = re.exec(line))){
+            const n = __LF_toNumber(m[1], line);
+            if (n == null || n < 1 || n > 366) continue;
+            const strength = goodCtx.test(line) ? 1 : 0.7;
+            explicit.push({ value: n, strength });
+          }
+        }
+
+        const dateToken = /\d{1,2}[\/.-]\d{1,2}[\/.-]\d{2,4}|\d{1,2}\s+de\s+[a-záéíóúñ]+\s+de\s+\d{4}/gi;
+        const ranges = [];
+        const scanTargets = [compact, lines.join(' \\n ')];
+        for (const target of scanTargets){
+          if (!target) continue;
+          let m;
+          const re = new RegExp(`${dateToken.source}\s*(?:a|al|–|-|hasta)\s*${dateToken.source}`,'gi');
+          while ((m = re.exec(target))){
+            const raw = m[0];
+            const parts = raw.match(new RegExp(dateToken,'gi')) || [];
+            if (parts.length < 2) continue;
+            const d1 = __LF_parseDateFlexible(parts[0]);
+            const d2 = __LF_parseDateFlexible(parts[1]);
+            if (!d1 || !d2) continue;
+            const exclusive = __LF_diffDays(d1,d2,false);
+            const inclusive = __LF_diffDays(d1,d2,true);
+            if (exclusive == null || inclusive == null) continue;
+            ranges.push({ exclusive, inclusive });
+          }
+        }
+
+        let dias = null; let strength = 0;
+        const explicitFiltered = explicit.filter(e => !(e.value <= 2 && explicit.some(x=>x.value > 5)));
+        if (explicitFiltered.length){
+          const best = __LF_pickBest(explicitFiltered);
+          dias = best.value; strength = best.strength;
+        }
+
+        if (dias == null && ranges.length){
+          const candidateDays = ranges.map(r=>({exclusive:r.exclusive, inclusive:r.inclusive}));
+          let chosen = null;
+          if (explicit.length){
+            const target = explicit[0].value;
+            chosen = candidateDays.sort((a,b)=> Math.abs((a.exclusive||a.inclusive)-target) - Math.abs((b.exclusive||b.inclusive)-target))[0];
+            const diffEx = Math.abs((chosen.exclusive||0) - target);
+            const diffIn = Math.abs((chosen.inclusive||0) - target);
+            dias = diffIn <= diffEx ? chosen.inclusive : chosen.exclusive;
+          } else {
+            chosen = candidateDays[0];
+            dias = chosen.exclusive;
+          }
+          strength = 1;
+        }
+
+        if (dias != null && dias <= 2 && explicit.some(e=>e.value>5)){
+          w.push('Días descartados por valores improbables, se prioriza mayor periodo.');
+          dias = explicit.filter(e=>e.value>5)[0].value;
+          strength = explicit.filter(e=>e.value>5)[0].strength;
+        }
+
+        return { value: dias, strength };
+      }
+
+      function __LF_isBadPotCtx(line){
+        return /(max[ií]ma|maxim[oó]|max[ií]metro|demandad|hist[oó]ric|último\s+año|ultimo\s+año|12\s*meses|año\s*m[oó]vil)/i.test(line);
+      }
+
+      function __LF_extractPotencias(linesArr, compact, warnings){
+        const lines = linesArr || [];
+        const w = warnings || [];
+        const candidates = [];
+
+        const addCandidate = (p1, p2, strength, note) => {
+          candidates.push({ p1, p2, strength, note });
         };
+
+        const compactLower = (compact || '').toLowerCase();
+        if (/potencia/.test(compactLower)){
+          const re = /potencia[^
+]*?(?:contratada)?[^
+]*?(p1|punta)[^
+]*?([\d.,]+)\s*k\s*w[^
+]*?(p2|llano|valle)[^
+]*?([\d.,]+)\s*k\s*w(?:[^
+]*?(p3|valle)[^
+]*?([\d.,]+)\s*k\s*w)?/i;
+          const m = re.exec(compact);
+          if (m){
+            const p1 = __LF_toNumber(m[2], m[0]);
+            const p2 = __LF_toNumber(m[4], m[0]);
+            const p3 = __LF_toNumber(m[6], m[0]);
+            const finalP2 = p2 ?? p3;
+            addCandidate(p1, finalP2, 1, 'potencia bloque');
+          }
+        }
+
+        const reTerminoPot = /t[eé]rmino\s+de\s+potencia[^
+]*?(p[123]|punta|llano|valle)[^
+]*?([\d.,]+)\s*k\s*w/gi;
+        let tMatch;
+        let tempP = { p1:null, p2:null, p3:null };
+        while ((tMatch = reTerminoPot.exec(compact))){
+          const label = tMatch[1].toLowerCase();
+          const val = __LF_toNumber(tMatch[2], tMatch[0]);
+          if (val == null) continue;
+          if (/p1|punta/.test(label)) tempP.p1 = val;
+          else if (/p2|llano/.test(label)) tempP.p2 = val;
+          else if (/p3|valle/.test(label)) tempP.p3 = val;
+        }
+        if (tempP.p1 || tempP.p2 || tempP.p3){
+          const mappedP2 = tempP.p2 ?? tempP.p3;
+          addCandidate(tempP.p1 ?? null, mappedP2 ?? null, 0.9, 'término de potencia');
+        }
+
+        for (const line of lines){
+          if (!/k\s*w|kw/i.test(line)) continue;
+          if (__LF_isBadPotCtx(line)) continue;
+          const reLine = /(p[123]|punta|llano|valle)[^
+]*?([\d.,]+)\s*k\s*w/gi;
+          let m;
+          let lp1=null, lp2=null, lp3=null;
+          while ((m = reLine.exec(line))){
+            const label = m[1].toLowerCase();
+            const val = __LF_toNumber(m[2], line);
+            if (val == null) continue;
+            if (/p1|punta/.test(label)) lp1 = val;
+            else if (/p2|llano/.test(label)) lp2 = val;
+            else if (/p3|valle/.test(label)) lp3 = val;
+          }
+          if (lp1 != null || lp2 != null || lp3 != null){
+            addCandidate(lp1, lp2 ?? lp3, 0.7, 'línea potencia');
+          }
+        }
+
+        const best = __LF_pickBest(candidates);
+        let p1 = best.p1 ?? null;
+        let p2 = best.p2 ?? null;
+        if (!p2 && best.p3){ p2 = best.p3; }
+        if (!p2 && best && best.note === 'línea potencia' && candidates.some(c=>c.p3 && !c.p2)){
+          w.push('P2 no explícita, se asigna desde P3 valle.');
+        }
+        return { p1, p2, strengthP1: p1!=null ? (best.strength||0) : 0, strengthP2: p2!=null ? (best.strength||0) : 0 };
+      }
+
+      function __LF_shouldSkipConsumo(line){
+        return /(lectur|contador|telegesti[oó]n|consumo\s+medio|acumulad|hist[oó]ric|último\s+año|14\s*meses)/i.test(line);
+      }
+
+      function __LF_extractConsumos(linesArr, compact, warnings){
+        const lines = linesArr || [];
+        const w = warnings || [];
+        const cands = [];
+
+        const add = (c1,c2,c3,strength,note)=>{ cands.push({ c1,c2,c3,strength,note }); };
+
+        const compactLower = (compact||'').toLowerCase();
+        if (/consum/.test(compactLower) && /(punta|llano|valle)/i.test(compactLower)){
+          const re = /consum[^
+]*?punta:?\s*([\d.,]+)\s*k\s*wh[^
+]*?llano:?\s*([\d.,]+)\s*k\s*wh[^
+]*?valle:?\s*([\d.,]+)\s*k\s*wh/gi;
+          const m = re.exec(compact);
+          if (m && !__LF_shouldSkipConsumo(m[0])){
+            add(__LF_toNumber(m[1], m[0]), __LF_toNumber(m[2], m[0]), __LF_toNumber(m[3], m[0]), 1, 'triple inline');
+          }
+        }
+
+        const reEnergia = /t[eé]rmino\s+de\s+energ[ií]a[^
+]*?(p[123]|punta|llano|valle)[^
+]*?([\d.,]+)\s*k\s*wh/gi;
+        let mE;
+        let eVals = { p1:null,p2:null,p3:null };
+        while ((mE = reEnergia.exec(compact))){
+          if (__LF_shouldSkipConsumo(mE[0])) continue;
+          const label = mE[1].toLowerCase();
+          const val = __LF_toNumber(mE[2], mE[0]);
+          if (val == null) continue;
+          if (/p1|punta/.test(label)) eVals.p1 = val;
+          else if (/p2|llano/.test(label)) eVals.p2 = val;
+          else if (/p3|valle/.test(label)) eVals.p3 = val;
+        }
+        if (eVals.p1 || eVals.p2 || eVals.p3){
+          add(eVals.p1, eVals.p2 ?? eVals.p3, eVals.p3 ?? eVals.p2, 0.95, 'término energía');
+        }
+
+        for (const line of lines){
+          if (!/k\s*wh/i.test(line)) continue;
+          if (__LF_shouldSkipConsumo(line)) continue;
+          const reLine = /(p[123]|punta|llano|valle)[:\s-]*([\d.,]+)\s*k\s*wh/gi;
+          let lm; let lp1=null, lp2=null, lp3=null;
+          while ((lm = reLine.exec(line))){
+            const label = lm[1].toLowerCase();
+            const val = __LF_toNumber(lm[2], line);
+            if (val == null) continue;
+            if (/p1|punta/.test(label)) lp1 = val;
+            else if (/p2|llano/.test(label)) lp2 = val;
+            else if (/p3|valle/.test(label)) lp3 = val;
+          }
+          if (lp1 != null || lp2 != null || lp3 != null){
+            add(lp1, lp2 ?? lp3, lp3 ?? lp2, 0.7, 'línea consumo');
+          }
+
+          const tripleRe = /consumo\s+en\s+el\s+periodo\s+([\d.,]+)\s*k\s*wh\s+([\d.,]+)\s*k\s*wh\s+([\d.,]+)\s*k\s*wh/i;
+          const tm = tripleRe.exec(line);
+          if (tm && !__LF_shouldSkipConsumo(line)){
+            add(__LF_toNumber(tm[1], line), __LF_toNumber(tm[2], line), __LF_toNumber(tm[3], line), 0.9, 'triple línea');
+          }
+        }
+
+        const best = __LF_pickBest(cands.filter(c=>c.c1!=null || c.c2!=null || c.c3!=null));
+        return { c1: best.c1 ?? null, c2: best.c2 ?? null, c3: best.c3 ?? null, strength: best.strength || 0 };
       }
 
       function __LF_parsearDatos(textLines, textCompact){
         const texto = textLines || '';
-        const t2 = textCompact || '';
-        // FIX: excluir consumos anuales/acumulados
-        const __LF_ANNUAL_RE = /(último\s*año|ultimos?\s*12\s*meses|12\s*meses|acumulad[oa]|anual)/i;
+        const compact = (textCompact || '').replace(/\s+/g,' ').trim();
+        const lines = texto.split('
+').map(l=>l.trim()).filter(Boolean);
+        const warnings = [];
 
-        const A_P1 = '(?:p\\s*1|e\\s*1|periodo\\s*1|per[ií]odo\\s*1|punta|peak)';
-        const A_P2 = '(?:p\\s*2|e\\s*2|periodo\\s*2|per[ií]odo\\s*2|llano)';
-        const A_P3 = '(?:p\\s*3|e\\s*3|periodo\\s*3|per[ií]odo\\s*3|valle|valley)';
-        const EX_PRICE = '(?:€\\s*\\/\\s*kwh|eur\\s*\\/\\s*kwh|€/kwh|precio\\s*energ[ií]a)';
-        const EX_TOTAL = '(?:total|sumatorio)';
+        const diasInfo = __LF_extractDias(lines, compact, warnings);
+        const potInfo = __LF_extractPotencias(lines, compact, warnings);
+        const consInfo = __LF_extractConsumos(lines, compact, warnings);
 
-        const potP1 = [
-          new RegExp('(?:potencia|t[ée]rmino\\s*de\\s*potencia|power).*?' + A_P1 + '.*?([0-9][0-9.,]*)\\s*(?:kw)?', 'gi'),
-          new RegExp(A_P1 + '.*?(?:potencia).*?([0-9][0-9.,]*)\\s*(?:kw)?', 'gi'),
-          new RegExp('per[ií]odo\\s*1.*?([0-9][0-9.,]*)\\s*kw', 'gi')
-        ];
-        const potP2 = [
-          new RegExp('(?:potencia|t[ée]rmino\\s*de\\s*potencia|power).*?' + A_P2 + '.*?([0-9][0-9.,]*)\\s*(?:kw)?', 'gi'),
-          new RegExp(A_P2 + '.*?(?:potencia).*?([0-9][0-9.,]*)\\s*(?:kw)?', 'gi'),
-          new RegExp('per[ií]odo\\s*2.*?([0-9][0-9.,]*)\\s*kw', 'gi')
-        ];
-
-        const diasPat = [
-          /d[ií]as?.*?factur.*?(\d(?:\s*\d){0,2})/gi,
-          /(\d(?:\s*\d){0,2})\s*d[ií]as?\s*factur/gi
-        ];
-        const rangoFechas = [
-          /del\s+(\d{2}\/\d{2}\/\d{4})\s+al\s+(\d{2}\/\d{2}\/\d{4})/gi,
-          /(\d{2}\/\d{2}\/\d{4})\s*(?:-|–|a)\s*(\d{2}\/\d{2}\/\d{4})/gi
-        ];
-
-        const consP1 = [
-          new RegExp('^(?!.*' + EX_TOTAL + ')(?!.*' + EX_PRICE + ').*?(?:consumo|energ[ií]a).*?' + A_P1 + '.*?([0-9][0-9.,]*)\\s*kwh', 'gim'),
-          new RegExp('^(?!.*' + EX_TOTAL + ')(?!.*' + EX_PRICE + ').*?' + A_P1 + '.*?(?:consumo|energ[ií]a).*?([0-9][0-9.,]*)\\s*kwh', 'gim')
-        ];
-        const consP2 = [
-          new RegExp('^(?!.*' + EX_TOTAL + ')(?!.*' + EX_PRICE + ').*?(?:consumo|energ[ií]a).*?' + A_P2 + '.*?([0-9][0-9.,]*)\\s*kwh', 'gim'),
-          new RegExp('^(?!.*' + EX_TOTAL + ')(?!.*' + EX_PRICE + ').*?' + A_P2 + '.*?(?:consumo|energ[ií]a).*?([0-9][0-9.,]*)\\s*kwh', 'gim')
-        ];
-        const consP3 = [
-          new RegExp('^(?!.*' + EX_TOTAL + ')(?!.*' + EX_PRICE + ').*?(?:consumo|energ[ií]a).*?' + A_P3 + '.*?([0-9][0-9.,]*)\\s*kwh', 'gim'),
-          new RegExp('^(?!.*' + EX_TOTAL + ')(?!.*' + EX_PRICE + ').*?' + A_P3 + '.*?(?:consumo|energ[ií]a).*?([0-9][0-9.,]*)\\s*kwh', 'gim')
-        ];
-
-        const p1 = __LF_extraerNumero(texto, potP1, 0.5, 20) ?? __LF_extraerNumero(t2, potP1, 0.5, 20);
-        const p2 = __LF_extraerNumero(texto, potP2, 0.5, 20) ?? __LF_extraerNumero(t2, potP2, 0.5, 20);
-
-        let dias = __LF_extraerNumero(texto, diasPat, 1, 366) ?? __LF_extraerNumero(t2, diasPat, 1, 366);
-        let diasFromRange = null;
-        for (const re of rangoFechas){
-          const r = new RegExp(re.source, re.flags.includes('g') ? re.flags : (re.flags + 'g'));
-          let m;
-          while ((m = r.exec(texto)) !== null){
-            const d = __LF_daysInclusive(m[1], m[2]);
-            if (d && d >= 1 && d <= 366){ diasFromRange = d; break; }
-          }
-          if (diasFromRange) break;
-        }
-        if (!diasFromRange){
-          for (const re of rangoFechas){
-            const r = new RegExp(re.source, re.flags.includes('g') ? re.flags : (re.flags + 'g'));
-            let m;
-            while ((m = r.exec(t2)) !== null){
-              const d = __LF_daysInclusive(m[1], m[2]);
-              if (d && d >= 1 && d <= 366){ diasFromRange = d; break; }
-            }
-            if (diasFromRange) break;
-          }
-        }
-        if (diasFromRange != null){
-          if (dias == null || dias <= 1){
-            dias = diasFromRange;
-          } else if (Math.abs(dias - diasFromRange) > 2){
-            dias = diasFromRange;
-          }
+        let p1 = potInfo.p1 ?? null;
+        let p2 = potInfo.p2 ?? null;
+        if (!p2 && consInfo.c3 && !consInfo.c2){
+          p2 = potInfo.p3 ?? null;
         }
 
-        const textoNoAnual = texto.split('\n').filter(l => !__LF_ANNUAL_RE.test(l)).join('\n');
-        const t2NoAnual = t2.split('\n').filter(l => !__LF_ANNUAL_RE.test(l)).join('\n');
+        const weights = {
+          p1: potInfo.strengthP1 || 0,
+          p2: potInfo.strengthP2 || 0,
+          dias: diasInfo.strength || 0,
+          c1: consInfo.c1 != null ? (consInfo.strength || 0.7) : 0,
+          c2: consInfo.c2 != null ? (consInfo.strength || 0.7) : 0,
+          c3: consInfo.c3 != null ? (consInfo.strength || 0.7) : 0
+        };
+        const totalWeight = weights.p1 + weights.p2 + weights.dias + weights.c1 + weights.c2 + weights.c3;
+        const confianza = Math.round((totalWeight / 6) * 100);
 
-        const triple = __LF_extractTripleConsumo(texto) || __LF_extractTripleConsumo(t2);
-        let consumoPunta = null, consumoLlano = null, consumoValle = null;
-        if (triple){
-          consumoPunta = triple.consumoPunta;
-          consumoLlano = triple.consumoLlano;
-          consumoValle = triple.consumoValle;
-        } else {
-          consumoPunta = __LF_extraerNumero(textoNoAnual, consP1, 0, 200000) ?? __LF_extraerNumero(t2NoAnual, consP1, 0, 200000);
-          consumoLlano = __LF_extraerNumero(textoNoAnual, consP2, 0, 200000) ?? __LF_extraerNumero(t2NoAnual, consP2, 0, 200000);
-          consumoValle = __LF_extraerNumero(textoNoAnual, consP3, 0, 200000) ?? __LF_extraerNumero(t2NoAnual, consP3, 0, 200000);
+        if (!consInfo.c1 || !consInfo.c2 || !consInfo.c3){
+          warnings.push('Faltan consumos en algún periodo, revisa manualmente.');
+        }
+        if (!p1 || !p2){
+          warnings.push('Potencias incompletas o con contexto débil.');
         }
 
-        const campos = [p1,p2,dias,consumoPunta,consumoLlano,consumoValle];
-        const detected = campos.filter(v => v != null).length;
-        const confianza = Math.round((detected / 6) * 100);
-        return { p1, p2, dias, consumoPunta, consumoLlano, consumoValle, confianza };
+        return {
+          p1, p2,
+          dias: diasInfo.value ?? null,
+          c1: consInfo.c1 ?? null,
+          c2: consInfo.c2 ?? null,
+          c3: consInfo.c3 ?? null,
+          confianza,
+          warnings
+        };
       }
-
       function __LF_q(id){ return document.getElementById(id); }
       function __LF_show(el){ if(el) el.style.display = ''; }
       function __LF_hide(el){ if(el) el.style.display = 'none'; }
@@ -2462,10 +2633,11 @@
       function __LF_setBadge(conf){
         const b = __LF_q('confianzaBadge');
         if (!b) return;
+        const val = Math.max(0, Math.min(100, conf ?? 0));
         b.classList.remove('alta','media','baja');
-        b.textContent = (conf ?? 0) + '% confianza';
-        if (conf >= 80) b.classList.add('alta');
-        else if (conf >= 50) b.classList.add('media');
+        b.textContent = val + '% confianza';
+        if (val >= 80) b.classList.add('alta');
+        else if (val >= 50) b.classList.add('media');
         else b.classList.add('baja');
       }
 
@@ -2484,20 +2656,41 @@
       function __LF_renderForm(datos){
         const form = __LF_q('formValidacionFactura');
         if (!form) return;
+        const consumoPunta = datos.consumoPunta ?? datos.c1 ?? null;
+        const consumoLlano = datos.consumoLlano ?? datos.c2 ?? null;
+        const consumoValle = datos.consumoValle ?? datos.c3 ?? null;
         form.innerHTML =
-          __LF_crearInputValidacion('p1','Potencia P1 (kW)', datos.p1) +
-          __LF_crearInputValidacion('p2','Potencia P2 (kW)', datos.p2) +
-          __LF_crearInputValidacion('dias','Días de facturación', datos.dias) +
-          __LF_crearInputValidacion('consumoPunta','Consumo Punta / P1 / E1 (kWh)', datos.consumoPunta) +
-          __LF_crearInputValidacion('consumoLlano','Consumo Llano / P2 / E2 (kWh)', datos.consumoLlano) +
-          __LF_crearInputValidacion('consumoValle','Consumo Valle / P3 / E3 (kWh)', datos.consumoValle);
+          __LF_crearInputValidacion('p1','Potencia P1 (kW)', datos.p1 ?? null) +
+          __LF_crearInputValidacion('p2','Potencia P2 (kW)', datos.p2 ?? null) +
+          __LF_crearInputValidacion('dias','Días de facturación', datos.dias ?? null) +
+          __LF_crearInputValidacion('consumoPunta','Consumo Punta / P1 / E1 (kWh)', consumoPunta) +
+          __LF_crearInputValidacion('consumoLlano','Consumo Llano / P2 / E2 (kWh)', consumoLlano) +
+          __LF_crearInputValidacion('consumoValle','Consumo Valle / P3 / E3 (kWh)', consumoValle);
+        form.querySelectorAll('.input-validacion').forEach(el=> el.classList.remove('err'));
+      }
+
+      function __LF_renderWarnings(warnings){
+        const a = __LF_q('avisoFactura');
+        if (!a) return;
+        if (warnings && warnings.length){
+          a.innerHTML = warnings.map(w=>`⚠️ ${w}`).join('<br>');
+          __LF_show(a);
+        } else {
+          a.innerHTML = '';
+          __LF_hide(a);
+        }
       }
 
       function __LF_warn(msg){
-        const a = __LF_q('avisoFactura');
-        if (!a) return;
-        a.innerHTML = msg;
-        __LF_show(a);
+        __LF_renderWarnings(msg ? [msg] : []);
+      }
+
+      function __LF_resetExtractorState(){
+        __LF_setBadge(0);
+        __LF_renderForm({ p1:null, p2:null, dias:null, c1:null, c2:null, c3:null, consumoPunta:null, consumoLlano:null, consumoValle:null });
+        __LF_renderWarnings([]);
+        const fi = __LF_q('fileInputFactura'); if (fi) fi.value = '';
+        window.__LF_lastParsedData = null;
       }
 
       function __LF_focusTrapAttach(modal){
@@ -2553,9 +2746,7 @@
         __LF_hide(__LF_q('loaderFactura'));
         __LF_hide(__LF_q('resultadoFactura'));
         __LF_hide(__LF_q('btnOcrFactura'));
-
-        const aviso = __LF_q('avisoFactura'); if(aviso){ aviso.innerHTML=''; __LF_hide(aviso); }
-        const fi = __LF_q('fileInputFactura'); if(fi) fi.value = '';
+        __LF_resetExtractorState();
         window.__LF_lastFile = null;
 
         __LF_focusTrapAttach(modal);
@@ -2585,13 +2776,14 @@
           if (typeof toast === 'function') toast('PDF.js no se ha cargado (bloqueo de red/CSP)', 'err');
           return;
         }
+        __LF_resetExtractorState();
         window.__LF_lastFile = file;
 
         __LF_hide(__LF_q('uploadAreaFactura'));
         __LF_show(__LF_q('loaderFactura'));
         __LF_hide(__LF_q('resultadoFactura'));
         __LF_hide(__LF_q('btnOcrFactura'));
-        const aviso = __LF_q('avisoFactura'); if(aviso){ aviso.innerHTML=''; __LF_hide(aviso); }
+        __LF_renderWarnings([]);
 
         try{
           const { textLines, textCompact, textRawLen } = await __LF_extraerTextoPDF(file);
@@ -2610,6 +2802,8 @@
           const datos = __LF_parsearDatos(textLines, textCompact);
           __LF_setBadge(datos.confianza);
           __LF_renderForm(datos);
+          __LF_renderWarnings(datos.warnings);
+          window.__LF_lastParsedData = datos;
 
           if (datos.dias != null && (datos.dias < 20 || datos.dias > 40)){
             __LF_warn('ℹ️ Se han detectado <b>' + datos.dias + '</b> días. Esto parece una factura <b>no mensual</b> (correcto si tu periodo es 45/60/90 días).');
@@ -2654,6 +2848,7 @@
           return;
         }
 
+        __LF_resetExtractorState();
         __LF_hide(__LF_q('uploadAreaFactura'));
         __LF_show(__LF_q('loaderFactura'));
         __LF_hide(__LF_q('resultadoFactura'));
@@ -2684,11 +2879,15 @@
           __LF_show(__LF_q('resultadoFactura'));
 
           const compact = ocrText.replace(/\s+/g,' ').trim();
-          const lines = ocrText.split('\n').map(l=>l.trim()).filter(Boolean).join('\n');
+          const lines = ocrText.split('
+').map(l=>l.trim()).filter(Boolean).join('
+');
 
           const datos = __LF_parsearDatos(lines, compact);
           __LF_setBadge(datos.confianza);
           __LF_renderForm(datos);
+          __LF_renderWarnings(datos.warnings);
+          window.__LF_lastParsedData = datos;
 
           // FIX: mensajes diferenciados para periodos anómalos
           if (datos.dias != null && datos.dias > 40){
@@ -2715,12 +2914,12 @@
 
       function __LF_applyValues(){
         const v = {
-          p1: __LF_normNum(__LF_q('val_p1')?.value),
-          p2: __LF_normNum(__LF_q('val_p2')?.value),
-          dias: __LF_normNum(__LF_q('val_dias')?.value),
-          consumoPunta: __LF_normNum(__LF_q('val_consumoPunta')?.value),
-          consumoLlano: __LF_normNum(__LF_q('val_consumoLlano')?.value),
-          consumoValle: __LF_normNum(__LF_q('val_consumoValle')?.value),
+          p1: __LF_normNum(__LF_q('val_p1')?.value, 'p1 kw'),
+          p2: __LF_normNum(__LF_q('val_p2')?.value, 'p2 kw'),
+          dias: __LF_normNum(__LF_q('val_dias')?.value, 'dias'),
+          consumoPunta: __LF_normNum(__LF_q('val_consumoPunta')?.value, 'kwh punta'),
+          consumoLlano: __LF_normNum(__LF_q('val_consumoLlano')?.value, 'kwh llano'),
+          consumoValle: __LF_normNum(__LF_q('val_consumoValle')?.value, 'kwh valle'),
         };
 
         let ok = true;
@@ -2814,6 +3013,37 @@
 
         btnAplicar?.addEventListener('click', __LF_applyValues);
         btnOcr?.addEventListener('click', __LF_runOcrOnLastFile);
+      };
+
+      window.__LF_testParser = function(){
+        console.log('Ejecutando __LF_testParser...');
+
+        (function(){
+          const text = `Periodo de facturación: 20/10/2025 a 20/11/2025\nTérmino de energía P1: 108,00 kWh, Precio: 0,124475 €/kWh. P2: 67,00 kWh P3: 140,00 kWh\nTérmino de potencia P1: 3,450 kW x 31 días P2: 3,450 kW x 31 días`;
+          const datos = __LF_parsearDatos(text, text.replace(/\n/g,' '));
+          console.assert(datos.dias === 31, 'Energya VM - días');
+          console.assert(Math.abs((datos.p1 ?? 0) - 3.45) < 0.001, 'Energya VM - p1');
+          console.assert(Math.abs((datos.p2 ?? 0) - 3.45) < 0.001, 'Energya VM - p2');
+          console.assert(Math.abs((datos.c1 ?? 0) - 108) < 0.001, 'Energya VM - c1');
+          console.assert(Math.abs((datos.c2 ?? 0) - 67) < 0.001, 'Energya VM - c2');
+          console.assert(Math.abs((datos.c3 ?? 0) - 140) < 0.001, 'Energya VM - c3');
+        })();
+
+        (function(){
+          const text = `Periodo: 11 de octubre de 2025 a 10 de noviembre de 2025`;
+          const datos = __LF_parsearDatos(text, text);
+          console.assert(datos.dias === 30, 'Texto con mes en letras - días 30');
+        })();
+
+        (function(){
+          const text = `Consumos han sido punta: 94,53 kWh, llano: 68,39 kWh, valle: 73,40 kWh a 0,12 €/kWh`;
+          const datos = __LF_parsearDatos(text, text);
+          console.assert(Math.abs((datos.c1 ?? 0) - 94.53) < 0.01, 'Consumo con €/kWh - c1');
+          console.assert(Math.abs((datos.c2 ?? 0) - 68.39) < 0.01, 'Consumo con €/kWh - c2');
+          console.assert(Math.abs((datos.c3 ?? 0) - 73.4) < 0.01, 'Consumo con €/kWh - c3');
+        })();
+
+        console.log('✅ __LF_testParser completado');
       };
 
     })();
@@ -2924,7 +3154,8 @@
         if(!state.rows || state.rows.length === 0){ toast('No hay datos para descargar','err'); return; }
         const headers = ['#','Tarifa','Potencia','Consumo','Impuestos','Total','Vs Mejor','Tipo','Web'];
         const rows = state.rows.map(r=>[r.posicion,r.nombre,r.potencia,r.consumo,r.impuestos,r.total,r.vsMejor,r.tipo,r.webUrl||'']);
-        const csv = [headers, ...rows].map(r=>r.join(';')).join('\n');
+        const csv = [headers, ...rows].map(r=>r.join(';')).join('
+');
         const BOM = '\uFEFF';
         const blob = new Blob([BOM + csv], {type:'text/csv;charset=utf-8;'});
         const link = document.createElement('a');
