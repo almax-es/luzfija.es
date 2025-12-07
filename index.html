@@ -604,7 +604,7 @@
   transition:opacity .2s ease;
 }
 .modal-overlay.show{ opacity:1; pointer-events:auto; }
-.modal-content{ max-width:600px; width:calc(100% - 28px); max-height:85vh; overflow-y:auto; animation:__lf_slideUp .25s cubic-bezier(.2,.9,.2,1); }
+.modal-content{ max-width:600px; width:calc(100% - 28px); animation:__lf_slideUp .25s cubic-bezier(.2,.9,.2,1); }
 .upload-area{
   border:3px dashed var(--border);
   padding:28px; border-radius:var(--radius);
@@ -1059,28 +1059,21 @@
             </button>
           </div>
 
-          <h3 style="margin:8px 0 3px; font-size:14px">Datos detectados</h3>
+          <h3 style="margin:6px 0 2px; font-size:14px">Datos detectados</h3>
           <div id="companiaDetectada" style="display:none; margin:4px 0 8px; padding:6px 10px; background:var(--accent); color:white; border-radius:8px; font-size:11px; font-weight:600; width:fit-content;">
             🏢 <span id="nombreCompania"></span>
           </div>
-          <p style="color:var(--muted); font-size:11px; margin-bottom:8px">Verifica y corrige antes de aplicar:</p>
+          <p style="color:var(--muted); font-size:11px; margin-bottom:6px">Verifica y corrige antes de aplicar:</p>
           <div id="formValidacionFactura"></div>
 
-          <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap">
+          <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap">
             <button class="btn primary" id="btnAplicarFactura" type="button">✅ Aplicar datos</button>
             <button class="btn" id="btnCancelarFactura" type="button">❌ Cancelar</button>
           </div>
 
-          <div class="help" style="margin-top:12px; font-size:12px; opacity:0.9; border:1px solid var(--border); background: var(--card2); padding:10px; border-radius:12px;">
-            <p style="margin-bottom:6px; line-height:1.5;">Si algún dato de la factura no se ha detectado correctamente, puedes ayudarnos a mejorarlo enviando el PDF ANONIMIZADO a <a href="/cdn-cgi/l/email-protection#751d1a19143519000f131c1f145b10064a0600171f1016014833141601000714504745141b1a1b1c181c0f1411145047455850474539000f331c1f145b100653171a110c483d1a19145950474514111f001b011a50474513141601000714504745141b1a1b1c181c0f141114504745051a070400105047451019504745061c18001914111a075047451b1a5047451d1450474511100110160114111a504745171c101b504745191a065047451114011a065b504745320714161c14065b" style="color: var(--accent); text-decoration: underline;"><span class="__cf_email__" data-cfemail="7f1710131e3f130a051916151e511a0c">[email&#160;protected]</span></a>.</p>
-            <p style="margin-bottom:6px; line-height:1.5;">Antes de enviarlo, elimina/oculta:</p>
-            <ul style="margin-left:16px; color: var(--muted); line-height:1.4;">
-              <li>Nombre y apellidos; DNI/NIE; dirección</li>
-              <li>CUPS y nº de contrato/referencia</li>
-              <li>IBAN/datos bancarios; teléfono/email</li>
-              <li>Códigos QR o de barras</li>
-            </ul>
-            <p style="margin-top:6px; line-height:1.4;">La lectura de la factura se hace en tu propio navegador: no se sube nada automáticamente.</p>
+          <div class="help" style="margin-top:10px; font-size:11px; opacity:0.9; border:1px solid var(--border); background: var(--card2); padding:8px; border-radius:10px; line-height:1.4;">
+            <p style="margin-bottom:4px;"><strong>📧 ¿Datos incorrectos?</strong> Envía el PDF anonimizado a <a href="/cdn-cgi/l/email-protection#751d1a19143519000f131c1f145b10064a0600171f1016014833141601000714504745141b1a1b1c181c0f1411145047455850474539000f331c1f145b100653171a110c483d1a19145950474514111f001b011a50474513141601000714504745141b1a1b1c181c0f141114504745051a070400105047451019504745061c18001914111a075047451b1a5047451d1450474511100110160114111a504745171c101b504745191a065047451114011a065b504745320714161c14065b" style="color: var(--accent); text-decoration: underline;"><span class="__cf_email__" data-cfemail="caafafa5aaa8a88aa6bfb0aca3a0abe4afb9">[email&#160;protected]</span></a></p>
+            <p style="margin:0; color: var(--muted); font-size:10px;">Oculta: nombre, DNI, CUPS, IBAN, QR. El PDF se procesa en tu navegador (no se sube).</p>
           </div>
         </div>
 
@@ -2852,7 +2845,7 @@
       }
 
       function __LF_parsearDatos(textoLineas, textoCompacto){
-        console.log('[PARSER v1765147000-FALLBACK-INFINITO] 🚀 Iniciando parseo...');
+        console.log('[PARSER v1765147200-UI-MEJORADA] 🚀 Iniciando parseo...');
         const textLines = String(textoLineas || '');
         const textCompact = String(textoCompacto || '');
 
