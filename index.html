@@ -645,7 +645,7 @@
   to{ transform:translateY(0); opacity:1; }
 }
   </style>
-  <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script defer src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 </head>
 
 <body>
@@ -727,7 +727,7 @@
               <span class="mi-left">🔗 Compartir configuración</span>
               <span class="mi-right">URL</span>
             </button>
-            <a class="menuItem" href="/cdn-cgi/l/email-protection#ef8780838eaf839a958986858ec18a9c" role="menuitem" style="text-decoration:none;">
+            <a class="menuItem" href="mailto:hola@luzfija.es" role="menuitem" style="text-decoration:none;">
               <span class="mi-left">✉️ Contacto</span>
               <span class="mi-right">email</span>
             </a>
@@ -982,8 +982,8 @@
             <div style="font-size:11px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted2); font-weight:900; margin-bottom:6px;">
               ✉️ Email
             </div>
-            <a href="/cdn-cgi/l/email-protection#c0a8afaca180acb5baa6a9aaa1eea5b3" style="color:var(--accent); font-weight:900; text-decoration:underline; font-size:13px;">
-              <span class="__cf_email__" data-cfemail="234b4c4f42634f5659454a49420d4650">[email&#160;protected]</span>
+            <a href="mailto:hola@luzfija.es" style="color:var(--accent); font-weight:900; text-decoration:underline; font-size:13px;">
+              hola@luzfija.es
             </a>
             <div style="margin-top:8px; font-size:11px; color:var(--muted2); line-height:1.4;">
               Respondo en cuanto puedo (proyecto gratuito).
@@ -1072,7 +1072,7 @@
           </div>
 
           <div class="help" style="margin-top:10px; font-size:11px; opacity:0.9; border:1px solid var(--border); background: var(--card2); padding:8px; border-radius:10px; line-height:1.4;">
-            <p style="margin-bottom:4px;"><strong>📧 ¿Datos incorrectos?</strong> Envía el PDF anonimizado a <a href="/cdn-cgi/l/email-protection#751d1a19143519000f131c1f145b10064a0600171f1016014833141601000714504745141b1a1b1c181c0f1411145047455850474539000f331c1f145b100653171a110c483d1a19145950474514111f001b011a50474513141601000714504745141b1a1b1c181c0f141114504745051a070400105047451019504745061c18001914111a075047451b1a5047451d1450474511100110160114111a504745171c101b504745191a065047451114011a065b504745320714161c14065b" style="color: var(--accent); text-decoration: underline;"><span class="__cf_email__" data-cfemail="caafafa5aaa8a88aa6bfb0aca3a0abe4afb9">[email&#160;protected]</span></a></p>
+            <p style="margin-bottom:4px;"><strong>📧 ¿Datos incorrectos?</strong> Envía el PDF anonimizado a <a href="mailto:hola@luzfija.es" style="color: var(--accent); text-decoration: underline;">hola@luzfija.es</a></p>
             <p style="margin:0; color: var(--muted); font-size:10px;">Oculta: nombre, DNI, CUPS, IBAN, QR. El PDF se procesa en tu navegador (no se sube).</p>
           </div>
         </div>
@@ -1124,7 +1124,7 @@
     // ===== BEGIN PVPC MODULE =====
     // NOTA: La API de la CNMC tiene CORS bloqueado desde dominios externos.
     // Para habilitar PVPC en producción:
-    // 1) Crea un proxy (ej. Cloudflare Worker) que añada Access-Control-Allow-Origin:*
+    // 1) Crea un proxy (ej. Vercel Serverless Function) que añada Access-Control-Allow-Origin:*
     // 2) Define window.PVPC_PROXY_URL en el HTML ANTES de este script.
     // 3) El comparador usará automáticamente ese proxy cuando el fetch directo falle por CORS.
 
@@ -2501,7 +2501,7 @@
         if (!window.pdfjsLib) return false;
         if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
           pdfjsLib.GlobalWorkerOptions.workerSrc =
-            "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+            "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
         }
         return true;
       }
@@ -2845,7 +2845,7 @@
       }
 
       function __LF_parsearDatos(textoLineas, textoCompacto){
-        console.log('[PARSER v1765147200-UI-MEJORADA] 🚀 Iniciando parseo...');
+        console.log('[PARSER v1765147300-CLOUDFLARE-LIMPIO] 🚀 Iniciando parseo...');
         const textLines = String(textoLineas || '');
         const textCompact = String(textoCompacto || '');
 
