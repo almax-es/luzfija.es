@@ -596,27 +596,27 @@
 .upload-area.dragging{ border-color:var(--accent); transform:scale(1.02); }
 
 .confianza-badge{
-  padding:6px 12px; border-radius:999px;
-  font-weight:900; font-size:12px;
+  padding:5px 10px; border-radius:999px;
+  font-weight:900; font-size:11px;
   display:inline-block;
   border:1px solid var(--border);
-  margin-bottom:12px;
+  margin-bottom:0;
 }
 .confianza-badge.alta{ background:rgba(34,197,94,.18); color:var(--accent2); border-color:var(--accent2); }
 .confianza-badge.media{ background:rgba(245,158,11,.18); color:var(--warn); border-color:var(--warn); }
 .confianza-badge.baja{ background:rgba(239,68,68,.18); color:var(--danger); border-color:var(--danger); }
 
-.input-validacion{ position:relative; margin-bottom:10px; }
-.input-validacion .check,.input-validacion .warning{ position:absolute; right:10px; top:32px; font-size:16px; }
-.input-validacion label{ margin-bottom:4px; }
-.input-validacion input{ padding:10px 32px 10px 10px; min-height:40px; font-size:14px; }
+.input-validacion{ position:relative; margin-bottom:8px; }
+.input-validacion .check,.input-validacion .warning{ position:absolute; right:10px; top:30px; font-size:16px; }
+.input-validacion label{ margin-bottom:3px; font-size:11px; }
+.input-validacion input{ padding:9px 30px 9px 9px; min-height:38px; font-size:13px; }
 .input-validacion.detectado input{ border-color:var(--accent2); background:rgba(34,197,94,.05); }
 .input-validacion.no-detectado input{ border-color:var(--warn); background:rgba(245,158,11,.05); }
 .input-validacion.err input{ border-color:var(--danger); background:rgba(239,68,68,.06); }
 
-#modalFactura .body{ padding:14px; }
-#modalFactura .head{ padding:14px 14px 12px 14px; }
-#modalFactura .help{ margin-top:12px; padding:10px; font-size:11px; }
+#modalFactura .body{ padding:12px; }
+#modalFactura .head{ padding:12px 12px 10px 12px; }
+#modalFactura .help{ margin-top:10px; padding:8px; font-size:10px; line-height:1.3; }
 
 @keyframes __lf_slideUp{
   from{ transform:translateY(10px); opacity:.6; }
@@ -1009,25 +1009,25 @@
 
         <div id="avisoFactura" class="help" style="display:none; margin-top:14px"></div>
 
-        <div id="resultadoFactura" style="display:none; margin-top:12px">
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:8px">
+        <div id="resultadoFactura" style="display:none; margin-top:10px">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:6px">
             <div class="confianza-badge" id="confianzaBadge">--</div>
             <button class="btn" id="btnOcrFactura" type="button" style="display:none" aria-label="OCR experimental">
               🧠 OCR (experimental)
             </button>
           </div>
 
-          <h3 style="margin:10px 0 4px; font-size:15px">Datos detectados</h3>
-          <p style="color:var(--muted); font-size:12px; margin-bottom:10px">Verifica y corrige antes de aplicar:</p>
+          <h3 style="margin:8px 0 3px; font-size:14px">Datos detectados</h3>
+          <p style="color:var(--muted); font-size:11px; margin-bottom:8px">Verifica y corrige antes de aplicar:</p>
           <div id="formValidacionFactura"></div>
 
-          <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap">
+          <div style="display:flex; gap:10px; margin-top:12px; flex-wrap:wrap">
             <button class="btn primary" id="btnAplicarFactura" type="button">✅ Aplicar datos</button>
             <button class="btn" id="btnCancelarFactura" type="button">❌ Cancelar</button>
           </div>
         </div>
 
-        <div class="help" style="margin-top:12px">
+        <div class="help" style="margin-top:10px">
           🔒 <strong>Privacidad total:</strong> el PDF se procesa en tu navegador. No se sube ni se guarda nada.
           <br>📊 Analítica: esta web usa Cloudflare Web Analytics (sin cookies) para contar visitas de forma agregada.
         </div>
@@ -1915,17 +1915,28 @@
       });
     }
 
+    function formatValueForDisplay(val) {
+      // Convierte valores numéricos para mostrar con coma
+      if (val == null || val === '') return val;
+      const str = String(val);
+      // Si ya tiene coma, dejarlo
+      if (str.includes(',')) return str;
+      // Si tiene punto, convertir a coma
+      if (str.includes('.')) return str.replace('.', ',');
+      return str;
+    }
+
     function loadInputs() {
       if (Object.keys(SERVER_PARAMS).length > 0) {
         const d = Object.assign({}, DEFAULTS, SERVER_PARAMS);
-        for(const k in DEFAULTS) el.inputs[k].value = d[k];
+        for(const k in DEFAULTS) el.inputs[k].value = formatValueForDisplay(d[k]);
         updateKwhHint();
         return;
       }
       let savedData = {};
       try { const r = localStorage.getItem(LS_KEY); if (r) savedData = JSON.parse(r); } catch(e){}
       const finalData = { ...DEFAULTS, ...savedData };
-      for (const k in DEFAULTS) el.inputs[k].value = finalData[k];
+      for (const k in DEFAULTS) el.inputs[k].value = formatValueForDisplay(finalData[k]);
       updateKwhHint();
     }
 
@@ -1937,7 +1948,7 @@
     }
 
     function resetInputs(){
-      for(const k in DEFAULTS)el.inputs[k].value=DEFAULTS[k];
+      for(const k in DEFAULTS)el.inputs[k].value=formatValueForDisplay(DEFAULTS[k]);
       saveInputs();
       updateKwhHint();
       clearErrorStyles();
@@ -2452,8 +2463,8 @@
           /\d{2}-\d{2}-\d{4}\s+a\s+\d{2}-\d{2}-\d{4}\s+\(\s*(\d{1,3})\s*d[ií]as?\s*\)/i,
           /consumo\s+periodo\s*:\s*(\d{1,3})\s*d[ií]as?\b/i,
           /\*\s*(\d{1,3})\s*d[ií]as?\b/i,
-          /d[ií]as\s+facturados\s*:\s*(\d{1,3})\b/i,
-          /x\s*(\d{1,3})\s*d[ií]as?\s*x\b/i  // Enérgya VM: "x 31 días x"
+          /d[ií]as\s*facturados\s*[:\-]?\s*(\d{1,3})\b/i,  // Iberdrola: "DIAS FACTURADOS: 24"
+          /x\s*(\d{1,3})\s*d[ií]as?\s*x/i  // Enérgya VM: "x 31 días x"
         ], 1, 200);
 
         if ((dias == null || dias <= 0) && fIni && fFin){
@@ -2862,7 +2873,10 @@
           return;
         }
 
-        const set = (id, val) => { const el = document.getElementById(id); if (el) el.value = String(val).replace(',', '.'); };
+        const set = (id, val) => { 
+          const el = document.getElementById(id); 
+          if (el) el.value = String(val).replace('.', ','); 
+        };
         set('p1', v.p1);
         set('p2', v.p2);
         set('dias', v.dias);
