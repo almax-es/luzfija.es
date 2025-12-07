@@ -248,8 +248,12 @@
     #zonaFiscal option,
     #zonaFiscal option:checked,
     #zonaFiscal option:hover,
-    #zonaFiscal:focus option{ color: var(--text) !important; background-color: var(--bg1); }
-    #zonaFiscal option:checked, #zonaFiscal option:hover{ background-color: var(--card2); }
+    #zonaFiscal option:focus,
+    #zonaFiscal option:active,
+    #zonaFiscal:focus option{
+      color: var(--text) !important;
+      background-color: var(--bg1) !important;
+    }
     /* Forzar el color de texto en el selector de zona fiscal y sus opciones */
     #zonaFiscal,
     #zonaFiscal option{
