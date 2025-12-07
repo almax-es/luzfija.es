@@ -2704,7 +2704,7 @@
         if (t.includes('octopus')) return 'octopus';  // Antes de energya
         if (t.includes('visalia')) return 'visalia';
         if (t.includes('plenitude') || t.includes('eni')) return 'plenitude';
-        if (t.includes('energía xxi') || t.includes('energia xxi')) return 'energiaxxi';
+        if (t.includes('energía xxi') || t.includes('energia xxi') || t.includes('energiaxxi')) return 'energiaxxi';
         if (t.includes('enérgya vm') || t.includes('energya vm') || t.includes('energya-vm')) return 'energyavm';
         
         return 'generico';
@@ -2791,7 +2791,7 @@
       }
 
       function __LF_parsearDatos(textoLineas, textoCompacto){
-        console.log('[PARSER v1765144500-FINAL] Iniciando parseo...');
+        console.log('[PARSER v1765145000-ENERGIAXXI-FIX] Iniciando parseo...');
         const textLines = String(textoLineas || '');
         const textCompact = String(textoCompacto || '');
 
