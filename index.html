@@ -854,6 +854,10 @@
           </div>
 
           <div class="help" id="pvpcInfo" style="display:none; margin-top:0; margin-bottom: 12px;"></div>
+          <div id="pvpc-warning-canarias-potencia"
+               style="display:none; margin-top:6px; font-size:12px; line-height:1.2; opacity:.95; color:#FACC15;">
+            ⚠ PVPC no calculable: en Canarias (vivienda) con potencia &gt; 10&nbsp;kW la CNMC no permite este cálculo.
+          </div>
 
           <div class="chartTop fade-container" id="chartTop">
             <div class="chartTop-header">
@@ -1123,6 +1127,7 @@
     const pvpcInFlight = new Map();
     let pvpcLastMeta = null;
     let pvpcErrorShown = false;
+    let pvpcCasoInvalidoCanariasViviendaPotAlta = false;
 
     // Helper robusto: soporta número, "3.45", "3,45", "1.234,56", "1,234.56" y entradas con separadores repetidos
     function asNumber(v, fallback = 0) {
@@ -1399,8 +1404,15 @@
       const cPunta = Math.max(0, asNumber(values?.cPunta, 0));      // clamp >= 0
       const cLlano = Math.max(0, asNumber(values?.cLlano, 0));      // clamp >= 0
       const cValle = Math.max(0, asNumber(values?.cValle, 0));      // clamp >= 0
-      const zonaFiscal = values?.zonaFiscal === 'Canarias' ? 'Canarias' : 'Península';
-      const viviendaCanarias = zonaFiscal === 'Canarias' && Boolean(values?.viviendaCanarias);
+      const fiscal = typeof __LF_getFiscalContext === 'function'
+        ? __LF_getFiscalContext(values)
+        : { zona: (values?.zonaFiscal || '').toLowerCase() === 'canarias' ? 'canarias' : 'península', viviendaMarcada: Boolean(values?.viviendaCanarias), potenciaContratada: Math.max(clampNonNeg(parseNum(values?.p1)), clampNonNeg(parseNum(values?.p2))) };
+      const esCanarias = (fiscal?.zona === 'canarias');
+      const viviendaMarcada = Boolean(fiscal?.viviendaMarcada);
+      const potenciaContratada = Number(fiscal?.potenciaContratada || 0);
+      pvpcCasoInvalidoCanariasViviendaPotAlta = esCanarias && viviendaMarcada && potenciaContratada > 10;
+      const zonaFiscal = esCanarias ? 'Canarias' : 'Península';
+      const viviendaCanarias = esCanarias && viviendaMarcada;
 
       const periodo = buildPvpcPeriodo(dias);
 
@@ -1428,7 +1440,7 @@
         consumo2: String(Math.round(cLlano)),
         consumo3: String(Math.round(cValle)),
 
-        vivienda: viviendaCanarias ? 'true' : 'false',
+        vivienda: viviendaMarcada ? 'true' : 'false',
         tarifa: '4', // 2.0TD
         calculoAntiguo: 'false',
         autoconsumo: 'false',
@@ -1520,13 +1532,30 @@
     }
 
     async function crearTarifaPVPC(values){
+      const fiscal = typeof __LF_getFiscalContext === 'function'
+        ? __LF_getFiscalContext(values)
+        : { zona: (values?.zonaFiscal || '').toLowerCase() === 'canarias' ? 'canarias' : 'península', viviendaMarcada: Boolean(values?.viviendaCanarias), potenciaContratada: Math.max(clampNonNeg(parseNum(values?.p1)), clampNonNeg(parseNum(values?.p2))) };
+      const esCanarias = (fiscal?.zona === 'canarias');
+      const viviendaMarcada = Boolean(fiscal?.viviendaMarcada);
+      const potenciaContratada = Number(fiscal?.potenciaContratada || 0);
+      pvpcCasoInvalidoCanariasViviendaPotAlta = esCanarias && viviendaMarcada && potenciaContratada > 10;
+
       const signature=pvpcSignatureFromValues(values);
       if(pvpcInFlight.has(signature)) return pvpcInFlight.get(signature);
 
       const cached=readPvpcCacheEntry(signature);
       if(cached && cached.tarifa){
         pvpcLastMeta=cached.meta||null;
-        return cached.tarifa;
+        const tarifaCached = { ...cached.tarifa };
+        tarifaCached.pvpcWarning = pvpcCasoInvalidoCanariasViviendaPotAlta;
+        tarifaCached.pvpcNotComputable = pvpcCasoInvalidoCanariasViviendaPotAlta;
+        if(pvpcCasoInvalidoCanariasViviendaPotAlta){
+          tarifaCached.totalNum = Number.POSITIVE_INFINITY;
+          tarifaCached.total = '—';
+          tarifaCached.impuestos = '—';
+          tarifaCached.impuestosNum = Number.POSITIVE_INFINITY;
+        }
+        return tarifaCached;
       }
 
       const p=(async()=>{
@@ -1545,6 +1574,8 @@
             cValle:parsed.precioValle||0,
             web:'https://facturaluz2.cnmc.es/',
             esPVPC:true,
+            pvpcWarning: pvpcCasoInvalidoCanariasViviendaPotAlta,
+            pvpcNotComputable: pvpcCasoInvalidoCanariasViviendaPotAlta,
             metaPvpc:{
               terminoFijo:parsed.terminoFijo,
               terminoVariable:parsed.terminoVariable,
@@ -1555,6 +1586,13 @@
               totalFactura:parsed.totalFactura
             }
           };
+
+          if(pvpcCasoInvalidoCanariasViviendaPotAlta){
+            tarifa.totalNum = Number.POSITIVE_INFINITY;
+            tarifa.total = '—';
+            tarifa.impuestos = '—';
+            tarifa.impuestosNum = Number.POSITIVE_INFINITY;
+          }
 
           pvpcLastMeta={
             precioPunta:parsed.precioPunta,
@@ -1875,6 +1913,20 @@
 
     function clampNonNeg(n){ return Math.max(0, Number(n) || 0); }
 
+    function __LF_getFiscalContext(values){
+      const v = values || getInputValues();
+      const zona = (v?.zonaFiscal || '').toLowerCase() === 'canarias' ? 'canarias' : 'península';
+      const p1Num = clampNonNeg(parseNum(v?.p1));
+      const p2Num = clampNonNeg(parseNum(v?.p2));
+      const potenciaContratada = Math.max(p1Num || 0, p2Num || 0);
+      const esCanarias = (zona === 'canarias');
+      const viviendaMarcada = Boolean(v?.viviendaCanarias);
+      const esViviendaTipoCero = esCanarias && viviendaMarcada && potenciaContratada > 0 && potenciaContratada <= 10;
+      const usoFiscal = esViviendaTipoCero ? 'vivienda' : 'otros';
+
+      return { zona, viviendaMarcada, potenciaContratada, esViviendaTipoCero, usoFiscal };
+    }
+
     function getInputValues() {
       const p1 = clampNonNeg(parseNum(el.inputs.p1.value));
       const p2 = clampNonNeg(parseNum(el.inputs.p2.value));
@@ -1893,11 +1945,29 @@
 
     function calculateLocal(values) {
       const { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias } = values || getInputValues();
-      const isCanarias = zonaFiscal === 'Canarias';
+      const fiscal = typeof __LF_getFiscalContext === 'function'
+        ? __LF_getFiscalContext({ p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias })
+        : { zona: (zonaFiscal || '').toLowerCase() === 'canarias' ? 'canarias' : 'península', viviendaMarcada: Boolean(viviendaCanarias), potenciaContratada: Math.max(clampNonNeg(parseNum(p1)), clampNonNeg(parseNum(p2))), esViviendaTipoCero: false, usoFiscal: Boolean(viviendaCanarias) ? 'vivienda' : 'otros' };
+      const isCanarias = fiscal.zona === 'canarias';
       if(!cachedTarifas.length) return;
 
       const resultados = cachedTarifas.map((t, index) => {
         if (t.esPVPC && t.metaPvpc) {
+          if (t.pvpcNotComputable) {
+            return {
+              ...t,
+              posicion: index + 1,
+              potenciaNum: Number.POSITIVE_INFINITY,
+              potencia: '—',
+              consumoNum: Number.POSITIVE_INFINITY,
+              consumo: '—',
+              impuestosNum: Number.POSITIVE_INFINITY,
+              impuestos: '—',
+              totalNum: Number.POSITIVE_INFINITY,
+              total: '—',
+              webUrl: t.web
+            };
+          }
           const m = t.metaPvpc;
           const potenciaNum = m.terminoFijo;
           const consumoNum = m.terminoVariable;
@@ -1924,15 +1994,15 @@
         const sumaBase = pot + cons + tarifaAcceso;
         const impuestoElec = Math.max((5.11269632 / 100) * sumaBase, (cPunta + cLlano + cValle) * 0.001);
         const margen = dias * 0.026667;
-        const subtotal = sumaBase + impuestoElec + margen;
+        const baseEnergia = sumaBase + margen;
+        const subtotal = baseEnergia + impuestoElec;
 
         if (isCanarias) {
           const alquilerContador = dias * (0.81 / 30);
-          const igicBaseRate = viviendaCanarias ? 0 : 0.03;
-          const igicBase = subtotal * igicBaseRate;
+          const igicBase = fiscal.usoFiscal === 'vivienda' ? 0 : (baseEnergia + impuestoElec) * 0.03;
           const igicContador = alquilerContador * 0.07;
           const impuestosNum = impuestoElec + igicBase + igicContador;
-          const totalNum = subtotal + alquilerContador + igicBase + igicContador;
+          const totalNum = baseEnergia + impuestoElec + igicBase + igicContador + alquilerContador;
           return {
             ...t,
             posicion: index + 1,
@@ -1963,24 +2033,26 @@
 
       resultados.sort((a, b) => a.totalNum - b.totalNum);
 
-      const bestPrice = resultados[0].totalNum;
+      const firstValida = resultados.find(r => Number.isFinite(r.totalNum)) || resultados[0];
+      const bestPrice = firstValida ? firstValida.totalNum : 0;
       const processed = resultados.map((r, i) => {
-        const diff = r.totalNum - bestPrice;
+        const esMejor = firstValida ? r === firstValida : i === 0;
+        const diff = (Number.isFinite(r.totalNum) && Number.isFinite(bestPrice)) ? (r.totalNum - bestPrice) : Number.POSITIVE_INFINITY;
         return {
-          ...r, posicion: i + 1, esMejor: i === 0,
-          vsMejorNum: diff, vsMejor: i === 0 ? '—' : '+' + formatMoney(diff)
+          ...r, posicion: i + 1, esMejor,
+          vsMejorNum: diff, vsMejor: esMejor ? '—' : (Number.isFinite(diff) ? '+' + formatMoney(diff) : '—')
         };
       });
 
-      const prices = processed.map(r => r.totalNum);
-      const min = Math.min(...prices);
-      const max = Math.max(...prices);
-      const avg = prices.reduce((a,b)=>a+b,0) / prices.length;
+      const preciosValidos = processed.filter(r => Number.isFinite(r.totalNum)).map(r => r.totalNum);
+      const min = preciosValidos.length ? Math.min(...preciosValidos) : null;
+      const max = preciosValidos.length ? Math.max(...preciosValidos) : null;
+      const avg = preciosValidos.length ? (preciosValidos.reduce((a,b)=>a+b,0) / preciosValidos.length) : null;
 
       renderAll({
         success: true,
-        resumen: { mejor: processed[0].nombre, precio: formatMoney(processed[0].totalNum) },
-        stats: { precioMin: formatMoney(min), precioMax: formatMoney(max), precioMedio: formatMoney(avg) },
+        resumen: { mejor: firstValida ? firstValida.nombre : (processed[0]?.nombre || '—'), precio: (firstValida && Number.isFinite(firstValida.totalNum)) ? formatMoney(firstValida.totalNum) : '—' },
+        stats: preciosValidos.length ? { precioMin: formatMoney(min), precioMax: formatMoney(max), precioMedio: formatMoney(avg) } : null,
         resultados: processed
       });
     }
@@ -2175,9 +2247,10 @@
           const w = r.webUrl
             ? `<a class="web" href="${escapeHtml(r.webUrl)}" target="_blank" rel="noopener" title="Abrir web">🔗</a>`
             : '';
+          const nombreDisplay = `${r.nombre || ''}${r.pvpcWarning ? ' ⚠' : ''}`;
           tr.innerHTML =
             `<td>${escapeHtml(r.posicion)}</td>`+
-            `<td title="${escapeHtml(r.nombre)}">${escapeHtml(r.nombre)}</td>`+
+            `<td title="${escapeHtml(nombreDisplay)}">${escapeHtml(nombreDisplay)}</td>`+
             `<td>${escapeHtml(r.potencia)}</td>`+
             `<td>${escapeHtml(r.consumo)}</td>`+
             `<td>${escapeHtml(r.impuestos)}</td>`+
@@ -2198,7 +2271,7 @@
       const body = document.getElementById('chartTopBody');
       if (!c || !body) return;
 
-      const rows = state.rows || [];
+      const rows = (state.rows || []).filter(r => !r.pvpcNotComputable);
       if (!rows.length) {
         c.classList.remove('show');
         body.innerHTML = '';
@@ -2238,6 +2311,11 @@
     function renderPvpcInfo(){
       const div = el.pvpcInfo;
       if(!div) return;
+
+      const warningEl = document.getElementById('pvpc-warning-canarias-potencia');
+      if (warningEl) {
+        warningEl.style.display = pvpcCasoInvalidoCanariasViviendaPotAlta ? 'block' : 'none';
+      }
 
       if(!pvpcLastMeta){
         div.style.display='none';
