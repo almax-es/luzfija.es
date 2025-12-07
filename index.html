@@ -2704,7 +2704,7 @@
       }
 
       function __LF_parsearDatos(textoLineas, textoCompacto){
-        console.log('[PARSER v1765142600-v9-DEBUG-PATRONES-P1] Iniciando parseo...');
+        console.log('[PARSER v1765142700-v10-FIX-P1P2] Iniciando parseo...');
         const textLines = String(textoLineas || '');
         const textCompact = String(textoCompacto || '');
 
@@ -2758,7 +2758,7 @@
         // --- Potencias (kW) ---
         const patronesP1 = [
           /potencia\s*contratada[^\n]{0,80}\b(?:p1|punta)\b[^0-9]{0,60}([0-9][0-9\.,]*)\s*kw\b/i,
-          /\b(?:p1|punta|periodo\s*1)[:\s]*([0-9][0-9\.,]*)\s*kw\b/i,
+          /\b(?:p1|punta)[:\s]+([0-9][0-9\.,]*)\s*(?:kw\b|P2|p2)/i,  // P1: 4,50 (seguido de kW o P2)
           /potencia\s*(?:facturada)?[^\n]{0,80}\b(?:p1|punta|periodo\s*1)\b[^0-9]{0,60}([0-9][0-9\.,]*)\s*kw\b/i,
           /\bpotencia\b[^\n]{0,120}([0-9][0-9\.,]*)\s*kw\b[^\n]{0,60}\b(?:p1|punta|periodo\s*1)\b/i
         ];
@@ -2785,7 +2785,7 @@
 
         const p2 = __LF_extraerNumero(tAll, [
           /potencia\s*contratada[^\n]{0,80}\b(?:p2|valle)\b[^0-9]{0,60}([0-9][0-9\.,]*)\s*kw\b/i,
-          /\b(?:p2|valle|periodo\s*2)[:\s]*([0-9][0-9\.,]*)\s*kw\b/i,
+          /\b(?:p2|valle)[:\s]+([0-9][0-9\.,]*)\s*kw\b/i,  // P2: 4,50 kW
           /potencia\s*(?:facturada)?[^\n]{0,80}\b(?:p2|valle|periodo\s*2)\b[^0-9]{0,60}([0-9][0-9\.,]*)\s*kw\b/i,
           /\bpotencia\b[^\n]{0,120}([0-9][0-9\.,]*)\s*kw\b[^\n]{0,60}\b(?:p2|valle|periodo\s*2)\b/i
         ], 0.1, 40);
