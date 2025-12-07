@@ -943,8 +943,9 @@
             <div style="font-size:11px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted2); font-weight:900; margin-bottom:6px;">
               ✉️ Email
             </div>
-            <a href="/cdn-cgi/l/email-protection#92fafdfef3d2fee7e8f4fbf8f3bcf7e1" style="color:var(--accent); font-weight:900; text-decoration:underline; font-size:13px;">
-              <span class="__cf_email__" data-cfemail="40282f2c21002c353a26292a216e2533">[email&#160;protected]</span>
+            <a href="mailto:hola@luzfija.es"
+               style="color:var(--accent); font-weight:900; text-decoration:underline; font-size:13px;">
+              hola@luzfija.es
             </a>
             <div style="margin-top:8px; font-size:11px; color:var(--muted2); line-height:1.4;">
               Respondo en cuanto puedo (proyecto gratuito).
@@ -1077,8 +1078,7 @@
     // NOTA: La API de la CNMC tiene CORS bloqueado desde dominios externos.
     // Para habilitar PVPC en producción:
     // 1) Crea un proxy (ej. Cloudflare Worker) que añada Access-Control-Allow-Origin:*
-    // 2) Define window.PVPC_PROXY_URL en el HTML ANTES de este script, por ejemplo:
-    //       window.PVPC_PROXY_URL = "https://tu-worker.workers.dev/?url=";  // ideal que termine en ?url=
+    // 2) Define window.PVPC_PROXY_URL en el HTML ANTES de este script.
     // 3) El comparador usará automáticamente ese proxy cuando el fetch directo falle por CORS.
 
     const PVPC_CACHE_PREFIX = 'pvpc_cache_v1';
