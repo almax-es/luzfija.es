@@ -2705,7 +2705,10 @@
         if (t.includes('visalia')) return 'visalia';
         if (t.includes('energía xxi') || t.includes('energia xxi') || t.includes('energiaxxi')) return 'energiaxxi';  // ANTES de plenitude
         if (t.includes('plenitude') || t.includes('eni')) return 'plenitude';
-        if (t.includes('enérgya vm') || t.includes('energya vm') || t.includes('energya-vm')) return 'energyavm';
+        // Enérgya VM: múltiples variantes
+        if (t.includes('enérgya vm') || t.includes('energya vm') || t.includes('energya-vm') || 
+            t.includes('enérgya') || t.includes('energyavm') || 
+            (t.includes('energ') && t.includes('gestión'))) return 'energyavm';
         
         return 'generico';
       }
@@ -2791,7 +2794,7 @@
       }
 
       function __LF_parsearDatos(textoLineas, textoCompacto){
-        console.log('[PARSER v1765145100-ORDEN-DETECCION] Iniciando parseo...');
+        console.log('[PARSER v1765146000-ENERGYAVM-UNIVERSAL] Iniciando parseo...');
         const textLines = String(textoLineas || '');
         const textCompact = String(textoCompacto || '');
 
