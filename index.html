@@ -2611,11 +2611,15 @@
         return { textLines, textCompact, textRawLen: (textCompact || '').length };
       }
 
-      function __LF_extraerNumero(texto, patrones, min, max){
+      function __LF_extraerNumero(texto, patrones, min, max, debugLabel){
         const hits = [];
-        for (const re of patrones){
+        const debugMatches = []; // Para logging
+        
+        for (let i = 0; i < patrones.length; i++){
+          const re = patrones[i];
           const r = new RegExp(re.source, re.flags.includes('g') ? re.flags : (re.flags + 'g'));
           let m;
+          let patternHits = 0;
           while ((m = r.exec(texto)) !== null){
             const raw = m[1] ?? m[0];
             const n = __LF_normNum(raw);
@@ -2623,9 +2627,26 @@
             if (min != null && n < min) continue;
             if (max != null && n > max) continue;
             hits.push(n);
+            patternHits++;
+            
+            // Guardar match para debug
+            if (debugLabel && patternHits === 1) {
+              const contextStart = Math.max(0, m.index - 30);
+              const contextEnd = Math.min(texto.length, m.index + m[0].length + 30);
+              const context = texto.substring(contextStart, contextEnd).replace(/\s+/g, ' ');
+              debugMatches.push({
+                pattern: i,
+                value: n,
+                context: '...' + context + '...'
+              });
+            }
           }
         }
-        if (!hits.length) return null;
+        
+        if (!hits.length) {
+          if (debugLabel) console.log(`[DEBUG ${debugLabel}] ❌ No matches encontrados en ${patrones.length} patrones`);
+          return null;
+        }
 
         const freq = new Map();
         for (const n of hits){
@@ -2636,7 +2657,19 @@
         for (const [k,c] of freq.entries()){
           if (c > bestCount){ bestCount = c; best = parseFloat(k); }
         }
-        return Number.isFinite(best) ? best : hits[0];
+        
+        const result = Number.isFinite(best) ? best : hits[0];
+        
+        if (debugLabel && debugMatches.length > 0) {
+          console.log(`[DEBUG ${debugLabel}] ✅ Match encontrado:`, {
+            valor: result,
+            totalMatches: hits.length,
+            frecuencia: bestCount,
+            primerMatch: debugMatches[0]
+          });
+        }
+        
+        return result;
       }
 
       // FIX: extraer triple consumo explícito "Consumo en el periodo"
@@ -2644,23 +2677,49 @@
         if (!texto) return null;
         const t = String(texto);
 
-        // Caso típico: "Punta ... 100 kWh  Llano ... 200 kWh  Valle ... 300 kWh" (en la misma línea o en varias)
+        // PATRONES UNIVERSALES ULTRA-ROBUSTOS: Punta/P1
         const p = __LF_extraerNumero(t, [
           /(?:\bpunta\b|\bp1\b|periodo\s*1)[^0-9]{0,40}([0-9][0-9\.,]*)\s*kwh\b/i,
           /energ[ií]a[^\n]{0,80}(?:\bpunta\b|\bp1\b|periodo\s*1)[^0-9]{0,40}([0-9][0-9\.,]*)\s*kwh\b/i,
-          /consumo[^\n]{0,80}(?:\bpunta\b|\bp1\b|periodo\s*1)[^0-9]{0,40}([0-9][0-9\.,]*)\s*kwh\b/i
+          /consumo[^\n]{0,80}(?:\bpunta\b|\bp1\b|periodo\s*1)[^0-9]{0,40}([0-9][0-9\.,]*)\s*kwh\b/i,
+          /\b(?:punta|p1)[:\s]+([0-9][0-9\.,]*)\s*kwh\b/i,
+          /\b(?:punta|p1)[:\s]+([0-9][0-9\.,]*)\b[^\d]{0,10}kwh/i,
+          /consumo\s*(?:activa|total)?[^\n]{0,80}p1[^\d]{0,20}([0-9][0-9\.,]*)/i,
+          // NUEVOS BRUTALES
+          /\bp1\b[^\d]{0,50}([0-9][0-9\.,]+)\s*kwh/i,  // "P1 ... 100 kWh"
+          /punta[^\d]{0,50}([0-9][0-9\.,]+)\s*kwh/i,  // "Punta ... 100 kWh"
+          /activa[^\n]{0,80}p1[^\d]{0,40}([0-9][0-9\.,]*)/i,  // "activa ... P1 ... 100"
+          /\bp1[^\n]{0,100}kwh[^\d]{0,30}([0-9][0-9\.,]+)/i  // "P1 ... kWh ... 100"
         ], 0, 1000000);
 
+        // PATRONES UNIVERSALES ULTRA-ROBUSTOS: Llano/P2
         const l = __LF_extraerNumero(t, [
           /(?:\bllano\b|\bp2\b|periodo\s*2)[^0-9]{0,40}([0-9][0-9\.,]*)\s*kwh\b/i,
           /energ[ií]a[^\n]{0,80}(?:\bllano\b|\bp2\b|periodo\s*2)[^0-9]{0,40}([0-9][0-9\.,]*)\s*kwh\b/i,
-          /consumo[^\n]{0,80}(?:\bllano\b|\bp2\b|periodo\s*2)[^0-9]{0,40}([0-9][0-9\.,]*)\s*kwh\b/i
+          /consumo[^\n]{0,80}(?:\bllano\b|\bp2\b|periodo\s*2)[^0-9]{0,40}([0-9][0-9\.,]*)\s*kwh\b/i,
+          /\b(?:llano|p2)[:\s]+([0-9][0-9\.,]*)\s*kwh\b/i,
+          /\b(?:llano|p2)[:\s]+([0-9][0-9\.,]*)\b[^\d]{0,10}kwh/i,
+          /consumo\s*(?:activa|total)?[^\n]{0,80}p2[^\d]{0,20}([0-9][0-9\.,]*)/i,
+          // NUEVOS BRUTALES
+          /\bp2\b[^\d]{0,50}([0-9][0-9\.,]+)\s*kwh/i,
+          /llano[^\d]{0,50}([0-9][0-9\.,]+)\s*kwh/i,
+          /activa[^\n]{0,80}p2[^\d]{0,40}([0-9][0-9\.,]*)/i,
+          /\bp2[^\n]{0,100}kwh[^\d]{0,30}([0-9][0-9\.,]+)/i
         ], 0, 1000000);
 
+        // PATRONES UNIVERSALES ULTRA-ROBUSTOS: Valle/P3
         const v = __LF_extraerNumero(t, [
           /(?:\bvalle\b|\bp3\b|periodo\s*3)[^0-9]{0,40}([0-9][0-9\.,]*)\s*kwh\b/i,
           /energ[ií]a[^\n]{0,80}(?:\bvalle\b|\bp3\b|periodo\s*3)[^0-9]{0,40}([0-9][0-9\.,]*)\s*kwh\b/i,
-          /consumo[^\n]{0,80}(?:\bvalle\b|\bp3\b|periodo\s*3)[^0-9]{0,40}([0-9][0-9\.,]*)\s*kwh\b/i
+          /consumo[^\n]{0,80}(?:\bvalle\b|\bp3\b|periodo\s*3)[^0-9]{0,40}([0-9][0-9\.,]*)\s*kwh\b/i,
+          /\b(?:valle|p3)[:\s]+([0-9][0-9\.,]*)\s*kwh\b/i,
+          /\b(?:valle|p3)[:\s]+([0-9][0-9\.,]*)\b[^\d]{0,10}kwh/i,
+          /consumo\s*(?:activa|total)?[^\n]{0,80}p3[^\d]{0,20}([0-9][0-9\.,]*)/i,
+          // NUEVOS BRUTALES
+          /\bp3\b[^\d]{0,50}([0-9][0-9\.,]+)\s*kwh/i,
+          /valle[^\d]{0,50}([0-9][0-9\.,]+)\s*kwh/i,
+          /activa[^\n]{0,80}p3[^\d]{0,40}([0-9][0-9\.,]*)/i,
+          /\bp3[^\n]{0,100}kwh[^\d]{0,30}([0-9][0-9\.,]+)/i
         ], 0, 1000000);
 
         if (p != null && l != null && v != null){
@@ -2668,7 +2727,6 @@
         }
 
         // Tablas donde solo aparece "Energía (kWh)" una vez y luego valores por columnas (P1 P2 P3)
-        // Intento: encontrar una línea con 3 números cerca de "kWh" y con etiquetas P1/P2/P3 o Punta/Llano/Valle
         const lines = t.split(/\r?\n/).map(x=>x.trim()).filter(Boolean);
         for (const line of lines){
           const low = line.toLowerCase();
@@ -2794,7 +2852,7 @@
       }
 
       function __LF_parsearDatos(textoLineas, textoCompacto){
-        console.log('[PARSER v1765146000-ENERGYAVM-UNIVERSAL] Iniciando parseo...');
+        console.log('[PARSER v1765147000-FALLBACK-INFINITO] 🚀 Iniciando parseo...');
         const textLines = String(textoLineas || '');
         const textCompact = String(textoCompacto || '');
 
@@ -2824,25 +2882,49 @@
         // Intentar extracción específica por compañía primero
         let dias = __LF_extraerDiasCompania(tAll, compania);
         
-        // Si no se detectó o es genérico, usar patrones universales
+        // Si no se detectó o es genérico, usar patrones universales ULTRA-ROBUSTOS
         if (dias == null) {
           dias = __LF_extraerNumero(tAll, [
-          /d[i\u00ed\u00cc]as?\s*facturados?.{0,100}?(\d{1,3})\b/i,  // Iberdrola ultra-permisivo (cualquier char con lazy match)
+          // Patrones base probados
+          /d[i\u00ed\u00cc]as?\s*facturados?.{0,100}?(\d{1,3})\b/i,  // Iberdrola ultra-permisivo
           /d[ií]as\s*(?:facturables|facturados|de\s*facturaci[oó]n|de\s*periodo|del\s*periodo|total)\s*[:\-]?\s*(\d{1,3})\b/i,
           /\btotal\s*d[ií]as\b[^0-9]{0,10}(\d{1,3})\b/i,
           /\b(\d{1,3})\s*d[ií]as\b\s*(?:de\s*facturaci[oó]n|facturados)\b/i,
-          /\(\s*(\d{1,3})\s*d[ií]as?\s*\)/i,
+          
+          // Paréntesis y formato especial
+          /\(\s*(\d{1,3})\s*d[ií]as?\s*\)/i,  // (31 días)
           /periodo[^)]{0,80}\(\s*(\d{1,3})\s*d[ií]as?\s*\)/i,
-          /\b(\d{1,3})\s*d[ií]a\(s\)/i,
+          /\b(\d{1,3})\s*d[ií]a\(s\)/i,  // 31 día(s)
           /potencia[^\n]{0,120}(\d{1,3})\s*d[ií]a\(s\)/i,
-          /\d{2}-\d{2}-\d{4}\s+a\s+\d{2}-\d{2}-\d{4}\s+\(\s*(\d{1,3})\s*d[ií]as?\s*\)/i,
+          /\d{2}-\d{2}-\d{4}\s+a\s+\d{2}-\d{2}-\d{4}\s+\(\s*(\d{1,3})\s*d[ií]as?\s*\)/i,  // Octopus
+          
+          // Contextos específicos
           /consumo\s+periodo\s*:\s*(\d{1,3})\s*d[ií]as?\b/i,
           /\*\s*(\d{1,3})\s*d[ií]as?\b/i,
           /d[ií]as\s*facturados\s*[:\-]?\s*(\d{1,3})\b/i,
-          /x\s*(\d{1,3})\s*d[ií\u00cc].as?\s*x/i,  // Enérgya VM: "x 31 días x" (incluye Ì corrupto)
-          /(\d{1,3})d[ií\u00cc].as?\s*x/i,  // Enérgya VM variante: "31días x" (incluye Ì corrupto)
-          /x\s*(\d{1,3})\s*d.as?\s*x/i  // Fallback: cualquier carácter entre d y as
-        ], 1, 200);
+          
+          // Enérgya VM y encoding corrupto
+          /x\s*(\d{1,3})\s*d[ií\u00cc].as?\s*x/i,
+          /(\d{1,3})d[ií\u00cc].as?\s*x/i,
+          /x\s*(\d{1,3})\s*d.as?\s*x/i,
+          
+          // Variantes adicionales
+          /periodo\s*de\s*(?:consumo|facturaci[oó]n)[^\d]{0,50}(\d{1,3})\s*d[ií]as?\b/i,
+          /\bfactur[a-z]*\s*por\s*(\d{1,3})\s*d[ií]as?\b/i,
+          /\bd[ií]as?\s*de\s*consumo[:\s]*(\d{1,3})\b/i,
+          
+          // NUEVOS PATRONES BRUTALES
+          /\bd[ií]as?\b[^\d]{0,30}(\d{1,3})\b/i,  // "días" seguido de número en 30 chars
+          /(\d{1,3})\s*d[ií]as?\b/i,  // Número seguido de "días" (ultra genérico)
+          /duraci[oó]n[^\d]{0,40}(\d{1,3})\s*d[ií]as?\b/i,  // "duración ... 31 días"
+          /\bperiodo[:\s]+(\d{1,3})\s*d[ií]as?\b/i,  // "periodo: 31 días"
+          /factura[^\d]{0,60}(\d{1,3})\s*d[ií]as?\b/i,  // "factura ... 31 días"
+          /desde[^\n]{0,100}hasta[^\n]{0,50}\(\s*(\d{1,3})\s*d[ií]as?\)/i,  // "desde X hasta Y (31 días)"
+          /n[uú]mero\s*de\s*d[ií]as[:\s]*(\d{1,3})\b/i,  // "número de días: 31"
+          /alquiler[^\d]{0,80}(\d{1,3})\s*d[ií]as?\b/i,  // "alquiler ... 31 días"
+          /\b(\d{1,3})\b[^\d]{0,5}d\b/i,  // "31 d" (días abreviado)
+          /vigencia[^\d]{0,40}(\d{1,3})\s*d[ií]as?\b/i  // "vigencia ... 31 días"
+        ], 1, 200, 'DÍAS');  // ← ACTIVAR DEBUG
         }
         
         console.log('[DEBUG DÍAS] Compañía:', compania, '| Resultado:', dias);
@@ -2862,20 +2944,34 @@
           p2 = potenciasCompania.p2;
           console.log('[DEBUG POTENCIAS] Usando patrones específicos de', compania);
         } else {
-          // Fallback: patrones genéricos
+          // Fallback: patrones genéricos ULTRA-ROBUSTOS
           p1 = __LF_extraerNumero(tAll, [
             /potencia\s*contratada[^\n]{0,80}\b(?:p1|punta)\b[^0-9]{0,60}([0-9][0-9\.,]*)\s*kw\b/i,
             /\b(?:p1|punta|periodo\s*1)[:\s]*([0-9][0-9\.,]*)\s*kw\b/i,
             /potencia\s*(?:facturada)?[^\n]{0,80}\b(?:p1|punta|periodo\s*1)\b[^0-9]{0,60}([0-9][0-9\.,]*)\s*kw\b/i,
-            /\bpotencia\b[^\n]{0,120}([0-9][0-9\.,]*)\s*kw\b[^\n]{0,60}\b(?:p1|punta|periodo\s*1)\b/i
-          ], 0.1, 40);
+            /\bpotencia\b[^\n]{0,120}([0-9][0-9\.,]*)\s*kw\b[^\n]{0,60}\b(?:p1|punta|periodo\s*1)\b/i,
+            /\b(?:p1|punta)[:\s]+([0-9][0-9\.,]*)\b/i,  // P1: 3.45 (sin kW)
+            /periodo\s*(?:1|punta)[^\d]{0,50}([0-9][0-9\.,]*)\s*kw\b/i,
+            // NUEVOS BRUTALES
+            /pot[^\n]{0,50}\bp1\b[^\d]{0,40}([0-9][0-9\.,]*)/i,  // "pot ... P1 ... 3.45"
+            /\bp1[^\d]{0,30}([0-9][0-9\.,]*)\s*kw/i,  // "P1 ... 3.45 kW"
+            /punta[^\d]{0,40}([0-9][0-9\.,]*)\s*kw/i,  // "punta ... 3.45 kW"
+            /contratada[^\n]{0,80}p1[^\d]{0,40}([0-9][0-9\.,]*)/i  // "contratada ... P1 ... 3.45"
+          ], 0.1, 40, 'P1');
 
           p2 = __LF_extraerNumero(tAll, [
             /potencia\s*contratada[^\n]{0,80}\b(?:p2|valle)\b[^0-9]{0,60}([0-9][0-9\.,]*)\s*kw\b/i,
             /\b(?:p2|valle|periodo\s*2)[:\s]*([0-9][0-9\.,]*)\s*kw\b/i,
             /potencia\s*(?:facturada)?[^\n]{0,80}\b(?:p2|valle|periodo\s*2)\b[^0-9]{0,60}([0-9][0-9\.,]*)\s*kw\b/i,
-            /\bpotencia\b[^\n]{0,120}([0-9][0-9\.,]*)\s*kw\b[^\n]{0,60}\b(?:p2|valle|periodo\s*2)\b/i
-          ], 0.1, 40);
+            /\bpotencia\b[^\n]{0,120}([0-9][0-9\.,]*)\s*kw\b[^\n]{0,60}\b(?:p2|valle|periodo\s*2)\b/i,
+            /\b(?:p2|valle)[:\s]+([0-9][0-9\.,]*)\b/i,
+            /periodo\s*(?:2|valle|llano)[^\d]{0,50}([0-9][0-9\.,]*)\s*kw\b/i,
+            // NUEVOS BRUTALES
+            /pot[^\n]{0,50}\bp2\b[^\d]{0,40}([0-9][0-9\.,]*)/i,
+            /\bp2[^\d]{0,30}([0-9][0-9\.,]*)\s*kw/i,
+            /(?:valle|llano)[^\d]{0,40}([0-9][0-9\.,]*)\s*kw/i,
+            /contratada[^\n]{0,80}p2[^\d]{0,40}([0-9][0-9\.,]*)/i
+          ], 0.1, 40, 'P2');
         }
         
         console.log('[DEBUG POTENCIAS] P1:', p1, '| P2:', p2);
@@ -2886,27 +2982,52 @@
         let cPunta = null, cLlano = null, cValle = null;
 
         if (triple){
+          console.log('[DEBUG CONSUMOS] Triple detectado:', triple);
           cPunta = triple.punta;
           cLlano = triple.llano;
           cValle = triple.valle;
         } else {
+          // Fallback individual con patrones ULTRA-ROBUSTOS
           cPunta = __LF_extraerNumero(tAll, [
             /\b(?:p1|punta|periodo\s*1)\b[^0-9]{0,80}([0-9][0-9\.,]*)\s*kwh\b/i,
             /energ[ií]a[^\n]{0,120}\b(?:p1|punta|periodo\s*1)\b[^0-9]{0,80}([0-9][0-9\.,]*)\s*kwh\b/i,
-            /consumo[^\n]{0,120}\b(?:p1|punta|periodo\s*1)\b[^0-9]{0,80}([0-9][0-9\.,]*)\s*kwh\b/i
-          ], 0, 2000000);
+            /consumo[^\n]{0,120}\b(?:p1|punta|periodo\s*1)\b[^0-9]{0,80}([0-9][0-9\.,]*)\s*kwh\b/i,
+            /\b(?:punta|p1)[:\s]+([0-9][0-9\.,]*)\s*kwh/i,
+            /consumo\s*kwh[^\n]{0,80}p1[^\d]{0,20}([0-9][0-9\.,]*)/i,
+            /(?:punta|p1)[^\d]{0,50}([0-9][0-9\.,]+)\s*kwh/i,
+            // NUEVOS BRUTALES
+            /\bp1\b[^\d]{0,50}([0-9][0-9\.,]+)\s*kwh/i,
+            /punta[^\d]{0,50}([0-9][0-9\.,]+)\s*kwh/i,
+            /activa[^\n]{0,100}p1[^\d]{0,40}([0-9][0-9\.,]*)/i
+          ], 0, 2000000, 'CONSUMO-P1');
 
           cLlano = __LF_extraerNumero(tAll, [
             /\b(?:p2|llano|periodo\s*2)\b[^0-9]{0,80}([0-9][0-9\.,]*)\s*kwh\b/i,
             /energ[ií]a[^\n]{0,120}\b(?:p2|llano|periodo\s*2)\b[^0-9]{0,80}([0-9][0-9\.,]*)\s*kwh\b/i,
-            /consumo[^\n]{0,120}\b(?:p2|llano|periodo\s*2)\b[^0-9]{0,80}([0-9][0-9\.,]*)\s*kwh\b/i
-          ], 0, 2000000);
+            /consumo[^\n]{0,120}\b(?:p2|llano|periodo\s*2)\b[^0-9]{0,80}([0-9][0-9\.,]*)\s*kwh\b/i,
+            /\b(?:llano|p2)[:\s]+([0-9][0-9\.,]*)\s*kwh/i,
+            /consumo\s*kwh[^\n]{0,80}p2[^\d]{0,20}([0-9][0-9\.,]*)/i,
+            /(?:llano|p2)[^\d]{0,50}([0-9][0-9\.,]+)\s*kwh/i,
+            // NUEVOS BRUTALES
+            /\bp2\b[^\d]{0,50}([0-9][0-9\.,]+)\s*kwh/i,
+            /llano[^\d]{0,50}([0-9][0-9\.,]+)\s*kwh/i,
+            /activa[^\n]{0,100}p2[^\d]{0,40}([0-9][0-9\.,]*)/i
+          ], 0, 2000000, 'CONSUMO-P2');
 
           cValle = __LF_extraerNumero(tAll, [
             /\b(?:p3|valle|periodo\s*3)\b[^0-9]{0,80}([0-9][0-9\.,]*)\s*kwh\b/i,
             /energ[ií]a[^\n]{0,120}\b(?:p3|valle|periodo\s*3)\b[^0-9]{0,80}([0-9][0-9\.,]*)\s*kwh\b/i,
-            /consumo[^\n]{0,120}\b(?:p3|valle|periodo\s*3)\b[^0-9]{0,80}([0-9][0-9\.,]*)\s*kwh\b/i
-          ], 0, 2000000);
+            /consumo[^\n]{0,120}\b(?:p3|valle|periodo\s*3)\b[^0-9]{0,80}([0-9][0-9\.,]*)\s*kwh\b/i,
+            /\b(?:valle|p3)[:\s]+([0-9][0-9\.,]*)\s*kwh/i,
+            /consumo\s*kwh[^\n]{0,80}p3[^\d]{0,20}([0-9][0-9\.,]*)/i,
+            /(?:valle|p3)[^\d]{0,50}([0-9][0-9\.,]+)\s*kwh/i,
+            // NUEVOS BRUTALES
+            /\bp3\b[^\d]{0,50}([0-9][0-9\.,]+)\s*kwh/i,
+            /valle[^\d]{0,50}([0-9][0-9\.,]+)\s*kwh/i,
+            /activa[^\n]{0,100}p3[^\d]{0,40}([0-9][0-9\.,]*)/i
+          ], 0, 2000000, 'CONSUMO-P3');
+          
+          console.log('[DEBUG CONSUMOS] Fallback individual - P:', cPunta, 'L:', cLlano, 'V:', cValle);
         }
 
         // Total por si no hay desglose
