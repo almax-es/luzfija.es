@@ -747,6 +747,22 @@
           <div style="height:12px"></div>
           <div class="form">
             <div class="group">
+              <label for="zonaFiscal">Zona fiscal</label>
+              <select id="zonaFiscal" class="input">
+                <option value="Península">Península</option>
+                <option value="Canarias">Canarias</option>
+              </select>
+            </div>
+            <div class="group" id="viviendaCanariasGroup" style="display:none; align-items:center;">
+              <label for="viviendaCanarias" style="gap:8px;">
+                <input id="viviendaCanarias" type="checkbox" checked style="width:auto; height:auto;">
+                Vivienda (hogar)
+              </label>
+            </div>
+          </div>
+          <div style="height:12px"></div>
+          <div class="form">
+            <div class="group">
               <label for="cPunta">
                 Consumo PUNTA
                 <span class="tooltip" data-tip="10h-14h y 18h-22h" role="button" tabindex="-1" aria-label="Horario de consumo punta">i</span>
@@ -1049,7 +1065,7 @@
     const THEME_KEY = window.__ALMAX_THEME_KEY || 'almax_theme';
 
     // VALORES POR DEFECTO PARA PRIMERA VISITA
-    const DEFAULTS = { p1:'3,45', p2:'3,45', dias:'30', cPunta:'100', cLlano:'100', cValle:'100' };
+    const DEFAULTS = { p1:'3,45', p2:'3,45', dias:'30', cPunta:'100', cLlano:'100', cValle:'100', zonaFiscal:'Península', viviendaCanarias:true };
 
     // RECOGIDA DE PARÁMETROS URL (para enlaces compartidos)
     const params = new URLSearchParams(window.location.search);
@@ -1057,7 +1073,7 @@
     for (const [key, value] of params.entries()) { SERVER_PARAMS[key] = value; }
 
     const el = {
-      inputs: { p1:$('p1'), p2:$('p2'), dias:$('dias'), cPunta:$('cPunta'), cLlano:$('cLlano'), cValle:$('cValle') },
+      inputs: { p1:$('p1'), p2:$('p2'), dias:$('dias'), cPunta:$('cPunta'), cLlano:$('cLlano'), cValle:$('cValle'), zonaFiscal:$('zonaFiscal'), viviendaCanarias:$('viviendaCanarias') },
       btnCalc: $('btnCalc'), btnText: $('btnText'), btnSpinner: $('btnSpinner'),
       statusPill: $('statusPill'), statusText: $('statusText'), errorBox: $('errorBox'), errorText: $('errorText'),
       kwhHint: $('kwhHint'), heroKpis: $('heroKpis'), kpiBest: $('kpiBest'), kpiPrice: $('kpiPrice'),
@@ -1067,7 +1083,8 @@
       menuRoot: $('menuRoot'), btnMenu: $('btnMenu'), menuPanel: $('menuPanel'), btnTheme: $('btnTheme'),
       btnExport: $('btnExport'), btnReset: $('btnReset'), btnShare: $('btnShare'),
       globalTooltip: $('globalTooltip'),
-      pvpcInfo: $('pvpcInfo')
+      pvpcInfo: $('pvpcInfo'),
+      viviendaGroup: $('viviendaCanariasGroup')
     };
 
     const state = { filter: 'all', sort: { key: 'totalNum', dir: 'asc' }, rows: [], lastSignature: null, debounce: null, pending: true, hasValidationError: false };
@@ -1153,7 +1170,10 @@
 
     function buildPvpcCacheKey(values){
       const {p1=0,p2=0,dias=0,cPunta=0,cLlano=0,cValle=0}=values||{};
-      return `${PVPC_CACHE_PREFIX}:${getPvpcAnchorDate()}:${p1}:${p2}:${dias}:${cPunta}:${cLlano}:${cValle}`;
+      const zonaFiscal = values?.zonaFiscal === 'Canarias' ? 'Canarias' : 'Península';
+      const viviendaCanarias = zonaFiscal === 'Canarias' && Boolean(values?.viviendaCanarias);
+      const codigoPostal = zonaFiscal === 'Canarias' ? '35001' : '50010';
+      return `${PVPC_CACHE_PREFIX}:${getPvpcAnchorDate()}:${zonaFiscal}:${codigoPostal}:${viviendaCanarias?'1':'0'}:${p1}:${p2}:${dias}:${cPunta}:${cLlano}:${cValle}`;
     }
 
     function readPvpcCacheEntry(key){
@@ -1360,6 +1380,8 @@
       const cPunta = Math.max(0, asNumber(values?.cPunta, 0));      // clamp >= 0
       const cLlano = Math.max(0, asNumber(values?.cLlano, 0));      // clamp >= 0
       const cValle = Math.max(0, asNumber(values?.cValle, 0));      // clamp >= 0
+      const zonaFiscal = values?.zonaFiscal === 'Canarias' ? 'Canarias' : 'Península';
+      const viviendaCanarias = zonaFiscal === 'Canarias' && Boolean(values?.viviendaCanarias);
 
       const periodo = buildPvpcPeriodo(dias);
 
@@ -1367,7 +1389,7 @@
       const [fechaInicioYMD, fechaFinYMD] = periodo.periodoFacturacion.split(',');
 
       // Código postal solicitado por el usuario
-      const codigoPostal = '50010';
+      const codigoPostal = zonaFiscal === 'Canarias' ? '35001' : '50010';
 
       const params = new URLSearchParams({
         // 👇 Copiado de la llamada que a ellos les devuelve 200
@@ -1387,7 +1409,7 @@
         consumo2: String(Math.round(cLlano)),
         consumo3: String(Math.round(cValle)),
 
-        vivienda: 'false',
+        vivienda: viviendaCanarias ? 'true' : 'false',
         tarifa: '4', // 2.0TD
         calculoAntiguo: 'false',
         autoconsumo: 'false',
@@ -1450,7 +1472,9 @@
         p2: norm(v?.p2),
         cPunta: norm(v?.cPunta),
         cLlano: norm(v?.cLlano),
-        cValle: norm(v?.cValle)
+        cValle: norm(v?.cValle),
+        zonaFiscal: v?.zonaFiscal === 'Canarias' ? 'Canarias' : 'Península',
+        viviendaCanarias: v?.zonaFiscal === 'Canarias' && Boolean(v?.viviendaCanarias)
       };
       return buildPvpcCacheKey(values);
     }
@@ -1839,15 +1863,18 @@
       const cPunta = clampNonNeg(parseNum(el.inputs.cPunta.value));
       const cLlano = clampNonNeg(parseNum(el.inputs.cLlano.value));
       const cValle = clampNonNeg(parseNum(el.inputs.cValle.value));
-      return { p1, p2, dias, cPunta, cLlano, cValle };
+      const zonaFiscal = el.inputs.zonaFiscal?.value === 'Canarias' ? 'Canarias' : 'Península';
+      const viviendaCanarias = Boolean(el.inputs.viviendaCanarias?.checked);
+      return { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias };
     }
 
     function signatureFromValues(v) {
-      return [v.p1, v.p2, v.dias, v.cPunta, v.cLlano, v.cValle].join('|');
+      return [v.p1, v.p2, v.dias, v.cPunta, v.cLlano, v.cValle, v.zonaFiscal, v.viviendaCanarias ? '1' : '0'].join('|');
     }
 
     function calculateLocal(values) {
-      const { p1, p2, dias, cPunta, cLlano, cValle } = values || getInputValues();
+      const { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias } = values || getInputValues();
+      const isCanarias = zonaFiscal === 'Canarias';
       if(!cachedTarifas.length) return;
 
       const resultados = cachedTarifas.map((t, index) => {
@@ -1879,6 +1906,27 @@
         const impuestoElec = Math.max((5.11269632 / 100) * sumaBase, (cPunta + cLlano + cValle) * 0.001);
         const margen = dias * 0.026667;
         const subtotal = sumaBase + impuestoElec + margen;
+
+        if (isCanarias) {
+          const alquilerContador = dias * (0.81 / 30);
+          const igicBaseRate = viviendaCanarias ? 0 : 0.03;
+          const igicBase = subtotal * igicBaseRate;
+          const igicContador = alquilerContador * 0.07;
+          const impuestosNum = impuestoElec + igicBase + igicContador;
+          const totalNum = subtotal + alquilerContador + igicBase + igicContador;
+          return {
+            ...t,
+            posicion: index + 1,
+            potenciaNum: pot, potencia: formatMoney(pot),
+            consumoNum: cons, consumo: formatMoney(cons),
+            impuestosNum,
+            impuestos: formatMoney(impuestosNum),
+            totalNum, total: formatMoney(totalNum),
+            webUrl: t.web,
+            iva: 0
+          };
+        }
+
         const iva = subtotal * 0.21;
         const total = subtotal + iva;
 
@@ -1929,31 +1977,66 @@
       return str;
     }
 
+    function asBool(val, fallback=false){
+      if(val === undefined || val === null) return fallback;
+      if(typeof val === 'boolean') return val;
+      const s=String(val).trim().toLowerCase();
+      if(['true','1','si','sí','yes'].includes(s)) return true;
+      if(['false','0','no'].includes(s)) return false;
+      return fallback;
+    }
+
+    function updateZonaFiscalUI(){
+      const zona = el.inputs.zonaFiscal?.value === 'Canarias' ? 'Canarias' : 'Península';
+      const isCanarias = zona === 'Canarias';
+      if(el.viviendaGroup){
+        el.viviendaGroup.style.display = isCanarias ? 'flex' : 'none';
+      }
+    }
+
     function loadInputs() {
       if (Object.keys(SERVER_PARAMS).length > 0) {
         const d = Object.assign({}, DEFAULTS, SERVER_PARAMS);
-        for(const k in DEFAULTS) el.inputs[k].value = formatValueForDisplay(d[k]);
+        for(const k in DEFAULTS){
+          if(!el.inputs[k]) continue;
+          if(el.inputs[k].type === 'checkbox') el.inputs[k].checked = asBool(d[k], DEFAULTS[k]);
+          else el.inputs[k].value = formatValueForDisplay(d[k]);
+        }
         updateKwhHint();
+        updateZonaFiscalUI();
         return;
       }
       let savedData = {};
       try { const r = localStorage.getItem(LS_KEY); if (r) savedData = JSON.parse(r); } catch(e){}
       const finalData = { ...DEFAULTS, ...savedData };
-      for (const k in DEFAULTS) el.inputs[k].value = formatValueForDisplay(finalData[k]);
+      for (const k in DEFAULTS){
+        if(!el.inputs[k]) continue;
+        if(el.inputs[k].type === 'checkbox') el.inputs[k].checked = asBool(finalData[k], DEFAULTS[k]);
+        else el.inputs[k].value = formatValueForDisplay(finalData[k]);
+      }
       updateKwhHint();
+      updateZonaFiscalUI();
     }
 
     function saveInputs(){
       const d={};
-      for(const k in DEFAULTS)d[k]=el.inputs[k].value;
+      for(const k in DEFAULTS){
+        if(!el.inputs[k]) continue;
+        d[k]=el.inputs[k].type === 'checkbox' ? Boolean(el.inputs[k].checked) : el.inputs[k].value;
+      }
       try { localStorage.setItem(LS_KEY,JSON.stringify(d)); } catch(e){}
       return d;
     }
 
     function resetInputs(){
-      for(const k in DEFAULTS)el.inputs[k].value=formatValueForDisplay(DEFAULTS[k]);
+      for(const k in DEFAULTS){
+        if(!el.inputs[k]) continue;
+        if(el.inputs[k].type === 'checkbox') el.inputs[k].checked = asBool(DEFAULTS[k], false);
+        else el.inputs[k].value=formatValueForDisplay(DEFAULTS[k]);
+      }
       saveInputs();
       updateKwhHint();
+      updateZonaFiscalUI();
       clearErrorStyles();
       validateInputs();
       markPending('Valores restablecidos. Pulsa Calcular para actualizar.');
@@ -3014,6 +3097,18 @@
           scheduleCalculateDebounced();
         });
       });
+
+      if(el.inputs.zonaFiscal){
+        el.inputs.zonaFiscal.addEventListener('change',()=>{
+          updateZonaFiscalUI();
+          scheduleCalculateDebounced();
+        });
+      }
+      if(el.inputs.viviendaCanarias){
+        el.inputs.viviendaCanarias.addEventListener('change',()=>{
+          scheduleCalculateDebounced();
+        });
+      }
 
       if(el.btnTheme){
         el.btnTheme.addEventListener('click',(e)=>{
