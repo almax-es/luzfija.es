@@ -2692,7 +2692,7 @@
       }
 
       function __LF_parsearDatos(textoLineas, textoCompacto){
-        console.log('[PARSER v1765142100-v4-ENCODING-FIX] Iniciando parseo...');
+        console.log('[PARSER v1765142200-v5-IBERDROLA-DEBUG] Iniciando parseo...');
         const textLines = String(textoLineas || '');
         const textCompact = String(textoCompacto || '');
 
@@ -2733,8 +2733,10 @@
           /x\s*(\d{1,3})\s*d.as?\s*x/i  // Fallback: cualquier carácter entre d y as
         ], 1, 200);
         const idx = tAll.indexOf('kW x 3');
+        const idx2 = tAll.indexOf('DIAS FACTURADOS');
         console.log('[DEBUG DÍAS] Resultado:', dias, '| Texto contiene "DIAS FACTURADOS":', tAll.includes('DIAS FACTURADOS'), '| Texto contiene "dias facturados":', tAll.toLowerCase().includes('dias facturados'));
         console.log('[DEBUG DÍAS] Fragmento texto (buscar kW x 3):', idx >= 0 ? tAll.substring(idx, idx + 100) : 'NO ENCONTRADO');
+        console.log('[DEBUG DÍAS] Fragmento texto (buscar DIAS FACTURADOS):', idx2 >= 0 ? tAll.substring(Math.max(0, idx2-20), idx2 + 80) : 'NO ENCONTRADO');
 
         if ((dias == null || dias <= 0) && fIni && fFin){
           const calc = __LF_daysInclusive(fIni, fFin);
