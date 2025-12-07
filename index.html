@@ -2704,7 +2704,7 @@
       }
 
       function __LF_parsearDatos(textoLineas, textoCompacto){
-        console.log('[PARSER v1765142500-v8-PRIORIDAD-PATRONES] Iniciando parseo...');
+        console.log('[PARSER v1765142600-v9-DEBUG-PATRONES-P1] Iniciando parseo...');
         const textLines = String(textoLineas || '');
         const textCompact = String(textoCompacto || '');
 
@@ -2756,12 +2756,26 @@
         }
 
         // --- Potencias (kW) ---
-        const p1 = __LF_extraerNumero(tAll, [
+        const patronesP1 = [
           /potencia\s*contratada[^\n]{0,80}\b(?:p1|punta)\b[^0-9]{0,60}([0-9][0-9\.,]*)\s*kw\b/i,
           /\b(?:p1|punta|periodo\s*1)[:\s]*([0-9][0-9\.,]*)\s*kw\b/i,
           /potencia\s*(?:facturada)?[^\n]{0,80}\b(?:p1|punta|periodo\s*1)\b[^0-9]{0,60}([0-9][0-9\.,]*)\s*kw\b/i,
           /\bpotencia\b[^\n]{0,120}([0-9][0-9\.,]*)\s*kw\b[^\n]{0,60}\b(?:p1|punta|periodo\s*1)\b/i
-        ], 0.1, 40);
+        ];
+        
+        // Debug: ver qué captura cada patrón
+        console.log('[DEBUG P1 PATRONES]');
+        patronesP1.forEach((pat, idx) => {
+          const r = new RegExp(pat.source, 'gi');
+          const matches = [];
+          let m;
+          while ((m = r.exec(tAll)) !== null) {
+            matches.push(m[1]);
+          }
+          console.log(`  Patrón ${idx+1}: ${matches.length > 0 ? matches.join(', ') : 'NO MATCH'}`);
+        });
+        
+        const p1 = __LF_extraerNumero(tAll, patronesP1, 0.1, 40);
         
         const idxP1 = tAll.indexOf('P1:');
         const idxPotMax = tAll.toLowerCase().indexOf('potencias m');
