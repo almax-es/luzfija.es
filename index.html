@@ -582,10 +582,10 @@
   transition:opacity .2s ease;
 }
 .modal-overlay.show{ opacity:1; pointer-events:auto; }
-.modal-content{ max-width:600px; width:calc(100% - 28px); max-height:90vh; overflow:auto; animation:__lf_slideUp .25s cubic-bezier(.2,.9,.2,1); }
+.modal-content{ max-width:600px; width:calc(100% - 28px); max-height:85vh; overflow-y:auto; animation:__lf_slideUp .25s cubic-bezier(.2,.9,.2,1); }
 .upload-area{
   border:3px dashed var(--border);
-  padding:38px; border-radius:var(--radius);
+  padding:28px; border-radius:var(--radius);
   background:var(--card2);
   cursor:pointer;
   transition:.25s ease;
@@ -596,20 +596,27 @@
 .upload-area.dragging{ border-color:var(--accent); transform:scale(1.02); }
 
 .confianza-badge{
-  padding:8px 14px; border-radius:999px;
-  font-weight:900; font-size:13px;
+  padding:6px 12px; border-radius:999px;
+  font-weight:900; font-size:12px;
   display:inline-block;
   border:1px solid var(--border);
+  margin-bottom:12px;
 }
 .confianza-badge.alta{ background:rgba(34,197,94,.18); color:var(--accent2); border-color:var(--accent2); }
 .confianza-badge.media{ background:rgba(245,158,11,.18); color:var(--warn); border-color:var(--warn); }
 .confianza-badge.baja{ background:rgba(239,68,68,.18); color:var(--danger); border-color:var(--danger); }
 
-.input-validacion{ position:relative; margin-bottom:12px; }
-.input-validacion .check,.input-validacion .warning{ position:absolute; right:12px; top:36px; font-size:18px; }
+.input-validacion{ position:relative; margin-bottom:10px; }
+.input-validacion .check,.input-validacion .warning{ position:absolute; right:10px; top:32px; font-size:16px; }
+.input-validacion label{ margin-bottom:4px; }
+.input-validacion input{ padding:10px 32px 10px 10px; min-height:40px; font-size:14px; }
 .input-validacion.detectado input{ border-color:var(--accent2); background:rgba(34,197,94,.05); }
 .input-validacion.no-detectado input{ border-color:var(--warn); background:rgba(245,158,11,.05); }
 .input-validacion.err input{ border-color:var(--danger); background:rgba(239,68,68,.06); }
+
+#modalFactura .body{ padding:14px; }
+#modalFactura .head{ padding:14px 14px 12px 14px; }
+#modalFactura .help{ margin-top:12px; padding:10px; font-size:11px; }
 
 @keyframes __lf_slideUp{
   from{ transform:translateY(10px); opacity:.6; }
@@ -1002,25 +1009,25 @@
 
         <div id="avisoFactura" class="help" style="display:none; margin-top:14px"></div>
 
-        <div id="resultadoFactura" style="display:none; margin-top:16px">
-          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap">
+        <div id="resultadoFactura" style="display:none; margin-top:12px">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:8px">
             <div class="confianza-badge" id="confianzaBadge">--</div>
             <button class="btn" id="btnOcrFactura" type="button" style="display:none" aria-label="OCR experimental">
               🧠 OCR (experimental)
             </button>
           </div>
 
-          <h3 style="margin:14px 0 6px">Datos detectados</h3>
-          <p style="color:var(--muted); font-size:13px; margin-bottom:12px">Verifica y corrige antes de aplicar:</p>
+          <h3 style="margin:10px 0 4px; font-size:15px">Datos detectados</h3>
+          <p style="color:var(--muted); font-size:12px; margin-bottom:10px">Verifica y corrige antes de aplicar:</p>
           <div id="formValidacionFactura"></div>
 
-          <div style="display:flex; gap:12px; margin-top:18px; flex-wrap:wrap">
+          <div style="display:flex; gap:10px; margin-top:14px; flex-wrap:wrap">
             <button class="btn primary" id="btnAplicarFactura" type="button">✅ Aplicar datos</button>
             <button class="btn" id="btnCancelarFactura" type="button">❌ Cancelar</button>
           </div>
         </div>
 
-        <div class="help" style="margin-top:16px">
+        <div class="help" style="margin-top:12px">
           🔒 <strong>Privacidad total:</strong> el PDF se procesa en tu navegador. No se sube ni se guarda nada.
           <br>📊 Analítica: esta web usa Cloudflare Web Analytics (sin cookies) para contar visitas de forma agregada.
         </div>
@@ -2437,7 +2444,16 @@
         let dias = __LF_extraerNumero(tAll, [
           /d[ií]as\s*(?:facturables|facturados|de\s*facturaci[oó]n|de\s*periodo|del\s*periodo|total)\s*[:\-]?\s*(\d{1,3})\b/i,
           /\btotal\s*d[ií]as\b[^0-9]{0,10}(\d{1,3})\b/i,
-          /\b(\d{1,3})\s*d[ií]as\b\s*(?:de\s*facturaci[oó]n|facturados)\b/i
+          /\b(\d{1,3})\s*d[ií]as\b\s*(?:de\s*facturaci[oó]n|facturados)\b/i,
+          /\(\s*(\d{1,3})\s*d[ií]as?\s*\)/i,
+          /periodo[^)]{0,80}\(\s*(\d{1,3})\s*d[ií]as?\s*\)/i,
+          /\b(\d{1,3})\s*d[ií]a\(s\)/i,
+          /potencia[^\n]{0,120}(\d{1,3})\s*d[ií]a\(s\)/i,
+          /\d{2}-\d{2}-\d{4}\s+a\s+\d{2}-\d{2}-\d{4}\s+\(\s*(\d{1,3})\s*d[ií]as?\s*\)/i,
+          /consumo\s+periodo\s*:\s*(\d{1,3})\s*d[ií]as?\b/i,
+          /\*\s*(\d{1,3})\s*d[ií]as?\b/i,
+          /d[ií]as\s+facturados\s*:\s*(\d{1,3})\b/i,
+          /x\s*(\d{1,3})\s*d[ií]as?\s*x\b/i  // Enérgya VM: "x 31 días x"
         ], 1, 200);
 
         if ((dias == null || dias <= 0) && fIni && fFin){
@@ -2581,10 +2597,11 @@
 
       function __LF_crearInputValidacion(id, label, valor){
         const ok = (valor != null);
+        const valorFormateado = ok ? String(valor).replace('.', ',') : '';
         return `
           <div class="input-validacion ${ok ? 'detectado' : 'no-detectado'}" data-field="${id}">
             <label for="val_${id}" style="font-size:12px; font-weight:900; color:var(--muted); margin-bottom:6px; display:block">${label}</label>
-            <input type="text" id="val_${id}" class="input" value="${ok ? valor : ''}"
+            <input type="text" id="val_${id}" class="input" value="${valorFormateado}"
               placeholder="${ok ? '' : '❌ No detectado - introduce manualmente'}" />
             ${ok ? '<span class="check">✓</span>' : '<span class="warning">⚠️</span>'}
           </div>
