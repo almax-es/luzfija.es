@@ -250,6 +250,15 @@
     #zonaFiscal option:hover,
     #zonaFiscal:focus option{ color: var(--text) !important; background-color: var(--bg1); }
     #zonaFiscal option:checked, #zonaFiscal option:hover{ background-color: var(--card2); }
+    /* Forzar el color de texto en el selector de zona fiscal y sus opciones */
+    #zonaFiscal,
+    #zonaFiscal option{
+      color: var(--text);
+    }
+
+    #zonaFiscal option:checked{
+      color: var(--text);
+    }
     .input.error{ border-color: rgba(239,68,68,.7); box-shadow: 0 0 0 4px rgba(239,68,68,.12); background: rgba(239,68,68,.08); }
     .help{ margin-top: 12px; padding: 12px 12px; border-radius: 14px; border: 1px solid rgba(139,92,246,.25); background: rgba(139,92,246,.10); color: var(--muted); font-size: 12px; line-height: 1.35; }
     .row{ display:flex; gap: 12px; align-items:center; justify-content: space-between; flex-wrap: wrap; margin-top: 12px; }
