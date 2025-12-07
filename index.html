@@ -1060,6 +1060,9 @@
           </div>
 
           <h3 style="margin:8px 0 3px; font-size:14px">Datos detectados</h3>
+          <div id="companiaDetectada" style="display:none; margin:4px 0 8px; padding:6px 10px; background:var(--accent); color:white; border-radius:8px; font-size:11px; font-weight:600; width:fit-content;">
+            🏢 <span id="nombreCompania"></span>
+          </div>
           <p style="color:var(--muted); font-size:11px; margin-bottom:8px">Verifica y corrige antes de aplicar:</p>
           <div id="formValidacionFactura"></div>
 
@@ -2725,10 +2728,11 @@
             ], 1, 200);
             
           case 'totalenergies':
-            // TotalEnergies: "(31 día(s))"
+            // TotalEnergies: "(31 día(s))" o "Alquiler equipos (31 días)"
             return __LF_extraerNumero(texto, [
               /\b(\d{1,3})\s*d[ií]a\(s\)/i,
-              /potencia[^\n]{0,120}(\d{1,3})\s*d[ií]a\(s\)/i
+              /potencia[^\n]{0,120}(\d{1,3})\s*d[ií]a\(s\)/i,
+              /alquiler[^\n]{0,80}\(\s*(\d{1,3})\s*d[ií]as?\)/i
             ], 1, 200);
             
           case 'octopus':
@@ -2741,17 +2745,19 @@
           case 'visalia':
             // Visalia: "Consumo periodo: X días"
             return __LF_extraerNumero(texto, [
-              /consumo\s+periodo\s*:\s*(\d{1,3})\s*d[ií]as?\b/i
+              /consumo\s+periodo\s*:\s*(\d{1,3})\s*d[ií]as?\b/i,
+              /\(\s*(\d{1,3})\s*d[ií]as?\s*\)/i
             ], 1, 200);
             
           case 'plenitude':
             // Plenitude: "* X días"
             return __LF_extraerNumero(texto, [
-              /\*\s*(\d{1,3})\s*d[ií]as?\b/i
+              /\*\s*(\d{1,3})\s*d[ií]as?\b/i,
+              /\(\s*(\d{1,3})\s*d[ií]as?\s*\)/i
             ], 1, 200);
             
           case 'energiaxxi':
-            // Energía XXI: "(X días)"
+            // Energía XXI: "(X días)" en contexto de periodo
             return __LF_extraerNumero(texto, [
               /\(\s*(\d{1,3})\s*d[ií]as?\s*\)/i,
               /periodo[^)]{0,80}\(\s*(\d{1,3})\s*d[ií]as?\s*\)/i
@@ -2785,7 +2791,7 @@
       }
 
       function __LF_parsearDatos(textoLineas, textoCompacto){
-        console.log('[PARSER v1765143000-COMPANIAS] Iniciando parseo...');
+        console.log('[PARSER v1765143200-COMPANIA-VISIBLE] Iniciando parseo...');
         const textLines = String(textoLineas || '');
         const textCompact = String(textoCompacto || '');
 
@@ -2918,7 +2924,23 @@
         const detectados = campos.filter(v => v != null && Number.isFinite(v)).length;
         const confianza = Math.round((detectados / 6) * 100);
 
+        // LOG CONSOLIDADO FINAL
+        console.log('═══════════════════════════════════════════════════════');
+        console.log('📊 RESULTADO FINAL DEL PARSEO');
+        console.log('═══════════════════════════════════════════════════════');
+        console.log('🏢 Compañía detectada:', compania);
+        console.log('📅 Días de facturación:', dias);
+        console.log('⚡ Potencia P1 (kW):', p1);
+        console.log('⚡ Potencia P2 (kW):', p2);
+        console.log('💡 Consumo Punta (kWh):', cPunta);
+        console.log('💡 Consumo Llano (kWh):', cLlano);
+        console.log('💡 Consumo Valle (kWh):', cValle);
+        console.log('✅ Confianza:', confianza + '%', '(' + detectados + '/6 campos)');
+        console.log('📆 Periodo:', fIni || 'N/A', '→', fFin || 'N/A');
+        console.log('═══════════════════════════════════════════════════════');
+
         return {
+          compania: compania,
           dias: dias,
           p1: p1,
           p2: p2,
@@ -3015,6 +3037,25 @@
           __LF_crearInputValidacion('consumoPunta','Consumo Punta / P1 / E1 (kWh)', datos.consumoPunta) +
           __LF_crearInputValidacion('consumoLlano','Consumo Llano / P2 / E2 (kWh)', datos.consumoLlano) +
           __LF_crearInputValidacion('consumoValle','Consumo Valle / P3 / E3 (kWh)', datos.consumoValle);
+        
+        // Mostrar compañía detectada si no es genérico
+        const companiaEl = __LF_q('companiaDetectada');
+        const nombreEl = __LF_q('nombreCompania');
+        if (companiaEl && nombreEl && datos.compania && datos.compania !== 'generico') {
+          const nombres = {
+            'iberdrola': 'Iberdrola',
+            'totalenergies': 'TotalEnergies',
+            'energyavm': 'Enérgya VM',
+            'octopus': 'Octopus Energy',
+            'visalia': 'Visalia',
+            'plenitude': 'Eni Plenitude',
+            'energiaxxi': 'Energía XXI'
+          };
+          nombreEl.textContent = nombres[datos.compania] || datos.compania;
+          __LF_show(companiaEl);
+        } else if (companiaEl) {
+          __LF_hide(companiaEl);
+        }
       }
 
       function __LF_warn(msg){
