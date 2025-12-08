@@ -1067,7 +1067,7 @@
         </div>
       </section>
 
-      <section class="card" id="resultsSection">
+      <section class="card">
         <div class="head">
           <div class="kicker">Resultados</div>
           <h2 class="title">Tarifa óptima + ranking</h2>
@@ -2090,8 +2090,6 @@
       if(el.tbody) el.tbody.replaceChildren();
       if(el.emptyBox) el.emptyBox.classList.remove('show');
       if(el.pvpcInfo) el.pvpcInfo.innerHTML='';
-      const resultsSection=document.getElementById('resultsSection');
-      if(resultsSection) resultsSection.style.display='none';
       const seoFold=document.getElementById('info');
       if(seoFold) seoFold.classList.remove('show');
       state.rows=[];
@@ -2790,8 +2788,6 @@
       if(r.mejor) el.kpiBest.textContent=r.mejor;
       if(r.precio) el.kpiPrice.textContent=r.precio;
 
-      const resultsSection=document.getElementById('resultsSection');
-      if(resultsSection) resultsSection.style.display='';
       const seoFold=document.getElementById('info');
       if(seoFold) seoFold.classList.add('show');
       el.heroKpis.classList.add('show');
