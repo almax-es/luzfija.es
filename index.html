@@ -1129,7 +1129,7 @@
       btnCalc: $('btnCalc'), btnText: $('btnText'), btnSpinner: $('btnSpinner'),
       statusPill: $('statusPill'), statusText: $('statusText'), errorBox: $('errorBox'), errorText: $('errorText'),
       kwhHint: $('kwhHint'), heroKpis: $('heroKpis'), kpiBest: $('kpiBest'), kpiPrice: $('kpiPrice'),
-      statsBar: $('statsBar'), statMin: $('statMin'), statAvg: $('statAvg'), statMax: $('statMax'),
+      statsBar: $('statsBar'), statMin: $('statMin'), statAvg: $('statAvg'), statMax: $('statMax'), chartTop: $('chartTop'),
       toolbar: $('toolbar'), table: $('table'), tbody: $('tbody'), emptyBox: $('emptyBox'),
       toast: $('toast'), toastText: $('toastText'), toastDot: $('toastDot'),
       menuRoot: $('menuRoot'), btnMenu: $('btnMenu'), menuPanel: $('menuPanel'), btnTheme: $('btnTheme'),
@@ -1141,7 +1141,7 @@
 
     const state = { filter: 'all', sort: { key: 'totalNum', dir: 'asc' }, rows: [], lastSignature: null, debounce: null, pending: true, hasValidationError: false };
     let initialStatusText = '';
-    let initialStatusPillClass = '';
+    let initialStatusClass = '';
     let cachedTarifas = [];
     let baseTarifasCache = [];
 
@@ -1834,9 +1834,17 @@
       // Oculta cualquier resultado visible devolviendo la UI al estado vacío
       const fades=document.querySelectorAll('.fade-container');
       if(fades.length){ fades.forEach(c=>c.classList.remove('show')); }
-      else{
-        ['heroKpis','statsBar','chartTop','toolbar','table','emptyBox'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('show'); });
+      ['heroKpis','statsBar','chartTop','toolbar','table','emptyBox'].forEach(id=>{ const block=document.getElementById(id); if(block) block.classList.remove('show'); });
+      if(el.heroKpis) el.heroKpis.classList.remove('show');
+      if(el.statsBar) el.statsBar.classList.remove('show');
+      if(el.table) el.table.classList.remove('show');
+      if(el.toolbar) el.toolbar.classList.remove('show');
+      if(el.chartTop) el.chartTop.classList.remove('show');
+      const chartBody=document.getElementById('chartTopBody');
+      if(chartBody){
+        chartBody.innerHTML='';
       }
+      document.querySelectorAll('.chartTop-barFill, .chartTop-barTrack').forEach(node=>node.remove());
       if(el.tbody) el.tbody.replaceChildren();
       if(el.emptyBox) el.emptyBox.classList.remove('show');
       if(el.pvpcInfo) el.pvpcInfo.innerHTML='';
@@ -2260,7 +2268,7 @@
       hideResultsToInitialState();
 
       if(initialStatusText) el.statusText.textContent=initialStatusText;
-      if(initialStatusPillClass) el.statusPill.className=initialStatusPillClass;
+      if(initialStatusClass) el.statusPill.className=initialStatusClass;
       applyButtonState(false);
       state.pending=true;
 
@@ -3507,12 +3515,12 @@
 
         if (typeof toast === 'function') toast('✅ Datos aplicados correctamente', 'ok');
 
-        hideResultsToInitialState();
-
         const confidencePct = Math.max(0, Math.min(100, Number(__LF_lastParsedConfianza || 0)));
         const shouldAutoCalc = confidencePct >= 99.5; // Consideramos ≥99.5% como confianza plena para cubrir redondeos
 
         __LF_closeModal();
+
+        hideResultsToInitialState();
 
         if (shouldAutoCalc){
           setStatus('Calculando...', 'loading');
@@ -3632,7 +3640,7 @@
       loadInputs();
 
       initialStatusText = el.statusText?.textContent || '';
-      initialStatusPillClass = el.statusPill?.className || '';
+      initialStatusClass = el.statusPill?.className || '';
 
       validateInputs();
       markPending('Introduce tus datos y pulsa Calcular para ver el ranking.');
