@@ -972,7 +972,7 @@
               <span class="mi-left">🔗 Compartir configuración</span>
               <span class="mi-right">URL</span>
             </button>
-            <a class="menuItem" href="mailto:hola@luzfija.es" role="menuitem" style="text-decoration:none;">
+            <a class="menuItem" href="/cdn-cgi/l/email-protection#94fcfbf8f5d4f8e1eef2fdfef5baf1e7" role="menuitem" style="text-decoration:none;">
               <span class="mi-left">✉️ Contacto</span>
               <span class="mi-right">email</span>
             </a>
@@ -1227,8 +1227,8 @@
             <div style="font-size:11px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted2); font-weight:900; margin-bottom:6px;">
               ✉️ Email
             </div>
-            <a href="mailto:hola@luzfija.es" style="color:var(--accent); font-weight:900; text-decoration:underline; font-size:13px;">
-              hola@luzfija.es
+            <a href="/cdn-cgi/l/email-protection#4b2324272a0b273e312d22212a652e38" style="color:var(--accent); font-weight:900; text-decoration:underline; font-size:13px;">
+              <span class="__cf_email__" data-cfemail="83ebecefe2c3eff6f9e5eae9e2ade6f0">[email&#160;protected]</span>
             </a>
             <div style="margin-top:8px; font-size:11px; color:var(--muted2); line-height:1.4;">
               Respondo en cuanto puedo (proyecto gratuito).
@@ -1325,7 +1325,7 @@
           </div>
 
           <div class="help" style="margin-top:10px; font-size:11px; opacity:0.9; border:1px solid var(--border); background: var(--card2); padding:8px; border-radius:10px; line-height:1.4;">
-            <p style="margin-bottom:4px;"><strong>📧 ¿Datos incorrectos?</strong> Envía el PDF anonimizado a <a href="mailto:hola@luzfija.es" style="color: var(--accent); text-decoration: underline;">hola@luzfija.es</a></p>
+            <p style="margin-bottom:4px;"><strong>📧 ¿Datos incorrectos?</strong> Envía el PDF anonimizado a <a href="/cdn-cgi/l/email-protection#86eee9eae7c6eaf3fce0efece7a8e3f5" style="color: var(--accent); text-decoration: underline;"><span class="__cf_email__" data-cfemail="4e2621222f0e223b342827242f602b3d">[email&#160;protected]</span></a></p>
             <p style="margin:0; color: var(--muted); font-size:10px;">Oculta: nombre, DNI, CUPS, IBAN, QR. El PDF se procesa en tu navegador (no se sube).</p>
           </div>
         </div>
@@ -1338,7 +1338,7 @@
     </div>
   </div>
 
-  <script>
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     const $ = id => document.getElementById(id);
 
     // URL DEL JSON ESTÁTICO DE TARIFAS EN EL MISMO HOST
@@ -2075,12 +2075,15 @@
       if(el.statsBar) el.statsBar.classList.remove('show');
       if(el.table) el.table.classList.remove('show');
       if(el.toolbar) el.toolbar.classList.remove('show');
-      if(el.chartTop) el.chartTop.classList.remove('show');
+      if(el.chartTop){
+        el.chartTop.classList.remove('show');
+        el.chartTop.style.display='none';
+      }
       const chartBody=document.getElementById('chartTopBody');
       if(chartBody){
         chartBody.innerHTML='';
       }
-      document.querySelectorAll('.chartTop-barFill, .chartTop-barTrack').forEach(node=>node.remove());
+      document.querySelectorAll('.chartTop-barFill, .chartTop-barTrack, .chartTop-row').forEach(node=>node.remove());
       if(el.tbody) el.tbody.replaceChildren();
       if(el.emptyBox) el.emptyBox.classList.remove('show');
       if(el.pvpcInfo) el.pvpcInfo.innerHTML='';
@@ -2697,6 +2700,7 @@
       });
 
       body.replaceChildren(frag);
+      c.style.display='';
       c.classList.add('show');
 
       requestAnimationFrame(() => {
@@ -4018,17 +4022,4 @@
         toggleBtn.addEventListener('click', function(){
           const current = localStorage.getItem(KEY);
           if(current === '1'){
-            localStorage.removeItem(KEY);
-            renderAnalyticsSwitch();
-            if(typeof toast === 'function') toast('Analítica activada');
-          } else {
-            localStorage.setItem(KEY, '1');
-            renderAnalyticsSwitch();
-            if(typeof toast === 'function') toast('Analítica desactivada');
-          }
-        });
-      }
-    })();
-  </script>
-</body>
-</html>
+            
