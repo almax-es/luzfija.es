@@ -474,8 +474,11 @@
       max-width: 1400px;
       margin: 40px auto 20px;
       padding: 0 clamp(22px, 4.5vw, 60px);
-      display: grid;
+      display: none;
       gap: 10px;
+    }
+    .seoFold.show{
+      display: grid;
     }
 
     .seoDetails{
@@ -2089,6 +2092,8 @@
       if(el.pvpcInfo) el.pvpcInfo.innerHTML='';
       const resultsSection=document.getElementById('resultsSection');
       if(resultsSection) resultsSection.style.display='none';
+      const seoFold=document.getElementById('info');
+      if(seoFold) seoFold.classList.remove('show');
       state.rows=[];
       state.lastSignature=null;
     }
@@ -2787,6 +2792,8 @@
 
       const resultsSection=document.getElementById('resultsSection');
       if(resultsSection) resultsSection.style.display='';
+      const seoFold=document.getElementById('info');
+      if(seoFold) seoFold.classList.add('show');
       el.heroKpis.classList.add('show');
 
       const s=d.stats;
