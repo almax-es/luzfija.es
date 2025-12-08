@@ -6,7 +6,7 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <meta name="description" content="Comparador gratuito de tarifas de luz en España. Calcula tu factura con potencia (P1/P2) y consumo (punta, llano, valle), impuestos incluidos, e incluye PVPC (tarifa regulada) cuando está disponible. Ranking instantáneo y enlace a contratar.">
+  <meta name="description" content="Comparador gratuito de tarifas de luz en España. Calcula tu factura real según tu potencia (P1/P2) y consumos mensuales en punta, llano y valle, con impuestos incluidos. Incluye PVPC regulado cuando está disponible y ranking actualizado.">
   <meta name="keywords" content="comparador tarifas luz, tarifa discriminación horaria, calcular factura electricidad, precio luz punta llano valle, potencia contratada P1 P2, ahorrar factura luz, mejor tarifa luz">
   <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
   <meta name="theme-color" content="#8B5CF6">
@@ -45,7 +45,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" as="style">
 
-  <title>Comparador de Tarifas de Luz en España | Calcula tu factura y ahorra</title>
+  <title>Comparador de tarifas de luz en España | Calcula tu factura real</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
   <link rel="icon" type="image/svg+xml" href="favicon.svg">
@@ -615,6 +615,7 @@
     }
     .input.error{ border-color: rgba(239,68,68,.7); box-shadow: 0 0 0 4px rgba(239,68,68,.12); background: rgba(239,68,68,.08); }
     .help{ margin-top: 12px; padding: 12px 12px; border-radius: 14px; border: 1px solid rgba(139,92,246,.25); background: rgba(139,92,246,.10); color: var(--muted); font-size: 12px; line-height: 1.35; }
+    .form-note{ margin-top: 6px; color: var(--muted); font-size: 12px; line-height: 1.4; }
     .row{ display:flex; gap: 12px; align-items:stretch; flex-wrap: wrap; margin-top: 12px; }
     .row > * { flex: 1; min-width: 0; }
     .kwhPill{ 
@@ -743,6 +744,15 @@
     .fbtn:hover{transform: translateY(-1px); border-color: var(--border2); background: rgba(255,255,255,.09);}
     .fbtn.active{ background: rgba(139,92,246,.18); border-color: rgba(139,92,246,.55); color: var(--text); }
     .tableWrap{ background: transparent !important; border: none !important; overflow: visible !important; }
+    .table-responsive {
+      width: 100%;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .table-responsive table {
+      min-width: 640px;
+    }
     table{ width: 100%; border-collapse: separate !important; border-spacing: 0 8px; table-layout: fixed; }
     thead th:nth-child(1), tbody td:nth-child(1) { width: 4%; }
     thead th:nth-child(2), tbody td:nth-child(2) { width: 23%; }
@@ -832,6 +842,13 @@
     #heroKpis { min-height: 260px; }
     #statsBar { min-height: 80px; }
     #table { min-height: 300px; }
+
+    @media (max-width: 768px) {
+      .brand h1 { font-size: clamp(22px, 6vw, 28px); }
+      .brand p { font-size: 12px; }
+      .container { padding: clamp(40px, 5vw, 60px) clamp(18px, 4vw, 40px); }
+      .actions .form-note { width: 100%; text-align: center; }
+    }
 
     .fade-container {
       opacity: 0;
@@ -1806,7 +1823,7 @@
 
 <body>
   <div class="container">
-    <div class="topbar">
+    <header class="topbar">
       <div class="brand">
         <span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span>
         <div class="logo" aria-hidden="true">
@@ -1858,8 +1875,8 @@
           </svg>
         </div>
         <div>
-          <h1>Comparador de Tarifas</h1>
-          <p>Encuentra la tarifa más barata en segundos</p>
+          <h1>Comparador de tarifas de luz en España</h1>
+          <p>Calcula tu factura real de luz según tu consumo en punta, llano y valle y descubre cuánto puedes ahorrar cambiando de tarifa.</p>
         </div>
       </div>
 
@@ -1870,6 +1887,9 @@
         <button class="btn" id="btnSubirFactura" type="button" title="Subir factura PDF" aria-label="Subir factura PDF">
           📄 Subir factura
         </button>
+        <p class="form-note" style="margin:0;">
+          Sube tu factura y rellenamos los datos por ti (beta, solo para España).
+        </p>
         <button class="btn" id="btnTheme" type="button" title="Cambiar tema" aria-label="Cambiar tema">☀️</button>
         <div class="menu" id="menuRoot">
           <button class="btn" id="btnMenu" type="button" aria-haspopup="true" aria-expanded="false" title="Opciones">⚙️</button>
@@ -1895,8 +1915,9 @@
           </div>
         </div>
       </div>
-    </div>
+    </header>
 
+    <main>
     <div class="grid">
       <section class="card">
         <div class="head">
@@ -1939,22 +1960,22 @@
           <div class="form">
             <div class="group">
               <label for="cPunta">
-                Consumo PUNTA
-                <span class="tooltip" data-tip="10h-14h y 18h-22h" role="button" tabindex="-1" aria-label="Horario de consumo punta">i</span>
+                Consumo PUNTA (kWh/mes)
+                <span class="tooltip" data-tip="Consumo mensual en horas punta (10h-14h y 18h-22h)" role="button" tabindex="-1" aria-label="Horario de consumo punta">i</span>
               </label>
               <input id="cPunta" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 120">
             </div>
             <div class="group">
               <label for="cLlano">
-                Consumo LLANO
-                <span class="tooltip" data-tip="8h-10h, 14h-18h y 22h-24h" role="button" tabindex="-1" aria-label="Horario de consumo llano">i</span>
+                Consumo LLANO (kWh/mes)
+                <span class="tooltip" data-tip="Consumo mensual en horas llanas (8h-10h, 14h-18h y 22h-24h)" role="button" tabindex="-1" aria-label="Horario de consumo llano">i</span>
               </label>
               <input id="cLlano" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 80">
             </div>
             <div class="group">
               <label for="cValle">
-                Consumo VALLE
-                <span class="tooltip" data-tip="0h-8h (madrugada)" role="button" tabindex="-1" aria-label="Horario de consumo valle">i</span>
+                Consumo VALLE (kWh/mes)
+                <span class="tooltip" data-tip="Consumo mensual en horas valle (0h-8h, madrugada y fines de semana)" role="button" tabindex="-1" aria-label="Horario de consumo valle">i</span>
               </label>
               <input id="cValle" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 150">
             </div>
@@ -1972,6 +1993,7 @@
               </button>
             </div>
           </div>
+          <p class="form-note">No guardamos tus datos ni usamos cookies de seguimiento.</p>
           <div class="help">
             Introduce tus datos y pulsa ⚡ Calcular para generar o refrescar el ranking (tarifas y PVPC si está disponible). Puedes escribir decimales con coma o punto (ej.: 3,45 / 3.45).
           </div>
@@ -2012,6 +2034,8 @@
             </div>
           </div>
 
+          <p class="form-note" style="margin-top:10px;">Resultados aproximados basados en los consumos mensuales que introduces para punta, llano y valle.</p>
+
           <div class="help" id="pvpcInfo" style="display:none; margin-top:0; margin-bottom: 12px;"></div>
           <div id="pvpc-warning-canarias-potencia"
                style="display:none; margin-top:6px; font-size:12px; line-height:1.2; opacity:.95; color:#FACC15;">
@@ -2035,22 +2059,24 @@
           </div>
 
           <div class="tableWrap">
-            <table id="table" class="fade-container">
-              <thead>
-                <tr>
-                  <th>#</th>
-                  <th class="sort" data-sort="nombre">Tarifa <span class="sortIcon" id="si_nombre"></span></th>
-                  <th class="sort" data-sort="potenciaNum">Potencia <span class="sortIcon" id="si_potenciaNum"></span></th>
-                  <th class="sort" data-sort="consumoNum">Consumo <span class="sortIcon" id="si_consumoNum"></span></th>
-                  <th class="sort" data-sort="impuestosNum">Impuestos <span class="sortIcon" id="si_impuestosNum"></span></th>
-                  <th class="sort" data-sort="totalNum">Total <span class="sortIcon" id="si_totalNum"></span></th>
-                  <th class="sort" data-sort="vsMejorNum">Vs mejor <span class="sortIcon" id="si_vsMejorNum"></span></th>
-                  <th>Tipo</th>
-                  <th>Web</th>
-                </tr>
-              </thead>
-              <tbody id="tbody"></tbody>
-            </table>
+            <div class="table-responsive">
+              <table id="table" class="fade-container">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th class="sort" data-sort="nombre">Tarifa <span class="sortIcon" id="si_nombre"></span></th>
+                    <th class="sort" data-sort="potenciaNum">Potencia <span class="sortIcon" id="si_potenciaNum"></span></th>
+                    <th class="sort" data-sort="consumoNum">Consumo <span class="sortIcon" id="si_consumoNum"></span></th>
+                    <th class="sort" data-sort="impuestosNum">Impuestos <span class="sortIcon" id="si_impuestosNum"></span></th>
+                    <th class="sort" data-sort="totalNum">Total <span class="sortIcon" id="si_totalNum"></span></th>
+                    <th class="sort" data-sort="vsMejorNum">Dif. vs mejor <span class="tooltip" data-tip="Diferencia de coste anual aproximado frente a la tarifa más barata según tu consumo." role="button" tabindex="-1" aria-label="Diferencia frente a la mejor tarifa">i</span> <span class="sortIcon" id="si_vsMejorNum"></span></th>
+                    <th>Tipo</th>
+                    <th>Web</th>
+                  </tr>
+                </thead>
+                <tbody id="tbody"></tbody>
+              </table>
+            </div>
             <div class="empty fade-container" id="emptyBox">Aún no hay resultados. Pulsa ⚡ Calcular para generar el ranking.</div>
           </div>
 
@@ -2093,8 +2119,9 @@
       <details class="seoDetails">
         <summary>ℹ️ Cómo funciona el comparador (potencia, consumos e impuestos)</summary>
         <div class="seoContent">
-          <p>Este comparador calcula tu <strong>factura eléctrica</strong> estimada a partir de tu <strong>potencia contratada</strong> (P1 y P2), los <strong>kWh</strong> consumidos y el tipo de tarifa (<strong>1P</strong> precio fijo o <strong>3P</strong> con <strong>discriminación horaria</strong>: punta, llano y valle).</p>
+          <p>Este comparador calcula tu <strong>factura eléctrica</strong> estimada a partir de tu <strong>potencia contratada</strong> (P1 y P2), los <strong>kWh</strong> consumidos cada mes y el tipo de tarifa (<strong>1P</strong> precio fijo o <strong>3P</strong> con <strong>discriminación horaria</strong>: punta, llano y valle).</p>
           <p>El ranking muestra el <strong>total con impuestos</strong> y la diferencia frente a la mejor opción, para que veas rápidamente cuánto podrías <strong>ahorrar</strong> cambiando de tarifa.</p>
+          <p>Visita nuestras <a href="/guias.html">guías sobre tarifas eléctricas, PVPC y mercado libre</a> para entender mejor cómo funcionan las <strong>tarifas de luz</strong> y optimizar tu consumo.</p>
         </div>
       </details>
 
@@ -2129,22 +2156,25 @@
         </div>
       </details>
     </section>
+    </section>
+
+    </main>
 
     <footer style="max-width:1400px; margin:0 auto; padding:40px clamp(22px, 4.5vw, 60px) 30px; border-top:1px solid var(--border);">
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:30px; margin-bottom:30px;">
         <div>
           <h3 style="font-size:14px; font-weight:900; margin-bottom:10px; color:var(--text);">Sobre el Comparador</h3>
           <p style="color:var(--muted); font-size:12px; line-height:1.6; margin:0 0 12px 0;">
-            Herramienta gratuita para <strong>comparar tarifas de luz</strong> en España.
+            Herramienta gratuita para <strong>comparar tarifas de luz</strong> en España y calcular tu factura según tu consumo real en horarios de punta, llano y valle.
           </p>
           <p style="margin:0;">
             <a href="/guias.html" style="color:var(--accent); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; transition: opacity 0.2s;">
-              📚 Guías sobre tarifas eléctricas
+              📚 Guías sobre tarifas de luz, PVPC y mercado libre
               <span style="font-size:10px;">→</span>
             </a>
           </p>
-            Calcula tu factura según consumo real en horarios de punta, llano y valle.
-            Sin publicidad, sin registro.
+          <p style="margin:6px 0 0; color:var(--muted); font-size:12px; line-height:1.6;">
+            Calcula tu factura según consumo real en horarios de punta, llano y valle. Sin publicidad, sin registro.
           </p>
         </div>
 
@@ -2218,16 +2248,15 @@
           </div>
         </div>
       </div>
+
+      <div class="footer-credits">
+        Desarrollado por <a href="https://github.com/almax-es" target="_blank" rel="noopener" style="color:inherit; text-decoration:none; font-weight:600;">aLMaX</a> · Gracias a las comunidades de
+        <a href="https://nergiza.com/foro/threads/tarifas-electricas-mercado-libre-recomendadas-pvpc-indexadas.10985/" target="_blank" rel="noopener noreferrer">Nergiza</a>
+        y
+        <a href="https://forocoches.com/foro/showthread.php?t=10515708" target="_blank" rel="noopener noreferrer">ForoCoches</a>
+          por sus ideas, facturas y sugerencias, y en especial a Omadón, ragaro79, JavierRR e Ivansnoke por sus aportes y ayuda.
+      </div>
     </footer>
-
-
-  <footer class="footer-credits">
-    Desarrollado por <a href="https://github.com/almax-es" target="_blank" rel="noopener" style="color:inherit; text-decoration:none; font-weight:600;">aLMaX</a> · Gracias a las comunidades de
-    <a href="https://nergiza.com/foro/threads/tarifas-electricas-mercado-libre-recomendadas-pvpc-indexadas.10985/" target="_blank" rel="noopener noreferrer">Nergiza</a>
-    y
-    <a href="https://forocoches.com/foro/showthread.php?t=10515708" target="_blank" rel="noopener noreferrer">ForoCoches</a>
-      por sus ideas, facturas y sugerencias, y en especial a Omadón, ragaro79, JavierRR e Ivansnoke por sus aportes y ayuda.
-  </footer>
   </div>
 
   <div class="toast" id="toast"><span class="dot" id="toastDot"></span><span id="toastText"></span></div>
