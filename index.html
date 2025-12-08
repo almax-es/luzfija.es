@@ -676,6 +676,155 @@
       box-shadow: 0 8px 24px rgba(15,23,42,.12);
     }
 
+    /* FIX: modal "Subir factura" completamente legible en modo claro */
+    body.light-mode .modal-overlay{
+      background: rgba(15,23,42,.65);
+      backdrop-filter: blur(8px);
+    }
+
+    body.light-mode .modal-content{
+      background: var(--bg0);
+      color: var(--text);
+      box-shadow: 0 25px 50px rgba(15,23,42,.25);
+    }
+
+    body.light-mode .modal-content .head{
+      background: linear-gradient(180deg, rgba(139,92,246,.06), transparent);
+      border-bottom-color: var(--border);
+    }
+
+    body.light-mode .modal-content .kicker{
+      color: var(--muted);
+    }
+
+    body.light-mode .modal-content .title{
+      color: var(--text);
+    }
+
+    body.light-mode .modal-content .body{
+      color: var(--text);
+    }
+
+    body.light-mode .upload-area{
+      background: rgba(15,23,42,.02);
+      border-color: rgba(15,23,42,.20);
+      color: var(--text);
+    }
+
+    body.light-mode .upload-area:hover{
+      background: rgba(139,92,246,.06);
+      border-color: var(--accent);
+    }
+
+    body.light-mode .upload-area.dragging{
+      background: rgba(139,92,246,.10);
+      border-color: var(--accent);
+      transform: scale(1.02);
+    }
+
+    body.light-mode #loaderFactura{
+      color: var(--text);
+    }
+
+    body.light-mode #loaderFactura p{
+      color: var(--muted);
+    }
+
+    body.light-mode #loaderFactura .spinner{
+      border-color: rgba(15,23,42,.15);
+      border-top-color: var(--accent);
+    }
+
+    body.light-mode #avisoFactura{
+      background: rgba(139,92,246,.10);
+      border-color: rgba(139,92,246,.30);
+      color: var(--text);
+    }
+
+    body.light-mode #resultadoFactura{
+      color: var(--text);
+    }
+
+    body.light-mode #resultadoFactura h3{
+      color: var(--text);
+      font-weight: 900;
+    }
+
+    body.light-mode #resultadoFactura p{
+      color: var(--muted);
+    }
+
+    body.light-mode #companiaDetectada{
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+
+    body.light-mode .input-validacion{
+      color: var(--text);
+    }
+
+    body.light-mode .input-validacion label{
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    body.light-mode .input-validacion input{
+      background: rgba(255,255,255,.95);
+      border-color: rgba(15,23,42,.20);
+      color: var(--text);
+    }
+
+    body.light-mode .input-validacion input::placeholder{
+      color: rgba(15,23,42,.40);
+    }
+
+    body.light-mode .input-validacion input:focus{
+      background: rgba(255,255,255,1);
+      border-color: var(--accent);
+    }
+
+    body.light-mode .input-validacion.detectado input{
+      border-color: var(--accent2);
+      background: rgba(34,197,94,.06);
+    }
+
+    body.light-mode .input-validacion.no-detectado input{
+      border-color: var(--warn);
+      background: rgba(245,158,11,.06);
+    }
+
+    body.light-mode .input-validacion.err input{
+      border-color: var(--danger);
+      background: rgba(239,68,68,.06);
+    }
+
+    body.light-mode .input-validacion .check{
+      color: var(--accent2);
+      opacity: 1;
+    }
+
+    body.light-mode .input-validacion .warning{
+      color: var(--warn);
+      opacity: 1;
+    }
+
+    body.light-mode #modalFactura .help{
+      background: rgba(139,92,246,.08);
+      border-color: rgba(139,92,246,.25);
+      color: var(--text);
+    }
+
+    body.light-mode #modalFactura .help strong{
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    body.light-mode #modalFactura .help a{
+      color: var(--accent);
+      font-weight: 600;
+    }
+
   .modal-overlay{
     position:fixed; inset:0;
   background:rgba(0,0,0,.75);
