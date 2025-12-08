@@ -652,8 +652,8 @@
       grid-template-columns: 1fr 1fr; 
       gap: 16px; 
       margin-bottom: 18px;
-      contain: layout style;
-      width: 100%;
+      /* contain: layout style;  (desactivado para evitar glitches de repintado en móvil) */
+width: 100%;
     }
     @media (max-width: 760px){ .heroKpis{grid-template-columns: 1fr;} }
     .heroCard{ 
@@ -693,8 +693,28 @@
     .heroCard.best .k::before{ content: "🏆"; font-size: 14px; }
     .heroCard .v{ font-size: clamp(28px, 2.6vw, 44px); font-weight: 1000; letter-spacing: -0.6px; line-height: 1.0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
     .heroCard .s{ color: var(--muted); font-size: 12px; line-height: 1.25; text-align: center; }
-    .statsbar{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; opacity: .92; }
-    @media (max-width: 760px){ .statsbar{grid-template-columns: 1fr;} }
+    .statsbar{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; opacity: .92; width: 100%; }
+    @media (max-width: 760px){
+  .statsbar{
+    grid-template-columns: 1fr;
+    gap: 12px;
+    width: 100%;
+    opacity: 1 !important;
+    visibility: visible !important;
+    overflow: visible;
+    min-height: auto;
+  }
+  .statCard{
+    display: flex !important;
+    visibility: visible !important;
+    opacity: 1 !important;
+    animation: none !important;
+    transform: none !important;
+  }
+  .statsbar.show .statCard{
+    display: flex !important;
+  }
+}
     .statCard{ 
       border: 1px solid var(--border); 
       background: rgba(0,0,0,.14); 
@@ -708,6 +728,8 @@
       align-items: center; 
       text-align: center;
       transition: transform 0.2s ease, box-shadow 0.2s ease;
+      min-height: 70px;
+      width: 100%;
     }
     .statCard:hover {
       transform: translateY(-2px) translateZ(0);
@@ -717,6 +739,23 @@
     .statCard:nth-child(2) .statValue { color: #F59E0B; }
     .statCard:nth-child(3) .statValue { color: #EF4444; }
     .statCard:nth-child(1) { animation-delay: 0.2s; } .statCard:nth-child(2) { animation-delay: 0.3s; } .statCard:nth-child(3) { animation-delay: 0.4s; }
+    
+    /* Fix para móvil: asegurar que todos los statCard se muestren */
+    @media (max-width: 760px) {
+      .statCard {
+        display: flex !important;
+        visibility: visible !important;
+        opacity: 1;
+        animation: none; /* Desactivar animación en móvil para evitar problemas */
+      }
+      .statsbar.show .statCard {
+        display: flex !important;
+      }
+      .statsbar {
+        min-height: auto;
+        overflow: visible;
+      }
+    }
     .statLabel{ color: var(--muted2); letter-spacing: 1px; text-transform: uppercase; font-size: 10px; font-weight: 1000; }
     .statValue{ font-size: clamp(18px, 1.5vw, 24px); font-weight: 1000; letter-spacing: -0.4px; white-space: nowrap; }
     .badge{ display:inline-flex; align-items:center; justify-content:center; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--border); background: rgba(255,255,255,.06); font-weight: 1000; font-size: 11px; letter-spacing: .3px; transition: transform .15s ease, box-shadow .15s ease; }
@@ -1870,7 +1909,7 @@
               <span class="mi-left">🔗 Compartir configuración</span>
               <span class="mi-right">URL</span>
             </button>
-            <a class="menuItem" href="mailto:hola@luzfija.es" role="menuitem" style="text-decoration:none;">
+            <a class="menuItem" href="/cdn-cgi/l/email-protection#bad2d5d6dbfad6cfc0dcd3d0db94dfc9" role="menuitem" style="text-decoration:none;">
               <span class="mi-left">✉️ Contacto</span>
               <span class="mi-right">email</span>
             </a>
@@ -2166,8 +2205,8 @@
             <div style="font-size:11px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted2); font-weight:900; margin-bottom:6px;">
               ✉️ Email
             </div>
-            <a href="mailto:hola@luzfija.es" style="color:var(--accent); font-weight:900; text-decoration:underline; font-size:13px;">
-              hola@luzfija.es
+            <a href="/cdn-cgi/l/email-protection#4f2720232e0f233a352926252e612a3c" style="color:var(--accent); font-weight:900; text-decoration:underline; font-size:13px;">
+              <span class="__cf_email__" data-cfemail="e58d8a8984a589909f838c8f84cb8096">[email&#160;protected]</span>
             </a>
             <div style="margin-top:8px; font-size:11px; color:var(--muted2); line-height:1.4;">
               Respondo en cuanto puedo (proyecto gratuito).
@@ -2262,7 +2301,7 @@
           </div>
 
           <div class="help" style="margin-top:10px; font-size:11px; opacity:0.9; border:1px solid var(--border); background: var(--card2); padding:8px; border-radius:10px; line-height:1.4;">
-            <p style="margin-bottom:4px;"><strong>📧 ¿Datos incorrectos?</strong> Envía el PDF anonimizado a <a href="mailto:hola@luzfija.es" style="color: var(--accent); text-decoration: underline;">hola@luzfija.es</a></p>
+            <p style="margin-bottom:4px;"><strong>📧 ¿Datos incorrectos?</strong> Envía el PDF anonimizado a <a href="/cdn-cgi/l/email-protection#6e0601020f2e021b140807040f400b1d" style="color: var(--accent); text-decoration: underline;"><span class="__cf_email__" data-cfemail="8de5e2e1eccde1f8f7ebe4e7eca3e8fe">[email&#160;protected]</span></a></p>
             <p style="margin:0; color: var(--muted); font-size:10px;">Oculta: nombre, DNI, CUPS, IBAN, QR. El PDF se procesa en tu navegador (no se sube).</p>
           </div>
         </div>
@@ -2275,7 +2314,7 @@
     </div>
   </div>
 
-  <script>
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     const $ = id => document.getElementById(id);
 
     // URL DEL JSON ESTÁTICO DE TARIFAS EN EL MISMO HOST
@@ -5031,17 +5070,4 @@
 
         const d = saveInputs();
         const qp = new URLSearchParams(d).toString();
-        const url = `${window.location.origin}${window.location.pathname}?${qp}`;
-        await copyText(url);
-        toast('Enlace copiado al portapapeles');
-      });
-
-      if (typeof window.__LF_bindFacturaParser === 'function') {
-        window.__LF_bindFacturaParser();
-      }
-
-      $('scrollToResults').addEventListener('click',()=>$('heroKpis').scrollIntoView({behavior:'smooth',block:'start'}));
-    });
-  </script>
-</body>
-</html>
+        const url = `${window.location.origi
