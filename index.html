@@ -593,8 +593,91 @@
       color: rgba(15,23,42,.86);
     }
 
-.modal-overlay{
-  position:fixed; inset:0;
+    /* FIX: legibilidad completa en modo claro - overlays, menús y modales */
+    body.light-mode .menuItem{
+      color: var(--text);
+    }
+
+    body.light-mode .menuItem:hover{
+      background: rgba(15,23,42,.06);
+      border-color: rgba(15,23,42,.12);
+    }
+
+    body.light-mode .menuItem .mi-left{
+      color: var(--text);
+    }
+
+    body.light-mode .menuItem .mi-right{
+      color: var(--muted);
+    }
+
+    body.light-mode .menuHint{
+      color: var(--muted);
+    }
+
+    body.light-mode .menuDivider{
+      background: rgba(15,23,42,.12);
+    }
+
+    body.light-mode .modal-content .kicker{
+      color: var(--muted);
+    }
+
+    body.light-mode .modal-content .title{
+      color: var(--text);
+    }
+
+    body.light-mode .upload-area{
+      color: var(--text);
+      background: rgba(15,23,42,.02);
+      border-color: rgba(15,23,42,.15);
+    }
+
+    body.light-mode .upload-area:hover{
+      border-color: var(--accent);
+      background: rgba(139,92,246,.06);
+    }
+
+    body.light-mode .confianza-badge{
+      color: var(--text);
+    }
+
+    body.light-mode .confianza-badge.alta{
+      background: rgba(34,197,94,.20);
+      color: #047857;
+      border-color: #10B981;
+    }
+
+    body.light-mode .confianza-badge.media{
+      background: rgba(245,158,11,.20);
+      color: #B45309;
+      border-color: #F59E0B;
+    }
+
+    body.light-mode .confianza-badge.baja{
+      background: rgba(239,68,68,.20);
+      color: #B91C1C;
+      border-color: #EF4444;
+    }
+
+    body.light-mode .input-validacion label{
+      color: var(--muted);
+    }
+
+    body.light-mode #companiaDetectada{
+      background: var(--accent);
+      color: white;
+    }
+
+    body.light-mode #globalTooltip{
+      background: rgba(255,255,255,.98);
+      color: var(--text);
+      border-color: rgba(15,23,42,.18);
+      box-shadow: 0 8px 24px rgba(15,23,42,.12);
+    }
+
+  .modal-overlay{
+    position:fixed; inset:0;
   background:rgba(0,0,0,.75);
   backdrop-filter:blur(8px);
   -webkit-backdrop-filter:blur(8px);
