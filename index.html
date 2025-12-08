@@ -1140,6 +1140,8 @@
     };
 
     const state = { filter: 'all', sort: { key: 'totalNum', dir: 'asc' }, rows: [], lastSignature: null, debounce: null, pending: true, hasValidationError: false };
+    let initialStatusText = '';
+    let initialStatusPillClass = '';
     let cachedTarifas = [];
     let baseTarifasCache = [];
 
@@ -1828,6 +1830,20 @@
       setStatus(message,'idle');
     }
 
+    function hideResultsToInitialState(){
+      // Oculta cualquier resultado visible devolviendo la UI al estado vacío
+      const fades=document.querySelectorAll('.fade-container');
+      if(fades.length){ fades.forEach(c=>c.classList.remove('show')); }
+      else{
+        ['heroKpis','statsBar','chartTop','toolbar','table','emptyBox'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('show'); });
+      }
+      if(el.tbody) el.tbody.replaceChildren();
+      if(el.emptyBox) el.emptyBox.classList.remove('show');
+      if(el.pvpcInfo) el.pvpcInfo.innerHTML='';
+      state.rows=[];
+      state.lastSignature=null;
+    }
+
     function toast(msg, mode='ok'){
       el.toastText.textContent=msg;
       el.toastDot.classList.remove('ok','err');
@@ -2227,6 +2243,38 @@
       toast('Restablecido');
     }
 
+    function resetToFirstLoadState(){
+      // Restablece inputs, filtros y UI al mismo estado que al cargar la página
+      const form=document.querySelector('form');
+      if(form) form.reset();
+      else resetInputs();
+
+      clearErrorStyles();
+      showError('');
+
+      updateKwhHint();
+      updateZonaFiscalUI();
+      validateInputs();
+      saveInputs();
+
+      hideResultsToInitialState();
+
+      if(initialStatusText) el.statusText.textContent=initialStatusText;
+      if(initialStatusPillClass) el.statusPill.className=initialStatusPillClass;
+      applyButtonState(false);
+      state.pending=true;
+
+      state.filter='all';
+      document.querySelectorAll('.fbtn').forEach(b=>{
+        b.classList.toggle('active', b.getAttribute('data-filter')==='all');
+      });
+      state.sort={key:'totalNum',dir:'asc'};
+      updateSortIcons();
+
+      if(el.emptyBox) el.emptyBox.classList.remove('show');
+      if(el.tbody) el.tbody.replaceChildren();
+    }
+
     function updateKwhHint(){
       const v = getInputValues();
       const t = v.cPunta + v.cLlano + v.cValle;
@@ -2518,6 +2566,7 @@
       window.__LF_restoreFocusEl = null;
       window.__LF_focusTrapCleanup = null;
       window.__LF_scrollY = 0;
+      let __LF_lastParsedConfianza = 0;
 
       function __LF_ensurePdfWorker(){
         if (!window.pdfjsLib) return false;
@@ -3169,6 +3218,7 @@
       function __LF_renderForm(datos){
         const form = __LF_q('formValidacionFactura');
         if (!form) return;
+        __LF_lastParsedConfianza = Number(datos?.confianza || 0);
         form.innerHTML =
           __LF_crearInputValidacion('p1','Potencia P1 (kW)', datos.p1) +
           __LF_crearInputValidacion('p2','Potencia P2 (kW)', datos.p2) +
@@ -3261,6 +3311,7 @@
         const aviso = __LF_q('avisoFactura'); if(aviso){ aviso.innerHTML=''; __LF_hide(aviso); }
         const fi = __LF_q('fileInputFactura'); if(fi) fi.value = '';
         window.__LF_lastFile = null;
+        __LF_lastParsedConfianza = 0;
 
         __LF_focusTrapAttach(modal);
         setTimeout(()=>{ (__LF_q('uploadAreaFactura') || modal).focus?.(); }, 0);
@@ -3455,7 +3506,20 @@
         try{ if (typeof saveInputs === 'function') saveInputs(); }catch(_){}
 
         if (typeof toast === 'function') toast('✅ Datos aplicados correctamente', 'ok');
+
+        hideResultsToInitialState();
+
+        const confidencePct = Math.max(0, Math.min(100, Number(__LF_lastParsedConfianza || 0)));
+        const shouldAutoCalc = confidencePct >= 99.5; // Consideramos ≥99.5% como confianza plena para cubrir redondeos
+
         __LF_closeModal();
+
+        if (shouldAutoCalc){
+          setStatus('Calculando...', 'loading');
+          runCalculation();
+        } else {
+          setStatus('Hemos rellenado los datos con la factura. Revísalos y pulsa Calcular.', 'idle');
+        }
       }
 
       window.__LF_bindFacturaParser = function(){
@@ -3521,6 +3585,10 @@
 
     })();
 
+    function runCalculation(forceRefresh = false){
+      calculate(true, forceRefresh);
+    }
+
     async function calculate(isUserAction, forceRefresh = false){
       if(!validateInputs()){
         setStatus('Corrige los datos para calcular','err');
@@ -3562,6 +3630,9 @@
       applyThemeClass(document.documentElement.classList.contains('light-mode')?'light':'dark');
       updateThemeIcon();
       loadInputs();
+
+      initialStatusText = el.statusText?.textContent || '';
+      initialStatusPillClass = el.statusPill?.className || '';
 
       validateInputs();
       markPending('Introduce tus datos y pulsa Calcular para ver el ranking.');
@@ -3614,7 +3685,7 @@
 
       el.btnCalc.addEventListener('click',(e)=>{
         createRipple(el.btnCalc,e);
-        calculate(true, false);
+        runCalculation(false);
       });
 
       el.btnMenu.addEventListener('click',(e)=>{
@@ -3630,7 +3701,7 @@
       el.btnReset.addEventListener('click',(e)=>{
         createRipple(el.btnReset,e);
         toggleMenu(false);
-        resetInputs();
+        resetToFirstLoadState();
       });
 
       el.btnExport.addEventListener('click',(e)=>{
