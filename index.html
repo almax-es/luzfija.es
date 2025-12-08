@@ -2171,8 +2171,6 @@
 
           <div style="margin-top:12px; font-size:10px; opacity:0.65; line-height:1.5;">
             📊 Analítica: esta web no utiliza analítica ni cookies de seguimiento.
-            <button id="analyticsToggle" type="button" style="margin-left:8px; font-size:10px; padding:4px 8px; border-radius:8px; border:1px solid var(--border); background:transparent; color:var(--text); cursor:pointer;">Desactivar analítica</button>
-            <span id="analyticsStatus" aria-live="polite" style="margin-left:6px;"></span>
           </div>
         </div>
       </div>
@@ -5013,37 +5011,6 @@
 
       $('scrollToResults').addEventListener('click',()=>$('heroKpis').scrollIntoView({behavior:'smooth',block:'start'}));
     });
-  </script>
-  <script>
-    // Switch de analítica (legacy - ahora sin tracking)
-    (function(){
-      const KEY = 'lf_disable_analytics';
-      const disabled = localStorage.getItem(KEY) === '1';
-
-      function renderAnalyticsSwitch(){
-        const btn = document.getElementById('analyticsToggle');
-        const status = document.getElementById('analyticsStatus');
-        if(!btn || !status) return;
-        const isDisabled = localStorage.getItem(KEY) === '1';
-        status.textContent = isDisabled ? 'Desactivada' : 'Activada';
-        btn.textContent = isDisabled ? 'Activar analítica' : 'Desactivar analítica';
-      }
-
-      renderAnalyticsSwitch();
-
-      const toggleBtn = document.getElementById('analyticsToggle');
-      if(toggleBtn){
-        toggleBtn.addEventListener('click', function(){
-          const current = localStorage.getItem(KEY);
-          if(current === '1'){
-                        localStorage.removeItem(KEY);
-          }else{
-            localStorage.setItem(KEY, '1');
-          }
-          renderAnalyticsSwitch();
-        });
-      }
-    })();
   </script>
 </body>
 </html>
