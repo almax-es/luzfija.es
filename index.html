@@ -2447,6 +2447,24 @@
     }
 
     function loadInputs() {
+      // Detectar si viene de restablecer
+      const urlParams = new URLSearchParams(window.location.search);
+      const isReset = urlParams.get('reset') === '1';
+      
+      if (isReset) {
+        // Limpiar URL sin recargar
+        window.history.replaceState({}, '', window.location.pathname);
+        // Usar solo DEFAULTS, ignorar localStorage
+        for (const k in DEFAULTS){
+          if(!el.inputs[k]) continue;
+          if(el.inputs[k].type === 'checkbox') el.inputs[k].checked = asBool(DEFAULTS[k], DEFAULTS[k]);
+          else el.inputs[k].value = formatValueForDisplay(DEFAULTS[k]);
+        }
+        updateKwhHint();
+        updateZonaFiscalUI();
+        return;
+      }
+      
       if (Object.keys(SERVER_PARAMS).length > 0) {
         const d = Object.assign({}, DEFAULTS, SERVER_PARAMS);
         for(const k in DEFAULTS){
@@ -3966,7 +3984,7 @@
       el.btnReset.addEventListener('click',(e)=>{
         createRipple(el.btnReset,e);
         toggleMenu(false);
-        resetToFirstLoadState();
+        window.location.href = window.location.pathname + '?reset=1';
       });
 
       el.btnExport.addEventListener('click',(e)=>{
