@@ -1802,7 +1802,6 @@
 
   </style>
   <script defer src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
 </head>
 
 <body>
@@ -2247,36 +2246,6 @@
           <div style="color:var(--muted); font-size:13px">o pulsa para seleccionarlo</div>
         </div>
         <input type="file" id="fileInputFactura" accept="application/pdf,image/*" style="display:none">
-
-        <!-- Botón para escanear con cámara -->
-        <button 
-          type="button"
-          onclick="__LF_scanQRFromCamera()"
-          style="margin-top: 16px; padding: 14px 24px; background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 100%); 
-                 color: white; border: none; border-radius: 12px; cursor: pointer; font-weight: 600;
-                 display: flex; align-items: center; gap: 10px; justify-content: center; width: 100%; max-width: 400px;
-                 font-size: 15px; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3); transition: all 0.3s ease;">
-          <span style="font-size: 20px;">📱</span>
-          Escanear QR con cámara
-        </button>
-        
-        <!-- Instrucciones -->
-        <div style="margin-top: 20px; padding: 16px; background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%); 
-                    border-radius: 12px; border-left: 4px solid #3b82f6; max-width: 600px;">
-          <div style="font-weight: 600; color: #1e40af; margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 20px;">💡</span>
-            Tres formas de obtener tus datos:
-          </div>
-          <ul style="margin: 8px 0 0 0; padding-left: 20px; color: #475569; font-size: 14px; line-height: 1.8;">
-            <li><strong>PDF completo:</strong> Sube tu factura en PDF (intentaremos QR primero)</li>
-            <li><strong>Solo foto del QR:</strong> Toma una foto clara del código QR y súbela</li>
-            <li><strong>Escaneo directo:</strong> Usa el botón de cámara para escanear el QR en tiempo real</li>
-          </ul>
-          <div style="margin-top: 12px; padding: 10px; background: white; border-radius: 8px; font-size: 13px; color: #64748b;">
-            ⚡ Con el código QR: <strong style="color: #10b981;">Precisión del 100%</strong>
-          </div>
-        </div>
-
 
         <div id="loaderFactura" style="display:none; text-align:center; padding:36px">
           <div class="spinner"></div>
@@ -4677,465 +4646,51 @@
         window.__LF_restoreFocusEl = null;
       }
 
-      // ============================================================================
-// SISTEMA MEJORADO: QR desde PDF, IMAGEN o CÁMARA
-// ============================================================================
-
-/**
- * Detecta QR en una imagen (File o Canvas ImageData)
- * @param {File|HTMLImageElement|Canvas} source - Fuente de la imagen
- * @returns {Promise<string|null>} - Datos del QR o null
- */
-async function __LF_detectQRFromImage(source) {
-  try {
-    let imageData;
-    
-    if (source instanceof File) {
-      // Es un archivo de imagen
-      const img = await __LF_loadImage(source);
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = img.width;
-      canvas.height = img.height;
-      ctx.drawImage(img, 0, 0);
-      imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    } else if (source instanceof HTMLImageElement) {
-      // Es un elemento img
-      const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
-      canvas.width = source.width;
-      canvas.height = source.height;
-      ctx.drawImage(source, 0, 0);
-      imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    } else if (source.getContext) {
-      // Es un canvas
-      const ctx = source.getContext('2d');
-      imageData = ctx.getImageData(0, 0, source.width, source.height);
-    } else {
-      return null;
-    }
-    
-    // Detectar QR con jsQR
-    if (typeof jsQR === 'function') {
-      const qrCode = jsQR(imageData.data, imageData.width, imageData.height, {
-        inversionAttempts: "dontInvert"
-      });
-      
-      if (qrCode && qrCode.data) {
-        return qrCode.data;
-      }
-    }
-    
-    return null;
-  } catch (error) {
-    console.error('❌ Error detectando QR en imagen:', error);
-    return null;
-  }
-}
-
-/**
- * Carga una imagen desde un File
- */
-function __LF_loadImage(file) {
-  return new Promise((resolve, reject) => {
-    const img = new Image();
-    img.onload = () => resolve(img);
-    img.onerror = reject;
-    img.src = URL.createObjectURL(file);
-  });
-}
-
-/**
- * Intenta extraer QR desde PDF (mejorando la función anterior)
- */
-async function __LF_tryExtractFromQR(file) {
-  try {
-    console.log('🔍 [QR] Intentando extracción desde código QR...');
-    
-    if (!window.pdfjsLib) {
-      console.warn('⚠️ [QR] PDF.js no disponible');
-      return null;
-    }
-
-    const arrayBuffer = await file.arrayBuffer();
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    
-    const pagesToScan = Math.min(pdf.numPages, 3);
-    
-    for (let pageNum = 1; pageNum <= pagesToScan; pageNum++) {
-      console.log(`📄 [QR] Escaneando página ${pageNum}/${pagesToScan}...`);
-      
-      const page = await pdf.getPage(pageNum);
-      const viewport = page.getViewport({ scale: 2.0 });
-      
-      const canvas = document.createElement('canvas');
-      const context = canvas.getContext('2d');
-      canvas.width = viewport.width;
-      canvas.height = viewport.height;
-      
-      await page.render({
-        canvasContext: context,
-        viewport: viewport
-      }).promise;
-      
-      // Detectar QR
-      const qrData = await __LF_detectQRFromImage(canvas);
-      
-      if (qrData && qrData.includes('comparador.cnmc.gob.es')) {
-        console.log('✅ [QR] Código QR encontrado en página', pageNum);
-        const parsedData = __LF_parseCNMCQR(qrData);
-        if (parsedData) {
-          return parsedData;
+      async function __LF_processPdf(file){
+        if (!file || file.type !== 'application/pdf'){
+          if (typeof toast === 'function') toast('Sube un PDF válido', 'err');
+          return;
         }
-      }
-    }
-    
-    console.log('ℹ️ [QR] No se encontró código QR válido en PDF');
-    return null;
-    
-  } catch (error) {
-    console.error('❌ [QR] Error al extraer QR:', error);
-    return null;
-  }
-}
+        if (!window.pdfjsLib){
+          if (typeof toast === 'function') toast('PDF.js no se ha cargado (bloqueo de red/CSP)', 'err');
+          return;
+        }
+        window.__LF_lastFile = file;
 
-/**
- * Extrae QR desde una imagen directamente
- */
-async function __LF_extractQRFromImageFile(file) {
-  try {
-    console.log('🖼️ [QR] Procesando imagen directamente...');
-    
-    if (!file.type.startsWith('image/')) {
-      console.warn('⚠️ No es una imagen válida');
-      return null;
-    }
-    
-    const qrData = await __LF_detectQRFromImage(file);
-    
-    if (qrData && qrData.includes('comparador.cnmc.gob.es')) {
-      console.log('✅ [QR] Código QR encontrado en imagen');
-      return __LF_parseCNMCQR(qrData);
-    }
-    
-    console.log('ℹ️ [QR] No se encontró código QR en la imagen');
-    return null;
-    
-  } catch (error) {
-    console.error('❌ [QR] Error al procesar imagen:', error);
-    return null;
-  }
-}
+        __LF_hide(__LF_q('uploadAreaFactura'));
+        __LF_show(__LF_q('loaderFactura'));
+        __LF_hide(__LF_q('resultadoFactura'));
+        __LF_hide(__LF_q('btnOcrFactura'));
+        const aviso = __LF_q('avisoFactura'); if(aviso){ aviso.innerHTML=''; __LF_hide(aviso); }
 
-/**
- * Parsea la URL del QR del comparador CNMC
- */
-function __LF_parseCNMCQR(url) {
-  try {
-    const urlObj = new URL(url);
-    const params = new URLSearchParams(urlObj.search);
-    
-    const getParam = (key, defaultVal = null) => params.get(key) || defaultVal;
-    const getFloat = (key, defaultVal = 0) => {
-      const val = params.get(key);
-      return val ? parseFloat(val) : defaultVal;
-    };
-    
-    const data = {
-      p1: getFloat('pP1'),
-      p2: getFloat('pP2'),
-      consumoPunta: getFloat('cfP1'),
-      consumoLlano: getFloat('cfP2'),
-      consumoValle: getFloat('cfP3'),
-      dias: null,
-      fechaInicio: getParam('iniF'),
-      fechaFin: getParam('finF'),
-      fechaEmision: getParam('fFact'),
-      cups: getParam('cups'),
-      codigoPostal: getParam('cp'),
-      importeTotal: getFloat('imp'),
-      potenciaMaxP1: getFloat('pmaxP1'),
-      potenciaMaxP2: getFloat('pmaxP2'),
-      source: 'QR',
-      confianza: 100,
-      qr_url: url
-    };
-    
-    if (data.fechaInicio && data.fechaFin) {
-      try {
-        const inicio = new Date(data.fechaInicio);
-        const fin = new Date(data.fechaFin);
-        const diffTime = fin - inicio;
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        data.dias = diffDays + 1;
-      } catch (e) {
-        console.warn('⚠️ [QR] No se pudo calcular días:', e);
-      }
-    }
-    
-    console.log('📊 [QR] Datos parseados:', data);
-    return data;
-    
-  } catch (error) {
-    console.error('❌ [QR] Error al parsear URL CNMC:', error);
-    return null;
-  }
-}
+        try{
+          const { textLines, textCompact, textRawLen } = await __LF_extraerTextoPDF(file);
 
-/**
- * Captura QR desde cámara (móvil o webcam)
- */
-async function __LF_scanQRFromCamera() {
-  const modal = __LF_createCameraModal();
-  document.body.appendChild(modal);
-  
-  try {
-    const stream = await navigator.mediaDevices.getUserMedia({ 
-      video: { facingMode: 'environment' } // Cámara trasera en móviles
-    });
-    
-    const video = modal.querySelector('video');
-    video.srcObject = stream;
-    video.play();
-    
-    const canvas = document.createElement('canvas');
-    const context = canvas.getContext('2d');
-    
-    // Escanear continuamente
-    const scanInterval = setInterval(async () => {
-      if (video.readyState === video.HAVE_ENOUGH_DATA) {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
-        
-        const qrData = await __LF_detectQRFromImage(canvas);
-        
-        if (qrData && qrData.includes('comparador.cnmc.gob.es')) {
-          clearInterval(scanInterval);
-          stream.getTracks().forEach(track => track.stop());
-          document.body.removeChild(modal);
-          
-          const parsedData = __LF_parseCNMCQR(qrData);
-          if (parsedData) {
-            __LF_processParsedQRData(parsedData);
+          __LF_hide(__LF_q('loaderFactura'));
+          __LF_show(__LF_q('resultadoFactura'));
+
+          if (!textRawLen || textRawLen < 40){
+            __LF_warn('⚠️ No se ha detectado texto seleccionable. Parece un PDF escaneado. Puedes probar <b>OCR (experimental)</b> o introducir los datos manualmente.');
+            __LF_show(__LF_q('btnOcrFactura'));
+            __LF_setBadge(0);
+            __LF_renderForm({ p1:null,p2:null,dias:null,consumoPunta:null,consumoLlano:null,consumoValle:null,confianza:0 });
+            return;
           }
+
+          const datos = __LF_parsearDatos(textLines, textCompact);
+          __LF_setBadge(datos.confianza);
+          __LF_renderForm(datos);
+
+          // Mostrar advertencias contextuales
+          __LF_showContextualWarnings(datos);
+
+        }catch(err){
+          __LF_hide(__LF_q('loaderFactura'));
+          __LF_show(__LF_q('uploadAreaFactura'));
+          if (typeof toast === 'function') toast('Error al procesar factura PDF', 'err');
+          console.error(err);
         }
       }
-    }, 500); // Escanear cada 500ms
-    
-    // Botón cerrar
-    modal.querySelector('.close-camera').onclick = () => {
-      clearInterval(scanInterval);
-      stream.getTracks().forEach(track => track.stop());
-      document.body.removeChild(modal);
-    };
-    
-  } catch (error) {
-    document.body.removeChild(modal);
-    if (typeof toast === 'function') {
-      toast('No se pudo acceder a la cámara. Verifica los permisos.', 'err');
-    }
-    console.error('❌ Error accediendo a cámara:', error);
-  }
-}
-
-/**
- * Crea el modal de cámara
- */
-function __LF_createCameraModal() {
-  const modal = document.createElement('div');
-  modal.style.cssText = `
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.95);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 10000;
-  `;
-  
-  modal.innerHTML = `
-    <div style="position: relative; width: 90%; max-width: 500px;">
-      <video autoplay playsinline style="width: 100%; border-radius: 12px;"></video>
-      <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-                  width: 200px; height: 200px; border: 3px solid #8B5CF6; border-radius: 12px;
-                  pointer-events: none;"></div>
-      <button class="close-camera" style="position: absolute; top: 10px; right: 10px;
-              background: white; border: none; padding: 10px 20px; border-radius: 8px;
-              cursor: pointer; font-weight: 600;">Cerrar</button>
-      <div style="color: white; text-align: center; margin-top: 20px; font-size: 16px;">
-        📱 Apunta la cámara al código QR de tu factura
-      </div>
-    </div>
-  `;
-  
-  return modal;
-}
-
-/**
- * Procesa datos parseados del QR y muestra el formulario
- */
-function __LF_processParsedQRData(datos) {
-  __LF_hide(__LF_q('loaderFactura'));
-  __LF_hide(__LF_q('uploadAreaFactura'));
-  __LF_show(__LF_q('resultadoFactura'));
-  __LF_setBadge(100);
-  __LF_renderForm(datos);
-  
-  // Mensaje de éxito con detalles
-  const mensaje = `
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <span style="font-size: 24px;">✅</span>
-      <div>
-        <strong style="color: #10b981;">¡Código QR reconocido exitosamente!</strong><br>
-        <span style="font-size: 14px; opacity: 0.9;">
-          Datos extraídos con precisión del 100%. 
-          Potencias: ${datos.p1}/${datos.p2} kW | 
-          Consumos: ${datos.consumoPunta}/${datos.consumoLlano}/${datos.consumoValle} kWh |
-          Periodo: ${datos.dias} días
-        </span>
-      </div>
-    </div>
-  `;
-  
-  __LF_showSuccess(mensaje);
-}
-
-/**
- * Muestra mensaje de éxito
- */
-function __LF_showSuccess(html) {
-  const aviso = __LF_q('avisoFactura');
-  if (aviso) {
-    aviso.innerHTML = html;
-    aviso.style.cssText = `
-      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
-      color: white;
-      padding: 16px;
-      border-radius: 12px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
-    `;
-    __LF_show(aviso);
-  }
-}
-
-/**
- * FUNCIÓN PRINCIPAL: Procesa archivo (PDF o imagen)
- */
-async function __LF_processPdf(file) {
-  if (!file) {
-    if (typeof toast === 'function') toast('Sube un archivo válido', 'err');
-    return;
-  }
-  
-  const isPDF = file.type === 'application/pdf';
-  const isImage = file.type.startsWith('image/');
-  
-  if (!isPDF && !isImage) {
-    if (typeof toast === 'function') {
-      toast('Solo se aceptan PDFs o imágenes (PNG, JPG, WEBP, etc.)', 'err');
-    }
-    return;
-  }
-  
-  window.__LF_lastFile = file;
-
-  __LF_hide(__LF_q('uploadAreaFactura'));
-  __LF_show(__LF_q('loaderFactura'));
-  __LF_hide(__LF_q('resultadoFactura'));
-  __LF_hide(__LF_q('btnOcrFactura'));
-  const aviso = __LF_q('avisoFactura');
-  if (aviso) {
-    aviso.innerHTML = '';
-    aviso.style.cssText = '';
-    __LF_hide(aviso);
-  }
-
-  try {
-    let datos = null;
-    
-    // ========================================================================
-    // PASO 1: Intentar extracción desde QR
-    // ========================================================================
-    
-    if (isImage) {
-      // Es una imagen → Intentar QR directo
-      console.log('🖼️ [Modo] Imagen detectada - Intentando QR...');
-      datos = await __LF_extractQRFromImageFile(file);
-      
-      if (datos && datos.confianza === 100) {
-        __LF_processParsedQRData(datos);
-        return;
-      } else {
-        // No hay QR en la imagen
-        __LF_hide(__LF_q('loaderFactura'));
-        __LF_show(__LF_q('uploadAreaFactura'));
-        __LF_warn('⚠️ No se encontró código QR válido en la imagen. Por favor, sube una imagen clara del código QR de tu factura.');
-        return;
-      }
-    }
-    
-    if (isPDF) {
-      // Es PDF → Intentar QR primero
-      console.log('📄 [Modo] PDF detectado - Intentando QR...');
-      
-      if (!window.pdfjsLib) {
-        if (typeof toast === 'function') toast('PDF.js no se ha cargado', 'err');
-        return;
-      }
-      
-      datos = await __LF_tryExtractFromQR(file);
-      
-      if (datos && datos.confianza === 100) {
-        __LF_processParsedQRData(datos);
-        return;
-      }
-      
-      // ========================================================================
-      // PASO 2: QR no encontrado → Usar sistema legacy (regex)
-      // ========================================================================
-      console.log('ℹ️ [Legacy] QR no encontrado, usando extracción de texto...');
-      
-      const { textLines, textCompact, textRawLen } = await __LF_extraerTextoPDF(file);
-
-      __LF_hide(__LF_q('loaderFactura'));
-      __LF_show(__LF_q('resultadoFactura'));
-
-      if (!textRawLen || textRawLen < 40) {
-        __LF_warn('⚠️ No se ha detectado texto seleccionable. Parece un PDF escaneado. Puedes probar <b>OCR (experimental)</b> o introducir los datos manualmente.');
-        __LF_show(__LF_q('btnOcrFactura'));
-        __LF_setBadge(0);
-        __LF_renderForm({
-          p1: null,
-          p2: null,
-          dias: null,
-          consumoPunta: null,
-          consumoLlano: null,
-          consumoValle: null,
-          confianza: 0
-        });
-        return;
-      }
-
-      datos = __LF_parsearDatos(textLines, textCompact);
-      __LF_setBadge(datos.confianza);
-      __LF_renderForm(datos);
-      __LF_showContextualWarnings(datos);
-    }
-
-  } catch (err) {
-    __LF_hide(__LF_q('loaderFactura'));
-    __LF_show(__LF_q('uploadAreaFactura'));
-    if (typeof toast === 'function') toast('Error al procesar archivo', 'err');
-    console.error(err);
-  }
-}
-
 
       async function __LF_loadTesseract(){
         try{
