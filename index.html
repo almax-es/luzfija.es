@@ -2266,13 +2266,14 @@
       validateInputs();
       saveInputs();
 
-      hideResultsToInitialState();
+        hideResultsToInitialState();
 
-      if(initialStatusText) el.statusText.textContent=initialStatusText;
-      if(initialStatusClass) el.statusPill.className=initialStatusClass;
-      if(el.btnCalc){ el.btnCalc.classList.remove('calculating'); void el.btnCalc.offsetWidth; }
-      applyButtonState(false);
-      state.pending=true;
+        if(initialStatusText) el.statusText.textContent=initialStatusText;
+        if(initialStatusClass) el.statusPill.className=initialStatusClass;
+        applyButtonState(false);
+        // FIX: limpiar animación DESPUÉS de applyButtonState para evitar re-aplicación
+        if(el.btnCalc){ el.btnCalc.classList.remove('calculating'); void el.btnCalc.offsetWidth; }
+        state.pending=true;
 
       state.filter='all';
       document.querySelectorAll('.fbtn').forEach(b=>{
