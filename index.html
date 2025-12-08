@@ -652,7 +652,6 @@
       grid-template-columns: 1fr 1fr; 
       gap: 16px; 
       margin-bottom: 18px;
-      contain: layout style;
       width: 100%;
     }
     @media (max-width: 760px){ .heroKpis{grid-template-columns: 1fr;} }
@@ -694,7 +693,21 @@
     .heroCard .v{ font-size: clamp(28px, 2.6vw, 44px); font-weight: 1000; letter-spacing: -0.6px; line-height: 1.0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
     .heroCard .s{ color: var(--muted); font-size: 12px; line-height: 1.25; text-align: center; }
     .statsbar{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; opacity: .92; }
-    @media (max-width: 760px){ .statsbar{grid-template-columns: 1fr;} }
+    @media (max-width: 760px){
+      .statsbar{
+        grid-template-columns: 1fr;
+        gap: 12px;
+        opacity: 1 !important;
+        visibility: visible !important;
+      }
+      .statCard{
+        animation: none !important;
+        animation-delay: 0s !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: none !important;
+      }
+    }
     .statCard{ 
       border: 1px solid var(--border); 
       background: rgba(0,0,0,.14); 
