@@ -644,6 +644,19 @@
   from{ transform:translateY(10px); opacity:.6; }
   to{ transform:translateY(0); opacity:1; }
 }
+  
+.footer-credits {
+  font-size: 12px;
+  color: #9CA3AF; /* gris suave */
+  margin-top: 32px;
+  text-align: center;
+}
+
+.footer-credits a {
+  color: inherit;
+  text-decoration: underline;
+}
+
   </style>
   <script defer src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 </head>
@@ -1025,6 +1038,15 @@
         </div>
       </div>
     </footer>
+
+
+  <footer class="footer-credits">
+    Desarrollado por aLMaX · Gracias a las comunidades de
+    <a href="https://nergiza.com/foro/threads/tarifas-electricas-mercado-libre-recomendadas-pvpc-indexadas.10985/" target="_blank" rel="noopener noreferrer">Nergiza</a>
+    y
+    <a href="https://forocoches.com/foro/showthread.php?t=10515708" target="_blank" rel="noopener noreferrer">ForoCoches</a>
+    por sus ideas, facturas y sugerencias, y en especial a Omadón, ragaro79, JavierRR e Ivansnoke por sus aportes y ayuda en las pruebas.
+  </footer>
   </div>
 
   <div class="toast" id="toast"><span class="dot" id="toastDot"></span><span id="toastText"></span></div>
