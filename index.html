@@ -1064,7 +1064,7 @@
         </div>
       </section>
 
-      <section class="card">
+      <section class="card" id="resultsSection">
         <div class="head">
           <div class="kicker">Resultados</div>
           <h2 class="title">Tarifa óptima + ranking</h2>
@@ -2087,6 +2087,8 @@
       if(el.tbody) el.tbody.replaceChildren();
       if(el.emptyBox) el.emptyBox.classList.remove('show');
       if(el.pvpcInfo) el.pvpcInfo.innerHTML='';
+      const resultsSection=document.getElementById('resultsSection');
+      if(resultsSection) resultsSection.style.display='none';
       state.rows=[];
       state.lastSignature=null;
     }
@@ -2783,6 +2785,8 @@
       if(r.mejor) el.kpiBest.textContent=r.mejor;
       if(r.precio) el.kpiPrice.textContent=r.precio;
 
+      const resultsSection=document.getElementById('resultsSection');
+      if(resultsSection) resultsSection.style.display='';
       el.heroKpis.classList.add('show');
 
       const s=d.stats;
