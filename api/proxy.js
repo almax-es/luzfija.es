@@ -1,6 +1,6 @@
 export const config = { runtime: 'edge' };
 
-// Calcular segundos hasta medianoche (ojo: en Edge puede no ser “hora España” si el PoP es otro)
+// Calcular segundos hasta medianoche (nota: en Edge Functions puede variar según el PoP)
 function getSecondsUntilMidnight() {
   const now = new Date();
   const tomorrow = new Date(now);
@@ -63,7 +63,7 @@ export default async function handler(request) {
       });
     }
 
-    // Timeout para que nunca “se quede colgado”
+    // Timeout para que nunca se quede colgado
     const controller = new AbortController();
     const t = setTimeout(() => controller.abort(), 12000);
 
@@ -71,7 +71,7 @@ export default async function handler(request) {
       signal: controller.signal,
       headers: {
         'Accept': 'application/json',
-        // 👇 IMPORTANTE: NO pongas User-Agent en Edge
+        // ⚠️ IMPORTANTE: NO pongas User-Agent en Vercel Edge Functions
         // 'User-Agent': '...',  <-- quítalo
       },
     }).finally(() => clearTimeout(t));

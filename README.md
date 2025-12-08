@@ -45,7 +45,7 @@ Herramienta **gratuita** y **sin publicidad** para comparar tarifas de electrici
 ## 🏆 PVPC (Tarifa Regulada) y CORS (CNMC)
 
 El PVPC se consulta en `comparador.cnmc.gob.es`, pero esa API **no permite CORS** directo desde navegador.  
-Por eso la web usa un **Cloudflare Worker** como **proxy CORS** con whitelist estricta.
+Por eso la web usa un **proxy CORS** como **proxy CORS** con whitelist estricta.
 
 ### Cómo se activa en el frontend
 
@@ -53,21 +53,21 @@ En `index.html` se define la URL del proxy (ya lo tienes preparado en el `<head>
 
 ```html
 <script>
-  window.PVPC_PROXY_URL = "https://TU-WORKER.workers.dev/?url=";
+  window.PVPC_PROXY_URL = "https://luzfija-es.vercel.app/api/proxy/?url=";
 </script>
 ```
 
 ### Caché (para reducir llamadas)
 
 - **Frontend (localStorage)**: caché por **día** (fecha ancla + inputs) y límite de entradas
-- **Worker (edge cache)**: caché de respuesta (TTL configurable; típico 1h)
+- **Proxy (edge cache)**: caché de respuesta (TTL configurable; típico 1h)
 
 **Diagrama**:
 
 ```
 Usuario → caché local (por día)
    ↓ (miss)
-   → Worker (caché edge)
+   → Proxy (caché edge)
       ↓ (miss)
       → CNMC
 ```
@@ -80,8 +80,8 @@ Usuario → caché local (por día)
 
 - HTML5 + CSS3 + Vanilla JavaScript (sin frameworks)
 - Diseño responsive + modo claro/oscuro
-- Hosting estático (p.ej. Cloudflare Pages / GitHub Pages, según despliegue)
-- PVPC vía proxy (Cloudflare Workers)
+- Hosting estático (Vercel / GitHub Pages, según despliegue)
+- PVPC vía proxy (proxy CORSs)
 
 ---
 
@@ -150,9 +150,9 @@ La clave `tarifas` es obligatoria (array de objetos).
 
 ---
 
-## 🔧 Cloudflare Worker (PVPC Proxy)
+## 🔧 proxy CORS (PVPC Proxy)
 
-Características (según implementación típica del worker):
+Características del proxy desplegado en Vercel:
 
 - ✅ Whitelist estricto: solo `comparador.cnmc.gob.es/api/ofertas/pvpc`
 - ✅ Caché edge (TTL configurable)
@@ -198,7 +198,7 @@ LuzFija.es **no está afiliado** con CNMC, Red Eléctrica, organismos oficiales 
 - ❌ Sin cookies propias de seguimiento
 - ❌ Sin registro de usuarios
 - ✅ Solo localStorage para guardar preferencias (local)
-- ✅ Si se usa analítica del hosting (ej. Cloudflare Web Analytics), es sin cookies
+- ✅ Sin analítica de terceros
 
 ---
 
