@@ -3213,6 +3213,10 @@
 
     function clampNonNeg(n){ return Math.max(0, Number(n) || 0); }
 
+    /* Redondeo a 2 decimales (como Excel ROUND(...,2)) */
+    function round2(x){ return Math.round((Number(x) + Number.EPSILON) * 100) / 100; }
+
+
     function __LF_getFiscalContext(values){
       const v = values || getInputValues();
       const zona = (v?.zonaFiscal || '').toLowerCase() === 'canarias' ? 'canarias' : 'península';
@@ -3296,14 +3300,22 @@
           };
         }
 
-        const pot = (p1 * dias * t.p1) + (p2 * dias * t.p2);
-        const cons = (cPunta * t.cPunta) + (cLlano * t.cLlano) + (cValle * t.cValle);
-        const tarifaAcceso = (4.650987 / 365 * dias);
+        const pot = round2((p1 * dias * t.p1) + (p2 * dias * t.p2));
+        const cons = round2((cPunta * t.cPunta) + (cLlano * t.cLlano) + (cValle * t.cValle));
+        const tarifaAcceso = round2(4.650987 / 365 * dias);
+
+        // Base para impuesto eléctrico (Excel: SUM(G:I) con G,H,I ya redondeados a 2 decimales)
         const sumaBase = pot + cons + tarifaAcceso;
-        const impuestoElec = Math.max((5.11269632 / 100) * sumaBase, (cPunta + cLlano + cValle) * 0.001);
-        const margen = dias * 0.026667;
+        const impuestoElec = round2(Math.max((5.11269632 / 100) * sumaBase, (cPunta + cLlano + cValle) * 0.001));
+
+        // Alquiler contador (Excel: ROUND(dias*0.026667,2))
+        const margen = round2(dias * 0.026667);
+
         const baseEnergia = sumaBase + margen;
         const subtotal = baseEnergia + impuestoElec;
+
+        // Base de IVA (Excel: SUM(G:K))
+        const ivaBase = pot + cons + tarifaAcceso + impuestoElec + margen;
 
         if (isCanarias) {
           const alquilerContador = dias * (0.81 / 30);
@@ -3324,16 +3336,16 @@
           };
         }
 
-        const iva = subtotal * 0.21;
-        const total = subtotal + iva;
+        const iva = round2(ivaBase * 0.21);
+        const total = round2(ivaBase + iva);
 
         return {
           ...t,
           posicion: index + 1,
           potenciaNum: pot, potencia: formatMoney(pot),
           consumoNum: cons, consumo: formatMoney(cons),
-          impuestosNum: impuestoElec + margen + iva,
-          impuestos: formatMoney(impuestoElec + margen + iva),
+          impuestosNum: round2(tarifaAcceso + impuestoElec + margen + iva),
+          impuestos: formatMoney(round2(tarifaAcceso + impuestoElec + margen + iva)),
           totalNum: total, total: formatMoney(total),
           webUrl: t.web
         };
