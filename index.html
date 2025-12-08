@@ -45,6 +45,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preload" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" as="style">
 
+  <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.js"></script>
+
   <title>Comparador de Tarifas de Luz en España | Calcula tu factura y ahorra</title>
 
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
@@ -2242,10 +2244,16 @@
       </div>
       <div class="body">
         <div class="upload-area" id="uploadAreaFactura" tabindex="0">
-          <div style="font-weight:900; margin-bottom:6px">Arrastra aquí tu PDF</div>
-          <div style="color:var(--muted); font-size:13px">o pulsa para seleccionarlo</div>
+          <div style="font-weight:900; margin-bottom:6px">Arrastra aquí tu factura o foto del QR</div>
+          <div style="color:var(--muted); font-size:13px">o pulsa para seleccionarla</div>
         </div>
-        <input type="file" id="fileInputFactura" accept="application/pdf" style="display:none">
+        <div style="margin-top:10px; display:flex; gap:10px; flex-wrap:wrap; align-items:center;">
+          <button class="btn" type="button" onclick="__LF_scanQRFromCamera()">📱 Escanear QR con cámara</button>
+        </div>
+        <div class="help" style="margin-top:8px; font-size:12px; line-height:1.5;">
+          ✅ Opciones rápidas: <strong>Subir PDF</strong> · <strong>Subir foto del QR</strong> · <strong>Escanear con cámara</strong>
+        </div>
+        <input type="file" id="fileInputFactura" accept="application/pdf,image/*" style="display:none">
 
         <div id="loaderFactura" style="display:none; text-align:center; padding:36px">
           <div class="spinner"></div>
@@ -3945,6 +3953,95 @@
         return days;
       }
 
+      function __LF_parseCNMCQR(url){
+        if (!url || !String(url).includes('comparador.cnmc.gob.es')) return null;
+        let u;
+        try{ u = new URL(url); }catch(_){ return null; }
+        const params = u.searchParams;
+        const num = (key) => __LF_normNum(params.get(key));
+        const fecha = (key) => params.get(key) || null;
+
+        const fechaInicio = fecha('iniF');
+        const fechaFin = fecha('finF');
+        const dias = __LF_daysInclusive(fechaInicio, fechaFin);
+
+        const res = {
+          p1: num('pP1'),
+          p2: num('pP2'),
+          dias,
+          consumoPunta: num('cfP1'),
+          consumoLlano: num('cfP2'),
+          consumoValle: num('cfP3'),
+          confianza: 100,
+          source: "QR",
+          qr_url: url,
+          cups: params.get('cups') || params.get('CUPS') || null,
+          codigoPostal: params.get('cp') || null,
+          importeTotal: num('imp'),
+          potenciaMaxP1: num('pmaxP1'),
+          potenciaMaxP2: num('pmaxP2'),
+          fechaInicio,
+          fechaFin,
+          fechaEmision: fecha('fFact')
+        };
+
+        return res;
+      }
+
+      async function __LF_detectQRFromImageFile(file){
+        if (!file || !window.jsQR) return null;
+        return new Promise((resolve)=>{
+          const img = new Image();
+          img.onload = ()=>{
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d', { willReadFrequently:true });
+            canvas.width = img.width;
+            canvas.height = img.height;
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const qr = jsQR(imageData.data, canvas.width, canvas.height, { inversionAttempts: 'dontInvert' });
+            if (qr && qr.data){
+              const parsed = __LF_parseCNMCQR(qr.data.trim());
+              resolve(parsed);
+            } else {
+              resolve(null);
+            }
+            URL.revokeObjectURL(img.src);
+          };
+          img.onerror = ()=> resolve(null);
+          img.src = URL.createObjectURL(file);
+        });
+      }
+
+      async function __LF_tryExtractFromQRInPDF(file){
+        if (!file || !window.jsQR || !window.pdfjsLib || !__LF_ensurePdfWorker()) return null;
+        try{
+          const ab = await file.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+          const pagesToScan = Math.min(pdf.numPages, 3);
+
+          for (let p=1; p<=pagesToScan; p++){
+            const page = await pdf.getPage(p);
+            const viewport = page.getViewport({ scale: 2.0 });
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d', { willReadFrequently:true });
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            await page.render({ canvasContext: ctx, viewport }).promise;
+
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const qr = jsQR(imageData.data, canvas.width, canvas.height, { inversionAttempts: 'dontInvert' });
+            if (qr && qr.data){
+              const parsed = __LF_parseCNMCQR(qr.data.trim());
+              if (parsed) return parsed;
+            }
+          }
+        }catch(_){
+          return null;
+        }
+        return null;
+      }
+
       async function __LF_extraerTextoPDF(file){
         if (!__LF_ensurePdfWorker()) throw new Error("PDF.js no disponible");
         const ab = await file.arrayBuffer();
@@ -4569,6 +4666,128 @@
         __LF_show(a);
       }
 
+      function __LF_applyQRData(datos){
+        __LF_hide(__LF_q('loaderFactura'));
+        __LF_hide(__LF_q('uploadAreaFactura'));
+        __LF_show(__LF_q('resultadoFactura'));
+        __LF_hide(__LF_q('btnOcrFactura'));
+
+        const payload = datos || {};
+        __LF_setBadge(100);
+        __LF_renderForm({ ...payload, confianza: 100 });
+
+        const extra = [];
+        if (payload.p1 != null || payload.p2 != null){
+          extra.push(`Potencias: ${payload.p1 ?? '--'} kW / ${payload.p2 ?? '--'} kW`);
+        }
+        if (payload.consumoPunta != null || payload.consumoLlano != null || payload.consumoValle != null){
+          extra.push(`Consumos: ${payload.consumoPunta ?? '--'} · ${payload.consumoLlano ?? '--'} · ${payload.consumoValle ?? '--'} kWh`);
+        }
+        if (payload.dias != null){
+          extra.push(`Días facturados: ${payload.dias}`);
+        }
+
+        const aviso = __LF_q('avisoFactura');
+        if (aviso){
+          const detalle = extra.length ? `<div style="margin-top:6px; font-size:12px;">${extra.join(' · ')}</div>` : '';
+          aviso.innerHTML = `<div style="background:#0f5132; color:#d1e7dd; padding:12px; border-radius:10px; border:1px solid #198754;">
+            <strong>✅ Código QR reconocido exitosamente. Datos extraídos con precisión del 100%.</strong>
+            ${detalle}
+          </div>`;
+          __LF_show(aviso);
+        }
+      }
+
+      async function __LF_scanQRFromCamera(){
+        if (!window.jsQR){
+          if (typeof toast === 'function') toast('jsQR no está disponible', 'err');
+          return;
+        }
+        if (!navigator.mediaDevices?.getUserMedia){
+          if (typeof toast === 'function') toast('La cámara no está disponible en este dispositivo', 'err');
+          return;
+        }
+
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9999;display:flex;align-items:center;justify-content:center;padding:16px;';
+
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.style.cssText = 'max-width:480px;width:100%;background:var(--card);border-radius:12px;padding:14px;position:relative;';
+
+        const closeBtn = document.createElement('button');
+        closeBtn.className = 'btn';
+        closeBtn.type = 'button';
+        closeBtn.textContent = 'Cerrar';
+        closeBtn.style.cssText = 'position:absolute;top:10px;right:10px;';
+
+        const title = document.createElement('div');
+        title.style.cssText = 'font-weight:900;margin-bottom:8px;font-size:16px;';
+        title.textContent = 'Escanear QR de la factura';
+
+        const video = document.createElement('video');
+        video.setAttribute('playsinline', '');
+        video.autoplay = true;
+        video.style.cssText = 'width:100%;border-radius:10px;background:black;';
+
+        const helper = document.createElement('div');
+        helper.className = 'help';
+        helper.style.marginTop = '8px';
+        helper.textContent = 'Apunta la cámara al QR de tu factura. Se detectará automáticamente.';
+
+        card.appendChild(closeBtn);
+        card.appendChild(title);
+        card.appendChild(video);
+        card.appendChild(helper);
+        overlay.appendChild(card);
+        document.body.appendChild(overlay);
+
+        let stream = null;
+        let interval = null;
+
+        const cleanup = ()=>{
+          if (interval) clearInterval(interval);
+          interval = null;
+          if (stream){
+            stream.getTracks().forEach(t=>t.stop());
+          }
+          stream = null;
+          overlay.remove();
+        };
+
+        closeBtn.addEventListener('click', cleanup);
+        overlay.addEventListener('click', (e)=>{ if(e.target === overlay) cleanup(); });
+
+        try{
+          stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+          video.srcObject = stream;
+          await video.play();
+
+          const canvas = document.createElement('canvas');
+          const ctx = canvas.getContext('2d', { willReadFrequently:true });
+
+          interval = setInterval(()=>{
+            if (video.readyState !== video.HAVE_ENOUGH_DATA) return;
+            canvas.width = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const qr = jsQR(imageData.data, canvas.width, canvas.height, { inversionAttempts: 'dontInvert' });
+            if (qr && qr.data){
+              const parsed = __LF_parseCNMCQR(qr.data.trim());
+              if (parsed){
+                cleanup();
+                __LF_applyQRData(parsed);
+              }
+            }
+          }, 400);
+        }catch(err){
+          cleanup();
+          if (typeof toast === 'function') toast('No se pudo acceder a la cámara', 'err');
+          console.error(err);
+        }
+      }
+
       function __LF_focusTrapAttach(modal){
         __LF_focusTrapDetach();
         const focusables = () => Array.from(modal.querySelectorAll(
@@ -4647,21 +4866,56 @@
       }
 
       async function __LF_processPdf(file){
-        if (!file || file.type !== 'application/pdf'){
-          if (typeof toast === 'function') toast('Sube un PDF válido', 'err');
+        if (!file){
+          if (typeof toast === 'function') toast('Selecciona un archivo válido', 'err');
           return;
         }
-        if (!window.pdfjsLib){
-          if (typeof toast === 'function') toast('PDF.js no se ha cargado (bloqueo de red/CSP)', 'err');
-          return;
-        }
-        window.__LF_lastFile = file;
 
+        const fileType = file.type || '';
+        const isPdf = fileType === 'application/pdf' || file.name?.toLowerCase().endsWith('.pdf');
+        const isImage = fileType.startsWith('image/');
+        if (!isPdf && !isImage){
+          if (typeof toast === 'function') toast('Sube un PDF o una imagen con el QR', 'err');
+          return;
+        }
+
+        const aviso = __LF_q('avisoFactura'); if(aviso){ aviso.innerHTML=''; __LF_hide(aviso); }
         __LF_hide(__LF_q('uploadAreaFactura'));
         __LF_show(__LF_q('loaderFactura'));
         __LF_hide(__LF_q('resultadoFactura'));
         __LF_hide(__LF_q('btnOcrFactura'));
-        const aviso = __LF_q('avisoFactura'); if(aviso){ aviso.innerHTML=''; __LF_hide(aviso); }
+
+        if (isImage){
+          const qrData = await __LF_detectQRFromImageFile(file);
+          if (qrData){
+            __LF_applyQRData(qrData);
+            window.__LF_lastFile = null;
+            return;
+          }
+
+          __LF_hide(__LF_q('loaderFactura'));
+          __LF_show(__LF_q('uploadAreaFactura'));
+          __LF_hide(__LF_q('resultadoFactura'));
+          __LF_warn('No se encontró un QR válido en la imagen. Prueba con otra captura o sube el PDF completo.');
+          return;
+        }
+
+        if (!window.pdfjsLib){
+          __LF_show(__LF_q('uploadAreaFactura'));
+          __LF_hide(__LF_q('loaderFactura'));
+          if (typeof toast === 'function') toast('PDF.js no se ha cargado (bloqueo de red/CSP)', 'err');
+          return;
+        }
+
+        window.__LF_lastFile = file;
+
+        try{
+          const qrData = await __LF_tryExtractFromQRInPDF(file);
+          if (qrData){
+            __LF_applyQRData(qrData);
+            return;
+          }
+        }catch(_){ /* continuar con legacy */ }
 
         try{
           const { textLines, textCompact, textRawLen } = await __LF_extraerTextoPDF(file);
