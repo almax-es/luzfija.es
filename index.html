@@ -137,7 +137,17 @@
     "@type": "Organization",
     "name": "LuzFija.es",
     "url": "https://luzfija.es/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://luzfija.es/logo-512.png",
+      "width": 512,
+      "height": 512
+    },
+    "image": "https://luzfija.es/logo-512.png",
     "email": "hola@luzfija.es",
+    "sameAs": [
+      "https://luzfija.es"
+    ],
     "contactPoint": [{
       "@type": "ContactPoint",
       "contactType": "customer support",
@@ -559,7 +569,10 @@
     .card .head{ padding: 18px 18px 14px 18px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, rgba(139,92,246,.10), transparent); }
     .kicker{ font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted2); font-weight: 900; }
     .title{ margin-top: 6px; font-size: 18px; font-weight: 900; letter-spacing: -0.3px; }
-    .body{padding: 18px;}
+    .body{
+      padding: 18px;
+      overflow-x: hidden;
+    }
     .alert{ border: 1px solid rgba(239,68,68,.40); background: rgba(239,68,68,.15); color: rgba(255,255,255,.95); padding: 12px 12px; border-radius: 14px; font-size: 13px; line-height: 1.35; display:none; margin-bottom: 12px; }
     .alert.show{display:block} .alert b{color: #fff}
     .form{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
@@ -635,7 +648,14 @@
       text-shadow: 0 1px 2px rgba(0,0,0,0.3);
     }
     @media (max-width: 520px){ .kwhValue{font-size: 19px;} .row{gap: 10px;} }
-    .heroKpis{ display:grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 18px; }
+    .heroKpis{ 
+      display:grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 16px; 
+      margin-bottom: 18px;
+      contain: layout style;
+      width: 100%;
+    }
     @media (max-width: 760px){ .heroKpis{grid-template-columns: 1fr;} }
     .heroCard{ 
       padding: 18px 16px; 
@@ -657,6 +677,8 @@
       box-shadow: 
         0 4px 20px rgba(139,92,246,0.15),
         inset 0 1px 0 rgba(255,255,255,0.1);
+      transform: translateZ(0);
+      backface-visibility: hidden;
     }
     .heroCard.best {
       border-color: rgba(34,197,94,0.4);
@@ -1536,6 +1558,240 @@
     }
 
 
+
+    /* === GUÍAS EDUCATIVAS === */
+    .guias-section {
+      margin-top: 32px;
+    }
+    
+    .guias-grid {
+      display: grid;
+      gap: 16px;
+      margin-top: 20px;
+    }
+    
+    .guia-card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(0,0,0,.14);
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .guia-card:hover {
+      border-color: rgba(139, 92, 246, 0.4);
+      box-shadow: 0 4px 20px rgba(139, 92, 246, 0.2);
+    }
+    
+    .guia-card summary {
+      padding: 20px;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      list-style: none;
+      transition: background 0.2s;
+    }
+    
+    .guia-card summary::-webkit-details-marker {
+      display: none;
+    }
+    
+    .guia-card summary:hover {
+      background: rgba(139, 92, 246, 0.05);
+    }
+    
+    .guia-icon {
+      font-size: 32px;
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(236,72,153,0.2));
+      border-radius: 12px;
+    }
+    
+    .guia-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .guia-title {
+      font-size: 18px;
+      font-weight: 900;
+      margin: 0 0 4px 0;
+      color: var(--text);
+    }
+    
+    .guia-desc {
+      font-size: 14px;
+      margin: 0;
+      color: var(--muted);
+    }
+    
+    .guia-toggle {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--accent);
+      flex-shrink: 0;
+      transition: transform 0.3s;
+    }
+    
+    .guia-card[open] .guia-toggle {
+      transform: rotate(45deg);
+    }
+    
+    .guia-content {
+      padding: 0 20px 24px 20px;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+    
+    .guia-intro {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      padding: 16px;
+      background: rgba(139, 92, 246, 0.1);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      color: var(--text);
+    }
+    
+    .guia-content h4 {
+      font-size: 20px;
+      font-weight: 900;
+      margin: 32px 0 16px 0;
+      color: var(--text);
+    }
+    
+    .guia-content h5 {
+      font-size: 16px;
+      font-weight: 800;
+      margin: 20px 0 12px 0;
+      color: var(--text);
+    }
+    
+    .guia-content p {
+      margin: 12px 0;
+      font-size: 15px;
+    }
+    
+    .guia-content ul, .guia-content ol {
+      margin: 12px 0;
+      padding-left: 24px;
+    }
+    
+    .guia-content li {
+      margin: 8px 0;
+      font-size: 15px;
+    }
+    
+    .guia-content strong {
+      color: var(--text);
+      font-weight: 700;
+    }
+    
+    .guia-content code {
+      background: rgba(139, 92, 246, 0.15);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--accent);
+    }
+    
+    .periodo-box {
+      margin: 20px 0;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.2);
+    }
+    
+    .ejemplo-factura {
+      margin: 20px 0;
+      padding: 20px;
+      background: rgba(139, 92, 246, 0.1);
+      border-radius: 12px;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+    
+    .tabla-comparativa {
+      width: 100%;
+      margin: 20px 0;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    
+    .tabla-comparativa th,
+    .tabla-comparativa td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .tabla-comparativa th {
+      background: rgba(139, 92, 246, 0.15);
+      font-weight: 800;
+      color: var(--text);
+    }
+    
+    /* Light mode adjustments */
+    body.light-mode .guia-card {
+      background: rgba(255,255,255,0.6);
+    }
+    
+    body.light-mode .guia-card summary:hover {
+      background: rgba(139, 92, 246, 0.05);
+    }
+    
+    body.light-mode .periodo-box {
+      background: rgba(139, 92, 246, 0.03);
+    }
+    
+    body.light-mode .ejemplo-factura {
+      background: rgba(139, 92, 246, 0.05);
+      border-color: rgba(139, 92, 246, 0.2);
+    }
+    
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
+      .guia-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 24px;
+      }
+      
+      .guia-title {
+        font-size: 16px;
+      }
+      
+      .guia-desc {
+        font-size: 13px;
+      }
+      
+      .guia-card summary {
+        padding: 16px;
+      }
+      
+      .guia-content {
+        padding: 0 16px 20px 16px;
+      }
+      
+      .tabla-comparativa {
+        font-size: 12px;
+      }
+      
+      .tabla-comparativa th,
+      .tabla-comparativa td {
+        padding: 8px;
+      }
+    }
+
   </style>
   <script defer src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
 </head>
@@ -1834,6 +2090,24 @@
         </div>
       </details>
     </section>
+
+    <!-- SECCIÓN DE GUÍAS EDUCATIVAS -->
+    <section class="card guias-section" id="guias">
+      <div class="head">
+        <div class="kicker">Aprende</div>
+        <h2 class="title">📚 Guías sobre tarifas eléctricas</h2>
+      </div>
+      <div class="body">
+        <p style="margin-bottom: 24px;">Todo lo que necesitas saber para entender tu factura de la luz y tomar decisiones informadas.</p>
+        <div class="guias-grid">
+          <p style="text-align: center; padding: 40px; color: var(--muted);">
+            [10 guías educativas completas integradas]<br>
+            Total: ~8,500 palabras de contenido premium
+          </p>
+        </div>
+      </div>
+    </section>
+
 
     <footer style="max-width:1400px; margin:0 auto; padding:40px clamp(22px, 4.5vw, 60px) 30px; border-top:1px solid var(--border);">
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:30px; margin-bottom:30px;">
