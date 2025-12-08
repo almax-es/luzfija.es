@@ -10,6 +10,7 @@
   <meta name="keywords" content="comparador tarifas luz, tarifa discriminación horaria, calcular factura electricidad, precio luz punta llano valle, potencia contratada P1 P2, ahorrar factura luz, mejor tarifa luz">
   <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
   <meta name="theme-color" content="#8B5CF6">
+  <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Comparador Tarifas">
@@ -1883,10 +1884,7 @@
               <span class="mi-left">🔗 Compartir configuración</span>
               <span class="mi-right">URL</span>
             </button>
-            <a class="menuItem" href="/cdn-cgi/l/email-protection#87efe8ebe6c7ebf2fde1eeede6a9e2f4" role="menuitem" style="text-decoration:none;">
-              <span class="mi-left">✉️ Contacto</span>
-              <span class="mi-right">email</span>
-            </a>
+            <a href="mailto:info@luzfija.es" style="color:var(--accent); font-weight:900; text-decoration:underline; font-size:13px;">info@luzfija.es</a>
             <div class="menuDivider"></div>
             <button class="menuItem" id="btnReset" type="button" role="menuitem">
               <span class="mi-left">↺ Restablecer</span>
@@ -2179,9 +2177,7 @@
             <div style="font-size:11px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted2); font-weight:900; margin-bottom:6px;">
               ✉️ Email
             </div>
-            <a href="/cdn-cgi/l/email-protection#6f0700030e2f031a150906050e410a1c" style="color:var(--accent); font-weight:900; text-decoration:underline; font-size:13px;">
-              <span class="__cf_email__" data-cfemail="99f1f6f5f8d9f5ece3fff0f3f8b7fcea">[email&#160;protected]</span>
-            </a>
+            <a href="mailto:info@luzfija.es" style="color:var(--accent); font-weight:900; text-decoration:underline; font-size:13px;">info@luzfija.es</a>
             <div style="margin-top:8px; font-size:11px; color:var(--muted2); line-height:1.4;">
               Respondo en cuanto puedo (proyecto gratuito).
             </div>
@@ -2245,7 +2241,7 @@
           <div style="font-weight:900; margin-bottom:6px">Arrastra aquí tu PDF</div>
           <div style="color:var(--muted); font-size:13px">o pulsa para seleccionarlo</div>
         </div>
-        <input type="file" id="fileInputFactura" accept="application/pdf" style="display:none">
+        <input type="file" id="fileInputFactura" accept="application/pdf,image/*" style="display:none">
 
         <div id="loaderFactura" style="display:none; text-align:center; padding:36px">
           <div class="spinner"></div>
@@ -2275,7 +2271,7 @@
           </div>
 
           <div class="help" style="margin-top:10px; font-size:11px; opacity:0.9; border:1px solid var(--border); background: var(--card2); padding:8px; border-radius:10px; line-height:1.4;">
-            <p style="margin-bottom:4px;"><strong>📧 ¿Datos incorrectos?</strong> Envía el PDF anonimizado a <a href="/cdn-cgi/l/email-protection#f0989f9c91b09c858a96999a91de9583" style="color: var(--accent); text-decoration: underline;"><span class="__cf_email__" data-cfemail="3f5750535e7f534a455956555e115a4c">[email&#160;protected]</span></a></p>
+            <p style="margin-bottom:4px;"><strong>📧 ¿Datos incorrectos?</strong> Envía el PDF anonimizado a <a href="mailto:info@luzfija.es" style="color:var(--accent); font-weight:900; text-decoration:underline; font-size:13px;">info@luzfija.es</a></p>
             <p style="margin:0; color: var(--muted); font-size:10px;">Oculta: nombre, DNI, CUPS, IBAN, QR. El PDF se procesa en tu navegador (no se sube).</p>
           </div>
         </div>
@@ -2288,7 +2284,7 @@
     </div>
   </div>
 
-  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+  <script>
     const $ = id => document.getElementById(id);
 
     // URL DEL JSON ESTÁTICO DE TARIFAS EN EL MISMO HOST
@@ -4656,6 +4652,62 @@
           return;
         }
         window.__LF_lastFile = file;
+
+        // DETECCIÓN QR (BarcodeDetector nativo)
+        if ('BarcodeDetector' in window) {
+          try {
+            const detector = new BarcodeDetector({ formats: ['qr_code'] });
+            let imgSrc = null;
+            
+            if (file.type.startsWith('image/')) {
+              const img = new Image();
+              await new Promise(r => { img.onload = r; img.src = URL.createObjectURL(file); });
+              imgSrc = img;
+            } else if (window.pdfjsLib) {
+              const ab = await file.arrayBuffer();
+              const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+              const pg = await pdf.getPage(1);
+              const vp = pg.getViewport({ scale: 2 });
+              const cv = document.createElement('canvas');
+              cv.width = vp.width; cv.height = vp.height;
+              await pg.render({ canvasContext: cv.getContext('2d'), viewport: vp }).promise;
+              imgSrc = cv;
+            }
+            
+            if (imgSrc) {
+              const codes = await detector.detect(imgSrc);
+              if (codes[0] && codes[0].rawValue.includes('comparador.cnmc.gob.es')) {
+                const u = new URL(codes[0].rawValue);
+                const p = new URLSearchParams(u.search);
+                const d = {
+                  p1: parseFloat(p.get('pP1')) || null,
+                  p2: parseFloat(p.get('pP2')) || null,
+                  consumoPunta: parseFloat(p.get('cfP1')) || null,
+                  consumoLlano: parseFloat(p.get('cfP2')) || null,
+                  consumoValle: parseFloat(p.get('cfP3')) || null,
+                  dias: null,
+                  confianza: 100
+                };
+                const ini = p.get('iniF'), fin = p.get('finF');
+                if (ini && fin) d.dias = Math.ceil((new Date(fin) - new Date(ini)) / 86400000) + 1;
+                
+                __LF_hide(__LF_q('loaderFactura'));
+                __LF_show(__LF_q('resultadoFactura'));
+                __LF_setBadge(100);
+                __LF_renderForm(d);
+                
+                const av = __LF_q('avisoFactura');
+                if (av) {
+                  av.innerHTML = '<div style="display:flex;align-items:center;gap:12px"><span style="font-size:24px">✅</span><strong style="color:#10b981">Código QR reconocido - Precisión 100%</strong></div>';
+                  av.style.cssText = 'background:linear-gradient(135deg,#10b981,#059669);color:white;padding:16px;border-radius:12px;margin-bottom:20px';
+                  __LF_show(av);
+                }
+                return;
+              }
+            }
+          } catch(e) { console.log('QR no detectado:', e); }
+        }
+
 
         __LF_hide(__LF_q('uploadAreaFactura'));
         __LF_show(__LF_q('loaderFactura'));
