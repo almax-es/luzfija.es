@@ -753,23 +753,18 @@
     tbody tr td:last-child  { border-radius: 0 12px 12px 0; }
     tbody td:nth-child(2){ font-weight: 1000; color: #fff; font-size: 14px; }
     tbody tr:hover{ transform: scale(1.01) translateY(-2px) translateZ(0); background: rgba(255, 255, 255, 0.07); box-shadow: 0 10px 20px rgba(0,0,0,0.2); z-index: 10; position: relative; }
-    tbody tr.best{ 
-      background: linear-gradient(90deg, rgba(34,197,94,0.18), rgba(139,92,246,0.12)) !important; 
-      border: 2px solid rgba(34,197,94,0.5); 
-      box-shadow: 
+    tbody tr.best{
+      background: linear-gradient(90deg, rgba(34,197,94,0.18), rgba(139,92,246,0.12)) !important;
+      border: 0;
+      outline: 2px solid rgba(34,197,94,0.5);
+      box-shadow:
         0 0 30px rgba(34,197,94,0.2),
         0 4px 20px rgba(34,197,94,0.15),
         inset 0 1px 0 rgba(255,255,255,0.1);
       position: relative;
     }
     tbody tr.best::before {
-      content: '🏆';
-      position: absolute;
-      left: 8px;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 16px;
-      opacity: 0.7;
+      content: none !important;
     }
     tbody tr.best td:nth-child(2)::before{ content: "🏆 "; font-size: 14px; margin-right: 4px; }
     tbody tr:nth-child(1) td:first-child { color: #FFD700; font-weight: 1000; font-size: 1.3em; text-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
@@ -1506,8 +1501,9 @@
     
     body.light-mode tbody tr.best {
       background: linear-gradient(90deg, rgba(34,197,94,0.12), rgba(139,92,246,0.08)) !important;
-      border-color: rgba(34,197,94,0.4);
-      box-shadow: 
+      border: 0;
+      outline: 2px solid rgba(34,197,94,0.4);
+      box-shadow:
         0 0 30px rgba(34,197,94,0.15),
         0 4px 20px rgba(34,197,94,0.1),
         inset 0 1px 0 rgba(255,255,255,0.6);
