@@ -142,11 +142,11 @@
               <p><strong>Cómo se calcula:</strong></p>
               <p>Potencia (kW) × Días × Precio (€/kW/día)</p>
               
-              <p><strong>Ejemplo real:</strong></p>
+              <p><strong>Ejemplo orientativo diciembre 2025 (precios ilustrativos):</strong></p>
               <ul>
-                <li>P1: 3,45 kW × 30 días × 0,107814 €/kW/día = <strong>11,16 €</strong></li>
-                <li>P2: 3,45 kW × 30 días × 0,003648 €/kW/día = <strong>0,38 €</strong></li>
-                <li><strong>Total potencia: 11,54 €</strong></li>
+                <li>P1: 3,45 kW × 30 días × 0,12 €/kW/día = <strong>12,42 €</strong></li>
+                <li>P2: 3,45 kW × 30 días × 0,03 €/kW/día = <strong>3,11 €</strong></li>
+                <li><strong>Total potencia: 15,53 €</strong></li>
               </ul>
               
               <p><strong>Consejo:</strong> Si nunca saltan los plomos, probablemente puedes bajar la potencia P1 y ahorrar en este concepto.</p>
@@ -160,18 +160,21 @@
                 <li><strong>Energía P3 (valle):</strong> kWh × Precio P3 (más barato)</li>
               </ul>
               
-              <p><strong>Ejemplo real:</strong></p>
+              <p><strong>Ejemplo orientativo diciembre 2025:</strong> <em>precios ilustrativos de 2025, sujetos a cambios</em></p>
               <ul>
-                <li>P1: 85 kWh × 0,176543 €/kWh = <strong>15,01 €</strong></li>
-                <li>P2: 110 kWh × 0,142876 €/kWh = <strong>15,72 €</strong></li>
-                <li>P3: 125 kWh × 0,108234 €/kWh = <strong>13,53 €</strong></li>
-                <li><strong>Total energía: 44,26 €</strong></li>
+                <li>P1: 85 kWh × 0,23 €/kWh = <strong>19,55 €</strong></li>
+                <li>P2: 110 kWh × 0,18 €/kWh = <strong>19,80 €</strong></li>
+                <li>P3: 125 kWh × 0,12 €/kWh = <strong>15,00 €</strong></li>
+                <li><strong>Total energía: 54,35 €</strong></li>
               </ul>
+              <p style="margin-top:8px; font-size:14px; color: var(--muted);">Estos rangos son históricos/ilustrativos de 2025. Los precios reales cambian: consulta tu factura o la web de tu comercializadora y no los uses como referencia exacta de comparación.</p>
               
-              <h4>5. Impuesto eléctrico (5,11269632%)</h4>
-              <p>Es un impuesto del Estado que se aplica sobre la suma de potencia + energía:</p>
-              <p>(Potencia + Energía) × 5,11269632% = Impuesto</p>
-              <p><strong>Ejemplo:</strong> (11,54 + 44,26) × 0,0511 = <strong>2,85 €</strong></p>
+              <h4>5. Impuesto Especial sobre la Electricidad (IEE) (5,11269632%)</h4>
+              <p>Es un impuesto estatal independiente del IVA.</p>
+              <p><strong>Cálculo correcto:</strong> (Potencia + Energía) × 5,11269632% = IEE</p>
+              <p>Luego se suman el resto de conceptos y se aplica el IVA al subtotal (multiplicando por 1,21).</p>
+              <p><strong>Ejemplo:</strong> (15,53 + 54,35) × 0,0511269632 = <strong>3,57 €</strong></p>
+              <p style="font-size:14px; color: var(--muted);">Si tu potencia es ≤ 3 kW en baja tensión existe un descuento específico en el IEE.</p>
               
               <h4>6. Alquiler de contador</h4>
               <p>Coste mensual por el equipo de medida (contador). Lo cobra la distribuidora, no la comercializadora:</p>
@@ -180,45 +183,44 @@
                 <li>Contador inteligente (Smartmeter): ~0,90-1,20 €/mes</li>
               </ul>
               
-              <h4>7. IVA (10% o 21%)</h4>
-              <p>Se aplica sobre TODO lo anterior (potencia + energía + impuesto + contador):</p>
-              <ul>
-                <li><strong>IVA reducido (10%):</strong> Viviendas habituales con potencia ≤ 10 kW</li>
-                <li><strong>IVA general (21%):</strong> Segunda residencia, locales comerciales o potencia > 10 kW</li>
-              </ul>
-              
-              <p><strong>Ejemplo con IVA 10%:</strong></p>
-              <p>(11,54 + 44,26 + 2,85 + 1,00) × 0,10 = <strong>5,97 €</strong></p>
+              <h4>7. IVA (21% desde enero 2025)</h4>
+              <p>Se aplica sobre TODO lo anterior (potencia + energía + IEE + contador). Desde 2025 el IVA es 21% para todas las viviendas con potencia ≤ 10 kW.</p>
+
+              <p><strong>Ejemplo con IVA 21%:</strong></p>
+              <p>(15,53 + 54,35 + 3,57 + 1,00) × 0,21 = <strong>15,87 €</strong></p>
               
               <h4>8. Bono social (si aplica)</h4>
               <p>Descuento para hogares vulnerables. Se resta ANTES del IVA:</p>
               <ul>
-                <li>Vulnerables: 25% de descuento</li>
-                <li>Vulnerables severos: 40% de descuento</li>
+                <li>1 enero - 30 junio 2025: Vulnerables 50%, Severos 65%</li>
+                <li>1 julio - 31 diciembre 2025: Vulnerables 42,5%, Severos 57,5%</li>
+                <li>A partir de 1 enero 2026: Vulnerables 35%, Severos 50% (podrían bajar más)</li>
                 <li>Riesgo de exclusión social: Hasta 50-60% de descuento + 4 kW gratis</li>
               </ul>
+              <p style="font-size:14px; color: var(--muted);">Consulta CNMC o tu comercializadora para confirmar los valores exactos y límites de energía bonificada.</p>
               
               <h4>FACTURA COMPLETA - Ejemplo paso a paso</h4>
+              <p style="font-size:14px; color: var(--muted);">Orden: Potencia → Energía → Impuesto Especial → Subtotal → IVA → Total.</p>
               <div class="ejemplo-factura">
                 <p style="font-weight: 900; margin-bottom: 12px;">📊 Desglose completo:</p>
                 <p><strong>Término de potencia:</strong></p>
-                <p style="margin-left: 20px;">P1: 11,16 €</p>
-                <p style="margin-left: 20px;">P2: 0,38 €</p>
-                <p style="margin-left: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;"><strong>Subtotal: 11,54 €</strong></p>
-                
+                <p style="margin-left: 20px;">P1: 12,42 €</p>
+                <p style="margin-left: 20px;">P2: 3,11 €</p>
+                <p style="margin-left: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;"><strong>Subtotal: 15,53 €</strong></p>
+
                 <p style="margin-top: 12px;"><strong>Término de energía:</strong></p>
-                <p style="margin-left: 20px;">P1: 15,01 € (85 kWh)</p>
-                <p style="margin-left: 20px;">P2: 15,72 € (110 kWh)</p>
-                <p style="margin-left: 20px;">P3: 13,53 € (125 kWh)</p>
-                <p style="margin-left: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;"><strong>Subtotal: 44,26 €</strong></p>
-                
-                <p style="margin-top: 12px;"><strong>Impuesto eléctrico (5,11%):</strong> 2,85 €</p>
+                <p style="margin-left: 20px;">P1: 19,55 € (85 kWh)</p>
+                <p style="margin-left: 20px;">P2: 19,80 € (110 kWh)</p>
+                <p style="margin-left: 20px;">P3: 15,00 € (125 kWh)</p>
+                <p style="margin-left: 20px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 8px;"><strong>Subtotal: 54,35 €</strong></p>
+
+                <p style="margin-top: 12px;"><strong>Impuesto Especial electricidad (5,11269632%):</strong> 3,57 €</p>
                 <p><strong>Alquiler contador:</strong> 1,00 €</p>
-                
-                <p style="border-top: 2px solid rgba(255,255,255,0.2); padding-top: 12px; margin-top: 12px;"><strong>Base imponible IVA:</strong> 59,65 €</p>
-                <p><strong>IVA (10%):</strong> 5,97 €</p>
-                
-                <p style="border-top: 3px solid var(--accent); padding-top: 12px; margin-top: 12px; font-size: 20px; font-weight: 900;"><strong>TOTAL A PAGAR:</strong> 65,62 €</p>
+
+                <p style="border-top: 2px solid rgba(255,255,255,0.2); padding-top: 12px; margin-top: 12px;"><strong>Base imponible IVA:</strong> 74,45 €</p>
+                <p><strong>IVA (21%):</strong> 15,64 €</p>
+
+                <p style="border-top: 3px solid var(--accent); padding-top: 12px; margin-top: 12px; font-size: 20px; font-weight: 900;"><strong>TOTAL A PAGAR:</strong> 90,09 €</p>
               </div>
               
               <h4>Consejos para revisar tu factura</h4>
