@@ -10,27 +10,39 @@ function getSecondsUntilMidnight() {
   return Math.max(60, Math.floor(diff / 1000));
 }
 
-function corsHeaders(request) {
-  // Evita '*' en Allow-Headers: responde con lo que pide el navegador
-  const reqHeaders = request.headers.get('access-control-request-headers') || 'Content-Type';
+function corsBase() {
   return {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
-    'Access-Control-Allow-Headers': reqHeaders,
-    'Vary': 'Origin',
   };
+}
+
+function corsPreflight(request) {
+  const reqHeaders = request.headers.get('access-control-request-headers') || 'Content-Type';
+  return {
+    ...corsBase(),
+    'Access-Control-Allow-Headers': reqHeaders,
+    'Access-Control-Max-Age': '86400',
+    // Solo varía por los headers pedidos en preflight
+    'Vary': 'Access-Control-Request-Headers',
+  };
+}
+
+function corsActual() {
+  // Para respuestas GET / errores no hace falta Allow-Headers
+  return { ...corsBase() };
 }
 
 export default async function handler(request) {
   // Preflight
   if (request.method === 'OPTIONS') {
-    return new Response(null, { status: 204, headers: corsHeaders(request) });
+    return new Response(null, { status: 204, headers: corsPreflight(request) });
   }
 
   if (request.method !== 'GET') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
-      headers: { ...corsHeaders(request), 'Content-Type': 'application/json' },
+      headers: { ...corsActual(), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
     });
   }
 
@@ -41,7 +53,7 @@ export default async function handler(request) {
     if (!targetUrl) {
       return new Response(JSON.stringify({ error: 'Missing url parameter' }), {
         status: 400,
-        headers: { ...corsHeaders(request), 'Content-Type': 'application/json' },
+        headers: { ...corsActual(), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
       });
     }
 
@@ -51,7 +63,7 @@ export default async function handler(request) {
     } catch {
       return new Response(JSON.stringify({ error: 'Invalid URL' }), {
         status: 400,
-        headers: { ...corsHeaders(request), 'Content-Type': 'application/json' },
+        headers: { ...corsActual(), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
       });
     }
 
@@ -59,7 +71,7 @@ export default async function handler(request) {
     if (target.hostname !== 'comparador.cnmc.gob.es' || !target.pathname.startsWith('/api/ofertas/pvpc')) {
       return new Response(JSON.stringify({ error: 'Only CNMC PVPC is allowed' }), {
         status: 403,
-        headers: { ...corsHeaders(request), 'Content-Type': 'application/json' },
+        headers: { ...corsActual(), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
       });
     }
 
@@ -67,22 +79,31 @@ export default async function handler(request) {
     const controller = new AbortController();
     const t = setTimeout(() => controller.abort(), 12000);
 
-    const response = await fetch(target.toString(), {
+    const upstream = await fetch(target.toString(), {
       signal: controller.signal,
-      headers: {
-        'Accept': 'application/json',
-        // ⚠️ IMPORTANTE: NO pongas User-Agent en Vercel Edge Functions
-        // 'User-Agent': '...',  <-- quítalo
-      },
+      headers: { 'Accept': 'application/json' },
     }).finally(() => clearTimeout(t));
 
-    const ttl = getSecondsUntilMidnight();
-    const contentType = response.headers.get('content-type') || 'application/json; charset=utf-8';
+    const contentType = upstream.headers.get('content-type') || 'application/json; charset=utf-8';
 
-    return new Response(response.body, {
-      status: response.status,
+    // ✅ Si upstream NO es 2xx → NO CACHEAR
+    if (!upstream.ok) {
+      return new Response(upstream.body, {
+        status: upstream.status,
+        headers: {
+          ...corsActual(),
+          'Content-Type': contentType,
+          'Cache-Control': 'no-store',
+        },
+      });
+    }
+
+    // ✅ Solo cachear 2xx
+    const ttl = getSecondsUntilMidnight();
+    return new Response(upstream.body, {
+      status: upstream.status,
       headers: {
-        ...corsHeaders(request),
+        ...corsActual(),
         'Content-Type': contentType,
         'Cache-Control': `public, s-maxage=${ttl}, stale-while-revalidate=60`,
         'CDN-Cache-Control': `max-age=${ttl}`,
@@ -92,7 +113,7 @@ export default async function handler(request) {
   } catch (error) {
     return new Response(JSON.stringify({ error: String(error?.message || error) }), {
       status: 500,
-      headers: { ...corsHeaders(request), 'Content-Type': 'application/json' },
+      headers: { ...corsActual(), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
     });
   }
 }
