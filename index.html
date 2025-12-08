@@ -4147,6 +4147,10 @@
             t.includes('enérgya') || t.includes('energyavm') || 
             (t.includes('energ') && t.includes('gestión'))) return 'energyavm';
         
+        // Imagina Energía
+        if (t.includes('imagina energía') || t.includes('imagina energia') || t.includes('imaginaenergia')) return 'imagina';
+        if (t.includes('imagina') && t.includes('energ')) return 'imagina';
+        
         return 'generico';
       }
       
@@ -4203,6 +4207,14 @@
               /periodo[^)]{0,80}\(\s*(\d{1,3})\s*d[ií]as?\s*\)/i
             ], 1, 200);
             
+          case 'imagina':
+            // Imagina Energía: en potencia contratada aparece "€/kW * X Días"
+            return __LF_extraerNumero(texto, [
+              /€\s*\/\s*k[wW]\s*\*\s*(\d{1,3})\s*d[ií]as?\b/i,
+              /\/\s*k[wW]\s*\*\s*(\d{1,3})\s*d[ií]as?\b/i,
+              /\*\s*(\d{1,3})\s*d[ií]as?\b/i
+            ], 1, 200);
+            
           default:
             // Genérico: intentar todos los patrones
             return null;
@@ -4223,6 +4235,22 @@
               /\bp2[:\s]+([0-9][0-9\.,]*)\s*kw\b/i
             ], 0.1, 40);
             return { p1: p1_te, p2: p2_te };
+            
+          case 'imagina': {
+            // Imagina Energía: "P1 5,750 kW * ... * 30 Días" (bloque Potencia contratada)
+            const low_im = texto.toLowerCase();
+            let sub_im = texto;
+            const idx_im = low_im.indexOf('potencia contratada');
+            if (idx_im >= 0) sub_im = texto.slice(idx_im, idx_im + 800);
+
+            const p1_im = __LF_extraerNumero(sub_im, [
+              /\bp1\b[^\d]{0,20}([0-9][0-9\.,]*)\s*k\s*(?:w|vv)(?!\s*h)\b/i
+            ], 0.1, 40);
+            const p2_im = __LF_extraerNumero(sub_im, [
+              /\bp2\b[^\d]{0,20}([0-9][0-9\.,]*)\s*k\s*(?:w|vv)(?!\s*h)\b/i
+            ], 0.1, 40);
+            return { p1: p1_im, p2: p2_im };
+          }
             
           default:
             // Genérico: patrones estándar
