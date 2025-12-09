@@ -1,3 +1,1636 @@
+      padding: 18px 16px; 
+      border-radius: 18px; 
+      border: 1px solid var(--border); 
+      background: linear-gradient(135deg, rgba(139,92,246,.14), rgba(34,197,94,.06)); 
+      position:relative; 
+      overflow:hidden; 
+      min-height: 120px; 
+      display:flex; 
+      flex-direction:column; 
+      justify-content:center; 
+      align-items:center; 
+      text-align:center; 
+      gap: 10px; 
+      animation: fadeInUp 0.6s ease-out; 
+      animation-delay: 0.1s; 
+      animation-fill-mode: both;
+      box-shadow: 
+        0 4px 20px rgba(139,92,246,0.15),
+        inset 0 1px 0 rgba(255,255,255,0.1);
+      transform: translateZ(0);
+      backface-visibility: hidden;
+    }
+    .heroCard.best {
+      border-color: rgba(34,197,94,0.4);
+      box-shadow: 
+        0 4px 20px rgba(34,197,94,0.2),
+        0 0 40px rgba(34,197,94,0.1),
+        inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+    .heroCard.best{ border: 2px solid rgba(251, 191, 36, .6); background: linear-gradient(135deg, rgba(251, 191, 36, .15), rgba(139,92,246,.10)); animation: fadeInUp 0.6s ease-out, goldenPulse 2s ease-in-out infinite; animation-delay: 0.1s, 0.8s; animation-fill-mode: both, forwards; position: relative; }
+    .heroCard.best::before{ content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent); animation: shine 3s infinite; }
+    @keyframes shine { 0% { left: -100%; } 50%, 100% { left: 200%; } }
+    .heroCard .k{ font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted2); font-weight: 1000; display:flex; align-items:center; justify-content:center; gap: 6px; }
+    .heroCard.best .k::before{ content: "🏆"; font-size: 14px; }
+    .heroCard .v{ font-size: clamp(28px, 2.6vw, 44px); font-weight: 1000; letter-spacing: -0.6px; line-height: 1.0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
+    .heroCard .s{ color: var(--muted); font-size: 12px; line-height: 1.25; text-align: center; }
+    .statsbar{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-bottom: 18px; opacity: .92; }
+    @media (max-width: 760px){
+      .statsbar{
+        grid-template-columns: 1fr;
+        gap: 12px;
+        opacity: 1 !important;
+        visibility: visible !important;
+      }
+      .statCard{
+        animation: none !important;
+        animation-delay: 0s !important;
+        opacity: 1 !important;
+        visibility: visible !important;
+        transform: none !important;
+      }
+    }
+    .statCard{ 
+      border: 1px solid var(--border); 
+      background: rgba(0,0,0,.14); 
+      border-radius: 16px; 
+      padding: 12px 12px; 
+      display:flex; 
+      flex-direction:column; 
+      gap: 6px; 
+      animation: fadeInUp 0.5s ease-out; 
+      animation-fill-mode: both; 
+      align-items: center; 
+      text-align: center;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .statCard:hover {
+      transform: translateY(-2px) translateZ(0);
+      box-shadow: 0 8px 20px rgba(139,92,246,0.15);
+    }
+    .statCard:nth-child(1) .statValue { color: #22C55E; }
+    .statCard:nth-child(2) .statValue { color: #F59E0B; }
+    .statCard:nth-child(3) .statValue { color: #EF4444; }
+    .statCard:nth-child(1) { animation-delay: 0.2s; } .statCard:nth-child(2) { animation-delay: 0.3s; } .statCard:nth-child(3) { animation-delay: 0.4s; }
+    .statLabel{ color: var(--muted2); letter-spacing: 1px; text-transform: uppercase; font-size: 10px; font-weight: 1000; }
+    .statValue{ font-size: clamp(18px, 1.5vw, 24px); font-weight: 1000; letter-spacing: -0.4px; white-space: nowrap; }
+    .badge{ display:inline-flex; align-items:center; justify-content:center; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--border); background: rgba(255,255,255,.06); font-weight: 1000; font-size: 11px; letter-spacing: .3px; transition: transform .15s ease, box-shadow .15s ease; }
+    .badge.b1{ border: none; background: linear-gradient(135deg, rgba(59,130,246,.9), rgba(96,165,250,.8)); color: #fff; box-shadow: 0 4px 12px rgba(59,130,246,.3); }
+    .badge.b1:hover{ transform: scale(1.05); box-shadow: 0 6px 16px rgba(59,130,246,.4); }
+    .badge.b3{ border: none; background: linear-gradient(135deg, rgba(245,158,11,.9), rgba(251,191,36,.8)); color: #fff; box-shadow: 0 4px 12px rgba(245,158,11,.3); }
+    .badge.b3:hover{ transform: scale(1.05); box-shadow: 0 6px 16px rgba(245,158,11,.4); }
+    .toolbar{ display:flex; align-items:center; justify-content:flex-end; gap: 12px; margin: 10px 0 12px; flex-wrap: wrap; }
+    .filters{display:flex; gap: 10px; flex-wrap: wrap;}
+    .fbtn{ padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,.06); color: var(--muted); cursor:pointer; font-weight: 1000; font-size: 12px; transition: transform .15s ease, border-color .15s ease, background .15s ease; user-select:none; min-height: 44px; display:flex; align-items:center; touch-action: manipulation; will-change: transform; }
+    .fbtn:hover{transform: translateY(-1px); border-color: var(--border2); background: rgba(255,255,255,.09);}
+    .fbtn.active{ background: rgba(139,92,246,.18); border-color: rgba(139,92,246,.55); color: var(--text); }
+    .tableWrap{ background: transparent !important; border: none !important; overflow: visible !important; }
+    table{ width: 100%; border-collapse: separate !important; border-spacing: 0 8px; table-layout: fixed; }
+    thead th:nth-child(1), tbody td:nth-child(1) { width: 4%; }
+    thead th:nth-child(2), tbody td:nth-child(2) { width: 23%; }
+    thead th:nth-child(3), tbody td:nth-child(3) { width: 10%; }
+    thead th:nth-child(4), tbody td:nth-child(4) { width: 10%; }
+    thead th:nth-child(5), tbody td:nth-child(5) { width: 11%; }
+    thead th:nth-child(6), tbody td:nth-child(6) { width: 10%; }
+    thead th:nth-child(7), tbody td:nth-child(7) { width: 12%; }
+    thead th:nth-child(8), tbody td:nth-child(8) { width: 8%; }
+    thead th:nth-child(9), tbody td:nth-child(9) { width: 8%; }
+    thead th{ position: sticky; top: 0; z-index: 5; text-align:right; padding: 14px 12px; font-size: 11px !important; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted) !important; background: transparent !important; border-bottom: none !important; user-select:none; white-space: nowrap; padding-bottom: 15px; }
+    thead th:first-child, tbody td:first-child{text-align:center}
+    thead th:nth-child(2), tbody td:nth-child(2){text-align:left; white-space: nowrap;}
+    thead th.sort{cursor:pointer}
+    thead th.sort:hover{background: rgba(139,92,246,.12)}
+    .sortIcon{opacity:.8; font-size: 12px; margin-left: 6px;}
+    tbody tr { background: rgba(255, 255, 255, 0.03); transition: all 0.2s ease; backdrop-filter: blur(10px); }
+    tbody td{ padding: 14px 12px; border-bottom: none !important; text-align:right; font-size: 15px; color: rgba(255,255,255,.88); vertical-align: middle; white-space: nowrap; }
+    tbody tr td:first-child { border-radius: 12px 0 0 12px; }
+    tbody tr td:last-child  { border-radius: 0 12px 12px 0; }
+    tbody td:nth-child(2){ font-weight: 1000; color: #fff; font-size: 14px; }
+    tbody tr:hover{ transform: scale(1.01) translateY(-2px) translateZ(0); background: rgba(255, 255, 255, 0.07); box-shadow: 0 10px 20px rgba(0,0,0,0.2); z-index: 10; position: relative; }
+    tbody tr.best{
+      background: linear-gradient(90deg, rgba(34,197,94,0.18), rgba(139,92,246,0.12)) !important;
+      border: 0;
+      outline: 2px solid rgba(34,197,94,0.5);
+      box-shadow:
+        0 0 30px rgba(34,197,94,0.2),
+        0 4px 20px rgba(34,197,94,0.15),
+        inset 0 1px 0 rgba(255,255,255,0.1);
+      position: relative;
+    }
+    tbody tr.best::before {
+      content: none !important;
+    }
+    tbody tr.best td:nth-child(2)::before{ content: "🏆 "; font-size: 14px; margin-right: 4px; }
+    tbody tr:nth-child(1) td:first-child { color: #FFD700; font-weight: 1000; font-size: 1.3em; text-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
+    tbody tr:nth-child(2) td:first-child { color: #C0C0C0; font-weight: 1000; font-size: 1.2em; text-shadow: 0 0 10px rgba(192, 192, 192, 0.3); }
+    tbody tr:nth-child(3) td:first-child { color: #CD7F32; font-weight: 1000; font-size: 1.2em; text-shadow: 0 0 10px rgba(205, 127, 50, 0.3); }
+    td.vs{white-space: nowrap; position:relative;}
+    .vs-text{ font-weight: 1000; min-width: 65px; text-align: right; }
+    .vs-text.pos{color: rgba(239,68,68,.95);}
+    .vs-text.neg{color: rgba(34,197,94,.95);}
+    .vs-text.zero{color: var(--muted2);}
+    .web{ display:inline-flex; width: 38px; height:38px; border-radius: 12px; border: 1px solid var(--border); background: linear-gradient(135deg, rgba(139,92,246,.18), rgba(34,197,94,.10)); align-items:center; justify-content:center; text-decoration:none; transition: transform .15s ease, border-color .15s ease, background .15s ease; }
+    .web:hover{transform: translateY(-1px) scale(1.04); border-color: var(--border2); background: linear-gradient(135deg, rgba(139,92,246,.30), rgba(34,197,94,.16));}
+    .web:active{transform: translateY(0px) scale(.98)}
+    .empty{ padding: 14px; color: var(--muted); font-size: 13px; }
+    .menu{position:relative;}
+    .menuPanel{ position:absolute; right:0; top: calc(100% + 10px); min-width: 260px; background: rgba(5,8,16,.92); border: 1px solid var(--border); border-radius: 16px; box-shadow: var(--shadow2); backdrop-filter: blur(14px); padding: 8px; display:none; z-index: 50; }
+    .menuPanel.show{display:block; animation: popMenu .16s ease;}
+    @keyframes popMenu{ from{opacity:0; transform: translateY(6px);} to{opacity:1; transform: translateY(0px);} }
+    .menuItem{ width: 100%; text-align:left; padding: 10px 10px; border-radius: 12px; border: 1px solid transparent; background: transparent; color: rgba(255,255,255,.92); cursor:pointer; font-weight: 1000; font-size: 13px; display:flex; align-items:center; justify-content:space-between; gap: 10px; white-space: nowrap; min-height: 44px; }
+    .menuItem:hover{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.08); }
+    .mi-left{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .mi-right{ opacity: .6; white-space: nowrap; flex: 0 0 auto; }
+    .menuDivider{ height:1px; background: rgba(255,255,255,.08); margin: 6px 6px; }
+    .menuHint{ padding: 8px 10px 6px 10px; color: var(--muted2); font-size: 11px; font-weight: 900; letter-spacing: .2px; }
+    .toast{ position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(5,8,16,.92); border: 1px solid var(--border); color: var(--text); border-radius: 16px; box-shadow: var(--shadow2); padding: 12px 14px; display:none; gap: 10px; align-items:center; max-width: min(760px, calc(100vw - 24px)); backdrop-filter: blur(14px); z-index: 9999; font-size: 13px; will-change: transform, opacity; }
+    .toast.show{display:flex; animation: pop .22s ease;}
+    @keyframes pop { from{opacity:0; transform: translateX(-50%) translateY(8px);} to{opacity:1; transform: translateX(-50%) translateY(0px);} }
+    .dot{width:10px; height:10px; border-radius:999px; background: var(--accent);}
+    .dot.ok{background: var(--accent2)}
+    .dot.err{background: var(--danger)}
+    .scroll-btn{ position: fixed; bottom: 90px; right: 30px; padding: 14px 20px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; border-radius: 999px; font-weight: 900; font-size: 13px; cursor: pointer; box-shadow: 0 8px 24px rgba(139,92,246,.4); z-index: 9998; animation: bounce 2s ease-in-out infinite; transition: transform .2s ease, box-shadow .2s ease; }
+    .scroll-btn:hover{ transform: translateY(-2px) scale(1.05); box-shadow: 0 12px 32px rgba(139,92,246,.6); }
+    @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+    @media (max-width: 768px) {
+      thead { display: none; }
+      tbody tr { display: block; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 16px; padding: 15px; background: var(--card); box-shadow: var(--shadow2); }
+      tbody td { display: flex; justify-content: space-between; align-items: center; text-align: right; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); width: 100% !important; box-sizing: border-box; font-size: 14px; }
+      tbody td:last-child { border-bottom: none; }
+      tbody td:nth-of-type(1)::before { content: "Ranking"; font-weight:900; color:var(--muted); }
+      tbody td:nth-of-type(2)::before { content: "Compañía"; display:none; }
+      tbody td:nth-of-type(3)::before { content: "Potencia"; font-weight:900; color:var(--muted); }
+      tbody td:nth-of-type(4)::before { content: "Consumo"; font-weight:900; color:var(--muted); }
+      tbody td:nth-of-type(5)::before { content: "Impuestos"; font-weight:900; color:var(--muted); }
+      tbody td:nth-of-type(6)::before { content: "TOTAL"; font-weight:900; color:var(--accent); font-size:1.2em; }
+      tbody td:nth-of-type(7)::before { content: "Diferencia"; font-weight:900; color:var(--muted); }
+      tbody td:nth-of-type(8)::before { content: "Tipo"; font-weight:900; color:var(--muted); }
+      tbody td:nth-of-type(9)::before { content: "Contratar"; font-weight:900; color:var(--muted); }
+      tbody td:nth-of-type(2) { display:block; text-align:center; font-size: 18px !important; margin-bottom: 10px; padding-bottom:10px; border-bottom: 2px solid var(--border); color: #fff; }
+      .scroll-btn{ bottom: 80px; right: 20px; font-size: 12px; padding: 12px 16px; }
+    }
+    @media (min-width: 1400px){ thead th:nth-child(2), tbody td:nth-child(2) { width: 28%; } tbody td:nth-child(2) { font-size: 15px; } }
+    .container { min-height: 100vh; }
+    #heroKpis { min-height: 260px; }
+    #statsBar { min-height: 80px; }
+    #table { min-height: 300px; }
+
+    .fade-container {
+      opacity: 0;
+      visibility: hidden;
+      transition: opacity 0.3s ease;
+    }
+
+    .fade-container.show {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* === GRÁFICO TOP 5 TARIFAS === */
+    .chartTop {
+      margin-bottom: 16px;
+      border-radius: 16px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.18);
+      padding: 14px 14px 10px 14px;
+    }
+
+    .chartTop-header {
+      margin-bottom: 10px;
+    }
+
+    .chartTop-body {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .chartTop-row {
+      display: grid;
+      grid-template-columns: minmax(0, 1.6fr) minmax(0, 3fr) auto;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    .chartTop-name {
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    .chartTop-barTrack {
+      position: relative;
+      height: 18px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.05);
+      overflow: hidden;
+    }
+
+    .chartTop-barFill {
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      width: 0%;
+      transition: width 0.6s ease;
+      will-change: width;
+    }
+
+    .chartTop-value {
+      font-family: var(--mono);
+      font-weight: 900;
+      font-size: 13px;
+      white-space: nowrap;
+      color: var(--text);
+    }
+
+    .chartTop-row.best .chartTop-barTrack {
+      box-shadow: 0 0 14px rgba(34,197,94,.45);
+    }
+
+    .chartTop-row.best .chartTop-name {
+      color: var(--text);
+    }
+
+    .chartTop-row.best .chartTop-name::before {
+      content: "🏆 ";
+    }
+
+    @media (max-width: 768px) {
+      .chartTop-row {
+        grid-template-columns: minmax(0, 1fr) minmax(0, 2fr) auto;
+        font-size: 12px;
+      }
+
+      .chartTop-value {
+        font-size: 12px;
+      }
+    }
+
+    /* === SEO DISCRETO (PLEGABLE) === */
+    .seoFold{
+      max-width: 1400px;
+      margin: 40px auto 20px;
+      padding: 0 clamp(22px, 4.5vw, 60px);
+      display: none;
+      gap: 10px;
+    }
+    .seoFold.show{
+      display: grid;
+    }
+
+    .seoDetails{
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,.14);
+      border-radius: 16px;
+      padding: 10px 12px;
+      backdrop-filter: blur(14px);
+      transition: background 0.2s ease;
+    }
+
+    .seoDetails:hover{
+      background: rgba(0,0,0,.20);
+    }
+
+    .seoDetails > summary{
+      cursor: pointer;
+      list-style: none;
+      font-weight: 900;
+      color: var(--muted);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      user-select: none;
+      transition: color 0.2s ease;
+    }
+
+    .seoDetails > summary::-webkit-details-marker{ display:none; }
+
+    .seoDetails[open] > summary{
+      color: var(--text);
+      margin-bottom: 10px;
+    }
+
+    .seoContent{
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .seoContent h2{
+      margin: 6px 0 10px;
+      font-size: 16px;
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .seoContent h3{
+      margin: 14px 0 6px;
+      font-size: 14px;
+      font-weight: 900;
+      color: var(--text);
+    }
+
+    .seoContent p{ margin: 0 0 10px; }
+
+    .seoContent code{
+      background: rgba(139,92,246,.15);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 12px;
+      color: var(--accent);
+    }
+
+    @media (max-width: 768px){
+      .seoFold{ margin: 30px auto 20px; }
+      .seoDetails > summary{ font-size: 12px; }
+    .seoContent{ font-size: 12px; }
+    }
+
+    /* === LIGHT MODE PATCH: contrast + surfaces (append-only, safe) === */
+    body.light-mode thead th{
+      color: rgba(15,23,42,.65) !important;
+    }
+
+    body.light-mode tbody tr{
+      background: rgba(15,23,42,.03);
+    }
+
+    body.light-mode tbody td{
+      color: rgba(15,23,42,.86);
+    }
+
+    body.light-mode tbody td:nth-child(2){
+      color: var(--text) !important;
+    }
+
+    /* soft surfaces that were using fixed dark rgba(0,0,0,...) */
+    body.light-mode .statCard,
+    body.light-mode .chartTop,
+    body.light-mode .kwhPill{
+      background: rgba(15,23,42,.03);
+      border-color: rgba(15,23,42,.10);
+    }
+
+    /* inputs: avoid dark backgrounds in light mode */
+    body.light-mode .input{
+      background: rgba(255,255,255,.85);
+      border-color: rgba(15,23,42,.14);
+      color: var(--text);
+    }
+
+    /* overlays/panels: menu, toast, tooltip should be light in light mode */
+    body.light-mode .menuPanel,
+    body.light-mode .toast,
+    body.light-mode #globalTooltip{
+      background: rgba(255,255,255,.92);
+      color: var(--text);
+      border-color: rgba(15,23,42,.12);
+    }
+
+    body.light-mode .kwhValue{
+      color: rgba(15,23,42,.86);
+    }
+
+    /* FIX: legibilidad completa en modo claro - overlays, menús y modales */
+    body.light-mode .menuItem{
+      color: var(--text);
+    }
+
+    body.light-mode .menuItem:hover{
+      background: rgba(15,23,42,.06);
+      border-color: rgba(15,23,42,.12);
+    }
+
+    body.light-mode .menuItem .mi-left{
+      color: var(--text);
+    }
+
+    body.light-mode .menuItem .mi-right{
+      color: var(--muted);
+    }
+
+    body.light-mode .menuHint{
+      color: var(--muted);
+    }
+
+    body.light-mode .menuDivider{
+      background: rgba(15,23,42,.12);
+    }
+
+    body.light-mode .modal-content .kicker{
+      color: var(--muted);
+    }
+
+    body.light-mode .modal-content .title{
+      color: var(--text);
+    }
+
+    body.light-mode .upload-area{
+      color: var(--text);
+      background: rgba(15,23,42,.02);
+      border-color: rgba(15,23,42,.15);
+    }
+
+    body.light-mode .upload-area:hover{
+      border-color: var(--accent);
+      background: rgba(139,92,246,.06);
+    }
+
+    body.light-mode .confianza-badge{
+      color: var(--text);
+    }
+
+    body.light-mode .confianza-badge.alta{
+      background: rgba(34,197,94,.20);
+      color: #047857;
+      border-color: #10B981;
+    }
+
+    body.light-mode .confianza-badge.media{
+      background: rgba(245,158,11,.20);
+      color: #B45309;
+      border-color: #F59E0B;
+    }
+
+    body.light-mode .confianza-badge.baja{
+      background: rgba(239,68,68,.20);
+      color: #B91C1C;
+      border-color: #EF4444;
+    }
+
+    body.light-mode .input-validacion label{
+      color: var(--muted);
+    }
+
+    body.light-mode #companiaDetectada{
+      background: var(--accent);
+      color: white;
+    }
+
+    body.light-mode #globalTooltip{
+      background: rgba(255,255,255,.98);
+      color: var(--text);
+      border-color: rgba(15,23,42,.18);
+      box-shadow: 0 8px 24px rgba(15,23,42,.12);
+    }
+
+    /* FIX: modal "Subir factura" completamente legible en modo claro */
+    body.light-mode .modal-overlay{
+      background: rgba(15,23,42,.65);
+      backdrop-filter: blur(8px);
+    }
+
+    body.light-mode .modal-content{
+      background: var(--bg0);
+      color: var(--text);
+      box-shadow: 0 25px 50px rgba(15,23,42,.25);
+    }
+
+    body.light-mode .modal-content .head{
+      background: linear-gradient(180deg, rgba(139,92,246,.06), transparent);
+      border-bottom-color: var(--border);
+    }
+
+    body.light-mode .modal-content .kicker{
+      color: var(--muted);
+    }
+
+    body.light-mode .modal-content .title{
+      color: var(--text);
+    }
+
+    body.light-mode .modal-content .body{
+      color: var(--text);
+    }
+
+    body.light-mode .upload-area{
+      background: rgba(15,23,42,.02);
+      border-color: rgba(15,23,42,.20);
+      color: var(--text);
+    }
+
+    body.light-mode .upload-area:hover{
+      background: rgba(139,92,246,.06);
+      border-color: var(--accent);
+    }
+
+    body.light-mode .upload-area.dragging{
+      background: rgba(139,92,246,.10);
+      border-color: var(--accent);
+      transform: scale(1.02);
+    }
+
+    body.light-mode #loaderFactura{
+      color: var(--text);
+    }
+
+    body.light-mode #loaderFactura p{
+      color: var(--muted);
+    }
+
+    body.light-mode #loaderFactura .spinner{
+      border-color: rgba(15,23,42,.15);
+      border-top-color: var(--accent);
+    }
+
+    body.light-mode #avisoFactura{
+      background: rgba(139,92,246,.10);
+      border-color: rgba(139,92,246,.30);
+      color: var(--text);
+    }
+
+    body.light-mode #resultadoFactura{
+      color: var(--text);
+    }
+
+    body.light-mode #resultadoFactura h3{
+      color: var(--text);
+      font-weight: 900;
+    }
+
+    body.light-mode #resultadoFactura p{
+      color: var(--muted);
+    }
+
+    body.light-mode #companiaDetectada{
+      background: var(--accent);
+      color: white;
+      font-weight: 600;
+    }
+
+    body.light-mode .input-validacion{
+      color: var(--text);
+    }
+
+    body.light-mode .input-validacion label{
+      color: var(--muted);
+      font-weight: 900;
+    }
+
+    body.light-mode .input-validacion input{
+      background: rgba(255,255,255,.95);
+      border-color: rgba(15,23,42,.20);
+      color: var(--text);
+    }
+
+    body.light-mode .input-validacion input::placeholder{
+      color: rgba(15,23,42,.40);
+    }
+
+    body.light-mode .input-validacion input:focus{
+      background: rgba(255,255,255,1);
+      border-color: var(--accent);
+    }
+
+    body.light-mode .input-validacion.detectado input{
+      border-color: var(--accent2);
+      background: rgba(34,197,94,.06);
+    }
+
+    body.light-mode .input-validacion.no-detectado input{
+      border-color: var(--warn);
+      background: rgba(245,158,11,.06);
+    }
+
+    body.light-mode .input-validacion.err input{
+      border-color: var(--danger);
+      background: rgba(239,68,68,.06);
+    }
+
+    body.light-mode .input-validacion .check{
+      color: var(--accent2);
+      opacity: 1;
+    }
+
+    body.light-mode .input-validacion .warning{
+      color: var(--warn);
+      opacity: 1;
+    }
+
+    body.light-mode #modalFactura .help{
+      background: rgba(139,92,246,.08);
+      border-color: rgba(139,92,246,.25);
+      color: var(--text);
+    }
+
+    body.light-mode #modalFactura .help strong{
+      color: var(--text);
+      font-weight: 700;
+    }
+
+    body.light-mode #modalFactura .help a{
+      color: var(--accent);
+      font-weight: 600;
+    }
+
+  .modal-overlay{
+    position:fixed; inset:0;
+  background:rgba(0,0,0,.75);
+  backdrop-filter:blur(8px);
+  -webkit-backdrop-filter:blur(8px);
+  z-index:10000;
+  display:flex; align-items:center; justify-content:center;
+  opacity:0; pointer-events:none;
+  transition:opacity .2s ease;
+}
+.modal-overlay.show{ opacity:1; pointer-events:auto; }
+.modal-content{ max-width:600px; width:calc(100% - 28px); animation:__lf_slideUp .25s cubic-bezier(.2,.9,.2,1); }
+.upload-area{
+  border:3px dashed var(--border);
+  padding:28px; border-radius:var(--radius);
+  background:var(--card2);
+  cursor:pointer;
+  transition:.25s ease;
+  text-align:center;
+  outline:none;
+}
+.upload-area:hover{ border-color:var(--accent); background:rgba(139,92,246,.08); }
+.upload-area.dragging{ border-color:var(--accent); transform:scale(1.02); }
+
+.confianza-badge{
+  padding:5px 10px; border-radius:999px;
+  font-weight:900; font-size:11px;
+  display:inline-block;
+  border:1px solid var(--border);
+  margin-bottom:0;
+}
+.confianza-badge.alta{ background:rgba(34,197,94,.18); color:var(--accent2); border-color:var(--accent2); }
+.confianza-badge.media{ background:rgba(245,158,11,.18); color:var(--warn); border-color:var(--warn); }
+.confianza-badge.baja{ background:rgba(239,68,68,.18); color:var(--danger); border-color:var(--danger); }
+
+.input-validacion{ position:relative; margin-bottom:8px; }
+.input-validacion .check,.input-validacion .warning{ position:absolute; right:10px; top:30px; font-size:16px; }
+.input-validacion label{ margin-bottom:3px; font-size:11px; }
+.input-validacion input{ padding:9px 30px 9px 9px; min-height:38px; font-size:13px; }
+.input-validacion.detectado input{ border-color:var(--accent2); background:rgba(34,197,94,.05); }
+.input-validacion.no-detectado input{ border-color:var(--warn); background:rgba(245,158,11,.05); }
+.input-validacion.err input{ border-color:var(--danger); background:rgba(239,68,68,.06); }
+
+#modalFactura .body{ padding:12px; }
+#modalFactura .head{ padding:12px 12px 10px 12px; }
+#modalFactura .help{ margin-top:10px; padding:8px; font-size:10px; line-height:1.3; }
+
+@keyframes __lf_slideUp{
+  from{ transform:translateY(10px); opacity:.6; }
+  to{ transform:translateY(0); opacity:1; }
+}
+  
+.footer-credits {
+  font-size: 12px;
+  color: #9CA3AF; /* gris suave */
+  margin-top: 32px;
+  text-align: center;
+}
+
+.footer-credits a {
+  color: inherit;
+  text-decoration: underline;
+}
+
+
+
+    /* Touch-friendly: áreas táctiles mínimas 44x44px */
+    @media (pointer: coarse) {
+      .btn {
+        min-height: 44px;
+        padding: 12px 20px;
+      }
+      .btn.primary {
+        min-height: 56px;
+        padding: 16px 28px;
+      }
+      
+      /* Eliminar hover effects en touch devices */
+      .card:hover,
+      .statCard:hover {
+        transform: none;
+      }
+      
+      /* Active state para feedback táctil */
+      .btn.primary:active {
+        transform: scale(0.98) translateZ(0);
+      }
+      
+      /* Reducir animaciones en touch (ahorra batería) */
+      * {
+        animation-duration: 0.5s !important;
+      }
+    }
+    /* Optimizaciones móvil para mejoras visuales */
+
+    @media (max-width: 768px) {
+      /* Aurora más sutil en móvil */
+      body::before {
+        opacity: 0.3;
+        animation-duration: 90s;
+        will-change: auto;
+      }
+      
+      /* Logo más pequeño el pulso */
+      @keyframes logoPulse {
+        0%, 100% {
+          filter: drop-shadow(0 0 6px rgba(139, 92, 246, 0.2));
+          transform: scale(1);
+        }
+        50% {
+          filter: drop-shadow(0 0 12px rgba(139, 92, 246, 0.4));
+          transform: scale(1.02);
+        }
+      }
+      
+      /* Partículas de éxito más pequeñas */
+      .success-particle {
+        width: 6px;
+        height: 6px;
+      }
+      
+      /* FadeIn más rápido en móvil */
+      @keyframes fadeInUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px) scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
+      }
+    }
+
+    @media (max-width: 768px) {
+      /* Botón más compacto en móvil */
+      .btn.primary {
+        padding: 16px 20px;
+        min-height: 64px;
+        font-size: 16px;
+      }
+      .btn.primary #btnText {
+        font-size: 23px;
+      }
+      
+      /* Trofeo más pequeño en móvil */
+      tbody tr.best::before {
+        font-size: 14px;
+        left: 4px;
+      }
+      
+      /* Sombras reducidas en móvil (mejor rendimiento) */
+      .card {
+        box-shadow: 
+          0 2px 12px rgba(0,0,0,0.25),
+          inset 0 1px 0 rgba(255,255,255,0.05);
+      }
+  
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, 
+        transparent,
+        rgba(139, 92, 246, 0.5),
+        rgba(236, 72, 153, 0.5),
+        rgba(245, 158, 11, 0.5),
+        transparent
+      );
+      opacity: 0.6;
+    }
+    .card:hover {
+        box-shadow: 
+          0 4px 16px rgba(0,0,0,0.3),
+          inset 0 1px 0 rgba(255,255,255,0.08);
+      }
+      
+      /* Input focus más visible en móvil */
+      .input:focus {
+        transform: translateY(0);
+        box-shadow: 
+          0 0 0 3px rgba(139, 92, 246, 0.3),
+          0 0 15px rgba(139, 92, 246, 0.5);
+      }
+      
+      /* HeroCard sombras ligeras */
+      .heroCard.best {
+        box-shadow: 
+          0 2px 12px rgba(34,197,94,0.15),
+          inset 0 1px 0 rgba(255,255,255,0.1);
+      }
+      
+      /* Stats sin hover en móvil */
+      .statCard:hover {
+        transform: none;
+        box-shadow: none;
+      }
+      
+      /* Desactivar will-change en móvil (ahorra batería) */
+      .btn.primary {
+        will-change: auto;
+      }
+    }
+
+    /* Light mode fixes - componentes que faltaban */
+    body.light-mode .kwhLabel {
+      color: rgba(15, 23, 42, 0.6);
+    }
+    
+    body.light-mode .heroCard {
+      background: linear-gradient(135deg, rgba(139,92,246,.08), rgba(34,197,94,.04));
+      border-color: rgba(15, 23, 42, 0.1);
+    }
+    
+    body.light-mode .heroCard.best {
+      border-color: rgba(34,197,94,0.3);
+      box-shadow: 
+        0 4px 20px rgba(34,197,94,0.15),
+        0 0 40px rgba(34,197,94,0.08),
+        inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+    
+    body.light-mode tbody tr.best {
+      background: linear-gradient(90deg, rgba(34,197,94,0.12), rgba(139,92,246,0.08)) !important;
+      border: 0;
+      outline: 2px solid rgba(34,197,94,0.4);
+      box-shadow:
+        0 0 30px rgba(34,197,94,0.15),
+        0 4px 20px rgba(34,197,94,0.1),
+        inset 0 1px 0 rgba(255,255,255,0.6);
+    }
+    
+    body.light-mode .card {
+      background: rgba(255, 255, 255, 0.9);
+      border-color: rgba(15, 23, 42, 0.1);
+      box-shadow: 
+        0 4px 20px rgba(15, 23, 42, 0.08),
+        0 1px 3px rgba(15, 23, 42, 0.05),
+        inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+    
+    body.light-mode .card:hover {
+      box-shadow: 
+        0 8px 30px rgba(15, 23, 42, 0.12),
+        0 2px 6px rgba(15, 23, 42, 0.08),
+        inset 0 1px 0 rgba(255,255,255,0.9);
+    }
+    
+    body.light-mode .card::before {
+      background: linear-gradient(90deg, 
+        transparent,
+        rgba(139, 92, 246, 0.3),
+        rgba(236, 72, 153, 0.3),
+        rgba(245, 158, 11, 0.3),
+        transparent
+      );
+    }
+
+    body.light-mode::before {
+      opacity: 0.15;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(139, 92, 246, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(236, 72, 153, 0.06) 0%, transparent 50%),
+        radial-gradient(circle at 40% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 50%),
+        radial-gradient(circle at 60% 90%, rgba(245, 158, 11, 0.04) 0%, transparent 50%);
+    }
+
+    body.light-mode .input:focus {
+      border-color: rgba(139, 92, 246, 0.8);
+      background: rgba(139, 92, 246, 0.05);
+      box-shadow: 
+        0 0 0 4px rgba(139, 92, 246, 0.15),
+        0 0 20px rgba(139, 92, 246, 0.3),
+        0 4px 12px rgba(139, 92, 246, 0.2);
+    }
+
+
+
+    /* === GUÍAS EDUCATIVAS === */
+    .guias-section {
+      margin-top: 32px;
+    }
+    
+    .guias-grid {
+      display: grid;
+      gap: 16px;
+      margin-top: 20px;
+    }
+    
+    .guia-card {
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      background: rgba(0,0,0,.14);
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .guia-card:hover {
+      border-color: rgba(139, 92, 246, 0.4);
+      box-shadow: 0 4px 20px rgba(139, 92, 246, 0.2);
+    }
+    
+    .guia-card summary {
+      padding: 20px;
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      list-style: none;
+      transition: background 0.2s;
+    }
+    
+    .guia-card summary::-webkit-details-marker {
+      display: none;
+    }
+    
+    .guia-card summary:hover {
+      background: rgba(139, 92, 246, 0.05);
+    }
+    
+    .guia-icon {
+      font-size: 32px;
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(236,72,153,0.2));
+      border-radius: 12px;
+    }
+    
+    .guia-info {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .guia-title {
+      font-size: 18px;
+      font-weight: 900;
+      margin: 0 0 4px 0;
+      color: var(--text);
+    }
+    
+    .guia-desc {
+      font-size: 14px;
+      margin: 0;
+      color: var(--muted);
+    }
+    
+    .guia-toggle {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--accent);
+      flex-shrink: 0;
+      transition: transform 0.3s;
+    }
+    
+    .guia-card[open] .guia-toggle {
+      transform: rotate(45deg);
+    }
+    
+    .guia-content {
+      padding: 0 20px 24px 20px;
+      line-height: 1.7;
+      color: var(--muted);
+    }
+    
+    .guia-intro {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 20px;
+      padding: 16px;
+      background: rgba(139, 92, 246, 0.1);
+      border-left: 3px solid var(--accent);
+      border-radius: 8px;
+      color: var(--text);
+    }
+    
+    .guia-content h4 {
+      font-size: 20px;
+      font-weight: 900;
+      margin: 32px 0 16px 0;
+      color: var(--text);
+    }
+    
+    .guia-content h5 {
+      font-size: 16px;
+      font-weight: 800;
+      margin: 20px 0 12px 0;
+      color: var(--text);
+    }
+    
+    .guia-content p {
+      margin: 12px 0;
+      font-size: 15px;
+    }
+    
+    .guia-content ul, .guia-content ol {
+      margin: 12px 0;
+      padding-left: 24px;
+    }
+    
+    .guia-content li {
+      margin: 8px 0;
+      font-size: 15px;
+    }
+    
+    .guia-content strong {
+      color: var(--text);
+      font-weight: 700;
+    }
+    
+    .guia-content code {
+      background: rgba(139, 92, 246, 0.15);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--accent);
+    }
+    
+    .periodo-box {
+      margin: 20px 0;
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: rgba(0,0,0,0.2);
+    }
+    
+    .ejemplo-factura {
+      margin: 20px 0;
+      padding: 20px;
+      background: rgba(139, 92, 246, 0.1);
+      border-radius: 12px;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+    }
+    
+    .tabla-comparativa {
+      width: 100%;
+      margin: 20px 0;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    
+    .tabla-comparativa th,
+    .tabla-comparativa td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+    
+    .tabla-comparativa th {
+      background: rgba(139, 92, 246, 0.15);
+      font-weight: 800;
+      color: var(--text);
+    }
+    
+    /* Light mode adjustments */
+    body.light-mode .guia-card {
+      background: rgba(255,255,255,0.6);
+    }
+    
+    body.light-mode .guia-card summary:hover {
+      background: rgba(139, 92, 246, 0.05);
+    }
+    
+    body.light-mode .periodo-box {
+      background: rgba(139, 92, 246, 0.03);
+    }
+    
+    body.light-mode .ejemplo-factura {
+      background: rgba(139, 92, 246, 0.05);
+      border-color: rgba(139, 92, 246, 0.2);
+    }
+    
+    /* Mobile optimizations */
+    @media (max-width: 768px) {
+      .guia-icon {
+        width: 40px;
+        height: 40px;
+        font-size: 24px;
+      }
+      
+      .guia-title {
+        font-size: 16px;
+      }
+      
+      .guia-desc {
+        font-size: 13px;
+      }
+      
+      .guia-card summary {
+        padding: 16px;
+      }
+      
+      .guia-content {
+        padding: 0 16px 20px 16px;
+      }
+      
+      .tabla-comparativa {
+        font-size: 12px;
+      }
+      
+      .tabla-comparativa th,
+      .tabla-comparativa td {
+        padding: 8px;
+      }
+    }
+
+  </style>
+  <script defer src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span>
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+            <defs>
+              <linearGradient id="logoGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1">
+                  <animate attributeName="stop-color" values="#fbbf24;#f59e0b;#fbbf24" dur="2s" repeatCount="indefinite"/>
+                </stop>
+                <stop offset="50%" style="stop-color:#f59e0b;stop-opacity:1"/>
+                <stop offset="100%" style="stop-color:#fbbf24;stop-opacity:1">
+                  <animate attributeName="stop-color" values="#fbbf24;#f59e0b;#fbbf24" dur="2s" repeatCount="indefinite"/>
+                </stop>
+              </linearGradient>
+              <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1"/>
+                <stop offset="100%" style="stop-color:#6366f1;stop-opacity:1"/>
+              </linearGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            <circle cx="50" cy="50" r="35" fill="url(#logoGrad2)" opacity="0.2">
+              <animate attributeName="r" values="35;38;35" dur="2s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.2;0.4;0.2" dur="2s" repeatCount="indefinite"/>
+            </circle>
+            <path d="M 55 15 L 35 48 L 48 48 L 45 85 L 70 45 L 57 45 Z"
+                  fill="url(#logoGrad1)" filter="url(#glow)"
+                  stroke="#fff" stroke-width="1.5" stroke-linejoin="round">
+              <animateTransform attributeName="transform" attributeType="XML" type="scale"
+                                values="1;1.08;1" dur="1.5s" repeatCount="indefinite" additive="sum"/>
+            </path>
+            <circle cx="30" cy="30" r="2" fill="#fbbf24" opacity="0">
+              <animate attributeName="opacity" values="0;1;0" dur="1.5s" repeatCount="indefinite"/>
+              <animate attributeName="r" values="2;3;2" dur="1.5s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="70" cy="35" r="2" fill="#fbbf24" opacity="0">
+              <animate attributeName="opacity" values="0;1;0" dur="1.5s" begin="0.5s" repeatCount="indefinite"/>
+              <animate attributeName="r" values="2;3;2" dur="1.5s" begin="0.5s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="65" cy="70" r="2" fill="#fbbf24" opacity="0">
+              <animate attributeName="opacity" values="0;1;0" dur="1.5s" begin="1s" repeatCount="indefinite"/>
+              <animate attributeName="r" values="2;3;2" dur="1.5s" begin="1s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+        </div>
+        <div>
+          <h1>Comparador de Tarifas</h1>
+          <p>Encuentra la tarifa más barata en segundos</p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <div class="pill" id="statusPill" role="status" aria-live="polite">
+          <span id="statusText">Introduce tus datos y pulsa Calcular para ver el ranking</span>
+        </div>
+        <button class="btn" id="btnSubirFactura" type="button" title="Subir factura PDF" aria-label="Subir factura PDF">
+          📄 Subir factura
+        </button>
+        <button class="btn" id="btnTheme" type="button" title="Cambiar tema" aria-label="Cambiar tema">☀️</button>
+        <div class="menu" id="menuRoot">
+          <button class="btn" id="btnMenu" type="button" aria-haspopup="true" aria-expanded="false" title="Opciones">⚙️</button>
+          <div class="menuPanel" id="menuPanel" role="menu" aria-label="Opciones">
+            <div class="menuHint">Opciones</div>
+            <button class="menuItem" id="btnExport" type="button" role="menuitem">
+              <span class="mi-left">⬇️ Descargar CSV</span>
+              <span class="mi-right">ranking</span>
+            </button>
+            <button class="menuItem" id="btnShare" type="button" role="menuitem">
+              <span class="mi-left">🔗 Compartir configuración</span>
+              <span class="mi-right">URL</span>
+            </button>
+            <a class="menuItem" href="/cdn-cgi/l/email-protection#157d7a79745579606f737c7f743b7066" role="menuitem" style="text-decoration:none;">
+              <span class="mi-left">✉️ Contacto</span>
+              <span class="mi-right">email</span>
+            </a>
+            <div class="menuDivider"></div>
+            <button class="menuItem" id="btnReset" type="button" role="menuitem">
+              <span class="mi-left">↺ Restablecer</span>
+              <span class="mi-right">valores</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <div class="head">
+          <div class="kicker">Tus datos</div>
+          <h2 class="title">Potencia y consumos (kWh)</h2>
+        </div>
+        <div class="body">
+          <div class="alert" id="errorBox"><b>Error:</b> <span id="errorText"></span></div>
+          <div class="form">
+            <div class="group">
+              <label for="p1">Potencia P1 (kW)</label>
+              <input id="p1" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 3,45">
+            </div>
+            <div class="group">
+              <label for="p2">Potencia P2 (kW)</label>
+              <input id="p2" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 3,45">
+            </div>
+            <div class="group">
+              <label for="dias">Días factura</label>
+              <input id="dias" class="input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="1 a 365">
+            </div>
+          </div>
+          <div style="height:12px"></div>
+          <div class="form">
+            <div class="group">
+              <label for="zonaFiscal">Zona fiscal</label>
+              <select id="zonaFiscal" class="input">
+                <option value="Península">Península</option>
+                <option value="Canarias">Canarias</option>
+              </select>
+            </div>
+            <div class="group" id="viviendaCanariasGroup" style="display:none; align-items:center;">
+              <label for="viviendaCanarias" style="gap:8px;">
+                <input id="viviendaCanarias" type="checkbox" checked style="width:auto; height:auto;">
+                Vivienda (hogar)
+              </label>
+            </div>
+          </div>
+          <div style="height:12px"></div>
+          <div class="form">
+            <div class="group">
+              <label for="cPunta">
+                Consumo PUNTA
+                <span class="tooltip" data-tip="10h-14h y 18h-22h" role="button" tabindex="-1" aria-label="Horario de consumo punta">i</span>
+              </label>
+              <input id="cPunta" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 120">
+            </div>
+            <div class="group">
+              <label for="cLlano">
+                Consumo LLANO
+                <span class="tooltip" data-tip="8h-10h, 14h-18h y 22h-24h" role="button" tabindex="-1" aria-label="Horario de consumo llano">i</span>
+              </label>
+              <input id="cLlano" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 80">
+            </div>
+            <div class="group">
+              <label for="cValle">
+                Consumo VALLE
+                <span class="tooltip" data-tip="0h-8h (madrugada)" role="button" tabindex="-1" aria-label="Horario de consumo valle">i</span>
+              </label>
+              <input id="cValle" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 150">
+            </div>
+          </div>
+          <div class="row" style="margin-top:14px">
+            <div class="kwhPill" aria-live="polite">
+              <div class="kwhLabel">Total kWh</div>
+              <div class="kwhValue" id="kwhHint">—</div>
+            </div>
+            <div style="position: relative; display: flex; flex: 1; min-width: 0;">
+              <button class="btn primary" id="btnCalc" type="button" title="Calcular ahora">
+                <span class="btn-shine"></span>
+                <span id="btnText" style="position: relative; z-index: 1;">⚡ Calcular</span>
+                <span id="btnSpinner" style="display:none; position: relative; z-index: 1;"><span class="spinner"></span></span>
+              </button>
+            </div>
+          </div>
+          <div class="help">
+            Introduce tus datos y pulsa ⚡ Calcular para generar o refrescar el ranking (tarifas y PVPC si está disponible). Puedes escribir decimales con coma o punto (ej.: 3,45 / 3.45).
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="head">
+          <div class="kicker">Resultados</div>
+          <h2 class="title">Tarifa óptima + ranking</h2>
+        </div>
+        <div class="body">
+          <div class="heroKpis fade-container" id="heroKpis">
+            <div class="heroCard best">
+              <div class="k">Tarifa más barata</div>
+              <div class="v" id="kpiBest">—</div>
+              <div class="s">Mejor opción</div>
+            </div>
+            <div class="heroCard">
+              <div class="k">Factura mínima</div>
+              <div class="v" id="kpiPrice">—</div>
+              <div class="s">Según tus datos</div>
+            </div>
+          </div>
+
+          <div class="statsbar fade-container" id="statsBar">
+            <div class="statCard">
+              <div class="statLabel">Precio mínimo</div>
+              <div class="statValue" id="statMin">—</div>
+            </div>
+            <div class="statCard">
+              <div class="statLabel">Precio medio</div>
+              <div class="statValue" id="statAvg">—</div>
+            </div>
+            <div class="statCard">
+              <div class="statLabel">Precio máximo</div>
+              <div class="statValue" id="statMax">—</div>
+            </div>
+          </div>
+
+          <div class="help" id="pvpcInfo" style="display:none; margin-top:0; margin-bottom: 12px;"></div>
+          <div id="pvpc-warning-canarias-potencia"
+               style="display:none; margin-top:6px; font-size:12px; line-height:1.2; opacity:.95; color:#FACC15;">
+            ⚠ PVPC no calculable: en Canarias (vivienda) con potencia &gt; 10&nbsp;kW la CNMC no permite este cálculo.
+          </div>
+
+          <div class="chartTop fade-container" id="chartTop">
+            <div class="chartTop-header">
+              <div class="kicker">Comparación visual</div>
+              <div class="title">Top 5 tarifas (total factura)</div>
+            </div>
+            <div class="chartTop-body" id="chartTopBody"></div>
+          </div>
+
+          <div class="toolbar fade-container" id="toolbar">
+            <div class="filters">
+              <button class="fbtn active" data-filter="all" type="button">Todas</button>
+              <button class="fbtn" data-filter="1P" type="button"><span class="badge b1">1P</span></button>
+              <button class="fbtn" data-filter="3P" type="button"><span class="badge b3">3P</span></button>
+            </div>
+          </div>
+
+          <div class="tableWrap">
+            <table id="table" class="fade-container">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th class="sort" data-sort="nombre">Tarifa <span class="sortIcon" id="si_nombre"></span></th>
+                  <th class="sort" data-sort="potenciaNum">Potencia <span class="sortIcon" id="si_potenciaNum"></span></th>
+                  <th class="sort" data-sort="consumoNum">Consumo <span class="sortIcon" id="si_consumoNum"></span></th>
+                  <th class="sort" data-sort="impuestosNum">Impuestos <span class="sortIcon" id="si_impuestosNum"></span></th>
+                  <th class="sort" data-sort="totalNum">Total <span class="sortIcon" id="si_totalNum"></span></th>
+                  <th class="sort" data-sort="vsMejorNum">Vs mejor <span class="sortIcon" id="si_vsMejorNum"></span></th>
+                  <th>Tipo</th>
+                  <th>Web</th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+            <div class="empty fade-container" id="emptyBox">Aún no hay resultados. Pulsa ⚡ Calcular para generar el ranking.</div>
+          </div>
+
+        </div>
+      </section>
+    </div>
+
+
+    <!-- Banner Guías -->
+    <div style="max-width:1400px; margin:40px auto 40px; padding:0 clamp(22px, 4.5vw, 60px);">
+      <a href="/guias.html" style="display:block; text-decoration:none; background: linear-gradient(135deg, rgba(139,92,246,0.08) 0%, rgba(59,130,246,0.08) 100%); border:2px solid rgba(139,92,246,0.2); border-radius:16px; padding:clamp(24px, 4vw, 32px); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 20px rgba(139,92,246,0.1); position:relative; overflow:hidden;">
+        <div style="position:absolute; top:0; right:0; width:200px; height:200px; background: radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%); pointer-events:none;"></div>
+        <div style="position:relative; z-index:1;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+            <span style="font-size:32px;">📚</span>
+            <div>
+              <div style="font-size:clamp(11px, 2vw, 12px); font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--accent); opacity:0.9;">Nueva sección</div>
+              <h3 style="font-size:clamp(18px, 3.5vw, 24px); font-weight:900; color:var(--text); margin:4px 0 0 0; line-height:1.2;">Guías sobre tarifas eléctricas</h3>
+            </div>
+          </div>
+          <p style="font-size:clamp(13px, 2.5vw, 15px); color:var(--muted); margin:0 0 16px 0; line-height:1.6; max-width:800px;">
+            ¿Primera vez con discriminación horaria? ¿No sabes qué es P1, P2, P3? ¿Dudas sobre el bono social o PVPC? Te lo explicamos todo en lenguaje claro, sin rollos técnicos.
+          </p>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+            <span style="font-size:11px; padding:4px 10px; background:rgba(139,92,246,0.1); color:var(--accent); border-radius:6px; font-weight:600;">Periodos horarios</span>
+            <span style="font-size:11px; padding:4px 10px; background:rgba(139,92,246,0.1); color:var(--accent); border-radius:6px; font-weight:600;">Bono social</span>
+            <span style="font-size:11px; padding:4px 10px; background:rgba(139,92,246,0.1); color:var(--accent); border-radius:6px; font-weight:600;">Leer tu factura</span>
+            <span style="font-size:11px; padding:4px 10px; background:rgba(139,92,246,0.1); color:var(--accent); border-radius:6px; font-weight:600;">Autoconsumo</span>
+            <span style="font-size:11px; padding:4px 10px; background:rgba(139,92,246,0.1); color:var(--accent); border-radius:6px; font-weight:600;">+6 guías más</span>
+          </div>
+          <div style="display:inline-flex; align-items:center; gap:8px; font-size:14px; font-weight:700; color:var(--accent);">
+            Ver las 10 guías completas
+            <span style="font-size:18px; transition: transform 0.3s;">→</span>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <section class="seoFold" id="info">
+      <details class="seoDetails">
+        <summary>ℹ️ Cómo funciona el comparador (potencia, consumos e impuestos)</summary>
+        <div class="seoContent">
+          <p>Este comparador calcula tu <strong>factura eléctrica</strong> estimada a partir de tu <strong>potencia contratada</strong> (P1 y P2), los <strong>kWh</strong> consumidos y el tipo de tarifa (<strong>1P</strong> precio fijo o <strong>3P</strong> con <strong>discriminación horaria</strong>: punta, llano y valle).</p>
+          <p>El ranking muestra el <strong>total con impuestos</strong> y la diferencia frente a la mejor opción, para que veas rápidamente cuánto podrías <strong>ahorrar</strong> cambiando de tarifa.</p>
+        </div>
+      </details>
+
+      <details class="seoDetails">
+        <summary>❓ Preguntas frecuentes sobre tarifas de luz (punta, llano, valle, P1/P2)</summary>
+        <div class="seoContent">
+          <h2>Preguntas frecuentes</h2>
+
+          <h3>¿Qué significan punta, llano y valle?</h3>
+          <p>Son periodos horarios con precios distintos en tarifas 3P. En general, <strong>punta</strong> es más caro, <strong>valle</strong> más barato y <strong>llano</strong> intermedio (los horarios exactos dependen del calendario y la tarifa).</p>
+
+          <h3>¿Qué es P1 y P2 en la potencia contratada?</h3>
+          <p>La potencia se paga por días y puede variar por periodo (P1/P2). En muchas viviendas se contrata la misma potencia en ambos, pero puedes optimizarla según tu uso.</p>
+
+          <h3>¿El comparador incluye impuestos?</h3>
+          <p>Sí: el cálculo muestra potencia, consumo y una estimación de impuestos/IVA según el modelo del comparador.</p>
+
+          <h3>¿Necesito registrarme?</h3>
+          <p>No. Es una herramienta gratuita, sin registro. Puedes además compartir tu configuración por URL.</p>
+
+          <h3>¿De dónde salen los precios?</h3>
+          <p>Las tarifas se cargan desde un archivo <code>tarifas.json</code> publicado en esta misma web.</p>
+        </div>
+      </details>
+
+      <details class="seoDetails">
+        <summary>⚡ PVPC (tarifa regulada): qué es y cómo lo calculamos</summary>
+        <div class="seoContent">
+          <p>El PVPC es la tarifa regulada de electricidad en España, con precios variables por horas y periodos según el mercado.</p>
+          <p>Cuando hay datos disponibles, este comparador añade una fila "PVPC (Regulada) ⚡" al ranking y muestra un resumen "PVPC oficial CNMC" dentro de los resultados.</p>
+          <p><strong>Nota:</strong> es una estimación orientativa basada en tus datos (P1/P2, días, consumos) y puede variar frente a tu factura real por redondeos, cambios regulatorios o condiciones aplicadas.</p>
+        </div>
+      </details>
+    </section>
+
+    <footer style="max-width:1400px; margin:0 auto; padding:40px clamp(22px, 4.5vw, 60px) 30px; border-top:1px solid var(--border);">
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:30px; margin-bottom:30px;">
+        <div>
+          <h3 style="font-size:14px; font-weight:900; margin-bottom:10px; color:var(--text);">Sobre el Comparador</h3>
+          <p style="color:var(--muted); font-size:12px; line-height:1.6; margin:0 0 12px 0;">
+            Herramienta gratuita para <strong>comparar tarifas de luz</strong> en España.
+          </p>
+          <p style="margin:0;">
+            <a href="/guias.html" style="color:var(--accent); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; transition: opacity 0.2s;">
+              📚 Guías sobre tarifas eléctricas
+              <span style="font-size:10px;">→</span>
+            </a>
+          </p>
+            Calcula tu factura según consumo real en horarios de punta, llano y valle.
+            Sin publicidad, sin registro.
+          </p>
+        </div>
+
+        <div>
+          <h3 style="font-size:14px; font-weight:900; margin-bottom:10px; color:var(--text);">Horarios Discriminación</h3>
+          <ul style="list-style:none; color:var(--muted); font-size:12px; line-height:1.8; margin:0; padding:0;">
+            <li><strong style="color:var(--danger);">Punta:</strong> 10h-14h y 18h-22h</li>
+            <li><strong style="color:var(--warn);">Llano:</strong> 8h-10h, 14h-18h, 22h-24h</li>
+            <li><strong style="color:var(--accent2);">Valle:</strong> 0h-8h + fines de semana</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 style="font-size:14px; font-weight:900; margin-bottom:10px; color:var(--text);">¿Qué Calculamos?</h3>
+          <ul style="list-style:none; color:var(--muted); font-size:12px; line-height:1.8; margin:0; padding:0;">
+            <li>✓ Coste potencia (P1/P2)</li>
+            <li>✓ Consumo por periodos</li>
+            <li>✓ Impuestos + IVA (21%)</li>
+            <li>✓ PVPC regulada (CNMC) cuando está disponible</li>
+            <li>✓ Comparación directa</li>
+          </ul>
+        </div>
+
+        <div id="contacto">
+          <h3 style="font-size:14px; font-weight:900; margin-bottom:10px; color:var(--text);">Contacto</h3>
+
+          <p style="color:var(--muted); font-size:12px; line-height:1.7; margin:0;">
+            Sugerencias, errores o dudas sobre el comparador:
+          </p>
+
+          <div style="margin-top:12px; padding:12px 12px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,.04);">
+            <div style="font-size:11px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted2); font-weight:900; margin-bottom:6px;">
+              ✉️ Email
+            </div>
+            <a href="/cdn-cgi/l/email-protection#026a6d6e63426e7778646b68632c6771" style="color:var(--accent); font-weight:900; text-decoration:underline; font-size:13px;">
+              <span class="__cf_email__" data-cfemail="7a1215161b3a160f001c13101b541f09">[email&#160;protected]</span>
+            </a>
+            <div style="margin-top:8px; font-size:11px; color:var(--muted2); line-height:1.4;">
+              Respondo en cuanto puedo (proyecto gratuito).
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:30px; padding:28px 20px 24px; border-top:1px solid rgba(255,255,255,0.05); text-align:center;">
+        <p style="font-size:11px; opacity:0.5; margin-bottom:8px;">⚡ Comparador de Tarifas Eléctricas · España</p>
+        <p style="font-size:10px; opacity:0.4;">Proyecto gratuito y sin publicidad · Datos actualizados regularmente</p>
+
+        <div style="margin-top:18px; padding-top:14px; border-top:1px solid var(--border);">
+          <div style="max-width:720px; margin:0 auto 10px auto; text-align:center; padding:0 12px;">
+            <p style="font-size:10px; line-height:1.6; opacity:0.65; margin:0;">
+              <strong style="opacity:0.85;">⚖️ Aviso:</strong>
+              El PVPC mostrado (cuando está disponible) es una <strong>estimación orientativa</strong> basada en información pública.
+              Puede contener errores o desviaciones y no sustituye a la información de tu factura.
+              · Referencia oficial:
+              <a href="https://facturaluz2.cnmc.es/" target="_blank" rel="noopener noreferrer" style="color: var(--accent); text-decoration: underline;">
+                facturaluz2.cnmc.es
+              </a>
+            </p>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.03); border-radius: 10px; padding: 10px 14px; margin: 12px auto 0; max-width: 700px;">
+            <p style="font-size: 10px; line-height: 1.5; opacity: 0.7; margin: 0; text-align: center;">
+              <strong style="opacity: 0.9;">🚫 No afiliación:</strong>
+              LuzFija.es es un proyecto independiente y no está afiliado ni avalado por CNMC, Red Eléctrica de España, organismos oficiales ni ninguna comercializadora.
+            </p>
+          </div>
+
+          <div style="margin-top:12px; font-size:10px; opacity:0.65; line-height:1.5;">
+            📊 Analítica: esta web no utiliza analítica ni cookies de seguimiento.
+          </div>
+        </div>
+      </div>
+    </footer>
+
+
+  <footer class="footer-credits">
+    Desarrollado por <a href="https://github.com/almax-es" target="_blank" rel="noopener" style="color:inherit; text-decoration:none; font-weight:600;">aLMaX</a> · Gracias a las comunidades de
+    <a href="https://nergiza.com/foro/threads/tarifas-electricas-mercado-libre-recomendadas-pvpc-indexadas.10985/" target="_blank" rel="noopener noreferrer">Nergiza</a>
+    y
+    <a href="https://forocoches.com/foro/showthread.php?t=10515708" target="_blank" rel="noopener noreferrer">ForoCoches</a>
+      por sus ideas, facturas y sugerencias, y en especial a Omadón, ragaro79, JavierRR e Ivansnoke por sus aportes y ayuda.
+  </footer>
+  </div>
+
+  <div class="toast" id="toast"><span class="dot" id="toastDot"></span><span id="toastText"></span></div>
+  <button id="scrollToResults" class="scroll-btn" style="display:none;" title="Ver resultados">↓ Ver resultados</button>
+  <div id="globalTooltip" role="tooltip" aria-hidden="true"></div>
+
+  <div class="modal-overlay" id="modalFactura" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Subir factura y extraer datos" tabindex="-1">
+    <div class="modal-content card" role="document">
+      <div class="head">
+        <div class="kicker">Subir factura</div>
+        <h2 class="title">Extracción automática de datos</h2>
+      </div>
+      <div class="body">
+        <div class="upload-area" id="uploadAreaFactura" tabindex="0">
+          <div style="font-weight:900; margin-bottom:6px">Arrastra aquí tu PDF</div>
+          <div style="color:var(--muted); font-size:13px">o pulsa para seleccionarlo</div>
+        </div>
+        <input type="file" id="fileInputFactura" accept="application/pdf" style="display:none">
+
+        <div id="loaderFactura" style="display:none; text-align:center; padding:36px">
+          <div class="spinner"></div>
+          <p style="color:var(--muted); margin-top:12px">Analizando factura…</p>
+        </div>
+
+        <div id="avisoFactura" class="help" style="display:none; margin-top:14px"></div>
+
+        <div id="resultadoFactura" style="display:none; margin-top:10px">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:6px">
+            <div class="confianza-badge" id="confianzaBadge">--</div>
+            <button class="btn" id="btnOcrFactura" type="button" style="display:none" aria-label="OCR experimental">
+              🧠 OCR (experimental)
+            </button>
+          </div>
+
+          <h3 style="margin:6px 0 2px; font-size:14px">Datos detectados</h3>
+          <div id="companiaDetectada" style="display:none; margin:4px 0 8px; padding:6px 10px; background:var(--accent); color:white; border-radius:8px; font-size:11px; font-weight:600; width:fit-content;">
+            🏢 <span id="nombreCompania"></span>
+          </div>
+          <p style="color:var(--muted); font-size:11px; margin-bottom:6px">Verifica y corrige antes de aplicar:</p>
+          <div id="formValidacionFactura"></div>
+
+          <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap">
+            <button class="btn primary" id="btnAplicarFactura" type="button">✅ Aplicar datos</button>
+            <button class="btn" id="btnCancelarFactura" type="button">❌ Cancelar</button>
+          </div>
+
+          <div class="help" style="margin-top:10px; font-size:11px; opacity:0.9; border:1px solid var(--border); background: var(--card2); padding:8px; border-radius:10px; line-height:1.4;">
+            <p style="margin-bottom:4px;"><strong>📧 ¿Datos incorrectos?</strong> Envía el PDF anonimizado a <a href="/cdn-cgi/l/email-protection#cca4a3a0ad8ca0b9b6aaa5a6ade2a9bf" style="color: var(--accent); text-decoration: underline;"><span class="__cf_email__" data-cfemail="ff9790939ebf938a859996959ed19a8c">[email&#160;protected]</span></a></p>
+            <p style="margin:0; color: var(--muted); font-size:10px;">Oculta: nombre, DNI, CUPS, IBAN, QR. El PDF se procesa en tu navegador (no se sube).</p>
+          </div>
+        </div>
+
+        <div class="help" style="margin-top:10px">
+          🔒 <strong>Privacidad total:</strong> el PDF se procesa en tu navegador. No se sube ni se guarda nada.
+          <br>📊 Analítica: esta web no utiliza analítica ni cookies de seguimiento.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
     const $ = id => document.getElementById(id);
 
     // URL DEL JSON ESTÁTICO DE TARIFAS EN EL MISMO HOST
@@ -2661,18 +4294,7 @@
       const loaded = await fetchTarifas(forceRefresh);
       if(!loaded) return;
 
-      const pvpc = await crearTarifaPVPC(values);
-      const base = Array.isArray(baseTarifasCache) ? baseTarifasCache.slice() : [];
-      cachedTarifas = pvpc ? [...base, pvpc] : base;
-      if(!pvpc) pvpcLastMeta=null;
-
-      calculateLocal(values);
-      state.lastSignature = signature;
-      state.pending = false;
-    }
-
-    function toggleMenu(force){
-      const s=(typeof force==='boolean')?force:!el.menuPanel.classList.contains('show');
+      coel.menuPanel.classList.contains('show');
       el.menuPanel.classList.toggle('show',s);
       el.btnMenu.setAttribute('aria-expanded',s?'true':'false');
     }
@@ -2793,4 +4415,14 @@
 
         const d = saveInputs();
         const qp = new URLSearchParams(d).toString();
-        const url = `${window.location.origi
+        const url = `${window.location.origin}${window.location.pathname}?${qp}`;
+        await copyText(url);
+        toast('Enlace copiado al portapapeles');
+      });
+
+      if (typeof window.__LF_bindFacturaParser === 'function') {
+        window.__LF_bindFacturaParser();
+      }
+
+      $('scrollToResults').addEventListener('click',()=>$('heroKpis').scrollIntoView({behavior:'smooth',block:'start'}));
+    });
