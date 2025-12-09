@@ -1,0 +1,662 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <meta http-equiv="Pragma" content="no-cache">
+  <meta http-equiv="Expires" content="0">
+  <meta name="description" content="Comparador gratuito de tarifas de luz en España. Calcula tu factura con potencia (P1/P2) y consumo (punta, llano, valle), impuestos incluidos, e incluye PVPC (tarifa regulada) cuando está disponible. Ranking instantáneo y enlace a contratar.">
+  <meta name="keywords" content="comparador tarifas luz, tarifa discriminación horaria, calcular factura electricidad, precio luz punta llano valle, potencia contratada P1 P2, ahorrar factura luz, mejor tarifa luz">
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+  <meta name="theme-color" content="#8B5CF6">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Comparador Tarifas">
+
+  <script>
+    window.PVPC_PROXY_URL = "https://luzfija-es.vercel.app/api/proxy?url=";
+  </script>
+
+  <meta property="og:title" content="Comparador de Tarifas de Luz en España | Encuentra la Más Barata">
+  <meta property="og:description" content="Compara tarifas de electricidad con discriminación horaria y PVPC. Calcula tu factura según potencia y consumo. Descubre cuánto puedes ahorrar. 100% gratuito.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://luzfija.es/">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:site_name" content="LuzFija.es">
+  <meta property="og:image" content="https://luzfija.es/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:alt" content="Comparador de Tarifas de Luz - Encuentra la más barata en segundos">
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Comparador de Tarifas Eléctricas">
+  <meta name="twitter:description" content="Encuentra tu tarifa de luz más barata en segundos, incluyendo PVPC cuando está disponible">
+  <meta name="twitter:image" content="https://luzfija.es/og.png">
+
+  <link rel="canonical" href="https://luzfija.es/">
+  <link rel="alternate" hreflang="es-ES" href="https://luzfija.es/">
+  <link rel="alternate" hreflang="x-default" href="https://luzfija.es/">
+
+  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+  <link rel="dns-prefetch" href="https://script.google.com">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" as="style">
+
+  <title>Comparador de Tarifas de Luz en España | Calcula tu factura y ahorra</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/svg+xml" href="favicon.svg">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="favicon.png">
+  <link rel="mask-icon" href="favicon.svg" color="#8B5CF6">
+  <link rel="icon" href="favicon.ico" sizes="any">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Comparador de Tarifas Eléctricas",
+    "description": "Herramienta profesional para comparar tarifas de electricidad en España. Encuentra la oferta más barata según tus consumos específicos.",
+    "url": "https://luzfija.es",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Any",
+    "inLanguage": "es",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR"
+    },
+    "creator": {
+      "@type": "Person",
+      "name": "aLMaX"
+    }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"BreadcrumbList",
+    "itemListElement":[
+      {"@type":"ListItem","position":1,"name":"Inicio","item":"https://luzfija.es/"}
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"FAQPage",
+    "mainEntity":[
+      {
+        "@type":"Question",
+        "name":"¿Qué significan punta, llano y valle?",
+        "acceptedAnswer":{"@type":"Answer","text":"Son periodos horarios con precios distintos en tarifas 3P. En general, punta es más caro, valle más barato y llano intermedio (los horarios exactos dependen del calendario y la tarifa)."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Qué es P1 y P2 en la potencia contratada?",
+        "acceptedAnswer":{"@type":"Answer","text":"La potencia se paga por días y puede variar por periodo (P1/P2). En muchas viviendas se contrata la misma potencia en ambos, pero puedes optimizarla según tu uso."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿El comparador incluye impuestos?",
+        "acceptedAnswer":{"@type":"Answer","text":"Sí: el cálculo muestra potencia, consumo y una estimación de impuestos/IVA según el modelo del comparador."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Necesito registrarme?",
+        "acceptedAnswer":{"@type":"Answer","text":"No. Es una herramienta gratuita, sin registro. Puedes además compartir tu configuración por URL."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿De dónde salen los precios?",
+        "acceptedAnswer":{"@type":"Answer","text":"Las tarifas se cargan desde un archivo tarifas.json publicado en esta misma web."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Qué es el PVPC?",
+        "acceptedAnswer":{"@type":"Answer","text":"Es la tarifa regulada de electricidad en España, con precios variables por periodos/horas según el mercado."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Cómo calcula el comparador el PVPC?",
+        "acceptedAnswer":{"@type":"Answer","text":"Usa los datos que introduces (potencias P1/P2, días y consumos por periodos) y, cuando hay datos disponibles, muestra un PVPC estimado y lo incluye en el ranking."}
+      }
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "LuzFija.es",
+    "url": "https://luzfija.es/",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://luzfija.es/logo-512.png",
+      "width": 512,
+      "height": 512
+    },
+    "image": "https://luzfija.es/logo-512.png",
+    "email": "hola@luzfija.es",
+    "sameAs": [
+      "https://luzfija.es"
+    ],
+    "contactPoint": [{
+      "@type": "ContactPoint",
+      "contactType": "customer support",
+      "email": "hola@luzfija.es",
+      "availableLanguage": ["es"]
+    }]
+  }
+  </script>
+
+  <script>
+    (function(){
+      var key='almax_theme';
+      try{
+        var saved=localStorage.getItem(key);
+        if(saved==='light')document.documentElement.classList.add('light-mode');
+        else document.documentElement.classList.remove('light-mode');
+        window.__ALMAX_THEME_SAVED=saved;
+      }catch(e){}
+      window.__ALMAX_THEME_KEY=key;
+    })();
+  </script>
+
+  <link rel="stylesheet" href="styles.css">
+  <script defer src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+</head>
+
+<body>
+  <div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span>
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+            <defs>
+              <linearGradient id="logoGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1">
+                  <animate attributeName="stop-color" values="#fbbf24;#f59e0b;#fbbf24" dur="2s" repeatCount="indefinite"/>
+                </stop>
+                <stop offset="50%" style="stop-color:#f59e0b;stop-opacity:1"/>
+                <stop offset="100%" style="stop-color:#fbbf24;stop-opacity:1">
+                  <animate attributeName="stop-color" values="#fbbf24;#f59e0b;#fbbf24" dur="2s" repeatCount="indefinite"/>
+                </stop>
+              </linearGradient>
+              <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1"/>
+                <stop offset="100%" style="stop-color:#6366f1;stop-opacity:1"/>
+              </linearGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            <circle cx="50" cy="50" r="35" fill="url(#logoGrad2)" opacity="0.2">
+              <animate attributeName="r" values="35;38;35" dur="2s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.2;0.4;0.2" dur="2s" repeatCount="indefinite"/>
+            </circle>
+            <path d="M 55 15 L 35 48 L 48 48 L 45 85 L 70 45 L 57 45 Z"
+                  fill="url(#logoGrad1)" filter="url(#glow)"
+                  stroke="#fff" stroke-width="1.5" stroke-linejoin="round">
+              <animateTransform attributeName="transform" attributeType="XML" type="scale"
+                                values="1;1.08;1" dur="1.5s" repeatCount="indefinite" additive="sum"/>
+            </path>
+            <circle cx="30" cy="30" r="2" fill="#fbbf24" opacity="0">
+              <animate attributeName="opacity" values="0;1;0" dur="1.5s" repeatCount="indefinite"/>
+              <animate attributeName="r" values="2;3;2" dur="1.5s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="70" cy="35" r="2" fill="#fbbf24" opacity="0">
+              <animate attributeName="opacity" values="0;1;0" dur="1.5s" begin="0.5s" repeatCount="indefinite"/>
+              <animate attributeName="r" values="2;3;2" dur="1.5s" begin="0.5s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="65" cy="70" r="2" fill="#fbbf24" opacity="0">
+              <animate attributeName="opacity" values="0;1;0" dur="1.5s" begin="1s" repeatCount="indefinite"/>
+              <animate attributeName="r" values="2;3;2" dur="1.5s" begin="1s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+        </div>
+        <div>
+          <h1>Comparador de Tarifas</h1>
+          <p>Encuentra la tarifa más barata en segundos</p>
+        </div>
+      </div>
+
+      <div class="actions">
+        <div class="pill" id="statusPill" role="status" aria-live="polite">
+          <span id="statusText">Introduce tus datos y pulsa Calcular para ver el ranking</span>
+        </div>
+        <button class="btn" id="btnSubirFactura" type="button" title="Subir factura PDF" aria-label="Subir factura PDF">
+          📄 Subir factura
+        </button>
+        <button class="btn" id="btnTheme" type="button" title="Cambiar tema" aria-label="Cambiar tema">☀️</button>
+        <div class="menu" id="menuRoot">
+          <button class="btn" id="btnMenu" type="button" aria-haspopup="true" aria-expanded="false" title="Opciones">⚙️</button>
+          <div class="menuPanel" id="menuPanel" role="menu" aria-label="Opciones">
+            <div class="menuHint">Opciones</div>
+            <button class="menuItem" id="btnExport" type="button" role="menuitem">
+              <span class="mi-left">⬇️ Descargar CSV</span>
+              <span class="mi-right">ranking</span>
+            </button>
+            <button class="menuItem" id="btnShare" type="button" role="menuitem">
+              <span class="mi-left">🔗 Compartir configuración</span>
+              <span class="mi-right">URL</span>
+            </button>
+            <a class="menuItem" href="/cdn-cgi/l/email-protection#4b2324272a0b273e312d22212a652e38" role="menuitem" style="text-decoration:none;">
+              <span class="mi-left">✉️ Contacto</span>
+              <span class="mi-right">email</span>
+            </a>
+            <div class="menuDivider"></div>
+            <button class="menuItem" id="btnReset" type="button" role="menuitem">
+              <span class="mi-left">↺ Restablecer</span>
+              <span class="mi-right">valores</span>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="grid">
+      <section class="card">
+        <div class="head">
+          <div class="kicker">Tus datos</div>
+          <h2 class="title">Potencia y consumos (kWh)</h2>
+        </div>
+        <div class="body">
+          <div class="alert" id="errorBox"><b>Error:</b> <span id="errorText"></span></div>
+          <div class="form">
+            <div class="group">
+              <label for="p1">Potencia P1 (kW)</label>
+              <input id="p1" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 3,45">
+            </div>
+            <div class="group">
+              <label for="p2">Potencia P2 (kW)</label>
+              <input id="p2" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 3,45">
+            </div>
+            <div class="group">
+              <label for="dias">Días factura</label>
+              <input id="dias" class="input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="1 a 365">
+            </div>
+          </div>
+          <div style="height:12px"></div>
+          <div class="form">
+            <div class="group">
+              <label for="zonaFiscal">Zona fiscal</label>
+              <select id="zonaFiscal" class="input">
+                <option value="Península">Península</option>
+                <option value="Canarias">Canarias</option>
+              </select>
+            </div>
+            <div class="group" id="viviendaCanariasGroup" style="display:none; align-items:center;">
+              <label for="viviendaCanarias" style="gap:8px;">
+                <input id="viviendaCanarias" type="checkbox" checked style="width:auto; height:auto;">
+                Vivienda (hogar)
+              </label>
+            </div>
+          </div>
+          <div style="height:12px"></div>
+          <div class="form">
+            <div class="group">
+              <label for="cPunta">
+                Consumo PUNTA
+                <span class="tooltip" data-tip="10h-14h y 18h-22h" role="button" tabindex="-1" aria-label="Horario de consumo punta">i</span>
+              </label>
+              <input id="cPunta" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 120">
+            </div>
+            <div class="group">
+              <label for="cLlano">
+                Consumo LLANO
+                <span class="tooltip" data-tip="8h-10h, 14h-18h y 22h-24h" role="button" tabindex="-1" aria-label="Horario de consumo llano">i</span>
+              </label>
+              <input id="cLlano" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 80">
+            </div>
+            <div class="group">
+              <label for="cValle">
+                Consumo VALLE
+                <span class="tooltip" data-tip="0h-8h (madrugada)" role="button" tabindex="-1" aria-label="Horario de consumo valle">i</span>
+              </label>
+              <input id="cValle" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 150">
+            </div>
+          </div>
+          <div class="row" style="margin-top:14px">
+            <div class="kwhPill" aria-live="polite">
+              <div class="kwhLabel">Total kWh</div>
+              <div class="kwhValue" id="kwhHint">—</div>
+            </div>
+            <div style="position: relative; display: flex; flex: 1; min-width: 0;">
+              <button class="btn primary" id="btnCalc" type="button" title="Calcular ahora">
+                <span class="btn-shine"></span>
+                <span id="btnText" style="position: relative; z-index: 1;">⚡ Calcular</span>
+                <span id="btnSpinner" style="display:none; position: relative; z-index: 1;"><span class="spinner"></span></span>
+              </button>
+            </div>
+          </div>
+          <div class="help">
+            Introduce tus datos y pulsa ⚡ Calcular para generar o refrescar el ranking (tarifas y PVPC si está disponible). Puedes escribir decimales con coma o punto (ej.: 3,45 / 3.45).
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="head">
+          <div class="kicker">Resultados</div>
+          <h2 class="title">Tarifa óptima + ranking</h2>
+        </div>
+        <div class="body">
+          <div class="heroKpis fade-container" id="heroKpis">
+            <div class="heroCard best">
+              <div class="k">Tarifa más barata</div>
+              <div class="v" id="kpiBest">—</div>
+              <div class="s">Mejor opción</div>
+            </div>
+            <div class="heroCard">
+              <div class="k">Factura mínima</div>
+              <div class="v" id="kpiPrice">—</div>
+              <div class="s">Según tus datos</div>
+            </div>
+          </div>
+
+          <div class="statsbar fade-container" id="statsBar">
+            <div class="statCard">
+              <div class="statLabel">Precio mínimo</div>
+              <div class="statValue" id="statMin">—</div>
+            </div>
+            <div class="statCard">
+              <div class="statLabel">Precio medio</div>
+              <div class="statValue" id="statAvg">—</div>
+            </div>
+            <div class="statCard">
+              <div class="statLabel">Precio máximo</div>
+              <div class="statValue" id="statMax">—</div>
+            </div>
+          </div>
+
+          <div class="help" id="pvpcInfo" style="display:none; margin-top:0; margin-bottom: 12px;"></div>
+          <div id="pvpc-warning-canarias-potencia"
+               style="display:none; margin-top:6px; font-size:12px; line-height:1.2; opacity:.95; color:#FACC15;">
+            ⚠ PVPC no calculable: en Canarias (vivienda) con potencia &gt; 10&nbsp;kW la CNMC no permite este cálculo.
+          </div>
+
+          <div class="chartTop fade-container" id="chartTop">
+            <div class="chartTop-header">
+              <div class="kicker">Comparación visual</div>
+              <div class="title">Top 5 tarifas (total factura)</div>
+            </div>
+            <div class="chartTop-body" id="chartTopBody"></div>
+          </div>
+
+          <div class="toolbar fade-container" id="toolbar">
+            <div class="filters">
+              <button class="fbtn active" data-filter="all" type="button">Todas</button>
+              <button class="fbtn" data-filter="1P" type="button"><span class="badge b1">1P</span></button>
+              <button class="fbtn" data-filter="3P" type="button"><span class="badge b3">3P</span></button>
+            </div>
+          </div>
+
+          <div class="tableWrap">
+            <table id="table" class="fade-container">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th class="sort" data-sort="nombre">Tarifa <span class="sortIcon" id="si_nombre"></span></th>
+                  <th class="sort" data-sort="potenciaNum">Potencia <span class="sortIcon" id="si_potenciaNum"></span></th>
+                  <th class="sort" data-sort="consumoNum">Consumo <span class="sortIcon" id="si_consumoNum"></span></th>
+                  <th class="sort" data-sort="impuestosNum">Impuestos <span class="sortIcon" id="si_impuestosNum"></span></th>
+                  <th class="sort" data-sort="totalNum">Total <span class="sortIcon" id="si_totalNum"></span></th>
+                  <th class="sort" data-sort="vsMejorNum">Vs mejor <span class="sortIcon" id="si_vsMejorNum"></span></th>
+                  <th>Tipo</th>
+                  <th>Web</th>
+                </tr>
+              </thead>
+              <tbody id="tbody"></tbody>
+            </table>
+            <div class="empty fade-container" id="emptyBox">Aún no hay resultados. Pulsa ⚡ Calcular para generar el ranking.</div>
+          </div>
+
+        </div>
+      </section>
+    </div>
+
+
+    <!-- Banner Guías -->
+    <div style="max-width:1400px; margin:40px auto 40px; padding:0 clamp(22px, 4.5vw, 60px);">
+      <a href="/guias.html" style="display:block; text-decoration:none; background: linear-gradient(135deg, rgba(139,92,246,0.08) 0%, rgba(59,130,246,0.08) 100%); border:2px solid rgba(139,92,246,0.2); border-radius:16px; padding:clamp(24px, 4vw, 32px); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 20px rgba(139,92,246,0.1); position:relative; overflow:hidden;">
+        <div style="position:absolute; top:0; right:0; width:200px; height:200px; background: radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%); pointer-events:none;"></div>
+        <div style="position:relative; z-index:1;">
+          <div style="display:flex; align-items:center; gap:12px; margin-bottom:12px;">
+            <span style="font-size:32px;">📚</span>
+            <div>
+              <div style="font-size:clamp(11px, 2vw, 12px); font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--accent); opacity:0.9;">Nueva sección</div>
+              <h3 style="font-size:clamp(18px, 3.5vw, 24px); font-weight:900; color:var(--text); margin:4px 0 0 0; line-height:1.2;">Guías sobre tarifas eléctricas</h3>
+            </div>
+          </div>
+          <p style="font-size:clamp(13px, 2.5vw, 15px); color:var(--muted); margin:0 0 16px 0; line-height:1.6; max-width:800px;">
+            ¿Primera vez con discriminación horaria? ¿No sabes qué es P1, P2, P3? ¿Dudas sobre el bono social o PVPC? Te lo explicamos todo en lenguaje claro, sin rollos técnicos.
+          </p>
+          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+            <span style="font-size:11px; padding:4px 10px; background:rgba(139,92,246,0.1); color:var(--accent); border-radius:6px; font-weight:600;">Periodos horarios</span>
+            <span style="font-size:11px; padding:4px 10px; background:rgba(139,92,246,0.1); color:var(--accent); border-radius:6px; font-weight:600;">Bono social</span>
+            <span style="font-size:11px; padding:4px 10px; background:rgba(139,92,246,0.1); color:var(--accent); border-radius:6px; font-weight:600;">Leer tu factura</span>
+            <span style="font-size:11px; padding:4px 10px; background:rgba(139,92,246,0.1); color:var(--accent); border-radius:6px; font-weight:600;">Autoconsumo</span>
+            <span style="font-size:11px; padding:4px 10px; background:rgba(139,92,246,0.1); color:var(--accent); border-radius:6px; font-weight:600;">+6 guías más</span>
+          </div>
+          <div style="display:inline-flex; align-items:center; gap:8px; font-size:14px; font-weight:700; color:var(--accent);">
+            Ver las 10 guías completas
+            <span style="font-size:18px; transition: transform 0.3s;">→</span>
+          </div>
+        </div>
+      </a>
+    </div>
+
+    <section class="seoFold" id="info">
+      <details class="seoDetails">
+        <summary>ℹ️ Cómo funciona el comparador (potencia, consumos e impuestos)</summary>
+        <div class="seoContent">
+          <p>Este comparador calcula tu <strong>factura eléctrica</strong> estimada a partir de tu <strong>potencia contratada</strong> (P1 y P2), los <strong>kWh</strong> consumidos y el tipo de tarifa (<strong>1P</strong> precio fijo o <strong>3P</strong> con <strong>discriminación horaria</strong>: punta, llano y valle).</p>
+          <p>El ranking muestra el <strong>total con impuestos</strong> y la diferencia frente a la mejor opción, para que veas rápidamente cuánto podrías <strong>ahorrar</strong> cambiando de tarifa.</p>
+        </div>
+      </details>
+
+      <details class="seoDetails">
+        <summary>❓ Preguntas frecuentes sobre tarifas de luz (punta, llano, valle, P1/P2)</summary>
+        <div class="seoContent">
+          <h2>Preguntas frecuentes</h2>
+
+          <h3>¿Qué significan punta, llano y valle?</h3>
+          <p>Son periodos horarios con precios distintos en tarifas 3P. En general, <strong>punta</strong> es más caro, <strong>valle</strong> más barato y <strong>llano</strong> intermedio (los horarios exactos dependen del calendario y la tarifa).</p>
+
+          <h3>¿Qué es P1 y P2 en la potencia contratada?</h3>
+          <p>La potencia se paga por días y puede variar por periodo (P1/P2). En muchas viviendas se contrata la misma potencia en ambos, pero puedes optimizarla según tu uso.</p>
+
+          <h3>¿El comparador incluye impuestos?</h3>
+          <p>Sí: el cálculo muestra potencia, consumo y una estimación de impuestos/IVA según el modelo del comparador.</p>
+
+          <h3>¿Necesito registrarme?</h3>
+          <p>No. Es una herramienta gratuita, sin registro. Puedes además compartir tu configuración por URL.</p>
+
+          <h3>¿De dónde salen los precios?</h3>
+          <p>Las tarifas se cargan desde un archivo <code>tarifas.json</code> publicado en esta misma web.</p>
+        </div>
+      </details>
+
+      <details class="seoDetails">
+        <summary>⚡ PVPC (tarifa regulada): qué es y cómo lo calculamos</summary>
+        <div class="seoContent">
+          <p>El PVPC es la tarifa regulada de electricidad en España, con precios variables por horas y periodos según el mercado.</p>
+          <p>Cuando hay datos disponibles, este comparador añade una fila "PVPC (Regulada) ⚡" al ranking y muestra un resumen "PVPC oficial CNMC" dentro de los resultados.</p>
+          <p><strong>Nota:</strong> es una estimación orientativa basada en tus datos (P1/P2, días, consumos) y puede variar frente a tu factura real por redondeos, cambios regulatorios o condiciones aplicadas.</p>
+        </div>
+      </details>
+    </section>
+
+    <footer style="max-width:1400px; margin:0 auto; padding:40px clamp(22px, 4.5vw, 60px) 30px; border-top:1px solid var(--border);">
+      <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:30px; margin-bottom:30px;">
+        <div>
+          <h3 style="font-size:14px; font-weight:900; margin-bottom:10px; color:var(--text);">Sobre el Comparador</h3>
+          <p style="color:var(--muted); font-size:12px; line-height:1.6; margin:0 0 12px 0;">
+            Herramienta gratuita para <strong>comparar tarifas de luz</strong> en España.
+          </p>
+          <p style="margin:0;">
+            <a href="/guias.html" style="color:var(--accent); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; transition: opacity 0.2s;">
+              📚 Guías sobre tarifas eléctricas
+              <span style="font-size:10px;">→</span>
+            </a>
+          </p>
+            Calcula tu factura según consumo real en horarios de punta, llano y valle.
+            Sin publicidad, sin registro.
+          </p>
+        </div>
+
+        <div>
+          <h3 style="font-size:14px; font-weight:900; margin-bottom:10px; color:var(--text);">Horarios Discriminación</h3>
+          <ul style="list-style:none; color:var(--muted); font-size:12px; line-height:1.8; margin:0; padding:0;">
+            <li><strong style="color:var(--danger);">Punta:</strong> 10h-14h y 18h-22h</li>
+            <li><strong style="color:var(--warn);">Llano:</strong> 8h-10h, 14h-18h, 22h-24h</li>
+            <li><strong style="color:var(--accent2);">Valle:</strong> 0h-8h + fines de semana</li>
+          </ul>
+        </div>
+
+        <div>
+          <h3 style="font-size:14px; font-weight:900; margin-bottom:10px; color:var(--text);">¿Qué Calculamos?</h3>
+          <ul style="list-style:none; color:var(--muted); font-size:12px; line-height:1.8; margin:0; padding:0;">
+            <li>✓ Coste potencia (P1/P2)</li>
+            <li>✓ Consumo por periodos</li>
+            <li>✓ Impuestos + IVA (21%)</li>
+            <li>✓ PVPC regulada (CNMC) cuando está disponible</li>
+            <li>✓ Comparación directa</li>
+          </ul>
+        </div>
+
+        <div id="contacto">
+          <h3 style="font-size:14px; font-weight:900; margin-bottom:10px; color:var(--text);">Contacto</h3>
+
+          <p style="color:var(--muted); font-size:12px; line-height:1.7; margin:0;">
+            Sugerencias, errores o dudas sobre el comparador:
+          </p>
+
+          <div style="margin-top:12px; padding:12px 12px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,.04);">
+            <div style="font-size:11px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted2); font-weight:900; margin-bottom:6px;">
+              ✉️ Email
+            </div>
+            <a href="/cdn-cgi/l/email-protection#b8d0d7d4d9f8d4cdc2ded1d2d996ddcb" style="color:var(--accent); font-weight:900; text-decoration:underline; font-size:13px;">
+              <span class="__cf_email__" data-cfemail="4d2522212c0d2138372b24272c63283e">[email&#160;protected]</span>
+            </a>
+            <div style="margin-top:8px; font-size:11px; color:var(--muted2); line-height:1.4;">
+              Respondo en cuanto puedo (proyecto gratuito).
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div style="margin-top:30px; padding:28px 20px 24px; border-top:1px solid rgba(255,255,255,0.05); text-align:center;">
+        <p style="font-size:11px; opacity:0.5; margin-bottom:8px;">⚡ Comparador de Tarifas Eléctricas · España</p>
+        <p style="font-size:10px; opacity:0.4;">Proyecto gratuito y sin publicidad · Datos actualizados regularmente</p>
+
+        <div style="margin-top:18px; padding-top:14px; border-top:1px solid var(--border);">
+          <div style="max-width:720px; margin:0 auto 10px auto; text-align:center; padding:0 12px;">
+            <p style="font-size:10px; line-height:1.6; opacity:0.65; margin:0;">
+              <strong style="opacity:0.85;">⚖️ Aviso:</strong>
+              El PVPC mostrado (cuando está disponible) es una <strong>estimación orientativa</strong> basada en información pública.
+              Puede contener errores o desviaciones y no sustituye a la información de tu factura.
+              · Referencia oficial:
+              <a href="https://facturaluz2.cnmc.es/" target="_blank" rel="noopener noreferrer" style="color: var(--accent); text-decoration: underline;">
+                facturaluz2.cnmc.es
+              </a>
+            </p>
+          </div>
+
+          <div style="background: rgba(255,255,255,0.03); border-radius: 10px; padding: 10px 14px; margin: 12px auto 0; max-width: 700px;">
+            <p style="font-size: 10px; line-height: 1.5; opacity: 0.7; margin: 0; text-align: center;">
+              <strong style="opacity: 0.9;">🚫 No afiliación:</strong>
+              LuzFija.es es un proyecto independiente y no está afiliado ni avalado por CNMC, Red Eléctrica de España, organismos oficiales ni ninguna comercializadora.
+            </p>
+          </div>
+
+          <div style="margin-top:12px; font-size:10px; opacity:0.65; line-height:1.5;">
+            📊 Analítica: esta web no utiliza analítica ni cookies de seguimiento.
+          </div>
+        </div>
+      </div>
+    </footer>
+
+
+  <footer class="footer-credits">
+    Desarrollado por <a href="https://github.com/almax-es" target="_blank" rel="noopener" style="color:inherit; text-decoration:none; font-weight:600;">aLMaX</a> · Gracias a las comunidades de
+    <a href="https://nergiza.com/foro/threads/tarifas-electricas-mercado-libre-recomendadas-pvpc-indexadas.10985/" target="_blank" rel="noopener noreferrer">Nergiza</a>
+    y
+    <a href="https://forocoches.com/foro/showthread.php?t=10515708" target="_blank" rel="noopener noreferrer">ForoCoches</a>
+      por sus ideas, facturas y sugerencias, y en especial a Omadón, ragaro79, JavierRR e Ivansnoke por sus aportes y ayuda.
+  </footer>
+  </div>
+
+  <div class="toast" id="toast"><span class="dot" id="toastDot"></span><span id="toastText"></span></div>
+  <button id="scrollToResults" class="scroll-btn" style="display:none;" title="Ver resultados">↓ Ver resultados</button>
+  <div id="globalTooltip" role="tooltip" aria-hidden="true"></div>
+
+  <div class="modal-overlay" id="modalFactura" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Subir factura y extraer datos" tabindex="-1">
+    <div class="modal-content card" role="document">
+      <div class="head">
+        <div class="kicker">Subir factura</div>
+        <h2 class="title">Extracción automática de datos</h2>
+      </div>
+      <div class="body">
+        <div class="upload-area" id="uploadAreaFactura" tabindex="0">
+          <div style="font-weight:900; margin-bottom:6px">Arrastra aquí tu PDF</div>
+          <div style="color:var(--muted); font-size:13px">o pulsa para seleccionarlo</div>
+        </div>
+        <input type="file" id="fileInputFactura" accept="application/pdf" style="display:none">
+
+        <div id="loaderFactura" style="display:none; text-align:center; padding:36px">
+          <div class="spinner"></div>
+          <p style="color:var(--muted); margin-top:12px">Analizando factura…</p>
+        </div>
+
+        <div id="avisoFactura" class="help" style="display:none; margin-top:14px"></div>
+
+        <div id="resultadoFactura" style="display:none; margin-top:10px">
+          <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:6px">
+            <div class="confianza-badge" id="confianzaBadge">--</div>
+            <button class="btn" id="btnOcrFactura" type="button" style="display:none" aria-label="OCR experimental">
+              🧠 OCR (experimental)
+            </button>
+          </div>
+
+          <h3 style="margin:6px 0 2px; font-size:14px">Datos detectados</h3>
+          <div id="companiaDetectada" style="display:none; margin:4px 0 8px; padding:6px 10px; background:var(--accent); color:white; border-radius:8px; font-size:11px; font-weight:600; width:fit-content;">
+            🏢 <span id="nombreCompania"></span>
+          </div>
+          <p style="color:var(--muted); font-size:11px; margin-bottom:6px">Verifica y corrige antes de aplicar:</p>
+          <div id="formValidacionFactura"></div>
+
+          <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap">
+            <button class="btn primary" id="btnAplicarFactura" type="button">✅ Aplicar datos</button>
+            <button class="btn" id="btnCancelarFactura" type="button">❌ Cancelar</button>
+          </div>
+
+          <div class="help" style="margin-top:10px; font-size:11px; opacity:0.9; border:1px solid var(--border); background: var(--card2); padding:8px; border-radius:10px; line-height:1.4;">
+            <p style="margin-bottom:4px;"><strong>📧 ¿Datos incorrectos?</strong> Envía el PDF anonimizado a <a href="/cdn-cgi/l/email-protection#b2daddded3f2dec7c8d4dbd8d39cd7c1" style="color: var(--accent); text-decoration: underline;"><span class="__cf_email__" data-cfemail="432b2c2f22032f3639252a29226d2630">[email&#160;protected]</span></a></p>
+            <p style="margin:0; color: var(--muted); font-size:10px;">Oculta: nombre, DNI, CUPS, IBAN, QR. El PDF se procesa en tu navegador (no se sube).</p>
+          </div>
+        </div>
+
+        <div class="help" style="margin-top:10px">
+          🔒 <strong>Privacidad total:</strong> el PDF se procesa en tu navegador. No se sube ni se guarda nada.
+          <br>📊 Analítica: esta web no utiliza analítica ni cookies de seguimiento.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="app.js"></script>
+</body>
+</html>
