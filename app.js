@@ -1592,21 +1592,6 @@
       window.__LF_scrollY = 0;
       let __LF_lastParsedConfianza = 0;
 
-      const __LF_scriptOnce = Object.create(null);
-      function __LF_loadScriptOnce(src){
-        if (__LF_scriptOnce[src]) return __LF_scriptOnce[src];
-        __LF_scriptOnce[src] = new Promise((resolve, reject)=>{
-          const s = document.createElement('script');
-          s.src = src;
-          s.async = true;
-          s.onload = ()=>resolve(true);
-          s.onerror = ()=>reject(new Error('No se pudo cargar: ' + src));
-          document.head.appendChild(s);
-        });
-        return __LF_scriptOnce[src];
-      }
-
-
       function __LF_ensurePdfWorker(){
         if (!window.pdfjsLib) return false;
         if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
@@ -1615,6 +1600,23 @@
         }
         return true;
       }
+      async function __LF_ensurePdfJs(){
+        if (window.pdfjsLib) { __LF_ensurePdfWorker(); return true; }
+        // Evita doble carga concurrente
+        if (!document.__LF_PDFJS_PROMISE){
+          document.__LF_PDFJS_PROMISE = new Promise((resolve, reject)=>{
+            const s = document.createElement('script');
+            s.src = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js";
+            s.async = true;
+            s.onload = ()=>{ try{ __LF_ensurePdfWorker(); }catch(_){} resolve(true); };
+            s.onerror = ()=>reject(new Error('No se pudo cargar PDF.js'));
+            document.head.appendChild(s);
+          }).catch((e)=>{ console.warn('[LuzFija] PDF.js load error', e); return false; });
+        }
+        const ok = await document.__LF_PDFJS_PROMISE;
+        return !!window.pdfjsLib && ok !== false;
+      }
+
 
       function __LF_normNum(raw){
         if (raw == null) return null;
@@ -1670,10 +1672,6 @@
       }
 
       async function __LF_extraerTextoPDF(file){
-        if (!window.pdfjsLib){
-          // Lazy-load PDF.js solo cuando se sube una factura
-          await __LF_loadScriptOnce('https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js');
-        }
         if (!__LF_ensurePdfWorker()) throw new Error("PDF.js no disponible");
         const ab = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
@@ -2408,8 +2406,11 @@
           return;
         }
         if (!window.pdfjsLib){
-          if (typeof toast === 'function') toast('PDF.js no se ha cargado (bloqueo de red/CSP)', 'err');
-          return;
+          const ok = await __LF_ensurePdfJs();
+          if (!ok){
+            if (typeof toast === 'function') toast('PDF.js no se ha cargado (bloqueo de red/CSP)', 'err');
+            return;
+          }
         }
         window.__LF_lastFile = file;
 
@@ -2657,7 +2658,7 @@
     })();
 
     function runCalculation(forceRefresh = false){
-      if (el.btnCalc && el.btnCalc.disabled) return;
+      if (window.__LF_CALC_INFLIGHT) return;
       calculate(true, forceRefresh);
     }
 
@@ -2674,9 +2675,11 @@
         setStatus('Listo para calcular', 'idle');
         return;
       }
-
-      saveInputs();
-      setStatus('Calculando...', 'loading');
+      if (window.__LF_CALC_INFLIGHT) return;
+      window.__LF_CALC_INFLIGHT = true;
+      try{
+        saveInputs();
+        setStatus('Calculando...', 'loading');
 
       const loaded = await fetchTarifas(forceRefresh);
       if(!loaded) return;
@@ -2689,6 +2692,12 @@
       calculateLocal(values);
       state.lastSignature = signature;
       state.pending = false;
+      }catch(err){
+        console.error(err);
+        setStatus('No se ha podido calcular. Inténtalo de nuevo.', 'err');
+      }finally{
+        window.__LF_CALC_INFLIGHT = false;
+      }
     }
 
     function toggleMenu(force){
@@ -2825,11 +2834,3 @@
       $('scrollToResults').addEventListener('click',()=>$('heroKpis').scrollIntoView({behavior:'smooth',block:'start'}));
     });
   
-
-// Fallback: si por cualquier motivo no se bindeó el click del área de subida, intenta abrir el selector
-document.addEventListener('click', (e)=>{
-  const ua = e.target && (e.target.closest ? e.target.closest('#uploadAreaFactura') : null);
-  if (!ua) return;
-  const fi = document.getElementById('fileInputFactura');
-  if (fi && typeof fi.click === 'function') fi.click();
-}, true);
