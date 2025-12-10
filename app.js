@@ -1866,8 +1866,9 @@
         if (t.includes('totalenergies')) return 'totalenergies';
         if (t.includes('octopus')) return 'octopus';
         if (t.includes('visalia')) return 'visalia';
+        if (t.includes('endesa') || t.includes('endesaclientes') || t.includes('endesaonline')) return 'endesa';
         if (t.includes('energía xxi') || t.includes('energia xxi') || t.includes('energiaxxi')) return 'energiaxxi';  // ANTES de plenitude
-        if (t.includes('plenitude') || t.includes('eni')) return 'plenitude';
+        if (t.includes('plenitude') || /\beni\b/.test(t)) return 'plenitude';
         // Enérgya VM: múltiples variantes
         if (t.includes('enérgya vm') || t.includes('energya vm') || t.includes('energya-vm') || 
             t.includes('enérgya') || t.includes('energyavm') || 
@@ -2306,6 +2307,7 @@
             'energyavm': 'Enérgya VM',
             'octopus': 'Octopus Energy',
             'visalia': 'Visalia',
+            'endesa': 'Endesa',
             'plenitude': 'Eni Plenitude',
             'energiaxxi': 'Energía XXI'
           };
