@@ -1,4 +1,5 @@
-window.__LF_facturaParserLoaded) return;
+    (function(){
+      if (window.__LF_facturaParserLoaded) return;
       window.__LF_facturaParserLoaded = true;
 
       window.__LF_lastFile = null;
@@ -7,29 +8,43 @@ window.__LF_facturaParserLoaded) return;
       window.__LF_scrollY = 0;
       let __LF_lastParsedConfianza = 0;
 
+      let __LF_pdfjsLoading = null;
       function __LF_ensurePdfWorker(){
-        if (!window.pdfjsLib) return false;
-        if (!pdfjsLib.GlobalWorkerOptions.workerSrc) {
-          pdfjsLib.GlobalWorkerOptions.workerSrc =
+        const lib = window.pdfjsLib;
+        if (!lib) return false;
+        if (!lib.GlobalWorkerOptions.workerSrc) {
+          lib.GlobalWorkerOptions.workerSrc =
             "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
         }
         return true;
       }
+
+      function __LF_loadScript(src){
+        return new Promise((resolve, reject)=>{
+          const s = document.createElement("script");
+          s.src = src;
+          s.async = true;
+          s.onload = () => resolve(true);
+          s.onerror = () => reject(new Error("No se pudo cargar: " + src));
+          document.head.appendChild(s);
+        });
+      }
+
       async function __LF_ensurePdfJs(){
-        if (window.pdfjsLib) { __LF_ensurePdfWorker(); return true; }
-        // Evita doble carga concurrente
-        if (!document.__LF_PDFJS_PROMISE){
-          document.__LF_PDFJS_PROMISE = new Promise((resolve, reject)=>{
-            const s = document.createElement('script');
-            s.src = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js";
-            s.async = true;
-            s.onload = ()=>{ try{ __LF_ensurePdfWorker(); }catch(_){} resolve(true); };
-            s.onerror = ()=>reject(new Error('No se pudo cargar PDF.js'));
-            document.head.appendChild(s);
-          }).catch((e)=>{ console.warn('[LuzFija] PDF.js load error', e); return false; });
+        if (window.pdfjsLib && __LF_ensurePdfWorker()) return window.pdfjsLib;
+        if (__LF_pdfjsLoading) {
+          await __LF_pdfjsLoading;
         }
-        const ok = await document.__LF_PDFJS_PROMISE;
-        return !!window.pdfjsLib && ok !== false;
+        if (!window.pdfjsLib){
+          const src = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js";
+          __LF_pdfjsLoading = __LF_loadScript(src);
+          await __LF_pdfjsLoading;
+          __LF_pdfjsLoading = null;
+        }
+        if (!window.pdfjsLib || !__LF_ensurePdfWorker()){
+          throw new Error("PDF.js no disponible");
+        }
+        return window.pdfjsLib;
       }
 
 
@@ -87,9 +102,9 @@ window.__LF_facturaParserLoaded) return;
       }
 
       async function __LF_extraerTextoPDF(file){
-        if (!__LF_ensurePdfWorker()) throw new Error("PDF.js no disponible");
+        await __LF_ensurePdfJs();
         const ab = await file.arrayBuffer();
-        const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+        const pdf = await window.pdfjsLib.getDocument({ data: ab }).promise;
 
         let lines = [];
         let compact = '';
@@ -821,11 +836,8 @@ window.__LF_facturaParserLoaded) return;
           return;
         }
         if (!window.pdfjsLib){
-          const ok = await __LF_ensurePdfJs();
-          if (!ok){
-            if (typeof toast === 'function') toast('PDF.js no se ha cargado (bloqueo de red/CSP)', 'err');
-            return;
-          }
+          if (typeof toast === 'function') toast('PDF.js no se ha cargado (bloqueo de red/CSP)', 'err');
+          return;
         }
         window.__LF_lastFile = file;
 
@@ -886,7 +898,8 @@ window.__LF_facturaParserLoaded) return;
           if (typeof toast === 'function') toast('Primero sube/arrastra un PDF', 'err');
           return;
         }
-        if (!window.pdfjsLib || !__LF_ensurePdfWorker()){
+
+        try{ await __LF_ensurePdfJs(); }catch(_){
           if (typeof toast === 'function') toast('PDF.js no disponible', 'err');
           return;
         }
@@ -899,7 +912,7 @@ window.__LF_facturaParserLoaded) return;
           const T = await __LF_loadTesseract();
 
           const ab = await file.arrayBuffer();
-          const pdf = await pdfjsLib.getDocument({ data: ab }).promise;
+          const pdf = await window.pdfjsLib.getDocument({ data: ab }).promise;
 
           let ocrText = '';
           const pagesToScan = Math.min(pdf.numPages, 2);
@@ -1070,6 +1083,8 @@ window.__LF_facturaParserLoaded) return;
         btnOcr?.addEventListener('click', __LF_runOcrOnLastFile);
       };
 
-    })();
 
-    
+      // API mínima para carga diferida desde app.js
+      window.__LF_openFacturaModal = __LF_openModal;
+      window.__LF_facturaModuleReady = true;
+    })();
