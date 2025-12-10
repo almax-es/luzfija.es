@@ -2638,6 +2638,7 @@
     })();
 
     function runCalculation(forceRefresh = false){
+      if (el.btnCalc && el.btnCalc.disabled) return; // evita reentradas (Enter/doble click) mientras calcula
       calculate(true, forceRefresh);
     }
 
