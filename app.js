@@ -855,7 +855,13 @@
           const nombreWarn = r.pvpcNotComputable
             ? `<span class="pvpc-warn" title="PVPC no disponible para esta configuración">⚠</span>`
             : (r.pvpcWarning ? ' ⚠' : '');
-          const nombreDisplay = `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>${nombreWarn}`;
+
+          // Tooltip de requisitos si existen
+          const requisitosTooltip = r.requisitos
+            ? `<span class="tooltip requisitos-icon" data-tip="${escapeHtml(r.requisitos)}" role="button" tabindex="-1" aria-label="Requisitos de contratación" style="margin-left:4px; color:rgba(251,191,36,1); cursor:help;">⓵</span>`
+            : '';
+
+          const nombreDisplay = `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>${requisitosTooltip}${nombreWarn}`;
           tr.innerHTML =
             `<td>${escapeHtml(r.posicion)}</td>`+
             `<td title="${escapeHtml(nombreBase)}">${nombreDisplay}</td>`+
@@ -870,6 +876,9 @@
         });
 
         el.tbody.replaceChildren(frag);
+
+        // Inicializar tooltips para los requisitos recién añadidos
+        el.tbody.querySelectorAll('.requisitos-icon').forEach(t => bindTooltipElement(t));
         updateSortIcons();
       });
     }

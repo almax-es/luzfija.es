@@ -1,1 +1,196 @@
-{"success":true,"tarifas":[{"nombre":"Plenitude","cPunta":0.094618,"cLlano":0.094618,"cValle":0.094618,"p1":0.088672,"p2":0.088672,"web":"https://eniplenitude.es/hogar/tarifas-luz/facil/","tipo":"1P"},{"nombre":"Endesa Conecta","cPunta":0.0949,"cLlano":0.0949,"cValle":0.0949,"p1":0.089129,"p2":0.089129,"web":"https://www.endesa.com/es/luz-y-gas/luz/conecta-de-endesa","tipo":"1P"},{"nombre":"Energya VM","cPunta":0.09958,"cLlano":0.09958,"cValle":0.09958,"p1":0.09315,"p2":0.046576,"web":"https://www.energyavm.es/luz/formula-fija-24-horas-luz/","tipo":"1P"},{"nombre":"Nufri Calma","cPunta":0.099918,"cLlano":0.099918,"cValle":0.099918,"p1":0.092412,"p2":0.046295,"web":"https://www.energianufri.com/es/landing/mas-tarifas-luz-gas","tipo":"1P"},{"nombre":"Endesa One","cPunta":0.1039,"cLlano":0.1039,"cValle":0.1039,"p1":0.089129,"p2":0.089129,"web":"https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz","tipo":"1P"},{"nombre":"Visalia","cPunta":0.1041,"cLlano":0.1041,"cValle":0.1041,"p1":0.054794,"p2":0.054794,"web":"https://visalia.es/luz/fijo24horas/","tipo":"1P"},{"nombre":"TE A tu aire","cPunta":0.1099,"cLlano":0.1099,"cValle":0.1099,"p1":0.072589,"p2":0.072589,"web":"https://www.totalenergies.es/es/hogares/tarifas-luz-gas/a-tu-aire-siempre","tipo":"1P"},{"nombre":"Octopus Unicaja Relax","cPunta":0.113,"cLlano":0.113,"cValle":0.113,"p1":0.095,"p2":0.027,"web":"https://octopusenergy.es/unicaja#tarifas","tipo":"1P"},{"nombre":"Naturgy por uso","cPunta":0.119166,"cLlano":0.119166,"cValle":0.119166,"p1":0.108163,"p2":0.033392,"web":"https://www.naturgy.es/hogar/luz/tarifa_por_uso_luz","tipo":"1P"},{"nombre":"Iberdrola Online","cPunta":0.1199,"cLlano":0.1199,"cValle":0.1199,"p1":0.108192,"p2":0.046548,"web":"https://www.iberdrola.es/luz/plan-online","tipo":"1P"},{"nombre":"Repsol","cPunta":0.1299,"cLlano":0.1299,"cValle":0.1299,"p1":0.068219,"p2":0.068219,"web":"https://www.repsol.es/particulares/hogar/luz-y-gas/tarifas/tarifa-ahorro-plus/","tipo":"1P"},{"nombre":"Endesa One 3P","cPunta":0.160588,"cLlano":0.099348,"cValle":0.074167,"p1":0.089129,"p2":0.089129,"web":"https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz-3periodos","tipo":"3P"},{"nombre":"​Energya VM​​ 3P","cPunta":0.161075,"cLlano":0.127075,"cValle":0.101575,"p1":0.082192,"p2":0.002739,"web":"https://www.energyavm.es/luz/formula-fija-3-periodos/","tipo":"3P"},{"nombre":"Nufri Flex 3P","cPunta":0.162194,"cLlano":0.09094,"cValle":0.058094,"p1":0.092412,"p2":0.046295,"web":"https://www.energianufri.com/es/landing/mas-tarifas-luz-gas","tipo":"3P"},{"nombre":"TE A tu aire 3P","cPunta":0.173572,"cLlano":0.10393,"cValle":0.076176,"p1":0.072603,"p2":0.072575,"web":"https://www.totalenergies.es/es/hogares/tarifas-luz/a-tu-aire-programa-tu-ahorro","tipo":"3P"},{"nombre":"Iberdrola Online 3P","cPunta":0.181076,"cLlano":0.128392,"cValle":0.096404,"p1":0.086301,"p2":0.013014,"web":"https://www.iberdrola.es/luz/plan-online-tres-periodos","tipo":"3P"},{"nombre":"Octopus Unicaja 3P","cPunta":0.182,"cLlano":0.11,"cValle":0.075,"p1":0.095,"p2":0.027,"web":"https://octopusenergy.es/unicaja#tarifas","tipo":"3P"},{"nombre":"Naturgy noche luz 3P","cPunta":0.185461,"cLlano":0.116414,"cValle":0.082334,"p1":0.108163,"p2":0.033392,"web":"https://www.naturgy.es/hogar/luz/tarifa_noche","tipo":"3P"}],"timestamp":"2025-12-06T12:56:12.805Z","publishedAt":"2025-12-06T12:56:12.807Z"}
+{
+  "success": true,
+  "tarifas": [
+    {
+      "nombre": "Plenitude",
+      "cPunta": 0.094618,
+      "cLlano": 0.094618,
+      "cValle": 0.094618,
+      "p1": 0.088672,
+      "p2": 0.088672,
+      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
+      "tipo": "1P",
+      "requisitos": "Válida solamente para potencias hasta 5 kW"
+    },
+    {
+      "nombre": "Endesa Conecta",
+      "cPunta": 0.0949,
+      "cLlano": 0.0949,
+      "cValle": 0.0949,
+      "p1": 0.089129,
+      "p2": 0.089129,
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/conecta-de-endesa",
+      "tipo": "1P"
+    },
+    {
+      "nombre": "Energya VM",
+      "cPunta": 0.09958,
+      "cLlano": 0.09958,
+      "cValle": 0.09958,
+      "p1": 0.09315,
+      "p2": 0.046576,
+      "web": "https://www.energyavm.es/luz/formula-fija-24-horas-luz/",
+      "tipo": "1P",
+      "requisitos": "El consumo anual no debe exceder los 5.000 kWh/año."
+    },
+    {
+      "nombre": "Nufri Calma",
+      "cPunta": 0.099918,
+      "cLlano": 0.099918,
+      "cValle": 0.099918,
+      "p1": 0.092412,
+      "p2": 0.046295,
+      "web": "https://www.energianufri.com/es/landing/mas-tarifas-luz-gas",
+      "tipo": "1P",
+      "requisitos": "Limitaciones: Válida solo para nuevos clientes y consumos anuales de hasta 8.000 kWh/año.\nPara contratar esta tarifa, tu consumo anual (MWh) debe guardar equilibrio con tu potencia máxima contratada (kW). El ratio entre consumo y potencia no puede superar 0,75 MWh/kW.\nEjemplo: Potencia contratada 4 kW, Consumo máximo 3 MWh/año."
+    },
+    {
+      "nombre": "Endesa One",
+      "cPunta": 0.1039,
+      "cLlano": 0.1039,
+      "cValle": 0.1039,
+      "p1": 0.089129,
+      "p2": 0.089129,
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz",
+      "tipo": "1P"
+    },
+    {
+      "nombre": "Visalia",
+      "cPunta": 0.1041,
+      "cLlano": 0.1041,
+      "cValle": 0.1041,
+      "p1": 0.054794,
+      "p2": 0.054794,
+      "web": "https://visalia.es/luz/fijo24horas/",
+      "tipo": "1P"
+    },
+    {
+      "nombre": "TE A tu aire",
+      "cPunta": 0.1099,
+      "cLlano": 0.1099,
+      "cValle": 0.1099,
+      "p1": 0.072589,
+      "p2": 0.072589,
+      "web": "https://www.totalenergies.es/es/hogares/tarifas-luz-gas/a-tu-aire-siempre",
+      "tipo": "1P"
+    },
+    {
+      "nombre": "Octopus Unicaja Relax",
+      "cPunta": 0.113,
+      "cLlano": 0.113,
+      "cValle": 0.113,
+      "p1": 0.095,
+      "p2": 0.027,
+      "web": "https://octopusenergy.es/unicaja#tarifas",
+      "tipo": "1P"
+    },
+    {
+      "nombre": "Naturgy por uso",
+      "cPunta": 0.119166,
+      "cLlano": 0.119166,
+      "cValle": 0.119166,
+      "p1": 0.108163,
+      "p2": 0.033392,
+      "web": "https://www.naturgy.es/hogar/luz/tarifa_por_uso_luz",
+      "tipo": "1P",
+      "requisitos": "Potencia contratada ≤ 15 kW, consumo de electricidad hasta 10.000 kWh/año"
+    },
+    {
+      "nombre": "Iberdrola Online",
+      "cPunta": 0.1199,
+      "cLlano": 0.1199,
+      "cValle": 0.1199,
+      "p1": 0.108192,
+      "p2": 0.046548,
+      "web": "https://www.iberdrola.es/luz/plan-online",
+      "tipo": "1P",
+      "requisitos": "Si la potencia contratada es superior a 10 kW, tiene permanencia de un año"
+    },
+    {
+      "nombre": "Repsol",
+      "cPunta": 0.1299,
+      "cLlano": 0.1299,
+      "cValle": 0.1299,
+      "p1": 0.068219,
+      "p2": 0.068219,
+      "web": "https://www.repsol.es/particulares/hogar/luz-y-gas/tarifas/tarifa-ahorro-plus/",
+      "tipo": "1P"
+    },
+    {
+      "nombre": "Endesa One 3P",
+      "cPunta": 0.160588,
+      "cLlano": 0.099348,
+      "cValle": 0.074167,
+      "p1": 0.089129,
+      "p2": 0.089129,
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz-3periodos",
+      "tipo": "3P"
+    },
+    {
+      "nombre": "​Energya VM​​ 3P",
+      "cPunta": 0.161075,
+      "cLlano": 0.127075,
+      "cValle": 0.101575,
+      "p1": 0.082192,
+      "p2": 0.002739,
+      "web": "https://www.energyavm.es/luz/formula-fija-3-periodos/",
+      "tipo": "3P",
+      "requisitos": "El consumo anual no debe exceder los 5.000 kWh/año."
+    },
+    {
+      "nombre": "Nufri Flex 3P",
+      "cPunta": 0.162194,
+      "cLlano": 0.09094,
+      "cValle": 0.058094,
+      "p1": 0.092412,
+      "p2": 0.046295,
+      "web": "https://www.energianufri.com/es/landing/mas-tarifas-luz-gas",
+      "tipo": "3P",
+      "requisitos": "Limitaciones: Válida solo para nuevos clientes y consumos anuales de hasta 8.000 kWh/año.\nPara contratar esta tarifa, tu consumo anual (MWh) debe guardar equilibrio con tu potencia máxima contratada (kW). El ratio entre consumo y potencia no puede superar 0,75 MWh/kW.\nEjemplo: Potencia contratada 4 kW, Consumo máximo 3 MWh/año."
+    },
+    {
+      "nombre": "TE A tu aire 3P",
+      "cPunta": 0.173572,
+      "cLlano": 0.10393,
+      "cValle": 0.076176,
+      "p1": 0.072603,
+      "p2": 0.072575,
+      "web": "https://www.totalenergies.es/es/hogares/tarifas-luz/a-tu-aire-programa-tu-ahorro",
+      "tipo": "3P"
+    },
+    {
+      "nombre": "Iberdrola Online 3P",
+      "cPunta": 0.181076,
+      "cLlano": 0.128392,
+      "cValle": 0.096404,
+      "p1": 0.086301,
+      "p2": 0.013014,
+      "web": "https://www.iberdrola.es/luz/plan-online-tres-periodos",
+      "tipo": "3P",
+      "requisitos": "Si la potencia contratada es superior a 10 kW, tiene permanencia de un año"
+    },
+    {
+      "nombre": "Octopus Unicaja 3P",
+      "cPunta": 0.182,
+      "cLlano": 0.11,
+      "cValle": 0.075,
+      "p1": 0.095,
+      "p2": 0.027,
+      "web": "https://octopusenergy.es/unicaja#tarifas",
+      "tipo": "3P"
+    },
+    {
+      "nombre": "Naturgy noche luz 3P",
+      "cPunta": 0.185461,
+      "cLlano": 0.116414,
+      "cValle": 0.082334,
+      "p1": 0.108163,
+      "p2": 0.033392,
+      "web": "https://www.naturgy.es/hogar/luz/tarifa_noche",
+      "tipo": "3P",
+      "requisitos": "Potencia contratada ≤ 15 kW, consumo de electricidad hasta 10.000 kWh/año"
+    }
+  ],
+  "timestamp": "2025-12-11T22:56:43.368Z",
+  "publishedAt": "2025-12-11T22:56:43.368Z"
+}
