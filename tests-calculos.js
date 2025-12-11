@@ -94,8 +94,8 @@
   function testEscapeHtml() {
     console.group("Test escapeHtml");
     assert(escapeHtml("hola") === "hola", 'escapeHtml("hola") debe ser "hola"');
-    var input = '<b>&\"\\'</b>';
-    var expected = '&lt;b&gt;&amp;&quot;&#039;&lt;/b&gt;';
+    var input = "<b>&\\\"'</b>";
+    var expected = "&lt;b&gt;&amp;&quot;&#039;&lt;/b&gt;";
     assert(escapeHtml(input) === expected, "escapeHtml debe escapar correctamente & < > \\\" '");
     console.groupEnd();
   }
