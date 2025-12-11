@@ -45,14 +45,58 @@
     console.groupEnd();
   }
 
+  function testClampNonNeg() {
+    console.group("Test clampNonNeg");
+    assert(nearlyEqual(clampNonNeg(-5), 0), "clampNonNeg(-5) debe ser 0");
+    assert(nearlyEqual(clampNonNeg(0), 0), "clampNonNeg(0) debe ser 0");
+    assert(nearlyEqual(clampNonNeg(3.5), 3.5), "clampNonNeg(3.5) debe ser 3.5");
+    assert(nearlyEqual(clampNonNeg("4.2"), 4.2), 'clampNonNeg("4.2") debe ser 4.2');
+    assert(nearlyEqual(clampNonNeg(null), 0), "clampNonNeg(null) debe ser 0");
+    assert(nearlyEqual(clampNonNeg(undefined), 0), "clampNonNeg(undefined) debe ser 0");
+    assert(nearlyEqual(clampNonNeg("no"), 0), 'clampNonNeg("no") debe ser 0');
+    console.groupEnd();
+  }
+
+  function testClamp01to365Days() {
+    console.group("Test clamp01to365Days");
+    assert(clamp01to365Days(0) === 30, "0 debe devolver 30 (valor por defecto)");
+    assert(clamp01to365Days(-10) === 1, "-10 debe devolver 1");
+    assert(clamp01to365Days(1) === 1, "1 debe devolver 1");
+    assert(clamp01to365Days(365) === 365, "365 debe devolver 365");
+    assert(clamp01to365Days(400) === 365, "400 debe devolver 365");
+    assert(clamp01to365Days(1.9) === 1, "1.9 debe truncarse a 1");
+    assert(clamp01to365Days("10") === 10, '"10" debe devolverse como 10');
+    assert(clamp01to365Days("no") === 30, '"no" debe devolver 30 (no finito -> por defecto)');
+    console.groupEnd();
+  }
+
+  function testRound2() {
+    console.group("Test round2");
+    assert(nearlyEqual(round2(1.234), 1.23), "round2(1.234) debe ser 1.23");
+    assert(nearlyEqual(round2(1.235), 1.24), "round2(1.235) debe ser 1.24");
+    assert(nearlyEqual(round2(-1.234), -1.23), "round2(-1.234) debe ser -1.23");
+    assert(nearlyEqual(round2(-1.235), -1.24), "round2(-1.235) debe ser -1.24");
+    assert(nearlyEqual(round2(1.005), 1.01), "round2(1.005) debe ser 1.01");
+    console.groupEnd();
+  }
+
+  function testFormatMoney() {
+    console.group("Test formatMoney");
+    assert(formatMoney(1) === "1,00 €", "formatMoney(1) debe ser '1,00 €'");
+    assert(formatMoney(1.2) === "1,20 €", "formatMoney(1.2) debe ser '1,20 €'");
+    assert(formatMoney(1.234) === "1,23 €", "formatMoney(1.234) debe ser '1,23 €'");
+    assert(formatMoney(0) === "0,00 €", "formatMoney(0) debe ser '0,00 €'");
+    console.groupEnd();
+  }
+
   // --- Tests de helpers de texto ---
 
   function testEscapeHtml() {
     console.group("Test escapeHtml");
     assert(escapeHtml("hola") === "hola", 'escapeHtml("hola") debe ser "hola"');
-    var input = '<b>&"\'</b>';
+    var input = '<b>&\"\\'</b>';
     var expected = '&lt;b&gt;&amp;&quot;&#039;&lt;/b&gt;';
-    assert(escapeHtml(input) === expected, "escapeHtml debe escapar correctamente & < > \" '");
+    assert(escapeHtml(input) === expected, "escapeHtml debe escapar correctamente & < > \\\" '");
     console.groupEnd();
   }
 
@@ -83,6 +127,8 @@
     console.groupEnd();
   }
 
+  // --- Tests helpers PVPC de texto y URL ---
+
   function testStripHtml() {
     console.group("Test stripHtml");
     assert(stripHtml("<b>Hola</b> mundo") === "Hola mundo", 'stripHtml("<b>Hola</b> mundo") debe ser "Hola mundo"');
@@ -92,7 +138,7 @@
 
   function testParsePrecioFromTexto() {
     console.group("Test parsePrecioFromTexto");
-    var texto1 = "Tarifa X\nPrecio: 0,1041 €";
+    var texto1 = "Tarifa X\\nPrecio: 0,1041 €";
     assert(nearlyEqual(parsePrecioFromTexto(texto1, "Precio"), 0.1041), "Debe extraer 0,1041 € como 0.1041");
     var texto2 = "<b>Precio</b>: 1.234,56 €";
     assert(nearlyEqual(parsePrecioFromTexto(texto2, "Precio"), 1234.56), "Debe extraer 1.234,56 € como 1234.56");
@@ -130,6 +176,43 @@
     var s6 = pvpcSignatureFromValues({ dias: 30, p1: 3.4567, p2: 3.4567, cPunta: 0.1, cLlano: 0.08, cValle: 0.05, zonaFiscal: "Península" });
     var s7 = pvpcSignatureFromValues({ dias: 30, p1: 3.4568, p2: 3.4567, cPunta: 0.1, cLlano: 0.08, cValle: 0.05, zonaFiscal: "Península" });
     assert(s6 !== s7, "Firmas distintas cuando cambia p1 (tras redondeo a 4 decimales)");
+    console.groupEnd();
+  }
+
+  // --- Tests helpers PVPC de fechas ---
+
+  function manualYMD(date) {
+    var y = date.getFullYear();
+    var m = String(date.getMonth() + 1).padStart(2, "0");
+    var d = String(date.getDate()).padStart(2, "0");
+    return y + "-" + m + "-" + d;
+  }
+
+  function testStartOfDayLocalAndAddDays() {
+    console.group("Test startOfDayLocal / addDays");
+    var d = new Date(2024, 0, 10, 15, 30); // 10 enero 2024 15:30
+    var sod = startOfDayLocal(d);
+    assert(sod.getFullYear() === 2024 && sod.getMonth() === 0 && sod.getDate() === 10, "startOfDayLocal debe mantener año/mes/día");
+    assert(sod.getHours() === 0 && sod.getMinutes() === 0 && sod.getSeconds() === 0 && sod.getMilliseconds() === 0, "startOfDayLocal debe poner hora 00:00:00.000");
+
+    var plus5 = addDays(new Date(2024, 0, 10), 5);
+    assert(plus5.getFullYear() === 2024 && plus5.getMonth() === 0 && plus5.getDate() === 15, "addDays debe sumar 5 días (10 -> 15 enero)");
+    console.groupEnd();
+  }
+
+  function testFormatYMDAndAnchorDate() {
+    console.group("Test formatYMD / getPvpcAnchorDate");
+    var d = new Date(2024, 0, 5); // 5 enero 2024
+    var ymd = formatYMD(d);
+    assert(ymd === "2024-01-05", "formatYMD(5 enero 2024) debe ser '2024-01-05'");
+
+    // Anchor date: AYER en formato YYYY-MM-DD
+    var today = new Date();
+    var expected = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    expected.setDate(expected.getDate() - 1);
+    var expectedStr = manualYMD(expected);
+    var anchor = getPvpcAnchorDate();
+    assert(anchor === expectedStr, "getPvpcAnchorDate debe devolver ayer formateado como YYYY-MM-DD");
     console.groupEnd();
   }
 
@@ -176,6 +259,38 @@
       push("✗ parseNum no está definido (¿se ha cargado app.js correctamente?)");
     } else {
       run("parseNum", testParseNum);
+    }
+
+    // clampNonNeg
+    if (typeof clampNonNeg !== "function") {
+      allOk = false;
+      push("✗ clampNonNeg no está definido (¿se ha cargado app.js correctamente?)");
+    } else {
+      run("clampNonNeg", testClampNonNeg);
+    }
+
+    // clamp01to365Days
+    if (typeof clamp01to365Days !== "function") {
+      allOk = false;
+      push("✗ clamp01to365Days no está definido (¿se ha cargado app.js correctamente?)");
+    } else {
+      run("clamp01to365Days", testClamp01to365Days);
+    }
+
+    // round2
+    if (typeof round2 !== "function") {
+      allOk = false;
+      push("✗ round2 no está definido (¿se ha cargado app.js correctamente?)");
+    } else {
+      run("round2", testRound2);
+    }
+
+    // formatMoney
+    if (typeof formatMoney !== "function") {
+      allOk = false;
+      push("✗ formatMoney no está definido (¿se ha cargado app.js correctamente?)");
+    } else {
+      run("formatMoney", testFormatMoney);
     }
 
     // escapeHtml
@@ -232,6 +347,22 @@
       push("✗ pvpcSignatureFromValues no está definido (¿se ha cargado pvpc.js correctamente?)");
     } else {
       run("pvpcSignatureFromValues", testPvpcSignatureFromValues);
+    }
+
+    // startOfDayLocal / addDays
+    if (typeof startOfDayLocal !== "function" || typeof addDays !== "function") {
+      allOk = false;
+      push("✗ startOfDayLocal/addDays no están definidos (¿se ha cargado pvpc.js correctamente?)");
+    } else {
+      run("startOfDayLocal/addDays", testStartOfDayLocalAndAddDays);
+    }
+
+    // formatYMD / getPvpcAnchorDate
+    if (typeof formatYMD !== "function" || typeof getPvpcAnchorDate !== "function") {
+      allOk = false;
+      push("✗ formatYMD/getPvpcAnchorDate no están definidos (¿se ha cargado pvpc.js correctamente?)");
+    } else {
+      run("formatYMD/getPvpcAnchorDate", testFormatYMDAndAnchorDate);
     }
 
     if (outputEl) {
