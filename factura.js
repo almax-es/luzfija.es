@@ -292,6 +292,7 @@
       function __LF_detectarCompania(texto){
         const t = texto.toLowerCase();
         
+        if (t.includes('endesa')) return 'endesa';
         if (t.includes('iberdrola')) return 'iberdrola';
         if (t.includes('totalenergies')) return 'totalenergies';
         if (t.includes('octopus')) return 'octopus';
@@ -313,6 +314,13 @@
       // Extraer días según compañía
       function __LF_extraerDiasCompania(texto, compania){
         switch(compania){
+          case 'endesa':
+            // Endesa: "del 31/07/2022 a 05/08/2022 (5 días)"
+            return __LF_extraerNumero(texto, [
+              /\(\s*(\d{1,3})\s*d[ií]as?\s*\)/i,
+              /periodo.*?\(\s*(\d{1,3})\s*d[ií]as?\s*\)/i
+            ], 1, 200);
+            
           case 'iberdrola':
             // Iberdrola: "DIAS FACTURADOS: FECHA... 24"
             return __LF_extraerNumero(texto, [
@@ -731,6 +739,7 @@
         const nombreEl = __LF_q('nombreCompania');
         if (companiaEl && nombreEl && datos.compania && datos.compania !== 'generico') {
           const nombres = {
+            'endesa': 'Endesa Energía',
             'iberdrola': 'Iberdrola',
             'totalenergies': 'TotalEnergies',
             'energyavm': 'Enérgya VM',
