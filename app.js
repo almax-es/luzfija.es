@@ -1216,28 +1216,58 @@ if ('serviceWorker' in navigator) {
 }
 
 let __lf_deferredInstallPrompt = null;
+let __lf_installButton = null;
 
-window.addEventListener('beforeinstallprompt', function (event) {
-  // Evitamos el mini-banner automático
-  event.preventDefault();
-  __lf_deferredInstallPrompt = event;
-
-  var btn = document.querySelector('[data-install-pwa]');
-  if (!btn) {
+// Configuramos el botón de instalación cuando el DOM está listo
+document.addEventListener('DOMContentLoaded', function () {
+  __lf_installButton = document.querySelector('[data-install-pwa]');
+  if (!__lf_installButton) {
     return;
   }
 
-  // Mostramos el botón solo cuando es realmente instalable
-  btn.style.display = 'inline-flex';
+  // Mostramos el botón siempre; la lógica interna decide qué hacer
+  __lf_installButton.style.display = 'inline-flex';
 
-  btn.addEventListener('click', function () {
-    if (!__lf_deferredInstallPrompt) {
+  __lf_installButton.addEventListener('click', function () {
+    // Si el navegador ha disparado beforeinstallprompt, intentamos usar el diálogo nativo
+    if (__lf_deferredInstallPrompt) {
+      try {
+        __lf_deferredInstallPrompt.prompt();
+        __lf_deferredInstallPrompt.userChoice.then(function () {
+          __lf_deferredInstallPrompt = null;
+          __lf_installButton.style.display = 'none';
+        }).catch(function () {
+          // Si falla, mantenemos el botón visible
+        });
+      } catch (e) {
+        console.warn('No se ha podido lanzar el prompt de instalación nativo:', e);
+      }
       return;
     }
-    __lf_deferredInstallPrompt.prompt();
-    __lf_deferredInstallPrompt.userChoice.then(function () {
-      __lf_deferredInstallPrompt = null;
-      btn.style.display = 'none';
-    });
-  }, { once: true });
+
+    // Fallback: instrucciones según plataforma
+    var ua = navigator.userAgent || '';
+    if (/Android/i.test(ua)) {
+      alert('Para instalar LuzFija, abre el menú del navegador (⋮) y pulsa "Instalar app" o "Añadir a pantalla de inicio".');
+    } else if (/iPhone|iPad|iPod/i.test(ua)) {
+      alert('Para instalar LuzFija, pulsa el botón de compartir y luego "Añadir a pantalla de inicio".');
+    } else {
+      alert('Puedes instalar esta web como app usando la opción "Instalar" o "Añadir a pantalla de inicio" de tu navegador.');
+    }
+  });
+
+  // Si el evento ya ha llegado antes de que el DOM esté listo, mostramos el botón igualmente
+  if (__lf_deferredInstallPrompt) {
+    __lf_installButton.style.display = 'inline-flex';
+  }
+});
+
+// Guardamos el evento cuando el navegador decide que la PWA es instalable
+window.addEventListener('beforeinstallprompt', function (event) {
+  // No llamamos a preventDefault: permitimos que Chrome muestre su banner nativo
+  __lf_deferredInstallPrompt = event;
+
+  if (__lf_installButton) {
+    __lf_installButton.style.display = 'inline-flex';
+  }
 });
