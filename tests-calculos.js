@@ -90,7 +90,7 @@
 
   // --- Tests de helpers de texto ---
 
-  function testEscapeHtml() {
+    function testEscapeHtml() {
     console.group("Test escapeHtml");
     assert(escapeHtml("hola") === "hola", 'escapeHtml("hola") debe ser "hola"');
 
@@ -98,7 +98,7 @@
     assert(escapeHtml("&") === "&amp;", 'escapeHtml("&") debe ser "&amp;"');
     assert(escapeHtml("<") === "&lt;",  'escapeHtml("<") debe ser "&lt;"');
     assert(escapeHtml(">") === "&gt;",  'escapeHtml(">") debe ser "&gt;"');
-    assert(escapeHtml('"') === "&quot;", 'escapeHtml('\"') debe ser "&quot;"');
+    assert(escapeHtml('"') === "&quot;", "escapeHtml de comillas dobles debe devolver &quot;");
 
     var apost = escapeHtml("'");
     // Aceptamos &#039; o &#39; según implementación
@@ -109,6 +109,7 @@
 
     console.groupEnd();
   }
+
 
   function testAsBool() {
     console.group("Test asBool");
