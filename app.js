@@ -1205,3 +1205,39 @@
       $('scrollToResults').addEventListener('click',()=>$('heroKpis').scrollIntoView({behavior:'smooth',block:'start'}));
     });
   
+
+// --- PWA: registro del Service Worker e instalación opcional ---
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/sw.js').catch(function (err) {
+      console.error('SW registration failed', err);
+    });
+  });
+}
+
+let __lf_deferredInstallPrompt = null;
+
+window.addEventListener('beforeinstallprompt', function (event) {
+  // Evitamos el mini-banner automático
+  event.preventDefault();
+  __lf_deferredInstallPrompt = event;
+
+  var btn = document.querySelector('[data-install-pwa]');
+  if (!btn) {
+    return;
+  }
+
+  // Mostramos el botón solo cuando es realmente instalable
+  btn.style.display = 'inline-flex';
+
+  btn.addEventListener('click', function () {
+    if (!__lf_deferredInstallPrompt) {
+      return;
+    }
+    __lf_deferredInstallPrompt.prompt();
+    __lf_deferredInstallPrompt.userChoice.then(function () {
+      __lf_deferredInstallPrompt = null;
+      btn.style.display = 'none';
+    });
+  }, { once: true });
+});

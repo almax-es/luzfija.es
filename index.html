@@ -10,6 +10,10 @@
   <meta name="keywords" content="comparador tarifas luz, tarifa discriminación horaria, calcular factura electricidad, precio luz punta llano valle, potencia contratada P1 P2, ahorrar factura luz, mejor tarifa luz">
   <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
   <meta name="theme-color" content="#8B5CF6">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/logo-512.png">
+
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Comparador Tarifas">
@@ -600,7 +604,11 @@
   </footer>
   </div>
 
-  <div class="toast" id="toast"><span class="dot" id="toastDot"></span><span id="toastText"></span></div>
+    <button class="btn" id="lf-install-pwa" data-install-pwa style="display:none; margin:16px auto 24px; display:none;">
+    📲 Instalar LuzFija en este dispositivo
+  </button>
+
+<div class="toast" id="toast"><span class="dot" id="toastDot"></span><span id="toastText"></span></div>
   <button id="scrollToResults" class="scroll-btn" style="display:none;" title="Ver resultados">↓ Ver resultados</button>
   <div id="globalTooltip" role="tooltip" aria-hidden="true"></div>
 
