@@ -1,5 +1,11 @@
 // Service Worker básico para LuzFija.es
-const CACHE_NAME = "luzfija-static-v1";
+// Nota: antes era "cache-first" puro, lo que dejaba CSS/JS/tarifas.json congelados en móvil.
+// Ahora usamos:
+// - HTML (navegación): network-first con fallback a cache
+// - tarifas.json: network-first + actualiza cache (para no quedarse desactualizado)
+// - resto de estáticos: stale-while-revalidate (sirve cache rápido y actualiza en segundo plano)
+
+const CACHE_NAME = "luzfija-static-v2";
 const ASSETS = [
   "/",
   "/index.html",
@@ -8,57 +14,100 @@ const ASSETS = [
   "/pvpc.js",
   "/factura.js",
   "/tarifas.json",
+  "/guias.html",
   "/logo-512.png",
   "/icon-192.png",
   "/og.png",
   "/favicon.ico",
   "/favicon.png",
-  "/favicon.svg",
-  "/guias.html"
+  "/favicon.svg"
 ];
 
 self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(ASSETS))
+      .then(() => self.skipWaiting())
   );
 });
 
 self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => caches.delete(key))
-      )
-    ).then(() => self.clients.claim())
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
 });
+
+async function cachePutSafe(cache, req, res) {
+  try {
+    if (res && res.ok) await cache.put(req, res.clone());
+  } catch (_) { /* ignore */ }
+}
 
 self.addEventListener("fetch", event => {
   const req = event.request;
 
   // Solo manejamos peticiones GET
-  if (req.method !== "GET") {
-    return;
-  }
+  if (req.method !== "GET") return;
 
   const url = new URL(req.url);
 
+  // Solo cacheamos same-origin
+  if (url.origin !== self.location.origin) return;
+
   // No interceptamos llamadas a la API PVPC ni a otros endpoints dinámicos
-  if (url.pathname.startsWith("/api/")) {
+  if (url.pathname.startsWith("/api/")) return;
+
+  // Navegación (HTML): network-first
+  if (req.mode === "navigate" || req.destination === "document") {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      try {
+        const fresh = await fetch(req);
+        await cachePutSafe(cache, req, fresh);
+        return fresh;
+      } catch (_) {
+        return (await cache.match(req)) || (await cache.match("/index.html")) || Response.error();
+      }
+    })());
     return;
   }
 
-  // Estratégia cache-first para estáticos
-  event.respondWith(
-    caches.match(req).then(cached => {
-      if (cached) {
-        return cached;
+  // Tarifas: siempre intentar red primero, y si falla usar cache
+  if (url.pathname === "/tarifas.json") {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+      try {
+        const fresh = await fetch(req, { cache: "no-store" });
+        await cachePutSafe(cache, req, fresh);
+        return fresh;
+      } catch (_) {
+        return (await cache.match(req)) || Response.error();
       }
-      return fetch(req).then(res => {
-        return res;
-      }).catch(() => cached || Response.error());
-    })
-  );
+    })());
+    return;
+  }
+
+  // Resto: stale-while-revalidate
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(req);
+
+    const fetchPromise = fetch(req).then(async fresh => {
+      await cachePutSafe(cache, req, fresh);
+      return fresh;
+    });
+
+    if (cached) {
+      event.waitUntil(fetchPromise.catch(() => {}));
+      return cached;
+    }
+
+    try {
+      return await fetchPromise;
+    } catch (_) {
+      return Response.error();
+    }
+  })());
 });
