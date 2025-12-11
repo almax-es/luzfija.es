@@ -2,7 +2,7 @@
 // Nota: antes era "cache-first" puro, lo que dejaba CSS/JS/tarifas.json congelados en móvil.
 // Ahora usamos:
 // - HTML (navegación): network-first con fallback a cache
-// - tarifas.json: network-first + actualiza cache (para no quedarse desactualizado)
+// - tarifas.json: stale-while-revalidate (sirve cache al instante y actualiza en segundo plano)
 // - resto de estáticos: stale-while-revalidate (sirve cache rápido y actualiza en segundo plano)
 
 const CACHE_NAME = "luzfija-static-v2";
@@ -84,8 +84,8 @@ self.addEventListener("fetch", event => {
       const cached = (await cache.match(cacheKey)) || (await cache.match(req));
 
       const fetchPromise = fetch(req, { cache: "no-store" })
-        .then(res => {
-          if (res && res.ok) cache.put(cacheKey, res.clone());
+        .then(async res => {
+          await cachePutSafe(cache, cacheKey, res);
           return res;
         })
         .catch(() => null);
