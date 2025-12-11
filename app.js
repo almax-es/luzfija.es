@@ -858,7 +858,7 @@
 
           // Tooltip de requisitos si existen
           const requisitosTooltip = r.requisitos
-            ? `<span class="tooltip requisitos-icon" data-tip="${escapeHtml(r.requisitos)}" role="button" tabindex="-1" aria-label="Requisitos de contratación" style="margin-left:4px; color:rgba(251,191,36,1); cursor:help;">⓵</span>`
+            ? `<span class="tooltip requisitos-icon" data-tip="${escapeHtml(r.requisitos)}" role="button" tabindex="-1" aria-label="Requisitos de contratación" style="margin-left:4px; color:rgba(251,191,36,1); cursor:help;">ⓘ</span>`
             : '';
 
           const nombreDisplay = `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>${requisitosTooltip}${nombreWarn}`;
