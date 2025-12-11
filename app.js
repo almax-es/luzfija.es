@@ -35,7 +35,7 @@
     let cachedTarifas = [];
     let baseTarifasCache = [];
 
-    // PVPC logic movida a pvpc.js (módulo separado para mantener app.js más limpio)
+    // PVPC: lógica movida a pvpc.js para mantener app.js más limpio
 
     let activeTooltip = null;
     let tooltipPinned = false;
@@ -1026,8 +1026,7 @@
     }
 
     
-
-;
+    // Lógica de factura (PDF + OCR + modal) movida a factura.js para mantener app.js más ligero
 
     function runCalculation(forceRefresh = false){
       if (window.__LF_CALC_INFLIGHT) return;
