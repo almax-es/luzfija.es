@@ -1,0 +1,49 @@
+{
+  "name": "LuzFija.es – Comparador de tarifas eléctricas",
+  "short_name": "LuzFija",
+  "description": "Comparador de tarifas eléctricas del mercado libre español. Calcula y compara precios de luz para encontrar la tarifa más barata según tu consumo.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#020617",
+  "theme_color": "#8B5CF6",
+  "id": "es.luzfija.app",
+  "lang": "es",
+  "dir": "ltr",
+  "categories": ["utilities", "finance"],
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/logo-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/og.png",
+      "sizes": "1200x630",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Comparador de tarifas eléctricas"
+    }
+  ],
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}
