@@ -890,10 +890,9 @@
       color: var(--text);
     }
 
-    /* overlays/panels: menu, toast, tooltip should be light in light mode */
+    /* overlays/panels: menu y toast deben ser claros en modo claro */
     body.light-mode .menuPanel,
-    body.light-mode .toast,
-    body.light-mode #globalTooltip{
+    body.light-mode .toast{
       background: rgba(255,255,255,.92);
       color: var(--text);
       border-color: rgba(15,23,42,.12);
