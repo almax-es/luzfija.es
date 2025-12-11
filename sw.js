@@ -74,22 +74,34 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  // Tarifas: siempre intentar red primero, y si falla usar cache
+    // Tarifas: stale-while-revalidate (sirve cache al instante y actualiza en segundo plano)
   if (url.pathname === "/tarifas.json") {
     event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
-      try {
-        const fresh = await fetch(req, { cache: "no-store" });
-        await cachePutSafe(cache, req, fresh);
-        return fresh;
-      } catch (_) {
-        return (await cache.match(req)) || Response.error();
+
+      // Normalizamos la clave para que funcione también si la app pide /tarifas.json?v=...
+      const cacheKey = new Request("/tarifas.json");
+      const cached = (await cache.match(cacheKey)) || (await cache.match(req));
+
+      const fetchPromise = fetch(req, { cache: "no-store" })
+        .then(res => {
+          if (res && res.ok) cache.put(cacheKey, res.clone());
+          return res;
+        })
+        .catch(() => null);
+
+      if (cached) {
+        event.waitUntil(fetchPromise);
+        return cached;
       }
+
+      const fresh = await fetchPromise;
+      return fresh || Response.error();
     })());
     return;
   }
 
-  // Resto: stale-while-revalidate
+// Resto: stale-while-revalidate
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
     const cached = await cache.match(req);
