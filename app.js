@@ -1094,6 +1094,16 @@
           updateKwhHint();
           scheduleCalculateDebounced();
         });
+        
+        // FIX: Normalizar formato decimal (punto → coma) al salir del campo
+        // Soluciona inconsistencia visual en móviles donde el teclado numérico solo permite punto
+        if (['p1', 'p2', 'cPunta', 'cLlano', 'cValle'].includes(i.id)) {
+          i.addEventListener('blur', () => {
+            if (i.value) {
+              i.value = formatValueForDisplay(i.value);
+            }
+          });
+        }
       });
 
       if(el.inputs.zonaFiscal){
