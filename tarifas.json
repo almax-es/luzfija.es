@@ -42,7 +42,7 @@
       "p2": 0.046295,
       "web": "https://www.energianufri.com/es/landing/mas-tarifas-luz-gas",
       "tipo": "1P",
-      "requisitos": "Limitaciones: Válida solo para nuevos clientes y consumos anuales de hasta 8.000 kWh/año.\nPara contratar esta tarifa, tu consumo anual (MWh) debe guardar equilibrio con tu potencia máxima contratada (kW). El ratio entre consumo y potencia no puede superar 0,75 MWh/kW.\nEjemplo: Potencia contratada 4 kW, Consumo máximo 3 MWh/año."
+      "requisitos": "Válida solo para consumos anuales de hasta 8.000 kWh/año. El ratio entre consumo y potencia no puede superar 0,75 MWh/kW. Ejemplo: Potencia contratada 4 kW, Consumo máximo 3 MWh/año."
     },
     {
       "nombre": "Endesa One",
@@ -146,7 +146,7 @@
       "p2": 0.046295,
       "web": "https://www.energianufri.com/es/landing/mas-tarifas-luz-gas",
       "tipo": "3P",
-      "requisitos": "Limitaciones: Válida solo para nuevos clientes y consumos anuales de hasta 8.000 kWh/año.\nPara contratar esta tarifa, tu consumo anual (MWh) debe guardar equilibrio con tu potencia máxima contratada (kW). El ratio entre consumo y potencia no puede superar 0,75 MWh/kW.\nEjemplo: Potencia contratada 4 kW, Consumo máximo 3 MWh/año."
+      "requisitos": "Válida solo para consumos anuales de hasta 8.000 kWh/año. El ratio entre consumo y potencia no puede superar 0,75 MWh/kW. Ejemplo: Potencia contratada 4 kW, Consumo máximo 3 MWh/año."
     },
     {
       "nombre": "TE A tu aire 3P",
@@ -191,6 +191,6 @@
       "requisitos": "Potencia contratada ≤ 15 kW, consumo de electricidad hasta 10.000 kWh/año"
     }
   ],
-  "timestamp": "2025-12-11T23:10:05.418Z",
-  "publishedAt": "2025-12-11T23:10:05.418Z"
+  "timestamp": "2025-12-11T23:17:05.882Z",
+  "publishedAt": "2025-12-11T23:17:05.882Z"
 }
