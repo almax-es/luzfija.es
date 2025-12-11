@@ -408,7 +408,28 @@
     label{ font-size: 12px; color: var(--muted); font-weight: 900; letter-spacing: .2px; position: relative; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 16px; }
     .tooltip{ position: relative; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: rgba(139,92,246,.2); color: var(--accent); font-size: 10px; font-weight: 900; flex-shrink: 0; transition: box-shadow .15s ease, transform .15s ease; }
     .tooltip:focus-visible{ outline: none; box-shadow: 0 0 0 3px rgba(139,92,246,.25); transform: translateY(-1px); }
-    #globalTooltip{ position: fixed; display: none; padding: 8px 12px; background: rgba(5,8,16,.95); color: #fff; border-radius: 8px; font-size: 11px; font-weight: 600; white-space: nowrap; box-shadow: 0 8px 24px rgba(0,0,0,.4); z-index: 9999; border: 1px solid rgba(139,92,246,.4); pointer-events: none; }
+    /* Tooltip global: en móvil el texto puede ser más ancho que el viewport.
+       Permitimos salto de línea y limitamos el ancho para que no se corte. */
+    #globalTooltip{
+      position: fixed;
+      display: none;
+      padding: 8px 12px;
+      background: rgba(5,8,16,.95);
+      color: #fff;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 600;
+      line-height: 1.35;
+      white-space: normal;
+      max-width: calc(100vw - 16px);
+      overflow-wrap: anywhere;
+      word-break: break-word;
+      text-align: left;
+      box-shadow: 0 8px 24px rgba(0,0,0,.4);
+      z-index: 9999;
+      border: 1px solid rgba(139,92,246,.4);
+      pointer-events: none;
+    }
     .input{ width:100%; padding: 14px 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(0,0,0,.22); color: var(--text); outline:none; font-weight: 900; font-size: 15px; transition: box-shadow .15s ease, border-color .15s ease, transform .15s ease, background .15s ease; min-height: 44px; position: relative; }
     .input:focus{ 
       border-color: var(--accent); 

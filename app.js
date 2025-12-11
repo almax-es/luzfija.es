@@ -58,6 +58,9 @@
         let left = rect.left + rect.width / 2 - ttRect.width / 2;
         const maxLeft = window.innerWidth - ttRect.width - 8;
         left = Math.max(8, Math.min(maxLeft, left));
+        // Evitar que el tooltip se salga por abajo/arriba en pantallas pequeñas
+        const maxTop = window.innerHeight - ttRect.height - 8;
+        top = Math.max(8, Math.min(maxTop, top));
         el.globalTooltip.style.top = `${top}px`;
         el.globalTooltip.style.left = `${left}px`;
         el.globalTooltip.style.visibility = 'visible';
