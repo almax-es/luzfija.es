@@ -92,11 +92,6 @@
     }
   ],
   "display_override": ["window-controls-overlay", "standalone"],
-  "scope_extensions": [
-    {
-      "origin": "https://luzfija.es"
-    }
-  ],
   "edge_side_panel": {
     "preferred_width": 400
   },
