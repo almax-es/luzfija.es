@@ -1225,19 +1225,22 @@ document.addEventListener('DOMContentLoaded', function () {
     return;
   }
 
-  // Mostramos el botón siempre; la lógica interna decide qué hacer
-  __lf_installButton.style.display = 'inline-flex';
+  // El botón empieza oculto y solo se muestra cuando beforeinstallprompt se dispare
+  __lf_installButton.style.display = 'none';
 
   __lf_installButton.addEventListener('click', function () {
     // Si el navegador ha disparado beforeinstallprompt, intentamos usar el diálogo nativo
     if (__lf_deferredInstallPrompt) {
       try {
         __lf_deferredInstallPrompt.prompt();
-        __lf_deferredInstallPrompt.userChoice.then(function () {
+        __lf_deferredInstallPrompt.userChoice.then(function (choiceResult) {
+          if (choiceResult.outcome === 'accepted') {
+            console.log('Usuario aceptó instalar la PWA');
+          }
           __lf_deferredInstallPrompt = null;
           __lf_installButton.style.display = 'none';
-        }).catch(function () {
-          // Si falla, mantenemos el botón visible
+        }).catch(function (err) {
+          console.warn('Error en userChoice:', err);
         });
       } catch (e) {
         console.warn('No se ha podido lanzar el prompt de instalación nativo:', e);
@@ -1256,7 +1259,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
   });
 
-  // Si el evento ya ha llegado antes de que el DOM esté listo, mostramos el botón igualmente
+  // Si el evento ya ha llegado antes de que el DOM esté listo, mostramos el botón
   if (__lf_deferredInstallPrompt) {
     __lf_installButton.style.display = 'inline-flex';
   }
