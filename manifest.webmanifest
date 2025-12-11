@@ -9,7 +9,11 @@
   "background_color": "#020617",
   "theme_color": "#8B5CF6",
   "id": "es.luzfija.app",
+  "lang": "es",
+  "dir": "ltr",
   "categories": ["utilities", "finance"],
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+  "prefer_related_applications": false,
   "icons": [
     {
       "src": "/icon-192.png",
@@ -29,7 +33,101 @@
       "src": "/og.png",
       "sizes": "1200x630",
       "type": "image/png",
-      "form_factor": "wide"
+      "form_factor": "wide",
+      "label": "Comparador de tarifas eléctricas"
     }
-  ]
+  ],
+  "shortcuts": [
+    {
+      "name": "Calcular tarifa",
+      "short_name": "Calcular",
+      "description": "Calcula tu tarifa eléctrica ideal",
+      "url": "/",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Guías",
+      "short_name": "Guías",
+      "description": "Ver guías sobre tarifas eléctricas",
+      "url": "/guias.html",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/",
+    "method": "GET",
+    "enctype": "application/x-www-form-urlencoded",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  },
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+  "protocol_handlers": [
+    {
+      "protocol": "web+luzfija",
+      "url": "/?protocol=%s"
+    }
+  ],
+  "file_handlers": [
+    {
+      "action": "/",
+      "accept": {
+        "application/pdf": [".pdf"],
+        "text/csv": [".csv"]
+      }
+    }
+  ],
+  "display_override": ["window-controls-overlay", "standalone"],
+  "scope_extensions": [
+    {
+      "origin": "https://luzfija.es"
+    }
+  ],
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
+  "widgets": [
+    {
+      "name": "Precio PVPC actual",
+      "short_name": "PVPC",
+      "description": "Muestra el precio actual de PVPC",
+      "tag": "pvpc-widget",
+      "template": "pvpc-template",
+      "ms_ac_template": "pvpc-adaptive-card.json",
+      "data": "/api/pvpc/now",
+      "type": "application/json",
+      "screenshots": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192",
+          "label": "Widget PVPC"
+        }
+      ],
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ],
+      "auth": false,
+      "update": 900
+    }
+  ],
+  "note_taking": {
+    "new_note_url": "/"
+  }
 }
