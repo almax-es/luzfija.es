@@ -127,7 +127,7 @@
       "tipo": "3P"
     },
     {
-      "nombre": "Energya VM 3P",
+      "nombre": "​Energya VM​​ 3P",
       "cPunta": 0.161075,
       "cLlano": 0.127075,
       "cValle": 0.101575,
@@ -191,7 +191,7 @@
       "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 10.000 kWh/año"
     }
   ],
-  "timestamp": "2025-12-12T23:27:59.266Z",
-  "publishedAt": "2025-12-12T23:27:59.266Z",
-  "publishedAtEpoch": 1765582079266
+  "timestamp": "2025-12-12T23:00:24.521Z",
+  "publishedAt": "2025-12-12T23:00:24.521Z",
+  "publishedAtEpoch": 1765580424521
 }

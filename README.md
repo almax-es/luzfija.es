@@ -45,7 +45,7 @@ Herramienta **gratuita** y **sin publicidad** para comparar tarifas de electrici
 ## 🏆 PVPC (Tarifa Regulada) y CORS (CNMC)
 
 El PVPC se consulta en `comparador.cnmc.gob.es`, pero esa API **no permite CORS** directo desde navegador.  
-Por eso la web usa un **proxy CORS** con whitelist estricta.
+Por eso la web usa un **proxy CORS** como **proxy CORS** con whitelist estricta.
 
 ### Cómo se activa en el frontend
 
