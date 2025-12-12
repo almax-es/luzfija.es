@@ -17,7 +17,7 @@
     const el = {
       inputs: { p1:$('p1'), p2:$('p2'), dias:$('dias'), cPunta:$('cPunta'), cLlano:$('cLlano'), cValle:$('cValle'), zonaFiscal:$('zonaFiscal'), viviendaCanarias:$('viviendaCanarias') },
       btnCalc: $('btnCalc'), btnText: $('btnText'), btnSpinner: $('btnSpinner'),
-      statusPill: $('statusPill'), statusText: $('statusText'), errorBox: $('errorBox'), errorText: $('errorText'),
+      statusPill: $('statusPill'), statusText: $('statusText'), tarifasUpdated: $('tarifasUpdated'), errorBox: $('errorBox'), errorText: $('errorText'),
       kwhHint: $('kwhHint'), heroKpis: $('heroKpis'), kpiBest: $('kpiBest'), kpiPrice: $('kpiPrice'),
       statsBar: $('statsBar'), statMin: $('statMin'), statAvg: $('statAvg'), statMax: $('statMax'), chartTop: $('chartTop'),
       toolbar: $('toolbar'), table: $('table'), tbody: $('tbody'), emptyBox: $('emptyBox'),
@@ -291,9 +291,41 @@
       }catch(e){}
     }
 
-    async function fetchTarifas(forceRefresh = false) {
+    let __LF_tarifasMeta = null;
+
+    function renderTarifasUpdated(meta){
+      if(!el.tarifasUpdated) return;
+      const m = meta || __LF_tarifasMeta || null;
+      const iso = m && (m.publishedAt || m.published_at || m.srcPublishedAt || m.tarifasPublishedAt || null);
+      if(!iso){
+        el.tarifasUpdated.textContent = 'Tarifas: sin fecha de actualización';
+        return;
+      }
+      const dt = new Date(iso);
+      if(!Number.isFinite(dt.getTime())){
+        el.tarifasUpdated.textContent = 'Tarifas: sin fecha de actualización';
+        return;
+      }
+      const fmt = new Intl.DateTimeFormat('es-ES', {
+        timeZone: 'Europe/Madrid',
+        year: 'numeric', month: '2-digit', day: '2-digit',
+        hour: '2-digit', minute: '2-digit'
+      });
+      // Texto corto y útil
+      el.tarifasUpdated.textContent = 'Tarifas actualizadas: ' + fmt.format(dt);
+
+      // Tooltip con ISO original
+      el.tarifasUpdated.title = 'Última actualización del listado de tarifas: ' + iso;
+    }
+
+
+
+    async function fetchTarifas(forceRefresh = false, opts) {
+      const silent = Boolean(opts && opts.silent);
       // 0) Prioridad: memoria (baseTarifasCache)
       if (!forceRefresh && Array.isArray(baseTarifasCache) && baseTarifasCache.length > 0) {
+        // ya tenemos datos en memoria; si hay meta, pintarla
+        renderTarifasUpdated(__LF_tarifasMeta);
         return true;
       }
 
@@ -302,12 +334,19 @@
         const cached = readTarifasCache({ allowExpired: false });
         if (cached && Array.isArray(cached.data) && cached.data.length > 0) {
           baseTarifasCache = cached.data;
-          return true;
+          __LF_tarifasMeta = cached.meta || null;
+          renderTarifasUpdated(__LF_tarifasMeta);
+          // Si la caché no guarda publishedAt (versiones antiguas), seguimos a red para obtenerlo
+          if (__LF_tarifasMeta && (__LF_tarifasMeta.publishedAt || __LF_tarifasMeta.srcPublishedAt || __LF_tarifasMeta.tarifasPublishedAt)) {
+            return true;
+          }
+          // Continuar a red para enriquecer meta
+
         }
       }
 
       // 2) Red
-      setStatus('Cargando tarifas...', 'loading');
+      if(!silent) setStatus('Cargando tarifas...', 'loading');
 
       try {
         const controller = new AbortController();
@@ -335,10 +374,15 @@
         baseTarifasCache = tarifas;
 
         // Persistir para recargas/pestañas
-        writeTarifasCache(tarifas, { version: data.version || null });
+        const __publishedAt = data.publishedAt || data.timestamp || null;
+        __LF_tarifasMeta = { version: data.version || null, publishedAt: __publishedAt };
+        renderTarifasUpdated(__LF_tarifasMeta);
+        writeTarifasCache(tarifas, __LF_tarifasMeta);
 
-        setStatus('Datos actualizados', 'ok');
-        setTimeout(() => setStatus('Listo para calcular', 'idle'), 1500);
+        if(!silent){
+          setStatus('Datos actualizados', 'ok');
+          setTimeout(() => setStatus('Listo para calcular', 'idle'), 1500);
+        }
         return true;
 
       } catch (e) {
@@ -346,14 +390,20 @@
         const cached = readTarifasCache({ allowExpired: true });
         if (cached && Array.isArray(cached.data) && cached.data.length > 0) {
           baseTarifasCache = cached.data;
-          toast('Sin conexión: usando tarifas cacheadas', 'err');
-          setStatus('Tarifas cacheadas', 'err');
+          __LF_tarifasMeta = cached.meta || null;
+          renderTarifasUpdated(__LF_tarifasMeta);
+          if(!silent){
+            toast('Sin conexión: usando tarifas cacheadas', 'err');
+            setStatus('Tarifas cacheadas', 'err');
+          }
           return true;
         }
 
         console.error('Error cargando tarifas JSON:', e);
-        setStatus('Error conexión', 'err');
-        toast('Error cargando tarifas desde el servidor.', 'err');
+        if(!silent){
+          setStatus('Error conexión', 'err');
+          toast('Error cargando tarifas desde el servidor.', 'err');
+        }
         return false;
       }
     }
@@ -1225,6 +1275,17 @@
       }
 
       $('scrollToResults').addEventListener('click',()=>$('heroKpis').scrollIntoView({behavior:'smooth',block:'start'}));
+
+      // Mostrar última actualización (si existe en caché) y precargar tarifas en segundo plano
+      try{
+        const cachedMeta = readTarifasCache({ allowExpired: true });
+        if(cachedMeta && cachedMeta.meta){
+          __LF_tarifasMeta = cachedMeta.meta;
+          renderTarifasUpdated(__LF_tarifasMeta);
+        }
+      }catch(e){}
+      fetchTarifas(false, { silent: true }).catch(()=>{});
+
     });
   
 
