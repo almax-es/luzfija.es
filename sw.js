@@ -5,7 +5,7 @@
 // - tarifas.json: stale-while-revalidate (sirve cache al instante y actualiza en segundo plano)
 // - resto de estáticos: stale-while-revalidate (sirve cache rápido y actualiza en segundo plano)
 
-const CACHE_NAME = "luzfija-static-v2";
+const CACHE_NAME = "luzfija-static-v3";
 const ASSETS = [
   "/",
   "/index.html",
@@ -21,6 +21,10 @@ const ASSETS = [
   "/favicon.ico",
   "/favicon.png",
   "/favicon.svg"
+  "/favicon-48x48.png",
+  "/favicon-96x96.png",
+  "/apple-touch-icon.png",
+
 ];
 
 self.addEventListener("install", event => {
