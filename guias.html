@@ -2460,26 +2460,35 @@ document.addEventListener('DOMContentLoaded', function() {
 </details>
 <!-- ========================================== -->
 <!-- ========================================== -->
-<!-- GUÍA 11: TARIFAS INDEXADAS (POOL + CUOTA)  -->
 <!-- ========================================== -->
-<details class="guia-card" id="guia-10">
+<!-- GUÍA 11: TARIFAS INDEXADAS (AMPLIADA)      -->
+<!-- ========================================== -->
+<details class="guia-card" id="guia-11">
 <summary>
 <span class="guia-icon">📈</span>
 <div class="guia-info">
-<h2 class="guia-title">Tarifas indexadas (pool + cuota): cuándo interesan y cuándo no</h3>
-<p class="guia-desc">La “PVPC del mercado libre” (pero con letra pequeña)</p>
+<h2 class="guia-title">Tarifas indexadas (pool + cuota): cuándo interesan y cuándo no</h2>
+<p class="guia-desc">La "PVPC del mercado libre" (pero con letra pequeña)</p>
 </div>
 <span class="guia-toggle">+</span>
 </summary>
 <article class="guia-content">
 <p class="guia-intro">
-                Las indexadas son tarifas donde el precio de la energía <strong>no es fijo</strong>: va “a mercado” (pool) y la compañía te cobra su margen o una cuota. A veces salen muy bien… y otras te la juegas.
-              </p>
+Las indexadas son tarifas donde el precio de la energía <strong>no es fijo</strong>: va "a mercado" (pool) y la compañía te cobra su margen o una cuota. A veces salen muy bien… y otras te la juegas.
+</p>
+
 <h4>Qué es una indexada (en cristiano)</h4>
 <p>
-                Pagas el kWh según el mercado (puede cambiar por horas o por días, según la tarifa) y además te añaden:
-                <strong>un margen €/kWh</strong> y/o una <strong>cuota mensual</strong> (gestión).
-              </p>
+Pagas el kWh según el mercado mayorista (OMIE). Ese precio varía cada hora o cada día, igual que la PVPC. Pero además, la compañía te añade:
+</p>
+<ul>
+<li><strong>Un margen fijo por kWh</strong> (ej: 0,01 €/kWh extra sobre el pool)</li>
+<li><strong>Y/o una cuota mensual</strong> (ej: 3-5 €/mes de "gestión")</li>
+</ul>
+<p>
+Ejemplo real: pool a 0,10 €/kWh + margen 0,015 €/kWh + cuota 4 €/mes. Si consumes 300 kWh, pagas: (0,10 + 0,015) × 300 = 34,50 € + 4 € = 38,50 €. Si ese mes el pool sube a 0,15 €/kWh, pagas 53,50 €. Te la juegas.
+</p>
+
 <h4>¿En qué se diferencia de PVPC?</h4>
 <table class="tabla-comparativa">
 <tr><th></th><th>PVPC</th><th>Indexada mercado libre</th></tr>
@@ -2490,483 +2499,1675 @@ document.addEventListener('DOMContentLoaded', function() {
 </tr>
 <tr>
 <td><strong>Precio</strong></td>
-<td>Regulado (varía)</td>
-<td>Varía + margen/cuota</td>
+<td>Pool + peajes/cargos regulados</td>
+<td>Pool + margen/cuota de la empresa</td>
 </tr>
 <tr>
-<td><strong>Letra pequeña típica</strong></td>
+<td><strong>Transparencia</strong></td>
+<td>Total (puedes ver el desglose exacto)</td>
+<td>Depende (algunas son claras, otras no)</td>
+</tr>
+<tr>
+<td><strong>Letra pequeña</strong></td>
 <td>Poca</td>
 <td>Cuotas, márgenes, servicios extra, permanencia…</td>
 </tr>
 </table>
-<h4>Cuándo suele compensar</h4>
+
+<h4>Tipos de indexadas que te vas a encontrar</h4>
+<p><strong>1. Pool + margen fijo</strong></p>
+<p>
+Te cobran el precio del mercado más X céntimos por kWh. Simple y relativamente honesto. Ejemplo: "Pool + 0,02 €/kWh". Si el pool está a 0,12 €/kWh, pagas 0,14 €/kWh.
+</p>
+
+<p><strong>2. Pool + cuota mensual</strong></p>
+<p>
+El kWh va "a precio de coste" (pool) y te cobran una cuota fija al mes. Interesante si consumes mucho (la cuota se diluye). Mal negocio si consumes poco (la cuota pesa más que el ahorro).
+</p>
+
+<p><strong>3. Pool + margen + cuota (combo)</strong></p>
+<p>
+Te clavan las dos cosas. Suelen vendértelo como "la más completa" pero normalmente es la peor opción. Evítala salvo que el margen y la cuota sean ridículamente bajos.
+</p>
+
+<p><strong>4. Pool promediado (mensual o semanal)</strong></p>
+<p>
+En vez de facturarte hora a hora, hacen un promedio del mes/semana. Pierdes la ventaja de mover consumos a horas baratas. Poco recomendable si tienes flexibilidad horaria.
+</p>
+
+<h4>Cuándo te conviene una indexada</h4>
 <ul>
-<li>Si aceptas que la factura <strong>sube y baja</strong> (no quieres “cero sorpresas”).</li>
-<li>Si puedes mover consumo a horas baratas (lavadoras, termo, coche eléctrico…).</li>
-<li>Si la cuota/margen es razonable y <strong>no te meten permanencia</strong>.</li>
+<li>Aceptas que la factura <strong>suba y baja</strong> con el mercado (no buscas previsibilidad total).</li>
+<li>Puedes <strong>mover consumo a horas baratas</strong> (lavadoras, termo, coche eléctrico de noche).</li>
+<li>El <strong>margen + cuota</strong> es bajo (haz cuentas: ¿cuánto te añaden al mes vs PVPC?).</li>
+<li><strong>No te atan</strong> con permanencia (si la indexada tiene permanencia de 12 meses, huye).</li>
+<li>Consumes bastante (300+ kWh/mes). Si consumes poco, la cuota pesa demasiado.</li>
 </ul>
-<h4>Qué mirar antes de contratar (checklist anti-timos)</h4>
+
+<h4>Cuándo NO te conviene</h4>
 <ul>
-<li><strong>Cuota fija mensual:</strong> si es alta, te mata el ahorro con poco consumo.</li>
-<li><strong>Margen €/kWh:</strong> parece pequeño, pero en 300–400 kWh/mes se nota.</li>
-<li><strong>¿Precio por horas real o promedio raro?</strong> Algunas no facturan “hora a hora”.</li>
-<li><strong>Permanencia:</strong> si la hay, sospecha.</li>
-<li><strong>Servicios añadidos:</strong> “mantenimiento”, “protección”, “asistencia”… (cancélalos si no los quieres).</li>
+<li>Quieres <strong>precio fijo</strong> sin sustos → Busca tarifa fija del mercado libre</li>
+<li>Quieres <strong>máxima transparencia</strong> → Quédate en PVPC</li>
+<li>Consumes <strong>poco</strong> (menos de 200 kWh/mes) → La cuota te mata</li>
+<li>Te meten <strong>permanencia</strong> → Mala señal (las buenas indexadas no necesitan atarte)</li>
+<li>No puedes <strong>mover horarios</strong> → Pierdes la ventaja de aprovechar horas baratas</li>
 </ul>
-<p><strong>Consejo práctico:</strong> si dudas, pruébala 2 facturas y revisa. Si no te convence, cambias y listo (siempre que no te aten).</p>
+
+<h4>Checklist anti-timos (lee SIEMPRE antes de firmar)</h4>
+<ul>
+<li><strong>Cuota mensual:</strong> ¿Cuánto es? Si supera 5 €/mes, haz cuentas bien.</li>
+<li><strong>Margen por kWh:</strong> ¿Cuánto añaden al pool? Parece poco, pero en 400 kWh/mes puede ser 4-8 € extra.</li>
+<li><strong>¿Precio hora a hora o promedio?</strong> Si promedian, pierdes la magia de la discriminación horaria.</li>
+<li><strong>Permanencia:</strong> ¿Te atan? ¿Cuánto tiempo? ¿Penalización si te vas?</li>
+<li><strong>Servicios añadidos:</strong> "Mantenimiento", "protección", "asistencia 24h"… ¿Te los cuelan? ¿Puedes quitarlos?</li>
+<li><strong>Actualización de precios:</strong> ¿Pueden subir el margen/cuota cada año con IPC? (Léelo en el contrato)</li>
+</ul>
+
+<h4>Ejemplo real de cálculo</h4>
+<p><strong>Caso 1: Indexada con cuota</strong></p>
+<p>
+Tarifa: Pool + 4 €/mes. Mes de enero, pool promedio 0,11 €/kWh. Consumes 350 kWh.
+<br>
+Factura: (0,11 × 350) + 4 = 38,50 € + 4 € = 42,50 € (sin impuestos).
+</p>
+
+<p><strong>Caso 2: PVPC mismo mes</strong></p>
+<p>
+Pool 0,11 €/kWh + peajes/cargos (unos 0,04 €/kWh de media) = 0,15 €/kWh efectivo.
+<br>
+Factura: 0,15 × 350 = 52,50 € (sin impuestos).
+</p>
+<p>
+En este caso, la indexada te ahorra 10 € al mes. Pero ojo: si el pool sube, tú también subes. Y si consumes 150 kWh en vez de 350, la cuota de 4 € pesa más.
+</p>
+
+<h4>Consejo final</h4>
+<p>
+Las indexadas pueden ser buenas si la compañía es seria, el margen/cuota es bajo, no hay permanencia, y consumes bastante pudiendo mover horarios.
+</p>
+<p>
+<strong>Prueba práctica:</strong> Úsala 2-3 meses y compara facturas con lo que hubieras pagado en PVPC (puedes calcularlo con el histórico de precios de REE). Si no te convence, te cambias.
+</p>
+<p>
+Y recuerda: una indexada buena no necesita atarte 12 meses. Si te atan, sospecha.
+</p>
 </article>
 </details>
 <!-- ========================================== -->
-<!-- GUÍA 12: LA LETRA PEQUEÑA DE LAS TARIFAS   -->
+<!-- GUÍA 12: LETRA PEQUEÑA (AMPLIADA)         -->
 <!-- ========================================== -->
-<details class="guia-card" id="guia-11">
+<details class="guia-card" id="guia-12">
 <summary>
 <span class="guia-icon">🔍</span>
 <div class="guia-info">
-<h2 class="guia-title">La letra pequeña: topes de kWh, cuotas, “descuentos” y permanencias</h3>
+<h2 class="guia-title">La letra pequeña: topes de kWh, cuotas, "descuentos" y permanencias</h2>
 <p class="guia-desc">Donde suelen esconder el sablazo</p>
 </div>
 <span class="guia-toggle">+</span>
 </summary>
 <article class="guia-content">
 <p class="guia-intro">
-                Muchas tarifas “baratas” lo son <strong>hasta que lees dos líneas</strong>. Aquí tienes los trucos típicos para que no te la cuelen.
-              </p>
-<h4>1) Topes de kWh (muy típico)</h4>
+Muchas tarifas "baratas" lo son <strong>hasta que lees dos líneas</strong>. Aquí tienes los trucos típicos para que no te la cuelen.
+</p>
+
+<h4>1. Topes de kWh (muy típico)</h4>
 <p>
-                “Precio promo hasta X kWh/mes” o “solo aplicable hasta X kWh/año”. Si te pasas, el resto va a precio más caro.
-                Esto es justo lo que a veces ves en tooltips de tarifas.
-              </p>
-<h4>2) Cuotas fijas</h4>
+"Precio promo hasta X kWh/mes" o "solo aplicable hasta X kWh/año". Si te pasas, el resto va a precio más caro.
+</p>
+<p><strong>Ejemplo real:</strong></p>
 <p>
-                “Cuota de gestión”, “cuota de servicio”, “cuota de socio”… Llámalo como quieras: <strong>pagas sí o sí</strong>, consumas o no.
-                Con consumos bajos, una cuota te puede destrozar.
-              </p>
-<h4>3) “Descuento del 20%” (pero… ¿sobre qué?)</h4>
+Tarifa: 0,10 €/kWh hasta 200 kWh/mes, luego 0,20 €/kWh. Consumes 300 kWh.
+<br>
+Factura: (200 × 0,10) + (100 × 0,20) = 20 € + 20 € = 40 €. No son 30 € (300 × 0,10). Te clavan el doble en los 100 kWh extra.
+</p>
+<p><strong>Cómo detectarlo:</strong> Busca palabras como "hasta", "primeros X kWh", "aplicable a". Si lo ves, pregunta qué pasa cuando te pasas.</p>
+
+<h4>2. Cuotas fijas (el asesino silencioso)</h4>
+<p>
+"Cuota de gestión", "cuota de servicio", "cuota de socio"… Llámalo como quieras: <strong>pagas sí o sí</strong>, consumas o no.
+</p>
+<p><strong>Por qué es trampa:</strong></p>
+<p>
+Si consumes 150 kWh/mes y te cobran 5 €/mes de cuota, eso es 0,033 €/kWh extra. Parece poco, pero es un 25-30% más sobre un precio de 0,12 €/kWh.
+</p>
+<p><strong>Cuándo compensa una cuota:</strong> Si consumes mucho (400+ kWh/mes). Ahí la cuota se diluye y puede salir a cuenta. Si consumes poco, te mata.</p>
+
+<h4>3. "Descuento del 20%" (pero… ¿sobre qué?)</h4>
+<p>
+Te dicen "20% de descuento" pero no te dicen sobre qué precio base. Y el precio base puede estar inflado.
+</p>
+<p><strong>Ejemplo:</strong></p>
 <ul>
-<li>Puede ser descuento solo sobre energía (no potencia).</li>
-<li>Puede ser descuento sobre un “precio base” inflado.</li>
-<li>Puede durar 3–6 meses y luego te suben.</li>
+<li>Precio "normal" de la empresa: 0,18 €/kWh</li>
+<li>Con "descuento 20%": 0,144 €/kWh</li>
+<li>Pero el mercado está a 0,13 €/kWh → No es tan buen descuento</li>
 </ul>
-<h4>4) Servicios extra metidos con calzador</h4>
+<p><strong>Cómo detectarlo:</strong> Pregunta el precio final en €/kWh, con TODO incluido. No te quedes con el porcentaje.</p>
+
+<h4>4. Descuentos temporales (los primeros 3/6 meses)</h4>
 <p>
-                Mantenimiento, seguros, asistencia… a veces vienen “incluidos” y luego pasan a cobrarte.
-                Si no lo quieres, <strong>cancélalo por escrito</strong> y guarda el email.
-              </p>
-<h4>5) Permanencia y penalización</h4>
+"15% descuento durante 6 meses". Genial. Pero luego te suben y te quedas pagando más que antes.
+</p>
+<p><strong>Qué hacer:</strong> Calcula cuánto pagas EN TOTAL el primer año (6 meses con descuento + 6 sin). A veces sale más caro que una tarifa sin descuento pero estable.</p>
+
+<h4>5. Servicios extra metidos con calzador</h4>
 <p>
-                Si te atan 12 meses y te penalizan por irte, mal asunto. Una tarifa buena de verdad no necesita esposas.
-              </p>
+Mantenimiento, seguros, asistencia… A veces vienen "incluidos" (gratis 3 meses) y luego te cobran. Otras veces te los meten directamente sin avisar.
+</p>
+<p><strong>Cómo quitarlos:</strong></p>
+<ul>
+<li>Llama y di: "Quiero cancelar el servicio de [nombre]"</li>
+<li>Pide confirmación por escrito</li>
+<li>Guarda el email</li>
+<li>Revisa la siguiente factura</li>
+</ul>
+<p>Si te marean por teléfono ("sin el servicio te sale más caro"), pide que te lo pongan por escrito con números. Ahí se caen.</p>
+
+<h4>6. Permanencia y penalización</h4>
+<p>
+Te atan 6-12 meses. Si te vas antes, penalización (suele ser el descuento que te aplicaron × meses que quedan).
+</p>
+<p><strong>Ejemplo:</strong> Te dieron 10% descuento = 5 €/mes ahorrados. Te vas al mes 4 de 12. Penalización: 5 € × 8 meses = 40 €.</p>
+<p><strong>Consejo:</strong> Si una tarifa necesita atarte para que no te vayas, mala señal. Las buenas tarifas no necesitan permanencias.</p>
+
+<h4>7. Actualización anual con IPC (la subida ninja)</h4>
+<p>
+Contratas a 0,12 €/kWh. En el contrato pone "precio actualizable anualmente según IPC". IPC sube 3% → tu precio sube a 0,1236 €/kWh. Y así cada año.
+</p>
+<p><strong>No es ilegal</strong>, pero deberías saberlo antes de firmar. Pregunta si el precio es fijo o actualizable.</p>
+
 <h4>Checklist rápido antes de contratar</h4>
 <ul>
 <li>¿Cuánto cuesta el kWh <strong>real</strong> (con todo lo que añaden)?</li>
 <li>¿Hay cuota mensual? ¿Cuánto?</li>
-<li>¿Hay permanencia? ¿De cuánto?</li>
+<li>¿Hay permanencia? ¿De cuánto? ¿Penalización?</li>
 <li>¿Hay límite de kWh o condiciones por potencia?</li>
-<li>¿Te cuelan mantenimiento/servicios?</li>
+<li>¿Te cuelan mantenimiento/servicios? ¿Puedes quitarlos?</li>
+<li>¿El descuento es temporal? ¿Cuánto pagas después?</li>
+<li>¿El precio se actualiza con IPC?</li>
 </ul>
+
+<h4>Red flags (huye si ves esto)</h4>
+<ul>
+<li>No te dan precio final claro (solo porcentajes y descuentos)</li>
+<li>Permanencia de más de 12 meses</li>
+<li>Penalización superior a 50 €</li>
+<li>Cuota mensual de más de 6 €</li>
+<li>Tope de kWh muy bajo (menos de 250 kWh/mes)</li>
+<li>Te presionan para que firmes YA ("oferta válida solo hoy")</li>
+</ul>
+
+<p><strong>Regla de oro:</strong> Si algo suena demasiado bueno para ser verdad, probablemente lo sea. Lee el contrato ENTERO antes de firmar. Sí, es un coñazo. Pero te ahorras disgustos.</p>
 </article>
 </details>
 <!-- ========================================== -->
-<!-- GUÍA 13: CAMBIAR DE COMPAÑÍA SIN LÍOS       -->
+<!-- GUÍA 13: CAMBIAR DE COMPAÑÍA (AMPLIADA)   -->
 <!-- ========================================== -->
-<details class="guia-card" id="guia-12">
+<details class="guia-card" id="guia-13">
 <summary>
-<span class="guia-icon">🔁</span>
+<span class="guia-icon">🔄</span>
 <div class="guia-info">
-<h2 class="guia-title">Cómo cambiar de compañía sin cortes (y sin que te líen)</h3>
+<h2 class="guia-title">Cómo cambiar de compañía sin cortes (y sin que te lí
+
+en)</h2>
 <p class="guia-desc">Paso a paso y con checklist</p>
 </div>
 <span class="guia-toggle">+</span>
 </summary>
 <article class="guia-content">
 <p class="guia-intro">
-                Cambiar de comercializadora es <strong>solo papeleo</strong>. La luz te llega por los mismos cables y el contador es el mismo. Lo importante es hacerlo bien y guardar pruebas.
-              </p>
+Cambiar de comercializadora es <strong>solo papeleo</strong>. La luz te llega por los mismos cables y el contador es el mismo. Lo importante es hacerlo bien y guardar pruebas.
+</p>
+
 <h4>Qué necesitas (tenlo a mano)</h4>
 <ul>
-<li><strong>CUPS</strong> (sale en tu factura)</li>
+<li><strong>CUPS</strong> (sale en tu factura actual, empieza por ES)</li>
 <li><strong>DNI</strong> del titular</li>
 <li><strong>IBAN</strong> para domiciliación</li>
-<li>Dirección del suministro</li>
-<li>Potencia contratada (P1/P2) y tu tarifa actual</li>
+<li>Dirección exacta del suministro</li>
+<li>Potencia contratada actual (P1/P2)</li>
 </ul>
-<h4>Pasos recomendados</h4>
-<ol>
-<li>Revisa si tienes <strong>permanencia</strong> (si la hay, mira penalización).</li>
-<li>Contrata la nueva tarifa <strong>por la web</strong> (mejor que por teléfono “comercial”).</li>
-<li>Guarda el email/contrato en PDF y la fecha.</li>
-<li>Espera el cambio (normalmente unos días). <strong>No hay corte</strong>.</li>
-<li>Te llegará una <strong>última factura</strong> de la antigua (cierre).</li>
-</ol>
-<h4>Trucos para evitar disgustos</h4>
+
+<h4>Pasos detallados (sin líos)</h4>
+
+<p><strong>1. Comprueba si tienes permanencia</strong></p>
+<p>
+Mira tu contrato o última factura. Si hay permanencia y te vas antes, te penalizan. Calcula si la penalización compensa vs lo que ahorrarías.
+</p>
+
+<p><strong>2. Elige la nueva tarifa</strong></p>
+<p>
+Usa este comparador, mete tus consumos reales, y mira qué sale más barato. No te fíes de las llamadas comerciales ("te ahorramos 200 € al año" → pide que te lo pongan por escrito).
+</p>
+
+<p><strong>3. Contrata por web (mejor que por teléfono)</strong></p>
+<p>
+Por qué: queda todo por escrito, ves exactamente lo que firmas, nadie te mete servicios extra de palabra.
+</p>
+<p>
+Si contratas por teléfono: graba la llamada (avísales que lo haces) y pide confirmación por email con el contrato en PDF.
+</p>
+
+<p><strong>4. Guarda TODO</strong></p>
 <ul>
-<li>Haz foto al contador (por si luego discuten lecturas).</li>
-<li>No aceptes “packs” que no quieres (mantenimiento, seguros…).</li>
-<li>Si te prometen algo por teléfono, pide confirmación por escrito. Si no, humo.</li>
+<li>Email de confirmación del alta</li>
+<li>Contrato en PDF</li>
+<li>Fecha exacta de la contratación</li>
 </ul>
+<p>
+Esto te salva si luego hay discrepancias ("me dijeron X pero me cobran Y").
+</p>
+
+<p><strong>5. Espera el cambio (15-30 días)</strong></p>
+<p>
+La ley dice máximo 1 mes. Normalmente tarda 15-20 días laborables. Durante el cambio:
+</p>
+<ul>
+<li><strong>NO hay corte de luz</strong> (es automático)</li>
+<li>Sigues pagando a la antigua hasta que se complete</li>
+<li>La nueva te avisará cuando esté activo</li>
+</ul>
+
+<p><strong>6. Recibirás última factura de la antigua</strong></p>
+<p>
+Te facturan hasta el día exacto del cambio. Comprueba:
+</p>
+<ul>
+<li>Fechas (que no te cobren días de más)</li>
+<li>Lectura final del contador (real, no estimada)</li>
+<li>Que no te metan penalizaciones raras</li>
+</ul>
+
+<h4>Trucos para evitar disgustos</h4>
+
+<p><strong>Foto al contador antes del cambio</strong></p>
+<p>
+Haz foto con fecha visible. Por si luego discuten la lectura final.
+</p>
+
+<p><strong>No aceptes "packs" que no quieres</strong></p>
+<p>
+"Mantenimiento", "asistencia 24h", "seguro hogar"… Si no lo quieres, di NO claramente. Si te lo meten, pide la baja por escrito el mismo día.
+</p>
+
+<p><strong>Si te prometen algo por teléfono, pide email</strong></p>
+<p>
+"Te damos 50 € de descuento el primer año" → "Vale, mándamelo por email". Si no lo hacen, es humo.
+</p>
+
+<p><strong>Verifica la primera factura de la nueva</strong></p>
+<p>
+Comprueba:
+</p>
+<ul>
+<li>Precio del kWh (que sea el que firmaste)</li>
+<li>Potencia contratada (que sea la correcta)</li>
+<li>Consumos (tienen sentido con tu histórico?)</li>
+<li>Servicios extra (que no te hayan colado nada)</li>
+</ul>
+<p>
+Si algo falla, reclama de inmediato (cuanto antes, mejor).
+</p>
+
+<h4>Qué pasa con...?</h4>
+
+<p><strong>¿Y si me arrepiento?</strong></p>
+<p>
+Tienes 14 días de desistimiento desde que firmaste el contrato (compras online/teléfono). Puedes cancelar sin penalización. Hazlo por escrito y guarda el justificante.
+</p>
+
+<p><strong>¿Puedo cambiarme si debo dinero?</strong></p>
+<p>
+Sí, puedes cambiar de comercializadora aunque tengas deuda con la antigua. La deuda no desaparece (te la seguirán reclamando), pero no te impide cambiar.
+</p>
+
+<p><strong>¿Me pueden cortar la luz durante el cambio?</strong></p>
+<p>
+No. El cambio es automático y sin cortes. Si te quedas sin luz, es por otra cosa (avería, problema con el contador, impago previo…).
+</p>
+
+<p><strong>¿Tengo que avisar a mi antigua compañía?</strong></p>
+<p>
+No. La nueva se encarga de todo. De hecho, avisar a la antigua puede liarla (te darán de baja en vez de hacer cambio de titular).
+</p>
+
+<h4>Errores típicos (y cómo evitarlos)</h4>
+
+<ul>
+<li><strong>Error:</strong> Contratar sin comparar precios reales → <strong>Solución:</strong> Usa el comparador con tus datos reales</li>
+<li><strong>Error:</strong> Firmar por teléfono sin leer contrato → <strong>Solución:</strong> Pide el PDF, léelo, y firma online</li>
+<li><strong>Error:</strong> No guardar emails/contratos → <strong>Solución:</strong> Carpeta "Luz" en tu email, guárdalo todo</li>
+<li><strong>Error:</strong> Aceptar servicios extra sin querer → <strong>Solución:</strong> Di NO a todo lo que no entiendas</li>
+<li><strong>Error:</strong> No revisar primera factura → <strong>Solución:</strong> Revísala con lupa, compara con lo firmado</li>
+</ul>
+
+<h4>Resumen ejecutivo (si vas con prisas)</h4>
+<ol>
+<li>CUPS + DNI + IBAN</li>
+<li>Contrata por web (guarda email)</li>
+<li>Espera 15-30 días (sin cortes)</li>
+<li>Revisa última factura antigua</li>
+<li>Revisa primera factura nueva</li>
+<li>Si algo falla, reclama YA</li>
+</ol>
+
+<p><strong>Y recuerda:</strong> cambiar de compañía es gratis, fácil y sin cortes. Si alguien te dice lo contrario, te está mintiendo.</p>
 </article>
 </details>
+
 <!-- ========================================== -->
-<!-- GUÍA 14: VER TU CONSUMO HORARIO REAL       -->
+<!-- GUÍA 14: CONSUMO HORARIO REAL (AMPLIADA)  -->
 <!-- ========================================== -->
-<details class="guia-card" id="guia-13">
+<details class="guia-card" id="guia-14">
 <summary>
 <span class="guia-icon">📊</span>
 <div class="guia-info">
-<h2 class="guia-title">Cómo ver tu consumo horario real (el del contador, no el “estimado”)</h3>
+<h2 class="guia-title">Cómo ver tu consumo horario real (el del contador, no el "estimado")</h2>
 <p class="guia-desc">La clave para elegir tarifa con cabeza</p>
 </div>
 <span class="guia-toggle">+</span>
 </summary>
 <article class="guia-content">
 <p class="guia-intro">
-                Si quieres afinar de verdad, necesitas tu <strong>curva horaria</strong>: cuándo consumes cada hora. Eso lo tiene tu <strong>distribuidora</strong>.
-                Con esos datos eliges tarifa mucho mejor que “a ojo”.
-              </p>
+Si quieres afinar de verdad, necesitas tu <strong>curva horaria</strong>: cuándo consumes cada hora. Eso lo tiene tu <strong>distribuidora</strong>. Con esos datos eliges tarifa mucho mejor que "a ojo".
+</p>
+
+<h4>Por qué necesitas ver tu consumo real</h4>
+<p>
+La mayoría de la gente piensa que sabe cuándo consume. "Yo consumo de noche" o "yo consumo poco en punta". Pero cuando ves los datos reales… sorpresa.
+</p>
+<p><strong>Casos típicos:</strong></p>
+<ul>
+<li>Crees que consumes de noche, pero resulta que el pico es a las 20:00 (P1, lo más caro)</li>
+<li>Pones lavadoras de madrugada, pero luego el termo eléctrico se activa a las 18:00</li>
+<li>Piensas que consumes poco, pero el standby de los aparatos te chupa 0,5 kWh/h las 24h</li>
+</ul>
+<p>
+Ver la curva horaria te abre los ojos. Y a partir de ahí, puedes tomar decisiones con datos reales.
+</p>
+
 <h4>Paso 1: Identifica tu distribuidora</h4>
 <p>
-                En la factura suele aparecer. Ojo: <strong>no es tu comercializadora</strong>. Es la dueña de los cables de tu zona.
-              </p>
-<h4>Paso 2: Entra en el área de clientes de la distribuidora</h4>
+En tu factura, busca "Distribuidora" o "Empresa distribuidora". Las más comunes:
+</p>
 <ul>
-<li>Te registras con tu CUPS y datos del titular.</li>
-<li>Busca algo tipo <strong>“Curva horaria / consumo por horas / medidas”</strong>.</li>
+<li><strong>i-DE</strong> (antes Iberdrola Distribución) → Madrid, Euskadi, parte de Andalucía, Murcia…</li>
+<li><strong>e-distribución</strong> (Endesa) → Cataluña, Aragón, Baleares, Canarias…</li>
+<li><strong>Naturgy</strong> → Galicia, parte de Castilla y León…</li>
+<li><strong>UFD</strong> → Parte de Madrid y zona centro</li>
+<li><strong>Otras locales</strong> → Hay distribuidoras pequeñas en algunas zonas</li>
 </ul>
-<h4>Paso 3: Descarga el consumo (CSV/Excel si te dejan)</h4>
 <p>
-                Lo ideal es descargar un mes o dos y mirar:
-              </p>
+<strong>Ojo:</strong> La distribuidora NO es tu comercializadora. Puedes estar con Repsol (comercializadora) pero tu distribuidora ser i-DE. Son empresas distintas.
+</p>
+
+<h4>Paso 2: Entra en el área de clientes de tu distribuidora</h4>
+<p>
+Cada una tiene su web. Busca en Google "área clientes [nombre distribuidora]".
+</p>
+<p><strong>Para registrarte necesitas:</strong></p>
 <ul>
-<li>¿Tienes “picos” en P1 (horas caras)?</li>
-<li>¿Tu base nocturna es alta (standby, termo, calefacción)?</li>
-<li>¿Podrías mover lavadora/lavavajillas/termo a valle?</li>
+<li>CUPS (está en tu factura)</li>
+<li>DNI del titular</li>
+<li>Email y contraseña</li>
 </ul>
-<h4>Consejo “de forocoches”</h4>
 <p>
-                Mucha gente cree que consume “por la noche” y luego ve la curva… y resulta que el pico gordo es a las 20:00 con horno + vitro + secadora. Verlo en datos cambia todo.
-              </p>
+El registro suele tardar unos minutos. A veces te piden validar por SMS o email.
+</p>
+
+<h4>Paso 3: Busca "Consumo" o "Curva de carga"</h4>
+<p>
+Una vez dentro, busca secciones tipo:
+</p>
+<ul>
+<li>"Mi consumo"</li>
+<li>"Curva horaria"</li>
+<li>"Datos de consumo"</li>
+<li>"Medidas"</li>
+<li>"Histórico"</li>
+</ul>
+<p>
+Depende de cada distribuidora, pero suelen tener una sección donde ves tu consumo por horas.
+</p>
+
+<h4>Paso 4: Descarga los datos (si puedes)</h4>
+<p>
+Algunas distribuidoras te dejan descargar CSV o Excel con los datos. Otras solo te dejan ver gráficos en pantalla.
+</p>
+<p>
+Si puedes descargar: <strong>hazlo</strong>. Así puedes analizarlos con calma (o subirlos al comparador si tiene esa opción).
+</p>
+<p>
+Si no puedes descargar: haz capturas de pantalla de las gráficas de consumo horario.
+</p>
+
+<h4>Qué mirar en tu curva horaria</h4>
+
+<p><strong>1. Picos de consumo: ¿cuándo son?</strong></p>
+<p>
+Mira qué horas tienen los picos más altos. Si tus picos están en P1 (10-14h y 18-22h), estás pagando caro. Si están en P3 (0-8h + fines de semana), bien hecho.
+</p>
+
+<p><strong>2. Consumo base (standby)</strong></p>
+<p>
+Mira las horas de madrugada (3-6h) cuando todo debería estar apagado. ¿Hay consumo? ¿Cuánto?
+</p>
+<p>
+Si ves 0,3-0,5 kWh cada hora de madrugada, ahí tienes unos 10-15 kWh/mes de standby (3-5 € al mes tirados a la basura).
+</p>
+
+<p><strong>3. Distribución P1/P2/P3</strong></p>
+<p>
+Suma mentalmente (o con Excel) cuánto consumes en cada periodo:
+</p>
+<ul>
+<li>P1 (punta): 10-14h y 18-22h laborables</li>
+<li>P2 (llano): 8-10h, 14-18h, 22-24h laborables</li>
+<li>P3 (valle): 0-8h laborables + todo el fin de semana + festivos nacionales</li>
+</ul>
+<p>
+Si más del 40% de tu consumo es en P1, una tarifa con discriminación horaria te está matando. Mejor una tarifa plana (1 solo precio).
+</p>
+<p>
+Si más del 50% es en P3, perfecto. La discriminación horaria te beneficia.
+</p>
+
+<p><strong>4. Días sueltos raros</strong></p>
+<p>
+¿Hay algún día con un pico gigante? Puede ser:
+</p>
+<ul>
+<li>Visita de familia (más gente = más consumo)</li>
+<li>Día de colada intensiva</li>
+<li>Calefacción/aire a tope por ola de frío/calor</li>
+<li>Alguien en casa teletrabajando</li>
+</ul>
+<p>
+Estos días atípicos no deberían condicionar tu elección de tarifa (salvo que sean frecuentes).
+</p>
+
+<h4>Qué hacer con la info</h4>
+
+<p><strong>Si tu consumo está bien repartido (mucho en P3):</strong></p>
+<p>
+Sigue con discriminación horaria. Estás aprovechando bien las horas baratas.
+</p>
+
+<p><strong>Si tu consumo está fatal (mucho en P1):</strong></p>
+<p>
+Opciones:
+</p>
+<ol>
+<li><strong>Cambiar hábitos:</strong> mover lavadoras, lavavajillas, termo a P3 (de noche o fines de semana)</li>
+<li><strong>Cambiar a tarifa plana:</strong> si no puedes cambiar hábitos, una tarifa de 1 solo precio puede salirte más barata</li>
+</ol>
+
+<p><strong>Si no ves claro cómo mejorarlo:</strong></p>
+<p>
+Sube tu curva horaria al comparador (si tiene esa opción) o calcula manualmente el coste con varias tarifas. A veces una tarifa "plana" del mercado libre puede salir mejor que discriminación horaria si tu distribución es mala.
+</p>
+
+<h4>Truco avanzado: detectar vampiros energéticos</h4>
+<p>
+Mira el consumo de madrugada. Apunta el consumo a las 4:00 AM un día normal.
+</p>
+<p>
+Luego, antes de irte a dormir, apaga TODO:
+</p>
+<ul>
+<li>TV, ordenadores, routers (enchufes con interruptor o regletas)</li>
+<li>Microondas, cafetera, cargadores</li>
+<li>Deja solo: nevera, congelador, alarma (si tienes)</li>
+</ul>
+<p>
+Al día siguiente, mira el consumo de esa madrugada. ¿Ha bajado? ¿Cuánto?
+</p>
+<p>
+Si antes consumías 0,5 kWh/h y ahora 0,1 kWh/h → ahí tienes 0,4 kWh/h de vampiros (unos 10 kWh/mes = 3-4 € al mes que puedes ahorrar con regletas con interruptor).
+</p>
+
+<h4>Consejo final</h4>
+<p>
+Ver tu consumo real es MUY revelador. Te recomiendo hacerlo al menos una vez. Tardas 20 minutos y puede cambiar tu forma de consumir (y de ahorrar).
+</p>
+<p>
+Y si ves que tienes un consumo base alto de madrugada, investiga. Suele haber aparatos en standby chupando sin que te des cuenta.
+</p>
 </article>
 </details>
 <!-- ========================================== -->
-<!-- GUÍA 15: MUDANZA, ALQUILER Y CAMBIO TITULAR -->
+<!-- GUÍA 15: MUDANZA Y ALQUILER (AMPLIADA)    -->
 <!-- ========================================== -->
-<details class="guia-card" id="guia-14">
+<details class="guia-card" id="guia-15">
 <summary>
 <span class="guia-icon">📦</span>
 <div class="guia-info">
-<h2 class="guia-title">Mudanza y alquiler: cambio de titular, alta/baja y “cosas que nadie te dice”</h3>
+<h2 class="guia-title">Mudanza y alquiler: cambio de titular, alta/baja y "cosas que nadie te dice"</h2>
 <p class="guia-desc">Para no comerte deudas ajenas ni líos con facturas</p>
 </div>
 <span class="guia-toggle">+</span>
 </summary>
 <article class="guia-content">
 <p class="guia-intro">
-                Si te mudas o estás de alquiler, lo más importante es esto: <strong>que el titular sea quien vive y paga</strong>.
-                Si no, luego vienen los dramas (deudas, cortes, reclamaciones…).
-              </p>
+Si te mudas o estás de alquiler, lo MÁS importante es esto: <strong>que el titular sea quien vive y paga</strong>. Si no, luego vienen los dramas (deudas, cortes, reclamaciones…).
+</p>
+
 <h4>Cambio de titular (lo típico en alquiler/compra)</h4>
-<ul>
-<li>Se hace con la comercializadora (papeleo).</li>
-<li>Normalmente piden DNI, CUPS y a veces contrato de alquiler/compra.</li>
-<li><strong>Consejo:</strong> hazlo el primer día. Así cualquier deuda anterior no te salpica.</li>
-</ul>
-<h4>¿Dar de baja la luz?</h4>
 <p>
-                Solo si de verdad vas a dejar el piso/casa mucho tiempo sin nadie.
-                Si no, a veces compensa más cambiar titular y listo, porque dar de alta después puede tardar y puede tener costes.
-              </p>
-<h4>Checklist rápido al entrar/salir</h4>
+Es el trámite normal cuando entras a vivir a una casa que ya tiene luz. El contador sigue ahí, solo cambias el nombre del titular.
+</p>
+
+<p><strong>Qué necesitas:</strong></p>
 <ul>
-<li>Foto del contador (lectura).</li>
-<li>Guarda la última factura del anterior (si puedes) para tener el CUPS.</li>
-<li>Verifica potencia (P1/P2) y si hay servicios extra.</li>
-<li>Primera factura: revísala con lupa (fechas, lectura real/estimada).</li>
+<li>CUPS (pídelo al antiguo inquilino/propietario o mira en el contador)</li>
+<li>DNI</li>
+<li>Contrato de alquiler o escritura de compra</li>
+<li>IBAN para domiciliación</li>
 </ul>
+
+<p><strong>Cómo se hace:</strong></p>
+<ol>
+<li>Contacta con la comercializadora que quieras (puedes elegir cualquiera)</li>
+<li>Diles que quieres cambio de titular</li>
+<li>Mandan formulario, lo rellenas, adjuntas documentos</li>
+<li>En 5-10 días está hecho</li>
+</ol>
+
+<p><strong>Costes:</strong></p>
+<ul>
+<li>Cambio de titular: gratis (desde 2019)</li>
+<li>Si cambias también de comercializadora: gratis</li>
+<li>Si cambias potencia: derechos de enganche (10-50 €)</li>
+</ul>
+
+<p><strong>Consejo clave:</strong> Hazlo el PRIMER DÍA que entras. Si no, cualquier deuda o problema que genere el anterior inquilino puede salpicarte (aunque legalmente no sea tuya, es un lío demostrarlo después).
+</p>
+
+<h4>Alta nueva (si el contador está dado de baja)</h4>
+<p>
+Si la casa lleva tiempo vacía y dieron de baja la luz, necesitas un alta nueva.
+</p>
+
+<p><strong>Qué pasa:</strong></p>
+<ul>
+<li>Pagas derechos de alta (10-50 € a la distribuidora)</li>
+<li>Puede tardar 3-7 días (a veces mandan técnico)</li>
+<li>Contratas la potencia que necesites</li>
+</ul>
+
+<p><strong>Consejo:</strong> Si puedes, haz cambio de titular en vez de alta nueva (es más rápido y a veces más barato). Solo da de baja si vas a dejar la casa vacía MUCHO tiempo (meses/años).
+</p>
+
+<h4>Baja del suministro (cuando te vas)</h4>
+<p>
+<strong>¿Cuándo dar de baja?</strong>
+</p>
+<ul>
+<li>Te vas de un piso y no sabes quién entra después</li>
+<li>Casa de vacaciones que no usarás en años</li>
+<li>Propiedad en venta sin comprador a la vista</li>
+</ul>
+
+<p><strong>¿Cuándo NO dar de baja?</strong></p>
+<ul>
+<li>Alquiler: haz cambio de titular, no baja (el siguiente inquilino agradecerá no tener que hacer alta nueva)</li>
+<li>Venta de casa: el comprador hace cambio de titular directamente</li>
+</ul>
+
+<p><strong>Costes de la baja:</strong></p>
+<ul>
+<li>La baja en sí: gratis</li>
+<li>Última factura: hasta el día que solicitas la baja</li>
+<li>Si quieres que retiren el contador: puede tener coste (pero no suele ser necesario)</li>
+</ul>
+
+<h4>Casos típicos y qué hacer</h4>
+
+<p><strong>Caso 1: Entras de alquiler</strong></p>
+<ol>
+<li>Pide al casero/anterior inquilino el CUPS</li>
+<li>Haz foto al contador el día que entras (lectura)</li>
+<li>Solicita cambio de titular el mismo día</li>
+<li>Guarda copia del contrato de alquiler</li>
+<li>Primera factura: revisa que empiece desde el día correcto</li>
+</ol>
+
+<p><strong>Caso 2: Te vas de alquiler</strong></p>
+<ol>
+<li>Haz foto al contador el día que te vas (lectura final)</li>
+<li>Comunica a tu comercializadora la fecha exacta de salida</li>
+<li>Espera factura final (comprárala con tu foto)</li>
+<li>NO des de baja (deja que el siguiente inquilino haga cambio de titular)</li>
+</ol>
+
+<p><strong>Caso 3: Compras piso</strong></p>
+<ol>
+<li>En la escritura, anota el CUPS</li>
+<li>El día de la firma, solicita cambio de titular</li>
+<li>Adjunta escritura como justificante</li>
+<li>Revisa la primera factura (que no te carguen consumo del antiguo propietario)</li>
+</ol>
+
+<p><strong>Caso 4: Heredas una casa</strong></p>
+<ol>
+<li>Necesitas certificado de defunción + documentación de herencia</li>
+<li>Cambio de titular (puede tardar más por la documentación)</li>
+<li>Si había deuda del fallecido, es tema legal (no lo pagas automáticamente)</li>
+</ol>
+
+<h4>Errores típicos (y cómo evitarlos)</h4>
+
+<p><strong>Error 1: No hacer cambio de titular rápido</strong></p>
+<p>
+Pasa el tiempo, el anterior inquilino deja de pagar, te cortan la luz a ti. Aunque legalmente no sea tu deuda, demostrar que eres el nuevo inquilino es un coñazo.
+</p>
+<p><strong>Solución:</strong> Cambio de titular el primer día. Punto.</p>
+
+<p><strong>Error 2: Dar de baja cuando solo cambias de casa</strong></p>
+<p>
+Das de baja en el piso viejo, das de alta en el nuevo. Pagas dos veces derechos de enganche. Innecesario.
+</p>
+<p><strong>Solución:</strong> En el viejo: el siguiente hace cambio de titular. En el nuevo: tú haces cambio de titular. Sin costes extra.</p>
+
+<p><strong>Error 3: No hacer foto al contador</strong></p>
+<p>
+Luego discuten la lectura final ("te cobramos 50 kWh de más"). Sin foto, no puedes demostrarlo.
+</p>
+<p><strong>Solución:</strong> Foto el día que entras Y el día que sales. Con fecha visible si puedes.</p>
+
+<p><strong>Error 4: No revisar primera factura</strong></p>
+<p>
+Te cargan consumo de días anteriores (del anterior inquilino). O te cargan derechos que no tocan.
+</p>
+<p><strong>Solución:</strong> Revisa con lupa. Si algo falla, reclama de inmediato con tu foto del contador.</p>
+
+<h4>Checklist rápido mudanza</h4>
+
+<p><strong>Al ENTRAR:</strong></p>
+<ul>
+<li>☐ Conseguir CUPS</li>
+<li>☐ Foto contador (lectura + fecha)</li>
+<li>☐ Solicitar cambio titular</li>
+<li>☐ Adjuntar contrato alquiler/escritura</li>
+<li>☐ Revisar primera factura</li>
+</ul>
+
+<p><strong>Al SALIR:</strong></p>
+<ul>
+<li>☐ Foto contador (lectura + fecha)</li>
+<li>☐ Comunicar fecha exacta salida</li>
+<li>☐ Revisar factura final</li>
+<li>☐ NO dar de baja (salvo caso excepcional)</li>
+</ul>
+
+<h4>Preguntas frecuentes</h4>
+
+<p><strong>¿Puedo hacer cambio de titular si el anterior inquilino debe dinero?</strong></p>
+<p>
+Sí. La deuda es del anterior titular, no tuya. Pero avisa a la comercializadora de que hay un cambio y que tú no te haces responsable de deudas anteriores.
+</p>
+
+<p><strong>¿Cuánto tarda un cambio de titular?</strong></p>
+<p>
+5-10 días laborables normalmente. A veces menos si no hay complicaciones.
+</p>
+
+<p><strong>¿Me pueden cortar la luz durante el cambio de titular?</strong></p>
+<p>
+No. El cambio es administrativo, no afecta al suministro físico.
+</p>
+
+<p><strong>¿Tengo que pagar algo al casero por el cambio de titular?</strong></p>
+<p>
+No. Es un trámite tuyo con la comercializadora. El casero no interviene (salvo darte el CUPS si no lo tienes).
+</p>
+
+<p><strong>Resumen ejecutivo:</strong> Cambio de titular el primer día, foto al contador siempre, y revisa las facturas con lupa. Así evitas el 95% de los problemas.</p>
 </article>
 </details>
-<!-- GUÍA 16: SERVICIOS EXTRA Y MANTENIMIENTO   -->
+
 <!-- ========================================== -->
-<details class="guia-card" id="guia-15">
+<!-- GUÍA 16: SERVICIOS EXTRA (AMPLIADA)       -->
+<!-- ========================================== -->
+<details class="guia-card" id="guia-16">
 <summary>
 <span class="guia-icon">🧰</span>
 <div class="guia-info">
-<h2 class="guia-title">Servicios extra y mantenimiento: cómo detectarlos y quitarlos</h3>
-<p class="guia-desc">La típica “cuota tonta” que te soplan sin que te enteres</p>
+<h2 class="guia-title">Servicios extra y mantenimiento: cómo detectarlos y quitarlos</h2>
+<p class="guia-desc">La típica "cuota tonta" que te soplan sin que te enteres</p>
 </div>
 <span class="guia-toggle">+</span>
 </summary>
 <article class="guia-content">
 <p class="guia-intro">
-      Si ves en la factura cosas tipo <strong>“servicio”, “protección”, “mantenimiento”, “asistencia”</strong> o una
-      <strong>cuota mensual</strong> que no entiendes… probablemente te han metido un extra.
-      Y muchas veces cuesta <strong>más que el ahorro</strong> de la tarifa “barata”.
-    </p>
-<h4>Cómo detectarlo en 30 segundos</h4>
-<ul>
-<li>Busca una línea con nombre “bonito”: <em>Protección Hogar</em>, <em>Asistencia 24h</em>, <em>Mantenimiento</em>, etc.</li>
-<li>Si pone <strong>€/mes</strong> fijo, mala señal (pagas sí o sí).</li>
-<li>Si el comercial te dijo “va incluido”, revisa si luego pone <strong>“gratis 3 meses”</strong> → después te cobran.</li>
-</ul>
-<h4>¿Cuándo puede compensar?</h4>
+Si ves en la factura cosas tipo <strong>"servicio", "protección", "mantenimiento", "asistencia"</strong> o una <strong>cuota mensual</strong> que no entiendes… probablemente te han metido un extra. Y muchas veces cuesta <strong>más que el ahorro</strong> de la tarifa "barata".
+</p>
+
+<h4>Tipos de servicios extra que te meten</h4>
+
+<p><strong>1. Mantenimiento o revisión</strong></p>
 <p>
-      Casi nunca, salvo que de verdad lo uses (averías frecuentes, instalaciones antiguas, o si te cubre cosas muy concretas).
-      Si no lo has pedido expresamente, mi consejo es claro: <strong>fuera</strong>.
-    </p>
-<h4>Cómo darlo de baja sin dramas</h4>
+"Revisión anual de instalación eléctrica", "mantenimiento del contador", "inspección técnica"…
+</p>
+<p>
+<strong>La realidad:</strong> El contador es de la distribuidora (ellos lo mantienen, no tú). La instalación dentro de tu casa es tu responsabilidad (la arreglas tú si quieres, no necesitas un "servicio de mantenimiento mensual").
+</p>
+<p>
+<strong>Cuánto cuesta:</strong> 3-6 €/mes (36-72 €/año)
+</p>
+
+<p><strong>2. Seguro o protección hogar</strong></p>
+<p>
+"Seguro de electrodomésticos", "protección integral hogar", "cobertura de averías"…
+</p>
+<p>
+<strong>La realidad:</strong> Suelen tener franquicias altas y exclusiones gordas. Si se te rompe algo, la mayoría de veces no te cubre. Y si te cubre, con lo que pagas en un año te habrías comprado un electrodoméstico nuevo.
+</p>
+<p>
+<strong>Cuánto cuesta:</strong> 5-10 €/mes (60-120 €/año)
+</p>
+
+<p><strong>3. Asistencia 24h</strong></p>
+<p>
+"Servicio de urgencias eléctricas", "asistencia telefónica 24/7"…
+</p>
+<p>
+<strong>La realidad:</strong> Si se te va la luz, llamas a tu distribuidora (gratis). Si es avería dentro de casa, llamas a un electricista (lo pagas tú, con o sin este servicio). Este "servicio" no aporta nada que no tengas ya.
+</p>
+<p>
+<strong>Cuánto cuesta:</strong> 2-4 €/mes (24-48 €/año)
+</p>
+
+<p><strong>4. Cuota de socio/gestión</strong></p>
+<p>
+"Cuota de socio", "cuota de gestión", "fee mensual"…
+</p>
+<p>
+<strong>La realidad:</strong> Literalmente nada. Te cobran por "gestionar" tu factura (que es su trabajo de base, para eso son comercializadoras). Puro humo.
+</p>
+<p>
+<strong>Cuánto cuesta:</strong> 2-5 €/mes (24-60 €/año)
+</p>
+
+<h4>Cómo te los cuelan (tácticas típicas)</h4>
+
+<p><strong>Táctica 1: "Va incluido en la tarifa"</strong></p>
+<p>
+Te dicen que es gratis los primeros 3-6 meses. Luego empiezan a cobrarte y muchos ni se dan cuenta.
+</p>
+
+<p><strong>Táctica 2: "Es obligatorio para esta tarifa"</strong></p>
+<p>
+Mentira. NINGÚN servicio extra es obligatorio. Puedes tener la tarifa sin el servicio. Si te dicen que es obligatorio, están mintiendo.
+</p>
+
+<p><strong>Táctica 3: "Sin el servicio te sale más caro"</strong></p>
+<p>
+Te dicen que si quitas el servicio, pierdes el descuento de la tarifa. Pide que te lo pongan por escrito con números. Normalmente es mentira y se callan.
+</p>
+
+<p><strong>Táctica 4: Te lo meten sin avisar</strong></p>
+<p>
+Contratas una tarifa por web/teléfono. En el contrato hay una casilla pre-marcada con el servicio. Si no la desmarcas, lo tienes.
+</p>
+
+<h4>Cómo detectarlos en tu factura</h4>
+
+<p>Busca líneas con palabras clave:</p>
+<ul>
+<li>"Servicio"</li>
+<li>"Mantenimiento"</li>
+<li>"Seguro"</li>
+<li>"Protección"</li>
+<li>"Asistencia"</li>
+<li>"Cuota"</li>
+<li>"Fee"</li>
+<li>"Suscripción"</li>
+</ul>
+
+<p>
+Si ves algo así, pregúntate: <strong>¿Yo pedí esto? ¿Sé para qué sirve? ¿Lo he usado alguna vez?</strong>
+</p>
+<p>
+Si la respuesta es NO a las tres preguntas → Fuera.
+</p>
+
+<h4>Cómo darlos de baja (paso a paso)</h4>
+
+<p><strong>1. Llama o escribe a tu comercializadora</strong></p>
+<p>
+Di claramente: "Quiero dar de baja el [nombre del servicio]". No des explicaciones ni te justifiques.
+</p>
+
+<p><strong>2. Graban tu petición (si es por teléfono)</strong></p>
+<p>
+Pide un número de referencia o solicitud. Apúntalo.
+</p>
+
+<p><strong>3. Pide confirmación por escrito</strong></p>
+<p>
+"¿Me podéis enviar un email confirmando la baja del servicio?" → Guárdalo.
+</p>
+
+<p><strong>4. Revisa la siguiente factura</strong></p>
+<p>
+Comprueba que ya no aparece. Si sigue ahí, reclama con el email/número de referencia que te dieron.
+</p>
+
+<p><strong>5. Si te marean (intentan convencerte de que no lo quites)</strong></p>
+<p>
+Sé firme: "No me interesa. Quiero la baja. Punto." Repite las veces que haga falta.
+</p>
+<p>
+Si insisten mucho: "Ponedme con un supervisor" o "Lo haré por escrito entonces" (eso les hace moverse rápido).
+</p>
+
+<h4>Caso real (muy típico)</h4>
+
+<p><strong>Situación:</strong> Contratas tarifa "super barata" a 0,11 €/kWh. Crees que vas a ahorrar.</p>
+<p><strong>Sorpresa:</strong> En la factura aparece "Servicio Hogar Plus" a 5,90 €/mes.</p>
+<p><strong>Resultado:</strong> Si consumes 200 kWh/mes, ese servicio añade 0,029 €/kWh a tu factura. Tu precio real es 0,139 €/kWh (no 0,11 €/kWh). No es tan barata.</p>
+<p><strong>Solución:</strong> Baja del servicio → Precio real 0,11 €/kWh → Ahora sí ahorras.</p>
+
+<h4>Cuándo SÍ puede interesarte un servicio extra</h4>
+
+<p>Muy pocos casos, pero existen:</p>
+<ul>
+<li><strong>Casa antigua con instalación eléctrica que da problemas</strong> → Un seguro de reparaciones puede compensar (pero léelo bien: franquicias, exclusiones…)</li>
+<li><strong>Segunda vivienda que usas poco</strong> → A veces un "servicio de vigilancia" puede tener sentido (pero compara precio con otras opciones)</li>
+<li><strong>Usas el servicio de verdad</strong> → Si llamas 3-4 veces al año y te resuelven cosas, puede valer la pena (pero sé honesto: ¿de verdad lo usas?)</li>
+</ul>
+
+<p>
+En el 95% de los casos, estos servicios NO compensan. Son puro margen para la empresa.
+</p>
+
+<h4>Red flags (señales de alarma)</h4>
+
+<ul>
+<li>Te lo ofrecen como "gratis" pero luego ves que te cobran</li>
+<li>No te explican claramente qué cubre</li>
+<li>Te dicen que es "obligatorio" (mentira)</li>
+<li>El precio del servicio es más de 5 €/mes</li>
+<li>No puedes darlo de baja fácilmente</li>
+<li>Tienes que llamar por teléfono para darlo de baja (no vale email)</li>
+</ul>
+
+<h4>Resumen ejecutivo</h4>
+
 <ol>
-<li>Pide la baja <strong>por escrito</strong> (email o formulario) y guarda el justificante.</li>
-<li>Si te marean por teléfono, repite: “<strong>Quiero la baja del servicio extra</strong>, sin cambiar mi tarifa”.</li>
-<li>Revisa la siguiente factura. Si sigue, reclama con el correo adjunto.</li>
+<li><strong>Revisa tu factura</strong> → Busca "servicio", "cuota", "mantenimiento"</li>
+<li><strong>Si no lo pediste o no lo usas</strong> → Baja inmediata</li>
+<li><strong>Llama y di "quiero dar de baja X"</strong> → Sin explicaciones</li>
+<li><strong>Pide confirmación por escrito</strong> → Guárdala</li>
+<li><strong>Revisa siguiente factura</strong> → Si sigue, reclama</li>
 </ol>
-<p><strong>Tip forocochero:</strong> si te dicen “sin mantenimiento te sale más caro”, pide que te lo pongan por escrito con números. Ahí se caen solos.</p>
+
+<p><strong>Bonus tip:</strong> Cuando contrates una tarifa nueva, pregunta ANTES: "¿Esta tarifa incluye algún servicio extra de pago?" → Si dicen que sí, pide que lo quiten ANTES de firmar.</p>
 </article>
 </details>
+
 <!-- ========================================== -->
-<!-- GUÍA 17: LECTURA REAL VS ESTIMADA          -->
+<!-- GUÍA 17: LECTURA REAL VS ESTIMADA (AMPLIADA) -->
 <!-- ========================================== -->
-<details class="guia-card" id="guia-16">
+<details class="guia-card" id="guia-17">
 <summary>
 <span class="guia-icon">🧾</span>
 <div class="guia-info">
-<h2 class="guia-title">Lectura real vs estimada: cómo evitar sustos y “facturones”</h3>
+<h2 class="guia-title">Lectura real vs estimada: cómo evitar sustos y "facturones"</h2>
 <p class="guia-desc">La telegestión funciona… hasta que no</p>
 </div>
 <span class="guia-toggle">+</span>
 </summary>
 <article class="guia-content">
 <p class="guia-intro">
-      Si el contador no comunica bien (o hay lío de lecturas), te pueden facturar con <strong>estimaciones</strong>.
-      Y cuando lo “corrigen” de golpe, llega el <strong>facturón</strong>. Esto se puede detectar y evitar.
-    </p>
+Si el contador no comunica bien (o hay lío de lecturas), te pueden facturar con <strong>estimaciones</strong>. Y cuando lo "corrigen" de golpe, llega el <strong>facturón</strong>. Esto se puede detectar y evitar.
+</p>
+
+<h4>Qué es lectura real vs estimada</h4>
+
+<p><strong>Lectura real:</strong></p>
+<p>
+La distribuidora lee tu contador (físicamente o por telegestión) y ve exactamente cuántos kWh has gastado. Eso es lo que te facturan. Perfecto.
+</p>
+
+<p><strong>Lectura estimada:</strong></p>
+<p>
+Por algún motivo (contador que no transmite, error de la distribuidora, zona sin cobertura…) no tienen tu lectura real. Entonces "estiman" cuánto has gastado basándose en:
+</p>
+<ul>
+<li>Tu consumo de meses anteriores</li>
+<li>Consumo medio de tu zona</li>
+<li>Época del año</li>
+<li>Un algoritmo que "calcula" cuánto deberías haber gastado</li>
+</ul>
+
+<p>
+Te facturan esa estimación. Y luego, cuando lean de verdad, te hacen un "ajuste" (a favor o en contra).
+</p>
+
+<h4>Por qué pasa esto</h4>
+
+<p><strong>Casos típicos:</strong></p>
+<ul>
+<li><strong>Contador antiguo (analógico):</strong> Alguien tiene que ir físicamente a leerlo. Si no van, estiman.</li>
+<li><strong>Contador digital con problemas de comunicación:</strong> El contador transmite por PLC (por los cables) o GSM (por móvil). Si hay interferencias o mala cobertura, no transmite.</li>
+<li><strong>Error de la distribuidora:</strong> A veces simplemente se equivocan o tienen un fallo técnico.</li>
+<li><strong>Zona rural/aislada:</strong> Menos infraestructura, más problemas de comunicación.</li>
+</ul>
+
 <h4>Cómo saber si te han estimado</h4>
+
+<p><strong>1. Mira tu factura</strong></p>
+<p>
+Debería poner claramente "Lectura REAL" o "Lectura ESTIMADA". Busca en la sección de consumo o en los datos del contador.
+</p>
+
+<p><strong>2. Comprueba los números</strong></p>
+<p>
+En la factura pone:
+</p>
 <ul>
-<li>En la factura suele poner “<strong>lectura estimada</strong>” o “<strong>lectura real</strong>”.</li>
-<li>Si no lo ves, compara con una foto del contador: si los números no cuadran, huele raro.</li>
+<li>Lectura anterior: X</li>
+<li>Lectura actual: Y</li>
+<li>Consumo: Y - X = Z kWh</li>
 </ul>
-<h4>Qué hacer (paso a paso)</h4>
+
+<p>
+Haz foto a tu contador. Compara el número del contador con el número "Lectura actual" de la factura. ¿Coinciden?
+</p>
+<ul>
+<li><strong>SÍ coinciden:</strong> Lectura real ✓</li>
+<li><strong>NO coinciden:</strong> Lectura estimada (o error)</li>
+</ul>
+
+<p><strong>3. El consumo es sospechosamente redondo</strong></p>
+<p>
+Si tu factura dice "300 kWh" exactos todos los meses, probablemente sea estimación (es raro consumir exactamente lo mismo cada mes).
+</p>
+
+<h4>Qué hacer si te facturan con estimación</h4>
+
+<p><strong>Opción 1: Esperar a que lean de verdad</strong></p>
+<p>
+Normalmente leen cada 1-2 meses. Cuando lean, te ajustan. Puede ser a tu favor (te devuelven) o en contra (te cobran más).
+</p>
+<p>
+<strong>Riesgo:</strong> Si la estimación fue baja y has consumido más, el ajuste puede ser un facturón.
+</p>
+
+<p><strong>Opción 2: Mandar foto del contador</strong></p>
+<p>
+Haz foto clara del contador (que se vea el número completo y la fecha). Mándala a tu comercializadora:
+</p>
+<ul>
+<li>Por email (área de cliente)</li>
+<li>Por la app (algunas tienen opción de "subir lectura")</li>
+<li>Por teléfono (les dices la lectura)</li>
+</ul>
+
+<p>
+Pide que rectifiquen la factura con la lectura real. Tienen que hacerlo.
+</p>
+
+<p><strong>Opción 3: Autoconsumo de lectura (en área cliente)</strong></p>
+<p>
+Algunas distribuidoras tienen una opción en su web/app donde TÚ introduces la lectura del contador cada mes. Así facturan siempre con datos reales.
+</p>
+
+<h4>El temido "facturón" (y cómo evitarlo)</h4>
+
+<p><strong>Qué pasa:</strong></p>
 <ol>
-<li>Haz foto del contador (con fecha si puedes).</li>
-<li>Contacta con la <strong>comercializadora</strong> para pedir refacturación si han estimado mal.</li>
-<li>Si el problema es que el contador no transmite, a veces toca hablar con la <strong>distribuidora</strong>.</li>
+<li>Te estiman 200 kWh/mes durante 3 meses (600 kWh estimados)</li>
+<li>En realidad has gastado 300 kWh/mes (900 kWh reales)</li>
+<li>Al 4º mes leen de verdad y ven la diferencia: 900 - 600 = 300 kWh de ajuste</li>
+<li>Te facturan los 300 kWh del mes + los 300 kWh de ajuste = 600 kWh en una factura</li>
+<li>Facturón del doble de lo normal</li>
 </ol>
-<h4>Truco rápido</h4>
-<p>
-      Si ves meses “demasiado baratos” sin explicación… normalmente no es que seas un ninja del ahorro: puede ser <strong>estimación a la baja</strong>.
-      Mejor pillarlo antes de que te lo cobren todo junto.
-    </p>
-</article>
-</details>
-<!-- ========================================== -->
-<!-- GUÍA 18: COCHE ELÉCTRICO                   -->
-<!-- ========================================== -->
-<details class="guia-card" id="guia-17">
-<summary>
-<span class="guia-icon">🚗</span>
-<div class="guia-info">
-<h2 class="guia-title">Coche eléctrico: cómo cargar barato sin volverte loco</h3>
-<p class="guia-desc">Reglas simples para pagar poco por km</p>
-</div>
-<span class="guia-toggle">+</span>
-</summary>
-<article class="guia-content">
-<p class="guia-intro">
-      Con coche eléctrico, la clave es cargar en <strong>valle</strong>. No necesitas vivir pegado al móvil ni mirar el precio cada hora:
-      con dos reglas te apañas.
-    </p>
-<h4>Regla 1: carga de noche (0–8h)</h4>
-<p>
-      En la mayoría de casos, programar la carga entre <strong>0:00 y 8:00</strong> ya te pone en modo barato.
-    </p>
-<h4>Regla 2: ojo con la potencia</h4>
+
+<p><strong>Cómo evitarlo:</strong></p>
 <ul>
-<li>Si cargas a 3,7 kW y a la vez pones horno + lavavajillas… puede saltar.</li>
-<li>Si puedes, usa cargador con control de potencia o limita amperios.</li>
+<li><strong>Manda foto del contador cada mes</strong> (o cada 2 meses) aunque la factura diga "estimada"</li>
+<li><strong>Revisa el contador tú mismo</strong>: compara con facturas anteriores, ve si el consumo tiene sentido</li>
+<li><strong>Si ves que estiman bajo</strong>, avisa a la comercializadora y manda lectura real</li>
 </ul>
-<h4>¿Cuánto cuesta “llenar”?</h4>
+
+<h4>Caso contrario: estimación alta (te devuelven dinero)</h4>
+
+<p><strong>Qué pasa:</strong></p>
+<ol>
+<li>Te estiman 300 kWh/mes durante 3 meses (900 kWh estimados)</li>
+<li>En realidad has gastado 200 kWh/mes (600 kWh reales)</li>
+<li>Cuando leen de verdad: te devuelven 300 kWh en la siguiente factura</li>
+<li>Factura "negativa" o muy baja ese mes</li>
+</ol>
+
 <p>
-      Truco: <strong>kWh cargados × precio del kWh</strong>. Si cargas 20 kWh en valle, normalmente te sale muy bien.
-      Si lo haces a las 20:00, te sablan.
-    </p>
-<p><strong>Consejo:</strong> si tu consumo fuerte es el coche, una tarifa con buen valle suele ganar aunque el punta no sea el mejor.</p>
+Esto está bien para ti (has pagado de más y te lo devuelven), pero significa que has financiado a la empresa durante meses.
+</p>
+
+<h4>Problemas técnicos del contador (qué hacer)</h4>
+
+<p><strong>Si tu contador NO transmite nunca:</strong></p>
+<ol>
+<li>Llama a tu <strong>distribuidora</strong> (no comercializadora)</li>
+<li>Explica que el contador no transmite y te facturan siempre estimado</li>
+<li>Pide que revisen el contador (a veces es un problema de configuración)</li>
+<li>Si no lo arreglan, pide cambio de contador</li>
+</ol>
+
+<p><strong>Si el contador marca mal (números locos):</strong></p>
+<ol>
+<li>Haz foto al contador con fecha</li>
+<li>Llama a la distribuidora</li>
+<li>Solicita revisión técnica del contador</li>
+<li>Si está roto, te lo cambian (gratis si es defecto, con coste si es por manipulación/daño tuyo)</li>
+</ol>
+
+<h4>Derechos del consumidor</h4>
+
+<p>
+Según la normativa:
+</p>
+<ul>
+<li><strong>Tienes derecho a que te facturen consumo real</strong>, no estimado indefinidamente</li>
+<li><strong>Puedes pedir lectura oficial</strong> a la distribuidora (puede tener coste si pides muchas)</li>
+<li><strong>Puedes aportar tú la lectura</strong> (foto del contador) y deben aceptarla</li>
+<li><strong>Si el contador está roto, deben repararlo/cambiarlo</strong></li>
+</ul>
+
+<h4>Truco pro: llevar tu propio control</h4>
+
+<p>
+Apunta en un Excel/papel:
+</p>
+<ul>
+<li>Fecha</li>
+<li>Lectura del contador</li>
+<li>Consumo del mes (diferencia con mes anterior)</li>
+<li>Consumo en factura (real o estimado)</li>
+</ul>
+
+<p>
+Así ves de un vistazo si te están estimando bien o mal. Y si viene un facturón, tienes tus datos para reclamar.
+</p>
+
+<h4>Resumen ejecutivo</h4>
+
+<ul>
+<li><strong>Lectura estimada:</strong> Te la cuelan cuando no leen tu contador</li>
+<li><strong>Facturón:</strong> Cuando corrigen de golpe tras meses de estimación baja</li>
+<li><strong>Cómo evitarlo:</strong> Manda foto del contador regularmente</li>
+<li><strong>Si el contador no transmite:</strong> Llama a la distribuidora</li>
+<li><strong>Tienes derecho:</strong> A que te facturen consumo real, siempre</li>
+</ul>
+
+<p><strong>Bonus:</strong> Haz foto a tu contador el 1 de cada mes. Tarda 10 segundos y te puede ahorrar disgustos.</p>
 </article>
 </details>
 <!-- ========================================== -->
-<!-- GUÍA 19: AEROTERMIA / TERMO / BOMBA CALOR  -->
+<!-- GUÍA 18: COCHE ELÉCTRICO (AMPLIADA)       -->
 <!-- ========================================== -->
 <details class="guia-card" id="guia-18">
 <summary>
-<span class="guia-icon">🔥</span>
+<span class="guia-icon">🚗</span>
 <div class="guia-info">
-<h2 class="guia-title">Aerotermia, termo y bomba de calor: 7 trucos para no pagar el doble</h3>
-<p class="guia-desc">Cuando el “consumo base” se dispara</p>
+<h2 class="guia-title">Coche eléctrico: qué tarifa elegir y cómo cargar barato</h2>
+<p class="guia-desc">Los números reales (no el cuento del comercial)</p>
 </div>
 <span class="guia-toggle">+</span>
 </summary>
 <article class="guia-content">
 <p class="guia-intro">
-      Si tienes aerotermia, termo eléctrico o bomba de calor, tu factura depende más del <strong>hábito</strong> que de la tarifa.
-      Aquí van trucos que funcionan sin ser ingeniero.
-    </p>
-<h4>Trucos que de verdad se notan</h4>
+Un coche eléctrico añade <strong>200-400 kWh/mes</strong> a tu factura. Pero cargarlo en P3 (valle) puede costarte <strong>la mitad</strong> que cargarlo en P1. Aquí los números reales y las trampas a evitar.
+</p>
+
+<h4>Cuánto consume realmente</h4>
+<p>
+Depende del coche y tu uso:
+</p>
 <ul>
-<li><strong>Programa ACS/termo</strong> en valle (0–8h) siempre que puedas.</li>
-<li>Evita “subir y bajar” temperaturas todo el día: mejor ajustes suaves.</li>
-<li>Revisa el <strong>consumo base nocturno</strong>: si es alto, hay algo chupando.</li>
-<li>Si tienes acumulación, aprovecha fines de semana (todo valle).</li>
-<li>Filtro limpio y mantenimiento básico: eficiencia real, no magia.</li>
-<li>Si salta el ICP, primero limita cargas simultáneas antes de subir potencia.</li>
-<li>Si tu consumo es muy estable todo el día, una buena fija puede ser más tranquila.</li>
+<li><strong>Coche pequeño (40 kWh batería):</strong> ~15 kWh/100 km → 15.000 km/año = 2.250 kWh/año (188 kWh/mes)</li>
+<li><strong>Coche medio (60 kWh batería):</strong> ~18 kWh/100 km → 15.000 km/año = 2.700 kWh/año (225 kWh/mes)</li>
+<li><strong>SUV grande (80+ kWh batería):</strong> ~22 kWh/100 km → 15.000 km/año = 3.300 kWh/año (275 kWh/mes)</li>
 </ul>
-<p><strong>Idea clave:</strong> con estos equipos, mover 1–2 horas de consumo gordo puede cambiar más que pelear por 0,5 céntimos/kWh.</p>
+
+<p><strong>Ejemplo concreto:</strong></p>
+<p>
+Tesla Model 3: 60 kWh batería, consumo real ~16 kWh/100 km. Haces 20.000 km/año = 3.200 kWh/año = 267 kWh/mes.
+</p>
+
+<h4>Qué te cuesta según cuándo cargues</h4>
+
+<p><strong>Escenario 1: Cargas en P1 (punta, 18-22h)</strong></p>
+<p>
+Precio P1 PVPC: ~0,16 €/kWh (promedio). 267 kWh × 0,16 = 42,72 €/mes = 512 € al año.
+</p>
+
+<p><strong>Escenario 2: Cargas en P3 (valle, de noche)</strong></p>
+<p>
+Precio P3 PVPC: ~0,08 €/kWh (promedio). 267 kWh × 0,08 = 21,36 €/mes = 256 € al año.
+</p>
+
+<p><strong>Diferencia: 256 € al año</strong> solo por cargar de noche en vez de por la tarde.</p>
+
+<h4>Mejor tarifa para coche eléctrico</h4>
+
+<p><strong>Si cargas SIEMPRE en casa de noche:</strong></p>
+<p>
+PVPC con discriminación horaria 3 periodos. Todo tu consumo de carga va a P3 (0,08-0,10 €/kWh). Imbatible.
+</p>
+
+<p><strong>Si cargas en casa pero a veces enchufas cuando llegas (18-22h):</strong></p>
+<p>
+Depende. Si más del 70% de las cargas son de noche, sigue compensando PVPC 3 periodos. Si no, haz cuentas.
+</p>
+
+<p><strong>Si cargas mitad casa/mitad cargador público:</strong></p>
+<p>
+En cargadores públicos pagas 0,35-0,50 €/kWh (caros). Céntrate en maximizar carga en casa de noche. PVPC 3 periodos sigue siendo lo mejor para la parte de casa.
+</p>
+
+<p><strong>Tarifas específicas coche eléctrico (mercado libre):</strong></p>
+<p>
+Algunas comercializadoras ofrecen tarifas "para vehículo eléctrico" con precios especiales en madrugada. Compara:
+</p>
+<ul>
+<li>¿Qué horario aplican? (si es 2-6h, muy limitado; si es 0-8h, mejor)</li>
+<li>¿Cuánto cuesta el resto del día?</li>
+<li>¿Hay cuotas extra o servicios?</li>
+<li>¿Comparado con PVPC P3, sale más barato?</li>
+</ul>
+<p>
+Haz números. Muchas veces PVPC 3 periodos sale igual o mejor.
+</p>
+
+<h4>Potencia: ¿necesitas subirla?</h4>
+
+<p><strong>Carga lenta (enchufar a toma normal):</strong></p>
+<p>
+2,3 kW (10A). Cargas 8h de noche = 18 kWh (suficiente para 100 km). No necesitas subir potencia.
+</p>
+
+<p><strong>Carga con wallbox (punto recarga):</strong></p>
+<p>
+3,7 kW (16A monofásico) → Cargas 8h = 30 kWh (~180 km)
+<br>
+7,4 kW (32A monofásico) → Cargas 8h = 59 kWh (batería llena mayoría coches)
+<br>
+11 kW (16A trifásico) → Cargas 8h = 88 kWh (baterías grandes llenas)
+</p>
+
+<p><strong>¿Necesitas wallbox?</strong></p>
+<p>
+Solo si:
+</p>
+<ul>
+<li>Haces muchos km al día (necesitas cargar rápido cada noche)</li>
+<li>Tienes varios coches eléctricos</li>
+<li>Quieres aprovechar excedentes de placas solares (cargar de día con tus placas)</li>
+</ul>
+
+<p>
+Para uso normal (50-100 km/día), enchufar a toma normal de noche es suficiente.
+</p>
+
+<p><strong>Subir potencia para wallbox:</strong></p>
+<p>
+Si tienes 3,45 kW (15A) y quieres wallbox 7,4 kW, necesitas subir a 5,75 kW (25A) o más. Eso tiene coste:
+</p>
+<ul>
+<li>Derechos de extensión: 20-50 €</li>
+<li>Diferencia en término de potencia: +5-10 €/mes</li>
+</ul>
+<p>
+Haz cuentas: ¿compensa pagar 10 €/mes más en potencia vs cargar más lento?
+</p>
+
+<h4>Errores típicos (y caros)</h4>
+
+<p><strong>Error 1: Cargar cuando llegas del trabajo (18-22h)</strong></p>
+<p>
+Es P1 (punta). Pagas el doble que de noche. Programa el coche/wallbox para que empiece a las 00:00h.
+</p>
+
+<p><strong>Error 2: Contratar tarifa "coche eléctrico" sin leer letra pequeña</strong></p>
+<p>
+Algunas tienen horario valle MUY limitado (3-5h) y el resto del día es caro. Haces las cuentas y PVPC 3 periodos sale mejor.
+</p>
+
+<p><strong>Error 3: Subir potencia sin necesitarla</strong></p>
+<p>
+"Me han dicho que necesito 7,4 kW para el coche". ¿De verdad? Si haces 60 km/día, con carga lenta de 8h tienes suficiente (18 kWh de noche = 110 km). No pagues potencia de más.
+</p>
+
+<p><strong>Error 4: No aprovechar carga inteligente</strong></p>
+<p>
+Los coches/wallbox modernos se pueden programar: "empieza a cargar a las 00:00h, termina a las 08:00h". Úsalo. No dejes el coche cargando en P1 porque "total, no tardo nada".
+</p>
+
+<h4>Cálculo rápido: cuánto te va a costar</h4>
+
+<p><strong>Fórmula:</strong></p>
+<p>
+(km al año / 100) × consumo coche (kWh/100km) × precio kWh = coste anual
+</p>
+
+<p><strong>Ejemplo:</strong></p>
+<p>
+15.000 km/año, coche consume 17 kWh/100km, cargas en P3 a 0,09 €/kWh:
+<br>
+(15.000 / 100) × 17 × 0,09 = 229,50 € al año.
+</p>
+
+<p>
+Compara con gasolina: 15.000 km, consumo 6 L/100km, gasolina 1,50 €/L:
+<br>
+(15.000 / 100) × 6 × 1,50 = 1.350 € al año.
+</p>
+
+<p>
+Diferencia: 1.120 € al año ahorrados. Y eso sin contar mantenimiento (el eléctrico es mucho más barato).</p>
+
+<h4>Consejo final</h4>
+<p>
+Coche eléctrico + PVPC 3 periodos + carga nocturna = la combinación perfecta. Pagas 0,08-0,10 €/kWh y te olvidas de gasolineras. Eso sí: disciplina para enchufar de noche, no cuando llegas.
+</p>
 </article>
 </details>
+
 <!-- ========================================== -->
-<!-- GUÍA 20: AUTOCONSUMO AVANZADO              -->
+<!-- GUÍA 19: AEROTERMIA/TERMO (AMPLIADA)      -->
 <!-- ========================================== -->
 <details class="guia-card" id="guia-19">
 <summary>
+<span class="guia-icon">🌡️</span>
+<div class="guia-info">
+<h2 class="guia-title">Aerotermia, termo eléctrico y bomba de calor: consumos reales y tarifas</h2>
+<p class="guia-desc">Números sin humo (y cómo evitar facturas de 200 €)</p>
+</div>
+<span class="guia-toggle">+</span>
+</summary>
+<article class="guia-content">
+<p class="guia-intro">
+Estos aparatos pueden multiplicar tu consumo por 2-3. Pero usados bien y con la tarifa correcta, siguen siendo <strong>más baratos</strong> que gas/gasoil. Aquí los consumos reales y cómo no arruinarte.
+</p>
+
+<h4>Consumos reales (datos de campo, no folletos)</h4>
+
+<p><strong>Termo eléctrico 80-100L (3-4 personas):</strong></p>
+<ul>
+<li>Potencia: 1,5-2 kW</li>
+<li>Calentar agua: 2-3h al día</li>
+<li>Consumo: 3-6 kWh/día = 90-180 kWh/mes</li>
+<li>Coste en P3: 7-14 €/mes</li>
+<li>Coste en P1: 14-29 €/mes (el doble)</li>
+</ul>
+
+<p><strong>Bomba de calor (aire acondicionado frío/calor):</strong></p>
+<ul>
+<li>Piso 80m²: 3.000W nominal</li>
+<li>Consumo real: 0,8-1,2 kW (según COP/EER)</li>
+<li>Uso intensivo (8h/día invierno): 8-10 kWh/día = 240-300 kWh/mes</li>
+<li>Coste en P3 (si puedes concentrarlo): 19-24 €/mes</li>
+<li>Coste mixto P1/P2/P3: 30-45 €/mes</li>
+</ul>
+
+<p><strong>Aerotermia (ACS + calefacción):</strong></p>
+<ul>
+<li>Casa 120m²: 4-6 kW instalados</li>
+<li>Consumo invierno: 400-600 kWh/mes (depende mucho del clima y aislamiento)</li>
+<li>Coste en P3: 32-48 €/mes</li>
+<li>Coste mixto: 50-80 €/mes</li>
+</ul>
+
+<p><strong>Comparativa con gas natural (para calefacción):</strong></p>
+<p>
+Casa 100m², consumo típico gas: 800-1.200 kWh/mes en invierno = 60-90 €/mes (a 0,075 €/kWh).
+<br>
+Misma casa con aerotermia: 300-450 kWh/mes (COP 3) = 36-54 €/mes en P3 o 45-68 €/mes mixto.
+<br>
+Aerotermia gana, pero por poco si no optimizas horarios.
+</p>
+
+<h4>Mejor tarifa según qué tengas</h4>
+
+<p><strong>Solo termo eléctrico:</strong></p>
+<p>
+Programa el termo para que se active en P3 (0-8h). PVPC 3 periodos. Así el termo consume de noche a 0,08 €/kWh en vez de 0,16 €/kWh en P1. Ahorras 7-15 €/mes solo con programarlo.
+</p>
+
+<p><strong>Bomba de calor (solo climatización):</strong></p>
+<p>
+Si puedes usarla sobre todo en P2/P3 (noche, fines de semana), PVPC 3 periodos. Si la usas todo el día porque trabajas en casa, haz números: a veces una tarifa plana del mercado libre puede compensar.
+</p>
+
+<p><strong>Aerotermia (calefacción + ACS):</strong></p>
+<p>
+La calefacción corre muchas horas al día (difícil concentrarla en P3). Opciones:
+</p>
+<ul>
+<li><strong>PVPC 3 periodos</strong> + programar bomba para que rinda más de noche (ej: subir temperatura acumulador por la noche, usar inercia térmica de día)</li>
+<li><strong>Tarifa plana</strong> del mercado libre (si usas mucho de día)</li>
+<li><strong>Tarifa específica aerotermia</strong> (algunas comercializadoras las ofrecen, revisa letra pequeña)</li>
+</ul>
+
+<h4>Cómo programar termo/bomba para ahorrar</h4>
+
+<p><strong>Termo eléctrico:</strong></p>
+<ol>
+<li>Instala programador horario (20 €) o enchufe inteligente (15 €)</li>
+<li>Programa: ON a las 00:00h, OFF a las 08:00h</li>
+<li>El termo calienta agua de noche (P3) y la mantiene caliente el resto del día (gasta muy poco en mantener)</li>
+<li>Ahorro: 7-15 €/mes</li>
+</ol>
+
+<p><strong>Bomba calor/aerotermia:</strong></p>
+<p>
+Usa modo "programado" del aparato:
+</p>
+<ul>
+<li><strong>Invierno:</strong> Calentar fuerte 23-01h (P2/inicio P3), luego mantener 20-21°C de día (consume poco en mantener si la casa está bien aislada)</li>
+<li><strong>Verano:</strong> Enfriar fuerte 0-8h (P3), luego mantener 24-25°C de día</li>
+</ul>
+
+<p>
+El truco: usar la inercia térmica de la casa. Calientas/enfrias de noche barato, y de día solo mantienes.
+</p>
+
+<h4>Potencia: ¿necesitas subirla?</h4>
+
+<p><strong>Termo + consumo normal casa:</strong></p>
+<p>
+Termo 1,5 kW + nevera 0,15 kW + standby 0,3 kW = 2 kW máximo simultáneo. Con 3,45 kW (15A) vas sobrado de noche. No necesitas subir.
+</p>
+
+<p><strong>Bomba calor 3 kW + resto casa:</strong></p>
+<p>
+Bomba 1,2 kW real + vitro 2 kW + lavadora 2 kW = hasta 5,2 kW si todo a la vez. Con 4,6 kW (20A) puede saltar. Opciones:
+</p>
+<ul>
+<li>No usar vitro/lavadora cuando la bomba está a tope (simple)</li>
+<li>Subir a 5,75 kW (25A) si usas todo simultáneamente a menudo</li>
+</ul>
+
+<p><strong>Aerotermia 6 kW instalados:</strong></p>
+<p>
+Consume ~2 kW reales de media (COP 3). Pero en pico frío puede pedir 4-5 kW. Si tienes 5,75 kW y usas vitro/horno a la vez, puede saltar. Mínimo 6,9 kW (30A) recomendable para aerotermia + casa normal.
+</p>
+
+<h4>Errores caros</h4>
+
+<p><strong>Error 1: Termo calentando agua a las 19:00h (P1)</strong></p>
+<p>
+Pagas 0,16 €/kWh. Con 3 kWh/día, 15 €/mes. Programándolo a P3, pagas 7 €/mes. Pierdes 8 €/mes por no poner un programador de 20 €.
+</p>
+
+<p><strong>Error 2: Aerotermia sin optimizar horarios</strong></p>
+<p>
+Si funciona plano todo el día, pagas precio medio-alto. Programándola para rendir más de noche, ahorras 20-30 €/mes.
+</p>
+
+<p><strong>Error 3: Temperatura termo demasiado alta</strong></p>
+<p>
+A 70°C gasta más que a 55°C (y 55°C es suficiente para ducha caliente). Cada 5°C de más son ~10% más de consumo.
+</p>
+
+<p><strong>Error 4: Casa mal aislada + aerotermia/bomba</strong></p>
+<p>
+Si tienes ventanas viejas, puentes térmicos, puertas que cierran mal… la bomba trabaja el triple y tú pagas el triple. Antes de instalar aerotermia, mejora aislamiento (rentabilidad mucho mayor).
+</p>
+
+<h4>Trucos para reducir consumo</h4>
+
+<ul>
+<li><strong>Termo:</strong> Envuélvelo con manta térmica si está en sitio frío (sótano, trastero). Reduce pérdidas 15-20%.</li>
+<li><strong>Bomba calor:</strong> No pongas 28°C en invierno. Cada grado de más = 7% más consumo. 21°C es suficiente con ropa de casa normal.</li>
+<li><strong>Aerotermia:</strong> Usa termostato programable. Bajar 2-3°C por la noche (cuando duermes con manta) ahorra 10-15%.</li>
+<li><strong>Todos:</strong> Mejora aislamiento ventanas (burletes, cortinas térmicas). Cuesta 50 € y ahorra 15-20 €/mes.</li>
+</ul>
+
+<h4>¿Compensa cambiar de gas a eléctrico?</h4>
+
+<p><strong>Caldera gas vs aerotermia (números reales):</strong></p>
+<p>
+Casa 100m², Madrid, invierno típico:
+</p>
+<ul>
+<li><strong>Gas:</strong> 1.000 kWh/mes × 0,075 €/kWh = 75 €/mes (solo gas, sin contar término fijo)</li>
+<li><strong>Aerotermia:</strong> 350 kWh/mes × 0,12 €/kWh promedio = 42 €/mes</li>
+<li><strong>Ahorro:</strong> 33 €/mes invierno = ~200 €/año</li>
+</ul>
+
+<p>
+Pero aerotermia cuesta 5.000-8.000 € instalada. Amortización: 25-40 años. Solo compensa si:
+</p>
+<ul>
+<li>Construyes casa nueva (la instalas de serie)</li>
+<li>Tu caldera está rota (tienes que cambiar sí o sí)</li>
+<li>Quieres independencia del gas (subidas futuras)</li>
+<li>Aprovechas subvenciones (pueden cubrir 30-40% del coste)</li>
+</ul>
+
+<p>
+Si tu caldera funciona bien, no compensa cambiarla solo por ahorro energético. Pero si toca renovar, aerotermia es buena opción a largo plazo.
+</p>
+
+<h4>Resumen ejecutivo</h4>
+
+<ul>
+<li><strong>Termo:</strong> Prográmalo en P3, ahorra 8-15 €/mes. Inversión 20 €.</li>
+<li><strong>Bomba calor:</strong> PVPC 3 periodos + programar para rendir de noche. Ahorro 15-25 €/mes.</li>
+<li><strong>Aerotermia:</strong> Optimiza horarios, baja temperatura de noche, mejora aislamiento. Puede ahorrar 30-50 €/mes vs uso caótico.</li>
+<li><strong>Potencia:</strong> Calcula picos reales antes de subir (no te pases).</li>
+</ul>
+
+<p><strong>Regla oro:</strong> Estos aparatos son eficientes, pero multiplicar consumo × precio P1 duele. Muévelos a P3 siempre que puedas.</p>
+</article>
+</details>
+
+<!-- ========================================== -->
+<!-- GUÍA 20: AUTOCONSUMO AVANZADO (AMPLIADA)  -->
+<!-- ========================================== -->
+<details class="guia-card" id="guia-20">
+<summary>
 <span class="guia-icon">☀️</span>
 <div class="guia-info">
-<h2 class="guia-title">Autoconsumo avanzado: excedentes, compensación y “batería virtual”</h3>
+<h2 class="guia-title">Autoconsumo avanzado: excedentes, compensación y "batería virtual"</h2>
 <p class="guia-desc">Lo que nadie te explica cuando te venden placas</p>
 </div>
 <span class="guia-toggle">+</span>
 </summary>
 <article class="guia-content">
 <p class="guia-intro">
-      Si ya sabes lo básico de placas, el siguiente nivel es entender <strong>qué pasa con lo que te sobra</strong>.
-      Porque ahí es donde te pueden vender humo con lo de “te sale gratis”.
-    </p>
-<h4>Compensación de excedentes (en cristiano)</h4>
+Si ya sabes lo básico de placas solares, el siguiente nivel es entender <strong>qué pasa con lo que te sobra</strong>. Porque ahí es donde te pueden vender humo con lo de "te sale gratis".
+</p>
+
+<h4>Compensación de excedentes (la realidad)</h4>
+
+<p><strong>Cómo funciona:</strong></p>
+<ol>
+<li>Produces más de lo que consumes en ese momento</li>
+<li>El excedente va a la red (lo "regalas" al sistema)</li>
+<li>Te lo compensan en la factura a un precio (normalmente bajo)</li>
+<li>Esa compensación se descuenta del término de energía</li>
+</ol>
+
+<p><strong>Precio de compensación típico:</strong></p>
 <ul>
-<li>Lo que viertes a la red te lo “pagan” a un precio (normalmente bajo).</li>
-<li>Ese dinero se descuenta en la factura, pero normalmente <strong>no puede dejarte el término de energía en negativo</strong> (depende del contrato, pero lo habitual es que no).</li>
+<li>PVPC: precio del pool en ese momento (~0,05-0,08 €/kWh de media)</li>
+<li>Mercado libre: lo que ponga en tu contrato (0,04-0,07 €/kWh típico)</li>
 </ul>
-<h4>¿Qué es la “batería virtual”?</h4>
+
+<p><strong>Comparación:</strong></p>
 <p>
-      No es una batería física. Es una hucha: acumulas saldo con excedentes y lo usas para compensar otras facturas o meses (según condiciones).
-      <strong>Ojo:</strong> suele tener letra pequeña (caducidad, topes, qué conceptos compensa…).
-    </p>
-<h4>Cómo saber si te interesa</h4>
+Compras electricidad a 0,12-0,16 €/kWh. Vendes excedentes a 0,05-0,08 €/kWh. No es 1:1. Por cada kWh que viertes, te compensan la mitad (o menos) de lo que te cuesta uno que compras.
+</p>
+
+<p><strong>Límite de compensación:</strong></p>
+<p>
+La compensación solo aplica al <strong>término de energía</strong> (€/kWh consumidos). NO compensa:
+</p>
 <ul>
-<li>Si tienes excedentes constantes y consumo bajo al mediodía → puede ayudar.</li>
-<li>Si consumes mucho cuando hay sol (lavadoras, cocina, carga EV) → casi mejor “autoconsumo directo”.</li>
-<li>Si te ofrecen batería virtual pero con cuota o permanencia → saca la lupa.</li>
+<li>Término de potencia</li>
+<li>Peajes/cargos (según modalidad)</li>
+<li>Alquiler contador</li>
+<li>Impuestos</li>
 </ul>
-<p><strong>Tip:</strong> tu objetivo real es <strong>consumir más cuando produces</strong>. La compensación es el plan B.</p>
+
+<p>
+Resultado: aunque produzcas lo mismo que consumes, no te va a salir "gratis". Sigues pagando término de potencia + alquiler + impuestos = 15-25 €/mes mínimo.
+</p>
+
+<h4>Batería virtual (el concepto con trampa)</h4>
+
+<p><strong>Qué te venden:</strong></p>
+<p>
+"Tus excedentes se guardan en una batería virtual y puedes usarlos cuando quieras. Es como tener una batería física pero sin coste."
+</p>
+
+<p><strong>La realidad:</strong></p>
+<p>
+No es una batería. Es una cuenta de "saldo". Tus excedentes se convierten en € o kWh virtuales que puedes usar para compensar otras facturas. Pero con letra pequeña:
+</p>
+
+<ul>
+<li><strong>Caducidad:</strong> El saldo suele caducar (3-12 meses típico). Si no lo usas, lo pierdes.</li>
+<li><strong>Qué compensa:</strong> Solo energía, no potencia ni resto de conceptos (igual que compensación normal).</li>
+<li><strong>Precio conversión:</strong> El € que acumulas al verter puede valer menos que el € que pagas al comprar (te lo convierten a peor precio).</li>
+<li><strong>Segunda vivienda:</strong> Algunas permiten usar saldo en otra vivienda tuya, pero con limitaciones.</li>
+</ul>
+
+<p><strong>Ejemplo real:</strong></p>
+<p>
+Produces 300 kWh de excedentes en verano. Te dan 0,06 €/kWh = 18 € de saldo.
+<br>
+En invierno consumes 400 kWh. Pagas 0,13 €/kWh = 52 €. Usas tu saldo de 18 € → Pagas 34 € ese mes.
+<br>
+Ahorro: 18 €. Pero ojo, produjiste 300 kWh que a ti te habrían costado 39 € comprarlos (300 × 0,13). Has "perdido" 21 €.
+</p>
+
+<p>
+No es mala, pero no es "gratis" ni "tan buena como batería física".
+</p>
+
+<h4>Batería física vs virtual (números sin humo)</h4>
+
+<p><strong>Batería física (10 kWh):</strong></p>
+<ul>
+<li><strong>Coste:</strong> 5.000-7.000 € instalada</li>
+<li><strong>Vida útil:</strong> 10-15 años (después pierde capacidad)</li>
+<li><strong>Eficiencia:</strong> 90-95% (pierdes 5-10% cargando/descargando)</li>
+<li><strong>Ventaja:</strong> Autoconsumo casi 100%, independencia de red</li>
+<li><strong>Ahorro anual:</strong> 200-400 € (depende de tu perfil de consumo)</li>
+<li><strong>Amortización:</strong> 15-30 años → Solo compensa si buscas independencia o tienes cortes frecuentes</li>
+</ul>
+
+<p><strong>Batería virtual:</strong></p>
+<ul>
+<li><strong>Coste:</strong> 0 € (viene con la tarifa)</li>
+<li><strong>Vida útil:</strong> Mientras tengas la tarifa</li>
+<li><strong>Eficiencia:</strong> 50-70% (por la diferencia de precios compra/venta)</li>
+<li><strong>Ventaja:</strong> Sin inversión inicial, fácil de entender</li>
+<li><strong>Ahorro anual:</strong> 50-150 € (depende de excedentes)</li>
+<li><strong>Amortización:</strong> Instantánea (no pagas nada)</li>
+</ul>
+
+<p><strong>Conclusión:</strong> Batería virtual gana en coste-beneficio para mayoría de casos. Batería física solo si buscas máxima autosuficiencia o tienes cortes de luz frecuentes.</p>
+
+<h4>Trucos para aprovechar excedentes al máximo</h4>
+
+<p><strong>1. Mueve consumos a horas de sol</strong></p>
+<p>
+Lavavajillas, lavadora, secadora: ponlas a mediodía (12-15h) cuando produces más. Así autoconsumo directo (100% aprovechado) en vez de verter y que te compensen solo al 50%.
+</p>
+
+<p><strong>2. Termo eléctrico de día (en verano)</strong></p>
+<p>
+Si tienes excedentes en verano, programa el termo para que caliente agua 12-16h (con tu sol) en vez de por la noche (comprando de red). Ahorro: 10-15 €/mes en verano.
+</p>
+
+<p><strong>3. Carga coche eléctrico de día (si teletrabajas)</strong></p>
+<p>
+Si trabajas en casa y tienes excedentes, carga el coche 10-16h. Aprovechas tu producción en vez de venderla barato y comprar caro por la noche.
+</p>
+
+<p><strong>4. Aire acondicionado en verano</strong></p>
+<p>
+Usa el aire de día (cuando produces). Por la noche, aguanta con ventilador. Así maximizas autoconsumo directo.
+</p>
+
+<h4>Modalidades de autoconsumo (qué elegir)</h4>
+
+<p><strong>Autoconsumo sin excedentes:</strong></p>
+<p>
+No viertes nada a la red (vertido = 0). Todo lo que produces lo consumes o se desperdicia. Solo tiene sentido si:
+</p>
+<ul>
+<li>Tu consumo de día es MUY alto (siempre consumes más de lo que produces)</li>
+<li>Trámites más simples (no necesitas contrato de compensación)</li>
+</ul>
+<p>
+Para casa normal, NO merece la pena. Pierdes los excedentes.</p>
+
+<p><strong>Autoconsumo con excedentes acogido a compensación:</strong></p>
+<p>
+Lo normal para viviendas. Produces, consumes, lo que sobra se compensa en factura. Requisitos:
+</p>
+<ul>
+<li>Potencia instalada ≤100 kW (todas las casas cumplen)</li>
+<li>Contrato con comercializadora que admita compensación (la mayoría)</li>
+<li>Tramitar en distribuidora</li>
+</ul>
+
+<p><strong>Autoconsumo con venta de excedentes:</strong></p>
+<p>
+En vez de compensación, vendes los excedentes como generador. Solo interesa para instalaciones grandes (empresas, naves). Requieres:
+</p>
+<ul>
+<li>Darte de alta como productor</li>
+<li>Facturar la venta</li>
+<li>Pagar impuestos sobre esa venta</li>
+</ul>
+<p>
+Para casa normal: olvídalo, líos fiscales que no compensan.</p>
+
+<h4>Errores típicos con placas + excedentes</h4>
+
+<p><strong>Error 1: Dimensionar placas "para cubrir todo tu consumo anual"</strong></p>
+<p>
+Te dicen "produces 4.000 kWh/año, consumes 4.000 kWh/año → perfecto". Pero olvidan que produces de día y consumes de noche. Resultado: vertido masivo en verano (mal compensado) y compras caras en invierno/noche. Mejor: dimensiona para cubrir consumo DE DÍA, no anual.</p>
+
+<p><strong>Error 2: No mover consumos a horas de sol</strong></p>
+<p>
+Sigues poniendo lavadoras de noche. Las placas no sirven de nada ahí. Autoconsumo real: 20-30%. Desaprovechas 70% de la inversión.</p>
+
+<p><strong>Error 3: Creer que "batería virtual = gratis"</strong></p>
+<p>
+Lees el folleto, piensas que produces 300 kWh y te los "devuelven" igual. Pero te compensan a 0,06 €/kWh y compras a 0,13 €/kWh. Pierdes la mitad del valor.</p>
+
+<p><strong>Error 4: Confundir compensación con balance neto</strong></p>
+<p>
+Balance neto era: produces 1 kWh, consumes 1 kWh → factura 0 €. Eso NO EXISTE ya en España (se eliminó en 2019). Ahora es compensación económica a precio de mercado (bajo). No te confundas.</p>
+
+<h4>Checklist antes de instalar placas</h4>
+
+<ul>
+<li>¿Tu consumo de día es alto? (si no, las placas rendirán poco)</li>
+<li>¿Puedes mover lavadora/lavavajillas/termo a mediodía?</li>
+<li>¿Tu comercializadora admite compensación excedentes?</li>
+<li>¿Entiendes que te compensan a precio BAJO (no 1:1)?</li>
+<li>¿Has calculado ROI realista? (amortización 8-12 años típico, no 4-5)</li>
+<li>¿Has incluido mantenimiento en el cálculo? (limpieza, inversor se rompe a los 10-15 años)</li>
+</ul>
+
+<h4>Consejo final</h4>
+<p>
+Placas solares son buena inversión a largo plazo (10-15 años), pero no son "gratis" ni te eliminan la factura. Con autoconsumo bien optimizado (mover consumos a día) puedes reducir factura 50-70%. Con batería virtual extra, 60-75%. Pero siempre pagarás algo (potencia, alquiler, impuestos). Los que te venden "factura 0 €" están mintiendo.
+</p>
 </article>
 </details>
-<details class="guia-card" id="guia-20">
-<summary>
-<span class="guia-icon">❓</span>
-<div class="guia-info">
-<h2 class="guia-title">Preguntas frecuentes sobre tarifas y facturas</h3>
-<p class="guia-desc">Dudas típicas que se repiten una y otra vez</p>
-</div>
-<span class="guia-toggle">+</span>
-</summary>
-<article class="guia-content">
-<p class="guia-intro">
-                Las dudas que todo el mundo tiene sobre la factura de la luz. Aquí te las resuelvo rápido y sin rollos.
-              </p>
-<h4>¿Por qué mi factura varía tanto de un mes a otro?</h4>
-<p>
-                Porque no consumes lo mismo todos los meses. En invierno/verano usas más calefacción/aire acondicionado. Además, si tienes PVPC, el precio de la electricidad cambia cada día según el mercado.
-              </p>
-<p>
-                También influye el número de días: si un mes te facturan 28 días y otro 35, obviamente pagas más en el segundo aunque consumas igual por día.
-              </p>
-<h4>¿Qué es mejor: pagar consumo real o estimado?</h4>
-<p>
-<strong>Real siempre.</strong> Con contador digital leen tu consumo real cada mes o cada dos meses. Con contador antiguo, a veces estiman y luego ajustan cuando vienen a leer.
-              </p>
-<p>
-                Si te facturan estimado, puedes mandar foto del contador a tu comercializadora para que rectifiquen. Así evitas sorpresas cuando hagan el ajuste final.
-              </p>
-<h4>¿Puedo cambiarme de compañía si debo dinero?</h4>
-<p>
-                Técnicamente sí, puedes cambiar de comercializadora aunque tengas deuda. Pero la deuda no desaparece: te la seguirá reclamando la compañía antigua.
-              </p>
-<p>
-                Además, si la deuda es gorda y no pagas, pueden cortarte la luz (aunque tienen que avisarte antes varias veces).
-              </p>
-<h4>¿Qué pasa si no pago la factura?</h4>
-<p>
-                Primero te mandan avisos y recargos por impago. Si sigues sin pagar, suspenden el suministro (te cortan la luz). Para volver a darla de alta después, te cobran reconexión (unos 10-50€) más la deuda pendiente.
-              </p>
-<p>
-                Si estás en bono social o situación vulnerable certificada, hay más protecciones y no pueden cortarte tan rápido. Pero no pagar nunca es la solución.
-              </p>
-
-<h4>¿Cómo reclamo si la compañía se equivoca?</h4>
-<p>
-                Si ves una factura rara (importe disparado, un servicio que no has contratado, lectura que no cuadra, cambio de tarifa sin avisar...), no te resignes: <strong>puedes reclamar</strong>.
-              </p>
-<p><strong>Paso 1: reclama a tu comercializadora</strong></p>
-<ul>
-<li>Llama al teléfono gratuito de atención al cliente o usa su área de cliente / correo electrónico.</li>
-<li>Explica el problema con calma y aporta datos: CUPS, número de factura, lectura del contador, fotos y copia del contrato.</li>
-<li>Pide siempre un <strong>número de referencia</strong> y un justificante por escrito. Por ley deben darte constancia de tu reclamación.</li>
-</ul>
-<p>
-                La comercializadora tiene <strong>un máximo de 30 días</strong> para contestarte por escrito. Si no te responden o la respuesta no te convence:
-              </p>
-<p><strong>Paso 2: organismo de consumo o de energía</strong></p>
-<ul>
-<li>Acude a la <strong>OMIC</strong> (Oficina Municipal de Información al Consumidor) o al organismo de consumo de tu Comunidad Autónoma.</li>
-<li>Si tu contrato es <strong>PVPC</strong> o el problema es de facturación regulada o cortes, normalmente lo lleva el órgano competente en energía de tu Comunidad Autónoma.</li>
-<li>Pregunta si la empresa está adherida al <strong>Sistema Arbitral de Consumo</strong>: es gratuito y la resolución es vinculante para ambas partes.</li>
-</ul>
-<p>
-                Si aun así no se resuelve, siempre te queda la vía judicial (normalmente solo compensa si el importe es alto). Para la mayoría de casos domésticos, con reclamar bien documentado a la compañía y luego a consumo suele ser suficiente.
-              </p>
-<h4>¿Cuánto tarda un cambio de comercializadora?</h4>
-<p>
-                Legalmente, máximo 1 mes desde que lo pides. En la práctica, entre 15-30 días. Tu nueva comercializadora se encarga de casi todo, tú solo firmas el contrato.
-              </p>
-<p>
-                Durante el cambio, no te cortan la luz ni te quedas sin suministro. Pasa automático de una a otra.
-              </p>
-<h4>¿Me pueden cobrar penalización si cancelo mi contrato?</h4>
-<p>
-                Depende del contrato. Muchas ofertas del mercado libre tienen permanencia (6 meses, 1 año...). Si te vas antes, te cobran penalización (suele ser el descuento que te aplicaban multiplicado por los meses que te quedan).
-              </p>
-<p>
-                La PVPC no tiene permanencia: te cambias cuando quieras sin penalización.
-              </p>
-<h4>¿Qué es el término fijo y el término variable?</h4>
-<ul>
-<li><strong>Término fijo (potencia):</strong> Lo que pagas por tener la potencia contratada, uses o no uses. Se paga por días.</li>
-<li><strong>Término variable (energía):</strong> Lo que pagas por lo que realmente consumes (kWh). Depende de tu uso.</li>
-</ul>
-<p>
-                Si bajas la potencia, reduces el término fijo. Si consumes menos, reduces el término variable. Son dos conceptos separados.
-              </p>
-<h4>¿Los festivos cuentan como P3 (valle)?</h4>
-<p>
-                Solo los festivos <strong>estatales</strong> (1 enero, 6 enero, 1 mayo, 15 agosto, 12 octubre, 1 noviembre, 6 diciembre, 8 diciembre, 25 diciembre + Viernes Santo).
-              </p>
-<p>
-                Los festivos autonómicos o locales <strong>NO cuentan</strong>: ese día va con horarios de laborable normal (P1, P2, P3 según la hora). Sorpresa que muchos no saben.
-              </p>
-<h4>¿Necesito cambiar el contador para poner placas solares?</h4>
-<p>
-                Depende. Si tu contador ya es digital bidireccional (mide entrada y salida), vale. Si es antiguo, te lo cambian por uno que mida en ambos sentidos. Lo gestiona tu distribuidora (no tu comercializadora).
-              </p>
-<h4>¿Puedo reclamar si creo que mi factura está mal?</h4>
-<p>
-                Sí, y debes. Primero contacta con tu comercializadora (por escrito: email, formulario web...). Si no te solucionan, reclama en:
-              </p>
-<ul>
-<li><strong>Consumo de tu comunidad autónoma:</strong> Oficinas de consumidor.</li>
-<li><strong>CNMC:</strong> Comisión Nacional de los Mercados y la Competencia (tienen formulario online).</li>
-<li><strong>Arbitraje de consumo:</strong> Gratuito y vinculante si tu comercializadora está adherida.</li>
-</ul>
-<p>
-                Guarda siempre copia de facturas, emails y cualquier comunicación. Te hará falta si llega la cosa a reclamación formal.
-              </p>
-<h4>¿Merece la pena contratar un gestor/asesor energético?</h4>
 <p>
                 Para viviendas normales, no suele merecer. Usa este comparador (gratis) y listo. Para empresas con consumo alto o instalaciones complejas (autoconsumo, excedentes...), puede valer la pena pagar a alguien que optimice todo. Pero para el 90% de la gente, no hace falta.
               </p>
