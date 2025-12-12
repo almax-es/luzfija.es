@@ -289,6 +289,7 @@
 
       // ========== DETECCIÓN Y EXTRACCIÓN POR COMPAÑÍA ==========
       
+      
       function __LF_detectarCompania(texto){
         const t = texto.toLowerCase();
 
@@ -300,7 +301,39 @@
           t.includes('b98717457')
         ) return 'ganaenergia';
 
-        if (t.includes('endesa')) return 'endesa';
+        // ✅ Visalia / Grupo Visalia (comercializadora) — evitar falso positivo por "Distribuidora: ENDESA"
+        // En esta factura aparecen señales claras de Visalia (dominio/email/CIF), aunque la distribuidora sea ENDESA.
+        if (
+          t.includes('visalia.com.es') ||
+          t.includes('clientes@grupovisalia.com') ||
+          t.includes('datos@grupovisalia.com') ||
+          t.includes('grupovisalia') ||
+          t.includes('doméstica gas y electricidad') || t.includes('domestica gas y electricidad') ||
+          t.includes('b99340564')
+        ) return 'visalia';
+
+        // ⚠️ Endesa: NO detectar por la distribuidora (e-distribución / endesadistribucion).
+        // Solo marcamos "endesa" cuando hay señales claras de la comercializadora.
+        if (t.includes('endesa')) {
+          const endesaCom = (
+            t.includes('endesa energía') || t.includes('endesa energia') ||
+            t.includes('endesaenergia') ||
+            t.includes('endesaclientes') || t.includes('endesa clientes') ||
+            t.includes('@endesa') ||
+            t.includes('www.endesa') || t.includes('endesa.com')
+          );
+
+          const endesaDist = (
+            t.includes('endesadistribucion') ||
+            t.includes('zonaprivada.endesadistribucion') ||
+            t.includes('e-distribución') || t.includes('e-distribucion') ||
+            (t.includes('distribuidora') && t.includes('endesa'))
+          );
+
+          if (endesaCom) return 'endesa';
+          if (!endesaDist) return 'endesa'; // "ENDESA" sin señales de distribuidora: asumimos comercializadora
+          // Si solo aparece por la distribuidora, NO clasificamos como endesa
+        }
 
         // ⚠️ Iberdrola: NO detectar por la distribuidora (i-DE / IBERDROLA DISTRIBUCION).
         // Solo marcamos "iberdrola" cuando hay señales claras de la comercializadora.
@@ -316,7 +349,7 @@
         if (t.includes('iberdrola')) {
           const iberDist = (
             t.includes('iberdrola distribuci') ||
-            t.includes('distribuidora') && t.includes('iberdrola') ||
+            (t.includes('distribuidora') && t.includes('iberdrola')) ||
             t.includes('i-de') || t.includes('i de redes') ||
             t.includes('redes eléctricas inteligentes') || t.includes('redes electricas inteligentes')
           );
@@ -324,24 +357,28 @@
           if (!iberDist) return 'iberdrola'; // "Iberdrola" sin señales de distribuidora: asumimos comercializadora
           // Si solo aparece por la distribuidora, NO clasificamos como iberdrola
         }
+
         if (t.includes('totalenergies')) return 'totalenergies';
         if (t.includes('octopus')) return 'octopus';
+
+        // Visalia (fallback por nombre)
         if (t.includes('visalia')) return 'visalia';
+
         if (t.includes('energía xxi') || t.includes('energia xxi') || t.includes('energiaxxi')) return 'energiaxxi';  // ANTES de plenitude
         if (t.includes('plenitude') || t.includes('eni')) return 'plenitude';
+
         // Enérgya VM: múltiples variantes
         if (t.includes('enérgya vm') || t.includes('energya vm') || t.includes('energya-vm') || 
             t.includes('enérgya') || t.includes('energyavm') || 
             (t.includes('energ') && t.includes('gestión'))) return 'energyavm';
-        
+
         // Imagina Energía
         if (t.includes('imagina energía') || t.includes('imagina energia') || t.includes('imaginaenergia')) return 'imagina';
         if (t.includes('imagina') && t.includes('energ')) return 'imagina';
-        
+
         return 'generico';
       }
-      
-      // Extraer días según compañía
+// Extraer días según compañía
       function __LF_extraerDiasCompania(texto, compania){
         switch(compania){
           case 'endesa':
