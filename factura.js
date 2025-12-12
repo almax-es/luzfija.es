@@ -291,9 +291,39 @@
       
       function __LF_detectarCompania(texto){
         const t = texto.toLowerCase();
-        
+
+        // ✅ Gana Energía (comercializadora) — evitar falso positivo por "IBERDROLA DISTRIBUCION" (distribuidora i-DE)
+        if (
+          t.includes('gana energía') || t.includes('gana energia') ||
+          t.includes('ganaenergia.com') || t.includes('clientes@ganaenergia.com') ||
+          t.includes('gaolania') || t.includes('gaolania servicios') ||
+          t.includes('b98717457')
+        ) return 'ganaenergia';
+
         if (t.includes('endesa')) return 'endesa';
-        if (t.includes('iberdrola')) return 'iberdrola';
+
+        // ⚠️ Iberdrola: NO detectar por la distribuidora (i-DE / IBERDROLA DISTRIBUCION).
+        // Solo marcamos "iberdrola" cuando hay señales claras de la comercializadora.
+        const iberCom = (
+          t.includes('iberdrola clientes') ||
+          t.includes('iberdrola comercial') ||
+          t.includes('iberdrola comercializ') ||
+          t.includes('curenergia') || t.includes('curenergía') ||
+          t.includes('@iberdrola.') ||
+          t.includes('www.iberdrola') || t.includes('iberdrola.es') || t.includes('iberdrola.com')
+        );
+
+        if (t.includes('iberdrola')) {
+          const iberDist = (
+            t.includes('iberdrola distribuci') ||
+            t.includes('distribuidora') && t.includes('iberdrola') ||
+            t.includes('i-de') || t.includes('i de redes') ||
+            t.includes('redes eléctricas inteligentes') || t.includes('redes electricas inteligentes')
+          );
+          if (iberCom) return 'iberdrola';
+          if (!iberDist) return 'iberdrola'; // "Iberdrola" sin señales de distribuidora: asumimos comercializadora
+          // Si solo aparece por la distribuidora, NO clasificamos como iberdrola
+        }
         if (t.includes('totalenergies')) return 'totalenergies';
         if (t.includes('octopus')) return 'octopus';
         if (t.includes('visalia')) return 'visalia';
@@ -741,6 +771,7 @@
           const nombres = {
             'endesa': 'Endesa Energía',
             'iberdrola': 'Iberdrola',
+            'ganaenergia': 'Gana Energía',
             'totalenergies': 'TotalEnergies',
             'energyavm': 'Enérgya VM',
             'octopus': 'Octopus Energy',
