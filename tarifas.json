@@ -85,7 +85,7 @@
       "tipo": "1P"
     },
     {
-      "nombre": "Gane Energía",
+      "nombre": "Gana Energía",
       "cPunta": 0.119,
       "cLlano": 0.119,
       "cValle": 0.119,
@@ -169,7 +169,7 @@
       "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año."
     },
     {
-      "nombre": "Gane Energía",
+      "nombre": "Gana Energía",
       "cPunta": 0.168,
       "cLlano": 0.105,
       "cValle": 0.0081,
@@ -231,7 +231,7 @@
       "tipo": "3P"
     }
   ],
-  "timestamp": "2025-12-13T16:32:30.843Z",
-  "publishedAt": "2025-12-13T16:32:30.843Z",
-  "publishedAtEpoch": 1765643550843
+  "timestamp": "2025-12-13T16:46:33.967Z",
+  "publishedAt": "2025-12-13T16:46:33.967Z",
+  "publishedAtEpoch": 1765644393967
 }
