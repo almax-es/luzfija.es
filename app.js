@@ -614,8 +614,10 @@
       // Detectar si viene de restablecer
       const urlParams = new URLSearchParams(window.location.search);
       const isReset = urlParams.get('reset') === '1';
-      
+
       if (isReset) {
+        try { localStorage.removeItem(LS_KEY); } catch(e){}
+        try { sessionStorage.removeItem(LS_KEY); } catch(e){}
         // Limpiar URL sin recargar
         window.history.replaceState({}, '', window.location.pathname);
         // Usar solo DEFAULTS, ignorar localStorage
@@ -1236,6 +1238,8 @@
       el.btnReset.addEventListener('click',(e)=>{
         createRipple(el.btnReset,e);
         toggleMenu(false);
+        try { localStorage.removeItem(LS_KEY); } catch(e){}
+        try { sessionStorage.removeItem(LS_KEY); } catch(e){}
         window.location.href = window.location.pathname + '?reset=1';
       });
 
