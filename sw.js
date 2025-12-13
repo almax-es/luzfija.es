@@ -5,9 +5,7 @@
 // - tarifas.json: stale-while-revalidate (sirve cache al instante y actualiza en segundo plano)
 // - resto de estáticos: stale-while-revalidate (sirve cache rápido y actualiza en segundo plano)
 
-// IMPORTANTE: si cambias este fichero, incrementa CACHE_NAME para forzar la actualización.
-const CACHE_NAME = "luzfija-static-v4";
-
+const CACHE_NAME = "luzfija-static-v3";
 const ASSETS = [
   "/",
   "/index.html",
@@ -17,34 +15,30 @@ const ASSETS = [
   "/factura.js",
   "/tarifas.json",
   "/guias.html",
-  "/manifest.webmanifest",
   "/logo-512.png",
   "/icon-192.png",
   "/og.png",
   "/favicon.ico",
   "/favicon.png",
-  "/favicon.svg",
+  "/favicon.svg"
   "/favicon-48x48.png",
   "/favicon-96x96.png",
-  "/apple-touch-icon.png"
+  "/apple-touch-icon.png",
+
 ];
 
-self.addEventListener("install", (event) => {
+self.addEventListener("install", event => {
   event.waitUntil(
-    caches
-      .open(CACHE_NAME)
-      .then((cache) => cache.addAll(ASSETS))
+    caches.open(CACHE_NAME)
+      .then(cache => cache.addAll(ASSETS))
       .then(() => self.skipWaiting())
   );
 });
 
-self.addEventListener("activate", (event) => {
+self.addEventListener("activate", event => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-      )
+    caches.keys()
+      .then(keys => Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });
@@ -52,12 +46,10 @@ self.addEventListener("activate", (event) => {
 async function cachePutSafe(cache, req, res) {
   try {
     if (res && res.ok) await cache.put(req, res.clone());
-  } catch (_) {
-    /* ignore */
-  }
+  } catch (_) { /* ignore */ }
 }
 
-self.addEventListener("fetch", (event) => {
+self.addEventListener("fetch", event => {
   const req = event.request;
 
   // Solo manejamos peticiones GET
@@ -73,71 +65,65 @@ self.addEventListener("fetch", (event) => {
 
   // Navegación (HTML): network-first
   if (req.mode === "navigate" || req.destination === "document") {
-    event.respondWith(
-      (async () => {
-        const cache = await caches.open(CACHE_NAME);
-        try {
-          const fresh = await fetch(req);
-          await cachePutSafe(cache, req, fresh);
-          return fresh;
-        } catch (_) {
-          return (await cache.match(req)) || (await cache.match("/index.html")) || Response.error();
-        }
-      })()
-    );
-    return;
-  }
-
-  // Tarifas: stale-while-revalidate (sirve cache al instante y actualiza en segundo plano)
-  if (url.pathname === "/tarifas.json") {
-    event.respondWith(
-      (async () => {
-        const cache = await caches.open(CACHE_NAME);
-
-        // Normalizamos la clave para que funcione también si la app pide /tarifas.json?v=...
-        const cacheKey = new Request("/tarifas.json");
-        const cached = (await cache.match(cacheKey)) || (await cache.match(req));
-
-        const fetchPromise = fetch(req, { cache: "no-store" })
-          .then(async (res) => {
-            await cachePutSafe(cache, cacheKey, res);
-            return res;
-          })
-          .catch(() => null);
-
-        if (cached) {
-          event.waitUntil(fetchPromise);
-          return cached;
-        }
-
-        const fresh = await fetchPromise;
-        return fresh || Response.error();
-      })()
-    );
-    return;
-  }
-
-  // Resto: stale-while-revalidate
-  event.respondWith(
-    (async () => {
+    event.respondWith((async () => {
       const cache = await caches.open(CACHE_NAME);
-      const cached = await cache.match(req);
-
-      const fetchPromise = fetch(req).then(async (fresh) => {
+      try {
+        const fresh = await fetch(req);
         await cachePutSafe(cache, req, fresh);
         return fresh;
-      });
+      } catch (_) {
+        return (await cache.match(req)) || (await cache.match("/index.html")) || Response.error();
+      }
+    })());
+    return;
+  }
+
+    // Tarifas: stale-while-revalidate (sirve cache al instante y actualiza en segundo plano)
+  if (url.pathname === "/tarifas.json") {
+    event.respondWith((async () => {
+      const cache = await caches.open(CACHE_NAME);
+
+      // Normalizamos la clave para que funcione también si la app pide /tarifas.json?v=...
+      const cacheKey = new Request("/tarifas.json");
+      const cached = (await cache.match(cacheKey)) || (await cache.match(req));
+
+      const fetchPromise = fetch(req, { cache: "no-store" })
+        .then(async res => {
+          await cachePutSafe(cache, cacheKey, res);
+          return res;
+        })
+        .catch(() => null);
 
       if (cached) {
-        event.waitUntil(fetchPromise.catch(() => {}));
+        event.waitUntil(fetchPromise);
         return cached;
       }
 
-      try {
-        return await fetchPromise;
-      } catch (_) {
-        return Response.error();
-      }
-    })()
-  );
+      const fresh = await fetchPromise;
+      return fresh || Response.error();
+    })());
+    return;
+  }
+
+// Resto: stale-while-revalidate
+  event.respondWith((async () => {
+    const cache = await caches.open(CACHE_NAME);
+    const cached = await cache.match(req);
+
+    const fetchPromise = fetch(req).then(async fresh => {
+      await cachePutSafe(cache, req, fresh);
+      return fresh;
+    });
+
+    if (cached) {
+      event.waitUntil(fetchPromise.catch(() => {}));
+      return cached;
+    }
+
+    try {
+      return await fetchPromise;
+    } catch (_) {
+      return Response.error();
+    }
+  })());
 });
