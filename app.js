@@ -1,3 +1,24 @@
+// ===== LuzFija: consola silenciosa por defecto (activar con ?debug=1) =====
+(function () {
+  try {
+    const params = new URLSearchParams(location.search);
+    const debug =
+      params.get("debug") === "1" ||
+      localStorage.getItem("lf_debug") === "1";
+
+    if (!debug) {
+      const noop = function () {};
+      console.log = noop;
+      console.debug = noop;
+      console.info = noop;
+      // Mantener errores visibles por si algo falla de verdad:
+      // console.warn y console.error NO se tocan
+    }
+  } catch (e) {
+    // Si algo falla aquí, no romper la app
+  }
+})();
+
     const $ = id => document.getElementById(id);
 
     // URL DEL JSON ESTÁTICO DE TARIFAS EN EL MISMO HOST
