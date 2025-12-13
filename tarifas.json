@@ -172,7 +172,7 @@
       "nombre": "Gana Energía 3P",
       "cPunta": 0.168,
       "cLlano": 0.105,
-      "cValle": 0.0081,
+      "cValle": 0.081,
       "p1": 0.1274,
       "p2": 0.0493,
       "web": "https://ganaenergia.com/tarifas-luz/tramos-horarios",
@@ -231,7 +231,7 @@
       "tipo": "3P"
     }
   ],
-  "timestamp": "2025-12-13T16:47:51.303Z",
-  "publishedAt": "2025-12-13T16:47:51.303Z",
-  "publishedAtEpoch": 1765644471303
+  "timestamp": "2025-12-13T17:31:54.850Z",
+  "publishedAt": "2025-12-13T17:31:54.850Z",
+  "publishedAtEpoch": 1765647114850
 }
