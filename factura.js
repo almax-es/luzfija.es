@@ -527,7 +527,7 @@
 
         // --- Fechas y días ---
         const dateSep = '[\\/\\.\\-]';
-        const D = `(\\d{1,2})${dateSep}(\\d{1,2})${dateSep}(\\d{2,4})`;
+        const D = `(?:\\d{1,2})${dateSep}(?:\\d{1,2})${dateSep}(?:\\d{2,4})`;
         const reRango = new RegExp(`(?:del|desde)\\s*(${D})\\s*(?:al|hasta|a)\\s*(${D})`, 'i');
         const reRango2 = new RegExp(`(?:periodo|per[ií]odo|facturaci[oó]n)[^0-9]{0,40}(${D})\\s*(?:-|–|—|a)\\s*(${D})`, 'i');
 
