@@ -1,3 +1,5 @@
 User-agent: *
 Allow: /
+Disallow: /api/
+Disallow: /tests-calculos.html
 Sitemap: https://luzfija.es/sitemap.xml

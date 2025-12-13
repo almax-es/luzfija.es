@@ -35,6 +35,31 @@
         if (__LF_pdfjsLoading) {
           await __LF_pdfjsLoading;
         }
+        if (window.pdfjsLib && __LF_ensurePdfWorker()) return window.pdfjsLib;
+        const existingScript = document.querySelector('script[src*="pdfjs-dist@3.11.174/build/pdf.min.js"]');
+        if (existingScript && !window.pdfjsLib){
+          if (!__LF_pdfjsLoading){
+            __LF_pdfjsLoading = new Promise((resolve) => {
+              let done = false;
+              let timer;
+              const finish = () => {
+                if (done) return;
+                done = true;
+                existingScript.removeEventListener("load", onLoad);
+                existingScript.removeEventListener("error", onError);
+                clearTimeout(timer);
+                resolve();
+              };
+              const onLoad = () => finish();
+              const onError = () => finish();
+              timer = setTimeout(finish, 4000);
+              existingScript.addEventListener("load", onLoad);
+              existingScript.addEventListener("error", onError);
+            });
+          }
+          await __LF_pdfjsLoading;
+          __LF_pdfjsLoading = null;
+        }
         if (!window.pdfjsLib){
           const src = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js";
           __LF_pdfjsLoading = __LF_loadScript(src);
