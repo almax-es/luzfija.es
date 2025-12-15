@@ -1268,20 +1268,97 @@
         createRipple(el.btnExport,e);
         toggleMenu(false);
         if(!state.rows || state.rows.length === 0){ toast('No hay datos para descargar','err'); return; }
-        const headers = ['#','Tarifa','Potencia','Consumo','Impuestos','Total','Vs Mejor','Tipo','Web'];
-        const rows = state.rows.map(r=>[r.posicion,r.nombre,r.potencia,r.consumo,r.impuestos,r.total,r.vsMejor,r.tipo,r.webUrl||'']);
-        const csv = [headers, ...rows].map(r=>r.join(';')).join('\n');
+
+        // Obtener valores actuales
+        const valores = getInputValues();
+        const fechaLegible = new Date().toLocaleDateString('es-ES', { 
+          year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit'
+        });
+
+        // ===== SECCIÓN 1: METADATOS =====
+        const metadatos = [
+          ['COMPARACIÓN DE TARIFAS ELÉCTRICAS - LUZFIJA.ES'],
+          ['Fecha de cálculo', fechaLegible],
+          [''],
+          ['=== TUS DATOS ==='],
+          ['Potencia P1 (kW)', valores.p1],
+          ['Potencia P2 (kW)', valores.p2],
+          ['Días de facturación', valores.dias],
+          ['Consumo Punta (kWh)', valores.cPunta],
+          ['Consumo Llano (kWh)', valores.cLlano],
+          ['Consumo Valle (kWh)', valores.cValle],
+          ['Consumo Total (kWh)', (parseFloat(valores.cPunta||0) + parseFloat(valores.cLlano||0) + parseFloat(valores.cValle||0)).toFixed(2)],
+          ['Zona fiscal', valores.zonaFiscal || 'Península'],
+          [''],
+          ['=== RESUMEN ==='],
+          ['Tarifas analizadas', state.rows.length],
+          ['Tarifa más barata', state.rows[0]?.nombre || 'N/A'],
+          ['Precio más bajo', state.rows[0]?.total || 'N/A'],
+          ['Precio más alto', state.rows[state.rows.length-1]?.total || 'N/A'],
+          [''],
+          ['=== RANKING COMPLETO ==='],
+          ['']
+        ];
+
+        // ===== SECCIÓN 2: HEADERS Y DATOS =====
+        const headers = ['Posición','Tarifa','Tipo','Potencia (€)','Consumo (€)','Impuestos (€)','TOTAL (€)','Ahorro vs Mejor','% Dif','Requisitos','Web'];
+        
+        const rows = state.rows.map(r => {
+          const mejorPrecio = parseFloat(state.rows[0]?.total?.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
+          const precioActual = parseFloat(r.total?.replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
+          const porcentajeDif = mejorPrecio > 0 ? (((precioActual - mejorPrecio) / mejorPrecio) * 100).toFixed(1) : '0';
+          const tarifaOrig = cachedTarifas.find(t => t.nombre === r.nombre);
+          
+          return [
+            r.posicion,
+            r.nombre,
+            r.tipo,
+            r.potencia || 'N/A',
+            r.consumo || 'N/A',
+            r.impuestos || 'N/A',
+            r.total,
+            r.vsMejor || '0,00 €',
+            porcentajeDif + '%',
+            tarifaOrig?.requisitos || 'Sin requisitos',
+            r.webUrl || ''
+          ];
+        });
+
+        // ===== NOTAS =====
+        const notas = [
+          [''],
+          ['=== NOTAS ==='],
+          ['• Estimación orientativa basada en datos proporcionados'],
+          ['• Factura real puede variar según contrato y regulación'],
+          ['• Revisa requisitos antes de contratar'],
+          [''],
+          ['Fuente: LuzFija.es | https://luzfija.es | ' + new Date().toISOString()]
+        ];
+
+        // Construir CSV
+        const csvContent = [...metadatos, headers, ...rows, ...notas].map(row => {
+          return row.map(cell => {
+            const cellStr = String(cell ?? '');
+            if (cellStr.includes(';') || cellStr.includes('"') || cellStr.includes('\n')) {
+              return '"' + cellStr.replace(/"/g, '""') + '"';
+            }
+            return cellStr;
+          }).join(';');
+        }).join('\n');
+
+        // Descargar
         const BOM = '\uFEFF';
-        const blob = new Blob([BOM + csv], {type:'text/csv;charset=utf-8;'});
+        const blob = new Blob([BOM + csvContent], {type:'text/csv;charset=utf-8;'});
         const link = document.createElement('a');
         const url = URL.createObjectURL(blob);
+        const nombreArchivo = `luzfija_${valores.p1}kW_${valores.dias}d_${new Date().toISOString().split('T')[0]}.csv`;
         link.setAttribute('href',url);
-        link.setAttribute('download',`ranking_tarifas_${new Date().toISOString().split('T')[0]}.csv`);
+        link.setAttribute('download',nombreArchivo);
         link.style.visibility='hidden';
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
-        toast('Ranking descargado');
+        toast('Ranking descargado con detalles');
       });
 
       el.btnShare.addEventListener('click', async (e) => {
