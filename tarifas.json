@@ -2,17 +2,6 @@
   "success": true,
   "tarifas": [
     {
-      "nombre": "Plenitude",
-      "cPunta": 0.094618,
-      "cLlano": 0.094618,
-      "cValle": 0.094618,
-      "p1": 0.088672,
-      "p2": 0.088672,
-      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
-      "tipo": "1P",
-      "requisitos": "Potencia contratada ≤ 5 kW"
-    },
-    {
       "nombre": "Endesa Conecta",
       "cPunta": 0.0949,
       "cLlano": 0.0949,
@@ -73,6 +62,17 @@
       "p2": 0.072589,
       "web": "https://www.totalenergies.es/es/hogares/tarifas-luz-gas/a-tu-aire-siempre",
       "tipo": "1P"
+    },
+    {
+      "nombre": "Plenitude",
+      "cPunta": 0.111579,
+      "cLlano": 0.111579,
+      "cValle": 0.111579,
+      "p1": 0.073806,
+      "p2": 0.073806,
+      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
+      "tipo": "1P",
+      "requisitos": "Potencia contratada ≤ 5 kW"
     },
     {
       "nombre": "Imagina Energía",
@@ -231,7 +231,7 @@
       "tipo": "3P"
     }
   ],
-  "timestamp": "2025-12-14T21:23:36.070Z",
-  "publishedAt": "2025-12-14T21:23:36.070Z",
-  "publishedAtEpoch": 1765747416070
+  "timestamp": "2025-12-15T06:41:11.263Z",
+  "publishedAt": "2025-12-15T06:41:11.263Z",
+  "publishedAtEpoch": 1765780871263
 }
