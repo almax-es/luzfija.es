@@ -333,61 +333,6 @@
               <input id="cValle" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 150">
             </div>
           </div>
-          
-          <!-- ☀️ Placas solares (autoconsumo con excedentes) -->
-          <div style="height:16px"></div>
-          
-          <div class="form">
-            <div class="group" style="flex: 1;">
-              <label for="fvOn" style="display:flex; align-items:center; gap:8px; cursor:pointer;">
-                <input id="fvOn" type="checkbox" style="width:auto; height:auto; cursor:pointer;">
-                <span style="font-weight:600;">☀️ Tengo placas solares (autoconsumo con excedentes)</span>
-                <span class="tooltip" data-tip="Activa si tienes fotovoltaica con compensación. El simulador aplicará descuentos según cada tarifa." role="button" tabindex="-1" aria-label="Info FV">i</span>
-              </label>
-            </div>
-          </div>
-
-          <div id="fvFields" style="display:none; margin-top:12px;">
-            <div class="form">
-              <div class="group">
-                <label for="fvExPunta">☀️ Excedentes PUNTA (kWh)</label>
-                <input id="fvExPunta" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 30">
-              </div>
-              <div class="group">
-                <label for="fvExLlano">☀️ Excedentes LLANO (kWh)</label>
-                <input id="fvExLlano" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 20">
-              </div>
-              <div class="group">
-                <label for="fvExValle">☀️ Excedentes VALLE (kWh)</label>
-                <input id="fvExValle" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 10">
-              </div>
-            </div>
-            
-            <div style="height:12px"></div>
-            
-            <div class="form">
-              <div class="group">
-                <label for="fvBvPrev">
-                  🔋 Saldo batería virtual anterior (€)
-                  <span class="tooltip" data-tip="Si tu tarifa tiene BV, introduce el saldo del mes anterior. Si no, déjalo en 0." role="button" tabindex="-1">i</span>
-                </label>
-                <input id="fvBvPrev" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 12,50">
-              </div>
-              
-              <div class="group">
-                <label for="fvExcVar">
-                  💱 Precio excedentes variable (€/kWh)
-                  <span class="tooltip" data-tip="Solo para tarifas OMIE (Nufri). Mete el precio medio del mes. Si es fijo, déjalo vacío." role="button" tabindex="-1">i</span>
-                </label>
-                <input id="fvExcVar" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 0,055">
-              </div>
-            </div>
-            
-            <div class="help" style="margin-top:8px; font-size:12px;">
-              💡 Se calcula compensación + batería virtual automáticamente. Verás el saldo BV para el mes siguiente.
-            </div>
-          </div>
-          
           <div class="row" style="margin-top:14px">
             <div class="kwhPill" aria-live="polite">
               <div class="kwhLabel">Total kWh</div>
