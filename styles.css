@@ -411,6 +411,31 @@
     label{ font-size: 12px; color: var(--muted); font-weight: 900; letter-spacing: .2px; position: relative; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 16px; }
     .tooltip{ position: relative; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: rgba(139,92,246,.2); color: var(--accent); font-size: 10px; font-weight: 900; flex-shrink: 0; transition: box-shadow .15s ease, transform .15s ease; }
     .tooltip:focus-visible{ outline: none; box-shadow: 0 0 0 3px rgba(139,92,246,.25); transform: translateY(-1px); }
+    .form.fv-toggle{ grid-template-columns: 1fr; }
+    .form.fv-toggle .group{ grid-column: 1 / -1; }
+    .fv-check {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      white-space: normal;
+      overflow: visible;
+      text-overflow: unset;
+      line-height: 1.25;
+    }
+    .fv-check input { accent-color: var(--accent); width: auto; height: auto; }
+    .form.fv-fields { grid-template-columns: repeat(3, 1fr); }
+    @media (max-width: 900px){ .form.fv-fields { grid-template-columns: repeat(2, 1fr); } }
+    @media (max-width: 520px){ .form.fv-fields { grid-template-columns: 1fr; } }
+    .form.fv-fields label, .form.fv-toggle label {
+      white-space: normal;
+      overflow: visible;
+      text-overflow: unset;
+    }
+    @media (max-width: 900px){
+      .form.fv-fields .fv-ex-valle { grid-column: 1 / -1; }
+    }
+    .form.fv-fields .group { min-width: 0; }
     /* Tooltip global: en móvil el texto puede ser más ancho que el viewport.
        Permitimos salto de línea y limitamos el ancho para que no se corte. */
     #globalTooltip{
