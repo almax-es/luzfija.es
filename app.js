@@ -855,10 +855,24 @@
       const v = getInputValues();
       const t = v.cPunta + v.cLlano + v.cValle;
       const ex = v.exPunta + v.exLlano + v.exValle;
+      const tStr = t.toFixed(2).replace('.', ',');
+      const exStr = ex.toFixed(2).replace('.', ',');
       if(v.solarOn){
-        el.kwhHint.textContent=`Red: ${t.toFixed(2).replace('.',',')} kWh · Exced.: ${ex.toFixed(2).replace('.',',')} kWh`;
+        el.kwhHint.innerHTML = `
+          <div class="kwh-split">
+            <div class="kwh-pill">
+              <span class="kwh-label">Red</span>
+              <span class="kwh-value">${tStr}</span>
+              <span class="kwh-unit">kWh</span>
+            </div>
+            <div class="kwh-pill">
+              <span class="kwh-label">Exced.</span>
+              <span class="kwh-value">${exStr}</span>
+              <span class="kwh-unit">kWh</span>
+            </div>
+          </div>`;
       } else {
-        el.kwhHint.textContent=`${t.toFixed(2).replace('.',',')} kWh`;
+        el.kwhHint.textContent=`${tStr} kWh`;
       }
     }
 
