@@ -703,7 +703,8 @@
         return a.costeReal - b.costeReal;
       });
 
-      const firstValida = resultados.find(r => Number.isFinite(r.totalNum)) || resultados[0];
+      // El mejor es el primero después de ordenar
+      const firstValida = resultados[0];
       const bestCosteReal = firstValida ? firstValida.costeReal : 0;
       const processed = resultados.map((r, i) => {
         const esMejor = firstValida ? r === firstValida : i === 0;
