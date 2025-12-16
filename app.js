@@ -219,13 +219,13 @@
       state.lastSignature=null;
     }
 
-    function toast(msg, mode='ok'){
+    function toast(msg, mode='ok', duration=2800){
       el.toastText.textContent=msg;
       el.toastDot.classList.remove('ok','err');
       el.toastDot.classList.add(mode==='err'?'err':'ok');
       el.toast.classList.add('show');
       clearTimeout(el.toast._t);
-      el.toast._t=setTimeout(()=>el.toast.classList.remove('show'),2800);
+      el.toast._t=setTimeout(()=>el.toast.classList.remove('show'), duration);
     }
 
     function showError(msg=''){
@@ -690,23 +690,22 @@
         };
       });
 
+      // Calcular coste real (precio - BV acumulada) para TODAS las tarifas
+      resultados.forEach(r => {
+        const bvAcumulada = Number(r.fvBvSaldoFin) || 0;
+        r.costeReal = r.totalNum - bvAcumulada;
+      });
+
+      // Ordenar por COSTE REAL (no solo precio)
       resultados.sort((a, b) => {
-        const diff = a.totalNum - b.totalNum;
-        // Si ambas tienen el mismo precio (especialmente si es 0€)
-        if(Math.abs(diff) < 0.01){
-          // Desempatar por saldo BV final (mayor es mejor)
-          const bvA = Number(a.fvBvSaldoFin) || 0;
-          const bvB = Number(b.fvBvSaldoFin) || 0;
-          return bvB - bvA; // Mayor BV primero
-        }
-        return diff;
+        return a.costeReal - b.costeReal;
       });
 
       const firstValida = resultados.find(r => Number.isFinite(r.totalNum)) || resultados[0];
-      const bestPrice = firstValida ? firstValida.totalNum : 0;
+      const bestCosteReal = firstValida ? firstValida.costeReal : 0;
       const processed = resultados.map((r, i) => {
         const esMejor = firstValida ? r === firstValida : i === 0;
-        const diff = (Number.isFinite(r.totalNum) && Number.isFinite(bestPrice)) ? (r.totalNum - bestPrice) : Number.POSITIVE_INFINITY;
+        const diff = (Number.isFinite(r.costeReal) && Number.isFinite(bestCosteReal)) ? (r.costeReal - bestCosteReal) : Number.POSITIVE_INFINITY;
         return {
           ...r, posicion: i + 1, esMejor,
           vsMejorNum: diff, vsMejor: esMejor ? '—' : (Number.isFinite(diff) ? '+' + formatMoney(diff) : '—')
@@ -912,6 +911,12 @@
       if(!box) return;
       const on = Boolean(el.inputs.solarOn?.checked);
       box.style.display = on ? '' : 'none';
+      
+      // Mostrar/ocultar hint de límite días
+      const hint = document.getElementById('diasSolarHint');
+      if(hint){
+        hint.style.display = on ? 'block' : 'none';
+      }
     }
 
     function validateInputs(){
@@ -978,7 +983,7 @@
     }
 
     function updateSortIcons(){
-      ['nombre','potenciaNum','consumoNum','impuestosNum','totalNum','vsMejorNum'].forEach(k=>{
+      ['nombre','potenciaNum','consumoNum','impuestosNum','totalNum','fvBvSaldoFin','vsMejorNum'].forEach(k=>{
         const i=$('si_'+k);
         if(!i) return;
         if(state.sort.key!==k){ i.textContent=''; return; }
@@ -1137,6 +1142,21 @@
           }
 
           const nombreDisplay = `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>${fvIcon}${requisitosTooltip}${nombreWarn}${solarDetails}`;
+          
+          // Formatear BV acumulada
+          const bvSaldoFin = r.fvBvSaldoFin;
+          let bvDisplay = '—';
+          if(bvSaldoFin !== null && bvSaldoFin !== undefined && Number.isFinite(bvSaldoFin)){
+            const bvNum = Number(bvSaldoFin);
+            if(bvNum > 0){
+              bvDisplay = `<span class="bv-positive" title="Acumulas ${formatMoney(bvNum)} para próximo mes">+${formatMoney(bvNum)}</span>`;
+            } else if(bvNum < 0){
+              bvDisplay = `<span class="bv-negative">${formatMoney(bvNum)}</span>`;
+            } else {
+              bvDisplay = '0,00€';
+            }
+          }
+          
           tr.innerHTML =
             `<td>${escapeHtml(r.posicion)}</td>`+
             `<td title="${escapeHtml(nombreBase)}">${nombreDisplay}</td>`+
@@ -1144,6 +1164,7 @@
             `<td>${escapeHtml(r.consumo)}</td>`+
             `<td>${escapeHtml(r.impuestos)}</td>`+
             `<td><strong style="font-weight:1100; color: rgba(167,139,250,1);">${escapeHtml(r.total)}</strong></td>`+
+            `<td class="bv-column">${bvDisplay}</td>`+
             `<td class="vs">${formatVsWithBar(r.vsMejor,r.vsMejorNum)}</td>`+
             `<td>${rowTipoBadge(r.tipo)}</td>`+
             `<td style="text-align:center">${w}</td>`;
@@ -1324,6 +1345,14 @@
         return;
       }
       const values = getInputValues();
+      
+      // VALIDACIÓN: Bloquear > 31 días con solar activado
+      if(values.solarOn && values.dias > 31){
+        toast('⚠️ Con compensación solar solo puedes comparar hasta 31 días. La batería virtual y excedentes se gestionan mes a mes según la legislación vigente.', 'err', 6000);
+        setStatus('Corrige el período (máx 31 días con solar)', 'err');
+        return;
+      }
+      
       const signature = signatureFromValues(values);
 
       // FIX: permitir recalcular en clicks del usuario aunque signature sea igual (sin re-fetch)
