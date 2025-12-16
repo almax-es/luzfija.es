@@ -1716,22 +1716,64 @@
     }
 
   
-/* Detalles solares visibles en móvil */
-.tarifa-nombre + .tooltip + .tooltip + div,
-.tarifa-nombre + .tooltip + div {
+/* Nombre de tarifa + iconos: layout estable y responsive */
+.tarifa-title{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex-wrap: wrap; /* si no cabe, iconos bajan */
+  width: 100%;
+}
+
+.tarifa-nombre{
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.tarifa-icons{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* Hacemos los iconos un poco más "tocables" en móvil */
+.tarifa-icons .tooltip{
+  width: 18px;
+  height: 18px;
+  font-size: 11px;
+}
+
+@media (max-width: 768px){
+  .tarifa-icons .tooltip{
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+  }
+}
+
+/* Detalle solar: solo visible en móvil, y sin desbordar */
+.solar-details{
   display: none;
+  margin-top: 4px;
+  font-size: 11px;
+  color: #9ca3af;
+  line-height: 1.25;
+  max-width: 100%;
+  overflow: hidden;
+  overflow-wrap: anywhere;
+
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
 }
 
-@media (max-width: 768px) {
-  .tarifa-nombre + .tooltip + .tooltip + div,
-  .tarifa-nombre + .tooltip + div {
-    display: block !important;
-  }
+@media (max-width: 768px){
+  .solar-details{ display: -webkit-box; }
 }
 
-@media (min-width: 769px) {
-  /* En desktop, ocultar detalles y confiar en tooltips */
-  td[title] div[style*="font-size:11px"] {
-    display: none !important;
-  }
+@media (min-width: 769px){
+  .solar-details{ display: none !important; }
+}
 }

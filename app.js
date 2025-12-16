@@ -1100,7 +1100,7 @@
 
           // Tooltip de requisitos si existen
           const requisitosTooltip = r.requisitos
-            ? `<span class="tooltip requisitos-icon" data-tip="${escapeHtml(r.requisitos)}" role="button" tabindex="-1" aria-label="Requisitos de contratación" style="margin-left:4px; color:rgba(251,191,36,1); cursor:help;">ⓘ</span>`
+            ? `<span class="tooltip requisitos-icon" data-tip="${escapeHtml(r.requisitos)}" role="button" tabindex="0" aria-label="Requisitos de contratación" style="margin-left:4px; color:rgba(251,191,36,1); cursor:help;">ⓘ</span>`
             : '';
 
           let fvIcon = '';
@@ -1114,29 +1114,36 @@
           let solarDetails = '';
           if(r.solarNoCalculable){
             const tip = 'Compensación excedentes NO calculada (precio variable horario). Consulta tu factura para ver compensación real.';
-            fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="-1" aria-label="Solar no calculable" style="filter: grayscale(50%);">⚠️☀️</span>`;
-            solarDetails = `<div style="font-size:11px; color:#9ca3af; margin-top:2px;">⚠️ Compensación no calculada (precio variable)</div>`;
+            fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Solar no calculable" style="filter: grayscale(50%);">⚠️☀️</span>`;
+            solarDetails = `<div class="solar-details">⚠️ Compensación no calculada (precio variable)</div>`;
           } else if(r.fvApplied && r.fvTipo !== 'NO COMPENSA' && precioExc > 0){
             // Caso con excedentes: mostrar todos los detalles
             const parts = [`Exced: ${exKwh.toFixed(2)} kWh`, `Precio: ${precioExc.toFixed(3)} €/kWh`, `Comp mes: ${credit1.toFixed(2)} €`];
             if(credit2 > 0) parts.push(`BV usada: ${credit2.toFixed(2)} €`);
             if(bvSaldoFin !== null && bvSaldoFin !== undefined) parts.push(`BV fin: ${Number(bvSaldoFin).toFixed(2)} €`);
             const tip = parts.join(' · ');
-            fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="-1" aria-label="Detalle FV">☀️</span>`;
+            fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Detalle FV">☀️</span>`;
             // Detalles visibles en móvil
-            solarDetails = `<div style="font-size:11px; color:#9ca3af; margin-top:2px;">☀️ ${escapeHtml(parts.join(' • '))}</div>`;
+            solarDetails = `<div class="solar-details">☀️ ${escapeHtml(parts.join(' • '))}</div>`;
           } else if(bvSaldoFin !== null && bvSaldoFin !== undefined && r.fvTipo && r.fvTipo.includes('BV')){
             // Caso sin excedentes PERO con batería virtual: mostrar solo info BV
             const parts = [];
             if(credit2 > 0) parts.push(`BV usada: ${credit2.toFixed(2)} €`);
             parts.push(`BV fin: ${Number(bvSaldoFin).toFixed(2)} €`);
             const tip = parts.join(' · ');
-            fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="-1" aria-label="Detalle BV">🔋</span>`;
+            fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Detalle BV">🔋</span>`;
             // Detalles visibles en móvil
-            solarDetails = `<div style="font-size:11px; color:#9ca3af; margin-top:2px;">🔋 ${escapeHtml(parts.join(' • '))}</div>`;
+            solarDetails = `<div class="solar-details">🔋 ${escapeHtml(parts.join(' • '))}</div>`;
           }
 
-          const nombreDisplay = `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>${fvIcon}${requisitosTooltip}${nombreWarn}${solarDetails}`;
+          // Cabecera: nombre + iconos (layout estable en móvil)
+          const icons = `<span class="tarifa-icons">${fvIcon || ""}${requisitosTooltip || ""}${nombreWarn || ""}</span>`;
+          const nombreDisplay =
+            `<div class="tarifa-title">`+
+              `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>`+
+              `${icons}`+
+            `</div>`+
+            `${solarDetails || ""}`;
           tr.innerHTML =
             `<td>${escapeHtml(r.posicion)}</td>`+
             `<td title="${escapeHtml(nombreBase)}">${nombreDisplay}</td>`+
@@ -1238,7 +1245,7 @@
             <span class="tooltip"
                   data-tip="Fuente: CNMC (facturaluz2.cnmc.es). Proyecto independiente (no afiliado). El PVPC mostrado es una estimación orientativa basada en los datos introducidos."
                   role="button"
-                  tabindex="-1"
+                  tabindex="0"
                   aria-label="Información sobre PVPC">
               i
             </span>
