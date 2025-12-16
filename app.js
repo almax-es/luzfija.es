@@ -636,8 +636,7 @@ function calculateLocal(values) {
             impuestos: '—',
             totalNum: Number.POSITIVE_INFINITY,
             total: '—',
-            webUrl: t.web
-          };
+            webUrl: t.web,
             fvCredit1: 0,
             fvCredit2: 0,
             fvBvNext: 0,
@@ -927,7 +926,6 @@ function calculateLocal(values) {
       const tTxt = `${t.toFixed(2).replace('.',',')} kWh`;
       const exTxt = v.fvOn && ex > 0 ? ` | ☀️ ${ex.toFixed(2).replace('.',',')} kWh exc.` : '';
       el.kwhHint.textContent = tTxt + exTxt;
-    } kWh`;
     }
 
     function validateInputs(){
