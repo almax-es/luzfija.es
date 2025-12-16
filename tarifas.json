@@ -8,7 +8,7 @@
       "cValle": 0.0949,
       "p1": 0.089129,
       "p2": 0.089129,
-      "web": "https://www.endesa.com/es/luz-y-gas/luz/conecta-de-endesa",
+      "web": "",
       "tipo": "1P",
       "fv": {
         "exc": 0.0,
@@ -25,7 +25,7 @@
       "cValle": 0.09958,
       "p1": 0.09315,
       "p2": 0.046576,
-      "web": "https://www.energyavm.es/luz/formula-fija-24-horas-luz/",
+      "web": "",
       "tipo": "1P",
       "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 6.000 kWh/año",
       "fv": {
@@ -43,7 +43,7 @@
       "cValle": 0.099918,
       "p1": 0.092412,
       "p2": 0.046295,
-      "web": "https://www.energianufri.com/es/landing/mas-tarifas-luz-gas",
+      "web": "",
       "tipo": "1P",
       "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
       "fv": {
@@ -61,7 +61,7 @@
       "cValle": 0.1039,
       "p1": 0.089129,
       "p2": 0.089129,
-      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz",
+      "web": "",
       "tipo": "1P",
       "fv": {
         "exc": 0.0,
@@ -78,7 +78,7 @@
       "cValle": 0.1041,
       "p1": 0.054794,
       "p2": 0.054794,
-      "web": "https://visalia.es/luz/fijo24horas/",
+      "web": "",
       "tipo": "1P",
       "fv": {
         "exc": 0.04,
@@ -95,7 +95,7 @@
       "cValle": 0.1099,
       "p1": 0.072589,
       "p2": 0.072589,
-      "web": "https://www.totalenergies.es/es/hogares/tarifas-luz-gas/a-tu-aire-siempre",
+      "web": "",
       "tipo": "1P",
       "fv": {
         "exc": 0.07,
@@ -112,7 +112,7 @@
       "cValle": 0.111579,
       "p1": 0.073806,
       "p2": 0.073806,
-      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
+      "web": "",
       "tipo": "1P",
       "requisitos": "Potencia contratada ≤ 5 kW",
       "fv": {
@@ -130,7 +130,7 @@
       "cValle": 0.119,
       "p1": 0.087,
       "p2": 0.044,
-      "web": "https://ofertas.imaginaenergia.com/plan-online-imagina/",
+      "web": "",
       "tipo": "1P",
       "fv": {
         "exc": 0.05,
@@ -147,7 +147,7 @@
       "cValle": 0.119,
       "p1": 0.127406,
       "p2": 0.049264,
-      "web": "https://ganaenergia.com/tarifas-luz/24-horas",
+      "web": "",
       "tipo": "1P",
       "fv": {
         "exc": 0.04,
@@ -164,7 +164,7 @@
       "cValle": 0.113,
       "p1": 0.095,
       "p2": 0.027,
-      "web": "https://octopusenergy.es/unicaja#tarifas",
+      "web": "",
       "tipo": "1P",
       "fv": {
         "exc": 0.03,
@@ -181,7 +181,7 @@
       "cValle": 0.119166,
       "p1": 0.108163,
       "p2": 0.033392,
-      "web": "https://www.naturgy.es/hogar/luz/tarifa_por_uso_luz",
+      "web": "",
       "tipo": "1P",
       "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 10.000 kWh/año",
       "fv": {
@@ -199,7 +199,7 @@
       "cValle": 0.1199,
       "p1": 0.108192,
       "p2": 0.046548,
-      "web": "https://www.iberdrola.es/luz/plan-online",
+      "web": "",
       "tipo": "1P",
       "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
       "fv": {
@@ -217,7 +217,7 @@
       "cValle": 0.1299,
       "p1": 0.068219,
       "p2": 0.068219,
-      "web": "https://www.repsol.es/particulares/hogar/luz-y-gas/tarifas/tarifa-ahorro-plus/",
+      "web": "",
       "tipo": "1P",
       "fv": {
         "exc": 0.0,
@@ -234,7 +234,7 @@
       "cValle": 0.074167,
       "p1": 0.089129,
       "p2": 0.089129,
-      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz-3periodos",
+      "web": "",
       "tipo": "3P",
       "fv": {
         "exc": 0.0,
@@ -251,7 +251,7 @@
       "cValle": 0.101575,
       "p1": 0.082192,
       "p2": 0.002739,
-      "web": "https://www.energyavm.es/luz/formula-fija-3-periodos/",
+      "web": "",
       "tipo": "3P",
       "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 6.000 kWh/año",
       "fv": {
@@ -269,7 +269,7 @@
       "cValle": 0.058094,
       "p1": 0.092412,
       "p2": 0.046295,
-      "web": "https://www.energianufri.com/es/landing/mas-tarifas-luz-gas",
+      "web": "",
       "tipo": "3P",
       "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
       "fv": {
@@ -287,7 +287,7 @@
       "cValle": 0.081,
       "p1": 0.1274,
       "p2": 0.0493,
-      "web": "https://ganaenergia.com/tarifas-luz/tramos-horarios",
+      "web": "",
       "tipo": "3P",
       "fv": {
         "exc": 0.04,
@@ -304,7 +304,7 @@
       "cValle": 0.076176,
       "p1": 0.072603,
       "p2": 0.072575,
-      "web": "https://www.totalenergies.es/es/hogares/tarifas-luz/a-tu-aire-programa-tu-ahorro",
+      "web": "",
       "tipo": "3P",
       "fv": {
         "exc": 0.07,
@@ -321,7 +321,7 @@
       "cValle": 0.096404,
       "p1": 0.086301,
       "p2": 0.013014,
-      "web": "https://www.iberdrola.es/luz/plan-online-tres-periodos",
+      "web": "",
       "tipo": "3P",
       "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
       "fv": {
@@ -339,7 +339,7 @@
       "cValle": 0.075,
       "p1": 0.095,
       "p2": 0.027,
-      "web": "https://octopusenergy.es/unicaja#tarifas",
+      "web": "",
       "tipo": "3P",
       "fv": {
         "exc": 0.03,
@@ -356,7 +356,7 @@
       "cValle": 0.085,
       "p1": 0.0784,
       "p2": 0.00728,
-      "web": "https://esluz.es/tarifa-solar-2-0/",
+      "web": "",
       "tipo": "3P",
       "fv": {
         "exc": 0.08,
@@ -373,7 +373,7 @@
       "cValle": 0.082334,
       "p1": 0.108163,
       "p2": 0.033392,
-      "web": "https://www.naturgy.es/hogar/luz/tarifa_noche",
+      "web": "",
       "tipo": "3P",
       "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 10.000 kWh/año",
       "fv": {
@@ -391,7 +391,7 @@
       "cValle": 0.082,
       "p1": 0.101,
       "p2": 0.022,
-      "web": "https://ofertas.imaginaenergia.com/plan-online-imagina/",
+      "web": "",
       "tipo": "3P",
       "fv": {
         "exc": 0.05,
@@ -402,7 +402,7 @@
       }
     }
   ],
-  "timestamp": "2025-12-16T15:26:54.701Z",
-  "publishedAt": "2025-12-16T15:26:54.701Z",
-  "publishedAtEpoch": 1765898814701
+  "timestamp": "2025-12-16T20:17:59.775Z",
+  "publishedAt": "2025-12-16T20:17:59.775Z",
+  "publishedAtEpoch": 1765916279775
 }
