@@ -1143,8 +1143,7 @@
 
           const nombreDisplay = `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>${fvIcon}${requisitosTooltip}${nombreWarn}${solarDetails}`;
           
-          // Formatear BV acumulada
-          const bvSaldoFin = r.fvBvSaldoFin;
+          // Formatear BV acumulada (ya declarada en línea 1116)
           let bvDisplay = '—';
           if(bvSaldoFin !== null && bvSaldoFin !== undefined && Number.isFinite(bvSaldoFin)){
             const bvNum = Number(bvSaldoFin);
