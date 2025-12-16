@@ -514,7 +514,8 @@
             impuestos: '—',
             totalNum: Number.POSITIVE_INFINITY,
             total: '—',
-            webUrl: t.web
+            webUrl: t.web,
+            solarNoCalculable: solarOn  // Marcar si solar está activo
           };
         }
         if (t.esPVPC && t.metaPvpc) {
@@ -534,7 +535,8 @@
             impuestos: formatMoney(impuestosNum),
             totalNum,
             total: formatMoney(totalNum),
-            webUrl: t.web
+            webUrl: t.web,
+            solarNoCalculable: solarOn  // Marcar si solar está activo
           };
         }
 
