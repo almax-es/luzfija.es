@@ -1737,83 +1737,61 @@
 }
 
 /* ==========================================
-   COLUMNA BATERÍA VIRTUAL (BV) - COMPACTA
+   COLUMNA BATERÍA VIRTUAL (BV)
    ========================================== */
 
-.bv-column-compact {
-  font-weight: 800;
+.bv-column {
+  font-weight: 700;
   text-align: center;
-  min-width: 60px;
-  max-width: 70px;
-  padding: 8px 2px !important;
-  font-size: 14px;
+  min-width: 85px;
 }
 
-.bv-positive-big {
+.bv-positive {
   color: #10b981;
-  font-weight: 900;
-  font-size: 16px;
-  text-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
+  font-weight: 800;
+  font-size: 15px;
+  text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
 }
 
 .bv-negative {
   color: #ef4444;
   font-weight: 700;
-  font-size: 14px;
 }
 
-/* Badge inline en nombre tarifa */
-.bv-badge-inline {
-  display: inline-block;
-  background: linear-gradient(135deg, #10b981, #059669);
-  color: white;
-  padding: 3px 8px;
-  border-radius: 6px;
-  font-weight: 800;
-  font-size: 13px;
-  margin-left: 6px;
-  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
-  vertical-align: middle;
-}
-
-/* Cabecera BV */
-th.bv-column-compact {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(16, 185, 129, 0.06));
-  font-weight: 800;
-  font-size: 12px;
-  padding: 8px 2px !important;
+/* Destacar cabecera BV */
+th.bv-column {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
+  font-weight: 700;
 }
 
 /* Responsive móvil */
 @media (max-width: 768px) {
-  .bv-column-compact {
-    font-size: 13px;
-    min-width: 55px;
+  .bv-column {
+    font-size: 14px;
   }
   
-  .bv-positive-big {
-    font-size: 15px;
+  .bv-positive {
+    font-size: 14px;
   }
   
-  .bv-badge-inline {
-    font-size: 12px;
-    padding: 2px 6px;
-    display: block;
-    margin: 4px 0 0 0;
-    width: fit-content;
+  /* Mejorar legibilidad detalles solares móvil */
+  td[title] div[style*="font-size:11px"] {
+    font-size: 13px !important;
+    line-height: 1.5;
+    margin-top: 4px;
+    padding: 4px 0;
   }
 }
 
 /* Dark mode */
-body.dark-mode .bv-positive-big {
+body.dark-mode .bv-positive {
   color: #34d399;
-  text-shadow: 0 0 12px rgba(52, 211, 153, 0.4);
 }
 
 body.dark-mode .bv-negative {
   color: #f87171;
 }
 
-body.dark-mode th.bv-column-compact {
+body.dark-mode th.bv-column {
   background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.08));
 }

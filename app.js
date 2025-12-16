@@ -1141,43 +1141,34 @@
             solarDetails = `<div style="font-size:11px; color:#9ca3af; margin-top:2px;">🔋 ${escapeHtml(parts.join(' • '))}</div>`;
           }
 
-          const nombreDisplay = `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>${fvIcon}${requisitosTooltip}${nombreWarn}`;
+          const nombreDisplay = `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>${fvIcon}${requisitosTooltip}${nombreWarn}${solarDetails}`;
           
-          // Formatear BV acumulada - DISEÑO LIMPIO Y SIMPLE
+          // Formatear BV acumulada (ya declarada en línea 1116)
           let bvDisplay = '—';
-          let bvBadge = '';
-          
-          // Detectar si hay excedentes o BV
-          const hasExcedentes = r.fvApplied && exKwh > 0;
-          const hasBV = bvSaldoFin !== null && bvSaldoFin !== undefined && Number.isFinite(bvSaldoFin);
-          
-          if(hasBV && Number(bvSaldoFin) > 0){
+          if(bvSaldoFin !== null && bvSaldoFin !== undefined && Number.isFinite(bvSaldoFin)){
             const bvNum = Number(bvSaldoFin);
-            // Badge SOLO para BV acumulada
-            bvBadge = `<span class="bv-badge-inline">💰 +${bvNum.toFixed(0)}€</span>`;
-            bvDisplay = `<span class="bv-positive-big">+${bvNum.toFixed(0)}€</span>`;
-          } else if(hasBV && Number(bvSaldoFin) < 0){
-            bvDisplay = `<span class="bv-negative">${formatMoney(bvSaldoFin)}</span>`;
-          } else if(hasExcedentes && credit1 > 0){
-            // Si no hay BV pero sí excedentes compensados
-            bvDisplay = `<span class="bv-positive-big">${credit1.toFixed(0)}€</span>`;
-          } else {
-            bvDisplay = '<span style="color:#6b7280;">—</span>';
+            if(bvNum > 0){
+              bvDisplay = `<span class="bv-positive">+${formatMoney(bvNum)}</span>`;
+            } else if(bvNum < 0){
+              bvDisplay = `<span class="bv-negative">${formatMoney(bvNum)}</span>`;
+            } else {
+              bvDisplay = '<span style="color:#6b7280;">—</span>';
+            }
           }
           
-          // Link web simple
-          const webLink = w ? `<a href="${escapeHtml(w)}" target="_blank" rel="noopener" style="font-size:18px; text-decoration:none;" title="Web oficial">🔗</a>` : '';
+          // Link web simple y funcional
+          const webLink = w ? `<a href="${escapeHtml(w)}" target="_blank" rel="noopener" style="font-size:20px; text-decoration:none;">🔗</a>` : '';
           
           tr.innerHTML =
             `<td>${escapeHtml(r.posicion)}</td>`+
-            `<td title="${escapeHtml(nombreBase)}">${nombreDisplay} ${bvBadge}</td>`+
+            `<td title="${escapeHtml(nombreBase)}">${nombreDisplay}</td>`+
             `<td>${escapeHtml(r.potencia)}</td>`+
             `<td>${escapeHtml(r.consumo)}</td>`+
             `<td>${escapeHtml(r.impuestos)}</td>`+
             `<td><strong style="font-weight:1100; color: rgba(167,139,250,1);">${escapeHtml(r.total)}</strong></td>`+
-            `<td class="bv-column-compact">${bvDisplay}</td>`+
+            `<td class="bv-column">${bvDisplay}</td>`+
             `<td class="vs">${formatVsWithBar(r.vsMejor,r.vsMejorNum)}</td>`+
-            `<td style="text-align:center;">${webLink}</td>`;
+            `<td style="text-align:center">${webLink}</td>`;
           frag.appendChild(tr);
         });
 
