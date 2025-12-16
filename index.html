@@ -333,6 +333,36 @@
               <input id="cValle" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 150">
             </div>
           </div>
+          <div class="form" style="margin-top:12px;">
+            <div class="group" style="align-items:center;">
+              <label for="solarOn" style="display:flex; gap:10px; align-items:center;">
+                <input id="solarOn" type="checkbox" style="width:auto; height:auto;">
+                ☀️ Tengo placas solares (compensación excedentes)
+              </label>
+            </div>
+          </div>
+          <div id="solarFields" class="form" style="display:none; margin-top:8px;">
+            <div class="group">
+              <label for="exPunta">Excedentes PUNTA (kWh)</label>
+              <input id="exPunta" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 50">
+            </div>
+            <div class="group">
+              <label for="exLlano">Excedentes LLANO (kWh)</label>
+              <input id="exLlano" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 40">
+            </div>
+            <div class="group">
+              <label for="exValle">Excedentes VALLE (kWh)</label>
+              <input id="exValle" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 30">
+            </div>
+            <div class="group">
+              <label for="bvSaldo">Saldo batería virtual (€ mes anterior)</label>
+              <input id="bvSaldo" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 12,5">
+            </div>
+            <div class="group">
+              <label for="omieAvg">OMIE medio (€/kWh)</label>
+              <input id="omieAvg" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 0,095">
+            </div>
+          </div>
           <div class="row" style="margin-top:14px">
             <div class="kwhPill" aria-live="polite">
               <div class="kwhLabel">Total kWh</div>
