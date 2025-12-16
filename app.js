@@ -1113,6 +1113,7 @@
             fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="-1" aria-label="Solar no calculable" style="filter: grayscale(50%);">⚠️☀️</span>`;
             solarDetails = `<div style="font-size:11px; color:#9ca3af; margin-top:2px;">⚠️ Compensación no calculada (precio variable)</div>`;
           } else if(r.fvApplied && r.fvTipo !== 'NO COMPENSA' && precioExc > 0){
+            // Caso con excedentes: mostrar todos los detalles
             const parts = [`Exced: ${exKwh.toFixed(2)} kWh`, `Precio: ${precioExc.toFixed(3)} €/kWh`, `Comp mes: ${credit1.toFixed(2)} €`];
             if(credit2 > 0) parts.push(`BV usada: ${credit2.toFixed(2)} €`);
             if(bvSaldoFin !== null && bvSaldoFin !== undefined) parts.push(`BV fin: ${Number(bvSaldoFin).toFixed(2)} €`);
@@ -1120,6 +1121,15 @@
             fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="-1" aria-label="Detalle FV">☀️</span>`;
             // Detalles visibles en móvil
             solarDetails = `<div style="font-size:11px; color:#9ca3af; margin-top:2px;">☀️ ${escapeHtml(parts.join(' • '))}</div>`;
+          } else if(bvSaldoFin !== null && bvSaldoFin !== undefined && r.fvTipo && r.fvTipo.includes('BV')){
+            // Caso sin excedentes PERO con batería virtual: mostrar solo info BV
+            const parts = [];
+            if(credit2 > 0) parts.push(`BV usada: ${credit2.toFixed(2)} €`);
+            parts.push(`BV fin: ${Number(bvSaldoFin).toFixed(2)} €`);
+            const tip = parts.join(' · ');
+            fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="-1" aria-label="Detalle BV">🔋</span>`;
+            // Detalles visibles en móvil
+            solarDetails = `<div style="font-size:11px; color:#9ca3af; margin-top:2px;">🔋 ${escapeHtml(parts.join(' • '))}</div>`;
           }
 
           const nombreDisplay = `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>${fvIcon}${requisitosTooltip}${nombreWarn}${solarDetails}`;
