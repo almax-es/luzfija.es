@@ -28,7 +28,7 @@
     const THEME_KEY = window.__ALMAX_THEME_KEY || 'almax_theme';
 
     // VALORES POR DEFECTO PARA PRIMERA VISITA
-    const DEFAULTS = { p1:'3,45', p2:'3,45', dias:'30', cPunta:'100', cLlano:'100', cValle:'100', zonaFiscal:'Península', viviendaCanarias:true, solarOn:false, exTotal:'0', exPunta:'0', exLlano:'0', exValle:'0', bvSaldo:'0', omieAvg:'0' };
+    const DEFAULTS = { p1:'3,45', p2:'3,45', dias:'30', cPunta:'100', cLlano:'100', cValle:'100', zonaFiscal:'Península', viviendaCanarias:true, solarOn:false, exTotal:'0', bvSaldo:'0' };
 
     // RECOGIDA DE PARÁMETROS URL (para enlaces compartidos)
     const params = new URLSearchParams(window.location.search);
@@ -1095,8 +1095,7 @@
           if(r.fvApplied && r.fvTipo !== 'NO COMPENSA' && precioExc > 0){
             const parts = [`Exced: ${exKwh.toFixed(2)} kWh`, `Precio: ${precioExc.toFixed(3)} €/kWh`, `Comp mes: ${credit1.toFixed(2)} €`];
             if(credit2 > 0) parts.push(`BV usada: ${credit2.toFixed(2)} €`);
-            const bvSaldoFinNum = Number(bvSaldoFin);
-            if(Number.isFinite(bvSaldoFinNum) && bvSaldoFinNum > 0) parts.push(`Saldo BV próximo mes: ${bvSaldoFinNum.toFixed(2)} €`);
+            if(bvSaldoFin !== null && bvSaldoFin !== undefined) parts.push(`BV fin: ${Number(bvSaldoFin).toFixed(2)} €`);
             if(typeof r.fvExcRaw === 'string' && r.fvExcRaw.toUpperCase().includes('OMIE') && (!Number(r.fvOmieAvg) || Number(r.fvOmieAvg) === 0)){
               parts.push('⚠️ Falta OMIE medio');
             }
