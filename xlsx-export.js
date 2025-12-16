@@ -3,9 +3,17 @@
 // Usa ExcelJS (CDN): https://cdn.jsdelivr.net/npm/exceljs@4.4.0/dist/exceljs.min.js
 
 async function exportarXLSXVisual() {
+  const valores = (typeof getInputValues === 'function' ? getInputValues() : {}) || {};
+  const signature = valores && typeof signatureFromValues === 'function' ? signatureFromValues(valores) : null;
+  if ((state.pending === true) || (signature && state.lastSignature !== signature)) {
+    if (typeof calculate === 'function') {
+      await calculate(true, false);
+    }
+  }
+
   // Verificar que hay datos
   if (!state.rows || state.rows.length === 0) {
-    toast('No hay datos para exportar', 'err');
+    toast('Pulsa Calcular', 'err');
     return;
   }
 
@@ -19,7 +27,6 @@ async function exportarXLSXVisual() {
     workbook.created = new Date();
     
     // Obtener valores actuales
-    const valores = getInputValues();
     const consumoTotal = (parseFloat(valores.cPunta||0) + parseFloat(valores.cLlano||0) + parseFloat(valores.cValle||0)).toFixed(2);
     
     // ==========================================
@@ -79,6 +86,13 @@ async function exportarXLSXVisual() {
       ['Consumo TOTAL', consumoTotal + ' kWh'],
       ['Zona fiscal', valores.zonaFiscal || 'Península']
     ];
+
+    if (valores && valores.solarOn) {
+      const excedentesKwh = ((valores.exPunta || 0) + (valores.exLlano || 0) + (valores.exValle || 0)).toFixed(2);
+      datosUsuario.push(['FV activada', 'Sí']);
+      datosUsuario.push(['Excedentes (kWh)', excedentesKwh + ' kWh']);
+      datosUsuario.push(['Saldo BV (€)', (valores.bvSaldo || 0).toFixed(2) + ' €']);
+    }
     
     datosUsuario.forEach(([label, value]) => {
       const row = hojaResumen.addRow([label, value]);
