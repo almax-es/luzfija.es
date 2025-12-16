@@ -559,12 +559,14 @@
           solarNoCalculable = true;
         } else if(solarOn && !t.esPVPC){
           exKwh = clampNonNeg(exTotal);
-          if(exKwh > 0 && fv && fv.tipo !== 'NO COMPENSA'){
+          // Verificar si es tarifa indexada ANTES de comprobar si hay excedentes
+          if(fv && fv.tipo !== 'NO COMPENSA'){
             precioExc = getFvExcPrice(fv);
             if(precioExc === null){
               // Tarifa indexada: no podemos calcular compensación
               solarNoCalculable = true;
-            } else if(precioExc > 0){
+            } else if(exKwh > 0 && precioExc > 0){
+              // Solo calcular compensación si hay excedentes Y precio válido
               fvApplied = true;
               const creditoPotencial = round2(exKwh * precioExc);
               let baseCompensable = cons;
