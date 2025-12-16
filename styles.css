@@ -515,13 +515,52 @@
       text-transform: uppercase; 
       font-size: 12px;
     }
-    .kwhValue{ 
-      font-family: var(--mono); 
-      font-size: 22px; 
-      font-weight: 1000; 
-      letter-spacing: -.3px; 
+    .kwhValue{
+      font-family: var(--mono);
+      font-size: 22px;
+      font-weight: 1000;
+      letter-spacing: -.3px;
       color: rgba(255,255,255,.96);
       text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+      min-width: 0;
+    }
+    #kwhHint{ min-width: 0; }
+    .kwh-split{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:stretch;
+    }
+    .kwh-pill{
+      flex:1 1 140px;
+      border:1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+      border-radius:14px;
+      padding:10px 12px;
+      display:flex;
+      align-items:baseline;
+      justify-content:center;
+      gap:8px;
+    }
+    .kwh-label{
+      font-size:.78rem;
+      opacity:.85;
+      font-weight:600;
+    }
+    .kwh-value{
+      font-size:1.25rem;
+      font-weight:800;
+      letter-spacing:.2px;
+    }
+    .kwh-unit{
+      font-size:.78rem;
+      opacity:.8;
+      font-weight:700;
+    }
+    @media (max-width: 520px){
+      .kwh-split{ gap:8px; }
+      .kwh-pill{ flex:1 1 100%; justify-content:flex-start; }
+      .kwh-value{ font-size:1.35rem; }
     }
     @media (max-width: 520px){ .kwhValue{font-size: 19px;} .row{gap: 10px;} }
     .heroKpis{ 
