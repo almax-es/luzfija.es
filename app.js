@@ -28,7 +28,7 @@
     const THEME_KEY = window.__ALMAX_THEME_KEY || 'almax_theme';
 
     // VALORES POR DEFECTO PARA PRIMERA VISITA
-    const DEFAULTS = { p1:'3,45', p2:'3,45', dias:'30', cPunta:'100', cLlano:'100', cValle:'100', zonaFiscal:'Península', viviendaCanarias:true };
+    const DEFAULTS = { p1:'3,45', p2:'3,45', dias:'30', cPunta:'100', cLlano:'100', cValle:'100', zonaFiscal:'Península', viviendaCanarias:true, solarOn:false, exPunta:'0', exLlano:'0', exValle:'0', bvSaldo:'0', omieAvg:'0' };
 
     // RECOGIDA DE PARÁMETROS URL (para enlaces compartidos)
     const params = new URLSearchParams(window.location.search);
@@ -36,7 +36,7 @@
     for (const [key, value] of params.entries()) { SERVER_PARAMS[key] = value; }
 
     const el = {
-      inputs: { p1:$('p1'), p2:$('p2'), dias:$('dias'), cPunta:$('cPunta'), cLlano:$('cLlano'), cValle:$('cValle'), zonaFiscal:$('zonaFiscal'), viviendaCanarias:$('viviendaCanarias') },
+      inputs: { p1:$('p1'), p2:$('p2'), dias:$('dias'), cPunta:$('cPunta'), cLlano:$('cLlano'), cValle:$('cValle'), zonaFiscal:$('zonaFiscal'), viviendaCanarias:$('viviendaCanarias'), solarOn:$('solarOn'), exPunta:$('exPunta'), exLlano:$('exLlano'), exValle:$('exValle'), bvSaldo:$('bvSaldo'), omieAvg:$('omieAvg') },
       btnCalc: $('btnCalc'), btnText: $('btnText'), btnSpinner: $('btnSpinner'),
       statusPill: $('statusPill'), statusText: $('statusText'), tarifasUpdated: $('tarifasUpdated'), errorBox: $('errorBox'), errorText: $('errorText'),
       kwhHint: $('kwhHint'), heroKpis: $('heroKpis'), kpiBest: $('kpiBest'), kpiPrice: $('kpiPrice'),
@@ -466,15 +466,33 @@
       const cValle = clampNonNeg(parseNum(el.inputs.cValle.value));
       const zonaFiscal = el.inputs.zonaFiscal?.value === 'Canarias' ? 'Canarias' : 'Península';
       const viviendaCanarias = Boolean(el.inputs.viviendaCanarias?.checked);
-      return { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias };
+      const solarOn = Boolean(el.inputs.solarOn?.checked);
+      const exPunta = clampNonNeg(parseNum(el.inputs.exPunta?.value));
+      const exLlano = clampNonNeg(parseNum(el.inputs.exLlano?.value));
+      const exValle = clampNonNeg(parseNum(el.inputs.exValle?.value));
+      const bvSaldo = clampNonNeg(parseNum(el.inputs.bvSaldo?.value));
+      const omieAvg = clampNonNeg(parseNum(el.inputs.omieAvg?.value));
+      return { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias, solarOn, exPunta, exLlano, exValle, bvSaldo, omieAvg };
     }
 
     function signatureFromValues(v) {
-      return [v.p1, v.p2, v.dias, v.cPunta, v.cLlano, v.cValle, v.zonaFiscal, v.viviendaCanarias ? '1' : '0'].join('|');
+      return [v.p1, v.p2, v.dias, v.cPunta, v.cLlano, v.cValle, v.zonaFiscal, v.viviendaCanarias ? '1' : '0', v.solarOn ? '1' : '0', v.exPunta, v.exLlano, v.exValle, v.bvSaldo, v.omieAvg].join('|');
+    }
+
+    function getFvExcPrice(fv, omieAvg){
+      if(!fv) return 0;
+      const raw = fv.exc;
+      if(typeof raw === 'number' && Number.isFinite(raw)) return Math.max(0, raw);
+      if(typeof raw === 'string' && raw.toUpperCase().includes('OMIE-0,005')){
+        const base = Math.max(0, Number(omieAvg) || 0);
+        if(!base) return 0;
+        return Math.max(0, round2(base - 0.005));
+      }
+      return 0;
     }
 
     function calculateLocal(values) {
-      const { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias } = values || getInputValues();
+      const { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias, solarOn, exPunta, exLlano, exValle, bvSaldo, omieAvg } = values || getInputValues();
       const fiscal = typeof __LF_getFiscalContext === 'function'
         ? __LF_getFiscalContext({ p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias })
         : (() => {
@@ -530,8 +548,40 @@
         const cons = round2((cPunta * t.cPunta) + (cLlano * t.cLlano) + (cValle * t.cValle));
         const tarifaAcceso = round2(4.650987 / 365 * dias);
 
+        let consAdj = cons;
+        let tarifaAdj = tarifaAcceso;
+        let credit1 = 0;
+        let credit2 = 0;
+        let excedenteSobranteEur = 0;
+        let precioExc = 0;
+        let exKwh = 0;
+        let bvSaldoFin = null;
+        const fv = t.fv;
+        let fvApplied = false;
+
+        if(solarOn && !t.esPVPC){
+          exKwh = clampNonNeg(exPunta) + clampNonNeg(exLlano) + clampNonNeg(exValle);
+          if(exKwh > 0 && fv && fv.tipo !== 'NO COMPENSA'){
+            precioExc = getFvExcPrice(fv, omieAvg);
+            if(precioExc > 0){
+              fvApplied = true;
+              const creditoPotencial = round2(exKwh * precioExc);
+              let baseCompensable = cons;
+              if(fv.tope === 'ENERGIA + PEAJES + CARGOS') baseCompensable = cons + tarifaAcceso;
+              else if(fv.tope === 'ENERGIA') baseCompensable = cons;
+              credit1 = Math.min(creditoPotencial, baseCompensable);
+              consAdj = round2(Math.max(0, cons - credit1));
+              const restante = Math.max(0, credit1 - cons);
+              if(fv.tope === 'ENERGIA + PEAJES + CARGOS'){
+                tarifaAdj = round2(Math.max(0, tarifaAcceso - restante));
+              }
+              excedenteSobranteEur = Math.max(0, creditoPotencial - credit1);
+            }
+          }
+        }
+
         // Base para impuesto eléctrico (Excel: SUM(G:I) con G,H,I ya redondeados a 2 decimales)
-        const sumaBase = pot + cons + tarifaAcceso;
+        const sumaBase = pot + consAdj + tarifaAdj;
         const impuestoElec = round2(Math.max((5.11269632 / 100) * sumaBase, (cPunta + cLlano + cValle) * 0.001));
 
         // Alquiler contador (Excel: ROUND(dias*0.026667,2))
@@ -541,39 +591,93 @@
         const subtotal = baseEnergia + impuestoElec;
 
         // Base de IVA (Excel: SUM(G:K))
-        const ivaBase = pot + cons + tarifaAcceso + impuestoElec + margen;
+        const ivaBase = pot + consAdj + tarifaAdj + impuestoElec + margen;
 
         if (isCanarias) {
           const alquilerContador = dias * (0.81 / 30);
           const igicBase = fiscal.usoFiscal === 'vivienda' ? 0 : (baseEnergia + impuestoElec) * 0.03;
           const igicContador = alquilerContador * 0.07;
           const impuestosNum = impuestoElec + igicBase + igicContador;
-          const totalNum = baseEnergia + impuestoElec + igicBase + igicContador + alquilerContador;
+          const totalBase = baseEnergia + impuestoElec + igicBase + igicContador + alquilerContador;
+
+          if(solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV' && precioExc > 0){
+            let disponible = bvSaldo;
+            let excedenteParaBv = excedenteSobranteEur;
+            if(fv.reglaBV === 'MES ACTUAL + BV'){
+              if((t.nombre || '').toLowerCase().includes('octopus')){
+                excedenteParaBv = Math.min(excedenteParaBv, round2(1000 * precioExc));
+              }
+              disponible = bvSaldo + excedenteParaBv;
+            }
+            credit2 = Math.min(clampNonNeg(disponible), totalBase);
+            if(fv.reglaBV === 'BV MES ANTERIOR') bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bvSaldo - credit2));
+            else if(fv.reglaBV === 'MES ACTUAL + BV') bvSaldoFin = round2(Math.max(0, (excedenteSobranteEur + bvSaldo) - credit2));
+            else bvSaldoFin = null;
+          }
+
+          const totalNum = credit2 > 0 ? round2(Math.max(0, totalBase - credit2)) : totalBase;
           return {
             ...t,
             posicion: index + 1,
             potenciaNum: pot, potencia: formatMoney(pot),
-            consumoNum: cons, consumo: formatMoney(cons),
-            impuestosNum,
+            consumoNum: consAdj, consumo: formatMoney(consAdj),
+            impuestosNum: impuestosNum,
             impuestos: formatMoney(impuestosNum),
             totalNum, total: formatMoney(totalNum),
             webUrl: t.web,
-            iva: 0
+            iva: 0,
+            fvTipo: fv ? fv.tipo || null : null,
+            fvExcRaw: fv ? fv.exc : null,
+            fvRegla: fv ? fv.reglaBV || null : null,
+            fvApplied,
+            fvOmieAvg: omieAvg,
+            fvExKwh: exKwh,
+            fvPriceUsed: precioExc,
+            fvCredit1: credit1,
+            fvCredit2: credit2,
+            fvBvSaldoFin: bvSaldoFin
           };
         }
 
         const iva = round2(ivaBase * 0.21);
-        const total = round2(ivaBase + iva);
+        const totalBase = round2(ivaBase + iva);
+
+        if(solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV' && precioExc > 0){
+          let disponible = bvSaldo;
+          let excedenteParaBv = excedenteSobranteEur;
+          if(fv.reglaBV === 'MES ACTUAL + BV'){
+            if((t.nombre || '').toLowerCase().includes('octopus')){
+              excedenteParaBv = Math.min(excedenteParaBv, round2(1000 * precioExc));
+            }
+            disponible = bvSaldo + excedenteParaBv;
+          }
+          credit2 = Math.min(clampNonNeg(disponible), totalBase);
+          if(fv.reglaBV === 'BV MES ANTERIOR') bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bvSaldo - credit2));
+          else if(fv.reglaBV === 'MES ACTUAL + BV') bvSaldoFin = round2(Math.max(0, (excedenteSobranteEur + bvSaldo) - credit2));
+          else bvSaldoFin = null;
+        }
+
+        const total = round2(Math.max(0, totalBase - credit2));
 
         return {
           ...t,
           posicion: index + 1,
           potenciaNum: pot, potencia: formatMoney(pot),
-          consumoNum: cons, consumo: formatMoney(cons),
-          impuestosNum: round2(tarifaAcceso + impuestoElec + margen + iva),
-          impuestos: formatMoney(round2(tarifaAcceso + impuestoElec + margen + iva)),
+          consumoNum: consAdj, consumo: formatMoney(consAdj),
+          impuestosNum: round2(tarifaAdj + impuestoElec + margen + iva),
+          impuestos: formatMoney(round2(tarifaAdj + impuestoElec + margen + iva)),
           totalNum: total, total: formatMoney(total),
-          webUrl: t.web
+          webUrl: t.web,
+          fvTipo: fv ? fv.tipo || null : null,
+          fvExcRaw: fv ? fv.exc : null,
+          fvRegla: fv ? fv.reglaBV || null : null,
+          fvApplied,
+          fvOmieAvg: omieAvg,
+          fvExKwh: exKwh,
+          fvPriceUsed: precioExc,
+          fvCredit1: credit1,
+          fvCredit2: credit2,
+          fvBvSaldoFin: bvSaldoFin
         };
       });
 
@@ -649,6 +753,7 @@
         }
         updateKwhHint();
         updateZonaFiscalUI();
+        updateSolarUI();
         return;
       }
       
@@ -661,6 +766,7 @@
         }
         updateKwhHint();
         updateZonaFiscalUI();
+        updateSolarUI();
         return;
       }
       let savedData = {};
@@ -673,6 +779,7 @@
       }
       updateKwhHint();
       updateZonaFiscalUI();
+      updateSolarUI();
     }
 
     function saveInputs(){
@@ -694,6 +801,7 @@
       saveInputs();
       updateKwhHint();
       updateZonaFiscalUI();
+      updateSolarUI();
       clearErrorStyles();
       validateInputs();
       markPending('Valores restablecidos. Pulsa Calcular para actualizar.');
@@ -711,6 +819,7 @@
 
       updateKwhHint();
       updateZonaFiscalUI();
+      updateSolarUI();
       validateInputs();
       saveInputs();
 
@@ -745,7 +854,19 @@
     function updateKwhHint(){
       const v = getInputValues();
       const t = v.cPunta + v.cLlano + v.cValle;
-      el.kwhHint.textContent=`${t.toFixed(2).replace('.',',')} kWh`;
+      const ex = v.exPunta + v.exLlano + v.exValle;
+      if(v.solarOn){
+        el.kwhHint.textContent=`Red: ${t.toFixed(2).replace('.',',')} kWh · Exced.: ${ex.toFixed(2).replace('.',',')} kWh`;
+      } else {
+        el.kwhHint.textContent=`${t.toFixed(2).replace('.',',')} kWh`;
+      }
+    }
+
+    function updateSolarUI(){
+      const box = document.getElementById('solarFields');
+      if(!box) return;
+      const on = Boolean(el.inputs.solarOn?.checked);
+      box.style.display = on ? '' : 'none';
     }
 
     function validateInputs(){
@@ -937,7 +1058,24 @@
             ? `<span class="tooltip requisitos-icon" data-tip="${escapeHtml(r.requisitos)}" role="button" tabindex="-1" aria-label="Requisitos de contratación" style="margin-left:4px; color:rgba(251,191,36,1); cursor:help;">ⓘ</span>`
             : '';
 
-          const nombreDisplay = `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>${requisitosTooltip}${nombreWarn}`;
+          let fvIcon = '';
+          const precioExc = Number(r.fvPriceUsed || 0);
+          const exKwh = Number(r.fvExKwh || 0);
+          const credit1 = Number(r.fvCredit1 || 0);
+          const credit2 = Number(r.fvCredit2 || 0);
+          const bvSaldoFin = r.fvBvSaldoFin;
+          if(r.fvApplied && r.fvTipo !== 'NO COMPENSA' && precioExc > 0){
+            const parts = [`Exced: ${exKwh.toFixed(2)} kWh`, `Precio: ${precioExc.toFixed(3)} €/kWh`, `Comp mes: ${credit1.toFixed(2)} €`];
+            if(credit2 > 0) parts.push(`BV usada: ${credit2.toFixed(2)} €`);
+            if(bvSaldoFin !== null && bvSaldoFin !== undefined) parts.push(`BV fin: ${Number(bvSaldoFin).toFixed(2)} €`);
+            if(typeof r.fvExcRaw === 'string' && r.fvExcRaw.toUpperCase().includes('OMIE') && (!Number(r.fvOmieAvg) || Number(r.fvOmieAvg) === 0)){
+              parts.push('⚠️ Falta OMIE medio');
+            }
+            const tip = parts.join(' · ');
+            fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="-1" aria-label="Detalle FV">☀️</span>`;
+          }
+
+          const nombreDisplay = `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>${fvIcon}${requisitosTooltip}${nombreWarn}`;
           tr.innerHTML =
             `<td>${escapeHtml(r.posicion)}</td>`+
             `<td title="${escapeHtml(nombreBase)}">${nombreDisplay}</td>`+
@@ -955,6 +1093,7 @@
 
         // Inicializar tooltips para los requisitos recién añadidos
         el.tbody.querySelectorAll('.requisitos-icon').forEach(t => bindTooltipElement(t));
+        el.tbody.querySelectorAll('.fv-icon').forEach(t => bindTooltipElement(t));
         updateSortIcons();
       });
     }
@@ -1167,6 +1306,7 @@
       applyThemeClass(document.documentElement.classList.contains('light-mode')?'light':'dark');
       updateThemeIcon();
       loadInputs();
+      updateSolarUI();
 
       initialStatusText = el.statusText?.textContent || '';
       initialStatusClass = el.statusPill?.className || '';
@@ -1199,6 +1339,12 @@
       }
       if(el.inputs.viviendaCanarias){
         el.inputs.viviendaCanarias.addEventListener('change',()=>{
+          scheduleCalculateDebounced();
+        });
+      }
+      if(el.inputs.solarOn){
+        el.inputs.solarOn.addEventListener('change',()=>{
+          updateSolarUI();
           scheduleCalculateDebounced();
         });
       }
