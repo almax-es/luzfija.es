@@ -600,7 +600,8 @@
           const impuestosNum = impuestoElec + igicBase + igicContador;
           const totalBase = baseEnergia + impuestoElec + igicBase + igicContador + alquilerContador;
 
-          if(solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV' && precioExc > 0){
+          let totalFinal = totalBase;
+          if(solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV'){
             let disponible = bvSaldo;
             let excedenteParaBv = excedenteSobranteEur;
             if(fv.reglaBV === 'MES ACTUAL + BV'){
@@ -613,9 +614,10 @@
             if(fv.reglaBV === 'BV MES ANTERIOR') bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bvSaldo - credit2));
             else if(fv.reglaBV === 'MES ACTUAL + BV') bvSaldoFin = round2(Math.max(0, (excedenteSobranteEur + bvSaldo) - credit2));
             else bvSaldoFin = null;
+            totalFinal = credit2 > 0 ? round2(Math.max(0, totalBase - credit2)) : totalBase;
           }
 
-          const totalNum = credit2 > 0 ? round2(Math.max(0, totalBase - credit2)) : totalBase;
+          const totalNum = credit2 > 0 ? totalFinal : totalBase;
           return {
             ...t,
             posicion: index + 1,
@@ -642,7 +644,8 @@
         const iva = round2(ivaBase * 0.21);
         const totalBase = round2(ivaBase + iva);
 
-        if(solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV' && precioExc > 0){
+        let totalFinal = totalBase;
+        if(solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV'){
           let disponible = bvSaldo;
           let excedenteParaBv = excedenteSobranteEur;
           if(fv.reglaBV === 'MES ACTUAL + BV'){
@@ -655,9 +658,10 @@
           if(fv.reglaBV === 'BV MES ANTERIOR') bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bvSaldo - credit2));
           else if(fv.reglaBV === 'MES ACTUAL + BV') bvSaldoFin = round2(Math.max(0, (excedenteSobranteEur + bvSaldo) - credit2));
           else bvSaldoFin = null;
+          totalFinal = credit2 > 0 ? round2(Math.max(0, totalBase - credit2)) : totalBase;
         }
 
-        const total = round2(Math.max(0, totalBase - credit2));
+        const total = credit2 > 0 ? totalFinal : totalBase;
 
         return {
           ...t,
