@@ -1716,3 +1716,22 @@
     }
 
   
+/* Detalles solares visibles en móvil */
+.tarifa-nombre + .tooltip + .tooltip + div,
+.tarifa-nombre + .tooltip + div {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .tarifa-nombre + .tooltip + .tooltip + div,
+  .tarifa-nombre + .tooltip + div {
+    display: block !important;
+  }
+}
+
+@media (min-width: 769px) {
+  /* En desktop, ocultar detalles y confiar en tooltips */
+  td[title] div[style*="font-size:11px"] {
+    display: none !important;
+  }
+}

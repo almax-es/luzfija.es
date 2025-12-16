@@ -36,7 +36,7 @@
     for (const [key, value] of params.entries()) { SERVER_PARAMS[key] = value; }
 
     const el = {
-      inputs: { p1:$('p1'), p2:$('p2'), dias:$('dias'), cPunta:$('cPunta'), cLlano:$('cLlano'), cValle:$('cValle'), zonaFiscal:$('zonaFiscal'), viviendaCanarias:$('viviendaCanarias'), solarOn:$('solarOn'), exTotal:$('exTotal'), bvSaldo:$('bvSaldo'), omieAvg:$('omieAvg') },
+      inputs: { p1:$('p1'), p2:$('p2'), dias:$('dias'), cPunta:$('cPunta'), cLlano:$('cLlano'), cValle:$('cValle'), zonaFiscal:$('zonaFiscal'), viviendaCanarias:$('viviendaCanarias'), solarOn:$('solarOn'), exTotal:$('exTotal'), bvSaldo:$('bvSaldo') },
       btnCalc: $('btnCalc'), btnText: $('btnText'), btnSpinner: $('btnSpinner'),
       statusPill: $('statusPill'), statusText: $('statusText'), tarifasUpdated: $('tarifasUpdated'), errorBox: $('errorBox'), errorText: $('errorText'),
       kwhHint: $('kwhHint'), heroKpis: $('heroKpis'), kpiBest: $('kpiBest'), kpiPrice: $('kpiPrice'),
@@ -469,28 +469,24 @@
       const solarOn = Boolean(el.inputs.solarOn?.checked);
       const exTotal = clampNonNeg(parseNum(el.inputs.exTotal?.value));
       const bvSaldo = clampNonNeg(parseNum(el.inputs.bvSaldo?.value));
-      const omieAvg = clampNonNeg(parseNum(el.inputs.omieAvg?.value));
-      return { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias, solarOn, exTotal, bvSaldo, omieAvg };
+      return { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias, solarOn, exTotal, bvSaldo };
     }
 
     function signatureFromValues(v) {
-      return [v.p1, v.p2, v.dias, v.cPunta, v.cLlano, v.cValle, v.zonaFiscal, v.viviendaCanarias ? '1' : '0', v.solarOn ? '1' : '0', v.exTotal, v.bvSaldo, v.omieAvg].join('|');
+      return [v.p1, v.p2, v.dias, v.cPunta, v.cLlano, v.cValle, v.zonaFiscal, v.viviendaCanarias ? '1' : '0', v.solarOn ? '1' : '0', v.exTotal, v.bvSaldo].join('|');
     }
 
-    function getFvExcPrice(fv, omieAvg){
+    function getFvExcPrice(fv){
       if(!fv) return 0;
       const raw = fv.exc;
       if(typeof raw === 'number' && Number.isFinite(raw)) return Math.max(0, raw);
-      if(typeof raw === 'string' && raw.toUpperCase().includes('OMIE-0,005')){
-        const base = Math.max(0, Number(omieAvg) || 0);
-        if(!base) return 0;
-        return Math.max(0, round2(base - 0.005));
-      }
+      // Si es 'INDEXADA', devolvemos null para marcarla como no calculable
+      if(typeof raw === 'string' && raw.toUpperCase() === 'INDEXADA') return null;
       return 0;
     }
 
     function calculateLocal(values) {
-      const { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias, solarOn, exTotal, bvSaldo, omieAvg } = values || getInputValues();
+      const { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias, solarOn, exTotal, bvSaldo } = values || getInputValues();
       const fiscal = typeof __LF_getFiscalContext === 'function'
         ? __LF_getFiscalContext({ p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias })
         : (() => {
@@ -557,11 +553,18 @@
         const fv = t.fv;
         let fvApplied = false;
 
-        if(solarOn && !t.esPVPC){
+        let solarNoCalculable = false;
+        if(solarOn && t.esPVPC){
+          // PVPC: compensación no calculable (precio variable horario)
+          solarNoCalculable = true;
+        } else if(solarOn && !t.esPVPC){
           exKwh = clampNonNeg(exTotal);
           if(exKwh > 0 && fv && fv.tipo !== 'NO COMPENSA'){
-            precioExc = getFvExcPrice(fv, omieAvg);
-            if(precioExc > 0){
+            precioExc = getFvExcPrice(fv);
+            if(precioExc === null){
+              // Tarifa indexada: no podemos calcular compensación
+              solarNoCalculable = true;
+            } else if(precioExc > 0){
               fvApplied = true;
               const creditoPotencial = round2(exKwh * precioExc);
               let baseCompensable = cons;
@@ -630,12 +633,12 @@
             fvExcRaw: fv ? fv.exc : null,
             fvRegla: fv ? fv.reglaBV || null : null,
             fvApplied,
-            fvOmieAvg: omieAvg,
             fvExKwh: exKwh,
             fvPriceUsed: precioExc,
             fvCredit1: credit1,
             fvCredit2: credit2,
-            fvBvSaldoFin: bvSaldoFin
+            fvBvSaldoFin: bvSaldoFin,
+            solarNoCalculable
           };
         }
 
@@ -674,16 +677,26 @@
           fvExcRaw: fv ? fv.exc : null,
           fvRegla: fv ? fv.reglaBV || null : null,
           fvApplied,
-          fvOmieAvg: omieAvg,
           fvExKwh: exKwh,
           fvPriceUsed: precioExc,
           fvCredit1: credit1,
           fvCredit2: credit2,
-          fvBvSaldoFin: bvSaldoFin
+          fvBvSaldoFin: bvSaldoFin,
+          solarNoCalculable
         };
       });
 
-      resultados.sort((a, b) => a.totalNum - b.totalNum);
+      resultados.sort((a, b) => {
+        const diff = a.totalNum - b.totalNum;
+        // Si ambas tienen el mismo precio (especialmente si es 0€)
+        if(Math.abs(diff) < 0.01){
+          // Desempatar por saldo BV final (mayor es mejor)
+          const bvA = Number(a.fvBvSaldoFin) || 0;
+          const bvB = Number(b.fvBvSaldoFin) || 0;
+          return bvB - bvA; // Mayor BV primero
+        }
+        return diff;
+      });
 
       const firstValida = resultados.find(r => Number.isFinite(r.totalNum)) || resultados[0];
       const bestPrice = firstValida ? firstValida.totalNum : 0;
@@ -1092,18 +1105,24 @@
           const credit1 = Number(r.fvCredit1 || 0);
           const credit2 = Number(r.fvCredit2 || 0);
           const bvSaldoFin = r.fvBvSaldoFin;
-          if(r.fvApplied && r.fvTipo !== 'NO COMPENSA' && precioExc > 0){
+          
+          // Si es solar no calculable (PVPC o tarifa indexada)
+          let solarDetails = '';
+          if(r.solarNoCalculable){
+            const tip = 'Compensación excedentes NO calculada (precio variable horario). Consulta tu factura para ver compensación real.';
+            fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="-1" aria-label="Solar no calculable" style="filter: grayscale(50%);">⚠️☀️</span>`;
+            solarDetails = `<div style="font-size:11px; color:#9ca3af; margin-top:2px;">⚠️ Compensación no calculada (precio variable)</div>`;
+          } else if(r.fvApplied && r.fvTipo !== 'NO COMPENSA' && precioExc > 0){
             const parts = [`Exced: ${exKwh.toFixed(2)} kWh`, `Precio: ${precioExc.toFixed(3)} €/kWh`, `Comp mes: ${credit1.toFixed(2)} €`];
             if(credit2 > 0) parts.push(`BV usada: ${credit2.toFixed(2)} €`);
             if(bvSaldoFin !== null && bvSaldoFin !== undefined) parts.push(`BV fin: ${Number(bvSaldoFin).toFixed(2)} €`);
-            if(typeof r.fvExcRaw === 'string' && r.fvExcRaw.toUpperCase().includes('OMIE') && (!Number(r.fvOmieAvg) || Number(r.fvOmieAvg) === 0)){
-              parts.push('⚠️ Falta OMIE medio');
-            }
             const tip = parts.join(' · ');
             fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="-1" aria-label="Detalle FV">☀️</span>`;
+            // Detalles visibles en móvil
+            solarDetails = `<div style="font-size:11px; color:#9ca3af; margin-top:2px;">☀️ ${escapeHtml(parts.join(' • '))}</div>`;
           }
 
-          const nombreDisplay = `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>${fvIcon}${requisitosTooltip}${nombreWarn}`;
+          const nombreDisplay = `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>${fvIcon}${requisitosTooltip}${nombreWarn}${solarDetails}`;
           tr.innerHTML =
             `<td>${escapeHtml(r.posicion)}</td>`+
             `<td title="${escapeHtml(nombreBase)}">${nombreDisplay}</td>`+
