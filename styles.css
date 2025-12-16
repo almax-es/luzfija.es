@@ -1737,20 +1737,29 @@
 }
 
 /* ==========================================
-   COLUMNA BATERÍA VIRTUAL (BV)
+   COLUMNA BATERÍA VIRTUAL (BV) - DISEÑO COMPACTO
    ========================================== */
 
-.bv-column {
-  font-weight: 700;
+.bv-column-compact {
+  font-weight: 800;
   text-align: center;
-  min-width: 85px;
+  min-width: 65px;
+  max-width: 75px;
+  padding: 8px 4px !important;
 }
 
-.bv-positive {
+.bv-positive-big {
   color: #10b981;
-  font-weight: 800;
-  font-size: 15px;
-  text-shadow: 0 0 10px rgba(16, 185, 129, 0.3);
+  font-weight: 900;
+  font-size: 17px;
+  text-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
+  display: inline-block;
+  animation: pulse-green 2s ease-in-out infinite;
+}
+
+@keyframes pulse-green {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
 }
 
 .bv-negative {
@@ -1758,40 +1767,84 @@
   font-weight: 700;
 }
 
+/* Badge gigante en nombre de tarifa */
+.bv-badge-big {
+  display: inline-block;
+  background: linear-gradient(135deg, #10b981, #059669);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 15px;
+  margin-left: 8px;
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+  animation: badge-glow 2s ease-in-out infinite;
+}
+
+@keyframes badge-glow {
+  0%, 100% { box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); }
+  50% { box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6); }
+}
+
+/* Info solar en segunda línea */
+.solar-info-row {
+  font-size: 13px;
+  color: #10b981;
+  margin-top: 6px;
+  font-weight: 600;
+  background: rgba(16, 185, 129, 0.1);
+  padding: 4px 8px;
+  border-radius: 4px;
+  display: inline-block;
+}
+
 /* Destacar cabecera BV */
-th.bv-column {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1), rgba(16, 185, 129, 0.05));
-  font-weight: 700;
+th.bv-column-compact {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.08));
+  font-weight: 800;
+  font-size: 13px;
 }
 
 /* Responsive móvil */
 @media (max-width: 768px) {
-  .bv-column {
-    font-size: 14px;
+  .bv-column-compact {
+    font-size: 15px;
+    min-width: 60px;
   }
   
-  .bv-positive {
-    font-size: 14px;
+  .bv-positive-big {
+    font-size: 16px;
   }
   
-  /* Mejorar legibilidad detalles solares móvil */
-  td[title] div[style*="font-size:11px"] {
-    font-size: 13px !important;
-    line-height: 1.5;
+  .bv-badge-big {
+    font-size: 13px;
+    padding: 4px 8px;
+    display: block;
+    margin: 6px 0 0 0;
+    width: fit-content;
+  }
+  
+  .solar-info-row {
+    font-size: 12px;
     margin-top: 4px;
-    padding: 4px 0;
   }
 }
 
 /* Dark mode */
-body.dark-mode .bv-positive {
+body.dark-mode .bv-positive-big {
   color: #34d399;
+  text-shadow: 0 0 15px rgba(52, 211, 153, 0.5);
 }
 
 body.dark-mode .bv-negative {
   color: #f87171;
 }
 
-body.dark-mode th.bv-column {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.08));
+body.dark-mode th.bv-column-compact {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
+}
+
+body.dark-mode .solar-info-row {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
 }

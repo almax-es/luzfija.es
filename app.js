@@ -1141,32 +1141,50 @@
             solarDetails = `<div style="font-size:11px; color:#9ca3af; margin-top:2px;">🔋 ${escapeHtml(parts.join(' • '))}</div>`;
           }
 
-          const nombreDisplay = `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>${fvIcon}${requisitosTooltip}${nombreWarn}${solarDetails}`;
+          const nombreDisplay = `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>${fvIcon}${requisitosTooltip}${nombreWarn}`;
           
-          // Formatear BV acumulada (ya declarada en línea 1116)
+          // Formatear BV acumulada - DISEÑO NUEVO
           let bvDisplay = '—';
+          let bvBadge = '';
           if(bvSaldoFin !== null && bvSaldoFin !== undefined && Number.isFinite(bvSaldoFin)){
             const bvNum = Number(bvSaldoFin);
             if(bvNum > 0){
-              bvDisplay = `<span class="bv-positive" title="Acumulas ${formatMoney(bvNum)} para próximo mes">+${formatMoney(bvNum)}</span>`;
+              // Badge grande y visible
+              bvBadge = `<div class="bv-badge-big">💰 +${formatMoney(bvNum)}</div>`;
+              bvDisplay = `<span class="bv-positive-big">+${bvNum.toFixed(0)}€</span>`;
             } else if(bvNum < 0){
               bvDisplay = `<span class="bv-negative">${formatMoney(bvNum)}</span>`;
             } else {
-              bvDisplay = '0,00€';
+              bvDisplay = '<span style="color:#6b7280;">—</span>';
             }
           }
           
+          // Detalles solares en segunda línea (más visible)
+          let secondRow = '';
+          if(r.fvApplied || (bvSaldoFin && bvSaldoFin > 0)){
+            const parts = [];
+            if(exKwh > 0) parts.push(`☀️ ${exKwh.toFixed(0)} kWh`);
+            if(precioExc > 0) parts.push(`× ${precioExc.toFixed(3)}€`);
+            if(credit1 > 0) parts.push(`= ${credit1.toFixed(2)}€`);
+            if(bvSaldoFin > 0) parts.push(`🔋 Saldo: ${bvSaldoFin.toFixed(2)}€`);
+            if(parts.length > 0){
+              secondRow = `<div class="solar-info-row">${parts.join(' · ')}</div>`;
+            }
+          }
+          
+          // Solo icono web (más compacto)
+          const webIcon = w ? '🔗' : '';
+          
           tr.innerHTML =
             `<td>${escapeHtml(r.posicion)}</td>`+
-            `<td title="${escapeHtml(nombreBase)}">${nombreDisplay}</td>`+
+            `<td title="${escapeHtml(nombreBase)}">${nombreDisplay}${bvBadge}${secondRow}</td>`+
             `<td>${escapeHtml(r.potencia)}</td>`+
             `<td>${escapeHtml(r.consumo)}</td>`+
             `<td>${escapeHtml(r.impuestos)}</td>`+
             `<td><strong style="font-weight:1100; color: rgba(167,139,250,1);">${escapeHtml(r.total)}</strong></td>`+
-            `<td class="bv-column">${bvDisplay}</td>`+
+            `<td class="bv-column-compact">${bvDisplay}</td>`+
             `<td class="vs">${formatVsWithBar(r.vsMejor,r.vsMejorNum)}</td>`+
-            `<td>${rowTipoBadge(r.tipo)}</td>`+
-            `<td style="text-align:center">${w}</td>`;
+            `<td style="text-align:center;">${webIcon ? `<a href="${w}" target="_blank" rel="noopener" title="Web oficial">${webIcon}</a>` : ''}</td>`;
           frag.appendChild(tr);
         });
 
