@@ -28,7 +28,13 @@
     const THEME_KEY = window.__ALMAX_THEME_KEY || 'almax_theme';
 
     // VALORES POR DEFECTO PARA PRIMERA VISITA
-    const DEFAULTS = { p1:'3,45', p2:'3,45', dias:'30', cPunta:'100', cLlano:'100', cValle:'100', zonaFiscal:'Península', viviendaCanarias:true };
+    const DEFAULTS = { 
+    p1:'3,45', p2:'3,45', dias:'30', 
+    cPunta:'100', cLlano:'100', cValle:'100', 
+    zonaFiscal:'Península', viviendaCanarias:true,
+    fvOn:false, fvExPunta:'0', fvExLlano:'0', fvExValle:'0', 
+    fvBvPrev:'0', fvExcVar:''
+};
 
     // RECOGIDA DE PARÁMETROS URL (para enlaces compartidos)
     const params = new URLSearchParams(window.location.search);
@@ -36,7 +42,13 @@
     for (const [key, value] of params.entries()) { SERVER_PARAMS[key] = value; }
 
     const el = {
-      inputs: { p1:$('p1'), p2:$('p2'), dias:$('dias'), cPunta:$('cPunta'), cLlano:$('cLlano'), cValle:$('cValle'), zonaFiscal:$('zonaFiscal'), viviendaCanarias:$('viviendaCanarias') },
+      inputs: { 
+        p1:$('p1'), p2:$('p2'), dias:$('dias'), 
+        cPunta:$('cPunta'), cLlano:$('cLlano'), cValle:$('cValle'), 
+        zonaFiscal:$('zonaFiscal'), viviendaCanarias:$('viviendaCanarias'),
+        fvOn:$('fvOn'), fvExPunta:$('fvExPunta'), fvExLlano:$('fvExLlano'), 
+        fvExValle:$('fvExValle'), fvBvPrev:$('fvBvPrev'), fvExcVar:$('fvExcVar')
+    },
       btnCalc: $('btnCalc'), btnText: $('btnText'), btnSpinner: $('btnSpinner'),
       statusPill: $('statusPill'), statusText: $('statusText'), tarifasUpdated: $('tarifasUpdated'), errorBox: $('errorBox'), errorText: $('errorText'),
       kwhHint: $('kwhHint'), heroKpis: $('heroKpis'), kpiBest: $('kpiBest'), kpiPrice: $('kpiPrice'),
@@ -47,6 +59,7 @@
       btnExport: $('btnExport'), btnReset: $('btnReset'), btnShare: $('btnShare'),
       globalTooltip: $('globalTooltip'),
       pvpcInfo: $('pvpcInfo'),
+      fvFields: $('fvFields'),
       viviendaGroup: $('viviendaCanariasGroup')
     };
 
@@ -466,14 +479,135 @@
       const cValle = clampNonNeg(parseNum(el.inputs.cValle.value));
       const zonaFiscal = el.inputs.zonaFiscal?.value === 'Canarias' ? 'Canarias' : 'Península';
       const viviendaCanarias = Boolean(el.inputs.viviendaCanarias?.checked);
-      return { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias };
+      const fvOn = Boolean(el.inputs.fvOn?.checked);
+      const fvExPunta = clampNonNeg(parseNum(el.inputs.fvExPunta?.value));
+      const fvExLlano = clampNonNeg(parseNum(el.inputs.fvExLlano?.value));
+      const fvExValle = clampNonNeg(parseNum(el.inputs.fvExValle?.value));
+      const fvBvPrev = clampNonNeg(parseNum(el.inputs.fvBvPrev?.value));
+      const fvExcVar = el.inputs.fvExcVar?.value ? clampNonNeg(parseNum(el.inputs.fvExcVar.value)) : '';
+      return { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias,
+               fvOn, fvExPunta, fvExLlano, fvExValle, fvBvPrev, fvExcVar };
     }
 
     function signatureFromValues(v) {
-      return [v.p1, v.p2, v.dias, v.cPunta, v.cLlano, v.cValle, v.zonaFiscal, v.viviendaCanarias ? '1' : '0'].join('|');
+      return [v.p1, v.p2, v.dias, v.cPunta, v.cLlano, v.cValle, v.zonaFiscal, 
+              v.viviendaCanarias ? '1' : '0', v.fvOn ? '1' : '0', 
+              v.fvExPunta, v.fvExLlano, v.fvExValle, v.fvBvPrev, v.fvExcVar].join('|');
     }
 
-    function calculateLocal(values) {
+    
+    /**
+     * Calcula compensación FV para una tarifa
+     * @param {Object} t - Tarifa
+     * @param {Object} values - Valores del usuario
+     * @param {number} cons - Consumo energía (€)
+     * @param {number} tarifaAcceso - Tarifa acceso (€)
+     * @param {number} totalPostImpuestos - Total factura con impuestos (€)
+     * @returns {Object} {consAdj, tarifaAdj, credit1, credit2, bvNext, fvWarning}
+     */
+    function __LF_calcFV(t, values, cons, tarifaAcceso, totalPostImpuestos) {
+      const v = values;
+      
+      // Sin FV activo o sin datos FV en tarifa
+      if (!v.fvOn || !t.fv) {
+        return { consAdj: cons, tarifaAdj: tarifaAcceso, credit1: 0, credit2: 0, bvNext: 0, fvWarning: '' };
+      }
+      
+      const fv = t.fv;
+      const exTotal = v.fvExPunta + v.fvExLlano + v.fvExValle;
+      
+      // Tarifa no compensa
+      if (fv.tipo === 'NO COMPENSA') {
+        return { consAdj: cons, tarifaAdj: tarifaAcceso, credit1: 0, credit2: 0, bvNext: 0, fvWarning: '' };
+      }
+      
+      // Calcular precio excedentes
+      let excRate = 0;
+      if (typeof fv.exc === 'number') {
+        excRate = fv.exc;
+      } else if (typeof fv.exc === 'string' && fv.exc.toUpperCase().includes('OMIE')) {
+        // Tarifa indexada - necesita precio variable
+        if (!v.fvExcVar || v.fvExcVar === '' || v.fvExcVar === 0) {
+          return { consAdj: cons, tarifaAdj: tarifaAcceso, credit1: 0, credit2: 0, bvNext: 0, 
+                   fvWarning: 'Tarifa OMIE: introduce precio excedentes' };
+        }
+        // Parsear "OMIE-0,005" y aplicar ajuste
+        const match = fv.exc.match(/[-+]?\d+(?:[.,]\d+)?/);
+        const ajuste = match ? parseFloat(match[0].replace(',', '.')) : 0;
+        excRate = v.fvExcVar + ajuste;
+      }
+      
+      const valorExcedentes = exTotal * excRate;
+      
+      // PASO 1: Compensación simplificada
+      let tope1 = 0;
+      const topeStr = (fv.tope || '').toUpperCase();
+      
+      if (topeStr.includes('PEAJES') || topeStr.includes('CARGOS')) {
+        tope1 = cons + tarifaAcceso; // Gana Energía
+      } else {
+        tope1 = cons; // Por defecto
+      }
+      
+      const credit1 = Math.min(valorExcedentes, tope1);
+      const excedenteRestante = valorExcedentes - credit1;
+      
+      // Ajustar consumo/tarifa
+      let consAdj = cons;
+      let tarifaAdj = tarifaAcceso;
+      
+      if (topeStr.includes('PEAJES') || topeStr.includes('CARGOS')) {
+        const total = cons + tarifaAcceso;
+        if (total > 0) {
+          const ratio = credit1 / total;
+          consAdj = cons * (1 - ratio);
+          tarifaAdj = tarifaAcceso * (1 - ratio);
+        }
+      } else {
+        consAdj = Math.max(0, cons - credit1);
+      }
+      
+      // PASO 2: Batería virtual (si aplica)
+      let credit2 = 0;
+      let bvNext = 0;
+      
+      if (fv.bv) {
+        const reglaBV = (fv.reglaBV || '').toUpperCase();
+        
+        if (reglaBV.includes('MES ACTUAL + BV') || reglaBV.includes('MES ACTUAL+BV')) {
+          // Octopus: usa excedente sobrante + BV anterior
+          const poolBV = excedenteRestante + v.fvBvPrev;
+          credit2 = Math.min(poolBV, totalPostImpuestos);
+          
+          // Límite 1000 kWh/mes en excedentes nuevos
+          let excedenteAGuardar = excedenteRestante;
+          if (excRate > 0) {
+            const kWhSobrantes = excedenteRestante / excRate;
+            if (kWhSobrantes > 1000) {
+              excedenteAGuardar = 1000 * excRate;
+            }
+          }
+          
+          bvNext = Math.max(0, (excedenteAGuardar + v.fvBvPrev) - credit2);
+          
+        } else {
+          // Iberdrola, Naturgy, Imagina, Nufri: solo BV anterior
+          credit2 = Math.min(v.fvBvPrev, totalPostImpuestos);
+          bvNext = Math.max(0, excedenteRestante + v.fvBvPrev - credit2);
+        }
+      }
+      
+      return { 
+        consAdj: round2(consAdj), 
+        tarifaAdj: round2(tarifaAdj), 
+        credit1: round2(credit1), 
+        credit2: round2(credit2), 
+        bvNext: round2(bvNext),
+        fvWarning: '' 
+      };
+    }
+
+function calculateLocal(values) {
       const { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias } = values || getInputValues();
       const fiscal = typeof __LF_getFiscalContext === 'function'
         ? __LF_getFiscalContext({ p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias })
@@ -504,6 +638,11 @@
             total: '—',
             webUrl: t.web
           };
+            fvCredit1: 0,
+            fvCredit2: 0,
+            fvBvNext: 0,
+            fvWarning: ''
+          };
         }
         if (t.esPVPC && t.metaPvpc) {
           const m = t.metaPvpc;
@@ -530,8 +669,28 @@
         const cons = round2((cPunta * t.cPunta) + (cLlano * t.cLlano) + (cValle * t.cValle));
         const tarifaAcceso = round2(4.650987 / 365 * dias);
 
+        // === COMPENSACIÓN FV ===
+        // Calcular total temporal para saber cuánto puede compensar la BV
+        const sumaBase_temp = pot + cons + tarifaAcceso;
+        const impuestoElec_temp = round2(Math.max((5.11269632 / 100) * sumaBase_temp, (cPunta + cLlano + cValle) * 0.001));
+        const margen_temp = round2(dias * 0.026667);
+        const ivaBase_temp = pot + cons + tarifaAcceso + impuestoElec_temp + margen_temp;
+        const totalTemp = isCanarias 
+          ? (sumaBase_temp + margen_temp + impuestoElec_temp + (fiscal.usoFiscal === 'vivienda' ? 0 : (sumaBase_temp + margen_temp + impuestoElec_temp) * 0.03) + (dias * (0.81 / 30) * 0.07))
+          : round2(ivaBase_temp + (ivaBase_temp * 0.21));
+        
+        // Aplicar compensación FV
+        const fvResult = typeof __LF_calcFV === 'function' 
+          ? __LF_calcFV(t, values, cons, tarifaAcceso, totalTemp)
+          : { consAdj: cons, tarifaAdj: tarifaAcceso, credit1: 0, credit2: 0, bvNext: 0, fvWarning: '' };
+        
+        // Usar valores ajustados
+        const consUsado = fvResult.consAdj;
+        const tarifaUsada = fvResult.tarifaAdj;
+        // === FIN FV ===
+
         // Base para impuesto eléctrico (Excel: SUM(G:I) con G,H,I ya redondeados a 2 decimales)
-        const sumaBase = pot + cons + tarifaAcceso;
+        const sumaBase = pot + consUsado + tarifaUsada;
         const impuestoElec = round2(Math.max((5.11269632 / 100) * sumaBase, (cPunta + cLlano + cValle) * 0.001));
 
         // Alquiler contador (Excel: ROUND(dias*0.026667,2))
@@ -558,7 +717,11 @@
             impuestos: formatMoney(impuestosNum),
             totalNum, total: formatMoney(totalNum),
             webUrl: t.web,
-            iva: 0
+            iva: 0,
+            fvCredit1: fvResult.credit1,
+            fvCredit2: fvResult.credit2,
+            fvBvNext: fvResult.bvNext,
+            fvWarning: fvResult.fvWarning
           };
         }
 
@@ -573,7 +736,11 @@
           impuestosNum: round2(tarifaAcceso + impuestoElec + margen + iva),
           impuestos: formatMoney(round2(tarifaAcceso + impuestoElec + margen + iva)),
           totalNum: total, total: formatMoney(total),
-          webUrl: t.web
+          webUrl: t.web,
+          fvCredit1: fvResult.credit1,
+          fvCredit2: fvResult.credit2,
+          fvBvNext: fvResult.bvNext,
+          fvWarning: fvResult.fvWarning
         };
       });
 
@@ -629,6 +796,12 @@
       if(el.viviendaGroup){
         el.viviendaGroup.style.display = isCanarias ? 'flex' : 'none';
       }
+
+    function updateFvUI(){
+      if(!el.fvFields || !el.inputs.fvOn) return;
+      const on = Boolean(el.inputs.fvOn.checked);
+      el.fvFields.style.display = on ? 'block' : 'none';
+    }
     }
 
     function loadInputs() {
@@ -649,6 +822,7 @@
         }
         updateKwhHint();
         updateZonaFiscalUI();
+        updateFvUI();
         return;
       }
       
@@ -661,6 +835,7 @@
         }
         updateKwhHint();
         updateZonaFiscalUI();
+        updateFvUI();
         return;
       }
       let savedData = {};
@@ -673,6 +848,7 @@
       }
       updateKwhHint();
       updateZonaFiscalUI();
+        updateFvUI();
     }
 
     function saveInputs(){
@@ -694,6 +870,7 @@
       saveInputs();
       updateKwhHint();
       updateZonaFiscalUI();
+        updateFvUI();
       clearErrorStyles();
       validateInputs();
       markPending('Valores restablecidos. Pulsa Calcular para actualizar.');
@@ -711,6 +888,7 @@
 
       updateKwhHint();
       updateZonaFiscalUI();
+        updateFvUI();
       validateInputs();
       saveInputs();
 
@@ -745,7 +923,11 @@
     function updateKwhHint(){
       const v = getInputValues();
       const t = v.cPunta + v.cLlano + v.cValle;
-      el.kwhHint.textContent=`${t.toFixed(2).replace('.',',')} kWh`;
+      const ex = v.fvOn ? (v.fvExPunta + v.fvExLlano + v.fvExValle) : 0;
+      const tTxt = `${t.toFixed(2).replace('.',',')} kWh`;
+      const exTxt = v.fvOn && ex > 0 ? ` | ☀️ ${ex.toFixed(2).replace('.',',')} kWh exc.` : '';
+      el.kwhHint.textContent = tTxt + exTxt;
+    } kWh`;
     }
 
     function validateInputs(){
@@ -937,7 +1119,26 @@
             ? `<span class="tooltip requisitos-icon" data-tip="${escapeHtml(r.requisitos)}" role="button" tabindex="-1" aria-label="Requisitos de contratación" style="margin-left:4px; color:rgba(251,191,36,1); cursor:help;">ⓘ</span>`
             : '';
 
-          const nombreDisplay = `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>${requisitosTooltip}${nombreWarn}`;
+          // Icono y tooltip FV si aplica
+          let fvIcon = '';
+          if (r.fvCredit1 > 0 || r.fvCredit2 > 0 || r.fvWarning) {
+            const c1 = r.fvCredit1 || 0;
+            const c2 = r.fvCredit2 || 0;
+            const bv = r.fvBvNext || 0;
+            const warn = r.fvWarning || '';
+            
+            let tipText = '';
+            if (warn) {
+              tipText = `⚠️ ${warn}`;
+            } else {
+              const fmt = (n) => n.toFixed(2).replace('.', ',') + ' €';
+              tipText = `☀️ Compensación solar:&#10;• Excedentes mes: -${fmt(c1)}&#10;• Batería virtual: -${fmt(c2)}&#10;• Total ahorrado: -${fmt(c1 + c2)}&#10;• Saldo BV próximo: ${fmt(bv)}`;
+            }
+            
+            fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tipText)}" role="button" tabindex="-1" style="margin-left:4px; cursor:help;">☀️</span>`;
+          }
+
+          const nombreDisplay = `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>${requisitosTooltip}${fvIcon}${nombreWarn}`;
           tr.innerHTML =
             `<td>${escapeHtml(r.posicion)}</td>`+
             `<td title="${escapeHtml(nombreBase)}">${nombreDisplay}</td>`+
@@ -1177,6 +1378,7 @@
       Object.values(el.inputs).forEach(i=>{
         i.addEventListener('input',()=>{
           updateKwhHint();
+          if(i && i.id === 'fvOn') updateFvUI();
           scheduleCalculateDebounced();
         });
         
@@ -1194,6 +1396,7 @@
       if(el.inputs.zonaFiscal){
         el.inputs.zonaFiscal.addEventListener('change',()=>{
           updateZonaFiscalUI();
+        updateFvUI();
           scheduleCalculateDebounced();
         });
       }
