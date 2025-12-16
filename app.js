@@ -1095,7 +1095,8 @@
           if(r.fvApplied && r.fvTipo !== 'NO COMPENSA' && precioExc > 0){
             const parts = [`Exced: ${exKwh.toFixed(2)} kWh`, `Precio: ${precioExc.toFixed(3)} €/kWh`, `Comp mes: ${credit1.toFixed(2)} €`];
             if(credit2 > 0) parts.push(`BV usada: ${credit2.toFixed(2)} €`);
-            if(bvSaldoFin !== null && bvSaldoFin !== undefined) parts.push(`BV fin: ${Number(bvSaldoFin).toFixed(2)} €`);
+            const bvSaldoFinNum = Number(bvSaldoFin);
+            if(Number.isFinite(bvSaldoFinNum) && bvSaldoFinNum > 0) parts.push(`Saldo BV próximo mes: ${bvSaldoFinNum.toFixed(2)} €`);
             if(typeof r.fvExcRaw === 'string' && r.fvExcRaw.toUpperCase().includes('OMIE') && (!Number(r.fvOmieAvg) || Number(r.fvOmieAvg) === 0)){
               parts.push('⚠️ Falta OMIE medio');
             }
