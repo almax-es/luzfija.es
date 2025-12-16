@@ -713,14 +713,25 @@
         };
       });
 
-      const preciosValidos = processed.filter(r => Number.isFinite(r.totalNum)).map(r => r.totalNum);
+      if(solarOn){
+        state.sort = { key: 'vsMejorNum', dir: 'asc' };
+        updateSortIcons();
+      }
+
+      const preciosValidos = processed
+        .filter(r => Number.isFinite(solarOn ? r.costeReal : r.totalNum))
+        .map(r => solarOn ? r.costeReal : r.totalNum);
       const min = preciosValidos.length ? Math.min(...preciosValidos) : null;
       const max = preciosValidos.length ? Math.max(...preciosValidos) : null;
       const avg = preciosValidos.length ? (preciosValidos.reduce((a,b)=>a+b,0) / preciosValidos.length) : null;
 
+      const resumenPrecio = solarOn && Number.isFinite(firstValida?.costeReal)
+        ? formatMoney(firstValida.costeReal)
+        : (firstValida && Number.isFinite(firstValida?.totalNum) ? formatMoney(firstValida.totalNum) : '—');
+
       renderAll({
         success: true,
-        resumen: { mejor: firstValida ? firstValida.nombre : (processed[0]?.nombre || '—'), precio: (firstValida && Number.isFinite(firstValida.totalNum)) ? formatMoney(firstValida.totalNum) : '—' },
+        resumen: { mejor: firstValida ? firstValida.nombre : (processed[0]?.nombre || '—'), precio: resumenPrecio },
         stats: preciosValidos.length ? { precioMin: formatMoney(min), precioMax: formatMoney(max), precioMedio: formatMoney(avg) } : null,
         resultados: processed
       });
@@ -912,6 +923,20 @@
       if(!box) return;
       const on = Boolean(el.inputs.solarOn?.checked);
       box.style.display = on ? '' : 'none';
+      document.body.classList.toggle('solar-mode', on);
+      const lg = document.getElementById('solarLegend');
+      if(lg) lg.style.display = on ? '' : 'none';
+
+      const kpiLabel = document.querySelector('#heroKpis .heroCard:nth-child(2) .k');
+      if(kpiLabel){
+        kpiLabel.textContent = on ? 'Coste real mínimo' : 'Factura mínima';
+      }
+
+      if(on && Array.isArray(state.rows) && state.rows.length){
+        state.sort = { key:'vsMejorNum', dir:'asc' };
+        updateSortIcons();
+        renderTable();
+      }
     }
 
     function validateInputs(){
@@ -969,9 +994,12 @@
           if(sa<sb)return asc?-1:1;
           return 0;
         }
-        const na=Number(va)||0,nb=Number(vb)||0;
-        if(na>nb)return asc?1:-1;
-        if(na<nb)return asc?-1:1;
+        const na=Number(va);
+        const nb=Number(vb);
+        const fa = Number.isFinite(na) ? na : Number.POSITIVE_INFINITY;
+        const fb = Number.isFinite(nb) ? nb : Number.POSITIVE_INFINITY;
+        if(fa>fb)return asc?1:-1;
+        if(fa<fb)return asc?-1:1;
         return 0;
       });
       return c;
@@ -1087,7 +1115,7 @@
         el.table.classList.add('show');
 
         const frag = document.createDocumentFragment();
-        s.forEach((r) => {
+        s.forEach((r, idx) => {
           const tr = document.createElement('tr');
           if (r.esMejor) tr.classList.add('best');
           const w = r.webUrl
@@ -1137,14 +1165,28 @@
           }
 
           const nombreDisplay = `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>${fvIcon}${requisitosTooltip}${nombreWarn}${solarDetails}`;
+          const isSolarRow = Number.isFinite(Number(r.costeReal));
+          const bvNuevo = Number(r.fvExcedenteSobrante || 0);
+
+          const totalCell = isSolarRow
+            ? `<div class="cellStack">
+                 <div class="cellMain"><strong style="font-weight:1100; color: rgba(167,139,250,1);">${escapeHtml(r.total)}</strong></div>
+                 <div class="cellSub">Real: ${escapeHtml(formatMoney(r.costeReal))}${bvNuevo>0 ? ' · BV+: ' + escapeHtml(formatMoney(bvNuevo)) : ''}</div>
+               </div>`
+            : `<strong style="font-weight:1100; color: rgba(167,139,250,1);">${escapeHtml(r.total)}</strong>`;
+
+          const vsContent = isSolarRow
+            ? `<span class="tooltip vs-tip" data-tip="Δ real vs mejor. Real = Total − BV+ (crédito nuevo del mes).">${formatVsWithBar(r.vsMejor,r.vsMejorNum)}</span>`
+            : formatVsWithBar(r.vsMejor,r.vsMejorNum);
+
           tr.innerHTML =
-            `<td>${escapeHtml(r.posicion)}</td>`+
+            `<td>${idx + 1}</td>`+
             `<td title="${escapeHtml(nombreBase)}">${nombreDisplay}</td>`+
             `<td>${escapeHtml(r.potencia)}</td>`+
             `<td>${escapeHtml(r.consumo)}</td>`+
             `<td>${escapeHtml(r.impuestos)}</td>`+
-            `<td><strong style="font-weight:1100; color: rgba(167,139,250,1);">${escapeHtml(r.total)}</strong></td>`+
-            `<td class="vs">${formatVsWithBar(r.vsMejor,r.vsMejorNum)}</td>`+
+            `<td>${totalCell}</td>`+
+            `<td class="vs">${vsContent}</td>`+
             `<td>${rowTipoBadge(r.tipo)}</td>`+
             `<td style="text-align:center">${w}</td>`;
           frag.appendChild(tr);
@@ -1155,6 +1197,7 @@
         // Inicializar tooltips para los requisitos recién añadidos
         el.tbody.querySelectorAll('.requisitos-icon').forEach(t => bindTooltipElement(t));
         el.tbody.querySelectorAll('.fv-icon').forEach(t => bindTooltipElement(t));
+        el.tbody.querySelectorAll('.vs-tip').forEach(t => bindTooltipElement(t));
         updateSortIcons();
       });
     }
@@ -1164,15 +1207,20 @@
       const body = document.getElementById('chartTopBody');
       if (!c || !body) return;
 
-      const rows = (state.rows || []).filter(r => !r.pvpcNotComputable && r.total !== '—');
+      const solarMode = document.body.classList.contains('solar-mode');
+      const metricKey = solarMode ? 'costeReal' : 'totalNum';
+      const rows = (state.rows || []).filter(r => {
+        const val = Number(r[metricKey]);
+        return !r.pvpcNotComputable && Number.isFinite(val);
+      });
       if (!rows.length) {
         c.classList.remove('show');
         body.innerHTML = '';
         return;
       }
 
-      const sorted = rows.slice().sort((a, b) => a.totalNum - b.totalNum).slice(0, 5);
-      const max = sorted[sorted.length - 1].totalNum || 1;
+      const sorted = rows.slice().sort((a, b) => Number(a[metricKey]) - Number(b[metricKey])).slice(0, 5);
+      const max = sorted.reduce((m, r) => Math.max(m, Number(r[metricKey]) || 0), 0) || 1;
 
       const frag = document.createDocumentFragment();
       sorted.forEach((r, idx) => {
@@ -1180,12 +1228,17 @@
         row.className = 'chartTop-row';
         if (idx === 0) row.classList.add('best');
 
-        const pct = Math.max(5, Math.round((r.totalNum / max) * 100));
+        const metricVal = Number(r[metricKey]) || 0;
+        const pct = Math.max(5, Math.round((metricVal / max) * 100));
+
+        const valueText = solarMode && Number.isFinite(metricVal)
+          ? formatMoney(metricVal)
+          : escapeHtml(r.total || '');
 
         row.innerHTML = `
           <div class="chartTop-name" title="${escapeHtml(r.nombre)}">${escapeHtml(r.nombre)}</div>
           <div class="chartTop-barTrack"><div class="chartTop-barFill" data-width="${pct}%"></div></div>
-          <div class="chartTop-value">${escapeHtml(r.total || '')}</div>
+          <div class="chartTop-value">${valueText}</div>
         `;
         frag.appendChild(row);
       });
@@ -1193,6 +1246,12 @@
       body.replaceChildren(frag);
       c.style.display='';
       c.classList.add('show');
+
+      const titleEl = c.querySelector('.title');
+      if(titleEl){
+        if(!titleEl.dataset.defaultTitle) titleEl.dataset.defaultTitle = titleEl.textContent || '';
+        titleEl.textContent = solarMode ? 'Top 5 (coste real)' : (titleEl.dataset.defaultTitle || '');
+      }
 
       requestAnimationFrame(() => {
         body.querySelectorAll('.chartTop-barFill').forEach(bar => {
