@@ -1143,48 +1143,41 @@
 
           const nombreDisplay = `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>${fvIcon}${requisitosTooltip}${nombreWarn}`;
           
-          // Formatear BV acumulada - DISEÑO NUEVO
+          // Formatear BV acumulada - DISEÑO LIMPIO Y SIMPLE
           let bvDisplay = '—';
           let bvBadge = '';
-          if(bvSaldoFin !== null && bvSaldoFin !== undefined && Number.isFinite(bvSaldoFin)){
+          
+          // Detectar si hay excedentes o BV
+          const hasExcedentes = r.fvApplied && exKwh > 0;
+          const hasBV = bvSaldoFin !== null && bvSaldoFin !== undefined && Number.isFinite(bvSaldoFin);
+          
+          if(hasBV && Number(bvSaldoFin) > 0){
             const bvNum = Number(bvSaldoFin);
-            if(bvNum > 0){
-              // Badge grande y visible
-              bvBadge = `<div class="bv-badge-big">💰 +${formatMoney(bvNum)}</div>`;
-              bvDisplay = `<span class="bv-positive-big">+${bvNum.toFixed(0)}€</span>`;
-            } else if(bvNum < 0){
-              bvDisplay = `<span class="bv-negative">${formatMoney(bvNum)}</span>`;
-            } else {
-              bvDisplay = '<span style="color:#6b7280;">—</span>';
-            }
+            // Badge SOLO para BV acumulada
+            bvBadge = `<span class="bv-badge-inline">💰 +${bvNum.toFixed(0)}€</span>`;
+            bvDisplay = `<span class="bv-positive-big">+${bvNum.toFixed(0)}€</span>`;
+          } else if(hasBV && Number(bvSaldoFin) < 0){
+            bvDisplay = `<span class="bv-negative">${formatMoney(bvSaldoFin)}</span>`;
+          } else if(hasExcedentes && credit1 > 0){
+            // Si no hay BV pero sí excedentes compensados
+            bvDisplay = `<span class="bv-positive-big">${credit1.toFixed(0)}€</span>`;
+          } else {
+            bvDisplay = '<span style="color:#6b7280;">—</span>';
           }
           
-          // Detalles solares en segunda línea (más visible)
-          let secondRow = '';
-          if(r.fvApplied || (bvSaldoFin && bvSaldoFin > 0)){
-            const parts = [];
-            if(exKwh > 0) parts.push(`☀️ ${exKwh.toFixed(0)} kWh`);
-            if(precioExc > 0) parts.push(`× ${precioExc.toFixed(3)}€`);
-            if(credit1 > 0) parts.push(`= ${credit1.toFixed(2)}€`);
-            if(bvSaldoFin > 0) parts.push(`🔋 Saldo: ${bvSaldoFin.toFixed(2)}€`);
-            if(parts.length > 0){
-              secondRow = `<div class="solar-info-row">${parts.join(' · ')}</div>`;
-            }
-          }
-          
-          // Solo icono web (más compacto)
-          const webIcon = w ? '🔗' : '';
+          // Link web simple
+          const webLink = w ? `<a href="${escapeHtml(w)}" target="_blank" rel="noopener" style="font-size:18px; text-decoration:none;" title="Web oficial">🔗</a>` : '';
           
           tr.innerHTML =
             `<td>${escapeHtml(r.posicion)}</td>`+
-            `<td title="${escapeHtml(nombreBase)}">${nombreDisplay}${bvBadge}${secondRow}</td>`+
+            `<td title="${escapeHtml(nombreBase)}">${nombreDisplay} ${bvBadge}</td>`+
             `<td>${escapeHtml(r.potencia)}</td>`+
             `<td>${escapeHtml(r.consumo)}</td>`+
             `<td>${escapeHtml(r.impuestos)}</td>`+
             `<td><strong style="font-weight:1100; color: rgba(167,139,250,1);">${escapeHtml(r.total)}</strong></td>`+
             `<td class="bv-column-compact">${bvDisplay}</td>`+
             `<td class="vs">${formatVsWithBar(r.vsMejor,r.vsMejorNum)}</td>`+
-            `<td style="text-align:center;">${webIcon ? `<a href="${w}" target="_blank" rel="noopener" title="Web oficial">${webIcon}</a>` : ''}</td>`;
+            `<td style="text-align:center;">${webLink}</td>`;
           frag.appendChild(tr);
         });
 

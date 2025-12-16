@@ -1737,103 +1737,77 @@
 }
 
 /* ==========================================
-   COLUMNA BATERÍA VIRTUAL (BV) - DISEÑO COMPACTO
+   COLUMNA BATERÍA VIRTUAL (BV) - COMPACTA
    ========================================== */
 
 .bv-column-compact {
   font-weight: 800;
   text-align: center;
-  min-width: 65px;
-  max-width: 75px;
-  padding: 8px 4px !important;
+  min-width: 60px;
+  max-width: 70px;
+  padding: 8px 2px !important;
+  font-size: 14px;
 }
 
 .bv-positive-big {
   color: #10b981;
   font-weight: 900;
-  font-size: 17px;
-  text-shadow: 0 0 15px rgba(16, 185, 129, 0.5);
-  display: inline-block;
-  animation: pulse-green 2s ease-in-out infinite;
-}
-
-@keyframes pulse-green {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
+  font-size: 16px;
+  text-shadow: 0 0 12px rgba(16, 185, 129, 0.4);
 }
 
 .bv-negative {
   color: #ef4444;
   font-weight: 700;
+  font-size: 14px;
 }
 
-/* Badge gigante en nombre de tarifa */
-.bv-badge-big {
+/* Badge inline en nombre tarifa */
+.bv-badge-inline {
   display: inline-block;
   background: linear-gradient(135deg, #10b981, #059669);
   color: white;
-  padding: 6px 12px;
-  border-radius: 8px;
+  padding: 3px 8px;
+  border-radius: 6px;
   font-weight: 800;
-  font-size: 15px;
-  margin-left: 8px;
-  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
-  animation: badge-glow 2s ease-in-out infinite;
-}
-
-@keyframes badge-glow {
-  0%, 100% { box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4); }
-  50% { box-shadow: 0 6px 20px rgba(16, 185, 129, 0.6); }
-}
-
-/* Info solar en segunda línea */
-.solar-info-row {
   font-size: 13px;
-  color: #10b981;
-  margin-top: 6px;
-  font-weight: 600;
-  background: rgba(16, 185, 129, 0.1);
-  padding: 4px 8px;
-  border-radius: 4px;
-  display: inline-block;
+  margin-left: 6px;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.4);
+  vertical-align: middle;
 }
 
-/* Destacar cabecera BV */
+/* Cabecera BV */
 th.bv-column-compact {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.08));
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.12), rgba(16, 185, 129, 0.06));
   font-weight: 800;
-  font-size: 13px;
+  font-size: 12px;
+  padding: 8px 2px !important;
 }
 
 /* Responsive móvil */
 @media (max-width: 768px) {
   .bv-column-compact {
-    font-size: 15px;
-    min-width: 60px;
+    font-size: 13px;
+    min-width: 55px;
   }
   
   .bv-positive-big {
-    font-size: 16px;
+    font-size: 15px;
   }
   
-  .bv-badge-big {
-    font-size: 13px;
-    padding: 4px 8px;
-    display: block;
-    margin: 6px 0 0 0;
-    width: fit-content;
-  }
-  
-  .solar-info-row {
+  .bv-badge-inline {
     font-size: 12px;
-    margin-top: 4px;
+    padding: 2px 6px;
+    display: block;
+    margin: 4px 0 0 0;
+    width: fit-content;
   }
 }
 
 /* Dark mode */
 body.dark-mode .bv-positive-big {
   color: #34d399;
-  text-shadow: 0 0 15px rgba(52, 211, 153, 0.5);
+  text-shadow: 0 0 12px rgba(52, 211, 153, 0.4);
 }
 
 body.dark-mode .bv-negative {
@@ -1841,10 +1815,5 @@ body.dark-mode .bv-negative {
 }
 
 body.dark-mode th.bv-column-compact {
-  background: linear-gradient(135deg, rgba(16, 185, 129, 0.2), rgba(16, 185, 129, 0.1));
-}
-
-body.dark-mode .solar-info-row {
-  background: rgba(16, 185, 129, 0.15);
-  color: #34d399;
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.15), rgba(16, 185, 129, 0.08));
 }
