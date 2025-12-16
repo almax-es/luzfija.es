@@ -654,6 +654,21 @@
     .badge.b3{ border: none; background: linear-gradient(135deg, rgba(245,158,11,.9), rgba(251,191,36,.8)); color: #fff; box-shadow: 0 4px 12px rgba(245,158,11,.3); }
     .badge.b3:hover{ transform: scale(1.05); box-shadow: 0 6px 16px rgba(245,158,11,.4); }
     .toolbar{ display:flex; align-items:center; justify-content:flex-end; gap: 12px; margin: 10px 0 12px; flex-wrap: wrap; }
+    .solarLegend{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      padding:8px 10px;
+      border-radius:12px;
+      border:1px solid var(--border);
+      background: rgba(255,255,255,.06);
+      color: var(--muted);
+      font-weight: 900;
+      font-size: 12px;
+      line-height: 1.2;
+      flex: 1 1 100%;
+    }
+    .solarLegend .tooltip{ cursor: help; }
     .filters{display:flex; gap: 10px; flex-wrap: wrap;}
     .fbtn{ padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,.06); color: var(--muted); cursor:pointer; font-weight: 1000; font-size: 12px; transition: transform .15s ease, border-color .15s ease, background .15s ease; user-select:none; min-height: 44px; display:flex; align-items:center; touch-action: manipulation; will-change: transform; }
     .fbtn:hover{transform: translateY(-1px); border-color: var(--border2); background: rgba(255,255,255,.09);}
@@ -703,6 +718,9 @@
     .vs-text.pos{color: rgba(239,68,68,.95);}
     .vs-text.neg{color: rgba(34,197,94,.95);}
     .vs-text.zero{color: var(--muted2);}
+    .cellStack{ display:flex; flex-direction:column; align-items:flex-end; gap:2px; }
+    .cellSub{ font-size:11px; color: var(--muted2); font-weight: 900; white-space: nowrap; }
+    .cellMain{ width: 100%; text-align: right; }
     .web{ display:inline-flex; width: 38px; height:38px; border-radius: 12px; border: 1px solid var(--border); background: linear-gradient(135deg, rgba(139,92,246,.18), rgba(34,197,94,.10)); align-items:center; justify-content:center; text-decoration:none; transition: transform .15s ease, border-color .15s ease, background .15s ease; }
     .web:hover{transform: translateY(-1px) scale(1.04); border-color: var(--border2); background: linear-gradient(135deg, rgba(139,92,246,.30), rgba(34,197,94,.16));}
     .web:active{transform: translateY(0px) scale(.98)}
@@ -742,6 +760,9 @@
       tbody td:nth-of-type(9)::before { content: "Contratar"; font-weight:900; color:var(--muted); }
       tbody td:nth-of-type(2) { display:block; text-align:center; font-size: 18px !important; margin-bottom: 10px; padding-bottom:10px; border-bottom: 2px solid var(--border); color: #fff; }
       .scroll-btn{ bottom: 80px; right: 20px; font-size: 12px; padding: 12px 16px; }
+      .cellSub{ white-space: normal; }
+      body.solar-mode tbody td:nth-of-type(6)::before { content: "PAGAS"; }
+      body.solar-mode tbody td:nth-of-type(7)::before { content: "Δ REAL"; }
     }
     @media (min-width: 1400px){ thead th:nth-child(2), tbody td:nth-child(2) { width: 28%; } tbody td:nth-child(2) { font-size: 15px; } }
     .container { min-height: 100vh; }
