@@ -47,7 +47,7 @@
       "tipo": "1P",
       "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
       "fv": {
-        "exc": 0.0,
+        "exc": "INDEXADA",
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -273,7 +273,7 @@
       "tipo": "3P",
       "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
       "fv": {
-        "exc": 0.0,
+        "exc": "INDEXADA",
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -402,7 +402,7 @@
       }
     }
   ],
-  "timestamp": "2025-12-16T15:12:02.060Z",
-  "publishedAt": "2025-12-16T15:12:02.060Z",
-  "publishedAtEpoch": 1765897922060
+  "timestamp": "2025-12-16T15:26:54.701Z",
+  "publishedAt": "2025-12-16T15:26:54.701Z",
+  "publishedAtEpoch": 1765898814701
 }
