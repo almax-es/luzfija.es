@@ -1735,14 +1735,19 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  flex-wrap: wrap; /* si no cabe, iconos bajan */
+  gap: 6px;
+  flex-wrap: nowrap; /* iconos siempre en la misma línea */
   width: 100%;
+  min-width: 0; /* permite que el nombre se comprima si es necesario */
 }
 
 .tarifa-nombre{
   max-width: 100%;
-  overflow-wrap: anywhere;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
 }
 
 .tarifa-icons{
