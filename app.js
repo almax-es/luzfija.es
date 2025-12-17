@@ -1197,29 +1197,36 @@
             
             const parts = [];
             
-            // Si hay BV, mostrar info de ranking y pagos
+            // Si hay BV, mostrar info de ranking y pagos (ORDEN MEJORADO)
             if(tieneBV){
-              parts.push(`🏆 COSTE RANKING: ${totalRanking.toFixed(2)} €`);
-              if(credit2 > 0) parts.push(`💰 Pagas este mes: ${totalFinal.toFixed(2)} €`);
-              
-              // Mostrar excedente sobrante solo si hay
-              if(excSobrante > 0){
-                parts.push(`⚡ Excedente este mes → BV: ${excSobrante.toFixed(2)} €`);
+              // 1. Primero lo concreto: lo que pagas HOY
+              if(credit2 > 0) {
+                parts.push(`💰 Pagas este mes: ${totalFinal.toFixed(2)} € (después de usar BV del mes anterior)`);
+              } else {
+                parts.push(`💰 Pagas este mes: ${totalFinal.toFixed(2)} €`);
               }
               
-              // SIEMPRE mostrar saldo BV final si la tarifa tiene BV
+              // 2. Luego el ranking: para comparar tarifas
+              parts.push(`🏆 Ranking: ${totalRanking.toFixed(2)} € (coste real sin contar BV del mes anterior)`);
+              
+              // 3. Mostrar excedente sobrante solo si hay
+              if(excSobrante > 0){
+                parts.push(`⚡ Acumulas en BV: ${excSobrante.toFixed(2)} € (se guardará para futuros meses)`);
+              }
+              
+              // 4. SIEMPRE mostrar saldo BV final si la tarifa tiene BV
               if(bvSaldoFin !== null && bvSaldoFin !== undefined){
-                parts.push(`🔋 Saldo BV final (próximos meses): ${Number(bvSaldoFin).toFixed(2)} €`);
+                parts.push(`🔋 Saldo BV final: ${Number(bvSaldoFin).toFixed(2)} € (disponible para el próximo mes)`);
               }
               
               parts.push(`---`);
             }
             
-            // Detalles de excedentes
-            parts.push(`Exced: ${exKwh.toFixed(2)} kWh`);
-            parts.push(`Precio: ${precioExc.toFixed(3)} €/kWh`);
-            parts.push(`Comp mes: ${credit1.toFixed(2)} €`);
-            if(credit2 > 0) parts.push(`BV usada: ${credit2.toFixed(2)} €`);
+            // Detalles de excedentes (con explicaciones)
+            parts.push(`☀️ Excedentes vertidos: ${exKwh.toFixed(2)} kWh`);
+            parts.push(`💰 Precio compensación: ${precioExc.toFixed(3)} €/kWh`);
+            parts.push(`✅ Compensado este mes: ${credit1.toFixed(2)} € (descontado de tu consumo de energía)`);
+            if(credit2 > 0) parts.push(`🔋 BV usada: ${credit2.toFixed(2)} € (ahorros de meses anteriores aplicados ahora)`);
             
             const tip = parts.join(' · ');
             fvIcon = `<span class="tooltip fv-icon fv-ranking" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Detalle FV y Ranking">☀️</span>`;
@@ -1228,8 +1235,8 @@
           } else if(bvSaldoFin !== null && bvSaldoFin !== undefined && r.fvTipo && r.fvTipo.includes('BV')){
             // Caso sin excedentes PERO con batería virtual: mostrar solo info BV
             const parts = [];
-            if(credit2 > 0) parts.push(`BV usada: ${credit2.toFixed(2)} €`);
-            parts.push(`🔋 Saldo BV final: ${Number(bvSaldoFin).toFixed(2)} €`);
+            if(credit2 > 0) parts.push(`🔋 BV usada: ${credit2.toFixed(2)} € (ahorros de meses anteriores aplicados ahora)`);
+            parts.push(`🔋 Saldo BV final: ${Number(bvSaldoFin).toFixed(2)} € (disponible para el próximo mes)`);
             const tip = parts.join(' · ');
             fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Detalle BV">🔋</span>`;
             // Detalles visibles en móvil
