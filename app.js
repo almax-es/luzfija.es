@@ -926,19 +926,26 @@
       
       // Inicializar modal solar info cuando se muestra por primera vez
       if(on && !window.__solarInfoInitialized){
+        console.warn('[DEBUG] Inicializando modal solar info...');
         window.__solarInfoInitialized = true;
         const modalSolarInfo = $('modalSolarInfo');
         const btnSolarInfo = $('btnSolarInfo');
         const btnCerrarSolarInfo = $('btnCerrarSolarInfo');
         
+        console.warn('[DEBUG] Elementos:', { btnSolarInfo, modalSolarInfo, btnCerrarSolarInfo });
+        
         if(btnSolarInfo && modalSolarInfo && btnCerrarSolarInfo){
+          console.warn('[DEBUG] Añadiendo event listeners...');
           btnSolarInfo.addEventListener('click', (e) => {
+            console.warn('[DEBUG] Click en btnSolarInfo!');
             e.preventDefault();
+            e.stopPropagation();
             modalSolarInfo.style.display = 'flex';
             modalSolarInfo.setAttribute('aria-hidden', 'false');
           });
           
           btnCerrarSolarInfo.addEventListener('click', () => {
+            console.warn('[DEBUG] Click en btnCerrarSolarInfo!');
             modalSolarInfo.style.display = 'none';
             modalSolarInfo.setAttribute('aria-hidden', 'true');
           });
@@ -950,6 +957,9 @@
               modalSolarInfo.setAttribute('aria-hidden', 'true');
             }
           });
+          console.warn('[DEBUG] Event listeners añadidos correctamente');
+        } else {
+          console.error('[DEBUG] Faltan elementos del modal');
         }
       }
     }
