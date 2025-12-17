@@ -1861,28 +1861,59 @@
 /* En móvil, hacer el badge aún más compacto */
 @media (max-width: 768px) {
   .solar-badge {
-    font-size: 9px;
-    padding: 2px 6px;
+    font-size: 10px;
+    padding: 3px 6px;
     margin-top: 3px;
   }
   
   .tarifa-nombre {
-    font-size: 12px;
+    font-size: 13px;
+  }
+  
+  /* Forzar scroll horizontal en móvil */
+  .tableWrap {
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    position: relative;
+  }
+  
+  /* Indicador visual de scroll (sombra derecha) */
+  .tableWrap::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 10px;
+    width: 40px;
+    background: linear-gradient(to left, var(--bg0) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 2;
   }
   
   /* Asegurar que la tabla mantiene su ancho mínimo */
   table {
-    min-width: 750px !important; /* Reducido de 900px */
+    min-width: 900px !important;
   }
   
   /* Hacer las celdas más compactas en móvil */
   tbody td {
-    padding: 8px 6px;
-    font-size: 12px;
+    padding: 10px 8px;
+    font-size: 13px;
   }
   
   thead th {
-    padding: 10px 6px;
-    font-size: 9px !important;
+    padding: 12px 8px;
+    font-size: 10px !important;
   }
+  
+  /* Columnas más estrechas en móvil */
+  thead th:nth-child(1), tbody td:nth-child(1) { width: 35px; }
+  thead th:nth-child(2), tbody td:nth-child(2) { width: 160px; min-width: 160px; }
+  thead th:nth-child(3), tbody td:nth-child(3) { width: 85px; }
+  thead th:nth-child(4), tbody td:nth-child(4) { width: 85px; }
+  thead th:nth-child(5), tbody td:nth-child(5) { width: 90px; }
+  thead th:nth-child(6), tbody td:nth-child(6) { width: 85px; }
+  thead th:nth-child(7), tbody td:nth-child(7) { width: 100px; }
+  thead th:nth-child(8), tbody td:nth-child(8) { width: 60px; }
+  thead th:nth-child(9), tbody td:nth-child(9) { width: 60px; }
 }
