@@ -681,8 +681,9 @@
     thead th:nth-child(9), tbody td:nth-child(9) { width: 80px; } /* Web */
     thead th{ position: sticky; top: 0; z-index: 5; text-align:right; padding: 14px 12px; font-size: 11px !important; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted) !important; background: transparent !important; border-bottom: none !important; user-select:none; white-space: nowrap; padding-bottom: 15px; }
     thead th:first-child, tbody td:first-child{text-align:center}
-    thead th:nth-child(2), tbody td:nth-child(2){
-      text-align:left !important; 
+    thead th:nth-child(2){text-align:center !important;}
+    tbody td:nth-child(2){
+      text-align:center !important; 
       white-space: normal;
       overflow: visible;
       word-break: break-word;
