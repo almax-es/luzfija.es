@@ -1127,9 +1127,9 @@
           // Determinar si hay que mostrar dos líneas en TOTAL
           let totalDisplay = escapeHtml(r.total);
           if(excSobrante > 0 && r.fvTipo && r.fvTipo.includes('BV')){
-            totalDisplay = `<div style="display: flex; flex-direction: column; gap: 2px; align-items: flex-end;">
-              <div style="font-size: 11px; color: var(--muted); font-weight: 600;">Pagas: <span style="color: var(--text); font-weight: 900;">${formatMoney(totalFinal)}</span></div>
-              <div style="font-size: 11px; color: var(--muted); font-weight: 600;">Ranking: <span style="color: rgba(167,139,250,1); font-weight: 1100;">${formatMoney(totalRanking)}</span></div>
+            totalDisplay = `<div style="display: flex; flex-direction: column; gap: 3px; align-items: flex-end;">
+              <div style="font-size: 10px; color: var(--muted2); font-weight: 600; line-height: 1.2;">Pagas: <span style="color: var(--text); font-weight: 900; font-size: 13px;">${formatMoney(totalFinal)}</span></div>
+              <div style="font-size: 10px; color: var(--muted2); font-weight: 600; line-height: 1.2;">Ranking: <span style="color: rgba(167,139,250,1); font-weight: 1100; font-size: 13px;">${formatMoney(totalRanking)}</span></div>
             </div>`;
           }
           
