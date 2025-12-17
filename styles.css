@@ -198,6 +198,7 @@
       transform: translateZ(0);
       width: 100%;
       display: flex;
+      z-index: 10;
       align-items: center;
       justify-content: center;
     }
@@ -1748,30 +1749,31 @@
 
 @media (max-width: 768px){
   .tarifa-icons .tooltip{
-    width: 22px;
-    height: 22px;
-    font-size: 12px;
+    width: 26px;
+    height: 26px;
+    font-size: 14px;
+    background: rgba(139,92,246,.35);
+    box-shadow: 0 0 0 2px rgba(139,92,246,.2);
+  }
+  
+  /* Pulso sutil para indicar que es clicable */
+  .tarifa-icons .tooltip {
+    animation: tooltipPulse 2s ease-in-out infinite;
+  }
+  
+  @keyframes tooltipPulse {
+    0%, 100% {
+      box-shadow: 0 0 0 2px rgba(139,92,246,.2);
+    }
+    50% {
+      box-shadow: 0 0 0 4px rgba(139,92,246,.4);
+    }
   }
 }
 
-/* Detalle solar: solo visible en móvil, y sin desbordar */
+/* Detalle solar: OCULTO en móvil (solo visible en tooltip del icono) */
 .solar-details{
-  display: none;
-  margin-top: 4px;
-  font-size: 11px;
-  color: #9ca3af;
-  line-height: 1.25;
-  max-width: 100%;
-  overflow: hidden;
-  overflow-wrap: anywhere;
-
-  display: -webkit-box;
-  -webkit-box-orient: vertical;
-  -webkit-line-clamp: 2;
-}
-
-@media (max-width: 768px){
-  .solar-details{ display: -webkit-box; }
+  display: none !important;
 }
 
 @media (min-width: 769px){
