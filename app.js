@@ -624,9 +624,10 @@
 
           // Para el ranking: restar excedente que va a BV (no la BV usada del mes anterior)
           // Así el ranking refleja el "coste real" considerando el ahorro que acumulas
-          const totalNum = solarOn && fv && fv.bv && excedenteSobranteEur > 0 
+          // NUNCA usar BV del mes anterior (totalFinal) para el ranking
+          const totalNum = solarOn && fv && fv.bv
             ? round2(Math.max(0, totalBase - excedenteSobranteEur))
-            : (credit2 > 0 ? totalFinal : totalBase);
+            : totalBase;
           return {
             ...t,
             posicion: index + 1,
@@ -673,9 +674,10 @@
         }
 
         // Para el ranking: restar excedente que va a BV (no la BV usada del mes anterior)
-        const total = solarOn && fv && fv.bv && excedenteSobranteEur > 0 
+        // NUNCA usar BV del mes anterior (totalFinal) para el ranking
+        const total = solarOn && fv && fv.bv
           ? round2(Math.max(0, totalBase - excedenteSobranteEur))
-          : (credit2 > 0 ? totalFinal : totalBase);
+          : totalBase;
 
         return {
           ...t,
