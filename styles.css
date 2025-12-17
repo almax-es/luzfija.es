@@ -682,9 +682,9 @@
     thead th{ position: sticky; top: 0; z-index: 5; text-align:right; padding: 14px 12px; font-size: 11px !important; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted) !important; background: transparent !important; border-bottom: none !important; user-select:none; white-space: nowrap; padding-bottom: 15px; }
     thead th:first-child, tbody td:first-child{text-align:center}
     thead th:nth-child(2), tbody td:nth-child(2){
-      text-align:left; 
-      white-space: normal; /* Permitir wrap en la columna de tarifa */
-      overflow: visible; /* Permitir que el contenido se expanda */
+      text-align:left !important; 
+      white-space: normal;
+      overflow: visible;
       word-break: break-word;
     }
     thead th.sort{cursor:pointer}
@@ -1793,13 +1793,13 @@
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  margin-bottom: 4px;
+  margin-bottom: 6px;
 }
 
 .tarifa-nombre {
-  font-weight: 1000;
+  font-weight: 900;
   color: #fff;
-  font-size: 14px;
+  font-size: 16px;
 }
 
 .tarifa-icons{
@@ -1824,15 +1824,15 @@
   }
 }
 
-/* NUEVO: Badges de información solar - MUY COMPACTOS */
+/* NUEVO: Badges de información solar - MÁS VISIBLES */
 .solar-badge {
   display: block;
-  padding: 3px 8px;
+  padding: 5px 10px;
   border-radius: 6px;
-  font-size: 10px;
-  font-weight: 600;
-  line-height: 1.3;
-  margin-top: 4px;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.4;
+  margin-top: 5px;
   max-width: 100%;
   overflow-wrap: break-word;
   word-break: break-word;
@@ -1840,20 +1840,20 @@
 }
 
 .solar-badge.solar {
-  background: rgba(34, 197, 94, 0.12);
-  border: 1px solid rgba(34, 197, 94, 0.25);
+  background: rgba(34, 197, 94, 0.18);
+  border: 1px solid rgba(34, 197, 94, 0.4);
   color: rgba(34, 197, 94, 1);
 }
 
 .solar-badge.battery {
-  background: rgba(59, 130, 246, 0.12);
-  border: 1px solid rgba(59, 130, 246, 0.25);
+  background: rgba(59, 130, 246, 0.18);
+  border: 1px solid rgba(59, 130, 246, 0.4);
   color: rgba(59, 130, 246, 1);
 }
 
 .solar-badge.warning {
-  background: rgba(245, 158, 11, 0.12);
-  border: 1px solid rgba(245, 158, 11, 0.25);
+  background: rgba(245, 158, 11, 0.18);
+  border: 1px solid rgba(245, 158, 11, 0.4);
   color: rgba(245, 158, 11, 1);
 }
 
