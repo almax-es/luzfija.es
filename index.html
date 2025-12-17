@@ -6,8 +6,8 @@
   <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
   <meta http-equiv="Pragma" content="no-cache">
   <meta http-equiv="Expires" content="0">
-  <meta name="description" content="Comparador gratuito de tarifas de luz en España. Calcula tu factura con potencia (P1/P2) y consumo (punta, llano, valle), impuestos incluidos, e incluye PVPC (tarifa regulada) cuando está disponible. Ranking instantáneo y enlace a contratar.">
-  <meta name="keywords" content="comparador tarifas luz, tarifa discriminación horaria, calcular factura electricidad, precio luz punta llano valle, potencia contratada P1 P2, ahorrar factura luz, mejor tarifa luz">
+  <meta name="description" content="Comparador gratuito de tarifas de luz en España. Calcula tu factura con potencia (P1/P2), consumo (punta, llano, valle), compensación excedentes solares y batería virtual. Incluye PVPC cuando está disponible. Ranking instantáneo con ahorro real.">
+  <meta name="keywords" content="comparador tarifas luz, tarifa discriminación horaria, calcular factura electricidad, precio luz punta llano valle, potencia contratada P1 P2, ahorrar factura luz, mejor tarifa luz, placas solares, autoconsumo fotovoltaico, compensación excedentes, batería virtual">
   <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
   <meta name="theme-color" content="#8B5CF6">
   <meta name="mobile-web-app-capable" content="yes">
@@ -21,7 +21,7 @@
   </script>
 
   <meta property="og:title" content="Comparador de Tarifas de Luz en España | Encuentra la Más Barata">
-  <meta property="og:description" content="Compara tarifas de electricidad con discriminación horaria y PVPC. Calcula tu factura según potencia y consumo. Descubre cuánto puedes ahorrar. 100% gratuito.">
+  <meta property="og:description" content="Compara tarifas de electricidad con discriminación horaria, compensación excedentes solares, batería virtual y PVPC. Calcula tu factura según potencia y consumo. Descubre cuánto puedes ahorrar. 100% gratuito.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://luzfija.es/">
   <meta property="og:locale" content="es_ES">
@@ -128,6 +128,11 @@
         "@type":"Question",
         "name":"¿Cómo calcula el comparador el PVPC?",
         "acceptedAnswer":{"@type":"Answer","text":"Usa los datos que introduces (potencias P1/P2, días y consumos por periodos) y, cuando hay datos disponibles, muestra un PVPC estimado y lo incluye en el ranking."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Cómo funciona con placas solares y autoconsumo?",
+        "acceptedAnswer":{"@type":"Answer","text":"El comparador calcula la compensación de excedentes según el precio de cada comercializadora. Para tarifas con Batería Virtual (BV), los excedentes sobrantes se acumulan en euros para descontarlos en meses futuros. El ranking ordena por coste real, considerando el ahorro que acumulas. El icono solar dorado muestra todos los detalles: compensación del mes, BV acumulada y coste para ranking."}
       }
     ]
   }
@@ -342,6 +347,9 @@
             </div>
           </div>
           <div id="solarFields" class="form fv-fields" style="display:none; margin-top:8px;">
+            <div class="help" style="margin-bottom: 12px; padding: 10px 12px; background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.2); border-radius: 10px;">
+              <strong>ℹ️ Cómo funciona:</strong> El comparador calcula la compensación de excedentes según el precio de cada tarifa. Si la tarifa tiene <strong>Batería Virtual (BV)</strong>, los excedentes sobrantes se acumulan en euros para descontarlos en meses futuros. El ranking muestra el <strong>coste real</strong> considerando este ahorro acumulado. El icono ☀️ dorado muestra todos los detalles.
+            </div>
             <div class="group">
               <label for="exTotal">Excedentes totales (kWh/mes)</label>
               <input id="exTotal" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 120">
@@ -509,6 +517,15 @@
 
           <h3>¿De dónde salen los precios?</h3>
           <p>Las tarifas se cargan desde un archivo <code>tarifas.json</code> publicado en esta misma web.</p>
+
+          <h3>¿Cómo funciona el comparador con placas solares?</h3>
+          <p>Si tienes <strong>autoconsumo fotovoltaico</strong>, el comparador calcula automáticamente:</p>
+          <ul style="margin: 8px 0; padding-left: 20px; color: var(--muted); line-height: 1.7;">
+            <li><strong>Compensación de excedentes</strong>: Los kWh que viertes a la red se compensan según el precio que pague cada comercializadora</li>
+            <li><strong>Batería Virtual (BV)</strong>: Algunas tarifas acumulan excedentes en euros para descontarlos en meses futuros</li>
+            <li><strong>Ranking ajustado</strong>: El orden considera el ahorro real, restando los excedentes que acumulas para próximos meses</li>
+          </ul>
+          <p>En la columna <strong>TOTAL</strong> verás dos valores cuando hay BV activa: lo que <strong>pagas este mes</strong> y el <strong>coste para ranking</strong> (que considera tu ahorro acumulado). El icono ☀️ dorado muestra todos los detalles al hacer clic.</p>
         </div>
       </details>
 
@@ -555,8 +572,10 @@
             <li>✓ Coste potencia (P1/P2)</li>
             <li>✓ Consumo por periodos</li>
             <li>✓ Impuestos + IVA (21%)</li>
+            <li>✓ Compensación excedentes solares</li>
+            <li>✓ Batería Virtual (BV) acumulada</li>
             <li>✓ PVPC regulada (CNMC) cuando está disponible</li>
-            <li>✓ Comparación directa</li>
+            <li>✓ Ranking ajustado por ahorro real</li>
           </ul>
         </div>
 
