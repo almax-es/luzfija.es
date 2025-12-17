@@ -1172,7 +1172,8 @@
           
           // Determinar si hay que mostrar dos líneas en TOTAL
           let totalDisplay = escapeHtml(r.total);
-          if(excSobrante > 0 && r.fvTipo && r.fvTipo.includes('BV')){
+          // Mostrar Pagas/Ranking cuando hay BV (independientemente de si sobran excedentes)
+          if(r.fvTipo && r.fvTipo.includes('BV') && r.fvApplied){
             totalDisplay = `<div style="display: flex; flex-direction: column; gap: 3px; align-items: flex-end;">
               <div style="font-size: 10px; color: var(--muted2); font-weight: 600; line-height: 1.2;">Pagas: <span style="color: var(--text); font-weight: 900; font-size: 13px;">${formatMoney(totalFinal)}</span></div>
               <div style="font-size: 10px; color: var(--muted2); font-weight: 600; line-height: 1.2;">Ranking: <span style="color: rgba(167,139,250,1); font-weight: 1100; font-size: 13px;">${formatMoney(totalRanking)}</span></div>
@@ -1186,22 +1187,33 @@
             fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Solar no calculable" style="filter: grayscale(50%);">⚠️☀️</span>`;
             solarDetails = `<div class="solar-details">⚠️ Compensación no calculada (precio variable)</div>`;
           } else if(r.fvApplied && r.fvTipo !== 'NO COMPENSA' && precioExc > 0){
-            // Caso con excedentes: mostrar todos los detalles + explicación ranking
+            // Caso con excedentes: mostrar todos los detalles
             const excSobrante = Number(r.fvExcedenteSobrante || 0);
             const totalFinal = Number(r.fvTotalFinal || 0);
             const totalRanking = Number(r.totalNum || 0);
+            const tieneBV = r.fvTipo && r.fvTipo.includes('BV');
             
             const parts = [];
             
-            // Si hay BV, explicar el ranking primero
-            if(excSobrante > 0 && r.fvTipo && r.fvTipo.includes('BV')){
+            // Si hay BV, mostrar info de ranking y pagos
+            if(tieneBV){
               parts.push(`🏆 COSTE RANKING: ${totalRanking.toFixed(2)} €`);
               if(credit2 > 0) parts.push(`💰 Pagas este mes: ${totalFinal.toFixed(2)} €`);
-              parts.push(`⚡ Excedente este mes → BV: ${excSobrante.toFixed(2)} €`);
-              if(bvSaldoFin !== null && bvSaldoFin !== undefined) parts.push(`🔋 Saldo BV final (próximos meses): ${Number(bvSaldoFin).toFixed(2)} €`);
+              
+              // Mostrar excedente sobrante solo si hay
+              if(excSobrante > 0){
+                parts.push(`⚡ Excedente este mes → BV: ${excSobrante.toFixed(2)} €`);
+              }
+              
+              // SIEMPRE mostrar saldo BV final si la tarifa tiene BV
+              if(bvSaldoFin !== null && bvSaldoFin !== undefined){
+                parts.push(`🔋 Saldo BV final (próximos meses): ${Number(bvSaldoFin).toFixed(2)} €`);
+              }
+              
               parts.push(`---`);
             }
             
+            // Detalles de excedentes
             parts.push(`Exced: ${exKwh.toFixed(2)} kWh`);
             parts.push(`Precio: ${precioExc.toFixed(3)} €/kWh`);
             parts.push(`Comp mes: ${credit1.toFixed(2)} €`);
@@ -1215,7 +1227,7 @@
             // Caso sin excedentes PERO con batería virtual: mostrar solo info BV
             const parts = [];
             if(credit2 > 0) parts.push(`BV usada: ${credit2.toFixed(2)} €`);
-            parts.push(`BV fin: ${Number(bvSaldoFin).toFixed(2)} €`);
+            parts.push(`🔋 Saldo BV final: ${Number(bvSaldoFin).toFixed(2)} €`);
             const tip = parts.join(' · ');
             fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Detalle BV">🔋</span>`;
             // Detalles visibles en móvil
