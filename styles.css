@@ -695,7 +695,7 @@
     tbody tr.best::before {
       content: none !important;
     }
-    tbody tr.best td:nth-child(2)::before{ content: "🏆 "; font-size: 14px; margin-right: 4px; }
+    tbody tr.best td:nth-child(2)::before{ content: ""; }
     tbody tr:nth-child(1) td:first-child { color: #FFD700; font-weight: 1000; font-size: 1.3em; text-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
     tbody tr:nth-child(2) td:first-child { color: #C0C0C0; font-weight: 1000; font-size: 1.2em; text-shadow: 0 0 10px rgba(192, 192, 192, 0.3); }
     tbody tr:nth-child(3) td:first-child { color: #CD7F32; font-weight: 1000; font-size: 1.2em; text-shadow: 0 0 10px rgba(205, 127, 50, 0.3); }
