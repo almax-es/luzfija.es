@@ -743,6 +743,7 @@
       thead { display: none; }
       tbody tr { display: block; margin-bottom: 20px; border: 1px solid var(--border); border-radius: 16px; padding: 15px; background: var(--card); box-shadow: var(--shadow2); }
       tbody td { display: flex; justify-content: space-between; align-items: center; text-align: right; padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,0.05); width: 100% !important; box-sizing: border-box; font-size: 14px; }
+      tbody td:nth-of-type(6) { align-items: flex-start; }
       tbody td:last-child { border-bottom: none; }
       tbody td:nth-of-type(1)::before { content: "Ranking"; font-weight:900; color:var(--muted); }
       tbody td:nth-of-type(2)::before { content: "Compañía"; display:none; }

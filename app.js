@@ -1120,6 +1120,18 @@
           const credit1 = Number(r.fvCredit1 || 0);
           const credit2 = Number(r.fvCredit2 || 0);
           const bvSaldoFin = r.fvBvSaldoFin;
+          const excSobrante = Number(r.fvExcedenteSobrante || 0);
+          const totalFinal = Number(r.fvTotalFinal || 0);
+          const totalRanking = Number(r.totalNum || 0);
+          
+          // Determinar si hay que mostrar dos líneas en TOTAL
+          let totalDisplay = escapeHtml(r.total);
+          if(excSobrante > 0 && r.fvTipo && r.fvTipo.includes('BV')){
+            totalDisplay = `<div style="display: flex; flex-direction: column; gap: 2px; align-items: flex-end;">
+              <div style="font-size: 11px; color: var(--muted); font-weight: 600;">Pagas: <span style="color: var(--text); font-weight: 900;">${formatMoney(totalFinal)}</span></div>
+              <div style="font-size: 11px; color: var(--muted); font-weight: 600;">Ranking: <span style="color: rgba(167,139,250,1); font-weight: 1100;">${formatMoney(totalRanking)}</span></div>
+            </div>`;
+          }
           
           // Si es solar no calculable (PVPC o tarifa indexada)
           let solarDetails = '';
@@ -1138,8 +1150,9 @@
             // Si hay BV, explicar el ranking primero
             if(excSobrante > 0 && r.fvTipo && r.fvTipo.includes('BV')){
               parts.push(`🏆 COSTE RANKING: ${totalRanking.toFixed(2)} €`);
-              if(credit2 > 0) parts.push(`💰 Factura real a pagar: ${totalFinal.toFixed(2)} €`);
-              parts.push(`⚡ Excedente → BV: ${excSobrante.toFixed(2)} €`);
+              if(credit2 > 0) parts.push(`💰 Pagas este mes: ${totalFinal.toFixed(2)} €`);
+              parts.push(`⚡ Excedente este mes → BV: ${excSobrante.toFixed(2)} €`);
+              if(bvSaldoFin !== null && bvSaldoFin !== undefined) parts.push(`🔋 Saldo BV final (próximos meses): ${Number(bvSaldoFin).toFixed(2)} €`);
               parts.push(`---`);
             }
             
@@ -1147,7 +1160,6 @@
             parts.push(`Precio: ${precioExc.toFixed(3)} €/kWh`);
             parts.push(`Comp mes: ${credit1.toFixed(2)} €`);
             if(credit2 > 0) parts.push(`BV usada: ${credit2.toFixed(2)} €`);
-            if(bvSaldoFin !== null && bvSaldoFin !== undefined) parts.push(`BV fin: ${Number(bvSaldoFin).toFixed(2)} €`);
             
             const tip = parts.join(' · ');
             fvIcon = `<span class="tooltip fv-icon fv-ranking" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Detalle FV y Ranking">☀️</span>`;
@@ -1178,7 +1190,7 @@
             `<td>${escapeHtml(r.potencia)}</td>`+
             `<td>${escapeHtml(r.consumo)}</td>`+
             `<td>${escapeHtml(r.impuestos)}</td>`+
-            `<td><strong style="font-weight:1100; color: rgba(167,139,250,1);">${escapeHtml(r.total)}</strong></td>`+
+            `<td><strong style="font-weight:1100; color: rgba(167,139,250,1);">${totalDisplay}</strong></td>`+
             `<td class="vs">${formatVsWithBar(r.vsMejor,r.vsMejorNum)}</td>`+
             `<td>${rowTipoBadge(r.tipo)}</td>`+
             `<td style="text-align:center">${w}</td>`;
