@@ -1112,22 +1112,22 @@
           
           // Si es solar no calculable (PVPC o tarifa indexada)
           if(r.solarNoCalculable){
-            solarBadge = `<div class="solar-badge warning">⚠️ Solar: Compensación no calculada (precio variable)</div>`;
+            solarBadge = `<div class="solar-badge warning">⚠️ Compensación no calc. (variable)</div>`;
           } else if(r.fvApplied && r.fvTipo !== 'NO COMPENSA' && precioExc > 0){
-            // Caso con excedentes: mostrar todos los detalles de forma clara
+            // Caso con excedentes: mostrar datos compactos
             const parts = [];
-            parts.push(`${exKwh.toFixed(2)} kWh excedentes`);
-            parts.push(`${precioExc.toFixed(3)} €/kWh`);
-            parts.push(`${credit1.toFixed(2)} € compensación mes`);
-            if(credit2 > 0) parts.push(`${credit2.toFixed(2)} € BV usada`);
-            if(bvSaldoFin !== null && bvSaldoFin !== undefined) parts.push(`${Number(bvSaldoFin).toFixed(2)} € BV saldo final`);
-            solarBadge = `<div class="solar-badge solar">☀️ ${escapeHtml(parts.join(' • '))}</div>`;
+            parts.push(`${exKwh.toFixed(0)}kWh`);
+            parts.push(`${precioExc.toFixed(3)}€/kWh`);
+            parts.push(`Comp: ${credit1.toFixed(2)}€`);
+            if(credit2 > 0) parts.push(`BV: -${credit2.toFixed(2)}€`);
+            if(bvSaldoFin !== null && bvSaldoFin !== undefined) parts.push(`Saldo: ${Number(bvSaldoFin).toFixed(2)}€`);
+            solarBadge = `<div class="solar-badge solar">☀️ ${escapeHtml(parts.join(' · '))}</div>`;
           } else if(bvSaldoFin !== null && bvSaldoFin !== undefined && r.fvTipo && r.fvTipo.includes('BV')){
             // Caso sin excedentes PERO con batería virtual: mostrar solo info BV
             const parts = [];
-            if(credit2 > 0) parts.push(`${credit2.toFixed(2)} € BV usada`);
-            parts.push(`${Number(bvSaldoFin).toFixed(2)} € BV saldo final`);
-            solarBadge = `<div class="solar-badge battery">🔋 ${escapeHtml(parts.join(' • '))}</div>`;
+            if(credit2 > 0) parts.push(`Usado: ${credit2.toFixed(2)}€`);
+            parts.push(`Saldo: ${Number(bvSaldoFin).toFixed(2)}€`);
+            solarBadge = `<div class="solar-badge battery">🔋 ${escapeHtml(parts.join(' · '))}</div>`;
           }
 
           // Cabecera: nombre + iconos de requisitos/warning

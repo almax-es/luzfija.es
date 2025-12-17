@@ -686,26 +686,26 @@
       width: 100%; 
       border-collapse: separate !important; 
       border-spacing: 0 8px; 
-      table-layout: fixed;
-      min-width: 900px; /* Ancho mínimo para evitar que se comprima demasiado */
+      table-layout: auto; /* Cambio: de fixed a auto para mejor control */
+      min-width: 800px; /* Reducido de 900px a 800px */
     }
-    /* Anchos de columnas optimizados */
-    thead th:nth-child(1), tbody td:nth-child(1) { width: 50px; min-width: 40px; } /* # */
-    thead th:nth-child(2), tbody td:nth-child(2) { width: auto; min-width: 200px; } /* Tarifa - flexible */
-    thead th:nth-child(3), tbody td:nth-child(3) { width: 110px; min-width: 100px; } /* Potencia */
-    thead th:nth-child(4), tbody td:nth-child(4) { width: 110px; min-width: 100px; } /* Consumo */
-    thead th:nth-child(5), tbody td:nth-child(5) { width: 110px; min-width: 100px; } /* Impuestos */
-    thead th:nth-child(6), tbody td:nth-child(6) { width: 110px; min-width: 100px; } /* Total */
-    thead th:nth-child(7), tbody td:nth-child(7) { width: 120px; min-width: 110px; } /* Vs mejor */
-    thead th:nth-child(8), tbody td:nth-child(8) { width: 80px; min-width: 70px; } /* Tipo */
-    thead th:nth-child(9), tbody td:nth-child(9) { width: 70px; min-width: 60px; } /* Web */
+    /* Anchos de columnas optimizados - MÁS COMPACTOS */
+    thead th:nth-child(1), tbody td:nth-child(1) { width: 40px; } /* # */
+    thead th:nth-child(2), tbody td:nth-child(2) { width: 180px; max-width: 250px; } /* Tarifa */
+    thead th:nth-child(3), tbody td:nth-child(3) { width: 90px; } /* Potencia */
+    thead th:nth-child(4), tbody td:nth-child(4) { width: 90px; } /* Consumo */
+    thead th:nth-child(5), tbody td:nth-child(5) { width: 95px; } /* Impuestos */
+    thead th:nth-child(6), tbody td:nth-child(6) { width: 85px; } /* Total */
+    thead th:nth-child(7), tbody td:nth-child(7) { width: 100px; } /* Vs mejor */
+    thead th:nth-child(8), tbody td:nth-child(8) { width: 60px; } /* Tipo */
+    thead th:nth-child(9), tbody td:nth-child(9) { width: 60px; } /* Web */
     thead th{ position: sticky; top: 0; z-index: 5; text-align:right; padding: 14px 12px; font-size: 11px !important; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted) !important; background: transparent !important; border-bottom: none !important; user-select:none; white-space: nowrap; padding-bottom: 15px; }
     thead th:first-child, tbody td:first-child{text-align:center}
     thead th:nth-child(2), tbody td:nth-child(2){
       text-align:left; 
       white-space: normal; /* Permitir wrap en la columna de tarifa */
-      overflow: hidden;
-      text-overflow: ellipsis;
+      overflow: visible; /* Permitir que el contenido se expanda */
+      word-break: break-word;
     }
     thead th.sort{cursor:pointer}
     thead th.sort:hover{background: rgba(139,92,246,.12)}
@@ -779,10 +779,31 @@
       .scroll-btn{ bottom: 80px; right: 20px; font-size: 12px; padding: 12px 16px; }
     }
     @media (min-width: 1400px){ 
-      table { min-width: 1200px; }
-      thead th:nth-child(2), tbody td:nth-child(2) { min-width: 250px; } 
-      tbody td:nth-child(2) { font-size: 15px; }
-      .tarifa-nombre { font-size: 15px; }
+      table { min-width: 1000px; } /* Reducido para mejor ajuste */
+      thead th:nth-child(2), tbody td:nth-child(2) { max-width: 280px; } 
+      tbody td:nth-child(2) { font-size: 14px; }
+      .tarifa-nombre { font-size: 14px; }
+      .solar-badge { font-size: 10.5px; }
+    }
+    
+    /* Indicador de scroll en desktop cuando es necesario */
+    @media (min-width: 769px) and (max-width: 1399px) {
+      .tableWrap {
+        position: relative;
+      }
+      
+      .tableWrap::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 10px;
+        width: 30px;
+        background: linear-gradient(to left, var(--bg0) 0%, transparent 100%);
+        pointer-events: none;
+        z-index: 2;
+        opacity: 0.8;
+      }
     }
     .container { min-height: 100vh; }
     #heroKpis { min-height: 260px; }
@@ -880,6 +901,23 @@
 
       .chartTop-value {
         font-size: 12px;
+      }
+      
+      /* Mejorar indicador de scroll en móvil */
+      .tableWrap {
+        position: relative;
+      }
+      
+      .tableWrap::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 10px;
+        width: 40px;
+        background: linear-gradient(to left, var(--bg0) 0%, transparent 100%);
+        pointer-events: none;
+        z-index: 2;
       }
     }
 
@@ -1807,84 +1845,64 @@
   }
 }
 
-/* NUEVO: Badges de información solar - visibles siempre */
+/* NUEVO: Badges de información solar - MUY COMPACTOS */
 .solar-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 6px 12px;
-  border-radius: 8px;
-  font-size: 11px;
+  display: block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 10px;
   font-weight: 600;
   line-height: 1.3;
-  margin-top: 6px;
+  margin-top: 4px;
   max-width: 100%;
   overflow-wrap: break-word;
   word-break: break-word;
+  white-space: normal;
 }
 
 .solar-badge.solar {
-  background: rgba(34, 197, 94, 0.15);
-  border: 1px solid rgba(34, 197, 94, 0.3);
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.25);
   color: rgba(34, 197, 94, 1);
 }
 
 .solar-badge.battery {
-  background: rgba(59, 130, 246, 0.15);
-  border: 1px solid rgba(59, 130, 246, 0.3);
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(59, 130, 246, 0.25);
   color: rgba(59, 130, 246, 1);
 }
 
 .solar-badge.warning {
-  background: rgba(245, 158, 11, 0.15);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.25);
   color: rgba(245, 158, 11, 1);
 }
 
-/* En móvil, hacer el badge más compacto */
+/* En móvil, hacer el badge aún más compacto */
 @media (max-width: 768px) {
   .solar-badge {
-    font-size: 10px;
-    padding: 5px 10px;
-    display: block;
+    font-size: 9px;
+    padding: 2px 6px;
+    margin-top: 3px;
   }
   
   .tarifa-nombre {
-    font-size: 13px;
-  }
-  
-  /* Mejoras de scroll horizontal en móvil */
-  .tableWrap {
-    position: relative;
-    margin-bottom: 16px;
-  }
-  
-  /* Indicador visual de scroll (sombra derecha) */
-  .tableWrap::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 8px;
-    width: 30px;
-    background: linear-gradient(to left, rgba(7,10,18,0.9), transparent);
-    pointer-events: none;
-    z-index: 2;
+    font-size: 12px;
   }
   
   /* Asegurar que la tabla mantiene su ancho mínimo */
   table {
-    min-width: 900px !important;
+    min-width: 750px !important; /* Reducido de 900px */
   }
   
   /* Hacer las celdas más compactas en móvil */
   tbody td {
-    padding: 10px 8px;
-    font-size: 13px;
+    padding: 8px 6px;
+    font-size: 12px;
   }
   
   thead th {
-    padding: 12px 8px;
-    font-size: 10px !important;
+    padding: 10px 6px;
+    font-size: 9px !important;
   }
 }
