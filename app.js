@@ -1540,6 +1540,32 @@
 
       $('scrollToResults').addEventListener('click',()=>$('heroKpis').scrollIntoView({behavior:'smooth',block:'start'}));
 
+      // Modal de información solar
+      const modalSolarInfo = $('modalSolarInfo');
+      const btnSolarInfo = $('btnSolarInfo');
+      const btnCerrarSolarInfo = $('btnCerrarSolarInfo');
+      
+      if(btnSolarInfo && modalSolarInfo && btnCerrarSolarInfo){
+        btnSolarInfo.addEventListener('click', (e) => {
+          e.preventDefault();
+          modalSolarInfo.style.display = 'flex';
+          modalSolarInfo.setAttribute('aria-hidden', 'false');
+        });
+        
+        btnCerrarSolarInfo.addEventListener('click', () => {
+          modalSolarInfo.style.display = 'none';
+          modalSolarInfo.setAttribute('aria-hidden', 'true');
+        });
+        
+        // Cerrar al hacer clic fuera del modal
+        modalSolarInfo.addEventListener('click', (e) => {
+          if(e.target === modalSolarInfo){
+            modalSolarInfo.style.display = 'none';
+            modalSolarInfo.setAttribute('aria-hidden', 'true');
+          }
+        });
+      }
+
       // Mostrar última actualización (si existe en caché) y precargar tarifas en segundo plano
       try{
         const cachedMeta = readTarifasCache({ allowExpired: true });

@@ -347,9 +347,9 @@
             </div>
           </div>
           <div id="solarFields" class="form fv-fields" style="display:none; margin-top:8px;">
-            <div class="help" style="margin-bottom: 12px; padding: 10px 12px; background: rgba(251, 191, 36, 0.08); border: 1px solid rgba(251, 191, 36, 0.2); border-radius: 10px;">
-              <strong>ℹ️ Cómo funciona:</strong> El comparador calcula la compensación de excedentes según el precio de cada tarifa. Si la tarifa tiene <strong>Batería Virtual (BV)</strong>, los excedentes sobrantes se acumulan en euros para descontarlos en meses futuros. El ranking muestra el <strong>coste real</strong> considerando este ahorro acumulado. El icono ☀️ dorado muestra todos los detalles.
-            </div>
+            <button type="button" class="btn" id="btnSolarInfo" style="width: 100%; justify-content: center; margin-bottom: 12px; background: rgba(251, 191, 36, 0.12); border-color: rgba(251, 191, 36, 0.3);">
+              ℹ️ ¿Cómo funciona con placas solares?
+            </button>
             <div class="group">
               <label for="exTotal">Excedentes totales (kWh/mes)</label>
               <input id="exTotal" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 120">
@@ -699,6 +699,44 @@
           🔒 <strong>Privacidad total:</strong> el PDF se procesa en tu navegador. No se sube ni se guarda nada.
           <br>📊 Analítica: esta web usa <a href="https://www.goatcounter.com" target="_blank" rel="noopener" style="color: var(--accent); text-decoration: underline;">GoatCounter</a> (sin cookies, sin seguimiento personal, conforme GDPR).
         </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalSolarInfo" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Información sobre tarifas solares" tabindex="-1">
+    <div class="modal-content card" role="document" style="max-width: 600px;">
+      <div class="head">
+        <div class="kicker">Autoconsumo fotovoltaico</div>
+        <h2 class="title">☀️ Cómo funciona con placas solares</h2>
+      </div>
+      <div class="body">
+        <h3 style="font-size: 14px; font-weight: 900; margin-bottom: 8px; color: var(--text);">📊 Compensación de excedentes</h3>
+        <p style="color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 16px;">
+          Los kWh que viertes a la red se compensan según el precio que pague cada comercializadora. Este precio varía entre tarifas (normalmente entre 0,05 € y 0,10 €/kWh).
+        </p>
+
+        <h3 style="font-size: 14px; font-weight: 900; margin-bottom: 8px; color: var(--text);">🔋 Batería Virtual (BV)</h3>
+        <p style="color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 16px;">
+          Algunas tarifas tienen <strong>Batería Virtual</strong>. Los excedentes que no se compensan este mes se <strong>acumulan en euros</strong> para descontarlos en facturas futuras (normalmente con límite de 1.000 kWh).
+        </p>
+
+        <h3 style="font-size: 14px; font-weight: 900; margin-bottom: 8px; color: var(--text);">🏆 Ranking ajustado</h3>
+        <p style="color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 16px;">
+          El ranking ordena por <strong>coste real</strong>, considerando el ahorro que acumulas en BV. En la columna <strong>TOTAL</strong> verás dos valores:
+        </p>
+        <ul style="margin: 0 0 16px 20px; padding: 0; color: var(--muted); font-size: 13px; line-height: 1.7;">
+          <li><strong>Pagas:</strong> Lo que pagas este mes (después de aplicar BV del mes anterior)</li>
+          <li><strong>Ranking:</strong> Coste ajustado para ordenación (restando excedentes acumulados)</li>
+        </ul>
+
+        <h3 style="font-size: 14px; font-weight: 900; margin-bottom: 8px; color: var(--text);">☀️ Icono dorado</h3>
+        <p style="color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 16px;">
+          Las tarifas con compensación activa muestran un icono ☀️ dorado con pulso. Al hacer clic verás todos los detalles: compensación del mes, BV acumulada, BV usada, saldo final y por qué está en esa posición del ranking.
+        </p>
+
+        <button class="btn primary" id="btnCerrarSolarInfo" type="button" style="width: 100%; margin-top: 10px;">
+          ✅ Entendido
+        </button>
       </div>
     </div>
   </div>
