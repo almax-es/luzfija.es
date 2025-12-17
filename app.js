@@ -941,19 +941,26 @@
             e.preventDefault();
             e.stopPropagation();
             modalSolarInfo.style.display = 'flex';
+            modalSolarInfo.classList.add('show');
             modalSolarInfo.setAttribute('aria-hidden', 'false');
           });
           
           btnCerrarSolarInfo.addEventListener('click', () => {
             console.warn('[DEBUG] Click en btnCerrarSolarInfo!');
-            modalSolarInfo.style.display = 'none';
+            modalSolarInfo.classList.remove('show');
+            setTimeout(() => {
+              modalSolarInfo.style.display = 'none';
+            }, 200);
             modalSolarInfo.setAttribute('aria-hidden', 'true');
           });
           
           // Cerrar al hacer clic fuera del modal
           modalSolarInfo.addEventListener('click', (e) => {
             if(e.target === modalSolarInfo){
-              modalSolarInfo.style.display = 'none';
+              modalSolarInfo.classList.remove('show');
+              setTimeout(() => {
+                modalSolarInfo.style.display = 'none';
+              }, 200);
               modalSolarInfo.setAttribute('aria-hidden', 'true');
             }
           });
