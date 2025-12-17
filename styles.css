@@ -43,7 +43,7 @@
       position: relative;
       z-index: 1;
     }
-    .container{ max-width:1400px; margin:0 auto; padding: clamp(50px, 5vw, 70px) clamp(22px, 4.5vw, 60px); }
+    .container{ max-width:1600px; margin:0 auto; padding: clamp(50px, 5vw, 70px) clamp(22px, 4.5vw, 60px); }
     .topbar{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom: 22px; flex-wrap: wrap; }
     @media (max-width: 520px){ .topbar{ justify-content: center; } }
     .brand{display:flex; align-items:center; gap:14px; min-width: 240px; position: relative; flex-shrink: 0;}
@@ -661,44 +661,24 @@
     .tableWrap{ 
       background: transparent !important; 
       border: none !important; 
-      overflow-x: auto !important; 
-      overflow-y: visible !important;
-      -webkit-overflow-scrolling: touch;
-      /* Scroll horizontal suave */
-      scrollbar-width: thin;
-      scrollbar-color: rgba(139,92,246,0.5) rgba(255,255,255,0.05);
-    }
-    .tableWrap::-webkit-scrollbar {
-      height: 8px;
-    }
-    .tableWrap::-webkit-scrollbar-track {
-      background: rgba(255,255,255,0.05);
-      border-radius: 4px;
-    }
-    .tableWrap::-webkit-scrollbar-thumb {
-      background: rgba(139,92,246,0.5);
-      border-radius: 4px;
-    }
-    .tableWrap::-webkit-scrollbar-thumb:hover {
-      background: rgba(139,92,246,0.7);
+      overflow: visible !important;
     }
     table{ 
       width: 100%; 
       border-collapse: separate !important; 
       border-spacing: 0 8px; 
-      table-layout: auto; /* Cambio: de fixed a auto para mejor control */
-      min-width: 800px; /* Reducido de 900px a 800px */
+      table-layout: auto;
     }
-    /* Anchos de columnas optimizados - MÁS COMPACTOS */
-    thead th:nth-child(1), tbody td:nth-child(1) { width: 40px; } /* # */
-    thead th:nth-child(2), tbody td:nth-child(2) { width: 180px; max-width: 250px; } /* Tarifa */
-    thead th:nth-child(3), tbody td:nth-child(3) { width: 90px; } /* Potencia */
-    thead th:nth-child(4), tbody td:nth-child(4) { width: 90px; } /* Consumo */
-    thead th:nth-child(5), tbody td:nth-child(5) { width: 95px; } /* Impuestos */
-    thead th:nth-child(6), tbody td:nth-child(6) { width: 85px; } /* Total */
-    thead th:nth-child(7), tbody td:nth-child(7) { width: 100px; } /* Vs mejor */
-    thead th:nth-child(8), tbody td:nth-child(8) { width: 60px; } /* Tipo */
-    thead th:nth-child(9), tbody td:nth-child(9) { width: 60px; } /* Web */
+    /* Anchos de columnas - aprovechando el espacio del contenedor más ancho */
+    thead th:nth-child(1), tbody td:nth-child(1) { width: 50px; } /* # */
+    thead th:nth-child(2), tbody td:nth-child(2) { width: auto; min-width: 280px; } /* Tarifa */
+    thead th:nth-child(3), tbody td:nth-child(3) { width: 110px; } /* Potencia */
+    thead th:nth-child(4), tbody td:nth-child(4) { width: 110px; } /* Consumo */
+    thead th:nth-child(5), tbody td:nth-child(5) { width: 110px; } /* Impuestos */
+    thead th:nth-child(6), tbody td:nth-child(6) { width: 110px; } /* Total */
+    thead th:nth-child(7), tbody td:nth-child(7) { width: 130px; } /* Vs mejor */
+    thead th:nth-child(8), tbody td:nth-child(8) { width: 80px; } /* Tipo */
+    thead th:nth-child(9), tbody td:nth-child(9) { width: 80px; } /* Web */
     thead th{ position: sticky; top: 0; z-index: 5; text-align:right; padding: 14px 12px; font-size: 11px !important; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted) !important; background: transparent !important; border-bottom: none !important; user-select:none; white-space: nowrap; padding-bottom: 15px; }
     thead th:first-child, tbody td:first-child{text-align:center}
     thead th:nth-child(2), tbody td:nth-child(2){
