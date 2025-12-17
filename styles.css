@@ -671,7 +671,8 @@
     thead th:nth-child(9), tbody td:nth-child(9) { width: 8%; }
     thead th{ position: sticky; top: 0; z-index: 5; text-align:right; padding: 14px 12px; font-size: 11px !important; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted) !important; background: var(--bg0) !important; border-bottom: none !important; user-select:none; white-space: nowrap; padding-bottom: 15px; }
     thead th:first-child, tbody td:first-child{text-align:center; vertical-align: middle;}
-    thead th:nth-child(2), tbody td:nth-child(2){text-align:left; white-space: nowrap; vertical-align: middle;}
+    thead th:nth-child(2){text-align:center; white-space: nowrap; vertical-align: middle;}
+    tbody td:nth-child(2){text-align:left; white-space: nowrap; vertical-align: middle;}
     thead th.sort{cursor:pointer}
     thead th.sort:hover{background: rgba(139,92,246,.12)}
     .sortIcon{opacity:.8; font-size: 12px; margin-left: 6px;}
