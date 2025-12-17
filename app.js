@@ -1031,6 +1031,14 @@
         const na=Number(va)||0,nb=Number(vb)||0;
         if(na>nb)return asc?1:-1;
         if(na<nb)return asc?-1:1;
+        
+        // DESEMPATE: Si totalNum (ranking) es igual, ordenar por totalFinal (lo que pagas)
+        if(key==='totalNum'){
+          const paA=Number(a.fvTotalFinal)||Number(a.totalNum)||0;
+          const paB=Number(b.fvTotalFinal)||Number(b.totalNum)||0;
+          if(paA!==paB) return asc?(paA-paB):(paB-paA);
+        }
+        
         return 0;
       });
       return c;
