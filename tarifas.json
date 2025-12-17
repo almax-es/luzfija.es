@@ -203,7 +203,7 @@
       "tipo": "1P",
       "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
       "fv": {
-        "exc": 0.06,
+        "exc": 0.03,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -325,7 +325,7 @@
       "tipo": "3P",
       "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
       "fv": {
-        "exc": 0.06,
+        "exc": 0.03,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -402,7 +402,7 @@
       }
     }
   ],
-  "timestamp": "2025-12-17T19:47:25.151Z",
-  "publishedAt": "2025-12-17T19:47:25.151Z",
-  "publishedAtEpoch": 1766000845151
+  "timestamp": "2025-12-17T20:16:33.821Z",
+  "publishedAt": "2025-12-17T20:16:33.821Z",
+  "publishedAtEpoch": 1766002593821
 }
