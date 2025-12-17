@@ -1753,9 +1753,30 @@
 
 /* Hacemos los iconos un poco más "tocables" en móvil */
 .tarifa-icons .tooltip{
-  width: 18px;
-  height: 18px;
-  font-size: 11px;
+  width: 20px;
+  height: 20px;
+  font-size: 12px;
+}
+
+/* Icono solar con BV: más destacado siempre */
+.tarifa-icons .fv-ranking {
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+  background: rgba(251, 191, 36, 0.25);
+  box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.3);
+  animation: tooltipPulseRanking 2s ease-in-out infinite;
+}
+
+@keyframes tooltipPulseRanking {
+  0%, 100% {
+    box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.3);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.5), 0 0 10px rgba(251, 191, 36, 0.3);
+    transform: scale(1.08);
+  }
 }
 
 @media (max-width: 768px){
@@ -1765,6 +1786,13 @@
     font-size: 14px;
     background: rgba(139,92,246,.35);
     box-shadow: 0 0 0 2px rgba(139,92,246,.2);
+  }
+  
+  /* En móvil, el icono de ranking es aún más grande */
+  .tarifa-icons .fv-ranking {
+    width: 32px;
+    height: 32px;
+    font-size: 16px;
   }
   
   /* Pulso sutil para indicar que es clicable */

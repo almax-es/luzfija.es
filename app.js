@@ -622,7 +622,11 @@
             totalFinal = credit2 > 0 ? round2(Math.max(0, totalBase - credit2)) : totalBase;
           }
 
-          const totalNum = credit2 > 0 ? totalFinal : totalBase;
+          // Para el ranking: restar excedente que va a BV (no la BV usada del mes anterior)
+          // Así el ranking refleja el "coste real" considerando el ahorro que acumulas
+          const totalNum = solarOn && fv && fv.bv && excedenteSobranteEur > 0 
+            ? round2(Math.max(0, totalBase - excedenteSobranteEur))
+            : (credit2 > 0 ? totalFinal : totalBase);
           return {
             ...t,
             posicion: index + 1,
@@ -642,6 +646,8 @@
             fvCredit1: credit1,
             fvCredit2: credit2,
             fvBvSaldoFin: bvSaldoFin,
+            fvExcedenteSobrante: excedenteSobranteEur,
+            fvTotalFinal: totalFinal,
             solarNoCalculable
           };
         }
@@ -666,7 +672,10 @@
           totalFinal = credit2 > 0 ? round2(Math.max(0, totalBase - credit2)) : totalBase;
         }
 
-        const total = credit2 > 0 ? totalFinal : totalBase;
+        // Para el ranking: restar excedente que va a BV (no la BV usada del mes anterior)
+        const total = solarOn && fv && fv.bv && excedenteSobranteEur > 0 
+          ? round2(Math.max(0, totalBase - excedenteSobranteEur))
+          : (credit2 > 0 ? totalFinal : totalBase);
 
         return {
           ...t,
@@ -686,6 +695,8 @@
           fvCredit1: credit1,
           fvCredit2: credit2,
           fvBvSaldoFin: bvSaldoFin,
+          fvExcedenteSobrante: excedenteSobranteEur,
+          fvTotalFinal: totalFinal,
           solarNoCalculable
         };
       });
@@ -1117,12 +1128,29 @@
             fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Solar no calculable" style="filter: grayscale(50%);">⚠️☀️</span>`;
             solarDetails = `<div class="solar-details">⚠️ Compensación no calculada (precio variable)</div>`;
           } else if(r.fvApplied && r.fvTipo !== 'NO COMPENSA' && precioExc > 0){
-            // Caso con excedentes: mostrar todos los detalles
-            const parts = [`Exced: ${exKwh.toFixed(2)} kWh`, `Precio: ${precioExc.toFixed(3)} €/kWh`, `Comp mes: ${credit1.toFixed(2)} €`];
+            // Caso con excedentes: mostrar todos los detalles + explicación ranking
+            const excSobrante = Number(r.fvExcedenteSobrante || 0);
+            const totalFinal = Number(r.fvTotalFinal || 0);
+            const totalRanking = Number(r.totalNum || 0);
+            
+            const parts = [];
+            
+            // Si hay BV, explicar el ranking primero
+            if(excSobrante > 0 && r.fvTipo && r.fvTipo.includes('BV')){
+              parts.push(`🏆 COSTE RANKING: ${totalRanking.toFixed(2)} €`);
+              if(credit2 > 0) parts.push(`💰 Factura real a pagar: ${totalFinal.toFixed(2)} €`);
+              parts.push(`⚡ Excedente → BV: ${excSobrante.toFixed(2)} €`);
+              parts.push(`---`);
+            }
+            
+            parts.push(`Exced: ${exKwh.toFixed(2)} kWh`);
+            parts.push(`Precio: ${precioExc.toFixed(3)} €/kWh`);
+            parts.push(`Comp mes: ${credit1.toFixed(2)} €`);
             if(credit2 > 0) parts.push(`BV usada: ${credit2.toFixed(2)} €`);
             if(bvSaldoFin !== null && bvSaldoFin !== undefined) parts.push(`BV fin: ${Number(bvSaldoFin).toFixed(2)} €`);
+            
             const tip = parts.join(' · ');
-            fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Detalle FV">☀️</span>`;
+            fvIcon = `<span class="tooltip fv-icon fv-ranking" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Detalle FV y Ranking">☀️</span>`;
             // Detalles visibles en móvil
             solarDetails = `<div class="solar-details">☀️ ${escapeHtml(parts.join(' • '))}</div>`;
           } else if(bvSaldoFin !== null && bvSaldoFin !== undefined && r.fvTipo && r.fvTipo.includes('BV')){
