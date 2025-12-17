@@ -495,6 +495,17 @@
     .help{ margin-top: 12px; padding: 12px 12px; border-radius: 14px; border: 1px solid rgba(139,92,246,.25); background: rgba(139,92,246,.10); color: var(--muted); font-size: 12px; line-height: 1.35; }
     .row{ display:flex; gap: 12px; align-items:stretch; flex-wrap: wrap; margin-top: 12px; }
     .row > * { flex: 1; min-width: 0; }
+    
+    @media (max-width: 520px){ 
+      .row { 
+        flex-direction: column; 
+        gap: 16px; 
+      }
+      .row > * {
+        flex: unset;
+        width: 100%;
+      }
+    }
     .kwhPill{ 
       display:flex; 
       align-items:baseline; 
