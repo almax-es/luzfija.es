@@ -87,11 +87,16 @@ async function exportarXLSXVisual() {
       ['Zona fiscal', valores.zonaFiscal || 'Península']
     ];
 
+    // CORRECCIÓN: Usar exTotal en vez de exPunta/exLlano/exValle
     if (valores && valores.solarOn) {
-      const excedentesKwh = ((valores.exPunta || 0) + (valores.exLlano || 0) + (valores.exValle || 0)).toFixed(2);
-      datosUsuario.push(['FV activada', 'Sí']);
-      datosUsuario.push(['Excedentes (kWh)', excedentesKwh + ' kWh']);
-      datosUsuario.push(['Saldo BV (€)', (valores.bvSaldo || 0).toFixed(2) + ' €']);
+      const excedentesKwh = parseFloat(valores.exTotal || 0).toFixed(2);
+      const bvSaldo = parseFloat(valores.bvSaldo || 0).toFixed(2);
+      
+      datosUsuario.push(['⚡ Placas solares', 'SÍ']);
+      datosUsuario.push(['Excedentes totales', excedentesKwh + ' kWh']);
+      datosUsuario.push(['Saldo Batería Virtual', bvSaldo + ' €']);
+    } else {
+      datosUsuario.push(['⚡ Placas solares', 'NO']);
     }
     
     datosUsuario.forEach(([label, value]) => {
@@ -143,6 +148,27 @@ async function exportarXLSXVisual() {
       }
     });
     
+    // AÑADIR ADVERTENCIA SI HAY SOLAR
+    if (valores && valores.solarOn) {
+      hojaResumen.addRow([]); // Espacio
+      const avisoRow = hojaResumen.addRow(['⚠️ NOTA IMPORTANTE: PLACAS SOLARES', '']);
+      avisoRow.font = { size: 12, bold: true, color: { argb: 'FFF59E0B' } };
+      avisoRow.fill = {
+        type: 'pattern',
+        pattern: 'solid',
+        fgColor: { argb: 'FFFEF3C7' }
+      };
+      hojaResumen.mergeCells(`A${avisoRow.number}:B${avisoRow.number}`);
+      
+      const avisoTexto = hojaResumen.addRow(['Las tarifas marcadas como "No calculable" son PVPC o indexadas.', '']);
+      avisoTexto.font = { size: 10, italic: true };
+      hojaResumen.mergeCells(`A${avisoTexto.number}:B${avisoTexto.number}`);
+      
+      const avisoTexto2 = hojaResumen.addRow(['Para estas tarifas, el precio real depende del pool horario.', '']);
+      avisoTexto2.font = { size: 10, italic: true };
+      hojaResumen.mergeCells(`A${avisoTexto2.number}:B${avisoTexto2.number}`);
+    }
+    
     // ==========================================
     // HOJA 2: RANKING COMPLETO
     // ==========================================
@@ -150,8 +176,8 @@ async function exportarXLSXVisual() {
       views: [{ state: 'frozen', xSplit: 0, ySplit: 1 }]
     });
     
-    // Definir columnas
-    hojaRanking.columns = [
+    // Definir columnas (AÑADIDA COLUMNA SOLAR)
+    const columnas = [
       { header: 'Pos', key: 'pos', width: 6 },
       { header: 'Tarifa', key: 'tarifa', width: 30 },
       { header: 'Tipo', key: 'tipo', width: 8 },
@@ -163,6 +189,13 @@ async function exportarXLSXVisual() {
       { header: '% Dif', key: 'porcentaje', width: 8 },
       { header: 'Requisitos', key: 'requisitos', width: 40 }
     ];
+    
+    // Si hay solar, añadir columna
+    if (valores && valores.solarOn) {
+      columnas.splice(3, 0, { header: 'Solar', key: 'solar', width: 12 });
+    }
+    
+    hojaRanking.columns = columnas;
     
     // Estilo del header
     const headerRow = hojaRanking.getRow(1);
@@ -182,7 +215,7 @@ async function exportarXLSXVisual() {
       const porcentajeDif = mejorPrecio > 0 ? (((precioActual - mejorPrecio) / mejorPrecio) * 100).toFixed(1) : '0';
       const tarifaOrig = cachedTarifas.find(t => t.nombre === r.nombre);
       
-      const row = hojaRanking.addRow({
+      const datosRow = {
         pos: r.posicion,
         tarifa: r.nombre,
         tipo: r.tipo,
@@ -193,10 +226,22 @@ async function exportarXLSXVisual() {
         ahorro: r.vsMejor || '0,00 €',
         porcentaje: porcentajeDif + '%',
         requisitos: tarifaOrig?.requisitos || 'Sin requisitos especiales'
-      });
+      };
+      
+      // Añadir info solar si aplica
+      if (valores && valores.solarOn) {
+        if (r.solarNoCalculable) {
+          datosRow.solar = '⚠️ No calculable';
+        } else {
+          datosRow.solar = '✅ OK';
+        }
+      }
+      
+      const row = hojaRanking.addRow(datosRow);
       
       // Alinear números a la derecha
-      [4, 5, 6, 7, 8, 9].forEach(col => {
+      const colsNumericas = valores && valores.solarOn ? [5, 6, 7, 8, 9, 10] : [4, 5, 6, 7, 8, 9];
+      colsNumericas.forEach(col => {
         row.getCell(col).alignment = { horizontal: 'right' };
       });
       
@@ -217,7 +262,17 @@ async function exportarXLSXVisual() {
           pattern: 'solid',
           fgColor: { argb: 'FFD1FAE5' } // Verde claro
         };
-        row.getCell(7).font = { bold: true, color: { argb: 'FF059669' }, size: 12 };
+        const colTotal = valores && valores.solarOn ? 8 : 7;
+        row.getCell(colTotal).font = { bold: true, color: { argb: 'FF059669' }, size: 12 };
+      }
+      
+      // Marcar tarifas no calculables en amarillo
+      if (valores && valores.solarOn && r.solarNoCalculable) {
+        row.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFEF3C7' } // Amarillo claro
+        };
       }
       
       // Destacar top 3 con medallas
@@ -229,9 +284,10 @@ async function exportarXLSXVisual() {
     });
     
     // Añadir filtros automáticos
+    const numColumnas = valores && valores.solarOn ? 11 : 10;
     hojaRanking.autoFilter = {
       from: { row: 1, column: 1 },
-      to: { row: state.rows.length + 1, column: 10 }
+      to: { row: state.rows.length + 1, column: numColumnas }
     };
     
     // Bordes a toda la tabla
@@ -244,7 +300,7 @@ async function exportarXLSXVisual() {
     
     for (let i = 1; i <= state.rows.length + 1; i++) {
       const row = hojaRanking.getRow(i);
-      for (let j = 1; j <= 10; j++) {
+      for (let j = 1; j <= numColumnas; j++) {
         row.getCell(j).border = tablaBorde;
       }
     }
@@ -290,6 +346,15 @@ async function exportarXLSXVisual() {
           fgColor: { argb: 'FFD1FAE5' }
         };
       }
+      
+      // Marcar tarifas no calculables
+      if (valores && valores.solarOn && r.solarNoCalculable) {
+        row.fill = {
+          type: 'pattern',
+          pattern: 'solid',
+          fgColor: { argb: 'FFFEF3C7' }
+        };
+      }
     });
     
     // ==========================================
@@ -302,7 +367,8 @@ async function exportarXLSXVisual() {
     
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    const nombreArchivo = `luzfija_${valores.p1}kW_${valores.dias}d_${new Date().toISOString().split('T')[0]}.xlsx`;
+    const solarSuffix = valores && valores.solarOn ? '_solar' : '';
+    const nombreArchivo = `luzfija_${valores.p1}kW_${valores.dias}d${solarSuffix}_${new Date().toISOString().split('T')[0]}.xlsx`;
     
     link.href = url;
     link.download = nombreArchivo;
