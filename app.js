@@ -706,7 +706,8 @@
       resultados.sort((a, b) => {
         const diff = a.totalNum - b.totalNum;
         // Si ambas tienen el mismo precio (especialmente si es 0€)
-        if(Math.abs(diff) < 0.01){
+        // Redondear diff a 2 decimales para evitar floating point errors
+        if(Math.abs(Math.round(diff * 100) / 100) < 0.01){
           // Desempatar por saldo BV final (mayor es mejor)
           const bvA = Number(a.fvBvSaldoFin) || 0;
           const bvB = Number(b.fvBvSaldoFin) || 0;
