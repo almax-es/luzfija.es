@@ -1237,7 +1237,7 @@
             parts.push(`✅ Compensado este mes: ${credit1.toFixed(2)} € (descontado de tu consumo de energía)`);
             if(credit2 > 0) parts.push(`🔋 BV usada: ${credit2.toFixed(2)} € (ahorros de meses anteriores aplicados ahora)`);
             
-            const tip = parts.join(' · ');
+            const tip = parts.join('\n');
             fvIcon = `<span class="tooltip fv-icon fv-ranking" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Detalle FV y Ranking">☀️</span>`;
             // Detalles visibles en móvil
             solarDetails = `<div class="solar-details">☀️ ${escapeHtml(parts.join(' • '))}</div>`;
@@ -1246,7 +1246,7 @@
             const parts = [];
             if(credit2 > 0) parts.push(`🔋 BV usada: ${credit2.toFixed(2)} € (ahorros de meses anteriores aplicados ahora)`);
             parts.push(`🔋 Saldo BV final: ${Number(bvSaldoFin).toFixed(2)} € (disponible para el próximo mes)`);
-            const tip = parts.join(' · ');
+            const tip = parts.join('\n');
             fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Detalle BV">🔋</span>`;
             // Detalles visibles en móvil
             solarDetails = `<div class="solar-details">🔋 ${escapeHtml(parts.join(' • '))}</div>`;
