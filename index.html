@@ -671,11 +671,11 @@
           const hoy = new Date();
           const fechaStr = hoy.toISOString().split('T')[0];
           
-          const url = `https://api.esios.ree.es/indicators/1001?start_date=${fechaStr}T00:00:00&end_date=${fechaStr}T23:59:59`;
+          // Usar proxy de Vercel para evitar CORS
+          const apiUrl = `https://api.esios.ree.es/indicators/1001?start_date=${fechaStr}T00:00:00&end_date=${fechaStr}T23:59:59`;
+          const proxyUrl = window.PVPC_PROXY_URL + encodeURIComponent(apiUrl);
           
-          const response = await fetch(url, {
-            headers: { 'Accept': 'application/json' }
-          });
+          const response = await fetch(proxyUrl);
           
           if (!response.ok) throw new Error('Error API ESIOS');
           
