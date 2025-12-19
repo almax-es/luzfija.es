@@ -254,7 +254,7 @@
               <span class="mi-left">🔗 Compartir configuración</span>
               <span class="mi-right">URL</span>
             </button>
-            <a class="menuItem" href="mailto:hola@luzfija.es" role="menuitem" style="text-decoration:none;">
+            <a class="menuItem" href="/cdn-cgi/l/email-protection#620a0d0e03220e1718040b08034c0711" role="menuitem" style="text-decoration:none;">
               <span class="mi-left">✉️ Contacto</span>
               <span class="mi-right">email</span>
             </a>
@@ -264,6 +264,27 @@
               <span class="mi-right">valores</span>
             </button>
           </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Widget PVPC -->
+    <div id="pvpcWidget" style="max-width: 1200px; margin: 32px auto 0 auto; padding: 0 20px; display: none;">
+      <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+          <span style="font-size: 28px; line-height: 1;">⚡</span>
+          <div>
+            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text);">PVPC Hoy</h3>
+            <p style="margin: 0; font-size: 12px; color: var(--muted);">Precio regulado por horas</p>
+          </div>
+        </div>
+        
+        <div id="pvpcContent" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px;">
+          <!-- Se carga dinámicamente -->
+        </div>
+        
+        <div id="pvpcError" style="display: none; color: var(--muted); font-size: 13px; text-align: center; padding: 8px;">
+          No se pudo cargar el precio PVPC
         </div>
       </div>
     </div>
@@ -545,7 +566,7 @@
       </div>
     </section>
 
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
       // Cargar y mostrar novedades
       (async function cargarNovedades() {
         try {
@@ -638,6 +659,88 @@
         const opciones = { day: 'numeric', month: 'short', year: 'numeric' };
         return fecha.toLocaleDateString('es-ES', opciones);
       }
+
+      // Cargar precio PVPC
+      (async function cargarPVPC() {
+        try {
+          const widget = document.getElementById('pvpcWidget');
+          const content = document.getElementById('pvpcContent');
+          const errorDiv = document.getElementById('pvpcError');
+          
+          if (!widget || !content) return;
+          
+          // Fecha de hoy en formato YYYY-MM-DD
+          const hoy = new Date();
+          const fechaStr = hoy.toISOString().split('T')[0];
+          
+          // API ESIOS: indicador 1001 = PVPC 2.0TD (Península)
+          const url = `https://api.esios.ree.es/indicators/1001?start_date=${fechaStr}T00:00:00&end_date=${fechaStr}T23:59:59`;
+          
+          const response = await fetch(url, {
+            headers: {
+              'Accept': 'application/json'
+            }
+          });
+          
+          if (!response.ok) throw new Error('Error API ESIOS');
+          
+          const data = await response.json();
+          const valores = data.indicator.values;
+          
+          if (!valores || valores.length === 0) throw new Error('Sin datos');
+          
+          // Calcular estadísticas
+          const precios = valores.map(v => v.value / 1000); // Convertir a €/kWh
+          const ahora = new Date().getHours();
+          const precioActual = precios[ahora];
+          const precioMin = Math.min(...precios);
+          const precioMax = Math.max(...precios);
+          const precioMedio = precios.reduce((a, b) => a + b, 0) / precios.length;
+          
+          // Encontrar horas de min y max
+          const horaMin = precios.indexOf(precioMin);
+          const horaMax = precios.indexOf(precioMax);
+          
+          // Renderizar
+          content.innerHTML = `
+            <div style="text-align: center;">
+              <div style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Ahora (${ahora}:00h)</div>
+              <div style="font-size: 24px; font-weight: 800; color: var(--accent); line-height: 1;">${precioActual.toFixed(3)}</div>
+              <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">€/kWh</div>
+            </div>
+            
+            <div style="text-align: center;">
+              <div style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Mínimo</div>
+              <div style="font-size: 20px; font-weight: 700; color: #10b981; line-height: 1;">${precioMin.toFixed(3)}</div>
+              <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">${horaMin}:00h</div>
+            </div>
+            
+            <div style="text-align: center;">
+              <div style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Máximo</div>
+              <div style="font-size: 20px; font-weight: 700; color: #ef4444; line-height: 1;">${precioMax.toFixed(3)}</div>
+              <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">${horaMax}:00h</div>
+            </div>
+            
+            <div style="text-align: center;">
+              <div style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Media del día</div>
+              <div style="font-size: 20px; font-weight: 700; color: var(--text); line-height: 1;">${precioMedio.toFixed(3)}</div>
+              <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">€/kWh</div>
+            </div>
+          `;
+          
+          // Mostrar widget
+          widget.style.display = 'block';
+          
+        } catch (error) {
+          console.error('Error cargando PVPC:', error);
+          const errorDiv = document.getElementById('pvpcError');
+          if (errorDiv) {
+            errorDiv.style.display = 'block';
+            document.getElementById('pvpcContent').style.display = 'none';
+          }
+          // No mostrar el widget si hay error
+        }
+      })();
     </script>
 
     <footer style="max-width:1400px; margin:0 auto; padding:40px clamp(22px, 4.5vw, 60px) 30px; border-top:1px solid var(--border);">
@@ -691,8 +794,8 @@
             <div style="font-size:11px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted2); font-weight:900; margin-bottom:6px;">
               ✉️ Email
             </div>
-            <a href="mailto:hola@luzfija.es" style="color:var(--accent); font-weight:900; text-decoration:underline; font-size:13px;">
-              hola@luzfija.es
+            <a href="/cdn-cgi/l/email-protection#d4bcbbb8b594b8a1aeb2bdbeb5fab1a7" style="color:var(--accent); font-weight:900; text-decoration:underline; font-size:13px;">
+              <span class="__cf_email__" data-cfemail="b0d8dfdcd1f0dcc5cad6d9dad19ed5c3">[email&#160;protected]</span>
             </a>
             <div style="margin-top:8px; font-size:11px; color:var(--muted2); line-height:1.4;">
               Respondo en cuanto puedo (proyecto gratuito).
@@ -791,7 +894,7 @@
           </div>
 
           <div class="help" style="margin-top:10px; font-size:11px; opacity:0.9; border:1px solid var(--border); background: var(--card2); padding:8px; border-radius:10px; line-height:1.4;">
-            <p style="margin-bottom:4px;"><strong>📧 ¿Datos incorrectos?</strong> Envía el PDF anonimizado a <a href="mailto:hola@luzfija.es" style="color: var(--accent); text-decoration: underline;">hola@luzfija.es</a></p>
+            <p style="margin-bottom:4px;"><strong>📧 ¿Datos incorrectos?</strong> Envía el PDF anonimizado a <a href="/cdn-cgi/l/email-protection#771f181b16371b020d111e1d16591204" style="color: var(--accent); text-decoration: underline;"><span class="__cf_email__" data-cfemail="583037343918342d223e313239763d2b">[email&#160;protected]</span></a></p>
             <p style="margin:0; color: var(--muted); font-size:10px;">Oculta: nombre, DNI, CUPS, IBAN, QR. El PDF se procesa en tu navegador (no se sube).</p>
           </div>
         </div>
@@ -864,18 +967,4 @@
         </button>
       </div>
     </div>
-  </div>
-
-    <script src="pvpc.js" defer></script>
-    <script src="factura.js" defer></script>
-    <script src="app.js" defer></script>
-    
-    
-    <script src="tracking.js"></script>
-
-    <!-- GoatCounter Analytics (sin cookies, sin tracking personal) -->
-    <script data-goatcounter="https://luzfija.goatcounter.com/count"
-            async src="//gc.zgo.at/count.js"></script>
-
-</body>
-</html>
+  
