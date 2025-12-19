@@ -270,27 +270,6 @@
       </div>
     </div>
 
-    <!-- Widget PVPC -->
-    <div id="pvpcWidget" style="max-width: 1200px; margin: 32px auto 0 auto; padding: 0 20px; display: none;">
-      <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
-          <span style="font-size: 28px; line-height: 1;">⚡</span>
-          <div>
-            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text);">PVPC Hoy</h3>
-            <p style="margin: 0; font-size: 12px; color: var(--muted);">Precio regulado por horas</p>
-          </div>
-        </div>
-        
-        <div id="pvpcContent" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px;">
-          <!-- Se carga dinámicamente -->
-        </div>
-        
-        <div id="pvpcError" style="display: none; color: var(--muted); font-size: 13px; text-align: center; padding: 8px;">
-          No se pudo cargar el precio PVPC
-        </div>
-      </div>
-    </div>
-
     <div class="grid">
       <section class="card">
         <div class="head">
@@ -389,6 +368,37 @@
           </div>
           <div class="help">
             Introduce tus datos y pulsa ⚡ Calcular para generar o refrescar el ranking (tarifas y PVPC si está disponible). Puedes escribir decimales con coma o punto (ej.: 3,45 / 3.45).
+          </div>
+          <div id="pvpcInline" class="pvpcInline" hidden>
+            <div class="pvpcInline__row">
+              <span class="pvpcInline__badge">⚡ PVPC hoy</span>
+              <div class="pvpcInline__summary">
+                <span class="pvpcInline__item">
+                  <span class="pvpcInline__label">Ahora</span>
+                  <strong id="pvpcNow">—</strong>
+                  <span class="pvpcInline__unit">€/kWh</span>
+                  <span class="pvpcInline__sub" id="pvpcNowHour">—</span>
+                </span>
+                <span class="pvpcInline__dot">·</span>
+                <span class="pvpcInline__item">
+                  <span class="pvpcInline__label">Media</span>
+                  <strong id="pvpcAvg">—</strong>
+                </span>
+                <span class="pvpcInline__dot">·</span>
+                <span class="pvpcInline__item pvpcInline__min">
+                  <span class="pvpcInline__label">Min</span>
+                  <strong id="pvpcMin">—</strong>
+                  <span class="pvpcInline__sub" id="pvpcMinHour">—</span>
+                </span>
+                <span class="pvpcInline__dot">·</span>
+                <span class="pvpcInline__item pvpcInline__max">
+                  <span class="pvpcInline__label">Max</span>
+                  <strong id="pvpcMax">—</strong>
+                  <span class="pvpcInline__sub" id="pvpcMaxHour">—</span>
+                </span>
+              </div>
+              <a class="pvpcInline__link" href="https://comparador.cnmc.gob.es/preciosPVPC/inicio/" target="_blank" rel="noopener">ver</a>
+            </div>
           </div>
         </div>
       </section>
@@ -665,10 +675,16 @@
       // Cargar precio PVPC
       (async function cargarPVPC() {
         try {
-          const widget = document.getElementById('pvpcWidget');
-          const content = document.getElementById('pvpcContent');
-          
-          if (!widget || !content) return;
+          const pvpcInline = document.getElementById('pvpcInline');
+          const pvpcNow = document.getElementById('pvpcNow');
+          const pvpcAvg = document.getElementById('pvpcAvg');
+          const pvpcMin = document.getElementById('pvpcMin');
+          const pvpcMax = document.getElementById('pvpcMax');
+          const pvpcNowHour = document.getElementById('pvpcNowHour');
+          const pvpcMinHour = document.getElementById('pvpcMinHour');
+          const pvpcMaxHour = document.getElementById('pvpcMaxHour');
+
+          if (!pvpcInline || !pvpcNow || !pvpcAvg || !pvpcMin || !pvpcMax || !pvpcNowHour || !pvpcMinHour || !pvpcMaxHour) return;
           
           // Fecha de HOY en España (Europe/Madrid)
           const fechaStr = new Intl.DateTimeFormat('en-CA', {
@@ -701,35 +717,19 @@
           const horaMin = precios.indexOf(precioMin);
           const horaMax = precios.indexOf(precioMax);
           
-          content.innerHTML = `
-            <div style="text-align: center;">
-              <div style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Ahora (${ahora}:00h)</div>
-              <div style="font-size: 24px; font-weight: 800; color: var(--accent); line-height: 1;">${precioActual.toFixed(3)}</div>
-              <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">€/kWh</div>
-            </div>
-            
-            <div style="text-align: center;">
-              <div style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Mínimo</div>
-              <div style="font-size: 20px; font-weight: 700; color: #10b981; line-height: 1;">${precioMin.toFixed(3)}</div>
-              <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">${horaMin}:00h</div>
-            </div>
-            
-            <div style="text-align: center;">
-              <div style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Máximo</div>
-              <div style="font-size: 20px; font-weight: 700; color: #ef4444; line-height: 1;">${precioMax.toFixed(3)}</div>
-              <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">${horaMax}:00h</div>
-            </div>
-            
-            <div style="text-align: center;">
-              <div style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Media del día</div>
-              <div style="font-size: 20px; font-weight: 700; color: var(--text); line-height: 1;">${precioMedio.toFixed(3)}</div>
-              <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">€/kWh</div>
-            </div>
-          `;
-          
-          widget.style.display = 'block';
+          pvpcNow.textContent = precioActual.toFixed(3);
+          pvpcNowHour.textContent = `(${ahora}:00h)`;
+          pvpcAvg.textContent = `${precioMedio.toFixed(3)} €/kWh`;
+          pvpcMin.textContent = `${precioMin.toFixed(3)} €/kWh`;
+          pvpcMinHour.textContent = `${horaMin}:00h`;
+          pvpcMax.textContent = `${precioMax.toFixed(3)} €/kWh`;
+          pvpcMaxHour.textContent = `${horaMax}:00h`;
+
+          pvpcInline.hidden = false;
           
         } catch (error) {
+          const pvpcInline = document.getElementById('pvpcInline');
+          if (pvpcInline) pvpcInline.hidden = true;
           console.error('Error cargando PVPC:', error);
         }
       })();

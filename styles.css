@@ -1825,3 +1825,59 @@
   .solar-details{ display: none !important; }
 }
 }
+
+/* === PVPC inline (compacto, no molesta) === */
+.pvpcInline{
+  margin-top: 10px;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,.10);
+  background: rgba(10,12,20,.35);
+  border-radius: 14px;
+  backdrop-filter: blur(6px);
+}
+.pvpcInline__row{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.pvpcInline__badge{
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: rgba(255,255,255,.06);
+  white-space: nowrap;
+}
+.pvpcInline__summary{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  flex-wrap: wrap;
+  font-size: 13px;
+  opacity: .92;
+}
+.pvpcInline__item{ white-space: nowrap; display: inline-flex; align-items: baseline; gap: 6px; }
+.pvpcInline__label{ font-size: 11px; opacity: .70; text-transform: uppercase; letter-spacing: .04em; }
+.pvpcInline__unit{ font-size: 11px; opacity: .65; margin-left: 2px; }
+.pvpcInline__sub{ font-size: 11px; opacity: .65; margin-left: 4px; }
+.pvpcInline__dot{ opacity: .35; }
+.pvpcInline__min strong{ color: var(--ok); }
+.pvpcInline__max strong{ color: var(--danger); }
+.pvpcInline__link{
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,.14);
+  background: transparent;
+  color: inherit;
+  text-decoration: none;
+  white-space: nowrap;
+  opacity: .85;
+}
+.pvpcInline__link:hover{ opacity: 1; }
+
+@media (max-width: 700px){
+  .pvpcInline__summary{ gap: 6px; }
+}
