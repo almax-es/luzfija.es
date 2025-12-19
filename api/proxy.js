@@ -10,6 +10,18 @@ function getSecondsUntilMidnight() {
   return Math.max(60, Math.floor(diff / 1000));
 }
 
+// Calcular segundos hasta medianoche de España (solo para ESIOS/PVPC)
+function getSecondsUntilMidnightSpain() {
+  const now = new Date();
+  const nowSpain = new Date(now.toLocaleString('en-US', { timeZone: 'Europe/Madrid' }));
+  
+  const midnight = new Date(nowSpain);
+  midnight.setHours(24, 0, 0, 0);
+  
+  const diff = midnight - nowSpain;
+  return Math.max(60, Math.floor(diff / 1000));
+}
+
 function corsBase() {
   return {
     'Access-Control-Allow-Origin': '*',
@@ -67,9 +79,12 @@ export default async function handler(request) {
       });
     }
 
-    // Solo permitir CNMC + endpoint PVPC (evita SSRF y cosas raras)
-    if (target.hostname !== 'comparador.cnmc.gob.es' || !target.pathname.startsWith('/api/ofertas/pvpc')) {
-      return new Response(JSON.stringify({ error: 'Only CNMC PVPC is allowed' }), {
+    // Permitir CNMC (PVPC) y ESIOS (precios horarios)
+    const isCNMC = target.hostname === 'comparador.cnmc.gob.es' && target.pathname.startsWith('/api/ofertas/pvpc');
+    const isESIOS = target.hostname === 'api.esios.ree.es' && target.pathname.startsWith('/indicators');
+
+    if (!isCNMC && !isESIOS) {
+      return new Response(JSON.stringify({ error: 'Only CNMC PVPC and ESIOS are allowed' }), {
         status: 403,
         headers: { ...corsActual(), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
       });
@@ -99,14 +114,29 @@ export default async function handler(request) {
     }
 
     // ✅ Solo cachear 2xx
-    const ttl = getSecondsUntilMidnight();
+    // CNMC: mantener lógica original (hasta medianoche del servidor)
+    // ESIOS: cachear hasta medianoche de España con revalidación larga
+    let cacheControl, cdnCache;
+    
+    if (isESIOS) {
+      // Para ESIOS: cachear hasta medianoche de España
+      const ttlSpain = getSecondsUntilMidnightSpain();
+      cacheControl = `public, s-maxage=${ttlSpain}, stale-while-revalidate=86400`;
+      cdnCache = `max-age=${ttlSpain}`;
+    } else {
+      // Para CNMC: lógica original
+      const ttl = getSecondsUntilMidnight();
+      cacheControl = `public, s-maxage=${ttl}, stale-while-revalidate=60`;
+      cdnCache = `max-age=${ttl}`;
+    }
+
     return new Response(upstream.body, {
       status: upstream.status,
       headers: {
         ...corsActual(),
         'Content-Type': contentType,
-        'Cache-Control': `public, s-maxage=${ttl}, stale-while-revalidate=60`,
-        'CDN-Cache-Control': `max-age=${ttl}`,
+        'Cache-Control': cacheControl,
+        'CDN-Cache-Control': cdnCache,
       },
     });
 
