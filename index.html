@@ -268,6 +268,27 @@
       </div>
     </div>
 
+    <!-- Widget PVPC -->
+    <div id="pvpcWidget" style="max-width: 1200px; margin: 32px auto 0 auto; padding: 0 20px; display: none;">
+      <div style="background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 20px 24px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+        <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 16px;">
+          <span style="font-size: 28px; line-height: 1;">⚡</span>
+          <div>
+            <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: var(--text);">PVPC Hoy</h3>
+            <p style="margin: 0; font-size: 12px; color: var(--muted);">Precio regulado por horas</p>
+          </div>
+        </div>
+        
+        <div id="pvpcContent" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px;">
+          <!-- Se carga dinámicamente -->
+        </div>
+        
+        <div id="pvpcError" style="display: none; color: var(--muted); font-size: 13px; text-align: center; padding: 8px;">
+          No se pudo cargar el precio PVPC
+        </div>
+      </div>
+    </div>
+
     <div class="grid">
       <section class="card">
         <div class="head">
@@ -638,6 +659,73 @@
         const opciones = { day: 'numeric', month: 'short', year: 'numeric' };
         return fecha.toLocaleDateString('es-ES', opciones);
       }
+
+      // Cargar precio PVPC
+      (async function cargarPVPC() {
+        try {
+          const widget = document.getElementById('pvpcWidget');
+          const content = document.getElementById('pvpcContent');
+          
+          if (!widget || !content) return;
+          
+          const hoy = new Date();
+          const fechaStr = hoy.toISOString().split('T')[0];
+          
+          const url = `https://api.esios.ree.es/indicators/1001?start_date=${fechaStr}T00:00:00&end_date=${fechaStr}T23:59:59`;
+          
+          const response = await fetch(url, {
+            headers: { 'Accept': 'application/json' }
+          });
+          
+          if (!response.ok) throw new Error('Error API ESIOS');
+          
+          const data = await response.json();
+          const valores = data.indicator.values;
+          
+          if (!valores || valores.length === 0) throw new Error('Sin datos');
+          
+          const precios = valores.map(v => v.value / 1000);
+          const ahora = new Date().getHours();
+          const precioActual = precios[ahora];
+          const precioMin = Math.min(...precios);
+          const precioMax = Math.max(...precios);
+          const precioMedio = precios.reduce((a, b) => a + b, 0) / precios.length;
+          
+          const horaMin = precios.indexOf(precioMin);
+          const horaMax = precios.indexOf(precioMax);
+          
+          content.innerHTML = `
+            <div style="text-align: center;">
+              <div style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Ahora (${ahora}:00h)</div>
+              <div style="font-size: 24px; font-weight: 800; color: var(--accent); line-height: 1;">${precioActual.toFixed(3)}</div>
+              <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">€/kWh</div>
+            </div>
+            
+            <div style="text-align: center;">
+              <div style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Mínimo</div>
+              <div style="font-size: 20px; font-weight: 700; color: #10b981; line-height: 1;">${precioMin.toFixed(3)}</div>
+              <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">${horaMin}:00h</div>
+            </div>
+            
+            <div style="text-align: center;">
+              <div style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Máximo</div>
+              <div style="font-size: 20px; font-weight: 700; color: #ef4444; line-height: 1;">${precioMax.toFixed(3)}</div>
+              <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">${horaMax}:00h</div>
+            </div>
+            
+            <div style="text-align: center;">
+              <div style="font-size: 11px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px;">Media del día</div>
+              <div style="font-size: 20px; font-weight: 700; color: var(--text); line-height: 1;">${precioMedio.toFixed(3)}</div>
+              <div style="font-size: 11px; color: var(--muted); margin-top: 2px;">€/kWh</div>
+            </div>
+          `;
+          
+          widget.style.display = 'block';
+          
+        } catch (error) {
+          console.error('Error cargando PVPC:', error);
+        }
+      })();
     </script>
 
     <footer style="max-width:1400px; margin:0 auto; padding:40px clamp(22px, 4.5vw, 60px) 30px; border-top:1px solid var(--border);">
