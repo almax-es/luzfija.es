@@ -18,6 +18,8 @@
 
   <script>
     window.PVPC_PROXY_URL = "https://luzfija-es.vercel.app/api/proxy?url=";
+    // PVPC público (CNMC) cacheado en Vercel (NO ESIOS / no token)
+    window.PVPC_PRICES_URL = "https://luzfija-es.vercel.app/api/pvpc-precios?date=";
   </script>
 
   <meta property="og:title" content="Comparador de Tarifas de Luz en España | Encuentra la Más Barata">
@@ -668,24 +670,29 @@
           
           if (!widget || !content) return;
           
-          const hoy = new Date();
-          const fechaStr = hoy.toISOString().split('T')[0];
-          
-          // Usar proxy de Vercel para evitar CORS
-          const apiUrl = `https://api.esios.ree.es/indicators/1001?start_date=${fechaStr}T00:00:00&end_date=${fechaStr}T23:59:59`;
-          const proxyUrl = window.PVPC_PROXY_URL + encodeURIComponent(apiUrl);
-          
-          const response = await fetch(proxyUrl);
-          
-          if (!response.ok) throw new Error('Error API ESIOS');
-          
+          // Fecha de HOY en España (Europe/Madrid)
+          const fechaStr = new Intl.DateTimeFormat('en-CA', {
+            timeZone: 'Europe/Madrid',
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit'
+          }).format(new Date());
+
+          // PVPC público cacheado en Vercel (CNMC)
+          const response = await fetch(window.PVPC_PRICES_URL + encodeURIComponent(fechaStr));
+
+          if (!response.ok) throw new Error('Error API CNMC (PVPC)');
+
           const data = await response.json();
-          const valores = data.indicator.values;
-          
-          if (!valores || valores.length === 0) throw new Error('Sin datos');
-          
-          const precios = valores.map(v => v.value / 1000);
-          const ahora = new Date().getHours();
+          const precios = data && Array.isArray(data.prices) ? data.prices : null;
+
+          if (!precios || precios.length !== 24) throw new Error('Sin datos PVPC');
+
+          const ahora = Number(new Intl.DateTimeFormat('en-GB', {
+            timeZone: 'Europe/Madrid',
+            hour: '2-digit',
+            hour12: false
+          }).format(new Date()));
           const precioActual = precios[ahora];
           const precioMin = Math.min(...precios);
           const precioMax = Math.max(...precios);
