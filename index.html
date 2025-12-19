@@ -369,7 +369,7 @@
           <div class="help">
             Introduce tus datos y pulsa ⚡ Calcular para generar o refrescar el ranking (tarifas y PVPC si está disponible). Puedes escribir decimales con coma o punto (ej.: 3,45 / 3.45).
           </div>
-          <button type="button" class="btn" id="btnPVPCInfo" style="display: none; width: 100%; justify-content: center; margin-top: 12px; background: rgba(255, 180, 50, 0.12); border-color: rgba(255, 180, 50, 0.3);">
+          <button type="button" class="btn" id="btnPVPCInfo" style="width: 100%; justify-content: center; margin-top: 12px; background: rgba(255, 180, 50, 0.12); border-color: rgba(255, 180, 50, 0.3);">
             ⚡ Ver precios PVPC hoy
           </button>
         </div>
@@ -645,14 +645,68 @@
       }
 
       // Cargar precio PVPC
-      // Variable global para almacenar precios PVPC
+      console.log('[PVPC] Script iniciado');
+      
+      // Variable global para datos PVPC
       window.pvpcData = null;
 
-      // Cargar datos PVPC
+      // Setup modal (se ejecuta INMEDIATAMENTE)
+      console.log('[PVPC] Buscando elementos...');
+      const btnPVPCInfo = document.getElementById('btnPVPCInfo');
+      const modalPVPCInfo = document.getElementById('modalPVPCInfo');
+      const btnCerrarPVPCInfo = document.getElementById('btnCerrarPVPCInfo');
+      
+      console.log('[PVPC] Elementos encontrados:', {
+        btnPVPCInfo: !!btnPVPCInfo,
+        modalPVPCInfo: !!modalPVPCInfo,
+        btnCerrarPVPCInfo: !!btnCerrarPVPCInfo
+      });
+
+      if (btnPVPCInfo && modalPVPCInfo && btnCerrarPVPCInfo) {
+        console.log('[PVPC] Añadiendo event listener al botón...');
+        
+        btnPVPCInfo.addEventListener('click', () => {
+          console.log('[PVPC] ¡CLICK EN EL BOTÓN!');
+          alert('¡Funciona! El botón responde.');
+          
+          modalPVPCInfo.style.display = 'flex';
+          modalPVPCInfo.classList.add('show');
+          modalPVPCInfo.setAttribute('aria-hidden', 'false');
+        });
+        
+        // Cerrar modal
+        btnCerrarPVPCInfo.addEventListener('click', () => {
+          console.log('[PVPC] Cerrando modal');
+          modalPVPCInfo.classList.remove('show');
+          setTimeout(() => {
+            modalPVPCInfo.style.display = 'none';
+          }, 300);
+          modalPVPCInfo.setAttribute('aria-hidden', 'true');
+        });
+        
+        modalPVPCInfo.addEventListener('click', (e) => {
+          if (e.target === modalPVPCInfo) {
+            btnCerrarPVPCInfo.click();
+          }
+        });
+        
+        console.log('[PVPC] Event listeners añadidos correctamente');
+      } else {
+        console.error('[PVPC] Faltan elementos!');
+      }
+
       (async function cargarPVPC() {
         try {
-          const btnPVPCInfo = document.getElementById('btnPVPCInfo');
-          if (!btnPVPCInfo) return;
+          const pvpcInline = document.getElementById('pvpcInline');
+          const pvpcNow = document.getElementById('pvpcNow');
+          const pvpcAvg = document.getElementById('pvpcAvg');
+          const pvpcMin = document.getElementById('pvpcMin');
+          const pvpcMax = document.getElementById('pvpcMax');
+          const pvpcNowHour = document.getElementById('pvpcNowHour');
+          const pvpcMinHour = document.getElementById('pvpcMinHour');
+          const pvpcMaxHour = document.getElementById('pvpcMaxHour');
+
+          if (!pvpcInline || !pvpcNow || !pvpcAvg || !pvpcMin || !pvpcMax || !pvpcNowHour || !pvpcMinHour || !pvpcMaxHour) return;
           
           // Fecha de HOY en España (Europe/Madrid)
           const fechaStr = new Intl.DateTimeFormat('en-CA', {
@@ -664,10 +718,12 @@
 
           // PVPC público cacheado en Vercel (CNMC)
           const response = await fetch(window.PVPC_PRICES_URL + encodeURIComponent(fechaStr));
+
           if (!response.ok) throw new Error('Error API CNMC (PVPC)');
 
           const data = await response.json();
           const precios = data && Array.isArray(data.prices) ? data.prices : null;
+
           if (!precios || precios.length !== 24) throw new Error('Sin datos PVPC');
 
           const ahora = Number(new Intl.DateTimeFormat('en-GB', {
@@ -675,188 +731,29 @@
             hour: '2-digit',
             hour12: false
           }).format(new Date()));
+          const precioActual = precios[ahora];
+          const precioMin = Math.min(...precios);
+          const precioMax = Math.max(...precios);
+          const precioMedio = precios.reduce((a, b) => a + b, 0) / precios.length;
           
-          // Guardar datos globalmente
-          window.pvpcData = {
-            precios,
-            ahora,
-            precioActual: precios[ahora],
-            precioMin: Math.min(...precios),
-            precioMax: Math.max(...precios),
-            horaMin: precios.indexOf(Math.min(...precios)),
-            horaMax: precios.indexOf(Math.max(...precios))
-          };
+          const horaMin = precios.indexOf(precioMin);
+          const horaMax = precios.indexOf(precioMax);
           
-          // Mostrar botón
-          btnPVPCInfo.style.display = 'flex';
+          pvpcNow.textContent = precioActual.toFixed(3);
+          pvpcNowHour.textContent = `(${ahora}:00h)`;
+          pvpcAvg.textContent = `${precioMedio.toFixed(3)} €/kWh`;
+          pvpcMin.textContent = `${precioMin.toFixed(3)} €/kWh`;
+          pvpcMinHour.textContent = `${horaMin}:00h`;
+          pvpcMax.textContent = `${precioMax.toFixed(3)} €/kWh`;
+          pvpcMaxHour.textContent = `${horaMax}:00h`;
+
+          pvpcInline.hidden = false;
           
         } catch (error) {
+          const pvpcInline = document.getElementById('pvpcInline');
+          if (pvpcInline) pvpcInline.hidden = true;
           console.error('Error cargando PVPC:', error);
         }
-      })();
-
-      // Setup modal PVPC (se ejecuta siempre, independiente de la carga)
-      (function setupModalPVPC() {
-        const btnPVPCInfo = document.getElementById('btnPVPCInfo');
-        const modalPVPCInfo = document.getElementById('modalPVPCInfo');
-        const btnCerrarPVPCInfo = document.getElementById('btnCerrarPVPCInfo');
-        
-        if (!btnPVPCInfo || !modalPVPCInfo || !btnCerrarPVPCInfo) return;
-
-        // Función para obtener comentario gracioso
-        function getComentario(precio, hora, precioMin, precioMax) {
-          const rango = precioMax - precioMin;
-          const umbralBajo = precioMin + (rango * 0.25);
-          const umbralAlto = precioMax - (rango * 0.25);
-          
-          if (precio === precioMin) {
-            const comentarios = [
-              "🌟 <strong>HORA MÁS BARATA</strong> - Esto es una ganga",
-              "💰 <strong>CHOLLO MÁXIMO</strong> - ¡A cargar todo!",
-              "🎉 <strong>PRECIO MÍNIMO</strong> - Aprovecha ahora"
-            ];
-            return comentarios[Math.floor(Math.random() * comentarios.length)];
-          }
-          
-          if (precio === precioMax) {
-            const comentarios = [
-              "🔴 <strong>HORA MÁS CARA</strong> - Modo supervivencia",
-              "💸 <strong>PRECIO MÁXIMO</strong> - Apaga hasta la nevera",
-              "⛔ <strong>CARÍSIMO</strong> - Netflix y a oscuras",
-              "🕯️ <strong>RÉCORD</strong> - Velas románticas obligatorias"
-            ];
-            return comentarios[Math.floor(Math.random() * comentarios.length)];
-          }
-          
-          if (precio < umbralBajo) {
-            const tips = [
-              "🧺 Pon la lavadora - Ahorro garantizado",
-              "🔋 Carga el coche eléctrico - Precio ideal",
-              "💦 Lavavajillas a full - Aprovecha",
-              "🌡️ Termo eléctrico al máximo",
-              "❄️ Haz cubitos de hielo para todo el mes",
-              "🍳 Cocina en batch para toda la semana",
-              "💨 Secadora sin remordimientos",
-              "⚡ Máxima potencia - No mires el contador",
-              "🎮 Gaming intensivo sin culpa"
-            ];
-            return tips[hora % tips.length];
-          }
-          
-          if (precio > umbralAlto) {
-            const warnings = [
-              "⚠️ Evita consumos grandes - Ahorra",
-              "🚫 Nada de hornos ni secadoras",
-              "💡 Modo ahorro activado",
-              "⛔ Solo lo imprescindible",
-              "🕯️ Ambiente romántico obligatorio",
-              "📱 Móvil en modo avión (bueno, casi)",
-              "🥶 Apaga la calefacción, ponte un jersey",
-              "🌙 Mejor una siesta que gastar luz"
-            ];
-            return warnings[hora % warnings.length];
-          }
-          
-          if (hora >= 0 && hora < 6) return "💤 A dormir mientras ahorras";
-          if (hora >= 6 && hora < 9) return "☕ Buenos días - Precio razonable";
-          if (hora >= 14 && hora < 17) return "☀️ Ideal para placas solares";
-          if (hora >= 22) return "🌙 Buenas noches - Todo tranquilo";
-          
-          return "📺 Consumos normales OK";
-        }
-
-        // Abrir modal
-        btnPVPCInfo.addEventListener('click', () => {
-          if (!window.pvpcData) {
-            alert('Los precios PVPC aún se están cargando. Intenta de nuevo en un momento.');
-            return;
-          }
-          
-          const { precios, ahora, precioActual, precioMin, precioMax, horaMin, horaMax } = window.pvpcData;
-          
-          // Rellenar cabecera
-          document.getElementById('modalPVPCNow').textContent = `${precioActual.toFixed(3)} €/kWh`;
-          document.getElementById('modalPVPCNowHour').textContent = `${ahora}:00h`;
-          document.getElementById('modalPVPCMin').textContent = `${precioMin.toFixed(3)}`;
-          document.getElementById('modalPVPCMinHour').textContent = `${horaMin}:00h`;
-          document.getElementById('modalPVPCMax').textContent = `${precioMax.toFixed(3)}`;
-          document.getElementById('modalPVPCMaxHour').textContent = `${horaMax}:00h`;
-          
-          // Generar lista de 24 horas
-          const modalPVPCHoursList = document.getElementById('modalPVPCHoursList');
-          let hoursHTML = '';
-          precios.forEach((precio, hora) => {
-            const isNow = hora === ahora;
-            const isMin = precio === precioMin;
-            const isMax = precio === precioMax;
-            const comentario = getComentario(precio, hora, precioMin, precioMax);
-            
-            const rango = precioMax - precioMin;
-            const porcentaje = rango > 0 ? ((precio - precioMin) / rango) * 100 : 50;
-            
-            let colorClass = '#eab308';
-            if (isMin) colorClass = '#10b981';
-            else if (isMax) colorClass = '#ef4444';
-            else if (precio < precioMin + rango * 0.33) colorClass = '#22c55e';
-            else if (precio > precioMax - rango * 0.33) colorClass = '#f97316';
-            
-            const bgStyle = isNow 
-              ? 'background: linear-gradient(135deg, rgba(255,180,50,.15) 0%, rgba(255,120,50,.08) 100%); border: 1px solid rgba(255,180,50,.3); padding: 14px; border-radius: 12px; margin-bottom: 8px;' 
-              : 'padding: 12px 0; border-bottom: 1px solid rgba(255,255,255,.05);';
-            
-            hoursHTML += `
-              <div style="${bgStyle}" ${isNow ? 'id="pvpc-current-hour"' : ''}>
-                <div style="display: grid; grid-template-columns: 50px 1fr 95px; gap: 12px; align-items: center;">
-                  <div style="font-weight: 700; font-size: ${isNow ? '15px' : '14px'}; color: ${isNow ? 'var(--accent)' : 'var(--text)'};">
-                    ${String(hora).padStart(2, '0')}:00
-                  </div>
-                  <div style="position: relative; height: 8px; background: rgba(255,255,255,.08); border-radius: 999px; overflow: hidden;">
-                    <div style="height: 100%; width: ${porcentaje}%; background: ${colorClass}; border-radius: 999px; box-shadow: 0 0 6px ${colorClass}80;"></div>
-                  </div>
-                  <div style="font-weight: 700; text-align: right; font-size: 13px;">
-                    ${precio.toFixed(3)} €/kWh
-                  </div>
-                </div>
-                <div style="font-size: 12px; color: var(--muted); margin-top: 8px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,.05); line-height: 1.4;">
-                  ${isNow ? '<strong style="color: var(--accent);">← AHORA</strong> • ' : ''}${comentario}
-                </div>
-              </div>
-            `;
-          });
-          
-          modalPVPCHoursList.innerHTML = hoursHTML;
-          modalPVPCInfo.style.display = 'flex';
-          modalPVPCInfo.classList.add('show');
-          modalPVPCInfo.setAttribute('aria-hidden', 'false');
-          
-          // Scroll a hora actual
-          setTimeout(() => {
-            const currentHour = document.getElementById('pvpc-current-hour');
-            if (currentHour) {
-              currentHour.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            }
-          }, 100);
-        });
-
-        // Cerrar modal
-        const cerrarModal = () => {
-          modalPVPCInfo.classList.remove('show');
-          setTimeout(() => {
-            modalPVPCInfo.style.display = 'none';
-          }, 300);
-          modalPVPCInfo.setAttribute('aria-hidden', 'true');
-        };
-        
-        btnCerrarPVPCInfo.addEventListener('click', cerrarModal);
-        modalPVPCInfo.addEventListener('click', (e) => {
-          if (e.target === modalPVPCInfo) cerrarModal();
-        });
-        
-        document.addEventListener('keydown', (e) => {
-          if (e.key === 'Escape' && modalPVPCInfo.classList.contains('show')) {
-            cerrarModal();
-          }
-        });
       })();
     </script>
 
