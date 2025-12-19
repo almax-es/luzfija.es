@@ -958,6 +958,43 @@
     </div>
   </div>
 
+  <!-- Modal PVPC -->
+  <div class="modal-overlay" id="modalPVPCInfo" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Precios PVPC por hora" tabindex="-1" style="display: none;">
+    <div class="modal-content card" role="document" style="max-width: 650px;">
+      <div class="head">
+        <div class="kicker">Precio regulado de la luz</div>
+        <h2 class="title">⚡ PVPC - Precios por hora</h2>
+      </div>
+      <div class="body">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding: 12px; background: linear-gradient(135deg, rgba(255,180,50,.12) 0%, rgba(255,120,50,.06) 100%); border-radius: 12px; border: 1px solid rgba(255,180,50,.25);">
+          <div>
+            <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; opacity: 0.7; letter-spacing: 0.5px; margin-bottom: 4px;">Ahora</div>
+            <div style="font-size: 24px; font-weight: 800; color: var(--accent);" id="modalPVPCNow">—</div>
+            <div style="font-size: 11px; opacity: 0.7;" id="modalPVPCNowHour">—</div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 12px; opacity: 0.8; margin-bottom: 8px;">
+              <span style="color: #10b981; font-weight: 700;">Mín</span> <strong id="modalPVPCMin">—</strong> <span style="opacity: 0.6; font-size: 10px;" id="modalPVPCMinHour">—</span>
+            </div>
+            <div style="font-size: 12px; opacity: 0.8;">
+              <span style="color: #ef4444; font-weight: 700;">Máx</span> <strong id="modalPVPCMax">—</strong> <span style="opacity: 0.6; font-size: 10px;" id="modalPVPCMaxHour">—</span>
+            </div>
+          </div>
+        </div>
+
+        <h3 style="font-size: 14px; font-weight: 900; margin-bottom: 12px; color: var(--text);">💡 Planifica tus consumos</h3>
+        
+        <div id="modalPVPCHoursList" style="max-height: 450px; overflow-y: auto; margin: 0 -20px; padding: 0 20px;">
+          <p style="color: var(--muted); text-align: center; padding: 20px;">Cargando precios...</p>
+        </div>
+
+        <button class="btn primary" id="btnCerrarPVPCInfo" type="button" style="width: 100%; margin-top: 16px;">
+          ✅ Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
   <div class="modal-overlay" id="modalSolarInfo" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Información sobre tarifas solares" tabindex="-1" style="display: none;">
     <div class="modal-content card" role="document" style="max-width: 600px;">
       <div class="head">
