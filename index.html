@@ -370,33 +370,33 @@
             Introduce tus datos y pulsa ⚡ Calcular para generar o refrescar el ranking (tarifas y PVPC si está disponible). Puedes escribir decimales con coma o punto (ej.: 3,45 / 3.45).
           </div>
           <div id="pvpcInline" class="pvpcInline" hidden>
-            <div class="pvpcInline__row">
-              <span class="pvpcInline__badge">⚡ PVPC hoy</span>
-              <div class="pvpcInline__summary">
-                <span class="pvpcInline__item pvpcInline__item--now">
-                  <span class="pvpcInline__label">Ahora</span>
-                  <strong id="pvpcNow">—</strong>
-                  <span class="pvpcInline__unit">€/kWh</span>
-                  <span class="pvpcInline__sub" id="pvpcNowHour">—</span>
+            <div class="pvpcInline__header" id="pvpcToggle">
+              <div class="pvpcInline__summary-compact">
+                <span class="pvpcInline__badge">⚡ PVPC hoy</span>
+                <span class="pvpcInline__now">
+                  Ahora <strong id="pvpcNowCompact">—</strong> <span class="pvpcInline__unit">€/kWh</span>
+                  <span class="pvpcInline__sub" id="pvpcNowHourCompact">—</span>
                 </span>
                 <span class="pvpcInline__dot">·</span>
-                <span class="pvpcInline__item pvpcInline__min">
-                  <span class="pvpcInline__label">Mínimo</span>
-                  <strong id="pvpcMin">—</strong>
-                  <span class="pvpcInline__sub" id="pvpcMinHour">—</span>
+                <span class="pvpcInline__range">
+                  Mín <strong id="pvpcMinCompact" class="pvpcInline__min-text">—</strong>
+                  <span class="pvpcInline__dot">·</span>
+                  Máx <strong id="pvpcMaxCompact" class="pvpcInline__max-text">—</strong>
                 </span>
-                <span class="pvpcInline__dot">·</span>
-                <span class="pvpcInline__item pvpcInline__max">
-                  <span class="pvpcInline__label">Máximo</span>
-                  <strong id="pvpcMax">—</strong>
-                  <span class="pvpcInline__sub" id="pvpcMaxHour">—</span>
-                </span>
-                <span class="pvpcInline__dot">·</span>
-                <span class="pvpcInline__item">
-                  <span class="pvpcInline__label">Media día</span>
-                  <strong id="pvpcAvg">—</strong>
-                  <span class="pvpcInline__unit">€/kWh</span>
-                </span>
+              </div>
+              <button class="pvpcInline__toggle" type="button" aria-label="Ver precios por hora">
+                <span id="pvpcToggleText">Ver 24h</span>
+                <span id="pvpcToggleIcon">▼</span>
+              </button>
+            </div>
+            
+            <div id="pvpcExpanded" class="pvpcInline__expanded" hidden>
+              <div class="pvpcInline__expanded-header">
+                <span style="font-size: 13px; font-weight: 700; color: var(--text);">💡 Planifica tus consumos</span>
+                <span style="font-size: 11px; opacity: 0.7;">Precios por hora - Hoy</span>
+              </div>
+              <div id="pvpcHoursList" class="pvpcInline__hours">
+                <!-- Se llena dinámicamente -->
               </div>
             </div>
           </div>
@@ -676,15 +676,17 @@
       (async function cargarPVPC() {
         try {
           const pvpcInline = document.getElementById('pvpcInline');
-          const pvpcNow = document.getElementById('pvpcNow');
-          const pvpcAvg = document.getElementById('pvpcAvg');
-          const pvpcMin = document.getElementById('pvpcMin');
-          const pvpcMax = document.getElementById('pvpcMax');
-          const pvpcNowHour = document.getElementById('pvpcNowHour');
-          const pvpcMinHour = document.getElementById('pvpcMinHour');
-          const pvpcMaxHour = document.getElementById('pvpcMaxHour');
+          const pvpcNowCompact = document.getElementById('pvpcNowCompact');
+          const pvpcNowHourCompact = document.getElementById('pvpcNowHourCompact');
+          const pvpcMinCompact = document.getElementById('pvpcMinCompact');
+          const pvpcMaxCompact = document.getElementById('pvpcMaxCompact');
+          const pvpcToggle = document.getElementById('pvpcToggle');
+          const pvpcExpanded = document.getElementById('pvpcExpanded');
+          const pvpcToggleText = document.getElementById('pvpcToggleText');
+          const pvpcToggleIcon = document.getElementById('pvpcToggleIcon');
+          const pvpcHoursList = document.getElementById('pvpcHoursList');
 
-          if (!pvpcInline || !pvpcNow || !pvpcAvg || !pvpcMin || !pvpcMax || !pvpcNowHour || !pvpcMinHour || !pvpcMaxHour) return;
+          if (!pvpcInline || !pvpcNowCompact || !pvpcMinCompact || !pvpcMaxCompact || !pvpcHoursList) return;
           
           // Fecha de HOY en España (Europe/Madrid)
           const fechaStr = new Intl.DateTimeFormat('en-CA', {
@@ -709,6 +711,7 @@
             hour: '2-digit',
             hour12: false
           }).format(new Date()));
+          
           const precioActual = precios[ahora];
           const precioMin = Math.min(...precios);
           const precioMax = Math.max(...precios);
@@ -717,13 +720,132 @@
           const horaMin = precios.indexOf(precioMin);
           const horaMax = precios.indexOf(precioMax);
           
-          pvpcNow.textContent = precioActual.toFixed(3);
-          pvpcNowHour.textContent = `(${ahora}:00h)`;
-          pvpcAvg.textContent = `${precioMedio.toFixed(3)} €/kWh`;
-          pvpcMin.textContent = `${precioMin.toFixed(3)} €/kWh`;
-          pvpcMinHour.textContent = `${horaMin}:00h`;
-          pvpcMax.textContent = `${precioMax.toFixed(3)} €/kWh`;
-          pvpcMaxHour.textContent = `${horaMax}:00h`;
+          // Rellenar vista compacta
+          pvpcNowCompact.textContent = precioActual.toFixed(3);
+          pvpcNowHourCompact.textContent = `(${ahora}:00h)`;
+          pvpcMinCompact.textContent = `${precioMin.toFixed(3)}`;
+          pvpcMaxCompact.textContent = `${precioMax.toFixed(3)}`;
+
+          // Función para obtener comentario gracioso según precio
+          function getComentario(precio, hora) {
+            const rango = precioMax - precioMin;
+            const umbralBajo = precioMin + (rango * 0.25);
+            const umbralAlto = precioMax - (rango * 0.25);
+            
+            // Hora más barata
+            if (precio === precioMin) {
+              const comentarios = [
+                "🌟 <strong>HORA MÁS BARATA</strong> - Esto es una ganga",
+                "🌟 <strong>PRECIO MÍNIMO</strong> - ¡A cargar todo!",
+                "💰 <strong>¡CHOLLO!</strong> - Aprovecha ahora"
+              ];
+              return comentarios[Math.floor(Math.random() * comentarios.length)];
+            }
+            
+            // Hora más cara
+            if (precio === precioMax) {
+              const comentarios = [
+                "🔴 <strong>HORA MÁS CARA</strong> - Modo supervivencia",
+                "💸 <strong>PRECIO MÁXIMO</strong> - Apaga hasta la nevera",
+                "⛔ <strong>CARÍSIMO</strong> - Netflix y a oscuras"
+              ];
+              return comentarios[Math.floor(Math.random() * comentarios.length)];
+            }
+            
+            // Horas baratas
+            if (precio < umbralBajo) {
+              const tips = [
+                "🧺 Pon la lavadora - Ahorro garantizado",
+                "🔋 Carga el coche eléctrico - Precio ideal",
+                "💦 Lavavajillas a full - Aprovecha",
+                "🌡️ Termo eléctrico al máximo",
+                "❄️ Haz cubitos de hielo para todo el mes",
+                "🍳 Cocina en batch para toda la semana",
+                "💨 Secadora sin remordimientos",
+                "⚡ Máxima potencia - No mires el contador"
+              ];
+              return tips[hora % tips.length];
+            }
+            
+            // Horas caras
+            if (precio > umbralAlto) {
+              const warnings = [
+                "⚠️ Evita consumos grandes - Ahorra",
+                "🚫 Nada de hornos ni secadoras",
+                "💡 Modo ahorro activado",
+                "⛔ Solo lo imprescindible",
+                "🕯️ Ambiente romántico obligatorio",
+                "📱 Móvil en modo avión (o no)",
+                "🥶 Apaga la calefacción, ponte un jersey"
+              ];
+              return warnings[hora % warnings.length];
+            }
+            
+            // Horas especiales según el momento del día
+            if (hora >= 0 && hora < 6) {
+              return "💤 A dormir mientras ahorras";
+            } else if (hora >= 6 && hora < 9) {
+              return "☕ Buenos días - Precio razonable";
+            } else if (hora >= 14 && hora < 17) {
+              return "☀️ Ideal para placas solares";
+            } else if (hora >= 22) {
+              return "🌙 Buenas noches - Todo tranquilo";
+            }
+            
+            // Precio normal
+            return "📺 Consumos normales OK";
+          }
+
+          // Generar lista de 24 horas
+          let hoursHTML = '';
+          precios.forEach((precio, hora) => {
+            const isNow = hora === ahora;
+            const isMin = precio === precioMin;
+            const isMax = precio === precioMax;
+            const comentario = getComentario(precio, hora);
+            
+            // Calcular % para la barra visual
+            const rango = precioMax - precioMin;
+            const porcentaje = rango > 0 ? ((precio - precioMin) / rango) * 100 : 50;
+            
+            let colorClass = 'neutral';
+            if (isMin) colorClass = 'min';
+            else if (isMax) colorClass = 'max';
+            else if (precio < precioMin + rango * 0.33) colorClass = 'low';
+            else if (precio > precioMax - rango * 0.33) colorClass = 'high';
+            
+            hoursHTML += `
+              <div class="pvpc-hour ${isNow ? 'pvpc-hour--now' : ''}" ${isNow ? 'id="pvpc-current-hour"' : ''}>
+                <div class="pvpc-hour__time">${String(hora).padStart(2, '0')}:00</div>
+                <div class="pvpc-hour__bar-container">
+                  <div class="pvpc-hour__bar pvpc-hour__bar--${colorClass}" style="width: ${porcentaje}%"></div>
+                </div>
+                <div class="pvpc-hour__price">${precio.toFixed(3)} €/kWh</div>
+                <div class="pvpc-hour__tip">${isNow ? '← AHORA • ' : ''}${comentario}</div>
+              </div>
+            `;
+          });
+          
+          pvpcHoursList.innerHTML = hoursHTML;
+
+          // Toggle expandir/contraer
+          let isExpanded = false;
+          pvpcToggle.addEventListener('click', () => {
+            isExpanded = !isExpanded;
+            pvpcExpanded.hidden = !isExpanded;
+            pvpcToggleText.textContent = isExpanded ? 'Ocultar' : 'Ver 24h';
+            pvpcToggleIcon.textContent = isExpanded ? '▲' : '▼';
+            
+            // Scroll suave a la hora actual cuando se expande
+            if (isExpanded) {
+              setTimeout(() => {
+                const currentHour = document.getElementById('pvpc-current-hour');
+                if (currentHour) {
+                  currentHour.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+              }, 100);
+            }
+          });
 
           pvpcInline.hidden = false;
           
