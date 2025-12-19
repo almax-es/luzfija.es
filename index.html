@@ -531,6 +531,115 @@
       </details>
     </section>
 
+    <!-- SECCIÓN NOVEDADES DEL MERCADO -->
+    <section style="max-width:1400px; margin:60px auto 0 auto; padding:0 clamp(22px, 4.5vw, 60px);">
+      <div style="display:flex; align-items:center; gap:12px; margin-bottom:24px;">
+        <span style="font-size:28px; line-height:1;">🔔</span>
+        <h2 style="font-size:clamp(20px, 3vw, 26px); font-weight:900; margin:0; color:var(--text);">
+          Novedades del Mercado
+        </h2>
+      </div>
+      
+      <div id="novedadesContainer" style="display:grid; gap:16px;">
+        <!-- Las novedades se cargan aquí automáticamente desde novedades.json -->
+      </div>
+    </section>
+
+    <script>
+      // Cargar y mostrar novedades
+      (async function cargarNovedades() {
+        try {
+          const response = await fetch('/novedades.json');
+          const novedades = await response.json();
+          const container = document.getElementById('novedadesContainer');
+          
+          if (!container || !novedades || novedades.length === 0) return;
+          
+          // Iconos según tipo
+          const iconos = {
+            'alerta': '⚠️',
+            'novedad': '✨',
+            'info': '📊',
+            'tip': '💡',
+            'caso': '🎯'
+          };
+          
+          // Colores según tipo
+          const colores = {
+            'alerta': 'var(--danger)',
+            'novedad': 'var(--accent)',
+            'info': 'var(--accent2)',
+            'tip': '#f59e0b',
+            'caso': '#10b981'
+          };
+          
+          // Mostrar máximo 5 novedades más recientes
+          novedades.slice(0, 5).forEach(nov => {
+            const icono = iconos[nov.tipo] || '📌';
+            const color = colores[nov.tipo] || 'var(--accent)';
+            
+            const novDiv = document.createElement('div');
+            novDiv.style.cssText = `
+              background: var(--card-bg);
+              border: 1px solid var(--border);
+              border-left: 3px solid ${color};
+              border-radius: 8px;
+              padding: 18px 20px;
+              transition: transform 0.2s, box-shadow 0.2s;
+            `;
+            
+            novDiv.innerHTML = `
+              <div style="display:flex; align-items:start; gap:12px;">
+                <span style="font-size:24px; line-height:1; flex-shrink:0;">${icono}</span>
+                <div style="flex:1; min-width:0;">
+                  <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:6px;">
+                    <time style="font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">
+                      ${formatearFecha(nov.fecha)}
+                    </time>
+                  </div>
+                  <h3 style="font-size:15px; font-weight:700; margin:0 0 8px 0; color:var(--text); line-height:1.4;">
+                    ${nov.titulo}
+                  </h3>
+                  <p style="font-size:13px; color:var(--muted); margin:0; line-height:1.5;">
+                    ${nov.texto}
+                  </p>
+                  ${nov.enlace ? `
+                    <a href="${nov.enlace}" target="_blank" rel="noopener noreferrer" 
+                       style="display:inline-flex; align-items:center; gap:4px; margin-top:10px; font-size:12px; 
+                              color:${color}; font-weight:600; text-decoration:none; transition:opacity 0.2s;">
+                      Ver más <span style="font-size:10px;">→</span>
+                    </a>
+                  ` : ''}
+                </div>
+              </div>
+            `;
+            
+            // Efecto hover
+            novDiv.addEventListener('mouseenter', () => {
+              novDiv.style.transform = 'translateX(4px)';
+              novDiv.style.boxShadow = '0 2px 8px rgba(0,0,0,0.1)';
+            });
+            novDiv.addEventListener('mouseleave', () => {
+              novDiv.style.transform = 'translateX(0)';
+              novDiv.style.boxShadow = 'none';
+            });
+            
+            container.appendChild(novDiv);
+          });
+          
+        } catch (error) {
+          console.error('Error cargando novedades:', error);
+        }
+      })();
+      
+      // Formatear fecha a español
+      function formatearFecha(fechaISO) {
+        const fecha = new Date(fechaISO + 'T00:00:00');
+        const opciones = { day: 'numeric', month: 'short', year: 'numeric' };
+        return fecha.toLocaleDateString('es-ES', opciones);
+      }
+    </script>
+
     <footer style="max-width:1400px; margin:0 auto; padding:40px clamp(22px, 4.5vw, 60px) 30px; border-top:1px solid var(--border);">
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:30px; margin-bottom:30px;">
         <div>
