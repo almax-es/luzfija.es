@@ -1036,21 +1036,29 @@
       }
     })();
 
-    // Cargar precios de MAÑANA (si es después de las 20:15h)
+    // Cargar precios de MAÑANA (si es después de las 20:15h EN ESPAÑA)
     (async function cargarManana() {
       try {
-        const hoy = new Date();
-        const hora = hoy.getHours();
-        const minutos = hoy.getMinutes();
+        // Obtener hora ACTUAL en España
+        const ahoraEspana = new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' });
+        const fechaEspana = new Date(ahoraEspana);
+        const hora = fechaEspana.getHours();
+        const minutos = fechaEspana.getMinutes();
+        
+        console.log(`[PVPC] Hora en España: ${hora}:${minutos}`);
         
         // Solo cargar si es después de las 20:15h
         if (hora < 20 || (hora === 20 && minutos < 15)) {
+          console.log('[PVPC] Todavía no son las 20:15h en España, no se carga mañana');
           return;
         }
 
+        const hoy = new Date();
         const manana = new Date(hoy);
         manana.setDate(hoy.getDate() + 1);
         const fechaStr = manana.toISOString().split('T')[0];
+        
+        console.log(`[PVPC] Cargando precios de mañana: ${fechaStr}`);
         
         const response = await fetch(window.PVPC_PRICES_URL + encodeURIComponent(fechaStr));
         if (!response.ok) throw new Error('Error API');
@@ -1067,6 +1075,7 @@
 
         // Mostrar tab de mañana
         tabManana.style.display = 'block';
+        console.log('[PVPC] Tab mañana activado');
       } catch (e) {
         console.error('[PVPC] Error mañana:', e);
       }
