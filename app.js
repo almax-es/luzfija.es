@@ -1154,7 +1154,7 @@
         el.table.classList.add('show');
 
         const frag = document.createDocumentFragment();
-        s.forEach((r) => {
+        s.forEach((r, idx) => {
           const tr = document.createElement('tr');
           if (r.esMejor) tr.classList.add('best');
           const w = r.webUrl
@@ -1260,7 +1260,7 @@
             `</div>`+
             `${solarDetails || ""}`;
           tr.innerHTML =
-            `<td>${escapeHtml(r.posicion)}</td>`+
+            `<td>${idx + 1}</td>`+
             `<td title="${escapeHtml(nombreBase)}">${nombreDisplay}</td>`+
             `<td>${escapeHtml(r.potencia)}</td>`+
             `<td>${escapeHtml(r.consumo)}</td>`+
