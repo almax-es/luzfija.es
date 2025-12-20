@@ -19,24 +19,6 @@
       }
     },
     {
-      "nombre": "Energya VM",
-      "cPunta": 0.09958,
-      "cLlano": 0.09958,
-      "cValle": 0.09958,
-      "p1": 0.09315,
-      "p2": 0.046576,
-      "web": "https://www.energyavm.es/luz/formula-fija-24-horas-luz/",
-      "tipo": "1P",
-      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 6.000 kWh/año",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
-      }
-    },
-    {
       "nombre": "Nufri Calma",
       "cPunta": 0.099918,
       "cLlano": 0.099918,
@@ -124,6 +106,23 @@
       }
     },
     {
+      "nombre": "Octopus Unicaja Relax",
+      "cPunta": 0.113,
+      "cLlano": 0.113,
+      "cValle": 0.113,
+      "p1": 0.095,
+      "p2": 0.027,
+      "web": "https://octopusenergy.es/unicaja#tarifas",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "MES ACTUAL + BV"
+      }
+    },
+    {
       "nombre": "Imagina Energía",
       "cPunta": 0.119,
       "cLlano": 0.119,
@@ -155,23 +154,6 @@
         "tope": "ENERGIA + PEAJES + CARGOS",
         "bv": false,
         "reglaBV": "NO APLICA"
-      }
-    },
-    {
-      "nombre": "Octopus Unicaja Relax",
-      "cPunta": 0.113,
-      "cLlano": 0.113,
-      "cValle": 0.113,
-      "p1": 0.095,
-      "p2": 0.027,
-      "web": "https://octopusenergy.es/unicaja#tarifas",
-      "tipo": "1P",
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "MES ACTUAL + BV"
       }
     },
     {
@@ -208,6 +190,24 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
+      }
+    },
+    {
+      "nombre": "Energya VM",
+      "cPunta": 0.124475,
+      "cLlano": 0.124475,
+      "cValle": 0.124475,
+      "p1": 0.09315,
+      "p2": 0.046576,
+      "web": "https://www.energyavm.es/luz/formula-fija-24-horas-luz/",
+      "tipo": "1P",
+      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 6.000 kWh/año",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
       }
     },
     {
@@ -402,7 +402,7 @@
       }
     }
   ],
-  "timestamp": "2025-12-19T19:31:55.630Z",
-  "publishedAt": "2025-12-19T19:31:55.630Z",
-  "publishedAtEpoch": 1766172715630
+  "timestamp": "2025-12-20T07:35:15.621Z",
+  "publishedAt": "2025-12-20T07:35:15.621Z",
+  "publishedAtEpoch": 1766216115621
 }
