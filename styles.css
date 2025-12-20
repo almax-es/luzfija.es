@@ -1226,7 +1226,19 @@
   transition:opacity .2s ease;
 }
 .modal-overlay.show{ opacity:1; pointer-events:auto; }
-.modal-content{ max-width:600px; width:calc(100% - 28px); animation:__lf_slideUp .25s cubic-bezier(.2,.9,.2,1); }
+.modal-content{ 
+  max-width:600px; 
+  width:calc(100% - 28px); 
+  max-height: calc(100vh - 60px);
+  display: flex;
+  flex-direction: column;
+  animation:__lf_slideUp .25s cubic-bezier(.2,.9,.2,1); 
+}
+.modal-content .body{
+  overflow-y: auto;
+  flex: 1;
+  min-height: 0;
+}
 .upload-area{
   border:3px dashed var(--border);
   padding:28px; border-radius:var(--radius);
