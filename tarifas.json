@@ -364,7 +364,8 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
-      }
+      },
+      "requiereFV": true
     },
     {
       "nombre": "Naturgy noche luz 3P",
@@ -402,7 +403,7 @@
       }
     }
   ],
-  "timestamp": "2025-12-20T09:22:40.055Z",
-  "publishedAt": "2025-12-20T09:22:40.055Z",
-  "publishedAtEpoch": 1766222560055
+  "timestamp": "2025-12-21T18:19:03.534Z",
+  "publishedAt": "2025-12-21T18:19:03.534Z",
+  "publishedAtEpoch": 1766341143534
 }
