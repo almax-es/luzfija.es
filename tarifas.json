@@ -16,7 +16,8 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA"
-      }
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Nufri Calma",
@@ -34,7 +35,8 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
-      }
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Endesa One",
@@ -51,7 +53,8 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA"
-      }
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Visalia",
@@ -68,7 +71,8 @@
         "tope": "ENERGIA",
         "bv": false,
         "reglaBV": "NO APLICA"
-      }
+      },
+      "requiereFV": false
     },
     {
       "nombre": "TE A tu aire",
@@ -85,7 +89,8 @@
         "tope": "ENERGIA",
         "bv": false,
         "reglaBV": "NO APLICA"
-      }
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Plenitude",
@@ -103,7 +108,8 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA"
-      }
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Octopus Unicaja Relax",
@@ -120,7 +126,8 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "MES ACTUAL + BV"
-      }
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Imagina Energía",
@@ -137,7 +144,8 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
-      }
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Gana Energía",
@@ -154,7 +162,8 @@
         "tope": "ENERGIA + PEAJES + CARGOS",
         "bv": false,
         "reglaBV": "NO APLICA"
-      }
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Naturgy por uso",
@@ -172,7 +181,8 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
-      }
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Iberdrola Online",
@@ -190,7 +200,8 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
-      }
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Energya VM",
@@ -208,7 +219,8 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA"
-      }
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Repsol",
@@ -225,7 +237,8 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA"
-      }
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Endesa One 3P",
@@ -242,7 +255,8 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA"
-      }
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Energya VM 3P",
@@ -260,7 +274,8 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA"
-      }
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Nufri Flex 3P",
@@ -278,7 +293,8 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
-      }
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Gana Energía 3P",
@@ -295,7 +311,8 @@
         "tope": "ENERGIA + PEAJES + CARGOS",
         "bv": false,
         "reglaBV": "NO APLICA"
-      }
+      },
+      "requiereFV": false
     },
     {
       "nombre": "TE A tu aire 3P",
@@ -312,7 +329,8 @@
         "tope": "ENERGIA",
         "bv": false,
         "reglaBV": "NO APLICA"
-      }
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Iberdrola Online 3P",
@@ -330,7 +348,8 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
-      }
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Octopus Unicaja 3P",
@@ -347,7 +366,8 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "MES ACTUAL + BV"
-      }
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Esluz 3P",
@@ -383,7 +403,8 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
-      }
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Imagina Energía 3P",
@@ -400,10 +421,11 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
-      }
+      },
+      "requiereFV": false
     }
   ],
-  "timestamp": "2025-12-21T18:22:59.013Z",
-  "publishedAt": "2025-12-21T18:22:59.013Z",
-  "publishedAtEpoch": 1766341379013
+  "timestamp": "2025-12-21T18:34:33.372Z",
+  "publishedAt": "2025-12-21T18:34:33.372Z",
+  "publishedAtEpoch": 1766342073372
 }

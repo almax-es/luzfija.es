@@ -718,7 +718,7 @@
 
       const firstValida = resultados.find(r => Number.isFinite(r.totalNum)) || resultados[0];
       const bestPrice = firstValida ? firstValida.totalNum : 0;
-      const processed = resultados.map((r, i) => {
+      let processed = resultados.map((r, i) => {
         const esMejor = firstValida ? r === firstValida : i === 0;
         const diff = (Number.isFinite(r.totalNum) && Number.isFinite(bestPrice)) ? (r.totalNum - bestPrice) : Number.POSITIVE_INFINITY;
         return {
@@ -726,8 +726,6 @@
           vsMejorNum: diff, vsMejor: esMejor ? '—' : (Number.isFinite(diff) ? '+' + formatMoney(diff) : '—')
         };
       });
-
-
       // Filtrar tarifas que requieren FV si usuario no tiene solar
       if (!solarOn) {
         processed = processed.filter(r => !r.requiereFV);
@@ -1172,13 +1170,6 @@
             ? `<span class="pvpc-warn" title="PVPC no disponible para esta configuración">⚠</span>`
             : (r.pvpcWarning ? ' ⚠' : '');
 
-
-          // Icono requiere FV
-          let requiereFVIcon = '';
-          if (r.requiereFV) {
-            requiereFVIcon = `<span class="tooltip requiere-fv-icon" data-tip="⚠️ Requiere placas solares para contratar" role="button" tabindex="0" style="margin-left:4px; color:#ef4444; cursor:help;">🔒</span>`;
-          }
-
           // Tooltip de requisitos si existen
           const requisitosTooltip = r.requisitos
             ? `<span class="tooltip requisitos-icon" data-tip="${escapeHtml(r.requisitos)}" role="button" tabindex="0" aria-label="Requisitos de contratación" style="margin-left:4px; color:rgba(251,191,36,1); cursor:help;">ⓘ</span>`
@@ -1266,7 +1257,7 @@
           }
 
           // Cabecera: nombre + iconos (layout estable en móvil)
-          const icons = `<span class="tarifa-icons">${fvIcon || ""}${requiereFVIcon || ""}${requisitosTooltip || ""}${nombreWarn || ""}</span>`;
+          const icons = `<span class="tarifa-icons">${fvIcon || ""}${requisitosTooltip || ""}${nombreWarn || ""}</span>`;
           const nombreDisplay =
             `<div class="tarifa-title">`+
               `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>`+
@@ -1291,7 +1282,6 @@
         // Inicializar tooltips para los requisitos recién añadidos
         el.tbody.querySelectorAll('.requisitos-icon').forEach(t => bindTooltipElement(t));
         el.tbody.querySelectorAll('.fv-icon').forEach(t => bindTooltipElement(t));
-        el.tbody.querySelectorAll('.requiere-fv-icon').forEach(t => bindTooltipElement(t));
         updateSortIcons();
       });
     }
