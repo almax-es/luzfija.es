@@ -1472,6 +1472,9 @@
       cachedTarifas = pvpc ? [...base, pvpc] : base;
       if(!pvpc) pvpcLastMeta=null;
 
+      // FIX INP: Dar tiempo al navegador a pintar el spinner antes de bloquear con cálculos
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      await new Promise(resolve => setTimeout(resolve, 0));
       calculateLocal(values);
       state.lastSignature = signature;
       state.pending = false;
