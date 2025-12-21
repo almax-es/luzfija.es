@@ -1012,7 +1012,7 @@
     let diaActivo = 'hoy';
 
     // Cargar precios de HOY
-    (async function cargarHoy() {
+    async function cargarHoy() {
       try {
         const hoy = new Date();
         const fechaStr = hoy.toISOString().split('T')[0];
@@ -1034,10 +1034,10 @@
       } catch (e) {
         console.error('[PVPC] Error hoy:', e);
       }
-    })();
+    }
 
     // Cargar precios de MAÑANA (si es después de las 20:15h EN ESPAÑA)
-    (async function cargarManana() {
+    async function cargarManana() {
       try {
         // Obtener hora ACTUAL en España
         const ahoraEspana = new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' });
@@ -1079,7 +1079,7 @@
       } catch (e) {
         console.error('[PVPC] Error mañana:', e);
       }
-    })();
+    }
 
     // Función para obtener comentario gracioso
     function getComentario(precio, hora, precioMin, precioMax) {
@@ -1207,16 +1207,31 @@
     tabManana.addEventListener('click', () => cambiarTab('manana'));
 
     // Abrir modal
-    btnPVPCInfo.addEventListener('click', () => {
-      if (!pvpcHoy) {
-        document.getElementById('modalPVPCHoursList').innerHTML = '<p style="color: var(--muted); text-align: center; padding: 20px;">⏳ Cargando...</p>';
-      } else {
-        cambiarTab(diaActivo);
-      }
-      
+    btnPVPCInfo.addEventListener('click', async () => {
+      // Mostrar modal inmediatamente
       modalPVPCInfo.style.display = 'flex';
       modalPVPCInfo.classList.add('show');
       modalPVPCInfo.setAttribute('aria-hidden', 'false');
+      
+      // Cargar datos si no están cargados
+      if (!pvpcHoy) {
+        document.getElementById('modalPVPCHoursList').innerHTML = '<p style="color: var(--muted); text-align: center; padding: 20px;">⏳ Cargando...</p>';
+        
+        // Cargar precios de hoy
+        await cargarHoy();
+        
+        // Cargar precios de mañana si corresponde
+        await cargarManana();
+        
+        // Actualizar vista
+        if (pvpcHoy) {
+          cambiarTab(diaActivo);
+        } else {
+          document.getElementById('modalPVPCHoursList').innerHTML = '<p style="color: var(--muted); text-align: center; padding: 20px;">❌ Error al cargar precios. Inténtalo de nuevo.</p>';
+        }
+      } else {
+        cambiarTab(diaActivo);
+      }
     });
 
     // Cerrar modal
