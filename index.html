@@ -47,11 +47,10 @@
   <link rel="dns-prefetch" href="https://script.google.com">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" as="style">
+  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
+  <noscript><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet"></noscript>
 
   <title>Comparador Tarifas Luz España | Ahorra en tu Factura</title>
-
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
@@ -177,7 +176,7 @@
 
     <link rel="stylesheet" href="styles.css">
 
-  <script defer src="https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+  <!-- PDF.js se carga dinámicamente cuando el usuario sube una factura (ver factura.js) -->
 </head>
 
 <body>
@@ -938,7 +937,7 @@
     <script src="app.js" defer></script>
     
     
-    <script src="tracking.js"></script>
+    <script src="tracking.js" defer></script>
 
     <!-- GoatCounter Analytics (sin cookies, sin tracking personal) -->
     <script data-goatcounter="https://luzfija.goatcounter.com/count"

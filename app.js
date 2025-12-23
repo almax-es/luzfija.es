@@ -716,9 +716,15 @@
         return diff;
       });
 
-      const firstValida = resultados.find(r => Number.isFinite(r.totalNum)) || resultados[0];
+      // Filtrar tarifas que requieren FV si usuario no tiene solar PRIMERO
+      let resultadosFiltrados = resultados;
+      if (!solarOn) {
+        resultadosFiltrados = resultados.filter(r => !r.requiereFV);
+      }
+
+      const firstValida = resultadosFiltrados.find(r => Number.isFinite(r.totalNum)) || resultadosFiltrados[0];
       const bestPrice = firstValida ? firstValida.totalNum : 0;
-      let processed = resultados.map((r, i) => {
+      let processed = resultadosFiltrados.map((r, i) => {
         const esMejor = firstValida ? r === firstValida : i === 0;
         const diff = (Number.isFinite(r.totalNum) && Number.isFinite(bestPrice)) ? (r.totalNum - bestPrice) : Number.POSITIVE_INFINITY;
         return {
@@ -726,10 +732,6 @@
           vsMejorNum: diff, vsMejor: esMejor ? '—' : (Number.isFinite(diff) ? '+' + formatMoney(diff) : '—')
         };
       });
-      // Filtrar tarifas que requieren FV si usuario no tiene solar
-      if (!solarOn) {
-        processed = processed.filter(r => !r.requiereFV);
-      }
 
       const preciosValidos = processed.filter(r => Number.isFinite(r.totalNum)).map(r => r.totalNum);
       const min = preciosValidos.length ? Math.min(...preciosValidos) : null;
