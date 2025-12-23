@@ -58,6 +58,12 @@
   <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
   <link rel="mask-icon" href="/favicon.svg" color="#8B5CF6">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="mask-icon" href="/favicon.svg" color="#8B5CF6">
 
 <script type="application/ld+json">
   {
@@ -550,6 +556,7 @@
       </div>
     </section>
 
+    <script>
       // Cargar y mostrar novedades
       (async function cargarNovedades() {
         try {
@@ -932,6 +939,7 @@
     </div>
   </div>
 
+    <script src="pvpc.js" defer></script>
     <script src="factura.js" defer></script>
     <script src="app.js" defer></script>
     
@@ -1234,4 +1242,21 @@
 
     // Cerrar modal
     const cerrarModal = () => {
-      modalPVPCInfo.classLis
+      modalPVPCInfo.classList.remove('show');
+      setTimeout(() => {
+        modalPVPCInfo.style.display = 'none';
+        modalPVPCInfo.setAttribute('aria-hidden', 'true');
+      }, 300);
+    };
+
+    btnCerrarPVPCInfo.addEventListener('click', cerrarModal);
+    
+    modalPVPCInfo.addEventListener('click', (e) => {
+      if (e.target === modalPVPCInfo) cerrarModal();
+    });
+  });
+  </script>
+  
+  <script src="pvpc.js" defer></script>
+</body>
+</html>
