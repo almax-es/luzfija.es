@@ -1254,6 +1254,10 @@
     modalPVPCInfo.addEventListener('click', (e) => {
       if (e.target === modalPVPCInfo) cerrarModal();
     });
+    
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modalPVPCInfo.classList.contains('show')) cerrarModal();
+    });
   });
   </script>
 </body>
