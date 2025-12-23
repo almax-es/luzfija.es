@@ -2065,3 +2065,37 @@
   .pvpc-hour__tip{ font-size: 11px; }
 }
 
+
+/* ========================================
+   OPTIMIZACIÓN INP MÓVIL
+   Elimina efectos costosos solo en dispositivos táctiles
+   sin afectar animaciones de visibilidad
+   ======================================== */
+@media (pointer: coarse), (hover: none) {
+  /* Eliminar backdrop-filter (el mayor culpable de INP malo) */
+  .card, .pill, .btn, .modal-content, .modal-overlay,
+  .chartTop, .heroCard, .statCard, .input, select, textarea {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  
+  /* Simplificar sombras complejas (mantener básicas) */
+  .card, .heroCard, .statCard {
+    box-shadow: 0 4px 12px rgba(0,0,0,.3) !important;
+  }
+  
+  /* Eliminar animación de aurora (muy costosa en móvil) */
+  body::before {
+    animation: none !important;
+    opacity: 0.3 !important;
+  }
+  
+  /* Simplificar logo (eliminar animaciones complejas) */
+  .logo {
+    animation: none !important;
+  }
+  .logo::before,
+  .logo::after {
+    display: none !important;
+  }
+}
