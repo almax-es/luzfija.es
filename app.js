@@ -1744,25 +1744,25 @@ function updateMiTarifaForm() {
     <div class="form" style="gap:8px;">
       <div class="group">
         <label for="mtPunta">Punta (€/kWh)</label>
-        <input id="mtPunta" class="input" type="text" inputmode="decimal" placeholder="0.15">
+        <input id="mtPunta" class="input" type="text" inputmode="decimal" placeholder="0,15">
       </div>
       <div class="group">
         <label for="mtLlano">Llano (€/kWh)</label>
-        <input id="mtLlano" class="input" type="text" inputmode="decimal" placeholder="0.12">
+        <input id="mtLlano" class="input" type="text" inputmode="decimal" placeholder="0,12">
       </div>
       <div class="group">
         <label for="mtValle">Valle (€/kWh)</label>
-        <input id="mtValle" class="input" type="text" inputmode="decimal" placeholder="0.08">
+        <input id="mtValle" class="input" type="text" inputmode="decimal" placeholder="0,08">
       </div>
     </div>
     <div class="form">
       <div class="group">
         <label for="mtP1">Potencia P1 (€/kW/día)</label>
-        <input id="mtP1" class="input" type="text" inputmode="decimal" placeholder="0.089">
+        <input id="mtP1" class="input" type="text" inputmode="decimal" placeholder="0,089">
       </div>
       <div class="group">
         <label for="mtP2">Potencia P2 (€/kW/día)</label>
-        <input id="mtP2" class="input" type="text" inputmode="decimal" placeholder="0.044">
+        <input id="mtP2" class="input" type="text" inputmode="decimal" placeholder="0,044">
       </div>
     </div>
   `;
@@ -1772,7 +1772,7 @@ function updateMiTarifaForm() {
     container.innerHTML += `
       <div class="group" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
         <label for="mtPrecioExc">☀️ Precio compensación excedentes (€/kWh)</label>
-        <input id="mtPrecioExc" class="input" type="text" inputmode="decimal" placeholder="Ej: 0.07">
+        <input id="mtPrecioExc" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,07">
         <small style="font-size:11px; color:var(--muted2); margin-top:4px; display:block;">
           Lo que te pagan por los kWh vertidos a la red
         </small>
