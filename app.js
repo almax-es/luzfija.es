@@ -1632,6 +1632,23 @@
 
       $('scrollToResults').addEventListener('click',()=>$('heroKpis').scrollIntoView({behavior:'smooth',block:'start'}));
 
+      // ============================================
+      // TARIFA PERSONALIZADA
+      // ============================================
+      
+      // Toggle del formulario de tarifa personalizada
+      $('compararMiTarifa')?.addEventListener('change', (e) => {
+        const form = $('miTarifaForm');
+        if (!form) return;
+        form.style.display = e.target.checked ? 'block' : 'none';
+        if (e.target.checked) updateMiTarifaForm();
+      });
+
+      $('miTarifaEs3P')?.addEventListener('change', updateMiTarifaForm);
+      $('solarOn')?.addEventListener('change', () => {
+        if ($('compararMiTarifa')?.checked) updateMiTarifaForm();
+      });
+
       // Mostrar última actualización (si existe en caché) y precargar tarifas en segundo plano
       try{
         const cachedMeta = readTarifasCache({ allowExpired: true });
@@ -1715,21 +1732,8 @@ window.addEventListener('beforeinstallprompt', function (event) {
 });
 
 // ============================================
-// TARIFA PERSONALIZADA
+// TARIFA PERSONALIZADA - FUNCIONES
 // ============================================
-
-// Toggle del formulario de tarifa personalizada
-$('compararMiTarifa')?.addEventListener('change', (e) => {
-  const form = $('miTarifaForm');
-  if (!form) return;
-  form.style.display = e.target.checked ? 'block' : 'none';
-  if (e.target.checked) updateMiTarifaForm();
-});
-
-$('miTarifaEs3P')?.addEventListener('change', updateMiTarifaForm);
-$('solarOn')?.addEventListener('change', () => {
-  if ($('compararMiTarifa')?.checked) updateMiTarifaForm();
-});
 
 function updateMiTarifaForm() {
   const es3P = $('miTarifaEs3P')?.checked || false;
