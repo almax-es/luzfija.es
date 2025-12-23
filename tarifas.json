@@ -336,7 +336,7 @@
       "nombre": "Imagina Energía 3P",
       "cPunta": 0.174,
       "cLlano": 0.1,
-      "cValle": 0.06,
+      "cValle": 0.066,
       "p1": 0.101,
       "p2": 0.022,
       "web": "https://ofertas.imaginaenergia.com/plan-online-imagina/",
@@ -425,7 +425,7 @@
       "requiereFV": false
     }
   ],
-  "timestamp": "2025-12-23T20:41:17.855Z",
-  "publishedAt": "2025-12-23T20:41:17.855Z",
-  "publishedAtEpoch": 1766522477855
+  "timestamp": "2025-12-23T20:56:27.997Z",
+  "publishedAt": "2025-12-23T20:56:27.997Z",
+  "publishedAtEpoch": 1766523387997
 }
