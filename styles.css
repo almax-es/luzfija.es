@@ -2065,29 +2065,3 @@
   .pvpc-hour__tip{ font-size: 11px; }
 }
 
-
-/* === OPTIMIZACIÓN MÓVIL: Deshabilitar animaciones costosas === */
-@media (max-width: 768px) {
-  body::before,
-  .logo,
-  .brand h1 {
-    animation: none !important;
-  }
-  .particle {
-    display: none;
-  }
-  body::before {
-    transform: none;
-    opacity: 0.4;
-  }
-  .brand h1 {
-    background-position: 50% center;
-  }
-}
-
-/* Pausar animaciones durante interacciones (mejora INP) */
-body:has(input:focus) *,
-body:has(button:active) *,
-body:has(select:focus) * {
-  animation-play-state: paused !important;
-}
