@@ -937,10 +937,6 @@
           if (typeof toast === 'function') toast('Sube un PDF válido', 'err');
           return;
         }
-        if (!window.pdfjsLib){
-          if (typeof toast === 'function') toast('PDF.js no se ha cargado (bloqueo de red/CSP)', 'err');
-          return;
-        }
         window.__LF_lastFile = file;
 
         __LF_hide(__LF_q('uploadAreaFactura'));
