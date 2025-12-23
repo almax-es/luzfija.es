@@ -2099,3 +2099,35 @@
     display: none !important;
   }
 }
+
+/* ========================================
+   TARIFA PERSONALIZADA
+   ======================================== */
+
+.custom-tariff-highlight {
+  background: linear-gradient(90deg, 
+    rgba(139, 92, 246, 0.08) 0%, 
+    transparent 100%
+  );
+  border-left: 3px solid var(--accent) !important;
+}
+
+.custom-badge {
+  display: inline-block;
+  padding: 2px 6px;
+  background: var(--accent);
+  color: white;
+  font-size: 10px;
+  border-radius: 4px;
+  margin-left: 6px;
+  font-weight: 600;
+  vertical-align: middle;
+}
+
+body.light-mode .custom-tariff-highlight {
+  background: linear-gradient(90deg, 
+    rgba(139, 92, 246, 0.06) 0%, 
+    transparent 100%
+  );
+}
+

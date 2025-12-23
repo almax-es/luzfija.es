@@ -353,6 +353,27 @@
               <input id="bvSaldo" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 12,5">
             </div>
           </div>
+          <div class="form fv-toggle" style="margin-top:12px;">
+            <div class="group">
+              <label for="compararMiTarifa" class="fv-check">
+                <input id="compararMiTarifa" type="checkbox">
+                <span>⭐ Comparar con mi tarifa actual</span>
+              </label>
+            </div>
+          </div>
+          <div id="miTarifaForm" class="form fv-fields" style="display:none; margin-top:8px; padding:16px; background:var(--card); border-radius:12px; border-left:3px solid var(--accent);">
+            <div class="group">
+              <label for="miTarifaNombre">Nombre (opcional)</label>
+              <input id="miTarifaNombre" class="input" type="text" autocomplete="off" placeholder="Mi tarifa" maxlength="40">
+            </div>
+            <div class="group">
+              <label for="miTarifaEs3P" class="fv-check" style="font-size:14px;">
+                <input id="miTarifaEs3P" type="checkbox">
+                <span>Discriminación horaria (3P)</span>
+              </label>
+            </div>
+            <div id="miTarifaPrecios"></div>
+          </div>
           <div class="row" style="margin-top:14px">
             <div class="kwhPill" aria-live="polite">
               <div class="kwhLabel">Total kWh</div>
