@@ -1642,6 +1642,32 @@
 .card h3 { font-size: 18px; margin-bottom: 8px; }
 .card p { font-size: 14px; color: var(--muted); }
 .number { display: inline-block; width: 32px; height: 32px; background: var(--accent); color: white; border-radius: 8px; text-align: center; line-height: 32px; font-weight: bold; margin-bottom: 12px; }
+
+/* ========================================
+   OPTIMIZACIÓN INP MÓVIL
+   Elimina efectos costosos solo en dispositivos táctiles
+   ======================================== */
+@media (pointer: coarse), (hover: none) {
+  .card, .pill, .btn, .modal-content, .modal-overlay,
+  .chartTop, .heroCard, .statCard, .input, select, textarea {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+  .card, .heroCard, .statCard {
+    box-shadow: 0 4px 12px rgba(0,0,0,.3) !important;
+  }
+  body::before {
+    animation: none !important;
+    opacity: 0.3 !important;
+  }
+  .logo {
+    animation: none !important;
+  }
+  .logo::before,
+  .logo::after {
+    display: none !important;
+  }
+}
 </style>
 </head>
 <body>
