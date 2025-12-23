@@ -1784,7 +1784,6 @@ function updateMiTarifaForm() {
 function agregarMiTarifa() {
   if (!$('compararMiTarifa')?.checked) return null;
   
-  const nombre = $('miTarifaNombre')?.value.trim() || 'Mi tarifa';
   const tieneSolar = $('solarOn')?.checked || false;
   
   // Leer siempre los 6 campos
@@ -1806,7 +1805,7 @@ function agregarMiTarifa() {
   const precioExc = tieneSolar ? parseNum($('mtPrecioExc')?.value || '0') : 0;
   
   const tarifa = {
-    nombre: `${nombre} ⭐`,
+    nombre: 'Mi tarifa ⭐',
     tipo: es1P ? '1P' : '3P',
     cPunta: punta,
     cLlano: llano,
