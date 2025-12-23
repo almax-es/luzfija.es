@@ -1165,9 +1165,6 @@
             ? ''
             : '';
           const nombreBase = r.nombre || '';
-          const nombreBadge = r.esPersonalizada
-            ? `<span class="custom-badge" style="display:inline-block; padding:2px 6px; background:var(--accent); color:white; font-size:10px; border-radius:4px; margin-left:6px; font-weight:600;">Tu tarifa</span>`
-            : '';
           const nombreWarn = r.pvpcNotComputable
             ? `<span class="pvpc-warn" title="PVPC no disponible para esta configuración">⚠</span>`
             : (r.pvpcWarning ? ' ⚠' : '');
@@ -1262,7 +1259,7 @@
           const icons = `<span class="tarifa-icons">${fvIcon || ""}${requisitosTooltip || ""}${nombreWarn || ""}</span>`;
           const nombreDisplay =
             `<div class="tarifa-title">`+
-              `<span class="tarifa-nombre">${escapeHtml(nombreBase)}${nombreBadge}</span>`+
+              `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>`+
               `${icons}`+
             `</div>`+
             `${solarDetails || ""}`;
