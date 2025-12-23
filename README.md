@@ -16,6 +16,7 @@ Herramienta **gratuita**, **sin publicidad** y **de código abierto** para compa
 - ✅ Soporte completo para **placas solares** y **autoconsumo**
 - ✅ **Compensación de excedentes** con precios por comercializadora
 - ✅ **Batería Virtual** (acumulación en € para meses futuros)
+- ✅ **Comparar con tu tarifa actual** (añade precios de tu contrato para comparar)
 - ✅ Ranking ordenado por **precio total real**
 - ✅ Gráfico visual Top 5
 - ✅ Detalles expandibles por tarifa (click en ☀️ dorado)
@@ -835,6 +836,7 @@ Proyecto **independiente** y de **código abierto**.
 ## 📅 Changelog
 
 ### Diciembre 2025 - Optimizaciones Core Web Vitals
+- ✅ **Comparar con tu tarifa actual** (añade precios personalizados al ranking)
 - ✅ PDF.js lazy loading (180KB ahorrados)
 - ✅ Fix INP móvil < 200ms (100% cobertura)
 - ✅ tracking.js con defer
