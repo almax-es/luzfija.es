@@ -2106,7 +2106,10 @@ function mostrarPreviewCSV(resultado) {
 
 function initCSVImporter() {
   const container = $('consumosWrapper');
-  if (!container) return;
+  if (!container) {
+    console.error('[CSV] No se encontró consumosWrapper');
+    return;
+  }
   
   const fileInput = document.createElement('input');
   fileInput.type = 'file';
@@ -2125,17 +2128,23 @@ function initCSVImporter() {
   hint.style.cssText = 'font-size: 11px; color: var(--muted2); margin-top: 4px; display: block; text-align: center;';
   hint.textContent = 'Descarga tu consumo horario de e-distribución, i-DE o Datadis';
   
-  btnCSV.addEventListener('click', () => fileInput.click());
+  btnCSV.addEventListener('click', () => {
+    console.log('[CSV] Botón clickeado');
+    fileInput.click();
+  });
   
   fileInput.addEventListener('change', async (e) => {
+    console.log('[CSV] Archivo seleccionado');
     const file = e.target.files[0];
     if (!file) return;
     
+    console.log('[CSV] Procesando:', file.name);
     btnCSV.disabled = true;
     btnCSV.innerHTML = '⏳ Procesando CSV...';
     
     try {
       const resultado = await procesarCSVConsumos(file);
+      console.log('[CSV] Resultado:', resultado);
       mostrarPreviewCSV(resultado);
       
       btnCSV.disabled = false;
@@ -2143,7 +2152,7 @@ function initCSVImporter() {
       fileInput.value = '';
       
     } catch (error) {
-      console.error('Error procesando CSV:', error);
+      console.error('[CSV] Error:', error);
       toast(error.message || 'Error al procesar el CSV', 'err');
       
       btnCSV.disabled = false;
@@ -2153,15 +2162,16 @@ function initCSVImporter() {
   });
   
   const wrapperDiv = document.createElement('div');
-  wrapperDiv.style.marginTop = '12px';
+  wrapperDiv.style.cssText = 'margin-top: 12px;';
   wrapperDiv.appendChild(fileInput);
   wrapperDiv.appendChild(btnCSV);
   wrapperDiv.appendChild(hint);
   
-  const kwhPillElement = container.querySelector('.kwhPill');
-  if (kwhPillElement && kwhPillElement.parentNode === container) {
-    container.insertBefore(wrapperDiv, kwhPillElement);
+  // Insertar DESPUÉS del consumosWrapper, no dentro
+  if (container.parentNode) {
+    container.parentNode.insertBefore(wrapperDiv, container.nextSibling);
+    console.log('[CSV] Botón insertado correctamente');
   } else {
-    container.appendChild(wrapperDiv);
+    console.error('[CSV] No se pudo insertar el botón');
   }
 }
