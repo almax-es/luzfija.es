@@ -1222,48 +1222,60 @@
         set('cLlano', v.consumoLlano);
         set('cValle', v.consumoValle);
         
-        // NUEVO: Si "Comparar con mi tarifa actual" está marcado y hay precios extraídos, rellenarlos
+        // NUEVO: Si "Comparar con mi tarifa actual" está marcado, rellenar precios extraídos
         const compararMiTarifa = document.getElementById('compararMiTarifa');
-        if (compararMiTarifa && compararMiTarifa.checked && window.__LF_lastParsedPrecios) {
-          const precios = window.__LF_lastParsedPrecios;
-          console.log('[APLICAR PRECIOS] Rellenando Mi tarifa actual:', precios);
-          
-          let preciosAplicados = 0;
-          
-          // Rellenar precios de energía
-          if (precios.energiaPunta) {
-            set('mtPunta', precios.energiaPunta);
-            preciosAplicados++;
-          }
-          if (precios.energiaLlano) {
-            set('mtLlano', precios.energiaLlano);
-            preciosAplicados++;
-          }
-          if (precios.energiaValle) {
-            set('mtValle', precios.energiaValle);
-            preciosAplicados++;
-          }
-          
-          // Rellenar precios de potencia
-          if (precios.potenciaP1) {
-            set('mtP1', precios.potenciaP1);
-            preciosAplicados++;
-          }
-          if (precios.potenciaP2) {
-            set('mtP2', precios.potenciaP2);
-            preciosAplicados++;
-          }
-          
-          // Rellenar precio de excedentes (si hay placas solares)
-          const solarOn = document.getElementById('solarOn');
-          if (solarOn && solarOn.checked && precios.excedentes) {
-            set('mtPrecioExc', precios.excedentes);
-            preciosAplicados++;
-          }
-          
-          if (preciosAplicados > 0) {
+        if (compararMiTarifa && compararMiTarifa.checked) {
+          // Si hay precios extraídos, rellenarlos en "Mi tarifa actual"
+          if (window.__LF_lastParsedPrecios) {
+            const precios = window.__LF_lastParsedPrecios;
+            console.log('[APLICAR PRECIOS] Rellenando Mi tarifa actual:', precios);
+            
+            let preciosAplicados = 0;
+            
+            // Rellenar precios de energía (€/kWh)
+            if (precios.energiaPunta) {
+              set('mtPunta', precios.energiaPunta);
+              preciosAplicados++;
+            }
+            if (precios.energiaLlano) {
+              set('mtLlano', precios.energiaLlano);
+              preciosAplicados++;
+            }
+            if (precios.energiaValle) {
+              set('mtValle', precios.energiaValle);
+              preciosAplicados++;
+            }
+            
+            // Rellenar precios de potencia (€/kW/día)
+            if (precios.potenciaP1) {
+              set('mtP1', precios.potenciaP1);
+              preciosAplicados++;
+            }
+            if (precios.potenciaP2) {
+              set('mtP2', precios.potenciaP2);
+              preciosAplicados++;
+            }
+            
+            // Rellenar precio de excedentes (si hay placas solares)
+            const solarOn = document.getElementById('solarOn');
+            if (solarOn && solarOn.checked && precios.excedentes) {
+              set('mtPrecioExc', precios.excedentes);
+              preciosAplicados++;
+            }
+            
+            if (preciosAplicados > 0) {
+              if (typeof toast === 'function') {
+                toast(`✅ Datos aplicados + ${preciosAplicados} precios en Mi tarifa`, 'ok');
+              }
+            } else {
+              if (typeof toast === 'function') {
+                toast('✅ Datos aplicados (no se detectaron precios en PDF)', 'ok');
+              }
+            }
+          } else {
+            // No se extrajeron precios, solo informar
             if (typeof toast === 'function') {
-              toast(`✅ Datos aplicados + ${preciosAplicados} precios detectados en Mi tarifa`, 'ok');
+              toast('✅ Datos aplicados (completa precios de Mi tarifa manualmente)', 'ok');
             }
           }
         }
