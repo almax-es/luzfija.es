@@ -1056,7 +1056,11 @@
         const data = await response.json();
         if (!data?.prices || data.prices.length !== 24) throw new Error('Sin datos');
 
-        const ahora = hoy.getHours();
+        // Obtener hora actual en zona horaria Madrid (consistente con el resto del sitio)
+        const ahoraMadridStr = new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' });
+        const ahoraMadrid = new Date(ahoraMadridStr);
+        const ahora = ahoraMadrid.getHours();
+        
         pvpcHoy = {
           precios: data.prices,
           ahora,

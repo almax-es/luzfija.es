@@ -95,33 +95,6 @@
   "edge_side_panel": {
     "preferred_width": 400
   },
-  "widgets": [
-    {
-      "name": "Precio PVPC actual",
-      "short_name": "PVPC",
-      "description": "Muestra el precio actual de PVPC",
-      "tag": "pvpc-widget",
-      "template": "pvpc-template",
-      "ms_ac_template": "pvpc-adaptive-card.json",
-      "data": "/api/pvpc/now",
-      "type": "application/json",
-      "screenshots": [
-        {
-          "src": "/icon-192.png",
-          "sizes": "192x192",
-          "label": "Widget PVPC"
-        }
-      ],
-      "icons": [
-        {
-          "src": "/icon-192.png",
-          "sizes": "192x192"
-        }
-      ],
-      "auth": false,
-      "update": 900
-    }
-  ],
   "note_taking": {
     "new_note_url": "/"
   }
