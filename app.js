@@ -2105,15 +2105,13 @@ function mostrarPreviewCSV(resultado) {
 }
 
 function initCSVImporter() {
-  console.log('[CSV] === INICIO initCSVImporter ===');
-  alert('CSV Importer iniciado'); // DEBUG
+  console.log('%c[CSV] === INICIO initCSVImporter ===', 'background: #8B5CF6; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;');
   
   const container = $('consumosWrapper');
   console.log('[CSV] Container encontrado:', container);
   
   if (!container) {
-    console.error('[CSV] No se encontró consumosWrapper');
-    alert('ERROR: No se encontró consumosWrapper');
+    console.error('[CSV] ❌ No se encontró consumosWrapper');
     return;
   }
   
@@ -2140,17 +2138,25 @@ function initCSVImporter() {
   });
   
   fileInput.addEventListener('change', async (e) => {
-    console.log('[CSV] Archivo seleccionado');
+    console.log('%c[CSV] 📂 ARCHIVO SELECCIONADO', 'background: #10B981; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;');
     const file = e.target.files[0];
-    if (!file) return;
+    if (!file) {
+      console.warn('[CSV] No hay archivo seleccionado');
+      return;
+    }
     
-    console.log('[CSV] Procesando:', file.name);
+    console.log('[CSV] Nombre archivo:', file.name);
+    console.log('[CSV] Tamaño:', (file.size / 1024).toFixed(2), 'KB');
+    
     btnCSV.disabled = true;
     btnCSV.innerHTML = '⏳ Procesando CSV...';
     
     try {
+      console.log('[CSV] Llamando a procesarCSVConsumos...');
       const resultado = await procesarCSVConsumos(file);
-      console.log('[CSV] Resultado:', resultado);
+      console.log('%c[CSV] ✅ RESULTADO:', 'background: #10B981; color: white; padding: 4px 8px;', resultado);
+      
+      console.log('[CSV] Mostrando preview...');
       mostrarPreviewCSV(resultado);
       
       btnCSV.disabled = false;
@@ -2158,7 +2164,7 @@ function initCSVImporter() {
       fileInput.value = '';
       
     } catch (error) {
-      console.error('[CSV] Error:', error);
+      console.error('%c[CSV] ❌ ERROR', 'background: #EF4444; color: white; padding: 4px 8px;', error);
       toast(error.message || 'Error al procesar el CSV', 'err');
       
       btnCSV.disabled = false;
