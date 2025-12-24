@@ -2105,13 +2105,15 @@ function mostrarPreviewCSV(resultado) {
 }
 
 function initCSVImporter() {
-  console.log('[CSV] Iniciando initCSVImporter...');
+  console.log('[CSV] === INICIO initCSVImporter ===');
+  alert('CSV Importer iniciado'); // DEBUG
   
   const container = $('consumosWrapper');
   console.log('[CSV] Container encontrado:', container);
   
   if (!container) {
     console.error('[CSV] No se encontró consumosWrapper');
+    alert('ERROR: No se encontró consumosWrapper');
     return;
   }
   
