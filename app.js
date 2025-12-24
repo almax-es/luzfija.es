@@ -2073,23 +2073,64 @@ function mostrarPreviewCSV(resultado) {
   modal.appendChild(content);
   document.body.appendChild(modal);
   
-  $('csvCancelar').addEventListener('click', () => modal.remove());
+  console.error('[CSV] Modal añadido al DOM');
   
-  $('csvAplicar').addEventListener('click', () => {
-    $('dias').value = resultado.dias;
-    $('cPunta').value = resultado.punta.replace('.', ',');
-    $('cLlano').value = resultado.llano.replace('.', ',');
-    $('cValle').value = resultado.valle.replace('.', ',');
-    
-    modal.remove();
-    toast('✓ Consumos aplicados desde CSV');
-    
-    try {
-      if (typeof updateKwhHint === 'function') updateKwhHint();
-      if (typeof validateInputs === 'function') validateInputs();
-      if (typeof saveInputs === 'function') saveInputs();
-    } catch(e) {}
-  });
+  // Usar querySelector para los botones del modal que acabamos de crear
+  const btnCancelar = modal.querySelector('#csvCancelar');
+  const btnAplicar = modal.querySelector('#csvAplicar');
+  
+  console.error('[CSV] Botones encontrados:', btnCancelar !== null, btnAplicar !== null);
+  
+  if (btnCancelar) {
+    btnCancelar.addEventListener('click', () => {
+      console.error('[CSV] Cancelar clickeado');
+      modal.remove();
+    });
+  }
+  
+  if (btnAplicar) {
+    btnAplicar.addEventListener('click', () => {
+      console.error('[CSV] Aplicar clickeado - rellenando campos');
+      
+      const diasInput = document.getElementById('dias');
+      const puntaInput = document.getElementById('cPunta');
+      const llanoInput = document.getElementById('cLlano');
+      const valleInput = document.getElementById('cValle');
+      
+      console.error('[CSV] Inputs encontrados:', {
+        dias: diasInput !== null,
+        punta: puntaInput !== null,
+        llano: llanoInput !== null,
+        valle: valleInput !== null
+      });
+      
+      if (diasInput) diasInput.value = resultado.dias;
+      if (puntaInput) puntaInput.value = resultado.punta.replace('.', ',');
+      if (llanoInput) llanoInput.value = resultado.llano.replace('.', ',');
+      if (valleInput) valleInput.value = resultado.valle.replace('.', ',');
+      
+      console.error('[CSV] Valores aplicados:', {
+        dias: diasInput?.value,
+        punta: puntaInput?.value,
+        llano: llanoInput?.value,
+        valle: valleInput?.value
+      });
+      
+      modal.remove();
+      
+      if (typeof toast === 'function') {
+        toast('✓ Consumos aplicados desde CSV');
+      }
+      
+      try {
+        if (typeof updateKwhHint === 'function') updateKwhHint();
+        if (typeof validateInputs === 'function') validateInputs();
+        if (typeof saveInputs === 'function') saveInputs();
+      } catch(e) {
+        console.error('[CSV] Error en funciones auxiliares:', e);
+      }
+    });
+  }
   
   const closeOnEsc = (e) => {
     if (e.key === 'Escape') {
