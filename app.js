@@ -6,11 +6,20 @@
       params.get("debug") === "1" ||
       localStorage.getItem("lf_debug") === "1";
 
+    // Guardar flag global para uso en el resto del código
+    window.__LF_DEBUG = debug;
+
     if (!debug) {
       const noop = function () {};
       console.log = noop;
       console.debug = noop;
       console.info = noop;
+      console.group = noop;
+      console.groupCollapsed = noop;
+      console.groupEnd = noop;
+      console.table = noop;
+      console.time = noop;
+      console.timeEnd = noop;
       // Mantener errores visibles por si algo falla de verdad:
       // console.warn y console.error NO se tocan
     }
@@ -18,6 +27,9 @@
     // Si algo falla aquí, no romper la app
   }
 })();
+
+// Helper: log solo si debug está activo
+const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
 
     const $ = id => document.getElementById(id);
 
@@ -2035,6 +2047,14 @@ function getPeriodoHorarioCSV(fecha, hora) {
   return 'P2';  // Llano (08:00-10:00, 14:00-18:00, 22:00-24:00)
 }
 
+// Helper: formatear fecha local sin usar UTC (evita bug de toISOString)
+function ymdLocal(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
 function clasificarConsumosPorPeriodo(consumos) {
   const totales = { P1: 0, P2: 0, P3: 0 };
   const diasUnicos = new Set();
@@ -2045,7 +2065,7 @@ function clasificarConsumosPorPeriodo(consumos) {
     const periodo = getPeriodoHorarioCSV(c.fecha, c.hora);
     totales[periodo] += c.kwh;
     
-    const fechaKey = c.fecha.toISOString().split('T')[0];
+    const fechaKey = ymdLocal(c.fecha);
     diasUnicos.add(fechaKey);
     
     if (c.esReal) datosReales++;
@@ -2156,10 +2176,10 @@ function mostrarPreviewCSV(resultado) {
   modal.appendChild(content);
   document.body.appendChild(modal);
   
-  console.error('[CSV] Modal añadido al DOM');
-  console.error('[CSV] Modal display:', modal.style.display);
-  console.error('[CSV] Modal z-index:', modal.style.zIndex);
-  console.error('[CSV] Body children:', document.body.children.length);
+  lfDbg('[CSV] Modal añadido al DOM');
+  lfDbg('[CSV] Modal display:', modal.style.display);
+  lfDbg('[CSV] Modal z-index:', modal.style.zIndex);
+  lfDbg('[CSV] Body children:', document.body.children.length);
   
   // Forzar que el modal sea visible inmediatamente
   modal.style.display = 'flex';
@@ -2170,25 +2190,25 @@ function mostrarPreviewCSV(resultado) {
   const btnCancelar = modal.querySelector('#csvCancelar');
   const btnAplicar = modal.querySelector('#csvAplicar');
   
-  console.error('[CSV] Botones encontrados:', btnCancelar !== null, btnAplicar !== null);
+  lfDbg('[CSV] Botones encontrados:', btnCancelar !== null, btnAplicar !== null);
   
   if (btnCancelar) {
     btnCancelar.addEventListener('click', () => {
-      console.error('[CSV] Cancelar clickeado');
+      lfDbg('[CSV] Cancelar clickeado');
       modal.remove();
     });
   }
   
   if (btnAplicar) {
     btnAplicar.addEventListener('click', () => {
-      console.error('[CSV] Aplicar clickeado - rellenando campos');
+      lfDbg('[CSV] Aplicar clickeado - rellenando campos');
       
       const diasInput = document.getElementById('dias');
       const puntaInput = document.getElementById('cPunta');
       const llanoInput = document.getElementById('cLlano');
       const valleInput = document.getElementById('cValle');
       
-      console.error('[CSV] Inputs encontrados:', {
+      lfDbg('[CSV] Inputs encontrados:', {
         dias: diasInput !== null,
         punta: puntaInput !== null,
         llano: llanoInput !== null,
@@ -2200,7 +2220,7 @@ function mostrarPreviewCSV(resultado) {
       if (llanoInput) llanoInput.value = resultado.llano.replace('.', ',');
       if (valleInput) valleInput.value = resultado.valle.replace('.', ',');
       
-      console.error('[CSV] Valores aplicados:', {
+      lfDbg('[CSV] Valores aplicados:', {
         dias: diasInput?.value,
         punta: puntaInput?.value,
         llano: llanoInput?.value,
@@ -2218,7 +2238,7 @@ function mostrarPreviewCSV(resultado) {
         if (typeof validateInputs === 'function') validateInputs();
         if (typeof saveInputs === 'function') saveInputs();
       } catch(e) {
-        console.error('[CSV] Error en funciones auxiliares:', e);
+        lfDbg('[CSV] Error en funciones auxiliares:', e);
       }
     });
   }

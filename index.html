@@ -1030,6 +1030,18 @@
       return;
     }
 
+    // Helper: formatear fecha en zona horaria Madrid (evita bug de toISOString con UTC)
+    function ymdMadrid(date) {
+      const parts = new Intl.DateTimeFormat('en', {
+        timeZone: 'Europe/Madrid',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).formatToParts(date);
+      const get = (t) => parts.find(p => p.type === t)?.value;
+      return `${get('year')}-${get('month')}-${get('day')}`;
+    }
+
     let pvpcHoy = null;
     let pvpcManana = null;
     let diaActivo = 'hoy';
@@ -1038,7 +1050,7 @@
     async function cargarHoy() {
       try {
         const hoy = new Date();
-        const fechaStr = hoy.toISOString().split('T')[0];
+        const fechaStr = ymdMadrid(hoy);
         const response = await fetch(window.PVPC_PRICES_URL + encodeURIComponent(fechaStr));
         if (!response.ok) throw new Error('Error API');
         const data = await response.json();
@@ -1079,7 +1091,7 @@
         const hoy = new Date();
         const manana = new Date(hoy);
         manana.setDate(hoy.getDate() + 1);
-        const fechaStr = manana.toISOString().split('T')[0];
+        const fechaStr = ymdMadrid(manana);
         
         console.log(`[PVPC] Cargando precios de mañana: ${fechaStr}`);
         
