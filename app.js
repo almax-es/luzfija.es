@@ -1659,6 +1659,13 @@
         window.__LF_bindFacturaParser();
       }
 
+      // Inicializar importador de CSV
+      try {
+        initCSVImporter();
+      } catch(e) {
+        console.error('Error inicializando CSV importer:', e);
+      }
+
       $('scrollToResults').addEventListener('click',()=>$('heroKpis').scrollIntoView({behavior:'smooth',block:'start'}));
 
       // ============================================
@@ -1854,4 +1861,308 @@ function agregarMiTarifa() {
   };
   
   return tarifa;
+}
+
+// ============================================
+// IMPORTAR CSV DE CONSUMOS
+// ============================================
+
+function parseCSVConsumos(fileContent) {
+  /**
+   * Parsea CSV de e-distribución/Datadis
+   * Formatos soportados:
+   * - e-distribución: CUPS;Fecha;Hora;AE_kWh;REAL/ESTIMADO
+   * - Datadis: CUPS;Date;Time;Consumption_kWh;Obtained_Method
+   */
+  const lines = fileContent.split('\n');
+  if (lines.length < 2) throw new Error('CSV vacío o inválido');
+  
+  const header = lines[0].toLowerCase();
+  const isEdistribucion = header.includes('ae_kwh');
+  const isDatadis = header.includes('consumption_kwh') || header.includes('date');
+  
+  const consumos = [];
+  
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    
+    const cols = line.split(';');
+    if (cols.length < 4) continue;
+    
+    let fechaStr, hora, kwhStr, esReal;
+    
+    if (isEdistribucion) {
+      // CUPS;Fecha;Hora;AE_kWh;REAL/ESTIMADO
+      fechaStr = cols[1];  // DD/MM/YYYY
+      hora = parseInt(cols[2]);  // 1-24
+      kwhStr = cols[3];
+      esReal = cols[4] === 'R';
+    } else if (isDatadis) {
+      // CUPS;Date;Time;Consumption_kWh;Obtained_Method
+      fechaStr = cols[1];  // YYYY-MM-DD
+      const timeStr = cols[2];  // HH:MM
+      hora = parseInt(timeStr.split(':')[0]) + 1;  // Convertir 0-23 a 1-24
+      kwhStr = cols[3];
+      esReal = cols[4] === 'R';
+    } else {
+      continue;
+    }
+    
+    if (!kwhStr || kwhStr.trim() === '') continue;
+    
+    const kwh = parseFloat(kwhStr.replace(',', '.'));
+    if (isNaN(kwh)) continue;
+    
+    let fecha;
+    if (isEdistribucion) {
+      const [dia, mes, año] = fechaStr.split('/').map(Number);
+      fecha = new Date(año, mes - 1, dia);
+    } else {
+      fecha = new Date(fechaStr);
+    }
+    
+    if (isNaN(fecha.getTime())) continue;
+    
+    consumos.push({ fecha, hora, kwh, esReal });
+  }
+  
+  return consumos;
+}
+
+function getPeriodoHorarioCSV(fecha, hora) {
+  /**
+   * Determina periodo P1/P2/P3
+   * hora: 1-24 del CSV
+   * 
+   * P1 (Punta): 10-14h y 18-22h laborables
+   * P2 (Llano): 8-10h, 14-18h, 22-24h laborables  
+   * P3 (Valle): 0-8h todos + todo el finde
+   */
+  const diaSemana = fecha.getDay();
+  const esFinde = diaSemana === 0 || diaSemana === 6;
+  
+  // Convertir hora CSV (1-24) a hora normal (0-23)
+  const h = hora === 24 ? 23 : hora - 1;
+  
+  if (esFinde) return 'P3';
+  
+  if (h < 8) return 'P3';
+  if ((h >= 10 && h < 14) || (h >= 18 && h < 22)) return 'P1';
+  return 'P2';
+}
+
+function clasificarConsumosPorPeriodo(consumos) {
+  const totales = { P1: 0, P2: 0, P3: 0 };
+  const diasUnicos = new Set();
+  let datosReales = 0;
+  let datosEstimados = 0;
+  
+  consumos.forEach(c => {
+    const periodo = getPeriodoHorarioCSV(c.fecha, c.hora);
+    totales[periodo] += c.kwh;
+    
+    const fechaKey = c.fecha.toISOString().split('T')[0];
+    diasUnicos.add(fechaKey);
+    
+    if (c.esReal) datosReales++;
+    else datosEstimados++;
+  });
+  
+  const totalKwh = totales.P1 + totales.P2 + totales.P3;
+  
+  return {
+    punta: totales.P1.toFixed(2),
+    llano: totales.P2.toFixed(2),
+    valle: totales.P3.toFixed(2),
+    dias: diasUnicos.size,
+    totalKwh: totalKwh.toFixed(2),
+    datosReales,
+    datosEstimados,
+    porcentajes: {
+      punta: (totales.P1 / totalKwh * 100).toFixed(1),
+      llano: (totales.P2 / totalKwh * 100).toFixed(1),
+      valle: (totales.P3 / totalKwh * 100).toFixed(1)
+    }
+  };
+}
+
+async function procesarCSVConsumos(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      try {
+        const content = e.target.result;
+        const consumos = parseCSVConsumos(content);
+        
+        if (consumos.length === 0) {
+          reject(new Error('No se encontraron datos válidos en el CSV'));
+          return;
+        }
+        
+        const resultado = clasificarConsumosPorPeriodo(consumos);
+        resolve(resultado);
+      } catch (error) {
+        reject(error);
+      }
+    };
+    
+    reader.onerror = () => reject(new Error('Error al leer el archivo'));
+    reader.readAsText(file);
+  });
+}
+
+function mostrarPreviewCSV(resultado) {
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay';
+  modal.style.cssText = 'display: flex; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; align-items: center; justify-content: center; padding: 20px;';
+  
+  const content = document.createElement('div');
+  content.style.cssText = 'background: var(--card); border-radius: 16px; padding: 24px; max-width: 500px; width: 100%; box-shadow: var(--shadow);';
+  
+  content.innerHTML = `
+    <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 900; color: var(--text);">📊 Consumos detectados</h3>
+    
+    <div style="background: var(--bg0); padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--border);">
+      <div style="display: grid; gap: 12px;">
+        <div>
+          <div style="font-size: 12px; color: var(--muted2); margin-bottom: 4px;">Periodo analizado</div>
+          <div style="font-size: 16px; font-weight: 700; color: var(--text);">${resultado.dias} días</div>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
+          <div>
+            <div style="font-size: 11px; color: var(--muted2); margin-bottom: 4px;">Punta</div>
+            <div style="font-size: 14px; font-weight: 700; color: var(--text);">${resultado.punta} kWh</div>
+            <div style="font-size: 10px; color: var(--muted2);">${resultado.porcentajes.punta}%</div>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: var(--muted2); margin-bottom: 4px;">Llano</div>
+            <div style="font-size: 14px; font-weight: 700; color: var(--text);">${resultado.llano} kWh</div>
+            <div style="font-size: 10px; color: var(--muted2);">${resultado.porcentajes.llano}%</div>
+          </div>
+          <div>
+            <div style="font-size: 11px; color: var(--muted2); margin-bottom: 4px;">Valle</div>
+            <div style="font-size: 14px; font-weight: 700; color: var(--text);">${resultado.valle} kWh</div>
+            <div style="font-size: 10px; color: var(--muted2);">${resultado.porcentajes.valle}%</div>
+          </div>
+        </div>
+        
+        <div style="padding-top: 12px; border-top: 1px solid var(--border);">
+          <div style="font-size: 12px; color: var(--muted2); margin-bottom: 4px;">Total consumo</div>
+          <div style="font-size: 18px; font-weight: 900; color: var(--accent);">${resultado.totalKwh} kWh</div>
+        </div>
+      </div>
+    </div>
+    
+    ${resultado.datosEstimados > 0 ? `
+      <div style="background: rgba(245, 158, 11, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 12px; border: 1px solid rgba(245, 158, 11, 0.3);">
+        <span style="color: var(--warn);">⚠️</span> <span style="color: var(--text);">${resultado.datosEstimados} horas con datos estimados (no reales)</span>
+      </div>
+    ` : ''}
+    
+    <div style="display: flex; gap: 8px;">
+      <button class="btn" id="csvCancelar" style="flex: 1;">Cancelar</button>
+      <button class="btn primary" id="csvAplicar" style="flex: 1;">
+        <span style="position: relative; z-index: 1;">✓ Aplicar datos</span>
+      </button>
+    </div>
+  `;
+  
+  modal.appendChild(content);
+  document.body.appendChild(modal);
+  
+  $('csvCancelar').addEventListener('click', () => modal.remove());
+  
+  $('csvAplicar').addEventListener('click', () => {
+    $('dias').value = resultado.dias;
+    $('cPunta').value = resultado.punta.replace('.', ',');
+    $('cLlano').value = resultado.llano.replace('.', ',');
+    $('cValle').value = resultado.valle.replace('.', ',');
+    
+    modal.remove();
+    toast('✓ Consumos aplicados desde CSV');
+    
+    try {
+      if (typeof updateKwhHint === 'function') updateKwhHint();
+      if (typeof validateInputs === 'function') validateInputs();
+      if (typeof saveInputs === 'function') saveInputs();
+    } catch(e) {}
+  });
+  
+  const closeOnEsc = (e) => {
+    if (e.key === 'Escape') {
+      modal.remove();
+      document.removeEventListener('keydown', closeOnEsc);
+    }
+  };
+  document.addEventListener('keydown', closeOnEsc);
+  
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) modal.remove();
+  });
+}
+
+function initCSVImporter() {
+  const container = $('consumosWrapper');
+  if (!container) return;
+  
+  const fileInput = document.createElement('input');
+  fileInput.type = 'file';
+  fileInput.accept = '.csv';
+  fileInput.style.display = 'none';
+  fileInput.id = 'csvConsumoInput';
+  
+  const btnCSV = document.createElement('button');
+  btnCSV.type = 'button';
+  btnCSV.className = 'btn';
+  btnCSV.style.cssText = 'margin-top: 12px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;';
+  btnCSV.innerHTML = '📊 Importar desde CSV';
+  btnCSV.title = 'Subir archivo CSV con consumo horario';
+  
+  const hint = document.createElement('small');
+  hint.style.cssText = 'font-size: 11px; color: var(--muted2); margin-top: 4px; display: block; text-align: center;';
+  hint.textContent = 'Descarga tu consumo horario de e-distribución, i-DE o Datadis';
+  
+  btnCSV.addEventListener('click', () => fileInput.click());
+  
+  fileInput.addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    btnCSV.disabled = true;
+    btnCSV.innerHTML = '⏳ Procesando CSV...';
+    
+    try {
+      const resultado = await procesarCSVConsumos(file);
+      mostrarPreviewCSV(resultado);
+      
+      btnCSV.disabled = false;
+      btnCSV.innerHTML = '📊 Importar desde CSV';
+      fileInput.value = '';
+      
+    } catch (error) {
+      console.error('Error procesando CSV:', error);
+      toast(error.message || 'Error al procesar el CSV', 'err');
+      
+      btnCSV.disabled = false;
+      btnCSV.innerHTML = '📊 Importar desde CSV';
+      fileInput.value = '';
+    }
+  });
+  
+  const wrapperDiv = document.createElement('div');
+  wrapperDiv.style.marginTop = '12px';
+  wrapperDiv.appendChild(fileInput);
+  wrapperDiv.appendChild(btnCSV);
+  wrapperDiv.appendChild(hint);
+  
+  const kwhPillElement = container.querySelector('.kwhPill');
+  if (kwhPillElement && kwhPillElement.parentNode === container) {
+    container.insertBefore(wrapperDiv, kwhPillElement);
+  } else {
+    container.appendChild(wrapperDiv);
+  }
+}
 }
