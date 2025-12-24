@@ -2075,17 +2075,17 @@ function clasificarConsumosPorPeriodo(consumos) {
   const totalKwh = totales.P1 + totales.P2 + totales.P3;
   
   return {
-    punta: totales.P1.toFixed(2),
-    llano: totales.P2.toFixed(2),
-    valle: totales.P3.toFixed(2),
+    punta: totales.P1.toFixed(2).replace('.', ','),
+    llano: totales.P2.toFixed(2).replace('.', ','),
+    valle: totales.P3.toFixed(2).replace('.', ','),
     dias: diasUnicos.size,
-    totalKwh: totalKwh.toFixed(2),
+    totalKwh: totalKwh.toFixed(2).replace('.', ','),
     datosReales,
     datosEstimados,
     porcentajes: {
-      punta: (totales.P1 / totalKwh * 100).toFixed(1),
-      llano: (totales.P2 / totalKwh * 100).toFixed(1),
-      valle: (totales.P3 / totalKwh * 100).toFixed(1)
+      punta: (totales.P1 / totalKwh * 100).toFixed(1).replace('.', ','),
+      llano: (totales.P2 / totalKwh * 100).toFixed(1).replace('.', ','),
+      valle: (totales.P3 / totalKwh * 100).toFixed(1).replace('.', ',')
     }
   };
 }
