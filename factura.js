@@ -514,14 +514,10 @@
         }
       }
 
-      function __LF_extraerPrecios(textoLineas, textoCompacto) {
+      function __LF_extraerPrecios(textoLineas, textoCompacto, compania) {
         /**
          * Extrae precios de energía (€/kWh) y potencia (€/kW/día) de la factura
-         * Devuelve: {
-         *   energiaPunta, energiaLlano, energiaValle,
-         *   potenciaP1, potenciaP2,
-         *   excedentes
-         * }
+         * Versión mejorada con patrones específicos por comercializadora
          */
         const tAll = (String(textoLineas || '') + '\n' + String(textoCompacto || ''))
           .replace(/[\u00A0\t]/g,' ')
@@ -534,92 +530,139 @@
           energiaValle: null,
           potenciaP1: null,
           potenciaP2: null,
-          excedentes: null
+          excedentes: null,
+          confianza: 0
         };
         
-        // Patrones para buscar precios de energía (€/kWh)
-        // Buscar contextos como "Punta ... 0,154321 €/kWh"
-        const precioRegex = /(\d+[,\.]\d{2,6})\s*(?:€|euros?)?(?:\/|\s*por\s*)?kWh/gi;
+        console.log('[PRECIOS] Iniciando extracción para:', compania || 'generico');
         
-        // ENERGÍA - Buscar secciones de "término de energía" o "consumo"
-        const seccionEnergia = tAll.match(/(?:t[eé]rmino.*?energ[ií]a|consumo\s+activa|energ[ií]a\s+activa)([\s\S]{0,800}?)(?:t[eé]rmino.*?potencia|alquiler|total)/i);
+        // HELPER: Extraer número de precio (€/kWh o €/kW/día)
+        function extraerPrecio(patron, texto) {
+          const match = texto.match(patron);
+          if (!match) return null;
+          const numStr = match[1].replace(',', '.');
+          const num = parseFloat(numStr);
+          return (Number.isFinite(num) && num > 0) ? num : null;
+        }
         
-        if (seccionEnergia) {
-          const texto = seccionEnergia[1];
+        // === PATRONES ESPECÍFICOS POR COMERCIALIZADORA ===
+        
+        if (compania === 'plenitude' || tAll.toLowerCase().includes('plenitude') || tAll.toLowerCase().includes('eni')) {
+          console.log('[PRECIOS] Usando patrones Plenitude/Eni');
           
-          // Buscar Punta/P1
-          const puntaMatch = texto.match(/(?:punta|p1|periodo\s*1)[^\d]{0,80}?(\d+[,\.]\d{2,6})\s*€?\/?\s*kWh/i);
-          if (puntaMatch) {
-            precios.energiaPunta = parseFloat(puntaMatch[1].replace(',', '.'));
-          }
+          // Plenitude suele tener formato: "P1 0,123456 €/kWh"
+          precios.energiaPunta = extraerPrecio(/(?:punta|p1|periodo\s*1)[^\d]{0,50}?(\d+[,\.]\d{2,6})\s*€?\s*\/?\s*kWh/i, tAll);
+          precios.energiaLlano = extraerPrecio(/(?:llano|p2|periodo\s*2)[^\d]{0,50}?(\d+[,\.]\d{2,6})\s*€?\s*\/?\s*kWh/i, tAll);
+          precios.energiaValle = extraerPrecio(/(?:valle|p3|periodo\s*3)[^\d]{0,50}?(\d+[,\.]\d{2,6})\s*€?\s*\/?\s*kWh/i, tAll);
           
-          // Buscar Llano/P2
-          const llanoMatch = texto.match(/(?:llano|p2|periodo\s*2)[^\d]{0,80}?(\d+[,\.]\d{2,6})\s*€?\/?\s*kWh/i);
-          if (llanoMatch) {
-            precios.energiaLlano = parseFloat(llanoMatch[1].replace(',', '.'));
-          }
+          precios.potenciaP1 = extraerPrecio(/(?:potencia|pot).*?(?:punta|p1|periodo\s*1)[^\d]{0,50}?(\d+[,\.]\d{2,6})\s*€?\s*\/?\s*kW/i, tAll);
+          precios.potenciaP2 = extraerPrecio(/(?:potencia|pot).*?(?:valle|p2|periodo\s*2)[^\d]{0,50}?(\d+[,\.]\d{2,6})\s*€?\s*\/?\s*kW/i, tAll);
+        }
+        
+        else if (compania === 'octopus' || tAll.toLowerCase().includes('octopus')) {
+          console.log('[PRECIOS] Usando patrones Octopus');
           
-          // Buscar Valle/P3
-          const valleMatch = texto.match(/(?:valle|p3|periodo\s*3)[^\d]{0,80}?(\d+[,\.]\d{2,6})\s*€?\/?\s*kWh/i);
-          if (valleMatch) {
-            precios.energiaValle = parseFloat(valleMatch[1].replace(',', '.'));
+          // Octopus tiene formato muy claro en tabla
+          precios.energiaPunta = extraerPrecio(/punta[^\d]{0,100}?(\d+[,\.]\d{4,6})\s*€\/kWh/i, tAll);
+          precios.energiaLlano = extraerPrecio(/llano[^\d]{0,100}?(\d+[,\.]\d{4,6})\s*€\/kWh/i, tAll);
+          precios.energiaValle = extraerPrecio(/valle[^\d]{0,100}?(\d+[,\.]\d{4,6})\s*€\/kWh/i, tAll);
+          
+          precios.potenciaP1 = extraerPrecio(/potencia.*?punta[^\d]{0,100}?(\d+[,\.]\d{4,6})\s*€\/kW/i, tAll);
+          precios.potenciaP2 = extraerPrecio(/potencia.*?valle[^\d]{0,100}?(\d+[,\.]\d{4,6})\s*€\/kW/i, tAll);
+          
+          precios.excedentes = extraerPrecio(/excedente|compensaci[oó]n[^\d]{0,100}?(\d+[,\.]\d{4,6})\s*€\/kWh/i, tAll);
+        }
+        
+        else if (compania === 'iberdrola' || tAll.toLowerCase().includes('iberdrola')) {
+          console.log('[PRECIOS] Usando patrones Iberdrola');
+          
+          // Iberdrola formato: "Término de energía ... P1 ... 0,123456 €/kWh"
+          precios.energiaPunta = extraerPrecio(/(?:energ[ií]a|consumo).*?(?:p1|punta)[^\d]{0,80}?(\d+[,\.]\d{4,6})\s*€\/kWh/i, tAll);
+          precios.energiaLlano = extraerPrecio(/(?:energ[ií]a|consumo).*?(?:p2|llano)[^\d]{0,80}?(\d+[,\.]\d{4,6})\s*€\/kWh/i, tAll);
+          precios.energiaValle = extraerPrecio(/(?:energ[ií]a|consumo).*?(?:p3|valle)[^\d]{0,80}?(\d+[,\.]\d{4,6})\s*€\/kWh/i, tAll);
+          
+          precios.potenciaP1 = extraerPrecio(/potencia.*?(?:p1|punta)[^\d]{0,80}?(\d+[,\.]\d{4,6})\s*€\/kW/i, tAll);
+          precios.potenciaP2 = extraerPrecio(/potencia.*?(?:p2|valle)[^\d]{0,80}?(\d+[,\.]\d{4,6})\s*€\/kW/i, tAll);
+        }
+        
+        // === PATRONES GENÉRICOS (fallback para todas) ===
+        
+        if (!precios.energiaPunta || !precios.energiaLlano || !precios.energiaValle) {
+          console.log('[PRECIOS] Usando patrones genéricos para energía');
+          
+          // Buscar en sección "término de energía" o "consumo activa"
+          const seccionEnergia = tAll.match(/(?:t[eé]rmino.*?energ[ií]a|consumo\s+(?:activa|de\s+energ[ií]a)|energ[ií]a\s+activa)([\s\S]{0,1500}?)(?:t[eé]rmino.*?potencia|alquiler|total|impuesto)/i);
+          
+          if (seccionEnergia) {
+            const texto = seccionEnergia[1];
+            console.log('[PRECIOS] Sección energía encontrada:', texto.substring(0, 200));
+            
+            // Múltiples patrones para cada periodo
+            if (!precios.energiaPunta) {
+              precios.energiaPunta = 
+                extraerPrecio(/(?:punta|p1|periodo\s*1)[^\d]{0,100}?(\d+[,\.]\d{2,6})\s*€?\s*\/?\s*kWh/i, texto) ||
+                extraerPrecio(/(\d+[,\.]\d{4,6})\s*€?\s*\/?\s*kWh[^\d]{0,50}?(?:punta|p1)/i, texto);
+            }
+            
+            if (!precios.energiaLlano) {
+              precios.energiaLlano = 
+                extraerPrecio(/(?:llano|p2|periodo\s*2)[^\d]{0,100}?(\d+[,\.]\d{2,6})\s*€?\s*\/?\s*kWh/i, texto) ||
+                extraerPrecio(/(\d+[,\.]\d{4,6})\s*€?\s*\/?\s*kWh[^\d]{0,50}?(?:llano|p2)/i, texto);
+            }
+            
+            if (!precios.energiaValle) {
+              precios.energiaValle = 
+                extraerPrecio(/(?:valle|p3|periodo\s*3)[^\d]{0,100}?(\d+[,\.]\d{2,6})\s*€?\s*\/?\s*kWh/i, texto) ||
+                extraerPrecio(/(\d+[,\.]\d{4,6})\s*€?\s*\/?\s*kWh[^\d]{0,50}?(?:valle|p3)/i, texto);
+            }
           }
         }
         
-        // POTENCIA - Buscar secciones de "término de potencia"
-        const seccionPotencia = tAll.match(/(?:t[eé]rmino.*?potencia|potencia\s+contratada)([\s\S]{0,800}?)(?:t[eé]rmino.*?energ[ií]a|alquiler|impuesto|total)/i);
-        
-        if (seccionPotencia) {
-          const texto = seccionPotencia[1];
+        if (!precios.potenciaP1 || !precios.potenciaP2) {
+          console.log('[PRECIOS] Usando patrones genéricos para potencia');
           
-          // Buscar P1
-          const p1Match = texto.match(/(?:p1|punta|periodo\s*1)[^\d]{0,80}?(\d+[,\.]\d{2,6})\s*€?\/?\s*kW[\/\s]*d[ií]a/i);
-          if (p1Match) {
-            precios.potenciaP1 = parseFloat(p1Match[1].replace(',', '.'));
-          }
+          // Buscar en sección "término de potencia"
+          const seccionPotencia = tAll.match(/(?:t[eé]rmino.*?potencia|potencia\s+contratada)([\s\S]{0,1500}?)(?:t[eé]rmino.*?energ[ií]a|alquiler|impuesto|total)/i);
           
-          // Buscar P2
-          const p2Match = texto.match(/(?:p2|valle|periodo\s*2)[^\d]{0,80}?(\d+[,\.]\d{2,6})\s*€?\/?\s*kW[\/\s]*d[ií]a/i);
-          if (p2Match) {
-            precios.potenciaP2 = parseFloat(p2Match[1].replace(',', '.'));
+          if (seccionPotencia) {
+            const texto = seccionPotencia[1];
+            console.log('[PRECIOS] Sección potencia encontrada:', texto.substring(0, 200));
+            
+            if (!precios.potenciaP1) {
+              precios.potenciaP1 = 
+                extraerPrecio(/(?:p1|punta|periodo\s*1)[^\d]{0,100}?(\d+[,\.]\d{2,6})\s*€?\s*\/?\s*kW[\/\s]*d[ií]a/i, texto) ||
+                extraerPrecio(/(\d+[,\.]\d{4,6})\s*€?\s*\/?\s*kW[\/\s]*d[ií]a[^\d]{0,50}?(?:p1|punta)/i, texto);
+            }
+            
+            if (!precios.potenciaP2) {
+              precios.potenciaP2 = 
+                extraerPrecio(/(?:p2|valle|periodo\s*2)[^\d]{0,100}?(\d+[,\.]\d{2,6})\s*€?\s*\/?\s*kW[\/\s]*d[ií]a/i, texto) ||
+                extraerPrecio(/(\d+[,\.]\d{4,6})\s*€?\s*\/?\s*kW[\/\s]*d[ií]a[^\d]{0,50}?(?:p2|valle)/i, texto);
+            }
           }
         }
         
-        // EXCEDENTES - Buscar precio de compensación
-        const excedentesMatch = tAll.match(/(?:excedente|compensaci[oó]n|vertido)[^\d]{0,100}?(\d+[,\.]\d{2,6})\s*€?\/?\s*kWh/i);
-        if (excedentesMatch) {
-          precios.excedentes = parseFloat(excedentesMatch[1].replace(',', '.'));
+        // EXCEDENTES (genérico)
+        if (!precios.excedentes) {
+          precios.excedentes = 
+            extraerPrecio(/(?:excedente|compensaci[oó]n|vertido)[^\d]{0,150}?(\d+[,\.]\d{2,6})\s*€?\s*\/?\s*kWh/i, tAll) ||
+            extraerPrecio(/(\d+[,\.]\d{4,6})\s*€?\s*\/?\s*kWh[^\d]{0,50}?(?:excedente|compensaci[oó]n)/i, tAll);
         }
         
-        // Validaciones básicas (rangos típicos)
-        if (precios.energiaPunta && (precios.energiaPunta < 0.02 || precios.energiaPunta > 0.50)) {
-          precios.energiaPunta = null;
-        }
-        if (precios.energiaLlano && (precios.energiaLlano < 0.02 || precios.energiaLlano > 0.50)) {
-          precios.energiaLlano = null;
-        }
-        if (precios.energiaValle && (precios.energiaValle < 0.02 || precios.energiaValle > 0.50)) {
-          precios.energiaValle = null;
-        }
-        if (precios.potenciaP1 && (precios.potenciaP1 < 0.01 || precios.potenciaP1 > 0.50)) {
-          precios.potenciaP1 = null;
-        }
-        if (precios.potenciaP2 && (precios.potenciaP2 < 0.01 || precios.potenciaP2 > 0.50)) {
-          precios.potenciaP2 = null;
-        }
-        if (precios.excedentes && (precios.excedentes < 0.01 || precios.excedentes > 0.20)) {
-          precios.excedentes = null;
-        }
+        // Validaciones de rango
+        if (precios.energiaPunta && (precios.energiaPunta < 0.02 || precios.energiaPunta > 0.80)) precios.energiaPunta = null;
+        if (precios.energiaLlano && (precios.energiaLlano < 0.02 || precios.energiaLlano > 0.80)) precios.energiaLlano = null;
+        if (precios.energiaValle && (precios.energiaValle < 0.02 || precios.energiaValle > 0.80)) precios.energiaValle = null;
+        if (precios.potenciaP1 && (precios.potenciaP1 < 0.01 || precios.potenciaP1 > 0.50)) precios.potenciaP1 = null;
+        if (precios.potenciaP2 && (precios.potenciaP2 < 0.01 || precios.potenciaP2 > 0.50)) precios.potenciaP2 = null;
+        if (precios.excedentes && (precios.excedentes < 0.01 || precios.excedentes > 0.30)) precios.excedentes = null;
         
         // Calcular confianza
-        let confianza = 0;
-        if (precios.energiaPunta) confianza += 20;
-        if (precios.energiaLlano) confianza += 20;
-        if (precios.energiaValle) confianza += 20;
-        if (precios.potenciaP1) confianza += 20;
-        if (precios.potenciaP2) confianza += 20;
-        
-        precios.confianza = confianza;
+        if (precios.energiaPunta) precios.confianza += 20;
+        if (precios.energiaLlano) precios.confianza += 20;
+        if (precios.energiaValle) precios.confianza += 20;
+        if (precios.potenciaP1) precios.confianza += 20;
+        if (precios.potenciaP2) precios.confianza += 20;
         
         console.log('[PRECIOS EXTRAÍDOS]', precios);
         return precios;
@@ -837,8 +880,8 @@
         console.log('📆 Periodo:', fIni || 'N/A', '→', fFin || 'N/A');
         console.log('═══════════════════════════════════════════════════════');
 
-        // Extraer precios (nuevo)
-        const precios = __LF_extraerPrecios(textoLineas, textoCompacto);
+        // Extraer precios (nuevo) - pasar compañía para patrones específicos
+        const precios = __LF_extraerPrecios(textoLineas, textoCompacto, compania);
         
         return {
           compania: compania,
