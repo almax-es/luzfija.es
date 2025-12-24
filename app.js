@@ -1726,7 +1726,6 @@ document.addEventListener('DOMContentLoaded', function () {
         __lf_deferredInstallPrompt.prompt();
         __lf_deferredInstallPrompt.userChoice.then(function (choiceResult) {
           if (choiceResult.outcome === 'accepted') {
-            console.log('Usuario aceptó instalar la PWA');
           }
           __lf_deferredInstallPrompt = null;
           __lf_installButton.style.display = 'none';
@@ -2199,18 +2198,8 @@ function mostrarPreviewCSV(resultado) {
 
 function initCSVImporter() {
   try {
-    // Usar console.error para que funcione incluso con debug desactivado
-    const log = (...args) => console.error('[CSV]', ...args);
-    
-    log('=== INICIO initCSVImporter ===');
-    
     const container = $('consumosWrapper');
-    if (!container) {
-      log('❌ No se encontró consumosWrapper');
-      return;
-    }
-    
-    log('✓ Container encontrado');
+    if (!container) return;
     
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
@@ -2230,29 +2219,22 @@ function initCSVImporter() {
     hint.textContent = 'Descarga tu consumo horario de e-distribución, i-DE o Datadis';
     
     btnCSV.addEventListener('click', () => {
-      log('Botón clickeado - abriendo selector de archivos');
       fileInput.click();
     });
     
     fileInput.addEventListener('change', async (e) => {
-      log('📂 Evento change disparado');
       const file = e.target.files[0];
       if (!file) {
-        log('⚠️ No hay archivo seleccionado');
         return;
       }
       
-      log('Archivo:', file.name, '-', (file.size / 1024).toFixed(2), 'KB');
       
       btnCSV.disabled = true;
       btnCSV.innerHTML = '⏳ Procesando CSV...';
       
       try {
-        log('Llamando a procesarCSVConsumos...');
         const resultado = await procesarCSVConsumos(file);
-        log('✅ RESULTADO:', resultado);
         
-        log('Mostrando preview...');
         mostrarPreviewCSV(resultado);
         
         btnCSV.disabled = false;
@@ -2260,7 +2242,6 @@ function initCSVImporter() {
         fileInput.value = '';
         
       } catch (error) {
-        log('❌ ERROR:', error);
         toast(error.message || 'Error al procesar el CSV', 'err');
         
         btnCSV.disabled = false;
@@ -2278,18 +2259,14 @@ function initCSVImporter() {
     // Insertar DESPUÉS del consumosWrapper
     if (container.nextSibling) {
       container.parentNode.insertBefore(wrapperDiv, container.nextSibling);
-      log('✓ Botón insertado correctamente DESPUÉS de consumosWrapper');
     } else {
       container.parentNode.appendChild(wrapperDiv);
-      log('✓ Botón añadido al final del parentNode');
     }
     
     // Verificación
     setTimeout(() => {
       const check = document.getElementById('csvConsumoInput');
-      log('Verificación final - botón existe en DOM:', check !== null);
       if (!check) {
-        log('❌ PROBLEMA: El botón no está en el DOM');
       }
     }, 100);
     
