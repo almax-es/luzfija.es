@@ -656,7 +656,8 @@
           });
           
         } catch (error) {
-          console.error('Error cargando novedades:', error);
+          // Silencioso: si no hay novedades.json, simplemente no se muestra nada
+          if (window.__LF_DEBUG) console.log('Novedades no disponibles:', error);
         }
       })();
       
