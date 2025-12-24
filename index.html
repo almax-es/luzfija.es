@@ -249,10 +249,10 @@
         </button>
         <button class="btn" id="btnTheme" type="button" title="Cambiar tema" aria-label="Cambiar tema">☀️</button>
         <div class="menu" id="menuRoot">
-          <button class="btn" id="btnMenu" type="button" aria-haspopup="true" aria-expanded="false" title="Opciones">⚙️</button>
+          <button class="btn" id="btnMenu" type="button" aria-haspopup="true" aria-expanded="false" title="Opciones" aria-label="Abrir menú de opciones">⚙️</button>
           <div class="menuPanel" id="menuPanel" role="menu" aria-label="Opciones">
             <div class="menuHint">Opciones</div>
-<button class="menuItem" id="btnShare" type="button" role="menuitem">
+<button class="menuItem" id="btnShare" type="button" role="menuitem" aria-label="Compartir configuración por URL">
               <span class="mi-left">🔗 Compartir configuración</span>
               <span class="mi-right">URL</span>
             </button>
@@ -261,7 +261,7 @@
               <span class="mi-right">email</span>
             </a>
             <div class="menuDivider"></div>
-            <button class="menuItem" id="btnReset" type="button" role="menuitem">
+            <button class="menuItem" id="btnReset" type="button" role="menuitem" aria-label="Restablecer valores por defecto">
               <span class="mi-left">↺ Restablecer</span>
               <span class="mi-right">valores</span>
             </button>
@@ -349,8 +349,12 @@
               <input id="exTotal" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 120">
             </div>
             <div class="group">
-              <label for="bvSaldo">Saldo batería virtual (€ mes anterior)</label>
-              <input id="bvSaldo" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 12,5">
+              <label for="bvSaldo">
+                Saldo batería virtual (€ mes anterior)
+                <button type="button" class="tooltip" tabindex="0" data-tip="Si en el mes anterior acumulaste euros en batería virtual (BV), indícalo aquí. Ejemplo: 15,50 € acumulados en noviembre → escribe 15,50. Si es tu primer mes o no tienes BV, deja en 0." aria-label="Información sobre batería virtual">ⓘ</button>
+              </label>
+              <input id="bvSaldo" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 15,50" aria-describedby="bvSaldo-hint">
+              <small id="bvSaldo-hint" style="display:block; margin-top:4px; font-size:11px; color:var(--muted); opacity:0.8;">Deja en 0 si no tienes batería virtual acumulada</small>
             </div>
           </div>
           <div class="form fv-toggle" style="margin-top:12px;">
@@ -370,7 +374,7 @@
               <div class="kwhValue" id="kwhHint">—</div>
             </div>
             <div style="position: relative; display: flex; flex: 1; min-width: 0;">
-              <button class="btn primary" id="btnCalc" type="button" title="Calcular ahora">
+              <button class="btn primary" id="btnCalc" type="button" title="Calcular ahora" aria-label="Calcular comparación de tarifas">
                 <span class="btn-shine"></span>
                 <span id="btnText" style="position: relative; z-index: 1;">⚡ Calcular</span>
                 <span id="btnSpinner" style="display:none; position: relative; z-index: 1;"><span class="spinner"></span></span>
@@ -380,7 +384,7 @@
           <div class="help">
             Introduce tus datos y pulsa ⚡ Calcular para generar o refrescar el ranking (tarifas y PVPC si está disponible). Puedes escribir decimales con coma o punto (ej.: 3,45 / 3.45).
           </div>
-          <button type="button" class="btn" id="btnPVPCInfo" style="width: 100%; justify-content: center; margin-top: 12px; background: rgba(255, 180, 50, 0.12); border-color: rgba(255, 180, 50, 0.3);">
+          <button type="button" class="btn" id="btnPVPCInfo" style="width: 100%; justify-content: center; margin-top: 12px; background: rgba(255, 180, 50, 0.12); border-color: rgba(255, 180, 50, 0.3);" aria-label="Ver precios PVPC de hoy por horas">
             ⚡ Ver precios PVPC hoy
           </button>
         </div>
@@ -436,9 +440,9 @@
 
           <div class="toolbar fade-container" id="toolbar">
             <div class="filters">
-              <button class="fbtn active" data-filter="all" type="button">Todas</button>
-              <button class="fbtn" data-filter="1P" type="button"><span class="badge b1">1P</span></button>
-              <button class="fbtn" data-filter="3P" type="button"><span class="badge b3">3P</span></button>
+              <button class="fbtn active" data-filter="all" type="button" aria-label="Mostrar todas las tarifas">Todas</button>
+              <button class="fbtn" data-filter="1P" type="button" aria-label="Filtrar por tarifas de un periodo"><span class="badge b1">1P</span></button>
+              <button class="fbtn" data-filter="3P" type="button" aria-label="Filtrar por tarifas de tres periodos"><span class="badge b3">3P</span></button>
             </div>
           </div>
 
@@ -447,12 +451,12 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th class="sort" data-sort="nombre">Tarifa <span class="sortIcon" id="si_nombre"></span></th>
-                  <th class="sort" data-sort="potenciaNum">Potencia <span class="sortIcon" id="si_potenciaNum"></span></th>
-                  <th class="sort" data-sort="consumoNum">Consumo <span class="sortIcon" id="si_consumoNum"></span></th>
-                  <th class="sort" data-sort="impuestosNum">Impuestos <span class="sortIcon" id="si_impuestosNum"></span></th>
-                  <th class="sort" data-sort="totalNum">Total <span class="sortIcon" id="si_totalNum"></span></th>
-                  <th class="sort" data-sort="vsMejorNum">Vs mejor <span class="sortIcon" id="si_vsMejorNum"></span></th>
+                  <th class="sort" data-sort="nombre" aria-label="Ordenar por nombre de tarifa">Tarifa <span class="sortIcon" id="si_nombre"></span></th>
+                  <th class="sort" data-sort="potenciaNum" aria-label="Ordenar por coste de potencia">Potencia <span class="sortIcon" id="si_potenciaNum"></span></th>
+                  <th class="sort" data-sort="consumoNum" aria-label="Ordenar por coste de consumo">Consumo <span class="sortIcon" id="si_consumoNum"></span></th>
+                  <th class="sort" data-sort="impuestosNum" aria-label="Ordenar por impuestos">Impuestos <span class="sortIcon" id="si_impuestosNum"></span></th>
+                  <th class="sort" data-sort="totalNum" aria-label="Ordenar por coste total">Total <span class="sortIcon" id="si_totalNum"></span></th>
+                  <th class="sort" data-sort="vsMejorNum" aria-label="Ordenar por diferencia con la mejor tarifa">Vs mejor <span class="sortIcon" id="si_vsMejorNum"></span></th>
                   <th>Tipo</th>
                   <th>Web</th>
                 </tr>
@@ -940,7 +944,7 @@
           Las tarifas con compensación activa muestran un icono ☀️ dorado con pulso. Al hacer clic verás todos los detalles: compensación del mes, BV acumulada, BV usada, saldo final y por qué está en esa posición del ranking.
         </p>
 
-        <button class="btn primary" id="btnCerrarSolarInfo" type="button" style="width: 100%; margin-top: 10px;">
+        <button class="btn primary" id="btnCerrarSolarInfo" type="button" style="width: 100%; margin-top: 10px;" aria-label="Cerrar información de autoconsumo">
           ✅ Entendido
         </button>
       </div>
@@ -1000,7 +1004,7 @@
           <p style="color: var(--muted); text-align: center; padding: 20px;">Cargando precios...</p>
         </div>
 
-        <button class="btn primary" id="btnCerrarPVPCInfo" type="button" style="width: 100%; margin-top: 16px;">
+        <button class="btn primary" id="btnCerrarPVPCInfo" type="button" style="width: 100%; margin-top: 16px;" aria-label="Cerrar modal de precios PVPC">
           ✅ Cerrar
         </button>
       </div>
