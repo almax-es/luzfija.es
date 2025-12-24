@@ -2,6 +2,9 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#8B5CF6">
+  <link rel="manifest" href="/manifest.webmanifest">
   <title>PVPC vs Tarifa Fija: Cuál Es Mejor en 2025 | LuzFija.es</title>
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
@@ -12,6 +15,20 @@
   <link rel="mask-icon" href="/favicon.svg" color="#8B5CF6">
   <meta name="description" content="Comparamos PVPC y tarifas fijas. Descubre cuál te conviene según tu consumo, horarios y tolerancia al riesgo. Calcula tu ahorro real.">
   <link rel="canonical" href="https://luzfija.es/comparar-pvpc-tarifa-fija.html">
+  
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="PVPC vs Tarifa Fija: Cuál Es Mejor en 2025 | LuzFija.es">
+  <meta property="og:description" content="Comparamos PVPC y tarifas fijas. Descubre cuál te conviene según tu consumo, horarios y tolerancia al riesgo. Calcula tu ahorro real.">
+  <meta property="og:url" content="https://luzfija.es/comparar-pvpc-tarifa-fija.html">
+  <meta property="og:image" content="https://luzfija.es/og.png">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:site_name" content="LuzFija.es">
+  
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="PVPC vs Tarifa Fija: Cuál Es Mejor en 2025">
+  <meta name="twitter:description" content="Comparamos PVPC y tarifas fijas. Descubre cuál te conviene según tu consumo, horarios y tolerancia al riesgo.">
+  <meta name="twitter:image" content="https://luzfija.es/og.png">
+  
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
 </head>
@@ -136,6 +153,17 @@
     </a>
   </div>
 </section>
+
+<script>
+// Registro del Service Worker para PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(err => {
+      console.error('SW registration failed:', err);
+    });
+  });
+}
+</script>
 
 </body>
 </html>
