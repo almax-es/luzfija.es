@@ -1773,25 +1773,25 @@ function updateMiTarifaForm() {
     <div class="form" style="gap:8px;">
       <div class="group">
         <label for="mtPunta">Punta (€/kWh)</label>
-        <input id="mtPunta" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,154321">
+        <input id="mtPunta" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,1543">
       </div>
       <div class="group">
         <label for="mtLlano">Llano (€/kWh)</label>
-        <input id="mtLlano" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,123456">
+        <input id="mtLlano" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,1234">
       </div>
       <div class="group">
         <label for="mtValle">Valle (€/kWh)</label>
-        <input id="mtValle" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,089912">
+        <input id="mtValle" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0899">
       </div>
     </div>
     <div class="form">
       <div class="group">
         <label for="mtP1">Potencia P1 (€/kW/día)</label>
-        <input id="mtP1" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,089123">
+        <input id="mtP1" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0891">
       </div>
       <div class="group">
         <label for="mtP2">Potencia P2 (€/kW/día)</label>
-        <input id="mtP2" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,044567">
+        <input id="mtP2" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0445">
       </div>
     </div>
   `;
@@ -1801,9 +1801,9 @@ function updateMiTarifaForm() {
     container.innerHTML += `
       <div class="group" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
         <label for="mtPrecioExc">☀️ Precio compensación excedentes (€/kWh)</label>
-        <input id="mtPrecioExc" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,074321">
+        <input id="mtPrecioExc" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0743">
         <small style="font-size:11px; color:var(--muted2); margin-top:4px; display:block;">
-          Lo que te pagan por los kWh vertidos a la red (usa todos los decimales de tu factura)
+          Lo que te pagan por los kWh vertidos a la red (copia el precio exacto de tu factura)
         </small>
       </div>
     `;
