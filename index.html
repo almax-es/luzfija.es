@@ -1027,7 +1027,7 @@
     const tabManana = document.getElementById('tabManana');
     
     if (!btnPVPCInfo || !modalPVPCInfo || !btnCerrarPVPCInfo) {
-      console.error('[PVPC] Faltan elementos');
+      if (window.__LF_DEBUG) console.log('[PVPC] Faltan elementos del modal');
       return;
     }
 
