@@ -1293,5 +1293,15 @@
     });
   });
   </script>
+
+  <script>
+  // Ocultar breadcrumb "Inicio" en la página principal (es redundante aquí)
+  document.addEventListener('DOMContentLoaded', () => {
+    const breadcrumb = document.querySelector('nav[aria-label="Breadcrumb"]');
+    if (breadcrumb && (window.location.pathname === '/' || window.location.pathname === '/index.html')) {
+      breadcrumb.style.display = 'none';
+    }
+  });
+  </script>
 </body>
 </html>
