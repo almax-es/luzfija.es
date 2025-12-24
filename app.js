@@ -1933,11 +1933,16 @@ function parseCSVConsumos(fileContent) {
 function getPeriodoHorarioCSV(fecha, hora) {
   /**
    * Determina periodo P1/P2/P3 según RD 148/2021
-   * hora: 1-24 del CSV (convertir a 0-23 para lógica)
    * 
-   * P1 (Punta): 10-14h y 18-22h laborables NO festivos
-   * P2 (Llano): 8-10h, 14-18h, 22-24h laborables NO festivos
-   * P3 (Valle): 0-8h todos + todo el día en festivos/fines de semana
+   * IMPORTANTE: La hora del CSV representa:
+   * Hora 1 = intervalo 00:00-01:00 (hora de inicio: 0)
+   * Hora 8 = intervalo 07:00-08:00 (hora de inicio: 7)
+   * Hora 9 = intervalo 08:00-09:00 (hora de inicio: 8)
+   * Hora 11 = intervalo 10:00-11:00 (hora de inicio: 10)
+   * 
+   * P3 (Valle): 00:00-08:00 todos + TODO el día en festivos/fines de semana
+   * P2 (Llano): 08:00-10:00, 14:00-18:00, 22:00-24:00 en laborables
+   * P1 (Punta): 10:00-14:00, 18:00-22:00 en laborables
    */
   
   // Festivos nacionales 2025 (formato YYYY-MM-DD)
@@ -1968,13 +1973,14 @@ function getPeriodoHorarioCSV(fecha, hora) {
   // Si es festivo o fin de semana, TODO es P3
   if (esFinde || esFestivo) return 'P3';
   
-  // Convertir hora CSV (1-24) a hora normal (0-23)
-  const h = hora === 24 ? 0 : hora - 1;
+  // La hora del CSV es 1-24, donde hora N representa el intervalo (N-1):00 - N:00
+  // Hora de inicio del intervalo
+  const horaInicio = hora - 1;
   
   // Laborable normal
-  if (h >= 0 && h < 8) return 'P3';  // 0-8h = Valle
-  if ((h >= 10 && h < 14) || (h >= 18 && h < 22)) return 'P1';  // Punta
-  return 'P2';  // Llano (resto de horas laborables)
+  if (horaInicio >= 0 && horaInicio < 8) return 'P3';  // 00:00-08:00
+  if ((horaInicio >= 10 && horaInicio < 14) || (horaInicio >= 18 && horaInicio < 22)) return 'P1';  // Punta
+  return 'P2';  // Llano (08:00-10:00, 14:00-18:00, 22:00-24:00)
 }
 
 function clasificarConsumosPorPeriodo(consumos) {
