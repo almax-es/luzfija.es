@@ -992,7 +992,7 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
             }
           });
         } else {
-          console.error('[DEBUG] Faltan elementos del modal');
+          lfDbg('[DEBUG] Faltan elementos del modal');
         }
       }
     }
