@@ -24,8 +24,8 @@
       --border: rgba(15, 23, 42, .10);
       --border2: rgba(15, 23, 42, .16);
       --text:#0F172A;
-      --muted: rgba(15, 23, 42, .68);
-      --muted2: rgba(15, 23, 42, .48);
+      --muted: rgba(15, 23, 42, .75);
+      --muted2: rgba(15, 23, 42, .58);
       --shadow: 0 22px 65px rgba(2,6,23,.12);
       --shadow2: 0 16px 40px rgba(2,6,23,.10);
     }
@@ -1705,6 +1705,74 @@
   }
 }
 </script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://luzfija.es/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guías",
+      "item": "https://luzfija.es/guias.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Bono social eléctrico",
+      "item": "https://luzfija.es/guias/bono-social-electrico-quien-puede-pedirlo-y-como.html"
+    }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Quién puede pedir el bono social eléctrico?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Pueden pedirlo familias vulnerables, vulnerables severos o en riesgo de exclusión social según sus ingresos y situación. Hay tres niveles: Vulnerable (descuento 50% hasta junio 2025, 42,5% hasta diciembre 2025, 35% desde 2026), Vulnerable severo (65% hasta junio 2025, 57,5% hasta diciembre 2025, 50% desde 2026) y Riesgo de exclusión social (mismo descuento que vulnerable severo). Se tienen en cuenta factores como ingresos, familia numerosa, pensionistas con pensión mínima o desempleo."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cuáles son los requisitos para contratar el bono social?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Los requisitos principales son: estar en PVPC con una Comercializadora de Referencia (COR), tener potencia máxima de 10 kW en tu vivienda habitual, y solo vale para una vivienda por titular donde vives realmente."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cuánto me ahorro con el bono social?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "El bono social aplica un descuento sobre la parte de energía de la factura en PVPC. El descuento varía según tu categoría: vulnerable (50% hasta junio 2025, luego 42,5% y finalmente 35% desde 2026) o vulnerable severo/riesgo de exclusión (65% hasta junio 2025, luego 57,5% y finalmente 50% desde 2026). El porcentaje exacto y los límites pueden cambiar por normativa."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cómo se pide el bono social eléctrico?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Puedes pedirlo directamente a tu comercializadora de referencia (la que te da PVPC) o a través de la web del Gobierno. Necesitarás documentación que acredite tus ingresos, composición familiar y situación. El proceso suele ser sencillo si cumples los requisitos."
+      }
+    }
+  ]
+}
+</script>
   <link rel="canonical" href="https://luzfija.es/guias/bono-social-electrico-quien-puede-pedirlo-y-como.html">
 
   <!-- Open Graph / Facebook -->
@@ -1727,6 +1795,15 @@
 </head>
 <body>
 <div class="container">
+  <nav aria-label="Breadcrumb" style="margin-bottom: 16px;">
+    <ol style="display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--muted2); flex-wrap: wrap;">
+      <li><a href="/" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">🏠 Inicio</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li><a href="/guias.html" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">📚 Guías</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li style="color: var(--text); font-weight: 500;">Bono social eléctrico</li>
+    </ol>
+  </nav>
   <a href="../guias.html" style="display: inline-block; margin-bottom: 20px; color: var(--accent);">← Volver a guías</a>
   <article class="guia-content">
     <h1>Bono social eléctrico: quién puede pedirlo y cómo</h1>

@@ -66,13 +66,25 @@
       if(!target)return;
       if(tooltipRaf) cancelAnimationFrame(tooltipRaf);
       tooltipRaf = requestAnimationFrame(() => {
+        // Verificar si el elemento todavía está visible en viewport
+        const rect = target.getBoundingClientRect();
+        const isVisible = rect.top >= 0 && 
+                         rect.bottom <= window.innerHeight && 
+                         rect.left >= 0 && 
+                         rect.right <= window.innerWidth;
+        
+        // Si el elemento salió del viewport y no está pinned, ocultar tooltip
+        if (!isVisible && !tooltipPinned) {
+          hideTooltip(true);
+          return;
+        }
+        
         const tip = target.getAttribute('data-tip') || '';
         el.globalTooltip.textContent = tip;
         el.globalTooltip.style.display = 'block';
         el.globalTooltip.style.visibility = 'hidden';
         el.globalTooltip.style.opacity = '0';
         el.globalTooltip.setAttribute('aria-hidden', tip ? 'false' : 'true');
-        const rect = target.getBoundingClientRect();
         const ttRect = el.globalTooltip.getBoundingClientRect();
         let top = rect.top - ttRect.height - 10;
         if(top < 8) top = rect.bottom + 10;
@@ -1619,6 +1631,26 @@
         const d = saveInputs();
         const qp = new URLSearchParams(d).toString();
         const url = `${window.location.origin}${window.location.pathname}?${qp}`;
+        
+        // Usar API nativa de compartir en móvil si está disponible
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: 'Mi configuración - LuzFija.es',
+              text: 'Compara tarifas de luz con mi configuración',
+              url: url
+            });
+            toast('Configuración compartida');
+            return;
+          } catch (err) {
+            // Usuario canceló o error - fallback a copiar
+            if (err.name !== 'AbortError') {
+              console.warn('Error al compartir:', err);
+            }
+          }
+        }
+        
+        // Fallback: copiar al portapapeles
         await copyText(url);
         toast('Enlace copiado al portapapeles');
       });
