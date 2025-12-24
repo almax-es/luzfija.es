@@ -24,8 +24,8 @@
       --border: rgba(15, 23, 42, .10);
       --border2: rgba(15, 23, 42, .16);
       --text:#0F172A;
-      --muted: rgba(15, 23, 42, .68);
-      --muted2: rgba(15, 23, 42, .48);
+      --muted: rgba(15, 23, 42, .75);
+      --muted2: rgba(15, 23, 42, .58);
       --shadow: 0 22px 65px rgba(2,6,23,.12);
       --shadow2: 0 16px 40px rgba(2,6,23,.10);
     }
@@ -1705,6 +1705,63 @@
   }
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://luzfija.es/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guías",
+      "item": "https://luzfija.es/guias.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Mudanza y cambios de titular",
+      "item": "https://luzfija.es/guias/mudanza-y-alquiler-cambio-de-titular-alta-baja-y-cosas-que-nadie-te-dice.html"
+    }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Cómo doy de alta la luz en mi nueva vivienda?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Necesitas el CUPS (en factura anterior del piso o pregunta al propietario). Contrata con cualquier comercializadora dándoles el CUPS. Ellos gestionan el alta. Si la luz está cortada, necesitarás un alta nueva (más cara, unos 50-100€). Si la luz está dada de baja pero funcionando, es un cambio de titular (más barato, ~10-20€)."
+      }
+    },    {
+      "@type": "Question",
+      "name": "¿Puedo cambiar el titular sin ser el propietario?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sí, si tienes un contrato de alquiler o autorización del propietario. La comercializadora puede pedirte el contrato de alquiler o una autorización firmada. El titular del contrato de luz no tiene por qué ser el propietario de la vivienda."
+      }
+    },    {
+      "@type": "Question",
+      "name": "¿Tengo que dar de baja la luz al irme de un piso de alquiler?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sí, para no seguir pagando. Contacta con tu comercializadora y pide la baja indicando la fecha. Te cobrarán hasta el día de baja. Haz fotos al contador el día que te vas por si hay problemas. Asegúrate de que el propietario sepa que has dado de baja la luz."
+      }
+    }
+  ]
+}
+</script>
   <link rel="canonical" href="https://luzfija.es/guias/mudanza-y-alquiler-cambio-de-titular-alta-baja-y-cosas-que-nadie-te-dice.html">
 
   <!-- Open Graph / Facebook -->
@@ -1727,6 +1784,15 @@
 </head>
 <body>
 <div class="container">
+  <nav aria-label="Breadcrumb" style="margin-bottom: 16px;">
+    <ol style="display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--muted2); flex-wrap: wrap;">
+      <li><a href="/" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">🏠 Inicio</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li><a href="/guias.html" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">📚 Guías</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li style="color: var(--text); font-weight: 500;">Mudanza y cambios de titular</li>
+    </ol>
+  </nav>
   <a href="../guias.html" style="display: inline-block; margin-bottom: 20px; color: var(--accent);">← Volver a guías</a>
   <article class="guia-content">
     <h1>Mudanza y alquiler: cambio de titular, alta/baja y "cosas que nadie te dice"</h1>

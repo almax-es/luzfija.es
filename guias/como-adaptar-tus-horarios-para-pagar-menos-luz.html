@@ -24,8 +24,8 @@
       --border: rgba(15, 23, 42, .10);
       --border2: rgba(15, 23, 42, .16);
       --text:#0F172A;
-      --muted: rgba(15, 23, 42, .68);
-      --muted2: rgba(15, 23, 42, .48);
+      --muted: rgba(15, 23, 42, .75);
+      --muted2: rgba(15, 23, 42, .58);
       --shadow: 0 22px 65px rgba(2,6,23,.12);
       --shadow2: 0 16px 40px rgba(2,6,23,.10);
     }
@@ -1705,6 +1705,63 @@
   }
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://luzfija.es/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guías",
+      "item": "https://luzfija.es/guias.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Adaptar horarios para ahorrar",
+      "item": "https://luzfija.es/guias/como-adaptar-tus-horarios-para-pagar-menos-luz.html"
+    }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Cuáles son las horas más baratas de luz?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "En tarifas 3P, las horas valle (más baratas) son: todos los días de 0h a 8h, más todo el fin de semana. Las horas punta (más caras) son de 10h a 14h y de 18h a 22h en días laborables. El resto es llano (precio intermedio)."
+      }
+    },    {
+      "@type": "Question",
+      "name": "¿Cuánto puedo ahorrar adaptando mis horarios?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Depende de tu consumo y tarifa. Si consumes 200 kWh/mes y pasas el 70% del consumo de punta a valle, puedes ahorrar entre 15-30€/mes (180-360€/año). El ahorro es mayor cuanto más diferencia haya entre precios punta y valle en tu tarifa."
+      }
+    },    {
+      "@type": "Question",
+      "name": "¿Qué electrodomésticos debo usar en valle?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Prioriza los de alto consumo: lavadora, secadora, lavavajillas, termo eléctrico, cargador de coche eléctrico. Usa temporizadores para que funcionen de madrugada. La plancha, horno y vitrocerámica también consumen mucho, úsalos en valle cuando sea posible."
+      }
+    }
+  ]
+}
+</script>
   <link rel="canonical" href="https://luzfija.es/guias/como-adaptar-tus-horarios-para-pagar-menos-luz.html">
 
   <!-- Open Graph / Facebook -->
@@ -1727,6 +1784,15 @@
 </head>
 <body>
 <div class="container">
+  <nav aria-label="Breadcrumb" style="margin-bottom: 16px;">
+    <ol style="display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--muted2); flex-wrap: wrap;">
+      <li><a href="/" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">🏠 Inicio</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li><a href="/guias.html" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">📚 Guías</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li style="color: var(--text); font-weight: 500;">Adaptar horarios para ahorrar</li>
+    </ol>
+  </nav>
   <a href="../guias.html" style="display: inline-block; margin-bottom: 20px; color: var(--accent);">← Volver a guías</a>
   <article class="guia-content">
     <h1>Cómo adaptar tus horarios para pagar menos luz</h1>

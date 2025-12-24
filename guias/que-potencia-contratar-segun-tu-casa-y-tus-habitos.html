@@ -24,8 +24,8 @@
       --border: rgba(15, 23, 42, .10);
       --border2: rgba(15, 23, 42, .16);
       --text:#0F172A;
-      --muted: rgba(15, 23, 42, .68);
-      --muted2: rgba(15, 23, 42, .48);
+      --muted: rgba(15, 23, 42, .75);
+      --muted2: rgba(15, 23, 42, .58);
       --shadow: 0 22px 65px rgba(2,6,23,.12);
       --shadow2: 0 16px 40px rgba(2,6,23,.10);
     }
@@ -1705,6 +1705,63 @@
   }
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://luzfija.es/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guías",
+      "item": "https://luzfija.es/guias.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Qué potencia contratar",
+      "item": "https://luzfija.es/guias/que-potencia-contratar-segun-tu-casa-y-tus-habitos.html"
+    }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Qué potencia debo contratar en mi casa?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Depende de tu superficie, electrodomésticos y uso simultáneo. Pisos pequeños (50-70m²): 3,45-4,6 kW. Pisos medianos (70-100m²): 4,6-5,75 kW. Casas/pisos grandes con varios electrodomésticos o cocina eléctrica: 5,75-7,7 kW. Con coche eléctrico o aerotermia: 7,7-11,5 kW."
+      }
+    },    {
+      "@type": "Question",
+      "name": "¿Qué pasa si me salto la potencia contratada?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Salta el ICP (Interruptor de Control de Potencia) o el limitador del contador digital y se corta la luz. Tienes que bajar al cuadro eléctrico y subir el diferencial. Si pasa muy a menudo, plantéate aumentar potencia o gestionar mejor el uso simultáneo de aparatos."
+      }
+    },    {
+      "@type": "Question",
+      "name": "¿Me cobran penalización por pasarme de potencia?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "En contadores antiguos con ICP físico, no, solo te salta y se corta. En contadores digitales con limitador virtual, algunas comercializadoras pueden cobrarte recargos si te pasas frecuentemente. En general, es mejor ajustar la potencia contratada que arriesgarte a penalizaciones."
+      }
+    }
+  ]
+}
+</script>
   <link rel="canonical" href="https://luzfija.es/guias/que-potencia-contratar-segun-tu-casa-y-tus-habitos.html">
 
   <!-- Open Graph / Facebook -->
@@ -1727,6 +1784,15 @@
 </head>
 <body>
 <div class="container">
+  <nav aria-label="Breadcrumb" style="margin-bottom: 16px;">
+    <ol style="display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--muted2); flex-wrap: wrap;">
+      <li><a href="/" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">🏠 Inicio</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li><a href="/guias.html" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">📚 Guías</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li style="color: var(--text); font-weight: 500;">Qué potencia contratar</li>
+    </ol>
+  </nav>
   <a href="../guias.html" style="display: inline-block; margin-bottom: 20px; color: var(--accent);">← Volver a guías</a>
   <article class="guia-content">
     <h1>Qué potencia contratar según tu casa y tus hábitos</h1>

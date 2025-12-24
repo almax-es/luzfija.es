@@ -24,8 +24,8 @@
       --border: rgba(15, 23, 42, .10);
       --border2: rgba(15, 23, 42, .16);
       --text:#0F172A;
-      --muted: rgba(15, 23, 42, .68);
-      --muted2: rgba(15, 23, 42, .48);
+      --muted: rgba(15, 23, 42, .75);
+      --muted2: rgba(15, 23, 42, .58);
       --shadow: 0 22px 65px rgba(2,6,23,.12);
       --shadow2: 0 16px 40px rgba(2,6,23,.10);
     }
@@ -1705,6 +1705,63 @@
   }
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://luzfija.es/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guías",
+      "item": "https://luzfija.es/guias.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Lectura real vs estimada",
+      "item": "https://luzfija.es/guias/lectura-real-vs-estimada-como-evitar-sustos-y-facturones.html"
+    }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Por qué mi factura es estimada?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Porque la distribuidora no ha podido leer tu contador (contador inaccesible, avería, personal insuficiente...). Entonces hacen una estimación basada en tu consumo histórico. Cuando lean el contador real, te regularizarán: si consumiste más de lo estimado, te cobran la diferencia; si menos, te devuelven."
+      }
+    },    {
+      "@type": "Question",
+      "name": "¿Cómo evito facturas estimadas y regularizaciones?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Facilita el acceso al contador o envía tú mismo la lectura a través de la web/app de tu comercializadora cada mes antes del cierre de factura. También puedes instalar contador con telemedida (que envía lecturas automáticas), pero suele ser cosa de la distribuidora."
+      }
+    },    {
+      "@type": "Question",
+      "name": "¿Qué hago si me llega una factura enorme por regularización?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Comprueba tu consumo real en Datadis y verifica si las lecturas son correctas. Si es correcto (realmente consumiste eso), puedes pedir aplazamiento de pago. Si crees que hay error, reclama a tu comercializadora con datos del consumo real."
+      }
+    }
+  ]
+}
+</script>
   <link rel="canonical" href="https://luzfija.es/guias/lectura-real-vs-estimada-como-evitar-sustos-y-facturones.html">
 
   <!-- Open Graph / Facebook -->
@@ -1727,6 +1784,15 @@
 </head>
 <body>
 <div class="container">
+  <nav aria-label="Breadcrumb" style="margin-bottom: 16px;">
+    <ol style="display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--muted2); flex-wrap: wrap;">
+      <li><a href="/" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">🏠 Inicio</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li><a href="/guias.html" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">📚 Guías</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li style="color: var(--text); font-weight: 500;">Lectura real vs estimada</li>
+    </ol>
+  </nav>
   <a href="../guias.html" style="display: inline-block; margin-bottom: 20px; color: var(--accent);">← Volver a guías</a>
   <article class="guia-content">
     <h1>Lectura real vs estimada: cómo evitar sustos y "facturones"</h1>

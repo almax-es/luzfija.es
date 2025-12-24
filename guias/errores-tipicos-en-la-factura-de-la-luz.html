@@ -24,8 +24,8 @@
       --border: rgba(15, 23, 42, .10);
       --border2: rgba(15, 23, 42, .16);
       --text:#0F172A;
-      --muted: rgba(15, 23, 42, .68);
-      --muted2: rgba(15, 23, 42, .48);
+      --muted: rgba(15, 23, 42, .75);
+      --muted2: rgba(15, 23, 42, .58);
       --shadow: 0 22px 65px rgba(2,6,23,.12);
       --shadow2: 0 16px 40px rgba(2,6,23,.10);
     }
@@ -1705,6 +1705,63 @@
   }
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://luzfija.es/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guías",
+      "item": "https://luzfija.es/guias.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Errores típicos en facturas",
+      "item": "https://luzfija.es/guias/errores-tipicos-en-la-factura-de-la-luz.html"
+    }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Cuáles son los errores más comunes en las facturas de luz?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Los más comunes son: lecturas estimadas (no reales) que generan regularizaciones, potencia mal contratada (más de la necesaria), servicios extra no solicitados, aplicación incorrecta de periodos horarios y cobro de penalizaciones por exceso de potencia injustificadas."
+      }
+    },    {
+      "@type": "Question",
+      "name": "¿Qué hago si mi factura tiene un error?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Primero, descarga tu consumo real de Datadis y compáralo con la factura. Si hay diferencias, contacta con tu comercializadora por escrito (email, formulario web) explicando el error con datos. Si no responden en 1 mes o no te solucionan, reclama a la CNMC o consumo de tu comunidad autónoma."
+      }
+    },    {
+      "@type": "Question",
+      "name": "¿Me pueden cobrar consumos de hace más de un año?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Las facturas prescriben al año. Si llevas más de 12 meses sin factura y te llega un facturón con consumos antiguos, puedes reclamar. Solo pueden cobrarte el consumo del último año, aunque sea estimado."
+      }
+    }
+  ]
+}
+</script>
   <link rel="canonical" href="https://luzfija.es/guias/errores-tipicos-en-la-factura-de-la-luz.html">
 
   <!-- Open Graph / Facebook -->
@@ -1727,6 +1784,15 @@
 </head>
 <body>
 <div class="container">
+  <nav aria-label="Breadcrumb" style="margin-bottom: 16px;">
+    <ol style="display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--muted2); flex-wrap: wrap;">
+      <li><a href="/" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">🏠 Inicio</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li><a href="/guias.html" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">📚 Guías</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li style="color: var(--text); font-weight: 500;">Errores típicos en facturas</li>
+    </ol>
+  </nav>
   <a href="../guias.html" style="display: inline-block; margin-bottom: 20px; color: var(--accent);">← Volver a guías</a>
   <article class="guia-content">
     <h1>Errores típicos en la factura de la luz</h1>

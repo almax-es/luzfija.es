@@ -24,8 +24,8 @@
       --border: rgba(15, 23, 42, .10);
       --border2: rgba(15, 23, 42, .16);
       --text:#0F172A;
-      --muted: rgba(15, 23, 42, .68);
-      --muted2: rgba(15, 23, 42, .48);
+      --muted: rgba(15, 23, 42, .75);
+      --muted2: rgba(15, 23, 42, .58);
       --shadow: 0 22px 65px rgba(2,6,23,.12);
       --shadow2: 0 16px 40px rgba(2,6,23,.10);
     }
@@ -1705,6 +1705,63 @@
   }
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://luzfija.es/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guías",
+      "item": "https://luzfija.es/guias.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Ver tu consumo horario real",
+      "item": "https://luzfija.es/guias/como-ver-tu-consumo-horario-real-el-del-contador-no-el-estimado.html"
+    }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Cómo puedo ver mi consumo real por horas?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Entra en la web de tu distribuidora (e-distribución, i-DE, Naturgy, etc.) o en Datadis.es. Necesitarás tu CUPS y crear una cuenta. Ahí puedes descargar tu consumo real horario, no el estimado que aparece en la factura."
+      }
+    },    {
+      "@type": "Question",
+      "name": "¿Qué es Datadis?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Es una plataforma pública donde puedes consultar tu consumo horario real de todas las distribuidoras de España. Solo necesitas tu CUPS y darte de alta. Es gratuito y oficial, gestionado por la CNMC y las distribuidoras."
+      }
+    },    {
+      "@type": "Question",
+      "name": "¿Por qué mi factura no coincide con mi consumo real?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Puede ser por varios motivos: lecturas estimadas (no leyeron el contador), errores en la lectura, problemas con el contador, o que la factura agrupe varios periodos. Consulta tu consumo real en Datadis y compáralo con la factura para detectar errores."
+      }
+    }
+  ]
+}
+</script>
   <link rel="canonical" href="https://luzfija.es/guias/como-ver-tu-consumo-horario-real-el-del-contador-no-el-estimado.html">
 
   <!-- Open Graph / Facebook -->
@@ -1727,6 +1784,15 @@
 </head>
 <body>
 <div class="container">
+  <nav aria-label="Breadcrumb" style="margin-bottom: 16px;">
+    <ol style="display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--muted2); flex-wrap: wrap;">
+      <li><a href="/" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">🏠 Inicio</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li><a href="/guias.html" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">📚 Guías</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li style="color: var(--text); font-weight: 500;">Ver tu consumo horario real</li>
+    </ol>
+  </nav>
   <a href="../guias.html" style="display: inline-block; margin-bottom: 20px; color: var(--accent);">← Volver a guías</a>
   <article class="guia-content">
     <h1>Cómo ver tu consumo horario real (el del contador, no el "estimado")</h1>

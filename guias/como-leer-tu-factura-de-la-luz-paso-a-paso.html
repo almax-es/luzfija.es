@@ -24,8 +24,8 @@
       --border: rgba(15, 23, 42, .10);
       --border2: rgba(15, 23, 42, .16);
       --text:#0F172A;
-      --muted: rgba(15, 23, 42, .68);
-      --muted2: rgba(15, 23, 42, .48);
+      --muted: rgba(15, 23, 42, .75);
+      --muted2: rgba(15, 23, 42, .58);
       --shadow: 0 22px 65px rgba(2,6,23,.12);
       --shadow2: 0 16px 40px rgba(2,6,23,.10);
     }
@@ -1705,6 +1705,63 @@
   }
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://luzfija.es/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guías",
+      "item": "https://luzfija.es/guias.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Leer tu factura paso a paso",
+      "item": "https://luzfija.es/guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html"
+    }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Qué partes tiene la factura de la luz?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Tiene tres partes principales: término de potencia (lo que pagas por tener luz disponible, en €/día según kW contratados), término de energía (lo que pagas por el consumo real en kWh) e impuestos (impuesto eléctrico 5,11% + IVA 21% en península, 10% en general en península o 7% en Canarias)."
+      }
+    },    {
+      "@type": "Question",
+      "name": "¿Qué son P1, P2 y P3 en la factura?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Son los periodos de potencia y energía. P1 es periodo punta (más caro), P2 llano (medio) y P3 valle (más barato). La potencia P1/P2 es lo que tienes contratado y pagas siempre. Los consumos P1/P2/P3 son tus kWh consumidos en cada franja horaria."
+      }
+    },    {
+      "@type": "Question",
+      "name": "¿Por qué mi factura es estimada y no real?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Si la distribuidora no ha leído tu contador, hacen una estimación basada en consumos anteriores. Cuando lean el contador real, regularizarán (ajustarán las diferencias). Esto puede provocar facturas muy altas o bajas de golpe. Para evitarlo, puedes enviar tú mismo la lectura."
+      }
+    }
+  ]
+}
+</script>
   <link rel="canonical" href="https://luzfija.es/guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html">
 
   <!-- Open Graph / Facebook -->
@@ -1727,6 +1784,15 @@
 </head>
 <body>
 <div class="container">
+  <nav aria-label="Breadcrumb" style="margin-bottom: 16px;">
+    <ol style="display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--muted2); flex-wrap: wrap;">
+      <li><a href="/" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">🏠 Inicio</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li><a href="/guias.html" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">📚 Guías</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li style="color: var(--text); font-weight: 500;">Leer tu factura paso a paso</li>
+    </ol>
+  </nav>
   <a href="../guias.html" style="display: inline-block; margin-bottom: 20px; color: var(--accent);">← Volver a guías</a>
   <article class="guia-content">
     <h1>Cómo leer tu factura de la luz paso a paso</h1>

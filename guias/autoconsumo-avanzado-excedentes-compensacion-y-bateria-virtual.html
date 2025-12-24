@@ -24,8 +24,8 @@
       --border: rgba(15, 23, 42, .10);
       --border2: rgba(15, 23, 42, .16);
       --text:#0F172A;
-      --muted: rgba(15, 23, 42, .68);
-      --muted2: rgba(15, 23, 42, .48);
+      --muted: rgba(15, 23, 42, .75);
+      --muted2: rgba(15, 23, 42, .58);
       --shadow: 0 22px 65px rgba(2,6,23,.12);
       --shadow2: 0 16px 40px rgba(2,6,23,.10);
     }
@@ -1705,6 +1705,63 @@
   }
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://luzfija.es/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guías",
+      "item": "https://luzfija.es/guias.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Autoconsumo avanzado",
+      "item": "https://luzfija.es/guias/autoconsumo-avanzado-excedentes-compensacion-y-bateria-virtual.html"
+    }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Qué es la compensación de excedentes?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Es cuando la energía que tus placas solares generan de más (y vuelcas a la red) te la compensan económicamente en tu factura. El precio de compensación lo fija cada comercializadora y suele ser menor que el precio de compra de electricidad."
+      }
+    },    {
+      "@type": "Question",
+      "name": "¿Qué es la batería virtual?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "La batería virtual acumula en euros (no en kWh físicos) el valor de tus excedentes que no se han compensado en el mes actual. Ese saldo se puede usar para descontar en facturas de meses futuros. Es como una hucha de energía, pero no tienes baterías físicas."
+      }
+    },    {
+      "@type": "Question",
+      "name": "¿Conviene más batería virtual o compensación mensual?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Depende de tu patrón de consumo. Si en verano produces mucho más de lo que consumes, la batería virtual te permite aprovechar ese excedente en invierno. Si tu consumo es estable todo el año, la compensación mensual puede ser suficiente."
+      }
+    }
+  ]
+}
+</script>
   <link rel="canonical" href="https://luzfija.es/guias/autoconsumo-avanzado-excedentes-compensacion-y-bateria-virtual.html">
 
   <!-- Open Graph / Facebook -->
@@ -1727,6 +1784,15 @@
 </head>
 <body>
 <div class="container">
+  <nav aria-label="Breadcrumb" style="margin-bottom: 16px;">
+    <ol style="display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--muted2); flex-wrap: wrap;">
+      <li><a href="/" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">🏠 Inicio</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li><a href="/guias.html" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">📚 Guías</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li style="color: var(--text); font-weight: 500;">Autoconsumo avanzado</li>
+    </ol>
+  </nav>
   <a href="../guias.html" style="display: inline-block; margin-bottom: 20px; color: var(--accent);">← Volver a guías</a>
   <article class="guia-content">
     <h1>Autoconsumo avanzado: excedentes, compensación y "batería virtual"</h1>

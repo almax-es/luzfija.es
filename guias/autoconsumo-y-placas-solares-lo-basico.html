@@ -24,8 +24,8 @@
       --border: rgba(15, 23, 42, .10);
       --border2: rgba(15, 23, 42, .16);
       --text:#0F172A;
-      --muted: rgba(15, 23, 42, .68);
-      --muted2: rgba(15, 23, 42, .48);
+      --muted: rgba(15, 23, 42, .75);
+      --muted2: rgba(15, 23, 42, .58);
       --shadow: 0 22px 65px rgba(2,6,23,.12);
       --shadow2: 0 16px 40px rgba(2,6,23,.10);
     }
@@ -1705,6 +1705,63 @@
   }
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://luzfija.es/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guías",
+      "item": "https://luzfija.es/guias.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Autoconsumo y placas solares básico",
+      "item": "https://luzfija.es/guias/autoconsumo-y-placas-solares-lo-basico.html"
+    }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Cuánto cuesta instalar placas solares?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "El coste depende del tamaño de la instalación. Para una vivienda unifamiliar típica (3-5 kW), el precio ronda entre 4.000-8.000€. Existen subvenciones y deducciones fiscales que pueden reducir esta inversión hasta un 40-50%."
+      }
+    },    {
+      "@type": "Question",
+      "name": "¿Cuánto me ahorro con placas solares?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "El ahorro depende de tu consumo, la orientación de los paneles y tu tarifa eléctrica. De media, puedes ahorrar entre un 40-70% en tu factura eléctrica. La instalación suele amortizarse en 5-10 años."
+      }
+    },    {
+      "@type": "Question",
+      "name": "¿Necesito permisos para instalar placas solares?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Para autoconsumo residencial normalmente necesitas: licencia de obras menor del ayuntamiento, autorización de la distribuidora eléctrica y registro en tu comunidad autónoma. La instaladora suele gestionar estos trámites."
+      }
+    }
+  ]
+}
+</script>
   <link rel="canonical" href="https://luzfija.es/guias/autoconsumo-y-placas-solares-lo-basico.html">
 
   <!-- Open Graph / Facebook -->
@@ -1727,6 +1784,15 @@
 </head>
 <body>
 <div class="container">
+  <nav aria-label="Breadcrumb" style="margin-bottom: 16px;">
+    <ol style="display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--muted2); flex-wrap: wrap;">
+      <li><a href="/" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">🏠 Inicio</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li><a href="/guias.html" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">📚 Guías</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li style="color: var(--text); font-weight: 500;">Autoconsumo y placas solares básico</li>
+    </ol>
+  </nav>
   <a href="../guias.html" style="display: inline-block; margin-bottom: 20px; color: var(--accent);">← Volver a guías</a>
   <article class="guia-content">
     <h1>Autoconsumo y placas solares: lo básico</h1>
