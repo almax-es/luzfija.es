@@ -1823,7 +1823,7 @@ function agregarMiTarifa() {
   const p2 = parseNum($('mtP2')?.value || '0');
   
   if (punta <= 0 || llano <= 0 || valle <= 0 || p1 <= 0 || p2 <= 0) {
-    showToast('Completa todos los campos de tu tarifa');
+    toast('Completa todos los campos de tu tarifa');
     return null;
   }
   
