@@ -2240,6 +2240,15 @@ function mostrarPreviewCSV(resultado) {
       } catch(e) {
         lfDbg('[CSV] Error en funciones auxiliares:', e);
       }
+      
+      // Auto-calcular (igual que con factura PDF): los datos del CSV son 100% precisos
+      try {
+        if (typeof hideResultsToInitialState === 'function') hideResultsToInitialState();
+        if (typeof setStatus === 'function') setStatus('Calculando...', 'loading');
+        if (typeof runCalculation === 'function') runCalculation();
+      } catch(e) {
+        lfDbg('[CSV] Error en auto-cálculo:', e);
+      }
     });
   }
   
