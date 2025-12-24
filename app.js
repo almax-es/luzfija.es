@@ -1932,24 +1932,49 @@ function parseCSVConsumos(fileContent) {
 
 function getPeriodoHorarioCSV(fecha, hora) {
   /**
-   * Determina periodo P1/P2/P3
-   * hora: 1-24 del CSV
+   * Determina periodo P1/P2/P3 según RD 148/2021
+   * hora: 1-24 del CSV (convertir a 0-23 para lógica)
    * 
-   * P1 (Punta): 10-14h y 18-22h laborables
-   * P2 (Llano): 8-10h, 14-18h, 22-24h laborables  
-   * P3 (Valle): 0-8h todos + todo el finde
+   * P1 (Punta): 10-14h y 18-22h laborables NO festivos
+   * P2 (Llano): 8-10h, 14-18h, 22-24h laborables NO festivos
+   * P3 (Valle): 0-8h todos + todo el día en festivos/fines de semana
    */
-  const diaSemana = fecha.getDay();
+  
+  // Festivos nacionales 2025 (formato YYYY-MM-DD)
+  const festivosNacionales2025 = [
+    '2025-01-01', // Año Nuevo
+    '2025-01-06', // Reyes
+    '2025-04-18', // Viernes Santo
+    '2025-05-01', // Día del Trabajo
+    '2025-08-15', // Asunción
+    '2025-10-12', // Día de la Hispanidad
+    '2025-11-01', // Todos los Santos
+    '2025-12-06', // Constitución
+    '2025-12-08', // Inmaculada
+    '2025-12-25'  // Navidad
+  ];
+  
+  const diaSemana = fecha.getDay(); // 0=domingo, 6=sábado
   const esFinde = diaSemana === 0 || diaSemana === 6;
   
+  // Formatear fecha como YYYY-MM-DD
+  const year = fecha.getFullYear();
+  const month = String(fecha.getMonth() + 1).padStart(2, '0');
+  const day = String(fecha.getDate()).padStart(2, '0');
+  const fechaStr = `${year}-${month}-${day}`;
+  
+  const esFestivo = festivosNacionales2025.includes(fechaStr);
+  
+  // Si es festivo o fin de semana, TODO es P3
+  if (esFinde || esFestivo) return 'P3';
+  
   // Convertir hora CSV (1-24) a hora normal (0-23)
-  const h = hora === 24 ? 23 : hora - 1;
+  const h = hora === 24 ? 0 : hora - 1;
   
-  if (esFinde) return 'P3';
-  
-  if (h < 8) return 'P3';
-  if ((h >= 10 && h < 14) || (h >= 18 && h < 22)) return 'P1';
-  return 'P2';
+  // Laborable normal
+  if (h >= 0 && h < 8) return 'P3';  // 0-8h = Valle
+  if ((h >= 10 && h < 14) || (h >= 18 && h < 22)) return 'P1';  // Punta
+  return 'P2';  // Llano (resto de horas laborables)
 }
 
 function clasificarConsumosPorPeriodo(consumos) {
