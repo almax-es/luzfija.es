@@ -1227,14 +1227,22 @@
         try{ if (typeof saveInputs === 'function') saveInputs(); }catch(_){}
 
         // NUEVO: Si "Comparar con mi tarifa actual" está marcado, rellenar precios extraídos
-        // Usar setTimeout para asegurar que los campos existen antes de rellenarlos
         const compararMiTarifa = document.getElementById('compararMiTarifa');
+        console.error('[DEBUG] compararMiTarifa existe:', compararMiTarifa !== null);
+        console.error('[DEBUG] compararMiTarifa checked:', compararMiTarifa?.checked);
+        console.error('[DEBUG] window.__LF_lastParsedPrecios:', window.__LF_lastParsedPrecios);
+        
         if (compararMiTarifa && compararMiTarifa.checked) {
+          console.error('[DEBUG] Entrando en bloque de Mi tarifa actual');
+          
+          // Usar setTimeout para asegurar que los campos existen antes de rellenarlos
           setTimeout(() => {
+            console.error('[DEBUG] setTimeout ejecutado');
+            
             // Si hay precios extraídos, rellenarlos en "Mi tarifa actual"
             if (window.__LF_lastParsedPrecios) {
               const precios = window.__LF_lastParsedPrecios;
-              console.log('[APLICAR PRECIOS] Rellenando Mi tarifa actual:', precios);
+              console.error('[APLICAR PRECIOS] Rellenando Mi tarifa actual:', precios);
               
               let preciosAplicados = 0;
               
