@@ -1942,6 +1942,58 @@ function parseCSVConsumos(fileContent) {
   return consumos;
 }
 
+/**
+ * Calcula el Viernes Santo para un año dado usando el algoritmo de Gauss (Computus)
+ * El Viernes Santo es 2 días antes del Domingo de Pascua
+ */
+function calcularViernesSanto(year) {
+  // Algoritmo de Gauss para calcular la Pascua
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31); // 3=marzo, 4=abril
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  
+  // Esto nos da el Domingo de Pascua
+  // Viernes Santo es 2 días antes
+  const pascua = new Date(year, month - 1, day);
+  const viernesSanto = new Date(pascua);
+  viernesSanto.setDate(pascua.getDate() - 2);
+  
+  const mes = String(viernesSanto.getMonth() + 1).padStart(2, '0');
+  const dia = String(viernesSanto.getDate()).padStart(2, '0');
+  
+  return `${year}-${mes}-${dia}`;
+}
+
+/**
+ * Genera la lista de festivos nacionales para un año dado
+ * Incluye los 10 festivos nacionales oficiales de España
+ */
+function getFestivosNacionales(year) {
+  return [
+    `${year}-01-01`, // Año Nuevo
+    `${year}-01-06`, // Reyes Magos
+    calcularViernesSanto(year), // Viernes Santo (calculado)
+    `${year}-05-01`, // Día del Trabajo
+    `${year}-08-15`, // Asunción de la Virgen
+    `${year}-10-12`, // Fiesta Nacional de España
+    `${year}-11-01`, // Todos los Santos
+    `${year}-12-06`, // Día de la Constitución
+    `${year}-12-08`, // Inmaculada Concepción
+    `${year}-12-25`  // Navidad
+  ];
+}
+
 function getPeriodoHorarioCSV(fecha, hora) {
   /**
    * Determina periodo P1/P2/P3 según RD 148/2021
@@ -1957,20 +2009,6 @@ function getPeriodoHorarioCSV(fecha, hora) {
    * P1 (Punta): 10:00-14:00, 18:00-22:00 en laborables
    */
   
-  // Festivos nacionales 2025 (formato YYYY-MM-DD)
-  const festivosNacionales2025 = [
-    '2025-01-01', // Año Nuevo
-    '2025-01-06', // Reyes
-    '2025-04-18', // Viernes Santo
-    '2025-05-01', // Día del Trabajo
-    '2025-08-15', // Asunción
-    '2025-10-12', // Día de la Hispanidad
-    '2025-11-01', // Todos los Santos
-    '2025-12-06', // Constitución
-    '2025-12-08', // Inmaculada
-    '2025-12-25'  // Navidad
-  ];
-  
   const diaSemana = fecha.getDay(); // 0=domingo, 6=sábado
   const esFinde = diaSemana === 0 || diaSemana === 6;
   
@@ -1980,7 +2018,9 @@ function getPeriodoHorarioCSV(fecha, hora) {
   const day = String(fecha.getDate()).padStart(2, '0');
   const fechaStr = `${year}-${month}-${day}`;
   
-  const esFestivo = festivosNacionales2025.includes(fechaStr);
+  // Obtener festivos nacionales del año correspondiente
+  const festivosNacionales = getFestivosNacionales(year);
+  const esFestivo = festivosNacionales.includes(fechaStr);
   
   // Si es festivo o fin de semana, TODO es P3
   if (esFinde || esFestivo) return 'P3';
