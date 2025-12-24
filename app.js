@@ -2105,7 +2105,11 @@ function mostrarPreviewCSV(resultado) {
 }
 
 function initCSVImporter() {
+  console.log('[CSV] Iniciando initCSVImporter...');
+  
   const container = $('consumosWrapper');
+  console.log('[CSV] Container encontrado:', container);
+  
   if (!container) {
     console.error('[CSV] No se encontró consumosWrapper');
     return;
@@ -2167,11 +2171,16 @@ function initCSVImporter() {
   wrapperDiv.appendChild(btnCSV);
   wrapperDiv.appendChild(hint);
   
+  console.log('[CSV] WrapperDiv creado:', wrapperDiv);
+  console.log('[CSV] Container.parentNode:', container.parentNode);
+  console.log('[CSV] Container.nextSibling:', container.nextSibling);
+  
   // Insertar DESPUÉS del consumosWrapper, no dentro
   if (container.parentNode) {
     container.parentNode.insertBefore(wrapperDiv, container.nextSibling);
-    console.log('[CSV] Botón insertado correctamente');
+    console.log('[CSV] Botón insertado correctamente después de consumosWrapper');
+    console.log('[CSV] Verificación - botón existe en DOM:', document.getElementById('csvConsumoInput') !== null);
   } else {
-    console.error('[CSV] No se pudo insertar el botón');
+    console.error('[CSV] No se pudo insertar el botón - parentNode no existe');
   }
 }
