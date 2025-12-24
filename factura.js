@@ -1222,69 +1222,81 @@
         set('cLlano', v.consumoLlano);
         set('cValle', v.consumoValle);
         
-        // NUEVO: Si "Comparar con mi tarifa actual" está marcado, rellenar precios extraídos
-        const compararMiTarifa = document.getElementById('compararMiTarifa');
-        if (compararMiTarifa && compararMiTarifa.checked) {
-          // Si hay precios extraídos, rellenarlos en "Mi tarifa actual"
-          if (window.__LF_lastParsedPrecios) {
-            const precios = window.__LF_lastParsedPrecios;
-            console.log('[APLICAR PRECIOS] Rellenando Mi tarifa actual:', precios);
-            
-            let preciosAplicados = 0;
-            
-            // Rellenar precios de energía (€/kWh)
-            if (precios.energiaPunta) {
-              set('mtPunta', precios.energiaPunta);
-              preciosAplicados++;
-            }
-            if (precios.energiaLlano) {
-              set('mtLlano', precios.energiaLlano);
-              preciosAplicados++;
-            }
-            if (precios.energiaValle) {
-              set('mtValle', precios.energiaValle);
-              preciosAplicados++;
-            }
-            
-            // Rellenar precios de potencia (€/kW/día)
-            if (precios.potenciaP1) {
-              set('mtP1', precios.potenciaP1);
-              preciosAplicados++;
-            }
-            if (precios.potenciaP2) {
-              set('mtP2', precios.potenciaP2);
-              preciosAplicados++;
-            }
-            
-            // Rellenar precio de excedentes (si hay placas solares)
-            const solarOn = document.getElementById('solarOn');
-            if (solarOn && solarOn.checked && precios.excedentes) {
-              set('mtPrecioExc', precios.excedentes);
-              preciosAplicados++;
-            }
-            
-            if (preciosAplicados > 0) {
-              if (typeof toast === 'function') {
-                toast(`✅ Datos aplicados + ${preciosAplicados} precios en Mi tarifa`, 'ok');
-              }
-            } else {
-              if (typeof toast === 'function') {
-                toast('✅ Datos aplicados (no se detectaron precios en PDF)', 'ok');
-              }
-            }
-          } else {
-            // No se extrajeron precios, solo informar
-            if (typeof toast === 'function') {
-              toast('✅ Datos aplicados (completa precios de Mi tarifa manualmente)', 'ok');
-            }
-          }
-        }
-
         try{ if (typeof updateKwhHint === 'function') updateKwhHint(); }catch(_){}
         try{ if (typeof validateInputs === 'function') validateInputs(); }catch(_){}
         try{ if (typeof saveInputs === 'function') saveInputs(); }catch(_){}
 
-        if (typeof toast === 'function' && !window.__LF_lastParsedPrecios) {
+        // NUEVO: Si "Comparar con mi tarifa actual" está marcado, rellenar precios extraídos
+        // Usar setTimeout para asegurar que los campos existen antes de rellenarlos
+        const compararMiTarifa = document.getElementById('compararMiTarifa');
+        if (compararMiTarifa && compararMiTarifa.checked) {
+          setTimeout(() => {
+            // Si hay precios extraídos, rellenarlos en "Mi tarifa actual"
+            if (window.__LF_lastParsedPrecios) {
+              const precios = window.__LF_lastParsedPrecios;
+              console.log('[APLICAR PRECIOS] Rellenando Mi tarifa actual:', precios);
+              
+              let preciosAplicados = 0;
+              
+              const setDelay = (id, val) => { 
+                const el = document.getElementById(id); 
+                if (el) {
+                  el.value = String(val).replace('.', ',');
+                  console.log(`[PRECIO APLICADO] ${id} = ${el.value}`);
+                } else {
+                  console.error(`[PRECIO ERROR] Campo ${id} no encontrado`);
+                }
+              };
+              
+              // Rellenar precios de energía (€/kWh)
+              if (precios.energiaPunta) {
+                setDelay('mtPunta', precios.energiaPunta);
+                preciosAplicados++;
+              }
+              if (precios.energiaLlano) {
+                setDelay('mtLlano', precios.energiaLlano);
+                preciosAplicados++;
+              }
+              if (precios.energiaValle) {
+                setDelay('mtValle', precios.energiaValle);
+                preciosAplicados++;
+              }
+              
+              // Rellenar precios de potencia (€/kW/día)
+              if (precios.potenciaP1) {
+                setDelay('mtP1', precios.potenciaP1);
+                preciosAplicados++;
+              }
+              if (precios.potenciaP2) {
+                setDelay('mtP2', precios.potenciaP2);
+                preciosAplicados++;
+              }
+              
+              // Rellenar precio de excedentes (si hay placas solares)
+              const solarOn = document.getElementById('solarOn');
+              if (solarOn && solarOn.checked && precios.excedentes) {
+                setDelay('mtPrecioExc', precios.excedentes);
+                preciosAplicados++;
+              }
+              
+              if (preciosAplicados > 0) {
+                if (typeof toast === 'function') {
+                  toast(`✅ Datos aplicados + ${preciosAplicados} precios en Mi tarifa`, 'ok');
+                }
+              } else {
+                if (typeof toast === 'function') {
+                  toast('✅ Datos aplicados (no se detectaron precios en PDF)', 'ok');
+                }
+              }
+            } else {
+              // No se extrajeron precios, solo informar
+              if (typeof toast === 'function') {
+                toast('✅ Datos aplicados (completa precios de Mi tarifa manualmente)', 'ok');
+              }
+            }
+          }, 200); // Delay para asegurar que los campos existen
+        } else if (typeof toast === 'function') {
+          // Si NO tiene "Mi tarifa" marcado, toast normal
           toast('✅ Datos aplicados correctamente', 'ok');
         }
 
