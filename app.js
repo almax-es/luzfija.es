@@ -2015,11 +2015,11 @@ async function procesarCSVConsumos(file) {
 
 function mostrarPreviewCSV(resultado) {
   const modal = document.createElement('div');
-  modal.className = 'modal-overlay';
-  modal.style.cssText = 'display: flex; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 9999; align-items: center; justify-content: center; padding: 20px;';
+  modal.className = 'modal-overlay show'; // ← AÑADIDA CLASE 'show'
+  modal.style.cssText = 'display: flex !important; position: fixed !important; inset: 0 !important; background: rgba(0,0,0,0.85) !important; z-index: 999999 !important; align-items: center !important; justify-content: center !important; padding: 20px !important; visibility: visible !important; opacity: 1 !important;';
   
   const content = document.createElement('div');
-  content.style.cssText = 'background: var(--card); border-radius: 16px; padding: 24px; max-width: 500px; width: 100%; box-shadow: var(--shadow);';
+  content.style.cssText = 'background: var(--card); border-radius: 16px; padding: 24px; max-width: 500px; width: 100%; box-shadow: var(--shadow); position: relative; z-index: 1000000;';
   
   content.innerHTML = `
     <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 900; color: var(--text);">📊 Consumos detectados</h3>
@@ -2063,9 +2063,9 @@ function mostrarPreviewCSV(resultado) {
     ` : ''}
     
     <div style="display: flex; gap: 8px;">
-      <button class="btn" id="csvCancelar" style="flex: 1;">Cancelar</button>
-      <button class="btn primary" id="csvAplicar" style="flex: 1;">
-        <span style="position: relative; z-index: 1;">✓ Aplicar datos</span>
+      <button class="btn" id="csvCancelar" style="flex: 1; position: relative; z-index: 10000; pointer-events: auto;">Cancelar</button>
+      <button class="btn primary" id="csvAplicar" style="flex: 1; position: relative; z-index: 10000; pointer-events: auto;">
+        <span style="position: relative; z-index: 1; pointer-events: none;">✓ Aplicar datos</span>
       </button>
     </div>
   `;
@@ -2074,6 +2074,14 @@ function mostrarPreviewCSV(resultado) {
   document.body.appendChild(modal);
   
   console.error('[CSV] Modal añadido al DOM');
+  console.error('[CSV] Modal display:', modal.style.display);
+  console.error('[CSV] Modal z-index:', modal.style.zIndex);
+  console.error('[CSV] Body children:', document.body.children.length);
+  
+  // Forzar que el modal sea visible inmediatamente
+  modal.style.display = 'flex';
+  modal.style.visibility = 'visible';
+  modal.style.opacity = '1';
   
   // Usar querySelector para los botones del modal que acabamos de crear
   const btnCancelar = modal.querySelector('#csvCancelar');
