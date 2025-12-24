@@ -1775,30 +1775,43 @@ function updateMiTarifaForm() {
   const container = $('miTarifaPrecios');
   if (!container) return;
   
-  // Siempre mostrar los 6 campos (punta/llano/valle + P1/P2)
+  // Siempre mostrar los 6 campos (punta/llano/valle + P1/P2) con placeholders informativos
   container.innerHTML = `
+    <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 12px;">
+      <div style="display: flex; align-items: start; gap: 8px;">
+        <span style="font-size: 16px;">💡</span>
+        <div style="color: var(--text); line-height: 1.4;">
+          <strong>Busca estos precios en tu factura:</strong><br>
+          <span style="color: var(--muted2); font-size: 11px;">
+            • <strong>Término de energía:</strong> precios por kWh consumido (Punta/Llano/Valle)<br>
+            • <strong>Término de potencia:</strong> precios por kW contratado/día (P1/P2)
+          </span>
+        </div>
+      </div>
+    </div>
+    
     <div class="form" style="gap:8px;">
       <div class="group">
         <label for="mtPunta">Punta (€/kWh)</label>
-        <input id="mtPunta" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,1543">
+        <input id="mtPunta" class="input" type="text" inputmode="decimal" placeholder="Busca 'Término energía P1' en tu factura">
       </div>
       <div class="group">
         <label for="mtLlano">Llano (€/kWh)</label>
-        <input id="mtLlano" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,1234">
+        <input id="mtLlano" class="input" type="text" inputmode="decimal" placeholder="Busca 'Término energía P2' en tu factura">
       </div>
       <div class="group">
         <label for="mtValle">Valle (€/kWh)</label>
-        <input id="mtValle" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0899">
+        <input id="mtValle" class="input" type="text" inputmode="decimal" placeholder="Busca 'Término energía P3' en tu factura">
       </div>
     </div>
     <div class="form">
       <div class="group">
         <label for="mtP1">Potencia P1 (€/kW/día)</label>
-        <input id="mtP1" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0891">
+        <input id="mtP1" class="input" type="text" inputmode="decimal" placeholder="Busca 'Término potencia P1' en tu factura">
       </div>
       <div class="group">
         <label for="mtP2">Potencia P2 (€/kW/día)</label>
-        <input id="mtP2" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0445">
+        <input id="mtP2" class="input" type="text" inputmode="decimal" placeholder="Busca 'Término potencia P2' en tu factura">
       </div>
     </div>
   `;
@@ -1808,9 +1821,9 @@ function updateMiTarifaForm() {
     container.innerHTML += `
       <div class="group" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
         <label for="mtPrecioExc">☀️ Precio compensación excedentes (€/kWh)</label>
-        <input id="mtPrecioExc" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0743">
+        <input id="mtPrecioExc" class="input" type="text" inputmode="decimal" placeholder="Busca 'Compensación excedentes' en tu factura">
         <small style="font-size:11px; color:var(--muted2); margin-top:4px; display:block;">
-          Lo que te pagan por los kWh vertidos a la red (copia el precio exacto de tu factura)
+          Lo que te pagan por los kWh vertidos a la red
         </small>
       </div>
     `;
