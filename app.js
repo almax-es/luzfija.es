@@ -2165,4 +2165,3 @@ function initCSVImporter() {
     container.appendChild(wrapperDiv);
   }
 }
-}
