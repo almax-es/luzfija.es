@@ -36,6 +36,20 @@ Herramienta **gratuita**, **sin publicidad** y **de código abierto** para compa
 - ✅ OCR experimental para PDFs escaneados (Tesseract.js)
 - ✅ Sistema de advertencias contextuales
 - ✅ **Lazy loading**: PDF.js solo se carga cuando subes factura
+- ✅ **Auto-cálculo**: Calcula automáticamente tras extraer datos
+
+### 📊 Importador de Datos CSV (e-distribución)
+- ✅ **Importa tu CSV de consumo horario** de la distribuidora
+- ✅ Compatible con formato estándar de e-distribución
+- ✅ Cálculo automático de festivos nacionales (algoritmo de Gauss)
+- ✅ Clasificación inteligente por periodos P1/P2/P3:
+  - Detecta festivos nacionales automáticamente
+  - Considera fines de semana
+  - Aplica horarios según RD 148/2021
+- ✅ Maneja datos reales y estimados
+- ✅ Extrae automáticamente: días, consumo punta/llano/valle
+- ✅ **Auto-cálculo**: Calcula automáticamente tras aplicar datos
+- ✅ Validación de fechas en zona horaria Madrid (sin bugs UTC)
 
 ### 📚 Guías Educativas (20 guías)
 - ✅ Cómo leer tu factura paso a paso
@@ -802,15 +816,15 @@ Proyecto **independiente** y de **código abierto**.
 ## 📊 Estadísticas del Proyecto
 
 ### Líneas de Código (aproximado)
-- **JavaScript**: ~4,500 líneas
-  - app.js: ~1,700
+- **JavaScript**: ~4,800 líneas
+  - app.js: ~2,300 (incluye importador CSV + festivos automáticos)
   - factura.js: ~1,200
   - pvpc.js: ~500
   - tests-calculos.js: ~400
   - tracking.js: ~50
 - **CSS**: ~2,100 líneas (styles.css + inline en guías)
 - **HTML**: ~30 archivos
-- **Total**: ~35,000 líneas de código
+- **Total**: ~37,000 líneas de código
 
 ### Archivos y Recursos
 - 📄 27 archivos HTML
@@ -822,18 +836,31 @@ Proyecto **independiente** y de **código abierto**.
 - 🔧 Archivos config (manifest, robots, sitemap, etc.)
 
 ### Tamaños de Archivos (comprimidos)
-- index.html: ~65KB
-- app.js: ~67KB
+- index.html: ~67KB
+- app.js: ~72KB (incluye importador CSV + festivos)
 - factura.js: ~50KB
 - styles.css: ~68KB
 - pvpc.js: ~14KB
 - tarifas.json: ~15-20KB (depende de tarifas activas)
-- **Total bundle inicial**: ~250-280KB (sin PDF.js)
+- **Total bundle inicial**: ~280-310KB (sin PDF.js)
 - **Con PDF.js lazy**: ~180KB menos en carga inicial
 
 ---
 
 ## 📅 Changelog
+
+### Diciembre 2025 - Correcciones Críticas y Mejoras de Calidad
+- ✅ **Importador CSV de e-distribución** (consumo horario de distribuidora)
+- ✅ **Cálculo automático de festivos** (algoritmo de Gauss - funciona para cualquier año)
+- ✅ **Auto-cálculo tras importar** (PDF y CSV calculan automáticamente)
+- ✅ **Bug crítico de fechas UTC corregido** (toISOString → zona horaria local/Madrid)
+- ✅ **Consola limpia en producción** (sistema de debug mejorado con lfDbg)
+- ✅ **Manifest PWA limpiado** (eliminadas referencias rotas a widgets)
+- ✅ **Hora consistente en zona Madrid** (modal PVPC)
+- ✅ **Breadcrumb "Inicio" oculto** en página principal (UX mejorada)
+- ✅ **Título HTML corregido** en guía de cambio de compañía
+- ✅ **Error novedades.json silenciado** (sin spam en consola)
+- ✅ **Validación completa**: 0 recursos rotos, JSON-LD perfecto, sitemap OK
 
 ### Diciembre 2025 - Optimizaciones Core Web Vitals
 - ✅ **Comparar con tu tarifa actual** (añade precios personalizados al ranking)
@@ -893,19 +920,20 @@ Proyecto **independiente** y de **código abierto**.
 - [ ] Más comercializadoras en parser de facturas
 - [ ] Mejorar precisión OCR
 - [ ] Tests E2E automatizados
-- [ ] API pública para desarrolladores
+- [ ] Integración directa con Datadis (API oficial distribuidoras)
 
 ### Medio Plazo
 - [ ] Comparador de gas natural
 - [ ] Alertas de cambios de precios
 - [ ] Historial de tarifas (gráficos temporales)
 - [ ] Comparativa tarifas indexadas (pool)
+- [ ] API pública para desarrolladores
 
 ### Largo Plazo
 - [ ] App móvil nativa (React Native / Flutter)
-- [ ] Integración con distribuidoras (Datadis)
 - [ ] Recomendaciones personalizadas con IA
 - [ ] Comunidad de usuarios
+- [ ] Soporte multi-idioma (catalán, gallego, euskera)
 
 ---
 
