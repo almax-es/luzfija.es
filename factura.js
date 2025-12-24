@@ -514,6 +514,117 @@
         }
       }
 
+      function __LF_extraerPrecios(textoLineas, textoCompacto) {
+        /**
+         * Extrae precios de energía (€/kWh) y potencia (€/kW/día) de la factura
+         * Devuelve: {
+         *   energiaPunta, energiaLlano, energiaValle,
+         *   potenciaP1, potenciaP2,
+         *   excedentes
+         * }
+         */
+        const tAll = (String(textoLineas || '') + '\n' + String(textoCompacto || ''))
+          .replace(/[\u00A0\t]/g,' ')
+          .replace(/\s+/g,' ')
+          .trim();
+        
+        const precios = {
+          energiaPunta: null,
+          energiaLlano: null,
+          energiaValle: null,
+          potenciaP1: null,
+          potenciaP2: null,
+          excedentes: null
+        };
+        
+        // Patrones para buscar precios de energía (€/kWh)
+        // Buscar contextos como "Punta ... 0,154321 €/kWh"
+        const precioRegex = /(\d+[,\.]\d{2,6})\s*(?:€|euros?)?(?:\/|\s*por\s*)?kWh/gi;
+        
+        // ENERGÍA - Buscar secciones de "término de energía" o "consumo"
+        const seccionEnergia = tAll.match(/(?:t[eé]rmino.*?energ[ií]a|consumo\s+activa|energ[ií]a\s+activa)([\s\S]{0,800}?)(?:t[eé]rmino.*?potencia|alquiler|total)/i);
+        
+        if (seccionEnergia) {
+          const texto = seccionEnergia[1];
+          
+          // Buscar Punta/P1
+          const puntaMatch = texto.match(/(?:punta|p1|periodo\s*1)[^\d]{0,80}?(\d+[,\.]\d{2,6})\s*€?\/?\s*kWh/i);
+          if (puntaMatch) {
+            precios.energiaPunta = parseFloat(puntaMatch[1].replace(',', '.'));
+          }
+          
+          // Buscar Llano/P2
+          const llanoMatch = texto.match(/(?:llano|p2|periodo\s*2)[^\d]{0,80}?(\d+[,\.]\d{2,6})\s*€?\/?\s*kWh/i);
+          if (llanoMatch) {
+            precios.energiaLlano = parseFloat(llanoMatch[1].replace(',', '.'));
+          }
+          
+          // Buscar Valle/P3
+          const valleMatch = texto.match(/(?:valle|p3|periodo\s*3)[^\d]{0,80}?(\d+[,\.]\d{2,6})\s*€?\/?\s*kWh/i);
+          if (valleMatch) {
+            precios.energiaValle = parseFloat(valleMatch[1].replace(',', '.'));
+          }
+        }
+        
+        // POTENCIA - Buscar secciones de "término de potencia"
+        const seccionPotencia = tAll.match(/(?:t[eé]rmino.*?potencia|potencia\s+contratada)([\s\S]{0,800}?)(?:t[eé]rmino.*?energ[ií]a|alquiler|impuesto|total)/i);
+        
+        if (seccionPotencia) {
+          const texto = seccionPotencia[1];
+          
+          // Buscar P1
+          const p1Match = texto.match(/(?:p1|punta|periodo\s*1)[^\d]{0,80}?(\d+[,\.]\d{2,6})\s*€?\/?\s*kW[\/\s]*d[ií]a/i);
+          if (p1Match) {
+            precios.potenciaP1 = parseFloat(p1Match[1].replace(',', '.'));
+          }
+          
+          // Buscar P2
+          const p2Match = texto.match(/(?:p2|valle|periodo\s*2)[^\d]{0,80}?(\d+[,\.]\d{2,6})\s*€?\/?\s*kW[\/\s]*d[ií]a/i);
+          if (p2Match) {
+            precios.potenciaP2 = parseFloat(p2Match[1].replace(',', '.'));
+          }
+        }
+        
+        // EXCEDENTES - Buscar precio de compensación
+        const excedentesMatch = tAll.match(/(?:excedente|compensaci[oó]n|vertido)[^\d]{0,100}?(\d+[,\.]\d{2,6})\s*€?\/?\s*kWh/i);
+        if (excedentesMatch) {
+          precios.excedentes = parseFloat(excedentesMatch[1].replace(',', '.'));
+        }
+        
+        // Validaciones básicas (rangos típicos)
+        if (precios.energiaPunta && (precios.energiaPunta < 0.02 || precios.energiaPunta > 0.50)) {
+          precios.energiaPunta = null;
+        }
+        if (precios.energiaLlano && (precios.energiaLlano < 0.02 || precios.energiaLlano > 0.50)) {
+          precios.energiaLlano = null;
+        }
+        if (precios.energiaValle && (precios.energiaValle < 0.02 || precios.energiaValle > 0.50)) {
+          precios.energiaValle = null;
+        }
+        if (precios.potenciaP1 && (precios.potenciaP1 < 0.01 || precios.potenciaP1 > 0.50)) {
+          precios.potenciaP1 = null;
+        }
+        if (precios.potenciaP2 && (precios.potenciaP2 < 0.01 || precios.potenciaP2 > 0.50)) {
+          precios.potenciaP2 = null;
+        }
+        if (precios.excedentes && (precios.excedentes < 0.01 || precios.excedentes > 0.20)) {
+          precios.excedentes = null;
+        }
+        
+        // Calcular confianza
+        let confianza = 0;
+        if (precios.energiaPunta) confianza += 20;
+        if (precios.energiaLlano) confianza += 20;
+        if (precios.energiaValle) confianza += 20;
+        if (precios.potenciaP1) confianza += 20;
+        if (precios.potenciaP2) confianza += 20;
+        
+        precios.confianza = confianza;
+        
+        console.log('[PRECIOS EXTRAÍDOS]', precios);
+        return precios;
+      }
+
       function __LF_parsearDatos(textoLineas, textoCompacto){
         console.log('[PARSER v1765179628-VERCEL-CLEAN] 🚀 Iniciando parseo...');
         const textLines = String(textoLineas || '');
@@ -726,6 +837,9 @@
         console.log('📆 Periodo:', fIni || 'N/A', '→', fFin || 'N/A');
         console.log('═══════════════════════════════════════════════════════');
 
+        // Extraer precios (nuevo)
+        const precios = __LF_extraerPrecios(textoLineas, textoCompacto);
+        
         return {
           compania: compania,
           dias: dias,
@@ -736,7 +850,9 @@
           consumoValle: cValle,
           confianza: confianza,
           _fechaInicio: fIni,
-          _fechaFin: fFin
+          _fechaFin: fFin,
+          // Nuevos campos de precios
+          precios: precios
         };
       }
 
@@ -818,6 +934,13 @@
         const form = __LF_q('formValidacionFactura');
         if (!form) return;
         __LF_lastParsedConfianza = Number(datos?.confianza || 0);
+        
+        // NUEVO: Guardar precios extraídos en variable global
+        if (datos && datos.precios) {
+          window.__LF_lastParsedPrecios = datos.precios;
+          console.log('[PRECIOS GUARDADOS]', window.__LF_lastParsedPrecios);
+        }
+        
         form.innerHTML =
           __LF_crearInputValidacion('p1','Potencia P1 (kW)', datos.p1) +
           __LF_crearInputValidacion('p2','Potencia P2 (kW)', datos.p2) +
@@ -1098,12 +1221,60 @@
         set('cPunta', v.consumoPunta);
         set('cLlano', v.consumoLlano);
         set('cValle', v.consumoValle);
+        
+        // NUEVO: Si "Comparar con mi tarifa actual" está marcado y hay precios extraídos, rellenarlos
+        const compararMiTarifa = document.getElementById('compararMiTarifa');
+        if (compararMiTarifa && compararMiTarifa.checked && window.__LF_lastParsedPrecios) {
+          const precios = window.__LF_lastParsedPrecios;
+          console.log('[APLICAR PRECIOS] Rellenando Mi tarifa actual:', precios);
+          
+          let preciosAplicados = 0;
+          
+          // Rellenar precios de energía
+          if (precios.energiaPunta) {
+            set('mtPunta', precios.energiaPunta);
+            preciosAplicados++;
+          }
+          if (precios.energiaLlano) {
+            set('mtLlano', precios.energiaLlano);
+            preciosAplicados++;
+          }
+          if (precios.energiaValle) {
+            set('mtValle', precios.energiaValle);
+            preciosAplicados++;
+          }
+          
+          // Rellenar precios de potencia
+          if (precios.potenciaP1) {
+            set('mtP1', precios.potenciaP1);
+            preciosAplicados++;
+          }
+          if (precios.potenciaP2) {
+            set('mtP2', precios.potenciaP2);
+            preciosAplicados++;
+          }
+          
+          // Rellenar precio de excedentes (si hay placas solares)
+          const solarOn = document.getElementById('solarOn');
+          if (solarOn && solarOn.checked && precios.excedentes) {
+            set('mtPrecioExc', precios.excedentes);
+            preciosAplicados++;
+          }
+          
+          if (preciosAplicados > 0) {
+            if (typeof toast === 'function') {
+              toast(`✅ Datos aplicados + ${preciosAplicados} precios detectados en Mi tarifa`, 'ok');
+            }
+          }
+        }
 
         try{ if (typeof updateKwhHint === 'function') updateKwhHint(); }catch(_){}
         try{ if (typeof validateInputs === 'function') validateInputs(); }catch(_){}
         try{ if (typeof saveInputs === 'function') saveInputs(); }catch(_){}
 
-        if (typeof toast === 'function') toast('✅ Datos aplicados correctamente', 'ok');
+        if (typeof toast === 'function' && !window.__LF_lastParsedPrecios) {
+          toast('✅ Datos aplicados correctamente', 'ok');
+        }
 
         const confidencePct = Math.max(0, Math.min(100, Number(__LF_lastParsedConfianza || 0)));
         const shouldAutoCalc = confidencePct >= 99.5; // Consideramos ≥99.5% como confianza plena para cubrir redondeos

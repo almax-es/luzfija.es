@@ -2105,90 +2105,102 @@ function mostrarPreviewCSV(resultado) {
 }
 
 function initCSVImporter() {
-  console.log('%c[CSV] === INICIO initCSVImporter ===', 'background: #8B5CF6; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;');
-  
-  const container = $('consumosWrapper');
-  console.log('[CSV] Container encontrado:', container);
-  
-  if (!container) {
-    console.error('[CSV] ❌ No se encontró consumosWrapper');
-    return;
-  }
-  
-  const fileInput = document.createElement('input');
-  fileInput.type = 'file';
-  fileInput.accept = '.csv';
-  fileInput.style.display = 'none';
-  fileInput.id = 'csvConsumoInput';
-  
-  const btnCSV = document.createElement('button');
-  btnCSV.type = 'button';
-  btnCSV.className = 'btn';
-  btnCSV.style.cssText = 'margin-top: 12px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;';
-  btnCSV.innerHTML = '📊 Importar desde CSV';
-  btnCSV.title = 'Subir archivo CSV con consumo horario';
-  
-  const hint = document.createElement('small');
-  hint.style.cssText = 'font-size: 11px; color: var(--muted2); margin-top: 4px; display: block; text-align: center;';
-  hint.textContent = 'Descarga tu consumo horario de e-distribución, i-DE o Datadis';
-  
-  btnCSV.addEventListener('click', () => {
-    console.log('[CSV] Botón clickeado');
-    fileInput.click();
-  });
-  
-  fileInput.addEventListener('change', async (e) => {
-    console.log('%c[CSV] 📂 ARCHIVO SELECCIONADO', 'background: #10B981; color: white; padding: 4px 8px; border-radius: 4px; font-weight: bold;');
-    const file = e.target.files[0];
-    if (!file) {
-      console.warn('[CSV] No hay archivo seleccionado');
+  try {
+    // Usar console.error para que funcione incluso con debug desactivado
+    const log = (...args) => console.error('[CSV]', ...args);
+    
+    log('=== INICIO initCSVImporter ===');
+    
+    const container = $('consumosWrapper');
+    if (!container) {
+      log('❌ No se encontró consumosWrapper');
       return;
     }
     
-    console.log('[CSV] Nombre archivo:', file.name);
-    console.log('[CSV] Tamaño:', (file.size / 1024).toFixed(2), 'KB');
+    log('✓ Container encontrado');
     
-    btnCSV.disabled = true;
-    btnCSV.innerHTML = '⏳ Procesando CSV...';
+    const fileInput = document.createElement('input');
+    fileInput.type = 'file';
+    fileInput.accept = '.csv';
+    fileInput.style.display = 'none';
+    fileInput.id = 'csvConsumoInput';
     
-    try {
-      console.log('[CSV] Llamando a procesarCSVConsumos...');
-      const resultado = await procesarCSVConsumos(file);
-      console.log('%c[CSV] ✅ RESULTADO:', 'background: #10B981; color: white; padding: 4px 8px;', resultado);
+    const btnCSV = document.createElement('button');
+    btnCSV.type = 'button';
+    btnCSV.className = 'btn';
+    btnCSV.style.cssText = 'margin-top: 12px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;';
+    btnCSV.innerHTML = '📊 Importar desde CSV';
+    btnCSV.title = 'Subir archivo CSV con consumo horario';
+    
+    const hint = document.createElement('small');
+    hint.style.cssText = 'font-size: 11px; color: var(--muted2); margin-top: 4px; display: block; text-align: center;';
+    hint.textContent = 'Descarga tu consumo horario de e-distribución, i-DE o Datadis';
+    
+    btnCSV.addEventListener('click', () => {
+      log('Botón clickeado - abriendo selector de archivos');
+      fileInput.click();
+    });
+    
+    fileInput.addEventListener('change', async (e) => {
+      log('📂 Evento change disparado');
+      const file = e.target.files[0];
+      if (!file) {
+        log('⚠️ No hay archivo seleccionado');
+        return;
+      }
       
-      console.log('[CSV] Mostrando preview...');
-      mostrarPreviewCSV(resultado);
+      log('Archivo:', file.name, '-', (file.size / 1024).toFixed(2), 'KB');
       
-      btnCSV.disabled = false;
-      btnCSV.innerHTML = '📊 Importar desde CSV';
-      fileInput.value = '';
+      btnCSV.disabled = true;
+      btnCSV.innerHTML = '⏳ Procesando CSV...';
       
-    } catch (error) {
-      console.error('%c[CSV] ❌ ERROR', 'background: #EF4444; color: white; padding: 4px 8px;', error);
-      toast(error.message || 'Error al procesar el CSV', 'err');
-      
-      btnCSV.disabled = false;
-      btnCSV.innerHTML = '📊 Importar desde CSV';
-      fileInput.value = '';
+      try {
+        log('Llamando a procesarCSVConsumos...');
+        const resultado = await procesarCSVConsumos(file);
+        log('✅ RESULTADO:', resultado);
+        
+        log('Mostrando preview...');
+        mostrarPreviewCSV(resultado);
+        
+        btnCSV.disabled = false;
+        btnCSV.innerHTML = '📊 Importar desde CSV';
+        fileInput.value = '';
+        
+      } catch (error) {
+        log('❌ ERROR:', error);
+        toast(error.message || 'Error al procesar el CSV', 'err');
+        
+        btnCSV.disabled = false;
+        btnCSV.innerHTML = '📊 Importar desde CSV';
+        fileInput.value = '';
+      }
+    });
+    
+    const wrapperDiv = document.createElement('div');
+    wrapperDiv.style.cssText = 'margin-top: 12px;';
+    wrapperDiv.appendChild(fileInput);
+    wrapperDiv.appendChild(btnCSV);
+    wrapperDiv.appendChild(hint);
+    
+    // Insertar DESPUÉS del consumosWrapper
+    if (container.nextSibling) {
+      container.parentNode.insertBefore(wrapperDiv, container.nextSibling);
+      log('✓ Botón insertado correctamente DESPUÉS de consumosWrapper');
+    } else {
+      container.parentNode.appendChild(wrapperDiv);
+      log('✓ Botón añadido al final del parentNode');
     }
-  });
-  
-  const wrapperDiv = document.createElement('div');
-  wrapperDiv.style.cssText = 'margin-top: 12px;';
-  wrapperDiv.appendChild(fileInput);
-  wrapperDiv.appendChild(btnCSV);
-  wrapperDiv.appendChild(hint);
-  
-  console.log('[CSV] WrapperDiv creado:', wrapperDiv);
-  console.log('[CSV] Container.parentNode:', container.parentNode);
-  console.log('[CSV] Container.nextSibling:', container.nextSibling);
-  
-  // Insertar DESPUÉS del consumosWrapper, no dentro
-  if (container.parentNode) {
-    container.parentNode.insertBefore(wrapperDiv, container.nextSibling);
-    console.log('[CSV] Botón insertado correctamente después de consumosWrapper');
-    console.log('[CSV] Verificación - botón existe en DOM:', document.getElementById('csvConsumoInput') !== null);
-  } else {
-    console.error('[CSV] No se pudo insertar el botón - parentNode no existe');
+    
+    // Verificación
+    setTimeout(() => {
+      const check = document.getElementById('csvConsumoInput');
+      log('Verificación final - botón existe en DOM:', check !== null);
+      if (!check) {
+        log('❌ PROBLEMA: El botón no está en el DOM');
+      }
+    }, 100);
+    
+  } catch (error) {
+    console.error('[CSV] ERROR CRÍTICO:', error);
   }
 }
