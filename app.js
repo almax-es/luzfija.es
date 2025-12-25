@@ -1893,17 +1893,24 @@ function agregarMiTarifa() {
 
 function parseCSVConsumos(fileContent) {
   /**
-   * Parsea CSV de e-distribución/Datadis
-   * Formatos soportados:
+   * Parsea CSV de consumos horarios
+   * Formatos VERIFICADOS:
    * - e-distribución: CUPS;Fecha;Hora;AE_kWh;REAL/ESTIMADO
+   * - i-DE (Iberdrola): CUPS;Fecha;Hora;Consumo_kWh;Metodo_obtencion
+   * 
+   * Formato EXPERIMENTAL (sin verificar):
    * - Datadis: CUPS;Date;Time;Consumption_kWh;Obtained_Method
    */
   const lines = fileContent.split('\n');
   if (lines.length < 2) throw new Error('CSV vacío o inválido');
   
   const header = lines[0].toLowerCase();
-  const isEdistribucion = header.includes('ae_kwh');
-  const isDatadis = header.includes('consumption_kwh') || header.includes('date');
+  
+  // Detectar e-distribución o i-DE (mismo formato, solo cambia nombre columna)
+  const isEdistribucion = header.includes('ae_kwh') || header.includes('consumo_kwh');
+  
+  // Datadis (formato diferente, NO VERIFICADO - dejar por si funciona)
+  const isDatadis = !isEdistribucion && header.includes('consumption_kwh');
   
   const consumos = [];
   
@@ -1917,7 +1924,8 @@ function parseCSVConsumos(fileContent) {
     let fechaStr, hora, kwhStr, esReal;
     
     if (isEdistribucion) {
-      // CUPS;Fecha;Hora;AE_kWh;REAL/ESTIMADO
+      // CUPS;Fecha;Hora;AE_kWh;REAL/ESTIMADO (e-distribución)
+      // CUPS;Fecha;Hora;Consumo_kWh;Metodo_obtencion (i-DE/Iberdrola)
       fechaStr = cols[1];  // DD/MM/YYYY
       hora = parseInt(cols[2]);  // 1-24
       kwhStr = cols[3];
