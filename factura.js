@@ -647,66 +647,6 @@
       // ============================================================================
       
       /**
-       * Extrae la URL del QR code del comparador CNMC del texto del PDF
-       * @param {string} texto - Texto completo del PDF
-       * @returns {string|null} - URL del QR o null si no se encuentra
-       */
-      function __LF_extractQRUrl(texto) {
-        if (!texto) return null;
-        
-        // Buscar URL del comparador CNMC
-        const urlPattern = /https:\/\/comparador\.cnmc\.gob\.es\/comparador\/QRE\?[^\s"'\n]+/;
-        const match = texto.match(urlPattern);
-        
-        if (match) {
-          console.log('[QR TEXTO] ✓ URL encontrada en el texto del PDF');
-          return match[0];
-        }
-        
-        return null;
-      }
-      
-      /**
-       * Intenta extraer QR usando OCR vía API
-       * @param {File} file - Archivo PDF original
-       * @returns {Promise<object|null>} - Datos del QR o null
-       */
-      async function __LF_extractQRViaOCR(file) {
-        try {
-          console.log('[QR OCR] Intentando extracción vía OCR...');
-          
-          // Crear FormData con el PDF
-          const formData = new FormData();
-          formData.append('factura', file);
-          
-          // Llamar a API de extracción QR
-          const response = await fetch('/api/extract-qr', {
-            method: 'POST',
-            body: formData
-          });
-          
-          if (!response.ok) {
-            console.log('[QR OCR] ⚠️ API respondió con error:', response.status);
-            return null;
-          }
-          
-          const result = await response.json();
-          
-          if (result.success && result.data) {
-            console.log(`[QR OCR] ✅ QR extraído vía ${result.method}`);
-            return result.data;
-          }
-          
-          console.log('[QR OCR] ⚠️ API no encontró QR');
-          return null;
-          
-        } catch (error) {
-          console.error('[QR OCR] ❌ Error llamando API:', error);
-          return null;
-        }
-      }
-      
-      /**
        * Parsea la URL del QR code y extrae todos los datos
        * @param {string} qrUrl - URL del QR code
        * @returns {object|null} - Datos extraídos o null si falla
