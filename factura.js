@@ -296,33 +296,18 @@
           if ((lineaLow.includes('energía') || lineaLow.includes('energia')) && 
               lineaLow.includes('kwh')) {
             
-            // Buscar Punta, Llano, Valle en las siguientes ~15 líneas (no necesariamente consecutivas)
+            // Buscar Punta, Llano, Valle en las siguientes ~10 líneas (no necesariamente consecutivas)
             let punta = null, llano = null, valle = null;
             
-            for (let j = i + 1; j < Math.min(i + 15, lineas.length); j++) {
+            for (let j = i + 1; j < Math.min(i + 10, lineas.length); j++) {
               const lineaActual = lineas[j];
               const lineaLow = lineaActual.toLowerCase();
               
-              // Patrón de tabla Endesa: "Punta 1.783,00 1.810,00 1,00 0,00 27,00"
-              // Queremos el 5º número (consumo), no el último si hay texto extra
-              const extraerConsumoTabla = (str) => {
+              const extraerConsumo = (str) => {
                 const nums = str.match(/\d+[,\.]\d+|\d+/g);
-                if (!nums || nums.length < 3) return null;
+                if (!nums || nums.length === 0) return null;
                 
-                // Si hay 5+ números (formato tabla Endesa), tomar el 5º
-                if (nums.length >= 5) {
-                  const consumoStr = nums[4]; // índice 4 = 5º número
-                  let normalizado = consumoStr.replace(',', '.');
-                  const partes = normalizado.split('.');
-                  if (partes.length > 2) {
-                    const decimal = partes.pop();
-                    normalizado = partes.join('') + '.' + decimal;
-                  }
-                  const num = parseFloat(normalizado);
-                  return (!isNaN(num) && num >= 0 && num <= 10000) ? num : null;
-                }
-                
-                // Fallback: buscar número razonable para consumo (0-10000)
+                // Buscar de atrás hacia adelante el primer número que sea consumo razonable (0-5000)
                 for (let k = nums.length - 1; k >= 0; k--) {
                   let normalizado = nums[k].replace(',', '.');
                   const partes = normalizado.split('.');
@@ -331,7 +316,8 @@
                     normalizado = partes.join('') + '.' + decimal;
                   }
                   const num = parseFloat(normalizado);
-                  if (!isNaN(num) && num >= 0 && num <= 10000) {
+                  // Filtrar: debe ser razonable para consumo mensual (0-5000 kWh)
+                  if (!isNaN(num) && num >= 0 && num <= 5000) {
                     return num;
                   }
                 }
@@ -339,18 +325,18 @@
               };
               
               if ((lineaLow.includes('punta') || lineaLow.includes('p1')) && punta === null) {
-                punta = extraerConsumoTabla(lineaActual);
+                punta = extraerConsumo(lineaActual);
               }
               if ((lineaLow.includes('llano') || lineaLow.includes('p2')) && llano === null) {
-                llano = extraerConsumoTabla(lineaActual);
+                llano = extraerConsumo(lineaActual);
               }
               if ((lineaLow.includes('valle') || lineaLow.includes('p3')) && valle === null) {
-                valle = extraerConsumoTabla(lineaActual);
+                valle = extraerConsumo(lineaActual);
               }
               
               // Si ya tenemos los 3, salir
               if (punta != null && llano != null && valle != null) {
-                console.log('[ENDESA-ESPECÍFICO] Tabla detectada (robusto):', { punta, llano, valle });
+                console.log('[ENDESA-ESPECÍFICO] Tabla detectada:', { punta, llano, valle });
                 return { punta, llano, valle };
               }
             }
