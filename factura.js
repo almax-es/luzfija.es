@@ -232,6 +232,58 @@
         return result;
       }
 
+      // NUEVO: Extracción específica para potencias contratadas de Endesa
+      function __LF_extractPotenciasEndesa(texto) {
+        const lineas = texto.split(/\r?\n/).map(l => l.trim());
+        
+        // Buscar "Potencias contratadas: punta-llano X kW; valle Y kW"
+        for (let i = 0; i < lineas.length; i++) {
+          const linea = lineas[i];
+          const lineaLow = linea.toLowerCase();
+          
+          if (lineaLow.includes('potencias contratadas')) {
+            // Patrón: "punta-llano 2,300 kW; valle 3,450 kW"
+            const matchPuntaLlano = linea.match(/punta[\s\-]*llano\s+([\d,\.]+)\s*kw/i);
+            const matchValle = linea.match(/valle\s+([\d,\.]+)\s*kw/i);
+            
+            if (matchPuntaLlano && matchValle) {
+              const p1 = parseFloat(matchPuntaLlano[1].replace(',', '.'));
+              const p2 = parseFloat(matchValle[1].replace(',', '.'));
+              
+              if (!isNaN(p1) && !isNaN(p2)) {
+                console.log('[ENDESA-POTENCIAS] Detectadas desde "Potencias contratadas":', { p1, p2 });
+                return { p1, p2 };
+              }
+            }
+          }
+          
+          // También buscar en el detalle de factura: "Pot. Punta-Llano 2,300 kW"
+          if (lineaLow.includes('pot.') && lineaLow.includes('punta')) {
+            const matchPuntaLlano = linea.match(/pot\.\s*punta[\s\-]*llano\s+([\d,\.]+)\s*kw/i);
+            if (matchPuntaLlano) {
+              const p1 = parseFloat(matchPuntaLlano[1].replace(',', '.'));
+              
+              // Buscar "Pot. Valle" en las siguientes líneas
+              for (let j = i + 1; j < Math.min(i + 3, lineas.length); j++) {
+                const lineaSiguiente = lineas[j];
+                const matchValle = lineaSiguiente.match(/pot\.\s*valle\s+([\d,\.]+)\s*kw/i);
+                
+                if (matchValle) {
+                  const p2 = parseFloat(matchValle[1].replace(',', '.'));
+                  
+                  if (!isNaN(p1) && !isNaN(p2)) {
+                    console.log('[ENDESA-POTENCIAS] Detectadas desde detalle de factura:', { p1, p2 });
+                    return { p1, p2 };
+                  }
+                }
+              }
+            }
+          }
+        }
+        
+        return null;
+      }
+
       // NUEVO: Extracción específica para facturas de Endesa
       function __LF_extractConsumoEndesa(texto) {
         const lineas = texto.split(/\r?\n/).map(l => l.trim());
@@ -555,6 +607,14 @@
       // Extraer potencias según compañía
       function __LF_extraerPotenciasCompania(texto, compania){
         switch(compania){
+          case 'endesa':
+            // Endesa: usar función específica
+            const endesaPotencias = __LF_extractPotenciasEndesa(texto);
+            if (endesaPotencias) {
+              return endesaPotencias;
+            }
+            return null;
+            
           case 'totalenergies':
             // TotalEnergies: "P1: 4,50 P2: 4,50 kW" (kW después de P2)
             const p1_te = __LF_extraerNumero(texto, [
