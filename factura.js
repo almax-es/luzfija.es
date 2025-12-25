@@ -121,7 +121,7 @@
         const b = parse(d2);
         if (!a || !b) return null;
         const ms = (b.getTime() - a.getTime());
-        const days = Math.floor(ms / 86400000) + 1;
+        const days = Math.floor(ms / 86400000);
         if (!isFinite(days) || days <= 0 || days > 400) return null;
         return days;
       }
@@ -829,7 +829,7 @@
             try {
               const inicio = new Date(fechaInicio);
               const fin = new Date(fechaFin);
-              dias = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
+              dias = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24));
             } catch (e) {
               console.log('[QR] ⚠️  Error calculando días:', e);
             }
