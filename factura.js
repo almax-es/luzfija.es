@@ -1269,10 +1269,11 @@
         try{
           const { textLines, textCompact, textRawLen } = await __LF_extraerTextoPDF(file);
 
-          __LF_hide(__LF_q('loaderFactura'));
-          __LF_show(__LF_q('resultadoFactura'));
+          // NO mostrar resultados todavía, el QR puede tardar 2-3 segundos más
 
           if (!textRawLen || textRawLen < 40){
+            __LF_hide(__LF_q('loaderFactura'));
+            __LF_show(__LF_q('resultadoFactura'));
             __LF_warn('⚠️ No se ha detectado texto seleccionable. Parece un PDF escaneado. Puedes probar <b>OCR (experimental)</b> o introducir los datos manualmente.');
             __LF_show(__LF_q('btnOcrFactura'));
             __LF_setBadge(0);
@@ -1354,6 +1355,11 @@
             };
             
             console.log('[QR] ✅ Datos combinados:', datosCombinados);
+            
+            // AHORA SÍ: mostrar resultados con los datos completos
+            __LF_hide(__LF_q('loaderFactura'));
+            __LF_show(__LF_q('resultadoFactura'));
+            
             __LF_setBadge(100);
             __LF_renderForm(datosCombinados);
             return;
@@ -1364,6 +1370,11 @@
           // ====================================================================
           console.log('[QR] QR no encontrado - usando parseo PDF');
           const datos = __LF_parsearDatos(textLines, textCompact);
+          
+          // AHORA SÍ: mostrar resultados con los datos completos
+          __LF_hide(__LF_q('loaderFactura'));
+          __LF_show(__LF_q('resultadoFactura'));
+          
           __LF_setBadge(datos.confianza);
           __LF_renderForm(datos);
 
