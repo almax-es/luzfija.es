@@ -1366,13 +1366,13 @@
             // COMBINAR: usar QR como base, completar/corregir con PDF
             const datosCombinados = {
               // Potencias: del QR, si no están → del PDF
-              p1: datosQR.p1 || datosPDF.p1,
-              p2: datosQR.p2 || datosPDF.p2,
+              p1: datosQR.p1 != null ? datosQR.p1 : datosPDF.p1,
+              p2: datosQR.p2 != null ? datosQR.p2 : datosPDF.p2,
               
               // Consumos: del QR, si no están → del PDF
-              consumoPunta: datosQR.consumoPunta || datosPDF.consumoPunta,
-              consumoLlano: datosQR.consumoLlano || datosPDF.consumoLlano,
-              consumoValle: datosQR.consumoValle || datosPDF.consumoValle,
+              consumoPunta: datosQR.consumoPunta != null ? datosQR.consumoPunta : datosPDF.consumoPunta,
+              consumoLlano: datosQR.consumoLlano != null ? datosQR.consumoLlano : datosPDF.consumoLlano,
+              consumoValle: datosQR.consumoValle != null ? datosQR.consumoValle : datosPDF.consumoValle,
               
               // DÍAS: lógica especial
               dias: (() => {
