@@ -1248,19 +1248,23 @@
         }
         window.__LF_lastFile = file;
 
+        // PRIMERO: Ocultar área de subida y sección de resultados
         __LF_hide(__LF_q('uploadAreaFactura'));
+        __LF_hide(__LF_q('resultadoFactura'));
+        __LF_hide(__LF_q('btnOcrFactura'));
+        const aviso = __LF_q('avisoFactura'); 
+        if(aviso){ aviso.innerHTML=''; __LF_hide(aviso); }
         
-        // LIMPIAR contenido del formulario anterior antes de procesar
+        // SEGUNDO: Limpiar contenido del formulario anterior (ya no es visible)
         const form = __LF_q('formValidacionFactura');
         if (form) form.innerHTML = '';
         const companiaEl = __LF_q('companiaDetectada');
         if (companiaEl) __LF_hide(companiaEl);
-        __LF_setBadge(0);
+        const badge = __LF_q('confianzaBadge');
+        if (badge) badge.textContent = '';
         
+        // TERCERO: Mostrar SOLO el loader
         __LF_show(__LF_q('loaderFactura'));
-        __LF_hide(__LF_q('resultadoFactura'));
-        __LF_hide(__LF_q('btnOcrFactura'));
-        const aviso = __LF_q('avisoFactura'); if(aviso){ aviso.innerHTML=''; __LF_hide(aviso); }
 
         try{
           const { textLines, textCompact, textRawLen } = await __LF_extraerTextoPDF(file);
