@@ -642,16 +642,161 @@
         }
       }
 
+      // ============================================================================
+      // EXTRACTOR QR - Prioridad máxima (100% confianza)
+      // ============================================================================
+      
+      /**
+       * Extrae la URL del QR code del comparador CNMC del texto del PDF
+       * @param {string} texto - Texto completo del PDF
+       * @returns {string|null} - URL del QR o null si no se encuentra
+       */
+      function __LF_extractQRUrl(texto) {
+        if (!texto) return null;
+        
+        // Buscar URL del comparador CNMC
+        const urlPattern = /https:\/\/comparador\.cnmc\.gob\.es\/comparador\/QRE\?[^\s"'\n]+/;
+        const match = texto.match(urlPattern);
+        
+        if (match) {
+          console.log('[QR TEXTO] ✓ URL encontrada en el texto del PDF');
+          return match[0];
+        }
+        
+        return null;
+      }
+      
+      /**
+       * Intenta extraer QR usando OCR vía API
+       * @param {File} file - Archivo PDF original
+       * @returns {Promise<object|null>} - Datos del QR o null
+       */
+      async function __LF_extractQRViaOCR(file) {
+        try {
+          console.log('[QR OCR] Intentando extracción vía OCR...');
+          
+          // Crear FormData con el PDF
+          const formData = new FormData();
+          formData.append('factura', file);
+          
+          // Llamar a API de extracción QR
+          const response = await fetch('/api/extract-qr', {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (!response.ok) {
+            console.log('[QR OCR] ⚠️ API respondió con error:', response.status);
+            return null;
+          }
+          
+          const result = await response.json();
+          
+          if (result.success && result.data) {
+            console.log(`[QR OCR] ✅ QR extraído vía ${result.method}`);
+            return result.data;
+          }
+          
+          console.log('[QR OCR] ⚠️ API no encontró QR');
+          return null;
+          
+        } catch (error) {
+          console.error('[QR OCR] ❌ Error llamando API:', error);
+          return null;
+        }
+      }
+      
+      /**
+       * Parsea la URL del QR code y extrae todos los datos
+       * @param {string} qrUrl - URL del QR code
+       * @returns {object|null} - Datos extraídos o null si falla
+       */
+      function __LF_parseQRData(qrUrl) {
+        if (!qrUrl || !qrUrl.includes('comparador.cnmc.gob.es')) {
+          return null;
+        }
+        
+        try {
+          const url = new URL(qrUrl);
+          const params = url.searchParams;
+          
+          // Extraer datos clave
+          const p1 = params.get('pP1');
+          const p2 = params.get('pP2');
+          const cfP1 = params.get('cfP1');
+          const cfP2 = params.get('cfP2');
+          const cfP3 = params.get('cfP3');
+          const fechaInicio = params.get('iniF');
+          const fechaFin = params.get('finF');
+          
+          // Validar que tenemos los datos mínimos necesarios
+          if (!p1 || !p2 || !cfP1 || !cfP2 || !cfP3) {
+            console.log('[QR] ⚠️  QR incompleto - faltan campos obligatorios');
+            return null;
+          }
+          
+          // Calcular días
+          let dias = null;
+          if (fechaInicio && fechaFin) {
+            try {
+              const inicio = new Date(fechaInicio);
+              const fin = new Date(fechaFin);
+              dias = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
+            } catch (e) {
+              console.log('[QR] ⚠️  Error calculando días:', e);
+            }
+          }
+          
+          const datos = {
+            potencia1: parseFloat(p1),
+            potencia2: parseFloat(p2),
+            consumoPunta: parseFloat(cfP1),
+            consumoLlano: parseFloat(cfP2),
+            consumoValle: parseFloat(cfP3),
+            dias: dias,
+            confianza: 100,
+            fuenteDatos: 'QR',
+            cups: params.get('cups') || null,
+            fechaInicio: fechaInicio,
+            fechaFin: fechaFin,
+            importeTotal: params.get('imp') ? parseFloat(params.get('imp')) : null
+          };
+          
+          console.log('[QR] ✅ Datos extraídos del QR:', datos);
+          return datos;
+          
+        } catch (error) {
+          console.error('[QR] ❌ Error parseando QR:', error);
+          return null;
+        }
+      }
+
       function __LF_parsearDatos(textoLineas, textoCompacto){
         console.log('[PARSER v1765179628-VERCEL-CLEAN] 🚀 Iniciando parseo...');
         const textLines = String(textoLineas || '');
         const textCompact = String(textoCompacto || '');
-
-        // Normalización suave
+        
+        // ========================================================================
+        // PASO 1: INTENTAR EXTRAER DEL QR (PRIORIDAD MÁXIMA)
+        // ========================================================================
         const tAll = (textLines + '\n' + textCompact)
           .replace(/[\u00A0\t]/g,' ')
           .replace(/\s+/g,' ')
           .trim();
+        
+        const qrUrl = __LF_extractQRUrl(tAll);
+        if (qrUrl) {
+          const datosQR = __LF_parseQRData(qrUrl);
+          if (datosQR) {
+            console.log('[QR] ✅ RETORNANDO DATOS DEL QR (100% confianza) - Flujo PDF omitido');
+            return datosQR;
+          }
+        }
+        
+        // ========================================================================
+        // PASO 2: FALLBACK - PARSEO COMPLETO DEL PDF (Código original)
+        // ========================================================================
+        console.log('[QR] ⚠️  QR no disponible - continuando con parseo PDF...');
 
         // --- Fechas y días ---
         const dateSep = '[\\/\\.\\-]';
@@ -1112,6 +1257,47 @@
             return;
           }
 
+          // ====================================================================
+          // PASO 1: INTENTAR EXTRAER DEL QR (Texto + OCR)
+          // ====================================================================
+          
+          // 1.1: Buscar URL en el texto del PDF
+          const tAll = (textLines + '\n' + textCompact)
+            .replace(/[\u00A0\t]/g,' ')
+            .replace(/\s+/g,' ')
+            .trim();
+          
+          const qrUrlTexto = __LF_extractQRUrl(tAll);
+          
+          if (qrUrlTexto) {
+            // URL encontrada en texto
+            const datosQR = __LF_parseQRData(qrUrlTexto);
+            if (datosQR) {
+              console.log('[QR] ✅ Datos extraídos del QR (TEXTO) - Omitiendo parseo PDF');
+              __LF_setBadge(datosQR.confianza);
+              __LF_renderForm(datosQR);
+              return;
+            }
+          }
+          
+          // 1.2: Si no hay URL en texto, intentar OCR de imagen
+          console.log('[QR] URL no encontrada en texto, intentando OCR...');
+          try {
+            const datosQROCR = await __LF_extractQRViaOCR(file);
+            if (datosQROCR) {
+              console.log('[QR] ✅ Datos extraídos del QR (OCR) - Omitiendo parseo PDF');
+              __LF_setBadge(datosQROCR.confianza);
+              __LF_renderForm(datosQROCR);
+              return;
+            }
+          } catch (ocrError) {
+            console.log('[QR] ⚠️ OCR no disponible o falló:', ocrError.message);
+          }
+
+          // ====================================================================
+          // PASO 2: FALLBACK - PARSEO PDF (método original)
+          // ====================================================================
+          console.log('[QR] ⚠️ QR no disponible - usando parseo PDF...');
           const datos = __LF_parsearDatos(textLines, textCompact);
           __LF_setBadge(datos.confianza);
           __LF_renderForm(datos);
