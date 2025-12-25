@@ -1249,6 +1249,14 @@
         window.__LF_lastFile = file;
 
         __LF_hide(__LF_q('uploadAreaFactura'));
+        
+        // LIMPIAR contenido del formulario anterior antes de procesar
+        const form = __LF_q('formValidacionFactura');
+        if (form) form.innerHTML = '';
+        const companiaEl = __LF_q('companiaDetectada');
+        if (companiaEl) __LF_hide(companiaEl);
+        __LF_setBadge(0);
+        
         __LF_show(__LF_q('loaderFactura'));
         __LF_hide(__LF_q('resultadoFactura'));
         __LF_hide(__LF_q('btnOcrFactura'));
