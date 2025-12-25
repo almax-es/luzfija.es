@@ -744,30 +744,43 @@
           const arrayBuffer = await pdfFile.arrayBuffer();
           const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
           
+          // Intentar con múltiples escalas para mejor detección
+          const scales = [3.0, 2.5, 2.0, 1.5];
+          
           for (let pageNum = 1; pageNum <= Math.min(pdf.numPages, 3); pageNum++) {
+            console.log(`[QR jsQR] Página ${pageNum}/${Math.min(pdf.numPages, 3)}...`);
             const page = await pdf.getPage(pageNum);
-            const scale = 2.5;
-            const viewport = page.getViewport({ scale });
             
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d');
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-            
-            await page.render({ canvasContext: context, viewport }).promise;
-            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-            
-            const code = jsQR(imageData.data, imageData.width, imageData.height);
-            
-            if (code && code.data && code.data.includes('comparador.cnmc.gob.es')) {
-              console.log(`[QR jsQR] ✅ QR encontrado en página ${pageNum}`);
-              return code.data;
+            for (const scale of scales) {
+              const viewport = page.getViewport({ scale });
+              
+              const canvas = document.createElement('canvas');
+              const context = canvas.getContext('2d');
+              canvas.width = viewport.width;
+              canvas.height = viewport.height;
+              
+              await page.render({ canvasContext: context, viewport }).promise;
+              const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+              
+              // Intentar con y sin inversión
+              const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: "attemptBoth"
+              });
+              
+              if (code && code.data) {
+                console.log(`[QR jsQR] Código detectado (escala ${scale}):`, code.data.substring(0, 50));
+                if (code.data.includes('comparador.cnmc.gob.es')) {
+                  console.log(`[QR jsQR] ✅ QR encontrado en página ${pageNum} (escala ${scale})`);
+                  return code.data;
+                }
+              }
             }
           }
           
+          console.log('[QR jsQR] ⚠️ No se detectó QR en ninguna página');
           return null;
         } catch (error) {
-          console.log('[QR jsQR] Error:', error.message);
+          console.log('[QR jsQR] ❌ Error:', error.message);
           return null;
         }
       }
@@ -823,8 +836,8 @@
           }
           
           const datos = {
-            potencia1: parseFloat(p1),
-            potencia2: parseFloat(p2),
+            p1: parseFloat(p1),
+            p2: parseFloat(p2),
             consumoPunta: parseFloat(cfP1),
             consumoLlano: parseFloat(cfP2),
             consumoValle: parseFloat(cfP3),
