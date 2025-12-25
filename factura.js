@@ -864,27 +864,10 @@
         const textLines = String(textoLineas || '');
         const textCompact = String(textoCompacto || '');
         
-        // ========================================================================
-        // PASO 1: INTENTAR EXTRAER DEL QR (PRIORIDAD MÁXIMA)
-        // ========================================================================
         const tAll = (textLines + '\n' + textCompact)
           .replace(/[\u00A0\t]/g,' ')
           .replace(/\s+/g,' ')
           .trim();
-        
-        const qrUrl = __LF_extractQRUrl(tAll);
-        if (qrUrl) {
-          const datosQR = __LF_parseQRData(qrUrl);
-          if (datosQR) {
-            console.log('[QR] ✅ RETORNANDO DATOS DEL QR (100% confianza) - Flujo PDF omitido');
-            return datosQR;
-          }
-        }
-        
-        // ========================================================================
-        // PASO 2: FALLBACK - PARSEO COMPLETO DEL PDF (Código original)
-        // ========================================================================
-        console.log('[QR] ⚠️  QR no disponible - continuando con parseo PDF...');
 
         // --- Fechas y días ---
         const dateSep = '[\\/\\.\\-]';
@@ -1351,37 +1334,81 @@
           const tAll = (textLines + '\n' + textCompact).replace(/[\u00A0\t]/g,' ').replace(/\s+/g,' ').trim();
           const qrUrlTexto = __LF_extractQRUrl(tAll);
           
+          let datosQR = null;
           if (qrUrlTexto) {
-            const datosQR = __LF_parseQRData(qrUrlTexto);
-            if (datosQR) {
-              console.log('[QR] ✅ Datos del QR (texto) - 100% confianza');
-              __LF_setBadge(100);
-              __LF_renderForm(datosQR);
-              return;
-            }
+            datosQR = __LF_parseQRData(qrUrlTexto);
           }
           
           // ====================================================================
           // PASO 2: Intentar QR con jsQR (escaneo de imagen)
           // ====================================================================
-          console.log('[QR] Texto no tiene URL, intentando jsQR...');
-          try {
-            const qrUrlImagen = await __LF_extractQRFromPDF(file);
-            if (qrUrlImagen) {
-              const datosQR = __LF_parseQRData(qrUrlImagen);
-              if (datosQR) {
-                console.log('[QR] ✅ Datos del QR (imagen) - 100% confianza');
-                __LF_setBadge(100);
-                __LF_renderForm(datosQR);
-                return;
+          if (!datosQR) {
+            console.log('[QR] Texto no tiene URL, intentando jsQR...');
+            try {
+              const qrUrlImagen = await __LF_extractQRFromPDF(file);
+              if (qrUrlImagen) {
+                datosQR = __LF_parseQRData(qrUrlImagen);
               }
+            } catch (jsqrError) {
+              console.log('[QR jsQR] No disponible:', jsqrError.message);
             }
-          } catch (jsqrError) {
-            console.log('[QR jsQR] No disponible:', jsqrError.message);
           }
 
           // ====================================================================
-          // PASO 3: FALLBACK - Parseo PDF normal
+          // PASO 3: Si tenemos QR, combinar inteligentemente con PDF
+          // ====================================================================
+          if (datosQR) {
+            console.log('[QR] ✅ QR encontrado - validando con datos del PDF');
+            
+            // Parsear PDF completo para tener datos de fallback
+            const datosPDF = __LF_parsearDatos(textLines, textCompact);
+            
+            // COMBINAR: usar QR como base, completar/corregir con PDF
+            const datosCombinados = {
+              // Potencias: del QR, si no están → del PDF
+              p1: datosQR.p1 || datosPDF.p1,
+              p2: datosQR.p2 || datosPDF.p2,
+              
+              // Consumos: del QR, si no están → del PDF
+              consumoPunta: datosQR.consumoPunta || datosPDF.consumoPunta,
+              consumoLlano: datosQR.consumoLlano || datosPDF.consumoLlano,
+              consumoValle: datosQR.consumoValle || datosPDF.consumoValle,
+              
+              // DÍAS: lógica especial
+              dias: (() => {
+                const diasQR = datosQR.dias;
+                const diasPDF = datosPDF.dias;
+                
+                // Si NO hay días en PDF → usar QR
+                if (!diasPDF) {
+                  console.log('[DÍAS] PDF no tiene días, usando QR:', diasQR);
+                  return diasQR;
+                }
+                
+                // Si QR y PDF coinciden → usar QR (fuente oficial)
+                if (diasQR === diasPDF) {
+                  console.log('[DÍAS] QR y PDF coinciden (' + diasQR + '), usando QR');
+                  return diasQR;
+                }
+                
+                // Si son diferentes → usar PDF (lo que cobran)
+                console.log('[DÍAS] QR (' + diasQR + ') ≠ PDF (' + diasPDF + '), usando PDF (lo que cobran)');
+                return diasPDF;
+              })(),
+              
+              confianza: 100,
+              fuenteDatos: 'QR+PDF',
+              compania: datosPDF.compania
+            };
+            
+            console.log('[QR] ✅ Datos combinados:', datosCombinados);
+            __LF_setBadge(100);
+            __LF_renderForm(datosCombinados);
+            return;
+          }
+
+          // ====================================================================
+          // PASO 4: FALLBACK - Parseo PDF completo (sin QR)
           // ====================================================================
           console.log('[QR] QR no encontrado - usando parseo PDF');
           const datos = __LF_parsearDatos(textLines, textCompact);
