@@ -296,55 +296,62 @@
           if ((lineaLow.includes('energía') || lineaLow.includes('energia')) && 
               lineaLow.includes('kwh')) {
             
-            // Buscar en las siguientes 5 líneas
-            for (let j = i + 1; j < Math.min(i + 6, lineas.length); j++) {
-              const l1 = lineas[j];
-              const l2 = lineas[j + 1];
-              const l3 = lineas[j + 2];
+            // Buscar Punta, Llano, Valle en las siguientes ~15 líneas (no necesariamente consecutivas)
+            let punta = null, llano = null, valle = null;
+            
+            for (let j = i + 1; j < Math.min(i + 15, lineas.length); j++) {
+              const lineaActual = lineas[j];
+              const lineaLow = lineaActual.toLowerCase();
               
-              if (!l1 || !l2 || !l3) continue;
-              
-              const l1Low = l1.toLowerCase();
-              const l2Low = l2.toLowerCase();
-              const l3Low = l3.toLowerCase();
-              
-              // Verificar que las 3 líneas sean Punta, Llano, Valle
-              if ((l1Low.includes('punta') || l1Low.includes('p1')) &&
-                  (l2Low.includes('llano') || l2Low.includes('p2')) &&
-                  (l3Low.includes('valle') || l3Low.includes('p3'))) {
+              // Patrón de tabla Endesa: "Punta 1.783,00 1.810,00 1,00 0,00 27,00"
+              // Queremos el 5º número (consumo), no el último si hay texto extra
+              const extraerConsumoTabla = (str) => {
+                const nums = str.match(/\d+[,\.]\d+|\d+/g);
+                if (!nums || nums.length < 3) return null;
                 
-                // Extraer el último número de cada línea
-                const extraerUltimoNumero = (str) => {
-                  // Buscar todos los números en la línea
-                  const matches = str.match(/\d+[,\.]\d+|\d+/g);
-                  if (!matches || matches.length === 0) return null;
-                  
-                  // Tomar el último número
-                  const ultimoNumStr = matches[matches.length - 1];
-                  
-                  // Normalizar (convertir , a .)
-                  let normalizado = ultimoNumStr.replace(',', '.');
-                  
-                  // Si tiene miles separados por punto, quitar puntos excepto el decimal
+                // Si hay 5+ números (formato tabla Endesa), tomar el 5º
+                if (nums.length >= 5) {
+                  const consumoStr = nums[4]; // índice 4 = 5º número
+                  let normalizado = consumoStr.replace(',', '.');
                   const partes = normalizado.split('.');
                   if (partes.length > 2) {
-                    // Tiene formato 1.783.00, convertir a 1783.00
                     const decimal = partes.pop();
                     normalizado = partes.join('') + '.' + decimal;
                   }
-                  
                   const num = parseFloat(normalizado);
-                  return isNaN(num) ? null : num;
-                };
-                
-                const punta = extraerUltimoNumero(l1);
-                const llano = extraerUltimoNumero(l2);
-                const valle = extraerUltimoNumero(l3);
-                
-                if (punta != null && llano != null && valle != null) {
-                  console.log('[ENDESA-ESPECÍFICO] Tabla de consumos detectada:', { punta, llano, valle });
-                  return { punta, llano, valle };
+                  return (!isNaN(num) && num >= 0 && num <= 10000) ? num : null;
                 }
+                
+                // Fallback: buscar número razonable para consumo (0-10000)
+                for (let k = nums.length - 1; k >= 0; k--) {
+                  let normalizado = nums[k].replace(',', '.');
+                  const partes = normalizado.split('.');
+                  if (partes.length > 2) {
+                    const decimal = partes.pop();
+                    normalizado = partes.join('') + '.' + decimal;
+                  }
+                  const num = parseFloat(normalizado);
+                  if (!isNaN(num) && num >= 0 && num <= 10000) {
+                    return num;
+                  }
+                }
+                return null;
+              };
+              
+              if ((lineaLow.includes('punta') || lineaLow.includes('p1')) && punta === null) {
+                punta = extraerConsumoTabla(lineaActual);
+              }
+              if ((lineaLow.includes('llano') || lineaLow.includes('p2')) && llano === null) {
+                llano = extraerConsumoTabla(lineaActual);
+              }
+              if ((lineaLow.includes('valle') || lineaLow.includes('p3')) && valle === null) {
+                valle = extraerConsumoTabla(lineaActual);
+              }
+              
+              // Si ya tenemos los 3, salir
+              if (punta != null && llano != null && valle != null) {
+                console.log('[ENDESA-ESPECÍFICO] Tabla detectada (robusto):', { punta, llano, valle });
+                return { punta, llano, valle };
               }
             }
           }
@@ -844,7 +851,30 @@
         // Calcular confianza basada en campos detectados
         const campos = [dias, p1, p2, cPunta, cLlano, cValle];
         const detectados = campos.filter(v => v != null && Number.isFinite(v)).length;
-        const confianza = Math.round((detectados / 6) * 100);
+        let confianza = Math.round((detectados / 6) * 100);
+        
+        // NUEVO: Ajustar confianza si usamos fallbacks genéricos (menos confiable)
+        if (compania === 'endesa' && triple === null && (cPunta || cLlano || cValle)) {
+          // Si Endesa pero consumos vienen del fallback genérico, reducir confianza
+          confianza = Math.min(confianza, 70);
+          console.log('[CONFIANZA] Ajustada a máx 70% (consumos desde fallback genérico)');
+        }
+        
+        // Detectar si hay "potencias máximas demandadas" cerca de las potencias extraídas
+        if (p1 != null && p2 != null) {
+          const textoLower = tAll.toLowerCase();
+          const idxPot = textoLower.indexOf('potencia');
+          if (idxPot >= 0) {
+            const fragmento = tAll.substring(Math.max(0, idxPot - 100), idxPot + 500);
+            if (/m[áa]xim[ao]s?\s+demandad[ao]s?/i.test(fragmento)) {
+              // Hay riesgo de confusión con máximas demandadas
+              if (!potenciasCompania) {
+                confianza = Math.min(confianza, 75);
+                console.log('[CONFIANZA] Ajustada a máx 75% (detectadas "máximas demandadas" cerca)');
+              }
+            }
+          }
+        }
 
         // LOG CONSOLIDADO FINAL
         console.log('═══════════════════════════════════════════════════════');
