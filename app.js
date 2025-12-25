@@ -1893,24 +1893,29 @@ function agregarMiTarifa() {
 
 function parseCSVConsumos(fileContent) {
   /**
-   * Parsea CSV de consumos horarios
-   * Formatos VERIFICADOS:
+   * Parsea CSV de consumos horarios de distribuidoras españolas
+   * 
+   * FORMATOS SOPORTADOS (verificados):
    * - e-distribución: CUPS;Fecha;Hora;AE_kWh;REAL/ESTIMADO
    * - i-DE (Iberdrola): CUPS;Fecha;Hora;Consumo_kWh;Metodo_obtencion
    * 
-   * Formato EXPERIMENTAL (sin verificar):
-   * - Datadis: CUPS;Date;Time;Consumption_kWh;Obtained_Method
+   * Ambos usan el formato estándar CNMC:
+   * - Fechas: DD/MM/YYYY
+   * - Horas: 1-24 (no 0-23)
+   * - Separador: punto y coma (;)
    */
   const lines = fileContent.split('\n');
   if (lines.length < 2) throw new Error('CSV vacío o inválido');
   
   const header = lines[0].toLowerCase();
   
-  // Detectar e-distribución o i-DE (mismo formato, solo cambia nombre columna)
-  const isEdistribucion = header.includes('ae_kwh') || header.includes('consumo_kwh');
+  // Detectar formato estándar español (CNMC)
+  // Acepta tanto "AE_kWh" (e-distribución) como "Consumo_kWh" (i-DE)
+  const isFormatoEspanol = header.includes('ae_kwh') || header.includes('consumo_kwh');
   
-  // Datadis (formato diferente, NO VERIFICADO - dejar por si funciona)
-  const isDatadis = !isEdistribucion && header.includes('consumption_kwh');
+  if (!isFormatoEspanol) {
+    throw new Error('Formato CSV no reconocido. Se esperaba el formato estándar de distribuidoras españolas (e-distribución, i-DE, etc.)');
+  }
   
   const consumos = [];
   
@@ -1921,38 +1926,20 @@ function parseCSVConsumos(fileContent) {
     const cols = line.split(';');
     if (cols.length < 4) continue;
     
-    let fechaStr, hora, kwhStr, esReal;
-    
-    if (isEdistribucion) {
-      // CUPS;Fecha;Hora;AE_kWh;REAL/ESTIMADO (e-distribución)
-      // CUPS;Fecha;Hora;Consumo_kWh;Metodo_obtencion (i-DE/Iberdrola)
-      fechaStr = cols[1];  // DD/MM/YYYY
-      hora = parseInt(cols[2]);  // 1-24
-      kwhStr = cols[3];
-      esReal = cols[4] === 'R';
-    } else if (isDatadis) {
-      // CUPS;Date;Time;Consumption_kWh;Obtained_Method
-      fechaStr = cols[1];  // YYYY-MM-DD
-      const timeStr = cols[2];  // HH:MM
-      hora = parseInt(timeStr.split(':')[0]) + 1;  // Convertir 0-23 a 1-24
-      kwhStr = cols[3];
-      esReal = cols[4] === 'R';
-    } else {
-      continue;
-    }
+    // Formato: CUPS;Fecha;Hora;Consumo_kWh;Metodo
+    const fechaStr = cols[1];  // DD/MM/YYYY
+    const hora = parseInt(cols[2]);  // 1-24
+    const kwhStr = cols[3];
+    const esReal = cols[4] === 'R';
     
     if (!kwhStr || kwhStr.trim() === '') continue;
     
     const kwh = parseFloat(kwhStr.replace(',', '.'));
     if (isNaN(kwh)) continue;
     
-    let fecha;
-    if (isEdistribucion) {
-      const [dia, mes, año] = fechaStr.split('/').map(Number);
-      fecha = new Date(año, mes - 1, dia);
-    } else {
-      fecha = new Date(fechaStr);
-    }
+    // Parsear fecha DD/MM/YYYY
+    const [dia, mes, año] = fechaStr.split('/').map(Number);
+    const fecha = new Date(año, mes - 1, dia);
     
     if (isNaN(fecha.getTime())) continue;
     
@@ -2293,7 +2280,7 @@ function initCSVImporter() {
     
     const hint = document.createElement('small');
     hint.style.cssText = 'font-size: 11px; color: var(--muted2); margin-top: 4px; display: block; text-align: center;';
-    hint.textContent = 'Descarga tu consumo horario de e-distribución, i-DE o Datadis';
+    hint.textContent = 'Descarga tu consumo horario de tu distribuidora (e-distribución, i-DE, etc.)';
     
     btnCSV.addEventListener('click', () => {
       fileInput.click();
