@@ -1253,6 +1253,10 @@
         __LF_hide(__LF_q('resultadoFactura'));
         __LF_hide(__LF_q('btnOcrFactura'));
         const aviso = __LF_q('avisoFactura'); if(aviso){ aviso.innerHTML=''; __LF_hide(aviso); }
+        
+        // LIMPIAR FORMULARIO ANTERIOR (evita mostrar datos viejos durante procesamiento)
+        __LF_renderForm({ p1:null,p2:null,dias:null,consumoPunta:null,consumoLlano:null,consumoValle:null,confianza:0 });
+        __LF_setBadge(0);
 
         try{
           const { textLines, textCompact, textRawLen } = await __LF_extraerTextoPDF(file);
