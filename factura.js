@@ -232,10 +232,85 @@
         return result;
       }
 
+      // NUEVO: Extracción específica para facturas de Endesa
+      function __LF_extractConsumoEndesa(texto) {
+        const lineas = texto.split(/\r?\n/).map(l => l.trim());
+        
+        for (let i = 0; i < lineas.length; i++) {
+          const linea = lineas[i];
+          const lineaLow = linea.toLowerCase();
+          
+          // Buscar la fila con "Energía" y "kWh" (encabezado de la tabla)
+          if ((lineaLow.includes('energía') || lineaLow.includes('energia')) && 
+              lineaLow.includes('kwh')) {
+            
+            // Buscar en las siguientes 5 líneas
+            for (let j = i + 1; j < Math.min(i + 6, lineas.length); j++) {
+              const l1 = lineas[j];
+              const l2 = lineas[j + 1];
+              const l3 = lineas[j + 2];
+              
+              if (!l1 || !l2 || !l3) continue;
+              
+              const l1Low = l1.toLowerCase();
+              const l2Low = l2.toLowerCase();
+              const l3Low = l3.toLowerCase();
+              
+              // Verificar que las 3 líneas sean Punta, Llano, Valle
+              if ((l1Low.includes('punta') || l1Low.includes('p1')) &&
+                  (l2Low.includes('llano') || l2Low.includes('p2')) &&
+                  (l3Low.includes('valle') || l3Low.includes('p3'))) {
+                
+                // Extraer el último número de cada línea
+                const extraerUltimoNumero = (str) => {
+                  // Buscar todos los números en la línea
+                  const matches = str.match(/\d+[,\.]\d+|\d+/g);
+                  if (!matches || matches.length === 0) return null;
+                  
+                  // Tomar el último número
+                  const ultimoNumStr = matches[matches.length - 1];
+                  
+                  // Normalizar (convertir , a .)
+                  let normalizado = ultimoNumStr.replace(',', '.');
+                  
+                  // Si tiene miles separados por punto, quitar puntos excepto el decimal
+                  const partes = normalizado.split('.');
+                  if (partes.length > 2) {
+                    // Tiene formato 1.783.00, convertir a 1783.00
+                    const decimal = partes.pop();
+                    normalizado = partes.join('') + '.' + decimal;
+                  }
+                  
+                  const num = parseFloat(normalizado);
+                  return isNaN(num) ? null : num;
+                };
+                
+                const punta = extraerUltimoNumero(l1);
+                const llano = extraerUltimoNumero(l2);
+                const valle = extraerUltimoNumero(l3);
+                
+                if (punta != null && llano != null && valle != null) {
+                  console.log('[ENDESA-ESPECÍFICO] Tabla de consumos detectada:', { punta, llano, valle });
+                  return { punta, llano, valle };
+                }
+              }
+            }
+          }
+        }
+        
+        return null;
+      }
+
       // FIX: extraer triple consumo explícito "Consumo en el periodo"
       function __LF_extractTripleConsumo(texto){
         if (!texto) return null;
         const t = String(texto);
+
+        // ✅ NUEVO: Intentar extracción específica para Endesa PRIMERO
+        const endesaResult = __LF_extractConsumoEndesa(t);
+        if (endesaResult) {
+          return endesaResult;
+        }
 
         // PATRONES UNIVERSALES ULTRA-ROBUSTOS: Punta/P1
         const p = __LF_extraerNumero(t, [
