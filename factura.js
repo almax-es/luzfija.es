@@ -711,6 +711,81 @@
        * @param {string} qrUrl - URL del QR code
        * @returns {object|null} - Datos extraídos o null si falla
        */
+
+      // ============================================================================
+      // EXTRACTOR QR CON jsQR (JavaScript puro - navegador)
+      // ============================================================================
+      
+      /**
+       * Carga la librería jsQR
+       */
+      async function __LF_loadJsQR() {
+        if (window.jsQR) return window.jsQR;
+        
+        return new Promise((resolve, reject) => {
+          const script = document.createElement('script');
+          script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
+          script.onload = () => resolve(window.jsQR);
+          script.onerror = () => reject(new Error('jsQR no disponible'));
+          document.head.appendChild(script);
+        });
+      }
+      
+      /**
+       * Extrae QR code de PDF usando jsQR
+       */
+      async function __LF_extractQRFromPDF(pdfFile) {
+        try {
+          console.log('[QR jsQR] Escaneando PDF...');
+          
+          const jsQR = await __LF_loadJsQR();
+          const pdfjsLib = await __LF_ensurePdfJs();
+          
+          const arrayBuffer = await pdfFile.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          
+          for (let pageNum = 1; pageNum <= Math.min(pdf.numPages, 3); pageNum++) {
+            const page = await pdf.getPage(pageNum);
+            const scale = 2.5;
+            const viewport = page.getViewport({ scale });
+            
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            
+            await page.render({ canvasContext: context, viewport }).promise;
+            const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+            
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+            
+            if (code && code.data && code.data.includes('comparador.cnmc.gob.es')) {
+              console.log(`[QR jsQR] ✅ QR encontrado en página ${pageNum}`);
+              return code.data;
+            }
+          }
+          
+          return null;
+        } catch (error) {
+          console.log('[QR jsQR] Error:', error.message);
+          return null;
+        }
+      }
+      
+      /**
+       * Extrae URL QR del texto del PDF
+       */
+      function __LF_extractQRUrl(texto) {
+        if (!texto) return null;
+        const urlPattern = /https:\/\/comparador\.cnmc\.gob\.es\/comparador\/QRE\?[^\s"'\n]+/;
+        const match = texto.match(urlPattern);
+        if (match) {
+          console.log('[QR TEXTO] ✓ URL encontrada en texto');
+          return match[0];
+        }
+        return null;
+      }
+
       function __LF_parseQRData(qrUrl) {
         if (!qrUrl || !qrUrl.includes('comparador.cnmc.gob.es')) {
           return null;
@@ -1258,46 +1333,44 @@
           }
 
           // ====================================================================
-          // PASO 1: INTENTAR EXTRAER DEL QR (Texto + OCR)
+          // PASO 1: Intentar QR desde TEXTO
           // ====================================================================
-          
-          // 1.1: Buscar URL en el texto del PDF
-          const tAll = (textLines + '\n' + textCompact)
-            .replace(/[\u00A0\t]/g,' ')
-            .replace(/\s+/g,' ')
-            .trim();
-          
+          const tAll = (textLines + '\n' + textCompact).replace(/[\u00A0\t]/g,' ').replace(/\s+/g,' ').trim();
           const qrUrlTexto = __LF_extractQRUrl(tAll);
           
           if (qrUrlTexto) {
-            // URL encontrada en texto
             const datosQR = __LF_parseQRData(qrUrlTexto);
             if (datosQR) {
-              console.log('[QR] ✅ Datos extraídos del QR (TEXTO) - Omitiendo parseo PDF');
-              __LF_setBadge(datosQR.confianza);
+              console.log('[QR] ✅ Datos del QR (texto) - 100% confianza');
+              __LF_setBadge(100);
               __LF_renderForm(datosQR);
               return;
             }
           }
           
-          // 1.2: Si no hay URL en texto, intentar OCR de imagen
-          console.log('[QR] URL no encontrada en texto, intentando OCR...');
+          // ====================================================================
+          // PASO 2: Intentar QR con jsQR (escaneo de imagen)
+          // ====================================================================
+          console.log('[QR] Texto no tiene URL, intentando jsQR...');
           try {
-            const datosQROCR = await __LF_extractQRViaOCR(file);
-            if (datosQROCR) {
-              console.log('[QR] ✅ Datos extraídos del QR (OCR) - Omitiendo parseo PDF');
-              __LF_setBadge(datosQROCR.confianza);
-              __LF_renderForm(datosQROCR);
-              return;
+            const qrUrlImagen = await __LF_extractQRFromPDF(file);
+            if (qrUrlImagen) {
+              const datosQR = __LF_parseQRData(qrUrlImagen);
+              if (datosQR) {
+                console.log('[QR] ✅ Datos del QR (imagen) - 100% confianza');
+                __LF_setBadge(100);
+                __LF_renderForm(datosQR);
+                return;
+              }
             }
-          } catch (ocrError) {
-            console.log('[QR] ⚠️ OCR no disponible o falló:', ocrError.message);
+          } catch (jsqrError) {
+            console.log('[QR jsQR] No disponible:', jsqrError.message);
           }
 
           // ====================================================================
-          // PASO 2: FALLBACK - PARSEO PDF (método original)
+          // PASO 3: FALLBACK - Parseo PDF normal
           // ====================================================================
-          console.log('[QR] ⚠️ QR no disponible - usando parseo PDF...');
+          console.log('[QR] QR no encontrado - usando parseo PDF');
           const datos = __LF_parsearDatos(textLines, textCompact);
           __LF_setBadge(datos.confianza);
           __LF_renderForm(datos);
@@ -1309,9 +1382,10 @@
           __LF_hide(__LF_q('loaderFactura'));
           __LF_show(__LF_q('uploadAreaFactura'));
           if (typeof toast === 'function') toast('Error al procesar factura PDF', 'err');
-          console.error(err);
+          console.error('[ERROR] processPdf:', err);
         }
       }
+
 
       async function __LF_loadTesseract(){
         try{
