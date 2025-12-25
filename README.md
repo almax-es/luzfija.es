@@ -849,6 +849,17 @@ Proyecto **independiente** y de **código abierto**.
 
 ## 📅 Changelog
 
+### Diciembre 2025 - Extracción QR y Mejoras SEO
+- ✅ **Extracción QR de facturas** (código QR CNMC en 3 pasos)
+  - Paso 1: Extracción URL desde texto PDF
+  - Paso 2: Escaneo imagen con jsQR (múltiples escalas)
+  - Paso 3: Combinación inteligente datos QR + PDF
+- ✅ **Parser QR datos factura** (potencias, consumos, días, fechas, CUPS)
+- ✅ **Limpieza código** (funciones duplicadas eliminadas)
+- ✅ **SEO mejorado** (enlaces internos estratégicos en guías)
+- ✅ **Sección "Herramientas útiles"** en guias.html
+- ✅ **Sitemap actualizado** (fechas y estructura)
+
 ### Diciembre 2025 - Correcciones Críticas y Mejoras de Calidad
 - ✅ **Importador CSV de e-distribución** (consumo horario de distribuidora)
 - ✅ **Cálculo automático de festivos** (algoritmo de Gauss - funciona para cualquier año)
