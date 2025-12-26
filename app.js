@@ -2605,9 +2605,42 @@ function mostrarPreviewCSV(resultado) {
         lfDbg('[CSV] Error reseteando BV:', e);
       }
       
-      // Auto-calcular con delay suficiente para que campos se rellenen
-      // Los campos se rellenan con setTimeout(100), así que esperamos 250ms
-      setTimeout(() => {
+      // Auto-calcular esperando a que campos estén listos (robusto para móviles lentos)
+      setTimeout(async () => {
+        // Espera activa: verificar que campos tienen valores
+        const maxWait = 1000;
+        const startTime = Date.now();
+        let camposListos = false;
+        
+        while (Date.now() - startTime < maxWait && !camposListos) {
+          const diasOk = document.getElementById('dias')?.value;
+          const puntaOk = document.getElementById('cPunta')?.value;
+          const llanoOk = document.getElementById('cLlano')?.value;
+          const valleOk = document.getElementById('cValle')?.value;
+          
+          if (diasOk && puntaOk && llanoOk && valleOk) {
+            // Si debe tener excedentes, también verificar exTotal
+            if (debeAplicarExcedentes) {
+              const exTotalOk = document.getElementById('exTotal')?.value;
+              if (exTotalOk) {
+                lfDbg('[CSV] Todos los campos listos (con excedentes)');
+                camposListos = true;
+              }
+            } else {
+              lfDbg('[CSV] Campos básicos listos');
+              camposListos = true;
+            }
+          }
+          
+          if (!camposListos) {
+            await new Promise(resolve => setTimeout(resolve, 50));
+          }
+        }
+        
+        if (!camposListos) {
+          lfDbg('[CSV] Timeout esperando campos, calculando de todas formas');
+        }
+        
         try {
           if (typeof hideResultsToInitialState === 'function') hideResultsToInitialState();
           if (typeof setStatus === 'function') setStatus('Calculando...', 'loading');
@@ -2615,7 +2648,7 @@ function mostrarPreviewCSV(resultado) {
         } catch(e) {
           lfDbg('[CSV] Error en auto-cálculo:', e);
         }
-      }, 250);
+      }, 150); // Delay inicial para dar tiempo a que campos se rellenen
     });
   }
   
