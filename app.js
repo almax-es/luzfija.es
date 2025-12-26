@@ -39,6 +39,37 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
     const LS_KEY = 'almax_comparador_v6_inputs';
     const THEME_KEY = window.__ALMAX_THEME_KEY || 'almax_theme';
 
+    // ===== LAZY LOAD XLSX (SheetJS) =====
+    // Solo se carga cuando el usuario sube un archivo Excel
+    // Version pineada: 0.20.3 (última estable a diciembre 2024)
+    let xlsxLoading = null;
+    
+    async function ensureXLSX() {
+      if (typeof XLSX !== 'undefined') {
+        return; // Ya está cargado
+      }
+      
+      // Si ya está cargando, esperar a que termine
+      if (xlsxLoading) {
+        return xlsxLoading;
+      }
+      
+      xlsxLoading = new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+        script.onload = () => {
+          lfDbg('[XLSX] Librería cargada bajo demanda');
+          resolve();
+        };
+        script.onerror = () => {
+          reject(new Error('Error al cargar librería XLSX'));
+        };
+        document.head.appendChild(script);
+      });
+      
+      return xlsxLoading;
+    }
+
     // VALORES POR DEFECTO PARA PRIMERA VISITA
     const DEFAULTS = { p1:'3,45', p2:'3,45', dias:'30', cPunta:'100', cLlano:'100', cValle:'100', zonaFiscal:'Península', viviendaCanarias:true, solarOn:false, exTotal:'0', bvSaldo:'0' };
 
@@ -1184,7 +1215,7 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
           if (r.esPersonalizada) tr.classList.add('custom-tariff-highlight');
           
           const w = r.webUrl && r.webUrl !== '#'
-            ? `<a class="web" href="${escapeHtml(r.webUrl)}" target="_blank" rel="noopener" title="Abrir web">🔗</a>`
+            ? `<a class="web" href="${escapeHtml(r.webUrl)}" target="_blank" rel="noopener noreferrer" title="Abrir web">🔗</a>`
             : r.esPersonalizada
             ? ''
             : '';
@@ -1995,9 +2026,8 @@ function parseCSVConsumos(fileContent) {
  * - Si CONSUMO > GENERACION → Red cubre la diferencia, excedente = 0
  */
 async function parseXLSXConsumos(fileBuffer) {
-  if (typeof XLSX === 'undefined') {
-    throw new Error('Librería XLSX no cargada. Añade: <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>');
-  }
+  // Cargar XLSX bajo demanda si no está disponible
+  await ensureXLSX();
   
   const workbook = XLSX.read(fileBuffer, { type: 'array' });
   const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
@@ -2677,9 +2707,7 @@ function initCSVImporter() {
         if (extension === 'csv') {
           resultado = await procesarCSVConsumos(file);
         } else if (extension === 'xlsx' || extension === 'xls') {
-          if (typeof XLSX === 'undefined') {
-            throw new Error('Para leer archivos Excel, añade: <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>');
-          }
+          // XLSX se carga automáticamente en procesarXLSXConsumos
           resultado = await procesarXLSXConsumos(file);
         } else {
           throw new Error('Formato no soportado. Solo CSV y Excel (.xlsx, .xls)');

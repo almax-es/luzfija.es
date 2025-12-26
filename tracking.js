@@ -74,9 +74,9 @@
     const btnTheme = document.getElementById('btnTheme');
     if (btnTheme) {
       btnTheme.addEventListener('click', function() {
-        const isDark = document.documentElement.classList.contains('light-mode');
+        const isLight = document.documentElement.classList.contains('light-mode');
         trackEvent('tema-cambiado', { 
-          title: isDark ? 'Cambió a tema oscuro' : 'Cambió a tema claro' 
+          title: isLight ? 'Cambió a tema claro' : 'Cambió a tema oscuro' 
         });
       });
     }
@@ -86,10 +86,10 @@
     const tbody = document.getElementById('tbody');
     if (tbody) {
       tbody.addEventListener('click', function(e) {
-        const link = e.target.closest('a.web-link');
+        const link = e.target.closest('a.web');
         if (link) {
           const tarifaRow = link.closest('tr');
-          const tarifaNombre = tarifaRow?.querySelector('.tarifa-name')?.textContent || 'Desconocida';
+          const tarifaNombre = tarifaRow?.querySelector('.tarifa-nombre')?.textContent || 'Desconocida';
           trackEvent('tarifa-click-contratar', { 
             title: 'Click en contratar: ' + tarifaNombre 
           });

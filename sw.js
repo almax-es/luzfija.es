@@ -6,7 +6,7 @@
 // - resto de estáticos: stale-while-revalidate (sirve cache rápido y actualiza en segundo plano)
 
 // IMPORTANTE: si cambias este fichero, incrementa CACHE_NAME para forzar la actualización.
-const CACHE_NAME = "luzfija-static-v4.3";
+const CACHE_NAME = "luzfija-static-v4.4";
 
 const ASSETS = [
   "/",
@@ -15,7 +15,7 @@ const ASSETS = [
   "/app.js",
   "/pvpc.js",
   "/factura.js",
-  "/tarifas.json",
+  // tarifas.json NO está en precache, se maneja con stale-while-revalidate
   "/guias.html",
   "/manifest.webmanifest",
   "/logo-512.png",

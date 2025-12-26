@@ -957,7 +957,7 @@
 
     <script src="pvpc.js" defer></script>
     <script src="factura.js" defer></script>
-    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <!-- XLSX se carga bajo demanda cuando se necesita (ver app.js) -->
     <script src="app.js" defer></script>
     
     
@@ -1246,11 +1246,18 @@
     tabManana.addEventListener('click', () => cambiarTab('manana'));
 
     // Abrir modal
+    let elementoAnterior = null;
     btnPVPCInfo.addEventListener('click', async () => {
+      // Guardar elemento que tenía focus para restaurarlo después
+      elementoAnterior = document.activeElement;
+      
       // Mostrar modal inmediatamente
       modalPVPCInfo.style.display = 'flex';
       modalPVPCInfo.classList.add('show');
       modalPVPCInfo.setAttribute('aria-hidden', 'false');
+      
+      // Dar focus al botón de cerrar
+      setTimeout(() => btnCerrarPVPCInfo.focus(), 100);
       
       // Cargar datos si no están cargados
       if (!pvpcHoy) {
@@ -1279,6 +1286,11 @@
       setTimeout(() => {
         modalPVPCInfo.style.display = 'none';
         modalPVPCInfo.setAttribute('aria-hidden', 'true');
+        
+        // Restaurar focus al elemento anterior
+        if (elementoAnterior && elementoAnterior.focus) {
+          elementoAnterior.focus();
+        }
       }, 300);
     };
 
@@ -1288,8 +1300,26 @@
       if (e.target === modalPVPCInfo) cerrarModal();
     });
     
+    // Cerrar con ESC y manejar focus-trap
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && modalPVPCInfo.classList.contains('show')) cerrarModal();
+      if (modalPVPCInfo.classList.contains('show')) {
+        if (e.key === 'Escape') {
+          cerrarModal();
+        } else if (e.key === 'Tab') {
+          // Focus trap simple: mantener focus dentro del modal
+          const focusables = modalPVPCInfo.querySelectorAll('button:not([disabled]), [tabindex]:not([tabindex="-1"])');
+          const firstFocusable = focusables[0];
+          const lastFocusable = focusables[focusables.length - 1];
+          
+          if (e.shiftKey && document.activeElement === firstFocusable) {
+            e.preventDefault();
+            lastFocusable.focus();
+          } else if (!e.shiftKey && document.activeElement === lastFocusable) {
+            e.preventDefault();
+            firstFocusable.focus();
+          }
+        }
+      }
     });
   });
   </script>
