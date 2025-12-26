@@ -2329,6 +2329,14 @@ function mostrarPreviewCSV(resultado) {
           </div>
           ` : ''}
         </div>
+        
+        <!-- NUEVO: Checkbox para decidir si aplicar excedentes -->
+        <label style="display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(251, 191, 36, 0.15); cursor: pointer;">
+          <input type="checkbox" id="csvAplicarExcedentes" checked style="cursor: pointer; width: 18px; height: 18px;">
+          <span style="font-size: 13px; color: var(--text); font-weight: 600;">
+            ☀️ Incluir excedentes en el cálculo
+          </span>
+        </label>
       </div>
     `;
   }
@@ -2383,7 +2391,7 @@ function mostrarPreviewCSV(resultado) {
         Cancelar
       </button>
       <button id="btnAplicarCSV" class="btn primary" type="button">
-        ${resultado.tieneExcedentes ? '✓ Aplicar con excedentes' : '✓ Aplicar consumos'}
+        <span id="btnAplicarTexto">✓ Aplicar consumos</span>
       </button>
     </div>
   `;
@@ -2398,6 +2406,29 @@ function mostrarPreviewCSV(resultado) {
   
   const btnCancelar = document.getElementById('btnCancelarCSV');
   const btnAplicar = document.getElementById('btnAplicarCSV');
+  const btnAplicarTexto = document.getElementById('btnAplicarTexto');
+  
+  // Listener para actualizar texto del botón según checkbox de excedentes
+  if (resultado.tieneExcedentes) {
+    const checkboxExcedentes = document.getElementById('csvAplicarExcedentes');
+    if (checkboxExcedentes && btnAplicarTexto) {
+      // Establecer texto inicial
+      btnAplicarTexto.textContent = checkboxExcedentes.checked 
+        ? '✓ Aplicar con excedentes' 
+        : '✓ Aplicar solo consumos';
+      
+      checkboxExcedentes.addEventListener('change', () => {
+        btnAplicarTexto.textContent = checkboxExcedentes.checked 
+          ? '✓ Aplicar con excedentes' 
+          : '✓ Aplicar solo consumos';
+      });
+    }
+  } else {
+    // Sin excedentes detectados
+    if (btnAplicarTexto) {
+      btnAplicarTexto.textContent = '✓ Aplicar consumos';
+    }
+  }
   
   lfDbg('[CSV] Botones encontrados:', btnCancelar !== null, btnAplicar !== null);
   
@@ -2446,15 +2477,21 @@ function mostrarPreviewCSV(resultado) {
         valle: valleInput?.value
       });
       
-      // Rellenar excedentes si existen
+      // IMPORTANTE: SIEMPRE resetear campos de excedentes primero
+      const solarCheckbox = document.getElementById('solarOn');
+      
+      lfDbg('[CSV] Reseteando excedentes - checkbox encontrado:', solarCheckbox !== null);
+      
+      // Determinar si debemos aplicar excedentes
+      let debeAplicarExcedentes = false;
       if (resultado.tieneExcedentes) {
-        const solarCheckbox = document.getElementById('solarOn');
-        const exTotalInput = document.getElementById('exTotal');
-        
-        lfDbg('[CSV] Aplicando excedentes - checkbox y input encontrados:', {
-          checkbox: solarCheckbox !== null,
-          exTotal: exTotalInput !== null
-        });
+        const checkboxExcedentes = document.getElementById('csvAplicarExcedentes');
+        debeAplicarExcedentes = checkboxExcedentes ? checkboxExcedentes.checked : false;
+      }
+      
+      // Rellenar excedentes solo si el usuario lo ha elegido
+      if (debeAplicarExcedentes) {
+        lfDbg('[CSV] Usuario eligió aplicar excedentes');
         
         if (solarCheckbox && !solarCheckbox.checked) {
           solarCheckbox.checked = true;
@@ -2486,12 +2523,32 @@ function mostrarPreviewCSV(resultado) {
             lfDbg('[CSV] ERROR: No se pudo encontrar exTotal después de activar solar');
           }
         }, 100);
+      } else {
+        // Usuario NO quiere aplicar excedentes O no había excedentes
+        lfDbg('[CSV] Limpiando excedentes');
+        
+        // Desmarcar checkbox de solar y limpiar campos
+        if (solarCheckbox && solarCheckbox.checked) {
+          solarCheckbox.checked = false;
+          solarCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+          lfDbg('[CSV] Checkbox solar desactivado');
+        }
+        
+        // Limpiar campo de excedentes si existe
+        setTimeout(() => {
+          const exTotalInput = document.getElementById('exTotal');
+          if (exTotalInput) {
+            exTotalInput.value = '';
+            exTotalInput.dispatchEvent(new Event('input', { bubbles: true }));
+            lfDbg('[CSV] Campo excedentes limpiado');
+          }
+        }, 100);
       }
       
       modal.remove();
       
       if (typeof toast === 'function') {
-        const msg = resultado.tieneExcedentes 
+        const msg = debeAplicarExcedentes 
           ? '✓ Consumos y excedentes aplicados' 
           : '✓ Consumos aplicados desde ' + resultado.formato;
         toast(msg);
