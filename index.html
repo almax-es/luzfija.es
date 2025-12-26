@@ -14,9 +14,14 @@
   <meta name="apple-mobile-web-app-title" content="Comparador Tarifas">
 
   <script>
-    window.PVPC_PROXY_URL = "https://luzfija-es.vercel.app/api/proxy?url=";
-    // PVPC público (CNMC) cacheado en Vercel (NO ESIOS / no token)
-    window.PVPC_PRICES_URL = "https://luzfija-es.vercel.app/api/pvpc-precios?date=";
+    // Endpoint para calcular facturas PVPC completas (sustituye a CMNC)
+    window.PVPC_FACTURA_URL = "https://luzfija-es.vercel.app/api/calcular-factura-pvpc";
+    
+    // Endpoint para obtener precios horarios PVPC de hoy/mañana (ESIOS)
+    window.PVPC_PRICES_URL = "https://luzfija-es.vercel.app/api/pvpc-precios-esios?date=";
+    
+    // DEPRECATED - Ya no se usa, mantener por compatibilidad
+    window.PVPC_PROXY_URL = window.PVPC_FACTURA_URL;
   </script>
 
   <meta property="og:title" content="Comparador de Tarifas de Luz en España | Encuentra la Más Barata">
@@ -258,7 +263,7 @@
               <span class="mi-left">🔗 Compartir configuración</span>
               <span class="mi-right">URL</span>
             </button>
-            <a class="menuItem" href="mailto:hola@luzfija.es" role="menuitem" style="text-decoration:none;">
+            <a class="menuItem" href="/cdn-cgi/l/email-protection#325a5d5e53725e4748545b58531c5741" role="menuitem" style="text-decoration:none;">
               <span class="mi-left">✉️ Contacto</span>
               <span class="mi-right">email</span>
             </a>
@@ -570,7 +575,7 @@
       </div>
     </section>
 
-    <script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
       // Cargar y mostrar novedades
       (async function cargarNovedades() {
         try {
@@ -779,8 +784,8 @@
             <div style="font-size:11px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted2); font-weight:900; margin-bottom:6px;">
               ✉️ Email
             </div>
-            <a href="mailto:hola@luzfija.es" style="color:var(--accent); font-weight:900; text-decoration:underline; font-size:13px;">
-              hola@luzfija.es
+            <a href="/cdn-cgi/l/email-protection#3e5651525f7e524b445857545f105b4d" style="color:var(--accent); font-weight:900; text-decoration:underline; font-size:13px;">
+              <span class="__cf_email__" data-cfemail="20484f4c41604c555a46494a410e4553">[email&#160;protected]</span>
             </a>
             <div style="margin-top:8px; font-size:11px; color:var(--muted2); line-height:1.4;">
               Respondo en cuanto puedo (proyecto gratuito).
@@ -879,7 +884,7 @@
           </div>
 
           <div class="help" style="margin-top:10px; font-size:11px; opacity:0.9; border:1px solid var(--border); background: var(--card2); padding:8px; border-radius:10px; line-height:1.4;">
-            <p style="margin-bottom:4px;"><strong>📧 ¿Datos incorrectos?</strong> Envía el PDF anonimizado a <a href="mailto:hola@luzfija.es" style="color: var(--accent); text-decoration: underline;">hola@luzfija.es</a></p>
+            <p style="margin-bottom:4px;"><strong>📧 ¿Datos incorrectos?</strong> Envía el PDF anonimizado a <a href="/cdn-cgi/l/email-protection#99f1f6f5f8d9f5ece3fff0f3f8b7fcea" style="color: var(--accent); text-decoration: underline;"><span class="__cf_email__" data-cfemail="acc4c3c0cdecc0d9d6cac5c6cd82c9df">[email&#160;protected]</span></a></p>
             <p style="margin:0; color: var(--muted); font-size:10px;">Oculta: nombre, DNI, CUPS, IBAN, QR. El PDF se procesa en tu navegador (no se sube).</p>
           </div>
         </div>
@@ -954,7 +959,7 @@
     </div>
   </div>
 
-    <script src="pvpc.js" defer></script>
+    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="pvpc.js" defer></script>
     <script src="factura.js" defer></script>
     <script src="app.js" defer></script>
     
@@ -1287,19 +1292,4 @@
     });
     
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && modalPVPCInfo.classList.contains('show')) cerrarModal();
-    });
-  });
-  </script>
-
-  <script>
-  // Ocultar breadcrumb "Inicio" en la página principal (es redundante aquí)
-  document.addEventListener('DOMContentLoaded', () => {
-    const breadcrumb = document.querySelector('nav[aria-label="Breadcrumb"]');
-    if (breadcrumb && (window.location.pathname === '/' || window.location.pathname === '/index.html')) {
-      breadcrumb.style.display = 'none';
-    }
-  });
-  </script>
-</body>
-</html>
+      if (e.key === 
