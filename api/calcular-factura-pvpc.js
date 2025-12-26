@@ -4,18 +4,26 @@
 
 // ==================== CONSTANTES 2025 ====================
 
+// PEAJES 2025 (BOE-A-2024-26218)
 const PEAJES_2025 = {
   energia: { p1: 0.034234, p2: 0.016540, p3: 0.000079 },
-  potencia: { p1p2: 22.958932, p3: 0.442165 }
+  potencia: { 
+    p1: 22.958932,  // Punta (P1+P2 agrupados en periodo punta)
+    p2: 0.442165    // Valle (P3)
+  }
 };
 
+// CARGOS 2025 (BOE TED/1487/2024)
 const CARGOS_2025 = {
   energia: { 
     p1: 0.010166 + 0.001027,  // cargo + pago capacidad
     p2: 0.004640 + 0.000435,
     p3: 0.000256 + 0.000024
   },
-  potencia: 3.113073
+  potencia: {
+    p1: 3.971618,   // Punta (P1+P2 agrupados)
+    p2: 0.255423    // Valle (P3)
+  }
 };
 
 const IMPUESTOS = {
@@ -134,26 +142,38 @@ function calcularFactura(params) {
     p3: consumos_p3 || 0
   };
   
-  // Calcular precio medio PVPC por periodo (simplificado)
-  // En producción, deberías calcular el precio exacto hora a hora
+  // Calcular precio medio PVPC por periodo clasificando cada hora
   let precio_medio_pvpc = {
     p1: 0.15,  // Valores por defecto si no hay precios
     p2: 0.12,
     p3: 0.08
   };
   
-  // Si hay precios ESIOS, calcular media real
+  // Si hay precios ESIOS, calcular media REAL por periodo
   if (precios_pvpc && Object.keys(precios_pvpc).length > 0) {
-    const todas_horas = Object.values(precios_pvpc).flatMap(dia => Object.values(dia));
-    const suma = todas_horas.reduce((a, b) => a + b, 0);
-    const media = suma / todas_horas.length;
+    const horas_por_periodo = { p1: [], p2: [], p3: [] };
     
-    // Aplicar distribución típica P1/P2/P3 sobre la media
-    precio_medio_pvpc = {
-      p1: media * 1.25,  // Punta ~25% más caro
-      p2: media,         // Llano = media
-      p3: media * 0.67   // Valle ~33% más barato
-    };
+    // Clasificar cada hora en su periodo
+    Object.keys(precios_pvpc).forEach(fechaStr => {
+      // fechaStr viene como "2025-11-25" de ESIOS
+      const [anio, mes, dia] = fechaStr.split('-');
+      const fecha = new Date(anio, mes - 1, dia);
+      const horasDia = precios_pvpc[fechaStr];
+      
+      Object.keys(horasDia).forEach(hora => {
+        const horaNum = parseInt(hora);
+        const periodo = getPeriodo(fecha, horaNum);
+        horas_por_periodo[periodo].push(horasDia[hora]);
+      });
+    });
+    
+    // Calcular media de cada periodo
+    ['p1', 'p2', 'p3'].forEach(periodo => {
+      if (horas_por_periodo[periodo].length > 0) {
+        const suma = horas_por_periodo[periodo].reduce((a, b) => a + b, 0);
+        precio_medio_pvpc[periodo] = suma / horas_por_periodo[periodo].length;
+      }
+    });
   }
   
   // Precio total por periodo = PVPC + peajes + cargos
@@ -172,9 +192,11 @@ function calcularFactura(params) {
   const total_energia = coste_energia.p1 + coste_energia.p2 + coste_energia.p3;
   
   // 2. TÉRMINO DE POTENCIA
-  const coste_potencia_p1p2 = (potencia_p1 / 365) * dias * (PEAJES_2025.potencia.p1p2 + CARGOS_2025.potencia);
-  const coste_potencia_p3 = (potencia_p2 / 365) * dias * PEAJES_2025.potencia.p3;
-  const total_potencia = coste_potencia_p1p2 + coste_potencia_p3;
+  // P1 (punta+llano): peajes + cargos
+  const coste_potencia_p1 = (potencia_p1 / 365) * dias * (PEAJES_2025.potencia.p1 + CARGOS_2025.potencia.p1);
+  // P2 (valle): peajes + cargos
+  const coste_potencia_p2 = (potencia_p2 / 365) * dias * (PEAJES_2025.potencia.p2 + CARGOS_2025.potencia.p2);
+  const total_potencia = coste_potencia_p1 + coste_potencia_p2;
   
   // 3. ALQUILER CONTADOR
   const coste_alquiler = (ALQUILER_CONTADOR / 30) * dias;
