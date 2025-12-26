@@ -154,8 +154,9 @@
         excedentes = 0,
         precioCompensacion = 0,
         bateriaVirtual = 0,
-        alquilerContador = 0.81, // Valor típico mensual
-        impuestoElectrico = 0.0511296, // 5,11296%
+        alquilerContador = 0.80, // Valor según Excel
+        bonoSocial = 0.38, // Bono Social fijo
+        impuestoElectrico = 0.0511269632, // 5,11269632%
         iva = 0.21, // 21% (Península)
         zonaFiscal = 'Península'
       } = datos;
@@ -176,19 +177,19 @@
       const compensacionExcedentes = excedentes * precioCompensacion;
 
       // === BATERÍA VIRTUAL ===
-      // La BV es un saldo a favor que se resta
       const bvUtilizada = Math.min(bateriaVirtual, totalConsumo);
 
       // === OTROS CONCEPTOS ===
       const alquiler = alquilerContador;
+      const bono = bonoSocial;
       
-      // Base antes de impuestos (sin compensación ni BV)
-      const subtotal = totalPotencia + totalConsumo + alquiler;
+      // Subtotal ANTES de compensación (Potencia + Consumo + Bono + Alquiler)
+      const subtotal = totalPotencia + totalConsumo + bono + alquiler;
       
-      // Aplicar compensación de excedentes (se resta)
+      // Aplicar compensación de excedentes (se resta del consumo)
       const despuesCompensacion = subtotal - compensacionExcedentes;
       
-      // Impuesto eléctrico (se aplica sobre el subtotal antes de compensación)
+      // Impuesto eléctrico (se aplica sobre el subtotal SIN compensación)
       const impElectrico = subtotal * impuestoElectrico;
       
       // Base imponible
@@ -247,6 +248,7 @@
           nuevoSaldo: bateriaVirtual - bvUtilizada + excedentesRestantes
         },
         otrosConceptos: {
+          bonoSocial: bono,
           alquilerContador: alquiler,
           impuestoElectrico: impElectrico
         },
@@ -398,11 +400,16 @@
         <div class="desglose-seccion">
           <div class="desglose-seccion-header">
             <h3>📝 OTROS CONCEPTOS</h3>
-            <span class="desglose-importe-header">${this.formatEuros(desglose.otrosConceptos.alquilerContador + desglose.otrosConceptos.impuestoElectrico)}</span>
+            <span class="desglose-importe-header">${this.formatEuros(desglose.otrosConceptos.bonoSocial + desglose.otrosConceptos.alquilerContador + desglose.otrosConceptos.impuestoElectrico)}</span>
+          </div>
+          <div class="desglose-linea">
+            <span class="desglose-concepto">Financiación Bono Social</span>
+            <span class="desglose-detalle">${datos.dias || 30} días × ${this.formatEuros(0.38 / 30, 6)}/día</span>
+            <span class="desglose-importe">${this.formatEuros(desglose.otrosConceptos.bonoSocial)}</span>
           </div>
           <div class="desglose-linea">
             <span class="desglose-concepto">Alquiler equipos de medida</span>
-            <span class="desglose-detalle">${datos.dias || 30} días × ${this.formatEuros(0.81 / 30, 6)}/día</span>
+            <span class="desglose-detalle">${datos.dias || 30} días × ${this.formatEuros(0.80 / 30, 6)}/día</span>
             <span class="desglose-importe">${this.formatEuros(desglose.otrosConceptos.alquilerContador)}</span>
           </div>
           <div class="desglose-linea">
