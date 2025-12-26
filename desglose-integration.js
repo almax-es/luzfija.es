@@ -66,6 +66,12 @@
     console.log('=== DESGLOSE ===');
     console.log('Tarifa:', nombreTarifa);
     
+    // Detectar PVPC (no se puede desglosar)
+    if (nombreTarifa && nombreTarifa.toLowerCase().includes('pvpc')) {
+      alert('⚠️ El desglose no está disponible para PVPC');
+      return;
+    }
+    
     const inputs = {
       p1: parseFloat(document.getElementById('p1')?.value.replace(',', '.')) || 0,
       p2: parseFloat(document.getElementById('p2')?.value.replace(',', '.')) || 0,

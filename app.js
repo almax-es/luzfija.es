@@ -2575,14 +2575,16 @@ function mostrarPreviewCSV(resultado) {
         lfDbg('[CSV] Error reseteando BV:', e);
       }
       
-      // Auto-calcular (igual que con factura PDF)
-      try {
-        if (typeof hideResultsToInitialState === 'function') hideResultsToInitialState();
-        if (typeof setStatus === 'function') setStatus('Calculando...', 'loading');
-        if (typeof runCalculation === 'function') runCalculation();
-      } catch(e) {
-        lfDbg('[CSV] Error en auto-cálculo:', e);
-      }
+      // Auto-calcular con delay aumentado para asegurar que todo está listo
+      setTimeout(() => {
+        try {
+          if (typeof hideResultsToInitialState === 'function') hideResultsToInitialState();
+          if (typeof setStatus === 'function') setStatus('Calculando...', 'loading');
+          if (typeof runCalculation === 'function') runCalculation();
+        } catch(e) {
+          lfDbg('[CSV] Error en auto-cálculo:', e);
+        }
+      }, 200);
     });
   }
   
