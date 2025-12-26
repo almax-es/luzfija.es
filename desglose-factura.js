@@ -184,12 +184,12 @@
         <div class="desglose-seccion-header"><h3>⚡ POTENCIA</h3><span class="desglose-importe-header">${this.fmt(d.pot)}</span></div>
         <div class="desglose-linea">
           <span class="desglose-concepto">Potencia punta (P1)</span>
-          <span class="desglose-detalle">${datos.potenciaP1} kW × ${datos.dias} días × ${this.fmt(datos.precioP1, 6)}/kW día</span>
+          <span class="desglose-detalle">${this.fmtNum(datos.potenciaP1)} kW × ${datos.dias} días × ${this.fmtNum(datos.precioP1, 6)}/kW día</span>
           <span class="desglose-importe">${this.fmt(datos.potenciaP1 * datos.dias * datos.precioP1)}</span>
         </div>
         <div class="desglose-linea">
           <span class="desglose-concepto">Potencia valle (P2)</span>
-          <span class="desglose-detalle">${datos.potenciaP2} kW × ${datos.dias} días × ${this.fmt(datos.precioP2, 6)}/kW día</span>
+          <span class="desglose-detalle">${this.fmtNum(datos.potenciaP2)} kW × ${datos.dias} días × ${this.fmtNum(datos.precioP2, 6)}/kW día</span>
           <span class="desglose-importe">${this.fmt(datos.potenciaP2 * datos.dias * datos.precioP2)}</span>
         </div>
       </div>`;
@@ -198,27 +198,27 @@
         <div class="desglose-seccion-header"><h3>💡 CONSUMO</h3><span class="desglose-importe-header">${this.fmt(d.consAdj)}</span></div>
         <div class="desglose-linea">
           <span class="desglose-concepto">Consumo total</span>
-          <span class="desglose-detalle">${datos.consumoPunta + datos.consumoLlano + datos.consumoValle} kWh</span>
+          <span class="desglose-detalle">${this.fmtNum(datos.consumoPunta + datos.consumoLlano + datos.consumoValle)} kWh</span>
           <span class="desglose-importe">${this.fmt(d.cons)}</span>
         </div>
         <div class="desglose-linea desglose-linea-sub">
           <span class="desglose-concepto">→ Punta (P1)</span>
-          <span class="desglose-detalle">${datos.consumoPunta} kWh × ${this.fmt(datos.precioPunta, 6)}/kWh</span>
+          <span class="desglose-detalle">${this.fmtNum(datos.consumoPunta)} kWh × ${this.fmtNum(datos.precioPunta, 6)}/kWh</span>
           <span class="desglose-importe">${this.fmt(datos.consumoPunta * datos.precioPunta)}</span>
         </div>
         <div class="desglose-linea desglose-linea-sub">
           <span class="desglose-concepto">→ Llano (P2)</span>
-          <span class="desglose-detalle">${datos.consumoLlano} kWh × ${this.fmt(datos.precioLlano, 6)}/kWh</span>
+          <span class="desglose-detalle">${this.fmtNum(datos.consumoLlano)} kWh × ${this.fmtNum(datos.precioLlano, 6)}/kWh</span>
           <span class="desglose-importe">${this.fmt(datos.consumoLlano * datos.precioLlano)}</span>
         </div>
         <div class="desglose-linea desglose-linea-sub">
           <span class="desglose-concepto">→ Valle (P3)</span>
-          <span class="desglose-detalle">${datos.consumoValle} kWh × ${this.fmt(datos.precioValle, 6)}/kWh</span>
+          <span class="desglose-detalle">${this.fmtNum(datos.consumoValle)} kWh × ${this.fmtNum(datos.precioValle, 6)}/kWh</span>
           <span class="desglose-importe">${this.fmt(datos.consumoValle * datos.precioValle)}</span>
         </div>
         ${d.credit1 > 0 ? `<div class="desglose-linea" style="background: rgba(34,197,94,0.1)">
           <span class="desglose-concepto">☀️ Compensación excedentes</span>
-          <span class="desglose-detalle">${datos.excedentes} kWh × ${this.fmt(datos.precioCompensacion, 6)}/kWh</span>
+          <span class="desglose-detalle">${this.fmtNum(datos.excedentes)} kWh × ${this.fmtNum(datos.precioCompensacion, 6)}/kWh</span>
           <span class="desglose-importe" style="color: #22c55e">-${this.fmt(d.credit1)}</span>
         </div>
         <div class="desglose-linea">
@@ -232,7 +232,7 @@
         <div class="desglose-seccion-header"><h3>📝 OTROS CONCEPTOS</h3><span class="desglose-importe-header">${this.fmt(d.tarifaAdj + d.impuestoElec + d.margen)}</span></div>
         <div class="desglose-linea">
           <span class="desglose-concepto">Financiación Bono Social</span>
-          <span class="desglose-detalle">${this.fmt(4.650987/365, 6)}/día × ${datos.dias} días</span>
+          <span class="desglose-detalle">${this.fmtNum(4.650987/365, 6)}/día × ${datos.dias} días</span>
           <span class="desglose-importe">${this.fmt(d.tarifaAcceso)}</span>
         </div>
         ${d.tarifaAdj !== d.tarifaAcceso && d.credit1 > 0 ? `<div class="desglose-linea" style="background: rgba(34,197,94,0.1)">
@@ -252,7 +252,7 @@
         </div>
         <div class="desglose-linea">
           <span class="desglose-concepto">Alquiler equipos medida</span>
-          <span class="desglose-detalle">${this.fmt(0.026667, 6)}/día × ${datos.dias} días</span>
+          <span class="desglose-detalle">${this.fmtNum(0.026667, 6)}/día × ${datos.dias} días</span>
           <span class="desglose-importe">${this.fmt(d.margen)}</span>
         </div>
       </div>`;
@@ -342,6 +342,11 @@
     fmt(n, decimales = 2) {
       if (typeof n !== 'number') return '0,00 €';
       return n.toLocaleString('es-ES', { minimumFractionDigits: decimales, maximumFractionDigits: decimales }) + ' €';
+    },
+
+    fmtNum(n, decimales = 2) {
+      if (typeof n !== 'number') return '0,00';
+      return n.toLocaleString('es-ES', { minimumFractionDigits: decimales, maximumFractionDigits: decimales });
     }
   };
 
