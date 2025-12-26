@@ -28,6 +28,7 @@ const IMPUESTOS = {
 };
 
 const ALQUILER_CONTADOR = 0.81;  // €/mes (aprox)
+const FINANCIACION_BONO_SOCIAL = 0.0127424301;  // €/día (2025)
 
 // Mapeo zona -> indicador ESIOS
 const ZONA_ESIOS = {
@@ -178,13 +179,16 @@ function calcularFactura(params) {
   // 3. ALQUILER CONTADOR
   const coste_alquiler = (ALQUILER_CONTADOR / 30) * dias;
   
-  // 4. SUBTOTAL ANTES DE IMPUESTOS
-  const subtotal = total_energia + total_potencia + coste_alquiler;
+  // 4. FINANCIACIÓN BONO SOCIAL (cargo obligatorio para todos)
+  const financiacion_bono = FINANCIACION_BONO_SOCIAL * dias;
   
-  // 5. IMPUESTO ELÉCTRICO (5,1127%)
+  // 5. SUBTOTAL ANTES DE IMPUESTOS
+  const subtotal = total_energia + total_potencia + coste_alquiler + financiacion_bono;
+  
+  // 6. IMPUESTO ELÉCTRICO (5,1127%)
   const impuesto_electrico = subtotal * IMPUESTOS.electrico;
   
-  // 6. BASE IMPONIBLE
+  // 7. BASE IMPONIBLE
   const base_imponible = subtotal + impuesto_electrico;
   
   // 7. IVA / IGIC / IPSI (según zona)
@@ -228,7 +232,7 @@ function calcularFactura(params) {
     precioValle: precio_total.p3,
     terminoFijo: parseFloat(total_potencia.toFixed(2)),
     terminoVariable: parseFloat(total_energia.toFixed(2)),
-    bonoSocial: 0,
+    bonoSocial: parseFloat(financiacion_bono.toFixed(2)),
     impuestoElectrico: parseFloat(impuesto_electrico.toFixed(2)),
     equipoMedida: parseFloat(coste_alquiler.toFixed(2)),
     [nombre_impuesto]: parseFloat(impuesto_final.toFixed(2)),
