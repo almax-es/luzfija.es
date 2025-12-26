@@ -6,6 +6,23 @@
 (function() {
   'use strict';
 
+  let tarifasCache = null;
+
+  // Cargar tarifas.json
+  async function cargarTarifas() {
+    if (tarifasCache) return tarifasCache;
+    
+    try {
+      const response = await fetch('tarifas.json');
+      const data = await response.json();
+      tarifasCache = data.tarifas || [];
+      return tarifasCache;
+    } catch (error) {
+      console.error('Error cargando tarifas:', error);
+      return [];
+    }
+  }
+
   // Esperar a que el DOM esté listo
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
@@ -16,35 +33,33 @@
   function init() {
     console.log('✅ Integración desglose inicializada');
     
-    // Interceptar la función renderTable original para añadir botones
-    const originalRenderTable = window.renderTable;
-    if (!originalRenderTable) {
-      console.warn('No se encontró renderTable');
-      return;
-    }
-
-    // No sobreescribimos renderTable, usamos MutationObserver para añadir botones después
     const tbody = document.querySelector('#tbody');
     if (!tbody) return;
 
     const observer = new MutationObserver(() => {
       const rows = tbody.querySelectorAll('tr');
       rows.forEach((tr, idx) => {
-        // Si ya está configurado, skip
         if (tr.dataset.desgloseReady) return;
 
-        // Obtener la celda del total (6ta columna, índice 5)
         const tdTotal = tr.cells[5];
         if (!tdTotal) return;
         
-        // Hacer toda la celda clickable
+        // Extraer nombre de la tarifa desde la celda
+        const tdNombre = tr.cells[1];
+        if (!tdNombre) return;
+        
+        const nombreCompleto = tdNombre.textContent || '';
+        const nombre = nombreCompleto
+          .split('\n')[0]
+          .replace(/[⚠️☀️🔋🔗ⓘ]/g, '')
+          .trim();
+        
         tdTotal.style.cursor = 'pointer';
         tdTotal.title = '💡 Clic para ver desglose completo';
         
         tdTotal.onclick = function(e) {
           e.stopPropagation();
-          // Usar el índice de la fila directamente
-          mostrarDesglose(idx, null);
+          mostrarDesglose(nombre);
         };
 
         tr.dataset.desgloseReady = 'true';
@@ -57,9 +72,9 @@
   /**
    * Muestra el desglose de una tarifa
    */
-  window.mostrarDesglose = function(rowIndex, _unused) {
+  window.mostrarDesglose = async function(nombreTarifa) {
     console.log('=== DESGLOSE DEBUG ===');
-    console.log('Row index:', rowIndex);
+    console.log('Nombre tarifa:', nombreTarifa);
     
     // Obtener los inputs actuales
     const inputs = {
@@ -75,29 +90,27 @@
       solarOn: document.getElementById('solarOn')?.checked || false
     };
 
-    // Obtener la tarifa por índice desde state.rows
-    let tarifa = null;
+    // Cargar tarifas
+    const tarifas = await cargarTarifas();
+    if (!tarifas || tarifas.length === 0) {
+      alert('Error: No se pudieron cargar las tarifas');
+      return;
+    }
+
+    // Buscar tarifa por nombre
+    let tarifa = tarifas.find(t => (t.nombre || t.id) === nombreTarifa);
     
-    if (window.state && window.state.rows && window.state.rows[rowIndex]) {
-      const row = window.state.rows[rowIndex];
-      const nombreTarifa = row.nombre;
-      console.log('Buscando tarifa:', nombreTarifa);
-      
-      // Buscar en cachedTarifas
-      if (window.cachedTarifas) {
-        tarifa = window.cachedTarifas.find(t => (t.nombre || t.id) === nombreTarifa);
-        
-        if (!tarifa) {
-          // Intentar por índice directo
-          tarifa = window.cachedTarifas[rowIndex];
-        }
-      }
+    if (!tarifa) {
+      // Buscar por nombre parcial
+      tarifa = tarifas.find(t => {
+        const n = t.nombre || t.id;
+        return n.includes(nombreTarifa) || nombreTarifa.includes(n);
+      });
     }
 
     if (!tarifa) {
-      console.error('❌ No se encontró tarifa en índice:', rowIndex);
-      console.log('state.rows:', window.state?.rows);
-      console.log('cachedTarifas:', window.cachedTarifas);
+      console.error('❌ No se encontró tarifa:', nombreTarifa);
+      console.log('Tarifas disponibles:', tarifas.map(t => t.nombre || t.id));
       alert('Error: No se pudo cargar la información de la tarifa');
       return;
     }
@@ -127,13 +140,13 @@
       
       bateriaVirtual: (tarifa.fv && tarifa.fv.bv) ? inputs.bvSaldo : 0,
       
-      alquilerContador: 0.81,
+      alquilerContador: 0.80,
+      bonoSocial: 0.38,
       zonaFiscal: inputs.zonaFiscal
     };
 
     console.log('Datos para desglose:', datos);
 
-    // Abrir el modal
     if (window.__LF_DesgloseFactura) {
       window.__LF_DesgloseFactura.abrir(datos);
     } else {
