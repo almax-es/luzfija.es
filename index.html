@@ -387,7 +387,7 @@
           <div class="help">
             Introduce tus datos y pulsa ⚡ Calcular para generar o refrescar el ranking (tarifas y PVPC si está disponible). Puedes escribir decimales con coma o punto (ej.: 3,45 / 3.45).
           </div>
-          <button type="button" class="btn" id="btnPVPCInfo" style="width: 100%; justify-content: center; margin-top: 12px; background: rgba(255, 180, 50, 0.12); border-color: rgba(255, 180, 50, 0.3);" aria-label="Ver precios PVPC de hoy por horas">
+          <button type="button" class="btn" id="btnPVPCInfo" style="width: 100%; justify-content: center; margin-top: 12px; background: rgba(245, 158, 11, 0.15); border-color: rgba(217, 119, 6, 0.35);" aria-label="Ver precios PVPC de hoy por horas">
             ⚡ Ver precios PVPC hoy
           </button>
         </div>
@@ -975,7 +975,7 @@
         <h2 class="title">⚡ PVPC - Precios por hora</h2>
       </div>
       <div class="body">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding: 12px; background: linear-gradient(135deg, rgba(255,180,50,.12) 0%, rgba(255,120,50,.06) 100%); border-radius: 12px; border: 1px solid rgba(255,180,50,.25);">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding: 12px; background: linear-gradient(135deg, rgba(245,158,11,.15) 0%, rgba(217,119,6,.08) 100%); border-radius: 12px; border: 1px solid rgba(217,119,6,.3);">
           <div>
             <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; opacity: 0.7; letter-spacing: 0.5px; margin-bottom: 4px;" id="modalPVPCLabel">Ahora</div>
             <div style="font-size: 24px; font-weight: 800; color: var(--accent);" id="modalPVPCNow">—</div>
@@ -996,7 +996,7 @@
           
           <!-- Tabs Hoy/Mañana -->
           <div id="pvpcTabs" style="display: flex; gap: 4px; background: rgba(255,255,255,.05); padding: 4px; border-radius: 8px;">
-            <button id="tabHoy" class="pvpc-tab pvpc-tab-active" type="button" style="padding: 6px 14px; border: none; background: var(--accent); color: #000; font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
+            <button id="tabHoy" class="pvpc-tab pvpc-tab-active" type="button" style="padding: 6px 14px; border: none; background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
               Hoy
             </button>
             <button id="tabManana" class="pvpc-tab" type="button" style="display: none; padding: 6px 14px; border: none; background: transparent; color: var(--text); font-size: 12px; font-weight: 600; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
@@ -1229,7 +1229,7 @@
       // Estilos tabs
       if (tab === 'hoy') {
         tabHoy.style.background = 'var(--accent)';
-        tabHoy.style.color = '#000';
+        tabHoy.style.color = '#fff';
         tabManana.style.background = 'transparent';
         tabManana.style.color = 'var(--text)';
         if (pvpcHoy) renderizarLista(pvpcHoy, true);
@@ -1237,7 +1237,7 @@
         tabHoy.style.background = 'transparent';
         tabHoy.style.color = 'var(--text)';
         tabManana.style.background = 'var(--accent)';
-        tabManana.style.color = '#000';
+        tabManana.style.color = '#fff';
         if (pvpcManana) renderizarLista(pvpcManana, false);
       }
     }

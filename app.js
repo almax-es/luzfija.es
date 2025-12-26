@@ -1226,7 +1226,7 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
 
           // Tooltip de requisitos si existen
           const requisitosTooltip = r.requisitos
-            ? `<span class="tooltip requisitos-icon" data-tip="${escapeHtml(r.requisitos)}" role="button" tabindex="0" aria-label="Requisitos de contratación" style="margin-left:4px; color:rgba(251,191,36,1); cursor:help;">ⓘ</span>`
+            ? `<span class="tooltip requisitos-icon" data-tip="${escapeHtml(r.requisitos)}" role="button" tabindex="0" aria-label="Requisitos de contratación" style="margin-left:4px; color:var(--warn); cursor:help;">ⓘ</span>`
             : '';
 
           let fvIcon = '';
@@ -1245,7 +1245,7 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
           if(r.fvTipo && r.fvTipo.includes('BV') && r.fvApplied){
             totalDisplay = `<div style="display: flex; flex-direction: column; gap: 3px; align-items: flex-end;">
               <div style="font-size: 10px; color: var(--muted2); font-weight: 600; line-height: 1.2;">Pagas: <span style="color: var(--text); font-weight: 900; font-size: 13px;">${formatMoney(totalFinal)}</span></div>
-              <div style="font-size: 10px; color: var(--muted2); font-weight: 600; line-height: 1.2;">Ranking: <span style="color: rgba(167,139,250,1); font-weight: 1100; font-size: 13px;">${formatMoney(totalRanking)}</span></div>
+              <div style="font-size: 10px; color: var(--muted2); font-weight: 600; line-height: 1.2;">Ranking: <span style="color: var(--accent); font-weight: 1100; font-size: 13px;">${formatMoney(totalRanking)}</span></div>
             </div>`;
           }
           
@@ -1324,7 +1324,7 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
             `<td>${escapeHtml(r.potencia)}</td>`+
             `<td>${escapeHtml(r.consumo)}</td>`+
             `<td>${escapeHtml(r.impuestos)}</td>`+
-            `<td><strong style="font-weight:1100; color: rgba(167,139,250,1);">${totalDisplay}</strong></td>`+
+            `<td><strong style="font-weight:1100; color: var(--accent);">${totalDisplay}</strong></td>`+
             `<td class="vs">${formatVsWithBar(r.vsMejor,r.vsMejorNum)}</td>`+
             `<td>${rowTipoBadge(r.tipo)}</td>`+
             `<td style="text-align:center">${w}</td>`;
@@ -2324,7 +2324,7 @@ function mostrarPreviewCSV(resultado) {
   let excedenteHTML = '';
   if (resultado.tieneExcedentes) {
     excedenteHTML = `
-      <div style="background: rgba(251, 191, 36, 0.08); padding: 16px; border-radius: 12px; margin-top: 16px; border: 1px solid rgba(251, 191, 36, 0.2);">
+      <div style="background: rgba(245, 158, 11, 0.12); padding: 16px; border-radius: 12px; margin-top: 16px; border: 1px solid rgba(217, 119, 6, 0.3);">
         <div style="font-size: 13px; font-weight: 900; margin-bottom: 12px; color: var(--text); display: flex; align-items: center; gap: 6px;">
           ☀️ Excedentes solares detectados
         </div>
@@ -2332,7 +2332,7 @@ function mostrarPreviewCSV(resultado) {
         <div style="display: grid; gap: 8px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span style="font-size: 12px; color: var(--muted2);">Total excedentes</span>
-            <span style="font-size: 14px; font-weight: 700; color: #f59e0b;">${resultado.totalExcedentes} kWh</span>
+            <span style="font-size: 14px; font-weight: 700; color: var(--warn);">${resultado.totalExcedentes} kWh</span>
           </div>
           
           <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding-top: 8px; border-top: 1px solid var(--border);">

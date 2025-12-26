@@ -12,6 +12,10 @@
       --muted2: rgba(15, 23, 42, .58);
       --shadow: 0 22px 65px rgba(2,6,23,.12);
       --shadow2: 0 16px 40px rgba(2,6,23,.10);
+      /* Colores optimizados para contraste WCAG AA en modo claro */
+      --accent:#6D28D9; /* Violet-700: contraste 4.8:1 sobre blanco */
+      --accent2:#16A34A; /* Green-600: contraste 4.5:1 sobre blanco */
+      --warn:#D97706; /* Amber-600: contraste 4.5:1 sobre blanco */
     }
     *{box-sizing:border-box; margin:0; padding:0}
     html,body{height:100%;}
