@@ -231,17 +231,17 @@
       html += `<div class="desglose-seccion">
         <div class="desglose-seccion-header"><h3>📝 OTROS CONCEPTOS</h3><span class="desglose-importe-header">${this.fmt(d.tarifaAdj + d.impuestoElec + d.margen)}</span></div>
         <div class="desglose-linea">
-          <span class="desglose-concepto">Peajes de acceso</span>
+          <span class="desglose-concepto">Financiación Bono Social</span>
           <span class="desglose-detalle">${this.fmt(4.650987/365, 6)}/día × ${datos.dias} días</span>
           <span class="desglose-importe">${this.fmt(d.tarifaAcceso)}</span>
         </div>
         ${d.tarifaAdj !== d.tarifaAcceso && d.credit1 > 0 ? `<div class="desglose-linea" style="background: rgba(34,197,94,0.1)">
-          <span class="desglose-concepto">☀️ Compensación en peajes</span>
+          <span class="desglose-concepto">☀️ Compensación en Bono Social</span>
           <span class="desglose-detalle">Resto de compensación</span>
           <span class="desglose-importe" style="color: #22c55e">-${this.fmt(d.tarifaAcceso - d.tarifaAdj)}</span>
         </div>
         <div class="desglose-linea">
-          <span class="desglose-concepto"><strong>Peajes tras compensación</strong></span>
+          <span class="desglose-concepto"><strong>Bono Social tras compensación</strong></span>
           <span class="desglose-detalle"></span>
           <span class="desglose-importe"><strong>${this.fmt(d.tarifaAdj)}</strong></span>
         </div>` : ''}
