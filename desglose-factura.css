@@ -450,16 +450,33 @@ body:not(.light-mode) .desglose-detalle {
   }
 }
 
-/* Precio clickable */
+/* Precio clickable - estilo link */
 #table tbody tr td:nth-child(6) {
+  color: #8b5cf6;
+  font-weight: 600;
+  cursor: pointer;
   transition: all 0.2s ease;
 }
 
 #table tbody tr td:nth-child(6):hover {
-  background: rgba(139, 92, 246, 0.1);
-  cursor: pointer;
+  color: #a78bfa;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+  transform: scale(1.03);
+}
+
+/* Touch feedback para móvil */
+#table tbody tr td:nth-child(6):active {
+  color: #c4b5fd;
+  transform: scale(0.97);
+}
+
+/* Dark mode */
+body:not(.light-mode) #table tbody tr td:nth-child(6) {
+  color: #a78bfa;
 }
 
 body:not(.light-mode) #table tbody tr td:nth-child(6):hover {
-  background: rgba(139, 92, 246, 0.15);
+  color: #c4b5fd;
 }
