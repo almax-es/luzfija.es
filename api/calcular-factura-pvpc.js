@@ -91,7 +91,7 @@ async function obtenerPreciosESIOS(fechaInicio, fechaFin, zona) {
   const response = await fetch(`${url}?${params}`, {
     headers: {
       'Accept': 'application/json; application/vnd.esios-api-v2+json',
-      'x-api-key': '0f2b02fb6201ec3591c3e19337bbaabecf92e899919fb3117b0e3f69904b653b'
+      'x-api-key': process.env.ESIOS_API_KEY
     }
   });
   

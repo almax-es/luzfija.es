@@ -1,7 +1,7 @@
 export const config = { runtime: 'edge' };
 
 // Tu token de ESIOS
-const ESIOS_TOKEN = '0f2b02fb6201ec3591c3e19337bbaabecf92e899919fb3117b0e3f69904b653b';
+const ESIOS_TOKEN = process.env.ESIOS_API_KEY;
 
 // Indicadores de ESIOS para PVPC 2.0TD
 const INDICADORES = {
