@@ -30,8 +30,8 @@
     const observer = new MutationObserver(() => {
       const rows = tbody.querySelectorAll('tr');
       rows.forEach((tr, idx) => {
-        // Si ya tiene botón, skip
-        if (tr.querySelector('.btn-desglose-mini')) return;
+        // Si ya está configurado, skip
+        if (tr.dataset.desgloseReady) return;
 
         // Obtener la celda del total (6ta columna, índice 5)
         const tdTotal = tr.cells[5];
@@ -40,20 +40,16 @@
         // Extraer datos de la fila
         const nombre = tr.cells[1]?.textContent?.trim().replace(/[⚠️☀️🔋🔗ⓘ]/g, '').trim() || '';
         
-        // Crear botón
-        const btn = document.createElement('button');
-        btn.className = 'btn-desglose-mini';
-        btn.innerHTML = '📋';
-        btn.title = 'Ver desglose completo';
-        btn.setAttribute('data-row-index', idx);
-        btn.setAttribute('data-nombre', nombre);
+        // Hacer toda la celda clickable
+        tdTotal.style.cursor = 'pointer';
+        tdTotal.title = '💡 Clic para ver desglose completo';
         
-        btn.onclick = function(e) {
+        tdTotal.onclick = function(e) {
           e.stopPropagation();
           mostrarDesglose(idx, nombre);
         };
 
-        tdTotal.appendChild(btn);
+        tr.dataset.desgloseReady = 'true';
       });
     });
 

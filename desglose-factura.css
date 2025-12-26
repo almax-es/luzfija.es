@@ -31,7 +31,7 @@
   max-width: 900px;
   width: 90%;
   max-height: 90vh;
-  background: var(--bg, #ffffff);
+  background: #ffffff;
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   z-index: 9999;
@@ -40,6 +40,63 @@
   transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
   display: flex;
   flex-direction: column;
+}
+
+/* Modo oscuro específico para LuzFija */
+body:not(.light-mode) .desglose-modal {
+  background: #1a1d2e;
+  color: #f9fafb;
+}
+
+body:not(.light-mode) .desglose-header {
+  border-bottom-color: #2d3748;
+}
+
+body:not(.light-mode) .desglose-header h2 {
+  color: #f9fafb;
+}
+
+body:not(.light-mode) .desglose-close {
+  color: #9ca3af;
+}
+
+body:not(.light-mode) .desglose-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #f9fafb;
+}
+
+body:not(.light-mode) .desglose-info {
+  background: #0f1117;
+}
+
+body:not(.light-mode) .desglose-tarifa {
+  color: #f9fafb;
+}
+
+body:not(.light-mode) .desglose-periodo {
+  color: #9ca3af;
+}
+
+body:not(.light-mode) .desglose-seccion {
+  background: #0f1117;
+  border-color: #2d3748;
+}
+
+body:not(.light-mode) .desglose-linea {
+  border-bottom-color: #2d3748;
+}
+
+body:not(.light-mode) .desglose-linea:hover {
+  background: rgba(139, 92, 246, 0.1);
+}
+
+body:not(.light-mode) .desglose-concepto,
+body:not(.light-mode) .desglose-importe {
+  color: #f9fafb;
+}
+
+body:not(.light-mode) .desglose-detalle {
+  color: #9ca3af;
 }
 
 .desglose-modal.active {
@@ -391,4 +448,18 @@
   .desglose-detalle {
     color: #9ca3af;
   }
+}
+
+/* Precio clickable */
+#table tbody tr td:nth-child(6) {
+  transition: all 0.2s ease;
+}
+
+#table tbody tr td:nth-child(6):hover {
+  background: rgba(139, 92, 246, 0.1);
+  cursor: pointer;
+}
+
+body:not(.light-mode) #table tbody tr td:nth-child(6):hover {
+  background: rgba(139, 92, 246, 0.15);
 }
