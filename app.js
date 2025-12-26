@@ -2426,9 +2426,18 @@ function mostrarPreviewCSV(resultado) {
       });
       
       if (diasInput) diasInput.value = resultado.dias;
-      if (puntaInput) puntaInput.value = resultado.punta;
-      if (llanoInput) llanoInput.value = resultado.llano;
-      if (valleInput) valleInput.value = resultado.valle;
+      if (puntaInput) {
+        puntaInput.value = resultado.punta;
+        puntaInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      if (llanoInput) {
+        llanoInput.value = resultado.llano;
+        llanoInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+      if (valleInput) {
+        valleInput.value = resultado.valle;
+        valleInput.dispatchEvent(new Event('input', { bubbles: true }));
+      }
       
       lfDbg('[CSV] Valores aplicados:', {
         dias: diasInput?.value,
@@ -2459,7 +2468,20 @@ function mostrarPreviewCSV(resultado) {
           const exTotalInputRetry = document.getElementById('exTotal');
           if (exTotalInputRetry) {
             exTotalInputRetry.value = resultado.totalExcedentes;
+            
+            // Disparar evento input para que los listeners lo detecten
+            exTotalInputRetry.dispatchEvent(new Event('input', { bubbles: true }));
+            
             lfDbg('[CSV] Excedentes aplicados:', resultado.totalExcedentes);
+            
+            // IMPORTANTE: Actualizar el hint de kWh DESPUÉS de rellenar exTotal
+            // Esperamos otro tick para que el dispatchEvent se procese primero
+            setTimeout(() => {
+              if (typeof updateKwhHint === 'function') {
+                updateKwhHint();
+                lfDbg('[CSV] updateKwhHint llamado después de aplicar excedentes');
+              }
+            }, 50);
           } else {
             lfDbg('[CSV] ERROR: No se pudo encontrar exTotal después de activar solar');
           }
