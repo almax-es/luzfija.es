@@ -484,7 +484,10 @@
         try{
           const data=await obtenerPVPC_CNMC(values);
           if(!data){ if(!pvpcErrorShown){toast('PVPC (regulada) no disponible ahora mismo. Mostrando ranking sin PVPC; puedes reintentar con ⚡ Calcular.','err'); pvpcErrorShown=true;} return null; }
-          const parsed=parsearRespuestaPVPC(data);
+          
+          // El nuevo endpoint ya devuelve formato correcto, no necesita parsear
+          const parsed = data;
+          
           if(!parsed){ if(!pvpcErrorShown){toast('PVPC (regulada) no disponible ahora mismo. Mostrando ranking sin PVPC; puedes reintentar con ⚡ Calcular.','err'); pvpcErrorShown=true;} return null; }
 
           const tarifa={
