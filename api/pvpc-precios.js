@@ -1,53 +1,33 @@
 export const config = { runtime: 'edge' };
 
-// --- Util: offset (minutos) de una zona horaria para una fecha dada ---
-function tzOffsetMinutes(timeZone, date) {
-  // Intento 1: "GMT+1" / "GMT+2"
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone,
-    timeZoneName: 'shortOffset',
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-    hour12: false,
-  }).formatToParts(date);
+// Tu token de ESIOS
+const ESIOS_TOKEN = '0f2b02fb6201ec3591c3e19337bbaabecf92e899919fb3117b0e3f69904b653b';
 
-  const tzName = parts.find(p => p.type === 'timeZoneName')?.value || '';
-  const m = tzName.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/i);
-  if (m) {
-    const sign = m[1] === '-' ? -1 : 1;
-    const hh = Number(m[2] || 0);
-    const mm = Number(m[3] || 0);
-    return sign * (hh * 60 + mm);
-  }
+// Indicadores de ESIOS para PVPC 2.0TD
+const INDICADORES = {
+  peninsula: 1001,  // PVPC 2.0TD Península
+  ceuta_melilla: 1002, // PVPC 2.0TD Ceuta y Melilla
+  canarias: 1003,  // PVPC 2.0TD Canarias
+  baleares: 1001,  // Mismo que península (geo_id diferente)
+};
 
-  // Fallback: aproximación comparando “lo que sería” la misma fecha en esa TZ
-  // (suele funcionar igual, pero dejo el intento 1 como principal)
-  const dtf = new Intl.DateTimeFormat('en-GB', {
-    timeZone,
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-    hour12: false,
-  });
+// Mapeo zona → geo_id
+const GEO_IDS = {
+  '1': 8741, // Península
+  '2': 8742, // Canarias
+  '3': 8743, // Baleares
+  '4': 8744, // Ceuta
+  '5': 8745, // Melilla
+};
 
-  const p = dtf.formatToParts(date);
-  const get = (t) => Number(p.find(x => x.type === t)?.value || 0);
-  const asUTC = Date.UTC(get('year'), get('month') - 1, get('day'), get('hour'), get('minute'), get('second'));
-  return Math.round((asUTC - date.getTime()) / 60000);
+// Mapeo zona → indicador
+function getIndicadorByZona(zona) {
+  if (zona === '2') return INDICADORES.canarias;
+  if (zona === '4' || zona === '5') return INDICADORES.ceuta_melilla;
+  return INDICADORES.peninsula; // Por defecto península (incluye Baleares)
 }
 
-// Convierte YYYY-MM-DD (España) -> timestamp ms de 00:00 Europe/Madrid
-function madridMidnightTs(dateStr) {
-  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
-  if (!m) throw new Error('Bad date format (expected YYYY-MM-DD)');
-  const y = Number(m[1]), mo = Number(m[2]), d = Number(m[3]);
-
-  // 00:00 de ese día "en Madrid" = UTC - offsetMadrid
-  const approxUTC = new Date(Date.UTC(y, mo - 1, d, 0, 0, 0));
-  const offsetMin = tzOffsetMinutes('Europe/Madrid', approxUTC);
-  return Date.UTC(y, mo - 1, d, 0, 0, 0) - offsetMin * 60000;
-}
-
-// TTL hasta la próxima 00:01 en Madrid (para que se renueve al cambiar el día)
+// TTL hasta la próxima 00:01 en Madrid
 function secondsUntilNextMadrid0001() {
   const now = new Date();
   const parts = new Intl.DateTimeFormat('en-GB', {
@@ -77,56 +57,159 @@ function jsonResponse(obj, { status = 200, cacheControl = 'no-store' } = {}) {
   });
 }
 
+// Parsear fecha YYYY-MM-DD a rango ISO para ESIOS
+function getDateRange(dateStr) {
+  const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dateStr);
+  if (!m) throw new Error('Bad date format (expected YYYY-MM-DD)');
+  
+  // Start: YYYY-MM-DDT00:00:00+01:00 (horario de invierno) o +02:00 (verano)
+  // End: YYYY-MM-DDT23:59:59+01:00 o +02:00
+  // ESIOS acepta fechas en hora local de Madrid
+  
+  // Para simplificar, usamos +01:00 (CET) como base
+  // ESIOS interpreta correctamente las fechas locales
+  const start = `${dateStr}T00:00:00+01:00`;
+  const end = `${dateStr}T23:59:59+01:00`;
+  
+  return { start, end };
+}
+
 export default async function handler(request) {
   if (request.method !== 'GET') {
-    return jsonResponse({ error: 'Method not allowed' }, { status: 405, cacheControl: 'no-store' });
+    return jsonResponse({ error: 'Method not allowed' }, { status: 405 });
   }
 
   try {
     const url = new URL(request.url);
-
     const date = url.searchParams.get('date'); // YYYY-MM-DD
-    const zona = url.searchParams.get('zona') || '1';      // 1 = Península/Baleares (según tu ejemplo)
-    const imp  = url.searchParams.get('imp')  || '1';      // 1 = con impuestos (según tu ejemplo)
+    const zona = url.searchParams.get('zona') || '1'; // 1=Península, 2=Canarias, etc.
+    const imp = url.searchParams.get('imp') || '1'; // Para compatibilidad (no usado en ESIOS)
     const debug = url.searchParams.get('debug') === '1';
 
     if (!date) {
-      return jsonResponse({ error: 'Missing date (YYYY-MM-DD)' }, { status: 400, cacheControl: 'no-store' });
+      return jsonResponse({ error: 'Missing date (YYYY-MM-DD)' }, { status: 400 });
     }
 
-    const ts = madridMidnightTs(date);
-    const cnmcUrl = `https://comparador.cnmc.gob.es/api/preciosPVPC/get/${ts}-${zona}-${imp}`;
+    // Validar zona
+    if (!GEO_IDS[zona]) {
+      return jsonResponse({ error: 'Invalid zona' }, { status: 400 });
+    }
 
-    const res = await fetch(cnmcUrl, {
+    const indicador = getIndicadorByZona(zona);
+    const geoId = GEO_IDS[zona];
+    const { start, end } = getDateRange(date);
+
+    // Construir URL de ESIOS
+    // https://api.esios.ree.es/indicators/{id}?start_date={start}&end_date={end}&geo_ids[]={geo_id}
+    const esiosUrl = `https://api.esios.ree.es/indicators/${indicador}?start_date=${encodeURIComponent(start)}&end_date=${encodeURIComponent(end)}&geo_ids[]=${geoId}&time_trunc=hour`;
+
+    const res = await fetch(esiosUrl, {
       headers: {
-        'accept': 'application/json, text/plain, */*',
-        'accept-language': 'es-ES,es;q=0.9,en;q=0.8',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36',
+        'Accept': 'application/json; application/vnd.esios-api-v2+json',
+        'Content-Type': 'application/json',
+        'x-api-key': ESIOS_TOKEN,
       },
     });
 
     if (!res.ok) {
       const body = await res.text().catch(() => '');
       return jsonResponse(
-        { error: 'CNMC_UPSTREAM_ERROR', status: res.status, body: debug ? body.slice(0, 500) : undefined, cnmcUrl: debug ? cnmcUrl : undefined },
-        { status: 502, cacheControl: 'no-store' }
+        { 
+          error: 'ESIOS_UPSTREAM_ERROR', 
+          status: res.status, 
+          body: debug ? body.slice(0, 500) : undefined,
+          esiosUrl: debug ? esiosUrl : undefined,
+        },
+        { status: 502 }
       );
     }
 
     const data = await res.json();
 
-    const arr = data?.preciosHora;
-    if (!Array.isArray(arr) || arr.length !== 24) {
+    // Procesar respuesta de ESIOS
+    const values = data?.indicator?.values;
+    if (!Array.isArray(values)) {
       return jsonResponse(
-        { error: 'CNMC_BAD_SHAPE', got: Array.isArray(arr) ? arr.length : typeof arr, cnmcUrl: debug ? cnmcUrl : undefined },
-        { status: 502, cacheControl: 'no-store' }
+        { 
+          error: 'ESIOS_BAD_SHAPE', 
+          got: typeof values,
+          esiosUrl: debug ? esiosUrl : undefined,
+        },
+        { status: 502 }
       );
     }
 
-    // prices[] (€/kWh) en orden 0..23
-    const prices = arr.map(x => Number(x.precio));
+    // Filtrar y ordenar por hora (ESIOS devuelve datos en UTC)
+    // Necesitamos convertir a hora local de Madrid y extraer 24 valores (00:00-23:00)
+    const hourlyData = new Map();
+    
+    for (const item of values) {
+      // datetime viene en UTC, tz_time viene en hora local (Madrid)
+      const datetime = new Date(item.datetime_utc || item.datetime);
+      const madridDate = new Intl.DateTimeFormat('sv-SE', {
+        timeZone: 'Europe/Madrid',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      }).format(datetime);
+      
+      const [datePart, timePart] = madridDate.split(' ');
+      const hour = parseInt(timePart.split(':')[0], 10);
+      
+      // Solo guardamos si es del día solicitado
+      if (datePart === date && hour >= 0 && hour <= 23) {
+        // Los valores vienen en €/MWh, convertir a €/kWh
+        const priceKwh = (item.value || 0) / 1000;
+        hourlyData.set(hour, priceKwh);
+      }
+    }
 
-    // Cache en Vercel hasta 00:01 Madrid (renueva con cambio de día)
+    // Asegurar que tenemos 24 horas (0-23)
+    if (hourlyData.size !== 24) {
+      // Si es un día futuro y aún no hay datos, devolver error específico
+      const requestDate = new Date(date);
+      const now = new Date();
+      if (requestDate > now) {
+        return jsonResponse(
+          { 
+            error: 'NO_DATA_YET', 
+            message: 'Los precios para este día aún no están disponibles',
+            available_hours: hourlyData.size,
+          },
+          { status: 404 }
+        );
+      }
+      
+      // Si faltan datos de un día pasado, es un error
+      if (debug) {
+        return jsonResponse(
+          { 
+            error: 'INCOMPLETE_DATA', 
+            got: hourlyData.size,
+            expected: 24,
+            esiosUrl,
+            raw: data,
+          },
+          { status: 502 }
+        );
+      }
+    }
+
+    // Construir array de precios ordenado [0..23]
+    const prices = [];
+    for (let h = 0; h < 24; h++) {
+      prices.push(hourlyData.get(h) || 0);
+    }
+
+    // Calcular estadísticas
+    const validPrices = prices.filter(p => p > 0);
+    const avg = validPrices.reduce((a, b) => a + b, 0) / validPrices.length;
+    const min = Math.min(...validPrices);
+    const max = Math.max(...validPrices);
+
+    // Cache hasta 00:01 Madrid (renueva con cambio de día)
     const ttl = secondsUntilNextMadrid0001();
     const cacheControl = `public, s-maxage=${ttl}, stale-while-revalidate=60`;
 
@@ -134,19 +217,23 @@ export default async function handler(request) {
       {
         date,
         zona: Number(zona),
-        imp: Number(imp),
+        imp: Number(imp), // Por compatibilidad
         prices,
         stats: {
-          avg: Number(data.precio_horario_medio),
-          min: Number(data.precio_horario_min),
-          max: Number(data.precio_horario_max),
+          avg: Number(avg.toFixed(6)),
+          min: Number(min.toFixed(6)),
+          max: Number(max.toFixed(6)),
         },
-        ...(debug ? { ts, cnmcUrl, raw: data } : {}),
+        source: 'esios',
+        ...(debug ? { esiosUrl, rawValues: values.length, hourlyDataSize: hourlyData.size } : {}),
       },
       { status: 200, cacheControl }
     );
 
   } catch (e) {
-    return jsonResponse({ error: 'PVPC_CNMC_FAILED', message: String(e?.message || e) }, { status: 502, cacheControl: 'no-store' });
+    return jsonResponse(
+      { error: 'PVPC_ESIOS_FAILED', message: String(e?.message || e) }, 
+      { status: 502 }
+    );
   }
 }
