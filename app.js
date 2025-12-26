@@ -2332,10 +2332,10 @@ function mostrarPreviewCSV(resultado) {
         <div style="display: grid; gap: 8px;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <span style="font-size: 12px; color: var(--muted2);">Total excedentes</span>
-            <span style="font-size: 14px; font-weight: 700; color: rgb(251, 191, 36);">${resultado.totalExcedentes} kWh</span>
+            <span style="font-size: 14px; font-weight: 700; color: #f59e0b;">${resultado.totalExcedentes} kWh</span>
           </div>
           
-          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding-top: 8px; border-top: 1px solid rgba(251, 191, 36, 0.15);">
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding-top: 8px; border-top: 1px solid var(--border);">
             <div>
               <div style="font-size: 10px; color: var(--muted2); margin-bottom: 2px;">Punta</div>
               <div style="font-size: 12px; font-weight: 700; color: var(--text);">${resultado.excedentesPunta} kWh</div>
@@ -2351,7 +2351,7 @@ function mostrarPreviewCSV(resultado) {
           </div>
           
           ${resultado.totalAutoconsumo !== '0,00' ? `
-          <div style="padding-top: 8px; border-top: 1px solid rgba(251, 191, 36, 0.15);">
+          <div style="padding-top: 8px; border-top: 1px solid var(--border);">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <span style="font-size: 11px; color: var(--muted2);">Autoconsumo directo</span>
               <span style="font-size: 13px; font-weight: 600; color: var(--text);">${resultado.totalAutoconsumo} kWh</span>
@@ -2361,7 +2361,7 @@ function mostrarPreviewCSV(resultado) {
         </div>
         
         <!-- NUEVO: Checkbox para decidir si aplicar excedentes -->
-        <label style="display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(251, 191, 36, 0.15); cursor: pointer;">
+        <label style="display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); cursor: pointer;">
           <input type="checkbox" id="csvAplicarExcedentes" checked style="cursor: pointer; width: 18px; height: 18px;">
           <span style="font-size: 13px; color: var(--text); font-weight: 600;">
             ☀️ Incluir excedentes en el cálculo
@@ -2417,10 +2417,10 @@ function mostrarPreviewCSV(resultado) {
     ${excedenteHTML}
     
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px;">
-      <button id="btnCancelarCSV" class="btn" type="button" style="background: var(--bg0); color: var(--text);">
-        Cancelar
+      <button id="btnCancelarCSV" class="btn" type="button" style="background: var(--bg0); color: var(--text); display: flex; align-items: center; justify-content: center; gap: 6px;">
+        ✕ Cancelar
       </button>
-      <button id="btnAplicarCSV" class="btn primary" type="button">
+      <button id="btnAplicarCSV" class="btn primary" type="button" style="display: flex; align-items: center; justify-content: center; gap: 6px;">
         <span id="btnAplicarTexto">✓ Aplicar consumos</span>
       </button>
     </div>
