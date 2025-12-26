@@ -1,6 +1,5 @@
 /**
  * INTEGRACIÓN DEL DESGLOSE DE FACTURA
- * Este archivo se carga después de app.js y añade la funcionalidad de desglose
  */
 
 (function() {
@@ -8,7 +7,6 @@
 
   let tarifasCache = null;
 
-  // Cargar tarifas.json
   async function cargarTarifas() {
     if (tarifasCache) return tarifasCache;
     
@@ -23,7 +21,6 @@
     }
   }
 
-  // Esperar a que el DOM esté listo
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);
   } else {
@@ -44,15 +41,11 @@
         const tdTotal = tr.cells[5];
         if (!tdTotal) return;
         
-        // Extraer nombre de la tarifa desde la celda
         const tdNombre = tr.cells[1];
         if (!tdNombre) return;
         
         const nombreCompleto = tdNombre.textContent || '';
-        const nombre = nombreCompleto
-          .split('\n')[0]
-          .replace(/[⚠️☀️🔋🔗ⓘ]/g, '')
-          .trim();
+        const nombre = nombreCompleto.split('\n')[0].replace(/[⚠️☀️🔋🔗ⓘ]/g, '').trim();
         
         tdTotal.style.cursor = 'pointer';
         tdTotal.title = '💡 Clic para ver desglose completo';
@@ -69,14 +62,10 @@
     observer.observe(tbody, { childList: true, subtree: true });
   }
 
-  /**
-   * Muestra el desglose de una tarifa
-   */
   window.mostrarDesglose = async function(nombreTarifa) {
-    console.log('=== DESGLOSE DEBUG ===');
-    console.log('Nombre tarifa:', nombreTarifa);
+    console.log('=== DESGLOSE ===');
+    console.log('Tarifa:', nombreTarifa);
     
-    // Obtener los inputs actuales
     const inputs = {
       p1: parseFloat(document.getElementById('p1')?.value.replace(',', '.')) || 0,
       p2: parseFloat(document.getElementById('p2')?.value.replace(',', '.')) || 0,
@@ -87,21 +76,19 @@
       exTotal: parseFloat(document.getElementById('exTotal')?.value.replace(',', '.')) || 0,
       bvSaldo: parseFloat(document.getElementById('bvSaldo')?.value.replace(',', '.')) || 0,
       zonaFiscal: document.getElementById('zonaFiscal')?.value || 'Península',
+      viviendaCanarias: document.getElementById('viviendaCanarias')?.checked || false,
       solarOn: document.getElementById('solarOn')?.checked || false
     };
 
-    // Cargar tarifas
     const tarifas = await cargarTarifas();
     if (!tarifas || tarifas.length === 0) {
       alert('Error: No se pudieron cargar las tarifas');
       return;
     }
 
-    // Buscar tarifa por nombre
     let tarifa = tarifas.find(t => (t.nombre || t.id) === nombreTarifa);
     
     if (!tarifa) {
-      // Buscar por nombre parcial
       tarifa = tarifas.find(t => {
         const n = t.nombre || t.id;
         return n.includes(nombreTarifa) || nombreTarifa.includes(n);
@@ -110,12 +97,32 @@
 
     if (!tarifa) {
       console.error('❌ No se encontró tarifa:', nombreTarifa);
-      console.log('Tarifas disponibles:', tarifas.map(t => t.nombre || t.id));
       alert('Error: No se pudo cargar la información de la tarifa');
       return;
     }
 
     console.log('✅ Tarifa encontrada:', tarifa);
+
+    // Determinar tipo de compensación y tope
+    let tipoCompensacion = 'NO COMPENSA';
+    let topeCompensacion = 'ENERGIA';
+    let tieneBV = false;
+    let reglaBV = 'NO APLICA';
+    let precioCompensacion = 0;
+
+    if (tarifa.fv) {
+      tipoCompensacion = tarifa.fv.tipo || 'NO COMPENSA';
+      topeCompensacion = tarifa.fv.tope || 'ENERGIA';
+      tieneBV = tarifa.fv.bv || false;
+      reglaBV = tarifa.fv.reglaBV || 'NO APLICA';
+      
+      // Precio compensación
+      if (tarifa.fv.exc === 'INDEXADA') {
+        precioCompensacion = 0; // No se puede calcular
+      } else if (typeof tarifa.fv.exc === 'number') {
+        precioCompensacion = tarifa.fv.exc;
+      }
+    }
 
     const datos = {
       nombreTarifa: tarifa.nombre || tarifa.id || 'Tarifa',
@@ -136,16 +143,20 @@
       precioValle: tarifa.cValle || 0,
       
       excedentes: inputs.solarOn ? inputs.exTotal : 0,
-      precioCompensacion: inputs.solarOn ? ((tarifa.fv && tarifa.fv.exc && typeof tarifa.fv.exc === 'number') ? tarifa.fv.exc : 0) : 0,
+      precioCompensacion: inputs.solarOn ? precioCompensacion : 0,
+      tipoCompensacion: tipoCompensacion,
+      topeCompensacion: topeCompensacion,
       
-      bateriaVirtual: (tarifa.fv && tarifa.fv.bv) ? inputs.bvSaldo : 0,
+      bateriaVirtual: tieneBV ? inputs.bvSaldo : 0,
+      tieneBV: tieneBV,
+      reglaBV: reglaBV,
       
-      alquilerContador: 0.80,
-      bonoSocial: 0.38,
-      zonaFiscal: inputs.zonaFiscal
+      zonaFiscal: inputs.zonaFiscal,
+      esViviendaCanarias: inputs.viviendaCanarias,
+      solarOn: inputs.solarOn
     };
 
-    console.log('Datos para desglose:', datos);
+    console.log('Datos:', datos);
 
     if (window.__LF_DesgloseFactura) {
       window.__LF_DesgloseFactura.abrir(datos);
