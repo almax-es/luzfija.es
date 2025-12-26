@@ -2562,6 +2562,19 @@ function mostrarPreviewCSV(resultado) {
         lfDbg('[CSV] Error en funciones auxiliares:', e);
       }
       
+      // IMPORTANTE: Resetear batería virtual a 0 antes de calcular
+      // El saldo anterior no tiene sentido con los nuevos datos importados
+      try {
+        const bvSaldoInput = document.getElementById('bvSaldo');
+        if (bvSaldoInput) {
+          bvSaldoInput.value = '0';
+          bvSaldoInput.dispatchEvent(new Event('input', { bubbles: true }));
+          lfDbg('[CSV] Batería Virtual reseteada a 0');
+        }
+      } catch(e) {
+        lfDbg('[CSV] Error reseteando BV:', e);
+      }
+      
       // Auto-calcular (igual que con factura PDF)
       try {
         if (typeof hideResultsToInitialState === 'function') hideResultsToInitialState();
