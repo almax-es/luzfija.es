@@ -5,6 +5,10 @@
 (function() {
   'use strict';
 
+  // Sistema de debug (activar con ?debug=1)
+  const DEBUG = window.location.search.includes('debug=1') || window.__LF_DEBUG;
+  const lfDbg = (...args) => DEBUG && console.log('[DESGLOSE]', ...args);
+
   let tarifasCache = null;
 
   async function cargarTarifas() {
@@ -28,7 +32,7 @@
   }
 
   function init() {
-    console.log('✅ Integración desglose inicializada');
+    lfDbg('Integración desglose inicializada');
     
     const tbody = document.querySelector('#tbody');
     if (!tbody) return;
@@ -63,8 +67,8 @@
   }
 
   window.mostrarDesglose = async function(nombreTarifa) {
-    console.log('=== DESGLOSE ===');
-    console.log('Tarifa:', nombreTarifa);
+    lfDbg('=== DESGLOSE ===');
+    lfDbg('Tarifa:', nombreTarifa);
     
     // Detectar PVPC (no se puede desglosar)
     if (nombreTarifa && nombreTarifa.toLowerCase().includes('pvpc')) {
@@ -119,7 +123,7 @@
       return;
     }
 
-    console.log('✅ Tarifa encontrada:', tarifa);
+    lfDbg('✅ Tarifa encontrada:', tarifa);
 
     // Determinar tipo de compensación y tope
     let tipoCompensacion = 'NO COMPENSA';
@@ -174,7 +178,7 @@
       solarOn: inputs.solarOn
     };
 
-    console.log('Datos:', datos);
+    lfDbg('Datos:', datos);
 
     if (window.__LF_DesgloseFactura) {
       window.__LF_DesgloseFactura.abrir(datos);

@@ -2575,8 +2575,42 @@ function mostrarPreviewCSV(resultado) {
         lfDbg('[CSV] Error reseteando BV:', e);
       }
       
-      // Auto-calcular con delay aumentado para asegurar que todo está listo
-      setTimeout(() => {
+      // Helper: esperar a que campos críticos estén listos (evita race conditions)
+      const waitForCriticalFields = async () => {
+        const maxWait = 1000;
+        const startTime = Date.now();
+        
+        while (Date.now() - startTime < maxWait) {
+          const diasOk = document.getElementById('dias')?.value;
+          const puntaOk = document.getElementById('cPunta')?.value;
+          const llanoOk = document.getElementById('cLlano')?.value;
+          const valleOk = document.getElementById('cValle')?.value;
+          
+          if (diasOk && puntaOk && llanoOk && valleOk) {
+            // Si tiene excedentes, también esperar exTotal
+            if (debeAplicarExcedentes) {
+              const exTotalOk = document.getElementById('exTotal')?.value;
+              if (exTotalOk) {
+                lfDbg('[CSV] Todos los campos listos (incluido excedentes)');
+                return true;
+              }
+            } else {
+              lfDbg('[CSV] Campos básicos listos');
+              return true;
+            }
+          }
+          
+          await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        
+        lfDbg('[CSV] Timeout esperando campos, procediendo de todas formas');
+        return false;
+      };
+      
+      // Auto-calcular esperando a que campos estén realmente listos
+      (async () => {
+        await waitForCriticalFields();
+        
         try {
           if (typeof hideResultsToInitialState === 'function') hideResultsToInitialState();
           if (typeof setStatus === 'function') setStatus('Calculando...', 'loading');
@@ -2584,7 +2618,7 @@ function mostrarPreviewCSV(resultado) {
         } catch(e) {
           lfDbg('[CSV] Error en auto-cálculo:', e);
         }
-      }, 200);
+      })();
     });
   }
   
