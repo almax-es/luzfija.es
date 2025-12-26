@@ -92,13 +92,25 @@
       return;
     }
 
+    // PASO 1: Buscar coincidencia EXACTA
     let tarifa = tarifas.find(t => (t.nombre || t.id) === nombreTarifa);
     
+    // PASO 2: Si no encuentra, buscar parcial priorizando nombres MÁS LARGOS
+    // (para que "Imagina Energía 3P" tenga prioridad sobre "Imagina Energía")
     if (!tarifa) {
-      tarifa = tarifas.find(t => {
+      const candidatos = tarifas.filter(t => {
         const n = t.nombre || t.id;
         return n.includes(nombreTarifa) || nombreTarifa.includes(n);
       });
+      
+      // Ordenar por longitud de nombre (más largo primero)
+      candidatos.sort((a, b) => {
+        const nameA = a.nombre || a.id || '';
+        const nameB = b.nombre || b.id || '';
+        return nameB.length - nameA.length;
+      });
+      
+      tarifa = candidatos[0];
     }
 
     if (!tarifa) {
