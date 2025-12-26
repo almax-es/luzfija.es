@@ -41,7 +41,7 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
 
     // ===== LAZY LOAD XLSX (SheetJS) =====
     // Solo se carga cuando el usuario sube un archivo Excel
-    // Version pineada: 0.20.3 (última estable a diciembre 2024)
+    // Version pineada: 0.20.3 (última estable a diciembre 2025)
     let xlsxLoading = null;
     
     async function ensureXLSX() {
