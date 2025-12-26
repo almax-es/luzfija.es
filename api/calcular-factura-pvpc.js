@@ -1,68 +1,49 @@
 // api/calcular-factura-pvpc.js
-// Replica EXACTA de cálculos CMNC 2025
+// CMNC EXACTO
 
-// ==================== VALORES EXACTOS CMNC 2025 ====================
+const PEAJES_CARGOS_ENERGIA = { p1: 0.092539, p2: 0.028201, p3: 0.002994 };
+const PEAJES_CARGOS_POTENCIA = { p1: 26.93055, p2: 0.697588 };
+const MARGEN_COMERCIALIZACION = 3.113;
+const FINANCIACION_BONO_SOCIAL = 0.0127424301;
+const ALQUILER_CONTADOR = 0.81;
+const IMPUESTO_ELECTRICO = 0.051127;
+const IVA = 0.21;
 
-// PEAJES + CARGOS ENERGÍA (€/kWh) - Valores TOTALES oficiales APPA 2025
-const PEAJES_CARGOS_ENERGIA = {
-  p1: 0.092539,  // Punta
-  p2: 0.028201,  // Llano
-  p3: 0.002994   // Valle
-};
-
-// PEAJES + CARGOS POTENCIA (€/kW/año) - Valores TOTALES CMNC
-const PEAJES_CARGOS_POTENCIA = {
-  p1: 26.93055,   // Punta (P1+P2 agrupados)
-  p2: 0.697588    // Valle (P3)
-};
-
-// MARGEN COMERCIALIZACIÓN (tarifa PVPC regulada)
-const MARGEN_COMERCIALIZACION = 3.113;  // €/kW/año
-
-// OTROS
-const FINANCIACION_BONO_SOCIAL = 0.0127424301;  // €/día (2025)
-const ALQUILER_CONTADOR = 0.81;  // €/mes
-const IMPUESTO_ELECTRICO = 0.051127;  // 5,1127%
-const IVA = 0.21;  // 21%
-
-// ESIOS
 const ZONA_ESIOS = {
-  1: { indicador: 1001, geo_id: 8741 },  // Península
-  2: { indicador: 1003, geo_id: 8742 },  // Canarias
-  3: { indicador: 1001, geo_id: 8743 },  // Baleares
-  4: { indicador: 1002, geo_id: 8744 },  // Ceuta
-  5: { indicador: 1002, geo_id: 8745 }   // Melilla
+  1: { indicador: 1001, geo_id: 8741 },
+  2: { indicador: 1003, geo_id: 8742 },
+  3: { indicador: 1001, geo_id: 8743 },
+  4: { indicador: 1002, geo_id: 8744 },
+  5: { indicador: 1002, geo_id: 8745 }
 };
 
-// ==================== FUNCIONES ====================
-
-function parseFecha(fecha) {
-  const [dia, mes, anio] = fecha.split('/');
-  return new Date(anio, mes - 1, dia);
+function parseFecha(f) {
+  const [d, m, y] = f.split('/');
+  return new Date(y, m - 1, d);
 }
 
-function formatFechaESIOS(fecha) {
-  const y = fecha.getFullYear();
-  const m = String(fecha.getMonth() + 1).padStart(2, '0');
-  const d = String(fecha.getDate()).padStart(2, '0');
+function formatFechaESIOS(f) {
+  const y = f.getFullYear();
+  const m = String(f.getMonth() + 1).padStart(2, '0');
+  const d = String(f.getDate()).padStart(2, '0');
   return `${y}-${m}-${d}T00:00:00+01:00`;
 }
 
 function getPeriodo(fecha, hora) {
   const dia = fecha.getDay();
-  if (dia === 0 || dia === 6) return 'p3';  // Fin de semana
-  if (hora >= 0 && hora < 8) return 'p3';    // Noche
-  if ((hora >= 10 && hora < 14) || (hora >= 18 && hora < 22)) return 'p1';  // Punta
-  return 'p2';  // Llano
+  if (dia === 0 || dia === 6) return 'p3';
+  if (hora >= 0 && hora < 8) return 'p3';
+  if ((hora >= 10 && hora < 14) || (hora >= 18 && hora < 22)) return 'p1';
+  return 'p2';
 }
 
-async function obtenerPVPC(fechaInicio, fechaFin, zona) {
-  const config = ZONA_ESIOS[zona];
-  const url = `https://api.esios.ree.es/indicators/${config.indicador}`;
+async function obtenerPVPC(fi, ff, zona) {
+  const cfg = ZONA_ESIOS[zona];
+  const url = `https://api.esios.ree.es/indicators/${cfg.indicador}`;
   const params = new URLSearchParams({
-    start_date: formatFechaESIOS(parseFecha(fechaInicio)),
-    end_date: formatFechaESIOS(parseFecha(fechaFin)),
-    geo_ids: config.geo_id
+    start_date: formatFechaESIOS(parseFecha(fi)),
+    end_date: formatFechaESIOS(parseFecha(ff)),
+    geo_ids: cfg.geo_id
   });
   
   const res = await fetch(`${url}?${params}`, {
@@ -72,106 +53,107 @@ async function obtenerPVPC(fechaInicio, fechaFin, zona) {
     }
   });
   
-  if (!res.ok) throw new Error(`ESIOS error: ${res.status}`);
+  if (!res.ok) throw new Error(`ESIOS: ${res.status}`);
   
   const data = await res.json();
   const precios = {};
   
   data.indicator.values.forEach(v => {
-    if (v.geo_id === config.geo_id) {
+    if (v.geo_id === cfg.geo_id) {
       const fecha = new Date(v.datetime_utc);
       const clave = fecha.toISOString().split('T')[0];
       const hora = fecha.getUTCHours() + 1;
       if (!precios[clave]) precios[clave] = {};
-      precios[clave][hora] = v.value / 1000;  // €/MWh → €/kWh
+      precios[clave][hora] = v.value / 1000;
     }
   });
   
   return precios;
 }
 
-function calcularPreciosPVPCPorPeriodo(precios_pvpc) {
-  const horas_periodo = { p1: [], p2: [], p3: [] };
+function calcularPVPCMedios(precios_pvpc) {
+  const horas = { p1: [], p2: [], p3: [] };
+  let todas = [];
   
   Object.keys(precios_pvpc).forEach(fechaStr => {
     const [y, m, d] = fechaStr.split('-');
     const fecha = new Date(y, m - 1, d);
     
     Object.keys(precios_pvpc[fechaStr]).forEach(h => {
+      const valor = precios_pvpc[fechaStr][h];
       const periodo = getPeriodo(fecha, parseInt(h));
-      horas_periodo[periodo].push(precios_pvpc[fechaStr][h]);
+      horas[periodo].push(valor);
+      todas.push(valor);
     });
   });
   
   const medias = {};
   ['p1', 'p2', 'p3'].forEach(p => {
-    if (horas_periodo[p].length > 0) {
-      medias[p] = horas_periodo[p].reduce((a, b) => a + b, 0) / horas_periodo[p].length;
-    } else {
-      medias[p] = 0.12;  // Fallback
-    }
+    medias[p] = horas[p].length > 0 
+      ? horas[p].reduce((a, b) => a + b, 0) / horas[p].length
+      : 0.12;
   });
   
-  return medias;
+  const media_total = todas.length > 0
+    ? todas.reduce((a, b) => a + b, 0) / todas.length
+    : 0.12;
+  
+  return { p1: medias.p1, p2: medias.p2, p3: medias.p3, total: media_total };
 }
 
 function calcular(params) {
   const {
-    pvpc_medias,
-    consumo_p1, consumo_p2, consumo_p3,
-    potencia_p1, potencia_p2,
+    pvpc,
+    c1, c2, c3,
+    pot1, pot2,
     dias
   } = params;
   
-  // 1. TÉRMINO VARIABLE (energía)
-  const coste_energia_p1 = consumo_p1 * (pvpc_medias.p1 + PEAJES_CARGOS_ENERGIA.p1);
-  const coste_energia_p2 = consumo_p2 * (pvpc_medias.p2 + PEAJES_CARGOS_ENERGIA.p2);
-  const coste_energia_p3 = consumo_p3 * (pvpc_medias.p3 + PEAJES_CARGOS_ENERGIA.p3);
-  const termino_variable = coste_energia_p1 + coste_energia_p2 + coste_energia_p3;
+  // 1. TÉRMINO VARIABLE
+  // CMNC: peajes por periodo + PVPC medio total
+  const consumo_total = c1 + c2 + c3;
+  const coste_peajes_p1 = c1 * PEAJES_CARGOS_ENERGIA.p1;
+  const coste_peajes_p2 = c2 * PEAJES_CARGOS_ENERGIA.p2;
+  const coste_peajes_p3 = c3 * PEAJES_CARGOS_ENERGIA.p3;
+  const coste_peajes_total = coste_peajes_p1 + coste_peajes_p2 + coste_peajes_p3;
+  const coste_pvpc_total = consumo_total * pvpc.total;
+  const termino_variable = coste_peajes_total + coste_pvpc_total;
   
-  // 2. TÉRMINO FIJO (potencia + margen)
-  const coste_pot_p1 = (potencia_p1 / 365) * dias * PEAJES_CARGOS_POTENCIA.p1;
-  const coste_pot_p2 = (potencia_p2 / 365) * dias * PEAJES_CARGOS_POTENCIA.p2;
-  const margen = (potencia_p1 / 365) * dias * MARGEN_COMERCIALIZACION;
-  const termino_fijo = coste_pot_p1 + coste_pot_p2 + margen;
+  // 2. TÉRMINO FIJO
+  const pot_p1 = (pot1 / 365) * dias * PEAJES_CARGOS_POTENCIA.p1;
+  const pot_p2 = (pot2 / 365) * dias * PEAJES_CARGOS_POTENCIA.p2;
+  const margen = (pot1 / 365) * dias * MARGEN_COMERCIALIZACION;
+  const termino_fijo = pot_p1 + pot_p2 + margen;
   
-  // 3. FINANCIACIÓN BONO SOCIAL
-  const bono_social = FINANCIACION_BONO_SOCIAL * dias;
+  // 3. OTROS
+  const bono = FINANCIACION_BONO_SOCIAL * dias;
+  const contador = (ALQUILER_CONTADOR / 30) * dias;
   
-  // 4. ALQUILER CONTADOR
-  const equipo_medida = (ALQUILER_CONTADOR / 30) * dias;
+  // 4. IMPUESTOS
+  const subtotal = termino_fijo + termino_variable + bono + contador;
+  const imp_elec = subtotal * IMPUESTO_ELECTRICO;
+  const base = subtotal + imp_elec;
+  const iva = base * IVA;
+  const total = base + iva;
   
-  // 5. IMPUESTO ELÉCTRICO
-  const subtotal = termino_fijo + termino_variable + bono_social + equipo_medida;
-  const impuesto_electrico = subtotal * IMPUESTO_ELECTRICO;
-  
-  // 6. IVA
-  const base_imponible = subtotal + impuesto_electrico;
-  const iva = base_imponible * IVA;
-  
-  // 7. TOTAL
-  const total = base_imponible + iva;
-  
-  // PRECIOS FINALES TODO INCLUIDO (para mostrar)
-  const precio_punta = pvpc_medias.p1 + PEAJES_CARGOS_ENERGIA.p1;
-  const precio_llano = pvpc_medias.p2 + PEAJES_CARGOS_ENERGIA.p2;
-  const precio_valle = pvpc_medias.p3 + PEAJES_CARGOS_ENERGIA.p3;
+  // 5. PRECIOS PARA MOSTRAR (PVPC periodo + peajes periodo)
+  const precio_p1 = pvpc.p1 + PEAJES_CARGOS_ENERGIA.p1;
+  const precio_p2 = pvpc.p2 + PEAJES_CARGOS_ENERGIA.p2;
+  const precio_p3 = pvpc.p3 + PEAJES_CARGOS_ENERGIA.p3;
   
   return {
-    precioPunta: parseFloat(precio_punta.toFixed(6)),
-    precioLlano: parseFloat(precio_llano.toFixed(6)),
-    precioValle: parseFloat(precio_valle.toFixed(6)),
+    precioPunta: parseFloat(precio_p1.toFixed(6)),
+    precioLlano: parseFloat(precio_p2.toFixed(6)),
+    precioValle: parseFloat(precio_p3.toFixed(6)),
     terminoFijo: parseFloat(termino_fijo.toFixed(2)),
     terminoVariable: parseFloat(termino_variable.toFixed(2)),
-    bonoSocial: parseFloat(bono_social.toFixed(2)),
-    impuestoElectrico: parseFloat(impuesto_electrico.toFixed(2)),
-    equipoMedida: parseFloat(equipo_medida.toFixed(2)),
+    bonoSocial: parseFloat(bono.toFixed(2)),
+    impuestoElectrico: parseFloat(imp_elec.toFixed(2)),
+    equipoMedida: parseFloat(contador.toFixed(2)),
     iva: parseFloat(iva.toFixed(2)),
     totalFactura: parseFloat(total.toFixed(2))
   };
 }
-
-// ==================== HANDLER ====================
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
@@ -181,13 +163,9 @@ export default async function handler(req, res) {
   
   try {
     const {
-      fecha_inicio,
-      fecha_fin,
-      consumo_p1 = 0,
-      consumo_p2 = 0,
-      consumo_p3 = 0,
-      potencia_p1 = 3.45,
-      potencia_p2 = 3.45,
+      fecha_inicio, fecha_fin,
+      consumo_p1 = 0, consumo_p2 = 0, consumo_p3 = 0,
+      potencia_p1 = 3.45, potencia_p2 = 3.45,
       zona = 1
     } = req.query;
     
@@ -200,21 +178,20 @@ export default async function handler(req, res) {
     const dias = Math.ceil((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
     
     const precios_pvpc = await obtenerPVPC(fecha_inicio, fecha_fin, zona);
-    const pvpc_medias = calcularPreciosPVPCPorPeriodo(precios_pvpc);
+    const pvpc_medios = calcularPVPCMedios(precios_pvpc);
     
     const resultado = calcular({
-      pvpc_medias,
-      consumo_p1: parseFloat(consumo_p1),
-      consumo_p2: parseFloat(consumo_p2),
-      consumo_p3: parseFloat(consumo_p3),
-      potencia_p1: parseFloat(potencia_p1),
-      potencia_p2: parseFloat(potencia_p2),
+      pvpc: pvpc_medios,
+      c1: parseFloat(consumo_p1),
+      c2: parseFloat(consumo_p2),
+      c3: parseFloat(consumo_p3),
+      pot1: parseFloat(potencia_p1),
+      pot2: parseFloat(potencia_p2),
       dias
     });
     
     resultado.rangoFechas = { inicio: fecha_inicio, fin: fecha_fin };
     
-    // Cache 24h
     const ahora = new Date();
     const manana = new Date(ahora);
     manana.setDate(manana.getDate() + 1);
