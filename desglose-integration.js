@@ -76,30 +76,30 @@
 
     // Intentar obtener la tarifa del state.rows
     let tarifa = null;
-    if (window.state && window.state.rows && window.state.rows[rowIndex]) {
+    
+    // Primero intentar desde cachedTarifas (más fiable)
+    if (window.cachedTarifas) {
+      tarifa = window.cachedTarifas.find(t => {
+        const nombre = t.nombre || t.id;
+        return nombre === nombreTarifa || nombre.includes(nombreTarifa) || nombreTarifa.includes(nombre);
+      });
+    }
+    
+    // Si no, intentar desde state.rows
+    if (!tarifa && window.state && window.state.rows && window.state.rows[rowIndex]) {
       const row = window.state.rows[rowIndex];
-      
-      // Buscar la tarifa en cachedTarifas por nombre
       if (window.cachedTarifas) {
-        tarifa = window.cachedTarifas.find(t => 
-          (t.nombre || t.id) === nombreTarifa
-        );
+        tarifa = window.cachedTarifas[rowIndex];
       }
     }
 
-    // Si no encontramos tarifa, usar valores por defecto
     if (!tarifa) {
-      console.warn('No se encontró tarifa, usando valores por defecto');
-      tarifa = {
-        nombre: nombreTarifa,
-        p1: 0.054794,
-        p2: 0.054794,
-        e1: 0.15,
-        e2: 0.12,
-        e3: 0.09,
-        compensacion: 0.08
-      };
+      console.error('No se encontró tarifa:', nombreTarifa);
+      alert('Error: No se pudo cargar la información de la tarifa');
+      return;
     }
+
+    console.log('Tarifa encontrada:', tarifa);
 
     const datos = {
       nombreTarifa: tarifa.nombre || tarifa.id || nombreTarifa,
@@ -127,6 +127,8 @@
       alquilerContador: 0.81,
       zonaFiscal: inputs.zonaFiscal
     };
+
+    console.log('Datos para desglose:', datos);
 
     // Abrir el modal
     if (window.__LF_DesgloseFactura) {

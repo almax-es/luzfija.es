@@ -90,15 +90,7 @@
         }
       });
 
-      // Prevenir scroll del body cuando el modal está abierto
-      this.modal.addEventListener('wheel', (e) => {
-        const content = this.modal.querySelector('.desglose-body');
-        const isScrollable = content.scrollHeight > content.clientHeight;
-        
-        if (!isScrollable) {
-          e.preventDefault();
-        }
-      });
+      // NO prevenir scroll - permitir scroll con rueda del ratón
     },
 
     /**
