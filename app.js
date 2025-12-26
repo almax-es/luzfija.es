@@ -1894,12 +1894,14 @@ function agregarMiTarifa() {
 function parseCSVConsumos(fileContent) {
   /**
    * Parsea CSV de consumos horarios de distribuidoras españolas
+   * Ahora soporta excedentes y autoconsumo
    * 
-   * FORMATOS SOPORTADOS (verificados):
-   * - e-distribución: CUPS;Fecha;Hora;AE_kWh;REAL/ESTIMADO
-   * - i-DE (Iberdrola): CUPS;Fecha;Hora;Consumo_kWh;Metodo_obtencion
+   * FORMATOS SOPORTADOS:
+   * 1. e-distribución BÁSICO: CUPS;Fecha;Hora;AE_kWh;REAL/ESTIMADO
+   * 2. e-distribución CON SOLAR: CUPS;Fecha;Hora;AE_kWh;AS_KWh;AE_AUTOCONS_kWh;REAL/ESTIMADO
+   * 3. i-DE (Iberdrola): CUPS;Fecha;Hora;Consumo_kWh;Metodo_obtencion
    * 
-   * Ambos usan el formato estándar CNMC:
+   * Formato estándar CNMC:
    * - Fechas: DD/MM/YYYY
    * - Horas: 1-24 (no 0-23)
    * - Separador: punto y coma (;)
@@ -1910,12 +1912,15 @@ function parseCSVConsumos(fileContent) {
   const header = lines[0].toLowerCase();
   
   // Detectar formato estándar español (CNMC)
-  // Acepta tanto "AE_kWh" (e-distribución) como "Consumo_kWh" (i-DE)
   const isFormatoEspanol = header.includes('ae_kwh') || header.includes('consumo_kwh');
   
   if (!isFormatoEspanol) {
     throw new Error('Formato CSV no reconocido. Se esperaba el formato estándar de distribuidoras españolas (e-distribución, i-DE, etc.)');
   }
+  
+  // Detectar si tiene columnas de solar
+  const tieneSolar = header.includes('as_kwh');
+  const tieneAutoconsumo = header.includes('ae_autocons_kwh');
   
   const consumos = [];
   
@@ -1926,16 +1931,36 @@ function parseCSVConsumos(fileContent) {
     const cols = line.split(';');
     if (cols.length < 4) continue;
     
-    // Formato: CUPS;Fecha;Hora;Consumo_kWh;Metodo
+    // Formato básico: CUPS;Fecha;Hora;Consumo_kWh;Metodo
+    // Formato solar: CUPS;Fecha;Hora;AE_kWh;AS_KWh;AE_AUTOCONS_kWh;REAL/ESTIMADO
     const fechaStr = cols[1];  // DD/MM/YYYY
     const hora = parseInt(cols[2]);  // 1-24
     const kwhStr = cols[3];
-    const esReal = cols[4] === 'R';
+    
+    // Columnas de solar (si existen)
+    const excedenteStr = tieneSolar ? cols[4] : null;
+    const autoconsumoStr = tieneAutoconsumo ? cols[5] : null;
+    const esReal = cols[tieneSolar && tieneAutoconsumo ? 6 : 4] === 'R';
     
     if (!kwhStr || kwhStr.trim() === '') continue;
     
+    // Parsear consumo de red
     const kwh = parseFloat(kwhStr.replace(',', '.'));
     if (isNaN(kwh)) continue;
+    
+    // Parsear excedentes (energía vertida a la red)
+    let excedente = 0;
+    if (excedenteStr && excedenteStr.trim() !== '') {
+      const exc = parseFloat(excedenteStr.replace(',', '.'));
+      if (!isNaN(exc)) excedente = exc;
+    }
+    
+    // Parsear autoconsumo (energía solar usada directamente)
+    let autoconsumo = 0;
+    if (autoconsumoStr && autoconsumoStr.trim() !== '') {
+      const auto = parseFloat(autoconsumoStr.replace(',', '.'));
+      if (!isNaN(auto)) autoconsumo = auto;
+    }
     
     // Parsear fecha DD/MM/YYYY
     const [dia, mes, año] = fechaStr.split('/').map(Number);
@@ -1943,7 +1968,96 @@ function parseCSVConsumos(fileContent) {
     
     if (isNaN(fecha.getTime())) continue;
     
-    consumos.push({ fecha, hora, kwh, esReal });
+    consumos.push({ 
+      fecha, 
+      hora, 
+      kwh,           // Consumo de red
+      excedente,     // Energía vertida a red (AS_KWh)
+      autoconsumo,   // Energía solar autoconsumida (AE_AUTOCONS_kWh)
+      esReal 
+    });
+  }
+  
+  return consumos;
+}
+
+/**
+ * Parsea archivos XLSX (Excel) de distribuidoras que usan este formato
+ * 
+ * FORMATO ESPERADO:
+ * - Fila 1: Título (periodo de facturación)
+ * - Fila 2: Dirección
+ * - Fila 3: Cabeceras (CUPS, FECHA-HORA, INV/VER, PERIODO TARIFARIO, CONSUMO Wh, GENERACION Wh)
+ * - Filas siguientes: Datos horarios
+ * 
+ * CÁLCULO DE EXCEDENTES:
+ * - Si GENERACION > CONSUMO → Excedente = GENERACION - CONSUMO
+ * - Si CONSUMO > GENERACION → Red cubre la diferencia, excedente = 0
+ */
+async function parseXLSXConsumos(fileBuffer) {
+  if (typeof XLSX === 'undefined') {
+    throw new Error('Librería XLSX no cargada. Añade: <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>');
+  }
+  
+  const workbook = XLSX.read(fileBuffer, { type: 'array' });
+  const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+  const data = XLSX.utils.sheet_to_json(firstSheet, { header: 1, raw: false });
+  
+  if (data.length < 4) {
+    throw new Error('Archivo Excel vacío o formato no reconocido');
+  }
+  
+  const headers = data[2];
+  if (!headers || headers.length < 6) {
+    throw new Error('Formato Excel no reconocido. Se esperan: CUPS, FECHA-HORA, INV/VER, PERIODO, CONSUMO Wh, GENERACION Wh');
+  }
+  
+  const consumos = [];
+  
+  for (let i = 3; i < data.length; i++) {
+    const row = data[i];
+    if (!row || row.length < 6) continue;
+    
+    const fechaHoraStr = row[1];
+    const consumoWh = parseFloat(row[4]) || 0;
+    const generacionWh = parseFloat(row[5]) || 0;
+    
+    if (!fechaHoraStr) continue;
+    
+    const [fechaStr, horaStr] = fechaHoraStr.split(' ');
+    const [año, mes, dia] = fechaStr.split('/').map(Number);
+    const hora = parseInt(horaStr.split(':')[0]);
+    
+    const fecha = new Date(año, mes - 1, dia);
+    if (isNaN(fecha.getTime())) continue;
+    
+    const consumoKwh = consumoWh / 1000;
+    const generacionKwh = generacionWh / 1000;
+    
+    let autoconsumo = 0;
+    let excedente = 0;
+    let kwhRed = consumoKwh;
+    
+    if (generacionKwh > 0) {
+      if (generacionKwh <= consumoKwh) {
+        autoconsumo = generacionKwh;
+        kwhRed = consumoKwh - generacionKwh;
+        excedente = 0;
+      } else {
+        autoconsumo = consumoKwh;
+        kwhRed = 0;
+        excedente = generacionKwh - consumoKwh;
+      }
+    }
+    
+    consumos.push({
+      fecha,
+      hora,
+      kwh: kwhRed,
+      excedente,
+      autoconsumo,
+      esReal: true
+    });
   }
   
   return consumos;
@@ -2051,14 +2165,27 @@ function ymdLocal(d) {
 }
 
 function clasificarConsumosPorPeriodo(consumos) {
-  const totales = { P1: 0, P2: 0, P3: 0 };
+  const totales = { 
+    P1: 0, P2: 0, P3: 0,
+    excedentesP1: 0, excedentesP2: 0, excedentesP3: 0,
+    autoconsumoP1: 0, autoconsumoP2: 0, autoconsumoP3: 0
+  };
   const diasUnicos = new Set();
   let datosReales = 0;
   let datosEstimados = 0;
   
   consumos.forEach(c => {
     const periodo = getPeriodoHorarioCSV(c.fecha, c.hora);
-    totales[periodo] += c.kwh;
+    
+    totales[periodo] += c.kwh || 0;
+    
+    if (c.excedente) {
+      totales[`excedentes${periodo}`] += c.excedente;
+    }
+    
+    if (c.autoconsumo) {
+      totales[`autoconsumo${periodo}`] += c.autoconsumo;
+    }
     
     const fechaKey = ymdLocal(c.fecha);
     diasUnicos.add(fechaKey);
@@ -2068,13 +2195,29 @@ function clasificarConsumosPorPeriodo(consumos) {
   });
   
   const totalKwh = totales.P1 + totales.P2 + totales.P3;
+  const totalExcedentes = totales.excedentesP1 + totales.excedentesP2 + totales.excedentesP3;
+  const totalAutoconsumo = totales.autoconsumoP1 + totales.autoconsumoP2 + totales.autoconsumoP3;
+  const tieneExcedentes = totalExcedentes > 0;
   
   return {
     punta: totales.P1.toFixed(2).replace('.', ','),
     llano: totales.P2.toFixed(2).replace('.', ','),
     valle: totales.P3.toFixed(2).replace('.', ','),
+    
+    excedentesPunta: totales.excedentesP1.toFixed(2).replace('.', ','),
+    excedentesLlano: totales.excedentesP2.toFixed(2).replace('.', ','),
+    excedentesValle: totales.excedentesP3.toFixed(2).replace('.', ','),
+    
+    autoconsumoPunta: totales.autoconsumoP1.toFixed(2).replace('.', ','),
+    autoconsumoLlano: totales.autoconsumoP2.toFixed(2).replace('.', ','),
+    autoconsumoValle: totales.autoconsumoP3.toFixed(2).replace('.', ','),
+    
     dias: diasUnicos.size,
     totalKwh: totalKwh.toFixed(2).replace('.', ','),
+    totalExcedentes: totalExcedentes.toFixed(2).replace('.', ','),
+    totalAutoconsumo: totalAutoconsumo.toFixed(2).replace('.', ','),
+    tieneExcedentes,
+    
     datosReales,
     datosEstimados,
     porcentajes: {
@@ -2100,6 +2243,7 @@ async function procesarCSVConsumos(file) {
         }
         
         const resultado = clasificarConsumosPorPeriodo(consumos);
+        resultado.formato = 'CSV';
         resolve(resultado);
       } catch (error) {
         reject(error);
@@ -2111,22 +2255,94 @@ async function procesarCSVConsumos(file) {
   });
 }
 
+async function procesarXLSXConsumos(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = async (e) => {
+      try {
+        const buffer = e.target.result;
+        const consumos = await parseXLSXConsumos(buffer);
+        
+        if (consumos.length === 0) {
+          reject(new Error('No se encontraron datos válidos en el Excel'));
+          return;
+        }
+        
+        const resultado = clasificarConsumosPorPeriodo(consumos);
+        resultado.formato = 'XLSX';
+        resolve(resultado);
+      } catch (error) {
+        reject(error);
+      }
+    };
+    
+    reader.onerror = () => reject(new Error('Error al leer el archivo Excel'));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
 function mostrarPreviewCSV(resultado) {
   const modal = document.createElement('div');
-  modal.className = 'modal-overlay show'; // ← AÑADIDA CLASE 'show'
+  modal.className = 'modal-overlay show';
   modal.style.cssText = 'display: flex !important; position: fixed !important; inset: 0 !important; background: rgba(0,0,0,0.85) !important; z-index: 999999 !important; align-items: center !important; justify-content: center !important; padding: 20px !important; visibility: visible !important; opacity: 1 !important;';
   
   const content = document.createElement('div');
-  content.style.cssText = 'background: var(--card); border-radius: 16px; padding: 24px; max-width: 500px; width: 100%; box-shadow: var(--shadow); position: relative; z-index: 1000000;';
+  content.style.cssText = 'background: var(--card); border-radius: 16px; padding: 24px; max-width: 500px; width: 100%; box-shadow: var(--shadow); position: relative; z-index: 1000000; max-height: 90vh; overflow-y: auto;';
+  
+  // Construir HTML de excedentes si existen
+  let excedenteHTML = '';
+  if (resultado.tieneExcedentes) {
+    excedenteHTML = `
+      <div style="background: rgba(251, 191, 36, 0.08); padding: 16px; border-radius: 12px; margin-top: 16px; border: 1px solid rgba(251, 191, 36, 0.2);">
+        <div style="font-size: 13px; font-weight: 900; margin-bottom: 12px; color: var(--text); display: flex; align-items: center; gap: 6px;">
+          ☀️ Excedentes solares detectados
+        </div>
+        
+        <div style="display: grid; gap: 8px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 12px; color: var(--muted2);">Total excedentes</span>
+            <span style="font-size: 14px; font-weight: 700; color: rgb(251, 191, 36);">${resultado.totalExcedentes} kWh</span>
+          </div>
+          
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding-top: 8px; border-top: 1px solid rgba(251, 191, 36, 0.15);">
+            <div>
+              <div style="font-size: 10px; color: var(--muted2); margin-bottom: 2px;">Punta</div>
+              <div style="font-size: 12px; font-weight: 700; color: var(--text);">${resultado.excedentesPunta} kWh</div>
+            </div>
+            <div>
+              <div style="font-size: 10px; color: var(--muted2); margin-bottom: 2px;">Llano</div>
+              <div style="font-size: 12px; font-weight: 700; color: var(--text);">${resultado.excedentesLlano} kWh</div>
+            </div>
+            <div>
+              <div style="font-size: 10px; color: var(--muted2); margin-bottom: 2px;">Valle</div>
+              <div style="font-size: 12px; font-weight: 700; color: var(--text);">${resultado.excedentesValle} kWh</div>
+            </div>
+          </div>
+          
+          ${resultado.totalAutoconsumo !== '0,00' ? `
+          <div style="padding-top: 8px; border-top: 1px solid rgba(251, 191, 36, 0.15);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 11px; color: var(--muted2);">Autoconsumo directo</span>
+              <span style="font-size: 13px; font-weight: 600; color: var(--text);">${resultado.totalAutoconsumo} kWh</span>
+            </div>
+          </div>
+          ` : ''}
+        </div>
+      </div>
+    `;
+  }
   
   content.innerHTML = `
-    <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 900; color: var(--text);">📊 Consumos detectados</h3>
+    <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 900; color: var(--text);">
+      📊 Consumos detectados${resultado.tieneExcedentes ? ' ☀️' : ''}
+    </h3>
     
     <div style="background: var(--bg0); padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--border);">
       <div style="display: grid; gap: 12px;">
         <div>
           <div style="font-size: 12px; color: var(--muted2); margin-bottom: 4px;">Periodo analizado</div>
-          <div style="font-size: 16px; font-weight: 700; color: var(--text);">${resultado.dias} días</div>
+          <div style="font-size: 16px; font-weight: 700; color: var(--text);">${resultado.dias} días (${resultado.formato})</div>
         </div>
         
         <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
@@ -2148,22 +2364,26 @@ function mostrarPreviewCSV(resultado) {
         </div>
         
         <div style="padding-top: 12px; border-top: 1px solid var(--border);">
-          <div style="font-size: 12px; color: var(--muted2); margin-bottom: 4px;">Total consumo</div>
-          <div style="font-size: 18px; font-weight: 900; color: var(--accent);">${resultado.totalKwh} kWh</div>
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 12px; color: var(--muted2);">Total consumo</span>
+            <span style="font-size: 15px; font-weight: 700; color: var(--text);">${resultado.totalKwh} kWh</span>
+          </div>
+        </div>
+        
+        <div style="font-size: 10px; color: var(--muted2); padding-top: 8px; border-top: 1px solid var(--border);">
+          ${resultado.datosReales} lecturas reales • ${resultado.datosEstimados} estimadas
         </div>
       </div>
     </div>
     
-    ${resultado.datosEstimados > 0 ? `
-      <div style="background: rgba(245, 158, 11, 0.1); padding: 12px; border-radius: 8px; margin-bottom: 16px; font-size: 12px; border: 1px solid rgba(245, 158, 11, 0.3);">
-        <span style="color: var(--warn);">⚠️</span> <span style="color: var(--text);">${resultado.datosEstimados} horas con datos estimados (no reales)</span>
-      </div>
-    ` : ''}
+    ${excedenteHTML}
     
-    <div style="display: flex; gap: 8px;">
-      <button class="btn" id="csvCancelar" style="flex: 1; position: relative; z-index: 10000; pointer-events: auto;">Cancelar</button>
-      <button class="btn primary" id="csvAplicar" style="flex: 1; position: relative; z-index: 10000; pointer-events: auto;">
-        <span style="position: relative; z-index: 1; pointer-events: none;">✓ Aplicar datos</span>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px;">
+      <button id="btnCancelarCSV" class="btn" type="button" style="background: var(--bg0); color: var(--text);">
+        Cancelar
+      </button>
+      <button id="btnAplicarCSV" class="btn primary" type="button">
+        ${resultado.tieneExcedentes ? '✓ Aplicar con excedentes' : '✓ Aplicar consumos'}
       </button>
     </div>
   `;
@@ -2176,14 +2396,8 @@ function mostrarPreviewCSV(resultado) {
   lfDbg('[CSV] Modal z-index:', modal.style.zIndex);
   lfDbg('[CSV] Body children:', document.body.children.length);
   
-  // Forzar que el modal sea visible inmediatamente
-  modal.style.display = 'flex';
-  modal.style.visibility = 'visible';
-  modal.style.opacity = '1';
-  
-  // Usar querySelector para los botones del modal que acabamos de crear
-  const btnCancelar = modal.querySelector('#csvCancelar');
-  const btnAplicar = modal.querySelector('#csvAplicar');
+  const btnCancelar = document.getElementById('btnCancelarCSV');
+  const btnAplicar = document.getElementById('btnAplicarCSV');
   
   lfDbg('[CSV] Botones encontrados:', btnCancelar !== null, btnAplicar !== null);
   
@@ -2198,6 +2412,7 @@ function mostrarPreviewCSV(resultado) {
     btnAplicar.addEventListener('click', () => {
       lfDbg('[CSV] Aplicar clickeado - rellenando campos');
       
+      // Rellenar campos de consumo
       const diasInput = document.getElementById('dias');
       const puntaInput = document.getElementById('cPunta');
       const llanoInput = document.getElementById('cLlano');
@@ -2211,9 +2426,9 @@ function mostrarPreviewCSV(resultado) {
       });
       
       if (diasInput) diasInput.value = resultado.dias;
-      if (puntaInput) puntaInput.value = resultado.punta.replace('.', ',');
-      if (llanoInput) llanoInput.value = resultado.llano.replace('.', ',');
-      if (valleInput) valleInput.value = resultado.valle.replace('.', ',');
+      if (puntaInput) puntaInput.value = resultado.punta;
+      if (llanoInput) llanoInput.value = resultado.llano;
+      if (valleInput) valleInput.value = resultado.valle;
       
       lfDbg('[CSV] Valores aplicados:', {
         dias: diasInput?.value,
@@ -2222,10 +2437,42 @@ function mostrarPreviewCSV(resultado) {
         valle: valleInput?.value
       });
       
+      // Rellenar excedentes si existen
+      if (resultado.tieneExcedentes) {
+        const solarCheckbox = document.getElementById('solarOn');
+        const exTotalInput = document.getElementById('exTotal');
+        
+        lfDbg('[CSV] Aplicando excedentes - checkbox y input encontrados:', {
+          checkbox: solarCheckbox !== null,
+          exTotal: exTotalInput !== null
+        });
+        
+        if (solarCheckbox && !solarCheckbox.checked) {
+          solarCheckbox.checked = true;
+          // Disparar evento para mostrar campos solares
+          solarCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+          lfDbg('[CSV] Checkbox solar activado');
+        }
+        
+        // Esperar un tick para que se muestren los campos
+        setTimeout(() => {
+          const exTotalInputRetry = document.getElementById('exTotal');
+          if (exTotalInputRetry) {
+            exTotalInputRetry.value = resultado.totalExcedentes;
+            lfDbg('[CSV] Excedentes aplicados:', resultado.totalExcedentes);
+          } else {
+            lfDbg('[CSV] ERROR: No se pudo encontrar exTotal después de activar solar');
+          }
+        }, 100);
+      }
+      
       modal.remove();
       
       if (typeof toast === 'function') {
-        toast('✓ Consumos aplicados desde CSV');
+        const msg = resultado.tieneExcedentes 
+          ? '✓ Consumos y excedentes aplicados' 
+          : '✓ Consumos aplicados desde ' + resultado.formato;
+        toast(msg);
       }
       
       try {
@@ -2236,7 +2483,7 @@ function mostrarPreviewCSV(resultado) {
         lfDbg('[CSV] Error en funciones auxiliares:', e);
       }
       
-      // Auto-calcular (igual que con factura PDF): los datos del CSV son 100% precisos
+      // Auto-calcular (igual que con factura PDF)
       try {
         if (typeof hideResultsToInitialState === 'function') hideResultsToInitialState();
         if (typeof setStatus === 'function') setStatus('Calculando...', 'loading');
@@ -2267,7 +2514,7 @@ function initCSVImporter() {
     
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
-    fileInput.accept = '.csv';
+    fileInput.accept = '.csv,.xlsx,.xls';
     fileInput.style.display = 'none';
     fileInput.id = 'csvConsumoInput';
     
@@ -2275,12 +2522,12 @@ function initCSVImporter() {
     btnCSV.type = 'button';
     btnCSV.className = 'btn';
     btnCSV.style.cssText = 'margin-top: 12px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;';
-    btnCSV.innerHTML = '📊 Importar desde CSV';
-    btnCSV.title = 'Subir archivo CSV con consumo horario';
+    btnCSV.innerHTML = '📊 Importar consumos (CSV/Excel)';
+    btnCSV.title = 'Subir archivo con consumo horario';
     
     const hint = document.createElement('small');
     hint.style.cssText = 'font-size: 11px; color: var(--muted2); margin-top: 4px; display: block; text-align: center;';
-    hint.textContent = 'Descarga tu consumo horario de tu distribuidora (e-distribución, i-DE, etc.)';
+    hint.textContent = 'Descarga tu consumo horario de tu distribuidora (CSV o Excel)';
     
     btnCSV.addEventListener('click', () => {
       fileInput.click();
@@ -2292,24 +2539,35 @@ function initCSVImporter() {
         return;
       }
       
-      
       btnCSV.disabled = true;
-      btnCSV.innerHTML = '⏳ Procesando CSV...';
+      btnCSV.innerHTML = '⏳ Procesando...';
       
       try {
-        const resultado = await procesarCSVConsumos(file);
+        let resultado;
+        const extension = file.name.split('.').pop().toLowerCase();
+        
+        if (extension === 'csv') {
+          resultado = await procesarCSVConsumos(file);
+        } else if (extension === 'xlsx' || extension === 'xls') {
+          if (typeof XLSX === 'undefined') {
+            throw new Error('Para leer archivos Excel, añade: <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>');
+          }
+          resultado = await procesarXLSXConsumos(file);
+        } else {
+          throw new Error('Formato no soportado. Solo CSV y Excel (.xlsx, .xls)');
+        }
         
         mostrarPreviewCSV(resultado);
         
         btnCSV.disabled = false;
-        btnCSV.innerHTML = '📊 Importar desde CSV';
+        btnCSV.innerHTML = '📊 Importar consumos (CSV/Excel)';
         fileInput.value = '';
         
       } catch (error) {
-        toast(error.message || 'Error al procesar el CSV', 'err');
+        toast(error.message || 'Error al procesar el archivo', 'err');
         
         btnCSV.disabled = false;
-        btnCSV.innerHTML = '📊 Importar desde CSV';
+        btnCSV.innerHTML = '📊 Importar consumos (CSV/Excel)';
         fileInput.value = '';
       }
     });
