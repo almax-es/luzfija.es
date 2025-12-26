@@ -308,74 +308,88 @@
       if (pvpcCasoInvalidoCanariasViviendaPotAlta) {
         return null;
       }
+      const zonaFiscal = esCanarias ? 'Canarias' : 'Península';
+      const viviendaCanarias = esCanarias && viviendaMarcada;
 
-      // Calcular periodo de facturación
       const periodo = buildPvpcPeriodo(dias);
+
+      // La CNMC manda las fechas así: "YYYY-MM-DD,YYYY-MM-DD"
       const [fechaInicioYMD, fechaFinYMD] = periodo.periodoFacturacion.split(',');
-      
-      // Convertir fechas de YYYY-MM-DD a DD/MM/YYYY
-      function convertirFecha(ymd) {
-        const [y, m, d] = ymd.split('-');
-        return `${d}/${m}/${y}`;
-      }
-      
-      const fechaInicio = convertirFecha(fechaInicioYMD);
-      const fechaFin = convertirFecha(fechaFinYMD);
 
-      // Mapear zona a código numérico para el endpoint
-      const zonaNum = esCanarias ? 2 : 1; // 1=Península, 2=Canarias, 3=Baleares, 4=Ceuta, 5=Melilla
+      // Código postal solicitado por el usuario
+      const codigoPostal = zonaFiscal === 'Canarias' ? '35001' : '50010';
 
-      // Construir URL del nuevo endpoint
       const params = new URLSearchParams({
-        fecha_inicio: fechaInicio,
-        fecha_fin: fechaFin,
-        consumo_p1: String(Math.round(cPunta)),
-        consumo_p2: String(Math.round(cLlano)),
-        consumo_p3: String(Math.round(cValle)),
-        potencia_p1: p1.toFixed(2),
-        potencia_p2: p2.toFixed(2),
-        zona: String(zonaNum),
-        es_vivienda: viviendaMarcada ? 'true' : 'false'
+        // 👇 Copiado de la llamada que a ellos les devuelve 200
+        tipoContador: 'T',
+        periodoFacturacion: `${fechaInicioYMD},${fechaFinYMD}`,
+        codigoPostal,
+
+        bonoSocial: 'false',
+        tipoConsumidor: '1',
+        categoria: '1',
+        contador: '1',
+
+        potenciaPrimeraFranja: p1.toFixed(2),
+        potenciaSegundaFranja: p2.toFixed(2),
+
+        consumo1: String(Math.round(cPunta)),
+        consumo2: String(Math.round(cLlano)),
+        consumo3: String(Math.round(cValle)),
+
+        vivienda: viviendaMarcada ? 'true' : 'false',
+        tarifa: '4', // 2.0TD
+        calculoAntiguo: 'false',
+        autoconsumo: 'false',
+        perfilConsumo: '8', // Perfil medio
+
+        // Ojo: aquí ellos usan solo fecha (sin hora)
+        fechaInicio: fechaInicioYMD,
+        fechaFin: fechaFinYMD,
+
+        // Aquí usan "potenciaAutoconsumo", no "potenciaConsumo". Usamos media o P1.
+        potenciaAutoconsumo: ((p1 + p2) / 2).toFixed(1),
+
+        // Y estos nombres EXACTOS:
+        inicioPFacturacion: String(periodo.inicioFacturacion),
+        finPFacturacion: String(periodo.finFacturacion)
       });
 
-      // Usar PVPC_FACTURA_URL (o PVPC_PROXY_URL por retrocompatibilidad)
-      const baseUrl = window.PVPC_FACTURA_URL || window.PVPC_PROXY_URL || '';
-      if (!baseUrl) {
-        console.error('PVPC: window.PVPC_FACTURA_URL no configurado');
-        if (typeof toast === 'function' && !pvpcErrorShown) {
-          toast('PVPC no disponible. Configura endpoint.', 'err');
-          pvpcErrorShown = true;
-        }
-        return null;
-      }
+      const apiUrl = `https://comparador.cnmc.gob.es/api/ofertas/pvpc?${params.toString()}`;
 
-      const apiUrl = `${baseUrl}?${params}`;
-
-      console.group('PVPC obtenerPVPC (ESIOS)');
+      console.group('PVPC obtenerPVPC_CNMC');
       console.log('API URL:', apiUrl);
-      console.log('Periodo:', fechaInicio, 'al', fechaFin, `(${dias} días)`);
-      console.log(`Potencias: P1=${p1.toFixed(2)} P2=${p2.toFixed(2)}`);
+      console.log('Periodo:', periodo.periodoFacturacion, `(${dias} días)`);
+      console.log(`Potencias: P1=${p1.toFixed(2)} P2=${p2.toFixed(2)} → promedio=${((p1+p2)/2).toFixed(1)}`);
       console.log(`Consumos: Punta=${Math.round(cPunta)} Llano=${Math.round(cLlano)} Valle=${Math.round(cValle)}`);
-      console.log(`Zona: ${esCanarias ? 'Canarias' : 'Península'} (${zonaNum})`);
-      console.log(`Vivienda: ${viviendaMarcada}`);
       console.groupEnd();
 
-      try {
-        const result = await fetchJsonWithTimeout(apiUrl, 12000);
-        pvpcErrorShown = false;
-        
-        // El nuevo endpoint ya devuelve los datos en formato correcto
-        // No necesita parsear, devolver directamente
-        return result;
-        
-      } catch (error) {
-        console.warn('PVPC fetch falló:', error?.message || error);
-        if (typeof toast === 'function' && !pvpcErrorShown) {
-          toast('PVPC (regulada) no disponible ahora. Intenta de nuevo.', 'err');
-          pvpcErrorShown = true;
+      // 🔥 Si hay proxy, usarlo DIRECTAMENTE (evita request CORS inútil)
+      const proxyBase = window.PVPC_PROXY_URL ? normalizeProxyBase(window.PVPC_PROXY_URL) : '';
+      if (proxyBase) {
+        try {
+          const proxyUrl = `${proxyBase}${encodeURIComponent(apiUrl)}`;
+          console.log('PVPC: ✅ Usando proxy directo:', proxyUrl);
+          const result = await fetchJsonWithTimeout(proxyUrl, 12000);
+          pvpcErrorShown = false;
+          return result;
+        } catch (proxyErr) {
+          console.warn('PVPC fetch con proxy falló:', proxyErr?.message || proxyErr);
+          if (typeof toast === 'function' && !pvpcErrorShown) {
+            toast('PVPC (regulada) no disponible ahora mismo. Intenta de nuevo con ⚡ Calcular.', 'err');
+            pvpcErrorShown = true;
+          }
+          return null;
         }
-        return null;
       }
+
+      // Si no hay proxy configurado
+      console.info('PVPC: ⚠️ window.PVPC_PROXY_URL no configurado. PVPC no disponible.');
+      if (typeof toast === 'function' && !pvpcErrorShown) {
+        toast('PVPC (regulada) no disponible. Configura proxy para habilitar.', 'err');
+        pvpcErrorShown = true;
+      }
+      return null;
     }
 
     function pvpcSignatureFromValues(v){
@@ -484,10 +498,7 @@
         try{
           const data=await obtenerPVPC_CNMC(values);
           if(!data){ if(!pvpcErrorShown){toast('PVPC (regulada) no disponible ahora mismo. Mostrando ranking sin PVPC; puedes reintentar con ⚡ Calcular.','err'); pvpcErrorShown=true;} return null; }
-          
-          // El nuevo endpoint ya devuelve formato correcto, no necesita parsear
-          const parsed = data;
-          
+          const parsed=parsearRespuestaPVPC(data);
           if(!parsed){ if(!pvpcErrorShown){toast('PVPC (regulada) no disponible ahora mismo. Mostrando ranking sin PVPC; puedes reintentar con ⚡ Calcular.','err'); pvpcErrorShown=true;} return null; }
 
           const tarifa={

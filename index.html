@@ -14,14 +14,9 @@
   <meta name="apple-mobile-web-app-title" content="Comparador Tarifas">
 
   <script>
-    // Endpoint para calcular facturas PVPC completas (sustituye a CMNC)
-    window.PVPC_FACTURA_URL = "https://luzfija-es.vercel.app/api/calcular-factura-pvpc";
-    
-    // Endpoint para obtener precios horarios PVPC de hoy/mañana (ESIOS)
-    window.PVPC_PRICES_URL = "https://luzfija-es.vercel.app/api/pvpc-precios-esios?date=";
-    
-    // DEPRECATED - Ya no se usa, mantener por compatibilidad
-    window.PVPC_PROXY_URL = window.PVPC_FACTURA_URL;
+    window.PVPC_PROXY_URL = "https://luzfija-es.vercel.app/api/proxy?url=";
+    // PVPC público (CNMC) cacheado en Vercel (NO ESIOS / no token)
+    window.PVPC_PRICES_URL = "https://luzfija-es.vercel.app/api/pvpc-precios?date=";
   </script>
 
   <meta property="og:title" content="Comparador de Tarifas de Luz en España | Encuentra la Más Barata">
@@ -263,7 +258,7 @@
               <span class="mi-left">🔗 Compartir configuración</span>
               <span class="mi-right">URL</span>
             </button>
-            <a class="menuItem" href="/cdn-cgi/l/email-protection#325a5d5e53725e4748545b58531c5741" role="menuitem" style="text-decoration:none;">
+            <a class="menuItem" href="mailto:hola@luzfija.es" role="menuitem" style="text-decoration:none;">
               <span class="mi-left">✉️ Contacto</span>
               <span class="mi-right">email</span>
             </a>
@@ -784,7 +779,7 @@
             <div style="font-size:11px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted2); font-weight:900; margin-bottom:6px;">
               ✉️ Email
             </div>
-            <a href="/cdn-cgi/l/email-protection#3e5651525f7e524b445857545f105b4d" style="color:var(--accent); font-weight:900; text-decoration:underline; font-size:13px;">
+            <a href="mailto:hola@luzfija.es" style="color:var(--accent); font-weight:900; text-decoration:underline; font-size:13px;">
               hola@luzfija.es
             </a>
             <div style="margin-top:8px; font-size:11px; color:var(--muted2); line-height:1.4;">
@@ -1292,4 +1287,19 @@
     });
     
     document.addEventListener('keydown', (e) => {
-      if (e.key === 
+      if (e.key === 'Escape' && modalPVPCInfo.classList.contains('show')) cerrarModal();
+    });
+  });
+  </script>
+
+  <script>
+  // Ocultar breadcrumb "Inicio" en la página principal (es redundante aquí)
+  document.addEventListener('DOMContentLoaded', () => {
+    const breadcrumb = document.querySelector('nav[aria-label="Breadcrumb"]');
+    if (breadcrumb && (window.location.pathname === '/' || window.location.pathname === '/index.html')) {
+      breadcrumb.style.display = 'none';
+    }
+  });
+  </script>
+</body>
+</html>
