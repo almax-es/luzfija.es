@@ -1,20 +1,24 @@
-<!DOCTYPE html>
+```html
+<!doctype html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Privacidad - luzfija.es</title>
   <style>
-    body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;line-height:1.6;color:#111827;max-width:860px;margin:40px auto;padding:0 20px}
+    body{
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Ubuntu,"Helvetica Neue",Arial,sans-serif;
+      line-height:1.6; color:#111827; max-width:860px; margin:40px auto; padding:0 20px; background:#fff;
+    }
     h1{margin:0 0 10px 0}
     h2{margin-top:28px}
     h3{margin-top:18px}
-    code{background:#f3f4f6;padding:2px 6px;border-radius:6px}
     a{color:#1d4ed8;text-decoration:none}
     a:hover{text-decoration:underline}
-    .muted{color:#6b7280;font-size:14px}
-    hr{border:none;border-top:1px solid #e5e7eb;margin:28px 0}
+    code{background:#f3f4f6;padding:2px 6px;border-radius:6px}
     ul{padding-left:18px}
+    hr{border:none;border-top:1px solid #e5e7eb;margin:28px 0}
+    .muted{color:#6b7280;font-size:14px}
   </style>
 </head>
 <body>
@@ -22,114 +26,141 @@
 
   <p>
     <strong>Responsable del tratamiento:</strong> Luis Oscar Soler Bernal (proyecto personal sin ánimo de lucro)<br />
-    <strong>Contacto:</strong> hola@luzfija.es
+    <strong>Contacto:</strong> <a href="mailto:hola@luzfija.es">hola@luzfija.es</a>
   </p>
 
   <p class="muted">
-    Esta web no requiere registro, no tiene formularios y no sube tus facturas: el análisis de PDFs se hace en tu navegador.
-    Aun así, al navegar por Internet se tratan datos técnicos (como la dirección IP) por parte del proveedor de hosting y de
-    algunos proveedores externos que sirven recursos (fuentes/librerías) o prestan servicios auxiliares.
+    Esta web no requiere registro. El análisis de facturas PDF se realiza en tu navegador: los archivos no se suben ni se almacenan en servidores del responsable.
+    Al navegar por Internet, determinados proveedores (hosting, proxy y proveedores externos de recursos/servicios) pueden tratar datos técnicos necesarios para operar sus servicios.
   </p>
 
-  <h2>Qué datos se tratan y para qué</h2>
+  <h2>Qué datos se tratan</h2>
+  <ul>
+    <li><strong>Datos técnicos de conexión</strong> (por ejemplo, dirección IP, cabeceras HTTP, fecha/hora, información del navegador) tratados por proveedores de infraestructura y por proveedores externos al servir recursos.</li>
+    <li><strong>Datos de uso básicos</strong> (por ejemplo, páginas vistas, URL de procedencia/referrer, navegador) si está activa la analítica con GoatCounter.</li>
+    <li><strong>Contenido de comunicaciones</strong> si nos escribes por email (tu dirección, asunto y mensaje).</li>
+    <li><strong>Datos en tu dispositivo</strong> (preferencias/estado/caché) mediante almacenamiento del navegador (localStorage y caché del Service Worker).</li>
+  </ul>
+
+  <h2>Tratamientos, finalidades y base jurídica</h2>
 
   <h3>1) Hosting (GitHub Pages)</h3>
   <p>
-    La web está alojada en GitHub Pages. Al acceder, GitHub puede tratar datos técnicos de conexión y seguridad
-    (por ejemplo, dirección IP, fecha/hora, cabeceras HTTP) para servir el sitio y protegerlo frente a abuso.
-    Yo no utilizo estos datos para identificarte ni elaboro perfiles.
-    Puedes consultar la información del proveedor aquí:
-    <a href="https://docs.github.com/es/site-policy/privacy-policies/github-privacy-statement" target="_blank" rel="noopener">Política de privacidad de GitHub</a>.
+    La web está alojada en GitHub Pages. GitHub puede tratar datos técnicos (por ejemplo, IP y logs) para servir el sitio y protegerlo frente a abuso.
+    El responsable no utiliza esos datos con la finalidad de identificar usuarios ni elaborar perfiles.
+    Más información:
+    <a href="https://docs.github.com/es/site-policy/privacy-policies/github-privacy-statement" target="_blank" rel="noopener">política de privacidad de GitHub</a>.
   </p>
   <p><strong>Finalidad:</strong> prestación del servicio (servir la web) y seguridad.</p>
-  <p><strong>Base jurídica:</strong> interés legítimo y/o necesidad para prestar el servicio solicitado al acceder al sitio.</p>
+  <p><strong>Base jurídica:</strong> interés legítimo (seguridad) y/o necesidad para prestar el servicio solicitado al acceder al sitio.</p>
 
-  <h3>2) Consulta de PVPC (proxy en Vercel)</h3>
+  <h3>2) PVPC (proxy en Vercel hacia la CNMC)</h3>
   <p>
-    Cuando consultas precios PVPC, la petición puede pasar por un proxy desplegado en Vercel para poder realizar la consulta
-    técnica sin exponer credenciales/limitaciones del proveedor de datos y para resolver restricciones de CORS.
-    En ese proceso, Vercel puede tratar datos técnicos (por ejemplo, IP y logs) para operar y proteger el servicio.
-    Yo no uso estos datos para identificar usuarios ni elaborar perfiles.
+    Cuando consultas PVPC, la web usa un proxy desplegado en Vercel para resolver restricciones técnicas (por ejemplo, CORS) y operar la funcionalidad de forma fiable.
+    El proxy consulta endpoints públicos de la CNMC.
+    Vercel puede tratar datos técnicos (por ejemplo, IP y logs) para operar y proteger el servicio.
+    El responsable no utiliza esos datos con la finalidad de identificar usuarios ni elaborar perfiles.
     Más información:
-    <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">Política de privacidad de Vercel</a>.
+    <a href="https://vercel.com/legal/privacy-policy" target="_blank" rel="noopener">política de privacidad de Vercel</a>.
   </p>
   <p><strong>Finalidad:</strong> prestar la funcionalidad solicitada (consulta de PVPC) y seguridad/operación del servicio.</p>
-  <p><strong>Base jurídica:</strong> ejecución de la prestación solicitada (uso de la funcionalidad) e interés legítimo (seguridad).</p>
+  <p><strong>Base jurídica:</strong> ejecución de la prestación solicitada e interés legítimo (seguridad).</p>
 
   <h3>3) Tipografías (Google Fonts)</h3>
   <p>
-    Esta web carga tipografías desde Google Fonts. Al hacerlo, Google puede recibir datos técnicos (como la IP y cabeceras HTTP)
-    necesarios para servir esos archivos.
+    Esta web carga tipografías desde Google Fonts. Al hacerlo, Google puede recibir datos técnicos (como IP y cabeceras HTTP) necesarios para servir esos archivos.
     Más información:
-    <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Política de privacidad de Google</a>.
+    <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">política de privacidad de Google</a>.
   </p>
   <p><strong>Finalidad:</strong> presentación visual del sitio.</p>
   <p><strong>Base jurídica:</strong> interés legítimo (presentación/funcionamiento del sitio).</p>
 
   <h3>4) Librerías JavaScript desde CDNs externos</h3>
   <p>
-    Para algunas funciones (por ejemplo, lectura/análisis de PDFs o importación de ficheros), la web puede cargar librerías desde
-    redes de distribución de contenido (CDNs) como <code>unpkg.com</code>, <code>jsdelivr.net</code> y <code>cdn.sheetjs.com</code>.
-    Estos proveedores pueden recibir datos técnicos (como la IP y cabeceras HTTP) al servir los ficheros.
+    Para algunas funciones, la web puede cargar librerías desde redes de distribución de contenido (CDNs). Al servir estos archivos, dichos proveedores pueden recibir datos técnicos (como IP y cabeceras HTTP).
   </p>
+  <ul>
+    <li>
+      <strong>UNPKG</strong> (<code>unpkg.com</code>). UNPKG indica que se ejecuta sobre la red global de Cloudflare (infraestructura de CDN/edge).
+      Más información:
+      <a href="https://unpkg.com/" target="_blank" rel="noopener">UNPKG</a> y
+      <a href="https://www.cloudflare.com/privacypolicy/" target="_blank" rel="noopener">política de privacidad de Cloudflare</a>.
+    </li>
+    <li>
+      <strong>jsDelivr</strong> (<code>jsdelivr.net</code>).
+      Más información:
+      <a href="https://www.jsdelivr.com/terms/privacy-policy" target="_blank" rel="noopener">política de privacidad de jsDelivr</a> y
+      <a href="https://www.jsdelivr.com/terms/sub-processors" target="_blank" rel="noopener">lista de subencargados/subprocesadores</a>.
+    </li>
+    <li>
+      <strong>SheetJS CDN</strong> (<code>cdn.sheetjs.com</code>).
+      Más información:
+      <a href="https://sheetjs.com/privacy/" target="_blank" rel="noopener">política de privacidad de SheetJS</a> y
+      <a href="https://cdn.sheetjs.com/" target="_blank" rel="noopener">sitio del CDN de SheetJS</a>.
+    </li>
+  </ul>
   <p><strong>Finalidad:</strong> prestar funcionalidades solicitadas (procesamiento local en el navegador).</p>
   <p><strong>Base jurídica:</strong> ejecución de la prestación solicitada (uso de la funcionalidad).</p>
 
   <h3>5) Analítica web (GoatCounter)</h3>
   <p>
-    Esta web usa GoatCounter para estadísticas básicas de uso (páginas vistas, referrer, navegador).
-    GoatCounter funciona sin cookies y, para contar visitas repetidas, mantiene temporalmente en memoria (hasta 8 horas)
-    datos técnicos como IP y User-Agent para asociarlos a un identificador aleatorio de sesión. No se utiliza para identificar
-    usuarios ni elaborar perfiles.
+    Esta web usa GoatCounter para estadísticas básicas (páginas vistas, URL de procedencia, navegador). GoatCounter funciona sin cookies.
+    Para contar visitas repetidas, puede tratar temporalmente datos técnicos como IP y User-Agent para asociarlos a un identificador aleatorio de sesión.
+    No se utiliza para identificar usuarios ni elaborar perfiles.
     Más información:
-    <a href="https://www.goatcounter.com/help/privacy" target="_blank" rel="noopener">Privacidad de GoatCounter</a>.
+    <a href="https://www.goatcounter.com/help/privacy" target="_blank" rel="noopener">privacidad de GoatCounter</a>.
   </p>
   <p><strong>Finalidad:</strong> medición básica del uso del sitio para mejorarlo.</p>
-  <p><strong>Base jurídica:</strong> interés legítimo (mejora del servicio y prevención de abuso).</p>
+  <p><strong>Base jurídica:</strong> interés legítimo (mejora del servicio y seguridad).</p>
 
   <h3>6) Procesamiento de facturas (local, en tu navegador)</h3>
   <p>
-    Los PDFs que selecciones se procesan en tu navegador. No se suben a ningún servidor ni se almacenan en bases de datos del sitio.
-    Si usas OCR u otras funciones, se ejecutan igualmente en el navegador (salvo que tu propio navegador contacte con terceros para
-    descargar librerías/recursos, como se indica arriba).
+    Los PDFs que selecciones se procesan en tu navegador. No se suben ni se almacenan en servidores del responsable.
+    Si para estas funciones se descargan librerías/recursos, se aplican los apartados de Google Fonts y CDNs indicados arriba.
   </p>
+  <p><strong>Finalidad:</strong> prestar la funcionalidad solicitada (análisis local).</p>
+  <p><strong>Base jurídica:</strong> ejecución de la prestación solicitada.</p>
 
-  <h3>7) Almacenamiento local en tu dispositivo (localStorage y Service Worker)</h3>
-  <p>
-    Para mejorar la experiencia y el rendimiento, el sitio puede usar almacenamiento del navegador:
-  </p>
+  <h3>7) Almacenamiento en tu dispositivo (localStorage y Service Worker)</h3>
+  <p>Para mejorar la experiencia y el rendimiento, el sitio puede usar almacenamiento del navegador:</p>
   <ul>
-    <li><strong>localStorage:</strong> preferencias como el tema (claro/oscuro) y, si está habilitado, el último cálculo/estado para no tener que reintroducir datos.</li>
-    <li><strong>Service Worker / caché:</strong> guardar recursos del sitio para acelerar cargas y permitir funcionamiento más robusto (por ejemplo, si hay cortes de red).</li>
+    <li><strong>localStorage:</strong> preferencias (p. ej. tema claro/oscuro) y datos de estado/caché (p. ej. últimos cálculos o cachés técnicas) para no repetir trabajo.</li>
+    <li><strong>Service Worker / caché:</strong> guardar recursos del sitio para acelerar cargas y permitir un funcionamiento más robusto.</li>
   </ul>
-  <p>
-    Puedes eliminar estos datos borrando los "datos del sitio" desde la configuración de tu navegador.
-  </p>
+  <p>Puedes eliminar estos datos borrando los “datos del sitio” desde la configuración de tu navegador.</p>
   <p><strong>Finalidad:</strong> preferencias y funcionamiento/rendimiento.</p>
-  <p><strong>Base jurídica:</strong> necesidad para prestar el servicio y/o interés legítimo (mejora de experiencia). En el caso de preferencias elegidas por ti (p. ej., tema), se consideran vinculadas a tu elección de configuración.</p>
+  <p><strong>Base jurídica:</strong> necesidad para prestar el servicio y/o interés legítimo (mejora de experiencia). En el caso de preferencias elegidas por ti (p. ej., tema), se vincula a tu configuración.</p>
 
-  <h2>Destinatarios y terceros</h2>
+  <h3>8) Si nos escribes por email</h3>
   <p>
-    Dependiendo de las funciones que uses, pueden intervenir estos proveedores:
+    Si contactas a través de <a href="mailto:hola@luzfija.es">hola@luzfija.es</a>, trataremos tu dirección de email y el contenido del mensaje únicamente para atender la consulta y responderte.
   </p>
+  <p><strong>Finalidad:</strong> gestión de consultas.</p>
+  <p><strong>Base jurídica:</strong> interés legítimo (atender comunicaciones y soporte).</p>
+
+  <h2>Destinatarios</h2>
+  <p>En función del uso del sitio, pueden intervenir los siguientes proveedores:</p>
   <ul>
     <li>GitHub (hosting mediante GitHub Pages).</li>
     <li>Vercel (infraestructura del proxy para PVPC).</li>
     <li>Google (Google Fonts).</li>
-    <li>CDNs externos (por ejemplo, unpkg.com, jsdelivr.net, cdn.sheetjs.com).</li>
-    <li>GoatCounter (estadísticas básicas).</li>
+    <li>UNPKG (servicio de CDN) e infraestructura asociada para servir recursos (Cloudflare).</li>
+    <li>jsDelivr (servicio de CDN) y su cadena de subprocesadores según su documentación.</li>
+    <li>SheetJS (servicio de CDN).</li>
+    <li>GoatCounter (estadísticas básicas), si está activo.</li>
   </ul>
 
   <h2>Transferencias internacionales</h2>
   <p>
-    Algunos de los proveedores anteriores pueden estar ubicados fuera del Espacio Económico Europeo o usar infraestructura global.
-    En esos casos, se aplican las garantías y condiciones descritas en las políticas de privacidad de cada proveedor.
+    Algunos proveedores pueden estar ubicados fuera del Espacio Económico Europeo o usar infraestructura global.
+    En esos casos, se aplican las condiciones descritas en las políticas de privacidad de cada proveedor.
   </p>
 
   <h2>Conservación</h2>
   <ul>
-    <li><strong>Datos tratados por terceros:</strong> se conservan según las políticas y plazos de cada proveedor (GitHub, Vercel, Google, CDNs, GoatCounter).</li>
+    <li><strong>Datos tratados por terceros:</strong> se conservan según las políticas y plazos de cada proveedor (GitHub, Vercel, Google, Cloudflare/UNPKG, jsDelivr, SheetJS, GoatCounter).</li>
     <li><strong>Datos en tu dispositivo:</strong> permanecen hasta que los borres desde tu navegador (localStorage/caché).</li>
+    <li><strong>Emails:</strong> se conservan el tiempo necesario para gestionar la consulta y, posteriormente, durante un plazo razonable para seguimiento o seguridad, salvo que solicites su supresión cuando sea aplicable.</li>
   </ul>
 
   <h2>Cookies</h2>
@@ -140,12 +171,12 @@
 
   <h2>Tus derechos</h2>
   <p>
-    Puedes solicitar el ejercicio de tus derechos de acceso, rectificación, supresión, limitación, portabilidad y oposición
-    escribiendo a <strong>hola@luzfija.es</strong>.
+    Puedes solicitar el ejercicio de tus derechos de acceso, rectificación, supresión, limitación, portabilidad y oposición escribiendo a
+    <a href="mailto:hola@luzfija.es">hola@luzfija.es</a>.
   </p>
   <p>
-    Si consideras que tus derechos no han sido atendidos adecuadamente, puedes presentar una reclamación ante la
-    Agencia Española de Protección de Datos (AEPD): <a href="https://www.aepd.es" target="_blank" rel="noopener">www.aepd.es</a>.
+    Si consideras que tus derechos no han sido atendidos adecuadamente, puedes presentar una reclamación ante la Agencia Española de Protección de Datos (AEPD):
+    <a href="https://www.aepd.es" target="_blank" rel="noopener">www.aepd.es</a>.
   </p>
 
   <h2>Cambios en esta política</h2>
@@ -156,3 +187,4 @@
   <p class="muted"><a href="/">Volver al comparador</a></p>
 </body>
 </html>
+```
