@@ -18,6 +18,12 @@ function getAllowedOrigin(request) {
   return ALLOWED_ORIGINS[0]; // Fallback a luzfija.es
 }
 
+// Detectar si es localhost (dev) para no cachear
+function isLocalhost(request) {
+  const origin = request.headers.get('origin');
+  return origin && (origin.includes('localhost') || origin.includes('127.0.0.1'));
+}
+
 // --- Util: offset (minutos) de una zona horaria para una fecha dada ---
 function tzOffsetMinutes(timeZone, date) {
   // Intento 1: "GMT+1" / "GMT+2"
@@ -91,6 +97,7 @@ function jsonResponse(request, obj, { status = 200, cacheControl = 'no-store' } 
       'Content-Type': 'application/json; charset=utf-8',
       'Access-Control-Allow-Origin': getAllowedOrigin(request),
       'Access-Control-Allow-Methods': 'GET, OPTIONS',
+      'Vary': 'Origin', // CRÍTICO: evitar cache poisoning
       'Cache-Control': cacheControl,
     },
   });
@@ -106,6 +113,7 @@ export default async function handler(request) {
         'Access-Control-Allow-Methods': 'GET, OPTIONS',
         'Access-Control-Allow-Headers': request.headers.get('access-control-request-headers') || 'Content-Type',
         'Access-Control-Max-Age': '86400',
+        'Vary': 'Origin, Access-Control-Request-Headers', // CRÍTICO: evitar cache poisoning
       },
     });
   }
@@ -170,9 +178,11 @@ export default async function handler(request) {
     // prices[] (€/kWh) en orden 0..23
     const prices = arr.map(x => Number(x.precio));
 
-    // Cache en Vercel hasta 00:01 Madrid (renueva con cambio de día)
+    // Cache en Vercel hasta 00:01 Madrid (NO cachear localhost para evitar cache poisoning)
     const ttl = secondsUntilNextMadrid0001();
-    const cacheControl = `public, s-maxage=${ttl}, stale-while-revalidate=60`;
+    const cacheControl = isLocalhost(request) 
+      ? 'no-store' 
+      : `public, s-maxage=${ttl}, stale-while-revalidate=60`;
 
     return jsonResponse(
       request,

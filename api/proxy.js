@@ -28,10 +28,17 @@ function getAllowedOrigin(request) {
   return ALLOWED_ORIGINS[0]; // Fallback a luzfija.es
 }
 
+// Detectar si es localhost (dev) para no cachear
+function isLocalhost(request) {
+  const origin = request.headers.get('origin');
+  return origin && (origin.includes('localhost') || origin.includes('127.0.0.1'));
+}
+
 function corsBase(request) {
   return {
     'Access-Control-Allow-Origin': getAllowedOrigin(request),
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Vary': 'Origin', // CRÍTICO: evitar cache poisoning
   };
 }
 
@@ -41,8 +48,8 @@ function corsPreflight(request) {
     ...corsBase(request),
     'Access-Control-Allow-Headers': reqHeaders,
     'Access-Control-Max-Age': '86400',
-    // Solo varía por los headers pedidos en preflight
-    'Vary': 'Access-Control-Request-Headers',
+    // Varía por Origin (cache poisoning) y headers pedidos
+    'Vary': 'Origin, Access-Control-Request-Headers',
   };
 }
 
@@ -116,15 +123,19 @@ export default async function handler(request) {
       });
     }
 
-    // ✅ Solo cachear 2xx
+    // ✅ Solo cachear 2xx (NO cachear localhost para evitar cache poisoning)
     const ttl = getSecondsUntilMidnight();
+    const cacheControl = isLocalhost(request) 
+      ? 'no-store' 
+      : `public, s-maxage=${ttl}, stale-while-revalidate=60`;
+    
     return new Response(upstream.body, {
       status: upstream.status,
       headers: {
         ...corsActual(request),
         'Content-Type': contentType,
-        'Cache-Control': `public, s-maxage=${ttl}, stale-while-revalidate=60`,
-        'CDN-Cache-Control': `max-age=${ttl}`,
+        'Cache-Control': cacheControl,
+        ...(isLocalhost(request) ? {} : { 'CDN-Cache-Control': `max-age=${ttl}` }),
       },
     });
 
