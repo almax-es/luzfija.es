@@ -1113,32 +1113,50 @@
         else b.classList.add('baja');
       }
 
-      function __LF_crearInputValidacion(id, label, valor){
+      // ✅ VERSIÓN SEGURA - Crea elementos DOM en lugar de HTML string (previene XSS)
+      function __LF_crearInputValidacion(id, label, valor) {
         const ok = (valor != null);
         const valorFormateado = ok ? String(valor).replace('.', ',') : '';
-        return `
-          <div class="input-validacion ${ok ? 'detectado' : 'no-detectado'}" data-field="${id}">
-            <label for="val_${id}" style="font-size:12px; font-weight:900; color:var(--muted); margin-bottom:6px; display:block">${label}</label>
-            <input type="text" id="val_${id}" class="input" value="${valorFormateado}"
-              placeholder="${ok ? '' : '❌ No detectado - introduce manualmente'}" />
-            ${ok ? '<span class="check">✓</span>' : '<span class="warning">⚠️</span>'}
-          </div>
-        `;
+        
+        const wrap = document.createElement('div');
+        wrap.className = 'input-validacion ' + (ok ? 'detectado' : 'no-detectado');
+        wrap.dataset.field = id;
+        
+        const labelEl = document.createElement('label');
+        labelEl.htmlFor = 'val_' + id;
+        labelEl.style.cssText = 'font-size:12px; font-weight:900; color:var(--muted); margin-bottom:6px; display:block';
+        labelEl.textContent = label;
+        wrap.appendChild(labelEl);
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.id = 'val_' + id;
+        input.className = 'input';
+        input.value = valorFormateado;
+        if (!ok) input.placeholder = '❌ No detectado - introduce manualmente';
+        wrap.appendChild(input);
+        
+        const indicator = document.createElement('span');
+        indicator.className = ok ? 'check' : 'warning';
+        indicator.textContent = ok ? '✓' : '⚠️';
+        wrap.appendChild(indicator);
+        
+        return wrap;
       }
 
-      function __LF_renderForm(datos){
+      function __LF_renderForm(datos) {
         const form = __LF_q('formValidacionFactura');
         if (!form) return;
         __LF_lastParsedConfianza = Number(datos?.confianza || 0);
         
-        
-        form.innerHTML =
-          __LF_crearInputValidacion('p1','Potencia P1 (kW)', datos.p1) +
-          __LF_crearInputValidacion('p2','Potencia P2 (kW)', datos.p2) +
-          __LF_crearInputValidacion('dias','Días de facturación', datos.dias) +
-          __LF_crearInputValidacion('consumoPunta','Consumo Punta / P1 / E1 (kWh)', datos.consumoPunta) +
-          __LF_crearInputValidacion('consumoLlano','Consumo Llano / P2 / E2 (kWh)', datos.consumoLlano) +
-          __LF_crearInputValidacion('consumoValle','Consumo Valle / P3 / E3 (kWh)', datos.consumoValle);
+        // ✅ Limpiar y añadir elementos DOM (no strings HTML)
+        form.innerHTML = '';
+        form.appendChild(__LF_crearInputValidacion('p1', 'Potencia P1 (kW)', datos.p1));
+        form.appendChild(__LF_crearInputValidacion('p2', 'Potencia P2 (kW)', datos.p2));
+        form.appendChild(__LF_crearInputValidacion('dias', 'Días de facturación', datos.dias));
+        form.appendChild(__LF_crearInputValidacion('consumoPunta', 'Consumo Punta / P1 / E1 (kWh)', datos.consumoPunta));
+        form.appendChild(__LF_crearInputValidacion('consumoLlano', 'Consumo Llano / P2 / E2 (kWh)', datos.consumoLlano));
+        form.appendChild(__LF_crearInputValidacion('consumoValle', 'Consumo Valle / P3 / E3 (kWh)', datos.consumoValle));
         
         // Mostrar compañía detectada si no es genérico
         const companiaEl = __LF_q('companiaDetectada');

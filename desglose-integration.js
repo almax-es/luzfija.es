@@ -1,5 +1,9 @@
 /**
  * INTEGRACIÓN DEL DESGLOSE DE FACTURA
+ * 
+ * CORRECCIONES APLICADAS:
+ * - Fechas calculadas dinámicamente (no hardcodeadas)
+ * - Parser numérico robusto (soporta formatos: 1.234,56 / 1234.56 / 1234,56)
  */
 
 (function() {
@@ -10,6 +14,67 @@
   const lfDbg = (...args) => DEBUG && console.log('[DESGLOSE]', ...args);
 
   let tarifasCache = null;
+
+  // ✅ Parser robusto para números (compatible con app.js)
+  function parseNum(v) {
+    if (v == null || v === '') return 0;
+    
+    // Usar parser global si está disponible
+    if (typeof window.__LF_asNumber === 'function') {
+      return window.__LF_asNumber(v);
+    }
+    
+    // Parser de respaldo robusto
+    const str = String(v).trim();
+    
+    // Detectar formato: si tiene punto seguido de 3 dígitos y luego coma, es formato europeo
+    // Ejemplo: 1.234,56 -> el punto es separador de miles
+    if (/\d\.\d{3},\d/.test(str)) {
+      // Formato europeo: 1.234,56
+      return parseFloat(str.replace(/\./g, '').replace(',', '.')) || 0;
+    }
+    
+    // Detectar formato: si tiene coma seguida de 3 dígitos y luego punto, es formato US
+    // Ejemplo: 1,234.56 -> la coma es separador de miles
+    if (/\d,\d{3}\.?\d/.test(str)) {
+      // Formato US: 1,234.56
+      return parseFloat(str.replace(/,/g, '')) || 0;
+    }
+    
+    // Caso simple: solo coma como decimal (sin miles)
+    // Ejemplo: 3,45
+    if (/^\d+,\d+$/.test(str)) {
+      return parseFloat(str.replace(',', '.')) || 0;
+    }
+    
+    // Caso por defecto
+    return parseFloat(str.replace(',', '.')) || 0;
+  }
+
+  // ✅ Calcular fechas reales basadas en los días de facturación
+  function calcularFechasPeriodo(dias) {
+    const hoy = new Date();
+    
+    // Fecha fin = ayer (como hace PVPC)
+    const fechaFin = new Date(hoy);
+    fechaFin.setDate(fechaFin.getDate() - 1);
+    
+    // Fecha inicio = fechaFin - dias + 1
+    const fechaInicio = new Date(fechaFin);
+    fechaInicio.setDate(fechaInicio.getDate() - dias + 1);
+    
+    const formatear = (d) => {
+      const dd = String(d.getDate()).padStart(2, '0');
+      const mm = String(d.getMonth() + 1).padStart(2, '0');
+      const yyyy = d.getFullYear();
+      return `${dd}/${mm}/${yyyy}`;
+    };
+    
+    return {
+      inicio: formatear(fechaInicio),
+      fin: formatear(fechaFin)
+    };
+  }
 
   async function cargarTarifas() {
     if (tarifasCache) return tarifasCache;
@@ -76,19 +141,22 @@
       return;
     }
     
+    // ✅ Usar parser robusto en lugar de parseFloat simple
     const inputs = {
-      p1: parseFloat(document.getElementById('p1')?.value.replace(',', '.')) || 0,
-      p2: parseFloat(document.getElementById('p2')?.value.replace(',', '.')) || 0,
-      dias: parseFloat(document.getElementById('dias')?.value) || 30,
-      cPunta: parseFloat(document.getElementById('cPunta')?.value.replace(',', '.')) || 0,
-      cLlano: parseFloat(document.getElementById('cLlano')?.value.replace(',', '.')) || 0,
-      cValle: parseFloat(document.getElementById('cValle')?.value.replace(',', '.')) || 0,
-      exTotal: parseFloat(document.getElementById('exTotal')?.value.replace(',', '.')) || 0,
-      bvSaldo: parseFloat(document.getElementById('bvSaldo')?.value.replace(',', '.')) || 0,
+      p1: parseNum(document.getElementById('p1')?.value),
+      p2: parseNum(document.getElementById('p2')?.value),
+      dias: parseNum(document.getElementById('dias')?.value) || 30,
+      cPunta: parseNum(document.getElementById('cPunta')?.value),
+      cLlano: parseNum(document.getElementById('cLlano')?.value),
+      cValle: parseNum(document.getElementById('cValle')?.value),
+      exTotal: parseNum(document.getElementById('exTotal')?.value),
+      bvSaldo: parseNum(document.getElementById('bvSaldo')?.value),
       zonaFiscal: document.getElementById('zonaFiscal')?.value || 'Península',
       viviendaCanarias: document.getElementById('viviendaCanarias')?.checked || false,
       solarOn: document.getElementById('solarOn')?.checked || false
     };
+
+    lfDbg('Inputs parseados:', inputs);
 
     const tarifas = await cargarTarifas();
     if (!tarifas || tarifas.length === 0) {
@@ -146,10 +214,13 @@
       }
     }
 
+    // ✅ Calcular fechas reales basadas en los días
+    const fechas = calcularFechasPeriodo(inputs.dias);
+
     const datos = {
       nombreTarifa: tarifa.nombre || tarifa.id || 'Tarifa',
-      fechaInicio: '01/12/2025',
-      fechaFin: '31/12/2025',
+      fechaInicio: fechas.inicio,  // ✅ Fecha calculada
+      fechaFin: fechas.fin,        // ✅ Fecha calculada
       dias: inputs.dias,
       
       potenciaP1: inputs.p1,
@@ -178,7 +249,7 @@
       solarOn: inputs.solarOn
     };
 
-    lfDbg('Datos:', datos);
+    lfDbg('Datos para desglose:', datos);
 
     if (window.__LF_DesgloseFactura) {
       window.__LF_DesgloseFactura.abrir(datos);
