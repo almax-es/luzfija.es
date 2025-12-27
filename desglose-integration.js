@@ -4,6 +4,7 @@
  * CORRECCIONES APLICADAS:
  * - Fechas calculadas dinámicamente (no hardcodeadas)
  * - Parser numérico robusto (soporta formatos: 1.234,56 / 1234.56 / 1234,56)
+ * - MEJORA: Icono 💡 visible para indicar que el precio es clickeable
  */
 
 (function() {
@@ -116,11 +117,79 @@
         const nombreCompleto = tdNombre.textContent || '';
         const nombre = nombreCompleto.split('\n')[0].replace(/[⚠️☀️🔋🔗ⓘ]/g, '').trim();
         
+        // ✨ MEJORA: Hacer el precio clickeable con estilo visual claro
         tdTotal.style.cursor = 'pointer';
-        tdTotal.title = '💡 Clic para ver desglose completo';
+        tdTotal.style.transition = 'all 0.2s ease';
+        tdTotal.title = '💡 Clic para ver desglose completo de la factura';
+        
+        // 🎯 Añadir icono visible junto al precio (solo si no existe ya)
+        const precioActual = tdTotal.querySelector('strong');
+        if (precioActual && !tdTotal.querySelector('.desglose-icon')) {
+          const icon = document.createElement('span');
+          icon.className = 'desglose-icon';
+          icon.innerHTML = '💡';
+          icon.setAttribute('aria-label', 'Ver desglose');
+          icon.style.cssText = `
+            display: inline-block;
+            margin-left: 6px;
+            font-size: 15px;
+            opacity: 0.6;
+            transition: all 0.2s ease;
+            filter: drop-shadow(0 0 3px rgba(139,92,246,0.3));
+          `;
+          precioActual.appendChild(icon);
+          
+          // Añadir underline sutil
+          precioActual.style.textDecoration = 'underline';
+          precioActual.style.textDecorationStyle = 'dotted';
+          precioActual.style.textDecorationColor = 'rgba(139,92,246,0.3)';
+          precioActual.style.textUnderlineOffset = '3px';
+        }
+        
+        // Hover effect
+        tdTotal.addEventListener('mouseenter', () => {
+          const icon = tdTotal.querySelector('.desglose-icon');
+          if (icon) {
+            icon.style.opacity = '1';
+            icon.style.transform = 'scale(1.15)';
+            icon.style.filter = 'drop-shadow(0 0 6px rgba(139,92,246,0.7))';
+          }
+          if (precioActual) {
+            precioActual.style.textDecorationColor = 'rgba(139,92,246,0.7)';
+          }
+          tdTotal.style.transform = 'translateY(-1px)';
+        });
+        
+        tdTotal.addEventListener('mouseleave', () => {
+          const icon = tdTotal.querySelector('.desglose-icon');
+          if (icon) {
+            icon.style.opacity = '0.6';
+            icon.style.transform = 'scale(1)';
+            icon.style.filter = 'drop-shadow(0 0 3px rgba(139,92,246,0.3))';
+          }
+          if (precioActual) {
+            precioActual.style.textDecorationColor = 'rgba(139,92,246,0.3)';
+          }
+          tdTotal.style.transform = 'translateY(0)';
+        });
         
         tdTotal.onclick = function(e) {
           e.stopPropagation();
+          
+          // Feedback visual al hacer click
+          const icon = tdTotal.querySelector('.desglose-icon');
+          if (icon) {
+            icon.style.transform = 'scale(1.3)';
+            setTimeout(() => { 
+              icon.style.transform = 'scale(1)'; 
+            }, 150);
+          }
+          
+          // Vibración en móviles compatibles
+          if (navigator.vibrate) {
+            navigator.vibrate(40);
+          }
+          
           mostrarDesglose(nombre);
         };
 
