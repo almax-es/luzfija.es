@@ -27,6 +27,7 @@
           const s = document.createElement("script");
           s.src = src;
           s.async = true;
+          s.crossOrigin = "anonymous"; // Necesario para SRI (Subresource Integrity)
           s.onload = () => resolve(true);
           s.onerror = () => reject(new Error("No se pudo cargar: " + src));
           document.head.appendChild(s);
@@ -668,6 +669,7 @@
         return new Promise((resolve, reject) => {
           const script = document.createElement('script');
           script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
+          script.crossOrigin = 'anonymous'; // Necesario para SRI
           script.onload = () => resolve(window.jsQR);
           script.onerror = () => reject(new Error('jsQR no disponible'));
           document.head.appendChild(script);
@@ -1402,6 +1404,7 @@
           await new Promise((ok,ko)=>{
             const s = document.createElement('script');
             s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+            s.crossOrigin = 'anonymous'; // Necesario para SRI
             s.onload = ok; s.onerror = ko;
             document.head.appendChild(s);
           });

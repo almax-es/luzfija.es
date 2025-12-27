@@ -57,6 +57,7 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
       xlsxLoading = new Promise((resolve, reject) => {
         const script = document.createElement('script');
         script.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+        script.crossOrigin = 'anonymous'; // Necesario para SRI
         script.onload = () => {
           lfDbg('[XLSX] Librería cargada bajo demanda');
           resolve();

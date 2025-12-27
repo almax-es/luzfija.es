@@ -1,5 +1,14 @@
 export const config = { runtime: 'edge' };
 
+// Dominios permitidos (whitelist)
+const ALLOWED_ORIGINS = [
+  'https://luzfija.es',
+  'http://localhost:5500',
+  'http://localhost:5501',
+  'http://127.0.0.1:5500',
+  'http://127.0.0.1:5501',
+];
+
 // Calcular segundos hasta medianoche (nota: en Edge Functions puede variar según el PoP)
 function getSecondsUntilMidnight() {
   const now = new Date();
@@ -10,9 +19,18 @@ function getSecondsUntilMidnight() {
   return Math.max(60, Math.floor(diff / 1000));
 }
 
-function corsBase() {
+// Validar origin y devolver el permitido (o fallback a luzfija.es)
+function getAllowedOrigin(request) {
+  const origin = request.headers.get('origin');
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    return origin;
+  }
+  return ALLOWED_ORIGINS[0]; // Fallback a luzfija.es
+}
+
+function corsBase(request) {
   return {
-    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Origin': getAllowedOrigin(request),
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
   };
 }
@@ -20,7 +38,7 @@ function corsBase() {
 function corsPreflight(request) {
   const reqHeaders = request.headers.get('access-control-request-headers') || 'Content-Type';
   return {
-    ...corsBase(),
+    ...corsBase(request),
     'Access-Control-Allow-Headers': reqHeaders,
     'Access-Control-Max-Age': '86400',
     // Solo varía por los headers pedidos en preflight
@@ -28,9 +46,9 @@ function corsPreflight(request) {
   };
 }
 
-function corsActual() {
+function corsActual(request) {
   // Para respuestas GET / errores no hace falta Allow-Headers
-  return { ...corsBase() };
+  return { ...corsBase(request) };
 }
 
 export default async function handler(request) {
@@ -42,7 +60,7 @@ export default async function handler(request) {
   if (request.method !== 'GET') {
     return new Response(JSON.stringify({ error: 'Method not allowed' }), {
       status: 405,
-      headers: { ...corsActual(), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+      headers: { ...corsActual(request), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
     });
   }
 
@@ -53,7 +71,7 @@ export default async function handler(request) {
     if (!targetUrl) {
       return new Response(JSON.stringify({ error: 'Missing url parameter' }), {
         status: 400,
-        headers: { ...corsActual(), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+        headers: { ...corsActual(request), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
       });
     }
 
@@ -63,7 +81,7 @@ export default async function handler(request) {
     } catch {
       return new Response(JSON.stringify({ error: 'Invalid URL' }), {
         status: 400,
-        headers: { ...corsActual(), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+        headers: { ...corsActual(request), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
       });
     }
 
@@ -71,7 +89,7 @@ export default async function handler(request) {
     if (target.hostname !== 'comparador.cnmc.gob.es' || !target.pathname.startsWith('/api/ofertas/pvpc')) {
       return new Response(JSON.stringify({ error: 'Only CNMC PVPC is allowed' }), {
         status: 403,
-        headers: { ...corsActual(), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+        headers: { ...corsActual(request), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
       });
     }
 
@@ -91,7 +109,7 @@ export default async function handler(request) {
       return new Response(upstream.body, {
         status: upstream.status,
         headers: {
-          ...corsActual(),
+          ...corsActual(request),
           'Content-Type': contentType,
           'Cache-Control': 'no-store',
         },
@@ -103,7 +121,7 @@ export default async function handler(request) {
     return new Response(upstream.body, {
       status: upstream.status,
       headers: {
-        ...corsActual(),
+        ...corsActual(request),
         'Content-Type': contentType,
         'Cache-Control': `public, s-maxage=${ttl}, stale-while-revalidate=60`,
         'CDN-Cache-Control': `max-age=${ttl}`,
@@ -113,7 +131,7 @@ export default async function handler(request) {
   } catch (error) {
     return new Response(JSON.stringify({ error: String(error?.message || error) }), {
       status: 500,
-      headers: { ...corsActual(), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+      headers: { ...corsActual(request), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
     });
   }
 }

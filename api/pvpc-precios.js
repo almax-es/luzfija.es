@@ -1,5 +1,23 @@
 export const config = { runtime: 'edge' };
 
+// Dominios permitidos (whitelist)
+const ALLOWED_ORIGINS = [
+  'https://luzfija.es',
+  'http://localhost:5500',
+  'http://localhost:5501',
+  'http://127.0.0.1:5500',
+  'http://127.0.0.1:5501',
+];
+
+// Validar origin y devolver el permitido (o fallback a luzfija.es)
+function getAllowedOrigin(request) {
+  const origin = request.headers.get('origin');
+  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    return origin;
+  }
+  return ALLOWED_ORIGINS[0]; // Fallback a luzfija.es
+}
+
 // --- Util: offset (minutos) de una zona horaria para una fecha dada ---
 function tzOffsetMinutes(timeZone, date) {
   // Intento 1: "GMT+1" / "GMT+2"
@@ -66,20 +84,34 @@ function secondsUntilNextMadrid0001() {
   return Math.max(60, diff);
 }
 
-function jsonResponse(obj, { status = 200, cacheControl = 'no-store' } = {}) {
+function jsonResponse(request, obj, { status = 200, cacheControl = 'no-store' } = {}) {
   return new Response(JSON.stringify(obj), {
     status,
     headers: {
       'Content-Type': 'application/json; charset=utf-8',
-      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Origin': getAllowedOrigin(request),
+      'Access-Control-Allow-Methods': 'GET, OPTIONS',
       'Cache-Control': cacheControl,
     },
   });
 }
 
 export default async function handler(request) {
+  // Preflight OPTIONS
+  if (request.method === 'OPTIONS') {
+    return new Response(null, {
+      status: 204,
+      headers: {
+        'Access-Control-Allow-Origin': getAllowedOrigin(request),
+        'Access-Control-Allow-Methods': 'GET, OPTIONS',
+        'Access-Control-Allow-Headers': request.headers.get('access-control-request-headers') || 'Content-Type',
+        'Access-Control-Max-Age': '86400',
+      },
+    });
+  }
+
   if (request.method !== 'GET') {
-    return jsonResponse({ error: 'Method not allowed' }, { status: 405, cacheControl: 'no-store' });
+    return jsonResponse(request, { error: 'Method not allowed' }, { status: 405, cacheControl: 'no-store' });
   }
 
   try {
@@ -91,23 +123,34 @@ export default async function handler(request) {
     const debug = url.searchParams.get('debug') === '1';
 
     if (!date) {
-      return jsonResponse({ error: 'Missing date (YYYY-MM-DD)' }, { status: 400, cacheControl: 'no-store' });
+      return jsonResponse(request, { error: 'Missing date (YYYY-MM-DD)' }, { status: 400, cacheControl: 'no-store' });
     }
 
     const ts = madridMidnightTs(date);
     const cnmcUrl = `https://comparador.cnmc.gob.es/api/preciosPVPC/get/${ts}-${zona}-${imp}`;
 
-    const res = await fetch(cnmcUrl, {
-      headers: {
-        'accept': 'application/json, text/plain, */*',
-        'accept-language': 'es-ES,es;q=0.9,en;q=0.8',
-        'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36',
-      },
-    });
+    // Timeout para que nunca se quede colgado (mismo patrón que proxy.js)
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+    let res;
+    try {
+      res = await fetch(cnmcUrl, {
+        signal: controller.signal,
+        headers: {
+          'accept': 'application/json, text/plain, */*',
+          'accept-language': 'es-ES,es;q=0.9,en;q=0.8',
+          'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/143.0.0.0 Safari/537.36',
+        },
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (!res.ok) {
       const body = await res.text().catch(() => '');
       return jsonResponse(
+        request,
         { error: 'CNMC_UPSTREAM_ERROR', status: res.status, body: debug ? body.slice(0, 500) : undefined, cnmcUrl: debug ? cnmcUrl : undefined },
         { status: 502, cacheControl: 'no-store' }
       );
@@ -118,6 +161,7 @@ export default async function handler(request) {
     const arr = data?.preciosHora;
     if (!Array.isArray(arr) || arr.length !== 24) {
       return jsonResponse(
+        request,
         { error: 'CNMC_BAD_SHAPE', got: Array.isArray(arr) ? arr.length : typeof arr, cnmcUrl: debug ? cnmcUrl : undefined },
         { status: 502, cacheControl: 'no-store' }
       );
@@ -131,6 +175,7 @@ export default async function handler(request) {
     const cacheControl = `public, s-maxage=${ttl}, stale-while-revalidate=60`;
 
     return jsonResponse(
+      request,
       {
         date,
         zona: Number(zona),
@@ -147,6 +192,6 @@ export default async function handler(request) {
     );
 
   } catch (e) {
-    return jsonResponse({ error: 'PVPC_CNMC_FAILED', message: String(e?.message || e) }, { status: 502, cacheControl: 'no-store' });
+    return jsonResponse(request, { error: 'PVPC_CNMC_FAILED', message: String(e?.message || e) }, { status: 502, cacheControl: 'no-store' });
   }
 }
