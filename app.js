@@ -1230,7 +1230,7 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
             ? `<span class="tooltip requisitos-icon" data-tip="${escapeHtml(r.requisitos)}" role="button" tabindex="0" aria-label="Requisitos de contratación" style="margin-left:4px; color:var(--warn); cursor:help;">ⓘ</span>`
             : '';
 
-          let fvIcon = '';
+          let totalTooltip = ''; // Tooltip para el TOTAL
           const precioExc = Number(r.fvPriceUsed || 0);
           const exKwh = Number(r.fvExKwh || 0);
           const credit1 = Number(r.fvCredit1 || 0);
@@ -1242,7 +1242,6 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
           
           // Determinar si hay que mostrar dos líneas en TOTAL
           let totalDisplay = escapeHtml(r.total);
-          let totalTooltip = ''; // Tooltip para el TOTAL
           
           // Mostrar Pagas/Ranking cuando hay BV (independientemente de si sobran excedentes)
           if(r.fvTipo && r.fvTipo.includes('BV') && r.fvApplied){
