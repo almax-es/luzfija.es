@@ -841,6 +841,7 @@
 
   <div class="modal-overlay" id="modalFactura" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Subir factura y extraer datos" tabindex="-1">
     <div class="modal-content card" role="document">
+      <button class="modal-x" id="btnCerrarFacturaX" type="button" aria-label="Cerrar">✕</button>
       <div class="head">
         <div class="kicker">Subir factura</div>
         <h2 class="title">Extracción automática de datos</h2>
@@ -895,6 +896,7 @@
 
   <div class="modal-overlay" id="modalSolarInfo" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Información sobre tarifas solares" tabindex="-1" style="display: none;">
     <div class="modal-content card" role="document" style="max-width: 600px;">
+      <button class="modal-x" id="btnCerrarSolarX" type="button" aria-label="Cerrar">✕</button>
       <div class="head">
         <div class="kicker">Autoconsumo fotovoltaico</div>
         <h2 class="title">☀️ Cómo funciona con placas solares</h2>
@@ -912,7 +914,7 @@
 
         <h3 style="font-size: 14px; font-weight: 900; margin-bottom: 8px; color: var(--text);">🏆 Ranking: ¿Por qué es diferente de "lo que pagas"?</h3>
         <p style="color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 12px;">
-          El <strong>ranking</strong> te ayuda a comparar tarifas de forma justa, sin que tu ahorro del pasado influya en la comparación. Por eso verás <strong>dos números en la columna TOTAL</strong>:
+          El <strong>ranking</strong> te ayuda a comparar tarifas de forma justa, sin que tu ahorro del pasado influya en la comparación. Por eso, en las tarifas con BV verás dos conceptos (lo que pagas hoy y el coste real para comparar). Se muestran al tocar la bombilla 💡 del TOTAL:
         </p>
 
         <div style="background: var(--card-bg); border-left: 3px solid var(--accent); padding: 12px; margin-bottom: 12px; border-radius: 4px;">
@@ -945,7 +947,7 @@
 
         <h3 style="font-size: 14px; font-weight: 900; margin-bottom: 8px; color: var(--text);">☀️ Icono dorado</h3>
         <p style="color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 16px;">
-          Las tarifas con compensación activa muestran un icono ☀️ dorado con pulso. Al hacer clic verás todos los detalles: compensación del mes, BV acumulada, BV usada, saldo final y por qué está en esa posición del ranking.
+          Las tarifas con compensación activa muestran un icono ☀️ dorado con pulso. Al tocarlo verás todos los detalles (compensación, BV usada/acumulada, saldo final y ranking). Además, en tarifas con BV, el TOTAL tiene una bombilla 💡: al tocarla verás “Pagas” y “Ranking”.
         </p>
 
         <button class="btn primary" id="btnCerrarSolarInfo" type="button" style="width: 100%; margin-top: 10px;" aria-label="Cerrar información de autoconsumo">
@@ -970,6 +972,7 @@
   <!-- Modal PVPC -->
   <div class="modal-overlay" id="modalPVPCInfo" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Precios PVPC por hora" tabindex="-1" style="display: none;">
     <div class="modal-content card" role="document" style="max-width: 650px;">
+      <button class="modal-x" id="btnCerrarPVPCX" type="button" aria-label="Cerrar">✕</button>
       <div class="head">
         <div class="kicker">Precio regulado de la luz</div>
         <h2 class="title">⚡ PVPC - Precios por hora</h2>
@@ -1022,6 +1025,7 @@
     const btnPVPCInfo = document.getElementById('btnPVPCInfo');
     const modalPVPCInfo = document.getElementById('modalPVPCInfo');
     const btnCerrarPVPCInfo = document.getElementById('btnCerrarPVPCInfo');
+    const btnCerrarPVPCX = document.getElementById('btnCerrarPVPCX');
     const tabHoy = document.getElementById('tabHoy');
     const tabManana = document.getElementById('tabManana');
     
@@ -1045,6 +1049,21 @@
     let pvpcHoy = null;
     let pvpcManana = null;
     let diaActivo = 'hoy';
+    let __pvpcLocked = false;
+    let __pvpcScrollY = 0;
+    function __pvpcLock(){
+      if (document.documentElement.style.overflow === 'hidden') return;
+      __pvpcScrollY = window.scrollY || 0;
+      document.documentElement.style.overflow = 'hidden';
+      __pvpcLocked = true;
+    }
+    function __pvpcUnlock(){
+      if (!__pvpcLocked) return;
+      document.documentElement.style.overflow = '';
+      window.scrollTo(0, __pvpcScrollY);
+      __pvpcLocked = false;
+    }
+
 
     // Cargar precios de HOY
     async function cargarHoy() {
@@ -1255,6 +1274,7 @@
       modalPVPCInfo.style.display = 'flex';
       modalPVPCInfo.classList.add('show');
       modalPVPCInfo.setAttribute('aria-hidden', 'false');
+      __pvpcLock();
       
       // Dar focus al botón de cerrar
       setTimeout(() => btnCerrarPVPCInfo.focus(), 100);
@@ -1287,6 +1307,8 @@
         modalPVPCInfo.style.display = 'none';
         modalPVPCInfo.setAttribute('aria-hidden', 'true');
         
+        __pvpcUnlock();
+
         // Restaurar focus al elemento anterior
         if (elementoAnterior && elementoAnterior.focus) {
           elementoAnterior.focus();
@@ -1295,6 +1317,7 @@
     };
 
     btnCerrarPVPCInfo.addEventListener('click', cerrarModal);
+    btnCerrarPVPCX?.addEventListener('click', cerrarModal);
     
     modalPVPCInfo.addEventListener('click', (e) => {
       if (e.target === modalPVPCInfo) cerrarModal();

@@ -1,5 +1,6 @@
     /* === TU DISEÑO ORIGINAL EXACTO (NO TOCAR) === */
     :root{ --bg0:#070A12; --bg1:#0B1020; --card: rgba(255,255,255,.06); --card2: rgba(255,255,255,.085); --border: rgba(255,255,255,.10); --border2: rgba(255,255,255,.16); --text:#F7F7FB; --muted: rgba(247,247,251,.72); --muted2: rgba(247,247,251,.55); --accent:#8B5CF6; --accent2:#22C55E; --warn:#F59E0B; --danger:#EF4444; --shadow: 0 22px 65px rgba(0,0,0,.52); --shadow2: 0 16px 40px rgba(0,0,0,.50); --radius: 18px; --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; --sans: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif; }
+    html.light-mode,
     body.light-mode {
       --bg0:#F4F6FB;
       --bg1:#FFFFFF; /* used only in gradients, keep very subtle */
@@ -20,6 +21,7 @@
     *{box-sizing:border-box; margin:0; padding:0}
     html,body{height:100%;}
     body{ font-family: var(--sans); color: var(--text); background: radial-gradient(1000px 600px at 12% 15%, rgba(139,92,246,.22), transparent 55%), radial-gradient(1000px 680px at 86% 88%, rgba(34,197,94,.16), transparent 55%), linear-gradient(135deg, var(--bg0), var(--bg1)); overflow-x:hidden; -webkit-tap-highlight-color: transparent; }
+    html.light-mode body,
     body.light-mode {
       background: radial-gradient(1000px 600px at 12% 15%, rgba(139,92,246,.10), transparent 55%),
               radial-gradient(1000px 680px at 86% 88%, rgba(34,197,94,.08), transparent 55%),
@@ -76,7 +78,7 @@
       position: absolute;
       top: 0;
       left: -100%;
-      width: 100%;
+      width: 100% !important;
       height: 100%;
       background: linear-gradient(90deg, 
         transparent, 
@@ -211,7 +213,7 @@
         inset 0 1px 0 rgba(255,255,255,0.2);
       will-change: transform;
       transform: translateZ(0);
-      width: 100%;
+      width: 100% !important;
       display: flex;
       z-index: 10;
       align-items: center;
@@ -260,7 +262,7 @@
       position: absolute;
       top: 0;
       left: -100%;
-      width: 100%;
+      width: 100% !important;
       height: 100%;
       background: linear-gradient(90deg, 
         transparent, 
@@ -526,7 +528,7 @@
       }
       .row > * {
         flex: unset;
-        width: 100%;
+        width: 100% !important;
       }
     }
     .kwhPill{ 
@@ -603,7 +605,7 @@
       grid-template-columns: 1fr 1fr; 
       gap: 16px; 
       margin-bottom: 18px;
-      width: 100%;
+      width: 100% !important;
     }
     @media (max-width: 760px){ .heroKpis{grid-template-columns: 1fr;} }
     .heroCard{ 
@@ -1694,7 +1696,7 @@
     }
     
     .tabla-comparativa {
-      width: 100%;
+      width: 100% !important;
       margin: 20px 0;
       border-collapse: collapse;
       font-size: 14px;
@@ -1859,7 +1861,6 @@
 
 @media (min-width: 769px){
   .solar-details{ display: none !important; }
-}
 }
 
 /* === PVPC inline (compacto, no molesta) === */
@@ -2228,3 +2229,134 @@ body.light-mode .custom-tariff-highlight {
   #table td.total-cell .desglose-icon{ width: 34px; height: 34px; }
 }
 
+
+/* ================================
+   Tabla: alineación numérica + móvil más limpio
+   ================================ */
+#table th,
+#table td{ font-variant-numeric: tabular-nums; }
+
+/* Header badges (solo móvil) */
+.tarifa-badges{ display:none; }
+.tarifa-badges .badge{ padding: 4px 8px; border-radius: 999px; font-size: 11px; }
+.tarifa-badges .badge.rank{
+  border: 1px solid rgba(139,92,246,.35);
+  background: rgba(139,92,246,.12);
+  color: var(--text);
+}
+
+/* Link web: icono + texto (texto solo en móvil) */
+.web{ gap: 8px; }
+.web .web-text{ display:none; font-weight: 900; font-size: 12px; }
+.web .web-icon{ line-height: 1; }
+
+@media (max-width: 768px){
+  /* Quitamos filas redundantes: Ranking y Tipo pasan a la cabecera */
+  tbody td:nth-of-type(1),
+  tbody td:nth-of-type(8){
+    display: none !important;
+  }
+
+  /* Cabecera (Compañía): badges arriba + nombre debajo */
+  .tarifa-badges{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    gap: 8px;
+    margin: 0 0 10px 0;
+  }
+
+  /* Nombre: permite 2 líneas en móvil (sin romper iconos) */
+  .tarifa-nombre{
+    white-space: normal;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+  }
+
+  /* TOTAL: que respire */
+  tbody td.total-cell{
+    padding-top: 14px;
+    padding-bottom: 14px;
+  }
+
+  /* CTA “Ver oferta” en móvil */
+  tbody td:nth-of-type(9){
+    justify-content: center;
+    padding-top: 14px;
+    border-bottom: none;
+  }
+  tbody td:nth-of-type(9)::before{ display:none; }
+
+  a.web{
+    width: 100% !important;
+    height: auto;
+    padding: 12px 14px;
+    border-radius: 999px;
+    justify-content:center;
+    font-size: 13px;
+  }
+  .web .web-text{ display:inline; }
+}
+
+/* ================================
+   Accesibilidad: foco claro
+   ================================ */
+:where(a, button, [role="button"], input, select, textarea):focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(139,92,246,.28);
+}
+
+/* ================================
+   Modales: cierre (X) + bottom-sheet en móvil
+   ================================ */
+.modal-content{ position: relative; }
+.modal-x{
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 40px;
+  height: 40px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.06);
+  color: var(--text);
+  display: inline-flex;
+  align-items:center;
+  justify-content:center;
+  cursor: pointer;
+  transition: transform .15s ease, background .15s ease, border-color .15s ease;
+}
+.modal-x:hover{
+  transform: scale(1.05);
+  background: rgba(139,92,246,.14);
+  border-color: rgba(139,92,246,.35);
+}
+.modal-x:active{ transform: scale(0.98); }
+
+html.light-mode .modal-overlay,
+body.light-mode .modal-overlay{
+  background: rgba(15,23,42,.88);
+}
+
+@media (max-width: 768px){
+  .modal-overlay{ align-items: flex-end; padding: 12px; }
+  .modal-content{
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: 92vh;
+    border-radius: 18px 18px 0 0 !important;
+  }
+  .modal-content .head{
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: linear-gradient(180deg, rgba(0,0,0,.25), rgba(0,0,0,0));
+    backdrop-filter: blur(10px);
+    padding-right: 56px !important;
+  }
+  html.light-mode .modal-content .head,
+  body.light-mode .modal-content .head{
+    background: linear-gradient(180deg, rgba(255,255,255,.65), rgba(255,255,255,0));
+  }
+}

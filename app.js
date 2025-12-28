@@ -995,7 +995,24 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
         const modalSolarInfo = $('modalSolarInfo');
         const btnSolarInfo = $('btnSolarInfo');
         const btnCerrarSolarInfo = $('btnCerrarSolarInfo');
-        
+        const btnCerrarSolarX = $('btnCerrarSolarX');
+
+        // Scroll lock suave (sin interferir con otros modales)
+        let __solarLocked = false;
+        let __solarScrollY = 0;
+        function __solarLock(){
+          if (document.documentElement.style.overflow === 'hidden') return;
+          __solarScrollY = window.scrollY || 0;
+          document.documentElement.style.overflow = 'hidden';
+          __solarLocked = true;
+        }
+        function __solarUnlock(){
+          if (!__solarLocked) return;
+          document.documentElement.style.overflow = '';
+          window.scrollTo(0, __solarScrollY);
+          __solarLocked = false;
+        }
+
         if(btnSolarInfo && modalSolarInfo && btnCerrarSolarInfo){
           btnSolarInfo.addEventListener('click', (e) => {
             e.preventDefault();
@@ -1003,16 +1020,34 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
             modalSolarInfo.style.display = 'flex';
             modalSolarInfo.classList.add('show');
             modalSolarInfo.setAttribute('aria-hidden', 'false');
+            __solarLock();
           });
           
+          btnCerrarSolarX?.addEventListener('click', () => {
+            modalSolarInfo.classList.remove('show');
+            setTimeout(() => { modalSolarInfo.style.display = 'none'; }, 200);
+            modalSolarInfo.setAttribute('aria-hidden', 'true');
+            __solarUnlock();
+          });
+
           btnCerrarSolarInfo.addEventListener('click', () => {
             modalSolarInfo.classList.remove('show');
             setTimeout(() => {
               modalSolarInfo.style.display = 'none';
             }, 200);
             modalSolarInfo.setAttribute('aria-hidden', 'true');
+            __solarUnlock();
           });
           
+          document.addEventListener('keydown', (e) => {
+            if(e.key === 'Escape' && modalSolarInfo.classList.contains('show')){
+              modalSolarInfo.classList.remove('show');
+              setTimeout(() => { modalSolarInfo.style.display = 'none'; }, 200);
+              modalSolarInfo.setAttribute('aria-hidden', 'true');
+              __solarUnlock();
+            }
+          });
+
           // Cerrar al hacer clic fuera del modal
           modalSolarInfo.addEventListener('click', (e) => {
             if(e.target === modalSolarInfo){
@@ -1021,6 +1056,7 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
                 modalSolarInfo.style.display = 'none';
               }, 200);
               modalSolarInfo.setAttribute('aria-hidden', 'true');
+              __solarUnlock();
             }
           });
         } else {
@@ -1215,12 +1251,16 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
           if (r.esMejor) tr.classList.add('best');
           if (r.esPersonalizada) tr.classList.add('custom-tariff-highlight');
           
+          const nombreBase = r.nombre || '';
+
           const w = r.webUrl && r.webUrl !== '#'
-            ? `<a class="web" href="${escapeHtml(r.webUrl)}" target="_blank" rel="noopener noreferrer" title="Abrir web">🔗</a>`
+            ? `<a class="web" href="${escapeHtml(r.webUrl)}" target="_blank" rel="noopener noreferrer" title="Abrir web" aria-label="Abrir oferta de ${escapeHtml(nombreBase)}">`+
+              `<span class="web-icon" aria-hidden="true">🔗</span>`+
+              `<span class="web-text">Ver oferta</span>`+
+              `</a>`
             : r.esPersonalizada
             ? ''
             : '';
-          const nombreBase = r.nombre || '';
           const nombreWarn = r.pvpcNotComputable
             ? `<span class="pvpc-warn" title="PVPC no disponible para esta configuración">⚠</span>`
             : (r.pvpcWarning ? ' ⚠' : '');
@@ -1310,7 +1350,15 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
 
           // Cabecera: nombre + iconos (layout estable en móvil)
           const icons = `<span class="tarifa-icons">${fvIcon || ""}${requisitosTooltip || ""}${nombreWarn || ""}</span>`;
+
+          // En móvil, movemos Ranking y Tipo a la cabecera (así evitamos filas extra)
+          const badgeRow = `<div class="tarifa-badges" aria-hidden="true">`+
+              `<span class="badge rank">#${idx + 1}</span>`+
+              `${rowTipoBadge(r.tipo)}`+
+            `</div>`;
+
           const nombreDisplay =
+            `${badgeRow}`+
             `<div class="tarifa-title">`+
               `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>`+
               `${icons}`+
@@ -2369,16 +2417,31 @@ async function procesarXLSXConsumos(file) {
 function mostrarPreviewCSV(resultado) {
   const modal = document.createElement('div');
   modal.className = 'modal-overlay show';
-  // Overlay opaco (95%) consistente con otros modales
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-hidden', 'false');
+
   const isLightMode = document.body.classList.contains('light-mode');
-  const overlayBg = isLightMode ? 'rgba(15, 23, 42, 0.95)' : 'rgba(0, 0, 0, 0.95)';
-  modal.style.cssText = `display: flex !important; position: fixed !important; inset: 0 !important; background: ${overlayBg} !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important; z-index: 999999 !important; align-items: center !important; justify-content: center !important; padding: 20px !important; visibility: visible !important; opacity: 1 !important;`;
-  
+
+  // Scroll lock suave (sin interferir con otros modales)
+  let __csvLocked = false;
+  let __csvScrollY = 0;
+  function __csvLock(){
+    if (document.documentElement.style.overflow === 'hidden') return;
+    __csvScrollY = window.scrollY || 0;
+    document.documentElement.style.overflow = 'hidden';
+    __csvLocked = true;
+  }
+  function __csvUnlock(){
+    if (!__csvLocked) return;
+    document.documentElement.style.overflow = '';
+    window.scrollTo(0, __csvScrollY);
+    __csvLocked = false;
+  }
+
   const content = document.createElement('div');
-  // Fondo SÓLIDO que funciona en ambos temas
-  const contentBg = isLightMode ? '#FFFFFF' : '#0F1729';
-  content.style.cssText = `background: ${contentBg} !important; border-radius: 16px; padding: 24px; max-width: 500px; width: 100%; box-shadow: var(--shadow); position: relative; z-index: 1000000; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border);`;
-  
+  content.className = 'modal-content card';
+  content.style.maxWidth = '520px';
   // Construir HTML de excedentes si existen
   let excedenteHTML = '';
   if (resultado.tieneExcedentes) {
@@ -2434,6 +2497,7 @@ function mostrarPreviewCSV(resultado) {
   }
   
   content.innerHTML = `
+    <button class="modal-x" id="btnCerrarCSVX" type="button" aria-label="Cerrar">✕</button>
     <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 900; color: var(--text);">
       📊 Consumos detectados${resultado.tieneExcedentes ? ' ☀️' : ''}
     </h3>
@@ -2490,6 +2554,20 @@ function mostrarPreviewCSV(resultado) {
   
   modal.appendChild(content);
   document.body.appendChild(modal);
+
+  // Activar scroll-lock y gestionar cierre
+  __csvLock();
+  const btnCerrarX = content.querySelector('#btnCerrarCSVX');
+  let __csvCloseOnEsc = null;
+  let __csvCloseOnBackdrop = null;
+  const closeCSVModal = () => {
+    if (__csvCloseOnEsc) document.removeEventListener('keydown', __csvCloseOnEsc);
+    if (__csvCloseOnBackdrop) modal.removeEventListener('click', __csvCloseOnBackdrop);
+    __csvUnlock();
+    modal.remove();
+  };
+  btnCerrarX?.addEventListener('click', closeCSVModal);
+
   
   lfDbg('[CSV] Modal añadido al DOM');
   lfDbg('[CSV] Modal display:', modal.style.display);
@@ -2527,7 +2605,7 @@ function mostrarPreviewCSV(resultado) {
   if (btnCancelar) {
     btnCancelar.addEventListener('click', () => {
       lfDbg('[CSV] Cancelar clickeado');
-      modal.remove();
+      closeCSVModal();
     });
   }
   
@@ -2637,7 +2715,7 @@ function mostrarPreviewCSV(resultado) {
         }, 100);
       }
       
-      modal.remove();
+      closeCSVModal();
       
       if (typeof toast === 'function') {
         const msg = debeAplicarExcedentes 
@@ -2714,17 +2792,15 @@ function mostrarPreviewCSV(resultado) {
     });
   }
   
-  const closeOnEsc = (e) => {
-    if (e.key === 'Escape') {
-      modal.remove();
-      document.removeEventListener('keydown', closeOnEsc);
-    }
+  __csvCloseOnEsc = (e) => {
+    if (e.key === 'Escape') closeCSVModal();
   };
-  document.addEventListener('keydown', closeOnEsc);
+  document.addEventListener('keydown', __csvCloseOnEsc);
   
-  modal.addEventListener('click', (e) => {
-    if (e.target === modal) modal.remove();
-  });
+  __csvCloseOnBackdrop = (e) => {
+    if (e.target === modal) closeCSVModal();
+  };
+  modal.addEventListener('click', __csvCloseOnBackdrop);
 }
 
 function initCSVImporter() {

@@ -1578,6 +1578,7 @@
         const btnAplicar = __LF_q('btnAplicarFactura');
         const btnCancelar = __LF_q('btnCancelarFactura');
         const btnOcr = __LF_q('btnOcrFactura');
+        const btnCerrarX = __LF_q('btnCerrarFacturaX');
 
         if (!btn || !modal) return;
         if (btn.__LF_BOUND) return;
@@ -1596,6 +1597,7 @@
 
         btn.addEventListener('click', __LF_openModal);
         btnCancelar?.addEventListener('click', __LF_closeModal);
+        btnCerrarX?.addEventListener('click', __LF_closeModal);
 
         modal.addEventListener('click', (e)=>{
           if (e.target === modal) __LF_closeModal();
