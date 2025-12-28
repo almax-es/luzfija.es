@@ -2163,36 +2163,3 @@ body.light-mode .custom-tariff-highlight {
 #seccionResultados.visible {
   display: block;
 }
-
-/* Estilo para TOTAL clickable con tooltip */
-tbody td strong.tooltip {
-  position: relative;
-  border-bottom: 1px dotted var(--accent);
-  transition: all 0.2s ease;
-}
-
-tbody td strong.tooltip:hover {
-  border-bottom: 1px solid var(--accent);
-  opacity: 0.8;
-}
-
-/* Icono info para indicar clickable */
-.info-icon {
-  font-size: 11px;
-  margin-left: 4px;
-  opacity: 0.6;
-  display: none; /* Oculto en desktop (ya hay línea punteada) */
-}
-
-/* Mostrar icono en móvil */
-@media (max-width: 768px) {
-  .info-icon {
-    display: inline;
-    font-size: 13px;
-    opacity: 0.8;
-  }
-  
-  tbody td strong.tooltip {
-    border-bottom: none; /* Quitar línea punteada en móvil */
-  }
-}

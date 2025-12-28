@@ -1230,7 +1230,7 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
             ? `<span class="tooltip requisitos-icon" data-tip="${escapeHtml(r.requisitos)}" role="button" tabindex="0" aria-label="Requisitos de contratación" style="margin-left:4px; color:var(--warn); cursor:help;">ⓘ</span>`
             : '';
 
-          let totalTooltip = ''; // Tooltip para el TOTAL
+          let fvIcon = '';
           const precioExc = Number(r.fvPriceUsed || 0);
           const exKwh = Number(r.fvExKwh || 0);
           const credit1 = Number(r.fvCredit1 || 0);
@@ -1242,19 +1242,20 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
           
           // Determinar si hay que mostrar dos líneas en TOTAL
           let totalDisplay = escapeHtml(r.total);
-          
           // Mostrar Pagas/Ranking cuando hay BV (independientemente de si sobran excedentes)
           if(r.fvTipo && r.fvTipo.includes('BV') && r.fvApplied){
-            totalDisplay = `<div style="display: flex; flex-direction: column; gap: 2px; align-items: flex-end;">
-              <div style="font-size: 9px; color: var(--muted2); font-weight: 600; line-height: 1.1;">Pagas: <span style="color: var(--text); font-weight: 900; font-size: 12px;">${formatMoney(totalFinal)}</span></div>
-              <div style="font-size: 9px; color: var(--muted2); font-weight: 600; line-height: 1.1;">Ranking: <span style="color: var(--accent); font-weight: 900; font-size: 12px;">${formatMoney(totalRanking)}</span></div>
+            totalDisplay = `<div style="display: flex; flex-direction: column; gap: 3px; align-items: flex-end;">
+              <div style="font-size: 10px; color: var(--muted2); font-weight: 600; line-height: 1.2;">Pagas: <span style="color: var(--text); font-weight: 900; font-size: 13px;">${formatMoney(totalFinal)}</span></div>
+              <div style="font-size: 10px; color: var(--muted2); font-weight: 600; line-height: 1.2;">Ranking: <span style="color: var(--accent); font-weight: 1100; font-size: 13px;">${formatMoney(totalRanking)}</span></div>
             </div>`;
           }
           
           // Si es solar no calculable (PVPC o tarifa indexada)
+          let solarDetails = '';
           if(r.solarNoCalculable){
             const tip = 'Compensación excedentes NO calculada (precio variable horario). Consulta tu factura para ver compensación real.';
-            totalTooltip = tip;
+            fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Solar no calculable" style="filter: grayscale(50%);">⚠️☀️</span>`;
+            solarDetails = `<div class="solar-details">⚠️ Compensación no calculada (precio variable)</div>`;
           } else if(r.fvApplied && r.fvTipo !== 'NO COMPENSA' && precioExc > 0){
             // Caso con excedentes: mostrar todos los detalles
             const excSobrante = Number(r.fvExcedenteSobrante || 0);
@@ -1296,30 +1297,35 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
             if(credit2 > 0) parts.push(`🔋 BV usada: ${credit2.toFixed(2)} € (ahorros de meses anteriores aplicados ahora)`);
             
             const tip = parts.join('\n');
-            totalTooltip = tip; // Guardar tooltip para el TOTAL
+            fvIcon = `<span class="tooltip fv-icon fv-ranking" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Detalle FV y Ranking">☀️</span>`;
+            // Detalles visibles en móvil
+            solarDetails = `<div class="solar-details">☀️ ${escapeHtml(parts.join(' • '))}</div>`;
           } else if(bvSaldoFin !== null && bvSaldoFin !== undefined && r.fvTipo && r.fvTipo.includes('BV')){
-            // Caso sin excedentes PERO con batería virtual
+            // Caso sin excedentes PERO con batería virtual: mostrar solo info BV
             const parts = [];
             if(credit2 > 0) parts.push(`🔋 BV usada: ${credit2.toFixed(2)} € (ahorros de meses anteriores aplicados ahora)`);
             parts.push(`🔋 Saldo BV final: ${Number(bvSaldoFin).toFixed(2)} € (disponible para el próximo mes)`);
             const tip = parts.join('\n');
-            totalTooltip = tip; // Guardar tooltip para el TOTAL
+            fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Detalle BV">🔋</span>`;
+            // Detalles visibles en móvil
+            solarDetails = `<div class="solar-details">🔋 ${escapeHtml(parts.join(' • '))}</div>`;
           }
 
           // Cabecera: nombre + iconos (layout estable en móvil)
-          const icons = `<span class="tarifa-icons">${requisitosTooltip || ""}${nombreWarn || ""}</span>`;
+          const icons = `<span class="tarifa-icons">${fvIcon || ""}${requisitosTooltip || ""}${nombreWarn || ""}</span>`;
           const nombreDisplay =
             `<div class="tarifa-title">`+
               `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>`+
               `${icons}`+
-            `</div>`;
+            `</div>`+
+            `${solarDetails || ""}`;
           tr.innerHTML =
             `<td>${idx + 1}</td>`+
             `<td title="${escapeHtml(nombreBase)}">${nombreDisplay}</td>`+
             `<td>${escapeHtml(r.potencia)}</td>`+
             `<td>${escapeHtml(r.consumo)}</td>`+
             `<td>${escapeHtml(r.impuestos)}</td>`+
-            `<td><strong class="${totalTooltip ? 'tooltip total-clickable' : ''}" ${totalTooltip ? `data-tip="${escapeHtml(totalTooltip)}" role="button" tabindex="0" aria-label="Ver detalles" style="cursor:pointer; font-weight:1100; color: var(--accent);"` : 'style="font-weight:1100; color: var(--accent);"'}>${totalDisplay}${totalTooltip ? '<span class="info-icon">ⓘ</span>' : ''}</strong></td>`+
+            `<td><strong style="font-weight:1100; color: var(--accent);">${totalDisplay}</strong></td>`+
             `<td class="vs">${formatVsWithBar(r.vsMejor,r.vsMejorNum)}</td>`+
             `<td>${rowTipoBadge(r.tipo)}</td>`+
             `<td style="text-align:center">${w}</td>`;
@@ -1330,7 +1336,7 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
 
         // Inicializar tooltips para los requisitos recién añadidos
         el.tbody.querySelectorAll('.requisitos-icon').forEach(t => bindTooltipElement(t));
-        el.tbody.querySelectorAll('td .tooltip').forEach(t => bindTooltipElement(t)); // Tooltips en TOTAL
+        el.tbody.querySelectorAll('.fv-icon').forEach(t => bindTooltipElement(t));
         updateSortIcons();
       });
     }
