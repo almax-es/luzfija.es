@@ -2170,7 +2170,7 @@ body.light-mode .custom-tariff-highlight {
 /* ================================
    TOTAL clickeable + bombilla (hit area grande + móvil)
    ================================ */
-#table td.total-cell{ cursor: pointer; }
+#table td.total-cell{ cursor: pointer; position: relative; overflow: hidden; text-align: center; }
 
 #table td.total-cell .total-price{
   display: inline-flex;
