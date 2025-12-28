@@ -59,6 +59,17 @@
     .logo::before{ content: ''; position: absolute; inset: -4px; border-radius: inherit; pointer-events: none; background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,.8) 50%, transparent 70%); animation: logoRotate 3s linear infinite; }
     .logo::after{ content: ''; position: absolute; top: -4px; left: -4px; right: -4px; bottom: -4px; border-radius: 20px; border: 2px solid transparent; background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #4facfe) border-box; -webkit-mask: linear-gradient(#fff, #fff) padding-box, linear-gradient(#fff, #fff); -webkit-mask-composite: xor; mask-composite: exclude; animation: ringPulse 2s ease-in-out infinite; opacity: 0.6; }
 
+    /* Optimización logo para móvil: solo gradientShift, desactivar animaciones costosas */
+    @media (max-width: 768px) and (prefers-reduced-motion: no-preference) {
+      .logo {
+        animation: gradientShift 8s ease infinite;
+      }
+      .logo::before,
+      .logo::after {
+        animation: none;
+      }
+    }
+
 
 
     .btn-shine {
@@ -416,6 +427,14 @@
     label{ font-size: 12px; color: var(--muted); font-weight: 900; letter-spacing: .2px; position: relative; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 16px; }
     .tooltip{ position: relative; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: rgba(139,92,246,.2); color: var(--accent); font-size: 10px; font-weight: 900; flex-shrink: 0; transition: box-shadow .15s ease, transform .15s ease; }
     .tooltip:focus-visible{ outline: none; box-shadow: 0 0 0 3px rgba(139,92,246,.25); transform: translateY(-1px); }
+    /* Tooltips más grandes en dispositivos táctiles */
+    @media (pointer: coarse) {
+      .tooltip {
+        width: 24px;
+        height: 24px;
+        font-size: 12px;
+      }
+    }
     .form.fv-toggle{ grid-template-columns: 1fr; }
     .form.fv-toggle .group{ grid-column: 1 / -1; }
     .fv-check {
