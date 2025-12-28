@@ -699,8 +699,8 @@
     thead th:nth-child(2), tbody td:nth-child(2) { width: 23%; }
     thead th:nth-child(3), tbody td:nth-child(3) { width: 10%; }
     thead th:nth-child(4), tbody td:nth-child(4) { width: 10%; }
-    thead th:nth-child(5), tbody td:nth-child(5) { width: 9%; }
-    thead th:nth-child(6), tbody td:nth-child(6) { width: 12%; min-width: 110px; }
+    thead th:nth-child(5), tbody td:nth-child(5) { width: 11%; }
+    thead th:nth-child(6), tbody td:nth-child(6) { width: 10%; }
     thead th:nth-child(7), tbody td:nth-child(7) { width: 12%; }
     thead th:nth-child(8), tbody td:nth-child(8) { width: 8%; }
     thead th:nth-child(9), tbody td:nth-child(9) { width: 8%; }
@@ -713,7 +713,6 @@
     .sortIcon{opacity:.8; font-size: 12px; margin-left: 6px;}
     tbody tr { background: rgba(255, 255, 255, 0.03); transition: all 0.2s ease; backdrop-filter: blur(10px); }
     tbody td{ padding: 14px 12px; border-bottom: none !important; text-align:right; font-size: 15px; color: rgba(255,255,255,.88); vertical-align: middle; white-space: nowrap; }
-    tbody td:nth-child(6) { white-space: normal; padding-left: 8px; padding-right: 14px; }
     tbody tr td:first-child { border-radius: 12px 0 0 12px; }
     tbody tr td:last-child  { border-radius: 0 12px 12px 0; }
     tbody td:nth-child(2){ font-weight: 1000; color: #fff; font-size: 13px; }
@@ -1771,8 +1770,8 @@
 .tarifa-title{
   display: inline-flex;
   align-items: center;
-  justify-content: flex-start;
-  gap: 8px;
+  justify-content: center;
+  gap: 6px;
   flex-wrap: nowrap; /* iconos siempre en la misma línea */
   width: 100%;
   min-width: 0; /* permite que el nombre se comprima si es necesario */
@@ -1792,7 +1791,6 @@
   align-items: center;
   gap: 6px;
   flex-shrink: 0;
-  margin-left: auto;
 }
 
 /* Hacemos los iconos un poco más "tocables" en móvil */
