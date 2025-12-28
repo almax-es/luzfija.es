@@ -2170,7 +2170,7 @@ body.light-mode .custom-tariff-highlight {
 /* ================================
    TOTAL clickeable + bombilla (hit area grande + móvil)
    ================================ */
-#table td.total-cell{ cursor: pointer; text-align: right; padding-right: 24px; }
+#table td.total-cell{ cursor: pointer; text-align: right; padding-right: 24px; overflow:hidden; }
 
 #table td.total-cell .total-pill{
   display: inline-flex;
@@ -2192,7 +2192,7 @@ body.light-mode .custom-tariff-highlight {
 #table td.total-cell:focus-within .total-pill{
   background: rgba(139,92,246,.14);
   border-color: rgba(139,92,246,.35);
-  transform: translateY(-1px);
+  
 }
 
 #table td.total-cell:active .total-pill{
@@ -2217,14 +2217,14 @@ body.light-mode .custom-tariff-highlight {
 #table td.total-cell:focus-within .desglose-icon,
 #table td.total-cell .desglose-icon:hover{
   opacity: 1;
-  transform: scale(1.25);
+  
   background: rgba(139,92,246,.22);
   filter: drop-shadow(0 0 6px rgba(139,92,246,.6));
 }
 
 #table td.total-cell.desglose-tap .desglose-icon,
 #table td.total-cell:active .desglose-icon{
-  transform: scale(1.35);
+  
 }
 
 /* En móvil: icono y área táctil más grande */
