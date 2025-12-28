@@ -685,7 +685,7 @@
     .statCard:nth-child(1) { animation-delay: 0.2s; } .statCard:nth-child(2) { animation-delay: 0.3s; } .statCard:nth-child(3) { animation-delay: 0.4s; }
     .statLabel{ color: var(--muted2); letter-spacing: 1px; text-transform: uppercase; font-size: 10px; font-weight: 1000; }
     .statValue{ font-size: clamp(18px, 1.5vw, 24px); font-weight: 1000; letter-spacing: -0.4px; white-space: nowrap; }
-    .badge{ display:inline-flex; align-items:center; justify-content:center; padding: 6px 10px; border-radius: 10px; border: 1px solid var(--border); background: rgba(255,255,255,.06); font-weight: 1000; font-size: 11px; letter-spacing: .3px; transition: transform .15s ease, box-shadow .15s ease; }
+    .badge{ display:inline-flex; align-items:center; justify-content:center; padding: 3px 6px; border-radius: 10px; border: 1px solid var(--border); background: rgba(255,255,255,.06); font-weight: 1000; font-size: 11px; letter-spacing: .3px; transition: transform .15s ease, box-shadow .15s ease; }
     .badge.b1{ border: none; background: linear-gradient(135deg, rgba(59,130,246,.9), rgba(96,165,250,.8)); color: #fff; box-shadow: 0 4px 12px rgba(59,130,246,.3); }
     .badge.b1:hover{ transform: scale(1.05); box-shadow: 0 6px 16px rgba(59,130,246,.4); }
     .badge.b3{ border: none; background: linear-gradient(135deg, rgba(245,158,11,.9), rgba(251,191,36,.8)); color: #fff; box-shadow: 0 4px 12px rgba(245,158,11,.3); }
@@ -815,7 +815,7 @@
     .chartTop-body {
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 4px;
     }
 
     .chartTop-row {
@@ -1791,7 +1791,7 @@
 .tarifa-icons{
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 4px;
   flex-shrink: 0;
 }
 
@@ -1825,8 +1825,8 @@
 
 @media (max-width: 768px){
   .tarifa-icons .tooltip{
-    width: 26px;
-    height: 26px;
+    width: 22px;
+    height: 22px;
     font-size: 14px;
     background: rgba(139,92,246,.35);
     box-shadow: 0 0 0 2px rgba(139,92,246,.2);
@@ -1918,7 +1918,7 @@
 .pvpcInline__range{
   display: inline-flex;
   align-items: baseline;
-  gap: 8px;
+  gap: 4px;
   font-size: 13px;
   opacity: 0.9;
 }
@@ -2077,7 +2077,7 @@
 
 @media (max-width: 700px){
   .pvpcInline__header{ padding: 12px 14px; }
-  .pvpcInline__summary-compact{ gap: 8px; font-size: 13px; }
+  .pvpcInline__summary-compact{ gap: 4px; font-size: 13px; }
   .pvpcInline__badge{ font-size: 12px; padding: 5px 10px; }
   .pvpcInline__now strong{ font-size: 16px; }
   .pvpcInline__toggle{ font-size: 11px; padding: 5px 10px; }
@@ -2174,10 +2174,10 @@ body.light-mode .custom-tariff-highlight {
 
 #table td.total-cell .total-pill{
   display: inline-flex;
-  margin-right: 18px;
+  margin-right: 12px;
   align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
+  gap: 4px;
+  padding: 3px 6px;
   border-radius: 999px;
   background: rgba(255,255,255,.04);
   border: 1px solid rgba(255,255,255,.08);
@@ -2204,8 +2204,8 @@ body.light-mode .custom-tariff-highlight {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   border-radius: 999px;
   background: rgba(0,0,0,.18);
   opacity: .82;
@@ -2251,7 +2251,7 @@ body.light-mode .custom-tariff-highlight {
 }
 
 /* Link web: icono + texto (texto solo en móvil) */
-.web{ gap: 8px; }
+.web{ gap: 4px; }
 .web .web-text{ display:none; font-weight: 900; font-size: 12px; }
 .web .web-icon{ line-height: 1; }
 
@@ -2267,7 +2267,7 @@ body.light-mode .custom-tariff-highlight {
     display:flex;
     justify-content:center;
     align-items:center;
-    gap: 8px;
+    gap: 4px;
     margin: 0 0 10px 0;
   }
 
