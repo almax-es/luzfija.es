@@ -371,8 +371,6 @@
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     .spinner{ display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius:50%; animation: spin 0.6s linear infinite; }
     .grid{ display:grid; grid-template-columns: 420px 1fr; gap: 24px; }
-    .grid.centered { grid-template-columns: 1fr; max-width: 600px; margin: 0 auto; }
-    .grid.centered #seccionResultados { display: none; }
     @media (max-width: 1100px){ .grid{grid-template-columns:1fr;} }
     .card{ 
       background: var(--card); 

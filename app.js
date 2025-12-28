@@ -1466,11 +1466,6 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
       const esPrimeraVez = seccionResultados && !seccionResultados.classList.contains('visible');
       if(seccionResultados && esPrimeraVez){
         seccionResultados.classList.add('visible');
-        // Quitar modo centrado del grid
-        const mainGrid = document.getElementById('mainGrid');
-        if(mainGrid && mainGrid.classList.contains('centered')){
-          mainGrid.classList.remove('centered');
-        }
         // Scroll suave a resultados después de un pequeño delay para que se renderice
         setTimeout(() => {
           seccionResultados.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1952,15 +1947,12 @@ function parseCSVConsumos(fileContent) {
    * Formato estándar CNMC:
    * - Fechas: DD/MM/YYYY
    * - Horas: 1-24 (no 0-23)
-   * - Separador: punto y coma (;) o coma (,)
+   * - Separador: punto y coma (;)
    */
   const lines = fileContent.split('\n');
   if (lines.length < 2) throw new Error('CSV vacío o inválido');
   
   const header = lines[0].toLowerCase();
-  
-  // Detectar separador (punto y coma o coma)
-  const separador = header.includes(';') ? ';' : ',';
   
   // Detectar formato estándar español (CNMC)
   const isFormatoEspanol = header.includes('ae_kwh') || header.includes('consumo_kwh');
@@ -1979,7 +1971,7 @@ function parseCSVConsumos(fileContent) {
     const line = lines[i].trim();
     if (!line) continue;
     
-    const cols = line.split(separador);
+    const cols = line.split(';');
     if (cols.length < 4) continue;
     
     // Formato básico: CUPS;Fecha;Hora;Consumo_kWh;Metodo
@@ -2046,44 +2038,19 @@ function parseCSVConsumos(fileContent) {
  * - Si CONSUMO > GENERACION → Red cubre la diferencia, excedente = 0
  */
 async function parseXLSXConsumos(fileBuffer) {
+  // Cargar XLSX bajo demanda si no está disponible
   await ensureXLSX();
   
   const workbook = XLSX.read(fileBuffer, { type: 'array' });
-  
-  // Buscar la hoja que tiene excedentes (GENERACION Wh)
-  // Algunos Excel de I-DE tienen 2 hojas: "Demandada" (sin excedentes) y "Vertida" (con excedentes)
-  let targetSheet = null;
-  let targetSheetName = null;
-  
-  for (const sheetName of workbook.SheetNames) {
-    const sheet = workbook.Sheets[sheetName];
-    const testData = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false, range: 5 });
-    
-    const hasGeneracion = testData.some(row => 
-      row && row.some(cell => {
-        const cellStr = String(cell || '').toUpperCase();
-        return cellStr.includes('GENERACION');
-      })
-    );
-    
-    if (hasGeneracion) {
-      targetSheet = sheet;
-      targetSheetName = sheetName;
-      break;
-    }
-  }
-  
-  if (!targetSheet) {
-    targetSheet = workbook.Sheets[workbook.SheetNames[0]];
-    targetSheetName = workbook.SheetNames[0];
-  }
-  
-  const data = XLSX.utils.sheet_to_json(targetSheet, { header: 1, raw: false });
+  const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+  const data = XLSX.utils.sheet_to_json(firstSheet, { header: 1, raw: false });
   
   if (data.length < 2) {
     throw new Error('Archivo Excel vacío o formato no reconocido');
   }
   
+  // BUG FIX 1: Detectar fila de cabecera buscando "FECHA-HORA" o "FECHA"
+  // Las cabeceras pueden estar en fila 0, 1, 2 o 3 según distribuidora
   let headerRow = -1;
   for (let i = 0; i < Math.min(5, data.length); i++) {
     const row = data[i];
@@ -2102,9 +2069,10 @@ async function parseXLSXConsumos(fileBuffer) {
   
   const headers = data[headerRow];
   if (!headers || headers.length < 4) {
-    throw new Error('Formato Excel no reconocido. Se esperan al menos: FECHA, CONSUMO');
+    throw new Error('Formato Excel no reconocido. Se esperan al menos: FECHA, PERIODO, CONSUMO, GENERACION');
   }
   
+  // Identificar índices de columnas (más robusto que posiciones fijas)
   const colFechaHora = headers.findIndex(h => {
     const hStr = String(h).toUpperCase();
     return hStr.includes('FECHA');
@@ -2116,39 +2084,34 @@ async function parseXLSXConsumos(fileBuffer) {
   const colConsumo = headers.findIndex(h => String(h).toUpperCase().includes('CONSUMO'));
   const colGeneracion = headers.findIndex(h => String(h).toUpperCase().includes('GENERACION'));
   
-  if (colFechaHora === -1 || colConsumo === -1) {
-    throw new Error('No se encontraron las columnas necesarias (FECHA, CONSUMO) en el Excel');
+  if (colFechaHora === -1 || colConsumo === -1 || colGeneracion === -1) {
+    throw new Error('No se encontraron las columnas necesarias (FECHA, CONSUMO, GENERACION) en el Excel');
   }
   
-  const tieneExcedentes = colGeneracion !== -1;
   const consumos = [];
   
+  // Empezar desde la fila siguiente a headers
   for (let i = headerRow + 1; i < data.length; i++) {
     const row = data[i];
-    if (!row || row.length === 0) continue;
+    if (!row || row.length < 4) continue;
     
     const fechaHoraStr = row[colFechaHora];
     const periodoTarifario = colPeriodo !== -1 ? String(row[colPeriodo] || '').trim() : '';
     const consumoWh = parseFloat(row[colConsumo]) || 0;
-    const generacionWh = tieneExcedentes ? (parseFloat(row[colGeneracion]) || 0) : 0;
+    const generacionWh = parseFloat(row[colGeneracion]) || 0;
     
     if (!fechaHoraStr) continue;
     
-    const fechaHoraParts = String(fechaHoraStr).split(' ');
-    if (fechaHoraParts.length < 2) continue;
-    
-    const fechaStr = fechaHoraParts[0];
-    const horaStr = fechaHoraParts[1];
-    
+    const [fechaStr, horaStr] = String(fechaHoraStr).split(' ');
     if (!fechaStr || !horaStr) continue;
     
-    const fechaParts = fechaStr.split('/');
-    if (fechaParts.length !== 3) continue;
+    const [año, mes, dia] = fechaStr.split('/').map(Number);
+    const horaXLSX = parseInt(horaStr.split(':')[0]); // 0-23 en XLSX i-DE
     
-    const [año, mes, dia] = fechaParts.map(Number);
-    const hora = parseInt(horaStr.split(':')[0]);
-    
-    if (isNaN(año) || isNaN(mes) || isNaN(dia) || isNaN(hora)) continue;
+    // BUG FIX 2: Convertir hora XLSX (0-23) a hora CNMC (1-24)
+    // XLSX hora 0 = 00:00-01:00 → CNMC hora 1
+    // XLSX hora 23 = 23:00-00:00 → CNMC hora 24
+    const horaCNMC = horaXLSX + 1;
     
     const fecha = new Date(año, mes - 1, dia);
     if (isNaN(fecha.getTime())) continue;
@@ -2156,6 +2119,8 @@ async function parseXLSXConsumos(fileBuffer) {
     const consumoKwh = consumoWh / 1000;
     const generacionKwh = generacionWh / 1000;
     
+    // BUG FIX 3: Usar PERIODO TARIFARIO si está disponible en el fichero
+    // Esto evita errores de clasificación por festivos, hora 0, etc.
     let periodoCalculado = null;
     if (periodoTarifario) {
       const pUpper = periodoTarifario.toUpperCase();
@@ -2164,13 +2129,18 @@ async function parseXLSXConsumos(fileBuffer) {
       else if (pUpper.includes('VALLE') || pUpper === 'P3') periodoCalculado = 'P3';
     }
     
+    // El Excel de I-DE ya trae los valores netos:
+    // - CONSUMO Wh: Consumo de RED (ya neto, restado el autoconsumo)
+    // - GENERACION Wh: Excedentes vertidos a la red (ya neto)
+    // Por tanto, usamos los valores directamente
+    
     consumos.push({
       fecha,
-      hora: hora,
-      kwh: consumoKwh,
-      excedente: generacionKwh,
-      autoconsumo: 0,
-      periodo: periodoCalculado,
+      hora: horaCNMC,          // BUG FIX 2: hora CNMC (1-24)
+      kwh: consumoKwh,         // Consumo de RED (directo)
+      excedente: generacionKwh, // Excedentes (directo)
+      autoconsumo: 0,          // No disponible en este formato
+      periodo: periodoCalculado, // BUG FIX 3: periodo del fichero (si disponible)
       esReal: true
     });
   }
