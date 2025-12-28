@@ -2163,3 +2163,68 @@ body.light-mode .custom-tariff-highlight {
 #seccionResultados.visible {
   display: block;
 }
+
+
+
+/* ================================
+   TOTAL clickeable + bombilla (hit area grande + móvil)
+   ================================ */
+#table td.total-cell{ cursor: pointer; }
+
+#table td.total-cell .total-price{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.08);
+  transition: transform .15s ease, background .15s ease, border-color .15s ease;
+  touch-action: manipulation;
+}
+
+#table td.total-cell:hover .total-price,
+#table td.total-cell:focus-within .total-price{
+  background: rgba(139,92,246,.14);
+  border-color: rgba(139,92,246,.35);
+  transform: translateY(-1px);
+}
+
+#table td.total-cell:active .total-price{
+  transform: translateY(0) scale(0.98);
+}
+
+#table td.total-cell .desglose-icon{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: rgba(0,0,0,.18);
+  opacity: .82;
+  transition: transform .15s ease, opacity .15s ease, background .15s ease, filter .15s ease;
+  user-select: none;
+  flex: 0 0 auto;
+}
+
+#table td.total-cell:hover .desglose-icon,
+#table td.total-cell:focus-within .desglose-icon,
+#table td.total-cell .desglose-icon:hover{
+  opacity: 1;
+  transform: scale(1.25);
+  background: rgba(139,92,246,.22);
+  filter: drop-shadow(0 0 6px rgba(139,92,246,.6));
+}
+
+#table td.total-cell.desglose-tap .desglose-icon,
+#table td.total-cell:active .desglose-icon{
+  transform: scale(1.35);
+}
+
+/* En móvil: icono y área táctil más grande */
+@media (pointer: coarse){
+  #table td.total-cell .total-price{ padding: 8px 12px; gap: 10px; }
+  #table td.total-cell .desglose-icon{ width: 34px; height: 34px; }
+}
+
