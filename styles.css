@@ -2381,3 +2381,23 @@ thead th:nth-child(7){
   padding-right: 4px;
 }
 
+
+/* =======================================
+   Ajuste fino final TOTAL / VS MEJOR
+   ======================================= */
+
+/* Cabecera "VS MEJOR" ligeramente a la derecha */
+thead th:nth-child(7){
+  padding-left: 14px;
+}
+
+/* Valores del VS MEJOR un poco a la derecha */
+#table td:nth-child(7){
+  padding-left: 6px;
+}
+
+/* TOTAL (pill) un pelín más a la izquierda */
+#table td.total-cell{
+  padding-right: 10px;
+}
+
