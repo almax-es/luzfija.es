@@ -2045,30 +2045,73 @@ async function parseXLSXConsumos(fileBuffer) {
   const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
   const data = XLSX.utils.sheet_to_json(firstSheet, { header: 1, raw: false });
   
-  if (data.length < 4) {
+  if (data.length < 2) {
     throw new Error('Archivo Excel vacío o formato no reconocido');
   }
   
-  const headers = data[2];
-  if (!headers || headers.length < 6) {
-    throw new Error('Formato Excel no reconocido. Se esperan: CUPS, FECHA-HORA, INV/VER, PERIODO, CONSUMO Wh, GENERACION Wh');
+  // BUG FIX 1: Detectar fila de cabecera buscando "FECHA-HORA" o "FECHA"
+  // Las cabeceras pueden estar en fila 0, 1, 2 o 3 según distribuidora
+  let headerRow = -1;
+  for (let i = 0; i < Math.min(5, data.length); i++) {
+    const row = data[i];
+    if (row && row.some(cell => {
+      const cellStr = String(cell).toUpperCase();
+      return cellStr.includes('FECHA-HORA') || cellStr.includes('FECHA');
+    })) {
+      headerRow = i;
+      break;
+    }
+  }
+  
+  if (headerRow === -1) {
+    throw new Error('No se encontró la fila de cabecera en el Excel');
+  }
+  
+  const headers = data[headerRow];
+  if (!headers || headers.length < 4) {
+    throw new Error('Formato Excel no reconocido. Se esperan al menos: FECHA, PERIODO, CONSUMO, GENERACION');
+  }
+  
+  // Identificar índices de columnas (más robusto que posiciones fijas)
+  const colFechaHora = headers.findIndex(h => {
+    const hStr = String(h).toUpperCase();
+    return hStr.includes('FECHA');
+  });
+  const colPeriodo = headers.findIndex(h => {
+    const hStr = String(h).toUpperCase();
+    return hStr.includes('PERIODO') && hStr.includes('TARIFARIO');
+  });
+  const colConsumo = headers.findIndex(h => String(h).toUpperCase().includes('CONSUMO'));
+  const colGeneracion = headers.findIndex(h => String(h).toUpperCase().includes('GENERACION'));
+  
+  if (colFechaHora === -1 || colConsumo === -1 || colGeneracion === -1) {
+    throw new Error('No se encontraron las columnas necesarias (FECHA, CONSUMO, GENERACION) en el Excel');
   }
   
   const consumos = [];
   
-  for (let i = 3; i < data.length; i++) {
+  // Empezar desde la fila siguiente a headers
+  for (let i = headerRow + 1; i < data.length; i++) {
     const row = data[i];
-    if (!row || row.length < 6) continue;
+    if (!row || row.length < 4) continue;
     
-    const fechaHoraStr = row[1];
-    const consumoWh = parseFloat(row[4]) || 0;
-    const generacionWh = parseFloat(row[5]) || 0;
+    const fechaHoraStr = row[colFechaHora];
+    const periodoTarifario = colPeriodo !== -1 ? String(row[colPeriodo] || '').trim() : '';
+    const consumoWh = parseFloat(row[colConsumo]) || 0;
+    const generacionWh = parseFloat(row[colGeneracion]) || 0;
     
     if (!fechaHoraStr) continue;
     
-    const [fechaStr, horaStr] = fechaHoraStr.split(' ');
+    const [fechaStr, horaStr] = String(fechaHoraStr).split(' ');
+    if (!fechaStr || !horaStr) continue;
+    
     const [año, mes, dia] = fechaStr.split('/').map(Number);
-    const hora = parseInt(horaStr.split(':')[0]);
+    const horaXLSX = parseInt(horaStr.split(':')[0]); // 0-23 en XLSX i-DE
+    
+    // BUG FIX 2: Convertir hora XLSX (0-23) a hora CNMC (1-24)
+    // XLSX hora 0 = 00:00-01:00 → CNMC hora 1
+    // XLSX hora 23 = 23:00-00:00 → CNMC hora 24
+    const horaCNMC = horaXLSX + 1;
     
     const fecha = new Date(año, mes - 1, dia);
     if (isNaN(fecha.getTime())) continue;
@@ -2076,17 +2119,28 @@ async function parseXLSXConsumos(fileBuffer) {
     const consumoKwh = consumoWh / 1000;
     const generacionKwh = generacionWh / 1000;
     
+    // BUG FIX 3: Usar PERIODO TARIFARIO si está disponible en el fichero
+    // Esto evita errores de clasificación por festivos, hora 0, etc.
+    let periodoCalculado = null;
+    if (periodoTarifario) {
+      const pUpper = periodoTarifario.toUpperCase();
+      if (pUpper.includes('PUNTA') || pUpper === 'P1') periodoCalculado = 'P1';
+      else if (pUpper.includes('LLANO') || pUpper === 'P2') periodoCalculado = 'P2';
+      else if (pUpper.includes('VALLE') || pUpper === 'P3') periodoCalculado = 'P3';
+    }
+    
     // El Excel de I-DE ya trae los valores netos:
-    // - CONSUMO Wh: Consumo de RED (ya restado el autoconsumo solar)
-    // - GENERACION Wh: Excedentes vertidos a la red
+    // - CONSUMO Wh: Consumo de RED (ya neto, restado el autoconsumo)
+    // - GENERACION Wh: Excedentes vertidos a la red (ya neto)
     // Por tanto, usamos los valores directamente
     
     consumos.push({
       fecha,
-      hora,
-      kwh: consumoKwh,        // Consumo de RED (directo)
+      hora: horaCNMC,          // BUG FIX 2: hora CNMC (1-24)
+      kwh: consumoKwh,         // Consumo de RED (directo)
       excedente: generacionKwh, // Excedentes (directo)
       autoconsumo: 0,          // No disponible en este formato
+      periodo: periodoCalculado, // BUG FIX 3: periodo del fichero (si disponible)
       esReal: true
     });
   }
@@ -2206,7 +2260,9 @@ function clasificarConsumosPorPeriodo(consumos) {
   let datosEstimados = 0;
   
   consumos.forEach(c => {
-    const periodo = getPeriodoHorarioCSV(c.fecha, c.hora);
+    // Usar periodo del fichero si está disponible, sino calcularlo
+    // Esto evita errores cuando el fichero (ej. XLSX i-DE) ya trae PERIODO TARIFARIO
+    const periodo = c.periodo || getPeriodoHorarioCSV(c.fecha, c.hora);
     
     totales[periodo] += c.kwh || 0;
     
