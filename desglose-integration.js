@@ -120,10 +120,17 @@
         // ✨ MEJORA: Hacer el precio clickeable con estilo visual claro
         tdTotal.style.cursor = 'pointer';
         tdTotal.style.transition = 'all 0.2s ease';
-        tdTotal.title = '💡 Clic para ver desglose completo de la factura';
+
+        // El <strong> de la celda TOTAL puede llevar info extra (BV) en data-*.
+        // Mantener la celda limpia visualmente y mostrar esos datos como ayuda (title).
+        const precioActual = tdTotal.querySelector('strong');
+        const pagas = precioActual?.dataset?.pagas;
+        const ranking = precioActual?.dataset?.ranking;
+        tdTotal.title = (pagas && ranking)
+          ? `💡 Clic para ver desglose completo de la factura • Pagas: ${pagas} • Ranking: ${ranking}`
+          : '💡 Clic para ver desglose completo de la factura';
         
         // 🎯 Añadir icono visible junto al precio (solo si no existe ya)
-        const precioActual = tdTotal.querySelector('strong');
         if (precioActual && !tdTotal.querySelector('.desglose-icon')) {
           const icon = document.createElement('span');
           icon.className = 'desglose-icon';

@@ -1239,25 +1239,14 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
           const excSobrante = Number(r.fvExcedenteSobrante || 0);
           const totalFinal = Number(r.fvTotalFinal || 0);
           const totalRanking = Number(r.totalNum || 0);
-          // Determinar cómo se pinta la columna TOTAL (sin romper el layout del icono 💡)
-          let totalDisplay = (r.total && r.total !== '—')
-            ? `<strong class="total-single">${escapeHtml(r.total)}</strong>`
-            : escapeHtml(r.total);
-
-          // Mostrar Pagas/Ranking cuando hay BV (independientemente de si sobran excedentes)
-          if (r.fvTipo && r.fvTipo.includes('BV') && r.fvApplied) {
-            totalDisplay = `
-              <div class="total-stack" aria-label="Pagas y ranking">
-                <div class="total-line total-line--pay">
-                  <span class="total-label">Pagas:</span>
-                  <strong class="total-amount total-amount--pay">${formatMoney(totalFinal)}</strong>
-                </div>
-                <div class="total-line total-line--rank">
-                  <span class="total-label">Ranking:</span>
-                  <strong class="total-amount total-amount--rank">${formatMoney(totalRanking)}</strong>
-                </div>
-              </div>`;
-          }
+          
+          // BV (batería virtual): NO pintamos "Pagas/Ranking" dentro de la celda TOTAL.
+          // Motivo: la tabla usa table-layout:fixed + celdas nowrap; cualquier texto extra se corta o se sale.
+          // En su lugar, guardamos ambos importes como data-* para mostrarlos como ayuda (tooltip/title) en el icono 💡.
+          const isBV = !!(r.fvTipo && r.fvTipo.includes('BV') && r.fvApplied);
+          const bvPagasFmt = isBV ? formatMoney(totalFinal) : '';
+          const bvRankingFmt = isBV ? formatMoney(totalRanking) : '';
+          
           // Si es solar no calculable (PVPC o tarifa indexada)
           let solarDetails = '';
           if(r.solarNoCalculable){
@@ -1333,7 +1322,7 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
             `<td>${escapeHtml(r.potencia)}</td>`+
             `<td>${escapeHtml(r.consumo)}</td>`+
             `<td>${escapeHtml(r.impuestos)}</td>`+
-            `<td class="total-cell">${totalDisplay}</td>`+
+            `<td class="total-cell"><strong class="total-price"${isBV ? ` data-pagas="${escapeHtml(bvPagasFmt)}" data-ranking="${escapeHtml(bvRankingFmt)}"` : ''} style="font-weight:1100; color: var(--accent);">${escapeHtml(r.total)}</strong></td>`+
             `<td class="vs">${formatVsWithBar(r.vsMejor,r.vsMejorNum)}</td>`+
             `<td>${rowTipoBadge(r.tipo)}</td>`+
             `<td style="text-align:center">${w}</td>`;
