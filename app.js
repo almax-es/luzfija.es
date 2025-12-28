@@ -1239,17 +1239,25 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
           const excSobrante = Number(r.fvExcedenteSobrante || 0);
           const totalFinal = Number(r.fvTotalFinal || 0);
           const totalRanking = Number(r.totalNum || 0);
-          
-          // Determinar si hay que mostrar dos líneas en TOTAL
-          let totalDisplay = escapeHtml(r.total);
+          // Determinar cómo se pinta la columna TOTAL (sin romper el layout del icono 💡)
+          let totalDisplay = (r.total && r.total !== '—')
+            ? `<strong class="total-single">${escapeHtml(r.total)}</strong>`
+            : escapeHtml(r.total);
+
           // Mostrar Pagas/Ranking cuando hay BV (independientemente de si sobran excedentes)
-          if(r.fvTipo && r.fvTipo.includes('BV') && r.fvApplied){
-            totalDisplay = `<div style="display: flex; flex-direction: column; gap: 3px; align-items: flex-end;">
-              <div style="font-size: 10px; color: var(--muted2); font-weight: 600; line-height: 1.2;">Pagas: <span style="color: var(--text); font-weight: 900; font-size: 13px;">${formatMoney(totalFinal)}</span></div>
-              <div style="font-size: 10px; color: var(--muted2); font-weight: 600; line-height: 1.2;">Ranking: <span style="color: var(--accent); font-weight: 1100; font-size: 13px;">${formatMoney(totalRanking)}</span></div>
-            </div>`;
+          if (r.fvTipo && r.fvTipo.includes('BV') && r.fvApplied) {
+            totalDisplay = `
+              <div class="total-stack" aria-label="Pagas y ranking">
+                <div class="total-line total-line--pay">
+                  <span class="total-label">Pagas:</span>
+                  <strong class="total-amount total-amount--pay">${formatMoney(totalFinal)}</strong>
+                </div>
+                <div class="total-line total-line--rank">
+                  <span class="total-label">Ranking:</span>
+                  <strong class="total-amount total-amount--rank">${formatMoney(totalRanking)}</strong>
+                </div>
+              </div>`;
           }
-          
           // Si es solar no calculable (PVPC o tarifa indexada)
           let solarDetails = '';
           if(r.solarNoCalculable){
@@ -1325,7 +1333,7 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
             `<td>${escapeHtml(r.potencia)}</td>`+
             `<td>${escapeHtml(r.consumo)}</td>`+
             `<td>${escapeHtml(r.impuestos)}</td>`+
-            `<td><strong style="font-weight:1100; color: var(--accent);">${totalDisplay}</strong></td>`+
+            `<td class="total-cell">${totalDisplay}</td>`+
             `<td class="vs">${formatVsWithBar(r.vsMejor,r.vsMejorNum)}</td>`+
             `<td>${rowTipoBadge(r.tipo)}</td>`+
             `<td style="text-align:center">${w}</td>`;
