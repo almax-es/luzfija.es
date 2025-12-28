@@ -2401,3 +2401,23 @@ thead th:nth-child(7){
   padding-right: 10px;
 }
 
+
+/* =======================================
+   Separación clara TOTAL ↔ VS MEJOR
+   ======================================= */
+
+/* Cabecera "VS MEJOR" más a la derecha */
+thead th:nth-child(7){
+  padding-left: 24px;
+}
+
+/* Valores del VS MEJOR también más a la derecha */
+#table td:nth-child(7){
+  padding-left: 18px;
+}
+
+/* TOTAL con un poco más de aire */
+#table td.total-cell{
+  padding-right: 6px;
+}
+
