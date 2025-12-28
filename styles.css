@@ -2421,3 +2421,10 @@ thead th:nth-child(7){
   padding-right: 6px;
 }
 
+
+/* === Fix: evitar que se corte el texto "VS MEJOR" === */
+thead th:nth-child(7){
+  white-space: nowrap;
+  overflow: visible;
+}
+
