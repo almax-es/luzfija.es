@@ -1952,12 +1952,15 @@ function parseCSVConsumos(fileContent) {
    * Formato estándar CNMC:
    * - Fechas: DD/MM/YYYY
    * - Horas: 1-24 (no 0-23)
-   * - Separador: punto y coma (;)
+   * - Separador: punto y coma (;) o coma (,)
    */
   const lines = fileContent.split('\n');
   if (lines.length < 2) throw new Error('CSV vacío o inválido');
   
   const header = lines[0].toLowerCase();
+  
+  // Detectar separador (punto y coma o coma)
+  const separador = header.includes(';') ? ';' : ',';
   
   // Detectar formato estándar español (CNMC)
   const isFormatoEspanol = header.includes('ae_kwh') || header.includes('consumo_kwh');
@@ -1976,7 +1979,7 @@ function parseCSVConsumos(fileContent) {
     const line = lines[i].trim();
     if (!line) continue;
     
-    const cols = line.split(';');
+    const cols = line.split(separador);
     if (cols.length < 4) continue;
     
     // Formato básico: CUPS;Fecha;Hora;Consumo_kWh;Metodo
@@ -2122,7 +2125,7 @@ async function parseXLSXConsumos(fileBuffer) {
   
   for (let i = headerRow + 1; i < data.length; i++) {
     const row = data[i];
-    if (!row || row.length < 4) continue;
+    if (!row || row.length === 0) continue;
     
     const fechaHoraStr = row[colFechaHora];
     const periodoTarifario = colPeriodo !== -1 ? String(row[colPeriodo] || '').trim() : '';
@@ -2131,12 +2134,21 @@ async function parseXLSXConsumos(fileBuffer) {
     
     if (!fechaHoraStr) continue;
     
-    const [fechaStr, horaStr] = String(fechaHoraStr).split(' ');
+    const fechaHoraParts = String(fechaHoraStr).split(' ');
+    if (fechaHoraParts.length < 2) continue;
+    
+    const fechaStr = fechaHoraParts[0];
+    const horaStr = fechaHoraParts[1];
+    
     if (!fechaStr || !horaStr) continue;
     
-    const [año, mes, dia] = fechaStr.split('/').map(Number);
-    const horaXLSX = parseInt(horaStr.split(':')[0]);
-    const horaCNMC = horaXLSX + 1;
+    const fechaParts = fechaStr.split('/');
+    if (fechaParts.length !== 3) continue;
+    
+    const [año, mes, dia] = fechaParts.map(Number);
+    const hora = parseInt(horaStr.split(':')[0]);
+    
+    if (isNaN(año) || isNaN(mes) || isNaN(dia) || isNaN(hora)) continue;
     
     const fecha = new Date(año, mes - 1, dia);
     if (isNaN(fecha.getTime())) continue;
@@ -2154,7 +2166,7 @@ async function parseXLSXConsumos(fileBuffer) {
     
     consumos.push({
       fecha,
-      hora: horaCNMC,
+      hora: hora,
       kwh: consumoKwh,
       excedente: generacionKwh,
       autoconsumo: 0,
