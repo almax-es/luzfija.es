@@ -2442,3 +2442,31 @@ thead th:nth-child(7){
   font-size: 10px !important;       /* un pelín más pequeño */
 }
 
+
+/* ================================
+   Headers tabla: más pequeños en pantallas medianas/pequeñas
+   ================================ */
+
+/* IMPORTANTE: el header usa font-size/letter-spacing con !important,
+   aquí también usamos !important para asegurar override. */
+@media (max-width: 1200px){
+  #table thead th{
+    font-size: 10px !important;
+    letter-spacing: 1.05px !important;
+  }
+}
+
+@media (max-width: 980px){
+  #table thead th{
+    font-size: 9px !important;
+    letter-spacing: 0.9px !important;
+  }
+}
+
+/* Asegurar que VS MEJOR hereda el tamaño global y no se corta */
+#table thead th:nth-child(7){
+  font-size: inherit !important;
+  letter-spacing: inherit !important;
+  white-space: nowrap !important;
+}
+
