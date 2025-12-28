@@ -2305,9 +2305,9 @@ async function procesarXLSXConsumos(file) {
 function mostrarPreviewCSV(resultado) {
   const modal = document.createElement('div');
   modal.className = 'modal-overlay show';
-  // Overlay con backdrop-filter para blur y fondo adaptado al tema
+  // Overlay opaco (95%) consistente con otros modales
   const isLightMode = document.body.classList.contains('light-mode');
-  const overlayBg = isLightMode ? 'rgba(15, 23, 42, 0.75)' : 'rgba(0, 0, 0, 0.85)';
+  const overlayBg = isLightMode ? 'rgba(15, 23, 42, 0.95)' : 'rgba(0, 0, 0, 0.95)';
   modal.style.cssText = `display: flex !important; position: fixed !important; inset: 0 !important; background: ${overlayBg} !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important; z-index: 999999 !important; align-items: center !important; justify-content: center !important; padding: 20px !important; visibility: visible !important; opacity: 1 !important;`;
   
   const content = document.createElement('div');

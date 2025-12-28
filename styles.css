@@ -1072,12 +1072,12 @@
 
     /* FIX: modal "Subir factura" completamente legible en modo claro */
     body.light-mode .modal-overlay{
-      background: rgba(15,23,42,.65);
+      background: rgba(15,23,42,.95);
       backdrop-filter: blur(8px);
     }
 
     body.light-mode .modal-content{
-      background: var(--bg0);
+      background: #FFFFFF;
       color: var(--text);
       box-shadow: 0 25px 50px rgba(15,23,42,.25);
     }
@@ -1221,7 +1221,7 @@
 
   .modal-overlay{
     position:fixed; inset:0;
-  background:rgba(0,0,0,.75);
+  background:rgba(0,0,0,.95);
   backdrop-filter:blur(8px);
   -webkit-backdrop-filter:blur(8px);
   z-index:10000;
@@ -1236,6 +1236,7 @@
   max-height: calc(100vh - 60px);
   display: flex;
   flex-direction: column;
+  background: #0F1729;
   animation:__lf_slideUp .25s cubic-bezier(.2,.9,.2,1); 
 }
 .modal-content .body{
