@@ -2316,16 +2316,24 @@ async function procesarXLSXConsumos(file) {
 function mostrarPreviewCSV(resultado) {
   const modal = document.createElement('div');
   modal.className = 'modal-overlay show';
-  modal.style.cssText = 'display: flex !important; position: fixed !important; inset: 0 !important; background: rgba(0,0,0,0.85) !important; z-index: 999999 !important; align-items: center !important; justify-content: center !important; padding: 20px !important; visibility: visible !important; opacity: 1 !important;';
+  // Overlay con backdrop-filter para blur y fondo adaptado al tema
+  const isLightMode = document.body.classList.contains('light-mode');
+  const overlayBg = isLightMode ? 'rgba(15, 23, 42, 0.75)' : 'rgba(0, 0, 0, 0.85)';
+  modal.style.cssText = `display: flex !important; position: fixed !important; inset: 0 !important; background: ${overlayBg} !important; backdrop-filter: blur(8px) !important; -webkit-backdrop-filter: blur(8px) !important; z-index: 999999 !important; align-items: center !important; justify-content: center !important; padding: 20px !important; visibility: visible !important; opacity: 1 !important;`;
   
   const content = document.createElement('div');
-  content.style.cssText = 'background: var(--card); border-radius: 16px; padding: 24px; max-width: 500px; width: 100%; box-shadow: var(--shadow); position: relative; z-index: 1000000; max-height: 90vh; overflow-y: auto;';
+  // Fondo SÓLIDO que funciona en ambos temas
+  const contentBg = isLightMode ? '#FFFFFF' : '#0F1729';
+  content.style.cssText = `background: ${contentBg} !important; border-radius: 16px; padding: 24px; max-width: 500px; width: 100%; box-shadow: var(--shadow); position: relative; z-index: 1000000; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border);`;
   
   // Construir HTML de excedentes si existen
   let excedenteHTML = '';
   if (resultado.tieneExcedentes) {
+    const isLightMode = document.body.classList.contains('light-mode');
+    const excBg = isLightMode ? 'rgba(245, 158, 11, 0.15)' : 'rgba(245, 158, 11, 0.12)';
+    const excBorder = isLightMode ? 'rgba(217, 119, 6, 0.4)' : 'rgba(217, 119, 6, 0.3)';
     excedenteHTML = `
-      <div style="background: rgba(245, 158, 11, 0.12); padding: 16px; border-radius: 12px; margin-top: 16px; border: 1px solid rgba(217, 119, 6, 0.3);">
+      <div style="background: ${excBg}; padding: 16px; border-radius: 12px; margin-top: 16px; border: 1px solid ${excBorder};">
         <div style="font-size: 13px; font-weight: 900; margin-bottom: 12px; color: var(--text); display: flex; align-items: center; gap: 6px;">
           ☀️ Excedentes solares detectados
         </div>
@@ -2377,7 +2385,7 @@ function mostrarPreviewCSV(resultado) {
       📊 Consumos detectados${resultado.tieneExcedentes ? ' ☀️' : ''}
     </h3>
     
-    <div style="background: var(--bg0); padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--border);">
+    <div style="background: ${isLightMode ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.06)'}; padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--border);">
       <div style="display: grid; gap: 12px;">
         <div>
           <div style="font-size: 12px; color: var(--muted2); margin-bottom: 4px;">Periodo analizado</div>
