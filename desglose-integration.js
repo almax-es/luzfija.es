@@ -122,7 +122,7 @@
 
         // El <strong> de la celda TOTAL puede llevar info extra (BV) en data-*.
         // Mantener la celda limpia visualmente y mostrar esos datos como ayuda (title).
-        const precioActual = tdTotal.querySelector('strong');
+        const precioActual = tdTotal.querySelector('.js-total-amount');
         const pagas = precioActual?.dataset?.pagas;
         const ranking = precioActual?.dataset?.ranking;
         tdTotal.title = (pagas && ranking)
