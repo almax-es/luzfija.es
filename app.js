@@ -1242,19 +1242,21 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
           
           // Determinar si hay que mostrar dos líneas en TOTAL
           let totalDisplay = escapeHtml(r.total);
+          let hideFvIcon = false; // Flag para ocultar bombilla
           // Mostrar Pagas/Ranking cuando hay BV (independientemente de si sobran excedentes)
           if(r.fvTipo && r.fvTipo.includes('BV') && r.fvApplied){
             totalDisplay = `<div style="display: flex; flex-direction: column; gap: 2px; align-items: flex-end;">
               <div style="font-size: 9px; color: var(--muted2); font-weight: 600; line-height: 1.1;">Pagas: <span style="color: var(--text); font-weight: 900; font-size: 12px;">${formatMoney(totalFinal)}</span></div>
               <div style="font-size: 9px; color: var(--muted2); font-weight: 600; line-height: 1.1;">Ranking: <span style="color: var(--accent); font-weight: 900; font-size: 12px;">${formatMoney(totalRanking)}</span></div>
             </div>`;
+            hideFvIcon = true; // No mostrar bombilla cuando hay Pagas/Ranking
           }
           
           // Si es solar no calculable (PVPC o tarifa indexada)
           let solarDetails = '';
           if(r.solarNoCalculable){
             const tip = 'Compensación excedentes NO calculada (precio variable horario). Consulta tu factura para ver compensación real.';
-            fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Solar no calculable" style="filter: grayscale(50%);">⚠️☀️</span>`;
+            if(!hideFvIcon) fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Solar no calculable" style="filter: grayscale(50%);">⚠️☀️</span>`;
             solarDetails = `<div class="solar-details">⚠️ Compensación no calculada (precio variable)</div>`;
           } else if(r.fvApplied && r.fvTipo !== 'NO COMPENSA' && precioExc > 0){
             // Caso con excedentes: mostrar todos los detalles
@@ -1297,8 +1299,8 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
             if(credit2 > 0) parts.push(`🔋 BV usada: ${credit2.toFixed(2)} € (ahorros de meses anteriores aplicados ahora)`);
             
             const tip = parts.join('\n');
-            // NO mostrar bombilla si tiene BV (ya se muestra en TOTAL)
-            if(!tieneBV){
+            // Solo mostrar bombilla si NO se está mostrando Pagas/Ranking
+            if(!hideFvIcon){
               fvIcon = `<span class="tooltip fv-icon fv-ranking" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Detalle FV y Ranking">☀️</span>`;
             }
             // Detalles visibles en móvil
