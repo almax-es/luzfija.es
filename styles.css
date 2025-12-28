@@ -2365,3 +2365,19 @@ body.light-mode .modal-overlay{
     background: linear-gradient(180deg, rgba(255,255,255,.65), rgba(255,255,255,0));
   }
 }
+
+
+/* =======================================
+   Ajustes finos: TOTAL y VS MEJOR
+   ======================================= */
+
+/* Mover ligeramente el encabezado de VS MEJOR a la derecha */
+thead th:nth-child(7){
+  padding-left: 10px;
+}
+
+/* TOTAL un poquito más a la izquierda */
+#table td.total-cell{
+  padding-right: 4px;
+}
+
