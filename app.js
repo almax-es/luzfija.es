@@ -1460,6 +1460,17 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
       if(seoFold) seoFold.classList.add('show');
       el.heroKpis.classList.add('show');
       createSuccessParticles(el.heroKpis);
+      
+      // Mostrar sección de resultados (primera vez que se calcula)
+      const seccionResultados = document.getElementById('seccionResultados');
+      const esPrimeraVez = seccionResultados && !seccionResultados.classList.contains('visible');
+      if(seccionResultados && esPrimeraVez){
+        seccionResultados.classList.add('visible');
+        // Scroll suave a resultados después de un pequeño delay para que se renderice
+        setTimeout(() => {
+          seccionResultados.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300);
+      }
 
       const s=d.stats;
       if(s){

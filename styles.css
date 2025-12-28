@@ -2136,3 +2136,11 @@ body.light-mode .custom-tariff-highlight {
   );
 }
 
+/* Ocultar resultados hasta que se calcule */
+#seccionResultados {
+  display: none;
+}
+
+#seccionResultados.visible {
+  display: block;
+}
