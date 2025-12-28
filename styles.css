@@ -715,7 +715,7 @@
     tbody td{ padding: 14px 12px; border-bottom: none !important; text-align:right; font-size: 15px; color: rgba(255,255,255,.88); vertical-align: middle; white-space: nowrap; }
     tbody tr td:first-child { border-radius: 12px 0 0 12px; }
     tbody tr td:last-child  { border-radius: 0 12px 12px 0; }
-    tbody td:nth-child(2){ font-weight: 1000; color: #fff; font-size: 13px; }
+    tbody td:nth-child(2){ font-weight: 1000; color: #fff; font-size: 13px; display: table-cell; vertical-align: middle !important; }
     tbody tr:hover{ transform: scale(1.01) translateY(-2px) translateZ(0); background: rgba(255, 255, 255, 0.07); box-shadow: 0 10px 20px rgba(0,0,0,0.2); z-index: 10; position: relative; }
     tbody tr.best{
       background: linear-gradient(90deg, rgba(34,197,94,0.18), rgba(139,92,246,0.12)) !important;
@@ -1770,11 +1770,12 @@
 .tarifa-title{
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  gap: 6px;
+  justify-content: flex-start;
+  gap: 8px;
   flex-wrap: nowrap; /* iconos siempre en la misma línea */
   width: 100%;
   min-width: 0; /* permite que el nombre se comprima si es necesario */
+  vertical-align: middle;
 }
 
 .tarifa-nombre{
