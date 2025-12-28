@@ -123,6 +123,7 @@
         // El <strong> de la celda TOTAL puede llevar info extra (BV) en data-*.
         // Mantener la celda limpia visualmente y mostrar esos datos como ayuda (title).
         const precioActual = tdTotal.querySelector('.js-total-amount');
+        const pill = tdTotal.querySelector('.total-pill') || (precioActual ? precioActual.parentElement : tdTotal);
         const pagas = precioActual?.dataset?.pagas;
         const ranking = precioActual?.dataset?.ranking;
         tdTotal.title = (pagas && ranking)
@@ -147,7 +148,7 @@
           icon.className = 'desglose-icon';
           icon.textContent = '💡';
           icon.setAttribute('aria-hidden', 'true');
-          precioActual.appendChild(icon);
+          pill.appendChild(icon);
         }
 
         tdTotal.onclick = function(e) {
