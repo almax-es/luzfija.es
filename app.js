@@ -1244,9 +1244,9 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
           let totalDisplay = escapeHtml(r.total);
           // Mostrar Pagas/Ranking cuando hay BV (independientemente de si sobran excedentes)
           if(r.fvTipo && r.fvTipo.includes('BV') && r.fvApplied){
-            totalDisplay = `<div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-end;">
-              <div style="font-size: 11px; color: var(--muted2); font-weight: 600;">P: <span style="color: var(--text); font-weight: 900; font-size: 14px;">${formatMoney(totalFinal)}</span></div>
-              <div style="font-size: 11px; color: var(--muted2); font-weight: 600;">R: <span style="color: var(--accent); font-weight: 900; font-size: 14px;">${formatMoney(totalRanking)}</span></div>
+            totalDisplay = `<div style="display: flex; flex-direction: column; gap: 2px; align-items: flex-end;">
+              <div style="font-size: 9px; color: var(--muted2); font-weight: 600; line-height: 1.1;">Pagas: <span style="color: var(--text); font-weight: 900; font-size: 12px;">${formatMoney(totalFinal)}</span></div>
+              <div style="font-size: 9px; color: var(--muted2); font-weight: 600; line-height: 1.1;">Ranking: <span style="color: var(--accent); font-weight: 900; font-size: 12px;">${formatMoney(totalRanking)}</span></div>
             </div>`;
           }
           
@@ -1297,16 +1297,19 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
             if(credit2 > 0) parts.push(`🔋 BV usada: ${credit2.toFixed(2)} € (ahorros de meses anteriores aplicados ahora)`);
             
             const tip = parts.join('\n');
-            fvIcon = `<span class="tooltip fv-icon fv-ranking" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Detalle FV y Ranking">☀️</span>`;
+            // NO mostrar bombilla si tiene BV (ya se muestra en TOTAL)
+            if(!tieneBV){
+              fvIcon = `<span class="tooltip fv-icon fv-ranking" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Detalle FV y Ranking">☀️</span>`;
+            }
             // Detalles visibles en móvil
             solarDetails = `<div class="solar-details">☀️ ${escapeHtml(parts.join(' • '))}</div>`;
           } else if(bvSaldoFin !== null && bvSaldoFin !== undefined && r.fvTipo && r.fvTipo.includes('BV')){
-            // Caso sin excedentes PERO con batería virtual: mostrar solo info BV
+            // Caso sin excedentes PERO con batería virtual: NO mostrar icono (ya está en TOTAL)
             const parts = [];
             if(credit2 > 0) parts.push(`🔋 BV usada: ${credit2.toFixed(2)} € (ahorros de meses anteriores aplicados ahora)`);
             parts.push(`🔋 Saldo BV final: ${Number(bvSaldoFin).toFixed(2)} € (disponible para el próximo mes)`);
             const tip = parts.join('\n');
-            fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Detalle BV">🔋</span>`;
+            // NO mostrar fvIcon aquí (info ya visible en TOTAL)
             // Detalles visibles en móvil
             solarDetails = `<div class="solar-details">🔋 ${escapeHtml(parts.join(' • '))}</div>`;
           }
