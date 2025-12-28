@@ -2065,28 +2065,17 @@ async function parseXLSXConsumos(fileBuffer) {
     const consumoKwh = consumoWh / 1000;
     const generacionKwh = generacionWh / 1000;
     
-    let autoconsumo = 0;
-    let excedente = 0;
-    let kwhRed = consumoKwh;
-    
-    if (generacionKwh > 0) {
-      if (generacionKwh <= consumoKwh) {
-        autoconsumo = generacionKwh;
-        kwhRed = consumoKwh - generacionKwh;
-        excedente = 0;
-      } else {
-        autoconsumo = consumoKwh;
-        kwhRed = 0;
-        excedente = generacionKwh - consumoKwh;
-      }
-    }
+    // El Excel de I-DE ya trae los valores netos:
+    // - CONSUMO Wh: Consumo de RED (ya restado el autoconsumo solar)
+    // - GENERACION Wh: Excedentes vertidos a la red
+    // Por tanto, usamos los valores directamente
     
     consumos.push({
       fecha,
       hora,
-      kwh: kwhRed,
-      excedente,
-      autoconsumo,
+      kwh: consumoKwh,        // Consumo de RED (directo)
+      excedente: generacionKwh, // Excedentes (directo)
+      autoconsumo: 0,          // No disponible en este formato
       esReal: true
     });
   }
