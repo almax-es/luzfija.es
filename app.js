@@ -1099,8 +1099,8 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
       if(!s||s==='—'||s==='0'||s==='0,00'||s==='0 €'||s==='0,00 €')return '<span class="vs-text zero">—</span>';
       const pos=s.startsWith('+');
       const c=pos?'pos':'neg';
-      const a=pos?'▲':'▼';
-      return `<span class="vs-text ${c}">${a} ${escapeHtml(s)}</span>`;
+      // Removed inline arrow to save horizontal space; only show +X,XX €.
+      return `<span class="vs-text ${c}">${escapeHtml(s)}</span>`;
     }
 
     function applyFilters(r){

@@ -737,7 +737,7 @@
     tbody tr:nth-child(2) td:first-child { color: #C0C0C0; font-weight: 1000; font-size: 1.2em; text-shadow: 0 0 10px rgba(192, 192, 192, 0.3); }
     tbody tr:nth-child(3) td:first-child { color: #CD7F32; font-weight: 1000; font-size: 1.2em; text-shadow: 0 0 10px rgba(205, 127, 50, 0.3); }
     td.vs{white-space: nowrap; position:relative; padding-left: 16px;}
-    .vs-text{ font-weight: 1000; min-width: 55px; text-align: right; }
+    .vs-text{ font-weight: 1000; min-width: 40px; text-align: right; }
     .vs-text.pos{color: rgba(239,68,68,.95);}
     .vs-text.neg{color: rgba(34,197,94,.95);}
     .vs-text.zero{color: var(--muted2);}
