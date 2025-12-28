@@ -701,10 +701,10 @@
     thead th:nth-child(2), tbody td:nth-child(2) { width: 23%; }
     thead th:nth-child(3), tbody td:nth-child(3) { width: 10%; }
     thead th:nth-child(4), tbody td:nth-child(4) { width: 10%; }
-    thead th:nth-child(5), tbody td:nth-child(5) { width: 11%; }
-    thead th:nth-child(6), tbody td:nth-child(6) { width: 10%; }
-    thead th:nth-child(7), tbody td:nth-child(7) { width: 12%; }
-    thead th:nth-child(8), tbody td:nth-child(8) { width: 8%; }
+    thead th:nth-child(5), tbody td:nth-child(5) { width: 10%; }
+    thead th:nth-child(6), tbody td:nth-child(6) { width: 13%; }
+    thead th:nth-child(7), tbody td:nth-child(7) { width: 11%; }
+    thead th:nth-child(8), tbody td:nth-child(8) { width: 7%; }
     thead th:nth-child(9), tbody td:nth-child(9) { width: 8%; }
     thead th{ position: sticky; top: 0; z-index: 5; text-align:right; padding: 14px 12px; font-size: 11px !important; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted) !important; background: var(--bg0) !important; border-bottom: none !important; user-select:none; white-space: nowrap; padding-bottom: 15px; }
     thead th:first-child, tbody td:first-child{text-align:center; vertical-align: middle;}
@@ -2170,13 +2170,13 @@ body.light-mode .custom-tariff-highlight {
 /* ================================
    TOTAL clickeable + bombilla (hit area grande + móvil)
    ================================ */
-#table td.total-cell{ cursor: pointer; position: relative; overflow: hidden; text-align: center; }
+#table td.total-cell{ cursor: pointer; }
 
 #table td.total-cell .total-price{
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 6px 10px;
+  gap: 6px;
+  padding: 6px 8px;
   border-radius: 999px;
   background: rgba(255,255,255,.04);
   border: 1px solid rgba(255,255,255,.08);
@@ -2199,14 +2199,15 @@ body.light-mode .custom-tariff-highlight {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border-radius: 999px;
   background: rgba(0,0,0,.18);
   opacity: .82;
   transition: transform .15s ease, opacity .15s ease, background .15s ease, filter .15s ease;
   user-select: none;
   flex: 0 0 auto;
+  font-size: 14px;
 }
 
 #table td.total-cell:hover .desglose-icon,
@@ -2225,8 +2226,8 @@ body.light-mode .custom-tariff-highlight {
 
 /* En móvil: icono y área táctil más grande */
 @media (pointer: coarse){
-  #table td.total-cell .total-price{ padding: 8px 12px; gap: 10px; }
-  #table td.total-cell .desglose-icon{ width: 34px; height: 34px; }
+  #table td.total-cell .total-price{ padding: 8px 12px; gap: 8px; }
+  #table td.total-cell .desglose-icon{ width: 30px; height: 30px; font-size: 16px; }
 }
 
 
