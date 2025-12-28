@@ -1244,9 +1244,9 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
           let totalDisplay = escapeHtml(r.total);
           // Mostrar Pagas/Ranking cuando hay BV (independientemente de si sobran excedentes)
           if(r.fvTipo && r.fvTipo.includes('BV') && r.fvApplied){
-            totalDisplay = `<div style="display: flex; flex-direction: column; gap: 2px; align-items: flex-end;">
-              <div style="font-size: 9px; color: var(--muted2); font-weight: 600; line-height: 1.1;">💰 <span style="color: var(--text); font-weight: 900; font-size: 12px;">${formatMoney(totalFinal)}</span></div>
-              <div style="font-size: 9px; color: var(--muted2); font-weight: 600; line-height: 1.1;">🏆 <span style="color: var(--accent); font-weight: 900; font-size: 12px;">${formatMoney(totalRanking)}</span></div>
+            totalDisplay = `<div style="display: flex; flex-direction: column; gap: 4px; align-items: flex-end;">
+              <div style="font-size: 11px; color: var(--muted2); font-weight: 600;">P: <span style="color: var(--text); font-weight: 900; font-size: 14px;">${formatMoney(totalFinal)}</span></div>
+              <div style="font-size: 11px; color: var(--muted2); font-weight: 600;">R: <span style="color: var(--accent); font-weight: 900; font-size: 14px;">${formatMoney(totalRanking)}</span></div>
             </div>`;
           }
           
