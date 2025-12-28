@@ -2428,3 +2428,17 @@ thead th:nth-child(7){
   overflow: visible;
 }
 
+
+/* === OVERRIDE FINAL: "VS MEJOR" visible + separado de TOTAL === */
+#table thead th:nth-child(7){
+  text-align: left !important;      /* evita que se “pegue” al TOTAL */
+  padding-left: 24px !important;    /* desplaza a la derecha */
+  padding-right: 6px !important;
+  white-space: nowrap !important;
+  overflow: visible !important;
+
+  /* para que quepa sin cortarse */
+  letter-spacing: 0.8px !important; /* antes era mayor */
+  font-size: 10px !important;       /* un pelín más pequeño */
+}
+
