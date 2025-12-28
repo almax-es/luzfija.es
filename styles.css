@@ -2503,3 +2503,29 @@ thead th:nth-child(7){
   }
 }
 
+
+/* ================================
+   Ajuste extra: más aire TOTAL ↔ VS en pantallas algo más pequeñas
+   (evita que el + del VS quede pegado al pill y que "VS MEJOR" se recorte)
+   ================================ */
+@media (max-width: 1400px){
+  /* mueve los valores del VS un poco a la derecha */
+  #table td:nth-child(7){
+    padding-left: 24px !important;
+  }
+
+  /* hace que "VS MEJOR" quepa siempre (la R no se corta) */
+  #table thead th:nth-child(7){
+    font-size: 9.5px !important;
+    letter-spacing: 0.55px !important;
+    white-space: nowrap !important;
+  }
+}
+
+@media (max-width: 1100px){
+  #table thead th:nth-child(7){
+    font-size: 9px !important;
+    letter-spacing: 0.45px !important;
+  }
+}
+
