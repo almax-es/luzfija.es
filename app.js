@@ -1252,11 +1252,9 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
           }
           
           // Si es solar no calculable (PVPC o tarifa indexada)
-          let solarDetails = '';
           if(r.solarNoCalculable){
             const tip = 'Compensación excedentes NO calculada (precio variable horario). Consulta tu factura para ver compensación real.';
             totalTooltip = tip;
-            solarDetails = `<div class="solar-details">⚠️ Compensación no calculada (precio variable)</div>`;
           } else if(r.fvApplied && r.fvTipo !== 'NO COMPENSA' && precioExc > 0){
             // Caso con excedentes: mostrar todos los detalles
             const excSobrante = Number(r.fvExcedenteSobrante || 0);
@@ -1299,8 +1297,6 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
             
             const tip = parts.join('\n');
             totalTooltip = tip; // Guardar tooltip para el TOTAL
-            // Detalles visibles en móvil
-            solarDetails = `<div class="solar-details">☀️ ${escapeHtml(parts.join(' • '))}</div>`;
           } else if(bvSaldoFin !== null && bvSaldoFin !== undefined && r.fvTipo && r.fvTipo.includes('BV')){
             // Caso sin excedentes PERO con batería virtual
             const parts = [];
@@ -1308,8 +1304,6 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
             parts.push(`🔋 Saldo BV final: ${Number(bvSaldoFin).toFixed(2)} € (disponible para el próximo mes)`);
             const tip = parts.join('\n');
             totalTooltip = tip; // Guardar tooltip para el TOTAL
-            // Detalles visibles en móvil
-            solarDetails = `<div class="solar-details">🔋 ${escapeHtml(parts.join(' • '))}</div>`;
           }
 
           // Cabecera: nombre + iconos (layout estable en móvil)
@@ -1318,8 +1312,7 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
             `<div class="tarifa-title">`+
               `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>`+
               `${icons}`+
-            `</div>`+
-            `${solarDetails || ""}`;
+            `</div>`;
           tr.innerHTML =
             `<td>${idx + 1}</td>`+
             `<td title="${escapeHtml(nombreBase)}">${nombreDisplay}</td>`+
