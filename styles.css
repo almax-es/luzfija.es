@@ -2442,3 +2442,64 @@ thead th:nth-child(7){
   font-size: 10px !important;       /* un pelín más pequeño */
 }
 
+
+
+/* Pantallas medianas */
+@media (max-width: 1200px){
+  #table thead th,
+  #table thead th:nth-child(7){
+    font-size: 10px !important;
+    letter-spacing: 1.05px !important;
+  }
+}
+
+/* Pantallas pequeñas */
+@media (max-width: 980px){
+  #table thead th,
+  #table thead th:nth-child(7){
+    font-size: 9px !important;
+    letter-spacing: 0.9px !important;
+  }
+}
+
+
+/* ================================
+   OVERRIDE DEFINITIVO: cabeceras más pequeñas (sin cortes)
+   ================================ */
+
+/* Base (reduce un pelín TODO el header) */
+#table thead th{
+  font-size: 10px !important;
+  letter-spacing: 1.1px !important;
+}
+
+/* VS MEJOR: aún más compacto para que SIEMPRE quepa con el ancho actual */
+#table thead th:nth-child(7){
+  font-size: 10px !important;
+  letter-spacing: 0.7px !important;
+}
+
+/* Pantallas medianas */
+@media (max-width: 1200px){
+  #table thead th{
+    font-size: 9px !important;
+    letter-spacing: 1.0px !important;
+  }
+  #table thead th:nth-child(7){
+    font-size: 9px !important;
+    letter-spacing: 0.6px !important;
+  }
+}
+
+/* Pantallas pequeñas */
+@media (max-width: 980px){
+  #table thead th{
+    font-size: 8.5px !important;
+    letter-spacing: 0.9px !important;
+  }
+  #table thead th:nth-child(7){
+    font-size: 8.5px !important;
+    letter-spacing: 0.55px !important;
+  }
+}
+
