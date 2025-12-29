@@ -231,9 +231,9 @@
             <div class="desglose-resumen-value">${this.fmt(creditoPotencial)}</div>
           </div>` : ''}
           ${(d.credit1 > 0) ? `<div class="desglose-resumen-item">
-            <div class="desglose-resumen-label">Compensación aplicada (tope: ${topeLabel})</div>
+            <div class="desglose-resumen-label">Compensación aplicada (tope: ${topeLabel} (€))</div>
             <div class="desglose-resumen-value">${this.fmt(d.credit1)}</div>
-            <div class="desglose-resumen-sub">Regla: la compensación se aplica como máximo hasta <strong>${topeLabel}</strong> (no puede dejar el término de energía en negativo).</div>
+            <div class="desglose-resumen-sub">Regla: la compensación se aplica como máximo hasta <strong>el ${topeLabel} (€)</strong> (no puede dejar el término de energía en negativo).</div>
             ${(solarOn && precioComp > 0 && exKwh > 0) ? `<div class="desglose-resumen-sub">Excedentes: usados <strong>${this.fmtNum(kwhExUsados)}</strong> kWh · sobrantes <strong>${this.fmtNum(kwhExSobrantes)}</strong> kWh</div>` : ''}
           </div>` : ''}
           ${(d.excedenteSobranteEur > 0) ? `<div class="desglose-resumen-item">
