@@ -302,7 +302,7 @@
                 <option value="Canarias">Canarias</option>
               </select>
             </div>
-            <div class="group" id="viviendaCanariasGroup" style="display:none; align-items:center;">
+            <div class="group u-none u-items-center" id="viviendaCanariasGroup">
               <label for="viviendaCanarias" style="gap:8px;">
                 <input id="viviendaCanarias" type="checkbox" checked style="width:auto; height:auto;">
                 Vivienda (hogar)
@@ -341,7 +341,7 @@
               </label>
             </div>
           </div>
-          <div id="solarFields" class="form fv-fields" style="display:none; margin-top:8px;">
+          <div id="solarFields" class="form fv-fields u-none u-mt-8">
             <button type="button" class="btn" id="btnSolarInfo" style="width: 100%; justify-content: center; margin-bottom: 12px; background: rgba(251, 191, 36, 0.12); border-color: rgba(251, 191, 36, 0.3);">
               ℹ️ ¿Cómo funciona con placas solares?
             </button>
@@ -425,7 +425,7 @@
             </div>
           </div>
 
-          <div class="help" id="pvpcInfo" style="display:none; margin-top:0; margin-bottom: 12px;"></div>
+          <div class="help u-none u-mb-12" id="pvpcInfo"></div>
           <div id="pvpc-warning-canarias-potencia"
                style="display:none; margin-top:6px; font-size:12px; line-height:1.2; opacity:.95; color:#FACC15;">
             ⚠ PVPC no calculable: en Canarias (vivienda) con potencia &gt; 10&nbsp;kW la CNMC no permite este cálculo.
@@ -776,7 +776,7 @@
           <p style="color:var(--muted); font-size:12px; line-height:1.6; margin:0 0 12px 0;">
             Herramienta gratuita para <strong>comparar tarifas de luz</strong> en España.
           </p>
-          <p style="margin:0;">
+          <p class="u-m-0">
             <a href="/guias.html" style="color:var(--accent); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; transition: opacity 0.2s;">
               📚 Guías sobre tarifas eléctricas
               <span style="font-size:10px;">→</span>
@@ -1036,7 +1036,7 @@
         </div>
         
         <div id="modalPVPCHoursList" style="margin: 0 -20px; padding: 0 20px;">
-          <p style="color: var(--muted); text-align: center; padding: 20px;">Cargando precios...</p>
+          <p class="u-loading-text">Cargando precios...</p>
         </div>
 
         <button class="btn primary" id="btnCerrarPVPCInfo" type="button" style="width: 100%; margin-top: 16px;" aria-label="Cerrar modal de precios PVPC">
@@ -1308,7 +1308,7 @@
       
       // Cargar datos si no están cargados
       if (!pvpcHoy) {
-        document.getElementById('modalPVPCHoursList').innerHTML = '<p style="color: var(--muted); text-align: center; padding: 20px;">⏳ Cargando...</p>';
+        document.getElementById('modalPVPCHoursList').innerHTML = '<p class="u-loading-text">⏳ Cargando...</p>';
         
         // Cargar precios de hoy
         await cargarHoy();
@@ -1320,7 +1320,7 @@
         if (pvpcHoy) {
           cambiarTab(diaActivo);
         } else {
-          document.getElementById('modalPVPCHoursList').innerHTML = '<p style="color: var(--muted); text-align: center; padding: 20px;">❌ Error al cargar precios. Inténtalo de nuevo.</p>';
+          document.getElementById('modalPVPCHoursList').innerHTML = '<p class="u-loading-text">❌ Error al cargar precios. Inténtalo de nuevo.</p>';
         }
       } else {
         cambiarTab(diaActivo);

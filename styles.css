@@ -2614,5 +2614,73 @@ html.light-mode, body.light-mode{
 .u-s-b314795{ color:var(--muted) !important; text-align:center !important; padding:20px !important; }
 .u-s-ef5a7ad{ display:inline-block !important; padding:16px 40px !important; background:var(--accent) !important; color:white !important; text-decoration:none !important; border-radius:12px !important; font-weight:600 !important; }
 
+/* === Display === */
+.u-flex{ display: flex !important; }
+.u-inline-block{ display: inline-block !important; }
+.u-block{ display: block !important; }
+.u-none{ display: none !important; }
+
+/* === Flexbox === */
+.u-items-center{ align-items: center !important; }
+.u-justify-center{ justify-content: center !important; }
+.u-flex-wrap{ flex-wrap: wrap !important; }
+.u-gap-8{ gap: 8px !important; }
+
+/* === Width/Height === */
+.u-w-full{ width: 100% !important; }
+
+/* === Margin === */
+.u-m-0{ margin: 0 !important; }
+.u-mt-8{ margin-top: 8px !important; }
+.u-mt-10{ margin-top: 10px !important; }
+.u-mb-6{ margin-bottom: 6px !important; }
+.u-mb-8{ margin-bottom: 8px !important; }
+.u-mb-12{ margin-bottom: 12px !important; }
+.u-mb-16{ margin-bottom: 16px !important; }
+
+/* === Padding === */
+.u-p-10{ padding: 10px !important; }
+.u-p-12{ padding: 12px !important; }
+.u-p-20{ padding: 20px !important; }
+
+/* === Typography === */
+.u-text-10{ font-size: 10px !important; }
+.u-text-11{ font-size: 11px !important; }
+.u-text-12{ font-size: 12px !important; }
+.u-text-13{ font-size: 13px !important; }
+.u-fw-700{ font-weight: 700 !important; }
+.u-fw-900{ font-weight: 900 !important; }
+.u-leading-16{ line-height: 1.6 !important; }
+.u-text-center{ text-align: center !important; }
+.u-text-right{ text-align: right !important; }
+.u-uppercase{ text-transform: uppercase !important; }
+.u-no-underline{ text-decoration: none !important; }
+
+/* === Colors === */
+.u-color-muted{ color: var(--muted) !important; }
+.u-color-accent{ color: var(--accent) !important; }
+
+/* === Opacity === */
+.u-opacity-65{ opacity: 0.65 !important; }
+.u-opacity-90{ opacity: 0.9 !important; }
+.u-opacity-95{ opacity: 0.95 !important; }
+
+/* === Position === */
+.u-relative{ position: relative !important; }
+.u-z-1{ z-index: 1 !important; }
+
+/* === Border === */
+.u-rounded-4{ border-radius: 4px !important; }
+
+/* === Transitions === */
+.u-transition{ transition: all 0.2s !important; }
+
+/* === Container/Layout === */
+.u-container-lg{ max-width: 1400px !important; margin: 0 auto !important; }
+
+/* === Common Patterns === */
+.u-loading-text{ color: var(--muted) !important; text-align: center !important; padding: 20px !important; }
+.u-mt-6-text-12-leading-12-opacity-95{ margin-top: 6px !important; font-size: 12px !important; line-height: 1.2 !important; opacity: 0.95 !important; }
+
 /* State */
 .is-hidden{ display: none; }
