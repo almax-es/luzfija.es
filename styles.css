@@ -2570,3 +2570,59 @@ thead th:nth-child(7){
   text-underline-offset: 3px;
 }
 
+
+/* ================================
+   Visual polish (calidad visual / consistencia)
+   ================================ */
+
+/* Focus ring consistente en TODA la web (teclado + accesibilidad) */
+:root{
+  --focus-ring: 0 0 0 3px rgba(139, 92, 246, .32);
+}
+html.light-mode, body.light-mode{
+  --focus-ring: 0 0 0 3px rgba(109, 40, 217, .22);
+}
+:where(
+  a, button, input, select, textarea,
+  [role="button"],
+  .btn, .fbtn, .chip, .tooltip,
+  .total-pill, .total-price, .tarifa-cell, .tarifa-clickable,
+  .modal-x, .desglose-close
+):focus-visible{
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+/* Números perfectamente alineados (muy “pro” al comparar columnas) */
+#table tbody td:nth-child(3),
+#table tbody td:nth-child(4),
+#table tbody td:nth-child(5),
+#table tbody td:nth-child(6),
+#table tbody td:nth-child(7){
+  font-variant-numeric: tabular-nums;
+}
+
+/* Hover sin “bailes”: en desktop evitamos el scale() en filas */
+@media (pointer: fine){
+  #table tbody tr:hover{
+    transform: translateY(-1px) translateZ(0) !important;
+  }
+}
+
+/* Reduce motion: menos ruido y mejor en batería/acc */
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* Evita “saltitos” en hover */
+  #table tbody tr:hover,
+  .fbtn:hover,
+  .tooltip:hover,
+  #scrollTopBtn:hover{
+    transform: none !important;
+  }
+}
+

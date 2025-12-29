@@ -57,6 +57,7 @@
       requestAnimationFrame(() => {
         this.overlay.classList.add('active');
         this.modal.classList.add('active');
+        document.documentElement.style.overflow = 'hidden';
         document.body.style.overflow = 'hidden';
       });
     },
@@ -64,6 +65,7 @@
     cerrar() {
       this.overlay.classList.remove('active');
       this.modal.classList.remove('active');
+      document.documentElement.style.overflow = '';
       document.body.style.overflow = '';
     },
 
