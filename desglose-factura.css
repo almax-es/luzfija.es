@@ -99,6 +99,14 @@ body:not(.light-mode) .desglose-detalle {
   color: #9ca3af;
 }
 
+.desglose-detalle-sub {
+  display: inline-block;
+  margin-top: 2px;
+  font-size: 12px;
+  opacity: 0.85;
+}
+
+
 .desglose-modal.active {
   opacity: 1;
   visibility: visible;

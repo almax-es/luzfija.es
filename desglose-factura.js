@@ -202,7 +202,9 @@
       const kwhExUsados = (solarOn && precioComp > 0 && d.credit1 > 0) ? clampNonNeg(d.credit1 / precioComp) : 0;
       const kwhExSobrantes = (solarOn && precioComp > 0 && exKwh > 0) ? clampNonNeg(exKwh - kwhExUsados) : 0;
       const tope = String(datos.topeCompensacion || 'ENERGIA');
-      const topeLabel = (tope === 'ENERGIA + PEAJES + CARGOS') ? 'Energía + peajes + cargos' : 'Energía';
+      const topeLabel = (tope === 'ENERGIA + PEAJES + CARGOS')
+        ? 'coste de energía + peajes + cargos del periodo'
+        : 'coste de energía del periodo';
       const pagoMes = (typeof d.totalFinal === 'number') ? d.totalFinal : d.totalBase;
       const bvActiva = Boolean(datos.tieneBV) && String(datos.tipoCompensacion || '').includes('BV');
 
@@ -397,7 +399,7 @@
         </div>
         ${datos.tieneBV && d.excedenteSobranteEur > 0 ? `<div class="desglose-linea desglose-linea--top-accent">
           <span class="desglose-concepto"><strong>Coste neto del periodo</strong></span>
-          <span class="desglose-detalle">Comparativa: ignora el saldo BV anterior</span>
+          <span class="desglose-detalle">Comparativa: ignora el saldo BV anterior<br><span class="desglose-detalle-sub">Cálculo: Total factura − sobrante a BV (este mes)</span></span>
           <span class="desglose-importe desglose-importe-final desglose-importe--accent">${this.fmt(d.totalRanking)}</span>
         </div>` : ''}
       </div>`;
