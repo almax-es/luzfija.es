@@ -378,7 +378,7 @@
         </div>`;
       }
 
-            html += `<div class="desglose-seccion">
+                  html += `<div class="desglose-seccion">
         <div class="desglose-seccion-header"><h3>💳 TOTALES</h3></div>
         <div class="desglose-linea">
           <span class="desglose-concepto"><strong>TOTAL FACTURA</strong></span>
@@ -393,16 +393,15 @@
         <div class="desglose-linea">
           <span class="desglose-concepto"><strong>PAGAS ESTE MES</strong></span>
           <span class="desglose-detalle"></span>
-          <span class="desglose-importe desglose-importe-final ${d.totalFinal <= 0.00001 ? 'desglose-importe--pos' : ''}">${this.fmt(d.totalFinal)}</span>
+          <span class="desglose-importe desglose-importe-final ${d.totalFinal > 0 ? 'desglose-importe--pos' : ''}">${this.fmt(d.totalFinal)}</span>
         </div>
         ${datos.tieneBV && d.excedenteSobranteEur > 0 ? `<div class="desglose-linea desglose-linea--top-accent">
           <span class="desglose-concepto"><strong>Coste neto del periodo</strong></span>
           <span class="desglose-detalle">Comparativa: ignora el saldo BV anterior</span>
           <span class="desglose-importe desglose-importe-final desglose-importe--accent">${this.fmt(d.totalRanking)}</span>
         </div>` : ''}
-      </div>`;      </div>`;
-
-      this.modal.querySelector('.desglose-body').innerHTML = html;
+      </div>`;
+this.modal.querySelector('.desglose-body').innerHTML = html;
     },
 
     fmt(n, decimales = 2) {
