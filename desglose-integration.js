@@ -170,7 +170,6 @@
 
           mostrarDesglose(nombre);
         };
-        lfBindKeyActivate(tdTotal, () => tdTotal.click());
 
 
         // También permitir abrir el desglose al hacer clic en el nombre de la tarifa (desktop/móvil)
@@ -187,7 +186,14 @@
           mostrarDesglose(nombre);
         };
         tdNombre.setAttribute('aria-label','Ver desglose completo de la factura');
-        lfBindKeyActivate(tdNombre, () => tdNombre.click());
+        tdNombre.setAttribute('role','button');
+        tdNombre.tabIndex = 0;
+        tdNombre.addEventListener('keydown', (ev) => {
+          if (ev.key === 'Enter' || ev.key === ' ') {
+            ev.preventDefault();
+            tdNombre.click();
+          }
+        });
 
 
 
