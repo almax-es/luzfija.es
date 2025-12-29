@@ -8,7 +8,14 @@
 
   // Sistema de debug (activar con ?debug=1)
   const DEBUG = window.location.search.includes('debug=1') || window.__LF_DEBUG;
-  const lfDbg = (...args) => DEBUG && console.log('[DESGLOSE-FACTURA]', ...args);
+  const lfDbg = (...args) => {
+    if (!DEBUG) return;
+    try {
+      if (typeof console !== 'undefined' && typeof console.log === 'function') {
+        console.log('[DESGLOSE-FACTURA]', ...args);
+      }
+    } catch (_) {}
+  };
 
   const round2 = (n) => Math.round(n * 100) / 100;
   const clampNonNeg = (n) => Math.max(0, n);
@@ -186,6 +193,53 @@
 
       let html = '';
 
+      // ===== RESUMEN CLARO (Factura "perfecta") =====
+      const solarOn = Boolean(datos.solarOn);
+      const exKwh = clampNonNeg(Number(datos.excedentes || 0));
+      const precioComp = Number(datos.precioCompensacion || 0);
+      const creditoPotencial = (solarOn && exKwh > 0 && precioComp > 0) ? round2(exKwh * precioComp) : 0;
+      const tope = String(datos.topeCompensacion || 'ENERGIA');
+      const topeLabel = (tope === 'ENERGIA + PEAJES + CARGOS') ? 'Energía + peajes + cargos' : 'Energía';
+      const pagoMes = (typeof d.totalFinal === 'number') ? d.totalFinal : d.totalBase;
+      const bvActiva = Boolean(datos.tieneBV) && String(datos.tipoCompensacion || '').includes('BV');
+
+      html += `<div class="desglose-resumen">
+        <div class="desglose-resumen-grid">
+          <div class="desglose-resumen-item">
+            <div class="desglose-resumen-label">Total factura</div>
+            <div class="desglose-resumen-value">${this.fmt(d.totalBase)}</div>
+          </div>
+          <div class="desglose-resumen-item">
+            <div class="desglose-resumen-label">Pagas este mes</div>
+            <div class="desglose-resumen-value">${this.fmt(pagoMes)}</div>
+          </div>
+          ${d.credit2 > 0 ? `<div class="desglose-resumen-item">
+            <div class="desglose-resumen-label">BV aplicada</div>
+            <div class="desglose-resumen-value">${this.fmt(d.credit2)}</div>
+          </div>` : ''}
+          ${bvActiva && typeof d.bvSaldoFin === 'number' ? `<div class="desglose-resumen-item">
+            <div class="desglose-resumen-label">Saldo BV próximo mes</div>
+            <div class="desglose-resumen-value">${this.fmt(d.bvSaldoFin)}</div>
+          </div>` : ''}
+          ${(creditoPotencial > 0) ? `<div class="desglose-resumen-item">
+            <div class="desglose-resumen-label">Excedentes del periodo</div>
+            <div class="desglose-resumen-value">${this.fmt(creditoPotencial)}</div>
+          </div>` : ''}
+          ${(d.credit1 > 0) ? `<div class="desglose-resumen-item">
+            <div class="desglose-resumen-label">Compensación aplicada (tope: ${topeLabel})</div>
+            <div class="desglose-resumen-value">${this.fmt(d.credit1)}</div>
+          </div>` : ''}
+          ${(d.excedenteSobranteEur > 0) ? `<div class="desglose-resumen-item">
+            <div class="desglose-resumen-label">Sobrante de excedentes</div>
+            <div class="desglose-resumen-value">${this.fmt(d.excedenteSobranteEur)}</div>
+          </div>` : ''}
+        </div>
+        ${(d.credit1 > 0 && creditoPotencial > d.credit1) ? `<div class="desglose-resumen-note">
+          Has generado <strong>${this.fmt(creditoPotencial)}</strong> en excedentes, pero solo se han aplicado <strong>${this.fmt(d.credit1)}</strong> este mes porque la compensación está limitada al tope (<strong>${topeLabel}</strong>). El sobrante ${bvActiva ? 'se acumula en la Batería Virtual' : 'no se compensa este mes'}.
+        </div>` : ''}
+      </div>`;
+
+
       html += `<div class="desglose-seccion">
         <div class="desglose-seccion-header"><h3>⚡ POTENCIA</h3><span class="desglose-importe-header">${this.fmt(d.pot)}</span></div>
         <div class="desglose-linea">
@@ -201,7 +255,7 @@
       </div>`;
 
       html += `<div class="desglose-seccion">
-        <div class="desglose-seccion-header"><h3>💡 CONSUMO</h3><span class="desglose-importe-header">${this.fmt(d.consAdj)}</span></div>
+        <div class="desglose-seccion-header"><h3>💡 CONSUMO</h3><span class="desglose-importe-header">${(d.credit1 > 0 ? (this.fmt(d.cons) + " → " + this.fmt(d.consAdj)) : this.fmt(d.cons))}</span></div>
         <div class="desglose-linea">
           <span class="desglose-concepto">Consumo total</span>
           <span class="desglose-detalle">${this.fmtNum(datos.consumoPunta + datos.consumoLlano + datos.consumoValle)} kWh</span>
@@ -224,8 +278,8 @@
         </div>
         ${d.credit1 > 0 ? `<div class="desglose-linea" style="background: rgba(34,197,94,0.1)">
           <span class="desglose-concepto">☀️ Compensación excedentes</span>
-          <span class="desglose-detalle">${this.fmtNum(datos.excedentes)} kWh × ${this.fmtNum(datos.precioCompensacion, 6)}/kWh</span>
-          <span class="desglose-importe" style="color: #22c55e">-${this.fmt(d.credit1)}</span>
+          <span class="desglose-detalle">${this.fmtNum(datos.excedentes)} kWh × ${this.fmtNum(datos.precioCompensacion, 6)}/kWh = ${this.fmt(creditoPotencial)} · Tope: ${topeLabel}</span>
+          <span class="desglose-importe desglose-importe--pos">-${this.fmt(d.credit1)}</span>
         </div>
         <div class="desglose-linea">
           <span class="desglose-concepto"><strong>Consumo tras compensación</strong></span>
@@ -244,7 +298,7 @@
         ${d.tarifaAdj !== d.tarifaAcceso && d.credit1 > 0 ? `<div class="desglose-linea" style="background: rgba(34,197,94,0.1)">
           <span class="desglose-concepto">☀️ Compensación en Bono Social</span>
           <span class="desglose-detalle">Resto de compensación</span>
-          <span class="desglose-importe" style="color: #22c55e">-${this.fmt(d.tarifaAcceso - d.tarifaAdj)}</span>
+          <span class="desglose-importe desglose-importe--pos">-${this.fmt(d.tarifaAcceso - d.tarifaAdj)}</span>
         </div>
         <div class="desglose-linea">
           <span class="desglose-concepto"><strong>Bono Social tras compensación</strong></span>
@@ -293,8 +347,8 @@
       }
 
       if (d.excedenteSobranteEur > 0 || d.credit2 > 0) {
-        html += `<div class="desglose-seccion" style="border: 2px solid #3b82f6">
-          <div class="desglose-seccion-header" style="background: rgba(59,130,246,0.1)"><h3>🔋 BATERÍA VIRTUAL</h3><span class="desglose-importe-header">${this.fmt(d.bvSaldoFin || 0)}</span></div>
+        html += `<div class="desglose-seccion desglose-seccion--bv">
+          <div class="desglose-seccion-header desglose-seccion-header--bv"><h3>${(datos.tieneBV ? "🔋 BATERÍA VIRTUAL" : "☀️ EXCEDENTES NO COMPENSADOS")}</h3><span class="desglose-importe-header">${this.fmt(datos.tieneBV ? (d.bvSaldoFin || 0) : (d.excedenteSobranteEur || 0))}</span></div>
           ${datos.bateriaVirtual > 0 ? `<div class="desglose-linea">
             <span class="desglose-concepto">Saldo mes anterior</span>
             <span class="desglose-detalle"></span>
@@ -303,17 +357,17 @@
           ${d.credit2 > 0 ? `<div class="desglose-linea">
             <span class="desglose-concepto">BV utilizada este mes</span>
             <span class="desglose-detalle">Aplicado a factura</span>
-            <span class="desglose-importe" style="color: #ef4444">-${this.fmt(d.credit2)}</span>
+            <span class="desglose-importe desglose-importe--neg">-${this.fmt(d.credit2)}</span>
           </div>` : ''}
           ${d.excedenteSobranteEur > 0 ? `<div class="desglose-linea">
-            <span class="desglose-concepto">Excedentes acumulados</span>
-            <span class="desglose-detalle">No compensados este mes</span>
-            <span class="desglose-importe" style="color: #22c55e">+${this.fmt(d.excedenteSobranteEur)}</span>
+            <span class="desglose-concepto">${datos.tieneBV ? "Excedentes acumulados" : "Sobrante de excedentes"}</span>
+            <span class="desglose-detalle">${datos.tieneBV ? "No compensados este mes" : "No se compensa este mes"}</span>
+            <span class="desglose-importe desglose-importe--pos">+${this.fmt(d.excedenteSobranteEur)}</span>
           </div>` : ''}
           <div class="desglose-linea">
             <span class="desglose-concepto"><strong>Saldo BV próximo mes</strong></span>
             <span class="desglose-detalle"></span>
-            <span class="desglose-importe"><strong>${this.fmt(d.bvSaldoFin || 0)}</strong></span>
+            <span class="desglose-importe"><strong>${this.fmt(datos.tieneBV ? (d.bvSaldoFin || 0) : (d.excedenteSobranteEur || 0))}</strong></span>
           </div>
         </div>`;
       }
@@ -325,17 +379,23 @@
           <span class="desglose-detalle"></span>
           <span class="desglose-importe desglose-importe-final">${this.fmt(d.totalBase)}</span>
         </div>
-        ${d.credit2 > 0 ? `<div class="desglose-linea" style="background: rgba(59,130,246,0.1)">
+        <div class="desglose-linea">
+          <span class="desglose-concepto"><strong>PAGAS ESTE MES</strong></span>
+          <span class="desglose-detalle"></span>
+          <span class="desglose-importe desglose-importe-final">${this.fmt(d.totalFinal)}</span>
+        </div>
+
+        ${d.credit2 > 0 ? `<div class="desglose-linea desglose-linea--hl-blue">
           <span class="desglose-concepto">🔋 Batería Virtual aplicada</span>
           <span class="desglose-detalle"></span>
-          <span class="desglose-importe" style="color: #3b82f6">-${this.fmt(d.credit2)}</span>
+          <span class="desglose-importe desglose-importe--blue">-${this.fmt(d.credit2)}</span>
         </div>
         <div class="desglose-linea">
           <span class="desglose-concepto"><strong>PAGAS ESTE MES</strong></span>
           <span class="desglose-detalle"></span>
-          <span class="desglose-importe desglose-importe-final" style="color: #22c55e">${this.fmt(d.totalFinal)}</span>
+          <span class="desglose-importe desglose-importe-final desglose-importe desglose-importe--pos">${this.fmt(d.totalFinal)}</span>
         </div>` : ''}
-        ${datos.tieneBV && d.excedenteSobranteEur > 0 ? `<div class="desglose-linea" style="border-top: 2px solid var(--accent)">
+        ${datos.tieneBV && d.excedenteSobranteEur > 0 ? `<div class="desglose-linea desglose-linea--top-accent">
           <span class="desglose-concepto"><strong>RANKING (coste real)</strong></span>
           <span class="desglose-detalle">Restando excedentes para BV</span>
           <span class="desglose-importe desglose-importe-final" style="color: rgba(167,139,250,1)">${this.fmt(d.totalRanking)}</span>

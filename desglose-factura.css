@@ -513,3 +513,54 @@ body.light-mode .desglose-close:hover{
   .desglose-close:hover{ transform: none; }
 }
 
+
+
+/* ===== Resumen "factura perfecta" ===== */
+.desglose-resumen{
+  margin: 12px 0 16px;
+  padding: 12px;
+  border: 1px solid var(--border2, #e5e7eb);
+  border-radius: 12px;
+  background: rgba(255,255,255,0.04);
+}
+.desglose-resumen-grid{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+@media (min-width: 720px){
+  .desglose-resumen-grid{ grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+.desglose-resumen-item{
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(0,0,0,0.12);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.desglose-resumen-label{
+  font-size: 12px;
+  opacity: 0.85;
+  margin-bottom: 6px;
+}
+.desglose-resumen-value{
+  font-size: 16px;
+  font-weight: 800;
+}
+.desglose-resumen-note{
+  margin-top: 10px;
+  font-size: 13px;
+  opacity: 0.92;
+  line-height: 1.35;
+}
+
+/* ===== Eliminación de estilos inline (CSP-friendly) ===== */
+.desglose-linea--hl-green{ background: rgba(34,197,94,0.10); }
+.desglose-linea--hl-blue{ background: rgba(59,130,246,0.10); }
+.desglose-linea--top-accent{ border-top: 2px solid var(--accent, #8B5CF6); }
+
+.desglose-importe--pos{ color: #22c55e; }
+.desglose-importe--neg{ color: #ef4444; }
+.desglose-importe--blue{ color: #3b82f6; }
+
+.desglose-seccion--bv{ border: 2px solid #3b82f6; }
+.desglose-seccion-header--bv{ background: rgba(59,130,246,0.10); }
