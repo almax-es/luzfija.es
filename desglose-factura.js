@@ -378,35 +378,29 @@
         </div>`;
       }
 
-      html += `<div class="desglose-seccion">
+            html += `<div class="desglose-seccion">
         <div class="desglose-seccion-header"><h3>💳 TOTALES</h3></div>
         <div class="desglose-linea">
           <span class="desglose-concepto"><strong>TOTAL FACTURA</strong></span>
           <span class="desglose-detalle"></span>
           <span class="desglose-importe desglose-importe-final">${this.fmt(d.totalBase)}</span>
         </div>
-        <div class="desglose-linea">
-          <span class="desglose-concepto"><strong>PAGAS ESTE MES</strong></span>
-          <span class="desglose-detalle"></span>
-          <span class="desglose-importe desglose-importe-final">${this.fmt(d.totalFinal)}</span>
-        </div>
-
         ${d.credit2 > 0 ? `<div class="desglose-linea desglose-linea--hl-blue">
           <span class="desglose-concepto">🔋 Batería Virtual aplicada</span>
           <span class="desglose-detalle"></span>
           <span class="desglose-importe desglose-importe--blue">-${this.fmt(d.credit2)}</span>
-        </div>
+        </div>` : ''}
         <div class="desglose-linea">
           <span class="desglose-concepto"><strong>PAGAS ESTE MES</strong></span>
           <span class="desglose-detalle"></span>
-          <span class="desglose-importe desglose-importe-final desglose-importe desglose-importe--pos">${this.fmt(d.totalFinal)}</span>
-        </div>` : ''}
+          <span class="desglose-importe desglose-importe-final ${d.totalFinal <= 0.00001 ? 'desglose-importe--pos' : ''}">${this.fmt(d.totalFinal)}</span>
+        </div>
         ${datos.tieneBV && d.excedenteSobranteEur > 0 ? `<div class="desglose-linea desglose-linea--top-accent">
-          <span class="desglose-concepto"><strong>RANKING (coste real)</strong></span>
-          <span class="desglose-detalle">Restando excedentes para BV</span>
+          <span class="desglose-concepto"><strong>Coste neto del periodo</strong></span>
+          <span class="desglose-detalle">Comparativa: ignora el saldo BV anterior</span>
           <span class="desglose-importe desglose-importe-final desglose-importe--accent">${this.fmt(d.totalRanking)}</span>
         </div>` : ''}
-      </div>`;
+      </div>`;      </div>`;
 
       this.modal.querySelector('.desglose-body').innerHTML = html;
     },
