@@ -441,12 +441,12 @@
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
       },
-      "requiereFV": false
+      "requiereFV": true
     }
   ],
-  "timestamp": "2025-12-29T16:33:09.753Z",
-  "publishedAt": "2025-12-29T16:33:09.753Z",
-  "publishedAtEpoch": 1767025989753,
-  "updatedAt": "2025-12-29T16:33:09.753Z",
-  "updatedAtEpoch": 1767025989753
+  "timestamp": "2025-12-29T17:32:43.432Z",
+  "publishedAt": "2025-12-29T17:32:43.432Z",
+  "publishedAtEpoch": 1767029563432,
+  "updatedAt": "2025-12-29T17:32:43.432Z",
+  "updatedAtEpoch": 1767029563432
 }
