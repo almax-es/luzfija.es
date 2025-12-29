@@ -8,7 +8,8 @@
 
   // Sistema de debug (activar con ?debug=1)
   const DEBUG = window.location.search.includes('debug=1') || window.__LF_DEBUG;
-  const lfDbg = (...args) => DEBUG && console.log('[DESGLOSE-FACTURA]', ...args);
+  const debugLog = window.debugLog || ((...args) => { if (window.__LF_DEBUG) console.log(...args); });
+  const lfDbg = (...args) => DEBUG && debugLog('[DESGLOSE-FACTURA]', ...args);
 
   const round2 = (n) => Math.round(n * 100) / 100;
   const clampNonNeg = (n) => Math.max(0, n);

@@ -122,23 +122,23 @@
 </head>
 <body>
 <div class="container">
-  <nav aria-label="Breadcrumb" style="margin-bottom: 16px;">
-    <ol style="display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--muted2); flex-wrap: wrap;">
-      <li><a href="/" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">🏠 Inicio</a></li>
-      <li style="color: var(--muted2);">/</li>
-      <li><a href="/guias.html" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">📚 Guías</a></li>
-      <li style="color: var(--muted2);">/</li>
-      <li style="color: var(--text); font-weight: 500;">Coche eléctrico y tarifas</li>
+  <nav aria-label="Breadcrumb" class="breadcrumb-nav">
+    <ol class="breadcrumb-list">
+      <li><a href="/" class="breadcrumb-link">🏠 Inicio</a></li>
+      <li class="breadcrumb-separator">/</li>
+      <li><a href="/guias.html" class="breadcrumb-link">📚 Guías</a></li>
+      <li class="breadcrumb-separator">/</li>
+      <li class="breadcrumb-current">Coche eléctrico y tarifas</li>
     </ol>
   </nav>
-  <a href="../guias.html" style="display: inline-block; margin-bottom: 20px; color: var(--accent);">← Volver a guías</a>
+  <a href="../guias.html" class="guia-back-link">← Volver a guías</a>
   <article class="guia-content">
     <h1>Coche eléctrico: qué tarifa elegir y cómo cargar barato</h1>
     <p class="guia-intro">
 Un coche eléctrico añade <strong>200-400 kWh/mes</strong> a tu factura. Pero cargarlo en P3 (valle) puede costarte <strong>la mitad</strong> que cargarlo en P1. Aquí los números reales y las trampas a evitar.
 </p>
 
-<h4>Cuánto consume realmente</h4>
+<h2>Cuánto consume realmente</h2>
 <p>
 Depende del coche y tu uso:
 </p>
@@ -153,7 +153,7 @@ Depende del coche y tu uso:
 Tesla Model 3: 60 kWh batería, consumo real ~16 kWh/100 km. Haces 20.000 km/año = 3.200 kWh/año = 267 kWh/mes.
 </p>
 
-<h4>Qué te cuesta según cuándo cargues</h4>
+<h2>Qué te cuesta según cuándo cargues</h2>
 
 <p><strong>Escenario 1: Cargas en P1 (punta, 18-22h)</strong></p>
 <p>
@@ -167,7 +167,7 @@ Precio P3 PVPC: ~0,08 €/kWh (promedio). 267 kWh × 0,08 = 21,36 €/mes = 256 
 
 <p><strong>Diferencia: 256 € al año</strong> solo por cargar de noche en vez de por la tarde.</p>
 
-<h4>Mejor tarifa para coche eléctrico</h4>
+<h2>Mejor tarifa para coche eléctrico</h2>
 
 <p><strong>Si cargas SIEMPRE en casa de noche:</strong></p>
 <p>
@@ -198,7 +198,7 @@ Algunas comercializadoras ofrecen tarifas "para vehículo eléctrico" con precio
 Haz números. Muchas veces PVPC 3 periodos sale igual o mejor.
 </p>
 
-<h4>Potencia: ¿necesitas subirla?</h4>
+<h2>Potencia: ¿necesitas subirla?</h2>
 
 <p><strong>Carga lenta (enchufar a toma normal):</strong></p>
 <p>
@@ -240,7 +240,7 @@ Si tienes 3,45 kW (15A) y quieres wallbox 7,4 kW, necesitas subir a 5,75 kW (25A
 Haz cuentas: ¿compensa pagar 10 €/mes más en potencia vs cargar más lento?
 </p>
 
-<h4>Errores típicos (y caros)</h4>
+<h2>Errores típicos (y caros)</h2>
 
 <p><strong>Error 1: Cargar cuando llegas del trabajo (18-22h)</strong></p>
 <p>
@@ -262,7 +262,7 @@ Algunas tienen horario valle MUY limitado (3-5h) y el resto del día es caro. Ha
 Los coches/wallbox modernos se pueden programar: "empieza a cargar a las 00:00h, termina a las 08:00h". Úsalo. No dejes el coche cargando en P1 porque "total, no tardo nada".
 </p>
 
-<h4>Cálculo rápido: cuánto te va a costar</h4>
+<h2>Cálculo rápido: cuánto te va a costar</h2>
 
 <p><strong>Fórmula:</strong></p>
 <p>
@@ -285,23 +285,23 @@ Compara con gasolina: 15.000 km, consumo 6 L/100km, gasolina 1,50 €/L:
 <p>
 Diferencia: 1.120 € al año ahorrados. Y eso sin contar mantenimiento (el eléctrico es mucho más barato).</p>
 
-<h4>Consejo final</h4>
+<h2>Consejo final</h2>
 <p>
 Coche eléctrico + PVPC 3 periodos + carga nocturna = la combinación perfecta. Pagas 0,08-0,10 €/kWh y te olvidas de gasolineras. Eso sí: disciplina para enchufar de noche, no cuando llegas.
 </p>
   
 
-  <section style="margin: 64px 0;">
-    <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 24px;">📚 Más información</h3>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
-      <a href="../mejor-tarifa-coche-electrico.html" style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-decoration: none; color: var(--text); display: block; transition: all 0.2s;">
+  <section class="guia-more">
+    <h2 class="guia-more-title">📚 Más información</h2>
+    <div class="guia-more-grid">
+      <a href="../mejor-tarifa-coche-electrico.html" class="guia-more-card">
         <strong>🚗 Mejor tarifa para coche eléctrico</strong>
-        <p style="font-size: 14px; color: var(--muted); margin-top: 8px;">Tarifas con precio valle más barato</p>
+        <p class="guia-more-desc">Tarifas con precio valle más barato</p>
       </a>
     </div>
   </section>
 </article>
-  <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border);">
+  <div class="guia-nav">
     <a href="bono-social-electrico-quien-puede-pedirlo-y-como.html" class="nav-link">← Bono social eléctrico: quién puede pedirlo y cómo</a>
     <a href="../guias.html" class="nav-link">📚 Ver todas</a>
     <a href="aerotermia-termo-electrico-y-bomba-de-calor-consumos-reales-y-tarifas.html" class="nav-link">Aerotermia, termo eléctrico y bomba de calor: consumos reales y tarifas →</a>
@@ -309,23 +309,23 @@ Coche eléctrico + PVPC 3 periodos + carga nocturna = la combinación perfecta. 
 </div>
 
 <!-- INTERNAL LINKS SECTION -->
-<section style="margin-top: 80px; padding: 40px; background: var(--card); border: 2px solid var(--border); border-radius: 20px;">
-  <h3 style="font-size: 24px; font-weight: 700; margin-bottom: 24px; color: var(--text);">📚 Guías relacionadas</h3>
-  <div style="display: grid; gap: 16px;">
-    <a href="/guias/como-adaptar-tus-horarios-para-pagar-menos-luz.html" style="display: block; padding: 16px 20px; background: var(--card2); border: 1px solid var(--border2); border-radius: 12px; text-decoration: none; color: var(--text); transition: all 0.2s; hover:transform: translateX(4px);">
-      <span style="color: var(--accent); margin-right: 8px;">→</span>Cómo adaptar tus horarios para pagar menos luz
+<section class="guia-related">
+  <h2 class="guia-related-title">📚 Guías relacionadas</h2>
+  <div class="guia-related-grid">
+    <a href="/guias/como-adaptar-tus-horarios-para-pagar-menos-luz.html" class="guia-related-link">
+      <span class="guia-related-arrow">→</span>Cómo adaptar tus horarios para pagar menos luz
     </a>
-    <a href="/guias/que-es-p1-p2-y-p3-en-tu-factura.html" style="display: block; padding: 16px 20px; background: var(--card2); border: 1px solid var(--border2); border-radius: 12px; text-decoration: none; color: var(--text); transition: all 0.2s; hover:transform: translateX(4px);">
-      <span style="color: var(--accent); margin-right: 8px;">→</span>Qué es P1, P2 y P3 en tu factura
+    <a href="/guias/que-es-p1-p2-y-p3-en-tu-factura.html" class="guia-related-link">
+      <span class="guia-related-arrow">→</span>Qué es P1, P2 y P3 en tu factura
     </a>
-    <a href="/mejor-tarifa-coche-electrico.html" style="display: block; padding: 20px 24px; background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(34,197,94,0.2)); border: 2px solid var(--accent); border-radius: 12px; text-decoration: none; color: var(--text); font-weight: 600; transition: all 0.2s; text-align: center;">
+    <a href="/mejor-tarifa-coche-electrico.html" class="guia-related-cta">
       ⚡ Comparar tarifas para coche eléctrico
     </a>
   </div>
 </section>
 
-  <footer style="margin-top: 60px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,.1); text-align: center; font-size: 13px; color: var(--muted);">
-    <a href="/privacidad.html" style="color: var(--accent); text-decoration: none;">📋 Política de privacidad</a>
+  <footer class="guia-footer">
+    <a href="/privacidad.html" class="guia-footer-link">📋 Política de privacidad</a>
   </footer>
 </body>
 </html>

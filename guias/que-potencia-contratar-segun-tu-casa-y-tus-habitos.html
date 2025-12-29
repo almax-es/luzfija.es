@@ -122,29 +122,29 @@
 </head>
 <body>
 <div class="container">
-  <nav aria-label="Breadcrumb" style="margin-bottom: 16px;">
-    <ol style="display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--muted2); flex-wrap: wrap;">
-      <li><a href="/" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">🏠 Inicio</a></li>
-      <li style="color: var(--muted2);">/</li>
-      <li><a href="/guias.html" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">📚 Guías</a></li>
-      <li style="color: var(--muted2);">/</li>
-      <li style="color: var(--text); font-weight: 500;">Qué potencia contratar</li>
+  <nav aria-label="Breadcrumb" class="breadcrumb-nav">
+    <ol class="breadcrumb-list">
+      <li><a href="/" class="breadcrumb-link">🏠 Inicio</a></li>
+      <li class="breadcrumb-separator">/</li>
+      <li><a href="/guias.html" class="breadcrumb-link">📚 Guías</a></li>
+      <li class="breadcrumb-separator">/</li>
+      <li class="breadcrumb-current">Qué potencia contratar</li>
     </ol>
   </nav>
-  <a href="../guias.html" style="display: inline-block; margin-bottom: 20px; color: var(--accent);">← Volver a guías</a>
+  <a href="../guias.html" class="guia-back-link">← Volver a guías</a>
   <article class="guia-content">
     <h1>Qué potencia contratar según tu casa y tus hábitos</h1>
     <p class="guia-intro">
                 La potencia es lo que pagas solo por tenerla disponible, uses o no uses. Tenerla mal puede costarte pasta de más o hacerte saltar los plomos cada dos por tres. Te explico cómo acertar.
               </p>
-<h4>Qué es la potencia contratada</h4>
+<h2>Qué es la potencia contratada</h2>
 <p>
                 Es el máximo de electricidad que puedes usar a la vez sin que salte el limitador (ICP) o el automático. Se mide en <strong>kilovatios (kW)</strong>.
               </p>
 <p>
                 Si tienes 3,45 kW y enciendes vitro (2 kW) + horno (2 kW) a la vez, te pasas → salta el automático. Si tienes 5,75 kW, no hay problema.
               </p>
-<h4>Potencias más comunes en viviendas</h4>
+<h2>Potencias más comunes en viviendas</h2>
 <ul>
 <li><strong>2,3 kW:</strong> Piso muy pequeño, 1 persona, consumo mínimo. Raro hoy en día.</li>
 <li><strong>3,45 kW:</strong> Piso pequeño/mediano, 1-2 personas, sin calefacción eléctrica ni aire acondicionado potente.</li>
@@ -152,7 +152,7 @@
 <li><strong>5,75 kW:</strong> Casa mediana, 3-4 personas, con varios electrodomésticos simultáneos.</li>
 <li><strong>6,9 kW o más:</strong> Casa grande, muchos electrodomésticos, calefacción eléctrica, coche eléctrico...</li>
 </ul>
-<h4>Cómo saber qué potencia necesitas</h4>
+<h2>Cómo saber qué potencia necesitas</h2>
 <p>Suma lo que usas <strong>a la vez</strong> en los momentos de máximo consumo:</p>
 <p><strong>Ejemplo 1 (piso pequeño):</strong></p>
 <ul>
@@ -171,7 +171,7 @@
 <li>Luces + varios: 0,5 kW</li>
 <li><strong>Total:</strong> 6,15 kW → Necesitas 6,9 kW o más.</li>
 </ul>
-<h4>P1 y P2: ¿iguales o diferentes?</h4>
+<h2>P1 y P2: ¿iguales o diferentes?</h2>
 <p>En viviendas, lo normal es contratar <strong>la misma potencia en P1 y P2</strong> (ej: 4,6 kW en ambos). Pero puedes optimizar:</p>
 <ul>
 <li><strong>P1 (día):</strong> Contratas más si usas mucho entre 10h-14h y 18h-22h.</li>
@@ -181,7 +181,7 @@
                 Ejemplo: 5,75 kW en P1 (por si cocinas y pones lavadora a la vez de día) y 3,45 kW en P2 (de noche solo nevera + alguna luz). Ahorras en el término fijo de P2.
               </p>
 <p><strong>Ojo:</strong> Si te pasas de P2 de madrugada, salta. Asegúrate de que puedes vivir con esa potencia reducida cuando toca.</p>
-<h4>¿Bajarla o subirla?</h4>
+<h2>¿Bajarla o subirla?</h2>
 <p><strong>Baja la potencia si:</strong></p>
 <ul>
 <li>Nunca saltan los plomos (ni siquiera cuando usas todo a la vez).</li>
@@ -194,7 +194,7 @@
 <li>Has puesto aire acondicionado, coche eléctrico, o cualquier aparato potente nuevo.</li>
 <li>Sois más gente en casa o cambió tu forma de consumir.</li>
 </ul>
-<h4>Cómo cambiar la potencia</h4>
+<h2>Cómo cambiar la potencia</h2>
 <ol>
 <li>Llama a tu comercializadora y diles qué potencia quieres (P1 y P2).</li>
 <li>Te cobran derechos de enganche (unos 10-50€ según distribuidora y si sube/baja).</li>
@@ -203,7 +203,7 @@
 </ol>
 <p><strong>Consejo final:</strong> Si dudas entre dos potencias, quédate con la superior. Que salten los plomos en plena cena es un coñazo mayor que pagar 3€ más al mes.</p>
   </article>
-  <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border);">
+  <div class="guia-nav">
     <a href="pvpc-vs-mercado-libre-cuando-te-conviene-cada-uno.html" class="nav-link">← PVPC vs mercado libre: cuándo te conviene cada uno</a>
     <a href="../guias.html" class="nav-link">📚 Ver todas</a>
     <a href="como-adaptar-tus-horarios-para-pagar-menos-luz.html" class="nav-link">Cómo adaptar tus horarios para pagar menos luz →</a>
@@ -211,23 +211,23 @@
 </div>
 
 <!-- INTERNAL LINKS SECTION -->
-<section style="margin-top: 80px; padding: 40px; background: var(--card); border: 2px solid var(--border); border-radius: 20px;">
-  <h3 style="font-size: 24px; font-weight: 700; margin-bottom: 24px; color: var(--text);">📚 Guías relacionadas</h3>
-  <div style="display: grid; gap: 16px;">
-    <a href="/guias/que-es-p1-p2-y-p3-en-tu-factura.html" style="display: block; padding: 16px 20px; background: var(--card2); border: 1px solid var(--border2); border-radius: 12px; text-decoration: none; color: var(--text); transition: all 0.2s; hover:transform: translateX(4px);">
-      <span style="color: var(--accent); margin-right: 8px;">→</span>Qué es P1, P2 y P3 en tu factura
+<section class="guia-related">
+  <h2 class="guia-related-title">📚 Guías relacionadas</h2>
+  <div class="guia-related-grid">
+    <a href="/guias/que-es-p1-p2-y-p3-en-tu-factura.html" class="guia-related-link">
+      <span class="guia-related-arrow">→</span>Qué es P1, P2 y P3 en tu factura
     </a>
-    <a href="/guias/errores-tipicos-en-la-factura-de-la-luz.html" style="display: block; padding: 16px 20px; background: var(--card2); border: 1px solid var(--border2); border-radius: 12px; text-decoration: none; color: var(--text); transition: all 0.2s; hover:transform: translateX(4px);">
-      <span style="color: var(--accent); margin-right: 8px;">→</span>Errores típicos en la factura de luz
+    <a href="/guias/errores-tipicos-en-la-factura-de-la-luz.html" class="guia-related-link">
+      <span class="guia-related-arrow">→</span>Errores típicos en la factura de luz
     </a>
-    <a href="/guias/como-adaptar-tus-horarios-para-pagar-menos-luz.html" style="display: block; padding: 16px 20px; background: var(--card2); border: 1px solid var(--border2); border-radius: 12px; text-decoration: none; color: var(--text); transition: all 0.2s; hover:transform: translateX(4px);">
-      <span style="color: var(--accent); margin-right: 8px;">→</span>Cómo adaptar tus horarios para pagar menos luz
+    <a href="/guias/como-adaptar-tus-horarios-para-pagar-menos-luz.html" class="guia-related-link">
+      <span class="guia-related-arrow">→</span>Cómo adaptar tus horarios para pagar menos luz
     </a>
   </div>
 </section>
 
-  <footer style="margin-top: 60px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,.1); text-align: center; font-size: 13px; color: var(--muted);">
-    <a href="/privacidad.html" style="color: var(--accent); text-decoration: none;">📋 Política de privacidad</a>
+  <footer class="guia-footer">
+    <a href="/privacidad.html" class="guia-footer-link">📋 Política de privacidad</a>
   </footer>
 </body>
 </html>

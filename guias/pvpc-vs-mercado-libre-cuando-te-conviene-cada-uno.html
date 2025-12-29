@@ -122,22 +122,22 @@
 </head>
 <body>
 <div class="container">
-  <nav aria-label="Breadcrumb" style="margin-bottom: 16px;">
-    <ol style="display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--muted2); flex-wrap: wrap;">
-      <li><a href="/" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">🏠 Inicio</a></li>
-      <li style="color: var(--muted2);">/</li>
-      <li><a href="/guias.html" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">📚 Guías</a></li>
-      <li style="color: var(--muted2);">/</li>
-      <li style="color: var(--text); font-weight: 500;">PVPC vs mercado libre</li>
+  <nav aria-label="Breadcrumb" class="breadcrumb-nav">
+    <ol class="breadcrumb-list">
+      <li><a href="/" class="breadcrumb-link">🏠 Inicio</a></li>
+      <li class="breadcrumb-separator">/</li>
+      <li><a href="/guias.html" class="breadcrumb-link">📚 Guías</a></li>
+      <li class="breadcrumb-separator">/</li>
+      <li class="breadcrumb-current">PVPC vs mercado libre</li>
     </ol>
   </nav>
-  <a href="../guias.html" style="display: inline-block; margin-bottom: 20px; color: var(--accent);">← Volver a guías</a>
+  <a href="../guias.html" class="guia-back-link">← Volver a guías</a>
   <article class="guia-content">
     <h1>PVPC vs mercado libre: cuándo te conviene cada uno</h1>
     <p class="guia-intro">
                 ¿PVPC o mercado libre? La eterna pregunta. Te lo explico en cristiano: depende de si prefieres pagar lo que marque el mercado cada día (PVPC) o cerrar un precio fijo con una compañía (mercado libre). Cada una tiene sus pros y contras.
               </p>
-<h4>PVPC (tarifa regulada)</h4>
+<h2>PVPC (tarifa regulada)</h2>
 <p>Es la tarifa oficial regulada por el Gobierno. El precio se publica para cada hora del día y, desde 2024, se calcula con una mezcla del <strong>mercado diario</strong> y de <strong>mercados de futuros</strong> para hacerla más estable. Aun así, lo que tú pagas sigue dependiendo del coste real de la electricidad más peajes, cargos e impuestos.</p>
 
 <p><strong>Cambio importante desde 2024:</strong></p>
@@ -180,7 +180,7 @@ Las empresas que NO sean microempresas deben ir obligatoriamente al mercado libr
 <li>En meses de pico de demanda (olas de frío/calor), puede subir bastante.</li>
 <li>Desde 2024, con el mercado de futuros, ya no baja tanto como antes en momentos buenos del mercado.</li>
 </ul>
-<h4>Mercado libre</h4>
+<h2>Mercado libre</h2>
 <p>Son las tarifas de las compañías privadas: precio fijo, indexado, con discriminación horaria... hay de todo.</p>
 <p><strong>Ventajas:</strong></p>
 <ul>
@@ -195,7 +195,7 @@ Las empresas que NO sean microempresas deben ir obligatoriamente al mercado libr
 <li>Sin bono social (salvo excepciones).</li>
 <li>Letra pequeña: subidas anuales de IPC, condiciones raras...</li>
 </ul>
-<h4>¿Cuándo te conviene cada una?</h4>
+<h2>¿Cuándo te conviene cada una?</h2>
 <p><strong>PVPC te conviene si:</strong></p>
 <ul>
 <li>Tienes flexibilidad horaria: puedes poner lavadoras de madrugada, cargar el coche de noche...</li>
@@ -210,7 +210,7 @@ Las empresas que NO sean microempresas deben ir obligatoriamente al mercado libr
 <li>Has encontrado una oferta realmente buena (compara bien con este comparador antes).</li>
 <li>Prefieres tener un contacto comercial directo por si hay problemas.</li>
 </ul>
-<h4>Mi consejo</h4>
+<h2>Mi consejo</h2>
 <p>
                 Usa este comparador. En serio. Mete tus consumos reales (P1, P2, P3) y mira qué sale más barato <strong>ahora mismo</strong>. El PVPC a veces gana, a veces no. Depende del momento del mercado y de cómo consumas.
               </p>
@@ -218,7 +218,7 @@ Las empresas que NO sean microempresas deben ir obligatoriamente al mercado libr
                 Si el PVPC te sale ganador y puedes adaptar horarios, dale caña. Si una fija del mercado libre te sale 5-10€ más barata al mes de forma consistente, puede merecer la pena. Pero ojo con las permanencias.
               </p>
   </article>
-  <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border);">
+  <div class="guia-nav">
     <a href="diferencia-entre-comercializadora-y-distribuidora.html" class="nav-link">← Diferencia entre comercializadora y distribuidora</a>
     <a href="../guias.html" class="nav-link">📚 Ver todas</a>
     <a href="que-potencia-contratar-segun-tu-casa-y-tus-habitos.html" class="nav-link">Qué potencia contratar según tu casa y tus hábitos →</a>
@@ -226,23 +226,23 @@ Las empresas que NO sean microempresas deben ir obligatoriamente al mercado libr
 </div>
 
 <!-- INTERNAL LINKS SECTION -->
-<section style="margin-top: 80px; padding: 40px; background: var(--card); border: 2px solid var(--border); border-radius: 20px;">
-  <h3 style="font-size: 24px; font-weight: 700; margin-bottom: 24px; color: var(--text);">📚 Guías relacionadas</h3>
-  <div style="display: grid; gap: 16px;">
-    <a href="/guias/tarifas-indexadas-pool-cuota-cuando-interesan-y-cuando-no.html" style="display: block; padding: 16px 20px; background: var(--card2); border: 1px solid var(--border2); border-radius: 12px; text-decoration: none; color: var(--text); transition: all 0.2s; hover:transform: translateX(4px);">
-      <span style="color: var(--accent); margin-right: 8px;">→</span>Tarifas indexadas: cuándo interesan
+<section class="guia-related">
+  <h2 class="guia-related-title">📚 Guías relacionadas</h2>
+  <div class="guia-related-grid">
+    <a href="/guias/tarifas-indexadas-pool-cuota-cuando-interesan-y-cuando-no.html" class="guia-related-link">
+      <span class="guia-related-arrow">→</span>Tarifas indexadas: cuándo interesan
     </a>
-    <a href="/guias/como-ver-tu-consumo-horario-real-el-del-contador-no-el-estimado.html" style="display: block; padding: 16px 20px; background: var(--card2); border: 1px solid var(--border2); border-radius: 12px; text-decoration: none; color: var(--text); transition: all 0.2s; hover:transform: translateX(4px);">
-      <span style="color: var(--accent); margin-right: 8px;">→</span>Cómo ver tu consumo horario real
+    <a href="/guias/como-ver-tu-consumo-horario-real-el-del-contador-no-el-estimado.html" class="guia-related-link">
+      <span class="guia-related-arrow">→</span>Cómo ver tu consumo horario real
     </a>
-    <a href="/comparar-pvpc-tarifa-fija.html" style="display: block; padding: 20px 24px; background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(34,197,94,0.2)); border: 2px solid var(--accent); border-radius: 12px; text-decoration: none; color: var(--text); font-weight: 600; transition: all 0.2s; text-align: center;">
+    <a href="/comparar-pvpc-tarifa-fija.html" class="guia-related-cta">
       ⚡ Comparar PVPC vs Tarifa Fija
     </a>
   </div>
 </section>
 
-  <footer style="margin-top: 60px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,.1); text-align: center; font-size: 13px; color: var(--muted);">
-    <a href="/privacidad.html" style="color: var(--accent); text-decoration: none;">📋 Política de privacidad</a>
+  <footer class="guia-footer">
+    <a href="/privacidad.html" class="guia-footer-link">📋 Política de privacidad</a>
   </footer>
 </body>
 </html>

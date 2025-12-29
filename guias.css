@@ -1489,14 +1489,14 @@
       color: var(--text);
     }
     
-    .guia-content h4 {
+    .guia-content h2 {
       font-size: 20px;
       font-weight: 900;
       margin: 32px 0 16px 0;
       color: var(--text);
     }
     
-    .guia-content h5 {
+    .guia-content h3 {
       font-size: 16px;
       font-weight: 800;
       margin: 20px 0 12px 0;
@@ -1631,11 +1631,35 @@
 .container { max-width: 900px; margin: 0 auto; padding: 40px 20px; }
 .guia-content { line-height: 1.7; }
 .guia-content h1 { font-size: 32px; margin-bottom: 24px; }
-.guia-content h4 { font-size: 20px; margin-top: 32px; margin-bottom: 16px; }
+.guia-content h2 { font-size: 20px; margin-top: 32px; margin-bottom: 16px; }
 .guia-content p { margin-bottom: 16px; }
 .guia-content ul, .guia-content ol { margin-left: 24px; margin-bottom: 16px; }
 .nav-link { display: inline-block; padding: 12px 20px; margin: 10px; background: var(--card); border-radius: 8px; text-decoration: none; color: var(--text); }
 .nav-link:hover { background: var(--card2); }
+.guia-related-link:hover { transform: translateX(4px); }
+.breadcrumb-nav { margin-bottom: 16px; }
+.breadcrumb-list { display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--muted2); flex-wrap: wrap; }
+.breadcrumb-link { color: var(--muted); text-decoration: none; transition: color 0.2s; }
+.breadcrumb-link:hover { color: var(--accent); }
+.breadcrumb-separator { color: var(--muted2); }
+.breadcrumb-current { color: var(--text); font-weight: 500; }
+.guia-back-link { display: inline-block; margin-bottom: 20px; color: var(--accent); }
+.guia-nav { margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border); }
+.guia-related { margin-top: 80px; padding: 40px; background: var(--card); border: 2px solid var(--border); border-radius: 20px; }
+.guia-related-title { font-size: 24px; font-weight: 700; margin-bottom: 24px; color: var(--text); }
+.guia-related-grid { display: grid; gap: 16px; }
+.guia-related-link { display: block; padding: 16px 20px; background: var(--card2); border: 1px solid var(--border2); border-radius: 12px; text-decoration: none; color: var(--text); transition: transform 0.2s, background 0.2s, border-color 0.2s; }
+.guia-related-arrow { color: var(--accent); margin-right: 8px; }
+.guia-related-cta { display: block; padding: 20px 24px; background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(34,197,94,0.2)); border: 2px solid var(--accent); border-radius: 12px; text-decoration: none; color: var(--text); font-weight: 600; transition: transform 0.2s, border-color 0.2s; text-align: center; }
+.guia-related-cta:hover { transform: translateY(-2px); }
+.guia-more { margin: 64px 0; }
+.guia-more-title { font-size: 22px; font-weight: 700; margin-bottom: 24px; }
+.guia-more-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+.guia-more-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-decoration: none; color: var(--text); display: block; transition: transform 0.2s, border-color 0.2s; }
+.guia-more-card:hover { transform: translateY(-2px); }
+.guia-more-desc { font-size: 14px; color: var(--muted); margin-top: 8px; }
+.guia-footer { margin-top: 60px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,.1); text-align: center; font-size: 13px; color: var(--muted); }
+.guia-footer-link { color: var(--accent); text-decoration: none; }
 
 /* ========================================
    OPTIMIZACIÓN INP MÓVIL
