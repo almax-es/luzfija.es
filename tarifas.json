@@ -423,11 +423,30 @@
         "reglaBV": "BV MES ANTERIOR"
       },
       "requiereFV": false
+    },
+    {
+      "nombre": "Iberdrola Solar 3P",
+      "cPunta": 0.201,
+      "cLlano": 0.121,
+      "cValle": 0.079,
+      "p1": 0.086301,
+      "p2": 0.036986,
+      "web": "https://www.iberdrola.es/luz/plan-ahorro-solar",
+      "tipo": "3P",
+      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
     }
   ],
-  "timestamp": "2025-12-28T09:34:51.651Z",
-  "publishedAt": "2025-12-28T09:34:51.651Z",
-  "publishedAtEpoch": 1766914491651,
-  "updatedAt": "2025-12-28T09:34:51.651Z",
-  "updatedAtEpoch": 1766914491651
+  "timestamp": "2025-12-29T15:50:14.185Z",
+  "publishedAt": "2025-12-29T15:50:14.185Z",
+  "publishedAtEpoch": 1767023414185,
+  "updatedAt": "2025-12-29T15:50:14.185Z",
+  "updatedAtEpoch": 1767023414185
 }
