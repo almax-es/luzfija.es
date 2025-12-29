@@ -996,10 +996,1441 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
         const btnSolarInfo = $('btnSolarInfo');
         const btnCerrarSolarInfo = $('btnCerrarSolarInfo');
         const btnCerrarSolarX = $('btnCerrarSolarX');
-  // Scroll lock + restore focus (unificado)
-  const __csvPrevFocus = document.activeElement;
-  if (window.__LF_modalUtil){ window.__LF_modalUtil.lockScroll(); window.__LF_modalUtil.rememberFocus(); }
 
+        // Scroll lock suave (sin interferir con otros modales)
+        let __solarLocked = false;
+        let __solarScrollY = 0;
+        function __solarLock(){
+          if (document.documentElement.style.overflow === 'hidden') return;
+          __solarScrollY = window.scrollY || 0;
+          document.documentElement.style.overflow = 'hidden';
+          __solarLocked = true;
+        }
+        function __solarUnlock(){
+          if (!__solarLocked) return;
+          document.documentElement.style.overflow = '';
+          window.scrollTo(0, __solarScrollY);
+          __solarLocked = false;
+        }
+
+        if(btnSolarInfo && modalSolarInfo && btnCerrarSolarInfo){
+          btnSolarInfo.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            modalSolarInfo.style.display = 'flex';
+            modalSolarInfo.classList.add('show');
+            modalSolarInfo.setAttribute('aria-hidden', 'false');
+            __solarLock();
+          });
+          
+          btnCerrarSolarX?.addEventListener('click', () => {
+            modalSolarInfo.classList.remove('show');
+            setTimeout(() => { modalSolarInfo.style.display = 'none'; }, 200);
+            modalSolarInfo.setAttribute('aria-hidden', 'true');
+            __solarUnlock();
+          });
+
+          btnCerrarSolarInfo.addEventListener('click', () => {
+            modalSolarInfo.classList.remove('show');
+            setTimeout(() => {
+              modalSolarInfo.style.display = 'none';
+            }, 200);
+            modalSolarInfo.setAttribute('aria-hidden', 'true');
+            __solarUnlock();
+          });
+          
+          document.addEventListener('keydown', (e) => {
+            if(e.key === 'Escape' && modalSolarInfo.classList.contains('show')){
+              modalSolarInfo.classList.remove('show');
+              setTimeout(() => { modalSolarInfo.style.display = 'none'; }, 200);
+              modalSolarInfo.setAttribute('aria-hidden', 'true');
+              __solarUnlock();
+            }
+          });
+
+          // Cerrar al hacer clic fuera del modal
+          modalSolarInfo.addEventListener('click', (e) => {
+            if(e.target === modalSolarInfo){
+              modalSolarInfo.classList.remove('show');
+              setTimeout(() => {
+                modalSolarInfo.style.display = 'none';
+              }, 200);
+              modalSolarInfo.setAttribute('aria-hidden', 'true');
+              __solarUnlock();
+            }
+          });
+        } else {
+          lfDbg('[DEBUG] Faltan elementos del modal');
+        }
+      }
+    }
+
+    function validateInputs(){
+      clearErrorStyles();
+      let message='';
+
+      const diasRaw=String(el.inputs.dias.value||'').trim();
+      const diasNum=parseNum(el.inputs.dias.value);
+      if(!diasRaw){
+        message='Introduce los días de facturación (1-365).';
+        el.inputs.dias.classList.add('error');
+      } else if(!Number.isFinite(diasNum) || diasNum<=0){
+        message='Los días deben ser un número entre 1 y 365.';
+        el.inputs.dias.classList.add('error');
+      }
+
+      state.hasValidationError=Boolean(message);
+      if(message) showError(message); else showError('');
+      applyButtonState(false);
+      return !state.hasValidationError;
+    }
+
+    function clearErrorStyles(){ Object.values(el.inputs).forEach(i=>{ if(!i)return; i.classList.remove('error'); }); }
+
+    function rowTipoBadge(t){
+      const s=String(t||'').trim();
+      if(s==='1P')return `<span class="badge b1">1P</span>`;
+      if(s==='3P')return `<span class="badge b3">3P</span>`;
+      return `<span class="badge">${escapeHtml(s||'—')}</span>`;
+    }
+
+    function formatVsWithBar(v,vn){
+      const s=String(v??'').trim();
+      if(!s||s==='—'||s==='0'||s==='0,00'||s==='0 €'||s==='0,00 €')return '<span class="vs-text zero">—</span>';
+      const pos=s.startsWith('+');
+      const c=pos?'pos':'neg';
+      // Removed inline arrow to save horizontal space; only show +X,XX €.
+      return `<span class="vs-text ${c}">${escapeHtml(s)}</span>`;
+    }
+
+    function applyFilters(r){
+      const f=state.filter;
+      return r.filter(x=>(f==='all'||String(x.tipo||'')===f));
+    }
+
+    function applySort(r){
+      const {key,dir}=state.sort;
+      const asc=dir==='asc';
+      const c=r.slice();
+      c.sort((a,b)=>{
+        const va=a[key],vb=b[key];
+        if(key==='nombre'){
+          const sa=String(va||'').toLowerCase(),sb=String(vb||'').toLowerCase();
+          if(sa>sb)return asc?1:-1;
+          if(sa<sb)return asc?-1:1;
+          return 0;
+        }
+        const na=Number(va)||0,nb=Number(vb)||0;
+        if(na>nb)return asc?1:-1;
+        if(na<nb)return asc?-1:1;
+        
+        // DESEMPATE: Si totalNum (ranking) es igual, ordenar por totalFinal (lo que pagas)
+        if(key==='totalNum'){
+          const paA=Number(a.fvTotalFinal)||Number(a.totalNum)||0;
+          const paB=Number(b.fvTotalFinal)||Number(b.totalNum)||0;
+          if(paA!==paB) return asc?(paA-paB):(paB-paA);
+        }
+        
+        return 0;
+      });
+      return c;
+    }
+
+    function updateSortIcons(){
+      ['nombre','potenciaNum','consumoNum','impuestosNum','totalNum','vsMejorNum'].forEach(k=>{
+        const i=$('si_'+k);
+        if(!i) return;
+        if(state.sort.key!==k){ i.textContent=''; return; }
+        i.textContent=state.sort.dir==='asc'?'▲':'▼';
+      });
+    }
+
+    function createRipple(b,e){
+      const rect=b.getBoundingClientRect();
+      const s=Math.max(rect.width,rect.height);
+      const x=e.clientX-rect.left-s/2;
+      const y=e.clientY-rect.top-s/2;
+      b.style.position='relative';
+      b.style.overflow='hidden';
+      
+      // Crear 3 ondas con diferentes colores y velocidades
+      const colors = [
+        'rgba(139, 92, 246, 0.4)',   // Púrpura
+        'rgba(236, 72, 153, 0.3)',   // Rosa
+        'rgba(245, 158, 11, 0.2)'    // Ámbar
+      ];
+      const delays = [0, 100, 200];
+      
+      colors.forEach((color, i) => {
+        setTimeout(() => {
+          const r = document.createElement('span');
+          r.style.cssText = `position:absolute;width:${s}px;height:${s}px;border-radius:50%;background:${color};left:${x}px;top:${y}px;pointer-events:none;animation:rippleExpand 0.8s ease-out;`;
+          b.appendChild(r);
+          setTimeout(() => r.remove(), 800);
+        }, delays[i]);
+      });
+    }
+
+
+
+    function createSuccessParticles(element) {
+      const colors = ['#8B5CF6', '#EC4899', '#F59E0B', '#22C55E'];
+      const particleCount = 12;
+      
+      for (let i = 0; i < particleCount; i++) {
+        setTimeout(() => {
+          const particle = document.createElement('div');
+          particle.className = 'success-particle';
+          particle.style.cssText = `
+            left: 50%;
+            top: 50%;
+            background: ${colors[i % colors.length]};
+            --tx: ${(Math.random() - 0.5) * 200}px;
+            animation-delay: ${i * 0.05}s;
+          `;
+          element.style.position = 'relative';
+          element.appendChild(particle);
+          setTimeout(() => particle.remove(), 1100);
+        }, i * 50);
+      }
+    }
+    function animateCounter(element, finalText) {
+      // Extraer número del texto (ej: "55,60 €" -> 55.60)
+      const match = finalText.match(/[\d,.]+/);
+      if (!match) {
+        element.textContent = finalText;
+        return;
+      }
+      
+      const numStr = match[0].replace(',', '.');
+      const finalNum = parseFloat(numStr);
+      if (isNaN(finalNum)) {
+        element.textContent = finalText;
+        return;
+      }
+      
+      const duration = 800; // ms
+      const steps = 30;
+      const stepDuration = duration / steps;
+      let currentStep = 0;
+      
+      const interval = setInterval(() => {
+        currentStep++;
+        const progress = currentStep / steps;
+        const easeProgress = 1 - Math.pow(1 - progress, 3); // easeOut cubic
+        const currentNum = finalNum * easeProgress;
+        
+        // Formatear igual que el original
+        const formatted = currentNum.toFixed(2).replace('.', ',');
+        element.textContent = finalText.replace(match[0], formatted);
+        
+        if (currentStep >= steps) {
+          clearInterval(interval);
+          element.textContent = finalText;
+        }
+      }, stepDuration);
+    }
+    function renderTable(){
+      const f = applyFilters(state.rows);
+      const s = applySort(f);
+
+      if (s.length === 0) {
+        el.tbody.replaceChildren();
+        el.table.classList.remove('show');
+        el.emptyBox.classList.add('show');
+        return;
+      }
+
+      requestAnimationFrame(() => {
+        el.emptyBox.classList.remove('show');
+        el.table.classList.add('show');
+
+        const frag = document.createDocumentFragment();
+        s.forEach((r, idx) => {
+          const tr = document.createElement('tr');
+          if (r.esMejor) tr.classList.add('best');
+          if (r.esPersonalizada) tr.classList.add('custom-tariff-highlight');
+          
+          const nombreBase = r.nombre || '';
+
+          const w = r.webUrl && r.webUrl !== '#'
+            ? `<a class="web" href="${escapeHtml(r.webUrl)}" target="_blank" rel="noopener noreferrer" title="Abrir web" aria-label="Abrir oferta de ${escapeHtml(nombreBase)}">`+
+              `<span class="web-icon" aria-hidden="true">🔗</span>`+
+              `<span class="web-text">Ver oferta</span>`+
+              `</a>`
+            : r.esPersonalizada
+            ? ''
+            : '';
+          const nombreWarn = r.pvpcNotComputable
+            ? `<span class="pvpc-warn" title="PVPC no disponible para esta configuración">⚠</span>`
+            : (r.pvpcWarning ? ' ⚠' : '');
+
+          // Tooltip de requisitos si existen
+          const requisitosTooltip = r.requisitos
+            ? `<span class="tooltip requisitos-icon" data-tip="${escapeHtml(r.requisitos)}" role="button" tabindex="0" aria-label="Requisitos de contratación" style="margin-left:4px; color:var(--warn); cursor:help;">ⓘ</span>`
+            : '';
+
+          let fvIcon = '';
+          const precioExc = Number(r.fvPriceUsed || 0);
+          const exKwh = Number(r.fvExKwh || 0);
+          const credit1 = Number(r.fvCredit1 || 0);
+          const credit2 = Number(r.fvCredit2 || 0);
+          const bvSaldoFin = r.fvBvSaldoFin;
+          const excSobrante = Number(r.fvExcedenteSobrante || 0);
+          const totalFinal = Number(r.fvTotalFinal || 0);
+          const totalRanking = Number(r.totalNum || 0);
+          
+          // BV (batería virtual): NO pintamos "Pagas/Ranking" dentro de la celda TOTAL.
+          // Motivo: la tabla usa table-layout:fixed + celdas nowrap; cualquier texto extra se corta o se sale.
+          // En su lugar, guardamos ambos importes como data-* para mostrarlos como ayuda (tooltip/title) en el icono 💡.
+          const isBV = !!(r.fvTipo && r.fvTipo.includes('BV') && r.fvApplied);
+          const bvPagasFmt = isBV ? formatMoney(totalFinal) : '';
+          const bvRankingFmt = isBV ? formatMoney(totalRanking) : '';
+          
+          // Si es solar no calculable (PVPC o tarifa indexada)
+          let solarDetails = '';
+          if(r.solarNoCalculable){
+            const tip = 'Compensación excedentes NO calculada (precio variable horario). Consulta tu factura para ver compensación real.';
+            fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Solar no calculable" style="filter: grayscale(50%);">⚠️☀️</span>`;
+            solarDetails = `<div class="solar-details">⚠️ Compensación no calculada (precio variable)</div>`;
+          } else if(r.fvApplied && r.fvTipo !== 'NO COMPENSA' && precioExc > 0){
+            // Caso con excedentes: mostrar todos los detalles
+            const excSobrante = Number(r.fvExcedenteSobrante || 0);
+            const totalFinal = Number(r.fvTotalFinal || 0);
+            const totalRanking = Number(r.totalNum || 0);
+            const tieneBV = r.fvTipo && r.fvTipo.includes('BV');
+            
+            const parts = [];
+            
+            // Si hay BV, mostrar info de ranking y pagos (ORDEN MEJORADO)
+            if(tieneBV){
+              // 1. Primero lo concreto: lo que pagas HOY
+              if(credit2 > 0) {
+                parts.push(`💰 Pagas este mes: ${totalFinal.toFixed(2)} € (después de usar BV del mes anterior)`);
+              } else {
+                parts.push(`💰 Pagas este mes: ${totalFinal.toFixed(2)} €`);
+              }
+              
+              // 2. Luego el ranking: para comparar tarifas
+              parts.push(`🏆 Ranking: ${totalRanking.toFixed(2)} € (coste real sin contar BV del mes anterior)`);
+              
+              // 3. Mostrar excedente sobrante solo si hay
+              if(excSobrante > 0){
+                parts.push(`⚡ Acumulas en BV: ${excSobrante.toFixed(2)} € (se guardará para futuros meses)`);
+              }
+              
+              // 4. SIEMPRE mostrar saldo BV final si la tarifa tiene BV
+              if(bvSaldoFin !== null && bvSaldoFin !== undefined){
+                parts.push(`🔋 Saldo BV final: ${Number(bvSaldoFin).toFixed(2)} € (disponible para el próximo mes)`);
+              }
+              
+              parts.push(`---`);
+            }
+            
+            // Detalles de excedentes (con explicaciones)
+            parts.push(`☀️ Excedentes vertidos: ${exKwh.toFixed(2)} kWh`);
+            parts.push(`💰 Precio compensación: ${precioExc.toFixed(3)} €/kWh`);
+            parts.push(`✅ Compensado este mes: ${credit1.toFixed(2)} € (descontado de tu consumo de energía)`);
+            if(credit2 > 0) parts.push(`🔋 BV usada: ${credit2.toFixed(2)} € (ahorros de meses anteriores aplicados ahora)`);
+            
+            const tip = parts.join('\n');
+            fvIcon = `<span class="tooltip fv-icon fv-ranking" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Detalle FV y Ranking">☀️</span>`;
+            // Detalles visibles en móvil
+            solarDetails = `<div class="solar-details">☀️ ${escapeHtml(parts.join(' • '))}</div>`;
+          } else if(bvSaldoFin !== null && bvSaldoFin !== undefined && r.fvTipo && r.fvTipo.includes('BV')){
+            // Caso sin excedentes PERO con batería virtual: mostrar solo info BV
+            const parts = [];
+            if(credit2 > 0) parts.push(`🔋 BV usada: ${credit2.toFixed(2)} € (ahorros de meses anteriores aplicados ahora)`);
+            parts.push(`🔋 Saldo BV final: ${Number(bvSaldoFin).toFixed(2)} € (disponible para el próximo mes)`);
+            const tip = parts.join('\n');
+            fvIcon = `<span class="tooltip fv-icon" data-tip="${escapeHtml(tip)}" role="button" tabindex="0" aria-label="Detalle BV">🔋</span>`;
+            // Detalles visibles en móvil
+            solarDetails = `<div class="solar-details">🔋 ${escapeHtml(parts.join(' • '))}</div>`;
+          }
+
+          // Cabecera: nombre + iconos (layout estable en móvil)
+          const icons = `<span class="tarifa-icons">${fvIcon || ""}${requisitosTooltip || ""}${nombreWarn || ""}</span>`;
+
+          // En móvil, movemos Ranking y Tipo a la cabecera (así evitamos filas extra)
+          const badgeRow = `<div class="tarifa-badges" aria-hidden="true">`+
+              `<span class="badge rank">#${idx + 1}</span>`+
+              `${rowTipoBadge(r.tipo)}`+
+            `</div>`;
+
+          const nombreDisplay =
+            `${badgeRow}`+
+            `<div class="tarifa-title">`+
+              `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>`+
+              `${icons}`+
+            `</div>`+
+            `${solarDetails || ""}`;
+          tr.innerHTML =
+            `<td>${idx + 1}</td>`+
+            `<td class="tarifa-cell" title="${escapeHtml(nombreBase)}">${nombreDisplay}</td>`+
+            `<td>${escapeHtml(r.potencia)}</td>`+
+            `<td>${escapeHtml(r.consumo)}</td>`+
+            `<td>${escapeHtml(r.impuestos)}</td>`+
+            `<td class="total-cell"><span class="total-pill"><strong class="total-price js-total-amount"${isBV ? ` data-pagas="${escapeHtml(bvPagasFmt)}" data-ranking="${escapeHtml(bvRankingFmt)}"` : ""}>${escapeHtml(r.total)}</strong></span></td>`+
+            `<td class="vs">${formatVsWithBar(r.vsMejor,r.vsMejorNum)}</td>`+
+            `<td>${rowTipoBadge(r.tipo)}</td>`+
+            `<td style="text-align:center">${w}</td>`;
+          frag.appendChild(tr);
+        });
+
+        el.tbody.replaceChildren(frag);
+
+        // Inicializar tooltips para los requisitos recién añadidos
+        el.tbody.querySelectorAll('.requisitos-icon').forEach(t => bindTooltipElement(t));
+        el.tbody.querySelectorAll('.fv-icon').forEach(t => bindTooltipElement(t));
+        updateSortIcons();
+      });
+    }
+
+    function renderTopChart() {
+      const c = document.getElementById('chartTop');
+      const body = document.getElementById('chartTopBody');
+      if (!c || !body) return;
+
+      const rows = (state.rows || []).filter(r => !r.pvpcNotComputable && r.total !== '—');
+      if (!rows.length) {
+        c.classList.remove('show');
+        body.innerHTML = '';
+        return;
+      }
+
+      const sorted = rows.slice().sort((a, b) => a.totalNum - b.totalNum).slice(0, 5);
+      const max = sorted[sorted.length - 1].totalNum || 1;
+
+      const frag = document.createDocumentFragment();
+      sorted.forEach((r, idx) => {
+        const row = document.createElement('div');
+        row.className = 'chartTop-row';
+        if (idx === 0) row.classList.add('best');
+
+        const pct = Math.max(5, Math.round((r.totalNum / max) * 100));
+
+        row.innerHTML = `
+          <div class="chartTop-name" title="${escapeHtml(r.nombre)}">${escapeHtml(r.nombre)}</div>
+          <div class="chartTop-barTrack"><div class="chartTop-barFill" data-width="${pct}%"></div></div>
+          <div class="chartTop-value">${escapeHtml(r.total || '')}</div>
+        `;
+        frag.appendChild(row);
+      });
+
+      body.replaceChildren(frag);
+      c.style.display='';
+      c.classList.add('show');
+
+      requestAnimationFrame(() => {
+        body.querySelectorAll('.chartTop-barFill').forEach(bar => {
+          const w = bar.getAttribute('data-width') || '0%';
+          bar.style.width = w;
+        });
+      });
+    }
+
+    function renderPvpcInfo(){
+      const div = el.pvpcInfo;
+      if(!div) return;
+
+      const warningEl = document.getElementById('pvpc-warning-canarias-potencia');
+      if (warningEl) {
+        warningEl.style.display = pvpcCasoInvalidoCanariasViviendaPotAlta ? 'block' : 'none';
+      }
+
+      if(!pvpcLastMeta){
+        div.style.display='none';
+        div.textContent='';
+        return;
+      }
+
+      const fmt = (n) => {
+        if (!Number.isFinite(n)) return '—';
+        let s = n.toFixed(6);
+        s = s.replace(/0+$/,'').replace(/\.$/,'');
+        s = s.replace('.',',');
+        return `${s} €/kWh`;
+      };
+      const rango=pvpcLastMeta.rangoFechas?`Periodo oficial: ${pvpcLastMeta.rangoFechas.inicio} - ${pvpcLastMeta.rangoFechas.fin}`:'';
+      const fecha=pvpcLastMeta.fechaConsulta?new Date(pvpcLastMeta.fechaConsulta):null;
+      
+      const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
+      const fechaTxt = fecha ? fecha.toLocaleString('es-ES', dateOptions) : '-';
+
+      div.style.display='block';
+      div.innerHTML = `
+        <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
+          <div style="display:flex; align-items:center; gap:8px; font-weight:900; color:var(--text); font-size:13px;">
+            PVPC (tarifa regulada)
+            <span class="tooltip"
+                  data-tip="Fuente: CNMC (facturaluz2.cnmc.es). Proyecto independiente (no afiliado). El PVPC mostrado es una estimación orientativa basada en los datos introducidos."
+                  role="button"
+                  tabindex="0"
+                  aria-label="Información sobre PVPC">
+              i
+            </span>
+          </div>
+          <div style="font-size:11px; color:var(--muted2);">${escapeHtml(fechaTxt)}</div>
+        </div>
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:8px; margin-top:8px;">
+          <div style="display:flex; flex-direction:column; background:rgba(239,68,68,.1); border:1px solid rgba(239,68,68,.3); padding:6px 10px; border-radius:8px;">
+            <span style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:rgba(239,68,68,1); font-weight:800;">Punta (P1)</span>
+            <span style="font-family:var(--mono); font-weight:700; font-size:13px;">${fmt(pvpcLastMeta.precioPunta)}</span>
+          </div>
+          <div style="display:flex; flex-direction:column; background:rgba(245,158,11,.1); border:1px solid rgba(245,158,11,.3); padding:6px 10px; border-radius:8px;">
+            <span style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:rgba(245,158,11,1); font-weight:800;">Llano (P2)</span>
+            <span style="font-family:var(--mono); font-weight:700; font-size:13px;">${fmt(pvpcLastMeta.precioLlano)}</span>
+          </div>
+          <div style="display:flex; flex-direction:column; background:rgba(34,197,94,.1); border:1px solid rgba(34,197,94,.3); padding:6px 10px; border-radius:8px;">
+            <span style="font-size:10px; text-transform:uppercase; letter-spacing:0.5px; color:rgba(34,197,94,1); font-weight:800;">Valle (P3)</span>
+            <span style="font-family:var(--mono); font-weight:700; font-size:13px;">${fmt(pvpcLastMeta.precioValle)}</span>
+          </div>
+        </div>
+        ${rango ? `<div style="margin-top:8px; font-size:11px; color:var(--muted2); text-align:right;">${escapeHtml(rango)}</div>` : ''}
+      `;
+      // FIX: tooltips creados dinámicamente
+      initTooltips();
+    }
+
+    function renderAll(d){
+      if(!d||!d.success){setStatus('Error de cálculo','err');toast('Error al calcular','err');return;}
+      state.pending=false;
+      setStatus('Resultados actualizados','ok');
+
+      const r=d.resumen||{};
+      if(r.mejor) animateCounter(el.kpiBest, r.mejor);
+      if(r.precio) animateCounter(el.kpiPrice, r.precio);
+
+      const seoFold=document.getElementById('info');
+      if(seoFold) seoFold.classList.add('show');
+      el.heroKpis.classList.add('show');
+      createSuccessParticles(el.heroKpis);
+      
+      // Mostrar sección de resultados (primera vez que se calcula)
+      const seccionResultados = document.getElementById('seccionResultados');
+      const esPrimeraVez = seccionResultados && !seccionResultados.classList.contains('visible');
+      if(seccionResultados && esPrimeraVez){
+        seccionResultados.classList.add('visible');
+        // Scroll suave a resultados después de un pequeño delay para que se renderice
+        setTimeout(() => {
+          seccionResultados.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }, 300);
+      }
+
+      const s=d.stats;
+      if(s){
+        el.statMin.textContent=s.precioMin;
+        el.statAvg.textContent=s.precioMedio;
+        el.statMax.textContent=s.precioMax;
+        el.statsBar.classList.add('show');
+      }
+
+      state.rows=Array.isArray(d.resultados)?d.resultados:[];
+      el.toolbar.classList.add('show');
+
+      renderTopChart();
+      renderTable();
+      renderPvpcInfo();
+
+      if(window.innerWidth<1100){
+        const sb=$('scrollToResults');
+        sb.style.display='block';
+        setTimeout(()=>sb.style.display='none',5000);
+      }
+    }
+
+    function scheduleCalculateDebounced(){
+      clearTimeout(state.debounce);
+      state.debounce = setTimeout(()=>{
+        const valid = validateInputs();
+        if(valid) markPending();
+        else setStatus('Corrige los datos para calcular','err');
+      }, 200);
+    }
+
+    
+    // Lógica de factura (PDF + OCR + modal) movida a factura.js para mantener app.js más ligero
+
+    function runCalculation(forceRefresh = false){
+      if (window.__LF_CALC_INFLIGHT) return;
+      calculate(true, forceRefresh);
+    }
+
+    async function calculate(isUserAction, forceRefresh = false){
+      if(!validateInputs()){
+        setStatus('Corrige los datos para calcular','err');
+        return;
+      }
+      const values = getInputValues();
+      const signature = signatureFromValues(values);
+
+      // FIX: permitir recalcular en clicks del usuario aunque signature sea igual (sin re-fetch)
+      if(!forceRefresh && !isUserAction && state.lastSignature === signature){
+        setStatus('Listo para calcular', 'idle');
+        return;
+      }
+      if (window.__LF_CALC_INFLIGHT) return;
+      window.__LF_CALC_INFLIGHT = true;
+      try{
+        saveInputs();
+        setStatus('Calculando...', 'loading');
+
+      const loaded = await fetchTarifas(forceRefresh);
+      if(!loaded) return;
+
+      const pvpc = await crearTarifaPVPC(values);
+      const base = Array.isArray(baseTarifasCache) ? baseTarifasCache.slice() : [];
+      
+      // Añadir tarifa personalizada si está marcada
+      const miTarifa = agregarMiTarifa();
+      if (miTarifa) {
+        base.unshift(miTarifa);
+      }
+      
+      cachedTarifas = pvpc ? [...base, pvpc] : base;
+      if(!pvpc) pvpcLastMeta=null;
+
+      // FIX INP: Dar tiempo al navegador a pintar el spinner antes de bloquear con cálculos
+      await new Promise(resolve => requestAnimationFrame(resolve));
+      await new Promise(resolve => setTimeout(resolve, 0));
+      calculateLocal(values);
+      state.lastSignature = signature;
+      state.pending = false;
+      }catch(err){
+        console.error(err);
+        setStatus('No se ha podido calcular. Inténtalo de nuevo.', 'err');
+      }finally{
+        window.__LF_CALC_INFLIGHT = false;
+      }
+    }
+
+    function toggleMenu(force){
+      const s=(typeof force==='boolean')?force:!el.menuPanel.classList.contains('show');
+      el.menuPanel.classList.toggle('show',s);
+      el.btnMenu.setAttribute('aria-expanded',s?'true':'false');
+    }
+
+    document.addEventListener('DOMContentLoaded', async ()=>{
+      initTooltips();
+      applyThemeClass(document.documentElement.classList.contains('light-mode')?'light':'dark');
+      updateThemeIcon();
+      loadInputs();
+      updateSolarUI();
+
+      initialStatusText = el.statusText?.textContent || '';
+      initialStatusClass = el.statusPill?.className || '';
+
+      validateInputs();
+      markPending('Introduce tus datos y pulsa Calcular para ver el ranking.');
+
+      Object.values(el.inputs).forEach(i=>{
+        if(!i) return;
+        i.addEventListener('input',()=>{
+          updateKwhHint();
+          scheduleCalculateDebounced();
+        });
+
+        // FIX: Normalizar formato decimal (punto → coma) al salir del campo
+        // Soluciona inconsistencia visual en móviles donde el teclado numérico solo permite punto
+        if (['p1', 'p2', 'cPunta', 'cLlano', 'cValle'].includes(i.id)) {
+          i.addEventListener('blur', () => {
+            if (i.value) {
+              i.value = formatValueForDisplay(i.value);
+            }
+          });
+        }
+      });
+
+      if(el.inputs.zonaFiscal){
+        el.inputs.zonaFiscal.addEventListener('change',()=>{
+          updateZonaFiscalUI();
+          scheduleCalculateDebounced();
+        });
+      }
+      if(el.inputs.viviendaCanarias){
+        el.inputs.viviendaCanarias.addEventListener('change',()=>{
+          scheduleCalculateDebounced();
+        });
+      }
+      if(el.inputs.solarOn){
+        el.inputs.solarOn.addEventListener('change',()=>{
+          updateSolarUI();
+          scheduleCalculateDebounced();
+        });
+      }
+
+      if(el.btnTheme){
+        el.btnTheme.addEventListener('click',(e)=>{
+          createRipple(el.btnTheme,e);
+          toggleTheme();
+        });
+      }
+
+      document.querySelectorAll('.fbtn').forEach(b=>{
+        b.addEventListener('click',(e)=>{
+          createRipple(b,e);
+          document.querySelectorAll('.fbtn').forEach(x=>x.classList.remove('active'));
+          b.classList.add('active');
+          state.filter=b.getAttribute('data-filter');
+          renderTable();
+        });
+      });
+
+      document.querySelectorAll('thead th.sort').forEach(th=>{
+        th.addEventListener('click',()=>{
+          const k=th.getAttribute('data-sort');
+          if(!k)return;
+          if(state.sort.key===k)state.sort.dir=(state.sort.dir==='asc')?'desc':'asc';
+          else{state.sort.key=k;state.sort.dir='asc';}
+          renderTable();updateSortIcons();
+        });
+      });
+
+      el.btnCalc.addEventListener('click',(e)=>{
+        createRipple(el.btnCalc,e);
+        runCalculation(false);
+      });
+
+      // Enter en cualquier input → Calcular
+      Object.values(el.inputs).forEach(input => {
+        if(!input) return;
+        input.addEventListener('keypress', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            createRipple(el.btnCalc, { clientX: el.btnCalc.offsetLeft + el.btnCalc.offsetWidth/2, clientY: el.btnCalc.offsetTop + el.btnCalc.offsetHeight/2 });
+            runCalculation(true);
+          }
+        });
+      });
+
+      el.btnMenu.addEventListener('click',(e)=>{
+        createRipple(el.btnMenu,e);
+        e.stopPropagation();
+        toggleMenu();
+      });
+
+      el.menuPanel.addEventListener('click',(e)=>e.stopPropagation());
+      document.addEventListener('click',()=>toggleMenu(false));
+      document.addEventListener('keydown',(e)=>{if(e.key==='Escape')toggleMenu(false);});
+
+      el.btnReset.addEventListener('click',(e)=>{
+        createRipple(el.btnReset,e);
+        toggleMenu(false);
+        try { localStorage.removeItem(LS_KEY); } catch(e){}
+        try { sessionStorage.removeItem(LS_KEY); } catch(e){}
+        window.location.href = window.location.pathname + '?reset=1';
+      });
+
+      // NOTA: La exportación se maneja en xlsx-export.js
+      // No añadir listener aquí para evitar duplicados
+
+      el.btnShare.addEventListener('click', async (e) => {
+        createRipple(el.btnShare,e);
+        toggleMenu(false);
+
+        const d = saveInputs();
+        const qp = new URLSearchParams(d).toString();
+        const url = `${window.location.origin}${window.location.pathname}?${qp}`;
+        
+        // Usar API nativa de compartir en móvil si está disponible
+        if (navigator.share) {
+          try {
+            await navigator.share({
+              title: 'Mi configuración - LuzFija.es',
+              text: 'Compara tarifas de luz con mi configuración',
+              url: url
+            });
+            toast('Configuración compartida');
+            return;
+          } catch (err) {
+            // Usuario canceló o error - fallback a copiar
+            if (err.name !== 'AbortError') {
+              console.warn('Error al compartir:', err);
+            }
+          }
+        }
+        
+        // Fallback: copiar al portapapeles
+        await copyText(url);
+        toast('Enlace copiado al portapapeles');
+      });
+
+      if (typeof window.__LF_bindFacturaParser === 'function') {
+        window.__LF_bindFacturaParser();
+      }
+
+      // Inicializar importador de CSV
+      try {
+        initCSVImporter();
+      } catch(e) {
+        console.error('Error inicializando CSV importer:', e);
+      }
+
+      $('scrollToResults').addEventListener('click',()=>$('heroKpis').scrollIntoView({behavior:'smooth',block:'start'}));
+
+      // ============================================
+      // TARIFA PERSONALIZADA
+      // ============================================
+      
+      // Toggle del formulario de tarifa personalizada
+      $('compararMiTarifa')?.addEventListener('change', (e) => {
+        const form = $('miTarifaForm');
+        if (!form) return;
+        form.style.display = e.target.checked ? 'block' : 'none';
+        if (e.target.checked) updateMiTarifaForm();
+      });
+
+      $('solarOn')?.addEventListener('change', () => {
+        if ($('compararMiTarifa')?.checked) updateMiTarifaForm();
+      });
+
+      // Mostrar última actualización (si existe en caché) y precargar tarifas en segundo plano
+      try{
+        const cachedMeta = readTarifasCache({ allowExpired: true });
+        if(cachedMeta && cachedMeta.meta){
+          __LF_tarifasMeta = cachedMeta.meta;
+          renderTarifasUpdated(__LF_tarifasMeta);
+        }
+      }catch(e){}
+      fetchTarifas(false, { silent: true }).catch(()=>{});
+
+    });
+  
+
+// --- PWA: registro del Service Worker e instalación opcional ---
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', function () {
+    navigator.serviceWorker.register('/sw.js').catch(function (err) {
+      console.error('SW registration failed', err);
+    });
+  });
+}
+
+let __lf_deferredInstallPrompt = null;
+let __lf_installButton = null;
+
+// Configuramos el botón de instalación cuando el DOM está listo
+document.addEventListener('DOMContentLoaded', function () {
+  __lf_installButton = document.querySelector('[data-install-pwa]');
+  if (!__lf_installButton) {
+    return;
+  }
+
+  // El botón empieza oculto y solo se muestra cuando beforeinstallprompt se dispare
+  __lf_installButton.style.display = 'none';
+
+  __lf_installButton.addEventListener('click', function () {
+    // Si el navegador ha disparado beforeinstallprompt, intentamos usar el diálogo nativo
+    if (__lf_deferredInstallPrompt) {
+      try {
+        __lf_deferredInstallPrompt.prompt();
+        __lf_deferredInstallPrompt.userChoice.then(function (choiceResult) {
+          if (choiceResult.outcome === 'accepted') {
+          }
+          __lf_deferredInstallPrompt = null;
+          __lf_installButton.style.display = 'none';
+        }).catch(function (err) {
+          console.warn('Error en userChoice:', err);
+        });
+      } catch (e) {
+        console.warn('No se ha podido lanzar el prompt de instalación nativo:', e);
+      }
+      return;
+    }
+
+    // Fallback: instrucciones según plataforma
+    var ua = navigator.userAgent || '';
+    if (/Android/i.test(ua)) {
+      alert('Para instalar LuzFija, abre el menú del navegador (⋮) y pulsa "Instalar app" o "Añadir a pantalla de inicio".');
+    } else if (/iPhone|iPad|iPod/i.test(ua)) {
+      alert('Para instalar LuzFija, pulsa el botón de compartir y luego "Añadir a pantalla de inicio".');
+    } else {
+      alert('Puedes instalar esta web como app usando la opción "Instalar" o "Añadir a pantalla de inicio" de tu navegador.');
+    }
+  });
+
+  // Si el evento ya ha llegado antes de que el DOM esté listo, mostramos el botón
+  if (__lf_deferredInstallPrompt) {
+    __lf_installButton.style.display = 'inline-flex';
+  }
+});
+
+// Guardamos el evento cuando el navegador decide que la PWA es instalable
+window.addEventListener('beforeinstallprompt', function (event) {
+  // No llamamos a preventDefault: permitimos que Chrome muestre su banner nativo
+  __lf_deferredInstallPrompt = event;
+
+  if (__lf_installButton) {
+    __lf_installButton.style.display = 'inline-flex';
+  }
+});
+
+// ============================================
+// TARIFA PERSONALIZADA - FUNCIONES
+// ============================================
+
+function updateMiTarifaForm() {
+  const tieneSolar = $('solarOn')?.checked || false;
+  const container = $('miTarifaPrecios');
+  if (!container) return;
+  
+  // Aviso informativo + campos con ejemplos numéricos
+  container.innerHTML = `
+    <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 12px;">
+      <div style="display: flex; align-items: start; gap: 8px;">
+        <span style="font-size: 16px;">💡</span>
+        <div style="color: var(--text); line-height: 1.4;">
+          <strong>Busca estos precios en tu factura:</strong><br>
+          <span style="color: var(--muted2); font-size: 11px;">
+            • <strong>Término de energía:</strong> precios por kWh consumido (Punta/Llano/Valle)<br>
+            • <strong>Término de potencia:</strong> precios por kW contratado/día (P1/P2)
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="form" style="gap:8px;">
+      <div class="group">
+        <label for="mtPunta">Punta (€/kWh)</label>
+        <input id="mtPunta" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,1543">
+      </div>
+      <div class="group">
+        <label for="mtLlano">Llano (€/kWh)</label>
+        <input id="mtLlano" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,1234">
+      </div>
+      <div class="group">
+        <label for="mtValle">Valle (€/kWh)</label>
+        <input id="mtValle" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0899">
+      </div>
+    </div>
+    <div class="form">
+      <div class="group">
+        <label for="mtP1">Potencia P1 (€/kW/día)</label>
+        <input id="mtP1" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0891">
+      </div>
+      <div class="group">
+        <label for="mtP2">Potencia P2 (€/kW/día)</label>
+        <input id="mtP2" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0445">
+      </div>
+    </div>
+  `;
+  
+  // Si tiene placas solares marcadas, añadir campo de compensación
+  if (tieneSolar) {
+    container.innerHTML += `
+      <div class="group" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+        <label for="mtPrecioExc">☀️ Precio compensación excedentes (€/kWh)</label>
+        <input id="mtPrecioExc" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0743">
+        <small style="font-size:11px; color:var(--muted2); margin-top:4px; display:block;">
+          Lo que te pagan por los kWh vertidos a la red
+        </small>
+      </div>
+    `;
+  }
+}
+
+function agregarMiTarifa() {
+  if (!$('compararMiTarifa')?.checked) return null;
+  
+  const tieneSolar = $('solarOn')?.checked || false;
+  
+  // Leer siempre los 6 campos
+  const punta = parseNum($('mtPunta')?.value || '0');
+  const llano = parseNum($('mtLlano')?.value || '0');
+  const valle = parseNum($('mtValle')?.value || '0');
+  const p1 = parseNum($('mtP1')?.value || '0');
+  const p2 = parseNum($('mtP2')?.value || '0');
+  
+  if (punta <= 0 || llano <= 0 || valle <= 0 || p1 <= 0 || p2 <= 0) {
+    toast('Completa todos los campos de tu tarifa');
+    return null;
+  }
+  
+  // Detectar automáticamente si es 1P o 3P
+  const es1P = (punta === llano && llano === valle);
+  
+  // Precio de compensación solar (si aplica)
+  const precioExc = tieneSolar ? parseNum($('mtPrecioExc')?.value || '0') : 0;
+  
+  const tarifa = {
+    nombre: 'Mi tarifa ⭐',
+    tipo: es1P ? '1P' : '3P',
+    cPunta: punta,
+    cLlano: llano,
+    cValle: valle,
+    p1: p1,
+    p2: p2,
+    web: '#',
+    esPersonalizada: true,
+    fv: {
+      exc: precioExc,
+      tipo: precioExc > 0 ? 'SIMPLE + BV' : 'NO COMPENSA',
+      tope: 'ENERGIA',
+      bv: precioExc > 0,
+      reglaBV: precioExc > 0 ? 'BV MES ANTERIOR' : 'NO APLICA'
+    },
+    requiereFV: false
+  };
+  
+  return tarifa;
+}
+
+// ============================================
+// IMPORTAR CSV DE CONSUMOS
+// ============================================
+
+function parseCSVConsumos(fileContent) {
+  /**
+   * Parsea CSV de consumos horarios de distribuidoras españolas
+   * Ahora soporta excedentes y autoconsumo
+   * 
+   * FORMATOS SOPORTADOS:
+   * 1. e-distribución BÁSICO: CUPS;Fecha;Hora;AE_kWh;REAL/ESTIMADO
+   * 2. e-distribución CON SOLAR: CUPS;Fecha;Hora;AE_kWh;AS_KWh;AE_AUTOCONS_kWh;REAL/ESTIMADO
+   * 3. i-DE (Iberdrola): CUPS;Fecha;Hora;Consumo_kWh;Metodo_obtencion
+   * 
+   * Formato estándar CNMC:
+   * - Fechas: DD/MM/YYYY
+   * - Horas: 1-24 (no 0-23)
+   * - Separador: punto y coma (;)
+   */
+  const lines = fileContent.split('\n');
+  if (lines.length < 2) throw new Error('CSV vacío o inválido');
+  
+  const header = lines[0].toLowerCase();
+  
+  // Detectar formato estándar español (CNMC)
+  const isFormatoEspanol = header.includes('ae_kwh') || header.includes('consumo_kwh');
+  
+  if (!isFormatoEspanol) {
+    throw new Error('Formato CSV no reconocido. Se esperaba el formato estándar de distribuidoras españolas (e-distribución, i-DE, etc.)');
+  }
+  
+  // Detectar si tiene columnas de solar
+  const tieneSolar = header.includes('as_kwh');
+  const tieneAutoconsumo = header.includes('ae_autocons_kwh');
+  
+  const consumos = [];
+  
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    
+    const cols = line.split(';');
+    if (cols.length < 4) continue;
+    
+    // Formato básico: CUPS;Fecha;Hora;Consumo_kWh;Metodo
+    // Formato solar: CUPS;Fecha;Hora;AE_kWh;AS_KWh;AE_AUTOCONS_kWh;REAL/ESTIMADO
+    const fechaStr = cols[1];  // DD/MM/YYYY
+    const hora = parseInt(cols[2]);  // 1-24
+    const kwhStr = cols[3];
+    
+    // Columnas de solar (si existen)
+    const excedenteStr = tieneSolar ? cols[4] : null;
+    const autoconsumoStr = tieneAutoconsumo ? cols[5] : null;
+    const esReal = cols[tieneSolar && tieneAutoconsumo ? 6 : 4] === 'R';
+    
+    if (!kwhStr || kwhStr.trim() === '') continue;
+    
+    // Parsear consumo de red
+    const kwh = parseFloat(kwhStr.replace(',', '.'));
+    if (isNaN(kwh)) continue;
+    
+    // Parsear excedentes (energía vertida a la red)
+    let excedente = 0;
+    if (excedenteStr && excedenteStr.trim() !== '') {
+      const exc = parseFloat(excedenteStr.replace(',', '.'));
+      if (!isNaN(exc)) excedente = exc;
+    }
+    
+    // Parsear autoconsumo (energía solar usada directamente)
+    let autoconsumo = 0;
+    if (autoconsumoStr && autoconsumoStr.trim() !== '') {
+      const auto = parseFloat(autoconsumoStr.replace(',', '.'));
+      if (!isNaN(auto)) autoconsumo = auto;
+    }
+    
+    // Parsear fecha DD/MM/YYYY
+    const [dia, mes, año] = fechaStr.split('/').map(Number);
+    const fecha = new Date(año, mes - 1, dia);
+    
+    if (isNaN(fecha.getTime())) continue;
+    
+    consumos.push({ 
+      fecha, 
+      hora, 
+      kwh,           // Consumo de red
+      excedente,     // Energía vertida a red (AS_KWh)
+      autoconsumo,   // Energía solar autoconsumida (AE_AUTOCONS_kWh)
+      esReal 
+    });
+  }
+  
+  return consumos;
+}
+
+/**
+ * Parsea archivos XLSX (Excel) de distribuidoras que usan este formato
+ * 
+ * FORMATO ESPERADO:
+ * - Fila 1: Título (periodo de facturación)
+ * - Fila 2: Dirección
+ * - Fila 3: Cabeceras (CUPS, FECHA-HORA, INV/VER, PERIODO TARIFARIO, CONSUMO Wh, GENERACION Wh)
+ * - Filas siguientes: Datos horarios
+ * 
+ * CÁLCULO DE EXCEDENTES:
+ * - Si GENERACION > CONSUMO → Excedente = GENERACION - CONSUMO
+ * - Si CONSUMO > GENERACION → Red cubre la diferencia, excedente = 0
+ */
+async function parseXLSXConsumos(fileBuffer) {
+  // Cargar XLSX bajo demanda si no está disponible
+  await ensureXLSX();
+  
+  const workbook = XLSX.read(fileBuffer, { type: 'array' });
+  const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+  const data = XLSX.utils.sheet_to_json(firstSheet, { header: 1, raw: false });
+  
+  if (data.length < 2) {
+    throw new Error('Archivo Excel vacío o formato no reconocido');
+  }
+  
+  // BUG FIX 1: Detectar fila de cabecera buscando "FECHA-HORA" o "FECHA"
+  // Las cabeceras pueden estar en fila 0, 1, 2 o 3 según distribuidora
+  let headerRow = -1;
+  for (let i = 0; i < Math.min(5, data.length); i++) {
+    const row = data[i];
+    if (row && row.some(cell => {
+      const cellStr = String(cell).toUpperCase();
+      return cellStr.includes('FECHA-HORA') || cellStr.includes('FECHA');
+    })) {
+      headerRow = i;
+      break;
+    }
+  }
+  
+  if (headerRow === -1) {
+    throw new Error('No se encontró la fila de cabecera en el Excel');
+  }
+  
+  const headers = data[headerRow];
+  if (!headers || headers.length < 4) {
+    throw new Error('Formato Excel no reconocido. Se esperan al menos: FECHA, PERIODO, CONSUMO, GENERACION');
+  }
+  
+  // Identificar índices de columnas (más robusto que posiciones fijas)
+  const colFechaHora = headers.findIndex(h => {
+    const hStr = String(h).toUpperCase();
+    return hStr.includes('FECHA');
+  });
+  const colPeriodo = headers.findIndex(h => {
+    const hStr = String(h).toUpperCase();
+    return hStr.includes('PERIODO') && hStr.includes('TARIFARIO');
+  });
+  const colConsumo = headers.findIndex(h => String(h).toUpperCase().includes('CONSUMO'));
+  const colGeneracion = headers.findIndex(h => String(h).toUpperCase().includes('GENERACION'));
+  
+  if (colFechaHora === -1 || colConsumo === -1 || colGeneracion === -1) {
+    throw new Error('No se encontraron las columnas necesarias (FECHA, CONSUMO, GENERACION) en el Excel');
+  }
+  
+  const consumos = [];
+  
+  // Empezar desde la fila siguiente a headers
+  for (let i = headerRow + 1; i < data.length; i++) {
+    const row = data[i];
+    if (!row || row.length < 4) continue;
+    
+    const fechaHoraStr = row[colFechaHora];
+    const periodoTarifario = colPeriodo !== -1 ? String(row[colPeriodo] || '').trim() : '';
+    const consumoWh = parseFloat(row[colConsumo]) || 0;
+    const generacionWh = parseFloat(row[colGeneracion]) || 0;
+    
+    if (!fechaHoraStr) continue;
+    
+    const [fechaStr, horaStr] = String(fechaHoraStr).split(' ');
+    if (!fechaStr || !horaStr) continue;
+    
+    const [año, mes, dia] = fechaStr.split('/').map(Number);
+    const horaXLSX = parseInt(horaStr.split(':')[0]); // 0-23 en XLSX i-DE
+    
+    // BUG FIX 2: Convertir hora XLSX (0-23) a hora CNMC (1-24)
+    // XLSX hora 0 = 00:00-01:00 → CNMC hora 1
+    // XLSX hora 23 = 23:00-00:00 → CNMC hora 24
+    const horaCNMC = horaXLSX + 1;
+    
+    const fecha = new Date(año, mes - 1, dia);
+    if (isNaN(fecha.getTime())) continue;
+    
+    const consumoKwh = consumoWh / 1000;
+    const generacionKwh = generacionWh / 1000;
+    
+    // BUG FIX 3: Usar PERIODO TARIFARIO si está disponible en el fichero
+    // Esto evita errores de clasificación por festivos, hora 0, etc.
+    let periodoCalculado = null;
+    if (periodoTarifario) {
+      const pUpper = periodoTarifario.toUpperCase();
+      if (pUpper.includes('PUNTA') || pUpper === 'P1') periodoCalculado = 'P1';
+      else if (pUpper.includes('LLANO') || pUpper === 'P2') periodoCalculado = 'P2';
+      else if (pUpper.includes('VALLE') || pUpper === 'P3') periodoCalculado = 'P3';
+    }
+    
+    // El Excel de I-DE ya trae los valores netos:
+    // - CONSUMO Wh: Consumo de RED (ya neto, restado el autoconsumo)
+    // - GENERACION Wh: Excedentes vertidos a la red (ya neto)
+    // Por tanto, usamos los valores directamente
+    
+    consumos.push({
+      fecha,
+      hora: horaCNMC,          // BUG FIX 2: hora CNMC (1-24)
+      kwh: consumoKwh,         // Consumo de RED (directo)
+      excedente: generacionKwh, // Excedentes (directo)
+      autoconsumo: 0,          // No disponible en este formato
+      periodo: periodoCalculado, // BUG FIX 3: periodo del fichero (si disponible)
+      esReal: true
+    });
+  }
+  
+  return consumos;
+}
+
+/**
+ * Calcula el Viernes Santo para un año dado usando el algoritmo de Gauss (Computus)
+ * El Viernes Santo es 2 días antes del Domingo de Pascua
+ */
+function calcularViernesSanto(year) {
+  // Algoritmo de Gauss para calcular la Pascua
+  const a = year % 19;
+  const b = Math.floor(year / 100);
+  const c = year % 100;
+  const d = Math.floor(b / 4);
+  const e = b % 4;
+  const f = Math.floor((b + 8) / 25);
+  const g = Math.floor((b - f + 1) / 3);
+  const h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4);
+  const k = c % 4;
+  const l = (32 + 2 * e + 2 * i - h - k) % 7;
+  const m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const month = Math.floor((h + l - 7 * m + 114) / 31); // 3=marzo, 4=abril
+  const day = ((h + l - 7 * m + 114) % 31) + 1;
+  
+  // Esto nos da el Domingo de Pascua
+  // Viernes Santo es 2 días antes
+  const pascua = new Date(year, month - 1, day);
+  const viernesSanto = new Date(pascua);
+  viernesSanto.setDate(pascua.getDate() - 2);
+  
+  const mes = String(viernesSanto.getMonth() + 1).padStart(2, '0');
+  const dia = String(viernesSanto.getDate()).padStart(2, '0');
+  
+  return `${year}-${mes}-${dia}`;
+}
+
+/**
+ * Genera la lista de festivos nacionales para un año dado
+ * Incluye los 10 festivos nacionales oficiales de España
+ */
+function getFestivosNacionales(year) {
+  return [
+    `${year}-01-01`, // Año Nuevo
+    `${year}-01-06`, // Reyes Magos
+    calcularViernesSanto(year), // Viernes Santo (calculado)
+    `${year}-05-01`, // Día del Trabajo
+    `${year}-08-15`, // Asunción de la Virgen
+    `${year}-10-12`, // Fiesta Nacional de España
+    `${year}-11-01`, // Todos los Santos
+    `${year}-12-06`, // Día de la Constitución
+    `${year}-12-08`, // Inmaculada Concepción
+    `${year}-12-25`  // Navidad
+  ];
+}
+
+function getPeriodoHorarioCSV(fecha, hora) {
+  /**
+   * Determina periodo P1/P2/P3 según RD 148/2021
+   * 
+   * IMPORTANTE: La hora del CSV representa:
+   * Hora 1 = intervalo 00:00-01:00 (hora de inicio: 0)
+   * Hora 8 = intervalo 07:00-08:00 (hora de inicio: 7)
+   * Hora 9 = intervalo 08:00-09:00 (hora de inicio: 8)
+   * Hora 11 = intervalo 10:00-11:00 (hora de inicio: 10)
+   * 
+   * P3 (Valle): 00:00-08:00 todos + TODO el día en festivos/fines de semana
+   * P2 (Llano): 08:00-10:00, 14:00-18:00, 22:00-24:00 en laborables
+   * P1 (Punta): 10:00-14:00, 18:00-22:00 en laborables
+   */
+  
+  const diaSemana = fecha.getDay(); // 0=domingo, 6=sábado
+  const esFinde = diaSemana === 0 || diaSemana === 6;
+  
+  // Formatear fecha como YYYY-MM-DD
+  const year = fecha.getFullYear();
+  const month = String(fecha.getMonth() + 1).padStart(2, '0');
+  const day = String(fecha.getDate()).padStart(2, '0');
+  const fechaStr = `${year}-${month}-${day}`;
+  
+  // Obtener festivos nacionales del año correspondiente
+  const festivosNacionales = getFestivosNacionales(year);
+  const esFestivo = festivosNacionales.includes(fechaStr);
+  
+  // Si es festivo o fin de semana, TODO es P3
+  if (esFinde || esFestivo) return 'P3';
+  
+  // La hora del CSV es 1-24, donde hora N representa el intervalo (N-1):00 - N:00
+  // Hora de inicio del intervalo
+  const horaInicio = hora - 1;
+  
+  // Laborable normal
+  if (horaInicio >= 0 && horaInicio < 8) return 'P3';  // 00:00-08:00
+  if ((horaInicio >= 10 && horaInicio < 14) || (horaInicio >= 18 && horaInicio < 22)) return 'P1';  // Punta
+  return 'P2';  // Llano (08:00-10:00, 14:00-18:00, 22:00-24:00)
+}
+
+// Helper: formatear fecha local sin usar UTC (evita bug de toISOString)
+function ymdLocal(d) {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function clasificarConsumosPorPeriodo(consumos) {
+  const totales = { 
+    P1: 0, P2: 0, P3: 0,
+    excedentesP1: 0, excedentesP2: 0, excedentesP3: 0,
+    autoconsumoP1: 0, autoconsumoP2: 0, autoconsumoP3: 0
+  };
+  const diasUnicos = new Set();
+  let datosReales = 0;
+  let datosEstimados = 0;
+  
+  consumos.forEach(c => {
+    // Usar periodo del fichero si está disponible, sino calcularlo
+    // Esto evita errores cuando el fichero (ej. XLSX i-DE) ya trae PERIODO TARIFARIO
+    const periodo = c.periodo || getPeriodoHorarioCSV(c.fecha, c.hora);
+    
+    totales[periodo] += c.kwh || 0;
+    
+    if (c.excedente) {
+      totales[`excedentes${periodo}`] += c.excedente;
+    }
+    
+    if (c.autoconsumo) {
+      totales[`autoconsumo${periodo}`] += c.autoconsumo;
+    }
+    
+    const fechaKey = ymdLocal(c.fecha);
+    diasUnicos.add(fechaKey);
+    
+    if (c.esReal) datosReales++;
+    else datosEstimados++;
+  });
+  
+  const totalKwh = totales.P1 + totales.P2 + totales.P3;
+  const totalExcedentes = totales.excedentesP1 + totales.excedentesP2 + totales.excedentesP3;
+  const totalAutoconsumo = totales.autoconsumoP1 + totales.autoconsumoP2 + totales.autoconsumoP3;
+  const tieneExcedentes = totalExcedentes > 0;
+  
+  return {
+    punta: totales.P1.toFixed(2).replace('.', ','),
+    llano: totales.P2.toFixed(2).replace('.', ','),
+    valle: totales.P3.toFixed(2).replace('.', ','),
+    
+    excedentesPunta: totales.excedentesP1.toFixed(2).replace('.', ','),
+    excedentesLlano: totales.excedentesP2.toFixed(2).replace('.', ','),
+    excedentesValle: totales.excedentesP3.toFixed(2).replace('.', ','),
+    
+    autoconsumoPunta: totales.autoconsumoP1.toFixed(2).replace('.', ','),
+    autoconsumoLlano: totales.autoconsumoP2.toFixed(2).replace('.', ','),
+    autoconsumoValle: totales.autoconsumoP3.toFixed(2).replace('.', ','),
+    
+    dias: diasUnicos.size,
+    totalKwh: totalKwh.toFixed(2).replace('.', ','),
+    totalExcedentes: totalExcedentes.toFixed(2).replace('.', ','),
+    totalAutoconsumo: totalAutoconsumo.toFixed(2).replace('.', ','),
+    tieneExcedentes,
+    
+    datosReales,
+    datosEstimados,
+    porcentajes: {
+      punta: (totales.P1 / totalKwh * 100).toFixed(1).replace('.', ','),
+      llano: (totales.P2 / totalKwh * 100).toFixed(1).replace('.', ','),
+      valle: (totales.P3 / totalKwh * 100).toFixed(1).replace('.', ',')
+    }
+  };
+}
+
+async function procesarCSVConsumos(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = (e) => {
+      try {
+        const content = e.target.result;
+        const consumos = parseCSVConsumos(content);
+        
+        if (consumos.length === 0) {
+          reject(new Error('No se encontraron datos válidos en el CSV'));
+          return;
+        }
+        
+        const resultado = clasificarConsumosPorPeriodo(consumos);
+        resultado.formato = 'CSV';
+        resolve(resultado);
+      } catch (error) {
+        reject(error);
+      }
+    };
+    
+    reader.onerror = () => reject(new Error('Error al leer el archivo'));
+    reader.readAsText(file);
+  });
+}
+
+async function procesarXLSXConsumos(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    
+    reader.onload = async (e) => {
+      try {
+        const buffer = e.target.result;
+        const consumos = await parseXLSXConsumos(buffer);
+        
+        if (consumos.length === 0) {
+          reject(new Error('No se encontraron datos válidos en el Excel'));
+          return;
+        }
+        
+        const resultado = clasificarConsumosPorPeriodo(consumos);
+        resultado.formato = 'XLSX';
+        resolve(resultado);
+      } catch (error) {
+        reject(error);
+      }
+    };
+    
+    reader.onerror = () => reject(new Error('Error al leer el archivo Excel'));
+    reader.readAsArrayBuffer(file);
+  });
+}
+
+function mostrarPreviewCSV(resultado) {
+  const modal = document.createElement('div');
+  modal.className = 'modal-overlay show';
+  modal.setAttribute('role', 'dialog');
+  modal.setAttribute('aria-modal', 'true');
+  modal.setAttribute('aria-hidden', 'false');
+
+  const isLightMode = document.body.classList.contains('light-mode');
+
+  // Scroll lock suave (sin interferir con otros modales)
+  let __csvLocked = false;
+  let __csvScrollY = 0;
+  function __csvLock(){
+    if (document.documentElement.style.overflow === 'hidden') return;
+    __csvScrollY = window.scrollY || 0;
+    document.documentElement.style.overflow = 'hidden';
+    __csvLocked = true;
   }
   function __csvUnlock(){
     if (!__csvLocked) return;
@@ -1123,16 +2554,6 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
   
   modal.appendChild(content);
   document.body.appendChild(modal);
-  try{ const b = modal.querySelector('#btnCerrarCSV'); b && b.focus && b.focus(); }catch(_){ }
-
-  
-  // Focus trap (para Tab dentro del modal)
-  let __csvFocusTrapCleanup = null;
-  try{
-    const content = modal.querySelector('.modal-content') || modal;
-    if (window.__LF_modalUtil) __csvFocusTrapCleanup = window.__LF_modalUtil.trapFocus(content);
-  }catch(_){}
-
 
   // Activar scroll-lock y gestionar cierre
   __csvLock();
@@ -1143,10 +2564,6 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
     if (__csvCloseOnEsc) document.removeEventListener('keydown', __csvCloseOnEsc);
     if (__csvCloseOnBackdrop) modal.removeEventListener('click', __csvCloseOnBackdrop);
     __csvUnlock();
-    try{ if (__csvFocusTrapCleanup) __csvFocusTrapCleanup(); }catch(_){ }
-    if (window.__LF_modalUtil){ window.__LF_modalUtil.unlockScroll(); window.__LF_modalUtil.restoreFocus(); }
-    else { document.documentElement.style.overflow=''; document.body.style.overflow=''; }
-    try{ __csvPrevFocus && __csvPrevFocus.focus && __csvPrevFocus.focus(); }catch(_){ }
     modal.remove();
   };
   btnCerrarX?.addEventListener('click', closeCSVModal);

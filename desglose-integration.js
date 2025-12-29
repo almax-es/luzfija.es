@@ -161,12 +161,6 @@
         tdTotal.onclick = function(e) {
           e.stopPropagation();
 
-          // Si el usuario está seleccionando texto, no abrimos el modal
-          try {
-            const sel = window.getSelection && window.getSelection().toString();
-            if (sel && sel.trim().length > 0) return;
-          } catch(_) {}
-
           // Feedback visual (sin tocar estilos inline)
           tdTotal.classList.add('desglose-tap');
           window.setTimeout(() => tdTotal.classList.remove('desglose-tap'), 180);
@@ -186,13 +180,6 @@
           const t = ev.target;
           if (t && t.closest && t.closest('a, button, input, select, textarea, .tooltip, .tooltip-icon')) return;
           ev.stopPropagation();
-
-          // Si el usuario está seleccionando texto, no abrimos el modal
-          try {
-            const sel = window.getSelection && window.getSelection().toString();
-            if (sel && sel.trim().length > 0) return;
-          } catch(_) {}
-
           tdNombre.classList.add('desglose-tap');
           window.setTimeout(() => tdNombre.classList.remove('desglose-tap'), 180);
           if (navigator.vibrate) navigator.vibrate(20);
