@@ -611,32 +611,74 @@
               padding: 18px 20px;
               transition: transform 0.2s, box-shadow 0.2s;
             `;
-            
-            novDiv.innerHTML = `
-              <div style="display:flex; align-items:start; gap:12px;">
-                <span style="font-size:24px; line-height:1; flex-shrink:0;">${icono}</span>
-                <div style="flex:1; min-width:0;">
-                  <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:6px;">
-                    <time style="font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;">
-                      ${formatearFecha(nov.fecha)}
-                    </time>
-                  </div>
-                  <h3 style="font-size:15px; font-weight:700; margin:0 0 8px 0; color:var(--text); line-height:1.4;">
-                    ${nov.titulo}
-                  </h3>
-                  <p style="font-size:13px; color:var(--muted); margin:0; line-height:1.5;">
-                    ${nov.texto}
-                  </p>
-                  ${nov.enlace ? `
-                    <a href="${nov.enlace}" target="_blank" rel="noopener noreferrer" 
-                       style="display:inline-flex; align-items:center; gap:4px; margin-top:10px; font-size:12px; 
-                              color:${color}; font-weight:600; text-decoration:none; transition:opacity 0.2s;">
-                      Ver más <span style="font-size:10px;">→</span>
-                    </a>
-                  ` : ''}
-                </div>
-              </div>
-            `;
+
+            // Construir DOM sin innerHTML (más robusto y evita inyecciones accidentales)
+            const row = document.createElement('div');
+            row.style.cssText = 'display:flex; align-items:start; gap:12px;';
+
+            const iconEl = document.createElement('span');
+            iconEl.style.cssText = 'font-size:24px; line-height:1; flex-shrink:0;';
+            iconEl.textContent = icono;
+
+            const content = document.createElement('div');
+            content.style.cssText = 'flex:1; min-width:0;';
+
+            const meta = document.createElement('div');
+            meta.style.cssText = 'display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:6px;';
+
+            const time = document.createElement('time');
+            time.style.cssText = 'font-size:11px; color:var(--muted); font-weight:600; text-transform:uppercase; letter-spacing:0.5px;';
+            time.textContent = formatearFecha(nov.fecha);
+            // Mantener atributo datetime si la fecha parece válida
+            if (typeof nov.fecha === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(nov.fecha)) {
+              time.setAttribute('datetime', nov.fecha);
+            }
+            meta.appendChild(time);
+
+            const title = document.createElement('h3');
+            title.style.cssText = 'font-size:15px; font-weight:700; margin:0 0 8px 0; color:var(--text); line-height:1.4;';
+            title.textContent = (nov.titulo ?? '').toString();
+
+            const text = document.createElement('p');
+            text.style.cssText = 'font-size:13px; color:var(--muted); margin:0; line-height:1.5;';
+            text.textContent = (nov.texto ?? '').toString();
+
+            content.appendChild(meta);
+            content.appendChild(title);
+            content.appendChild(text);
+
+            // Enlace (si existe y es seguro)
+            if (nov.enlace) {
+              let href = '';
+              try {
+                // Permite http(s) y rutas relativas; bloquea esquemas peligrosos
+                const u = new URL(nov.enlace, window.location.href);
+                if (u.protocol === 'http:' || u.protocol === 'https:') href = u.href;
+              } catch (e) {
+                // Ignorar enlaces inválidos
+              }
+              if (href) {
+                const a = document.createElement('a');
+                a.href = href;
+                a.target = '_blank';
+                a.rel = 'noopener noreferrer';
+                a.style.cssText = `display:inline-flex; align-items:center; gap:4px; margin-top:10px; font-size:12px; color:${color}; font-weight:600; text-decoration:none; transition:opacity 0.2s;`;
+                a.textContent = 'Ver más ';
+
+                const arrow = document.createElement('span');
+                arrow.style.cssText = 'font-size:10px;';
+                arrow.textContent = '→';
+                a.appendChild(arrow);
+
+                a.addEventListener('mouseenter', () => { a.style.opacity = '0.85'; });
+                a.addEventListener('mouseleave', () => { a.style.opacity = '1'; });
+                content.appendChild(a);
+              }
+            }
+
+            row.appendChild(iconEl);
+            row.appendChild(content);
+            novDiv.appendChild(row);
             
             // Efecto hover
             novDiv.addEventListener('mouseenter', () => {
