@@ -1900,11 +1900,8 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker
       .register('/sw.js')
       .then(function (reg) {
-        // En desarrollo, pedimos update al cargar para que el navegador compruebe
-        // antes si hay una versión nueva del SW.
-        try {
-          if (reg && typeof reg.update === 'function') reg.update();
-        } catch (e) {}
+        // Forzamos check de actualización al cargar (útil durante desarrollo).
+        try { if (reg && typeof reg.update === 'function') reg.update(); } catch (e) {}
       })
       .catch(function (err) {
         lfDbg('[ERROR] SW registration failed', err);
