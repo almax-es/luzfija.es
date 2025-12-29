@@ -230,7 +230,7 @@
           </svg>
         </div>
         <div>
-          <nav aria-label="Breadcrumb" style="margin-bottom: 8px;">
+          <nav aria-label="Breadcrumb" class="u-mb-8">
             <ol class="breadcrumb">
               <li><a href="/">🏠 Inicio</a></li>
             </ol>
@@ -257,7 +257,7 @@
               <span class="mi-left">🔗 Compartir configuración</span>
               <span class="mi-right">URL</span>
             </button>
-            <a class="menuItem" href="mailto:hola@luzfija.es" role="menuitem" style="text-decoration:none;">
+            <a class="menuItem u-no-underline" href="mailto:hola@luzfija.es" role="menuitem">
               <span class="mi-left">✉️ Contacto</span>
               <span class="mi-right">email</span>
             </a>
@@ -369,7 +369,7 @@
           <div id="miTarifaForm" class="form fv-fields" style="display:none; margin-top:8px; padding:16px; background:var(--card); border-radius:12px; border-left:3px solid var(--accent);">
             <div id="miTarifaPrecios"></div>
           </div>
-          <div class="row" style="margin-top:14px">
+          <div class="row u-mt-14">
             <div class="kwhPill" aria-live="polite">
               <div class="kwhLabel">Total kWh</div>
               <div class="kwhValue" id="kwhHint">—</div>
@@ -473,30 +473,30 @@
 
 
     <!-- Banner Guías -->
-    <div style="max-width:1400px; margin:40px auto 40px; padding:0 clamp(22px, 4.5vw, 60px);">
-      <a href="/guias.html" style="display:block; text-decoration:none; background: linear-gradient(135deg, rgba(139,92,246,0.08) 0%, rgba(59,130,246,0.08) 100%); border:2px solid rgba(139,92,246,0.2); border-radius:16px; padding:clamp(24px, 4vw, 32px); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 4px 20px rgba(139,92,246,0.1); position:relative; overflow:hidden;">
-        <div style="position:absolute; top:0; right:0; width:200px; height:200px; background: radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%); pointer-events:none;"></div>
-        <div style="position:relative; z-index:1;">
+    <div class="section-container mt-40">
+      <a href="/guias.html" class="guides-banner">
+        <div class="guides-banner-glow"></div>
+        <div class="u-relative u-z-1">
           <div class="u-flex u-items-center u-gap-12 u-mb-12">
             <span style="font-size:32px;">📚</span>
             <div>
-              <div style="font-size:clamp(11px, 2vw, 12px); font-weight:700; text-transform:uppercase; letter-spacing:1px; color:var(--accent); opacity:0.9;">Nueva sección</div>
-              <h3 style="font-size:clamp(18px, 3.5vw, 24px); font-weight:900; color:var(--text); margin:4px 0 0 0; line-height:1.2;">Guías sobre tarifas eléctricas</h3>
+              <div class="guides-banner-kicker">Nueva sección</div>
+              <h3 class="guides-banner-title">Guías sobre tarifas eléctricas</h3>
             </div>
           </div>
-          <p style="font-size:clamp(13px, 2.5vw, 15px); color:var(--muted); margin:0 0 16px 0; line-height:1.6; max-width:800px;">
+          <p class="guides-banner-desc">
             ¿Primera vez con discriminación horaria? ¿No sabes qué es P1, P2, P3? ¿Dudas sobre el bono social o PVPC? Te lo explicamos todo en lenguaje claro, sin rollos técnicos.
           </p>
-          <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
+          <div class="u-flex u-flex-wrap u-gap-8 u-mb-16">
             <span class="u-pill-accent">Periodos horarios</span>
             <span class="u-pill-accent">Bono social</span>
             <span class="u-pill-accent">Leer tu factura</span>
             <span class="u-pill-accent">Autoconsumo</span>
             <span class="u-pill-accent">+16 guías más</span>
           </div>
-          <div style="display:inline-flex; align-items:center; gap:8px; font-size:14px; font-weight:700; color:var(--accent);">
+          <div class="guides-banner-cta">
             Ver las 20 guías completas
-            <span style="font-size:18px; transition: transform 0.3s;">→</span>
+            <span class="guides-banner-arrow">→</span>
           </div>
         </div>
       </a>
@@ -556,7 +556,7 @@
     </section>
 
     <!-- SECCIÓN NOVEDADES DEL MERCADO -->
-    <section style="max-width:1400px; margin:60px auto 0 auto; padding:0 clamp(22px, 4.5vw, 60px);">
+    <section class="section-container mt-60">
       <div class="u-flex u-items-center u-gap-12 u-mb-24">
         <span style="font-size:28px; line-height:1;">🔔</span>
         <h2 style="font-size:clamp(20px, 3vw, 26px); font-weight:900; margin:0; color:var(--text);">
@@ -769,7 +769,7 @@
       })();
     </script>
 
-    <footer style="max-width:1400px; margin:0 auto; padding:40px clamp(22px, 4.5vw, 60px) 30px; border-top:1px solid var(--border);">
+    <footer class="footer-container">
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:30px; margin-bottom:30px;">
         <div>
           <h3 class="u-h3-strong-10">Sobre el Comparador</h3>
@@ -817,10 +817,10 @@
           </p>
 
           <div style="margin-top:12px; padding:12px 12px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,.04);">
-            <div style="font-size:11px; letter-spacing:1.2px; text-transform:uppercase; color:var(--muted2); font-weight:900; margin-bottom:6px;">
+            <div class="u-label-xs">
               ✉️ Email
             </div>
-            <a href="mailto:hola@luzfija.es" style="color:var(--accent); font-weight:900; text-decoration:underline; font-size:13px;">
+            <a href="mailto:hola@luzfija.es" class="u-color-accent u-fw-900 u-text-13" style="text-decoration:underline;">
               hola@luzfija.es
             </a>
             <div style="margin-top:8px; font-size:11px; color:var(--muted2); line-height:1.4;">
@@ -886,7 +886,7 @@
           <p style="color:var(--muted); margin-top:12px">Analizando factura…</p>
         </div>
 
-        <div id="avisoFactura" class="help" style="display:none; margin-top:14px"></div>
+        <div id="avisoFactura" class="help u-mt-14" style="display:none"></div>
 
         <div id="resultadoFactura" style="display:none; margin-top:10px">
           <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:6px">
@@ -958,11 +958,11 @@
           </div>
         </div>
 
-        <p style="color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 8px;">
+        <p class="u-color-muted u-text-13 u-leading-16 u-mb-8">
           <strong>Ejemplo práctico:</strong>
         </p>
 
-        <div style="background: var(--bg); padding: 10px; border-radius: 4px; margin-bottom: 16px;">
+        <div class="code-box">
           <div style="font-size: 12px; color: var(--muted); line-height: 1.6;">
             <strong class="u-text">Imagina Energía:</strong> Pagas 0 € (usando BV anterior) | Ranking: 26 €<br>
             <strong class="u-text">Naturgy:</strong> Pagas 0 € (usando BV anterior) | Ranking: 14 €
@@ -1011,12 +1011,12 @@
             <div style="font-size: 24px; font-weight: 800; color: var(--accent);" id="modalPVPCNow">—</div>
             <div style="font-size: 11px; opacity: 0.7;" id="modalPVPCNowHour">—</div>
           </div>
-          <div style="text-align: right;">
-            <div style="font-size: 12px; opacity: 0.8; margin-bottom: 8px;">
-              <span style="color: #10b981; font-weight: 700;">Mín</span> <strong id="modalPVPCMin">—</strong> <span id="modalPVPCMinHour" class="u-faint-10">—</span>
+          <div class="u-text-right">
+            <div class="u-text-12 u-opacity-80 u-mb-8">
+              <span class="u-color-green u-fw-700">Mín</span> <strong id="modalPVPCMin">—</strong> <span id="modalPVPCMinHour" class="u-faint-10">—</span>
             </div>
-            <div style="font-size: 12px; opacity: 0.8;">
-              <span style="color: #ef4444; font-weight: 700;">Máx</span> <strong id="modalPVPCMax">—</strong> <span id="modalPVPCMaxHour" class="u-faint-10">—</span>
+            <div class="u-text-12 u-opacity-80">
+              <span class="u-color-red u-fw-700">Máx</span> <strong id="modalPVPCMax">—</strong> <span id="modalPVPCMaxHour" class="u-faint-10">—</span>
             </div>
           </div>
         </div>
@@ -1025,11 +1025,11 @@
           <h3 style="font-size: 14px; font-weight: 900; margin: 0; color: var(--text);">💡 Planifica tus consumos</h3>
           
           <!-- Tabs Hoy/Mañana -->
-          <div id="pvpcTabs" style="display: flex; gap: 4px; background: rgba(255,255,255,.05); padding: 4px; border-radius: 8px;">
-            <button id="tabHoy" class="pvpc-tab pvpc-tab-active" type="button" style="padding: 6px 14px; border: none; background: var(--accent); color: #fff; font-size: 12px; font-weight: 700; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
+          <div id="pvpcTabs" class="pvpc-tabs-container">
+            <button id="tabHoy" class="pvpc-tab pvpc-tab-active pvpc-tab-btn active" type="button">
               Hoy
             </button>
-            <button id="tabManana" class="pvpc-tab" type="button" style="display: none; padding: 6px 14px; border: none; background: transparent; color: var(--text); font-size: 12px; font-weight: 600; border-radius: 6px; cursor: pointer; transition: all 0.2s;">
+            <button id="tabManana" class="pvpc-tab pvpc-tab-btn" type="button" style="display: none">
               Mañana
             </button>
           </div>
@@ -1236,7 +1236,7 @@
               <div style="height: 6px; background: rgba(255,255,255,.08); border-radius: 999px; overflow: hidden;">
                 <div style="height: 100%; width: ${porcentaje}%; background: ${color}; border-radius: 999px;"></div>
               </div>
-              <div style="font-weight: 700; text-align: right; font-size: 12px;">
+              <div class="u-fw-700 u-text-right u-text-12">
                 ${precio.toFixed(3)}
               </div>
             </div>
