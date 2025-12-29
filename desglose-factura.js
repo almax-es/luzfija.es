@@ -195,16 +195,21 @@
 
       // ===== RESUMEN CLARO (Factura "perfecta") =====
       const solarOn = Boolean(datos.solarOn);
+      const tipoComp = String(datos.tipoCompensacion || '');
       const exKwh = clampNonNeg(Number(datos.excedentes || 0));
       const precioComp = Number(datos.precioCompensacion || 0);
-      const creditoPotencial = (solarOn && exKwh > 0 && precioComp > 0) ? round2(exKwh * precioComp) : 0;
+      const compensa = (solarOn && exKwh > 0 && precioComp > 0 && tipoComp !== 'NO COMPENSA');
+      const creditoPotencial = compensa ? round2(exKwh * precioComp) : 0;
       // kWh de excedentes realmente usados vs sobrantes (más intuitivo que solo €)
       const kwhExUsados = (solarOn && precioComp > 0 && d.credit1 > 0) ? clampNonNeg(d.credit1 / precioComp) : 0;
       const kwhExSobrantes = (solarOn && precioComp > 0 && exKwh > 0) ? clampNonNeg(exKwh - kwhExUsados) : 0;
       const tope = String(datos.topeCompensacion || 'ENERGIA');
       const topeLabel = (tope === 'ENERGIA + PEAJES + CARGOS')
-        ? 'coste de energía + peajes + cargos del periodo'
-        : 'coste de energía del periodo';
+        ? 'coste del término de energía + peajes + cargos del periodo'
+        : 'coste del término de energía del periodo';
+      const topeNoNeg = (tope === 'ENERGIA + PEAJES + CARGOS')
+        ? 'no puede dejar ese conjunto en negativo'
+        : 'no puede dejar el término de energía en negativo';
       const pagoMes = (typeof d.totalFinal === 'number') ? d.totalFinal : d.totalBase;
       const bvActiva = Boolean(datos.tieneBV) && String(datos.tipoCompensacion || '').includes('BV');
 
@@ -233,7 +238,7 @@
           ${(d.credit1 > 0) ? `<div class="desglose-resumen-item">
             <div class="desglose-resumen-label">Compensación aplicada (tope: ${topeLabel} (€))</div>
             <div class="desglose-resumen-value">${this.fmt(d.credit1)}</div>
-            <div class="desglose-resumen-sub">Regla: la compensación se aplica como máximo hasta <strong>el ${topeLabel} (€)</strong> (no puede dejar el término de energía en negativo).</div>
+            <div class="desglose-resumen-sub">Regla: la compensación se aplica como máximo hasta <strong>el ${topeLabel} (€)</strong> (${topeNoNeg}).</div>
             ${(solarOn && precioComp > 0 && exKwh > 0) ? `<div class="desglose-resumen-sub">Excedentes: usados <strong>${this.fmtNum(kwhExUsados)}</strong> kWh · sobrantes <strong>${this.fmtNum(kwhExSobrantes)}</strong> kWh</div>` : ''}
           </div>` : ''}
           ${(d.excedenteSobranteEur > 0) ? `<div class="desglose-resumen-item">
@@ -242,7 +247,7 @@
           </div>` : ''}
         </div>
         ${(d.credit1 > 0 && creditoPotencial > d.credit1) ? `<div class="desglose-resumen-note">
-          Has generado <strong>${this.fmt(creditoPotencial)}</strong> en excedentes, pero solo se han aplicado <strong>${this.fmt(d.credit1)}</strong> este mes porque la compensación está limitada al tope (<strong>${topeLabel}</strong>). El sobrante ${bvActiva ? 'se acumula en la Batería Virtual' : 'no se compensa este mes'}.
+          Has generado <strong>${this.fmt(creditoPotencial)}</strong> en excedentes, pero solo se han aplicado <strong>${this.fmt(d.credit1)}</strong> este mes porque la compensación está limitada al tope (<strong>${topeLabel} (€)</strong>). El sobrante ${bvActiva ? 'se acumula en la Batería Virtual' : 'no se compensa este mes'}.
         </div>` : ''}
       </div>`;
 
@@ -395,7 +400,7 @@
         <div class="desglose-linea">
           <span class="desglose-concepto"><strong>PAGAS ESTE MES</strong></span>
           <span class="desglose-detalle"></span>
-          <span class="desglose-importe desglose-importe-final ${d.totalFinal > 0 ? 'desglose-importe--pos' : ''}">${this.fmt(d.totalFinal)}</span>
+          <span class="desglose-importe desglose-importe-final ${d.totalFinal === 0 ? 'desglose-importe--pos' : ''}">${this.fmt(d.totalFinal)}</span>
         </div>
         ${datos.tieneBV && d.excedenteSobranteEur > 0 ? `<div class="desglose-linea desglose-linea--top-accent">
           <span class="desglose-concepto"><strong>Coste neto del periodo</strong></span>
