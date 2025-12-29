@@ -536,7 +536,7 @@ window.lfDbg = lfDbg;
       return 0;
     }
 
-    function calculateLocal(values) {
+    async function calculateLocal(values) {
       const { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias, solarOn, exTotal, bvSaldo } = values || getInputValues();
       const fiscal = typeof __LF_getFiscalContext === 'function'
         ? __LF_getFiscalContext({ p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias })
@@ -552,207 +552,210 @@ window.lfDbg = lfDbg;
       const isCanarias = fiscal.zona === 'canarias';
       if(!cachedTarifas.length) return;
 
-      const resultados = cachedTarifas.map((t, index) => {
-        if (t.esPVPC && t.pvpcNotComputable) {
-          return {
-            ...t,
-            posicion: index + 1,
-            potenciaNum: 0,
-            potencia: '—',
-            consumoNum: 0,
-            consumo: '—',
-            impuestosNum: 0,
-            impuestos: '—',
-            totalNum: Number.POSITIVE_INFINITY,
-            total: '—',
-            webUrl: t.web,
-            solarNoCalculable: solarOn  // Marcar si solar está activo
-          };
-        }
-        if (t.esPVPC && t.metaPvpc) {
-          const m = t.metaPvpc;
-          const potenciaNum = m.terminoFijo;
-          const consumoNum = m.terminoVariable;
-          const impuestosNum = (m.bonoSocial || 0) + m.impuestoElectrico + m.equipoMedida + m.iva;
-          const totalNum = m.totalFactura;
-          return {
-            ...t,
-            posicion: index + 1,
-            potenciaNum,
-            potencia: formatMoney(potenciaNum),
-            consumoNum,
-            consumo: formatMoney(consumoNum),
-            impuestosNum,
-            impuestos: formatMoney(impuestosNum),
-            totalNum,
-            total: formatMoney(totalNum),
-            webUrl: t.web,
-            solarNoCalculable: solarOn  // Marcar si solar está activo
-          };
-        }
+      // OPTIMIZACIÓN INP: Calcular en chunks de 8 tarifas para no bloquear el hilo
+      const CHUNK_SIZE = 8;
+      const resultados = [];
+      
+      for (let chunkStart = 0; chunkStart < cachedTarifas.length; chunkStart += CHUNK_SIZE) {
+        const chunkEnd = Math.min(chunkStart + CHUNK_SIZE, cachedTarifas.length);
+        
+        for (let index = chunkStart; index < chunkEnd; index++) {
+          const t = cachedTarifas[index];
+          
+          if (t.esPVPC && t.pvpcNotComputable) {
+            resultados.push({
+              ...t,
+              posicion: index + 1,
+              potenciaNum: 0,
+              potencia: '—',
+              consumoNum: 0,
+              consumo: '—',
+              impuestosNum: 0,
+              impuestos: '—',
+              totalNum: Number.POSITIVE_INFINITY,
+              total: '—',
+              webUrl: t.web,
+              solarNoCalculable: solarOn
+            });
+            continue;
+          }
+          
+          if (t.esPVPC && t.metaPvpc) {
+            const m = t.metaPvpc;
+            const potenciaNum = m.terminoFijo;
+            const consumoNum = m.terminoVariable;
+            const impuestosNum = (m.bonoSocial || 0) + m.impuestoElectrico + m.equipoMedida + m.iva;
+            const totalNum = m.totalFactura;
+            resultados.push({
+              ...t,
+              posicion: index + 1,
+              potenciaNum,
+              potencia: formatMoney(potenciaNum),
+              consumoNum,
+              consumo: formatMoney(consumoNum),
+              impuestosNum,
+              impuestos: formatMoney(impuestosNum),
+              totalNum,
+              total: formatMoney(totalNum),
+              webUrl: t.web,
+              solarNoCalculable: solarOn
+            });
+            continue;
+          }
 
-        const pot = round2((p1 * dias * t.p1) + (p2 * dias * t.p2));
-        const cons = round2((cPunta * t.cPunta) + (cLlano * t.cLlano) + (cValle * t.cValle));
-        const tarifaAcceso = round2(4.650987 / 365 * dias);
+          const pot = round2((p1 * dias * t.p1) + (p2 * dias * t.p2));
+          const cons = round2((cPunta * t.cPunta) + (cLlano * t.cLlano) + (cValle * t.cValle));
+          const tarifaAcceso = round2(4.650987 / 365 * dias);
 
-        let consAdj = cons;
-        let tarifaAdj = tarifaAcceso;
-        let credit1 = 0;
-        let credit2 = 0;
-        let excedenteSobranteEur = 0;
-        let precioExc = 0;
-        let exKwh = 0;
-        let bvSaldoFin = null;
-        const fv = t.fv;
-        let fvApplied = false;
+          let consAdj = cons;
+          let tarifaAdj = tarifaAcceso;
+          let credit1 = 0;
+          let credit2 = 0;
+          let excedenteSobranteEur = 0;
+          let precioExc = 0;
+          let exKwh = 0;
+          let bvSaldoFin = null;
+          const fv = t.fv;
+          let fvApplied = false;
 
-        let solarNoCalculable = false;
-        if(solarOn && t.esPVPC){
-          // PVPC: compensación no calculable (precio variable horario)
-          solarNoCalculable = true;
-        } else if(solarOn && !t.esPVPC){
-          exKwh = clampNonNeg(exTotal);
-          // Verificar si es tarifa indexada ANTES de comprobar si hay excedentes
-          if(fv && fv.tipo !== 'NO COMPENSA'){
-            precioExc = getFvExcPrice(fv);
-            if(precioExc === null){
-              // Tarifa indexada: no podemos calcular compensación
-              solarNoCalculable = true;
-            } else if(exKwh > 0 && precioExc > 0){
-              // Solo calcular compensación si hay excedentes Y precio válido
-              fvApplied = true;
-              const creditoPotencial = round2(exKwh * precioExc);
-              let baseCompensable = cons;
-              if(fv.tope === 'ENERGIA + PEAJES + CARGOS') baseCompensable = cons + tarifaAcceso;
-              else if(fv.tope === 'ENERGIA') baseCompensable = cons;
-              credit1 = Math.min(creditoPotencial, baseCompensable);
-              consAdj = round2(Math.max(0, cons - credit1));
-              const restante = Math.max(0, credit1 - cons);
-              if(fv.tope === 'ENERGIA + PEAJES + CARGOS'){
-                tarifaAdj = round2(Math.max(0, tarifaAcceso - restante));
+          let solarNoCalculable = false;
+          if(solarOn && t.esPVPC){
+            solarNoCalculable = true;
+          } else if(solarOn && !t.esPVPC){
+            exKwh = clampNonNeg(exTotal);
+            if(fv && fv.tipo !== 'NO COMPENSA'){
+              precioExc = getFvExcPrice(fv);
+              if(precioExc === null){
+                solarNoCalculable = true;
+              } else if(exKwh > 0 && precioExc > 0){
+                fvApplied = true;
+                const creditoPotencial = round2(exKwh * precioExc);
+                let baseCompensable = cons;
+                if(fv.tope === 'ENERGIA + PEAJES + CARGOS') baseCompensable = cons + tarifaAcceso;
+                else if(fv.tope === 'ENERGIA') baseCompensable = cons;
+                credit1 = Math.min(creditoPotencial, baseCompensable);
+                consAdj = round2(Math.max(0, cons - credit1));
+                const restante = Math.max(0, credit1 - cons);
+                if(fv.tope === 'ENERGIA + PEAJES + CARGOS'){
+                  tarifaAdj = round2(Math.max(0, tarifaAcceso - restante));
+                }
+                excedenteSobranteEur = Math.max(0, creditoPotencial - credit1);
               }
-              excedenteSobranteEur = Math.max(0, creditoPotencial - credit1);
             }
           }
-        }
 
-        // Base para impuesto eléctrico (Excel: SUM(G:I) con G,H,I ya redondeados a 2 decimales)
-        const sumaBase = pot + consAdj + tarifaAdj;
-        const impuestoElec = round2(Math.max((5.11269632 / 100) * sumaBase, (cPunta + cLlano + cValle) * 0.001));
+          const sumaBase = pot + consAdj + tarifaAdj;
+          const impuestoElec = round2(Math.max((5.11269632 / 100) * sumaBase, (cPunta + cLlano + cValle) * 0.001));
+          const margen = round2(dias * 0.026667);
+          const baseEnergia = sumaBase + margen;
+          const subtotal = baseEnergia + impuestoElec;
+          const ivaBase = pot + consAdj + tarifaAdj + impuestoElec + margen;
 
-        // Alquiler contador (Excel: ROUND(dias*0.026667,2))
-        const margen = round2(dias * 0.026667);
+          if (isCanarias) {
+            const alquilerContador = dias * (0.81 / 30);
+            const igicBase = fiscal.usoFiscal === 'vivienda' ? 0 : (baseEnergia + impuestoElec) * 0.03;
+            const igicContador = alquilerContador * 0.07;
+            const impuestosNum = impuestoElec + igicBase + igicContador;
+            const totalBase = baseEnergia + impuestoElec + igicBase + igicContador + alquilerContador;
 
-        const baseEnergia = sumaBase + margen;
-        const subtotal = baseEnergia + impuestoElec;
-
-        // Base de IVA (Excel: SUM(G:K))
-        const ivaBase = pot + consAdj + tarifaAdj + impuestoElec + margen;
-
-        if (isCanarias) {
-          const alquilerContador = dias * (0.81 / 30);
-          const igicBase = fiscal.usoFiscal === 'vivienda' ? 0 : (baseEnergia + impuestoElec) * 0.03;
-          const igicContador = alquilerContador * 0.07;
-          const impuestosNum = impuestoElec + igicBase + igicContador;
-          const totalBase = baseEnergia + impuestoElec + igicBase + igicContador + alquilerContador;
-
-          let totalFinal = totalBase;
-          if(solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV'){
-            let disponible = bvSaldo;
-            let excedenteParaBv = excedenteSobranteEur;
-            if(fv.reglaBV === 'MES ACTUAL + BV'){
-              if((t.nombre || '').toLowerCase().includes('octopus')){
-                excedenteParaBv = Math.min(excedenteParaBv, round2(1000 * precioExc));
+            let totalFinal = totalBase;
+            if(solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV'){
+              let disponible = bvSaldo;
+              let excedenteParaBv = excedenteSobranteEur;
+              if(fv.reglaBV === 'MES ACTUAL + BV'){
+                if((t.nombre || '').toLowerCase().includes('octopus')){
+                  excedenteParaBv = Math.min(excedenteParaBv, round2(1000 * precioExc));
+                }
+                disponible = bvSaldo + excedenteParaBv;
               }
-              disponible = bvSaldo + excedenteParaBv;
+              credit2 = Math.min(clampNonNeg(disponible), totalBase);
+              if(fv.reglaBV === 'BV MES ANTERIOR') bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bvSaldo - credit2));
+              else if(fv.reglaBV === 'MES ACTUAL + BV') bvSaldoFin = round2(Math.max(0, (excedenteSobranteEur + bvSaldo) - credit2));
+              else bvSaldoFin = null;
+              totalFinal = credit2 > 0 ? round2(Math.max(0, totalBase - credit2)) : totalBase;
             }
-            credit2 = Math.min(clampNonNeg(disponible), totalBase);
-            if(fv.reglaBV === 'BV MES ANTERIOR') bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bvSaldo - credit2));
-            else if(fv.reglaBV === 'MES ACTUAL + BV') bvSaldoFin = round2(Math.max(0, (excedenteSobranteEur + bvSaldo) - credit2));
-            else bvSaldoFin = null;
-            totalFinal = credit2 > 0 ? round2(Math.max(0, totalBase - credit2)) : totalBase;
-          }
 
-          // Para el ranking: restar excedente que va a BV (no la BV usada del mes anterior)
-          // Así el ranking refleja el "coste real" considerando el ahorro que acumulas
-          // NUNCA usar BV del mes anterior (totalFinal) para el ranking
-          const totalNum = solarOn && fv && fv.bv
-            ? round2(Math.max(0, totalBase - excedenteSobranteEur))
-            : totalBase;
-          return {
-            ...t,
-            posicion: index + 1,
-            potenciaNum: pot, potencia: formatMoney(pot),
-            consumoNum: consAdj, consumo: formatMoney(consAdj),
-            impuestosNum: impuestosNum,
-            impuestos: formatMoney(impuestosNum),
-            totalNum, total: formatMoney(totalNum),
-            webUrl: t.web,
-            iva: 0,
-            fvTipo: fv ? fv.tipo || null : null,
-            fvExcRaw: fv ? fv.exc : null,
-            fvRegla: fv ? fv.reglaBV || null : null,
-            fvApplied,
-            fvExKwh: exKwh,
-            fvPriceUsed: precioExc,
-            fvCredit1: credit1,
-            fvCredit2: credit2,
-            fvBvSaldoFin: bvSaldoFin,
-            fvExcedenteSobrante: excedenteSobranteEur,
-            fvTotalFinal: totalFinal,
-            solarNoCalculable
-          };
-        }
+            const totalNum = solarOn && fv && fv.bv
+              ? round2(Math.max(0, totalBase - excedenteSobranteEur))
+              : totalBase;
+            resultados.push({
+              ...t,
+              posicion: index + 1,
+              potenciaNum: pot, potencia: formatMoney(pot),
+              consumoNum: consAdj, consumo: formatMoney(consAdj),
+              impuestosNum: impuestosNum,
+              impuestos: formatMoney(impuestosNum),
+              totalNum, total: formatMoney(totalNum),
+              webUrl: t.web,
+              iva: 0,
+              fvTipo: fv ? fv.tipo || null : null,
+              fvExcRaw: fv ? fv.exc : null,
+              fvRegla: fv ? fv.reglaBV || null : null,
+              fvApplied,
+              fvExKwh: exKwh,
+              fvPriceUsed: precioExc,
+              fvCredit1: credit1,
+              fvCredit2: credit2,
+              fvBvSaldoFin: bvSaldoFin,
+              fvExcedenteSobrante: excedenteSobranteEur,
+              fvTotalFinal: totalFinal,
+              solarNoCalculable
+            });
+          } else {
+            const iva = round2(ivaBase * 0.21);
+            const totalBase = round2(ivaBase + iva);
 
-        const iva = round2(ivaBase * 0.21);
-        const totalBase = round2(ivaBase + iva);
-
-        let totalFinal = totalBase;
-        if(solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV'){
-          let disponible = bvSaldo;
-          let excedenteParaBv = excedenteSobranteEur;
-          if(fv.reglaBV === 'MES ACTUAL + BV'){
-            if((t.nombre || '').toLowerCase().includes('octopus')){
-              excedenteParaBv = Math.min(excedenteParaBv, round2(1000 * precioExc));
+            let totalFinal = totalBase;
+            if(solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV'){
+              let disponible = bvSaldo;
+              let excedenteParaBv = excedenteSobranteEur;
+              if(fv.reglaBV === 'MES ACTUAL + BV'){
+                if((t.nombre || '').toLowerCase().includes('octopus')){
+                  excedenteParaBv = Math.min(excedenteParaBv, round2(1000 * precioExc));
+                }
+                disponible = bvSaldo + excedenteParaBv;
+              }
+              credit2 = Math.min(clampNonNeg(disponible), totalBase);
+              if(fv.reglaBV === 'BV MES ANTERIOR') bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bvSaldo - credit2));
+              else if(fv.reglaBV === 'MES ACTUAL + BV') bvSaldoFin = round2(Math.max(0, (excedenteSobranteEur + bvSaldo) - credit2));
+              else bvSaldoFin = null;
+              totalFinal = credit2 > 0 ? round2(Math.max(0, totalBase - credit2)) : totalBase;
             }
-            disponible = bvSaldo + excedenteParaBv;
+
+            const total = solarOn && fv && fv.bv
+              ? round2(Math.max(0, totalBase - excedenteSobranteEur))
+              : totalBase;
+
+            resultados.push({
+              ...t,
+              posicion: index + 1,
+              potenciaNum: pot, potencia: formatMoney(pot),
+              consumoNum: consAdj, consumo: formatMoney(consAdj),
+              impuestosNum: round2(tarifaAdj + impuestoElec + margen + iva),
+              impuestos: formatMoney(round2(tarifaAdj + impuestoElec + margen + iva)),
+              totalNum: total, total: formatMoney(total),
+              webUrl: t.web,
+              fvTipo: fv ? fv.tipo || null : null,
+              fvExcRaw: fv ? fv.exc : null,
+              fvRegla: fv ? fv.reglaBV || null : null,
+              fvApplied,
+              fvExKwh: exKwh,
+              fvPriceUsed: precioExc,
+              fvCredit1: credit1,
+              fvCredit2: credit2,
+              fvBvSaldoFin: bvSaldoFin,
+              fvExcedenteSobrante: excedenteSobranteEur,
+              fvTotalFinal: totalFinal,
+              solarNoCalculable
+            });
           }
-          credit2 = Math.min(clampNonNeg(disponible), totalBase);
-          if(fv.reglaBV === 'BV MES ANTERIOR') bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bvSaldo - credit2));
-          else if(fv.reglaBV === 'MES ACTUAL + BV') bvSaldoFin = round2(Math.max(0, (excedenteSobranteEur + bvSaldo) - credit2));
-          else bvSaldoFin = null;
-          totalFinal = credit2 > 0 ? round2(Math.max(0, totalBase - credit2)) : totalBase;
         }
-
-        // Para el ranking: restar excedente que va a BV (no la BV usada del mes anterior)
-        // NUNCA usar BV del mes anterior (totalFinal) para el ranking
-        const total = solarOn && fv && fv.bv
-          ? round2(Math.max(0, totalBase - excedenteSobranteEur))
-          : totalBase;
-
-        return {
-          ...t,
-          posicion: index + 1,
-          potenciaNum: pot, potencia: formatMoney(pot),
-          consumoNum: consAdj, consumo: formatMoney(consAdj),
-          impuestosNum: round2(tarifaAdj + impuestoElec + margen + iva),
-          impuestos: formatMoney(round2(tarifaAdj + impuestoElec + margen + iva)),
-          totalNum: total, total: formatMoney(total),
-          webUrl: t.web,
-          fvTipo: fv ? fv.tipo || null : null,
-          fvExcRaw: fv ? fv.exc : null,
-          fvRegla: fv ? fv.reglaBV || null : null,
-          fvApplied,
-          fvExKwh: exKwh,
-          fvPriceUsed: precioExc,
-          fvCredit1: credit1,
-          fvCredit2: credit2,
-          fvBvSaldoFin: bvSaldoFin,
-          fvExcedenteSobrante: excedenteSobranteEur,
-          fvTotalFinal: totalFinal,
-          solarNoCalculable
-        };
-      });
+        
+        // CLAVE: Yield al navegador después de cada chunk (excepto el último)
+        if (chunkEnd < cachedTarifas.length) {
+          await new Promise(resolve => setTimeout(resolve, 0));
+        }
+      }
 
       resultados.sort((a, b) => {
         const diff = a.totalNum - b.totalNum;
@@ -1588,7 +1591,7 @@ window.lfDbg = lfDbg;
       // FIX INP: Dar tiempo al navegador a pintar el spinner antes de bloquear con cálculos
       await new Promise(resolve => requestAnimationFrame(resolve));
       await new Promise(resolve => setTimeout(resolve, 0));
-      calculateLocal(values);
+      await calculateLocal(values);
       state.lastSignature = signature;
       state.pending = false;
       }catch(err){
