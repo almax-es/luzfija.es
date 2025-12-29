@@ -12,8 +12,7 @@
 
   // Sistema de debug (activar con ?debug=1)
   const DEBUG = window.location.search.includes('debug=1') || window.__LF_DEBUG;
-  const debugLog = window.debugLog || ((...args) => { if (window.__LF_DEBUG) console.log(...args); });
-  const lfDbg = (...args) => DEBUG && debugLog('[DESGLOSE]', ...args);
+  const lfDbg = (...args) => DEBUG && console.log('[DESGLOSE]', ...args);
 
   let tarifasCache = null;
 

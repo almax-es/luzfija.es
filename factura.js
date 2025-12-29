@@ -3,7 +3,7 @@
       window.__LF_facturaParserLoaded = true;
 
       // Helper de debug: solo loguea si __LF_DEBUG está activo
-      const debugLog = window.debugLog || ((...args) => { if (window.__LF_DEBUG) console.log(...args); });
+      const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
 
       window.__LF_lastFile = null;
       window.__LF_restoreFocusEl = null;
@@ -208,7 +208,7 @@
         }
         
         if (!hits.length) {
-          if (debugLabel) debugLog(`[DEBUG ${debugLabel}] ❌ No matches encontrados en ${patrones.length} patrones`);
+          if (debugLabel) lfDbg(`[DEBUG ${debugLabel}] ❌ No matches encontrados en ${patrones.length} patrones`);
           return null;
         }
 
@@ -225,7 +225,7 @@
         const result = Number.isFinite(best) ? best : hits[0];
         
         if (debugLabel && debugMatches.length > 0) {
-          debugLog(`[DEBUG ${debugLabel}] ✅ Match encontrado:`, {
+          lfDbg(`[DEBUG ${debugLabel}] ✅ Match encontrado:`, {
             valor: result,
             totalMatches: hits.length,
             frecuencia: bestCount,
@@ -255,7 +255,7 @@
               const p2 = parseFloat(matchValle[1].replace(',', '.'));
               
               if (!isNaN(p1) && !isNaN(p2)) {
-                debugLog('[ENDESA-POTENCIAS] Detectadas desde "Potencias contratadas":', { p1, p2 });
+                lfDbg('[ENDESA-POTENCIAS] Detectadas desde "Potencias contratadas":', { p1, p2 });
                 return { p1, p2 };
               }
             }
@@ -276,7 +276,7 @@
                   const p2 = parseFloat(matchValle[1].replace(',', '.'));
                   
                   if (!isNaN(p1) && !isNaN(p2)) {
-                    debugLog('[ENDESA-POTENCIAS] Detectadas desde detalle de factura:', { p1, p2 });
+                    lfDbg('[ENDESA-POTENCIAS] Detectadas desde detalle de factura:', { p1, p2 });
                     return { p1, p2 };
                   }
                 }
@@ -340,7 +340,7 @@
               
               // Si ya tenemos los 3, salir
               if (punta != null && llano != null && valle != null) {
-                debugLog('[ENDESA-ESPECÍFICO] Tabla detectada:', { punta, llano, valle });
+                lfDbg('[ENDESA-ESPECÍFICO] Tabla detectada:', { punta, llano, valle });
                 return { punta, llano, valle };
               }
             }
@@ -681,7 +681,7 @@
        */
       async function __LF_extractQRFromPDF(pdfFile) {
         try {
-          debugLog('[QR jsQR] Escaneando PDF...');
+          lfDbg('[QR jsQR] Escaneando PDF...');
           
           const jsQR = await __LF_loadJsQR();
           const pdfjsLib = await __LF_ensurePdfJs();
@@ -693,7 +693,7 @@
           const scales = [3.0, 2.5, 2.0, 1.5];
           
           for (let pageNum = 1; pageNum <= Math.min(pdf.numPages, 3); pageNum++) {
-            debugLog(`[QR jsQR] Página ${pageNum}/${Math.min(pdf.numPages, 3)}...`);
+            lfDbg(`[QR jsQR] Página ${pageNum}/${Math.min(pdf.numPages, 3)}...`);
             const page = await pdf.getPage(pageNum);
             
             for (const scale of scales) {
@@ -713,19 +713,19 @@
               });
               
               if (code && code.data) {
-                debugLog(`[QR jsQR] Código detectado (escala ${scale}):`, code.data.substring(0, 50));
+                lfDbg(`[QR jsQR] Código detectado (escala ${scale}):`, code.data.substring(0, 50));
                 if (code.data.includes('comparador.cnmc.gob.es')) {
-                  debugLog(`[QR jsQR] ✅ QR encontrado en página ${pageNum} (escala ${scale})`);
+                  lfDbg(`[QR jsQR] ✅ QR encontrado en página ${pageNum} (escala ${scale})`);
                   return code.data;
                 }
               }
             }
           }
           
-          debugLog('[QR jsQR] ⚠️ No se detectó QR en ninguna página');
+          lfDbg('[QR jsQR] ⚠️ No se detectó QR en ninguna página');
           return null;
         } catch (error) {
-          debugLog('[QR jsQR] ❌ Error:', error.message);
+          lfDbg('[QR jsQR] ❌ Error:', error.message);
           return null;
         }
       }
@@ -738,7 +738,7 @@
         const urlPattern = /https:\/\/comparador\.cnmc\.gob\.es\/comparador\/QRE\?[^\s"'\n]+/;
         const match = texto.match(urlPattern);
         if (match) {
-        debugLog('[QR TEXTO] ✓ URL encontrada en texto');
+          lfDbg('[QR TEXTO] ✓ URL encontrada en texto');
           return match[0];
         }
         return null;
@@ -764,7 +764,7 @@
           
           // Validar que tenemos los datos mínimos necesarios
           if (!p1 || !p2 || !cfP1 || !cfP2 || !cfP3) {
-            debugLog('[QR] ⚠️  QR incompleto - faltan campos obligatorios');
+            lfDbg('[QR] ⚠️  QR incompleto - faltan campos obligatorios');
             return null;
           }
           
@@ -776,7 +776,7 @@
               const fin = new Date(fechaFin);
               dias = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24));
             } catch (e) {
-              debugLog('[QR] ⚠️  Error calculando días:', e);
+              lfDbg('[QR] ⚠️  Error calculando días:', e);
             }
           }
           
@@ -795,7 +795,7 @@
             importeTotal: params.get('imp') ? parseFloat(params.get('imp')) : null
           };
           
-          debugLog('[QR] ✅ Datos extraídos del QR:', datos);
+          lfDbg('[QR] ✅ Datos extraídos del QR:', datos);
           return datos;
           
         } catch (error) {
@@ -805,7 +805,7 @@
       }
 
       function __LF_parsearDatos(textoLineas, textoCompacto){
-        debugLog('[PARSER v1765179628-VERCEL-CLEAN] 🚀 Iniciando parseo...');
+        lfDbg('[PARSER v1765179628-VERCEL-CLEAN] 🚀 Iniciando parseo...');
         const textLines = String(textoLineas || '');
         const textCompact = String(textoCompacto || '');
         
@@ -829,7 +829,7 @@
 
         // NUEVO: Detectar compañía
         const compania = __LF_detectarCompania(tAll);
-        debugLog('[DEBUG] Compañía detectada:', compania);
+        lfDbg('[DEBUG] Compañía detectada:', compania);
         
         // Intentar extracción específica por compañía primero
         let dias = __LF_extraerDiasCompania(tAll, compania);
@@ -879,7 +879,7 @@
         ], 1, 200, 'DÍAS');  // ← ACTIVAR DEBUG
         }
         
-        debugLog('[DEBUG DÍAS] Compañía:', compania, '| Resultado:', dias);
+        lfDbg('[DEBUG DÍAS] Compañía:', compania, '| Resultado:', dias);
 
         if ((dias == null || dias <= 0) && fIni && fFin){
           const calc = __LF_daysInclusive(fIni, fFin);
@@ -894,7 +894,7 @@
         if (potenciasCompania) {
           p1 = potenciasCompania.p1;
           p2 = potenciasCompania.p2;
-          debugLog('[DEBUG POTENCIAS] Usando patrones específicos de', compania);
+          lfDbg('[DEBUG POTENCIAS] Usando patrones específicos de', compania);
         } else {
           // Fallback: patrones genéricos ULTRA-ROBUSTOS
           p1 = __LF_extraerNumero(tAll, [
@@ -926,7 +926,7 @@
           ], 0.1, 40, 'P2');
         }
         
-        debugLog('[DEBUG POTENCIAS] P1:', p1, '| P2:', p2);
+        lfDbg('[DEBUG POTENCIAS] P1:', p1, '| P2:', p2);
 
         // --- Consumos (kWh) ---
         const triple = __LF_extractTripleConsumo(textLines) || __LF_extractTripleConsumo(textCompact);
@@ -934,7 +934,7 @@
         let cPunta = null, cLlano = null, cValle = null;
 
         if (triple){
-          debugLog('[DEBUG CONSUMOS] Triple detectado:', triple);
+          lfDbg('[DEBUG CONSUMOS] Triple detectado:', triple);
           cPunta = triple.punta;
           cLlano = triple.llano;
           cValle = triple.valle;
@@ -979,7 +979,7 @@
             /activa[^\n]{0,100}p3[^\d]{0,40}([0-9][0-9\.,]*)/i
           ], 0, 2000000, 'CONSUMO-P3');
           
-          debugLog('[DEBUG CONSUMOS] Fallback individual - P:', cPunta, 'L:', cLlano, 'V:', cValle);
+          lfDbg('[DEBUG CONSUMOS] Fallback individual - P:', cPunta, 'L:', cLlano, 'V:', cValle);
         }
 
         // Total por si no hay desglose
@@ -1004,7 +1004,7 @@
         if (compania === 'endesa' && triple === null && (cPunta || cLlano || cValle)) {
           // Si Endesa pero consumos vienen del fallback genérico, reducir confianza
           confianza = Math.min(confianza, 70);
-          debugLog('[CONFIANZA] Ajustada a máx 70% (consumos desde fallback genérico)');
+          lfDbg('[CONFIANZA] Ajustada a máx 70% (consumos desde fallback genérico)');
         }
         
         // Detectar si hay "potencias máximas demandadas" cerca de las potencias extraídas
@@ -1017,26 +1017,26 @@
               // Hay riesgo de confusión con máximas demandadas
               if (!potenciasCompania) {
                 confianza = Math.min(confianza, 75);
-                debugLog('[CONFIANZA] Ajustada a máx 75% (detectadas "máximas demandadas" cerca)');
+                lfDbg('[CONFIANZA] Ajustada a máx 75% (detectadas "máximas demandadas" cerca)');
               }
             }
           }
         }
 
         // LOG CONSOLIDADO FINAL
-        debugLog('═══════════════════════════════════════════════════════');
-        debugLog('📊 RESULTADO FINAL DEL PARSEO');
-        debugLog('═══════════════════════════════════════════════════════');
-        debugLog('🏢 Compañía detectada:', compania);
-        debugLog('📅 Días de facturación:', dias);
-        debugLog('⚡ Potencia P1 (kW):', p1);
-        debugLog('⚡ Potencia P2 (kW):', p2);
-        debugLog('💡 Consumo Punta (kWh):', cPunta);
-        debugLog('💡 Consumo Llano (kWh):', cLlano);
-        debugLog('💡 Consumo Valle (kWh):', cValle);
-        debugLog('✅ Confianza:', confianza + '%', '(' + detectados + '/6 campos)');
-        debugLog('📆 Periodo:', fIni || 'N/A', '→', fFin || 'N/A');
-        debugLog('═══════════════════════════════════════════════════════');
+        lfDbg('═══════════════════════════════════════════════════════');
+        lfDbg('📊 RESULTADO FINAL DEL PARSEO');
+        lfDbg('═══════════════════════════════════════════════════════');
+        lfDbg('🏢 Compañía detectada:', compania);
+        lfDbg('📅 Días de facturación:', dias);
+        lfDbg('⚡ Potencia P1 (kW):', p1);
+        lfDbg('⚡ Potencia P2 (kW):', p2);
+        lfDbg('💡 Consumo Punta (kWh):', cPunta);
+        lfDbg('💡 Consumo Llano (kWh):', cLlano);
+        lfDbg('💡 Consumo Valle (kWh):', cValle);
+        lfDbg('✅ Confianza:', confianza + '%', '(' + detectados + '/6 campos)');
+        lfDbg('📆 Periodo:', fIni || 'N/A', '→', fFin || 'N/A');
+        lfDbg('═══════════════════════════════════════════════════════');
 
         return {
           compania: compania,
@@ -1319,14 +1319,14 @@
           // PASO 2: Intentar QR con jsQR (escaneo de imagen)
           // ====================================================================
           if (!datosQR) {
-            debugLog('[QR] Texto no tiene URL, intentando jsQR...');
+            lfDbg('[QR] Texto no tiene URL, intentando jsQR...');
             try {
               const qrUrlImagen = await __LF_extractQRFromPDF(file);
               if (qrUrlImagen) {
                 datosQR = __LF_parseQRData(qrUrlImagen);
               }
             } catch (jsqrError) {
-              debugLog('[QR jsQR] No disponible:', jsqrError.message);
+              lfDbg('[QR jsQR] No disponible:', jsqrError.message);
             }
           }
 
@@ -1334,7 +1334,7 @@
           // PASO 3: Si tenemos QR, combinar inteligentemente con PDF
           // ====================================================================
           if (datosQR) {
-            debugLog('[QR] ✅ QR encontrado - validando con datos del PDF');
+            lfDbg('[QR] ✅ QR encontrado - validando con datos del PDF');
             
             // Parsear PDF completo para tener datos de fallback
             const datosPDF = __LF_parsearDatos(textLines, textCompact);
@@ -1357,18 +1357,18 @@
                 
                 // Si NO hay días en PDF → usar QR
                 if (!diasPDF) {
-                  debugLog('[DÍAS] PDF no tiene días, usando QR:', diasQR);
+                  lfDbg('[DÍAS] PDF no tiene días, usando QR:', diasQR);
                   return diasQR;
                 }
                 
                 // Si QR y PDF coinciden → usar QR (fuente oficial)
                 if (diasQR === diasPDF) {
-                  debugLog('[DÍAS] QR y PDF coinciden (' + diasQR + '), usando QR');
+                  lfDbg('[DÍAS] QR y PDF coinciden (' + diasQR + '), usando QR');
                   return diasQR;
                 }
                 
                 // Si son diferentes → usar PDF (lo que cobran)
-                debugLog('[DÍAS] QR (' + diasQR + ') ≠ PDF (' + diasPDF + '), usando PDF (lo que cobran)');
+                lfDbg('[DÍAS] QR (' + diasQR + ') ≠ PDF (' + diasPDF + '), usando PDF (lo que cobran)');
                 return diasPDF;
               })(),
               
@@ -1377,7 +1377,7 @@
               compania: datosPDF.compania
             };
             
-            debugLog('[QR] ✅ Datos combinados:', datosCombinados);
+            lfDbg('[QR] ✅ Datos combinados:', datosCombinados);
             
             // AHORA SÍ: mostrar resultados con los datos completos
             __LF_hide(__LF_q('loaderFactura'));
@@ -1391,7 +1391,7 @@
           // ====================================================================
           // PASO 4: FALLBACK - Parseo PDF completo (sin QR)
           // ====================================================================
-          debugLog('[QR] QR no encontrado - usando parseo PDF');
+          lfDbg('[QR] QR no encontrado - usando parseo PDF');
           const datos = __LF_parsearDatos(textLines, textCompact);
           
           // AHORA SÍ: mostrar resultados con los datos completos

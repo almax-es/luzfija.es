@@ -230,9 +230,9 @@
           </svg>
         </div>
         <div>
-          <nav aria-label="Breadcrumb" class="breadcrumb-nav">
-            <ol class="breadcrumb-list">
-              <li><a href="/" class="breadcrumb-link">🏠 Inicio</a></li>
+          <nav aria-label="Breadcrumb" style="margin-bottom: 8px;">
+            <ol style="display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--muted2);">
+              <li><a href="/" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">🏠 Inicio</a></li>
             </ol>
           </nav>
           <h1>Comparador de Tarifas</h1>
@@ -570,8 +570,6 @@
     </section>
 
     <script>
-      const debugLog = window.debugLog || ((...args) => { if (window.__LF_DEBUG) console.log(...args); });
-
       // Cargar y mostrar novedades
       (async function cargarNovedades() {
         try {
@@ -655,7 +653,7 @@
           
         } catch (error) {
           // Silencioso: si no hay novedades.json, simplemente no se muestra nada
-          debugLog('Novedades no disponibles:', error);
+          if (window.__LF_DEBUG) console.log('Novedades no disponibles:', error);
         }
       })();
       
@@ -1032,7 +1030,7 @@
     const tabManana = document.getElementById('tabManana');
     
     if (!btnPVPCInfo || !modalPVPCInfo || !btnCerrarPVPCInfo) {
-      debugLog('[PVPC] Faltan elementos del modal');
+      if (window.__LF_DEBUG) console.log('[PVPC] Faltan elementos del modal');
       return;
     }
 
@@ -1105,11 +1103,11 @@
         const hora = fechaEspana.getHours();
         const minutos = fechaEspana.getMinutes();
         
-        debugLog(`[PVPC] Hora en España: ${hora}:${minutos}`);
+        console.log(`[PVPC] Hora en España: ${hora}:${minutos}`);
         
         // Solo cargar si es después de las 20:15h
         if (hora < 20 || (hora === 20 && minutos < 15)) {
-          debugLog('[PVPC] Todavía no son las 20:15h en España, no se carga mañana');
+          console.log('[PVPC] Todavía no son las 20:15h en España, no se carga mañana');
           return;
         }
 
@@ -1118,7 +1116,7 @@
         manana.setDate(hoy.getDate() + 1);
         const fechaStr = ymdMadrid(manana);
         
-        debugLog(`[PVPC] Cargando precios de mañana: ${fechaStr}`);
+        console.log(`[PVPC] Cargando precios de mañana: ${fechaStr}`);
         
         const response = await fetch(window.PVPC_PRICES_URL + encodeURIComponent(fechaStr));
         if (!response.ok) throw new Error('Error API');
@@ -1135,7 +1133,7 @@
 
         // Mostrar tab de mañana
         tabManana.style.display = 'block';
-        debugLog('[PVPC] Tab mañana activado');
+        console.log('[PVPC] Tab mañana activado');
       } catch (e) {
         console.error('[PVPC] Error mañana:', e);
       }

@@ -12,9 +12,6 @@
     let pvpcLastMeta = null;
     let pvpcErrorShown = false;
     let pvpcCasoInvalidoCanariasViviendaPotAlta = false;
-    const debugLog = window.debugLog || ((...args) => { if (window.__LF_DEBUG) console.log(...args); });
-    const debugGroup = (...args) => { if (window.__LF_DEBUG) console.group(...args); };
-    const debugGroupEnd = () => { if (window.__LF_DEBUG) console.groupEnd(); };
 
     // Helper robusto: soporta número, "3.45", "3,45", "1.234,56", "1,234.56" y entradas con separadores repetidos
     function asNumber(v, fallback = 0) {
@@ -196,7 +193,7 @@
         if (rangoMatch) rangoFechas = { inicio: rangoMatch[1], fin: rangoMatch[2] };
       } catch (e) {}
 
-      debugGroup('PVPC parsearRespuestaPVPC (FIXED)');
+      console.group('PVPC parsearRespuestaPVPC (FIXED)');
       try {
         lista.forEach(item => {
           const cabeceraRaw = stripHtml(item?.cabecera || item?.concepto || '').trim();
@@ -207,7 +204,7 @@
 
           const importe = parseEuro(item?.importe ?? item?.valor ?? item?.precio ?? item?.total);
 
-          debugLog(`Concepto: ${cabecera} -> Importe: ${importe}`);
+          console.log(`Concepto: ${cabecera} -> Importe: ${importe}`);
 
           if (cabecera.includes('término fijo') || cabecera.includes('termino fijo') || cabecera.includes('potencia')) {
             meta.terminoFijo += importe;
@@ -232,7 +229,7 @@
           }
         });
       } finally {
-        debugGroupEnd();
+        console.groupEnd();
       }
 
       if (meta.totalFactura <= 0) {
@@ -360,24 +357,24 @@
 
       const apiUrl = `https://comparador.cnmc.gob.es/api/ofertas/pvpc?${params.toString()}`;
 
-      debugGroup('PVPC obtenerPVPC_CNMC');
-      debugLog('API URL:', apiUrl);
-      debugLog('Periodo:', periodo.periodoFacturacion, `(${dias} días)`);
-      debugLog(`Potencias: P1=${p1.toFixed(2)} P2=${p2.toFixed(2)} → promedio=${((p1+p2)/2).toFixed(1)}`);
-      debugLog(`Consumos: Punta=${Math.round(cPunta)} Llano=${Math.round(cLlano)} Valle=${Math.round(cValle)}`);
-      debugGroupEnd();
+      console.group('PVPC obtenerPVPC_CNMC');
+      console.log('API URL:', apiUrl);
+      console.log('Periodo:', periodo.periodoFacturacion, `(${dias} días)`);
+      console.log(`Potencias: P1=${p1.toFixed(2)} P2=${p2.toFixed(2)} → promedio=${((p1+p2)/2).toFixed(1)}`);
+      console.log(`Consumos: Punta=${Math.round(cPunta)} Llano=${Math.round(cLlano)} Valle=${Math.round(cValle)}`);
+      console.groupEnd();
 
       // 🔥 Si hay proxy, usarlo DIRECTAMENTE (evita request CORS inútil)
       const proxyBase = window.PVPC_PROXY_URL ? normalizeProxyBase(window.PVPC_PROXY_URL) : '';
       if (proxyBase) {
         try {
           const proxyUrl = `${proxyBase}${encodeURIComponent(apiUrl)}`;
-          debugLog('PVPC: ✅ Usando proxy directo:', proxyUrl);
+          console.log('PVPC: ✅ Usando proxy directo:', proxyUrl);
           const result = await fetchJsonWithTimeout(proxyUrl, 12000);
           pvpcErrorShown = false;
           return result;
         } catch (proxyErr) {
-          debugLog('PVPC fetch con proxy falló:', proxyErr?.message || proxyErr);
+          console.warn('PVPC fetch con proxy falló:', proxyErr?.message || proxyErr);
           if (typeof toast === 'function' && !pvpcErrorShown) {
             toast('PVPC (regulada) no disponible ahora mismo. Intenta de nuevo con ⚡ Calcular.', 'err');
             pvpcErrorShown = true;
@@ -387,7 +384,7 @@
       }
 
       // Si no hay proxy configurado
-      debugLog('PVPC: ⚠️ window.PVPC_PROXY_URL no configurado. PVPC no disponible.');
+      console.info('PVPC: ⚠️ window.PVPC_PROXY_URL no configurado. PVPC no disponible.');
       if (typeof toast === 'function' && !pvpcErrorShown) {
         toast('PVPC (regulada) no disponible. Configura proxy para habilitar.', 'err');
         pvpcErrorShown = true;

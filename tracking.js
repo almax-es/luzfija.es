@@ -4,79 +4,22 @@
 (function() {
   'use strict';
 
-  const COUNTER_ENDPOINT = 'https://luzfija.goatcounter.com/count';
-  const COUNTER_SRC = 'https://gc.zgo.at/count.js';
-  const pendingEvents = [];
-  let loadRequested = false;
-
-  function ensureCounterLoaded() {
-    if (typeof window.goatcounter !== 'undefined' && typeof window.goatcounter.count === 'function') {
-      return Promise.resolve(true);
-    }
-
-    if (window.__LF_goatcounterPromise) {
-      return window.__LF_goatcounterPromise;
-    }
-
-    window.__LF_goatcounterPromise = new Promise((resolve) => {
-      try {
-        const existing = document.querySelector('script[data-goatcounter]');
-        if (existing) {
-          const onReady = () => resolve(true);
-          const onFail = () => resolve(false);
-          existing.addEventListener('load', onReady, { once: true });
-          existing.addEventListener('error', onFail, { once: true });
-          if (typeof window.goatcounter === 'undefined') {
-            setTimeout(() => resolve(typeof window.goatcounter !== 'undefined'), 4000);
-          }
-          return;
-        }
-
-        const script = document.createElement('script');
-        script.src = COUNTER_SRC;
-        script.async = true;
-        script.setAttribute('data-goatcounter', COUNTER_ENDPOINT);
-        script.onload = () => resolve(true);
-        script.onerror = () => resolve(false);
-        document.head.appendChild(script);
-      } catch (e) {
-        resolve(false);
-      }
-    });
-
-    return window.__LF_goatcounterPromise;
-  }
-
-  function flushQueue() {
+  // Función auxiliar para enviar eventos a GoatCounter
+  function trackEvent(eventName, metadata) {
     if (typeof window.goatcounter === 'undefined' || typeof window.goatcounter.count !== 'function') {
+      // GoatCounter aún no ha cargado, ignorar silenciosamente
       return;
     }
 
-    while (pendingEvents.length) {
-      const { eventName, metadata } = pendingEvents.shift();
-      try {
-        window.goatcounter.count({
-          path: eventName,
-          title: metadata?.title || eventName,
-          event: true,
-        });
-      } catch (e) {
-        // Silencioso
-      }
-    }
-  }
-
-  // Función auxiliar para enviar eventos a GoatCounter
-  function trackEvent(eventName, metadata) {
-    pendingEvents.push({ eventName, metadata });
-
-    if (!loadRequested) {
-      loadRequested = true;
-      ensureCounterLoaded().then(() => {
-        flushQueue();
+    try {
+      window.goatcounter.count({
+        path: eventName,
+        title: metadata?.title || eventName,
+        event: true,
       });
-    } else {
-      flushQueue();
+    } catch (e) {
+      // No romper la app si hay algún error de tracking
+      console.debug('Error tracking:', e);
     }
   }
 

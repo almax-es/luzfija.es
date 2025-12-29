@@ -122,23 +122,23 @@
 </head>
 <body>
 <div class="container">
-  <nav aria-label="Breadcrumb" class="breadcrumb-nav">
-    <ol class="breadcrumb-list">
-      <li><a href="/" class="breadcrumb-link">🏠 Inicio</a></li>
-      <li class="breadcrumb-separator">/</li>
-      <li><a href="/guias.html" class="breadcrumb-link">📚 Guías</a></li>
-      <li class="breadcrumb-separator">/</li>
-      <li class="breadcrumb-current">La letra pequeña de las tarifas</li>
+  <nav aria-label="Breadcrumb" style="margin-bottom: 16px;">
+    <ol style="display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--muted2); flex-wrap: wrap;">
+      <li><a href="/" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">🏠 Inicio</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li><a href="/guias.html" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">📚 Guías</a></li>
+      <li style="color: var(--muted2);">/</li>
+      <li style="color: var(--text); font-weight: 500;">La letra pequeña de las tarifas</li>
     </ol>
   </nav>
-  <a href="../guias.html" class="guia-back-link">← Volver a guías</a>
+  <a href="../guias.html" style="display: inline-block; margin-bottom: 20px; color: var(--accent);">← Volver a guías</a>
   <article class="guia-content">
     <h1>La letra pequeña: topes de kWh, cuotas, "descuentos" y permanencias</h1>
     <p class="guia-intro">
 Muchas tarifas "baratas" lo son <strong>hasta que lees dos líneas</strong>. Aquí tienes los trucos típicos para que no te la cuelen.
 </p>
 
-<h2>1. Topes de kWh (muy típico)</h2>
+<h4>1. Topes de kWh (muy típico)</h4>
 <p>
 "Precio promo hasta X kWh/mes" o "solo aplicable hasta X kWh/año". Si te pasas, el resto va a precio más caro.
 </p>
@@ -150,7 +150,7 @@ Factura: (200 × 0,10) + (100 × 0,20) = 20 € + 20 € = 40 €. No son 30 €
 </p>
 <p><strong>Cómo detectarlo:</strong> Busca palabras como "hasta", "primeros X kWh", "aplicable a". Si lo ves, pregunta qué pasa cuando te pasas.</p>
 
-<h2>2. Cuotas fijas (el asesino silencioso)</h2>
+<h4>2. Cuotas fijas (el asesino silencioso)</h4>
 <p>
 "Cuota de gestión", "cuota de servicio", "cuota de socio"… Llámalo como quieras: <strong>pagas sí o sí</strong>, consumas o no.
 </p>
@@ -160,7 +160,7 @@ Si consumes 150 kWh/mes y te cobran 5 €/mes de cuota, eso es 0,033 €/kWh ext
 </p>
 <p><strong>Cuándo compensa una cuota:</strong> Si consumes mucho (400+ kWh/mes). Ahí la cuota se diluye y puede salir a cuenta. Si consumes poco, te mata.</p>
 
-<h2>3. "Descuento del 20%" (pero… ¿sobre qué?)</h2>
+<h4>3. "Descuento del 20%" (pero… ¿sobre qué?)</h4>
 <p>
 Te dicen "20% de descuento" pero no te dicen sobre qué precio base. Y el precio base puede estar inflado.
 </p>
@@ -172,13 +172,13 @@ Te dicen "20% de descuento" pero no te dicen sobre qué precio base. Y el precio
 </ul>
 <p><strong>Cómo detectarlo:</strong> Pregunta el precio final en €/kWh, con TODO incluido. No te quedes con el porcentaje.</p>
 
-<h2>4. Descuentos temporales (los primeros 3/6 meses)</h2>
+<h4>4. Descuentos temporales (los primeros 3/6 meses)</h4>
 <p>
 "15% descuento durante 6 meses". Genial. Pero luego te suben y te quedas pagando más que antes.
 </p>
 <p><strong>Qué hacer:</strong> Calcula cuánto pagas EN TOTAL el primer año (6 meses con descuento + 6 sin). A veces sale más caro que una tarifa sin descuento pero estable.</p>
 
-<h2>5. Servicios extra metidos con calzador</h2>
+<h4>5. Servicios extra metidos con calzador</h4>
 <p>
 Mantenimiento, seguros, asistencia… A veces vienen "incluidos" (gratis 3 meses) y luego te cobran. Otras veces te los meten directamente sin avisar.
 </p>
@@ -191,20 +191,20 @@ Mantenimiento, seguros, asistencia… A veces vienen "incluidos" (gratis 3 meses
 </ul>
 <p>Si te marean por teléfono ("sin el servicio te sale más caro"), pide que te lo pongan por escrito con números. Ahí se caen.</p>
 
-<h2>6. Permanencia y penalización</h2>
+<h4>6. Permanencia y penalización</h4>
 <p>
 Te atan 6-12 meses. Si te vas antes, penalización (suele ser el descuento que te aplicaron × meses que quedan).
 </p>
 <p><strong>Ejemplo:</strong> Te dieron 10% descuento = 5 €/mes ahorrados. Te vas al mes 4 de 12. Penalización: 5 € × 8 meses = 40 €.</p>
 <p><strong>Consejo:</strong> Si una tarifa necesita atarte para que no te vayas, mala señal. Las buenas tarifas no necesitan permanencias.</p>
 
-<h2>7. Actualización anual con IPC (la subida ninja)</h2>
+<h4>7. Actualización anual con IPC (la subida ninja)</h4>
 <p>
 Contratas a 0,12 €/kWh. En el contrato pone "precio actualizable anualmente según IPC". IPC sube 3% → tu precio sube a 0,1236 €/kWh. Y así cada año.
 </p>
 <p><strong>No es ilegal</strong>, pero deberías saberlo antes de firmar. Pregunta si el precio es fijo o actualizable.</p>
 
-<h2>Checklist rápido antes de contratar</h2>
+<h4>Checklist rápido antes de contratar</h4>
 <ul>
 <li>¿Cuánto cuesta el kWh <strong>real</strong> (con todo lo que añaden)?</li>
 <li>¿Hay cuota mensual? ¿Cuánto?</li>
@@ -215,7 +215,7 @@ Contratas a 0,12 €/kWh. En el contrato pone "precio actualizable anualmente se
 <li>¿El precio se actualiza con IPC?</li>
 </ul>
 
-<h2>Red flags (huye si ves esto)</h2>
+<h4>Red flags (huye si ves esto)</h4>
 <ul>
 <li>No te dan precio final claro (solo porcentajes y descuentos)</li>
 <li>Permanencia de más de 12 meses</li>
@@ -227,7 +227,7 @@ Contratas a 0,12 €/kWh. En el contrato pone "precio actualizable anualmente se
 
 <p><strong>Regla de oro:</strong> Si algo suena demasiado bueno para ser verdad, probablemente lo sea. Lee el contrato ENTERO antes de firmar. Sí, es un coñazo. Pero te ahorras disgustos.</p>
   </article>
-  <div class="guia-nav">
+  <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border);">
     <a href="estafas-y-llamadas-comerciales-como-detectarlas-y-que-hacer.html" class="nav-link">← Estafas y llamadas comerciales: cómo detectarlas y qué hacer</a>
     <a href="../guias.html" class="nav-link">📚 Ver todas</a>
     <a href="tarifas-indexadas-pool-cuota-cuando-interesan-y-cuando-no.html" class="nav-link">Tarifas indexadas (pool + cuota): cuándo interesan y cuándo no →</a>
@@ -235,23 +235,23 @@ Contratas a 0,12 €/kWh. En el contrato pone "precio actualizable anualmente se
 </div>
 
 <!-- INTERNAL LINKS SECTION -->
-<section class="guia-related">
-  <h2 class="guia-related-title">📚 Guías relacionadas</h2>
-  <div class="guia-related-grid">
-    <a href="/guias/como-cambiar-de-compania-sin-cortes-y-sin-que-te-li-en.html" class="guia-related-link">
-      <span class="guia-related-arrow">→</span>Cómo cambiar de compañía sin cortes
+<section style="margin-top: 80px; padding: 40px; background: var(--card); border: 2px solid var(--border); border-radius: 20px;">
+  <h3 style="font-size: 24px; font-weight: 700; margin-bottom: 24px; color: var(--text);">📚 Guías relacionadas</h3>
+  <div style="display: grid; gap: 16px;">
+    <a href="/guias/como-cambiar-de-compania-sin-cortes-y-sin-que-te-li-en.html" style="display: block; padding: 16px 20px; background: var(--card2); border: 1px solid var(--border2); border-radius: 12px; text-decoration: none; color: var(--text); transition: all 0.2s; hover:transform: translateX(4px);">
+      <span style="color: var(--accent); margin-right: 8px;">→</span>Cómo cambiar de compañía sin cortes
     </a>
-    <a href="/guias/estafas-y-llamadas-comerciales-como-detectarlas-y-que-hacer.html" class="guia-related-link">
-      <span class="guia-related-arrow">→</span>Estafas y llamadas comerciales: cómo detectarlas
+    <a href="/guias/estafas-y-llamadas-comerciales-como-detectarlas-y-que-hacer.html" style="display: block; padding: 16px 20px; background: var(--card2); border: 1px solid var(--border2); border-radius: 12px; text-decoration: none; color: var(--text); transition: all 0.2s; hover:transform: translateX(4px);">
+      <span style="color: var(--accent); margin-right: 8px;">→</span>Estafas y llamadas comerciales: cómo detectarlas
     </a>
-    <a href="/guias/servicios-extra-y-mantenimiento-como-detectarlos-y-quitarlos.html" class="guia-related-link">
-      <span class="guia-related-arrow">→</span>Servicios extra: cómo detectarlos y quitarlos
+    <a href="/guias/servicios-extra-y-mantenimiento-como-detectarlos-y-quitarlos.html" style="display: block; padding: 16px 20px; background: var(--card2); border: 1px solid var(--border2); border-radius: 12px; text-decoration: none; color: var(--text); transition: all 0.2s; hover:transform: translateX(4px);">
+      <span style="color: var(--accent); margin-right: 8px;">→</span>Servicios extra: cómo detectarlos y quitarlos
     </a>
   </div>
 </section>
 
-  <footer class="guia-footer">
-    <a href="/privacidad.html" class="guia-footer-link">📋 Política de privacidad</a>
+  <footer style="margin-top: 60px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,.1); text-align: center; font-size: 13px; color: var(--muted);">
+    <a href="/privacidad.html" style="color: var(--accent); text-decoration: none;">📋 Política de privacidad</a>
   </footer>
 </body>
 </html>
