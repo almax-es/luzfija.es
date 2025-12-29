@@ -247,7 +247,7 @@
           </div>` : ''}
         </div>
         ${(d.credit1 > 0 && creditoPotencial > d.credit1) ? `<div class="desglose-resumen-note">
-          Has generado <strong>${this.fmt(creditoPotencial)}</strong> en excedentes, pero solo se han aplicado <strong>${this.fmt(d.credit1)}</strong> este mes porque la compensación está limitada al tope (<strong>${topeLabel} (€)</strong>). El sobrante ${bvActiva ? 'se acumula en la Batería Virtual' : 'no se compensa este mes'}.
+          Has generado <strong>${this.fmt(creditoPotencial)}</strong> en excedentes, pero solo se han aplicado <strong>${this.fmt(d.credit1)}</strong> este mes porque la compensación está limitada al tope (<strong>${topeLabel} (€)</strong>). El sobrante ${bvActiva ? 'se acumula en la Batería Virtual' : 'no se compensa ni se acumula'}.
         </div>` : ''}
       </div>`;
 
@@ -361,27 +361,27 @@
       if (d.excedenteSobranteEur > 0 || d.credit2 > 0) {
         html += `<div class="desglose-seccion desglose-seccion--bv">
           <div class="desglose-seccion-header desglose-seccion-header--bv"><h3>${(datos.tieneBV ? "🔋 BATERÍA VIRTUAL" : "☀️ EXCEDENTES NO COMPENSADOS")}</h3><span class="desglose-importe-header">${this.fmt(datos.tieneBV ? (d.bvSaldoFin || 0) : (d.excedenteSobranteEur || 0))}</span></div>
-          ${datos.bateriaVirtual > 0 ? `<div class="desglose-linea">
+          ${(datos.tieneBV && datos.bateriaVirtual > 0) ? `<div class="desglose-linea">
             <span class="desglose-concepto">Saldo mes anterior</span>
             <span class="desglose-detalle"></span>
             <span class="desglose-importe">${this.fmt(datos.bateriaVirtual)}</span>
           </div>` : ''}
-          ${d.credit2 > 0 ? `<div class="desglose-linea">
+          ${(datos.tieneBV && d.credit2 > 0) ? `<div class="desglose-linea">
             <span class="desglose-concepto">BV utilizada este mes</span>
             <span class="desglose-detalle">Aplicado a factura</span>
             <span class="desglose-importe desglose-importe--neg">-${this.fmt(d.credit2)}</span>
           </div>` : ''}
-          ${d.credit2 > 0 ? `<div class="desglose-ayuda desglose-ayuda--bv">La Batería Virtual se aplica al <strong>total final</strong> de la factura (potencia, alquiler e impuestos incluidos).</div>` : ''}
+          ${(datos.tieneBV && d.credit2 > 0) ? `<div class="desglose-ayuda desglose-ayuda--bv">La Batería Virtual se aplica al <strong>total final</strong> de la factura (potencia, alquiler e impuestos incluidos).</div>` : ''}
           ${d.excedenteSobranteEur > 0 ? `<div class="desglose-linea">
             <span class="desglose-concepto">${datos.tieneBV ? "Excedentes acumulados" : "Sobrante de excedentes"}</span>
-            <span class="desglose-detalle">${datos.tieneBV ? "No compensados este mes" : "No se compensa este mes"}</span>
+            <span class="desglose-detalle">${datos.tieneBV ? "No compensados este mes" : "No se compensa ni se acumula"}</span>
             <span class="desglose-importe desglose-importe--pos">+${this.fmt(d.excedenteSobranteEur)}</span>
           </div>` : ''}
-          <div class="desglose-linea">
+          ${datos.tieneBV ? `<div class="desglose-linea">
             <span class="desglose-concepto"><strong>Saldo BV próximo mes</strong></span>
             <span class="desglose-detalle"></span>
             <span class="desglose-importe"><strong>${this.fmt(datos.tieneBV ? (d.bvSaldoFin || 0) : (d.excedenteSobranteEur || 0))}</strong></span>
-          </div>
+          </div>` : ''}
         </div>`;
       }
 
