@@ -130,7 +130,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "Octopus Unicaja Relax",
+      "nombre": "Octopus Unicaja",
       "cPunta": 0.113,
       "cLlano": 0.113,
       "cValle": 0.113,
@@ -406,7 +406,7 @@
       "requiereFV": true
     },
     {
-      "nombre": "Naturgy noche luz 3P",
+      "nombre": "Naturgy noche 3P",
       "cPunta": 0.185461,
       "cLlano": 0.116414,
       "cValle": 0.082334,
@@ -444,9 +444,9 @@
       "requiereFV": false
     }
   ],
-  "timestamp": "2025-12-29T15:50:14.185Z",
-  "publishedAt": "2025-12-29T15:50:14.185Z",
-  "publishedAtEpoch": 1767023414185,
-  "updatedAt": "2025-12-29T15:50:14.185Z",
-  "updatedAtEpoch": 1767023414185
+  "timestamp": "2025-12-29T15:57:00.784Z",
+  "publishedAt": "2025-12-29T15:57:00.784Z",
+  "publishedAtEpoch": 1767023820784,
+  "updatedAt": "2025-12-29T15:57:00.784Z",
+  "updatedAtEpoch": 1767023820784
 }
