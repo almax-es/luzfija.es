@@ -7,7 +7,7 @@
 
 // IMPORTANTE: si cambias este fichero, incrementa CACHE_NAME para forzar la actualización.
 // Bump de versión para forzar actualización de assets tras cambios (release incremental)
-const CACHE_NAME = "luzfija-static-v4.9";
+const CACHE_NAME = "luzfija-static-v4.10";
 
 const ASSETS = [
   "/",
