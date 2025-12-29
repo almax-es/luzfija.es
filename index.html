@@ -303,7 +303,7 @@
               </select>
             </div>
             <div class="group u-items-center" id="viviendaCanariasGroup" style="display:none;">
-              <label for="viviendaCanarias" style="gap:8px;">
+              <label for="viviendaCanarias" class="u-gap-8">
                 <input id="viviendaCanarias" type="checkbox" checked style="width:auto; height:auto;">
                 Vivienda (hogar)
               </label>
@@ -342,7 +342,7 @@
             </div>
           </div>
           <div id="solarFields" class="form fv-fields u-mt-8" style="display:none;">
-            <button type="button" class="btn" id="btnSolarInfo" style="width: 100%; justify-content: center; margin-bottom: 12px; background: rgba(251, 191, 36, 0.12); border-color: rgba(251, 191, 36, 0.3);">
+            <button type="button" class="btn btn-info-solar" id="btnSolarInfo">
               ℹ️ ¿Cómo funciona con placas solares?
             </button>
             <div class="group">
@@ -374,18 +374,18 @@
               <div class="kwhLabel">Total kWh</div>
               <div class="kwhValue" id="kwhHint">—</div>
             </div>
-            <div style="position: relative; display: flex; flex: 1; min-width: 0;">
+            <div class="u-flex-container">
               <button class="btn primary" id="btnCalc" type="button" title="Calcular ahora" aria-label="Calcular comparación de tarifas">
                 <span class="btn-shine"></span>
-                <span id="btnText" style="position: relative; z-index: 1;">⚡ Calcular</span>
-                <span id="btnSpinner" style="display:none; position: relative; z-index: 1;"><span class="spinner"></span></span>
+                <span id="btnText" class="u-relative u-z-1">⚡ Calcular</span>
+                <span id="btnSpinner" class="u-relative u-z-1" style="display:none;"><span class="spinner"></span></span>
               </button>
             </div>
           </div>
           <div class="help">
             Introduce tus datos y pulsa ⚡ Calcular para generar o refrescar el ranking (tarifas y PVPC si está disponible). Puedes escribir decimales con coma o punto (ej.: 3,45 / 3.45).
           </div>
-          <button type="button" class="btn" id="btnPVPCInfo" style="width: 100%; justify-content: center; margin-top: 12px; background: rgba(245, 158, 11, 0.15); border-color: rgba(217, 119, 6, 0.35);" aria-label="Ver precios PVPC de hoy por horas">
+          <button type="button" class="btn btn-info-pvpc" id="btnPVPCInfo" aria-label="Ver precios PVPC de hoy por horas">
             ⚡ Ver precios PVPC hoy
           </button>
         </div>
@@ -478,7 +478,7 @@
         <div class="guides-banner-glow"></div>
         <div class="u-relative u-z-1">
           <div class="u-flex u-items-center u-gap-12 u-mb-12">
-            <span style="font-size:32px;">📚</span>
+            <span class="u-text-32">📚</span>
             <div>
               <div class="guides-banner-kicker">Nueva sección</div>
               <h3 class="guides-banner-title">Guías sobre tarifas eléctricas</h3>
@@ -536,7 +536,7 @@
 
           <h3>¿Cómo funciona el comparador con placas solares?</h3>
           <p>Si tienes <strong>autoconsumo fotovoltaico</strong>, el comparador calcula automáticamente:</p>
-          <ul style="margin: 8px 0; padding-left: 20px; color: var(--muted); line-height: 1.7;">
+          <ul class="u-content-list">
             <li><strong>Compensación de excedentes</strong>: Los kWh que viertes a la red se compensan según el precio que pague cada comercializadora</li>
             <li><strong>Batería Virtual (BV)</strong>: Algunas tarifas acumulan excedentes en euros para descontarlos en meses futuros</li>
             <li><strong>Ranking ajustado</strong>: El orden considera el ahorro real, restando los excedentes que acumulas para próximos meses</li>
@@ -558,7 +558,7 @@
     <!-- SECCIÓN NOVEDADES DEL MERCADO -->
     <section class="section-container mt-60">
       <div class="u-flex u-items-center u-gap-12 u-mb-24">
-        <span style="font-size:28px; line-height:1;">🔔</span>
+        <span class="u-text-28 u-leading-10">🔔</span>
         <h2 style="font-size:clamp(20px, 3vw, 26px); font-weight:900; margin:0; color:var(--text);">
           Novedades del Mercado
         </h2>
@@ -816,14 +816,14 @@
             Sugerencias, errores o dudas sobre el comparador:
           </p>
 
-          <div style="margin-top:12px; padding:12px 12px; border-radius:14px; border:1px solid var(--border); background:rgba(255,255,255,.04);">
+          <div class="contact-box">
             <div class="u-label-xs">
               ✉️ Email
             </div>
             <a href="mailto:hola@luzfija.es" class="u-color-accent u-fw-900 u-text-13" style="text-decoration:underline;">
               hola@luzfija.es
             </a>
-            <div style="margin-top:8px; font-size:11px; color:var(--muted2); line-height:1.4;">
+            <div class="u-secondary-text">
               Respondo en cuanto puedo (proyecto gratuito).
             </div>
           </div>
@@ -835,9 +835,9 @@
         <p class="u-text-10 u-opacity-40">Proyecto gratuito y sin publicidad · Datos actualizados regularmente</p>
 
         <div style="margin-top:18px; padding-top:14px; border-top:1px solid var(--border);">
-          <div style="max-width:720px; margin:0 auto; text-align:center; padding:0 12px;">
+          <div class="u-max-w-720 u-center-text-padded">
             <p class="u-text-10 u-leading-16 u-opacity-65 u-m-0">
-              El PVPC mostrado (cuando está disponible) es una <strong style="opacity:0.9;">estimación orientativa</strong> basada en información pública y puede diferir de tu factura.
+              El PVPC mostrado (cuando está disponible) es una <strong class="u-opacity-90">estimación orientativa</strong> basada en información pública y puede diferir de tu factura.
               Fuente oficial: <a href="https://facturaluz2.cnmc.es/" target="_blank" rel="noopener noreferrer" class="u-link-accent">facturaluz2.cnmc.es</a>.
               Proyecto independiente, no afiliado ni avalado por CNMC, Red Eléctrica de España, organismos oficiales ni ninguna comercializadora.
             </p>
@@ -922,7 +922,7 @@
   </div>
 
   <div class="modal-overlay is-hidden" id="modalSolarInfo" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Información sobre tarifas solares" tabindex="-1">
-    <div class="modal-content card" role="document" style="max-width: 600px;">
+    <div class="modal-content card u-max-w-600" role="document">
       <button class="modal-x" id="btnCerrarSolarX" type="button" aria-label="Cerrar">✕</button>
       <div class="head">
         <div class="kicker">Autoconsumo fotovoltaico</div>
@@ -998,7 +998,7 @@
 
   <!-- Modal PVPC -->
   <div class="modal-overlay is-hidden" id="modalPVPCInfo" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Precios PVPC por hora" tabindex="-1">
-    <div class="modal-content card" role="document" style="max-width: 650px;">
+    <div class="modal-content card u-max-w-650" role="document">
       <button class="modal-x" id="btnCerrarPVPCX" type="button" aria-label="Cerrar">✕</button>
       <div class="head">
         <div class="kicker">Precio regulado de la luz</div>
@@ -1035,11 +1035,11 @@
           </div>
         </div>
         
-        <div id="modalPVPCHoursList" style="margin: 0 -20px; padding: 0 20px;">
+        <div id="modalPVPCHoursList" class="u-expand-h">
           <p class="u-loading-text">Cargando precios...</p>
         </div>
 
-        <button class="btn primary" id="btnCerrarPVPCInfo" type="button" style="width: 100%; margin-top: 16px;" aria-label="Cerrar modal de precios PVPC">
+        <button class="btn primary u-w-full u-mt-16" id="btnCerrarPVPCInfo" type="button" aria-label="Cerrar modal de precios PVPC">
           ✅ Cerrar
         </button>
       </div>
