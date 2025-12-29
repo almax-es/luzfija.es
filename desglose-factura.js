@@ -198,6 +198,9 @@
       const exKwh = clampNonNeg(Number(datos.excedentes || 0));
       const precioComp = Number(datos.precioCompensacion || 0);
       const creditoPotencial = (solarOn && exKwh > 0 && precioComp > 0) ? round2(exKwh * precioComp) : 0;
+      // kWh de excedentes realmente usados vs sobrantes (más intuitivo que solo €)
+      const kwhExUsados = (solarOn && precioComp > 0 && d.credit1 > 0) ? clampNonNeg(d.credit1 / precioComp) : 0;
+      const kwhExSobrantes = (solarOn && precioComp > 0 && exKwh > 0) ? clampNonNeg(exKwh - kwhExUsados) : 0;
       const tope = String(datos.topeCompensacion || 'ENERGIA');
       const topeLabel = (tope === 'ENERGIA + PEAJES + CARGOS') ? 'Energía + peajes + cargos' : 'Energía';
       const pagoMes = (typeof d.totalFinal === 'number') ? d.totalFinal : d.totalBase;
@@ -228,6 +231,8 @@
           ${(d.credit1 > 0) ? `<div class="desglose-resumen-item">
             <div class="desglose-resumen-label">Compensación aplicada (tope: ${topeLabel})</div>
             <div class="desglose-resumen-value">${this.fmt(d.credit1)}</div>
+            <div class="desglose-resumen-sub">Regla: la compensación se aplica como máximo hasta <strong>${topeLabel}</strong> (no puede dejar ese término en negativo).</div>
+            ${(solarOn && precioComp > 0 && exKwh > 0) ? `<div class="desglose-resumen-sub">Excedentes: usados <strong>${this.fmtNum(kwhExUsados)}</strong> kWh · sobrantes <strong>${this.fmtNum(kwhExSobrantes)}</strong> kWh</div>` : ''}
           </div>` : ''}
           ${(d.excedenteSobranteEur > 0) ? `<div class="desglose-resumen-item">
             <div class="desglose-resumen-label">Sobrante de excedentes</div>
@@ -276,9 +281,9 @@
           <span class="desglose-detalle">${this.fmtNum(datos.consumoValle)} kWh × ${this.fmtNum(datos.precioValle, 6)}/kWh</span>
           <span class="desglose-importe">${this.fmt(datos.consumoValle * datos.precioValle)}</span>
         </div>
-        ${d.credit1 > 0 ? `<div class="desglose-linea" style="background: rgba(34,197,94,0.1)">
+        ${d.credit1 > 0 ? `<div class="desglose-linea desglose-linea--hl-green">
           <span class="desglose-concepto">☀️ Compensación excedentes</span>
-          <span class="desglose-detalle">${this.fmtNum(datos.excedentes)} kWh × ${this.fmtNum(datos.precioCompensacion, 6)}/kWh = ${this.fmt(creditoPotencial)} · Tope: ${topeLabel}</span>
+          <span class="desglose-detalle">${this.fmtNum(datos.excedentes)} kWh × ${this.fmtNum(datos.precioCompensacion, 6)}/kWh = ${this.fmt(creditoPotencial)} · Usados: ${this.fmtNum(kwhExUsados)} kWh (${this.fmt(d.credit1)}) · Sobrante: ${this.fmtNum(kwhExSobrantes)} kWh (${this.fmt(d.excedenteSobranteEur)}) · Tope: ${topeLabel}</span>
           <span class="desglose-importe desglose-importe--pos">-${this.fmt(d.credit1)}</span>
         </div>
         <div class="desglose-linea">
@@ -295,7 +300,7 @@
           <span class="desglose-detalle">${this.fmtNum(4.650987/365, 6)}/día × ${datos.dias} días</span>
           <span class="desglose-importe">${this.fmt(d.tarifaAcceso)}</span>
         </div>
-        ${d.tarifaAdj !== d.tarifaAcceso && d.credit1 > 0 ? `<div class="desglose-linea" style="background: rgba(34,197,94,0.1)">
+        ${d.tarifaAdj !== d.tarifaAcceso && d.credit1 > 0 ? `<div class="desglose-linea desglose-linea--hl-green">
           <span class="desglose-concepto">☀️ Compensación en Bono Social</span>
           <span class="desglose-detalle">Resto de compensación</span>
           <span class="desglose-importe desglose-importe--pos">-${this.fmt(d.tarifaAcceso - d.tarifaAdj)}</span>
@@ -359,6 +364,7 @@
             <span class="desglose-detalle">Aplicado a factura</span>
             <span class="desglose-importe desglose-importe--neg">-${this.fmt(d.credit2)}</span>
           </div>` : ''}
+          ${d.credit2 > 0 ? `<div class="desglose-ayuda desglose-ayuda--bv">La Batería Virtual se aplica al <strong>total final</strong> de la factura (potencia, alquiler e impuestos incluidos).</div>` : ''}
           ${d.excedenteSobranteEur > 0 ? `<div class="desglose-linea">
             <span class="desglose-concepto">${datos.tieneBV ? "Excedentes acumulados" : "Sobrante de excedentes"}</span>
             <span class="desglose-detalle">${datos.tieneBV ? "No compensados este mes" : "No se compensa este mes"}</span>
@@ -398,7 +404,7 @@
         ${datos.tieneBV && d.excedenteSobranteEur > 0 ? `<div class="desglose-linea desglose-linea--top-accent">
           <span class="desglose-concepto"><strong>RANKING (coste real)</strong></span>
           <span class="desglose-detalle">Restando excedentes para BV</span>
-          <span class="desglose-importe desglose-importe-final" style="color: rgba(167,139,250,1)">${this.fmt(d.totalRanking)}</span>
+          <span class="desglose-importe desglose-importe-final desglose-importe--accent">${this.fmt(d.totalRanking)}</span>
         </div>` : ''}
       </div>`;
 
