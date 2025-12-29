@@ -468,7 +468,7 @@ window.lfDbg = lfDbg;
           return true;
         }
 
-        console.error('Error cargando tarifas JSON:', e);
+        lfDbg('[ERROR] Error cargando tarifas JSON:', e);
         if(!silent){
           setStatus('Error conexión', 'err');
           toast('Error cargando tarifas desde el servidor.', 'err');
@@ -1589,7 +1589,7 @@ window.lfDbg = lfDbg;
       state.lastSignature = signature;
       state.pending = false;
       }catch(err){
-        console.error(err);
+        lfDbg('[ERROR]', err);
         setStatus('No se ha podido calcular. Inténtalo de nuevo.', 'err');
       }finally{
         window.__LF_CALC_INFLIGHT = false;
@@ -1737,7 +1737,7 @@ window.lfDbg = lfDbg;
           } catch (err) {
             // Usuario canceló o error - fallback a copiar
             if (err.name !== 'AbortError') {
-              console.warn('Error al compartir:', err);
+              lfDbg('[WARN] Error al compartir:', err);
             }
           }
         }
@@ -1755,7 +1755,7 @@ window.lfDbg = lfDbg;
       try {
         initCSVImporter();
       } catch(e) {
-        console.error('Error inicializando CSV importer:', e);
+        lfDbg('[ERROR] Error inicializando CSV importer:', e);
       }
 
       $('scrollToResults').addEventListener('click',()=>$('heroKpis').scrollIntoView({behavior:'smooth',block:'start'}));
@@ -1793,7 +1793,7 @@ window.lfDbg = lfDbg;
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
     navigator.serviceWorker.register('/sw.js').catch(function (err) {
-      console.error('SW registration failed', err);
+      lfDbg('[ERROR] SW registration failed', err);
     });
   });
 }
@@ -1822,10 +1822,10 @@ document.addEventListener('DOMContentLoaded', function () {
           __lf_deferredInstallPrompt = null;
           __lf_installButton.style.display = 'none';
         }).catch(function (err) {
-          console.warn('Error en userChoice:', err);
+          lfDbg('[WARN] Error en userChoice:', err);
         });
       } catch (e) {
-        console.warn('No se ha podido lanzar el prompt de instalación nativo:', e);
+        lfDbg('[WARN] No se ha podido lanzar el prompt de instalación nativo:', e);
       }
       return;
     }
@@ -2879,6 +2879,6 @@ function initCSVImporter() {
     }, 100);
     
   } catch (error) {
-    console.error('[CSV] ERROR CRÍTICO:', error);
+    lfDbg('[CSV] ERROR CRÍTICO:', error);
   }
 }

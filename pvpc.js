@@ -22,7 +22,7 @@
     })();
     const pvpcDbg = (...args) => {
       if (PVPC_DEBUG && typeof console !== 'undefined' && typeof console.log === 'function') {
-        pvpcDbg('[PVPC]', ...args);
+        console.log('[PVPC]', ...args);
       }
     };
 
@@ -388,7 +388,7 @@
           pvpcErrorShown = false;
           return result;
         } catch (proxyErr) {
-          console.warn('PVPC fetch con proxy falló:', proxyErr?.message || proxyErr);
+          pvpcDbg('[WARN] PVPC fetch con proxy falló:', proxyErr?.message || proxyErr);
           if (typeof toast === 'function' && !pvpcErrorShown) {
             toast('PVPC (regulada) no disponible ahora mismo. Intenta de nuevo con ⚡ Calcular.', 'err');
             pvpcErrorShown = true;
@@ -560,7 +560,7 @@
           persistPvpcCacheEntry(signature,payload);
           return tarifa;
         }catch(err){
-          console.error('Error procesando PVPC',err);
+          pvpcDbg('[ERROR] Error procesando PVPC', err);
           if(!pvpcErrorShown){toast('PVPC (regulada) no disponible ahora mismo. Mostrando ranking sin PVPC; puedes reintentar con ⚡ Calcular.','err'); pvpcErrorShown=true;}
           return null;
         }

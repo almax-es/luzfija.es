@@ -799,7 +799,7 @@
           return datos;
           
         } catch (error) {
-          console.error('[QR] ❌ Error parseando QR:', error);
+          lfDbg('[QR] ❌ Error parseando QR:', error);
           return null;
         }
       }
@@ -1408,7 +1408,7 @@
           __LF_hide(__LF_q('loaderFactura'));
           __LF_show(__LF_q('uploadAreaFactura'));
           if (typeof toast === 'function') toast('Error al procesar factura PDF', 'err');
-          console.error('[ERROR] processPdf:', err);
+          lfDbg('[ERROR] processPdf:', err);
         }
       }
 
@@ -1492,7 +1492,7 @@
           __LF_hide(__LF_q('loaderFactura'));
           __LF_show(__LF_q('resultadoFactura'));
           if (typeof toast === 'function') toast('OCR falló o no pudo ejecutarse', 'err');
-          console.error(err);
+          lfDbg('[ERROR]', err);
         }
       }
 

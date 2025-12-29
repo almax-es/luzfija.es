@@ -86,7 +86,7 @@
       tarifasCache = data.tarifas || [];
       return tarifasCache;
     } catch (error) {
-      console.error('Error cargando tarifas:', error);
+      lfDbg('[ERROR] Error cargando tarifas:', error);
       return [];
     }
   }
@@ -259,7 +259,7 @@
     }
 
     if (!tarifa) {
-      console.error('❌ No se encontró tarifa:', nombreTarifa);
+      lfDbg('[ERROR] ❌ No se encontró tarifa:', nombreTarifa);
       alert('Error: No se pudo cargar la información de la tarifa');
       return;
     }
@@ -327,7 +327,7 @@
     if (window.__LF_DesgloseFactura) {
       window.__LF_DesgloseFactura.abrir(datos);
     } else {
-      console.error('Sistema de desglose no disponible');
+      lfDbg('[ERROR] Sistema de desglose no disponible');
     }
   };
 
