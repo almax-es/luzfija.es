@@ -2626,3 +2626,21 @@ html.light-mode, body.light-mode{
   }
 }
 
+
+/* ================================
+   Calidad extra: hover estable + foco visible en celdas clicables
+   ================================ */
+@media (pointer: fine){
+  /* Evita el “micro-balanceo” de filas en desktop (se ve más premium) */
+  #table tbody tr:hover{
+    transform: none !important;
+  }
+}
+
+/* Si convertimos celdas en botones (tabindex/role), que se vean bien al foco */
+#table td[role="button"]:focus-visible{
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: 12px;
+}
+
