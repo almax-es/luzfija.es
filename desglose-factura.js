@@ -233,7 +233,7 @@
           ${(d.credit1 > 0) ? `<div class="desglose-resumen-item">
             <div class="desglose-resumen-label">Compensación aplicada (tope: ${topeLabel})</div>
             <div class="desglose-resumen-value">${this.fmt(d.credit1)}</div>
-            <div class="desglose-resumen-sub">Regla: la compensación se aplica como máximo hasta <strong>${topeLabel}</strong> (no puede dejar ese término en negativo).</div>
+            <div class="desglose-resumen-sub">Regla: la compensación se aplica como máximo hasta <strong>${topeLabel}</strong> (no puede dejar el término de energía en negativo).</div>
             ${(solarOn && precioComp > 0 && exKwh > 0) ? `<div class="desglose-resumen-sub">Excedentes: usados <strong>${this.fmtNum(kwhExUsados)}</strong> kWh · sobrantes <strong>${this.fmtNum(kwhExSobrantes)}</strong> kWh</div>` : ''}
           </div>` : ''}
           ${(d.excedenteSobranteEur > 0) ? `<div class="desglose-resumen-item">
@@ -285,7 +285,7 @@
         </div>
         ${d.credit1 > 0 ? `<div class="desglose-linea desglose-linea--hl-green">
           <span class="desglose-concepto">☀️ Compensación excedentes</span>
-          <span class="desglose-detalle">${this.fmtNum(datos.excedentes)} kWh × ${this.fmtNum(datos.precioCompensacion, 6)}/kWh = ${this.fmt(creditoPotencial)} · Usados: ${this.fmtNum(kwhExUsados)} kWh (${this.fmt(d.credit1)}) · Sobrante: ${this.fmtNum(kwhExSobrantes)} kWh (${this.fmt(d.excedenteSobranteEur)}) · Tope: ${topeLabel}</span>
+          <span class="desglose-detalle">${this.fmtNum(datos.excedentes)} kWh × ${this.fmtNum(datos.precioCompensacion, 6)}/kWh = ${this.fmt(creditoPotencial)} · Usados: ${this.fmtNum(kwhExUsados)} kWh (${this.fmt(d.credit1)}) · Sobrante: ${this.fmtNum(kwhExSobrantes)} kWh (${this.fmt(d.excedenteSobranteEur)}) · Tope: ${topeLabel} (€)</span>
           <span class="desglose-importe desglose-importe--pos">-${this.fmt(d.credit1)}</span>
         </div>
         <div class="desglose-linea">
