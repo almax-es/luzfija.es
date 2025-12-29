@@ -154,7 +154,10 @@ window.lfDbg = lfDbg;
       t.addEventListener('focus', () => { tooltipPinned = false; openTooltip(t); });
       t.addEventListener('blur', () => hideTooltip(true));
       t.addEventListener('click', (evt) => {
+        // Evita que el click "active" el label asociado (si el tooltip está dentro de un <label>)
+        // y a la vez mantiene el tooltip accesible por teclado.
         evt.preventDefault();
+        evt.stopPropagation();
         if(activeTooltip===t && tooltipPinned){ hideTooltip(true); return; }
         tooltipPinned = true;
         openTooltip(t);

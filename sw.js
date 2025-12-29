@@ -6,7 +6,8 @@
 // - resto de estáticos: stale-while-revalidate (sirve cache rápido y actualiza en segundo plano)
 
 // IMPORTANTE: si cambias este fichero, incrementa CACHE_NAME para forzar la actualización.
-const CACHE_NAME = "luzfija-static-v4.4";
+// Bump de versión para forzar actualización de assets tras cambios (release incremental)
+const CACHE_NAME = "luzfija-static-v4.5";
 
 const ASSETS = [
   "/",
