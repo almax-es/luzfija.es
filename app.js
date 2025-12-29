@@ -29,7 +29,8 @@
 })();
 
 // Helper: log solo si debug está activo
-const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
+const debugLog = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
+window.debugLog = debugLog;
 
     const $ = id => document.getElementById(id);
 
@@ -59,7 +60,7 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
         script.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
         script.crossOrigin = 'anonymous'; // Necesario para SRI
         script.onload = () => {
-          lfDbg('[XLSX] Librería cargada bajo demanda');
+          debugLog('[XLSX] Librería cargada bajo demanda');
           resolve();
         };
         script.onerror = () => {
@@ -373,23 +374,25 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
     function renderTarifasUpdated(meta){
       if(!el.tarifasUpdated) return;
       const m = meta || __LF_tarifasMeta || null;
-      const iso = m && (m.publishedAt || m.published_at || m.srcPublishedAt || m.tarifasPublishedAt || null);
+      const iso = m && (m.updatedAt || m.updated_at || m.publishedAt || m.published_at || m.srcPublishedAt || m.tarifasPublishedAt || null);
       if(!iso){
-        el.tarifasUpdated.textContent = 'Tarifas: sin fecha de actualización';
+        el.tarifasUpdated.textContent = '';
+        el.tarifasUpdated.style.display = 'none';
         return;
       }
       const dt = new Date(iso);
       if(!Number.isFinite(dt.getTime())){
-        el.tarifasUpdated.textContent = 'Tarifas: sin fecha de actualización';
+        el.tarifasUpdated.textContent = '';
+        el.tarifasUpdated.style.display = 'none';
         return;
       }
       const fmt = new Intl.DateTimeFormat('es-ES', {
         timeZone: 'Europe/Madrid',
-        year: 'numeric', month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit'
+        year: 'numeric', month: '2-digit', day: '2-digit'
       });
+      el.tarifasUpdated.style.display = '';
       // Texto corto y útil
-      el.tarifasUpdated.textContent = 'Tarifas actualizadas: ' + fmt.format(dt);
+      el.tarifasUpdated.textContent = 'Actualizado el ' + fmt.format(dt);
 
       // Tooltip con ISO original
       el.tarifasUpdated.title = 'Última actualización del listado de tarifas: ' + iso;
@@ -414,7 +417,7 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
           __LF_tarifasMeta = cached.meta || null;
           renderTarifasUpdated(__LF_tarifasMeta);
           // Si la caché no guarda publishedAt (versiones antiguas), seguimos a red para obtenerlo
-          if (__LF_tarifasMeta && (__LF_tarifasMeta.publishedAt || __LF_tarifasMeta.srcPublishedAt || __LF_tarifasMeta.tarifasPublishedAt)) {
+          if (__LF_tarifasMeta && (__LF_tarifasMeta.updatedAt || __LF_tarifasMeta.publishedAt || __LF_tarifasMeta.srcPublishedAt || __LF_tarifasMeta.tarifasPublishedAt)) {
             return true;
           }
           // Continuar a red para enriquecer meta
@@ -451,8 +454,8 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
         baseTarifasCache = tarifas;
 
         // Persistir para recargas/pestañas
-        const __publishedAt = data.publishedAt || data.timestamp || null;
-        __LF_tarifasMeta = { version: data.version || null, publishedAt: __publishedAt };
+        const __updatedAt = data.updatedAt || data.publishedAt || data.timestamp || null;
+        __LF_tarifasMeta = { version: data.version || null, updatedAt: __updatedAt };
         renderTarifasUpdated(__LF_tarifasMeta);
         writeTarifasCache(tarifas, __LF_tarifasMeta);
 
@@ -1060,7 +1063,7 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
             }
           });
         } else {
-          lfDbg('[DEBUG] Faltan elementos del modal');
+          debugLog('[DEBUG] Faltan elementos del modal');
         }
       }
     }
@@ -2569,10 +2572,10 @@ function mostrarPreviewCSV(resultado) {
   btnCerrarX?.addEventListener('click', closeCSVModal);
 
   
-  lfDbg('[CSV] Modal añadido al DOM');
-  lfDbg('[CSV] Modal display:', modal.style.display);
-  lfDbg('[CSV] Modal z-index:', modal.style.zIndex);
-  lfDbg('[CSV] Body children:', document.body.children.length);
+  debugLog('[CSV] Modal añadido al DOM');
+  debugLog('[CSV] Modal display:', modal.style.display);
+  debugLog('[CSV] Modal z-index:', modal.style.zIndex);
+  debugLog('[CSV] Body children:', document.body.children.length);
   
   const btnCancelar = document.getElementById('btnCancelarCSV');
   const btnAplicar = document.getElementById('btnAplicarCSV');
@@ -2600,18 +2603,18 @@ function mostrarPreviewCSV(resultado) {
     }
   }
   
-  lfDbg('[CSV] Botones encontrados:', btnCancelar !== null, btnAplicar !== null);
+  debugLog('[CSV] Botones encontrados:', btnCancelar !== null, btnAplicar !== null);
   
   if (btnCancelar) {
     btnCancelar.addEventListener('click', () => {
-      lfDbg('[CSV] Cancelar clickeado');
+      debugLog('[CSV] Cancelar clickeado');
       closeCSVModal();
     });
   }
   
   if (btnAplicar) {
     btnAplicar.addEventListener('click', () => {
-      lfDbg('[CSV] Aplicar clickeado - rellenando campos');
+      debugLog('[CSV] Aplicar clickeado - rellenando campos');
       
       // Rellenar campos de consumo
       const diasInput = document.getElementById('dias');
@@ -2619,7 +2622,7 @@ function mostrarPreviewCSV(resultado) {
       const llanoInput = document.getElementById('cLlano');
       const valleInput = document.getElementById('cValle');
       
-      lfDbg('[CSV] Inputs encontrados:', {
+      debugLog('[CSV] Inputs encontrados:', {
         dias: diasInput !== null,
         punta: puntaInput !== null,
         llano: llanoInput !== null,
@@ -2640,7 +2643,7 @@ function mostrarPreviewCSV(resultado) {
         valleInput.dispatchEvent(new Event('input', { bubbles: true }));
       }
       
-      lfDbg('[CSV] Valores aplicados:', {
+      debugLog('[CSV] Valores aplicados:', {
         dias: diasInput?.value,
         punta: puntaInput?.value,
         llano: llanoInput?.value,
@@ -2650,7 +2653,7 @@ function mostrarPreviewCSV(resultado) {
       // IMPORTANTE: SIEMPRE resetear campos de excedentes primero
       const solarCheckbox = document.getElementById('solarOn');
       
-      lfDbg('[CSV] Reseteando excedentes - checkbox encontrado:', solarCheckbox !== null);
+      debugLog('[CSV] Reseteando excedentes - checkbox encontrado:', solarCheckbox !== null);
       
       // Determinar si debemos aplicar excedentes
       let debeAplicarExcedentes = false;
@@ -2661,13 +2664,13 @@ function mostrarPreviewCSV(resultado) {
       
       // Rellenar excedentes solo si el usuario lo ha elegido
       if (debeAplicarExcedentes) {
-        lfDbg('[CSV] Usuario eligió aplicar excedentes');
+        debugLog('[CSV] Usuario eligió aplicar excedentes');
         
         if (solarCheckbox && !solarCheckbox.checked) {
           solarCheckbox.checked = true;
           // Disparar evento para mostrar campos solares
           solarCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
-          lfDbg('[CSV] Checkbox solar activado');
+          debugLog('[CSV] Checkbox solar activado');
         }
         
         // Esperar un tick para que se muestren los campos
@@ -2679,29 +2682,29 @@ function mostrarPreviewCSV(resultado) {
             // Disparar evento input para que los listeners lo detecten
             exTotalInputRetry.dispatchEvent(new Event('input', { bubbles: true }));
             
-            lfDbg('[CSV] Excedentes aplicados:', resultado.totalExcedentes);
+            debugLog('[CSV] Excedentes aplicados:', resultado.totalExcedentes);
             
             // IMPORTANTE: Actualizar el hint de kWh DESPUÉS de rellenar exTotal
             // Esperamos otro tick para que el dispatchEvent se procese primero
             setTimeout(() => {
               if (typeof updateKwhHint === 'function') {
                 updateKwhHint();
-                lfDbg('[CSV] updateKwhHint llamado después de aplicar excedentes');
+                debugLog('[CSV] updateKwhHint llamado después de aplicar excedentes');
               }
             }, 50);
           } else {
-            lfDbg('[CSV] ERROR: No se pudo encontrar exTotal después de activar solar');
+            debugLog('[CSV] ERROR: No se pudo encontrar exTotal después de activar solar');
           }
         }, 100);
       } else {
         // Usuario NO quiere aplicar excedentes O no había excedentes
-        lfDbg('[CSV] Limpiando excedentes');
+        debugLog('[CSV] Limpiando excedentes');
         
         // Desmarcar checkbox de solar y limpiar campos
         if (solarCheckbox && solarCheckbox.checked) {
           solarCheckbox.checked = false;
           solarCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
-          lfDbg('[CSV] Checkbox solar desactivado');
+          debugLog('[CSV] Checkbox solar desactivado');
         }
         
         // Limpiar campo de excedentes si existe
@@ -2710,7 +2713,7 @@ function mostrarPreviewCSV(resultado) {
           if (exTotalInput) {
             exTotalInput.value = '';
             exTotalInput.dispatchEvent(new Event('input', { bubbles: true }));
-            lfDbg('[CSV] Campo excedentes limpiado');
+            debugLog('[CSV] Campo excedentes limpiado');
           }
         }, 100);
       }
@@ -2729,7 +2732,7 @@ function mostrarPreviewCSV(resultado) {
         if (typeof validateInputs === 'function') validateInputs();
         if (typeof saveInputs === 'function') saveInputs();
       } catch(e) {
-        lfDbg('[CSV] Error en funciones auxiliares:', e);
+        debugLog('[CSV] Error en funciones auxiliares:', e);
       }
       
       // IMPORTANTE: Resetear batería virtual a 0 antes de calcular
@@ -2739,10 +2742,10 @@ function mostrarPreviewCSV(resultado) {
         if (bvSaldoInput) {
           bvSaldoInput.value = '0';
           bvSaldoInput.dispatchEvent(new Event('input', { bubbles: true }));
-          lfDbg('[CSV] Batería Virtual reseteada a 0');
+          debugLog('[CSV] Batería Virtual reseteada a 0');
         }
       } catch(e) {
-        lfDbg('[CSV] Error reseteando BV:', e);
+        debugLog('[CSV] Error reseteando BV:', e);
       }
       
       // Auto-calcular esperando a que campos estén listos (robusto para móviles lentos)
@@ -2763,11 +2766,11 @@ function mostrarPreviewCSV(resultado) {
             if (debeAplicarExcedentes) {
               const exTotalOk = document.getElementById('exTotal')?.value;
               if (exTotalOk) {
-                lfDbg('[CSV] Todos los campos listos (con excedentes)');
+                debugLog('[CSV] Todos los campos listos (con excedentes)');
                 camposListos = true;
               }
             } else {
-              lfDbg('[CSV] Campos básicos listos');
+              debugLog('[CSV] Campos básicos listos');
               camposListos = true;
             }
           }
@@ -2778,7 +2781,7 @@ function mostrarPreviewCSV(resultado) {
         }
         
         if (!camposListos) {
-          lfDbg('[CSV] Timeout esperando campos, calculando de todas formas');
+          debugLog('[CSV] Timeout esperando campos, calculando de todas formas');
         }
         
         try {
@@ -2786,7 +2789,7 @@ function mostrarPreviewCSV(resultado) {
           if (typeof setStatus === 'function') setStatus('Calculando...', 'loading');
           if (typeof runCalculation === 'function') runCalculation();
         } catch(e) {
-          lfDbg('[CSV] Error en auto-cálculo:', e);
+          debugLog('[CSV] Error en auto-cálculo:', e);
         }
       }, 150); // Delay inicial para dar tiempo a que campos se rellenen
     });

@@ -122,24 +122,24 @@
 </head>
 <body>
 <div class="container">
-  <nav aria-label="Breadcrumb" style="margin-bottom: 16px;">
-    <ol style="display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--muted2); flex-wrap: wrap;">
-      <li><a href="/" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">🏠 Inicio</a></li>
-      <li style="color: var(--muted2);">/</li>
-      <li><a href="/guias.html" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">📚 Guías</a></li>
-      <li style="color: var(--muted2);">/</li>
-      <li style="color: var(--text); font-weight: 500;">Qué es P1, P2 y P3</li>
+  <nav aria-label="Breadcrumb" class="breadcrumb-nav">
+    <ol class="breadcrumb-list">
+      <li><a href="/" class="breadcrumb-link">🏠 Inicio</a></li>
+      <li class="breadcrumb-separator">/</li>
+      <li><a href="/guias.html" class="breadcrumb-link">📚 Guías</a></li>
+      <li class="breadcrumb-separator">/</li>
+      <li class="breadcrumb-current">Qué es P1, P2 y P3</li>
     </ol>
   </nav>
-  <a href="../guias.html" style="display: inline-block; margin-bottom: 20px; color: var(--accent);">← Volver a guías</a>
+  <a href="../guias.html" class="guia-back-link">← Volver a guías</a>
   <article class="guia-content">
     <h1>Qué es P1, P2 y P3 en tu factura</h1>
     <p class="guia-intro">Desde junio de 2021, la luz tiene tres precios distintos según la hora del día: P1 (punta), P2 (llano) y P3 (valle). Es lo que llaman "discriminación horaria", aunque suene raro.</p>
 <p style="margin-top:10px;">Esto de los tres periodos solo va con la tarifa 2.0 TD, que es la que tenemos la mayoría (si tienes menos de 15 kW contratados). Si tienes más potencia, te toca una tarifa 6.x TD con seis periodos en vez de tres, pero eso ya son palabras mayores.</p>
-<h4>Los tres tramos del día</h4>
+<h2>Los tres tramos del día</h2>
 <p>Tu tarifa divide el día en tres franjas. La idea es que cuando todo el mundo consume a tope, sale más caro. Y cuando casi nadie usa electricidad (de madrugada, por ejemplo), baja el precio.</p>
 <div class="periodo-box">
-<h5>⚡ P1 - Punta (el más caro)</h5>
+<h3>⚡ P1 - Punta (el más caro)</h3>
 <p><strong>Cuándo es:</strong></p>
 <ul>
 <li>De lunes a viernes: de 10 a 14h y de 18 a 22h</li>
@@ -150,7 +150,7 @@
 </div>
 <div class="periodo-box">
 <p>Ojo: P2 solo existe entre semana. Los findes y festivos nacionales son todo P3 (valle), que es lo más barato. Bueno, casi todos: no todos los festivos cuentan como valle. Algunos (sobre todo autonómicos y ciertos de fecha variable) se tratan como un día normal. Son cosas de la regulación...</p>
-<h5>🔶 P2 - Llano (precio medio)</h5>
+<h3>🔶 P2 - Llano (precio medio)</h3>
 <p><strong>Cuándo es:</strong></p>
 <ul>
 <li>De lunes a viernes: de 8 a 10h, de 14 a 18h y de 22 a 24h</li>
@@ -160,7 +160,7 @@
 </div>
 <div class="periodo-box">
 <p>Los sábados y domingos son P3 (valle) las 24 horas. En festivos, depende del calendario oficial: muchos cuentan como valle, pero hay excepciones. Repito lo del Viernes Santo: ese día funciona como laborable porque así lo decidió alguien en su momento.</p>
-<h5>🌙 P3 - Valle (el más barato)</h5>
+<h3>🌙 P3 - Valle (el más barato)</h3>
 <p><strong>Cuándo es:</strong></p>
 <ul>
 <li>De lunes a viernes: de 0 a 8h (toda la noche)</li>
@@ -169,7 +169,7 @@
 </ul>
 <p><strong>Mi consejo:</strong> Aquí es donde te juegas el ahorro. Programa las lavadoras, lavavajillas y todo lo que puedas para que funcione de noche. Si tienes coche eléctrico, cárgalo siempre en este horario. Los fines de semana aprovecha para todo lo que consuma mucho.</p>
 </div>
-<h4>Vale, ¿pero cuánto me ahorro?</h4>
+<h2>Vale, ¿pero cuánto me ahorro?</h2>
 <p>Te pongo precios reales de ahora mismo para que lo veas claro (diciembre 2025):</p>
 <ul>
 <li><strong>P1 (punta):</strong> unos 0,18 €/kWh</li>
@@ -177,7 +177,7 @@
 <li><strong>P3 (valle):</strong> alrededor de 0,10 €/kWh</li>
 </ul>
 <p><strong>Un ejemplo real:</strong> Imagina que gastas 100 kWh. En punta pagas 18€. Los mismos 100 kWh de noche te cuestan 10€. <strong>¡Te ahorras 8 pavos!</strong> Y eso solo con 100 kWh. En un mes normal puedes ahorrarte entre 20 y 40 euros solo moviendo cosas de hora.</p>
-<h4>Trucos que funcionan de verdad</h4>
+<h2>Trucos que funcionan de verdad</h2>
 <p>Vale, ahora que lo tienes claro, esto es lo que yo haría:</p>
 <ul>
 <li><strong>Temporizadores:</strong> La mayoría de lavadoras y lavavajillas traen inicio diferido. Los pones a las 23:00 para que arranquen a las 00:00. Fácil.</li>
@@ -186,7 +186,7 @@
 <li><strong>Usa los fines de semana:</strong> Todo el sábado y domingo es P3. Aprovecha para hornos, secadoras, lo que sea.</li>
 <li><strong>Termo eléctrico:</strong> Si lo tienes, prográmalo para que caliente de noche. Se mantiene caliente hasta el día siguiente.</li>
 </ul>
-<h4>Cosas raras que deberías saber</h4>
+<h2>Cosas raras que deberías saber</h2>
 <p>Algunas cosillas que lían a la gente:</p>
 <ul>
 <li><strong>Festivos en valle (P3):</strong> cuentan los de ámbito nacional de <em>fecha fija y no sustituibles</em> (y el <strong>6 de enero</strong>), según el calendario oficial. Los autonómicos no, y los de fecha variable (como Viernes Santo) tampoco.</li>
@@ -195,17 +195,17 @@
 </ul>
   
 
-  <section style="margin: 64px 0;">
-    <h3 style="font-size: 22px; font-weight: 700; margin-bottom: 24px;">📚 Más información</h3>
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
-      <a href="../mejor-tarifa-discriminacion-horaria.html" style="background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; text-decoration: none; color: var(--text); display: block; transition: all 0.2s;">
+  <section class="guia-more">
+    <h2 class="guia-more-title">📚 Más información</h2>
+    <div class="guia-more-grid">
+      <a href="../mejor-tarifa-discriminacion-horaria.html" class="guia-more-card">
         <strong>⚡ Mejor tarifa discriminación horaria</strong>
-        <p style="font-size: 14px; color: var(--muted); margin-top: 8px;">Aprovecha los 3 periodos para ahorrar</p>
+        <p class="guia-more-desc">Aprovecha los 3 periodos para ahorrar</p>
       </a>
     </div>
   </section>
 </article>
-  <div style="margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--border);">
+  <div class="guia-nav">
     <a href="como-leer-tu-factura-de-la-luz-paso-a-paso.html" class="nav-link">← Cómo leer tu factura de la luz paso a paso</a>
     <a href="../guias.html" class="nav-link">📚 Ver todas</a>
     <a href="diferencia-entre-comercializadora-y-distribuidora.html" class="nav-link">Diferencia entre comercializadora y distribuidora →</a>
@@ -213,26 +213,26 @@
 </div>
 
 <!-- INTERNAL LINKS SECTION -->
-<section style="margin-top: 80px; padding: 40px; background: var(--card); border: 2px solid var(--border); border-radius: 20px;">
-  <h3 style="font-size: 24px; font-weight: 700; margin-bottom: 24px; color: var(--text);">📚 Guías relacionadas</h3>
-  <div style="display: grid; gap: 16px;">
-    <a href="/guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html" style="display: block; padding: 16px 20px; background: var(--card2); border: 1px solid var(--border2); border-radius: 12px; text-decoration: none; color: var(--text); transition: all 0.2s; hover:transform: translateX(4px);">
-      <span style="color: var(--accent); margin-right: 8px;">→</span>Cómo leer tu factura de luz paso a paso
+<section class="guia-related">
+  <h2 class="guia-related-title">📚 Guías relacionadas</h2>
+  <div class="guia-related-grid">
+    <a href="/guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html" class="guia-related-link">
+      <span class="guia-related-arrow">→</span>Cómo leer tu factura de luz paso a paso
     </a>
-    <a href="/guias/como-adaptar-tus-horarios-para-pagar-menos-luz.html" style="display: block; padding: 16px 20px; background: var(--card2); border: 1px solid var(--border2); border-radius: 12px; text-decoration: none; color: var(--text); transition: all 0.2s; hover:transform: translateX(4px);">
-      <span style="color: var(--accent); margin-right: 8px;">→</span>Cómo adaptar tus horarios para pagar menos luz
+    <a href="/guias/como-adaptar-tus-horarios-para-pagar-menos-luz.html" class="guia-related-link">
+      <span class="guia-related-arrow">→</span>Cómo adaptar tus horarios para pagar menos luz
     </a>
-    <a href="/guias/que-potencia-contratar-segun-tu-casa-y-tus-habitos.html" style="display: block; padding: 16px 20px; background: var(--card2); border: 1px solid var(--border2); border-radius: 12px; text-decoration: none; color: var(--text); transition: all 0.2s; hover:transform: translateX(4px);">
-      <span style="color: var(--accent); margin-right: 8px;">→</span>Qué potencia contratar según tu casa y tus hábitos
+    <a href="/guias/que-potencia-contratar-segun-tu-casa-y-tus-habitos.html" class="guia-related-link">
+      <span class="guia-related-arrow">→</span>Qué potencia contratar según tu casa y tus hábitos
     </a>
-    <a href="/mejor-tarifa-discriminacion-horaria.html" style="display: block; padding: 20px 24px; background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(34,197,94,0.2)); border: 2px solid var(--accent); border-radius: 12px; text-decoration: none; color: var(--text); font-weight: 600; transition: all 0.2s; text-align: center;">
+    <a href="/mejor-tarifa-discriminacion-horaria.html" class="guia-related-cta">
       ⚡ Comparar tarifas con discriminación horaria
     </a>
   </div>
 </section>
 
-  <footer style="margin-top: 60px; padding-top: 30px; border-top: 1px solid rgba(255,255,255,.1); text-align: center; font-size: 13px; color: var(--muted);">
-    <a href="/privacidad.html" style="color: var(--accent); text-decoration: none;">📋 Política de privacidad</a>
+  <footer class="guia-footer">
+    <a href="/privacidad.html" class="guia-footer-link">📋 Política de privacidad</a>
   </footer>
 </body>
 </html>
