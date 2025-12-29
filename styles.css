@@ -2742,6 +2742,8 @@ html.light-mode, body.light-mode{
 .btn-info-solar{ width: 100% !important; justify-content: center !important; margin-bottom: 12px !important; background: rgba(251, 191, 36, 0.12) !important; border-color: rgba(251, 191, 36, 0.3) !important; }
 .btn-info-pvpc{ width: 100% !important; justify-content: center !important; margin-top: 12px !important; background: rgba(245, 158, 11, 0.15) !important; border-color: rgba(217, 119, 6, 0.35) !important; }
 .contact-box{ margin-top: 12px !important; padding: 12px !important; border-radius: 14px !important; border: 1px solid var(--border) !important; background: rgba(255,255,255,.04) !important; }
+.mi-tarifa-panel{ margin-top: 8px !important; padding: 16px !important; background: var(--card) !important; border-radius: 12px !important; border-left: 3px solid var(--accent) !important; }
+.pvpc-warning{ margin-top: 6px !important; font-size: 12px !important; line-height: 1.2 !important; opacity: 0.95 !important; color: #FACC15 !important; }
 
 /* === Common Patterns === */
 .u-loading-text{ color: var(--muted) !important; text-align: center !important; padding: 20px !important; }
