@@ -7,7 +7,7 @@
 
 // IMPORTANTE: si cambias este fichero, incrementa CACHE_NAME para forzar la actualización.
 // Bump de versión para forzar actualización de assets tras cambios (release incremental)
-const CACHE_NAME = "luzfija-static-v4.7";
+const CACHE_NAME = "luzfija-static-v4.8";
 
 const ASSETS = [
   "/",
@@ -41,12 +41,35 @@ self.addEventListener("install", (event) => {
 
 self.addEventListener("activate", (event) => {
   event.waitUntil(
-    caches
-      .keys()
-      .then((keys) =>
-        Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)))
-      )
-      .then(() => self.clients.claim())
+    (async () => {
+      // Limpieza de caches antiguas
+      const keys = await caches.keys();
+      await Promise.all(keys.filter((k) => k !== CACHE_NAME).map((k) => caches.delete(k)));
+
+      // El nuevo SW pasa a controlar a los clientes (si estaban sin controlador)
+      await self.clients.claim();
+
+      // MODO DEV (sin avisos): forzamos recarga de pestañas/ventanas para que apliquen
+      // la nueva versión sin que el usuario tenga que hacer Ctrl+F5.
+      // Nota: esto puede reiniciar el estado (inputs) si alguien estaba usando la app.
+      const clientList = await self.clients.matchAll({
+        type: "window",
+        includeUncontrolled: true
+      });
+
+      await Promise.all(
+        clientList.map(async (client) => {
+          try {
+            const u = new URL(client.url);
+            if (u.origin === self.location.origin) {
+              await client.navigate(client.url);
+            }
+          } catch (_) {
+            /* ignore */
+          }
+        })
+      );
+    })()
   );
 });
 

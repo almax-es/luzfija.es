@@ -1897,9 +1897,18 @@ el.menuPanel.addEventListener('click',(e)=>e.stopPropagation());
 // --- PWA: registro del Service Worker e instalación opcional ---
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', function () {
-    navigator.serviceWorker.register('/sw.js').catch(function (err) {
-      lfDbg('[ERROR] SW registration failed', err);
-    });
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then(function (reg) {
+        // En desarrollo, pedimos update al cargar para que el navegador compruebe
+        // antes si hay una versión nueva del SW.
+        try {
+          if (reg && typeof reg.update === 'function') reg.update();
+        } catch (e) {}
+      })
+      .catch(function (err) {
+        lfDbg('[ERROR] SW registration failed', err);
+      });
   });
 }
 
