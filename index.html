@@ -293,7 +293,7 @@
               <input id="dias" class="input" type="text" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="1 a 365">
             </div>
           </div>
-          <div style="height:12px"></div>
+          <div class="u-h-12"></div>
           <div class="form">
             <div class="group">
               <label for="zonaFiscal">Zona fiscal</label>
@@ -309,7 +309,7 @@
               </label>
             </div>
           </div>
-          <div style="height:12px"></div>
+          <div class="u-h-12"></div>
           <div class="form" id="consumosWrapper">
             <div class="group">
               <label for="cPunta">
@@ -333,7 +333,7 @@
               <input id="cValle" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 150">
             </div>
           </div>
-          <div class="form fv-toggle" style="margin-top:12px;">
+          <div class="form fv-toggle u-mt-12">
             <div class="group">
               <label for="solarOn" class="fv-check">
                 <input id="solarOn" type="checkbox">
@@ -358,7 +358,7 @@
               <small id="bvSaldo-hint" style="display:block; margin-top:4px; font-size:11px; color:var(--muted); opacity:0.8;">Deja en 0 si no tienes batería virtual acumulada</small>
             </div>
           </div>
-          <div class="form fv-toggle" style="margin-top:12px;">
+          <div class="form fv-toggle u-mt-12">
             <div class="group">
               <label for="compararMiTarifa" class="fv-check">
                 <input id="compararMiTarifa" type="checkbox">
@@ -488,11 +488,11 @@
             ¿Primera vez con discriminación horaria? ¿No sabes qué es P1, P2, P3? ¿Dudas sobre el bono social o PVPC? Te lo explicamos todo en lenguaje claro, sin rollos técnicos.
           </p>
           <div style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;">
-            <span style="font-size:11px; padding:4px 10px; background:rgba(139,92,246,0.1); color:var(--accent); border-radius:6px; font-weight:600;">Periodos horarios</span>
-            <span style="font-size:11px; padding:4px 10px; background:rgba(139,92,246,0.1); color:var(--accent); border-radius:6px; font-weight:600;">Bono social</span>
-            <span style="font-size:11px; padding:4px 10px; background:rgba(139,92,246,0.1); color:var(--accent); border-radius:6px; font-weight:600;">Leer tu factura</span>
-            <span style="font-size:11px; padding:4px 10px; background:rgba(139,92,246,0.1); color:var(--accent); border-radius:6px; font-weight:600;">Autoconsumo</span>
-            <span style="font-size:11px; padding:4px 10px; background:rgba(139,92,246,0.1); color:var(--accent); border-radius:6px; font-weight:600;">+16 guías más</span>
+            <span class="u-pill-accent">Periodos horarios</span>
+            <span class="u-pill-accent">Bono social</span>
+            <span class="u-pill-accent">Leer tu factura</span>
+            <span class="u-pill-accent">Autoconsumo</span>
+            <span class="u-pill-accent">+16 guías más</span>
           </div>
           <div style="display:inline-flex; align-items:center; gap:8px; font-size:14px; font-weight:700; color:var(--accent);">
             Ver las 20 guías completas
@@ -772,7 +772,7 @@
     <footer style="max-width:1400px; margin:0 auto; padding:40px clamp(22px, 4.5vw, 60px) 30px; border-top:1px solid var(--border);">
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:30px; margin-bottom:30px;">
         <div>
-          <h3 style="font-size:14px; font-weight:900; margin-bottom:10px; color:var(--text);">Sobre el Comparador</h3>
+          <h3 class="u-h3-strong-10">Sobre el Comparador</h3>
           <p style="color:var(--muted); font-size:12px; line-height:1.6; margin:0 0 12px 0;">
             Herramienta gratuita para <strong>comparar tarifas de luz</strong> en España.
           </p>
@@ -788,8 +788,8 @@
         </div>
 
         <div>
-          <h3 style="font-size:14px; font-weight:900; margin-bottom:10px; color:var(--text);">Horarios Discriminación</h3>
-          <ul style="list-style:none; color:var(--muted); font-size:12px; line-height:1.8; margin:0; padding:0;">
+          <h3 class="u-h3-strong-10">Horarios Discriminación</h3>
+          <ul class="u-list-muted-12">
             <li><strong style="color:var(--danger);">Punta:</strong> 10h-14h y 18h-22h</li>
             <li><strong style="color:var(--warn);">Llano:</strong> 8h-10h, 14h-18h, 22h-24h</li>
             <li><strong style="color:var(--accent2);">Valle:</strong> 0h-8h + fines de semana</li>
@@ -797,8 +797,8 @@
         </div>
 
         <div>
-          <h3 style="font-size:14px; font-weight:900; margin-bottom:10px; color:var(--text);">¿Qué Calculamos?</h3>
-          <ul style="list-style:none; color:var(--muted); font-size:12px; line-height:1.8; margin:0; padding:0;">
+          <h3 class="u-h3-strong-10">¿Qué Calculamos?</h3>
+          <ul class="u-list-muted-12">
             <li>✓ Coste potencia (P1/P2)</li>
             <li>✓ Consumo por periodos</li>
             <li>✓ Impuestos + IVA (21%)</li>
@@ -810,7 +810,7 @@
         </div>
 
         <div id="contacto">
-          <h3 style="font-size:14px; font-weight:900; margin-bottom:10px; color:var(--text);">Contacto</h3>
+          <h3 class="u-h3-strong-10">Contacto</h3>
 
           <p style="color:var(--muted); font-size:12px; line-height:1.7; margin:0;">
             Sugerencias, errores o dudas sobre el comparador:
@@ -838,11 +838,11 @@
           <div style="max-width:720px; margin:0 auto; text-align:center; padding:0 12px;">
             <p style="font-size:10px; line-height:1.6; opacity:0.65; margin:0;">
               El PVPC mostrado (cuando está disponible) es una <strong style="opacity:0.9;">estimación orientativa</strong> basada en información pública y puede diferir de tu factura.
-              Fuente oficial: <a href="https://facturaluz2.cnmc.es/" target="_blank" rel="noopener noreferrer" style="color: var(--accent); text-decoration: underline;">facturaluz2.cnmc.es</a>.
+              Fuente oficial: <a href="https://facturaluz2.cnmc.es/" target="_blank" rel="noopener noreferrer" class="u-link-accent">facturaluz2.cnmc.es</a>.
               Proyecto independiente, no afiliado ni avalado por CNMC, Red Eléctrica de España, organismos oficiales ni ninguna comercializadora.
             </p>
             <p style="margin:10px 0 0; font-size:10px; opacity:0.65; line-height:1.5;">
-              Analítica sin cookies (GoatCounter) · <a href="/privacidad.html" style="color: var(--accent); text-decoration: underline;">Política de privacidad</a> · <a href="/aviso-legal.html" style="color: var(--accent); text-decoration: underline;">Aviso legal</a>
+              Analítica sin cookies (GoatCounter) · <a href="/privacidad.html" class="u-link-accent">Política de privacidad</a> · <a href="/aviso-legal.html" class="u-link-accent">Aviso legal</a>
             </p>
           </div>
         </div>
@@ -864,7 +864,7 @@
   </button>
 
 <div class="toast" id="toast"><span class="dot" id="toastDot"></span><span id="toastText"></span></div>
-  <button type="button" id="scrollToResults" class="scroll-btn" style="display:none;" title="Ver resultados">↓ Ver resultados</button>
+  <button type="button" id="scrollToResults" class="scroll-btn is-hidden" title="Ver resultados">↓ Ver resultados</button>
   <div id="globalTooltip" role="tooltip" aria-hidden="true"></div>
 
   <div class="modal-overlay" id="modalFactura" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Subir factura y extraer datos" tabindex="-1">
@@ -879,7 +879,7 @@
           <div style="font-weight:900; margin-bottom:6px">Arrastra aquí tu PDF</div>
           <div style="color:var(--muted); font-size:13px">o pulsa para seleccionarlo</div>
         </div>
-        <input type="file" id="fileInputFactura" accept="application/pdf" aria-label="Subir factura de luz en formato PDF" style="display:none">
+        <input type="file" id="fileInputFactura" accept="application/pdf" aria-label="Subir factura de luz en formato PDF" class="is-hidden">
 
         <div id="loaderFactura" style="display:none; text-align:center; padding:36px">
           <div class="spinner"></div>
@@ -891,7 +891,7 @@
         <div id="resultadoFactura" style="display:none; margin-top:10px">
           <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:6px">
             <div class="confianza-badge" id="confianzaBadge">--</div>
-            <button class="btn" id="btnOcrFactura" type="button" style="display:none" aria-label="OCR experimental">
+            <button class="btn is-hidden" id="btnOcrFactura" type="button" aria-label="OCR experimental">
               🧠 OCR (experimental)
             </button>
           </div>
@@ -909,7 +909,7 @@
           </div>
 
           <div class="help" style="margin-top:10px; font-size:11px; opacity:0.9; border:1px solid var(--border); background: var(--card2); padding:8px; border-radius:10px; line-height:1.4;">
-            <p style="margin-bottom:4px;"><strong>📧 ¿Datos incorrectos?</strong> Envía el PDF anonimizado a <a href="mailto:hola@luzfija.es" style="color: var(--accent); text-decoration: underline;">hola@luzfija.es</a></p>
+            <p style="margin-bottom:4px;"><strong>📧 ¿Datos incorrectos?</strong> Envía el PDF anonimizado a <a href="mailto:hola@luzfija.es" class="u-link-accent">hola@luzfija.es</a></p>
             <p style="margin:0; color: var(--muted); font-size:10px;">Oculta: nombre, DNI, CUPS, IBAN, QR. El PDF se procesa en tu navegador (no se sube).</p>
           </div>
         </div>
@@ -922,7 +922,7 @@
     </div>
   </div>
 
-  <div class="modal-overlay" id="modalSolarInfo" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Información sobre tarifas solares" tabindex="-1" style="display: none;">
+  <div class="modal-overlay is-hidden" id="modalSolarInfo" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Información sobre tarifas solares" tabindex="-1">
     <div class="modal-content card" role="document" style="max-width: 600px;">
       <button class="modal-x" id="btnCerrarSolarX" type="button" aria-label="Cerrar">✕</button>
       <div class="head">
@@ -930,31 +930,31 @@
         <h2 class="title">☀️ Cómo funciona con placas solares</h2>
       </div>
       <div class="body">
-        <h3 style="font-size: 14px; font-weight: 900; margin-bottom: 8px; color: var(--text);">📊 Compensación de excedentes</h3>
-        <p style="color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 16px;">
+        <h3 class="u-h3-strong-8">📊 Compensación de excedentes</h3>
+        <p class="u-text-muted-13-16">
           Los kWh que viertes a la red se compensan según el precio que pague cada comercializadora. Este precio varía entre tarifas (normalmente entre 0,05 € y 0,10 €/kWh).
         </p>
 
-        <h3 style="font-size: 14px; font-weight: 900; margin-bottom: 8px; color: var(--text);">🔋 Batería Virtual (BV)</h3>
-        <p style="color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 16px;">
+        <h3 class="u-h3-strong-8">🔋 Batería Virtual (BV)</h3>
+        <p class="u-text-muted-13-16">
           Algunas tarifas tienen <strong>Batería Virtual</strong>. Los excedentes que no se compensan este mes se <strong>acumulan en euros</strong> para descontarlos en facturas futuras. Cada comercializadora aplica sus propias condiciones y límites.
         </p>
 
-        <h3 style="font-size: 14px; font-weight: 900; margin-bottom: 8px; color: var(--text);">🏆 Ranking: ¿Por qué es diferente de "lo que pagas"?</h3>
+        <h3 class="u-h3-strong-8">🏆 Ranking: ¿Por qué es diferente de "lo que pagas"?</h3>
         <p style="color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 12px;">
           El <strong>ranking</strong> te ayuda a comparar tarifas de forma justa, sin que tu ahorro del pasado influya en la comparación. Por eso, en las tarifas con BV verás dos conceptos (lo que pagas hoy y el coste real para comparar). Se muestran al tocar la bombilla 💡 del TOTAL:
         </p>
 
         <div style="background: var(--card-bg); border-left: 3px solid var(--accent); padding: 12px; margin-bottom: 12px; border-radius: 4px;">
-          <div style="font-weight: 700; font-size: 13px; margin-bottom: 6px;">💰 Pagas este mes</div>
-          <div style="color: var(--muted); font-size: 13px; line-height: 1.5;">
+          <div class="u-kicker-13">💰 Pagas este mes</div>
+          <div class="u-text-muted-13-15">
             Lo que pagarás <strong>HOY</strong>, después de usar la batería virtual que guardaste en meses anteriores.
           </div>
         </div>
 
         <div style="background: var(--card-bg); border-left: 3px solid rgba(167,139,250,1); padding: 12px; margin-bottom: 12px; border-radius: 4px;">
-          <div style="font-weight: 700; font-size: 13px; margin-bottom: 6px;">🏆 Ranking (coste real)</div>
-          <div style="color: var(--muted); font-size: 13px; line-height: 1.5;">
+          <div class="u-kicker-13">🏆 Ranking (coste real)</div>
+          <div class="u-text-muted-13-15">
             El <strong>coste real</strong> de la tarifa este mes, sin contar tus ahorros del pasado. Así puedes comparar tarifas de forma justa, independientemente de cuánto hayas acumulado antes.
           </div>
         </div>
@@ -965,16 +965,16 @@
 
         <div style="background: var(--bg); padding: 10px; border-radius: 4px; margin-bottom: 16px;">
           <div style="font-size: 12px; color: var(--muted); line-height: 1.6;">
-            <strong style="color: var(--text);">Imagina Energía:</strong> Pagas 0 € (usando BV anterior) | Ranking: 26 €<br>
-            <strong style="color: var(--text);">Naturgy:</strong> Pagas 0 € (usando BV anterior) | Ranking: 14 €
+            <strong class="u-text">Imagina Energía:</strong> Pagas 0 € (usando BV anterior) | Ranking: 26 €<br>
+            <strong class="u-text">Naturgy:</strong> Pagas 0 € (usando BV anterior) | Ranking: 14 €
           </div>
           <div style="margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted);">
             💡 Ambas cuestan 0 € hoy (gracias a tu BV del pasado), pero <strong>Naturgy es más barata</strong> en coste real mensual (14 € vs 26 €).
           </div>
         </div>
 
-        <h3 style="font-size: 14px; font-weight: 900; margin-bottom: 8px; color: var(--text);">☀️ Icono dorado</h3>
-        <p style="color: var(--muted); font-size: 13px; line-height: 1.6; margin-bottom: 16px;">
+        <h3 class="u-h3-strong-8">☀️ Icono dorado</h3>
+        <p class="u-text-muted-13-16">
           Las tarifas con compensación activa muestran un icono ☀️ dorado con pulso. Al tocarlo verás todos los detalles (compensación, BV usada/acumulada, saldo final y ranking). Además, en tarifas con BV, el TOTAL tiene una bombilla 💡: al tocarla verás “Pagas” y “Ranking”.
         </p>
 
@@ -998,7 +998,7 @@
             async src="https://gc.zgo.at/count.js"></script>
 
   <!-- Modal PVPC -->
-  <div class="modal-overlay" id="modalPVPCInfo" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Precios PVPC por hora" tabindex="-1" style="display: none;">
+  <div class="modal-overlay is-hidden" id="modalPVPCInfo" role="dialog" aria-modal="true" aria-hidden="true" aria-label="Precios PVPC por hora" tabindex="-1">
     <div class="modal-content card" role="document" style="max-width: 650px;">
       <button class="modal-x" id="btnCerrarPVPCX" type="button" aria-label="Cerrar">✕</button>
       <div class="head">
@@ -1014,10 +1014,10 @@
           </div>
           <div style="text-align: right;">
             <div style="font-size: 12px; opacity: 0.8; margin-bottom: 8px;">
-              <span style="color: #10b981; font-weight: 700;">Mín</span> <strong id="modalPVPCMin">—</strong> <span style="opacity: 0.6; font-size: 10px;" id="modalPVPCMinHour">—</span>
+              <span style="color: #10b981; font-weight: 700;">Mín</span> <strong id="modalPVPCMin">—</strong> <span id="modalPVPCMinHour" class="u-faint-10">—</span>
             </div>
             <div style="font-size: 12px; opacity: 0.8;">
-              <span style="color: #ef4444; font-weight: 700;">Máx</span> <strong id="modalPVPCMax">—</strong> <span style="opacity: 0.6; font-size: 10px;" id="modalPVPCMaxHour">—</span>
+              <span style="color: #ef4444; font-weight: 700;">Máx</span> <strong id="modalPVPCMax">—</strong> <span id="modalPVPCMaxHour" class="u-faint-10">—</span>
             </div>
           </div>
         </div>

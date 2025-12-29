@@ -2555,3 +2555,21 @@ html.light-mode, body.light-mode{
   border-radius: 12px;
 }
 
+
+
+/* Utilities (extracted from repeated inline styles) */
+.u-pill-accent{ font-size:11px !important; padding:4px 10px !important; background:rgba(139,92,246,0.1) !important; color:var(--accent) !important; border-radius:6px !important; font-weight:600 !important; }
+.u-h3-strong-10{ font-size:14px !important; font-weight:900 !important; margin-bottom:10px !important; color:var(--text) !important; }
+.u-h3-strong-8{ font-size:14px !important; font-weight:900 !important; margin-bottom:8px !important; color:var(--text) !important; }
+.u-link-accent{ color:var(--accent) !important; text-decoration: underline !important; }
+.u-text-muted-13-16{ color:var(--muted) !important; font-size:13px !important; line-height:1.6 !important; margin-bottom:16px !important; }
+.u-text-muted-13-15{ color:var(--muted) !important; font-size:13px !important; line-height:1.5 !important; }
+.u-list-muted-12{ list-style:none !important; color:var(--muted) !important; font-size:12px !important; line-height:1.8 !important; margin:0 !important; padding:0 !important; }
+.u-kicker-13{ font-weight:700 !important; font-size:13px !important; margin-bottom:6px !important; }
+.u-h-12{ height:12px !important; }
+.u-mt-12{ margin-top:12px !important; }
+.u-faint-10{ opacity:0.6 !important; font-size:10px !important; }
+.u-text{ color:var(--text) !important; }
+
+/* State */
+.is-hidden{ display: none; }
