@@ -2754,5 +2754,9 @@ html.light-mode, body.light-mode{
 .u-expand-h{ margin: 0 -20px !important; padding: 0 20px !important; }
 .u-secondary-text{ margin-top: 8px !important; font-size: 11px !important; color: var(--muted2) !important; line-height: 1.4 !important; }
 
+/* === GUÍAS (específicos de guias.html) === */
+.number{ display: inline-block !important; width: 32px !important; height: 32px !important; background: var(--accent) !important; color: white !important; border-radius: 8px !important; text-align: center !important; line-height: 32px !important; font-weight: bold !important; margin-bottom: 12px !important; }
+.guias-toc a:hover{ background: rgba(139,92,246,0.15) !important; border-color: rgba(139,92,246,0.4) !important; transform: translateY(-2px) !important; box-shadow: 0 4px 12px rgba(139,92,246,0.2) !important; }
+
 /* State */
 .is-hidden{ display: none; }
