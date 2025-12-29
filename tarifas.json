@@ -427,5 +427,7 @@
   ],
   "timestamp": "2025-12-28T09:34:51.651Z",
   "publishedAt": "2025-12-28T09:34:51.651Z",
-  "publishedAtEpoch": 1766914491651
+  "publishedAtEpoch": 1766914491651,
+  "updatedAt": "2025-12-28T09:34:51.651Z",
+  "updatedAtEpoch": 1766914491651
 }

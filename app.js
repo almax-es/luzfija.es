@@ -1,35 +1,22 @@
-// ===== LuzFija: consola silenciosa por defecto (activar con ?debug=1) =====
+// ===== LuzFija: modo debug (activar con ?debug=1 o localStorage lf_debug=1) =====
 (function () {
   try {
     const params = new URLSearchParams(location.search);
-    const debug =
-      params.get("debug") === "1" ||
-      localStorage.getItem("lf_debug") === "1";
-
-    // Guardar flag global para uso en el resto del código
-    window.__LF_DEBUG = debug;
-
-    if (!debug) {
-      const noop = function () {};
-      console.log = noop;
-      console.debug = noop;
-      console.info = noop;
-      console.group = noop;
-      console.groupCollapsed = noop;
-      console.groupEnd = noop;
-      console.table = noop;
-      console.time = noop;
-      console.timeEnd = noop;
-      // Mantener errores visibles por si algo falla de verdad:
-      // console.warn y console.error NO se tocan
-    }
+    const debug = params.get('debug') === '1' || localStorage.getItem('lf_debug') === '1';
+    window.__LF_DEBUG = Boolean(debug);
   } catch (e) {
-    // Si algo falla aquí, no romper la app
+    window.__LF_DEBUG = false;
   }
 })();
 
-// Helper: log solo si debug está activo
-const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
+// Helper: log solo si debug está activo (sin tocar console.*)
+const lfDbg = (...args) => {
+  if (window.__LF_DEBUG && typeof console !== 'undefined' && typeof console.log === 'function') {
+    console.log(...args);
+  }
+};
+// Exponerlo por si otros módulos lo quieren usar
+window.lfDbg = lfDbg;
 
     const $ = id => document.getElementById(id);
 
@@ -373,25 +360,30 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
     function renderTarifasUpdated(meta){
       if(!el.tarifasUpdated) return;
       const m = meta || __LF_tarifasMeta || null;
-      const iso = m && (m.publishedAt || m.published_at || m.srcPublishedAt || m.tarifasPublishedAt || null);
+
+      // Fuente de verdad (preferir updatedAt si existe)
+      const iso = m && (m.updatedAt || m.updated_at || m.publishedAt || m.published_at || m.srcPublishedAt || m.tarifasPublishedAt || null);
+
       if(!iso){
         el.tarifasUpdated.textContent = 'Tarifas: sin fecha de actualización';
+        el.tarifasUpdated.title = '';
         return;
       }
+
       const dt = new Date(iso);
       if(!Number.isFinite(dt.getTime())){
         el.tarifasUpdated.textContent = 'Tarifas: sin fecha de actualización';
+        el.tarifasUpdated.title = '';
         return;
       }
+
+      // Texto discreto, formato ES (solo fecha)
       const fmt = new Intl.DateTimeFormat('es-ES', {
         timeZone: 'Europe/Madrid',
-        year: 'numeric', month: '2-digit', day: '2-digit',
-        hour: '2-digit', minute: '2-digit'
+        year: 'numeric', month: '2-digit', day: '2-digit'
       });
-      // Texto corto y útil
-      el.tarifasUpdated.textContent = 'Tarifas actualizadas: ' + fmt.format(dt);
 
-      // Tooltip con ISO original
+      el.tarifasUpdated.textContent = 'Actualizado el ' + fmt.format(dt);
       el.tarifasUpdated.title = 'Última actualización del listado de tarifas: ' + iso;
     }
 

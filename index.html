@@ -232,7 +232,7 @@
         <div>
           <nav aria-label="Breadcrumb" style="margin-bottom: 8px;">
             <ol style="display: flex; align-items: center; gap: 8px; list-style: none; padding: 0; margin: 0; font-size: 13px; color: var(--muted2);">
-              <li><a href="/" style="color: var(--muted); text-decoration: none; transition: color 0.2s;" onmouseover="this.style.color='var(--accent)'" onmouseout="this.style.color='var(--muted)'">🏠 Inicio</a></li>
+              <li><a href="/" style="color: var(--muted); text-decoration: none; transition: color 0.2s;">🏠 Inicio</a></li>
             </ol>
           </nav>
           <h1>Comparador de Tarifas</h1>
@@ -1103,11 +1103,11 @@
         const hora = fechaEspana.getHours();
         const minutos = fechaEspana.getMinutes();
         
-        console.log(`[PVPC] Hora en España: ${hora}:${minutos}`);
+        if (window.__LF_DEBUG || (new URLSearchParams(location.search)).get('debug') === '1' || localStorage.getItem('lf_debug') === '1') console.log(`[PVPC] Hora en España: ${hora}:${minutos}`);
         
         // Solo cargar si es después de las 20:15h
         if (hora < 20 || (hora === 20 && minutos < 15)) {
-          console.log('[PVPC] Todavía no son las 20:15h en España, no se carga mañana');
+          if (window.__LF_DEBUG || (new URLSearchParams(location.search)).get('debug') === '1' || localStorage.getItem('lf_debug') === '1') console.log('[PVPC] Todavía no son las 20:15h en España, no se carga mañana');
           return;
         }
 
@@ -1116,7 +1116,7 @@
         manana.setDate(hoy.getDate() + 1);
         const fechaStr = ymdMadrid(manana);
         
-        console.log(`[PVPC] Cargando precios de mañana: ${fechaStr}`);
+        if (window.__LF_DEBUG || (new URLSearchParams(location.search)).get('debug') === '1' || localStorage.getItem('lf_debug') === '1') console.log(`[PVPC] Cargando precios de mañana: ${fechaStr}`);
         
         const response = await fetch(window.PVPC_PRICES_URL + encodeURIComponent(fechaStr));
         if (!response.ok) throw new Error('Error API');
@@ -1133,7 +1133,7 @@
 
         // Mostrar tab de mañana
         tabManana.style.display = 'block';
-        console.log('[PVPC] Tab mañana activado');
+        if (window.__LF_DEBUG || (new URLSearchParams(location.search)).get('debug') === '1' || localStorage.getItem('lf_debug') === '1') console.log('[PVPC] Tab mañana activado');
       } catch (e) {
         console.error('[PVPC] Error mañana:', e);
       }

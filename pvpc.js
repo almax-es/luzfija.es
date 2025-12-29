@@ -13,6 +13,20 @@
     let pvpcErrorShown = false;
     let pvpcCasoInvalidoCanariasViviendaPotAlta = false;
 
+    // Debug (no ensucia consola en producción)
+    const PVPC_DEBUG = (function(){
+      try{
+        const p = new URLSearchParams(location.search);
+        return p.get('debug') === '1' || localStorage.getItem('lf_debug') === '1' || window.__LF_DEBUG === true;
+      }catch(e){ return window.__LF_DEBUG === true; }
+    })();
+    const pvpcDbg = (...args) => {
+      if (PVPC_DEBUG && typeof console !== 'undefined' && typeof console.log === 'function') {
+        pvpcDbg('[PVPC]', ...args);
+      }
+    };
+
+
     // Helper robusto: soporta número, "3.45", "3,45", "1.234,56", "1,234.56" y entradas con separadores repetidos
     function asNumber(v, fallback = 0) {
       if (typeof v === 'number' && Number.isFinite(v)) return v;
@@ -204,7 +218,7 @@
 
           const importe = parseEuro(item?.importe ?? item?.valor ?? item?.precio ?? item?.total);
 
-          console.log(`Concepto: ${cabecera} -> Importe: ${importe}`);
+          pvpcDbg(`Concepto: ${cabecera} -> Importe: ${importe}`);
 
           if (cabecera.includes('término fijo') || cabecera.includes('termino fijo') || cabecera.includes('potencia')) {
             meta.terminoFijo += importe;
@@ -358,10 +372,10 @@
       const apiUrl = `https://comparador.cnmc.gob.es/api/ofertas/pvpc?${params.toString()}`;
 
       console.group('PVPC obtenerPVPC_CNMC');
-      console.log('API URL:', apiUrl);
-      console.log('Periodo:', periodo.periodoFacturacion, `(${dias} días)`);
-      console.log(`Potencias: P1=${p1.toFixed(2)} P2=${p2.toFixed(2)} → promedio=${((p1+p2)/2).toFixed(1)}`);
-      console.log(`Consumos: Punta=${Math.round(cPunta)} Llano=${Math.round(cLlano)} Valle=${Math.round(cValle)}`);
+      pvpcDbg('API URL:', apiUrl);
+      pvpcDbg('Periodo:', periodo.periodoFacturacion, `(${dias} días)`);
+      pvpcDbg(`Potencias: P1=${p1.toFixed(2)} P2=${p2.toFixed(2)} → promedio=${((p1+p2)/2).toFixed(1)}`);
+      pvpcDbg(`Consumos: Punta=${Math.round(cPunta)} Llano=${Math.round(cLlano)} Valle=${Math.round(cValle)}`);
       console.groupEnd();
 
       // 🔥 Si hay proxy, usarlo DIRECTAMENTE (evita request CORS inútil)
@@ -369,7 +383,7 @@
       if (proxyBase) {
         try {
           const proxyUrl = `${proxyBase}${encodeURIComponent(apiUrl)}`;
-          console.log('PVPC: ✅ Usando proxy directo:', proxyUrl);
+          pvpcDbg('PVPC: ✅ Usando proxy directo:', proxyUrl);
           const result = await fetchJsonWithTimeout(proxyUrl, 12000);
           pvpcErrorShown = false;
           return result;

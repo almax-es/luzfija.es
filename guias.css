@@ -1503,7 +1503,23 @@
       color: var(--text);
     }
     
-    .guia-content p {
+    
+
+    /* === Semántica correcta: h2/h3 en guías (equivalentes visuales a h4/h5 antiguos) === */
+    .guia-content h2 {
+      font-size: 20px;
+      font-weight: 900;
+      margin: 32px 0 16px 0;
+      color: var(--text);
+    }
+
+    .guia-content h3 {
+      font-size: 16px;
+      font-weight: 800;
+      margin: 20px 0 12px 0;
+      color: var(--text);
+    }
+.guia-content p {
       margin: 12px 0;
       font-size: 15px;
     }
@@ -1661,4 +1677,113 @@
   .logo::after {
     display: none !important;
   }
+}
+
+
+/* === Guías: layout consistente (breadcrumb, enlaces internos, footer) === */
+.breadcrumb { margin-bottom: 16px; }
+.breadcrumb-list{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  list-style:none;
+  padding:0;
+  margin:0;
+  font-size:13px;
+  color: var(--muted2);
+  flex-wrap: wrap;
+}
+.breadcrumb-link{
+  color: var(--muted);
+  text-decoration:none;
+  transition: color .2s;
+}
+.breadcrumb-link:hover{ color: var(--accent); }
+.breadcrumb-sep{ color: var(--muted2); }
+.breadcrumb-current{ color: var(--text); font-weight: 500; }
+
+.back-link{
+  display:inline-block;
+  margin-bottom: 20px;
+  color: var(--accent);
+  text-decoration:none;
+}
+.back-link:hover{ text-decoration: underline; }
+
+.guia-nav{
+  margin-top: 40px;
+  padding-top: 20px;
+  border-top: 1px solid var(--border);
+}
+
+/* Bloque de guías relacionadas */
+.internal-links{
+  margin-top: 80px;
+  padding: 40px;
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: 20px;
+}
+.internal-links-title{
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  color: var(--text);
+}
+.internal-links-grid{
+  display:grid;
+  gap: 16px;
+}
+.internal-link{
+  display:block;
+  padding: 16px 20px;
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  text-decoration:none;
+  color: var(--text);
+  transition: transform .2s, background .2s, border-color .2s;
+}
+.internal-link:hover{
+  transform: translateX(4px);
+  background: rgba(255,255,255,.10);
+}
+.internal-link-arrow{
+  color: var(--accent);
+  margin-right: 8px;
+}
+.internal-cta{
+  display:block;
+  padding: 20px 24px;
+  background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(34,197,94,0.2));
+  border: 2px solid var(--accent);
+  border-radius: 12px;
+  text-decoration:none;
+  color: var(--text);
+  font-weight: 600;
+  transition: transform .2s, filter .2s;
+  text-align: center;
+}
+.internal-cta:hover{
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
+
+/* Footer en guías */
+.site-footer{
+  margin-top: 60px;
+  padding-top: 30px;
+  border-top: 1px solid rgba(255,255,255,.1);
+  text-align:center;
+  font-size: 13px;
+  color: var(--muted);
+}
+.site-footer-link{
+  color: var(--accent);
+  text-decoration:none;
+}
+.site-footer-link:hover{ text-decoration: underline; }
+
+@media (max-width: 520px){
+  .internal-links{ padding: 26px; }
 }

@@ -1,35 +1,116 @@
 // ===== TRACKING CON GOATCOUNTER (sin cookies, sin tracking personal) =====
-// Este archivo registra eventos importantes para entender cómo usan la web los usuarios
+// Este archivo registra eventos importantes para entender cómo usan la web los usuarios.
+// Importante: el tracking nunca debe romper la web si falla el contador.
 
 (function() {
   'use strict';
 
-  // Función auxiliar para enviar eventos a GoatCounter
+  const DEFAULT_GOAT_ENDPOINT = 'https://luzfija.goatcounter.com/count';
+  const GOAT_SCRIPT_SRC = 'https://gc.zgo.at/count.js';
+
+  const DEBUG = (function(){
+    try{
+      const p = new URLSearchParams(location.search);
+      return p.get('debug') === '1' || localStorage.getItem('lf_debug') === '1' || window.__LF_DEBUG === true;
+    }catch(e){ return window.__LF_DEBUG === true; }
+  })();
+
+  function dbg(...args){
+    if (DEBUG && typeof console !== 'undefined' && typeof console.log === 'function') {
+      console.log('[TRACK]', ...args);
+    }
+  }
+
+  // Cola de eventos mientras GoatCounter termina de cargar
+  const queue = [];
+  let loadingPromise = null;
+
+  function getGoatEndpointFromPage(){
+    const existing = document.querySelector('script[data-goatcounter]');
+    const val = existing && existing.getAttribute('data-goatcounter');
+    return val || DEFAULT_GOAT_ENDPOINT;
+  }
+
+  function isGoatReady(){
+    return (typeof window.goatcounter !== 'undefined' && typeof window.goatcounter.count === 'function');
+  }
+
+  function ensureGoatCounterLoaded(){
+    if (isGoatReady()) return Promise.resolve(true);
+    if (loadingPromise) return loadingPromise;
+
+    loadingPromise = new Promise((resolve) => {
+      try{
+        // Si ya existe el script, esperar a que esté listo
+        const existingScript = document.querySelector('script[src="' + GOAT_SCRIPT_SRC + '"]');
+        if (existingScript) {
+          existingScript.addEventListener('load', () => resolve(true), { once: true });
+          existingScript.addEventListener('error', () => resolve(false), { once: true });
+          // fallback por si load no dispara
+          setTimeout(() => resolve(isGoatReady()), 2500);
+          return;
+        }
+
+        const s = document.createElement('script');
+        s.src = GOAT_SCRIPT_SRC;
+        s.async = true;
+        s.defer = true;
+        s.setAttribute('data-goatcounter', getGoatEndpointFromPage());
+
+        s.addEventListener('load', () => resolve(true), { once: true });
+        s.addEventListener('error', () => resolve(false), { once: true });
+
+        document.head.appendChild(s);
+
+        // fallback: no bloquear si el script tarda o está bloqueado
+        setTimeout(() => resolve(isGoatReady()), 3000);
+      }catch(e){
+        resolve(false);
+      }
+    });
+
+    return loadingPromise;
+  }
+
+  function flushQueue(){
+    if (!isGoatReady()) return;
+    while(queue.length){
+      const evt = queue.shift();
+      try{
+        window.goatcounter.count(evt);
+      }catch(e){
+        // ignorar
+      }
+    }
+  }
+
   function trackEvent(eventName, metadata) {
-    if (typeof window.goatcounter === 'undefined' || typeof window.goatcounter.count !== 'function') {
-      // GoatCounter aún no ha cargado, ignorar silenciosamente
+    const payload = {
+      path: eventName,
+      title: (metadata && metadata.title) ? metadata.title : eventName,
+      event: true,
+    };
+
+    // Si GoatCounter ya está, enviar al momento
+    if (isGoatReady()) {
+      try { window.goatcounter.count(payload); } catch (e) {}
       return;
     }
 
-    try {
-      window.goatcounter.count({
-        path: eventName,
-        title: metadata?.title || eventName,
-        event: true,
-      });
-    } catch (e) {
-      // No romper la app si hay algún error de tracking
-      console.debug('Error tracking:', e);
-    }
+    // Si no está listo, encolar y lanzar carga
+    queue.push(payload);
+    ensureGoatCounterLoaded().then((ok) => {
+      if (ok) flushQueue();
+      else queue.length = 0; // si está bloqueado, vaciar y no molestar más
+    });
   }
 
   // Exponer función global para que app.js pueda usarla
   window.__LF_track = trackEvent;
 
   // ===== EVENTOS AUTOMÁTICOS (no requieren modificar app.js) =====
-
   window.addEventListener('DOMContentLoaded', function() {
-    
+
     // 1. Trackear clicks en "Calcular"
     const btnCalc = document.getElementById('btnCalc');
     if (btnCalc) {
@@ -75,31 +156,29 @@
     if (btnTheme) {
       btnTheme.addEventListener('click', function() {
         const isLight = document.documentElement.classList.contains('light-mode');
-        trackEvent('tema-cambiado', { 
-          title: isLight ? 'Cambió a tema claro' : 'Cambió a tema oscuro' 
+        trackEvent('tema-cambiado', {
+          title: isLight ? 'Cambió a tema claro' : 'Cambió a tema oscuro'
         });
       });
     }
 
     // 7. Trackear clicks en enlaces de contratación (tabla de resultados)
-    // Lo haremos con delegación de eventos porque la tabla se genera dinámicamente
     const tbody = document.getElementById('tbody');
     if (tbody) {
       tbody.addEventListener('click', function(e) {
-        const link = e.target.closest('a.web');
+        const link = e.target && e.target.closest ? e.target.closest('a.web') : null;
         if (link) {
           const tarifaRow = link.closest('tr');
-          const tarifaNombre = tarifaRow?.querySelector('.tarifa-nombre')?.textContent || 'Desconocida';
-          trackEvent('tarifa-click-contratar', { 
-            title: 'Click en contratar: ' + tarifaNombre 
+          const tarifaNombre = tarifaRow && tarifaRow.querySelector ? (tarifaRow.querySelector('.tarifa-nombre')?.textContent || 'Desconocida') : 'Desconocida';
+          trackEvent('tarifa-click-contratar', {
+            title: 'Click en contratar: ' + tarifaNombre
           });
         }
       });
     }
 
     // 8. Trackear navegación a la página de guías
-    const guiasLinks = document.querySelectorAll('a[href*="guias"]');
-    guiasLinks.forEach(function(link) {
+    document.querySelectorAll('a[href*="guias"]').forEach(function(link) {
       link.addEventListener('click', function() {
         trackEvent('navegacion-guias', { title: 'Usuario fue a Guías' });
       });
@@ -108,14 +187,15 @@
   });
 
   // ===== TRACKING DE ERRORES (opcional) =====
-  // Trackear errores de validación para detectar puntos de fricción
   window.addEventListener('error', function(e) {
-    // Solo trackear errores relacionados con la app, no errores de third-party scripts
-    if (e.filename && e.filename.includes('luzfija.es')) {
-      trackEvent('error-javascript', { 
-        title: 'Error JS: ' + (e.message || 'desconocido').substring(0, 50) 
-      });
-    }
+    try{
+      const filename = e && e.filename ? String(e.filename) : '';
+      if (filename.includes('luzfija.es')) {
+        trackEvent('error-javascript', {
+          title: 'Error JS: ' + String(e.message || 'desconocido').substring(0, 50)
+        });
+      }
+    }catch(_){}
   }, true);
 
 })();
