@@ -2529,3 +2529,44 @@ thead th:nth-child(7){
   }
 }
 
+
+/* ================================
+   Desktop: sin bombilla (no roba espacio) + señales claras de click
+   ================================ */
+@media (pointer: fine){
+  /* No mostrar la bombilla en ordenador */
+  #table td.total-cell .desglose-icon{
+    display: none !important;
+  }
+
+  /* Pill más compacto en desktop */
+  #table td.total-cell .total-pill{
+    gap: 0 !important;
+    padding: 5px 10px !important;
+  }
+
+  /* Señal de “clicable” sin ocupar ancho: subrayado punteado */
+  #table td.total-cell .total-price{
+    text-decoration: underline dotted rgba(255,255,255,.35);
+    text-underline-offset: 3px;
+    cursor: pointer;
+  }
+
+  /* En hover, reforzar sin agrandar */
+  #table td.total-cell:hover .total-pill{
+    background: rgba(255,255,255,.10) !important;
+    border-color: rgba(255,255,255,.16) !important;
+    transform: none !important;
+  }
+}
+
+/* Nombre de tarifa clicable para abrir factura */
+#table td.tarifa-cell,
+#table td.tarifa-clickable{
+  cursor: pointer;
+}
+#table td.tarifa-cell:hover .tarifa-nombre{
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+

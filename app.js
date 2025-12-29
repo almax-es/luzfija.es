@@ -1366,7 +1366,7 @@ const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
             `${solarDetails || ""}`;
           tr.innerHTML =
             `<td>${idx + 1}</td>`+
-            `<td title="${escapeHtml(nombreBase)}">${nombreDisplay}</td>`+
+            `<td class="tarifa-cell" title="${escapeHtml(nombreBase)}">${nombreDisplay}</td>`+
             `<td>${escapeHtml(r.potencia)}</td>`+
             `<td>${escapeHtml(r.consumo)}</td>`+
             `<td>${escapeHtml(r.impuestos)}</td>`+

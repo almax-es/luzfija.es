@@ -133,8 +133,8 @@
         const pagas = precioActual?.dataset?.pagas;
         const ranking = precioActual?.dataset?.ranking;
         tdTotal.title = (pagas && ranking)
-          ? `💡 Clic para ver desglose completo de la factura • Pagas: ${pagas} • Ranking: ${ranking}`
-          : '💡 Clic para ver desglose completo de la factura';
+          ? `Clic para ver desglose completo de la factura • Pagas: ${pagas} • Ranking: ${ranking}`
+          : 'Clic para ver desglose completo de la factura';
 
         // Hacer el propio "precio" focusable (teclado) sin convertirlo en <a>
         if (precioActual) {
@@ -148,8 +148,9 @@
           });
         }
 
-        // 🎯 Añadir icono visible junto al precio (solo si no existe ya)
-        if (precioActual && !tdTotal.querySelector('.desglose-icon')) {
+        // 🎯 Añadir icono visible junto al precio SOLO en dispositivos táctiles (para no comer ancho en desktop)
+        const isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+        if (isCoarse && precioActual && !tdTotal.querySelector('.desglose-icon')) {
           const icon = document.createElement('span');
           icon.className = 'desglose-icon';
           icon.textContent = '💡';
@@ -169,6 +170,21 @@
 
           mostrarDesglose(nombre);
         };
+
+        // También permitir abrir el desglose al hacer clic en el nombre de la tarifa (desktop/móvil)
+        // Evitamos interferir con posibles iconos/controles dentro de la celda.
+        tdNombre.classList.add('tarifa-clickable');
+        tdNombre.title = 'Clic para ver desglose completo de la factura';
+        tdNombre.onclick = function(ev){
+          const t = ev.target;
+          if (t && t.closest && t.closest('a, button, input, select, textarea, .tooltip, .tooltip-icon')) return;
+          ev.stopPropagation();
+          tdNombre.classList.add('desglose-tap');
+          window.setTimeout(() => tdNombre.classList.remove('desglose-tap'), 180);
+          if (navigator.vibrate) navigator.vibrate(20);
+          mostrarDesglose(nombre);
+        };
+
 
         tr.dataset.desgloseReady = 'true';
       });
