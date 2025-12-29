@@ -4,6 +4,96 @@
 
       // Helper de debug: solo loguea si __LF_DEBUG está activo
       const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
+      
+      // ===== Modal Utils (scroll-lock + focus trap + restore focus) =====
+      // Objetivo: comportamiento idéntico y robusto en TODOS los modales (desktop/iOS/Android).
+      window.__LF_modalUtil = window.__LF_modalUtil || (function(){
+        let lockCount = 0;
+        let scrollY = 0;
+        let restore = null;
+        let prevBody = null;
+
+        function lockScroll(){
+          lockCount++;
+          if (lockCount > 1) return;
+          scrollY = window.scrollY || 0;
+          prevBody = {
+            position: document.body.style.position,
+            top: document.body.style.top,
+            left: document.body.style.left,
+            right: document.body.style.right,
+            width: document.body.style.width,
+            overflow: document.body.style.overflow
+          };
+          document.documentElement.style.overflow = 'hidden';
+          document.body.style.position = 'fixed';
+          document.body.style.top = `-${scrollY}px`;
+          document.body.style.left = '0';
+          document.body.style.right = '0';
+          document.body.style.width = '100%';
+          document.body.style.overflow = 'hidden';
+        }
+
+        function unlockScroll(){
+          if (lockCount === 0) return;
+          lockCount--;
+          if (lockCount > 0) return;
+          document.documentElement.style.overflow = '';
+          if (prevBody){
+            document.body.style.position = prevBody.position || '';
+            document.body.style.top = prevBody.top || '';
+            document.body.style.left = prevBody.left || '';
+            document.body.style.right = prevBody.right || '';
+            document.body.style.width = prevBody.width || '';
+            document.body.style.overflow = prevBody.overflow || '';
+          } else {
+            document.body.style.position = '';
+            document.body.style.top = '';
+            document.body.style.left = '';
+            document.body.style.right = '';
+            document.body.style.width = '';
+            document.body.style.overflow = '';
+          }
+          window.scrollTo(0, scrollY || 0);
+          prevBody = null;
+        }
+
+        function trapFocus(modalEl){
+          if (!modalEl) return () => {};
+          const focusables = () => {
+            const els = modalEl.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])');
+            return Array.from(els).filter(el => !el.hasAttribute('disabled') && el.offsetParent !== null);
+          };
+          const onKeyDown = (e) => {
+            if (e.key !== 'Tab') return;
+            const els = focusables();
+            if (!els.length) return;
+            const first = els[0];
+            const last = els[els.length - 1];
+            if (e.shiftKey && document.activeElement === first){
+              e.preventDefault(); last.focus();
+            } else if (!e.shiftKey && document.activeElement === last){
+              e.preventDefault(); first.focus();
+            }
+          };
+          modalEl.addEventListener('keydown', onKeyDown);
+          return () => modalEl.removeEventListener('keydown', onKeyDown);
+        }
+
+        function rememberFocus(){
+          restore = document.activeElement;
+        }
+
+        function restoreFocus(){
+          if (restore && restore.focus){
+            try{ restore.focus(); } catch(_){}
+          }
+          restore = null;
+        }
+
+        return { lockScroll, unlockScroll, trapFocus, rememberFocus, restoreFocus };
+      })();
+
 
       window.__LF_lastFile = null;
       window.__LF_restoreFocusEl = null;
@@ -1219,11 +1309,11 @@
 
       function __LF_lockScroll(){
         window.__LF_scrollY = window.scrollY || 0;
-        document.documentElement.style.overflow = 'hidden';
+        window.__LF_modalUtil && window.__LF_modalUtil.lockScroll ? window.__LF_modalUtil.lockScroll() : (document.documentElement.style.overflow = 'hidden');
       }
       function __LF_unlockScroll(){
-        document.documentElement.style.overflow = '';
-        window.scrollTo(0, window.__LF_scrollY || 0);
+        window.__LF_modalUtil && window.__LF_modalUtil.unlockScroll ? window.__LF_modalUtil.unlockScroll() : (document.documentElement.style.overflow = '');
+        if (!window.__LF_modalUtil) window.scrollTo(0, window.__LF_scrollY || 0);
       }
 
       function __LF_openModal(){

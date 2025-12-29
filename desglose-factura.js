@@ -16,6 +16,9 @@
   window.__LF_DesgloseFactura = {
     overlay: null,
     modal: null,
+    restoreFocusEl: null,
+    scrollY: 0,
+    focusTrapCleanup: null,
 
     init() {
       this.overlay = document.createElement('div');
@@ -23,9 +26,13 @@
       
       this.modal = document.createElement('div');
       this.modal.className = 'desglose-modal';
+      this.modal.setAttribute('role','dialog');
+      this.modal.setAttribute('aria-modal','true');
+      this.modal.setAttribute('aria-labelledby','lfDesgloseTitle');
+
       this.modal.innerHTML = `
         <div class="desglose-header">
-          <h2>📋 Desglose de la factura</h2>
+          <h2 id="lfDesgloseTitle">📋 Desglose de la factura</h2>
           <button class="desglose-close" aria-label="Cerrar">✕</button>
         </div>
         <div class="desglose-content">
@@ -55,18 +62,40 @@
       this.renderizar(desglose, datos);
       
       requestAnimationFrame(() => {
+        // Guardar foco + scroll lock unificado
+        this.restoreFocusEl = document.activeElement;
+        if (window.__LF_modalUtil){ window.__LF_modalUtil.rememberFocus(); window.__LF_modalUtil.lockScroll(); }
+
         this.overlay.classList.add('active');
         this.modal.classList.add('active');
-        document.documentElement.style.overflow = 'hidden';
-        document.body.style.overflow = 'hidden';
+
+        // Focus inicial: botón cerrar
+        const btnClose = this.modal.querySelector('.desglose-close');
+        btnClose && btnClose.focus && btnClose.focus();
+
+        // Focus trap
+        this._attachFocusTrap();
       });
     },
 
     cerrar() {
       this.overlay.classList.remove('active');
       this.modal.classList.remove('active');
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
+
+      // Focus trap cleanup
+      if (typeof this.focusTrapCleanup === 'function') {
+        this.focusTrapCleanup();
+      }
+      this.focusTrapCleanup = null;
+
+      // Unlock scroll + restaurar foco (unificado)
+      if (window.__LF_modalUtil){
+        window.__LF_modalUtil.unlockScroll();
+        window.__LF_modalUtil.restoreFocus();
+      } else {
+        document.documentElement.style.overflow = '';
+      }
+      this.restoreFocusEl = null;
     },
 
     calcularDesglose(datos) {
