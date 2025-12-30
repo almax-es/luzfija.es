@@ -1,5 +1,5 @@
     /* === TU DISEÑO ORIGINAL EXACTO (NO TOCAR) === */
-    :root{ --bg0:#070A12; --bg1:#0B1020; --card: rgba(255,255,255,.06); --card2: rgba(255,255,255,.085); --border: rgba(255,255,255,.10); --border2: rgba(255,255,255,.16); --text:#F7F7FB; --muted: rgba(247,247,251,.72); --muted2: rgba(247,247,251,.55); --accent:#8B5CF6; --accent2:#22C55E; --warn:#F59E0B; --danger:#EF4444; --shadow: 0 22px 65px rgba(0,0,0,.52); --shadow2: 0 16px 40px rgba(0,0,0,.50); --radius: 18px; --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; --sans: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif; --bg: var(--bg0); --card-bg: var(--card); --z-base: 1; --z-dropdown: 10; --z-sticky: 100; --z-toast: 200; --z-tooltip: 300; --z-modal: 400; --z-skip-link: 500; }
+    :root{ --bg0:#070A12; --bg1:#0B1020; --card: rgba(255,255,255,.06); --card2: rgba(255,255,255,.085); --border: rgba(255,255,255,.10); --border2: rgba(255,255,255,.16); --text:#F7F7FB; --muted: rgba(247,247,251,.72); --muted2: rgba(247,247,251,.55); --accent:#8B5CF6; --accent2:#22C55E; --warn:#F59E0B; --danger:#EF4444; --shadow: 0 22px 65px rgba(0,0,0,.52); --shadow2: 0 16px 40px rgba(0,0,0,.50); --radius: 18px; --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; --sans: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif; --bg: var(--bg0); --card-bg: var(--card); --z-base: 1; --z-dropdown: 10; --z-sticky: 100; --z-toast: 200; --z-tooltip: 300; --z-modal: 400; --z-skip-link: 500; --space-1: 4px; --space-2: 8px; --space-3: 12px; --space-4: 16px; --space-5: 20px; --space-6: 24px; --space-8: 32px; --space-10: 40px; --space-12: 48px; }
     html.light-mode,
     body.light-mode {
       --bg0:#F4F6FB;
@@ -308,7 +308,7 @@
       -webkit-backdrop-filter: blur(24px); 
       transition: transform .3s ease, box-shadow .3s ease; 
       animation: fadeInUp 0.5s ease-out; 
-      margin-bottom: 6px;
+      margin-bottom: var(--space-2);
     }
 
     .card::before {
@@ -337,7 +337,7 @@
     .card:hover{ transform: translateY(-4px) translateZ(0); box-shadow: 0 28px 80px rgba(0,0,0,.60); }
     .card .head{ padding: 18px 18px 14px 18px; border-bottom: 1px solid var(--border); background: linear-gradient(180deg, rgba(139,92,246,.10), transparent); }
     .kicker{ font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted2); font-weight: 900; }
-    .title{ margin-top: 6px; font-size: 18px; font-weight: 900; letter-spacing: -0.3px; }
+    .title{ margin-top: var(--space-2); font-size: 18px; font-weight: 900; letter-spacing: -0.3px; }
     .body{
       padding: 18px;
       overflow-x: hidden;
@@ -633,7 +633,7 @@
     tbody td:nth-child(2){text-align:left; white-space: nowrap; vertical-align: middle;}
     thead th.sort{cursor:pointer}
     thead th.sort:hover{background: rgba(139,92,246,.12)}
-    .sortIcon{opacity:.8; font-size: 12px; margin-left: 6px;}
+    .sortIcon{opacity:.8; font-size: 12px; margin-left: var(--space-2);}
     tbody tr { background: rgba(255, 255, 255, 0.03); transition: all 0.2s ease; backdrop-filter: blur(10px); }
     tbody td{ padding: 14px 12px; border-bottom: none !important; text-align:right; font-size: 15px; color: rgba(255,255,255,.88); vertical-align: middle; white-space: nowrap; }
     tbody tr td:first-child { border-radius: 12px 0 0 12px; }
@@ -674,7 +674,7 @@
     .menuItem:hover{ background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.08); }
     .mi-left{ white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .mi-right{ opacity: .6; white-space: nowrap; flex: 0 0 auto; }
-    .menuDivider{ height:1px; background: rgba(255,255,255,.08); margin: 6px 6px; }
+    .menuDivider{ height:1px; background: rgba(255,255,255,.08); margin: var(--space-2) var(--space-2); }
     .menuHint{ padding: 8px 10px 6px 10px; color: var(--muted2); font-size: 11px; font-weight: 900; letter-spacing: .2px; }
     .toast{ position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(5,8,16,.92); border: 1px solid var(--border); color: var(--text); border-radius: 16px; box-shadow: var(--shadow2); padding: 12px 14px; display:none; gap: 10px; align-items:center; max-width: min(760px, calc(100vw - 24px)); backdrop-filter: blur(14px); z-index: var(--z-toast); font-size: 13px; will-change: transform, opacity; }
     .toast.show{display:flex; animation: pop .22s ease;}
@@ -2784,6 +2784,20 @@ html.light-mode, body.light-mode{
 .text-xs { font-size: 11px; color: var(--muted); }
 .grid-16 { display: grid; gap: 16px; }
 .text-muted { color: var(--muted); }
+
+/* Spacing utilities */
+.mt-2 { margin-top: var(--space-2); }
+.mt-3 { margin-top: var(--space-3); }
+.mt-4 { margin-top: var(--space-4); }
+.mb-2 { margin-bottom: var(--space-2); }
+.mb-3 { margin-bottom: var(--space-3); }
+.mb-4 { margin-bottom: var(--space-4); }
+.p-2 { padding: var(--space-2); }
+.p-3 { padding: var(--space-3); }
+.p-4 { padding: var(--space-4); }
+.gap-2 { gap: var(--space-2); }
+.gap-3 { gap: var(--space-3); }
+.gap-4 { gap: var(--space-4); }
 
 /* Elementos con display específico cuando no están hidden */
 #btnSpinner { display: flex; }
