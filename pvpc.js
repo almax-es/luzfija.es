@@ -106,7 +106,10 @@
         const parsed=JSON.parse(raw);
         pvpcCacheMemory.set(key,parsed);
         return parsed;
-      }catch(e){ return null; }
+      }catch(e){ 
+        pvpcDbg('[getPvpcCacheEntry] Error parsing cache:', e);
+        return null; 
+      }
     }
 
     function persistPvpcCacheEntry(key, payload){

@@ -926,7 +926,9 @@ window.timerManager = timerManager;
         return;
       }
       let savedData = {};
-      try { const r = localStorage.getItem(LS_KEY); if (r) savedData = JSON.parse(r); } catch(e){}
+      try { const r = localStorage.getItem(LS_KEY); if (r) savedData = JSON.parse(r); } catch(e){
+        lfDbg('[loadInputs] Error parsing saved data:', e);
+      }
       savedData = migrateExcedentes(savedData);
       const finalData = migrateExcedentes({ ...DEFAULTS, ...savedData });
       for (const k in DEFAULTS){
@@ -1955,8 +1957,12 @@ el.menuPanel.addEventListener('click',(e)=>e.stopPropagation());
           __LF_tarifasMeta = cachedMeta.meta;
           renderTarifasUpdated(__LF_tarifasMeta);
         }
-      }catch(e){}
-      fetchTarifas(false, { silent: true }).catch(()=>{});
+      }catch(e){
+        lfDbg('[init] Error reading cached tarifas:', e);
+      }
+      fetchTarifas(false, { silent: true }).catch((e)=>{
+        lfDbg('[init] Error preloading tarifas:', e);
+      });
 
     });
   
