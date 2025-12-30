@@ -1,5 +1,5 @@
     /* === TU DISEÑO ORIGINAL EXACTO (NO TOCAR) === */
-    :root{ --bg0:#070A12; --bg1:#0B1020; --card: rgba(255,255,255,.06); --card2: rgba(255,255,255,.085); --border: rgba(255,255,255,.10); --border2: rgba(255,255,255,.16); --text:#F7F7FB; --muted: rgba(247,247,251,.72); --muted2: rgba(247,247,251,.55); --accent:#8B5CF6; --accent2:#22C55E; --warn:#F59E0B; --danger:#EF4444; --shadow: 0 22px 65px rgba(0,0,0,.52); --shadow2: 0 16px 40px rgba(0,0,0,.50); --radius: 18px; --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; --sans: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif; --bg: var(--bg0); --card-bg: var(--card); }
+    :root{ --bg0:#070A12; --bg1:#0B1020; --card: rgba(255,255,255,.06); --card2: rgba(255,255,255,.085); --border: rgba(255,255,255,.10); --border2: rgba(255,255,255,.16); --text:#F7F7FB; --muted: rgba(247,247,251,.72); --muted2: rgba(247,247,251,.55); --accent:#8B5CF6; --accent2:#22C55E; --warn:#F59E0B; --danger:#EF4444; --shadow: 0 22px 65px rgba(0,0,0,.52); --shadow2: 0 16px 40px rgba(0,0,0,.50); --radius: 18px; --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; --sans: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif; --bg: var(--bg0); --card-bg: var(--card); --z-base: 1; --z-dropdown: 10; --z-sticky: 100; --z-toast: 200; --z-tooltip: 300; --z-modal: 400; --z-skip-link: 500; }
     html.light-mode,
     body.light-mode {
       --bg0:#F4F6FB;
@@ -401,7 +401,7 @@
       word-break: break-word;
       text-align: left;
       box-shadow: 0 8px 24px rgba(0,0,0,.4);
-      z-index: 9999;
+      z-index: var(--z-tooltip);
       border: 1px solid rgba(139,92,246,.4);
       pointer-events: none;
     }
@@ -676,13 +676,13 @@
     .mi-right{ opacity: .6; white-space: nowrap; flex: 0 0 auto; }
     .menuDivider{ height:1px; background: rgba(255,255,255,.08); margin: 6px 6px; }
     .menuHint{ padding: 8px 10px 6px 10px; color: var(--muted2); font-size: 11px; font-weight: 900; letter-spacing: .2px; }
-    .toast{ position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(5,8,16,.92); border: 1px solid var(--border); color: var(--text); border-radius: 16px; box-shadow: var(--shadow2); padding: 12px 14px; display:none; gap: 10px; align-items:center; max-width: min(760px, calc(100vw - 24px)); backdrop-filter: blur(14px); z-index: 9999; font-size: 13px; will-change: transform, opacity; }
+    .toast{ position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(5,8,16,.92); border: 1px solid var(--border); color: var(--text); border-radius: 16px; box-shadow: var(--shadow2); padding: 12px 14px; display:none; gap: 10px; align-items:center; max-width: min(760px, calc(100vw - 24px)); backdrop-filter: blur(14px); z-index: var(--z-toast); font-size: 13px; will-change: transform, opacity; }
     .toast.show{display:flex; animation: pop .22s ease;}
     @keyframes pop { from{opacity:0; transform: translateX(-50%) translateY(8px);} to{opacity:1; transform: translateX(-50%) translateY(0px);} }
     .dot{width:10px; height:10px; border-radius:999px; background: var(--accent);}
     .dot.ok{background: var(--accent2)}
     .dot.err{background: var(--danger)}
-    .scroll-btn{ position: fixed; bottom: 90px; right: 30px; padding: 14px 20px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; border-radius: 999px; font-weight: 900; font-size: 13px; cursor: pointer; box-shadow: 0 8px 24px rgba(139,92,246,.4); z-index: 9998; animation: bounce 2s ease-in-out infinite; transition: transform .2s ease, box-shadow .2s ease; }
+    .scroll-btn{ position: fixed; bottom: 90px; right: 30px; padding: 14px 20px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; border-radius: 999px; font-weight: 900; font-size: 13px; cursor: pointer; box-shadow: 0 8px 24px rgba(139,92,246,.4); z-index: var(--z-sticky); animation: bounce 2s ease-in-out infinite; transition: transform .2s ease, box-shadow .2s ease; }
     .scroll-btn:hover{ transform: translateY(-2px) scale(1.05); box-shadow: 0 12px 32px rgba(139,92,246,.6); }
     @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
     @media (max-width: 768px) {
@@ -1156,7 +1156,7 @@
   background:rgba(0,0,0,.95);
   backdrop-filter:blur(8px);
   -webkit-backdrop-filter:blur(8px);
-  z-index:10000;
+  z-index:var(--z-modal);
   display:flex; align-items:center; justify-content:center;
   opacity:0; pointer-events:none;
   transition:opacity .2s ease;
@@ -2767,7 +2767,7 @@ html.light-mode, body.light-mode{
   color:#fff;
   padding:10px 14px;
   border-radius:10px;
-  z-index:9999;
+  z-index:var(--z-skip-link);
   text-decoration:none;
   font-weight:700;
 }
