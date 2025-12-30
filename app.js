@@ -18,6 +18,44 @@ const lfDbg = (...args) => {
 // Exponerlo por si otros módulos lo quieren usar
 window.lfDbg = lfDbg;
 
+// ===== GESTIÓN DE TIMERS (prevenir memory leaks) =====
+const timerManager = {
+  timers: new Set(),
+  
+  setTimeout(callback, delay) {
+    const id = setTimeout(() => {
+      callback();
+      this.timers.delete(id);
+    }, delay);
+    this.timers.add(id);
+    return id;
+  },
+  
+  setInterval(callback, delay) {
+    const id = setInterval(callback, delay);
+    this.timers.add(id);
+    return id;
+  },
+  
+  clear(id) {
+    clearTimeout(id);
+    clearInterval(id);
+    this.timers.delete(id);
+  },
+  
+  clearAll() {
+    this.timers.forEach(id => {
+      clearTimeout(id);
+      clearInterval(id);
+    });
+    this.timers.clear();
+  }
+};
+
+// Limpiar al salir de la página
+window.addEventListener('beforeunload', () => timerManager.clearAll());
+window.timerManager = timerManager;
+
     const $ = id => document.getElementById(id);
 
     // URL DEL JSON ESTÁTICO DE TARIFAS EN EL MISMO HOST
