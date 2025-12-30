@@ -2784,3 +2784,9 @@ html.light-mode, body.light-mode{
 .text-xs { font-size: 11px; color: var(--muted); }
 .grid-16 { display: grid; gap: 16px; }
 .text-muted { color: var(--muted); }
+
+/* Elementos con display específico cuando no están hidden */
+#btnSpinner { display: flex; }
+#btnSpinner.hidden { display: none; }
+#viviendaCanariasGroup { display: flex; }
+#viviendaCanariasGroup.hidden { display: none; }

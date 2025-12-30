@@ -267,8 +267,13 @@ window.timerManager = timerManager;
       }
       const l=mode==='loading';
       applyButtonState(l);
-      el.btnText.style.display=l?'none':'flex';
-      el.btnSpinner.style.display=l?'flex':'none';
+      if (l) {
+        el.btnText.classList.add('hidden');
+        el.btnSpinner.classList.remove('hidden');
+      } else {
+        el.btnText.classList.remove('hidden');
+        el.btnSpinner.classList.add('hidden');
+      }
     }
 
     function markPending(message='Cambios pendientes. Pulsa Calcular para actualizar.'){
@@ -878,7 +883,11 @@ window.timerManager = timerManager;
       const zona = el.inputs.zonaFiscal?.value === 'Canarias' ? 'Canarias' : 'Península';
       const isCanarias = zona === 'Canarias';
       if(el.viviendaGroup){
-        el.viviendaGroup.style.display = isCanarias ? 'flex' : 'none';
+        if (isCanarias) {
+          el.viviendaGroup.classList.remove('hidden');
+        } else {
+          el.viviendaGroup.classList.add('hidden');
+        }
       }
     }
 
@@ -1028,7 +1037,11 @@ window.timerManager = timerManager;
       const box = document.getElementById('solarFields');
       if(!box) return;
       const on = Boolean(el.inputs.solarOn?.checked);
-      box.style.display = on ? '' : 'none';
+      if (on) {
+        box.classList.remove('hidden');
+      } else {
+        box.classList.add('hidden');
+      }
       
       // Inicializar modal solar info cuando se muestra por primera vez
       if(on && !window.__solarInfoInitialized){
@@ -1476,11 +1489,15 @@ window.timerManager = timerManager;
 
       const warningEl = document.getElementById('pvpc-warning-canarias-potencia');
       if (warningEl) {
-        warningEl.style.display = pvpcCasoInvalidoCanariasViviendaPotAlta ? 'block' : 'none';
+        if (pvpcCasoInvalidoCanariasViviendaPotAlta) {
+          warningEl.classList.remove('hidden');
+        } else {
+          warningEl.classList.add('hidden');
+        }
       }
 
       if(!pvpcLastMeta){
-        div.style.display='none';
+        div.classList.add('hidden');
         div.textContent='';
         return;
       }
@@ -1498,7 +1515,7 @@ window.timerManager = timerManager;
       const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
       const fechaTxt = fecha ? fecha.toLocaleString('es-ES', dateOptions) : '-';
 
-      div.style.display='block';
+      div.classList.remove('hidden');
       div.innerHTML = `
         <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
           <div style="display:flex; align-items:center; gap:8px; font-weight:900; color:var(--text); font-size:13px;">
@@ -1919,8 +1936,12 @@ el.menuPanel.addEventListener('click',(e)=>e.stopPropagation());
       $('compararMiTarifa')?.addEventListener('change', (e) => {
         const form = $('miTarifaForm');
         if (!form) return;
-        form.style.display = e.target.checked ? 'block' : 'none';
-        if (e.target.checked) updateMiTarifaForm();
+        if (e.target.checked) {
+          form.classList.remove('hidden');
+          updateMiTarifaForm();
+        } else {
+          form.classList.add('hidden');
+        }
       });
 
       $('solarOn')?.addEventListener('change', () => {
