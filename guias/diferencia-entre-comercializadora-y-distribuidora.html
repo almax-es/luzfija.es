@@ -15,6 +15,22 @@
 <link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
 <link color="#8B5CF6" href="/favicon.svg" rel="mask-icon"/>
 <link href="https://luzfija.es/guias/diferencia-entre-comercializadora-y-distribuidora.html" rel="canonical"/>
+  <script>
+    (function(){
+      var key='almax_theme';
+      try{
+        var saved=localStorage.getItem(key);
+        var isLight = (saved==='light');
+        document.documentElement.classList.toggle('light-mode', isLight);
+        document.addEventListener('DOMContentLoaded', function(){
+          if (document.body) document.body.classList.toggle('light-mode', isLight);
+        }, {once:true});
+        window.__ALMAX_THEME_SAVED=saved;
+      }catch(e){}
+      window.__ALMAX_THEME_KEY=key;
+    })();
+  </script>
+
 <link href="/guias.css" rel="stylesheet"/>
 <meta content="Diferencia entre comercializadora y distribuidora eléctrica en España. Funciones, responsabilidades y a quién contactar en cada caso." name="description"/>
 <script type="application/ld+json">

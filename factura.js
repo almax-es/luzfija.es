@@ -12,12 +12,22 @@
       let __LF_lastParsedConfianza = 0;
 
       let __LF_pdfjsLoading = null;
+      const __LF_PDFJS_SOURCES = [
+        {
+          lib: "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js",
+          worker: "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js"
+        },
+        {
+          lib: "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js",
+          worker: "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"
+        }
+      ];
+      let __LF_pdfWorkerSrcSelected = null;
       function __LF_ensurePdfWorker(){
         const lib = window.pdfjsLib;
         if (!lib) return false;
         if (!lib.GlobalWorkerOptions.workerSrc) {
-          lib.GlobalWorkerOptions.workerSrc =
-            "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+          lib.GlobalWorkerOptions.workerSrc = __LF_pdfWorkerSrcSelected || __LF_PDFJS_SOURCES[0].worker;
         }
         return true;
       }
@@ -65,10 +75,20 @@
           __LF_pdfjsLoading = null;
         }
         if (!window.pdfjsLib){
-          const src = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js";
-          __LF_pdfjsLoading = __LF_loadScript(src);
-          await __LF_pdfjsLoading;
-          __LF_pdfjsLoading = null;
+          let lastErr = null;
+          for (const srcSet of __LF_PDFJS_SOURCES){
+            try {
+              __LF_pdfWorkerSrcSelected = srcSet.worker;
+              __LF_pdfjsLoading = __LF_loadScript(srcSet.lib);
+              await __LF_pdfjsLoading;
+              __LF_pdfjsLoading = null;
+              if (window.pdfjsLib && __LF_ensurePdfWorker()) break;
+            } catch (e) {
+              lastErr = e;
+              __LF_pdfjsLoading = null;
+            }
+          }
+          if (!window.pdfjsLib && lastErr) throw lastErr;
         }
         if (!window.pdfjsLib || !__LF_ensurePdfWorker()){
           throw new Error("PDF.js no disponible");
