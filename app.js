@@ -29,47 +29,32 @@ window.lfDbg = lfDbg;
     // ===== LAZY LOAD XLSX (SheetJS) =====
     // Solo se carga cuando el usuario sube un archivo Excel
     // Version pineada: 0.20.3 (última estable a diciembre 2025)
-    // Añadimos fallbacks para evitar que un CDN caído rompa la importación.
     let xlsxLoading = null;
-    const XLSX_SOURCES = [
-      'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js',
-      'https://cdn.jsdelivr.net/npm/xlsx@0.20.3/dist/xlsx.full.min.js',
-      'https://unpkg.com/xlsx@0.20.3/dist/xlsx.full.min.js'
-    ];
-
-    function __LF_loadScript(src){
-      return new Promise((resolve, reject) => {
+    
+    async function ensureXLSX() {
+      if (typeof XLSX !== 'undefined') {
+        return; // Ya está cargado
+      }
+      
+      // Si ya está cargando, esperar a que termine
+      if (xlsxLoading) {
+        return xlsxLoading;
+      }
+      
+      xlsxLoading = new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = src;
-        script.crossOrigin = 'anonymous';
-        script.async = true;
-        script.onload = () => resolve(true);
-        script.onerror = () => reject(new Error('No se pudo cargar: ' + src));
+        script.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
+        script.crossOrigin = 'anonymous'; // Necesario para SRI
+        script.onload = () => {
+          lfDbg('[XLSX] Librería cargada bajo demanda');
+          resolve();
+        };
+        script.onerror = () => {
+          reject(new Error('Error al cargar librería XLSX'));
+        };
         document.head.appendChild(script);
       });
-    }
-
-    async function ensureXLSX() {
-      if (typeof XLSX !== 'undefined') return; // Ya está cargado
-      if (xlsxLoading) return xlsxLoading;
-
-      xlsxLoading = (async () => {
-        let lastErr = null;
-        for (const src of XLSX_SOURCES) {
-          try {
-            await __LF_loadScript(src);
-            if (typeof XLSX !== 'undefined') {
-              lfDbg('[XLSX] Librería cargada bajo demanda:', src);
-              return;
-            }
-          } catch (e) {
-            lastErr = e;
-            lfDbg('[XLSX] Fallo cargando:', src, e);
-          }
-        }
-        throw lastErr || new Error('Error al cargar librería XLSX');
-      })();
-
+      
       return xlsxLoading;
     }
 
@@ -91,7 +76,6 @@ window.lfDbg = lfDbg;
       toast: $('toast'), toastText: $('toastText'), toastDot: $('toastDot'),
       menuRoot: $('menuRoot'), btnMenu: $('btnMenu'), menuPanel: $('menuPanel'), btnTheme: $('btnTheme'),
       btnExport: $('btnExport'), btnReset: $('btnReset'), btnShare: $('btnShare'),
-      btnRefreshTarifas: $('btnRefreshTarifas'), btnClearTarifasCache: $('btnClearTarifasCache'),
       globalTooltip: $('globalTooltip'),
       pvpcInfo: $('pvpcInfo'),
       viviendaGroup: $('viviendaCanariasGroup')
@@ -374,34 +358,6 @@ window.lfDbg = lfDbg;
       }catch(e){}
     }
 
-    async function clearTarifasCacheHard(){
-      // 1) LocalStorage (la cache principal de tarifas)
-      try{ localStorage.removeItem(TARIFAS_CACHE_KEY); }catch(e){}
-
-      // 2) Memoria
-      baseTarifasCache = [];
-      __LF_tarifasMeta = null;
-      renderTarifasUpdated(null);
-
-      // 3) CacheStorage (Service Worker)
-      // No conocemos el nombre exacto de CACHE_NAME (cambia por versión), así que limpiamos
-      // /tarifas.json en todas las caches existentes.
-      try{
-        if (window.caches && typeof window.caches.keys === 'function'){
-          const keys = await window.caches.keys();
-          await Promise.all(keys.map(async (k)=>{
-            try{
-              const c = await window.caches.open(k);
-              await c.delete('/tarifas.json');
-              await c.delete(new Request('/tarifas.json'));
-              // por si alguna vez se guardó con querystring
-              await c.delete(JSON_URL);
-            }catch(_){ }
-          }));
-        }
-      }catch(e){}
-    }
-
     let __LF_tarifasMeta = null;
 
     function renderTarifasUpdated(meta){
@@ -473,8 +429,7 @@ window.lfDbg = lfDbg;
         const timeoutId = setTimeout(() => controller.abort(), 15000);
 
         // Query-buster SOLO si forzamos refresh manual
-        // "force=1" permite al Service Worker hacer network-first para evitar servir una copia cacheada.
-        const url = forceRefresh ? `${JSON_URL}?force=1&v=${Date.now()}` : JSON_URL;
+        const url = forceRefresh ? `${JSON_URL}?v=${Date.now()}` : JSON_URL;
 
         const response = await fetch(url, {
           signal: controller.signal,
@@ -1870,25 +1825,6 @@ el.menuPanel.addEventListener('click',(e)=>e.stopPropagation());
         try { sessionStorage.removeItem(LS_KEY); } catch(e){}
         window.location.href = window.location.pathname + '?reset=1';
       });
-
-      // Menú: refrescar tarifas (forzando red) y borrar cachés
-      if (el.btnRefreshTarifas){
-        el.btnRefreshTarifas.addEventListener('click', async (e) => {
-          createRipple(el.btnRefreshTarifas,e);
-          toggleMenu(false);
-          await fetchTarifas(true, { silent: false });
-        });
-      }
-
-      if (el.btnClearTarifasCache){
-        el.btnClearTarifasCache.addEventListener('click', async (e) => {
-          createRipple(el.btnClearTarifasCache,e);
-          toggleMenu(false);
-          await clearTarifasCacheHard();
-          setStatus('Caché de tarifas borrada', 'ok');
-          setTimeout(() => setStatus('Listo para calcular', 'idle'), 1500);
-        });
-      }
 
       // NOTA: La exportación se maneja en xlsx-export.js
       // No añadir listener aquí para evitar duplicados

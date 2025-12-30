@@ -106,22 +106,6 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <script>
-    (function(){
-      var key='almax_theme';
-      try{
-        var saved=localStorage.getItem(key);
-        var isLight = (saved==='light');
-        document.documentElement.classList.toggle('light-mode', isLight);
-        document.addEventListener('DOMContentLoaded', function(){
-          if (document.body) document.body.classList.toggle('light-mode', isLight);
-        }, {once:true});
-        window.__ALMAX_THEME_SAVED=saved;
-      }catch(e){}
-      window.__ALMAX_THEME_KEY=key;
-    })();
-  </script>
-
   <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
   
   <link rel="stylesheet" href="styles.css">

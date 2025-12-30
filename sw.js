@@ -7,7 +7,7 @@
 
 // IMPORTANTE: si cambias este fichero, incrementa CACHE_NAME para forzar la actualización.
 // Bump de versión para forzar actualización de assets tras cambios (release incremental)
-const CACHE_NAME = "luzfija-static-v4.17";
+const CACHE_NAME = "luzfija-static-v4.15";
 
 const ASSETS = [
   "/",
@@ -108,7 +108,6 @@ self.addEventListener("fetch", (event) => {
   }
 
   // Tarifas: stale-while-revalidate (sirve cache al instante y actualiza en segundo plano)
-  // Si el cliente pide ?force=1, hacemos network-first para garantizar que llega lo último.
   if (url.pathname === "/tarifas.json") {
     event.respondWith(
       (async () => {
@@ -117,19 +116,6 @@ self.addEventListener("fetch", (event) => {
         // Normalizamos la clave para que funcione también si la app pide /tarifas.json?v=...
         const cacheKey = new Request("/tarifas.json");
         const cached = (await cache.match(cacheKey)) || (await cache.match(req));
-
-        const wantsFresh = url.searchParams.get('force') === '1';
-
-        // Network-first cuando el usuario fuerza actualización
-        if (wantsFresh) {
-          try {
-            const fresh = await fetch(req, { cache: "no-store" });
-            await cachePutSafe(cache, cacheKey, fresh);
-            return fresh;
-          } catch (_) {
-            return cached || Response.error();
-          }
-        }
 
         const fetchPromise = fetch(req, { cache: "no-store" })
           .then(async (res) => {
