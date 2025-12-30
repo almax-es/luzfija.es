@@ -353,7 +353,7 @@
       // Actualizar cabecera
       if (esHoy) {
         document.getElementById('modalPVPCLabel').textContent = 'Ahora';
-        document.getElementById('modalPVPCNow').textContent = `${precioActual.toFixed(3)} €/kWh`;
+document.getElementById('modalPVPCNow').textContent = `${precioActual.toFixed(3).replace('.', ',')} €/kWh`;
         document.getElementById('modalPVPCNowHour').textContent = `${ahora}:00h`;
       } else {
         document.getElementById('modalPVPCLabel').textContent = 'Mañana';
