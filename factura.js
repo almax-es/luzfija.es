@@ -5,43 +5,22 @@
       // Helper de debug: solo loguea si __LF_DEBUG está activo
       const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
 
-// === Dependencias externas (local-first) ===
-// Si añades los ficheros al repo, se cargan desde tu dominio (más privacidad y menos fallos por bloqueos de CDNs).
-// Rutas sugeridas:
-//   /vendor/pdfjs/pdf.min.js
-//   /vendor/pdfjs/pdf.worker.min.js
-const PDFJS_VERSION = "3.11.174";
-const PDFJS_LOCAL = "/vendor/pdfjs/pdf.min.js";
-const PDFJS_WORKER_LOCAL = "/vendor/pdfjs/pdf.worker.min.js";
-const PDFJS_CDN = "https://unpkg.com/pdfjs-dist@" + PDFJS_VERSION + "/build/pdf.min.js";
-const PDFJS_WORKER_CDN = "https://unpkg.com/pdfjs-dist@" + PDFJS_VERSION + "/build/pdf.worker.min.js";
-
       window.__LF_lastFile = null;
       window.__LF_restoreFocusEl = null;
       window.__LF_focusTrapCleanup = null;
       window.__LF_scrollY = 0;
       let __LF_lastParsedConfianza = 0;
 
-      
-let __LF_pdfjsLoading = null;
-
-async function __LF_setPdfWorkerSrc() {
-  const lib = window.pdfjsLib;
-  if (!lib) return false;
-  if (lib.GlobalWorkerOptions && lib.GlobalWorkerOptions.workerSrc) return true;
-
-  let workerSrc = PDFJS_WORKER_LOCAL;
-  try {
-    // Comprobar si existe versión local (same-origin)
-    const head = await fetch(workerSrc, { method: 'HEAD', cache: 'no-store' });
-    if (!head.ok) throw new Error('no local worker');
-  } catch (_) {
-    workerSrc = PDFJS_WORKER_CDN;
-  }
-
-  lib.GlobalWorkerOptions.workerSrc = workerSrc;
-  return true;
-}
+      let __LF_pdfjsLoading = null;
+      function __LF_ensurePdfWorker(){
+        const lib = window.pdfjsLib;
+        if (!lib) return false;
+        if (!lib.GlobalWorkerOptions.workerSrc) {
+          lib.GlobalWorkerOptions.workerSrc =
+            "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+        }
+        return true;
+      }
 
       function __LF_loadScript(src){
         return new Promise((resolve, reject)=>{
@@ -56,12 +35,12 @@ async function __LF_setPdfWorkerSrc() {
       }
 
       async function __LF_ensurePdfJs(){
-        if (window.pdfjsLib && (await __LF_setPdfWorkerSrc())) return window.pdfjsLib;
+        if (window.pdfjsLib && __LF_ensurePdfWorker()) return window.pdfjsLib;
         if (__LF_pdfjsLoading) {
           await __LF_pdfjsLoading;
         }
-        if (window.pdfjsLib && (await __LF_setPdfWorkerSrc())) return window.pdfjsLib;
-        const existingScript = document.querySelector('script[src="/vendor/pdfjs/pdf.min.js"], script[src*="pdfjs-dist@3.11.174/build/pdf.min.js"]');
+        if (window.pdfjsLib && __LF_ensurePdfWorker()) return window.pdfjsLib;
+        const existingScript = document.querySelector('script[src*="pdfjs-dist@3.11.174/build/pdf.min.js"]');
         if (existingScript && !window.pdfjsLib){
           if (!__LF_pdfjsLoading){
             __LF_pdfjsLoading = new Promise((resolve) => {
@@ -86,19 +65,12 @@ async function __LF_setPdfWorkerSrc() {
           __LF_pdfjsLoading = null;
         }
         if (!window.pdfjsLib){
-          // Local-first: intentar cargar desde tu dominio y fallback al CDN
-          let src = PDFJS_LOCAL;
-          try {
-            const head = await fetch(src, { method: 'HEAD', cache: 'no-store' });
-            if (!head.ok) throw new Error('no local pdfjs');
-          } catch (_) {
-            src = PDFJS_CDN;
-          }
+          const src = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js";
           __LF_pdfjsLoading = __LF_loadScript(src);
           await __LF_pdfjsLoading;
           __LF_pdfjsLoading = null;
         }
-        if (!window.pdfjsLib || !(await __LF_setPdfWorkerSrc())){
+        if (!window.pdfjsLib || !__LF_ensurePdfWorker()){
           throw new Error("PDF.js no disponible");
         }
         return window.pdfjsLib;

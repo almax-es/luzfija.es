@@ -7,13 +7,14 @@
 
 // IMPORTANTE: si cambias este fichero, incrementa CACHE_NAME para forzar la actualización.
 // Bump de versión para forzar actualización de assets tras cambios (release incremental)
-const CACHE_NAME = "luzfija-static-v4.15";
+const CACHE_NAME = "luzfija-static-v4.16";
 
 const ASSETS = [
   "/",
   "/index.html",
   "/styles.css",
   "/app.js",
+  "/index-extra.js",
   "/pvpc.js",
   "/factura.js",
   // tarifas.json NO está en precache, se maneja con stale-while-revalidate

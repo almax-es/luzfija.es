@@ -43,31 +43,15 @@ window.lfDbg = lfDbg;
       
       xlsxLoading = new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        const XLSX_LOCAL = '/vendor/xlsx/xlsx.full.min.js';
-        const XLSX_CDN = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
-
-        // Intentar primero local (mejor privacidad/fiabilidad). Si no existe, fallback al CDN.
-        script.src = XLSX_LOCAL;
+        script.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
         script.crossOrigin = 'anonymous'; // Necesario para SRI
         script.onload = () => {
           lfDbg('[XLSX] Librería cargada bajo demanda');
           resolve();
         };
         script.onerror = () => {
-  // Fallback al CDN si la versión local no está disponible
-  lfDbg('[XLSX] No se pudo cargar versión local, probando CDN…');
-  const s2 = document.createElement('script');
-  s2.src = XLSX_CDN;
-  s2.crossOrigin = 'anonymous';
-  s2.onload = () => {
-    lfDbg('[XLSX] Librería cargada desde CDN (fallback)');
-    resolve();
-  };
-  s2.onerror = () => {
-    reject(new Error('Error al cargar librería XLSX (local y CDN)'));
-  };
-  document.head.appendChild(s2);
-};
+          reject(new Error('Error al cargar librería XLSX'));
+        };
         document.head.appendChild(script);
       });
       
