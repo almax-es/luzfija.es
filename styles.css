@@ -616,8 +616,8 @@
     .fbtn{ padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(255,255,255,.06); color: var(--muted); cursor:pointer; font-weight: 1000; font-size: 12px; transition: transform .15s ease, border-color .15s ease, background .15s ease; user-select:none; min-height: 44px; display:flex; align-items:center; touch-action: manipulation; will-change: transform; }
     .fbtn:hover{transform: translateY(-1px); border-color: var(--border2); background: rgba(255,255,255,.09);}
     .fbtn.active{ background: rgba(139,92,246,.18); border-color: rgba(139,92,246,.55); color: var(--text); }
-    .tableWrap{ background: transparent !important; border: none !important; overflow: visible !important; }
-    table{ width: 100%; border-collapse: separate !important; border-spacing: 0 8px; table-layout: fixed; }
+    .tableWrap{ background: transparent; border: none; overflow: visible; }
+    table{ width: 100%; border-collapse: separate; border-spacing: 0 8px; table-layout: fixed; }
     thead th:nth-child(1), tbody td:nth-child(1) { width: 4%; }
     thead th:nth-child(2), tbody td:nth-child(2) { width: 23%; }
     thead th:nth-child(3), tbody td:nth-child(3) { width: 10%; }
@@ -627,7 +627,7 @@
     thead th:nth-child(7), tbody td:nth-child(7) { width: 10%; }
     thead th:nth-child(8), tbody td:nth-child(8) { width: 8%; }
     thead th:nth-child(9), tbody td:nth-child(9) { width: 8%; }
-    thead th{ position: sticky; top: 0; z-index: 5; text-align:right; padding: 14px 12px; font-size: 11px !important; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted) !important; background: var(--bg0) !important; border-bottom: none !important; user-select:none; white-space: nowrap; padding-bottom: 15px; }
+    thead th{ position: sticky; top: 0; z-index: 5; text-align:right; padding: 14px 12px; font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); background: var(--bg0); border-bottom: none; user-select:none; white-space: nowrap; padding-bottom: 15px; }
     thead th:first-child, tbody td:first-child{text-align:center; vertical-align: middle;}
     thead th:nth-child(2){text-align:center; white-space: nowrap; vertical-align: middle;}
     tbody td:nth-child(2){text-align:left; white-space: nowrap; vertical-align: middle;}
@@ -2737,13 +2737,13 @@ html.light-mode, body.light-mode{
 .guides-banner-arrow{ font-size: 18px !important; transition: transform 0.3s !important; }
 .code-box{ background: var(--bg) !important; padding: 10px !important; border-radius: 4px !important; margin-bottom: 16px !important; }
 .pvpc-tabs-container{ display: flex !important; gap: 4px !important; background: rgba(255,255,255,.05) !important; padding: 4px !important; border-radius: 8px !important; }
-.pvpc-tab-btn{ padding: 6px 14px !important; border: none !important; font-size: 12px !important; font-weight: 600 !important; border-radius: 6px !important; cursor: pointer !important; transition: all 0.2s !important; background: transparent !important; color: var(--text) !important; }
-.pvpc-tab-btn.active{ background: var(--accent) !important; color: #fff !important; font-weight: 700 !important; }
-.btn-info-solar{ width: 100% !important; justify-content: center !important; margin-bottom: 12px !important; background: rgba(251, 191, 36, 0.12) !important; border-color: rgba(251, 191, 36, 0.3) !important; }
-.btn-info-pvpc{ width: 100% !important; justify-content: center !important; margin-top: 12px !important; background: rgba(245, 158, 11, 0.15) !important; border-color: rgba(217, 119, 6, 0.35) !important; }
-.contact-box{ margin-top: 12px !important; padding: 12px !important; border-radius: 14px !important; border: 1px solid var(--border) !important; background: rgba(255,255,255,.04) !important; }
-.mi-tarifa-panel{ margin-top: 8px !important; padding: 16px !important; background: var(--card) !important; border-radius: 12px !important; border-left: 3px solid var(--accent) !important; }
-.pvpc-warning{ margin-top: 6px !important; font-size: 12px !important; line-height: 1.2 !important; opacity: 0.95 !important; color: #FACC15 !important; }
+.pvpc-tab-btn{ padding: 6px 14px; border: none; font-size: 12px; font-weight: 600; border-radius: 6px; cursor: pointer; transition: all 0.2s; background: transparent; color: var(--text); }
+.pvpc-tab-btn.active{ background: var(--accent); color: #fff; font-weight: 700; }
+.btn-info-solar{ width: 100%; justify-content: center; margin-bottom: 12px; background: rgba(251, 191, 36, 0.12); border-color: rgba(251, 191, 36, 0.3); }
+.btn-info-pvpc{ width: 100%; justify-content: center; margin-top: 12px; background: rgba(245, 158, 11, 0.15); border-color: rgba(217, 119, 6, 0.35); }
+.contact-box{ margin-top: 12px; padding: 12px; border-radius: 14px; border: 1px solid var(--border); background: rgba(255,255,255,.04); }
+.mi-tarifa-panel{ margin-top: 8px; padding: 16px; background: var(--card); border-radius: 12px; border-left: 3px solid var(--accent); }
+.pvpc-warning{ margin-top: 6px; font-size: 12px; line-height: 1.2; opacity: 0.95; color: #FACC15; }
 
 /* === Common Patterns === */
 .u-loading-text{ color: var(--muted) !important; text-align: center !important; padding: 20px !important; }
