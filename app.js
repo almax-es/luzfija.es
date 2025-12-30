@@ -408,8 +408,12 @@ window.lfDbg = lfDbg;
           baseTarifasCache = cached.data;
           __LF_tarifasMeta = cached.meta || null;
           renderTarifasUpdated(__LF_tarifasMeta);
-          // Si la caché no guarda publishedAt (versiones antiguas), seguimos a red para obtenerlo
-          if (__LF_tarifasMeta && (__LF_tarifasMeta.publishedAt || __LF_tarifasMeta.srcPublishedAt || __LF_tarifasMeta.tarifasPublishedAt)) {
+          // Si la caché ya incluye una marca de actualización, no hace falta ir a red
+          if (__LF_tarifasMeta && (
+            __LF_tarifasMeta.updatedAt || __LF_tarifasMeta.updated_at ||
+            __LF_tarifasMeta.publishedAt || __LF_tarifasMeta.published_at ||
+            __LF_tarifasMeta.srcPublishedAt || __LF_tarifasMeta.tarifasPublishedAt
+          )) {
             return true;
           }
           // Continuar a red para enriquecer meta
@@ -446,8 +450,9 @@ window.lfDbg = lfDbg;
         baseTarifasCache = tarifas;
 
         // Persistir para recargas/pestañas
-        const __publishedAt = data.publishedAt || data.timestamp || null;
-        __LF_tarifasMeta = { version: data.version || null, publishedAt: __publishedAt };
+        const __updatedAt = data.updatedAt || data.updated_at || data.publishedAt || data.published_at || data.timestamp || null;
+        __LF_tarifasMeta = { updatedAt: __updatedAt };
+        
         renderTarifasUpdated(__LF_tarifasMeta);
         writeTarifasCache(tarifas, __LF_tarifasMeta);
 
