@@ -1631,6 +1631,7 @@
 .internal-links{
   margin-top: 40px;
   padding: 24px;
+  max-width: 700px;
   background: var(--card);
   border: 2px solid var(--border);
   border-radius: 20px;
