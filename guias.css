@@ -1738,3 +1738,52 @@ a.card:focus-visible{
   box-shadow: 0 0 0 3px rgba(139,92,246,.35);
 }
 
+/* === GRID ESPECÍFICO PARA PÁGINA DE GUÍAS === */
+/* Corrige el grid para mostrar las tarjetas correctamente */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin-bottom: 40px;
+}
+
+@media (max-width: 768px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+/* Estructura interna de las tarjetas de guías */
+a.card {
+  position: relative;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 140px;
+}
+
+a.card .number {
+  font-size: 13px;
+  font-weight: 900;
+  color: var(--muted2);
+  letter-spacing: 0.5px;
+}
+
+a.card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--text);
+  margin: 0;
+}
+
+a.card p {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+  margin: 0;
+  flex-grow: 1;
+}
+
