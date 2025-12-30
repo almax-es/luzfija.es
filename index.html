@@ -114,7 +114,7 @@
       {
         "@type":"Question",
         "name":"¿De dónde salen los precios?",
-        "acceptedAnswer":{"@type":"Answer","text":"Las tarifas se cargan desde un archivo tarifas.json publicado en esta misma web."}
+        "acceptedAnswer":{"@type":"Answer","text":"Las tarifas se recopilan de condiciones públicas de las comercializadoras y se actualizan regularmente. Cuando está disponible, el PVPC se basa en datos públicos oficiales (CNMC)."}
       },
       {
         "@type":"Question",
@@ -177,7 +177,8 @@
 </head>
 
 <body>
-  <div class="container">
+  <a class="skip-link" href="#main">Saltar al contenido</a>
+<div class="container">
     <div class="topbar">
       <div class="brand">
         <span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span>
@@ -271,6 +272,7 @@
       </div>
     </div>
 
+    <main id="main" tabindex="-1">
     <div class="grid">
       <section class="card">
         <div class="head">
@@ -529,7 +531,7 @@
           <p>No. Es una herramienta gratuita, sin registro. Puedes además compartir tu configuración por URL.</p>
 
           <h3>¿De dónde salen los precios?</h3>
-          <p>Las tarifas se cargan desde un archivo <code>tarifas.json</code> publicado en esta misma web.</p>
+          <p>Las tarifas se recopilan de condiciones públicas de las comercializadoras y se actualizan regularmente. Cuando está disponible, el PVPC se basa en datos públicos oficiales (CNMC).</p>
 
           <h3>¿Puedo comparar mi tarifa actual?</h3>
           <p>Sí. Marca la casilla <strong>"⭐ Comparar con mi tarifa actual"</strong> e introduce los precios de tu contrato (energía punta/llano/valle y potencia P1/P2). Tu tarifa aparecerá en el ranking como <strong>"Mi tarifa ⭐"</strong> para que veas cómo se compara con el resto del mercado.</p>
@@ -769,6 +771,8 @@
       })();
     </script>
 
+    </main>
+
     <footer class="footer-container">
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:30px; margin-bottom:30px;">
         <div>
@@ -844,19 +848,15 @@
             <p class="u-mt-10 u-text-10 u-opacity-65 u-leading-15">
               Analítica sin cookies (GoatCounter) · <a href="/privacidad.html" class="u-link-accent">Política de privacidad</a> · <a href="/aviso-legal.html" class="u-link-accent">Aviso legal</a>
             </p>
+            <div class="footer-credits">Desarrollado por <a href="https://github.com/almax-es" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:none; font-weight:600;">aLMaX</a> · Gracias a las comunidades de
+    <a href="https://nergiza.com/foro/threads/tarifas-electricas-mercado-libre-recomendadas-pvpc-indexadas.10985/" target="_blank" rel="noopener noreferrer">Nergiza</a>
+    y
+    <a href="https://forocoches.com/foro/showthread.php?t=10544862" target="_blank" rel="noopener noreferrer">ForoCoches</a>
+      por sus ideas, facturas y sugerencias, y en especial a Omadón, ragaro79, JavierRR e Ivansnoke por sus aportes y ayuda.</div>
           </div>
         </div>
       </div>
     </footer>
-
-
-  <footer class="footer-credits">
-    Desarrollado por <a href="https://github.com/almax-es" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:none; font-weight:600;">aLMaX</a> · Gracias a las comunidades de
-    <a href="https://nergiza.com/foro/threads/tarifas-electricas-mercado-libre-recomendadas-pvpc-indexadas.10985/" target="_blank" rel="noopener noreferrer">Nergiza</a>
-    y
-    <a href="https://forocoches.com/foro/showthread.php?t=10544862" target="_blank" rel="noopener noreferrer">ForoCoches</a>
-      por sus ideas, facturas y sugerencias, y en especial a Omadón, ragaro79, JavierRR e Ivansnoke por sus aportes y ayuda.
-  </footer>
   </div>
 
     <button type="button" class="btn" id="lf-install-pwa" data-install-pwa style="display:none; margin:16px auto 24px;">

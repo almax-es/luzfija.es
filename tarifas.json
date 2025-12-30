@@ -1,5 +1,7 @@
 {
   "success": true,
+  "version": "2025-12-29",
+  "publishedAt": "2025-12-29T17:42:54.146Z",
   "tarifas": [
     {
       "nombre": "Endesa Conecta",
@@ -445,7 +447,6 @@
     }
   ],
   "timestamp": "2025-12-29T17:42:54.146Z",
-  "publishedAt": "2025-12-29T17:42:54.146Z",
   "publishedAtEpoch": 1767030174146,
   "updatedAt": "2025-12-29T17:42:54.146Z",
   "updatedAtEpoch": 1767030174146

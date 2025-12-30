@@ -2756,3 +2756,23 @@ html.light-mode, body.light-mode{
 
 /* State */
 .is-hidden{ display: none; }
+
+
+/* Accesibilidad: enlace para saltar al contenido */
+.skip-link{
+  position:absolute;
+  left:-9999px;
+  top:8px;
+  background:var(--accent);
+  color:#fff;
+  padding:10px 14px;
+  border-radius:10px;
+  z-index:9999;
+  text-decoration:none;
+  font-weight:700;
+}
+.skip-link:focus{
+  left:8px;
+  outline:2px solid #fff;
+  outline-offset:2px;
+}

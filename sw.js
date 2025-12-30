@@ -7,7 +7,7 @@
 
 // IMPORTANTE: si cambias este fichero, incrementa CACHE_NAME para forzar la actualización.
 // Bump de versión para forzar actualización de assets tras cambios (release incremental)
-const CACHE_NAME = "luzfija-static-v4.13";
+const CACHE_NAME = "luzfija-static-v4.14";
 
 const ASSETS = [
   "/",
@@ -27,7 +27,19 @@ const ASSETS = [
   "/favicon.svg",
   "/favicon-48x48.png",
   "/favicon-96x96.png",
-  "/apple-touch-icon.png"
+  "/apple-touch-icon.png",
+  "/tracking.js",
+  "/desglose-factura.css",
+  "/desglose-factura.js",
+  "/desglose-integration.js",
+  "/guias.css",
+  "/calcular-factura-luz.html",
+  "/comparar-pvpc-tarifa-fija.html",
+  "/mejor-tarifa-placas-solares.html",
+  "/mejor-tarifa-coche-electrico.html",
+  "/mejor-tarifa-discriminacion-horaria.html",
+  "/privacidad.html",
+  "/aviso-legal.html",
 ];
 
 self.addEventListener("install", (event) => {
