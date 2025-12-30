@@ -2579,7 +2579,7 @@ html.light-mode, body.light-mode{
 .u-ml-24px-mb-24px{ margin-left:24px !important; margin-bottom:24px !important; }
 .u-title-hero{ font-size:28px !important; font-weight:700 !important; margin:48px 0 24px !important; color:var(--text) !important; }
 .u-fw-600{ font-weight:600 !important; }
-.u-s-9762a3b{ display:block !important; padding:20px 24px !important; background:var(--card) !important; border:1px solid var(--border2) !important; border-radius:12px !important; text-decoration:none !important; color:var(--text) !important; transition:all 0.2s !important; }
+.u-s-9762a3b{ display:block !important; padding:20px 24px !important; background:var(--card) !important; border:1px solid var(--border2) !important; border-radius:12px !important; text-decoration:none !important; color:var(--text) !important; transition:all 0.2s !important; text-align: center !important; }
 .u-s-ebbbf67{ color:var(--accent) !important; margin-right:8px !important; font-size:20px !important; }
 .u-s-ae3c165{ color:var(--accent) !important; text-decoration:none !important; }
 .u-title-section{ font-size:22px !important; font-weight:600 !important; margin:32px 0 16px !important; color:var(--text) !important; }
@@ -2597,7 +2597,7 @@ html.light-mode, body.light-mode{
 .u-c-var-accent{ color:var(--accent) !important; }
 .u-s-0390f5c{ font-size:22px !important; font-weight:700 !important; margin-bottom:24px !important; text-align: center !important; }
 .u-s-1633e03{ display:grid !important; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)) !important; gap:16px !important; }
-.u-s-2801fc8{ background:var(--card) !important; border:1px solid var(--border) !important; border-radius:12px !important; padding:20px !important; text-decoration:none !important; color:var(--text) !important; }
+.u-s-2801fc8{ background:var(--card) !important; border:1px solid var(--border) !important; border-radius:12px !important; padding:20px !important; text-decoration:none !important; color:var(--text) !important; text-align: center !important; }
 .u-s-45a4cfc{ margin:64px auto !important; padding: 32px !important; width: fit-content !important; max-width: 90% !important; background: var(--card) !important; border: 2px solid var(--border) !important; border-radius: 20px !important; }
 .u-s-4dc45da{ font-size:clamp(32px, 5vw, 48px) !important; font-weight:800 !important; margin-bottom:16px !important; }
 .u-s-9f21d0e{ font-size:18px !important; color:var(--muted) !important; margin-bottom:24px !important; }
