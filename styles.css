@@ -2776,3 +2776,11 @@ html.light-mode, body.light-mode{
   outline:2px solid #fff;
   outline-offset:2px;
 }
+
+/* === Utility Classes (reemplazan estilos inline repetidos) === */
+.hidden { display: none; }
+.visible { display: block; }
+.text-muted-sm { color: var(--muted); font-size: 12px; line-height: 1.6; }
+.text-xs { font-size: 11px; color: var(--muted); }
+.grid-16 { display: grid; gap: 16px; }
+.text-muted { color: var(--muted); }
