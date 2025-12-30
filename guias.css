@@ -1720,3 +1720,21 @@
   outline:2px solid #fff;
   outline-offset:2px;
 }
+
+
+/* --- FIX: guide cards are <a class="card">; avoid default blue/underline --- */
+a.card,
+a.card:visited{
+  color: var(--text);
+  text-decoration: none;
+  display: block;
+}
+a.card:hover,
+a.card:active{
+  color: var(--text);
+}
+a.card:focus-visible{
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(139,92,246,.35);
+}
+
