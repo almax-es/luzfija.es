@@ -308,8 +308,8 @@ window.timerManager = timerManager;
       el.toastDot.classList.remove('ok','err');
       el.toastDot.classList.add(mode==='err'?'err':'ok');
       el.toast.classList.add('show');
-      clearTimeout(el.toast._t);
-      el.toast._t=setTimeout(()=>el.toast.classList.remove('show'),2800);
+      if (el.toast._t) timerManager.clear(el.toast._t);
+      el.toast._t=timerManager.setTimeout(()=>el.toast.classList.remove('show'),2800);
     }
 
     function showError(msg=''){
@@ -496,7 +496,7 @@ window.timerManager = timerManager;
 
         if(!silent){
           setStatus('Datos actualizados', 'ok');
-          setTimeout(() => setStatus('Listo para calcular', 'idle'), 1500);
+          timerManager.setTimeout(() => setStatus('Listo para calcular', 'idle'), 1500);
         }
         return true;
 
@@ -1066,14 +1066,14 @@ window.timerManager = timerManager;
           
           btnCerrarSolarX?.addEventListener('click', () => {
             modalSolarInfo.classList.remove('show');
-            setTimeout(() => { modalSolarInfo.style.display = 'none'; }, 200);
+            timerManager.setTimeout(() => { modalSolarInfo.style.display = 'none'; }, 200);
             modalSolarInfo.setAttribute('aria-hidden', 'true');
             __solarUnlock();
           });
 
           btnCerrarSolarInfo.addEventListener('click', () => {
             modalSolarInfo.classList.remove('show');
-            setTimeout(() => {
+            timerManager.setTimeout(() => {
               modalSolarInfo.style.display = 'none';
             }, 200);
             modalSolarInfo.setAttribute('aria-hidden', 'true');
@@ -1203,11 +1203,11 @@ window.timerManager = timerManager;
       const delays = [0, 100, 200];
       
       colors.forEach((color, i) => {
-        setTimeout(() => {
+        timerManager.setTimeout(() => {
           const r = document.createElement('span');
           r.style.cssText = `position:absolute;width:${s}px;height:${s}px;border-radius:50%;background:${color};left:${x}px;top:${y}px;pointer-events:none;animation:rippleExpand 0.8s ease-out;`;
           b.appendChild(r);
-          setTimeout(() => r.remove(), 800);
+          timerManager.setTimeout(() => r.remove(), 800);
         }, delays[i]);
       });
     }
