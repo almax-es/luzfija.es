@@ -1630,7 +1630,7 @@
 /* Bloque de guías relacionadas */
 .internal-links{
   margin-top: 80px;
-  padding: 40px;
+  padding: 24px;
   background: var(--card);
   border: 2px solid var(--border);
   border-radius: 20px;
@@ -1696,7 +1696,7 @@
 .site-footer-link:hover{ text-decoration: underline; }
 
 @media (max-width: 520px){
-  .internal-links{ padding: 26px; }
+  .internal-links{ padding: 18px; }
 }
 
 

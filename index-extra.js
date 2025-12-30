@@ -392,7 +392,7 @@
                 <div style="height: 100%; width: ${porcentaje}%; background: ${color}; border-radius: 999px;"></div>
               </div>
               <div class="u-fw-700 u-text-right u-text-12">
-                ${precio.toFixed(3)}
+                ${precio.toFixed(3).replace('.', ',')}
               </div>
             </div>
             <div style="font-size: 11px; color: var(--muted); margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,.03); line-height: 1.3;">
