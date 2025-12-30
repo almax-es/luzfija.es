@@ -18,44 +18,6 @@ const lfDbg = (...args) => {
 // Exponerlo por si otros módulos lo quieren usar
 window.lfDbg = lfDbg;
 
-// ===== GESTIÓN DE TIMERS (prevenir memory leaks) =====
-const timerManager = {
-  timers: new Set(),
-  
-  setTimeout(callback, delay) {
-    const id = setTimeout(() => {
-      callback();
-      this.timers.delete(id);
-    }, delay);
-    this.timers.add(id);
-    return id;
-  },
-  
-  setInterval(callback, delay) {
-    const id = setInterval(callback, delay);
-    this.timers.add(id);
-    return id;
-  },
-  
-  clear(id) {
-    clearTimeout(id);
-    clearInterval(id);
-    this.timers.delete(id);
-  },
-  
-  clearAll() {
-    this.timers.forEach(id => {
-      clearTimeout(id);
-      clearInterval(id);
-    });
-    this.timers.clear();
-  }
-};
-
-// Limpiar al salir de la página
-window.addEventListener('beforeunload', () => timerManager.clearAll());
-window.timerManager = timerManager;
-
     const $ = id => document.getElementById(id);
 
     // URL DEL JSON ESTÁTICO DE TARIFAS EN EL MISMO HOST
@@ -267,13 +229,8 @@ window.timerManager = timerManager;
       }
       const l=mode==='loading';
       applyButtonState(l);
-      if (l) {
-        el.btnText.classList.add('hidden');
-        el.btnSpinner.classList.remove('hidden');
-      } else {
-        el.btnText.classList.remove('hidden');
-        el.btnSpinner.classList.add('hidden');
-      }
+      el.btnText.style.display=l?'none':'flex';
+      el.btnSpinner.style.display=l?'flex':'none';
     }
 
     function markPending(message='Cambios pendientes. Pulsa Calcular para actualizar.'){
@@ -313,8 +270,8 @@ window.timerManager = timerManager;
       el.toastDot.classList.remove('ok','err');
       el.toastDot.classList.add(mode==='err'?'err':'ok');
       el.toast.classList.add('show');
-      if (el.toast._t) timerManager.clear(el.toast._t);
-      el.toast._t=timerManager.setTimeout(()=>el.toast.classList.remove('show'),2800);
+      clearTimeout(el.toast._t);
+      el.toast._t=setTimeout(()=>el.toast.classList.remove('show'),2800);
     }
 
     function showError(msg=''){
@@ -501,7 +458,7 @@ window.timerManager = timerManager;
 
         if(!silent){
           setStatus('Datos actualizados', 'ok');
-          timerManager.setTimeout(() => setStatus('Listo para calcular', 'idle'), 1500);
+          setTimeout(() => setStatus('Listo para calcular', 'idle'), 1500);
         }
         return true;
 
@@ -883,11 +840,7 @@ window.timerManager = timerManager;
       const zona = el.inputs.zonaFiscal?.value === 'Canarias' ? 'Canarias' : 'Península';
       const isCanarias = zona === 'Canarias';
       if(el.viviendaGroup){
-        if (isCanarias) {
-          el.viviendaGroup.classList.remove('hidden');
-        } else {
-          el.viviendaGroup.classList.add('hidden');
-        }
+        el.viviendaGroup.style.display = isCanarias ? 'flex' : 'none';
       }
     }
 
@@ -926,9 +879,7 @@ window.timerManager = timerManager;
         return;
       }
       let savedData = {};
-      try { const r = localStorage.getItem(LS_KEY); if (r) savedData = JSON.parse(r); } catch(e){
-        lfDbg('[loadInputs] Error parsing saved data:', e);
-      }
+      try { const r = localStorage.getItem(LS_KEY); if (r) savedData = JSON.parse(r); } catch(e){}
       savedData = migrateExcedentes(savedData);
       const finalData = migrateExcedentes({ ...DEFAULTS, ...savedData });
       for (const k in DEFAULTS){
@@ -1039,11 +990,7 @@ window.timerManager = timerManager;
       const box = document.getElementById('solarFields');
       if(!box) return;
       const on = Boolean(el.inputs.solarOn?.checked);
-      if (on) {
-        box.classList.remove('hidden');
-      } else {
-        box.classList.add('hidden');
-      }
+      box.style.display = on ? '' : 'none';
       
       // Inicializar modal solar info cuando se muestra por primera vez
       if(on && !window.__solarInfoInitialized){
@@ -1081,14 +1028,14 @@ window.timerManager = timerManager;
           
           btnCerrarSolarX?.addEventListener('click', () => {
             modalSolarInfo.classList.remove('show');
-            timerManager.setTimeout(() => { modalSolarInfo.style.display = 'none'; }, 200);
+            setTimeout(() => { modalSolarInfo.style.display = 'none'; }, 200);
             modalSolarInfo.setAttribute('aria-hidden', 'true');
             __solarUnlock();
           });
 
           btnCerrarSolarInfo.addEventListener('click', () => {
             modalSolarInfo.classList.remove('show');
-            timerManager.setTimeout(() => {
+            setTimeout(() => {
               modalSolarInfo.style.display = 'none';
             }, 200);
             modalSolarInfo.setAttribute('aria-hidden', 'true');
@@ -1218,11 +1165,11 @@ window.timerManager = timerManager;
       const delays = [0, 100, 200];
       
       colors.forEach((color, i) => {
-        timerManager.setTimeout(() => {
+        setTimeout(() => {
           const r = document.createElement('span');
           r.style.cssText = `position:absolute;width:${s}px;height:${s}px;border-radius:50%;background:${color};left:${x}px;top:${y}px;pointer-events:none;animation:rippleExpand 0.8s ease-out;`;
           b.appendChild(r);
-          timerManager.setTimeout(() => r.remove(), 800);
+          setTimeout(() => r.remove(), 800);
         }, delays[i]);
       });
     }
@@ -1491,15 +1438,11 @@ window.timerManager = timerManager;
 
       const warningEl = document.getElementById('pvpc-warning-canarias-potencia');
       if (warningEl) {
-        if (pvpcCasoInvalidoCanariasViviendaPotAlta) {
-          warningEl.classList.remove('hidden');
-        } else {
-          warningEl.classList.add('hidden');
-        }
+        warningEl.style.display = pvpcCasoInvalidoCanariasViviendaPotAlta ? 'block' : 'none';
       }
 
       if(!pvpcLastMeta){
-        div.classList.add('hidden');
+        div.style.display='none';
         div.textContent='';
         return;
       }
@@ -1517,7 +1460,7 @@ window.timerManager = timerManager;
       const dateOptions = { year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' };
       const fechaTxt = fecha ? fecha.toLocaleString('es-ES', dateOptions) : '-';
 
-      div.classList.remove('hidden');
+      div.style.display='block';
       div.innerHTML = `
         <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px;">
           <div style="display:flex; align-items:center; gap:8px; font-weight:900; color:var(--text); font-size:13px;">
@@ -1610,116 +1553,6 @@ window.timerManager = timerManager;
 
     
     // Lógica de factura (PDF + OCR + modal) movida a factura.js para mantener app.js más ligero
-
-    // ============================================
-    // TARIFA PERSONALIZADA - FUNCIONES
-    // ============================================
-    
-    function updateMiTarifaForm() {
-      const tieneSolar = $('solarOn')?.checked || false;
-      const container = $('miTarifaPrecios');
-      if (!container) return;
-      
-      // Aviso informativo + campos con ejemplos numéricos
-      container.innerHTML = `
-        <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 12px;">
-          <div style="display: flex; align-items: start; gap: 8px;">
-            <span style="font-size: 16px;">💡</span>
-            <div style="color: var(--text); line-height: 1.4;">
-              <strong>Busca estos precios en tu factura:</strong><br>
-              <span style="color: var(--muted2); font-size: 11px;">
-                • <strong>Término de energía:</strong> precios por kWh consumido (Punta/Llano/Valle)<br>
-                • <strong>Término de potencia:</strong> precios por kW contratado/día (P1/P2)
-              </span>
-            </div>
-          </div>
-        </div>
-        
-        <div class="form" style="gap:8px;">
-          <div class="group">
-            <label for="mtPunta">Punta (€/kWh)</label>
-            <input id="mtPunta" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,1543">
-          </div>
-          <div class="group">
-            <label for="mtLlano">Llano (€/kWh)</label>
-            <input id="mtLlano" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,1234">
-          </div>
-          <div class="group">
-            <label for="mtValle">Valle (€/kWh)</label>
-            <input id="mtValle" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0899">
-          </div>
-        </div>
-        <div class="form">
-          <div class="group">
-            <label for="mtP1">Potencia P1 (€/kW/día)</label>
-            <input id="mtP1" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0891">
-          </div>
-          <div class="group">
-            <label for="mtP2">Potencia P2 (€/kW/día)</label>
-            <input id="mtP2" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0445">
-          </div>
-        </div>
-      `;
-      
-      // Si tiene placas solares marcadas, añadir campo de compensación
-      if (tieneSolar) {
-        container.innerHTML += `
-          <div class="group" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
-            <label for="mtPrecioExc">☀️ Precio compensación excedentes (€/kWh)</label>
-            <input id="mtPrecioExc" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0743">
-            <small style="font-size:11px; color:var(--muted2); margin-top:4px; display:block;">
-              Lo que te pagan por los kWh vertidos a la red
-            </small>
-          </div>
-        `;
-      }
-    }
-
-    function agregarMiTarifa() {
-      if (!$('compararMiTarifa')?.checked) return null;
-      
-      const tieneSolar = $('solarOn')?.checked || false;
-      
-      // Leer siempre los 6 campos
-      const punta = parseNum($('mtPunta')?.value || '0');
-      const llano = parseNum($('mtLlano')?.value || '0');
-      const valle = parseNum($('mtValle')?.value || '0');
-      const p1 = parseNum($('mtP1')?.value || '0');
-      const p2 = parseNum($('mtP2')?.value || '0');
-      
-      if (punta <= 0 || llano <= 0 || valle <= 0 || p1 <= 0 || p2 <= 0) {
-        toast('Completa todos los campos de tu tarifa');
-        return null;
-      }
-      
-      // Detectar automáticamente si es 1P o 3P
-      const es1P = (punta === llano && llano === valle);
-      
-      // Precio de compensación solar (si aplica)
-      const precioExc = tieneSolar ? parseNum($('mtPrecioExc')?.value || '0') : 0;
-      
-      const tarifa = {
-        nombre: 'Mi tarifa ⭐',
-        tipo: es1P ? '1P' : '3P',
-        cPunta: punta,
-        cLlano: llano,
-        cValle: valle,
-        p1: p1,
-        p2: p2,
-        web: '#',
-        esPersonalizada: true,
-        fv: {
-          exc: precioExc,
-          tipo: precioExc > 0 ? 'SIMPLE + BV' : 'NO COMPENSA',
-          tope: 'ENERGIA',
-          bv: precioExc > 0,
-          reglaBV: precioExc > 0 ? 'BV MES ANTERIOR' : 'NO APLICA'
-        },
-        requiereFV: false
-      };
-      
-      return tarifa;
-    }
 
     function runCalculation(forceRefresh = false){
       if (window.__LF_CALC_INFLIGHT) return;
@@ -2041,24 +1874,15 @@ el.menuPanel.addEventListener('click',(e)=>e.stopPropagation());
       $('scrollToResults').addEventListener('click',()=>$('heroKpis').scrollIntoView({behavior:'smooth',block:'start'}));
 
       // ============================================
-      // TARIFA PERSONALIZADA - FUNCIONES
-      // ============================================
-      
-
-      // ============================================
-      // TARIFA PERSONALIZADA - EVENT LISTENERS
+      // TARIFA PERSONALIZADA
       // ============================================
       
       // Toggle del formulario de tarifa personalizada
       $('compararMiTarifa')?.addEventListener('change', (e) => {
         const form = $('miTarifaForm');
         if (!form) return;
-        if (e.target.checked) {
-          form.classList.remove('hidden');
-          updateMiTarifaForm();
-        } else {
-          form.classList.add('hidden');
-        }
+        form.style.display = e.target.checked ? 'block' : 'none';
+        if (e.target.checked) updateMiTarifaForm();
       });
 
       $('solarOn')?.addEventListener('change', () => {
@@ -2072,12 +1896,8 @@ el.menuPanel.addEventListener('click',(e)=>e.stopPropagation());
           __LF_tarifasMeta = cachedMeta.meta;
           renderTarifasUpdated(__LF_tarifasMeta);
         }
-      }catch(e){
-        lfDbg('[init] Error reading cached tarifas:', e);
-      }
-      fetchTarifas(false, { silent: true }).catch((e)=>{
-        lfDbg('[init] Error preloading tarifas:', e);
-      });
+      }catch(e){}
+      fetchTarifas(false, { silent: true }).catch(()=>{});
 
     });
   
@@ -2160,6 +1980,111 @@ window.addEventListener('beforeinstallprompt', function (event) {
 // TARIFA PERSONALIZADA - FUNCIONES
 // ============================================
 
+function updateMiTarifaForm() {
+  const tieneSolar = $('solarOn')?.checked || false;
+  const container = $('miTarifaPrecios');
+  if (!container) return;
+  
+  // Aviso informativo + campos con ejemplos numéricos
+  container.innerHTML = `
+    <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 12px;">
+      <div style="display: flex; align-items: start; gap: 8px;">
+        <span style="font-size: 16px;">💡</span>
+        <div style="color: var(--text); line-height: 1.4;">
+          <strong>Busca estos precios en tu factura:</strong><br>
+          <span style="color: var(--muted2); font-size: 11px;">
+            • <strong>Término de energía:</strong> precios por kWh consumido (Punta/Llano/Valle)<br>
+            • <strong>Término de potencia:</strong> precios por kW contratado/día (P1/P2)
+          </span>
+        </div>
+      </div>
+    </div>
+    
+    <div class="form" style="gap:8px;">
+      <div class="group">
+        <label for="mtPunta">Punta (€/kWh)</label>
+        <input id="mtPunta" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,1543">
+      </div>
+      <div class="group">
+        <label for="mtLlano">Llano (€/kWh)</label>
+        <input id="mtLlano" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,1234">
+      </div>
+      <div class="group">
+        <label for="mtValle">Valle (€/kWh)</label>
+        <input id="mtValle" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0899">
+      </div>
+    </div>
+    <div class="form">
+      <div class="group">
+        <label for="mtP1">Potencia P1 (€/kW/día)</label>
+        <input id="mtP1" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0891">
+      </div>
+      <div class="group">
+        <label for="mtP2">Potencia P2 (€/kW/día)</label>
+        <input id="mtP2" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0445">
+      </div>
+    </div>
+  `;
+  
+  // Si tiene placas solares marcadas, añadir campo de compensación
+  if (tieneSolar) {
+    container.innerHTML += `
+      <div class="group" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+        <label for="mtPrecioExc">☀️ Precio compensación excedentes (€/kWh)</label>
+        <input id="mtPrecioExc" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0743">
+        <small style="font-size:11px; color:var(--muted2); margin-top:4px; display:block;">
+          Lo que te pagan por los kWh vertidos a la red
+        </small>
+      </div>
+    `;
+  }
+}
+
+function agregarMiTarifa() {
+  if (!$('compararMiTarifa')?.checked) return null;
+  
+  const tieneSolar = $('solarOn')?.checked || false;
+  
+  // Leer siempre los 6 campos
+  const punta = parseNum($('mtPunta')?.value || '0');
+  const llano = parseNum($('mtLlano')?.value || '0');
+  const valle = parseNum($('mtValle')?.value || '0');
+  const p1 = parseNum($('mtP1')?.value || '0');
+  const p2 = parseNum($('mtP2')?.value || '0');
+  
+  if (punta <= 0 || llano <= 0 || valle <= 0 || p1 <= 0 || p2 <= 0) {
+    toast('Completa todos los campos de tu tarifa');
+    return null;
+  }
+  
+  // Detectar automáticamente si es 1P o 3P
+  const es1P = (punta === llano && llano === valle);
+  
+  // Precio de compensación solar (si aplica)
+  const precioExc = tieneSolar ? parseNum($('mtPrecioExc')?.value || '0') : 0;
+  
+  const tarifa = {
+    nombre: 'Mi tarifa ⭐',
+    tipo: es1P ? '1P' : '3P',
+    cPunta: punta,
+    cLlano: llano,
+    cValle: valle,
+    p1: p1,
+    p2: p2,
+    web: '#',
+    esPersonalizada: true,
+    fv: {
+      exc: precioExc,
+      tipo: precioExc > 0 ? 'SIMPLE + BV' : 'NO COMPENSA',
+      tope: 'ENERGIA',
+      bv: precioExc > 0,
+      reglaBV: precioExc > 0 ? 'BV MES ANTERIOR' : 'NO APLICA'
+    },
+    requiereFV: false
+  };
+  
+  return tarifa;
+}
 
 // ============================================
 // IMPORTAR CSV DE CONSUMOS
