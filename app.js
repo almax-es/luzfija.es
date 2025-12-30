@@ -1611,6 +1611,116 @@ window.timerManager = timerManager;
     
     // Lógica de factura (PDF + OCR + modal) movida a factura.js para mantener app.js más ligero
 
+    // ============================================
+    // TARIFA PERSONALIZADA - FUNCIONES
+    // ============================================
+    
+    function updateMiTarifaForm() {
+      const tieneSolar = $('solarOn')?.checked || false;
+      const container = $('miTarifaPrecios');
+      if (!container) return;
+      
+      // Aviso informativo + campos con ejemplos numéricos
+      container.innerHTML = `
+        <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 12px;">
+          <div style="display: flex; align-items: start; gap: 8px;">
+            <span style="font-size: 16px;">💡</span>
+            <div style="color: var(--text); line-height: 1.4;">
+              <strong>Busca estos precios en tu factura:</strong><br>
+              <span style="color: var(--muted2); font-size: 11px;">
+                • <strong>Término de energía:</strong> precios por kWh consumido (Punta/Llano/Valle)<br>
+                • <strong>Término de potencia:</strong> precios por kW contratado/día (P1/P2)
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form" style="gap:8px;">
+          <div class="group">
+            <label for="mtPunta">Punta (€/kWh)</label>
+            <input id="mtPunta" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,1543">
+          </div>
+          <div class="group">
+            <label for="mtLlano">Llano (€/kWh)</label>
+            <input id="mtLlano" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,1234">
+          </div>
+          <div class="group">
+            <label for="mtValle">Valle (€/kWh)</label>
+            <input id="mtValle" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0899">
+          </div>
+        </div>
+        <div class="form">
+          <div class="group">
+            <label for="mtP1">Potencia P1 (€/kW/día)</label>
+            <input id="mtP1" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0891">
+          </div>
+          <div class="group">
+            <label for="mtP2">Potencia P2 (€/kW/día)</label>
+            <input id="mtP2" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0445">
+          </div>
+        </div>
+      `;
+      
+      // Si tiene placas solares marcadas, añadir campo de compensación
+      if (tieneSolar) {
+        container.innerHTML += `
+          <div class="group" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
+            <label for="mtPrecioExc">☀️ Precio compensación excedentes (€/kWh)</label>
+            <input id="mtPrecioExc" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0743">
+            <small style="font-size:11px; color:var(--muted2); margin-top:4px; display:block;">
+              Lo que te pagan por los kWh vertidos a la red
+            </small>
+          </div>
+        `;
+      }
+    }
+
+    function agregarMiTarifa() {
+      if (!$('compararMiTarifa')?.checked) return null;
+      
+      const tieneSolar = $('solarOn')?.checked || false;
+      
+      // Leer siempre los 6 campos
+      const punta = parseNum($('mtPunta')?.value || '0');
+      const llano = parseNum($('mtLlano')?.value || '0');
+      const valle = parseNum($('mtValle')?.value || '0');
+      const p1 = parseNum($('mtP1')?.value || '0');
+      const p2 = parseNum($('mtP2')?.value || '0');
+      
+      if (punta <= 0 || llano <= 0 || valle <= 0 || p1 <= 0 || p2 <= 0) {
+        toast('Completa todos los campos de tu tarifa');
+        return null;
+      }
+      
+      // Detectar automáticamente si es 1P o 3P
+      const es1P = (punta === llano && llano === valle);
+      
+      // Precio de compensación solar (si aplica)
+      const precioExc = tieneSolar ? parseNum($('mtPrecioExc')?.value || '0') : 0;
+      
+      const tarifa = {
+        nombre: 'Mi tarifa ⭐',
+        tipo: es1P ? '1P' : '3P',
+        cPunta: punta,
+        cLlano: llano,
+        cValle: valle,
+        p1: p1,
+        p2: p2,
+        web: '#',
+        esPersonalizada: true,
+        fv: {
+          exc: precioExc,
+          tipo: precioExc > 0 ? 'SIMPLE + BV' : 'NO COMPENSA',
+          tope: 'ENERGIA',
+          bv: precioExc > 0,
+          reglaBV: precioExc > 0 ? 'BV MES ANTERIOR' : 'NO APLICA'
+        },
+        requiereFV: false
+      };
+      
+      return tarifa;
+    }
+
     function runCalculation(forceRefresh = false){
       if (window.__LF_CALC_INFLIGHT) return;
       calculate(true, forceRefresh);
@@ -1934,111 +2044,6 @@ el.menuPanel.addEventListener('click',(e)=>e.stopPropagation());
       // TARIFA PERSONALIZADA - FUNCIONES
       // ============================================
       
-      function updateMiTarifaForm() {
-        const tieneSolar = $('solarOn')?.checked || false;
-        const container = $('miTarifaPrecios');
-        if (!container) return;
-        
-        // Aviso informativo + campos con ejemplos numéricos
-        container.innerHTML = `
-          <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 12px;">
-            <div style="display: flex; align-items: start; gap: 8px;">
-              <span style="font-size: 16px;">💡</span>
-              <div style="color: var(--text); line-height: 1.4;">
-                <strong>Busca estos precios en tu factura:</strong><br>
-                <span style="color: var(--muted2); font-size: 11px;">
-                  • <strong>Término de energía:</strong> precios por kWh consumido (Punta/Llano/Valle)<br>
-                  • <strong>Término de potencia:</strong> precios por kW contratado/día (P1/P2)
-                </span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="form" style="gap:8px;">
-            <div class="group">
-              <label for="mtPunta">Punta (€/kWh)</label>
-              <input id="mtPunta" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,1543">
-            </div>
-            <div class="group">
-              <label for="mtLlano">Llano (€/kWh)</label>
-              <input id="mtLlano" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,1234">
-            </div>
-            <div class="group">
-              <label for="mtValle">Valle (€/kWh)</label>
-              <input id="mtValle" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0899">
-            </div>
-          </div>
-          <div class="form">
-            <div class="group">
-              <label for="mtP1">Potencia P1 (€/kW/día)</label>
-              <input id="mtP1" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0891">
-            </div>
-            <div class="group">
-              <label for="mtP2">Potencia P2 (€/kW/día)</label>
-              <input id="mtP2" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0445">
-            </div>
-          </div>
-        `;
-        
-        // Si tiene placas solares marcadas, añadir campo de compensación
-        if (tieneSolar) {
-          container.innerHTML += `
-            <div class="group" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
-              <label for="mtPrecioExc">☀️ Precio compensación excedentes (€/kWh)</label>
-              <input id="mtPrecioExc" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0743">
-              <small style="font-size:11px; color:var(--muted2); margin-top:4px; display:block;">
-                Lo que te pagan por los kWh vertidos a la red
-              </small>
-            </div>
-          `;
-        }
-      }
-
-      function agregarMiTarifa() {
-        if (!$('compararMiTarifa')?.checked) return null;
-        
-        const tieneSolar = $('solarOn')?.checked || false;
-        
-        // Leer siempre los 6 campos
-        const punta = parseNum($('mtPunta')?.value || '0');
-        const llano = parseNum($('mtLlano')?.value || '0');
-        const valle = parseNum($('mtValle')?.value || '0');
-        const p1 = parseNum($('mtP1')?.value || '0');
-        const p2 = parseNum($('mtP2')?.value || '0');
-        
-        if (punta <= 0 || llano <= 0 || valle <= 0 || p1 <= 0 || p2 <= 0) {
-          toast('Completa todos los campos de tu tarifa');
-          return null;
-        }
-        
-        // Detectar automáticamente si es 1P o 3P
-        const es1P = (punta === llano && llano === valle);
-        
-        // Precio de compensación solar (si aplica)
-        const precioExc = tieneSolar ? parseNum($('mtPrecioExc')?.value || '0') : 0;
-        
-        const tarifa = {
-          nombre: 'Mi tarifa ⭐',
-          tipo: es1P ? '1P' : '3P',
-          cPunta: punta,
-          cLlano: llano,
-          cValle: valle,
-          p1: p1,
-          p2: p2,
-          web: '#',
-          esPersonalizada: true,
-          fv: {
-            exc: precioExc,
-            tipo: precioExc > 0 ? 'SIMPLE + BV' : 'NO COMPENSA',
-            tope: 'ENERGIA',
-            bv: precioExc > 0,
-            reglaBV: precioExc > 0 ? 'BV MES ANTERIOR' : 'NO APLICA'
-          },
-          requiereFV: false
-        };
-        
-        return tarifa;
-      }
 
       // ============================================
       // TARIFA PERSONALIZADA - EVENT LISTENERS
