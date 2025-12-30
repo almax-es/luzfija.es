@@ -1722,3 +1722,42 @@
   outline:2px solid #fff;
   outline-offset:2px;
 }
+
+/* Enlace "Más información" en guías */
+.more-info-link{
+  display: block;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  text-decoration: none;
+  color: var(--text);
+  text-align: center;
+  transition: all 0.2s;
+}
+.more-info-link:hover{
+  transform: translateY(-2px);
+  border-color: var(--accent);
+}
+
+/* Sección "Más información" */
+.more-info-section{
+  margin: 64px 0;
+}
+.more-info-title{
+  font-size: 22px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  text-align: center;
+}
+.more-info-grid{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.more-info-link p{
+  font-size: 14px;
+  color: var(--muted);
+  margin-top: 8px;
+}
