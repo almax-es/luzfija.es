@@ -361,9 +361,9 @@
         document.getElementById('modalPVPCNowHour').textContent = '';
       }
       
-      document.getElementById('modalPVPCMin').textContent = `${precioMin.toFixed(3)}`;
+document.getElementById('modalPVPCMin').textContent = `${precioMin.toFixed(3).replace('.', ',')}`;
       document.getElementById('modalPVPCMinHour').textContent = `${horaMin}:00h`;
-      document.getElementById('modalPVPCMax').textContent = `${precioMax.toFixed(3)}`;
+document.getElementById('modalPVPCMax').textContent = `${precioMax.toFixed(3).replace('.', ',')}`;
       document.getElementById('modalPVPCMaxHour').textContent = `${horaMax}:00h`;
 
       // Grid 2 columnas
