@@ -247,7 +247,10 @@
           <span id="statusText">Introduce tus datos y pulsa Calcular para ver el ranking</span>
         </div>
         <button class="btn" id="btnSubirFactura" type="button" title="Subir factura PDF" aria-label="Subir factura PDF">
-          📄 Subir factura
+          <span>📄</span><span class="btn-text">Subir factura</span>
+        </button>
+        <button class="btn" id="btnPVPCInfo" type="button" title="Ver precios PVPC de hoy por horas" aria-label="Ver precios PVPC de hoy por horas">
+          <span>⚡</span><span class="btn-text">PVPC</span>
         </button>
         <button class="btn" id="btnTheme" type="button" title="Cambiar tema" aria-label="Cambiar tema">☀️</button>
         <div class="menu" id="menuRoot">
@@ -262,6 +265,15 @@
               <span class="mi-left">✉️ Contacto</span>
               <span class="mi-right">email</span>
             </a>
+            <div class="menuDivider"></div>
+            <button class="menuItem" id="btnRefreshTarifas" type="button" role="menuitem" aria-label="Refrescar tarifas">
+              <span class="mi-left">🔄 Refrescar tarifas</span>
+              <span class="mi-right">forzar</span>
+            </button>
+            <button class="menuItem" id="btnClearCache" type="button" role="menuitem" aria-label="Limpiar caché">
+              <span class="mi-left">🗑️ Limpiar caché</span>
+              <span class="mi-right">web</span>
+            </button>
             <div class="menuDivider"></div>
             <button class="menuItem" id="btnReset" type="button" role="menuitem" aria-label="Restablecer valores por defecto">
               <span class="mi-left">↺ Restablecer</span>
@@ -395,9 +407,6 @@
           <div class="help">
             Introduce tus datos y pulsa ⚡ Calcular para generar o refrescar el ranking (tarifas y PVPC si está disponible). Puedes escribir decimales con coma o punto (ej.: 3,45 / 3.45).
           </div>
-          <button type="button" class="btn btn-info-pvpc" id="btnPVPCInfo" aria-label="Ver precios PVPC de hoy por horas">
-            ⚡ Ver precios PVPC hoy
-          </button>
         </div>
       </section>
 

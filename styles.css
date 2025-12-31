@@ -2776,3 +2776,25 @@ html.light-mode, body.light-mode{
   outline:2px solid #fff;
   outline-offset:2px;
 }
+
+/* ================================
+   Botones responsive - solo iconos en móvil
+   ================================ */
+@media (max-width: 640px) {
+  /* Ocultar texto de botones en móvil, mostrar solo iconos */
+  .btn .btn-text {
+    display: none;
+  }
+  
+  /* Reducir padding de botones para que quepan mejor */
+  .actions .btn {
+    padding: 10px;
+    min-width: 44px;
+    justify-content: center;
+  }
+  
+  /* Gap más pequeño entre botones */
+  .actions {
+    gap: 8px;
+  }
+}

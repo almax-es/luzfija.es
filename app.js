@@ -76,6 +76,7 @@ window.lfDbg = lfDbg;
       toast: $('toast'), toastText: $('toastText'), toastDot: $('toastDot'),
       menuRoot: $('menuRoot'), btnMenu: $('btnMenu'), menuPanel: $('menuPanel'), btnTheme: $('btnTheme'),
       btnExport: $('btnExport'), btnReset: $('btnReset'), btnShare: $('btnShare'),
+      btnRefreshTarifas: $('btnRefreshTarifas'), btnClearCache: $('btnClearCache'),
       globalTooltip: $('globalTooltip'),
       pvpcInfo: $('pvpcInfo'),
       viviendaGroup: $('viviendaCanariasGroup')
@@ -1855,6 +1856,89 @@ el.menuPanel.addEventListener('click',(e)=>e.stopPropagation());
         toast('Enlace copiado al portapapeles');
       });
 
+      // Refrescar tarifas (forzar recarga del tarifas.json)
+      el.btnRefreshTarifas?.addEventListener('click', async (e) => {
+        createRipple(el.btnRefreshTarifas, e);
+        toggleMenu(false);
+        
+        try {
+          toast('Refrescando tarifas...', 'info');
+          await fetchTarifas(true, { silent: false });
+          toast('✅ Tarifas actualizadas');
+          
+          // Si hay resultados, recalcular automáticamente
+          if (state.rows && state.rows.length > 0) {
+            setTimeout(() => {
+              el.btnCalc?.click();
+            }, 500);
+          }
+        } catch (error) {
+          toast('Error al refrescar tarifas', 'err');
+          lfDbg('[ERROR] Error refrescando tarifas:', error);
+        }
+      });
+
+      // Limpiar caché completo
+      el.btnClearCache?.addEventListener('click', async (e) => {
+        createRipple(el.btnClearCache, e);
+        toggleMenu(false);
+        
+        if (!confirm('¿Limpiar toda la caché? Esto forzará la recarga de todos los recursos y puede tardar unos segundos.')) {
+          return;
+        }
+        
+        try {
+          toast('Limpiando caché...', 'info');
+          
+          // Limpiar localStorage
+          try {
+            localStorage.clear();
+            lfDbg('[CACHE] localStorage limpiado');
+          } catch (e) {
+            lfDbg('[WARN] Error limpiando localStorage:', e);
+          }
+          
+          // Limpiar sessionStorage
+          try {
+            sessionStorage.clear();
+            lfDbg('[CACHE] sessionStorage limpiado');
+          } catch (e) {
+            lfDbg('[WARN] Error limpiando sessionStorage:', e);
+          }
+          
+          // Limpiar Service Worker y sus cachés
+          if ('serviceWorker' in navigator) {
+            try {
+              const registrations = await navigator.serviceWorker.getRegistrations();
+              for (const registration of registrations) {
+                await registration.unregister();
+                lfDbg('[CACHE] Service Worker desregistrado');
+              }
+              
+              // Limpiar cachés del Service Worker
+              if ('caches' in window) {
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+                lfDbg('[CACHE] Cachés del SW limpiadas:', cacheNames.length);
+              }
+            } catch (e) {
+              lfDbg('[WARN] Error limpiando Service Worker:', e);
+            }
+          }
+          
+          toast('✅ Caché limpiada. Recargando...', 'info');
+          
+          // Recargar la página forzando desde el servidor
+          setTimeout(() => {
+            window.location.reload(true);
+          }, 1000);
+          
+        } catch (error) {
+          toast('Error al limpiar caché', 'err');
+          lfDbg('[ERROR] Error limpiando caché:', error);
+        }
+      });
+
       if (typeof window.__LF_bindFacturaParser === 'function') {
         window.__LF_bindFacturaParser();
       }
@@ -2911,8 +2995,10 @@ function mostrarPreviewCSV(resultado) {
 
 function initCSVImporter() {
   try {
-    const container = $('consumosWrapper');
-    if (!container) return;
+    // Buscar el contenedor de acciones en el header (donde está el botón de Subir factura)
+    const actionsContainer = document.querySelector('.actions');
+    const btnSubirFactura = $('btnSubirFactura');
+    if (!actionsContainer || !btnSubirFactura) return;
     
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
@@ -2923,13 +3009,10 @@ function initCSVImporter() {
     const btnCSV = document.createElement('button');
     btnCSV.type = 'button';
     btnCSV.className = 'btn';
-    btnCSV.style.cssText = 'margin-top: 12px; width: 100%; display: flex; align-items: center; justify-content: center; gap: 8px;';
-    btnCSV.innerHTML = '📊 Importar consumos (CSV/Excel)';
-    btnCSV.title = 'Subir archivo con consumo horario';
-    
-    const hint = document.createElement('small');
-    hint.style.cssText = 'font-size: 11px; color: var(--muted2); margin-top: 4px; display: block; text-align: center;';
-    hint.textContent = 'Descarga tu consumo horario de tu distribuidora (CSV o Excel)';
+    btnCSV.id = 'btnSubirCSV';
+    btnCSV.innerHTML = '<span>📊</span><span class="btn-text">Importar CSV</span>';
+    btnCSV.title = 'Subir consumo horario (CSV/Excel de tu distribuidora)';
+    btnCSV.setAttribute('aria-label', 'Subir consumo horario CSV o Excel');
     
     btnCSV.addEventListener('click', () => {
       fileInput.click();
@@ -2960,37 +3043,25 @@ function initCSVImporter() {
         mostrarPreviewCSV(resultado);
         
         btnCSV.disabled = false;
-        btnCSV.innerHTML = '📊 Importar consumos (CSV/Excel)';
+        btnCSV.innerHTML = '<span>📊</span><span class="btn-text">Importar CSV</span>';
         fileInput.value = '';
         
       } catch (error) {
         toast(error.message || 'Error al procesar el archivo', 'err');
         
         btnCSV.disabled = false;
-        btnCSV.innerHTML = '📊 Importar consumos (CSV/Excel)';
+        btnCSV.innerHTML = '<span>📊</span><span class="btn-text">Importar CSV</span>';
         fileInput.value = '';
       }
     });
     
-    const wrapperDiv = document.createElement('div');
-    wrapperDiv.style.cssText = 'margin-top: 12px;';
-    wrapperDiv.appendChild(fileInput);
-    wrapperDiv.appendChild(btnCSV);
-    wrapperDiv.appendChild(hint);
+    // Añadir el input oculto al body
+    document.body.appendChild(fileInput);
     
-    // Insertar DESPUÉS del consumosWrapper
-    if (container.nextSibling) {
-      container.parentNode.insertBefore(wrapperDiv, container.nextSibling);
-    } else {
-      container.parentNode.appendChild(wrapperDiv);
-    }
+    // Insertar el botón DESPUÉS del botón de Subir factura
+    btnSubirFactura.parentNode.insertBefore(btnCSV, btnSubirFactura.nextSibling);
     
-    // Verificación
-    setTimeout(() => {
-      const check = document.getElementById('csvConsumoInput');
-      if (!check) {
-      }
-    }, 100);
+    lfDbg('[CSV] Botón de importar CSV añadido al header');
     
   } catch (error) {
     lfDbg('[CSV] ERROR CRÍTICO:', error);
