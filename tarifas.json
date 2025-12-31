@@ -19,25 +19,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Nufri Calma",
-      "cPunta": 0.099918,
-      "cLlano": 0.099918,
-      "cValle": 0.099918,
-      "p1": 0.092412,
-      "p2": 0.046295,
-      "web": "https://www.energianufri.com/es/landing/mas-tarifas-luz-gas",
-      "tipo": "1P",
-      "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
-      "fv": {
-        "exc": "INDEXADA",
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Imagina Energía",
       "cPunta": 0.102,
       "cLlano": 0.102,
@@ -48,6 +29,25 @@
       "tipo": "1P",
       "fv": {
         "exc": 0.05,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Nufri Calma",
+      "cPunta": 0.103384,
+      "cLlano": 0.103384,
+      "cValle": 0.103384,
+      "p1": 0.086313,
+      "p2": 0.032672,
+      "web": "https://www.energianufri.com/es/landing/mas-tarifas-luz-gas",
+      "tipo": "1P",
+      "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
+      "fv": {
+        "exc": "INDEXADA",
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -110,6 +110,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Gana Energía",
+      "cPunta": 0.111,
+      "cLlano": 0.111,
+      "cValle": 0.111,
+      "p1": 0.089434,
+      "p2": 0.089434,
+      "web": "https://ganaenergia.com/tarifas-luz/24-horas",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA + PEAJES + CARGOS",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Plenitude",
       "cPunta": 0.111579,
       "cLlano": 0.111579,
@@ -147,43 +165,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Gana Energía",
-      "cPunta": 0.119,
-      "cLlano": 0.119,
-      "cValle": 0.119,
-      "p1": 0.127406,
-      "p2": 0.049264,
-      "web": "https://ganaenergia.com/tarifas-luz/24-horas",
-      "tipo": "1P",
-      "fv": {
-        "exc": 0.04,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA + PEAJES + CARGOS",
-        "bv": false,
-        "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Naturgy por uso",
-      "cPunta": 0.119166,
-      "cLlano": 0.119166,
-      "cValle": 0.119166,
-      "p1": 0.108163,
-      "p2": 0.033392,
-      "web": "https://www.naturgy.es/hogar/luz/tarifa_por_uso_luz",
-      "tipo": "1P",
-      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 10.000 kWh/año",
-      "fv": {
-        "exc": 0.07,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Iberdrola Online",
       "cPunta": 0.1199,
       "cLlano": 0.1199,
@@ -195,6 +176,25 @@
       "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
       "fv": {
         "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Naturgy por uso",
+      "cPunta": 0.120471,
+      "cLlano": 0.120471,
+      "cValle": 0.120471,
+      "p1": 0.110283,
+      "p2": 0.033469,
+      "web": "https://www.naturgy.es/hogar/luz/tarifa_por_uso_luz",
+      "tipo": "1P",
+      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 10.000 kWh/año",
+      "fv": {
+        "exc": 0.07,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -277,12 +277,30 @@
       "requiereFV": false
     },
     {
+      "nombre": "Gana Energía 3P",
+      "cPunta": 0.163,
+      "cLlano": 0.096,
+      "cValle": 0.072,
+      "p1": 0.0894,
+      "p2": 0.0894,
+      "web": "https://ganaenergia.com/tarifas-luz/tramos-horarios",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA + PEAJES + CARGOS",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Nufri Flex 3P",
-      "cPunta": 0.162194,
-      "cLlano": 0.09094,
-      "cValle": 0.058094,
-      "p1": 0.092412,
-      "p2": 0.046295,
+      "cPunta": 0.168651,
+      "cLlano": 0.093473,
+      "cValle": 0.059887,
+      "p1": 0.086313,
+      "p2": 0.032672,
       "web": "https://www.energianufri.com/es/landing/mas-tarifas-luz-gas",
       "tipo": "3P",
       "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
@@ -292,24 +310,6 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Gana Energía 3P",
-      "cPunta": 0.168,
-      "cLlano": 0.105,
-      "cValle": 0.081,
-      "p1": 0.1274,
-      "p2": 0.0493,
-      "web": "https://ganaenergia.com/tarifas-luz/tramos-horarios",
-      "tipo": "3P",
-      "fv": {
-        "exc": 0.04,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA + PEAJES + CARGOS",
-        "bv": false,
-        "reglaBV": "NO APLICA"
       },
       "requiereFV": false
     },
@@ -406,11 +406,11 @@
     },
     {
       "nombre": "Naturgy noche 3P",
-      "cPunta": 0.185461,
-      "cLlano": 0.116414,
-      "cValle": 0.082334,
-      "p1": 0.108163,
-      "p2": 0.033392,
+      "cPunta": 0.190465,
+      "cLlano": 0.117512,
+      "cValle": 0.082673,
+      "p1": 0.110283,
+      "p2": 0.033469,
       "web": "https://www.naturgy.es/hogar/luz/tarifa_noche",
       "tipo": "3P",
       "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 10.000 kWh/año",
@@ -443,5 +443,5 @@
       "requiereFV": true
     }
   ],
-  "updatedAt": "2025-12-31T11:23:28.137Z"
+  "updatedAt": "2025-12-31T16:32:41.915Z"
 }
