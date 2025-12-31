@@ -246,17 +246,22 @@
         <div class="pill" id="statusPill" role="status" aria-live="polite">
           <span id="statusText">Introduce tus datos y pulsa Calcular para ver el ranking</span>
         </div>
-        <button class="btn" id="btnSubirFactura" type="button" title="Subir factura PDF" aria-label="Subir factura PDF">
-          <span>📄</span><span class="btn-text">Subir factura</span>
-        </button>
-        <button class="btn" id="btnPVPCInfo" type="button" title="Ver precios PVPC de hoy por horas" aria-label="Ver precios PVPC de hoy por horas">
-          <span>⚡</span><span class="btn-text">PVPC</span>
-        </button>
-        <button class="btn" id="btnTheme" type="button" title="Cambiar tema" aria-label="Cambiar tema">☀️</button>
-        <div class="menu" id="menuRoot">
-          <button class="btn" id="btnMenu" type="button" aria-haspopup="menu" aria-controls="menuPanel" aria-expanded="false" title="Opciones" aria-label="Abrir menú de opciones">⚙️</button>
-          <div class="menuPanel" id="menuPanel" role="menu" aria-label="Opciones" aria-orientation="vertical">
-            <div class="menuHint">Opciones</div>
+        
+        <div class="actions-center">
+          <button class="btn" id="btnSubirFactura" type="button" title="Subir factura PDF" aria-label="Subir factura PDF">
+            <span>📄</span><span class="btn-text">Subir factura</span>
+          </button>
+          <button class="btn" id="btnPVPCInfo" type="button" title="Ver precios PVPC de hoy por horas" aria-label="Ver precios PVPC de hoy por horas">
+            <span>⚡</span><span class="btn-text">PVPC</span>
+          </button>
+        </div>
+        
+        <div class="actions-right">
+          <button class="btn" id="btnTheme" type="button" title="Cambiar tema" aria-label="Cambiar tema">☀️</button>
+          <div class="menu" id="menuRoot">
+            <button class="btn" id="btnMenu" type="button" aria-haspopup="menu" aria-controls="menuPanel" aria-expanded="false" title="Opciones" aria-label="Abrir menú de opciones">⚙️</button>
+            <div class="menuPanel" id="menuPanel" role="menu" aria-label="Opciones" aria-orientation="vertical">
+              <div class="menuHint">Opciones</div>
 <button class="menuItem" id="btnShare" type="button" role="menuitem" aria-label="Compartir configuración por URL">
               <span class="mi-left">🔗 Compartir configuración</span>
               <span class="mi-right">URL</span>
@@ -280,6 +285,7 @@
               <span class="mi-right">valores</span>
             </button>
           </div>
+        </div>
         </div>
       </div>
     </div>
@@ -405,7 +411,7 @@
             </div>
           </div>
           <div class="help">
-            Introduce tus datos y pulsa ⚡ Calcular para generar o refrescar el ranking (tarifas y PVPC si está disponible). Puedes escribir decimales con coma o punto (ej.: 3,45 / 3.45).
+            Puedes escribir decimales con coma o punto (ej.: 3,45 / 3.45).
           </div>
         </div>
       </section>

@@ -166,8 +166,29 @@
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes goldenPulse { 0%, 100% { box-shadow: 0 0 20px rgba(251, 191, 36, .3), 0 0 40px rgba(251, 191, 36, .1); } 50% { box-shadow: 0 0 30px rgba(251, 191, 36, .6), 0 0 60px rgba(251, 191, 36, .2); } }
     .brand p{color: var(--muted); font-size: 13px; margin-top: 3px;}
-    .actions{display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:flex-end; flex-shrink: 0;}
-    @media (max-width: 520px){ .actions{ justify-content: center; width: 100%; } }
+    .actions{display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:space-between; flex-shrink: 0; width: 100%;}
+    .actions-center{display:flex; align-items:center; gap:10px; flex-shrink: 0;}
+    .actions-right{display:flex; align-items:center; gap:10px; flex-shrink: 0;}
+    @media (max-width: 768px){ 
+      .actions{ justify-content: center; gap: 12px; }
+      .actions-center, .actions-right { order: 2; }
+      .pill { 
+        order: 1; 
+        width: 100%; 
+        max-width: 100%;
+        margin-bottom: 4px; 
+        justify-content: center;
+        white-space: normal; /* Permitir wrap en móvil */
+        text-align: center;
+        padding: 8px 12px;
+        font-size: 12px;
+        line-height: 1.4;
+      }
+    }
+    @media (max-width: 520px){ 
+      .actions{ justify-content: center; width: 100%; gap: 8px; } 
+      .pill { font-size: 11px; padding: 6px 10px; }
+    }
     .pill{ display:flex; align-items:center; gap:10px; padding: 10px 14px; background: var(--card); border: 1px solid var(--border); border-radius: 999px; backdrop-filter: blur(14px); box-shadow: 0 12px 50px rgba(0,0,0,.20); color: var(--muted); font-size: 13px; user-select:none; white-space: nowrap; }
     .pill.loading{border-color: rgba(139,92,246,.55); box-shadow: 0 0 0 4px rgba(139,92,246,.12), 0 18px 55px rgba(0,0,0,.35);}
     .pill.ok{border-color: rgba(34,197,94,.55); box-shadow: 0 0 0 4px rgba(34,197,94,.12), 0 18px 55px rgba(0,0,0,.35);}
