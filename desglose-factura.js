@@ -120,12 +120,12 @@
 
       const sumaBase = pot + consAdj + tarifaAdj;
       const impuestoElec = round2(Math.max((5.11269632 / 100) * sumaBase, (consumoPunta + consumoLlano + consumoValle) * 0.001));
-      const margen = round2(dias * 0.026667);
+      const margen = isCanarias ? 0 : round2(dias * 0.026667);
 
       let resultado = {};
 
       if (isCanarias) {
-        const baseEnergia = sumaBase + margen;
+        const baseEnergia = sumaBase;
         const alquilerContador = dias * (0.81 / 30);
         const usoFiscal = esViviendaCanarias && potenciaContratada > 0 && potenciaContratada <= 10 ? 'vivienda' : 'otros';
         const igicBase = usoFiscal === 'vivienda' ? 0 : (baseEnergia + impuestoElec) * 0.03;
@@ -338,8 +338,8 @@
         </div>
         <div class="desglose-linea">
           <span class="desglose-concepto">Alquiler equipos medida</span>
-          <span class="desglose-detalle">${this.fmtNum(0.026667, 6)}/día × ${datos.dias} días</span>
-          <span class="desglose-importe">${this.fmt(d.margen)}</span>
+          <span class="desglose-detalle">${d.isCanarias ? `${this.fmtNum(0.81 / 30, 6)}/día × ${datos.dias} días` : `${this.fmtNum(0.026667, 6)}/día × ${datos.dias} días`}</span>
+          <span class="desglose-importe">${this.fmt(d.isCanarias ? d.alquilerContador : d.margen)}</span>
         </div>
       </div>`;
 
