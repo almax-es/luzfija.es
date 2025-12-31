@@ -1,5 +1,12 @@
 [
   {
+    "fecha": "2025-12-31",
+    "tipo": "alerta",
+    "titulo": "El 'modo reforzado' está encareciendo tu factura",
+    "texto": "Desde el apagón de abril, Red Eléctrica opera con más ciclos combinados para garantizar estabilidad. Esto eleva los servicios de ajuste, costando a los hogares unos 1,20€ extra al mes. El sobrecoste acumulado supera los 486 millones.",
+    "enlace": "/guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html"
+  },
+  {
     "fecha": "2025-12-30",
     "tipo": "regulatorio",
     "titulo": "Confirmado: el bono social se mantiene en 2026",
