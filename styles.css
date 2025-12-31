@@ -2829,7 +2829,6 @@ html.light-mode, body.light-mode{
 .pvpc-tabs-container{ display: flex !important; gap: 4px !important; background: rgba(255,255,255,.05) !important; padding: 4px !important; border-radius: 8px !important; }
 .pvpc-tab-btn{ padding: 6px 14px !important; border: none !important; font-size: 12px !important; font-weight: 600 !important; border-radius: 6px !important; cursor: pointer !important; transition: all 0.2s !important; background: transparent !important; color: var(--text) !important; }
 .pvpc-tab-btn.active{ background: var(--accent) !important; color: #fff !important; font-weight: 700 !important; }
-.btn-info-solar{ width: 100% !important; justify-content: center !important; margin-bottom: 12px !important; background: rgba(251, 191, 36, 0.12) !important; border-color: rgba(251, 191, 36, 0.3) !important; }
 .btn-info-pvpc{ width: 100% !important; justify-content: center !important; margin-top: 12px !important; background: rgba(245, 158, 11, 0.15) !important; border-color: rgba(217, 119, 6, 0.35) !important; }
 .contact-box{ margin-top: 12px !important; padding: 12px !important; border-radius: 14px !important; border: 1px solid var(--border) !important; background: rgba(255,255,255,.04) !important; }
 .mi-tarifa-panel{ margin-top: 8px !important; padding: 16px !important; background: var(--card) !important; border-radius: 12px !important; border-left: 3px solid var(--accent) !important; }
@@ -3062,6 +3061,10 @@ html.light-mode, body.light-mode{
   border-color: rgba(59, 130, 246, 0.3) !important;
   color: var(--text) !important;
   transition: all 0.2s ease !important;
+  grid-column: 1 / -1 !important; /* Ocupa toda la fila del grid */
+  width: 100% !important;
+  justify-content: center !important;
+  margin-bottom: 12px !important;
 }
 
 .btn-info-solar:hover {
