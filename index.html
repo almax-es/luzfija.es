@@ -361,42 +361,53 @@
               <input id="cValle" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 150">
             </div>
           </div>
-          <div class="form fv-toggle u-mt-12">
-            <div class="group">
-              <label for="solarOn" class="fv-check">
-                <input id="solarOn" type="checkbox">
-                <span>☀️ Tengo placas solares (compensación excedentes)</span>
-              </label>
+          
+          <!-- Opciones avanzadas -->
+          <div class="opciones-avanzadas">
+            <div class="opciones-header">
+              <span class="opciones-icon">✨</span>
+              <h3 class="opciones-title">Opciones avanzadas</h3>
+            </div>
+            
+            <div class="form fv-toggle">
+              <div class="group">
+                <label for="solarOn" class="fv-check">
+                  <input id="solarOn" type="checkbox">
+                  <span>☀️ Tengo placas solares (compensación excedentes)</span>
+                </label>
+              </div>
+            </div>
+            <div id="solarFields" class="form fv-fields u-mt-8" style="display:none;">
+              <button type="button" class="btn btn-info-solar" id="btnSolarInfo">
+                ℹ️ ¿Cómo funciona con placas solares?
+              </button>
+              <div class="group">
+                <label for="exTotal">Excedentes totales (kWh/mes)</label>
+                <input id="exTotal" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 120">
+              </div>
+              <div class="group">
+                <label for="bvSaldo">
+                  Saldo batería virtual (€ mes anterior)
+                  <button type="button" class="tooltip" tabindex="0" data-tip="Si en el mes anterior acumulaste euros en batería virtual (BV), indícalo aquí. Ejemplo: 15,50 € acumulados en noviembre → escribe 15,50. Si es tu primer mes o no tienes BV, deja en 0." aria-label="Información sobre batería virtual">ⓘ</button>
+                </label>
+                <input id="bvSaldo" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 15,50" aria-describedby="bvSaldo-hint">
+                <small id="bvSaldo-hint" class="u-block u-mt-4 u-text-11 u-color-muted u-opacity-80">Deja en 0 si no tienes batería virtual acumulada</small>
+              </div>
+            </div>
+            
+            <div class="form fv-toggle u-mt-16">
+              <div class="group">
+                <label for="compararMiTarifa" class="fv-check">
+                  <input id="compararMiTarifa" type="checkbox">
+                  <span>⭐ Comparar con mi tarifa actual</span>
+                </label>
+              </div>
+            </div>
+            <div id="miTarifaForm" class="form fv-fields mi-tarifa-panel" style="display:none;">
+              <div id="miTarifaPrecios"></div>
             </div>
           </div>
-          <div id="solarFields" class="form fv-fields u-mt-8" style="display:none;">
-            <button type="button" class="btn btn-info-solar" id="btnSolarInfo">
-              ℹ️ ¿Cómo funciona con placas solares?
-            </button>
-            <div class="group">
-              <label for="exTotal">Excedentes totales (kWh/mes)</label>
-              <input id="exTotal" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 120">
-            </div>
-            <div class="group">
-              <label for="bvSaldo">
-                Saldo batería virtual (€ mes anterior)
-                <button type="button" class="tooltip" tabindex="0" data-tip="Si en el mes anterior acumulaste euros en batería virtual (BV), indícalo aquí. Ejemplo: 15,50 € acumulados en noviembre → escribe 15,50. Si es tu primer mes o no tienes BV, deja en 0." aria-label="Información sobre batería virtual">ⓘ</button>
-              </label>
-              <input id="bvSaldo" class="input" type="text" inputmode="decimal" pattern="[0-9.,]*" autocomplete="off" placeholder="Ej: 15,50" aria-describedby="bvSaldo-hint">
-              <small id="bvSaldo-hint" class="u-block u-mt-4 u-text-11 u-color-muted u-opacity-80">Deja en 0 si no tienes batería virtual acumulada</small>
-            </div>
-          </div>
-          <div class="form fv-toggle u-mt-12">
-            <div class="group">
-              <label for="compararMiTarifa" class="fv-check">
-                <input id="compararMiTarifa" type="checkbox">
-                <span>⭐ Comparar con mi tarifa actual</span>
-              </label>
-            </div>
-          </div>
-          <div id="miTarifaForm" class="form fv-fields mi-tarifa-panel" style="display:none;">
-            <div id="miTarifaPrecios"></div>
-          </div>
+          
           <div class="row u-mt-14">
             <div class="kwhPill" aria-live="polite">
               <div class="kwhLabel">Total kWh</div>

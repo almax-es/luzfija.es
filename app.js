@@ -1510,6 +1510,13 @@ window.lfDbg = lfDbg;
       const esPrimeraVez = seccionResultados && !seccionResultados.classList.contains('visible');
       if(seccionResultados && esPrimeraVez){
         seccionResultados.classList.add('visible');
+        
+        // Cambiar layout a 2 columnas
+        const gridContainer = document.querySelector('.grid');
+        if (gridContainer) {
+          gridContainer.classList.add('has-results');
+        }
+        
         // Scroll suave a resultados después de un pequeño delay para que se renderice
         setTimeout(() => {
           seccionResultados.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -2064,22 +2071,27 @@ function updateMiTarifaForm() {
   const container = $('miTarifaPrecios');
   if (!container) return;
   
-  // Aviso informativo + campos con ejemplos numéricos
+  // Aviso informativo + campos con ejemplos numéricos organizados por sección
   container.innerHTML = `
-    <div style="background: rgba(59, 130, 246, 0.1); border: 1px solid rgba(59, 130, 246, 0.3); padding: 10px 12px; border-radius: 8px; margin-bottom: 12px; font-size: 12px;">
-      <div style="display: flex; align-items: start; gap: 8px;">
-        <span style="font-size: 16px;">💡</span>
-        <div style="color: var(--text); line-height: 1.4;">
-          <strong>Busca estos precios en tu factura:</strong><br>
-          <span style="color: var(--muted2); font-size: 11px;">
-            • <strong>Término de energía:</strong> precios por kWh consumido (Punta/Llano/Valle)<br>
-            • <strong>Término de potencia:</strong> precios por kW contratado/día (P1/P2)
-          </span>
+    <div class="info-box">
+      <div style="display: flex; align-items: start; gap: 10px;">
+        <span style="font-size: 18px; flex-shrink: 0;">💡</span>
+        <div>
+          <strong style="display: block; margin-bottom: 4px;">Busca estos precios en tu factura</strong>
+          <div style="color: var(--muted2); font-size: 11px; line-height: 1.5;">
+            Normalmente aparecen en la sección de "Detalle del importe" o "Términos de facturación"
+          </div>
         </div>
       </div>
     </div>
     
-    <div class="form" style="gap:8px;">
+    <div class="mt-seccion-header">
+      <span class="mt-seccion-icon">⚡</span>
+      <h4 class="mt-seccion-title">Término de energía</h4>
+      <span class="mt-seccion-subtitle">Precio por kWh consumido</span>
+    </div>
+    
+    <div class="form" style="gap:10px; margin-bottom: 20px;">
       <div class="group">
         <label for="mtPunta">Punta (€/kWh)</label>
         <input id="mtPunta" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,1543">
@@ -2093,7 +2105,14 @@ function updateMiTarifaForm() {
         <input id="mtValle" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0899">
       </div>
     </div>
-    <div class="form">
+    
+    <div class="mt-seccion-header">
+      <span class="mt-seccion-icon">📊</span>
+      <h4 class="mt-seccion-title">Término de potencia</h4>
+      <span class="mt-seccion-subtitle">Precio por kW contratado/día</span>
+    </div>
+    
+    <div class="form" style="gap:10px;">
       <div class="group">
         <label for="mtP1">Potencia P1 (€/kW/día)</label>
         <input id="mtP1" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0891">
@@ -2108,12 +2127,14 @@ function updateMiTarifaForm() {
   // Si tiene placas solares marcadas, añadir campo de compensación
   if (tieneSolar) {
     container.innerHTML += `
-      <div class="group" style="margin-top:12px; padding-top:12px; border-top:1px solid var(--border);">
-        <label for="mtPrecioExc">☀️ Precio compensación excedentes (€/kWh)</label>
+      <div class="mt-seccion-header" style="margin-top: 20px;">
+        <span class="mt-seccion-icon">☀️</span>
+        <h4 class="mt-seccion-title">Compensación de excedentes</h4>
+        <span class="mt-seccion-subtitle">Precio que te pagan por verter a la red</span>
+      </div>
+      <div class="group">
+        <label for="mtPrecioExc">Precio compensación (€/kWh)</label>
         <input id="mtPrecioExc" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0743">
-        <small style="font-size:11px; color:var(--muted2); margin-top:4px; display:block;">
-          Lo que te pagan por los kWh vertidos a la red
-        </small>
       </div>
     `;
   }
@@ -2995,10 +3016,9 @@ function mostrarPreviewCSV(resultado) {
 
 function initCSVImporter() {
   try {
-    // Buscar el contenedor de acciones en el header (donde está el botón de Subir factura)
-    const actionsContainer = document.querySelector('.actions');
-    const btnSubirFactura = $('btnSubirFactura');
-    if (!actionsContainer || !btnSubirFactura) return;
+    // Buscar el contenedor central de acciones en el header
+    const actionsCenterContainer = document.querySelector('.actions-center');
+    if (!actionsCenterContainer) return;
     
     const fileInput = document.createElement('input');
     fileInput.type = 'file';
@@ -3058,10 +3078,10 @@ function initCSVImporter() {
     // Añadir el input oculto al body
     document.body.appendChild(fileInput);
     
-    // Insertar el botón DESPUÉS del botón de Subir factura
-    btnSubirFactura.parentNode.insertBefore(btnCSV, btnSubirFactura.nextSibling);
+    // Insertar el botón dentro del contenedor central
+    actionsCenterContainer.appendChild(btnCSV);
     
-    lfDbg('[CSV] Botón de importar CSV añadido al header');
+    lfDbg('[CSV] Botón de importar CSV añadido al header center');
     
   } catch (error) {
     lfDbg('[CSV] ERROR CRÍTICO:', error);

@@ -314,8 +314,76 @@
     }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     .spinner{ display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius:50%; animation: spin 0.6s linear infinite; }
-    .grid{ display:grid; grid-template-columns: 420px 1fr; gap: 24px; }
-    @media (max-width: 1100px){ .grid{grid-template-columns:1fr;} }
+    
+    /* ==================================================
+       LAYOUT DINÁMICO: Centrado → 2 columnas
+       ================================================== */
+    .grid{ 
+      display: flex;
+      justify-content: center;
+      align-items: flex-start;
+      gap: 24px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Estado inicial: Card de inputs centrado, max-width */
+    .grid > .card:first-child {
+      width: 100%;
+      max-width: 720px;
+      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    
+    /* Ocultar resultados inicialmente */
+    .grid > .card:nth-child(2) {
+      display: none;
+    }
+    
+    /* Estado CON RESULTADOS: Grid 2 columnas */
+    .grid.has-results {
+      display: grid;
+      grid-template-columns: 400px 1fr;
+      justify-content: start;
+    }
+    
+    .grid.has-results > .card:first-child {
+      max-width: none;
+    }
+    
+    .grid.has-results > .card:nth-child(2) {
+      display: block;
+      animation: fadeInSlide 0.5s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+    }
+    
+    @keyframes fadeInSlide {
+      from {
+        opacity: 0;
+        transform: translateX(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateX(0);
+      }
+    }
+    
+    /* Responsive: Tablet */
+    @media (max-width: 1100px){ 
+      .grid, .grid.has-results {
+        grid-template-columns: 1fr;
+        justify-content: center;
+      }
+      
+      .grid.has-results > .card:first-child {
+        max-width: 720px;
+      }
+    }
+    
+    /* Responsive: Móvil */
+    @media (max-width: 768px){
+      .grid > .card:first-child {
+        max-width: 100%;
+      }
+    }
+    
     .card{ 
       background: var(--card); 
       border: 1px solid var(--border); 
@@ -2819,4 +2887,223 @@ html.light-mode, body.light-mode{
   .actions {
     gap: 8px;
   }
+}
+
+/* ==================================================
+   OPCIONES AVANZADAS - Sección profesional
+   ================================================== */
+.opciones-avanzadas {
+  margin-top: 32px;
+  padding-top: 28px;
+  position: relative;
+}
+
+/* Separador con degradado */
+.opciones-avanzadas::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    var(--border) 10%,
+    var(--border) 90%,
+    transparent 100%
+  );
+}
+
+.opciones-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding-bottom: 12px;
+  border-bottom: 1px dashed rgba(139, 92, 246, 0.2);
+}
+
+.opciones-icon {
+  font-size: 20px;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(139, 92, 246, 0.3));
+}
+
+.opciones-title {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--accent);
+  background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Spacing entre checkboxes en opciones avanzadas */
+.opciones-avanzadas .form.fv-toggle + .form.fv-toggle {
+  margin-top: 16px;
+}
+
+@media (max-width: 640px) {
+  .opciones-avanzadas {
+    margin-top: 24px;
+    padding-top: 20px;
+  }
+  
+  .opciones-header {
+    margin-bottom: 16px;
+  }
+}
+
+/* ==================================================
+   MI TARIFA ACTUAL - Headers de sección profesionales
+   ================================================== */
+.mt-seccion-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-top: 16px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(139, 92, 246, 0.15);
+}
+
+.mt-seccion-header:first-child {
+  margin-top: 8px;
+}
+
+.mt-seccion-icon {
+  font-size: 16px;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+
+.mt-seccion-title {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  letter-spacing: 0.3px;
+}
+
+.mt-seccion-subtitle {
+  font-size: 11px;
+  color: var(--muted2);
+  font-weight: 400;
+  line-height: 1.3;
+}
+
+/* Info box mejorado */
+.info-box {
+  background: rgba(59, 130, 246, 0.08) !important;
+  border: 1px solid rgba(59, 130, 246, 0.25) !important;
+  border-left: 3px solid rgba(59, 130, 246, 0.6) !important;
+  padding: 12px 14px !important;
+  border-radius: 10px !important;
+  margin-bottom: 16px !important;
+  font-size: 12px !important;
+  line-height: 1.5 !important;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* ==================================================
+   MICRO-INTERACCIONES Y POLISH
+   ================================================== */
+
+/* Mejora de focus states para accesibilidad */
+.input:focus,
+.btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.3);
+  border-color: var(--accent);
+}
+
+/* Animación suave al expandir paneles */
+#solarFields,
+#miTarifaForm {
+  animation: expandPanel 0.3s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  transform-origin: top;
+}
+
+@keyframes expandPanel {
+  from {
+    opacity: 0;
+    transform: scaleY(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+  }
+}
+
+/* Hover state mejorado para checkboxes */
+.fv-check:hover {
+  opacity: 0.9;
+}
+
+.fv-check input[type="checkbox"]:focus {
+  outline: 2px solid rgba(139, 92, 246, 0.5);
+  outline-offset: 2px;
+}
+
+/* Tooltips más sutiles */
+.tooltip:hover {
+  transform: scale(1.1);
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.3);
+}
+
+/* Botón solar más sutil */
+.btn-info-solar { 
+  background: rgba(59, 130, 246, 0.1) !important; 
+  border-color: rgba(59, 130, 246, 0.3) !important;
+  color: var(--text) !important;
+  transition: all 0.2s ease !important;
+}
+
+.btn-info-solar:hover {
+  background: rgba(59, 130, 246, 0.15) !important;
+  border-color: rgba(59, 130, 246, 0.4) !important;
+  transform: translateY(-1px);
+}
+
+/* ==================================================
+   RESPONSIVE POLISH MÓVIL
+   ================================================== */
+@media (max-width: 640px) {
+  .mt-seccion-header {
+    gap: 3px;
+    margin-bottom: 10px;
+  }
+  
+  .mt-seccion-title {
+    font-size: 12px;
+  }
+  
+  .mt-seccion-subtitle {
+    font-size: 10px;
+  }
+  
+  .info-box {
+    padding: 10px 12px !important;
+    font-size: 11px !important;
+  }
+}
+
+/* Smooth scroll al mostrar resultados */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Animación de carga del botón calcular más fluida */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.btn.primary:disabled {
+  animation: pulse 1.5s ease-in-out infinite;
 }
