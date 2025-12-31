@@ -366,7 +366,8 @@
     .alert{ border: 1px solid rgba(239,68,68,.40); background: rgba(239,68,68,.15); color: rgba(255,255,255,.95); padding: 12px 12px; border-radius: 14px; font-size: 13px; line-height: 1.35; display:none; margin-bottom: 12px; }
     .alert.show{display:block} .alert b{color: #fff}
     .form{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
-    @media (max-width: 520px){ .form{grid-template-columns: repeat(2, 1fr);} }
+    @media (max-width: 640px){ .form{grid-template-columns: repeat(2, 1fr);} }
+    @media (max-width: 520px){ .form{grid-template-columns: 1fr;} }
     .group{display:flex; flex-direction:column; gap: 7px;}
     label{ font-size: 12px; color: var(--muted); font-weight: 900; letter-spacing: .2px; position: relative; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 16px; }
     .tooltip{ position: relative; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: rgba(139,92,246,.2); color: var(--accent); font-size: 10px; font-weight: 900; flex-shrink: 0; transition: box-shadow .15s ease, transform .15s ease; }
