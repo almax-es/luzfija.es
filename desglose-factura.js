@@ -93,7 +93,7 @@
 
       const pot = round2((potenciaP1 * dias * precioP1) + (potenciaP2 * dias * precioP2));
       const cons = round2((consumoPunta * precioPunta) + (consumoLlano * precioLlano) + (consumoValle * precioValle));
-      const tarifaAcceso = round2(4.650987 / 365 * dias);
+      const tarifaAcceso = round2(6.979247 / 365 * dias);
 
       let consAdj = cons;
       let tarifaAdj = tarifaAcceso;
@@ -188,8 +188,22 @@
     },
 
     renderizar(d, datos) {
+      // Generar fechas por defecto del mes actual si no se proporcionan
+      const hoy = new Date();
+      const primerDia = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+      const ultimoDia = new Date(hoy.getFullYear(), hoy.getMonth() + 1, 0);
+      const formatFecha = (fecha) => {
+        const dia = String(fecha.getDate()).padStart(2, '0');
+        const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+        const año = fecha.getFullYear();
+        return `${dia}/${mes}/${año}`;
+      };
+      const fechaInicioDefault = formatFecha(primerDia);
+      const fechaFinDefault = formatFecha(ultimoDia);
+      const diasDefault = ultimoDia.getDate();
+      
       this.modal.querySelector('.desglose-tarifa').innerHTML = `<strong>${datos.nombreTarifa || 'Tarifa'}</strong>`;
-      this.modal.querySelector('.desglose-periodo').innerHTML = `${datos.fechaInicio || '01/12/2025'} - ${datos.fechaFin || '31/12/2025'} (${datos.dias || 30} días)`;
+      this.modal.querySelector('.desglose-periodo').innerHTML = `${datos.fechaInicio || fechaInicioDefault} - ${datos.fechaFin || fechaFinDefault} (${datos.dias || diasDefault} días)`;
 
       let html = '';
 
@@ -304,7 +318,7 @@
         <div class="desglose-seccion-header"><h3>📝 OTROS CONCEPTOS</h3><span class="desglose-importe-header">${this.fmt(d.tarifaAdj + d.impuestoElec + d.margen)}</span></div>
         <div class="desglose-linea">
           <span class="desglose-concepto">Financiación Bono Social</span>
-          <span class="desglose-detalle">${this.fmtNum(4.650987/365, 6)}/día × ${datos.dias} días</span>
+          <span class="desglose-detalle">${this.fmtNum(6.979247/365, 6)}/día × ${datos.dias} días</span>
           <span class="desglose-importe">${this.fmt(d.tarifaAcceso)}</span>
         </div>
         ${d.tarifaAdj !== d.tarifaAcceso && d.credit1 > 0 ? `<div class="desglose-linea desglose-linea--hl-green">

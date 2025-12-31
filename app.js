@@ -605,7 +605,7 @@ window.lfDbg = lfDbg;
 
           const pot = round2((p1 * dias * t.p1) + (p2 * dias * t.p2));
           const cons = round2((cPunta * t.cPunta) + (cLlano * t.cLlano) + (cValle * t.cValle));
-          const tarifaAcceso = round2(4.650987 / 365 * dias);
+          const tarifaAcceso = round2(6.979247 / 365 * dias);
 
           let consAdj = cons;
           let tarifaAdj = tarifaAcceso;
@@ -646,7 +646,7 @@ window.lfDbg = lfDbg;
 
           const sumaBase = pot + consAdj + tarifaAdj;
           const impuestoElec = round2(Math.max((5.11269632 / 100) * sumaBase, (cPunta + cLlano + cValle) * 0.001));
-          const margen = round2(dias * 0.026667);
+          const margen = isCanarias ? 0 : round2(dias * 0.026667);
           const baseEnergia = sumaBase + margen;
           const subtotal = baseEnergia + impuestoElec;
           const ivaBase = pot + consAdj + tarifaAdj + impuestoElec + margen;
