@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#8B5CF6">
+  <link rel="manifest" href="/manifest.webmanifest">
+  
+  <title>Precio Luz Hoy ⚡ PVPC en Tiempo Real | LuzFija.es</title>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+  <link rel="icon" type="image/png" sizes="48x48" href="/favicon-48x48.png">
+  <link rel="icon" type="image/png" sizes="96x96" href="/favicon-96x96.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="mask-icon" href="/favicon.svg" color="#8B5CF6">
+  <meta name="description" content="Consulta el precio de la luz hoy hora por hora. PVPC actualizado en tiempo real. Descubre cuándo es más barato consumir electricidad hoy.">
+  
+  <link rel="canonical" href="https://luzfija.es/precio-luz-hoy.html">
+  
+  <meta property="og:title" content="Precio Luz Hoy ⚡ PVPC en Tiempo Real">
+  <meta property="og:description" content="Precio de la luz hoy hora por hora. PVPC actualizado en tiempo real con el mejor momento para consumir.">
+  <meta property="og:url" content="https://luzfija.es/precio-luz-hoy.html">
+  <meta property="og:image" content="https://luzfija.es/og.png">
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Precio de la Luz Hoy - PVPC en Tiempo Real",
+    "description": "Consulta el precio de la luz hoy hora por hora. PVPC actualizado en tiempo real con el mejor momento para consumir.",
+    "author": {
+      "@type": "Person",
+      "name": "aLMaX"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "LuzFija.es",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://luzfija.es/logo-512.png"
+      }
+    },
+    "datePublished": "2026-01-01",
+    "dateModified": "2026-01-01",
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://luzfija.es/precio-luz-hoy.html"
+    }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Inicio",
+        "item": "https://luzfija.es/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Precio luz hoy",
+        "item": "https://luzfija.es/precio-luz-hoy.html"
+      }
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "¿A qué hora es más barata la luz hoy?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Las horas más baratas del PVPC suelen ser en la madrugada (2:00-7:00) y al mediodía (14:00-16:00). Consulta la gráfica de precios de hoy para ver las horas valle específicas de hoy."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cuánto cuesta el kWh hoy?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "El precio del kWh varía cada hora según el PVPC. Consulta la tabla de precios en esta página para ver el coste exacto en cada franja horaria de hoy."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cuándo se actualizan los precios PVPC?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Los precios PVPC se publican el día anterior alrededor de las 20:15. Los precios que ves en esta página son los oficiales publicados por la CNMC."
+        }
+      }
+    ]
+  }
+  </script>
+
+  <link rel="stylesheet" href="/styles.css">
+  
+  <style>
+    /* Estilos específicos para precio-luz-hoy */
+    .precio-hero {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: clamp(24px, 5vw, 40px);
+      margin-bottom: 32px;
+      box-shadow: var(--shadow2);
+      backdrop-filter: blur(10px);
+    }
+    
+    .precio-hero h1 {
+      font-size: clamp(28px, 6vw, 42px);
+      font-weight: 800;
+      margin-bottom: 8px;
+      background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    
+    .precio-hero .subtitle {
+      font-size: clamp(14px, 3vw, 16px);
+      color: var(--muted);
+      margin-bottom: 24px;
+    }
+    
+    .precio-actual {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+    
+    .precio-card {
+      background: var(--card2);
+      border: 1px solid var(--border2);
+      border-radius: 12px;
+      padding: 20px;
+      text-align: center;
+    }
+    
+    .precio-card-label {
+      font-size: 13px;
+      color: var(--muted2);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+    
+    .precio-card-value {
+      font-size: clamp(24px, 5vw, 32px);
+      font-weight: 800;
+      color: var(--accent2);
+      font-family: var(--mono);
+    }
+    
+    .precio-card-hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+    
+    .pvpc-table-container {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: clamp(20px, 4vw, 32px);
+      margin-bottom: 32px;
+      box-shadow: var(--shadow2);
+      overflow: hidden;
+    }
+    
+    .pvpc-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+    
+    .pvpc-table thead {
+      border-bottom: 2px solid var(--border2);
+    }
+    
+    .pvpc-table th {
+      padding: 12px 8px;
+      text-align: left;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    
+    .pvpc-table td {
+      padding: 14px 8px;
+      border-bottom: 1px solid var(--border);
+      font-size: 15px;
+    }
+    
+    .pvpc-table tbody tr:hover {
+      background: var(--card2);
+    }
+    
+    .pvpc-table .hora {
+      font-weight: 600;
+      color: var(--text);
+      font-family: var(--mono);
+    }
+    
+    .pvpc-table .precio {
+      font-weight: 700;
+      font-family: var(--mono);
+      color: var(--accent2);
+    }
+    
+    .pvpc-table .periodo {
+      font-size: 12px;
+      padding: 4px 10px;
+      border-radius: 6px;
+      display: inline-block;
+      font-weight: 600;
+    }
+    
+    .pvpc-table .periodo.punta {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+    }
+    
+    .pvpc-table .periodo.llano {
+      background: rgba(245, 158, 11, 0.15);
+      color: var(--warn);
+    }
+    
+    .pvpc-table .periodo.valle {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--accent2);
+    }
+    
+    .pvpc-table tr.hora-actual {
+      background: rgba(139, 92, 246, 0.1);
+      border-left: 3px solid var(--accent);
+    }
+    
+    .pvpc-table tr.hora-barata {
+      background: rgba(34, 197, 94, 0.08);
+    }
+    
+    .pvpc-table tr.hora-cara {
+      background: rgba(239, 68, 68, 0.08);
+    }
+    
+    .loading-skeleton {
+      background: linear-gradient(90deg, var(--card) 25%, var(--card2) 50%, var(--card) 75%);
+      background-size: 200% 100%;
+      animation: loading 1.5s ease-in-out infinite;
+      border-radius: 8px;
+      height: 20px;
+      margin: 8px 0;
+    }
+    
+    @keyframes loading {
+      0% { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    
+    .cta-section {
+      background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(34, 197, 94, 0.15));
+      border: 1px solid var(--border2);
+      border-radius: var(--radius);
+      padding: clamp(24px, 5vw, 40px);
+      margin: 48px 0;
+      text-align: center;
+    }
+    
+    .cta-section h2 {
+      font-size: clamp(22px, 4vw, 32px);
+      font-weight: 700;
+      margin-bottom: 12px;
+    }
+    
+    .cta-section p {
+      color: var(--muted);
+      margin-bottom: 24px;
+      font-size: clamp(14px, 2.5vw, 16px);
+    }
+    
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 16px 32px;
+      background: var(--accent);
+      color: white;
+      text-decoration: none;
+      border-radius: 12px;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 20px rgba(139, 92, 246, 0.4);
+    }
+    
+    .cta-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 30px rgba(139, 92, 246, 0.6);
+      background: #7C3AED;
+    }
+    
+    @media (max-width: 768px) {
+      .pvpc-table th:nth-child(3),
+      .pvpc-table td:nth-child(3) {
+        display: none;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <nav class="topbar">
+      <div class="brand">
+        <a href="/" style="text-decoration: none; display: flex; align-items: center; gap: 14px;">
+          <div class="logo">⚡</div>
+          <div>
+            <div style="font-size: 20px; font-weight: 800; color: var(--text); line-height: 1.2;">LuzFija<span style="color: var(--accent);">.es</span></div>
+            <div style="font-size: 13px; color: var(--muted); margin-top: 2px;">Comparador de tarifas</div>
+          </div>
+        </a>
+      </div>
+      <nav aria-label="Breadcrumb">
+        <ol class="breadcrumb" style="display: flex; gap: 8px; list-style: none; font-size: 14px; color: var(--muted);">
+          <li><a href="/" style="color: var(--accent); text-decoration: none;">🏠 Inicio</a></li>
+          <li style="color: var(--muted2);">›</li>
+          <li style="color: var(--text);">Precio luz hoy</li>
+        </ol>
+      </nav>
+    </nav>
+
+    <main>
+      <div class="precio-hero">
+        <h1>⚡ Precio de la Luz Hoy</h1>
+        <p class="subtitle">PVPC actualizado en tiempo real · Datos oficiales CNMC</p>
+        
+        <div class="precio-actual">
+          <div class="precio-card">
+            <div class="precio-card-label">Precio Ahora</div>
+            <div class="precio-card-value" id="precio-ahora">
+              <div class="loading-skeleton" style="width: 120px; height: 32px; margin: 0 auto;"></div>
+            </div>
+            <div class="precio-card-hint" id="hora-actual">Cargando...</div>
+          </div>
+          
+          <div class="precio-card">
+            <div class="precio-card-label">Más Barato Hoy</div>
+            <div class="precio-card-value" style="color: var(--accent2);" id="precio-min">
+              <div class="loading-skeleton" style="width: 120px; height: 32px; margin: 0 auto;"></div>
+            </div>
+            <div class="precio-card-hint" id="hora-min">Cargando...</div>
+          </div>
+          
+          <div class="precio-card">
+            <div class="precio-card-label">Más Caro Hoy</div>
+            <div class="precio-card-value" style="color: var(--danger);" id="precio-max">
+              <div class="loading-skeleton" style="width: 120px; height: 32px; margin: 0 auto;"></div>
+            </div>
+            <div class="precio-card-hint" id="hora-max">Cargando...</div>
+          </div>
+          
+          <div class="precio-card">
+            <div class="precio-card-label">Precio Medio</div>
+            <div class="precio-card-value" style="color: var(--warn);" id="precio-avg">
+              <div class="loading-skeleton" style="width: 120px; height: 32px; margin: 0 auto;"></div>
+            </div>
+            <div class="precio-card-hint">Promedio 24h</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pvpc-table-container">
+        <h2 style="font-size: clamp(20px, 4vw, 28px); font-weight: 700; margin-bottom: 8px;">📊 Precios Hora a Hora</h2>
+        <p style="color: var(--muted); font-size: 14px; margin-bottom: 16px;" id="fecha-tabla">Datos de hoy</p>
+        
+        <div style="overflow-x: auto;">
+          <table class="pvpc-table">
+            <thead>
+              <tr>
+                <th>Hora</th>
+                <th>Precio (€/kWh)</th>
+                <th>Periodo</th>
+              </tr>
+            </thead>
+            <tbody id="pvpc-tbody">
+              <!-- Se rellena con JavaScript -->
+              <tr><td colspan="3"><div class="loading-skeleton"></div></td></tr>
+              <tr><td colspan="3"><div class="loading-skeleton"></div></td></tr>
+              <tr><td colspan="3"><div class="loading-skeleton"></div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="cta-section">
+        <h2>🔍 ¿Quieres pagar menos en la luz?</h2>
+        <p>Compara todas las tarifas del mercado y descubre cuánto puedes ahorrar con tus consumos reales</p>
+        <a href="/" class="cta-btn">
+          <span>Ver Comparador</span>
+          <span>→</span>
+        </a>
+      </div>
+
+      <!-- FAQ Section -->
+      <div style="background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: clamp(24px, 5vw, 40px); margin-bottom: 32px;">
+        <h2 style="font-size: clamp(20px, 4vw, 28px); font-weight: 700; margin-bottom: 24px;">❓ Preguntas Frecuentes</h2>
+        
+        <details style="margin-bottom: 16px; padding: 16px; background: var(--card2); border-radius: 12px; cursor: pointer;">
+          <summary style="font-weight: 600; color: var(--text); list-style: none; display: flex; justify-content: space-between; align-items: center;">
+            <span>¿A qué hora es más barata la luz hoy?</span>
+            <span style="color: var(--accent);">+</span>
+          </summary>
+          <p style="color: var(--muted); margin-top: 12px; line-height: 1.6;">
+            Las horas más baratas del PVPC suelen ser en la madrugada (2:00-7:00) y al mediodía (14:00-16:00), conocidas como periodo valle. Consulta la tabla de arriba para ver las horas exactas más baratas de hoy.
+          </p>
+        </details>
+        
+        <details style="margin-bottom: 16px; padding: 16px; background: var(--card2); border-radius: 12px; cursor: pointer;">
+          <summary style="font-weight: 600; color: var(--text); list-style: none; display: flex; justify-content: space-between; align-items: center;">
+            <span>¿Cuándo se actualizan los precios PVPC?</span>
+            <span style="color: var(--accent);">+</span>
+          </summary>
+          <p style="color: var(--muted); margin-top: 12px; line-height: 1.6;">
+            Los precios del PVPC se publican cada día alrededor de las 20:15 para el día siguiente. Los datos que ves en esta página son los oficiales publicados por la CNMC (Comisión Nacional de los Mercados y la Competencia).
+          </p>
+        </details>
+        
+        <details style="padding: 16px; background: var(--card2); border-radius: 12px; cursor: pointer;">
+          <summary style="font-weight: 600; color: var(--text); list-style: none; display: flex; justify-content: space-between; align-items: center;">
+            <span>¿Qué significan los periodos punta, llano y valle?</span>
+            <span style="color: var(--accent);">+</span>
+          </summary>
+          <p style="color: var(--muted); margin-top: 12px; line-height: 1.6;">
+            Son las tres franjas horarias del PVPC. <strong>Valle</strong> (verde) es el periodo más barato, <strong>Llano</strong> (naranja) tiene precio intermedio, y <strong>Punta</strong> (rojo) es el más caro. Los horarios varían según la temporada del año.
+          </p>
+        </details>
+      </div>
+
+      <!-- INTERNAL LINKS SECTION -->
+      <section class="u-s-6089d3d">
+        <h2 class="u-s-d383698">📚 Aprende más</h2>
+        <p class="u-s-6391a1b">Guías gratuitas para entender mejor tu factura de luz</p>
+        <div class="u-s-3ec39f2">
+          <a href="/guias/pvpc-vs-mercado-libre-cuando-te-conviene-cada-uno.html" class="u-s-9762a3b">
+            <span class="u-s-ebbbf67">→</span><span class="u-fw-600">PVPC vs Mercado libre: cuándo conviene cada uno</span>
+          </a>
+          <a href="/guias/como-adaptar-tus-horarios-para-pagar-menos-luz.html" class="u-s-9762a3b">
+            <span class="u-s-ebbbf67">→</span><span class="u-fw-600">Cómo adaptar tus horarios para pagar menos luz</span>
+          </a>
+          <a href="/guias/que-es-p1-p2-y-p3-en-tu-factura.html" class="u-s-9762a3b">
+            <span class="u-s-ebbbf67">→</span><span class="u-fw-600">Qué es P1, P2 y P3 en tu factura</span>
+          </a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="u-s-56e9e64">
+      <a href="/aviso-legal.html" class="u-s-ae3c165">📋 Aviso legal</a> · <a href="/privacidad.html" class="u-s-ae3c165">Política de privacidad</a>
+    </footer>
+  </div>
+
+  <script>
+    // Configurar URLs de API (igual que en index.html)
+    window.PVPC_PRICES_URL = "https://luzfija-es.vercel.app/api/pvpc-precios?date=";
+  </script>
+
+  <script>
+    // Script para cargar y mostrar precios PVPC
+    (function() {
+      const formatPrice = (price) => {
+        if (!price || !Number.isFinite(price)) return '—';
+        return price.toFixed(4) + ' €';
+      };
+
+      const getPeriodoName = (hora) => {
+        // Horarios aproximados (esto debería venir de la API idealmente)
+        // Valle: 00-08, 14-18, 22-24
+        // Llano: 08-10, 18-22
+        // Punta: 10-14
+        if ((hora >= 0 && hora < 8) || (hora >= 14 && hora < 18) || (hora >= 22 && hora < 24)) {
+          return { name: 'Valle', class: 'valle' };
+        } else if ((hora >= 8 && hora < 10) || (hora >= 18 && hora < 22)) {
+          return { name: 'Llano', class: 'llano' };
+        } else {
+          return { name: 'Punta', class: 'punta' };
+        }
+      };
+
+      const loadPVPCData = async () => {
+        try {
+          const today = new Date();
+          const dateStr = today.toISOString().split('T')[0];
+          
+          const response = await fetch(window.PVPC_PRICES_URL + dateStr + '&zona=1&imp=1');
+          
+          if (!response.ok) {
+            throw new Error('Error al cargar datos PVPC');
+          }
+
+          const data = await response.json();
+          
+          if (!data.prices || !Array.isArray(data.prices) || data.prices.length !== 24) {
+            throw new Error('Datos PVPC inválidos');
+          }
+
+          // Actualizar fecha
+          document.getElementById('fecha-tabla').textContent = 
+            `Precios de hoy ${today.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}`;
+
+          // Calcular estadísticas
+          const prices = data.prices;
+          const currentHour = today.getHours();
+          const currentPrice = prices[currentHour];
+          const minPrice = Math.min(...prices);
+          const maxPrice = Math.max(...prices);
+          const avgPrice = prices.reduce((a, b) => a + b, 0) / prices.length;
+          const minHour = prices.indexOf(minPrice);
+          const maxHour = prices.indexOf(maxPrice);
+
+          // Actualizar cards
+          document.getElementById('precio-ahora').innerHTML = `<span style="font-size: 0.7em;">€</span>${currentPrice.toFixed(4)}`;
+          document.getElementById('hora-actual').textContent = `${currentHour}:00 - ${currentHour+1}:00`;
+          
+          document.getElementById('precio-min').innerHTML = `<span style="font-size: 0.7em;">€</span>${minPrice.toFixed(4)}`;
+          document.getElementById('hora-min').textContent = `${minHour}:00 - ${minHour+1}:00`;
+          
+          document.getElementById('precio-max').innerHTML = `<span style="font-size: 0.7em;">€</span>${maxPrice.toFixed(4)}`;
+          document.getElementById('hora-max').textContent = `${maxHour}:00 - ${maxHour+1}:00`;
+          
+          document.getElementById('precio-avg').innerHTML = `<span style="font-size: 0.7em;">€</span>${avgPrice.toFixed(4)}`;
+
+          // Renderizar tabla
+          const tbody = document.getElementById('pvpc-tbody');
+          let html = '';
+
+          prices.forEach((price, hora) => {
+            const periodo = getPeriodoName(hora);
+            const isCurrentHour = hora === currentHour;
+            const isBarata = price === minPrice;
+            const isCara = price === maxPrice;
+            
+            let rowClass = '';
+            if (isCurrentHour) rowClass = 'hora-actual';
+            else if (isBarata) rowClass = 'hora-barata';
+            else if (isCara) rowClass = 'hora-cara';
+
+            html += `
+              <tr class="${rowClass}">
+                <td class="hora">${hora.toString().padStart(2, '0')}:00 - ${(hora+1).toString().padStart(2, '0')}:00</td>
+                <td class="precio">${formatPrice(price)}</td>
+                <td><span class="periodo ${periodo.class}">${periodo.name}</span></td>
+              </tr>
+            `;
+          });
+
+          tbody.innerHTML = html;
+
+        } catch (error) {
+          console.error('Error cargando PVPC:', error);
+          document.getElementById('pvpc-tbody').innerHTML = 
+            '<tr><td colspan="3" style="text-align: center; color: var(--danger); padding: 32px;">Error al cargar los precios. Por favor, recarga la página.</td></tr>';
+          
+          // Limpiar cards con mensaje de error
+          ['precio-ahora', 'precio-min', 'precio-max', 'precio-avg'].forEach(id => {
+            document.getElementById(id).textContent = '—';
+          });
+        }
+      };
+
+      // Cargar datos al cargar la página
+      loadPVPCData();
+
+      // Recargar cada hora
+      setInterval(loadPVPCData, 60 * 60 * 1000);
+    })();
+  </script>
+
+  <script src="tracking.js" defer></script>
+</body>
+</html>
