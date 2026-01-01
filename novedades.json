@@ -1,5 +1,12 @@
 [
   {
+    "fecha": "2026-01-01",
+    "tipo": "promo",
+    "titulo": "DISA Electricidad: 0 € en consumo hasta el 15 de febrero",
+    "texto": "DISA Electricidad lanza una promoción para nuevos clientes de su tarifa DISA Tranquilidad: bonificación del 100 % del consumo de energía (kWh) hasta el 15 de febrero de 2026. La bonificación no incluye potencia, impuestos u otros conceptos. Oferta sujeta a condiciones indicadas en sus <a href='https://ahorracondisaelectricidad.com/assets/static/BasesLegales-DISAElectricidad-PEN-ENE26.pdf' target='_blank' rel='noopener'>Bases legales</a>.",
+    "enlace": "https://ahorracondisaelectricidad.com/"
+  },
+  {
     "fecha": "2025-12-31",
     "tipo": "alerta",
     "titulo": "El 'modo reforzado' está encareciendo tu factura",
