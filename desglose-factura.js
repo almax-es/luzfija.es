@@ -251,19 +251,11 @@
             <div class="desglose-resumen-label">Saldo BV próximo mes</div>
             <div class="desglose-resumen-value">${this.fmt(d.bvSaldoFin)}</div>
           </div>` : ''}
-          ${(creditoPotencial > 0) ? `<div class="desglose-resumen-item">
-            <div class="desglose-resumen-label">Excedentes del periodo</div>
-            <div class="desglose-resumen-value">${this.fmt(creditoPotencial)}</div>
-          </div>` : ''}
           ${(d.credit1 > 0) ? `<div class="desglose-resumen-item">
             <div class="desglose-resumen-label">Compensación aplicada</div>
             <div class="desglose-resumen-value">${this.fmt(d.credit1)}</div>
             <div class="desglose-resumen-sub">💡 <strong>Tope legal:</strong> Solo se puede compensar hasta el coste del ${topeLabel} del mes.</div>
             ${(solarOn && precioComp > 0 && exKwh > 0) ? `<div class="desglose-resumen-sub">✅ Compensados: <strong>${this.fmtNum(kwhExUsados)}</strong> kWh · 🔋 A batería virtual: <strong>${this.fmtNum(kwhExSobrantes)}</strong> kWh</div>` : ''}
-          </div>` : ''}
-          ${(d.excedenteSobranteEur > 0) ? `<div class="desglose-resumen-item">
-            <div class="desglose-resumen-label">Sobrante de excedentes</div>
-            <div class="desglose-resumen-value">${this.fmt(d.excedenteSobranteEur)}</div>
           </div>` : ''}
         </div>
         ${(d.credit1 > 0 && creditoPotencial > d.credit1) ? `<div class="desglose-resumen-note">
@@ -298,22 +290,22 @@
         </div>
         <div class="desglose-linea desglose-linea-sub">
           <span class="desglose-concepto">→ Punta (P1)</span>
-          <span class="desglose-detalle">${this.fmtNum(datos.consumoPunta)} kWh × ${this.fmtNum(datos.precioPunta, 6)}/kWh</span>
+          <span class="desglose-detalle">${this.fmtNum(datos.consumoPunta)} kWh × ${this.fmtPrecio(datos.precioPunta)}/kWh</span>
           <span class="desglose-importe">${this.fmt(datos.consumoPunta * datos.precioPunta)}</span>
         </div>
         <div class="desglose-linea desglose-linea-sub">
           <span class="desglose-concepto">→ Llano (P2)</span>
-          <span class="desglose-detalle">${this.fmtNum(datos.consumoLlano)} kWh × ${this.fmtNum(datos.precioLlano, 6)}/kWh</span>
+          <span class="desglose-detalle">${this.fmtNum(datos.consumoLlano)} kWh × ${this.fmtPrecio(datos.precioLlano)}/kWh</span>
           <span class="desglose-importe">${this.fmt(datos.consumoLlano * datos.precioLlano)}</span>
         </div>
         <div class="desglose-linea desglose-linea-sub">
           <span class="desglose-concepto">→ Valle (P3)</span>
-          <span class="desglose-detalle">${this.fmtNum(datos.consumoValle)} kWh × ${this.fmtNum(datos.precioValle, 6)}/kWh</span>
+          <span class="desglose-detalle">${this.fmtNum(datos.consumoValle)} kWh × ${this.fmtPrecio(datos.precioValle)}/kWh</span>
           <span class="desglose-importe">${this.fmt(datos.consumoValle * datos.precioValle)}</span>
         </div>
         ${d.credit1 > 0 ? `<div class="desglose-linea desglose-linea--hl-green">
           <span class="desglose-concepto">☀️ Compensación excedentes</span>
-          <span class="desglose-detalle">${this.fmtNum(datos.excedentes)} kWh × ${precioLabel} = ${this.fmt(creditoPotencial)}<br>Compensados: ${this.fmtNum(kwhExUsados)} kWh (${this.fmt(d.credit1)}) | A batería virtual: ${this.fmtNum(kwhExSobrantes)} kWh (${this.fmt(d.excedenteSobranteEur)})</span>
+          <span class="desglose-detalle">Generados: ${this.fmtNum(datos.excedentes)} kWh × ${precioLabel} = ${this.fmt(creditoPotencial)}<br>  ✅ Compensados hoy: ${this.fmtNum(kwhExUsados)} kWh (${this.fmt(d.credit1)})<br>  🔋 A batería virtual: ${this.fmtNum(kwhExSobrantes)} kWh (${this.fmt(d.excedenteSobranteEur)})</span>
           <span class="desglose-importe desglose-importe--pos">-${this.fmt(d.credit1)}</span>
         </div>
         <div class="desglose-linea">
@@ -442,6 +434,18 @@ this.modal.querySelector('.desglose-body').innerHTML = html;
     fmtNum(n, decimales = 2) {
       if (typeof n !== 'number') return '0,00';
       return n.toLocaleString('es-ES', { minimumFractionDigits: decimales, maximumFractionDigits: decimales });
+    },
+
+    // Formatear precio eliminando ceros innecesarios (ej: 0,182000 → 0,182)
+    fmtPrecio(n, maxDecimales = 6) {
+      if (typeof n !== 'number') return '0';
+      // Convertir a string con máximo de decimales
+      let str = n.toFixed(maxDecimales);
+      // Eliminar ceros finales
+      str = str.replace(/\.?0+$/, '');
+      // Reemplazar punto por coma (formato español)
+      str = str.replace('.', ',');
+      return str;
     }
   };
 
