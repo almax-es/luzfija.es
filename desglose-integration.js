@@ -183,31 +183,72 @@
 
     lfDbg('Inputs parseados:', inputs);
 
-    const tarifas = await cargarTarifas();
-    if (!tarifas || tarifas.length === 0) {
-      alert('Error: No se pudieron cargar las tarifas');
-      return;
-    }
-
-    // PASO 1: Buscar coincidencia EXACTA
-    let tarifa = tarifas.find(t => (t.nombre || t.id) === nombreTarifa);
+    let tarifa = null;
     
-    // PASO 2: Si no encuentra, buscar parcial priorizando nombres MÁS LARGOS
-    // (para que "Imagina Energía 3P" tenga prioridad sobre "Imagina Energía")
-    if (!tarifa) {
-      const candidatos = tarifas.filter(t => {
-        const n = t.nombre || t.id;
-        return n.includes(nombreTarifa) || nombreTarifa.includes(n);
-      });
+    // ✅ CASO ESPECIAL: Mi Tarifa personalizada
+    if (nombreTarifa === 'Mi tarifa ⭐') {
+      lfDbg('✅ Detectada tarifa personalizada');
       
-      // Ordenar por longitud de nombre (más largo primero)
-      candidatos.sort((a, b) => {
-        const nameA = a.nombre || a.id || '';
-        const nameB = b.nombre || b.id || '';
-        return nameB.length - nameA.length;
-      });
+      // Leer precios de Mi Tarifa desde los inputs del formulario
+      const mtPunta = parseNum(document.getElementById('mtPunta')?.value);
+      const mtLlano = parseNum(document.getElementById('mtLlano')?.value);
+      const mtValle = parseNum(document.getElementById('mtValle')?.value);
+      const mtP1 = parseNum(document.getElementById('mtP1')?.value);
+      const mtP2 = parseNum(document.getElementById('mtP2')?.value);
+      const mtPrecioExc = inputs.solarOn ? parseNum(document.getElementById('mtPrecioExc')?.value) : 0;
       
-      tarifa = candidatos[0];
+      // Validar que los campos estén completos
+      if (!mtPunta && mtPunta !== 0 || !mtLlano && mtLlano !== 0 || !mtValle && mtValle !== 0 || !mtP1 || !mtP2) {
+        alert('⚠️ Completa todos los campos de "Mi tarifa" para ver el desglose');
+        return;
+      }
+      
+      // Construir tarifa personalizada
+      const es1P = (mtPunta === mtLlano && mtLlano === mtValle);
+      tarifa = {
+        nombre: 'Mi tarifa ⭐',
+        tipo: es1P ? '1P' : '3P',
+        cPunta: mtPunta,
+        cLlano: mtLlano,
+        cValle: mtValle,
+        p1: mtP1,
+        p2: mtP2,
+        fv: {
+          exc: mtPrecioExc,
+          tipo: mtPrecioExc > 0 ? 'SIMPLE + BV' : 'NO COMPENSA',
+          tope: 'ENERGIA',
+          bv: mtPrecioExc > 0,
+          reglaBV: mtPrecioExc > 0 ? 'BV MES ANTERIOR' : 'NO APLICA'
+        }
+      };
+    } else {
+      // Cargar tarifas normales desde JSON
+      const tarifas = await cargarTarifas();
+      if (!tarifas || tarifas.length === 0) {
+        alert('Error: No se pudieron cargar las tarifas');
+        return;
+      }
+
+      // PASO 1: Buscar coincidencia EXACTA
+      tarifa = tarifas.find(t => (t.nombre || t.id) === nombreTarifa);
+      
+      // PASO 2: Si no encuentra, buscar parcial priorizando nombres MÁS LARGOS
+      // (para que "Imagina Energía 3P" tenga prioridad sobre "Imagina Energía")
+      if (!tarifa) {
+        const candidatos = tarifas.filter(t => {
+          const n = t.nombre || t.id;
+          return n.includes(nombreTarifa) || nombreTarifa.includes(n);
+        });
+        
+        // Ordenar por longitud de nombre (más largo primero)
+        candidatos.sort((a, b) => {
+          const nameA = a.nombre || a.id || '';
+          const nameB = b.nombre || b.id || '';
+          return nameB.length - nameA.length;
+        });
+        
+        tarifa = candidatos[0];
+      }
     }
 
     if (!tarifa) {
