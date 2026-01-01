@@ -128,30 +128,11 @@
       "requiereFV": false
     },
     {
-      "nombre": "Plenitude",
-      "cPunta": 0.111579,
-      "cLlano": 0.111579,
-      "cValle": 0.111579,
-      "p1": 0.073806,
-      "p2": 0.073806,
-      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
-      "tipo": "1P",
-      "requisitos": "Potencia contratada ≤ 5 kW",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Octopus Unicaja",
-      "cPunta": 0.113,
-      "cLlano": 0.113,
-      "cValle": 0.113,
-      "p1": 0.095,
+      "cPunta": 0.116,
+      "cLlano": 0.116,
+      "cValle": 0.116,
+      "p1": 0.097,
       "p2": 0.027,
       "web": "https://octopusenergy.es/unicaja#tarifas",
       "tipo": "1P",
@@ -161,6 +142,25 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "MES ACTUAL + BV"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Plenitude",
+      "cPunta": 0.116106,
+      "cLlano": 0.116106,
+      "cValle": 0.116106,
+      "p1": 0.075902,
+      "p2": 0.075902,
+      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
+      "tipo": "1P",
+      "requisitos": "Potencia contratada ≤ 5 kW",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
       },
       "requiereFV": false
     },
@@ -369,24 +369,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Octopus Unicaja 3P",
-      "cPunta": 0.182,
-      "cLlano": 0.11,
-      "cValle": 0.075,
-      "p1": 0.095,
-      "p2": 0.027,
-      "web": "https://octopusenergy.es/unicaja#tarifas",
-      "tipo": "3P",
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "MES ACTUAL + BV"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Esluz 3P",
       "cPunta": 0.182,
       "cLlano": 0.134,
@@ -403,6 +385,24 @@
         "reglaBV": "BV MES ANTERIOR"
       },
       "requiereFV": true
+    },
+    {
+      "nombre": "Octopus Unicaja 3P",
+      "cPunta": 0.188,
+      "cLlano": 0.113,
+      "cValle": 0.077,
+      "p1": 0.097,
+      "p2": 0.027,
+      "web": "https://octopusenergy.es/unicaja#tarifas",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "MES ACTUAL + BV"
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Naturgy noche 3P",
@@ -425,11 +425,11 @@
     },
     {
       "nombre": "Iberdrola Solar 3P",
-      "cPunta": 0.201,
-      "cLlano": 0.121,
+      "cPunta": 0.203,
+      "cLlano": 0.123,
       "cValle": 0.079,
       "p1": 0.086301,
-      "p2": 0.036986,
+      "p2": 0.042466,
       "web": "https://www.iberdrola.es/luz/plan-ahorro-solar",
       "tipo": "3P",
       "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
@@ -443,5 +443,5 @@
       "requiereFV": true
     }
   ],
-  "updatedAt": "2025-12-31T16:48:34.030Z"
+  "updatedAt": "2026-01-01T09:52:07.129Z"
 }
