@@ -298,17 +298,17 @@
         </div>
         <div class="desglose-linea desglose-linea-sub">
           <span class="desglose-concepto">→ Punta (P1)</span>
-          <span class="desglose-detalle">${this.fmtNum(datos.consumoPunta)} kWh × ${this.fmtNum(datos.precioPunta, 4)}/kWh</span>
+          <span class="desglose-detalle">${this.fmtNum(datos.consumoPunta)} kWh × ${this.fmtNum(datos.precioPunta, 6)}/kWh</span>
           <span class="desglose-importe">${this.fmt(datos.consumoPunta * datos.precioPunta)}</span>
         </div>
         <div class="desglose-linea desglose-linea-sub">
           <span class="desglose-concepto">→ Llano (P2)</span>
-          <span class="desglose-detalle">${this.fmtNum(datos.consumoLlano)} kWh × ${this.fmtNum(datos.precioLlano, 4)}/kWh</span>
+          <span class="desglose-detalle">${this.fmtNum(datos.consumoLlano)} kWh × ${this.fmtNum(datos.precioLlano, 6)}/kWh</span>
           <span class="desglose-importe">${this.fmt(datos.consumoLlano * datos.precioLlano)}</span>
         </div>
         <div class="desglose-linea desglose-linea-sub">
           <span class="desglose-concepto">→ Valle (P3)</span>
-          <span class="desglose-detalle">${this.fmtNum(datos.consumoValle)} kWh × ${this.fmtNum(datos.precioValle, 4)}/kWh</span>
+          <span class="desglose-detalle">${this.fmtNum(datos.consumoValle)} kWh × ${this.fmtNum(datos.precioValle, 6)}/kWh</span>
           <span class="desglose-importe">${this.fmt(datos.consumoValle * datos.precioValle)}</span>
         </div>
         ${d.credit1 > 0 ? `<div class="desglose-linea desglose-linea--hl-green">

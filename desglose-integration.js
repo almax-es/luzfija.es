@@ -28,22 +28,23 @@
     // Parser de respaldo robusto
     const str = String(v).trim();
     
-    // Detectar formato: si tiene punto seguido de 3 dígitos y luego coma, es formato europeo
+    // Detectar formato europeo: punto seguido de exactamente 3 dígitos y luego coma
     // Ejemplo: 1.234,56 -> el punto es separador de miles
     if (/\d\.\d{3},\d/.test(str)) {
       // Formato europeo: 1.234,56
       return parseFloat(str.replace(/\./g, '').replace(',', '.')) || 0;
     }
     
-    // Detectar formato: si tiene coma seguida de 3 dígitos y luego punto, es formato US
-    // Ejemplo: 1,234.56 -> la coma es separador de miles
-    if (/\d,\d{3}\.?\d/.test(str)) {
+    // Detectar formato US: coma seguida de exactamente 3 dígitos y luego punto
+    // IMPORTANTE: Solo si el punto aparece DESPUÉS de los 3 dígitos
+    // Válido: "1,234.56" - Inválido: "0,123456" (esto es decimal europeo con muchos decimales)
+    if (/\d,\d{3}\.\d/.test(str)) {
       // Formato US: 1,234.56
       return parseFloat(str.replace(/,/g, '')) || 0;
     }
     
     // Caso simple: solo coma como decimal (sin miles)
-    // Ejemplo: 3,45
+    // Ejemplo: 3,45 o 0,121212
     if (/^\d+,\d+$/.test(str)) {
       return parseFloat(str.replace(',', '.')) || 0;
     }
@@ -189,19 +190,27 @@
     if (nombreTarifa === 'Mi tarifa ⭐') {
       lfDbg('✅ Detectada tarifa personalizada');
       
-      // Leer precios de Mi Tarifa desde los inputs del formulario
-      const mtPunta = parseNum(document.getElementById('mtPunta')?.value);
-      const mtLlano = parseNum(document.getElementById('mtLlano')?.value);
-      const mtValle = parseNum(document.getElementById('mtValle')?.value);
-      const mtP1 = parseNum(document.getElementById('mtP1')?.value);
-      const mtP2 = parseNum(document.getElementById('mtP2')?.value);
-      const mtPrecioExc = inputs.solarOn ? parseNum(document.getElementById('mtPrecioExc')?.value) : 0;
+      // Leer valores RAW primero (antes de parsear)
+      const mtPuntaVal = document.getElementById('mtPunta')?.value?.trim() || '';
+      const mtLlanoVal = document.getElementById('mtLlano')?.value?.trim() || '';
+      const mtValleVal = document.getElementById('mtValle')?.value?.trim() || '';
+      const mtP1Val = document.getElementById('mtP1')?.value?.trim() || '';
+      const mtP2Val = document.getElementById('mtP2')?.value?.trim() || '';
+      const mtPrecioExcVal = document.getElementById('mtPrecioExc')?.value?.trim() || '';
       
-      // Validar que los campos estén completos
-      if (!mtPunta && mtPunta !== 0 || !mtLlano && mtLlano !== 0 || !mtValle && mtValle !== 0 || !mtP1 || !mtP2) {
+      // Validar que los campos NO estén vacíos
+      if (!mtPuntaVal || !mtLlanoVal || !mtValleVal || !mtP1Val || !mtP2Val) {
         alert('⚠️ Completa todos los campos de "Mi tarifa" para ver el desglose');
         return;
       }
+      
+      // Ahora sí parsear (ya sabemos que tienen valor)
+      const mtPunta = parseNum(mtPuntaVal);
+      const mtLlano = parseNum(mtLlanoVal);
+      const mtValle = parseNum(mtValleVal);
+      const mtP1 = parseNum(mtP1Val);
+      const mtP2 = parseNum(mtP2Val);
+      const mtPrecioExc = inputs.solarOn && mtPrecioExcVal ? parseNum(mtPrecioExcVal) : 0;
       
       // Construir tarifa personalizada
       const es1P = (mtPunta === mtLlano && mtLlano === mtValle);
