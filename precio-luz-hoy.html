@@ -136,39 +136,66 @@
     
     .precio-actual {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
       margin-top: 24px;
+    }
+    
+    @media (min-width: 768px) {
+      .precio-actual {
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+      }
     }
     
     .precio-card {
       background: var(--card2);
       border: 1px solid var(--border2);
       border-radius: 12px;
-      padding: 20px;
+      padding: 16px 12px;
       text-align: center;
     }
     
+    @media (min-width: 768px) {
+      .precio-card {
+        padding: 20px;
+      }
+    }
+    
     .precio-card-label {
-      font-size: 13px;
+      font-size: 11px;
       color: var(--muted2);
       text-transform: uppercase;
       letter-spacing: 0.5px;
-      margin-bottom: 8px;
+      margin-bottom: 6px;
       font-weight: 600;
     }
     
+    @media (min-width: 768px) {
+      .precio-card-label {
+        font-size: 13px;
+        margin-bottom: 8px;
+      }
+    }
+    
     .precio-card-value {
-      font-size: clamp(24px, 5vw, 32px);
+      font-size: clamp(20px, 4vw, 32px);
       font-weight: 800;
       color: var(--accent2);
       font-family: var(--mono);
+      line-height: 1.2;
     }
     
     .precio-card-hint {
-      font-size: 12px;
+      font-size: 11px;
       color: var(--muted);
       margin-top: 4px;
+    }
+    
+    @media (min-width: 768px) {
+      .precio-card-hint {
+        font-size: 12px;
+      }
     }
     
     .pvpc-table-container {
@@ -192,19 +219,33 @@
     }
     
     .pvpc-table th {
-      padding: 12px 8px;
+      padding: 10px 6px;
       text-align: left;
-      font-size: 13px;
+      font-size: 11px;
       color: var(--muted);
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
     
+    @media (min-width: 768px) {
+      .pvpc-table th {
+        padding: 12px 8px;
+        font-size: 13px;
+      }
+    }
+    
     .pvpc-table td {
-      padding: 14px 8px;
+      padding: 12px 6px;
       border-bottom: 1px solid var(--border);
-      font-size: 15px;
+      font-size: 14px;
+    }
+    
+    @media (min-width: 768px) {
+      .pvpc-table td {
+        padding: 14px 8px;
+        font-size: 15px;
+      }
     }
     
     .pvpc-table tbody tr:hover {
@@ -484,7 +525,12 @@
     (function() {
       const formatPrice = (price) => {
         if (!price || !Number.isFinite(price)) return '—';
-        return price.toFixed(4) + ' €';
+        return price.toFixed(4).replace('.', ',') + ' €';
+      };
+      
+      const formatPriceShort = (price) => {
+        if (!price || !Number.isFinite(price)) return '—';
+        return price.toFixed(4).replace('.', ',');
       };
 
       const getPeriodoName = (hora) => {
@@ -533,16 +579,16 @@
           const maxHour = prices.indexOf(maxPrice);
 
           // Actualizar cards
-          document.getElementById('precio-ahora').innerHTML = `<span style="font-size: 0.7em;">€</span>${currentPrice.toFixed(4)}`;
+          document.getElementById('precio-ahora').innerHTML = `<span style="font-size: 0.7em;">€</span>${formatPriceShort(currentPrice)}`;
           document.getElementById('hora-actual').textContent = `${currentHour}:00 - ${currentHour+1}:00`;
           
-          document.getElementById('precio-min').innerHTML = `<span style="font-size: 0.7em;">€</span>${minPrice.toFixed(4)}`;
+          document.getElementById('precio-min').innerHTML = `<span style="font-size: 0.7em;">€</span>${formatPriceShort(minPrice)}`;
           document.getElementById('hora-min').textContent = `${minHour}:00 - ${minHour+1}:00`;
           
-          document.getElementById('precio-max').innerHTML = `<span style="font-size: 0.7em;">€</span>${maxPrice.toFixed(4)}`;
+          document.getElementById('precio-max').innerHTML = `<span style="font-size: 0.7em;">€</span>${formatPriceShort(maxPrice)}`;
           document.getElementById('hora-max').textContent = `${maxHour}:00 - ${maxHour+1}:00`;
           
-          document.getElementById('precio-avg').innerHTML = `<span style="font-size: 0.7em;">€</span>${avgPrice.toFixed(4)}`;
+          document.getElementById('precio-avg').innerHTML = `<span style="font-size: 0.7em;">€</span>${formatPriceShort(avgPrice)}`;
 
           // Renderizar tabla
           const tbody = document.getElementById('pvpc-tbody');
