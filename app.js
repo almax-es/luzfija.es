@@ -656,18 +656,10 @@ window.lfDbg = lfDbg;
 
             let totalFinal = totalBase;
             if(solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV'){
+              // Batería Virtual: solo "BV MES ANTERIOR" (disponible = saldo del mes anterior)
               let disponible = bvSaldo;
-              let excedenteParaBv = excedenteSobranteEur;
-              if(fv.reglaBV === 'MES ACTUAL + BV'){
-                if((t.nombre || '').toLowerCase().includes('octopus')){
-                  excedenteParaBv = Math.min(excedenteParaBv, round2(1000 * precioExc));
-                }
-                disponible = bvSaldo + excedenteParaBv;
-              }
               credit2 = Math.min(clampNonNeg(disponible), totalBase);
-              if(fv.reglaBV === 'BV MES ANTERIOR') bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bvSaldo - credit2));
-              else if(fv.reglaBV === 'MES ACTUAL + BV') bvSaldoFin = round2(Math.max(0, (excedenteSobranteEur + bvSaldo) - credit2));
-              else bvSaldoFin = null;
+              bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bvSaldo - credit2));
               totalFinal = credit2 > 0 ? round2(Math.max(0, totalBase - credit2)) : totalBase;
             }
 
@@ -703,18 +695,10 @@ window.lfDbg = lfDbg;
 
             let totalFinal = totalBase;
             if(solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV'){
+              // Batería Virtual: solo "BV MES ANTERIOR" (disponible = saldo del mes anterior)
               let disponible = bvSaldo;
-              let excedenteParaBv = excedenteSobranteEur;
-              if(fv.reglaBV === 'MES ACTUAL + BV'){
-                if((t.nombre || '').toLowerCase().includes('octopus')){
-                  excedenteParaBv = Math.min(excedenteParaBv, round2(1000 * precioExc));
-                }
-                disponible = bvSaldo + excedenteParaBv;
-              }
               credit2 = Math.min(clampNonNeg(disponible), totalBase);
-              if(fv.reglaBV === 'BV MES ANTERIOR') bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bvSaldo - credit2));
-              else if(fv.reglaBV === 'MES ACTUAL + BV') bvSaldoFin = round2(Math.max(0, (excedenteSobranteEur + bvSaldo) - credit2));
-              else bvSaldoFin = null;
+              bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bvSaldo - credit2));
               totalFinal = credit2 > 0 ? round2(Math.max(0, totalBase - credit2)) : totalBase;
             }
 

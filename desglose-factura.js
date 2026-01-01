@@ -150,15 +150,10 @@
         let credit2 = 0, bvSaldoFin = null, totalFinal = totalBase;
 
         if (solarOn && tieneBV && tipoCompensacion === 'SIMPLE + BV') {
+          // Batería Virtual: solo "BV MES ANTERIOR" (disponible = saldo del mes anterior)
           let disponible = bateriaVirtual;
-          let excedenteParaBv = excedenteSobranteEur;
-          if (reglaBV === 'MES ACTUAL + BV') disponible = bateriaVirtual + excedenteParaBv;
-
           credit2 = Math.min(clampNonNeg(disponible), totalBase);
-
-          if (reglaBV === 'BV MES ANTERIOR') bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bateriaVirtual - credit2));
-          else if (reglaBV === 'MES ACTUAL + BV') bvSaldoFin = round2(Math.max(0, (excedenteSobranteEur + bateriaVirtual) - credit2));
-
+          bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bateriaVirtual - credit2));
           totalFinal = credit2 > 0 ? round2(Math.max(0, totalBase - credit2)) : totalBase;
         }
 
@@ -178,15 +173,10 @@
         let credit2 = 0, bvSaldoFin = null, totalFinal = totalBase;
 
         if (solarOn && tieneBV && tipoCompensacion === 'SIMPLE + BV') {
+          // Batería Virtual: solo "BV MES ANTERIOR" (disponible = saldo del mes anterior)
           let disponible = bateriaVirtual;
-          let excedenteParaBv = excedenteSobranteEur;
-          if (reglaBV === 'MES ACTUAL + BV') disponible = bateriaVirtual + excedenteParaBv;
-
           credit2 = Math.min(clampNonNeg(disponible), totalBase);
-
-          if (reglaBV === 'BV MES ANTERIOR') bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bateriaVirtual - credit2));
-          else if (reglaBV === 'MES ACTUAL + BV') bvSaldoFin = round2(Math.max(0, (excedenteSobranteEur + bateriaVirtual) - credit2));
-
+          bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bateriaVirtual - credit2));
           totalFinal = credit2 > 0 ? round2(Math.max(0, totalBase - credit2)) : totalBase;
         }
 
@@ -237,6 +227,10 @@
       const topeNoNeg = 'no puede dejar el término de energía en negativo';
       const pagoMes = (typeof d.totalFinal === 'number') ? d.totalFinal : d.totalBase;
       const bvActiva = Boolean(datos.tieneBV) && String(datos.tipoCompensacion || '').includes('BV');
+      
+      // Detectar si es Nufri (precio indexado, usamos estimación)
+      const esNufri = (datos.nombreTarifa || '').includes('Nufri');
+      const precioLabel = esNufri ? `${this.fmtNum(datos.precioCompensacion, 6)}/kWh <span style="color:#f59e0b">(est.)</span>` : `${this.fmtNum(datos.precioCompensacion, 6)}/kWh`;
 
       html += `<div class="desglose-resumen">
         <div class="desglose-resumen-grid">
@@ -273,6 +267,9 @@
         </div>
         ${(d.credit1 > 0 && creditoPotencial > d.credit1) ? `<div class="desglose-resumen-note">
           Has generado <strong>${this.fmt(creditoPotencial)}</strong> en excedentes, pero solo se han aplicado <strong>${this.fmt(d.credit1)}</strong> este mes porque la compensación está limitada al tope (<strong>${topeLabel} (€)</strong>). El sobrante ${bvActiva ? 'se acumula en la Batería Virtual' : 'no se compensa este mes'}.
+        </div>` : ''}
+        ${esNufri && compensa ? `<div class="desglose-resumen-note" style="background:#fffbeb;border-left:3px solid #f59e0b">
+          ⚠️ <strong>Precio estimado:</strong> Nufri paga excedentes a precio <strong>indexado</strong> (pool OMIE horario). El valor mostrado (${this.fmtNum(datos.precioCompensacion, 4)} €/kWh) es una <strong>estimación promedio</strong>. El precio real variará según el mercado eléctrico.
         </div>` : ''}
       </div>`;
 
@@ -315,7 +312,7 @@
         </div>
         ${d.credit1 > 0 ? `<div class="desglose-linea desglose-linea--hl-green">
           <span class="desglose-concepto">☀️ Compensación excedentes</span>
-          <span class="desglose-detalle">${this.fmtNum(datos.excedentes)} kWh × ${this.fmtNum(datos.precioCompensacion, 6)}/kWh = ${this.fmt(creditoPotencial)} · Usados: ${this.fmtNum(kwhExUsados)} kWh (${this.fmt(d.credit1)}) · Sobrante: ${this.fmtNum(kwhExSobrantes)} kWh (${this.fmt(d.excedenteSobranteEur)}) · Tope: ${topeLabel} (€)</span>
+          <span class="desglose-detalle">${this.fmtNum(datos.excedentes)} kWh × ${precioLabel} = ${this.fmt(creditoPotencial)} · Usados: ${this.fmtNum(kwhExUsados)} kWh (${this.fmt(d.credit1)}) · Sobrante: ${this.fmtNum(kwhExSobrantes)} kWh (${this.fmt(d.excedenteSobranteEur)}) · Tope: ${topeLabel} (€)</span>
           <span class="desglose-importe desglose-importe--pos">-${this.fmt(d.credit1)}</span>
         </div>
         <div class="desglose-linea">
