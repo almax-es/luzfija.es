@@ -23,6 +23,7 @@
   window.__LF_DesgloseFactura = {
     overlay: null,
     modal: null,
+    _openSeq: 0,
 
     init() {
       this.overlay = document.createElement('div');
@@ -58,18 +59,36 @@
     },
 
     abrir(datos) {
-      const desglose = this.calcularDesglose(datos);
-      this.renderizar(desglose, datos);
-      
-      requestAnimationFrame(() => {
-        this.overlay.classList.add('active');
-        this.modal.classList.add('active');
-        document.documentElement.style.overflow = 'hidden';
-        document.body.style.overflow = 'hidden';
-      });
+      // Init diferido (mejora INP): no creamos el modal hasta que el usuario lo abre
+      if (!this.modal || !this.overlay) this.init();
+
+      // Token para evitar renders tardíos si el usuario cierra rápido o abre otro desglose
+      const mySeq = ++this._openSeq;
+
+      // Mostrar el modal al instante (primera pintura rápida)
+      this.overlay.classList.add('active');
+      this.modal.classList.add('active');
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+
+      const body = this.modal.querySelector('.desglose-body');
+      if (body) {
+        body.innerHTML = `<div style="padding:14px; color: var(--muted); font-weight:700;">Calculando desglose…</div>`;
+      }
+
+      // Dejar que el navegador pinte y luego hacer el trabajo pesado
+      setTimeout(() => {
+        // Si se cerró o se abrió otro desglose, abortar
+        if (mySeq !== this._openSeq) return;
+        if (!this.modal || !this.modal.classList.contains('active')) return;
+        const desglose = this.calcularDesglose(datos);
+        this.renderizar(desglose, datos);
+      }, 0);
     },
 
     cerrar() {
+      // Invalida cualquier render diferido pendiente
+      this._openSeq++;
       this.overlay.classList.remove('active');
       this.modal.classList.remove('active');
       document.documentElement.style.overflow = '';
@@ -436,10 +455,6 @@ this.modal.querySelector('.desglose-body').innerHTML = html;
     }
   };
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => window.__LF_DesgloseFactura.init());
-  } else {
-    window.__LF_DesgloseFactura.init();
-  }
+  // Init diferido: se crea el modal solo al abrir un desglose.
 
 })();

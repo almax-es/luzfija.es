@@ -207,7 +207,7 @@
         if (rangoMatch) rangoFechas = { inicio: rangoMatch[1], fin: rangoMatch[2] };
       } catch (e) {}
 
-      console.group('PVPC parsearRespuestaPVPC (FIXED)');
+      if (PVPC_DEBUG) console.group('PVPC parsearRespuestaPVPC (FIXED)');
       try {
         lista.forEach(item => {
           const cabeceraRaw = stripHtml(item?.cabecera || item?.concepto || '').trim();
@@ -243,7 +243,7 @@
           }
         });
       } finally {
-        console.groupEnd();
+        if (PVPC_DEBUG) console.groupEnd();
       }
 
       if (meta.totalFactura <= 0) {
@@ -376,7 +376,7 @@
       pvpcDbg('Periodo:', periodo.periodoFacturacion, `(${dias} días)`);
       pvpcDbg(`Potencias: P1=${p1.toFixed(2)} P2=${p2.toFixed(2)} → promedio=${((p1+p2)/2).toFixed(1)}`);
       pvpcDbg(`Consumos: Punta=${Math.round(cPunta)} Llano=${Math.round(cLlano)} Valle=${Math.round(cValle)}`);
-      console.groupEnd();
+      if (PVPC_DEBUG) console.groupEnd();
 
       // 🔥 Si hay proxy, usarlo DIRECTAMENTE (evita request CORS inútil)
       const proxyBase = window.PVPC_PROXY_URL ? normalizeProxyBase(window.PVPC_PROXY_URL) : '';

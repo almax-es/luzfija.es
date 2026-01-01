@@ -97,111 +97,63 @@
     init();
   }
 
-  function init() {
+    function init() {
     lfDbg('Integración desglose inicializada');
     
     const tbody = document.querySelector('#tbody');
     if (!tbody) return;
 
-    const observer = new MutationObserver(() => {
-      const rows = tbody.querySelectorAll('tr');
-      rows.forEach((tr, idx) => {
-        if (tr.dataset.desgloseReady) return;
+    // ✅ Event delegation (sin MutationObserver): evita trabajo extra en cada re-render de tabla (mejora INP)
+    tbody.addEventListener('click', (ev) => {
+      const t = ev.target;
+      if (!t || !t.closest) return;
 
-        const tdTotal = tr.cells[5];
-        if (!tdTotal) return;
-        
-        const tdNombre = tr.cells[1];
-        if (!tdNombre) return;
-        
-        const nombreCompleto = tdNombre.textContent || '';
-        const nombre = nombreCompleto.split('\n')[0].replace(/[⚠️☀️🔋🔗ⓘ]/g, '').trim();
+      // Ignorar clics en enlaces/controles dentro de la celda
+      if (t.closest('a, button, input, select, textarea, .tooltip, .tooltip-icon')) return;
 
-        // ✨ MEJORA: Hacer el TOTAL claramente clickeable (precio + 💡 con buen "hit area")
-        tdTotal.style.cursor = 'pointer';
+      const td = t.closest('td');
+      if (!td) return;
+      if (!td.classList.contains('total-cell') && !td.classList.contains('tarifa-cell')) return;
 
-        // El <strong> de la celda TOTAL puede llevar info extra (BV) en data-*.
-        // Mantener la celda limpia visualmente y mostrar esos datos como ayuda (title).
-        const precioActual = tdTotal.querySelector('.js-total-amount');
-        let pill = tdTotal.querySelector('.total-pill');
-        if (!pill && precioActual) {
-          pill = document.createElement('span');
-          pill.className = 'total-pill';
-          pill.appendChild(precioActual);
-          tdTotal.appendChild(pill);
-        }
-        const pagas = precioActual?.dataset?.pagas;
-        const ranking = precioActual?.dataset?.ranking;
-        tdTotal.title = (pagas && ranking)
-          ? `Clic para ver desglose completo de la factura • Pagas: ${pagas} • Ranking: ${ranking}`
-          : 'Clic para ver desglose completo de la factura';
+      const tr = td.closest('tr');
+      const nombreTarifa = tr?.dataset?.tarifaNombre || '';
+      if (!nombreTarifa) return;
 
-        // Hacer el propio "precio" focusable (teclado) sin convertirlo en <a>
-        if (precioActual) {
-          precioActual.setAttribute('role', 'button');
-          precioActual.tabIndex = 0;
-          precioActual.addEventListener('keydown', (ev) => {
-            if (ev.key === 'Enter' || ev.key === ' ') {
-              ev.preventDefault();
-              tdTotal.click();
-            }
-          });
-        }
+      // PVPC no se puede desglosar (evita alertas por coincidencia parcial)
+      const esPvpc = tr?.dataset?.esPvpc === '1' || nombreTarifa.toLowerCase().includes('pvpc');
+      if (esPvpc) {
+        alert('⚠️ El desglose no está disponible para PVPC');
+        return;
+      }
 
-        // 🎯 Añadir icono visible junto al precio SOLO en dispositivos táctiles (para no comer ancho en desktop)
-        const isCoarse = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
-        if (isCoarse && precioActual && !tdTotal.querySelector('.desglose-icon')) {
-          const icon = document.createElement('span');
-          icon.className = 'desglose-icon';
-          icon.textContent = '💡';
-          icon.setAttribute('aria-hidden', 'true');
-          pill.appendChild(icon);
-        }
+      ev.stopPropagation();
 
-        tdTotal.onclick = function(e) {
-          e.stopPropagation();
+      // Feedback visual
+      td.classList.add('desglose-tap');
+      window.setTimeout(() => td.classList.remove('desglose-tap'), 180);
 
-          // Feedback visual (sin tocar estilos inline)
-          tdTotal.classList.add('desglose-tap');
-          window.setTimeout(() => tdTotal.classList.remove('desglose-tap'), 180);
+      // Vibración (móvil) si está disponible
+      if (navigator.vibrate) navigator.vibrate(td.classList.contains('total-cell') ? 35 : 20);
 
-          // Vibración en móviles compatibles
-          if (navigator.vibrate) navigator.vibrate(35);
-
-          mostrarDesglose(nombre);
-        };
-
-
-        // También permitir abrir el desglose al hacer clic en el nombre de la tarifa (desktop/móvil)
-        // Evitamos interferir con posibles iconos/controles dentro de la celda.
-        tdNombre.classList.add('tarifa-clickable');
-        tdNombre.title = 'Clic para ver desglose completo de la factura';
-        tdNombre.onclick = function(ev){
-          const t = ev.target;
-          if (t && t.closest && t.closest('a, button, input, select, textarea, .tooltip, .tooltip-icon')) return;
-          ev.stopPropagation();
-          tdNombre.classList.add('desglose-tap');
-          window.setTimeout(() => tdNombre.classList.remove('desglose-tap'), 180);
-          if (navigator.vibrate) navigator.vibrate(20);
-          mostrarDesglose(nombre);
-        };
-        tdNombre.setAttribute('aria-label','Ver desglose completo de la factura');
-        tdNombre.setAttribute('role','button');
-        tdNombre.tabIndex = 0;
-        tdNombre.addEventListener('keydown', (ev) => {
-          if (ev.key === 'Enter' || ev.key === ' ') {
-            ev.preventDefault();
-            tdNombre.click();
-          }
-        });
-
-
-
-        tr.dataset.desgloseReady = 'true';
-      });
+      mostrarDesglose(nombreTarifa);
     });
 
-    observer.observe(tbody, { childList: true, subtree: true });
+    // Accesibilidad teclado (Enter/Espacio)
+    tbody.addEventListener('keydown', (ev) => {
+      if (ev.key !== 'Enter' && ev.key !== ' ') return;
+      const t = ev.target;
+      if (!t || !t.closest) return;
+
+      // No interferir con tooltips/links/controles (accesibilidad)
+      if (t.closest('a, button, input, select, textarea, .tooltip, .tooltip-icon')) return;
+
+      const td = t.closest('td');
+      if (!td) return;
+      if (!td.classList.contains('total-cell') && !td.classList.contains('tarifa-cell')) return;
+
+      ev.preventDefault();
+      td.click();
+    });
   }
 
   window.mostrarDesglose = async function(nombreTarifa) {

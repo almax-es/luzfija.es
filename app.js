@@ -1229,6 +1229,8 @@ window.lfDbg = lfDbg;
         }
       }, stepDuration);
     }
+    let __lf_tableRenderTimer = null;
+
     function renderTable(){
       const f = applyFilters(state.rows);
       const s = applySort(f);
@@ -1240,7 +1242,8 @@ window.lfDbg = lfDbg;
         return;
       }
 
-      requestAnimationFrame(() => {
+      clearTimeout(__lf_tableRenderTimer);
+      __lf_tableRenderTimer = setTimeout(() => {
         el.emptyBox.classList.remove('show');
         el.table.classList.add('show');
 
@@ -1251,6 +1254,8 @@ window.lfDbg = lfDbg;
           if (r.esPersonalizada) tr.classList.add('custom-tariff-highlight');
           
           const nombreBase = r.nombre || '';
+          tr.dataset.tarifaNombre = nombreBase;
+          tr.dataset.esPvpc = r.esPVPC ? '1' : '0';
 
           const w = r.webUrl && r.webUrl !== '#'
             ? `<a class="web" href="${escapeHtml(r.webUrl)}" target="_blank" rel="noopener noreferrer" title="Abrir web" aria-label="Abrir oferta de ${escapeHtml(nombreBase)}">`+
@@ -1365,11 +1370,11 @@ window.lfDbg = lfDbg;
             `${solarDetails || ""}`;
           tr.innerHTML =
             `<td>${idx + 1}</td>`+
-            `<td class="tarifa-cell" title="${escapeHtml(nombreBase)}">${nombreDisplay}</td>`+
+            `<td class="tarifa-cell" title="${escapeHtml(nombreBase)}" role="button" tabindex="0" aria-label="Ver desglose de ${escapeHtml(nombreBase)}">${nombreDisplay}</td>`+
             `<td>${escapeHtml(r.potencia)}</td>`+
             `<td>${escapeHtml(r.consumo)}</td>`+
             `<td>${escapeHtml(r.impuestos)}</td>`+
-            `<td class="total-cell"><span class="total-pill"><strong class="total-price js-total-amount"${isBV ? ` data-pagas="${escapeHtml(bvPagasFmt)}" data-ranking="${escapeHtml(bvRankingFmt)}"` : ""}>${escapeHtml(r.total)}</strong></span></td>`+
+            `<td class="total-cell" role="button" tabindex="0" title="${isBV ? `Clic para ver desglose completo • Pagas: ${escapeHtml(bvPagasFmt)} • Ranking: ${escapeHtml(bvRankingFmt)}` : `Clic para ver desglose completo de la factura`}"><span class="total-pill"><strong class="total-price js-total-amount"${isBV ? ` data-pagas="${escapeHtml(bvPagasFmt)}" data-ranking="${escapeHtml(bvRankingFmt)}"` : ""}>${escapeHtml(r.total)}</strong><span class="desglose-icon" aria-hidden="true">💡</span></span></td>`+
             `<td class="vs">${formatVsWithBar(r.vsMejor,r.vsMejorNum)}</td>`+
             `<td>${rowTipoBadge(r.tipo)}</td>`+
             `<td style="text-align:center">${w}</td>`;
@@ -1382,7 +1387,7 @@ window.lfDbg = lfDbg;
         el.tbody.querySelectorAll('.requisitos-icon').forEach(t => bindTooltipElement(t));
         el.tbody.querySelectorAll('.fv-icon').forEach(t => bindTooltipElement(t));
         updateSortIcons();
-      });
+      }, 0);
     }
 
     function renderTopChart() {
