@@ -631,15 +631,10 @@ window.lfDbg = lfDbg;
               } else if(exKwh > 0 && precioExc > 0){
                 fvApplied = true;
                 const creditoPotencial = round2(exKwh * precioExc);
-                let baseCompensable = cons;
-                if(fv.tope === 'ENERGIA + PEAJES + CARGOS') baseCompensable = cons + tarifaAcceso;
-                else if(fv.tope === 'ENERGIA') baseCompensable = cons;
+                // Compensación simplificada: siempre sobre término de energía (RD 244/2019 Art. 14)
+                const baseCompensable = cons;
                 credit1 = Math.min(creditoPotencial, baseCompensable);
                 consAdj = round2(Math.max(0, cons - credit1));
-                const restante = Math.max(0, credit1 - cons);
-                if(fv.tope === 'ENERGIA + PEAJES + CARGOS'){
-                  tarifaAdj = round2(Math.max(0, tarifaAcceso - restante));
-                }
                 excedenteSobranteEur = Math.max(0, creditoPotencial - credit1);
               }
             }

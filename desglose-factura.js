@@ -123,16 +123,11 @@
         const exKwh = clampNonNeg(excedentes);
         const creditoPotencial = round2(exKwh * precioCompensacion);
         
-        let baseCompensable = cons;
-        if (topeCompensacion === 'ENERGIA + PEAJES + CARGOS') baseCompensable = cons + tarifaAcceso;
+        // Compensación simplificada: siempre sobre término de energía (RD 244/2019 Art. 14)
+        const baseCompensable = cons;
 
         credit1 = Math.min(creditoPotencial, baseCompensable);
         consAdj = round2(Math.max(0, cons - credit1));
-
-        if (topeCompensacion === 'ENERGIA + PEAJES + CARGOS') {
-          const restante = Math.max(0, credit1 - cons);
-          tarifaAdj = round2(Math.max(0, tarifaAcceso - restante));
-        }
 
         excedenteSobranteEur = Math.max(0, creditoPotencial - credit1);
       }
@@ -237,12 +232,9 @@
       const kwhExUsados = (solarOn && precioComp > 0 && d.credit1 > 0) ? clampNonNeg(d.credit1 / precioComp) : 0;
       const kwhExSobrantes = (solarOn && precioComp > 0 && exKwh > 0) ? clampNonNeg(exKwh - kwhExUsados) : 0;
       const tope = String(datos.topeCompensacion || 'ENERGIA');
-      const topeLabel = (tope === 'ENERGIA + PEAJES + CARGOS')
-        ? 'coste del término de energía + peajes + cargos del periodo'
-        : 'coste del término de energía del periodo';
-      const topeNoNeg = (tope === 'ENERGIA + PEAJES + CARGOS')
-        ? 'no puede dejar ese conjunto en negativo'
-        : 'no puede dejar el término de energía en negativo';
+      // Etiquetas de texto para la explicación de compensación
+      const topeLabel = 'coste del término de energía del periodo';
+      const topeNoNeg = 'no puede dejar el término de energía en negativo';
       const pagoMes = (typeof d.totalFinal === 'number') ? d.totalFinal : d.totalBase;
       const bvActiva = Boolean(datos.tieneBV) && String(datos.tipoCompensacion || '').includes('BV');
 
