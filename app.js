@@ -1266,7 +1266,8 @@ window.lfDbg = lfDbg;
           // BV (batería virtual): NO pintamos "Pagas/Ranking" dentro de la celda TOTAL.
           // Motivo: la tabla usa table-layout:fixed + celdas nowrap; cualquier texto extra se corta o se sale.
           // En su lugar, guardamos ambos importes como data-* para mostrarlos como ayuda (tooltip/title) en el icono 💡.
-          const isBV = !!(r.fvTipo && r.fvTipo.includes('BV') && r.fvApplied);
+          // Mostramos bombilla siempre que la tarifa tenga BV (incluso si ese mes no hay excedentes)
+          const isBV = !!(r.fvTipo && r.fvTipo.includes('BV'));
           const bvPagasFmt = isBV ? formatMoney(totalFinal) : '';
           const bvRankingFmt = isBV ? formatMoney(totalRanking) : '';
           
