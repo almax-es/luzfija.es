@@ -208,88 +208,180 @@
       overflow: hidden;
     }
     
+    /* MÓVIL: Ocultar tabla, mostrar cards */
     .pvpc-table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 16px;
+      display: none;
+    }
+    
+    .pvpc-mobile-list {
+      display: block;
+    }
+    
+    .pvpc-mobile-item {
+      background: var(--card2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 8px;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      gap: 12px;
+      align-items: center;
+    }
+    
+    .pvpc-mobile-item.hora-actual {
+      background: rgba(139, 92, 246, 0.15);
+      border-color: var(--accent);
+      border-width: 2px;
+    }
+    
+    .pvpc-mobile-item.hora-barata {
+      background: rgba(34, 197, 94, 0.1);
+    }
+    
+    .pvpc-mobile-item.hora-cara {
+      background: rgba(239, 68, 68, 0.1);
+    }
+    
+    .pvpc-mobile-hora {
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: 15px;
+      color: var(--text);
+      min-width: 110px;
+    }
+    
+    .pvpc-mobile-precio {
+      font-family: var(--mono);
+      font-weight: 700;
+      font-size: 16px;
+      color: var(--accent2);
+      text-align: right;
+    }
+    
+    .pvpc-mobile-periodo {
+      font-size: 11px;
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    
+    /* DESKTOP: Mostrar tabla, ocultar cards */
+    @media (min-width: 768px) {
+      .pvpc-table {
+        display: table;
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 16px;
+      }
+      
+      .pvpc-mobile-list {
+        display: none;
+      }
     }
     
     .pvpc-table thead {
+      background: var(--card2);
       border-bottom: 2px solid var(--border2);
     }
     
     .pvpc-table th {
-      padding: 10px 6px;
+      padding: 14px 16px;
       text-align: left;
-      font-size: 11px;
+      font-size: 12px;
       color: var(--muted);
-      font-weight: 600;
+      font-weight: 700;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
+      letter-spacing: 0.8px;
     }
     
     @media (min-width: 768px) {
       .pvpc-table th {
-        padding: 12px 8px;
+        padding: 16px 20px;
         font-size: 13px;
       }
     }
     
+    .pvpc-table tbody tr {
+      transition: background 0.2s ease;
+    }
+    
+    .pvpc-table tbody tr:not(.hora-actual):not(.hora-barata):not(.hora-cara):hover {
+      background: var(--card2);
+    }
+    
     .pvpc-table td {
-      padding: 12px 6px;
+      padding: 16px 16px;
       border-bottom: 1px solid var(--border);
-      font-size: 14px;
+      font-size: 15px;
+      vertical-align: middle;
     }
     
     @media (min-width: 768px) {
       .pvpc-table td {
-        padding: 14px 8px;
-        font-size: 15px;
+        padding: 18px 20px;
+        font-size: 16px;
       }
-    }
-    
-    .pvpc-table tbody tr:hover {
-      background: var(--card2);
     }
     
     .pvpc-table .hora {
       font-weight: 600;
       color: var(--text);
       font-family: var(--mono);
+      white-space: nowrap;
+      min-width: 140px;
     }
     
     .pvpc-table .precio {
       font-weight: 700;
       font-family: var(--mono);
       color: var(--accent2);
+      font-size: 17px;
+      white-space: nowrap;
+    }
+    
+    @media (min-width: 768px) {
+      .pvpc-table .precio {
+        font-size: 18px;
+      }
     }
     
     .pvpc-table .periodo {
       font-size: 12px;
-      padding: 4px 10px;
-      border-radius: 6px;
+      padding: 6px 12px;
+      border-radius: 8px;
       display: inline-block;
-      font-weight: 600;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
     }
     
     .pvpc-table .periodo.punta {
-      background: rgba(239, 68, 68, 0.15);
-      color: var(--danger);
+      background: rgba(239, 68, 68, 0.2);
+      color: #EF4444;
+      border: 1px solid rgba(239, 68, 68, 0.3);
     }
     
     .pvpc-table .periodo.llano {
-      background: rgba(245, 158, 11, 0.15);
-      color: var(--warn);
+      background: rgba(245, 158, 11, 0.2);
+      color: #F59E0B;
+      border: 1px solid rgba(245, 158, 11, 0.3);
     }
     
     .pvpc-table .periodo.valle {
-      background: rgba(34, 197, 94, 0.15);
-      color: var(--accent2);
+      background: rgba(34, 197, 94, 0.2);
+      color: #22C55E;
+      border: 1px solid rgba(34, 197, 94, 0.3);
     }
     
     .pvpc-table tr.hora-actual {
-      background: rgba(139, 92, 246, 0.1);
-      border-left: 3px solid var(--accent);
+      background: rgba(139, 92, 246, 0.12);
+      border-left: 4px solid var(--accent);
+    }
+    
+    .pvpc-table tr.hora-actual td:first-child {
+      padding-left: 16px;
     }
     
     .pvpc-table tr.hora-barata {
@@ -429,6 +521,14 @@
         <h2 style="font-size: clamp(20px, 4vw, 28px); font-weight: 700; margin-bottom: 8px;">📊 Precios Hora a Hora</h2>
         <p style="color: var(--muted); font-size: 14px; margin-bottom: 16px;" id="fecha-tabla">Datos de hoy</p>
         
+        <!-- VERSIÓN MÓVIL: Cards apiladas -->
+        <div class="pvpc-mobile-list" id="pvpc-mobile-list">
+          <!-- Se rellena con JavaScript -->
+          <div class="pvpc-mobile-item"><div class="loading-skeleton" style="height: 20px;"></div></div>
+          <div class="pvpc-mobile-item"><div class="loading-skeleton" style="height: 20px;"></div></div>
+        </div>
+        
+        <!-- VERSIÓN DESKTOP: Tabla -->
         <div style="overflow-x: auto;">
           <table class="pvpc-table">
             <thead>
@@ -590,9 +690,13 @@
           
           document.getElementById('precio-avg').innerHTML = `<span style="font-size: 0.7em;">€</span>${formatPriceShort(avgPrice)}`;
 
-          // Renderizar tabla
+          // Renderizar tabla (desktop)
           const tbody = document.getElementById('pvpc-tbody');
-          let html = '';
+          let htmlTable = '';
+          
+          // Renderizar lista móvil
+          const mobileList = document.getElementById('pvpc-mobile-list');
+          let htmlMobile = '';
 
           prices.forEach((price, hora) => {
             const periodo = getPeriodoName(hora);
@@ -604,22 +708,36 @@
             if (isCurrentHour) rowClass = 'hora-actual';
             else if (isBarata) rowClass = 'hora-barata';
             else if (isCara) rowClass = 'hora-cara';
-
-            html += `
+            
+            const horaStr = `${hora.toString().padStart(2, '0')}:00 - ${(hora+1).toString().padStart(2, '0')}:00`;
+            
+            // Versión tabla (desktop)
+            htmlTable += `
               <tr class="${rowClass}">
-                <td class="hora">${hora.toString().padStart(2, '0')}:00 - ${(hora+1).toString().padStart(2, '0')}:00</td>
+                <td class="hora">${horaStr}</td>
                 <td class="precio">${formatPrice(price)}</td>
                 <td><span class="periodo ${periodo.class}">${periodo.name}</span></td>
               </tr>
             `;
+            
+            // Versión móvil (cards)
+            htmlMobile += `
+              <div class="pvpc-mobile-item ${rowClass}">
+                <div class="pvpc-mobile-hora">${horaStr}</div>
+                <div class="pvpc-mobile-precio">${formatPrice(price)}</div>
+                <div class="pvpc-mobile-periodo periodo ${periodo.class}">${periodo.name}</div>
+              </div>
+            `;
           });
 
-          tbody.innerHTML = html;
+          tbody.innerHTML = htmlTable;
+          mobileList.innerHTML = htmlMobile;
 
         } catch (error) {
           console.error('Error cargando PVPC:', error);
-          document.getElementById('pvpc-tbody').innerHTML = 
-            '<tr><td colspan="3" style="text-align: center; color: var(--danger); padding: 32px;">Error al cargar los precios. Por favor, recarga la página.</td></tr>';
+          const errorMsg = '<div style="text-align: center; color: var(--danger); padding: 32px;">Error al cargar los precios. Por favor, recarga la página.</div>';
+          document.getElementById('pvpc-tbody').innerHTML = '<tr><td colspan="3">' + errorMsg + '</td></tr>';
+          document.getElementById('pvpc-mobile-list').innerHTML = errorMsg;
           
           // Limpiar cards con mensaje de error
           ['precio-ahora', 'precio-min', 'precio-max', 'precio-avg'].forEach(id => {
