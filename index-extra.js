@@ -74,7 +74,7 @@
 
             const text = document.createElement('p');
             text.style.cssText = 'font-size:13px; color:var(--muted); margin:0; line-height:1.5;';
-            text.textContent = (nov.texto ?? '').toString();
+            text.innerHTML = (nov.texto ?? '').toString();
 
             content.appendChild(meta);
             content.appendChild(title);
