@@ -1048,38 +1048,82 @@ window.lfDbg = lfDbg;
       let message='';
 
       // Helper: Validar que un string sea numérico válido (solo dígitos, coma, punto, espacios)
-      function esNumericoValido(str) {
+      function esNumericoValido(str, maxDecimales = 2) {
         if (!str || !str.trim()) return false;
         const s = str.trim();
         
         // Rechazar si empieza o termina con punto o coma
         if (/^[.,]|[.,]$/.test(s)) return false;
         
+        // Límite de longitud total (razonable para evitar inputs absurdos)
+        if (s.length > 20) return false;
+        
+        // Rechazar espacios mal posicionados (solo permitir como separadores de miles válidos)
+        // Formato válido: "1 234,56" - Inválido: "1 2 3", "1 23,4", " 123"
+        if (/\s/.test(s)) {
+          // Si hay espacios, validar que sean separadores de miles correctos
+          const partes = s.split(/[,.]/).filter(p => p.length > 0);
+          if (partes.length === 0) return false;
+          
+          // Verificar cada parte separada por coma o punto
+          for (let i = 0; i < partes.length; i++) {
+            const parte = partes[i];
+            // La última parte (decimales) no debería tener espacios
+            if (i === partes.length - 1 && /\s/.test(parte)) {
+              return false;
+            }
+            // Partes enteras: permitir espacios solo en formato "1 234" (cada 3 dígitos)
+            if (i < partes.length - 1 && /\s/.test(parte)) {
+              // Validar formato: grupos de 3 dígitos separados por espacios
+              if (!/^\d{1,3}(\s\d{3})*$/.test(parte)) {
+                return false;
+              }
+            }
+          }
+        }
+        
         // Contar puntos y comas
         const numComas = (s.match(/,/g) || []).length;
         const numPuntos = (s.match(/\./g) || []).length;
         
-        // Permitir solo: sin decimales, o UNA coma, o UNO o más puntos (separadores de miles)
-        // Rechazar: múltiples comas, mezcla de punto decimal y coma decimal
-        if (numComas > 1) return false; // Rechazar 1,,7 o 1,2,3
+        // Rechazar múltiples comas
+        if (numComas > 1) return false;
+        
+        // Si hay coma y puntos, validar formato europeo
         if (numComas === 1 && numPuntos > 0) {
-          // Si hay coma y puntos, validar que sean separadores de miles correctos
-          // Formato válido: 1.234,56 (punto como miles, coma como decimal)
-          // Formato inválido: 1,234.56 (al revés) o 1.,7 o 1,.7
           const partsComa = s.split(',');
           if (partsComa.length !== 2) return false;
           const antesDecimal = partsComa[0];
           const despuesDecimal = partsComa[1];
           
-          // La parte decimal no debe tener puntos
-          if (despuesDecimal.includes('.')) return false; // Rechaza 1,2.3
+          // La parte decimal no debe tener puntos ni espacios
+          if (despuesDecimal.includes('.') || despuesDecimal.includes(' ')) return false;
           
-          // Validar formato de separadores de miles: dígitos con puntos opcionales cada 3
-          if (!/^\d{1,3}(\.\d{3})*$/.test(antesDecimal)) return false;
+          // Validar longitud de decimales
+          if (despuesDecimal.length > maxDecimales) return false;
+          
+          // Validar formato de separadores de miles (con puntos o espacios)
+          const sinEspacios = antesDecimal.replace(/\s/g, '');
+          if (!/^\d{1,3}(\.\d{3})*$/.test(sinEspacios) && !/^\d+$/.test(sinEspacios)) {
+            return false;
+          }
+        } else if (numComas === 1) {
+          // Solo coma (decimal), validar longitud de decimales
+          const partsComa = s.split(',');
+          if (partsComa.length === 2 && partsComa[1].length > maxDecimales) {
+            return false;
+          }
         }
         
-        // Permitir: dígitos, comas (máx 1), puntos (separadores de miles), espacios
-        return /^[\d.,\s]+$/.test(s);
+        // Validar que solo contenga caracteres permitidos
+        if (!/^[\d.,\s]+$/.test(s)) return false;
+        
+        // Validar que después de limpiar, queden solo dígitos y un separador decimal
+        const limpio = s.replace(/[\s.]/g, '').replace(',', '.');
+        const num = parseFloat(limpio);
+        if (!Number.isFinite(num)) return false;
+        
+        return true;
       }
 
       // ========== POTENCIAS P1 Y P2 ==========
@@ -1091,7 +1135,7 @@ window.lfDbg = lfDbg;
       if(!p1Raw){
         message='Introduce la potencia P1 (punta).';
         el.inputs.p1.classList.add('error');
-      } else if(!esNumericoValido(p1Raw)){
+      } else if(!esNumericoValido(p1Raw, 2)){
         message='La potencia P1 debe ser un número válido.';
         el.inputs.p1.classList.add('error');
       } else if(!Number.isFinite(p1Num) || p1Num <= 0){
@@ -1105,7 +1149,7 @@ window.lfDbg = lfDbg;
       if(!message && !p2Raw){
         message='Introduce la potencia P2 (valle).';
         el.inputs.p2.classList.add('error');
-      } else if(!message && !esNumericoValido(p2Raw)){
+      } else if(!message && !esNumericoValido(p2Raw, 2)){
         message='La potencia P2 debe ser un número válido.';
         el.inputs.p2.classList.add('error');
       } else if(!message && (!Number.isFinite(p2Num) || p2Num <= 0)){
@@ -1123,7 +1167,7 @@ window.lfDbg = lfDbg;
         if(!diasRaw){
           message='Introduce los días de facturación (1-365).';
           el.inputs.dias.classList.add('error');
-        } else if(!esNumericoValido(diasRaw)){
+        } else if(!esNumericoValido(diasRaw, 0)){
           message='Los días deben ser un número válido (sin letras ni símbolos).';
           el.inputs.dias.classList.add('error');
         } else if(!Number.isFinite(diasNum) || diasNum <= 0){
@@ -1150,7 +1194,7 @@ window.lfDbg = lfDbg;
         if(!cPuntaRaw){
           message='Introduce el consumo en punta.';
           el.inputs.cPunta.classList.add('error');
-        } else if(!esNumericoValido(cPuntaRaw)){
+        } else if(!esNumericoValido(cPuntaRaw, 2)){
           message='El consumo en punta debe ser un número válido.';
           el.inputs.cPunta.classList.add('error');
         } else if(!Number.isFinite(cPuntaNum) || cPuntaNum < 0){
@@ -1161,7 +1205,7 @@ window.lfDbg = lfDbg;
         if(!message && !cLlanoRaw){
           message='Introduce el consumo en llano.';
           el.inputs.cLlano.classList.add('error');
-        } else if(!message && !esNumericoValido(cLlanoRaw)){
+        } else if(!message && !esNumericoValido(cLlanoRaw, 2)){
           message='El consumo en llano debe ser un número válido.';
           el.inputs.cLlano.classList.add('error');
         } else if(!message && (!Number.isFinite(cLlanoNum) || cLlanoNum < 0)){
@@ -1172,7 +1216,7 @@ window.lfDbg = lfDbg;
         if(!message && !cValleRaw){
           message='Introduce el consumo en valle.';
           el.inputs.cValle.classList.add('error');
-        } else if(!message && !esNumericoValido(cValleRaw)){
+        } else if(!message && !esNumericoValido(cValleRaw, 2)){
           message='El consumo en valle debe ser un número válido.';
           el.inputs.cValle.classList.add('error');
         } else if(!message && (!Number.isFinite(cValleNum) || cValleNum < 0)){
@@ -1199,7 +1243,7 @@ window.lfDbg = lfDbg;
         if(!exTotalRaw){
           message='Introduce los excedentes totales (o 0 si no tienes).';
           el.inputs.exTotal.classList.add('error');
-        } else if(!esNumericoValido(exTotalRaw)){
+        } else if(!esNumericoValido(exTotalRaw, 2)){
           message='Los excedentes deben ser un número válido.';
           el.inputs.exTotal.classList.add('error');
         } else if(!Number.isFinite(exTotalNum) || exTotalNum < 0){
@@ -1210,7 +1254,7 @@ window.lfDbg = lfDbg;
         if(!message && !bvSaldoRaw){
           message='Introduce el saldo de batería virtual (o 0 si no tienes).';
           el.inputs.bvSaldo.classList.add('error');
-        } else if(!message && !esNumericoValido(bvSaldoRaw)){
+        } else if(!message && !esNumericoValido(bvSaldoRaw, 2)){
           message='El saldo de batería virtual debe ser un número válido.';
           el.inputs.bvSaldo.classList.add('error');
         } else if(!message && !Number.isFinite(bvSaldoNum)){
@@ -2297,35 +2341,69 @@ function agregarMiTarifa() {
   const tieneSolar = $('solarOn')?.checked || false;
   
   // Helper: Validar que un string sea numérico válido
-  function esNumericoValido(str) {
+  function esNumericoValido(str, maxDecimales = 2) {
     if (!str || !str.trim()) return false;
     const s = str.trim();
     
     // Rechazar si empieza o termina con punto o coma
     if (/^[.,]|[.,]$/.test(s)) return false;
     
+    // Límite de longitud total
+    if (s.length > 20) return false;
+    
+    // Rechazar espacios mal posicionados
+    if (/\s/.test(s)) {
+      const partes = s.split(/[,.]/).filter(p => p.length > 0);
+      if (partes.length === 0) return false;
+      
+      for (let i = 0; i < partes.length; i++) {
+        const parte = partes[i];
+        if (i === partes.length - 1 && /\s/.test(parte)) {
+          return false;
+        }
+        if (i < partes.length - 1 && /\s/.test(parte)) {
+          if (!/^\d{1,3}(\s\d{3})*$/.test(parte)) {
+            return false;
+          }
+        }
+      }
+    }
+    
     // Contar puntos y comas
     const numComas = (s.match(/,/g) || []).length;
     const numPuntos = (s.match(/\./g) || []).length;
     
-    // Permitir solo: sin decimales, o UNA coma, o UNO o más puntos (separadores de miles)
-    // Rechazar: múltiples comas, formatos incorrectos
-    if (numComas > 1) return false; // Rechazar 1,,7 o 1,2,3
+    // Rechazar múltiples comas
+    if (numComas > 1) return false;
+    
+    // Si hay coma y puntos, validar formato europeo
     if (numComas === 1 && numPuntos > 0) {
-      // Si hay coma y puntos, validar formato europeo: 1.234,56
       const partsComa = s.split(',');
       if (partsComa.length !== 2) return false;
       const antesDecimal = partsComa[0];
       const despuesDecimal = partsComa[1];
       
-      // La parte decimal no debe tener puntos
-      if (despuesDecimal.includes('.')) return false; // Rechaza 1,2.3
+      if (despuesDecimal.includes('.') || despuesDecimal.includes(' ')) return false;
+      if (despuesDecimal.length > maxDecimales) return false;
       
-      // Validar formato de separadores de miles
-      if (!/^\d{1,3}(\.\d{3})*$/.test(antesDecimal)) return false;
+      const sinEspacios = antesDecimal.replace(/\s/g, '');
+      if (!/^\d{1,3}(\.\d{3})*$/.test(sinEspacios) && !/^\d+$/.test(sinEspacios)) {
+        return false;
+      }
+    } else if (numComas === 1) {
+      const partsComa = s.split(',');
+      if (partsComa.length === 2 && partsComa[1].length > maxDecimales) {
+        return false;
+      }
     }
     
-    return /^[\d.,\s]+$/.test(s);
+    if (!/^[\d.,\s]+$/.test(s)) return false;
+    
+    const limpio = s.replace(/[\s.]/g, '').replace(',', '.');
+    const num = parseFloat(limpio);
+    if (!Number.isFinite(num)) return false;
+    
+    return true;
   }
   
   // Leer siempre los 6 campos
@@ -2341,13 +2419,13 @@ function agregarMiTarifa() {
     return null;
   }
   
-  // Validar que sean valores numéricos válidos
-  if (!esNumericoValido(puntaVal) || !esNumericoValido(llanoVal) || !esNumericoValido(valleVal)) {
+  // Validar que sean valores numéricos válidos (6 decimales para precios)
+  if (!esNumericoValido(puntaVal, 6) || !esNumericoValido(llanoVal, 6) || !esNumericoValido(valleVal, 6)) {
     toast('Los precios de energía deben ser números válidos (sin letras)');
     return null;
   }
   
-  if (!esNumericoValido(p1Val) || !esNumericoValido(p2Val)) {
+  if (!esNumericoValido(p1Val, 6) || !esNumericoValido(p2Val, 6)) {
     toast('Los precios de potencia deben ser números válidos (sin letras)');
     return null;
   }
@@ -2391,7 +2469,7 @@ function agregarMiTarifa() {
   if (tieneSolar) {
     const precioExcVal = $('mtPrecioExc')?.value?.trim() || '';
     if (precioExcVal) {
-      if (!esNumericoValido(precioExcVal)) {
+      if (!esNumericoValido(precioExcVal, 6)) {
         toast('El precio de compensación debe ser un número válido');
         return null;
       }
