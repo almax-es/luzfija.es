@@ -1047,14 +1047,149 @@ window.lfDbg = lfDbg;
       clearErrorStyles();
       let message='';
 
-      const diasRaw=String(el.inputs.dias.value||'').trim();
-      const diasNum=parseNum(el.inputs.dias.value);
-      if(!diasRaw){
-        message='Introduce los días de facturación (1-365).';
-        el.inputs.dias.classList.add('error');
-      } else if(!Number.isFinite(diasNum) || diasNum<=0){
-        message='Los días deben ser un número entre 1 y 365.';
-        el.inputs.dias.classList.add('error');
+      // Helper: Validar que un string sea numérico válido (solo dígitos, coma, punto, espacios)
+      function esNumericoValido(str) {
+        if (!str || !str.trim()) return false;
+        // Permitir: dígitos, comas, puntos, espacios
+        return /^[\d.,\s]+$/.test(str.trim());
+      }
+
+      // ========== POTENCIAS P1 Y P2 ==========
+      const p1Raw = String(el.inputs.p1.value||'').trim();
+      const p1Num = parseNum(el.inputs.p1.value);
+      const p2Raw = String(el.inputs.p2.value||'').trim();
+      const p2Num = parseNum(el.inputs.p2.value);
+      
+      if(!p1Raw){
+        message='Introduce la potencia P1 (punta).';
+        el.inputs.p1.classList.add('error');
+      } else if(!esNumericoValido(p1Raw)){
+        message='La potencia P1 debe ser un número válido.';
+        el.inputs.p1.classList.add('error');
+      } else if(!Number.isFinite(p1Num) || p1Num <= 0){
+        message='La potencia P1 debe ser mayor que 0 kW.';
+        el.inputs.p1.classList.add('error');
+      } else if(p1Num > 15){
+        message='La potencia P1 parece muy alta (máximo habitual: 15 kW).';
+        el.inputs.p1.classList.add('error');
+      }
+      
+      if(!message && !p2Raw){
+        message='Introduce la potencia P2 (valle).';
+        el.inputs.p2.classList.add('error');
+      } else if(!message && !esNumericoValido(p2Raw)){
+        message='La potencia P2 debe ser un número válido.';
+        el.inputs.p2.classList.add('error');
+      } else if(!message && (!Number.isFinite(p2Num) || p2Num <= 0)){
+        message='La potencia P2 debe ser mayor que 0 kW.';
+        el.inputs.p2.classList.add('error');
+      } else if(!message && p2Num > 15){
+        message='La potencia P2 parece muy alta (máximo habitual: 15 kW).';
+        el.inputs.p2.classList.add('error');
+      }
+
+      // ========== DÍAS DE FACTURACIÓN ==========
+      if(!message){
+        const diasRaw = String(el.inputs.dias.value||'').trim();
+        const diasNum = parseNum(el.inputs.dias.value);
+        if(!diasRaw){
+          message='Introduce los días de facturación (1-365).';
+          el.inputs.dias.classList.add('error');
+        } else if(!esNumericoValido(diasRaw)){
+          message='Los días deben ser un número válido (sin letras ni símbolos).';
+          el.inputs.dias.classList.add('error');
+        } else if(!Number.isFinite(diasNum) || diasNum <= 0){
+          message='Los días deben ser mayores que 0.';
+          el.inputs.dias.classList.add('error');
+        } else if(diasNum > 365){
+          message='Los días no pueden superar 365.';
+          el.inputs.dias.classList.add('error');
+        } else if(diasNum % 1 !== 0){
+          message='Los días deben ser un número entero (sin decimales).';
+          el.inputs.dias.classList.add('error');
+        }
+      }
+
+      // ========== CONSUMOS PUNTA, LLANO, VALLE ==========
+      if(!message){
+        const cPuntaRaw = String(el.inputs.cPunta.value||'').trim();
+        const cPuntaNum = parseNum(el.inputs.cPunta.value);
+        const cLlanoRaw = String(el.inputs.cLlano.value||'').trim();
+        const cLlanoNum = parseNum(el.inputs.cLlano.value);
+        const cValleRaw = String(el.inputs.cValle.value||'').trim();
+        const cValleNum = parseNum(el.inputs.cValle.value);
+        
+        if(!cPuntaRaw){
+          message='Introduce el consumo en punta.';
+          el.inputs.cPunta.classList.add('error');
+        } else if(!esNumericoValido(cPuntaRaw)){
+          message='El consumo en punta debe ser un número válido.';
+          el.inputs.cPunta.classList.add('error');
+        } else if(!Number.isFinite(cPuntaNum) || cPuntaNum < 0){
+          message='El consumo en punta no puede ser negativo.';
+          el.inputs.cPunta.classList.add('error');
+        }
+        
+        if(!message && !cLlanoRaw){
+          message='Introduce el consumo en llano.';
+          el.inputs.cLlano.classList.add('error');
+        } else if(!message && !esNumericoValido(cLlanoRaw)){
+          message='El consumo en llano debe ser un número válido.';
+          el.inputs.cLlano.classList.add('error');
+        } else if(!message && (!Number.isFinite(cLlanoNum) || cLlanoNum < 0)){
+          message='El consumo en llano no puede ser negativo.';
+          el.inputs.cLlano.classList.add('error');
+        }
+        
+        if(!message && !cValleRaw){
+          message='Introduce el consumo en valle.';
+          el.inputs.cValle.classList.add('error');
+        } else if(!message && !esNumericoValido(cValleRaw)){
+          message='El consumo en valle debe ser un número válido.';
+          el.inputs.cValle.classList.add('error');
+        } else if(!message && (!Number.isFinite(cValleNum) || cValleNum < 0)){
+          message='El consumo en valle no puede ser negativo.';
+          el.inputs.cValle.classList.add('error');
+        }
+        
+        // Validar que al menos haya algo de consumo
+        if(!message && cPuntaNum === 0 && cLlanoNum === 0 && cValleNum === 0){
+          message='Debe haber consumo en al menos uno de los periodos.';
+          el.inputs.cPunta.classList.add('error');
+          el.inputs.cLlano.classList.add('error');
+          el.inputs.cValle.classList.add('error');
+        }
+      }
+
+      // ========== PLACAS SOLARES (si están activadas) ==========
+      if(!message && el.inputs.solarOn?.checked){
+        const exTotalRaw = String(el.inputs.exTotal.value||'').trim();
+        const exTotalNum = parseNum(el.inputs.exTotal.value);
+        const bvSaldoRaw = String(el.inputs.bvSaldo.value||'').trim();
+        const bvSaldoNum = parseNum(el.inputs.bvSaldo.value);
+        
+        if(!exTotalRaw){
+          message='Introduce los excedentes totales (o 0 si no tienes).';
+          el.inputs.exTotal.classList.add('error');
+        } else if(!esNumericoValido(exTotalRaw)){
+          message='Los excedentes deben ser un número válido.';
+          el.inputs.exTotal.classList.add('error');
+        } else if(!Number.isFinite(exTotalNum) || exTotalNum < 0){
+          message='Los excedentes no pueden ser negativos.';
+          el.inputs.exTotal.classList.add('error');
+        }
+        
+        if(!message && !bvSaldoRaw){
+          message='Introduce el saldo de batería virtual (o 0 si no tienes).';
+          el.inputs.bvSaldo.classList.add('error');
+        } else if(!message && !esNumericoValido(bvSaldoRaw)){
+          message='El saldo de batería virtual debe ser un número válido.';
+          el.inputs.bvSaldo.classList.add('error');
+        } else if(!message && !Number.isFinite(bvSaldoNum)){
+          message='El saldo de batería virtual debe ser un número válido.';
+          el.inputs.bvSaldo.classList.add('error');
+        }
+        // El saldo BV puede ser negativo (debe dinero) o positivo (tiene saldo)
       }
 
       state.hasValidationError=Boolean(message);
@@ -2130,15 +2265,64 @@ function agregarMiTarifa() {
   
   const tieneSolar = $('solarOn')?.checked || false;
   
-  // Leer siempre los 6 campos
-  const punta = parseNum($('mtPunta')?.value || '0');
-  const llano = parseNum($('mtLlano')?.value || '0');
-  const valle = parseNum($('mtValle')?.value || '0');
-  const p1 = parseNum($('mtP1')?.value || '0');
-  const p2 = parseNum($('mtP2')?.value || '0');
+  // Helper: Validar que un string sea numérico válido
+  function esNumericoValido(str) {
+    if (!str || !str.trim()) return false;
+    return /^[\d.,\s]+$/.test(str.trim());
+  }
   
-  if (punta <= 0 || llano <= 0 || valle <= 0 || p1 <= 0 || p2 <= 0) {
+  // Leer siempre los 6 campos
+  const puntaVal = $('mtPunta')?.value?.trim() || '';
+  const llanoVal = $('mtLlano')?.value?.trim() || '';
+  const valleVal = $('mtValle')?.value?.trim() || '';
+  const p1Val = $('mtP1')?.value?.trim() || '';
+  const p2Val = $('mtP2')?.value?.trim() || '';
+  
+  // Validar que los campos no estén vacíos
+  if (!puntaVal || !llanoVal || !valleVal || !p1Val || !p2Val) {
     toast('Completa todos los campos de tu tarifa');
+    return null;
+  }
+  
+  // Validar que sean valores numéricos válidos
+  if (!esNumericoValido(puntaVal) || !esNumericoValido(llanoVal) || !esNumericoValido(valleVal)) {
+    toast('Los precios de energía deben ser números válidos (sin letras)');
+    return null;
+  }
+  
+  if (!esNumericoValido(p1Val) || !esNumericoValido(p2Val)) {
+    toast('Los precios de potencia deben ser números válidos (sin letras)');
+    return null;
+  }
+  
+  // Parsear los valores (ahora sí pueden ser 0 si el usuario lo pone explícitamente)
+  const punta = parseNum(puntaVal);
+  const llano = parseNum(llanoVal);
+  const valle = parseNum(valleVal);
+  const p1 = parseNum(p1Val);
+  const p2 = parseNum(p2Val);
+  
+  // Validar que no sean negativos
+  if (punta < 0 || llano < 0 || valle < 0 || p1 < 0 || p2 < 0) {
+    toast('Los precios no pueden ser negativos');
+    return null;
+  }
+  
+  // Validar que las potencias no sean cero (no tiene sentido potencia gratis)
+  if (p1 === 0 || p2 === 0) {
+    toast('Las potencias P1 y P2 deben ser mayores que 0');
+    return null;
+  }
+  
+  // Validar límites razonables para precios de energía (máximo 1 €/kWh)
+  if (punta > 1 || llano > 1 || valle > 1) {
+    toast('Los precios de energía parecen muy altos (máximo: 1 €/kWh)');
+    return null;
+  }
+  
+  // Validar límites razonables para potencias (máximo 1 €/kW/día)
+  if (p1 > 1 || p2 > 1) {
+    toast('Los precios de potencia parecen muy altos (máximo: 1 €/kW/día)');
     return null;
   }
   
@@ -2146,7 +2330,71 @@ function agregarMiTarifa() {
   const es1P = (punta === llano && llano === valle);
   
   // Precio de compensación solar (si aplica)
-  const precioExc = tieneSolar ? parseNum($('mtPrecioExc')?.value || '0') : 0;
+  let precioExc = 0;
+  if (tieneSolar) {
+    const precioExcVal = $('mtPrecioExc')?.value?.trim() || '';
+    if (precioExcVal) {
+      if (!esNumericoValido(precioExcVal)) {
+        toast('El precio de compensación debe ser un número válido');
+        return null;
+      }
+      precioExc = parseNum(precioExcVal);
+      if (precioExc < 0) {
+        toast('El precio de compensación no puede ser negativo');
+        return null;
+      }
+      if (precioExc > 0.5) {
+        toast('El precio de compensación parece muy alto (máximo habitual: 0,5 €/kWh)');
+        return null;
+      }
+    }
+  }
+  
+  const tarifa = {
+    nombre: 'Mi tarifa ⭐',
+    tipo: es1P ? '1P' : '3P',
+    cPunta: punta,
+    cLlano: llano,
+    cValle: valle,
+    p1: p1,
+    p2: p2,
+    web: '#',
+    esPersonalizada: true,
+    fv: {
+      exc: precioExc,
+      tipo: precioExc > 0 ? 'SIMPLE + BV' : 'NO COMPENSA',
+      tope: 'ENERGIA',
+      bv: precioExc > 0,
+      reglaBV: precioExc > 0 ? 'BV MES ANTERIOR' : 'NO APLICA'
+    },
+    requiereFV: false
+  };
+  
+  return tarifa;
+}
+  
+  const tarifa = {
+    nombre: 'Mi tarifa ⭐',
+    tipo: es1P ? '1P' : '3P',
+    cPunta: punta,
+    cLlano: llano,
+    cValle: valle,
+    p1: p1,
+    p2: p2,
+    web: '#',
+    esPersonalizada: true,
+    fv: {
+      exc: precioExc,
+      tipo: precioExc > 0 ? 'SIMPLE + BV' : 'NO COMPENSA',
+      tope: 'ENERGIA',
+      bv: precioExc > 0,
+      reglaBV: precioExc > 0 ? 'BV MES ANTERIOR' : 'NO APLICA'
+    },
+    requiereFV: false
+  };
+  
+  return tarifa;
+}
   
   const tarifa = {
     nombre: 'Mi tarifa ⭐',
