@@ -371,7 +371,7 @@
 
       const apiUrl = `https://comparador.cnmc.gob.es/api/ofertas/pvpc?${params.toString()}`;
 
-      console.group('PVPC obtenerPVPC_CNMC');
+      if (PVPC_DEBUG) console.group('PVPC obtenerPVPC_CNMC');
       pvpcDbg('API URL:', apiUrl);
       pvpcDbg('Periodo:', periodo.periodoFacturacion, `(${dias} días)`);
       pvpcDbg(`Potencias: P1=${p1.toFixed(2)} P2=${p2.toFixed(2)} → promedio=${((p1+p2)/2).toFixed(1)}`);
