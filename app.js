@@ -1050,8 +1050,36 @@ window.lfDbg = lfDbg;
       // Helper: Validar que un string sea numérico válido (solo dígitos, coma, punto, espacios)
       function esNumericoValido(str) {
         if (!str || !str.trim()) return false;
-        // Permitir: dígitos, comas, puntos, espacios
-        return /^[\d.,\s]+$/.test(str.trim());
+        const s = str.trim();
+        
+        // Rechazar si empieza o termina con punto o coma
+        if (/^[.,]|[.,]$/.test(s)) return false;
+        
+        // Contar puntos y comas
+        const numComas = (s.match(/,/g) || []).length;
+        const numPuntos = (s.match(/\./g) || []).length;
+        
+        // Permitir solo: sin decimales, o UNA coma, o UNO o más puntos (separadores de miles)
+        // Rechazar: múltiples comas, mezcla de punto decimal y coma decimal
+        if (numComas > 1) return false; // Rechazar 1,,7 o 1,2,3
+        if (numComas === 1 && numPuntos > 0) {
+          // Si hay coma y puntos, validar que sean separadores de miles correctos
+          // Formato válido: 1.234,56 (punto como miles, coma como decimal)
+          // Formato inválido: 1,234.56 (al revés) o 1.,7 o 1,.7
+          const partsComa = s.split(',');
+          if (partsComa.length !== 2) return false;
+          const antesDecimal = partsComa[0];
+          const despuesDecimal = partsComa[1];
+          
+          // La parte decimal no debe tener puntos
+          if (despuesDecimal.includes('.')) return false; // Rechaza 1,2.3
+          
+          // Validar formato de separadores de miles: dígitos con puntos opcionales cada 3
+          if (!/^\d{1,3}(\.\d{3})*$/.test(antesDecimal)) return false;
+        }
+        
+        // Permitir: dígitos, comas (máx 1), puntos (separadores de miles), espacios
+        return /^[\d.,\s]+$/.test(s);
       }
 
       // ========== POTENCIAS P1 Y P2 ==========
@@ -2271,7 +2299,33 @@ function agregarMiTarifa() {
   // Helper: Validar que un string sea numérico válido
   function esNumericoValido(str) {
     if (!str || !str.trim()) return false;
-    return /^[\d.,\s]+$/.test(str.trim());
+    const s = str.trim();
+    
+    // Rechazar si empieza o termina con punto o coma
+    if (/^[.,]|[.,]$/.test(s)) return false;
+    
+    // Contar puntos y comas
+    const numComas = (s.match(/,/g) || []).length;
+    const numPuntos = (s.match(/\./g) || []).length;
+    
+    // Permitir solo: sin decimales, o UNA coma, o UNO o más puntos (separadores de miles)
+    // Rechazar: múltiples comas, formatos incorrectos
+    if (numComas > 1) return false; // Rechazar 1,,7 o 1,2,3
+    if (numComas === 1 && numPuntos > 0) {
+      // Si hay coma y puntos, validar formato europeo: 1.234,56
+      const partsComa = s.split(',');
+      if (partsComa.length !== 2) return false;
+      const antesDecimal = partsComa[0];
+      const despuesDecimal = partsComa[1];
+      
+      // La parte decimal no debe tener puntos
+      if (despuesDecimal.includes('.')) return false; // Rechaza 1,2.3
+      
+      // Validar formato de separadores de miles
+      if (!/^\d{1,3}(\.\d{3})*$/.test(antesDecimal)) return false;
+    }
+    
+    return /^[\d.,\s]+$/.test(s);
   }
   
   // Leer siempre los 6 campos
