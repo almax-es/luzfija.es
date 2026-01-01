@@ -120,10 +120,10 @@
       "tipo": "1P",
       "fv": {
         "exc": 0.04,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA + PEAJES + CARGOS",
-        "bv": false,
-        "reglaBV": "NO APLICA"
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
       },
       "requiereFV": false
     },
@@ -287,10 +287,10 @@
       "tipo": "3P",
       "fv": {
         "exc": 0.04,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA + PEAJES + CARGOS",
-        "bv": false,
-        "reglaBV": "NO APLICA"
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
       },
       "requiereFV": false
     },
@@ -443,5 +443,5 @@
       "requiereFV": true
     }
   ],
-  "updatedAt": "2026-01-01T17:29:14.398Z"
+  "updatedAt": "2026-01-01T18:04:27.188Z"
 }
