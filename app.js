@@ -2183,23 +2183,37 @@ function parseCSVConsumos(fileContent) {
    * FORMATOS SOPORTADOS:
    * 1. e-distribución BÁSICO: CUPS;Fecha;Hora;AE_kWh;REAL/ESTIMADO
    * 2. e-distribución CON SOLAR: CUPS;Fecha;Hora;AE_kWh;AS_KWh;AE_AUTOCONS_kWh;REAL/ESTIMADO
-   * 3. i-DE (Iberdrola): CUPS;Fecha;Hora;Consumo_kWh;Metodo_obtencion
+   * 3. i-DE (Iberdrola distribución): CUPS;Fecha;Hora;Consumo_kWh;Metodo_obtencion
+   * 4. Iberdrola Cliente (nuevo): CUPS,FECHA-HORA,INV / VER,PERIODO TARIFARIO,CONSUMO Wh,GENERACION Wh
    * 
    * Formato estándar CNMC:
    * - Fechas: DD/MM/YYYY
    * - Horas: 1-24 (no 0-23)
    * - Separador: punto y coma (;)
+   * 
+   * Formato Iberdrola Cliente:
+   * - Fechas: YYYY/MM/DD HH:MM
+   * - Separador: coma (,)
+   * - Unidades: Wh (se convierten a kWh)
    */
   const lines = fileContent.split('\n');
   if (lines.length < 2) throw new Error('CSV vacío o inválido');
   
   const header = lines[0].toLowerCase();
   
+  // Detectar formato Iberdrola Cliente
+  const isIberdrolaCliente = header.includes('consumo wh') && header.includes('generacion wh');
+  
   // Detectar formato estándar español (CNMC)
   const isFormatoEspanol = header.includes('ae_kwh') || header.includes('consumo_kwh');
   
-  if (!isFormatoEspanol) {
-    throw new Error('Formato CSV no reconocido. Se esperaba el formato estándar de distribuidoras españolas (e-distribución, i-DE, etc.)');
+  if (!isFormatoEspanol && !isIberdrolaCliente) {
+    throw new Error('Formato CSV no reconocido. Se esperaba el formato estándar de distribuidoras españolas (e-distribución, i-DE, Iberdrola)');
+  }
+  
+  // Formato Iberdrola Cliente (CSV con comas)
+  if (isIberdrolaCliente) {
+    return parseCSVIberdrolaCliente(lines);
   }
   
   // Detectar si tiene columnas de solar
@@ -2259,6 +2273,71 @@ function parseCSVConsumos(fileContent) {
       excedente,     // Energía vertida a red (AS_KWh)
       autoconsumo,   // Energía solar autoconsumida (AE_AUTOCONS_kWh)
       esReal 
+    });
+  }
+  
+  return consumos;
+}
+
+/**
+ * Parsea CSV formato Iberdrola Cliente
+ * Formato: CUPS,FECHA-HORA,INV / VER,PERIODO TARIFARIO,CONSUMO Wh,GENERACION Wh
+ * Ejemplo: ES0021000001201436MM,2025/12/31 4:00,0,Valle,4148,0
+ */
+function parseCSVIberdrolaCliente(lines) {
+  const consumos = [];
+  
+  for (let i = 1; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) continue;
+    
+    const cols = line.split(',');
+    if (cols.length < 6) continue;
+    
+    // Columnas: CUPS, FECHA-HORA, INV/VER, PERIODO, CONSUMO Wh, GENERACION Wh
+    const fechaHoraStr = cols[1];  // "2025/12/31 4:00"
+    const consumoWhStr = cols[4];  // "4148"
+    const generacionWhStr = cols[5];  // "0"
+    
+    if (!fechaHoraStr || !consumoWhStr) continue;
+    
+    // Parsear fecha y hora: "2025/12/31 4:00"
+    const [fechaParte, horaParte] = fechaHoraStr.split(' ');
+    if (!fechaParte || !horaParte) continue;
+    
+    const [año, mes, dia] = fechaParte.split('/').map(Number);
+    const horaNum = parseInt(horaParte.split(':')[0]);
+    
+    // Crear fecha
+    const fecha = new Date(año, mes - 1, dia);
+    if (isNaN(fecha.getTime())) continue;
+    
+    // Convertir hora 0-23 a formato CNMC 1-24
+    // Hora 0 (00:00-01:00) → hora CNMC 1
+    // Hora 23 (23:00-00:00) → hora CNMC 24
+    const hora = horaNum + 1;
+    
+    // Parsear consumo en Wh y convertir a kWh
+    const consumoWh = parseFloat(consumoWhStr.replace(',', '.'));
+    if (isNaN(consumoWh)) continue;
+    const kwh = consumoWh / 1000;
+    
+    // Parsear generación (excedentes) en Wh y convertir a kWh
+    let excedente = 0;
+    if (generacionWhStr && generacionWhStr.trim() !== '') {
+      const generacionWh = parseFloat(generacionWhStr.replace(',', '.'));
+      if (!isNaN(generacionWh)) {
+        excedente = generacionWh / 1000;
+      }
+    }
+    
+    consumos.push({ 
+      fecha, 
+      hora, 
+      kwh,           // Consumo de red en kWh
+      excedente,     // Energía vertida a red en kWh
+      autoconsumo: 0, // Iberdrola no proporciona este dato
+      esReal: true   // Se asume que es real
     });
   }
   
