@@ -1188,6 +1188,9 @@ window.lfDbg = lfDbg;
         } else if(!message && !Number.isFinite(bvSaldoNum)){
           message='El saldo de batería virtual debe ser un número válido.';
           el.inputs.bvSaldo.classList.add('error');
+        } else if(!message && bvSaldoNum < 0){
+          message='El saldo de batería virtual no puede ser negativo.';
+          el.inputs.bvSaldo.classList.add('error');
         }
         // El saldo BV puede ser negativo (debe dinero) o positivo (tiene saldo)
       }
@@ -2349,52 +2352,6 @@ function agregarMiTarifa() {
       }
     }
   }
-  
-  const tarifa = {
-    nombre: 'Mi tarifa ⭐',
-    tipo: es1P ? '1P' : '3P',
-    cPunta: punta,
-    cLlano: llano,
-    cValle: valle,
-    p1: p1,
-    p2: p2,
-    web: '#',
-    esPersonalizada: true,
-    fv: {
-      exc: precioExc,
-      tipo: precioExc > 0 ? 'SIMPLE + BV' : 'NO COMPENSA',
-      tope: 'ENERGIA',
-      bv: precioExc > 0,
-      reglaBV: precioExc > 0 ? 'BV MES ANTERIOR' : 'NO APLICA'
-    },
-    requiereFV: false
-  };
-  
-  return tarifa;
-}
-  
-  const tarifa = {
-    nombre: 'Mi tarifa ⭐',
-    tipo: es1P ? '1P' : '3P',
-    cPunta: punta,
-    cLlano: llano,
-    cValle: valle,
-    p1: p1,
-    p2: p2,
-    web: '#',
-    esPersonalizada: true,
-    fv: {
-      exc: precioExc,
-      tipo: precioExc > 0 ? 'SIMPLE + BV' : 'NO COMPENSA',
-      tope: 'ENERGIA',
-      bv: precioExc > 0,
-      reglaBV: precioExc > 0 ? 'BV MES ANTERIOR' : 'NO APLICA'
-    },
-    requiereFV: false
-  };
-  
-  return tarifa;
-}
   
   const tarifa = {
     nombre: 'Mi tarifa ⭐',
