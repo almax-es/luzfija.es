@@ -3150,3 +3150,354 @@ html {
   color: var(--muted);
   line-height: 1.55;
 }
+/* === ESTILOS PARA GUÍAS RELACIONADAS === */
+.related-guides-section {
+  margin-top: 48px;
+  padding-top: 32px;
+  border-top: 1px solid var(--border);
+}
+
+.related-guides-title {
+  font-size: 20px;
+  font-weight: 900;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.related-guides-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .related-guides-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.related-guide-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 18px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.2s ease;
+}
+
+.related-guide-card:hover {
+  background: var(--card2);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+}
+
+.related-guide-card .guide-arrow {
+  font-size: 14px;
+  color: var(--accent);
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.related-guide-card:hover .guide-arrow {
+  transform: translateX(4px);
+}
+
+.related-guide-card .guide-title {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+
+/* === ESTILOS PARA LANDING PAGES LIMPIAS === */
+.page-title {
+  font-size: clamp(28px, 5vw, 42px);
+  font-weight: 900;
+  line-height: 1.15;
+  margin-bottom: 16px;
+  color: var(--text);
+}
+
+.page-intro {
+  font-size: clamp(16px, 2.5vw, 20px);
+  line-height: 1.6;
+  color: var(--muted);
+  margin-bottom: 40px;
+}
+
+.cta-section {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 28px;
+  margin: 40px 0;
+}
+
+.section-title {
+  font-size: 22px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+.section-text {
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+.cta-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  background: var(--accent);
+  color: white;
+  text-decoration: none;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 15px;
+  transition: all 0.2s ease;
+}
+
+.cta-button:hover {
+  background: #7C3AED;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(139, 92, 246, 0.3);
+}
+
+.article-content {
+  max-width: 720px;
+  margin: 0 auto;
+}
+
+.article-content h2 {
+  font-size: 24px;
+  font-weight: 800;
+  margin: 36px 0 16px 0;
+  color: var(--text);
+}
+
+.article-content h3 {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 28px 0 12px 0;
+  color: var(--text);
+}
+
+.article-content p {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--muted);
+  margin-bottom: 16px;
+}
+
+.article-content ul {
+  margin: 16px 0 24px 24px;
+}
+
+.article-content li {
+  font-size: 16px;
+  line-height: 1.7;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.article-content strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.faq-details {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 0;
+  margin: 20px 0;
+  overflow: hidden;
+}
+
+.faq-summary {
+  padding: 16px 20px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text);
+  list-style: none;
+  user-select: none;
+}
+
+.faq-summary::-webkit-details-marker {
+  display: none;
+}
+
+.faq-details[open] .faq-summary {
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0;
+}
+
+.faq-details p {
+  padding: 16px 20px;
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.related-guides {
+  margin-top: 48px;
+  padding: 28px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+
+.related-title {
+  font-size: 20px;
+  font-weight: 900;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+
+.guides-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .guides-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.guide-card {
+  display: block;
+  padding: 14px 18px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.guide-card:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.guide-card strong {
+  display: block;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+
+.guide-desc {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.internal-links-section {
+  margin-top: 60px;
+  padding: 32px 28px;
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(139, 92, 246, 0.03));
+  border: 1px solid rgba(139, 92, 246, 0.2);
+  border-radius: 16px;
+}
+
+.internal-links-title {
+  font-size: 22px;
+  font-weight: 900;
+  margin-bottom: 8px;
+  color: var(--text);
+}
+
+.internal-links-intro {
+  font-size: 14px;
+  color: var(--muted);
+  margin-bottom: 20px;
+}
+
+.internal-links-list {
+  display: grid;
+  gap: 10px;
+}
+
+.internal-link {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  text-decoration: none;
+  color: var(--text);
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.internal-link:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--accent);
+  transform: translateX(4px);
+}
+
+.link-arrow {
+  color: var(--accent);
+  font-weight: 700;
+  transition: transform 0.2s ease;
+}
+
+.internal-link:hover .link-arrow {
+  transform: translateX(4px);
+}
+
+.footer-simple {
+  margin-top: 60px;
+  padding: 24px 0;
+  text-align: center;
+  font-size: 13px;
+  color: var(--muted2);
+  border-top: 1px solid var(--border);
+}
+
+.footer-link {
+  color: var(--accent);
+  text-decoration: none;
+  transition: opacity 0.2s ease;
+}
+
+.footer-link:hover {
+  opacity: 0.8;
+}
+
+/* === RESPONSIVIDAD === */
+@media (max-width: 640px) {
+  .related-guides-section,
+  .related-guides,
+  .internal-links-section {
+    margin-left: -8px;
+    margin-right: -8px;
+  }
+
+  .page-title {
+    line-height: 1.2;
+  }
+
+  .article-content h2 {
+    font-size: 22px;
+  }
+
+  .article-content h3 {
+    font-size: 18px;
+  }
+}
