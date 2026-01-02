@@ -1805,3 +1805,25 @@
   color: var(--muted);
   line-height: 1.55;
 }
+
+
+/* Índice de guía (para saltar al grano) */
+.toc{
+  margin: 18px 0 26px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: rgba(255,255,255,0.03);
+}
+.toc h2{
+  margin: 0 0 10px;
+  font-size: 1.05rem;
+}
+.toc ul{
+  margin: 0;
+  padding-left: 18px;
+}
+.toc li{
+  margin: 6px 0;
+}
+
