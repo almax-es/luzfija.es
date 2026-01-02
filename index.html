@@ -87,53 +87,77 @@
   </script>
 
   <script type="application/ld+json">
-  {
-    "@context":"https://schema.org",
-    "@type":"FAQPage",
-    "mainEntity":[
-      {
-        "@type":"Question",
-        "name":"¿Qué significan punta, llano y valle?",
-        "acceptedAnswer":{"@type":"Answer","text":"Son periodos horarios con precios distintos en tarifas 3P. En general, punta es más caro, valle más barato y llano intermedio (los horarios exactos dependen del calendario y la tarifa)."}
-      },
-      {
-        "@type":"Question",
-        "name":"¿Qué es P1 y P2 en la potencia contratada?",
-        "acceptedAnswer":{"@type":"Answer","text":"La potencia se paga por días y puede variar por periodo (P1/P2). En muchas viviendas se contrata la misma potencia en ambos, pero puedes optimizarla según tu uso."}
-      },
-      {
-        "@type":"Question",
-        "name":"¿El comparador incluye impuestos?",
-        "acceptedAnswer":{"@type":"Answer","text":"Sí: el cálculo muestra potencia, consumo y una estimación de impuestos/IVA según el modelo del comparador."}
-      },
-      {
-        "@type":"Question",
-        "name":"¿Necesito registrarme?",
-        "acceptedAnswer":{"@type":"Answer","text":"No. Es una herramienta gratuita, sin registro. Puedes además compartir tu configuración por URL."}
-      },
-      {
-        "@type":"Question",
-        "name":"¿De dónde salen los precios?",
-        "acceptedAnswer":{"@type":"Answer","text":"Las tarifas se recopilan de condiciones públicas de las comercializadoras y se actualizan regularmente. Cuando está disponible, el PVPC se basa en datos públicos oficiales (CNMC)."}
-      },
-      {
-        "@type":"Question",
-        "name":"¿Qué es el PVPC?",
-        "acceptedAnswer":{"@type":"Answer","text":"Es la tarifa regulada de electricidad en España, con precios variables por periodos/horas según el mercado."}
-      },
-      {
-        "@type":"Question",
-        "name":"¿Cómo calcula el comparador el PVPC?",
-        "acceptedAnswer":{"@type":"Answer","text":"Usa los datos que introduces (potencias P1/P2, días y consumos por periodos) y, cuando hay datos disponibles, muestra un PVPC estimado y lo incluye en el ranking."}
-      },
-      {
-        "@type":"Question",
-        "name":"¿Cómo funciona con placas solares y autoconsumo?",
-        "acceptedAnswer":{"@type":"Answer","text":"El comparador calcula la compensación de excedentes según el precio de cada comercializadora. Para tarifas con Batería Virtual (BV), los excedentes sobrantes se acumulan en euros para descontarlos en meses futuros. El ranking ordena por coste real mensual de cada tarifa, sin contar la batería virtual del mes anterior, permitiendo comparar tarifas de forma justa. La columna TOTAL muestra dos valores: 'Pagas' (lo que pagas hoy usando BV anterior) y 'Ranking' (coste real sin BV anterior). El icono solar dorado muestra todos los detalles del cálculo."}
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Qué significan punta, llano y valle?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Son periodos horarios con precios distintos en tarifas 3P. En general, punta es más caro, valle más barato y llano intermedio (los horarios exactos dependen del calendario y la tarifa)."
       }
-    ]
-  }
-  </script>
+    },
+    {
+      "@type": "Question",
+      "name": "¿Qué es P1 y P2 en la potencia contratada?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "La potencia se paga por días y puede variar por periodo (P1/P2). En muchas viviendas se contrata la misma potencia en ambos, pero puedes optimizarla según tu uso."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿El comparador incluye impuestos?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sí: el cálculo muestra potencia, consumo y una estimación de impuestos/IVA según el modelo del comparador."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Necesito registrarme?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. Es una herramienta gratuita, sin registro. Puedes además compartir tu configuración por URL."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿De dónde salen los precios?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Las tarifas se recopilan de condiciones públicas de las comercializadoras y se actualizan regularmente. Cuando está disponible, el PVPC se basa en datos públicos oficiales (CNMC)."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Qué es el PVPC?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Es la tarifa regulada de electricidad en España, con precios variables por periodos/horas según el mercado."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cómo calcula el comparador el PVPC?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Usa los datos que introduces (potencias P1/P2, días y consumos por periodos) y, cuando hay datos disponibles, muestra un PVPC estimado y lo incluye en el ranking."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cómo funciona con placas solares y autoconsumo?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "El comparador calcula la compensación de excedentes según el precio de cada comercializadora. Para tarifas con Batería Virtual (BV), los excedentes sobrantes se acumulan en euros para descontarlos en meses futuros. El ranking ordena por coste real mensual de cada tarifa, sin contar la batería virtual del mes anterior, permitiendo comparar tarifas de forma justa. La columna TOTAL muestra dos valores: 'Pagas' (lo que pagas hoy usando BV anterior) y 'Ranking' (coste real sin BV anterior). El icono solar dorado muestra todos los detalles del cálculo."
+      }
+    }
+  ]
+}
+</script>
 
   <script type="application/ld+json">
   {
@@ -607,7 +631,42 @@
         <script src="index-extra.js" defer></script>
 
 
-    </main>
+    <section class="faq-section" id="faq">
+  <h2>Preguntas frecuentes</h2>
+  <details class="faq-item">
+    <summary>¿Qué significan punta, llano y valle?</summary>
+    <p>Son periodos horarios con precios distintos en tarifas 3P. En general, punta es más caro, valle más barato y llano intermedio (los horarios exactos dependen del calendario y la tarifa).</p>
+  </details>
+  <details class="faq-item">
+    <summary>¿Qué es P1 y P2 en la potencia contratada?</summary>
+    <p>La potencia se paga por días y puede variar por periodo (P1/P2). En muchas viviendas se contrata la misma potencia en ambos, pero puedes optimizarla según tu uso.</p>
+  </details>
+  <details class="faq-item">
+    <summary>¿El comparador incluye impuestos?</summary>
+    <p>Sí: el cálculo muestra potencia, consumo y una estimación de impuestos/IVA según el modelo del comparador.</p>
+  </details>
+  <details class="faq-item">
+    <summary>¿Necesito registrarme?</summary>
+    <p>No. Es una herramienta gratuita, sin registro. Puedes además compartir tu configuración por URL.</p>
+  </details>
+  <details class="faq-item">
+    <summary>¿De dónde salen los precios?</summary>
+    <p>Las tarifas se recopilan de condiciones públicas de las comercializadoras y se actualizan regularmente. Cuando está disponible, el PVPC se basa en datos públicos oficiales (CNMC).</p>
+  </details>
+  <details class="faq-item">
+    <summary>¿Qué es el PVPC?</summary>
+    <p>Es la tarifa regulada de electricidad en España, con precios variables por periodos/horas según el mercado.</p>
+  </details>
+  <details class="faq-item">
+    <summary>¿Cómo calcula el comparador el PVPC?</summary>
+    <p>Usa los datos que introduces (potencias P1/P2, días y consumos por periodos) y, cuando hay datos disponibles, muestra un PVPC estimado y lo incluye en el ranking.</p>
+  </details>
+  <details class="faq-item">
+    <summary>¿Cómo funciona con placas solares y autoconsumo?</summary>
+    <p>El comparador calcula la compensación de excedentes según el precio de cada comercializadora. Para tarifas con Batería Virtual (BV), los excedentes sobrantes se acumulan en euros para descontarlos en meses futuros. El ranking ordena por coste real mensual de cada tarifa, sin contar la batería virtual del mes anterior, permitiendo comparar tarifas de forma justa. La columna TOTAL muestra dos valores: 'Pagas' (lo que pagas hoy usando BV anterior) y 'Ranking' (coste real sin BV anterior). El icono solar dorado muestra todos los detalles del cálculo.</p>
+  </details>
+</section>
+</main>
 
     <footer class="footer-container">
       <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:30px; margin-bottom:30px;">
