@@ -1058,6 +1058,11 @@
       background: rgba(15,23,42,.02);
       border-color: rgba(15,23,42,.15);
     }
+.upload-area:focus-visible{
+  box-shadow: var(--focus-ring);
+  border-color: var(--accent);
+}
+
 
     body.light-mode .upload-area:hover{
       border-color: var(--accent);

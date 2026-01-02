@@ -1763,3 +1763,23 @@
   color: var(--muted);
   margin-top: 8px;
 }
+
+
+/* === LuzFija: FAQ visible + meta (SEO/UX) === */
+.guia-meta{
+  margin: 10px 0 18px 0;
+  color: var(--muted);
+  font-weight: 600;
+  font-size: 14px;
+}
+.faq-section{
+  margin-top: 28px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+.faq-section h3{
+  margin: 16px 0 6px 0;
+}
+.faq-section p{
+  margin: 0 0 10px 0;
+}
