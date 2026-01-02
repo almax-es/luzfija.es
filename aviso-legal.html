@@ -1,73 +1,100 @@
 <!DOCTYPE html>
-<html lang="es"><head>
-  <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>Aviso Legal - LuzFija.es</title>
-  <meta content="Aviso legal de LuzFija.es - Comparador gratuito de tarifas eléctricas en España." name="description"/>
-  <meta content="noindex, follow" name="robots"/>
-  <meta content="#8B5CF6" name="theme-color"/>
-  <link href="https://luzfija.es/aviso-legal.html" rel="canonical"/><meta content="https://luzfija.es/og.png" name="twitter:image"/><meta content="Aviso legal de LuzFija.es - Comparador gratuito de tarifas eléctricas en España." name="twitter:description"/><meta content="Aviso Legal - LuzFija.es" name="twitter:title"/><meta content="https://luzfija.es/aviso-legal.html" name="twitter:url"/><meta content="summary_large_image" name="twitter:card"/><meta content="LuzFija.es" property="og:site_name"/><meta content="es_ES" property="og:locale"/><meta content="https://luzfija.es/og.png" property="og:image"/><meta content="Aviso legal de LuzFija.es - Comparador gratuito de tarifas eléctricas en España." property="og:description"/><meta content="Aviso Legal - LuzFija.es" property="og:title"/><meta content="https://luzfija.es/aviso-legal.html" property="og:url"/><meta content="website" property="og:type"/>
-  
-  
-  
-  
-  <link href="/favicon.ico" rel="icon" sizes="any"/>
-  <link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
-  <link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
-  <link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
-  
-  <link href="https://fonts.googleapis.com" rel="preconnect"/>
-  <link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&amp;display=swap" rel="stylesheet"/>
-  <link href="/styles.css" rel="stylesheet"/>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="theme-color" content="#8B5CF6"/>
+<title>Aviso Legal | LuzFija.es</title>
+<link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet"/>
+<meta name="description" content=""/>
+<meta name="robots" content="noindex, follow"/>
+<style>
 
-  <!-- Twitter -->
-  
-  
-  
-  
-  
+:root{--bg:#0B1020;--surface:#141b2e;--card:rgba(255,255,255,.06);--border:rgba(255,255,255,.10);--text:#F7F7FB;--muted:rgba(247,247,251,.72);--accent:#8B5CF6;--accent2:#22C55E}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',-apple-system,system-ui,sans-serif;background:linear-gradient(135deg,var(--bg),var(--surface));color:var(--text);line-height:1.7;overflow-x:hidden}
+.header{background:rgba(11,16,32,.98);border-bottom:1px solid var(--border);padding:40px 24px;text-align:center}
+.header-logo{display:inline-flex;align-items:center;gap:12px;font-size:32px;font-weight:900;text-decoration:none;color:var(--text);margin-bottom:24px}
+.header-logo span:first-child{font-size:48px}
+.header h1{font-size:clamp(32px,5vw,48px);font-weight:800;margin-bottom:12px;background:linear-gradient(135deg,var(--text),var(--muted));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header-subtitle{font-size:18px;color:var(--muted)}
+.container{max-width:900px;margin:60px auto;padding:0 24px}
+.back-link{display:inline-flex;align-items:center;gap:8px;color:var(--accent);text-decoration:none;font-weight:600;margin-bottom:40px;transition:gap .3s}
+.back-link:hover{gap:12px}
+.content-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:48px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.content-card h2{font-size:28px;font-weight:800;margin:40px 0 20px;color:var(--text);padding-bottom:12px;border-bottom:2px solid var(--accent)}
+.content-card h2:first-child{margin-top:0}
+.content-card h3{font-size:20px;font-weight:700;margin:28px 0 12px;color:var(--text)}
+.content-card p{margin-bottom:16px;color:var(--muted);line-height:1.8}
+.content-card ul,.content-card ol{margin:16px 0 16px 24px;color:var(--muted)}
+.content-card li{margin-bottom:8px}
+.content-card strong{color:var(--text);font-weight:700}
+.content-card a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(139,92,246,.3);transition:all .2s}
+.content-card a:hover{border-bottom-color:var(--accent)}
+.highlight-box{background:rgba(139,92,246,.1);border-left:4px solid var(--accent);padding:20px;margin:24px 0;border-radius:8px}
+.accordion{margin:20px 0}
+.accordion-item{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;transition:all .3s ease}
+.accordion-item:hover{border-color:rgba(139,92,246,.5)}
+.accordion-item summary{padding:20px 24px;font-weight:600;font-size:18px;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;user-select:none;color:var(--text)}
+.accordion-item summary::after{content:'+';font-size:28px;color:var(--accent);transition:transform .3s}
+.accordion-item[open] summary::after{transform:rotate(45deg)}
+.accordion-item .accordion-content{padding:0 24px 24px;color:var(--muted)}
+.footer{margin-top:80px;padding:40px 24px;text-align:center;border-top:1px solid var(--border)}
+.footer-links{display:flex;justify-content:center;gap:24px;margin-bottom:20px;flex-wrap:wrap}
+.footer-links a{color:var(--muted);text-decoration:none;font-size:14px;transition:color .2s}
+.footer-links a:hover{color:var(--accent)}
+.footer-text{color:var(--muted);font-size:14px}
+@media (max-width:768px){.content-card{padding:32px 24px}.header{padding:32px 16px}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.content-card{animation:fadeIn .6s ease}
 
+</style>
 </head>
 <body>
-  <a class="skip-link" href="#main">Saltar al contenido</a>
-<div class="wrapper">
-    <!-- Header simple -->
-    <header style="max-width:1400px; margin:0 auto; padding:40px clamp(22px, 4.5vw, 60px) 20px;">
-      <div style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
-        <a href="/" style="display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit;" title="Volver al comparador">
-          <svg fill="none" height="48" stroke="currentColor" stroke-width="2" style="color:var(--accent);" viewBox="0 0 24 24" width="48">
-            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
-          </svg>
-          <span style="font-size:24px; font-weight:800; color:var(--text);">LuzFija.es</span>
-        </a>
-      </div>
-      <h1 style="font-size:clamp(28px, 5vw, 36px); margin:0 0 8px 0;">Aviso Legal</h1>
-      <p style="color:var(--muted); font-size:16px; margin:0;">Información legal del comparador</p>
-    </header>
+<header class="header">
+<a href="/" class="header-logo">
+<span>⚡</span>
+<span>LuzFija.es</span>
+</a>
+<h1>Aviso Legal</h1>
+<p class="header-subtitle">Condiciones de uso y responsabilidad</p>
+</header>
 
-    <!-- Contenido -->
-    <main id="main" style="max-width:860px; margin:0 auto; padding:0 clamp(22px, 4.5vw, 60px) 60px;" tabindex="-1">
-      <div style="background:var(--card); border:1px solid var(--border); border-radius:16px; padding:clamp(24px, 5vw, 40px); line-height:1.7;">
+<div class="container">
+<a href="/" class="back-link">
+<span>←</span>
+<span>Volver al comparador</span>
+</a>
 
-  <h2>Datos identificativos</h2>
-  <p>
+<div class="content-card">
+<div class="accordion">
+<details class="accordion-item" open>
+<summary>Datos identificativos</summary>
+<div class="accordion-content">
+<p>
     <strong>Titular:</strong> Luis Oscar Soler Bernal<br/>
     <strong>Sitio web:</strong> <a href="https://luzfija.es">https://luzfija.es</a><br/>
     <strong>Correo electrónico:</strong> <a href="mailto:hola@luzfija.es">hola@luzfija.es</a>
   </p>
-
-  <h2>Objeto</h2>
-  <p>
+</div>
+</details>
+<details class="accordion-item">
+<summary>Objeto</summary>
+<div class="accordion-content">
+<p>
     LuzFija.es es un proyecto personal sin ánimo de lucro que proporciona un comparador de tarifas eléctricas en España. 
     El objetivo es ayudar a usuarios particulares a comparar tarifas de diferentes comercializadoras según su consumo real.
   </p>
   <p>
     Este sitio web es completamente <strong>gratuito</strong>, sin publicidad y sin afiliaciones comerciales con ninguna comercializadora eléctrica.
   </p>
-
-  <h2>Limitación de responsabilidad</h2>
-  <p><strong>LuzFija.es NO es una comercializadora eléctrica ni un asesor financiero.</strong></p>
+</div>
+</details>
+<details class="accordion-item">
+<summary>Limitación de responsabilidad</summary>
+<div class="accordion-content">
+<p><strong>LuzFija.es NO es una comercializadora eléctrica ni un asesor financiero.</strong></p>
   <p>
     Los datos y cálculos mostrados son <strong>orientativos</strong> y pueden contener errores o desviaciones. 
     Aunque nos esforzamos por mantener la información actualizada y precisa:
@@ -80,17 +107,23 @@
   <p>
     <strong>El usuario es el único responsable</strong> de las decisiones que tome basándose en la información proporcionada en este sitio.
   </p>
-
-  <h2>Fuentes de datos</h2>
-  <p>Los datos de tarifas se obtienen de:</p>
+</div>
+</details>
+<details class="accordion-item">
+<summary>Fuentes de datos</summary>
+<div class="accordion-content">
+<p>Los datos de tarifas se obtienen de:</p>
   <ul style="margin:12px 0;">
     <li>Webs oficiales de comercializadoras</li>
     <li>CNMC (Comisión Nacional de los Mercados y la Competencia) para PVPC</li>
     <li>Información pública disponible</li>
   </ul>
-
-  <h2>Propiedad intelectual</h2>
-  <p>
+</div>
+</details>
+<details class="accordion-item">
+<summary>Propiedad intelectual</summary>
+<div class="accordion-content">
+<p>
     El código fuente, diseño y contenidos de LuzFija.es son propiedad de Luis Oscar Soler Bernal, 
     salvo menciones expresas a terceros (logos de comercializadoras, datos de CNMC, etc.).
   </p>
@@ -99,24 +132,33 @@
     <a href="https://github.com/almax-es/luzfija.es" rel="noopener noreferrer" target="_blank">GitHub</a> 
     bajo licencia de código abierto.
   </p>
-
-  <h2>No afiliación</h2>
-  <p>LuzFija.es es un proyecto <strong>independiente</strong> y no está afiliado ni avalado por:</p>
+</div>
+</details>
+<details class="accordion-item">
+<summary>No afiliación</summary>
+<div class="accordion-content">
+<p>LuzFija.es es un proyecto <strong>independiente</strong> y no está afiliado ni avalado por:</p>
   <ul style="margin:12px 0;">
     <li>CNMC</li>
     <li>Red Eléctrica de España</li>
     <li>Ninguna comercializadora eléctrica</li>
     <li>Ningún organismo oficial</li>
   </ul>
-
-  <h2>Legislación aplicable</h2>
-  <p>
+</div>
+</details>
+<details class="accordion-item">
+<summary>Legislación aplicable</summary>
+<div class="accordion-content">
+<p>
     Este aviso legal se rige por la legislación española. Para cualquier controversia, 
     las partes se someterán a los juzgados y tribunales españoles que correspondan.
   </p>
-
-  <h2>Contacto</h2>
-  <p>Para sugerencias, errores o dudas sobre el comparador:</p>
+</div>
+</details>
+<details class="accordion-item">
+<summary>Contacto</summary>
+<div class="accordion-content">
+<p>Para sugerencias, errores o dudas sobre el comparador:</p>
   <p><strong>Email:</strong> <a href="mailto:hola@luzfija.es">hola@luzfija.es</a></p>
 
   <hr style="margin:40px 0; border:none; border-top:1px solid var(--border);"/>
@@ -132,22 +174,21 @@
   </p>
 
       </div>
-    </main>
+</div>
+</details>
 
-    <!-- Footer simplificado -->
-    <footer style="max-width:1400px; margin:60px auto 0; padding:30px clamp(22px, 4.5vw, 60px); border-top:1px solid var(--border); text-align:center;">
-      <p style="font-size:11px; opacity:0.5; margin-bottom:8px;">⚡ Comparador de Tarifas Eléctricas · España</p>
-      <p style="font-size:10px; opacity:0.4; margin-bottom:16px;">Proyecto gratuito y sin publicidad</p>
-      <div style="font-size:10px; opacity:0.65;">
-        📋 <a href="/aviso-legal.html" style="color:var(--accent); text-decoration:underline;">Aviso legal</a> · 
-        <a href="/privacidad.html" style="color:var(--accent); text-decoration:underline;">Política de privacidad</a>
-      </div>
-    
-      <div class="footer-credits">Desarrollado por <a href="https://github.com/almax-es" rel="noopener noreferrer" style="color:inherit; text-decoration:none; font-weight:600;" target="_blank">aLMaX</a></div>
+</div>
+</div>
+</div>
+
+<footer class="footer">
+<div class="footer-links">
+<a href="/">Inicio</a>
+<a href="/guias.html">Guías</a>
+<a href="/privacidad.html">Privacidad</a>
+<a href="/aviso-legal.html">Aviso legal</a>
+</div>
+<p class="footer-text">© 2026 LuzFija.es · Comparador independiente de tarifas de luz</p>
 </footer>
-
-    
-  </div>
-
-
-</body></html>
+</body>
+</html>

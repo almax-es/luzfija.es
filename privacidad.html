@@ -1,65 +1,88 @@
 <!DOCTYPE html>
-<html lang="es"><head>
+<html lang="es">
+<head>
 <meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>Privacidad - LuzFija.es</title>
-<meta content="Política de privacidad de LuzFija.es. Información sobre tratamiento de datos, cookies, analytics y tus derechos según RGPD." name="description"/>
-<meta content="noindex, follow" name="robots"/>
-<meta content="#8B5CF6" name="theme-color"/>
-<link href="https://luzfija.es/privacidad.html" rel="canonical"/><meta content="https://luzfija.es/og.png" name="twitter:image"/><meta content="Política de privacidad de LuzFija.es. Información sobre tratamiento de datos, cookies, analytics y tus derechos según RGPD." name="twitter:description"/><meta content="Privacidad - LuzFija.es" name="twitter:title"/><meta content="https://luzfija.es/privacidad.html" name="twitter:url"/><meta content="summary_large_image" name="twitter:card"/><meta content="LuzFija.es" property="og:site_name"/><meta content="es_ES" property="og:locale"/><meta content="https://luzfija.es/og.png" property="og:image"/><meta content="Política de privacidad de LuzFija.es. Información sobre tratamiento de datos, cookies, analytics y tus derechos según RGPD." property="og:description"/><meta content="Privacidad - LuzFija.es" property="og:title"/><meta content="https://luzfija.es/privacidad.html" property="og:url"/><meta content="website" property="og:type"/>
-
-
-
-<link href="/favicon.ico" rel="icon" sizes="any"/>
-<link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="theme-color" content="#8B5CF6"/>
+<title>Privacidad | LuzFija.es</title>
 <link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
-<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
-<link href="https://fonts.googleapis.com" rel="preconnect"/>
-<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&amp;display=swap" rel="stylesheet"/>
-<link href="/styles.css" rel="stylesheet"/>
-<!-- Twitter -->
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet"/>
+<meta name="description" content=""/>
+<meta name="robots" content="noindex, follow"/>
+<style>
 
+:root{--bg:#0B1020;--surface:#141b2e;--card:rgba(255,255,255,.06);--border:rgba(255,255,255,.10);--text:#F7F7FB;--muted:rgba(247,247,251,.72);--accent:#8B5CF6;--accent2:#22C55E}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',-apple-system,system-ui,sans-serif;background:linear-gradient(135deg,var(--bg),var(--surface));color:var(--text);line-height:1.7;overflow-x:hidden}
+.header{background:rgba(11,16,32,.98);border-bottom:1px solid var(--border);padding:40px 24px;text-align:center}
+.header-logo{display:inline-flex;align-items:center;gap:12px;font-size:32px;font-weight:900;text-decoration:none;color:var(--text);margin-bottom:24px}
+.header-logo span:first-child{font-size:48px}
+.header h1{font-size:clamp(32px,5vw,48px);font-weight:800;margin-bottom:12px;background:linear-gradient(135deg,var(--text),var(--muted));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.header-subtitle{font-size:18px;color:var(--muted)}
+.container{max-width:900px;margin:60px auto;padding:0 24px}
+.back-link{display:inline-flex;align-items:center;gap:8px;color:var(--accent);text-decoration:none;font-weight:600;margin-bottom:40px;transition:gap .3s}
+.back-link:hover{gap:12px}
+.content-card{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:48px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.content-card h2{font-size:28px;font-weight:800;margin:40px 0 20px;color:var(--text);padding-bottom:12px;border-bottom:2px solid var(--accent)}
+.content-card h2:first-child{margin-top:0}
+.content-card h3{font-size:20px;font-weight:700;margin:28px 0 12px;color:var(--text)}
+.content-card p{margin-bottom:16px;color:var(--muted);line-height:1.8}
+.content-card ul,.content-card ol{margin:16px 0 16px 24px;color:var(--muted)}
+.content-card li{margin-bottom:8px}
+.content-card strong{color:var(--text);font-weight:700}
+.content-card a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(139,92,246,.3);transition:all .2s}
+.content-card a:hover{border-bottom-color:var(--accent)}
+.highlight-box{background:rgba(139,92,246,.1);border-left:4px solid var(--accent);padding:20px;margin:24px 0;border-radius:8px}
+.accordion{margin:20px 0}
+.accordion-item{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;transition:all .3s ease}
+.accordion-item:hover{border-color:rgba(139,92,246,.5)}
+.accordion-item summary{padding:20px 24px;font-weight:600;font-size:18px;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;user-select:none;color:var(--text)}
+.accordion-item summary::after{content:'+';font-size:28px;color:var(--accent);transition:transform .3s}
+.accordion-item[open] summary::after{transform:rotate(45deg)}
+.accordion-item .accordion-content{padding:0 24px 24px;color:var(--muted)}
+.footer{margin-top:80px;padding:40px 24px;text-align:center;border-top:1px solid var(--border)}
+.footer-links{display:flex;justify-content:center;gap:24px;margin-bottom:20px;flex-wrap:wrap}
+.footer-links a{color:var(--muted);text-decoration:none;font-size:14px;transition:color .2s}
+.footer-links a:hover{color:var(--accent)}
+.footer-text{color:var(--muted);font-size:14px}
+@media (max-width:768px){.content-card{padding:32px 24px}.header{padding:32px 16px}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.content-card{animation:fadeIn .6s ease}
 
-
-
-
+</style>
 </head>
 <body>
-<a class="skip-link" href="#main">Saltar al contenido</a>
-<div class="wrapper">
-<!-- Header simple -->
-<header style="max-width:1400px; margin:0 auto; padding:40px clamp(22px, 4.5vw, 60px) 20px;">
-<div style="display:flex; align-items:center; gap:16px; margin-bottom:20px;">
-<a href="/" style="display:flex; align-items:center; gap:12px; text-decoration:none; color:inherit;" title="Volver al comparador">
-<svg fill="none" height="48" stroke="currentColor" stroke-width="2" style="color:var(--accent);" viewBox="0 0 24 24" width="48">
-<path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path>
-</svg>
-<span style="font-size:24px; font-weight:800; color:var(--text);">LuzFija.es</span>
+<header class="header">
+<a href="/" class="header-logo">
+<span>⚡</span>
+<span>LuzFija.es</span>
 </a>
-</div>
-<h1 style="font-size:clamp(28px, 5vw, 36px); margin:0 0 8px 0;">Privacidad y protección de datos</h1>
-<p style="color:var(--muted); font-size:16px; margin:0;">Información sobre tratamiento de datos y tus derechos</p>
+<h1>Privacidad</h1>
+<p class="header-subtitle">Información sobre tratamiento de datos y tus derechos</p>
 </header>
-<!-- Contenido -->
-<main id="main" style="max-width:860px; margin:0 auto; padding:0 clamp(22px, 4.5vw, 60px) 60px;" tabindex="-1">
-<div style="background:var(--card); border:1px solid var(--border); border-radius:16px; padding:clamp(24px, 5vw, 40px); line-height:1.7;">
-<p>
-<strong>Responsable del tratamiento:</strong> Luis Oscar Soler Bernal (proyecto personal sin ánimo de lucro)<br/>
-<strong>Contacto:</strong> <a href="mailto:hola@luzfija.es">hola@luzfija.es</a>
-</p>
-<p style="color:var(--muted); font-size:14px;">
-    Esta web no requiere registro. El análisis de facturas PDF se realiza en tu navegador: los archivos no se suben ni se almacenan en servidores del responsable.
-    Al navegar por Internet, determinados proveedores (hosting, proxy y proveedores externos de recursos/servicios) pueden tratar datos técnicos necesarios para operar sus servicios.
-  </p>
-<h2>Qué datos se tratan</h2>
+
+<div class="container">
+<a href="/" class="back-link">
+<span>←</span>
+<span>Volver al comparador</span>
+</a>
+
+<div class="content-card">
+<div class="accordion">
+<details class="accordion-item" open>
+<summary>Qué datos se tratan</summary>
+<div class="accordion-content">
 <ul style="margin:12px 0;">
 <li><strong>Datos técnicos de conexión</strong> (por ejemplo, dirección IP, cabeceras HTTP, fecha/hora, información del navegador) tratados por proveedores de infraestructura y por proveedores externos al servir recursos.</li>
 <li><strong>Datos de uso básicos</strong> (por ejemplo, páginas vistas, URL de procedencia/referrer, navegador) si está activa la analítica con GoatCounter.</li>
 <li><strong>Contenido de comunicaciones</strong> si nos escribes por email (tu dirección, asunto y mensaje).</li>
 <li><strong>Datos en tu dispositivo</strong> (preferencias/estado/caché) mediante almacenamiento del navegador (localStorage y caché del Service Worker).</li>
 </ul>
-<h2>Tratamientos, finalidades y base jurídica</h2>
+</div>
+</details>
+<details class="accordion-item">
+<summary>Tratamientos, finalidades y base jurídica</summary>
+<div class="accordion-content">
 <h3>1) Hosting (GitHub Pages)</h3>
 <p>
     La web está alojada en GitHub Pages. GitHub puede tratar datos técnicos (por ejemplo, IP y logs) para servir el sitio y protegerlo frente a abuso.
@@ -142,18 +165,30 @@
   </p>
 <p><strong>Finalidad:</strong> mejorar la experiencia de usuario (persistencia de preferencias, funcionalidad offline).</p>
 <p><strong>Base jurídica:</strong> interés legítimo (funcionalidad del sitio) y/o consentimiento implícito al usar la web.</p>
-<h2>Conservación de datos</h2>
+</div>
+</details>
+<details class="accordion-item">
+<summary>Conservación de datos</summary>
+<div class="accordion-content">
 <ul style="margin:12px 0;">
 <li><strong>Datos tratados por terceros:</strong> se conservan según las políticas y plazos de cada proveedor (GitHub, Vercel, Google, Cloudflare/UNPKG, jsDelivr, SheetJS, GoatCounter).</li>
 <li><strong>Datos en tu dispositivo:</strong> permanecen hasta que los borres desde tu navegador (localStorage/caché).</li>
 <li><strong>Emails:</strong> se conservan el tiempo necesario para gestionar la consulta y, posteriormente, durante un plazo razonable para seguimiento o seguridad, salvo que solicites su supresión cuando sea aplicable.</li>
 </ul>
-<h2>Cookies</h2>
+</div>
+</details>
+<details class="accordion-item">
+<summary>Cookies</summary>
+<div class="accordion-content">
 <p>
     Esta web no utiliza cookies de seguimiento ni cookies analíticas basadas en cookies. GoatCounter funciona sin cookies.
     (El sitio puede usar almacenamiento del navegador como localStorage o caché del Service Worker, explicado arriba.)
   </p>
-<h2>Tus derechos</h2>
+</div>
+</details>
+<details class="accordion-item">
+<summary>Tus derechos</summary>
+<div class="accordion-content">
 <p>
     Puedes solicitar el ejercicio de tus derechos de acceso, rectificación, supresión, limitación, portabilidad y oposición escribiendo a
     <a href="mailto:hola@luzfija.es">hola@luzfija.es</a>.
@@ -162,7 +197,11 @@
     Si consideras que tus derechos no han sido atendidos adecuadamente, puedes presentar una reclamación ante la Agencia Española de Protección de Datos (AEPD):
     <a href="https://www.aepd.es" rel="noopener noreferrer" target="_blank">www.aepd.es</a>.
   </p>
-<h2>Cambios en esta política</h2>
+</div>
+</details>
+<details class="accordion-item">
+<summary>Cambios en esta política</summary>
+<div class="accordion-content">
 <p>Esta política puede actualizarse para reflejar cambios técnicos o normativos.</p>
 <p style="color:var(--muted); font-size:14px;"><em>Última actualización: 27 de diciembre de 2025</em></p>
 <hr style="margin:40px 0; border:none; border-top:1px solid var(--border);"/>
@@ -171,18 +210,21 @@
 <a href="/" style="display:inline-block; padding:12px 24px; background:var(--accent); color:#fff; text-decoration:none; border-radius:8px; font-weight:600;">Volver al comparador</a>
 </p>
 </div>
-</main>
-<!-- Footer simplificado -->
-<footer style="max-width:1400px; margin:60px auto 0; padding:30px clamp(22px, 4.5vw, 60px); border-top:1px solid var(--border); text-align:center;">
-<p style="font-size:11px; opacity:0.5; margin-bottom:8px;">⚡ Comparador de Tarifas Eléctricas · España</p>
-<p style="font-size:10px; opacity:0.4; margin-bottom:16px;">Proyecto gratuito y sin publicidad</p>
-<div style="font-size:10px; opacity:0.65;">
-        📋 <a href="/aviso-legal.html" style="color:var(--accent); text-decoration:underline;">Aviso legal</a> · 
-        <a href="/privacidad.html" style="color:var(--accent); text-decoration:underline;">Política de privacidad</a>
 </div>
-<div class="footer-credits">Desarrollado por <a href="https://github.com/almax-es" rel="noopener noreferrer" style="color:inherit; text-decoration:none; font-weight:600;" target="_blank">aLMaX</a></div>
+</details>
+
+</div>
+</div>
+</div>
+
+<footer class="footer">
+<div class="footer-links">
+<a href="/">Inicio</a>
+<a href="/guias.html">Guías</a>
+<a href="/privacidad.html">Privacidad</a>
+<a href="/aviso-legal.html">Aviso legal</a>
+</div>
+<p class="footer-text">© 2026 LuzFija.es · Comparador independiente de tarifas de luz</p>
 </footer>
-</div>
-
-
-</body></html>
+</body>
+</html>
