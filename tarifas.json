@@ -2,11 +2,11 @@
   "tarifas": [
     {
       "nombre": "Endesa Conecta",
-      "cPunta": 0.0988,
-      "cLlano": 0.0988,
-      "cValle": 0.0988,
-      "p1": 0.090214,
-      "p2": 0.090214,
+      "cPunta": 0.0949,
+      "cLlano": 0.0949,
+      "cValle": 0.0949,
+      "p1": 0.089129,
+      "p2": 0.089129,
       "web": "https://www.endesa.com/es/luz-y-gas/luz/conecta-de-endesa",
       "tipo": "1P",
       "fv": {
@@ -56,6 +56,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Endesa One",
+      "cPunta": 0.1039,
+      "cLlano": 0.1039,
+      "cValle": 0.1039,
+      "p1": 0.089129,
+      "p2": 0.089129,
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Visalia",
       "cPunta": 0.1041,
       "cLlano": 0.1041,
@@ -68,24 +86,6 @@
         "exc": 0.04,
         "tipo": "SIMPLE",
         "tope": "ENERGIA",
-        "bv": false,
-        "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Endesa One",
-      "cPunta": 0.1059,
-      "cLlano": 0.1059,
-      "cValle": 0.1059,
-      "p1": 0.090214,
-      "p2": 0.090214,
-      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz",
-      "tipo": "1P",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA"
       },
@@ -240,6 +240,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Endesa One 3P",
+      "cPunta": 0.160588,
+      "cLlano": 0.099348,
+      "cValle": 0.074167,
+      "p1": 0.089129,
+      "p2": 0.089129,
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz-3periodos",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Energya VM 3P",
       "cPunta": 0.161075,
       "cLlano": 0.127075,
@@ -273,24 +291,6 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Endesa One 3P",
-      "cPunta": 0.165847,
-      "cLlano": 0.10228,
-      "cValle": 0.073924,
-      "p1": 0.090214,
-      "p2": 0.090214,
-      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz-3periodos",
-      "tipo": "3P",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
       },
       "requiereFV": false
     },
@@ -443,5 +443,5 @@
       "requiereFV": true
     }
   ],
-  "updatedAt": "2026-01-02T11:19:21.031Z"
+  "updatedAt": "2026-01-01T18:27:38.414Z"
 }

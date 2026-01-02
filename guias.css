@@ -1765,21 +1765,43 @@
 }
 
 
-/* === LuzFija: FAQ visible + meta (SEO/UX) === */
 .guia-meta{
-  margin: 10px 0 18px 0;
+  margin: .75rem 0 1.25rem;
   color: var(--muted);
-  font-weight: 600;
-  font-size: 14px;
+  font-size: .95rem;
 }
+
+
+/* FAQ (para que el JSON-LD coincida con contenido visible) */
 .faq-section{
   margin-top: 28px;
-  padding-top: 18px;
+  padding: 18px;
+  border: 1px solid var(--border);
+  background: var(--card2);
+  border-radius: var(--radius);
+}
+.faq-section h2{
+  margin-top: 0;
+}
+.faq-item{
   border-top: 1px solid var(--border);
+  padding: 12px 0;
 }
-.faq-section h3{
-  margin: 16px 0 6px 0;
+.faq-item:first-of-type{
+  border-top: 0;
+  padding-top: 0;
 }
-.faq-section p{
-  margin: 0 0 10px 0;
+.faq-item summary{
+  cursor: pointer;
+  font-weight: 800;
+}
+.faq-item summary:focus-visible{
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: 12px;
+}
+.faq-item p{
+  margin: 10px 0 0;
+  color: var(--muted);
+  line-height: 1.55;
 }
