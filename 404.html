@@ -1,44 +1,341 @@
 <!DOCTYPE html>
-<html lang="es"><head>
-  <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <meta content="noindex,follow" name="robots"/>
-  <meta content="#8B5CF6" name="theme-color"/>
-  <link href="/manifest.webmanifest" rel="manifest"/>
-  <title>Página no encontrada | LuzFija.es</title>
-  <link href="/favicon.ico" rel="icon" sizes="any"/>
-  <link href="/favicon-16x16.png" rel="icon" sizes="16x16" type="image/png"/>
-  <link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
-  <link href="/favicon-48x48.png" rel="icon" sizes="48x48" type="image/png"/>
-  <link href="/favicon-96x96.png" rel="icon" sizes="96x96" type="image/png"/>
-  <link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
-  <link color="#8B5CF6" href="/favicon.svg" rel="mask-icon"/>
-  <link href="/styles.css" rel="stylesheet"/>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&amp;display=swap" rel="stylesheet"/>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="theme-color" content="#8B5CF6"/>
+<title>404 - Página no encontrada | LuzFija.es</title>
+<link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet"/>
+<style>
+:root {
+  --bg: #0B1020;
+  --surface: #141b2e;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.10);
+  --text: #F7F7FB;
+  --muted: rgba(247,247,251,.72);
+  --accent: #8B5CF6;
+}
 
-  <!-- Twitter -->
-  
-  
-  
-  
-  
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-<link href="https://luzfija.es/404.html" rel="canonical"/><meta content="https://luzfija.es/og.png" name="twitter:image"/><meta content="Página no encontrada | LuzFija.es" name="twitter:title"/><meta content="https://luzfija.es/404.html" name="twitter:url"/><meta content="summary_large_image" name="twitter:card"/><meta content="LuzFija.es" property="og:site_name"/><meta content="es_ES" property="og:locale"/><meta content="https://luzfija.es/og.png" property="og:image"/><meta content="Página no encontrada | LuzFija.es" property="og:title"/><meta content="https://luzfija.es/404.html" property="og:url"/><meta content="website" property="og:type"/></head>
+body {
+  font-family: 'Outfit', -apple-system, system-ui, sans-serif;
+  background: linear-gradient(135deg, var(--bg), var(--surface));
+  color: var(--text);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  overflow: hidden;
+  position: relative;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.15), transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(34, 197, 94, 0.12), transparent 50%);
+  pointer-events: none;
+  animation: auroraMove 45s ease-in-out infinite;
+}
+
+@keyframes auroraMove {
+  0%, 100% {
+    transform: translate(0%, 0%) rotate(0deg);
+  }
+  33% {
+    transform: translate(5%, -5%) rotate(120deg);
+  }
+  66% {
+    transform: translate(-5%, 5%) rotate(240deg);
+  }
+}
+
+.container {
+  max-width: 800px;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.error-code {
+  font-size: clamp(120px, 25vw, 200px);
+  font-weight: 900;
+  background: linear-gradient(135deg, var(--accent), #EC4899);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  line-height: 1;
+  margin-bottom: 24px;
+  animation: float 3s ease-in-out infinite;
+  filter: drop-shadow(0 0 40px rgba(139, 92, 246, 0.5));
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+h1 {
+  font-size: clamp(28px, 5vw, 42px);
+  font-weight: 900;
+  margin-bottom: 16px;
+  animation: fadeIn 0.8s ease 0.2s backwards;
+}
+
+.subtitle {
+  font-size: clamp(16px, 3vw, 20px);
+  color: var(--muted);
+  margin-bottom: 40px;
+  animation: fadeIn 1s ease 0.4s backwards;
+}
+
+.search-box {
+  max-width: 500px;
+  margin: 0 auto 40px auto;
+  position: relative;
+  animation: fadeIn 1.2s ease 0.6s backwards;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 16px 50px 16px 20px;
+  background: rgba(255,255,255,.08);
+  border: 2px solid var(--border);
+  border-radius: 14px;
+  color: var(--text);
+  font-size: 16px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(255,255,255,.12);
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+}
+
+.search-icon {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: var(--muted);
+}
+
+.quick-links {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 16px;
+  margin-bottom: 40px;
+  animation: fadeIn 1.4s ease 0.8s backwards;
+}
+
+.link-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.link-card:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: var(--accent);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(139, 92, 246, 0.3);
+}
+
+.link-icon {
+  font-size: 36px;
+  filter: drop-shadow(0 0 12px currentColor);
+}
+
+.link-card span {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.back-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 28px;
+  background: rgba(255,255,255,.08);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  animation: fadeIn 1.6s ease 1s backwards;
+}
+
+.back-button:hover {
+  background: rgba(255,255,255,.12);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.fun-fact {
+  margin-top: 60px;
+  padding: 24px;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 14px;
+  animation: fadeIn 1.8s ease 1.2s backwards;
+}
+
+.fun-fact-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: #F59E0B;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.fun-fact-text {
+  font-size: 15px;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .quick-links {
+    grid-template-columns: 1fr;
+  }
+
+  .error-code {
+    font-size: 120px;
+  }
+}
+</style>
+</head>
+
 <body>
-  <a class="skip-link" href="#main">Saltar al contenido</a>
-  <main id="main" tabindex="-1">
-<div class="container" style="text-align: center; padding: 80px 20px;">
-  <h1 style="font-size: 72px; margin-bottom: 16px;">404</h1>
-  <h2 style="font-size: 32px; margin-bottom: 24px;">Página no encontrada</h2>
-  <p style="font-size: 18px; color: var(--muted); margin-bottom: 40px;">
-    La página que buscas no existe o ha sido movida.
+
+<div class="container">
+  <div class="error-code">404</div>
+  
+  <h1>⚡ Esta página no existe</h1>
+  
+  <p class="subtitle">
+    Puede que el link esté roto, que hayamos movido la página, 
+    o que simplemente estés explorando los límites del universo.
   </p>
-  <div style="display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-top: 40px;">
-    <a href="/" style="padding: 12px 24px; background: var(--accent); color: white; text-decoration: none; border-radius: 8px; font-weight: 600;">Ir al comparador</a>
-    <a href="/guias.html" style="padding: 12px 24px; background: var(--card); border: 1px solid var(--border); color: var(--text); text-decoration: none; border-radius: 8px; font-weight: 600;">Ver guías</a>
+
+  <!-- Búsqueda -->
+  <div class="search-box">
+    <input type="text" id="searchInput" placeholder="¿Qué buscabas? Prueba aquí..." />
+    <span class="search-icon">🔍</span>
+  </div>
+
+  <!-- Links rápidos -->
+  <div class="quick-links">
+    <a href="/" class="link-card">
+      <span class="link-icon">⚡</span>
+      <span>Comparador</span>
+    </a>
+    
+    <a href="/guias.html" class="link-card">
+      <span class="link-icon">📚</span>
+      <span>Guías</span>
+    </a>
+    
+    <a href="/mejor-tarifa-placas-solares.html" class="link-card">
+      <span class="link-icon">☀️</span>
+      <span>Placas Solares</span>
+    </a>
+    
+    <a href="/mejor-tarifa-coche-electrico.html" class="link-card">
+      <span class="link-icon">🚗</span>
+      <span>Coche Eléctrico</span>
+    </a>
+  </div>
+
+  <!-- Botón volver -->
+  <a href="javascript:history.back()" class="back-button">
+    <span>←</span>
+    <span>Volver atrás</span>
+  </a>
+
+  <!-- Fun fact -->
+  <div class="fun-fact">
+    <div class="fun-fact-title">💡 Dato curioso mientras estás aquí</div>
+    <div class="fun-fact-text" id="funFact">
+      <!-- Se genera con JS -->
+    </div>
   </div>
 </div>
-  </main>
 
+<script>
+// Fun facts sobre electricidad
+const facts = [
+  "El consumo medio de un hogar español es de unos 270 kWh al mes. ¿Sabes cuánto gastas tú?",
+  "La hora valle (00h-08h) puede ser hasta 70% más barata que la hora punta. Úsala.",
+  "El término de potencia supone el 30-40% de tu factura aunque no consumas nada.",
+  "Con discriminación horaria bien optimizada puedes ahorrarte 200-400€ al año.",
+  "El impuesto eléctrico es del 5,11269632%. Sí, con todos esos decimales raros.",
+  "Una lavadora consume unos 1-1.5 kWh por ciclo. Ponla de noche para ahorrar.",
+  "El PVPC cambia cada hora. Puedes consultarlo en tiempo real en la web de Red Eléctrica.",
+  "Las placas solares se amortizan en 6-8 años de media en España.",
+  "Un coche eléctrico cuesta unos 2-3€ por cada 100 km si cargas en casa de noche.",
+  "El alquiler del contador te cuesta 0.81€/mes. Lo pagas en todas las tarifas."
+];
 
-</body></html>
+// Mostrar fun fact aleatorio
+document.getElementById('funFact').textContent = facts[Math.floor(Math.random() * facts.length)];
+
+// Búsqueda simple
+const searchInput = document.getElementById('searchInput');
+searchInput.addEventListener('keypress', (e) => {
+  if (e.key === 'Enter') {
+    const query = searchInput.value.toLowerCase().trim();
+    
+    if (query.includes('guia') || query.includes('guía')) {
+      window.location.href = '/guias.html';
+    } else if (query.includes('solar') || query.includes('placa')) {
+      window.location.href = '/mejor-tarifa-placas-solares.html';
+    } else if (query.includes('coche') || query.includes('eléctrico')) {
+      window.location.href = '/mejor-tarifa-coche-electrico.html';
+    } else if (query.includes('pvpc')) {
+      window.location.href = '/comparar-pvpc-tarifa-fija.html';
+    } else if (query.includes('discriminacion') || query.includes('horaria')) {
+      window.location.href = '/mejor-tarifa-discriminacion-horaria.html';
+    } else {
+      window.location.href = '/';
+    }
+  }
+});
+</script>
+
+</body>
+</html>
