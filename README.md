@@ -973,7 +973,7 @@ Proyecto **independiente** y de **código abierto**.
 **MIT License** - Ver archivo LICENSE para detalles completos.
 
 ```
-Copyright (c) 2026 LuzFija.es
+Copyright (c) 2025 LuzFija.es
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
