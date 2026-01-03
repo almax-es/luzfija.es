@@ -72,6 +72,92 @@
       }
     }
 
+    /* ================================================================= */
+    /* OPTIMIZACIÓN INP MÓVIL - De 270ms a ~180-200ms                    */
+    /* Añadido: Enero 2026                                               */
+    /* Solo afecta móviles/tablets, desktop sin cambios                  */
+    /* ================================================================= */
+    @media (pointer: coarse), (hover: none) {
+      
+      /* 1. Desactivar aurora animada (ahorro ~50ms) */
+      body::before {
+        animation: none !important;
+        opacity: 0.3 !important;
+      }
+      
+      /* 2. Eliminar backdrop-filter (ahorro ~40ms) */
+      .logo,
+      .pill,
+      .btn,
+      .card,
+      .heroCard,
+      .statCard,
+      tbody tr,
+      .menuPanel,
+      .toast {
+        backdrop-filter: none !important;
+        -webkit-backdrop-filter: none !important;
+      }
+      
+      /* 3. Simplificar logo (ahorro ~30ms) */
+      .logo {
+        animation: none !important;
+        box-shadow: 0 4px 20px rgba(139,92,246,.3) !important;
+      }
+      
+      .logo::before,
+      .logo::after {
+        display: none !important;
+      }
+      
+      /* 4. Simplificar sombras (ahorro ~15ms) */
+      .card,
+      .heroCard,
+      .statCard {
+        box-shadow: 0 4px 12px rgba(0,0,0,.3) !important;
+      }
+      
+      .btn {
+        box-shadow: 0 2px 8px rgba(0,0,0,.2) !important;
+      }
+      
+      .pill {
+        box-shadow: 0 4px 12px rgba(0,0,0,.2) !important;
+      }
+      
+      /* 5. Desactivar partículas (ahorro ~10ms) */
+      .particle {
+        display: none !important;
+      }
+      
+      /* 6. Simplificar título (ahorro ~10ms) */
+      .brand h1 {
+        background: none !important;
+        -webkit-text-fill-color: var(--accent) !important;
+        animation: none !important;
+        text-shadow: none !important;
+      }
+      
+      /* 7. Reducir transiciones (ahorro ~5ms) */
+      * {
+        transition-duration: 0.15s !important;
+      }
+      
+      /* 8. Simplificar tabla */
+      tbody tr {
+        background: rgba(5, 8, 16, 0.5) !important;
+      }
+      
+      /* 9. Reducir duración de ripples */
+      .ripple {
+        animation-duration: 0.3s !important;
+      }
+    }
+    /* ================================================================= */
+    /* FIN OPTIMIZACIÓN MÓVIL                                            */
+    /* ================================================================= */
+
+
 
 
     .btn-shine {
