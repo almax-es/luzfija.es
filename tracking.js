@@ -178,11 +178,16 @@
     }
 
     // 8. Trackear navegación a la página de guías
-    document.querySelectorAll('a[href*="guias"]').forEach(function(link) {
-      link.addEventListener('click', function() {
+    //    Delegación de eventos para evitar recorrer y enlazar todos los links en el DOM (más ligero en móvil)
+    document.addEventListener('click', function(e) {
+      const a = e && e.target && e.target.closest ? e.target.closest('a') : null;
+      if (!a) return;
+      const href = a.getAttribute('href') || '';
+      // Sólo enlaces internos / relativos que contengan "guias"
+      if (href && href.indexOf('guias') !== -1) {
         trackEvent('navegacion-guias', { title: 'Usuario fue a Guías' });
-      });
-    });
+      }
+    }, { capture: true });
 
   });
 
