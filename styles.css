@@ -1,31 +1,5 @@
     /* === TU DISEÑO ORIGINAL EXACTO (NO TOCAR) === */
     :root{ --bg0:#070A12; --bg1:#0B1020; --card: rgba(255,255,255,.06); --card2: rgba(255,255,255,.085); --border: rgba(255,255,255,.10); --border2: rgba(255,255,255,.16); --text:#F7F7FB; --muted: rgba(247,247,251,.72); --muted2: rgba(247,247,251,.55); --accent:#8B5CF6; --accent2:#22C55E; --warn:#F59E0B; --danger:#EF4444; --shadow: 0 22px 65px rgba(0,0,0,.52); --shadow2: 0 16px 40px rgba(0,0,0,.50); --radius: 18px; --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; --sans: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif; --bg: var(--bg0); --card-bg: var(--card); }
-    
-    /* Detección automática del esquema de color del sistema */
-    @media (prefers-color-scheme: light) {
-      :root {
-        --bg0:#F4F6FB;
-        --bg1:#FFFFFF;
-        --card: rgba(15, 23, 42, .04);
-        --card2: rgba(15, 23, 42, .06);
-        --border: rgba(15, 23, 42, .10);
-        --border2: rgba(15, 23, 42, .16);
-        --text:#0F172A;
-        --muted: rgba(15, 23, 42, .75);
-        --muted2: rgba(15, 23, 42, .58);
-        --shadow: 0 22px 65px rgba(2,6,23,.12);
-        --shadow2: 0 16px 40px rgba(2,6,23,.10);
-        --accent:#6D28D9;
-        --accent2:#16A34A;
-        --warn:#D97706;
-      }
-      body {
-        background: radial-gradient(1000px 600px at 12% 15%, rgba(139,92,246,.10), transparent 55%),
-                    radial-gradient(1000px 680px at 86% 88%, rgba(34,197,94,.08), transparent 55%),
-                    linear-gradient(135deg, var(--bg0), var(--bg1));
-      }
-    }
-    
     html.light-mode,
     body.light-mode {
       --bg0:#F4F6FB;
@@ -3928,5 +3902,12 @@ html {
     padding: 20px;
     margin-left: 0;
     margin-right: 0;
+  }
+}
+
+/* Mejora de contraste para tarjetas en modo claro del sistema */
+@media (prefers-color-scheme: light) {
+  body:not(.light-mode) tbody tr {
+    background: rgba(255, 255, 255, 0.12);
   }
 }
