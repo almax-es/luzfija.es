@@ -3905,68 +3905,34 @@ html {
   }
 }
 
-/* ============================================
-   ADAPTACIÓN AUTOMÁTICA AL TEMA DEL SISTEMA
-   ============================================ */
-
+/* Adaptación automática solo para modo claro del sistema */
 @media (prefers-color-scheme: light) {
   body:not(.light-mode) tbody tr {
-    background: rgba(15, 23, 42, 0.04) !important;
-    border-color: rgba(15, 23, 42, 0.12) !important;
+    background: rgba(15, 23, 42, 0.04);
+    border-color: rgba(15, 23, 42, 0.12);
   }
   
   body:not(.light-mode) tbody td {
-    color: rgba(15, 23, 42, 0.86) !important;
-    border-bottom-color: rgba(15, 23, 42, 0.08) !important;
+    color: rgba(15, 23, 42, 0.86);
+    border-bottom-color: rgba(15, 23, 42, 0.08);
   }
   
   body:not(.light-mode) tbody td:nth-child(2) {
-    color: rgba(15, 23, 42, 0.95) !important;
+    color: rgba(15, 23, 42, 0.95);
   }
   
   body:not(.light-mode) .statCard,
   body:not(.light-mode) .chartTop,
   body:not(.light-mode) .kwhPill {
-    background: rgba(15, 23, 42, 0.03) !important;
-    border-color: rgba(15, 23, 42, 0.10) !important;
+    background: rgba(15, 23, 42, 0.03);
+    border-color: rgba(15, 23, 42, 0.10);
   }
   
   body:not(.light-mode) thead th {
-    color: rgba(15, 23, 42, 0.65) !important;
+    color: rgba(15, 23, 42, 0.65);
   }
   
   body:not(.light-mode) .kwhValue {
-    color: rgba(15, 23, 42, 0.86) !important;
-  }
-}
-
-@media (prefers-color-scheme: dark) {
-  body:not(.light-mode) tbody tr {
-    background: rgba(255, 255, 255, 0.09) !important;
-    border-color: rgba(255, 255, 255, 0.14) !important;
-  }
-  
-  body:not(.light-mode) tbody td {
-    color: rgba(247, 247, 251, 0.90) !important;
-    border-bottom-color: rgba(255, 255, 255, 0.08) !important;
-  }
-  
-  body:not(.light-mode) tbody td:nth-child(2) {
-    color: #fff !important;
-  }
-  
-  body:not(.light-mode) .statCard,
-  body:not(.light-mode) .chartTop,
-  body:not(.light-mode) .kwhPill {
-    background: rgba(255, 255, 255, 0.08) !important;
-    border-color: rgba(255, 255, 255, 0.12) !important;
-  }
-  
-  body:not(.light-mode) thead th {
-    color: rgba(247, 247, 251, 0.72) !important;
-  }
-  
-  body:not(.light-mode) .kwhValue {
-    color: rgba(247, 247, 251, 0.90) !important;
+    color: rgba(15, 23, 42, 0.86);
   }
 }
