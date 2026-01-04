@@ -520,6 +520,7 @@
     .alert{ border: 1px solid rgba(239,68,68,.40); background: rgba(239,68,68,.15); color: rgba(255,255,255,.95); padding: 12px 12px; border-radius: 14px; font-size: 13px; line-height: 1.35; display:none; margin-bottom: 12px; }
     .alert.show{display:block} .alert b{color: #fff}
     .form{ display:grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+    #consumosWrapper{ padding: 0 2px; }
     @media (max-width: 640px){ .form{grid-template-columns: repeat(2, 1fr);} }
     @media (max-width: 520px){ .form{grid-template-columns: 1fr;} }
     .group{display:flex; flex-direction:column; gap: 7px;}
@@ -581,7 +582,7 @@
       border: 1px solid rgba(139,92,246,.4);
       pointer-events: none;
     }
-    .input{ width:100%; padding: 14px 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(0,0,0,.22); color: var(--text); outline:none; font-weight: 900; font-size: 15px; transition: box-shadow .15s ease, border-color .15s ease, transform .15s ease, background .15s ease; min-height: 44px; position: relative; }
+    .input{ width:100%; padding: 14px 14px; border-radius: 12px; border: 1px solid var(--border); background: rgba(0,0,0,.22); color: var(--text); outline:none; font-weight: 900; font-size: 15px; transition: box-shadow .15s ease, border-color .15s ease, transform .15s ease, background .15s ease; min-height: 44px; position: relative; }
     .input:focus{ 
       border-color: var(--accent); 
       background: rgba(139, 92, 246, 0.12); 
