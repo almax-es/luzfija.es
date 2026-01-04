@@ -3006,6 +3006,81 @@ html.light-mode, body.light-mode{
   }
 }
 
+/* =============================================================
+   MOBILE CONTRAST PATCH
+   - Strengthen surfaces on touch devices (mobile/tablet)
+   - Fix "best" ranking card shape on mobile (outline ignores radius)
+   - Improve separators in the mobile card-table layout for both themes
+   ============================================================= */
+
+/* Unified divider color (used by the mobile table-to-cards layout) */
+:root{ --line: rgba(255,255,255,.08); }
+html.light-mode,
+body.light-mode{ --line: rgba(15,23,42,.10); }
+
+/* Touch devices: compensate for removed backdrop-filter by making surfaces more solid */
+@media (pointer: coarse), (hover: none) {
+  :root{
+    /* Slightly more opaque than desktop for better readability on small screens */
+    --card: rgba(255,255,255,.085);
+    --card2: rgba(255,255,255,.11);
+    --border: rgba(255,255,255,.14);
+    --border2: rgba(255,255,255,.20);
+    --line: rgba(255,255,255,.10);
+  }
+
+  html.light-mode,
+  body.light-mode{
+    --card: rgba(15,23,42,.055);
+    --card2: rgba(15,23,42,.075);
+    --border: rgba(15,23,42,.14);
+    --border2: rgba(15,23,42,.20);
+    --line: rgba(15,23,42,.12);
+  }
+
+  /* Components that were using fixed dark/translucent rgba values */
+  .statCard,
+  .chartTop,
+  .kwh-pill{
+    background: var(--card) !important;
+    border-color: var(--border) !important;
+  }
+
+  /* Ranking rows: never force a fixed dark background on touch devices */
+  tbody tr{
+    background: var(--card) !important;
+  }
+
+  /* Best row: keep rounded corners (outline doesn't respect border-radius) */
+  tbody tr.best{
+    outline: none !important;
+    border: 1px solid rgba(34,197,94,.45) !important;
+    border-radius: 16px !important;
+    background: linear-gradient(90deg, rgba(34,197,94,.14), rgba(139,92,246,.10)) !important;
+    box-shadow:
+      0 12px 32px rgba(0,0,0,.35),
+      inset 0 1px 0 rgba(255,255,255,.08);
+  }
+
+  body.light-mode tbody tr.best{
+    border-color: rgba(22,163,74,.32) !important;
+    background: linear-gradient(90deg, rgba(22,163,74,.10), rgba(109,40,217,.08)) !important;
+    box-shadow:
+      0 12px 32px rgba(2,6,23,.10),
+      inset 0 1px 0 rgba(255,255,255,.70);
+  }
+}
+
+/* Mobile layout (table -> cards): improve separators with theme-aware color */
+@media (max-width: 768px) {
+  tbody td{
+    border-bottom: 1px solid var(--line) !important;
+  }
+  tbody td:nth-of-type(2){
+    border-bottom: 2px solid var(--border) !important;
+  }
+}
+
 /* ==================================================
    OPCIONES AVANZADAS - Sección profesional
    ================================================== */
