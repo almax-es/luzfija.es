@@ -172,6 +172,7 @@
 
     <link rel="stylesheet" href="styles.css">
   <!-- CSS del desglose (solo se usa al abrir el modal). Se carga sin bloquear el render inicial -->
+  <link rel="preload" href="desglose-factura.css" as="style">
   <link rel="stylesheet" href="desglose-factura.css" media="print" onload="this.media='all'">
   <noscript><link rel="stylesheet" href="desglose-factura.css"></noscript>
 
@@ -268,7 +269,7 @@
               <span class="mi-left">🔗 Compartir configuración</span>
               <span class="mi-right">URL</span>
             </button>
-            <a class="menuItem u-no-underline" href="/cdn-cgi/l/email-protection#7e1611121f3e120b041817141f501b0d" role="menuitem">
+            <a class="menuItem u-no-underline" href="mailto:hola@luzfija.es" role="menuitem">
               <span class="mi-left">✉️ Contacto</span>
               <span class="mi-right">email</span>
             </a>
@@ -630,7 +631,7 @@
       </div>
     </section>
 
-        <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="index-extra.js" defer></script>
+        <script src="index-extra.js" defer></script>
 
 
     </main>
@@ -686,8 +687,8 @@
             <div class="u-label-xs">
               ✉️ Email
             </div>
-            <a href="/cdn-cgi/l/email-protection#f0989f9c91b09c858a96999a91de9583" class="u-color-accent u-fw-900 u-text-13" style="text-decoration:underline;">
-              <span class="__cf_email__" data-cfemail="81e9eeede0c1edf4fbe7e8ebe0afe4f2">[email&#160;protected]</span>
+            <a href="mailto:hola@luzfija.es" class="u-color-accent u-fw-900 u-text-13" style="text-decoration:underline;">
+              hola@luzfija.es
             </a>
             <div class="u-secondary-text">
               Respondo en cuanto puedo (proyecto gratuito).
@@ -771,7 +772,7 @@
           </div>
 
           <div class="help" style="margin-top:10px; font-size:11px; opacity:0.9; border:1px solid var(--border); background: var(--card2); padding:8px; border-radius:10px; line-height:1.4;">
-            <p style="margin-bottom:4px;"><strong>📧 ¿Datos incorrectos?</strong> Envía el PDF anonimizado a <a href="/cdn-cgi/l/email-protection#98f0f7f4f9d8f4ede2fef1f2f9b6fdeb" class="u-link-accent"><span class="__cf_email__" data-cfemail="2a4245464b6a465f504c43404b044f59">[email&#160;protected]</span></a></p>
+            <p style="margin-bottom:4px;"><strong>📧 ¿Datos incorrectos?</strong> Envía el PDF anonimizado a <a href="mailto:hola@luzfija.es" class="u-link-accent">hola@luzfija.es</a></p>
             <p class="u-m-0 u-color-muted u-text-10">Oculta: nombre, DNI, CUPS, IBAN, QR. El PDF se procesa en tu navegador (no se sube).</p>
           </div>
         </div>
@@ -846,7 +847,7 @@
     </div>
   </div>
 
-    <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="pvpc.js" defer></script>
+    <script src="pvpc.js" defer></script>
     <script src="factura.js" defer></script>
     <!-- XLSX se carga bajo demanda cuando se necesita (ver app.js) -->
     <script src="app.js" defer></script>
@@ -894,4 +895,24 @@
             <button id="tabManana" class="pvpc-tab pvpc-tab-btn" type="button" style="display: none">
               Mañana
             </button>
-   
+          </div>
+        </div>
+        
+        <div id="modalPVPCHoursList" class="u-expand-h">
+          <p class="u-loading-text">Cargando precios...</p>
+        </div>
+
+        <button class="btn primary u-w-full u-mt-16" id="btnCerrarPVPCInfo" type="button" aria-label="Cerrar modal de precios PVPC">
+          ✅ Cerrar
+        </button>
+      </div>
+    </div>
+  </div>
+
+  
+
+  
+  <script src="desglose-factura.js" defer></script>
+  <script src="desglose-integration.js" defer></script>
+</body>
+</html>
