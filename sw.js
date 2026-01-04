@@ -7,7 +7,7 @@
 
 // IMPORTANTE: si cambias este fichero, incrementa CACHE_NAME para forzar la actualización.
 // Bump de versión para forzar actualización de assets tras cambios (release incremental)
-const CACHE_NAME = "luzfija-static-v4.16";
+const CACHE_NAME = "luzfija-static-v4.17";
 
 const ASSETS = [
   "/",
@@ -33,7 +33,6 @@ const ASSETS = [
   "/desglose-factura.css",
   "/desglose-factura.js",
   "/desglose-integration.js",
-  "/guias.css",
   "/calcular-factura-luz.html",
   "/comparar-pvpc-tarifa-fija.html",
   "/mejor-tarifa-placas-solares.html",

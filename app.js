@@ -1327,9 +1327,15 @@ window.lfDbg = lfDbg;
     function updateSortIcons(){
       ['nombre','potenciaNum','consumoNum','impuestosNum','totalNum','vsMejorNum'].forEach(k=>{
         const i=$('si_'+k);
-        if(!i) return;
-        if(state.sort.key!==k){ i.textContent=''; return; }
+        const th=document.querySelector(`th[data-sort="${k}"]`);
+        if(!i||!th) return;
+        if(state.sort.key!==k){ 
+          i.textContent=''; 
+          th.setAttribute('aria-sort','none');
+          return; 
+        }
         i.textContent=state.sort.dir==='asc'?'▲':'▼';
+        th.setAttribute('aria-sort',state.sort.dir==='asc'?'ascending':'descending');
       });
     }
 
@@ -1911,9 +1917,10 @@ window.lfDbg = lfDbg;
         });
       });
 
-      document.querySelectorAll('thead th.sort').forEach(th=>{
-        th.addEventListener('click',()=>{
-          const k=th.getAttribute('data-sort');
+      document.querySelectorAll('thead .sort-button').forEach(btn=>{
+        btn.addEventListener('click',()=>{
+          const th=btn.closest('th');
+          const k=th?.getAttribute('data-sort');
           if(!k)return;
           if(state.sort.key===k)state.sort.dir=(state.sort.dir==='asc')?'desc':'asc';
           else{state.sort.key=k;state.sort.dir='asc';}

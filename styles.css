@@ -810,6 +810,32 @@
     thead th.sort{cursor:pointer}
     thead th.sort:hover{background: rgba(139,92,246,.12)}
     .sortIcon{opacity:.8; font-size: 12px; margin-left: 6px;}
+    .sort-button{
+      background: none;
+      border: none;
+      color: inherit;
+      font: inherit;
+      padding: 0;
+      cursor: pointer;
+      width: 100%;
+      text-align: inherit;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 4px;
+    }
+    thead th:nth-child(2) .sort-button{justify-content: center;}
+    .sort-button:focus{
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
+    .sort-button:focus:not(:focus-visible){outline: none;}
+    .sort-button:focus-visible{
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 4px;
+    }
     tbody tr { background: rgba(255, 255, 255, 0.03); transition: all 0.2s ease; backdrop-filter: blur(10px); }
     tbody td{ padding: 14px 12px; border-bottom: none !important; text-align:right; font-size: 15px; color: rgba(255,255,255,.88); vertical-align: middle; white-space: nowrap; }
     tbody tr td:first-child { border-radius: 12px 0 0 12px; }

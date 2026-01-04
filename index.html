@@ -491,12 +491,36 @@
               <thead>
                 <tr>
                   <th>#</th>
-                  <th class="sort" data-sort="nombre" aria-label="Ordenar por nombre de tarifa">Tarifa <span class="sortIcon" id="si_nombre"></span></th>
-                  <th class="sort" data-sort="potenciaNum" aria-label="Ordenar por coste de potencia">Potencia <span class="sortIcon" id="si_potenciaNum"></span></th>
-                  <th class="sort" data-sort="consumoNum" aria-label="Ordenar por coste de consumo">Consumo <span class="sortIcon" id="si_consumoNum"></span></th>
-                  <th class="sort" data-sort="impuestosNum" aria-label="Ordenar por impuestos">Impuestos <span class="sortIcon" id="si_impuestosNum"></span></th>
-                  <th class="sort" data-sort="totalNum" aria-label="Ordenar por coste total">Total <span class="sortIcon" id="si_totalNum"></span></th>
-                  <th class="sort" data-sort="vsMejorNum" aria-label="Ordenar por diferencia con la mejor tarifa">Vs mejor <span class="sortIcon" id="si_vsMejorNum"></span></th>
+                  <th class="sort" data-sort="nombre" role="columnheader" aria-sort="none">
+                    <button type="button" class="sort-button" aria-label="Ordenar por nombre de tarifa">
+                      Tarifa <span class="sortIcon" id="si_nombre" aria-hidden="true"></span>
+                    </button>
+                  </th>
+                  <th class="sort" data-sort="potenciaNum" role="columnheader" aria-sort="none">
+                    <button type="button" class="sort-button" aria-label="Ordenar por coste de potencia">
+                      Potencia <span class="sortIcon" id="si_potenciaNum" aria-hidden="true"></span>
+                    </button>
+                  </th>
+                  <th class="sort" data-sort="consumoNum" role="columnheader" aria-sort="none">
+                    <button type="button" class="sort-button" aria-label="Ordenar por coste de consumo">
+                      Consumo <span class="sortIcon" id="si_consumoNum" aria-hidden="true"></span>
+                    </button>
+                  </th>
+                  <th class="sort" data-sort="impuestosNum" role="columnheader" aria-sort="none">
+                    <button type="button" class="sort-button" aria-label="Ordenar por impuestos">
+                      Impuestos <span class="sortIcon" id="si_impuestosNum" aria-hidden="true"></span>
+                    </button>
+                  </th>
+                  <th class="sort" data-sort="totalNum" role="columnheader" aria-sort="ascending">
+                    <button type="button" class="sort-button" aria-label="Ordenar por coste total">
+                      Total <span class="sortIcon" id="si_totalNum" aria-hidden="true"></span>
+                    </button>
+                  </th>
+                  <th class="sort" data-sort="vsMejorNum" role="columnheader" aria-sort="none">
+                    <button type="button" class="sort-button" aria-label="Ordenar por diferencia con la mejor tarifa">
+                      Vs mejor <span class="sortIcon" id="si_vsMejorNum" aria-hidden="true"></span>
+                    </button>
+                  </th>
                   <th>Tipo</th>
                   <th>Web</th>
                 </tr>
