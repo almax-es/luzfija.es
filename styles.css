@@ -3904,10 +3904,3 @@ html {
     margin-right: 0;
   }
 }
-
-/* Mejora de contraste para tarjetas en modo claro del sistema */
-@media (prefers-color-scheme: light) {
-  body:not(.light-mode) tbody tr {
-    background: rgba(255, 255, 255, 0.12);
-  }
-}
