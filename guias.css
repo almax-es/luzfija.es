@@ -16,6 +16,11 @@
       --muted2: rgba(15, 23, 42, .58);
       --shadow: 0 22px 65px rgba(2,6,23,.12);
       --shadow2: 0 16px 40px rgba(2,6,23,.10);
+      /* Colores con contraste AA en modo claro */
+      --accent:#6D28D9;
+      --accent2:#15803D;
+      --warn:#B45309;
+
     }
     *{box-sizing:border-box; margin:0; padding:0}
     html,body{height:100%;}
@@ -2158,4 +2163,17 @@
   .article-content h3 {
     font-size: 18px;
   }
+}
+
+/* === Ajustes "pixel-perfect" para móviles === */
+
+/* iOS Safari: evita el zoom automático cuando un input tiene <16px */
+@supports (-webkit-touch-callout: none) {
+  input, select, textarea { font-size: 16px !important; }
+}
+
+/* iOS/Android modernos: 100vh puede fallar por la barra del navegador (usa dvh si existe) */
+@supports (height: 100dvh) {
+  .container { min-height: 100dvh; }
+  
 }

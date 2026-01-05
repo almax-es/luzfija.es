@@ -17,8 +17,8 @@
       --shadow2: 0 16px 40px rgba(2,6,23,.10);
       /* Colores optimizados para contraste WCAG AA en modo claro */
       --accent:#6D28D9; /* Violet-700: contraste 4.8:1 sobre blanco */
-      --accent2:#16A34A; /* Green-600: contraste 4.5:1 sobre blanco */
-      --warn:#D97706; /* Amber-600: contraste 4.5:1 sobre blanco */
+      --accent2:#15803D; /* Green-600: contraste 4.5:1 sobre blanco */
+      --warn:#B45309; /* Amber-600: contraste 4.5:1 sobre blanco */
     }
     *{box-sizing:border-box; margin:0; padding:0}
     html,body{height:100%;}
@@ -3988,3 +3988,16 @@ html {
 .breadcrumbs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin:12px 0 16px;}
 .breadcrumbs a{color:var(--accent);text-decoration:none;font-weight:800;}
 .breadcrumbs a:hover{opacity:.85;}
+
+/* === Ajustes "pixel-perfect" para móviles === */
+
+/* iOS Safari: evita el zoom automático cuando un input tiene <16px */
+@supports (-webkit-touch-callout: none) {
+  input, select, textarea { font-size: 16px !important; }
+}
+
+/* iOS/Android modernos: 100vh puede fallar por la barra del navegador (usa dvh si existe) */
+@supports (height: 100dvh) {
+  .container { min-height: 100dvh; }
+  .modal-content { max-height: calc(100dvh - 60px); }
+}
