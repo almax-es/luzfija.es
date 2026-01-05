@@ -19,30 +19,12 @@
       "requiereFV": false
     },
     {
-      "nombre": "Imagina Energía",
-      "cPunta": 0.102,
-      "cLlano": 0.102,
-      "cValle": 0.102,
-      "p1": 0.087,
-      "p2": 0.044,
-      "web": "https://ofertas.imaginaenergia.com/plan-online-imagina/",
-      "tipo": "1P",
-      "fv": {
-        "exc": 0.05,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Nufri Calma",
-      "cPunta": 0.103384,
-      "cLlano": 0.103384,
-      "cValle": 0.103384,
-      "p1": 0.086313,
-      "p2": 0.032672,
+      "cPunta": 0.103386,
+      "cLlano": 0.103386,
+      "cValle": 0.103386,
+      "p1": 0.094533,
+      "p2": 0.046371,
       "web": "https://www.energianufri.com/es/landing/mas-tarifas-luz-gas",
       "tipo": "1P",
       "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
@@ -70,6 +52,24 @@
         "tope": "ENERGIA",
         "bv": false,
         "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Imagina Energía",
+      "cPunta": 0.105,
+      "cLlano": 0.105,
+      "cValle": 0.105,
+      "p1": 0.087,
+      "p2": 0.044,
+      "web": "https://ofertas.imaginaenergia.com/plan-online-imagina/",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.05,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
       },
       "requiereFV": false
     },
@@ -296,11 +296,11 @@
     },
     {
       "nombre": "Nufri Flex 3P",
-      "cPunta": 0.168651,
-      "cLlano": 0.093473,
-      "cValle": 0.059887,
-      "p1": 0.086313,
-      "p2": 0.032672,
+      "cPunta": 0.168687,
+      "cLlano": 0.093465,
+      "cValle": 0.059869,
+      "p1": 0.094533,
+      "p2": 0.046371,
       "web": "https://www.energianufri.com/es/landing/mas-tarifas-luz-gas",
       "tipo": "3P",
       "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
@@ -333,9 +333,9 @@
     },
     {
       "nombre": "Imagina Energía 3P",
-      "cPunta": 0.174,
-      "cLlano": 0.1,
-      "cValle": 0.066,
+      "cPunta": 0.177,
+      "cLlano": 0.103,
+      "cValle": 0.069,
       "p1": 0.101,
       "p2": 0.022,
       "web": "https://ofertas.imaginaenergia.com/plan-online-imagina/",
@@ -443,5 +443,5 @@
       "requiereFV": true
     }
   ],
-  "updatedAt": "2026-01-05T10:02:09.600Z"
+  "updatedAt": "2026-01-05T11:57:36.533Z"
 }
