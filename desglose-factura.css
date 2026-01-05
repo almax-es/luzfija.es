@@ -43,59 +43,59 @@
 }
 
 /* Modo oscuro específico para LuzFija */
-body:not(.light-mode) .desglose-modal {
+html:not(.light-mode) .desglose-modal {
   background: #1a1d2e;
   color: #f9fafb;
 }
 
-body:not(.light-mode) .desglose-header {
+html:not(.light-mode) .desglose-header {
   border-bottom-color: #2d3748;
 }
 
-body:not(.light-mode) .desglose-header h2 {
+html:not(.light-mode) .desglose-header h2 {
   color: #f9fafb;
 }
 
-body:not(.light-mode) .desglose-close {
+html:not(.light-mode) .desglose-close {
   color: #9ca3af;
 }
 
-body:not(.light-mode) .desglose-close:hover {
+html:not(.light-mode) .desglose-close:hover {
   background: rgba(255, 255, 255, 0.1);
   color: #f9fafb;
 }
 
-body:not(.light-mode) .desglose-info {
+html:not(.light-mode) .desglose-info {
   background: #0f1117;
 }
 
-body:not(.light-mode) .desglose-tarifa {
+html:not(.light-mode) .desglose-tarifa {
   color: #f9fafb;
 }
 
-body:not(.light-mode) .desglose-periodo {
+html:not(.light-mode) .desglose-periodo {
   color: #9ca3af;
 }
 
-body:not(.light-mode) .desglose-seccion {
+html:not(.light-mode) .desglose-seccion {
   background: #0f1117;
   border-color: #2d3748;
 }
 
-body:not(.light-mode) .desglose-linea {
+html:not(.light-mode) .desglose-linea {
   border-bottom-color: #2d3748;
 }
 
-body:not(.light-mode) .desglose-linea:hover {
+html:not(.light-mode) .desglose-linea:hover {
   background: rgba(139, 92, 246, 0.1);
 }
 
-body:not(.light-mode) .desglose-concepto,
-body:not(.light-mode) .desglose-importe {
+html:not(.light-mode) .desglose-concepto,
+html:not(.light-mode) .desglose-importe {
   color: #f9fafb;
 }
 
-body:not(.light-mode) .desglose-detalle {
+html:not(.light-mode) .desglose-detalle {
   color: #9ca3af;
 }
 
@@ -481,11 +481,11 @@ body:not(.light-mode) .desglose-detalle {
 }
 
 /* Dark mode */
-body:not(.light-mode) #table tbody tr td:nth-child(6) {
+html:not(.light-mode) #table tbody tr td:nth-child(6) {
   color: #a78bfa;
 }
 
-body:not(.light-mode) #table tbody tr td:nth-child(6):hover {
+html:not(.light-mode) #table tbody tr td:nth-child(6):hover {
   color: #c4b5fd;
 }
 
@@ -509,11 +509,11 @@ body:not(.light-mode) #table tbody tr td:nth-child(6):hover {
   border-color: rgba(255,255,255,.18);
   transform: translateY(-1px);
 }
-body.light-mode .desglose-close{
+html.light-mode .desglose-close{
   border-color: rgba(15,23,42,.14);
   background: rgba(15,23,42,.04);
 }
-body.light-mode .desglose-close:hover{
+html.light-mode .desglose-close:hover{
   background: rgba(15,23,42,.08);
   border-color: rgba(15,23,42,.18);
 }
@@ -580,7 +580,7 @@ body.light-mode .desglose-close:hover{
   background: rgba(59,130,246,0.08);
   border: 1px solid rgba(59,130,246,0.18);
 }
-body:not(.light-mode) .desglose-ayuda{
+html:not(.light-mode) .desglose-ayuda{
   color: #cbd5e1;
   background: rgba(59,130,246,0.12);
   border-color: rgba(59,130,246,0.20);

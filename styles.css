@@ -1,5 +1,10 @@
     /* === TU DISEÑO ORIGINAL EXACTO (NO TOCAR) === */
-    :root{ --bg0:#070A12; --bg1:#0B1020; --card: rgba(255,255,255,.06); --card2: rgba(255,255,255,.085); --border: rgba(255,255,255,.10); --border2: rgba(255,255,255,.16); --text:#F7F7FB; --muted: rgba(247,247,251,.72); --muted2: rgba(247,247,251,.55); --accent:#8B5CF6; --accent2:#22C55E; --warn:#F59E0B; --danger:#EF4444; --shadow: 0 22px 65px rgba(0,0,0,.52); --shadow2: 0 16px 40px rgba(0,0,0,.50); --radius: 18px; --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; --sans: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif; --bg: var(--bg0); --card-bg: var(--card); }
+    :root{ --bg0:#070A12; --bg1:#0B1020; --card: rgba(255,255,255,.06); --card2: rgba(255,255,255,.085); --border: rgba(255,255,255,.10); --border2: rgba(255,255,255,.16); --text:#F7F7FB; --muted: rgba(247,247,251,.72); --muted2: rgba(247,247,251,.55); --accent:#8B5CF6; --accent2:#22C55E; --warn:#F59E0B; --danger:#EF4444; --shadow: 0 22px 65px rgba(0,0,0,.52); --shadow2: 0 16px 40px rgba(0,0,0,.50); --radius: 18px; --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; --sans: 'Outfit', ui-sans-serif, system-ui, -apple-system, sans-serif; --bg: var(--bg0); --card-bg: var(--card);
+      /* Sombras simplificadas (para móvil/coarse) — se sobreescriben por tema */
+      --shadowMobile: 0 4px 12px rgba(0,0,0,.30);
+      --shadowBtnMobile: 0 2px 8px rgba(0,0,0,.20);
+      --rowMobileBg: rgba(5, 8, 16, 0.50);
+    }
     /* Preferencia de UI nativa (inputs/scrollbars) */
     html{ color-scheme: dark; }
     html.light-mode{ color-scheme: light; }
@@ -19,6 +24,10 @@
       --accent:#6D28D9; /* Violet-700: contraste 4.8:1 sobre blanco */
       --accent2:#15803D; /* Green-600: contraste 4.5:1 sobre blanco */
       --warn:#B45309; /* Amber-600: contraste 4.5:1 sobre blanco */
+      /* Sombras simplificadas (para móvil/coarse) en modo claro */
+      --shadowMobile: 0 4px 12px rgba(2,6,23,.12);
+      --shadowBtnMobile: 0 2px 8px rgba(2,6,23,.10);
+      --rowMobileBg: rgba(15, 23, 42, .03);
     }
     *{box-sizing:border-box; margin:0; padding:0}
     html,body{height:100%;}
@@ -115,15 +124,15 @@
       .card,
       .heroCard,
       .statCard {
-        box-shadow: 0 4px 12px rgba(0,0,0,.3) !important;
+        box-shadow: var(--shadowMobile) !important;
       }
       
       .btn {
-        box-shadow: 0 2px 8px rgba(0,0,0,.2) !important;
+        box-shadow: var(--shadowBtnMobile) !important;
       }
       
       .pill {
-        box-shadow: 0 4px 12px rgba(0,0,0,.2) !important;
+        box-shadow: var(--shadowMobile) !important;
       }
       
       /* 5. Desactivar partículas (ahorro ~10ms) */
@@ -146,7 +155,7 @@
       
       /* 8. Simplificar tabla */
       tbody tr {
-        background: rgba(5, 8, 16, 0.5) !important;
+        background: var(--rowMobileBg) !important;
       }
       
       /* 9. Reducir duración de ripples */
@@ -187,22 +196,6 @@
         animation-duration: 0.01ms !important;
         animation-iteration-count: 1 !important;
         transition-duration: 0.01ms !important;
-      }
-    }
-
-
-    .logo {
-      animation: logoPulse 3s ease-in-out infinite;
-    }
-    
-    @keyframes logoPulse {
-      0%, 100% {
-        opacity: 0.95;
-        transform: scale(1);
-      }
-      50% {
-        opacity: 1;
-        transform: scale(1.05);
       }
     }
 
@@ -2226,9 +2219,9 @@
     -webkit-backdrop-filter: none !important;
   }
   
-  /* Simplificar sombras complejas (mantener básicas) */
+  /* Simplificar sombras complejas (mantener básicas) — respetando tema */
   .card, .heroCard, .statCard {
-    box-shadow: 0 4px 12px rgba(0,0,0,.3) !important;
+    box-shadow: var(--shadowMobile) !important;
   }
   
   /* Eliminar animación de aurora (muy costosa en móvil) */

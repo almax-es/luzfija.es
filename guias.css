@@ -92,22 +92,6 @@
       }
     }
 
-
-    .logo {
-      animation: logoPulse 3s ease-in-out infinite;
-    }
-    
-    @keyframes logoPulse {
-      0%, 100% {
-        opacity: 0.95;
-        transform: scale(1);
-      }
-      50% {
-        opacity: 1;
-        transform: scale(1.05);
-      }
-    }
-
     @keyframes successParticle {
       0% {
         transform: translateY(0) translateX(0) scale(0);
