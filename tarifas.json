@@ -165,25 +165,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Iberdrola Online",
-      "cPunta": 0.1199,
-      "cLlano": 0.1199,
-      "cValle": 0.1199,
-      "p1": 0.108192,
-      "p2": 0.046548,
-      "web": "https://www.iberdrola.es/luz/plan-online",
-      "tipo": "1P",
-      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Naturgy por uso",
       "cPunta": 0.120471,
       "cLlano": 0.120471,
@@ -218,6 +199,25 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Iberdrola Online",
+      "cPunta": 0.125332,
+      "cLlano": 0.125332,
+      "cValle": 0.125332,
+      "p1": 0.113621,
+      "p2": 0.048023,
+      "web": "https://www.iberdrola.es/luz/plan-online",
+      "tipo": "1P",
+      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
       },
       "requiereFV": false
     },
@@ -443,5 +443,5 @@
       "requiereFV": true
     }
   ],
-  "updatedAt": "2026-01-05T17:20:47.013Z"
+  "updatedAt": "2026-01-05T17:59:00.837Z"
 }
