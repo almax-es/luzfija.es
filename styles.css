@@ -879,13 +879,13 @@
     .mi-right{ opacity: .6; white-space: nowrap; flex: 0 0 auto; }
     .menuDivider{ height:1px; background: rgba(255,255,255,.08); margin: 6px 6px; }
     .menuHint{ padding: 8px 10px 6px 10px; color: var(--muted2); font-size: 11px; font-weight: 900; letter-spacing: .2px; }
-    .toast{ position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(5,8,16,.92); border: 1px solid var(--border); color: var(--text); border-radius: 16px; box-shadow: var(--shadow2); padding: 12px 14px; display:none; gap: 10px; align-items:center; max-width: min(760px, calc(100vw - 24px)); backdrop-filter: blur(14px); z-index: 9999; font-size: 13px; will-change: transform, opacity; }
+    .toast{ position: fixed; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); background: rgba(5,8,16,.92); border: 1px solid var(--border); color: var(--text); border-radius: 16px; box-shadow: var(--shadow2); padding: 12px 14px; display:none; gap: 10px; align-items:center; max-width: min(760px, calc(100vw - 24px)); backdrop-filter: blur(14px); z-index: 9999; font-size: 13px; will-change: transform, opacity; }
     .toast.show{display:flex; animation: pop .22s ease;}
     @keyframes pop { from{opacity:0; transform: translateX(-50%) translateY(8px);} to{opacity:1; transform: translateX(-50%) translateY(0px);} }
     .dot{width:10px; height:10px; border-radius:999px; background: var(--accent);}
     .dot.ok{background: var(--accent2)}
     .dot.err{background: var(--danger)}
-    .scroll-btn{ position: fixed; bottom: 90px; right: 30px; padding: 14px 20px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; border-radius: 999px; font-weight: 900; font-size: 13px; cursor: pointer; box-shadow: 0 8px 24px rgba(139,92,246,.4); z-index: 9998; animation: bounce 2s ease-in-out infinite; transition: transform .2s ease, box-shadow .2s ease; }
+    .scroll-btn{ position: fixed; bottom: calc(90px + env(safe-area-inset-bottom, 0px)); right: 30px; padding: 14px 20px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: #fff; border: none; border-radius: 999px; font-weight: 900; font-size: 13px; cursor: pointer; box-shadow: 0 8px 24px rgba(139,92,246,.4); z-index: 9998; animation: bounce 2s ease-in-out infinite; transition: transform .2s ease, box-shadow .2s ease; }
     .scroll-btn:hover{ transform: translateY(-2px) scale(1.05); box-shadow: 0 12px 32px rgba(139,92,246,.6); }
     @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
     @media (max-width: 768px) {
@@ -904,7 +904,7 @@
       tbody td:nth-of-type(8)::before { content: "Tipo"; font-weight:900; color:var(--muted); }
       tbody td:nth-of-type(9)::before { content: "Contratar"; font-weight:900; color:var(--muted); }
       tbody td:nth-of-type(2) { display:block; text-align:center; font-size: 18px !important; margin-bottom: 10px; padding-bottom:10px; border-bottom: 2px solid var(--border); color: #fff; }
-      .scroll-btn{ bottom: 80px; right: 20px; font-size: 12px; padding: 12px 16px; }
+      .scroll-btn{ bottom: calc(80px + env(safe-area-inset-bottom, 0px)); right: 20px; font-size: 12px; padding: 12px 16px; }
     }
     @media (min-width: 1400px){ thead th:nth-child(2), tbody td:nth-child(2) { width: 28%; } tbody td:nth-child(2) { font-size: 15px; } }
     .container { min-height: 100vh; }
@@ -3979,3 +3979,9 @@ html {
     margin-right: 0;
   }
 }
+
+
+/* === Breadcrumbs === */
+.breadcrumbs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin:12px 0 16px;}
+.breadcrumbs a{color:var(--accent);text-decoration:none;font-weight:800;}
+.breadcrumbs a:hover{opacity:.85;}

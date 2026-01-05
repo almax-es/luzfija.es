@@ -2,7 +2,20 @@
 <html lang="es">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <script>
+    (function(){
+      var key='almax_theme';
+      try{
+        var saved=localStorage.getItem(key);
+        if(saved==='light')document.documentElement.classList.add('light-mode');
+        else document.documentElement.classList.remove('light-mode');
+        window.__ALMAX_THEME_SAVED=saved;
+      }catch(e){}
+      window.__ALMAX_THEME_KEY=key;
+    })();
+  </script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="robots" content="noindex, follow" />
   <link rel="canonical" href="https://luzfija.es/guias.html" />
   

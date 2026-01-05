@@ -2,6 +2,19 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
+
+  <script>
+    (function(){
+      var key='almax_theme';
+      try{
+        var saved=localStorage.getItem(key);
+        if(saved==='light')document.documentElement.classList.add('light-mode');
+        else document.documentElement.classList.remove('light-mode');
+        window.__ALMAX_THEME_SAVED=saved;
+      }catch(e){}
+      window.__ALMAX_THEME_KEY=key;
+    })();
+  </script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="theme-color" content="#8B5CF6"/>
 <title>Mejor Tarifa de Luz con Placas Solares 2026 | LuzFija.es</title>
@@ -147,6 +160,40 @@ body{font-family:'Outfit',-apple-system,system-ui,sans-serif;background:linear-g
 @media (max-width:768px){.hero{margin:40px auto}.content-card{padding:32px 24px}.container{padding:32px 16px}}
 @keyframes fadeIn{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:translateY(0)}}
 .hero,.content-card{animation:fadeIn .6s ease}
+
+
+/* === Light mode (shared) === */
+html.light-mode{
+  --bg:#F4F6FB;
+  --surface:#FFFFFF;
+  --card: rgba(15, 23, 42, .04);
+  --border: rgba(15, 23, 42, .10);
+  --text:#0F172A;
+  --muted: rgba(15, 23, 42, .75);
+  --card2: rgba(15, 23, 42, .06);
+  --border2: rgba(15, 23, 42, .16);
+  --muted2: rgba(15, 23, 42, .58);
+}
+html.light-mode body{
+  background: linear-gradient(135deg, var(--bg), var(--surface)) !important;
+  color: var(--text);
+}
+
+/* Generic fixes for hard-coded dark headers/buttons in light mode */
+html.light-mode .header{
+  background: rgba(255,255,255,.92) !important;
+  border-bottom-color: var(--border) !important;
+}
+html.light-mode .btn-secondary,
+html.light-mode .btn-small{
+  background: rgba(15, 23, 42, .04) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+html.light-mode .btn-secondary:hover,
+html.light-mode .btn-small:hover{
+  background: rgba(139, 92, 246, .12) !important;
+}
 
 </style>
 </head>
