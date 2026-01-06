@@ -26,11 +26,16 @@
         // Cargar PDF.js usando import dinámico (ESM)
         __LF_pdfjsLoading = (async () => {
           try {
+            // Usar rutas relativas desde el origen del dominio
+            const origin = window.location.origin;
+            const pdfJsPath = `${origin}/js/pdf.min.mjs`;
+            const workerPath = `${origin}/js/pdf.worker.min.mjs`;
+            
             // Importar PDF.js 5.4.530 como módulo ES
-            const pdfjsLib = await import('/js/pdf.min.mjs');
+            const pdfjsLib = await import(pdfJsPath);
             
             // Configurar el worker
-            pdfjsLib.GlobalWorkerOptions.workerSrc = '/js/pdf.worker.min.mjs';
+            pdfjsLib.GlobalWorkerOptions.workerSrc = workerPath;
             
             // Guardar en window para compatibilidad
             window.pdfjsLib = pdfjsLib;
