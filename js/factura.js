@@ -652,7 +652,7 @@
         
         return new Promise((resolve, reject) => {
           const script = document.createElement('script');
-          script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
+          script.src = '/js/jsQR.min.js';
           script.crossOrigin = 'anonymous'; // Necesario para SRI
           script.onload = () => resolve(window.jsQR);
           script.onerror = () => reject(new Error('jsQR no disponible'));
