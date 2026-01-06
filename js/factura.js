@@ -1,3 +1,7 @@
+import * as pdfjsLib from "/vendor/pdfjs/pdf.min.mjs";
+window.pdfjsLib = pdfjsLib;
+pdfjsLib.GlobalWorkerOptions.workerSrc = "/vendor/pdfjs/pdf.worker.min.mjs";
+
     (function(){
       if (window.__LF_facturaParserLoaded) return;
       window.__LF_facturaParserLoaded = true;
@@ -11,73 +15,20 @@
       window.__LF_scrollY = 0;
       let __LF_lastParsedConfianza = 0;
 
-      let __LF_pdfjsLoading = null;
+      
+let __LF_pdfjsLoading = null;
       function __LF_ensurePdfWorker(){
-        const lib = window.pdfjsLib;
-        if (!lib) return false;
-        if (!lib.GlobalWorkerOptions.workerSrc) {
-          lib.GlobalWorkerOptions.workerSrc =
-            "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
-        }
+        // PDF.js ya se importa como módulo en la parte superior (pdf.min.mjs)
+        // y el worker se configura con GlobalWorkerOptions.workerSrc.
         return true;
       }
 
-      function __LF_loadScript(src){
-        return new Promise((resolve, reject)=>{
-          const s = document.createElement("script");
-          s.src = src;
-          s.async = true;
-          s.crossOrigin = "anonymous"; // Necesario para SRI (Subresource Integrity)
-          s.onload = () => resolve(true);
-          s.onerror = () => reject(new Error("No se pudo cargar: " + src));
-          document.head.appendChild(s);
-        });
-      }
-
       async function __LF_ensurePdfJs(){
-        if (window.pdfjsLib && __LF_ensurePdfWorker()) return window.pdfjsLib;
-        if (__LF_pdfjsLoading) {
-          await __LF_pdfjsLoading;
-        }
-        if (window.pdfjsLib && __LF_ensurePdfWorker()) return window.pdfjsLib;
-        const existingScript = document.querySelector('script[src*="pdfjs-dist@3.11.174/build/pdf.min.js"]');
-        if (existingScript && !window.pdfjsLib){
-          if (!__LF_pdfjsLoading){
-            __LF_pdfjsLoading = new Promise((resolve) => {
-              let done = false;
-              let timer;
-              const finish = () => {
-                if (done) return;
-                done = true;
-                existingScript.removeEventListener("load", onLoad);
-                existingScript.removeEventListener("error", onError);
-                clearTimeout(timer);
-                resolve();
-              };
-              const onLoad = () => finish();
-              const onError = () => finish();
-              timer = setTimeout(finish, 4000);
-              existingScript.addEventListener("load", onLoad);
-              existingScript.addEventListener("error", onError);
-            });
-          }
-          await __LF_pdfjsLoading;
-          __LF_pdfjsLoading = null;
-        }
-        if (!window.pdfjsLib){
-          const src = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js";
-          __LF_pdfjsLoading = __LF_loadScript(src);
-          await __LF_pdfjsLoading;
-          __LF_pdfjsLoading = null;
-        }
-        if (!window.pdfjsLib || !__LF_ensurePdfWorker()){
-          throw new Error("PDF.js no disponible");
-        }
-        return window.pdfjsLib;
+        // PDF.js ya está disponible vía import (pdfjsLib)
+        return pdfjsLib;
       }
 
-
-      function __LF_normNum(raw){
+function __LF_normNum(raw){
         if (raw == null) return null;
         let s = String(raw)
           .replace(/\s+/g,'')
