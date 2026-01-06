@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark light"/>
 <meta name="description" content="Compara tarifas de luz con discriminación horaria, placas solares y PVPC. Calcula tu factura y descubre cuánto ahorras. 100% gratuito.">
-  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+  <meta name="robots" content="noindex,follow">
   <meta name="theme-color" content="#8B5CF6">
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="manifest" href="/manifest.webmanifest">
@@ -629,7 +629,7 @@
       </div>
     </section>
 
-        <script src="index-extra.js" defer></script>
+        <script src="js/index-extra.js" defer></script>
 
 
     </main>
@@ -845,13 +845,13 @@
     </div>
   </div>
 
-    <script src="pvpc.js" defer></script>
-    <script src="factura.js" defer></script>
+    <script src="js/pvpc.js" defer></script>
+    <script src="js/factura.js" defer></script>
     <!-- XLSX se carga bajo demanda cuando se necesita (ver app.js) -->
-    <script src="app.js" defer></script>
+    <script src="js/lf-app.js" defer></script>
     
     
-    <script src="tracking.js" defer></script>
+    <script src="js/tracking.js" defer></script>
 
     <!-- GoatCounter Analytics (sin cookies, sin tracking personal) -->
     <script data-goatcounter="https://luzfija.goatcounter.com/count"
@@ -910,7 +910,7 @@
   
 
   
-  <script src="desglose-factura.js" defer></script>
-  <script src="desglose-integration.js" defer></script>
+  <script src="js/desglose-factura.js" defer></script>
+  <script src="js/desglose-integration.js" defer></script>
 </body>
 </html>
