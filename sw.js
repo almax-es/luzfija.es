@@ -7,16 +7,30 @@
 
 // IMPORTANTE: si cambias este fichero, incrementa CACHE_NAME para forzar la actualización.
 // Bump de versión para forzar actualización de assets tras cambios (release incremental)
-const CACHE_NAME = "luzfija-static-v4.22";
+const CACHE_NAME = "luzfija-static-v5.0";
 
 const ASSETS = [
   "/",
   "/index.html",
   "/styles.css",
-  "/app.js",
-  "/index-extra.js",
-  "/pvpc.js",
-  "/factura.js",
+  // Módulos LuzFija (nueva estructura modular)
+  "/js/lf-utils.js",
+  "/js/lf-state.js",
+  "/js/lf-ui.js",
+  "/js/lf-tooltips.js",
+  "/js/lf-cache.js",
+  "/js/lf-inputs.js",
+  "/js/lf-calc.js",
+  "/js/lf-render.js",
+  "/js/lf-csv-import.js",
+  "/js/lf-tarifa-custom.js",
+  "/js/lf-app.js",
+  "/js/pvpc.js",
+  "/js/factura.js",
+  "/js/index-extra.js",
+  "/js/tracking.js",
+  "/js/desglose-factura.js",
+  "/js/desglose-integration.js",
   // tarifas.json NO está en precache, se maneja con stale-while-revalidate
   "/guias.html",
   "/manifest.webmanifest",
@@ -29,10 +43,7 @@ const ASSETS = [
   "/favicon-48x48.png",
   "/favicon-96x96.png",
   "/apple-touch-icon.png",
-  "/tracking.js",
   "/desglose-factura.css",
-  "/desglose-factura.js",
-  "/desglose-integration.js",
   "/calcular-factura-luz.html",
   "/comparar-pvpc-tarifa-fija.html",
   "/mejor-tarifa-placas-solares.html",
