@@ -483,9 +483,8 @@
         </div>
       </div>
       ${excedenteHTML}
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 20px;">
-        <button id="btnCancelarCSV" class="btn" type="button" style="background: var(--bg0); color: var(--text);">✕ Cancelar</button>
-        <button id="btnAplicarCSV" class="btn primary" type="button"><span id="btnAplicarTexto">✓ Aplicar consumos</span></button>
+      <div style="margin-top: 20px;">
+        <button id="btnAplicarCSV" class="btn primary" type="button" style="width: 100%;"><span id="btnAplicarTexto">✓ Aplicar consumos</span></button>
       </div>
     `;
 
@@ -506,7 +505,6 @@
     
     btnCerrarX?.addEventListener('click', closeCSVModal);
 
-    const btnCancelar = document.getElementById('btnCancelarCSV');
     const btnAplicar = document.getElementById('btnAplicarCSV');
     const btnAplicarTexto = document.getElementById('btnAplicarTexto');
 
@@ -519,8 +517,6 @@
         });
       }
     }
-
-    if (btnCancelar) btnCancelar.addEventListener('click', closeCSVModal);
 
     if (btnAplicar) {
       btnAplicar.addEventListener('click', () => {
