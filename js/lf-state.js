@@ -98,59 +98,60 @@
   let initialStatusText = '';
   let initialStatusClass = '';
 
-  // Inicializar referencias DOM
+  // Inicializar referencias DOM (muta el objeto existente, no reasigna)
   function initElements() {
-    el = {
-      inputs: {
-        p1: $('p1'),
-        p2: $('p2'),
-        dias: $('dias'),
-        cPunta: $('cPunta'),
-        cLlano: $('cLlano'),
-        cValle: $('cValle'),
-        zonaFiscal: $('zonaFiscal'),
-        viviendaCanarias: $('viviendaCanarias'),
-        solarOn: $('solarOn'),
-        exTotal: $('exTotal'),
-        bvSaldo: $('bvSaldo')
-      },
-      btnCalc: $('btnCalc'),
-      btnText: $('btnText'),
-      btnSpinner: $('btnSpinner'),
-      statusPill: $('statusPill'),
-      statusText: $('statusText'),
-      tarifasUpdated: $('tarifasUpdated'),
-      errorBox: $('errorBox'),
-      errorText: $('errorText'),
-      kwhHint: $('kwhHint'),
-      heroKpis: $('heroKpis'),
-      kpiBest: $('kpiBest'),
-      kpiPrice: $('kpiPrice'),
-      statsBar: $('statsBar'),
-      statMin: $('statMin'),
-      statAvg: $('statAvg'),
-      statMax: $('statMax'),
-      chartTop: $('chartTop'),
-      toolbar: $('toolbar'),
-      table: $('table'),
-      tbody: $('tbody'),
-      emptyBox: $('emptyBox'),
-      toast: $('toast'),
-      toastText: $('toastText'),
-      toastDot: $('toastDot'),
-      menuRoot: $('menuRoot'),
-      btnMenu: $('btnMenu'),
-      menuPanel: $('menuPanel'),
-      btnTheme: $('btnTheme'),
-      btnExport: $('btnExport'),
-      btnReset: $('btnReset'),
-      btnShare: $('btnShare'),
-      btnRefreshTarifas: $('btnRefreshTarifas'),
-      btnClearCache: $('btnClearCache'),
-      globalTooltip: $('globalTooltip'),
-      pvpcInfo: $('pvpcInfo'),
-      viviendaGroup: $('viviendaCanariasGroup')
+    // Inputs
+    el.inputs = {
+      p1: $('p1'),
+      p2: $('p2'),
+      dias: $('dias'),
+      cPunta: $('cPunta'),
+      cLlano: $('cLlano'),
+      cValle: $('cValle'),
+      zonaFiscal: $('zonaFiscal'),
+      viviendaCanarias: $('viviendaCanarias'),
+      solarOn: $('solarOn'),
+      exTotal: $('exTotal'),
+      bvSaldo: $('bvSaldo')
     };
+    
+    // Botones y elementos UI
+    el.btnCalc = $('btnCalc');
+    el.btnText = $('btnText');
+    el.btnSpinner = $('btnSpinner');
+    el.statusPill = $('statusPill');
+    el.statusText = $('statusText');
+    el.tarifasUpdated = $('tarifasUpdated');
+    el.errorBox = $('errorBox');
+    el.errorText = $('errorText');
+    el.kwhHint = $('kwhHint');
+    el.heroKpis = $('heroKpis');
+    el.kpiBest = $('kpiBest');
+    el.kpiPrice = $('kpiPrice');
+    el.statsBar = $('statsBar');
+    el.statMin = $('statMin');
+    el.statAvg = $('statAvg');
+    el.statMax = $('statMax');
+    el.chartTop = $('chartTop');
+    el.toolbar = $('toolbar');
+    el.table = $('table');
+    el.tbody = $('tbody');
+    el.emptyBox = $('emptyBox');
+    el.toast = $('toast');
+    el.toastText = $('toastText');
+    el.toastDot = $('toastDot');
+    el.menuRoot = $('menuRoot');
+    el.btnMenu = $('btnMenu');
+    el.menuPanel = $('menuPanel');
+    el.btnTheme = $('btnTheme');
+    el.btnExport = $('btnExport');
+    el.btnReset = $('btnReset');
+    el.btnShare = $('btnShare');
+    el.btnRefreshTarifas = $('btnRefreshTarifas');
+    el.btnClearCache = $('btnClearCache');
+    el.globalTooltip = $('globalTooltip');
+    el.pvpcInfo = $('pvpcInfo');
+    el.viviendaGroup = $('viviendaCanariasGroup');
     
     initialStatusText = el.statusText?.textContent || '';
     initialStatusClass = el.statusPill?.className || '';
