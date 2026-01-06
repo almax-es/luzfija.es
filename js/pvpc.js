@@ -253,22 +253,47 @@
 
       const texto = stripHtml(textoCompleto || '');
 
+      if (PVPC_DEBUG) {
+        pvpcDbg('Texto completo extraído:', texto.substring(0, 500) + '...');
+        pvpcDbg('Buscando precios por periodo...');
+      }
+
       function extraerMaxPorPeriodo(periodo) {
-        // OJO: en strings hay que usar \\s, o construir el patrón sin escapes rotos
-        const pattern =
-        periodo +
-      '(?:\\s*\\([^)]*\\))?\\s*[:=]\\s*([0-9]+(?:[.,][0-9]+)?)\\s*€\\s*\\/\\s*kWh';
+        // Patrón más flexible: busca "P1:", "P1 ", "P1=", etc seguido de número €/kWh
+        // Acepta espacios, paréntesis opcionales, y diferentes formatos
+        const patterns = [
+          // Formato 1: "P1: 0.123 €/kWh" o "P1 (descripción): 0.123 €/kWh"
+          periodo + '(?:\\s*\\([^)]*\\))?\\s*[:=]\\s*([0-9]+(?:[.,][0-9]+)?)\\s*€\\s*\\/\\s*kWh',
+          // Formato 2: "P1 0.123 €/kWh" (sin dos puntos)
+          periodo + '\\s+([0-9]+(?:[.,][0-9]+)?)\\s*€\\s*\\/\\s*kWh',
+          // Formato 3: más flexible con espacios
+          periodo + '[:\\s=]+([0-9]+(?:[.,][0-9]+)?)\\s*€\\s*\\/\\s*kWh'
+        ];
 
-      const re = new RegExp(pattern, 'gi');
-
-      const vals = [];
-      for (const m of texto.matchAll(re)) {
-      const v = parseEuro(m[1]);
-      if (v > 0) vals.push(v);
-     }
-    if (!vals.length) return null;
-    return Math.max(...vals);
-  }
+        const vals = [];
+        
+        for (const pattern of patterns) {
+          const re = new RegExp(pattern, 'gi');
+          for (const m of texto.matchAll(re)) {
+            const v = parseEuro(m[1]);
+            if (v > 0) {
+              vals.push(v);
+              pvpcDbg(`  ✓ ${periodo} encontrado: ${v.toFixed(4)} €/kWh`);
+            }
+          }
+        }
+        
+        if (!vals.length) {
+          pvpcDbg(`  ✗ ${periodo} NO encontrado en el texto`);
+          return null;
+        }
+        
+        // Calcular el promedio en lugar del máximo
+        const sum = vals.reduce((acc, v) => acc + v, 0);
+        const avg = sum / vals.length;
+        pvpcDbg(`  → ${periodo} promedio: ${avg.toFixed(4)} €/kWh (de ${vals.length} valores)`);
+        return avg;
+      }
 
       const precioPunta = extraerMaxPorPeriodo('P1');
       const precioLlano = extraerMaxPorPeriodo('P2');
