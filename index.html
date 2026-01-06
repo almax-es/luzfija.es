@@ -848,10 +848,26 @@
     </div>
   </div>
 
+    <!-- LuzFija Modular Architecture -->
+    <!-- 1. Módulos base (orden importante) -->
+    <script src="js/lf-utils.js" defer></script>
+    <script src="js/lf-state.js" defer></script>
+    <script src="js/lf-ui.js" defer></script>
+    <script src="js/lf-tooltips.js" defer></script>
+    <script src="js/lf-cache.js" defer></script>
+    <script src="js/lf-inputs.js" defer></script>
+    <script src="js/lf-calc.js" defer></script>
+    <script src="js/lf-render.js" defer></script>
+    <script src="js/lf-csv-import.js" defer></script>
+    <script src="js/lf-tarifa-custom.js" defer></script>
+    
+    <!-- 2. Módulos externos -->
     <script src="pvpc.js" defer></script>
     <script src="factura.js" defer></script>
-    <!-- XLSX se carga bajo demanda cuando se necesita (ver app.js) -->
-    <script src="app.js" defer></script>
+    
+    <!-- 3. Coordinador principal -->
+    <!-- XLSX se carga bajo demanda cuando se necesita -->
+    <script src="js/lf-app.js" defer></script>
     
     
     <script src="tracking.js" defer></script>
