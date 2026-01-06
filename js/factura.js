@@ -12,49 +12,67 @@
       let __LF_lastParsedConfianza = 0;
 
       let __LF_pdfjsLoading = null;
-      
+      function __LF_ensurePdfWorker(){
+        const lib = window.pdfjsLib;
+        if (!lib) return false;
+        if (!lib.GlobalWorkerOptions.workerSrc) {
+          lib.GlobalWorkerOptions.workerSrc =
+            "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+        }
+        return true;
+      }
+
+      function __LF_loadScript(src){
+        return new Promise((resolve, reject)=>{
+          const s = document.createElement("script");
+          s.src = src;
+          s.async = true;
+          s.crossOrigin = "anonymous"; // Necesario para SRI (Subresource Integrity)
+          s.onload = () => resolve(true);
+          s.onerror = () => reject(new Error("No se pudo cargar: " + src));
+          document.head.appendChild(s);
+        });
+      }
+
       async function __LF_ensurePdfJs(){
-        // Si ya está cargado, devolver
-        if (window.pdfjsLib) return window.pdfjsLib;
-        
-        // Si ya está cargando, esperar
+        if (window.pdfjsLib && __LF_ensurePdfWorker()) return window.pdfjsLib;
         if (__LF_pdfjsLoading) {
           await __LF_pdfjsLoading;
-          return window.pdfjsLib;
         }
-        
-        // Cargar PDF.js usando import dinámico (ESM)
-        __LF_pdfjsLoading = (async () => {
-          try {
-            // Usar rutas relativas desde el origen del dominio
-            const origin = window.location.origin;
-            const pdfJsPath = `${origin}/js/pdf.min.mjs`;
-            const workerPath = `${origin}/js/pdf.worker.min.mjs`;
-            
-            // Importar PDF.js 5.4.530 como módulo ES
-            const pdfjsLib = await import(pdfJsPath);
-            
-            // Reducir verbosidad (oculta warnings/info; deja solo errores)
-            if (pdfjsLib?.setVerbosityLevel && pdfjsLib?.VerbosityLevel) {
-              pdfjsLib.setVerbosityLevel(pdfjsLib.VerbosityLevel.ERRORS);
-            }
-            
-            // Configurar el worker
-            pdfjsLib.GlobalWorkerOptions.workerSrc = workerPath;
-            
-            // Guardar en window para compatibilidad
-            window.pdfjsLib = pdfjsLib;
-            
-            return pdfjsLib;
-          } catch (error) {
-            console.error("Error cargando PDF.js:", error);
-            throw new Error("PDF.js no disponible");
+        if (window.pdfjsLib && __LF_ensurePdfWorker()) return window.pdfjsLib;
+        const existingScript = document.querySelector('script[src*="pdfjs-dist@3.11.174/build/pdf.min.js"]');
+        if (existingScript && !window.pdfjsLib){
+          if (!__LF_pdfjsLoading){
+            __LF_pdfjsLoading = new Promise((resolve) => {
+              let done = false;
+              let timer;
+              const finish = () => {
+                if (done) return;
+                done = true;
+                existingScript.removeEventListener("load", onLoad);
+                existingScript.removeEventListener("error", onError);
+                clearTimeout(timer);
+                resolve();
+              };
+              const onLoad = () => finish();
+              const onError = () => finish();
+              timer = setTimeout(finish, 4000);
+              existingScript.addEventListener("load", onLoad);
+              existingScript.addEventListener("error", onError);
+            });
           }
-        })();
-        
-        await __LF_pdfjsLoading;
-        __LF_pdfjsLoading = null;
-        
+          await __LF_pdfjsLoading;
+          __LF_pdfjsLoading = null;
+        }
+        if (!window.pdfjsLib){
+          const src = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js";
+          __LF_pdfjsLoading = __LF_loadScript(src);
+          await __LF_pdfjsLoading;
+          __LF_pdfjsLoading = null;
+        }
+        if (!window.pdfjsLib || !__LF_ensurePdfWorker()){
+          throw new Error("PDF.js no disponible");
+        }
         return window.pdfjsLib;
       }
 
@@ -115,9 +133,7 @@
       async function __LF_extraerTextoPDF(file){
         await __LF_ensurePdfJs();
         const ab = await file.arrayBuffer();
-        const __LF_docParams = { data: ab };
-        if (window.pdfjsLib?.VerbosityLevel?.ERRORS != null) __LF_docParams.verbosity = window.pdfjsLib.VerbosityLevel.ERRORS;
-        const pdf = await window.pdfjsLib.getDocument(__LF_docParams).promise;
+        const pdf = await window.pdfjsLib.getDocument({ data: ab }).promise;
 
         let lines = [];
         let compact = '';
@@ -652,7 +668,7 @@
         
         return new Promise((resolve, reject) => {
           const script = document.createElement('script');
-          script.src = '/js/jsQR.min.js';
+          script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
           script.crossOrigin = 'anonymous'; // Necesario para SRI
           script.onload = () => resolve(window.jsQR);
           script.onerror = () => reject(new Error('jsQR no disponible'));
@@ -671,9 +687,7 @@
           const pdfjsLib = await __LF_ensurePdfJs();
           
           const arrayBuffer = await pdfFile.arrayBuffer();
-          const __LF_docParams = { data: arrayBuffer };
-          if (pdfjsLib?.VerbosityLevel?.ERRORS != null) __LF_docParams.verbosity = pdfjsLib.VerbosityLevel.ERRORS;
-          const pdf = await pdfjsLib.getDocument(__LF_docParams).promise;
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
           
           // Intentar con múltiples escalas para mejor detección
           const scales = [3.0, 2.5, 2.0, 1.5];
@@ -1401,16 +1415,14 @@
 
       async function __LF_loadTesseract(){
         try{
-          // Intentar cargar Tesseract.js v7 desde copia local (ESM)
-          const tesseractEsmUrl = new URL('./js/tesseract.esm.min.js', document.baseURI).href;
-          const mod = await import(tesseractEsmUrl);
+          const mod = await import('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.esm.min.js');
           return mod.default || mod;
         }catch(e){
-          // Fallback: usar versión global si ya está cargada, o cargar el bundle clásico local
           if (window.Tesseract) return window.Tesseract;
           await new Promise((ok,ko)=>{
             const s = document.createElement('script');
-            s.src = new URL('./js/tesseract.min.js', document.baseURI).href;
+            s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+            s.crossOrigin = 'anonymous'; // Necesario para SRI
             s.onload = ok; s.onerror = ko;
             document.head.appendChild(s);
           });
@@ -1438,9 +1450,7 @@
           const T = await __LF_loadTesseract();
 
           const ab = await file.arrayBuffer();
-          const __LF_docParams = { data: ab };
-        if (window.pdfjsLib?.VerbosityLevel?.ERRORS != null) __LF_docParams.verbosity = window.pdfjsLib.VerbosityLevel.ERRORS;
-        const pdf = await window.pdfjsLib.getDocument(__LF_docParams).promise;
+          const pdf = await window.pdfjsLib.getDocument({ data: ab }).promise;
 
           let ocrText = '';
           const pagesToScan = Math.min(pdf.numPages, 2);
