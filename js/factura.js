@@ -34,6 +34,11 @@
             // Importar PDF.js 5.4.530 como módulo ES
             const pdfjsLib = await import(pdfJsPath);
             
+            // Reducir verbosidad (oculta warnings/info; deja solo errores)
+            if (pdfjsLib?.setVerbosityLevel && pdfjsLib?.VerbosityLevel) {
+              pdfjsLib.setVerbosityLevel(pdfjsLib.VerbosityLevel.ERRORS);
+            }
+            
             // Configurar el worker
             pdfjsLib.GlobalWorkerOptions.workerSrc = workerPath;
             
@@ -110,7 +115,9 @@
       async function __LF_extraerTextoPDF(file){
         await __LF_ensurePdfJs();
         const ab = await file.arrayBuffer();
-        const pdf = await window.pdfjsLib.getDocument({ data: ab }).promise;
+        const __LF_docParams = { data: ab };
+        if (window.pdfjsLib?.VerbosityLevel?.ERRORS != null) __LF_docParams.verbosity = window.pdfjsLib.VerbosityLevel.ERRORS;
+        const pdf = await window.pdfjsLib.getDocument(__LF_docParams).promise;
 
         let lines = [];
         let compact = '';
@@ -664,7 +671,9 @@
           const pdfjsLib = await __LF_ensurePdfJs();
           
           const arrayBuffer = await pdfFile.arrayBuffer();
-          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          const __LF_docParams = { data: arrayBuffer };
+          if (pdfjsLib?.VerbosityLevel?.ERRORS != null) __LF_docParams.verbosity = pdfjsLib.VerbosityLevel.ERRORS;
+          const pdf = await pdfjsLib.getDocument(__LF_docParams).promise;
           
           // Intentar con múltiples escalas para mejor detección
           const scales = [3.0, 2.5, 2.0, 1.5];
@@ -1427,7 +1436,9 @@
           const T = await __LF_loadTesseract();
 
           const ab = await file.arrayBuffer();
-          const pdf = await window.pdfjsLib.getDocument({ data: ab }).promise;
+          const __LF_docParams = { data: ab };
+        if (window.pdfjsLib?.VerbosityLevel?.ERRORS != null) __LF_docParams.verbosity = window.pdfjsLib.VerbosityLevel.ERRORS;
+        const pdf = await window.pdfjsLib.getDocument(__LF_docParams).promise;
 
           let ocrText = '';
           const pagesToScan = Math.min(pdf.numPages, 2);
