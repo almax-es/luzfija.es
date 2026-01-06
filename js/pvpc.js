@@ -9,9 +9,12 @@
     const PVPC_CACHE_LIMIT = 30;
     const pvpcCacheMemory = new Map();
     const pvpcInFlight = new Map();
-    let pvpcLastMeta = null;
+    
+    // Exponer como variable global para que lf-render.js pueda acceder
+    window.pvpcLastMeta = null;
+    window.pvpcCasoInvalidoCanariasViviendaPotAlta = false;
+    
     let pvpcErrorShown = false;
-    let pvpcCasoInvalidoCanariasViviendaPotAlta = false;
 
     // Debug (no ensucia consola en producción)
     const PVPC_DEBUG = (function(){
@@ -343,8 +346,8 @@
       const esCanarias = (fiscal?.zona === 'canarias');
       const viviendaMarcada = Boolean(fiscal?.viviendaMarcada);
       const potenciaContratada = Number(fiscal?.potenciaContratada || 0);
-      pvpcCasoInvalidoCanariasViviendaPotAlta = esCanarias && viviendaMarcada && potenciaContratada > 10;
-      if (pvpcCasoInvalidoCanariasViviendaPotAlta) {
+      window.pvpcCasoInvalidoCanariasViviendaPotAlta = esCanarias && viviendaMarcada && potenciaContratada > 10;
+      if (window.pvpcCasoInvalidoCanariasViviendaPotAlta) {
         return null;
       }
       const zonaFiscal = esCanarias ? 'Canarias' : 'Península';
@@ -484,10 +487,10 @@
       const esCanarias = (fiscal?.zona === 'canarias');
       const viviendaMarcada = Boolean(fiscal?.viviendaMarcada);
       const potenciaContratada = Number(fiscal?.potenciaContratada || 0);
-      pvpcCasoInvalidoCanariasViviendaPotAlta = esCanarias && viviendaMarcada && potenciaContratada > 10;
+      window.pvpcCasoInvalidoCanariasViviendaPotAlta = esCanarias && viviendaMarcada && potenciaContratada > 10;
 
-      if (pvpcCasoInvalidoCanariasViviendaPotAlta) {
-        pvpcLastMeta = null;
+      if (window.pvpcCasoInvalidoCanariasViviendaPotAlta) {
+        window.pvpcLastMeta = null;
         return {
           nombre:'PVPC (Regulada) ⚡',
           tipo:'3P',
@@ -516,11 +519,11 @@
 
       const cached=readPvpcCacheEntry(signature);
       if(cached && cached.tarifa){
-        pvpcLastMeta = pvpcCasoInvalidoCanariasViviendaPotAlta ? null : (cached.meta||null);
+        window.pvpcLastMeta = window.pvpcCasoInvalidoCanariasViviendaPotAlta ? null : (cached.meta||null);
         const tarifaCached = { ...cached.tarifa };
-        tarifaCached.pvpcWarning = pvpcCasoInvalidoCanariasViviendaPotAlta;
-        tarifaCached.pvpcNotComputable = pvpcCasoInvalidoCanariasViviendaPotAlta;
-        if(pvpcCasoInvalidoCanariasViviendaPotAlta){
+        tarifaCached.pvpcWarning = window.pvpcCasoInvalidoCanariasViviendaPotAlta;
+        tarifaCached.pvpcNotComputable = window.pvpcCasoInvalidoCanariasViviendaPotAlta;
+        if(window.pvpcCasoInvalidoCanariasViviendaPotAlta){
           tarifaCached.totalNum = Number.POSITIVE_INFINITY;
           tarifaCached.total = '—';
           tarifaCached.impuestos = '—';
@@ -549,8 +552,8 @@
             cValle:parsed.precioValle||0,
             web:'https://facturaluz2.cnmc.es/',
             esPVPC:true,
-            pvpcWarning: pvpcCasoInvalidoCanariasViviendaPotAlta,
-            pvpcNotComputable: pvpcCasoInvalidoCanariasViviendaPotAlta,
+            pvpcWarning: window.pvpcCasoInvalidoCanariasViviendaPotAlta,
+            pvpcNotComputable: window.pvpcCasoInvalidoCanariasViviendaPotAlta,
             metaPvpc:{
               terminoFijo:parsed.terminoFijo,
               terminoVariable:parsed.terminoVariable,
@@ -562,7 +565,7 @@
             }
           };
 
-          if(pvpcCasoInvalidoCanariasViviendaPotAlta){
+          if(window.pvpcCasoInvalidoCanariasViviendaPotAlta){
             tarifa.totalNum = Number.POSITIVE_INFINITY;
             tarifa.total = '—';
             tarifa.impuestos = '—';
@@ -573,7 +576,7 @@
             tarifa.consumoNum = 0;
           }
 
-          pvpcLastMeta={
+          window.pvpcLastMeta={
             precioPunta:parsed.precioPunta,
             precioLlano:parsed.precioLlano,
             precioValle:parsed.precioValle,
@@ -581,7 +584,7 @@
             fechaConsulta:new Date().toISOString()
           };
 
-          const payload={tarifa, meta: pvpcLastMeta, ts: Date.now()};
+          const payload={tarifa, meta: window.pvpcLastMeta, ts: Date.now()};
           persistPvpcCacheEntry(signature,payload);
           return tarifa;
         }catch(err){
