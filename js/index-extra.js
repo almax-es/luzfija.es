@@ -74,7 +74,38 @@
 
             const text = document.createElement('p');
             text.style.cssText = 'font-size:13px; color:var(--muted); margin:0; line-height:1.5;';
-            text.innerHTML = (nov.texto ?? '').toString();
+            
+            // Sanitización manual: solo permitir enlaces seguros (anti-XSS)
+            const textoRaw = (nov.texto ?? '').toString();
+            const linkRegex = /<a\s+href="(https?:\/\/[^"]+)"[^>]*>([^<]+)<\/a>/g;
+            
+            let lastIndex = 0;
+            let match;
+            
+            while ((match = linkRegex.exec(textoRaw)) !== null) {
+              const [fullMatch, href, linkText] = match;
+              
+              // Texto antes del enlace
+              if (match.index > lastIndex) {
+                text.appendChild(document.createTextNode(textoRaw.substring(lastIndex, match.index)));
+              }
+              
+              // Crear enlace seguro
+              const a = document.createElement('a');
+              a.href = href;
+              a.target = '_blank';
+              a.rel = 'noopener noreferrer';
+              a.textContent = linkText;
+              a.style.cssText = `color: ${color}; text-decoration: underline;`;
+              text.appendChild(a);
+              
+              lastIndex = match.index + fullMatch.length;
+            }
+            
+            // Texto después del último enlace
+            if (lastIndex < textoRaw.length) {
+              text.appendChild(document.createTextNode(textoRaw.substring(lastIndex)));
+            }
 
             content.appendChild(meta);
             content.appendChild(title);

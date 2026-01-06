@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://gc.zgo.at https://unpkg.com https://cdnjs.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://luzfija-es.vercel.app https://comparador.cnmc.gob.es; frame-ancestors 'none';">
     <meta name="color-scheme" content="dark light"/>
 <meta name="description" content="Compara tarifas de luz con discriminación horaria, placas solares y PVPC. Calcula tu factura y descubre cuánto ahorras. 100% gratuito.">
   <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
@@ -382,7 +383,7 @@
               </div>
             </div>
             <div id="solarFields" class="form fv-fields u-mt-8" style="display:none;">
-              <button type="button" class="btn btn-info-solar" id="btnSolarInfo">
+              <button type="button" class="btn btn-info-solar" id="btnSolarInfo" aria-label="Información sobre cómo funcionan las placas solares en el comparador">
                 ℹ️ ¿Cómo funciona con placas solares?
               </button>
               <div class="group">
@@ -723,12 +724,12 @@
     </footer>
   </div>
 
-    <button type="button" class="btn" id="lf-install-pwa" data-install-pwa style="display:none; margin:16px auto 24px;">
+    <button type="button" class="btn" id="lf-install-pwa" data-install-pwa style="display:none; margin:16px auto 24px;" aria-label="Instalar aplicación en tu dispositivo">
     📲 Instalar LuzFija en este dispositivo
   </button>
 
 <div class="toast" id="toast"><span class="dot" id="toastDot"></span><span id="toastText"></span></div>
-  <button type="button" id="scrollToResults" class="scroll-btn is-hidden" title="Ver resultados">↓ Ver resultados</button>
+  <button type="button" id="scrollToResults" class="scroll-btn is-hidden" title="Ver resultados" aria-label="Desplazarse a los resultados del comparador">↓ Ver resultados</button>
   <div id="globalTooltip" role="tooltip" aria-hidden="true"></div>
 
   <div class="modal-overlay" id="modalFactura" role="dialog" aria-modal="true" aria-label="Subir factura y extraer datos" tabindex="-1">
@@ -768,8 +769,8 @@
           <div id="formValidacionFactura"></div>
 
           <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap">
-            <button class="btn primary" id="btnAplicarFactura" type="button">✅ Aplicar datos</button>
-            <button class="btn" id="btnCancelarFactura" type="button">❌ Cancelar</button>
+            <button class="btn primary" id="btnAplicarFactura" type="button" aria-label="Aplicar datos extraídos de la factura al formulario">✅ Aplicar datos</button>
+            <button class="btn" id="btnCancelarFactura" type="button" aria-label="Cancelar y cerrar modal de importación de factura">❌ Cancelar</button>
           </div>
 
           <div class="help" style="margin-top:10px; font-size:11px; opacity:0.9; border:1px solid var(--border); background: var(--card2); padding:8px; border-radius:10px; line-height:1.4;">
