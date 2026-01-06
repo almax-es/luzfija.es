@@ -1401,14 +1401,16 @@
 
       async function __LF_loadTesseract(){
         try{
-          const mod = await import('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.esm.min.js');
+          // Intentar cargar Tesseract.js v7 desde copia local (ESM)
+          const tesseractEsmUrl = new URL('./js/tesseract.esm.min.js', document.baseURI).href;
+          const mod = await import(tesseractEsmUrl);
           return mod.default || mod;
         }catch(e){
+          // Fallback: usar versión global si ya está cargada, o cargar el bundle clásico local
           if (window.Tesseract) return window.Tesseract;
           await new Promise((ok,ko)=>{
             const s = document.createElement('script');
-            s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
-            s.crossOrigin = 'anonymous'; // Necesario para SRI
+            s.src = new URL('./js/tesseract.min.js', document.baseURI).href;
             s.onload = ok; s.onerror = ko;
             document.head.appendChild(s);
           });
