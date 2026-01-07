@@ -306,7 +306,7 @@
         ${(d.credit1 > 0 && creditoPotencial > d.credit1) ? `<div class="desglose-resumen-note">
           ✅ Has generado <strong>${this.fmt(creditoPotencial)}</strong> en excedentes. Se compensan <strong>${this.fmt(d.credit1)}</strong> este mes (tope legal: ${topeLabel}). ${bvActiva ? `Los <strong>${this.fmt(d.excedenteSobranteEur)}</strong> restantes se guardan en tu Batería Virtual para próximas facturas.` : 'El resto no se puede compensar este mes.'}
         </div>` : ''}
-        ${esNufri && compensa ? `<div class="desglose-resumen-note" style="background:#fffbeb;border-left:3px solid #f59e0b">
+        ${esNufri && compensa ? `<div class="desglose-resumen-note" style="background:#fffbeb;border-left:3px solid #f59e0b;color:#78350f">
           ⚠️ <strong>Precio estimado:</strong> Nufri paga excedentes a precio <strong>indexado</strong> (pool OMIE horario). El valor mostrado (${this.fmtNum(datos.precioCompensacion, 4)} €/kWh) es una <strong>estimación promedio</strong>. El precio real variará según el mercado eléctrico.
         </div>` : ''}
       </div>`;
