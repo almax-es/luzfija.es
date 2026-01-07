@@ -117,8 +117,7 @@
     getTerritorio: function(zona) {
       const key = (zona || '').toLowerCase()
         .replace('península', 'peninsula')
-        .replace('ceuta y melilla', 'ceutamelilla')
-        .replace('ceutamelilla', 'ceutamelilla');
+        .replace('ceuta y melilla', 'ceutamelilla');
       return this.territorios[key] || this.territorios.peninsula;
     },
 

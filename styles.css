@@ -590,6 +590,8 @@
     .group .input[type="number"]:not(:placeholder-shown){ border-color: rgba(34,197,94,.4); box-shadow: 0 0 0 2px rgba(34,197,94,.08); }
     .group .input[type="text"]:not(:placeholder-shown){ border-color: rgba(34,197,94,.4); box-shadow: 0 0 0 2px rgba(34,197,94,.08); }
     #zonaFiscal{ min-width: 150px; color: var(--text); }
+    /* Zona fiscal ocupa toda la fila para que quepa el texto completo */
+    .group:has(#zonaFiscal){ grid-column: 1 / -1; max-width: 220px; }
     #zonaFiscal option,
     #zonaFiscal option:checked,
     #zonaFiscal option:hover,
