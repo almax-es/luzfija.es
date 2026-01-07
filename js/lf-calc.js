@@ -122,11 +122,9 @@
         const ivaBase = pot + consAdj + tarifaAdj + impuestoElec + margen;
 
         if (isCanarias) {
-          const alquilerContador = dias * (0.81 / 30);
           const igicBase = fiscal.usoFiscal === 'vivienda' ? 0 : (baseEnergia + impuestoElec) * 0.03;
-          const igicContador = alquilerContador * 0.07;
-          const impuestosNum = impuestoElec + igicBase + igicContador;
-          const totalBase = baseEnergia + impuestoElec + igicBase + igicContador + alquilerContador;
+          const impuestosNum = impuestoElec + igicBase;
+          const totalBase = baseEnergia + impuestoElec + igicBase;
 
           let totalFinal = totalBase;
           if (solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV') {
@@ -170,10 +168,8 @@
           // Península
           const ivaPorc = 0.21;
           const ivaCuota = round2(ivaBase * ivaPorc);
-          const alquilerContador = dias * (0.81 / 30);
-          const ivaContador = round2(alquilerContador * ivaPorc);
-          const impuestosNum = impuestoElec + ivaCuota + ivaContador;
-          const totalBase = baseEnergia + impuestoElec + ivaCuota + alquilerContador + ivaContador;
+          const impuestosNum = impuestoElec + ivaCuota;
+          const totalBase = round2(baseEnergia + impuestoElec + ivaCuota);
 
           let totalFinal = totalBase;
           if (solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV') {
@@ -199,7 +195,7 @@
             totalNum,
             total: formatMoney(totalNum),
             webUrl: t.web,
-            iva: ivaCuota + ivaContador,
+            iva: ivaCuota,
             fvTipo: fv ? fv.tipo || null : null,
             fvExcRaw: fv ? fv.exc : null,
             fvRegla: fv ? fv.reglaBV || null : null,
