@@ -7,7 +7,7 @@
 
 // IMPORTANTE: si cambias este fichero, incrementa CACHE_NAME para forzar la actualización.
 // Bump de versión para forzar actualización de assets tras cambios (release incremental)
-const CACHE_NAME = "luzfija-static-v5.5";
+const CACHE_NAME = "luzfija-static-v5.6";
 
 
 // Scope (para que funcione igual en dominio raíz y en subcarpetas de GitHub Pages)
@@ -67,7 +67,7 @@ const ASSETS = [
   "vendor/tesseract/worker.min.js",
   "vendor/tesseract-core/tesseract-core.wasm.js",
   "vendor/tesseract-core/tesseract-core.wasm",
-  "vendor/tessdata/spa.traineddata.gz"];
+  "vendor/tessdata/spa.traineddata.gz",];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -115,7 +115,7 @@ self.addEventListener("fetch", (event) => {
   if (url.origin !== self.location.origin) return;
 
   // No interceptamos llamadas a la API PVPC ni a otros endpoints dinámicos
-  if (url.pathname.startsWith("/api/")) return;
+  if (url.pathname.startsWith(new URL("api/", SCOPE).pathname)) return;
 
   // Navegación (HTML): network-first
   if (req.mode === "navigate" || req.destination === "document") {
