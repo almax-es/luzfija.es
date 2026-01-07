@@ -344,8 +344,8 @@
           <span class="desglose-importe">${this.fmt(d.impuestoElec)}</span>
         </div>
         ${!d.isCanarias ? `<div class="desglose-linea">
-          <span class="desglose-concepto">Alquiler de contador</span>
-          <span class="desglose-detalle">0,81 €/mes × ${datos.dias} días / 30,42 días/mes</span>
+          <span class="desglose-concepto">Alquiler de contador (0,81 €/mes)</span>
+          <span class="desglose-detalle">Prorrateado a ${datos.dias} días</span>
           <span class="desglose-importe">${this.fmt(d.alquilerContador)}</span>
         </div>` : ''}
       </div>`;
@@ -363,8 +363,8 @@
             <span class="desglose-importe">${this.fmt(d.igicBase)}</span>
           </div>`}
           <div class="desglose-linea">
-            <span class="desglose-concepto">Alquiler de contador</span>
-            <span class="desglose-detalle">0,81 €/mes × ${datos.dias} días / 30,42 días/mes</span>
+            <span class="desglose-concepto">Alquiler de contador (0,81 €/mes)</span>
+            <span class="desglose-detalle">Prorrateado a ${datos.dias} días</span>
             <span class="desglose-importe">${this.fmt(d.alquilerContador)}</span>
           </div>
           <div class="desglose-linea">
