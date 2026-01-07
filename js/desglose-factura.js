@@ -19,6 +19,12 @@
 
   const round2 = (n) => Math.round(n * 100) / 100;
   const clampNonNeg = (n) => Math.max(0, n);
+  const escapeHtml = (v) => String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
 
   window.__LF_DesgloseFactura = {
     overlay: null,
@@ -206,8 +212,8 @@
       const fechaFinDefault = formatFecha(ultimoDia);
       const diasDefault = ultimoDia.getDate();
       
-      this.modal.querySelector('.desglose-tarifa').innerHTML = `<strong>${datos.nombreTarifa || 'Tarifa'}</strong>`;
-      this.modal.querySelector('.desglose-periodo').innerHTML = `${datos.fechaInicio || fechaInicioDefault} - ${datos.fechaFin || fechaFinDefault} (${datos.dias || diasDefault} días)`;
+      this.modal.querySelector('.desglose-tarifa').innerHTML = `<strong>${escapeHtml(datos.nombreTarifa || 'Tarifa')}</strong>`;
+      this.modal.querySelector('.desglose-periodo').innerHTML = `${escapeHtml(datos.fechaInicio || fechaInicioDefault)} - ${escapeHtml(datos.fechaFin || fechaFinDefault)} (${datos.dias || diasDefault} días)`;
 
       let html = '';
 
