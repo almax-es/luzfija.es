@@ -305,7 +305,7 @@
         </div>
         ${d.credit1 > 0 ? `<div class="desglose-linea desglose-linea--hl-green">
           <span class="desglose-concepto">☀️ Compensación excedentes</span>
-          <span class="desglose-detalle">Generados: ${this.fmtNum(datos.excedentes)} kWh × ${precioLabel} <span style="white-space: nowrap">= ${this.fmt(creditoPotencial)}</span><br>  ✅ Compensados hoy: ${this.fmtNum(kwhExUsados)} kWh (${this.fmt(d.credit1)})<br>  🔋 A batería virtual: ${this.fmtNum(kwhExSobrantes)} kWh (${this.fmt(d.excedenteSobranteEur)})</span>
+          <span class="desglose-detalle">Generados: ${this.fmtNum(datos.excedentes)} kWh × <span style="white-space: nowrap">${precioLabel} = ${this.fmt(creditoPotencial)}</span><br>  ✅ Compensados hoy: ${this.fmtNum(kwhExUsados)} kWh (${this.fmt(d.credit1)})<br>  🔋 A batería virtual: ${this.fmtNum(kwhExSobrantes)} kWh (${this.fmt(d.excedenteSobranteEur)})</span>
           <span class="desglose-importe desglose-importe--pos">-${this.fmt(d.credit1)}</span>
         </div>
         <div class="desglose-linea">
