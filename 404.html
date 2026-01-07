@@ -20,8 +20,11 @@
   <meta name="color-scheme" content="dark light"/>
 <title>404 - Página no encontrada | LuzFija.es</title>
 <link href="/favicon.svg" rel="icon" type="image/svg+xml"/>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&display=swap" rel="stylesheet"/>
 <meta name="description" content="Página no encontrada. La URL que buscas no existe en LuzFija.es. Vuelve al comparador de tarifas o explora nuestras guías."/>
+<meta name="robots" content="noindex,follow"/>
 <link rel="canonical" href="https://luzfija.es/404.html"/>
 
 <meta property="og:type" content="website"/>
@@ -37,7 +40,6 @@
 <meta name="twitter:description" content="Página no encontrada. La URL que buscas no existe en LuzFija.es. Vuelve al comparador de tarifas o explora nuestras guías."/>
 <meta name="twitter:image" content="https://luzfija.es/og.png"/>
 
-<meta name="robots" content="noindex, follow"/>
 <style>
 :root{--bg:#0B1020;--surface:#141b2e;--card:rgba(255,255,255,.06);--border:rgba(255,255,255,.10);--text:#F7F7FB;--muted:rgba(247,247,251,.72);--accent:#8B5CF6;--error:#EF4444}
 *{box-sizing:border-box;margin:0;padding:0}
@@ -132,7 +134,7 @@ html.light-mode .btn-small:hover{
 <p class="error-subtitle">Como una factura de luz sin discriminación horaria: no la encuentras por ningún lado</p>
 
 <div class="search-box">
-<input type="text" class="search-input" placeholder="Busca lo que necesitas..." id="searchInput" onkeyup="searchContent(event)"/>
+<input type="text" class="search-input" placeholder="Busca lo que necesitas..." id="searchInput" aria-label="Buscar contenido" onkeyup="searchContent(event)"/>
 </div>
 
 <div class="quick-links">
