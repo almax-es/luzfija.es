@@ -305,13 +305,7 @@
         </div>
         ${d.credit1 > 0 ? `<div class="desglose-linea desglose-linea--hl-green">
           <span class="desglose-concepto">☀️ Compensación excedentes</span>
-          <span class="desglose-detalle desglose-detalle--exced">
-            <span class="exced-item">Generados: ${this.fmtNum(datos.excedentes)} kWh × <span class="nowrap">${precioLabel} = ${this.fmt(creditoPotencial)}</span></span>
-            <span class="exced-sep">·</span>
-            <span class="exced-item">✅ Compensados hoy: ${this.fmtNum(kwhExUsados)} kWh (${this.fmt(d.credit1)})</span>
-            <span class="exced-sep">·</span>
-            <span class="exced-item">🔋 A batería virtual: ${this.fmtNum(kwhExSobrantes)} kWh (${this.fmt(d.excedenteSobranteEur)})</span>
-          </span>
+          <span class="desglose-detalle desglose-detalle--exced">  <span class="exced-item">Generados: <span class="nowrap">${this.fmtNum(datos.excedentes)} kWh</span>   <span class="nowrap">× ${precioLabel} = ${this.fmt(creditoPotencial)}</span></span>  <span class="exced-sep">·</span>  <span class="exced-item">✅ Compensados hoy: <span class="nowrap">${this.fmtNum(kwhExUsados)} kWh</span>   <span class="nowrap">(${this.fmt(d.credit1)})</span></span>  <span class="exced-sep">·</span>  <span class="exced-item">🔋 A batería virtual: <span class="nowrap">${this.fmtNum(kwhExSobrantes)} kWh</span>   <span class="nowrap">(${this.fmt(d.excedenteSobranteEur)})</span></span></span>
           <span class="desglose-importe desglose-importe--pos">-${this.fmt(d.credit1)}</span>
         </div>
         <div class="desglose-linea">

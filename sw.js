@@ -7,7 +7,7 @@
 
 // IMPORTANTE: si cambias este fichero, incrementa CACHE_NAME para forzar la actualización.
 // Bump de versión para forzar actualización de assets tras cambios (release incremental)
-const CACHE_NAME = "luzfija-static-v5.6";
+const CACHE_NAME = "luzfija-static-v5.7";
 
 
 // Scope (para que funcione igual en dominio raíz y en subcarpetas de GitHub Pages)
