@@ -427,8 +427,8 @@ this.modal.querySelector('.desglose-body').innerHTML = html;
     },
 
     fmt(n, decimales = 2) {
-      if (typeof n !== 'number') return '0,00 €';
-      return n.toLocaleString('es-ES', { minimumFractionDigits: decimales, maximumFractionDigits: decimales }) + ' €';
+      if (typeof n !== 'number') return '0,00\u00A0€';
+      return n.toLocaleString('es-ES', { minimumFractionDigits: decimales, maximumFractionDigits: decimales }) + '\u00A0€';
     },
 
     fmtNum(n, decimales = 2) {
