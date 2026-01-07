@@ -1112,8 +1112,8 @@
       }
 
       function __LF_q(id){ return document.getElementById(id); }
-      function __LF_show(el){ if(el) el.style.display = ''; }
-      function __LF_hide(el){ if(el) el.style.display = 'none'; }
+      function __LF_show(el){ if(el){ el.classList?.remove('is-hidden'); el.style.display = ''; } }
+      function __LF_hide(el){ if(el){ el.style.display = 'none'; el.classList?.add('is-hidden'); } }
 
       function __LF_setBadge(conf){
         const b = __LF_q('confianzaBadge');
