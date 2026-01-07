@@ -7,69 +7,73 @@
 
 // IMPORTANTE: si cambias este fichero, incrementa CACHE_NAME para forzar la actualización.
 // Bump de versión para forzar actualización de assets tras cambios (release incremental)
-const CACHE_NAME = "luzfija-static-v5.4";
+const CACHE_NAME = "luzfija-static-v5.5";
 
+
+// Scope (para que funcione igual en dominio raíz y en subcarpetas de GitHub Pages)
+const SCOPE = self.registration.scope;
+const INDEX_PATH = new URL("index.html", SCOPE).pathname;
+const TARIFAS_PATH = new URL("tarifas.json", SCOPE).pathname;
 const ASSETS = [
-  "/",
-  "/index.html",
-  "/styles.css",
+  "./",
+  "index.html",
+  "styles.css",
   // Módulos LuzFija (nueva estructura modular)
-  "/js/lf-utils.js",
-  "/js/lf-state.js",
-  "/js/lf-ui.js",
-  "/js/lf-tooltips.js",
-  "/js/lf-cache.js",
-  "/js/lf-inputs.js",
-  "/js/lf-calc.js",
-  "/js/lf-render.js",
-  "/js/lf-csv-import.js",
-  "/js/lf-tarifa-custom.js",
-  "/js/lf-app.js",
-  "/js/pvpc.js",
-  "/js/factura.js",
-  "/js/index-extra.js",
-  "/js/tracking.js",
-  "/js/desglose-factura.js",
-  "/js/desglose-integration.js",
+  "js/lf-utils.js",
+  "js/lf-state.js",
+  "js/lf-ui.js",
+  "js/lf-tooltips.js",
+  "js/lf-cache.js",
+  "js/lf-inputs.js",
+  "js/lf-calc.js",
+  "js/lf-render.js",
+  "js/lf-csv-import.js",
+  "js/lf-tarifa-custom.js",
+  "js/lf-app.js",
+  "js/pvpc.js",
+  "js/factura.js",
+  "js/index-extra.js",
+  "js/tracking.js",
+  "js/desglose-factura.js",
+  "js/desglose-integration.js",
   // tarifas.json NO está en precache, se maneja con stale-while-revalidate
-  "/guias.html",
-  "/manifest.webmanifest",
-  "/logo-512.png",
-  "/icon-192.png",
-  "/og.png",
-  "/favicon.ico",
-  "/favicon.png",
-  "/favicon.svg",
-  "/favicon-48x48.png",
-  "/favicon-96x96.png",
-  "/apple-touch-icon.png",
-  "/desglose-factura.css",
-  "/calcular-factura-luz.html",
-  "/comparar-pvpc-tarifa-fija.html",
-  "/mejor-tarifa-placas-solares.html",
-  "/mejor-tarifa-coche-electrico.html",
-  "/mejor-tarifa-discriminacion-horaria.html",
-  "/privacidad.html",
-  "/aviso-legal.html",
+  "guias.html",
+  "manifest.webmanifest",
+  "logo-512.png",
+  "icon-192.png",
+  "og.png",
+  "favicon.ico",
+  "favicon.png",
+  "favicon.svg",
+  "favicon-48x48.png",
+  "favicon-96x96.png",
+  "apple-touch-icon.png",
+  "desglose-factura.css",
+  "calcular-factura-luz.html",
+  "comparar-pvpc-tarifa-fija.html",
+  "mejor-tarifa-placas-solares.html",
+  "mejor-tarifa-coche-electrico.html",
+  "mejor-tarifa-discriminacion-horaria.html",
+  "privacidad.html",
+  "aviso-legal.html",
 
   // Librerías auto-hospedadas (OCR/QR)
-  "/vendor/xlsx/xlsx.full.min.js",
-  "/vendor/jsqr/jsQR.js",
-  "/vendor/pdfjs/pdf.min.mjs",
-  "/vendor/pdfjs/pdf.worker.min.mjs",
-  "/vendor/tesseract/tesseract.esm.min.js",
-  "/vendor/tesseract/tesseract.min.js",
-  "/vendor/tesseract/worker.min.js",
-  "/vendor/tesseract-core/tesseract-core.wasm.js",
-  "/vendor/tesseract-core/tesseract-core.wasm",
-  "/vendor/tessdata/spa.traineddata.gz",
-];
+  "vendor/xlsx/xlsx.full.min.js",
+  "vendor/jsqr/jsQR.js",
+  "vendor/pdfjs/pdf.min.mjs",
+  "vendor/pdfjs/pdf.worker.min.mjs",
+  "vendor/tesseract/tesseract.esm.min.js",
+  "vendor/tesseract/tesseract.min.js",
+  "vendor/tesseract/worker.min.js",
+  "vendor/tesseract-core/tesseract-core.wasm.js",
+  "vendor/tesseract-core/tesseract-core.wasm",
+  "vendor/tessdata/spa.traineddata.gz",];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
     caches
       .open(CACHE_NAME)
-      .then((cache) => cache.addAll(ASSETS))
+      .then((cache) => cache.addAll(ASSETS.map((p) => new URL(p, SCOPE))))
       .then(() => self.skipWaiting())
   );
 });
@@ -123,7 +127,7 @@ self.addEventListener("fetch", (event) => {
           await cachePutSafe(cache, req, fresh);
           return fresh;
         } catch (_) {
-          return (await cache.match(req)) || (await cache.match("/index.html")) || Response.error();
+          return (await cache.match(req)) || (await cache.match(INDEX_PATH)) || Response.error();
         }
       })()
     );
@@ -131,13 +135,13 @@ self.addEventListener("fetch", (event) => {
   }
 
   // Tarifas: stale-while-revalidate (sirve cache al instante y actualiza en segundo plano)
-  if (url.pathname === "/tarifas.json") {
+  if (url.pathname === TARIFAS_PATH) {
     event.respondWith(
       (async () => {
         const cache = await caches.open(CACHE_NAME);
 
         // Normalizamos la clave para que funcione también si la app pide /tarifas.json?v=...
-        const cacheKey = new Request("/tarifas.json");
+        const cacheKey = new Request(TARIFAS_PATH);
         const cached = (await cache.match(cacheKey)) || (await cache.match(req));
 
         const fetchPromise = fetch(req, { cache: "no-store" })

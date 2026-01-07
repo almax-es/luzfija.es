@@ -15,7 +15,7 @@
 
     xlsxLoading = new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = '/vendor/xlsx/xlsx.full.min.js';
+      script.src = new URL('vendor/xlsx/xlsx.full.min.js', document.baseURI).toString();
       script.onload = () => {
         lfDbg('[XLSX] Librería cargada bajo demanda');
         resolve();
