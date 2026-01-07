@@ -171,10 +171,13 @@
           isCanarias: true, usoFiscal };
 
       } else {
+        // Península
         const baseEnergia = sumaBase + margen;
         const ivaBase = pot + consAdj + tarifaAdj + impuestoElec + margen;
         const iva = round2(ivaBase * 0.21);
-        let totalBase = round2(ivaBase + iva);
+        const alquilerContador = round2(dias * (0.81 / 30));
+        const ivaContador = round2(alquilerContador * 0.21);
+        let totalBase = round2(ivaBase + iva + alquilerContador + ivaContador);
 
         let credit2 = 0, bvSaldoFin = null, totalFinal = totalBase;
 
@@ -187,10 +190,10 @@
         }
 
         const totalRanking = solarOn && tieneBV ? round2(Math.max(0, totalBase - excedenteSobranteEur)) : totalBase;
-        const impuestosNum = round2(tarifaAdj + impuestoElec + margen + iva);
+        const impuestosNum = round2(tarifaAdj + impuestoElec + margen + iva + alquilerContador + ivaContador);
 
         resultado = { pot, cons, consAdj, tarifaAcceso, tarifaAdj, credit1, excedenteSobranteEur,
-          sumaBase, impuestoElec, margen, baseEnergia, ivaBase, iva, impuestosNum,
+          sumaBase, impuestoElec, margen, baseEnergia, ivaBase, iva, alquilerContador, ivaContador, impuestosNum,
           totalBase, credit2, bvSaldoFin, totalFinal, totalRanking, isCanarias: false };
       }
 
@@ -322,7 +325,7 @@
       </div>`;
 
       html += `<div class="desglose-seccion">
-        <div class="desglose-seccion-header"><h3>📝 OTROS CONCEPTOS</h3><span class="desglose-importe-header">${this.fmt(d.tarifaAdj + d.impuestoElec + d.margen)}</span></div>
+        <div class="desglose-seccion-header"><h3>📝 OTROS CONCEPTOS</h3><span class="desglose-importe-header">${this.fmt(d.isCanarias ? (d.tarifaAdj + d.impuestoElec) : (d.tarifaAdj + d.impuestoElec + d.margen))}</span></div>
         <div class="desglose-linea">
           <span class="desglose-concepto">Financiación Bono Social</span>
           <span class="desglose-detalle">${this.fmtNum(6.979247/365, 4)}/día × ${datos.dias} días</span>
@@ -343,16 +346,16 @@
           <span class="desglose-detalle">5,11% de ${this.fmt(d.sumaBase)}</span>
           <span class="desglose-importe">${this.fmt(d.impuestoElec)}</span>
         </div>
-        <div class="desglose-linea">
-          <span class="desglose-concepto">Alquiler equipos medida</span>
-          <span class="desglose-detalle">${d.isCanarias ? `${this.fmtNum(0.81 / 30, 4)}/día × ${datos.dias} días` : `${this.fmtNum(0.026667, 4)}/día × ${datos.dias} días`}</span>
-          <span class="desglose-importe">${this.fmt(d.isCanarias ? d.alquilerContador : d.margen)}</span>
-        </div>
+        ${!d.isCanarias ? `<div class="desglose-linea">
+          <span class="desglose-concepto">Margen comercialización</span>
+          <span class="desglose-detalle">${this.fmtNum(0.026667, 6)}/día × ${datos.dias} días</span>
+          <span class="desglose-importe">${this.fmt(d.margen)}</span>
+        </div>` : ''}
       </div>`;
 
       if (d.isCanarias) {
         html += `<div class="desglose-seccion">
-          <div class="desglose-seccion-header"><h3>💰 IMPUESTOS</h3><span class="desglose-importe-header">${this.fmt(d.igicBase + d.igicContador)}</span></div>
+          <div class="desglose-seccion-header"><h3>💰 IMPUESTOS Y ALQUILER</h3><span class="desglose-importe-header">${this.fmt(d.igicBase + d.igicContador + d.alquilerContador)}</span></div>
           ${d.usoFiscal === 'vivienda' ? `<div class="desglose-linea">
             <span class="desglose-concepto">IGIC energía</span>
             <span class="desglose-detalle">Exento (vivienda ≤10kW)</span>
@@ -363,6 +366,11 @@
             <span class="desglose-importe">${this.fmt(d.igicBase)}</span>
           </div>`}
           <div class="desglose-linea">
+            <span class="desglose-concepto">Alquiler equipos medida</span>
+            <span class="desglose-detalle">${this.fmtNum(0.81 / 30, 6)}/día × ${datos.dias} días</span>
+            <span class="desglose-importe">${this.fmt(d.alquilerContador)}</span>
+          </div>
+          <div class="desglose-linea">
             <span class="desglose-concepto">IGIC contador (7%)</span>
             <span class="desglose-detalle">7% de ${this.fmt(d.alquilerContador)}</span>
             <span class="desglose-importe">${this.fmt(d.igicContador)}</span>
@@ -370,11 +378,21 @@
         </div>`;
       } else {
         html += `<div class="desglose-seccion">
-          <div class="desglose-seccion-header"><h3>💰 IVA</h3><span class="desglose-importe-header">${this.fmt(d.iva)}</span></div>
+          <div class="desglose-seccion-header"><h3>💰 IVA Y ALQUILER</h3><span class="desglose-importe-header">${this.fmt(d.iva + d.alquilerContador + d.ivaContador)}</span></div>
           <div class="desglose-linea">
-            <span class="desglose-concepto">IVA (21%)</span>
+            <span class="desglose-concepto">IVA energía (21%)</span>
             <span class="desglose-detalle">21% de ${this.fmt(d.ivaBase)}</span>
             <span class="desglose-importe">${this.fmt(d.iva)}</span>
+          </div>
+          <div class="desglose-linea">
+            <span class="desglose-concepto">Alquiler equipos medida</span>
+            <span class="desglose-detalle">${this.fmtNum(0.81 / 30, 6)}/día × ${datos.dias} días</span>
+            <span class="desglose-importe">${this.fmt(d.alquilerContador)}</span>
+          </div>
+          <div class="desglose-linea">
+            <span class="desglose-concepto">IVA contador (21%)</span>
+            <span class="desglose-detalle">21% de ${this.fmt(d.alquilerContador)}</span>
+            <span class="desglose-importe">${this.fmt(d.ivaContador)}</span>
           </div>
         </div>`;
       }
