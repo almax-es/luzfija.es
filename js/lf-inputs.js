@@ -12,16 +12,21 @@
   // ===== CONTEXTO FISCAL =====
   function __LF_getFiscalContext(values) {
     const v = values || getInputValues();
-    const zona = (v?.zonaFiscal || '').toLowerCase() === 'canarias' ? 'canarias' : 'península';
+    const zonaRaw = (v?.zonaFiscal || '').toLowerCase();
+    const zona = zonaRaw === 'canarias' ? 'canarias' 
+               : zonaRaw === 'ceutamelilla' ? 'ceutamelilla' 
+               : 'península';
     const p1Num = clampNonNeg(parseNum(v?.p1));
     const p2Num = clampNonNeg(parseNum(v?.p2));
     const potenciaContratada = Math.max(p1Num || 0, p2Num || 0);
     const esCanarias = (zona === 'canarias');
+    const esCeutaMelilla = (zona === 'ceutamelilla');
     const viviendaMarcada = Boolean(v?.viviendaCanarias);
+    // Solo Canarias tiene distinción vivienda/otros para IGIC 0%
     const esViviendaTipoCero = esCanarias && viviendaMarcada && potenciaContratada > 0 && potenciaContratada <= 10;
     const usoFiscal = esViviendaTipoCero ? 'vivienda' : 'otros';
 
-    return { zona, viviendaMarcada, potenciaContratada, esViviendaTipoCero, usoFiscal };
+    return { zona, viviendaMarcada, potenciaContratada, esViviendaTipoCero, usoFiscal, esCanarias, esCeutaMelilla };
   }
 
   // ===== GET INPUT VALUES =====
@@ -32,7 +37,10 @@
     const cPunta = clampNonNeg(parseNum(el.inputs.cPunta.value));
     const cLlano = clampNonNeg(parseNum(el.inputs.cLlano.value));
     const cValle = clampNonNeg(parseNum(el.inputs.cValle.value));
-    const zonaFiscal = el.inputs.zonaFiscal?.value === 'Canarias' ? 'Canarias' : 'Península';
+    const zonaRaw = el.inputs.zonaFiscal?.value || 'Península';
+    const zonaFiscal = zonaRaw === 'Canarias' ? 'Canarias' 
+                     : zonaRaw === 'CeutaMelilla' ? 'CeutaMelilla' 
+                     : 'Península';
     const viviendaCanarias = Boolean(el.inputs.viviendaCanarias?.checked);
     const solarOn = Boolean(el.inputs.solarOn?.checked);
     const exTotal = clampNonNeg(parseNum(el.inputs.exTotal?.value));
@@ -60,8 +68,10 @@
 
   // ===== UPDATE UI HELPERS =====
   function updateZonaFiscalUI() {
-    const zona = el.inputs.zonaFiscal?.value === 'Canarias' ? 'Canarias' : 'Península';
-    const isCanarias = zona === 'Canarias';
+    const zonaRaw = el.inputs.zonaFiscal?.value || 'Península';
+    const isCanarias = zonaRaw === 'Canarias';
+    // El checkbox de vivienda solo aplica a Canarias (IGIC 0% vivienda ≤10kW)
+    // En Ceuta/Melilla el IPSI es igual para todos (1%)
     if (el.viviendaGroup) {
       el.viviendaGroup.style.display = isCanarias ? 'flex' : 'none';
     }

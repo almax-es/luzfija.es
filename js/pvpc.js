@@ -95,9 +95,12 @@
 
     function buildPvpcCacheKey(values){
       const {p1=0,p2=0,dias=0,cPunta=0,cLlano=0,cValle=0}=values||{};
-      const zonaFiscal = values?.zonaFiscal === 'Canarias' ? 'Canarias' : 'Península';
+      const zonaRaw = values?.zonaFiscal || 'Península';
+      const zonaFiscal = zonaRaw === 'Canarias' ? 'Canarias' 
+                       : zonaRaw === 'CeutaMelilla' ? 'CeutaMelilla' 
+                       : 'Península';
       const viviendaCanarias = zonaFiscal === 'Canarias' && Boolean(values?.viviendaCanarias);
-      const codigoPostal = zonaFiscal === 'Canarias' ? '35001' : '50010';
+      const codigoPostal = window.LF_CONFIG.getCodigoPostalAPI(zonaFiscal);
       return `${PVPC_CACHE_PREFIX}:${getPvpcAnchorDate()}:${zonaFiscal}:${codigoPostal}:${viviendaCanarias?'1':'0'}:${p1}:${p2}:${dias}:${cPunta}:${cLlano}:${cValle}`;
     }
 
@@ -335,22 +338,27 @@
         : (() => {
           const p1Num = clampNonNeg(parseNum(values?.p1));
           const p2Num = clampNonNeg(parseNum(values?.p2));
-          const zona = (values?.zonaFiscal || '').toLowerCase() === 'canarias' ? 'canarias' : 'península';
+          const zonaRaw = (values?.zonaFiscal || '').toLowerCase();
+          const zona = zonaRaw === 'canarias' ? 'canarias' 
+                     : zonaRaw === 'ceutamelilla' ? 'ceutamelilla' 
+                     : 'península';
           const potenciaContratada = Math.max(p1Num || 0, p2Num || 0);
           const esCanarias = zona === 'canarias';
+          const esCeutaMelilla = zona === 'ceutamelilla';
           const viviendaMarcada = Boolean(values?.viviendaCanarias);
           const esViviendaTipoCero = esCanarias && viviendaMarcada && potenciaContratada > 0 && potenciaContratada <= 10;
           const usoFiscal = esViviendaTipoCero ? 'vivienda' : 'otros';
-          return { zona, viviendaMarcada, potenciaContratada, esViviendaTipoCero, usoFiscal };
+          return { zona, viviendaMarcada, potenciaContratada, esViviendaTipoCero, usoFiscal, esCanarias, esCeutaMelilla };
         })();
-      const esCanarias = (fiscal?.zona === 'canarias');
+      const esCanarias = fiscal?.esCanarias || (fiscal?.zona === 'canarias');
+      const esCeutaMelilla = fiscal?.esCeutaMelilla || (fiscal?.zona === 'ceutamelilla');
       const viviendaMarcada = Boolean(fiscal?.viviendaMarcada);
       const potenciaContratada = Number(fiscal?.potenciaContratada || 0);
       window.pvpcCasoInvalidoCanariasViviendaPotAlta = esCanarias && viviendaMarcada && potenciaContratada > 10;
       if (window.pvpcCasoInvalidoCanariasViviendaPotAlta) {
         return null;
       }
-      const zonaFiscal = esCanarias ? 'Canarias' : 'Península';
+      const zonaFiscal = esCanarias ? 'Canarias' : esCeutaMelilla ? 'CeutaMelilla' : 'Península';
       const viviendaCanarias = esCanarias && viviendaMarcada;
 
       const periodo = buildPvpcPeriodo(dias);
@@ -358,8 +366,8 @@
       // La CNMC manda las fechas así: "YYYY-MM-DD,YYYY-MM-DD"
       const [fechaInicioYMD, fechaFinYMD] = periodo.periodoFacturacion.split(',');
 
-      // Código postal solicitado por el usuario
-      const codigoPostal = zonaFiscal === 'Canarias' ? '35001' : '50010';
+      // Código postal según territorio (desde LF_CONFIG)
+      const codigoPostal = window.LF_CONFIG.getCodigoPostalAPI(zonaFiscal);
 
       const params = new URLSearchParams({
         // 👇 Copiado de la llamada que a ellos les devuelve 200
@@ -436,6 +444,10 @@
 
     function pvpcSignatureFromValues(v){
       const norm=n=>Number(Number(n||0).toFixed(4));
+      const zonaRaw = v?.zonaFiscal || 'Península';
+      const zonaFiscal = zonaRaw === 'Canarias' ? 'Canarias' 
+                       : zonaRaw === 'CeutaMelilla' ? 'CeutaMelilla' 
+                       : 'Península';
       const values={
         dias: Math.min(Math.max(Math.trunc(v?.dias)||0,1),365),
         p1: norm(v?.p1),
@@ -443,8 +455,8 @@
         cPunta: norm(v?.cPunta),
         cLlano: norm(v?.cLlano),
         cValle: norm(v?.cValle),
-        zonaFiscal: v?.zonaFiscal === 'Canarias' ? 'Canarias' : 'Península',
-        viviendaCanarias: v?.zonaFiscal === 'Canarias' && Boolean(v?.viviendaCanarias)
+        zonaFiscal,
+        viviendaCanarias: zonaFiscal === 'Canarias' && Boolean(v?.viviendaCanarias)
       };
       return buildPvpcCacheKey(values);
     }
@@ -476,15 +488,19 @@
         : (() => {
           const p1Num = clampNonNeg(parseNum(values?.p1));
           const p2Num = clampNonNeg(parseNum(values?.p2));
-          const zona = (values?.zonaFiscal || '').toLowerCase() === 'canarias' ? 'canarias' : 'península';
+          const zonaRaw = (values?.zonaFiscal || '').toLowerCase();
+          const zona = zonaRaw === 'canarias' ? 'canarias' 
+                     : zonaRaw === 'ceutamelilla' ? 'ceutamelilla' 
+                     : 'península';
           const potenciaContratada = Math.max(p1Num || 0, p2Num || 0);
           const esCanarias = zona === 'canarias';
+          const esCeutaMelilla = zona === 'ceutamelilla';
           const viviendaMarcada = Boolean(values?.viviendaCanarias);
           const esViviendaTipoCero = esCanarias && viviendaMarcada && potenciaContratada > 0 && potenciaContratada <= 10;
           const usoFiscal = esViviendaTipoCero ? 'vivienda' : 'otros';
-          return { zona, viviendaMarcada, potenciaContratada, esViviendaTipoCero, usoFiscal };
+          return { zona, viviendaMarcada, potenciaContratada, esViviendaTipoCero, usoFiscal, esCanarias, esCeutaMelilla };
         })();
-      const esCanarias = (fiscal?.zona === 'canarias');
+      const esCanarias = fiscal?.esCanarias || (fiscal?.zona === 'canarias');
       const viviendaMarcada = Boolean(fiscal?.viviendaMarcada);
       const potenciaContratada = Number(fiscal?.potenciaContratada || 0);
       window.pvpcCasoInvalidoCanariasViviendaPotAlta = esCanarias && viviendaMarcada && potenciaContratada > 10;

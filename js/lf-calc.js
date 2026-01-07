@@ -1,4 +1,5 @@
 // ===== LuzFija: Motor de Cálculo =====
+// Usa LF_CONFIG para valores regulados
 
 (function() {
   'use strict';
@@ -8,6 +9,9 @@
     parseNum, clampNonNeg, round2, formatMoney,
     __LF_getFiscalContext, getInputValues
   } = window.LF;
+
+  // Referencia a configuración
+  const CFG = window.LF_CONFIG;
 
   // ===== PRECIO EXCEDENTES =====
   function getFvExcPrice(fv) {
@@ -23,10 +27,21 @@
     const { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias, solarOn, exTotal, bvSaldo } = values || getInputValues();
     
     const fiscal = __LF_getFiscalContext({ p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias });
-    const isCanarias = fiscal.zona === 'canarias';
+    const isCanarias = fiscal.esCanarias;
+    const isCeutaMelilla = fiscal.esCeutaMelilla;
     
     const cachedTarifas = window.LF.cachedTarifas;
     if (!cachedTarifas.length) return;
+
+    // Valores de configuración
+    const bonoSocialAnual = CFG.bonoSocial.eurosAnuales;
+    const ieePorc = CFG.iee.porcentaje;
+    const ieeMinKwh = CFG.iee.minimoEurosKwh;
+    const alquilerMes = CFG.alquilerContador.eurosMes;
+
+    // Impuestos por territorio
+    const terr = CFG.getTerritorio(fiscal.zona);
+    const impuestos = terr.impuestos;
 
     // OPTIMIZACIÓN INP: Calcular en chunks de 8 tarifas
     const CHUNK_SIZE = 8;
@@ -81,7 +96,7 @@
 
         const pot = round2((p1 * dias * t.p1) + (p2 * dias * t.p2));
         const cons = round2((cPunta * t.cPunta) + (cLlano * t.cLlano) + (cValle * t.cValle));
-        const tarifaAcceso = round2(6.979247 / 365 * dias);
+        const tarifaAcceso = round2(bonoSocialAnual / 365 * dias);
 
         let consAdj = cons;
         let tarifaAdj = tarifaAcceso;
@@ -115,18 +130,25 @@
         }
 
         const sumaBase = pot + consAdj + tarifaAdj;
-        const impuestoElec = round2(Math.max((5.11269632 / 100) * sumaBase, (cPunta + cLlano + cValle) * 0.001));
-        const alquilerContador = isCanarias ? 0 : round2(dias * 0.81 * 12 / 365);
-        const baseEnergia = sumaBase + impuestoElec + alquilerContador;
-        const ivaBase = pot + consAdj + tarifaAdj + impuestoElec + alquilerContador;
+        const consumoTotalKwh = cPunta + cLlano + cValle;
+        const impuestoElec = round2(Math.max((ieePorc / 100) * sumaBase, consumoTotalKwh * ieeMinKwh));
+        const alquilerContador = round2(dias * alquilerMes * 12 / 365);
+
+        // ═══════════════════════════════════════════════════════════════
+        // CÁLCULO POR TERRITORIO
+        // ═══════════════════════════════════════════════════════════════
 
         if (isCanarias) {
-          const alquilerContadorCan = round2(dias * 0.81 * 12 / 365);
+          // ─────────────────────────────────────────────────────────────
+          // CANARIAS: IGIC (0% vivienda ≤10kW, 3% otros, 7% contador)
+          // ─────────────────────────────────────────────────────────────
           const baseEnergiaCan = sumaBase;
-          const igicBase = fiscal.usoFiscal === 'vivienda' ? 0 : (baseEnergiaCan + impuestoElec) * 0.03;
-          const igicContador = round2(alquilerContadorCan * 0.07);
-          const impuestosNum = impuestoElec + igicBase + igicContador;
-          const totalBase = baseEnergiaCan + impuestoElec + igicBase + alquilerContadorCan + igicContador;
+          const igicEnergia = fiscal.usoFiscal === 'vivienda' 
+            ? 0 
+            : round2((baseEnergiaCan + impuestoElec) * impuestos.energiaOtros);
+          const igicContador = round2(alquilerContador * impuestos.contador);
+          const impuestosNum = impuestoElec + igicEnergia + igicContador;
+          const totalBase = round2(baseEnergiaCan + impuestoElec + igicEnergia + alquilerContador + igicContador);
 
           let totalFinal = totalBase;
           if (solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV') {
@@ -153,6 +175,7 @@
             total: formatMoney(totalNum),
             webUrl: t.web,
             iva: 0,
+            territorio: 'canarias',
             fvTipo: fv ? fv.tipo || null : null,
             fvExcRaw: fv ? fv.exc : null,
             fvRegla: fv ? fv.reglaBV || null : null,
@@ -166,9 +189,64 @@
             fvTotalFinal: totalFinal,
             solarNoCalculable
           });
+
+        } else if (isCeutaMelilla) {
+          // ─────────────────────────────────────────────────────────────
+          // CEUTA Y MELILLA: IPSI (1% energía, 4% contador)
+          // Ley 8/1991 Art. 18
+          // ─────────────────────────────────────────────────────────────
+          const baseIPSI = sumaBase + impuestoElec;
+          const ipsiEnergia = round2(baseIPSI * impuestos.energia);
+          const ipsiContador = round2(alquilerContador * impuestos.contador);
+          const impuestosNum = impuestoElec + ipsiEnergia + ipsiContador;
+          const totalBase = round2(sumaBase + impuestoElec + ipsiEnergia + alquilerContador + ipsiContador);
+
+          let totalFinal = totalBase;
+          if (solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV') {
+            let disponible = bvSaldo;
+            credit2 = Math.min(clampNonNeg(disponible), totalBase);
+            bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bvSaldo - credit2));
+            totalFinal = credit2 > 0 ? round2(Math.max(0, totalBase - credit2)) : totalBase;
+          }
+
+          const totalNum = solarOn && fv && fv.bv
+            ? round2(Math.max(0, totalBase - excedenteSobranteEur))
+            : totalBase;
+            
+          resultados.push({
+            ...t,
+            posicion: index + 1,
+            potenciaNum: pot,
+            potencia: formatMoney(pot),
+            consumoNum: consAdj,
+            consumo: formatMoney(consAdj),
+            impuestosNum: impuestosNum,
+            impuestos: formatMoney(impuestosNum),
+            totalNum,
+            total: formatMoney(totalNum),
+            webUrl: t.web,
+            iva: 0,
+            territorio: 'ceutamelilla',
+            fvTipo: fv ? fv.tipo || null : null,
+            fvExcRaw: fv ? fv.exc : null,
+            fvRegla: fv ? fv.reglaBV || null : null,
+            fvApplied,
+            fvExKwh: exKwh,
+            fvPriceUsed: precioExc,
+            fvCredit1: credit1,
+            fvCredit2: credit2,
+            fvBvSaldoFin: bvSaldoFin,
+            fvExcedenteSobrante: excedenteSobranteEur,
+            fvTotalFinal: totalFinal,
+            solarNoCalculable
+          });
+
         } else {
-          // Península
-          const ivaPorc = 0.21;
+          // ─────────────────────────────────────────────────────────────
+          // PENÍNSULA Y BALEARES: IVA 21%
+          // ─────────────────────────────────────────────────────────────
+          const ivaBase = pot + consAdj + tarifaAdj + impuestoElec + alquilerContador;
+          const ivaPorc = impuestos.energia;
           const ivaCuota = round2(ivaBase * ivaPorc);
           const impuestosNum = impuestoElec + alquilerContador + ivaCuota;
           const totalBase = round2(ivaBase + ivaCuota);
@@ -198,6 +276,7 @@
             total: formatMoney(totalNum),
             webUrl: t.web,
             iva: ivaCuota,
+            territorio: 'peninsula',
             fvTipo: fv ? fv.tipo || null : null,
             fvExcRaw: fv ? fv.exc : null,
             fvRegla: fv ? fv.reglaBV || null : null,
