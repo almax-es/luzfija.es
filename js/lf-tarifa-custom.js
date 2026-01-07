@@ -76,6 +76,20 @@
         </div>
       `;
     }
+
+    // Normalizar formato decimal al salir del campo (punto → coma)
+    const { formatValueForDisplay } = window.LF;
+    const camposMiTarifa = ['mtPunta', 'mtLlano', 'mtValle', 'mtP1', 'mtP2', 'mtPrecioExc'];
+    camposMiTarifa.forEach(id => {
+      const campo = $(id);
+      if (campo) {
+        campo.addEventListener('blur', () => {
+          if (campo.value) {
+            campo.value = formatValueForDisplay(campo.value);
+          }
+        });
+      }
+    });
   }
 
   // ===== AGREGAR MI TARIFA =====
