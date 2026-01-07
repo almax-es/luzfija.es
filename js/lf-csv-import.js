@@ -15,8 +15,7 @@
 
     xlsxLoading = new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = 'https://cdn.sheetjs.com/xlsx-0.20.3/package/dist/xlsx.full.min.js';
-      script.crossOrigin = 'anonymous';
+      script.src = '/vendor/xlsx/xlsx.full.min.js';
       script.onload = () => {
         lfDbg('[XLSX] Librería cargada bajo demanda');
         resolve();
