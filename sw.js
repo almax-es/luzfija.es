@@ -67,7 +67,7 @@ const ASSETS = [
   "vendor/tesseract/worker.min.js",
   "vendor/tesseract-core/tesseract-core.wasm.js",
   "vendor/tesseract-core/tesseract-core.wasm",
-  "vendor/tessdata/spa.traineddata.gz",];
+  "vendor/tessdata/spa.traineddata.gz"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
