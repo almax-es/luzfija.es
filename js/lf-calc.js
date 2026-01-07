@@ -116,15 +116,17 @@
 
         const sumaBase = pot + consAdj + tarifaAdj;
         const impuestoElec = round2(Math.max((5.11269632 / 100) * sumaBase, (cPunta + cLlano + cValle) * 0.001));
-        const margen = isCanarias ? 0 : round2(dias * 0.026667);
-        const baseEnergia = sumaBase + margen;
-        const subtotal = baseEnergia + impuestoElec;
-        const ivaBase = pot + consAdj + tarifaAdj + impuestoElec + margen;
+        const alquilerContador = isCanarias ? 0 : round2(dias * 0.81 * 12 / 365);
+        const baseEnergia = sumaBase + impuestoElec + alquilerContador;
+        const ivaBase = pot + consAdj + tarifaAdj + impuestoElec + alquilerContador;
 
         if (isCanarias) {
-          const igicBase = fiscal.usoFiscal === 'vivienda' ? 0 : (baseEnergia + impuestoElec) * 0.03;
-          const impuestosNum = impuestoElec + igicBase;
-          const totalBase = baseEnergia + impuestoElec + igicBase;
+          const alquilerContadorCan = round2(dias * 0.81 * 12 / 365);
+          const baseEnergiaCan = sumaBase;
+          const igicBase = fiscal.usoFiscal === 'vivienda' ? 0 : (baseEnergiaCan + impuestoElec) * 0.03;
+          const igicContador = round2(alquilerContadorCan * 0.07);
+          const impuestosNum = impuestoElec + igicBase + igicContador;
+          const totalBase = baseEnergiaCan + impuestoElec + igicBase + alquilerContadorCan + igicContador;
 
           let totalFinal = totalBase;
           if (solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV') {
@@ -168,8 +170,8 @@
           // Península
           const ivaPorc = 0.21;
           const ivaCuota = round2(ivaBase * ivaPorc);
-          const impuestosNum = impuestoElec + ivaCuota;
-          const totalBase = round2(baseEnergia + impuestoElec + ivaCuota);
+          const impuestosNum = impuestoElec + alquilerContador + ivaCuota;
+          const totalBase = round2(ivaBase + ivaCuota);
 
           let totalFinal = totalBase;
           if (solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV') {

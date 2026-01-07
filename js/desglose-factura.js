@@ -140,7 +140,7 @@
 
       const sumaBase = pot + consAdj + tarifaAdj;
       const impuestoElec = round2(Math.max((5.11269632 / 100) * sumaBase, (consumoPunta + consumoLlano + consumoValle) * 0.001));
-      const margen = isCanarias ? 0 : round2(dias * 0.026667);
+      const alquilerContador = round2(dias * 0.81 * 12 / 365);
 
       let resultado = {};
 
@@ -148,8 +148,9 @@
         const baseEnergia = sumaBase;
         const usoFiscal = esViviendaCanarias && potenciaContratada > 0 && potenciaContratada <= 10 ? 'vivienda' : 'otros';
         const igicBase = usoFiscal === 'vivienda' ? 0 : (baseEnergia + impuestoElec) * 0.03;
-        const impuestosNum = impuestoElec + igicBase;
-        let totalBase = baseEnergia + impuestoElec + igicBase;
+        const igicContador = round2(alquilerContador * 0.07);
+        const impuestosNum = impuestoElec + igicBase + igicContador;
+        let totalBase = baseEnergia + impuestoElec + igicBase + alquilerContador + igicContador;
 
         let credit2 = 0, bvSaldoFin = null, totalFinal = totalBase;
 
@@ -164,14 +165,14 @@
         const totalRanking = solarOn && tieneBV ? round2(Math.max(0, totalBase - excedenteSobranteEur)) : totalBase;
 
         resultado = { pot, cons, consAdj, tarifaAcceso, tarifaAdj, credit1, excedenteSobranteEur,
-          sumaBase, impuestoElec, margen, baseEnergia, igicBase,
+          sumaBase, impuestoElec, baseEnergia, alquilerContador, igicBase, igicContador,
           impuestosNum, totalBase, credit2, bvSaldoFin, totalFinal, totalRanking,
           isCanarias: true, usoFiscal };
 
       } else {
         // Península
-        const baseEnergia = sumaBase + margen;
-        const ivaBase = pot + consAdj + tarifaAdj + impuestoElec + margen;
+        const baseEnergia = sumaBase + impuestoElec + alquilerContador;
+        const ivaBase = pot + consAdj + tarifaAdj + impuestoElec + alquilerContador;
         const iva = round2(ivaBase * 0.21);
         let totalBase = round2(ivaBase + iva);
 
@@ -186,10 +187,10 @@
         }
 
         const totalRanking = solarOn && tieneBV ? round2(Math.max(0, totalBase - excedenteSobranteEur)) : totalBase;
-        const impuestosNum = round2(tarifaAdj + impuestoElec + margen + iva);
+        const impuestosNum = round2(tarifaAdj + impuestoElec + alquilerContador + iva);
 
         resultado = { pot, cons, consAdj, tarifaAcceso, tarifaAdj, credit1, excedenteSobranteEur,
-          sumaBase, impuestoElec, margen, baseEnergia, ivaBase, iva, impuestosNum,
+          sumaBase, impuestoElec, alquilerContador, baseEnergia, ivaBase, iva, impuestosNum,
           totalBase, credit2, bvSaldoFin, totalFinal, totalRanking, isCanarias: false };
       }
 
@@ -321,7 +322,7 @@
       </div>`;
 
       html += `<div class="desglose-seccion">
-        <div class="desglose-seccion-header"><h3>📝 OTROS CONCEPTOS</h3><span class="desglose-importe-header">${this.fmt(d.isCanarias ? (d.tarifaAdj + d.impuestoElec) : (d.tarifaAdj + d.impuestoElec + d.margen))}</span></div>
+        <div class="desglose-seccion-header"><h3>📝 OTROS CONCEPTOS</h3><span class="desglose-importe-header">${this.fmt(d.isCanarias ? (d.tarifaAdj + d.impuestoElec) : (d.tarifaAdj + d.impuestoElec + d.alquilerContador))}</span></div>
         <div class="desglose-linea">
           <span class="desglose-concepto">Financiación Bono Social</span>
           <span class="desglose-detalle">${this.fmtNum(6.979247/365, 4)}/día × ${datos.dias} días</span>
@@ -343,15 +344,15 @@
           <span class="desglose-importe">${this.fmt(d.impuestoElec)}</span>
         </div>
         ${!d.isCanarias ? `<div class="desglose-linea">
-          <span class="desglose-concepto">Margen comercialización</span>
-          <span class="desglose-detalle">${this.fmtNum(0.026667, 6)}/día × ${datos.dias} días</span>
-          <span class="desglose-importe">${this.fmt(d.margen)}</span>
+          <span class="desglose-concepto">Alquiler de contador</span>
+          <span class="desglose-detalle">0,81 €/mes × ${datos.dias} días / 30,42 días/mes</span>
+          <span class="desglose-importe">${this.fmt(d.alquilerContador)}</span>
         </div>` : ''}
       </div>`;
 
       if (d.isCanarias) {
         html += `<div class="desglose-seccion">
-          <div class="desglose-seccion-header"><h3>💰 IMPUESTOS</h3><span class="desglose-importe-header">${this.fmt(d.igicBase)}</span></div>
+          <div class="desglose-seccion-header"><h3>💰 IMPUESTOS Y ALQUILER</h3><span class="desglose-importe-header">${this.fmt(d.igicBase + d.alquilerContador + d.igicContador)}</span></div>
           ${d.usoFiscal === 'vivienda' ? `<div class="desglose-linea">
             <span class="desglose-concepto">IGIC energía</span>
             <span class="desglose-detalle">Exento (vivienda ≤10kW)</span>
@@ -361,6 +362,16 @@
             <span class="desglose-detalle">3% de ${this.fmt(d.baseEnergia + d.impuestoElec)}</span>
             <span class="desglose-importe">${this.fmt(d.igicBase)}</span>
           </div>`}
+          <div class="desglose-linea">
+            <span class="desglose-concepto">Alquiler de contador</span>
+            <span class="desglose-detalle">0,81 €/mes × ${datos.dias} días / 30,42 días/mes</span>
+            <span class="desglose-importe">${this.fmt(d.alquilerContador)}</span>
+          </div>
+          <div class="desglose-linea">
+            <span class="desglose-concepto">IGIC contador (7%)</span>
+            <span class="desglose-detalle">7% de ${this.fmt(d.alquilerContador)}</span>
+            <span class="desglose-importe">${this.fmt(d.igicContador)}</span>
+          </div>
         </div>`;
       } else {
         html += `<div class="desglose-seccion">
