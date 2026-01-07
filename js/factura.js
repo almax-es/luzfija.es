@@ -5,6 +5,18 @@
       // Helper de debug: solo loguea si __LF_DEBUG está activo
       const lfDbg = (...args) => { if (window.__LF_DEBUG) console.log(...args); };
 
+      // Raíz del sitio calculada a partir de la URL del propio script.
+      // Esto evita problemas con GitHub Pages cuando hay subpath (p.ej. /repo/).
+      const __LF_SITE_ROOT = (() => {
+        try {
+          const cur = document.currentScript && document.currentScript.src;
+          return cur ? new URL('..', cur) : new URL('./', document.baseURI);
+        } catch (_) {
+          return new URL('./', document.baseURI);
+        }
+      })();
+      const __LF_assetUrl = (rel) => new URL(rel, __LF_SITE_ROOT).toString();
+
       window.__LF_lastFile = null;
       window.__LF_restoreFocusEl = null;
       window.__LF_focusTrapCleanup = null;
@@ -668,8 +680,8 @@
         
         return new Promise((resolve, reject) => {
           const script = document.createElement('script');
-          script.src = 'https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js';
-          script.crossOrigin = 'anonymous'; // Necesario para SRI
+          // Self-host: /vendor/jsqr/jsQR.js
+          script.src = __LF_assetUrl('vendor/jsqr/jsQR.js');
           script.onload = () => resolve(window.jsQR);
           script.onerror = () => reject(new Error('jsQR no disponible'));
           document.head.appendChild(script);
