@@ -7,7 +7,7 @@
 
 // IMPORTANTE: si cambias este fichero, incrementa CACHE_NAME para forzar la actualización.
 // Bump de versión para forzar actualización de assets tras cambios (release incremental)
-const CACHE_NAME = "luzfija-static-v5.7";
+const CACHE_NAME = "luzfija-static-v5.8";
 
 
 // Scope (para que funcione igual en dominio raíz y en subcarpetas de GitHub Pages)
@@ -57,17 +57,13 @@ const ASSETS = [
   "privacidad.html",
   "aviso-legal.html",
 
-  // Librerías auto-hospedadas (OCR/QR)
-  "vendor/xlsx/xlsx.full.min.js",
+  // Librerías auto-hospedadas ligeras (QR)
   "vendor/jsqr/jsQR.js",
-  "vendor/pdfjs/pdf.min.mjs",
-  "vendor/pdfjs/pdf.worker.min.mjs",
   "vendor/tesseract/tesseract.esm.min.js",
   "vendor/tesseract/tesseract.min.js",
   "vendor/tesseract/worker.min.js",
-  "vendor/tesseract-core/tesseract-core.wasm.js",
-  "vendor/tesseract-core/tesseract-core.wasm",
-  "vendor/tessdata/spa.traineddata.gz",];
+  // OCR core (wasm), PDF.js y Excel se cachean bajo demanda con stale-while-revalidate
+];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
