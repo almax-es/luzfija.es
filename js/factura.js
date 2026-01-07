@@ -1427,14 +1427,13 @@
 
       async function __LF_loadTesseract(){
         try{
-          const mod = await import('https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.esm.min.js');
+          const mod = await import(__LF_assetUrl('vendor/tesseract/tesseract.esm.min.js'));
           return mod.default || mod;
         }catch(e){
           if (window.Tesseract) return window.Tesseract;
           await new Promise((ok,ko)=>{
             const s = document.createElement('script');
-            s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
-            s.crossOrigin = 'anonymous'; // Necesario para SRI
+            s.src = __LF_assetUrl('vendor/tesseract/tesseract.min.js');
             s.onload = ok; s.onerror = ko;
             document.head.appendChild(s);
           });
@@ -1476,7 +1475,12 @@
             canvas.height = viewport.height;
             await page.render({ canvasContext: ctx, viewport }).promise;
 
-            const { data } = await T.recognize(canvas, 'spa');
+            const __LF_tessOpts = {
+              workerPath: __LF_assetUrl('vendor/tesseract/worker.min.js'),
+              corePath: __LF_assetUrl('vendor/tesseract-core/tesseract-core.wasm.js'),
+              langPath: __LF_assetUrl('vendor/tessdata/'),
+            };
+            const { data } = await T.recognize(canvas, 'spa', __LF_tessOpts);
             ocrText += (data.text || '') + '\n';
           }
 

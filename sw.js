@@ -7,7 +7,7 @@
 
 // IMPORTANTE: si cambias este fichero, incrementa CACHE_NAME para forzar la actualización.
 // Bump de versión para forzar actualización de assets tras cambios (release incremental)
-const CACHE_NAME = "luzfija-static-v5.0";
+const CACHE_NAME = "luzfija-static-v5.1";
 
 const ASSETS = [
   "/",
@@ -51,6 +51,16 @@ const ASSETS = [
   "/mejor-tarifa-discriminacion-horaria.html",
   "/privacidad.html",
   "/aviso-legal.html",
+
+  // Librerías auto-hospedadas (OCR/QR)
+  "/js/factura.js",
+  "/vendor/jsqr/jsQR.js",
+  "/vendor/tesseract/tesseract.esm.min.js",
+  "/vendor/tesseract/tesseract.min.js",
+  "/vendor/tesseract/worker.min.js",
+  "/vendor/tesseract-core/tesseract-core.wasm.js",
+  "/vendor/tesseract-core/tesseract-core.wasm",
+  "/vendor/tessdata/spa.traineddata.gz",
 ];
 
 self.addEventListener("install", (event) => {
