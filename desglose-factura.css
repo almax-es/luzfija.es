@@ -596,6 +596,37 @@ html:not(.light-mode) .desglose-ayuda{
 .desglose-linea--hl-blue{ background: rgba(59,130,246,0.10); }
 .desglose-linea--top-accent{ border-top: 2px solid var(--accent, #8B5CF6); }
 
+
+/* Compensación excedentes: detalle compacto y responsive (sin <br>, sin estilos inline) */
+.desglose-detalle--exced{
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+  align-items: baseline;
+}
+
+.desglose-detalle--exced .exced-item{
+  min-width: 0;
+}
+
+.desglose-detalle--exced .exced-sep{
+  opacity: .45;
+}
+
+.desglose-detalle--exced .nowrap{
+  white-space: nowrap;
+}
+
+/* En móvil: apilar y quitar separadores */
+@media (max-width: 520px){
+  .desglose-detalle--exced{
+    flex-direction: column;
+    gap: 2px;
+  }
+  .desglose-detalle--exced .exced-sep{
+    display: none;
+  }
+}
 .desglose-importe--pos{ color: #22c55e; }
 .desglose-importe--neg{ color: #ef4444; }
 .desglose-importe--blue{ color: #3b82f6; }
