@@ -59,10 +59,7 @@ const ASSETS = [
 
   // Librerías auto-hospedadas ligeras (QR)
   "vendor/jsqr/jsQR.js",
-  "vendor/tesseract/tesseract.esm.min.js",
-  "vendor/tesseract/tesseract.min.js",
-  "vendor/tesseract/worker.min.js",
-  // OCR core (wasm), PDF.js y Excel se cachean bajo demanda con stale-while-revalidate
+  // OCR (Tesseract + core wasm), PDF.js y Excel se cachean bajo demanda con stale-while-revalidate
 ];
 
 self.addEventListener("install", (event) => {
