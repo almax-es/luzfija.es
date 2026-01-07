@@ -483,7 +483,7 @@
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
       navigator.serviceWorker
-        .register('/sw.js')
+        .register('sw.js')
         .then(function(reg) {
           try { if (reg && typeof reg.update === 'function') reg.update(); } catch (e) {}
         })
