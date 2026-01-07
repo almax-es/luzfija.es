@@ -7,7 +7,7 @@
 
 // IMPORTANTE: si cambias este fichero, incrementa CACHE_NAME para forzar la actualización.
 // Bump de versión para forzar actualización de assets tras cambios (release incremental)
-const CACHE_NAME = "luzfija-static-v5.2";
+const CACHE_NAME = "luzfija-static-v5.3";
 
 const ASSETS = [
   "/",
@@ -53,7 +53,6 @@ const ASSETS = [
   "/aviso-legal.html",
 
   // Librerías auto-hospedadas (OCR/QR)
-  "/js/factura.js",
   "/vendor/jsqr/jsQR.js",
   "/vendor/pdfjs/pdf.min.mjs",
   "/vendor/pdfjs/pdf.worker.min.mjs",
