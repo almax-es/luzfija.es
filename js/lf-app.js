@@ -185,7 +185,7 @@
       });
 
       // Normalizar formato decimal al salir del campo
-      if (['p1', 'p2', 'cPunta', 'cLlano', 'cValle'].includes(i.id)) {
+      if (['p1', 'p2', 'cPunta', 'cLlano', 'cValle', 'exTotal', 'bvSaldo'].includes(i.id)) {
         i.addEventListener('blur', () => {
           if (i.value) {
             i.value = formatValueForDisplay(i.value);
