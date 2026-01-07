@@ -19,24 +19,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Imagina Energía",
-      "cPunta": 0.102,
-      "cLlano": 0.102,
-      "cValle": 0.102,
-      "p1": 0.087,
-      "p2": 0.044,
-      "web": "https://ofertas.imaginaenergia.com/plan-online-imagina/",
-      "tipo": "1P",
-      "fv": {
-        "exc": 0.05,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Nufri Calma",
       "cPunta": 0.103386,
       "cLlano": 0.103386,
@@ -70,6 +52,24 @@
         "tope": "ENERGIA",
         "bv": false,
         "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Imagina Energía",
+      "cPunta": 0.105,
+      "cLlano": 0.105,
+      "cValle": 0.105,
+      "p1": 0.087,
+      "p2": 0.044,
+      "web": "https://ofertas.imaginaenergia.com/plan-online-imagina/",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.05,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
       },
       "requiereFV": false
     },
@@ -333,9 +333,9 @@
     },
     {
       "nombre": "Imagina Energía 3P",
-      "cPunta": 0.174,
-      "cLlano": 0.1,
-      "cValle": 0.066,
+      "cPunta": 0.177,
+      "cLlano": 0.103,
+      "cValle": 0.069,
       "p1": 0.101,
       "p2": 0.022,
       "web": "https://ofertas.imaginaenergia.com/plan-online-imagina/",
@@ -443,5 +443,5 @@
       "requiereFV": true
     }
   ],
-  "updatedAt": "2026-01-05T17:59:00.837Z"
+  "updatedAt": "2026-01-07T10:12:37.311Z"
 }
