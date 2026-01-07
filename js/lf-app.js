@@ -468,6 +468,17 @@
     fetchTarifas(false, { silent: true }).catch(() => {});
   });
 
+  // ===== LIMPIEZA DE SW PROBLEMÁTICOS =====
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(registrations => {
+      registrations.forEach(registration => {
+        if (!registration.active || registration.active.scriptURL.includes('Unknown')) {
+          registration.unregister();
+        }
+      });
+    }).catch(() => {});
+  }
+
   // ===== PWA SERVICE WORKER =====
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
