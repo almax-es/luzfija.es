@@ -55,6 +55,8 @@ const ASSETS = [
   // Librerías auto-hospedadas (OCR/QR)
   "/js/factura.js",
   "/vendor/jsqr/jsQR.js",
+  "/vendor/pdfjs/pdf.min.mjs",
+  "/vendor/pdfjs/pdf.worker.min.mjs",
   "/vendor/tesseract/tesseract.esm.min.js",
   "/vendor/tesseract/tesseract.min.js",
   "/vendor/tesseract/worker.min.js",

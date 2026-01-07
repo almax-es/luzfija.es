@@ -24,12 +24,21 @@
       let __LF_lastParsedConfianza = 0;
 
       let __LF_pdfjsLoading = null;
+
+      function __LF_pdfVerbosityErrors(){
+        try{
+          const lib = window.pdfjsLib;
+          return (lib && lib.VerbosityLevel) ? lib.VerbosityLevel.ERRORS : 0;
+        } catch(_){
+          return 0;
+        }
+      }
+
       function __LF_ensurePdfWorker(){
         const lib = window.pdfjsLib;
         if (!lib) return false;
         if (!lib.GlobalWorkerOptions.workerSrc) {
-          lib.GlobalWorkerOptions.workerSrc =
-            "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.worker.min.js";
+          lib.GlobalWorkerOptions.workerSrc = __LF_assetUrl("vendor/pdfjs/pdf.worker.min.mjs");
         }
         return true;
       }
@@ -48,40 +57,38 @@
 
       async function __LF_ensurePdfJs(){
         if (window.pdfjsLib && __LF_ensurePdfWorker()) return window.pdfjsLib;
-        if (__LF_pdfjsLoading) {
-          await __LF_pdfjsLoading;
-        }
-        if (window.pdfjsLib && __LF_ensurePdfWorker()) return window.pdfjsLib;
-        const existingScript = document.querySelector('script[src*="pdfjs-dist@3.11.174/build/pdf.min.js"]');
-        if (existingScript && !window.pdfjsLib){
-          if (!__LF_pdfjsLoading){
-            __LF_pdfjsLoading = new Promise((resolve) => {
-              let done = false;
-              let timer;
-              const finish = () => {
-                if (done) return;
-                done = true;
-                existingScript.removeEventListener("load", onLoad);
-                existingScript.removeEventListener("error", onError);
-                clearTimeout(timer);
-                resolve();
-              };
-              const onLoad = () => finish();
-              const onError = () => finish();
-              timer = setTimeout(finish, 4000);
-              existingScript.addEventListener("load", onLoad);
-              existingScript.addEventListener("error", onError);
-            });
-          }
+
+        if (__LF_pdfjsLoading){
           await __LF_pdfjsLoading;
           __LF_pdfjsLoading = null;
+          if (window.pdfjsLib && __LF_ensurePdfWorker()) return window.pdfjsLib;
         }
-        if (!window.pdfjsLib){
-          const src = "https://unpkg.com/pdfjs-dist@3.11.174/build/pdf.min.js";
-          __LF_pdfjsLoading = __LF_loadScript(src);
-          await __LF_pdfjsLoading;
-          __LF_pdfjsLoading = null;
-        }
+
+        const src = __LF_assetUrl("vendor/pdfjs/pdf.min.mjs");
+        __LF_pdfjsLoading = (async()=>{
+          const mod = await import(src);
+          const lib = (mod && (mod.pdfjsLib || mod.default)) ? (mod.pdfjsLib || mod.default) : mod;
+          window.pdfjsLib = lib;
+
+          // Reducir ruido: solo errores (sin warnings TT/TrueType, etc.)
+          try{
+            if (lib && lib.setVerbosityLevel && lib.VerbosityLevel){
+              lib.setVerbosityLevel(lib.VerbosityLevel.ERRORS);
+            }
+          } catch(_){}
+          try{
+            if (lib && lib.GlobalWorkerOptions && lib.VerbosityLevel){
+              lib.GlobalWorkerOptions.verbosity = lib.VerbosityLevel.ERRORS;
+            }
+          } catch(_){}
+
+          __LF_ensurePdfWorker();
+          return lib;
+        })();
+
+        await __LF_pdfjsLoading;
+        __LF_pdfjsLoading = null;
+
         if (!window.pdfjsLib || !__LF_ensurePdfWorker()){
           throw new Error("PDF.js no disponible");
         }
@@ -145,7 +152,7 @@
       async function __LF_extraerTextoPDF(file){
         await __LF_ensurePdfJs();
         const ab = await file.arrayBuffer();
-        const pdf = await window.pdfjsLib.getDocument({ data: ab }).promise;
+        const pdf = await window.pdfjsLib.getDocument({ data: ab, verbosity: __LF_pdfVerbosityErrors() }).promise;
 
         let lines = [];
         let compact = '';
@@ -699,7 +706,7 @@
           const pdfjsLib = await __LF_ensurePdfJs();
           
           const arrayBuffer = await pdfFile.arrayBuffer();
-          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer, verbosity: __LF_pdfVerbosityErrors() }).promise;
           
           // Intentar con múltiples escalas para mejor detección
           const scales = [3.0, 2.5, 2.0, 1.5];
@@ -1461,7 +1468,7 @@
           const T = await __LF_loadTesseract();
 
           const ab = await file.arrayBuffer();
-          const pdf = await window.pdfjsLib.getDocument({ data: ab }).promise;
+          const pdf = await window.pdfjsLib.getDocument({ data: ab, verbosity: __LF_pdfVerbosityErrors() }).promise;
 
           let ocrText = '';
           const pagesToScan = Math.min(pdf.numPages, 2);
