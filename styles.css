@@ -3998,3 +3998,43 @@ html {
   .container { min-height: 100dvh; }
   .modal-content { max-height: calc(100dvh - 60px); }
 }
+
+/* ================================================================= */
+/* ACCESIBILIDAD: Respeto a preferencia de movimiento reducido      */
+/* ================================================================= */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  
+  /* Desactivar animaciones específicas costosas */
+  .logo {
+    animation: none !important;
+  }
+  
+  .logo::before,
+  .logo::after {
+    animation: none !important;
+  }
+  
+  body::before {
+    animation: none !important;
+  }
+  
+  @keyframes gradientShift,
+  @keyframes logoFloat,
+  @keyframes logoRotate,
+  @keyframes ringPulse,
+  @keyframes auroraMove,
+  @keyframes shimmer,
+  @keyframes pulse,
+  @keyframes spin {
+    to { 
+      /* Animaciones desactivadas en reduced motion */
+    }
+  }
+}
+
