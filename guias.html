@@ -4,18 +4,7 @@
 <meta charset="utf-8"/>
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://luzfija-es.vercel.app; frame-ancestors 'none'; form-action 'self';">
 
-  <script>
-    (function(){
-      var key='almax_theme';
-      try{
-        var saved=localStorage.getItem(key);
-        if(saved==='light')document.documentElement.classList.add('light-mode');
-        else document.documentElement.classList.remove('light-mode');
-        window.__ALMAX_THEME_SAVED=saved;
-      }catch(e){}
-      window.__ALMAX_THEME_KEY=key;
-    })();
-  </script>
+  <script src="/js/theme.js"></script>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <meta content="#8B5CF6" name="theme-color"/>
 <link href="/manifest.webmanifest" rel="manifest"/>

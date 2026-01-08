@@ -5,9 +5,11 @@
 // - tarifas.json: stale-while-revalidate (sirve cache al instante y actualiza en segundo plano)
 // - resto de estáticos: stale-while-revalidate (sirve cache rápido y actualiza en segundo plano)
 
-// IMPORTANTE: si cambias este fichero, incrementa CACHE_NAME para forzar la actualización.
-// Bump de versión para forzar actualización de assets tras cambios (release incremental)
-const CACHE_NAME = "luzfija-static-v5.8";
+// IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
+// Para automatizar: sed -i "s/CACHE_VERSION = .*/CACHE_VERSION = \"$(date -u +%Y%m%d-%H%M%S)\";/" sw.js
+// O en scripts de CI/CD: echo "const CACHE_VERSION = \"$(date -u +%Y%m%d-%H%M%S)\";" > version.js
+const CACHE_VERSION = "20260108-0723";
+const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
 // Scope (para que funcione igual en dominio raíz y en subcarpetas de GitHub Pages)
@@ -18,6 +20,9 @@ const ASSETS = [
   "./",
   "index.html",
   "styles.css",
+  // Scripts de configuración (deben cargarse antes del render)
+  "js/theme.js",
+  "js/config.js",
   // Módulos LuzFija (nueva estructura modular)
   "js/lf-utils.js",
   "js/lf-state.js",

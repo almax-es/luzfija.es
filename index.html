@@ -14,11 +14,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Comparador Tarifas">
 
-  <script>
-    window.PVPC_PROXY_URL = "https://luzfija-es.vercel.app/api/proxy?url=";
-    // PVPC público (CNMC) cacheado en Vercel (NO ESIOS / no token)
-    window.PVPC_PRICES_URL = "https://luzfija-es.vercel.app/api/pvpc-precios?date=";
-  </script>
+  <script src="/js/config.js"></script>
 
   <meta property="og:title" content="Comparador Tarifas Luz España | Ahorra en tu Factura">
   <meta property="og:description" content="Compara tarifas de luz con discriminación horaria, placas solares y PVPC. Calcula tu factura y descubre cuánto ahorras. 100% gratuito.">
@@ -159,18 +155,7 @@
   }
   </script>
 
-  <script>
-    (function(){
-      var key='almax_theme';
-      try{
-        var saved=localStorage.getItem(key);
-        if(saved==='light')document.documentElement.classList.add('light-mode');
-        else document.documentElement.classList.remove('light-mode');
-        window.__ALMAX_THEME_SAVED=saved;
-      }catch(e){}
-      window.__ALMAX_THEME_KEY=key;
-    })();
-  </script>
+  <script src="/js/theme.js"></script>
 
     <link rel="stylesheet" href="styles.css">
   <!-- CSS del desglose (solo se usa al abrir el modal). Se carga sin bloquear el render inicial -->

@@ -1101,12 +1101,12 @@
         if (totalConsumo === 0){
           avisos.push(`⚠️ No se detectó ningún consumo. Introduce los valores manualmente.`);
         } else if (totalConsumo > 5000){
-          avisos.push(`ℹ️ Consumo total muy alto: <b>${totalConsumo} kWh</b>. Verifica que los valores sean correctos.`);
+          avisos.push(`ℹ️ Consumo total muy alto: ${totalConsumo} kWh. Verifica que los valores sean correctos.`);
         }
 
         // Verificar confianza
         if (datos.confianza < 50){
-          avisos.push(`⚠️ <b>Confianza baja (${datos.confianza}%)</b>. Revisa cuidadosamente todos los campos antes de aplicar. Puedes probar <b>OCR experimental</b> si es un PDF escaneado.`);
+          avisos.push(`⚠️ Confianza baja (${datos.confianza}%). Revisa cuidadosamente todos los campos antes de aplicar. Puedes probar OCR experimental si es un PDF escaneado.`);
           __LF_show(__LF_q('btnOcrFactura'));
         } else if (datos.confianza < 80){
           avisos.push(`ℹ️ Confianza media (${datos.confianza}%). Revisa los campos marcados con ⚠️ antes de aplicar.`);
@@ -1114,7 +1114,7 @@
 
         // Mostrar avisos concatenados
         if (avisos.length > 0){
-          __LF_warn(avisos.join('<br><br>'));
+          __LF_warn(avisos.join('\n\n'));
         }
       }
 
@@ -1202,7 +1202,7 @@
       function __LF_warn(msg){
         const a = __LF_q('avisoFactura');
         if (!a) return;
-        a.innerHTML = msg;
+        a.textContent = String(msg ?? '');
         __LF_show(a);
       }
 
@@ -1316,7 +1316,7 @@
           if (!textRawLen || textRawLen < 40){
             __LF_hide(__LF_q('loaderFactura'));
             __LF_show(__LF_q('resultadoFactura'));
-            __LF_warn('⚠️ No se ha detectado texto seleccionable. Parece un PDF escaneado. Puedes probar <b>OCR (experimental)</b> o introducir los datos manualmente.');
+            __LF_warn('⚠️ No se ha detectado texto seleccionable. Parece un PDF escaneado. Puedes probar OCR (experimental) o introducir los datos manualmente.');
             __LF_show(__LF_q('btnOcrFactura'));
             __LF_setBadge(0);
             __LF_renderForm({ p1:null,p2:null,dias:null,consumoPunta:null,consumoLlano:null,consumoValle:null,confianza:0 });
@@ -1505,10 +1505,10 @@
           __LF_showContextualWarnings(datos);
           
           const avisoOCR = __LF_q('avisoFactura');
-          if (avisoOCR && avisoOCR.innerHTML){
-            avisoOCR.innerHTML = '🧠 <b>OCR aplicado (experimental).</b> ' + avisoOCR.innerHTML;
+          if (avisoOCR && avisoOCR.textContent){
+            avisoOCR.textContent = '🧠 OCR aplicado (experimental). ' + avisoOCR.textContent;
           } else {
-            __LF_warn('🧠 <b>OCR aplicado (experimental).</b> Revisa con cuidado antes de aplicar.');
+            __LF_warn('🧠 OCR aplicado (experimental). Revisa con cuidado antes de aplicar.');
           }
 
         }catch(err){

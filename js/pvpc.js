@@ -161,18 +161,21 @@
     function parseEuro(val) {
       if (val === null || val === undefined) return 0;
       
-      // Si ya es un número, lo devolvemos tal cual (evita el error de los miles)
+      // Si ya es un número, lo devolvemos tal cual
       if (typeof val === 'number') return val;
 
-      let s = String(val).trim();
+      let s = String(val).trim().replace(/\s/g, '');
       
-      // Si viene con formato español "1.234,56" -> quitar puntos, cambiar coma por punto
-      if (s.includes(',') && s.indexOf('.') < s.indexOf(',')) {
-         s = s.replace(/\./g, '').replace(',', '.');
-      } 
-      // Si viene solo con comas "12,50" -> cambiar por punto
+      // Detectar formato español de miles: "1.234" o "1.234,56" o "123.456.789,12"
+      // Patrón: 1-3 dígitos, seguido de (punto + exactamente 3 dígitos) una o más veces
+      if (/^\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) {
+        // Es formato español: quitar puntos (separadores de miles), cambiar coma por punto
+        s = s.replace(/\./g, '').replace(',', '.');
+      }
+      // Si tiene coma pero NO tiene puntos, o los puntos no siguen patrón de miles
       else if (s.includes(',')) {
-         s = s.replace(',', '.');
+        // Cambiar coma por punto decimal
+        s = s.replace(',', '.');
       }
       
       // Limpiar cualquier carácter que no sea número, punto o guion

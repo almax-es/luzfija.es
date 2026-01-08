@@ -53,8 +53,6 @@ Privacidad: Todo el procesamiento se realiza localmente en el navegador. Los PDF
 
 6. Calculadora de factura: https://luzfija.es/calcular-factura-luz.html
 
-7. Tests automáticos: https://luzfija.es/tests-calculos.html (suite de tests unitarios)
-
 ## Guías educativas
 
 LuzFija.es incluye 20 guías prácticas sobre electricidad y ahorro:
