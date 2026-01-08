@@ -497,7 +497,7 @@
         </div>
         ${datos.tieneBV && d.excedenteSobranteEur > 0 ? `<div class="desglose-linea desglose-linea--top-accent">
           <span class="desglose-concepto"><strong>🏆 Coste neto (para comparar tarifas)</strong></span>
-          <span class="desglose-detalle">Este es el coste real de <strong>${datos.nombreTarifa || 'esta tarifa'}</strong> este mes, sin contar tu saldo BV del pasado. Úsalo para comparar con otras tarifas de forma justa.<br><span class="desglose-detalle-sub">Cálculo: ${this.fmt(d.totalBase)} (factura) − ${this.fmt(d.excedenteSobranteEur)} (excedentes hoy) = ${this.fmt(d.totalRanking)}</span></span>
+          <span class="desglose-detalle">Este es el coste real de <strong>${escapeHtml(datos.nombreTarifa || 'esta tarifa')}</strong> este mes, sin contar tu saldo BV del pasado. Úsalo para comparar con otras tarifas de forma justa.<br><span class="desglose-detalle-sub">Cálculo: ${this.fmt(d.totalBase)} (factura) − ${this.fmt(d.excedenteSobranteEur)} (excedentes hoy) = ${this.fmt(d.totalRanking)}</span></span>
           <span class="desglose-importe desglose-importe-final desglose-importe--accent">${this.fmt(d.totalRanking)}</span>
         </div>` : ''}
       </div>`;

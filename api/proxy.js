@@ -19,13 +19,17 @@ function getSecondsUntilMidnight() {
   return Math.max(60, Math.floor(diff / 1000));
 }
 
-// Validar origin y devolver el permitido (o fallback a luzfija.es)
+// Validar origin y devolver el permitido (o null si no permitido)
 function getAllowedOrigin(request) {
   const origin = request.headers.get('origin');
-  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+  if (!origin) {
+    // Sin Origin header = petición directa o same-origin
+    return ALLOWED_ORIGINS[0]; // Fallback a luzfija.es
+  }
+  if (ALLOWED_ORIGINS.includes(origin)) {
     return origin;
   }
-  return ALLOWED_ORIGINS[0]; // Fallback a luzfija.es
+  return null; // No permitido
 }
 
 // Detectar si es localhost (dev) para no cachear
@@ -59,6 +63,15 @@ function corsActual(request) {
 }
 
 export default async function handler(request) {
+  // Validar origin si viene de CORS
+  const origin = request.headers.get('origin');
+  if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+    return new Response(JSON.stringify({ error: 'Origin not allowed' }), {
+      status: 403,
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+    });
+  }
+
   // Preflight
   if (request.method === 'OPTIONS') {
     return new Response(null, { status: 204, headers: corsPreflight(request) });
@@ -87,6 +100,14 @@ export default async function handler(request) {
       target = new URL(targetUrl);
     } catch {
       return new Response(JSON.stringify({ error: 'Invalid URL' }), {
+        status: 400,
+        headers: { ...corsActual(request), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
+      });
+    }
+
+    // Solo permitir HTTPS (seguridad)
+    if (target.protocol !== 'https:') {
+      return new Response(JSON.stringify({ error: 'Only HTTPS URLs allowed' }), {
         status: 400,
         headers: { ...corsActual(request), 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
       });

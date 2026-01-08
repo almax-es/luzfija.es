@@ -9,13 +9,17 @@ const ALLOWED_ORIGINS = [
   'http://127.0.0.1:5501',
 ];
 
-// Validar origin y devolver el permitido (o fallback a luzfija.es)
+// Validar origin y devolver el permitido (o null si no permitido)
 function getAllowedOrigin(request) {
   const origin = request.headers.get('origin');
-  if (origin && ALLOWED_ORIGINS.includes(origin)) {
+  if (!origin) {
+    // Sin Origin header = petición directa o same-origin
+    return ALLOWED_ORIGINS[0]; // Fallback a luzfija.es
+  }
+  if (ALLOWED_ORIGINS.includes(origin)) {
     return origin;
   }
-  return ALLOWED_ORIGINS[0]; // Fallback a luzfija.es
+  return null; // No permitido
 }
 
 // Detectar si es localhost (dev) para no cachear
@@ -104,6 +108,12 @@ function jsonResponse(request, obj, { status = 200, cacheControl = 'no-store' } 
 }
 
 export default async function handler(request) {
+  // Validar origin si viene de CORS
+  const origin = request.headers.get('origin');
+  if (origin && !ALLOWED_ORIGINS.includes(origin)) {
+    return jsonResponse(request, { error: 'Origin not allowed' }, { status: 403, cacheControl: 'no-store' });
+  }
+
   // Preflight OPTIONS
   if (request.method === 'OPTIONS') {
     return new Response(null, {
@@ -132,6 +142,14 @@ export default async function handler(request) {
 
     if (!date) {
       return jsonResponse(request, { error: 'Missing date (YYYY-MM-DD)' }, { status: 400, cacheControl: 'no-store' });
+    }
+
+    // Validar zona e imp (solo dígitos, máximo 2 cifras)
+    if (!/^\d{1,2}$/.test(zona)) {
+      return jsonResponse(request, { error: 'Bad zona parameter' }, { status: 400, cacheControl: 'no-store' });
+    }
+    if (!/^\d{1,2}$/.test(imp)) {
+      return jsonResponse(request, { error: 'Bad imp parameter' }, { status: 400, cacheControl: 'no-store' });
     }
 
     const ts = madridMidnightTs(date);
@@ -167,10 +185,11 @@ export default async function handler(request) {
     const data = await res.json();
 
     const arr = data?.preciosHora;
-    if (!Array.isArray(arr) || arr.length !== 24) {
+    // Permitir 23 (DST atrás), 24 (normal), 25 (DST adelante)
+    if (!Array.isArray(arr) || arr.length < 23 || arr.length > 25) {
       return jsonResponse(
         request,
-        { error: 'CNMC_BAD_SHAPE', got: Array.isArray(arr) ? arr.length : typeof arr, cnmcUrl: debug ? cnmcUrl : undefined },
+        { error: 'CNMC_BAD_SHAPE', got: Array.isArray(arr) ? arr.length : typeof arr, expected: '23-25 hours', cnmcUrl: debug ? cnmcUrl : undefined },
         { status: 502, cacheControl: 'no-store' }
       );
     }
