@@ -919,5 +919,16 @@
   
   <script src="js/desglose-factura.js" defer></script>
   <script src="js/desglose-integration.js" defer></script>
+<script>
+// Registro del Service Worker para PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('sw.js').catch(err => {
+      console.error('SW registration failed:', err);
+    });
+  });
+}
+</script>
+
 </body>
 </html>
