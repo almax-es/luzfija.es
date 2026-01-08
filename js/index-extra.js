@@ -300,10 +300,13 @@
         const ahoraMadrid = new Date(ahoraMadridStr);
         const ahora = ahoraMadrid.getHours();
         
+        // Clamp para días con menos de 24 horas
+        const idxAhora = Math.min(ahora, data.prices.length - 1);
+        
         pvpcHoy = {
           precios: data.prices,
           ahora,
-          precioActual: data.prices[ahora],
+          precioActual: data.prices[idxAhora],
           precioMin: Math.min(...data.prices),
           precioMax: Math.max(...data.prices),
           horaMin: data.prices.indexOf(Math.min(...data.prices)),
