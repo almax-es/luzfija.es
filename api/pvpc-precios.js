@@ -3,6 +3,7 @@ export const config = { runtime: 'edge' };
 // Dominios permitidos (whitelist)
 const ALLOWED_ORIGINS = [
   'https://luzfija.es',
+  'https://www.luzfija.es',
   'http://localhost:5500',
   'http://localhost:5501',
   'http://127.0.0.1:5500',
@@ -30,23 +31,29 @@ function isLocalhost(request) {
 
 // --- Util: offset (minutos) de una zona horaria para una fecha dada ---
 function tzOffsetMinutes(timeZone, date) {
-  // Intento 1: "GMT+1" / "GMT+2"
-  const parts = new Intl.DateTimeFormat('en-GB', {
-    timeZone,
-    timeZoneName: 'shortOffset',
-    year: 'numeric', month: '2-digit', day: '2-digit',
-    hour: '2-digit', minute: '2-digit', second: '2-digit',
-    hour12: false,
-  }).formatToParts(date);
+  try {
+    // Intento 1: "GMT+1" / "GMT+2"
+    const parts = new Intl.DateTimeFormat('en-GB', {
+      timeZone,
+      timeZoneName: 'shortOffset',
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      hour12: false,
+    }).formatToParts(date);
 
-  const tzName = parts.find(p => p.type === 'timeZoneName')?.value || '';
-  const m = tzName.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/i);
-  if (m) {
-    const sign = m[1] === '-' ? -1 : 1;
-    const hh = Number(m[2] || 0);
-    const mm = Number(m[3] || 0);
-    return sign * (hh * 60 + mm);
+    const tzName = parts.find(p => p.type === 'timeZoneName')?.value || '';
+    const m = tzName.match(/GMT([+-])(\d{1,2})(?::(\d{2}))?/i);
+    if (m) {
+      const sign = m[1] === '-' ? -1 : 1;
+      const hh = Number(m[2] || 0);
+      const mm = Number(m[3] || 0);
+      return sign * (hh * 60 + mm);
+    }
+  } catch (e) {
+    // En algunos runtimes (Edge/Node) 'shortOffset' puede no estar soportado.
+    // Caemos al fallback más abajo.
   }
+
 
   // Fallback: aproximación comparando “lo que sería” la misma fecha en esa TZ
   // (suele funcionar igual, pero dejo el intento 1 como principal)

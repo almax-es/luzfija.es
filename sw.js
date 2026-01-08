@@ -9,7 +9,7 @@
 // Para automatizar: sed -i "s/CACHE_VERSION = .*/CACHE_VERSION = \"$(date -u +%Y%m%d-%H%M%S)\";/" sw.js
 // O en scripts de CI/CD: echo "const CACHE_VERSION = \"$(date -u +%Y%m%d-%H%M%S)\";" > version.js
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260108-122041";
+const CACHE_VERSION = "20260108-123514";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
@@ -17,6 +17,7 @@ const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 const SCOPE = self.registration.scope;
 const INDEX_PATH = new URL("index.html", SCOPE).pathname;
 const TARIFAS_PATH = new URL("tarifas.json", SCOPE).pathname;
+const NOVEDADES_PATH = new URL("novedades.json", SCOPE).pathname;
 const ASSETS = [
   "./",
   "index.html",
@@ -188,3 +189,24 @@ self.addEventListener("fetch", (event) => {
     })()
   );
 });
+  // Novedades: stale-while-revalidate (no es crítico; si falla, el front lo ignora)
+  if (url.pathname === NOVEDADES_PATH) {
+    event.respondWith(
+      (async () => {
+        const cache = await caches.open(CACHE_NAME);
+        const cached = await cache.match(req);
+        const fetchPromise = fetch(req)
+          .then((fresh) => {
+            cachePutSafe(cache, req, fresh);
+            return fresh;
+          })
+          .catch(() => null);
+
+        // Si hay cache, devuelve rápido y actualiza en segundo plano.
+        return cached || (await fetchPromise) || Response.error();
+      })()
+    );
+    return;
+  }
+
+
