@@ -8,7 +8,7 @@
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Para automatizar: sed -i "s/CACHE_VERSION = .*/CACHE_VERSION = \"$(date -u +%Y%m%d-%H%M%S)\";/" sw.js
 // O en scripts de CI/CD: echo "const CACHE_VERSION = \"$(date -u +%Y%m%d-%H%M%S)\";" > version.js
-const CACHE_VERSION = "+";
+const CACHE_VERSION = "20260108-112140";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
