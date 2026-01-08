@@ -98,31 +98,91 @@
 
       function __LF_normNum(raw){
         if (raw == null) return null;
-        let s = String(raw)
-          .replace(/\s+/g,'')
+
+        const orig = String(raw);
+
+        // Heurísticas de contexto (para desambiguar "0.123" vs "1.234")
+        const hasCurrency = /[€$]/.test(orig);
+        const hasEnergyUnit = /kwh|kw/gi.test(orig);
+
+        // Normaliza: quita espacios (incl NBSP), símbolos comunes y deja solo dígitos + separadores
+        let s = orig
+          .trim()
+          .replace(/[\s\u00A0]/g,'')
           .replace(/[€$]/g,'')
           .replace(/kwh|kw/gi,'')
           .replace(/[^0-9,.\-]/g,'');
+
         if (!s) return null;
+
+        // Asegura que el signo, si existe, solo esté al principio
+        s = s.replace(/(?!^)-/g, '');
 
         const hasComma = s.includes(',');
         const hasDot = s.includes('.');
+
         if (hasComma && hasDot){
-          if (s.lastIndexOf(',') > s.lastIndexOf('.')){
-            s = s.replace(/\./g,'').replace(',', '.');
-          } else {
-            s = s.replace(/,/g,'');
+          // Si hay coma y punto, el ÚLTIMO separador suele ser el decimal
+          const lastComma = s.lastIndexOf(',');
+          const lastDot = s.lastIndexOf('.');
+          const decimalSep = lastComma > lastDot ? ',' : '.';
+          const thousandSep = decimalSep === ',' ? '.' : ',';
+
+          s = s.split(thousandSep).join('');
+          const i = s.lastIndexOf(decimalSep);
+          if (i !== -1){
+            s = s.slice(0, i).replace(new RegExp('\\' + decimalSep, 'g'), '') + '.' + s.slice(i + 1);
           }
-        } else if (hasComma && !hasDot){
-          s = s.replace(',', '.');
-        } else {
-          const parts = s.split('.');
-          if (parts.length > 2){
-            const last = parts.pop();
-            s = parts.join('') + '.' + last;
+        } else if (hasComma){
+          // Solo coma: normalmente decimal (12,34) salvo patrón claro de miles (1,234,567)
+          if (/^-?\d{1,3}(,\d{3})+$/.test(s)){
+            s = s.replace(/,/g,'');
+          } else {
+            const i = s.lastIndexOf(',');
+            s = s.slice(0, i).replace(/,/g,'') + '.' + s.slice(i + 1);
+          }
+        } else if (hasDot){
+          // Solo punto: puede ser decimal ("0.123") o miles ("1.234" / "12.345.678")
+          const dotCount = (s.match(/\./g) || []).length;
+
+          if (dotCount >= 2){
+            // Si hay 2+ puntos y patrón de miles, es miles => quitar todos
+            if (/^-?\d{1,3}(\.\d{3})+$/.test(s)){
+              s = s.replace(/\./g,'');
+            } else {
+              // Si no es patrón claro, dejamos el último como decimal y quitamos el resto
+              const i = s.lastIndexOf('.');
+              s = s.slice(0, i).replace(/\./g,'') + '.' + s.slice(i + 1);
+            }
+          } else {
+            // Un solo punto: desambiguación
+            const parts = s.split('.');
+            const intPart = parts[0] || '';
+            const fracPart = parts[1] || '';
+
+            const isIntZero = /^-?0$/.test(intPart);
+            const fracLen = fracPart.length;
+
+            const looksLikeThousands = (
+              // 1.234 / 12.345 / 123.456 => miles (típico ES)
+              fracLen === 3 &&
+              !isIntZero &&
+              /^-?\d{1,3}$/.test(intPart)
+            );
+
+            if (looksLikeThousands && !hasEnergyUnit){
+              // Para importes (con €) y números generales, interpretamos como miles
+              s = intPart + fracPart;
+            } else {
+              // Tratamos como decimal: mantener punto como decimal
+              // (incluye casos tipo 0.123, 12.3, 12.34, 12.345 con unidad)
+              const i = s.lastIndexOf('.');
+              s = s.slice(0, i).replace(/\./g,'') + '.' + s.slice(i + 1);
+            }
           }
         }
-        const n = parseFloat(s);
+
+        const n = Number.parseFloat(s);
         return Number.isFinite(n) ? n : null;
       }
 
