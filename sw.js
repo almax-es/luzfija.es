@@ -8,7 +8,8 @@
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Para automatizar: sed -i "s/CACHE_VERSION = .*/CACHE_VERSION = \"$(date -u +%Y%m%d-%H%M%S)\";/" sw.js
 // O en scripts de CI/CD: echo "const CACHE_VERSION = \"$(date -u +%Y%m%d-%H%M%S)\";" > version.js
-const CACHE_VERSION = "20260108-112140";
+// Bump this on every deploy to force clients to pick up the latest precache.
+const CACHE_VERSION = "20260108-122041";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
@@ -23,6 +24,8 @@ const ASSETS = [
   // Scripts de configuración (deben cargarse antes del render)
   "js/theme.js",
   "js/config.js",
+  // Config regulatoria (usada por el comparador; imprescindible también offline)
+  "js/lf-config.js",
   // Módulos LuzFija (nueva estructura modular)
   "js/lf-utils.js",
   "js/lf-state.js",
