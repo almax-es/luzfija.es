@@ -19,38 +19,49 @@
   // ✅ Parser robusto para números (compatible con app.js)
   function parseNum(v) {
     if (v == null || v === '') return 0;
-    
-    // Usar parser global si está disponible
-    if (typeof window.__LF_asNumber === 'function') {
-      return window.__LF_asNumber(v);
+
+    // Usar parser global de la app si está disponible
+    if (window.LF && typeof window.LF.parseNum === 'function') {
+      return window.LF.parseNum(v);
     }
-    
+
     // Parser de respaldo robusto
-    const str = String(v).trim();
-    
-    // Detectar formato europeo: punto seguido de exactamente 3 dígitos y luego coma
-    // Ejemplo: 1.234,56 -> el punto es separador de miles
-    if (/\d\.\d{3},\d/.test(str)) {
-      // Formato europeo: 1.234,56
-      return parseFloat(str.replace(/\./g, '').replace(',', '.')) || 0;
+    let s = String(v).trim().replace(/[\s\u00A0]/g, '');
+    if (!s) return 0;
+
+    s = s.replace(/[^0-9,\.\-]/g, '');
+    if (!s) return 0;
+
+    const hasComma = s.includes(',');
+    const hasDot = s.includes('.');
+
+    if (hasComma && hasDot) {
+      const lastComma = s.lastIndexOf(',');
+      const lastDot = s.lastIndexOf('.');
+      const decimalSep = lastComma > lastDot ? ',' : '.';
+      const thousandSep = decimalSep === ',' ? '.' : ',';
+
+      s = s.split(thousandSep).join('');
+      const i = s.lastIndexOf(decimalSep);
+      if (i !== -1) {
+        s = s.slice(0, i).replace(new RegExp('\\' + decimalSep, 'g'), '') + '.' + s.slice(i + 1);
+      }
+    } else if (hasComma) {
+      if (/^\d{1,3}(,\d{3})+$/.test(s)) s = s.replace(/,/g, '');
+      else {
+        const i = s.lastIndexOf(',');
+        s = s.slice(0, i).replace(/,/g, '') + '.' + s.slice(i + 1);
+      }
+    } else if (hasDot) {
+      if (/^\d{1,3}(\.\d{3})+$/.test(s)) s = s.replace(/\./g, '');
+      else {
+        const i = s.lastIndexOf('.');
+        s = s.slice(0, i).replace(/\./g, '') + '.' + s.slice(i + 1);
+      }
     }
-    
-    // Detectar formato US: coma seguida de exactamente 3 dígitos y luego punto
-    // IMPORTANTE: Solo si el punto aparece DESPUÉS de los 3 dígitos
-    // Válido: "1,234.56" - Inválido: "0,123456" (esto es decimal europeo con muchos decimales)
-    if (/\d,\d{3}\.\d/.test(str)) {
-      // Formato US: 1,234.56
-      return parseFloat(str.replace(/,/g, '')) || 0;
-    }
-    
-    // Caso simple: solo coma como decimal (sin miles)
-    // Ejemplo: 3,45 o 0,121212
-    if (/^\d+,\d+$/.test(str)) {
-      return parseFloat(str.replace(',', '.')) || 0;
-    }
-    
-    // Caso por defecto
-    return parseFloat(str.replace(',', '.')) || 0;
+
+    const n = Number.parseFloat(s);
+    return Number.isFinite(n) ? n : 0;
   }
 
   // ✅ Calcular fechas reales basadas en los días de facturación

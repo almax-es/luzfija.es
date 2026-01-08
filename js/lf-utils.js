@@ -21,21 +21,53 @@
   }
 
   // ===== PARSEO DE NÚMEROS =====
-  function parseNum(str) {
-    if (str === null || str === undefined) return 0;
-    if (typeof str === 'number') return Number.isFinite(str) ? str : 0;
-    let s = String(str).trim().replace(/\s/g, '');
+  function parseNum(val) {
+    if (val === null || val === undefined) return 0;
+    if (typeof val === 'number') return Number.isFinite(val) ? val : 0;
+
+    // Quita espacios (incluye NBSP) y símbolos habituales
+    let s = String(val).trim().replace(/[\s\u00A0]/g, '');
     if (!s) return 0;
-    if (s.includes(',') && s.includes('.')) {
-      const lc = s.lastIndexOf(',');
-      const ld = s.lastIndexOf('.');
-      if (lc > ld) s = s.replace(/\./g, '').replace(',', '.');
-      else s = s.replace(/,/g, '');
-    } else if (s.includes(',')) {
-      s = s.replace(',', '.');
+
+    // Dejar solo dígitos y separadores comunes
+    s = s.replace(/[^0-9,\.\-]/g, '');
+    if (!s) return 0;
+
+    const hasComma = s.includes(',');
+    const hasDot = s.includes('.');
+
+    if (hasComma && hasDot) {
+      // Si hay coma y punto, asumimos que el ÚLTIMO separador es el decimal
+      const lastComma = s.lastIndexOf(',');
+      const lastDot = s.lastIndexOf('.');
+      const decimalSep = lastComma > lastDot ? ',' : '.';
+      const thousandSep = decimalSep === ',' ? '.' : ',';
+
+      s = s.split(thousandSep).join('');
+      const i = s.lastIndexOf(decimalSep);
+      if (i !== -1) {
+        s = s.slice(0, i).replace(new RegExp('\\' + decimalSep, 'g'), '') + '.' + s.slice(i + 1);
+      }
+    } else if (hasComma) {
+      // Solo coma: suele ser decimal (12,34) salvo patrón de miles (1,234,567)
+      if (/^\d{1,3}(,\d{3})+$/.test(s)) {
+        s = s.replace(/,/g, '');
+      } else {
+        const i = s.lastIndexOf(',');
+        s = s.slice(0, i).replace(/,/g, '') + '.' + s.slice(i + 1);
+      }
+    } else if (hasDot) {
+      // Solo punto: si es miles (1.234 / 12.345.678) quitar puntos
+      if (/^\d{1,3}(\.\d{3})+$/.test(s)) {
+        s = s.replace(/\./g, '');
+      } else {
+        // decimal con punto: dejar solo el último
+        const i = s.lastIndexOf('.');
+        s = s.slice(0, i).replace(/\./g, '') + '.' + s.slice(i + 1);
+      }
     }
-    s = s.replace(/[^\d.-]/g, '');
-    const n = Number(s);
+
+    const n = Number.parseFloat(s);
     return Number.isFinite(n) ? n : 0;
   }
 

@@ -297,9 +297,9 @@ html.light-mode .btn-small:hover{
 <aside class="sidebar-actions">
 <div class="action-card"><h3>⚡ Comparador</h3><p>Compara tarifas reales</p><a href="/" class="action-btn">Ir al comparador</a></div>
 <div class="action-card"><h3>📤 Compartir</h3><div class="share-buttons">
-<a href="#" class="share-btn" onclick="share('twitter')"><span>🐦</span><span>Twitter</span></a>
-<a href="#" class="share-btn" onclick="share('whatsapp')"><span>💬</span><span>WhatsApp</span></a>
-<a href="#" class="share-btn" onclick="share('copy')"><span>🔗</span><span>Copiar</span></a>
+<a href="#" class="share-btn" onclick="return share('twitter')"><span>🐦</span><span>Twitter</span></a>
+<a href="#" class="share-btn" onclick="return share('whatsapp')"><span>💬</span><span>WhatsApp</span></a>
+<a href="#" class="share-btn" onclick="return share('copy')"><span>🔗</span><span>Copiar</span></a>
 </div></div>
 </aside>
 </div>
@@ -309,7 +309,7 @@ const headings=document.querySelectorAll('.article-content h2');const tocList=do
 const tocLinks=document.querySelectorAll('.toc-list a');const observer=new IntersectionObserver((entries)=>{entries.forEach(entry=>{if(entry.isIntersecting){const id=entry.target.id;tocLinks.forEach(link=>{link.classList.remove('active');if(link.getAttribute('href')==='#'+id){link.classList.add('active')}})}})},{rootMargin:'-100px 0px -80% 0px'});
 headings.forEach(heading=>observer.observe(heading));
 function share(platform){const url=encodeURIComponent(window.location.href);const title=encodeURIComponent(document.title);if(platform==='twitter'){window.open(`https://twitter.com/intent/tweet?url=${url}&text=${title}`,'_blank')}else if(platform==='whatsapp'){window.open(`https://wa.me/?text=${title}%20${url}`,'_blank')}else if(platform==='copy'){navigator.clipboard.writeText(window.location.href);alert('¡Link copiado! 📋')}return false}
-document.querySelectorAll('a[href^="#"]').forEach(anchor=>{anchor.addEventListener('click',function(e){e.preventDefault();const target=document.querySelector(this.getAttribute('href'));if(target){target.scrollIntoView({behavior:'smooth',block:'start'})}})});
+document.querySelectorAll('a[href^="#"]:not([href="#"])').forEach(anchor=>{anchor.addEventListener('click',function(e){e.preventDefault();const target=document.querySelector(this.getAttribute('href'));if(target){target.scrollIntoView({behavior:'smooth',block:'start'})}})});
 </script>
 </body>
 </html>
