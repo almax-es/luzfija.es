@@ -53,7 +53,7 @@
       // Heurística: si empieza por 0, (p.ej. "0,123"), es decimal (muy común en precios/kWh)
       if (/^-?0,\d+$/.test(s)) {
         s = s.replace(',', '.');
-      } else if (/^\d{1,3}(,\d{3})+$/.test(s)) {
+      } else if (/^-?\d{1,3}(,\d{3})+$/.test(s)) {
         s = s.replace(/,/g, '');
       } else {
         const i = s.lastIndexOf(',');
@@ -64,7 +64,7 @@
       // Heurística: si empieza por 0. (p.ej. "0.123"), es decimal (muy común en precios/kWh)
       if (/^-?0\.\d+$/.test(s)) {
         // dejar tal cual
-      } else if (/^\d{1,3}(\.\d{3})+$/.test(s)) {
+      } else if (/^-?\d{1,3}(\.\d{3})+$/.test(s)) {
         s = s.replace(/\./g, '');
       } else {
         // decimal con punto: dejar solo el último
