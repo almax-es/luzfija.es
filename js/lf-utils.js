@@ -50,7 +50,10 @@
       }
     } else if (hasComma) {
       // Solo coma: suele ser decimal (12,34) salvo patrón de miles (1,234,567)
-      if (/^\d{1,3}(,\d{3})+$/.test(s)) {
+      // Heurística: si empieza por 0, (p.ej. "0,123"), es decimal (muy común en precios/kWh)
+      if (/^-?0,\d+$/.test(s)) {
+        s = s.replace(',', '.');
+      } else if (/^\d{1,3}(,\d{3})+$/.test(s)) {
         s = s.replace(/,/g, '');
       } else {
         const i = s.lastIndexOf(',');
@@ -58,7 +61,10 @@
       }
     } else if (hasDot) {
       // Solo punto: si es miles (1.234 / 12.345.678) quitar puntos
-      if (/^\d{1,3}(\.\d{3})+$/.test(s)) {
+      // Heurística: si empieza por 0. (p.ej. "0.123"), es decimal (muy común en precios/kWh)
+      if (/^-?0\.\d+$/.test(s)) {
+        // dejar tal cual
+      } else if (/^\d{1,3}(\.\d{3})+$/.test(s)) {
         s = s.replace(/\./g, '');
       } else {
         // decimal con punto: dejar solo el último
