@@ -100,7 +100,7 @@ LuzFija.es incluye 20 guías prácticas sobre electricidad y ahorro:
 ## Datos actualizados
 
 Última actualización: 24 de diciembre de 2025
-Tarifas incluidas: Más de 50 ofertas del mercado eléctrico español
+Tarifas incluidas: 24 ofertas del mercado eléctrico español
 Comercializadoras incluidas: Principales comercializadoras españolas (Iberdrola, Endesa, Naturgy, Repsol, TotalEnergies, Octopus Energy, Gana Energía, y muchas más)
 Actualización de datos: Mensual (tarifas) y diaria (PVPC cuando está disponible)
 

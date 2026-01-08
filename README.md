@@ -133,7 +133,7 @@ La CNMC proporciona API pública en `comparador.cnmc.gob.es`, pero **no permite 
 
 ```html
 <script>
-  window.PVPC_PROXY_URL = "https://luzfija-es.vercel.app/api/proxy/?url=";
+  window.PVPC_PROXY_URL = "https://luzfija-es.vercel.app/api/proxy?url=";
 </script>
 ```
 
