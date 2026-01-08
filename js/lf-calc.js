@@ -147,7 +147,7 @@
             ? 0 
             : round2((baseEnergiaCan + impuestoElec) * impuestos.energiaOtros);
           const igicContador = round2(alquilerContador * impuestos.contador);
-          const impuestosNum = impuestoElec + igicEnergia + igicContador + alquilerContador;
+          const impuestosNum = tarifaAdj + impuestoElec + igicEnergia + igicContador + alquilerContador;
           const totalBase = round2(baseEnergiaCan + impuestoElec + igicEnergia + alquilerContador + igicContador);
 
           let totalFinal = totalBase;
@@ -198,7 +198,7 @@
           const baseIPSI = sumaBase + impuestoElec;
           const ipsiEnergia = round2(baseIPSI * impuestos.energia);
           const ipsiContador = round2(alquilerContador * impuestos.contador);
-          const impuestosNum = impuestoElec + ipsiEnergia + ipsiContador + alquilerContador;
+          const impuestosNum = tarifaAdj + impuestoElec + ipsiEnergia + ipsiContador + alquilerContador;
           const totalBase = round2(sumaBase + impuestoElec + ipsiEnergia + alquilerContador + ipsiContador);
 
           let totalFinal = totalBase;
@@ -248,7 +248,7 @@
           const ivaBase = pot + consAdj + tarifaAdj + impuestoElec + alquilerContador;
           const ivaPorc = impuestos.energia;
           const ivaCuota = round2(ivaBase * ivaPorc);
-          const impuestosNum = impuestoElec + alquilerContador + ivaCuota;
+          const impuestosNum = tarifaAdj + impuestoElec + alquilerContador + ivaCuota;
           const totalBase = round2(ivaBase + ivaCuota);
 
           let totalFinal = totalBase;
