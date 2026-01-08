@@ -200,14 +200,18 @@
           const data = await response.json();
           const precios = data && Array.isArray(data.prices) ? data.prices : null;
 
-          if (!precios || precios.length !== 24) throw new Error('Sin datos PVPC');
+          // Permitir 23-25 horas (días de cambio horario)
+          if (!precios || precios.length < 23 || precios.length > 25) {
+            throw new Error('Sin datos PVPC');
+          }
 
           const ahora = Number(new Intl.DateTimeFormat('en-GB', {
             timeZone: 'Europe/Madrid',
             hour: '2-digit',
             hour12: false
           }).format(new Date()));
-          const precioActual = precios[ahora];
+          // Acceso seguro: en días con <24h, usar el último disponible
+          const precioActual = precios[Math.min(ahora, precios.length - 1)];
           const precioMin = Math.min(...precios);
           const precioMax = Math.max(...precios);
           const precioMedio = precios.reduce((a, b) => a + b, 0) / precios.length;
@@ -286,7 +290,10 @@
         const response = await fetch(window.PVPC_PRICES_URL + encodeURIComponent(fechaStr));
         if (!response.ok) throw new Error('Error API');
         const data = await response.json();
-        if (!data?.prices || data.prices.length !== 24) throw new Error('Sin datos');
+        // Permitir 23-25 horas (días de cambio horario)
+        if (!data?.prices || data.prices.length < 23 || data.prices.length > 25) {
+          throw new Error('Sin datos');
+        }
 
         // Obtener hora actual en zona horaria Madrid (consistente con el resto del sitio)
         const ahoraMadridStr = new Date().toLocaleString('en-US', { timeZone: 'Europe/Madrid' });
@@ -334,7 +341,10 @@
         const response = await fetch(window.PVPC_PRICES_URL + encodeURIComponent(fechaStr));
         if (!response.ok) throw new Error('Error API');
         const data = await response.json();
-        if (!data?.prices || data.prices.length !== 24) throw new Error('Sin datos');
+        // Permitir 23-25 horas (días de cambio horario)
+        if (!data?.prices || data.prices.length < 23 || data.prices.length > 25) {
+          throw new Error('Sin datos');
+        }
 
         pvpcManana = {
           precios: data.prices,
