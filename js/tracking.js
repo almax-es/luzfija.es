@@ -203,4 +203,27 @@
     }catch(_){}
   }, true);
 
+  // Capturar errores de Promises no manejadas (crítico para PVPC/PDF)
+  window.addEventListener('unhandledrejection', function(e) {
+    try {
+      const reason = e && e.reason ? e.reason : 'unknown';
+      let msg = 'Promise reject: ';
+      
+      if (reason instanceof Error) {
+        msg += String(reason.message || reason.name || 'Error');
+      } else {
+        msg += String(reason);
+      }
+      
+      // Truncar a 80 caracteres para no saturar tracking
+      msg = msg.substring(0, 80);
+      
+      trackEvent('error-promise', { title: msg });
+      
+      if (DEBUG) {
+        dbg('Unhandled Promise rejection:', reason);
+      }
+    } catch(_) {}
+  });
+
 })();

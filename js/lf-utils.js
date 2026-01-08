@@ -4,18 +4,35 @@
 (function() {
   'use strict';
 
-  // ===== DEBUG MODE =====
-  try {
-    const params = new URLSearchParams(location.search);
-    const debug = params.get('debug') === '1' || localStorage.getItem('lf_debug') === '1';
-    window.__LF_DEBUG = Boolean(debug);
-  } catch (e) {
-    window.__LF_DEBUG = false;
+  // ===== DEBUG MODE (CENTRALIZADO) =====
+  // IMPORTANTE: Este es el único lugar donde se debe definir la lógica de debug.
+  // Otros módulos deben usar window.LF.isDebugMode() o window.__LF_DEBUG
+  // en lugar de duplicar la lógica de detección.
+  
+  let __DEBUG_CACHED = null;
+  
+  function isDebugMode() {
+    if (__DEBUG_CACHED !== null) return __DEBUG_CACHED;
+    
+    try {
+      const params = new URLSearchParams(location.search);
+      const debug = params.get('debug') === '1' || 
+                    localStorage.getItem('lf_debug') === '1' ||
+                    window.__LF_DEBUG === true;
+      __DEBUG_CACHED = Boolean(debug);
+    } catch (e) {
+      __DEBUG_CACHED = false;
+    }
+    
+    return __DEBUG_CACHED;
   }
+  
+  // Establecer flag global para compatibilidad con código existente
+  window.__LF_DEBUG = isDebugMode();
 
   // Helper: log solo si debug está activo
   function lfDbg(...args) {
-    if (window.__LF_DEBUG && typeof console !== 'undefined' && typeof console.log === 'function') {
+    if (isDebugMode() && typeof console !== 'undefined' && typeof console.log === 'function') {
       console.log(...args);
     }
   }
@@ -238,6 +255,7 @@
   window.lfDbg = lfDbg;
   window.LF = window.LF || {};
   Object.assign(window.LF, {
+    isDebugMode,
     parseNum,
     escapeHtml,
     formatMoney,
