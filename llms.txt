@@ -122,12 +122,12 @@ Core Web Vitals:
 - PDF.js lazy loading (180KB ahorrados en carga inicial)
 - INP móvil optimizado (<200ms objetivo)
 - tracking.js con defer
-- Google Fonts asíncrono
+- Fuentes autoalojadas (sin terceros)
 - og.png optimizado 45KB (-77%)
 
 Performance:
 - LCP mejorado 20-40%
-- FCP mejorado por fonts async
+- FCP mejorado por fuentes locales
 - TBT reducido por JavaScript diferido
 
 ## Información técnica

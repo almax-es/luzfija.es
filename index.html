@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://gc.zgo.at; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://luzfija-es.vercel.app https://comparador.cnmc.gob.es https://facturaluz2.cnmc.es https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://gc.zgo.at; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self' https://luzfija-es.vercel.app https://comparador.cnmc.gob.es https://facturaluz2.cnmc.es https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark light"/>
 <meta name="description" content="Compara tarifas de luz con discriminación horaria, placas solares y PVPC. Calcula tu factura y descubre cuánto ahorras. 100% gratuito.">
   <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
@@ -37,11 +37,6 @@
   <link rel="alternate" hreflang="es-ES" href="https://luzfija.es/">
   <link rel="alternate" hreflang="x-default" href="https://luzfija.es/">
 
-  <link rel="dns-prefetch" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" as="style" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet"></noscript>
 
   <title>Comparador Tarifas Luz España | Ahorra en tu Factura</title>
   <link rel="icon" href="/favicon.ico" sizes="any">
@@ -164,6 +159,9 @@
   <noscript><link rel="stylesheet" href="desglose-factura.css"></noscript>
 
   <!-- PDF.js se carga dinámicamente cuando el usuario sube una factura (ver factura.js) -->
+  <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts.css">
+
 </head>
 
 <body>

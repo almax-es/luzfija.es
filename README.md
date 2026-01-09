@@ -194,7 +194,7 @@ Usuario → localStorage (por día)
 - **Service Worker v5.8** con precache 1 MB (optimizado -93%)
 - **jsQR en precache** (251 KB, escaneo QR instantáneo offline)
 - **Lazy loading** de recursos pesados (PDF.js ~1.5 MB, Tesseract ~8 MB, Excel ~1 MB)
-- **Preconnect a Google Fonts** (reduce FCP 100-300ms)
+- **Fuentes autoalojadas** (sin peticiones a terceros)
 - **JavaScript diferido** (tracking.js con defer)
 - **Core Web Vitals optimizados**: LCP < 2.5s, INP < 200ms, CLS < 0.1
 
@@ -317,7 +317,7 @@ luzfija.es/
 
 **Dependencias:**
 - Todas auto-hospedadas en `/vendor/`
-- Sin CDNs externos (excepto Google Fonts)
+- Sin CDNs externos
 - Control total de versiones
 
 ---
@@ -325,9 +325,9 @@ luzfija.es/
 ## 📊 Métricas del Proyecto
 
 ### Archivos
-- 31 archivos HTML (10 páginas + 21 guías)
+- 32 archivos HTML (11 páginas + 21 guías)
 - 10+ módulos JavaScript
-- 2 archivos CSS
+- 3 archivos CSS (incluye fonts.css)
 - 1 base de datos JSON (tarifas)
 
 ### Tamaños

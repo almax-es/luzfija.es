@@ -9,7 +9,7 @@
 // Para automatizar: sed -i "s/CACHE_VERSION = .*/CACHE_VERSION = \"$(date -u +%Y%m%d-%H%M%S)\";/" sw.js
 // O en scripts de CI/CD: echo "const CACHE_VERSION = \"$(date -u +%Y%m%d-%H%M%S)\";" > version.js
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260109-115925";
+const CACHE_VERSION = "20260109-130915";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
@@ -22,6 +22,16 @@ const ASSETS = [
   "./",
   "index.html",
   "styles.css",
+  "fonts.css",
+  "fonts/outfit-latin-100-normal.woff2",
+  "fonts/outfit-latin-200-normal.woff2",
+  "fonts/outfit-latin-300-normal.woff2",
+  "fonts/outfit-latin-400-normal.woff2",
+  "fonts/outfit-latin-500-normal.woff2",
+  "fonts/outfit-latin-600-normal.woff2",
+  "fonts/outfit-latin-700-normal.woff2",
+  "fonts/outfit-latin-800-normal.woff2",
+  "fonts/outfit-latin-900-normal.woff2",
   // Scripts de configuración (deben cargarse antes del render)
   "js/theme.js",
   "js/config.js",
