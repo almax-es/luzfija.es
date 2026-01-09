@@ -394,6 +394,62 @@
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-modal', 'true');
     modal.setAttribute('aria-hidden', 'false');
+    modal.tabIndex = -1;
+
+    // Accesibilidad: restaurar foco + focus trap
+    const __csvPrevFocusEl = document.activeElement;
+    let __csvFocusTrapCleanup = null;
+
+    const __csvFocusableSelector = [
+      'a[href]:not([tabindex="-1"])',
+      'button:not([disabled]):not([tabindex="-1"])',
+      'input:not([disabled]):not([type="hidden"]):not([tabindex="-1"])',
+      'select:not([disabled]):not([tabindex="-1"])',
+      'textarea:not([disabled]):not([tabindex="-1"])',
+      '[tabindex]:not([tabindex="-1"])'
+    ].join(',');
+
+    function __csvIsVisible(node){
+      if (!node) return false;
+      if (node.hasAttribute('disabled')) return false;
+      if (node.getAttribute('aria-hidden') === 'true') return false;
+      return !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length);
+    }
+
+    function __csvFocusables(){
+      return Array.from(modal.querySelectorAll(__csvFocusableSelector)).filter(__csvIsVisible);
+    }
+
+    function __csvFocusTrapAttach(){
+      if (__csvFocusTrapCleanup) return;
+      const onKeyDown = (e) => {
+        if (!document.body.contains(modal)) return;
+        if (e.key !== 'Tab') return;
+        const els = __csvFocusables();
+        if (!els.length) return;
+        const first = els[0];
+        const last = els[els.length - 1];
+
+        if (!modal.contains(document.activeElement)) {
+          e.preventDefault();
+          first.focus();
+          return;
+        }
+
+        if (e.shiftKey && document.activeElement === first){
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last){
+          e.preventDefault();
+          first.focus();
+        }
+      };
+      modal.addEventListener('keydown', onKeyDown);
+      __csvFocusTrapCleanup = () => {
+        modal.removeEventListener('keydown', onKeyDown);
+        __csvFocusTrapCleanup = null;
+      };
+    }
 
     const isLightMode = document.body.classList.contains('light-mode');
 
@@ -491,6 +547,9 @@
     document.body.appendChild(modal);
     __csvLock();
 
+    // Activar focus trap y llevar foco dentro del modal
+    __csvFocusTrapAttach();
+
     const btnCerrarX = content.querySelector('#btnCerrarCSVX');
     let __csvCloseOnEsc = null;
     let __csvCloseOnBackdrop = null;
@@ -498,11 +557,23 @@
     const closeCSVModal = () => {
       if (__csvCloseOnEsc) document.removeEventListener('keydown', __csvCloseOnEsc);
       if (__csvCloseOnBackdrop) modal.removeEventListener('click', __csvCloseOnBackdrop);
+      if (typeof __csvFocusTrapCleanup === 'function') __csvFocusTrapCleanup();
       __csvUnlock();
       modal.remove();
+
+      // Restaurar foco al elemento previo
+      if (__csvPrevFocusEl && __csvPrevFocusEl.focus) {
+        __csvPrevFocusEl.focus();
+      }
     };
     
     btnCerrarX?.addEventListener('click', closeCSVModal);
+
+    // Foco inicial (botón cerrar)
+    setTimeout(() => {
+      const target = btnCerrarX || content.querySelector('#btnAplicarCSV') || modal;
+      target?.focus?.();
+    }, 0);
 
     const btnAplicar = document.getElementById('btnAplicarCSV');
     const btnAplicarTexto = document.getElementById('btnAplicarTexto');

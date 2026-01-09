@@ -121,6 +121,79 @@
     const btnCerrarSolarInfo = window.LF.$('btnCerrarSolarInfo');
     const btnCerrarSolarX = window.LF.$('btnCerrarSolarX');
 
+    // Accesibilidad: restaurar foco + focus trap dentro del modal
+    let __solarPrevFocusEl = null;
+    let __solarFocusTrapCleanup = null;
+
+    const __solarFocusableSelector = [
+      'a[href]:not([tabindex="-1"])',
+      'button:not([disabled]):not([tabindex="-1"])',
+      'input:not([disabled]):not([type="hidden"]):not([tabindex="-1"])',
+      'select:not([disabled]):not([tabindex="-1"])',
+      'textarea:not([disabled]):not([tabindex="-1"])',
+      '[tabindex]:not([tabindex="-1"])'
+    ].join(',');
+
+    function __solarIsVisible(node){
+      if (!node) return false;
+      if (node.hasAttribute('disabled')) return false;
+      if (node.getAttribute('aria-hidden') === 'true') return false;
+      return !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length);
+    }
+
+    function __solarFocusables(){
+      if (!modalSolarInfo) return [];
+      return Array.from(modalSolarInfo.querySelectorAll(__solarFocusableSelector))
+        .filter(__solarIsVisible);
+    }
+
+    function __solarFocusTrapAttach(){
+      if (!modalSolarInfo) return;
+      if (__solarFocusTrapCleanup) return;
+
+      const onKeyDown = (e) => {
+        if (!modalSolarInfo.classList.contains('show')) return;
+
+        if (e.key === 'Escape') {
+          e.preventDefault();
+          __solarClose();
+          return;
+        }
+
+        if (e.key !== 'Tab') return;
+        const els = __solarFocusables();
+        if (!els.length) return;
+        const first = els[0];
+        const last = els[els.length - 1];
+
+        // Si el foco está fuera del modal, lo metemos dentro
+        if (!modalSolarInfo.contains(document.activeElement)) {
+          e.preventDefault();
+          first.focus();
+          return;
+        }
+
+        if (e.shiftKey && document.activeElement === first){
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last){
+          e.preventDefault();
+          first.focus();
+        }
+      };
+
+      modalSolarInfo.addEventListener('keydown', onKeyDown);
+      __solarFocusTrapCleanup = () => {
+        modalSolarInfo.removeEventListener('keydown', onKeyDown);
+        __solarFocusTrapCleanup = null;
+      };
+    }
+
+    function __solarFocusTrapDetach(){
+      if (typeof __solarFocusTrapCleanup === 'function') __solarFocusTrapCleanup();
+      __solarFocusTrapCleanup = null;
+    }
+
     let __solarLocked = false;
     let __solarScrollY = 0;
     
@@ -138,45 +211,45 @@
       __solarLocked = false;
     }
 
+    function __solarClose(){
+      if (!modalSolarInfo) return;
+      modalSolarInfo.classList.remove('show');
+      modalSolarInfo.setAttribute('aria-hidden', 'true');
+      setTimeout(() => { modalSolarInfo.style.display = 'none'; }, 200);
+      __solarUnlock();
+
+      __solarFocusTrapDetach();
+      const prev = __solarPrevFocusEl;
+      if (prev && prev.focus) prev.focus();
+      __solarPrevFocusEl = null;
+    }
+
     if (btnSolarInfo && modalSolarInfo && btnCerrarSolarInfo) {
       btnSolarInfo.addEventListener('click', (e) => {
         e.preventDefault();
         e.stopPropagation();
+
+        __solarPrevFocusEl = document.activeElement;
+
         modalSolarInfo.style.display = 'flex';
         modalSolarInfo.classList.add('show');
         modalSolarInfo.setAttribute('aria-hidden', 'false');
         __solarLock();
+
+        __solarFocusTrapAttach();
+
+        // Llevar foco dentro del modal (por defecto al botón de cerrar)
+        const target = btnCerrarSolarX || btnCerrarSolarInfo || __solarFocusables()[0] || modalSolarInfo;
+        setTimeout(() => { target?.focus?.(); }, 0);
       });
 
-      btnCerrarSolarX?.addEventListener('click', () => {
-        modalSolarInfo.classList.remove('show');
-        setTimeout(() => { modalSolarInfo.style.display = 'none'; }, 200);
-        modalSolarInfo.setAttribute('aria-hidden', 'true');
-        __solarUnlock();
-      });
+      btnCerrarSolarX?.addEventListener('click', __solarClose);
 
-      btnCerrarSolarInfo.addEventListener('click', () => {
-        modalSolarInfo.classList.remove('show');
-        setTimeout(() => { modalSolarInfo.style.display = 'none'; }, 200);
-        modalSolarInfo.setAttribute('aria-hidden', 'true');
-        __solarUnlock();
-      });
-
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape' && modalSolarInfo.classList.contains('show')) {
-          modalSolarInfo.classList.remove('show');
-          setTimeout(() => { modalSolarInfo.style.display = 'none'; }, 200);
-          modalSolarInfo.setAttribute('aria-hidden', 'true');
-          __solarUnlock();
-        }
-      });
+      btnCerrarSolarInfo.addEventListener('click', __solarClose);
 
       modalSolarInfo.addEventListener('click', (e) => {
         if (e.target === modalSolarInfo) {
-          modalSolarInfo.classList.remove('show');
-          setTimeout(() => { modalSolarInfo.style.display = 'none'; }, 200);
-          modalSolarInfo.setAttribute('aria-hidden', 'true');
-          __solarUnlock();
+          __solarClose();
         }
       });
     }

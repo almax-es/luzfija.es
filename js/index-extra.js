@@ -556,7 +556,13 @@ document.getElementById('modalPVPCMax').textContent = `${precioMax.toFixed(3).re
           cerrarModal();
         } else if (e.key === 'Tab') {
           // Focus trap simple: mantener focus dentro del modal
-          const focusables = modalPVPCInfo.querySelectorAll('button:not([disabled]), [tabindex]:not([tabindex="-1"])');
+          const focusables = Array.from(
+            modalPVPCInfo.querySelectorAll(
+              'a[href]:not([tabindex="-1"]), button:not([disabled]):not([tabindex="-1"]), input:not([disabled]):not([type="hidden"]):not([tabindex="-1"]), select:not([disabled]):not([tabindex="-1"]), textarea:not([disabled]):not([tabindex="-1"]), [tabindex]:not([tabindex="-1"])'
+            )
+          ).filter(el => (el.offsetWidth || el.offsetHeight || el.getClientRects().length));
+
+          if (!focusables.length) return;
           const firstFocusable = focusables[0];
           const lastFocusable = focusables[focusables.length - 1];
           
