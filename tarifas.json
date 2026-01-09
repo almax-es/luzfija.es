@@ -165,6 +165,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Iberdrola Online",
+      "cPunta": 0.1199,
+      "cLlano": 0.1199,
+      "cValle": 0.1199,
+      "p1": 0.108192,
+      "p2": 0.046548,
+      "web": "https://www.iberdrola.es/luz/plan-online",
+      "tipo": "1P",
+      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Naturgy por uso",
       "cPunta": 0.120471,
       "cLlano": 0.120471,
@@ -199,25 +218,6 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Iberdrola Online",
-      "cPunta": 0.125332,
-      "cLlano": 0.125332,
-      "cValle": 0.125332,
-      "p1": 0.113621,
-      "p2": 0.048023,
-      "web": "https://www.iberdrola.es/luz/plan-online",
-      "tipo": "1P",
-      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
       },
       "requiereFV": false
     },
@@ -350,6 +350,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Iberdrola Online 3P",
+      "cPunta": 0.181076,
+      "cLlano": 0.128392,
+      "cValle": 0.096404,
+      "p1": 0.086301,
+      "p2": 0.013014,
+      "web": "https://www.iberdrola.es/luz/plan-online-tres-periodos",
+      "tipo": "3P",
+      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Esluz 3P",
       "cPunta": 0.182,
       "cLlano": 0.134,
@@ -405,25 +424,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Iberdrola Online 3P",
-      "cPunta": 0.191661,
-      "cLlano": 0.133374,
-      "cValle": 0.099645,
-      "p1": 0.091074,
-      "p2": 0.013483,
-      "web": "https://www.iberdrola.es/luz/plan-online-tres-periodos",
-      "tipo": "3P",
-      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Iberdrola Solar 3P",
       "cPunta": 0.203,
       "cLlano": 0.123,
@@ -443,5 +443,5 @@
       "requiereFV": true
     }
   ],
-  "updatedAt": "2026-01-09T08:26:29.979Z"
+  "updatedAt": "2026-01-09T11:55:47.375Z"
 }
