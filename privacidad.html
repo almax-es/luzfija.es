@@ -145,12 +145,26 @@ html.light-mode .btn-small:hover{
 <summary>Qué datos se tratan</summary>
 <div class="accordion-content">
 <ul style="margin:12px 0;">
-<li><strong>Datos técnicos de conexión</strong> (por ejemplo, dirección IP, cabeceras HTTP, fecha/hora, información del navegador) tratados por proveedores de infraestructura y por proveedores externos al servir recursos.</li>
-<li><strong>Datos de uso básicos</strong> (por ejemplo, páginas vistas, URL de procedencia/referrer, navegador) si está activa la analítica con GoatCounter.</li>
-<li><strong>Contenido de comunicaciones</strong> si nos escribes por email (tu dirección, asunto y mensaje).</li>
-<li><strong>Datos en tu dispositivo</strong> (preferencias/estado/caché) mediante almacenamiento del navegador (localStorage y caché del Service Worker).</li>
+  <li><strong>Datos técnicos de conexión</strong> (por ejemplo, dirección IP, cabeceras HTTP, fecha/hora, información del navegador) tratados principalmente por el <strong>hosting</strong> (GitHub Pages) y, si usas la funcionalidad de <strong>PVPC</strong>, también por el proveedor del proxy (Vercel) y los endpoints públicos consultados.</li>
+  <li><strong>Datos de uso básicos</strong> (por ejemplo, página visitada y referrer) <strong>solo</strong> si está activa la analítica con GoatCounter.</li>
+  <li><strong>Contenido de comunicaciones</strong> si nos escribes por email (tu dirección, asunto y mensaje).</li>
+  <li><strong>Datos introducidos en el comparador</strong> (potencias, consumos, etc.): se procesan en tu navegador para realizar los cálculos y <strong>no se envían</strong> al servidor por defecto.</li>
+  <li><strong>Datos en tu dispositivo</strong> (preferencias/estado/caché) mediante almacenamiento del navegador (localStorage y caché del Service Worker).</li>
 </ul>
 </div>
+<details class="accordion-item">
+  <summary>Responsable del tratamiento</summary>
+  <div class="accordion-content">
+    <p>
+      <strong>Responsable:</strong> el titular de LuzFija.es (consulta los datos de identificación y contacto en el
+      <a href="/aviso-legal.html">Aviso legal</a>).
+    </p>
+    <p>
+      Para cualquier cuestión sobre privacidad, puedes escribir a <a href="mailto:hola@luzfija.es">hola@luzfija.es</a>.
+    </p>
+  </div>
+</details>
+
 </details>
 <details class="accordion-item">
 <summary>Tratamientos, finalidades y base jurídica</summary>
@@ -164,6 +178,7 @@ html.light-mode .btn-small:hover{
   </p>
 <p><strong>Finalidad:</strong> prestación del servicio (servir la web) y seguridad.</p>
 <p><strong>Base jurídica:</strong> interés legítimo (seguridad) y/o necesidad para prestar el servicio solicitado al acceder al sitio.</p>
+<p><strong>Transferencias internacionales:</strong> GitHub indica que puede almacenar/procesar datos en distintas ubicaciones (incluyendo EE. UU.) y que, cuando procede, utiliza mecanismos como Cláusulas Contractuales Tipo (SCC) y/o el Data Privacy Framework.</p>
 <h3>2) PVPC (proxy en Vercel hacia la CNMC)</h3>
 <p>
     Cuando consultas PVPC, la web usa un proxy desplegado en Vercel para resolver restricciones técnicas (por ejemplo, CORS) y operar la funcionalidad de forma fiable.
@@ -175,6 +190,7 @@ html.light-mode .btn-small:hover{
   </p>
 <p><strong>Finalidad:</strong> prestar la funcionalidad solicitada (consulta de PVPC) y seguridad/operación del servicio.</p>
 <p><strong>Base jurídica:</strong> ejecución de la prestación solicitada e interés legítimo (seguridad).</p>
+<p><strong>Transferencias internacionales:</strong> Vercel puede tratar datos fuera de tu país (incluido EE. UU.) y, según su política, aplica mecanismos como SCC u otros instrumentos legales cuando es necesario.</p>
 <h3>3) Tipografías (autoalojadas)</h3>
 <p>
     Esta web sirve la tipografía desde el propio dominio (archivos autoalojados). No se realizan peticiones a Google Fonts ni se comparten datos técnicos con Google por este concepto.
@@ -184,7 +200,7 @@ html.light-mode .btn-small:hover{
 <h3>4) Analítica web (GoatCounter)</h3>
 <p>
     Usamos <a href="https://www.goatcounter.com" rel="noopener noreferrer" target="_blank">GoatCounter</a> (servicio alojado por Martin Tournoij) para analítica de tráfico.
-    GoatCounter no utiliza cookies y no recoge información personal identificable.
+    GoatCounter no utiliza cookies y, según su documentación, no almacena direcciones IP ni identificadores persistentes.
     Más información:
     <a href="https://www.goatcounter.com/help/privacy" rel="noopener noreferrer" target="_blank">política de privacidad de GoatCounter</a>.
   </p>
@@ -208,7 +224,7 @@ html.light-mode .btn-small:hover{
     Estos datos permanecen en tu dispositivo y no se transmiten al responsable. Puedes borrarlos desde la configuración de tu navegador.
   </p>
 <p><strong>Finalidad:</strong> mejorar la experiencia de usuario (persistencia de preferencias, funcionalidad offline).</p>
-<p><strong>Base jurídica:</strong> interés legítimo (funcionalidad del sitio) y/o consentimiento implícito al usar la web.</p>
+<p><strong>Base jurídica:</strong> interés legítimo (funcionalidad del sitio) y/o necesidad para proporcionar la funcionalidad solicitada (por ejemplo, recordar preferencias).</p>
 </div>
 </details>
 <details class="accordion-item">
