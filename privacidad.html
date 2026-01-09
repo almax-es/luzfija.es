@@ -199,13 +199,18 @@ html.light-mode .btn-small:hover{
 <p><strong>Base jurídica:</strong> interés legítimo (presentación/funcionamiento del sitio).</p>
 <h3>4) Analítica web (GoatCounter)</h3>
 <p>
-    Usamos <a href="https://www.goatcounter.com" rel="noopener noreferrer" target="_blank">GoatCounter</a> (servicio alojado por Martin Tournoij) para analítica de tráfico.
+    Usamos <a href="https://www.goatcounter.com" rel="noopener noreferrer" target="_blank">GoatCounter</a> (servicio alojado por Martin Tournoij en <code>luzfija.goatcounter.com</code> y <code>gc.zgo.at</code>) para analítica de tráfico.
     GoatCounter no utiliza cookies y, según su documentación, no almacena direcciones IP ni identificadores persistentes.
     Más información:
     <a href="https://www.goatcounter.com/help/privacy" rel="noopener noreferrer" target="_blank">política de privacidad de GoatCounter</a>.
   </p>
 <p><strong>Finalidad:</strong> comprender el uso del sitio (estadísticas de visitas, páginas vistas) para mejorarlo.</p>
 <p><strong>Base jurídica:</strong> interés legítimo (análisis de tráfico anónimo).</p>
+<p style="margin-top:16px;">
+    Si prefieres no participar en la medición de audiencia, puedes 
+    <a href="#" id="opt-out-analytics" style="color:var(--accent); font-weight:600; text-decoration:underline;">desactivar GoatCounter</a>.
+    <span id="opt-out-status" style="color:var(--accent2); font-weight:600;"></span>
+  </p>
 <h3>5) Email (contacto)</h3>
 <p>
     Si nos escribes a <a href="mailto:hola@luzfija.es">hola@luzfija.es</a>, tratamos los datos del email (tu dirección, asunto, mensaje) para responder y gestionar tu consulta.
@@ -285,6 +290,70 @@ html.light-mode .btn-small:hover{
 <a href="/privacidad.html">Privacidad</a>
 </div>
 </footer>
+
+<script>
+// === OPT-OUT DE GOATCOUNTER ===
+(function() {
+  'use strict';
+  
+  const OPT_OUT_KEY = 'goatcounter_optout';
+  const linkEl = document.getElementById('opt-out-analytics');
+  const statusEl = document.getElementById('opt-out-status');
+  
+  if (!linkEl || !statusEl) return; // Solo ejecutar en página de privacidad
+  
+  // Función para verificar estado actual
+  function isOptedOut() {
+    try {
+      return localStorage.getItem(OPT_OUT_KEY) === 'true';
+    } catch(e) {
+      return false;
+    }
+  }
+  
+  // Actualizar UI según estado
+  function updateUI() {
+    if (isOptedOut()) {
+      linkEl.textContent = 'reactivar GoatCounter';
+      statusEl.textContent = '✓ GoatCounter desactivado';
+    } else {
+      linkEl.textContent = 'desactivar GoatCounter';
+      statusEl.textContent = '';
+    }
+  }
+  
+  // Manejar click en el enlace
+  linkEl.addEventListener('click', function(e) {
+    e.preventDefault();
+    
+    try {
+      const currentState = isOptedOut();
+      localStorage.setItem(OPT_OUT_KEY, !currentState);
+      
+      // Mensaje temporal
+      const action = !currentState ? 'desactivado' : 'reactivado';
+      statusEl.textContent = `✓ GoatCounter ${action} correctamente`;
+      
+      // Actualizar enlace
+      setTimeout(updateUI, 100);
+      
+      // Info al usuario
+      if (!currentState) {
+        // Acabamos de desactivar
+        if (typeof console !== 'undefined' && console.log) {
+          console.log('[GoatCounter] Desactivado. No se registrarán más visitas.');
+        }
+      }
+    } catch(e) {
+      statusEl.textContent = '⚠ Error: no se pudo cambiar la configuración';
+      statusEl.style.color = 'var(--warn, #f59e0b)';
+    }
+  });
+  
+  // Estado inicial
+  updateUI();
+})();
+</script>
 
 </body>
 </html>

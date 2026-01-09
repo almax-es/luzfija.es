@@ -5,6 +5,20 @@
 (function() {
   'use strict';
 
+  // ===== COMPROBACIÓN OPT-OUT (PRIORIDAD MÁXIMA) =====
+  // Si el usuario ha desactivado GoatCounter, salir inmediatamente
+  const OPT_OUT_KEY = 'goatcounter_optout';
+  try {
+    if (localStorage.getItem(OPT_OUT_KEY) === 'true') {
+      if (typeof console !== 'undefined' && console.log) {
+        console.log('[TRACK] GoatCounter desactivado por el usuario (opt-out activo)');
+      }
+      return; // Salir sin cargar nada
+    }
+  } catch(e) {
+    // Si localStorage no está disponible (navegación privada extrema), continuar normalmente
+  }
+
   const DEFAULT_GOAT_ENDPOINT = 'https://luzfija.goatcounter.com/count';
   const GOAT_SCRIPT_SRC = 'https://gc.zgo.at/count.js';
 
