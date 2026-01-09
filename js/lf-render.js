@@ -1,5 +1,6 @@
 // ===== LuzFija: Renderizado =====
 // Tabla, chart, KPIs, filtros, ordenación
+// OPTIMIZADO PARA INP: Renderizado chunked de tabla (v2026-01-09)
 
 (function() {
   'use strict';
@@ -84,10 +85,12 @@
     });
   }
 
-  // ===== RENDER TABLE =====
+  // ===== RENDER TABLE OPTIMIZADO (CHUNKED + SEGURO) =====
   let __lf_tableRenderTimer = null;
+  let __lf_renderInProgress = false;
+  let __lf_currentRenderToken = 0;
 
-  function renderTable() {
+  async function renderTable() {
     const f = applyFilters(state.rows);
     const s = applySort(f);
 
@@ -99,13 +102,38 @@
     }
 
     clearTimeout(__lf_tableRenderTimer);
-    __lf_tableRenderTimer = setTimeout(() => {
-      el.emptyBox.classList.remove('show');
-      el.table.classList.add('show');
+    
+    // SEGURIDAD: Cancelar render anterior si existe
+    if (__lf_renderInProgress) {
+      __lf_currentRenderToken++;
+      __lf_renderInProgress = false;
+      await new Promise(resolve => setTimeout(resolve, 0));
+    }
+    
+    const myToken = ++__lf_currentRenderToken;
+    __lf_renderInProgress = true;
 
+    // OPTIMIZACIÓN INP: Renderizar en chunks de 10 filas
+    const CHUNK_SIZE = 10;
+    
+    el.emptyBox.classList.remove('show');
+    el.table.classList.add('show');
+
+    // Limpiar tbody existente
+    el.tbody.replaceChildren();
+
+    // Renderizar en chunks con yields
+    for (let chunkStart = 0; chunkStart < s.length; chunkStart += CHUNK_SIZE) {
+      // Verificar si este render fue cancelado
+      if (myToken !== __lf_currentRenderToken || !__lf_renderInProgress) {
+        return;
+      }
+
+      const chunkEnd = Math.min(chunkStart + CHUNK_SIZE, s.length);
       const frag = document.createDocumentFragment();
       
-      s.forEach((r, idx) => {
+      for (let idx = chunkStart; idx < chunkEnd; idx++) {
+        const r = s[idx];
         const tr = document.createElement('tr');
         if (r.esMejor) tr.classList.add('best');
         if (r.esPersonalizada) tr.classList.add('custom-tariff-highlight');
@@ -198,20 +226,32 @@
           `<td>${escapeHtml(r.consumo)}</td>` +
           `<td>${escapeHtml(r.impuestos)}</td>` +
           `<td class="total-cell" role="button" tabindex="0" title="${isBV ? `Clic para ver desglose completo • Pagas: ${escapeHtml(bvPagasFmt)} • Ranking: ${escapeHtml(bvRankingFmt)}` : `Clic para ver desglose completo de la factura`}"><span class="total-pill"><strong class="total-price js-total-amount"${isBV ? ` data-pagas="${escapeHtml(bvPagasFmt)}" data-ranking="${escapeHtml(bvRankingFmt)}"` : ""}>${escapeHtml(r.total)}</strong><span class="desglose-icon" aria-hidden="true">💡</span></span></td>` +
-          `<td class="vs">${formatVsWithBar(r.vsMejor, r.vsMejorNum)}</td>` +
-          `<td>${rowTipoBadge(r.tipo)}</td>` +
+          `<td>${formatVsWithBar(r.vsMejor, r.vsMejorNum)}</td>` +
+          `<td style="text-align:center">${rowTipoBadge(r.tipo)}</td>` +
           `<td style="text-align:center">${w}</td>`;
 
         frag.appendChild(tr);
-      });
+      }
 
-      el.tbody.replaceChildren(frag);
+      el.tbody.appendChild(frag);
 
-      // Inicializar tooltips
-      el.tbody.querySelectorAll('.requisitos-icon').forEach(t => bindTooltipElement(t));
-      el.tbody.querySelectorAll('.fv-icon').forEach(t => bindTooltipElement(t));
-      updateSortIcons();
-    }, 0);
+      // Yield al navegador después de cada chunk (excepto el último)
+      if (chunkEnd < s.length) {
+        await new Promise(resolve => setTimeout(resolve, 0));
+      }
+    }
+
+    // Verificar una última vez antes de finalizar
+    if (myToken !== __lf_currentRenderToken) {
+      return;
+    }
+
+    __lf_renderInProgress = false;
+
+    // Inicializar tooltips después de renderizar todo
+    el.tbody.querySelectorAll('.requisitos-icon').forEach(t => bindTooltipElement(t));
+    el.tbody.querySelectorAll('.fv-icon').forEach(t => bindTooltipElement(t));
+    updateSortIcons();
   }
 
   // ===== RENDER TOP CHART =====
