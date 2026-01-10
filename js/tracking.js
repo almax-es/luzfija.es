@@ -20,7 +20,7 @@
   }
 
   const DEFAULT_GOAT_ENDPOINT = 'https://luzfija.goatcounter.com/count';
-  const GOAT_SCRIPT_SRC = 'https://gc.zgo.at/count.js';
+  const GOAT_SCRIPT_SRC = '/vendor/goatcounter/count.js'; // Autoalojado (antes: https://gc.zgo.at/count.js)
 
   const DEBUG = (function(){
     try{
