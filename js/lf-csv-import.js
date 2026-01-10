@@ -353,12 +353,10 @@
             return;
           }
           
-          // ⭐ SUN CLUB: Guardar consumos horarios
-          window.LF = window.LF || {};
-          window.LF.consumosHorarios = consumos;
-          
           const resultado = clasificarConsumosPorPeriodo(consumos);
           resultado.formato = 'CSV';
+          // ⭐ SUN CLUB: adjuntar consumos horarios (se guardan globalmente solo al aplicar)
+          resultado.consumosHorarios = consumos;
           resolve(resultado);
         } catch (error) {
           reject(error);
@@ -381,12 +379,10 @@
             return;
           }
           
-          // ⭐ SUN CLUB: Guardar consumos horarios
-          window.LF = window.LF || {};
-          window.LF.consumosHorarios = consumos;
-          
           const resultado = clasificarConsumosPorPeriodo(consumos);
           resultado.formato = 'XLSX';
+          // ⭐ SUN CLUB: adjuntar consumos horarios (se guardan globalmente solo al aplicar)
+          resultado.consumosHorarios = consumos;
           resolve(resultado);
         } catch (error) {
           reject(error);
@@ -666,6 +662,10 @@
             if (exTotalInput) { exTotalInput.value = ''; exTotalInput.dispatchEvent(new Event('input', { bubbles: true })); }
           }, 100);
         }
+
+        // ⭐ SUN CLUB: Guardar consumos horarios (solo al aplicar)
+        window.LF = window.LF || {};
+        window.LF.consumosHorarios = Array.isArray(resultado.consumosHorarios) ? resultado.consumosHorarios : null;
 
         // ⭐ SUN CLUB: Guardar estado del checkbox antes de cerrar el modal
         const sunClubCheckbox = document.getElementById('csvCalcularSunClub');
