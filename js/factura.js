@@ -1261,14 +1261,11 @@
       }
 
       function __LF_openModal(){
+        // 🔒 ACTIVAR MODO PRIVACIDAD (bloquea todo tracking)
+        window.__LF_PRIVACY_MODE = true;
+        
         const modal = __LF_q('modalFactura');
         if (!modal) return;
-
-        // Pausar GoatCounter mientras se procesa factura (privacidad)
-        if (window.goatcounter) {
-          window.__LF_goatcounterWasEnabled = !window.goatcounter.no_onload;
-          window.goatcounter.no_onload = true;
-        }
 
         window.__LF_restoreFocusEl = document.activeElement;
 
@@ -1291,13 +1288,11 @@
       }
 
       function __LF_closeModal(){
+        // 🔓 DESACTIVAR MODO PRIVACIDAD (reactiva tracking)
+        window.__LF_PRIVACY_MODE = false;
+        
         const modal = __LF_q('modalFactura');
         if (!modal) return;
-
-        // Reactivar GoatCounter si estaba activo antes
-        if (window.goatcounter && window.__LF_goatcounterWasEnabled) {
-          window.goatcounter.no_onload = false;
-        }
 
         modal.classList.remove('show');
         modal.setAttribute('aria-hidden','true');

@@ -99,6 +99,12 @@
   }
 
   function trackEvent(eventName, metadata) {
+    // 🔒 MODO PRIVACIDAD: Si está activo, no enviar NADA
+    if (window.__LF_PRIVACY_MODE === true) {
+      dbg('Privacy mode activo, evento bloqueado:', eventName);
+      return;
+    }
+    
     const payload = {
       path: eventName,
       title: (metadata && metadata.title) ? metadata.title : eventName,
@@ -149,23 +155,10 @@
       });
     }
 
-    // 4. Trackear clicks en botón de subir factura
-    const btnSubirFactura = document.getElementById('btnSubirFactura');
-    if (btnSubirFactura) {
-      btnSubirFactura.addEventListener('click', function() {
-        trackEvent('factura-modal-abierto', { title: 'Usuario abrió modal de factura' });
-      });
-    }
+    // NOTA: Los botones del modal de factura NO se trackean por privacidad
+    // El modal activa __LF_PRIVACY_MODE automáticamente al abrirse
 
-    // 5. Trackear cuando se aplica una factura parseada
-    const btnAplicarFactura = document.getElementById('btnAplicarFactura');
-    if (btnAplicarFactura) {
-      btnAplicarFactura.addEventListener('click', function() {
-        trackEvent('factura-aplicada', { title: 'Usuario aplicó datos de factura' });
-      });
-    }
-
-    // 6. Trackear cambio de tema (dark/light)
+    // 4. Trackear cambio de tema (dark/light)
     const btnTheme = document.getElementById('btnTheme');
     if (btnTheme) {
       btnTheme.addEventListener('click', function() {
