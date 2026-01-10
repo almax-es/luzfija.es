@@ -4038,3 +4038,286 @@ html {
   }
 }
 
+/*
+ * ESTILOS CSS PARA SUN CLUB
+ * 
+ * Añadir estos estilos al archivo styles.css
+ */
+
+/* ═══════════════════════════════════════════════════════════════════
+   CHECKBOX DE ACTIVACIÓN SUN CLUB
+   ═══════════════════════════════════════════════════════════════════ */
+
+.sun-club-option {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(135deg, #fff5f0 0%, #ffe8dc 100%);
+  border: 1px solid #ff6b35;
+  border-radius: 6px;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sun-club-option .checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.sun-club-option .tooltip {
+  cursor: help;
+  color: #ff6b35;
+  font-weight: bold;
+  font-size: 1.1em;
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   TARJETA DE RESULTADOS SUN CLUB
+   ═══════════════════════════════════════════════════════════════════ */
+
+.sun-club-card {
+  margin-top: 2rem;
+  padding: 1.5rem;
+  border: 2px solid #ff6b35;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #fff5f0 0%, #ffe8dc 100%);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  animation: fadeInUp 0.4s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.sun-club-card h3 {
+  margin: 0 0 1rem 0;
+  color: #ff6b35;
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.sun-club-badge {
+  display: inline-block;
+  padding: 0.35rem 0.85rem;
+  background: #22c55e;
+  color: white;
+  border-radius: 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin-bottom: 1rem;
+}
+
+.sun-club-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.sun-club-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.8);
+  border-radius: 8px;
+  border-left: 4px solid #ff6b35;
+  transition: all 0.2s ease;
+}
+
+.sun-club-row:hover {
+  background: rgba(255, 255, 255, 1);
+  transform: translateX(2px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.sun-club-row span:first-child {
+  color: #666;
+  font-weight: 500;
+}
+
+.sun-club-row strong {
+  font-size: 1.15rem;
+  color: #111;
+  font-weight: 700;
+  font-family: var(--mono, 'Courier New', monospace);
+}
+
+.sun-club-detail {
+  font-size: 0.9em;
+  color: #555;
+  font-style: italic;
+  padding: 0.75rem 1rem;
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 6px;
+  border-left: 3px solid #f59e0b;
+}
+
+.sun-club-breakdown {
+  margin-top: 0.5rem;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.5);
+  border-radius: 8px;
+  border: 1px dashed #ff6b35;
+}
+
+.sun-club-breakdown-title {
+  font-weight: 600;
+  color: #ff6b35;
+  margin-bottom: 0.5rem;
+  font-size: 0.9em;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sun-club-breakdown-row {
+  display: flex;
+  justify-content: space-between;
+  padding: 0.35rem 0;
+  font-size: 0.9em;
+  color: #666;
+}
+
+.sun-club-breakdown-row span:last-child {
+  font-weight: 600;
+  color: #111;
+  font-family: var(--mono, 'Courier New', monospace);
+}
+
+.sun-club-link {
+  display: inline-block;
+  margin-top: 1rem;
+  padding: 0.65rem 1.25rem;
+  background: #ff6b35;
+  color: white;
+  text-decoration: none;
+  border-radius: 8px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  text-align: center;
+}
+
+.sun-club-link:hover {
+  background: #e55a28;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(255, 107, 53, 0.3);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   RESPONSIVE
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 768px) {
+  .sun-club-card {
+    padding: 1rem;
+    margin-top: 1.5rem;
+  }
+  
+  .sun-club-card h3 {
+    font-size: 1.1rem;
+  }
+  
+  .sun-club-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
+    padding: 0.65rem 0.85rem;
+  }
+  
+  .sun-club-row strong {
+    font-size: 1.25rem;
+  }
+  
+  .sun-club-breakdown {
+    padding: 0.75rem;
+  }
+  
+  .sun-club-link {
+    width: 100%;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   DARK MODE (si tu web tiene dark mode)
+   ═══════════════════════════════════════════════════════════════════ */
+
+@media (prefers-color-scheme: dark) {
+  .sun-club-option {
+    background: linear-gradient(135deg, #2d1f1a 0%, #3d2a20 100%);
+    border-color: #ff8355;
+  }
+  
+  .sun-club-card {
+    background: linear-gradient(135deg, #2d1f1a 0%, #3d2a20 100%);
+    border-color: #ff8355;
+  }
+  
+  .sun-club-card h3 {
+    color: #ff8355;
+  }
+  
+  .sun-club-row {
+    background: rgba(255, 255, 255, 0.05);
+    border-left-color: #ff8355;
+  }
+  
+  .sun-club-row:hover {
+    background: rgba(255, 255, 255, 0.08);
+  }
+  
+  .sun-club-row span:first-child {
+    color: #aaa;
+  }
+  
+  .sun-club-row strong {
+    color: #fff;
+  }
+  
+  .sun-club-detail {
+    background: rgba(255, 255, 255, 0.03);
+    color: #bbb;
+    border-left-color: #f59e0b;
+  }
+  
+  .sun-club-breakdown {
+    background: rgba(255, 255, 255, 0.03);
+    border-color: #ff8355;
+  }
+  
+  .sun-club-breakdown-title {
+    color: #ff8355;
+  }
+  
+  .sun-club-breakdown-row {
+    color: #aaa;
+  }
+  
+  .sun-club-breakdown-row span:last-child {
+    color: #fff;
+  }
+  
+  .sun-club-link {
+    background: #ff8355;
+  }
+  
+  .sun-club-link:hover {
+    background: #ff6b35;
+  }
+}

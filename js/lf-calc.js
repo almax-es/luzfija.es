@@ -336,6 +336,15 @@
     const max = preciosValidos.length ? Math.max(...preciosValidos) : null;
     const avg = preciosValidos.length ? (preciosValidos.reduce((a, b) => a + b, 0) / preciosValidos.length) : null;
 
+    // ⭐ SUN CLUB: Calcular si está marcado
+    const sunClubOn = document.getElementById('sunClubOn')?.checked;
+    if (sunClubOn) {
+      const resultadoSunClub = calcularSunClub(values || getInputValues());
+      window.LF.sunClubResult = resultadoSunClub;
+    } else {
+      window.LF.sunClubResult = null;
+    }
+
     window.LF.renderAll({
       success: true,
       resumen: {
@@ -351,11 +360,116 @@
     });
   }
 
+  // ===== CALCULAR SUN CLUB =====
+  function calcularSunClub(values) {
+    if (!window.LF_TARIFAS_ESPECIALES || !window.LF_TARIFAS_ESPECIALES.sunClub.activa) {
+      return null;
+    }
+    
+    if (!window.LF || !window.LF.consumosHorarios || window.LF.consumosHorarios.length === 0) {
+      return null;
+    }
+    
+    const SUN_CLUB = window.LF_TARIFAS_ESPECIALES.sunClub;
+    const { p1, p2, dias, zonaFiscal, viviendaCanarias } = values;
+    
+    // Calcular kWh en horas solares desde CSV
+    let kwhSolares = 0;
+    let kwhNormales = 0;
+    
+    window.LF.consumosHorarios.forEach(c => {
+      const horaInicio24h = c.hora - 1; // Convertir formato CNMC a hora inicio
+      const kwh = c.kwh || 0;
+      
+      if (horaInicio24h >= SUN_CLUB.horaInicio && horaInicio24h < SUN_CLUB.horaFin) {
+        kwhSolares += kwh;
+      } else {
+        kwhNormales += kwh;
+      }
+    });
+    
+    const consumoTotalKwh = kwhSolares + kwhNormales;
+    if (consumoTotalKwh === 0) return null;
+    
+    // Precios
+    const precioEnergia = SUN_CLUB.precios.energia;
+    
+    // Cálculo consumo (todo se paga al mismo precio base)
+    const consumoBase = consumoTotalKwh * precioEnergia;
+    
+    // Crédito descuento (45% sobre horas solares)
+    const creditoDescuento = round2(kwhSolares * precioEnergia * (SUN_CLUB.descuentoPct / 100));
+    
+    // Potencia
+    const potencia = round2((p1 * dias * SUN_CLUB.precios.p1) + (p2 * dias * SUN_CLUB.precios.p2));
+    
+    // Contexto fiscal
+    const fiscal = __LF_getFiscalContext({ 
+      p1, p2, dias, 
+      cPunta: precioEnergia, 
+      cLlano: precioEnergia, 
+      cValle: precioEnergia, 
+      zonaFiscal, 
+      viviendaCanarias 
+    });
+    
+    // Configuración
+    const CFG = window.LF_CONFIG;
+    const bonoSocialAnual = CFG.bonoSocial.eurosAnuales;
+    const tarifaAcceso = round2(bonoSocialAnual / 365 * dias);
+    const sumaBase = potencia + consumoBase + tarifaAcceso;
+    const impuestoElec = round2(Math.max((CFG.iee.porcentaje / 100) * sumaBase, consumoTotalKwh * CFG.iee.minimoEurosKwh));
+    const alquilerContador = round2(dias * CFG.alquilerContador.eurosMes * 12 / 365);
+    
+    // Impuestos por territorio
+    const terr = CFG.getTerritorio(fiscal.zona);
+    const impuestos = terr.impuestos;
+    
+    let totalAPagar;
+    let impuestosTotal;
+    
+    if (fiscal.esCanarias) {
+      const igicEnergia = fiscal.usoFiscal === 'vivienda' 
+        ? 0 
+        : round2((sumaBase + impuestoElec) * impuestos.energiaOtros);
+      const igicContador = round2(alquilerContador * impuestos.contador);
+      impuestosTotal = tarifaAcceso + impuestoElec + igicEnergia + igicContador + alquilerContador;
+      totalAPagar = round2(sumaBase + impuestoElec + igicEnergia + alquilerContador + igicContador);
+    } else if (fiscal.esCeutaMelilla) {
+      const ipsiEnergia = round2((sumaBase + impuestoElec) * impuestos.energia);
+      const ipsiContador = round2(alquilerContador * impuestos.contador);
+      impuestosTotal = tarifaAcceso + impuestoElec + ipsiEnergia + ipsiContador + alquilerContador;
+      totalAPagar = round2(sumaBase + impuestoElec + ipsiEnergia + alquilerContador + ipsiContador);
+    } else {
+      const ivaBase = potencia + consumoBase + tarifaAcceso + impuestoElec + alquilerContador;
+      const ivaCuota = round2(ivaBase * impuestos.energia);
+      impuestosTotal = tarifaAcceso + impuestoElec + alquilerContador + ivaCuota;
+      totalAPagar = round2(ivaBase + ivaCuota);
+    }
+    
+    const pctSolares = (kwhSolares / consumoTotalKwh) * 100;
+    
+    return {
+      nombre: SUN_CLUB.nombre,
+      aPagar: totalAPagar,
+      potencia: potencia,
+      consumo: round2(consumoBase),
+      impuestos: impuestosTotal,
+      credito: creditoDescuento,
+      kwhSolares: kwhSolares,
+      kwhNormales: kwhNormales,
+      kwhTotal: consumoTotalKwh,
+      pctSolares: pctSolares,
+      web: SUN_CLUB.web
+    };
+  }
+
   // ===== EXPORTAR =====
   window.LF = window.LF || {};
   Object.assign(window.LF, {
     getFvExcPrice,
-    calculateLocal
+    calculateLocal,
+    calcularSunClub
   });
 
   window.calculateLocal = calculateLocal;

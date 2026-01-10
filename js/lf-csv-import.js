@@ -684,6 +684,12 @@
 
     __csvCloseOnBackdrop = (e) => { if (e.target === modal) closeCSVModal(); };
     modal.addEventListener('click', __csvCloseOnBackdrop);
+    
+    // ⭐ SUN CLUB: Mostrar opción cuando se carga CSV
+    const sunClubOption = document.getElementById('sunClubOption');
+    if (sunClubOption) {
+      sunClubOption.style.display = 'block';
+    }
   }
 
   // ===== INIT CSV IMPORTER =====

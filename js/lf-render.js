@@ -363,6 +363,62 @@
     initTooltips();
   }
 
+  // ===== RENDER SUN CLUB CARD =====
+  function renderSunClubCard() {
+    // Limpiar tarjeta anterior si existe
+    const oldCard = document.querySelector('.sun-club-card');
+    if (oldCard) oldCard.remove();
+    
+    const result = window.LF.sunClubResult;
+    if (!result) return;
+    
+    const card = document.createElement('div');
+    card.className = 'sun-club-card';
+    card.innerHTML = `
+      <h3>⚡ Octopus Sun Club (cálculo especial)</h3>
+      <div class="sun-club-badge">📊 Calculado con tu CSV real</div>
+      
+      <div class="sun-club-info">
+        <div class="sun-club-row">
+          <span>💶 A pagar este mes:</span>
+          <strong>${formatMoney(result.aPagar)}</strong>
+        </div>
+        <div class="sun-club-row">
+          <span>💰 Crédito mes siguiente:</span>
+          <strong>${formatMoney(result.credito)}</strong>
+        </div>
+        <div class="sun-club-detail">
+          45% descuento sobre ${result.kwhSolares.toFixed(1)} kWh consumidos 12-18h
+          (${result.pctSolares.toFixed(1)}% de tu consumo total de ${result.kwhTotal.toFixed(1)} kWh)
+        </div>
+        <div class="sun-club-breakdown">
+          <div class="sun-club-breakdown-title">Desglose del mes:</div>
+          <div class="sun-club-breakdown-row">
+            <span>Potencia:</span>
+            <span>${formatMoney(result.potencia)}</span>
+          </div>
+          <div class="sun-club-breakdown-row">
+            <span>Consumo energía:</span>
+            <span>${formatMoney(result.consumo)}</span>
+          </div>
+          <div class="sun-club-breakdown-row">
+            <span>Impuestos:</span>
+            <span>${formatMoney(result.impuestos)}</span>
+          </div>
+        </div>
+        <a href="${escapeHtml(result.web)}" target="_blank" rel="noopener" class="sun-club-link">
+          🔗 Más información sobre Sun Club
+        </a>
+      </div>
+    `;
+    
+    // Insertar después de la sección de resultados
+    const seccionResultados = document.getElementById('seccionResultados');
+    if (seccionResultados) {
+      seccionResultados.appendChild(card);
+    }
+  }
+
   // ===== RENDER ALL =====
   function renderAll(d) {
     if (!d || !d.success) {
@@ -413,6 +469,7 @@
     renderTopChart();
     renderTable();
     renderPvpcInfo();
+    renderSunClubCard();
 
     if (window.innerWidth < 1100) {
       const sb = $('scrollToResults');
@@ -432,6 +489,7 @@
     renderTable,
     renderTopChart,
     renderPvpcInfo,
+    renderSunClubCard,
     renderAll
   });
 
