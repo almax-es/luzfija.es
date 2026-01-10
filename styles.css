@@ -4039,47 +4039,50 @@ html {
 }
 
 /*
- * ESTILOS CSS PARA SUN CLUB
- * 
- * Añadir estos estilos al archivo styles.css
- */
 
 /* ═══════════════════════════════════════════════════════════════════
-   CHECKBOX DE ACTIVACIÓN SUN CLUB
+   SUN CLUB - ESTILOS MEJORADOS PARA TEMA OSCURO
    ═══════════════════════════════════════════════════════════════════ */
 
 .sun-club-option {
   margin-top: 0.75rem;
-  padding: 0.75rem 1rem;
-  background: linear-gradient(135deg, #fff5f0 0%, #ffe8dc 100%);
-  border: 1px solid #ff6b35;
-  border-radius: 6px;
-  animation: slideDown 0.3s ease;
+  padding: 0.875rem 1.125rem;
+  background: rgba(255, 107, 53, 0.08);
+  border: 1px solid rgba(255, 107, 53, 0.25);
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
-@keyframes slideDown {
-  from {
-    opacity: 0;
-    transform: translateY(-10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+.sun-club-option:hover {
+  background: rgba(255, 107, 53, 0.12);
+  border-color: rgba(255, 107, 53, 0.35);
 }
 
 .sun-club-option .checkbox-label {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.625rem;
   margin: 0;
+  cursor: pointer;
+}
+
+.sun-club-option .checkbox-label span {
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 0.9375rem;
+  font-weight: 500;
 }
 
 .sun-club-option .tooltip {
   cursor: help;
-  color: #ff6b35;
-  font-weight: bold;
-  font-size: 1.1em;
+  color: #ff8866;
+  font-weight: 600;
+  font-size: 1em;
+  opacity: 0.8;
+  transition: opacity 0.2s;
+}
+
+.sun-club-option .tooltip:hover {
+  opacity: 1;
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -4088,15 +4091,15 @@ html {
 
 .sun-club-card {
   margin-top: 2rem;
-  padding: 1.5rem;
-  border: 2px solid #ff6b35;
-  border-radius: 12px;
-  background: linear-gradient(135deg, #fff5f0 0%, #ffe8dc 100%);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-  animation: fadeInUp 0.4s ease;
+  padding: 1.75rem;
+  background: linear-gradient(135deg, rgba(255, 107, 53, 0.06) 0%, rgba(255, 107, 53, 0.03) 100%);
+  border: 1.5px solid rgba(255, 107, 53, 0.3);
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  animation: sunClubFadeIn 0.4s ease;
 }
 
-@keyframes fadeInUp {
+@keyframes sunClubFadeIn {
   from {
     opacity: 0;
     transform: translateY(20px);
@@ -4109,115 +4112,123 @@ html {
 
 .sun-club-card h3 {
   margin: 0 0 1rem 0;
-  color: #ff6b35;
-  font-size: 1.25rem;
+  color: #ff8866;
+  font-size: 1.3rem;
   font-weight: 700;
+  letter-spacing: -0.01em;
 }
 
 .sun-club-badge {
   display: inline-block;
-  padding: 0.35rem 0.85rem;
-  background: #22c55e;
-  color: white;
-  border-radius: 16px;
-  font-size: 0.85rem;
+  padding: 0.4rem 0.9rem;
+  background: rgba(34, 197, 94, 0.15);
+  color: #4ade80;
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 20px;
+  font-size: 0.8125rem;
   font-weight: 600;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  letter-spacing: 0.01em;
 }
 
 .sun-club-info {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 0.875rem;
 }
 
 .sun-club-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.8);
-  border-radius: 8px;
-  border-left: 4px solid #ff6b35;
+  padding: 0.875rem 1.125rem;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  border-left: 3px solid rgba(255, 107, 53, 0.5);
   transition: all 0.2s ease;
 }
 
 .sun-club-row:hover {
-  background: rgba(255, 255, 255, 1);
-  transform: translateX(2px);
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.05);
+  transform: translateX(3px);
+  border-left-color: rgba(255, 107, 53, 0.8);
 }
 
 .sun-club-row span:first-child {
-  color: #666;
+  color: rgba(255, 255, 255, 0.7);
   font-weight: 500;
+  font-size: 0.9375rem;
 }
 
 .sun-club-row strong {
-  font-size: 1.15rem;
-  color: #111;
+  font-size: 1.25rem;
+  color: rgba(255, 255, 255, 0.95);
   font-weight: 700;
-  font-family: var(--mono, 'Courier New', monospace);
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
+  letter-spacing: -0.02em;
 }
 
 .sun-club-detail {
-  font-size: 0.9em;
-  color: #555;
-  font-style: italic;
-  padding: 0.75rem 1rem;
-  background: rgba(255, 255, 255, 0.6);
-  border-radius: 6px;
-  border-left: 3px solid #f59e0b;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.65);
+  font-style: normal;
+  padding: 0.875rem 1.125rem;
+  background: rgba(245, 158, 11, 0.08);
+  border-radius: 8px;
+  border-left: 3px solid rgba(245, 158, 11, 0.4);
+  line-height: 1.5;
 }
 
 .sun-club-breakdown {
-  margin-top: 0.5rem;
-  padding: 1rem;
-  background: rgba(255, 255, 255, 0.5);
-  border-radius: 8px;
-  border: 1px dashed #ff6b35;
+  margin-top: 0.625rem;
+  padding: 1rem 1.125rem;
+  background: rgba(255, 255, 255, 0.02);
+  border-radius: 10px;
+  border: 1px solid rgba(255, 107, 53, 0.2);
 }
 
 .sun-club-breakdown-title {
   font-weight: 600;
-  color: #ff6b35;
-  margin-bottom: 0.5rem;
-  font-size: 0.9em;
+  color: #ff8866;
+  margin-bottom: 0.625rem;
+  font-size: 0.8125rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.08em;
 }
 
 .sun-club-breakdown-row {
   display: flex;
   justify-content: space-between;
-  padding: 0.35rem 0;
-  font-size: 0.9em;
-  color: #666;
+  padding: 0.4rem 0;
+  font-size: 0.875rem;
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .sun-club-breakdown-row span:last-child {
   font-weight: 600;
-  color: #111;
-  font-family: var(--mono, 'Courier New', monospace);
+  color: rgba(255, 255, 255, 0.9);
+  font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
 }
 
 .sun-club-link {
   display: inline-block;
-  margin-top: 1rem;
-  padding: 0.65rem 1.25rem;
-  background: #ff6b35;
+  margin-top: 1.25rem;
+  padding: 0.75rem 1.5rem;
+  background: linear-gradient(135deg, #ff6b35 0%, #ff8555 100%);
   color: white;
   text-decoration: none;
-  border-radius: 8px;
+  border-radius: 10px;
   font-weight: 600;
+  font-size: 0.9375rem;
   transition: all 0.2s ease;
   text-align: center;
+  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.25);
 }
 
 .sun-club-link:hover {
-  background: #e55a28;
+  background: linear-gradient(135deg, #e55a28 0%, #ff6b35 100%);
   transform: translateY(-2px);
-  box-shadow: 0 4px 8px rgba(255, 107, 53, 0.3);
+  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.35);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -4225,99 +4236,123 @@ html {
    ═══════════════════════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
+  .sun-club-option {
+    padding: 0.75rem 1rem;
+  }
+  
+  .sun-club-option .checkbox-label span {
+    font-size: 0.875rem;
+  }
+  
   .sun-club-card {
-    padding: 1rem;
+    padding: 1.25rem;
     margin-top: 1.5rem;
   }
   
   .sun-club-card h3 {
-    font-size: 1.1rem;
+    font-size: 1.125rem;
   }
   
   .sun-club-row {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.25rem;
-    padding: 0.65rem 0.85rem;
+    gap: 0.375rem;
+    padding: 0.75rem 1rem;
+  }
+  
+  .sun-club-row span:first-child {
+    font-size: 0.875rem;
   }
   
   .sun-club-row strong {
-    font-size: 1.25rem;
+    font-size: 1.375rem;
   }
   
   .sun-club-breakdown {
-    padding: 0.75rem;
+    padding: 0.875rem 1rem;
   }
   
   .sun-club-link {
     width: 100%;
+    padding: 0.875rem 1.25rem;
   }
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   DARK MODE (si tu web tiene dark mode)
+   LIGHT MODE (si el usuario lo prefiere)
    ═══════════════════════════════════════════════════════════════════ */
 
-@media (prefers-color-scheme: dark) {
+@media (prefers-color-scheme: light) {
   .sun-club-option {
-    background: linear-gradient(135deg, #2d1f1a 0%, #3d2a20 100%);
-    border-color: #ff8355;
+    background: rgba(255, 107, 53, 0.06);
+    border-color: rgba(255, 107, 53, 0.2);
+  }
+  
+  .sun-club-option:hover {
+    background: rgba(255, 107, 53, 0.1);
+  }
+  
+  .sun-club-option .checkbox-label span {
+    color: #1e293b;
+  }
+  
+  .sun-club-option .tooltip {
+    color: #ff6b35;
   }
   
   .sun-club-card {
-    background: linear-gradient(135deg, #2d1f1a 0%, #3d2a20 100%);
-    border-color: #ff8355;
+    background: linear-gradient(135deg, #fff5f0 0%, #ffe8dc 100%);
+    border-color: rgba(255, 107, 53, 0.25);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   }
   
   .sun-club-card h3 {
-    color: #ff8355;
+    color: #ff6b35;
+  }
+  
+  .sun-club-badge {
+    background: rgba(34, 197, 94, 0.1);
+    color: #16a34a;
+    border-color: rgba(34, 197, 94, 0.2);
   }
   
   .sun-club-row {
-    background: rgba(255, 255, 255, 0.05);
-    border-left-color: #ff8355;
+    background: rgba(255, 255, 255, 0.6);
+    border-left-color: #ff6b35;
   }
   
   .sun-club-row:hover {
-    background: rgba(255, 255, 255, 0.08);
+    background: rgba(255, 255, 255, 0.9);
   }
   
   .sun-club-row span:first-child {
-    color: #aaa;
+    color: #64748b;
   }
   
   .sun-club-row strong {
-    color: #fff;
+    color: #0f172a;
   }
   
   .sun-club-detail {
-    background: rgba(255, 255, 255, 0.03);
-    color: #bbb;
+    background: rgba(245, 158, 11, 0.1);
+    color: #78350f;
     border-left-color: #f59e0b;
   }
   
   .sun-club-breakdown {
-    background: rgba(255, 255, 255, 0.03);
-    border-color: #ff8355;
+    background: rgba(255, 255, 255, 0.5);
+    border-color: rgba(255, 107, 53, 0.2);
   }
   
   .sun-club-breakdown-title {
-    color: #ff8355;
+    color: #ff6b35;
   }
   
   .sun-club-breakdown-row {
-    color: #aaa;
+    color: #64748b;
   }
   
   .sun-club-breakdown-row span:last-child {
-    color: #fff;
-  }
-  
-  .sun-club-link {
-    background: #ff8355;
-  }
-  
-  .sun-club-link:hover {
-    background: #ff6b35;
+    color: #0f172a;
   }
 }
