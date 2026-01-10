@@ -337,7 +337,14 @@
     const avg = preciosValidos.length ? (preciosValidos.reduce((a, b) => a + b, 0) / preciosValidos.length) : null;
     // ⭐ SUN CLUB: Calcular si está marcado (estado guardado cuando se aplicó el CSV)
     window.LF = window.LF || {};
-    const sunClubOn = window.LF.sunClubEnabled === true;
+    
+    // Si sunClubEnabled está activo pero no hay consumosHorarios, desactivarlo
+    const tieneConsumosHorarios = Array.isArray(window.LF.consumosHorarios) && window.LF.consumosHorarios.length > 0;
+    if (window.LF.sunClubEnabled === true && !tieneConsumosHorarios) {
+      window.LF.sunClubEnabled = false;
+    }
+    
+    const sunClubOn = window.LF.sunClubEnabled === true && tieneConsumosHorarios;
 
     if (sunClubOn) {
       if (isCeutaMelilla) {

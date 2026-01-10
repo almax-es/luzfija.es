@@ -1541,6 +1541,12 @@
       }
 
       function __LF_applyValues(){
+        // Limpiar datos de CSV/Sun Club al aplicar factura
+        if (window.LF) {
+          window.LF.sunClubEnabled = false;
+          window.LF.consumosHorarios = null;
+        }
+        
         const v = {
           p1: __LF_normNum(__LF_q('val_p1')?.value),
           p2: __LF_normNum(__LF_q('val_p2')?.value),
