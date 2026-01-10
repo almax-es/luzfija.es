@@ -493,9 +493,12 @@
     el.toolbar.classList.add('show');
 
     renderTopChart();
-    renderTable();
     renderPvpcInfo();
-    renderSunClubCard();
+    
+    // Esperar a que la tabla termine de renderizarse antes de Sun Club
+    renderTable().then(() => {
+      renderSunClubCard();
+    });
 
     if (window.innerWidth < 1100) {
       const sb = $('scrollToResults');
