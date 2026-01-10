@@ -4041,61 +4041,16 @@ html {
 /*
 
 /* ═══════════════════════════════════════════════════════════════════
-   SUN CLUB - ESTILOS MEJORADOS PARA TEMA OSCURO
-   ═══════════════════════════════════════════════════════════════════ */
-
-.sun-club-option {
-  margin-top: 0.75rem;
-  padding: 0.875rem 1.125rem;
-  background: rgba(255, 107, 53, 0.08);
-  border: 1px solid rgba(255, 107, 53, 0.25);
-  border-radius: 8px;
-  transition: all 0.2s ease;
-}
-
-.sun-club-option:hover {
-  background: rgba(255, 107, 53, 0.12);
-  border-color: rgba(255, 107, 53, 0.35);
-}
-
-.sun-club-option .checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 0.625rem;
-  margin: 0;
-  cursor: pointer;
-}
-
-.sun-club-option .checkbox-label span {
-  color: rgba(255, 255, 255, 0.95);
-  font-size: 0.9375rem;
-  font-weight: 500;
-}
-
-.sun-club-option .tooltip {
-  cursor: help;
-  color: #ff8866;
-  font-weight: 600;
-  font-size: 1em;
-  opacity: 0.8;
-  transition: opacity 0.2s;
-}
-
-.sun-club-option .tooltip:hover {
-  opacity: 1;
-}
-
-/* ═══════════════════════════════════════════════════════════════════
-   TARJETA DE RESULTADOS SUN CLUB
+   SUN CLUB - TARJETA DE RESULTADOS
    ═══════════════════════════════════════════════════════════════════ */
 
 .sun-club-card {
   margin-top: 2rem;
   padding: 1.75rem;
-  background: linear-gradient(135deg, rgba(255, 107, 53, 0.06) 0%, rgba(255, 107, 53, 0.03) 100%);
-  border: 1.5px solid rgba(255, 107, 53, 0.3);
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.06) 0%, rgba(16, 185, 129, 0.03) 100%);
+  border: 1.5px solid rgba(16, 185, 129, 0.25);
   border-radius: 16px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   animation: sunClubFadeIn 0.4s ease;
 }
 
@@ -4112,7 +4067,7 @@ html {
 
 .sun-club-card h3 {
   margin: 0 0 1rem 0;
-  color: #ff8866;
+  color: #10b981;
   font-size: 1.3rem;
   font-weight: 700;
   letter-spacing: -0.01em;
@@ -4144,14 +4099,14 @@ html {
   padding: 0.875rem 1.125rem;
   background: rgba(255, 255, 255, 0.03);
   border-radius: 10px;
-  border-left: 3px solid rgba(255, 107, 53, 0.5);
+  border-left: 3px solid rgba(16, 185, 129, 0.6);
   transition: all 0.2s ease;
 }
 
 .sun-club-row:hover {
   background: rgba(255, 255, 255, 0.05);
   transform: translateX(3px);
-  border-left-color: rgba(255, 107, 53, 0.8);
+  border-left-color: rgba(16, 185, 129, 0.9);
 }
 
 .sun-club-row span:first-child {
@@ -4184,12 +4139,12 @@ html {
   padding: 1rem 1.125rem;
   background: rgba(255, 255, 255, 0.02);
   border-radius: 10px;
-  border: 1px solid rgba(255, 107, 53, 0.2);
+  border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .sun-club-breakdown-title {
   font-weight: 600;
-  color: #ff8866;
+  color: #10b981;
   margin-bottom: 0.625rem;
   font-size: 0.8125rem;
   text-transform: uppercase;
@@ -4214,7 +4169,7 @@ html {
   display: inline-block;
   margin-top: 1.25rem;
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #ff6b35 0%, #ff8555 100%);
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   color: white;
   text-decoration: none;
   border-radius: 10px;
@@ -4222,13 +4177,13 @@ html {
   font-size: 0.9375rem;
   transition: all 0.2s ease;
   text-align: center;
-  box-shadow: 0 4px 12px rgba(255, 107, 53, 0.25);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.25);
 }
 
 .sun-club-link:hover {
-  background: linear-gradient(135deg, #e55a28 0%, #ff6b35 100%);
+  background: linear-gradient(135deg, #059669 0%, #047857 100%);
   transform: translateY(-2px);
-  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.35);
+  box-shadow: 0 6px 20px rgba(16, 185, 129, 0.35);
 }
 
 /* ═══════════════════════════════════════════════════════════════════
@@ -4236,14 +4191,6 @@ html {
    ═══════════════════════════════════════════════════════════════════ */
 
 @media (max-width: 768px) {
-  .sun-club-option {
-    padding: 0.75rem 1rem;
-  }
-  
-  .sun-club-option .checkbox-label span {
-    font-size: 0.875rem;
-  }
-  
   .sun-club-card {
     padding: 1.25rem;
     margin-top: 1.5rem;
@@ -4279,50 +4226,33 @@ html {
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   LIGHT MODE (si el usuario lo prefiere)
+   LIGHT MODE
    ═══════════════════════════════════════════════════════════════════ */
 
 @media (prefers-color-scheme: light) {
-  .sun-club-option {
-    background: rgba(255, 107, 53, 0.06);
-    border-color: rgba(255, 107, 53, 0.2);
-  }
-  
-  .sun-club-option:hover {
-    background: rgba(255, 107, 53, 0.1);
-  }
-  
-  .sun-club-option .checkbox-label span {
-    color: #1e293b;
-  }
-  
-  .sun-club-option .tooltip {
-    color: #ff6b35;
-  }
-  
   .sun-club-card {
-    background: linear-gradient(135deg, #fff5f0 0%, #ffe8dc 100%);
-    border-color: rgba(255, 107, 53, 0.25);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(16, 185, 129, 0.04) 100%);
+    border-color: rgba(16, 185, 129, 0.3);
     box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
   }
   
   .sun-club-card h3 {
-    color: #ff6b35;
+    color: #059669;
   }
   
   .sun-club-badge {
-    background: rgba(34, 197, 94, 0.1);
+    background: rgba(34, 197, 94, 0.12);
     color: #16a34a;
-    border-color: rgba(34, 197, 94, 0.2);
+    border-color: rgba(34, 197, 94, 0.25);
   }
   
   .sun-club-row {
-    background: rgba(255, 255, 255, 0.6);
-    border-left-color: #ff6b35;
+    background: rgba(255, 255, 255, 0.7);
+    border-left-color: #10b981;
   }
   
   .sun-club-row:hover {
-    background: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.95);
   }
   
   .sun-club-row span:first-child {
@@ -4340,12 +4270,12 @@ html {
   }
   
   .sun-club-breakdown {
-    background: rgba(255, 255, 255, 0.5);
-    border-color: rgba(255, 107, 53, 0.2);
+    background: rgba(255, 255, 255, 0.6);
+    border-color: rgba(16, 185, 129, 0.25);
   }
   
   .sun-club-breakdown-title {
-    color: #ff6b35;
+    color: #059669;
   }
   
   .sun-club-breakdown-row {

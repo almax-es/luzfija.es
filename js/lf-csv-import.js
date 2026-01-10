@@ -538,6 +538,18 @@
         </div>
       </div>
       ${excedenteHTML}
+      
+      <div style="margin-top: 16px; padding: 14px 16px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px;">
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;">
+          <input type="checkbox" id="csvCalcularSunClub" style="cursor: pointer; width: 18px; height: 18px; accent-color: #10b981;">
+          <span style="font-size: 14px; color: var(--text); font-weight: 600; flex: 1;">⚡ Calcular Octopus Sun Club</span>
+          <span style="font-size: 11px; color: var(--muted2); background: rgba(16, 185, 129, 0.15); padding: 3px 8px; border-radius: 4px; font-weight: 600;">45% dto. 12-18h</span>
+        </label>
+        <p style="margin: 8px 0 0 28px; font-size: 12px; color: var(--muted2); line-height: 1.4;">
+          Se calculará automáticamente con tus datos horarios reales. El descuento se aplica mes siguiente.
+        </p>
+      </div>
+      
       <div style="margin-top: 20px;">
         <button id="btnAplicarCSV" class="btn primary" type="button" style="width: 100%;"><span id="btnAplicarTexto">✓ Aplicar consumos</span></button>
       </div>
@@ -684,12 +696,6 @@
 
     __csvCloseOnBackdrop = (e) => { if (e.target === modal) closeCSVModal(); };
     modal.addEventListener('click', __csvCloseOnBackdrop);
-    
-    // ⭐ SUN CLUB: Mostrar opción cuando se carga CSV
-    const sunClubOption = document.getElementById('sunClubOption');
-    if (sunClubOption) {
-      sunClubOption.style.display = 'block';
-    }
   }
 
   // ===== INIT CSV IMPORTER =====

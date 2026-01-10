@@ -365,12 +365,23 @@
 
   // ===== RENDER SUN CLUB CARD =====
   function renderSunClubCard() {
+    console.log('[Sun Club] Intentando renderizar tarjeta...');
+    console.log('[Sun Club] window.LF.sunClubResult:', window.LF?.sunClubResult);
+    
     // Limpiar tarjeta anterior si existe
     const oldCard = document.querySelector('.sun-club-card');
-    if (oldCard) oldCard.remove();
+    if (oldCard) {
+      console.log('[Sun Club] Eliminando tarjeta anterior');
+      oldCard.remove();
+    }
     
     const result = window.LF.sunClubResult;
-    if (!result) return;
+    if (!result) {
+      console.log('[Sun Club] No hay resultado, no se renderiza tarjeta');
+      return;
+    }
+    
+    console.log('[Sun Club] ✅ Renderizando tarjeta con:', result);
     
     const card = document.createElement('div');
     card.className = 'sun-club-card';
@@ -416,6 +427,9 @@
     const seccionResultados = document.getElementById('seccionResultados');
     if (seccionResultados) {
       seccionResultados.appendChild(card);
+      console.log('[Sun Club] ✅ Tarjeta añadida al DOM');
+    } else {
+      console.error('[Sun Club] ❌ No se encontró #seccionResultados');
     }
   }
 

@@ -337,12 +337,16 @@
     const avg = preciosValidos.length ? (preciosValidos.reduce((a, b) => a + b, 0) / preciosValidos.length) : null;
 
     // ⭐ SUN CLUB: Calcular si está marcado
-    const sunClubOn = document.getElementById('sunClubOn')?.checked;
+    const sunClubOn = document.getElementById('csvCalcularSunClub')?.checked;
+    console.log('[Sun Club] Checkbox marcado:', sunClubOn);
+    
     if (sunClubOn) {
       const resultadoSunClub = calcularSunClub(values || getInputValues());
       window.LF.sunClubResult = resultadoSunClub;
+      console.log('[Sun Club] Resultado guardado en window.LF.sunClubResult:', resultadoSunClub);
     } else {
       window.LF.sunClubResult = null;
+      console.log('[Sun Club] Checkbox no marcado, resultado = null');
     }
 
     window.LF.renderAll({
@@ -362,11 +366,17 @@
 
   // ===== CALCULAR SUN CLUB =====
   function calcularSunClub(values) {
+    console.log('[Sun Club] Iniciando cálculo...', values);
+    
     if (!window.LF_TARIFAS_ESPECIALES || !window.LF_TARIFAS_ESPECIALES.sunClub.activa) {
+      console.warn('[Sun Club] No está configurada o no está activa');
       return null;
     }
     
     if (!window.LF || !window.LF.consumosHorarios || window.LF.consumosHorarios.length === 0) {
+      console.warn('[Sun Club] No hay datos horarios del CSV. Necesitas subir un CSV primero.');
+      console.log('[Sun Club] window.LF:', window.LF);
+      console.log('[Sun Club] consumosHorarios:', window.LF?.consumosHorarios);
       return null;
     }
     
@@ -449,7 +459,7 @@
     
     const pctSolares = (kwhSolares / consumoTotalKwh) * 100;
     
-    return {
+    const resultado = {
       nombre: SUN_CLUB.nombre,
       aPagar: totalAPagar,
       potencia: potencia,
@@ -462,6 +472,9 @@
       pctSolares: pctSolares,
       web: SUN_CLUB.web
     };
+    
+    console.log('[Sun Club] ✅ Cálculo completado:', resultado);
+    return resultado;
   }
 
   // ===== EXPORTAR =====
