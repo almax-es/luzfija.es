@@ -365,30 +365,42 @@
 
   // ===== RENDER SUN CLUB CARD =====
   function renderSunClubCard() {
-    console.log('[Sun Club] Intentando renderizar tarjeta...');
-    console.log('[Sun Club] window.LF.sunClubResult:', window.LF?.sunClubResult);
-    
     // Limpiar tarjeta anterior si existe
     const oldCard = document.querySelector('.sun-club-card');
-    if (oldCard) {
-      console.log('[Sun Club] Eliminando tarjeta anterior');
-      oldCard.remove();
-    }
-    
-    const result = window.LF.sunClubResult;
-    if (!result) {
-      console.log('[Sun Club] No hay resultado, no se renderiza tarjeta');
-      return;
-    }
-    
-    console.log('[Sun Club] ✅ Renderizando tarjeta con:', result);
-    
+    if (oldCard) oldCard.remove();
+
+    const result = window.LF?.sunClubResult;
+    if (!result) return;
+
     const card = document.createElement('div');
     card.className = 'sun-club-card';
+
+    // Caso especial: tarifa no disponible en territorio
+    if (result.unavailable) {
+      card.innerHTML = `
+        <h3>⚡ Octopus Sun Club (cálculo especial)</h3>
+        <div class="sun-club-badge">📊 Calculado con tu CSV real</div>
+
+        <div class="sun-club-unavailable">
+          ${escapeHtml(result.message || 'Sun Club no disponible en tu territorio')}
+        </div>
+
+        ${result.web ? `
+          <a href="${escapeHtml(result.web)}" target="_blank" rel="noopener" class="sun-club-link">
+            🔗 Más información sobre Sun Club
+          </a>
+        ` : ''}
+      `;
+
+      const seccionResultados = document.getElementById('seccionResultados');
+      if (seccionResultados) seccionResultados.appendChild(card);
+      return;
+    }
+
     card.innerHTML = `
       <h3>⚡ Octopus Sun Club (cálculo especial)</h3>
       <div class="sun-club-badge">📊 Calculado con tu CSV real</div>
-      
+
       <div class="sun-club-info">
         <div class="sun-club-row">
           <span>💶 A pagar este mes:</span>
@@ -401,6 +413,9 @@
         <div class="sun-club-detail">
           45% descuento sobre ${result.kwhSolares.toFixed(1)} kWh consumidos 12-18h
           (${result.pctSolares.toFixed(1)}% de tu consumo total de ${result.kwhTotal.toFixed(1)} kWh)
+        </div>
+        <div class="sun-club-note">
+          ⚠️ Sun Club no es compatible con compensación de excedentes (Solar Wallet).
         </div>
         <div class="sun-club-breakdown">
           <div class="sun-club-breakdown-title">Desglose del mes:</div>
@@ -422,14 +437,11 @@
         </a>
       </div>
     `;
-    
+
     // Insertar después de la sección de resultados
     const seccionResultados = document.getElementById('seccionResultados');
     if (seccionResultados) {
       seccionResultados.appendChild(card);
-      console.log('[Sun Club] ✅ Tarjeta añadida al DOM');
-    } else {
-      console.error('[Sun Club] ❌ No se encontró #seccionResultados');
     }
   }
 

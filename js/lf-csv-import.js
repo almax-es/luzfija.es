@@ -356,7 +356,6 @@
           // ⭐ SUN CLUB: Guardar consumos horarios
           window.LF = window.LF || {};
           window.LF.consumosHorarios = consumos;
-          console.log('[Sun Club] Consumos horarios guardados:', consumos.length, 'registros');
           
           const resultado = clasificarConsumosPorPeriodo(consumos);
           resultado.formato = 'CSV';
@@ -385,7 +384,6 @@
           // ⭐ SUN CLUB: Guardar consumos horarios
           window.LF = window.LF || {};
           window.LF.consumosHorarios = consumos;
-          console.log('[Sun Club] Consumos horarios guardados:', consumos.length, 'registros');
           
           const resultado = clasificarConsumosPorPeriodo(consumos);
           resultado.formato = 'XLSX';
@@ -401,6 +399,11 @@
 
   // ===== MODAL PREVIEW =====
   function mostrarPreviewCSV(resultado) {
+    // ⭐ SUN CLUB: Guardar estado previo (cerrar sin aplicar no cambia nada)
+    window.LF = window.LF || {};
+    const __prevSunClubEnabled = window.LF.sunClubEnabled === true;
+    const __sunClubCheckedAttr = __prevSunClubEnabled ? 'checked' : '';
+
     const modal = document.createElement('div');
     modal.className = 'modal-overlay show';
     modal.setAttribute('role', 'dialog');
@@ -553,7 +556,7 @@
       
       <div style="margin-top: 16px; padding: 14px 16px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px;">
         <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;">
-          <input type="checkbox" id="csvCalcularSunClub" style="cursor: pointer; width: 18px; height: 18px; accent-color: #10b981;">
+          <input type="checkbox" id="csvCalcularSunClub" ${__sunClubCheckedAttr} style="cursor: pointer; width: 18px; height: 18px; accent-color: #10b981;">
           <span style="font-size: 14px; color: var(--text); font-weight: 600; flex: 1;">⚡ Calcular Octopus Sun Club</span>
           <span style="font-size: 11px; color: var(--muted2); background: rgba(16, 185, 129, 0.15); padding: 3px 8px; border-radius: 4px; font-weight: 600;">45% dto. 12-18h</span>
         </label>
@@ -591,14 +594,16 @@
       }
     };
     
-    // ⭐ SUN CLUB: Resetear estado si se cierra con X (sin aplicar)
-    btnCerrarX?.addEventListener('click', () => {
-      if (window.LF) {
-        window.LF.sunClubEnabled = false;
-        console.log('[Sun Club] Modal cerrado sin aplicar, estado reseteado');
-      }
+    // ⭐ SUN CLUB: Cerrar sin aplicar (X/Escape/backdrop) => no cambia el estado
+    const cancelCSVModal = () => {
+      window.LF = window.LF || {};
+      window.LF.sunClubEnabled = __prevSunClubEnabled;
       closeCSVModal();
-    });
+    };
+    
+    
+    // ⭐ SUN CLUB: Cerrar con X (sin aplicar)
+    btnCerrarX?.addEventListener('click', cancelCSVModal);
 
     // Foco inicial (botón cerrar)
     setTimeout(() => {
@@ -667,7 +672,6 @@
         if (sunClubCheckbox) {
           window.LF = window.LF || {};
           window.LF.sunClubEnabled = sunClubCheckbox.checked;
-          console.log('[Sun Club] Estado guardado:', window.LF.sunClubEnabled);
         } else {
           if (window.LF) window.LF.sunClubEnabled = false;
         }
@@ -720,10 +724,10 @@
       });
     }
 
-    __csvCloseOnEsc = (e) => { if (e.key === 'Escape') closeCSVModal(); };
+    __csvCloseOnEsc = (e) => { if (e.key === 'Escape') cancelCSVModal(); };
     document.addEventListener('keydown', __csvCloseOnEsc);
 
-    __csvCloseOnBackdrop = (e) => { if (e.target === modal) closeCSVModal(); };
+    __csvCloseOnBackdrop = (e) => { if (e.target === modal) cancelCSVModal(); };
     modal.addEventListener('click', __csvCloseOnBackdrop);
   }
 

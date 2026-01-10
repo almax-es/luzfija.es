@@ -4134,6 +4134,28 @@ html {
   line-height: 1.5;
 }
 
+.sun-club-note {
+  margin-top: 0.75rem;
+  padding: 0.75rem 1.125rem;
+  background: rgba(245, 158, 11, 0.08);
+  border: 1px solid rgba(245, 158, 11, 0.22);
+  border-radius: 10px;
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.8);
+  line-height: 1.45;
+}
+
+.sun-club-unavailable {
+  margin-top: 0.75rem;
+  padding: 0.875rem 1.125rem;
+  background: rgba(245, 158, 11, 0.10);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  border-radius: 10px;
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+}
+
 .sun-club-breakdown {
   margin-top: 0.625rem;
   padding: 1rem 1.125rem;

@@ -335,20 +335,23 @@
     const min = preciosValidos.length ? Math.min(...preciosValidos) : null;
     const max = preciosValidos.length ? Math.max(...preciosValidos) : null;
     const avg = preciosValidos.length ? (preciosValidos.reduce((a, b) => a + b, 0) / preciosValidos.length) : null;
-
     // ⭐ SUN CLUB: Calcular si está marcado (estado guardado cuando se aplicó el CSV)
-    const sunClubOn = window.LF?.sunClubEnabled || false;
-    console.log('[Sun Club] Estado guardado:', sunClubOn);
-    
+    window.LF = window.LF || {};
+    const sunClubOn = window.LF.sunClubEnabled === true;
+
     if (sunClubOn) {
-      const resultadoSunClub = calcularSunClub(values || getInputValues());
-      window.LF.sunClubResult = resultadoSunClub;
-      console.log('[Sun Club] Resultado guardado en window.LF.sunClubResult:', resultadoSunClub);
+      if (isCeutaMelilla) {
+        window.LF.sunClubResult = {
+          unavailable: true,
+          message: 'Sun Club no disponible en Ceuta/Melilla',
+          web: window.LF_TARIFAS_ESPECIALES?.sunClub?.web || ''
+        };
+      } else {
+        window.LF.sunClubResult = calcularSunClub(values || getInputValues());
+      }
     } else {
       window.LF.sunClubResult = null;
-      console.log('[Sun Club] Checkbox no marcado, resultado = null');
     }
-
     window.LF.renderAll({
       success: true,
       resumen: {
@@ -366,17 +369,12 @@
 
   // ===== CALCULAR SUN CLUB =====
   function calcularSunClub(values) {
-    console.log('[Sun Club] Iniciando cálculo...', values);
     
     if (!window.LF_TARIFAS_ESPECIALES || !window.LF_TARIFAS_ESPECIALES.sunClub.activa) {
-      console.warn('[Sun Club] No está configurada o no está activa');
       return null;
     }
     
     if (!window.LF || !window.LF.consumosHorarios || window.LF.consumosHorarios.length === 0) {
-      console.warn('[Sun Club] No hay datos horarios del CSV. Necesitas subir un CSV primero.');
-      console.log('[Sun Club] window.LF:', window.LF);
-      console.log('[Sun Club] consumosHorarios:', window.LF?.consumosHorarios);
       return null;
     }
     
@@ -473,7 +471,6 @@
       web: SUN_CLUB.web
     };
     
-    console.log('[Sun Club] ✅ Cálculo completado:', resultado);
     return resultado;
   }
 
