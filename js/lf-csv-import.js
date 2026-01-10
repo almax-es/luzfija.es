@@ -579,7 +579,14 @@
       }
     };
     
-    btnCerrarX?.addEventListener('click', closeCSVModal);
+    // ⭐ SUN CLUB: Resetear estado si se cierra con X (sin aplicar)
+    btnCerrarX?.addEventListener('click', () => {
+      if (window.LF) {
+        window.LF.sunClubEnabled = false;
+        console.log('[Sun Club] Modal cerrado sin aplicar, estado reseteado');
+      }
+      closeCSVModal();
+    });
 
     // Foco inicial (botón cerrar)
     setTimeout(() => {
@@ -641,6 +648,16 @@
             const exTotalInput = document.getElementById('exTotal');
             if (exTotalInput) { exTotalInput.value = ''; exTotalInput.dispatchEvent(new Event('input', { bubbles: true })); }
           }, 100);
+        }
+
+        // ⭐ SUN CLUB: Guardar estado del checkbox antes de cerrar el modal
+        const sunClubCheckbox = document.getElementById('csvCalcularSunClub');
+        if (sunClubCheckbox) {
+          window.LF = window.LF || {};
+          window.LF.sunClubEnabled = sunClubCheckbox.checked;
+          console.log('[Sun Club] Estado guardado:', window.LF.sunClubEnabled);
+        } else {
+          if (window.LF) window.LF.sunClubEnabled = false;
         }
 
         closeCSVModal();

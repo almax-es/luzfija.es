@@ -336,9 +336,9 @@
     const max = preciosValidos.length ? Math.max(...preciosValidos) : null;
     const avg = preciosValidos.length ? (preciosValidos.reduce((a, b) => a + b, 0) / preciosValidos.length) : null;
 
-    // ⭐ SUN CLUB: Calcular si está marcado
-    const sunClubOn = document.getElementById('csvCalcularSunClub')?.checked;
-    console.log('[Sun Club] Checkbox marcado:', sunClubOn);
+    // ⭐ SUN CLUB: Calcular si está marcado (estado guardado cuando se aplicó el CSV)
+    const sunClubOn = window.LF?.sunClubEnabled || false;
+    console.log('[Sun Club] Estado guardado:', sunClubOn);
     
     if (sunClubOn) {
       const resultadoSunClub = calcularSunClub(values || getInputValues());
