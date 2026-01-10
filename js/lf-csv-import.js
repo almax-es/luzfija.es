@@ -352,6 +352,12 @@
             reject(new Error('No se encontraron datos válidos en el CSV'));
             return;
           }
+          
+          // ⭐ SUN CLUB: Guardar consumos horarios
+          window.LF = window.LF || {};
+          window.LF.consumosHorarios = consumos;
+          console.log('[Sun Club] Consumos horarios guardados:', consumos.length, 'registros');
+          
           const resultado = clasificarConsumosPorPeriodo(consumos);
           resultado.formato = 'CSV';
           resolve(resultado);
@@ -375,6 +381,12 @@
             reject(new Error('No se encontraron datos válidos en el Excel'));
             return;
           }
+          
+          // ⭐ SUN CLUB: Guardar consumos horarios
+          window.LF = window.LF || {};
+          window.LF.consumosHorarios = consumos;
+          console.log('[Sun Club] Consumos horarios guardados:', consumos.length, 'registros');
+          
           const resultado = clasificarConsumosPorPeriodo(consumos);
           resultado.formato = 'XLSX';
           resolve(resultado);
