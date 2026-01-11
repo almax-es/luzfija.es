@@ -56,7 +56,7 @@ Herramienta **gratuita**, **sin publicidad** y **de código abierto** para compa
 - Validación de fechas en zona horaria Madrid
 
 ### 📚 Guías Educativas
-21 guías completas sobre:
+20 guías completas sobre:
 - Cómo leer tu factura paso a paso
 - Qué es P1, P2 y P3
 - PVPC vs mercado libre
@@ -249,7 +249,7 @@ luzfija.es/
 │   ├── tessdata/              # Language data español (~2 MB, lazy loading)
 │   └── xlsx/                  # SheetJS (~1 MB, lazy loading)
 │
-├── guias/                      # 21 guías educativas HTML
+├── guias/                      # 20 guías educativas HTML
 │
 ├── favicon.svg / .png / .ico   # Favicons
 ├── og.png / og.svg             # Open Graph
@@ -327,7 +327,7 @@ luzfija.es/
 ## 📊 Métricas del Proyecto
 
 ### Archivos
-- 32 archivos HTML (11 páginas + 21 guías)
+- 31 archivos HTML (11 páginas + 20 guías)
 - 10+ módulos JavaScript
 - 3 archivos CSS (incluye fonts.css)
 - 1 base de datos JSON (tarifas)

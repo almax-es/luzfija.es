@@ -57,7 +57,7 @@ Privacidad: Todo el procesamiento se realiza localmente en el navegador. Los PDF
 
 ## Guías educativas
 
-LuzFija.es incluye 21 guías prácticas sobre electricidad y ahorro:
+LuzFija.es incluye 20 guías prácticas sobre electricidad y ahorro:
 
 - Cómo leer tu factura de la luz paso a paso
 - Qué es P1, P2 y P3 en tu factura
