@@ -421,7 +421,7 @@
     /* Estado CON RESULTADOS: Grid 2 columnas */
     .grid.has-results {
       display: grid;
-      grid-template-columns: 400px 1fr;
+      grid-template-columns: 440px 1fr;
       justify-content: start;
     }
     
