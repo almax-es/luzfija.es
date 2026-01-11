@@ -51,6 +51,7 @@ Herramienta **gratuita**, **sin publicidad** y **de código abierto** para compa
   - Aplica horarios según RD 148/2021
 - Maneja datos reales y estimados
 - Extrae automáticamente: días, consumo punta/llano/valle
+- **⚡ Octopus Sun Club**: Análisis especializado para tarifa Sun Club con consumos horarios
 - **Auto-cálculo**: Calcula automáticamente tras aplicar datos
 - Validación de fechas en zona horaria Madrid
 
@@ -84,6 +85,7 @@ Herramienta **gratuita**, **sin publicidad** y **de código abierto** para compa
 **Básicos:**
 - Potencia contratada **P1** y **P2** (kW)
 - **Días** de facturación (1–365)
+- **Zona fiscal**: Península/Baleares, Canarias, o Ceuta/Melilla (diferentes impuestos)
 - Consumo por periodos (kWh):
   - **Punta** (10h–14h y 18h–22h laborables)
   - **Llano** (8h–10h, 14h–18h, 22h–24h laborables)
@@ -116,7 +118,7 @@ Herramienta **gratuita**, **sin publicidad** y **de código abierto** para compa
 
 **Impuestos:**
 - Impuesto eléctrico (5,1127%)
-- IVA (21%)
+- IVA: 21% (Península/Baleares), 7% (Canarias), 0% (Ceuta/Melilla)
 - Alquiler contador (~0,81€/mes)
 
 > **Nota**: Es una **estimación orientativa**. La factura real puede variar por redondeos, condiciones contractuales, cambios regulatorios y otros conceptos específicos de cada comercializadora.

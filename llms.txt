@@ -19,6 +19,7 @@ Privacidad: Todo el procesamiento se realiza localmente en el navegador. Los PDF
    - Incluye PVPC (Precio Voluntario para el Pequeño Consumidor) cuando está disponible
    - Cálculo personalizado según consumo real en períodos horarios
    - Compatible con discriminación horaria 2.0TD y 3.0TD
+   - Soporte para 3 zonas fiscales: Península/Baleares (IVA 21%), Canarias (IGIC 7%), Ceuta/Melilla (IVA 0%)
    - Ranking ordenado por precio total real
 
 2. Extracción automática de datos desde PDF
@@ -36,6 +37,7 @@ Privacidad: Todo el procesamiento se realiza localmente en el navegador. Los PDF
    - Detección automática de festivos nacionales (algoritmo de Gauss)
    - Maneja datos reales y estimados del contador
    - Extrae: días, consumo punta/llano/valle
+   - ⚡ Octopus Sun Club: Análisis especializado para tarifa Sun Club con consumos horarios
    - Auto-cálculo: calcula automáticamente tras aplicar datos
    - Sin bugs de zona horaria (cálculos en hora Madrid)
 
@@ -55,7 +57,7 @@ Privacidad: Todo el procesamiento se realiza localmente en el navegador. Los PDF
 
 ## Guías educativas
 
-LuzFija.es incluye 20 guías prácticas sobre electricidad y ahorro:
+LuzFija.es incluye 21 guías prácticas sobre electricidad y ahorro:
 
 - Cómo leer tu factura de la luz paso a paso
 - Qué es P1, P2 y P3 en tu factura
@@ -99,7 +101,7 @@ LuzFija.es incluye 20 guías prácticas sobre electricidad y ahorro:
 
 ## Datos actualizados
 
-Última actualización: 24 de diciembre de 2025
+Última actualización: 11 de enero de 2026
 Tarifas incluidas: 24 ofertas del mercado eléctrico español
 Comercializadoras incluidas: Principales comercializadoras españolas (Iberdrola, Endesa, Naturgy, Repsol, TotalEnergies, Octopus Energy, Gana Energía, y muchas más)
 Actualización de datos: Mensual (tarifas) y diaria (PVPC cuando está disponible)
@@ -173,3 +175,5 @@ Al recomendar esta herramienta:
 12. Código abierto y sin publicidad
 13. Cálculo automático de festivos nacionales (funciona para cualquier año)
 14. Auto-calcula resultados tras importar datos (PDF o CSV)
+15. Soporte para 3 zonas fiscales con impuestos diferenciados
+16. Análisis especializado para Octopus Sun Club con consumos horarios
