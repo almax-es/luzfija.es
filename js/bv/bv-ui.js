@@ -69,25 +69,18 @@ window.BVSim = window.BVSim || {};
   fileInput.addEventListener('change', (e) => {
     if (e.target.files.length) {
       handleFile(e.target.files[0]);
-      // Resetear con un pequeño delay para evitar que el navegador
-      // reabra el diálogo o se confunda con el evento change
-      setTimeout(() => {
-        fileInput.value = '';
-      }, 100);
+      setTimeout(() => { fileInput.value = ''; }, 100);
     }
   });
 
   if (removeFileBtn) {
     removeFileBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      e.preventDefault(); // Prevenir comportamientos raros
       window.BVSim.file = null;
-      fileInput.value = ''; // Asegurar limpieza
+      fileInput.value = '';
       if (fileSelectedMsg) fileSelectedMsg.style.display = 'none';
       if (resultsContainer) resultsContainer.style.display = 'none';
       if (statusContainer) statusContainer.style.display = 'none';
-      
-      // Restaurar texto de upload si estuviera oculto (opcional)
     });
   }
 
@@ -95,8 +88,6 @@ window.BVSim = window.BVSim || {};
   // --- SIMULATION LOGIC ---
   simulateButton.addEventListener('click', async () => {
     console.log('Click en simular');
-    if (statusEl) statusEl.innerHTML = 'Iniciando...';
-
     const file = window.BVSim.file;
     const p1Val = p1Input.value === '' ? 0 : parseInput(p1Input.value);
     const p2Val = p2Input.value === '' ? 0 : parseInput(p2Input.value);
@@ -104,11 +95,7 @@ window.BVSim = window.BVSim || {};
 
     console.log('Valores:', { file, p1Val, p2Val, saldoVal });
 
-    // Reset visual
     if (p1Input) p1Input.classList.remove('error');
-    if (p2Input) p2Input.classList.remove('error');
-    if (saldoInput) saldoInput.classList.remove('error');
-    
     if (resultsContainer) resultsContainer.style.display = 'none';
     if (statusContainer) {
       statusContainer.style.display = 'block';
@@ -122,30 +109,23 @@ window.BVSim = window.BVSim || {};
 
     if (p1Val <= 0) {
       alert('La potencia P1 debe ser mayor que 0.');
-      if (p1Input) p1Input.focus();
       return;
     }
     
-    // UI Loading
     simulateButton.disabled = true;
     if (btnText) btnText.textContent = 'Procesando...';
     if (btnSpinner) btnSpinner.style.display = 'inline-block';
-    if (statusContainer) statusContainer.style.display = 'block';
-    if (statusEl) statusEl.innerHTML = '<span class="spinner"></span> Leyendo archivo...';
 
-    await new Promise(r => setTimeout(r, 100)); // Yield UI
+    await new Promise(r => setTimeout(r, 100));
 
     try {
       if (typeof window.BVSim.importFile !== 'function') throw new Error('Módulo de importación no cargado');
 
       const result = await window.BVSim.importFile(file);
       window.BVSim.importResult = result;
-
       console.log('Resultado Import:', result);
 
-      if (!result || !result.ok) {
-        throw new Error(result?.error || 'Error al procesar el archivo');
-      }
+      if (!result || !result.ok) throw new Error(result?.error || 'Error al procesar el archivo');
 
       const monthlyResult = window.BVSim.simulateMonthly(result, p1Val, p2Val);
       console.log('Resultado Mensual:', monthlyResult);
@@ -155,7 +135,6 @@ window.BVSim = window.BVSim || {};
       // --- RENDER RESULTADOS ---
       console.log('Renderizando tabla mensual...');
       
-      // 1. Tabla Análisis Mensual
       const rowsHtml = monthlyResult.months.map((month) => {
         const isWarning = month.coveragePct < 95 || month.spanDays !== month.daysWithData;
         const warningHtml = isWarning
@@ -319,10 +298,12 @@ window.BVSim = window.BVSim || {};
         }
       }
 
-      // Mostrar resultados
+      console.log('Mostrando contenedor de resultados...');
       resultsContainer.style.display = 'block';
+      statusContainer.style.display = 'none';
       
     } catch (e) {
+      console.error('Error en simulación:', e);
       if (statusEl) statusEl.innerHTML = `<span class="badge err">ERROR</span> ${e.message}`;
       if (statusContainer) statusContainer.style.display = 'block';
     } finally {
