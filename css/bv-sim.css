@@ -113,14 +113,14 @@
 .bv-input-wrapper {
   display: flex;
   flex-direction: column;
-  align-items: center; /* Centrar label */
+  align-items: center;
   width: 100%;
 }
 
 .bv-input-wrapper label {
   display: flex;
   align-items: center;
-  justify-content: center; /* Centrar contenido del label */
+  justify-content: center;
   gap: 8px;
   font-size: 13px;
   font-weight: 800;
@@ -152,14 +152,14 @@
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid var(--border2);
   border-radius: 16px;
-  padding: 16px 16px 16px 48px; /* Espacio para el icono a la izq */
+  padding: 16px 16px 16px 48px;
   color: #fff;
   font-family: var(--mono);
   font-size: 18px;
   font-weight: 700;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
-  text-align: center; /* Centrar el número */
+  text-align: center;
 }
 
 .bv-input-modern:hover {
@@ -215,11 +215,18 @@
   backdrop-filter: blur(10px);
 }
 
+/* Fix crítico: Resetear estilos globales de styles.css que rompen la tabla */
 .bv-table {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
   font-size: 14px;
+  table-layout: auto !important; /* Importante para anular table-layout: fixed de styles.css */
+}
+
+/* Anular anchos fijos de styles.css (4%, 23%, etc) */
+.bv-table th, .bv-table td {
+  width: auto !important;
 }
 
 .bv-table th {
@@ -243,12 +250,11 @@
   z-index: 2;
 }
 
-.bv-table td {
-  padding: 18px 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  text-align: right;
-  font-family: var(--mono);
-  color: rgba(255, 255, 255, 0.9);
+/* Anular text-align: left y otros estilos específicos de styles.css para col 2 */
+.bv-table td:nth-child(2) {
+  text-align: right !important;
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-weight: normal !important;
 }
 
 .bv-table td:first-child {
@@ -260,8 +266,19 @@
   left: 0;
   background: #0B1020;
   z-index: 1;
-  min-width: 140px;
+  min-width: 180px;
   box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+  vertical-align: middle;
+}
+
+.bv-table td {
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  text-align: right;
+  font-family: var(--mono);
+  color: rgba(255, 255, 255, 0.9);
+  vertical-align: middle;
+  height: 80px;
 }
 
 .bv-table tr:hover td {
@@ -340,9 +357,43 @@
   gap: 12px;
 }
 
-/* --- RESPONSIVE --- */
+/* --- RESPONSIVE Y FIX DE CONFLICTOS MÓVIL --- */
 @media (max-width: 768px) {
   .bv-inputs-grid { grid-template-columns: 1fr; }
-  .bv-table th, .bv-table td { padding: 12px 14px; font-size: 13px; }
+  .bv-table th, .bv-table td { padding: 12px 14px !important; font-size: 13px; }
   .bv-details-container { margin: 8px 10px 20px 10px; }
+
+  /* FIX CRÍTICO: Restaurar comportamiento de tabla normal en móvil 
+     styles.css fuerza display: block/flex y oculta el thead */
+  .bv-table thead {
+    display: table-header-group !important;
+  }
+  
+  .bv-table tbody tr {
+    display: table-row !important;
+    background: transparent !important;
+    box-shadow: none !important;
+    border: none !important;
+    margin-bottom: 0 !important;
+    padding: 0 !important;
+  }
+  
+  .bv-table tbody td {
+    display: table-cell !important;
+    width: auto !important;
+    text-align: right !important;
+    box-shadow: none !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    justify-content: unset !important; /* Reset flex alignment if any */
+  }
+  
+  .bv-table tbody td:first-child {
+    text-align: left !important;
+  }
+
+  /* Ocultar los pseudo-elementos ::before que styles.css añade (Ranking, Compañía, etc) */
+  .bv-table tbody td::before {
+    content: none !important;
+    display: none !important;
+  }
 }

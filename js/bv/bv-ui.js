@@ -158,9 +158,9 @@ window.BVSim = window.BVSim || {};
         
         return `
           <tr>
-            <td style="text-align:left; min-width:160px">
-              <div style="font-weight:800; color:#fff; font-size:14px">${mesCorto}</div>
-              <div style="font-size:11px; color:var(--muted); font-family:var(--mono)">${month.start} → ${month.end}</div>
+            <td style="text-align:left; min-width:180px; z-index:10; position:sticky; left:0; background:#0B1020; border-right:1px solid rgba(255,255,255,0.1)">
+              <div style="font-weight:800; color:#fff; font-size:14px; margin-bottom:4px; white-space:nowrap">${mesCorto}</div>
+              <div style="font-size:10px; color:var(--muted); font-family:var(--mono); white-space:nowrap">${month.start} → ${month.end}</div>
             </td>
             <td style="font-weight:700; color:#fff">${fNum(month.importTotalKWh)}</td>
             <td class="bv-val-pos">${fNum(month.exportTotalKWh)}</td>
