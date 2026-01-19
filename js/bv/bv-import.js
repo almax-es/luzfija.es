@@ -96,7 +96,13 @@ window.BVSim = window.BVSim || {};
       const kwhStr = stripOuterQuotes(cols[3]);
       const excedenteStr = tieneSolar ? cols[4] : null;
       const autoconsumoStr = tieneAutoconsumo ? cols[5] : null;
-      const estadoStr = stripOuterQuotes(cols[tieneSolar && tieneAutoconsumo ? 6 : 4]);
+      
+      // Calcular índice de la columna REAL/ESTIMADO dinámicamente
+      let idxReal = 4;
+      if (tieneSolar) idxReal++;
+      if (tieneAutoconsumo) idxReal++;
+      
+      const estadoStr = stripOuterQuotes(cols[idxReal]);
       const esReal = estadoStr === 'R';
 
       if (!kwhStr || kwhStr.trim() === '') continue;

@@ -287,25 +287,28 @@
           <!-- Inputs Numéricos en Grid -->
           <div class="bv-inputs-grid">
             <div class="bv-input-wrapper">
-              <label for="bv-p1">Potencia P1 (kW)</label>
+              <label for="bv-p1">Potencia Punta (P1)</label>
               <div class="bv-input-icon-group">
                 <span class="bv-input-icon">⚡</span>
                 <input class="bv-input-modern" type="text" id="bv-p1" inputmode="decimal" placeholder="3,45">
               </div>
+              <div class="bv-help-text">Horario caro (L-V 10-14h y 18-22h)</div>
             </div>
             <div class="bv-input-wrapper">
-              <label for="bv-p2">Potencia P2 (kW)</label>
+              <label for="bv-p2">Potencia Valle (P2)</label>
               <div class="bv-input-icon-group">
-                <span class="bv-input-icon">⚡</span>
+                <span class="bv-input-icon">🌙</span>
                 <input class="bv-input-modern" type="text" id="bv-p2" inputmode="decimal" placeholder="3,45">
               </div>
+              <div class="bv-help-text">Horario barato, festivos y fin de semana</div>
             </div>
             <div class="bv-input-wrapper">
-              <label for="bv-saldo-inicial">Saldo Hucha Inicial (€)</label>
+              <label for="bv-saldo-inicial">Hucha Acumulada (€)</label>
               <div class="bv-input-icon-group">
                 <span class="bv-input-icon">💰</span>
                 <input class="bv-input-modern" type="text" id="bv-saldo-inicial" inputmode="decimal" value="0,00">
               </div>
+              <div class="bv-help-text">Si ya tienes saldo en tu batería virtual</div>
             </div>
           </div>
         </div>

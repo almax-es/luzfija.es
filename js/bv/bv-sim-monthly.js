@@ -184,12 +184,12 @@ window.BVSim.calcMonthForTarifa = function ({
     + (month.importByPeriod.P3 * tarifa.cValle)
   );
   
-  // Bono social (Tarifa de acceso) - Usamos LF_CONFIG si está disponible
+  // Bono social (Financiación) - Usamos LF_CONFIG si está disponible
   const bonoSocialAnual = (window.LF_CONFIG && window.LF_CONFIG.bonoSocial) 
     ? window.LF_CONFIG.bonoSocial.eurosAnuales 
     : 10.764952; // Fallback 2026
   
-  const tarifaAcceso = round2(bonoSocialAnual / 365 * dias);
+  const costeBonoSocial = round2(bonoSocialAnual / 365 * dias);
   
   // Excedentes
   const exKwh = Number(month.exportTotalKWh) || 0;
@@ -201,16 +201,16 @@ window.BVSim.calcMonthForTarifa = function ({
   const consAdj = round2(Math.max(0, consEur - credit1));
   const excedenteSobranteEur = round2(Math.max(0, creditoPotencial - credit1));
   
-  // Impuestos
-  const sumaBase = round2(pot + consAdj + tarifaAcceso);
+  // Impuestos (IEE se aplica sobre Potencia + Energía, NO sobre Bono Social)
+  const sumaBaseIEE = round2(pot + consAdj);
   
   // IEE
   let impuestoElec = 0;
   if (window.LF_CONFIG && window.LF_CONFIG.calcularIEE) {
-    impuestoElec = round2(window.LF_CONFIG.calcularIEE(sumaBase, month.importTotalKWh));
+    impuestoElec = round2(window.LF_CONFIG.calcularIEE(sumaBaseIEE, month.importTotalKWh));
   } else {
     // Fallback IEE
-    impuestoElec = round2(Math.max(0.0511269632 * sumaBase, month.importTotalKWh * 0.001)); 
+    impuestoElec = round2(Math.max(0.0511269632 * sumaBaseIEE, month.importTotalKWh * 0.001)); 
   }
 
   // Alquiler
@@ -222,7 +222,7 @@ window.BVSim.calcMonthForTarifa = function ({
   }
 
   // IVA
-  const ivaBase = round2(pot + consAdj + tarifaAcceso + impuestoElec + alquilerContador);
+  const ivaBase = round2(pot + consAdj + costeBonoSocial + impuestoElec + alquilerContador);
   const ivaCuota = round2(ivaBase * 0.21); // Asumimos Península 21% por defecto para simplificar demo
   const totalBase = round2(ivaBase + ivaCuota);
 
@@ -239,7 +239,7 @@ window.BVSim.calcMonthForTarifa = function ({
     dias,
     pot,
     consEur,
-    tarifaAcceso,
+    costeBonoSocial,
     impuestoElec,
     alquilerContador,
     ivaCuota,
