@@ -1,0 +1,14 @@
+{
+  "name": "luzfija-es",
+  "version": "1.0.0",
+  "description": "Comparador de tarifas eléctricas",
+  "private": true,
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "jsdom": "^27.0.0",
+    "vitest": "^4.0.0"
+  }
+}

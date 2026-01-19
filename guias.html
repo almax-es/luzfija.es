@@ -1,0 +1,1122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self' https://luzfija.goatcounter.com; form-action 'self';">
+<script src="/js/theme.js"></script>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="/manifest.webmanifest" rel="manifest"/>
+<meta content="Guías prácticas sobre electricidad en España: factura de la luz, tarifas, autoconsumo solar, coche eléctrico, PVPC y ahorro energético." name="description"/>
+<title>Guías sobre Tarifas de Luz | LuzFija.es</title>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+<link href="/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
+<link href="https://luzfija.es/guias.html" rel="canonical"/>
+
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Guías sobre Tarifas de Luz | LuzFija.es"/>
+<meta property="og:description" content="Guías prácticas sobre electricidad en España: factura de la luz, tarifas, autoconsumo solar, coche eléctrico, PVPC y ahorro energético."/>
+<meta property="og:url" content="https://luzfija.es/guias.html"/>
+<meta property="og:image" content="https://luzfija.es/og.png"/>
+<meta property="og:locale" content="es_ES"/>
+<meta property="og:site_name" content="LuzFija.es"/>
+
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Guías sobre Tarifas de Luz | LuzFija.es"/>
+<meta name="twitter:description" content="Guías prácticas sobre electricidad en España: factura de la luz, tarifas, autoconsumo solar, coche eléctrico, PVPC y ahorro energético."/>
+<meta name="twitter:image" content="https://luzfija.es/og.png"/>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://luzfija.es/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guías",
+      "item": "https://luzfija.es/guias.html"
+    }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "CollectionPage",
+  "name": "Guías sobre Tarifas de Luz",
+  "description": "Guías prácticas sobre electricidad en España: factura de la luz, tarifas, autoconsumo solar, coche eléctrico, PVPC y ahorro energético.",
+  "url": "https://luzfija.es/guias.html",
+  "inLanguage": "es",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "LuzFija.es",
+    "url": "https://luzfija.es"
+  },
+  "about": {
+    "@type": "Thing",
+    "name": "Tarifas eléctricas en España"
+  }
+}
+</script>
+
+
+<style>
+:root {
+  --bg: #0B1020;
+  --card: rgba(255,255,255,.06);
+  --border: rgba(255,255,255,.10);
+  --text: #F7F7FB;
+  --muted: rgba(247,247,251,.72);
+  --accent: #8B5CF6;
+  --accent2: #22C55E;
+  --warn: #F59E0B;
+  --danger: #EF4444;
+  --blue: #3B82F6;
+  --pink: #EC4899;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Outfit', -apple-system, system-ui, sans-serif;
+  background: linear-gradient(135deg, #0B1020, #1a1f3a);
+  color: var(--text);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+body::before {
+  content: '';
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: 
+    radial-gradient(circle at 20% 30%, rgba(139, 92, 246, 0.15), transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(34, 197, 94, 0.12), transparent 50%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 60px 24px;
+  position: relative;
+  z-index: 1;
+}
+
+/* === HERO SECTION === */
+.hero {
+  text-align: center;
+  margin-bottom: 60px;
+  padding: 40px 20px;
+}
+
+.hero h1 {
+  font-size: clamp(36px, 6vw, 56px);
+  font-weight: 900;
+  background: linear-gradient(135deg, #8B5CF6, #EC4899, #22C55E);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  margin-bottom: 16px;
+  line-height: 1.1;
+}
+
+.hero p {
+  font-size: clamp(16px, 2.5vw, 22px);
+  color: var(--muted);
+  max-width: 700px;
+  margin: 0 auto 40px auto;
+}
+
+/* === BÚSQUEDA === */
+.search-box {
+  max-width: 600px;
+  margin: 0 auto 24px auto;
+  position: relative;
+}
+
+.search-box input {
+  width: 100%;
+  padding: 16px 50px 16px 20px;
+  background: rgba(255,255,255,.08);
+  border: 2px solid var(--border);
+  border-radius: 16px;
+  color: var(--text);
+  font-size: 16px;
+  font-family: inherit;
+  transition: all 0.3s ease;
+}
+
+.search-box input:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: rgba(255,255,255,.12);
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.1);
+}
+
+.search-box input::placeholder {
+  color: rgba(247,247,251,.4);
+}
+
+.search-icon {
+  position: absolute;
+  right: 20px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 20px;
+  color: var(--muted);
+}
+
+/* === FILTROS/CATEGORÍAS === */
+.categories {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 50px;
+}
+
+.category-btn {
+  padding: 10px 20px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: inherit;
+}
+
+.category-btn:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: var(--accent);
+  color: var(--text);
+  transform: translateY(-2px);
+}
+
+.category-btn.active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: white;
+}
+
+/* === DESTACADOS === */
+.featured {
+  background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(236, 72, 153, 0.1));
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  border-radius: 20px;
+  padding: 32px;
+  margin-bottom: 60px;
+}
+
+.featured h2 {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.featured p {
+  color: var(--muted);
+  margin-bottom: 20px;
+  font-size: 15px;
+}
+
+.featured-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+/* === GRID DE GUÍAS === */
+.guides-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 20px;
+  margin-bottom: 60px;
+}
+
+/* === CARD DE GUÍA === */
+.guide-card {
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 24px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.guide-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%;
+  height: 4px;
+  background: linear-gradient(90deg, var(--accent), var(--pink));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s ease;
+}
+
+.guide-card:hover::before {
+  transform: scaleX(1);
+}
+
+.guide-card:hover {
+  background: rgba(255,255,255,.10);
+  border-color: var(--accent);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(139, 92, 246, 0.3);
+}
+
+.guide-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.guide-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 8px currentColor);
+}
+
+.guide-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.guide-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.guide-tag.basico {
+  background: rgba(34, 197, 94, 0.2);
+  color: var(--accent2);
+  border: 1px solid var(--accent2);
+}
+
+.guide-tag.intermedio {
+  background: rgba(245, 158, 11, 0.2);
+  color: var(--warn);
+  border: 1px solid var(--warn);
+}
+
+.guide-tag.avanzado {
+  background: rgba(239, 68, 68, 0.2);
+  color: var(--danger);
+  border: 1px solid var(--danger);
+}
+
+.guide-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  line-height: 1.3;
+  color: var(--text);
+}
+
+.guide-card p {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.5;
+  flex-grow: 1;
+}
+
+.guide-arrow {
+  margin-top: 16px;
+  font-size: 20px;
+  color: var(--accent);
+  transition: transform 0.3s ease;
+}
+
+.guide-card:hover .guide-arrow {
+  transform: translateX(4px);
+}
+
+/* === HERRAMIENTAS === */
+.tools-section {
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  padding: 40px 32px;
+  margin-bottom: 60px;
+}
+
+.tools-section h2 {
+  font-size: 32px;
+  font-weight: 800;
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.tools-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 16px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.tool-card {
+  background: rgba(255,255,255,.06);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px;
+  text-decoration: none;
+  color: var(--text);
+  transition: all 0.3s ease;
+  display: block;
+}
+
+.tool-card:hover {
+  background: rgba(139, 92, 246, 0.15);
+  border-color: var(--accent);
+  transform: translateY(-2px);
+}
+
+.tool-card h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.tool-card p {
+  font-size: 13px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* === CTA FINAL === */
+.cta-final {
+  text-align: center;
+  padding: 50px 20px;
+}
+
+.cta-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 18px 36px;
+  background: var(--accent);
+  color: white;
+  text-decoration: none;
+  border-radius: 14px;
+  font-size: 18px;
+  font-weight: 700;
+  transition: all 0.3s ease;
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+}
+
+.cta-button:hover {
+  background: #7C3AED;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(139, 92, 246, 0.5);
+}
+
+/* === FOOTER === */
+footer {
+  margin-top: 80px;
+  padding-top: 40px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+footer a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: opacity 0.2s;
+}
+
+footer a:hover {
+  opacity: 0.8;
+}
+
+/* === NO RESULTS === */
+.no-results {
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--muted);
+  display: none;
+}
+
+.no-results.show {
+  display: block;
+}
+
+.no-results h3 {
+  font-size: 24px;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+
+/* === RESPONSIVE === */
+@media (max-width: 768px) {
+  .container {
+    padding: 40px 20px;
+  }
+
+  .hero h1 {
+    font-size: 36px;
+  }
+
+  .guides-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .featured-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .categories {
+    gap: 8px;
+  }
+
+  .category-btn {
+    font-size: 13px;
+    padding: 8px 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero {
+    padding: 20px 10px;
+  }
+
+  .guide-card {
+    padding: 20px;
+  }
+
+  .tools-section {
+    padding: 32px 20px;
+  }
+}
+
+/* === ANIMACIONES === */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.guide-card {
+  animation: fadeIn 0.5s ease backwards;
+}
+
+.guide-card:nth-child(1) { animation-delay: 0.05s; }
+.guide-card:nth-child(2) { animation-delay: 0.1s; }
+.guide-card:nth-child(3) { animation-delay: 0.15s; }
+.guide-card:nth-child(4) { animation-delay: 0.2s; }
+.guide-card:nth-child(5) { animation-delay: 0.25s; }
+.guide-card:nth-child(6) { animation-delay: 0.3s; }
+
+/* === Light mode (shared) === */
+html.light-mode{
+  --bg:#F4F6FB;
+  --surface:#FFFFFF;
+  --card: rgba(15, 23, 42, .04);
+  --border: rgba(15, 23, 42, .10);
+  --text:#0F172A;
+  --muted: rgba(15, 23, 42, .75);
+  --card2: rgba(15, 23, 42, .06);
+  --border2: rgba(15, 23, 42, .16);
+  --muted2: rgba(15, 23, 42, .58);
+  --accent:#6D28D9; /* mejor contraste en modo claro */
+  --accent2:#15803D; /* mejor contraste en modo claro */
+  --warn:#B45309; /* mejor contraste en modo claro */
+
+}
+html.light-mode body{
+  background: linear-gradient(135deg, var(--bg), var(--surface)) !important;
+  color: var(--text);
+}
+
+/* Generic fixes for hard-coded dark headers/buttons in light mode */
+html.light-mode .header{
+  background: rgba(255,255,255,.92) !important;
+  border-bottom-color: var(--border) !important;
+}
+html.light-mode .btn-secondary,
+html.light-mode .btn-small{
+  background: rgba(15, 23, 42, .04) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+html.light-mode .btn-secondary:hover,
+html.light-mode .btn-small:hover{
+  background: rgba(139, 92, 246, .12) !important;
+}
+
+/* === Ajustes "pixel-perfect" para móviles === */
+
+/* iOS Safari: evita el zoom automático cuando un input tiene <16px */
+@supports (-webkit-touch-callout: none) {
+  input, select, textarea { font-size: 16px !important; }
+}
+
+/* 100vh puede fallar en móvil por la barra del navegador (usa dvh si existe) */
+@supports (height: 100dvh) {
+  body { min-height: 100dvh; }
+  .toc { max-height: calc(100dvh - 120px); }
+}
+
+</style>
+  <meta name="color-scheme" content="dark light"/>
+  <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts.css">
+
+    <meta name="theme-color" content="#8B5CF6">
+</head>
+
+<body>
+<div class="container">
+  
+  <!-- HERO -->
+  <div class="hero">
+    <h1>📚 Guías sobre Tarifas de Luz</h1>
+    <p>Todo lo que necesitas saber sobre la luz en España. Sin tecnicismos, sin rollos.</p>
+    
+    <!-- Búsqueda -->
+    <div class="search-box">
+      <input type="text" id="searchInput" placeholder="Buscar guías... (ej: 'factura', 'solar', 'coche')" aria-label="Buscar guías">
+      <span class="search-icon">🔍</span>
+    </div>
+  </div>
+
+  <!-- Categorías/Filtros -->
+  <div class="categories">
+    <button class="category-btn active" data-category="todas">✨ Todas</button>
+    <button class="category-btn" data-category="basico">🎯 Básico</button>
+    <button class="category-btn" data-category="factura">📄 Factura</button>
+    <button class="category-btn" data-category="tarifa">⚡ Tarifas</button>
+    <button class="category-btn" data-category="solar">☀️ Solar</button>
+    <button class="category-btn" data-category="ahorro">💰 Ahorro</button>
+    <button class="category-btn" data-category="gestion">🔧 Gestión</button>
+  </div>
+
+  <!-- Destacadas -->
+  <div class="featured">
+    <h2>🔥 Si vas con prisa: empieza por estas 3</h2>
+    <p>Las que más te ahorran tiempo (y disgustos). Luego ya te metes con el resto.</p>
+    <div class="featured-grid">
+      <a href="guias/como-ver-tu-consumo-horario-real-el-del-contador-no-el-estimado.html" class="guide-card">
+        <div class="guide-header">
+          <span class="guide-icon">📊</span>
+          <div style="flex: 1;">
+            <div class="guide-meta">
+              <span class="guide-tag basico">Básico</span>
+            </div>
+            <h3>Ver tu consumo horario real</h3>
+          </div>
+        </div>
+        <p>Sin esto, comparar tarifas es apostar. Aprende a ver tus consumos reales por horas.</p>
+        <span class="guide-arrow">→</span>
+      </a>
+      
+      <a href="guias/lectura-real-vs-estimada-como-evitar-sustos-y-facturones.html" class="guide-card">
+        <div class="guide-header">
+          <span class="guide-icon">💸</span>
+          <div style="flex: 1;">
+            <div class="guide-meta">
+              <span class="guide-tag basico">Básico</span>
+            </div>
+            <h3>Lectura real vs estimada</h3>
+          </div>
+        </div>
+        <p>Para pillar el "facturón" antes de que llegue y evitar sustos.</p>
+        <span class="guide-arrow">→</span>
+      </a>
+      
+      <a href="guias/estafas-y-llamadas-comerciales-como-detectarlas-y-que-hacer.html" class="guide-card">
+        <div class="guide-header">
+          <span class="guide-icon">🚨</span>
+          <div style="flex: 1;">
+            <div class="guide-meta">
+              <span class="guide-tag basico">Básico</span>
+            </div>
+            <h3>Estafas y llamadas comerciales</h3>
+          </div>
+        </div>
+        <p>Por si te están intentando colar un cambio. Las tácticas más sucias.</p>
+        <span class="guide-arrow">→</span>
+      </a>
+    </div>
+  </div>
+
+  <!-- Grid de todas las guías -->
+  <div class="guides-grid" id="guidesGrid">
+    
+    <!-- BÁSICO / FACTURA -->
+    <a href="guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html" class="guide-card" data-categories="basico factura">
+      <div class="guide-header">
+        <span class="guide-icon">📋</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag basico">Básico</span>
+          </div>
+          <h3>Cómo leer tu factura paso a paso</h3>
+        </div>
+      </div>
+      <p>Todos los conceptos de tu factura explicados de forma clara.</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <a href="guias/que-es-p1-p2-y-p3-en-tu-factura.html" class="guide-card" data-categories="basico factura tarifa">
+      <div class="guide-header">
+        <span class="guide-icon">🕐</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag basico">Básico</span>
+          </div>
+          <h3>Qué es P1, P2 y P3 en tu factura</h3>
+        </div>
+      </div>
+      <p>Entiende los tres periodos horarios de tu tarifa eléctrica.</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <a href="guias/diferencia-entre-comercializadora-y-distribuidora.html" class="guide-card" data-categories="basico gestion">
+      <div class="guide-header">
+        <span class="guide-icon">🏢</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag basico">Básico</span>
+          </div>
+          <h3>Comercializadora vs Distribuidora</h3>
+        </div>
+      </div>
+      <p>Dos empresas diferentes con roles totalmente distintos.</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <a href="guias/cups-que-es-y-donde-encontrarlo.html" class="guide-card" data-categories="basico gestion">
+      <div class="guide-header">
+        <span class="guide-icon">🆔</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag basico">Básico</span>
+          </div>
+          <h3>Código CUPS: qué es y dónde está</h3>
+        </div>
+      </div>
+      <p>El DNI de tu instalación. Dónde encontrarlo y para qué sirve.</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <!-- TARIFAS -->
+    <a href="guias/pvpc-vs-mercado-libre-cuando-te-conviene-cada-uno.html" class="guide-card" data-categories="tarifa basico">
+      <div class="guide-header">
+        <span class="guide-icon">⚖️</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag basico">Básico</span>
+          </div>
+          <h3>PVPC vs mercado libre</h3>
+        </div>
+      </div>
+      <p>Tarifa regulada frente a tarifas "de oferta".</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <a href="guias/que-potencia-contratar-segun-tu-casa-y-tus-habitos.html" class="guide-card" data-categories="basico tarifa">
+      <div class="guide-header">
+        <span class="guide-icon">⚡</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag basico">Básico</span>
+          </div>
+          <h3>Qué potencia contratar</h3>
+        </div>
+      </div>
+      <p>Evita pagar de más sin quedarte corto según tu casa y hábitos.</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <a href="guias/como-adaptar-tus-horarios-para-pagar-menos-luz.html" class="guide-card" data-categories="ahorro tarifa">
+      <div class="guide-header">
+        <span class="guide-icon">⏰</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag intermedio">Intermedio</span>
+          </div>
+          <h3>Adaptar horarios para ahorrar</h3>
+        </div>
+      </div>
+      <p>Trucos prácticos para aprovechar las horas baratas.</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <!-- ERRORES Y PROBLEMAS -->
+    <a href="guias/errores-tipicos-en-la-factura-de-la-luz.html" class="guide-card" data-categories="factura basico">
+      <div class="guide-header">
+        <span class="guide-icon">⚠️</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag basico">Básico</span>
+          </div>
+          <h3>Errores típicos en la factura</h3>
+        </div>
+      </div>
+      <p>Cosas raras que deberías revisar antes de pagar.</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <a href="guias/servicios-extra-y-mantenimiento-como-detectarlos-y-quitarlos.html" class="guide-card" data-categories="factura gestion">
+      <div class="guide-header">
+        <span class="guide-icon">🔍</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag basico">Básico</span>
+          </div>
+          <h3>Servicios extra: cómo quitarlos</h3>
+        </div>
+      </div>
+      <p>La típica "cuota tonta" que te soplan sin que te enteres.</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <!-- TARIFAS AVANZADAS -->
+    <a href="guias/tarifas-indexadas-pool-cuota-cuando-interesan-y-cuando-no.html" class="guide-card" data-categories="tarifa avanzado">
+      <div class="guide-header">
+        <span class="guide-icon">📈</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag avanzado">Avanzado</span>
+          </div>
+          <h3>Tarifas indexadas (pool + cuota)</h3>
+        </div>
+      </div>
+      <p>La "PVPC del mercado libre" (pero con letra pequeña).</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <a href="guias/la-letra-pequena-topes-de-kwh-cuotas-descuentos-y-permanencias.html" class="guide-card" data-categories="tarifa gestion">
+      <div class="guide-header">
+        <span class="guide-icon">🔬</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag intermedio">Intermedio</span>
+          </div>
+          <h3>La letra pequeña</h3>
+        </div>
+      </div>
+      <p>Topes de kWh, cuotas, "descuentos" y permanencias. Donde esconden el sablazo.</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <!-- GESTIÓN -->
+    <a href="guias/como-cambiar-de-compania-sin-cortes-y-sin-que-te-li-en.html" class="guide-card" data-categories="gestion">
+      <div class="guide-header">
+        <span class="guide-icon">🔄</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag basico">Básico</span>
+          </div>
+          <h3>Cambiar de compañía sin cortes</h3>
+        </div>
+      </div>
+      <p>Paso a paso y con checklist para no liarte.</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <a href="guias/mudanza-y-alquiler-cambio-de-titular-alta-baja-y-cosas-que-nadie-te-dice.html" class="guide-card" data-categories="gestion">
+      <div class="guide-header">
+        <span class="guide-icon">📦</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag intermedio">Intermedio</span>
+          </div>
+          <h3>Mudanza y alquiler</h3>
+        </div>
+      </div>
+      <p>Cambio de titular, alta/baja y cosas que nadie te dice.</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <a href="guias/bono-social-electrico-quien-puede-pedirlo-y-como.html" class="guide-card" data-categories="gestion ahorro">
+      <div class="guide-header">
+        <span class="guide-icon">🎁</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag basico">Básico</span>
+          </div>
+          <h3>Bono social eléctrico</h3>
+        </div>
+      </div>
+      <p>Quién puede pedirlo y cómo. Descuento en la factura para hogares vulnerables.</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <!-- CONSUMO Y VEHÍCULOS -->
+    <a href="guias/coche-electrico-que-tarifa-elegir-y-como-cargar-barato.html" class="guide-card" data-categories="tarifa ahorro">
+      <div class="guide-header">
+        <span class="guide-icon">🚗</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag intermedio">Intermedio</span>
+          </div>
+          <h3>Coche eléctrico: qué tarifa elegir</h3>
+        </div>
+      </div>
+      <p>Los números reales (no el cuento del comercial) y cómo cargar barato.</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <a href="guias/instalar-punto-recarga-garaje-comunitario.html" class="guide-card" data-categories="gestion ahorro">
+      <div class="guide-header">
+        <span class="guide-icon">🔌</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag intermedio">Intermedio</span>
+          </div>
+          <h3>Instalar punto de recarga en garaje</h3>
+        </div>
+      </div>
+      <p>Guía legal para comunidades de vecinos. Sin pedir permiso, solo informando.</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <a href="guias/aerotermia-termo-electrico-y-bomba-de-calor-consumos-reales-y-tarifas.html" class="guide-card" data-categories="tarifa ahorro">
+      <div class="guide-header">
+        <span class="guide-icon">🔥</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag intermedio">Intermedio</span>
+          </div>
+          <h3>Aerotermia y bomba de calor</h3>
+        </div>
+      </div>
+      <p>Consumos reales y tarifas. Números sin humo para evitar facturas de 200 €.</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <!-- SOLAR -->
+    <a href="guias/autoconsumo-y-placas-solares-lo-basico.html" class="guide-card" data-categories="solar basico">
+      <div class="guide-header">
+        <span class="guide-icon">☀️</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag basico">Básico</span>
+          </div>
+          <h3>Autoconsumo solar: lo básico</h3>
+        </div>
+      </div>
+      <p>Qué debes saber antes de plantearte poner placas solares.</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <a href="guias/autoconsumo-avanzado-excedentes-compensacion-y-bateria-virtual.html" class="guide-card" data-categories="solar avanzado">
+      <div class="guide-header">
+        <span class="guide-icon">🔋</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag avanzado">Avanzado</span>
+          </div>
+          <h3>Autoconsumo avanzado</h3>
+        </div>
+      </div>
+      <p>Excedentes, compensación y "batería virtual". Lo que nadie te explica.</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <!-- Ya incluidas arriba en destacadas, pero las añado aquí también -->
+    <a href="guias/como-ver-tu-consumo-horario-real-el-del-contador-no-el-estimado.html" class="guide-card" data-categories="basico ahorro">
+      <div class="guide-header">
+        <span class="guide-icon">📊</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag basico">Básico</span>
+          </div>
+          <h3>Ver tu consumo horario real</h3>
+        </div>
+      </div>
+      <p>La clave para elegir tarifa con cabeza. El del contador, no el "estimado".</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <a href="guias/lectura-real-vs-estimada-como-evitar-sustos-y-facturones.html" class="guide-card" data-categories="basico factura">
+      <div class="guide-header">
+        <span class="guide-icon">💸</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag basico">Básico</span>
+          </div>
+          <h3>Lectura real vs estimada</h3>
+        </div>
+      </div>
+      <p>Cómo evitar sustos y "facturones". La telegestión funciona... hasta que no.</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <a href="guias/estafas-y-llamadas-comerciales-como-detectarlas-y-que-hacer.html" class="guide-card" data-categories="gestion">
+      <div class="guide-header">
+        <span class="guide-icon">🚨</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag basico">Básico</span>
+          </div>
+          <h3>Estafas y llamadas comerciales</h3>
+        </div>
+      </div>
+      <p>Las tácticas más sucias (y cómo protegerte).</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+    <a href="guias/como-reclamar-a-comercializadora-distribuidora.html" class="guide-card" data-categories="gestion factura">
+      <div class="guide-header">
+        <span class="guide-icon">⚖️</span>
+        <div style="flex: 1;">
+          <div class="guide-meta">
+            <span class="guide-tag avanzado">Avanzado</span>
+          </div>
+          <h3>Cómo reclamar a tu compañía</h3>
+        </div>
+      </div>
+      <p>Guía paso a paso para elevar una queja y que te den la razón.</p>
+      <span class="guide-arrow">→</span>
+    </a>
+
+  </div>
+
+  <!-- Sin resultados -->
+  <div class="no-results" id="noResults">
+    <h3>😕 No encontramos nada</h3>
+    <p>Prueba con otras palabras o selecciona una categoría diferente.</p>
+  </div>
+
+
+  <!-- CTA Final -->
+  <div class="cta-final">
+    <a href="/" class="cta-button">
+      <span>⚡</span>
+      <span>Ir al comparador</span>
+    </a>
+  </div>
+
+</div>
+
+<!-- Footer -->
+<footer>
+  <a href="/aviso-legal.html">📋 Aviso legal</a> · 
+  <a href="/privacidad.html">Política de privacidad</a>
+</footer>
+
+<script>
+// Búsqueda en vivo
+const searchInput = document.getElementById('searchInput');
+const guidesGrid = document.getElementById('guidesGrid');
+const noResults = document.getElementById('noResults');
+const allCards = guidesGrid.querySelectorAll('.guide-card');
+
+searchInput.addEventListener('input', (e) => {
+  const searchTerm = e.target.value.toLowerCase();
+  let visibleCount = 0;
+
+  allCards.forEach(card => {
+    const title = card.querySelector('h3').textContent.toLowerCase();
+    const desc = card.querySelector('p').textContent.toLowerCase();
+    
+    if (title.includes(searchTerm) || desc.includes(searchTerm)) {
+      card.style.display = 'flex';
+      visibleCount++;
+    } else {
+      card.style.display = 'none';
+    }
+  });
+
+  // Mostrar "sin resultados" si no hay coincidencias
+  if (visibleCount === 0) {
+    noResults.classList.add('show');
+  } else {
+    noResults.classList.remove('show');
+  }
+});
+
+// Filtro por categorías
+const categoryBtns = document.querySelectorAll('.category-btn');
+
+categoryBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    // Actualizar botón activo
+    categoryBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+
+    // Filtrar cards
+    const category = btn.dataset.category;
+    let visibleCount = 0;
+
+    allCards.forEach(card => {
+      if (category === 'todas') {
+        card.style.display = 'flex';
+        visibleCount++;
+      } else {
+        const categories = card.dataset.categories;
+        if (categories && categories.includes(category)) {
+          card.style.display = 'flex';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      }
+    });
+
+    // Resetear búsqueda
+    searchInput.value = '';
+
+    // Mostrar "sin resultados"
+    if (visibleCount === 0) {
+      noResults.classList.add('show');
+    } else {
+      noResults.classList.remove('show');
+    }
+  });
+});
+</script>
+
+<script>
+// Registro del Service Worker para PWA
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/sw.js').catch(err => {
+      console.error('SW registration failed:', err);
+    });
+  });
+}
+</script>
+
+</body>
+</html>

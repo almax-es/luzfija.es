@@ -1,0 +1,485 @@
+{
+  "tarifas": [
+    {
+      "nombre": "Endesa Conecta",
+      "cPunta": 0.0988,
+      "cLlano": 0.0988,
+      "cValle": 0.0988,
+      "p1": 0.090227,
+      "p2": 0.090227,
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/conecta-de-endesa",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Nufri Calma",
+      "cPunta": 0.103386,
+      "cLlano": 0.103386,
+      "cValle": 0.103386,
+      "p1": 0.094533,
+      "p2": 0.046371,
+      "web": "https://www.energianufri.com/es/landing/mas-tarifas-luz-gas",
+      "tipo": "1P",
+      "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Visalia",
+      "cPunta": 0.103995,
+      "cLlano": 0.103995,
+      "cValle": 0.103995,
+      "p1": 0.060274,
+      "p2": 0.060274,
+      "web": "https://visalia.es/luz/fijo24horas/",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Imagina Energía",
+      "cPunta": 0.105,
+      "cLlano": 0.105,
+      "cValle": 0.105,
+      "p1": 0.087,
+      "p2": 0.044,
+      "web": "https://ofertas.imaginaenergia.com/plan-online-imagina/",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Energya VM",
+      "cPunta": 0.105705,
+      "cLlano": 0.105705,
+      "cValle": 0.105705,
+      "p1": 0.09315,
+      "p2": 0.046576,
+      "web": "https://www.energyavm.es/luz/formula-fija-24-horas-luz/",
+      "tipo": "1P",
+      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 6.000 kWh/año",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "TE A tu aire",
+      "cPunta": 0.1099,
+      "cLlano": 0.1099,
+      "cValle": 0.1099,
+      "p1": 0.072589,
+      "p2": 0.072589,
+      "web": "https://www.totalenergies.es/es/hogares/tarifas-luz-gas/a-tu-aire-siempre",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.07,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Gana Energía",
+      "cPunta": 0.111,
+      "cLlano": 0.111,
+      "cValle": 0.111,
+      "p1": 0.089434,
+      "p2": 0.089434,
+      "web": "https://ganaenergia.com/tarifas-luz/24-horas",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Neolux 24h",
+      "cPunta": 0.115,
+      "cLlano": 0.115,
+      "cValle": 0.115,
+      "p1": 0.09,
+      "p2": 0.07,
+      "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
+      "tipo": "1P",
+      "requisitos": "Consumo ≤ 10.000 kWh/año",
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Octopus Unicaja",
+      "cPunta": 0.116,
+      "cLlano": 0.116,
+      "cValle": 0.116,
+      "p1": 0.097,
+      "p2": 0.027,
+      "web": "https://octopusenergy.es/unicaja#tarifas",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Plenitude",
+      "cPunta": 0.116106,
+      "cLlano": 0.116106,
+      "cValle": 0.116106,
+      "p1": 0.075902,
+      "p2": 0.075902,
+      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
+      "tipo": "1P",
+      "requisitos": "Potencia contratada ≤ 5 kW",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Endesa One",
+      "cPunta": 0.119138,
+      "cLlano": 0.119138,
+      "cValle": 0.119138,
+      "p1": 0.090227,
+      "p2": 0.090227,
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Iberdrola Online",
+      "cPunta": 0.1199,
+      "cLlano": 0.1199,
+      "cValle": 0.1199,
+      "p1": 0.108192,
+      "p2": 0.046548,
+      "web": "https://www.iberdrola.es/luz/plan-online",
+      "tipo": "1P",
+      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Naturgy por uso",
+      "cPunta": 0.120471,
+      "cLlano": 0.120471,
+      "cValle": 0.120471,
+      "p1": 0.110283,
+      "p2": 0.033469,
+      "web": "https://www.naturgy.es/hogar/luz/tarifa_por_uso_luz",
+      "tipo": "1P",
+      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 10.000 kWh/año",
+      "fv": {
+        "exc": 0.07,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Repsol",
+      "cPunta": 0.1299,
+      "cLlano": 0.1299,
+      "cValle": 0.1299,
+      "p1": 0.068219,
+      "p2": 0.068219,
+      "web": "https://www.repsol.es/particulares/hogar/luz-y-gas/tarifas/tarifa-ahorro-plus/",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Gana Energía 3P",
+      "cPunta": 0.163,
+      "cLlano": 0.096,
+      "cValle": 0.072,
+      "p1": 0.0894,
+      "p2": 0.0894,
+      "web": "https://ganaenergia.com/tarifas-luz/tramos-horarios",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Energya VM 3P",
+      "cPunta": 0.16605,
+      "cLlano": 0.13005,
+      "cValle": 0.10305,
+      "p1": 0.082192,
+      "p2": 0.002739,
+      "web": "https://www.energyavm.es/luz/formula-fija-3-periodos/",
+      "tipo": "3P",
+      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 6.000 kWh/año",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Nufri Flex 3P",
+      "cPunta": 0.168687,
+      "cLlano": 0.093465,
+      "cValle": 0.059869,
+      "p1": 0.094533,
+      "p2": 0.046371,
+      "web": "https://www.energianufri.com/es/landing/mas-tarifas-luz-gas",
+      "tipo": "3P",
+      "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "TE A tu aire 3P",
+      "cPunta": 0.173572,
+      "cLlano": 0.10393,
+      "cValle": 0.076176,
+      "p1": 0.072603,
+      "p2": 0.072575,
+      "web": "https://www.totalenergies.es/es/hogares/tarifas-luz/a-tu-aire-programa-tu-ahorro",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.07,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Neolux 3P",
+      "cPunta": 0.175,
+      "cLlano": 0.12,
+      "cValle": 0.079,
+      "p1": 0.09,
+      "p2": 0.07,
+      "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
+      "tipo": "3P",
+      "requisitos": "Consumo ≤ 10.000 kWh/año",
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Imagina Energía 3P",
+      "cPunta": 0.177,
+      "cLlano": 0.103,
+      "cValle": 0.069,
+      "p1": 0.101,
+      "p2": 0.022,
+      "web": "https://ofertas.imaginaenergia.com/plan-online-imagina/",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Esluz 3P",
+      "cPunta": 0.182,
+      "cLlano": 0.134,
+      "cValle": 0.085,
+      "p1": 0.080247,
+      "p2": 0.007407,
+      "web": "https://esluz.es/tarifa-solar-2-0/",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.08,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": true
+    },
+    {
+      "nombre": "Endesa One 3P",
+      "cPunta": 0.186578,
+      "cLlano": 0.115065,
+      "cValle": 0.083165,
+      "p1": 0.090227,
+      "p2": 0.090227,
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz-3periodos",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Octopus Unicaja 3P",
+      "cPunta": 0.188,
+      "cLlano": 0.113,
+      "cValle": 0.077,
+      "p1": 0.097,
+      "p2": 0.027,
+      "web": "https://octopusenergy.es/unicaja#tarifas",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Naturgy noche 3P",
+      "cPunta": 0.190465,
+      "cLlano": 0.117512,
+      "cValle": 0.082673,
+      "p1": 0.110283,
+      "p2": 0.033469,
+      "web": "https://www.naturgy.es/hogar/luz/tarifa_noche",
+      "tipo": "3P",
+      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 10.000 kWh/año",
+      "fv": {
+        "exc": 0.07,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Iberdrola Online 3P",
+      "cPunta": 0.191661,
+      "cLlano": 0.133374,
+      "cValle": 0.099645,
+      "p1": 0.091074,
+      "p2": 0.013483,
+      "web": "https://www.iberdrola.es/luz/plan-online-tres-periodos",
+      "tipo": "3P",
+      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Iberdrola Solar 3P",
+      "cPunta": 0.203,
+      "cLlano": 0.123,
+      "cValle": 0.079,
+      "p1": 0.086301,
+      "p2": 0.042466,
+      "web": "https://www.iberdrola.es/luz/plan-ahorro-solar",
+      "tipo": "3P",
+      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": true
+    }
+  ],
+  "updatedAt": "2026-01-19T19:30:51.930Z"
+}

@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-qJv3TZbPxRD8vNElNtfqRm59vDHG9z7YIF6w3p5CFDg=' 'sha256-muBOhBR/PBn5QAjXEOtARrcg+XPp/lj2+psl9gnW+gE=' 'sha256-fxGScKw23ajyC7LAZEqbfVOgt6D4peRMnVnNCKo9/74=' 'sha256-ajkHJ7PggK/xyxEdcanaQL4CtU8Da/YB/XzwFyuwBoM='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark light"/>
+<meta name="description" content="Herramienta experimental para simular mes a mes autoconsumo con batería virtual a partir de CSV/XLSX, procesado localmente en tu navegador.">
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Comparador Tarifas">
+
+  <link rel="preconnect" href="https://luzfija.goatcounter.com">
+  <script src="/js/config.js"></script>
+
+  <meta property="og:title" content="Simulador de batería virtual (CSV) | LuzFija">
+  <meta property="og:description" content="Herramienta experimental para simular mes a mes autoconsumo con batería virtual a partir de CSV/XLSX, procesado localmente en tu navegador.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://luzfija.es/simulador-bateria-virtual.html">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:site_name" content="LuzFija.es">
+  <meta property="og:image" content="https://luzfija.es/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:alt" content="Comparador de Tarifas de Luz - Encuentra la más barata en segundos">
+
+  <!-- Logo para Google Search (marca) -->
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Simulador de batería virtual (CSV) | LuzFija">
+  <meta name="twitter:description" content="Herramienta experimental para simular mes a mes autoconsumo con batería virtual a partir de CSV/XLSX, procesado localmente en tu navegador.">
+  <meta name="twitter:image" content="https://luzfija.es/og.png">
+
+  <link rel="canonical" href="https://luzfija.es/simulador-bateria-virtual.html">
+  <link rel="alternate" hreflang="es-ES" href="https://luzfija.es/simulador-bateria-virtual.html">
+  <link rel="alternate" hreflang="x-default" href="https://luzfija.es/simulador-bateria-virtual.html">
+
+
+  <title>Simulador de batería virtual (CSV) | LuzFija</title>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "LuzFija.es",
+    "url": "https://luzfija.es",
+    "logo": "https://luzfija.es/logo-512.png",
+    "description": "Comparador de tarifas eléctricas del mercado libre español",
+    "sameAs": ["https://github.com/almax-es/luzfija.es"],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "Customer Support",
+      "email": "hola@luzfija.es"
+    }
+  }
+  </script>
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Comparador de Tarifas Eléctricas",
+    "description": "Herramienta profesional para comparar tarifas de electricidad en España. Encuentra la oferta más barata según tus consumos específicos.",
+    "url": "https://luzfija.es",
+    "logo": "https://luzfija.es/logo-512.png",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Any",
+    "inLanguage": "es",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR"
+    },
+    "creator": {
+      "@type": "Person",
+      "name": "aLMaX"
+    }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"BreadcrumbList",
+    "itemListElement":[
+      {"@type":"ListItem","position":1,"name":"Inicio","item":"https://luzfija.es/"},
+      {"@type":"ListItem","position":2,"name":"Simulador batería virtual","item":"https://luzfija.es/simulador-bateria-virtual.html"}
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"FAQPage",
+    "mainEntity":[
+      {
+        "@type":"Question",
+        "name":"¿Qué significan punta, llano y valle?",
+        "acceptedAnswer":{"@type":"Answer","text":"Son periodos horarios con precios distintos en tarifas 3P. En general, punta es más caro, valle más barato y llano intermedio (los horarios exactos dependen del calendario y la tarifa)."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Qué es P1 y P2 en la potencia contratada?",
+        "acceptedAnswer":{"@type":"Answer","text":"La potencia se paga por días y puede variar por periodo (P1/P2). En muchas viviendas se contrata la misma potencia en ambos, pero puedes optimizarla según tu uso."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿El comparador incluye impuestos?",
+        "acceptedAnswer":{"@type":"Answer","text":"Sí: el cálculo muestra potencia, consumo y una estimación de impuestos/IVA según el modelo del comparador."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Necesito registrarme?",
+        "acceptedAnswer":{"@type":"Answer","text":"No. Es una herramienta gratuita, sin registro. Puedes además compartir tu configuración por URL."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿De dónde salen los precios?",
+        "acceptedAnswer":{"@type":"Answer","text":"Las tarifas se recopilan de condiciones públicas de las comercializadoras y se actualizan regularmente. El PVPC se calcula diariamente desde los precios horarios oficiales de REE/ESIOS (indicador 1001)."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Qué es el PVPC?",
+        "acceptedAnswer":{"@type":"Answer","text":"Es la tarifa regulada de electricidad en España, con precios variables por periodos/horas según el mercado."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Cómo calcula el comparador el PVPC?",
+        "acceptedAnswer":{"@type":"Answer","text":"Usa los datos que introduces (potencias P1/P2, días y consumos por periodos) y, cuando hay datos disponibles, muestra un PVPC estimado y lo incluye en el ranking."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Cómo funciona con placas solares y autoconsumo?",
+        "acceptedAnswer":{"@type":"Answer","text":"El comparador calcula la compensación de excedentes según el precio de cada comercializadora. Para tarifas con Batería Virtual (BV), los excedentes sobrantes se acumulan en euros para descontarlos en meses futuros. El ranking ordena por coste real mensual de cada tarifa, sin contar la batería virtual del mes anterior, permitiendo comparar tarifas de forma justa. La columna TOTAL muestra dos valores: 'Pagas' (lo que pagas hoy usando BV anterior) y 'Ranking' (coste real sin BV anterior). El icono solar dorado muestra todos los detalles del cálculo."}
+      }
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "LuzFija.es",
+    "alternateName": "Luzfija",
+    "url": "https://luzfija.es",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://luzfija.es/logo-512.png",
+      "width": 512,
+      "height": 512,
+      "caption": "LuzFija.es - Comparador de Tarifas Eléctricas"
+    },
+    "description": "Comparador gratuito de tarifas de luz en España. Calcula tu factura con discriminación horaria, placas solares y PVPC.",
+    "email": "hola@luzfija.es",
+    "foundingDate": "2023",
+    "sameAs": [
+      "https://luzfija.es"
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer support",
+      "email": "hola@luzfija.es",
+      "availableLanguage": ["es"]
+    },
+    "areaServed": {
+      "@type": "Country",
+      "name": "España"
+    },
+    "serviceType": "Comparador de tarifas eléctricas"
+  }
+  </script>
+
+  <script src="/js/theme.js"></script>
+
+    <link rel="stylesheet" href="/styles.css">
+  <!-- CSS del desglose (solo se usa al abrir el modal). Se carga sin bloquear el render inicial -->
+  <link rel="preload" href="/desglose-factura.css" as="style">
+  <link rel="stylesheet" href="/desglose-factura.css" media="all">
+  <noscript><link rel="stylesheet" href="/desglose-factura.css"></noscript>
+
+  <!-- PDF.js se carga dinámicamente cuando el usuario sube una factura (ver factura.js) -->
+  <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts.css">
+  <link rel="stylesheet" href="/css/bv-sim.css">
+
+    <meta name="theme-color" content="#8B5CF6">
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Saltar al contenido</a>
+<div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span>
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+            <defs>
+              <linearGradient id="logoGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1">
+                  <animate attributeName="stop-color" values="#fbbf24;#f59e0b;#fbbf24" dur="2s" repeatCount="indefinite"/>
+                </stop>
+                <stop offset="50%" style="stop-color:#f59e0b;stop-opacity:1"/>
+                <stop offset="100%" style="stop-color:#fbbf24;stop-opacity:1">
+                  <animate attributeName="stop-color" values="#fbbf24;#f59e0b;#fbbf24" dur="2s" repeatCount="indefinite"/>
+                </stop>
+              </linearGradient>
+              <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1"/>
+                <stop offset="100%" style="stop-color:#6366f1;stop-opacity:1"/>
+              </linearGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            <circle cx="50" cy="50" r="35" fill="url(#logoGrad2)" opacity="0.2">
+              <animate attributeName="r" values="35;38;35" dur="2s" repeatCount="indefinite"/>
+              <animate attributeName="opacity" values="0.2;0.4;0.2" dur="2s" repeatCount="indefinite"/>
+            </circle>
+            <path d="M 55 15 L 35 48 L 48 48 L 45 85 L 70 45 L 57 45 Z"
+                  fill="url(#logoGrad1)" filter="url(#glow)"
+                  stroke="#fff" stroke-width="1.5" stroke-linejoin="round">
+              <animateTransform attributeName="transform" attributeType="XML" type="scale"
+                                values="1;1.08;1" dur="1.5s" repeatCount="indefinite" additive="sum"/>
+            </path>
+            <circle cx="30" cy="30" r="2" fill="#fbbf24" opacity="0">
+              <animate attributeName="opacity" values="0;1;0" dur="1.5s" repeatCount="indefinite"/>
+              <animate attributeName="r" values="2;3;2" dur="1.5s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="70" cy="35" r="2" fill="#fbbf24" opacity="0">
+              <animate attributeName="opacity" values="0;1;0" dur="1.5s" begin="0.5s" repeatCount="indefinite"/>
+              <animate attributeName="r" values="2;3;2" dur="1.5s" begin="0.5s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="65" cy="70" r="2" fill="#fbbf24" opacity="0">
+              <animate attributeName="opacity" values="0;1;0" dur="1.5s" begin="1s" repeatCount="indefinite"/>
+              <animate attributeName="r" values="2;3;2" dur="1.5s" begin="1s" repeatCount="indefinite"/>
+            </circle>
+          </svg>
+        </div>
+        <div>
+          <nav aria-label="Breadcrumb" class="u-mb-8">
+            <ol class="breadcrumb">
+              <li><a href="/">🏠 Inicio</a></li>
+              <li><span aria-current="page">Simulador batería virtual</span></li>
+            </ol>
+          </nav>
+          <h1>Simulador de batería virtual (CSV)</h1>
+          <p>Preparado para probar cargas locales con tu CSV/XLSX.</p>
+        </div>
+      </div>
+    </div>
+
+    <main id="main" tabindex="-1">
+      <section class="card">
+        <div class="head" style="text-align: center;">
+          <h2>Sube tu archivo y potencia contratada</h2>
+        </div>
+        <p style="text-align: center; margin-top: 16px;">Simula mes a mes autoconsumo con batería virtual a partir de tu CSV/XLSX.</p>
+
+        <div class="bv-form-container">
+          <!-- Zona de carga Drag & Drop -->
+          <div class="bv-upload-zone" id="drop-zone">
+            <input class="bv-file-input" type="file" id="bv-file" accept=".csv,.xlsx,.xls" style="display:none">
+            <div class="bv-upload-content">
+              <div class="bv-upload-icon">📄</div>
+              <p class="bv-upload-text"><strong>Arrastra tu CSV/XLSX aquí</strong> o haz clic para buscar</p>
+              <p class="bv-upload-hint">Admite formatos de distribuidora y Datadis</p>
+            </div>
+            <div class="bv-file-selected" id="file-selected-msg" style="display:none">
+              <span class="bv-file-name" id="file-name">archivo.csv</span>
+              <button type="button" class="bv-remove-file" id="remove-file">✕</button>
+            </div>
+          </div>
+
+          <!-- Inputs Numéricos en Grid -->
+          <div class="bv-inputs-grid">
+            <div class="bv-input-wrapper">
+              <label for="bv-p1">Potencia P1 (kW)</label>
+              <div class="bv-input-icon-group">
+                <span class="bv-input-icon">⚡</span>
+                <input class="bv-input-modern" type="text" id="bv-p1" inputmode="decimal" placeholder="3,45">
+              </div>
+            </div>
+            <div class="bv-input-wrapper">
+              <label for="bv-p2">Potencia P2 (kW)</label>
+              <div class="bv-input-icon-group">
+                <span class="bv-input-icon">⚡</span>
+                <input class="bv-input-modern" type="text" id="bv-p2" inputmode="decimal" placeholder="3,45">
+              </div>
+            </div>
+            <div class="bv-input-wrapper">
+              <label for="bv-saldo-inicial">Saldo Hucha Inicial (€)</label>
+              <div class="bv-input-icon-group">
+                <span class="bv-input-icon">💰</span>
+                <input class="bv-input-modern" type="text" id="bv-saldo-inicial" inputmode="decimal" value="0,00">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="u-mt-24">
+          <button class="btn primary bv-btn-simular" id="bv-simulate" type="button">
+            <span class="bv-btn-text">Simular Escenario Anual</span>
+            <span class="spinner" style="display:none"></span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Resultados (Ocultos por defecto) -->
+      <div id="bv-results-container" class="fade-container" style="display:none">
+        <section class="card u-mt-16">
+          <div class="head">
+            <h2>Resultados de la Simulación</h2>
+          </div>
+          <div id="bv-results"></div>
+        </section>
+      </div>
+
+      <!-- Estado (Oculto por defecto o integrado en notificaciones) -->
+      <div id="bv-status-container" style="display:none">
+        <section class="card u-mt-16">
+          <div class="head">
+            <h2>Estado</h2>
+          </div>
+          <div id="bv-status"></div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <script src="/js/lf-config.js"></script>
+  <script src="/js/bv/bv-import.js"></script>
+  <script src="/js/bv/bv-sim-monthly.js"></script>
+  <script src="/js/bv/bv-ui.js"></script>
+</body>
+</html>

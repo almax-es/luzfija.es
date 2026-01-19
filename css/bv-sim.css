@@ -1,0 +1,348 @@
+/* Estilos para el Simulador de Batería Virtual (Versión Centrada) */
+
+/* --- LAYOUT --- */
+.bv-form-container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  margin-top: 20px;
+}
+
+/* --- ZONA DE UPLOAD (Drag & Drop) --- */
+.bv-upload-zone {
+  position: relative;
+  border: 2px dashed var(--border2);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 40px 20px;
+  text-align: center;
+  transition: all 0.3s ease;
+  cursor: pointer;
+  overflow: hidden;
+}
+
+.bv-upload-zone:hover, .bv-upload-zone.dragover {
+  border-color: var(--accent);
+  background: rgba(139, 92, 246, 0.08);
+  box-shadow: 0 0 20px rgba(139, 92, 246, 0.1);
+}
+
+.bv-file-input {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  opacity: 0;
+  cursor: pointer;
+  z-index: 10;
+}
+
+.bv-upload-icon {
+  font-size: 48px;
+  margin-bottom: 16px;
+  filter: drop-shadow(0 0 10px rgba(255,255,255,0.2));
+  transition: transform 0.3s ease;
+}
+
+.bv-upload-zone:hover .bv-upload-icon {
+  transform: scale(1.1) rotate(-5deg);
+}
+
+.bv-upload-text {
+  font-size: 16px;
+  color: var(--text);
+  margin-bottom: 8px;
+}
+
+.bv-upload-hint {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+/* Estado: Archivo Seleccionado */
+.bv-file-selected {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(139, 92, 246, 0.1));
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  animation: fadeIn 0.3s ease;
+}
+
+.bv-file-name {
+  font-size: 18px;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 12px;
+  background: rgba(0,0,0,0.4);
+  padding: 8px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.bv-remove-file {
+  background: var(--card);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.bv-remove-file:hover {
+  background: var(--danger);
+  color: #fff;
+  border-color: var(--danger);
+  transform: scale(1.1);
+}
+
+/* --- INPUTS NUMÉRICOS CENTRADOS --- */
+.bv-inputs-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+}
+
+.bv-input-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centrar label */
+  width: 100%;
+}
+
+.bv-input-wrapper label {
+  display: flex;
+  align-items: center;
+  justify-content: center; /* Centrar contenido del label */
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 800;
+  color: #fff;
+  text-transform: none;
+  letter-spacing: 0;
+  margin-bottom: 10px;
+  width: 100%;
+  text-align: center;
+}
+
+.bv-input-icon-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.bv-input-icon {
+  position: absolute;
+  left: 16px;
+  font-size: 18px;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.bv-input-modern {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid var(--border2);
+  border-radius: 16px;
+  padding: 16px 16px 16px 48px; /* Espacio para el icono a la izq */
+  color: #fff;
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 700;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+  text-align: center; /* Centrar el número */
+}
+
+.bv-input-modern:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: var(--border);
+}
+
+.bv-input-modern:focus {
+  background: rgba(139, 92, 246, 0.1);
+  border-color: var(--accent);
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
+  transform: translateY(-2px);
+  outline: none;
+}
+
+.bv-input-modern.error {
+  border-color: var(--danger);
+  background: rgba(239, 68, 68, 0.1);
+}
+
+/* --- BOTÓN SIMULAR --- */
+.bv-btn-simular {
+  width: 100%;
+  font-size: 18px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  box-shadow: 0 10px 30px rgba(139, 92, 246, 0.3);
+}
+
+/* --- ANIMACIONES --- */
+.fade-container {
+  animation: slideUpFade 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes slideUpFade {
+  from { opacity: 0; transform: translateY(40px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* --- TABLAS (Estilo Glass) --- */
+.bv-table-container {
+  overflow-x: auto;
+  border-radius: 18px;
+  border: 1px solid var(--border2);
+  background: rgba(5, 8, 16, 0.6);
+  margin-top: 20px;
+  box-shadow: var(--shadow2);
+  backdrop-filter: blur(10px);
+}
+
+.bv-table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-size: 14px;
+}
+
+.bv-table th {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--muted);
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  padding: 18px 24px;
+  text-align: right;
+  border-bottom: 1px solid var(--border);
+  white-space: nowrap;
+}
+
+.bv-table th:first-child {
+  text-align: left;
+  position: sticky;
+  left: 0;
+  background: #0B1020;
+  z-index: 2;
+}
+
+.bv-table td {
+  padding: 18px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  text-align: right;
+  font-family: var(--mono);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.bv-table td:first-child {
+  text-align: left;
+  font-family: var(--sans);
+  font-weight: 900;
+  color: var(--accent);
+  position: sticky;
+  left: 0;
+  background: #0B1020;
+  z-index: 1;
+  min-width: 140px;
+  box-shadow: 2px 0 10px rgba(0,0,0,0.3);
+}
+
+.bv-table tr:hover td {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.bv-val-pos { color: var(--accent2); font-weight: 700; }
+.bv-val-neg { color: var(--danger); font-weight: 700; }
+.bv-val-neutral { color: var(--muted); }
+.bv-val-highlight { color: #fff; font-weight: 900; }
+.bv-val-eur { color: var(--warn); font-weight: 700; }
+
+.bv-ranking-row.best {
+  background: linear-gradient(90deg, rgba(34, 197, 94, 0.15), rgba(139, 92, 246, 0.08)) !important;
+}
+
+.bv-ranking-row.best td {
+  border-top: 1px solid rgba(34, 197, 94, 0.3);
+  border-bottom: 1px solid rgba(34, 197, 94, 0.3);
+}
+
+.bv-badge-rank {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 12px;
+  font-weight: 900;
+  font-family: var(--sans);
+}
+
+.bv-badge-best {
+  background: var(--accent2);
+  color: #fff;
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.5);
+  font-size: 16px;
+}
+
+/* --- DETALLES (Desglose) --- */
+.bv-details-row td { padding: 0 !important; border: none !important; }
+.bv-details-container {
+  background: rgba(0, 0, 0, 0.3);
+  margin: 8px 24px 32px 24px;
+  border-radius: 14px;
+  border: 1px solid var(--border2);
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+}
+.bv-details-summary {
+  padding: 14px 20px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.2s;
+  list-style: none;
+}
+.bv-details-summary:hover { background: rgba(255, 255, 255, 0.05); }
+.bv-details-summary::-webkit-details-marker { display: none; }
+
+/* Espaciado para la sección de resultados */
+#bv-results h3 {
+  margin-top: 40px;
+  margin-bottom: 20px;
+  font-size: 22px;
+  font-weight: 900;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 768px) {
+  .bv-inputs-grid { grid-template-columns: 1fr; }
+  .bv-table th, .bv-table td { padding: 12px 14px; font-size: 13px; }
+  .bv-details-container { margin: 8px 10px 20px 10px; }
+}

@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; form-action 'self';">
+<meta name="color-scheme" content="dark light"/>
+<script>
+    (function(){
+      var key='almax_theme';
+      try{
+        var saved=localStorage.getItem(key);
+        if(saved==='light')document.documentElement.classList.add('light-mode');
+        else document.documentElement.classList.remove('light-mode');
+        window.__ALMAX_THEME_SAVED=saved;
+      }catch(e){}
+      window.__ALMAX_THEME_KEY=key;
+    })();
+  </script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Tarifas indexadas (pool + cuota): cuándo interesan | LuzFija.es</title>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="description" content="Tarifas indexadas y pool de la luz: cómo funcionan, cuándo interesan de verdad y cuándo es mejor una tarifa fija. Análisis sin marketing comercial."/>
+  <link rel="canonical" href="https://luzfija.es/guias/tarifas-indexadas-pool-cuota-cuando-interesan-y-cuando-no.html"/>
+  <meta property="og:type" content="article"/>
+  <meta property="og:title" content="Tarifas indexadas (pool + cuota): cuándo interesan | LuzFija"/>
+  <meta property="og:description" content="Tarifas indexadas y pool de la luz: cómo funcionan, cuándo interesan de verdad y cuándo es mejor una tarifa fija. Análisis sin marketing comercial."/>
+  <meta property="og:url" content="https://luzfija.es/guias/tarifas-indexadas-pool-cuota-cuando-interesan-y-cuando-no.html"/>
+  <meta property="og:image" content="https://luzfija.es/og.png"/>
+  <meta property="og:locale" content="es_ES"/>
+  <meta property="og:site_name" content="LuzFija.es"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="Tarifas indexadas (pool + cuota): cuándo interesan | LuzFija"/>
+  <meta name="twitter:description" content="Tarifas indexadas y pool de la luz: cómo funcionan, cuándo interesan de verdad y cuándo es mejor una tarifa fija. Análisis sin marketing comercial."/>
+  <meta name="twitter:image" content="https://luzfija.es/og.png"/>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Tarifas indexadas (pool + cuota): cuándo interesan y cuándo no | LuzFija",
+  "description": "La",
+  "author": {
+    "@type": "Person",
+    "name": "aLMaX",
+    "url": "https://nergiza.com/foro/members/almax.14048/",
+    "sameAs": [
+      "https://nergiza.com/foro/members/almax.14048/",
+      "https://github.com/almax-es"
+    ]
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "LuzFija.es",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://luzfija.es/logo-512.png"
+    }
+  },
+  "datePublished": "2026-01-01",
+  "dateModified": "2026-01-19",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://luzfija.es/guias/tarifas-indexadas-pool-cuota-cuando-interesan-y-cuando-no.html"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "https://luzfija.es/og.png",
+    "width": 1200,
+    "height": 630
+  },
+  "articleSection": "Guías de Ahorro Energético"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://luzfija.es/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guías",
+      "item": "https://luzfija.es/guias.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Tarifas indexadas (pool + cuota): cuándo interesan",
+      "item": "https://luzfija.es/guias/tarifas-indexadas-pool-cuota-cuando-interesan-y-cuando-no.html"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Qué son las tarifas indexadas o pool?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Son tarifas donde el precio de la energía sigue el precio del mercado mayorista (pool) hora a hora, más un margen fijo de la comercializadora. Similar al PVPC pero en mercado libre. Pueden tener precios muy bajos cuando el mercado está barato, pero muy altos cuando se dispara."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Cuándo me conviene una tarifa indexada?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Si tienes flexibilidad horaria total, puedes desplazar consumos a horas baratas, monitorizas precios y apagas cosas cuando están caros. También si tienes placas solares y autoconsumo alto. No conviene si necesitas estabilidad o tu consumo es rígido."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Qué diferencia hay entre tarifa indexada y PVPC?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "PVPC es la tarifa regulada solo en COR, con precios fijados oficialmente. Indexadas son de mercado libre, con precios pool + margen de la comercializadora (que puede ser bajo o alto). Las indexadas pueden ser más baratas que PVPC si la comercializadora cobra poco margen, o más caras."
+      }
+    }
+  ]
+}
+</script>
+<style>
+:root{--bg:#0B1020;--surface:#141b2e;--card:rgba(255,255,255,.06);--border:rgba(255,255,255,.10);--text:#F7F7FB;--muted:rgba(247,247,251,.72);--accent:#8B5CF6;--accent2:#22C55E;--warn:#F59E0B}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',-apple-system,system-ui,sans-serif;background:linear-gradient(135deg,var(--bg),var(--surface));color:var(--text);line-height:1.7;overflow-x:hidden}
+.progress-bar{position:fixed;top:0;left:0;width:100%;height:4px;background:rgba(255,255,255,.05);z-index:1000}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),#EC4899);width:0%;transition:width .2s ease}
+.header{position:sticky;top:0;background:rgba(11,16,32,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:16px 0;z-index:100}
+.header-container{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.breadcrumbs{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);flex-wrap:wrap}
+.breadcrumbs a{color:var(--accent);text-decoration:none;transition:opacity .2s}
+.breadcrumbs a:hover{opacity:.8}
+.header-actions{display:flex;gap:12px}
+.btn-small{padding:8px 16px;background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:8px;color:var(--text);text-decoration:none;font-size:14px;font-weight:600;transition:all .3s ease;display:inline-flex;align-items:center;gap:6px}
+.btn-small:hover{background:rgba(139,92,246,.2);border-color:var(--accent);transform:translateY(-1px)}
+.container{max-width:1400px;margin:0 auto;padding:40px 24px 80px;display:grid;grid-template-columns:280px 1fr 280px;gap:40px;align-items:start}
+.toc{position:sticky;top:100px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;max-height:calc(100vh - 120px);overflow-y:auto}
+.toc h3{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;color:var(--muted)}
+.toc-list{list-style:none}
+.toc-list li{margin-bottom:8px}
+.toc-list a{display:block;color:var(--muted);text-decoration:none;font-size:14px;padding:6px 12px;border-radius:6px;transition:all .2s;border-left:2px solid transparent}
+.toc-list a:hover{color:var(--text);background:rgba(255,255,255,.05);border-left-color:var(--accent)}
+.toc-list a.active{color:var(--accent);background:rgba(139,92,246,.15);border-left-color:var(--accent);font-weight:600}
+.article{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:60px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.article-header{margin-bottom:40px;padding-bottom:30px;border-bottom:1px solid var(--border)}
+.article-category{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(139,92,246,.2);border:1px solid var(--accent);border-radius:100px;font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:20px}
+.article h1{font-size:clamp(32px,5vw,48px);font-weight:900;line-height:1.1;margin-bottom:16px;background:linear-gradient(135deg,var(--text),var(--muted));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.article-intro{font-size:20px;color:var(--muted);line-height:1.6;margin-bottom:20px}
+.article-meta{display:flex;align-items:center;gap:20px;font-size:14px;color:var(--muted);flex-wrap:wrap}
+.article-meta strong{color:var(--text)}
+.article-content h2{font-size:28px;font-weight:800;margin:48px 0 20px;color:var(--text);scroll-margin-top:100px}
+.article-content h2::before{content:'';display:block;width:40px;height:4px;background:linear-gradient(90deg,var(--accent),transparent);margin-bottom:12px}
+.article-content h3{font-size:22px;font-weight:700;margin:32px 0 16px;color:var(--text)}
+.article-content p{margin-bottom:20px;font-size:16px;line-height:1.8}
+.article-content ul,.article-content ol{margin:20px 0 20px 24px}
+.article-content li{margin-bottom:12px;padding-left:8px}
+.article-content strong{color:var(--text);font-weight:700}
+.article-content a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(139,92,246,.3);transition:all .2s}
+.article-content a:hover{border-bottom-color:var(--accent)}
+.faq-section{margin-top:60px;padding-top:40px;border-top:1px solid var(--border)}
+.faq-section h2{font-size:32px;font-weight:800;margin-bottom:30px;text-align:center}
+.faq-item{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;transition:all .3s ease}
+.faq-item:hover{border-color:rgba(139,92,246,.5)}
+.faq-item summary{padding:18px 24px;font-weight:600;font-size:16px;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;user-select:none}
+.faq-item summary::after{content:'+';font-size:24px;color:var(--accent);transition:transform .3s}
+.faq-item[open] summary::after{transform:rotate(45deg)}
+.faq-item p{padding:0 24px 20px;color:var(--muted);font-size:15px;line-height:1.7}
+.sidebar-actions{position:sticky;top:100px}
+.action-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px}
+.action-card h3{font-size:18px;font-weight:800;margin-bottom:12px}
+.action-card p{font-size:14px;color:var(--muted);margin-bottom:16px;line-height:1.5}
+.action-btn{display:block;width:100%;padding:12px;background:var(--accent);color:white;text-align:center;text-decoration:none;border-radius:10px;font-weight:700;font-size:14px;transition:all .3s ease}
+.action-btn:hover{background:#7C3AED;transform:translateY(-2px);box-shadow:0 8px 20px rgba(139,92,246,.4)}
+.share-buttons{display:flex;flex-direction:column;gap:8px}
+.share-btn{display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;color:var(--text);text-decoration:none;font-size:13px;font-weight:600;transition:all .3s ease}
+.share-btn:hover{background:rgba(255,255,255,.1);border-color:var(--accent);transform:translateX(4px)}
+.guide-nav{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:60px;padding-top:40px;border-top:1px solid var(--border)}
+.guide-nav-btn{display:flex;flex-direction:column;padding:20px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;text-decoration:none;color:var(--text);transition:all .3s ease}
+.guide-nav-btn:hover{background:rgba(139,92,246,.15);border-color:var(--accent);transform:translateY(-2px)}
+.guide-nav-label{font-size:12px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;font-weight:700;letter-spacing:.5px}
+.guide-nav-title{font-size:16px;font-weight:600}
+@media (max-width:1200px){.container{grid-template-columns:1fr}.toc{display:none}.sidebar-actions{display:none}}
+@media (max-width:768px){.article{padding:32px 24px}.container{padding:20px 16px}.article h1{font-size:32px}.guide-nav{grid-template-columns:1fr}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.article{animation:fadeIn .6s ease}
+/* === Light mode (shared) === */
+html.light-mode{
+  --bg:#F4F6FB;
+  --surface:#FFFFFF;
+  --card: rgba(15, 23, 42, .04);
+  --border: rgba(15, 23, 42, .10);
+  --text:#0F172A;
+  --muted: rgba(15, 23, 42, .75);
+  --card2: rgba(15, 23, 42, .06);
+  --border2: rgba(15, 23, 42, .16);
+  --muted2: rgba(15, 23, 42, .58);
+  --accent:#6D28D9; /* mejor contraste en modo claro */
+  --accent2:#15803D; /* mejor contraste en modo claro */
+  --warn:#B45309; /* mejor contraste en modo claro */
+}
+html.light-mode body{
+  background: linear-gradient(135deg, var(--bg), var(--surface)) !important;
+  color: var(--text);
+}
+/* Generic fixes for hard-coded dark headers/buttons in light mode */
+html.light-mode .header{
+  background: rgba(255,255,255,.92) !important;
+  border-bottom-color: var(--border) !important;
+}
+html.light-mode .btn-secondary,
+html.light-mode .btn-small{
+  background: rgba(15, 23, 42, .04) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+html.light-mode .btn-secondary:hover,
+html.light-mode .btn-small:hover{
+  background: rgba(139, 92, 246, .12) !important;
+}
+/* === Ajustes "pixel-perfect" para móviles === */
+/* iOS Safari: evita el zoom automático cuando un input tiene <16px */
+@supports (-webkit-touch-callout: none) {
+  input, select, textarea { font-size: 16px !important; }
+}
+/* 100vh puede fallar en móvil por la barra del navegador (usa dvh si existe) */
+@supports (height: 100dvh) {
+  body { min-height: 100dvh; }
+  .toc { max-height: calc(100dvh - 120px); }
+}
+/* === Sources Section === */
+.sources-section {
+  margin-top: 40px;
+  padding: 32px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+.sources-section h2 {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+.sources-section h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 20px;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+.sources-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.sources-list li {
+  margin-bottom: 10px;
+  padding-left: 0;
+}
+.sources-list a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(139,92,246,.3);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.sources-list a:hover {
+  border-bottom-color: var(--accent);
+  opacity: .8;
+}
+.updated-badge {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--accent2);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.key-takeaway {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05));
+  border: 1px solid var(--accent2);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 30px 0;
+  position: relative;
+}
+.key-takeaway::before {
+  content: 'Dato Clave 2026';
+  position: absolute;
+  top: -12px;
+  left: 20px;
+  background: var(--bg);
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent2);
+  border: 1px solid var(--accent2);
+  border-radius: 100px;
+}
+.key-takeaway strong { color: var(--accent2); }
+</style>
+  <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts.css">
+  <meta name="theme-color" content="#8B5CF6">
+</head>
+<body>
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+<header class="header">
+<div class="header-container">
+<nav class="breadcrumbs">
+<a href="/">🏠 Inicio</a><span>›</span><a href="/guias.html">📚 Guías</a><span>›</span><span>Tarifas indexadas (pool + cuota): cuándo interesan y cuándo no</span>
+</nav>
+<div class="header-actions">
+<a href="/guias.html" class="btn-small">📚 Todas</a>
+<a href="/" class="btn-small">⚡ Comparador</a>
+</div>
+</div>
+</header>
+<div class="container">
+<aside class="toc"><h3>En esta guía</h3><ul class="toc-list" id="tocList"></ul></aside>
+<article class="article">
+<div class="article-header">
+<span class="article-category">📚 Guía</span>
+<h1>Tarifas indexadas (pool + cuota): cuándo interesan y cuándo no</h1>
+<p class="article-intro">Las indexadas son tarifas donde el precio de la energía <strong>no es fijo</strong>: va "a mercado" (pool) y la compañía te cobra su margen o una cuota. A veces salen muy bien… y otras te la juegas.</p>
+<div class="article-meta"><span>Por <strong>aLMaX</strong></span><span>·</span><span>1 ene 2026</span><span>·</span><span>⏱️ 3 min</span><span>·</span><span class="updated-badge">🔄 Act. 19 ene 2026</span></div>
+</div>
+<div class="article-content">
+<h2>Qué es una indexada (en cristiano)</h2>
+<p>
+Pagas el kWh según el mercado mayorista (OMIE). Ese precio varía cada hora o cada día, igual que la PVPC. Pero además, la compañía te añade:
+ En mercado libre tienes opciones de tarifas indexadas que varían según el pool. Compáralo con nuestra guía de <a href="pvpc-vs-mercado-libre-cuando-te-conviene-cada-uno.html">PVPC vs mercado libre</a>.</p>
+<ul>
+<li><strong>Un margen fijo por kWh</strong> (ej: 0,01 €/kWh extra sobre el pool)</li>
+<li><strong>Y/o una cuota mensual</strong> (ej: 3-5 €/mes de "gestión")</li>
+</ul>
+<p>
+Ejemplo real: pool a 0,10 €/kWh + margen 0,015 €/kWh + cuota 4 €/mes. Si consumes 300 kWh, pagas: (0,10 + 0,015) × 300 = 34,50 € + 4 € = 38,50 €. Si ese mes el pool sube a 0,15 €/kWh, pagas 53,50 €. Te la juegas.
+</p>
+<h2>¿En qué se diferencia de PVPC?</h2>
+<table class="tabla-comparativa">
+<tbody><tr><th></th><th>PVPC</th><th>Indexada mercado libre</th></tr>
+<tr>
+<td><strong>Quién la ofrece</strong></td>
+<td>Comercializadoras de referencia</td>
+<td>Casi cualquier comercializadora</td>
+</tr>
+<tr>
+<td><strong>Precio</strong></td>
+<td>Pool + peajes/cargos regulados</td>
+<td>Pool + margen/cuota de la empresa</td>
+</tr>
+<tr>
+<td><strong>Transparencia</strong></td>
+<td>Total (puedes ver el desglose exacto)</td>
+<td>Depende (algunas son claras, otras no)</td>
+</tr>
+<tr>
+<td><strong>Letra pequeña</strong></td>
+<td>Poca</td>
+<td>Cuotas, márgenes, servicios extra, permanencia…</td>
+</tr>
+</tbody></table>
+<h2>Tipos de indexadas que te vas a encontrar</h2>
+<p><strong>1. Pool + margen fijo</strong></p>
+<p>
+Te cobran el precio del mercado más X céntimos por kWh. Simple y relativamente honesto. Ejemplo: "Pool + 0,02 €/kWh". Si el pool está a 0,12 €/kWh, pagas 0,14 €/kWh.
+</p>
+<p><strong>2. Pool + cuota mensual</strong></p>
+<p>
+El kWh va "a precio de coste" (pool) y te cobran una cuota fija al mes. Interesante si consumes mucho (la cuota se diluye). Mal negocio si consumes poco (la cuota pesa más que el ahorro).
+</p>
+<p><strong>3. Pool + margen + cuota (combo)</strong></p>
+<p>
+Te clavan las dos cosas. Suelen vendértelo como "la más completa" pero normalmente es la peor opción. Evítala salvo que el margen y la cuota sean ridículamente bajos.
+</p>
+<p><strong>4. Pool promediado (mensual o semanal)</strong></p>
+<p>
+En vez de facturarte hora a hora, hacen un promedio del mes/semana. Pierdes la ventaja de mover consumos a las horas <a href="que-es-p1-p2-y-p3-en-tu-factura.html">P3 (valle)</a>. Poco recomendable si tienes flexibilidad horaria.
+</p>
+<h2>Cuándo te conviene una indexada</h2>
+<ul>
+<li>Aceptas que la factura <strong>suba y baja</strong> con el mercado (no buscas previsibilidad total).</li>
+<li>Puedes <strong>mover consumo a horas baratas</strong> (lavadoras, termo, coche eléctrico de noche).</li>
+<li>El <strong>margen + cuota</strong> es bajo (haz cuentas: ¿cuánto te añaden al mes vs PVPC?).</li>
+<li><strong>No te atan</strong> con permanencia (si la indexada tiene permanencia de 12 meses, huye).</li>
+<li>Consumes bastante (300+ kWh/mes). Si consumes poco, la cuota pesa demasiado.</li>
+</ul>
+<h2>Cuándo NO te conviene</h2>
+<ul>
+<li>Quieres <strong>precio fijo</strong> sin sustos → Busca tarifa fija del mercado libre</li>
+<li>Quieres <strong>máxima transparencia</strong> → Quédate en PVPC</li>
+<li>Consumes <strong>poco</strong> (menos de 200 kWh/mes) → La cuota te mata</li>
+<li>Te meten <strong>permanencia</strong> → Mala señal (las buenas indexadas no necesitan atarte)</li>
+<li>No puedes <strong>mover horarios</strong> → Pierdes la ventaja de aprovechar horas baratas</li>
+</ul>
+<h2>Checklist anti-timos (lee SIEMPRE antes de firmar)</h2>
+<ul>
+<li><strong>Cuota mensual:</strong> ¿Cuánto es? Si supera 5 €/mes, haz cuentas bien.</li>
+<li><strong>Margen por kWh:</strong> ¿Cuánto añaden al pool? Parece poco, pero en 400 kWh/mes puede ser 4-8 € extra.</li>
+<li><strong>¿Precio hora a hora o promedio?</strong> Si promedian, pierdes la magia de la discriminación horaria.</li>
+<li><strong>Permanencia:</strong> ¿Te atan? ¿Cuánto tiempo? ¿Penalización si te vas?</li>
+<li><strong>Servicios añadidos:</strong> "Mantenimiento", "protección", "asistencia 24h"… ¿Te los cuelan? ¿Puedes quitarlos?</li>
+<li><strong>Actualización de precios:</strong> ¿Pueden subir el margen/cuota cada año con IPC? (Léelo en el contrato)</li>
+</ul>
+<h2>Ejemplo real de cálculo</h2>
+<p><strong>Caso 1: Indexada con cuota</strong></p>
+<p>
+Tarifa: Pool + 4 €/mes. Mes de enero, pool promedio 0,11 €/kWh. Consumes 350 kWh.
+<br/>
+Factura: (0,11 × 350) + 4 = 38,50 € + 4 € = 42,50 € (sin impuestos).
+</p>
+<p><strong>Caso 2: PVPC mismo mes</strong></p>
+<p>
+Pool 0,11 €/kWh + peajes/cargos (unos 0,04 €/kWh de media) = 0,15 €/kWh efectivo.
+<br/>
+Factura: 0,15 × 350 = 52,50 € (sin impuestos).
+</p>
+<p>
+En este caso, la indexada te ahorra 10 € al mes. Pero ojo: si el pool sube, tú también subes. Y si consumes 150 kWh en vez de 350, la cuota de 4 € pesa más.
+</p>
+<h2>Consejo final</h2>
+<p>
+Las indexadas pueden ser buenas si la compañía es seria, el margen/cuota es bajo, no hay permanencia, y consumes bastante pudiendo mover horarios.
+</p>
+<p>
+<strong>Prueba práctica:</strong> Úsala 2-3 meses y compara facturas con lo que hubieras pagado en PVPC (puedes calcularlo con el histórico de precios de REE). Si no te convence, te cambias.
+</p>
+<p>
+Y recuerda: una indexada buena no necesita atarte 12 meses. Si te atan, sospecha.
+</p>
+<section class="sources-section">
+<h2>📚 Fuentes y referencias</h2>
+<h3>Organismos oficiales</h3>
+<ul class="sources-list">
+<li><a target="_blank" rel="noopener noreferrer" href="https://www.omie.es/es/market-results/daily/daily-market/daily-hourly-price">OMIE - Precios de mercado diarios</a></li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://www.esios.ree.es/es/pvpc">Red Eléctrica - Información pool</a></li>
+<li><a target="_blank" rel="noopener noreferrer" href="https://www.cnmc.es/consumidores/energia">CNMC - Análisis de mercado</a></li>
+</ul>
+<h3>Reguladores</h3>
+<ul class="sources-list">
+<li><a target="_blank" rel="noopener noreferrer" href="https://www.miteco.gob.es/es/energia/energia-electrica/electricidad.html">MITECO - Política de precios</a></li>
+</ul>
+</section>
+<section class="faq-section" id="faq">
+<h2>Preguntas frecuentes</h2>
+<details class="faq-item">
+<summary>¿Qué son las tarifas indexadas o pool?</summary>
+<p>Son tarifas donde el precio de la energía sigue el precio del mercado mayorista (pool) hora a hora, más un margen fijo de la comercializadora. Similar al PVPC pero en mercado libre. Pueden tener precios muy bajos cuando el mercado está barato, pero muy altos cuando se dispara.</p>
+</details>
+<details class="faq-item">
+<summary>¿Cuándo me conviene una tarifa indexada?</summary>
+<p>Si tienes flexibilidad horaria total, puedes desplazar consumos a horas baratas, monitorizas precios y apagas cosas cuando están caros. También si tienes placas solares y autoconsumo alto. No conviene si necesitas estabilidad o tu consumo es rígido.</p>
+</details>
+<details class="faq-item">
+<summary>¿Qué diferencia hay entre tarifa indexada y PVPC?</summary>
+<p>PVPC es la tarifa regulada solo en COR, con precios fijados oficialmente. Indexadas son de mercado libre, con precios pool + margen de la comercializadora (que puede ser bajo o alto). Las indexadas pueden ser más baratas que PVPC si la comercializadora cobra poco margen, o más caras.</p>
+</details>
