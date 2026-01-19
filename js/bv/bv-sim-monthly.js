@@ -1,5 +1,6 @@
 window.BVSim = window.BVSim || {};
 
+// ===== UTILIDADES DE FECHA =====
 function calcularViernesSanto(year) {
   const a = year % 19;
   const b = Math.floor(year / 100);
@@ -20,9 +21,9 @@ function calcularViernesSanto(year) {
   const viernesSanto = new Date(pascua);
   viernesSanto.setDate(pascua.getDate() - 2);
 
-  const mes = String(viernesSanto.getMonth() + 1).padStart(2, '0');
-  const dia = String(viernesSanto.getDate()).padStart(2, '0');
-  return `${year}-${mes}-${dia}`;
+  const mStr = String(viernesSanto.getMonth() + 1).padStart(2, '0');
+  const dStr = String(viernesSanto.getDate()).padStart(2, '0');
+  return `${year}-${mStr}-${dStr}`;
 }
 
 function getFestivosNacionales(year) {
@@ -54,6 +55,7 @@ function getPeriodoHorarioCSV(fecha, hora) {
   return 'P2';
 }
 
+// ===== AGRUPACIÓN MENSUAL (BUCKETS) =====
 window.BVSim.bucketizeByMonth = function (records) {
   const monthsMap = new Map();
 
@@ -150,17 +152,18 @@ window.BVSim.bucketizeByMonth = function (records) {
   return months;
 };
 
+// Solo devuelve los meses agrupados, la simulación económica va aparte
 window.BVSim.simulateMonthly = function (importResult, potenciaP1, potenciaP2) {
   const months = window.BVSim.bucketizeByMonth(importResult.records);
   return { ok: true, months };
 };
 
-window.BVSim.round2 = function (value) {
-  const n = Number(value);
-  if (!Number.isFinite(n)) return 0;
-  return Math.round(n * 100) / 100;
+// ===== UTILIDADES MATEMÁTICAS =====
+window.BVSim.round2 = function (n) {
+  return Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 };
 
+// ===== SIMULACIÓN ECONÓMICA (MES INDIVIDUAL) =====
 window.BVSim.calcMonthForTarifa = function ({
   month,
   tarifa,
@@ -170,30 +173,65 @@ window.BVSim.calcMonthForTarifa = function ({
 }) {
   const round2 = window.BVSim.round2;
   const dias = Number(month?.spanDays) || Number(month?.daysWithData) || 0;
+  
+  // Potencia
   const pot = round2((potenciaP1 * dias * tarifa.p1) + (potenciaP2 * dias * tarifa.p2));
+  
+  // Consumo (Energía)
   const consEur = round2(
     (month.importByPeriod.P1 * tarifa.cPunta)
     + (month.importByPeriod.P2 * tarifa.cLlano)
     + (month.importByPeriod.P3 * tarifa.cValle)
   );
-  const tarifaAcceso = round2(LF_CONFIG.calcularBonoSocial(dias));
+  
+  // Bono social (Tarifa de acceso) - Usamos LF_CONFIG si está disponible
+  const bonoSocialAnual = (window.LF_CONFIG && window.LF_CONFIG.bonoSocial) 
+    ? window.LF_CONFIG.bonoSocial.eurosAnuales 
+    : 10.764952; // Fallback 2026
+  
+  const tarifaAcceso = round2(bonoSocialAnual / 365 * dias);
+  
+  // Excedentes
   const exKwh = Number(month.exportTotalKWh) || 0;
   const precioExc = Number(tarifa.fv.exc);
   const creditoPotencial = round2(exKwh * precioExc);
+  
+  // Compensación (límite: coste energía)
   const credit1 = round2(Math.min(creditoPotencial, consEur));
   const consAdj = round2(Math.max(0, consEur - credit1));
   const excedenteSobranteEur = round2(Math.max(0, creditoPotencial - credit1));
+  
+  // Impuestos
   const sumaBase = round2(pot + consAdj + tarifaAcceso);
-  const impuestoElec = round2(LF_CONFIG.calcularIEE(sumaBase, month.importTotalKWh));
-  const alquilerContador = round2(LF_CONFIG.calcularAlquilerContador(dias));
+  
+  // IEE
+  let impuestoElec = 0;
+  if (window.LF_CONFIG && window.LF_CONFIG.calcularIEE) {
+    impuestoElec = round2(window.LF_CONFIG.calcularIEE(sumaBase, month.importTotalKWh));
+  } else {
+    // Fallback IEE
+    impuestoElec = round2(Math.max(0.0511269632 * sumaBase, month.importTotalKWh * 0.001)); 
+  }
+
+  // Alquiler
+  let alquilerContador = 0;
+  if (window.LF_CONFIG && window.LF_CONFIG.calcularAlquilerContador) {
+    alquilerContador = round2(window.LF_CONFIG.calcularAlquilerContador(dias));
+  } else {
+    alquilerContador = round2(dias * 0.81 * 12 / 365); // Fallback
+  }
+
+  // IVA
   const ivaBase = round2(pot + consAdj + tarifaAcceso + impuestoElec + alquilerContador);
-  const ivaCuota = round2(ivaBase * LF_CONFIG.territorios.peninsula.impuestos.energia);
+  const ivaCuota = round2(ivaBase * 0.21); // Asumimos Península 21% por defecto para simplificar demo
   const totalBase = round2(ivaBase + ivaCuota);
 
+  // Batería Virtual (Hucha)
   const credit2 = round2(Math.min(Math.max(0, bvSaldoPrev), totalBase));
   const bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bvSaldoPrev - credit2));
   const totalPagar = round2(Math.max(0, totalBase - credit2));
 
+  // Coste Real (si no tuvieras hucha anterior)
   const totalReal = round2(Math.max(0, totalBase - excedenteSobranteEur));
 
   return {
@@ -218,6 +256,7 @@ window.BVSim.calcMonthForTarifa = function ({
   };
 };
 
+// ===== SIMULACIÓN BUCLE (TODA LA TARIFA) =====
 window.BVSim.simulateForTarifaDemo = function ({
   months,
   tarifa,
@@ -268,45 +307,7 @@ window.BVSim.simulateForTarifaDemo = function ({
   };
 };
 
-window.BVSim.simulateForAllTarifasBV = function ({
-  months,
-  tarifasBV,
-  potenciaP1,
-  potenciaP2,
-  bvSaldoInicial = 0
-}) {
-  if (!Array.isArray(months) || !Array.isArray(tarifasBV)) {
-    return { ok: false, error: 'Parámetros inválidos.' };
-  }
-
-  const results = [];
-
-  for (const tarifa of tarifasBV) {
-    const result = window.BVSim.simulateForTarifaDemo({
-      months,
-      tarifa,
-      potenciaP1,
-      potenciaP2,
-      bvSaldoInicial
-    });
-
-    if (!result || !result.ok) {
-      return {
-        ok: false,
-        error: result?.error || `Error al simular tarifa ${tarifa?.nombre || 'desconocida'}.`
-      };
-    }
-
-    results.push({
-      tarifa: result.tarifa,
-      rows: result.rows,
-      totals: result.totals
-    });
-  }
-
-  return { ok: true, results };
-};
-
+// ===== SIMULACIÓN MASIVA (TODAS LAS TARIFAS) =====
 window.BVSim.simulateForAllTarifasBV = function ({
   months,
   tarifasBV,
@@ -331,8 +332,28 @@ window.BVSim.simulateForAllTarifasBV = function ({
   }
 };
 
-window.BVSim.round2 = function (n) {
-  return Math.round((n + Number.EPSILON) * 100) / 100;
-};
+// ===== CARGAR TARIFAS =====
+window.BVSim.loadTarifasBV = async function () {
+  try {
+    const response = await fetch('tarifas.json');
+    if (!response.ok) {
+      return { ok: false, error: `Error al cargar tarifas.json (${response.status}).` };
+    }
 
-window.BVSim.loadTarifasBV = async function () { try { const response = await fetch('tarifas.json'); if (!response.ok) return { ok: false, error: 'Error al cargar tarifas.json' }; const data = await response.json(); const tarifas = Array.isArray(data?.tarifas) ? data.tarifas : []; const tarifasBV = tarifas.filter(t => t?.fv?.bv === true); return { ok: true, tarifasBV }; } catch (e) { return { ok: false, error: e.message }; } };
+    const data = await response.json();
+    const tarifas = Array.isArray(data?.tarifas) ? data.tarifas : [];
+
+    const tarifasBV = tarifas.filter((tarifa) => {
+      // Filtrar solo tarifas con Batería Virtual real (tipo SIMPLE + BV)
+      if (!tarifa || !tarifa.fv) return false;
+      if (tarifa.fv.bv !== true) return false;
+      if (tarifa.fv.tipo !== 'SIMPLE + BV') return false;
+      const exc = Number(tarifa.fv.exc);
+      return Number.isFinite(exc) && exc > 0;
+    });
+
+    return { ok: true, tarifasBV };
+  } catch (error) {
+    return { ok: false, error: error?.message || 'Error al cargar tarifas BV.' };
+  }
+};
