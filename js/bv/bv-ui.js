@@ -159,20 +159,32 @@ window.BVSim = window.BVSim || {};
             const winnerHucha = fEur(winner.totals.bvFinal);
             const winnerWeb = winner.tarifa.web;
 
-            // Resto de opciones (Top 2-5)
-            const othersHtml = rankedResults.slice(1, 10).map((r, i) => {
-              const buildDetailedRows = (rows) => rows.map((row) => {
-                const impuestos = row.impuestoElec + row.ivaCuota + row.costeBonoSocial + row.alquilerContador;
+            // Función para pintar la tabla detalle de cada tarifa (Desglose Matemático)
+            const buildDetailedRows = (rows) => rows.map((row) => {
+                const impuestosYOtros = row.impuestoElec + row.ivaCuota + row.costeBonoSocial + row.alquilerContador;
+                const costeFacturaBruto = row.pot + row.consEur + impuestosYOtros; // Antes de compensar
+                const costeFacturaTrasCompensar = row.pot + (row.consEur - row.credit1) + impuestosYOtros; // Tras compensar excedentes en factura
+                
                 return `
                   <tr>
                     <td style="text-align:left; color:#fff; font-weight:600; font-size:12px">${row.key}</td>
                     <td style="font-size:11px; color:var(--muted)">${fEur(row.pot)}</td>
-                    <td style="font-size:11px; color:var(--muted)">${fEur(row.consEur)}</td>
-                    <td style="font-size:11px; color:#ef4444">${fEur(impuestos)}</td>
-                    <td class="bv-val-pos" style="font-size:11px">+${fEur(row.credit1)}</td>
-                    <td class="bv-val-pos" style="font-size:11px; font-weight:700">+${fEur(row.excedenteSobranteEur)}</td>
-                    <td class="bv-val-highlight" style="font-size:11px; background:rgba(255,255,255,0.05)">${fEur(row.bvSaldoFin)}</td>
-                    <td class="bv-val-eur" style="font-weight:700; font-size:12px">${fEur(row.totalPagar)}</td>
+                    <td style="font-size:11px; color:var(--muted)">
+                        <div style="text-decoration:line-through; opacity:0.5">${fEur(row.consEur)}</div>
+                        <div style="color:#10b981">-${fEur(row.credit1)}</div>
+                        <div style="font-weight:700">${fEur(row.consEur - row.credit1)}</div>
+                    </td>
+                    <td style="font-size:11px; color:#ef4444">${fEur(impuestosYOtros)}</td>
+                    <td style="font-weight:700; background:rgba(255,255,255,0.05)">${fEur(row.totalBase + row.ivaCuota)}</td>
+                    <td class="bv-val-pos" style="font-size:11px">
+                        <div style="color:var(--muted); font-size:9px">Teníais: ${fEur(row.bvSaldoPrev)}</div>
+                        <div>-${fEur(row.credit2)}</div>
+                    </td>
+                    <td class="bv-val-highlight" style="font-size:12px; font-weight:800">${fEur(row.totalPagar)}</td>
+                    <td style="font-size:11px; color:#fbbf24; font-weight:700">
+                        <div>+${fEur(row.excedenteSobranteEur)}</div>
+                        <div style="border-top:1px solid rgba(251,191,36,0.3)">${fEur(row.bvSaldoFin)}</div>
+                    </td>
                   </tr>
                 `;
               }).join('');
@@ -193,19 +205,19 @@ window.BVSim = window.BVSim || {};
                   </div>
                 </div>
                 <details style="margin-top: 8px;">
-                  <summary style="font-size: 0.75rem; color: var(--primary-light); cursor: pointer; opacity: 0.8;">Ver desglose para expertos (Modo Nergiza)</summary>
+                  <summary style="font-size: 0.75rem; color: var(--primary-light); cursor: pointer; opacity: 0.8;">Ver cuentas detalladas del mes</summary>
                   <div class="bv-table-container" style="border:none; border-radius:8px; margin-top:8px; background:rgba(0,0,0,0.2);">
                     <table class="bv-table" style="font-size:10px;">
                       <thead>
                         <tr>
                           <th style="text-align:left">Mes</th>
                           <th>Potencia</th>
-                          <th>Energía</th>
-                          <th>Imp+Otros</th>
-                          <th>Compens.</th>
-                          <th>A Hucha</th>
-                          <th>Hucha Fin</th>
+                          <th>Energía (Neto)</th>
+                          <th>Impuestos</th>
+                          <th>Subtotal</th>
+                          <th>Uso Hucha</th>
                           <th>A Pagar</th>
+                          <th>Saldo Hucha</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -238,19 +250,19 @@ window.BVSim = window.BVSim || {};
                 ${winnerWeb ? `<a href="${winnerWeb}" target="_blank" style="background: white; color: #059669; text-decoration: none; padding: 12px 32px; border-radius: 99px; font-weight: 800; font-size: 1.1rem; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">Ver esta tarifa &rarr;</a>` : ''}
                 
                 <details style="margin-top: 20px; text-align: left;">
-                  <summary style="font-size: 0.8rem; cursor: pointer; opacity: 0.9; text-align: center;">Ver desglose técnico del ganador</summary>
+                  <summary style="font-size: 0.8rem; cursor: pointer; opacity: 0.9; text-align: center;">Ver cuentas detalladas del ganador</summary>
                   <div class="bv-table-container" style="border:none; border-radius:8px; margin-top:10px; background:rgba(0,0,0,0.2);">
                     <table class="bv-table" style="font-size:10px; color: white;">
                       <thead>
                         <tr>
                           <th style="text-align:left; color: white;">Mes</th>
                           <th style="color: white;">Potencia</th>
-                          <th style="color: white;">Energía</th>
-                          <th style="color: white;">Imp+Otros</th>
-                          <th style="color: white;">Compens.</th>
-                          <th style="color: white;">A Hucha</th>
-                          <th style="color: white;">Hucha Fin</th>
+                          <th style="color: white;">Energía (Neto)</th>
+                          <th style="color: white;">Impuestos</th>
+                          <th style="color: white;">Subtotal</th>
+                          <th style="color: white;">Uso Hucha</th>
                           <th style="color: white;">A Pagar</th>
+                          <th style="color: white;">Saldo Hucha</th>
                         </tr>
                       </thead>
                       <tbody>
@@ -261,12 +273,22 @@ window.BVSim = window.BVSim || {};
                               <tr>
                                 <td style="text-align:left; font-weight:600;">${row.key}</td>
                                 <td>${fEur(row.pot)}</td>
-                                <td>${fEur(row.consEur)}</td>
+                                <td>
+                                    <div style="text-decoration:line-through; opacity:0.6; font-size:9px">${fEur(row.consEur)}</div>
+                                    <div style="color:#a7f3d0">-${fEur(row.credit1)}</div>
+                                    <div style="font-weight:700">${fEur(row.consEur - row.credit1)}</div>
+                                </td>
                                 <td>${fEur(impuestos)}</td>
-                                <td>+${fEur(row.credit1)}</td>
-                                <td>+${fEur(row.excedenteSobranteEur)}</td>
-                                <td style="font-weight:700; color:#fbbf24">${fEur(row.bvSaldoFin)}</td>
-                                <td style="font-weight:700;">${fEur(row.totalPagar)}</td>
+                                <td style="font-weight:700; background:rgba(255,255,255,0.1)">${fEur(row.totalBase + row.ivaCuota)}</td>
+                                <td>
+                                    <div style="opacity:0.7; font-size:9px">Tenías: ${fEur(row.bvSaldoPrev)}</div>
+                                    <div style="color:#a7f3d0">-${fEur(row.credit2)}</div>
+                                </td>
+                                <td style="font-weight:800; font-size:12px">${fEur(row.totalPagar)}</td>
+                                <td style="color:#fbbf24; font-weight:700">
+                                    <div>+${fEur(row.excedenteSobranteEur)}</div>
+                                    <div style="border-top:1px solid rgba(255,255,255,0.2)">${fEur(row.bvSaldoFin)}</div>
+                                </td>
                               </tr>
                             `;
                           }).join('');
