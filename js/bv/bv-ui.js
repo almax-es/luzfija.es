@@ -147,7 +147,7 @@ window.BVSim = window.BVSim || {};
         throw new Error(result?.error || 'Error al procesar el archivo');
       }
 
-      const monthlyResult = window.BVSim.simulateMonthly(result, potenciaP1, potenciaP2);
+      const monthlyResult = window.BVSim.simulateMonthly(result, p1Val, p2Val);
       console.log('Resultado Mensual:', monthlyResult);
 
       if (!monthlyResult || !monthlyResult.ok) throw new Error('Error en la simulación mensual');
