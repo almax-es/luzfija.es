@@ -236,12 +236,17 @@ window.BVSim = window.BVSim || {};
               const rowClass = isBest ? 'best' : '';
               const badge = isBest ? '<div class="bv-badge-rank bv-badge-best">🏆</div>' : `<div class="bv-badge-rank">${index+1}</div>`;
               
+              const companyName = result.tarifa.comercializadora || '';
+              const companyHtml = companyName 
+                ? `<div style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase">${companyName}</div>`
+                : '';
+
               return `
               <tr class="bv-ranking-row ${rowClass}">
                 <td style="text-align:center">${badge}</td>
                 <td style="text-align:left">
                   <div style="font-weight:900; font-size:16px; color:#fff; margin-bottom:2px">${result.tarifa.nombre}</div>
-                  <div style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase">${result.tarifa.comercializadora}</div>
+                  ${companyHtml}
                 </td>
                 <td class="bv-val-eur" style="font-size:16px">${fEur(result.totals.pagado)}</td>
                 <td class="bv-val-highlight" style="font-size:16px">${fEur(result.totals.real)}</td>
