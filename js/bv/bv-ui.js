@@ -95,8 +95,15 @@ window.BVSim = window.BVSim || {};
 
     console.log('Valores:', { file, p1Val, p2Val, saldoVal });
 
+    // Reset visual
     if (p1Input) p1Input.classList.remove('error');
-    if (resultsContainer) resultsContainer.style.display = 'none';
+    if (p2Input) p2Input.classList.remove('error');
+    if (saldoInput) saldoInput.classList.remove('error');
+    
+    if (resultsContainer) {
+      resultsContainer.classList.remove('show');
+      resultsContainer.style.display = 'none';
+    }
     if (statusContainer) {
       statusContainer.style.display = 'block';
       statusEl.innerHTML = '<span class="spinner"></span> Iniciando simulación...';
@@ -304,6 +311,9 @@ window.BVSim = window.BVSim || {};
 
       console.log('Mostrando contenedor de resultados...');
       resultsContainer.style.display = 'block';
+      setTimeout(() => {
+        resultsContainer.classList.add('show');
+      }, 10);
       statusContainer.style.display = 'none';
       
     } catch (e) {
