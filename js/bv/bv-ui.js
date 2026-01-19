@@ -142,24 +142,31 @@ window.BVSim = window.BVSim || {};
       // --- RENDER RESULTADOS ---
       console.log('Renderizando tabla mensual...');
       
+      // 1. Tabla Análisis Mensual
       const rowsHtml = monthlyResult.months.map((month) => {
         const isWarning = month.coveragePct < 95 || month.spanDays !== month.daysWithData;
+        
+        // Formatear fechas legibles
+        const [y, m] = month.key.split('-');
+        const dateObj = new Date(y, m - 1);
+        const mesNombre = dateObj.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
+        const mesCorto = mesNombre.charAt(0).toUpperCase() + mesNombre.slice(1);
+
         const warningHtml = isWarning
-          ? `<span class="badge" style="background:rgba(245,158,11,.2); color:#F59E0B; border:1px solid #F59E0B">Incompleto</span>`
-          : '<span class="badge b1" style="transform:none; box-shadow:none; padding:4px 8px; font-size:10px">OK</span>';
+          ? `<span class="badge" style="background:rgba(245,158,11,.2); color:#F59E0B; border:1px solid #F59E0B; font-size:10px" title="Faltan datos en este mes">⚠️ ${month.daysWithData}/${month.daysInMonth} días</span>`
+          : '<span class="badge b1" style="transform:none; box-shadow:none; padding:2px 6px; font-size:10px">Completo</span>';
         
         return `
           <tr>
-            <td>${month.key}</td>
-            <td class="bv-val-neutral" style="font-size:11px">${month.start} → ${month.end}</td>
-            <td>${month.spanDays}</td>
-            <td style="font-weight:700">${fNum(month.importTotalKWh)}</td>
+            <td style="text-align:left; min-width:160px">
+              <div style="font-weight:800; color:#fff; font-size:14px">${mesCorto}</div>
+              <div style="font-size:11px; color:var(--muted); font-family:var(--mono)">${month.start} → ${month.end}</div>
+            </td>
+            <td style="font-weight:700; color:#fff">${fNum(month.importTotalKWh)}</td>
             <td class="bv-val-pos">${fNum(month.exportTotalKWh)}</td>
-            <td class="bv-val-neutral">${fNum(month.importByPeriod.P1)}</td>
-            <td class="bv-val-neutral">${fNum(month.importByPeriod.P2)}</td>
-            <td class="bv-val-neutral">${fNum(month.importByPeriod.P3)}</td>
-            <td>${month.daysWithData}</td>
-            <td>${fPct(month.coveragePct)}</td>
+            <td class="bv-val-neutral" style="font-size:12px">${fNum(month.importByPeriod.P1)}</td>
+            <td class="bv-val-neutral" style="font-size:12px">${fNum(month.importByPeriod.P2)}</td>
+            <td class="bv-val-neutral" style="font-size:12px">${fNum(month.importByPeriod.P3)}</td>
             <td style="text-align:center">${warningHtml}</td>
           </tr>
         `;
@@ -167,26 +174,22 @@ window.BVSim = window.BVSim || {};
 
       resultsEl.innerHTML = `
         <div class="u-mt-8">
-          <h3 class="u-mb-8">1. Análisis de tu Consumo (Mes a Mes)</h3>
+          <h3 class="u-mb-8">1. Tu Perfil de Consumo</h3>
           <div class="bv-table-container">
             <table class="bv-table">
               <thead>
                 <tr>
-                  <th>Mes</th>
-                  <th>Rango</th>
-                  <th>Días</th>
-                  <th>Import (kWh)</th>
-                  <th>Export (kWh)</th>
+                  <th style="text-align:left">Periodo</th>
+                  <th>Consumo (kWh)</th>
+                  <th>Excedente (kWh)</th>
                   <th>P1</th>
                   <th>P2</th>
                   <th>P3</th>
-                  <th>Datos</th>
-                  <th>Cobertura</th>
-                  <th style="text-align:center">Estado</th>
+                  <th style="text-align:center">Calidad Datos</th>
                 </tr>
               </thead>
               <tbody>
-                ${rowsHtml || '<tr><td colspan="11" style="text-align:center; padding:20px;">Sin datos mensuales.</td></tr>'}
+                ${rowsHtml || '<tr><td colspan="7" class="empty">Sin datos mensuales.</td></tr>'}
               </tbody>
             </table>
           </div>
@@ -215,15 +218,14 @@ window.BVSim = window.BVSim || {};
 
             const buildMonthlyRows = (rows) => rows.map((row) => `
               <tr>
-                <td>${row.key}</td>
-                <td>${row.dias}</td>
-                <td style="font-weight:700">${fNum(row.exKwh)}</td>
-                <td>${fEur(row.credit1)}</td>
-                <td class="bv-val-pos">+${fEur(row.excedenteSobranteEur)}</td>
-                <td class="bv-val-neutral">${fEur(row.bvSaldoPrev)}</td>
+                <td style="text-align:left; color:#fff; font-weight:700">${row.key}</td>
+                <td style="font-size:12px; color:var(--muted)">${row.dias}d</td>
+                <td class="bv-val-neutral">${fNum(row.exKwh)}</td>
+                <td class="bv-val-pos">+${fEur(row.credit1)}</td>
+                <td class="bv-val-pos" style="font-weight:900">+${fEur(row.excedenteSobranteEur)}</td>
+                <td style="color:#aaa">${fEur(row.bvSaldoPrev)}</td>
                 <td class="bv-val-pos">-${fEur(row.credit2)}</td>
-                <td class="bv-val-highlight">${fEur(row.bvSaldoFin)}</td>
-                <td class="bv-val-neutral">${fEur(row.totalBase)}</td>
+                <td class="bv-val-highlight" style="background:rgba(255,255,255,0.1); border-radius:4px">${fEur(row.bvSaldoFin)}</td>
                 <td class="bv-val-eur">${fEur(row.totalPagar)}</td>
                 <td class="bv-val-highlight">${fEur(row.totalReal)}</td>
               </tr>
@@ -251,23 +253,22 @@ window.BVSim = window.BVSim || {};
                 <td colspan="7">
                   <details class="bv-details-container">
                     <summary class="bv-details-summary">
-                      Ver desglose mes a mes 
+                      Ver desglose mensual de la hucha 
                       <span style="font-weight:400; color:var(--muted); margin-left:auto; font-size:11px">(Clic para desplegar)</span>
                     </summary>
                     <div class="bv-table-container" style="border:none; border-radius:0; margin-top:0; box-shadow:none; background:transparent">
                       <table class="bv-table">
                         <thead>
                           <tr>
-                            <th>Mes</th>
+                            <th style="text-align:left">Mes</th>
                             <th>Días</th>
-                            <th>Export</th>
-                            <th>Compens.</th>
-                            <th>A Hucha</th>
-                            <th>Hucha (ini)</th>
+                            <th>Export kWh</th>
+                            <th>€ Comp.</th>
+                            <th>€ A Hucha</th>
+                            <th>Hucha Ini</th>
                             <th>Uso Hucha</th>
-                            <th>Hucha (fin)</th>
-                            <th>Base</th>
-                            <th>Pagas</th>
+                            <th>Hucha Fin</th>
+                            <th>A Pagar</th>
                             <th>Coste Real</th>
                           </tr>
                         </thead>
