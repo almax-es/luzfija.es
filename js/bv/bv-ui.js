@@ -189,7 +189,10 @@ window.BVSim = window.BVSim || {};
       // 2. Ranking Tarifas BV
       if (typeof window.BVSim.loadTarifasBV === 'function') {
         const tarifasResult = await window.BVSim.loadTarifasBV();
+        console.log('Tarifas cargadas:', tarifasResult);
+
         if (tarifasResult.ok && tarifasResult.tarifasBV.length > 0) {
+          console.log(`Simulando ${tarifasResult.tarifasBV.length} tarifas...`);
           const allResults = window.BVSim.simulateForAllTarifasBV({
             months: monthlyResult.months,
             tarifasBV: tarifasResult.tarifasBV,
@@ -197,6 +200,7 @@ window.BVSim = window.BVSim || {};
           });
 
           if (allResults.ok) {
+            console.log('Simulación masiva completada:', allResults.results.length);
             const rankedResults = [...allResults.results].sort((a, b) => {
               const diffReal = a.totals.real - b.totals.real;
               return diffReal !== 0 ? diffReal : b.totals.bvFinal - a.totals.bvFinal;
