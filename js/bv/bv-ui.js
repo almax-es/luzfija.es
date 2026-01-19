@@ -147,10 +147,13 @@ window.BVSim = window.BVSim || {};
         throw new Error(result?.error || 'Error al procesar el archivo');
       }
 
-      const monthlyResult = window.BVSim.simulateMonthly(result, p1Val, p2Val);
+      const monthlyResult = window.BVSim.simulateMonthly(result, potenciaP1, potenciaP2);
+      console.log('Resultado Mensual:', monthlyResult);
+
       if (!monthlyResult || !monthlyResult.ok) throw new Error('Error en la simulación mensual');
 
       // --- RENDER RESULTADOS ---
+      console.log('Renderizando tabla mensual...');
       
       // 1. Tabla Análisis Mensual
       const rowsHtml = monthlyResult.months.map((month) => {
