@@ -21,41 +21,11 @@ window.BVSim = window.BVSim || {};
   const statusEl = document.getElementById('bv-status');
 
   // Formateadores ES
-  const currencyFmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 });
-  const numberFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 1 }); // Sin decimales o 1 para kWh
-  const numberFmtPrecise = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  const pctFmt = new Intl.NumberFormat('es-ES', { style: 'percent', minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const currencyFmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  const numberFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); 
 
   const fEur = (v) => currencyFmt.format(Number(v) || 0);
   const fKwh = (v) => numberFmt.format(Number(v) || 0);
-  const fNum = (v) => numberFmtPrecise.format(Number(v) || 0);
-
-  // Diccionario de Ayuda (Tooltips)
-  const HELP = {
-    import: "Energía que compras de la red (cuando tus placas no producen suficiente).",
-    export: "Energía que te sobra de las placas e inyectas a la red.",
-    pagado: "Lo que realmente sale de tu bolsillo tras aplicar la batería virtual.",
-    real: "Lo que hubieras pagado sin tener saldo acumulado de meses anteriores (indica lo buena que es la tarifa).",
-    huchaFin: "Dinero que te sobra al final del año para usar en facturas futuras.",
-    comp: "Valor de tus excedentes compensados en la factura del mes (hasta el límite legal).",
-    ahorro: "Dinero de tus excedentes que va a la Batería Virtual porque ya has compensado toda la energía."
-  };
-
-  function renderTooltip(text) {
-    return `<div class="bv-th-content" title="${text}">${text.substring(0, 15)}... <span class="bv-icon-info">?</span></div>`;
-  }
-  
-  function thWithTooltip(label, helpKey) {
-    const help = HELP[helpKey] || "";
-    return `
-      <th title="${help}">
-        <div class="bv-th-content">
-          ${label}
-          <span class="bv-icon-info">?</span>
-        </div>
-      </th>
-    `;
-  }
 
   function parseInput(val) {
     if (val === undefined || val === null || val === '') return 0;
@@ -120,121 +90,50 @@ window.BVSim = window.BVSim || {};
     const p2Val = p2Input.value === '' ? 0 : parseInput(p2Input.value);
     const saldoVal = saldoInput.value === '' ? 0 : parseInput(saldoInput.value);
 
-    // Reset visual
     if (p1Input) p1Input.classList.remove('error');
-    if (p2Input) p2Input.classList.remove('error');
-    if (saldoInput) saldoInput.classList.remove('error');
-    
     if (resultsContainer) {
       resultsContainer.classList.remove('show');
       resultsContainer.style.display = 'none';
     }
     if (statusContainer) {
       statusContainer.style.display = 'block';
-      statusEl.innerHTML = '<span class="spinner"></span> Procesando archivo...';
+      statusEl.innerHTML = '<span class="spinner"></span> Leyendo tu fichero...';
     }
 
     if (!file) {
-      alert('Por favor, selecciona un archivo CSV o XLSX primero.');
+      alert('Tienes que subir el archivo CSV primero.');
       return;
     }
 
     if (p1Val <= 0) {
-      alert('La potencia P1 debe ser mayor que 0.');
+      alert('Te falta poner la potencia contratada.');
       return;
     }
     
     simulateButton.disabled = true;
-    if (btnText) btnText.textContent = 'Calculando...';
+    if (btnText) btnText.textContent = 'Calculando lo mejor para ti...';
     if (btnSpinner) btnSpinner.style.display = 'inline-block';
 
     await new Promise(r => setTimeout(r, 100));
 
     try {
-      if (typeof window.BVSim.importFile !== 'function') throw new Error('Módulo de importación no cargado');
+      if (typeof window.BVSim.importFile !== 'function') throw new Error('Error interno (import)');
 
       const result = await window.BVSim.importFile(file);
-      window.BVSim.importResult = result;
       
-      if (!result || !result.ok) throw new Error(result?.error || 'Error al procesar el archivo');
+      if (!result || !result.ok) throw new Error(result?.error || 'No hemos podido leer el archivo.');
 
       const monthlyResult = window.BVSim.simulateMonthly(result, p1Val, p2Val);
       
-      if (!monthlyResult || !monthlyResult.ok) throw new Error('Error en la simulación mensual');
+      if (!monthlyResult || !monthlyResult.ok) throw new Error('Error al calcular los meses.');
 
-      // --- RENDER RESULTADOS ---
+      // --- RENDER SIMPLIFICADO ---
       
-      // 1. Tabla Análisis Mensual (Simplificada)
-      const rowsHtml = monthlyResult.months.map((month) => {
-        const isWarning = month.coveragePct < 95 || month.spanDays !== month.daysWithData;
-        
-        // Formatear fechas legibles
-        const [y, m] = month.key.split('-');
-        const dateObj = new Date(y, m - 1);
-        const mesNombre = dateObj.toLocaleDateString('es-ES', { month: 'long', year: 'numeric' });
-        const mesCorto = mesNombre.charAt(0).toUpperCase() + mesNombre.slice(1);
-
-        const warningHtml = isWarning
-          ? `<span title="Faltan datos (${month.daysWithData}/${month.daysInMonth} días)" style="color:#F59E0B; cursor:help">⚠️ Parcial</span>`
-          : '<span style="color:var(--muted); opacity:0.5">✓</span>';
-        
-        return `
-          <tr>
-            <td style="text-align:left; font-weight:600; color:#fff;">
-              ${mesCorto}
-            </td>
-            <td>${fKwh(month.importTotalKWh)}</td>
-            <td class="bv-val-pos">${fKwh(month.exportTotalKWh)}</td>
-            <td style="font-size:12px; color:var(--muted)">${fKwh(month.importByPeriod.P1)}</td>
-            <td style="font-size:12px; color:var(--muted)">${fKwh(month.importByPeriod.P2)}</td>
-            <td style="text-align:center">${warningHtml}</td>
-          </tr>
-        `;
-      }).join('');
-
-      // Calcular totales anuales para el resumen
+      // Totales para el resumen simple
       const totalImp = monthlyResult.months.reduce((a, b) => a + b.importTotalKWh, 0);
       const totalExp = monthlyResult.months.reduce((a, b) => a + b.exportTotalKWh, 0);
 
-      resultsEl.innerHTML = `
-        <div class="u-mt-8">
-          <div class="bv-summary-cards">
-             <div class="bv-card">
-                <div class="bv-card-title">Consumo de Red</div>
-                <div class="bv-card-value">${fKwh(totalImp)} <span style="font-size:1rem; font-weight:400">kWh</span></div>
-             </div>
-             <div class="bv-card">
-                <div class="bv-card-title">Excedentes</div>
-                <div class="bv-card-value" style="color:#10b981">${fKwh(totalExp)} <span style="font-size:1rem; font-weight:400">kWh</span></div>
-             </div>
-          </div>
-
-          <h3 class="u-mb-8">1. Tu Perfil de Consumo</h3>
-          <p class="u-mb-16" style="color:var(--muted); font-size:0.9rem">
-            Estos son los datos que hemos leído de tu fichero. Comprueba que te parecen correctos.
-          </p>
-
-          <div class="bv-table-container">
-            <table class="bv-table">
-              <thead>
-                <tr>
-                  <th>Mes</th>
-                  ${thWithTooltip('Consumo', 'import')}
-                  ${thWithTooltip('Excedente', 'export')}
-                  <th><span style="font-size:10px; font-weight:400">Punta</span></th>
-                  <th><span style="font-size:10px; font-weight:400">Valle</span></th>
-                  <th style="text-align:center">Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${rowsHtml || '<tr><td colspan="6" class="empty">Sin datos mensuales.</td></tr>'}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      `;
-
-      // 2. Ranking Tarifas BV
+      // 1. Ranking Tarifas
       if (typeof window.BVSim.loadTarifasBV === 'function') {
         const tarifasResult = await window.BVSim.loadTarifasBV();
         
@@ -247,106 +146,69 @@ window.BVSim = window.BVSim || {};
 
           if (allResults.ok) {
             const rankedResults = [...allResults.results].sort((a, b) => {
-              const diffReal = a.totals.real - b.totals.real; // Coste anual real
-              // Si el coste es igual (o muy similar), desempata quien deje más hucha
-              if (Math.abs(diffReal) < 0.01) {
-                  return b.totals.bvFinal - a.totals.bvFinal;
-              }
+              const diffReal = a.totals.real - b.totals.real;
+              if (Math.abs(diffReal) < 0.01) return b.totals.bvFinal - a.totals.bvFinal;
               return diffReal;
             });
 
-            // Función para pintar la tabla detalle de cada tarifa
-            const buildMonthlyRows = (rows) => rows.map((row) => {
-               // Formateo ligero para la tabla detalle
-               return `
-              <tr>
-                <td style="text-align:left; color:#fff; font-weight:600; font-size:12px">${row.key}</td>
-                <td class="bv-val-pos" style="font-size:12px">+${fEur(row.credit1)}</td>
-                <td class="bv-val-pos" style="font-size:12px; font-weight:700">+${fEur(row.excedenteSobranteEur)}</td>
-                <td class="bv-val-highlight" style="font-size:12px; background:rgba(255,255,255,0.05)">${fEur(row.bvSaldoFin)}</td>
-                <td class="bv-val-eur" style="font-weight:700">${fEur(row.totalPagar)}</td>
-              </tr>
-            `}).join('');
+            // LA GANADORA (Presentación Gigante)
+            const winner = rankedResults[0];
+            const winnerName = winner.tarifa.nombre;
+            const winnerCompany = winner.tarifa.comercializadora || '';
+            const winnerCost = fEur(winner.totals.pagado);
+            const winnerHucha = fEur(winner.totals.bvFinal);
+            const winnerWeb = winner.tarifa.web;
 
-            const rankingRowsHtml = rankedResults.map((result, index) => {
-              const isBest = index === 0;
-              const rowClass = isBest ? 'bv-row-best' : '';
-              const badge = isBest ? '<div class="bv-badge-rank bv-badge-best">🏆</div>' : `<div class="bv-badge-rank">${index+1}</div>`;
-              
-              const companyName = result.tarifa.comercializadora || '';
-              const companyHtml = companyName 
-                ? `<div style="font-size:11px; color:var(--muted); font-weight:700; text-transform:uppercase; margin-top:2px">${companyName}</div>`
-                : '';
-              
-              const linkHtml = result.tarifa.web 
-                ? `<a href="${result.tarifa.web}" target="_blank" rel="noopener" style="font-size:11px; color:var(--primary); text-decoration:none; display:inline-block; margin-top:2px">Ver web →</a>` 
-                : '';
-
-              return `
-              <tr class="${rowClass}">
-                <td style="text-align:center; padding-left:1rem">${badge}</td>
-                <td style="text-align:left">
-                  <div style="font-weight:800; font-size:1.1rem; color:#fff;">${result.tarifa.nombre}</div>
-                  ${companyHtml}
-                  ${linkHtml}
-                </td>
-                <td class="bv-val-eur" style="font-size:1.2rem; font-weight:800">${fEur(result.totals.pagado)}</td>
-                <td class="bv-val-neutral" style="font-size:0.9rem">${fEur(result.totals.real)}</td>
-                <td class="bv-val-highlight" style="font-size:1rem">${fEur(result.totals.bvFinal)}</td>
-              </tr>
-              <tr class="bv-details-row ${rowClass}">
-                <td colspan="5">
-                  <details class="bv-details-container">
-                    <summary class="bv-details-summary">
-                      <span>Ver detalle mes a mes</span>
-                      <span style="font-size:10px; margin-left:8px; opacity:0.7">(${fEur(result.totals.credit2Total)} usados de hucha)</span>
-                    </summary>
-                    <div class="bv-table-container" style="border:none; border-radius:0; margin:0; box-shadow:none; background:rgba(0,0,0,0.3)">
-                      <table class="bv-table">
-                        <thead>
-                          <tr>
-                            <th style="text-align:left">Mes</th>
-                            <th>Compensado</th>
-                            <th>A Hucha</th>
-                            <th>Hucha Fin</th>
-                            <th>A Pagar</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          ${buildMonthlyRows(result.rows)}
-                        </tbody>
-                      </table>
-                    </div>
-                  </details>
-                </td>
-              </tr>
-            `;
-            }).join('');
-
-            resultsEl.insertAdjacentHTML('beforeend', `
-              <div class="u-mt-24">
-                <h3 class="u-mb-8">2. Comparativa de Tarifas</h3>
-                <p class="u-mb-16" style="color:var(--muted); font-size:0.9rem">
-                  Hemos simulado tu año completo con cada tarifa. Aquí tienes las mejores opciones para tu caso.
-                </p>
-                <div class="bv-table-container">
-                  <table class="bv-table">
-                    <thead>
-                      <tr>
-                        <th style="text-align:center; width:60px">#</th>
-                        <th style="text-align:left">Tarifa</th>
-                        ${thWithTooltip('A Pagar (Año)', 'pagado')}
-                        ${thWithTooltip('Coste Sin Hucha', 'real')}
-                        ${thWithTooltip('Hucha Sobrante', 'huchaFin')}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      ${rankingRowsHtml}
-                    </tbody>
-                  </table>
+            // Resto de opciones (Top 2-5)
+            const othersHtml = rankedResults.slice(1, 6).map((r, i) => `
+              <div style="display:flex; justify-content:space-between; padding: 12px 0; border-bottom:1px solid rgba(255,255,255,0.1); align-items:center;">
+                <div style="display:flex; gap:12px; align-items:center;">
+                  <div style="background:#333; color:#fff; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.9rem">${i+2}</div>
+                  <div>
+                    <div style="font-weight:600; font-size:1rem">${r.tarifa.nombre}</div>
+                    <div style="font-size:0.85rem; color:var(--muted)">${r.tarifa.comercializadora || ''}</div>
+                  </div>
+                </div>
+                <div style="text-align:right">
+                   <div style="font-weight:bold; font-size:1.1rem">${fEur(r.totals.pagado)}</div>
+                   ${r.totals.bvFinal > 1 ? `<div style="font-size:0.8rem; color:#10b981">Te sobran ${fEur(r.totals.bvFinal)}</div>` : ''}
                 </div>
               </div>
-            `);
+            `).join('');
+
+            resultsEl.innerHTML = `
+              <!-- TARJETA GANADORA GIGANTE -->
+              <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 2rem; border-radius: 16px; color: white; text-align: center; margin-bottom: 2rem; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);">
+                <div style="font-size: 1.2rem; margin-bottom: 0.5rem; opacity: 0.9;">🌟 La mejor opción para ti es</div>
+                <div style="font-size: 3rem; font-weight: 800; line-height: 1.1; margin-bottom: 0.5rem;">${winnerName}</div>
+                ${winnerCompany ? `<div style="font-size: 1.2rem; opacity: 0.9; margin-bottom: 1.5rem;">de ${winnerCompany}</div>` : ''}
+                
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem;">
+                   <div>
+                     <div style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 4px;">Pagarías al año</div>
+                     <div style="font-size: 2.5rem; font-weight: 800;">${winnerCost}</div>
+                   </div>
+                   <div style="border-left: 1px solid rgba(255,255,255,0.3);">
+                     <div style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 4px;">Dinero que te sobra</div>
+                     <div style="font-size: 2.5rem; font-weight: 800; color: #fbbf24;">${winnerHucha}</div>
+                   </div>
+                </div>
+
+                ${winnerWeb ? `<a href="${winnerWeb}" target="_blank" style="background: white; color: #059669; text-decoration: none; padding: 12px 32px; border-radius: 99px; font-weight: 800; font-size: 1.1rem; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">Ver esta tarifa &rarr;</a>` : ''}
+              </div>
+
+              <!-- RESUMEN DE CONSUMO SIMPLE -->
+              <div class="card u-mb-24" style="background:rgba(255,255,255,0.03);">
+                <h3 class="u-mb-16">📊 Resumen de tu consumo</h3>
+                <p>Hemos analizado tu archivo. En total gastas <strong>${fKwh(totalImp)} kWh</strong> de luz de la calle, y tus placas producen <strong>${fKwh(totalExp)} kWh</strong> que te sobran para vender.</p>
+              </div>
+
+              <!-- OTRAS OPCIONES -->
+              <div class="card">
+                <h3 class="u-mb-16">Otras opciones buenas</h3>
+                ${othersHtml}
+              </div>
+            `;
           }
         }
       }
@@ -358,8 +220,8 @@ window.BVSim = window.BVSim || {};
       statusContainer.style.display = 'none';
       
     } catch (e) {
-      console.error('Error en simulación:', e);
-      if (statusEl) statusEl.innerHTML = `<span style="color:#ef4444">⚠️ ${e.message}</span>`;
+      console.error('Error:', e);
+      if (statusEl) statusEl.innerHTML = `<span style="color:#ef4444">⚠️ Algo ha fallado: ${e.message}</span>`;
       if (statusContainer) statusContainer.style.display = 'block';
     } finally {
       simulateButton.disabled = false;
