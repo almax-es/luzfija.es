@@ -160,21 +160,62 @@ window.BVSim = window.BVSim || {};
             const winnerWeb = winner.tarifa.web;
 
             // Resto de opciones (Top 2-5)
-            const othersHtml = rankedResults.slice(1, 6).map((r, i) => `
-              <div style="display:flex; justify-content:space-between; padding: 12px 0; border-bottom:1px solid rgba(255,255,255,0.1); align-items:center;">
-                <div style="display:flex; gap:12px; align-items:center;">
-                  <div style="background:#333; color:#fff; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.9rem">${i+2}</div>
-                  <div>
-                    <div style="font-weight:600; font-size:1rem">${r.tarifa.nombre}</div>
-                    <div style="font-size:0.85rem; color:var(--muted)">${r.tarifa.comercializadora || ''}</div>
+            const othersHtml = rankedResults.slice(1, 10).map((r, i) => {
+              const buildDetailedRows = (rows) => rows.map((row) => {
+                const impuestos = row.impuestoElec + row.ivaCuota + row.costeBonoSocial + row.alquilerContador;
+                return `
+                  <tr>
+                    <td style="text-align:left; color:#fff; font-weight:600; font-size:12px">${row.key}</td>
+                    <td style="font-size:11px; color:var(--muted)">${fEur(row.pot)}</td>
+                    <td style="font-size:11px; color:var(--muted)">${fEur(row.consEur)}</td>
+                    <td style="font-size:11px; color:#ef4444">${fEur(impuestos)}</td>
+                    <td class="bv-val-pos" style="font-size:11px">+${fEur(row.credit1)}</td>
+                    <td class="bv-val-pos" style="font-size:11px; font-weight:700">+${fEur(row.excedenteSobranteEur)}</td>
+                    <td class="bv-val-highlight" style="font-size:11px; background:rgba(255,255,255,0.05)">${fEur(row.bvSaldoFin)}</td>
+                    <td class="bv-val-eur" style="font-weight:700; font-size:12px">${fEur(row.totalPagar)}</td>
+                  </tr>
+                `;
+              }).join('');
+
+              return `
+              <div style="padding: 16px 0; border-bottom:1px solid rgba(255,255,255,0.1);">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 8px;">
+                  <div style="display:flex; gap:12px; align-items:center;">
+                    <div style="background:#333; color:#fff; width:24px; height:24px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:bold; font-size:0.9rem">${i+2}</div>
+                    <div>
+                      <div style="font-weight:600; font-size:1rem">${r.tarifa.nombre}</div>
+                      <div style="font-size:0.85rem; color:var(--muted)">${r.tarifa.comercializadora || ''}</div>
+                    </div>
+                  </div>
+                  <div style="text-align:right">
+                    <div style="font-weight:bold; font-size:1.1rem">${fEur(r.totals.pagado)}</div>
+                    ${r.totals.bvFinal > 1 ? `<div style="font-size:0.8rem; color:#10b981">Te sobran ${fEur(r.totals.bvFinal)}</div>` : ''}
                   </div>
                 </div>
-                <div style="text-align:right">
-                   <div style="font-weight:bold; font-size:1.1rem">${fEur(r.totals.pagado)}</div>
-                   ${r.totals.bvFinal > 1 ? `<div style="font-size:0.8rem; color:#10b981">Te sobran ${fEur(r.totals.bvFinal)}</div>` : ''}
-                </div>
+                <details style="margin-top: 8px;">
+                  <summary style="font-size: 0.75rem; color: var(--primary-light); cursor: pointer; opacity: 0.8;">Ver desglose para expertos (Modo Nergiza)</summary>
+                  <div class="bv-table-container" style="border:none; border-radius:8px; margin-top:8px; background:rgba(0,0,0,0.2);">
+                    <table class="bv-table" style="font-size:10px;">
+                      <thead>
+                        <tr>
+                          <th style="text-align:left">Mes</th>
+                          <th>Potencia</th>
+                          <th>Energía</th>
+                          <th>Imp+Otros</th>
+                          <th>Compens.</th>
+                          <th>A Hucha</th>
+                          <th>Hucha Fin</th>
+                          <th>A Pagar</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${buildDetailedRows(r.rows)}
+                      </tbody>
+                    </table>
+                  </div>
+                </details>
               </div>
-            `).join('');
+            `}).join('');
 
             resultsEl.innerHTML = `
               <!-- TARJETA GANADORA GIGANTE -->
@@ -195,6 +236,45 @@ window.BVSim = window.BVSim || {};
                 </div>
 
                 ${winnerWeb ? `<a href="${winnerWeb}" target="_blank" style="background: white; color: #059669; text-decoration: none; padding: 12px 32px; border-radius: 99px; font-weight: 800; font-size: 1.1rem; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">Ver esta tarifa &rarr;</a>` : ''}
+                
+                <details style="margin-top: 20px; text-align: left;">
+                  <summary style="font-size: 0.8rem; cursor: pointer; opacity: 0.9; text-align: center;">Ver desglose técnico del ganador</summary>
+                  <div class="bv-table-container" style="border:none; border-radius:8px; margin-top:10px; background:rgba(0,0,0,0.2);">
+                    <table class="bv-table" style="font-size:10px; color: white;">
+                      <thead>
+                        <tr>
+                          <th style="text-align:left; color: white;">Mes</th>
+                          <th style="color: white;">Potencia</th>
+                          <th style="color: white;">Energía</th>
+                          <th style="color: white;">Imp+Otros</th>
+                          <th style="color: white;">Compens.</th>
+                          <th style="color: white;">A Hucha</th>
+                          <th style="color: white;">Hucha Fin</th>
+                          <th style="color: white;">A Pagar</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        ${(function(){
+                          return winner.rows.map(row => {
+                            const impuestos = row.impuestoElec + row.ivaCuota + row.costeBonoSocial + row.alquilerContador;
+                            return `
+                              <tr>
+                                <td style="text-align:left; font-weight:600;">${row.key}</td>
+                                <td>${fEur(row.pot)}</td>
+                                <td>${fEur(row.consEur)}</td>
+                                <td>${fEur(impuestos)}</td>
+                                <td>+${fEur(row.credit1)}</td>
+                                <td>+${fEur(row.excedenteSobranteEur)}</td>
+                                <td style="font-weight:700; color:#fbbf24">${fEur(row.bvSaldoFin)}</td>
+                                <td style="font-weight:700;">${fEur(row.totalPagar)}</td>
+                              </tr>
+                            `;
+                          }).join('');
+                        })()}
+                      </tbody>
+                    </table>
+                  </div>
+                </details>
               </div>
 
               <!-- RESUMEN DE CONSUMO SIMPLE -->
@@ -204,9 +284,38 @@ window.BVSim = window.BVSim || {};
               </div>
 
               <!-- OTRAS OPCIONES -->
-              <div class="card">
+              <div class="card u-mb-24">
                 <h3 class="u-mb-16">Otras opciones buenas</h3>
                 ${othersHtml}
+              </div>
+
+              <!-- ANEXO TÉCNICO NERGIZA -->
+              <div class="card" style="background: rgba(0,0,0,0.2); border: 1px dashed rgba(255,255,255,0.1);">
+                <h4 class="u-mb-16" style="color: var(--primary-light); display: flex; align-items: center; gap: 8px;">
+                   <span>🛠️</span> Ficha Técnica de la Simulación (Nergiza Mode)
+                </h4>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; font-size: 0.85rem; color: var(--muted);">
+                   <div>
+                     <strong style="color: #fff; display: block; margin-bottom: 4px;">Algoritmo de Cálculo</strong>
+                     Simulación horaria real (8.760h o periodo del CSV). Agrupación por periodos P1, P2, P3 según calendario oficial 2026.
+                   </div>
+                   <div>
+                     <strong style="color: #fff; display: block; margin-bottom: 4px;">Impuestos Aplicados</strong>
+                     IVA: 21% (Ley 37/1992).<br>
+                     IEE: 5,11269632% (mín. 0,5€/MWh) sobre Pot+Cons neto.
+                   </div>
+                   <div>
+                     <strong style="color: #fff; display: block; margin-bottom: 4px;">Costes Regulados</strong>
+                     Bono Social: 6,97€/año (Orden TED/1524/2025).<br>
+                     Alquiler: 0,81€/mes (Equipo monofásico).
+                   </div>
+                   <div>
+                     <strong style="color: #fff; display: block; margin-bottom: 4px;">Lógica BV/Cloud</strong>
+                     1. Compensación simplificada (límite coste energía del mes).<br>
+                     2. Excedente sobrante a hucha en euros.<br>
+                     3. Hucha descuenta de TODO el total factura.
+                   </div>
+                </div>
               </div>
             `;
           }
