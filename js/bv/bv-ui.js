@@ -359,44 +359,44 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const r2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 
-      // --- FUNCIÓN ÚNICA PARA FILAS (buildRows) ---
-      const buildRows = (resultItem) => {
+      // --- HELPERS DE CÁLCULO POR MES (una sola fuente de verdad) ---
+      const computeRowView = (row, resultItem) => {
         const t = resultItem.tarifa;
         const hasBV = Boolean(t?.fv?.bv);
-        return resultItem.rows.map((row) => {
-          const m = monthMap.get(row.key) || {};
-          const imp = r2((row.impuestoElec||0) + (row.ivaCuota||0) + (row.costeBonoSocial||0) + (row.alquilerContador||0));
-          const eBruta = r2(row.consEur || 0);
-          const excMes = r2(row.credit1 || 0);
-          const eNeta = r2(eBruta - excMes);
-          const subtotal = r2(row.totalBase || 0);
-          const usoHucha = r2(row.credit2 || 0);
-          const sobranteHucha = r2(row.excedenteSobranteEur || 0);
-          const restoHucha = r2(Math.max(0, (row.bvSaldoPrev || 0) - usoHucha));
+        const m = monthMap.get(row.key) || {};
 
-          // Cálculos Potencia
-          const potP1 = r2(p1Val * row.dias * t.p1);
-          const potP2 = r2(p2Val * row.dias * t.p2);
-          const tipPot = `P1: ${fKw(p1Val)} kW × ${row.dias}d × ${fPrice(t.p1)} € = ${fEur(potP1)}
+        const imp = r2((row.impuestoElec || 0) + (row.ivaCuota || 0) + (row.costeBonoSocial || 0) + (row.alquilerContador || 0));
+        const eBruta = r2(row.consEur || 0);
+        const excMes = r2(row.credit1 || 0);
+        const eNeta = r2(eBruta - excMes);
+        const subtotal = r2(row.totalBase || 0);
+        const usoHucha = r2(row.credit2 || 0);
+        const sobranteHucha = r2(row.excedenteSobranteEur || 0);
+        const restoHucha = r2(Math.max(0, (row.bvSaldoPrev || 0) - usoHucha));
+
+        // Cálculos Potencia
+        const potP1 = r2(p1Val * row.dias * t.p1);
+        const potP2 = r2(p2Val * row.dias * t.p2);
+        const tipPot = `P1: ${fKw(p1Val)} kW × ${row.dias}d × ${fPrice(t.p1)} € = ${fEur(potP1)}
 P2: ${fKw(p2Val)} kW × ${row.dias}d × ${fPrice(t.p2)} € = ${fEur(potP2)}
 TOTAL = ${fEur(row.pot)}`;
 
-          // Cálculos Energía (Bruta)
-          const kwhP1 = Number(m.importByPeriod?.P1) || 0;
-          const kwhP2 = Number(m.importByPeriod?.P2) || 0;
-          const kwhP3 = Number(m.importByPeriod?.P3) || 0;
-          const eP1 = r2(kwhP1 * t.cPunta);
-          const eP2 = r2(kwhP2 * t.cLlano);
-          const eP3 = r2(kwhP3 * t.cValle);
-          const tipEneBruta = `P1: ${fKwh(kwhP1)} kWh × ${fPrice(t.cPunta)} € = ${fEur(eP1)}
+        // Cálculos Energía (Bruta)
+        const kwhP1 = Number(m.importByPeriod?.P1) || 0;
+        const kwhP2 = Number(m.importByPeriod?.P2) || 0;
+        const kwhP3 = Number(m.importByPeriod?.P3) || 0;
+        const eP1 = r2(kwhP1 * t.cPunta);
+        const eP2 = r2(kwhP2 * t.cLlano);
+        const eP3 = r2(kwhP3 * t.cValle);
+        const tipEneBruta = `P1: ${fKwh(kwhP1)} kWh × ${fPrice(t.cPunta)} € = ${fEur(eP1)}
 P2: ${fKwh(kwhP2)} kWh × ${fPrice(t.cLlano)} € = ${fEur(eP2)}
 P3: ${fKwh(kwhP3)} kWh × ${fPrice(t.cValle)} € = ${fEur(eP3)}
 TOTAL = ${fEur(eBruta)}`;
 
-          // Cálculos Excedentes
-          const exKwh = Number(row.exKwh) || Number(m.exportTotalKWh) || 0;
-          const totalGen = r2(exKwh * (row.precioExc || 0));
-          const tipExcedentes = `Generado: ${fKwh(exKwh)} kWh × ${fPrice(row.precioExc)} € = ${fEur(totalGen)}
+        // Cálculos Excedentes
+        const exKwh = Number(row.exKwh) || Number(m.exportTotalKWh) || 0;
+        const totalGen = r2(exKwh * (row.precioExc || 0));
+        const tipExcedentes = `Generado: ${fKwh(exKwh)} kWh × ${fPrice(row.precioExc)} € = ${fEur(totalGen)}
 
 Compensación (este mes):
 - Límite: energía bruta del mes
@@ -405,13 +405,12 @@ Compensación (este mes):
 Excedente sobrante:
 ${hasBV ? `- Se acumula en Batería Virtual: ${fEur(sobranteHucha)}` : `- NO se acumula (se pierde): ${fEur(sobranteHucha)}`}`;
 
-          const tipEneNeta = `Energía Bruta (${fEur(eBruta)}) - Compensación (${fEur(excMes)}) = ${fEur(eNeta)}`;
-          const tipImp = `Impuesto eléctrico (IEE): ${fEur(row.impuestoElec)}
+        const tipEneNeta = `Energía Bruta (${fEur(eBruta)}) - Compensación (${fEur(excMes)}) = ${fEur(eNeta)}`;
+        const tipImp = `Impuesto eléctrico (IEE): ${fEur(row.impuestoElec)}
 IVA/IGIC/IPSI: ${fEur(row.ivaCuota)}
 Bono social: ${fEur(row.costeBonoSocial)}
 Alquiler contador: ${fEur(row.alquilerContador)}`;
-
-          const tipSub = `Potencia: ${fEur(row.pot)}
+        const tipSub = `Potencia: ${fEur(row.pot)}
 Energía neta (bruta - compensación): ${fEur(eNeta)}
 Bono social: ${fEur(row.costeBonoSocial)}
 Impuesto eléctrico (IEE): ${fEur(row.impuestoElec)}
@@ -419,43 +418,107 @@ Alquiler contador: ${fEur(row.alquilerContador)}
 IVA/IGIC/IPSI: ${fEur(row.ivaCuota)}
 TOTAL = ${fEur(subtotal)}`;
 
-          const tipHucha = hasBV
-            ? `Saldo BV previo: ${fEur(row.bvSaldoPrev)}
+        const tipHucha = hasBV
+          ? `Saldo BV previo: ${fEur(row.bvSaldoPrev)}
 Usado este mes: -${fEur(usoHucha)}`
-            : 'No aplica: esta tarifa no tiene Batería Virtual.';
+          : 'No aplica: esta tarifa no tiene Batería Virtual.';
 
-          const tipPagar = hasBV
-            ? `Factura (${fEur(subtotal)}) - BV usada (${fEur(usoHucha)}) = ${fEur(row.totalPagar)}`
-            : `Factura total (sin BV) = ${fEur(row.totalPagar)}`;
+        const tipPagar = hasBV
+          ? `Factura (${fEur(subtotal)}) - BV usada (${fEur(usoHucha)}) = ${fEur(row.totalPagar)}`
+          : `Factura total (sin BV) = ${fEur(row.totalPagar)}`;
 
-          const tipSaldo = hasBV
-            ? `Saldo restante: ${fEur(restoHucha)}
+        const tipSaldo = hasBV
+          ? `Saldo restante: ${fEur(restoHucha)}
 Nuevo excedente acumulado: ${fEur(sobranteHucha)}
 SALDO BV FIN = ${fEur(row.bvSaldoFin)}`
-            : 'No aplica: esta tarifa no acumula saldo.';
+          : 'No aplica: esta tarifa no acumula saldo.';
 
-          const huchaCell = hasBV ? (usoHucha > 0 ? `-${fEur(usoHucha)}` : fEur(0)) : '';
-          const saldoCell = hasBV ? fEur(row.bvSaldoFin) : '';
+        return {
+          key: row.key,
+          hasBV,
+          pot: row.pot,
+          eBruta,
+          excMes,
+          eNeta,
+          imp,
+          subtotal,
+          pagar: row.totalPagar,
+          usoHucha,
+          bvSaldoFin: row.bvSaldoFin,
+          tips: {
+            pot: tipPot,
+            eBruta: tipEneBruta,
+            exc: tipExcedentes,
+            eNeta: tipEneNeta,
+            imp: tipImp,
+            subtotal: tipSub,
+            pagar: tipPagar,
+            hucha: tipHucha,
+            saldo: tipSaldo,
+          }
+        };
+      };
+
+      // --- DESKTOP: filas en tabla (clásico) ---
+      const buildRows = (resultItem) => {
+        return resultItem.rows.map((row) => {
+          const v = computeRowView(row, resultItem);
+          const hasBV = v.hasBV;
+          const huchaCell = hasBV ? (v.usoHucha > 0 ? `-${fEur(v.usoHucha)}` : fEur(0)) : '';
+          const saldoCell = hasBV ? fEur(v.bvSaldoFin) : '';
           const saldoStyle = hasBV ? 'color:#fbbf24; font-weight:700;' : '';
 
-          // Si NO hay BV, NO mostramos columnas de hucha/saldo (más claro y mucho mejor en móvil).
           const extraCells = hasBV ? `
-              <td data-label="Uso Hucha" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipHucha)}"><span class="bv-cell-label">Uso Hucha</span><span class="bv-cell-value">${huchaCell}</span></td>
-              <td data-label="Saldo Fin" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSaldo)}" style="${saldoStyle}"><span class="bv-cell-label">Saldo Fin</span><span class="bv-cell-value">${saldoCell}</span></td>
+              <td data-label="Uso Hucha" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.hucha)}"><span class="bv-cell-value">${huchaCell}</span></td>
+              <td data-label="Saldo Fin" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.saldo)}" style="${saldoStyle}"><span class="bv-cell-value">${saldoCell}</span></td>
           ` : '';
 
           return `
             <tr>
-              <td data-label="Mes"><span class="bv-cell-label">Mes</span><span class="bv-cell-value">${row.key}</span></td>
-              <td data-label="Potencia" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipPot)}"><span class="bv-cell-label">Potencia</span><span class="bv-cell-value">${fEur(row.pot)}</span></td>
-              <td data-label="E. Bruta" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipEneBruta)}"><span class="bv-cell-label">E. Bruta</span><span class="bv-cell-value">${fEur(eBruta)}</span></td>
-              <td data-label="Compensación" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipExcedentes)}" style="color:var(--accent2);"><span class="bv-cell-label">Compensación</span><span class="bv-cell-value">${excMes > 0 ? `-${fEur(excMes)}` : fEur(0)}</span></td>
-              <td data-label="E. Neta" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipEneNeta)}" style="font-weight:700;"><span class="bv-cell-label">E. Neta</span><span class="bv-cell-value">${fEur(eNeta)}</span></td>
-              <td data-label="Impuestos" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipImp)}" style="color:var(--danger);"><span class="bv-cell-label">Impuestos</span><span class="bv-cell-value">${fEur(imp)}</span></td>
-              <td data-label="Subtotal" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSub)}" style="background:rgba(255,255,255,0.02); font-weight:700;"><span class="bv-cell-label">Subtotal</span><span class="bv-cell-value">${fEur(subtotal)}</span></td>
-              <td data-label="Pagar" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipPagar)}" style="color:var(--accent2); font-weight:800;"><span class="bv-cell-label">Pagar</span><span class="bv-cell-value">${fEur(row.totalPagar)}</span></td>
+              <td data-label="Mes"><span class="bv-cell-value">${v.key}</span></td>
+              <td data-label="Potencia" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.pot)}"><span class="bv-cell-value">${fEur(v.pot)}</span></td>
+              <td data-label="E. Bruta" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.eBruta)}"><span class="bv-cell-value">${fEur(v.eBruta)}</span></td>
+              <td data-label="Compensación" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.exc)}" style="color:var(--accent2);"><span class="bv-cell-value">${v.excMes > 0 ? `-${fEur(v.excMes)}` : fEur(0)}</span></td>
+              <td data-label="E. Neta" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.eNeta)}" style="font-weight:700;"><span class="bv-cell-value">${fEur(v.eNeta)}</span></td>
+              <td data-label="Impuestos" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.imp)}" style="color:var(--danger);"><span class="bv-cell-value">${fEur(v.imp)}</span></td>
+              <td data-label="Subtotal" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.subtotal)}" style="background:rgba(255,255,255,0.02); font-weight:700;"><span class="bv-cell-value">${fEur(v.subtotal)}</span></td>
+              <td data-label="Pagar" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.pagar)}" style="color:var(--accent2); font-weight:800;"><span class="bv-cell-value">${fEur(v.pagar)}</span></td>
               ${extraCells}
             </tr>
+          `;
+        }).join('');
+      };
+
+      // --- MÓVIL: tarjetas (sin tablas / sin pseudo-elementos) ---
+      const buildMobileCards = (resultItem) => {
+        return resultItem.rows.map((row) => {
+          const v = computeRowView(row, resultItem);
+          const hasBV = v.hasBV;
+          const huchaCell = hasBV ? (v.usoHucha > 0 ? `-${fEur(v.usoHucha)}` : fEur(0)) : null;
+          const saldoCell = hasBV ? fEur(v.bvSaldoFin) : null;
+
+          const item = (label, valueHtml, tip, extraClass = '') => {
+            const value = tip
+              ? `<button type="button" class="bv-month-value bv-tooltip-trigger ${extraClass}" data-tip="${escapeAttr(tip)}">${valueHtml}</button>`
+              : `<span class="bv-month-value ${extraClass}">${valueHtml}</span>`;
+            return `<div class="bv-month-item"><div class="bv-month-label">${label}</div>${value}</div>`;
+          };
+
+          return `
+            <section class="bv-month-card">
+              <header class="bv-month-head">${escapeHtml(v.key)}</header>
+              <div class="bv-month-body">
+                ${item('Potencia', fEur(v.pot), v.tips.pot)}
+                ${item('Energía bruta', fEur(v.eBruta), v.tips.eBruta)}
+                ${item('Compensación', (v.excMes > 0 ? `-${fEur(v.excMes)}` : fEur(0)), v.tips.exc, 'bv-val-good')}
+                ${item('Energía neta', fEur(v.eNeta), v.tips.eNeta)}
+                ${item('Impuestos', fEur(v.imp), v.tips.imp, 'bv-val-warn')}
+                ${item('Subtotal', fEur(v.subtotal), v.tips.subtotal)}
+                ${item('Pagar', fEur(v.pagar), v.tips.pagar, 'bv-val-pay')}
+                ${hasBV ? item('Uso hucha', huchaCell, v.tips.hucha) : ''}
+                ${hasBV ? item('Saldo BV fin', saldoCell, v.tips.saldo, 'bv-val-bv') : ''}
+              </div>
+            </section>
           `;
         }).join('');
       };
@@ -470,11 +533,18 @@ SALDO BV FIN = ${fEur(row.bvSaldoFin)}`
         // En BV, para mantener el orden visual, las columnas "Hucha" y "Saldo" se colocan al final.
         // (En móvil se verán como filas etiquetadas igualmente.)
         return `
-          <div class="bv-table-container" style="margin-top:16px;">
-            <table class="bv-table">
-              <thead><tr>${head}</tr></thead>
-              <tbody>${buildRows(resultItem)}</tbody>
-            </table>
+          <div class="bv-breakdown" style="margin-top:16px;">
+            <div class="bv-breakdown-desktop">
+              <div class="bv-table-container">
+                <table class="bv-table">
+                  <thead><tr>${head}</tr></thead>
+                  <tbody>${buildRows(resultItem)}</tbody>
+                </table>
+              </div>
+            </div>
+            <div class="bv-breakdown-mobile">
+              ${buildMobileCards(resultItem)}
+            </div>
           </div>
         `;
       };

@@ -10,6 +10,91 @@
   align-items: stretch;
 }
 
+/* =========================================================
+   DESGLOSE BV: Desktop (tabla) vs Móvil (tarjetas)
+   ========================================================= */
+
+/* Por defecto mostramos la tabla (desktop) */
+.bv-breakdown-mobile{ display: none; }
+
+@media (max-width: 768px){
+  /* En móvil usamos tarjetas (sin tablas) para evitar solapes/scroll horizontal */
+  .bv-breakdown-desktop{ display: none; }
+  .bv-breakdown-mobile{ display: block; }
+
+  .bv-breakdown-mobile{
+    display: grid;
+    gap: 14px;
+  }
+
+  .bv-month-card{
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    background: var(--card);
+    box-shadow: var(--shadow);
+    overflow: hidden;
+  }
+
+  .bv-month-head{
+    padding: 12px 14px;
+    font-weight: 900;
+    letter-spacing: 0.2px;
+    background: var(--card2);
+    border-bottom: 1px solid var(--border);
+  }
+
+  .bv-month-body{
+    display: grid;
+    gap: 0;
+  }
+
+  .bv-month-item{
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: 12px;
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .bv-month-item:last-child{ border-bottom: none; }
+
+  .bv-month-label{
+    font-weight: 800;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.72rem;
+    line-height: 1.2;
+  }
+
+  .bv-month-value{
+    font-weight: 900;
+    font-variant-numeric: tabular-nums;
+    justify-self: end;
+  }
+
+  /* Botón con aspecto de texto (para tooltips) */
+  button.bv-month-value{
+    background: none;
+    border: none;
+    padding: 0;
+    margin: 0;
+    color: inherit;
+    text-align: right;
+  }
+  button.bv-month-value:focus-visible{
+    outline: 3px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 8px;
+  }
+
+  /* Colores útiles */
+  .bv-val-good{ color: var(--accent2); }
+  .bv-val-warn{ color: var(--danger); }
+  .bv-val-pay{ color: var(--accent2); font-size: 1.08rem; }
+  .bv-val-bv{ color: #fbbf24; }
+}
+
 @media (max-width: 900px) {
   .bv-form-container {
     grid-template-columns: 1fr;
@@ -456,9 +541,6 @@ select.input option {
   text-align: center;
 }
 
-/* En desktop no mostramos etiquetas dentro de celdas (se usan los <th>). */
-.bv-cell-label{ display:none; }
-
 /* --- ARREGLO DE ALINEACIÃN Y ANCHOS DE COLUMNA --- */
 
 /* Mes: Izquierda, ancho mÃ­nimo real */
@@ -520,15 +602,11 @@ html.light-mode .bv-floating-tooltip{
 
 .bv-tooltip-trigger {
   cursor: help;
-}
-
-/* Solo subrayamos el valor (no la etiqueta), para que en móvil no se vea “todo rayado”. */
-.bv-tooltip-trigger .bv-cell-value{
   text-decoration: underline dotted var(--muted);
   text-underline-offset: 4px;
 }
 
-.bv-tooltip-trigger:hover .bv-cell-value{
+.bv-tooltip-trigger:hover {
   color: var(--accent);
   text-decoration-color: var(--accent);
 }
@@ -702,9 +780,8 @@ body.bv-modal-open{ overflow: hidden; }
 
   .bv-table td:last-child{ border-bottom:none; }
 
-  /* Mostramos la etiqueta explícita (no pseudo-elementos) para evitar desalineaciones en móvil */
-  .bv-cell-label{
-    display:block;
+  .bv-table td::before{
+    content: attr(data-label);
     font-weight: 800;
     color: var(--muted);
     font-size: 0.72rem;
@@ -725,7 +802,7 @@ body.bv-modal-open{ overflow: hidden; }
     padding: 12px 14px;
     border-bottom: 2px solid var(--border);
   }
-  .bv-table td[data-label='Mes'] .bv-cell-label{ display:none; }
+  .bv-table td[data-label='Mes']::before{ display:none; }
   .bv-table td[data-label='Mes'] .bv-cell-value{ justify-self: start; font-size: 1.05rem; }
 
   /* Resaltar Pagar */
