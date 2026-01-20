@@ -5,16 +5,19 @@
 /* --- Layout & Containers --- */
 .bv-form-container {
   display: grid;
-  grid-template-columns: 1.2fr 0.8fr; /* Columna de inputs un poco más ancha */
-  gap: 3rem;
+  grid-template-columns: 1.1fr 0.9fr; /* Más equilibrado */
+  gap: 2rem;
   margin-top: 2rem;
-  align-items: start;
+  margin-bottom: 2rem;
+  padding: 0 2rem; /* Separación de los laterales */
+  align-items: stretch; /* Ambos bloques misma altura */
 }
 
 @media (max-width: 992px) {
   .bv-form-container {
     grid-template-columns: 1fr;
     gap: 2rem;
+    padding: 0 1.5rem;
   }
 }
 
@@ -31,9 +34,10 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 220px;
-  width: 90%; /* No ocupa todo el ancho */
-  margin: 0 auto; /* Centrada en su contenedor */
+  min-height: 280px; /* Más alto */
+  width: 100%; /* Ocupa todo el ancho disponible */
+  height: 100%; /* Ocupa todo el alto disponible */
+  margin: 0;
 }
 
 .bv-upload-zone:hover, .bv-upload-zone.dragover {
