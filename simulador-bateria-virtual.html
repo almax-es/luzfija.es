@@ -284,138 +284,77 @@
           
               <main id="main" tabindex="-1">
                 <section class="card">
-                  <div class="head" style="text-align: center;">
-                    <h2>Sube tu archivo y potencia contratada</h2>
+                  <div class="head">
+                    <div class="kicker">Simulador Avanzado</div>
+                    <div class="title">Batería Virtual y Excedentes</div>
                   </div>
-                  <p style="text-align: center; margin-top: 16px;">Simula mes a mes autoconsumo con batería virtual a partir de tu CSV/XLSX.</p>
-          
-                          <div class="bv-form-container">
-          
-                            <!-- Inputs Numéricos en Grid (IZQUIERDA) -->
-          
-                            <div class="bv-inputs-grid">
-          
-                              <div class="bv-input-wrapper">
-          
-                                <label for="bv-p1" style="font-size: 1.1rem; color: var(--text);">Potencia P1 (kW)</label> 
-          
-                                <div class="bv-input-icon-group">
-          
-                                  <span class="bv-input-icon">☀️</span>
-          
-                                  <input class="bv-input-modern" type="text" id="bv-p1" inputmode="decimal" value="3,45" style="font-size: 1.2rem;">
-          
-                                </div>
-          
-                              </div>
-          
-                              <div class="bv-input-wrapper">
-          
-                                <label for="bv-p2" style="font-size: 1.1rem; color: var(--text);">Potencia P2 (kW)</label> 
-          
-                                <div class="bv-input-icon-group">
-          
-                                  <span class="bv-input-icon">🌙</span>
-          
-                                  <input class="bv-input-modern" type="text" id="bv-p2" inputmode="decimal" value="3,45" style="font-size: 1.2rem;">
-          
-                                </div>
-          
-                              </div>
-          
-                              <div class="bv-input-wrapper">
-          
-                                <label for="bv-saldo-inicial" style="font-size: 1.1rem; color: var(--text);">Dinero que ya tienes en la hucha</label>
-          
-                                <div class="bv-input-icon-group">
-          
-                                  <span class="bv-input-icon">💰</span>
-          
-                                  <input class="bv-input-modern" type="text" id="bv-saldo-inicial" inputmode="decimal" value="0,00" style="font-size: 1.2rem;">
-          
-                                </div>
-          
-                              </div>
-          
-                              <div class="bv-input-wrapper">
-          
-                                <label for="bv-zona-fiscal" style="font-size: 1.1rem; color: var(--text);">Zona Fiscal</label>
-          
-                                <div class="bv-input-icon-group">
-          
-                                  <span class="bv-input-icon">📍</span>
-          
-                                  <select id="bv-zona-fiscal" class="bv-input-modern" style="font-size: 1.2rem; appearance: auto; padding-left: 3.5rem;">
-          
-                                    <option value="Península">Península y Baleares</option>
-          
-                                    <option value="Canarias">Canarias</option>
-          
-                                    <option value="CeutaMelilla">Ceuta y Melilla</option>
-          
-                                  </select>
-          
-                                </div>
-          
-                              </div>
-          
-                              <div class="bv-input-wrapper" id="bv-vivienda-canarias-wrapper" style="display:none; margin-top: -10px;">
-          
-                                <label for="bv-vivienda-canarias" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 1rem;">
-          
-                                  <input id="bv-vivienda-canarias" type="checkbox" checked style="width: 20px; height: 20px;">
-          
-                                  <span>Vivienda (hogar)</span>
-          
-                                </label>
-          
-                              </div>
-          
-                            </div>
-          
-                  
-          
-                            <!-- Zona de carga Drag & Drop (DERECHA) -->
-          
-                            <div class="bv-upload-zone" id="drop-zone">
-          
-                              <input class="bv-file-input" type="file" id="bv-file" accept=".csv,.xlsx,.xls" style="display:none">
-          
-                              <div class="bv-upload-content">
-          
-                                <div class="bv-upload-icon">📄</div>
-          
-                                <p class="bv-upload-text"><strong>Arrastra tu CSV/XLSX aquí</strong></p>
-          
-                                <p class="bv-upload-hint">Formatos distribuidora y Datadis</p>
-          
-                              </div>
-          
-                              <div class="bv-file-selected" id="file-selected-msg" style="display:none">
-          
-                                <span class="bv-file-name" id="file-name">archivo.csv</span>
-          
-                                <button type="button" class="bv-remove-file" id="remove-file">✕</button>
-          
-                              </div>
-          
-                            </div>
-          
-                          </div>
-          
-                  
-          
-                          <div class="u-mt-24">
-          
-                            <button class="btn primary bv-btn-simular" id="bv-simulate" type="button">
-          
-                              <span class="bv-btn-text">Calcular Ahorro 🚀</span>
-          
-                              <span class="spinner" style="display:none"></span>
-          
-                            </button>
-          
-                          </div>                </section>
+                  <div class="body">
+                    <p style="margin-bottom: 24px; color:var(--muted); font-size: 0.95rem;">
+                      Sube tu archivo CSV (Datadis o Distribuidora) para simular mes a mes cuánto ahorrarías realmente con tarifas de batería virtual.
+                    </p>
+          
+                    <div class="bv-form-container">
+                      <!-- Inputs (Izquierda) -->
+                      <div class="form" style="grid-template-columns: 1fr 1fr; gap: 16px;">
+                        
+                        <div class="group">
+                          <label for="bv-p1">Potencia P1 (kW)</label>
+                          <input class="input" type="text" id="bv-p1" inputmode="decimal" value="3,45" placeholder="Ej: 3,45">
+                        </div>
+
+                        <div class="group">
+                          <label for="bv-p2">Potencia P2 (kW)</label>
+                          <input class="input" type="text" id="bv-p2" inputmode="decimal" value="3,45" placeholder="Ej: 3,45">
+                        </div>
+
+                        <div class="group" style="grid-column: 1 / -1;">
+                          <label for="bv-saldo-inicial">Saldo en Hucha (€)</label>
+                          <input class="input" type="text" id="bv-saldo-inicial" inputmode="decimal" value="0,00" placeholder="0,00">
+                          <div style="font-size:11px; color:var(--muted); margin-top:4px;">Si ya tienes dinero acumulado de meses anteriores.</div>
+                        </div>
+
+                        <div class="group" style="grid-column: 1 / -1;">
+                          <label for="bv-zona-fiscal">Zona Fiscal</label>
+                          <select id="bv-zona-fiscal" class="input">
+                            <option value="Península">Península y Baleares</option>
+                            <option value="Canarias">Canarias</option>
+                            <option value="CeutaMelilla">Ceuta y Melilla</option>
+                          </select>
+                        </div>
+
+                        <div class="group" id="bv-vivienda-canarias-wrapper" style="grid-column: 1 / -1; display:none;">
+                          <label class="fv-check">
+                            <input id="bv-vivienda-canarias" type="checkbox" checked>
+                            <span>Es Vivienda (IGIC 0%)</span>
+                          </label>
+                        </div>
+
+                      </div>
+          
+                      <!-- Upload Zone (Derecha) -->
+                      <div class="bv-upload-zone" id="drop-zone">
+                        <input class="bv-file-input" type="file" id="bv-file" accept=".csv,.xlsx,.xls" style="display:none">
+                        <div class="bv-upload-content">
+                          <div class="bv-upload-icon">📄</div>
+                          <p class="bv-upload-text">Arrastra tu CSV aquí</p>
+                          <p class="bv-upload-hint">Formatos Distribuidora y Datadis</p>
+                        </div>
+                        <div class="bv-file-selected" id="file-selected-msg" style="display:none">
+                          <span class="bv-file-name" id="file-name">archivo.csv</span>
+                          <button type="button" class="bv-remove-file" id="remove-file" aria-label="Eliminar archivo">✕</button>
+                        </div>
+                      </div>
+
+                    </div>
+          
+                    <div class="u-mt-24">
+                      <button class="btn primary" id="bv-simulate" type="button">
+                        <span class="bv-btn-text" style="font-size: 1.1rem;">Calcular Ahorro Real &rarr;</span>
+                        <span class="spinner" style="display:none"></span>
+                      </button>
+                    </div>
+                  </div>
+                </section>
           
                 <!-- Resultados (Ocultos por defecto) -->
                 <div id="bv-results-container" class="fade-container" style="display:none">

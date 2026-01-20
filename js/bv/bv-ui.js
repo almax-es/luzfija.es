@@ -227,16 +227,16 @@ window.BVSim = window.BVSim || {};
       const ahorroPct = Math.round(((costeSinPlacas - winner.totals.pagado) / costeSinPlacas) * 100);
 
       resultsEl.innerHTML = `
-        <h2 style="text-align:center; font-size:2rem; font-weight:900; margin-bottom:2rem;">Resultados de la Simulación</h2>
+        <h2 style="text-align:center; font-size:1.8rem; font-weight:900; margin-bottom:2rem; color:var(--text);">Resultados de la Simulación</h2>
 
         <div class="bv-results-grid">
           <!-- IZQUIERDA: Tarjeta Ganadora -->
           <div class="bv-winner-card-compact">
             <div class="bv-winner-badge">🏆 Opción Ganadora</div>
-            <h2 class="bv-winner-name">${winner.tarifa.nombre}</h2>
+            <div class="bv-winner-name">${winner.tarifa.nombre}</div>
             <div class="bv-winner-company">de ${winner.tarifa.comercializadora || 'Compañía Desconocida'}</div>
             
-            <div style="margin-top:auto; padding-top:1.5rem;">
+            <div style="margin-top:auto; padding-top:1.5rem; width:100%">
               ${winner.tarifa.web ? `<a href="${winner.tarifa.web}" target="_blank" class="btn primary" style="width:100%; justify-content:center;">Ver esta tarifa &rarr;</a>` : ''}
             </div>
           </div>
@@ -259,26 +259,31 @@ window.BVSim = window.BVSim || {};
 
         ${ahorroPct > 0 ? `<div style="margin: 2rem auto; text-align:center; max-width:600px;"><div class="bv-savings-banner">📉 Estás ahorrando un <strong>${ahorroPct}%</strong> respecto a la media</div></div>` : ''}
 
-        <details style="margin-top: 20px; margin-bottom: 40px;">
-          <summary style="font-size: 0.9rem; cursor: pointer; text-align: center; color: var(--muted); padding: 10px; border-radius: 8px; transition: background 0.2s;">Ver desglose detallado mensual ▾</summary>
+        <details style="margin-top: 32px; margin-bottom: 48px;">
+          <summary style="font-size: 0.9rem; cursor: pointer; text-align: center; color: var(--muted); padding: 12px; border-radius: 8px; transition: background 0.2s;">Ver desglose detallado mensual ▾</summary>
           ${isWinnerIndexada ? '<div style="font-size:11px; color:#fbbf24; text-align:center; margin:12px 0;">* Excedentes estimados a 0,06 €/kWh (indexada)</div>' : ''}
-          <div class="bv-table-container" style="margin-top:1rem;">
+          <div class="bv-table-container">
             <table class="bv-table">
               <thead>
                 <tr>
-                  <th class="bv-col-mes">Mes</th><th class="bv-col-pot">Potencia</th><th class="bv-col-ene">Energía (Neto)</th>
-                  <th class="bv-col-imp">Impuestos</th><th class="bv-col-sub">Subtotal</th><th class="bv-col-hucha">Uso Hucha</th>
-                  <th class="bv-col-pagar">A Pagar</th><th class="bv-col-saldo">Saldo Hucha</th>
+                  <th style="text-align:left">Mes</th>
+                  <th>Potencia</th>
+                  <th>Energía (Neto)</th>
+                  <th>Impuestos</th>
+                  <th>Subtotal</th>
+                  <th>Uso Hucha</th>
+                  <th>A Pagar</th>
+                  <th>Saldo Hucha</th>
                 </tr>
               </thead>
               <tbody>${buildDetailedRows(winner.rows, isWinnerIndexada)}</tbody>
             </table>
           </div>
-          <div style="text-align:center; margin-top:16px;"><button class="btn" id="bv-download-csv" style="font-size:0.85rem; padding: 10px 20px;">📥 Descargar resumen CSV</button></div>
+          <div style="text-align:center; margin-top:16px;"><button class="btn" id="bv-download-csv" style="font-size:0.85rem; padding: 10px 24px;">📥 Descargar resumen CSV</button></div>
         </details>
 
         <div class="u-mb-24">
-          <h3 style="font-size: 1.4rem; font-weight: 900; margin-bottom: 1.5rem; text-align: center;">Otras alternativas top</h3>
+          <h3 style="font-size: 1.2rem; font-weight: 800; margin-bottom: 1.5rem; text-align: center; color:var(--text);">Otras alternativas top</h3>
           <div class="bv-alternatives-list">
             ${rankedResults.slice(1, 6).map((r, i) => `
               <div class="bv-alt-card">
