@@ -22,7 +22,7 @@ describe('BVSim Validation with 1.csv', () => {
   });
 
   it('should correctly parse 1.csv and perform simulation', async () => {
-    const csvPath = path.resolve(__dirname, '../1.csv');
+    const csvPath = path.resolve(__dirname, 'fixtures/1.csv');
     const csvContent = fs.readFileSync(csvPath, 'utf8');
 
     // Simulate importFile logic (manually since FileReader is browser-only)
