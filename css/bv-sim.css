@@ -511,21 +511,6 @@ html.light-mode .bv-floating-tooltip{
   }
   .bv-alt-price{ grid-column: 2; text-align: left; font-size: 1.1rem; }
   .bv-alt-surplus{ text-align: left; }
-
-  /* Alternativas (bv-alt-card-detailed): en móvil, apilar y alinear a la izquierda (evita aspecto "a la derecha") */
-  .bv-alt-card-detailed > div:first-child{
-    flex-direction: column;
-    align-items: flex-start !important;
-  }
-  .bv-alt-card-detailed > div:first-child > div:last-child{
-    width: 100%;
-    text-align: left !important;
-  }
-  .bv-alt-card-detailed h3{
-    width: 100%;
-    word-break: break-word;
-  }
-
 }
 
 /* Utilities */
@@ -533,9 +518,101 @@ html.light-mode .bv-floating-tooltip{
 .u-text-center { text-align: center; }
 .u-fw-700 { font-weight: 700; }
 
-/* --- RESPONSIVE TABLE (CARD VIEW) --- */
+/* --- MODAL DE DETALLE (TOOLTIPS EN MÓVIL) --- */
+body.bv-modal-open{ overflow: hidden; }
+
+.bv-tip-modal{
+  position: fixed;
+  inset: 0;
+  display: none;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0,0,0,0.55);
+  z-index: 100001;
+}
+
+.bv-tip-modal.show{ display: flex; }
+
+.bv-tip-card{
+  width: min(760px, 100%);
+  max-height: 85vh;
+  overflow: auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  box-shadow: 0 24px 80px rgba(0,0,0,0.55);
+  padding: 16px 16px 14px;
+  position: relative;
+}
+
+.bv-tip-title{
+  font-weight: 900;
+  font-size: 1rem;
+  letter-spacing: 0.2px;
+  margin: 0 40px 10px 0;
+}
+
+.bv-tip-close{
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  border: 1px solid var(--border);
+  background: var(--card2);
+  color: var(--text);
+  border-radius: 12px;
+  padding: 8px 10px;
+  line-height: 1;
+  font-weight: 900;
+  cursor: pointer;
+}
+
+.bv-tip-close:focus-visible{
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.bv-tip-content{
+  margin: 0;
+  white-space: pre-wrap;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: var(--text);
+}
+
+/* --- RESPONSIVE (MÓVIL) --- */
 @media (max-width: 768px) {
-  /* En móvil no queremos scroll horizontal: el desglose se convierte en tarjetas apiladas */
+  /* Inputs: evitar zoom iOS (>=16px) y mejorar tactilidad */
+  .bv-form-container .input{ font-size: 16px; }
+  #bv-simulate{ min-height: 48px; }
+
+  /* Details/summary: que se vea como un botón limpio y no centrado raro */
+  #bv-results details > summary{
+    text-align: left !important;
+    padding: 14px 14px !important;
+    border-radius: 14px !important;
+    display: flex !important;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  #bv-results details > summary::-webkit-details-marker{ display:none; }
+
+
+  /* Alternativas: header en columna para que no quede todo a la derecha */
+  .bv-alt-card-detailed{ padding: 16px !important; }
+  .bv-alt-card-detailed > div:first-child{
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px !important;
+    margin-bottom: 12px !important;
+  }
+  .bv-alt-card-detailed > div:first-child > div:nth-child(2){
+    text-align: left !important;
+  }
+  .bv-alt-card-detailed h3{ font-size: 1.1rem !important; }
+
+  /* Desglose: cero scroll horizontal, formato "tarjeta" con etiqueta izquierda y valor derecha */
   .bv-table-container{
     overflow-x: visible;
     -webkit-overflow-scrolling: auto;
@@ -543,97 +620,69 @@ html.light-mode .bv-floating-tooltip{
     background: transparent;
   }
 
-  .bv-table{
-    min-width: 0 !important;
-  }
+  .bv-table{ min-width: 0 !important; }
+  .bv-table thead{ display:none; }
+  .bv-table, .bv-table tbody{ display:block; width:100%; }
 
-  /* Ocultar cabeceras, la tabla pasa a ser lista de tarjetas */
-  .bv-table thead {
-    display: none;
-  }
-
-  .bv-table, .bv-table tbody, .bv-table tr, .bv-table td {
-    display: block;
-    width: 100%;
-  }
-
-  .bv-table tr {
-    margin-bottom: 16px;
+  .bv-table tr{
+    display:block;
+    margin: 0 0 14px 0;
     border: 1px solid var(--border);
-    border-radius: 12px;
-    background: var(--card2);
+    border-radius: 16px;
+    background: var(--card);
     overflow: hidden;
+    box-shadow: var(--shadow);
   }
 
-  .bv-table td {
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: flex-start;
+  .bv-table td{
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: 12px;
     text-align: left !important;
     padding: 12px 14px;
-    gap: 4px;
     border-bottom: 1px solid var(--border);
+    width: auto !important; /* Reset de anchos fijos (desktop) */
     font-size: 0.98rem;
-    width: auto !important; /* Reset de anchos fijos */
+    font-variant-numeric: tabular-nums;
   }
 
-  .bv-table td:last-child {
-    border-bottom: none;
-  }
+  .bv-table td:last-child{ border-bottom:none; }
 
-  /* Etiqueta desde el atributo data-label */
-  .bv-table td::before {
+  .bv-table td::before{
     content: attr(data-label);
-    font-weight: 600;
+    font-weight: 800;
     color: var(--muted);
     font-size: 0.72rem;
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    margin-right: 0;
-    text-align: left;
+    line-height: 1.2;
   }
 
-  /* --- Diseño Específico de la Tarjeta Móvil --- */
-  
-  /* 1. Cabecera de Tarjeta: MES y PAGAR */
-  .bv-table td[data-label='Mes'] {
-    background: var(--bg0);
+  .bv-cell-value{
+    justify-self: end;
     font-weight: 900;
-    font-size: 1.05rem;
-    color: var(--text);
+  }
+
+  /* Cabecera: Mes */
+  .bv-table td[data-label='Mes']{
+    grid-template-columns: 1fr;
+    background: var(--bg0);
     padding: 12px 14px;
     border-bottom: 2px solid var(--border);
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
   }
-
-  /* En la cabecera de tarjeta (Mes) no hace falta etiqueta */
   .bv-table td[data-label='Mes']::before{ display:none; }
-  
-  /* Pagar lo subimos visualmente o lo destacamos mucho */
-  .bv-table td[data-label='Pagar'] {
-    background: rgba(139, 92, 246, 0.08); /* Acento suave */
-    font-weight: 900;
-    font-size: 1.1rem;
-    color: var(--text);
-  }
+  .bv-table td[data-label='Mes'] .bv-cell-value{ justify-self: start; font-size: 1.05rem; }
 
-  /* Saldo Fin destacado al final */
-  .bv-table td[data-label='Saldo Fin'] {
+  /* Resaltar Pagar */
+  .bv-table td[data-label='Pagar']{
+    background: rgba(139, 92, 246, 0.10);
+  }
+  .bv-table td[data-label='Pagar'] .bv-cell-value{ font-size: 1.10rem; }
+
+  /* Resaltar Saldo Fin (si aplica) */
+  .bv-table td[data-label='Saldo Fin']{
     background: rgba(251, 191, 36, 0.08);
-    font-weight: 800;
-    color: #fbbf24;
   }
-
-  /* Ocultar columnas menos relevantes si se desea ultra-compacto, 
-     pero el usuario pidió ver todo bien. Con este diseño se ve todo en lista vertical. */
 }
 
-
-
-/* Evitar scroll horizontal accidental en móvil */
-@media (max-width: 768px){
-  body{ overflow-x: hidden; }
-}

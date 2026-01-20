@@ -170,6 +170,45 @@ document.addEventListener('DOMContentLoaded', () => {
   tooltipEl.className = 'bv-floating-tooltip';
   document.body.appendChild(tooltipEl);
 
+  // En móvil/táctil, el "hover" no existe: mostramos el detalle en un modal (bottom-sheet).
+  const tipModalEl = document.createElement('div');
+  tipModalEl.className = 'bv-tip-modal';
+  tipModalEl.innerHTML = `
+    <div class="bv-tip-card" role="dialog" aria-modal="true" aria-label="Detalle del cálculo">
+      <button type="button" class="bv-tip-close" aria-label="Cerrar">✕</button>
+      <div class="bv-tip-title">Detalle</div>
+      <pre class="bv-tip-content"></pre>
+    </div>
+  `;
+  document.body.appendChild(tipModalEl);
+  const tipContentEl = tipModalEl.querySelector('.bv-tip-content');
+  const tipCloseBtn = tipModalEl.querySelector('.bv-tip-close');
+
+  const openTipModal = (text) => {
+    if (tipContentEl) tipContentEl.textContent = String(text || '');
+    tipModalEl.classList.add('show');
+    document.body.classList.add('bv-modal-open');
+  };
+  const closeTipModal = () => {
+    tipModalEl.classList.remove('show');
+    document.body.classList.remove('bv-modal-open');
+  };
+
+  if (tipCloseBtn && !tipCloseBtn.dataset.bvBound) {
+    tipCloseBtn.dataset.bvBound = '1';
+    tipCloseBtn.addEventListener('click', (e) => { e.preventDefault(); closeTipModal(); });
+  }
+  tipModalEl.addEventListener('click', (e) => {
+    if (e.target === tipModalEl) closeTipModal();
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && tipModalEl.classList.contains('show')) closeTipModal();
+  });
+
+  const canHover = !!(window.matchMedia && window.matchMedia('(hover: hover)').matches);
+  const isCoarse = !!(window.matchMedia && window.matchMedia('(pointer: coarse)').matches);
+
   const updateTooltipPosition = (target) => {
     const tip = target.getAttribute('data-tip');
     if (!tip) return;
@@ -192,14 +231,29 @@ document.addEventListener('DOMContentLoaded', () => {
     tooltipEl.style.left = `${left}px`;
   };
 
-  document.addEventListener('mouseover', (e) => {
-    const trigger = e.target.closest('.bv-tooltip-trigger');
-    if (trigger) updateTooltipPosition(trigger);
-  });
+  // Desktop: hover.
+  if (canHover) {
+    document.addEventListener('mouseover', (e) => {
+      const trigger = e.target.closest('.bv-tooltip-trigger');
+      if (trigger) updateTooltipPosition(trigger);
+    });
 
-  document.addEventListener('mouseout', (e) => {
+    document.addEventListener('mouseout', (e) => {
+      const trigger = e.target.closest('.bv-tooltip-trigger');
+      if (trigger) tooltipEl.style.display = 'none';
+    });
+  }
+
+  // Móvil/táctil: tap => modal.
+  document.addEventListener('click', (e) => {
+    if (canHover && !isCoarse) return;
     const trigger = e.target.closest('.bv-tooltip-trigger');
-    if (trigger) tooltipEl.style.display = 'none';
+    if (!trigger) return;
+    const tip = trigger.getAttribute('data-tip');
+    if (!tip) return;
+    e.preventDefault();
+    e.stopPropagation();
+    openTipModal(tip);
   });
 
   window.addEventListener('scroll', () => { tooltipEl.style.display = 'none'; }, { passive: true });
@@ -386,16 +440,16 @@ SALDO BV FIN = ${fEur(row.bvSaldoFin)}`
 
           return `
             <tr>
-              <td data-label="Mes">${row.key}</td>
-              <td data-label="Potencia" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipPot)}">${fEur(row.pot)}</td>
-              <td data-label="E. Bruta" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipEneBruta)}">${fEur(eBruta)}</td>
-              <td data-label="Compensación" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipExcedentes)}" style="color:var(--accent2);">${excMes > 0 ? `-${fEur(excMes)}` : fEur(0)}</td>
-              <td data-label="E. Neta" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipEneNeta)}" style="font-weight:700;">${fEur(eNeta)}</td>
-              <td data-label="Impuestos" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipImp)}" style="color:var(--danger);">${fEur(imp)}</td>
-              <td data-label="Subtotal" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSub)}" style="background:rgba(255,255,255,0.02); font-weight:700;">${fEur(subtotal)}</td>
-              <td data-label="Uso Hucha" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipHucha)}">${huchaCell}</td>
-              <td data-label="Pagar" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipPagar)}" style="color:var(--accent2); font-weight:800;">${fEur(row.totalPagar)}</td>
-              <td data-label="Saldo Fin" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSaldo)}" style="${saldoStyle}">${saldoCell}</td>
+              <td data-label="Mes"><span class="bv-cell-value">${row.key}</span></td>
+              <td data-label="Potencia" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipPot)}"><span class="bv-cell-value">${fEur(row.pot)}</span></td>
+              <td data-label="E. Bruta" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipEneBruta)}"><span class="bv-cell-value">${fEur(eBruta)}</span></td>
+              <td data-label="Compensación" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipExcedentes)}" style="color:var(--accent2);"><span class="bv-cell-value">${excMes > 0 ? `-${fEur(excMes)}` : fEur(0)}</span></td>
+              <td data-label="E. Neta" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipEneNeta)}" style="font-weight:700;"><span class="bv-cell-value">${fEur(eNeta)}</span></td>
+              <td data-label="Impuestos" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipImp)}" style="color:var(--danger);"><span class="bv-cell-value">${fEur(imp)}</span></td>
+              <td data-label="Subtotal" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSub)}" style="background:rgba(255,255,255,0.02); font-weight:700;"><span class="bv-cell-value">${fEur(subtotal)}</span></td>
+              <td data-label="Uso Hucha" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipHucha)}"><span class="bv-cell-value">${huchaCell}</span></td>
+              <td data-label="Pagar" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipPagar)}" style="color:var(--accent2); font-weight:800;"><span class="bv-cell-value">${fEur(row.totalPagar)}</span></td>
+              <td data-label="Saldo Fin" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSaldo)}" style="${saldoStyle}"><span class="bv-cell-value">${saldoCell}</span></td>
             </tr>
           `;
         }).join('');
