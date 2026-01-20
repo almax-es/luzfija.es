@@ -70,18 +70,18 @@
 
     const header = stripBomAndTrim(lines[0]).toLowerCase();
     const isIberdrolaCliente = header.includes('consumo wh') && header.includes('generacion wh');
-    const isFormatoEspanol = header.includes('ae_kwh') || header.includes('consumo_kwh');
+    const isFormatoEspanol = header.includes('ae_kwh') || header.includes('consumo_kwh') || header.includes('energiavertida_kwh');
 
     if (!isFormatoEspanol && !isIberdrolaCliente) {
-      throw new Error('Formato CSV no reconocido. Se esperaba el formato estándar de distribuidoras españolas');
+      throw new Error('Formato CSV no reconocido. Se esperaba el formato estándar de distribuidoras españolas o Datadis');
     }
 
     if (isIberdrolaCliente) {
       return parseCSVIberdrolaCliente(lines);
     }
 
-    const tieneSolar = header.includes('as_kwh');
-    const tieneAutoconsumo = header.includes('ae_autocons_kwh');
+    const tieneSolar = header.includes('as_kwh') || header.includes('energiavertida_kwh');
+    const tieneAutoconsumo = header.includes('ae_autocons_kwh') || header.includes('energiaautoconsumida_kwh');
     const consumos = [];
 
     for (let i = 1; i < lines.length; i++) {
