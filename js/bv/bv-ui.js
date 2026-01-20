@@ -528,9 +528,9 @@ SALDO BV FIN = ${fEur(row.bvSaldoFin)}`
               <div class="bv-month-body">
                 ${item('Potencia', fEur(v.pot), v.tips.pot)}
                 ${item('Energía bruta', fEur(v.eBruta), v.tips.eBruta)}
-                ${item('Compensación', (v.excMes > 0 ? `-${fEur(v.excMes)}` : fEur(0)), v.tips.exc, 'bv-val-good')}
+                ${item('Compensación', (v.excMes > 0 ? `-${fEur(v.excMes)}` : fEur(0)), v.tips.exc, (v.excMes > 0 ? 'bv-val-good' : ''))}
                 ${item('Energía neta', fEur(v.eNeta), v.tips.eNeta)}
-                ${item('Impuestos', fEur(v.imp), v.tips.imp, 'bv-val-warn')}
+                ${item('Impuestos', fEur(v.imp), v.tips.imp, (v.imp > 0 ? 'bv-val-warn' : ''))}
                 ${item('Subtotal', fEur(v.subtotal), v.tips.subtotal)}
                 ${item('Pagar', fEur(v.pagar), v.tips.pagar, 'bv-val-pay')}
                 ${hasBV ? item('Uso hucha', huchaCell, v.tips.hucha) : ''}

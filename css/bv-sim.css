@@ -81,6 +81,7 @@
     margin: 0;
     color: inherit;
     text-align: right;
+    touch-action: manipulation;
   }
   button.bv-month-value:focus-visible{
     outline: 3px solid var(--accent);
@@ -606,9 +607,19 @@ html.light-mode .bv-floating-tooltip{
   text-underline-offset: 4px;
 }
 
+/* En pantallas táctiles, "help" es confuso: mejor cursor normal de acción */
+@media (pointer: coarse){
+  .bv-tooltip-trigger{ cursor: pointer; }
+}
+
 .bv-tooltip-trigger:hover {
   color: var(--accent);
   text-decoration-color: var(--accent);
+}
+
+/* En pantallas táctiles, "help" puede ser confuso: usa cursor normal de click */
+@media (pointer: coarse){
+  .bv-tooltip-trigger{ cursor: pointer; }
 }
 /* Ajustes especÃ­ficos mÃ³vil: evitar 2 columnas demasiado estrechas y mejorar legibilidad */
 @media (max-width: 520px){
