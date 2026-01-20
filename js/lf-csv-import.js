@@ -96,7 +96,12 @@
       const kwhStr = stripOuterQuotes(cols[3]);
       const excedenteStr = tieneSolar ? cols[4] : null;
       const autoconsumoStr = tieneAutoconsumo ? cols[5] : null;
-      const estadoStr = stripOuterQuotes(cols[tieneSolar && tieneAutoconsumo ? 6 : 4]);
+      
+      let idxEstado = 4;
+      if (tieneSolar) idxEstado++;
+      if (tieneAutoconsumo) idxEstado++;
+      
+      const estadoStr = (idxEstado < cols.length) ? stripOuterQuotes(cols[idxEstado]) : '';
       const esReal = estadoStr === 'R';
 
       if (!kwhStr || kwhStr.trim() === '') continue;
