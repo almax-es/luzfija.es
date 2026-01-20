@@ -90,6 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const priceFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 6 });
 
   const fEur = (v) => currencyFmt.format(Number(v) || 0);
+  const fKw = (v) => kwFmt.format(Number(v) || 0);
   const fKwh = (v) => kwhFmt.format(Number(v) || 0);
   const fPrice = (v) => priceFmt.format(Number(v) || 0);
 
