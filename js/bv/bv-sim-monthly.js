@@ -397,23 +397,6 @@ window.BVSim.loadTarifasBV = async function () {
     const data = await response.json();
     const tarifas = Array.isArray(data?.tarifas) ? data.tarifas : [];
 
-    // Añadimos el PVPC como opción de referencia
-    const pvpcRef = {
-      nombre: "PVPC (Regulada) ⚡",
-      comercializadora: "Curenergía / Energía XXI...",
-      cPunta: 0.145, 
-      cLlano: 0.115,
-      cValle: 0.095,
-      p1: 0.105,
-      p2: 0.025,
-      tipo: "INDEXADA",
-      fv: {
-        exc: 0.065, 
-        tipo: "SIMPLE",
-        bv: false
-      }
-    };
-
     const tarifasBV = tarifas.filter((tarifa) => {
       if (!tarifa || !tarifa.fv) return false;
       const exc = Number(tarifa.fv.exc);
@@ -421,7 +404,7 @@ window.BVSim.loadTarifasBV = async function () {
       return (Number.isFinite(exc) && exc > 0) || (tarifa.tipo === 'INDEXADA' && tarifa.fv.tipo !== 'NO COMPENSA');
     });
 
-    return { ok: true, tarifasBV: [pvpcRef, ...tarifasBV] };
+    return { ok: true, tarifasBV };
   } catch (error) {
     return { ok: false, error: error?.message || 'Error al cargar tarifas BV.' };
   }
