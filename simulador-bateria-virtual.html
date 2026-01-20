@@ -202,8 +202,9 @@
     <div class="topbar">
       <div class="brand">
         <span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span>
-        <div class="logo" aria-hidden="true">
+        <div class="logo" aria-hidden="true" onclick="window.location.href='/'" style="cursor:pointer">
           <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+            <!-- ... (logo content matches original) ... -->
             <defs>
               <linearGradient id="logoGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1">
@@ -253,8 +254,7 @@
         <div>
           <nav aria-label="Breadcrumb" class="u-mb-8">
             <ol class="breadcrumb">
-              <li><a href="/">🏠 Inicio</a></li>
-              <li><span aria-current="page">Simulador batería virtual</span></li>
+              <li><a href="/" style="text-decoration:none; font-weight:bold;">&larr; Volver al Comparador</a></li>
             </ol>
           </nav>
                     <h1>Simulador de batería virtual (CSV)</h1>
@@ -440,5 +440,5 @@
             <script src="/js/lf-utils.js"></script>
             <script src="/js/bv/bv-import.js?v=1.1"></script>
             <script src="/js/bv/bv-sim-monthly.js?v=1.2"></script>
-            <script src="/js/bv/bv-ui.js?v=3.4"></script>
+            <script src="/js/bv/bv-ui.js?v=3.2"></script>
           </body></html>
