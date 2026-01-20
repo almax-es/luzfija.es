@@ -227,12 +227,15 @@ window.BVSim.calcMonthForTarifa = function ({
   const totalBase = round2(ivaBase + ivaCuota);
 
   // Batería Virtual (Hucha)
+  const canAccumulate = tarifa.fv && tarifa.fv.bv === true;
   const credit2 = round2(Math.min(Math.max(0, bvSaldoPrev), totalBase));
-  const bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bvSaldoPrev - credit2));
+  const bvSaldoFin = canAccumulate 
+    ? round2(excedenteSobranteEur + Math.max(0, bvSaldoPrev - credit2))
+    : 0;
   const totalPagar = round2(Math.max(0, totalBase - credit2));
 
   // Coste Real (si no tuvieras hucha anterior)
-  const totalReal = round2(Math.max(0, totalBase - excedenteSobranteEur));
+  const totalReal = round2(Math.max(0, totalBase - (canAccumulate ? excedenteSobranteEur : 0)));
 
   return {
     key: month.key,
@@ -344,10 +347,8 @@ window.BVSim.loadTarifasBV = async function () {
     const tarifas = Array.isArray(data?.tarifas) ? data.tarifas : [];
 
     const tarifasBV = tarifas.filter((tarifa) => {
-      // Filtrar solo tarifas con Batería Virtual real (tipo SIMPLE + BV)
+      // Filtrar todas las tarifas que compensan excedentes (con o sin BV)
       if (!tarifa || !tarifa.fv) return false;
-      if (tarifa.fv.bv !== true) return false;
-      if (tarifa.fv.tipo !== 'SIMPLE + BV') return false;
       const exc = Number(tarifa.fv.exc);
       return Number.isFinite(exc) && exc > 0;
     });
