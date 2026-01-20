@@ -1,3 +1,380 @@
+/* =========================================
+   Batería Virtual Simulator - Modo "Sencillo"
+   ========================================= */
+
+/* --- Layout & Containers --- */
+.bv-form-container {
+  display: grid;
+  grid-template-columns: 1.1fr 0.9fr; /* Más equilibrado */
+  gap: 2rem;
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+  padding: 0 2rem; /* Separación de los laterales */
+  align-items: stretch; /* Ambos bloques misma altura */
+}
+
+@media (max-width: 992px) {
+  .bv-form-container {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    padding: 0 1.5rem;
+  }
+}
+
+/* --- Drag & Drop Zone --- */
+.bv-upload-zone {
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
+  padding: 2rem;
+  text-align: center;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.02);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 280px; /* Más alto */
+  width: 100%; /* Ocupa todo el ancho disponible */
+  height: 100%; /* Ocupa todo el alto disponible */
+  margin: 0;
+}
+
+.bv-upload-zone:hover, .bv-upload-zone.dragover {
+  border-color: var(--primary);
+  background: rgba(139, 92, 246, 0.1);
+  transform: scale(1.02);
+}
+
+.bv-upload-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  filter: drop-shadow(0 4px 6px rgba(0,0,0,0.2));
+}
+
+.bv-upload-text {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.5rem;
+}
+
+.bv-upload-hint {
+  font-size: 1rem;
+  color: var(--muted);
+}
+
+.bv-file-selected {
+  margin-top: 1.5rem;
+  background: #064e3b;
+  border: 1px solid #059669;
+  color: #a7f3d0;
+  padding: 0.8rem 1.5rem;
+  border-radius: 99px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8rem;
+  font-size: 1.1rem;
+  font-weight: 600;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+/* --- Inputs Grid --- */
+.bv-inputs-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  background: rgba(0,0,0,0.2);
+  padding: 1.5rem;
+  border-radius: 16px;
+}
+
+.bv-input-wrapper label {
+  display: block;
+  font-size: 1.1rem; /* Texto más grande */
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 0.6rem;
+}
+
+.bv-input-icon-group {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.bv-input-icon {
+  position: absolute;
+  left: 1.2rem;
+  font-size: 1.4rem;
+  pointer-events: none;
+  z-index: 2;
+}
+
+.bv-input-modern {
+  width: 100%;
+  background: #fff; /* Fondo blanco para máximo contraste en inputs */
+  border: 2px solid transparent;
+  border-radius: 12px;
+  padding: 1rem 1rem 1rem 3.5rem;
+  color: #000; /* Texto negro sobre blanco */
+  font-size: 1.3rem;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.bv-input-modern:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.3);
+}
+
+.bv-help-text {
+  font-size: 0.95rem;
+  color: var(--muted);
+  margin-top: 0.5rem;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+/* --- Botón Simular --- */
+.bv-btn-simular {
+  width: 100%;
+  padding: 1.2rem;
+  font-size: 1.3rem;
+  font-weight: 800;
+  border-radius: 16px;
+  background: linear-gradient(135deg, var(--primary) 0%, #4c1d95 100%);
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.bv-btn-simular:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(139, 92, 246, 0.5);
+  filter: brightness(1.1);
+}
+
+/* --- Animaciones --- */
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(255,255,255,0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.fade-container {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.fade-container.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* --- Responsive Tables --- */
+.bv-table-container {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.2);
+}
+
+.bv-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 850px;
+  table-layout: fixed; /* Forzamos anchos controlados */
+}
+
+.bv-table th, .bv-table td {
+  padding: 12px 8px;
+  text-align: center;
+  border-bottom: 1px solid rgba(255,255,255,0.05);
+  vertical-align: middle;
+}
+
+.bv-table th.bv-col-pot, .bv-table td.bv-col-pot {
+  text-align: center !important;
+  width: 70px;
+}
+
+.bv-table th.bv-col-mes, .bv-table td.bv-col-mes {
+  text-align: left !important;
+  width: 80px;
+  padding-left: 15px;
+}
+
+/* Estilos de celda específicos */
+.bv-table td.bv-col-mes {
+  text-align: left;
+  padding-left: 12px;
+}
+
+.bv-table td.bv-col-pot {
+  text-align: center;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
+.bv-cell-main {
+  font-size: 15px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.bv-cell-op {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.bv-op-base { font-size: 11px; opacity: 0.6; text-decoration: line-through; }
+.bv-op-disc { font-size: 11px; color: #10b981; font-weight: 600; }
+.bv-op-total { font-size: 14px; font-weight: 800; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 2px; padding-top: 2px; }
+
+.bv-val-hucha-prev { font-size: 10px; color: var(--muted); }
+.bv-val-hucha-use { color: #ef4444; font-weight: 600; }
+
+@media (max-width: 768px) {
+  .bv-table {
+    font-size: 12px;
+  }
+}
+
+/* --- Menu & UI Fixes --- */
+.menu {
+  position: relative;
+}
+
+.menuPanel {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 1000;
+  min-width: 220px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.menuPanel.show {
+  display: block;
+  animation: fadeInDown 0.2s ease-out;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- PROFESSIONAL UI COMPONENTS --- */
+
+.bv-winner-badge {
+  display: inline-block;
+  background: #fbbf24;
+  color: #000;
+  font-weight: 900;
+  text-transform: uppercase;
+  font-size: 0.9rem;
+  padding: 6px 16px;
+  border-radius: 99px;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 15px rgba(251,191,36,0.5);
+  position: relative;
+  z-index: 2;
+}
+
+.bv-winner-name {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  font-weight: 900;
+  margin-bottom: 0.5rem;
+  line-height: 1.1;
+  background: linear-gradient(90deg, #fff 0%, #a7f3d0 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  position: relative;
+  z-index: 2;
+}
+
+.bv-winner-company {
+  font-size: 1.2rem;
+  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: 2.5rem;
+  position: relative;
+  z-index: 2;
+}
+
+.bv-alternatives-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.bv-alt-card {
+  display: grid;
+  grid-template-columns: 50px 1fr auto;
+  align-items: center;
+  background: rgba(255,255,255,0.03);
+  padding: 1rem 1.5rem;
+  border-radius: 16px;
+  border: 1px solid transparent;
+  transition: all 0.2s;
+}
+
+.bv-alt-card:hover {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.1);
+  transform: translateX(4px);
+}
+
+.bv-alt-rank {
+  font-size: 1.5rem;
+  font-weight: 900;
+  color: rgba(255,255,255,0.2);
+}
+
+.bv-alt-info strong {
+  display: block;
+  font-size: 1.1rem;
+  margin-bottom: 2px;
+}
+
+.bv-alt-price {
+  text-align: right;
+  font-size: 1.3rem;
+  font-weight: 900;
+}
+
+.bv-alt-surplus {
+  font-size: 0.85rem;
+  color: #fbbf24;
+  font-weight: 600;
+  display: block;
+  margin-top: 2px;
+}
+
 /* --- New Results Grid Layout --- */
 .bv-results-grid {
   display: grid;
@@ -34,6 +411,11 @@
   background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.05) 0%, transparent 50%);
   animation: pulseRotate 15s linear infinite;
   pointer-events: none;
+}
+
+@keyframes pulseRotate {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }
 
 /* Right Stack (KPIs) */
