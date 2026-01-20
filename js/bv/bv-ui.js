@@ -22,7 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusContainer = document.getElementById('bv-status-container');
   const statusEl = document.getElementById('bv-status');
 
-  // --- UI INITIALIZATION (FORCED & ROBUST) ---
+  // --- UI INITIALIZATION --- 
   const btnTheme = document.getElementById('btnTheme');
   const btnMenu = document.getElementById('btnMenu');
   const menuPanel = document.getElementById('menuPanel');
@@ -307,15 +307,48 @@ document.addEventListener('DOMContentLoaded', () => {
       setTimeout(() => resultsContainer.classList.add('show'), 10);
       statusContainer.style.display = 'none';
       
-      if (window.LF && window.LF.bindTooltipElement) {
-        setTimeout(() => {
-          const triggers = resultsEl.querySelectorAll('.bv-tooltip-trigger');
-          console.log('BVSim: Binding tooltips to', triggers.length, 'elements');
-          triggers.forEach(el => window.LF.bindTooltipElement(el));
-        }, 100);
-      } else {
-        console.warn('BVSim: window.LF.bindTooltipElement not found');
-      }
+      // --- SISTEMA DE TOOLTIPS FLOTANTES (Anti-Recorte) ---
+      const oldTooltip = document.querySelector('.bv-floating-tooltip');
+      if (oldTooltip) oldTooltip.remove();
+
+      const tooltipEl = document.createElement('div');
+      tooltipEl.className = 'bv-floating-tooltip';
+      document.body.appendChild(tooltipEl);
+
+      const showTooltip = (e, text) => {
+        if (!text) return;
+        tooltipEl.textContent = text;
+        tooltipEl.style.display = 'block';
+        
+        const rect = e.target.getBoundingClientRect();
+        const ttWidth = tooltipEl.offsetWidth;
+        const ttHeight = tooltipEl.offsetHeight;
+        
+        let top = rect.top - ttHeight - 10;
+        let left = rect.left + (rect.width / 2) - (ttWidth / 2);
+        
+        if (top < 10) top = rect.bottom + 10; 
+        if (left < 10) left = 10;
+        if (left + ttWidth > window.innerWidth - 10) left = window.innerWidth - ttWidth - 10;
+
+        tooltipEl.style.top = `${top + window.scrollY}px`;
+        tooltipEl.style.left = `${left + window.scrollX}px`;
+      };
+
+      const hideTooltip = () => {
+        tooltipEl.style.display = 'none';
+      };
+
+      const triggers = resultsEl.querySelectorAll('.bv-tooltip-trigger');
+      console.log(`BVSim: Attaching floating tooltips to ${triggers.length} elements.`);
+      
+      triggers.forEach(el => {
+        const tip = el.getAttribute('data-tip');
+        el.addEventListener('mouseenter', (e) => showTooltip(e, tip));
+        el.addEventListener('mouseleave', hideTooltip);
+        el.addEventListener('focus', (e) => showTooltip(e, tip));
+        el.addEventListener('blur', hideTooltip);
+      });
       
     } catch (e) {
       console.error('BVSim Error:', e);
