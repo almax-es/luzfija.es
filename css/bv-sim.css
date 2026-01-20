@@ -200,6 +200,14 @@
   font-size: 0.9rem;
 }
 
+/* En modo claro, los fondos muy transparentes sobre blanco se “pierden” */
+html.light-mode .bv-pill{
+  background: rgba(15, 23, 42, .04);
+}
+html.light-mode .bv-note{
+  background: rgba(15, 23, 42, .03);
+}
+
 /* --- KPI Stack --- */
 .bv-kpis-stack {
   display: flex;
@@ -327,28 +335,55 @@
 .bv-table-container {
   width: 100%;
   overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
   margin-top: 16px;
   border-radius: 12px;
   border: 1px solid var(--border);
   background: rgba(0,0,0,0.1); 
 }
 
+html.light-mode .bv-table-container{
+  background: rgba(15,23,42,.03);
+}
+
 /* Estilos específicos para Selectores (Zona Fiscal) */
 select.input {
+  -webkit-appearance: none;
+  -moz-appearance: none;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='white'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  background-size: 16px;
+  background: rgba(0,0,0,0.22)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23fff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")
+    no-repeat right 12px center / 16px;
   padding-right: 40px;
   color: var(--text);
-  background-color: rgba(0,0,0,0.22);
+  background-clip: padding-box;
 }
 
 html.light-mode select.input {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='black'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
-  background-color: rgba(255,255,255,0.85);
+  /* Importante: en modo claro, styles.css define `background:` para .input (shorthand)
+     y eso resetea background-repeat/position/size a valores por defecto. Por eso aquí
+     definimos TODO el background en una sola declaración, evitando el "patrón" de chevrones. */
+  background: rgba(255,255,255,0.85)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23000'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")
+    no-repeat right 12px center / 16px;
 }
+
+/* Mantener el chevron visible también en foco (styles.css usa `background:` en .input:focus) */
+select.input:focus{
+  background: rgba(139, 92, 246, 0.12)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23fff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")
+    no-repeat right 12px center / 16px;
+}
+
+html.light-mode select.input:focus{
+  background: rgba(139, 92, 246, 0.12)
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23000'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")
+    no-repeat right 12px center / 16px;
+}
+
+/* IE/legacy: ocultar flecha nativa si aparece */
+select.input::-ms-expand{ display:none; }
 
 select.input option {
   background-color: var(--bg0);
@@ -435,6 +470,13 @@ select.input option {
   max-width: 320px;
 }
 
+html.light-mode .bv-floating-tooltip{
+  background: rgba(255,255,255,.96);
+  color: var(--text);
+  border-color: rgba(15, 23, 42, .16);
+  box-shadow: 0 18px 48px rgba(2,6,23,.18);
+}
+
 .bv-tooltip-trigger {
   cursor: help;
   text-decoration: underline dotted var(--muted);
@@ -444,6 +486,31 @@ select.input option {
 .bv-tooltip-trigger:hover {
   color: var(--accent);
   text-decoration-color: var(--accent);
+}
+/* Ajustes específicos móvil: evitar 2 columnas demasiado estrechas y mejorar legibilidad */
+@media (max-width: 520px){
+  .bv-form-container{ gap: 16px; }
+
+  /* El formulario de inputs viene con grid inline 2 columnas: lo forzamos a 1 en móvil */
+  .bv-form-container .form{ grid-template-columns: 1fr !important; }
+  .bv-form-container .form .group{ grid-column: 1 / -1 !important; }
+
+  .bv-upload-zone{ min-height: 180px; padding: 18px; }
+  .bv-upload-icon{ font-size: 2.5rem; }
+  #bv-simulate{ width: 100%; }
+
+  .bv-winner-card-compact{ padding: 20px 16px; }
+
+  /* Alternativas: evitar columnas excesivamente comprimidas */
+  .bv-alt-card{
+    grid-template-columns: 32px 1fr;
+    grid-template-rows: auto auto;
+    row-gap: 6px;
+    column-gap: 10px;
+    padding: 14px 16px;
+  }
+  .bv-alt-price{ grid-column: 2; text-align: left; font-size: 1.1rem; }
+  .bv-alt-surplus{ text-align: left; }
 }
 
 /* Utilities */
