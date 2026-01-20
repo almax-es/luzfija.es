@@ -26,13 +26,23 @@ function calcularViernesSanto(year) {
   return `${year}-${mStr}-${dStr}`;
 }
 
+const _festivosCache = new Map();
+
 function getFestivosNacionales(year) {
-  return [
-    `${year}-01-01`, `${year}-01-06`,
-    calcularViernesSanto(year),
-    `${year}-05-01`, `${year}-08-15`, `${year}-10-12`,
-    `${year}-11-01`, `${year}-12-06`, `${year}-12-08`, `${year}-12-25`
+  const y = Number(year);
+  if (!Number.isFinite(y)) return new Set();
+  if (_festivosCache.has(y)) return _festivosCache.get(y);
+
+  const festivos = [
+    `${y}-01-01`, `${y}-01-06`,
+    calcularViernesSanto(y),
+    `${y}-05-01`, `${y}-08-15`, `${y}-10-12`,
+    `${y}-11-01`, `${y}-12-06`, `${y}-12-08`, `${y}-12-25`
   ];
+
+  const set = new Set(festivos);
+  _festivosCache.set(y, set);
+  return set;
 }
 
 function getPeriodoHorarioCSV(fecha, hora) {
@@ -45,7 +55,7 @@ function getPeriodoHorarioCSV(fecha, hora) {
   const fechaStr = `${year}-${month}-${day}`;
 
   const festivosNacionales = getFestivosNacionales(year);
-  const esFestivo = festivosNacionales.includes(fechaStr);
+  const esFestivo = festivosNacionales.has(fechaStr);
 
   if (esFinde || esFestivo) return 'P3';
 
@@ -355,35 +365,6 @@ window.BVSim.simulateForAllTarifasBV = function ({
   } catch (error) {
     return { ok: false, error: error?.message || 'Error en simulación masiva.' };
   }
-};
-
-window.BVSim.downloadCSV = function (winnerResult) {
-  if (!winnerResult || !winnerResult.rows) return;
-
-  const headers = ['Mes', 'Potencia (€)', 'Energia Neto (€)', 'Impuestos (€)', 'Subtotal (€)', 'Uso Hucha (€)', 'A Pagar (€)', 'Saldo Hucha (€)'];
-  const rows = winnerResult.rows.map(r => [
-    r.key,
-    r.pot.toFixed(2),
-    (r.consEur - r.credit1).toFixed(2),
-    (r.impuestoElec + r.ivaCuota + r.costeBonoSocial + r.alquilerContador).toFixed(2),
-    (r.totalBase + r.ivaCuota).toFixed(2),
-    r.credit2.toFixed(2),
-    r.totalPagar.toFixed(2),
-    r.bvSaldoFin.toFixed(2)
-  ]);
-
-  let csvContent = "data:text/csv;charset=utf-8," 
-    + "Tarifa: " + winnerResult.tarifa.nombre + "\n"
-    + headers.join(";") + "\n" 
-    + rows.map(e => e.join(";")).join("\n");
-
-  const encodedUri = encodeURI(csvContent);
-  const link = document.createElement("a");
-  link.setAttribute("href", encodedUri);
-  link.setAttribute("download", `simulacion_${winnerResult.tarifa.nombre.replace(/\s+/g, '_')}.csv`);
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
 };
 
 // ===== CARGAR TARIFAS =====

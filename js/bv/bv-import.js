@@ -54,7 +54,7 @@ window.BVSim = window.BVSim || {};
   }
 
   function parseCSVConsumos(fileContent) {
-    const lines = String(fileContent || '').split('\n');
+    const lines = String(fileContent || '').split(/\r?\n/);
     if (lines.length < 2) throw new Error('CSV vacío o inválido');
 
     const header = stripBomAndTrim(lines[0]).toLowerCase();
@@ -73,13 +73,17 @@ window.BVSim = window.BVSim || {};
     const tieneAutoconsumo = header.includes('ae_autocons_kwh');
     const records = [];
 
-    // Detectar separador más probable en la primera línea de datos
+    // Detectar separador de forma robusta usando la cabecera (evita falsos positivos por decimales con coma).
     let separator = ';';
-    if (lines.length > 1) {
-      const firstLine = lines[1];
-      const countSemi = (firstLine.match(/;/g) || []).length;
-      const countComma = (firstLine.match(/,/g) || []).length;
-      if (countComma > countSemi) separator = ',';
+    {
+      const headerLine = stripBomAndTrim(lines[0]);
+      const semi = (headerLine.match(/;/g) || []).length;
+      const comma = (headerLine.match(/,/g) || []).length;
+      if (semi === 0 && comma === 0) {
+        separator = ';';
+      } else {
+        separator = semi >= comma ? ';' : ',';
+      }
     }
 
     for (let i = 1; i < lines.length; i++) {
@@ -101,8 +105,8 @@ window.BVSim = window.BVSim || {};
       let idxReal = 4;
       if (tieneSolar) idxReal++;
       if (tieneAutoconsumo) idxReal++;
-      
-      const estadoStr = stripOuterQuotes(cols[idxReal]);
+
+      const estadoStr = idxReal < cols.length ? stripOuterQuotes(cols[idxReal]) : '';
       const esReal = estadoStr === 'R';
 
       if (!kwhStr || kwhStr.trim() === '') continue;
@@ -206,13 +210,23 @@ window.BVSim = window.BVSim || {};
     return `${year}-${mes}-${dia}`;
   }
 
+  const _festivosCache = new Map();
+
   function getFestivosNacionales(year) {
-    return [
-      `${year}-01-01`, `${year}-01-06`,
-      calcularViernesSanto(year),
-      `${year}-05-01`, `${year}-08-15`, `${year}-10-12`,
-      `${year}-11-01`, `${year}-12-06`, `${year}-12-08`, `${year}-12-25`
+    const y = Number(year);
+    if (!Number.isFinite(y)) return [];
+    if (_festivosCache.has(y)) return _festivosCache.get(y);
+
+    const festivos = [
+      `${y}-01-01`, `${y}-01-06`,
+      calcularViernesSanto(y),
+      `${y}-05-01`, `${y}-08-15`, `${y}-10-12`,
+      `${y}-11-01`, `${y}-12-06`, `${y}-12-08`, `${y}-12-25`
     ];
+
+    const set = new Set(festivos);
+    _festivosCache.set(y, set);
+    return set;
   }
 
   function getPeriodoHorarioCSV(fecha, hora) {
@@ -225,7 +239,9 @@ window.BVSim = window.BVSim || {};
     const fechaStr = `${year}-${month}-${day}`;
 
     const festivosNacionales = getFestivosNacionales(year);
-    const esFestivo = festivosNacionales.includes(fechaStr);
+    const esFestivo = festivosNacionales instanceof Set
+      ? festivosNacionales.has(fechaStr)
+      : Array.isArray(festivosNacionales) && festivosNacionales.includes(fechaStr);
 
     if (esFinde || esFestivo) return 'P3';
 

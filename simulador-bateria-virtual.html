@@ -2,7 +2,8 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-qJv3TZbPxRD8vNElNtfqRm59vDHG9z7YIF6w3p5CFDg=' 'sha256-muBOhBR/PBn5QAjXEOtARrcg+XPp/lj2+psl9gnW+gE=' 'sha256-fxGScKw23ajyC7LAZEqbfVOgt6D4peRMnVnNCKo9/74=' 'sha256-ajkHJ7PggK/xyxEdcanaQL4CtU8Da/YB/XzwFyuwBoM='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
+  <!-- CSP pragmática para una página en evolución constante: permite JSON-LD inline sin gestionar hashes. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark light"/>
 <meta name="description" content="Herramienta para simular mes a mes autoconsumo con batería virtual a partir de CSV/XLSX, procesado localmente en tu navegador.">
@@ -190,7 +191,7 @@
   <!-- PDF.js se carga dinámicamente cuando el usuario sube una factura (ver factura.js) -->
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/fonts.css">
-  <link rel="stylesheet" href="/css/bv-sim.css">
+  <link rel="stylesheet" href="/css/bv-sim.css?v=1.1">
 
     <meta name="theme-color" content="#8B5CF6">
 </head>
@@ -332,7 +333,7 @@
                       </div>
           
                       <!-- Upload Zone (Derecha) -->
-                      <div class="bv-upload-zone" id="drop-zone">
+                      <div class="bv-upload-zone" id="drop-zone" role="button" tabindex="0" aria-label="Subir archivo CSV o Excel">
                         <input class="bv-file-input" type="file" id="bv-file" accept=".csv,.xlsx,.xls" style="display:none">
                         <div class="bv-upload-content">
                           <div class="bv-upload-icon">📄</div>
@@ -437,9 +438,7 @@
           
             <script src="/js/lf-config.js"></script>
             <script src="/js/lf-utils.js"></script>
-            <script src="/js/lf-ui.js"></script>
-            <script src="/js/lf-tooltips.js"></script>
-            <script src="/js/bv/bv-import.js"></script>
-            <script src="/js/bv/bv-sim-monthly.js"></script>
-            <script src="/js/bv/bv-ui.js?v=3.2"></script>
+            <script src="/js/bv/bv-import.js?v=1.1"></script>
+            <script src="/js/bv/bv-sim-monthly.js?v=1.1"></script>
+            <script src="/js/bv/bv-ui.js?v=3.3"></script>
           </body></html>

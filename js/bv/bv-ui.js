@@ -1,7 +1,9 @@
 window.BVSim = window.BVSim || {};
 
 document.addEventListener('DOMContentLoaded', () => {
-  console.log('BVSim: Initializing UI...');
+  try {
+    if (window.LF?.isDebugMode?.()) console.log('BVSim: Initializing UI...');
+  } catch {}
 
   const dropZone = document.getElementById('drop-zone');
   const fileInput = document.getElementById('bv-file');
@@ -22,6 +24,27 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusContainer = document.getElementById('bv-status-container');
   const statusEl = document.getElementById('bv-status');
 
+  // Toast (ya existe en el HTML)
+  const toastEl = document.getElementById('toast');
+  const toastTextEl = document.getElementById('toastText');
+  const toastDotEl = document.getElementById('toastDot');
+  let toastTimer = null;
+
+  function showToast(message, type = 'info') {
+    if (!toastEl || !toastTextEl) return;
+    toastTextEl.textContent = String(message || '');
+    if (toastDotEl) {
+      toastDotEl.classList.remove('ok', 'err');
+      if (type === 'ok') toastDotEl.classList.add('ok');
+      if (type === 'err') toastDotEl.classList.add('err');
+    }
+    toastEl.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toastEl.classList.remove('show');
+    }, 4200);
+  }
+
   // --- UI INITIALIZATION ---
   const btnTheme = document.getElementById('btnTheme');
   const btnMenu = document.getElementById('btnMenu');
@@ -29,49 +52,49 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function updateThemeUI() {
     const isLight = document.documentElement.classList.contains('light-mode');
-    if (btnTheme) btnTheme.textContent = isLight ? '☀️' : '🌙';
+    if (btnTheme) btnTheme.textContent = isLight ? '🌙' : '☀️';
   }
 
-  if (btnTheme) {
-    const newBtn = btnTheme.cloneNode(true);
-    if (btnTheme.parentNode) {
-      btnTheme.parentNode.replaceChild(newBtn, btnTheme);
-      newBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        const isLight = document.documentElement.classList.toggle('light-mode');
-        localStorage.setItem('almax_theme', isLight ? 'light' : 'dark');
-        updateThemeUI();
-      });
-    }
+  if (btnTheme && !btnTheme.dataset.bvBound) {
+    btnTheme.dataset.bvBound = '1';
+    btnTheme.addEventListener('click', (e) => {
+      e.preventDefault();
+      const isLight = document.documentElement.classList.toggle('light-mode');
+      try { localStorage.setItem('almax_theme', isLight ? 'light' : 'dark'); } catch {}
+      updateThemeUI();
+    });
     updateThemeUI();
   }
 
-  if (btnMenu && menuPanel) {
-    const newBtn = btnMenu.cloneNode(true);
-    if (btnMenu.parentNode) {
-      btnMenu.parentNode.replaceChild(newBtn, btnMenu);
-      newBtn.addEventListener('click', (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        const isShow = menuPanel.classList.toggle('show');
-        newBtn.setAttribute('aria-expanded', isShow);
-      });
-    }
+  if (btnMenu && menuPanel && !btnMenu.dataset.bvBound) {
+    btnMenu.dataset.bvBound = '1';
+    btnMenu.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const isShow = menuPanel.classList.toggle('show');
+      btnMenu.setAttribute('aria-expanded', String(isShow));
+    });
   }
 
   document.addEventListener('click', (e) => {
     const clearBtn = e.target.closest('#btnClearCache');
     if (clearBtn) {
-      localStorage.clear();
+      try { localStorage.clear(); } catch {}
       location.reload();
       return;
     }
     if (menuPanel && menuPanel.classList.contains('show')) {
       if (!menuPanel.contains(e.target)) {
         menuPanel.classList.remove('show');
-        const mBtn = document.getElementById('btnMenu');
-        if (mBtn) mBtn.setAttribute('aria-expanded', 'false');
+        if (btnMenu) btnMenu.setAttribute('aria-expanded', 'false');
       }
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && menuPanel?.classList.contains('show')) {
+      menuPanel.classList.remove('show');
+      if (btnMenu) btnMenu.setAttribute('aria-expanded', 'false');
     }
   });
 
@@ -96,8 +119,30 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function parseInput(val) {
     if (val === undefined || val === null || val === '') return 0;
-    const normalized = String(val).replace(/\./g, '').replace(',', '.');
-    return parseFloat(normalized);
+    if (window.LF?.parseNum) return window.LF.parseNum(val);
+    const normalized = String(val).trim().replace(',', '.');
+    const n = Number.parseFloat(normalized);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  const escapeHtml = (window.LF?.escapeHtml) ? window.LF.escapeHtml : (v) => String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+
+  const escapeAttr = (v) => escapeHtml(v).replace(/\n/g, '&#10;');
+
+  function sanitizeUrl(url) {
+    if (!url) return '';
+    try {
+      const u = new URL(String(url), document.baseURI);
+      if (u.protocol === 'http:' || u.protocol === 'https:') return u.toString();
+      // Permite rutas relativas same-origin
+      if (u.origin === location.origin) return u.toString();
+    } catch {}
+    return '';
   }
 
   // --- SISTEMA DE TOOLTIPS FLOTANTES ---
@@ -157,6 +202,12 @@ document.addEventListener('DOMContentLoaded', () => {
       if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
     });
     dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        fileInput.click();
+      }
+    });
   }
 
   fileInput.addEventListener('change', (e) => {
@@ -185,8 +236,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const zonaFiscalVal = zonaFiscalInput ? zonaFiscalInput.value : 'Península';
     const esViviendaCanarias = viviendaCanariasInput ? viviendaCanariasInput.checked : true;
 
-    if (!file) { alert('Tienes que subir el archivo CSV primero.'); return; }
-    if (p1Val <= 0) { alert('Te falta poner la potencia contratada.'); return; }
+    if (!file) { showToast('Tienes que subir el archivo CSV primero.', 'err'); return; }
+    if (p1Val <= 0) { showToast('Te falta poner la potencia contratada (P1).', 'err'); return; }
     
     if (resultsContainer) { resultsContainer.classList.remove('show'); resultsContainer.style.display = 'none'; }
     if (statusContainer) { statusContainer.style.display = 'block'; statusEl.innerHTML = '<span class="spinner"></span> Leyendo archivo...'; }
@@ -281,28 +332,30 @@ Usado: -${fEur(usoHucha)}`;
           return `
             <tr>
               <td>${row.key}</td>
-              <td class="bv-tooltip-trigger" data-tip="${tipPot}">${fEur(row.pot)}</td>
-              <td class="bv-tooltip-trigger" data-tip="${tipEneBruta}">${fEur(eBruta)}</td>
-              <td class="bv-tooltip-trigger" data-tip="${tipExcedentes}" style="color:var(--accent2);">${excMes > 0 ? `-${fEur(excMes)}` : fEur(0)}</td>
-              <td class="bv-tooltip-trigger" data-tip="${tipEneNeta}" style="font-weight:700;">${fEur(eNeta)}</td>
-              <td class="bv-tooltip-trigger" data-tip="${tipImp}" style="color:var(--danger);">${fEur(imp)}</td>
-              <td class="bv-tooltip-trigger" data-tip="${tipSub}" style="background:rgba(255,255,255,0.02); font-weight:700;">${fEur(subtotal)}</td>
-              <td class="bv-tooltip-trigger" data-tip="${tipHucha}">-${fEur(usoHucha)}</td>
-              <td class="bv-tooltip-trigger" data-tip="${tipPagar}" style="color:var(--accent2); font-weight:800;">${fEur(row.totalPagar)}</td>
-              <td class="bv-tooltip-trigger" data-tip="${tipSaldo}" style="color:#fbbf24; font-weight:700;">${fEur(row.bvSaldoFin)}</td>
+              <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipPot)}">${fEur(row.pot)}</td>
+              <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipEneBruta)}">${fEur(eBruta)}</td>
+              <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipExcedentes)}" style="color:var(--accent2);">${excMes > 0 ? `-${fEur(excMes)}` : fEur(0)}</td>
+              <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipEneNeta)}" style="font-weight:700;">${fEur(eNeta)}</td>
+              <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipImp)}" style="color:var(--danger);">${fEur(imp)}</td>
+              <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSub)}" style="background:rgba(255,255,255,0.02); font-weight:700;">${fEur(subtotal)}</td>
+              <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipHucha)}">-${fEur(usoHucha)}</td>
+              <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipPagar)}" style="color:var(--accent2); font-weight:800;">${fEur(row.totalPagar)}</td>
+              <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSaldo)}" style="color:#fbbf24; font-weight:700;">${fEur(row.bvSaldoFin)}</td>
             </tr>
           `;
         }).join('');
       };
 
       // HTML del Ganador
+      const winnerName = escapeHtml(winner.tarifa?.nombre || '');
+      const winnerUrl = sanitizeUrl(winner.tarifa?.web);
       const winnerHTML = `
         <div class="bv-results-grid" style="margin-bottom: 40px;">
           <div class="bv-winner-card-compact">
             <div class="bv-winner-badge">🏆 Mejor Opción</div>
-            <h2 class="bv-winner-name">${winner.tarifa.nombre}</h2>
+            <h2 class="bv-winner-name">${winnerName}</h2>
             <div style="margin-top:auto; padding-top:1.5rem; width:100%">
-              ${winner.tarifa.web ? `<a href="${winner.tarifa.web}" target="_blank" class="btn primary" style="width:100%; justify-content:center;">Ver esta tarifa &rarr;</a>` : ''}
+              ${winnerUrl ? `<a href="${winnerUrl}" target="_blank" rel="noopener noreferrer" class="btn primary" style="width:100%; justify-content:center;">Ver esta tarifa &rarr;</a>` : ''}
             </div>
           </div>
           <div class="bv-kpis-stack">
@@ -335,10 +388,11 @@ Usado: -${fEur(usoHucha)}`;
 
       // HTML de Alternativas
       const alternativesHTML = rankedResults.slice(1, 6).map((r, i) => {
+        const altName = escapeHtml(r.tarifa?.nombre || '');
         return `
           <div class="bv-alt-card-detailed" style="margin-bottom: 24px; background:var(--card); border:1px solid var(--border); padding:24px; border-radius:16px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:16px;">
-              <div style="display:flex; align-items:center; gap:10px;"><span class="bv-alt-rank" style="font-size:1.5rem; opacity:0.5; font-weight:900;">#${i+2}</span><h3 style="margin:0; font-size:1.3rem;">${r.tarifa.nombre}</h3></div>
+              <div style="display:flex; align-items:center; gap:10px;"><span class="bv-alt-rank" style="font-size:1.5rem; opacity:0.5; font-weight:900;">#${i+2}</span><h3 style="margin:0; font-size:1.3rem;">${altName}</h3></div>
               <div style="text-align:right;"><div style="font-size:1.5rem; font-weight:900;">${fEur(r.totals.pagado)}</div>${r.totals.bvFinal > 1 ? `<div style="color:#fbbf24; font-weight:700;">Sobran ${fEur(r.totals.bvFinal)}</div>` : ''}</div>
             </div>
             <details>
@@ -362,13 +416,16 @@ Usado: -${fEur(usoHucha)}`;
       resultsContainer.style.display = 'block';
       setTimeout(() => resultsContainer.classList.add('show'), 10);
       statusContainer.style.display = 'none';
+      showToast('Cálculo completado.', 'ok');
       
     } catch (e) {
       console.error('BVSim Error:', e);
-      if (statusEl) statusEl.innerHTML = `<span style="color:var(--danger)">⚠️ Error: ${e.message}</span>`;
+      const msg = e?.message ? String(e.message) : 'Error inesperado.';
+      if (statusEl) statusEl.innerHTML = `<span style="color:var(--danger)">⚠️ Error: ${escapeHtml(msg)}</span>`;
+      showToast(msg, 'err');
     } finally {
       simulateButton.disabled = false;
-      if (btnText) btnText.textContent = 'Calcular Ahorro 🚀';
+      if (btnText) btnText.textContent = 'Calcular Ahorro Real →';
       if (btnSpinner) btnSpinner.style.display = 'none';
     }
   });
