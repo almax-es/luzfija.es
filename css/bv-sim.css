@@ -200,11 +200,32 @@
   border-bottom: 1px solid rgba(255,255,255,0.05);
 }
 
-@media (max-width: 768px) {
-  .bv-table {
-    font-size: 11px !important;
-  }
-  .bv-table th, .bv-table td {
-    padding: 8px 4px;
-  }
+/* --- Menu & UI Fixes --- */
+.menu {
+  position: relative;
+}
+
+.menuPanel {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 1000;
+  min-width: 220px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+  margin-top: 8px;
+  overflow: hidden;
+}
+
+.menuPanel.show {
+  display: block;
+  animation: fadeInDown 0.2s ease-out;
+}
+
+@keyframes fadeInDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
 }

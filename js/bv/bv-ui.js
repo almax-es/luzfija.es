@@ -17,33 +17,39 @@ window.BVSim = window.BVSim || {};
   const simulateButton = document.getElementById('bv-simulate');
 
   // --- UI INITIALIZATION ---
-  if (typeof window.LF_UI !== 'undefined' && window.LF_UI.init) {
-    // Si LF_UI está disponible (de lf-ui.js), lo usamos para el menú y tema
-    const btnTheme = document.getElementById('btnTheme');
-    const btnMenu = document.getElementById('btnMenu');
-    
-    if (btnTheme) btnTheme.addEventListener('click', () => {
-        const currentTheme = document.documentElement.getAttribute('data-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
-        document.documentElement.setAttribute('data-theme', newTheme);
-        localStorage.setItem('theme', newTheme);
-        btnTheme.textContent = newTheme === 'dark' ? '🌙' : '☀️';
+  const btnTheme = document.getElementById('btnTheme');
+  const btnMenu = document.getElementById('btnMenu');
+  const menuPanel = document.getElementById('menuPanel');
+
+  if (btnTheme) {
+    // Sincronizar icono inicial
+    const currentTheme = document.documentElement.getAttribute('data-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    btnTheme.textContent = currentTheme === 'dark' ? '🌙' : '☀️';
+
+    btnTheme.addEventListener('click', (e) => {
+      e.preventDefault();
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const newTheme = isDark ? 'light' : 'dark';
+      document.documentElement.setAttribute('data-theme', newTheme);
+      localStorage.setItem('theme', newTheme);
+      btnTheme.textContent = newTheme === 'dark' ? '🌙' : '☀️';
+    });
+  }
+
+  if (btnMenu && menuPanel) {
+    btnMenu.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const isShow = menuPanel.classList.toggle('show');
+      btnMenu.setAttribute('aria-expanded', isShow);
     });
 
-    if (btnMenu) btnMenu.addEventListener('click', (e) => {
-        e.stopPropagation();
-        const menuPanel = document.getElementById('menuPanel');
-        const isExpanded = btnMenu.getAttribute('aria-expanded') === 'true';
-        btnMenu.setAttribute('aria-expanded', !isExpanded);
-        menuPanel.classList.toggle('show');
-    });
-
-    document.addEventListener('click', () => {
-        const menuPanel = document.getElementById('menuPanel');
-        if (menuPanel && menuPanel.classList.contains('show')) {
-            menuPanel.classList.remove('show');
-            btnMenu.setAttribute('aria-expanded', 'false');
-        }
+    // Cerrar al hacer click fuera
+    document.addEventListener('click', (e) => {
+      if (!menuPanel.contains(e.target) && e.target !== btnMenu) {
+        menuPanel.classList.remove('show');
+        btnMenu.setAttribute('aria-expanded', 'false');
+      }
     });
   }
 
