@@ -212,20 +212,31 @@
   background: rgba(255,255,255,0.03);
 }
 
-/* Control de anchos de columna */
-.bv-col-mes { width: 80px; }
-.bv-col-pot { width: 80px; }
-.bv-col-ene { width: 180px; } /* Más espacio para la resta */
-.bv-col-imp { width: 100px; }
-.bv-col-sub { width: 110px; }
-.bv-col-hucha { width: 140px; }
-.bv-col-pagar { width: 110px; }
-.bv-col-saldo { width: 110px; }
+/* Control de anchos de columna (Sincronizado con necesidades de contenido) */
+.bv-col-mes { width: 75px; }   /* Justo para 2026-01 */
+.bv-col-pot { width: 75px; }   /* Justo para 00,00 € */
+.bv-col-ene { width: 220px; }  /* Espacio generoso para la resta de energía */
+.bv-col-imp { width: 90px; }
+.bv-col-sub { width: 100px; }
+.bv-col-hucha { width: 170px; } /* Espacio generoso para el uso de hucha */
+.bv-col-pagar { width: 100px; }
+.bv-col-saldo { width: 140px; } /* Espacio para el acumulado */
 
 /* Estilos de celda específicos */
+.bv-table td.bv-col-mes {
+  text-align: left;
+  padding-left: 12px;
+}
+
+.bv-table td.bv-col-pot {
+  text-align: center;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
 .bv-cell-main {
-  font-size: 14px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 800;
   color: #fff;
 }
 

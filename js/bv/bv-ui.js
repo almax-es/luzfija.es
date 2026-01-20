@@ -202,8 +202,8 @@ window.BVSim = window.BVSim || {};
         const impuestosYOtros = row.impuestoElec + row.ivaCuota + row.costeBonoSocial + row.alquilerContador;
         return `
           <tr>
-            <td class="bv-col-mes" style="text-align:left; font-weight:700; color:#fff">${row.key}</td>
-            <td class="bv-col-pot">${fEur(row.pot)}</td>
+            <td class="bv-col-mes" style="font-weight:700; color:#fff">${row.key}</td>
+            <td class="bv-col-pot" style="text-align:center">${fEur(row.pot)}</td>
             <td class="bv-col-ene">
                 <div class="bv-cell-op">
                   <span class="bv-op-base">${fEur(row.consEur)}</span>
