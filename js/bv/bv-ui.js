@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Formateadores ES
   const currencyFmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 2 });
-  const kwFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  const kwFmt = newIntl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   const kwhFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   const priceFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 6 });
 
@@ -100,23 +100,26 @@ document.addEventListener('DOMContentLoaded', () => {
     return parseFloat(normalized);
   }
 
-  // --- TOOLTIP GLOBAL INIT (Event Delegation) ---
+  // --- SISTEMA DE TOOLTIPS FLOTANTES ---
   const tooltipEl = document.createElement('div');
   tooltipEl.className = 'bv-floating-tooltip';
   document.body.appendChild(tooltipEl);
 
-  const updateTooltipPosition = (e) => {
-    const target = e.target.closest('.bv-tooltip-trigger');
-    if (!target) return;
-
+  const updateTooltipPosition = (target) => {
+    const tip = target.getAttribute('data-tip');
+    if (!tip) return;
+    
+    tooltipEl.textContent = tip;
+    tooltipEl.style.display = 'block';
+    
     const rect = target.getBoundingClientRect();
-    const ttWidth = tooltipEl.offsetWidth || 280;
-    const ttHeight = tooltipEl.offsetHeight || 80;
-
+    const ttWidth = tooltipEl.offsetWidth;
+    const ttHeight = tooltipEl.offsetHeight;
+    
     let top = rect.top - ttHeight - 10;
     let left = rect.left + (rect.width / 2) - (ttWidth / 2);
-
-    if (top < 10) top = rect.bottom + 10;
+    
+    if (top < 10) top = rect.bottom + 10; 
     if (left < 10) left = 10;
     if (left + ttWidth > window.innerWidth - 10) left = window.innerWidth - ttWidth - 10;
 
@@ -124,35 +127,17 @@ document.addEventListener('DOMContentLoaded', () => {
     tooltipEl.style.left = `${left}px`;
   };
 
-  // Delegación global en document (INFALIBLE)
   document.addEventListener('mouseover', (e) => {
-    const target = e.target.closest('.bv-tooltip-trigger');
-    if (target) {
-      const tip = target.getAttribute('data-tip');
-      if (tip) {
-        tooltipEl.textContent = tip;
-        tooltipEl.style.display = 'block';
-        updateTooltipPosition(e);
-      }
-    }
-  }, { passive: true });
+    const trigger = e.target.closest('.bv-tooltip-trigger');
+    if (trigger) updateTooltipPosition(trigger);
+  });
 
   document.addEventListener('mouseout', (e) => {
-    const target = e.target.closest('.bv-tooltip-trigger');
-    if (target) {
-      tooltipEl.style.display = 'none';
-    }
-  }, { passive: true });
+    const trigger = e.target.closest('.bv-tooltip-trigger');
+    if (trigger) tooltipEl.style.display = 'none';
+  });
 
-  // Move tooltip with mouse if needed (optional, but good for large cells)
-  document.addEventListener('mousemove', (e) => {
-    if (tooltipEl.style.display === 'block') updateTooltipPosition(e);
-  }, { passive: true });
-
-  window.addEventListener('scroll', () => {
-    if (tooltipEl.style.display === 'block') tooltipEl.style.display = 'none';
-  }, { passive: true });
-
+  window.addEventListener('scroll', () => { tooltipEl.style.display = 'none'; }, { passive: true });
 
   if (!fileInput || !simulateButton) return;
 
@@ -237,83 +222,69 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       const winner = rankedResults[0];
-      const isWinnerIndexada = winner.tarifa.tipo === 'INDEXADA';
       const ahorroPct = rankedResults.length > 1 ? Math.round(((rankedResults[rankedResults.length-1].totals.pagado - winner.totals.pagado) / rankedResults[rankedResults.length-1].totals.pagado) * 100) : 0;
 
-      // Helper para redondeo
       const r2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 
-      const buildDetailedRows = (rows, resultItem) => {
-        const tarifaObj = resultItem.tarifa;
-        return rows.map((row) => {
+      // --- FUNCIÓN ÚNICA PARA FILAS (buildRows) ---
+      const buildRows = (resultItem) => {
+        const t = resultItem.tarifa;
+        return resultItem.rows.map((row) => {
           const m = monthMap.get(row.key) || {};
-          
           const imp = r2((row.impuestoElec||0) + (row.ivaCuota||0) + (row.costeBonoSocial||0) + (row.alquilerContador||0));
-          const energiaBruta = r2(row.consEur || 0);
-          const descuentoExc = r2(row.credit1 || 0);
-          const energiaNeta = r2(energiaBruta - descuentoExc);
+          const eBruta = r2(row.consEur || 0);
+          const excMes = r2(row.credit1 || 0);
+          const eNeta = r2(eBruta - excMes);
           const subtotal = r2(row.totalBase || 0);
           const usoHucha = r2(row.credit2 || 0);
-          const restoHucha = Math.max(0, (row.bvSaldoPrev || 0) - usoHucha);
-          const excedenteHucha = r2(row.excedenteSobranteEur || 0);
+          const sobranteHucha = r2(row.excedenteSobranteEur || 0);
+          const restoHucha = r2(Math.max(0, (row.bvSaldoPrev || 0) - usoHucha));
 
           // Cálculos Potencia
-          const potP1 = r2(p1Val * row.dias * tarifaObj.p1);
-          const potP2 = r2(p2Val * row.dias * tarifaObj.p2);
-          const tipPot = `P1: ${fKw(p1Val)} kW × ${row.dias}d × ${fPrice(tarifaObj.p1)} € = ${fEur(potP1)}
-` +
-                         `P2: ${fKw(p2Val)} kW × ${row.dias}d × ${fPrice(tarifaObj.p2)} € = ${fEur(potP2)}
-` +
-                         `TOTAL = ${fEur(row.pot)}`;
+          const potP1 = r2(p1Val * row.dias * t.p1);
+          const potP2 = r2(p2Val * row.dias * t.p2);
+          const tipPot = `P1: ${fKw(p1Val)} kW × ${row.dias}d × ${fPrice(t.p1)} € = ${fEur(potP1)}
+P2: ${fKw(p2Val)} kW × ${row.dias}d × ${fPrice(t.p2)} € = ${fEur(potP2)}
+TOTAL = ${fEur(row.pot)}`;
 
           // Cálculos Energía (Bruta)
           const kwhP1 = Number(m.importByPeriod?.P1) || 0;
           const kwhP2 = Number(m.importByPeriod?.P2) || 0;
           const kwhP3 = Number(m.importByPeriod?.P3) || 0;
-          const cP1 = Number(tarifaObj.cPunta) || 0;
-          const cP2 = Number(tarifaObj.cLlano) || 0;
-          const cP3 = Number(tarifaObj.cValle) || 0;
-          const costP1 = r2(kwhP1 * cP1);
-          const costP2 = r2(kwhP2 * cP2);
-          const costP3 = r2(kwhP3 * cP3);
-
-          const tipEneBruta = `P1: ${fKwh(kwhP1)} kWh × ${fPrice(cP1)} € = ${fEur(costP1)}
-` +
-                              `P2: ${fKwh(kwhP2)} kWh × ${fPrice(cP2)} € = ${fEur(costP2)}
-` +
-                              `P3: ${fKwh(kwhP3)} kWh × ${fPrice(cP3)} € = ${fEur(costP3)}
-` +
-                              `TOTAL = ${fEur(energiaBruta)}`;
+          const eP1 = r2(kwhP1 * t.cPunta);
+          const eP2 = r2(kwhP2 * t.cLlano);
+          const eP3 = r2(kwhP3 * t.cValle);
+          const tipEneBruta = `P1: ${fKwh(kwhP1)} kWh × ${fPrice(t.cPunta)} € = ${fEur(eP1)}
+P2: ${fKwh(kwhP2)} kWh × ${fPrice(t.cLlano)} € = ${fEur(eP2)}
+P3: ${fKwh(kwhP3)} kWh × ${fPrice(t.cValle)} € = ${fEur(eP3)}
+TOTAL = ${fEur(eBruta)}`;
 
           // Cálculos Excedentes
           const exKwh = Number(row.exKwh) || Number(m.exportTotalKWh) || 0;
-          const precioExc = Number(row.precioExc) || 0;
-          const totalGen = r2(exKwh * precioExc);
-          const tipExcedentes = `Generado: ${fKwh(exKwh)} kWh × ${fPrice(precioExc)} € = ${fEur(totalGen)}
+          const totalGen = r2(exKwh * (row.precioExc || 0));
+          const tipExcedentes = `Generado: ${fKwh(exKwh)} kWh × ${fPrice(row.precioExc)} € = ${fEur(totalGen)}
 
-` +
-                                `Desglose:
-- Compensado en factura: ${fEur(descuentoExc)}
-- A Batería Virtual: ${fEur(excedenteHucha)}`;
+Desglose:
+- Compensado en factura: ${fEur(excMes)}
+- A Batería Virtual: ${fEur(sobranteHucha)}`;
 
-          // Otros tooltips
-          const tipEneNeta = `Energía Bruta (${fEur(energiaBruta)}) - Compensación (${fEur(descuentoExc)}) = ${fEur(energiaNeta)}`;
+          const tipEneNeta = `Energía Bruta (${fEur(eBruta)}) - Compensación (${fEur(excMes)}) = ${fEur(eNeta)}`;
           const tipImp = `IEE: ${fEur(row.impuestoElec)}
 IVA: ${fEur(row.ivaCuota)}
 Bono/Alquiler: ${fEur((row.costeBonoSocial||0) + (row.alquilerContador||0))}`;
-          const tipSub = `Potencia + Energía Neta + Impuestos = ${fEur(subtotal)}`;
+          const tipSub = `Potencia (${fEur(row.pot)}) + Energía Neta (${fEur(eNeta)}) + Impuestos (${fEur(imp)}) = ${fEur(subtotal)}`;
           const tipHucha = `Saldo previo: ${fEur(row.bvSaldoPrev)}
 Usado: -${fEur(usoHucha)}`;
-          const tipPagar = `Subtotal (${fEur(subtotal)}) - Hucha (${fEur(usoHucha)}) = ${fEur(row.totalPagar)}`;
-          const tipSaldo = `Sobra Hucha (${fEur(restoHucha)}) + Nuevo Excedente (${fEur(excedenteHucha)}) = ${fEur(row.bvSaldoFin)}`;
+          const tipPagar = `Factura (${fEur(subtotal)}) - Hucha (${fEur(usoHucha)}) = ${fEur(row.totalPagar)}`;
+          const tipSaldo = `Restante (${fEur(restoHucha)}) + Nuevo Excedente (${fEur(sobranteHucha)}) = ${fEur(row.bvSaldoFin)}`;
 
           return `
             <tr>
               <td>${row.key}</td>
               <td class="bv-tooltip-trigger" data-tip="${tipPot}">${fEur(row.pot)}</td>
-              <td class="bv-tooltip-trigger" data-tip="${tipEneBruta}">${fEur(energiaBruta)}</td>
-              <td class="bv-tooltip-trigger" data-tip="${tipExcedentes}" style="color:var(--accent2);">${descuentoExc > 0 ? `-${fEur(descuentoExc)}` : fEur(0)}</td>
-              <td class="bv-tooltip-trigger" data-tip="${tipEneNeta}" style="font-weight:700;">${fEur(energiaNeta)}</td>
+              <td class="bv-tooltip-trigger" data-tip="${tipEneBruta}">${fEur(eBruta)}</td>
+              <td class="bv-tooltip-trigger" data-tip="${tipExcedentes}" style="color:var(--accent2);">${excMes > 0 ? `-${fEur(excMes)}` : fEur(0)}</td>
+              <td class="bv-tooltip-trigger" data-tip="${tipEneNeta}" style="font-weight:700;">${fEur(eNeta)}</td>
               <td class="bv-tooltip-trigger" data-tip="${tipImp}" style="color:var(--danger);">${fEur(imp)}</td>
               <td class="bv-tooltip-trigger" data-tip="${tipSub}" style="background:rgba(255,255,255,0.02); font-weight:700;">${fEur(subtotal)}</td>
               <td class="bv-tooltip-trigger" data-tip="${tipHucha}">-${fEur(usoHucha)}</td>
@@ -325,10 +296,8 @@ Usado: -${fEur(usoHucha)}`;
       };
 
       // HTML del Ganador
-      const winnerRows = buildRows(winner.rows, winner);
       const winnerHTML = `
         <div class="bv-results-grid" style="margin-bottom: 40px;">
-          <!-- Tarjeta Izquierda (Ganador) -->
           <div class="bv-winner-card-compact">
             <div class="bv-winner-badge">🏆 Mejor Opción</div>
             <h2 class="bv-winner-name">${winner.tarifa.nombre}</h2>
@@ -336,8 +305,6 @@ Usado: -${fEur(usoHucha)}`;
               ${winner.tarifa.web ? `<a href="${winner.tarifa.web}" target="_blank" class="btn primary" style="width:100%; justify-content:center;">Ver esta tarifa &rarr;</a>` : ''}
             </div>
           </div>
-
-          <!-- KPIs Derecha (Apilados) -->
           <div class="bv-kpis-stack">
             <div class="bv-kpi-card">
               <span class="bv-kpi-label">Pagarías en total</span>
@@ -351,26 +318,16 @@ Usado: -${fEur(usoHucha)}`;
             </div>
           </div>
         </div>
-
         <details style="margin-bottom: 48px;">
           <summary style="font-size: 1.1rem; font-weight: 700; cursor: pointer; text-align: center; color: var(--text); padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--card2); transition: all 0.2s;">Ver desglose detallado del ganador ▾</summary>
           <div class="bv-table-container" style="margin-top:16px;">
             <table class="bv-table">
               <thead>
                 <tr>
-                  <th style="text-align:left">Mes</th>
-                  <th>Potencia</th>
-                  <th>E. Bruta</th>
-                  <th>Exced.</th>
-                  <th>E. Neta</th>
-                  <th>Impuestos</th>
-                  <th>Subtotal</th>
-                  <th>Hucha</th>
-                  <th>Pagar</th>
-                  <th>Saldo</th>
+                  <th style="text-align:left">Mes</th><th>Potencia</th><th>E. Bruta</th><th>Exced.</th><th>E. Neta</th><th>Impuestos</th><th>Subtotal</th><th>Hucha</th><th>Pagar</th><th>Saldo</th>
                 </tr>
               </thead>
-              <tbody>${winnerRows}</tbody>
+              <tbody>${buildRows(winner)}</tbody>
             </table>
           </div>
         </details>
@@ -378,41 +335,22 @@ Usado: -${fEur(usoHucha)}`;
 
       // HTML de Alternativas
       const alternativesHTML = rankedResults.slice(1, 6).map((r, i) => {
-        const rows = buildRows(r.rows, r);
         return `
           <div class="bv-alt-card-detailed" style="margin-bottom: 24px; background:var(--card); border:1px solid var(--border); padding:24px; border-radius:16px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:16px;">
-              <div>
-                <div style="display:flex; align-items:center; gap:10px;">
-                  <span class="bv-alt-rank" style="font-size:1.5rem; opacity:0.5; font-weight:900;">#${i+2}</span>
-                  <h3 style="margin:0; font-size:1.3rem;">${r.tarifa.nombre}</h3>
-                </div>
-              </div>
-              <div style="text-align:right;">
-                <div style="font-size:1.5rem; font-weight:900;">${fEur(r.totals.pagado)}</div>
-                ${r.totals.bvFinal > 1 ? `<div style="color:#fbbf24; font-weight:700;">Sobran ${fEur(r.totals.bvFinal)}</div>` : ''}
-              </div>
+              <div style="display:flex; align-items:center; gap:10px;"><span class="bv-alt-rank" style="font-size:1.5rem; opacity:0.5; font-weight:900;">#${i+2}</span><h3 style="margin:0; font-size:1.3rem;">${r.tarifa.nombre}</h3></div>
+              <div style="text-align:right;"><div style="font-size:1.5rem; font-weight:900;">${fEur(r.totals.pagado)}</div>${r.totals.bvFinal > 1 ? `<div style="color:#fbbf24; font-weight:700;">Sobran ${fEur(r.totals.bvFinal)}</div>` : ''}</div>
             </div>
-            
             <details>
               <summary style="cursor: pointer; color: var(--accent); font-weight:600; font-size:0.9rem;">Ver desglose ▾</summary>
               <div class="bv-table-container" style="margin-top:12px;">
                 <table class="bv-table">
                   <thead>
                     <tr>
-                      <th style="text-align:left">Mes</th>
-                      <th>Potencia</th>
-                      <th>E. Bruta</th>
-                      <th>Exced.</th>
-                      <th>E. Neta</th>
-                      <th>Impuestos</th>
-                      <th>Subtotal</th>
-                      <th>Hucha</th>
-                      <th>Pagar</th>
-                      <th>Saldo</th>
+                      <th style="text-align:left">Mes</th><th>Potencia</th><th>E. Bruta</th><th>Exced.</th><th>E. Neta</th><th>Impuestos</th><th>Subtotal</th><th>Hucha</th><th>Pagar</th><th>Saldo</th>
                     </tr>
                   </thead>
-                  <tbody>${rows}</tbody>
+                  <tbody>${buildRows(r)}</tbody>
                 </table>
               </div>
             </details>
@@ -420,13 +358,7 @@ Usado: -${fEur(usoHucha)}`;
         `;
       }).join('');
 
-      resultsEl.innerHTML = `
-        <h2 style="text-align:center; font-size:1.8rem; font-weight:900; margin-bottom:2rem; color:var(--text);">Resultados de la Simulación</h2>
-        ${winnerHTML}
-        <h3 style="text-align:center; margin-bottom: 24px; margin-top: 40px; color:var(--text);">Otras Alternativas</h3>
-        ${alternativesHTML}
-      `;
-
+      resultsEl.innerHTML = `<h2 style="text-align:center; font-size:1.8rem; font-weight:900; margin-bottom:2rem; color:var(--text);">Resultados de la Simulación</h2>${winnerHTML}<h3 style="text-align:center; margin-bottom: 24px; margin-top: 40px; color:var(--text);">Otras Alternativas</h3>${alternativesHTML}`;
       resultsContainer.style.display = 'block';
       setTimeout(() => resultsContainer.classList.add('show'), 10);
       statusContainer.style.display = 'none';
