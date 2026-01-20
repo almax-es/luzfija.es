@@ -197,27 +197,46 @@ document.addEventListener('DOMContentLoaded', () => {
         const subtotal = row.totalBase || 0;
         const restoHucha = Math.max(0, (row.bvSaldoPrev || 0) - (row.credit2 || 0));
 
-        // Formulas detalladas para los tooltips
+        // Detalles de Energía Bruta por periodo (si disponibles en objeto row o recalculados)
+        // Nota: row no tiene el desglose por periodo guardado directamente, pero podemos inferirlo o usar valores medios si no están disponibles.
+        // Para ser precisos, necesitaríamos pasar 'month' completo, pero 'row' es un resumen.
+        // Sin embargo, en la iteración anterior, usé 'monthlyResult' para mapear.
+        // Recuperemos el objeto 'month' original si es posible, o usemos una aproximación explicativa.
+        
+        // RECUPERACIÓN DE DATOS DE PERIODO:
+        // El objeto 'row' viene de 'simulateForTarifaDemo', que devuelve objetos con 'pot', 'consEur', etc.
+        // Pero NO devuelve el desglose de kWh por periodo (P1, P2, P3).
+        // Para mostrar la fórmula exacta "P1 kWh * Precio", necesitamos esos datos.
+        // Solución: Mostrar la fórmula genérica con los precios, o aceptar que mostramos el total.
+        // EL USUARIO QUIERE VER LAS OPERACIONES.
+        // Vamos a intentar mostrar al menos los precios aplicados.
+        
+        const preciosEnergia = `Precios: P1=${fPrice(winner.tarifa.cPunta)} P2=${fPrice(winner.tarifa.cLlano)} P3=${fPrice(winner.tarifa.cValle)} €/kWh`;
+        
+        const tipEneBruta = `Cálculo: (kWh P1 × Precio P1) + (kWh P2 × Precio P2) + ...\n${preciosEnergia}\nTotal Bruto = ${fEur(energiaBruta)}`;
+
+        // Detalle Excedentes
+        const exKwh = Number(row.exKwh) || 0;
+        const precioExc = Number(row.precioExc) || 0;
+        const totalGenerado = exKwh * precioExc;
+        const tipExcedentes = `Generado: ${fKwh(exKwh)} kWh × ${fPrice(precioExc)} €/kWh = ${fEur(totalGenerado)}\n\nDesglose:\n- Compensado en factura: ${fEur(descuentoExc)}\n- A Batería Virtual: ${fEur(row.excedenteSobranteEur)}`;
+
+        // Formulas detalladas para los tooltips existentes
         const tipPot = `P1: ${fKw(p1Val)} kW x ${row.dias} días x ${fPrice(winner.tarifa.p1)} €/kW\nP2: ${fKw(p2Val)} kW x ${row.dias} días x ${fPrice(winner.tarifa.p2)} €/kW\nTOTAL = ${fEur(row.pot)}`;
-        const tipEne = `Energía Bruta: ${fEur(energiaBruta)}
-- Excedentes Mes: ${fEur(row.credit1)}
-NETO = ${fEur(energiaNeta)}`;
-        const tipImp = `IEE: ${fEur(row.impuestoElec)}
-IVA: ${fEur(row.ivaCuota)}
-Bono/Alquiler: ${fEur(row.costeBonoSocial + row.alquilerContador)}`;
-        const tipSub = `Potencia (${fEur(row.pot)}) + Energía (${fEur(energiaNeta)}) + Impuestos (${fEur(imp)}) = ${fEur(subtotal)}`;
-        const tipHucha = `Saldo Hucha previo: ${fEur(row.bvSaldoPrev)}
-Usado ahora: -${fEur(row.credit2)}`;
+        const tipEneNeta = `Energía Bruta (${fEur(energiaBruta)}) - Compensación Excedentes (${fEur(descuentoExc)}) = ${fEur(energiaNeta)}`;
+        const tipImp = `IEE: ${fEur(row.impuestoElec)}\nIVA: ${fEur(row.ivaCuota)}\nBono/Alquiler: ${fEur(row.costeBonoSocial + row.alquilerContador)}`;
+        const tipSub = `Potencia (${fEur(row.pot)}) + Energía Neta (${fEur(energiaNeta)}) + Impuestos (${fEur(imp)}) = ${fEur(subtotal)}`;
+        const tipHucha = `Saldo Hucha previo: ${fEur(row.bvSaldoPrev)}\nUsado ahora: -${fEur(row.credit2)}`;
         const tipPagar = `Subtotal (${fEur(subtotal)}) - Uso Hucha (${fEur(row.credit2)}) = ${fEur(row.totalPagar)}`;
-        const tipSaldo = `Sobra Hucha (${fEur(restoHucha)}) + Excedentes no usados (${fEur(row.excedenteSobranteEur)}) = ${fEur(row.bvSaldoFin)}`;
+        const tipSaldo = `Sobra Hucha (${fEur(restoHucha)}) + Excedentes a Batería (${fEur(row.excedenteSobranteEur)}) = ${fEur(row.bvSaldoFin)}`;
 
         return `
           <tr>
             <td>${row.key}</td>
             <td class="bv-tooltip-trigger" data-tip="${tipPot}">${fEur(row.pot)}</td>
-            <td class="bv-tooltip-trigger" data-tip="Energía consumida sin descontar excedentes">${fEur(energiaBruta)}</td>
-            <td class="bv-tooltip-trigger" data-tip="Excedentes aplicados a esta factura" style="color:var(--accent2);">${descuentoExc > 0 ? `-${fEur(descuentoExc)}` : fEur(0)}</td>
-            <td class="bv-tooltip-trigger" data-tip="${tipEne}" style="font-weight:700;">${fEur(energiaNeta)}</td>
+            <td class="bv-tooltip-trigger" data-tip="${tipEneBruta}">${fEur(energiaBruta)}</td>
+            <td class="bv-tooltip-trigger" data-tip="${tipExcedentes}" style="color:var(--accent2);">${descuentoExc > 0 ? `-${fEur(descuentoExc)}` : fEur(0)}</td>
+            <td class="bv-tooltip-trigger" data-tip="${tipEneNeta}" style="font-weight:700;">${fEur(energiaNeta)}</td>
             <td class="bv-tooltip-trigger" data-tip="${tipImp}" style="color:var(--danger);">${fEur(imp)}</td>
             <td class="bv-tooltip-trigger" data-tip="${tipSub}" style="background:rgba(255,255,255,0.02); font-weight:700;">${fEur(subtotal)}</td>
             <td class="bv-tooltip-trigger" data-tip="${tipHucha}">-${fEur(row.credit2)}</td>
