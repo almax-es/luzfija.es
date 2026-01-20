@@ -434,9 +434,15 @@ Nuevo excedente acumulado: ${fEur(sobranteHucha)}
 SALDO BV FIN = ${fEur(row.bvSaldoFin)}`
             : 'No aplica: esta tarifa no acumula saldo.';
 
-          const huchaCell = hasBV ? (usoHucha > 0 ? `-${fEur(usoHucha)}` : fEur(0)) : '—';
-          const saldoCell = hasBV ? fEur(row.bvSaldoFin) : '—';
-          const saldoStyle = hasBV ? 'color:#fbbf24; font-weight:700;' : 'opacity:0.7;';
+          const huchaCell = hasBV ? (usoHucha > 0 ? `-${fEur(usoHucha)}` : fEur(0)) : '';
+          const saldoCell = hasBV ? fEur(row.bvSaldoFin) : '';
+          const saldoStyle = hasBV ? 'color:#fbbf24; font-weight:700;' : '';
+
+          // Si NO hay BV, NO mostramos columnas de hucha/saldo (más claro y mucho mejor en móvil).
+          const extraCells = hasBV ? `
+              <td data-label="Uso Hucha" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipHucha)}"><span class="bv-cell-value">${huchaCell}</span></td>
+              <td data-label="Saldo Fin" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSaldo)}" style="${saldoStyle}"><span class="bv-cell-value">${saldoCell}</span></td>
+          ` : '';
 
           return `
             <tr>
@@ -447,12 +453,30 @@ SALDO BV FIN = ${fEur(row.bvSaldoFin)}`
               <td data-label="E. Neta" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipEneNeta)}" style="font-weight:700;"><span class="bv-cell-value">${fEur(eNeta)}</span></td>
               <td data-label="Impuestos" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipImp)}" style="color:var(--danger);"><span class="bv-cell-value">${fEur(imp)}</span></td>
               <td data-label="Subtotal" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSub)}" style="background:rgba(255,255,255,0.02); font-weight:700;"><span class="bv-cell-value">${fEur(subtotal)}</span></td>
-              <td data-label="Uso Hucha" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipHucha)}"><span class="bv-cell-value">${huchaCell}</span></td>
               <td data-label="Pagar" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipPagar)}" style="color:var(--accent2); font-weight:800;"><span class="bv-cell-value">${fEur(row.totalPagar)}</span></td>
-              <td data-label="Saldo Fin" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSaldo)}" style="${saldoStyle}"><span class="bv-cell-value">${saldoCell}</span></td>
+              ${extraCells}
             </tr>
           `;
         }).join('');
+      };
+
+      const buildTable = (resultItem) => {
+        const hasBV = Boolean(resultItem?.tarifa?.fv?.bv);
+        const head = hasBV
+          ? `<th style="text-align:left">Mes</th><th>Potencia</th><th>E. Bruta</th><th>Exced.</th><th>E. Neta</th><th>Impuestos</th><th>Subtotal</th><th>Pagar</th><th>Hucha</th><th>Saldo</th>`
+          : `<th style="text-align:left">Mes</th><th>Potencia</th><th>E. Bruta</th><th>Exced.</th><th>E. Neta</th><th>Impuestos</th><th>Subtotal</th><th>Pagar</th>`;
+
+        // Ojo: buildRows ya omite celdas BV si no aplica.
+        // En BV, para mantener el orden visual, las columnas "Hucha" y "Saldo" se colocan al final.
+        // (En móvil se verán como filas etiquetadas igualmente.)
+        return `
+          <div class="bv-table-container" style="margin-top:16px;">
+            <table class="bv-table">
+              <thead><tr>${head}</tr></thead>
+              <tbody>${buildRows(resultItem)}</tbody>
+            </table>
+          </div>
+        `;
       };
 
       // HTML del Ganador
@@ -479,26 +503,18 @@ SALDO BV FIN = ${fEur(row.bvSaldoFin)}`
               <span class="bv-kpi-value">${fEur(winner.totals.pagado)}</span>
               <span class="bv-kpi-sub">Con saldo previo aplicado</span>
             </div>
-            <!-- Coste real ranking removed as requested -->
-            <div class="bv-kpi-card ${winnerHasBV ? 'highlight' : ''}">
+            ${winnerHasBV ? `
+            <div class="bv-kpi-card highlight">
               <span class="bv-kpi-label">Saldo BV final</span>
-              <span class="bv-kpi-value ${winnerHasBV ? 'surplus' : ''}">${winnerHasBV ? fEur(winner.totals.bvFinal) : '—'}</span>
-              <span class="bv-kpi-sub">${winnerHasBV ? 'Acumulado (si no lo gastas)' : 'No aplica'}</span>
+              <span class="bv-kpi-value surplus">${fEur(winner.totals.bvFinal)}</span>
+              <span class="bv-kpi-sub">Acumulado (si no lo gastas)</span>
             </div>
+            ` : ''}
           </div>
         </div>
         <details style="margin-bottom: 48px;">
-          <summary style="font-size: 1.1rem; font-weight: 700; cursor: pointer; text-align: center; color: var(--text); padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--card2); transition: all 0.2s;">Ver desglose detallado del ganador ▾</summary>
-          <div class="bv-table-container" style="margin-top:16px;">
-            <table class="bv-table">
-              <thead>
-                <tr>
-                  <th style="text-align:left">Mes</th><th>Potencia</th><th>E. Bruta</th><th>Exced.</th><th>E. Neta</th><th>Impuestos</th><th>Subtotal</th><th>Hucha</th><th>Pagar</th><th>Saldo</th>
-                </tr>
-              </thead>
-              <tbody>${buildRows(winner)}</tbody>
-            </table>
-          </div>
+          <summary style="font-size: 1.1rem; font-weight: 700; cursor: pointer; text-align: center; color: var(--text); padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--card2); transition: all 0.2s;">Ver desglose detallado del ganador</summary>
+          ${buildTable(winner)}
         </details>
       `;
 
@@ -523,17 +539,8 @@ SALDO BV FIN = ${fEur(row.bvSaldoFin)}`
             </div>
             ${hasBV ? '' : '<div class="bv-note">Nota: sin BV, el excedente que no compense este mes se pierde.</div>'}
             <details>
-              <summary style="cursor: pointer; color: var(--accent); font-weight:600; font-size:0.9rem;">Ver desglose ▾</summary>
-              <div class="bv-table-container" style="margin-top:12px;">
-                <table class="bv-table">
-                  <thead>
-                    <tr>
-                      <th style="text-align:left">Mes</th><th>Potencia</th><th>E. Bruta</th><th>Exced.</th><th>E. Neta</th><th>Impuestos</th><th>Subtotal</th><th>Hucha</th><th>Pagar</th><th>Saldo</th>
-                    </tr>
-                  </thead>
-                  <tbody>${buildRows(r)}</tbody>
-                </table>
-              </div>
+              <summary style="cursor: pointer; color: var(--accent); font-weight:600; font-size:0.9rem;">Ver desglose</summary>
+              ${buildTable(r).replace('margin-top:16px','margin-top:12px')}
             </details>
           </div>
         `;

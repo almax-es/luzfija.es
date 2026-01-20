@@ -81,6 +81,17 @@
   gap: 8px;
   font-size: 0.95rem;
   font-weight: 700;
+  max-width: 100%;
+}
+
+/* Evitar desbordes si el nombre del archivo es largo (móvil) */
+.bv-file-name{
+  display: inline-block;
+  min-width: 0;
+  max-width: min(70vw, 520px);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .bv-remove-file {
@@ -152,6 +163,33 @@
   background: linear-gradient(90deg, var(--text) 0%, var(--accent) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
+  overflow-wrap: anywhere;
+}
+
+/* Nombres largos de tarifas: no provocar scroll horizontal */
+.bv-alt-card-detailed h3{
+  overflow-wrap: anywhere;
+}
+
+/* Details: indicador visual de desplegable (sin depender de caracteres en el texto) */
+#bv-results details > summary{
+  position: relative;
+  /* Necesario para dejar sitio a la flecha ::after incluso si el summary lleva padding inline */
+  padding-right: 44px !important;
+}
+#bv-results details > summary::-webkit-details-marker{ display:none; }
+#bv-results details > summary::after{
+  content: '▾';
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.75;
+  transition: transform 0.18s ease, opacity 0.18s ease;
+}
+#bv-results details[open] > summary::after{
+  transform: translateY(-50%) rotate(180deg);
+  opacity: 0.95;
 }
 
 .bv-winner-company {
@@ -499,6 +537,8 @@ html.light-mode .bv-floating-tooltip{
   .bv-upload-icon{ font-size: 2.5rem; }
   #bv-simulate{ width: 100%; }
 
+  .bv-file-name{ max-width: 58vw; }
+
   .bv-winner-card-compact{ padding: 20px 16px; }
 
   /* Alternativas: evitar columnas excesivamente comprimidas */
@@ -511,6 +551,11 @@ html.light-mode .bv-floating-tooltip{
   }
   .bv-alt-price{ grid-column: 2; text-align: left; font-size: 1.1rem; }
   .bv-alt-surplus{ text-align: left; }
+}
+
+/* Topbar: evitar overflow en móviles muy estrechos */
+@media (max-width: 420px){
+  .actions-right{ flex-wrap: wrap !important; }
 }
 
 /* Utilities */
@@ -589,7 +634,8 @@ body.bv-modal-open{ overflow: hidden; }
   /* Details/summary: que se vea como un botón limpio y no centrado raro */
   #bv-results details > summary{
     text-align: left !important;
-    padding: 14px 14px !important;
+    /* extra padding right para la flecha ::after */
+    padding: 14px 46px 14px 14px !important;
     border-radius: 14px !important;
     display: flex !important;
     align-items: center;
