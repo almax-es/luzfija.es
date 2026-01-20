@@ -169,7 +169,8 @@ window.BVSim.calcMonthForTarifa = function ({
   tarifa,
   potenciaP1,
   potenciaP2,
-  bvSaldoPrev
+  bvSaldoPrev,
+  zonaFiscal = 'Península'
 }) {
   const round2 = window.BVSim.round2;
   const dias = Number(month?.spanDays) || Number(month?.daysWithData) || 0;
@@ -184,10 +185,10 @@ window.BVSim.calcMonthForTarifa = function ({
     + (month.importByPeriod.P3 * tarifa.cValle)
   );
   
-  // Bono social (Financiación) - Usamos LF_CONFIG si está disponible
+  // Bono social (Financiación)
   const bonoSocialAnual = (window.LF_CONFIG && window.LF_CONFIG.bonoSocial) 
     ? window.LF_CONFIG.bonoSocial.eurosAnuales 
-    : 10.764952; // Fallback 2026
+    : 10.764952; 
   
   const costeBonoSocial = round2(bonoSocialAnual / 365 * dias);
   
@@ -201,16 +202,16 @@ window.BVSim.calcMonthForTarifa = function ({
   const consAdj = round2(Math.max(0, consEur - credit1));
   const excedenteSobranteEur = round2(Math.max(0, creditoPotencial - credit1));
   
-  // Impuestos (IEE se aplica sobre Potencia + Energía, NO sobre Bono Social)
+  // Impuestos
   const sumaBaseIEE = round2(pot + consAdj);
   
-  // IEE
   let impuestoElec = 0;
   if (window.LF_CONFIG && window.LF_CONFIG.calcularIEE) {
-    impuestoElec = round2(window.LF_CONFIG.calcularIEE(sumaBaseIEE, month.importTotalKWh));
+    // Intentamos usar la lógica global que ya maneja zonas fiscales
+    impuestoElec = round2(window.LF_CONFIG.calcularIEE(sumaBaseIEE, month.importTotalKWh, zonaFiscal));
   } else {
-    // Fallback IEE
-    impuestoElec = round2(Math.max(0.0511269632 * sumaBaseIEE, month.importTotalKWh * 0.001)); 
+    const tasaIEE = zonaFiscal === 'Península' ? 0.0511269632 : 0.01; // Simplificación si no hay config
+    impuestoElec = round2(Math.max(tasaIEE * sumaBaseIEE, month.importTotalKWh * 0.0005)); 
   }
 
   // Alquiler
@@ -218,12 +219,16 @@ window.BVSim.calcMonthForTarifa = function ({
   if (window.LF_CONFIG && window.LF_CONFIG.calcularAlquilerContador) {
     alquilerContador = round2(window.LF_CONFIG.calcularAlquilerContador(dias));
   } else {
-    alquilerContador = round2(dias * 0.81 * 12 / 365); // Fallback
+    alquilerContador = round2(dias * 0.81 * 12 / 365);
   }
 
-  // IVA
+  // IVA / IGIC / IPSI
+  let tasaIVA = 0.21;
+  if (zonaFiscal === 'Canarias') tasaIVA = 0.00; // Asumimos 0% para hogares
+  else if (zonaFiscal === 'CeutaMelilla') tasaIVA = 0.01;
+
   const ivaBase = round2(pot + consAdj + costeBonoSocial + impuestoElec + alquilerContador);
-  const ivaCuota = round2(ivaBase * 0.21); // Asumimos Península 21% por defecto para simplificar demo
+  const ivaCuota = round2(ivaBase * tasaIVA);
   const totalBase = round2(ivaBase + ivaCuota);
 
   // Batería Virtual (Hucha)
@@ -265,7 +270,8 @@ window.BVSim.simulateForTarifaDemo = function ({
   tarifa,
   potenciaP1,
   potenciaP2,
-  bvSaldoInicial = 0
+  bvSaldoInicial = 0,
+  zonaFiscal = 'Península'
 }) {
   if (!Array.isArray(months) || !tarifa) {
     return { ok: false, error: 'Parámetros inválidos.' };
@@ -278,7 +284,8 @@ window.BVSim.simulateForTarifaDemo = function ({
       tarifa,
       potenciaP1,
       potenciaP2,
-      bvSaldoPrev: bvSaldo
+      bvSaldoPrev: bvSaldo,
+      zonaFiscal
     });
     bvSaldo = row.bvSaldoFin;
     return row;
@@ -316,7 +323,8 @@ window.BVSim.simulateForAllTarifasBV = function ({
   tarifasBV,
   potenciaP1,
   potenciaP2,
-  bvSaldoInicial = 0
+  bvSaldoInicial = 0,
+  zonaFiscal = 'Península'
 }) {
   try {
     const results = tarifasBV.map((tarifa) => {
@@ -325,7 +333,8 @@ window.BVSim.simulateForAllTarifasBV = function ({
         tarifa,
         potenciaP1,
         potenciaP2,
-        bvSaldoInicial
+        bvSaldoInicial,
+        zonaFiscal
       });
     });
 

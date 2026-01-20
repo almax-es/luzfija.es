@@ -321,16 +321,26 @@
                           <input class="bv-input-modern" type="text" id="bv-p2" inputmode="decimal" placeholder="Ej: 3,45" style="font-size: 1.2rem;">
                         </div>
                       </div>
-                      <div class="bv-input-wrapper">
-                        <label for="bv-saldo-inicial" style="font-size: 1.1rem; color: var(--text);">Dinero que ya tienes en la hucha</label>
-                        <div class="bv-input-icon-group">
-                          <span class="bv-input-icon">💰</span>
-                          <input class="bv-input-modern" type="text" id="bv-saldo-inicial" inputmode="decimal" value="0,00" style="font-size: 1.2rem;">
-                        </div>
-                        <div class="bv-help-text" style="font-size: 0.9rem;">Si ya eres cliente de la compañía y tienes saldo acumulado</div>
-                      </div>
-                    </div>
-                  </div>
+                                  <div class="bv-input-wrapper">
+                                    <label for="bv-saldo-inicial" style="font-size: 1.1rem; color: var(--text);">Dinero que ya tienes en la hucha</label>
+                                    <div class="bv-input-icon-group">
+                                      <span class="bv-input-icon">💰</span>
+                                      <input class="bv-input-modern" type="text" id="bv-saldo-inicial" inputmode="decimal" value="0,00" style="font-size: 1.2rem;">
+                                    </div>
+                                    <div class="bv-help-text" style="font-size: 0.9rem;">Si ya tienes saldo acumulado</div>
+                                  </div>
+                                  <div class="bv-input-wrapper">
+                                    <label for="bv-zona-fiscal" style="font-size: 1.1rem; color: var(--text);">Zona Fiscal</label>
+                                    <div class="bv-input-icon-group">
+                                      <span class="bv-input-icon">📍</span>
+                                      <select id="bv-zona-fiscal" class="bv-input-modern" style="font-size: 1.2rem; appearance: auto; padding-left: 3.5rem;">
+                                        <option value="Península">Península y Baleares</option>
+                                        <option value="Canarias">Canarias</option>
+                                        <option value="CeutaMelilla">Ceuta y Melilla</option>
+                                      </select>
+                                    </div>
+                                  </div>
+                                </div>                  </div>
           
                   <div class="u-mt-24">
                     <button class="btn primary bv-btn-simular" id="bv-simulate" type="button">

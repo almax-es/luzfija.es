@@ -10,6 +10,7 @@ window.BVSim = window.BVSim || {};
   const p1Input = document.getElementById('bv-p1');
   const p2Input = document.getElementById('bv-p2');
   const saldoInput = document.getElementById('bv-saldo-inicial');
+  const zonaFiscalInput = document.getElementById('bv-zona-fiscal');
   
   const simulateButton = document.getElementById('bv-simulate');
   const btnText = simulateButton ? simulateButton.querySelector('.bv-btn-text') : null;
@@ -89,6 +90,7 @@ window.BVSim = window.BVSim || {};
     const p1Val = p1Input.value === '' ? 0 : parseInput(p1Input.value);
     const p2Val = p2Input.value === '' ? 0 : parseInput(p2Input.value);
     const saldoVal = saldoInput.value === '' ? 0 : parseInput(saldoInput.value);
+    const zonaFiscalVal = zonaFiscalInput ? zonaFiscalInput.value : 'Península';
 
     if (p1Input) p1Input.classList.remove('error');
     if (resultsContainer) {
@@ -134,7 +136,8 @@ window.BVSim = window.BVSim || {};
       const allResults = window.BVSim.simulateForAllTarifasBV({
         months: monthlyResult.months,
         tarifasBV: tarifasResult.tarifasBV,
-        potenciaP1: p1Val, potenciaP2: p2Val, bvSaldoInicial: saldoVal
+        potenciaP1: p1Val, potenciaP2: p2Val, bvSaldoInicial: saldoVal,
+        zonaFiscal: zonaFiscalVal
       });
 
       if (!allResults.ok) throw new Error('Error en la simulación masiva.');
