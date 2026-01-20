@@ -231,7 +231,7 @@ window.BVSim.calcMonthForTarifa = function ({
   // IVA / IGIC / IPSI
   let tasaIVA = 0.21;
   if (zonaFiscal === 'Canarias') {
-    tasaIVA = esVivienda ? 0.00 : 0.07; 
+    tasaIVA = esVivienda ? 0.00 : 0.03; 
   } else if (zonaFiscal === 'CeutaMelilla') {
     tasaIVA = 0.01;
   }
@@ -401,14 +401,14 @@ window.BVSim.loadTarifasBV = async function () {
     const pvpcRef = {
       nombre: "PVPC (Regulada) ⚡",
       comercializadora: "Curenergía / Energía XXI...",
-      cPunta: 0.15, // Media estimada
-      cLlano: 0.12,
-      cValle: 0.10,
-      p1: 0.08,
-      p2: 0.01,
+      cPunta: 0.145, 
+      cLlano: 0.115,
+      cValle: 0.095,
+      p1: 0.105,
+      p2: 0.025,
       tipo: "INDEXADA",
       fv: {
-        exc: 0.06, // Media estimada pool
+        exc: 0.065, 
         tipo: "SIMPLE",
         bv: false
       }
