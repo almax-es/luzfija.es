@@ -1130,7 +1130,7 @@
 
         // Verificar confianza
         if (datos.confianza < 50){
-          avisos.push(`⚠️ Confianza baja (${datos.confianza}%). Revisa cuidadosamente todos los campos antes de aplicar. Puedes probar OCR experimental si es un PDF escaneado.`);
+          avisos.push(`⚠️ Confianza baja (${datos.confianza}%). Revisa cuidadosamente todos los campos antes de aplicar. Puedes probar OCR si es un PDF escaneado.`);
           __LF_show(__LF_q('btnOcrFactura'));
         } else if (datos.confianza < 80){
           avisos.push(`ℹ️ Confianza media (${datos.confianza}%). Revisa los campos marcados con ⚠️ antes de aplicar.`);
@@ -1389,7 +1389,7 @@
           if (!textRawLen || textRawLen < 40){
             __LF_hide(__LF_q('loaderFactura'));
             __LF_show(__LF_q('resultadoFactura'));
-            __LF_warn('⚠️ No se ha detectado texto seleccionable. Parece un PDF escaneado. Puedes probar OCR (experimental) o introducir los datos manualmente.');
+            __LF_warn('⚠️ No se ha detectado texto seleccionable. Parece un PDF escaneado. Puedes probar OCR o introducir los datos manualmente.');
             __LF_show(__LF_q('btnOcrFactura'));
             __LF_setBadge(0);
             __LF_renderForm({ p1:null,p2:null,dias:null,consumoPunta:null,consumoLlano:null,consumoValle:null,confianza:0 });
@@ -1580,14 +1580,14 @@
           __LF_setBadge(datos.confianza);
           __LF_renderForm(datos);
 
-          // Mostrar advertencias contextuales + nota de OCR experimental
+          // Mostrar advertencias contextuales + nota de OCR
           __LF_showContextualWarnings(datos);
           
           const avisoOCR = __LF_q('avisoFactura');
           if (avisoOCR && avisoOCR.textContent){
-            avisoOCR.textContent = '🧠 OCR aplicado (experimental). ' + avisoOCR.textContent;
+            avisoOCR.textContent = '🧠 OCR aplicado. ' + avisoOCR.textContent;
           } else {
-            __LF_warn('🧠 OCR aplicado (experimental). Revisa con cuidado antes de aplicar.');
+            __LF_warn('🧠 OCR aplicado. Revisa con cuidado antes de aplicar.');
           }
 
 

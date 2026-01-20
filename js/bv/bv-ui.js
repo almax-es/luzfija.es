@@ -296,27 +296,32 @@ window.BVSim = window.BVSim || {};
       const ahorroPct = Math.round((ahorroTotal / costeSinPlacas) * 100);
 
       resultsEl.innerHTML = `
-        <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 2rem; border-radius: 16px; color: white; text-align: center; margin-bottom: 2rem; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);">
-          <div style="font-size: 1.2rem; margin-bottom: 0.5rem; opacity: 0.9;">🌟 La mejor opción para ti es</div>
-          <div style="font-size: 3rem; font-weight: 800; line-height: 1.1; margin-bottom: 0.5rem;">${winnerName}</div>
-          ${winnerCompany ? `<div style="font-size: 1.2rem; opacity: 0.9; margin-bottom: 1.5rem;">de ${winnerCompany}</div>` : ''}
-          
-          <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem;">
-             <div>
-               <div style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 4px;">Pagarías en este periodo</div>
-               <div style="font-size: 2.5rem; font-weight: 800;">${winnerCost}</div>
-             </div>
-             <div style="border-left: 1px solid rgba(255,255,255,0.3);">
-               <div style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 4px;">Dinero que te sobra</div>
-               <div style="font-size: 2.5rem; font-weight: 800; color: #fbbf24;">${winnerHucha}</div>
-             </div>
+        <div class="heroKpis" style="margin-bottom: 2rem;">
+          <div class="heroCard best" style="width:100%; max-width:none">
+            <div class="k">Mejor opción para ti</div>
+            <div class="v" style="font-size:clamp(1.5rem, 5vw, 2.5rem)">${winnerName}</div>
+            <div class="s">de ${winnerCompany}</div>
           </div>
+        </div>
 
-          ${ahorroPct > 0 ? `<div style="margin-bottom: 1.5rem; font-weight: 600; background:rgba(255,255,255,0.2); display:inline-block; padding: 4px 16px; border-radius: 99px;">📉 Estás ahorrando un ${ahorroPct}% en tu factura</div>` : ''}
+        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
+           <div class="heroCard" style="text-align:center">
+             <div class="k">Pagarías en este periodo</div>
+             <div class="v" style="color:var(--primary-light)">${winnerCost}</div>
+             <div class="s">Total con impuestos</div>
+           </div>
+           <div class="heroCard" style="text-align:center">
+             <div class="k">Dinero que te sobra</div>
+             <div class="v" style="color:#fbbf24">${winnerHucha}</div>
+             <div class="s">En tu hucha virtual</div>
+           </div>
+        </div>
 
-          <div style="margin-bottom: 1.5rem;">
-            ${winnerWeb ? `<a href="${winnerWeb}" target="_blank" style="background: white; color: #059669; text-decoration: none; padding: 12px 32px; border-radius: 99px; font-weight: 800; font-size: 1.1rem; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">Ver esta tarifa &rarr;</a>` : ''}
-          </div>
+        ${ahorroPct > 0 ? `<div style="margin-bottom: 2rem; text-align:center;"><span class="pill" style="background:rgba(16,185,129,0.1); color:#10b981; border:1px solid rgba(16,185,129,0.2); font-weight:700; padding:8px 24px; font-size:1.1rem">📉 Estás ahorrando un ${ahorroPct}% en tu factura</span></div>` : ''}
+
+        <div style="text-align:center; margin-bottom: 2.5rem;">
+          ${winnerWeb ? `<a href="${winnerWeb}" target="_blank" class="btn primary" style="padding: 14px 40px; font-size: 1.2rem; border-radius: 99px;">Ver esta tarifa &rarr;</a>` : ''}
+        </div>
           <details style="margin-top: 20px; text-align: left;">
             <summary style="font-size: 0.8rem; cursor: pointer; opacity: 0.9; text-align: center;">Ver cuentas detalladas del ganador</summary>
             ${isWinnerIndexada ? '<div style="font-size:10px; color:#fbbf24; text-align:center; margin-bottom:8px;">* Al ser tarifa indexada, los excedentes se han estimado a 0,06 €/kWh</div>' : ''}
