@@ -933,7 +933,14 @@
       });
 
       document.body.appendChild(fileInput);
-      actionsCenterContainer.appendChild(btnCSV);
+      
+      const btnSubirFactura = document.getElementById('btnSubirFactura');
+      if (btnSubirFactura) {
+        btnSubirFactura.after(btnCSV);
+      } else {
+        actionsCenterContainer.appendChild(btnCSV);
+      }
+      
       lfDbg('[CSV] Botón de importar CSV añadido');
     } catch (error) {
       lfDbg('[CSV] ERROR CRÍTICO:', error);
