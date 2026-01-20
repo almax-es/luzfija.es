@@ -22,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusContainer = document.getElementById('bv-status-container');
   const statusEl = document.getElementById('bv-status');
 
-  // --- UI INITIALIZATION ---
   const btnTheme = document.getElementById('btnTheme');
   const btnMenu = document.getElementById('btnMenu');
   const menuPanel = document.getElementById('menuPanel');
@@ -83,7 +82,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Formateadores ES
   const currencyFmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 2 });
   const kwFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   const kwhFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -166,6 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const monthlyResult = window.BVSim.simulateMonthly(result, p1Val, p2Val);
       const tarifasResult = await window.BVSim.loadTarifasBV();
+      const monthMap = new Map((monthlyResult.months || []).map((m) => [m.key, m]));
       
       const allResults = window.BVSim.simulateForAllTarifasBV({
         months: monthlyResult.months,
@@ -183,141 +182,191 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const winner = rankedResults[0];
       const isWinnerIndexada = winner.tarifa.tipo === 'INDEXADA';
-      const totalImp = monthlyResult.months.reduce((a, b) => a + b.importTotalKWh, 0);
-      const totalAuto = result.records.reduce((a, b) => a + (Number(b.autoconsumo) || 0), 0);
-      const diasTotales = monthlyResult.months.reduce((a, b) => a + b.spanDays, 0);
-      const costeSinPlacas = (totalImp + totalAuto) * 0.15 + (p1Val * 0.08 * diasTotales);
-      const ahorroPct = Math.round(((costeSinPlacas - winner.totals.pagado) / costeSinPlacas) * 100);
+      
+      const r2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 
-      const buildDetailedRows = (rows, isIndexada) => rows.map((row) => {
-        const imp = (row.impuestoElec || 0) + (row.ivaCuota || 0) + (row.costeBonoSocial || 0) + (row.alquilerContador || 0);
-        const energiaBruta = row.consEur || 0;
-        const descuentoExc = row.credit1 || 0;
-        const energiaNeta = energiaBruta - descuentoExc;
-        const subtotal = row.totalBase || 0;
-        const restoHucha = Math.max(0, (row.bvSaldoPrev || 0) - (row.credit2 || 0));
+      const buildRows = (resultItem) => {
+        const isInd = resultItem.tarifa.tipo === 'INDEXADA';
+        const tarifaObj = resultItem.tarifa;
 
-        // Detalles de Energía Bruta por periodo (si disponibles en objeto row o recalculados)
-        // Nota: row no tiene el desglose por periodo guardado directamente, pero podemos inferirlo o usar valores medios si no están disponibles.
-        // Para ser precisos, necesitaríamos pasar 'month' completo, pero 'row' es un resumen.
-        // Sin embargo, en la iteración anterior, usé 'monthlyResult' para mapear.
-        // Recuperemos el objeto 'month' original si es posible, o usemos una aproximación explicativa.
-        
-        // RECUPERACIÓN DE DATOS DE PERIODO:
-        // El objeto 'row' viene de 'simulateForTarifaDemo', que devuelve objetos con 'pot', 'consEur', etc.
-        // Pero NO devuelve el desglose de kWh por periodo (P1, P2, P3).
-        // Para mostrar la fórmula exacta "P1 kWh * Precio", necesitamos esos datos.
-        // Solución: Mostrar la fórmula genérica con los precios, o aceptar que mostramos el total.
-        // EL USUARIO QUIERE VER LAS OPERACIONES.
-        // Vamos a intentar mostrar al menos los precios aplicados.
-        
-        const preciosEnergia = `Precios: P1=${fPrice(winner.tarifa.cPunta)} P2=${fPrice(winner.tarifa.cLlano)} P3=${fPrice(winner.tarifa.cValle)} €/kWh`;
-        
-        const tipEneBruta = `Cálculo: (kWh P1 × Precio P1) + (kWh P2 × Precio P2) + ...\n${preciosEnergia}\nTotal Bruto = ${fEur(energiaBruta)}`;
+        return resultItem.rows.map((row) => {
+          const m = monthMap.get(row.key) || {};
+          
+          const imp = r2((row.impuestoElec||0) + (row.ivaCuota||0) + (row.costeBonoSocial||0) + (row.alquilerContador||0));
+          const energiaBruta = r2(row.consEur || 0);
+          const descuentoExc = r2(row.credit1 || 0);
+          const energiaNeta = r2(energiaBruta - descuentoExc);
+          const subtotal = r2(row.totalBase || 0);
+          const usoHucha = r2(row.credit2 || 0);
+          const restoHucha = Math.max(0, (row.bvSaldoPrev || 0) - usoHucha);
+          const excedenteHucha = r2(row.excedenteSobranteEur || 0);
 
-        // Detalle Excedentes
-        const exKwh = Number(row.exKwh) || 0;
-        const precioExc = Number(row.precioExc) || 0;
-        const totalGenerado = exKwh * precioExc;
-        const tipExcedentes = `Generado: ${fKwh(exKwh)} kWh × ${fPrice(precioExc)} €/kWh = ${fEur(totalGenerado)}\n\nDesglose:\n- Compensado en factura: ${fEur(descuentoExc)}\n- A Batería Virtual: ${fEur(row.excedenteSobranteEur)}`;
+          const potP1 = r2(p1Val * row.dias * tarifaObj.p1);
+          const potP2 = r2(p2Val * row.dias * tarifaObj.p2);
+          const tipPot = `P1: ${fKw(p1Val)} kW × ${row.dias}d × ${fPrice(tarifaObj.p1)} € = ${fEur(potP1)}
+` + 
+                         `P2: ${fKw(p2Val)} kW × ${row.dias}d × ${fPrice(tarifaObj.p2)} € = ${fEur(potP2)}
+` + 
+                         `TOTAL = ${fEur(row.pot)}`;
 
-        // Formulas detalladas para los tooltips existentes
-        const tipPot = `P1: ${fKw(p1Val)} kW x ${row.dias} días x ${fPrice(winner.tarifa.p1)} €/kW\nP2: ${fKw(p2Val)} kW x ${row.dias} días x ${fPrice(winner.tarifa.p2)} €/kW\nTOTAL = ${fEur(row.pot)}`;
-        const tipEneNeta = `Energía Bruta (${fEur(energiaBruta)}) - Compensación Excedentes (${fEur(descuentoExc)}) = ${fEur(energiaNeta)}`;
-        const tipImp = `IEE: ${fEur(row.impuestoElec)}\nIVA: ${fEur(row.ivaCuota)}\nBono/Alquiler: ${fEur(row.costeBonoSocial + row.alquilerContador)}`;
-        const tipSub = `Potencia (${fEur(row.pot)}) + Energía Neta (${fEur(energiaNeta)}) + Impuestos (${fEur(imp)}) = ${fEur(subtotal)}`;
-        const tipHucha = `Saldo Hucha previo: ${fEur(row.bvSaldoPrev)}\nUsado ahora: -${fEur(row.credit2)}`;
-        const tipPagar = `Subtotal (${fEur(subtotal)}) - Uso Hucha (${fEur(row.credit2)}) = ${fEur(row.totalPagar)}`;
-        const tipSaldo = `Sobra Hucha (${fEur(restoHucha)}) + Excedentes a Batería (${fEur(row.excedenteSobranteEur)}) = ${fEur(row.bvSaldoFin)}`;
+          const kwhP1 = Number(m.importByPeriod?.P1) || 0;
+          const kwhP2 = Number(m.importByPeriod?.P2) || 0;
+          const kwhP3 = Number(m.importByPeriod?.P3) || 0;
+          const cP1 = Number(tarifaObj.cPunta) || 0;
+          const cP2 = Number(tarifaObj.cLlano) || 0;
+          const cP3 = Number(tarifaObj.cValle) || 0;
+          const costP1 = r2(kwhP1 * cP1);
+          const costP2 = r2(kwhP2 * cP2);
+          const costP3 = r2(kwhP3 * cP3);
 
+          const tipEneBruta = `P1: ${fKwh(kwhP1)} kWh × ${fPrice(cP1)} € = ${fEur(costP1)}
+` + 
+                              `P2: ${fKwh(kwhP2)} kWh × ${fPrice(cP2)} € = ${fEur(costP2)}
+` + 
+                              `P3: ${fKwh(kwhP3)} kWh × ${fPrice(cP3)} € = ${fEur(costP3)}
+` + 
+                              `TOTAL = ${fEur(energiaBruta)}`;
+
+          const exKwh = Number(row.exKwh) || Number(m.exportTotalKWh) || 0;
+          const precioExc = Number(row.precioExc) || 0;
+          const totalGen = r2(exKwh * precioExc);
+          const tipExcedentes = `Generado: ${fKwh(exKwh)} kWh × ${fPrice(precioExc)} € = ${fEur(totalGen)}
+
+` + 
+                                `Desglose:
+- Compensado en factura: ${fEur(descuentoExc)}
+- A Batería Virtual: ${fEur(excedenteHucha)}`;
+
+          const tipEneNeta = `Energía Bruta (${fEur(energiaBruta)}) - Compensación (${fEur(descuentoExc)}) = ${fEur(energiaNeta)}`;
+          const tipImp = `IEE: ${fEur(row.impuestoElec)}
+IVA: ${fEur(row.ivaCuota)}
+Bono/Alquiler: ${fEur((row.costeBonoSocial||0) + (row.alquilerContador||0))}`;
+          const tipSub = `Potencia + Energía Neta + Impuestos = ${fEur(subtotal)}`;
+          const tipHucha = `Saldo previo: ${fEur(row.bvSaldoPrev)}
+Usado: -${fEur(usoHucha)}`;
+          const tipPagar = `Subtotal (${fEur(subtotal)}) - Hucha (${fEur(usoHucha)}) = ${fEur(row.totalPagar)}`;
+          const tipSaldo = `Sobra Hucha (${fEur(restoHucha)}) + Nuevo Excedente (${fEur(excedenteHucha)}) = ${fEur(row.bvSaldoFin)}`;
+
+          return `
+            <tr>
+              <td>${row.key}</td>
+              <td class="bv-tooltip-trigger" data-tip="${tipPot}">${fEur(row.pot)}</td>
+              <td class="bv-tooltip-trigger" data-tip="${tipEneBruta}">${fEur(energiaBruta)}</td>
+              <td class="bv-tooltip-trigger" data-tip="${tipExcedentes}" style="color:var(--accent2);">${descuentoExc > 0 ? `-${fEur(descuentoExc)}` : fEur(0)}</td>
+              <td class="bv-tooltip-trigger" data-tip="${tipEneNeta}" style="font-weight:700;">${fEur(energiaNeta)}</td>
+              <td class="bv-tooltip-trigger" data-tip="${tipImp}" style="color:var(--danger);">${fEur(imp)}</td>
+              <td class="bv-tooltip-trigger" data-tip="${tipSub}" style="background:rgba(255,255,255,0.02); font-weight:700;">${fEur(subtotal)}</td>
+              <td class="bv-tooltip-trigger" data-tip="${tipHucha}">-${fEur(usoHucha)}</td>
+              <td class="bv-tooltip-trigger" data-tip="${tipPagar}" style="color:var(--accent2); font-weight:800;">${fEur(row.totalPagar)}</td>
+              <td class="bv-tooltip-trigger" data-tip="${tipSaldo}" style="color:#fbbf24; font-weight:700;">${fEur(row.bvSaldoFin)}</td>
+            </tr>
+          `;
+        }).join('');
+      };
+
+      const winnerRows = buildRows(winner);
+      const winnerHTML = `
+        <div class="bv-results-grid" style="margin-bottom: 40px;">
+          <div class="bv-winner-card-compact">
+            <div class="bv-winner-badge">🏆 Mejor Opción</div>
+            <div class="bv-winner-name">${winner.tarifa.nombre}</div>
+            <div class="bv-winner-company">de ${winner.tarifa.comercializadora || 'Compañía Desconocida'}</div>
+            <div style="margin-top:auto; padding-top:1.5rem; width:100%">
+              ${winner.tarifa.web ? `<a href="${winner.tarifa.web}" target="_blank" class="btn primary" style="width:100%; justify-content:center;">Ver esta tarifa &rarr;</a>` : ''}
+            </div>
+          </div>
+
+          <div class="bv-kpis-stack">
+            <div class="bv-kpi-card">
+              <span class="bv-kpi-label">Pagarías en total</span>
+              <span class="bv-kpi-value">${fEur(winner.totals.pagado)}</span>
+              <span class="bv-kpi-sub">Impuestos incluidos</span>
+            </div>
+            <div class="bv-kpi-card highlight">
+              <span class="bv-kpi-label">Te sobra (Hucha)</span>
+              <span class="bv-kpi-value surplus">${fEur(winner.totals.bvFinal)}</span>
+              <span class="bv-kpi-sub">Acumulado anual</span>
+            </div>
+          </div>
+        </div>
+
+        <details style="margin-bottom: 48px;">
+          <summary style="font-size: 1.1rem; font-weight: 700; cursor: pointer; text-align: center; color: var(--text); padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--card2); transition: all 0.2s;">Ver desglose detallado del ganador ▾</summary>
+          <div class="bv-table-container" style="margin-top:16px;">
+            <table class="bv-table">
+              <thead>
+                <tr>
+                  <th style="text-align:left">Mes</th>
+                  <th>Potencia</th>
+                  <th>Energía Bruta</th>
+                  <th>Excedentes</th>
+                  <th>Energía Neta</th>
+                  <th>Impuestos</th>
+                  <th>Subtotal</th>
+                  <th>Uso Hucha</th>
+                  <th>A Pagar</th>
+                  <th>Saldo Hucha</th>
+                </tr>
+              </thead>
+              <tbody>${winnerRows}</tbody>
+            </table>
+          </div>
+        </details>
+      `;
+
+      const alternativesHTML = rankedResults.slice(1, 6).map((r, i) => {
+        const rows = buildRows(r);
         return `
-          <tr>
-            <td>${row.key}</td>
-            <td class="bv-tooltip-trigger" data-tip="${tipPot}">${fEur(row.pot)}</td>
-            <td class="bv-tooltip-trigger" data-tip="${tipEneBruta}">${fEur(energiaBruta)}</td>
-            <td class="bv-tooltip-trigger" data-tip="${tipExcedentes}" style="color:var(--accent2);">${descuentoExc > 0 ? `-${fEur(descuentoExc)}` : fEur(0)}</td>
-            <td class="bv-tooltip-trigger" data-tip="${tipEneNeta}" style="font-weight:700;">${fEur(energiaNeta)}</td>
-            <td class="bv-tooltip-trigger" data-tip="${tipImp}" style="color:var(--danger);">${fEur(imp)}</td>
-            <td class="bv-tooltip-trigger" data-tip="${tipSub}" style="background:rgba(255,255,255,0.02); font-weight:700;">${fEur(subtotal)}</td>
-            <td class="bv-tooltip-trigger" data-tip="${tipHucha}">-${fEur(row.credit2)}</td>
-            <td class="bv-tooltip-trigger" data-tip="${tipPagar}" style="color:var(--accent2); font-weight:800;">${fEur(row.totalPagar)}</td>
-            <td class="bv-tooltip-trigger" data-tip="${tipSaldo}" style="color:#fbbf24; font-weight:700;">${fEur(row.bvSaldoFin)}</td>
-          </tr>
-        `;
-      }).join('');
-
-      // Función para generar la tarjeta de cada resultado
-      const renderResultCard = (r, i) => {
-        const isWinner = i === 0;
-        const isIndexada = r.tarifa.tipo === 'INDEXADA';
-        const badgeHTML = isWinner 
-          ? `<div class="bv-winner-badge">🏆 Mejor Opción</div>` 
-          : `<div class="bv-alt-rank">#${i+1}</div>`;
-        
-        const cardClass = isWinner ? 'bv-winner-card-compact' : 'bv-alt-card-detailed';
-        const rowsHtml = buildDetailedRows(r.rows, isIndexada);
-
-        return `
-          <div class="${cardClass}" style="margin-bottom: 32px; ${isWinner ? '' : 'background:var(--card); border:1px solid var(--border); padding:24px; border-radius:16px;'} ">
-            ${badgeHTML}
-            <h3 class="bv-winner-name" style="${isWinner ? '' : 'font-size:1.5rem;'} ">${r.tarifa.nombre}</h3>
-            <div class="bv-winner-company">de ${r.tarifa.comercializadora || 'Compañía Desconocida'}</div>
+          <div class="bv-alt-card-detailed" style="margin-bottom: 24px; background:var(--card); border:1px solid var(--border); padding:24px; border-radius:16px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:16px;">
+              <div>
+                <div class="bv-alt-rank" style="font-size:1.5rem; opacity:0.5; font-weight:900;">#${i+2}</div>
+                <h3 style="margin:0; font-size:1.3rem;">${r.tarifa.nombre}</h3>
+                <small style="color:var(--muted)">${r.tarifa.comercializadora}</small>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:1.5rem; font-weight:900;">${fEur(r.totals.pagado)}</div>
+                ${r.totals.bvFinal > 1 ? `<div style="color:#fbbf24; font-weight:700;">Sobran ${fEur(r.totals.bvFinal)}</div>` : ''}
+              </div>
+            </div>
             
-            <div class="bv-kpis-stack" style="margin-top:16px; margin-bottom:24px; ${isWinner ? '' : 'flex-direction:row; flex-wrap:wrap;'} ">
-               <div class="bv-kpi-card" style="flex:1; min-width:200px;">
-                  <span class="bv-kpi-label">Pagarías</span>
-                  <span class="bv-kpi-value">${fEur(r.totals.pagado)}</span>
-               </div>
-               <div class="bv-kpi-card highlight" style="flex:1; min-width:200px;">
-                  <span class="bv-kpi-label">Te Sobra</span>
-                  <span class="bv-kpi-value surplus">${fEur(r.totals.bvFinal)}</span>
-               </div>
-            </div>
-
-            ${isWinner && ahorroPct > 0 ? `<div style="margin-bottom:24px; text-align:center;"><span class="bv-savings-banner">📉 Ahorras un ${ahorroPct}% extra</span></div>` : ''}
-
-            <div style="text-align:center; margin-bottom:24px;">
-               ${r.tarifa.web ? `<a href="${r.tarifa.web}" target="_blank" class="btn primary" style="padding:10px 30px;">Ver tarifa &rarr;</a>` : ''}
-            </div>
-
             <details>
-              <summary style="font-size: 0.95rem; cursor: pointer; text-align: center; color: var(--muted); padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(0,0,0,0.1); transition: all 0.2s;">Ver desglose mensual detallado ▾</summary>
-              <div class="bv-table-container" style="margin-top:16px;">
+              <summary style="cursor: pointer; color: var(--accent); font-weight:600; font-size:0.9rem;">Ver desglose ▾</summary>
+              <div class="bv-table-container" style="margin-top:12px;">
                 <table class="bv-table">
                   <thead>
                     <tr>
                       <th style="text-align:left">Mes</th>
                       <th>Potencia</th>
-                      <th>Energía Bruta</th>
-                      <th>Excedentes</th>
-                      <th>Energía Neta</th>
+                      <th>E. Bruta</th>
+                      <th>Exced.</th>
+                      <th>E. Neta</th>
                       <th>Impuestos</th>
                       <th>Subtotal</th>
-                      <th>Uso Hucha</th>
-                      <th>A Pagar</th>
-                      <th>Saldo Hucha</th>
+                      <th>Hucha</th>
+                      <th>Pagar</th>
+                      <th>Saldo</th>
                     </tr>
                   </thead>
-                  <tbody>${rowsHtml}</tbody>
+                  <tbody>${rows}</tbody>
                 </table>
               </div>
             </details>
           </div>
         `;
-      };
+      }).join('');
 
       resultsEl.innerHTML = `
         <h2 style="text-align:center; font-size:1.8rem; font-weight:900; margin-bottom:2rem; color:var(--text);">Resultados de la Simulación</h2>
-        <div class="bv-results-list">
-          ${rankedResults.map((r, i) => renderResultCard(r, i)).join('')}
-        </div>
+        ${winnerHTML}
+        <h3 style="text-align:center; margin-bottom: 24px; margin-top: 40px;">Otras Alternativas</h3>
+        ${alternativesHTML}
       `;
 
       resultsContainer.style.display = 'block';
       setTimeout(() => resultsContainer.classList.add('show'), 10);
       statusContainer.style.display = 'none';
       
-      // --- SISTEMA DE TOOLTIPS FLOTANTES MEJORADO (DELEGACIÓN DE EVENTOS) ---
       const oldTooltip = document.querySelector('.bv-floating-tooltip');
       if (oldTooltip) oldTooltip.remove();
 
@@ -325,61 +374,36 @@ document.addEventListener('DOMContentLoaded', () => {
       tooltipEl.className = 'bv-floating-tooltip';
       document.body.appendChild(tooltipEl);
 
-      // Nota: el tooltip es `position: fixed` (ver CSS). Por tanto, `getBoundingClientRect()` ya
-      // devuelve coordenadas en el viewport. Si sumamos scroll (scrollX/scrollY) lo mandamos fuera
-      // de pantalla cuando hay scroll, y "desaparece".
-      const updateTooltipPosition = (e) => {
-        const target = e.target.closest('.bv-tooltip-trigger');
-        if (!target) return;
-
-        const rect = target.getBoundingClientRect();
-
-        // Asegura que tenemos medidas reales (por si se llama antes de pintar)
-        const ttWidth = tooltipEl.offsetWidth || 280;
-        const ttHeight = tooltipEl.offsetHeight || 80;
-
+      const showTooltip = (e, text) => {
+        if (!text) return;
+        tooltipEl.textContent = text;
+        tooltipEl.style.display = 'block';
+        
+        const rect = e.target.getBoundingClientRect();
+        const ttWidth = tooltipEl.offsetWidth;
+        const ttHeight = tooltipEl.offsetHeight;
+        
         let top = rect.top - ttHeight - 10;
         let left = rect.left + (rect.width / 2) - (ttWidth / 2);
-
-        // Ajustes de bordes dentro del viewport
-        if (top < 10) top = rect.bottom + 10;
+        
+        if (top < 10) top = rect.bottom + 10; 
         if (left < 10) left = 10;
         if (left + ttWidth > window.innerWidth - 10) left = window.innerWidth - ttWidth - 10;
 
-        tooltipEl.style.top = `${top}px`;
-        tooltipEl.style.left = `${left}px`;
+        tooltipEl.style.top = `${top + window.scrollY}px`;
+        tooltipEl.style.left = `${left + window.scrollX}px`;
       };
 
-      // Usamos mouseover (que sí burbujea) en lugar de mouseenter
-      resultsEl.addEventListener('mouseover', (e) => {
-        const target = e.target.closest('.bv-tooltip-trigger');
-        if (target) {
-          const tip = target.getAttribute('data-tip');
-          if (tip) {
-            tooltipEl.textContent = tip;
-            tooltipEl.style.display = 'block';
-            updateTooltipPosition(e); // Posición inicial
-          }
-        }
-      });
+      const hideTooltip = () => { tooltipEl.style.display = 'none'; };
 
-      // Reposicionar mientras el ratón se mueve (evita que parezca "bug" en celdas anchas)
-      resultsEl.addEventListener('mousemove', (e) => {
-        if (tooltipEl.style.display === 'block') updateTooltipPosition(e);
+      resultsEl.querySelectorAll('.bv-tooltip-trigger').forEach(el => {
+        const tip = el.getAttribute('data-tip');
+        el.addEventListener('mouseenter', (e) => showTooltip(e, tip));
+        el.addEventListener('mouseleave', hideTooltip);
+        el.addEventListener('click', (e) => { e.stopPropagation(); showTooltip(e, tip); });
       });
-
-      resultsEl.addEventListener('mouseout', (e) => {
-        const target = e.target.closest('.bv-tooltip-trigger');
-        if (target) {
-          tooltipEl.style.display = 'none';
-        }
-      });
+      document.addEventListener('click', hideTooltip);
       
-      // Ocultar al hacer scroll para evitar que se quede "volando" desalineado
-      window.addEventListener('scroll', () => {
-        if (tooltipEl.style.display === 'block') tooltipEl.style.display = 'none';
-      }, { passive: true });
-
     } catch (e) {
       console.error('BVSim Error:', e);
       if (statusEl) statusEl.innerHTML = `<span style="color:var(--danger)">⚠️ Error: ${e.message}</span>`;
