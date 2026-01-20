@@ -284,43 +284,14 @@
 
 .bv-table {
   width: 100%;
-  /* Más columnas en el desglose (energía bruta/excedentes/neta) */
-  min-width: 1120px;
-  border-collapse: collapse;
-  table-layout: fixed; /* Reparte el espacio entre columnas respetando anchos fijos */
+  min-width: 1000px; 
+  border-collapse: collapse !important;
   font-size: 0.9rem;
-  font-variant-numeric: tabular-nums;
+  table-layout: auto !important; /* Volvemos a auto para que manden los anchos de celda */
 }
-
-.bv-table th,
-.bv-table td {
-  box-sizing: border-box; /* Anchos más predecibles (incluye padding) */
-  white-space: nowrap;    /* Evita saltos de línea en importes */
-}
-
-/* Distribución de columnas (v3): compacta lo corto y reparte el resto por peso */
-.bv-table col.bv-col-month {
-  width: 90px; /* fallback */
-  width: clamp(84px, 9%, 112px);
-}
-.bv-table col.bv-col-pot {
-  width: 102px; /* fallback */
-  width: clamp(92px, 10%, 124px);
-}
-/* Energía (3 columnas): bruta / excedentes / neta */
-.bv-table col.bv-col-energy-gross { width: 12%; }
-.bv-table col.bv-col-excedentes { width: 12%; }
-.bv-table col.bv-col-energy-net { width: 12%; }
-
-/* Resto */
-.bv-table col.bv-col-tax { width: 11%; }
-.bv-table col.bv-col-subtotal { width: 12%; }
-.bv-table col.bv-col-use { width: 13%; }
-.bv-table col.bv-col-pay { width: 14%; }
-.bv-table col.bv-col-balance { width: 14%; }
 
 .bv-table th {
-  padding: 14px 10px;
+  padding: 14px 8px;
   background: var(--bg0);
   color: var(--muted);
   font-size: 0.75rem;
@@ -332,27 +303,36 @@
 }
 
 .bv-table td {
-  padding: 12px 10px;
+  padding: 12px 8px;
   border-bottom: 1px solid var(--border);
   color: var(--text);
   vertical-align: middle;
   text-align: center;
 }
 
-/* --- AJUSTE DE ALINEACIÓN --- */
+/* --- ARREGLO DE ALINEACIÓN Y ANCHOS DE COLUMNA --- */
 
-/* Mes: Izquierda */
+/* Mes: Izquierda, ancho mínimo real */
 .bv-table th:first-child,
 .bv-table td:first-child {
   text-align: left !important;
-  padding-left: 10px;
+  padding-left: 16px;
+  width: 80px !important; /* Valor fijo para evitar el elefante */
+  white-space: nowrap;
 }
 
-/* Importes: Derecha (más compacto y legible)
-   Solo en celdas de cuerpo: las cabeceras quedan centradas. */
-.bv-table tbody td:nth-child(n+2) {
-  text-align: right;
-  padding-right: 12px;
+/* Potencia: Centro, ancho mínimo real */
+.bv-table th:nth-child(2),
+.bv-table td:nth-child(2) {
+  text-align: center !important;
+  width: 70px !important; /* Valor fijo */
+  white-space: nowrap;
+}
+
+/* Resto: Centrados */
+.bv-table th:nth-child(n+3),
+.bv-table td:nth-child(n+3) {
+  text-align: center !important;
 }
 
 .bv-table tr:last-child td {
@@ -363,26 +343,25 @@
   background: var(--card2);
 }
 
-/* --- OVERRIDES CONTRA ESTILOS GLOBALES DE TABLAS (styles.css) ---
-   En styles.css hay reglas genéricas del tipo:
-   thead th:nth-child(2), tbody td:nth-child(2) { width: 23%; }
-   que afectan también a esta tabla y ensanchan (sobre todo) la 2ª columna.
-   Aquí las neutralizamos con selectores más específicos y !important.
-*/
-
-/* Restablece el modelo de tabla para evitar el "separate" global */
-.bv-table {
-  border-collapse: collapse !important;
-  border-spacing: 0 !important;
+/* --- FLOATING TOOLTIP (JS ONLY) --- */
+.bv-floating-tooltip {
+  position: fixed;
+  display: none;
+  background: #0f172a; /* Fondo más oscuro para contraste */
+  color: #fff;
+  border: 1px solid var(--accent);
+  padding: 12px 16px;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  line-height: 1.6;
+  white-space: pre-wrap; 
+  z-index: 100000; /* Por encima de todo */
+  box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+  pointer-events: none;
+  max-width: 320px;
 }
 
-/* Neutraliza anchos globales aplicados a th/td (dejamos que mande el colgroup) */
-.bv-table thead th,
-.bv-table tbody td {
-  width: auto !important;
-}
-
-/* --- TOOLTIPS TRIGGER (Solo cursor, sin ::after/::before) --- */
 .bv-tooltip-trigger {
   cursor: help;
   text-decoration: underline dotted var(--muted);
@@ -392,30 +371,9 @@
 .bv-tooltip-trigger:hover {
   color: var(--accent);
   text-decoration-color: var(--accent);
-  /* Eliminamos ::after y ::before para que no haya conflicto con el JS flotante */
-}
-
-/* --- FLOATING TOOLTIP (JS ONLY) --- */
-.bv-floating-tooltip {
-  position: fixed; /* Se sale de la tabla y del scroll */
-  display: none;
-  background: #1e293b;
-  color: #fff;
-  border: 1px solid var(--border);
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 0.8rem;
-  font-weight: 500;
-  line-height: 1.5;
-  white-space: pre-wrap; /* Respeta saltos de línea */
-  z-index: 10000; /* Super encima de todo */
-  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-  pointer-events: none;
-  max-width: 300px;
 }
 
 /* Utilities */
 .u-text-right { text-align: right; }
 .u-text-center { text-align: center; }
 .u-fw-700 { font-weight: 700; }
-/* v3.0 final fix */
