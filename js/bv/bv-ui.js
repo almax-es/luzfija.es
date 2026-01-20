@@ -632,11 +632,12 @@ Saldo anterior: ${fEur(row.bvSaldoPrev)}
       // HTML de Alternativas
       const alternativesHTML = rankedResults.slice(1).map((r, i) => {
         const altName = escapeHtml(r.tarifa?.nombre || '');
+        const altUrl = sanitizeUrl(r.tarifa?.web);
         const hasBV = Boolean(r.tarifa?.fv?.bv);
         const pill = hasBV
           ? '<span class="bv-pill bv-pill--bv" title="Acumula excedente sobrante para meses futuros.">Con BV</span>'
           : '<span class="bv-pill bv-pill--no-bv" title="No acumula excedente sobrante; lo no compensado se pierde.">Sin BV</span>';
-        
+
         // MOSTRAR PAGADO COMO PRINCIPAL
         return `
           <div class="bv-alt-card-detailed" style="margin-bottom: 24px; background:var(--card); border:1px solid var(--border); padding:24px; border-radius:16px;">
@@ -649,6 +650,7 @@ Saldo anterior: ${fEur(row.bvSaldoPrev)}
               </div>
             </div>
             ${hasBV ? '' : '<div class="bv-note">Nota: sin BV, el excedente que no compense este mes se pierde.</div>'}
+            ${altUrl ? `<div style="margin: 16px 0;"><a href="${altUrl}" target="_blank" rel="noopener noreferrer" class="btn primary" style="width:100%; justify-content:center;">Ver esta tarifa &rarr;</a></div>` : ''}
             <details>
               <summary style="cursor: pointer; color: var(--accent); font-weight:600; font-size:0.9rem;">Ver desglose</summary>
               ${buildTable(r).replace('margin-top:16px','margin-top:12px')}
