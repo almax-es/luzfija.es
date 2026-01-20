@@ -260,19 +260,22 @@ document.addEventListener('DOMContentLoaded', () => {
           `Total Energía Bruta = ${fEur(energiaBruta)}`
         ].join('\n');
 
+        const excedenteHucha = r2(Number(row.excedenteSobranteEur) || 0);
         const tipExcedentes = [
-          `Excedentes: ${fKwh(exKwh)} kWh × ${fPrice(precioExc)} €/kWh = ${fEur(creditoPotencial)}`,
-          `Descuento aplicado (límite coste energía): min(${fEur(creditoPotencial)}, ${fEur(energiaBruta)}) = ${fEur(descuentoExc)}`,
-          `Sobrante para hucha = ${fEur(row.excedenteSobranteEur)}`
+          `Excedentes generados: ${fKwh(exKwh)} kWh × ${fPrice(precioExc)} €/kWh = ${fEur(creditoPotencial)}`,
+          `Aplicados en factura: ${fEur(descuentoExc)}`,
+          `A hucha virtual: ${fEur(excedenteHucha)}`
         ].join('\n');
 
         const tipEneNeta = `Energía Neta = Energía Bruta (${fEur(energiaBruta)}) - Descuento Excedentes (${fEur(descuentoExc)}) = ${fEur(energiaNeta)}`;
 
         const tipImp = `IEE: ${fEur(row.impuestoElec)}\nIVA/IGIC/IPSI: ${fEur(row.ivaCuota)}\nAlquiler/Bono Social: ${fEur((Number(row.costeBonoSocial) || 0) + (Number(row.alquilerContador) || 0))}`;
         const tipSub = `Suma de:\nPotencia (${fEur(row.pot)})\n+ Energía Neta (${fEur(energiaNeta)})\n+ Impuestos/Cargos (${fEur(imp)})`;
-        const tipHucha = `Saldo disponible: ${fEur(row.bvSaldoPrev)}\nUsado para esta factura: -${fEur(row.credit2)}`;
-        const tipPagar = `Importe factura (${fEur(subtotal)}) - Uso Hucha (${fEur(row.credit2)})`;
-        const tipSaldo = `Restante (${fEur(restoHucha)}) + Nuevo Excedente (${fEur(row.excedenteSobranteEur)})`;
+        const usoHucha = r2(Number(row.credit2) || 0);
+        const usoHuchaTxt = usoHucha > 0 ? `-${fEur(usoHucha)}` : fEur(0);
+        const tipHucha = `Saldo disponible: ${fEur(row.bvSaldoPrev)}\nUsado para esta factura: ${usoHuchaTxt}`;
+        const tipPagar = `Importe factura (${fEur(subtotal)}) - Uso Hucha (${fEur(usoHucha)})`;
+        const tipSaldo = `Restante (${fEur(restoHucha)}) + Nuevo Excedente (${fEur(excedenteHucha)})`;
 
         return `
           <tr>
@@ -284,7 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <td class="bv-tooltip-trigger" data-tip="${tipImp}" tabindex="0" style="color:var(--danger); font-weight:600;">${fEur(imp)}</td>
             <td class="bv-tooltip-trigger" data-tip="${tipSub}" tabindex="0" style="font-weight:700; background:rgba(255,255,255,0.03);">${fEur(subtotal)}</td>
             <td class="bv-tooltip-trigger" data-tip="${tipHucha}" tabindex="0">
-                <span class="bv-val-hucha-use">-${fEur(row.credit2)}</span>
+                <span class="bv-val-hucha-use">${usoHucha > 0 ? `-${fEur(usoHucha)}` : fEur(0)}</span>
             </td>
             <td class="bv-tooltip-trigger" data-tip="${tipPagar}" tabindex="0" style="color:var(--accent2); font-weight:700;">${fEur(row.totalPagar)}</td>
             <td class="bv-tooltip-trigger" data-tip="${tipSaldo}" tabindex="0" style="color:#fbbf24; font-weight:700;">${fEur(row.bvSaldoFin)}</td>
@@ -342,7 +345,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	              </colgroup>
               <thead>
                 <tr>
-                  <th style="text-align:left">Mes</th>
+                  <th style="text-align:left">Fecha</th>
                   <th>Potencia</th>
 	              <th>Energía Bruta</th>
 	              <th>Excedentes</th>
