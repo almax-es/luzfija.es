@@ -33,7 +33,6 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   if (btnTheme) {
-    // Clonar para limpiar listeners de lf-ui.js
     const newBtn = btnTheme.cloneNode(true);
     if (btnTheme.parentNode) {
       btnTheme.parentNode.replaceChild(newBtn, btnTheme);
@@ -60,17 +59,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Delegación global para cerrar menú y limpiar caché
   document.addEventListener('click', (e) => {
-    // Limpiar Caché
     const clearBtn = e.target.closest('#btnClearCache');
     if (clearBtn) {
       localStorage.clear();
       location.reload();
       return;
     }
-
-    // Cerrar menú al hacer click fuera
     if (menuPanel && menuPanel.classList.contains('show')) {
       if (!menuPanel.contains(e.target)) {
         menuPanel.classList.remove('show');
@@ -88,7 +83,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Formateadores ES
   const currencyFmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 2 });
   const numberFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); 
 
@@ -106,7 +100,6 @@ document.addEventListener('DOMContentLoaded', () => {
     return;
   }
 
-  // --- DRAG & DROP LOGIC ---
   function handleFile(file) {
     if (!file) return;
     window.BVSim.file = file;
@@ -148,7 +141,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // --- SIMULATION LOGIC ---
   simulateButton.addEventListener('click', async () => {
     console.log('BVSim: Simulation started...');
     const file = window.BVSim.file;
@@ -242,7 +234,6 @@ document.addEventListener('DOMContentLoaded', () => {
         <h2 style="text-align:center; font-size:1.8rem; font-weight:900; margin-bottom:2rem; color:var(--text);">Resultados de la Simulación</h2>
 
         <div class="bv-results-grid">
-          <!-- IZQUIERDA: Tarjeta Ganadora -->
           <div class="bv-winner-card-compact">
             <div class="bv-winner-badge">🏆 Opción Ganadora</div>
             <div class="bv-winner-name">${winner.tarifa.nombre}</div>
@@ -253,7 +244,6 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
           </div>
 
-          <!-- DERECHA: KPIs -->
           <div class="bv-kpis-stack">
             <div class="bv-kpi-card">
               <span class="bv-kpi-label">Pagarías en este periodo</span>
@@ -320,9 +310,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const dlBtn = document.getElementById('bv-download-csv');
       if (dlBtn) dlBtn.addEventListener('click', () => window.BVSim.downloadCSV(winner));
       
-      // Inicializar tooltips dinámicos manualmente
       if (window.LF && window.LF.bindTooltipElement) {
-        // Pequeño delay para asegurar renderizado
         setTimeout(() => {
           const triggers = resultsEl.querySelectorAll('.bv-tooltip-trigger');
           console.log('BVSim: Binding tooltips to', triggers.length, 'elements');
