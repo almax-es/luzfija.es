@@ -202,18 +202,27 @@ window.BVSim = window.BVSim || {};
         const tipPagar = `Importe factura (${fEur(subtotal)}) - Uso Hucha (${fEur(row.credit2)})`;
         const tipSaldo = `Restante (${fEur(restoHucha)}) + Nuevo Excedente (${fEur(row.excedenteSobranteEur)})`;
 
+        // Tooltip strings (Formulas)
+        const tipPot = `P1: ${p1Val} kW x ${row.dias} días x ${winner.tarifa.p1} €/kW\nP2: ${p2Val} kW x ${row.dias} días x ${winner.tarifa.p2} €/kW`;
+        const tipEne = `Coste Energía: ${fEur(row.consEur)}\n- Descuento Exc.: ${fEur(row.credit1)}`;
+        const tipImp = `IEE: ${fEur(row.impuestoElec)}\nIVA: ${fEur(row.ivaCuota)}\nAlquiler/Otros: ${fEur(row.costeBonoSocial + row.alquilerContador)}`;
+        const tipSub = `Suma de:\nPotencia (${fEur(row.pot)})\n+ Energía Neta (${fEur(energiaNeta)})\n+ Impuestos/Cargos (${fEur(imp)})`;
+        const tipHucha = `Saldo disponible: ${fEur(row.bvSaldoPrev)}\nUsado para esta factura: -${fEur(row.credit2)}`;
+        const tipPagar = `Importe factura (${fEur(subtotal)}) - Uso Hucha (${fEur(row.credit2)})`;
+        const tipSaldo = `Restante (${fEur(restoHucha)}) + Nuevo Excedente (${fEur(row.excedenteSobranteEur)})`;
+
         return `
           <tr>
-            <td class="bv-col-mes" style="font-weight:700; color:#fff;">${row.key}</td>
-            <td class="bv-col-pot bv-tooltip-trigger" data-tip="${tipPot}">${fEur(row.pot)}</td>
-            <td class="bv-col-ene bv-tooltip-trigger" data-tip="${tipEne}" style="font-weight:600;">${fEur(energiaNeta)}</td>
-            <td class="bv-col-imp bv-tooltip-trigger" data-tip="${tipImp}" style="color:#ef4444; font-weight:600;">${fEur(imp)}</td>
-            <td class="bv-col-sub bv-tooltip-trigger" data-tip="${tipSub}" style="font-weight:700; background:rgba(255,255,255,0.03);">${fEur(subtotal)}</td>
-            <td class="bv-col-hucha bv-tooltip-trigger" data-tip="${tipHucha}">
+            <td style="text-align:left; font-weight:700; color:var(--text);">${row.key}</td>
+            <td class="bv-tooltip-trigger" data-tip="${tipPot}" tabindex="0">${fEur(row.pot)}</td>
+            <td class="bv-tooltip-trigger" data-tip="${tipEne}" tabindex="0" style="font-weight:600;">${fEur(energiaNeta)}</td>
+            <td class="bv-tooltip-trigger" data-tip="${tipImp}" tabindex="0" style="color:var(--danger); font-weight:600;">${fEur(imp)}</td>
+            <td class="bv-tooltip-trigger" data-tip="${tipSub}" tabindex="0" style="font-weight:700; background:rgba(255,255,255,0.03);">${fEur(subtotal)}</td>
+            <td class="bv-tooltip-trigger" data-tip="${tipHucha}" tabindex="0">
                 <span class="bv-val-hucha-use">-${fEur(row.credit2)}</span>
             </td>
-            <td class="bv-col-pagar bv-cell-main bv-tooltip-trigger" data-tip="${tipPagar}" style="color:#10b981;">${fEur(row.totalPagar)}</td>
-            <td class="bv-col-saldo bv-tooltip-trigger" data-tip="${tipSaldo}" style="color:#fbbf24; font-weight:700;">${fEur(row.bvSaldoFin)}</td>
+            <td class="bv-tooltip-trigger" data-tip="${tipPagar}" tabindex="0" style="color:var(--accent2); font-weight:700;">${fEur(row.totalPagar)}</td>
+            <td class="bv-tooltip-trigger" data-tip="${tipSaldo}" tabindex="0" style="color:#fbbf24; font-weight:700;">${fEur(row.bvSaldoFin)}</td>
           </tr>
         `;
       }).join('');
@@ -260,7 +269,7 @@ window.BVSim = window.BVSim || {};
         ${ahorroPct > 0 ? `<div style="margin: 2rem auto; text-align:center; max-width:600px;"><div class="bv-savings-banner">📉 Estás ahorrando un <strong>${ahorroPct}%</strong> respecto a la media</div></div>` : ''}
 
         <details style="margin-top: 32px; margin-bottom: 48px;">
-          <summary style="font-size: 0.9rem; cursor: pointer; text-align: center; color: var(--muted); padding: 12px; border-radius: 8px; transition: background 0.2s;">Ver desglose detallado mensual ▾</summary>
+          <summary style="font-size: 1.1rem; font-weight: 700; cursor: pointer; text-align: center; color: var(--text); padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--card2); transition: all 0.2s;">Ver desglose detallado mensual ▾</summary>
           ${isWinnerIndexada ? '<div style="font-size:11px; color:#fbbf24; text-align:center; margin:12px 0;">* Excedentes estimados a 0,06 €/kWh (indexada)</div>' : ''}
           <div class="bv-table-container">
             <table class="bv-table">

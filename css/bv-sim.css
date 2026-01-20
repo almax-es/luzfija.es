@@ -299,6 +299,13 @@
   letter-spacing: 1px;
   border-bottom: 1px solid var(--border);
   text-align: center;
+  vertical-align: middle;
+}
+
+.bv-table th:first-child,
+.bv-table td:first-child {
+  text-align: left; /* Alinear Mes a la izquierda */
+  padding-left: 16px; /* Padding extra para separar del borde */
 }
 
 .bv-table td {
