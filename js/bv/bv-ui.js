@@ -192,7 +192,7 @@ window.BVSim = window.BVSim || {};
       });
 
       // --- HELPER RENDER TABLA DETALLE ---
-      const buildDetailedRows = (rows) => rows.map((row) => {
+      const buildDetailedRows = (rows, isIndexada) => rows.map((row) => {
         const impuestosYOtros = row.impuestoElec + row.ivaCuota + row.costeBonoSocial + row.alquilerContador;
         return `
           <tr>
@@ -211,7 +211,7 @@ window.BVSim = window.BVSim || {};
             </td>
             <td class="bv-val-highlight" style="font-size:12px; font-weight:800">${fEur(row.totalPagar)}</td>
             <td style="font-size:11px; color:#fbbf24; font-weight:700">
-                <div>+${fEur(row.excedenteSobranteEur)}</div>
+                <div>+${fEur(row.excedenteSobranteEur)}${isIndexada ? '*' : ''}</div>
                 <div style="border-top:1px solid rgba(251,191,36,0.3)">${fEur(row.bvSaldoFin)}</div>
             </td>
           </tr>
@@ -220,13 +220,14 @@ window.BVSim = window.BVSim || {};
 
       // --- RENDER GANADORA ---
       const winner = rankedResults[0];
+      const isWinnerIndexada = winner.tarifa.tipo === 'INDEXADA';
       const winnerName = winner.tarifa.nombre;
       const winnerCompany = winner.tarifa.comercializadora || '';
       const winnerCost = fEur(winner.totals.pagado);
       const winnerHucha = fEur(winner.totals.bvFinal);
       const winnerWeb = winner.tarifa.web;
 
-      const winnerRowsHtml = buildDetailedRows(winner.rows);
+      const winnerRowsHtml = buildDetailedRows(winner.rows, isWinnerIndexada);
 
       // --- RENDER OTRAS OPCIONES ---
       const othersHtml = rankedResults.slice(1, 10).map((r, i) => `
@@ -246,6 +247,7 @@ window.BVSim = window.BVSim || {};
           </div>
           <details style="margin-top: 8px;">
             <summary style="font-size: 0.75rem; color: var(--primary-light); cursor: pointer; opacity: 0.8;">Ver cuentas detalladas del mes</summary>
+            ${r.tarifa.tipo === 'INDEXADA' ? '<div style="font-size:9px; color:#fbbf24; text-align:center; margin-bottom:4px;">* Excedentes estimados a 0,06 €/kWh (indexada)</div>' : ''}
             <div class="bv-table-container" style="border:none; border-radius:8px; margin-top:8px; background:rgba(0,0,0,0.2);">
               <table class="bv-table" style="font-size:10px;">
                 <thead>
@@ -261,7 +263,7 @@ window.BVSim = window.BVSim || {};
                   </tr>
                 </thead>
                 <tbody>
-                  ${buildDetailedRows(r.rows)}
+                  ${buildDetailedRows(r.rows, r.tarifa.tipo === 'INDEXADA')}
                 </tbody>
               </table>
             </div>
@@ -294,6 +296,7 @@ window.BVSim = window.BVSim || {};
           
           <details style="margin-top: 20px; text-align: left;">
             <summary style="font-size: 0.8rem; cursor: pointer; opacity: 0.9; text-align: center;">Ver cuentas detalladas del ganador</summary>
+            ${isWinnerIndexada ? '<div style="font-size:10px; color:#fbbf24; text-align:center; margin-bottom:8px;">* Al ser tarifa indexada, los excedentes se han estimado a 0,06 €/kWh</div>' : ''}
             <div class="bv-table-container" style="border:none; border-radius:8px; margin-top:10px; background:rgba(0,0,0,0.2);">
               <table class="bv-table" style="font-size:10px; color: white;">
                 <thead>

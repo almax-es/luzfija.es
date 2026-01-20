@@ -195,7 +195,13 @@ window.BVSim.calcMonthForTarifa = function ({
   
   // Excedentes
   const exKwh = Number(month.exportTotalKWh) || 0;
-  const precioExc = Number(tarifa.fv.exc);
+  let precioExc = Number(tarifa.fv.exc);
+  
+  // Si es indexada y no tiene precio fijo, estimamos 0.06 (media pool excedentes)
+  if (precioExc <= 0 && tarifa.tipo === 'INDEXADA') {
+    precioExc = 0.06;
+  }
+  
   const creditoPotencial = round2(exKwh * precioExc);
   
   // Compensación (límite: coste energía)
@@ -364,10 +370,10 @@ window.BVSim.loadTarifasBV = async function () {
     const tarifas = Array.isArray(data?.tarifas) ? data.tarifas : [];
 
     const tarifasBV = tarifas.filter((tarifa) => {
-      // Filtrar todas las tarifas que compensan excedentes (con o sin BV)
       if (!tarifa || !tarifa.fv) return false;
       const exc = Number(tarifa.fv.exc);
-      return Number.isFinite(exc) && exc > 0;
+      // Incluimos tarifas con excedente fijo > 0 O tarifas indexadas que compensan (aunque el exc en JSON sea 0)
+      return (Number.isFinite(exc) && exc > 0) || (tarifa.tipo === 'INDEXADA' && tarifa.fv.tipo !== 'NO COMPENSA');
     });
 
     return { ok: true, tarifasBV };
