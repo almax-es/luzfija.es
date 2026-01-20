@@ -211,19 +211,19 @@
 
 .bv-table th.bv-col-pot, .bv-table td.bv-col-pot {
   text-align: center !important;
-  width: 70px;
+  width: 60px; /* Reducido de 70px */
 }
 
 .bv-table th.bv-col-mes, .bv-table td.bv-col-mes {
   text-align: left !important;
-  width: 80px;
-  padding-left: 15px;
+  width: 65px; /* Reducido de 80px */
+  padding-left: 8px; /* Menos padding */
 }
 
 /* Estilos de celda específicos */
 .bv-table td.bv-col-mes {
   text-align: left;
-  padding-left: 12px;
+  padding-left: 8px;
 }
 
 .bv-table td.bv-col-pot {
