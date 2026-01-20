@@ -203,22 +203,21 @@
 }
 
 .bv-table th, .bv-table td {
-  padding: 12px 4px; /* Menos padding horizontal */
+  padding: 12px 8px; /* Padding equilibrado de nuevo */
   text-align: center;
   border-bottom: 1px solid rgba(255,255,255,0.05);
   vertical-align: middle;
 }
 
-/* Anchos de columnas ajustados para mostrar formulas */
-.bv-table th.bv-col-pot, .bv-table td.bv-col-pot { width: 50px; }
-.bv-table th.bv-col-mes, .bv-table td.bv-col-mes { width: 60px; }
-.bv-table th.bv-col-imp, .bv-table td.bv-col-imp { width: 60px; }
+/* Anchos de columnas equilibrados para valores simples */
+.bv-table th.bv-col-mes, .bv-table td.bv-col-mes { width: 70px; text-align: left; }
+.bv-table th.bv-col-pot, .bv-table td.bv-col-pot { width: 80px; }
+.bv-table th.bv-col-ene, .bv-table td.bv-col-ene { width: 80px; }
+.bv-table th.bv-col-imp, .bv-table td.bv-col-imp { width: 80px; }
+.bv-table th.bv-col-sub, .bv-table td.bv-col-sub { width: 90px; }
 .bv-table th.bv-col-hucha, .bv-table td.bv-col-hucha { width: 90px; }
-
-.bv-table th.bv-col-ene, .bv-table td.bv-col-ene { width: 150px; } /* Formula Energía */
-.bv-table th.bv-col-sub, .bv-table td.bv-col-sub { width: 150px; } /* Formula Subtotal */
-.bv-table th.bv-col-pagar, .bv-table td.bv-col-pagar { width: 120px; } /* Formula Pagar */
-.bv-table th.bv-col-saldo, .bv-table td.bv-col-saldo { width: 160px; } /* Formula Saldo */
+.bv-table th.bv-col-pagar, .bv-table td.bv-col-pagar { width: 90px; }
+.bv-table th.bv-col-saldo, .bv-table td.bv-col-saldo { width: 90px; }
 
 .bv-cell-main {
   font-size: 15px;
