@@ -41,7 +41,7 @@ Herramienta **gratuita**, **sin publicidad** y **de código abierto** para compa
   - Enérgya VM, Imagina Energía, y más
 - Extrae: potencias (P1/P2), días, consumos (punta/llano/valle), CUPS
 - Validación con confianza (%)
-- OCR experimental para PDFs escaneados (Tesseract.js)
+- OCR para PDFs escaneados (Tesseract.js)
 - Sistema de advertencias contextuales
 - **Lazy loading**: PDF.js y OCR solo se cargan cuando subes factura
 - **Auto-cálculo**: Calcula automáticamente tras extraer datos
@@ -174,7 +174,7 @@ Este proyecto muestra el PVPC como **referencia** en el ranking (comparador de t
 - **Gráfico Top 5** (implementación propia en JS/SVG/CSS, sin librerías externas)
 - **PDF.js 5.x** (lazy loading) para parseo de facturas
 - **jsQR** (en precache) para escaneo de códigos QR
-- **Tesseract.js** (on-demand) para OCR experimental
+- **Tesseract.js** (on-demand) para OCR
 - **SheetJS (xlsx)** (lazy loading) para importación CSV
 
 ### Arquitectura
@@ -426,7 +426,7 @@ luzfija.es/
 
 **Lazy loading (bajo demanda):**
 - PDF.js se descarga y cachea al subir primera factura
-- Tesseract OCR al activar OCR experimental
+- Tesseract OCR al activar OCR
 - Excel (xlsx) al importar primer CSV
 
 ### Optimizaciones

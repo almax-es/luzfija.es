@@ -346,13 +346,15 @@
             </div>
           </div>                  </div>
           
-                  <div class="u-mt-24">
-                    <button class="btn primary bv-btn-simular" id="bv-simulate" type="button">
-                      <span class="bv-btn-text">Calcular Ahorro 🚀</span>
-                      <span class="spinner" style="display:none"></span>
-                    </button>
-                  </div>
-                </section>
+                          <div class="u-mt-24" style="display: flex; gap: 12px;">
+                            <button class="btn primary bv-btn-simular" id="bv-simulate" type="button" style="flex: 3;">
+                              <span class="bv-btn-text">Calcular Ahorro 🚀</span>
+                              <span class="spinner" style="display:none"></span>
+                            </button>
+                            <button class="btn" id="bv-reset" type="button" style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
+                              <span>↺ Limpiar</span>
+                            </button>
+                          </div>                </section>
           
                 <!-- Resultados (Ocultos por defecto) -->
                 <div id="bv-results-container" class="fade-container" style="display:none">

@@ -15,6 +15,25 @@ window.BVSim = window.BVSim || {};
   const viviendaCanariasInput = document.getElementById('bv-vivienda-canarias');
   
   const simulateButton = document.getElementById('bv-simulate');
+  const resetButton = document.getElementById('bv-reset');
+
+  if (resetButton) {
+    resetButton.addEventListener('click', () => {
+      p1Input.value = '3,45';
+      p2Input.value = '3,45';
+      saldoInput.value = '0,00';
+      zonaFiscalInput.value = 'Península';
+      viviendaCanariasWrapper.style.display = 'none';
+      window.BVSim.file = null;
+      fileInput.value = '';
+      if (fileSelectedMsg) fileSelectedMsg.style.display = 'none';
+      if (resultsContainer) {
+        resultsContainer.classList.remove('show');
+        resultsContainer.style.display = 'none';
+      }
+      if (statusContainer) statusContainer.style.display = 'none';
+    });
+  }
 
   // --- UI INITIALIZATION ---
   const btnTheme = document.getElementById('btnTheme');
