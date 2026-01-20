@@ -440,20 +440,20 @@ SALDO BV FIN = ${fEur(row.bvSaldoFin)}`
 
           // Si NO hay BV, NO mostramos columnas de hucha/saldo (más claro y mucho mejor en móvil).
           const extraCells = hasBV ? `
-              <td data-label="Uso Hucha" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipHucha)}"><span class="bv-cell-value">${huchaCell}</span></td>
-              <td data-label="Saldo Fin" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSaldo)}" style="${saldoStyle}"><span class="bv-cell-value">${saldoCell}</span></td>
+              <td data-label="Uso Hucha" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipHucha)}"><span class="bv-cell-label">Uso Hucha</span><span class="bv-cell-value">${huchaCell}</span></td>
+              <td data-label="Saldo Fin" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSaldo)}" style="${saldoStyle}"><span class="bv-cell-label">Saldo Fin</span><span class="bv-cell-value">${saldoCell}</span></td>
           ` : '';
 
           return `
             <tr>
-              <td data-label="Mes"><span class="bv-cell-value">${row.key}</span></td>
-              <td data-label="Potencia" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipPot)}"><span class="bv-cell-value">${fEur(row.pot)}</span></td>
-              <td data-label="E. Bruta" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipEneBruta)}"><span class="bv-cell-value">${fEur(eBruta)}</span></td>
-              <td data-label="Compensación" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipExcedentes)}" style="color:var(--accent2);"><span class="bv-cell-value">${excMes > 0 ? `-${fEur(excMes)}` : fEur(0)}</span></td>
-              <td data-label="E. Neta" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipEneNeta)}" style="font-weight:700;"><span class="bv-cell-value">${fEur(eNeta)}</span></td>
-              <td data-label="Impuestos" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipImp)}" style="color:var(--danger);"><span class="bv-cell-value">${fEur(imp)}</span></td>
-              <td data-label="Subtotal" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSub)}" style="background:rgba(255,255,255,0.02); font-weight:700;"><span class="bv-cell-value">${fEur(subtotal)}</span></td>
-              <td data-label="Pagar" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipPagar)}" style="color:var(--accent2); font-weight:800;"><span class="bv-cell-value">${fEur(row.totalPagar)}</span></td>
+              <td data-label="Mes"><span class="bv-cell-label">Mes</span><span class="bv-cell-value">${row.key}</span></td>
+              <td data-label="Potencia" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipPot)}"><span class="bv-cell-label">Potencia</span><span class="bv-cell-value">${fEur(row.pot)}</span></td>
+              <td data-label="E. Bruta" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipEneBruta)}"><span class="bv-cell-label">E. Bruta</span><span class="bv-cell-value">${fEur(eBruta)}</span></td>
+              <td data-label="Compensación" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipExcedentes)}" style="color:var(--accent2);"><span class="bv-cell-label">Compensación</span><span class="bv-cell-value">${excMes > 0 ? `-${fEur(excMes)}` : fEur(0)}</span></td>
+              <td data-label="E. Neta" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipEneNeta)}" style="font-weight:700;"><span class="bv-cell-label">E. Neta</span><span class="bv-cell-value">${fEur(eNeta)}</span></td>
+              <td data-label="Impuestos" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipImp)}" style="color:var(--danger);"><span class="bv-cell-label">Impuestos</span><span class="bv-cell-value">${fEur(imp)}</span></td>
+              <td data-label="Subtotal" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSub)}" style="background:rgba(255,255,255,0.02); font-weight:700;"><span class="bv-cell-label">Subtotal</span><span class="bv-cell-value">${fEur(subtotal)}</span></td>
+              <td data-label="Pagar" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipPagar)}" style="color:var(--accent2); font-weight:800;"><span class="bv-cell-label">Pagar</span><span class="bv-cell-value">${fEur(row.totalPagar)}</span></td>
               ${extraCells}
             </tr>
           `;

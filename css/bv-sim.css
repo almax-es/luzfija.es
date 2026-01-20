@@ -456,6 +456,9 @@ select.input option {
   text-align: center;
 }
 
+/* En desktop no mostramos etiquetas dentro de celdas (se usan los <th>). */
+.bv-cell-label{ display:none; }
+
 /* --- ARREGLO DE ALINEACIÃN Y ANCHOS DE COLUMNA --- */
 
 /* Mes: Izquierda, ancho mÃ­nimo real */
@@ -517,11 +520,15 @@ html.light-mode .bv-floating-tooltip{
 
 .bv-tooltip-trigger {
   cursor: help;
+}
+
+/* Solo subrayamos el valor (no la etiqueta), para que en móvil no se vea “todo rayado”. */
+.bv-tooltip-trigger .bv-cell-value{
   text-decoration: underline dotted var(--muted);
   text-underline-offset: 4px;
 }
 
-.bv-tooltip-trigger:hover {
+.bv-tooltip-trigger:hover .bv-cell-value{
   color: var(--accent);
   text-decoration-color: var(--accent);
 }
@@ -695,8 +702,9 @@ body.bv-modal-open{ overflow: hidden; }
 
   .bv-table td:last-child{ border-bottom:none; }
 
-  .bv-table td::before{
-    content: attr(data-label);
+  /* Mostramos la etiqueta explícita (no pseudo-elementos) para evitar desalineaciones en móvil */
+  .bv-cell-label{
+    display:block;
     font-weight: 800;
     color: var(--muted);
     font-size: 0.72rem;
@@ -717,7 +725,7 @@ body.bv-modal-open{ overflow: hidden; }
     padding: 12px 14px;
     border-bottom: 2px solid var(--border);
   }
-  .bv-table td[data-label='Mes']::before{ display:none; }
+  .bv-table td[data-label='Mes'] .bv-cell-label{ display:none; }
   .bv-table td[data-label='Mes'] .bv-cell-value{ justify-self: start; font-size: 1.05rem; }
 
   /* Resaltar Pagar */
