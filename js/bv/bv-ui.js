@@ -184,14 +184,27 @@ document.addEventListener('DOMContentLoaded', () => {
   const tipContentEl = tipModalEl.querySelector('.bv-tip-content');
   const tipCloseBtn = tipModalEl.querySelector('.bv-tip-close');
 
+  // Accesibilidad: guardar/restaurar foco al abrir/cerrar el modal
+  let lastFocusedEl = null;
+
   const openTipModal = (text) => {
+    lastFocusedEl = document.activeElement;
     if (tipContentEl) tipContentEl.textContent = String(text || '');
     tipModalEl.classList.add('show');
     document.body.classList.add('bv-modal-open');
+
+    // Mover foco al botón de cierre para usuarios de teclado/lectores
+    if (tipCloseBtn) setTimeout(() => tipCloseBtn.focus(), 0);
   };
   const closeTipModal = () => {
     tipModalEl.classList.remove('show');
     document.body.classList.remove('bv-modal-open');
+
+    // Restaurar foco al elemento que abrió el modal
+    if (lastFocusedEl && typeof lastFocusedEl.focus === 'function') {
+      try { lastFocusedEl.focus(); } catch {}
+    }
+    lastFocusedEl = null;
   };
 
   if (tipCloseBtn && !tipCloseBtn.dataset.bvBound) {
@@ -204,6 +217,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && tipModalEl.classList.contains('show')) closeTipModal();
+    // Trampa de foco mínima (solo hay un botón): mantener el foco dentro del modal
+    if (e.key === 'Tab' && tipModalEl.classList.contains('show')) {
+      e.preventDefault();
+      if (tipCloseBtn) tipCloseBtn.focus();
+    }
   });
 
   const canHover = !!(window.matchMedia && window.matchMedia('(hover: hover)').matches);

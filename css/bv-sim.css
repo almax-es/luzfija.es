@@ -744,18 +744,21 @@ body.bv-modal-open{ overflow: hidden; }
   .bv-alt-card-detailed h3{ font-size: 1.1rem !important; }
 
   /* Desglose: cero scroll horizontal, formato "tarjeta" con etiqueta izquierda y valor derecha */
-  .bv-table-container{
+  /* Nota: mantenemos estilos legacy de tabla en móvil, pero los acotamos
+     a la versión desktop (que está oculta) para no afectar a otras tablas. */
+  .bv-breakdown-desktop .bv-table-container{
     overflow-x: visible;
     -webkit-overflow-scrolling: auto;
     border: none;
     background: transparent;
   }
 
-  .bv-table{ min-width: 0 !important; }
-  .bv-table thead{ display:none; }
-  .bv-table, .bv-table tbody{ display:block; width:100%; }
+  .bv-breakdown-desktop .bv-table{ min-width: 0 !important; }
+  .bv-breakdown-desktop .bv-table thead{ display:none; }
+  .bv-breakdown-desktop .bv-table,
+  .bv-breakdown-desktop .bv-table tbody{ display:block; width:100%; }
 
-  .bv-table tr{
+  .bv-breakdown-desktop .bv-table tr{
     display:block;
     margin: 0 0 14px 0;
     border: 1px solid var(--border);
@@ -765,7 +768,7 @@ body.bv-modal-open{ overflow: hidden; }
     box-shadow: var(--shadow);
   }
 
-  .bv-table td{
+  .bv-breakdown-desktop .bv-table td{
     display: grid;
     grid-template-columns: 1fr auto;
     align-items: baseline;
@@ -778,9 +781,9 @@ body.bv-modal-open{ overflow: hidden; }
     font-variant-numeric: tabular-nums;
   }
 
-  .bv-table td:last-child{ border-bottom:none; }
+  .bv-breakdown-desktop .bv-table td:last-child{ border-bottom:none; }
 
-  .bv-table td::before{
+  .bv-breakdown-desktop .bv-table td::before{
     content: attr(data-label);
     font-weight: 800;
     color: var(--muted);
@@ -790,29 +793,29 @@ body.bv-modal-open{ overflow: hidden; }
     line-height: 1.2;
   }
 
-  .bv-cell-value{
+  .bv-breakdown-desktop .bv-cell-value{
     justify-self: end;
     font-weight: 900;
   }
 
   /* Cabecera: Mes */
-  .bv-table td[data-label='Mes']{
+  .bv-breakdown-desktop .bv-table td[data-label='Mes']{
     grid-template-columns: 1fr;
     background: var(--bg0);
     padding: 12px 14px;
     border-bottom: 2px solid var(--border);
   }
-  .bv-table td[data-label='Mes']::before{ display:none; }
-  .bv-table td[data-label='Mes'] .bv-cell-value{ justify-self: start; font-size: 1.05rem; }
+  .bv-breakdown-desktop .bv-table td[data-label='Mes']::before{ display:none; }
+  .bv-breakdown-desktop .bv-table td[data-label='Mes'] .bv-cell-value{ justify-self: start; font-size: 1.05rem; }
 
   /* Resaltar Pagar */
-  .bv-table td[data-label='Pagar']{
+  .bv-breakdown-desktop .bv-table td[data-label='Pagar']{
     background: rgba(139, 92, 246, 0.10);
   }
-  .bv-table td[data-label='Pagar'] .bv-cell-value{ font-size: 1.10rem; }
+  .bv-breakdown-desktop .bv-table td[data-label='Pagar'] .bv-cell-value{ font-size: 1.10rem; }
 
   /* Resaltar Saldo Fin (si aplica) */
-  .bv-table td[data-label='Saldo Fin']{
+  .bv-breakdown-desktop .bv-table td[data-label='Saldo Fin']{
     background: rgba(251, 191, 36, 0.08);
   }
 }
