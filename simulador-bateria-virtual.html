@@ -256,94 +256,174 @@
               <li><span aria-current="page">Simulador batería virtual</span></li>
             </ol>
           </nav>
-          <h1>Simulador de batería virtual (CSV)</h1>
-          <p>Preparado para probar cargas locales con tu CSV/XLSX.</p>
-        </div>
-      </div>
-    </div>
-
-    <main id="main" tabindex="-1">
-      <section class="card">
-        <div class="head" style="text-align: center;">
-          <h2>Sube tu archivo y potencia contratada</h2>
-        </div>
-        <p style="text-align: center; margin-top: 16px;">Simula mes a mes autoconsumo con batería virtual a partir de tu CSV/XLSX.</p>
-
-        <div class="bv-form-container">
-          <!-- Zona de carga Drag & Drop -->
-          <div class="bv-upload-zone" id="drop-zone">
-            <input class="bv-file-input" type="file" id="bv-file" accept=".csv,.xlsx,.xls" style="display:none">
-            <div class="bv-upload-content">
-              <div class="bv-upload-icon">📄</div>
-              <p class="bv-upload-text"><strong>Arrastra tu CSV/XLSX aquí</strong> o haz clic para buscar</p>
-              <p class="bv-upload-hint">Admite formatos de distribuidora y Datadis</p>
-            </div>
-            <div class="bv-file-selected" id="file-selected-msg" style="display:none">
-              <span class="bv-file-name" id="file-name">archivo.csv</span>
-              <button type="button" class="bv-remove-file" id="remove-file">✕</button>
-            </div>
-          </div>
-
-          <!-- Inputs Numéricos en Grid -->
-          <div class="bv-inputs-grid">
-            <div class="bv-input-wrapper">
-              <label for="bv-p1" style="font-size: 1.1rem; color: var(--text);">Potencia P1 (kW)</label>
-              <div class="bv-input-icon-group">
-                <span class="bv-input-icon">☀️</span>
-                <input class="bv-input-modern" type="text" id="bv-p1" inputmode="decimal" placeholder="Ej: 3,45" style="font-size: 1.2rem;">
+                    <h1>Simulador de batería virtual (CSV)</h1>
+                    <p>Preparado para probar cargas locales con tu CSV/XLSX.</p>
+                  </div>
+                </div>
+          
+                <div class="actions">
+                  <div class="actions-right">
+                    <button class="btn" id="btnTheme" type="button" title="Cambiar tema" aria-label="Cambiar tema">☀️</button>
+                    <div class="menu" id="menuRoot">
+                      <button class="btn" id="btnMenu" type="button" aria-haspopup="menu" aria-controls="menuPanel" aria-expanded="false" title="Opciones" aria-label="Abrir menú de opciones">⚙️</button>
+                      <div class="menuPanel" id="menuPanel" role="menu" aria-label="Opciones" aria-orientation="vertical">
+                        <div class="menuHint">Opciones</div>
+                        <a class="menuItem u-no-underline" href="mailto:hola@luzfija.es" role="menuitem">
+                          <span class="mi-left">✉️ Contacto</span>
+                          <span class="mi-right">email</span>
+                        </a>
+                        <div class="menuDivider"></div>
+                        <button class="menuItem" id="btnClearCache" type="button" role="menuitem" aria-label="Limpiar caché">
+                          <span class="mi-left">🗑️ Limpiar caché</span>
+                          <span class="mi-right">web</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
+          
+              <main id="main" tabindex="-1">
+                <section class="card">
+                  <div class="head" style="text-align: center;">
+                    <h2>Sube tu archivo y potencia contratada</h2>
+                  </div>
+                  <p style="text-align: center; margin-top: 16px;">Simula mes a mes autoconsumo con batería virtual a partir de tu CSV/XLSX.</p>
+          
+                  <div class="bv-form-container">
+                    <!-- Zona de carga Drag & Drop -->
+                    <div class="bv-upload-zone" id="drop-zone">
+                      <input class="bv-file-input" type="file" id="bv-file" accept=".csv,.xlsx,.xls" style="display:none">
+                      <div class="bv-upload-content">
+                        <div class="bv-upload-icon">📄</div>
+                        <p class="bv-upload-text"><strong>Arrastra tu CSV/XLSX aquí</strong> o haz clic para buscar</p>
+                        <p class="bv-upload-hint">Admite formatos de distribuidora y Datadis</p>
+                      </div>
+                      <div class="bv-file-selected" id="file-selected-msg" style="display:none">
+                        <span class="bv-file-name" id="file-name">archivo.csv</span>
+                        <button type="button" class="bv-remove-file" id="remove-file">✕</button>
+                      </div>
+                    </div>
+          
+                    <!-- Inputs Numéricos en Grid -->
+                    <div class="bv-inputs-grid">
+                      <div class="bv-input-wrapper">
+                        <label for="bv-p1" style="font-size: 1.1rem; color: var(--text);">Potencia P1 (kW)</label> 
+                        <div class="bv-input-icon-group">
+                          <span class="bv-input-icon">☀️</span>
+                          <input class="bv-input-modern" type="text" id="bv-p1" inputmode="decimal" placeholder="Ej: 3,45" style="font-size: 1.2rem;">
+                        </div>
+                      </div>
+                      <div class="bv-input-wrapper">
+                        <label for="bv-p2" style="font-size: 1.1rem; color: var(--text);">Potencia P2 (kW)</label> 
+                        <div class="bv-input-icon-group">
+                          <span class="bv-input-icon">🌙</span>
+                          <input class="bv-input-modern" type="text" id="bv-p2" inputmode="decimal" placeholder="Ej: 3,45" style="font-size: 1.2rem;">
+                        </div>
+                      </div>
+                      <div class="bv-input-wrapper">
+                        <label for="bv-saldo-inicial" style="font-size: 1.1rem; color: var(--text);">Dinero que ya tienes en la hucha</label>
+                        <div class="bv-input-icon-group">
+                          <span class="bv-input-icon">💰</span>
+                          <input class="bv-input-modern" type="text" id="bv-saldo-inicial" inputmode="decimal" value="0,00" style="font-size: 1.2rem;">
+                        </div>
+                        <div class="bv-help-text" style="font-size: 0.9rem;">Si ya eres cliente de la compañía y tienes saldo acumulado</div>
+                      </div>
+                    </div>
+                  </div>
+          
+                  <div class="u-mt-24">
+                    <button class="btn primary bv-btn-simular" id="bv-simulate" type="button">
+                      <span class="bv-btn-text">Calcular Ahorro 🚀</span>
+                      <span class="spinner" style="display:none"></span>
+                    </button>
+                  </div>
+                </section>
+          
+                <!-- Resultados (Ocultos por defecto) -->
+                <div id="bv-results-container" class="fade-container" style="display:none">
+                  <section class="card u-mt-16">
+                    <div class="head">
+                      <h2>Resultados de la Simulación</h2>
+                    </div>
+                    <div id="bv-results"></div>
+                  </section>
+                </div>
+          
+                <!-- Estado (Oculto por defecto o integrado en notificaciones) -->
+                <div id="bv-status-container" style="display:none">
+                  <section class="card u-mt-16">
+                    <div class="head">
+                      <h2>Estado</h2>
+                    </div>
+                    <div id="bv-status"></div>
+                  </section>
+                </div>
+              </main>
+          
+              <footer class="footer-container">
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:30px; margin-bottom:30px;">
+                  <div>
+                    <h3 class="u-h3-strong-10">Sobre el Simulador</h3>
+                    <p style="color:var(--muted); font-size:12px; line-height:1.6; margin:0 0 12px 0;">
+                      Herramienta experimental para <strong>simular batería virtual</strong> a partir de tus consumos reales horarios.
+                    </p>
+                    <p class="u-m-0">
+                      <a href="/guias.html" style="color:var(--accent); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; transition: opacity 0.2s;">
+                        📚 Guías sobre tarifas eléctricas
+                        <span style="font-size:10px;">→</span>
+                      </a>
+                    </p>
+                  </div>
+          
+                  <div>
+                    <h3 class="u-h3-strong-10">Horarios Discriminación</h3>
+                    <ul class="u-list-muted-12">
+                      <li><strong style="color:var(--danger);">Punta:</strong> 10h-14h y 18h-22h</li>
+                      <li><strong style="color:var(--warn);">Llano:</strong> 8h-10h, 14h-18h, 22h-24h</li>
+                      <li><strong style="color:var(--accent2);">Valle:</strong> 0h-8h + fines de semana</li>
+                    </ul>
+                  </div>
+          
+                  <div>
+                    <h3 class="u-h3-strong-10">¿Qué Calculamos?</h3>
+                    <ul class="u-list-muted-12">
+                      <li>✓ Simulación mes a mes</li>
+                      <li>✓ Compensación de excedentes (€)</li>
+                      <li>✓ Acumulación en Batería Virtual</li>
+                      <li>✓ Impuestos (IVA 21%, IEE)</li>
+                      <li>✓ Comparativa entre +50 tarifas</li>
+                    </ul>
+                  </div>
+          
+                  <div id="contacto">
+                    <h3 class="u-h3-strong-10">Contacto</h3>
+                    <div class="contact-box">
+                      <div class="u-label-xs">✉️ Email</div>
+                      <a href="mailto:hola@luzfija.es" class="u-color-accent u-fw-900 u-text-13" style="text-decoration:underline;">hola@luzfija.es</a>
+                    </div>
+                  </div>
+                </div>
+          
+                <div style="margin-top:30px; padding:28px 20px 24px; border-top:1px solid rgba(255,255,255,0.05); text-align:center;">
+                  <p style="font-size:11px; opacity:0.5; margin-bottom:8px;">⚡ LuzFija.es · Simulador de Batería Virtual</p>
+                  <div style="margin-top:18px; padding-top:14px; border-top:1px solid var(--border);">
+                    <div class="u-max-w-720 u-center-text-padded">
+                      <p class="u-mt-10 u-text-10 u-opacity-65 u-leading-15">
+                        Analítica sin cookies · <a href="/privacidad.html" class="u-link-accent">Política de privacidad</a> · <a href="/aviso-legal.html" class="u-link-accent">Aviso legal</a>
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </footer>
             </div>
-            <div class="bv-input-wrapper">
-              <label for="bv-p2" style="font-size: 1.1rem; color: var(--text);">Potencia P2 (kW)</label>
-              <div class="bv-input-icon-group">
-                <span class="bv-input-icon">🌙</span>
-                <input class="bv-input-modern" type="text" id="bv-p2" inputmode="decimal" placeholder="Ej: 3,45" style="font-size: 1.2rem;">
-              </div>
-            </div>
-            <div class="bv-input-wrapper">
-              <label for="bv-saldo-inicial" style="font-size: 1.1rem; color: var(--text);">Dinero que ya tienes en la hucha</label>
-              <div class="bv-input-icon-group">
-                <span class="bv-input-icon">💰</span>
-                <input class="bv-input-modern" type="text" id="bv-saldo-inicial" inputmode="decimal" value="0,00" style="font-size: 1.2rem;">
-              </div>
-              <div class="bv-help-text" style="font-size: 0.9rem;">Si ya eres cliente de la compañía y tienes saldo acumulado</div>
-            </div>
-          </div>
-        </div>
-
-        <div class="u-mt-24">
-          <button class="btn primary bv-btn-simular" id="bv-simulate" type="button">
-            <span class="bv-btn-text">Calcular Ahorro 🚀</span>
-            <span class="spinner" style="display:none"></span>
-          </button>
-        </div>
-      </section>
-
-      <!-- Resultados (Ocultos por defecto) -->
-      <div id="bv-results-container" class="fade-container" style="display:none">
-        <section class="card u-mt-16">
-          <div class="head">
-            <h2>Resultados de la Simulación</h2>
-          </div>
-          <div id="bv-results"></div>
-        </section>
-      </div>
-
-      <!-- Estado (Oculto por defecto o integrado en notificaciones) -->
-      <div id="bv-status-container" style="display:none">
-        <section class="card u-mt-16">
-          <div class="head">
-            <h2>Estado</h2>
-          </div>
-          <div id="bv-status"></div>
-        </section>
-      </div>
-    </main>
-  </div>
-
-  <script src="/js/lf-config.js"></script>
-  <script src="/js/bv/bv-import.js"></script>
-  <script src="/js/bv/bv-sim-monthly.js"></script>
-  <script src="/js/bv/bv-ui.js"></script>
-</body>
-</html>
+          
+            <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"><span class="dot" id="toastDot"></span><span id="toastText"></span></div>
+          
+            <script src="/js/lf-config.js"></script>
+            <script src="/js/lf-utils.js"></script>
+            <script src="/js/lf-ui.js"></script>
+            <script src="/js/bv/bv-import.js"></script>
+            <script src="/js/bv/bv-sim-monthly.js"></script>
+            <script src="/js/bv/bv-ui.js"></script>
+          </body></html>
