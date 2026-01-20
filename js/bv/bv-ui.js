@@ -189,30 +189,29 @@ window.BVSim = window.BVSim || {};
 
       const buildDetailedRows = (rows, isIndexada) => rows.map((row) => {
         const imp = row.impuestoElec + row.ivaCuota + row.costeBonoSocial + row.alquilerContador;
+        const energiaNeta = row.consEur - row.credit1;
+        const subtotal = row.totalBase; // Ya incluye IVA
+
         return `
           <tr>
             <td class="bv-col-mes" style="font-weight:700; color:#fff">${row.key}</td>
             <td class="bv-col-pot" style="text-align:center">${fEur(row.pot)}</td>
-            <td class="bv-col-ene">
-                <div class="bv-cell-op">
-                  <span class="bv-op-base">${fEur(row.consEur)}</span>
-                  <span class="bv-op-disc">-${fEur(row.credit1)}</span>
-                  <span class="bv-op-total">${fEur(row.consEur - row.credit1)}</span>
-                </div>
+            <td class="bv-col-ene" style="text-align:center; font-weight:600;">
+                ${fEur(energiaNeta)}
             </td>
-            <td class="bv-col-imp" style="color:#ef4444; font-size:12px">${fEur(imp)}</td>
-            <td class="bv-col-sub" style="font-weight:700; background:rgba(255,255,255,0.03)">${fEur(row.totalBase + row.ivaCuota)}</td>
+            <td class="bv-col-imp" style="color:#ef4444; font-size:1.1rem; font-weight:600; text-align:center;">${fEur(imp)}</td>
+            <td class="bv-col-sub" style="font-weight:700; background:rgba(255,255,255,0.03); text-align:center;">${fEur(subtotal)}</td>
             <td class="bv-col-hucha">
                 <div class="bv-cell-op">
-                  <span class="bv-val-hucha-prev">Tenías: ${fEur(row.bvSaldoPrev)}</span>
-                  <span class="bv-val-hucha-use">-${fEur(row.credit2)}</span>
+                  <span class="bv-val-hucha-prev">Hucha: ${fEur(row.bvSaldoPrev)}</span>
+                  <span class="bv-val-hucha-use">Uso: -${fEur(row.credit2)}</span>
                 </div>
             </td>
-            <td class="bv-col-pagar bv-cell-main" style="color:#10b981">${fEur(row.totalPagar)}</td>
-            <td class="bv-col-saldo" style="color:#fbbf24; font-weight:700">
+            <td class="bv-col-pagar bv-cell-main" style="color:#10b981; text-align:center;">${fEur(row.totalPagar)}</td>
+            <td class="bv-col-saldo" style="color:#fbbf24; font-weight:700; text-align:center;">
                 <div class="bv-cell-op">
-                  <span>+${fEur(row.excedenteSobranteEur)}${isIndexada ? '*' : ''}</span>
-                  <span class="bv-op-total" style="color:#fbbf24; border-color:rgba(251,191,36,0.3)">${fEur(row.bvSaldoFin)}</span>
+                  <span style="font-size:0.75rem; opacity:0.8; color:#fbbf24">+${fEur(row.excedenteSobranteEur)}${isIndexada ? '*' : ''}</span>
+                  <span class="bv-op-total" style="color:#fbbf24; border-color:rgba(251,191,36,0.3); font-size:1rem;">${fEur(row.bvSaldoFin)}</span>
                 </div>
             </td>
           </tr>
