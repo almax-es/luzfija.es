@@ -190,28 +190,42 @@ window.BVSim = window.BVSim || {};
       const buildDetailedRows = (rows, isIndexada) => rows.map((row) => {
         const imp = row.impuestoElec + row.ivaCuota + row.costeBonoSocial + row.alquilerContador;
         const energiaNeta = row.consEur - row.credit1;
-        const subtotal = row.totalBase; // Ya incluye IVA
+        const subtotal = row.totalBase;
+        const restoHucha = Math.max(0, row.bvSaldoPrev - row.credit2);
 
         return `
           <tr>
-            <td class="bv-col-mes" style="font-weight:700; color:#fff">${row.key}</td>
-            <td class="bv-col-pot" style="text-align:center">${fEur(row.pot)}</td>
-            <td class="bv-col-ene" style="text-align:center; font-weight:600;">
-                ${fEur(energiaNeta)}
-            </td>
-            <td class="bv-col-imp" style="color:#ef4444; font-size:1.1rem; font-weight:600; text-align:center;">${fEur(imp)}</td>
-            <td class="bv-col-sub" style="font-weight:700; background:rgba(255,255,255,0.03); text-align:center;">${fEur(subtotal)}</td>
-            <td class="bv-col-hucha">
-                <div class="bv-cell-op">
-                  <span class="bv-val-hucha-prev">Hucha: ${fEur(row.bvSaldoPrev)}</span>
-                  <span class="bv-val-hucha-use">Uso: -${fEur(row.credit2)}</span>
+            <td class="bv-col-mes" style="font-weight:700; color:#fff; font-size:0.9rem;">${row.key}</td>
+            <td class="bv-col-pot" style="text-align:center; font-size:0.9rem;">${fEur(row.pot)}</td>
+            <td class="bv-col-ene" style="text-align:center;">
+                <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
+                  <span style="font-size:0.8rem; opacity:0.8; white-space:nowrap;">${fEur(row.consEur)} - ${fEur(row.credit1)} (Exc)</span>
+                  <span style="font-weight:800; color:#fff; border-top:1px solid rgba(255,255,255,0.2); padding-top:2px;">= ${fEur(energiaNeta)}</span>
                 </div>
             </td>
-            <td class="bv-col-pagar bv-cell-main" style="color:#10b981; text-align:center;">${fEur(row.totalPagar)}</td>
-            <td class="bv-col-saldo" style="color:#fbbf24; font-weight:700; text-align:center;">
+            <td class="bv-col-imp" style="color:#ef4444; font-size:1rem; font-weight:700; text-align:center;">${fEur(imp)}</td>
+            <td class="bv-col-sub" style="text-align:center;">
+                <div style="display:flex; flex-direction:column; align-items:center; gap:2px;">
+                  <span style="font-size:0.75rem; opacity:0.7; white-space:nowrap;">${fEur(row.pot)} + ${fEur(energiaNeta)} + ${fEur(imp)}</span>
+                  <span style="font-weight:800; color:#fff; border-top:1px solid rgba(255,255,255,0.2); padding-top:2px;">= ${fEur(subtotal)}</span>
+                </div>
+            </td>
+            <td class="bv-col-hucha" style="text-align:center;">
                 <div class="bv-cell-op">
-                  <span style="font-size:0.75rem; opacity:0.8; color:#fbbf24">+${fEur(row.excedenteSobranteEur)}${isIndexada ? '*' : ''}</span>
-                  <span class="bv-op-total" style="color:#fbbf24; border-color:rgba(251,191,36,0.3); font-size:1rem;">${fEur(row.bvSaldoFin)}</span>
+                  <span class="bv-val-hucha-prev" style="white-space:nowrap;">Hucha: ${fEur(row.bvSaldoPrev)}</span>
+                  <span class="bv-val-hucha-use" style="white-space:nowrap;">Uso: -${fEur(row.credit2)}</span>
+                </div>
+            </td>
+            <td class="bv-col-pagar" style="text-align:center;">
+               <div style="display:flex; flex-direction:column; align-items:center;">
+                  <span style="font-size:0.75rem; opacity:0.7;">${fEur(subtotal)} - ${fEur(row.credit2)}</span>
+                  <span style="font-weight:900; color:#10b981; font-size:1.1rem; border-top:1px solid rgba(255,255,255,0.2); padding-top:2px;">= ${fEur(row.totalPagar)}</span>
+               </div>
+            </td>
+            <td class="bv-col-saldo" style="text-align:center;">
+                <div style="display:flex; flex-direction:column; align-items:center;">
+                  <span style="font-size:0.75rem; opacity:0.7; white-space:nowrap;">${fEur(restoHucha)} (Resto) + ${fEur(row.excedenteSobranteEur)} (Nuevo)</span>
+                  <span style="font-weight:800; color:#fbbf24; font-size:1rem; border-top:1px solid rgba(255,255,255,0.2); padding-top:2px;">= ${fEur(row.bvSaldoFin)}</span>
                 </div>
             </td>
           </tr>
