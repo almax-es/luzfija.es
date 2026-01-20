@@ -47,7 +47,14 @@
 
   <url>
     <loc>https://luzfija.es/calcular-factura-luz.html</loc>
-    <lastmod>2026-01-19</lastmod>
+    <lastmod>2026-01-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>https://luzfija.es/simulador-bateria-virtual.html</loc>
+    <lastmod>2026-01-20</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
   </url>
