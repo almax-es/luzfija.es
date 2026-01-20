@@ -887,7 +887,7 @@
 
       const fileInput = document.createElement('input');
       fileInput.type = 'file';
-      fileInput.accept = '.csv,.xlsx,.xls';
+      fileInput.accept = '.csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel';
       fileInput.style.display = 'none';
       fileInput.id = 'csvConsumoInput';
 
