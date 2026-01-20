@@ -205,15 +205,15 @@ window.BVSim = window.BVSim || {};
         return `
           <tr>
             <td class="bv-col-mes" style="font-weight:700; color:#fff;">${row.key}</td>
-            <td class="bv-col-pot tooltip" data-tip="${tipPot}" style="cursor:help;">${fEur(row.pot)}</td>
-            <td class="bv-col-ene tooltip" data-tip="${tipEne}" style="cursor:help; font-weight:600;">${fEur(energiaNeta)}</td>
-            <td class="bv-col-imp tooltip" data-tip="${tipImp}" style="cursor:help; color:#ef4444; font-weight:600;">${fEur(imp)}</td>
-            <td class="bv-col-sub tooltip" data-tip="${tipSub}" style="cursor:help; font-weight:700; background:rgba(255,255,255,0.03);">${fEur(subtotal)}</td>
-            <td class="bv-col-hucha tooltip" data-tip="${tipHucha}" style="cursor:help;">
+            <td class="bv-col-pot bv-tooltip-trigger" data-tip="${tipPot}">${fEur(row.pot)}</td>
+            <td class="bv-col-ene bv-tooltip-trigger" data-tip="${tipEne}" style="font-weight:600;">${fEur(energiaNeta)}</td>
+            <td class="bv-col-imp bv-tooltip-trigger" data-tip="${tipImp}" style="color:#ef4444; font-weight:600;">${fEur(imp)}</td>
+            <td class="bv-col-sub bv-tooltip-trigger" data-tip="${tipSub}" style="font-weight:700; background:rgba(255,255,255,0.03);">${fEur(subtotal)}</td>
+            <td class="bv-col-hucha bv-tooltip-trigger" data-tip="${tipHucha}">
                 <span class="bv-val-hucha-use">-${fEur(row.credit2)}</span>
             </td>
-            <td class="bv-col-pagar bv-cell-main tooltip" data-tip="${tipPagar}" style="cursor:help; color:#10b981;">${fEur(row.totalPagar)}</td>
-            <td class="bv-col-saldo tooltip" data-tip="${tipSaldo}" style="cursor:help; color:#fbbf24; font-weight:700;">${fEur(row.bvSaldoFin)}</td>
+            <td class="bv-col-pagar bv-cell-main bv-tooltip-trigger" data-tip="${tipPagar}" style="color:#10b981;">${fEur(row.totalPagar)}</td>
+            <td class="bv-col-saldo bv-tooltip-trigger" data-tip="${tipSaldo}" style="color:#fbbf24; font-weight:700;">${fEur(row.bvSaldoFin)}</td>
           </tr>
         `;
       }).join('');
@@ -303,9 +303,12 @@ window.BVSim = window.BVSim || {};
       const dlBtn = document.getElementById('bv-download-csv');
       if (dlBtn) dlBtn.addEventListener('click', () => window.BVSim.downloadCSV(winner));
       
-      // Inicializar tooltips dinámicos
-      if (window.LF && window.LF.initTooltips) {
-        setTimeout(window.LF.initTooltips, 100);
+      // Inicializar tooltips dinámicos (usando nuestra clase personalizada para no romper estilos)
+      if (window.LF && window.LF.bindTooltipElement) {
+        setTimeout(() => {
+          resultsEl.querySelectorAll('.bv-tooltip-trigger').forEach(el => window.LF.bindTooltipElement(el));
+          if (window.LF.initTooltips) window.LF.initTooltips(); // Para el resto
+        }, 100);
       }
       
     } catch (e) {

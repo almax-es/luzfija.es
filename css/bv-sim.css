@@ -219,6 +219,18 @@
 .bv-table th.bv-col-pagar, .bv-table td.bv-col-pagar { width: 90px; }
 .bv-table th.bv-col-saldo, .bv-table td.bv-col-saldo { width: 90px; }
 
+/* Estilos de celda específicos */
+.bv-table td.bv-col-mes {
+  text-align: left;
+  padding-left: 12px;
+}
+
+.bv-table td.bv-col-pot {
+  text-align: center;
+  padding-left: 4px;
+  padding-right: 4px;
+}
+
 .bv-cell-main {
   font-size: 15px;
   font-weight: 800;
@@ -243,6 +255,16 @@
   .bv-table {
     font-size: 12px;
   }
+}
+
+/* --- Tooltips Custom Trigger --- */
+.bv-tooltip-trigger {
+  cursor: help;
+  text-decoration: underline dotted rgba(255,255,255,0.3);
+  text-underline-offset: 4px;
+}
+.bv-tooltip-trigger:hover {
+  background: rgba(255,255,255,0.05);
 }
 
 /* --- Menu & UI Fixes --- */
