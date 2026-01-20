@@ -59,6 +59,22 @@ Herramienta **gratuita**, **sin publicidad** y **de código abierto** para compa
 - **⚡ Octopus Sun Club**: análisis de Sun Club con consumos horarios (se presenta como tarjeta independiente)
 - **Auto-cálculo**: recalcula automáticamente tras aplicar datos
 
+### 🔋 Simulador de Batería Virtual
+- **Simulación mes a mes** con tus consumos reales (CSV/XLSX de distribuidora)
+- Compara todas las tarifas con batería virtual del mercado
+- Cálculo detallado para cada mes:
+  - **Compensación de excedentes** limitada a energía bruta del mes
+  - **Acumulación en batería virtual** (€) del excedente sobrante
+  - **Aplicación de saldo BV** del mes anterior para reducir factura
+  - Diferencia clave: **Coste real** vs **Lo que pagas** (con BV aplicada)
+- **Ranking inteligente**: ordena por lo que realmente pagas (con BV)
+- **Desglose mes a mes** con tooltips explicativos de cada concepto
+- Soporte para 3 zonas fiscales (IVA/IGIC/IPSI diferenciados)
+- Detección automática de festivos nacionales (algoritmo de Gauss para Pascua)
+- Filtra automáticamente tarifas indexadas (solo muestra precio fijo)
+- **Responsive**: Desktop (tablas), Móvil (tarjetas sin scroll horizontal)
+- **Accesibilidad**: ARIA labels, focus management, tooltips táctiles
+
 ### 📚 Guías Educativas
 23 guías completas sobre:
 - Cómo leer tu factura paso a paso
@@ -77,6 +93,7 @@ Herramienta **gratuita**, **sin publicidad** y **de código abierto** para compa
 - **Mejor tarifa para coche eléctrico**
 - **Mejor tarifa con discriminación horaria**
 - **Mejor tarifa con placas solares**
+- **Simulador de batería virtual** (simulación mes a mes con CSV)
 - Calculadora de factura de luz
 - Comparador PVPC vs tarifa fija
 
@@ -229,6 +246,7 @@ luzfija.es/
 ├── mejor-tarifa-coche-electrico.html
 ├── mejor-tarifa-discriminacion-horaria.html
 ├── mejor-tarifa-placas-solares.html
+├── simulador-bateria-virtual.html  # Simulador BV (mes a mes)
 ├── guias.html                  # Índice de guías
 ├── 404.html                    # Página de error
 ├── aviso-legal.html
@@ -253,8 +271,14 @@ luzfija.es/
 │   ├── tracking.js             # Analytics (GoatCounter, defer)
 │   ├── factura.js              # Extractor factura PDF + QR/OCR
 │   ├── desglose-factura.js     # Modal desglose detallado
-│   └── desglose-integration.js # Integración desglose con tabla
+│   ├── desglose-integration.js # Integración desglose con tabla
+│   └── bv/                     # Simulador Batería Virtual
+│       ├── bv-import.js        # Importador CSV/XLSX para BV
+│       ├── bv-sim-monthly.js   # Motor cálculo mes a mes
+│       └── bv-ui.js            # UI y renderizado
 
+├── css/
+│   └── bv-sim.css              # Estilos simulador BV
 ├── styles.css                  # Estilos globales (~121 KB)
 ├── desglose-factura.css        # CSS modal desglose
 ├── sw.js                       # Service Worker (PWA/offline)
@@ -280,7 +304,7 @@ luzfija.es/
 
 ### Arquitectura Modular
 
-**Separación de concerns (20 módulos):**
+**Separación de concerns (23 módulos):**
 - **config.js** (4 LOC): Config global (URLs, flags)
 - **lf-config.js** (213 LOC): Valores regulados y reglas fiscales por territorio
 - **lf-calc.js** (498 LOC): Motor de cálculo (potencia, energía, impuestos, solar, BV)
@@ -301,6 +325,9 @@ luzfija.es/
 - **desglose-factura.js** (606 LOC): Modal desglose detallado de tarifas
 - **desglose-integration.js** (407 LOC): Integración desglose con tabla principal
 - **tracking.js** (236 LOC): Analytics (GoatCounter, defer attribute)
+- **bv/bv-import.js** (580 LOC): Importador CSV/XLSX para simulador BV
+- **bv/bv-sim-monthly.js** (400 LOC): Motor simulación mensual BV (cálculo económico)
+- **bv/bv-ui.js** (655 LOC): UI simulador BV (tooltips, responsive, accesibilidad)
 
 **Ventajas:**
 - Cambios aislados por módulo
@@ -375,30 +402,35 @@ luzfija.es/
   - Excel (xlsx): ~1 MB
 
 ### Líneas de Código
-- **JavaScript**: ~10,400 líneas (20 módulos)
+- **JavaScript**: ~12,035 líneas (23 módulos)
   - factura.js: 1,756
   - lf-csv-import.js: 956
   - pvpc.js: 924
-  - lf-app.js: 561
-  - desglose-factura.js: 606
-  - desglose-integration.js: 407
   - index-extra.js: 677
+  - **bv/bv-ui.js: 655**
   - lf-inputs.js: 607
+  - desglose-factura.js: 606
+  - **bv/bv-import.js: 580**
+  - lf-app.js: 561
   - lf-render.js: 534
   - lf-calc.js: 498
+  - desglose-integration.js: 407
+  - **bv/bv-sim-monthly.js: 400**
   - lf-utils.js: 273
-  - lf-config.js: 213
   - lf-tarifa-custom.js: 242
-  - lf-tooltips.js: 147
-  - lf-ui.js: 155
-  - lf-cache.js: 175
-  - lf-state.js: 187
   - tracking.js: 236
+  - lf-config.js: 213
+  - lf-state.js: 187
+  - lf-cache.js: 175
+  - lf-ui.js: 155
+  - lf-tooltips.js: 147
   - theme.js: 16
   - config.js: 4
-- **CSS**: ~2,500 líneas (3 archivos)
-- **HTML**: ~6,000 líneas (31 páginas)
-- **Total proyecto**: ~40,000+ líneas
+- **CSS**: ~3,334 líneas (4 archivos)
+  - styles.css: ~2,500
+  - **bv-sim.css: 834**
+- **HTML**: ~6,000 líneas (32 páginas, incluye simulador-bateria-virtual.html)
+- **Total proyecto**: ~42,000+ líneas
 
 ---
 

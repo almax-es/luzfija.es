@@ -395,9 +395,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Cálculos Potencia
         const potP1 = r2(p1Val * row.dias * t.p1);
         const potP2 = r2(p2Val * row.dias * t.p2);
-        const tipPot = `P1: ${fKw(p1Val)} kW × ${row.dias}d × ${fPrice(t.p1)} € = ${fEur(potP1)}
-P2: ${fKw(p2Val)} kW × ${row.dias}d × ${fPrice(t.p2)} € = ${fEur(potP2)}
-TOTAL = ${fEur(row.pot)}`;
+        const tipPot = `⚡ P1: ${fKw(p1Val)} kW × ${row.dias} días × ${fPrice(t.p1)} €/día = ${fEur(potP1)}
+⚡ P2: ${fKw(p2Val)} kW × ${row.dias} días × ${fPrice(t.p2)} €/día = ${fEur(potP2)}
+━━━━━━━━━━━━━━━
+💰 TOTAL: ${fEur(row.pot)}`;
 
         // Cálculos Energía (Bruta)
         const kwhP1 = Number(m.importByPeriod?.P1) || 0;
@@ -406,50 +407,72 @@ TOTAL = ${fEur(row.pot)}`;
         const eP1 = r2(kwhP1 * t.cPunta);
         const eP2 = r2(kwhP2 * t.cLlano);
         const eP3 = r2(kwhP3 * t.cValle);
-        const tipEneBruta = `P1: ${fKwh(kwhP1)} kWh × ${fPrice(t.cPunta)} € = ${fEur(eP1)}
-P2: ${fKwh(kwhP2)} kWh × ${fPrice(t.cLlano)} € = ${fEur(eP2)}
-P3: ${fKwh(kwhP3)} kWh × ${fPrice(t.cValle)} € = ${fEur(eP3)}
-TOTAL = ${fEur(eBruta)}`;
+        const tipEneBruta = `🔴 Punta: ${fKwh(kwhP1)} kWh × ${fPrice(t.cPunta)} €/kWh = ${fEur(eP1)}
+🟡 Llano: ${fKwh(kwhP2)} kWh × ${fPrice(t.cLlano)} €/kWh = ${fEur(eP2)}
+🟢 Valle: ${fKwh(kwhP3)} kWh × ${fPrice(t.cValle)} €/kWh = ${fEur(eP3)}
+━━━━━━━━━━━━━━━
+💰 TOTAL: ${fEur(eBruta)}`;
 
         // Cálculos Excedentes
         const exKwh = Number(row.exKwh) || Number(m.exportTotalKWh) || 0;
         const totalGen = r2(exKwh * (row.precioExc || 0));
-        const tipExcedentes = `Generado: ${fKwh(exKwh)} kWh × ${fPrice(row.precioExc)} € = ${fEur(totalGen)}
+        const tipExcedentes = `💰 Valor generado: ${fKwh(exKwh)} kWh × ${fPrice(row.precioExc)} €/kWh = ${fEur(totalGen)}
 
-Compensación (este mes):
-- Límite: energía bruta del mes
-- Compensado en factura: ${fEur(excMes)}
+✅ Compensado en este mes: ${fEur(excMes)}
+   (Límite: energía bruta ${fEur(eBruta)})
 
-Excedente sobrante:
-${hasBV ? `- Se acumula en Batería Virtual: ${fEur(sobranteHucha)}` : `- NO se acumula (se pierde): ${fEur(sobranteHucha)}`}`;
+${hasBV ? `💚 Sobrante → Batería Virtual: ${fEur(sobranteHucha)}` : `❌ Sobrante perdido: ${fEur(sobranteHucha)}`}`;
 
-        const tipEneNeta = `Energía Bruta (${fEur(eBruta)}) - Compensación (${fEur(excMes)}) = ${fEur(eNeta)}`;
-        const tipImp = `Impuesto eléctrico (IEE): ${fEur(row.impuestoElec)}
-IVA/IGIC/IPSI: ${fEur(row.ivaCuota)}
-Bono social: ${fEur(row.costeBonoSocial)}
-Alquiler contador: ${fEur(row.alquilerContador)}`;
-        const tipSub = `Potencia: ${fEur(row.pot)}
-Energía neta (bruta - compensación): ${fEur(eNeta)}
-Bono social: ${fEur(row.costeBonoSocial)}
-Impuesto eléctrico (IEE): ${fEur(row.impuestoElec)}
-Alquiler contador: ${fEur(row.alquilerContador)}
-IVA/IGIC/IPSI: ${fEur(row.ivaCuota)}
-TOTAL = ${fEur(subtotal)}`;
+        const tipEneNeta = `Energía Bruta: ${fEur(eBruta)}
+- Compensación solar: ${fEur(excMes)}
+━━━━━━━━━━━━━━━
+= Energía Neta: ${fEur(eNeta)}`;
+        const tipImp = `📊 Impuestos y cargos:
+
+• Impuesto eléctrico (IEE): ${fEur(row.impuestoElec)}
+• IVA/IGIC/IPSI: ${fEur(row.ivaCuota)}
+• Bono social: ${fEur(row.costeBonoSocial)}
+• Alquiler contador: ${fEur(row.alquilerContador)}`;
+        const tipSub = `📋 Desglose del subtotal:
+
+⚡ Potencia: ${fEur(row.pot)}
+🔌 Energía neta: ${fEur(eNeta)}
+📊 IEE: ${fEur(row.impuestoElec)}
+💶 IVA/IGIC/IPSI: ${fEur(row.ivaCuota)}
+💵 Bono social: ${fEur(row.costeBonoSocial)}
+🔢 Alquiler: ${fEur(row.alquilerContador)}
+━━━━━━━━━━━━━━━
+💰 TOTAL: ${fEur(subtotal)}`;
 
         const tipHucha = hasBV
-          ? `Saldo BV previo: ${fEur(row.bvSaldoPrev)}
-Usado este mes: -${fEur(usoHucha)}`
-          : 'No aplica: esta tarifa no tiene Batería Virtual.';
+          ? `🏦 Batería Virtual (uso este mes):
+
+💰 Saldo disponible: ${fEur(row.bvSaldoPrev)}
+📉 Usado para reducir factura: ${fEur(usoHucha)}`
+          : '❌ Esta tarifa NO tiene Batería Virtual';
 
         const tipPagar = hasBV
-          ? `Factura (${fEur(subtotal)}) - BV usada (${fEur(usoHucha)}) = ${fEur(row.totalPagar)}`
-          : `Factura total (sin BV) = ${fEur(row.totalPagar)}`;
+          ? `💳 Lo que pagas este mes:
+
+Subtotal: ${fEur(subtotal)}
+- BV aplicada: ${fEur(usoHucha)}
+━━━━━━━━━━━━━━━
+= A pagar: ${fEur(row.totalPagar)}`
+          : `💳 Factura total: ${fEur(row.totalPagar)}
+
+(Sin Batería Virtual)`;
 
         const tipSaldo = hasBV
-          ? `Saldo restante: ${fEur(restoHucha)}
-Nuevo excedente acumulado: ${fEur(sobranteHucha)}
-SALDO BV FIN = ${fEur(row.bvSaldoFin)}`
-          : 'No aplica: esta tarifa no acumula saldo.';
+          ? `🏦 Saldo BV al final del mes:
+
+Saldo anterior: ${fEur(row.bvSaldoPrev)}
+- Usado: ${fEur(usoHucha)}
++ Nuevo excedente: ${fEur(sobranteHucha)}
+━━━━━━━━━━━━━━━
+= Saldo final: ${fEur(row.bvSaldoFin)}
+
+💡 Este saldo se usa el mes siguiente`
+          : '❌ Esta tarifa NO acumula saldo';
 
         return {
           key: row.key,
@@ -544,8 +567,8 @@ SALDO BV FIN = ${fEur(row.bvSaldoFin)}`
       const buildTable = (resultItem) => {
         const hasBV = Boolean(resultItem?.tarifa?.fv?.bv);
         const head = hasBV
-          ? `<th style="text-align:left">Mes</th><th>Potencia</th><th>E. Bruta</th><th>Exced.</th><th>E. Neta</th><th>Impuestos</th><th>Subtotal</th><th>Pagar</th><th>Hucha</th><th>Saldo</th>`
-          : `<th style="text-align:left">Mes</th><th>Potencia</th><th>E. Bruta</th><th>Exced.</th><th>E. Neta</th><th>Impuestos</th><th>Subtotal</th><th>Pagar</th>`;
+          ? `<th style="text-align:left" title="Mes">Mes</th><th title="Término de potencia">Potencia</th><th title="Energía bruta consumida">Energ.</th><th title="Excedentes compensados">Comp.</th><th title="Energía neta (bruta - compensación)">E.Neta</th><th title="Impuestos y cargos">Imptos.</th><th title="Subtotal factura">Subtot.</th><th title="Lo que pagas este mes">Pagar</th><th title="Batería Virtual usada">BV Uso</th><th title="Saldo BV final">BV Fin</th>`
+          : `<th style="text-align:left" title="Mes">Mes</th><th title="Término de potencia">Potencia</th><th title="Energía bruta consumida">Energ.</th><th title="Excedentes compensados">Comp.</th><th title="Energía neta (bruta - compensación)">E.Neta</th><th title="Impuestos y cargos">Imptos.</th><th title="Subtotal factura">Subtot.</th><th title="Lo que pagas este mes">Pagar</th>`;
 
         // Ojo: buildRows ya omite celdas BV si no aplica.
         // En BV, para mantener el orden visual, las columnas "Hucha" y "Saldo" se colocan al final.

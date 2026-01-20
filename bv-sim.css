@@ -326,10 +326,10 @@
 
 /* En modo claro, los fondos muy transparentes sobre blanco se âpierdenâ */
 html.light-mode .bv-pill{
-  background: rgba(15, 23, 42, .04);
+  background: rgba(15, 23, 42, .08);
 }
 html.light-mode .bv-note{
-  background: rgba(15, 23, 42, .03);
+  background: rgba(15, 23, 42, .06);
 }
 
 /* --- KPI Stack --- */
@@ -516,26 +516,27 @@ select.input option {
 
 .bv-table {
   width: 100%;
-  min-width: 1100px; /* Aumentado para soportar 10 columnas */
+  min-width: 900px; /* Reducido para mejor adaptación */
   border-collapse: collapse !important;
-  font-size: 0.9rem;
+  font-size: 0.85rem; /* Más compacto */
   table-layout: auto !important;
 }
 
 .bv-table th {
-  padding: 14px 8px;
+  padding: 12px 6px;
   background: var(--bg0);
   color: var(--muted);
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
+  font-weight: 800;
   border-bottom: 1px solid var(--border);
   text-align: center;
   vertical-align: middle;
 }
 
 .bv-table td {
-  padding: 12px 8px;
+  padding: 10px 6px;
   border-bottom: 1px solid var(--border);
   color: var(--text);
   vertical-align: middle;
@@ -548,16 +549,17 @@ select.input option {
 .bv-table th:first-child,
 .bv-table td:first-child {
   text-align: left !important;
-  padding-left: 16px;
-  width: 80px !important;
+  padding-left: 12px;
+  width: 70px !important;
   white-space: nowrap;
+  font-size: 0.8rem;
 }
 
 /* Potencia: Centro, ancho mÃ­nimo real */
 .bv-table th:nth-child(2),
 .bv-table td:nth-child(2) {
   text-align: center !important;
-  width: 70px !important;
+  width: 60px !important;
   white-space: nowrap;
 }
 

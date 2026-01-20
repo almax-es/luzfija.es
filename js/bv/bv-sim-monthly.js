@@ -394,6 +394,13 @@ window.BVSim.loadTarifasBV = async function () {
       return !isIndexada;
     });
 
+    if (tarifasBV.length === 0) {
+      return {
+        ok: false,
+        error: 'No hay tarifas con batería virtual disponibles actualmente. El simulador solo muestra tarifas con precio fijo de excedentes (no indexadas).'
+      };
+    }
+
     return { ok: true, tarifasBV };
   } catch (error) {
     return { ok: false, error: error?.message || 'Error al cargar tarifas BV.' };

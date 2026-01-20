@@ -131,6 +131,7 @@ window.BVSim = window.BVSim || {};
 
       const fechaStr = stripOuterQuotes(cols[1]);
       const hora = parseInt(stripOuterQuotes(cols[2]), 10);
+      if (hora < 1 || hora > 24) continue; // Hora fuera de rango
       const kwhStr = stripOuterQuotes(cols[3]);
       const excedenteStr = tieneSolar ? cols[4] : null;
       const autoconsumoStr = tieneAutoconsumo ? cols[5] : null;
@@ -146,7 +147,7 @@ window.BVSim = window.BVSim || {};
       if (!kwhStr || kwhStr.trim() === '') continue;
 
       const kwh = parseNumberFlexibleCSV(kwhStr);
-      if (isNaN(kwh)) continue;
+      if (isNaN(kwh) || kwh < 0 || kwh > 10000) continue; // Filtrar valores absurdos
 
       let excedente = 0;
       if (excedenteStr && excedenteStr.trim() !== '') {
@@ -197,8 +198,10 @@ window.BVSim = window.BVSim || {};
       if (!fecha) continue;
 
       const hora = horaNum + 1;
+      if (hora < 1 || hora > 24) continue; // Hora fuera de rango
+
       const consumoWh = parseNumberFlexibleCSV(consumoWhStr);
-      if (isNaN(consumoWh)) continue;
+      if (isNaN(consumoWh) || consumoWh < 0 || consumoWh > 10000000) continue; // Filtrar valores absurdos
       const kwh = consumoWh / 1000;
 
       let excedente = 0;
@@ -525,7 +528,35 @@ window.BVSim = window.BVSim || {};
       return { ok: false, error: 'No se ha seleccionado ningún archivo.' };
     }
 
+    // Validar tamaño (máximo 10 MB)
+    const MAX_FILE_SIZE = 10 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      const sizeMB = Math.round(file.size / 1024 / 1024);
+      return {
+        ok: false,
+        error: `El archivo es demasiado grande (${sizeMB} MB). El tamaño máximo permitido es 10 MB.`
+      };
+    }
+
     const extension = file.name.split('.').pop().toLowerCase();
+
+    // Validar MIME type para mayor seguridad
+    if (extension === 'csv') {
+      if (file.type && !file.type.includes('text/') && !file.type.includes('application/')) {
+        return { ok: false, error: 'El archivo no parece ser un CSV válido.' };
+      }
+    } else if (extension === 'xlsx' || extension === 'xls') {
+      const validMimes = [
+        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        'application/vnd.ms-excel',
+        'application/octet-stream' // Algunos sistemas usan esto para xlsx
+      ];
+      if (file.type && !validMimes.some(mime => file.type.includes(mime))) {
+        return { ok: false, error: 'El archivo no parece ser un Excel válido.' };
+      }
+    } else {
+      return { ok: false, error: 'Formato no soportado. Solo CSV y Excel (.xlsx, .xls).' };
+    }
 
     try {
       let parsed;
@@ -546,8 +577,6 @@ window.BVSim = window.BVSim || {};
           reader.readAsArrayBuffer(file);
         });
         parsed = await parseXLSXConsumos(buffer);
-      } else {
-        return { ok: false, error: 'Formato no soportado. Solo CSV y Excel (.xlsx, .xls)' };
       }
 
       const records = Array.isArray(parsed.records) ? parsed.records : [];

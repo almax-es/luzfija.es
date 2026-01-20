@@ -50,13 +50,34 @@ Privacidad: Todo el procesamiento se realiza localmente en el navegador. Los PDF
    - Cálculo de ahorro real con placas solares
    - Detalles expandibles por tarifa (icono ☀️ dorado)
 
-5. Comparadores especializados
+5. Simulador de Batería Virtual (mes a mes)
+   - URL: https://luzfija.es/simulador-bateria-virtual.html
+   - Simulación completa mes a mes con consumos reales (CSV/XLSX de distribuidora)
+   - Compara TODAS las tarifas con batería virtual del mercado
+   - Importa CSV/XLSX con consumos horarios y excedentes solares
+   - Cálculo detallado para cada mes:
+     * Compensación de excedentes (limitada a energía bruta del mes)
+     * Acumulación en batería virtual (€) del excedente sobrante
+     * Aplicación de saldo BV del mes anterior para reducir factura
+     * Diferencia clave: Coste real vs Lo que pagas (con BV aplicada)
+   - Ranking inteligente: ordena por lo que realmente pagas (con BV aplicada)
+   - Desglose mes a mes con tooltips explicativos de cada concepto
+   - Soporte para 3 zonas fiscales (IVA/IGIC/IPSI diferenciados)
+   - Detección automática de festivos nacionales (algoritmo de Gauss)
+   - Filtra automáticamente tarifas indexadas (solo precio fijo)
+   - Responsive: Desktop (tablas), Móvil (tarjetas sin scroll horizontal)
+   - Accesibilidad: ARIA, focus management, tooltips táctiles
+   - Validaciones de seguridad: MIME type, tamaño máximo 10MB, rangos de datos
+   - Procesamiento 100% local (privacidad total)
+
+6. Comparadores especializados
    - Mejor tarifa para placas solares: https://luzfija.es/mejor-tarifa-placas-solares.html
    - Mejor tarifa para coche eléctrico: https://luzfija.es/mejor-tarifa-coche-electrico.html
    - Mejor tarifa con discriminación horaria: https://luzfija.es/mejor-tarifa-discriminacion-horaria.html
    - Comparar PVPC vs tarifa fija: https://luzfija.es/comparar-pvpc-tarifa-fija.html
+   - Simulador de batería virtual: https://luzfija.es/simulador-bateria-virtual.html
 
-6. Calculadora de factura: https://luzfija.es/calcular-factura-luz.html
+7. Calculadora de factura: https://luzfija.es/calcular-factura-luz.html
 
 ## Guías educativas
 
@@ -104,14 +125,24 @@ LuzFija.es incluye 23 guías prácticas sobre electricidad y ahorro:
 
 ## Datos actualizados
 
-Última actualización: 19 de enero de 2026
+Última actualización: 20 de enero de 2026
 Tarifas incluidas: 24 ofertas del mercado eléctrico español
 Comercializadoras incluidas: Principales comercializadoras españolas
 Actualización de datos: Periódica (tarifas) y diaria (PVPC via GitHub Actions a las 21:00 Madrid)
 PVPC: Actualizado automáticamente desde ESIOS (precios horarios oficiales REE)
-Módulos JavaScript: 20 (arquitectura modular con ~10.400 LOC)
+Módulos JavaScript: 23 (arquitectura modular con ~12.035 LOC)
+  - Incluye 3 módulos del Simulador BV: bv-import.js (580 LOC), bv-sim-monthly.js (400 LOC), bv-ui.js (655 LOC)
 
 ## Optimizaciones recientes (Enero 2026)
+
+**Simulador de Batería Virtual (Nuevo):**
+- Herramienta especializada para comparar tarifas BV mes a mes con datos reales
+- 3 módulos JavaScript nuevos: bv-import.js, bv-sim-monthly.js, bv-ui.js
+- Importación CSV/XLSX con validaciones de seguridad (MIME type, tamaño, rangos)
+- Motor de cálculo mensual: compensación, acumulación BV, aplicación de saldo
+- UI responsive: tablas en desktop, tarjetas en móvil
+- Tooltips contextuales con explicación detallada de cada concepto
+- Accesibilidad completa: ARIA, focus management, escape key
 
 **PVPC (Tarifa Regulada):**
 - Migración de CNMC a REE/ESIOS API (oficial y legal)
