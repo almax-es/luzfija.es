@@ -170,7 +170,8 @@ window.BVSim.calcMonthForTarifa = function ({
   potenciaP1,
   potenciaP2,
   bvSaldoPrev,
-  zonaFiscal = 'Península'
+  zonaFiscal = 'Península',
+  esVivienda = true
 }) {
   const round2 = window.BVSim.round2;
   const dias = Number(month?.spanDays) || Number(month?.daysWithData) || 0;
@@ -210,7 +211,7 @@ window.BVSim.calcMonthForTarifa = function ({
     // Intentamos usar la lógica global que ya maneja zonas fiscales
     impuestoElec = round2(window.LF_CONFIG.calcularIEE(sumaBaseIEE, month.importTotalKWh, zonaFiscal));
   } else {
-    const tasaIEE = zonaFiscal === 'Península' ? 0.0511269632 : 0.01; // Simplificación si no hay config
+    const tasaIEE = zonaFiscal === 'Península' ? 0.0511269632 : 0.01; 
     impuestoElec = round2(Math.max(tasaIEE * sumaBaseIEE, month.importTotalKWh * 0.0005)); 
   }
 
@@ -224,8 +225,11 @@ window.BVSim.calcMonthForTarifa = function ({
 
   // IVA / IGIC / IPSI
   let tasaIVA = 0.21;
-  if (zonaFiscal === 'Canarias') tasaIVA = 0.00; // Asumimos 0% para hogares
-  else if (zonaFiscal === 'CeutaMelilla') tasaIVA = 0.01;
+  if (zonaFiscal === 'Canarias') {
+    tasaIVA = esVivienda ? 0.00 : 0.07; 
+  } else if (zonaFiscal === 'CeutaMelilla') {
+    tasaIVA = 0.01;
+  }
 
   const ivaBase = round2(pot + consAdj + costeBonoSocial + impuestoElec + alquilerContador);
   const ivaCuota = round2(ivaBase * tasaIVA);
@@ -271,7 +275,8 @@ window.BVSim.simulateForTarifaDemo = function ({
   potenciaP1,
   potenciaP2,
   bvSaldoInicial = 0,
-  zonaFiscal = 'Península'
+  zonaFiscal = 'Península',
+  esVivienda = true
 }) {
   if (!Array.isArray(months) || !tarifa) {
     return { ok: false, error: 'Parámetros inválidos.' };
@@ -285,7 +290,8 @@ window.BVSim.simulateForTarifaDemo = function ({
       potenciaP1,
       potenciaP2,
       bvSaldoPrev: bvSaldo,
-      zonaFiscal
+      zonaFiscal,
+      esVivienda
     });
     bvSaldo = row.bvSaldoFin;
     return row;
@@ -324,7 +330,8 @@ window.BVSim.simulateForAllTarifasBV = function ({
   potenciaP1,
   potenciaP2,
   bvSaldoInicial = 0,
-  zonaFiscal = 'Península'
+  zonaFiscal = 'Península',
+  esVivienda = true
 }) {
   try {
     const results = tarifasBV.map((tarifa) => {
@@ -334,7 +341,8 @@ window.BVSim.simulateForAllTarifasBV = function ({
         potenciaP1,
         potenciaP2,
         bvSaldoInicial,
-        zonaFiscal
+        zonaFiscal,
+        esVivienda
       });
     });
 

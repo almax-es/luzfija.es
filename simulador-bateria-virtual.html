@@ -261,10 +261,9 @@
                   </div>
                 </div>
           
-                <div class="actions">
-                  <div class="actions-right">
-                    <button class="btn" id="btnTheme" type="button" title="Cambiar tema" aria-label="Cambiar tema">☀️</button>
-                    <div class="menu" id="menuRoot">
+                      <div class="actions">
+                        <div class="actions-right" style="margin-left: auto; display: flex; gap: 8px;">
+                          <button class="btn" id="btnTheme" type="button" title="Cambiar tema" aria-label="Cambiar tema">☀️</button>                    <div class="menu" id="menuRoot">
                       <button class="btn" id="btnMenu" type="button" aria-haspopup="menu" aria-controls="menuPanel" aria-expanded="false" title="Opciones" aria-label="Abrir menú de opciones">⚙️</button>
                       <div class="menuPanel" id="menuPanel" role="menu" aria-label="Opciones" aria-orientation="vertical">
                         <div class="menuHint">Opciones</div>
@@ -306,41 +305,46 @@
                     </div>
           
                     <!-- Inputs Numéricos en Grid -->
-                    <div class="bv-inputs-grid">
-                      <div class="bv-input-wrapper">
-                        <label for="bv-p1" style="font-size: 1.1rem; color: var(--text);">Potencia P1 (kW)</label> 
-                        <div class="bv-input-icon-group">
-                          <span class="bv-input-icon">☀️</span>
-                          <input class="bv-input-modern" type="text" id="bv-p1" inputmode="decimal" placeholder="Ej: 3,45" style="font-size: 1.2rem;">
-                        </div>
-                      </div>
-                      <div class="bv-input-wrapper">
-                        <label for="bv-p2" style="font-size: 1.1rem; color: var(--text);">Potencia P2 (kW)</label> 
-                        <div class="bv-input-icon-group">
-                          <span class="bv-input-icon">🌙</span>
-                          <input class="bv-input-modern" type="text" id="bv-p2" inputmode="decimal" placeholder="Ej: 3,45" style="font-size: 1.2rem;">
-                        </div>
-                      </div>
-                                  <div class="bv-input-wrapper">
-                                    <label for="bv-saldo-inicial" style="font-size: 1.1rem; color: var(--text);">Dinero que ya tienes en la hucha</label>
-                                    <div class="bv-input-icon-group">
-                                      <span class="bv-input-icon">💰</span>
-                                      <input class="bv-input-modern" type="text" id="bv-saldo-inicial" inputmode="decimal" value="0,00" style="font-size: 1.2rem;">
-                                    </div>
-                                    <div class="bv-help-text" style="font-size: 0.9rem;">Si ya tienes saldo acumulado</div>
-                                  </div>
-                                  <div class="bv-input-wrapper">
-                                    <label for="bv-zona-fiscal" style="font-size: 1.1rem; color: var(--text);">Zona Fiscal</label>
-                                    <div class="bv-input-icon-group">
-                                      <span class="bv-input-icon">📍</span>
-                                      <select id="bv-zona-fiscal" class="bv-input-modern" style="font-size: 1.2rem; appearance: auto; padding-left: 3.5rem;">
-                                        <option value="Península">Península y Baleares</option>
-                                        <option value="Canarias">Canarias</option>
-                                        <option value="CeutaMelilla">Ceuta y Melilla</option>
-                                      </select>
-                                    </div>
-                                  </div>
-                                </div>                  </div>
+          <div class="bv-inputs-grid">
+            <div class="bv-input-wrapper">
+              <label for="bv-p1" style="font-size: 1.1rem; color: var(--text);">Potencia P1 (kW)</label> 
+              <div class="bv-input-icon-group">
+                <span class="bv-input-icon">☀️</span>
+                <input class="bv-input-modern" type="text" id="bv-p1" inputmode="decimal" value="3,45" style="font-size: 1.2rem;">
+              </div>
+            </div>
+            <div class="bv-input-wrapper">
+              <label for="bv-p2" style="font-size: 1.1rem; color: var(--text);">Potencia P2 (kW)</label> 
+              <div class="bv-input-icon-group">
+                <span class="bv-input-icon">🌙</span>
+                <input class="bv-input-modern" type="text" id="bv-p2" inputmode="decimal" value="3,45" style="font-size: 1.2rem;">
+              </div>
+            </div>
+            <div class="bv-input-wrapper">
+              <label for="bv-saldo-inicial" style="font-size: 1.1rem; color: var(--text);">Dinero que ya tienes en la hucha</label>
+              <div class="bv-input-icon-group">
+                <span class="bv-input-icon">💰</span>
+                <input class="bv-input-modern" type="text" id="bv-saldo-inicial" inputmode="decimal" value="0,00" style="font-size: 1.2rem;">
+              </div>
+            </div>
+            <div class="bv-input-wrapper">
+              <label for="bv-zona-fiscal" style="font-size: 1.1rem; color: var(--text);">Zona Fiscal</label>
+              <div class="bv-input-icon-group">
+                <span class="bv-input-icon">📍</span>
+                <select id="bv-zona-fiscal" class="bv-input-modern" style="font-size: 1.2rem; appearance: auto; padding-left: 3.5rem;">
+                  <option value="Península">Península y Baleares</option>
+                  <option value="Canarias">Canarias</option>
+                  <option value="CeutaMelilla">Ceuta y Melilla</option>
+                </select>
+              </div>
+            </div>
+            <div class="bv-input-wrapper" id="bv-vivienda-canarias-wrapper" style="display:none; margin-top: -10px;">
+              <label for="bv-vivienda-canarias" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 1rem;">
+                <input id="bv-vivienda-canarias" type="checkbox" checked style="width: 20px; height: 20px;">
+                <span>Vivienda (hogar)</span>
+              </label>
+            </div>
+          </div>                  </div>
           
                   <div class="u-mt-24">
                     <button class="btn primary bv-btn-simular" id="bv-simulate" type="button">
@@ -373,59 +377,61 @@
           
               <footer class="footer-container">
                 <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:30px; margin-bottom:30px;">
-                  <div>
-                    <h3 class="u-h3-strong-10">Sobre el Simulador</h3>
-                    <p style="color:var(--muted); font-size:12px; line-height:1.6; margin:0 0 12px 0;">
-                      Herramienta experimental para <strong>simular batería virtual</strong> a partir de tus consumos reales horarios.
-                    </p>
-                    <p class="u-m-0">
-                      <a href="/guias.html" style="color:var(--accent); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; transition: opacity 0.2s;">
-                        📚 Guías sobre tarifas eléctricas
-                        <span style="font-size:10px;">→</span>
-                      </a>
-                    </p>
-                  </div>
-          
-                  <div>
-                    <h3 class="u-h3-strong-10">Horarios Discriminación</h3>
-                    <ul class="u-list-muted-12">
-                      <li><strong style="color:var(--danger);">Punta:</strong> 10h-14h y 18h-22h</li>
-                      <li><strong style="color:var(--warn);">Llano:</strong> 8h-10h, 14h-18h, 22h-24h</li>
-                      <li><strong style="color:var(--accent2);">Valle:</strong> 0h-8h + fines de semana</li>
-                    </ul>
-                  </div>
-          
-                  <div>
-                    <h3 class="u-h3-strong-10">¿Qué Calculamos?</h3>
-                    <ul class="u-list-muted-12">
-                      <li>✓ Simulación mes a mes</li>
-                      <li>✓ Compensación de excedentes (€)</li>
-                      <li>✓ Acumulación en Batería Virtual</li>
-                      <li>✓ Impuestos (IVA 21%, IEE)</li>
-                      <li>✓ Comparativa entre +50 tarifas</li>
-                    </ul>
-                  </div>
-          
-                  <div id="contacto">
-                    <h3 class="u-h3-strong-10">Contacto</h3>
-                    <div class="contact-box">
-                      <div class="u-label-xs">✉️ Email</div>
-                      <a href="mailto:hola@luzfija.es" class="u-color-accent u-fw-900 u-text-13" style="text-decoration:underline;">hola@luzfija.es</a>
-                    </div>
-                  </div>
-                </div>
-          
-                <div style="margin-top:30px; padding:28px 20px 24px; border-top:1px solid rgba(255,255,255,0.05); text-align:center;">
-                  <p style="font-size:11px; opacity:0.5; margin-bottom:8px;">⚡ LuzFija.es · Simulador de Batería Virtual</p>
-                  <div style="margin-top:18px; padding-top:14px; border-top:1px solid var(--border);">
-                    <div class="u-max-w-720 u-center-text-padded">
-                      <p class="u-mt-10 u-text-10 u-opacity-65 u-leading-15">
-                        Analítica sin cookies · <a href="/privacidad.html" class="u-link-accent">Política de privacidad</a> · <a href="/aviso-legal.html" class="u-link-accent">Aviso legal</a>
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </footer>
+                          <div>
+                            <h3 class="u-h3-strong-10">Sobre el Simulador</h3>
+                            <p style="color:var(--muted); font-size:12px; line-height:1.6; margin:0 0 12px 0;">
+                              Herramienta para <strong>simular batería virtual</strong> a partir de tus consumos reales horarios.
+                            </p>
+                            <p class="u-m-0">
+                              <a href="/guias.html" style="color:var(--accent); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; transition: opacity 0.2s;">
+                                📚 Guías sobre tarifas eléctricas
+                                <span style="font-size:10px;">→</span>
+                              </a>
+                            </p>
+                          </div>
+                  
+                          <div>
+                            <h3 class="u-h3-strong-10">Horarios Discriminación</h3>
+                            <ul class="u-list-muted-12">
+                              <li><strong style="color:var(--danger);">Punta:</strong> 10h-14h y 18h-22h</li>
+                              <li><strong style="color:var(--warn);">Llano:</strong> 8h-10h, 14h-18h, 22h-24h</li>
+                              <li><strong style="color:var(--accent2);">Valle:</strong> 0h-8h + fines de semana</li>
+                            </ul>
+                          </div>
+                  
+                          <div>
+                            <h3 class="u-h3-strong-10">¿Qué Calculamos?</h3>
+                            <ul class="u-list-muted-12">
+                              <li>✓ Simulación mes a mes</li>
+                              <li>✓ Compensación de excedentes (€)</li>
+                              <li>✓ Acumulación en Batería Virtual</li>
+                              <li>✓ PVPC regulada diaria (REE/ESIOS)</li>
+                              <li>✓ Ranking ajustado por ahorro real</li>
+                            </ul>
+                          </div>
+                  
+                          <div id="contacto">
+                            <h3 class="u-h3-strong-10">Contacto</h3>
+                            <div class="contact-box">
+                              <div class="u-label-xs">✉️ Email</div>
+                              <a href="mailto:hola@luzfija.es" class="u-color-accent u-fw-900 u-text-13" style="text-decoration:underline;">hola@luzfija.es</a>
+                            </div>
+                          </div>
+                        </div>
+                  
+                        <div style="margin-top:30px; padding:28px 20px 24px; border-top:1px solid rgba(255,255,255,0.05); text-align:center;">
+                          <p style="font-size:11px; opacity:0.5; margin-bottom:8px;">⚡ LuzFija.es · Simulador de Batería Virtual</p>
+                          <p class="u-text-10 u-opacity-40">Proyecto gratuito y sin publicidad · Datos actualizados regularmente</p>
+                  
+                          <div style="margin-top:18px; padding-top:14px; border-top:1px solid var(--border);">
+                            <div class="u-max-w-720 u-center-text-padded">
+                              <p class="u-mt-10 u-text-10 u-opacity-65 u-leading-15">
+                                Analítica sin cookies · <a href="/privacidad.html" class="u-link-accent">Política de privacidad</a> · <a href="/aviso-legal.html" class="u-link-accent">Aviso legal</a>
+                              </p>
+                              <div class="footer-credits">Desarrollado por <a href="https://github.com/almax-es" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:none; font-weight:600;">aLMaX</a></div>
+                            </div>
+                          </div>
+                        </div>              </footer>
             </div>
           
             <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"><span class="dot" id="toastDot"></span><span id="toastText"></span></div>

@@ -11,8 +11,49 @@ window.BVSim = window.BVSim || {};
   const p2Input = document.getElementById('bv-p2');
   const saldoInput = document.getElementById('bv-saldo-inicial');
   const zonaFiscalInput = document.getElementById('bv-zona-fiscal');
+  const viviendaCanariasWrapper = document.getElementById('bv-vivienda-canarias-wrapper');
+  const viviendaCanariasInput = document.getElementById('bv-vivienda-canarias');
   
   const simulateButton = document.getElementById('bv-simulate');
+
+  // --- UI INITIALIZATION ---
+  if (typeof window.LF_UI !== 'undefined' && window.LF_UI.init) {
+    // Si LF_UI está disponible (de lf-ui.js), lo usamos para el menú y tema
+    const btnTheme = document.getElementById('btnTheme');
+    const btnMenu = document.getElementById('btnMenu');
+    
+    if (btnTheme) btnTheme.addEventListener('click', () => {
+        const currentTheme = document.documentElement.getAttribute('data-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+        const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+        document.documentElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        btnTheme.textContent = newTheme === 'dark' ? '🌙' : '☀️';
+    });
+
+    if (btnMenu) btnMenu.addEventListener('click', (e) => {
+        e.stopPropagation();
+        const menuPanel = document.getElementById('menuPanel');
+        const isExpanded = btnMenu.getAttribute('aria-expanded') === 'true';
+        btnMenu.setAttribute('aria-expanded', !isExpanded);
+        menuPanel.classList.toggle('show');
+    });
+
+    document.addEventListener('click', () => {
+        const menuPanel = document.getElementById('menuPanel');
+        if (menuPanel && menuPanel.classList.contains('show')) {
+            menuPanel.classList.remove('show');
+            btnMenu.setAttribute('aria-expanded', 'false');
+        }
+    });
+  }
+
+  if (zonaFiscalInput) {
+    zonaFiscalInput.addEventListener('change', () => {
+      if (viviendaCanariasWrapper) {
+        viviendaCanariasWrapper.style.display = zonaFiscalInput.value === 'Canarias' ? 'block' : 'none';
+      }
+    });
+  }
   const btnText = simulateButton ? simulateButton.querySelector('.bv-btn-text') : null;
   const btnSpinner = simulateButton ? simulateButton.querySelector('.spinner') : null;
   
@@ -91,6 +132,7 @@ window.BVSim = window.BVSim || {};
     const p2Val = p2Input.value === '' ? 0 : parseInput(p2Input.value);
     const saldoVal = saldoInput.value === '' ? 0 : parseInput(saldoInput.value);
     const zonaFiscalVal = zonaFiscalInput ? zonaFiscalInput.value : 'Península';
+    const esViviendaCanarias = viviendaCanariasInput ? viviendaCanariasInput.checked : true;
 
     if (p1Input) p1Input.classList.remove('error');
     if (resultsContainer) {
@@ -137,7 +179,8 @@ window.BVSim = window.BVSim || {};
         months: monthlyResult.months,
         tarifasBV: tarifasResult.tarifasBV,
         potenciaP1: p1Val, potenciaP2: p2Val, bvSaldoInicial: saldoVal,
-        zonaFiscal: zonaFiscalVal
+        zonaFiscal: zonaFiscalVal,
+        esVivienda: esViviendaCanarias
       });
 
       if (!allResults.ok) throw new Error('Error en la simulación masiva.');
