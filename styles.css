@@ -4331,7 +4331,7 @@ html.light-mode .sun-club-breakdown-row span:last-child {
   color: #0f172a;
 }
 
-/* Botón Feature (Simulador) */
+/* Botï¿½n Feature (Simulador) */
 .btn-feature {
   background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(139,92,246,0.1));
   border: 1px solid rgba(34,197,94,0.4);
@@ -4361,10 +4361,9 @@ html.light-mode .sun-club-breakdown-row span:last-child {
   left: 100%;
 }
 
-/* Ajuste móvil */
+/* Ajuste mï¿½vil */
 @media (max-width: 768px) {
   .btn-feature {
-    order: -1; 
     width: 100%;
     justify-content: center;
     margin-bottom: 8px;
