@@ -280,6 +280,14 @@ window.BVSim = window.BVSim || {};
       // --- RENDER FINAL ---
       const totalImp = monthlyResult.months.reduce((a, b) => a + b.importTotalKWh, 0);
       const totalExp = monthlyResult.months.reduce((a, b) => a + b.exportTotalKWh, 0);
+      const totalAuto = result.records.reduce((a, b) => a + (Number(b.autoconsumo) || 0), 0);
+      const hasAuto = totalAuto > 0;
+      
+      // Estimación coste sin placas (muy simplificada: precio medio 0.15€ + potencia)
+      const diasTotales = monthlyResult.months.reduce((a, b) => a + b.spanDays, 0);
+      const costeSinPlacas = (totalImp + totalAuto) * 0.15 + (p1Val * 0.08 * diasTotales);
+      const ahorroTotal = costeSinPlacas - winner.totals.pagado;
+      const ahorroPct = Math.round((ahorroTotal / costeSinPlacas) * 100);
 
       resultsEl.innerHTML = `
         <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 2rem; border-radius: 16px; color: white; text-align: center; margin-bottom: 2rem; box-shadow: 0 10px 25px rgba(16, 185, 129, 0.4);">
@@ -289,7 +297,7 @@ window.BVSim = window.BVSim || {};
           
           <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 1rem; background: rgba(0,0,0,0.2); padding: 1.5rem; border-radius: 12px; margin-bottom: 1.5rem;">
              <div>
-               <div style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 4px;">Pagarías al año</div>
+               <div style="font-size: 0.9rem; opacity: 0.8; margin-bottom: 4px;">Pagarías en este periodo</div>
                <div style="font-size: 2.5rem; font-weight: 800;">${winnerCost}</div>
              </div>
              <div style="border-left: 1px solid rgba(255,255,255,0.3);">
@@ -298,8 +306,11 @@ window.BVSim = window.BVSim || {};
              </div>
           </div>
 
-          ${winnerWeb ? `<a href="${winnerWeb}" target="_blank" style="background: white; color: #059669; text-decoration: none; padding: 12px 32px; border-radius: 99px; font-weight: 800; font-size: 1.1rem; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">Ver esta tarifa &rarr;</a>` : ''}
-          
+          ${ahorroPct > 0 ? `<div style="margin-bottom: 1.5rem; font-weight: 600; background:rgba(255,255,255,0.2); display:inline-block; padding: 4px 16px; border-radius: 99px;">📉 Estás ahorrando un ${ahorroPct}% en tu factura</div>` : ''}
+
+          <div style="margin-bottom: 1.5rem;">
+            ${winnerWeb ? `<a href="${winnerWeb}" target="_blank" style="background: white; color: #059669; text-decoration: none; padding: 12px 32px; border-radius: 99px; font-weight: 800; font-size: 1.1rem; display: inline-block; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">Ver esta tarifa &rarr;</a>` : ''}
+          </div>
           <details style="margin-top: 20px; text-align: left;">
             <summary style="font-size: 0.8rem; cursor: pointer; opacity: 0.9; text-align: center;">Ver cuentas detalladas del ganador</summary>
             ${isWinnerIndexada ? '<div style="font-size:10px; color:#fbbf24; text-align:center; margin-bottom:8px;">* Al ser tarifa indexada, los excedentes se han estimado a 0,06 €/kWh</div>' : ''}
@@ -329,8 +340,39 @@ window.BVSim = window.BVSim || {};
         </div>
 
         <div class="card u-mb-24" style="background:rgba(255,255,255,0.03);">
-          <h3 class="u-mb-16">📊 Resumen de tu consumo</h3>
-          <p>Hemos analizado tu archivo. En total gastas <strong>${fKwh(totalImp)} kWh</strong> de luz de la calle, y tus placas producen <strong>${fKwh(totalExp)} kWh</strong> que te sobran para vender.</p>
+          <h3 class="u-mb-16">📊 Resumen de tu energía</h3>
+          <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="background:rgba(0,0,0,0.2); padding:1rem; border-radius:12px; text-align:center;">
+              <div style="font-size:0.8rem; color:var(--muted); margin-bottom:4px;">Comprado (Red)</div>
+              <div style="font-size:1.5rem; font-weight:700;">${fKwh(totalImp)} <small>kWh</small></div>
+            </div>
+            <div style="background:rgba(0,0,0,0.2); padding:1rem; border-radius:12px; text-align:center;">
+              <div style="font-size:0.8rem; color:var(--muted); margin-bottom:4px;">Vendido (Sobrante)</div>
+              <div style="font-size:1.5rem; font-weight:700; color:#fbbf24;">${fKwh(totalExp)} <small>kWh</small></div>
+            </div>
+            ${hasAuto ? `
+            <div style="background:rgba(0,0,0,0.2); padding:1rem; border-radius:12px; text-align:center;">
+              <div style="font-size:0.8rem; color:var(--muted); margin-bottom:4px;">Autoconsumido</div>
+              <div style="font-size:1.5rem; font-weight:700; color:#10b981;">${fKwh(totalAuto)} <small>kWh</small></div>
+            </div>
+            ` : ''}
+          </div>
+          
+          ${hasAuto ? `
+          <div style="margin-top:1rem;">
+            <div style="display:flex; justify-content:space-between; font-size:0.85rem; margin-bottom:6px;">
+              <span>Independencia Energética</span>
+              <span style="font-weight:700;">${Math.round((totalAuto / (totalImp + totalAuto)) * 100)}%</span>
+            </div>
+            <div style="width:100%; height:8px; background:rgba(255,255,255,0.1); border-radius:99px; overflow:hidden;">
+              <div style="width:${Math.round((totalAuto / (totalImp + totalAuto)) * 100)}%; height:100%; background:#10b981;"></div>
+            </div>
+          </div>
+          ` : ''}
+          
+          <p style="font-size:0.85rem; color:var(--muted); margin-top:1rem;">
+            ${monthlyResult.months.length < 12 ? `⚠️ Nota: Esta simulación solo cubre <strong>${monthlyResult.months.length} meses</strong>. Los totales no representan un año completo.` : 'Simulación basada en un año completo de datos.'}
+          </p>
         </div>
 
         <div class="card u-mb-24">
