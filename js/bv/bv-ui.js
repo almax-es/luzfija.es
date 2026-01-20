@@ -297,6 +297,7 @@ Usado ahora: -${fEur(row.credit2)}`;
       setTimeout(() => resultsContainer.classList.add('show'), 10);
       statusContainer.style.display = 'none';
       
+      // --- SISTEMA DE TOOLTIPS FLOTANTES MEJORADO (DELEGACIÓN DE EVENTOS) ---
       const oldTooltip = document.querySelector('.bv-floating-tooltip');
       if (oldTooltip) oldTooltip.remove();
 
@@ -304,18 +305,18 @@ Usado ahora: -${fEur(row.credit2)}`;
       tooltipEl.className = 'bv-floating-tooltip';
       document.body.appendChild(tooltipEl);
 
-      const showTooltip = (e, text) => {
-        if (!text) return;
-        tooltipEl.textContent = text;
-        tooltipEl.style.display = 'block';
+      const updateTooltipPosition = (e) => {
+        const target = e.target.closest('.bv-tooltip-trigger');
+        if (!target) return;
         
-        const rect = e.target.getBoundingClientRect();
+        const rect = target.getBoundingClientRect();
         const ttWidth = tooltipEl.offsetWidth;
         const ttHeight = tooltipEl.offsetHeight;
         
         let top = rect.top - ttHeight - 10;
         let left = rect.left + (rect.width / 2) - (ttWidth / 2);
         
+        // Ajustes de bordes
         if (top < 10) top = rect.bottom + 10; 
         if (left < 10) left = 10;
         if (left + ttWidth > window.innerWidth - 10) left = window.innerWidth - ttWidth - 10;
@@ -324,16 +325,31 @@ Usado ahora: -${fEur(row.credit2)}`;
         tooltipEl.style.left = `${left + window.scrollX}px`;
       };
 
-      const hideTooltip = () => { tooltipEl.style.display = 'none'; };
-
-      resultsEl.querySelectorAll('.bv-tooltip-trigger').forEach(el => {
-        const tip = el.getAttribute('data-tip');
-        el.addEventListener('mouseenter', (e) => showTooltip(e, tip));
-        el.addEventListener('mouseleave', hideTooltip);
-        el.addEventListener('click', (e) => { e.stopPropagation(); showTooltip(e, tip); });
+      // Usamos mouseover (que sí burbujea) en lugar de mouseenter
+      resultsEl.addEventListener('mouseover', (e) => {
+        const target = e.target.closest('.bv-tooltip-trigger');
+        if (target) {
+          const tip = target.getAttribute('data-tip');
+          if (tip) {
+            tooltipEl.textContent = tip;
+            tooltipEl.style.display = 'block';
+            updateTooltipPosition(e); // Posición inicial
+          }
+        }
       });
-      document.addEventListener('click', hideTooltip);
+
+      resultsEl.addEventListener('mouseout', (e) => {
+        const target = e.target.closest('.bv-tooltip-trigger');
+        if (target) {
+          tooltipEl.style.display = 'none';
+        }
+      });
       
+      // Ocultar al hacer scroll para evitar que se quede "volando" desalineado
+      window.addEventListener('scroll', () => {
+        if (tooltipEl.style.display === 'block') tooltipEl.style.display = 'none';
+      }, { passive: true });
+
     } catch (e) {
       console.error('BVSim Error:', e);
       if (statusEl) statusEl.innerHTML = `<span style="color:var(--danger)">⚠️ Error: ${e.message}</span>`;
