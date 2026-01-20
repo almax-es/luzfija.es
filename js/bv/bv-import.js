@@ -93,15 +93,17 @@ window.BVSim = window.BVSim || {};
 
     const header = stripBomAndTrim(lines[0]).toLowerCase();
     const isIberdrolaCliente = header.includes('consumo wh') && header.includes('generacion wh');
-    const isFormatoEspanol = header.includes('ae_kwh') || header.includes('consumo_kwh') || header.includes('energiavertida_kwh');
+    const isFormatoEspanol = header.includes('ae_kwh') || header.includes('consumo_kwh');
 
     if (!isFormatoEspanol && !isIberdrolaCliente) {
-      throw new Error('Formato CSV no reconocido. Se esperaba el formato estándar de distribuidoras españolas o Datadis');
+      throw new Error('Formato CSV no reconocido. Se esperaba el formato estándar de distribuidoras españolas');
     }
 
     if (isIberdrolaCliente) {
       return parseCSVIberdrolaCliente(lines);
     }
+
+    const isDatadisNuevo = header.includes('consumo_kwh') && header.includes('metodoobtencion') && header.includes('energiavertida_kwh');
 
     const tieneSolar = header.includes('as_kwh') || header.includes('energiavertida_kwh');
     const tieneAutoconsumo = header.includes('ae_autocons_kwh') || header.includes('energiaautoconsumida_kwh');
@@ -133,16 +135,32 @@ window.BVSim = window.BVSim || {};
       const hora = parseInt(stripOuterQuotes(cols[2]), 10);
       if (hora < 1 || hora > 24) continue; // Hora fuera de rango
       const kwhStr = stripOuterQuotes(cols[3]);
-      const excedenteStr = tieneSolar ? cols[4] : null;
-      const autoconsumoStr = tieneAutoconsumo ? cols[5] : null;
-      
-      // Calcular índice de la columna REAL/ESTIMADO dinámicamente
-      let idxReal = 4;
-      if (tieneSolar) idxReal++;
-      if (tieneAutoconsumo) idxReal++;
 
-      const estadoStr = idxReal < cols.length ? stripOuterQuotes(cols[idxReal]) : '';
-      const esReal = estadoStr === 'R';
+let excedenteStr = null;
+let autoconsumoStr = null;
+let estadoStr = '';
+
+if (isDatadisNuevo) {
+  // cups;fecha;hora;consumo_kWh;metodoObtencion;energiaVertida_kWh;energiaGenerada_kWh;energiaAutoconsumida_kWh
+  excedenteStr = cols[5];
+  autoconsumoStr = cols[7];
+  estadoStr = cols.length > 4 ? stripOuterQuotes(cols[4]) : '';
+} else {
+  excedenteStr = tieneSolar ? cols[4] : null;
+  autoconsumoStr = tieneAutoconsumo ? cols[5] : null;
+
+  // Calcular índice de la columna REAL/ESTIMADO dinámicamente
+  let idxReal = 4;
+  if (tieneSolar) idxReal++;
+  if (tieneAutoconsumo) idxReal++;
+
+  estadoStr = idxReal < cols.length ? stripOuterQuotes(cols[idxReal]) : '';
+}
+
+const esReal = isDatadisNuevo
+  ? (estadoStr.toLowerCase().startsWith('real') || estadoStr === 'R')
+  : (estadoStr === 'R');
+
 
       if (!kwhStr || kwhStr.trim() === '') continue;
 
