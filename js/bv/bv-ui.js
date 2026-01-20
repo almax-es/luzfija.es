@@ -322,6 +322,9 @@ window.BVSim = window.BVSim || {};
                 </tbody>
               </table>
             </div>
+            <div style="text-align:center; margin-top:12px;">
+              <button class="btn" id="bv-download-csv" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2); font-size:0.8rem; padding:6px 16px;">📥 Descargar resumen CSV</button>
+            </div>
           </details>
         </div>
 
@@ -363,6 +366,10 @@ window.BVSim = window.BVSim || {};
       resultsContainer.style.display = 'block';
       setTimeout(() => resultsContainer.classList.add('show'), 10);
       statusContainer.style.display = 'none';
+
+      // Listener para descarga
+      const dlBtn = document.getElementById('bv-download-csv');
+      if (dlBtn) dlBtn.addEventListener('click', () => window.BVSim.downloadCSV(winner));
       
     } catch (e) {
       console.error('Error:', e);

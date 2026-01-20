@@ -189,7 +189,7 @@ window.BVSim.calcMonthForTarifa = function ({
   // Bono social (Financiación)
   const bonoSocialAnual = (window.LF_CONFIG && window.LF_CONFIG.bonoSocial) 
     ? window.LF_CONFIG.bonoSocial.eurosAnuales 
-    : 10.764952; 
+    : 6.979247; 
   
   const costeBonoSocial = round2(bonoSocialAnual / 365 * dias);
   
@@ -214,7 +214,6 @@ window.BVSim.calcMonthForTarifa = function ({
   
   let impuestoElec = 0;
   if (window.LF_CONFIG && window.LF_CONFIG.calcularIEE) {
-    // Intentamos usar la lógica global que ya maneja zonas fiscales
     impuestoElec = round2(window.LF_CONFIG.calcularIEE(sumaBaseIEE, month.importTotalKWh, zonaFiscal));
   } else {
     const tasaIEE = zonaFiscal === 'Península' ? 0.0511269632 : 0.01; 
@@ -356,6 +355,35 @@ window.BVSim.simulateForAllTarifasBV = function ({
   } catch (error) {
     return { ok: false, error: error?.message || 'Error en simulación masiva.' };
   }
+};
+
+window.BVSim.downloadCSV = function (winnerResult) {
+  if (!winnerResult || !winnerResult.rows) return;
+
+  const headers = ['Mes', 'Potencia (€)', 'Energia Neto (€)', 'Impuestos (€)', 'Subtotal (€)', 'Uso Hucha (€)', 'A Pagar (€)', 'Saldo Hucha (€)'];
+  const rows = winnerResult.rows.map(r => [
+    r.key,
+    r.pot.toFixed(2),
+    (r.consEur - r.credit1).toFixed(2),
+    (r.impuestoElec + r.ivaCuota + r.costeBonoSocial + r.alquilerContador).toFixed(2),
+    (r.totalBase + r.ivaCuota).toFixed(2),
+    r.credit2.toFixed(2),
+    r.totalPagar.toFixed(2),
+    r.bvSaldoFin.toFixed(2)
+  ]);
+
+  let csvContent = "data:text/csv;charset=utf-8," 
+    + "Tarifa: " + winnerResult.tarifa.nombre + "\n"
+    + headers.join(";") + "\n" 
+    + rows.map(e => e.join(";")).join("\n");
+
+  const encodedUri = encodeURI(csvContent);
+  const link = document.createElement("a");
+  link.setAttribute("href", encodedUri);
+  link.setAttribute("download", `simulacion_${winnerResult.tarifa.nombre.replace(/\s+/g, '_')}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 };
 
 // ===== CARGAR TARIFAS =====
