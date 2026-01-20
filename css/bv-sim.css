@@ -306,10 +306,10 @@ select.input option {
 
 .bv-table {
   width: 100%;
-  min-width: 1000px; 
+  min-width: 1100px; /* Aumentado para soportar 10 columnas */
   border-collapse: collapse !important;
   font-size: 0.9rem;
-  table-layout: auto !important; /* Volvemos a auto para que manden los anchos de celda */
+  table-layout: auto !important;
 }
 
 .bv-table th {
@@ -339,7 +339,7 @@ select.input option {
 .bv-table td:first-child {
   text-align: left !important;
   padding-left: 16px;
-  width: 80px !important; /* Valor fijo para evitar el elefante */
+  width: 80px !important;
   white-space: nowrap;
 }
 
@@ -347,7 +347,7 @@ select.input option {
 .bv-table th:nth-child(2),
 .bv-table td:nth-child(2) {
   text-align: center !important;
-  width: 70px !important; /* Valor fijo */
+  width: 70px !important;
   white-space: nowrap;
 }
 
@@ -369,7 +369,7 @@ select.input option {
 .bv-floating-tooltip {
   position: fixed;
   display: none;
-  background: #0f172a; /* Fondo más oscuro para contraste */
+  background: #1e293b;
   color: #fff;
   border: 1px solid var(--accent);
   padding: 12px 16px;
@@ -378,7 +378,7 @@ select.input option {
   font-weight: 500;
   line-height: 1.6;
   white-space: pre-wrap; 
-  z-index: 100000; /* Por encima de todo */
+  z-index: 100000;
   box-shadow: 0 15px 40px rgba(0,0,0,0.6);
   pointer-events: none;
   max-width: 320px;

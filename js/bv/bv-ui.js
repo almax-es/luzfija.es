@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Formateadores ES
   const currencyFmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 2 });
-  const kwFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  const kwFmt = newIntl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   const kwhFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   const priceFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 6 });
 
@@ -191,7 +191,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const buildDetailedRows = (rows, isIndexada) => rows.map((row) => {
         const imp = (row.impuestoElec || 0) + (row.ivaCuota || 0) + (row.costeBonoSocial || 0) + (row.alquilerContador || 0);
         const energiaBruta = row.consEur || 0;
-        const energiaNeta = energiaBruta - (row.credit1 || 0);
+        const descuentoExc = row.credit1 || 0;
+        const energiaNeta = energiaBruta - descuentoExc;
         const subtotal = row.totalBase || 0;
         const restoHucha = Math.max(0, (row.bvSaldoPrev || 0) - (row.credit2 || 0));
 
@@ -213,7 +214,9 @@ Usado ahora: -${fEur(row.credit2)}`;
           <tr>
             <td>${row.key}</td>
             <td class="bv-tooltip-trigger" data-tip="${tipPot}">${fEur(row.pot)}</td>
-            <td class="bv-tooltip-trigger" data-tip="${tipEne}">${fEur(energiaNeta)}</td>
+            <td class="bv-tooltip-trigger" data-tip="Energía consumida sin descontar excedentes">${fEur(energiaBruta)}</td>
+            <td class="bv-tooltip-trigger" data-tip="Excedentes aplicados a esta factura" style="color:var(--accent2);">${descuentoExc > 0 ? `-${fEur(descuentoExc)}` : fEur(0)}</td>
+            <td class="bv-tooltip-trigger" data-tip="${tipEne}" style="font-weight:700;">${fEur(energiaNeta)}</td>
             <td class="bv-tooltip-trigger" data-tip="${tipImp}" style="color:var(--danger);">${fEur(imp)}</td>
             <td class="bv-tooltip-trigger" data-tip="${tipSub}" style="background:rgba(255,255,255,0.02); font-weight:700;">${fEur(subtotal)}</td>
             <td class="bv-tooltip-trigger" data-tip="${tipHucha}">-${fEur(row.credit2)}</td>
@@ -232,17 +235,15 @@ Usado ahora: -${fEur(row.credit2)}`;
           : `<div class="bv-alt-rank">#${i+1}</div>`;
         
         const cardClass = isWinner ? 'bv-winner-card-compact' : 'bv-alt-card-detailed';
-        
-        // Tabla detallada específica para ESTA tarifa
         const rowsHtml = buildDetailedRows(r.rows, isIndexada);
 
         return `
-          <div class="${cardClass}" style="margin-bottom: 32px; ${isWinner ? '' : 'background:var(--card); border:1px solid var(--border); padding:24px; border-radius:16px;'}">
+          <div class="${cardClass}" style="margin-bottom: 32px; ${isWinner ? '' : 'background:var(--card); border:1px solid var(--border); padding:24px; border-radius:16px;'} ">
             ${badgeHTML}
-            <h3 class="bv-winner-name" style="${isWinner ? '' : 'font-size:1.5rem;'}">${r.tarifa.nombre}</h3>
+            <h3 class="bv-winner-name" style="${isWinner ? '' : 'font-size:1.5rem;'} ">${r.tarifa.nombre}</h3>
             <div class="bv-winner-company">de ${r.tarifa.comercializadora || 'Compañía Desconocida'}</div>
             
-            <div class="bv-kpis-stack" style="margin-top:16px; margin-bottom:24px; ${isWinner ? '' : 'flex-direction:row; flex-wrap:wrap;'}">
+            <div class="bv-kpis-stack" style="margin-top:16px; margin-bottom:24px; ${isWinner ? '' : 'flex-direction:row; flex-wrap:wrap;'} ">
                <div class="bv-kpi-card" style="flex:1; min-width:200px;">
                   <span class="bv-kpi-label">Pagarías</span>
                   <span class="bv-kpi-value">${fEur(r.totals.pagado)}</span>
@@ -267,7 +268,9 @@ Usado ahora: -${fEur(row.credit2)}`;
                     <tr>
                       <th style="text-align:left">Mes</th>
                       <th>Potencia</th>
-                      <th>Energía (Neto)</th>
+                      <th>Energía Bruta</th>
+                      <th>Excedentes</th>
+                      <th>Energía Neta</th>
                       <th>Impuestos</th>
                       <th>Subtotal</th>
                       <th>Uso Hucha</th>
@@ -294,7 +297,6 @@ Usado ahora: -${fEur(row.credit2)}`;
       setTimeout(() => resultsContainer.classList.add('show'), 10);
       statusContainer.style.display = 'none';
       
-      // --- SISTEMA DE TOOLTIPS FLOTANTES MEJORADO ---
       const oldTooltip = document.querySelector('.bv-floating-tooltip');
       if (oldTooltip) oldTooltip.remove();
 
@@ -308,16 +310,18 @@ Usado ahora: -${fEur(row.credit2)}`;
         tooltipEl.style.display = 'block';
         
         const rect = e.target.getBoundingClientRect();
-        let top = rect.top - tooltipEl.offsetHeight - 10;
-        let left = rect.left + (rect.width / 2) - (tooltipEl.offsetWidth / 2);
+        const ttWidth = tooltipEl.offsetWidth;
+        const ttHeight = tooltipEl.offsetHeight;
         
-        // Ajustes para evitar que se corte por los bordes del viewport
+        let top = rect.top - ttHeight - 10;
+        let left = rect.left + (rect.width / 2) - (ttWidth / 2);
+        
         if (top < 10) top = rect.bottom + 10; 
         if (left < 10) left = 10;
-        if (left + tooltipEl.offsetWidth > window.innerWidth - 10) left = window.innerWidth - tooltipEl.offsetWidth - 10;
+        if (left + ttWidth > window.innerWidth - 10) left = window.innerWidth - ttWidth - 10;
 
-        tooltipEl.style.top = `${top}px`;
-        tooltipEl.style.left = `${left}px`;
+        tooltipEl.style.top = `${top + window.scrollY}px`;
+        tooltipEl.style.left = `${left + window.scrollX}px`;
       };
 
       const hideTooltip = () => { tooltipEl.style.display = 'none'; };
