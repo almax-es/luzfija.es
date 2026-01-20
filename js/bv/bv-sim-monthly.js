@@ -251,15 +251,17 @@ window.BVSim.calcMonthForTarifa = function ({
   const totalBase = round2(ivaBase + ivaCuota);
 
   // Batería Virtual (Hucha)
-  const canAccumulate = tarifa.fv && tarifa.fv.bv === true;
-  const credit2 = round2(Math.min(Math.max(0, bvSaldoPrev), totalBase));
-  const bvSaldoFin = canAccumulate 
-    ? round2(excedenteSobranteEur + Math.max(0, bvSaldoPrev - credit2))
+  // Importante: si la tarifa NO tiene BV, no debe aplicarse saldo previo ni acumular sobrantes.
+  const hasBV = Boolean(tarifa?.fv?.bv);
+  const bvPrev = hasBV ? Math.max(0, Number(bvSaldoPrev) || 0) : 0;
+  const credit2 = hasBV ? round2(Math.min(bvPrev, totalBase)) : 0;
+  const bvSaldoFin = hasBV
+    ? round2(excedenteSobranteEur + Math.max(0, bvPrev - credit2))
     : 0;
-  const totalPagar = round2(Math.max(0, totalBase - credit2));
+  const totalPagar = hasBV ? round2(Math.max(0, totalBase - credit2)) : totalBase;
 
   // Coste Real (si no tuvieras hucha anterior)
-  const totalReal = round2(Math.max(0, totalBase - (canAccumulate ? excedenteSobranteEur : 0)));
+  const totalReal = round2(Math.max(0, totalBase - (hasBV ? excedenteSobranteEur : 0)));
 
   return {
     key: month.key,
@@ -275,7 +277,8 @@ window.BVSim.calcMonthForTarifa = function ({
     precioExc,
     credit1,
     excedenteSobranteEur,
-    bvSaldoPrev,
+    hasBV,
+    bvSaldoPrev: bvPrev,
     credit2,
     bvSaldoFin,
     totalPagar,
@@ -378,11 +381,16 @@ window.BVSim.loadTarifasBV = async function () {
     const data = await response.json();
     const tarifas = Array.isArray(data?.tarifas) ? data.tarifas : [];
 
+    // Solo tarifas que remuneren excedentes a precio fijo (exc > 0) y NO sean indexadas.
+    // (El usuario quiere excluir excedentes a precio indexado.)
     const tarifasBV = tarifas.filter((tarifa) => {
       if (!tarifa || !tarifa.fv) return false;
       const exc = Number(tarifa.fv.exc);
-      // Incluimos tarifas con excedente fijo > 0 O tarifas indexadas que compensan (aunque el exc en JSON sea 0)
-      return (Number.isFinite(exc) && exc > 0) || (tarifa.tipo === 'INDEXADA' && tarifa.fv.tipo !== 'NO COMPENSA');
+      if (!Number.isFinite(exc) || exc <= 0) return false;
+      const tipoTarifa = String(tarifa.tipo || '').toUpperCase();
+      const tipoFV = String(tarifa.fv.tipo || '').toUpperCase();
+      const isIndexada = tipoTarifa === 'INDEXADA' || tipoFV.includes('INDEX');
+      return !isIndexada;
     });
 
     return { ok: true, tarifasBV };

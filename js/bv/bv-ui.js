@@ -280,6 +280,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // --- FUNCIÓN ÚNICA PARA FILAS (buildRows) ---
       const buildRows = (resultItem) => {
         const t = resultItem.tarifa;
+        const hasBV = Boolean(t?.fv?.bv);
         return resultItem.rows.map((row) => {
           const m = monthMap.get(row.key) || {};
           const imp = r2((row.impuestoElec||0) + (row.ivaCuota||0) + (row.costeBonoSocial||0) + (row.alquilerContador||0));
@@ -315,19 +316,43 @@ TOTAL = ${fEur(eBruta)}`;
           const totalGen = r2(exKwh * (row.precioExc || 0));
           const tipExcedentes = `Generado: ${fKwh(exKwh)} kWh × ${fPrice(row.precioExc)} € = ${fEur(totalGen)}
 
-Desglose:
+Compensación (este mes):
+- Límite: energía bruta del mes
 - Compensado en factura: ${fEur(excMes)}
-- A Batería Virtual: ${fEur(sobranteHucha)}`;
+
+Excedente sobrante:
+${hasBV ? `- Se acumula en Batería Virtual: ${fEur(sobranteHucha)}` : `- NO se acumula (se pierde): ${fEur(sobranteHucha)}`}`;
 
           const tipEneNeta = `Energía Bruta (${fEur(eBruta)}) - Compensación (${fEur(excMes)}) = ${fEur(eNeta)}`;
-          const tipImp = `IEE: ${fEur(row.impuestoElec)}
-IVA: ${fEur(row.ivaCuota)}
-Bono/Alquiler: ${fEur((row.costeBonoSocial||0) + (row.alquilerContador||0))}`;
-          const tipSub = `Potencia (${fEur(row.pot)}) + Energía Neta (${fEur(eNeta)}) + Impuestos (${fEur(imp)}) = ${fEur(subtotal)}`;
-          const tipHucha = `Saldo previo: ${fEur(row.bvSaldoPrev)}
-Usado: -${fEur(usoHucha)}`;
-          const tipPagar = `Factura (${fEur(subtotal)}) - Hucha (${fEur(usoHucha)}) = ${fEur(row.totalPagar)}`;
-          const tipSaldo = `Restante (${fEur(restoHucha)}) + Nuevo Excedente (${fEur(sobranteHucha)}) = ${fEur(row.bvSaldoFin)}`;
+          const tipImp = `Impuesto eléctrico (IEE): ${fEur(row.impuestoElec)}
+IVA/IGIC/IPSI: ${fEur(row.ivaCuota)}
+Bono social: ${fEur(row.costeBonoSocial)}
+Alquiler contador: ${fEur(row.alquilerContador)}`;
+
+          const tipSub = `Potencia: ${fEur(row.pot)}
+Energía neta (bruta - compensación): ${fEur(eNeta)}
+Bono social: ${fEur(row.costeBonoSocial)}
+Impuesto eléctrico (IEE): ${fEur(row.impuestoElec)}
+Alquiler contador: ${fEur(row.alquilerContador)}
+IVA/IGIC/IPSI: ${fEur(row.ivaCuota)}
+TOTAL = ${fEur(subtotal)}`;
+
+          const tipHucha = hasBV
+            ? `Saldo BV previo: ${fEur(row.bvSaldoPrev)}
+Usado este mes: -${fEur(usoHucha)}`
+            : 'No aplica: esta tarifa no tiene Batería Virtual.';
+
+          const tipPagar = hasBV
+            ? `Factura (${fEur(subtotal)}) - BV usada (${fEur(usoHucha)}) = ${fEur(row.totalPagar)}`
+            : `Factura total (sin BV) = ${fEur(row.totalPagar)}`;
+
+          const tipSaldo = hasBV
+            ? `Saldo restante: ${fEur(restoHucha)}
+Nuevo excedente acumulado: ${fEur(sobranteHucha)}
+SALDO BV FIN = ${fEur(row.bvSaldoFin)}`
+            : 'No aplica: esta tarifa no acumula saldo.';
+
+          const huchaCell = usoHucha > 0 ? `-${fEur(usoHucha)}` : fEur(0);
 
           return `
             <tr>
@@ -338,7 +363,7 @@ Usado: -${fEur(usoHucha)}`;
               <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipEneNeta)}" style="font-weight:700;">${fEur(eNeta)}</td>
               <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipImp)}" style="color:var(--danger);">${fEur(imp)}</td>
               <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSub)}" style="background:rgba(255,255,255,0.02); font-weight:700;">${fEur(subtotal)}</td>
-              <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipHucha)}">-${fEur(usoHucha)}</td>
+              <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipHucha)}">${huchaCell}</td>
               <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipPagar)}" style="color:var(--accent2); font-weight:800;">${fEur(row.totalPagar)}</td>
               <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSaldo)}" style="color:#fbbf24; font-weight:700;">${fEur(row.bvSaldoFin)}</td>
             </tr>
@@ -349,25 +374,36 @@ Usado: -${fEur(usoHucha)}`;
       // HTML del Ganador
       const winnerName = escapeHtml(winner.tarifa?.nombre || '');
       const winnerUrl = sanitizeUrl(winner.tarifa?.web);
+      const winnerHasBV = Boolean(winner.tarifa?.fv?.bv);
+      const pillWinner = winnerHasBV
+        ? '<span class="bv-pill bv-pill--bv" title="Esta tarifa acumula el excedente sobrante (en €) para meses futuros.">Con batería virtual</span>'
+        : '<span class="bv-pill bv-pill--no-bv" title="Esta tarifa NO acumula excedente sobrante: lo no compensado se pierde cada mes.">Sin batería virtual</span>';
+
       const winnerHTML = `
         <div class="bv-results-grid" style="margin-bottom: 40px;">
           <div class="bv-winner-card-compact">
             <div class="bv-winner-badge">🏆 Mejor Opción</div>
             <h2 class="bv-winner-name">${winnerName}</h2>
+            <div style="margin-top: 8px;">${pillWinner}</div>
             <div style="margin-top:auto; padding-top:1.5rem; width:100%">
               ${winnerUrl ? `<a href="${winnerUrl}" target="_blank" rel="noopener noreferrer" class="btn primary" style="width:100%; justify-content:center;">Ver esta tarifa &rarr;</a>` : ''}
             </div>
           </div>
           <div class="bv-kpis-stack">
             <div class="bv-kpi-card">
-              <span class="bv-kpi-label">Pagarías en total</span>
+              <span class="bv-kpi-label">Pagas en total</span>
               <span class="bv-kpi-value">${fEur(winner.totals.pagado)}</span>
-              <span class="bv-kpi-sub">Impuestos incluidos</span>
+              <span class="bv-kpi-sub">Con saldo previo aplicado</span>
             </div>
-            <div class="bv-kpi-card highlight">
-              <span class="bv-kpi-label">Te sobra (Hucha)</span>
-              <span class="bv-kpi-value surplus">${fEur(winner.totals.bvFinal)}</span>
-              <span class="bv-kpi-sub">Acumulado anual</span>
+            <div class="bv-kpi-card">
+              <span class="bv-kpi-label">Coste real (ranking)</span>
+              <span class="bv-kpi-value">${fEur(winner.totals.real)}</span>
+              <span class="bv-kpi-sub">Sin saldo previo</span>
+            </div>
+            <div class="bv-kpi-card ${winnerHasBV ? 'highlight' : ''}">
+              <span class="bv-kpi-label">Saldo BV final</span>
+              <span class="bv-kpi-value ${winnerHasBV ? 'surplus' : ''}">${winnerHasBV ? fEur(winner.totals.bvFinal) : '—'}</span>
+              <span class="bv-kpi-sub">${winnerHasBV ? 'Acumulado (si no lo gastas)' : 'No aplica'}</span>
             </div>
           </div>
         </div>
@@ -387,14 +423,23 @@ Usado: -${fEur(usoHucha)}`;
       `;
 
       // HTML de Alternativas
-      const alternativesHTML = rankedResults.slice(1, 6).map((r, i) => {
+      const alternativesHTML = rankedResults.slice(1).map((r, i) => {
         const altName = escapeHtml(r.tarifa?.nombre || '');
+        const hasBV = Boolean(r.tarifa?.fv?.bv);
+        const pill = hasBV
+          ? '<span class="bv-pill bv-pill--bv" title="Acumula excedente sobrante para meses futuros.">Con BV</span>'
+          : '<span class="bv-pill bv-pill--no-bv" title="No acumula excedente sobrante; lo no compensado se pierde.">Sin BV</span>';
         return `
           <div class="bv-alt-card-detailed" style="margin-bottom: 24px; background:var(--card); border:1px solid var(--border); padding:24px; border-radius:16px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:16px;">
-              <div style="display:flex; align-items:center; gap:10px;"><span class="bv-alt-rank" style="font-size:1.5rem; opacity:0.5; font-weight:900;">#${i+2}</span><h3 style="margin:0; font-size:1.3rem;">${altName}</h3></div>
-              <div style="text-align:right;"><div style="font-size:1.5rem; font-weight:900;">${fEur(r.totals.pagado)}</div>${r.totals.bvFinal > 1 ? `<div style="color:#fbbf24; font-weight:700;">Sobran ${fEur(r.totals.bvFinal)}</div>` : ''}</div>
+              <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;"><span class="bv-alt-rank" style="font-size:1.5rem; opacity:0.5; font-weight:900;">#${i+2}</span><h3 style="margin:0; font-size:1.3rem;">${altName}</h3>${pill}</div>
+              <div style="text-align:right;">
+                <div style="font-size:1.5rem; font-weight:900;">${fEur(r.totals.real)}</div>
+                <div style="opacity:0.75; font-size:0.9rem;">Pagas: ${fEur(r.totals.pagado)}</div>
+                ${hasBV && r.totals.bvFinal > 0.01 ? `<div style="color:#fbbf24; font-weight:700;">Saldo: ${fEur(r.totals.bvFinal)}</div>` : ''}
+              </div>
             </div>
+            ${hasBV ? '' : '<div class="bv-note">Nota: sin BV, el excedente que no compense este mes se pierde.</div>'}
             <details>
               <summary style="cursor: pointer; color: var(--accent); font-weight:600; font-size:0.9rem;">Ver desglose ▾</summary>
               <div class="bv-table-container" style="margin-top:12px;">
@@ -412,7 +457,8 @@ Usado: -${fEur(usoHucha)}`;
         `;
       }).join('');
 
-      resultsEl.innerHTML = `<h2 style="text-align:center; font-size:1.8rem; font-weight:900; margin-bottom:2rem; color:var(--text);">Resultados de la Simulación</h2>${winnerHTML}<h3 style="text-align:center; margin-bottom: 24px; margin-top: 40px; color:var(--text);">Otras Alternativas</h3>${alternativesHTML}`;
+      const totalTarifas = rankedResults.length;
+      resultsEl.innerHTML = `<h2 style="text-align:center; font-size:1.8rem; font-weight:900; margin-bottom:2rem; color:var(--text);">Resultados de la Simulación</h2>${winnerHTML}<h3 style="text-align:center; margin-bottom: 24px; margin-top: 40px; color:var(--text);">Ranking completo (${totalTarifas} tarifas)</h3>${alternativesHTML}`;
       resultsContainer.style.display = 'block';
       setTimeout(() => resultsContainer.classList.add('show'), 10);
       statusContainer.style.display = 'none';
