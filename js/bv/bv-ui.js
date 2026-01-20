@@ -202,23 +202,29 @@ window.BVSim = window.BVSim || {};
         const impuestosYOtros = row.impuestoElec + row.ivaCuota + row.costeBonoSocial + row.alquilerContador;
         return `
           <tr>
-            <td style="text-align:left; color:#fff; font-weight:600; font-size:12px">${row.key}</td>
-            <td style="font-size:11px; color:var(--muted)">${fEur(row.pot)}</td>
-            <td style="font-size:11px; color:var(--muted)">
-                <div style="text-decoration:line-through; opacity:0.5; font-size:9px">${fEur(row.consEur)}</div>
-                <div style="color:#10b981">-${fEur(row.credit1)}</div>
-                <div style="font-weight:700">${fEur(row.consEur - row.credit1)}</div>
+            <td class="bv-col-mes" style="text-align:left; font-weight:700; color:#fff">${row.key}</td>
+            <td class="bv-col-pot">${fEur(row.pot)}</td>
+            <td class="bv-col-ene">
+                <div class="bv-cell-op">
+                  <span class="bv-op-base">${fEur(row.consEur)}</span>
+                  <span class="bv-op-disc">-${fEur(row.credit1)}</span>
+                  <span class="bv-op-total">${fEur(row.consEur - row.credit1)}</span>
+                </div>
             </td>
-            <td style="font-size:11px; color:#ef4444">${fEur(impuestosYOtros)}</td>
-            <td style="font-weight:700; background:rgba(255,255,255,0.05)">${fEur(row.totalBase + row.ivaCuota)}</td>
-            <td class="bv-val-pos" style="font-size:11px">
-                <div style="color:var(--muted); font-size:9px">Tenías: ${fEur(row.bvSaldoPrev)}</div>
-                <div>-${fEur(row.credit2)}</div>
+            <td class="bv-col-imp" style="color:#ef4444; font-size:12px">${fEur(impuestosYOtros)}</td>
+            <td class="bv-col-sub" style="font-weight:700; background:rgba(255,255,255,0.03)">${fEur(row.totalBase + row.ivaCuota)}</td>
+            <td class="bv-col-hucha">
+                <div class="bv-cell-op">
+                  <span class="bv-val-hucha-prev">Tenías: ${fEur(row.bvSaldoPrev)}</span>
+                  <span class="bv-val-hucha-use">-${fEur(row.credit2)}</span>
+                </div>
             </td>
-            <td class="bv-val-highlight" style="font-size:12px; font-weight:800">${fEur(row.totalPagar)}</td>
-            <td style="font-size:11px; color:#fbbf24; font-weight:700">
-                <div>+${fEur(row.excedenteSobranteEur)}${isIndexada ? '*' : ''}</div>
-                <div style="border-top:1px solid rgba(251,191,36,0.3)">${fEur(row.bvSaldoFin)}</div>
+            <td class="bv-col-pagar bv-cell-main" style="color:#10b981">${fEur(row.totalPagar)}</td>
+            <td class="bv-col-saldo" style="color:#fbbf24; font-weight:700">
+                <div class="bv-cell-op">
+                  <span>+${fEur(row.excedenteSobranteEur)}${isIndexada ? '*' : ''}</span>
+                  <span class="bv-op-total" style="color:#fbbf24; border-color:rgba(251,191,36,0.3)">${fEur(row.bvSaldoFin)}</span>
+                </div>
             </td>
           </tr>
         `;
@@ -258,14 +264,14 @@ window.BVSim = window.BVSim || {};
               <table class="bv-table" style="font-size:10px;">
                 <thead>
                   <tr>
-                    <th style="text-align:left">Mes</th>
-                    <th>Potencia</th>
-                    <th>Energía (Neto)</th>
-                    <th>Impuestos</th>
-                    <th>Subtotal</th>
-                    <th>Uso Hucha</th>
-                    <th>A Pagar</th>
-                    <th>Saldo Hucha</th>
+                    <th class="bv-col-mes" style="text-align:left">Mes</th>
+                    <th class="bv-col-pot">Potencia</th>
+                    <th class="bv-col-ene">Energía (Neto)</th>
+                    <th class="bv-col-imp">Impuestos</th>
+                    <th class="bv-col-sub">Subtotal</th>
+                    <th class="bv-col-hucha">Uso Hucha</th>
+                    <th class="bv-col-pagar">A Pagar</th>
+                    <th class="bv-col-saldo">Saldo Hucha</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -318,14 +324,14 @@ window.BVSim = window.BVSim || {};
               <table class="bv-table" style="font-size:10px; color: white;">
                 <thead>
                   <tr>
-                    <th style="text-align:left; color: white;">Mes</th>
-                    <th style="color: white;">Potencia</th>
-                    <th style="color: white;">Energía (Neto)</th>
-                    <th style="color: white;">Impuestos</th>
-                    <th style="color: white;">Subtotal</th>
-                    <th style="color: white;">Uso Hucha</th>
-                    <th style="color: white;">A Pagar</th>
-                    <th style="color: white;">Saldo Hucha</th>
+                    <th class="bv-col-mes" style="text-align:left; color: white;">Mes</th>
+                    <th class="bv-col-pot" style="color: white;">Potencia</th>
+                    <th class="bv-col-ene" style="color: white;">Energía (Neto)</th>
+                    <th class="bv-col-imp" style="color: white;">Impuestos</th>
+                    <th class="bv-col-sub" style="color: white;">Subtotal</th>
+                    <th class="bv-col-hucha" style="color: white;">Uso Hucha</th>
+                    <th class="bv-col-pagar" style="color: white;">A Pagar</th>
+                    <th class="bv-col-saldo" style="color: white;">Saldo Hucha</th>
                   </tr>
                 </thead>
                 <tbody>

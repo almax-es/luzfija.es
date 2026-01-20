@@ -186,18 +186,67 @@
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   margin-bottom: 1rem;
+  border-radius: 12px;
+  background: rgba(0,0,0,0.2);
 }
 
 .bv-table {
   width: 100%;
   border-collapse: collapse;
-  min-width: 600px; /* Asegura que la tabla no se colapse demasiado */
+  min-width: 850px;
+  table-layout: fixed; /* Forzamos anchos controlados */
 }
 
 .bv-table th, .bv-table td {
-  padding: 10px 8px;
+  padding: 12px 8px;
   text-align: center;
   border-bottom: 1px solid rgba(255,255,255,0.05);
+  vertical-align: middle;
+}
+
+.bv-table th {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--muted);
+  font-weight: 700;
+  background: rgba(255,255,255,0.03);
+}
+
+/* Control de anchos de columna */
+.bv-col-mes { width: 80px; }
+.bv-col-pot { width: 80px; }
+.bv-col-ene { width: 180px; } /* Más espacio para la resta */
+.bv-col-imp { width: 100px; }
+.bv-col-sub { width: 110px; }
+.bv-col-hucha { width: 140px; }
+.bv-col-pagar { width: 110px; }
+.bv-col-saldo { width: 110px; }
+
+/* Estilos de celda específicos */
+.bv-cell-main {
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.bv-cell-op {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.bv-op-base { font-size: 11px; opacity: 0.6; text-decoration: line-through; }
+.bv-op-disc { font-size: 11px; color: #10b981; font-weight: 600; }
+.bv-op-total { font-size: 14px; font-weight: 800; border-top: 1px solid rgba(255,255,255,0.1); margin-top: 2px; padding-top: 2px; }
+
+.bv-val-hucha-prev { font-size: 10px; color: var(--muted); }
+.bv-val-hucha-use { color: #ef4444; font-weight: 600; }
+
+@media (max-width: 768px) {
+  .bv-table {
+    font-size: 12px;
+  }
 }
 
 /* --- Menu & UI Fixes --- */
