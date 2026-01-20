@@ -100,7 +100,7 @@
 .bv-winner-card-compact {
   background: linear-gradient(145deg, rgba(139,92,246,0.1) 0%, rgba(34,197,94,0.05) 100%);
   border: 1px solid var(--border);
-  border-left: 4px solid var(--accent2); /* Acento verde para ganador */
+  border-left: 4px solid var(--accent2); 
   border-radius: var(--radius);
   padding: 28px;
   display: flex;
@@ -137,7 +137,6 @@
   margin-bottom: 8px;
   line-height: 1.1;
   color: var(--text);
-  /* Gradient text effect */
   background: linear-gradient(90deg, var(--text) 0%, var(--accent) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -194,7 +193,7 @@
 }
 
 .bv-kpi-value.surplus {
-  color: #fbbf24; /* Gold is always gold */
+  color: #fbbf24;
   text-shadow: 0 0 20px rgba(251,191,36,0.2);
 }
 
@@ -285,14 +284,13 @@
 
 .bv-table {
   width: 100%;
-  /* Eliminamos min-width fijo excesivo para permitir que se ajuste, pero mantenemos para scroll horizontal */
   min-width: 750px; 
   border-collapse: collapse;
   font-size: 0.9rem;
 }
 
 .bv-table th {
-  padding: 12px 8px;
+  padding: 14px 8px;
   background: var(--bg0);
   color: var(--muted);
   font-size: 0.75rem;
@@ -303,27 +301,34 @@
   vertical-align: middle;
 }
 
-/* AJUSTE DE ANCHOS DE COLUMNA (El Elefante) */
-.bv-table th:first-child,
-.bv-table td:first-child {
-  text-align: left;
-  padding-left: 16px;
-  width: 1px; /* Truco: fuerza el ancho al mínimo del contenido */
-  white-space: nowrap; /* No rompe línea en la fecha */
-}
-
-.bv-table th:nth-child(2),
-.bv-table td:nth-child(2) {
-  /* Columna Potencia */
-  width: 1px; /* Fuerza ancho mínimo */
-  white-space: nowrap;
-}
-
 .bv-table td {
-  padding: 10px 8px;
+  padding: 12px 8px;
   border-bottom: 1px solid var(--border);
   color: var(--text);
   vertical-align: middle;
+  text-align: center;
+}
+
+/* --- AJUSTE DE ALINEACIÓN Y ANCHOS DE COLUMNA --- */
+
+/* Mes: Izquierda, ancho fijo pequeño */
+.bv-table th:first-child,
+.bv-table td:first-child {
+  text-align: left !important;
+  padding-left: 16px;
+  width: 70px; /* Ancho fijo */
+}
+
+/* Potencia: Centro, ancho fijo pequeño */
+.bv-table th:nth-child(2),
+.bv-table td:nth-child(2) {
+  text-align: center !important;
+  width: 60px; /* Ancho fijo */
+}
+
+/* Energía, Impuestos, Subtotal, etc: Centrados */
+.bv-table th:nth-child(n+3),
+.bv-table td:nth-child(n+3) {
   text-align: center;
 }
 
@@ -335,71 +340,39 @@
   background: var(--card2);
 }
 
-/* --- CSS ONLY TOOLTIPS (SIN JS) --- */
+/* --- TOOLTIPS TRIGGER (Solo cursor, sin ::after/::before) --- */
 .bv-tooltip-trigger {
   cursor: help;
-  position: relative;
-  text-decoration: underline;
-  text-decoration-style: dotted;
-  text-decoration-color: var(--muted);
+  text-decoration: underline dotted var(--muted);
   text-underline-offset: 4px;
 }
 
 .bv-tooltip-trigger:hover {
   color: var(--accent);
   text-decoration-color: var(--accent);
+  /* Eliminamos ::after y ::before para que no haya conflicto con el JS flotante */
 }
 
-/* El globo en sí */
-.bv-tooltip-trigger:hover::after {
-  content: attr(data-tip); /* Aquí ocurre la magia */
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-bottom: 10px;
-  
-  /* Estilo del globo */
-  background: #1e293b; /* Color oscuro sólido para legibilidad */
+/* --- FLOATING TOOLTIP (JS ONLY) --- */
+.bv-floating-tooltip {
+  position: fixed; /* Se sale de la tabla y del scroll */
+  display: none;
+  background: #1e293b;
   color: #fff;
   border: 1px solid var(--border);
-  padding: 8px 12px;
+  padding: 10px 14px;
   border-radius: 8px;
-  font-size: 0.75rem;
+  font-size: 0.8rem;
   font-weight: 500;
-  line-height: 1.4;
-  white-space: pre; /* Respeta los saltos de línea \n */
-  text-align: left;
-  z-index: 1000;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-  min-width: 200px;
-  pointer-events: none; /* Para que no parpadee si el ratón toca el tooltip */
-}
-
-/* Flechita del globo */
-.bv-tooltip-trigger:hover::before {
-  content: '';
-  position: absolute;
-  bottom: 100%;
-  left: 50%;
-  transform: translateX(-50%);
-  margin-bottom: 4px;
-  border: 6px solid transparent;
-  border-top-color: #1e293b;
-  z-index: 1000;
+  line-height: 1.5;
+  white-space: pre-wrap; /* Respeta saltos de línea */
+  z-index: 10000; /* Super encima de todo */
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
   pointer-events: none;
-}
-
-/* Ajuste para móviles: Tooltips centrados o ajustados si se salen */
-@media (max-width: 768px) {
-  .bv-tooltip-trigger:hover::after {
-    min-width: 180px;
-    white-space: pre-wrap; /* Permite wrap en móvil */
-  }
+  max-width: 300px;
 }
 
 /* Utilities */
 .u-text-right { text-align: right; }
 .u-text-center { text-align: center; }
 .u-fw-700 { font-weight: 700; }
-/* v2.0 fixed */
