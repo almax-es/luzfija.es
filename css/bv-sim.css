@@ -286,8 +286,19 @@
   width: 100%;
   min-width: 750px; 
   border-collapse: collapse;
+  table-layout: fixed; /* Reparte el espacio entre columnas respetando anchos fijos */
   font-size: 0.9rem;
 }
+
+.bv-table th,
+.bv-table td {
+  box-sizing: border-box; /* Anchos más predecibles (incluye padding) */
+  white-space: nowrap;    /* Evita saltos de línea en importes */
+}
+
+/* Ajuste fino de anchos vía colgroup (inyectado desde bv-ui.js) */
+.bv-table col.bv-col-month { width: 80px; }
+.bv-table col.bv-col-pot { width: 90px; }
 
 .bv-table th {
   padding: 14px 8px;
@@ -315,15 +326,15 @@
 .bv-table th:first-child,
 .bv-table td:first-child {
   text-align: left !important;
-  padding-left: 16px;
-  width: 70px; /* Ancho fijo */
+  padding-left: 10px;
+  width: 80px; /* Coherente con colgroup */
 }
 
 /* Potencia: Centro, ancho fijo pequeño */
 .bv-table th:nth-child(2),
 .bv-table td:nth-child(2) {
   text-align: center !important;
-  width: 60px; /* Ancho fijo */
+  width: 90px; /* Coherente con colgroup */
 }
 
 /* Energía, Impuestos, Subtotal, etc: Centrados */

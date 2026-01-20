@@ -265,7 +265,17 @@ document.addEventListener('DOMContentLoaded', () => {
           <summary style="font-size: 1.1rem; font-weight: 700; cursor: pointer; text-align: center; color: var(--text); padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: var(--card2); transition: all 0.2s;">Ver desglose detallado mensual ▾</summary>
           ${isWinnerIndexada ? '<div style="font-size:11px; color:#fbbf24; text-align:center; margin:12px 0;">* Excedentes estimados a 0,06 €/kWh (indexada)</div>' : ''}
           <div class="bv-table-container">
-            <table class="bv-table">
+	            <table class="bv-table">
+	              <colgroup>
+	                <col class="bv-col-month">
+	                <col class="bv-col-pot">
+	                <col>
+	                <col>
+	                <col>
+	                <col>
+	                <col>
+	                <col>
+	              </colgroup>
               <thead>
                 <tr>
                   <th style="text-align:left">Mes</th>
@@ -331,8 +341,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (left < 10) left = 10;
         if (left + ttWidth > window.innerWidth - 10) left = window.innerWidth - ttWidth - 10;
 
-        tooltipEl.style.top = `${top + window.scrollY}px`;
-        tooltipEl.style.left = `${left + window.scrollX}px`;
+	        // El tooltip es position:fixed, por tanto se posiciona en coordenadas de viewport
+	        tooltipEl.style.top = `${top}px`;
+	        tooltipEl.style.left = `${left}px`;
       };
 
       const hideTooltip = () => {
