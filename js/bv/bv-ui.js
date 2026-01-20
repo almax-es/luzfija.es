@@ -22,6 +22,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusContainer = document.getElementById('bv-status-container');
   const statusEl = document.getElementById('bv-status');
 
+  // --- UI INITIALIZATION ---
   const btnTheme = document.getElementById('btnTheme');
   const btnMenu = document.getElementById('btnMenu');
   const menuPanel = document.getElementById('menuPanel');
@@ -82,6 +83,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Formateadores ES
   const currencyFmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 2 });
   const kwFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   const kwhFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -97,6 +99,60 @@ document.addEventListener('DOMContentLoaded', () => {
     const normalized = String(val).replace(/\./g, '').replace(',', '.');
     return parseFloat(normalized);
   }
+
+  // --- TOOLTIP GLOBAL INIT (Event Delegation) ---
+  const tooltipEl = document.createElement('div');
+  tooltipEl.className = 'bv-floating-tooltip';
+  document.body.appendChild(tooltipEl);
+
+  const updateTooltipPosition = (e) => {
+    const target = e.target.closest('.bv-tooltip-trigger');
+    if (!target) return;
+
+    const rect = target.getBoundingClientRect();
+    const ttWidth = tooltipEl.offsetWidth || 280;
+    const ttHeight = tooltipEl.offsetHeight || 80;
+
+    let top = rect.top - ttHeight - 10;
+    let left = rect.left + (rect.width / 2) - (ttWidth / 2);
+
+    if (top < 10) top = rect.bottom + 10;
+    if (left < 10) left = 10;
+    if (left + ttWidth > window.innerWidth - 10) left = window.innerWidth - ttWidth - 10;
+
+    tooltipEl.style.top = `${top}px`;
+    tooltipEl.style.left = `${left}px`;
+  };
+
+  // Delegación global en document (INFALIBLE)
+  document.addEventListener('mouseover', (e) => {
+    const target = e.target.closest('.bv-tooltip-trigger');
+    if (target) {
+      const tip = target.getAttribute('data-tip');
+      if (tip) {
+        tooltipEl.textContent = tip;
+        tooltipEl.style.display = 'block';
+        updateTooltipPosition(e);
+      }
+    }
+  }, { passive: true });
+
+  document.addEventListener('mouseout', (e) => {
+    const target = e.target.closest('.bv-tooltip-trigger');
+    if (target) {
+      tooltipEl.style.display = 'none';
+    }
+  }, { passive: true });
+
+  // Move tooltip with mouse if needed (optional, but good for large cells)
+  document.addEventListener('mousemove', (e) => {
+    if (tooltipEl.style.display === 'block') updateTooltipPosition(e);
+  }, { passive: true });
+
+  window.addEventListener('scroll', () => {
+    if (tooltipEl.style.display === 'block') tooltipEl.style.display = 'none';
+  }, { passive: true });
+
 
   if (!fileInput || !simulateButton) return;
 
@@ -182,14 +238,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const winner = rankedResults[0];
       const isWinnerIndexada = winner.tarifa.tipo === 'INDEXADA';
-      
+      const ahorroPct = rankedResults.length > 1 ? Math.round(((rankedResults[rankedResults.length-1].totals.pagado - winner.totals.pagado) / rankedResults[rankedResults.length-1].totals.pagado) * 100) : 0;
+
+      // Helper para redondeo
       const r2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 
-      const buildRows = (resultItem) => {
-        const isInd = resultItem.tarifa.tipo === 'INDEXADA';
+      const buildDetailedRows = (rows, resultItem) => {
         const tarifaObj = resultItem.tarifa;
-
-        return resultItem.rows.map((row) => {
+        return rows.map((row) => {
           const m = monthMap.get(row.key) || {};
           
           const imp = r2((row.impuestoElec||0) + (row.ivaCuota||0) + (row.costeBonoSocial||0) + (row.alquilerContador||0));
@@ -201,14 +257,16 @@ document.addEventListener('DOMContentLoaded', () => {
           const restoHucha = Math.max(0, (row.bvSaldoPrev || 0) - usoHucha);
           const excedenteHucha = r2(row.excedenteSobranteEur || 0);
 
+          // Cálculos Potencia
           const potP1 = r2(p1Val * row.dias * tarifaObj.p1);
           const potP2 = r2(p2Val * row.dias * tarifaObj.p2);
           const tipPot = `P1: ${fKw(p1Val)} kW × ${row.dias}d × ${fPrice(tarifaObj.p1)} € = ${fEur(potP1)}
-` + 
+` +
                          `P2: ${fKw(p2Val)} kW × ${row.dias}d × ${fPrice(tarifaObj.p2)} € = ${fEur(potP2)}
-` + 
+` +
                          `TOTAL = ${fEur(row.pot)}`;
 
+          // Cálculos Energía (Bruta)
           const kwhP1 = Number(m.importByPeriod?.P1) || 0;
           const kwhP2 = Number(m.importByPeriod?.P2) || 0;
           const kwhP3 = Number(m.importByPeriod?.P3) || 0;
@@ -220,23 +278,25 @@ document.addEventListener('DOMContentLoaded', () => {
           const costP3 = r2(kwhP3 * cP3);
 
           const tipEneBruta = `P1: ${fKwh(kwhP1)} kWh × ${fPrice(cP1)} € = ${fEur(costP1)}
-` + 
+` +
                               `P2: ${fKwh(kwhP2)} kWh × ${fPrice(cP2)} € = ${fEur(costP2)}
-` + 
+` +
                               `P3: ${fKwh(kwhP3)} kWh × ${fPrice(cP3)} € = ${fEur(costP3)}
-` + 
+` +
                               `TOTAL = ${fEur(energiaBruta)}`;
 
+          // Cálculos Excedentes
           const exKwh = Number(row.exKwh) || Number(m.exportTotalKWh) || 0;
           const precioExc = Number(row.precioExc) || 0;
           const totalGen = r2(exKwh * precioExc);
           const tipExcedentes = `Generado: ${fKwh(exKwh)} kWh × ${fPrice(precioExc)} € = ${fEur(totalGen)}
 
-` + 
+` +
                                 `Desglose:
 - Compensado en factura: ${fEur(descuentoExc)}
 - A Batería Virtual: ${fEur(excedenteHucha)}`;
 
+          // Otros tooltips
           const tipEneNeta = `Energía Bruta (${fEur(energiaBruta)}) - Compensación (${fEur(descuentoExc)}) = ${fEur(energiaNeta)}`;
           const tipImp = `IEE: ${fEur(row.impuestoElec)}
 IVA: ${fEur(row.ivaCuota)}
@@ -264,18 +324,20 @@ Usado: -${fEur(usoHucha)}`;
         }).join('');
       };
 
-      const winnerRows = buildRows(winner);
+      // HTML del Ganador
+      const winnerRows = buildRows(winner.rows, winner);
       const winnerHTML = `
         <div class="bv-results-grid" style="margin-bottom: 40px;">
+          <!-- Tarjeta Izquierda (Ganador) -->
           <div class="bv-winner-card-compact">
             <div class="bv-winner-badge">🏆 Mejor Opción</div>
-            <div class="bv-winner-name">${winner.tarifa.nombre}</div>
-            <div class="bv-winner-company">de ${winner.tarifa.comercializadora || 'Compañía Desconocida'}</div>
+            <h2 class="bv-winner-name">${winner.tarifa.nombre}</h2>
             <div style="margin-top:auto; padding-top:1.5rem; width:100%">
               ${winner.tarifa.web ? `<a href="${winner.tarifa.web}" target="_blank" class="btn primary" style="width:100%; justify-content:center;">Ver esta tarifa &rarr;</a>` : ''}
             </div>
           </div>
 
+          <!-- KPIs Derecha (Apilados) -->
           <div class="bv-kpis-stack">
             <div class="bv-kpi-card">
               <span class="bv-kpi-label">Pagarías en total</span>
@@ -298,14 +360,14 @@ Usado: -${fEur(usoHucha)}`;
                 <tr>
                   <th style="text-align:left">Mes</th>
                   <th>Potencia</th>
-                  <th>Energía Bruta</th>
-                  <th>Excedentes</th>
-                  <th>Energía Neta</th>
+                  <th>E. Bruta</th>
+                  <th>Exced.</th>
+                  <th>E. Neta</th>
                   <th>Impuestos</th>
                   <th>Subtotal</th>
-                  <th>Uso Hucha</th>
-                  <th>A Pagar</th>
-                  <th>Saldo Hucha</th>
+                  <th>Hucha</th>
+                  <th>Pagar</th>
+                  <th>Saldo</th>
                 </tr>
               </thead>
               <tbody>${winnerRows}</tbody>
@@ -314,15 +376,17 @@ Usado: -${fEur(usoHucha)}`;
         </details>
       `;
 
+      // HTML de Alternativas
       const alternativesHTML = rankedResults.slice(1, 6).map((r, i) => {
-        const rows = buildRows(r);
+        const rows = buildRows(r.rows, r);
         return `
           <div class="bv-alt-card-detailed" style="margin-bottom: 24px; background:var(--card); border:1px solid var(--border); padding:24px; border-radius:16px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:16px;">
               <div>
-                <div class="bv-alt-rank" style="font-size:1.5rem; opacity:0.5; font-weight:900;">#${i+2}</div>
-                <h3 style="margin:0; font-size:1.3rem;">${r.tarifa.nombre}</h3>
-                <small style="color:var(--muted)">${r.tarifa.comercializadora}</small>
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <span class="bv-alt-rank" style="font-size:1.5rem; opacity:0.5; font-weight:900;">#${i+2}</span>
+                  <h3 style="margin:0; font-size:1.3rem;">${r.tarifa.nombre}</h3>
+                </div>
               </div>
               <div style="text-align:right;">
                 <div style="font-size:1.5rem; font-weight:900;">${fEur(r.totals.pagado)}</div>
@@ -359,50 +423,13 @@ Usado: -${fEur(usoHucha)}`;
       resultsEl.innerHTML = `
         <h2 style="text-align:center; font-size:1.8rem; font-weight:900; margin-bottom:2rem; color:var(--text);">Resultados de la Simulación</h2>
         ${winnerHTML}
-        <h3 style="text-align:center; margin-bottom: 24px; margin-top: 40px;">Otras Alternativas</h3>
+        <h3 style="text-align:center; margin-bottom: 24px; margin-top: 40px; color:var(--text);">Otras Alternativas</h3>
         ${alternativesHTML}
       `;
 
       resultsContainer.style.display = 'block';
       setTimeout(() => resultsContainer.classList.add('show'), 10);
       statusContainer.style.display = 'none';
-      
-      const oldTooltip = document.querySelector('.bv-floating-tooltip');
-      if (oldTooltip) oldTooltip.remove();
-
-      const tooltipEl = document.createElement('div');
-      tooltipEl.className = 'bv-floating-tooltip';
-      document.body.appendChild(tooltipEl);
-
-      const showTooltip = (e, text) => {
-        if (!text) return;
-        tooltipEl.textContent = text;
-        tooltipEl.style.display = 'block';
-        
-        const rect = e.target.getBoundingClientRect();
-        const ttWidth = tooltipEl.offsetWidth;
-        const ttHeight = tooltipEl.offsetHeight;
-        
-        let top = rect.top - ttHeight - 10;
-        let left = rect.left + (rect.width / 2) - (ttWidth / 2);
-        
-        if (top < 10) top = rect.bottom + 10; 
-        if (left < 10) left = 10;
-        if (left + ttWidth > window.innerWidth - 10) left = window.innerWidth - ttWidth - 10;
-
-        tooltipEl.style.top = `${top + window.scrollY}px`;
-        tooltipEl.style.left = `${left + window.scrollX}px`;
-      };
-
-      const hideTooltip = () => { tooltipEl.style.display = 'none'; };
-
-      resultsEl.querySelectorAll('.bv-tooltip-trigger').forEach(el => {
-        const tip = el.getAttribute('data-tip');
-        el.addEventListener('mouseenter', (e) => showTooltip(e, tip));
-        el.addEventListener('mouseleave', hideTooltip);
-        el.addEventListener('click', (e) => { e.stopPropagation(); showTooltip(e, tip); });
-      });
-      document.addEventListener('click', hideTooltip);
       
     } catch (e) {
       console.error('BVSim Error:', e);
