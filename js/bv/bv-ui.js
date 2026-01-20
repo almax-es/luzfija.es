@@ -269,12 +269,12 @@ document.addEventListener('DOMContentLoaded', () => {
 	              <colgroup>
 	                <col class="bv-col-month">
 	                <col class="bv-col-pot">
-	                <col>
-	                <col>
-	                <col>
-	                <col>
-	                <col>
-	                <col>
+	                <col class="bv-col-energy">
+	                <col class="bv-col-tax">
+	                <col class="bv-col-subtotal">
+	                <col class="bv-col-use">
+	                <col class="bv-col-pay">
+	                <col class="bv-col-balance">
 	              </colgroup>
               <thead>
                 <tr>

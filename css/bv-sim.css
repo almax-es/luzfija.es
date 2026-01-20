@@ -284,10 +284,11 @@
 
 .bv-table {
   width: 100%;
-  min-width: 750px; 
+  min-width: 860px;
   border-collapse: collapse;
   table-layout: fixed; /* Reparte el espacio entre columnas respetando anchos fijos */
   font-size: 0.9rem;
+  font-variant-numeric: tabular-nums;
 }
 
 .bv-table th,
@@ -296,12 +297,24 @@
   white-space: nowrap;    /* Evita saltos de línea en importes */
 }
 
-/* Ajuste fino de anchos vía colgroup (inyectado desde bv-ui.js) */
-.bv-table col.bv-col-month { width: 80px; }
-.bv-table col.bv-col-pot { width: 90px; }
+/* Distribución de columnas (v3): compacta lo corto y reparte el resto por peso */
+.bv-table col.bv-col-month {
+  width: 90px; /* fallback */
+  width: clamp(84px, 9%, 112px);
+}
+.bv-table col.bv-col-pot {
+  width: 102px; /* fallback */
+  width: clamp(92px, 10%, 124px);
+}
+.bv-table col.bv-col-energy { width: 14%; }
+.bv-table col.bv-col-tax { width: 12%; }
+.bv-table col.bv-col-subtotal { width: 13%; }
+.bv-table col.bv-col-use { width: 14%; }
+.bv-table col.bv-col-pay { width: 14%; }
+.bv-table col.bv-col-balance { width: 14%; }
 
 .bv-table th {
-  padding: 14px 8px;
+  padding: 14px 10px;
   background: var(--bg0);
   color: var(--muted);
   font-size: 0.75rem;
@@ -313,34 +326,27 @@
 }
 
 .bv-table td {
-  padding: 12px 8px;
+  padding: 12px 10px;
   border-bottom: 1px solid var(--border);
   color: var(--text);
   vertical-align: middle;
   text-align: center;
 }
 
-/* --- AJUSTE DE ALINEACIÓN Y ANCHOS DE COLUMNA --- */
+/* --- AJUSTE DE ALINEACIÓN --- */
 
-/* Mes: Izquierda, ancho fijo pequeño */
+/* Mes: Izquierda */
 .bv-table th:first-child,
 .bv-table td:first-child {
   text-align: left !important;
   padding-left: 10px;
-  width: 80px; /* Coherente con colgroup */
 }
 
-/* Potencia: Centro, ancho fijo pequeño */
-.bv-table th:nth-child(2),
-.bv-table td:nth-child(2) {
-  text-align: center !important;
-  width: 90px; /* Coherente con colgroup */
-}
-
-/* Energía, Impuestos, Subtotal, etc: Centrados */
-.bv-table th:nth-child(n+3),
-.bv-table td:nth-child(n+3) {
-  text-align: center;
+/* Importes: Derecha (más compacto y legible) */
+.bv-table th:nth-child(n+2),
+.bv-table td:nth-child(n+2) {
+  text-align: right;
+  padding-right: 12px;
 }
 
 .bv-table tr:last-child td {
@@ -364,20 +370,9 @@
   border-spacing: 0 !important;
 }
 
-/* Fuerza anchos compactos en Mes y Potencia */
-.bv-table thead th:nth-child(1),
-.bv-table tbody td:nth-child(1) {
-  width: 80px !important;
-}
-
-.bv-table thead th:nth-child(2),
-.bv-table tbody td:nth-child(2) {
-  width: 90px !important;
-}
-
-/* El resto, que reparta el espacio disponible */
-.bv-table thead th:nth-child(n+3),
-.bv-table tbody td:nth-child(n+3) {
+/* Neutraliza anchos globales aplicados a th/td (dejamos que mande el colgroup) */
+.bv-table thead th,
+.bv-table tbody td {
   width: auto !important;
 }
 
