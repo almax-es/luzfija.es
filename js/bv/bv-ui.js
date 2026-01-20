@@ -305,24 +305,29 @@ Usado ahora: -${fEur(row.credit2)}`;
       tooltipEl.className = 'bv-floating-tooltip';
       document.body.appendChild(tooltipEl);
 
+      // Nota: el tooltip es `position: fixed` (ver CSS). Por tanto, `getBoundingClientRect()` ya
+      // devuelve coordenadas en el viewport. Si sumamos scroll (scrollX/scrollY) lo mandamos fuera
+      // de pantalla cuando hay scroll, y "desaparece".
       const updateTooltipPosition = (e) => {
         const target = e.target.closest('.bv-tooltip-trigger');
         if (!target) return;
-        
+
         const rect = target.getBoundingClientRect();
-        const ttWidth = tooltipEl.offsetWidth;
-        const ttHeight = tooltipEl.offsetHeight;
-        
+
+        // Asegura que tenemos medidas reales (por si se llama antes de pintar)
+        const ttWidth = tooltipEl.offsetWidth || 280;
+        const ttHeight = tooltipEl.offsetHeight || 80;
+
         let top = rect.top - ttHeight - 10;
         let left = rect.left + (rect.width / 2) - (ttWidth / 2);
-        
-        // Ajustes de bordes
-        if (top < 10) top = rect.bottom + 10; 
+
+        // Ajustes de bordes dentro del viewport
+        if (top < 10) top = rect.bottom + 10;
         if (left < 10) left = 10;
         if (left + ttWidth > window.innerWidth - 10) left = window.innerWidth - ttWidth - 10;
 
-        tooltipEl.style.top = `${top + window.scrollY}px`;
-        tooltipEl.style.left = `${left + window.scrollX}px`;
+        tooltipEl.style.top = `${top}px`;
+        tooltipEl.style.left = `${left}px`;
       };
 
       // Usamos mouseover (que sí burbujea) en lugar de mouseenter
@@ -336,6 +341,11 @@ Usado ahora: -${fEur(row.credit2)}`;
             updateTooltipPosition(e); // Posición inicial
           }
         }
+      });
+
+      // Reposicionar mientras el ratón se mueve (evita que parezca "bug" en celdas anchas)
+      resultsEl.addEventListener('mousemove', (e) => {
+        if (tooltipEl.style.display === 'block') updateTooltipPosition(e);
       });
 
       resultsEl.addEventListener('mouseout', (e) => {
