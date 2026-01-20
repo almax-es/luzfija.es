@@ -197,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const restoHucha = Math.max(0, (row.bvSaldoPrev || 0) - (row.credit2 || 0));
 
         // Formulas detalladas para los tooltips
-        const tipPot = `P1: ${p1Val}kW x ${row.dias}d x ${fPrice(winner.tarifa.p1)}€\nP2: ${p2Val}kW x ${row.dias}d x ${fPrice(winner.tarifa.p2)}€\nTOTAL = ${fEur(row.pot)}`;
+        const tipPot = `P1: ${fKw(p1Val)} kW x ${row.dias} días x ${fPrice(winner.tarifa.p1)} €/kW\nP2: ${fKw(p2Val)} kW x ${row.dias} días x ${fPrice(winner.tarifa.p2)} €/kW\nTOTAL = ${fEur(row.pot)}`;
         const tipEne = `Energía Bruta: ${fEur(energiaBruta)}
 - Excedentes Mes: ${fEur(row.credit1)}
 NETO = ${fEur(energiaNeta)}`;
