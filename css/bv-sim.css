@@ -511,6 +511,21 @@ html.light-mode .bv-floating-tooltip{
   }
   .bv-alt-price{ grid-column: 2; text-align: left; font-size: 1.1rem; }
   .bv-alt-surplus{ text-align: left; }
+
+  /* Alternativas (bv-alt-card-detailed): en móvil, apilar y alinear a la izquierda (evita aspecto "a la derecha") */
+  .bv-alt-card-detailed > div:first-child{
+    flex-direction: column;
+    align-items: flex-start !important;
+  }
+  .bv-alt-card-detailed > div:first-child > div:last-child{
+    width: 100%;
+    text-align: left !important;
+  }
+  .bv-alt-card-detailed h3{
+    width: 100%;
+    word-break: break-word;
+  }
+
 }
 
 /* Utilities */
@@ -616,3 +631,9 @@ html.light-mode .bv-floating-tooltip{
      pero el usuario pidió ver todo bien. Con este diseño se ve todo en lista vertical. */
 }
 
+
+
+/* Evitar scroll horizontal accidental en móvil */
+@media (max-width: 768px){
+  body{ overflow-x: hidden; }
+}
