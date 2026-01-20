@@ -5,34 +5,35 @@
 /* --- Layout & Containers --- */
 .bv-form-container {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
+  grid-template-columns: 1.2fr 0.8fr; /* Columna de inputs un poco más ancha */
+  gap: 3rem;
   margin-top: 2rem;
-  align-items: center; /* Centrado vertical */
+  align-items: start;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 992px) {
   .bv-form-container {
     grid-template-columns: 1fr;
-    gap: 1.5rem;
+    gap: 2rem;
   }
 }
 
 /* --- Drag & Drop Zone --- */
 .bv-upload-zone {
-  border: 3px dashed rgba(255, 255, 255, 0.2);
-  border-radius: 16px;
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  border-radius: 20px;
   padding: 2rem;
   text-align: center;
-  transition: all 0.2s ease;
-  background: rgba(255, 255, 255, 0.03);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255, 255, 255, 0.02);
   cursor: pointer;
-  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  min-height: 250px;
+  min-height: 220px;
+  width: 90%; /* No ocupa todo el ancho */
+  margin: 0 auto; /* Centrada en su contenedor */
 }
 
 .bv-upload-zone:hover, .bv-upload-zone.dragover {
