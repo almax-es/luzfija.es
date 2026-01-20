@@ -327,7 +327,11 @@ def main() -> int:
 
     api_key = os.environ.get("ESIOS_API_KEY") or os.environ.get("ESIOS_TOKEN")
     if not api_key:
-        api_key = getpass("API key de ESIOS: ").strip()
+        if sys.stdin.isatty():
+            api_key = getpass("API key de ESIOS: ").strip()
+        else:
+            print("ERROR: ESIOS_API_KEY environment variable is missing and cannot prompt in non-interactive mode.", file=sys.stderr)
+            return 2
     if not api_key:
         print("ERROR: missing API key", file=sys.stderr)
         return 2
