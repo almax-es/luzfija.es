@@ -1,6 +1,8 @@
 window.BVSim = window.BVSim || {};
 
-(function () {
+document.addEventListener('DOMContentLoaded', () => {
+  console.log('BVSim: Initializing UI...');
+
   const dropZone = document.getElementById('drop-zone');
   const fileInput = document.getElementById('bv-file');
   const fileNameDisplay = document.getElementById('file-name');
@@ -33,25 +35,29 @@ window.BVSim = window.BVSim || {};
   if (btnTheme) {
     // Clonar para limpiar listeners de lf-ui.js
     const newBtn = btnTheme.cloneNode(true);
-    btnTheme.parentNode.replaceChild(newBtn, btnTheme);
-    newBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      const isLight = document.documentElement.classList.toggle('light-mode');
-      localStorage.setItem('almax_theme', isLight ? 'light' : 'dark');
-      updateThemeUI();
-    });
+    if (btnTheme.parentNode) {
+      btnTheme.parentNode.replaceChild(newBtn, btnTheme);
+      newBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        const isLight = document.documentElement.classList.toggle('light-mode');
+        localStorage.setItem('almax_theme', isLight ? 'light' : 'dark');
+        updateThemeUI();
+      });
+    }
     updateThemeUI();
   }
 
   if (btnMenu && menuPanel) {
     const newBtn = btnMenu.cloneNode(true);
-    btnMenu.parentNode.replaceChild(newBtn, btnMenu);
-    newBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const isShow = menuPanel.classList.toggle('show');
-      newBtn.setAttribute('aria-expanded', isShow);
-    });
+    if (btnMenu.parentNode) {
+      btnMenu.parentNode.replaceChild(newBtn, btnMenu);
+      newBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const isShow = menuPanel.classList.toggle('show');
+        newBtn.setAttribute('aria-expanded', isShow);
+      });
+    }
   }
 
   // Delegación global para cerrar menú y limpiar caché
@@ -95,7 +101,10 @@ window.BVSim = window.BVSim || {};
     return parseFloat(normalized);
   }
 
-  if (!fileInput || !simulateButton) return;
+  if (!fileInput || !simulateButton) {
+    console.error('BVSim: Critical elements missing (fileInput or simulateButton)');
+    return;
+  }
 
   // --- DRAG & DROP LOGIC ---
   function handleFile(file) {
@@ -116,7 +125,9 @@ window.BVSim = window.BVSim || {};
       dropZone.classList.remove('dragover');
       if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
     });
-    dropZone.addEventListener('click', () => fileInput.click());
+    dropZone.addEventListener('click', () => {
+      fileInput.click();
+    });
   }
 
   fileInput.addEventListener('change', (e) => {
@@ -139,6 +150,7 @@ window.BVSim = window.BVSim || {};
 
   // --- SIMULATION LOGIC ---
   simulateButton.addEventListener('click', async () => {
+    console.log('BVSim: Simulation started...');
     const file = window.BVSim.file;
     const p1Val = p1Input.value === '' ? 0 : parseInput(p1Input.value);
     const p2Val = p2Input.value === '' ? 0 : parseInput(p2Input.value);
@@ -187,20 +199,19 @@ window.BVSim = window.BVSim || {};
         return diffReal;
       });
 
+      const winner = rankedResults[0];
+      const isWinnerIndexada = winner.tarifa.tipo === 'INDEXADA';
+      const totalImp = monthlyResult.months.reduce((a, b) => a + b.importTotalKWh, 0);
+      const totalAuto = result.records.reduce((a, b) => a + (Number(b.autoconsumo) || 0), 0);
+      const diasTotales = monthlyResult.months.reduce((a, b) => a + b.spanDays, 0);
+      const costeSinPlacas = (totalImp + totalAuto) * 0.15 + (p1Val * 0.08 * diasTotales);
+      const ahorroPct = Math.round(((costeSinPlacas - winner.totals.pagado) / costeSinPlacas) * 100);
+
       const buildDetailedRows = (rows, isIndexada) => rows.map((row) => {
         const imp = row.impuestoElec + row.ivaCuota + row.costeBonoSocial + row.alquilerContador;
         const energiaNeta = row.consEur - row.credit1;
         const subtotal = row.totalBase;
         const restoHucha = Math.max(0, row.bvSaldoPrev - row.credit2);
-
-        // Tooltip strings
-        const tipPot = `P1: ${p1Val} kW x ${row.dias} días x ${winner.tarifa.p1} €/kW\nP2: ${p2Val} kW x ${row.dias} días x ${winner.tarifa.p2} €/kW`;
-        const tipEne = `Coste Energía: ${fEur(row.consEur)}\n- Descuento Exc.: ${fEur(row.credit1)}`;
-        const tipImp = `IEE: ${fEur(row.impuestoElec)}\nIVA: ${fEur(row.ivaCuota)}\nAlquiler/Otros: ${fEur(row.costeBonoSocial + row.alquilerContador)}`;
-        const tipSub = `Suma de:\nPotencia (${fEur(row.pot)})\n+ Energía Neta (${fEur(energiaNeta)})\n+ Impuestos/Cargos (${fEur(imp)})`;
-        const tipHucha = `Saldo disponible: ${fEur(row.bvSaldoPrev)}\nUsado para esta factura: -${fEur(row.credit2)}`;
-        const tipPagar = `Importe factura (${fEur(subtotal)}) - Uso Hucha (${fEur(row.credit2)})`;
-        const tipSaldo = `Restante (${fEur(restoHucha)}) + Nuevo Excedente (${fEur(row.excedenteSobranteEur)})`;
 
         // Tooltip strings (Formulas)
         const tipPot = `P1: ${p1Val} kW x ${row.dias} días x ${winner.tarifa.p1} €/kW\nP2: ${p2Val} kW x ${row.dias} días x ${winner.tarifa.p2} €/kW`;
@@ -226,14 +237,6 @@ window.BVSim = window.BVSim || {};
           </tr>
         `;
       }).join('');
-
-      const winner = rankedResults[0];
-      const isWinnerIndexada = winner.tarifa.tipo === 'INDEXADA';
-      const totalImp = monthlyResult.months.reduce((a, b) => a + b.importTotalKWh, 0);
-      const totalAuto = result.records.reduce((a, b) => a + (Number(b.autoconsumo) || 0), 0);
-      const diasTotales = monthlyResult.months.reduce((a, b) => a + b.spanDays, 0);
-      const costeSinPlacas = (totalImp + totalAuto) * 0.15 + (p1Val * 0.08 * diasTotales);
-      const ahorroPct = Math.round(((costeSinPlacas - winner.totals.pagado) / costeSinPlacas) * 100);
 
       resultsEl.innerHTML = `
         <h2 style="text-align:center; font-size:1.8rem; font-weight:900; margin-bottom:2rem; color:var(--text);">Resultados de la Simulación</h2>
@@ -317,16 +320,20 @@ window.BVSim = window.BVSim || {};
       const dlBtn = document.getElementById('bv-download-csv');
       if (dlBtn) dlBtn.addEventListener('click', () => window.BVSim.downloadCSV(winner));
       
-      // Inicializar tooltips dinámicos (usando nuestra clase personalizada para no romper estilos)
+      // Inicializar tooltips dinámicos manualmente
       if (window.LF && window.LF.bindTooltipElement) {
+        // Pequeño delay para asegurar renderizado
         setTimeout(() => {
-          resultsEl.querySelectorAll('.bv-tooltip-trigger').forEach(el => window.LF.bindTooltipElement(el));
-          if (window.LF.initTooltips) window.LF.initTooltips(); // Para el resto
+          const triggers = resultsEl.querySelectorAll('.bv-tooltip-trigger');
+          console.log('BVSim: Binding tooltips to', triggers.length, 'elements');
+          triggers.forEach(el => window.LF.bindTooltipElement(el));
         }, 100);
+      } else {
+        console.warn('BVSim: window.LF.bindTooltipElement not found');
       }
       
     } catch (e) {
-      console.error(e);
+      console.error('BVSim Error:', e);
       if (statusEl) statusEl.innerHTML = `<span style="color:#ef4444">⚠️ Error: ${e.message}</span>`;
     } finally {
       simulateButton.disabled = false;
@@ -334,4 +341,4 @@ window.BVSim = window.BVSim || {};
       if (btnSpinner) btnSpinner.style.display = 'none';
     }
   });
-})();
+});
