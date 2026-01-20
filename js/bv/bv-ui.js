@@ -85,7 +85,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Formateadores ES
   const currencyFmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 2 });
-  const kwFmt = newIntl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  const kwFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   const kwhFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
   const priceFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 6 });
 
