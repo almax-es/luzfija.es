@@ -228,37 +228,42 @@ window.BVSim = window.BVSim || {};
       const ahorroPct = Math.round(((costeSinPlacas - winner.totals.pagado) / costeSinPlacas) * 100);
 
       resultsEl.innerHTML = `
-        <div class="heroKpis" style="margin-bottom: 2rem;">
-          <div class="heroCard best" style="width:100%; max-width:none">
-            <div class="k">Mejor opción para ti</div>
-            <div class="v" style="font-size:clamp(1.5rem, 5vw, 2.5rem)">${winner.tarifa.nombre}</div>
-            <div class="s">de ${winner.tarifa.comercializadora || ''}</div>
+        <h2 style="text-align:center; font-size:2rem; font-weight:900; margin-bottom:2rem;">Resultados de la Simulación</h2>
+
+        <div class="bv-results-grid">
+          <!-- IZQUIERDA: Tarjeta Ganadora -->
+          <div class="bv-winner-card-compact">
+            <div class="bv-winner-badge">🏆 Opción Ganadora</div>
+            <h2 class="bv-winner-name">${winner.tarifa.nombre}</h2>
+            <div class="bv-winner-company">de ${winner.tarifa.comercializadora || 'Compañía Desconocida'}</div>
+            
+            <div style="margin-top:auto; padding-top:1.5rem;">
+              ${winner.tarifa.web ? `<a href="${winner.tarifa.web}" target="_blank" class="btn primary" style="width:100%; justify-content:center;">Ver esta tarifa &rarr;</a>` : ''}
+            </div>
+          </div>
+
+          <!-- DERECHA: KPIs -->
+          <div class="bv-kpis-stack">
+            <div class="bv-kpi-card">
+              <span class="bv-kpi-label">Pagarías en este periodo</span>
+              <span class="bv-kpi-value">${fEur(winner.totals.pagado)}</span>
+              <span class="bv-kpi-sub">Total con impuestos incluidos</span>
+            </div>
+            
+            <div class="bv-kpi-card highlight">
+              <span class="bv-kpi-label">Dinero que te sobra</span>
+              <span class="bv-kpi-value surplus">${fEur(winner.totals.bvFinal)}</span>
+              <span class="bv-kpi-sub">Saldo acumulado en hucha</span>
+            </div>
           </div>
         </div>
 
-        <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem;">
-           <div class="heroCard" style="text-align:center">
-             <div class="k">Pagarías en este periodo</div>
-             <div class="v" style="color:var(--primary-light)">${fEur(winner.totals.pagado)}</div>
-             <div class="s">Total con impuestos</div>
-           </div>
-           <div class="heroCard" style="text-align:center">
-             <div class="k">Dinero que te sobra</div>
-             <div class="v" style="color:#fbbf24">${fEur(winner.totals.bvFinal)}</div>
-             <div class="s">En tu hucha virtual</div>
-           </div>
-        </div>
+        ${ahorroPct > 0 ? `<div style="margin: 2rem auto; text-align:center; max-width:600px;"><div class="bv-savings-banner">📉 Estás ahorrando un <strong>${ahorroPct}%</strong> respecto a la media</div></div>` : ''}
 
-        ${ahorroPct > 0 ? `<div style="margin-bottom: 2rem; text-align:center;"><span class="pill" style="background:rgba(16,185,129,0.1); color:#10b981; border:1px solid rgba(16,185,129,0.2); font-weight:700; padding:8px 24px; font-size:1.1rem">📉 Estás ahorrando un ${ahorroPct}% en tu factura</span></div>` : ''}
-
-        <div style="text-align:center; margin-bottom: 2.5rem;">
-          ${winner.tarifa.web ? `<a href="${winner.tarifa.web}" target="_blank" class="btn primary" style="padding: 14px 40px; font-size: 1.2rem; border-radius: 99px;">Ver esta tarifa &rarr;</a>` : ''}
-        </div>
-
-        <details style="margin-top: 20px;">
-          <summary style="font-size: 0.8rem; cursor: pointer; text-align: center; color: var(--muted);">Ver cuentas detalladas del ganador</summary>
-          ${isWinnerIndexada ? '<div style="font-size:10px; color:#fbbf24; text-align:center; margin:8px 0;">* Excedentes estimados a 0,06 €/kWh (indexada)</div>' : ''}
-          <div class="bv-table-container">
+        <details style="margin-top: 20px; margin-bottom: 40px;">
+          <summary style="font-size: 0.9rem; cursor: pointer; text-align: center; color: var(--muted); padding: 10px; border-radius: 8px; transition: background 0.2s;">Ver desglose detallado mensual ▾</summary>
+          ${isWinnerIndexada ? '<div style="font-size:11px; color:#fbbf24; text-align:center; margin:12px 0;">* Excedentes estimados a 0,06 €/kWh (indexada)</div>' : ''}
+          <div class="bv-table-container" style="margin-top:1rem;">
             <table class="bv-table">
               <thead>
                 <tr>
@@ -270,17 +275,26 @@ window.BVSim = window.BVSim || {};
               <tbody>${buildDetailedRows(winner.rows, isWinnerIndexada)}</tbody>
             </table>
           </div>
-          <div style="text-align:center; margin-top:12px;"><button class="btn" id="bv-download-csv" style="font-size:0.8rem;">📥 Descargar resumen CSV</button></div>
+          <div style="text-align:center; margin-top:16px;"><button class="btn" id="bv-download-csv" style="font-size:0.85rem; padding: 10px 20px;">📥 Descargar resumen CSV</button></div>
         </details>
 
-        <div class="card u-mb-24" style="background:rgba(255,255,255,0.03); margin-top:2rem;">
-          <h3 class="u-mb-16">Otras opciones buenas</h3>
-          ${rankedResults.slice(1, 6).map((r, i) => `
-            <div style="padding: 12px 0; border-bottom:1px solid rgba(255,255,255,0.1); display:flex; justify-content:space-between; align-items:center;">
-              <div><strong>${i+2}. ${r.tarifa.nombre}</strong><br><small style="color:var(--muted)">${r.tarifa.comercializadora || ''}</small></div>
-              <div style="text-align:right"><strong>${fEur(r.totals.pagado)}</strong>${r.totals.bvFinal > 1 ? `<br><small style="color:#10b981">Sobran ${fEur(r.totals.bvFinal)}</small>` : ''}</div>
-            </div>
-          `).join('')}
+        <div class="u-mb-24">
+          <h3 style="font-size: 1.4rem; font-weight: 900; margin-bottom: 1.5rem; text-align: center;">Otras alternativas top</h3>
+          <div class="bv-alternatives-list">
+            ${rankedResults.slice(1, 6).map((r, i) => `
+              <div class="bv-alt-card">
+                <div class="bv-alt-rank">#${i+2}</div>
+                <div class="bv-alt-info">
+                  <strong>${r.tarifa.nombre}</strong>
+                  <small style="color:var(--muted)">${r.tarifa.comercializadora || ''}</small>
+                </div>
+                <div>
+                  <div class="bv-alt-price">${fEur(r.totals.pagado)}</div>
+                  ${r.totals.bvFinal > 1 ? `<span class="bv-alt-surplus">Sobran ${fEur(r.totals.bvFinal)}</span>` : ''}
+                </div>
+              </div>
+            `).join('')}
+          </div>
         </div>
       `;
 
