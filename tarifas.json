@@ -185,6 +185,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Niba Zen",
+      "cPunta": 0.118,
+      "cLlano": 0.118,
+      "cValle": 0.118,
+      "p1": 0.097,
+      "p2": 0.047,
+      "web": "https://niba.es/luz-y-gas",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Endesa One",
       "cPunta": 0.119138,
       "cLlano": 0.119138,
@@ -462,6 +480,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Niba 3P",
+      "cPunta": 0.195,
+      "cLlano": 0.116,
+      "cValle": 0.079,
+      "p1": 0.097,
+      "p2": 0.047,
+      "web": "https://niba.es/luz-y-gas",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Iberdrola Solar 3P",
       "cPunta": 0.203,
       "cLlano": 0.123,
@@ -481,5 +517,5 @@
       "requiereFV": true
     }
   ],
-  "updatedAt": "2026-01-20T11:04:22.165Z"
+  "updatedAt": "2026-01-20T16:03:26.746Z"
 }
