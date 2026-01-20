@@ -351,6 +351,36 @@
   background: var(--card2);
 }
 
+/* --- OVERRIDES CONTRA ESTILOS GLOBALES DE TABLAS (styles.css) ---
+   En styles.css hay reglas genéricas del tipo:
+   thead th:nth-child(2), tbody td:nth-child(2) { width: 23%; }
+   que afectan también a esta tabla y ensanchan (sobre todo) la 2ª columna.
+   Aquí las neutralizamos con selectores más específicos y !important.
+*/
+
+/* Restablece el modelo de tabla para evitar el "separate" global */
+.bv-table {
+  border-collapse: collapse !important;
+  border-spacing: 0 !important;
+}
+
+/* Fuerza anchos compactos en Mes y Potencia */
+.bv-table thead th:nth-child(1),
+.bv-table tbody td:nth-child(1) {
+  width: 80px !important;
+}
+
+.bv-table thead th:nth-child(2),
+.bv-table tbody td:nth-child(2) {
+  width: 90px !important;
+}
+
+/* El resto, que reparta el espacio disponible */
+.bv-table thead th:nth-child(n+3),
+.bv-table tbody td:nth-child(n+3) {
+  width: auto !important;
+}
+
 /* --- TOOLTIPS TRIGGER (Solo cursor, sin ::after/::before) --- */
 .bv-tooltip-trigger {
   cursor: help;
