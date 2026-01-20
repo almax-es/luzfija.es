@@ -284,7 +284,8 @@
 
 .bv-table {
   width: 100%;
-  min-width: 860px;
+  /* Más columnas en el desglose (energía bruta/excedentes/neta) */
+  min-width: 1120px;
   border-collapse: collapse;
   table-layout: fixed; /* Reparte el espacio entre columnas respetando anchos fijos */
   font-size: 0.9rem;
@@ -306,10 +307,15 @@
   width: 102px; /* fallback */
   width: clamp(92px, 10%, 124px);
 }
-.bv-table col.bv-col-energy { width: 14%; }
-.bv-table col.bv-col-tax { width: 12%; }
-.bv-table col.bv-col-subtotal { width: 13%; }
-.bv-table col.bv-col-use { width: 14%; }
+/* Energía (3 columnas): bruta / excedentes / neta */
+.bv-table col.bv-col-energy-gross { width: 12%; }
+.bv-table col.bv-col-excedentes { width: 12%; }
+.bv-table col.bv-col-energy-net { width: 12%; }
+
+/* Resto */
+.bv-table col.bv-col-tax { width: 11%; }
+.bv-table col.bv-col-subtotal { width: 12%; }
+.bv-table col.bv-col-use { width: 13%; }
 .bv-table col.bv-col-pay { width: 14%; }
 .bv-table col.bv-col-balance { width: 14%; }
 

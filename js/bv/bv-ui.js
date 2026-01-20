@@ -83,11 +83,21 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  const currencyFmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 2 });
-  const numberFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 0 }); 
+  // Formateadores (ES): en tooltips y tablas los decimales deben usar coma
+  const currencyFmt = new Intl.NumberFormat('es-ES', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2
+  });
+  const kwhFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  const kwFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  const priceFmt = new Intl.NumberFormat('es-ES', { minimumFractionDigits: 0, maximumFractionDigits: 6 });
 
   const fEur = (v) => currencyFmt.format(Number(v) || 0);
-  const fKwh = (v) => numberFmt.format(Number(v) || 0);
+  const fKwh = (v) => kwhFmt.format(Number(v) || 0);
+  const fKw = (v) => kwFmt.format(Number(v) || 0);
+  const fPrice = (v) => priceFmt.format(Number(v) || 0);
 
   function parseInput(val) {
     if (val === undefined || val === null || val === '') return 0;
@@ -176,6 +186,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const monthlyResult = window.BVSim.simulateMonthly(result, p1Val, p2Val);
       const tarifasResult = await window.BVSim.loadTarifasBV();
+
+      // Mapa de consumos por mes (para desglose por periodos en tooltips)
+      const monthMap = new Map((monthlyResult.months || []).map((m) => [m.key, m]));
       
       const allResults = window.BVSim.simulateForAllTarifasBV({
         months: monthlyResult.months,
@@ -199,16 +212,63 @@ document.addEventListener('DOMContentLoaded', () => {
       const costeSinPlacas = (totalImp + totalAuto) * 0.15 + (p1Val * 0.08 * diasTotales);
       const ahorroPct = Math.round(((costeSinPlacas - winner.totals.pagado) / costeSinPlacas) * 100);
 
-      const buildDetailedRows = (rows, isIndexada) => rows.map((row) => {
-        const imp = row.impuestoElec + row.ivaCuota + row.costeBonoSocial + row.alquilerContador;
-        const energiaNeta = row.consEur - row.credit1;
-        const subtotal = row.totalBase;
-        const restoHucha = Math.max(0, row.bvSaldoPrev - row.credit2);
+      const r2 = (window.BVSim && typeof window.BVSim.round2 === 'function')
+        ? window.BVSim.round2
+        : (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 
-        // Tooltip strings (Formulas)
-        const tipPot = `P1: ${p1Val} kW x ${row.dias} días x ${winner.tarifa.p1} €/kW\nP2: ${p2Val} kW x ${row.dias} días x ${winner.tarifa.p2} €/kW`;
-        const tipEne = `Coste Energía: ${fEur(row.consEur)}\n- Descuento Exc.: ${fEur(row.credit1)}`;
-        const tipImp = `IEE: ${fEur(row.impuestoElec)}\nIVA: ${fEur(row.ivaCuota)}\nAlquiler/Otros: ${fEur(row.costeBonoSocial + row.alquilerContador)}`;
+      const buildDetailedRows = (rows, isIndexada) => rows.map((row) => {
+        const m = monthMap.get(row.key) || {};
+
+        const imp = r2((Number(row.impuestoElec) || 0) + (Number(row.ivaCuota) || 0) + (Number(row.costeBonoSocial) || 0) + (Number(row.alquilerContador) || 0));
+        const energiaBruta = r2(Number(row.consEur) || 0);
+        const descuentoExc = r2(Number(row.credit1) || 0);
+        const energiaNeta = r2(energiaBruta - descuentoExc);
+        const subtotal = r2(Number(row.totalBase) || 0);
+        const restoHucha = Math.max(0, (Number(row.bvSaldoPrev) || 0) - (Number(row.credit2) || 0));
+
+        // Detalle de potencia
+        const potP1 = r2((Number(p1Val) || 0) * (Number(row.dias) || 0) * (Number(winner.tarifa.p1) || 0));
+        const potP2 = r2((Number(p2Val) || 0) * (Number(row.dias) || 0) * (Number(winner.tarifa.p2) || 0));
+
+        // Detalle de energía por periodos (kWh x €/kWh)
+        const kwhP1 = Number(m?.importByPeriod?.P1) || 0;
+        const kwhP2 = Number(m?.importByPeriod?.P2) || 0;
+        const kwhP3 = Number(m?.importByPeriod?.P3) || 0;
+        const cP1 = Number(winner.tarifa.cPunta) || 0;
+        const cP2 = Number(winner.tarifa.cLlano) || 0;
+        const cP3 = Number(winner.tarifa.cValle) || 0;
+        const eP1 = r2(kwhP1 * cP1);
+        const eP2 = r2(kwhP2 * cP2);
+        const eP3 = r2(kwhP3 * cP3);
+
+        // Excedentes
+        const exKwh = Number(m?.exportTotalKWh) || Number(row.exKwh) || 0;
+        const precioExc = Number(row.precioExc) || 0;
+        const creditoPotencial = r2(exKwh * precioExc);
+
+        // Tooltip strings (fórmulas)
+        const tipPot = [
+          `P1: ${fKw(p1Val)} kW × ${row.dias} días × ${fPrice(winner.tarifa.p1)} €/kW·día = ${fEur(potP1)}`,
+          `P2: ${fKw(p2Val)} kW × ${row.dias} días × ${fPrice(winner.tarifa.p2)} €/kW·día = ${fEur(potP2)}`,
+          `Total Potencia = ${fEur(row.pot)}`
+        ].join('\n');
+
+        const tipEneBruta = [
+          `Punta: ${fKwh(kwhP1)} kWh × ${fPrice(cP1)} €/kWh = ${fEur(eP1)}`,
+          `Llano: ${fKwh(kwhP2)} kWh × ${fPrice(cP2)} €/kWh = ${fEur(eP2)}`,
+          `Valle: ${fKwh(kwhP3)} kWh × ${fPrice(cP3)} €/kWh = ${fEur(eP3)}`,
+          `Total Energía Bruta = ${fEur(energiaBruta)}`
+        ].join('\n');
+
+        const tipExcedentes = [
+          `Excedentes: ${fKwh(exKwh)} kWh × ${fPrice(precioExc)} €/kWh = ${fEur(creditoPotencial)}`,
+          `Descuento aplicado (límite coste energía): min(${fEur(creditoPotencial)}, ${fEur(energiaBruta)}) = ${fEur(descuentoExc)}`,
+          `Sobrante para hucha = ${fEur(row.excedenteSobranteEur)}`
+        ].join('\n');
+
+        const tipEneNeta = `Energía Neta = Energía Bruta (${fEur(energiaBruta)}) - Descuento Excedentes (${fEur(descuentoExc)}) = ${fEur(energiaNeta)}`;
+
+        const tipImp = `IEE: ${fEur(row.impuestoElec)}\nIVA/IGIC/IPSI: ${fEur(row.ivaCuota)}\nAlquiler/Bono Social: ${fEur((Number(row.costeBonoSocial) || 0) + (Number(row.alquilerContador) || 0))}`;
         const tipSub = `Suma de:\nPotencia (${fEur(row.pot)})\n+ Energía Neta (${fEur(energiaNeta)})\n+ Impuestos/Cargos (${fEur(imp)})`;
         const tipHucha = `Saldo disponible: ${fEur(row.bvSaldoPrev)}\nUsado para esta factura: -${fEur(row.credit2)}`;
         const tipPagar = `Importe factura (${fEur(subtotal)}) - Uso Hucha (${fEur(row.credit2)})`;
@@ -218,7 +278,9 @@ document.addEventListener('DOMContentLoaded', () => {
           <tr>
             <td style="text-align:left; font-weight:700; color:var(--text);">${row.key}</td>
             <td class="bv-tooltip-trigger" data-tip="${tipPot}" tabindex="0">${fEur(row.pot)}</td>
-            <td class="bv-tooltip-trigger" data-tip="${tipEne}" tabindex="0" style="font-weight:600;">${fEur(energiaNeta)}</td>
+            <td class="bv-tooltip-trigger" data-tip="${tipEneBruta}" tabindex="0">${fEur(energiaBruta)}</td>
+            <td class="bv-tooltip-trigger" data-tip="${tipExcedentes}" tabindex="0" style="color:var(--muted); font-weight:600;">${descuentoExc > 0 ? `-${fEur(descuentoExc)}` : fEur(0)}</td>
+            <td class="bv-tooltip-trigger" data-tip="${tipEneNeta}" tabindex="0" style="font-weight:600;">${fEur(energiaNeta)}</td>
             <td class="bv-tooltip-trigger" data-tip="${tipImp}" tabindex="0" style="color:var(--danger); font-weight:600;">${fEur(imp)}</td>
             <td class="bv-tooltip-trigger" data-tip="${tipSub}" tabindex="0" style="font-weight:700; background:rgba(255,255,255,0.03);">${fEur(subtotal)}</td>
             <td class="bv-tooltip-trigger" data-tip="${tipHucha}" tabindex="0">
@@ -269,7 +331,9 @@ document.addEventListener('DOMContentLoaded', () => {
 	              <colgroup>
 	                <col class="bv-col-month">
 	                <col class="bv-col-pot">
-	                <col class="bv-col-energy">
+	                <col class="bv-col-energy-gross">
+	                <col class="bv-col-excedentes">
+	                <col class="bv-col-energy-net">
 	                <col class="bv-col-tax">
 	                <col class="bv-col-subtotal">
 	                <col class="bv-col-use">
@@ -280,7 +344,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 <tr>
                   <th style="text-align:left">Mes</th>
                   <th>Potencia</th>
-                  <th>Energía (Neto)</th>
+	              <th>Energía Bruta</th>
+	              <th>Excedentes</th>
+	              <th>Energía Neta</th>
                   <th>Impuestos</th>
                   <th>Subtotal</th>
                   <th>Uso Hucha</th>
