@@ -281,7 +281,6 @@ document.addEventListener('DOMContentLoaded', () => {
               <tbody>${buildDetailedRows(winner.rows, isWinnerIndexada)}</tbody>
             </table>
           </div>
-          <div style="text-align:center; margin-top:16px;"><button class="btn" id="bv-download-csv" style="font-size:0.85rem; padding: 10px 24px;">📥 Descargar resumen CSV</button></div>
         </details>
 
         <div class="u-mb-24">
@@ -307,8 +306,6 @@ document.addEventListener('DOMContentLoaded', () => {
       resultsContainer.style.display = 'block';
       setTimeout(() => resultsContainer.classList.add('show'), 10);
       statusContainer.style.display = 'none';
-      const dlBtn = document.getElementById('bv-download-csv');
-      if (dlBtn) dlBtn.addEventListener('click', () => window.BVSim.downloadCSV(winner));
       
       if (window.LF && window.LF.bindTooltipElement) {
         setTimeout(() => {

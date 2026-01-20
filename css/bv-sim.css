@@ -280,36 +280,47 @@
   margin-top: 16px;
   border-radius: 12px;
   border: 1px solid var(--border);
-  background: rgba(0,0,0,0.1); /* Slight darker bg for table area */
+  background: rgba(0,0,0,0.1); 
 }
 
 .bv-table {
   width: 100%;
-  min-width: 800px; /* Asegurar que no se rompa en móvil */
+  /* Eliminamos min-width fijo excesivo para permitir que se ajuste, pero mantenemos para scroll horizontal */
+  min-width: 750px; 
   border-collapse: collapse;
   font-size: 0.9rem;
 }
 
 .bv-table th {
-  padding: 14px 10px;
+  padding: 12px 8px;
   background: var(--bg0);
   color: var(--muted);
   font-size: 0.75rem;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 0.5px;
   border-bottom: 1px solid var(--border);
   text-align: center;
   vertical-align: middle;
 }
 
+/* AJUSTE DE ANCHOS DE COLUMNA (El Elefante) */
 .bv-table th:first-child,
 .bv-table td:first-child {
-  text-align: left; /* Alinear Mes a la izquierda */
-  padding-left: 16px; /* Padding extra para separar del borde */
+  text-align: left;
+  padding-left: 16px;
+  width: 1px; /* Truco: fuerza el ancho al mínimo del contenido */
+  white-space: nowrap; /* No rompe línea en la fecha */
+}
+
+.bv-table th:nth-child(2),
+.bv-table td:nth-child(2) {
+  /* Columna Potencia */
+  width: 1px; /* Fuerza ancho mínimo */
+  white-space: nowrap;
 }
 
 .bv-table td {
-  padding: 12px 10px;
+  padding: 10px 8px;
   border-bottom: 1px solid var(--border);
   color: var(--text);
   vertical-align: middle;
@@ -324,7 +335,7 @@
   background: var(--card2);
 }
 
-/* Tooltip Trigger Styling */
+/* --- CSS ONLY TOOLTIPS (SIN JS) --- */
 .bv-tooltip-trigger {
   cursor: help;
   position: relative;
@@ -337,6 +348,54 @@
 .bv-tooltip-trigger:hover {
   color: var(--accent);
   text-decoration-color: var(--accent);
+}
+
+/* El globo en sí */
+.bv-tooltip-trigger:hover::after {
+  content: attr(data-tip); /* Aquí ocurre la magia */
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 10px;
+  
+  /* Estilo del globo */
+  background: #1e293b; /* Color oscuro sólido para legibilidad */
+  color: #fff;
+  border: 1px solid var(--border);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  line-height: 1.4;
+  white-space: pre; /* Respeta los saltos de línea \n */
+  text-align: left;
+  z-index: 1000;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+  min-width: 200px;
+  pointer-events: none; /* Para que no parpadee si el ratón toca el tooltip */
+}
+
+/* Flechita del globo */
+.bv-tooltip-trigger:hover::before {
+  content: '';
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: 4px;
+  border: 6px solid transparent;
+  border-top-color: #1e293b;
+  z-index: 1000;
+  pointer-events: none;
+}
+
+/* Ajuste para móviles: Tooltips centrados o ajustados si se salen */
+@media (max-width: 768px) {
+  .bv-tooltip-trigger:hover::after {
+    min-width: 180px;
+    white-space: pre-wrap; /* Permite wrap en móvil */
+  }
 }
 
 /* Utilities */
