@@ -289,71 +289,132 @@
                   </div>
                   <p style="text-align: center; margin-top: 16px;">Simula mes a mes autoconsumo con batería virtual a partir de tu CSV/XLSX.</p>
           
-                  <div class="bv-form-container">
-                    <!-- Zona de carga Drag & Drop -->
-                    <div class="bv-upload-zone" id="drop-zone">
-                      <input class="bv-file-input" type="file" id="bv-file" accept=".csv,.xlsx,.xls" style="display:none">
-                      <div class="bv-upload-content">
-                        <div class="bv-upload-icon">📄</div>
-                        <p class="bv-upload-text"><strong>Arrastra tu CSV/XLSX aquí</strong> o haz clic para buscar</p>
-                        <p class="bv-upload-hint">Admite formatos de distribuidora y Datadis</p>
-                      </div>
-                      <div class="bv-file-selected" id="file-selected-msg" style="display:none">
-                        <span class="bv-file-name" id="file-name">archivo.csv</span>
-                        <button type="button" class="bv-remove-file" id="remove-file">✕</button>
-                      </div>
-                    </div>
+                          <div class="bv-form-container">
           
-                    <!-- Inputs Numéricos en Grid -->
-          <div class="bv-inputs-grid">
-            <div class="bv-input-wrapper">
-              <label for="bv-p1" style="font-size: 1.1rem; color: var(--text);">Potencia P1 (kW)</label> 
-              <div class="bv-input-icon-group">
-                <span class="bv-input-icon">☀️</span>
-                <input class="bv-input-modern" type="text" id="bv-p1" inputmode="decimal" value="3,45" style="font-size: 1.2rem;">
-              </div>
-            </div>
-            <div class="bv-input-wrapper">
-              <label for="bv-p2" style="font-size: 1.1rem; color: var(--text);">Potencia P2 (kW)</label> 
-              <div class="bv-input-icon-group">
-                <span class="bv-input-icon">🌙</span>
-                <input class="bv-input-modern" type="text" id="bv-p2" inputmode="decimal" value="3,45" style="font-size: 1.2rem;">
-              </div>
-            </div>
-            <div class="bv-input-wrapper">
-              <label for="bv-saldo-inicial" style="font-size: 1.1rem; color: var(--text);">Dinero que ya tienes en la hucha</label>
-              <div class="bv-input-icon-group">
-                <span class="bv-input-icon">💰</span>
-                <input class="bv-input-modern" type="text" id="bv-saldo-inicial" inputmode="decimal" value="0,00" style="font-size: 1.2rem;">
-              </div>
-            </div>
-            <div class="bv-input-wrapper">
-              <label for="bv-zona-fiscal" style="font-size: 1.1rem; color: var(--text);">Zona Fiscal</label>
-              <div class="bv-input-icon-group">
-                <span class="bv-input-icon">📍</span>
-                <select id="bv-zona-fiscal" class="bv-input-modern" style="font-size: 1.2rem; appearance: auto; padding-left: 3.5rem;">
-                  <option value="Península">Península y Baleares</option>
-                  <option value="Canarias">Canarias</option>
-                  <option value="CeutaMelilla">Ceuta y Melilla</option>
-                </select>
-              </div>
-            </div>
-            <div class="bv-input-wrapper" id="bv-vivienda-canarias-wrapper" style="display:none; margin-top: -10px;">
-              <label for="bv-vivienda-canarias" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 1rem;">
-                <input id="bv-vivienda-canarias" type="checkbox" checked style="width: 20px; height: 20px;">
-                <span>Vivienda (hogar)</span>
-              </label>
-            </div>
-          </div>                  </div>
+                            <!-- Inputs Numéricos en Grid (IZQUIERDA) -->
           
-                          <div class="u-mt-24" style="display: flex; gap: 12px;">
-                            <button class="btn primary bv-btn-simular" id="bv-simulate" type="button" style="flex: 3;">
+                            <div class="bv-inputs-grid">
+          
+                              <div class="bv-input-wrapper">
+          
+                                <label for="bv-p1" style="font-size: 1.1rem; color: var(--text);">Potencia P1 (kW)</label> 
+          
+                                <div class="bv-input-icon-group">
+          
+                                  <span class="bv-input-icon">☀️</span>
+          
+                                  <input class="bv-input-modern" type="text" id="bv-p1" inputmode="decimal" value="3,45" style="font-size: 1.2rem;">
+          
+                                </div>
+          
+                              </div>
+          
+                              <div class="bv-input-wrapper">
+          
+                                <label for="bv-p2" style="font-size: 1.1rem; color: var(--text);">Potencia P2 (kW)</label> 
+          
+                                <div class="bv-input-icon-group">
+          
+                                  <span class="bv-input-icon">🌙</span>
+          
+                                  <input class="bv-input-modern" type="text" id="bv-p2" inputmode="decimal" value="3,45" style="font-size: 1.2rem;">
+          
+                                </div>
+          
+                              </div>
+          
+                              <div class="bv-input-wrapper">
+          
+                                <label for="bv-saldo-inicial" style="font-size: 1.1rem; color: var(--text);">Dinero que ya tienes en la hucha</label>
+          
+                                <div class="bv-input-icon-group">
+          
+                                  <span class="bv-input-icon">💰</span>
+          
+                                  <input class="bv-input-modern" type="text" id="bv-saldo-inicial" inputmode="decimal" value="0,00" style="font-size: 1.2rem;">
+          
+                                </div>
+          
+                              </div>
+          
+                              <div class="bv-input-wrapper">
+          
+                                <label for="bv-zona-fiscal" style="font-size: 1.1rem; color: var(--text);">Zona Fiscal</label>
+          
+                                <div class="bv-input-icon-group">
+          
+                                  <span class="bv-input-icon">📍</span>
+          
+                                  <select id="bv-zona-fiscal" class="bv-input-modern" style="font-size: 1.2rem; appearance: auto; padding-left: 3.5rem;">
+          
+                                    <option value="Península">Península y Baleares</option>
+          
+                                    <option value="Canarias">Canarias</option>
+          
+                                    <option value="CeutaMelilla">Ceuta y Melilla</option>
+          
+                                  </select>
+          
+                                </div>
+          
+                              </div>
+          
+                              <div class="bv-input-wrapper" id="bv-vivienda-canarias-wrapper" style="display:none; margin-top: -10px;">
+          
+                                <label for="bv-vivienda-canarias" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 1rem;">
+          
+                                  <input id="bv-vivienda-canarias" type="checkbox" checked style="width: 20px; height: 20px;">
+          
+                                  <span>Vivienda (hogar)</span>
+          
+                                </label>
+          
+                              </div>
+          
+                            </div>
+          
+                  
+          
+                            <!-- Zona de carga Drag & Drop (DERECHA) -->
+          
+                            <div class="bv-upload-zone" id="drop-zone" style="min-height: 200px; padding: 1.5rem;">
+          
+                              <input class="bv-file-input" type="file" id="bv-file" accept=".csv,.xlsx,.xls" style="display:none">
+          
+                              <div class="bv-upload-content">
+          
+                                <div class="bv-upload-icon" style="font-size: 3rem;">📄</div>
+          
+                                <p class="bv-upload-text" style="font-size: 1.1rem;"><strong>Arrastra tu CSV/XLSX aquí</strong></p>
+          
+                                <p class="bv-upload-hint" style="font-size: 0.9rem;">Formatos distribuidora y Datadis</p>
+          
+                              </div>
+          
+                              <div class="bv-file-selected" id="file-selected-msg" style="display:none">
+          
+                                <span class="bv-file-name" id="file-name">archivo.csv</span>
+          
+                                <button type="button" class="bv-remove-file" id="remove-file">✕</button>
+          
+                              </div>
+          
+                            </div>
+          
+                          </div>
+          
+                  
+          
+                          <div class="u-mt-24">
+          
+                            <button class="btn primary bv-btn-simular" id="bv-simulate" type="button">
+          
                               <span class="bv-btn-text">Calcular Ahorro 🚀</span>
+          
                               <span class="spinner" style="display:none"></span>
+          
                             </button>
-                            <button class="btn" id="bv-reset" type="button" style="flex: 1; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);">
-                              <span>↺ Limpiar</span>
-                            </button>
+          
                           </div>                </section>
           
                 <!-- Resultados (Ocultos por defecto) -->

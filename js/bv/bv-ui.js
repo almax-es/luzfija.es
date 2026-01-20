@@ -15,62 +15,6 @@ window.BVSim = window.BVSim || {};
   const viviendaCanariasInput = document.getElementById('bv-vivienda-canarias');
   
   const simulateButton = document.getElementById('bv-simulate');
-  const resetButton = document.getElementById('bv-reset');
-
-  if (resetButton) {
-    resetButton.addEventListener('click', () => {
-      p1Input.value = '3,45';
-      p2Input.value = '3,45';
-      saldoInput.value = '0,00';
-      zonaFiscalInput.value = 'Península';
-      viviendaCanariasWrapper.style.display = 'none';
-      window.BVSim.file = null;
-      fileInput.value = '';
-      if (fileSelectedMsg) fileSelectedMsg.style.display = 'none';
-      if (resultsContainer) {
-        resultsContainer.classList.remove('show');
-        resultsContainer.style.display = 'none';
-      }
-      if (statusContainer) statusContainer.style.display = 'none';
-    });
-  }
-
-  // --- UI INITIALIZATION ---
-  const btnTheme = document.getElementById('btnTheme');
-  const btnMenu = document.getElementById('btnMenu');
-  const menuPanel = document.getElementById('menuPanel');
-
-  if (btnTheme) {
-    // Sincronizar icono inicial
-    const currentTheme = document.documentElement.getAttribute('data-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-    btnTheme.textContent = currentTheme === 'dark' ? '🌙' : '☀️';
-
-    btnTheme.addEventListener('click', (e) => {
-      e.preventDefault();
-      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      const newTheme = isDark ? 'light' : 'dark';
-      document.documentElement.setAttribute('data-theme', newTheme);
-      localStorage.setItem('theme', newTheme);
-      btnTheme.textContent = newTheme === 'dark' ? '🌙' : '☀️';
-    });
-  }
-
-  if (btnMenu && menuPanel) {
-    btnMenu.addEventListener('click', (e) => {
-      e.preventDefault();
-      e.stopPropagation();
-      const isShow = menuPanel.classList.toggle('show');
-      btnMenu.setAttribute('aria-expanded', isShow);
-    });
-
-    // Cerrar al hacer click fuera
-    document.addEventListener('click', (e) => {
-      if (!menuPanel.contains(e.target) && e.target !== btnMenu) {
-        menuPanel.classList.remove('show');
-        btnMenu.setAttribute('aria-expanded', 'false');
-      }
-    });
-  }
 
   if (zonaFiscalInput) {
     zonaFiscalInput.addEventListener('change', () => {
