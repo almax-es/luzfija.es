@@ -76,11 +76,31 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  document.addEventListener('click', (e) => {
+  document.addEventListener('click', async (e) => {
     const clearBtn = e.target.closest('#btnClearCache');
     if (clearBtn) {
-      try { localStorage.clear(); } catch {}
-      location.reload();
+      if (!confirm('¿Limpiar toda la caché y reiniciar?')) return;
+      
+      try {
+        localStorage.clear();
+        sessionStorage.clear();
+        
+        if ('serviceWorker' in navigator) {
+          const registrations = await navigator.serviceWorker.getRegistrations();
+          for (const registration of registrations) {
+            await registration.unregister();
+          }
+        }
+        
+        if ('caches' in window) {
+          const keys = await caches.keys();
+          await Promise.all(keys.map(key => caches.delete(key)));
+        }
+      } catch (err) {
+        console.error('Error clearing cache:', err);
+      } finally {
+        window.location.reload(true);
+      }
       return;
     }
     if (menuPanel && menuPanel.classList.contains('show')) {
