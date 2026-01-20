@@ -376,16 +376,16 @@ SALDO BV FIN = ${fEur(row.bvSaldoFin)}`
 
           return `
             <tr>
-              <td>${row.key}</td>
-              <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipPot)}">${fEur(row.pot)}</td>
-              <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipEneBruta)}">${fEur(eBruta)}</td>
-              <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipExcedentes)}" style="color:var(--accent2);">${excMes > 0 ? `-${fEur(excMes)}` : fEur(0)}</td>
-              <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipEneNeta)}" style="font-weight:700;">${fEur(eNeta)}</td>
-              <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipImp)}" style="color:var(--danger);">${fEur(imp)}</td>
-              <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSub)}" style="background:rgba(255,255,255,0.02); font-weight:700;">${fEur(subtotal)}</td>
-              <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipHucha)}">${huchaCell}</td>
-              <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipPagar)}" style="color:var(--accent2); font-weight:800;">${fEur(row.totalPagar)}</td>
-              <td class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSaldo)}" style="color:#fbbf24; font-weight:700;">${fEur(row.bvSaldoFin)}</td>
+              <td data-label="Mes">${row.key}</td>
+              <td data-label="Potencia" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipPot)}">${fEur(row.pot)}</td>
+              <td data-label="E. Bruta" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipEneBruta)}">${fEur(eBruta)}</td>
+              <td data-label="Compensación" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipExcedentes)}" style="color:var(--accent2);">${excMes > 0 ? `-${fEur(excMes)}` : fEur(0)}</td>
+              <td data-label="E. Neta" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipEneNeta)}" style="font-weight:700;">${fEur(eNeta)}</td>
+              <td data-label="Impuestos" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipImp)}" style="color:var(--danger);">${fEur(imp)}</td>
+              <td data-label="Subtotal" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSub)}" style="background:rgba(255,255,255,0.02); font-weight:700;">${fEur(subtotal)}</td>
+              <td data-label="Uso Hucha" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipHucha)}">${huchaCell}</td>
+              <td data-label="Pagar" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipPagar)}" style="color:var(--accent2); font-weight:800;">${fEur(row.totalPagar)}</td>
+              <td data-label="Saldo Fin" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSaldo)}" style="color:#fbbf24; font-weight:700;">${fEur(row.bvSaldoFin)}</td>
             </tr>
           `;
         }).join('');
@@ -415,11 +415,7 @@ SALDO BV FIN = ${fEur(row.bvSaldoFin)}`
               <span class="bv-kpi-value">${fEur(winner.totals.pagado)}</span>
               <span class="bv-kpi-sub">Con saldo previo aplicado</span>
             </div>
-            <div class="bv-kpi-card">
-              <span class="bv-kpi-label">Coste real (ranking)</span>
-              <span class="bv-kpi-value">${fEur(winner.totals.real)}</span>
-              <span class="bv-kpi-sub">Sin saldo previo</span>
-            </div>
+            <!-- Coste real ranking removed as requested -->
             <div class="bv-kpi-card ${winnerHasBV ? 'highlight' : ''}">
               <span class="bv-kpi-label">Saldo BV final</span>
               <span class="bv-kpi-value ${winnerHasBV ? 'surplus' : ''}">${winnerHasBV ? fEur(winner.totals.bvFinal) : '—'}</span>
@@ -449,14 +445,16 @@ SALDO BV FIN = ${fEur(row.bvSaldoFin)}`
         const pill = hasBV
           ? '<span class="bv-pill bv-pill--bv" title="Acumula excedente sobrante para meses futuros.">Con BV</span>'
           : '<span class="bv-pill bv-pill--no-bv" title="No acumula excedente sobrante; lo no compensado se pierde.">Sin BV</span>';
+        
+        // MOSTRAR PAGADO COMO PRINCIPAL
         return `
           <div class="bv-alt-card-detailed" style="margin-bottom: 24px; background:var(--card); border:1px solid var(--border); padding:24px; border-radius:16px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:16px;">
               <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;"><span class="bv-alt-rank" style="font-size:1.5rem; opacity:0.5; font-weight:900;">#${i+2}</span><h3 style="margin:0; font-size:1.3rem;">${altName}</h3>${pill}</div>
               <div style="text-align:right;">
-                <div style="font-size:1.5rem; font-weight:900;">${fEur(r.totals.real)}</div>
-                <div style="opacity:0.75; font-size:0.9rem;">Pagas: ${fEur(r.totals.pagado)}</div>
-                ${hasBV && r.totals.bvFinal > 0.01 ? `<div style="color:#fbbf24; font-weight:700;">Saldo: ${fEur(r.totals.bvFinal)}</div>` : ''}
+                <div style="font-size:1.5rem; font-weight:900;">${fEur(r.totals.pagado)}</div>
+                <div style="opacity:0.75; font-size:0.85rem; margin-bottom: 4px;">Pagado total</div>
+                ${hasBV && r.totals.bvFinal > 0.01 ? `<div style="color:#fbbf24; font-weight:700; font-size:1.1rem;">Saldo Fin: ${fEur(r.totals.bvFinal)}</div>` : ''}
               </div>
             </div>
             ${hasBV ? '' : '<div class="bv-note">Nota: sin BV, el excedente que no compense este mes se pierde.</div>'}

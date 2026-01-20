@@ -517,3 +517,81 @@ html.light-mode .bv-floating-tooltip{
 .u-text-right { text-align: right; }
 .u-text-center { text-align: center; }
 .u-fw-700 { font-weight: 700; }
+
+/* --- RESPONSIVE TABLE (CARD VIEW) --- */
+@media (max-width: 768px) {
+  /* Ocultar cabeceras, la tabla pasa a ser lista de tarjetas */
+  .bv-table thead {
+    display: none;
+  }
+
+  .bv-table, .bv-table tbody, .bv-table tr, .bv-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .bv-table tr {
+    margin-bottom: 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: var(--card2);
+    overflow: hidden;
+  }
+
+  .bv-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    text-align: right !important;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.95rem;
+    width: auto !important; /* Reset de anchos fijos */
+  }
+
+  .bv-table td:last-child {
+    border-bottom: none;
+  }
+
+  /* Etiqueta desde el atributo data-label */
+  .bv-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--muted);
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    margin-right: 12px;
+    text-align: left;
+  }
+
+  /* --- Diseño Específico de la Tarjeta Móvil --- */
+  
+  /* 1. Cabecera de Tarjeta: MES y PAGAR */
+  .bv-table td[data-label='Mes'] {
+    background: var(--bg0);
+    font-weight: 900;
+    font-size: 1rem;
+    color: var(--text);
+    padding: 12px 14px;
+    border-bottom: 2px solid var(--border);
+  }
+  
+  /* Pagar lo subimos visualmente o lo destacamos mucho */
+  .bv-table td[data-label='Pagar'] {
+    background: rgba(139, 92, 246, 0.08); /* Acento suave */
+    font-weight: 900;
+    font-size: 1.1rem;
+    color: var(--text);
+  }
+
+  /* Saldo Fin destacado al final */
+  .bv-table td[data-label='Saldo Fin'] {
+    background: rgba(251, 191, 36, 0.08);
+    font-weight: 800;
+    color: #fbbf24;
+  }
+
+  /* Ocultar columnas menos relevantes si se desea ultra-compacto, 
+     pero el usuario pidió ver todo bien. Con este diseño se ve todo en lista vertical. */
+}
+
