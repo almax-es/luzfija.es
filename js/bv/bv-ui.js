@@ -276,6 +276,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
       const monthlyResult = window.BVSim.simulateMonthly(result, p1Val, p2Val);
       const tarifasResult = await window.BVSim.loadTarifasBV();
+      if (!tarifasResult || !tarifasResult.ok || !Array.isArray(tarifasResult.tarifasBV)) {
+        throw new Error(tarifasResult?.error || 'No se pudieron cargar las tarifas (tarifas.json).');
+      }
       const monthMap = new Map((monthlyResult.months || []).map((m) => [m.key, m]));
       
       const allResults = window.BVSim.simulateForAllTarifasBV({
@@ -286,10 +289,15 @@ document.addEventListener('DOMContentLoaded', () => {
         esVivienda: esViviendaCanarias
       });
 
+      if (!allResults || !allResults.ok || !Array.isArray(allResults.results) || allResults.results.length === 0) {
+        throw new Error(allResults?.error || 'No se pudo calcular el ranking.');
+      }
+
+      // Ranking: ordenar por lo que realmente pagas (y, en empate, por saldo BV final).
       const rankedResults = [...allResults.results].sort((a, b) => {
-        const diffReal = a.totals.real - b.totals.real;
-        if (Math.abs(diffReal) < 0.01) return b.totals.bvFinal - a.totals.bvFinal;
-        return diffReal;
+        const diffPay = (a.totals.pagado || 0) - (b.totals.pagado || 0);
+        if (Math.abs(diffPay) < 0.01) return (b.totals.bvFinal || 0) - (a.totals.bvFinal || 0);
+        return diffPay;
       });
 
       const winner = rankedResults[0];
@@ -372,7 +380,9 @@ Nuevo excedente acumulado: ${fEur(sobranteHucha)}
 SALDO BV FIN = ${fEur(row.bvSaldoFin)}`
             : 'No aplica: esta tarifa no acumula saldo.';
 
-          const huchaCell = usoHucha > 0 ? `-${fEur(usoHucha)}` : fEur(0);
+          const huchaCell = hasBV ? (usoHucha > 0 ? `-${fEur(usoHucha)}` : fEur(0)) : '—';
+          const saldoCell = hasBV ? fEur(row.bvSaldoFin) : '—';
+          const saldoStyle = hasBV ? 'color:#fbbf24; font-weight:700;' : 'opacity:0.7;';
 
           return `
             <tr>
@@ -385,7 +395,7 @@ SALDO BV FIN = ${fEur(row.bvSaldoFin)}`
               <td data-label="Subtotal" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSub)}" style="background:rgba(255,255,255,0.02); font-weight:700;">${fEur(subtotal)}</td>
               <td data-label="Uso Hucha" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipHucha)}">${huchaCell}</td>
               <td data-label="Pagar" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipPagar)}" style="color:var(--accent2); font-weight:800;">${fEur(row.totalPagar)}</td>
-              <td data-label="Saldo Fin" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSaldo)}" style="color:#fbbf24; font-weight:700;">${fEur(row.bvSaldoFin)}</td>
+              <td data-label="Saldo Fin" class="bv-tooltip-trigger" data-tip="${escapeAttr(tipSaldo)}" style="${saldoStyle}">${saldoCell}</td>
             </tr>
           `;
         }).join('');
@@ -454,7 +464,7 @@ SALDO BV FIN = ${fEur(row.bvSaldoFin)}`
               <div style="text-align:right;">
                 <div style="font-size:1.5rem; font-weight:900;">${fEur(r.totals.pagado)}</div>
                 <div style="opacity:0.75; font-size:0.85rem; margin-bottom: 4px;">Pagado total</div>
-                ${hasBV && r.totals.bvFinal > 0.01 ? `<div style="color:#fbbf24; font-weight:700; font-size:1.1rem;">Saldo Fin: ${fEur(r.totals.bvFinal)}</div>` : ''}
+                ${hasBV ? `<div style="color:#fbbf24; font-weight:700; font-size:1.1rem;">Saldo BV final: ${fEur(r.totals.bvFinal)}</div>` : ''}
               </div>
             </div>
             ${hasBV ? '' : '<div class="bv-note">Nota: sin BV, el excedente que no compense este mes se pierde.</div>'}

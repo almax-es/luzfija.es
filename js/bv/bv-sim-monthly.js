@@ -184,7 +184,8 @@ window.BVSim.calcMonthForTarifa = function ({
   esVivienda = true
 }) {
   const round2 = window.BVSim.round2;
-  const dias = Number(month?.spanDays) || Number(month?.daysWithData) || 0;
+  // Importante: para evitar inflar costes si el CSV tiene huecos, usamos SOLO los días con datos.
+  const dias = Number(month?.daysWithData) || 0;
   
   // Potencia
   const pot = round2((potenciaP1 * dias * tarifa.p1) + (potenciaP2 * dias * tarifa.p2));

@@ -53,6 +53,40 @@ window.BVSim = window.BVSim || {};
     return Number(norm);
   }
 
+  // Split CSV line respecting quoted fields ("...") and escaped quotes ("").
+  function splitCSVLine(line, separator) {
+    const out = [];
+    let cur = '';
+    let inQuotes = false;
+    const s = String(line ?? '');
+
+    for (let i = 0; i < s.length; i++) {
+      const ch = s[i];
+
+      if (ch === '"') {
+        if (inQuotes && s[i + 1] === '"') {
+          // Escaped quote
+          cur += '"';
+          i++;
+          continue;
+        }
+        inQuotes = !inQuotes;
+        continue;
+      }
+
+      if (!inQuotes && ch === separator) {
+        out.push(cur);
+        cur = '';
+        continue;
+      }
+
+      cur += ch;
+    }
+
+    out.push(cur);
+    return out;
+  }
+
   function parseCSVConsumos(fileContent) {
     const lines = String(fileContent || '').split(/\r?\n/);
     if (lines.length < 2) throw new Error('CSV vacío o inválido');
@@ -90,7 +124,7 @@ window.BVSim = window.BVSim || {};
       const line = lines[i].trim();
       if (!line) continue;
 
-      const cols = line.split(separator);
+      const cols = splitCSVLine(line, separator);
       if (cols.length < 4) continue;
 
       // ... resto del código igual, usando 'cols' ...
@@ -126,9 +160,8 @@ window.BVSim = window.BVSim || {};
         if (!isNaN(auto)) autoconsumo = auto;
       }
 
-      const [dia, mes, año] = String(fechaStr || '').split('/').map(Number);
-      const fecha = new Date(año, mes - 1, dia);
-      if (isNaN(fecha.getTime())) continue;
+      const fecha = parseDateFlexible(fechaStr);
+      if (!fecha) continue;
 
       records.push({ fecha, hora, kwh, excedente, autoconsumo, esReal });
     }
@@ -147,7 +180,7 @@ window.BVSim = window.BVSim || {};
       const line = lines[i].trim();
       if (!line) continue;
 
-      const cols = line.split(',');
+      const cols = splitCSVLine(line, ',');
       if (cols.length < 6) continue;
 
       const fechaHoraStr = stripOuterQuotes(cols[1]);
@@ -159,10 +192,9 @@ window.BVSim = window.BVSim || {};
       const [fechaParte, horaParte] = fechaHoraStr.split(' ');
       if (!fechaParte || !horaParte) continue;
 
-      const [año, mes, dia] = fechaParte.split('/').map(Number);
       const horaNum = parseInt(horaParte.split(':')[0], 10);
-      const fecha = new Date(año, mes - 1, dia);
-      if (isNaN(fecha.getTime())) continue;
+      const fecha = parseDateFlexible(fechaParte);
+      if (!fecha) continue;
 
       const hora = horaNum + 1;
       const consumoWh = parseNumberFlexibleCSV(consumoWhStr);
@@ -409,20 +441,22 @@ window.BVSim = window.BVSim || {};
 
       const fechaHoraStr = row[colFechaHora];
       const periodoTarifario = colPeriodo !== -1 ? String(row[colPeriodo] || '').trim() : '';
-      const consumoWh = parseFloat(row[colConsumo]) || 0;
-      const generacionWh = parseFloat(row[colGeneracion]) || 0;
+      const consumoWhRaw = parseNumberFlexible(row[colConsumo]);
+      const generacionWhRaw = parseNumberFlexible(row[colGeneracion]);
+      const consumoWh = Number.isFinite(consumoWhRaw) ? consumoWhRaw : 0;
+      const generacionWh = Number.isFinite(generacionWhRaw) ? generacionWhRaw : 0;
 
       if (!fechaHoraStr) continue;
 
       const [fechaStr, horaStr] = String(fechaHoraStr).split(' ');
       if (!fechaStr || !horaStr) continue;
 
-      const [año, mes, dia] = fechaStr.split('/').map(Number);
+      const fechaParsed = parseDateFlexible(fechaStr);
       const horaXLSX = parseInt(horaStr.split(':')[0], 10);
       const horaCNMC = horaXLSX + 1;
 
-      const fecha = new Date(año, mes - 1, dia);
-      if (isNaN(fecha.getTime())) continue;
+      const fecha = fechaParsed;
+      if (!fecha) continue;
 
       const consumoKwh = consumoWh / 1000;
       const generacionKwh = generacionWh / 1000;

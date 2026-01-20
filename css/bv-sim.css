@@ -1,5 +1,5 @@
 /* =========================================
-   Batería Virtual Simulator - Estilos Profesionales
+   BaterÃ­a Virtual Simulator - Estilos Profesionales
    ========================================= */
 
 /* --- Layout & Containers --- */
@@ -200,7 +200,7 @@
   font-size: 0.9rem;
 }
 
-/* En modo claro, los fondos muy transparentes sobre blanco se “pierden” */
+/* En modo claro, los fondos muy transparentes sobre blanco se âpierdenâ */
 html.light-mode .bv-pill{
   background: rgba(15, 23, 42, .04);
 }
@@ -347,7 +347,7 @@ html.light-mode .bv-table-container{
   background: rgba(15,23,42,.03);
 }
 
-/* Estilos específicos para Selectores (Zona Fiscal) */
+/* Estilos especÃ­ficos para Selectores (Zona Fiscal) */
 select.input {
   -webkit-appearance: none;
   -moz-appearance: none;
@@ -362,14 +362,14 @@ select.input {
 
 html.light-mode select.input {
   /* Importante: en modo claro, styles.css define `background:` para .input (shorthand)
-     y eso resetea background-repeat/position/size a valores por defecto. Por eso aquí
-     definimos TODO el background en una sola declaración, evitando el "patrón" de chevrones. */
+     y eso resetea background-repeat/position/size a valores por defecto. Por eso aquÃ­
+     definimos TODO el background en una sola declaraciÃ³n, evitando el "patrÃ³n" de chevrones. */
   background: rgba(255,255,255,0.85)
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23000'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")
     no-repeat right 12px center / 16px;
 }
 
-/* Mantener el chevron visible también en foco (styles.css usa `background:` en .input:focus) */
+/* Mantener el chevron visible tambiÃ©n en foco (styles.css usa `background:` en .input:focus) */
 select.input:focus{
   background: rgba(139, 92, 246, 0.12)
     url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%23fff'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'/%3E%3C/svg%3E")
@@ -418,9 +418,9 @@ select.input option {
   text-align: center;
 }
 
-/* --- ARREGLO DE ALINEACIÓN Y ANCHOS DE COLUMNA --- */
+/* --- ARREGLO DE ALINEACIÃN Y ANCHOS DE COLUMNA --- */
 
-/* Mes: Izquierda, ancho mínimo real */
+/* Mes: Izquierda, ancho mÃ­nimo real */
 .bv-table th:first-child,
 .bv-table td:first-child {
   text-align: left !important;
@@ -429,7 +429,7 @@ select.input option {
   white-space: nowrap;
 }
 
-/* Potencia: Centro, ancho mínimo real */
+/* Potencia: Centro, ancho mÃ­nimo real */
 .bv-table th:nth-child(2),
 .bv-table td:nth-child(2) {
   text-align: center !important;
@@ -487,11 +487,11 @@ html.light-mode .bv-floating-tooltip{
   color: var(--accent);
   text-decoration-color: var(--accent);
 }
-/* Ajustes específicos móvil: evitar 2 columnas demasiado estrechas y mejorar legibilidad */
+/* Ajustes especÃ­ficos mÃ³vil: evitar 2 columnas demasiado estrechas y mejorar legibilidad */
 @media (max-width: 520px){
   .bv-form-container{ gap: 16px; }
 
-  /* El formulario de inputs viene con grid inline 2 columnas: lo forzamos a 1 en móvil */
+  /* El formulario de inputs viene con grid inline 2 columnas: lo forzamos a 1 en mÃ³vil */
   .bv-form-container .form{ grid-template-columns: 1fr !important; }
   .bv-form-container .form .group{ grid-column: 1 / -1 !important; }
 
@@ -520,6 +520,18 @@ html.light-mode .bv-floating-tooltip{
 
 /* --- RESPONSIVE TABLE (CARD VIEW) --- */
 @media (max-width: 768px) {
+  /* En móvil no queremos scroll horizontal: el desglose se convierte en tarjetas apiladas */
+  .bv-table-container{
+    overflow-x: visible;
+    -webkit-overflow-scrolling: auto;
+    border: none;
+    background: transparent;
+  }
+
+  .bv-table{
+    min-width: 0 !important;
+  }
+
   /* Ocultar cabeceras, la tabla pasa a ser lista de tarjetas */
   .bv-table thead {
     display: none;
@@ -540,12 +552,14 @@ html.light-mode .bv-floating-tooltip{
 
   .bv-table td {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    text-align: right !important;
-    padding: 10px 14px;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    text-align: left !important;
+    padding: 12px 14px;
+    gap: 4px;
     border-bottom: 1px solid var(--border);
-    font-size: 0.95rem;
+    font-size: 0.98rem;
     width: auto !important; /* Reset de anchos fijos */
   }
 
@@ -558,23 +572,30 @@ html.light-mode .bv-floating-tooltip{
     content: attr(data-label);
     font-weight: 600;
     color: var(--muted);
-    font-size: 0.85rem;
+    font-size: 0.72rem;
     text-transform: uppercase;
-    margin-right: 12px;
+    letter-spacing: 0.08em;
+    margin-right: 0;
     text-align: left;
   }
 
-  /* --- Dise�o Espec�fico de la Tarjeta M�vil --- */
+  /* --- Diseño Específico de la Tarjeta Móvil --- */
   
   /* 1. Cabecera de Tarjeta: MES y PAGAR */
   .bv-table td[data-label='Mes'] {
     background: var(--bg0);
     font-weight: 900;
-    font-size: 1rem;
+    font-size: 1.05rem;
     color: var(--text);
     padding: 12px 14px;
     border-bottom: 2px solid var(--border);
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
   }
+
+  /* En la cabecera de tarjeta (Mes) no hace falta etiqueta */
+  .bv-table td[data-label='Mes']::before{ display:none; }
   
   /* Pagar lo subimos visualmente o lo destacamos mucho */
   .bv-table td[data-label='Pagar'] {
@@ -592,6 +613,6 @@ html.light-mode .bv-floating-tooltip{
   }
 
   /* Ocultar columnas menos relevantes si se desea ultra-compacto, 
-     pero el usuario pidi� ver todo bien. Con este dise�o se ve todo en lista vertical. */
+     pero el usuario pidió ver todo bien. Con este diseño se ve todo en lista vertical. */
 }
 
