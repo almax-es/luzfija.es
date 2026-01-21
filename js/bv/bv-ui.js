@@ -395,7 +395,9 @@ document.addEventListener('DOMContentLoaded', () => {
         // Cálculos Potencia
         const potP1 = r2(p1Val * row.dias * t.p1);
         const potP2 = r2(p2Val * row.dias * t.p2);
-        const tipPot = `⚡ P1: ${fEur(potP1)} | P2: ${fEur(potP2)} | Total: ${fEur(row.pot)}`;
+        const tipPot = `⚡ P1: ${fEur(potP1)}
+⚡ P2: ${fEur(potP2)}
+💰 Total: ${fEur(row.pot)}`;
 
         // Cálculos Energía (Bruta)
         const kwhP1 = Number(m.importByPeriod?.P1) || 0;
@@ -404,7 +406,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const eP1 = r2(kwhP1 * t.cPunta);
         const eP2 = r2(kwhP2 * t.cLlano);
         const eP3 = r2(kwhP3 * t.cValle);
-        const tipEneBruta = `🔴 Punta: ${fEur(eP1)} | 🟡 Llano: ${fEur(eP2)} | 🟢 Valle: ${fEur(eP3)} | Total: ${fEur(eBruta)}`;
+        const tipEneBruta = `🔴 Punta: ${fEur(eP1)}
+🟡 Llano: ${fEur(eP2)}
+🟢 Valle: ${fEur(eP3)}
+💰 Total: ${fEur(eBruta)}`;
 
         // Cálculos Excedentes
         const exKwh = Number(row.exKwh) || Number(m.exportTotalKWh) || 0;
@@ -414,8 +419,18 @@ document.addEventListener('DOMContentLoaded', () => {
 ${hasBV ? `💚 A BV: ${fEur(sobranteHucha)}` : `❌ Perdido: ${fEur(sobranteHucha)}`}`;
 
         const tipEneNeta = `${fEur(eBruta)} − ${fEur(excMes)} (comp.) = ${fEur(eNeta)}`;
-        const tipImp = `📊 IEE: ${fEur(row.impuestoElec)} | IVA: ${fEur(row.ivaCuota)} | Bono: ${fEur(row.costeBonoSocial)} | Alq: ${fEur(row.alquilerContador)}`;
-        const tipSub = `⚡${fEur(row.pot)} + 🔌${fEur(eNeta)} + 📊${fEur(row.impuestoElec)} + 💶${fEur(row.ivaCuota)} + 💵${fEur(row.costeBonoSocial)} + 🔢${fEur(row.alquilerContador)} = 💰${fEur(subtotal)}`;
+        const tipImp = `📊 IEE: ${fEur(row.impuestoElec)}
+💶 IVA: ${fEur(row.ivaCuota)}
+💵 Bono: ${fEur(row.costeBonoSocial)}
+🔢 Alq: ${fEur(row.alquilerContador)}`;
+        const tipSub = `⚡ Pot: ${fEur(row.pot)}
+🔌 E.Neta: ${fEur(eNeta)}
+📊 IEE: ${fEur(row.impuestoElec)}
+💶 IVA: ${fEur(row.ivaCuota)}
+💵 Bono: ${fEur(row.costeBonoSocial)}
+🔢 Alq: ${fEur(row.alquilerContador)}
+━━━━━━━━━━━━
+💰 Subtotal: ${fEur(subtotal)}`;
 
         const tipHucha = hasBV
           ? `🏦 BV: ${fEur(row.bvSaldoPrev)} disponible, ${fEur(usoHucha)} usado`
