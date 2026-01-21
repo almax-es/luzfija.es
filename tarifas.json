@@ -19,6 +19,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Visalia",
+      "cPunta": 0.101995,
+      "cLlano": 0.101995,
+      "cValle": 0.101995,
+      "p1": 0.060274,
+      "p2": 0.060274,
+      "web": "https://visalia.es/luz/fijo24horas/",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Nufri Calma",
       "cPunta": 0.103386,
       "cLlano": 0.103386,
@@ -34,24 +52,6 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Visalia",
-      "cPunta": 0.103995,
-      "cLlano": 0.103995,
-      "cValle": 0.103995,
-      "p1": 0.060274,
-      "p2": 0.060274,
-      "web": "https://visalia.es/luz/fijo24horas/",
-      "tipo": "1P",
-      "fv": {
-        "exc": 0.04,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA",
-        "bv": false,
-        "reglaBV": "NO APLICA"
       },
       "requiereFV": false
     },
@@ -241,11 +241,11 @@
     },
     {
       "nombre": "Naturgy por uso",
-      "cPunta": 0.120471,
-      "cLlano": 0.120471,
-      "cValle": 0.120471,
-      "p1": 0.110283,
-      "p2": 0.033469,
+      "cPunta": 0.1199,
+      "cLlano": 0.1199,
+      "cValle": 0.1199,
+      "p1": 0.11097,
+      "p2": 0.033677,
       "web": "https://www.naturgy.es/hogar/luz/tarifa_por_uso_luz",
       "tipo": "1P",
       "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 10.000 kWh/año",
@@ -443,11 +443,11 @@
     },
     {
       "nombre": "Naturgy noche 3P",
-      "cPunta": 0.190465,
-      "cLlano": 0.117512,
-      "cValle": 0.082673,
-      "p1": 0.110283,
-      "p2": 0.033469,
+      "cPunta": 0.189562,
+      "cLlano": 0.116955,
+      "cValle": 0.082281,
+      "p1": 0.11097,
+      "p2": 0.033677,
       "web": "https://www.naturgy.es/hogar/luz/tarifa_noche",
       "tipo": "3P",
       "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 10.000 kWh/año",
@@ -517,5 +517,5 @@
       "requiereFV": true
     }
   ],
-  "updatedAt": "2026-01-20T18:21:03.361Z"
+  "updatedAt": "2026-01-21T08:49:19.172Z"
 }
