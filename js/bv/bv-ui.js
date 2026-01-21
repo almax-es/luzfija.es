@@ -395,8 +395,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Cálculos Potencia
         const potP1 = r2(p1Val * row.dias * t.p1);
         const potP2 = r2(p2Val * row.dias * t.p2);
-        const tipPot = `⚡ P1: ${fEur(potP1)}
-⚡ P2: ${fEur(potP2)}
+        const tipPot = `⚡ P1: ${p1Val} kW × ${row.dias} días × ${t.p1.toFixed(4)} €/kW·día = ${fEur(potP1)}
+⚡ P2: ${p2Val} kW × ${row.dias} días × ${t.p2.toFixed(4)} €/kW·día = ${fEur(potP2)}
 💰 Total: ${fEur(row.pot)}`;
 
         // Cálculos Energía (Bruta)
@@ -406,17 +406,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const eP1 = r2(kwhP1 * t.cPunta);
         const eP2 = r2(kwhP2 * t.cLlano);
         const eP3 = r2(kwhP3 * t.cValle);
-        const tipEneBruta = `🔴 Punta: ${fEur(eP1)}
-🟡 Llano: ${fEur(eP2)}
-🟢 Valle: ${fEur(eP3)}
+        const tipEneBruta = `🔴 Punta: ${fKwh(kwhP1)} × ${t.cPunta.toFixed(5)} €/kWh = ${fEur(eP1)}
+🟡 Llano: ${fKwh(kwhP2)} × ${t.cLlano.toFixed(5)} €/kWh = ${fEur(eP2)}
+🟢 Valle: ${fKwh(kwhP3)} × ${t.cValle.toFixed(5)} €/kWh = ${fEur(eP3)}
 💰 Total: ${fEur(eBruta)}`;
 
         // Cálculos Excedentes
         const exKwh = Number(row.exKwh) || Number(m.exportTotalKWh) || 0;
         const totalGen = r2(exKwh * (row.precioExc || 0));
-        const tipExcedentes = `💰 Generado: ${fKwh(exKwh)} kWh × ${fPrice(row.precioExc)} €/kWh = ${fEur(totalGen)}
-✅ Compensado: ${fEur(excMes)} (máx: ${fEur(eBruta)})
-${hasBV ? `💚 A BV: ${fEur(sobranteHucha)}` : `❌ Perdido: ${fEur(sobranteHucha)}`}`;
+        const tipExcedentes = `💰 Gen: ${fKwh(exKwh)} × ${fPrice(row.precioExc)} = ${fEur(totalGen)}
+✅ Comp: ${fEur(excMes)} (máx: ${fEur(eBruta)})
+${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Pdto: ${fEur(sobranteHucha)}`}`;
 
         const tipEneNeta = `${fEur(eBruta)} − ${fEur(excMes)} (comp.) = ${fEur(eNeta)}`;
         const tipImp = `📊 IEE: ${fEur(row.impuestoElec)}
