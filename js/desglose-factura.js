@@ -398,7 +398,7 @@
       // Detectar si es Nufri (precio indexado, usamos estimación)
       const esNufri = (datos.nombreTarifa || '').includes('Nufri');
       // Mostrar precio con menos decimales para mayor claridad (2 en lugar de 6)
-      const precioLabel = esNufri ? `${this.fmtNum(datos.precioCompensacion, 2)}/kWh <span style="color:#f59e0b">(est.)</span>` : `${this.fmtNum(datos.precioCompensacion, 2)}/kWh`;
+      const precioLabel = esNufri ? `${this.fmtNum(datos.precioCompensacion, 2)} €/kWh <span style="color:#f59e0b">(est.)</span>` : `${this.fmtNum(datos.precioCompensacion, 2)} €/kWh`;
 
       html += `<div class="desglose-resumen">
         <div class="desglose-resumen-grid">
@@ -455,12 +455,12 @@
         ` : `
           <div class="desglose-linea">
             <span class="desglose-concepto">Potencia punta (P1)</span>
-            <span class="desglose-detalle">${this.fmtNum(datos.potenciaP1)} kW × ${datos.dias} días × ${this.fmtNum(datos.precioP1, 4)}/kW día</span>
+            <span class="desglose-detalle">${this.fmtNum(datos.potenciaP1)} kW × ${datos.dias} días × ${this.fmtNum(datos.precioP1, 4)} €/kW·día</span>
             <span class="desglose-importe">${this.fmt(potP1Disp)}</span>
           </div>
           <div class="desglose-linea">
             <span class="desglose-concepto">Potencia valle (P2)</span>
-            <span class="desglose-detalle">${this.fmtNum(datos.potenciaP2)} kW × ${datos.dias} días × ${this.fmtNum(datos.precioP2, 4)}/kW día</span>
+            <span class="desglose-detalle">${this.fmtNum(datos.potenciaP2)} kW × ${datos.dias} días × ${this.fmtNum(datos.precioP2, 4)} €/kW·día</span>
             <span class="desglose-importe">${this.fmt(potP2Disp)}</span>
           </div>
         `}
@@ -475,22 +475,22 @@
         </div>
         ${consumoTotalKwh > 0 ? `<div class="desglose-linea desglose-linea-sub desglose-linea-precio-medio">
           <span class="desglose-concepto">⚡ Precio medio</span>
-          <span class="desglose-detalle">Término energía + peajes (sin impuestos)</span>
-          <span class="desglose-importe">${this.fmtPrecio(precioMedioPorKwh)}/kWh</span>
+          <span class="desglose-detalle">Coste medio por kWh</span>
+          <span class="desglose-importe">${this.fmtPrecio(precioMedioPorKwh)} €/kWh</span>
         </div>` : ''}
         <div class="desglose-linea desglose-linea-sub">
           <span class="desglose-concepto">→ Punta (P1)</span>
-          <span class="desglose-detalle">${this.fmtNum(datos.consumoPunta)} kWh × ${this.fmtPrecio(datos.precioPunta)}/kWh</span>
+          <span class="desglose-detalle">${this.fmtNum(datos.consumoPunta)} kWh × ${this.fmtPrecio(datos.precioPunta)} €/kWh</span>
           <span class="desglose-importe">${this.fmt(consP1Disp)}</span>
         </div>
         <div class="desglose-linea desglose-linea-sub">
           <span class="desglose-concepto">→ Llano (P2)</span>
-          <span class="desglose-detalle">${this.fmtNum(datos.consumoLlano)} kWh × ${this.fmtPrecio(datos.precioLlano)}/kWh</span>
+          <span class="desglose-detalle">${this.fmtNum(datos.consumoLlano)} kWh × ${this.fmtPrecio(datos.precioLlano)} €/kWh</span>
           <span class="desglose-importe">${this.fmt(consP2Disp)}</span>
         </div>
         <div class="desglose-linea desglose-linea-sub">
           <span class="desglose-concepto">→ Valle (P3)</span>
-          <span class="desglose-detalle">${this.fmtNum(datos.consumoValle)} kWh × ${this.fmtPrecio(datos.precioValle)}/kWh</span>
+          <span class="desglose-detalle">${this.fmtNum(datos.consumoValle)} kWh × ${this.fmtPrecio(datos.precioValle)} €/kWh</span>
           <span class="desglose-importe">${this.fmt(consP3Disp)}</span>
         </div>
         ${d.credit1 > 0 ? `<div class="desglose-linea desglose-linea--hl-green">

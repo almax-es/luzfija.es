@@ -178,8 +178,8 @@
       // Precios (actualizado: 10/01/2026)
       precios: {
         energia: 0.130,    // €/kWh (mismo precio todo el día)
-        p1: 0.097,         // €/kW/día
-        p2: 0.027          // €/kW/día
+        p1: 0.097,         // €/kW·día
+        p2: 0.027          // €/kW·día
       },
       
       // Metadata

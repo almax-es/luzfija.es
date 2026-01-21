@@ -124,8 +124,8 @@ Herramienta **gratuita**, **sin publicidad** y **de código abierto** para compa
 ### Fórmula de Cálculo
 
 **Término de potencia:**
-- P1 × precio/kW/día × días
-- P2 × precio/kW/día × días
+- P1 × precio/kW·día × días
+- P2 × precio/kW·día × días
 
 **Término de energía:**
 - Consumo punta × precio punta

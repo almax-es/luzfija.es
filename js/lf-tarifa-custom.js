@@ -32,11 +32,11 @@
       
       <div class="form" style="gap:10px;">
         <div class="group">
-          <label for="mtP1">Potencia P1 (€/kW/día)</label>
+          <label for="mtP1">Potencia P1 (€/kW·día)</label>
           <input id="mtP1" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0891">
         </div>
         <div class="group">
-          <label for="mtP2">Potencia P2 (€/kW/día)</label>
+          <label for="mtP2">Potencia P2 (€/kW·día)</label>
           <input id="mtP2" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0445">
         </div>
       </div>
@@ -180,7 +180,7 @@
     }
 
     if (p1 > 1 || p2 > 1) {
-      toast('Los precios de potencia parecen muy altos (máximo: 1 €/kW/día)');
+      toast('Los precios de potencia parecen muy altos (máximo: 1 €/kW·día)');
       return null;
     }
 

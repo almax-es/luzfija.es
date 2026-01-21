@@ -22,8 +22,8 @@ Documentación precisa de los archivos JSON que alimentan el comparador de tarif
       "cPunta": "number (€/kWh periodo punta)",
       "cLlano": "number (€/kWh periodo llano)",
       "cValle": "number (€/kWh periodo valle)",
-      "p1": "number (€/kW/día potencia P1)",
-      "p2": "number (€/kW/día potencia P2)",
+      "p1": "number (€/kW·día potencia P1)",
+      "p2": "number (€/kW·día potencia P2)",
       "web": "string (URL de contratación)",
       "tipo": "string ('1P' para uniforme, '3P' para discriminación horaria)",
       "requisitos": "string (optional, condiciones especiales si aplican)",
@@ -48,8 +48,8 @@ Documentación precisa de los archivos JSON que alimentan el comparador de tarif
 | `cPunta` | number | ✅ | 0.01–0.50 | 0.0988 | €/kWh (10h-14h + 18h-22h laborables) |
 | `cLlano` | number | ✅ | 0.01–0.50 | 0.0988 | €/kWh (8h-10h + 14h-18h + 22h-24h laborables) |
 | `cValle` | number | ✅ | 0.01–0.40 | 0.0988 | €/kWh (0h-8h laborables + todo fin de semana) |
-| `p1` | number | ✅ | 0.01–0.50 | 0.090227 | €/kW/día (potencia contratada P1) |
-| `p2` | number | ✅ | 0.01–0.50 | 0.090227 | €/kW/día (potencia contratada P2, puede ser 0) |
+| `p1` | number | ✅ | 0.01–0.50 | 0.090227 | €/kW·día (potencia contratada P1) |
+| `p2` | number | ✅ | 0.01–0.50 | 0.090227 | €/kW·día (potencia contratada P2, puede ser 0) |
 | `web` | string | ✅ | URL válida | https://endesa.com/... | Enlace a la tarifa (se abre en nueva pestaña) |
 | `tipo` | string | ✅ | "1P" \| "3P" | "1P" | 1P = precio uniforme, 3P = discriminación horaria |
 | `requisitos` | string | ❌ | — | "Consumo ≤8.000 kWh" | Solo si hay condiciones especiales |

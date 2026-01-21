@@ -60,7 +60,7 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
 
   it('Debe calcular correctamente una factura básica (Potencia + Energía + Impuestos)', async () => {
     // --- ESCENARIO ---
-    // Tarifa simple: 0.10 €/kWh energía, 0.10 €/kW/día potencia
+    // Tarifa simple: 0.10 €/kWh energía, 0.10 €/kW·día potencia
     // Consumo: 100 kWh
     // Potencia: 4 kW (P1 y P2)
     // Días: 30
