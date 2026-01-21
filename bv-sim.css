@@ -821,14 +821,14 @@ body.bv-modal-open{ overflow: hidden; }
   .bv-breakdown-desktop .bv-table td[data-label='Mes']::before{ display:none; }
   .bv-breakdown-desktop .bv-table td[data-label='Mes'] .bv-cell-value{ justify-self: start; font-size: 1.05rem; }
 
-  /* Resaltar Pagar */
-  .bv-breakdown-desktop .bv-table td[data-label='Pagar']{
+  /* Resaltar A Pagar */
+  .bv-breakdown-desktop .bv-table td[data-label='A Pagar']{
     background: rgba(139, 92, 246, 0.10);
   }
-  .bv-breakdown-desktop .bv-table td[data-label='Pagar'] .bv-cell-value{ font-size: 1.10rem; }
+  .bv-breakdown-desktop .bv-table td[data-label='A Pagar'] .bv-cell-value{ font-size: 1.10rem; }
 
-  /* Resaltar Saldo Fin (si aplica) */
-  .bv-breakdown-desktop .bv-table td[data-label='Saldo Fin']{
+  /* Resaltar Saldo BV (si aplica) */
+  .bv-breakdown-desktop .bv-table td[data-label='Saldo BV']{
     background: rgba(251, 191, 36, 0.08);
   }
 }
@@ -857,4 +857,50 @@ body.bv-modal-open{ overflow: hidden; }
     font-size: 12px !important;
     padding: 8px 10px !important;
   }
+}
+
+/* Anchos optimizados de columnas para mejor legibilidad */
+.bv-table th:nth-child(2),
+.bv-table td:nth-child(2) {
+  width: 80px !important;
+}
+
+.bv-table th:nth-child(3),
+.bv-table td:nth-child(3) {
+  width: 85px !important;
+}
+
+.bv-table th:nth-child(4),
+.bv-table td:nth-child(4) {
+  width: 105px !important;
+}
+
+.bv-table th:nth-child(5),
+.bv-table td:nth-child(5) {
+  width: 80px !important;
+}
+
+.bv-table th:nth-child(6),
+.bv-table td:nth-child(6) {
+  width: 90px !important;
+}
+
+.bv-table th:nth-child(7),
+.bv-table td:nth-child(7) {
+  width: 85px !important;
+}
+
+.bv-table th:nth-child(8),
+.bv-table td:nth-child(8) {
+  width: 85px !important;
+}
+
+.bv-table th:nth-child(9),
+.bv-table td:nth-child(9) {
+  width: 80px !important;
+}
+
+.bv-table th:nth-child(10),
+.bv-table td:nth-child(10) {
+  width: 90px !important;
 }

@@ -466,8 +466,8 @@ ${hasBV ? `💚 A BV: ${fEur(sobranteHucha)}` : `❌ Perdido: ${fEur(sobranteHuc
           const saldoStyle = hasBV ? 'color:#fbbf24; font-weight:700;' : '';
 
           const extraCells = hasBV ? `
-              <td data-label="Uso Hucha" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.hucha)}"><span class="bv-cell-value">${huchaCell}</span></td>
-              <td data-label="Saldo Fin" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.saldo)}" style="${saldoStyle}"><span class="bv-cell-value">${saldoCell}</span></td>
+              <td data-label="Uso BV" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.hucha)}"><span class="bv-cell-value">${huchaCell}</span></td>
+              <td data-label="Saldo BV" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.saldo)}" style="${saldoStyle}"><span class="bv-cell-value">${saldoCell}</span></td>
           ` : '';
 
           return `
@@ -506,14 +506,14 @@ ${hasBV ? `💚 A BV: ${fEur(sobranteHucha)}` : `❌ Perdido: ${fEur(sobranteHuc
               <header class="bv-month-head">${escapeHtml(v.key)}</header>
               <div class="bv-month-body">
                 ${item('Potencia', fEur(v.pot), v.tips.pot)}
-                ${item('Energía bruta', fEur(v.eBruta), v.tips.eBruta)}
+                ${item('E. Bruta', fEur(v.eBruta), v.tips.eBruta)}
                 ${item('Compensación', (v.excMes > 0 ? `-${fEur(v.excMes)}` : fEur(0)), v.tips.exc, (v.excMes > 0 ? 'bv-val-good' : ''))}
-                ${item('Energía neta', fEur(v.eNeta), v.tips.eNeta)}
+                ${item('E. Neta', fEur(v.eNeta), v.tips.eNeta)}
                 ${item('Impuestos', fEur(v.imp), v.tips.imp, (v.imp > 0 ? 'bv-val-warn' : ''))}
                 ${item('Subtotal', fEur(v.subtotal), v.tips.subtotal)}
-                ${item('Pagar', fEur(v.pagar), v.tips.pagar, 'bv-val-pay')}
-                ${hasBV ? item('Uso hucha', huchaCell, v.tips.hucha) : ''}
-                ${hasBV ? item('Saldo BV fin', saldoCell, v.tips.saldo, 'bv-val-bv') : ''}
+                ${item('A Pagar', fEur(v.pagar), v.tips.pagar, 'bv-val-pay')}
+                ${hasBV ? item('Uso BV', huchaCell, v.tips.hucha) : ''}
+                ${hasBV ? item('Saldo BV', saldoCell, v.tips.saldo, 'bv-val-bv') : ''}
               </div>
             </section>
           `;
@@ -523,8 +523,8 @@ ${hasBV ? `💚 A BV: ${fEur(sobranteHucha)}` : `❌ Perdido: ${fEur(sobranteHuc
       const buildTable = (resultItem) => {
         const hasBV = Boolean(resultItem?.tarifa?.fv?.bv);
         const head = hasBV
-          ? `<th style="text-align:left" title="Mes">Mes</th><th title="Término de potencia">Potencia</th><th title="Energía bruta consumida">Energ.</th><th title="Excedentes compensados">Comp.</th><th title="Energía neta (bruta - compensación)">E.Neta</th><th title="Impuestos y cargos">Imptos.</th><th title="Subtotal factura">Subtot.</th><th title="Lo que pagas este mes">Pagar</th><th title="Batería Virtual usada">BV Uso</th><th title="Saldo BV final">BV Fin</th>`
-          : `<th style="text-align:left" title="Mes">Mes</th><th title="Término de potencia">Potencia</th><th title="Energía bruta consumida">Energ.</th><th title="Excedentes compensados">Comp.</th><th title="Energía neta (bruta - compensación)">E.Neta</th><th title="Impuestos y cargos">Imptos.</th><th title="Subtotal factura">Subtot.</th><th title="Lo que pagas este mes">Pagar</th>`;
+          ? `<th style="text-align:left" title="Mes del año">Mes</th><th title="Término de potencia">Potencia</th><th title="Energía bruta consumida (sin compensar)">E. Bruta</th><th title="Excedentes compensados este mes">Compensación</th><th title="Energía neta facturada">E. Neta</th><th title="Impuestos (IEE + IVA/IGIC)">Impuestos</th><th title="Subtotal antes de aplicar BV">Subtotal</th><th title="Importe a pagar este mes">A Pagar</th><th title="Saldo BV usado este mes">Uso BV</th><th title="Saldo BV acumulado al final">Saldo BV</th>`
+          : `<th style="text-align:left" title="Mes del año">Mes</th><th title="Término de potencia">Potencia</th><th title="Energía bruta consumida (sin compensar)">E. Bruta</th><th title="Excedentes compensados este mes">Compensación</th><th title="Energía neta facturada">E. Neta</th><th title="Impuestos (IEE + IVA/IGIC)">Impuestos</th><th title="Subtotal de la factura">Subtotal</th><th title="Importe a pagar este mes">A Pagar</th>`;
 
         // Ojo: buildRows ya omite celdas BV si no aplica.
         // En BV, para mantener el orden visual, las columnas "Hucha" y "Saldo" se colocan al final.
