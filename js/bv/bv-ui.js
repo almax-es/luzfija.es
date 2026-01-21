@@ -416,63 +416,29 @@ document.addEventListener('DOMContentLoaded', () => {
         // Cálculos Excedentes
         const exKwh = Number(row.exKwh) || Number(m.exportTotalKWh) || 0;
         const totalGen = r2(exKwh * (row.precioExc || 0));
-        const tipExcedentes = `💰 Valor generado: ${fKwh(exKwh)} kWh × ${fPrice(row.precioExc)} €/kWh = ${fEur(totalGen)}
-
-✅ Compensado en este mes: ${fEur(excMes)}
-   (Límite: energía bruta ${fEur(eBruta)})
-
-${hasBV ? `💚 Sobrante → Batería Virtual: ${fEur(sobranteHucha)}` : `❌ Sobrante perdido: ${fEur(sobranteHucha)}`}`;
+        const tipExcedentes = `💰 Generado: ${fKwh(exKwh)} kWh × ${fPrice(row.precioExc)} €/kWh = ${fEur(totalGen)}
+✅ Compensado: ${fEur(excMes)} (máx: ${fEur(eBruta)})
+${hasBV ? `💚 A BV: ${fEur(sobranteHucha)}` : `❌ Perdido: ${fEur(sobranteHucha)}`}`;
 
         const tipEneNeta = `Energía Bruta: ${fEur(eBruta)}
 - Compensación solar: ${fEur(excMes)}
 ━━━━━━━━━━━━━━━
 = Energía Neta: ${fEur(eNeta)}`;
-        const tipImp = `📊 Impuestos y cargos:
-
-• Impuesto eléctrico (IEE): ${fEur(row.impuestoElec)}
-• IVA/IGIC/IPSI: ${fEur(row.ivaCuota)}
-• Bono social: ${fEur(row.costeBonoSocial)}
-• Alquiler contador: ${fEur(row.alquilerContador)}`;
-        const tipSub = `📋 Desglose del subtotal:
-
-⚡ Potencia: ${fEur(row.pot)}
-🔌 Energía neta: ${fEur(eNeta)}
-📊 IEE: ${fEur(row.impuestoElec)}
-💶 IVA/IGIC/IPSI: ${fEur(row.ivaCuota)}
-💵 Bono social: ${fEur(row.costeBonoSocial)}
-🔢 Alquiler: ${fEur(row.alquilerContador)}
-━━━━━━━━━━━━━━━
-💰 TOTAL: ${fEur(subtotal)}`;
+        const tipImp = `📊 IEE: ${fEur(row.impuestoElec)} | IVA: ${fEur(row.ivaCuota)} | Bono: ${fEur(row.costeBonoSocial)} | Alq: ${fEur(row.alquilerContador)}`;
+        const tipSub = `⚡${fEur(row.pot)} + 🔌${fEur(eNeta)} + 📊${fEur(row.impuestoElec)} + 💶${fEur(row.ivaCuota)} + 💵${fEur(row.costeBonoSocial)} + 🔢${fEur(row.alquilerContador)} = 💰${fEur(subtotal)}`;
 
         const tipHucha = hasBV
-          ? `🏦 Batería Virtual (uso este mes):
-
-💰 Saldo disponible: ${fEur(row.bvSaldoPrev)}
-📉 Usado para reducir factura: ${fEur(usoHucha)}`
-          : '❌ Esta tarifa NO tiene Batería Virtual';
+          ? `🏦 BV: ${fEur(row.bvSaldoPrev)} disponible, ${fEur(usoHucha)} usado`
+          : '❌ Sin Batería Virtual';
 
         const tipPagar = hasBV
-          ? `💳 Lo que pagas este mes:
-
-Subtotal: ${fEur(subtotal)}
-- BV aplicada: ${fEur(usoHucha)}
-━━━━━━━━━━━━━━━
-= A pagar: ${fEur(row.totalPagar)}`
-          : `💳 Factura total: ${fEur(row.totalPagar)}
-
-(Sin Batería Virtual)`;
+          ? `💳 ${fEur(subtotal)} − ${fEur(usoHucha)} (BV) = ${fEur(row.totalPagar)}`
+          : `💳 Factura: ${fEur(row.totalPagar)} (sin BV)`;
 
         const tipSaldo = hasBV
-          ? `🏦 Saldo BV al final del mes:
-
-Saldo anterior: ${fEur(row.bvSaldoPrev)}
-- Usado: ${fEur(usoHucha)}
-+ Nuevo excedente: ${fEur(sobranteHucha)}
-━━━━━━━━━━━━━━━
-= Saldo final: ${fEur(row.bvSaldoFin)}
-
-💡 Este saldo se usa el mes siguiente`
-          : '❌ Esta tarifa NO acumula saldo';
+          ? `🏦 ${fEur(row.bvSaldoPrev)} − ${fEur(usoHucha)} + ${fEur(sobranteHucha)} = ${fEur(row.bvSaldoFin)}
+💡 Disponible mes siguiente`
+          : '❌ Sin saldo BV';
 
         return {
           key: row.key,

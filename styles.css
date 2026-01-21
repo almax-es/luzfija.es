@@ -2429,10 +2429,16 @@ html.light-mode .custom-tariff-highlight {
   a.web{
     width: 100% !important;
     height: auto;
+    min-height: 44px;
     padding: 12px 14px;
-    border-radius: 999px;
+    border-radius: 12px;
     justify-content:center;
     font-size: 13px;
+    font-weight: 600;
+    opacity: 0.9;
+  }
+  a.web:hover{
+    opacity: 1;
   }
   .web .web-text{ display:inline; }
 }
@@ -4331,7 +4337,7 @@ html.light-mode .sun-club-breakdown-row span:last-child {
   color: #0f172a;
 }
 
-/* Botón Feature (Simulador) */
+/* Botï¿½n Feature (Simulador) */
 .btn-feature {
   background: linear-gradient(135deg, rgba(34,197,94,0.1), rgba(139,92,246,0.1));
   border: 1px solid rgba(34,197,94,0.4);
@@ -4361,7 +4367,7 @@ html.light-mode .sun-club-breakdown-row span:last-child {
   left: 100%;
 }
 
-/* Ajuste móvil */
+/* Ajuste mï¿½vil */
 @media (max-width: 768px) {
   .btn-feature {
     order: -1; 

@@ -833,3 +833,28 @@ body.bv-modal-open{ overflow: hidden; }
   }
 }
 
+
+
+/* Link discreto a información de tarifa */
+.bv-link-tarifa {
+  background: var(--card) !important;
+  border-color: var(--border) !important;
+  color: var(--muted) !important;
+  font-weight: 600 !important;
+  opacity: 0.85;
+  transition: opacity 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+
+.bv-link-tarifa:hover {
+  opacity: 1;
+  border-color: var(--accent) !important;
+  transform: translateY(-1px);
+  background: var(--card2) !important;
+}
+
+@media (max-width: 520px) {
+  .bv-link-tarifa {
+    font-size: 12px !important;
+    padding: 8px 10px !important;
+  }
+}
