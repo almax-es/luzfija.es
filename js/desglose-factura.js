@@ -373,6 +373,11 @@
       const rawConsP3 = safeNum(datos.consumoValle) * safeNum(datos.precioValle);
       const [consP1Disp, consP2Disp, consP3Disp] = reconcileToTarget(d.cons, [rawConsP1, rawConsP2, rawConsP3]);
 
+      // Calcular precio medio por kWh (antes de impuestos y compensación de excedentes)
+      const consumoTotalKwh = safeNum(datos.consumoPunta) + safeNum(datos.consumoLlano) + safeNum(datos.consumoValle);
+      const importeConsumoTotal = consP1Disp + consP2Disp + consP3Disp;
+      const precioMedioPorKwh = consumoTotalKwh > 0 ? importeConsumoTotal / consumoTotalKwh : 0;
+
       // ===== RESUMEN CLARO (Factura "perfecta") =====
       const solarOn = Boolean(datos.solarOn);
       const tipoComp = String(datos.tipoCompensacion || '');
@@ -468,6 +473,11 @@
           <span class="desglose-detalle">${this.fmtNum(datos.consumoPunta + datos.consumoLlano + datos.consumoValle)} kWh</span>
           <span class="desglose-importe">${this.fmt(d.credit1 > 0 ? d.cons : d.consAdj)}</span>
         </div>
+        ${consumoTotalKwh > 0 ? `<div class="desglose-linea desglose-linea-sub" style="opacity: 0.9; font-weight: 500;">
+          <span class="desglose-concepto">⚡ Precio medio</span>
+          <span class="desglose-detalle">Término energía + peajes (sin impuestos)</span>
+          <span class="desglose-importe">${this.fmtPrecio(precioMedioPorKwh)}/kWh</span>
+        </div>` : ''}
         <div class="desglose-linea desglose-linea-sub">
           <span class="desglose-concepto">→ Punta (P1)</span>
           <span class="desglose-detalle">${this.fmtNum(datos.consumoPunta)} kWh × ${this.fmtPrecio(datos.precioPunta)}/kWh</span>
