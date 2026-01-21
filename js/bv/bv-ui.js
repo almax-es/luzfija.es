@@ -605,7 +605,7 @@ Saldo anterior: ${fEur(row.bvSaldoPrev)}
             <h2 class="bv-winner-name">${winnerName}</h2>
             <div style="margin-top: 8px;">${pillWinner}</div>
             <div style="margin-top:auto; padding-top:1.5rem; width:100%">
-              ${winnerUrl ? `<a href="${winnerUrl}" target="_blank" rel="noopener noreferrer" class="btn primary" style="width:100%; justify-content:center;">Ver esta tarifa &rarr;</a>` : ''}
+              ${winnerUrl ? `<a href="${winnerUrl}" target="_blank" rel="noopener noreferrer" class="btn bv-link-tarifa" style="width:100%; justify-content:center; font-size:14px; padding:10px 14px;">🔗 Información de la tarifa</a>` : ''}
             </div>
           </div>
           <div class="bv-kpis-stack">
@@ -650,7 +650,7 @@ Saldo anterior: ${fEur(row.bvSaldoPrev)}
               </div>
             </div>
             ${hasBV ? '' : '<div class="bv-note">Nota: sin BV, el excedente que no compense este mes se pierde.</div>'}
-            ${altUrl ? `<div style="margin: 16px 0;"><a href="${altUrl}" target="_blank" rel="noopener noreferrer" class="btn primary" style="width:100%; justify-content:center;">Ver esta tarifa &rarr;</a></div>` : ''}
+            ${altUrl ? `<div style="margin: 16px 0;"><a href="${altUrl}" target="_blank" rel="noopener noreferrer" class="btn bv-link-tarifa" style="width:100%; justify-content:center; font-size:13px; padding:8px 12px;">🔗 Información de la tarifa</a></div>` : ''}
             <details>
               <summary style="cursor: pointer; color: var(--accent); font-weight:600; font-size:0.9rem;">Ver desglose</summary>
               ${buildTable(r).replace('margin-top:16px','margin-top:12px')}
