@@ -4370,7 +4370,7 @@ html.light-mode .sun-club-breakdown-row span:last-child {
 /* Ajuste m�vil */
 @media (max-width: 768px) {
   .btn-feature {
-    order: -1; 
+    order: 1; 
     width: 100%;
     justify-content: center;
     margin-bottom: 8px;
