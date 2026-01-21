@@ -276,30 +276,6 @@ html.light-mode .btn-small:hover{
   body { min-height: 100dvh; }
   .toc { max-height: calc(100dvh - 120px); }
 }
-/* === Key Takeaway Box === */
-.key-takeaway {
-  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05));
-  border: 1px solid var(--accent2);
-  border-radius: 12px;
-  padding: 20px;
-  margin: 30px 0;
-  position: relative;
-}
-.key-takeaway::before {
-  content: 'Dato Clave 2026';
-  position: absolute;
-  top: -12px;
-  left: 20px;
-  background: var(--bg);
-  padding: 0 10px;
-  font-size: 12px;
-  font-weight: 700;
-  color: var(--accent2);
-  border: 1px solid var(--accent2);
-  border-radius: 100px;
-}
-.key-takeaway strong { color: var(--accent2); }
-
 /* === Sources Section === */
 .sources-section {
   margin-top: 40px;
@@ -358,7 +334,7 @@ html.light-mode .btn-small:hover{
   position: relative;
 }
 .key-takeaway::before {
-  content: 'Dato Clave 2026';
+  content: 'Dato Clave';
   position: absolute;
   top: -12px;
   left: 20px;
@@ -435,6 +411,73 @@ html.light-mode .btn-small:hover{
   font-weight: 900;
   flex-shrink: 0;
   margin-top: 1px;
+}
+
+/* === Extra UI components used en algunas guías === */
+.periodo-box{
+  margin: 18px 0;
+  padding: 18px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.periodo-box h3{ margin: 0 0 8px; }
+.tabla-comparativa{
+  width: 100%;
+  border-collapse: collapse;
+  margin: 18px 0;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.tabla-comparativa th,
+.tabla-comparativa td{
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.tabla-comparativa th{
+  text-align: left;
+  font-weight: 800;
+  background: rgba(255,255,255,.04);
+}
+.tabla-comparativa tr:last-child td{ border-bottom: 0; }
+
+.more-info-section{
+  margin-top: 34px;
+  padding: 22px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: rgba(139,92,246,.08);
+}
+.more-info-title{
+  margin: 0 0 14px;
+  font-size: 16px;
+  font-weight: 900;
+}
+.more-info-grid{
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px){
+  .more-info-grid{ grid-template-columns: repeat(2, 1fr); }
+}
+.more-info-link{
+  display: block;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 700;
+  transition: all .2s ease;
+}
+.more-info-link:hover{
+  background: rgba(255,255,255,.06);
+  border-color: rgba(139,92,246,.55);
+  transform: translateY(-1px);
 }
 
 </style>
@@ -594,7 +637,7 @@ html.light-mode .btn-small:hover{
 </div>
 <nav class="guide-nav">
 <a href="../guias.html" class="guide-nav-btn"><span class="guide-nav-label">← Volver</span><span class="guide-nav-title">Ver todas las guías</span></a>
-<a href="coche-electrico-que-tarifa-elegir-y-como-cargar-barato.html" class="guide-nav-btn" style="text-align: right;"><span class="guide-nav-label">Siguiente →</span><span class="guide-nav-title">Tarifas Coche Eléctrico</span></a>
+<a href="coche-electrico-que-tarifa-elegir-y-como-cargar-barato.html" class="guide-nav-btn" style="text-align: right;"><span class="guide-nav-label">Siguiente →</span><span class="guide-nav-title">Coche eléctrico: cargar barato</span></a>
 </nav>
 </article>
 <aside class="sidebar-actions">
@@ -607,12 +650,101 @@ html.light-mode .btn-small:hover{
 </aside>
 </div>
 <script>
-window.addEventListener('scroll',()=>{const s=document.documentElement.scrollTop;const h=document.documentElement.scrollHeight-document.documentElement.clientHeight;const p=(s/h)*100;document.getElementById('progressFill').style.width=p+'%'});
-const headings=document.querySelectorAll('.article-content h2');const tocList=document.getElementById('tocList');headings.forEach((heading,index)=>{const id='section-'+index;heading.id=id;const li=document.createElement('li');const a=document.createElement('a');a.href='#'+id;a.textContent=heading.textContent;li.appendChild(a);tocList.appendChild(li)});
-const tocLinks=document.querySelectorAll('.toc-list a');const observer=new IntersectionObserver((entries)=>{entries.forEach(entry=>{if(entry.isIntersecting){const id=entry.target.id;tocLinks.forEach(link=>{link.classList.remove('active');if(link.getAttribute('href')==='#'+id){link.classList.add('active')}})}})},{rootMargin:'-100px 0px -80% 0px'});
-headings.forEach(heading=>observer.observe(heading));
-function share(platform){const url=encodeURIComponent(window.location.href);const title=encodeURIComponent(document.title);if(platform==='twitter'){window.open(`https://twitter.com/intent/tweet?url=${url}&text=${title}`,'_blank')}else if(platform==='whatsapp'){window.open(`https://wa.me/?text=${title}%20${url}`,'_blank')}else if(platform==='copy'){navigator.clipboard.writeText(window.location.href);alert('¡Link copiado! 📋')}return false}
-document.querySelectorAll('a[href^="#"]:not([href="#"])').forEach(anchor=>{anchor.addEventListener('click',function(e){e.preventDefault();const target=document.querySelector(this.getAttribute('href'));if(target){target.scrollIntoView({behavior:'smooth',block:'start'})}})});
+/* Progreso de lectura + TOC + scroll suave */
+(function(){
+  const progressFill = document.getElementById('progressFill');
+  if(progressFill){
+    window.addEventListener('scroll', () => {
+      const s = document.documentElement.scrollTop || document.body.scrollTop;
+      const h = (document.documentElement.scrollHeight - document.documentElement.clientHeight) || 1;
+      const p = (s / h) * 100;
+      progressFill.style.width = p + '%';
+    }, { passive: true });
+  }
+
+  const tocList = document.getElementById('tocList');
+  const toc = document.querySelector('.toc');
+  const headings = Array.from(document.querySelectorAll('.article-content h2'));
+
+  if(tocList && headings.length){
+    headings.forEach((heading, index) => {
+      if(!heading.id) heading.id = 'section-' + index;
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = '#' + heading.id;
+      a.textContent = heading.textContent;
+      li.appendChild(a);
+      tocList.appendChild(li);
+    });
+
+    const tocLinks = Array.from(document.querySelectorAll('.toc-list a'));
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          const id = entry.target.id;
+          tocLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+          });
+        }
+      });
+    }, { rootMargin: '-100px 0px -80% 0px' });
+
+    headings.forEach(h => observer.observe(h));
+  } else if(toc){
+    toc.style.display = 'none';
+  }
+
+  document.querySelectorAll('a[href^="#"]:not([href="#"])').forEach(anchor => {
+    anchor.addEventListener('click', function(e){
+      const target = document.querySelector(this.getAttribute('href'));
+      if(target){
+        e.preventDefault();
+        target.scrollIntoView({ behavior:'smooth', block:'start' });
+      }
+    });
+  });
+})();
+
+/* Compartir (global para onclick) */
+function share(platform){
+  const rawUrl = window.location.href;
+  const url = encodeURIComponent(rawUrl);
+  const title = encodeURIComponent(document.title);
+
+  if(platform === 'twitter'){
+    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${title}`, '_blank', 'noopener');
+    return false;
+  }
+  if(platform === 'whatsapp'){
+    window.open(`https://wa.me/?text=${title}%20${url}`, '_blank', 'noopener');
+    return false;
+  }
+  if(platform === 'copy'){
+    const text = rawUrl;
+    const done = () => alert('¡Link copiado! 📋');
+    if(navigator.clipboard && window.isSecureContext){
+      navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+    } else {
+      fallbackCopy(text, done);
+    }
+    return false;
+  }
+  return false;
+
+  function fallbackCopy(text, done){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
+    ta.style.left = '-1000px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try{ document.execCommand('copy'); }catch(e){}
+    document.body.removeChild(ta);
+    done();
+  }
+}
 </script>
 </body>
 </html>

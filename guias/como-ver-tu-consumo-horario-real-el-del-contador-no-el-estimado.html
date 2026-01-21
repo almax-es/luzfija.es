@@ -297,7 +297,7 @@ html.light-mode .btn-small:hover{
   position: relative;
 }
 .key-takeaway::before {
-  content: 'Dato Clave 2026';
+  content: 'Dato Clave';
   position: absolute;
   top: -12px;
   left: 20px;
@@ -374,6 +374,73 @@ html.light-mode .btn-small:hover{
   font-weight: 900;
   flex-shrink: 0;
   margin-top: 1px;
+}
+
+/* === Extra UI components used en algunas guías === */
+.periodo-box{
+  margin: 18px 0;
+  padding: 18px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.periodo-box h3{ margin: 0 0 8px; }
+.tabla-comparativa{
+  width: 100%;
+  border-collapse: collapse;
+  margin: 18px 0;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.tabla-comparativa th,
+.tabla-comparativa td{
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.tabla-comparativa th{
+  text-align: left;
+  font-weight: 800;
+  background: rgba(255,255,255,.04);
+}
+.tabla-comparativa tr:last-child td{ border-bottom: 0; }
+
+.more-info-section{
+  margin-top: 34px;
+  padding: 22px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: rgba(139,92,246,.08);
+}
+.more-info-title{
+  margin: 0 0 14px;
+  font-size: 16px;
+  font-weight: 900;
+}
+.more-info-grid{
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px){
+  .more-info-grid{ grid-template-columns: repeat(2, 1fr); }
+}
+.more-info-link{
+  display: block;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 700;
+  transition: all .2s ease;
+}
+.more-info-link:hover{
+  background: rgba(255,255,255,.06);
+  border-color: rgba(139,92,246,.55);
+  transform: translateY(-1px);
 }
 
 </style>
@@ -651,5 +718,125 @@ Y si ves que tienes un consumo base alto de madrugada, investiga. Suele haber ap
     <p>Puede ser por varios motivos: lecturas estimadas (no leyeron el contador), errores en la lectura, problemas con el contador, o que la factura agrupe varios periodos. Consulta tu consumo real en Datadis y compáralo con la factura para detectar errores.</p>
   </details>
 </section>
+
+</div>
+<nav class="guide-nav">
+  <a href="../guias.html" class="guide-nav-btn"><span class="guide-nav-label">← Volver</span><span class="guide-nav-title">Ver todas las guías</span></a>
+  <a href="lectura-real-vs-estimada-como-evitar-sustos-y-facturones.html" class="guide-nav-btn" style="text-align: right;"><span class="guide-nav-label">Siguiente →</span><span class="guide-nav-title">Lectura real vs estimada</span></a>
+</nav>
+</article>
+<aside class="sidebar-actions">
+  <div class="action-card">
+    <h3>⚡ Comparador</h3>
+    <p>Compara tarifas reales</p>
+    <a href="/" class="action-btn">Ir al comparador</a>
+  </div>
+  <div class="action-card">
+    <h3>📤 Compartir</h3>
+    <div class="share-buttons">
+      <a href="#" class="share-btn" onclick="return share('twitter')"><span>🐦</span><span>Twitter</span></a>
+      <a href="#" class="share-btn" onclick="return share('whatsapp')"><span>💬</span><span>WhatsApp</span></a>
+      <a href="#" class="share-btn" onclick="return share('copy')"><span>🔗</span><span>Copiar</span></a>
+    </div>
+  </div>
+</aside>
+</div>
+<script>
+/* Progreso de lectura + TOC + scroll suave */
+(function(){
+  const progressFill = document.getElementById('progressFill');
+  if(progressFill){
+    window.addEventListener('scroll', () => {
+      const s = document.documentElement.scrollTop || document.body.scrollTop;
+      const h = (document.documentElement.scrollHeight - document.documentElement.clientHeight) || 1;
+      const p = (s / h) * 100;
+      progressFill.style.width = p + '%';
+    }, { passive: true });
+  }
+
+  const tocList = document.getElementById('tocList');
+  const toc = document.querySelector('.toc');
+  const headings = Array.from(document.querySelectorAll('.article-content h2'));
+
+  if(tocList && headings.length){
+    headings.forEach((heading, index) => {
+      if(!heading.id) heading.id = 'section-' + index;
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = '#' + heading.id;
+      a.textContent = heading.textContent;
+      li.appendChild(a);
+      tocList.appendChild(li);
+    });
+
+    const tocLinks = Array.from(document.querySelectorAll('.toc-list a'));
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          const id = entry.target.id;
+          tocLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+          });
+        }
+      });
+    }, { rootMargin: '-100px 0px -80% 0px' });
+
+    headings.forEach(h => observer.observe(h));
+  } else if(toc){
+    toc.style.display = 'none';
+  }
+
+  document.querySelectorAll('a[href^="#"]:not([href="#"])').forEach(anchor => {
+    anchor.addEventListener('click', function(e){
+      const target = document.querySelector(this.getAttribute('href'));
+      if(target){
+        e.preventDefault();
+        target.scrollIntoView({ behavior:'smooth', block:'start' });
+      }
+    });
+  });
+})();
+
+/* Compartir (global para onclick) */
+function share(platform){
+  const rawUrl = window.location.href;
+  const url = encodeURIComponent(rawUrl);
+  const title = encodeURIComponent(document.title);
+
+  if(platform === 'twitter'){
+    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${title}`, '_blank', 'noopener');
+    return false;
+  }
+  if(platform === 'whatsapp'){
+    window.open(`https://wa.me/?text=${title}%20${url}`, '_blank', 'noopener');
+    return false;
+  }
+  if(platform === 'copy'){
+    const text = rawUrl;
+    const done = () => alert('¡Link copiado! 📋');
+    if(navigator.clipboard && window.isSecureContext){
+      navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+    } else {
+      fallbackCopy(text, done);
+    }
+    return false;
+  }
+  return false;
+
+  function fallbackCopy(text, done){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
+    ta.style.left = '-1000px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try{ document.execCommand('copy'); }catch(e){}
+    document.body.removeChild(ta);
+    done();
+  }
+}
+</script>
 </body>
 </html>
