@@ -472,11 +472,16 @@ html.light-mode .btn-small:hover{
 <div class="article-content">
 
 <figure style="margin: 30px 0; text-align: center;">
-  <img src="../img/pvpc-vs-mercado-libre-comparativa.png" 
-       alt="Infografía comparativa: PVPC (precio variable regulado) vs Mercado Libre (precio fijo u ofertas)"
-       loading="lazy"
-       width="600" height="400"
-       style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  <picture>
+    <source type="image/webp" srcset="../img/pvpc-vs-mercado-libre-comparativa.webp">
+    <img src="../img/pvpc-vs-mercado-libre-comparativa.png"
+         alt="Infografía comparativa: PVPC (precio variable regulado) vs Mercado Libre (precio fijo u ofertas)"
+         loading="eager"
+         fetchpriority="high"
+         decoding="async"
+         width="1564" height="750"
+         style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  </picture>
   <figcaption style="font-size: 14px; color: var(--muted); margin-top: 12px;">
     En PVPC pagas el precio real de cada hora (variable); en Mercado Libre pactas un precio con la compañía (fijo o indexado).
   </figcaption>

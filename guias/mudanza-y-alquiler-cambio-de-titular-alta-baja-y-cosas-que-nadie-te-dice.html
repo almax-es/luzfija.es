@@ -519,11 +519,16 @@ html.light-mode .btn-small:hover{
 <div class="article-content">
 
 <figure style="margin: 30px 0; text-align: center;">
-  <img src="../img/mudanza-cambio-titular-luz.png" 
-       alt="Ilustración de llaves y cajas de mudanza junto a un contrato de cambio de titular de luz"
-       loading="lazy"
-       width="600" height="400"
-       style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  <picture>
+    <source type="image/webp" srcset="../img/mudanza-cambio-titular-luz.webp">
+    <img src="../img/mudanza-cambio-titular-luz.png"
+         alt="Ilustración de llaves y cajas de mudanza junto a un contrato de cambio de titular de luz"
+         loading="eager"
+         fetchpriority="high"
+         decoding="async"
+         width="1231" height="635"
+         style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  </picture>
   <figcaption style="font-size: 14px; color: var(--muted); margin-top: 12px;">
     Cambiar el titular es clave al entrar o salir de un alquiler para evitar deudas del anterior inquilino.
   </figcaption>

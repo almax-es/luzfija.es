@@ -530,11 +530,16 @@ html.light-mode .btn-small:hover{
 <li>Solo vale para una vivienda por titular (donde vives de verdad).</li>
 </ul>
 <figure style="margin: 30px 0; text-align: center;">
-  <img src="../img/bono-social-descuento-factura.png" 
-       alt="Ilustración de factura eléctrica recibiendo un recorte o descuento"
-       loading="lazy"
-       width="600" height="400"
-       style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  <picture>
+    <source type="image/webp" srcset="../img/bono-social-descuento-factura.webp">
+    <img src="../img/bono-social-descuento-factura.png"
+         alt="Ilustración de factura eléctrica recibiendo un recorte o descuento"
+         loading="eager"
+         fetchpriority="high"
+         decoding="async"
+         width="895" height="800"
+         style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  </picture>
   <figcaption style="font-size: 14px; color: var(--muted); margin-top: 12px;">
     El Bono Social recorta tu factura significativamente si cumples los requisitos.
   </figcaption>

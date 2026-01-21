@@ -515,11 +515,16 @@ Cada año miles de personas acaban con contratos que no querían, facturas infla
 <div class="article-content">
 
 <figure style="margin: 30px 0; text-align: center;">
-  <img src="../img/estafas-llamadas-comerciales-luz.png" 
-       alt="Ilustración que simboliza el peligro de estafas telefónicas y spam comercial"
-       loading="lazy"
-       width="600" height="400"
-       style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  <picture>
+    <source type="image/webp" srcset="../img/estafas-llamadas-comerciales-luz.webp">
+    <img src="../img/estafas-llamadas-comerciales-luz.png"
+         alt="Ilustración que simboliza el peligro de estafas telefónicas y spam comercial"
+         loading="eager"
+         fetchpriority="high"
+         decoding="async"
+         width="658" height="753"
+         style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  </picture>
   <figcaption style="font-size: 14px; color: var(--muted); margin-top: 12px;">
     Desconfía de llamadas imprevistas que solicitan datos personales o presionan para cambios rápidos de contrato.
   </figcaption>

@@ -513,11 +513,16 @@ html.light-mode .btn-small:hover{
 <div class="article-content">
 
 <figure style="margin: 30px 0; text-align: center;">
-  <img src="../img/coche-electrico-carga-barata.png" 
-       alt="Ilustración de un coche eléctrico cargando de noche aprovechando la tarifa valle"
-       loading="lazy"
-       width="600" height="400"
-       style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  <picture>
+    <source type="image/webp" srcset="../img/coche-electrico-carga-barata.webp">
+    <img src="../img/coche-electrico-carga-barata.png"
+         alt="Ilustración de un coche eléctrico cargando de noche aprovechando la tarifa valle"
+         loading="eager"
+         fetchpriority="high"
+         decoding="async"
+         width="1233" height="572"
+         style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  </picture>
   <figcaption style="font-size: 14px; color: var(--muted); margin-top: 12px;">
     Cargar el coche de noche puede ahorrarte más de 250 € al año en comparación con la carga en horas punta.
   </figcaption>

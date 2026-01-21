@@ -581,11 +581,16 @@ Mira qué horas tienen los picos más altos. Si tus picos están en P1 (10-14h y
 </p>
 
 <figure style="margin: 30px 0; text-align: center;">
-  <img src="../img/vampiro-standby-consumo-fantasma.png" 
-       alt="Ilustración del consumo fantasma o vampiro del standby"
-       loading="lazy"
-       width="600" height="400"
-       style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  <picture>
+    <source type="image/webp" srcset="../img/vampiro-standby-consumo-fantasma.webp">
+    <img src="../img/vampiro-standby-consumo-fantasma.png"
+         alt="Ilustración del consumo fantasma o vampiro del standby"
+         loading="eager"
+         fetchpriority="high"
+         decoding="async"
+         width="1472" height="759"
+         style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  </picture>
   <figcaption style="font-size: 14px; color: var(--muted); margin-top: 12px;">
     El consumo fantasma puede suponer hasta un 10% de tu factura anual. Cázalo mirando tu consumo de madrugada.
   </figcaption>

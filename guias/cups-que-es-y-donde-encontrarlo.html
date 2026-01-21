@@ -540,11 +540,16 @@ html.light-mode .btn-small:hover{
               </p>
 
 <figure style="margin: 30px 0; text-align: center;">
-  <img src="../img/donde-encontrar-codigo-cups-contador.png" 
-       alt="Ilustración de contador digital mostrando ubicación del CUPS"
-       loading="lazy"
-       width="600" height="400"
-       style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  <picture>
+    <source type="image/webp" srcset="../img/donde-encontrar-codigo-cups-contador.webp">
+    <img src="../img/donde-encontrar-codigo-cups-contador.png"
+         alt="Ilustración de contador digital mostrando ubicación del CUPS"
+         loading="eager"
+         fetchpriority="high"
+         decoding="async"
+         width="1079" height="786"
+         style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  </picture>
   <figcaption style="font-size: 14px; color: var(--muted); margin-top: 12px;">
     En el contador, busca el menú de información del contrato para ver el código "ES...".
   </figcaption>

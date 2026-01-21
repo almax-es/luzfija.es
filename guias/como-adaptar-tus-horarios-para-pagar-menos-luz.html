@@ -515,11 +515,16 @@ html.light-mode .btn-small:hover{
 <div class="article-content">
 
 <figure style="margin: 30px 0; text-align: center;">
-  <img src="../img/adaptar-horarios-ahorro-luz.png" 
-       alt="Ilustración conceptual: mover electrodomésticos de la zona roja/cara a la zona verde/barata"
-       loading="lazy"
-       width="600" height="400"
-       style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  <picture>
+    <source type="image/webp" srcset="../img/adaptar-horarios-ahorro-luz.webp">
+    <img src="../img/adaptar-horarios-ahorro-luz.png"
+         alt="Ilustración conceptual: mover electrodomésticos de la zona roja/cara a la zona verde/barata"
+         loading="eager"
+         fetchpriority="high"
+         decoding="async"
+         width="1614" height="735"
+         style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  </picture>
   <figcaption style="font-size: 14px; color: var(--muted); margin-top: 12px;">
     Mover el consumo de P1 (Punta) a P3 (Valle) es la forma más directa de ahorrar en tu factura.
   </figcaption>

@@ -521,11 +521,16 @@ html.light-mode .btn-small:hover{
 <div class="article-content">
 
 <figure style="margin: 30px 0; text-align: center;">
-  <img src="../img/placas-solares-autoconsumo-basico.png" 
-       alt="Ilustración de una vivienda con placas solares y almacenamiento en batería"
-       loading="lazy"
-       width="600" height="400"
-       style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  <picture>
+    <source type="image/webp" srcset="../img/placas-solares-autoconsumo-basico.webp">
+    <img src="../img/placas-solares-autoconsumo-basico.png"
+         alt="Ilustración de una vivienda con placas solares y almacenamiento en batería"
+         loading="eager"
+         fetchpriority="high"
+         decoding="async"
+         width="1040" height="818"
+         style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  </picture>
   <figcaption style="font-size: 14px; color: var(--muted); margin-top: 12px;">
     El autoconsumo solar permite generar tu propia energía limpia y reducir drásticamente la dependencia de la red eléctrica.
   </figcaption>

@@ -519,11 +519,16 @@ html.light-mode .btn-small:hover{
 <div class="article-content">
 
 <figure style="margin: 30px 0; text-align: center;">
-  <img src="../img/cambio-compania-luz-sin-cortes.png" 
-       alt="Ilustración que muestra un cambio de compañía eléctrica fluido y seguro, sin cortes de luz"
-       loading="lazy"
-       width="600" height="400"
-       style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  <picture>
+    <source type="image/webp" srcset="../img/cambio-compania-luz-sin-cortes.webp">
+    <img src="../img/cambio-compania-luz-sin-cortes.png"
+         alt="Ilustración que muestra un cambio de compañía eléctrica fluido y seguro, sin cortes de luz"
+         loading="eager"
+         fetchpriority="high"
+         decoding="async"
+         width="1401" height="740"
+         style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  </picture>
   <figcaption style="font-size: 14px; color: var(--muted); margin-top: 12px;">
     El cambio de compañía es solo un trámite administrativo. La luz sigue fluyendo por los mismos cables sin interrupción.
   </figcaption>

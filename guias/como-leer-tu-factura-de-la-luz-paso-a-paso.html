@@ -513,11 +513,16 @@ html.light-mode .btn-small:hover{
 <div class="article-content">
 
 <figure style="margin: 30px 0; text-align: center;">
-  <img src="../img/partes-factura-luz-esquema.png" 
-       alt="Esquema visual de las partes de una factura de luz: Potencia, Energía e Impuestos"
-       loading="lazy"
-       width="600" height="400"
-       style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  <picture>
+    <source type="image/webp" srcset="../img/partes-factura-luz-esquema.webp">
+    <img src="../img/partes-factura-luz-esquema.png"
+         alt="Esquema visual de las partes de una factura de luz: Potencia, Energía e Impuestos"
+         loading="eager"
+         fetchpriority="high"
+         decoding="async"
+         width="862" height="868"
+         style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  </picture>
   <figcaption style="font-size: 14px; color: var(--muted); margin-top: 12px;">
     Tu factura se divide en tres grandes bloques: Potencia (fijo), Energía (variable) e Impuestos.
   </figcaption>
