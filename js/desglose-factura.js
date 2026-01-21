@@ -473,7 +473,7 @@
           <span class="desglose-detalle">${this.fmtNum(datos.consumoPunta + datos.consumoLlano + datos.consumoValle)} kWh</span>
           <span class="desglose-importe">${this.fmt(d.credit1 > 0 ? d.cons : d.consAdj)}</span>
         </div>
-        ${consumoTotalKwh > 0 ? `<div class="desglose-linea desglose-linea-sub" style="opacity: 0.9; font-weight: 500;">
+        ${consumoTotalKwh > 0 ? `<div class="desglose-linea desglose-linea-sub desglose-linea-precio-medio">
           <span class="desglose-concepto">⚡ Precio medio</span>
           <span class="desglose-detalle">Término energía + peajes (sin impuestos)</span>
           <span class="desglose-importe">${this.fmtPrecio(precioMedioPorKwh)}/kWh</span>

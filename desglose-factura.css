@@ -103,6 +103,12 @@ html:not(.light-mode) .desglose-linea-sub {
   background: rgba(255, 255, 255, 0.03);
 }
 
+/* Línea de precio medio */
+.desglose-linea-precio-medio {
+  opacity: 0.9;
+  font-weight: 500;
+}
+
 .desglose-detalle-sub {
   display: block;
   margin-top: 2px;
