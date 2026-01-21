@@ -310,6 +310,72 @@ html.light-mode .btn-small:hover{
   border-radius: 100px;
 }
 .key-takeaway strong { color: var(--accent2); }
+
+
+/* === GUÍAS RELACIONADAS (CONSISTENCIA ENTRE ARTÍCULOS) === */
+.related-guides-section{
+  margin: 44px 0 0;
+  padding: 28px;
+  background: rgba(139,92,246,.08);
+  border: 1px solid rgba(139,92,246,.22);
+  border-radius: 16px;
+}
+.related-guides-section h2{
+  font-size: 22px;
+  font-weight: 900;
+  margin: 0 0 18px;
+  color: var(--text);
+}
+.related-guides-grid{
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px){
+  .related-guides-grid{
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.related-guide-card{
+  display: block;
+  padding: 14px 16px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: all .2s ease;
+}
+.related-guide-card:hover{
+  background: rgba(255,255,255,.06);
+  border-color: rgba(139,92,246,.55);
+  transform: translateY(-1px);
+}
+.related-guide-top{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.related-guide-title{
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--text);
+}
+.related-guide-desc{
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.related-guide-arrow{
+  color: var(--accent);
+  font-weight: 900;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
 </style>
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/fonts.css">
@@ -470,44 +536,38 @@ html.light-mode .btn-small:hover{
 <p>
                 Pide presupuesto a 3 instaladores diferentes. Pregunta por rentabilidad real (no solo lo que te ahorras, sino cuánto tardas en recuperar la inversión). Y revisa qué ayudas hay activas en tu comunidad antes de decidir. Asegúrate de <a href="que-potencia-contratar-segun-tu-casa-y-tus-habitos.html">contratar la potencia adecuada</a> para tu instalación. No te dejes llevar por el hype, pero si los números salen, es buena inversión.
               </p>
-<section class="more-info-section">
-<h3 class="more-info-title">📚 Más información</h3>
-<div class="more-info-grid">
-<a class="more-info-link" href="../mejor-tarifa-placas-solares.html">
-<strong>☀️ Mejor tarifa con placas solares</strong>
-<p>Comparativa de tarifas para autoconsumo</p>
-</a>
-</div>
-</section>
-<section style="background: rgba(139,92,246,.08); border: 1px solid rgba(139,92,246,.3); border-radius: 16px; padding: 32px; margin: 40px 0;">
-  <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 20px; color: var(--text);">📚 Completa tu conocimiento</h2>
-  <p style="margin-bottom: 20px; color: var(--muted);">Si estás considerando placas solares o ya las tienes, estos temas son fundamentales:</p>
-  <ul style="list-style: none; padding: 0; display: grid; gap: 12px;">
-    <li style="padding: 16px; background: rgba(255,255,255,.04); border: 1px solid var(--border); border-radius: 12px; transition: all .3s ease;">
-      <a href="autoconsumo-avanzado-excedentes-compensacion-y-bateria-virtual.html" style="text-decoration: none; color: var(--text); display: block; border: none;">
-        <strong style="font-size: 16px; margin-bottom: 8px; display: block;">☀️ Autoconsumo avanzado</strong>
-        <span style="color: var(--muted); font-size: 14px;">Excedentes, compensación y batería virtual explicados</span>
-      </a>
-    </li>
-    <li style="padding: 16px; background: rgba(255,255,255,.04); border: 1px solid var(--border); border-radius: 12px; transition: all .3s ease;">
-      <a href="pvpc-vs-mercado-libre-cuando-te-conviene-cada-uno.html" style="text-decoration: none; color: var(--text); display: block; border: none;">
-        <strong style="font-size: 16px; margin-bottom: 8px; display: block;">⚡ PVPC vs Mercado Libre</strong>
-        <span style="color: var(--muted); font-size: 14px;">Qué tarifa te conviene con placas solares</span>
-      </a>
-    </li>
-    <li style="padding: 16px; background: rgba(255,255,255,.04); border: 1px solid var(--border); border-radius: 12px; transition: all .3s ease;">
-      <a href="que-potencia-contratar-segun-tu-casa-y-tus-habitos.html" style="text-decoration: none; color: var(--text); display: block; border: none;">
-        <strong style="font-size: 16px; margin-bottom: 8px; display: block;">🔌 Qué potencia contratar</strong>
-        <span style="color: var(--muted); font-size: 14px;">Dimensiona correctamente tu instalación</span>
-      </a>
-    </li>
-    <li style="padding: 16px; background: rgba(255,255,255,.04); border: 1px solid var(--border); border-radius: 12px; transition: all .3s ease;">
-      <a href="como-ver-tu-consumo-horario-real-el-del-contador-no-el-estimado.html" style="text-decoration: none; color: var(--text); display: block; border: none;">
-        <strong style="font-size: 16px; margin-bottom: 8px; display: block;">📊 Ver tu consumo horario</strong>
-        <span style="color: var(--muted); font-size: 14px;">Analiza tu generación y consumo real</span>
-      </a>
-    </li>
-  </ul>
+<section class="related-guides-section" aria-labelledby="guias-relacionadas">
+  <h2 id="guias-relacionadas">📚 Guías relacionadas</h2>
+  <div class="related-guides-grid">
+    <a class="related-guide-card" href="autoconsumo-avanzado-excedentes-compensacion-y-bateria-virtual.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">☀️ Autoconsumo avanzado y batería virtual</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Excedentes, compensación y BV para maximizar ahorro.</span>
+    </a>
+    <a class="related-guide-card" href="pvpc-vs-mercado-libre-cuando-te-conviene-cada-uno.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">⚡ PVPC vs mercado libre</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Cuándo conviene cada uno según tu consumo y riesgos.</span>
+    </a>
+    <a class="related-guide-card" href="que-potencia-contratar-segun-tu-casa-y-tus-habitos.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">⚡ Qué potencia contratar</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Evita cortes y pagar de más por potencia.</span>
+    </a>
+    <a class="related-guide-card" href="como-ver-tu-consumo-horario-real-el-del-contador-no-el-estimado.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">📊 Ver tu consumo horario real</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Saca los datos del contador y entiende tu patrón de consumo.</span>
+    </a>
+  </div>
 </section>
 <section class="sources-section">
 <h2>📚 Fuentes y referencias</h2>

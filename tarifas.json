@@ -129,6 +129,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Neolux 24h",
+      "cPunta": 0.115,
+      "cLlano": 0.115,
+      "cValle": 0.115,
+      "p1": 0.09,
+      "p2": 0.07,
+      "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
+      "tipo": "1P",
+      "requisitos": "Consumo ≤ 10.000 kWh/año",
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Octopus Unicaja",
       "cPunta": 0.116,
       "cLlano": 0.116,
@@ -174,25 +193,6 @@
       "p2": 0.047,
       "web": "https://niba.es/luz-y-gas",
       "tipo": "1P",
-      "fv": {
-        "exc": 0.06,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Neolux 24h",
-      "cPunta": 0.119,
-      "cLlano": 0.119,
-      "cValle": 0.119,
-      "p1": 0.095,
-      "p2": 0.059,
-      "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
-      "tipo": "1P",
-      "requisitos": "Consumo ≤ 10.000 kWh/año",
       "fv": {
         "exc": 0.06,
         "tipo": "SIMPLE + BV",
@@ -351,6 +351,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Neolux 3P",
+      "cPunta": 0.175,
+      "cLlano": 0.12,
+      "cValle": 0.079,
+      "p1": 0.09,
+      "p2": 0.07,
+      "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
+      "tipo": "3P",
+      "requisitos": "Consumo ≤ 10.000 kWh/año",
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Imagina Energía 3P",
       "cPunta": 0.177,
       "cLlano": 0.103,
@@ -361,25 +380,6 @@
       "tipo": "3P",
       "fv": {
         "exc": 0.04,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Neolux 3P",
-      "cPunta": 0.179,
-      "cLlano": 0.125,
-      "cValle": 0.079,
-      "p1": 0.095,
-      "p2": 0.059,
-      "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
-      "tipo": "3P",
-      "requisitos": "Consumo ≤ 10.000 kWh/año",
-      "fv": {
-        "exc": 0.06,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -517,5 +517,5 @@
       "requiereFV": true
     }
   ],
-  "updatedAt": "2026-01-21T15:04:19.045Z"
+  "updatedAt": "2026-01-21T08:49:19.172Z"
 }

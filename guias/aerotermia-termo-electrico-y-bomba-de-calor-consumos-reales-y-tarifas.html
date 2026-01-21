@@ -307,6 +307,72 @@ html.light-mode .btn-small:hover{
   border-radius: 100px;
 }
 .key-takeaway strong { color: var(--accent2); }
+
+
+/* === GUÍAS RELACIONADAS (CONSISTENCIA ENTRE ARTÍCULOS) === */
+.related-guides-section{
+  margin: 44px 0 0;
+  padding: 28px;
+  background: rgba(139,92,246,.08);
+  border: 1px solid rgba(139,92,246,.22);
+  border-radius: 16px;
+}
+.related-guides-section h2{
+  font-size: 22px;
+  font-weight: 900;
+  margin: 0 0 18px;
+  color: var(--text);
+}
+.related-guides-grid{
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px){
+  .related-guides-grid{
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.related-guide-card{
+  display: block;
+  padding: 14px 16px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: all .2s ease;
+}
+.related-guide-card:hover{
+  background: rgba(255,255,255,.06);
+  border-color: rgba(139,92,246,.55);
+  transform: translateY(-1px);
+}
+.related-guide-top{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.related-guide-title{
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--text);
+}
+.related-guide-desc{
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.related-guide-arrow{
+  color: var(--accent);
+  font-weight: 900;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
 </style>
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/fonts.css">
@@ -477,37 +543,39 @@ Si tu caldera funciona bien, no compensa cambiarla solo por ahorro energético. 
 </ul>
 <p><strong>Regla oro:</strong> Estos aparatos son eficientes, pero multiplicar consumo × precio P1 duele. Muévelos a P3 siempre que puedas.</p>
 
-<section style="background: rgba(139,92,246,.08); border: 1px solid rgba(139,92,246,.3); border-radius: 16px; padding: 32px; margin: 40px 0;">
-  <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 20px; color: var(--text);">📚 Guías relacionadas</h2>
-  <p style="margin-bottom: 20px; color: var(--muted);">Si tienes aerotermia, bomba de calor o termo eléctrico, estos temas te ayudarán a optimizar:</p>
-  <ul style="list-style: none; padding: 0; display: grid; gap: 12px;">
-    <li style="background: rgba(255,255,255,.04); padding: 16px; border-radius: 8px; border-left: 3px solid var(--accent);">
-      <a href="que-es-p1-p2-y-p3-en-tu-factura.html" style="text-decoration: none;">
-        <strong style="color: var(--accent); display: block; margin-bottom: 4px;">⏰ Qué es P1, P2 y P3 en tu factura</strong>
-        <span style="color: var(--muted); font-size: 14px;">Entender los periodos horarios es clave para programar estos aparatos y pagar menos</span>
-      </a>
-    </li>
-    <li style="background: rgba(255,255,255,.04); padding: 16px; border-radius: 8px; border-left: 3px solid var(--accent);">
-      <a href="como-adaptar-tus-horarios-para-pagar-menos-luz.html" style="text-decoration: none;">
-        <strong style="color: var(--accent); display: block; margin-bottom: 4px;">💡 Cómo adaptar tus horarios para pagar menos</strong>
-        <span style="color: var(--muted); font-size: 14px;">Estrategias concretas para aprovechar horas valle con termo y bomba de calor</span>
-      </a>
-    </li>
-    <li style="background: rgba(255,255,255,.04); padding: 16px; border-radius: 8px; border-left: 3px solid var(--accent);">
-      <a href="coche-electrico-que-tarifa-elegir-y-como-cargar-barato.html" style="text-decoration: none;">
-        <strong style="color: var(--accent); display: block; margin-bottom: 4px;">🚗 Coche eléctrico: qué tarifa elegir y cómo cargar barato</strong>
-        <span style="color: var(--muted); font-size: 14px;">Si combinas aerotermia + coche eléctrico, necesitas optimizar potencia y tarifa</span>
-      </a>
-    </li>
-    <li style="background: rgba(255,255,255,.04); padding: 16px; border-radius: 8px; border-left: 3px solid var(--accent);">
-      <a href="que-potencia-contratar-segun-tu-casa-y-tus-habitos.html" style="text-decoration: none;">
-        <strong style="color: var(--accent); display: block; margin-bottom: 4px;">⚡ Qué potencia contratar según tu casa y tus hábitos</strong>
-        <span style="color: var(--muted); font-size: 14px;">Calcula si necesitas subir potencia para aerotermia o bomba de calor</span>
-      </a>
-    </li>
-  </ul>
+<section class="related-guides-section" aria-labelledby="guias-relacionadas">
+  <h2 id="guias-relacionadas">📚 Guías relacionadas</h2>
+  <div class="related-guides-grid">
+    <a class="related-guide-card" href="que-es-p1-p2-y-p3-en-tu-factura.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">⏰ Qué es P1, P2 y P3</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Horarios valle/llano/punta y cómo afectan a tu precio.</span>
+    </a>
+    <a class="related-guide-card" href="como-adaptar-tus-horarios-para-pagar-menos-luz.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">💡 Adaptar horarios para pagar menos</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Acciones prácticas para mover consumo a horas baratas.</span>
+    </a>
+    <a class="related-guide-card" href="coche-electrico-que-tarifa-elegir-y-como-cargar-barato.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">🚗 Coche eléctrico: cargar barato</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Tarifas, horarios y hábitos para ahorrar cargando.</span>
+    </a>
+    <a class="related-guide-card" href="que-potencia-contratar-segun-tu-casa-y-tus-habitos.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">⚡ Qué potencia contratar</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Evita cortes y pagar de más por potencia.</span>
+    </a>
+  </div>
 </section>
-
 <section class="sources-section">
 <h2>📚 Fuentes y referencias</h2>
 <h3>Organismos oficiales</h3>

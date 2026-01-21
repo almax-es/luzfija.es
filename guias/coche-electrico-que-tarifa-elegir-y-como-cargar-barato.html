@@ -332,6 +332,72 @@ html.light-mode .btn-small:hover{
   border-radius: 100px;
 }
 .key-takeaway strong { color: var(--accent2); }
+
+
+/* === GUÍAS RELACIONADAS (CONSISTENCIA ENTRE ARTÍCULOS) === */
+.related-guides-section{
+  margin: 44px 0 0;
+  padding: 28px;
+  background: rgba(139,92,246,.08);
+  border: 1px solid rgba(139,92,246,.22);
+  border-radius: 16px;
+}
+.related-guides-section h2{
+  font-size: 22px;
+  font-weight: 900;
+  margin: 0 0 18px;
+  color: var(--text);
+}
+.related-guides-grid{
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px){
+  .related-guides-grid{
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.related-guide-card{
+  display: block;
+  padding: 14px 16px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: all .2s ease;
+}
+.related-guide-card:hover{
+  background: rgba(255,255,255,.06);
+  border-color: rgba(139,92,246,.55);
+  transform: translateY(-1px);
+}
+.related-guide-top{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.related-guide-title{
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--text);
+}
+.related-guide-desc{
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.related-guide-arrow{
+  color: var(--accent);
+  font-weight: 900;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
 </style>
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/fonts.css">
@@ -530,37 +596,6 @@ Diferencia: 1.120 € al año ahorrados. Y eso sin contar mantenimiento (el elé
 Coche eléctrico + PVPC 3 periodos + carga nocturna = la combinación perfecta. Pagas 0,08-0,10 €/kWh y te olvidas de gasolineras. Eso sí: disciplina para enchufar de noche, no cuando llegas.
 </p>
 
-<section style="background: rgba(139,92,246,.08); border: 1px solid rgba(139,92,246,.3); border-radius: 16px; padding: 32px; margin: 40px 0;">
-  <h2 style="font-size: 24px; font-weight: 800; margin-bottom: 20px; color: var(--text);">📚 Guías relacionadas</h2>
-  <p style="margin-bottom: 20px; color: var(--muted);">Si tienes coche eléctrico, estas guías te ayudarán a optimizar carga y costes:</p>
-  <ul style="list-style: none; padding: 0; display: grid; gap: 12px;">
-    <li style="background: rgba(255,255,255,.04); padding: 16px; border-radius: 8px; border-left: 3px solid var(--accent);">
-      <a href="instalar-punto-recarga-garaje-comunitario.html" style="text-decoration: none;">
-        <strong style="color: var(--accent); display: block; margin-bottom: 4px;">🔌 Instalar punto de recarga en garaje comunitario</strong>
-        <span style="color: var(--muted); font-size: 14px;">Cómo conseguir permiso de la comunidad e instalar wallbox sin problemas</span>
-      </a>
-    </li>
-    <li style="background: rgba(255,255,255,.04); padding: 16px; border-radius: 8px; border-left: 3px solid var(--accent);">
-      <a href="que-es-p1-p2-y-p3-en-tu-factura.html" style="text-decoration: none;">
-        <strong style="color: var(--accent); display: block; margin-bottom: 4px;">⏰ Qué es P1, P2 y P3 en tu factura</strong>
-        <span style="color: var(--muted); font-size: 14px;">Entender los periodos horarios es clave para programar la carga y pagar menos</span>
-      </a>
-    </li>
-    <li style="background: rgba(255,255,255,.04); padding: 16px; border-radius: 8px; border-left: 3px solid var(--accent);">
-      <a href="aerotermia-termo-electrico-y-bomba-de-calor-consumos-reales-y-tarifas.html" style="text-decoration: none;">
-        <strong style="color: var(--accent); display: block; margin-bottom: 4px;">💨 Aerotermia y bomba de calor: consumos y tarifas</strong>
-        <span style="color: var(--muted); font-size: 14px;">Si combinas coche eléctrico + aerotermia, necesitas dimensionar potencia correctamente</span>
-      </a>
-    </li>
-    <li style="background: rgba(255,255,255,.04); padding: 16px; border-radius: 8px; border-left: 3px solid var(--accent);">
-      <a href="autoconsumo-avanzado-excedentes-compensacion-y-bateria-virtual.html" style="text-decoration: none;">
-        <strong style="color: var(--accent); display: block; margin-bottom: 4px;">☀️ Autoconsumo avanzado: excedentes y batería virtual</strong>
-        <span style="color: var(--muted); font-size: 14px;">Carga tu coche con excedentes solares durante el día y ahorra aún más</span>
-      </a>
-    </li>
-  </ul>
-</section>
-
 <section class="more-info-section">
 <h3 class="more-info-title">📚 Más información</h3>
 <div class="more-info-grid">
@@ -569,6 +604,39 @@ Coche eléctrico + PVPC 3 periodos + carga nocturna = la combinación perfecta. 
 <p>Tarifas con precio valle más barato</p>
 </a>
 </div>
+</section>
+<section class="related-guides-section" aria-labelledby="guias-relacionadas">
+  <h2 id="guias-relacionadas">📚 Guías relacionadas</h2>
+  <div class="related-guides-grid">
+    <a class="related-guide-card" href="instalar-punto-recarga-garaje-comunitario.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">🔌 Punto de recarga en garaje comunitario</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Permisos, pasos legales y cómo evitar líos con la comunidad.</span>
+    </a>
+    <a class="related-guide-card" href="que-es-p1-p2-y-p3-en-tu-factura.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">⏰ Qué es P1, P2 y P3</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Horarios valle/llano/punta y cómo afectan a tu precio.</span>
+    </a>
+    <a class="related-guide-card" href="aerotermia-termo-electrico-y-bomba-de-calor-consumos-reales-y-tarifas.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">💨 Aerotermia/termo/bomba: consumos</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Qué consumen de verdad y cómo elegir tarifa.</span>
+    </a>
+    <a class="related-guide-card" href="autoconsumo-avanzado-excedentes-compensacion-y-bateria-virtual.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">☀️ Autoconsumo avanzado y batería virtual</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Excedentes, compensación y BV para maximizar ahorro.</span>
+    </a>
+  </div>
 </section>
 <section class="sources-section">
 <h2>📚 Fuentes y referencias</h2>

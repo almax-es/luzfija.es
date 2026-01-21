@@ -307,6 +307,72 @@ html.light-mode .btn-small:hover{
   border-radius: 100px;
 }
 .key-takeaway strong { color: var(--accent2); }
+
+
+/* === GUÍAS RELACIONADAS (CONSISTENCIA ENTRE ARTÍCULOS) === */
+.related-guides-section{
+  margin: 44px 0 0;
+  padding: 28px;
+  background: rgba(139,92,246,.08);
+  border: 1px solid rgba(139,92,246,.22);
+  border-radius: 16px;
+}
+.related-guides-section h2{
+  font-size: 22px;
+  font-weight: 900;
+  margin: 0 0 18px;
+  color: var(--text);
+}
+.related-guides-grid{
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px){
+  .related-guides-grid{
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.related-guide-card{
+  display: block;
+  padding: 14px 16px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: all .2s ease;
+}
+.related-guide-card:hover{
+  background: rgba(255,255,255,.06);
+  border-color: rgba(139,92,246,.55);
+  transform: translateY(-1px);
+}
+.related-guide-top{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.related-guide-title{
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--text);
+}
+.related-guide-desc{
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.related-guide-arrow{
+  color: var(--accent);
+  font-weight: 900;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
 </style>
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/fonts.css">
@@ -414,6 +480,39 @@ Contratas a 0,12 €/kWh. En el contrato pone "precio actualizable anualmente se
 <li><strong>Te presionan para que firmes YA</strong> ("oferta válida solo hoy") — siempre hay más ofertas</li>
 </ul>
 <p><strong>Regla de oro para evaluar red flags:</strong> Cada condición debe mejorarte la factura según TU consumo real, no en promedio. Si una penalización supera lo que ahorras en 12 meses de la tarifa, es un mal negocio. Si una cuota mensual es superior a tu ahorro estimado, huye. Lee el contrato ENTERO antes de firmar.</p>
+<section class="related-guides-section" aria-labelledby="guias-relacionadas">
+  <h2 id="guias-relacionadas">📚 Guías relacionadas</h2>
+  <div class="related-guides-grid">
+    <a class="related-guide-card" href="como-cambiar-de-compania-sin-cortes-y-sin-que-te-li-en.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">🔄 Cambiar de compañía sin líos</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Pasos, permanencias y trampas habituales.</span>
+    </a>
+    <a class="related-guide-card" href="tarifas-indexadas-pool-cuota-cuando-interesan-y-cuando-no.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">📈 Tarifas indexadas (pool + cuota)</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Pros, contras y cuándo salen a cuenta de verdad.</span>
+    </a>
+    <a class="related-guide-card" href="pvpc-vs-mercado-libre-cuando-te-conviene-cada-uno.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">⚡ PVPC vs mercado libre</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Cuándo conviene cada uno según tu consumo y riesgos.</span>
+    </a>
+    <a class="related-guide-card" href="servicios-extra-y-mantenimiento-como-detectarlos-y-quitarlos.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">🧾 Quitar servicios extra</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Detecta mantenimientos y elimina cargos innecesarios.</span>
+    </a>
+  </div>
+</section>
 <section class="sources-section">
 <h2>📚 Fuentes y referencias</h2>
 <h3>Organismos oficiales</h3>

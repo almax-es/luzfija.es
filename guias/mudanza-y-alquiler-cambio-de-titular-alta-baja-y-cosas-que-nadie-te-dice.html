@@ -310,6 +310,72 @@ html.light-mode .btn-small:hover{
   border-radius: 100px;
 }
 .key-takeaway strong { color: var(--accent2); }
+
+
+/* === GUÍAS RELACIONADAS (CONSISTENCIA ENTRE ARTÍCULOS) === */
+.related-guides-section{
+  margin: 44px 0 0;
+  padding: 28px;
+  background: rgba(139,92,246,.08);
+  border: 1px solid rgba(139,92,246,.22);
+  border-radius: 16px;
+}
+.related-guides-section h2{
+  font-size: 22px;
+  font-weight: 900;
+  margin: 0 0 18px;
+  color: var(--text);
+}
+.related-guides-grid{
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px){
+  .related-guides-grid{
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.related-guide-card{
+  display: block;
+  padding: 14px 16px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: all .2s ease;
+}
+.related-guide-card:hover{
+  background: rgba(255,255,255,.06);
+  border-color: rgba(139,92,246,.55);
+  transform: translateY(-1px);
+}
+.related-guide-top{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.related-guide-title{
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--text);
+}
+.related-guide-desc{
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.related-guide-arrow{
+  color: var(--accent);
+  font-weight: 900;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
 </style>
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/fonts.css">
@@ -526,6 +592,39 @@ No. El cambio es administrativo, no afecta al suministro físico.
 No. Es un trámite tuyo con la comercializadora. El casero no interviene (salvo darte el CUPS si no lo tienes).
 </p>
 <p><strong>Resumen ejecutivo:</strong> Cambio de titular el primer día, foto al contador siempre, y revisa las facturas con lupa. Así evitas el 95% de los problemas.</p>
+<section class="related-guides-section" aria-labelledby="guias-relacionadas">
+  <h2 id="guias-relacionadas">📚 Guías relacionadas</h2>
+  <div class="related-guides-grid">
+    <a class="related-guide-card" href="cups-que-es-y-donde-encontrarlo.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">🔑 CUPS: qué es y dónde está</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Lo necesitas para trámites, reclamaciones y cambios.</span>
+    </a>
+    <a class="related-guide-card" href="como-cambiar-de-compania-sin-cortes-y-sin-que-te-li-en.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">🔄 Cambiar de compañía sin líos</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Pasos, permanencias y trampas habituales.</span>
+    </a>
+    <a class="related-guide-card" href="servicios-extra-y-mantenimiento-como-detectarlos-y-quitarlos.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">🧾 Quitar servicios extra</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Detecta mantenimientos y elimina cargos innecesarios.</span>
+    </a>
+    <a class="related-guide-card" href="como-reclamar-a-comercializadora-distribuidora.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">📢 Reclamar y ganar</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">A quién reclamar según el problema y cómo hacerlo bien.</span>
+    </a>
+  </div>
+</section>
 <section class="sources-section">
 <h2>📚 Fuentes y referencias</h2>
 <h3>Organismos oficiales</h3>
