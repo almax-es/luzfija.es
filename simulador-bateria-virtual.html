@@ -339,40 +339,71 @@
                         <!-- Tarifa Actual (Opcional) -->
                         <div style="grid-column: 1 / -1; margin-top: 12px;">
                           <details class="seoDetails" style="background: rgba(255,255,255,0.03); border: 1px dashed var(--border);">
-                            <summary style="font-size: 13px; padding: 10px;">📊 Comparar con mi tarifa actual (opcional)</summary>
-                            <div style="padding: 16px; display: grid; gap: 12px;">
-                              <div class="form" style="grid-template-columns: 1fr 1fr; gap: 12px;">
-                                <div class="group">
-                                  <label for="mtPunta">Energía P1 (€/kWh)</label>
-                                  <input id="mtPunta" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,15">
-                                </div>
-                                <div class="group">
-                                  <label for="mtLlano">Energía P2 (€/kWh)</label>
-                                  <input id="mtLlano" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,12">
-                                </div>
-                                <div class="group">
-                                  <label for="mtValle">Energía P3 (€/kWh)</label>
-                                  <input id="mtValle" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,09">
-                                </div>
-                                <div class="group">
-                                  <label for="mtExc">Excedente (€/kWh)</label>
-                                  <input id="mtExc" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,08">
+                            <summary style="font-size: 13px; padding: 10px;">⭐ Comparar con mi tarifa actual</summary>
+                            <div style="padding: 16px; display: grid; gap: 16px;">
+
+                              <!-- Info box explicativo -->
+                              <div class="info-box">
+                                <div style="display: flex; align-items: start; gap: 10px;">
+                                  <span style="font-size: 18px; flex-shrink: 0;">💡</span>
+                                  <div>
+                                    <strong style="display: block; margin-bottom: 4px;">Busca estos precios en tu factura</strong>
+                                    <div style="color: var(--muted2); font-size: 11px; line-height: 1.5;">
+                                      Normalmente aparecen en la sección de "Detalle del importe" o "Términos de facturación"
+                                    </div>
+                                  </div>
                                 </div>
                               </div>
-                              <div class="form" style="grid-template-columns: 1fr 1fr; gap: 12px;">
+
+                              <!-- Término de Potencia -->
+                              <div class="mt-seccion-header">
+                                <span class="mt-seccion-icon">📊</span>
+                                <h4 class="mt-seccion-title">Término de potencia</h4>
+                                <span class="mt-seccion-subtitle">Precio por kW contratado/día</span>
+                              </div>
+                              <div class="form" style="grid-template-columns: 1fr 1fr; gap: 10px;">
                                 <div class="group">
                                   <label for="mtP1">Potencia P1 (€/kW·día)</label>
-                                  <input id="mtP1" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,09">
+                                  <input id="mtP1" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0891">
                                 </div>
                                 <div class="group">
                                   <label for="mtP2">Potencia P2 (€/kW·día)</label>
-                                  <input id="mtP2" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,04">
+                                  <input id="mtP2" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0445">
                                 </div>
                               </div>
-                              <label class="fv-check">
-                                <input id="mtBV" type="checkbox">
-                                <span>Tiene Batería Virtual <small style="color:var(--muted); font-weight:400;">(acumula excedentes no compensados)</small></span>
-                              </label>
+
+                              <!-- Término de Energía -->
+                              <div class="mt-seccion-header" style="margin-top: 4px;">
+                                <span class="mt-seccion-icon">⚡</span>
+                                <h4 class="mt-seccion-title">Término de energía</h4>
+                                <span class="mt-seccion-subtitle">Precio por kWh consumido</span>
+                              </div>
+                              <div class="form" style="grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+                                <div class="group">
+                                  <label for="mtPunta">Punta (€/kWh)</label>
+                                  <input id="mtPunta" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,1543">
+                                </div>
+                                <div class="group">
+                                  <label for="mtLlano">Llano (€/kWh)</label>
+                                  <input id="mtLlano" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,1234">
+                                </div>
+                                <div class="group">
+                                  <label for="mtValle">Valle (€/kWh)</label>
+                                  <input id="mtValle" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0899">
+                                </div>
+                              </div>
+
+                              <!-- Compensación de Excedentes -->
+                              <div class="mt-seccion-header" style="margin-top: 4px;">
+                                <span class="mt-seccion-icon">☀️</span>
+                                <h4 class="mt-seccion-title">Compensación de excedentes</h4>
+                                <span class="mt-seccion-subtitle">Precio que te pagan por verter a la red</span>
+                              </div>
+                              <div class="group">
+                                <label for="mtExc">Precio compensación (€/kWh)</label>
+                                <input id="mtExc" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0743">
+                              </div>
+
                             </div>
                           </details>
                         </div>
@@ -515,5 +546,5 @@
             <script src="/js/lf-utils.js"></script>
             <script src="/js/bv/bv-import.js?v=1.1"></script>
             <script src="/js/bv/bv-sim-monthly.js?v=1.2"></script>
-            <script src="/js/bv/bv-ui.js?v=3.9"></script>
+            <script src="/js/bv/bv-ui.js?v=4.0"></script>
           </body></html>

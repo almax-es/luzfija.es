@@ -376,8 +376,7 @@ document.addEventListener('DOMContentLoaded', () => {
         valle: document.getElementById('mtValle').value,
         p1: document.getElementById('mtP1').value,
         p2: document.getElementById('mtP2').value,
-        exc: document.getElementById('mtExc').value,
-        bv: document.getElementById('mtBV').checked
+        exc: document.getElementById('mtExc').value
       };
       localStorage.setItem('bv_custom_tarifa', JSON.stringify(data));
     } catch(e) {
@@ -397,7 +396,6 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('mtP1').value = data.p1 || '';
       document.getElementById('mtP2').value = data.p2 || '';
       document.getElementById('mtExc').value = data.exc || '';
-      document.getElementById('mtBV').checked = data.bv || false;
       return true;
     } catch(e) {
       console.warn('Error cargando tarifa personalizada:', e);
@@ -420,19 +418,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   });
 
-  const mtBVEl = document.getElementById('mtBV');
-  if (mtBVEl) {
-    mtBVEl.addEventListener('change', saveCustomTarifa);
-  }
-
   function getCustomTarifa() {
-    const punta = parseInput(document.getElementById('mtPunta').value);
-    const llano = parseInput(document.getElementById('mtLlano').value);
-    const valle = parseInput(document.getElementById('mtValle').value);
-    const p1 = parseInput(document.getElementById('mtP1').value);
-    const p2 = parseInput(document.getElementById('mtP2').value);
-    const exc = parseInput(document.getElementById('mtExc').value);
-    const hasBV = document.getElementById('mtBV').checked;
+    const punta = parseInput(document.getElementById('mtPunta')?.value || '');
+    const llano = parseInput(document.getElementById('mtLlano')?.value || '');
+    const valle = parseInput(document.getElementById('mtValle')?.value || '');
+    const p1 = parseInput(document.getElementById('mtP1')?.value || '');
+    const p2 = parseInput(document.getElementById('mtP2')?.value || '');
+    const exc = parseInput(document.getElementById('mtExc')?.value || '');
 
     // Validación estricta: necesita al menos UN precio de energía Y UN precio de potencia
     const hasEnergy = punta > 0 || llano > 0 || valle > 0;
@@ -444,8 +436,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const energyPrices = [punta, llano, valle].filter(v => v > 0);
     const tipo = energyPrices.length === 1 ? '1P' : '3P';
 
+    // Detectar BV automáticamente: si hay precio de compensación > 0, tiene BV
+    const hasBV = exc > 0;
+
     return {
-      nombre: 'Mi Tarifa Actual ⭐',
+      nombre: 'Mi tarifa ⭐',
       tipo: tipo,
       cPunta: punta || llano || valle,
       cLlano: llano || punta || valle,
