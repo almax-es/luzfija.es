@@ -581,7 +581,7 @@ select.input option {
 .bv-floating-tooltip {
   position: fixed;
   display: none;
-  background: #1e293b;
+  background: #0f172a;
   color: #fff;
   border: 1px solid var(--accent);
   padding: 12px 16px;
@@ -589,11 +589,13 @@ select.input option {
   font-size: 0.85rem;
   font-weight: 500;
   line-height: 1.6;
-  white-space: pre-wrap; 
+  white-space: pre-wrap;
   z-index: 100000;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.6);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.8);
   pointer-events: none;
   max-width: 320px;
+  backdrop-filter: blur(10px);
+  opacity: 1;
 }
 
 html.light-mode .bv-floating-tooltip{
@@ -601,7 +603,6 @@ html.light-mode .bv-floating-tooltip{
   color: var(--text);
   border-color: rgba(15, 23, 42, .16);
   box-shadow: 0 18px 48px rgba(2,6,23,.18);
-  backdrop-filter: blur(10px);
 }
 
 .bv-tooltip-trigger {
