@@ -150,12 +150,31 @@ document.addEventListener('DOMContentLoaded', () => {
     let saveTimer = null;
     manualGrid.addEventListener('input', (e) => {
       if (e.target.classList.contains('manual-input')) {
-        const val = parseInput(e.target.value);
-        if (val < 0 || !isFinite(val) || val > 10000) {
-           e.target.classList.add('error'); e.target.classList.remove('valid');
+        const rawValue = e.target.value.trim();
+
+        // Validar que el string raw sea numérico antes de parsear
+        // Permite: números, comas, puntos, espacios
+        const isNumericString = rawValue === '' || /^[\d.,\s]+$/.test(rawValue);
+
+        if (!isNumericString) {
+          // Texto no numérico detectado
+          e.target.classList.add('error');
+          e.target.classList.remove('valid');
         } else {
-           e.target.classList.remove('error'); e.target.classList.add('valid');
+          // Es numérico, validar el valor parseado
+          const val = parseInput(rawValue);
+          if (val < 0 || !isFinite(val) || val > 10000) {
+            e.target.classList.add('error');
+            e.target.classList.remove('valid');
+          } else if (val > 0) {
+            e.target.classList.remove('error');
+            e.target.classList.add('valid');
+          } else {
+            // valor 0 o vacío: neutral
+            e.target.classList.remove('error', 'valid');
+          }
         }
+
         showSaveIndicator('saving');
         clearTimeout(saveTimer);
         saveTimer = setTimeout(() => {
@@ -650,9 +669,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
           const key = `${currentYear}-${String(i + 1).padStart(2, '0')}`;
 
+          // Calcular días reales del mes (28/29/30/31)
+          const realDays = new Date(currentYear, i + 1, 0).getDate();
+
           manualMonths.push({
             key,
-            daysWithData: 30, // Asumimos mes estándar
+            daysWithData: realDays,
             importTotalKWh: totalCons,
             exportTotalKWh: vertKwh,
             importByPeriod: {

@@ -1096,3 +1096,16 @@ html.light-mode .bv-manual-row {
 .bv-reset-btn:active {
   transform: scale(0.95);
 }
+
+/* Botones de método (CSV/Manual) con estado activo */
+.btn.active {
+  background: var(--accent) !important;
+  color: #fff !important;
+  border-color: var(--accent) !important;
+  font-weight: 700;
+}
+
+html.light-mode .btn.active {
+  background: var(--accent) !important;
+  color: #fff !important;
+}
