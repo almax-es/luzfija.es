@@ -145,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
     `).join('');
 
-    loadManualData();
+    // NO cargar datos automáticamente - solo al hacer clic en "Entrada manual"
 
     // Debounce para guardar automáticamente
     let saveTimer = null;
@@ -224,6 +224,9 @@ document.addEventListener('DOMContentLoaded', () => {
       methodCsvBtn.classList.remove('active');
       dropZone.style.display = 'none';
       manualZoneContainer.style.display = 'block';
+
+      // Cargar datos guardados solo al cambiar a modo manual
+      loadManualData();
     });
   }
 
