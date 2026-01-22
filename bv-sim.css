@@ -942,6 +942,15 @@ html.light-mode .bv-tip-card{
   opacity: 0.5;
 }
 
+.manual-input.error {
+  border-color: var(--danger) !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
+.manual-input.valid {
+  border-color: var(--accent2) !important;
+}
+
 /* Header para la tabla manual */
 .bv-manual-header {
   display: grid;
@@ -955,26 +964,63 @@ html.light-mode .bv-tip-card{
   color: var(--muted);
   text-transform: uppercase;
   text-align: center;
+  cursor: help;
 }
 .bv-manual-header span:first-child {
   text-align: left;
 }
+.bv-manual-header span {
+  transition: color 0.2s ease;
+}
+.bv-manual-header span:hover {
+  color: var(--text);
+}
+
+/* Modo claro: mejor contraste en borders */
+html.light-mode .bv-manual-header {
+  border-bottom-color: rgba(15, 23, 42, 0.2);
+}
+html.light-mode .bv-manual-row {
+  border-bottom-color: rgba(15, 23, 42, 0.1);
+}
 
 /* Ajustes móvil para tabla ancha */
-@media (max-width: 500px) {
+@media (max-width: 600px) {
   .bv-manual-row, .bv-manual-header {
-    grid-template-columns: 60px repeat(4, minmax(50px, 1fr));
+    grid-template-columns: 65px repeat(4, minmax(55px, 1fr));
+    gap: 6px;
+  }
+  .manual-input {
+    padding: 5px 3px !important;
+    font-size: 12px !important;
+  }
+  .bv-manual-header {
+    font-size: 10px;
+  }
+}
+
+@media (max-width: 400px) {
+  .bv-manual-row, .bv-manual-header {
+    grid-template-columns: 55px repeat(4, minmax(48px, 1fr));
     gap: 4px;
   }
   .manual-input {
     padding: 4px 2px !important;
-    font-size: 12px !important;
+    font-size: 11px !important;
+    min-height: 34px !important;
   }
   .bv-manual-row-label {
-    font-size: 12px;
+    font-size: 11px;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+  .bv-manual-header {
+    font-size: 9px;
+    padding: 0 2px 6px;
+  }
+  .bv-manual-header span {
+    line-height: 1.1;
   }
 }
 
@@ -987,4 +1033,49 @@ html.light-mode .bv-tip-card{
 #bv-manual-grid::-webkit-scrollbar-thumb {
   background: var(--border2);
   border-radius: 10px;
+}
+
+/* Indicador de auto-guardado */
+.bv-save-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 99px;
+  transition: all 0.3s ease;
+  opacity: 0;
+  pointer-events: none;
+}
+.bv-save-indicator.saving {
+  opacity: 1;
+  background: rgba(139, 92, 246, 0.15);
+  color: var(--accent);
+}
+.bv-save-indicator.saved {
+  opacity: 1;
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--accent2);
+}
+
+/* Botón de reset compacto */
+.bv-reset-btn {
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 99px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+.bv-reset-btn:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: rgba(239, 68, 68, 0.08);
+}
+.bv-reset-btn:active {
+  transform: scale(0.95);
 }

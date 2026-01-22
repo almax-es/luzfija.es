@@ -399,19 +399,22 @@
                         <div id="bv-manual-zone" style="display:none; height: 100%;">
                           <div class="card" style="margin:0; height: 100%; border-style: dashed; background: var(--card2);">
                             <div class="body" style="padding: 12px; height: 100%; display: flex; flex-direction: column;">
-                              <!-- Header generado por CSS/JS o estático aquí -->
+                              <!-- Header con tooltips descriptivos -->
                               <div class="bv-manual-header">
                                 <span>Mes</span>
-                                <span title="Periodo Punta">Cons P1</span>
-                                <span title="Periodo Llano">Cons P2</span>
-                                <span title="Periodo Valle">Cons P3</span>
-                                <span title="Excedentes">Vertido</span>
+                                <span title="Consumo en periodo Punta (10-14h y 18-22h laborables)">P1 (kWh)</span>
+                                <span title="Consumo en periodo Llano (8-10h, 14-18h, 22-24h laborables)">P2 (kWh)</span>
+                                <span title="Consumo en periodo Valle (0-8h + fines de semana y festivos)">P3 (kWh)</span>
+                                <span title="Excedentes vertidos a la red (kWh)">Vertido</span>
                               </div>
                               <div id="bv-manual-grid" style="display: block; overflow-y: auto; flex: 1; padding-right: 4px;">
                                 <!-- Se generará por JS -->
                               </div>
-                              <div style="margin-top: 10px; font-size: 11px; color: var(--muted); line-height: 1.3;">
-                                Tip: Introduce tus consumos reales por periodo (P1/P2/P3) para mayor precisión.
+                              <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
+                                <div style="font-size: 11px; color: var(--muted); line-height: 1.3;">
+                                  <span id="bv-save-indicator" class="bv-save-indicator"></span>
+                                </div>
+                                <button type="button" id="bv-reset-manual" class="bv-reset-btn">↻ Resetear valores</button>
                               </div>
                             </div>
                           </div>

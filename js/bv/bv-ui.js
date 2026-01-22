@@ -116,14 +116,31 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Indicador de guardado
+  const saveIndicator = document.getElementById('bv-save-indicator');
+  function showSaveIndicator(type = 'saving') {
+    if (!saveIndicator) return;
+    saveIndicator.className = 'bv-save-indicator';
+    if (type === 'saving') {
+      saveIndicator.textContent = '✏️ Editando...';
+      saveIndicator.classList.add('saving');
+    } else if (type === 'saved') {
+      saveIndicator.textContent = '✓ Guardado';
+      saveIndicator.classList.add('saved');
+      setTimeout(() => {
+        saveIndicator.classList.remove('saved');
+      }, 2000);
+    }
+  }
+
   if (manualGrid) {
     manualGrid.innerHTML = monthNames.map((m, i) => `
       <div class="bv-manual-row">
         <span class="bv-manual-row-label">${m}</span>
-        <input class="input manual-input" type="text" data-month="${i}" data-type="p1" value="50" inputmode="decimal" placeholder="P1">
-        <input class="input manual-input" type="text" data-month="${i}" data-type="p2" value="70" inputmode="decimal" placeholder="P2">
-        <input class="input manual-input" type="text" data-month="${i}" data-type="p3" value="150" inputmode="decimal" placeholder="P3">
-        <input class="input manual-input" type="text" data-month="${i}" data-type="vert" value="200" inputmode="decimal" placeholder="Exc">
+        <input class="input manual-input" type="text" data-month="${i}" data-type="p1" value="50" inputmode="decimal" placeholder="kWh punta" title="Consumo en punta (10-14h, 18-22h laborables)">
+        <input class="input manual-input" type="text" data-month="${i}" data-type="p2" value="70" inputmode="decimal" placeholder="kWh llano" title="Consumo en llano (8-10h, 14-18h, 22-24h laborables)">
+        <input class="input manual-input" type="text" data-month="${i}" data-type="p3" value="150" inputmode="decimal" placeholder="kWh valle" title="Consumo en valle (0-8h + fines semana)">
+        <input class="input manual-input" type="text" data-month="${i}" data-type="vert" value="200" inputmode="decimal" placeholder="kWh vert." title="Excedentes vertidos a la red">
       </div>
     `).join('');
 
@@ -139,9 +156,37 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
            e.target.classList.remove('error'); e.target.classList.add('valid');
         }
+        showSaveIndicator('saving');
         clearTimeout(saveTimer);
-        saveTimer = setTimeout(saveManualData, 800);
+        saveTimer = setTimeout(() => {
+          saveManualData();
+          showSaveIndicator('saved');
+        }, 800);
       }
+    });
+  }
+
+  // Botón de reset
+  const resetBtn = document.getElementById('bv-reset-manual');
+  if (resetBtn && manualGrid) {
+    resetBtn.addEventListener('click', () => {
+      if (!confirm('¿Resetear todos los valores a valores por defecto (50/70/150/200)?')) return;
+
+      for (let i = 0; i < 12; i++) {
+        const p1In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p1"]`);
+        const p2In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p2"]`);
+        const p3In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p3"]`);
+        const vIn = manualGrid.querySelector(`input[data-month="${i}"][data-type="vert"]`);
+
+        if (p1In) { p1In.value = '50'; p1In.classList.remove('error', 'valid'); }
+        if (p2In) { p2In.value = '70'; p2In.classList.remove('error', 'valid'); }
+        if (p3In) { p3In.value = '150'; p3In.classList.remove('error', 'valid'); }
+        if (vIn) { vIn.value = '200'; vIn.classList.remove('error', 'valid'); }
+      }
+
+      localStorage.removeItem('bv_manual_data_v2');
+      localStorage.removeItem('bv_manual_data');
+      showToast('Valores reseteados', 'ok');
     });
   }
 
