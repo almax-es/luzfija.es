@@ -1097,15 +1097,17 @@ html.light-mode .bv-manual-row {
   transform: scale(0.95);
 }
 
-/* Botones de método (CSV/Manual) con estado activo */
-.btn.active {
+/* Botones de método (CSV/Manual) con estado activo - scope específico para evitar colisiones */
+#method-csv.active,
+#method-manual.active {
   background: var(--accent) !important;
   color: #fff !important;
   border-color: var(--accent) !important;
   font-weight: 700;
 }
 
-html.light-mode .btn.active {
+html.light-mode #method-csv.active,
+html.light-mode #method-manual.active {
   background: var(--accent) !important;
   color: #fff !important;
 }
