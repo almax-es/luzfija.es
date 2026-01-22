@@ -913,35 +913,69 @@ html.light-mode .bv-tip-card{
 /* --- Estilos para entrada manual --- */
 .bv-manual-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 80px repeat(4, 1fr); /* Etiqueta + 4 inputs */
   gap: 8px;
   align-items: center;
+  padding: 6px 4px;
+  border-bottom: 1px solid var(--border);
 }
-
+.bv-manual-row:last-child {
+  border-bottom: none;
+}
 .bv-manual-row-label {
   font-weight: 700;
   font-size: 13px;
+  color: var(--text);
 }
-
 .manual-input {
-  padding: 6px 8px;
-  font-size: 13px;
-  min-height: 32px;
+  padding: 6px 4px !important;
+  font-size: 13px !important;
+  min-height: 36px !important;
   text-align: center;
 }
-
 .manual-input:focus {
   background: var(--bg1) !important;
   border-color: var(--accent) !important;
 }
-
-.manual-input.error {
-  border-color: var(--danger) !important;
-  background: rgba(239, 68, 68, 0.1) !important;
+.manual-input::placeholder {
+  font-size: 10px;
+  opacity: 0.5;
 }
 
-.manual-input.valid {
-  border-color: var(--accent2) !important;
+/* Header para la tabla manual */
+.bv-manual-header {
+  display: grid;
+  grid-template-columns: 80px repeat(4, 1fr);
+  gap: 8px;
+  padding: 0 4px 8px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 4px;
+  font-size: 11px;
+  font-weight: 900;
+  color: var(--muted);
+  text-transform: uppercase;
+  text-align: center;
+}
+.bv-manual-header span:first-child {
+  text-align: left;
+}
+
+/* Ajustes móvil para tabla ancha */
+@media (max-width: 500px) {
+  .bv-manual-row, .bv-manual-header {
+    grid-template-columns: 60px repeat(4, minmax(50px, 1fr));
+    gap: 4px;
+  }
+  .manual-input {
+    padding: 4px 2px !important;
+    font-size: 12px !important;
+  }
+  .bv-manual-row-label {
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 #bv-manual-grid::-webkit-scrollbar {

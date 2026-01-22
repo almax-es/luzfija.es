@@ -48,37 +48,70 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!manualGrid) return;
     const data = {};
     for (let i = 0; i < 12; i++) {
-      const cInput = manualGrid.querySelector(`input[data-month="${i}"][data-type="cons"]`);
-      const vInput = manualGrid.querySelector(`input[data-month="${i}"][data-type="vert"]`);
-      if (cInput && vInput) {
-        data[i] = { cons: cInput.value, vert: vInput.value };
+      const p1In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p1"]`);
+      const p2In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p2"]`);
+      const p3In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p3"]`);
+      const vIn = manualGrid.querySelector(`input[data-month="${i}"][data-type="vert"]`);
+      
+      if (p1In && p2In && p3In && vIn) {
+        data[i] = { 
+          p1: p1In.value, 
+          p2: p2In.value, 
+          p3: p3In.value, 
+          vert: vIn.value 
+        };
       }
     }
     try {
-      localStorage.setItem('bv_manual_data', JSON.stringify(data));
-    } catch(e) {
-      console.warn('No se pudo guardar en localStorage:', e);
-    }
+      localStorage.setItem('bv_manual_data_v2', JSON.stringify(data));
+    } catch(e) { console.warn(e); }
   }
 
   // Función para cargar datos manuales desde localStorage
   function loadManualData() {
     if (!manualGrid) return false;
     try {
-      const saved = localStorage.getItem('bv_manual_data');
-      if (!saved) return false;
-      const data = JSON.parse(saved);
+      // Intentar cargar v2 (detallado)
+      let saved = localStorage.getItem('bv_manual_data_v2');
+      let data = saved ? JSON.parse(saved) : null;
+      
+      // Migración simple de v1 (agregado) a v2 (detallado) si no existe v2
+      if (!data) {
+        const oldSaved = localStorage.getItem('bv_manual_data');
+        if (oldSaved) {
+          const oldData = JSON.parse(oldSaved);
+          data = {};
+          for (let k in oldData) {
+            const c = parseInput(oldData[k].cons);
+            // Estimación simple para migración: 20/25/55
+            data[k] = {
+              p1: Math.round(c * 0.20),
+              p2: Math.round(c * 0.25),
+              p3: Math.round(c * 0.55),
+              vert: oldData[k].vert
+            };
+          }
+        }
+      }
+
+      if (!data) return false;
+
       for (let i = 0; i < 12; i++) {
-        const cInput = manualGrid.querySelector(`input[data-month="${i}"][data-type="cons"]`);
-        const vInput = manualGrid.querySelector(`input[data-month="${i}"][data-type="vert"]`);
-        if (data[i] && cInput && vInput) {
-          cInput.value = data[i].cons;
-          vInput.value = data[i].vert;
+        const p1In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p1"]`);
+        const p2In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p2"]`);
+        const p3In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p3"]`);
+        const vIn = manualGrid.querySelector(`input[data-month="${i}"][data-type="vert"]`);
+        
+        if (data[i]) {
+          if (p1In) p1In.value = data[i].p1 || 0;
+          if (p2In) p2In.value = data[i].p2 || 0;
+          if (p3In) p3In.value = data[i].p3 || 0;
+          if (vIn) vIn.value = data[i].vert || 0;
         }
       }
       return true;
     } catch(e) {
-      console.warn('Error cargando datos guardados:', e);
+      console.warn('Error cargando datos:', e);
       return false;
     }
   }
@@ -87,34 +120,25 @@ document.addEventListener('DOMContentLoaded', () => {
     manualGrid.innerHTML = monthNames.map((m, i) => `
       <div class="bv-manual-row">
         <span class="bv-manual-row-label">${m}</span>
-        <input class="input manual-input" type="text" data-month="${i}" data-type="cons" value="300" inputmode="decimal" placeholder="Consumo">
-        <input class="input manual-input" type="text" data-month="${i}" data-type="vert" value="200" inputmode="decimal" placeholder="Vertido">
+        <input class="input manual-input" type="text" data-month="${i}" data-type="p1" value="50" inputmode="decimal" placeholder="P1">
+        <input class="input manual-input" type="text" data-month="${i}" data-type="p2" value="70" inputmode="decimal" placeholder="P2">
+        <input class="input manual-input" type="text" data-month="${i}" data-type="p3" value="150" inputmode="decimal" placeholder="P3">
+        <input class="input manual-input" type="text" data-month="${i}" data-type="vert" value="200" inputmode="decimal" placeholder="Exc">
       </div>
     `).join('');
 
-    // Cargar datos guardados si existen
     loadManualData();
 
     // Debounce para guardar automáticamente
     let saveTimer = null;
     manualGrid.addEventListener('input', (e) => {
       if (e.target.classList.contains('manual-input')) {
-        // Validar en tiempo real
-        const value = parseInput(e.target.value);
-        if (value < 0 || !isFinite(value)) {
-          e.target.classList.add('error');
-          e.target.classList.remove('valid');
-        } else if (value > 10000) {
-          e.target.classList.add('error');
-          e.target.classList.remove('valid');
-        } else if (value > 0) {
-          e.target.classList.remove('error');
-          e.target.classList.add('valid');
+        const val = parseInput(e.target.value);
+        if (val < 0 || !isFinite(val) || val > 10000) {
+           e.target.classList.add('error'); e.target.classList.remove('valid');
         } else {
-          e.target.classList.remove('error', 'valid');
+           e.target.classList.remove('error'); e.target.classList.add('valid');
         }
-
-        // Guardar con debounce
         clearTimeout(saveTimer);
         saveTimer = setTimeout(saveManualData, 800);
       }
@@ -560,39 +584,36 @@ document.addEventListener('DOMContentLoaded', () => {
         const manualMonths = [];
         const currentYear = new Date().getFullYear();
 
-        // Función para obtener distribución realista por estacionalidad
-        function getSeasonalDistribution(monthIndex) {
-          // Meses de verano (mayo-octubre): más consumo en punta por aire acondicionado
-          // Meses de invierno (nov-abril): más consumo en valle
-          const isSummer = monthIndex >= 4 && monthIndex <= 9;
-          return isSummer
-            ? { P1: 0.25, P2: 0.30, P3: 0.45 }  // Verano: más punta
-            : { P1: 0.18, P2: 0.25, P3: 0.57 }; // Invierno: más valle
-        }
-
         for (let i = 0; i < 12; i++) {
-          const cInput = manualGrid.querySelector(`input[data-month="${i}"][data-type="cons"]`);
+          const p1Input = manualGrid.querySelector(`input[data-month="${i}"][data-type="p1"]`);
+          const p2Input = manualGrid.querySelector(`input[data-month="${i}"][data-type="p2"]`);
+          const p3Input = manualGrid.querySelector(`input[data-month="${i}"][data-type="p3"]`);
           const vInput = manualGrid.querySelector(`input[data-month="${i}"][data-type="vert"]`);
 
           // Validación robusta de inputs
-          const consKwh = validateAndClampKwh(cInput ? cInput.value : 0);
+          const p1 = validateAndClampKwh(p1Input ? p1Input.value : 0);
+          const p2 = validateAndClampKwh(p2Input ? p2Input.value : 0);
+          const p3 = validateAndClampKwh(p3Input ? p3Input.value : 0);
+          const totalCons = p1 + p2 + p3;
+          
           let vertKwh = validateAndClampKwh(vInput ? vInput.value : 0);
 
-          // El vertido nunca puede ser mayor que el consumo
-          if (vertKwh > consKwh) vertKwh = consKwh;
+          // El vertido nunca puede ser mayor que el consumo total (aprox, aunque técnicamente posible en horas solares, para balance neto mensual suele cuadrar)
+          // Relaxing this check: surplus CAN be higher than consumption in specific months (e.g. vacation), but unlikely to be > total generation.
+          // Keeping basic sanity check:
+          if (vertKwh > 10000) vertKwh = 10000;
 
           const key = `${currentYear}-${String(i + 1).padStart(2, '0')}`;
-          const distribution = getSeasonalDistribution(i);
 
           manualMonths.push({
             key,
-            daysWithData: 30,
-            importTotalKWh: consKwh,
+            daysWithData: 30, // Asumimos mes estándar
+            importTotalKWh: totalCons,
             exportTotalKWh: vertKwh,
             importByPeriod: {
-              P1: consKwh * distribution.P1,
-              P2: consKwh * distribution.P2,
-              P3: consKwh * distribution.P3
+              P1: p1,
+              P2: p2,
+              P3: p3
             }
           });
         }
