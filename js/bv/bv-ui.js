@@ -104,10 +104,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (data[i]) {
           // Solo cargar valores si son > 0, dejar vacío si son 0
-          if (p1In) p1In.value = data[i].p1 > 0 ? data[i].p1 : '';
-          if (p2In) p2In.value = data[i].p2 > 0 ? data[i].p2 : '';
-          if (p3In) p3In.value = data[i].p3 > 0 ? data[i].p3 : '';
-          if (vIn) vIn.value = data[i].vert > 0 ? data[i].vert : '';
+          // Usar parseInput para manejar correctamente valores con coma decimal
+          if (p1In) p1In.value = parseInput(data[i].p1) > 0 ? data[i].p1 : '';
+          if (p2In) p2In.value = parseInput(data[i].p2) > 0 ? data[i].p2 : '';
+          if (p3In) p3In.value = parseInput(data[i].p3) > 0 ? data[i].p3 : '';
+          if (vIn) vIn.value = parseInput(data[i].vert) > 0 ? data[i].vert : '';
         }
       }
       return true;
@@ -453,7 +454,8 @@ document.addEventListener('DOMContentLoaded', () => {
         valle: document.getElementById('mtValle').value,
         p1: document.getElementById('mtP1').value,
         p2: document.getElementById('mtP2').value,
-        exc: document.getElementById('mtExc').value
+        exc: document.getElementById('mtExc').value,
+        bv: document.getElementById('mtBV')?.checked ?? false
       };
       localStorage.setItem('bv_custom_tarifa', JSON.stringify(data));
     } catch(e) {
@@ -473,6 +475,8 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('mtP1').value = data.p1 || '';
       document.getElementById('mtP2').value = data.p2 || '';
       document.getElementById('mtExc').value = data.exc || '';
+      const mtBVEl = document.getElementById('mtBV');
+      if (mtBVEl) mtBVEl.checked = data.bv ?? false;
       return true;
     } catch(e) {
       console.warn('Error cargando tarifa personalizada:', e);
@@ -494,6 +498,12 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   });
+
+  // Guardar checkbox de BV al cambiar (sin debounce, es instantáneo)
+  const mtBVEl = document.getElementById('mtBV');
+  if (mtBVEl) {
+    mtBVEl.addEventListener('change', saveCustomTarifa);
+  }
 
   function getCustomTarifa() {
     const punta = parseInput(document.getElementById('mtPunta')?.value || '');
@@ -524,7 +534,7 @@ document.addEventListener('DOMContentLoaded', () => {
       cValle: valle || llano || punta,
       p1: p1 || p2,
       p2: p2 || p1,
-      web: '#',
+      web: '', // Vacío para que no se renderice el botón de información
       esPersonalizada: true,
       fv: {
         exc: exc,
