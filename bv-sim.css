@@ -601,6 +601,7 @@ html.light-mode .bv-floating-tooltip{
   color: var(--text);
   border-color: rgba(15, 23, 42, .16);
   box-shadow: 0 18px 48px rgba(2,6,23,.18);
+  backdrop-filter: blur(10px);
 }
 
 .bv-tooltip-trigger {
@@ -910,10 +911,39 @@ html.light-mode .bv-tip-card{
 }
 
 /* --- Estilos para entrada manual --- */
+.bv-manual-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  align-items: center;
+}
+
+.bv-manual-row-label {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.manual-input {
+  padding: 6px 8px;
+  font-size: 13px;
+  min-height: 32px;
+  text-align: center;
+}
+
 .manual-input:focus {
   background: var(--bg1) !important;
   border-color: var(--accent) !important;
 }
+
+.manual-input.error {
+  border-color: var(--danger) !important;
+  background: rgba(239, 68, 68, 0.1) !important;
+}
+
+.manual-input.valid {
+  border-color: var(--accent2) !important;
+}
+
 #bv-manual-grid::-webkit-scrollbar {
   width: 6px;
 }

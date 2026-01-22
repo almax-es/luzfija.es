@@ -33,14 +33,92 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // --- MANUAL ENTRY INITIALIZATION ---
   const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+
+  // Función para validar y limitar valores
+  function validateAndClampKwh(value, max = 10000) {
+    const num = parseInput(value);
+    if (num < 0) return 0;
+    if (num > max) return max;
+    if (!isFinite(num)) return 0;
+    return num;
+  }
+
+  // Función para guardar datos manuales en localStorage
+  function saveManualData() {
+    if (!manualGrid) return;
+    const data = {};
+    for (let i = 0; i < 12; i++) {
+      const cInput = manualGrid.querySelector(`input[data-month="${i}"][data-type="cons"]`);
+      const vInput = manualGrid.querySelector(`input[data-month="${i}"][data-type="vert"]`);
+      if (cInput && vInput) {
+        data[i] = { cons: cInput.value, vert: vInput.value };
+      }
+    }
+    try {
+      localStorage.setItem('bv_manual_data', JSON.stringify(data));
+    } catch(e) {
+      console.warn('No se pudo guardar en localStorage:', e);
+    }
+  }
+
+  // Función para cargar datos manuales desde localStorage
+  function loadManualData() {
+    if (!manualGrid) return false;
+    try {
+      const saved = localStorage.getItem('bv_manual_data');
+      if (!saved) return false;
+      const data = JSON.parse(saved);
+      for (let i = 0; i < 12; i++) {
+        const cInput = manualGrid.querySelector(`input[data-month="${i}"][data-type="cons"]`);
+        const vInput = manualGrid.querySelector(`input[data-month="${i}"][data-type="vert"]`);
+        if (data[i] && cInput && vInput) {
+          cInput.value = data[i].cons;
+          vInput.value = data[i].vert;
+        }
+      }
+      return true;
+    } catch(e) {
+      console.warn('Error cargando datos guardados:', e);
+      return false;
+    }
+  }
+
   if (manualGrid) {
     manualGrid.innerHTML = monthNames.map((m, i) => `
-      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; align-items: center;">
-        <span style="font-weight: 700; font-size: 13px;">${m}</span>
-        <input class="input manual-input" type="text" data-month="${i}" data-type="cons" value="300" style="padding: 6px 8px; font-size: 13px; min-height: 32px; text-align: center;">
-        <input class="input manual-input" type="text" data-month="${i}" data-type="vert" value="200" style="padding: 6px 8px; font-size: 13px; min-height: 32px; text-align: center;">
+      <div class="bv-manual-row">
+        <span class="bv-manual-row-label">${m}</span>
+        <input class="input manual-input" type="text" data-month="${i}" data-type="cons" value="300" inputmode="decimal" placeholder="Consumo">
+        <input class="input manual-input" type="text" data-month="${i}" data-type="vert" value="200" inputmode="decimal" placeholder="Vertido">
       </div>
     `).join('');
+
+    // Cargar datos guardados si existen
+    loadManualData();
+
+    // Debounce para guardar automáticamente
+    let saveTimer = null;
+    manualGrid.addEventListener('input', (e) => {
+      if (e.target.classList.contains('manual-input')) {
+        // Validar en tiempo real
+        const value = parseInput(e.target.value);
+        if (value < 0 || !isFinite(value)) {
+          e.target.classList.add('error');
+          e.target.classList.remove('valid');
+        } else if (value > 10000) {
+          e.target.classList.add('error');
+          e.target.classList.remove('valid');
+        } else if (value > 0) {
+          e.target.classList.remove('error');
+          e.target.classList.add('valid');
+        } else {
+          e.target.classList.remove('error', 'valid');
+        }
+
+        // Guardar con debounce
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(saveManualData, 800);
+      }
+    });
   }
 
   if (methodCsvBtn && methodManualBtn) {
@@ -201,6 +279,64 @@ document.addEventListener('DOMContentLoaded', () => {
     return '';
   }
 
+  // Función para guardar tarifa personalizada en localStorage
+  function saveCustomTarifa() {
+    try {
+      const data = {
+        punta: document.getElementById('mtPunta').value,
+        llano: document.getElementById('mtLlano').value,
+        valle: document.getElementById('mtValle').value,
+        p1: document.getElementById('mtP1').value,
+        p2: document.getElementById('mtP2').value,
+        exc: document.getElementById('mtExc').value,
+        bv: document.getElementById('mtBV').checked
+      };
+      localStorage.setItem('bv_custom_tarifa', JSON.stringify(data));
+    } catch(e) {
+      console.warn('No se pudo guardar tarifa personalizada:', e);
+    }
+  }
+
+  // Función para cargar tarifa personalizada desde localStorage
+  function loadCustomTarifa() {
+    try {
+      const saved = localStorage.getItem('bv_custom_tarifa');
+      if (!saved) return false;
+      const data = JSON.parse(saved);
+      document.getElementById('mtPunta').value = data.punta || '';
+      document.getElementById('mtLlano').value = data.llano || '';
+      document.getElementById('mtValle').value = data.valle || '';
+      document.getElementById('mtP1').value = data.p1 || '';
+      document.getElementById('mtP2').value = data.p2 || '';
+      document.getElementById('mtExc').value = data.exc || '';
+      document.getElementById('mtBV').checked = data.bv || false;
+      return true;
+    } catch(e) {
+      console.warn('Error cargando tarifa personalizada:', e);
+      return false;
+    }
+  }
+
+  // Cargar tarifa personalizada al inicio
+  loadCustomTarifa();
+
+  // Guardar automáticamente los cambios en tarifa personalizada
+  ['mtPunta', 'mtLlano', 'mtValle', 'mtP1', 'mtP2', 'mtExc'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) {
+      let saveTimer = null;
+      el.addEventListener('input', () => {
+        clearTimeout(saveTimer);
+        saveTimer = setTimeout(saveCustomTarifa, 800);
+      });
+    }
+  });
+
+  const mtBVEl = document.getElementById('mtBV');
+  if (mtBVEl) {
+    mtBVEl.addEventListener('change', saveCustomTarifa);
+  }
+
   function getCustomTarifa() {
     const punta = parseInput(document.getElementById('mtPunta').value);
     const llano = parseInput(document.getElementById('mtLlano').value);
@@ -210,15 +346,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const exc = parseInput(document.getElementById('mtExc').value);
     const hasBV = document.getElementById('mtBV').checked;
 
-    if (!punta && !llano && !valle && !p1 && !p2) return null;
+    // Validación estricta: necesita al menos UN precio de energía Y UN precio de potencia
+    const hasEnergy = punta > 0 || llano > 0 || valle > 0;
+    const hasPower = p1 > 0 || p2 > 0;
+
+    if (!hasEnergy || !hasPower) return null;
+
+    // Detección correcta de tipo de tarifa basada en valores rellenados
+    const energyPrices = [punta, llano, valle].filter(v => v > 0);
+    const tipo = energyPrices.length === 1 ? '1P' : '3P';
 
     return {
       nombre: 'Mi Tarifa Actual ⭐',
-      tipo: (punta === llano && llano === valle) ? '1P' : '3P',
-      cPunta: punta,
-      cLlano: llano || punta,
-      cValle: valle || punta,
-      p1: p1,
+      tipo: tipo,
+      cPunta: punta || llano || valle,
+      cLlano: llano || punta || valle,
+      cValle: valle || llano || punta,
+      p1: p1 || p2,
       p2: p2 || p1,
       web: '#',
       esPersonalizada: true,
@@ -415,21 +559,40 @@ document.addEventListener('DOMContentLoaded', () => {
       if (activeMethod === 'manual') {
         const manualMonths = [];
         const currentYear = new Date().getFullYear();
+
+        // Función para obtener distribución realista por estacionalidad
+        function getSeasonalDistribution(monthIndex) {
+          // Meses de verano (mayo-octubre): más consumo en punta por aire acondicionado
+          // Meses de invierno (nov-abril): más consumo en valle
+          const isSummer = monthIndex >= 4 && monthIndex <= 9;
+          return isSummer
+            ? { P1: 0.25, P2: 0.30, P3: 0.45 }  // Verano: más punta
+            : { P1: 0.18, P2: 0.25, P3: 0.57 }; // Invierno: más valle
+        }
+
         for (let i = 0; i < 12; i++) {
           const cInput = manualGrid.querySelector(`input[data-month="${i}"][data-type="cons"]`);
           const vInput = manualGrid.querySelector(`input[data-month="${i}"][data-type="vert"]`);
-          const consKwh = parseInput(cInput ? cInput.value : 0);
-          const vertKwh = parseInput(vInput ? vInput.value : 0);
+
+          // Validación robusta de inputs
+          const consKwh = validateAndClampKwh(cInput ? cInput.value : 0);
+          let vertKwh = validateAndClampKwh(vInput ? vInput.value : 0);
+
+          // El vertido nunca puede ser mayor que el consumo
+          if (vertKwh > consKwh) vertKwh = consKwh;
+
           const key = `${currentYear}-${String(i + 1).padStart(2, '0')}`;
+          const distribution = getSeasonalDistribution(i);
+
           manualMonths.push({
             key,
             daysWithData: 30,
             importTotalKWh: consKwh,
             exportTotalKWh: vertKwh,
             importByPeriod: {
-              P1: consKwh * 0.20,
-              P2: consKwh * 0.25,
-              P3: consKwh * 0.55
+              P1: consKwh * distribution.P1,
+              P2: consKwh * distribution.P2,
+              P3: consKwh * distribution.P3
             }
           });
         }
@@ -447,6 +610,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const customTarifa = getCustomTarifa();
       if (customTarifa) {
         tarifasResult.tarifasBV.push(customTarifa);
+        if (statusEl) statusEl.innerHTML = '<span class="spinner"></span> Calculando (incluida tu tarifa actual)...';
       }
 
       const monthMap = new Map((monthlyResult.months || []).map((m) => [m.key, m]));
