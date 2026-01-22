@@ -101,12 +101,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const p2In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p2"]`);
         const p3In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p3"]`);
         const vIn = manualGrid.querySelector(`input[data-month="${i}"][data-type="vert"]`);
-        
+
         if (data[i]) {
-          if (p1In) p1In.value = data[i].p1 || 0;
-          if (p2In) p2In.value = data[i].p2 || 0;
-          if (p3In) p3In.value = data[i].p3 || 0;
-          if (vIn) vIn.value = data[i].vert || 0;
+          // Solo cargar valores si son > 0, dejar vacío si son 0
+          if (p1In) p1In.value = data[i].p1 > 0 ? data[i].p1 : '';
+          if (p2In) p2In.value = data[i].p2 > 0 ? data[i].p2 : '';
+          if (p3In) p3In.value = data[i].p3 > 0 ? data[i].p3 : '';
+          if (vIn) vIn.value = data[i].vert > 0 ? data[i].vert : '';
         }
       }
       return true;
@@ -137,10 +138,10 @@ document.addEventListener('DOMContentLoaded', () => {
     manualGrid.innerHTML = monthNames.map((m, i) => `
       <div class="bv-manual-row">
         <span class="bv-manual-row-label">${m}</span>
-        <input class="input manual-input" type="text" data-month="${i}" data-type="p1" value="50" inputmode="decimal" placeholder="kWh punta" title="Consumo en punta (10-14h, 18-22h laborables)">
-        <input class="input manual-input" type="text" data-month="${i}" data-type="p2" value="70" inputmode="decimal" placeholder="kWh llano" title="Consumo en llano (8-10h, 14-18h, 22-24h laborables)">
-        <input class="input manual-input" type="text" data-month="${i}" data-type="p3" value="150" inputmode="decimal" placeholder="kWh valle" title="Consumo en valle (0-8h + fines semana)">
-        <input class="input manual-input" type="text" data-month="${i}" data-type="vert" value="200" inputmode="decimal" placeholder="kWh vert." title="Excedentes vertidos a la red">
+        <input class="input manual-input" type="text" data-month="${i}" data-type="p1" value="" inputmode="decimal" placeholder="Ej: 50" title="Consumo en punta (10-14h, 18-22h laborables)">
+        <input class="input manual-input" type="text" data-month="${i}" data-type="p2" value="" inputmode="decimal" placeholder="Ej: 70" title="Consumo en llano (8-10h, 14-18h, 22-24h laborables)">
+        <input class="input manual-input" type="text" data-month="${i}" data-type="p3" value="" inputmode="decimal" placeholder="Ej: 150" title="Consumo en valle (0-8h + fines semana)">
+        <input class="input manual-input" type="text" data-month="${i}" data-type="vert" value="" inputmode="decimal" placeholder="Ej: 200" title="Excedentes vertidos a la red">
       </div>
     `).join('');
 
@@ -189,7 +190,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const resetBtn = document.getElementById('bv-reset-manual');
   if (resetBtn && manualGrid) {
     resetBtn.addEventListener('click', () => {
-      if (!confirm('¿Resetear todos los valores a valores por defecto (50/70/150/200)?')) return;
+      if (!confirm('¿Borrar todos los valores? Podrás introducir solo los meses que quieras simular.')) return;
 
       for (let i = 0; i < 12; i++) {
         const p1In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p1"]`);
@@ -197,15 +198,15 @@ document.addEventListener('DOMContentLoaded', () => {
         const p3In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p3"]`);
         const vIn = manualGrid.querySelector(`input[data-month="${i}"][data-type="vert"]`);
 
-        if (p1In) { p1In.value = '50'; p1In.classList.remove('error', 'valid'); }
-        if (p2In) { p2In.value = '70'; p2In.classList.remove('error', 'valid'); }
-        if (p3In) { p3In.value = '150'; p3In.classList.remove('error', 'valid'); }
-        if (vIn) { vIn.value = '200'; vIn.classList.remove('error', 'valid'); }
+        if (p1In) { p1In.value = ''; p1In.classList.remove('error', 'valid'); }
+        if (p2In) { p2In.value = ''; p2In.classList.remove('error', 'valid'); }
+        if (p3In) { p3In.value = ''; p3In.classList.remove('error', 'valid'); }
+        if (vIn) { vIn.value = ''; vIn.classList.remove('error', 'valid'); }
       }
 
       localStorage.removeItem('bv_manual_data_v2');
       localStorage.removeItem('bv_manual_data');
-      showToast('Valores reseteados', 'ok');
+      showToast('Valores borrados. Rellena solo los meses que quieras simular.', 'ok');
     });
   }
 
@@ -654,8 +655,12 @@ document.addEventListener('DOMContentLoaded', () => {
           const p2 = validateAndClampKwh(p2Input ? p2Input.value : 0);
           const p3 = validateAndClampKwh(p3Input ? p3Input.value : 0);
           const totalCons = p1 + p2 + p3;
-          
+
           let vertKwh = validateAndClampKwh(vInput ? vInput.value : 0);
+
+          // Solo incluir el mes si tiene al menos algún dato > 0
+          const tieneAlgunDato = p1 > 0 || p2 > 0 || p3 > 0 || vertKwh > 0;
+          if (!tieneAlgunDato) continue; // Saltar este mes
 
           // El vertido nunca puede ser mayor que el consumo total (aprox, aunque técnicamente posible en horas solares, para balance neto mensual suele cuadrar)
           // Relaxing this check: surplus CAN be higher than consumption in specific months (e.g. vacation), but unlikely to be > total generation.
@@ -679,6 +684,12 @@ document.addEventListener('DOMContentLoaded', () => {
             }
           });
         }
+
+        // Validar que haya al menos 1 mes con datos
+        if (manualMonths.length === 0) {
+          throw new Error('Introduce datos para al menos un mes. Rellena los valores de consumo (P1/P2/P3) y/o vertido.');
+        }
+
         monthlyResult = { ok: true, months: manualMonths };
       } else {
         const result = await window.BVSim.importFile(file);
