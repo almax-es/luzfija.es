@@ -1000,11 +1000,32 @@ html.light-mode .bv-manual-row {
   border-bottom-color: rgba(15, 23, 42, 0.1);
 }
 
+/* Fila de totales detallados */
+.bv-manual-totals-row {
+  display: grid;
+  grid-template-columns: 80px repeat(4, 1fr);
+  gap: 8px;
+  padding: 8px 4px;
+  margin-top: 4px;
+  border-top: 2px solid var(--accent);
+  background: rgba(139, 92, 246, 0.08);
+  border-radius: 4px;
+  font-size: 13px;
+  text-align: center;
+  color: var(--text);
+}
+.bv-manual-totals-row span:first-child {
+  text-align: left;
+}
+
 /* Ajustes móvil para tabla ancha */
 @media (max-width: 600px) {
-  .bv-manual-row, .bv-manual-header {
+  .bv-manual-row, .bv-manual-header, .bv-manual-totals-row {
     grid-template-columns: 65px repeat(4, minmax(55px, 1fr));
     gap: 6px;
+  }
+  .bv-manual-totals-row {
+    font-size: 12px;
   }
   .manual-input {
     padding: 5px 3px !important;
@@ -1016,9 +1037,12 @@ html.light-mode .bv-manual-row {
 }
 
 @media (max-width: 400px) {
-  .bv-manual-row, .bv-manual-header {
+  .bv-manual-row, .bv-manual-header, .bv-manual-totals-row {
     grid-template-columns: 55px repeat(4, minmax(48px, 1fr));
     gap: 4px;
+  }
+  .bv-manual-totals-row {
+    font-size: 11px;
   }
   .manual-input {
     padding: 4px 2px !important;

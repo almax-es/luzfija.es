@@ -449,17 +449,26 @@
                                 <!-- Se generará por JS -->
                               </div>
 
-                              <!-- Totales informativos -->
-                              <div id="bv-manual-totals" style="display: none; margin-top: 12px; padding: 10px; background: rgba(139, 92, 246, 0.1); border-radius: 8px; border: 1px solid rgba(139, 92, 246, 0.3);">
+                              <!-- Fila de totales detallados (dentro del grid visualmente) -->
+                              <div id="bv-manual-totals-row" class="bv-manual-totals-row" style="display: none;">
+                                <span style="font-weight: 900; color: var(--accent);">TOTAL</span>
+                                <span id="bv-total-p1" style="font-weight: 700;">0</span>
+                                <span id="bv-total-p2" style="font-weight: 700;">0</span>
+                                <span id="bv-total-p3" style="font-weight: 700;">0</span>
+                                <span id="bv-total-vert" style="font-weight: 700;">0</span>
+                              </div>
+
+                              <!-- Totales generales (consumo + excedentes) -->
+                              <div id="bv-manual-totals-summary" style="display: none; margin-top: 12px; padding: 10px; background: rgba(139, 92, 246, 0.1); border-radius: 8px; border: 1px solid rgba(139, 92, 246, 0.3);">
                                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12px;">
                                   <div>
-                                    <div style="color: var(--muted); margin-bottom: 4px;">Total consumo anual</div>
+                                    <div style="color: var(--muted); margin-bottom: 4px;">Consumo total anual</div>
                                     <div style="font-size: 16px; font-weight: 700; color: var(--accent);">
                                       <span id="bv-total-consumo">0</span> kWh
                                     </div>
                                   </div>
                                   <div>
-                                    <div style="color: var(--muted); margin-bottom: 4px;">Total excedentes anual</div>
+                                    <div style="color: var(--muted); margin-bottom: 4px;">Excedentes total anual</div>
                                     <div style="font-size: 16px; font-weight: 700; color: var(--accent);">
                                       <span id="bv-total-excedentes">0</span> kWh
                                     </div>

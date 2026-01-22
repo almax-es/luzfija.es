@@ -134,18 +134,29 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // Actualizar totales informativos
+  // Actualizar totales informativos (detallados + resumen)
   function updateManualTotals() {
-    const totalsDiv = document.getElementById('bv-manual-totals');
+    // Elementos de la fila de totales detallados
+    const totalsRow = document.getElementById('bv-manual-totals-row');
+    const totalP1Span = document.getElementById('bv-total-p1');
+    const totalP2Span = document.getElementById('bv-total-p2');
+    const totalP3Span = document.getElementById('bv-total-p3');
+    const totalVertSpan = document.getElementById('bv-total-vert');
+
+    // Elementos del resumen general
+    const totalsSummary = document.getElementById('bv-manual-totals-summary');
     const totalConsumoSpan = document.getElementById('bv-total-consumo');
     const totalExcedentesSpan = document.getElementById('bv-total-excedentes');
 
-    if (!totalsDiv || !totalConsumoSpan || !totalExcedentesSpan || !manualGrid) return;
+    if (!manualGrid) return;
 
-    let totalConsumo = 0;
-    let totalExcedentes = 0;
+    let totalP1 = 0;
+    let totalP2 = 0;
+    let totalP3 = 0;
+    let totalVert = 0;
     let hasAnyData = false;
 
+    // Sumar todos los meses
     for (let i = 0; i < 12; i++) {
       const p1In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p1"]`);
       const p2In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p2"]`);
@@ -158,8 +169,10 @@ document.addEventListener('DOMContentLoaded', () => {
         const p3 = validateAndClampKwh(p3In.value);
         const vert = validateAndClampKwh(vIn.value);
 
-        totalConsumo += p1 + p2 + p3;
-        totalExcedentes += vert;
+        totalP1 += p1;
+        totalP2 += p2;
+        totalP3 += p3;
+        totalVert += vert;
 
         if (p1 > 0 || p2 > 0 || p3 > 0 || vert > 0) {
           hasAnyData = true;
@@ -167,12 +180,25 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
-    if (hasAnyData) {
+    // Actualizar fila de totales detallados
+    if (hasAnyData && totalsRow && totalP1Span && totalP2Span && totalP3Span && totalVertSpan) {
+      totalP1Span.textContent = Math.round(totalP1).toLocaleString('es-ES');
+      totalP2Span.textContent = Math.round(totalP2).toLocaleString('es-ES');
+      totalP3Span.textContent = Math.round(totalP3).toLocaleString('es-ES');
+      totalVertSpan.textContent = Math.round(totalVert).toLocaleString('es-ES');
+      totalsRow.style.display = 'grid';
+    } else if (totalsRow) {
+      totalsRow.style.display = 'none';
+    }
+
+    // Actualizar resumen general
+    const totalConsumo = totalP1 + totalP2 + totalP3;
+    if (hasAnyData && totalsSummary && totalConsumoSpan && totalExcedentesSpan) {
       totalConsumoSpan.textContent = Math.round(totalConsumo).toLocaleString('es-ES');
-      totalExcedentesSpan.textContent = Math.round(totalExcedentes).toLocaleString('es-ES');
-      totalsDiv.style.display = 'block';
-    } else {
-      totalsDiv.style.display = 'none';
+      totalExcedentesSpan.textContent = Math.round(totalVert).toLocaleString('es-ES');
+      totalsSummary.style.display = 'block';
+    } else if (totalsSummary) {
+      totalsSummary.style.display = 'none';
     }
   }
 
