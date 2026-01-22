@@ -191,7 +191,7 @@
   <!-- PDF.js se carga dinámicamente cuando el usuario sube una factura (ver factura.js) -->
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/fonts.css">
-  <link rel="stylesheet" href="/bv-sim.css?v=2.3">
+  <link rel="stylesheet" href="/bv-sim.css">
 
     <meta name="theme-color" content="#8B5CF6">
 </head>
@@ -404,6 +404,13 @@
                                 <input id="mtExc" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0743">
                               </div>
 
+                              <div class="group" style="margin-top: 8px;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
+                                  <input id="mtBV" type="checkbox" style="width: auto; cursor: pointer;">
+                                  <span style="font-size: 13px;">Tiene batería virtual (acumula excedentes no compensados)</span>
+                                </label>
+                              </div>
+
                             </div>
                           </details>
                         </div>
@@ -545,7 +552,7 @@
           
             <script src="/js/lf-config.js"></script>
             <script src="/js/lf-utils.js"></script>
-            <script src="/js/bv/bv-import.js?v=1.1"></script>
-            <script src="/js/bv/bv-sim-monthly.js?v=1.2"></script>
-            <script src="/js/bv/bv-ui.js?v=4.2"></script>
+            <script src="/js/bv/bv-import.js"></script>
+            <script src="/js/bv/bv-sim-monthly.js"></script>
+            <script src="/js/bv/bv-ui.js"></script>
           </body></html>

@@ -440,8 +440,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const energyPrices = [punta, llano, valle].filter(v => v > 0);
     const tipo = energyPrices.length === 1 ? '1P' : '3P';
 
-    // Detectar BV automáticamente: si hay precio de compensación > 0, tiene BV
-    const hasBV = exc > 0;
+    // Leer checkbox de batería virtual (no autodetectar)
+    const hasBV = document.getElementById('mtBV')?.checked ?? false;
 
     return {
       nombre: 'Mi tarifa ⭐',
