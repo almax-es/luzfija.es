@@ -134,6 +134,48 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  // Actualizar totales informativos
+  function updateManualTotals() {
+    const totalsDiv = document.getElementById('bv-manual-totals');
+    const totalConsumoSpan = document.getElementById('bv-total-consumo');
+    const totalExcedentesSpan = document.getElementById('bv-total-excedentes');
+
+    if (!totalsDiv || !totalConsumoSpan || !totalExcedentesSpan || !manualGrid) return;
+
+    let totalConsumo = 0;
+    let totalExcedentes = 0;
+    let hasAnyData = false;
+
+    for (let i = 0; i < 12; i++) {
+      const p1In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p1"]`);
+      const p2In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p2"]`);
+      const p3In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p3"]`);
+      const vIn = manualGrid.querySelector(`input[data-month="${i}"][data-type="vert"]`);
+
+      if (p1In && p2In && p3In && vIn) {
+        const p1 = validateAndClampKwh(p1In.value);
+        const p2 = validateAndClampKwh(p2In.value);
+        const p3 = validateAndClampKwh(p3In.value);
+        const vert = validateAndClampKwh(vIn.value);
+
+        totalConsumo += p1 + p2 + p3;
+        totalExcedentes += vert;
+
+        if (p1 > 0 || p2 > 0 || p3 > 0 || vert > 0) {
+          hasAnyData = true;
+        }
+      }
+    }
+
+    if (hasAnyData) {
+      totalConsumoSpan.textContent = Math.round(totalConsumo).toLocaleString('es-ES');
+      totalExcedentesSpan.textContent = Math.round(totalExcedentes).toLocaleString('es-ES');
+      totalsDiv.style.display = 'block';
+    } else {
+      totalsDiv.style.display = 'none';
+    }
+  }
+
   if (manualGrid) {
     manualGrid.innerHTML = monthNames.map((m, i) => `
       <div class="bv-manual-row">
@@ -176,6 +218,9 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
 
+        // Actualizar totales en tiempo real
+        updateManualTotals();
+
         showSaveIndicator('saving');
         clearTimeout(saveTimer);
         saveTimer = setTimeout(() => {
@@ -206,6 +251,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       localStorage.removeItem('bv_manual_data_v2');
       localStorage.removeItem('bv_manual_data');
+      updateManualTotals();
       showToast('Valores borrados. Rellena solo los meses que quieras simular.', 'ok');
     });
   }
@@ -227,6 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       // Cargar datos guardados solo al cambiar a modo manual
       loadManualData();
+      updateManualTotals();
     });
   }
 

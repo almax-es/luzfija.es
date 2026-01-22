@@ -448,6 +448,25 @@
                               <div id="bv-manual-grid" style="display: block; overflow-y: auto; flex: 1; padding-right: 4px;">
                                 <!-- Se generará por JS -->
                               </div>
+
+                              <!-- Totales informativos -->
+                              <div id="bv-manual-totals" style="display: none; margin-top: 12px; padding: 10px; background: rgba(139, 92, 246, 0.1); border-radius: 8px; border: 1px solid rgba(139, 92, 246, 0.3);">
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12px;">
+                                  <div>
+                                    <div style="color: var(--muted); margin-bottom: 4px;">Total consumo anual</div>
+                                    <div style="font-size: 16px; font-weight: 700; color: var(--accent);">
+                                      <span id="bv-total-consumo">0</span> kWh
+                                    </div>
+                                  </div>
+                                  <div>
+                                    <div style="color: var(--muted); margin-bottom: 4px;">Total excedentes anual</div>
+                                    <div style="font-size: 16px; font-weight: 700; color: var(--accent);">
+                                      <span id="bv-total-excedentes">0</span> kWh
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
                               <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
                                 <div style="font-size: 11px; color: var(--muted); line-height: 1.3;">
                                   <span id="bv-save-indicator" class="bv-save-indicator"></span>
