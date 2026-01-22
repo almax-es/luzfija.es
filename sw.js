@@ -55,6 +55,12 @@ const ASSETS = [
   "js/tracking.js",
   "js/desglose-factura.js",
   "js/desglose-integration.js",
+  // Simulador Batería Virtual
+  "simulador-bateria-virtual.html",
+  "bv-sim.css",
+  "js/bv/bv-ui.js",
+  "js/bv/bv-sim-monthly.js",
+  "js/bv/bv-import.js",
   // tarifas.json NO está en precache, se maneja con stale-while-revalidate
   "guias.html",
   "manifest.webmanifest",
