@@ -24,6 +24,42 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusContainer = document.getElementById('bv-status-container');
   const statusEl = document.getElementById('bv-status');
 
+  const methodCsvBtn = document.getElementById('method-csv');
+  const methodManualBtn = document.getElementById('method-manual');
+  const manualZoneContainer = document.getElementById('bv-manual-zone');
+  const manualGrid = document.getElementById('bv-manual-grid');
+
+  let activeMethod = 'csv';
+
+  // --- MANUAL ENTRY INITIALIZATION ---
+  const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+  if (manualGrid) {
+    manualGrid.innerHTML = monthNames.map((m, i) => `
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; align-items: center;">
+        <span style="font-weight: 700; font-size: 13px;">${m}</span>
+        <input class="input manual-input" type="text" data-month="${i}" data-type="cons" value="300" style="padding: 6px 8px; font-size: 13px; min-height: 32px; text-align: center;">
+        <input class="input manual-input" type="text" data-month="${i}" data-type="vert" value="200" style="padding: 6px 8px; font-size: 13px; min-height: 32px; text-align: center;">
+      </div>
+    `).join('');
+  }
+
+  if (methodCsvBtn && methodManualBtn) {
+    methodCsvBtn.addEventListener('click', () => {
+      activeMethod = 'csv';
+      methodCsvBtn.classList.add('active');
+      methodManualBtn.classList.remove('active');
+      dropZone.style.display = 'flex';
+      manualZoneContainer.style.display = 'none';
+    });
+    methodManualBtn.addEventListener('click', () => {
+      activeMethod = 'manual';
+      methodManualBtn.classList.add('active');
+      methodCsvBtn.classList.remove('active');
+      dropZone.style.display = 'none';
+      manualZoneContainer.style.display = 'block';
+    });
+  }
+
   // Toast (ya existe en el HTML)
   const toastEl = document.getElementById('toast');
   const toastTextEl = document.getElementById('toastText');
@@ -163,6 +199,38 @@ document.addEventListener('DOMContentLoaded', () => {
       if (u.origin === location.origin) return u.toString();
     } catch {}
     return '';
+  }
+
+  function getCustomTarifa() {
+    const punta = parseInput(document.getElementById('mtPunta').value);
+    const llano = parseInput(document.getElementById('mtLlano').value);
+    const valle = parseInput(document.getElementById('mtValle').value);
+    const p1 = parseInput(document.getElementById('mtP1').value);
+    const p2 = parseInput(document.getElementById('mtP2').value);
+    const exc = parseInput(document.getElementById('mtExc').value);
+    const hasBV = document.getElementById('mtBV').checked;
+
+    if (!punta && !llano && !valle && !p1 && !p2) return null;
+
+    return {
+      nombre: 'Mi Tarifa Actual ⭐',
+      tipo: (punta === llano && llano === valle) ? '1P' : '3P',
+      cPunta: punta,
+      cLlano: llano || punta,
+      cValle: valle || punta,
+      p1: p1,
+      p2: p2 || p1,
+      web: '#',
+      esPersonalizada: true,
+      fv: {
+        exc: exc,
+        tipo: exc > 0 ? (hasBV ? 'SIMPLE + BV' : 'SIMPLE') : 'NO COMPENSA',
+        tope: 'ENERGIA',
+        bv: hasBV,
+        reglaBV: hasBV ? 'BV MES ANTERIOR' : 'NO APLICA'
+      },
+      requiereFV: false
+    };
   }
 
   // --- SISTEMA DE TOOLTIPS FLOTANTES ---
@@ -328,11 +396,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const zonaFiscalVal = zonaFiscalInput ? zonaFiscalInput.value : 'Península';
     const esViviendaCanarias = viviendaCanariasInput ? viviendaCanariasInput.checked : true;
 
-    if (!file) { showToast('Tienes que subir el archivo CSV primero.', 'err'); return; }
+    if (activeMethod === 'csv' && !file) { showToast('Tienes que subir el archivo CSV primero.', 'err'); return; }
     if (p1Val <= 0) { showToast('Te falta poner la potencia contratada (P1).', 'err'); return; }
     
     if (resultsContainer) { resultsContainer.classList.remove('show'); resultsContainer.style.display = 'none'; }
-    if (statusContainer) { statusContainer.style.display = 'block'; statusEl.innerHTML = '<span class="spinner"></span> Leyendo archivo...'; }
+    if (statusContainer) { statusContainer.style.display = 'block'; statusEl.innerHTML = '<span class="spinner"></span> Calculando...'; }
 
     const btnText = simulateButton.querySelector('.bv-btn-text');
     const btnSpinner = simulateButton.querySelector('.spinner');
@@ -343,14 +411,44 @@ document.addEventListener('DOMContentLoaded', () => {
     await new Promise(r => setTimeout(r, 100));
 
     try {
-      const result = await window.BVSim.importFile(file);
-      if (!result || !result.ok) throw new Error(result?.error || 'Error al leer archivo.');
-
-      const monthlyResult = window.BVSim.simulateMonthly(result, p1Val, p2Val);
+      let monthlyResult;
+      if (activeMethod === 'manual') {
+        const manualMonths = [];
+        const currentYear = new Date().getFullYear();
+        for (let i = 0; i < 12; i++) {
+          const cInput = manualGrid.querySelector(`input[data-month="${i}"][data-type="cons"]`);
+          const vInput = manualGrid.querySelector(`input[data-month="${i}"][data-type="vert"]`);
+          const consKwh = parseInput(cInput ? cInput.value : 0);
+          const vertKwh = parseInput(vInput ? vInput.value : 0);
+          const key = `${currentYear}-${String(i + 1).padStart(2, '0')}`;
+          manualMonths.push({
+            key,
+            daysWithData: 30,
+            importTotalKWh: consKwh,
+            exportTotalKWh: vertKwh,
+            importByPeriod: {
+              P1: consKwh * 0.20,
+              P2: consKwh * 0.25,
+              P3: consKwh * 0.55
+            }
+          });
+        }
+        monthlyResult = { ok: true, months: manualMonths };
+      } else {
+        const result = await window.BVSim.importFile(file);
+        if (!result || !result.ok) throw new Error(result?.error || 'Error al leer archivo.');
+        monthlyResult = window.BVSim.simulateMonthly(result, p1Val, p2Val);
+      }
       const tarifasResult = await window.BVSim.loadTarifasBV();
       if (!tarifasResult || !tarifasResult.ok || !Array.isArray(tarifasResult.tarifasBV)) {
         throw new Error(tarifasResult?.error || 'No se pudieron cargar las tarifas (tarifas.json).');
       }
+
+      const customTarifa = getCustomTarifa();
+      if (customTarifa) {
+        tarifasResult.tarifasBV.push(customTarifa);
+      }
+
       const monthMap = new Map((monthlyResult.months || []).map((m) => [m.key, m]));
       
       const allResults = window.BVSim.simulateForAllTarifasBV({

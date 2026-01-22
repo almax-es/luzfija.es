@@ -597,7 +597,7 @@ select.input option {
 }
 
 html.light-mode .bv-floating-tooltip{
-  background: rgba(255,255,255,.96);
+  background: #ffffff;
   color: var(--text);
   border-color: rgba(15, 23, 42, .16);
   box-shadow: 0 18px 48px rgba(2,6,23,.18);
@@ -687,6 +687,10 @@ body.bv-modal-open{ overflow: hidden; }
   box-shadow: 0 24px 80px rgba(0,0,0,0.55);
   padding: 16px 16px 14px;
   position: relative;
+}
+
+html.light-mode .bv-tip-card{
+  background: #ffffff;
 }
 
 .bv-tip-title{
@@ -903,4 +907,20 @@ body.bv-modal-open{ overflow: hidden; }
 .bv-table th:nth-child(10),
 .bv-table td:nth-child(10) {
   width: 90px !important;
+}
+
+/* --- Estilos para entrada manual --- */
+.manual-input:focus {
+  background: var(--bg1) !important;
+  border-color: var(--accent) !important;
+}
+#bv-manual-grid::-webkit-scrollbar {
+  width: 6px;
+}
+#bv-manual-grid::-webkit-scrollbar-track {
+  background: rgba(0,0,0,0.1);
+}
+#bv-manual-grid::-webkit-scrollbar-thumb {
+  background: var(--border2);
+  border-radius: 10px;
 }
