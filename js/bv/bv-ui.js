@@ -677,11 +677,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // 3. Mapear datos. Si hay múltiples años para el mismo mes, nos quedamos con el más reciente.
     // Estructura de month.key: "YYYY-MM"
     const monthDataMap = new Map(); // Map<monthIndex 0-11, monthData>
+    const yearsFound = new Set();
 
     simResult.months.forEach(m => {
       const [yearStr, monthStr] = m.key.split('-');
       const monthIndex = parseInt(monthStr, 10) - 1; // 0-11
       const year = parseInt(yearStr, 10);
+      yearsFound.add(year);
 
       // Si ya tenemos datos para este mes, solo sobrescribimos si el año es mayor
       const existing = monthDataMap.get(monthIndex);
@@ -704,10 +706,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const p3In = manualGrid.querySelector(`input[data-month="${monthIndex}"][data-type="p3"]`);
       const vIn = manualGrid.querySelector(`input[data-month="${monthIndex}"][data-type="vert"]`);
 
-      if (p1In) p1In.value = Math.round(data.p1);
-      if (p2In) p2In.value = Math.round(data.p2);
-      if (p3In) p3In.value = Math.round(data.p3);
-      if (vIn) vIn.value = Math.round(data.vert);
+      // Mantener 2 decimales para mejor precisión (en vez de redondear a enteros)
+      const r2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+      if (p1In) p1In.value = r2(data.p1);
+      if (p2In) p2In.value = r2(data.p2);
+      if (p3In) p3In.value = r2(data.p3);
+      if (vIn) vIn.value = r2(data.vert);
       
       // Marcar visualmente como válidos
       [p1In, p2In, p3In, vIn].forEach(el => {
@@ -721,7 +725,14 @@ document.addEventListener('DOMContentLoaded', () => {
     if (filledCount > 0) {
       updateManualTotals();
       saveManualData();
-      showToast(`✓ Datos importados: ${filledCount} meses procesados`, 'ok');
+
+      // Mensaje informativo sobre múltiples años
+      let message = `✓ Datos importados: ${filledCount} meses procesados`;
+      if (yearsFound.size > 1) {
+        const years = Array.from(yearsFound).sort((a, b) => b - a);
+        message += ` (años ${years.join(', ')} - se usa el más reciente por mes)`;
+      }
+      showToast(message, 'ok');
 
       // Mostrar botón/enlace para ir a manual con animación
       const editBtn = document.getElementById('btn-edit-manual-shortcut');
@@ -741,6 +752,7 @@ document.addEventListener('DOMContentLoaded', () => {
   async function handleFile(file) {
     if (!file) return;
     window.BVSim.file = file;
+    window.BVSim._cachedImportResult = null; // Limpiar cache anterior
     if (fileNameDisplay) fileNameDisplay.textContent = file.name;
 
     // Crear botón de acceso directo a editar si no existe
@@ -782,6 +794,8 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const result = await window.BVSim.importFile(file);
       if (result && result.ok) {
+        // Cachear el resultado para no volver a parsear en "Calcular"
+        window.BVSim._cachedImportResult = result;
         populateManualGridFromCSV(result);
       } else if (result && result.error) {
         // Si hay error en la importación, ocultar botón de editar y notificar
@@ -908,7 +922,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
         monthlyResult = { ok: true, months: manualMonths };
       } else {
-        const result = await window.BVSim.importFile(file);
+        // Usar cache si existe (evita parsear el CSV dos veces)
+        let result = window.BVSim._cachedImportResult;
+        if (!result || result.meta?.rows === 0) {
+          result = await window.BVSim.importFile(file);
+          window.BVSim._cachedImportResult = result;
+        }
         if (!result || !result.ok) throw new Error(result?.error || 'Error al leer archivo.');
         monthlyResult = window.BVSim.simulateMonthly(result, p1Val, p2Val);
       }

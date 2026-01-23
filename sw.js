@@ -56,7 +56,7 @@ const ASSETS = [
   "js/desglose-factura.js",
   "js/desglose-integration.js",
   // Simulador Batería Virtual
-  "simulador-bateria-virtual.html",
+  "comparador-tarifas-solares.html",
   "bv-sim.css",
   "js/bv/bv-ui.js",
   "js/bv/bv-sim-monthly.js",
