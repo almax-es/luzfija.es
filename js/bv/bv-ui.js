@@ -43,6 +43,21 @@ document.addEventListener('DOMContentLoaded', () => {
     return num;
   }
 
+  // Función para formatear número al estilo español (decimales con coma)
+  // Para usar en inputs donde el usuario debe ver formato español
+  function formatNumberES(num) {
+    if (num === null || num === undefined || num === '') return '';
+    const n = Number(num);
+    if (!isFinite(n)) return '';
+    if (n === 0) return '';
+    // Usar toLocaleString con 2 decimales máximo, quitando ceros trailing
+    return n.toLocaleString('es-ES', {
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 2,
+      useGrouping: false // Sin separador de miles en inputs
+    });
+  }
+
   // Función para guardar datos manuales en localStorage
   function saveManualData() {
     if (!manualGrid) return;
@@ -86,11 +101,12 @@ document.addEventListener('DOMContentLoaded', () => {
           for (let k in oldData) {
             const c = parseInput(oldData[k].cons);
             // Estimación simple para migración: 20/25/55
+            // Guardar como strings formateados en español
             data[k] = {
-              p1: Math.round(c * 0.20),
-              p2: Math.round(c * 0.25),
-              p3: Math.round(c * 0.55),
-              vert: oldData[k].vert
+              p1: formatNumberES(Math.round(c * 0.20)),
+              p2: formatNumberES(Math.round(c * 0.25)),
+              p3: formatNumberES(Math.round(c * 0.55)),
+              vert: formatNumberES(parseInput(oldData[k].vert))
             };
           }
         }
@@ -107,14 +123,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (data[i]) {
           // Solo cargar valores si son > 0, dejar vacío si son 0
-          // Usar parseInput para manejar correctamente valores con coma decimal
-          if (p1In) p1In.value = parseInput(data[i].p1) > 0 ? data[i].p1 : '';
-          if (p2In) p2In.value = parseInput(data[i].p2) > 0 ? data[i].p2 : '';
-          if (p3In) p3In.value = parseInput(data[i].p3) > 0 ? data[i].p3 : '';
-          if (vIn) vIn.value = parseInput(data[i].vert) > 0 ? data[i].vert : '';
+          // Formatear con comas (estilo español) para mostrar en inputs
+          const p1 = parseInput(data[i].p1);
+          const p2 = parseInput(data[i].p2);
+          const p3 = parseInput(data[i].p3);
+          const vert = parseInput(data[i].vert);
 
-          if (parseInput(data[i].p1) > 0 || parseInput(data[i].p2) > 0 ||
-              parseInput(data[i].p3) > 0 || parseInput(data[i].vert) > 0) {
+          if (p1In) p1In.value = formatNumberES(p1);
+          if (p2In) p2In.value = formatNumberES(p2);
+          if (p3In) p3In.value = formatNumberES(p3);
+          if (vIn) vIn.value = formatNumberES(vert);
+
+          if (p1 > 0 || p2 > 0 || p3 > 0 || vert > 0) {
             hasData = true;
           }
         }
@@ -859,12 +879,12 @@ document.addEventListener('DOMContentLoaded', () => {
       const p3In = manualGrid.querySelector(`input[data-month="${monthIndex}"][data-type="p3"]`);
       const vIn = manualGrid.querySelector(`input[data-month="${monthIndex}"][data-type="vert"]`);
 
-      // Mantener 2 decimales para mejor precisión (en vez de redondear a enteros)
+      // Formatear con comas (estilo español) para mostrar en inputs
       const r2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
-      if (p1In) p1In.value = r2(data.p1);
-      if (p2In) p2In.value = r2(data.p2);
-      if (p3In) p3In.value = r2(data.p3);
-      if (vIn) vIn.value = r2(data.vert);
+      if (p1In) p1In.value = formatNumberES(r2(data.p1));
+      if (p2In) p2In.value = formatNumberES(r2(data.p2));
+      if (p3In) p3In.value = formatNumberES(r2(data.p3));
+      if (vIn) vIn.value = formatNumberES(r2(data.vert));
       
       // Marcar visualmente como válidos
       [p1In, p2In, p3In, vIn].forEach(el => {
