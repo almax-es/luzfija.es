@@ -90,9 +90,9 @@ Herramienta **gratuita**, **sin publicidad** y **de código abierto** para compa
 - Y más...
 
 ### 🎯 Páginas Especializadas
-- **[Comparador de Tarifas Solares (CSV)](https://luzfija.es/comparador-tarifas-solares.html)**: Análisis avanzado con datos reales de autoconsumo.
-- **Calculadora de factura de luz**: [https://luzfija.es/calcular-factura-luz.html](https://luzfija.es/calcular-factura-luz.html)
-- **Comparador PVPC vs tarifa fija**: [https://luzfija.es/comparar-pvpc-tarifa-fija.html](https://luzfija.es/comparar-pvpc-tarifa-fija.html)
+- **[Comparador de Tarifas Solares](https://luzfija.es/comparador-tarifas-solares.html)**: **Herramienta independiente** para análisis avanzado con CSV y Batería Virtual.
+- **[Calculadora de Factura](https://luzfija.es/calcular-factura-luz.html)**: Guía y acceso directo al simulador principal.
+- **[Comparar PVPC vs Fija](https://luzfija.es/comparar-pvpc-tarifa-fija.html)**: Artículo informativo sobre el mercado regulado.
 
 ---
 
@@ -217,13 +217,16 @@ Este proyecto muestra el PVPC como **referencia** en el ranking (comparador de t
 - **Same-origin enforcement**
 - **wasm-unsafe-eval** solo en 2 páginas que usan OCR/PDF
 
-### Rendimiento
+### Rendimiento y Optimizaciones
 - **Service Worker v5.8** con precache 1 MB (optimizado -93%)
 - **jsQR en precache** (251 KB, escaneo QR instantáneo offline)
 - **Lazy loading** de recursos pesados (PDF.js ~1.5 MB, Tesseract ~8 MB, Excel ~1 MB)
+- **INP Optimizado (Chunking)**: El cálculo de tarifas se procesa en lotes de 8 elementos con `yieldControl()` para evitar bloquear el hilo principal (Main Thread), manteniendo la interfaz fluida incluso en móviles de gama baja.
 - **Fuentes autoalojadas** (sin peticiones a terceros)
 - **JavaScript diferido** (tracking.js con defer)
-- **Core Web Vitals optimizados**: LCP < 2.5s, INP < 200ms, CLS < 0.1
+
+### Lógica Especial
+- **Octopus Sun Club**: Detección automática de horas solares (distintas a P1/P2/P3) al importar CSV para calcular esta tarifa específica (configurada en `js/lf-config.js`, no en el JSON estándar).
 
 ### Accesibilidad
 - **WCAG 2.1 nivel AA**

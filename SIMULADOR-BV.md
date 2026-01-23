@@ -158,6 +158,7 @@ js/bv/
 - Lazy loading de XLSX.js (~1 MB)
 - Parseo de CSV (separador automático)
 - Parseo de XLSX (formato estándar + matriz H01-H24)
+- **Caché de Importación**: Almacena el resultado del parseo (`_cachedImportResult`) para evitar re-procesar el archivo si el usuario recalcula sin cambiar el fichero.
 - Detección de festivos nacionales (algoritmo de Gauss para Pascua)
 - Periodificación P1/P2/P3 según RD 148/2021
 - Validaciones de seguridad

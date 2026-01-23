@@ -71,11 +71,13 @@ Privacidad: Todo el procesamiento se realiza localmente en el navegador. Los PDF
    - Validaciones de seguridad: MIME type, tamaño máximo 10MB, rangos de datos
    - Procesamiento 100% local (privacidad total)
 
-6. Comparadores especializados
-   - Comparar PVPC vs tarifa fija: https://luzfija.es/comparar-pvpc-tarifa-fija.html
-   - Comparador de Tarifas Solares (CSV + Manual): https://luzfija.es/comparador-tarifas-solares.html
+6. Páginas de Aterrizaje (Landings)
+   - Comparar PVPC vs tarifa fija: Artículo informativo que redirige al comparador principal.
+   - Calculadora de factura: Guía sobre conceptos de factura con acceso a la herramienta principal.
 
-7. Calculadora de factura: https://luzfija.es/calcular-factura-luz.html
+7. Herramientas Independientes
+   - Comparador de Tarifas Solares (CSV + Manual): https://luzfija.es/comparador-tarifas-solares.html
+   - Comparador Principal (Home): https://luzfija.es/
 
 ## Guías educativas
 
