@@ -73,7 +73,7 @@ Privacidad: Todo el procesamiento se realiza localmente en el navegador. Los PDF
 
 6. Comparadores especializados
    - Comparar PVPC vs tarifa fija: https://luzfija.es/comparar-pvpc-tarifa-fija.html
-   - Comparador Solar Avanzado: https://luzfija.es/comparador-tarifas-solares.html
+   - Comparador de Tarifas Solares (CSV + Manual): https://luzfija.es/comparador-tarifas-solares.html
 
 7. Calculadora de factura: https://luzfija.es/calcular-factura-luz.html
 

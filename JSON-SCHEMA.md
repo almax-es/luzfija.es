@@ -9,7 +9,7 @@ Documentación precisa de los archivos JSON que alimentan el comparador de tarif
 **Ubicación**: `/tarifas.json`
 **Tamaño**: ~42 KB
 **Estructura**: Array de objetos dentro de `{ tarifas: [...] }`
-**Última actualización**: 2026-01-16
+**Última actualización**: 2026-01-23
 **Total tarifas documentadas**: 24
 
 ### Esquema de Estructura
