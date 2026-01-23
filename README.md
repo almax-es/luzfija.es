@@ -342,9 +342,19 @@ luzfija.es/
 - **Facturas procesadas 100% en navegador** (nunca se suben)
 - Sin cookies de terceros
 
+### Ciclo de Vida de los Datos
+
+| Tipo de Dato | Dónde vive | ¿Se guarda? | ¿Se envía fuera? |
+|--------------|------------|-------------|------------------|
+| **Inputs numéricos** (Potencia, Consumo) | Memoria navegador | ✅ Sí (localStorage) | ❌ Nunca |
+| **Preferencias** (Zona fiscal, Tema) | Memoria navegador | ✅ Sí (localStorage) | ❌ Nunca |
+| **Datos sensibles PDF** (Nombre, DNI, IBAN) | Memoria temporal | ❌ NO (Efímero) | ❌ Nunca |
+| **Archivos CSV** (Curvas de carga) | Memoria temporal | ❌ NO (Efímero) | ❌ Nunca |
+| **IP / User Agent** | Logs servidor (GitHub) | ✅ Logs estándar | ❌ No (salvo requerimiento legal) |
+
 **Datos que NO recopilamos:**
 - Nombre, email, teléfono
-- Dirección IP o geolocalización
+- Dirección IP o geolocalización (más allá de logs técnicos)
 - Hábitos de navegación
 - Datos personales
 

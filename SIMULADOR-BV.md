@@ -803,6 +803,7 @@ function sanitizeUrl(url) {
 
 - **Sin backend**: Todos los cálculos en el navegador
 - **Sin uploads**: El archivo nunca se envía a ningún servidor
+- **Sin persistencia**: El archivo CSV original **no se guarda** en el navegador. Solo se extraen los totales mensuales necesarios para la simulación.
 - **Sin tracking**: Sin analytics en el simulador (solo en página principal)
 - **Privacidad total**: Tus datos de consumo NO salen de tu ordenador
 
