@@ -72,9 +72,6 @@ const ASSETS = [
   "desglose-factura.css",
   "calcular-factura-luz.html",
   "comparar-pvpc-tarifa-fija.html",
-  "mejor-tarifa-placas-solares.html",
-  "mejor-tarifa-coche-electrico.html",
-  "mejor-tarifa-discriminacion-horaria.html",
   "privacidad.html",
   "aviso-legal.html",
 
