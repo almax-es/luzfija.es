@@ -1216,7 +1216,7 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Pdto: ${fEur(sobranteHucha)}`
       showToast(msg, 'err');
     } finally {
       simulateButton.disabled = false;
-      if (btnText) btnText.textContent = 'Calcular Ahorro Real →';
+      if (btnText) btnText.textContent = 'Comparar Tarifas y Ver Ahorro →';
       if (btnSpinner) btnSpinner.style.display = 'none';
     }
   });

@@ -1171,6 +1171,36 @@ html.light-mode #method-manual.active {
   color: #fff !important;
 }
 
+/* --- Badge CSV en H1 --- */
+.bv-csv-badge {
+  display: inline-block;
+  font-size: 0.5em;
+  vertical-align: middle;
+  background: rgba(251, 191, 36, 0.2);
+  color: #fbbf24;
+  padding: 4px 10px;
+  border-radius: 99px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
+html.light-mode .bv-csv-badge {
+  background: rgba(251, 191, 36, 0.25);
+  color: #d97706;
+}
+
+@media (max-width: 600px) {
+  .bv-csv-badge {
+    display: block;
+    font-size: 0.4em;
+    margin-left: 0;
+    margin-top: 8px;
+    width: fit-content;
+  }
+}
+
 /* --- Botón "Editar datos" --- */
 #btn-edit-manual-shortcut {
   display: inline-flex;
