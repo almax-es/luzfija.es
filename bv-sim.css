@@ -117,6 +117,7 @@
   align-items: center;
   min-height: 240px;
   height: 100%;
+  position: relative;
 }
 
 /* Accesibilidad: foco visible en drop-zone y controles asociados */
@@ -135,6 +136,13 @@
   border-color: var(--accent);
   background: rgba(139, 92, 246, 0.08);
   transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15);
+}
+
+html.light-mode .bv-upload-zone:hover,
+html.light-mode .bv-upload-zone.dragover {
+  background: rgba(139, 92, 246, 0.12);
+  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2);
 }
 
 .bv-upload-icon {
@@ -168,6 +176,34 @@
   font-size: 0.95rem;
   font-weight: 700;
   max-width: 100%;
+  animation: slideInScale 0.3s ease-out;
+}
+
+@keyframes slideInScale {
+  from {
+    opacity: 0;
+    transform: translateY(-10px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes btnPulse {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(139, 92, 246, 0);
+  }
+  50% {
+    box-shadow: 0 0 0 8px rgba(139, 92, 246, 0.3);
+  }
+}
+
+/* Modo claro: mejor contraste */
+html.light-mode .bv-file-selected {
+  background: rgba(34, 197, 94, 0.18);
+  border-color: rgba(34, 197, 94, 0.4);
+  color: #059669;
 }
 
 /* Evitar desbordes si el nombre del archivo es largo (móvil) */
@@ -1133,4 +1169,89 @@ html.light-mode #method-csv.active,
 html.light-mode #method-manual.active {
   background: var(--accent) !important;
   color: #fff !important;
+}
+
+/* --- Botón "Editar datos" --- */
+#btn-edit-manual-shortcut {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--accent);
+  background: rgba(139, 92, 246, 0.1);
+  border: 1px solid rgba(139, 92, 246, 0.3);
+  padding: 6px 12px;
+  border-radius: 99px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  text-decoration: none;
+  animation: slideInScale 0.35s ease-out 0.15s both;
+}
+
+#btn-edit-manual-shortcut:hover {
+  background: rgba(139, 92, 246, 0.2);
+  border-color: var(--accent);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
+}
+
+#btn-edit-manual-shortcut:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+#btn-edit-manual-shortcut:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+  background: rgba(139, 92, 246, 0.25);
+}
+
+html.light-mode #btn-edit-manual-shortcut:focus-visible {
+  background: rgba(139, 92, 246, 0.28);
+}
+
+/* Modo claro */
+html.light-mode #btn-edit-manual-shortcut {
+  color: var(--accent);
+  background: rgba(139, 92, 246, 0.12);
+  border-color: rgba(139, 92, 246, 0.35);
+}
+
+html.light-mode #btn-edit-manual-shortcut:hover {
+  background: rgba(139, 92, 246, 0.22);
+  border-color: var(--accent);
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
+}
+
+/* Responsive: móvil - botón debajo del archivo */
+@media (max-width: 900px) {
+  /* En tablets, el botón va debajo */
+  #btn-edit-manual-shortcut {
+    margin-left: 0;
+    margin-top: 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  /* En móvil, reducir tamaño y centrar */
+  #btn-edit-manual-shortcut {
+    font-size: 11px;
+    padding: 6px 12px;
+    margin-top: 10px;
+    width: auto;
+    min-width: 140px;
+  }
+}
+
+@media (max-width: 400px) {
+  /* En móviles muy pequeños, aún más compacto */
+  #btn-edit-manual-shortcut {
+    font-size: 10px;
+    padding: 5px 10px;
+    margin-top: 8px;
+    min-width: 120px;
+  }
 }

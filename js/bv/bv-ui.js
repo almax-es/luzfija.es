@@ -721,11 +721,18 @@ document.addEventListener('DOMContentLoaded', () => {
     if (filledCount > 0) {
       updateManualTotals();
       saveManualData();
-      showToast('Datos del CSV importados a la tabla manual.', 'ok');
-      
-      // Mostrar botón/enlace para ir a manual
+      showToast(`✓ Datos importados: ${filledCount} meses procesados`, 'ok');
+
+      // Mostrar botón/enlace para ir a manual con animación
       const editBtn = document.getElementById('btn-edit-manual-shortcut');
-      if (editBtn) editBtn.style.display = 'inline-flex';
+      if (editBtn) {
+        editBtn.style.display = 'inline-flex';
+        // Pequeño pulse para llamar la atención
+        editBtn.style.animation = 'none';
+        setTimeout(() => {
+          editBtn.style.animation = 'slideInScale 0.35s ease-out, btnPulse 1.5s ease-in-out 0.5s';
+        }, 10);
+      }
     }
   }
 
@@ -735,23 +742,35 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!file) return;
     window.BVSim.file = file;
     if (fileNameDisplay) fileNameDisplay.textContent = file.name;
-    
+
     // Crear botón de acceso directo a editar si no existe
     let editBtn = document.getElementById('btn-edit-manual-shortcut');
     if (!editBtn) {
       editBtn = document.createElement('button');
       editBtn.id = 'btn-edit-manual-shortcut';
-      editBtn.className = 'btn-text';
-      editBtn.style.cssText = 'display:none; margin-left:12px; font-size:12px; color:var(--accent); cursor:pointer; background:none; border:none; padding:0; text-decoration:underline;';
+      editBtn.type = 'button';
+      editBtn.setAttribute('aria-label', 'Ver y editar datos mensuales importados del CSV');
+      editBtn.setAttribute('role', 'button');
+      editBtn.style.display = 'none';
       editBtn.innerHTML = '✏️ Editar datos';
-      editBtn.title = 'Ver y editar los datos mensuales importados';
+      editBtn.title = 'Ver y editar los datos mensuales importados del CSV';
       editBtn.onclick = (e) => {
+        e.preventDefault();
         e.stopPropagation(); // Evitar que dispare el click del dropzone
-        if (methodManualBtn) methodManualBtn.click();
+        if (methodManualBtn) {
+          methodManualBtn.click();
+          // Scroll suave a la tabla manual después del cambio
+          setTimeout(() => {
+            const manualZone = document.getElementById('bv-manual-zone');
+            if (manualZone && manualZone.style.display !== 'none') {
+              manualZone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+          }, 100);
+        }
       };
-      // Insertar después del nombre del archivo
-      if (fileNameDisplay && fileNameDisplay.parentNode) {
-        fileNameDisplay.parentNode.insertBefore(editBtn, fileNameDisplay.nextSibling);
+      // Insertar después del mensaje de archivo seleccionado
+      if (fileSelectedMsg && fileSelectedMsg.parentNode) {
+        fileSelectedMsg.parentNode.insertBefore(editBtn, fileSelectedMsg.nextSibling);
       }
     } else {
       editBtn.style.display = 'none'; // Ocultar hasta que procesemos
@@ -765,11 +784,16 @@ document.addEventListener('DOMContentLoaded', () => {
       if (result && result.ok) {
         populateManualGridFromCSV(result);
       } else if (result && result.error) {
-        // Si hay error en la importación, no es crítico para el flujo CSV
+        // Si hay error en la importación, ocultar botón de editar y notificar
+        if (editBtn) editBtn.style.display = 'none';
         console.info('Info: No se pudo pre-procesar para tabla manual:', result.error);
+        // No mostrar error al usuario ya que el flujo CSV principal puede seguir
       }
     } catch (e) {
+      // En caso de error, ocultar botón de editar
+      if (editBtn) editBtn.style.display = 'none';
       console.warn('Error pre-procesando CSV para grid manual:', e);
+      // Error silencioso, el usuario puede seguir usando el modo CSV normal
     }
   }
 
