@@ -1,10 +1,10 @@
-# 🔋 Simulador de Batería Virtual - Documentación Técnica
+# 🔋 Comparador de Tarifas Solares - Documentación Técnica
 
-**URL**: [https://luzfija.es/simulador-bateria-virtual.html](https://luzfija.es/simulador-bateria-virtual.html)
+**URL**: [https://luzfija.es/comparador-tarifas-solares.html](https://luzfija.es/comparador-tarifas-solares.html)
 
 ## 📖 Índice
 
-1. [¿Qué es el Simulador BV?](#qué-es-el-simulador-bv)
+1. [¿Qué es el Comparador Solar?](#qué-es-el-comparador-solar)
 2. [Características Principales](#características-principales)
 3. [Arquitectura Técnica](#arquitectura-técnica)
 4. [Flujo de Cálculo](#flujo-de-cálculo)
@@ -128,6 +128,16 @@ Soporte para 3 zonas con impuestos diferenciados:
 - ✅ NO sean indexadas (tipo ≠ "INDEXADA")
 
 **Razón**: El simulador necesita precio fijo de excedentes para calcular la compensación exacta.
+
+### 🔄 Modo Híbrido: CSV a Manual
+
+El comparador incluye una funcionalidad única de **"Edición sobre datos reales"**:
+
+1. El usuario sube su CSV.
+2. El sistema calcula internamente los totales mensuales (P1, P2, P3 y Excedentes).
+3. **Automáticamente rellena la tabla de "Entrada Manual"** con estos datos.
+4. El usuario puede cambiar a la pestaña "Manual" y ajustar valores específicos (ej: "este mes estuve de vacaciones, pero el año que viene no").
+5. Permite realizar simulaciones "What-If" basadas en datos reales pero ajustados.
 
 ---
 

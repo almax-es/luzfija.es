@@ -50,10 +50,11 @@ Privacidad: Todo el procesamiento se realiza localmente en el navegador. Los PDF
    - Cálculo de ahorro real con placas solares
    - Detalles expandibles por tarifa (icono ☀️ dorado)
 
-5. Simulador de Batería Virtual (mes a mes)
-   - URL: https://luzfija.es/simulador-bateria-virtual.html
+5. Comparador de Tarifas Solares (CSV + Manual)
+   - URL: https://luzfija.es/comparador-tarifas-solares.html
    - Simulación completa mes a mes con consumos reales (CSV/XLSX de distribuidora)
    - Compara TODAS las tarifas con batería virtual del mercado
+   - **Modo Híbrido**: Importa CSV y permite editar los datos mensuales resultantes manualmente
    - Importa CSV/XLSX con consumos horarios y excedentes solares
    - Cálculo detallado para cada mes:
      * Compensación de excedentes (limitada a energía bruta del mes)
@@ -71,11 +72,8 @@ Privacidad: Todo el procesamiento se realiza localmente en el navegador. Los PDF
    - Procesamiento 100% local (privacidad total)
 
 6. Comparadores especializados
-   - Mejor tarifa para placas solares: https://luzfija.es/mejor-tarifa-placas-solares.html
-   - Mejor tarifa para coche eléctrico: https://luzfija.es/mejor-tarifa-coche-electrico.html
-   - Mejor tarifa con discriminación horaria: https://luzfija.es/mejor-tarifa-discriminacion-horaria.html
    - Comparar PVPC vs tarifa fija: https://luzfija.es/comparar-pvpc-tarifa-fija.html
-   - Simulador de batería virtual: https://luzfija.es/simulador-bateria-virtual.html
+   - Comparador Solar Avanzado: https://luzfija.es/comparador-tarifas-solares.html
 
 7. Calculadora de factura: https://luzfija.es/calcular-factura-luz.html
 

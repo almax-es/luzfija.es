@@ -90,12 +90,9 @@ Herramienta **gratuita**, **sin publicidad** y **de código abierto** para compa
 - Y más...
 
 ### 🎯 Páginas Especializadas
-- **Mejor tarifa para coche eléctrico**
-- **Mejor tarifa con discriminación horaria**
-- **Mejor tarifa con placas solares**
-- **Simulador de batería virtual** (simulación mes a mes con CSV)
-- Calculadora de factura de luz
-- Comparador PVPC vs tarifa fija
+- **[Comparador de Tarifas Solares (CSV)](https://luzfija.es/comparador-tarifas-solares.html)**: Análisis avanzado con datos reales de autoconsumo.
+- **Calculadora de factura de luz**: [https://luzfija.es/calcular-factura-luz.html](https://luzfija.es/calcular-factura-luz.html)
+- **Comparador PVPC vs tarifa fija**: [https://luzfija.es/comparar-pvpc-tarifa-fija.html](https://luzfija.es/comparar-pvpc-tarifa-fija.html)
 
 ---
 
@@ -243,10 +240,7 @@ luzfija.es/
 ├── index.html                  # Comparador principal
 ├── calcular-factura-luz.html   # Calculadora simple
 ├── comparar-pvpc-tarifa-fija.html
-├── mejor-tarifa-coche-electrico.html
-├── mejor-tarifa-discriminacion-horaria.html
-├── mejor-tarifa-placas-solares.html
-├── simulador-bateria-virtual.html  # Simulador BV (mes a mes)
+├── comparador-tarifas-solares.html  # Comparador Solar (CSV/Manual)
 ├── guias.html                  # Índice de guías
 ├── 404.html                    # Página de error
 ├── aviso-legal.html
