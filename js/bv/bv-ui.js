@@ -761,12 +761,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Procesar automáticamente para rellenar el grid manual
     try {
-      const processToast = document.getElementById('toastText');
-      if (processToast) processToast.textContent = 'Procesando archivo...';
-      
       const result = await window.BVSim.importFile(file);
       if (result && result.ok) {
         populateManualGridFromCSV(result);
+      } else if (result && result.error) {
+        // Si hay error en la importación, no es crítico para el flujo CSV
+        console.info('Info: No se pudo pre-procesar para tabla manual:', result.error);
       }
     } catch (e) {
       console.warn('Error pre-procesando CSV para grid manual:', e);
