@@ -52,18 +52,20 @@ document.addEventListener('DOMContentLoaded', () => {
       const p2In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p2"]`);
       const p3In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p3"]`);
       const vIn = manualGrid.querySelector(`input[data-month="${i}"][data-type="vert"]`);
-      
+
       if (p1In && p2In && p3In && vIn) {
-        data[i] = { 
-          p1: p1In.value, 
-          p2: p2In.value, 
-          p3: p3In.value, 
-          vert: vIn.value 
+        data[i] = {
+          p1: p1In.value,
+          p2: p2In.value,
+          p3: p3In.value,
+          vert: vIn.value
         };
       }
     }
     try {
       localStorage.setItem('bv_manual_data_v2', JSON.stringify(data));
+      localStorage.setItem('bv_manual_data_timestamp', new Date().toISOString());
+      updateDataStatus();
     } catch(e) { console.warn(e); }
   }
 
@@ -74,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Intentar cargar v2 (detallado)
       let saved = localStorage.getItem('bv_manual_data_v2');
       let data = saved ? JSON.parse(saved) : null;
-      
+
       // Migración simple de v1 (agregado) a v2 (detallado) si no existe v2
       if (!data) {
         const oldSaved = localStorage.getItem('bv_manual_data');
@@ -96,6 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!data) return false;
 
+      let hasData = false;
       for (let i = 0; i < 12; i++) {
         const p1In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p1"]`);
         const p2In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p2"]`);
@@ -109,13 +112,138 @@ document.addEventListener('DOMContentLoaded', () => {
           if (p2In) p2In.value = parseInput(data[i].p2) > 0 ? data[i].p2 : '';
           if (p3In) p3In.value = parseInput(data[i].p3) > 0 ? data[i].p3 : '';
           if (vIn) vIn.value = parseInput(data[i].vert) > 0 ? data[i].vert : '';
+
+          if (parseInput(data[i].p1) > 0 || parseInput(data[i].p2) > 0 ||
+              parseInput(data[i].p3) > 0 || parseInput(data[i].vert) > 0) {
+            hasData = true;
+          }
         }
       }
-      return true;
+
+      if (hasData) {
+        updateDataStatus();
+        showToast('✓ Datos guardados cargados correctamente', 'ok');
+      }
+
+      return hasData;
     } catch(e) {
       console.warn('Error cargando datos:', e);
       return false;
     }
+  }
+
+  // Función para actualizar el mensaje de estado de datos guardados
+  function updateDataStatus() {
+    const statusEl = document.getElementById('bv-data-status');
+    if (!statusEl) return;
+
+    try {
+      const timestamp = localStorage.getItem('bv_manual_data_timestamp');
+      if (timestamp) {
+        const date = new Date(timestamp);
+        const now = new Date();
+        const diffMinutes = Math.floor((now - date) / 60000);
+
+        let timeText = '';
+        if (diffMinutes < 1) {
+          timeText = 'hace un momento';
+        } else if (diffMinutes < 60) {
+          timeText = `hace ${diffMinutes} min`;
+        } else if (diffMinutes < 1440) {
+          const hours = Math.floor(diffMinutes / 60);
+          timeText = `hace ${hours} hora${hours > 1 ? 's' : ''}`;
+        } else {
+          const days = Math.floor(diffMinutes / 1440);
+          timeText = `hace ${days} día${days > 1 ? 's' : ''}`;
+        }
+
+        statusEl.textContent = `Última modificación: ${timeText}`;
+        statusEl.style.color = 'var(--muted2)';
+      } else {
+        statusEl.textContent = '';
+      }
+    } catch(e) {
+      console.warn('Error actualizando status:', e);
+    }
+  }
+
+  // Función para exportar datos a JSON (100% local, descarga directa)
+  function exportManualData() {
+    try {
+      const saved = localStorage.getItem('bv_manual_data_v2');
+      if (!saved) {
+        showToast('No hay datos para exportar', 'err');
+        return;
+      }
+
+      const data = JSON.parse(saved);
+      const exportData = {
+        version: 2,
+        timestamp: new Date().toISOString(),
+        data: data,
+        app: 'LuzFija - Comparador Tarifas Solares'
+      };
+
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `luzfija-datos-solares-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      showToast('✓ Datos exportados correctamente', 'ok');
+    } catch(e) {
+      console.error('Error exportando datos:', e);
+      showToast('Error al exportar datos', 'err');
+    }
+  }
+
+  // Función para importar datos desde JSON (100% local, lectura de archivo)
+  function importManualData() {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'application/json,.json';
+
+    input.onchange = (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        try {
+          const importData = JSON.parse(event.target.result);
+
+          // Validación básica
+          if (!importData.data || typeof importData.data !== 'object') {
+            throw new Error('Formato de archivo inválido');
+          }
+
+          // Guardar en localStorage
+          localStorage.setItem('bv_manual_data_v2', JSON.stringify(importData.data));
+          localStorage.setItem('bv_manual_data_timestamp', new Date().toISOString());
+
+          // Recargar datos en la interfaz
+          loadManualData();
+          updateManualTotals();
+
+          showToast('✓ Datos importados correctamente', 'ok');
+        } catch(err) {
+          console.error('Error importando datos:', err);
+          showToast('Error: archivo inválido o corrupto', 'err');
+        }
+      };
+
+      reader.onerror = () => {
+        showToast('Error al leer el archivo', 'err');
+      };
+
+      reader.readAsText(file);
+    };
+
+    input.click();
   }
 
   // Indicador de guardado
@@ -258,11 +386,26 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Botón de reset
+  // Botones de control: Exportar, Importar, Reset
+  const exportBtn = document.getElementById('bv-export-manual');
+  const importBtn = document.getElementById('bv-import-manual');
   const resetBtn = document.getElementById('bv-reset-manual');
+
+  if (exportBtn) {
+    exportBtn.addEventListener('click', () => {
+      exportManualData();
+    });
+  }
+
+  if (importBtn) {
+    importBtn.addEventListener('click', () => {
+      importManualData();
+    });
+  }
+
   if (resetBtn && manualGrid) {
     resetBtn.addEventListener('click', () => {
-      if (!confirm('¿Borrar todos los valores? Podrás introducir solo los meses que quieras simular.')) return;
+      if (!confirm('¿Borrar todos los valores guardados? Esta acción no se puede deshacer.')) return;
 
       for (let i = 0; i < 12; i++) {
         const p1In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p1"]`);
@@ -278,8 +421,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
       localStorage.removeItem('bv_manual_data_v2');
       localStorage.removeItem('bv_manual_data');
+      localStorage.removeItem('bv_manual_data_timestamp');
       updateManualTotals();
-      showToast('Valores borrados. Rellena solo los meses que quieras simular.', 'ok');
+      updateDataStatus();
+      showToast('✓ Todos los datos han sido borrados', 'ok');
     });
   }
 
@@ -301,6 +446,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // Cargar datos guardados solo al cambiar a modo manual
       loadManualData();
       updateManualTotals();
+      updateDataStatus();
     });
   }
 

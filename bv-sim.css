@@ -1128,32 +1128,294 @@ html.light-mode .bv-manual-row {
   opacity: 1;
   background: rgba(139, 92, 246, 0.15);
   color: var(--accent);
+  border: 1px solid rgba(139, 92, 246, 0.25);
 }
 .bv-save-indicator.saved {
   opacity: 1;
   background: rgba(34, 197, 94, 0.15);
   color: var(--accent2);
+  border: 1px solid rgba(34, 197, 94, 0.25);
 }
 
-/* Botón de reset compacto */
-.bv-reset-btn {
-  background: none;
-  border: 1px solid var(--border);
-  color: var(--muted);
+@media (max-width: 600px) {
+  .bv-save-indicator {
+    font-size: 12px;
+    padding: 5px 12px;
+  }
+}
+
+/* Modo claro: ajustar contraste del indicador de guardado */
+html.light-mode .bv-save-indicator.saving {
+  background: rgba(139, 92, 246, 0.1);
+  color: #6d28d9;
+  border-color: rgba(139, 92, 246, 0.3);
+}
+html.light-mode .bv-save-indicator.saved {
+  background: rgba(34, 197, 94, 0.1);
+  color: #15803d;
+  border-color: rgba(34, 197, 94, 0.3);
+}
+
+/* =========================================
+   PANEL DE PRIVACIDAD Y CONTROLES
+   ========================================= */
+
+/* Panel de privacidad (modo oscuro por defecto) */
+.bv-privacy-panel {
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(139, 92, 246, 0.08);
+  border-radius: 8px;
+  border: 1px solid rgba(139, 92, 246, 0.2);
+}
+
+.bv-privacy-info {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.bv-privacy-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  line-height: 1.4;
+}
+
+.bv-privacy-text {
   font-size: 11px;
-  padding: 4px 10px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+.bv-privacy-text strong {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.bv-privacy-status {
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.3;
+}
+
+.bv-data-status {
+  margin-top: 4px;
+  color: var(--muted2);
+  font-size: 11px;
+}
+
+/* Wrapper de controles */
+.bv-controls-wrapper {
+  margin-top: 10px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.bv-controls-hint {
+  font-size: 11px;
+  color: var(--muted2);
+  line-height: 1.3;
+  flex: 1 1 auto;
+  min-width: 180px;
+}
+
+.bv-controls-buttons {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* Modo claro */
+html.light-mode .bv-privacy-panel {
+  background: rgba(139, 92, 246, 0.06);
+  border-color: rgba(139, 92, 246, 0.25);
+}
+
+html.light-mode .bv-privacy-text {
+  color: rgba(0, 0, 0, 0.7);
+}
+
+html.light-mode .bv-privacy-text strong {
+  color: rgba(0, 0, 0, 0.9);
+}
+
+html.light-mode .bv-privacy-status {
+  color: rgba(0, 0, 0, 0.65);
+}
+
+html.light-mode .bv-data-status {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+html.light-mode .bv-controls-hint {
+  color: rgba(0, 0, 0, 0.55);
+}
+
+/* Responsive: Tablet & smaller */
+@media (max-width: 768px) {
+  .bv-controls-wrapper {
+    gap: 10px;
+  }
+
+  .bv-controls-hint {
+    font-size: 12px;
+  }
+
+  .bv-control-btn,
+  .bv-reset-btn {
+    padding: 6px 12px;
+    font-size: 12px;
+  }
+}
+
+/* Responsive: Mobile */
+@media (max-width: 600px) {
+  .bv-privacy-panel {
+    padding: 10px;
+  }
+
+  .bv-privacy-icon {
+    font-size: 16px;
+  }
+
+  .bv-privacy-text {
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .bv-privacy-status {
+    font-size: 12px;
+  }
+
+  .bv-data-status {
+    font-size: 12px;
+  }
+
+  .bv-controls-wrapper {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .bv-controls-hint {
+    text-align: center;
+    min-width: unset;
+    font-size: 12px;
+    line-height: 1.5;
+  }
+
+  .bv-controls-buttons {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .bv-control-btn,
+  .bv-reset-btn {
+    flex: 1 1 auto;
+    min-width: 90px;
+    max-width: 120px;
+    justify-content: center;
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+}
+
+/* Ultra small screens */
+@media (max-width: 380px) {
+  .bv-privacy-panel {
+    padding: 8px;
+  }
+
+  .bv-privacy-text {
+    font-size: 11px;
+  }
+
+  .bv-controls-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .bv-control-btn,
+  .bv-reset-btn {
+    width: 100%;
+    max-width: none;
+    justify-content: center;
+    padding: 8px 16px;
+  }
+}
+
+/* Botones de control (exportar/importar/borrar) */
+.bv-control-btn,
+.bv-reset-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: var(--card2);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 11px;
+  padding: 5px 12px;
   border-radius: 99px;
   cursor: pointer;
   font-weight: 600;
   transition: all 0.2s ease;
+  white-space: nowrap;
+  font-family: inherit;
 }
+
+.bv-control-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: rgba(139, 92, 246, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.15);
+}
+
 .bv-reset-btn:hover {
   border-color: var(--danger);
   color: var(--danger);
-  background: rgba(239, 68, 68, 0.08);
+  background: rgba(239, 68, 68, 0.1);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.15);
 }
+
+.bv-control-btn:active,
 .bv-reset-btn:active {
-  transform: scale(0.95);
+  transform: scale(0.97) translateY(0);
+}
+
+.bv-control-btn:focus-visible,
+.bv-reset-btn:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Modo claro: ajustar colores de botones */
+html.light-mode .bv-control-btn,
+html.light-mode .bv-reset-btn {
+  background: rgba(255, 255, 255, 0.8);
+  border-color: rgba(0, 0, 0, 0.15);
+  color: rgba(0, 0, 0, 0.75);
+}
+
+html.light-mode .bv-control-btn:hover {
+  background: rgba(139, 92, 246, 0.08);
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 2px 8px rgba(139, 92, 246, 0.2);
+}
+
+html.light-mode .bv-reset-btn:hover {
+  background: rgba(239, 68, 68, 0.08);
+  border-color: var(--danger);
+  color: var(--danger);
+  box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
 }
 
 /* Botones de método (CSV/Manual) con estado activo - scope específico para evitar colisiones */

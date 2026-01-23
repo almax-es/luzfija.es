@@ -459,12 +459,29 @@
                                 </div>
                               </div>
 
-                              <div style="margin-top: 10px; display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-wrap: wrap;">
-                                <div style="font-size: 11px; color: var(--muted); line-height: 1.3;">
-                                  <span id="bv-save-indicator" class="bv-save-indicator"></span>
-                                  <div style="margin-top: 4px;">Rellena solo los meses que quieras simular (ej: marzo a noviembre).</div>
+                              <!-- Privacidad: Info + Controles -->
+                              <div class="bv-privacy-panel">
+                                <div class="bv-privacy-info">
+                                  <span class="bv-privacy-icon">🔒</span>
+                                  <div class="bv-privacy-text">
+                                    <strong>Privacidad total:</strong> Tus datos se guardan automáticamente <strong>solo en tu navegador</strong>. Nunca se envían a ningún servidor.
+                                  </div>
                                 </div>
-                                <button type="button" id="bv-reset-manual" class="bv-reset-btn">↻ Borrar todo</button>
+                                <div class="bv-privacy-status">
+                                  <span id="bv-save-indicator" class="bv-save-indicator"></span>
+                                  <div id="bv-data-status" class="bv-data-status"></div>
+                                </div>
+                              </div>
+
+                              <div class="bv-controls-wrapper">
+                                <div class="bv-controls-hint">
+                                  Rellena solo los meses que quieras simular (ej: marzo a noviembre).
+                                </div>
+                                <div class="bv-controls-buttons">
+                                  <button type="button" id="bv-export-manual" class="bv-control-btn" title="Descargar datos como archivo JSON (backup local)">💾 Exportar</button>
+                                  <button type="button" id="bv-import-manual" class="bv-control-btn" title="Cargar datos desde archivo JSON">📂 Importar</button>
+                                  <button type="button" id="bv-reset-manual" class="bv-reset-btn">🗑️ Borrar</button>
+                                </div>
                               </div>
                             </div>
                           </div>
