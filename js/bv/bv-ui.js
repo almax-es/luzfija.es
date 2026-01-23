@@ -658,13 +658,119 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.addEventListener('scroll', () => { tooltipEl.style.display = 'none'; }, { passive: true });
 
+  // Función para poblar el grid manual desde el CSV importado
+  function populateManualGridFromCSV(importResult) {
+    if (!manualGrid || !importResult || !importResult.records) return;
+
+    // 1. Agrupar por meses (usamos la lógica existente de simulación)
+    // Pasamos potencias 0 porque solo queremos los consumos agregados
+    const simResult = window.BVSim.simulateMonthly(importResult, 0, 0);
+    if (!simResult || !simResult.months) return;
+
+    // 2. Resetear grid primero
+    const inputs = manualGrid.querySelectorAll('input.manual-input');
+    inputs.forEach(input => {
+      input.value = '';
+      input.classList.remove('error', 'valid');
+    });
+
+    // 3. Mapear datos. Si hay múltiples años para el mismo mes, nos quedamos con el más reciente.
+    // Estructura de month.key: "YYYY-MM"
+    const monthDataMap = new Map(); // Map<monthIndex 0-11, monthData>
+
+    simResult.months.forEach(m => {
+      const [yearStr, monthStr] = m.key.split('-');
+      const monthIndex = parseInt(monthStr, 10) - 1; // 0-11
+      const year = parseInt(yearStr, 10);
+
+      // Si ya tenemos datos para este mes, solo sobrescribimos si el año es mayor
+      const existing = monthDataMap.get(monthIndex);
+      if (!existing || existing.year < year) {
+        monthDataMap.set(monthIndex, {
+          year: year,
+          p1: m.importByPeriod.P1,
+          p2: m.importByPeriod.P2,
+          p3: m.importByPeriod.P3,
+          vert: m.exportTotalKWh
+        });
+      }
+    });
+
+    // 4. Escribir en el DOM
+    let filledCount = 0;
+    monthDataMap.forEach((data, monthIndex) => {
+      const p1In = manualGrid.querySelector(`input[data-month="${monthIndex}"][data-type="p1"]`);
+      const p2In = manualGrid.querySelector(`input[data-month="${monthIndex}"][data-type="p2"]`);
+      const p3In = manualGrid.querySelector(`input[data-month="${monthIndex}"][data-type="p3"]`);
+      const vIn = manualGrid.querySelector(`input[data-month="${monthIndex}"][data-type="vert"]`);
+
+      if (p1In) p1In.value = Math.round(data.p1);
+      if (p2In) p2In.value = Math.round(data.p2);
+      if (p3In) p3In.value = Math.round(data.p3);
+      if (vIn) vIn.value = Math.round(data.vert);
+      
+      // Marcar visualmente como válidos
+      [p1In, p2In, p3In, vIn].forEach(el => {
+        if (el && el.value !== '') el.classList.add('valid');
+      });
+
+      filledCount++;
+    });
+
+    // 5. Actualizar totales y guardar
+    if (filledCount > 0) {
+      updateManualTotals();
+      saveManualData();
+      showToast('Datos del CSV importados a la tabla manual.', 'ok');
+      
+      // Mostrar botón/enlace para ir a manual
+      const editBtn = document.getElementById('btn-edit-manual-shortcut');
+      if (editBtn) editBtn.style.display = 'inline-flex';
+    }
+  }
+
   if (!fileInput || !simulateButton) return;
 
-  function handleFile(file) {
+  async function handleFile(file) {
     if (!file) return;
     window.BVSim.file = file;
     if (fileNameDisplay) fileNameDisplay.textContent = file.name;
+    
+    // Crear botón de acceso directo a editar si no existe
+    let editBtn = document.getElementById('btn-edit-manual-shortcut');
+    if (!editBtn) {
+      editBtn = document.createElement('button');
+      editBtn.id = 'btn-edit-manual-shortcut';
+      editBtn.className = 'btn-text';
+      editBtn.style.cssText = 'display:none; margin-left:12px; font-size:12px; color:var(--accent); cursor:pointer; background:none; border:none; padding:0; text-decoration:underline;';
+      editBtn.innerHTML = '✏️ Editar datos';
+      editBtn.title = 'Ver y editar los datos mensuales importados';
+      editBtn.onclick = (e) => {
+        e.stopPropagation(); // Evitar que dispare el click del dropzone
+        if (methodManualBtn) methodManualBtn.click();
+      };
+      // Insertar después del nombre del archivo
+      if (fileNameDisplay && fileNameDisplay.parentNode) {
+        fileNameDisplay.parentNode.insertBefore(editBtn, fileNameDisplay.nextSibling);
+      }
+    } else {
+      editBtn.style.display = 'none'; // Ocultar hasta que procesemos
+    }
+
     if (fileSelectedMsg) fileSelectedMsg.style.display = 'flex';
+
+    // Procesar automáticamente para rellenar el grid manual
+    try {
+      const processToast = document.getElementById('toastText');
+      if (processToast) processToast.textContent = 'Procesando archivo...';
+      
+      const result = await window.BVSim.importFile(file);
+      if (result && result.ok) {
+        populateManualGridFromCSV(result);
+      }
+    } catch (e) {
+      console.warn('Error pre-procesando CSV para grid manual:', e);
+    }
   }
 
   if (dropZone) {
