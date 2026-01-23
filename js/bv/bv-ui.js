@@ -331,8 +331,8 @@ document.addEventListener('DOMContentLoaded', () => {
   const menuPanel = document.getElementById('menuPanel');
 
   function updateThemeUI() {
-    const isLight = document.documentElement.classList.contains('light-mode');
-    if (btnTheme) btnTheme.textContent = isLight ? '🌙' : '☀️';
+    // Usar icono universal día/noche para evitar confusión con el botón de tarifas solares
+    if (btnTheme) btnTheme.textContent = '🌓';
   }
 
   if (btnTheme && !btnTheme.dataset.bvBound) {

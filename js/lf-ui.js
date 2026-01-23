@@ -71,8 +71,8 @@
 
   function updateThemeIcon() {
     if (!el.btnTheme) return;
-    const isLight = document.body.classList.contains('light-mode');
-    el.btnTheme.textContent = isLight ? '🌙' : '☀️';
+    // Usar icono universal día/noche para evitar confusión con el botón de tarifas solares
+    el.btnTheme.textContent = '🌓';
   }
 
   function toggleTheme() {
