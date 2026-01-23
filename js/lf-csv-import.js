@@ -628,7 +628,7 @@ const esReal = isDatadisNuevo
       };
     }
 
-    const isLightMode = document.body.classList.contains('light-mode');
+    const isLightMode = document.documentElement.classList.contains('light-mode');
 
     let __csvLocked = false;
     let __csvScrollY = 0;

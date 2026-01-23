@@ -75,14 +75,14 @@
     el.btnTheme.textContent = '🌓';
 
     // Actualizar title y aria-label para indicar la acción que se realizará
-    const isLight = document.body.classList.contains('light-mode');
+    const isLight = document.documentElement.classList.contains('light-mode');
     const actionText = isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro';
     el.btnTheme.setAttribute('title', actionText);
     el.btnTheme.setAttribute('aria-label', actionText);
   }
 
   function toggleTheme() {
-    const isLight = document.body.classList.contains('light-mode');
+    const isLight = document.documentElement.classList.contains('light-mode');
     const next = isLight ? 'dark' : 'light';
     applyThemeClass(next === 'light' ? 'light' : 'dark');
     try {
