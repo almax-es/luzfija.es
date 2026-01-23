@@ -73,6 +73,12 @@
     if (!el.btnTheme) return;
     // Usar icono universal día/noche para evitar confusión con el botón de tarifas solares
     el.btnTheme.textContent = '🌓';
+
+    // Actualizar title y aria-label para indicar la acción que se realizará
+    const isLight = document.body.classList.contains('light-mode');
+    const actionText = isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro';
+    el.btnTheme.setAttribute('title', actionText);
+    el.btnTheme.setAttribute('aria-label', actionText);
   }
 
   function toggleTheme() {

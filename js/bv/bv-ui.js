@@ -331,8 +331,15 @@ document.addEventListener('DOMContentLoaded', () => {
   const menuPanel = document.getElementById('menuPanel');
 
   function updateThemeUI() {
+    if (!btnTheme) return;
     // Usar icono universal día/noche para evitar confusión con el botón de tarifas solares
-    if (btnTheme) btnTheme.textContent = '🌓';
+    btnTheme.textContent = '🌓';
+
+    // Actualizar title y aria-label para indicar la acción que se realizará
+    const isLight = document.documentElement.classList.contains('light-mode');
+    const actionText = isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro';
+    btnTheme.setAttribute('title', actionText);
+    btnTheme.setAttribute('aria-label', actionText);
   }
 
   if (btnTheme && !btnTheme.dataset.bvBound) {
