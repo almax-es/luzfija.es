@@ -926,7 +926,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 300);
       } else if (result && result.error) {
         console.info('Info: No se pudo pre-procesar CSV:', result.error);
-        showToast('Error al leer el CSV. Verifica el formato del archivo.', 'err');
+        showToast(result.error, 'err');
       }
     } catch (e) {
       console.warn('Error procesando CSV:', e);
