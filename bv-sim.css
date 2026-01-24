@@ -27,7 +27,14 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 24px;
-  align-items: stretch;
+  align-items: start;
+}
+
+/* Zona de datos (upload + tabla manual) */
+#bv-data-zone {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
 }
 
 /* =========================================================
@@ -122,85 +129,212 @@
   }
 }
 
-/* --- Drag & Drop Zone --- */
-.bv-upload-zone {
-  border: 2px dashed var(--border);
-  border-radius: var(--radius);
-  padding: 24px;
-  text-align: center;
-  transition: all 0.2s ease;
+/* --- Upload Zone Compacta --- */
+.bv-upload-compact {
   background: var(--card2);
-  cursor: pointer;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 20px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  gap: 16px;
+  transition: all 0.3s ease;
+}
+
+.bv-upload-header {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.bv-upload-title {
+  display: flex;
   align-items: center;
-  min-height: 240px;
-  height: 100%;
-  position: relative;
-  max-width: 100%; /* Prevenir overflow horizontal */
-  overflow-x: hidden;
-}
-
-/* Accesibilidad: foco visible en drop-zone y controles asociados */
-.bv-upload-zone:focus-visible {
-  outline: 3px solid var(--accent);
-  outline-offset: 3px;
-}
-
-.bv-remove-file:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-  border-radius: 8px;
-}
-
-.bv-upload-zone:hover, .bv-upload-zone.dragover {
-  border-color: var(--accent);
-  background: rgba(139, 92, 246, 0.08);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.15);
-}
-
-html.light-mode .bv-upload-zone:hover,
-html.light-mode .bv-upload-zone.dragover {
-  background: rgba(139, 92, 246, 0.12);
-  box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2);
-}
-
-.bv-upload-icon {
-  font-size: 3rem;
-  margin-bottom: 12px;
-  opacity: 0.8;
-}
-
-.bv-upload-text {
-  font-size: 1.1rem;
+  gap: 8px;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--text);
-  margin-bottom: 4px;
+}
+
+.bv-upload-icon-small {
+  font-size: 1.3rem;
+  opacity: 0.9;
 }
 
 .bv-upload-hint {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--muted);
+  margin-left: 30px;
 }
 
-.bv-file-selected {
-  margin-top: 16px;
-  background: rgba(34, 197, 94, 0.15);
-  border: 1px solid rgba(34, 197, 94, 0.3);
-  color: var(--accent2);
-  padding: 8px 16px;
-  border-radius: 99px;
-  display: inline-flex;
+.bv-upload-btn {
+  width: 100%;
+  background: var(--accent) !important;
+  color: white !important;
+  border: none !important;
+  padding: 14px 20px !important;
+  font-size: 1rem !important;
+  font-weight: 700 !important;
+  border-radius: 12px !important;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  max-width: 100%;
+}
+
+.bv-upload-btn:hover {
+  background: #7C3AED !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(139, 92, 246, 0.4);
+}
+
+.bv-upload-btn:active {
+  transform: translateY(0);
+}
+
+html.light-mode .bv-upload-btn {
+  background: var(--accent) !important;
+  color: white !important;
+}
+
+html.light-mode .bv-upload-btn:hover {
+  background: #6D28D9 !important;
+}
+
+.bv-file-selected-inline {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  border-radius: 10px;
   animation: slideInScale 0.3s ease-out;
 }
 
+html.light-mode .bv-file-selected-inline {
+  background: rgba(34, 197, 94, 0.15);
+  border-color: rgba(34, 197, 94, 0.4);
+}
+
+.bv-file-status-icon {
+  font-size: 1.2rem;
+  color: var(--accent2);
+  font-weight: 900;
+}
+
+.bv-file-selected-inline .bv-file-name {
+  flex: 1;
+  color: var(--accent2);
+  font-weight: 700;
+  font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+html.light-mode .bv-file-selected-inline .bv-file-name {
+  color: #15803d;
+}
+
+.bv-remove-file-inline {
+  background: rgba(239, 68, 68, 0.15);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: var(--danger);
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 900;
+  font-size: 1rem;
+  transition: all 0.2s ease;
+}
+
+.bv-remove-file-inline:hover {
+  background: rgba(239, 68, 68, 0.25);
+  border-color: var(--danger);
+}
+
+html.light-mode .bv-remove-file-inline {
+  background: rgba(239, 68, 68, 0.12);
+  border-color: rgba(239, 68, 68, 0.35);
+}
+
+.bv-upload-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+  font-size: 0.85rem;
+  color: var(--muted);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bv-upload-divider::before,
+.bv-upload-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* Contenedor de tabla manual */
+.bv-manual-container {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+}
+
+html.light-mode .bv-manual-container {
+  background: rgba(255, 255, 255, 0.6);
+  border-color: rgba(15, 23, 42, 0.15);
+}
+
+html.light-mode .bv-upload-compact {
+  background: rgba(255, 255, 255, 0.7);
+  border-color: rgba(15, 23, 42, 0.15);
+}
+
+.bv-manual-grid-scroll {
+  max-height: 400px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  margin-bottom: 8px;
+}
+
+/* Scrollbar styling */
+.bv-manual-grid-scroll::-webkit-scrollbar {
+  width: 8px;
+}
+
+.bv-manual-grid-scroll::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 4px;
+}
+
+.bv-manual-grid-scroll::-webkit-scrollbar-thumb {
+  background: var(--border2);
+  border-radius: 4px;
+}
+
+.bv-manual-grid-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+html.light-mode .bv-manual-grid-scroll::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.05);
+}
+
+html.light-mode .bv-manual-grid-scroll::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.25);
+}
+
+/* Animaciones */
 @keyframes slideInScale {
   from {
     opacity: 0;
@@ -221,31 +355,39 @@ html.light-mode .bv-upload-zone.dragover {
   }
 }
 
-/* Modo claro: mejor contraste */
-html.light-mode .bv-file-selected {
-  background: rgba(34, 197, 94, 0.18);
-  border-color: rgba(34, 197, 94, 0.4);
-  color: #059669;
+/* Responsive - Móvil */
+@media (max-width: 900px) {
+  .bv-form-container {
+    grid-template-columns: 1fr;
+  }
+
+  #bv-data-zone {
+    gap: 20px;
+  }
+
+  .bv-upload-compact {
+    padding: 16px;
+  }
+
+  .bv-manual-container {
+    padding: 12px;
+  }
 }
 
-/* Evitar desbordes si el nombre del archivo es largo (móvil) */
-.bv-file-name{
-  display: inline-block;
-  min-width: 0;
-  max-width: min(70vw, 520px);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
+@media (max-width: 520px) {
+  .bv-upload-btn {
+    padding: 12px 16px !important;
+    font-size: 0.95rem !important;
+  }
 
-.bv-remove-file {
-  background: none;
-  border: none;
-  color: inherit;
-  cursor: pointer;
-  font-weight: 900;
-  padding: 0 4px;
-  font-size: 1.1em;
+  .bv-upload-hint {
+    margin-left: 0;
+    font-size: 0.8rem;
+  }
+
+  .bv-manual-grid-scroll {
+    max-height: 350px;
+  }
 }
 
 /* --- Results Section Layout --- */
@@ -704,26 +846,24 @@ html.light-mode .bv-floating-tooltip::before {
 @media (pointer: coarse){
   .bv-tooltip-trigger{ cursor: pointer; }
 }
-/* Ajustes especÃ­ficos mÃ³vil: evitar 2 columnas demasiado estrechas y mejorar legibilidad */
+/* Ajustes específicos móvil: evitar 2 columnas demasiado estrechas y mejorar legibilidad */
 @media (max-width: 520px){
   .bv-form-container{
     gap: 16px;
-    max-width: 100vw; /* Prevenir overflow horizontal */
+    max-width: 100vw;
     overflow-x: hidden;
   }
 
-  /* El formulario de inputs viene con grid inline 2 columnas: lo forzamos a 1 en mÃ³vil */
+  /* El formulario de inputs viene con grid inline 2 columnas: lo forzamos a 1 en móvil */
   .bv-form-container .form{
     grid-template-columns: 1fr !important;
-    max-width: 100%; /* Prevenir overflow */
+    max-width: 100%;
   }
   .bv-form-container .form .group{ grid-column: 1 / -1 !important; }
 
-  .bv-upload-zone{ min-height: 180px; padding: 18px; }
-  .bv-upload-icon{ font-size: 2.5rem; }
   #bv-simulate{ width: 100%; }
 
-  .bv-file-name{ max-width: 58vw; }
+  .bv-file-selected-inline .bv-file-name{ max-width: 50vw; }
 
   .bv-winner-card-compact{ padding: 20px 16px; }
 
@@ -1484,20 +1624,7 @@ html.light-mode .bv-reset-btn:hover {
   box-shadow: 0 2px 8px rgba(239, 68, 68, 0.2);
 }
 
-/* Botones de método (CSV/Manual) con estado activo - scope específico para evitar colisiones */
-#method-csv.active,
-#method-manual.active {
-  background: var(--accent) !important;
-  color: #fff !important;
-  border-color: var(--accent) !important;
-  font-weight: 700;
-}
-
-html.light-mode #method-csv.active,
-html.light-mode #method-manual.active {
-  background: var(--accent) !important;
-  color: #fff !important;
-}
+/* Botones de método eliminados - ya no se usan */
 
 /* --- Badge CSV en H1 --- */
 .bv-csv-badge {
@@ -1529,87 +1656,4 @@ html.light-mode .bv-csv-badge {
   }
 }
 
-/* --- Botón "Editar datos" --- */
-#btn-edit-manual-shortcut {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  margin-left: 12px;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--accent);
-  background: rgba(139, 92, 246, 0.1);
-  border: 1px solid rgba(139, 92, 246, 0.3);
-  padding: 6px 12px;
-  border-radius: 99px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-  text-decoration: none;
-  animation: slideInScale 0.35s ease-out 0.15s both;
-}
-
-#btn-edit-manual-shortcut:hover {
-  background: rgba(139, 92, 246, 0.2);
-  border-color: var(--accent);
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.2);
-}
-
-#btn-edit-manual-shortcut:active {
-  transform: translateY(0);
-  box-shadow: none;
-}
-
-#btn-edit-manual-shortcut:focus-visible {
-  outline: 3px solid var(--accent);
-  outline-offset: 2px;
-  background: rgba(139, 92, 246, 0.25);
-}
-
-html.light-mode #btn-edit-manual-shortcut:focus-visible {
-  background: rgba(139, 92, 246, 0.28);
-}
-
-/* Modo claro */
-html.light-mode #btn-edit-manual-shortcut {
-  color: var(--accent);
-  background: rgba(139, 92, 246, 0.12);
-  border-color: rgba(139, 92, 246, 0.35);
-}
-
-html.light-mode #btn-edit-manual-shortcut:hover {
-  background: rgba(139, 92, 246, 0.22);
-  border-color: var(--accent);
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
-}
-
-/* Responsive: móvil - botón debajo del archivo */
-@media (max-width: 900px) {
-  /* En tablets, el botón va debajo */
-  #btn-edit-manual-shortcut {
-    margin-left: 0;
-    margin-top: 10px;
-  }
-}
-
-@media (max-width: 600px) {
-  /* En móvil, reducir tamaño y centrar */
-  #btn-edit-manual-shortcut {
-    font-size: 11px;
-    padding: 6px 12px;
-    margin-top: 10px;
-    width: auto;
-    min-width: 140px;
-  }
-}
-
-@media (max-width: 400px) {
-  /* En móviles muy pequeños, aún más compacto */
-  #btn-edit-manual-shortcut {
-    font-size: 10px;
-    padding: 5px 10px;
-    margin-top: 8px;
-    min-width: 120px;
-  }
-}
+/* Botón "Editar datos" eliminado - ya no se usa */

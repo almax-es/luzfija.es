@@ -5,31 +5,26 @@ document.addEventListener('DOMContentLoaded', () => {
     if (window.LF?.isDebugMode?.()) console.log('BVSim: Initializing UI...');
   } catch {}
 
-  const dropZone = document.getElementById('drop-zone');
+  const uploadCsvBtn = document.getElementById('upload-csv-btn');
   const fileInput = document.getElementById('bv-file');
   const fileNameDisplay = document.getElementById('file-name');
   const fileSelectedMsg = document.getElementById('file-selected-msg');
   const removeFileBtn = document.getElementById('remove-file');
-  
+
   const p1Input = document.getElementById('bv-p1');
   const p2Input = document.getElementById('bv-p2');
   const saldoInput = document.getElementById('bv-saldo-inicial');
   const zonaFiscalInput = document.getElementById('bv-zona-fiscal');
   const viviendaCanariasWrapper = document.getElementById('bv-vivienda-canarias-wrapper');
   const viviendaCanariasInput = document.getElementById('bv-vivienda-canarias');
-  
+
   const simulateButton = document.getElementById('bv-simulate');
   const resultsContainer = document.getElementById('bv-results-container');
   const resultsEl = document.getElementById('bv-results');
   const statusContainer = document.getElementById('bv-status-container');
   const statusEl = document.getElementById('bv-status');
 
-  const methodCsvBtn = document.getElementById('method-csv');
-  const methodManualBtn = document.getElementById('method-manual');
-  const manualZoneContainer = document.getElementById('bv-manual-zone');
   const manualGrid = document.getElementById('bv-manual-grid');
-
-  let activeMethod = 'csv';
 
   // --- MANUAL ENTRY INITIALIZATION ---
   const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -448,26 +443,11 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  if (methodCsvBtn && methodManualBtn) {
-    methodCsvBtn.addEventListener('click', () => {
-      activeMethod = 'csv';
-      methodCsvBtn.classList.add('active');
-      methodManualBtn.classList.remove('active');
-      dropZone.style.display = 'flex';
-      manualZoneContainer.style.display = 'none';
-    });
-    methodManualBtn.addEventListener('click', () => {
-      activeMethod = 'manual';
-      methodManualBtn.classList.add('active');
-      methodCsvBtn.classList.remove('active');
-      dropZone.style.display = 'none';
-      manualZoneContainer.style.display = 'block';
-
-      // Cargar datos guardados solo al cambiar a modo manual
-      loadManualData();
-      updateManualTotals();
-      updateDataStatus();
-    });
+  // Cargar datos manuales guardados al inicio (la tabla siempre está visible)
+  if (manualGrid) {
+    loadManualData();
+    updateManualTotals();
+    updateDataStatus();
   }
 
   // Toast (ya existe en el HTML)
@@ -927,78 +907,36 @@ document.addEventListener('DOMContentLoaded', () => {
     window.BVSim.file = file;
     window.BVSim._cachedImportResult = null; // Limpiar cache anterior
     if (fileNameDisplay) fileNameDisplay.textContent = file.name;
-
-    // Crear botón de acceso directo a editar si no existe
-    let editBtn = document.getElementById('btn-edit-manual-shortcut');
-    if (!editBtn) {
-      editBtn = document.createElement('button');
-      editBtn.id = 'btn-edit-manual-shortcut';
-      editBtn.type = 'button';
-      editBtn.setAttribute('aria-label', 'Ver y editar datos mensuales importados del CSV');
-      editBtn.setAttribute('role', 'button');
-      editBtn.style.display = 'none';
-      editBtn.innerHTML = '✏️ Editar datos';
-      editBtn.title = 'Ver y editar los datos mensuales importados del CSV';
-      editBtn.onclick = (e) => {
-        e.preventDefault();
-        e.stopPropagation(); // Evitar que dispare el click del dropzone
-        if (methodManualBtn) {
-          methodManualBtn.click();
-          // Scroll suave a la tabla manual después del cambio
-          setTimeout(() => {
-            const manualZone = document.getElementById('bv-manual-zone');
-            if (manualZone && manualZone.style.display !== 'none') {
-              manualZone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-          }, 100);
-        }
-      };
-      // Insertar después del mensaje de archivo seleccionado
-      if (fileSelectedMsg && fileSelectedMsg.parentNode) {
-        fileSelectedMsg.parentNode.insertBefore(editBtn, fileSelectedMsg.nextSibling);
-      }
-    } else {
-      editBtn.style.display = 'none'; // Ocultar hasta que procesemos
-    }
-
     if (fileSelectedMsg) fileSelectedMsg.style.display = 'flex';
 
     // Procesar automáticamente para rellenar el grid manual
     try {
       const result = await window.BVSim.importFile(file);
       if (result && result.ok) {
-        // Cachear el resultado para no volver a parsear en "Calcular"
+        // Cachear el resultado
         window.BVSim._cachedImportResult = result;
         populateManualGridFromCSV(result);
+
+        // Scroll suave a la tabla para que vea los datos auto-rellenados
+        setTimeout(() => {
+          const manualZone = document.getElementById('bv-manual-zone');
+          if (manualZone) {
+            manualZone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }, 300);
       } else if (result && result.error) {
-        // Si hay error en la importación, ocultar botón de editar y notificar
-        if (editBtn) editBtn.style.display = 'none';
-        console.info('Info: No se pudo pre-procesar para tabla manual:', result.error);
-        // No mostrar error al usuario ya que el flujo CSV principal puede seguir
+        console.info('Info: No se pudo pre-procesar CSV:', result.error);
+        showToast('Error al leer el CSV. Verifica el formato del archivo.', 'err');
       }
     } catch (e) {
-      // En caso de error, ocultar botón de editar
-      if (editBtn) editBtn.style.display = 'none';
-      console.warn('Error pre-procesando CSV para grid manual:', e);
-      // Error silencioso, el usuario puede seguir usando el modo CSV normal
+      console.warn('Error procesando CSV:', e);
+      showToast('Error al procesar el archivo CSV', 'err');
     }
   }
 
-  if (dropZone) {
-    dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
-    dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-    dropZone.addEventListener('drop', (e) => {
-      e.preventDefault();
-      dropZone.classList.remove('dragover');
-      if (e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-    });
-    dropZone.addEventListener('click', () => fileInput.click());
-    dropZone.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        fileInput.click();
-      }
-    });
+  // Botón de subir CSV
+  if (uploadCsvBtn) {
+    uploadCsvBtn.addEventListener('click', () => fileInput.click());
   }
 
   fileInput.addEventListener('change', (e) => {
@@ -1020,14 +958,12 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   simulateButton.addEventListener('click', async () => {
-    const file = window.BVSim.file;
     const p1Val = p1Input.value === '' ? 0 : parseInput(p1Input.value);
     const p2Val = p2Input.value === '' ? 0 : parseInput(p2Input.value);
     const saldoVal = saldoInput.value === '' ? 0 : parseInput(saldoInput.value);
     const zonaFiscalVal = zonaFiscalInput ? zonaFiscalInput.value : 'Península';
     const esViviendaCanarias = viviendaCanariasInput ? viviendaCanariasInput.checked : true;
 
-    if (activeMethod === 'csv' && !file) { showToast('Tienes que subir el archivo CSV primero.', 'err'); return; }
     if (p1Val <= 0) { showToast('Te falta poner la potencia contratada (P1).', 'err'); return; }
     
     if (resultsContainer) { resultsContainer.classList.remove('show'); resultsContainer.style.display = 'none'; }
@@ -1042,68 +978,55 @@ document.addEventListener('DOMContentLoaded', () => {
     await new Promise(r => setTimeout(r, 100));
 
     try {
-      let monthlyResult;
-      if (activeMethod === 'manual') {
-        const manualMonths = [];
-        const currentYear = new Date().getFullYear();
+      // Siempre usar datos de la tabla manual (auto-rellenada o manual)
+      const manualMonths = [];
+      const currentYear = new Date().getFullYear();
 
-        for (let i = 0; i < 12; i++) {
-          const p1Input = manualGrid.querySelector(`input[data-month="${i}"][data-type="p1"]`);
-          const p2Input = manualGrid.querySelector(`input[data-month="${i}"][data-type="p2"]`);
-          const p3Input = manualGrid.querySelector(`input[data-month="${i}"][data-type="p3"]`);
-          const vInput = manualGrid.querySelector(`input[data-month="${i}"][data-type="vert"]`);
+      for (let i = 0; i < 12; i++) {
+        const p1Input = manualGrid.querySelector(`input[data-month="${i}"][data-type="p1"]`);
+        const p2Input = manualGrid.querySelector(`input[data-month="${i}"][data-type="p2"]`);
+        const p3Input = manualGrid.querySelector(`input[data-month="${i}"][data-type="p3"]`);
+        const vInput = manualGrid.querySelector(`input[data-month="${i}"][data-type="vert"]`);
 
-          // Validación robusta de inputs
-          const p1 = validateAndClampKwh(p1Input ? p1Input.value : 0);
-          const p2 = validateAndClampKwh(p2Input ? p2Input.value : 0);
-          const p3 = validateAndClampKwh(p3Input ? p3Input.value : 0);
-          const totalCons = p1 + p2 + p3;
+        // Validación robusta de inputs
+        const p1 = validateAndClampKwh(p1Input ? p1Input.value : 0);
+        const p2 = validateAndClampKwh(p2Input ? p2Input.value : 0);
+        const p3 = validateAndClampKwh(p3Input ? p3Input.value : 0);
+        const totalCons = p1 + p2 + p3;
 
-          let vertKwh = validateAndClampKwh(vInput ? vInput.value : 0);
+        let vertKwh = validateAndClampKwh(vInput ? vInput.value : 0);
 
-          // Solo incluir el mes si tiene al menos algún dato > 0
-          const tieneAlgunDato = p1 > 0 || p2 > 0 || p3 > 0 || vertKwh > 0;
-          if (!tieneAlgunDato) continue; // Saltar este mes
+        // Solo incluir el mes si tiene al menos algún dato > 0
+        const tieneAlgunDato = p1 > 0 || p2 > 0 || p3 > 0 || vertKwh > 0;
+        if (!tieneAlgunDato) continue; // Saltar este mes
 
-          // El vertido nunca puede ser mayor que el consumo total (aprox, aunque técnicamente posible en horas solares, para balance neto mensual suele cuadrar)
-          // Relaxing this check: surplus CAN be higher than consumption in specific months (e.g. vacation), but unlikely to be > total generation.
-          // Keeping basic sanity check:
-          if (vertKwh > 10000) vertKwh = 10000;
+        // Sanity check básico
+        if (vertKwh > 10000) vertKwh = 10000;
 
-          const key = `${currentYear}-${String(i + 1).padStart(2, '0')}`;
+        const key = `${currentYear}-${String(i + 1).padStart(2, '0')}`;
 
-          // Calcular días reales del mes (28/29/30/31)
-          const realDays = new Date(currentYear, i + 1, 0).getDate();
+        // Calcular días reales del mes (28/29/30/31)
+        const realDays = new Date(currentYear, i + 1, 0).getDate();
 
-          manualMonths.push({
-            key,
-            daysWithData: realDays,
-            importTotalKWh: totalCons,
-            exportTotalKWh: vertKwh,
-            importByPeriod: {
-              P1: p1,
-              P2: p2,
-              P3: p3
-            }
-          });
-        }
-
-        // Validar que haya al menos 1 mes con datos
-        if (manualMonths.length === 0) {
-          throw new Error('Introduce datos para al menos un mes. Rellena los valores de consumo (P1/P2/P3) y/o vertido.');
-        }
-
-        monthlyResult = { ok: true, months: manualMonths };
-      } else {
-        // Usar cache si existe (evita parsear el CSV dos veces)
-        let result = window.BVSim._cachedImportResult;
-        if (!result || result.meta?.rows === 0) {
-          result = await window.BVSim.importFile(file);
-          window.BVSim._cachedImportResult = result;
-        }
-        if (!result || !result.ok) throw new Error(result?.error || 'Error al leer archivo.');
-        monthlyResult = window.BVSim.simulateMonthly(result, p1Val, p2Val);
+        manualMonths.push({
+          key,
+          daysWithData: realDays,
+          importTotalKWh: totalCons,
+          exportTotalKWh: vertKwh,
+          importByPeriod: {
+            P1: p1,
+            P2: p2,
+            P3: p3
+          }
+        });
       }
+
+      // Validar que haya al menos 1 mes con datos
+      if (manualMonths.length === 0) {
+        throw new Error('Introduce datos para al menos un mes. Rellena los valores de consumo (P1/P2/P3) y/o vertido, o sube un archivo CSV.');
+      }
+
+      const monthlyResult = { ok: true, months: manualMonths };
       const tarifasResult = await window.BVSim.loadTarifasBV();
       if (!tarifasResult || !tarifasResult.ok || !Array.isArray(tarifasResult.tarifasBV)) {
         throw new Error(tarifasResult?.error || 'No se pudieron cargar las tarifas (tarifas.json).');
