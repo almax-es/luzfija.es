@@ -3,6 +3,22 @@ window.BVSim = window.BVSim || {};
 (function () {
   'use strict';
 
+  // ===== IMPORTAR UTILIDADES CSV =====
+  // Funciones robustas de parsing compartidas con lf-csv-import.js
+  const {
+    stripBomAndTrim,
+    stripOuterQuotes,
+    parseNumberFlexibleCSV,
+    parseNumberFlexible,
+    splitCSVLine,
+    detectCSVSeparator,
+    parseDateFlexible,
+    calcularViernesSanto,
+    getFestivosNacionales,
+    getPeriodoHorarioCSV,
+    ymdLocal
+  } = window.LF.csvUtils || {};
+
   let xlsxLoading = null;
 
   async function ensureXLSX() {
@@ -20,72 +36,9 @@ window.BVSim = window.BVSim || {};
     return xlsxLoading;
   }
 
-  function stripBomAndTrim(value) {
-    return String(value ?? '').replace(/^\uFEFF/, '').trim();
-  }
-
-  function stripOuterQuotes(value) {
-    let str = stripBomAndTrim(value);
-    if ((str.startsWith('"') && str.endsWith('"')) || (str.startsWith("'") && str.endsWith("'"))) {
-      str = str.slice(1, -1).trim();
-    }
-    return str;
-  }
-
-  function parseNumberFlexibleCSV(value) {
-    const raw = stripOuterQuotes(value);
-    if (!raw) return NaN;
-
-    const hasComma = raw.includes(',');
-    const hasDot = raw.includes('.');
-    let norm = raw;
-
-    if (hasComma && hasDot) {
-      if (raw.lastIndexOf(',') > raw.lastIndexOf('.')) {
-        norm = raw.replace(/\./g, '').replace(',', '.');
-      } else {
-        norm = raw.replace(/,/g, '');
-      }
-    } else if (hasComma && !hasDot) {
-      norm = raw.replace(',', '.');
-    }
-
-    return Number(norm);
-  }
-
-  // Split CSV line respecting quoted fields ("...") and escaped quotes ("").
-  function splitCSVLine(line, separator) {
-    const out = [];
-    let cur = '';
-    let inQuotes = false;
-    const s = String(line ?? '');
-
-    for (let i = 0; i < s.length; i++) {
-      const ch = s[i];
-
-      if (ch === '"') {
-        if (inQuotes && s[i + 1] === '"') {
-          // Escaped quote
-          cur += '"';
-          i++;
-          continue;
-        }
-        inQuotes = !inQuotes;
-        continue;
-      }
-
-      if (!inQuotes && ch === separator) {
-        out.push(cur);
-        cur = '';
-        continue;
-      }
-
-      cur += ch;
-    }
-
-    out.push(cur);
-    return out;
-  }
+  // ===== FUNCIONES DE PARSING =====
+  // NOTA: Las funciones stripBomAndTrim, stripOuterQuotes, parseNumberFlexibleCSV,
+  // splitCSVLine ahora se importan desde lf-csv-utils.js (líneas 6-17)
 
   function parseCSVConsumos(fileContent) {
     const lines = String(fileContent || '').split(/\r?\n/);
@@ -238,124 +191,9 @@ const esReal = isDatadisNuevo
     };
   }
 
-  function calcularViernesSanto(year) {
-    const a = year % 19;
-    const b = Math.floor(year / 100);
-    const c = year % 100;
-    const d = Math.floor(b / 4);
-    const e = b % 4;
-    const f = Math.floor((b + 8) / 25);
-    const g = Math.floor((b - f + 1) / 3);
-    const h = (19 * a + b - d - g + 15) % 30;
-    const i = Math.floor(c / 4);
-    const k = c % 4;
-    const l = (32 + 2 * e + 2 * i - h - k) % 7;
-    const m = Math.floor((a + 11 * h + 22 * l) / 451);
-    const month = Math.floor((h + l - 7 * m + 114) / 31);
-    const day = ((h + l - 7 * m + 114) % 31) + 1;
-
-    const pascua = new Date(year, month - 1, day);
-    const viernesSanto = new Date(pascua);
-    viernesSanto.setDate(pascua.getDate() - 2);
-
-    const mes = String(viernesSanto.getMonth() + 1).padStart(2, '0');
-    const dia = String(viernesSanto.getDate()).padStart(2, '0');
-    return `${year}-${mes}-${dia}`;
-  }
-
-  const _festivosCache = new Map();
-
-  function getFestivosNacionales(year) {
-    const y = Number(year);
-    if (!Number.isFinite(y)) return [];
-    if (_festivosCache.has(y)) return _festivosCache.get(y);
-
-    const festivos = [
-      `${y}-01-01`, `${y}-01-06`,
-      calcularViernesSanto(y),
-      `${y}-05-01`, `${y}-08-15`, `${y}-10-12`,
-      `${y}-11-01`, `${y}-12-06`, `${y}-12-08`, `${y}-12-25`
-    ];
-
-    const set = new Set(festivos);
-    _festivosCache.set(y, set);
-    return set;
-  }
-
-  function getPeriodoHorarioCSV(fecha, hora) {
-    const diaSemana = fecha.getDay();
-    const esFinde = diaSemana === 0 || diaSemana === 6;
-
-    const year = fecha.getFullYear();
-    const month = String(fecha.getMonth() + 1).padStart(2, '0');
-    const day = String(fecha.getDate()).padStart(2, '0');
-    const fechaStr = `${year}-${month}-${day}`;
-
-    const festivosNacionales = getFestivosNacionales(year);
-    const esFestivo = festivosNacionales instanceof Set
-      ? festivosNacionales.has(fechaStr)
-      : Array.isArray(festivosNacionales) && festivosNacionales.includes(fechaStr);
-
-    if (esFinde || esFestivo) return 'P3';
-
-    const horaInicio = hora - 1;
-    if (horaInicio >= 0 && horaInicio < 8) return 'P3';
-    if ((horaInicio >= 10 && horaInicio < 14) || (horaInicio >= 18 && horaInicio < 22)) return 'P1';
-    return 'P2';
-  }
-
-  function parseDateFlexible(value) {
-    if (value instanceof Date && !isNaN(value.getTime())) return value;
-
-    const str = String(value ?? '').trim();
-    if (!str) return null;
-
-    const firstToken = str.split(' ')[0];
-
-    let match = firstToken.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
-    if (match) {
-      const d = Number(match[1]);
-      const mo = Number(match[2]);
-      const y = Number(match[3]);
-      const dt = new Date(y, mo - 1, d);
-      return isNaN(dt.getTime()) ? null : dt;
-    }
-
-    match = firstToken.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
-    if (match) {
-      const y = Number(match[1]);
-      const mo = Number(match[2]);
-      const d = Number(match[3]);
-      const dt = new Date(y, mo - 1, d);
-      return isNaN(dt.getTime()) ? null : dt;
-    }
-
-    const dt = new Date(firstToken);
-    return isNaN(dt.getTime()) ? null : dt;
-  }
-
-  function parseNumberFlexible(value) {
-    if (typeof value === 'number') return value;
-
-    const str = String(value ?? '').trim();
-    if (!str) return NaN;
-
-    const hasComma = str.includes(',');
-    const hasDot = str.includes('.');
-    let norm = str;
-
-    if (hasComma && hasDot) {
-      if (str.lastIndexOf(',') > str.lastIndexOf('.')) {
-        norm = str.replace(/\./g, '').replace(',', '.');
-      } else {
-        norm = str.replace(/,/g, '');
-      }
-    } else if (hasComma && !hasDot) {
-      norm = str.replace(',', '.');
-    }
-
-    return Number(norm);
-  }
+  // ===== FESTIVOS Y PERIODOS =====
+  // NOTA: Las funciones calcularViernesSanto, getFestivosNacionales, getPeriodoHorarioCSV,
+  // parseDateFlexible, parseNumberFlexible ahora se importan desde lf-csv-utils.js (líneas 6-17)
 
   async function parseXLSXConsumos(fileBuffer) {
     await ensureXLSX();
@@ -508,12 +346,8 @@ const esReal = isDatadisNuevo
     };
   }
 
-  function ymdLocal(date) {
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, '0');
-    const d = String(date.getDate()).padStart(2, '0');
-    return `${y}-${m}-${d}`;
-  }
+  // ===== UTILIDAD DE FORMATO =====
+  // NOTA: ymdLocal ahora se importa desde lf-csv-utils.js
 
   function buildMeta(records, hasExcedenteColumn, hasAutoconsumoColumn) {
     let minDate = null;

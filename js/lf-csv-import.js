@@ -6,6 +6,20 @@
 
   const { toast, formatMoney, round2 } = window.LF;
 
+  // ===== IMPORTAR UTILIDADES CSV =====
+  // Funciones robustas de parsing compartidas con bv-import.js
+  const {
+    stripBomAndTrim,
+    stripOuterQuotes,
+    parseNumberFlexibleCSV,
+    parseNumberFlexible,
+    splitCSVLine,
+    detectCSVSeparator,
+    parseDateFlexible,
+    getFestivosNacionales,
+    getPeriodoHorarioCSV
+  } = window.LF.csvUtils || {};
+
   // ===== LAZY LOAD XLSX =====
   let xlsxLoading = null;
 
@@ -30,42 +44,12 @@
   // ===== PARSEO CSV =====
   // Normalización robusta de celdas CSV (BOM, comillas y formatos numéricos ES/EN).
   // E-REDES (Portugal) suele exportar CSV con separador ';' y números entrecomillados con coma decimal.
-  function stripBomAndTrim(v) {
-    return String(v ?? '').replace(/^\uFEFF/, '').trim();
-  }
-
-  function stripOuterQuotes(v) {
-    let s = stripBomAndTrim(v);
-    if ((s.startsWith('"') && s.endsWith('"')) || (s.startsWith("'") && s.endsWith("'"))) {
-      s = s.slice(1, -1).trim();
-    }
-    return s;
-  }
-
-  function parseNumberFlexibleCSV(v) {
-    const s0 = stripOuterQuotes(v);
-    if (!s0) return NaN;
-
-    const hasComma = s0.includes(',');
-    const hasDot = s0.includes('.');
-    let norm = s0;
-
-    // Maneja 1.234,56 (ES) y 1,234.56 (US)
-    if (hasComma && hasDot) {
-      if (s0.lastIndexOf(',') > s0.lastIndexOf('.')) {
-        norm = s0.replace(/\./g, '').replace(',', '.');
-      } else {
-        norm = s0.replace(/,/g, '');
-      }
-    } else if (hasComma && !hasDot) {
-      norm = s0.replace(',', '.');
-    }
-
-    return Number(norm);
-  }
+  // NOTA: Las funciones stripBomAndTrim, stripOuterQuotes, parseNumberFlexibleCSV
+  // ahora se importan desde lf-csv-utils.js para reutilización con bv-import.js
 
   function parseCSVConsumos(fileContent) {
-    const lines = String(fileContent || '').split('\n');
+    // ⭐ FIX: Usar regex CRLF-aware para manejar archivos Windows/Mac/Linux
+    const lines = String(fileContent || '').split(/\r?\n/);
     if (lines.length < 2) throw new Error('CSV vacío o inválido');
 
     const header = stripBomAndTrim(lines[0]).toLowerCase();
@@ -86,15 +70,23 @@
     const tieneAutoconsumo = header.includes('ae_autocons_kwh') || header.includes('energiaautoconsumida_kwh');
     const consumos = [];
 
+    // ⭐ FIX: Detectar separador automáticamente (';' o ',')
+    const separator = detectCSVSeparator(stripBomAndTrim(lines[0]));
+
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
       if (!line) continue;
 
-      const cols = line.split(';');
+      // ⭐ FIX: Usar splitCSVLine para respetar comillas y campos entrecomillados
+      const cols = splitCSVLine(line, separator);
       if (cols.length < 4) continue;
 
       const fechaStr = stripOuterQuotes(cols[1]);
       const hora = parseInt(stripOuterQuotes(cols[2]), 10);
+
+      // ⭐ FIX: Validar rango de hora (1-24)
+      if (hora < 1 || hora > 24) continue;
+
       const kwhStr = stripOuterQuotes(cols[3]);
 
 let excedenteStr = null;
@@ -120,7 +112,8 @@ const esReal = isDatadisNuevo
       if (!kwhStr || kwhStr.trim() === '') continue;
 
       const kwh = parseNumberFlexibleCSV(kwhStr);
-      if (isNaN(kwh)) continue;
+      // ⭐ FIX: Validar rango razonable (evita datos corruptos)
+      if (isNaN(kwh) || kwh < 0 || kwh > 10000) continue;
 
       let excedente = 0;
       if (excedenteStr && excedenteStr.trim() !== '') {
@@ -134,9 +127,9 @@ const esReal = isDatadisNuevo
         if (!isNaN(auto)) autoconsumo = auto;
       }
 
-      const [dia, mes, año] = String(fechaStr || '').split('/').map(Number);
-      const fecha = new Date(año, mes - 1, dia);
-      if (isNaN(fecha.getTime())) continue;
+      // ⭐ FIX: Usar parseDateFlexible para manejar múltiples formatos (dd/mm/yyyy, yyyy-mm-dd, etc.)
+      const fecha = parseDateFlexible(fechaStr);
+      if (!fecha) continue;
 
       consumos.push({ fecha, hora, kwh, excedente, autoconsumo, esReal });
     }
@@ -151,7 +144,8 @@ const esReal = isDatadisNuevo
       const line = lines[i].trim();
       if (!line) continue;
 
-      const cols = line.split(',');
+      // ⭐ FIX: Usar splitCSVLine para manejar comillas correctamente
+      const cols = splitCSVLine(line, ',');
       if (cols.length < 6) continue;
 
       const fechaHoraStr = stripOuterQuotes(cols[1]);
@@ -163,14 +157,20 @@ const esReal = isDatadisNuevo
       const [fechaParte, horaParte] = fechaHoraStr.split(' ');
       if (!fechaParte || !horaParte) continue;
 
-      const [año, mes, dia] = fechaParte.split('/').map(Number);
-      const horaNum = parseInt(horaParte.split(':')[0]);
-      const fecha = new Date(año, mes - 1, dia);
-      if (isNaN(fecha.getTime())) continue;
+      const horaNum = parseInt(horaParte.split(':')[0], 10);
+
+      // ⭐ FIX: Usar parseDateFlexible para soportar múltiples formatos
+      const fecha = parseDateFlexible(fechaParte);
+      if (!fecha) continue;
 
       const hora = horaNum + 1;
+
+      // ⭐ FIX: Validar rango de hora
+      if (hora < 1 || hora > 24) continue;
+
       const consumoWh = parseNumberFlexibleCSV(consumoWhStr);
-      if (isNaN(consumoWh)) continue;
+      // ⭐ FIX: Validar rango razonable (en Wh, límite más alto)
+      if (isNaN(consumoWh) || consumoWh < 0 || consumoWh > 10000000) continue;
       const kwh = consumoWh / 1000;
 
       let excedente = 0;
@@ -212,57 +212,8 @@ const esReal = isDatadisNuevo
       return true;
     }
 
-    function parseDateFlexible(value) {
-      if (value instanceof Date && !isNaN(value.getTime())) return value;
-
-      const s = String(value ?? '').trim();
-      if (!s) return null;
-
-      // Acepta: dd/mm/yyyy, dd-mm-yyyy, yyyy-mm-dd (opcionalmente con hora, que ignoramos)
-      const firstToken = s.split(' ')[0];
-
-      let m = firstToken.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
-      if (m) {
-        const d = Number(m[1]), mo = Number(m[2]), y = Number(m[3]);
-        const dt = new Date(y, mo - 1, d);
-        return isNaN(dt.getTime()) ? null : dt;
-      }
-
-      m = firstToken.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
-      if (m) {
-        const y = Number(m[1]), mo = Number(m[2]), d = Number(m[3]);
-        const dt = new Date(y, mo - 1, d);
-        return isNaN(dt.getTime()) ? null : dt;
-      }
-
-      // Último recurso: Date.parse (depende del navegador, usar con cautela)
-      const dt = new Date(firstToken);
-      return isNaN(dt.getTime()) ? null : dt;
-    }
-
-    function parseNumberFlexible(value) {
-      if (typeof value === 'number') return value;
-
-      const s = String(value ?? '').trim();
-      if (!s) return NaN;
-
-      const hasComma = s.includes(',');
-      const hasDot = s.includes('.');
-      let norm = s;
-
-      // Maneja 1.234,56 (ES) y 1,234.56 (US)
-      if (hasComma && hasDot) {
-        if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
-          norm = s.replace(/\./g, '').replace(',', '.');
-        } else {
-          norm = s.replace(/,/g, '');
-        }
-      } else if (hasComma && !hasDot) {
-        norm = s.replace(',', '.');
-      }
-
-      return Number(norm);
-    }
+    // ⭐ NOTA: Las funciones parseDateFlexible y parseNumberFlexible ahora se usan desde csvUtils
+    // (importadas al inicio del archivo) en vez de redefinirlas localmente
 
     function parseXLSXConsumosMatriz(data, headerRow) {
       const consumos = [];
@@ -390,59 +341,8 @@ const esReal = isDatadisNuevo
   }
 
   // ===== FESTIVOS Y PERIODOS =====
-  function calcularViernesSanto(year) {
-    const a = year % 19;
-    const b = Math.floor(year / 100);
-    const c = year % 100;
-    const d = Math.floor(b / 4);
-    const e = b % 4;
-    const f = Math.floor((b + 8) / 25);
-    const g = Math.floor((b - f + 1) / 3);
-    const h = (19 * a + b - d - g + 15) % 30;
-    const i = Math.floor(c / 4);
-    const k = c % 4;
-    const l = (32 + 2 * e + 2 * i - h - k) % 7;
-    const m = Math.floor((a + 11 * h + 22 * l) / 451);
-    const month = Math.floor((h + l - 7 * m + 114) / 31);
-    const day = ((h + l - 7 * m + 114) % 31) + 1;
-
-    const pascua = new Date(year, month - 1, day);
-    const viernesSanto = new Date(pascua);
-    viernesSanto.setDate(pascua.getDate() - 2);
-
-    const mes = String(viernesSanto.getMonth() + 1).padStart(2, '0');
-    const dia = String(viernesSanto.getDate()).padStart(2, '0');
-    return `${year}-${mes}-${dia}`;
-  }
-
-  function getFestivosNacionales(year) {
-    return [
-      `${year}-01-01`, `${year}-01-06`,
-      calcularViernesSanto(year),
-      `${year}-05-01`, `${year}-08-15`, `${year}-10-12`,
-      `${year}-11-01`, `${year}-12-06`, `${year}-12-08`, `${year}-12-25`
-    ];
-  }
-
-  function getPeriodoHorarioCSV(fecha, hora) {
-    const diaSemana = fecha.getDay();
-    const esFinde = diaSemana === 0 || diaSemana === 6;
-
-    const year = fecha.getFullYear();
-    const month = String(fecha.getMonth() + 1).padStart(2, '0');
-    const day = String(fecha.getDate()).padStart(2, '0');
-    const fechaStr = `${year}-${month}-${day}`;
-
-    const festivosNacionales = getFestivosNacionales(year);
-    const esFestivo = festivosNacionales.includes(fechaStr);
-
-    if (esFinde || esFestivo) return 'P3';
-
-    const horaInicio = hora - 1;
-    if (horaInicio >= 0 && horaInicio < 8) return 'P3';
-    if ((horaInicio >= 10 && horaInicio < 14) || (horaInicio >= 18 && horaInicio < 22)) return 'P1';
-    return 'P2';
-  }
+  // NOTA: Las funciones calcularViernesSanto, getFestivosNacionales, getPeriodoHorarioCSV
+  // ahora se importan desde lf-csv-utils.js (con caché optimizado para festivos)
 
   function ymdLocal(d) {
     const y = d.getFullYear();
@@ -979,9 +879,10 @@ const esReal = isDatadisNuevo
   window.procesarXLSXConsumos = procesarXLSXConsumos;
   
   // Exportar helpers para testing
+  // NOTA: Las funciones de utilidad ahora están en window.LF.csvUtils
   window.LF.csvHelpers = {
-    getPeriodoHorarioCSV,
-    getFestivosNacionales,
+    getPeriodoHorarioCSV: window.LF.csvUtils.getPeriodoHorarioCSV,
+    getFestivosNacionales: window.LF.csvUtils.getFestivosNacionales,
     parseCSVConsumos
   };
 

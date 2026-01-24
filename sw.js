@@ -9,7 +9,7 @@
 // Para automatizar: sed -i "s/CACHE_VERSION = .*/CACHE_VERSION = \"$(date -u +%Y%m%d-%H%M%S)\";/" sw.js
 // O en scripts de CI/CD: echo "const CACHE_VERSION = \"$(date -u +%Y%m%d-%H%M%S)\";" > version.js
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260124-112026";
+const CACHE_VERSION = "20260124-132526";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
@@ -39,6 +39,7 @@ const ASSETS = [
   "js/lf-config.js",
   // Módulos LuzFija (nueva estructura modular)
   "js/lf-utils.js",
+  "js/lf-csv-utils.js",
   "js/lf-state.js",
   "js/lf-ui.js",
   "js/lf-tooltips.js",
