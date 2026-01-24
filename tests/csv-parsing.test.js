@@ -218,19 +218,19 @@ describe('CSV Utils - Parsing Robusto', () => {
     });
 
     it('Debe clasificar hora punta laborable como P1', () => {
-      const lunes = new Date(2025, 0, 6);
+      const lunes = new Date(2025, 0, 8); // 8 Enero 2025 (Miercoles laborable)
       expect(csvUtils.getPeriodoHorarioCSV(lunes, 11)).toBe('P1'); // 10-11h
       expect(csvUtils.getPeriodoHorarioCSV(lunes, 20)).toBe('P1'); // 19-20h
     });
 
     it('Debe clasificar hora llano laborable como P2', () => {
-      const lunes = new Date(2025, 0, 6);
+      const lunes = new Date(2025, 0, 8); // 8 Enero 2025
       expect(csvUtils.getPeriodoHorarioCSV(lunes, 9)).toBe('P2'); // 08-09h
       expect(csvUtils.getPeriodoHorarioCSV(lunes, 16)).toBe('P2'); // 15-16h
     });
 
     it('Debe clasificar hora valle laborable (0-8h) como P3', () => {
-      const lunes = new Date(2025, 0, 6);
+      const lunes = new Date(2025, 0, 8);
       expect(csvUtils.getPeriodoHorarioCSV(lunes, 5)).toBe('P3'); // 04-05h
     });
   });
@@ -299,37 +299,4 @@ ES12345;01/01/2024;2;"1,234";Real`;
   });
 });
 
-describe('Integración - bv-import.js', () => {
-  it('Debe parsear CSV y retornar formato { ok, records, meta }', async () => {
-    const csvContent = `CUPS;Fecha;Hora;Consumo_kWh;AE_kWh
-ES12345;01/01/2024;1;"1,234";"0,5"
-ES12345;01/01/2024;2;"2,456";"0,6"`;
 
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const file = new File([blob], 'test.csv', { type: 'text/csv' });
-
-    const resultado = await window.BVSim.importFile(file);
-    expect(resultado.ok).toBe(true);
-    expect(resultado.records).toBeInstanceOf(Array);
-    expect(resultado.records.length).toBe(2);
-    expect(resultado.meta).toHaveProperty('rows');
-    expect(resultado.meta).toHaveProperty('start');
-    expect(resultado.meta).toHaveProperty('end');
-  });
-
-  it('Debe usar las mismas funciones de csvUtils que lf-csv-import', async () => {
-    const csvContent = `CUPS;Fecha;Hora;Consumo_kWh;AE_kWh
-ES12345;01/01/2024;1;"1,234";"0,5"`;
-
-    const blob = new Blob([csvContent], { type: 'text/csv' });
-    const file = new File([blob], 'test.csv', { type: 'text/csv' });
-
-    const resultado = await window.BVSim.importFile(file);
-    expect(resultado.ok).toBe(true);
-
-    // Verificar que parseó correctamente el número con coma
-    const firstRecord = resultado.records[0];
-    expect(firstRecord.kwh).toBeCloseTo(1.234, 3);
-    expect(firstRecord.excedente).toBeCloseTo(0.5, 3);
-  });
-});

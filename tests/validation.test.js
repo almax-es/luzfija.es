@@ -16,6 +16,9 @@ const loadScript = (filePath) => {
 
 describe('BVSim Validation with 1.csv', () => {
   beforeAll(() => {
+    // Load base utils
+    loadScript('../js/lf-utils.js');
+    loadScript('../js/lf-csv-utils.js');
     // Load simulation logic
     loadScript('../js/bv/bv-sim-monthly.js');
     loadScript('../js/bv/bv-import.js');
