@@ -439,7 +439,7 @@ const esReal = isDatadisNuevo
       if (!parsed.hasExcedenteColumn) {
         return {
           ok: false,
-          error: 'El archivo no incluye excedentes/exportación; esta herramienta es solo para autoconsumo con BV.'
+          error: 'El archivo no tiene datos de excedentes (columna AS_kWh o similar). Asegúrate de descargar el informe de "Autoconsumo" o "Excedentes" desde tu distribuidora, no solo el de consumo.'
         };
       }
 
