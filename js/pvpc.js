@@ -735,7 +735,18 @@ const PEAJES_POT_DIA = {
               cabecera: 'Total Factura',
               importe: totalFactura.toFixed(2)
             }
-          ]
+          ],
+          // CAMPOS EXTRA PARA USO INTERNO (inyectados para evitar parseo de strings)
+          precioPunta: precioP1,
+          precioLlano: precioP2,
+          precioValle: precioP3,
+          totalFactura: totalFactura,
+          terminoFijo: terminoFijo,
+          terminoVariable: terminoVariable,
+          impuestoElectrico: impuestoElectrico,
+          bonoSocial: bonoSocial,
+          equipoMedida: equipoMedida,
+          costeMargenPot: costeMargenPot
         };
       } catch (err) {
         pvpcDbg('[ERROR] PVPC lectura de datos locales falló:', err?.message || err);
@@ -936,4 +947,13 @@ const PEAJES_POT_DIA = {
       pvpcInFlight.set(signature,p);
       return p.finally(()=>pvpcInFlight.delete(signature));
     }
+
+    // ===== EXPORT FOR TESTING & MODERN USAGE =====
+    window.LF = window.LF || {};
+    window.LF.pvpc = {
+        crearTarifaPVPC,
+        obtenerPVPC_LOCAL,
+        parsearRespuestaPVPC
+    };
+
     // ===== END PVPC MODULE =====
