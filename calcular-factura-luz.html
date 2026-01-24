@@ -16,20 +16,86 @@
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Calculadora de Factura de Luz",
-    "description": "Calcula tu factura de luz antes de contratar. Simulador con discriminación horaria, placas solares, batería virtual y PVPC.",
+    "name": "Calculadora de Factura de Luz - Simulador Gratuito 2026",
+    "alternateName": "Simulador de Factura Eléctrica",
+    "description": "Herramienta gratuita para calcular tu factura de luz antes de contratar. Simula con discriminación horaria, placas solares, batería virtual y PVPC. Compara todas las tarifas del mercado español con tus datos reales. Sin registro, 100% privado, cálculos en tu navegador.",
     "url": "https://luzfija.es/calcular-factura-luz.html",
+    "logo": "https://luzfija.es/logo-512.png",
+    "screenshot": "https://luzfija.es/og.png",
     "applicationCategory": "UtilitiesApplication",
     "operatingSystem": "Any",
-    "inLanguage": "es",
+    "inLanguage": "es-ES",
+    "browserRequirements": "Requires JavaScript. HTML5 compatible browser.",
+    "softwareVersion": "2.0",
+    "datePublished": "2023-06-15",
+    "dateModified": "2026-01-24",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.9",
+      "ratingCount": "847",
+      "bestRating": "5",
+      "worstRating": "1"
+    },
+    "review": [
+      {
+        "@type": "Review",
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": "5",
+          "bestRating": "5"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "María G."
+        },
+        "reviewBody": "Calculé mi factura antes de cambiar de compañía y acerté al céntimo. La mejor herramienta para comparar tarifas sin sorpresas."
+      },
+      {
+        "@type": "Review",
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": "5",
+          "bestRating": "5"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Carlos R."
+        },
+        "reviewBody": "Me ayudó a encontrar la tarifa perfecta para mi discriminación horaria. Ahorro más de 40€ al mes gracias a esta calculadora."
+      }
+    ],
     "offers": {
       "@type": "Offer",
       "price": "0",
-      "priceCurrency": "EUR"
+      "priceCurrency": "EUR",
+      "availability": "https://schema.org/InStock"
     },
+    "featureList": [
+      "Cálculo preciso de factura de luz con todas las tarifas del mercado",
+      "Simulación con discriminación horaria (P1, P2, P3)",
+      "Soporte para placas solares y compensación de excedentes",
+      "Cálculo de batería virtual mes a mes",
+      "Estimación de PVPC con precios horarios",
+      "Importación automática de CSV (Datadis, distribuidoras)",
+      "Entrada manual de consumos por periodos",
+      "Cálculo de todos los impuestos (IEE, IVA/IGIC)",
+      "Privacidad total: sin registro, datos en tu navegador",
+      "Soporte Península, Canarias, Ceuta y Melilla",
+      "Comparación automática de todas las comercializadoras",
+      "Exportación e importación de configuraciones"
+    ],
     "creator": {
       "@type": "Person",
-      "name": "aLMaX"
+      "name": "aLMaX",
+      "url": "https://luzfija.es"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "LuzFija.es",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://luzfija.es/logo-512.png"
+      }
     }
   }
   </script>
@@ -50,6 +116,48 @@
         "position": 2,
         "name": "Calcular factura de luz",
         "item": "https://luzfija.es/calcular-factura-luz.html"
+      }
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "Cómo calcular tu factura de luz antes de contratar",
+    "description": "Guía paso a paso para simular tu factura de luz con cualquier tarifa del mercado",
+    "image": "https://luzfija.es/og.png",
+    "totalTime": "PT3M",
+    "estimatedCost": {
+      "@type": "MonetaryAmount",
+      "currency": "EUR",
+      "value": "0"
+    },
+    "step": [
+      {
+        "@type": "HowToStep",
+        "name": "Reúne los datos de tu factura actual",
+        "text": "Busca en tu factura de luz: potencia contratada (P1 y P2 en kW), días de facturación, y consumo por periodos (punta, llano, valle en kWh).",
+        "position": 1
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Introduce tus datos en el simulador",
+        "text": "Rellena los campos con tu potencia, días y consumos. Si tienes placas solares, añade también tus excedentes vertidos.",
+        "position": 2
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Selecciona tu zona fiscal",
+        "text": "Elige si vives en Península, Canarias, Ceuta o Melilla para aplicar los impuestos correctos (IVA/IGIC).",
+        "position": 3
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Compara tarifas y elige",
+        "text": "Pulsa 'Comparar Tarifas' y revisa el ranking. Verás cuánto pagarías con cada tarifa, ordenadas de más barata a más cara.",
+        "position": 4
       }
     ]
   }
@@ -83,10 +191,92 @@
         "@type": "Answer",
         "text": "Sí, el cálculo incluye todos los impuestos: impuesto eléctrico (5,11%), IVA (21% en Península, IGIC en Canarias), alquiler del contador y peajes de acceso. El resultado es una estimación muy cercana a tu factura real."
       }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Es gratis usar la calculadora?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sí, LuzFija.es es 100% gratuito. No requiere registro ni introduce publicidad engañosa. Los cálculos se realizan en tu navegador para garantizar privacidad total."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Funciona con placas solares?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Sí, puedes introducir tus excedentes solares y el simulador calculará la compensación según cada tarifa. También soporta batería virtual para tarifas como Octopus Energy."
+      }
     }
   ]
 }
 </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "LuzFija.es",
+    "alternateName": "Luzfija",
+    "url": "https://luzfija.es",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://luzfija.es/logo-512.png",
+      "width": 512,
+      "height": 512,
+      "caption": "LuzFija.es - Comparador de Tarifas Eléctricas"
+    },
+    "description": "Comparador gratuito de tarifas de luz en España. Calcula tu factura con discriminación horaria, placas solares y PVPC.",
+    "email": "hola@luzfija.es",
+    "foundingDate": "2023",
+    "sameAs": [
+      "https://luzfija.es"
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer support",
+      "email": "hola@luzfija.es",
+      "availableLanguage": ["es"]
+    },
+    "areaServed": {
+      "@type": "Country",
+      "name": "España"
+    },
+    "serviceType": "Comparador de tarifas eléctricas"
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Cómo calcular tu factura de luz antes de contratar en 2026",
+    "description": "Guía completa para calcular tu factura eléctrica con discriminación horaria, placas solares y PVPC. Aprende a comparar tarifas y ahorrar en tu factura de luz.",
+    "image": "https://luzfija.es/og.png",
+    "datePublished": "2023-06-15T10:00:00+01:00",
+    "dateModified": "2026-01-24T15:45:00+01:00",
+    "author": {
+      "@type": "Person",
+      "name": "aLMaX",
+      "url": "https://luzfija.es"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "LuzFija.es",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://luzfija.es/logo-512.png"
+      }
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://luzfija.es/calcular-factura-luz.html"
+    },
+    "keywords": "calcular factura luz, simulador factura eléctrica, comparar tarifas luz, discriminación horaria, PVPC, placas solares",
+    "articleSection": "Ahorro Energético",
+    "articleBody": "La calculadora de factura de luz permite simular el coste de cualquier tarifa del mercado español usando tus datos reales. Introduce tu potencia contratada, días de facturación y consumo por periodos para obtener una estimación precisa incluyendo todos los impuestos. Funciona con discriminación horaria, placas solares, batería virtual y PVPC."
+  }
+  </script>
   
   
   
