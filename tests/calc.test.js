@@ -165,4 +165,68 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     expect(filas[0].esMejor).toBe(true);
   });
 
+  describe('Casos Extremos (Edge Cases)', () => {
+    
+    it('Debe manejar Consumo Cero correctamente', async () => {
+      window.LF.cachedTarifas = [{ nombre: "Cero", p1:0.1, p2:0.1, cPunta:0.1, cLlano:0.1, cValle:0.1, tipo:"1P" }];
+      document.getElementById('cPunta').value = "0";
+      document.getElementById('cLlano').value = "0";
+      document.getElementById('cValle').value = "0";
+      document.getElementById('dias').value = "30";
+      document.getElementById('p1').value = "3.45";
+
+      await window.LF.calculateLocal();
+      const res = window.LF.state.rows[0];
+      
+      expect(res.consumoNum).toBe(0);
+      expect(res.totalNum).toBeGreaterThan(0); // Paga solo potencia
+    });
+
+    it('Debe manejar Excedentes > Consumo (Tope 0€ energía)', async () => {
+      // Tarifa sin BV: la compensacion no puede superar el coste de la energia
+      window.LF.cachedTarifas = [{ 
+        nombre: "Solar Tope", 
+        p1:0.1, p2:0.1, cPunta:0.1, cLlano:0.1, cValle:0.1, 
+        fv: { exc: 0.1, tipo: "SIMPLE", bv: false } 
+      }];
+      document.getElementById('cPunta').value = "10"; // 10 kWh * 0.1 = 1€ energía
+      document.getElementById('solarOn').checked = true;
+      document.getElementById('exTotal').value = "100"; // 100 kWh * 0.1 = 10€ compensación
+
+      await window.LF.calculateLocal();
+      const res = window.LF.state.rows[0];
+      
+      // La energia debe quedarse en 0 (no -9€)
+      expect(res.consumoNum).toBe(0);
+      expect(res.totalNum).toBeGreaterThan(0); // Sigue pagando potencia
+    });
+
+    it('Debe manejar Días = 0 usando valor por defecto (30 días)', async () => {
+      window.LF.cachedTarifas = [{ nombre: "Zero Days", p1:0.1, p2:0.1, cPunta:0.1, cLlano:0.1, cValle:0.1, tipo:"1P" }];
+      document.getElementById('dias').value = "0";
+      document.getElementById('cPunta').value = "100";
+
+      await window.LF.calculateLocal();
+      const res = window.LF.state.rows[0];
+      
+      expect(Number.isFinite(res.totalNum)).toBe(true);
+      // El sistema usa 30 dias por defecto si pones 0
+      expect(res.potenciaNum).toBeGreaterThan(0);
+    });
+
+    it('Debe manejar Potencias = 0 kW', async () => {
+      window.LF.cachedTarifas = [{ nombre: "Zero Power", p1:0.1, p2:0.1, cPunta:0.1, cLlano:0.1, cValle:0.1 }];
+      document.getElementById('p1').value = "0";
+      document.getElementById('p2').value = "0";
+      document.getElementById('cPunta').value = "100";
+
+      await window.LF.calculateLocal();
+      const res = window.LF.state.rows[0];
+      
+      expect(res.potenciaNum).toBe(0);
+      expect(res.totalNum).toBeGreaterThan(0); // Paga energia
+    });
+
+  });
+
 });
