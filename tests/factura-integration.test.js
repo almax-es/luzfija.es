@@ -29,6 +29,7 @@ describe('Factura PDF Integration (Black Box)', () => {
     // Resetear estado global si existe
     window.__LF_facturaParserLoaded = false;
     window.__LF_lastFile = null;
+    window.__LF_DEBUG = true; // ACTIVAR DEBUG
     
     // Mock PDF.js
     window.pdfjsLib = {
@@ -36,6 +37,9 @@ describe('Factura PDF Integration (Black Box)', () => {
       VerbosityLevel: { ERRORS: 0 },
       getDocument: vi.fn()
     };
+
+    // Mock jsQR para evitar carga de script externo que cuelga JSDOM
+    window.jsQR = vi.fn(() => null); // Retorna null (no QR encontrado)
   });
 
   afterEach(() => {
@@ -45,31 +49,37 @@ describe('Factura PDF Integration (Black Box)', () => {
 
   it('Debe procesar un PDF simulado y rellenar el formulario correctamente', async () => {
     // 2. Mockear el contenido del PDF
+    // Añadimos texto de relleno para superar el límite de 40 chars de "textRawLen"
+    const padding = Array(10).fill({ str: "relleno de texto para validacion de longitud minima", transform: [0,0,0,0, 0, 0] });
+
     const mockTextItems = [
       // Y=100: Cabecera
       { str: "Factura", transform: [0,0,0,0, 10, 100] },
-      { str: "Endesa", transform: [0,0,0,0, 60, 100] },
+      { str: "Endesa Energía S.A.", transform: [0,0,0,0, 60, 100] },
       
       // Y=80: Periodo
-      { str: "Periodo:", transform: [0,0,0,0, 10, 80] },
-      { str: "01/01/2025", transform: [0,0,0,0, 60, 80] },
+      { str: "Periodo de facturación:", transform: [0,0,0,0, 10, 80] },
+      { str: "del", transform: [0,0,0,0, 50, 80] }, // Faltaba el "del"
+      { str: "01/01/2025", transform: [0,0,0,0, 70, 80] },
       { str: "al", transform: [0,0,0,0, 120, 80] },
       { str: "31/01/2025", transform: [0,0,0,0, 140, 80] },
 
       // Y=60: Potencias
-      { str: "Potencia", transform: [0,0,0,0, 10, 60] },
-      { str: "Punta:", transform: [0,0,0,0, 60, 60] },
+      { str: "Potencia contratada", transform: [0,0,0,0, 10, 60] },
+      { str: "Punta", transform: [0,0,0,0, 60, 60] },
       { str: "3,45", transform: [0,0,0,0, 100, 60] }, // Valor esperado P1
       { str: "kW", transform: [0,0,0,0, 140, 60] },
-      { str: "Valle:", transform: [0,0,0,0, 160, 60] },
+      { str: "Valle", transform: [0,0,0,0, 160, 60] },
       { str: "4,00", transform: [0,0,0,0, 200, 60] }, // Valor esperado P2
       { str: "kW", transform: [0,0,0,0, 240, 60] },
 
       // Y=40: Consumos
-      { str: "Energía", transform: [0,0,0,0, 10, 40] },
+      { str: "Energía consumida", transform: [0,0,0,0, 10, 40] },
       { str: "Punta", transform: [0,0,0,0, 50, 40] },
       { str: "120,50", transform: [0,0,0,0, 100, 40] }, // Valor esperado Consumo P1
       { str: "kWh", transform: [0,0,0,0, 140, 40] },
+      
+      ...padding
     ];
 
     // Configurar el mock de getDocument para devolver estos items
@@ -79,7 +89,8 @@ describe('Factura PDF Integration (Black Box)', () => {
         getPage: () => Promise.resolve({
           getTextContent: () => Promise.resolve({ items: mockTextItems }),
           cleanup: () => {},
-          getViewport: () => ({ width: 100, height: 100 }) // Dummy
+          getViewport: () => ({ width: 100, height: 100 }), // Dummy
+          render: () => ({ promise: Promise.resolve() })   // ✅ MOCK NECESARIO para que no se cuelgue buscando QR
         }),
         cleanup: () => {},
         destroy: () => {}
@@ -111,8 +122,8 @@ describe('Factura PDF Integration (Black Box)', () => {
     fileInput.dispatchEvent(event);
 
     // 5. Esperar a que el proceso async termine
-    // Como no tenemos acceso a la promesa interna de processPdf, esperamos un poco
-    await new Promise(r => setTimeout(r, 100));
+    // Aumentamos el tiempo a 500ms y usamos un bucle simple de espera
+    await new Promise(r => setTimeout(r, 500));
 
     // 6. Aserciones
     const form = document.getElementById('formValidacionFactura');
