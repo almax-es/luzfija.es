@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import '../js/lf-utils.js'; // Dependencia
+import '../js/lf-csv-utils.js'; // Nueva dependencia critica
 import '../js/lf-csv-import.js';
 
 describe('Lógica CSV - Calendario y Festivos', () => {
