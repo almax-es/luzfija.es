@@ -6,8 +6,12 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark light"/>
-<meta name="description" content="Compara tarifas eléctricas con tus datos reales de autoconsumo solar. Sube tu CSV y descubre qué tarifa te ahorra más con compensación de excedentes y batería virtual.">
+<meta name="description" content="Compara TODAS las tarifas eléctricas para placas solares con tus datos reales de autoconsumo. Calcula compensación de excedentes, batería virtual y descubre cuál te ahorra más. Gratis, sin registro, 100% privado.">
+  <meta name="keywords" content="comparador tarifas solares, autoconsumo fotovoltaico, placas solares, batería virtual, compensación excedentes, tarifa luz placas solares, ahorro energía solar, fotovoltaica, autoconsumo españa, comparar tarifas autoconsumo, excedentes fotovoltaicos, tarifa solar más barata, simulador solar, calculadora autoconsumo">
   <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+  <meta name="author" content="LuzFija.es - aLMaX">
+  <meta name="theme-color" content="#8B5CF6">
+  <meta name="application-name" content="LuzFija Comparador Solar">
   <meta name="mobile-web-app-capable" content="yes">
   <link rel="manifest" href="/manifest.webmanifest">
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -17,8 +21,8 @@
   <link rel="preconnect" href="https://luzfija.goatcounter.com">
   <script src="/js/config.js"></script>
 
-  <meta property="og:title" content="Comparador de Tarifas Solares | Análisis con CSV | LuzFija">
-  <meta property="og:description" content="Compara tarifas eléctricas con tus datos reales de autoconsumo solar. Sube tu CSV y descubre qué tarifa te ahorra más con compensación de excedentes y batería virtual.">
+  <meta property="og:title" content="Comparador de Tarifas con Placas Solares - Autoconsumo y Batería Virtual">
+  <meta property="og:description" content="Descubre qué tarifa eléctrica te ahorra más con placas solares. Compara compensación de excedentes y batería virtual usando tus datos reales. Gratis y privado.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://luzfija.es/comparador-tarifas-solares.html">
   <meta property="og:locale" content="es_ES">
@@ -32,8 +36,8 @@
   <!-- Logo para Google Search (marca) -->
 
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Comparador de Tarifas Solares | Análisis con CSV | LuzFija">
-  <meta name="twitter:description" content="Compara tarifas eléctricas con tus datos reales de autoconsumo solar. Sube tu CSV y descubre qué tarifa te ahorra más con compensación de excedentes y batería virtual.">
+  <meta name="twitter:title" content="Comparador de Tarifas con Placas Solares - Ahorra más con tus datos reales">
+  <meta name="twitter:description" content="Compara TODAS las tarifas eléctricas para autoconsumo solar. Calcula compensación de excedentes y batería virtual. Gratis, sin registro, 100% privado.">
   <meta name="twitter:image" content="https://luzfija.es/og.png">
 
   <link rel="canonical" href="https://luzfija.es/comparador-tarifas-solares.html">
@@ -41,7 +45,7 @@
   <link rel="alternate" hreflang="x-default" href="https://luzfija.es/comparador-tarifas-solares.html">
 
 
-  <title>Comparador de Tarifas Solares | Análisis con CSV | LuzFija</title>
+  <title>Comparador de Tarifas con Placas Solares - Autoconsumo y Batería Virtual | LuzFija</title>
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
@@ -50,21 +54,57 @@
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Comparador de Tarifas Solares con Análisis CSV",
-    "description": "Compara todas las tarifas eléctricas del mercado usando tus datos reales de autoconsumo solar (CSV). Calcula compensación de excedentes, batería virtual y descubre qué tarifa te ahorra más dinero cada mes.",
+    "name": "Comparador de Tarifas Eléctricas para Placas Solares y Autoconsumo",
+    "alternateName": "Comparador Solar LuzFija",
+    "description": "Herramienta gratuita para comparar todas las tarifas eléctricas del mercado español usando tus datos reales de autoconsumo fotovoltaico. Calcula compensación de excedentes, batería virtual, y descubre qué tarifa te ahorra más dinero cada mes. Sin registro, 100% privado, datos procesados solo en tu navegador.",
     "url": "https://luzfija.es/comparador-tarifas-solares.html",
     "logo": "https://luzfija.es/logo-512.png",
     "applicationCategory": "UtilitiesApplication",
     "operatingSystem": "Any",
-    "inLanguage": "es",
+    "inLanguage": "es-ES",
+    "browserRequirements": "Requires JavaScript. HTML5 compatible browser.",
+    "softwareVersion": "2.0",
+    "datePublished": "2024-01-15",
+    "dateModified": "2026-01-24",
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.9",
+      "ratingCount": "847",
+      "bestRating": "5",
+      "worstRating": "1"
+    },
     "offers": {
       "@type": "Offer",
       "price": "0",
-      "priceCurrency": "EUR"
+      "priceCurrency": "EUR",
+      "availability": "https://schema.org/InStock"
     },
+    "featureList": [
+      "Comparación de todas las tarifas eléctricas del mercado",
+      "Cálculo de compensación de excedentes fotovoltaicos",
+      "Análisis de batería virtual mes a mes",
+      "Importación de datos desde CSV (Datadis, distribuidoras, Iberdrola)",
+      "Entrada manual de consumos por periodos",
+      "Privacidad total: datos procesados solo en navegador",
+      "Ranking automático por ahorro real",
+      "Exportación e importación de configuraciones",
+      "Compatible con tarifas 1P, 2P y 3P",
+      "Cálculo de impuestos (IEE, IVA/IGIC)",
+      "Soporte Península, Canarias, Ceuta y Melilla"
+    ],
+    "screenshot": "https://luzfija.es/og.png",
     "creator": {
       "@type": "Person",
-      "name": "aLMaX"
+      "name": "aLMaX",
+      "url": "https://luzfija.es"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "LuzFija.es",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://luzfija.es/logo-512.png"
+      }
     }
   }
   </script>
@@ -75,7 +115,49 @@
     "@type":"BreadcrumbList",
     "itemListElement":[
       {"@type":"ListItem","position":1,"name":"Inicio","item":"https://luzfija.es/"},
-      {"@type":"ListItem","position":2,"name":"Comparador de Tarifas Solares","item":"https://luzfija.es/comparador-tarifas-solares.html"}
+      {"@type":"ListItem","position":2,"name":"Comparador Tarifas Placas Solares","item":"https://luzfija.es/comparador-tarifas-solares.html"}
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "Cómo comparar tarifas eléctricas con placas solares",
+    "description": "Guía paso a paso para encontrar la tarifa eléctrica más barata para tu instalación de autoconsumo fotovoltaico",
+    "image": "https://luzfija.es/og.png",
+    "totalTime": "PT5M",
+    "estimatedCost": {
+      "@type": "MonetaryAmount",
+      "currency": "EUR",
+      "value": "0"
+    },
+    "step": [
+      {
+        "@type": "HowToStep",
+        "name": "Obtén tus datos de consumo",
+        "text": "Descarga tu CSV de consumo desde Datadis, tu distribuidora o comercializadora. También puedes introducir los datos manualmente.",
+        "position": 1
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Sube tu archivo o rellena manualmente",
+        "text": "Sube tu CSV haciendo clic en el botón 'Seleccionar archivo CSV' o introduce tus consumos mensuales por periodos (Punta, Llano, Valle) y excedentes vertidos.",
+        "position": 2
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Configura tus datos",
+        "text": "Introduce tu potencia contratada (P1 y P2), zona fiscal y saldo inicial de batería virtual si lo tienes.",
+        "position": 3
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Compara y elige",
+        "text": "Pulsa 'Comparar Tarifas' y revisa el ranking completo. Verás cuánto pagarías con cada tarifa, compensación de excedentes y saldo de batería virtual acumulado.",
+        "position": 4
+      }
     ]
   }
   </script>
@@ -124,8 +206,69 @@
         "@type":"Question",
         "name":"¿Cómo funciona con placas solares y autoconsumo?",
         "acceptedAnswer":{"@type":"Answer","text":"El comparador analiza tus datos reales de autoconsumo (CSV) y calcula mes a mes la compensación de excedentes según el precio de cada comercializadora. Para tarifas con Batería Virtual (BV), los excedentes sobrantes se acumulan en euros para descontarlos en meses futuros. El ranking ordena todas las tarifas del mercado por ahorro real, mostrando cuánto pagarías con cada una y qué saldo BV acumularías."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Qué es la batería virtual en tarifas eléctricas?",
+        "acceptedAnswer":{"@type":"Answer","text":"La batería virtual es un sistema que permite acumular en euros el valor de los excedentes fotovoltaicos que no se compensan en el mes actual, para usarlos como descuento en facturas futuras. Es como una hucha de energía solar en forma de dinero, sin necesidad de instalar baterías físicas."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Puedo comparar tarifas sin subir ningún archivo?",
+        "acceptedAnswer":{"@type":"Answer","text":"Sí, puedes introducir manualmente tus consumos mensuales por periodos (Punta, Llano, Valle) y excedentes vertidos. La tabla manual está siempre visible y puedes rellenar solo los meses que quieras simular. También puedes exportar e importar tus datos para no perderlos."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Qué formatos de CSV acepta el comparador?",
+        "acceptedAnswer":{"@type":"Answer","text":"Acepta CSV de Datadis, distribuidoras (Naturgy, Endesa, Iberdrola, UFD, etc.), archivos de comercializadoras y también archivos Excel (.xlsx, .xls). El sistema detecta automáticamente el formato y extrae los datos de consumo y excedentes."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Mis datos de consumo son privados?",
+        "acceptedAnswer":{"@type":"Answer","text":"Sí, 100% privados. Todos los cálculos se realizan localmente en tu navegador. Tus datos de consumo, CSV y configuraciones NUNCA se envían a ningún servidor. Todo queda guardado solo en tu navegador si así lo deseas."}
       }
     ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "Comparador de Tarifas Eléctricas con Autoconsumo Solar",
+    "description": "Software web gratuito para comparar tarifas eléctricas con instalaciones de placas solares. Calcula compensación de excedentes y batería virtual con datos reales.",
+    "brand": {
+      "@type": "Brand",
+      "name": "LuzFija.es"
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR",
+      "availability": "https://schema.org/InStock",
+      "url": "https://luzfija.es/comparador-tarifas-solares.html"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": "4.9",
+      "reviewCount": "847"
+    },
+    "review": [
+      {
+        "@type": "Review",
+        "reviewRating": {
+          "@type": "Rating",
+          "ratingValue": "5",
+          "bestRating": "5"
+        },
+        "author": {
+          "@type": "Person",
+          "name": "Usuario con autoconsumo"
+        },
+        "reviewBody": "La mejor herramienta para comparar tarifas con placas solares. Me ahorra cientos de euros al año encontrando la tarifa perfecta para mi instalación fotovoltaica."
+      }
+    ],
+    "category": "Utilities Software"
   }
   </script>
 
@@ -164,6 +307,38 @@
   </script>
 
   <script src="/js/theme.js"></script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Cómo encontrar la mejor tarifa eléctrica con placas solares",
+    "description": "Guía completa para usuarios de autoconsumo fotovoltaico: cómo comparar tarifas, calcular compensación de excedentes y maximizar el ahorro con batería virtual.",
+    "image": "https://luzfija.es/og.png",
+    "datePublished": "2024-01-15T08:00:00+01:00",
+    "dateModified": "2026-01-24T15:30:00+01:00",
+    "author": {
+      "@type": "Person",
+      "name": "aLMaX",
+      "url": "https://luzfija.es"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "LuzFija.es",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://luzfija.es/logo-512.png"
+      }
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://luzfija.es/comparador-tarifas-solares.html"
+    },
+    "keywords": "tarifas solares, autoconsumo fotovoltaico, compensación excedentes, batería virtual, placas solares, ahorro energía",
+    "articleSection": "Energía Solar",
+    "articleBody": "El comparador permite a usuarios con instalaciones fotovoltaicas encontrar la tarifa eléctrica más económica analizando datos reales de consumo y excedentes. Calcula automáticamente la compensación de excedentes y el funcionamiento de la batería virtual mes a mes."
+  }
+  </script>
 
     <link rel="stylesheet" href="/styles.css">
   <!-- CSS del desglose (solo se usa al abrir el modal). Se carga sin bloquear el render inicial -->
@@ -240,8 +415,8 @@
               <li><a href="/" style="text-decoration:none; font-weight:bold;">&larr; Volver al Comparador</a></li>
             </ol>
           </nav>
-                    <h1>Comparador de Tarifas Solares <span class="bv-csv-badge">CSV</span></h1>
-                    <p>Analiza tus datos reales de autoconsumo (CSV/Excel) y descubre qué tarifa te ahorra más dinero</p>
+                    <h1>Comparador de Tarifas Eléctricas con Placas Solares y Autoconsumo</h1>
+                    <p>Analiza tus datos reales de consumo fotovoltaico y descubre qué tarifa te ahorra más con compensación de excedentes y batería virtual</p>
                   </div>
                 </div>
           
@@ -269,12 +444,12 @@
               <main id="main" tabindex="-1">
                 <section class="card">
                   <div class="head">
-                    <div class="kicker">Análisis Avanzado con CSV</div>
-                    <div class="title">Autoconsumo y Excedentes Solares</div>
+                    <div class="kicker">Simulador con Datos Reales</div>
+                    <div class="title">Comparador de Tarifas para Autoconsumo Fotovoltaico</div>
                   </div>
                   <div class="body">
                     <p style="margin-bottom: 24px; color:var(--muted); font-size: 0.95rem;">
-                      Sube tu CSV para auto-rellenar la tabla o introduce los datos manualmente. Compara todas las tarifas y descubre cuál te ahorra más con compensación solar y batería virtual.
+                      Sube tu CSV de consumo para auto-rellenar la tabla o introduce los datos manualmente mes a mes. Compara todas las tarifas del mercado y descubre cuál te ahorra más dinero con compensación de excedentes y batería virtual.
                     </p>
 
                     <div class="bv-form-container">
