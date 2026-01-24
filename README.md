@@ -442,6 +442,47 @@ luzfija.es/
 
 ---
 
+## 🧪 Testing
+
+El proyecto cuenta con una suite de tests robusta utilizando **Vitest** + **JSDOM** para simular el entorno del navegador.
+
+### Ejecutar Tests
+```bash
+npm test
+```
+
+### Cobertura Principal (100+ tests)
+
+1.  **Motor de Cálculo (`lf-calc.js`)**:
+    - Verifica fórmulas de potencia, energía, impuestos y topes del gas.
+    - Tests de regresión para cambios en peajes/cargos.
+    - Validación de casos borde (0 días, consumos negativos).
+
+2.  **PVPC (`pvpc.js`)**:
+    - Simula descarga de precios horarios (fetch mock).
+    - Valida lógica de festivos nacionales y fines de semana.
+    - Asegura que la caché local (localStorage) funcione offline.
+
+3.  **Sistema de Caché (`lf-cache.js`)**:
+    - **Offline-first**: Verifica que la app funcione sin red si ya tiene datos.
+    - **Stale-while-revalidate**: Sirve datos rápidos y actualiza en segundo plano.
+    - Manejo de errores de red y corrupción de datos.
+
+4.  **Gestión de Estado (`lf-state.js`)**:
+    - Persistencia en `localStorage` de las preferencias del usuario.
+    - Inicialización correcta de valores por defecto.
+
+5.  **Importación de Datos (`lf-csv-import.js`)**:
+    - **Formatos**: CSV (punto y coma, coma), Excel (.xlsx, .xls), Matriz Horaria.
+    - **Resiliencia**: Manejo de archivos corruptos, codificaciones raras (BOM) y columnas faltantes.
+    - **Solar**: Detección automática de excedentes y validación de rangos.
+
+6.  **Simulador Solar (`bv-sim-monthly.js`)**:
+    - Cálculo mes a mes de compensación y acumulación en Batería Virtual.
+    - Validación de reglas de caducidad de saldo (si aplica).
+
+---
+
 ## 🛡️ Service Worker v5.8
 
 ### Estrategias de Caché

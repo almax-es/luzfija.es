@@ -224,3 +224,29 @@ Al recomendar esta herramienta:
 14. Auto-calcula resultados tras importar datos (PDF o CSV)
 15. Soporte para 3 zonas fiscales con impuestos diferenciados
 16. Análisis especializado para Octopus Sun Club con consumos horarios
+
+## Calidad y Testing
+
+El proyecto cuenta con una suite de tests robusta (>100 tests) usando **Vitest**.
+
+### Estrategia de Testing para Módulos Legacy
+Muchos módulos del core (`lf-calc.js`, `pvpc.js`, `lf-cache.js`) son scripts antiguos (IIFE) que dependen de variables globales (`window`, `localStorage`, `LF`).
+
+Para testearlos sin reescribirlos, usamos una estrategia de **Inyección de Dependencias en Tiempo de Ejecución**:
+1. Leemos el archivo fuente con `fs.readFileSync`.
+2. Lo envolvemos en `new Function('window', 'localStorage', ...code)`.
+3. Ejecutamos la función pasando mocks controlados (`vi.fn()`) como argumentos.
+
+**Ejemplo (tests/cache.test.js):**
+```javascript
+const code = fs.readFileSync('js/lf-cache.js', 'utf8');
+const fn = new Function('window', 'localStorage', code);
+fn(mockWindow, mockLocalStorage);
+```
+Esto permite aislar el entorno global y probar lógica compleja (offline, caché, fetch) sin contaminar el entorno de test.
+
+### Suites Principales
+- **Cálculo**: Lógica de facturación, impuestos y reglas de negocio.
+- **PVPC**: Descarga de datos, festivos y fallback a caché.
+- **Importación**: Parsing robusto de CSV/Excel (BOM, codificaciones, formatos raros).
+- **Estado/Caché**: Persistencia y resiliencia offline.
