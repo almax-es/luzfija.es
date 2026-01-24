@@ -301,7 +301,7 @@ luzfija.es/
 
 ### Arquitectura Modular
 
-**Separación de concerns (23 módulos):**
+**Separación de concerns (24 módulos):**
 - **config.js** (4 LOC): Config global (URLs, flags)
 - **lf-config.js** (213 LOC): Valores regulados y reglas fiscales por territorio
 - **lf-calc.js** (498 LOC): Motor de cálculo (potencia, energía, impuestos, solar, BV)
@@ -309,20 +309,21 @@ luzfija.es/
 - **lf-app.js** (561 LOC): Coordinación general (carga, eventos, recalcular)
 - **lf-render.js** (534 LOC): Renderizado tabla + gráfico Top 5 + estados visuales
 - **lf-utils.js** (273 LOC): Utilidades puras (parseNum, escapeHtml, formatMoney, etc.)
+- **lf-csv-utils.js** (Nuevo): Motor compartido de parsing CSV robusto, detección de separadores y festivos
 - **lf-inputs.js** (607 LOC): Inputs (validación, formato, autosuma, ayudas contextuales)
 - **lf-tooltips.js** (147 LOC): Tooltips contextuales
 - **lf-ui.js** (155 LOC): UX (menús, modales, animaciones, accesibilidad)
 - **lf-cache.js** (175 LOC): Caché de tarifas/PVPC y utilidades offline
 - **lf-tarifa-custom.js** (242 LOC): Tarifa personalizada (compara con tu contrato)
-- **lf-csv-import.js** (956 LOC): Importador CSV/XLSX con detección festivos + Sun Club
+- **lf-csv-import.js** (Adaptado): Importador CSV/XLSX para web principal (delega en csv-utils)
 - **pvpc.js** (924 LOC): Cliente PVPC con caché local y validación
 - **index-extra.js** (677 LOC): Widget PVPC + bloque novedades en home
 - **theme.js** (16 LOC): Gestión tema claro/oscuro
 - **factura.js** (1,756 LOC): Parser PDF + QR + OCR (lazy loading, módulo más grande)
 - **desglose-factura.js** (606 LOC): Modal desglose detallado de tarifas
-- **desglose-integration.js** (407 LOC): Integración desglose con tabla principal
+- **desglose-integration.js** (407 LOC): Integración desglose con tabla
 - **tracking.js** (236 LOC): Analytics (GoatCounter, defer attribute)
-- **bv/bv-import.js** (580 LOC): Importador CSV/XLSX para simulador BV
+- **bv/bv-import.js** (Adaptado): Importador para BV (delega parsing en csv-utils)
 - **bv/bv-sim-monthly.js** (400 LOC): Motor simulación mensual BV (cálculo económico)
 - **bv/bv-ui.js** (655 LOC): UI simulador BV (tooltips, responsive, accesibilidad)
 

@@ -143,25 +143,32 @@ El comparador incluye una funcionalidad única de **"Edición sobre datos reales
 
 ## Arquitectura Técnica
 
-### Módulos JavaScript (3 archivos en `/js/bv/`)
+### Módulos JavaScript (4 archivos clave)
 
 ```
-js/bv/
-├── bv-import.js        (580 LOC) - Importación y parseo CSV/XLSX
-├── bv-sim-monthly.js   (400 LOC) - Motor de cálculo mensual
-└── bv-ui.js            (655 LOC) - Interfaz de usuario y renderizado
+js/
+├── lf-csv-utils.js     (Nuevo) - Utilidades de parsing CSV compartidas
+└── bv/
+    ├── bv-import.js        - Orquestación de importación para BV
+    ├── bv-sim-monthly.js   - Motor de cálculo mensual
+    └── bv-ui.js            - Interfaz de usuario y renderizado
 ```
 
-#### 1. **bv-import.js** - Importación de Datos
+#### 0. **lf-csv-utils.js** - Motor de Parsing Compartido
 
 **Responsabilidades**:
-- Lazy loading de XLSX.js (~1 MB)
-- Parseo de CSV (separador automático)
-- Parseo de XLSX (formato estándar + matriz H01-H24)
-- **Caché de Importación**: Almacena el resultado del parseo (`_cachedImportResult`) para evitar re-procesar el archivo si el usuario recalcula sin cambiar el fichero.
-- Detección de festivos nacionales (algoritmo de Gauss para Pascua)
-- Periodificación P1/P2/P3 según RD 148/2021
-- Validaciones de seguridad
+- Detección inteligente de separadores (`;` vs `,`)
+- Parseo robusto de líneas CSV (manejo de comillas y caracteres escapados)
+- Normalización de números (formatos ES/US) y fechas
+- Cálculo de festivos nacionales y periodos tarifarios (P1/P2/P3)
+
+#### 1. **bv-import.js** - Importación de Datos (Capa BV)
+
+**Responsabilidades**:
+- Lazy loading de XLSX.js
+- Delegación del parsing de bajo nivel a `lf-csv-utils.js`
+- Validación específica para BV (existencia de columna de excedentes)
+- Construcción de metadatos del archivo
 
 **Funciones principales**:
 

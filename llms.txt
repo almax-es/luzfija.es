@@ -130,7 +130,8 @@ Tarifas incluidas: 24 ofertas del mercado eléctrico español
 Comercializadoras incluidas: Principales comercializadoras españolas
 Actualización de datos: Periódica (tarifas) y diaria (PVPC via GitHub Actions a las 21:00 Madrid)
 PVPC: Actualizado automáticamente desde ESIOS (precios horarios oficiales REE)
-Módulos JavaScript: 23 (arquitectura modular con ~12.035 LOC)
+Módulos JavaScript: 24 (arquitectura modular con ~12.035 LOC)
+  - Incluye nuevo módulo compartido: lf-csv-utils.js (parsing robusto CSV)
   - Incluye 3 módulos del Simulador BV: bv-import.js (580 LOC), bv-sim-monthly.js (400 LOC), bv-ui.js (655 LOC)
 
 ## Optimizaciones recientes (Enero 2026)
