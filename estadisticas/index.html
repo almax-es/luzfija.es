@@ -368,8 +368,37 @@
             }
         }
 
-        geoSel.addEventListener('change', updateStats);
-        yearSel.addEventListener('change', updateStats);
+        geoSel.addEventListener('change', () => {
+            updateURL();
+            updateStats();
+        });
+        yearSel.addEventListener('change', () => {
+            updateURL();
+            updateStats();
+        });
+
+        function updateURL() {
+            const params = new URLSearchParams();
+            params.set('geo', geoSel.value);
+            params.set('year', yearSel.value);
+            const newUrl = `${window.location.pathname}?${params.toString()}`;
+            window.history.replaceState({}, '', newUrl);
+        }
+
+        function readURL() {
+            const params = new URLSearchParams(window.location.search);
+            const y = params.get('year');
+            const g = params.get('geo');
+            if (y && document.querySelector(`#yearSelector option[value="${y}"]`)) {
+                yearSel.value = y;
+            }
+            if (g && document.querySelector(`#geoSelector option[value="${g}"]`)) {
+                geoSel.value = g;
+            }
+        }
+
+        // Inicializar
+        readURL();
         updateStats();
     });
   </script>
