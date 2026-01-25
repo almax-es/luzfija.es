@@ -555,6 +555,17 @@ SOFTWARE.
 
 ---
 
+## 📖 Documentación Técnica
+
+Para desarrolladores e interesados en la arquitectura de datos:
+
+- [Esquema de Datos JSON (tarifas y novedades)](JSON-SCHEMA.md)
+- [Arquitectura y Esquema PVPC](PVPC-SCHEMA.md)
+- [Documentación del Simulador de Batería Virtual](SIMULADOR-BV.md)
+- [Contexto para LLMs / Asistentes IA](llms.txt)
+
+---
+
 ## 🙏 Agradecimientos
 
 - **REE/ESIOS** por API oficial de PVPC (indicador 1001)
