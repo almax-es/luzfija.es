@@ -166,6 +166,26 @@ select {
   min-width: 200px;
 }
 
+/* Fix crítico para opciones de desplegables (evitar texto blanco sobre fondo blanco) */
+select option {
+  background-color: #ffffff;
+  color: #1a1a1a;
+  padding: 10px;
+}
+
+@media (prefers-color-scheme: dark) {
+  select option {
+    background-color: #1f2937;
+    color: #f3f4f6;
+  }
+}
+
+/* Soporte para selector de tema manual (si aplica) */
+[data-theme="dark"] select option {
+  background-color: #1f2937;
+  color: #f3f4f6;
+}
+
 input[type="number"] {
   appearance: textfield;
   padding: 0.7rem 1rem;
