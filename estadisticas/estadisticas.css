@@ -445,36 +445,9 @@ input[type="number"]::-webkit-inner-spin-button {
   border: 1px solid var(--bg-card);
 }
 
-.heatmap-month-label {
-  grid-row: 1;
-  font-size: 0.65rem;
-  color: var(--text-muted);
-  text-align: left;
-  padding-bottom: 4px;
-  pointer-events: none;
-}
-
-.heatmap-day::after {
-  content: attr(data-tip);
-  position: absolute;
-  bottom: 120%;
-  left: 50%;
-  transform: translateX(-50%);
-  background: #111827;
-  color: #fff;
-  padding: 0.35rem 0.6rem;
-  border-radius: 6px;
-  font-size: 0.7rem;
-  white-space: nowrap;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.2s;
-  z-index: 5;
-}
-
-.heatmap-day:hover::after,
-.heatmap-day:focus-visible::after {
-  opacity: 1;
+.heatmap-day:focus-visible {
+  outline: 2px solid var(--primary-color);
+  outline-offset: 2px;
 }
 
 .chart-grid {
@@ -580,6 +553,22 @@ input[type="number"]::-webkit-inner-spin-button {
 .toast.show {
   opacity: 1;
   transform: translateY(0);
+}
+
+#globalTooltip {
+  position: fixed;
+  background: #111827;
+  color: #fff;
+  padding: 0.4rem 0.8rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  pointer-events: none;
+  z-index: 10000;
+  opacity: 0;
+  transition: opacity 0.1s;
+  transform: translate(-50%, -120%);
+  box-shadow: 0 4px 6px rgba(0,0,0,0.3);
 }
 
 .modal {

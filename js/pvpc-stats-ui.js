@@ -694,14 +694,38 @@
     });
   }
 
-  if (elements.closeModalBtn) elements.closeModalBtn.addEventListener('click', closeModal);
-  if (elements.modal) {
-    elements.modal.addEventListener('click', (event) => {
-      if (event.target.dataset.close) {
-        closeModal();
+  elements.closeModalBtn.addEventListener('click', closeModal);
+  elements.modal.addEventListener('click', (event) => {
+    if (event.target.dataset.close) {
+      closeModal();
+    }
+  });
+
+  // --- Global Tooltip Logic ---
+  const tooltip = document.createElement('div');
+  tooltip.id = 'globalTooltip';
+  document.body.appendChild(tooltip);
+
+  if (elements.heatmapGrid) {
+    elements.heatmapGrid.addEventListener('mouseover', (e) => {
+      if (e.target.classList.contains('heatmap-day')) {
+        tooltip.textContent = e.target.getAttribute('data-tip');
+        tooltip.style.opacity = '1';
       }
     });
+
+    elements.heatmapGrid.addEventListener('mousemove', (e) => {
+      if (e.target.classList.contains('heatmap-day')) {
+        tooltip.style.left = `${e.clientX}px`;
+        tooltip.style.top = `${e.clientY}px`;
+      }
+    });
+
+    elements.heatmapGrid.addEventListener('mouseout', () => {
+      tooltip.style.opacity = '0';
+    });
   }
+  // ----------------------------
 
   readURL();
   updateURL();
