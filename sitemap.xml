@@ -203,7 +203,6 @@
     <priority>0.8</priority>
   </url>
 
-  <!-- Páginas Legales y Otros (Baja prioridad) -->
   <url>
     <loc>https://luzfija.es/aviso-legal.html</loc>
     <lastmod>2026-01-23</lastmod>
