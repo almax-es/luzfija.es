@@ -194,10 +194,20 @@
       </section>
     </div>
 
-    <div class="chart-card">
-        <h2>🆚 Comparativa Multianual</h2>
-        <canvas id="comparisonChart" height="80" role="img" aria-label="Gráfico comparativo multianual mostrando la evolución del precio de la luz entre varios años."></canvas>
-    </div>
+    <section class="panel" aria-labelledby="comparisonTitle" data-loading="true">
+      <div class="panel__header">
+        <div>
+          <p class="eyebrow">Comparativa</p>
+          <h2 id="comparisonTitle">Comparativa Multianual</h2>
+          <p class="panel__subtitle">Comparación por día del año con tendencia suavizada y detalle por tooltip.</p>
+        </div>
+        <div id="comparisonControls" class="comparison-controls"></div>
+      </div>
+      <div class="chart-shell chart-shell--comparison">
+        <div class="skeleton skeleton-chart"></div>
+        <canvas id="comparisonChart" role="img" aria-label="Gráfico comparativo multianual mostrando la evolución del precio de la luz entre varios años."></canvas>
+      </div>
+    </section>
 
     <!-- CTA Premium -->
     <section class="cta-card" style="margin-top: 4rem; text-align: center; padding: 3rem 2rem; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3);">
