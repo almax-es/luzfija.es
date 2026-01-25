@@ -103,15 +103,28 @@ const PVPC_STATS = {
     getYearStatus(yearData) {
         const year = yearData.meta?.year;
         const totalDays = this.daysInYear(year);
-        const loadedDays = Object.keys(yearData.days).length;
-        const completeness = totalDays ? loadedDays / totalDays : 0;
-        const updatedUntil = yearData.meta?.latestDate || (loadedDays ? Object.keys(yearData.days).sort().pop() : null);
+        const sortedDates = Object.keys(yearData.days).sort();
+        const loadedDays = sortedDates.length;
+        const coverageFrom = sortedDates.length ? sortedDates[0] : null;
+        const coverageTo = sortedDates.length ? sortedDates[sortedDates.length - 1] : null;
+        const updatedUntil = yearData.meta?.latestDate || coverageTo;
+        const oneDay = 1000 * 60 * 60 * 24;
+        const coverageDays = coverageFrom && coverageTo
+            ? Math.round((this.parseDateLocal(coverageTo) - this.parseDateLocal(coverageFrom)) / oneDay) + 1
+            : 0;
+        const coverageCompleteness = coverageDays ? loadedDays / coverageDays : 0;
+        const yearCompleteness = totalDays ? loadedDays / totalDays : 0;
 
         return {
             updatedUntil,
-            completeness,
+            completeness: yearCompleteness,
             loadedDays,
             totalDays,
+            coverageFrom,
+            coverageTo,
+            coverageDays,
+            coverageCompleteness,
+            yearCompleteness,
             monthsLoaded: yearData.meta?.monthsLoaded || []
         };
     },
@@ -191,6 +204,26 @@ const PVPC_STATS = {
         });
 
         return { labels, data };
+    },
+
+    toDailySeries(yearData) {
+        const values = new Array(366).fill(null);
+        const sortedDates = Object.keys(yearData.days).sort();
+        sortedDates.forEach(dateStr => {
+            const [y, m, d] = dateStr.split('-').map(Number);
+            const dayOfYear = this.dayOfYearUTC(y, m, d);
+            const hours = yearData.days[dateStr];
+            const avg = hours.reduce((sum, h) => sum + h[1], 0) / hours.length;
+            if (dayOfYear >= 0 && dayOfYear < 366) {
+                values[dayOfYear] = avg;
+            }
+        });
+
+        return {
+            values,
+            coverageFrom: sortedDates.length ? sortedDates[0] : null,
+            coverageTo: sortedDates.length ? sortedDates[sortedDates.length - 1] : null
+        };
     },
 
     /**

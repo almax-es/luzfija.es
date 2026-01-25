@@ -166,6 +166,23 @@ select {
   min-width: 200px;
 }
 
+input[type="number"] {
+  appearance: textfield;
+  padding: 0.7rem 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  background-color: var(--bg-card);
+  color: var(--text-main);
+  font-size: 1rem;
+  font-weight: 600;
+  min-width: 200px;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  margin: 0;
+}
+
 .control-actions {
   display: flex;
   gap: 0.8rem;
@@ -309,6 +326,11 @@ select {
   display: flex;
   justify-content: space-between;
   gap: 0.5rem;
+}
+
+.window-item__meta--stack {
+  flex-direction: column;
+  align-items: flex-start;
 }
 
 .summary-list {
