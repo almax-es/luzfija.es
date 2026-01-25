@@ -199,114 +199,176 @@
         <canvas id="comparisonChart" height="80" role="img" aria-label="Gráfico comparativo multianual mostrando la evolución del precio de la luz entre varios años."></canvas>
     </div>
 
-    <section class="cta-card">
-      <div>
-        <h2>¿Tu tarifa actual es mejor que el PVPC?</h2>
-        <p>No adivines. El PVPC es volátil. Usa tus datos reales para comparar el precio regulado con las mejores ofertas fijas del mercado.</p>
+    <!-- CTA Premium -->
+    <section class="cta-card" style="margin-top: 4rem; text-align: center; padding: 3rem 2rem; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3);">
+      <div style="max-width: 600px; margin: 0 auto;">
+        <h2 style="font-size: 2.2rem; margin-bottom: 1rem; background: linear-gradient(to right, #fbbf24, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">¿El PVPC te está costando dinero?</h2>
+        <p style="font-size: 1.1rem; color: #cbd5e1; margin-bottom: 2rem; line-height: 1.6;">
+          El mercado regulado es volátil: un mes ahorras, al siguiente pagas el doble.
+          <br><strong>No adivines.</strong> Calcula tu factura real con tus propios datos de consumo y descubre si una tarifa fija te saldría más barata hoy mismo.
+        </p>
+        <a href="/" class="btn" style="background: #3b82f6; color: white; padding: 1rem 2rem; font-size: 1.1rem; border: none; font-weight: 700; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); transition: transform 0.2s;">
+          ⚡ Comparar con mi consumo real
+        </a>
+        <p style="font-size: 0.85rem; color: #64748b; margin-top: 1rem;">Gratis, sin registro y 100% privado.</p>
       </div>
-      <a href="/" class="btn btn-primary">Ir al comparador principal</a>
     </section>
 
-    <section class="faq" aria-labelledby="faqTitle">
-      <h2 id="faqTitle">Preguntas frecuentes sobre el PVPC</h2>
-      <div class="faq-grid">
-        <article itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <h3 itemprop="name">¿A qué hora es más barata la luz en España?</h3>
-          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+    <!-- FAQ Premium (Acordeón) -->
+    <section class="faq" aria-labelledby="faqTitle" style="max-width: 800px; margin: 4rem auto;">
+      <h2 id="faqTitle" style="text-align: center; margin-bottom: 2.5rem; font-size: 2rem;">Preguntas Frecuentes sobre el PVPC</h2>
+      
+      <div class="faq-grid" style="gap: 1rem;">
+        <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <summary class="faq-question" itemprop="name">¿A qué hora es más barata la luz en España?</summary>
+          <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
             <div itemprop="text">
-              <p>Gracias al auge de la energía solar, las horas más baratas suelen ser entre las <strong>11:00 y las 17:00 (mediodía)</strong>, cuando la generación fotovoltaica es máxima. El antiguo patrón de "madrugada más barata" ha cambiado.</p>
-              <p>Las horas más caras siguen siendo <strong>18:00-22:00</strong> (pico de demanda sin solar). Consulta nuestro "Reloj del Ahorro" arriba para ver el patrón del año actual.</p>
+              <p>¡Olvida lo de poner la lavadora de madrugada! Gracias al auge de la energía solar, <strong>las horas más baratas ahora son al mediodía (11:00h - 17:00h)</strong>. Es el momento dorado para consumir.</p>
+              <p>Por el contrario, el horario más caro se ha desplazado a la noche (20:00h - 22:00h), cuando el sol se pone y todos encendemos la luz y la cocina.</p>
             </div>
           </div>
-        </article>
+        </details>
 
-        <article itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <h3 itemprop="name">¿Por qué la luz es más cara por la tarde?</h3>
-          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+        <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <summary class="faq-question" itemprop="name">¿Por qué la luz es tan cara por la tarde?</summary>
+          <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
             <div itemprop="text">
-              <p>Entre las 18:00 y 22:00 se produce el <strong>pico de demanda eléctrica</strong>: todos llegamos a casa, cocinamos, encendemos calefacción y vemos TV al mismo tiempo.</p>
-              <p>Además, las placas solares ya no generan energía, por lo que el sistema depende de centrales más caras (gas). Esta combinación dispara los precios.</p>
+              <p>Es la "tormenta perfecta":</p>
+              <ul style="padding-left: 1.2rem; margin: 0.5rem 0;">
+                <li>📉 <strong>Cero Solar:</strong> Las placas dejan de producir al atardecer.</li>
+                <li>📈 <strong>Pico de Demanda:</strong> Millones de familias llegan a casa y consumen a la vez.</li>
+                <li>🏭 <strong>Gas Caro:</strong> Para cubrir esa demanda sin sol, entran a funcionar las centrales de ciclo combinado (gas), que son las más costosas.</li>
+              </ul>
               <p><a href="/guias/como-adaptar-tus-horarios-para-pagar-menos-luz.html">Ver guía completa sobre horarios →</a></p>
             </div>
           </div>
-        </article>
+        </details>
 
-        <article itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <h3 itemprop="name">¿Cuál es el mes más caro del año para la luz?</h3>
-          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+        <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <summary class="faq-question" itemprop="name">¿Cuál es el mes más caro del año?</summary>
+          <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
             <div itemprop="text">
-              <p>Históricamente, <strong>enero</strong> (calefacción + baja solar) y <strong>agosto</strong> (aire acondicionado + olas de calor) suelen ser los más caros.</p>
-              <p>Sin embargo, esto varía: en 2022 el pico fue en marzo (guerra Ucrania), mientras que 2024 fue estable. Consulta el gráfico "Comparativa Multianual" arriba para ver las tendencias.</p>
+              <p>Históricamente, los "villanos" son <strong>enero</strong> (frío intenso + días cortos) y <strong>agosto</strong> (olas de calor + aire acondicionado). Sin embargo, el mercado es impredecible: en 2022 el pico fue en marzo por la guerra de Ucrania.</p>
+              <p><em>Consejo:</em> Mira nuestro gráfico de "Comparativa Multianual" arriba para detectar las tendencias antes de que lleguen.</p>
             </div>
           </div>
-        </article>
+        </details>
 
-        <article itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <h3 itemprop="name">¿Me conviene el PVPC o una tarifa fija?</h3>
-          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+        <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <summary class="faq-question" itemprop="name">¿Me conviene el PVPC o una tarifa fija?</summary>
+          <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
             <div itemprop="text">
-              <p>El PVPC conviene si:</p>
-              <ul>
-                <li>Puedes desplazar consumos a horas baratas (mediodía o madrugada)</li>
-                <li>Tienes placas solares con autoconsumo</li>
-                <li>Consumes poco en horas punta (18h-22h)</li>
+              <p>No hay una respuesta única, pero sí una regla de oro:</p>
+              <ul style="padding-left: 1.2rem; margin: 0.5rem 0;">
+                <li>✅ <strong>Elige PVPC si:</strong> Puedes adaptar tu consumo al mediodía/fin de semana o tienes placas solares. A largo plazo suele ser más económico.</li>
+                <li>✅ <strong>Elige Fija si:</strong> Quieres tranquilidad total, saber qué vas a pagar siempre y no puedes estar pendiente del reloj.</li>
               </ul>
-              <p>Las tarifas fijas convienen si prefieres estabilidad y no puedes adaptar horarios.</p>
-              <p><a href="/">Usa nuestro comparador con tus datos reales →</a></p>
+              <p><a href="/">Usa nuestro comparador para ver la diferencia en euros →</a></p>
             </div>
           </div>
-        </article>
+        </details>
 
-        <article itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <h3 itemprop="name">¿Por qué hay precios negativos en el PVPC?</h3>
-          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+        <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <summary class="faq-question" itemprop="name">¿Por qué hay precios negativos o a 0€?</summary>
+          <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
             <div itemprop="text">
-              <p>Ocurre cuando hay <strong>exceso de producción renovable</strong> (mucho viento y sol) y baja demanda, típicamente en madrugadas de primavera u otoño.</p>
-              <p>Los productores pagan por verter electricidad porque es más caro parar sus plantas. Sin embargo, tú sigues pagando peajes y cargos, por lo que el precio final nunca es realmente cero, aunque sí muy bajo.</p>
+              <p>Sucede cuando nos "sobra" electricidad renovable (mucho viento y sol en primavera/otoño) y hay poca demanda. A las centrales les sale más caro parar que regalar la energía.</p>
+              <p><strong>Ojo:</strong> Aunque el precio del mercado sea 0€, tú sigues pagando peajes y cargos del sistema, por lo que tu factura nunca será cero, pero sí muy baja.</p>
             </div>
           </div>
-        </article>
+        </details>
 
-        <article itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <h3 itemprop="name">¿Los fines de semana la luz es más barata?</h3>
-          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+        <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <summary class="faq-question" itemprop="name">¿Es verdad que la luz es más barata el fin de semana?</summary>
+          <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
             <div itemprop="text">
-              <p><strong>Sí, generalmente</strong>. Los fines de semana y festivos son periodo valle las 24 horas según la regulación 2.0TD.</p>
-              <p>Además, la demanda industrial cae (oficinas y fábricas cerradas), lo que reduce los precios. La diferencia puede ser del 20-40% respecto a días laborables.</p>
-              <p>Consulta el gráfico "Promedio por Día" arriba para ver el patrón semanal.</p>
+              <p><strong>Sí, rotundamente.</strong> Por ley, todos los sábados, domingos y festivos nacionales son periodo VALLE (P3) las 24 horas del día. Los peajes son mínimos. Es el mejor momento para poner lavadoras, secadoras y planchar la ropa de la semana.</p>
             </div>
           </div>
-        </article>
+        </details>
 
-        <article itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <h3 itemprop="name">¿Cómo ha evolucionado el precio de la luz en los últimos años?</h3>
-          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+        <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <summary class="faq-question" itemprop="name">¿Cómo ha evolucionado el precio recientemente?</summary>
+          <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
             <div itemprop="text">
-              <p><strong>2022</strong> fue el año de la crisis energética (guerra Ucrania), con precios medios de 0,28 €/kWh y picos de 0,50 €/kWh.</p>
-              <p>Desde 2023 se ha estabilizado: 2023 (~0,13 €/kWh), 2024 (~0,09 €/kWh) y 2025 (~0,11 €/kWh).</p>
-              <p>La tendencia a la baja se debe al aumento de renovables (solar +45% en 2023-2024). Usa el gráfico "Comparativa Multianual" para visualizar la evolución completa.</p>
+              <p>Venimos de una montaña rusa:</p>
+              <ul style="padding-left: 1.2rem; margin: 0.5rem 0;">
+                <li>🔴 <strong>2022:</strong> Crisis total (0,28 €/kWh media).</li>
+                <li>🟡 <strong>2023:</strong> Comienza la bajada (0,13 €/kWh).</li>
+                <li>🟢 <strong>2024-25:</strong> Estabilización gracias a las renovables (~0,09-0,11 €/kWh).</li>
+              </ul>
             </div>
           </div>
-        </article>
+        </details>
 
-        <article itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <h3 itemprop="name">¿Cómo puedo ahorrar en mi factura de luz con PVPC?</h3>
-          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+        <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <summary class="faq-question" itemprop="name">¿Trucos rápidos para ahorrar en PVPC?</summary>
+          <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
             <div itemprop="text">
-              <p>Las claves son:</p>
-              <ol>
-                <li><strong>Desplaza consumos grandes</strong> (lavadora, lavavajillas, carga coche) a horas baratas (11h-17h o madrugada)</li>
-                <li><strong>Evita consumir</strong> entre 18h-22h (pico de precio)</li>
-                <li><strong>Aprovecha periodo valle</strong> (fines de semana completos y noches 0h-8h)</li>
-                <li><strong>Considera placas solares</strong> si consumes mucho de día</li>
-                <li><strong>Revisa potencia contratada</strong>: muchos pagan de más</li>
+              <ol style="padding-left: 1.2rem; margin: 0.5rem 0;">
+                <li>⏰ <strong>Mueve consumo:</strong> Lavadoras y lavavajillas al mediodía (14h) o fin de semana.</li>
+                <li>🚫 <strong>Evita la hora punta:</strong> Intenta no usar grandes electrodomésticos de 20h a 22h.</li>
+                <li>🔌 <strong>Revisa tu potencia:</strong> Bajar 1 kW de potencia contratada te ahorra unos 50€ al año fijos.</li>
               </ol>
-              <p><a href="/guias/como-adaptar-tus-horarios-para-pagar-menos-luz.html">Ver guía completa de ahorro →</a></p>
+              <p><a href="/guias/como-adaptar-tus-horarios-para-pagar-menos-luz.html">Guía avanzada de ahorro →</a></p>
             </div>
           </div>
-        </article>
+        </details>
       </div>
     </section>
+
+    <style>
+      /* Estilos específicos para el acordeón FAQ */
+      .faq-item {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        transition: all 0.2s ease;
+      }
+      .faq-item[open] {
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      }
+      .faq-question {
+        padding: 1.2rem;
+        font-weight: 700;
+        font-size: 1.1rem;
+        cursor: pointer;
+        list-style: none; /* Ocultar triángulo defecto */
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        color: var(--text-main);
+      }
+      .faq-question::-webkit-details-marker { display: none; }
+      .faq-question::after {
+        content: '+';
+        font-size: 1.5rem;
+        font-weight: 300;
+        color: var(--primary-color);
+        transition: transform 0.2s;
+      }
+      .faq-item[open] .faq-question::after {
+        transform: rotate(45deg);
+      }
+      .faq-answer {
+        padding: 0 1.2rem 1.2rem 1.2rem;
+        color: var(--text-muted);
+        line-height: 1.6;
+        border-top: 1px solid var(--border-color);
+        margin-top: -0.5rem;
+        padding-top: 1rem;
+      }
+      .faq-answer a {
+        color: var(--primary-color);
+        text-decoration: none;
+        font-weight: 600;
+      }
+      .faq-answer a:hover {
+        text-decoration: underline;
+      }
+    </style>
   </main>
 
   <footer class="stats-footer">
