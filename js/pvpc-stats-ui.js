@@ -520,6 +520,7 @@
         }
       }
     });
+  };
 
   const loadComparisonAsync = ({ geoId, years, token }) => {
     const requestToken = token;
