@@ -286,7 +286,8 @@
       const prevAvg = window.PVPC_STATS.getKPIs(prevData).avgPrice;
       const diff = prevAvg ? ((kpis.avgPrice - prevAvg) / prevAvg) * 100 : 0;
       const trend = diff > 0 ? 'más caro' : 'más barato';
-      elements.insightText.textContent = `En ${currentYear}, el PVPC está siendo un ${Math.abs(diff).toLocaleString('es-ES', { maximumFractionDigits: 1 })}% ${trend} que en ${prevYear}.`;
+      const verb = String(currentYear) === new Date().getFullYear().toString() ? 'está siendo' : 'fue';
+      elements.insightText.textContent = `En ${currentYear}, el PVPC ${verb} un ${Math.abs(diff).toLocaleString('es-ES', { maximumFractionDigits: 1 })}% ${trend} que en ${prevYear}.`;
     } else {
       elements.insightText.textContent = `Analizando el mercado de ${currentYear}. Usa el reloj del ahorro para planificar tu consumo.`;
     }
