@@ -566,10 +566,10 @@ input[type="number"]::-webkit-inner-spin-button {
   font-size: 0.75rem;
   white-space: nowrap;
   pointer-events: none;
-  z-index: 10000;
-  opacity: 0;
+  z-index: 2147483647; /* Max int z-index */
+  display: none; /* Oculto por defecto */
   box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-  will-change: transform; /* Hint for GPU */
+  will-change: transform;
 }
 
 .modal {

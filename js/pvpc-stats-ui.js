@@ -725,7 +725,7 @@
         tooltip.style.top = `${y}px`;
         tooltip.style.transform = `translate(-50%, -130%)`; // Mover arriba y centrar
         
-        tooltip.style.opacity = '1';
+        tooltip.style.display = 'block';
       }
     });
 
@@ -737,7 +737,7 @@
     elements.heatmapGrid.addEventListener('mouseout', (e) => {
        const target = e.target.closest('.heatmap-day');
        if (target) {
-         tooltip.style.opacity = '0';
+         tooltip.style.display = 'none';
        }
     });
   }
