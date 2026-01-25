@@ -543,41 +543,88 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .kpi-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.2rem;
 }
 
 .kpi-card {
-  border: 1px solid var(--border-color);
-  border-radius: 14px;
-  padding: 1rem;
-  text-align: left;
+  border: none;
+  border-radius: 18px;
+  padding: 1.4rem;
   position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+/* Variantes de color */
+.kpi-card--avg {
+  background: linear-gradient(145deg, #eff6ff, #dbeafe);
+  color: #1e40af;
+}
+.kpi-card--min {
+  background: linear-gradient(145deg, #ecfdf5, #d1fae5);
+  color: #065f46;
+}
+.kpi-card--max {
+  background: linear-gradient(145deg, #fef2f2, #fee2e2);
+  color: #991b1b;
+}
+.kpi-card--solar {
+  background: linear-gradient(145deg, #fffbeb, #fef3c7);
+  color: #92400e;
+}
+
+/* Modo oscuro */
+[data-theme="dark"] .kpi-card--avg { background: rgba(30, 58, 138, 0.2); color: #bfdbfe; }
+[data-theme="dark"] .kpi-card--min { background: rgba(6, 95, 70, 0.2); color: #a7f3d0; }
+[data-theme="dark"] .kpi-card--max { background: rgba(153, 27, 27, 0.2); color: #fecaca; }
+[data-theme="dark"] .kpi-card--solar { background: rgba(146, 64, 14, 0.2); color: #fde68a; }
+
+.kpi-icon {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  font-size: 1.5rem;
+  opacity: 0.2;
+  transform: scale(1);
+  transition: transform 0.2s;
+}
+
+.kpi-card:hover .kpi-icon {
+  transform: scale(1.2) rotate(10deg);
+  opacity: 0.4;
 }
 
 .kpi-label {
   font-size: 0.8rem;
-  color: var(--text-muted);
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.08em;
-  margin-bottom: 0.4rem;
+  letter-spacing: 0.05em;
+  margin-bottom: 0.5rem;
+  opacity: 0.8;
 }
 
 .kpi-value {
-  font-size: 1.8rem;
+  font-size: 2.2rem;
   font-weight: 800;
-  margin: 0;
-  color: var(--primary-color);
+  line-height: 1;
+  margin: 0.2rem 0;
+  letter-spacing: -0.02em;
 }
 
-.kpi-value--good { color: var(--color-level-0); }
-.kpi-value--bad { color: var(--color-level-4); }
-.kpi-value--solar { color: #fbbf24; }
-
 .kpi-sub {
-  margin: 0.2rem 0 0;
-  color: var(--text-muted);
   font-size: 0.85rem;
+  font-weight: 500;
+  opacity: 0.75;
+  margin-top: auto;
 }
 
 .heatmap-container {

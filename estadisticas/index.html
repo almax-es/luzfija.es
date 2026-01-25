@@ -123,28 +123,32 @@
         <p class="panel__subtitle">Precios medios y extremos para decidir con confianza.</p>
       </div>
       <div class="kpi-grid">
-        <div class="kpi-card">
+        <div class="kpi-card kpi-card--avg">
+          <div class="kpi-icon">📊</div>
           <p class="kpi-label">Media anual</p>
           <p class="kpi-value" id="kpiAvg">--</p>
-          <p class="kpi-sub">€/kWh</p>
+          <p class="kpi-sub">Precio base (€/kWh)</p>
           <div class="skeleton skeleton-line"></div>
         </div>
-        <div class="kpi-card">
-          <p class="kpi-label">Día más barato</p>
-          <p class="kpi-value kpi-value--good" id="kpiMin">--</p>
+        <div class="kpi-card kpi-card--min">
+          <div class="kpi-icon">📉</div>
+          <p class="kpi-label">Mínimo anual</p>
+          <p class="kpi-value" id="kpiMin">--</p>
           <p class="kpi-sub" id="kpiMinDate">--</p>
           <div class="skeleton skeleton-line"></div>
         </div>
-        <div class="kpi-card">
-          <p class="kpi-label">Día más caro</p>
-          <p class="kpi-value kpi-value--bad" id="kpiMax">--</p>
+        <div class="kpi-card kpi-card--max">
+          <div class="kpi-icon">📈</div>
+          <p class="kpi-label">Máximo anual</p>
+          <p class="kpi-value" id="kpiMax">--</p>
           <p class="kpi-sub" id="kpiMaxDate">--</p>
           <div class="skeleton skeleton-line"></div>
         </div>
-        <div class="kpi-card">
-          <p class="kpi-label">Media Solar (12h-17h)</p>
-          <p class="kpi-value kpi-value--solar" id="kpiSolar">--</p>
-          <p class="kpi-sub">Precio medio</p>
+        <div class="kpi-card kpi-card--solar">
+          <div class="kpi-icon">☀️</div>
+          <p class="kpi-label">Horas solares</p>
+          <p class="kpi-value" id="kpiSolar">--</p>
+          <p class="kpi-sub">Media 12h-17h</p>
           <div class="skeleton skeleton-line"></div>
         </div>
       </div>
