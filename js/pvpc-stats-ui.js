@@ -707,6 +707,8 @@
   document.body.appendChild(tooltip);
 
   if (elements.heatmapGrid) {
+    let rafId = null;
+
     elements.heatmapGrid.addEventListener('mouseover', (e) => {
       if (e.target.classList.contains('heatmap-day')) {
         tooltip.textContent = e.target.getAttribute('data-tip');
@@ -715,14 +717,29 @@
     });
 
     elements.heatmapGrid.addEventListener('mousemove', (e) => {
-      if (e.target.classList.contains('heatmap-day')) {
-        tooltip.style.left = `${e.clientX}px`;
-        tooltip.style.top = `${e.clientY}px`;
-      }
+      if (!e.target.classList.contains('heatmap-day')) return;
+      
+      if (rafId) return;
+      
+      const x = e.clientX;
+      const y = e.clientY;
+      
+      rafId = requestAnimationFrame(() => {
+        // Offset de -50% en X y -120% en Y (arriba) hecho manualmente o via transform
+        // Aquí usamos transform translate puro. 
+        // Nota: para centrarlo horizontalmente restamos un ancho estimado o usamos CSS transform: translate(-50%, -100%)
+        // Como el JS sobreescribe transform, lo incluimos todo aquí.
+        tooltip.style.transform = `translate(${x}px, ${y}px) translate(-50%, -130%)`;
+        rafId = null;
+      });
     });
 
     elements.heatmapGrid.addEventListener('mouseout', () => {
       tooltip.style.opacity = '0';
+      if (rafId) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
     });
   }
   // ----------------------------
