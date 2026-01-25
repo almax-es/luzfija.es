@@ -34,9 +34,6 @@
     usagePerMonth: document.getElementById('usagePerMonth'),
     dayType: document.getElementById('dayType'),
     insightText: document.getElementById('insightText'),
-    updatedBadge: document.getElementById('updatedBadge'),
-    completenessBadge: document.getElementById('completenessBadge'),
-    dataWarning: document.getElementById('dataWarning'),
     kpiAvg: document.getElementById('kpiAvg'),
     kpiMin: document.getElementById('kpiMin'),
     kpiMinDate: document.getElementById('kpiMinDate'),
@@ -359,38 +356,6 @@
       kwh: state.usageKwh,
       perMonth: state.usagePerMonth
     });
-  };
-
-  const renderStatus = (status) => {
-    elements.updatedBadge.textContent = `Actualizado hasta: ${formatDate(status.updatedUntil)}`;
-    const completenessValue = Number.isFinite(status.coverageCompleteness)
-      ? status.coverageCompleteness
-      : status.completeness;
-    elements.completenessBadge.textContent = `Completitud: ${(completenessValue * 100).toLocaleString('es-ES', { maximumFractionDigits: 1 })}%`;
-
-    const isFullCoverage = status.coverageFrom?.endsWith('-01-01') && status.coverageTo?.endsWith('-12-31');
-    const isCurrentYear = Number(state.year) === new Date().getFullYear();
-    const todayStr = new Date().toISOString().slice(0, 10);
-    const hasLag = isCurrentYear && status.coverageTo && status.coverageTo < todayStr;
-
-    if (!isFullCoverage && status.coverageFrom && status.coverageTo) {
-      const coverageText = `Cobertura: desde ${formatDate(status.coverageFrom)} hasta ${formatDate(status.coverageTo)}.`;
-      const completenessText = `Completitud dentro del rango: ${(status.coverageCompleteness * 100).toLocaleString('es-ES', { maximumFractionDigits: 1 })}%.`;
-      const lagText = hasLag ? `Datos actualizados hasta ${formatDate(status.coverageTo)}.` : '';
-      elements.dataWarning.textContent = [coverageText, completenessText, lagText].filter(Boolean).join(' ');
-      return;
-    }
-
-    if (hasLag) {
-      elements.dataWarning.textContent = `Datos actualizados hasta ${formatDate(status.coverageTo)}.`;
-      return;
-    }
-
-    if (status.completeness < 0.98) {
-      elements.dataWarning.textContent = `Datos incompletos: ${status.loadedDays} de ${status.totalDays} días cargados.`;
-    } else {
-      elements.dataWarning.textContent = '';
-    }
   };
 
   const buildHeatmap = (heatmapData) => {
@@ -823,7 +788,6 @@
 
       state.lastAnalysis = analysis;
       renderKPIs(analysis);
-      renderStatus(analysis.status);
       renderWindowList(analysis.windowStats, analysis.kpis, {
         kwh: state.usageKwh,
         perMonth: state.usagePerMonth
