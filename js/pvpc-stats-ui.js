@@ -339,13 +339,19 @@
   const renderComparisonControls = (datasets) => {
     if (!elements.comparisonControls) return;
     elements.comparisonControls.innerHTML = '';
+    
+    // Botón "Toggle All" simplificado
     const toggleAllBtn = document.createElement('button');
     toggleAllBtn.type = 'button';
     toggleAllBtn.className = 'btn btn-ghost btn-sm';
-    toggleAllBtn.textContent = state.visibleYears.size === datasets.length ? 'Ocultar todo' : 'Mostrar todo';
+    toggleAllBtn.style.fontSize = '0.75rem';
+    toggleAllBtn.textContent = state.visibleYears.size === datasets.length ? 'Ocultar todos' : 'Ver todos';
+    
     toggleAllBtn.addEventListener('click', () => {
       if (state.visibleYears.size === datasets.length) {
         state.visibleYears.clear();
+        // Mantener siempre visible al menos el año seleccionado actual para no dejar gráfico vacío
+        state.visibleYears.add(state.year); 
       } else {
         datasets.forEach(ds => state.visibleYears.add(ds.label));
       }
@@ -355,24 +361,42 @@
     elements.comparisonControls.appendChild(toggleAllBtn);
 
     datasets.forEach((ds) => {
-      const label = document.createElement('label');
-      label.className = 'year-toggle';
-      const checkbox = document.createElement('input');
-      checkbox.type = 'checkbox';
-      checkbox.checked = state.visibleYears.has(ds.label);
-      checkbox.addEventListener('change', () => {
-        if (checkbox.checked) {
-          state.visibleYears.add(ds.label);
+      const isActive = state.visibleYears.has(ds.label);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'year-pill';
+      btn.setAttribute('aria-pressed', isActive);
+      
+      // Aplicar color si está activo
+      if (isActive) {
+        btn.style.backgroundColor = ds.baseColor;
+        btn.style.borderColor = ds.baseColor;
+      } else {
+        // Si inactivo, mostrar un "dot" de color para saber cuál es
+        btn.style.color = 'var(--text-muted)';
+      }
+
+      // Contenido del botón
+      btn.innerHTML = `
+        ${!isActive ? `<span class="year-pill__dot" style="background-color:${ds.baseColor}"></span>` : ''}
+        ${ds.label}
+      `;
+
+      btn.addEventListener('click', () => {
+        if (isActive) {
+          // Evitar ocultar el último año visible (opcional, pero buena UX)
+          if (state.visibleYears.size > 1) {
+             state.visibleYears.delete(ds.label);
+          }
         } else {
-          state.visibleYears.delete(ds.label);
+          state.visibleYears.add(ds.label);
         }
+        // Re-renderizar controles para actualizar estado visual
+        renderComparisonControls(datasets); 
         applyComparisonVisibility();
       });
-      const text = document.createElement('span');
-      text.textContent = ds.label;
-      label.appendChild(checkbox);
-      label.appendChild(text);
-      elements.comparisonControls.appendChild(label);
+      
+      elements.comparisonControls.appendChild(btn);
     });
   };
 

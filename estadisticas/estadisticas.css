@@ -468,20 +468,43 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .comparison-controls {
   display: flex;
-  gap: 0.8rem;
+  gap: 0.5rem;
   flex-wrap: wrap;
+  margin-top: 0.5rem;
 }
 
-.year-toggle {
-  display: flex;
+.year-pill {
+  appearance: none;
+  border: 1px solid var(--border-color);
+  background: transparent;
+  color: var(--text-muted);
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+  display: inline-flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 0.85rem;
-  color: var(--text-muted);
 }
 
-.year-toggle input {
-  accent-color: var(--primary-color);
+.year-pill:hover {
+  background: rgba(0,0,0,0.03);
+}
+
+.year-pill[aria-pressed="true"] {
+  border-color: transparent;
+  color: white;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.year-pill__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: currentColor;
 }
 
 .cta-card {
