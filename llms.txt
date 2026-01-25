@@ -71,11 +71,26 @@ Privacidad: Todo el procesamiento se realiza localmente en el navegador. Los PDF
    - Validaciones de seguridad: MIME type, tamaño máximo 10MB, rangos de datos
    - Procesamiento 100% local (privacidad total)
 
-6. Páginas de Aterrizaje (Landings)
+7. Observatorio PVPC (Estadísticas y Ahorro)
+   - URL: https://luzfija.es/estadisticas/
+   - Herramienta de inteligencia de mercado eléctrico (SaaS-grade)
+   - **Histórico Completo**: Datos desde Junio 2021 hasta hoy (actualización diaria)
+   - **Ahorro Accionable**: Algoritmo avanzado que calcula las mejores ventanas horarias (1h-6h) para electrodomésticos basándose en percentiles reales (P10/P50/P90).
+   - Visualizaciones avanzadas:
+     * **Heatmap Anual**: Mapa de calor compacto para identificar patrones estacionales.
+     * **Reloj del Ahorro**: Visualización polar de horas baratas (curva de pato).
+     * **Comparativa Multianual**: Superposición de tendencias anuales con suavizado.
+   - Arquitectura de alto rendimiento:
+     * Cálculo en Web Workers (multihilo) para no bloquear la UI.
+     * Caché inteligente en localStorage.
+     * Gráficos interactivos con Chart.js 4.x.
+
+8. Páginas de Aterrizaje (Landings)
    - Comparar PVPC vs tarifa fija: Artículo informativo que redirige al comparador principal.
    - Calculadora de factura: Guía sobre conceptos de factura con acceso a la herramienta principal.
 
-7. Herramientas Independientes
+9. Herramientas Independientes
+   - Observatorio PVPC: https://luzfija.es/estadisticas/
    - Comparador de Tarifas Solares (CSV + Manual): https://luzfija.es/comparador-tarifas-solares.html
    - Comparador Principal (Home): https://luzfija.es/
 
@@ -187,6 +202,7 @@ Código: Open source (GitHub)
 - Token seguro: Almacenado en GitHub Actions secrets (nunca expuesto en repo ni frontend)
 
 Librerías usadas (auto-hospedadas en /vendor/):
+- Chart.js 4.x (visualización de datos en Observatorio, ~200 KB)
 - PDF.js 5.x (parseo facturas, lazy loading, ~1.5 MB)
 - Tesseract.js (OCR para PDFs escaneados, on-demand, ~8 MB)
 - jsQR 1.4.0 (escaneo códigos QR, en precache, 251 KB)
