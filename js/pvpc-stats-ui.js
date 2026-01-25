@@ -7,16 +7,7 @@
     '8745': 'Melilla'
   };
 
-  const presets = {
-    custom: { label: 'Personalizado', hours: 2, kwh: 1.0 },
-    lavadora: { label: 'Lavadora (1h)', hours: 1, kwh: 0.8 },
-    lavavajillas: { label: 'Lavavajillas (2h)', hours: 2, kwh: 1.2 },
-    termo: { label: 'Termo eléctrico (3h)', hours: 3, kwh: 3.0 },
-    coche: { label: 'Coche eléctrico (4h)', hours: 4, kwh: 12.0 }
-  };
-
   const sections = {
-    savings: document.querySelector('[data-loading][aria-labelledby="savingsTitle"]'),
     kpis: document.querySelector('[data-loading][aria-labelledby="kpiTitle"]'),
     heatmap: document.querySelector('[data-loading][aria-labelledby="heatmapTitle"]'),
     clock: document.querySelector('[data-loading][aria-labelledby="clockTitle"]'),
@@ -28,11 +19,6 @@
   const elements = {
     geoSelector: document.getElementById('geoSelector'),
     yearSelector: document.getElementById('yearSelector'),
-    usagePreset: document.getElementById('usagePreset'),
-    usageHours: document.getElementById('usageHours'),
-    usageKwh: document.getElementById('usageKwh'),
-    usagePerMonth: document.getElementById('usagePerMonth'),
-    dayType: document.getElementById('dayType'),
     insightText: document.getElementById('insightText'),
     kpiAvg: document.getElementById('kpiAvg'),
     kpiMin: document.getElementById('kpiMin'),
@@ -41,14 +27,7 @@
     kpiMaxDate: document.getElementById('kpiMaxDate'),
     kpiSolar: document.getElementById('kpiSolar'),
     heatmapGrid: document.getElementById('heatmapGrid'),
-    cheapestWindows: document.getElementById('cheapestWindows'),
-    bestWindow: document.getElementById('bestWindow'),
-    worstWindow: document.getElementById('worstWindow'),
-    savingsHighlight: document.getElementById('savingsHighlight'),
     comparisonControls: document.getElementById('comparisonControls'),
-    exampleBadge: document.getElementById('exampleBadge'),
-    exampleDate: document.getElementById('exampleDate'),
-    clearExampleBtn: document.getElementById('clearExampleBtn'),
     toast: document.getElementById('toast'),
     modal: document.getElementById('dayModal'),
     modalTitle: document.getElementById('dayModalTitle'),
@@ -74,12 +53,6 @@
   const state = {
     geoId: elements.geoSelector.value,
     year: elements.yearSelector.value,
-    usagePreset: 'custom',
-    usageHours: Number(elements.usageHours.value),
-    usageKwh: Number(elements.usageKwh?.value) || 1,
-    usagePerMonth: Number(elements.usagePerMonth?.value) || 10,
-    dayType: elements.dayType.value,
-    exampleDay: null,
     comparisonYears: [],
     visibleYears: new Set(),
     yearData: null,
@@ -94,6 +67,7 @@
   };
 
   const showToast = (message) => {
+    if (!elements.toast) return;
     elements.toast.textContent = message;
     elements.toast.classList.add('show');
     setTimeout(() => elements.toast.classList.remove('show'), 2000);
@@ -137,60 +111,10 @@
     return value.toLocaleString('es-ES', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
   };
 
-  const formatCurrency = (value) => {
-    if (!Number.isFinite(value)) return '--';
-    return value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-  };
-
-  const sanitizeKwh = (value) => {
-    const parsed = Number(value);
-    return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
-  };
-
-  const sanitizeUsageCount = (value) => {
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed)) return 10;
-    return Math.min(200, Math.max(1, Math.round(parsed)));
-  };
-
-  const storageKey = 'pvpcStatsUsage';
-
-  const loadUsageStorage = () => {
-    try {
-      const saved = JSON.parse(localStorage.getItem(storageKey));
-      if (saved && typeof saved === 'object') {
-        if (typeof saved.kwh !== 'undefined') {
-          state.usageKwh = sanitizeKwh(saved.kwh);
-          if (elements.usageKwh) elements.usageKwh.value = String(state.usageKwh);
-        }
-        if (typeof saved.perMonth !== 'undefined') {
-          state.usagePerMonth = sanitizeUsageCount(saved.perMonth);
-          if (elements.usagePerMonth) elements.usagePerMonth.value = String(state.usagePerMonth);
-        }
-      }
-    } catch (error) {
-      console.warn('No se pudo leer el almacenamiento local.', error);
-    }
-  };
-
-  const saveUsageStorage = () => {
-    try {
-      localStorage.setItem(storageKey, JSON.stringify({
-        kwh: state.usageKwh,
-        perMonth: state.usagePerMonth
-      }));
-    } catch (error) {
-      console.warn('No se pudo guardar el almacenamiento local.', error);
-    }
-  };
-
   const readURL = () => {
     const params = new URLSearchParams(window.location.search);
     const year = params.get('year');
     const geo = params.get('geo');
-    const duration = params.get('duration');
-    const dayType = params.get('day');
-    const preset = params.get('preset');
 
     if (year && document.querySelector(`#yearSelector option[value="${year}"]`)) {
       elements.yearSelector.value = year;
@@ -201,34 +125,12 @@
       elements.geoSelector.value = geo;
       state.geoId = geo;
     }
-
-    if (duration && elements.usageHours.querySelector(`option[value="${duration}"]`)) {
-      elements.usageHours.value = duration;
-      state.usageHours = Number(duration);
-    }
-
-    if (dayType && elements.dayType.querySelector(`option[value="${dayType}"]`)) {
-      elements.dayType.value = dayType;
-      state.dayType = dayType;
-    }
-
-    if (preset && presets[preset]) {
-      elements.usagePreset.value = preset;
-      state.usagePreset = preset;
-      if (elements.usageKwh) {
-        state.usageKwh = sanitizeKwh(presets[preset].kwh ?? state.usageKwh);
-        elements.usageKwh.value = String(state.usageKwh);
-      }
-    }
   };
 
   const updateURL = () => {
     const params = new URLSearchParams();
     params.set('geo', state.geoId);
     params.set('year', state.year);
-    params.set('duration', String(state.usageHours));
-    params.set('day', state.dayType);
-    params.set('preset', state.usagePreset);
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     window.history.replaceState({}, '', newUrl);
   };
@@ -285,75 +187,8 @@
     }
   };
 
-  const renderWindowList = (windowStats, kpis, usage) => {
-    elements.cheapestWindows.innerHTML = '';
-
-    if (!windowStats.cheapest.length) {
-      elements.cheapestWindows.innerHTML = '<li class="window-item">No hay datos suficientes para este filtro.</li>';
-      return;
-    }
-
-    const expensive = windowStats.expensive?.avg || kpis.avgPrice;
-    const referencePrice = kpis.avgPrice;
-    const usageKwh = sanitizeKwh(usage?.kwh);
-    const usagePerMonth = sanitizeUsageCount(usage?.perMonth);
-
-    windowStats.cheapest.forEach((window) => {
-      const savingsVsExpensive = expensive - window.avg;
-      const savingsVsAvg = kpis.avgPrice - window.avg;
-      const windowPrice = window.p50 ?? window.avg;
-      const costPerUse = windowPrice * usageKwh;
-      const savingsPerUse = Math.max(0, (referencePrice - windowPrice) * usageKwh);
-      const savingsPerMonth = savingsPerUse * usagePerMonth;
-
-      const li = document.createElement('li');
-      li.className = 'window-item';
-      li.innerHTML = `
-        <div class="window-item__title">
-          <span>${window.label}</span>
-          <strong>${formatValue(window.avg)} €/kWh</strong>
-        </div>
-        <div class="window-item__meta">
-          <span>Ahorro vs pico: ${formatValue(savingsVsExpensive)} €/kWh</span>
-          <span>Riesgo P10/P50/P90: ${formatValue(window.p10)} · ${formatValue(window.p50)} · ${formatValue(window.p90)}</span>
-        </div>
-        <div class="window-item__meta">
-          <span>Ahorro vs media anual: ${formatValue(savingsVsAvg)} €/kWh</span>
-        </div>
-        <div class="window-item__meta window-item__meta--stack">
-          <span>≈ ${formatCurrency(costPerUse)} € por uso</span>
-          <span>≈ ${formatCurrency(savingsPerMonth)} €/mes de ahorro (vs media anual)</span>
-        </div>
-      `;
-      elements.cheapestWindows.appendChild(li);
-    });
-  };
-
-  const renderSummary = (summaryStats, kpis) => {
-    if (!summaryStats.cheapest.length) {
-      elements.bestWindow.textContent = '--';
-      elements.worstWindow.textContent = '--';
-      elements.savingsHighlight.textContent = '--';
-      return;
-    }
-
-    const best = summaryStats.cheapest[0];
-    const worst = summaryStats.expensive;
-
-    elements.bestWindow.textContent = `${best.label} (${formatValue(best.avg)} €/kWh)`;
-    elements.worstWindow.textContent = `${worst.label} (${formatValue(worst.avg)} €/kWh)`;
-    elements.savingsHighlight.textContent = `Hasta ${formatValue(worst.avg - best.avg)} €/kWh frente a la franja más cara.`;
-  };
-
-  const updateSavingsDisplay = () => {
-    if (!state.lastAnalysis) return;
-    renderWindowList(state.lastAnalysis.windowStats, state.lastAnalysis.kpis, {
-      kwh: state.usageKwh,
-      perMonth: state.usagePerMonth
-    });
-  };
-
   const buildHeatmap = (heatmapData) => {
+    if (!elements.heatmapGrid) return;
     elements.heatmapGrid.innerHTML = '';
     const year = Number(state.year);
     const firstDay = new Date(year, 0, 1);
@@ -505,6 +340,7 @@
   };
 
   const renderComparisonControls = (datasets) => {
+    if (!elements.comparisonControls) return;
     elements.comparisonControls.innerHTML = '';
     const toggleAllBtn = document.createElement('button');
     toggleAllBtn.type = 'button';
@@ -634,116 +470,9 @@
     });
   };
 
-  let lastFocused = null;
-  let modalKeydownHandler = null;
-
-  const getModalFocusables = () => {
-    const container = elements.modal.querySelector('.modal__content');
-    if (!container) return [];
-    return Array.from(container.querySelectorAll(
-      'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
-    )).filter(el => !el.hasAttribute('disabled'));
-  };
-
-  const openModal = () => {
-    lastFocused = document.activeElement;
-    elements.modal.hidden = false;
-    elements.closeModalBtn?.focus();
-
-    modalKeydownHandler = (event) => {
-      if (event.key === 'Escape') {
-        event.preventDefault();
-        closeModal();
-        return;
-      }
-      if (event.key === 'Tab') {
-        const focusableItems = getModalFocusables();
-        if (!focusableItems.length) {
-          event.preventDefault();
-          return;
-        }
-        const first = focusableItems[0];
-        const last = focusableItems[focusableItems.length - 1];
-        if (event.shiftKey && document.activeElement === first) {
-          event.preventDefault();
-          last.focus();
-          return;
-        }
-        if (!event.shiftKey && document.activeElement === last) {
-          event.preventDefault();
-          first.focus();
-        }
-      }
-    };
-
-    document.addEventListener('keydown', modalKeydownHandler);
-  };
-
-  const closeModal = () => {
-    elements.modal.hidden = true;
-    if (modalKeydownHandler) {
-      document.removeEventListener('keydown', modalKeydownHandler);
-      modalKeydownHandler = null;
-    }
-    if (lastFocused && typeof lastFocused.focus === 'function') {
-      lastFocused.focus();
-      lastFocused = null;
-    }
-  };
-
-  const renderDayModal = (dateStr, detail) => {
-    elements.modalTitle.textContent = `Detalle del ${formatDate(dateStr)}`;
-    elements.modalSubtitle.textContent = `Precio horario y ranking de horas para ${formatDate(dateStr)}.`;
-
-    elements.dayCheapest.innerHTML = detail.cheapest.map(item => `<li>${item.label} · ${formatValue(item.price)} €/kWh</li>`).join('');
-    elements.dayExpensive.innerHTML = detail.expensive.map(item => `<li>${item.label} · ${formatValue(item.price)} €/kWh</li>`).join('');
-
-    const ctx = document.getElementById('dayChart').getContext('2d');
-    if (charts.day) charts.day.destroy();
-    charts.day = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: detail.labels,
-        datasets: [{
-          label: 'Precio (€/kWh)',
-          data: detail.data,
-          borderColor: '#8b5cf6',
-          backgroundColor: 'rgba(139,92,246,0.12)',
-          tension: 0.3,
-          pointRadius: 2
-        }]
-      },
-      options: { plugins: { legend: { display: false } } }
-    });
-
-    openModal();
-  };
-
-  const getDayDetailLocal = (yearData, dateStr) => {
-    const hours = yearData.days[dateStr] || [];
-    const entries = hours.map(([ts, price]) => ({
-      ts,
-      price,
-      date: new Date(ts * 1000)
-    }));
-    const labels = entries.map(entry => entry.date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false }));
-    const data = entries.map(entry => entry.price);
-    const sorted = [...entries].sort((a, b) => a.price - b.price);
-    const cheapest = sorted.slice(0, 3).map(entry => ({
-      label: entry.date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false }),
-      price: entry.price
-    }));
-    const expensive = sorted.slice(-3).reverse().map(entry => ({
-      label: entry.date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false }),
-      price: entry.price
-    }));
-    return { labels, data, cheapest, expensive };
-  };
-
   const loadData = async () => {
     state.comparisonToken += 1;
     const comparisonToken = state.comparisonToken;
-    setLoading(sections.savings, true);
     setLoading(sections.kpis, true);
     setLoading(sections.heatmap, true);
     setLoading(sections.clock, true);
@@ -758,7 +487,6 @@
       const yearData = await window.PVPC_STATS.loadYearData(geoId, year);
       if (!yearData || !Object.keys(yearData.days).length) {
         elements.insightText.textContent = 'No hay datos disponibles para este año.';
-        setLoading(sections.savings, false);
         setLoading(sections.kpis, false);
         setLoading(sections.heatmap, false);
         setLoading(sections.clock, false);
@@ -772,9 +500,7 @@
       state.yearDataKey = `${geoId}-${year}`;
 
       const options = {
-        duration: state.usageHours,
-        dayType: state.dayType,
-        exampleDay: state.exampleDay
+        exampleDay: null
       };
 
       const analysis = worker
@@ -783,11 +509,6 @@
 
       state.lastAnalysis = analysis;
       renderKPIs(analysis);
-      renderWindowList(analysis.windowStats, analysis.kpis, {
-        kwh: state.usageKwh,
-        perMonth: state.usagePerMonth
-      });
-      renderSummary(analysis.summaryStats, analysis.kpis);
       buildHeatmap(analysis.heatmap);
       renderClockChart(analysis.hourlyProfile);
       renderWeekdayChart(analysis.weekdayProfile);
@@ -795,7 +516,6 @@
       updateMeta(analysis.kpis);
       renderInsight(analysis.kpis, geoId);
 
-      setLoading(sections.savings, false);
       setLoading(sections.kpis, false);
       setLoading(sections.heatmap, false);
       setLoading(sections.clock, false);
@@ -810,7 +530,6 @@
       console.error(error);
       setLoading(sections.comparison, false);
     } finally {
-      setLoading(sections.savings, false);
       setLoading(sections.kpis, false);
       setLoading(sections.heatmap, false);
       setLoading(sections.clock, false);
@@ -830,23 +549,9 @@
       ? await runWorker('dayDetail', { yearData, dateStr })
       : getDayDetailLocal(yearData, dateStr);
 
-    elements.useDayBtn.onclick = () => {
-      state.exampleDay = dateStr;
-      elements.exampleBadge.hidden = false;
-      elements.exampleDate.textContent = formatDate(dateStr);
-      elements.clearExampleBtn.hidden = false;
-      closeModal();
-      loadData();
-    };
+    if (elements.useDayBtn) elements.useDayBtn.style.display = 'none';
 
     renderDayModal(dateStr, detail);
-  };
-
-  const resetExample = () => {
-    state.exampleDay = null;
-    elements.exampleBadge.hidden = true;
-    elements.clearExampleBtn.hidden = true;
-    loadData();
   };
 
   elements.geoSelector.addEventListener('change', () => {
@@ -861,30 +566,31 @@
     loadData();
   });
 
-  elements.clearExampleBtn.addEventListener('click', resetExample);
+  if (elements.heatmapGrid) {
+    elements.heatmapGrid.addEventListener('click', (event) => {
+      const target = event.target.closest('.heatmap-day');
+      if (!target) return;
+      onDayClick(target.dataset.date);
+    });
 
-  elements.heatmapGrid.addEventListener('click', (event) => {
-    const target = event.target.closest('.heatmap-day');
-    if (!target) return;
-    onDayClick(target.dataset.date);
-  });
+    elements.heatmapGrid.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      const target = event.target.closest('.heatmap-day');
+      if (!target) return;
+      event.preventDefault();
+      onDayClick(target.dataset.date);
+    });
+  }
 
-  elements.heatmapGrid.addEventListener('keydown', (event) => {
-    if (event.key !== 'Enter' && event.key !== ' ') return;
-    const target = event.target.closest('.heatmap-day');
-    if (!target) return;
-    event.preventDefault();
-    onDayClick(target.dataset.date);
-  });
+  if (elements.closeModalBtn) elements.closeModalBtn.addEventListener('click', closeModal);
+  if (elements.modal) {
+    elements.modal.addEventListener('click', (event) => {
+      if (event.target.dataset.close) {
+        closeModal();
+      }
+    });
+  }
 
-  elements.closeModalBtn.addEventListener('click', closeModal);
-  elements.modal.addEventListener('click', (event) => {
-    if (event.target.dataset.close) {
-      closeModal();
-    }
-  });
-
-  loadUsageStorage();
   readURL();
   updateURL();
   loadData();
