@@ -451,7 +451,7 @@ El proyecto cuenta con una suite de tests robusta utilizando **Vitest** + **JSDO
 npm test
 ```
 
-### Cobertura Principal (100+ tests)
+### Cobertura Principal (120+ tests)
 
 1.  **Motor de Cálculo (`lf-calc.js`)**:
     - Verifica fórmulas de potencia, energía, impuestos y topes del gas.
@@ -463,14 +463,15 @@ npm test
     - Valida lógica de festivos nacionales y fines de semana.
     - Asegura que la caché local (localStorage) funcione offline.
 
-3.  **Sistema de Caché (`lf-cache.js`)**:
+3.  **Integración de Facturas PDF (`factura-integration.test.js`)**:
+    - **Black Box Testing**: Simula el flujo completo de subida de un archivo PDF.
+    - Mockea `PDF.js` para inyectar contenido de texto controlado sin dependencias externas.
+    - Verifica la extracción automática de datos: Compañía, P1/P2, Consumos y Fechas.
+
+4.  **Sistema de Caché (`lf-cache.js`)**:
     - **Offline-first**: Verifica que la app funcione sin red si ya tiene datos.
     - **Stale-while-revalidate**: Sirve datos rápidos y actualiza en segundo plano.
     - Manejo de errores de red y corrupción de datos.
-
-4.  **Gestión de Estado (`lf-state.js`)**:
-    - Persistencia en `localStorage` de las preferencias del usuario.
-    - Inicialización correcta de valores por defecto.
 
 5.  **Importación de Datos (`lf-csv-import.js`)**:
     - **Formatos**: CSV (punto y coma, coma), Excel (.xlsx, .xls), Matriz Horaria.
@@ -480,6 +481,11 @@ npm test
 6.  **Simulador Solar (`bv-sim-monthly.js`)**:
     - Cálculo mes a mes de compensación y acumulación en Batería Virtual.
     - Validación de reglas de caducidad de saldo (si aplica).
+
+7.  **Componentes UI y Lógica de Negocio**:
+    - **Desglose (`desglose.test.js`)**: Valida que la suma de los conceptos desglosados coincida exactamente con el total.
+    - **Tarifa Personalizada (`custom-tarifa.test.js`)**: Lógica de comparación contra contrato de usuario ("Mi Tarifa").
+    - **Inputs y Utils (`inputs.test.js`, `utils.test.js`)**: Sanitización de entradas, formateo de números y seguridad XSS.
 
 ---
 
