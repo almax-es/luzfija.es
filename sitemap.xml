@@ -222,33 +222,5 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://luzfija.es/estadisticas/?year=2026&amp;geo=8741</loc>
-    <lastmod>2026-01-25</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://luzfija.es/estadisticas/?year=2025&amp;geo=8741</loc>
-    <lastmod>2026-01-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://luzfija.es/estadisticas/?year=2024&amp;geo=8741</loc>
-    <lastmod>2026-01-25</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://luzfija.es/estadisticas/?year=2023&amp;geo=8741</loc>
-    <lastmod>2026-01-25</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://luzfija.es/estadisticas/?year=2022&amp;geo=8741</loc>
-    <lastmod>2026-01-25</lastmod>
-    <changefreq>yearly</changefreq>
-    <priority>0.6</priority>
-  </url>
+    <loc>https://luzfija.es/guias.html</loc>
 </urlset>

@@ -493,18 +493,18 @@
             layout: {
                 padding: { top: 20, bottom: 10 }
             },
-            scales: {
-              x: {
-                grid: { display: false, drawBorder: false }, // Limpieza total eje X
-                border: { display: false },
-                ticks: {
-                  maxRotation: 0,
-                  autoSkip: false,
-                  padding: 10,
-                  font: { family: "'Outfit', sans-serif", size: 11, weight: 600 },
-                  color: '#94a3b8'
-                }
-              },
+        scales: {
+          x: {
+            border: { display: false },
+            grid: { display: false, drawBorder: false, drawOnChartArea: false, drawTicks: false },
+            ticks: { 
+              maxRotation: 0, 
+              autoSkip: false,
+              padding: 10,
+              font: { family: "'Outfit', sans-serif", size: 11, weight: 600 },
+              color: '#94a3b8' 
+            } 
+          },
               y: {
                 beginAtZero: true,
                 border: { display: false }, // Sin línea vertical izquierda
