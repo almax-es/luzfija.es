@@ -97,20 +97,64 @@
     p.desc { color: var(--text-muted); font-size: 0.95rem; }
 
     /* Ajustes para selects */
+    .stats-controls {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+
     select {
-        padding: 0.5rem 1rem;
-        border-radius: 8px;
-        border: 1px solid var(--border-color);
-        background: var(--bg-input);
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        padding: 0.6rem 2.5rem 0.6rem 1rem;
+        border-radius: 10px;
+        border: 2px solid var(--border-color);
+        background-color: var(--bg-card);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%238b5cf6' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
         color: var(--text-main);
         font-size: 1rem;
+        font-weight: 600;
         cursor: pointer;
+        min-width: 180px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        transition: border-color 0.2s, box-shadow 0.2s;
     }
     
-    /* Forzar contraste en las opciones del desplegable */
+    select:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+    }
+    
+    /* Forzar contraste en las opciones (Nativo) */
     select option {
-        background: var(--bg-card);
-        color: var(--text-main);
+        background-color: #ffffff;
+        color: #1a1a1a;
+        padding: 10px;
+    }
+
+    /* En modo oscuro, invertimos las opciones para que se vean bien */
+    @media (prefers-color-scheme: dark) {
+        select option {
+            background-color: #1f2937;
+            color: #f3f4f6;
+        }
+    }
+    
+    /* Si la web ya tiene una clase para el tema oscuro, la usamos también */
+    [data-theme="dark"] select option {
+        background-color: #1f2937;
+        color: #f3f4f6;
     }
 
     .loading-overlay {
