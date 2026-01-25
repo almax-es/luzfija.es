@@ -615,16 +615,17 @@ input[type="number"]::-webkit-inner-spin-button {
 .kpi-value {
   font-size: 2.2rem;
   font-weight: 800;
-  line-height: 1;
-  margin: 0.2rem 0;
+  line-height: 1.1; /* Un poco más de aire */
+  margin: 0.2rem 0 0.5rem; /* Margen inferior para separar de la fecha */
   letter-spacing: -0.02em;
 }
 
 .kpi-sub {
   font-size: 0.85rem;
   font-weight: 500;
-  opacity: 0.75;
+  opacity: 0.8;
   margin-top: auto;
+  line-height: 1.4;
 }
 
 .heatmap-container {
