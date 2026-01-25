@@ -312,28 +312,98 @@
     window.history.replaceState({}, '', newUrl);
   };
 
-  const updateMeta = (kpis) => {
-    const yearLabel = state.year === '2026' ? '2026 (en curso)' : state.year;
-    const geoName = geoNames[state.geoId] || 'España';
-    const descText = `Precio medio PVPC ${yearLabel} en ${geoName}: ${kpis.avgPrice.toFixed(4)} €/kWh. Mínimo ${kpis.minPrice.toFixed(4)} €, máximo ${kpis.maxPrice.toFixed(4)} €. Gráficos interactivos y análisis histórico.`;
+  const updateSchema = (kpis, yearLabel, geoName) => {
+    let schemaScript = document.getElementById('dynamic-schema');
+    if (!schemaScript) {
+      schemaScript = document.createElement('script');
+      schemaScript.id = 'dynamic-schema';
+      schemaScript.type = 'application/ld+json';
+      document.head.appendChild(schemaScript);
+    }
 
-    document.title = `Precio Luz ${yearLabel} - Estadísticas PVPC ${geoName} | LuzFija.es`;
+    const avgPrice = kpis.avgPrice.toFixed(4);
+    const minPrice = kpis.minPrice.toFixed(4);
+    
+    const schemaData = {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "BreadcrumbList",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Inicio",
+              "item": "https://luzfija.es/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "Estadísticas PVPC",
+              "item": window.location.href
+            }
+          ]
+        },
+        {
+          "@type": "Dataset",
+          "name": `Histórico Precio Luz PVPC ${yearLabel} - ${geoName}`,
+          "description": `Datos horarios y diarios del precio de la electricidad (PVPC) en ${geoName} durante ${yearLabel}. Precio medio: ${avgPrice} €/kWh.`,
+          "license": "https://creativecommons.org/licenses/by/4.0/",
+          "creator": {
+            "@type": "Organization",
+            "name": "LuzFija.es"
+          },
+          "distribution": [
+            {
+              "@type": "DataDownload",
+              "encodingFormat": "text/csv",
+              "contentUrl": `https://luzfija.es/data/pvpc/${state.geoId}/${state.year}.json` // Enlace lógico al recurso
+            }
+          ],
+          "variableMeasured": [
+            {
+              "@type": "PropertyValue",
+              "name": "Precio Medio",
+              "unitText": "EUR/kWh",
+              "value": avgPrice
+            },
+            {
+              "@type": "PropertyValue",
+              "name": "Precio Mínimo",
+              "unitText": "EUR/kWh",
+              "value": minPrice
+            }
+          ]
+        }
+      ]
+    };
+
+    schemaScript.textContent = JSON.stringify(schemaData);
+  };
+
+  const updateMeta = (kpis) => {
+    const yearLabel = state.year === '2026' ? '2026' : state.year;
+    const geoName = geoNames[state.geoId] || 'España';
+    
+    // Título SEO-optimizado: Intención de búsqueda + Datos clave
+    document.title = `Precio Luz ${yearLabel}: Estadísticas PVPC y Horas Baratas ${geoName} | LuzFija.es`;
+
+    // Descripción persuasiva (CTR)
+    const descText = `Consulta el histórico del precio de la luz en ${yearLabel}. Media actual: ${kpis.avgPrice.toFixed(4)} €/kWh. Descubre las horas más baratas para ahorrar y compara la evolución anual del PVPC en ${geoName}.`;
 
     const metaDescription = document.getElementById('meta-description');
     const ogTitle = document.getElementById('og-title');
     const ogDescription = document.getElementById('og-description');
-    const ogUrl = document.getElementById('og-url');
-    const canonical = document.getElementById('canonical');
     const twitterTitle = document.getElementById('twitter-title');
     const twitterDesc = document.getElementById('twitter-description');
 
     if (metaDescription) metaDescription.setAttribute('content', descText);
-    if (ogTitle) ogTitle.setAttribute('content', `Estadísticas PVPC ${yearLabel} - ${geoName} | LuzFija.es`);
+    if (ogTitle) ogTitle.setAttribute('content', `Precio Luz ${yearLabel}: Análisis y Estadísticas ${geoName}`);
     if (ogDescription) ogDescription.setAttribute('content', descText);
-    if (ogUrl) ogUrl.setAttribute('content', 'https://luzfija.es/estadisticas/');
-    if (canonical) canonical.setAttribute('href', 'https://luzfija.es/estadisticas/');
     if (twitterTitle) twitterTitle.setAttribute('content', `Precio Luz ${yearLabel} - ${geoName}`);
-    if (twitterDesc) twitterDesc.setAttribute('content', `Media: ${kpis.avgPrice.toFixed(4)} €/kWh | Ver análisis completo →`);
+    if (twitterDesc) twitterDesc.setAttribute('content', `Media: ${kpis.avgPrice.toFixed(4)} €/kWh | ¿Cuándo es más barato consumir? Ver análisis →`);
+
+    updateSchema(kpis, yearLabel, geoName);
   };
 
   const renderKPIs = ({ kpis, hourlyProfile }) => {
