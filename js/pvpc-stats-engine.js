@@ -142,6 +142,66 @@ const PVPC_STATS = {
     },
 
     /**
+     * Prepara datos para comparación multianual (varias líneas en un mismo gráfico)
+     * Normaliza al año bisiesto si es necesario para cuadrar días.
+     */
+    async getMultiYearComparison(geoId, years) {
+        const datasets = [];
+        
+        for (const year of years) {
+            const data = await this.loadYearData(geoId, year);
+            if (!data || Object.keys(data.days).length === 0) continue;
+
+            const points = [];
+            const sortedDates = Object.keys(data.days).sort();
+            
+            // Queremos mapear cada fecha a un día del año (0-365)
+            // Para simplificar en Chart.js, usaremos "labels" genéricos tipo "1 Ene", "2 Ene"...
+            // y aquí devolveremos solo el array de datos alineado.
+            
+            // Estrategia: Array de 366 posiciones (para cubrir bisiestos)
+            // Si el año no es bisiesto, el índice del 29 feb quedará vacío o interpolado.
+            const values = new Array(366).fill(null);
+            
+            sortedDates.forEach(dateStr => {
+                const [y, m, d] = dateStr.split('-').map(Number);
+                const dateObj = new Date(y, m-1, d);
+                // Calcular día del año (0-365)
+                const start = new Date(y, 0, 0);
+                const diff = dateObj - start;
+                const oneDay = 1000 * 60 * 60 * 24;
+                const dayOfYear = Math.floor(diff / oneDay) - 1; // 0-based index
+                
+                const hours = data.days[dateStr];
+                const avg = hours.reduce((sum, h) => sum + h[1], 0) / hours.length;
+                
+                if (dayOfYear >= 0 && dayOfYear < 366) {
+                    values[dayOfYear] = avg;
+                }
+            });
+
+            datasets.push({
+                label: year,
+                data: values,
+                tension: 0.3,
+                pointRadius: 0,
+                borderWidth: 2
+            });
+        }
+        
+        // Generar labels genéricos (Ene 1 ... Dic 31)
+        // Usamos un año bisiesto ficticio (2024) para generar los labels
+        const labels = [];
+        const date = new Date(2024, 0, 1);
+        for(let i=0; i<366; i++) {
+            labels.push(date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }));
+            date.setDate(date.getDate() + 1);
+        }
+
+        return { labels, datasets };
+    },
+
+    /**
      * Analiza días de la semana (Lunes vs Domingo, etc)
      */
     getWeekdayProfile(yearData) {

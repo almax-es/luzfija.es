@@ -104,6 +104,13 @@
         background: var(--bg-input);
         color: var(--text-main);
         font-size: 1rem;
+        cursor: pointer;
+    }
+    
+    /* Forzar contraste en las opciones del desplegable */
+    select option {
+        background: var(--bg-card);
+        color: var(--text-main);
     }
 
     .loading-overlay {
@@ -163,6 +170,9 @@
             <option value="2026">2026 (En curso)</option>
             <option value="2025">2025</option>
             <option value="2024">2024</option>
+            <option value="2023">2023</option>
+            <option value="2022">2022</option>
+            <option value="2021">2021 (Desde Junio)</option>
         </select>
     </div>
 
@@ -213,6 +223,15 @@
             <canvas id="weekdayChart"></canvas>
         </div>
     </div>
+
+    <!-- Gráfico 4: Comparativa Histórica -->
+    <div class="chart-section">
+        <div class="chart-header">
+            <h2>🆚 Comparativa Histórica (2022 - 2026)</h2>
+            <p class="desc">Evolución anual comparada. Visualiza cómo ha cambiado el precio de la luz a lo largo de los años.</p>
+        </div>
+        <canvas id="comparisonChart" height="100"></canvas>
+    </div>
     
   </div>
 
@@ -236,6 +255,7 @@
             const year = yearSel.value;
 
             try {
+                // Carga datos del año principal seleccionado
                 const data = await window.PVPC_STATS.loadYearData(geoId, year);
                 
                 if (!data || Object.keys(data.days).length === 0) {
@@ -254,10 +274,14 @@
                 document.getElementById('kpiMax').textContent = kpis.maxPrice.toFixed(4);
                 document.getElementById('kpiMaxDate').textContent = kpis.maxHour ? new Date(kpis.maxHour.date).toLocaleDateString() + ' ' + (new Date(kpis.maxHour.ts*1000).getHours()) + ':00' : '-';
 
-                // 2. Gráficos
+                // 2. Gráficos Principales
                 renderDailyChart(data);
                 renderHourlyChart(data);
                 renderWeekdayChart(data);
+
+                // 3. Gráfico Comparativo (Background Task)
+                // Comparamos los últimos años relevantes
+                renderComparisonChart(geoId, ['2022', '2023', '2024', '2025', '2026']);
 
             } catch (e) {
                 console.error(e);
@@ -265,6 +289,64 @@
             } finally {
                 loader.classList.add('hidden');
             }
+        }
+
+        async function renderComparisonChart(geoId, years) {
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            const comparisonData = await window.PVPC_STATS.getMultiYearComparison(geoId, years);
+            
+            if (charts.comparison) charts.comparison.destroy();
+
+            // Colores distintivos para cada año
+            const colors = {
+                '2022': '#ef4444', // Rojo (Crisis)
+                '2023': '#f59e0b', // Naranja
+                '2024': '#10b981', // Verde
+                '2025': '#3b82f6', // Azul
+                '2026': '#8b5cf6'  // Violeta (Actual)
+            };
+
+            const datasets = comparisonData.datasets.map(ds => ({
+                ...ds,
+                borderColor: colors[ds.label] || '#999',
+                backgroundColor: 'transparent',
+                borderWidth: ds.label === yearSel.value ? 3 : 1.5, // Resaltar año seleccionado
+                pointRadius: 0,
+                // Ocultar años sin datos (ej. 2026 futuro)
+                hidden: ds.data.every(v => v === null)
+            }));
+
+            charts.comparison = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: comparisonData.labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { 
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                        label += context.parsed.y.toFixed(4) + ' €/kWh';
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: '€/kWh' } }
+                    }
+                }
+            });
         }
 
         function renderDailyChart(data) {
