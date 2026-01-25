@@ -168,22 +168,22 @@ select {
 
 /* Fix crítico para opciones de desplegables (evitar texto blanco sobre fondo blanco) */
 select option {
-  background-color: #ffffff;
-  color: #1a1a1a;
+  background-color: #ffffff !important;
+  color: #000000 !important;
   padding: 10px;
 }
 
 @media (prefers-color-scheme: dark) {
   select option {
-    background-color: #1f2937;
-    color: #f3f4f6;
+    background-color: #1f2937 !important;
+    color: #f3f4f6 !important;
   }
 }
 
 /* Soporte para selector de tema manual (si aplica) */
 [data-theme="dark"] select option {
-  background-color: #1f2937;
-  color: #f3f4f6;
+  background-color: #1f2937 !important;
+  color: #f3f4f6 !important;
 }
 
 input[type="number"] {
