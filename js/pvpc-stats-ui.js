@@ -37,6 +37,7 @@
     savingsWindows: document.getElementById('savingsWindows'),
     savingsSummary: document.getElementById('savingsSummary'),
     savingsHint: document.getElementById('savingsHint'),
+    usageChips: document.getElementById('usageChips'),
     heatmapGrid: document.getElementById('heatmapGrid'),
     comparisonControls: document.getElementById('comparisonControls'),
     toast: document.getElementById('toast'),
@@ -746,25 +747,23 @@
 
     elements.savingsWindows.innerHTML = result.topWindows.map((windowItem, index) => {
       const costPerUse = windowItem.p50 * kwh;
-      const costPerMonth = costPerUse * uses;
       const savingsVsPeak = (baselinePrice - windowItem.p50) * kwh;
-      const savingsVsAvg = (avgPrice - windowItem.p50) * kwh;
+      
       return `
-        <li class="window-item">
-          <div class="window-item__title">
-            <span>#${index + 1}</span>
-            <strong>${windowItem.label}</strong>
+        <div class="window-card-pro ${index === 0 ? 'window-card-pro--top' : ''}">
+          <span class="w-rank">#${index + 1}</span>
+          <span class="w-time">${windowItem.label}</span>
+          <div class="w-price-box">
+            <span class="w-price-main">${formatValue(windowItem.p50)} €/kWh</span>
           </div>
-          <div class="window-item__meta">
-            <span>Precio típico (P50): ${formatEuroKwh(windowItem.p50)}</span>
-            <span>Rango P10–P90: ${formatEuroKwh(windowItem.p10)} → ${formatEuroKwh(windowItem.p90)}</span>
+          <div class="w-meta">
+            ≈ ${formatCurrency(costPerUse)} por uso<br>
+            Rango: ${formatValue(windowItem.p10)} – ${formatValue(windowItem.p90)}
           </div>
-          <div class="window-item__meta window-item__meta--stack">
-            <span>≈ ${formatCurrency(costPerUse)} por uso · ≈ ${formatCurrency(costPerMonth)} / mes</span>
-            <span>${formatDelta(savingsVsPeak)} vs hora cara típica</span>
-            <span>${formatDelta(savingsVsAvg)} vs media anual</span>
+          <div class="w-saving-badge">
+            -${formatCurrency(savingsVsPeak)} vs pico
           </div>
-        </li>
+        </div>
       `;
     }).join('');
 
@@ -817,8 +816,12 @@
   };
 
   const syncSavingsInputs = () => {
-    if (!elements.savingsPreset) return;
-    elements.savingsPreset.value = state.savings.preset;
+    if (!elements.usageChips) return;
+    // Update active chip
+    elements.usageChips.querySelectorAll('.chip').forEach(c => {
+      c.classList.toggle('chip--active', c.dataset.preset === state.savings.preset);
+    });
+    
     if (elements.savingsDuration) elements.savingsDuration.value = String(state.savings.duration);
     if (elements.savingsDayType) elements.savingsDayType.value = state.savings.dayType;
     if (elements.savingsKwh) elements.savingsKwh.value = String(state.savings.kwh);
@@ -1539,10 +1542,12 @@
     loadData();
   });
 
-  if (elements.savingsPreset) {
-    elements.savingsPreset.addEventListener('change', () => {
+  if (elements.usageChips) {
+    elements.usageChips.addEventListener('click', (e) => {
+      const chip = e.target.closest('.chip');
+      if (!chip) return;
       state.savingsOverrides = { duration: false, kwh: false };
-      applyPreset(elements.savingsPreset.value);
+      applyPreset(chip.dataset.preset);
       updateURL();
       loadSavingsWindows();
     });

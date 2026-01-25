@@ -150,61 +150,64 @@
     <section class="panel panel--savings" aria-labelledby="savingsTitle" data-loading="true">
       <div class="panel__header">
         <div>
-          <p class="eyebrow">Ahorro accionable</p>
-          <h2 id="savingsTitle">Ventanas óptimas</h2>
-          <p class="panel__subtitle">Calculamos las mejores franjas con percentiles P10/P50/P90. Las ventanas pueden cruzar medianoche.</p>
+          <p class="eyebrow">Ahorro inteligente</p>
+          <h2 id="savingsTitle">¿Cuándo te sale más a cuenta?</h2>
+          <p class="panel__subtitle">Calculamos las ventanas de mayor ahorro basándonos en el histórico real.</p>
         </div>
       </div>
+
       <div class="savings-controls">
         <div class="control-group">
-          <label for="savingsPreset">Uso</label>
-          <select id="savingsPreset" aria-label="Selecciona el uso">
-            <option value="lavadora">Lavadora (1h)</option>
-            <option value="lavavajillas">Lavavajillas (2h)</option>
-            <option value="termo">Termo (3h)</option>
-            <option value="coche">Coche EV (4h)</option>
-            <option value="personalizado">Personalizado</option>
-          </select>
+          <label>¿Qué vas a poner?</label>
+          <div id="usageChips" class="usage-chips">
+            <button class="chip chip--active" data-preset="lavadora">🧺 Lavadora</button>
+            <button class="chip" data-preset="lavavajillas">🍽️ Lavavajillas</button>
+            <button class="chip" data-preset="termo">🔥 Termo</button>
+            <button class="chip" data-preset="coche">🚗 Coche EV</button>
+            <button class="chip" data-preset="personalizado">⚙️ Personalizado</button>
+          </div>
         </div>
-        <div class="control-group">
-          <label for="savingsDuration">Duración</label>
-          <select id="savingsDuration" aria-label="Selecciona la duración">
-            <option value="1">1h</option>
-            <option value="2">2h</option>
-            <option value="3">3h</option>
-            <option value="4">4h</option>
-            <option value="6">6h</option>
-          </select>
-        </div>
-        <div class="control-group">
-          <label for="savingsDayType">Días</label>
-          <select id="savingsDayType" aria-label="Selecciona el tipo de día">
-            <option value="any">Cualquier día</option>
-            <option value="weekday">Laborables</option>
-            <option value="weekend">Fin de semana</option>
-          </select>
-        </div>
-        <div class="control-group">
-          <label for="savingsKwh">Consumo por uso (kWh)</label>
-          <input type="number" id="savingsKwh" min="0.1" step="0.1" value="0.8" aria-label="Consumo por uso en kWh">
-        </div>
-        <div class="control-group">
-          <label for="savingsUses">Usos al mes</label>
-          <input type="number" id="savingsUses" min="1" step="1" value="10" aria-label="Usos al mes">
+
+        <div class="savings-secondary-controls">
+          <div class="control-group">
+            <label for="savingsDuration">Duración</label>
+            <select id="savingsDuration">
+              <option value="1">1 hora</option>
+              <option value="2">2 horas</option>
+              <option value="3">3 horas</option>
+              <option value="4">4 horas</option>
+              <option value="6">6 horas</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="savingsDayType">Días</label>
+            <select id="savingsDayType">
+              <option value="any">Cualquier día</option>
+              <option value="weekday">Laborables</option>
+              <option value="weekend">Fin de semana</option>
+            </select>
+          </div>
+          <div class="control-group">
+            <label for="savingsKwh">Consumo (kWh)</label>
+            <input type="number" id="savingsKwh" min="0.1" step="0.1" value="0.8">
+          </div>
+          <div class="control-group">
+            <label for="savingsUses">Veces / mes</label>
+            <input type="number" id="savingsUses" min="1" step="1" value="10">
+          </div>
         </div>
       </div>
-      <div class="savings-grid">
-        <div class="savings-card">
-          <p class="savings-card__title">Top 3 ventanas recomendadas</p>
-          <ol id="savingsWindows" class="window-list" aria-label="Top 3 ventanas óptimas"></ol>
-          <div class="skeleton skeleton-block"></div>
-        </div>
-        <div class="savings-card">
-          <p class="savings-card__title">Impacto y comparativas</p>
-          <ul id="savingsSummary" class="summary-list" aria-label="Resumen de ahorro"></ul>
-          <p id="savingsHint" class="panel__hint"></p>
-          <div class="skeleton skeleton-block"></div>
-        </div>
+
+      <div class="savings-results-box">
+        <p class="eyebrow" style="margin-bottom: 1rem;">Mejores momentos recomendados</p>
+        <div id="savingsWindows" class="window-list-premium"></div>
+        <div class="skeleton skeleton-block" style="margin-top: 1rem;"></div>
+      </div>
+
+      <div class="savings-impact-card" style="margin-top: 2rem; padding: 1.5rem; background: rgba(139, 92, 246, 0.05); border-radius: 16px; border: 1px dashed var(--primary-color);">
+        <p class="savings-card__title">Impacto mensual estimado</p>
+        <ul id="savingsSummary" class="summary-list" style="margin-top: 1rem;"></ul>
+        <p id="savingsHint" class="panel__hint" style="margin-top: 1rem;"></p>
       </div>
     </section>
 
