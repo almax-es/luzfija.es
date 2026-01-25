@@ -423,7 +423,7 @@ input[type="number"]::-webkit-inner-spin-button {
   display: grid;
   grid-template-columns: repeat(53, 1fr); /* 53 semanas */
   grid-template-rows: auto repeat(7, 12px); /* Labels + 7 días */
-  gap: 3px;
+  gap: 1px; /* Gap mínimo para separar días pero mantener cohesión */
   width: max-content;
   margin: 0 auto; /* Centrar */
 }
