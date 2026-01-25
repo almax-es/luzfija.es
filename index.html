@@ -280,14 +280,9 @@
           <div class="menu" id="menuRoot">
             <button class="btn" id="btnMenu" type="button" aria-haspopup="menu" aria-controls="menuPanel" aria-expanded="false" title="Opciones" aria-label="Abrir menú de opciones">⚙️</button>
             <div class="menuPanel" id="menuPanel" role="menu" aria-label="Opciones" aria-orientation="vertical">
-              <div class="menuHint">Opciones</div>
-            <a class="menuItem u-no-underline" href="/estadisticas/" role="menuitem" aria-label="Ver estadísticas históricas del PVPC">
-              <span class="mi-left">📊 Estadísticas PVPC</span>
-              <span class="mi-right">nuevo</span>
-            </a>
-<button class="menuItem" id="btnShare" type="button" role="menuitem" aria-label="Compartir configuración por URL">
-              <span class="mi-left">🔗 Compartir configuración</span>
-              <span class="mi-right">URL</span>
+                          <div class="menuHint">Opciones</div>
+                          <button class="menuItem" id="btnShare" type="button" role="menuitem" aria-label="Compartir configuración por URL">
+                            <span class="mi-left">🔗 Compartir configuración</span>              <span class="mi-right">URL</span>
             </button>
             <a class="menuItem u-no-underline" href="mailto:hola@luzfija.es" role="menuitem">
               <span class="mi-left">✉️ Contacto</span>
@@ -982,9 +977,14 @@
           <p class="u-loading-text">Cargando precios...</p>
         </div>
 
-        <a href="/estadisticas/" class="btn u-w-full u-mt-16" style="background:var(--bg-main); border:1px solid var(--border); color:var(--text-main); text-decoration:none; display:flex; justify-content:center; align-items:center; gap:8px; font-weight:500;">
-          <span>📊</span> Ver evolución histórica y estadísticas
-        </a>
+        <div style="margin-top: 1.5rem; background: linear-gradient(to right, rgba(59,130,246,0.1), rgba(147,51,234,0.1)); border: 1px solid rgba(59,130,246,0.3); border-radius: 12px; padding: 1rem; text-align: center;">
+          <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 0.8rem; font-weight: 500;">
+            ¿El precio de hoy es caro o barato comparado con el año pasado?
+          </p>
+          <a href="/estadisticas/?year=2025" style="display: inline-flex; align-items: center; gap: 8px; background: var(--primary); color: white; padding: 0.8rem 1.5rem; border-radius: 99px; text-decoration: none; font-weight: 700; font-size: 0.95rem; box-shadow: 0 4px 12px rgba(59,130,246,0.3); transition: transform 0.2s;">
+            <span>📊</span> Ver Observatorio Histórico
+          </a>
+        </div>
         <button class="btn primary u-w-full u-mt-8" id="btnCerrarPVPCInfo" type="button" aria-label="Cerrar">Cerrar</button>
       </div>
     </div>
