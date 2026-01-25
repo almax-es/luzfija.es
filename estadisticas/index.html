@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://luzfija.goatcounter.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark light"/>
+  <meta name="description" content="Análisis detallado y evolución histórica del precio de la luz (PVPC) en España. Gráficos interactivos, promedios horarios y tendencias.">
+  
+  <title>Estadísticas del Precio de la Luz (PVPC) | LuzFija.es</title>
+  
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/fonts.css">
+  
+  <!-- Chart.js desde vendor local -->
+  <script src="/vendor/chartjs/chart.umd.js"></script>
+  <!-- Motor de estadísticas -->
+  <script src="/js/pvpc-stats-engine.js"></script>
+  <!-- Configuración -->
+  <script src="/js/config.js"></script>
+  <script src="/js/theme.js"></script>
+  <script src="/js/tracking.js" defer data-goatcounter="https://luzfija.goatcounter.com/count"></script>
+
+  <style>
+    .stats-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem 1rem;
+    }
+    
+    .stats-header {
+        text-align: center;
+        margin-bottom: 3rem;
+    }
+    
+    .stats-controls {
+        display: flex;
+        justify-content: center;
+        gap: 1rem;
+        margin-bottom: 2rem;
+        flex-wrap: wrap;
+    }
+    
+    .stats-card-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 3rem;
+    }
+    
+    .kpi-card {
+        background: var(--bg-card);
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        text-align: center;
+        border: 1px solid var(--border-color);
+    }
+    
+    .kpi-value {
+        font-size: 2.5rem;
+        font-weight: 700;
+        color: var(--primary-color);
+        margin: 0.5rem 0;
+    }
+    
+    .kpi-label {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+
+    .kpi-sub {
+        font-size: 0.8rem;
+        color: var(--text-muted);
+    }
+    
+    .chart-section {
+        background: var(--bg-card);
+        padding: 1.5rem;
+        border-radius: 12px;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        margin-bottom: 2rem;
+        border: 1px solid var(--border-color);
+    }
+    
+    .chart-header {
+        margin-bottom: 1.5rem;
+    }
+
+    h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+    p.desc { color: var(--text-muted); font-size: 0.95rem; }
+
+    /* Ajustes para selects */
+    select {
+        padding: 0.5rem 1rem;
+        border-radius: 8px;
+        border: 1px solid var(--border-color);
+        background: var(--bg-input);
+        color: var(--text-main);
+        font-size: 1rem;
+    }
+
+    .loading-overlay {
+        position: fixed;
+        top:0; left:0; right:0; bottom:0;
+        background: rgba(0,0,0,0.5);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+        backdrop-filter: blur(2px);
+    }
+    .spinner {
+        width: 50px; height: 50px;
+        border: 5px solid #f3f3f3;
+        border-top: 5px solid var(--primary-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- Navegación Simplificada -->
+  <nav style="background: var(--bg-card); padding: 1rem; border-bottom: 1px solid var(--border-color);">
+    <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
+      <a href="/" style="text-decoration: none; font-weight: bold; font-size: 1.2rem; color: var(--text-main);">
+        ⚡ LuzFija.es
+      </a>
+      <a href="/" style="font-size: 0.9rem; color: var(--text-muted);">Volver al comparador</a>
+    </div>
+  </nav>
+
+  <div id="loading" class="loading-overlay hidden">
+    <div class="spinner"></div>
+  </div>
+
+  <div class="stats-container">
+    <header class="stats-header">
+        <h1>Observatorio del Precio de la Luz</h1>
+        <p>Análisis histórico y patrones de consumo del PVPC (Tarifa Regulada)</p>
+    </header>
+
+    <div class="stats-controls">
+        <select id="geoSelector">
+            <option value="8741">Península</option>
+            <option value="8742">Canarias</option>
+            <option value="8743">Baleares</option>
+            <option value="8744">Ceuta</option>
+            <option value="8745">Melilla</option>
+        </select>
+        
+        <select id="yearSelector">
+            <option value="2026">2026 (En curso)</option>
+            <option value="2025">2025</option>
+            <option value="2024">2024</option>
+        </select>
+    </div>
+
+    <!-- KPIs -->
+    <div class="stats-card-grid">
+        <div class="kpi-card">
+            <div class="kpi-label">Precio Medio</div>
+            <div class="kpi-value" id="kpiAvg">--</div>
+            <div class="kpi-sub">€/kWh</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Mínimo Anual</div>
+            <div class="kpi-value" style="color: var(--color-success);" id="kpiMin">--</div>
+            <div class="kpi-sub" id="kpiMinDate">--</div>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-label">Máximo Anual</div>
+            <div class="kpi-value" style="color: var(--color-danger);" id="kpiMax">--</div>
+            <div class="kpi-sub" id="kpiMaxDate">--</div>
+        </div>
+    </div>
+
+    <!-- Gráfico 1: Evolución -->
+    <div class="chart-section">
+        <div class="chart-header">
+            <h2>📉 Evolución Diaria del Precio</h2>
+            <p class="desc">Precio medio diario a lo largo del año. Observa las tendencias estacionales.</p>
+        </div>
+        <canvas id="dailyChart" height="100"></canvas>
+    </div>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">
+        <!-- Gráfico 2: Perfil Horario -->
+        <div class="chart-section">
+            <div class="chart-header">
+                <h2>🕒 El "Reloj" del Ahorro</h2>
+                <p class="desc">Precio promedio por hora. ¿A qué hora es más barato consumir?</p>
+            </div>
+            <canvas id="hourlyChart"></canvas>
+        </div>
+
+        <!-- Gráfico 3: Días de la semana -->
+        <div class="chart-section">
+            <div class="chart-header">
+                <h2>📅 Semáforo Semanal</h2>
+                <p class="desc">¿Es más barato el fin de semana? Promedio por día de la semana.</p>
+            </div>
+            <canvas id="weekdayChart"></canvas>
+        </div>
+    </div>
+    
+  </div>
+
+  <footer style="text-align: center; padding: 2rem; color: var(--text-muted); border-top: 1px solid var(--border-color); margin-top: 2rem;">
+    <p>Datos oficiales de ESIOS (Red Eléctrica de España). Cálculo propio.</p>
+    <p>&copy; 2026 LuzFija.es</p>
+  </footer>
+
+  <script>
+    // Lógica UI
+    document.addEventListener('DOMContentLoaded', () => {
+        const geoSel = document.getElementById('geoSelector');
+        const yearSel = document.getElementById('yearSelector');
+        const loader = document.getElementById('loading');
+        
+        let charts = {};
+
+        async function updateStats() {
+            loader.classList.remove('hidden');
+            const geoId = geoSel.value;
+            const year = yearSel.value;
+
+            try {
+                const data = await window.PVPC_STATS.loadYearData(geoId, year);
+                
+                if (!data || Object.keys(data.days).length === 0) {
+                    alert('No hay datos disponibles para este periodo.');
+                    loader.classList.add('hidden');
+                    return;
+                }
+
+                // 1. KPIs
+                const kpis = window.PVPC_STATS.getKPIs(data);
+                document.getElementById('kpiAvg').textContent = kpis.avgPrice.toFixed(4);
+                
+                document.getElementById('kpiMin').textContent = kpis.minPrice.toFixed(4);
+                document.getElementById('kpiMinDate').textContent = kpis.minHour ? new Date(kpis.minHour.date).toLocaleDateString() + ' ' + (new Date(kpis.minHour.ts*1000).getHours()) + ':00' : '-';
+                
+                document.getElementById('kpiMax').textContent = kpis.maxPrice.toFixed(4);
+                document.getElementById('kpiMaxDate').textContent = kpis.maxHour ? new Date(kpis.maxHour.date).toLocaleDateString() + ' ' + (new Date(kpis.maxHour.ts*1000).getHours()) + ':00' : '-';
+
+                // 2. Gráficos
+                renderDailyChart(data);
+                renderHourlyChart(data);
+                renderWeekdayChart(data);
+
+            } catch (e) {
+                console.error(e);
+                alert('Error cargando datos');
+            } finally {
+                loader.classList.add('hidden');
+            }
+        }
+
+        function renderDailyChart(data) {
+            const ctx = document.getElementById('dailyChart').getContext('2d');
+            const processed = window.PVPC_STATS.getDailyEvolution(data);
+            
+            if (charts.daily) charts.daily.destroy();
+
+            charts.daily = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: processed.labels,
+                    datasets: [{
+                        label: 'Precio Medio Diario (€/kWh)',
+                        data: processed.data,
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        fill: true,
+                        tension: 0.3,
+                        pointRadius: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true, title: { display: true, text: '€/kWh' } }
+                    }
+                }
+            });
+        }
+
+        function renderHourlyChart(data) {
+            const ctx = document.getElementById('hourlyChart').getContext('2d');
+            const processed = window.PVPC_STATS.getHourlyProfile(data);
+            
+            if (charts.hourly) charts.hourly.destroy();
+
+            // Colorear según precio (más rojo si es caro)
+            const colors = processed.data.map(val => {
+                // Normalizar entre min y max del dataset para degradado
+                const min = Math.min(...processed.data);
+                const max = Math.max(...processed.data);
+                const ratio = (val - min) / (max - min);
+                // Verde (120 hue) a Rojo (0 hue)
+                const hue = (1 - ratio) * 120; 
+                return `hsla(${hue}, 70%, 50%, 0.6)`;
+            });
+
+            charts.hourly = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: processed.labels,
+                    datasets: [{
+                        label: 'Precio Promedio (€/kWh)',
+                        data: processed.data,
+                        backgroundColor: colors,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        function renderWeekdayChart(data) {
+            const ctx = document.getElementById('weekdayChart').getContext('2d');
+            const processed = window.PVPC_STATS.getWeekdayProfile(data);
+            
+            if (charts.weekday) charts.weekday.destroy();
+
+            charts.weekday = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: processed.labels,
+                    datasets: [{
+                        label: 'Precio Promedio (€/kWh)',
+                        data: processed.data,
+                        backgroundColor: 'rgba(16, 185, 129, 0.6)',
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: {
+                        y: { beginAtZero: true }
+                    }
+                }
+            });
+        }
+
+        // Event Listeners
+        geoSelector.addEventListener('change', updateStats);
+        yearSelector.addEventListener('change', updateStats);
+
+        // Init
+        updateStats();
+    });
+  </script>
+</body>
+</html>

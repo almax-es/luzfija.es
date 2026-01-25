@@ -281,6 +281,10 @@
             <button class="btn" id="btnMenu" type="button" aria-haspopup="menu" aria-controls="menuPanel" aria-expanded="false" title="Opciones" aria-label="Abrir menú de opciones">⚙️</button>
             <div class="menuPanel" id="menuPanel" role="menu" aria-label="Opciones" aria-orientation="vertical">
               <div class="menuHint">Opciones</div>
+            <a class="menuItem u-no-underline" href="/estadisticas/" role="menuitem" aria-label="Ver estadísticas históricas del PVPC">
+              <span class="mi-left">📊 Estadísticas PVPC</span>
+              <span class="mi-right">nuevo</span>
+            </a>
 <button class="menuItem" id="btnShare" type="button" role="menuitem" aria-label="Compartir configuración por URL">
               <span class="mi-left">🔗 Compartir configuración</span>
               <span class="mi-right">URL</span>
@@ -978,7 +982,10 @@
           <p class="u-loading-text">Cargando precios...</p>
         </div>
 
-        <button class="btn primary u-w-full u-mt-16" id="btnCerrarPVPCInfo" type="button" aria-label="Cerrar">Cerrar</button>
+        <a href="/estadisticas/" class="btn u-w-full u-mt-16" style="background:var(--bg-main); border:1px solid var(--border); color:var(--text-main); text-decoration:none; display:flex; justify-content:center; align-items:center; gap:8px; font-weight:500;">
+          <span>📊</span> Ver Observatorio de Precios
+        </a>
+        <button class="btn primary u-w-full u-mt-8" id="btnCerrarPVPCInfo" type="button" aria-label="Cerrar">Cerrar</button>
       </div>
     </div>
   </div>
