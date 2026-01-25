@@ -49,7 +49,16 @@ const PVPC_STATS = {
 
         const tasks = [];
         const monthLabels = [];
+        const now = new Date();
+        const currentYear = now.getFullYear();
+        const currentMonth = now.getMonth() + 1;
+
         for (let m = 1; m <= 12; m++) {
+            // Optimización: No pedir meses futuros ni anteriores a Junio 2021
+            if (year > currentYear) continue;
+            if (Number(year) === currentYear && m > currentMonth) continue;
+            if (Number(year) === 2021 && m < 6) continue;
+
             const monthStr = String(m).padStart(2, '0');
             const url = `/data/pvpc/${geoId}/${year}-${monthStr}.json`;
             monthLabels.push(monthStr);
