@@ -863,8 +863,6 @@
 
   elements.clearExampleBtn.addEventListener('click', resetExample);
 
-  elements.shareBtn.addEventListener('click', async () => {
-
   elements.heatmapGrid.addEventListener('click', (event) => {
     const target = event.target.closest('.heatmap-day');
     if (!target) return;
