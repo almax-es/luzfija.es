@@ -194,7 +194,6 @@
     const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
     monthNames.forEach((m, i) => {
       // Calcular columna aproximada (semana) para el mes
-      // Enero = semana 1, Feb = semana 5 aprox...
       const date = new Date(year, i, 1);
       const dayOfYear = getDayOfYearUTC(year, i + 1, 1);
       const weekIndex = Math.floor(dayOfYear / 7) + 1;
@@ -209,15 +208,11 @@
 
     // 2. Generar días
     const firstDay = new Date(year, 0, 1);
-    // Ajuste para que Lunes sea fila 2 (row 1 es labels)
-    // getDay(): 0(Dom)..6(Sab). Queremos Lunes(0)..Domingo(6) visualmente
-    // CSS Grid Row: Lunes=2, Martes=3... Domingo=8
     const offsetDay = (day => (day + 6) % 7)(firstDay.getDay()); 
 
     heatmapData.forEach((day) => {
       const date = new Date(`${day.date}T12:00:00`);
       const dayOfYear = getDayOfYearUTC(date.getFullYear(), date.getMonth() + 1, date.getDate());
-      // Ajustar semana teniendo en cuenta el desplazamiento del primer día
       const weekIndex = Math.floor((dayOfYear + offsetDay) / 7) + 1;
       const dayOfWeek = (date.getDay() + 6) % 7; // 0=Lunes
 
@@ -277,22 +272,6 @@
     });
   };
 
-  const buildComparisonLabels = () => {
-    const labels = [];
-    const date = new Date(2024, 0, 1);
-    for (let i = 0; i < 366; i++) {
-      // Truco visual: Solo mostrar etiqueta si es el día 15 del mes para centrar el nombre
-      // O si preferimos el día 1: date.getDate() === 1
-      if (date.getDate() === 15) {
-        labels.push(date.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '')); // 'Ene'
-      } else {
-        labels.push(''); // Etiqueta vacía para el resto de días
-      }
-      date.setDate(date.getDate() + 1);
-    }
-    return labels;
-  };
-
   const toDailySeries = (yearData) => {
     if (window.PVPC_STATS?.toDailySeries) {
       return window.PVPC_STATS.toDailySeries(yearData);
@@ -325,8 +304,20 @@
       pointRadius: 0
     }));
 
+    // Generar labels mensuales
+    const labels = [];
+    const date = new Date(2024, 0, 1);
+    for (let i = 0; i < 366; i++) {
+      if (date.getDate() === 15) {
+        labels.push(date.toLocaleDateString('es-ES', { month: 'short' }).replace('.', ''));
+      } else {
+        labels.push('');
+      }
+      date.setDate(date.getDate() + 1);
+    }
+
     return {
-      labels: buildComparisonLabels(),
+      labels,
       datasets
     };
   };
@@ -346,7 +337,6 @@
     if (!elements.comparisonControls) return;
     elements.comparisonControls.innerHTML = '';
     
-    // Botón "Toggle All" simplificado
     const toggleAllBtn = document.createElement('button');
     toggleAllBtn.type = 'button';
     toggleAllBtn.className = 'btn btn-ghost btn-sm';
@@ -356,7 +346,6 @@
     toggleAllBtn.addEventListener('click', () => {
       if (state.visibleYears.size === datasets.length) {
         state.visibleYears.clear();
-        // Mantener siempre visible al menos el año seleccionado actual para no dejar gráfico vacío
         state.visibleYears.add(state.year); 
       } else {
         datasets.forEach(ds => state.visibleYears.add(ds.label));
@@ -373,16 +362,13 @@
       btn.className = 'year-pill';
       btn.setAttribute('aria-pressed', isActive);
       
-      // Aplicar color si está activo
       if (isActive) {
         btn.style.backgroundColor = ds.baseColor;
         btn.style.borderColor = ds.baseColor;
       } else {
-        // Si inactivo, mostrar un "dot" de color para saber cuál es
         btn.style.color = 'var(--text-muted)';
       }
 
-      // Contenido del botón
       btn.innerHTML = `
         ${!isActive ? `<span class="year-pill__dot" style="background-color:${ds.baseColor}"></span>` : ''}
         ${ds.label}
@@ -390,14 +376,12 @@
 
       btn.addEventListener('click', () => {
         if (isActive) {
-          // Evitar ocultar el último año visible (opcional, pero buena UX)
           if (state.visibleYears.size > 1) {
              state.visibleYears.delete(ds.label);
           }
         } else {
           state.visibleYears.add(ds.label);
         }
-        // Re-renderizar controles para actualizar estado visual
         renderComparisonControls(datasets); 
         applyComparisonVisibility();
       });
@@ -427,10 +411,9 @@
       let backgroundColor = 'transparent';
       
       if (isSelected) {
-        // Crear gradiente vertical "Crypto style"
         const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, `${baseColor}66`); // 40% opacidad arriba
-        gradient.addColorStop(1, `${baseColor}05`); // Casi transparente abajo
+        gradient.addColorStop(0, `${baseColor}66`);
+        gradient.addColorStop(1, `${baseColor}05`);
         backgroundColor = gradient;
       }
 
@@ -443,7 +426,6 @@
         fill: isSelected,
         pointRadius: 0,
         order: isSelected ? 0 : 1,
-        // Pequeña sombra para la línea principal
         shadowBlur: isSelected ? 10 : 0,
         shadowColor: isSelected ? baseColor : 'transparent'
       };
@@ -479,8 +461,6 @@
             itemSort: (a, b) => b.raw - a.raw,
             callbacks: {
               title: (context) => {
-                // Recuperar la fecha real basada en el índice (día del año)
-                // Como labels tiene huecos (""), calculamos la fecha manual
                 const date = new Date(2024, 0, 1);
                 date.setDate(date.getDate() + context[0].dataIndex);
                 return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
@@ -520,6 +500,10 @@
         }
       }
     });
+
+    state.visibleYears = new Set(datasets.map(ds => ds.label));
+    renderComparisonControls(datasets);
+    applyComparisonVisibility();
   };
 
   const loadComparisonAsync = ({ geoId, years, token }) => {
@@ -582,7 +566,6 @@
     setLoading(sections.heatmap, true);
     setLoading(sections.clock, true);
     setLoading(sections.weekday, true);
-    setLoading(sections.daily, true);
     setLoading(sections.comparison, true);
 
     const geoId = state.geoId;
@@ -596,7 +579,6 @@
         setLoading(sections.heatmap, false);
         setLoading(sections.clock, false);
         setLoading(sections.weekday, false);
-        setLoading(sections.daily, false);
         setLoading(sections.comparison, false);
         return;
       }
@@ -725,6 +707,27 @@
     openModal();
   }
 
+  const getDayDetailLocal = (yearData, dateStr) => {
+    const hours = yearData.days[dateStr] || [];
+    const entries = hours.map(([ts, price]) => ({
+      ts,
+      price,
+      date: new Date(ts * 1000)
+    }));
+    const labels = entries.map(entry => entry.date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false }));
+    const data = entries.map(entry => entry.price);
+    const sorted = [...entries].sort((a, b) => a.price - b.price);
+    const cheapest = sorted.slice(0, 3).map(entry => ({
+      label: entry.date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      price: entry.price
+    }));
+    const expensive = sorted.slice(-3).reverse().map(entry => ({
+      label: entry.date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false }),
+      price: entry.price
+    }));
+    return { labels, data, cheapest, expensive };
+  };
+
   const onDayClick = async (dateStr) => {
     let yearData = state.yearData;
     if (!yearData || state.yearDataKey !== `${state.geoId}-${state.year}`) {
@@ -753,29 +756,6 @@
     loadData();
   });
 
-  if (elements.heatmapGrid) {
-    elements.heatmapGrid.addEventListener('click', (event) => {
-      const target = event.target.closest('.heatmap-day');
-      if (!target) return;
-      onDayClick(target.dataset.date);
-    });
-
-    elements.heatmapGrid.addEventListener('keydown', (event) => {
-      if (event.key !== 'Enter' && event.key !== ' ') return;
-      const target = event.target.closest('.heatmap-day');
-      if (!target) return;
-      event.preventDefault();
-      onDayClick(target.dataset.date);
-    });
-  }
-
-  elements.closeModalBtn.addEventListener('click', closeModal);
-  elements.modal.addEventListener('click', (event) => {
-    if (event.target.dataset.close) {
-      closeModal();
-    }
-  });
-
   // --- Global Tooltip Logic ---
   const tooltip = document.createElement('div');
   tooltip.id = 'globalTooltip';
@@ -783,8 +763,6 @@
   document.body.appendChild(tooltip);
 
   if (elements.heatmapGrid) {
-    let rafId = null;
-
     elements.heatmapGrid.addEventListener('mouseover', (e) => {
       const target = e.target.closest('.heatmap-day');
       if (target) {
@@ -804,19 +782,36 @@
       }
     });
 
-    // Mousemove opcional: solo si queremos que siga al ratón dentro de la celda.
-    // Si la celda es pequeña (12px), es mejor que el tooltip se quede quieto sobre la celda.
-    // Voy a quitar el seguimiento del ratón para evitar el "baile" y mejorar performance.
-    // Es más estable si se posiciona relativo a la celda.
-
     elements.heatmapGrid.addEventListener('mouseout', (e) => {
        const target = e.target.closest('.heatmap-day');
        if (target) {
          tooltip.style.display = 'none';
        }
     });
+
+    elements.heatmapGrid.addEventListener('click', (event) => {
+      const target = event.target.closest('.heatmap-day');
+      if (!target) return;
+      onDayClick(target.dataset.date);
+    });
+
+    elements.heatmapGrid.addEventListener('keydown', (event) => {
+      if (event.key !== 'Enter' && event.key !== ' ') return;
+      const target = event.target.closest('.heatmap-day');
+      if (!target) return;
+      event.preventDefault();
+      onDayClick(target.dataset.date);
+    });
   }
-  // ----------------------------
+
+  if (elements.closeModalBtn) elements.closeModalBtn.addEventListener('click', closeModal);
+  if (elements.modal) {
+    elements.modal.addEventListener('click', (event) => {
+      if (event.target.dataset.close) {
+        closeModal();
+      }
+    });
+  }
 
   readURL();
   updateURL();
