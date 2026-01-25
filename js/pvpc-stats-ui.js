@@ -538,6 +538,91 @@
     }
   };
 
+  let lastFocused = null;
+  let modalKeydownHandler = null;
+
+  const getModalFocusables = () => {
+    const container = elements.modal.querySelector('.modal__content');
+    if (!container) return [];
+    return Array.from(container.querySelectorAll(
+      'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+    )).filter(el => !el.hasAttribute('disabled'));
+  };
+
+  function openModal() {
+    lastFocused = document.activeElement;
+    elements.modal.hidden = false;
+    elements.closeModalBtn?.focus();
+
+    modalKeydownHandler = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeModal();
+        return;
+      }
+      if (event.key === 'Tab') {
+        const focusableItems = getModalFocusables();
+        if (!focusableItems.length) {
+          event.preventDefault();
+          return;
+        }
+        const first = focusableItems[0];
+        const last = focusableItems[focusableItems.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+          return;
+        }
+        if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', modalKeydownHandler);
+  }
+
+  function closeModal() {
+    elements.modal.hidden = true;
+    if (modalKeydownHandler) {
+      document.removeEventListener('keydown', modalKeydownHandler);
+      modalKeydownHandler = null;
+    }
+    if (lastFocused && typeof lastFocused.focus === 'function') {
+      lastFocused.focus();
+      lastFocused = null;
+    }
+  }
+
+  function renderDayModal(dateStr, detail) {
+    elements.modalTitle.textContent = `Detalle del ${formatDate(dateStr)}`;
+    elements.modalSubtitle.textContent = `Precio horario y ranking de horas para ${formatDate(dateStr)}.`;
+
+    elements.dayCheapest.innerHTML = detail.cheapest.map(item => `<li>${item.label} · ${formatValue(item.price)} €/kWh</li>`).join('');
+    elements.dayExpensive.innerHTML = detail.expensive.map(item => `<li>${item.label} · ${formatValue(item.price)} €/kWh</li>`).join('');
+
+    const ctx = document.getElementById('dayChart').getContext('2d');
+    if (charts.day) charts.day.destroy();
+    charts.day = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: detail.labels,
+        datasets: [{
+          label: 'Precio (€/kWh)',
+          data: detail.data,
+          borderColor: '#8b5cf6',
+          backgroundColor: 'rgba(139,92,246,0.12)',
+          tension: 0.3,
+          pointRadius: 2
+        }]
+      },
+      options: { plugins: { legend: { display: false } } }
+    });
+
+    openModal();
+  }
+
   const onDayClick = async (dateStr) => {
     let yearData = state.yearData;
     if (!yearData || state.yearDataKey !== `${state.geoId}-${state.year}`) {
