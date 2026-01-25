@@ -40,8 +40,6 @@
     kpiMax: document.getElementById('kpiMax'),
     kpiMaxDate: document.getElementById('kpiMaxDate'),
     kpiSolar: document.getElementById('kpiSolar'),
-    kpiVolatility: document.getElementById('kpiVolatility'),
-    kpiP90: document.getElementById('kpiP90'),
     heatmapGrid: document.getElementById('heatmapGrid'),
     cheapestWindows: document.getElementById('cheapestWindows'),
     bestWindow: document.getElementById('bestWindow'),
@@ -259,19 +257,16 @@
     if (twitterDesc) twitterDesc.setAttribute('content', `Media: ${kpis.avgPrice.toFixed(4)} €/kWh | Ver análisis completo →`);
   };
 
-  const renderKPIs = ({ kpis, hourlyProfile, p10, p90 }) => {
+  const renderKPIs = ({ kpis, hourlyProfile }) => {
     elements.kpiAvg.textContent = formatValue(kpis.avgPrice);
     elements.kpiMin.textContent = formatValue(kpis.minPrice);
-    elements.kpiMinDate.textContent = formatDate(kpis.minHour?.date);
+    elements.kpiMinDate.textContent = `${formatDate(kpis.minHour?.date)} (${new Date(kpis.minHour?.ts * 1000).getHours()}:00)`;
     elements.kpiMax.textContent = formatValue(kpis.maxPrice);
-    elements.kpiMaxDate.textContent = formatDate(kpis.maxHour?.date);
+    elements.kpiMaxDate.textContent = `${formatDate(kpis.maxHour?.date)} (${new Date(kpis.maxHour?.ts * 1000).getHours()}:00)`;
 
     const hourly = hourlyProfile.data;
     const solarAvg = (hourly[12] + hourly[13] + hourly[14] + hourly[15] + hourly[16] + hourly[17]) / 6;
     elements.kpiSolar.textContent = formatValue(solarAvg || 0);
-
-    elements.kpiVolatility.textContent = formatValue(p90 - p10);
-    elements.kpiP90.textContent = formatValue(p90);
   };
 
   const renderInsight = async (kpis, geoId) => {
@@ -866,49 +861,9 @@
     loadData();
   });
 
-  elements.dayType.addEventListener('change', () => {
-    state.dayType = elements.dayType.value;
-    updateURL();
-    loadData();
-  });
-
-  elements.usageHours.addEventListener('change', () => {
-    state.usageHours = Number(elements.usageHours.value);
-    state.usagePreset = 'custom';
-    elements.usagePreset.value = 'custom';
-    updateURL();
-    loadData();
-  });
-
-  elements.usageKwh.addEventListener('change', () => {
-    state.usageKwh = sanitizeKwh(elements.usageKwh.value);
-    elements.usageKwh.value = String(state.usageKwh);
-    saveUsageStorage();
-    updateSavingsDisplay();
-  });
-
-  elements.usagePerMonth.addEventListener('change', () => {
-    state.usagePerMonth = sanitizeUsageCount(elements.usagePerMonth.value);
-    elements.usagePerMonth.value = String(state.usagePerMonth);
-    saveUsageStorage();
-    updateSavingsDisplay();
-  });
-
-  elements.usagePreset.addEventListener('change', () => {
-    const preset = elements.usagePreset.value;
-    state.usagePreset = preset;
-    if (presets[preset]) {
-      state.usageHours = presets[preset].hours;
-      elements.usageHours.value = String(state.usageHours);
-      state.usageKwh = sanitizeKwh(presets[preset].kwh ?? state.usageKwh);
-      if (elements.usageKwh) elements.usageKwh.value = String(state.usageKwh);
-      saveUsageStorage();
-    }
-    updateURL();
-    loadData();
-  });
-
   elements.clearExampleBtn.addEventListener('click', resetExample);
+
+  elements.shareBtn.addEventListener('click', async () => {
 
   elements.heatmapGrid.addEventListener('click', (event) => {
     const target = event.target.closest('.heatmap-day');

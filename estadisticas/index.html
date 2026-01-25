@@ -105,77 +105,6 @@
       </div>
     </section>
 
-    <section class="panel panel--savings" aria-labelledby="savingsTitle" data-loading="true">
-      <div class="panel__header">
-        <div>
-          <p class="eyebrow">Ahorro accionable</p>
-          <h2 id="savingsTitle">Ventanas más baratas</h2>
-          <p class="panel__subtitle">Define tu uso y descubre las franjas típicamente más baratas, con riesgo y ahorro estimado.</p>
-        </div>
-        <div class="panel__actions">
-          <span class="badge badge-muted" id="exampleBadge" hidden>Ejemplo activo: <span id="exampleDate">--</span></span>
-          <button class="btn btn-ghost" id="clearExampleBtn" type="button" hidden>Quitar ejemplo</button>
-        </div>
-      </div>
-
-      <div class="savings-controls">
-        <div class="control-group">
-          <label for="usagePreset">Preset de uso</label>
-          <select id="usagePreset">
-            <option value="custom">Personalizado</option>
-            <option value="lavadora">Lavadora (1h)</option>
-            <option value="lavavajillas">Lavavajillas (2h)</option>
-            <option value="termo">Termo eléctrico (3h)</option>
-            <option value="coche">Coche eléctrico (4h)</option>
-          </select>
-        </div>
-        <div class="control-group">
-          <label for="usageHours">Duración</label>
-          <select id="usageHours">
-            <option value="1">1 hora</option>
-            <option value="2">2 horas</option>
-            <option value="3">3 horas</option>
-            <option value="4">4 horas</option>
-            <option value="6">6 horas</option>
-          </select>
-        </div>
-        <div class="control-group">
-          <label for="dayType">Tipo de día</label>
-          <select id="dayType">
-            <option value="any">Cualquier día</option>
-            <option value="weekday">Solo laborables</option>
-            <option value="weekend">Solo fin de semana</option>
-          </select>
-        </div>
-        <div class="control-group">
-          <label for="usageKwh">Consumo del aparato (kWh)</label>
-          <input id="usageKwh" type="number" inputmode="decimal" step="0.1" min="0.1" value="1">
-        </div>
-        <div class="control-group">
-          <label for="usagePerMonth">Usos al mes</label>
-          <input id="usagePerMonth" type="number" inputmode="numeric" step="1" min="1" max="200" value="10">
-        </div>
-      </div>
-
-      <div class="savings-grid">
-        <div class="savings-card">
-          <h3>Top 3 ventanas más baratas</h3>
-          <div class="skeleton skeleton-block"></div>
-          <ol id="cheapestWindows" class="window-list"></ol>
-        </div>
-        <div class="savings-card">
-          <h3>Resumen claro</h3>
-          <div class="skeleton skeleton-block"></div>
-          <ul class="summary-list">
-            <li><strong>Mejor franja típica:</strong> <span id="bestWindow">--</span></li>
-            <li><strong>Peor franja típica:</strong> <span id="worstWindow">--</span></li>
-            <li><strong>Ahorro potencial:</strong> <span id="savingsHighlight">--</span></li>
-          </ul>
-          <p class="panel__hint">Cambia la duración para ajustar el consejo a tu consumo real.</p>
-        </div>
-      </div>
-    </section>
-
     <section class="panel panel--kpis" aria-labelledby="kpiTitle" data-loading="true">
       <div class="panel__header">
         <div>
@@ -204,21 +133,9 @@
           <div class="skeleton skeleton-line"></div>
         </div>
         <div class="kpi-card">
-          <p class="kpi-label">Valle solar (12-17h)</p>
+          <p class="kpi-label">Media Solar (12h-17h)</p>
           <p class="kpi-value kpi-value--solar" id="kpiSolar">--</p>
-          <p class="kpi-sub">Media de 6 horas</p>
-          <div class="skeleton skeleton-line"></div>
-        </div>
-        <div class="kpi-card">
-          <p class="kpi-label">Volatilidad (P90-P10)</p>
-          <p class="kpi-value" id="kpiVolatility">--</p>
-          <p class="kpi-sub">€/kWh</p>
-          <div class="skeleton skeleton-line"></div>
-        </div>
-        <div class="kpi-card">
-          <p class="kpi-label">Percentil 90</p>
-          <p class="kpi-value" id="kpiP90">--</p>
-          <p class="kpi-sub">Hora cara típica</p>
+          <p class="kpi-sub">Precio medio</p>
           <div class="skeleton skeleton-line"></div>
         </div>
       </div>
