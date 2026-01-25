@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark light"/>
   <meta id="meta-description" name="description" content="Observatorio interactivo del PVPC. Analiza la evolución histórica, el mapa de calor de precios y el reloj del ahorro solar en España.">
-  
+
   <title>Observatorio PVPC - Estadísticas de la Luz | LuzFija.es</title>
 
   <meta id="og-title" property="og:title" content="Observatorio PVPC - Estadísticas de la Luz | LuzFija.es">
@@ -20,609 +20,489 @@
   <meta name="twitter:description" id="twitter-description" content="Análisis histórico del precio de la luz">
 
   <link id="canonical" rel="canonical" href="https://luzfija.es/estadisticas/">
-  
+
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-  
+
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/fonts.css">
-  
+  <link rel="stylesheet" href="/estadisticas/estadisticas.css">
+
   <script src="/js/config.js"></script>
   <script src="/js/theme.js"></script>
   <script src="/js/tracking.js" defer data-goatcounter="https://luzfija.goatcounter.com/count"></script>
-
-  <style>
-    :root {
-        --color-level-0: #10b981; /* Verde */
-        --color-level-1: #84cc16;
-        --color-level-2: #f59e0b;
-        --color-level-3: #f97316;
-        --color-level-4: #ef4444; /* Rojo */
-    }
-
-    .stats-container { max-width: 1200px; margin: 0 auto; padding: 2rem 1rem; }
-    .stats-header { text-align: center; margin-bottom: 2rem; }
-    
-    .stats-controls { display: flex; justify-content: center; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
-
-    select {
-        appearance: none; padding: 0.6rem 2.5rem 0.6rem 1rem; border-radius: 10px;
-        border: 2px solid var(--border-color); background-color: var(--bg-card);
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%238b5cf6' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat; background-position: right 1rem center;
-        color: var(--text-main); font-size: 1rem; font-weight: 600; cursor: pointer; min-width: 180px;
-    }
-    
-    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }
-    .kpi-card { background: var(--bg-card); padding: 1.2rem; border-radius: 12px; border: 1px solid var(--border-color); text-align: center; }
-    .kpi-val { font-size: 2rem; font-weight: 800; color: var(--primary-color); margin: 0.2rem 0; }
-    .kpi-lab { font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase; }
-
-    .insight-box {
-        background: var(--primary-color); color: white; padding: 1rem; border-radius: 12px;
-        margin-bottom: 2rem; font-weight: 500; display: flex; align-items: center; gap: 1rem;
-    }
-
-    .chart-card { background: var(--bg-card); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--border-color); margin-bottom: 2rem; }
-    .chart-card h2 { margin-top: 0; font-size: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
-
-    /* HEATMAP STYLE */
-    .heatmap-container { overflow-x: auto; padding-bottom: 1rem; }
-    .heatmap-grid {
-        display: grid;
-        grid-template-flow: column;
-        grid-template-columns: repeat(53, 14px);
-        grid-template-rows: repeat(7, 14px);
-        gap: 3px;
-        width: max-content;
-    }
-    .heatmap-day { width: 14px; height: 14px; border-radius: 2px; background: var(--border-color); position: relative; cursor: pointer; }
-    .heatmap-day:hover { transform: scale(1.3); z-index: 10; outline: 1px solid white; }
-    .heatmap-legend { display: flex; gap: 4px; align-items: center; margin-top: 10px; font-size: 10px; color: var(--text-muted); }
-    .legend-box { width: 10px; height: 10px; border-radius: 2px; }
-
-    /* TOOLTIP FOR HEATMAP */
-    .heatmap-day::after {
-        content: attr(data-tip);
-        position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
-        background: #333; color: white; padding: 4px 8px; border-radius: 4px;
-        font-size: 10px; white-space: nowrap; pointer-events: none; opacity: 0; transition: opacity 0.2s;
-    }
-    .heatmap-day:hover::after { opacity: 1; }
-
-    .loading-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 1000; backdrop-filter: blur(2px); }
-    .spinner { width: 40px; height: 40px; border: 4px solid #eee; border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; }
-    @keyframes spin { 100% { transform: rotate(360deg); } }
-    .hidden { display: none !important; }
-
-    @media (max-width: 768px) {
-        .kpi-grid { grid-template-columns: 1fr 1fr; }
-        .chart-grid { grid-template-columns: 1fr !important; }
-    }
-  </style>
 </head>
 <body>
-
-  <nav style="background: var(--bg-card); padding: 1rem; border-bottom: 1px solid var(--border-color);">
-    <div style="max-width: 1200px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center;">
-      <a href="/" style="text-decoration: none; font-weight: 800; color: var(--primary-color); letter-spacing: -0.5px;">⚡ LUZFIJA<span style="color:var(--text-main)">.ES</span></a>
-      <a href="/" class="btn" style="font-size: 0.8rem; padding: 0.4rem 0.8rem;">← Volver al comparador</a>
+  <nav class="site-nav">
+    <div class="site-nav__inner">
+      <a href="/" class="site-logo">⚡ LUZFIJA<span>.ES</span></a>
+      <a href="/" class="btn btn-outline btn-sm">← Volver al comparador</a>
     </div>
   </nav>
 
-  <div id="loading" class="loading-overlay hidden"><div class="spinner"></div></div>
+  <main class="stats-page" aria-live="polite">
+    <header class="stats-hero">
+      <div class="stats-hero__copy">
+        <p class="eyebrow">Observatorio PVPC</p>
+        <h1>Estadísticas con ahorro accionable</h1>
+        <p class="hero-subtitle">Explora patrones reales, compara años y decide cuándo consumir para ahorrar de verdad.</p>
+        <div class="hero-badges">
+          <span class="badge" id="updatedBadge">Actualizado hasta: --/--/----</span>
+          <span class="badge badge-muted" id="completenessBadge">Completitud: --%</span>
+        </div>
+        <p class="data-warning" id="dataWarning" role="status"></p>
+      </div>
 
-  <div class="stats-container">
-    <header class="stats-header">
-        <h1 style="font-size: 2.5rem; margin-bottom: 0.5rem;">Observatorio PVPC</h1>
-        <p style="color: var(--text-muted);">Análisis avanzado de la tarifa regulada y el mercado eléctrico.</p>
-    </header>
-
-    <div class="stats-controls">
-        <select id="geoSelector">
+      <div class="stats-hero__controls">
+        <div class="control-group">
+          <label for="geoSelector">Zona PVPC</label>
+          <select id="geoSelector" aria-label="Selecciona la zona PVPC">
             <option value="8741">Península</option>
             <option value="8742">Canarias</option>
             <option value="8743">Baleares</option>
             <option value="8744">Ceuta</option>
             <option value="8745">Melilla</option>
-        </select>
-        <select id="yearSelector">
+          </select>
+        </div>
+        <div class="control-group">
+          <label for="yearSelector">Año</label>
+          <select id="yearSelector" aria-label="Selecciona el año">
             <option value="2026">2026 (En curso)</option>
             <option value="2025">2025</option>
             <option value="2024">2024</option>
             <option value="2023">2023</option>
             <option value="2022">2022</option>
             <option value="2021">2021 (Desde Junio)</option>
-        </select>
-    </div>
-
-    <div id="insight" class="insight-box hidden">
-        <span style="font-size: 1.5rem;">💡</span>
-        <span id="insightText">Analizando tendencias...</span>
-    </div>
-
-    <div class="kpi-grid">
-        <div class="kpi-card"><div class="kpi-lab">Media Anual</div><div class="kpi-val" id="kpiAvg">--</div><div class="kpi-sub">€/kWh</div></div>
-        <div class="kpi-card"><div class="kpi-lab">Día más barato</div><div class="kpi-val" style="color:var(--color-level-0)" id="kpiMin">--</div><div class="kpi-sub" id="kpiMinDate">--</div></div>
-        <div class="kpi-card"><div class="kpi-lab">Día más caro</div><div class="kpi-val" style="color:var(--color-level-4)" id="kpiMax">--</div><div class="kpi-sub" id="kpiMaxDate">--</div></div>
-        <div class="kpi-card"><div class="kpi-lab">Horas de Sol</div><div class="kpi-val" style="color:#fbbf24" id="kpiSolar">--</div><div class="kpi-sub">Media 12h-17h</div></div>
-    </div>
-
-    <!-- HEATMAP -->
-    <div class="chart-card">
-        <h2>🗓️ Mapa de Calor de Precios</h2>
-        <p style="color:var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem;">Cada cuadro es un día del año. De verde (barato) a rojo (caro).</p>
-        <div class="heatmap-container">
-            <div id="heatmapGrid" class="heatmap-grid" role="img" aria-label="Mapa de calor anual mostrando el precio medio diario. Los días en verde son baratos, los días en rojo son caros."></div>
+          </select>
         </div>
-        <div class="heatmap-legend">
-            <span>Barato</span>
-            <div class="legend-box" style="background:var(--color-level-0)"></div>
-            <div class="legend-box" style="background:var(--color-level-1)"></div>
-            <div class="legend-box" style="background:var(--color-level-2)"></div>
-            <div class="legend-box" style="background:var(--color-level-3)"></div>
-            <div class="legend-box" style="background:var(--color-level-4)"></div>
-            <span>Caro</span>
+        <div class="control-actions">
+          <button class="btn btn-outline" id="shareBtn" type="button">Compartir enlace</button>
+          <button class="btn btn-ghost" id="resetBtn" type="button">Reset</button>
         </div>
-    </div>
-
-    <div class="chart-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
-        <!-- CLOCK CHART -->
-        <div class="chart-card">
-            <h2>🕒 Reloj del Ahorro</h2>
-            <p style="color:var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Promedio horario. El "valle solar" es visible al mediodía.</p>
-            <div style="max-width: 400px; margin: 0 auto;">
-                <canvas id="clockChart" role="img" aria-label="Gráfico polar tipo reloj mostrando el precio promedio por hora del día. Las horas más baratas aparecen en verde, las más caras en rojo."></canvas>
-            </div>
-        </div>
-
-        <!-- WEEKDAY CHART -->
-        <div class="chart-card">
-            <h2>📅 Promedio por Día</h2>
-            <p style="color:var(--text-muted); font-size: 0.85rem; margin-bottom: 1rem;">Los fines de semana suelen ser periodo valle.</p>
-            <canvas id="weekdayChart" role="img" aria-label="Gráfico de barras mostrando el precio promedio por día de la semana. Compara lunes a domingo."></canvas>
-        </div>
-    </div>
-
-    <div class="chart-card">
-        <h2>📉 Evolución Diaria</h2>
-        <canvas id="dailyChart" height="80" role="img" aria-label="Gráfico de línea mostrando la evolución diaria del precio a lo largo del año seleccionado."></canvas>
-    </div>
-
-    <div class="chart-card">
-        <h2>🆚 Comparativa Multianual</h2>
-        <canvas id="comparisonChart" height="80" role="img" aria-label="Gráfico comparativo multianual mostrando la evolución del precio de la luz entre 2022 y 2026. Permite visualizar la crisis energética de 2022 frente a la estabilización actual."></canvas>
-    </div>
-
-    <div style="background: var(--bg-card); border: 2px solid var(--primary-color); border-radius: 20px; padding: 2.5rem; text-align: center; margin: 4rem 0;">
-        <h2 style="font-size: 1.8rem; margin-bottom: 1rem;">¿Tu tarifa actual es mejor que el PVPC?</h2>
-        <p style="color: var(--text-muted); margin-bottom: 2rem; max-width: 600px; margin-left: auto; margin-right: auto;">
-            No adivines. El PVPC es volátil. Usa tus datos reales para comparar el precio regulado con las mejores ofertas fijas del mercado.
-        </p>
-        <a href="/" class="btn" style="background: var(--primary-color); color: white; padding: 1rem 2.5rem; font-size: 1.1rem; border: none; font-weight: 700;">Ir al Comparador Principal</a>
-    </div>
-
-        <!-- FAQ Section (SEO) -->
-        <section style="margin-top: 4rem; max-width: 900px; margin-left: auto; margin-right: auto; padding: 0 1rem;">
-            <h2 style="text-align: center; margin-bottom: 2.5rem; font-size: 2rem;">Preguntas Frecuentes sobre el PVPC</h2>
-            <div style="display: grid; gap: 2rem;">
-    
-                <div itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                    <h3 itemprop="name" style="font-size: 1.15rem; margin-bottom: 0.75rem; color: var(--primary-color);">
-                        ¿A qué hora es más barata la luz en España?
-                    </h3>
-                    <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                        <div itemprop="text" style="color: var(--text-muted); line-height: 1.7;">
-                            <p>Gracias al auge de la energía solar, las horas más baratas suelen ser entre las <strong>11:00 y las 17:00 (mediodía)</strong>, cuando la generación fotovoltaica es máxima. El antiguo patrón de "madrugada más barata" ha cambiado.</p>
-                            <p>Las horas más caras siguen siendo <strong>18:00-22:00</strong> (pico de demanda sin solar). Consulta nuestro "Reloj del Ahorro" arriba para ver el patrón del año actual.</p>
-                        </div>
-                    </div>
-                </div>
-    
-                <div itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                    <h3 itemprop="name" style="font-size: 1.15rem; margin-bottom: 0.75rem; color: var(--primary-color);">
-                        ¿Por qué la luz es más cara por la tarde?
-                    </h3>
-                    <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                        <div itemprop="text" style="color: var(--text-muted); line-height: 1.7;">
-                            <p>Entre las 18:00 y 22:00 se produce el <strong>pico de demanda eléctrica</strong>: todos llegamos a casa, cocinamos, encendemos calefacción y vemos TV al mismo tiempo.</p>
-                            <p>Además, las placas solares ya no generan energía, por lo que el sistema depende de centrales más caras (gas). Esta combinación dispara los precios.</p>
-                            <p><a href="/guias/como-adaptar-tus-horarios-para-pagar-menos-luz.html" style="color: var(--primary-color);">Ver guía completa sobre horarios →</a></p>
-                        </div>
-                    </div>
-                </div>
-    
-                <div itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                    <h3 itemprop="name" style="font-size: 1.15rem; margin-bottom: 0.75rem; color: var(--primary-color);">
-                        ¿Cuál es el mes más caro del año para la luz?
-                    </h3>
-                    <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                        <div itemprop="text" style="color: var(--text-muted); line-height: 1.7;">
-                            <p>Históricamente, <strong>enero</strong> (calefacción + baja solar) y <strong>agosto</strong> (aire acondicionado + olas de calor) suelen ser los más caros.</p>
-                            <p>Sin embargo, esto varía: en 2022 el pico fue en marzo (guerra Ucrania), mientras que 2024 fue estable. Consulta el gráfico "Comparativa Multianual" arriba para ver las tendencias.</p>
-                        </div>
-                    </div>
-                </div>
-    
-                <div itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                    <h3 itemprop="name" style="font-size: 1.15rem; margin-bottom: 0.75rem; color: var(--primary-color);">
-                        ¿Me conviene el PVPC o una tarifa fija?
-                    </h3>
-                    <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                        <div itemprop="text" style="color: var(--text-muted); line-height: 1.7;">
-                            <p>El PVPC conviene si:</p>
-                            <ul style="margin-left: 1.5rem;">
-                                <li>Puedes desplazar consumos a horas baratas (mediodía o madrugada)</li>
-                                <li>Tienes placas solares con autoconsumo</li>
-                                <li>Consumes poco en horas punta (18h-22h)</li>
-                            </ul>
-                            <p>Las tarifas fijas convienen si prefieres estabilidad y no puedes adaptar horarios.</p>
-                            <p><a href="/" style="color: var(--primary-color); font-weight: 600;">Usa nuestro comparador con tus datos reales →</a></p>
-                        </div>
-                    </div>
-                </div>
-    
-                <div itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                    <h3 itemprop="name" style="font-size: 1.15rem; margin-bottom: 0.75rem; color: var(--primary-color);">
-                        ¿Por qué hay precios negativos en el PVPC?
-                    </h3>
-                    <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                        <div itemprop="text" style="color: var(--text-muted); line-height: 1.7;">
-                            <p>Ocurre cuando hay <strong>exceso de producción renovable</strong> (mucho viento y sol) y baja demanda, típicamente en madrugadas de primavera u otoño.</p>
-                            <p>Los productores pagan por verter electricidad porque es más caro parar sus plantas. Sin embargo, tú sigues pagando peajes y cargos, por lo que el precio final nunca es realmente cero, aunque sí muy bajo.</p>
-                        </div>
-                    </div>
-                </div>
-    
-                <div itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                    <h3 itemprop="name" style="font-size: 1.15rem; margin-bottom: 0.75rem; color: var(--primary-color);">
-                        ¿Los fines de semana la luz es más barata?
-                    </h3>
-                    <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                        <div itemprop="text" style="color: var(--text-muted); line-height: 1.7;">
-                            <p><strong>Sí, generalmente</strong>. Los fines de semana y festivos son periodo valle las 24 horas según la regulación 2.0TD.</p>
-                            <p>Además, la demanda industrial cae (oficinas y fábricas cerradas), lo que reduce los precios. La diferencia puede ser del 20-40% respecto a días laborables.</p>
-                            <p>Consulta el gráfico "Promedio por Día" arriba para ver el patrón semanal.</p>
-                        </div>
-                    </div>
-                </div>
-    
-                <div itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                    <h3 itemprop="name" style="font-size: 1.15rem; margin-bottom: 0.75rem; color: var(--primary-color);">
-                        ¿Cómo ha evolucionado el precio de la luz en los últimos años?
-                    </h3>
-                    <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                        <div itemprop="text" style="color: var(--text-muted); line-height: 1.7;">
-                            <p><strong>2022</strong> fue el año de la crisis energética (guerra Ucrania), con precios medios de 0,28 €/kWh y picos de 0,50 €/kWh.</p>
-                            <p>Desde 2023 se ha estabilizado: 2023 (~0,13 €/kWh), 2024 (~0,09 €/kWh) y 2025 (~0,11 €/kWh).</p>
-                            <p>La tendencia a la baja se debe al aumento de renovables (solar +45% en 2023-2024). Usa el gráfico "Comparativa Multianual" para visualizar la evolución completa.</p>
-                        </div>
-                    </div>
-                </div>
-    
-                <div itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-                    <h3 itemprop="name" style="font-size: 1.15rem; margin-bottom: 0.75rem; color: var(--primary-color);">
-                        ¿Cómo puedo ahorrar en mi factura de luz con PVPC?
-                    </h3>
-                    <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-                        <div itemprop="text" style="color: var(--text-muted); line-height: 1.7;">
-                            <p>Las claves son:</p>
-                            <ol style="margin-left: 1.5rem; line-height: 1.8;">
-                                <li><strong>Desplaza consumos grandes</strong> (lavadora, lavavajillas, carga coche) a horas baratas (11h-17h o madrugada)</li>
-                                <li><strong>Evita consumir</strong> entre 18h-22h (pico de precio)</li>
-                                <li><strong>Aprovecha periodo valle</strong> (fines de semana completos y noches 0h-8h)</li>
-                                <li><strong>Considera placas solares</strong> si consumes mucho de día</li>
-                                <li><strong>Revisa potencia contratada</strong>: muchos pagan de más</li>
-                            </ol>
-                            <p><a href="/guias/como-adaptar-tus-horarios-para-pagar-menos-luz.html" style="color: var(--primary-color); font-weight: 600;">Ver guía completa de ahorro →</a></p>
-                        </div>
-                    </div>
-                </div>
-    
-            </div>
-        </section>
-        
       </div>
-    
-      <footer style="text-align: center; padding: 4rem 2rem; color: var(--text-muted); border-top: 1px solid var(--border-color); margin-top: 4rem; font-size: 0.9rem;">
-        <p>Datos oficiales REE/ESIOS (Indicador 1001). Los precios mostrados incluyen peajes y cargos pero no el IVA/IGIC/IPSI.</p>
-        <p>&copy; 2026 LuzFija.es — Herramienta independiente y gratuita.</p>
-      </footer>
-    
-      <!-- Scripts al final para no bloquear rendering -->
-      <script src="/vendor/chartjs/chart.umd.js" defer></script>
-      <script src="/js/pvpc-stats-engine.js" defer></script>
-    
-      <!-- Schema.org FAQPage -->
-      <script type="application/ld+json">
+    </header>
+
+    <section class="insight" id="insight" aria-live="polite">
+      <div class="insight__icon">💡</div>
+      <div>
+        <p class="insight__title">Resumen rápido del año</p>
+        <p id="insightText" class="insight__text">Analizando tendencias...</p>
+      </div>
+    </section>
+
+    <section class="panel panel--savings" aria-labelledby="savingsTitle" data-loading="true">
+      <div class="panel__header">
+        <div>
+          <p class="eyebrow">Ahorro accionable</p>
+          <h2 id="savingsTitle">Ventanas más baratas</h2>
+          <p class="panel__subtitle">Define tu uso y descubre las franjas típicamente más baratas, con riesgo y ahorro estimado.</p>
+        </div>
+        <div class="panel__actions">
+          <span class="badge badge-muted" id="exampleBadge" hidden>Ejemplo activo: <span id="exampleDate">--</span></span>
+          <button class="btn btn-ghost" id="clearExampleBtn" type="button" hidden>Quitar ejemplo</button>
+        </div>
+      </div>
+
+      <div class="savings-controls">
+        <div class="control-group">
+          <label for="usagePreset">Preset de uso</label>
+          <select id="usagePreset">
+            <option value="custom">Personalizado</option>
+            <option value="lavadora">Lavadora (1h)</option>
+            <option value="lavavajillas">Lavavajillas (2h)</option>
+            <option value="termo">Termo eléctrico (3h)</option>
+            <option value="coche">Coche eléctrico (4h)</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label for="usageHours">Duración</label>
+          <select id="usageHours">
+            <option value="1">1 hora</option>
+            <option value="2">2 horas</option>
+            <option value="3">3 horas</option>
+            <option value="4">4 horas</option>
+            <option value="6">6 horas</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label for="dayType">Tipo de día</label>
+          <select id="dayType">
+            <option value="any">Cualquier día</option>
+            <option value="weekday">Solo laborables</option>
+            <option value="weekend">Solo fin de semana</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="savings-grid">
+        <div class="savings-card">
+          <h3>Top 3 ventanas más baratas</h3>
+          <div class="skeleton skeleton-block"></div>
+          <ol id="cheapestWindows" class="window-list"></ol>
+        </div>
+        <div class="savings-card">
+          <h3>Resumen claro</h3>
+          <div class="skeleton skeleton-block"></div>
+          <ul class="summary-list">
+            <li><strong>Mejor franja típica:</strong> <span id="bestWindow">--</span></li>
+            <li><strong>Peor franja típica:</strong> <span id="worstWindow">--</span></li>
+            <li><strong>Ahorro potencial:</strong> <span id="savingsHighlight">--</span></li>
+          </ul>
+          <p class="panel__hint">Cambia la duración para ajustar el consejo a tu consumo real.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel panel--kpis" aria-labelledby="kpiTitle" data-loading="true">
+      <div class="panel__header">
+        <div>
+          <p class="eyebrow">Indicadores clave</p>
+          <h2 id="kpiTitle">Radiografía anual</h2>
+        </div>
+        <p class="panel__subtitle">Precios medios, extremos y volatilidad para decidir con confianza.</p>
+      </div>
+      <div class="kpi-grid">
+        <div class="kpi-card">
+          <p class="kpi-label">Media anual</p>
+          <p class="kpi-value" id="kpiAvg">--</p>
+          <p class="kpi-sub">€/kWh</p>
+          <div class="skeleton skeleton-line"></div>
+        </div>
+        <div class="kpi-card">
+          <p class="kpi-label">Día más barato</p>
+          <p class="kpi-value kpi-value--good" id="kpiMin">--</p>
+          <p class="kpi-sub" id="kpiMinDate">--</p>
+          <div class="skeleton skeleton-line"></div>
+        </div>
+        <div class="kpi-card">
+          <p class="kpi-label">Día más caro</p>
+          <p class="kpi-value kpi-value--bad" id="kpiMax">--</p>
+          <p class="kpi-sub" id="kpiMaxDate">--</p>
+          <div class="skeleton skeleton-line"></div>
+        </div>
+        <div class="kpi-card">
+          <p class="kpi-label">Valle solar (12-17h)</p>
+          <p class="kpi-value kpi-value--solar" id="kpiSolar">--</p>
+          <p class="kpi-sub">Media de 6 horas</p>
+          <div class="skeleton skeleton-line"></div>
+        </div>
+        <div class="kpi-card">
+          <p class="kpi-label">Volatilidad (P90-P10)</p>
+          <p class="kpi-value" id="kpiVolatility">--</p>
+          <p class="kpi-sub">€/kWh</p>
+          <div class="skeleton skeleton-line"></div>
+        </div>
+        <div class="kpi-card">
+          <p class="kpi-label">Percentil 90</p>
+          <p class="kpi-value" id="kpiP90">--</p>
+          <p class="kpi-sub">Hora cara típica</p>
+          <div class="skeleton skeleton-line"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="heatmapTitle" data-loading="true">
+      <div class="panel__header">
+        <div>
+          <p class="eyebrow">Mapa anual</p>
+          <h2 id="heatmapTitle">Mapa de calor de precios</h2>
+          <p class="panel__subtitle">Cada día del año según su precio medio. Usa el teclado o haz clic para ver el detalle.</p>
+        </div>
+        <div class="panel__legend">
+          <span>Barato</span>
+          <span class="legend" data-color="0"></span>
+          <span class="legend" data-color="1"></span>
+          <span class="legend" data-color="2"></span>
+          <span class="legend" data-color="3"></span>
+          <span class="legend" data-color="4"></span>
+          <span>Caro</span>
+        </div>
+      </div>
+      <div class="heatmap-container">
+        <div class="skeleton skeleton-heatmap"></div>
+        <div id="heatmapGrid" class="heatmap-grid" role="grid" aria-label="Mapa de calor anual"></div>
+      </div>
+    </section>
+
+    <div class="chart-grid">
+      <section class="panel" aria-labelledby="clockTitle" data-loading="true">
+        <div class="panel__header">
+          <div>
+            <p class="eyebrow">Patrón horario</p>
+            <h2 id="clockTitle">Reloj del ahorro</h2>
+            <p class="panel__subtitle">Promedio horario del año. El valle solar suele destacar al mediodía.</p>
+          </div>
+        </div>
+        <div class="chart-shell">
+          <div class="skeleton skeleton-chart"></div>
+          <canvas id="clockChart" role="img" aria-label="Gráfico polar tipo reloj mostrando el precio promedio por hora del día."></canvas>
+        </div>
+      </section>
+
+      <section class="panel" aria-labelledby="weekdayTitle" data-loading="true">
+        <div class="panel__header">
+          <div>
+            <p class="eyebrow">Patrón semanal</p>
+            <h2 id="weekdayTitle">Promedio por día</h2>
+            <p class="panel__subtitle">Laborables vs fin de semana con datos reales del año.</p>
+          </div>
+        </div>
+        <div class="chart-shell">
+          <div class="skeleton skeleton-chart"></div>
+          <canvas id="weekdayChart" role="img" aria-label="Gráfico de barras mostrando el precio promedio por día de la semana."></canvas>
+        </div>
+      </section>
+    </div>
+
+    <section class="panel" aria-labelledby="dailyTitle" data-loading="true">
+      <div class="panel__header">
+        <div>
+          <p class="eyebrow">Evolución</p>
+          <h2 id="dailyTitle">Evolución diaria</h2>
+        </div>
+        <p class="panel__subtitle">Observa tendencias y picos del año.</p>
+      </div>
+      <div class="chart-shell">
+        <div class="skeleton skeleton-chart"></div>
+        <canvas id="dailyChart" height="80" role="img" aria-label="Gráfico de línea mostrando la evolución diaria del precio a lo largo del año seleccionado."></canvas>
+      </div>
+    </section>
+
+    <section class="panel" aria-labelledby="comparisonTitle" data-loading="true">
+      <div class="panel__header">
+        <div>
+          <p class="eyebrow">Contexto histórico</p>
+          <h2 id="comparisonTitle">Comparativa multianual</h2>
+          <p class="panel__subtitle">Activa o desactiva años y destaca el año seleccionado.</p>
+        </div>
+        <div class="comparison-controls" id="comparisonControls"></div>
+      </div>
+      <div class="chart-shell">
+        <div class="skeleton skeleton-chart"></div>
+        <canvas id="comparisonChart" height="80" role="img" aria-label="Gráfico comparativo multianual mostrando la evolución del precio de la luz entre varios años."></canvas>
+      </div>
+    </section>
+
+    <section class="cta-card">
+      <div>
+        <h2>¿Tu tarifa actual es mejor que el PVPC?</h2>
+        <p>No adivines. El PVPC es volátil. Usa tus datos reales para comparar el precio regulado con las mejores ofertas fijas del mercado.</p>
+      </div>
+      <a href="/" class="btn btn-primary">Ir al comparador principal</a>
+    </section>
+
+    <section class="faq" aria-labelledby="faqTitle">
+      <h2 id="faqTitle">Preguntas frecuentes sobre el PVPC</h2>
+      <div class="faq-grid">
+        <article itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <h3 itemprop="name">¿A qué hora es más barata la luz en España?</h3>
+          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <div itemprop="text">
+              <p>Gracias al auge de la energía solar, las horas más baratas suelen ser entre las <strong>11:00 y las 17:00 (mediodía)</strong>, cuando la generación fotovoltaica es máxima. El antiguo patrón de "madrugada más barata" ha cambiado.</p>
+              <p>Las horas más caras siguen siendo <strong>18:00-22:00</strong> (pico de demanda sin solar). Consulta nuestro "Reloj del Ahorro" arriba para ver el patrón del año actual.</p>
+            </div>
+          </div>
+        </article>
+
+        <article itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <h3 itemprop="name">¿Por qué la luz es más cara por la tarde?</h3>
+          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <div itemprop="text">
+              <p>Entre las 18:00 y 22:00 se produce el <strong>pico de demanda eléctrica</strong>: todos llegamos a casa, cocinamos, encendemos calefacción y vemos TV al mismo tiempo.</p>
+              <p>Además, las placas solares ya no generan energía, por lo que el sistema depende de centrales más caras (gas). Esta combinación dispara los precios.</p>
+              <p><a href="/guias/como-adaptar-tus-horarios-para-pagar-menos-luz.html">Ver guía completa sobre horarios →</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <h3 itemprop="name">¿Cuál es el mes más caro del año para la luz?</h3>
+          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <div itemprop="text">
+              <p>Históricamente, <strong>enero</strong> (calefacción + baja solar) y <strong>agosto</strong> (aire acondicionado + olas de calor) suelen ser los más caros.</p>
+              <p>Sin embargo, esto varía: en 2022 el pico fue en marzo (guerra Ucrania), mientras que 2024 fue estable. Consulta el gráfico "Comparativa Multianual" arriba para ver las tendencias.</p>
+            </div>
+          </div>
+        </article>
+
+        <article itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <h3 itemprop="name">¿Me conviene el PVPC o una tarifa fija?</h3>
+          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <div itemprop="text">
+              <p>El PVPC conviene si:</p>
+              <ul>
+                <li>Puedes desplazar consumos a horas baratas (mediodía o madrugada)</li>
+                <li>Tienes placas solares con autoconsumo</li>
+                <li>Consumes poco en horas punta (18h-22h)</li>
+              </ul>
+              <p>Las tarifas fijas convienen si prefieres estabilidad y no puedes adaptar horarios.</p>
+              <p><a href="/">Usa nuestro comparador con tus datos reales →</a></p>
+            </div>
+          </div>
+        </article>
+
+        <article itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <h3 itemprop="name">¿Por qué hay precios negativos en el PVPC?</h3>
+          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <div itemprop="text">
+              <p>Ocurre cuando hay <strong>exceso de producción renovable</strong> (mucho viento y sol) y baja demanda, típicamente en madrugadas de primavera u otoño.</p>
+              <p>Los productores pagan por verter electricidad porque es más caro parar sus plantas. Sin embargo, tú sigues pagando peajes y cargos, por lo que el precio final nunca es realmente cero, aunque sí muy bajo.</p>
+            </div>
+          </div>
+        </article>
+
+        <article itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <h3 itemprop="name">¿Los fines de semana la luz es más barata?</h3>
+          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <div itemprop="text">
+              <p><strong>Sí, generalmente</strong>. Los fines de semana y festivos son periodo valle las 24 horas según la regulación 2.0TD.</p>
+              <p>Además, la demanda industrial cae (oficinas y fábricas cerradas), lo que reduce los precios. La diferencia puede ser del 20-40% respecto a días laborables.</p>
+              <p>Consulta el gráfico "Promedio por Día" arriba para ver el patrón semanal.</p>
+            </div>
+          </div>
+        </article>
+
+        <article itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <h3 itemprop="name">¿Cómo ha evolucionado el precio de la luz en los últimos años?</h3>
+          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <div itemprop="text">
+              <p><strong>2022</strong> fue el año de la crisis energética (guerra Ucrania), con precios medios de 0,28 €/kWh y picos de 0,50 €/kWh.</p>
+              <p>Desde 2023 se ha estabilizado: 2023 (~0,13 €/kWh), 2024 (~0,09 €/kWh) y 2025 (~0,11 €/kWh).</p>
+              <p>La tendencia a la baja se debe al aumento de renovables (solar +45% en 2023-2024). Usa el gráfico "Comparativa Multianual" para visualizar la evolución completa.</p>
+            </div>
+          </div>
+        </article>
+
+        <article itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
+          <h3 itemprop="name">¿Cómo puedo ahorrar en mi factura de luz con PVPC?</h3>
+          <div itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
+            <div itemprop="text">
+              <p>Las claves son:</p>
+              <ol>
+                <li><strong>Desplaza consumos grandes</strong> (lavadora, lavavajillas, carga coche) a horas baratas (11h-17h o madrugada)</li>
+                <li><strong>Evita consumir</strong> entre 18h-22h (pico de precio)</li>
+                <li><strong>Aprovecha periodo valle</strong> (fines de semana completos y noches 0h-8h)</li>
+                <li><strong>Considera placas solares</strong> si consumes mucho de día</li>
+                <li><strong>Revisa potencia contratada</strong>: muchos pagan de más</li>
+              </ol>
+              <p><a href="/guias/como-adaptar-tus-horarios-para-pagar-menos-luz.html">Ver guía completa de ahorro →</a></p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="stats-footer">
+    <p>Datos oficiales REE/ESIOS (Indicador 1001). Los precios mostrados incluyen peajes y cargos pero no el IVA/IGIC/IPSI.</p>
+    <p>&copy; 2026 LuzFija.es — Herramienta independiente y gratuita.</p>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <div class="modal" id="dayModal" role="dialog" aria-modal="true" aria-labelledby="dayModalTitle" hidden>
+    <div class="modal__overlay" data-close="true"></div>
+    <div class="modal__content">
+      <div class="modal__header">
+        <h3 id="dayModalTitle">Detalle del día</h3>
+        <button class="btn btn-ghost" type="button" id="closeModalBtn" aria-label="Cerrar">Cerrar</button>
+      </div>
+      <p class="modal__subtitle" id="dayModalSubtitle">--</p>
+      <div class="modal__chart">
+        <canvas id="dayChart" aria-label="Gráfico horario del día"></canvas>
+      </div>
+      <div class="modal__lists">
+        <div>
+          <h4>Horas más baratas</h4>
+          <ol id="dayCheapest"></ol>
+        </div>
+        <div>
+          <h4>Horas más caras</h4>
+          <ol id="dayExpensive"></ol>
+        </div>
+      </div>
+      <div class="modal__actions">
+        <button class="btn btn-primary" id="useDayBtn" type="button">Usar este día como ejemplo</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/vendor/chartjs/chart.umd.js" defer></script>
+  <script src="/js/pvpc-stats-engine.js" defer></script>
+  <script src="/js/pvpc-stats-ui.js" defer></script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
       {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "¿A qué hora es más barata la luz en España?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Gracias al auge de la energía solar, las horas más baratas suelen ser entre las 11:00 y las 17:00 (mediodía), cuando la generación fotovoltaica es máxima. El antiguo patrón de \"madrugada más barata\" ha cambiado. Las horas más caras siguen siendo 18:00-22:00 (pico de demanda sin solar). Consulta nuestro 'Reloj del Ahorro' para ver el patrón del año actual."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "¿Por qué la luz es más cara por la tarde?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Entre las 18:00 y 22:00 se produce el pico de demanda eléctrica: todos llegamos a casa, cocinamos, encendemos calefacción/aire acondicionado y vemos TV al mismo tiempo. Además, las placas solares ya no generan energía, por lo que el sistema depende de centrales más caras (ciclos combinados de gas). Esta combinación de alta demanda y baja generación renovable dispara los precios."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "¿Cuál es el mes más caro del año para la luz?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Históricamente, enero y agosto suelen ser los meses más caros. Enero por el uso intensivo de calefacción y baja generación solar (días cortos). Agosto por el aire acondicionado y olas de calor que aumentan la demanda. Sin embargo, esto varía según el año: en 2022 el pico fue en marzo (guerra Ucrania), mientras que 2024 fue más estable. Consulta nuestro gráfico de 'Comparativa Multianual' para ver las tendencias."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "¿Me conviene el PVPC o una tarifa fija?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Depende de tu perfil de consumo. El PVPC conviene si: (1) puedes desplazar consumos a horas baratas (mediodía o madrugada), (2) tienes placas solares con autoconsumo, o (3) consumes poco en horas punta (18h-22h). Las tarifas fijas convienen si prefieres estabilidad y no puedes adaptar horarios. Usa nuestro comparador principal con tus datos reales de consumo para saber cuál te sale mejor."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "¿Por qué hay precios negativos en el PVPC?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Los precios negativos ocurren cuando hay exceso de producción renovable (mucho viento y sol) y baja demanda, típicamente en madrugadas de primavera u otoño. Los productores pagan por verter electricidad a la red porque es más caro parar y reiniciar sus plantas que operar con pérdidas temporales. Sin embargo, el consumidor final sigue pagando peajes y cargos regulados, por lo que el precio nunca es realmente cero en tu factura, aunque sí muy bajo."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "¿Los fines de semana la luz es más barata?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Sí, generalmente. Los fines de semana y festivos son periodo valle las 24 horas según la regulación 2.0TD. Además, la demanda industrial cae (oficinas y fábricas cerradas), lo que reduce los precios. La diferencia puede ser del 20-40% respecto a días laborables. Consulta nuestro gráfico 'Promedio por Día' para ver el patrón semanal del año seleccionado."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "¿Cómo ha evolucionado el precio de la luz en los últimos años?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "2022 fue el año de la crisis energética (guerra Ucrania), con precios medios de 0,28 €/kWh y picos de 0,50 €/kWh. Desde 2023 se ha estabilizado: 2023 (~0,13 €/kWh), 2024 (~0,09 €/kWh) y 2025 (~0,11 €/kWh). La tendencia a la baja se debe al aumento de renovables (solar +45% en 2023-2024) y la normalización del gas. Usa nuestro gráfico 'Comparativa Multianual' para visualizar la evolución completa desde 2021."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "¿Cómo puedo ahorrar en mi factura de luz con PVPC?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Las claves son: (1) Desplaza consumos grandes (lavadora, lavavajillas, carga coche eléctrico) a horas baratas (11h-17h en días soleados, o madrugada). (2) Evita consumir entre 18h-22h (pico de precio). (3) Si tienes tarifa 2.0TD, aprovecha el periodo valle (fines de semana completos y noches 0h-8h). (4) Considera placas solares si consumes mucho de día. (5) Revisa potencia contratada: muchos pagan de más. Usa nuestro comparador para simular escenarios con tus datos reales."
-            }
-          }
-        ]
+        "@type": "Question",
+        "name": "¿A qué hora es más barata la luz en España?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Gracias al auge de la energía solar, las horas más baratas suelen ser entre las 11:00 y las 17:00 (mediodía), cuando la generación fotovoltaica es máxima. El antiguo patrón de \"madrugada más barata\" ha cambiado. Las horas más caras siguen siendo 18:00-22:00 (pico de demanda sin solar). Consulta nuestro 'Reloj del Ahorro' para ver el patrón del año actual."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Por qué la luz es más cara por la tarde?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Entre las 18:00 y 22:00 se produce el pico de demanda eléctrica: todos llegamos a casa, cocinamos, encendemos calefacción/aire acondicionado y vemos TV al mismo tiempo. Además, las placas solares ya no generan energía, por lo que el sistema depende de centrales más caras (ciclos combinados de gas). Esta combinación de alta demanda y baja generación renovable dispara los precios."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cuál es el mes más caro del año para la luz?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Históricamente, enero y agosto suelen ser los meses más caros. Enero por el uso intensivo de calefacción y baja generación solar (días cortos). Agosto por el aire acondicionado y olas de calor que aumentan la demanda. Sin embargo, esto varía según el año: en 2022 el pico fue en marzo (guerra Ucrania), mientras que 2024 fue más estable. Consulta nuestro gráfico de 'Comparativa Multianual' para ver las tendencias."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Me conviene el PVPC o una tarifa fija?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Depende de tu perfil de consumo. El PVPC conviene si: (1) puedes desplazar consumos a horas baratas (mediodía o madrugada), (2) tienes placas solares con autoconsumo, o (3) consumes poco en horas punta (18h-22h). Las tarifas fijas convienen si prefieres estabilidad y no puedes adaptar horarios. Usa nuestro comparador principal con tus datos reales de consumo para saber cuál te sale mejor."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Por qué hay precios negativos en el PVPC?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Los precios negativos ocurren cuando hay exceso de producción renovable (mucho viento y sol) y baja demanda, típicamente en madrugadas de primavera u otoño. Los productores pagan por verter electricidad a la red porque es más caro parar y reiniciar sus plantas que operar con pérdidas temporales. Sin embargo, el consumidor final sigue pagando peajes y cargos regulados, por lo que el precio nunca es realmente cero en tu factura, aunque sí muy bajo."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Los fines de semana la luz es más barata?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sí, generalmente. Los fines de semana y festivos son periodo valle las 24 horas según la regulación 2.0TD. Además, la demanda industrial cae (oficinas y fábricas cerradas), lo que reduce los precios. La diferencia puede ser del 20-40% respecto a días laborables. Consulta nuestro gráfico 'Promedio por Día' para ver el patrón semanal del año seleccionado."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cómo ha evolucionado el precio de la luz en los últimos años?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "2022 fue el año de la crisis energética (guerra Ucrania), con precios medios de 0,28 €/kWh y picos de 0,50 €/kWh. Desde 2023 se ha estabilizado: 2023 (~0,13 €/kWh), 2024 (~0,09 €/kWh) y 2025 (~0,11 €/kWh). La tendencia a la baja se debe al aumento de renovables (solar +45% en 2023-2024) y la normalización del gas. Usa nuestro gráfico 'Comparativa Multianual' para visualizar la evolución completa desde 2021."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cómo puedo ahorrar en mi factura de luz con PVPC?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Las claves son: (1) Desplaza consumos grandes (lavadora, lavavajillas, carga coche eléctrico) a horas baratas (11h-17h en días soleados, o madrugada). (2) Evita consumir entre 18h-22h (pico de precio). (3) Si tienes tarifa 2.0TD, aprovecha el periodo valle (fines de semana completos y noches 0h-8h). (4) Considera placas solares si consumes mucho de día. (5) Revisa potencia contratada: muchos pagan de más. Usa nuestro comparador para simular escenarios con tus datos reales."
+        }
       }
-      </script>
-  <script>
-    document.addEventListener('DOMContentLoaded', () => {
-        const geoSel = document.getElementById('geoSelector');
-        const yearSel = document.getElementById('yearSelector');
-        const loader = document.getElementById('loading');
-        const heatmap = document.getElementById('heatmapGrid');
-        
-        let charts = {};
-
-        async function updateStats() {
-            loader.classList.remove('hidden');
-            const geoId = geoSel.value;
-            const year = yearSel.value;
-            
-            try {
-                const data = await window.PVPC_STATS.loadYearData(geoId, year);
-                if (!data || !Object.keys(data.days).length) return;
-
-                const kpis = window.PVPC_STATS.getKPIs(data);
-                
-                // --- Actualizar meta tags dinámicos ---
-                const metaDescription = document.getElementById('meta-description');
-                const ogTitle = document.getElementById('og-title');
-                const ogDescription = document.getElementById('og-description');
-                const ogUrl = document.getElementById('og-url');
-                const canonical = document.getElementById('canonical');
-                const twitterTitle = document.getElementById('twitter-title');
-                const twitterDesc = document.getElementById('twitter-description');
-
-                const geoNames = { '8741': 'Península', '8742': 'Canarias', '8743': 'Baleares', '8744': 'Ceuta', '8745': 'Melilla' };
-                const geoName = geoNames[geoId] || 'España';
-                const yearLabel = year === '2026' ? '2026 (en curso)' : year;
-
-                document.title = `Precio Luz ${yearLabel} - Estadísticas PVPC ${geoName} | LuzFija.es`;
-
-                const descText = `Precio medio PVPC ${yearLabel} en ${geoName}: ${kpis.avgPrice.toFixed(4)} €/kWh. ` +
-                                 `Mínimo ${kpis.minPrice.toFixed(4)} €, máximo ${kpis.maxPrice.toFixed(4)} €. ` +
-                                 `Gráficos interactivos y análisis histórico.`;
-                
-                if (metaDescription) metaDescription.setAttribute('content', descText);
-                if (ogTitle) ogTitle.setAttribute('content', `Estadísticas PVPC ${yearLabel} - ${geoName} | LuzFija.es`);
-                if (ogDescription) ogDescription.setAttribute('content', descText);
-                
-                const currentUrl = `https://luzfija.es/estadisticas/?geo=${geoId}&year=${year}`;
-                if (ogUrl) ogUrl.setAttribute('content', currentUrl);
-                if (canonical) canonical.setAttribute('href', currentUrl);
-                if (twitterTitle) twitterTitle.setAttribute('content', `Precio Luz ${yearLabel} - ${geoName}`);
-                if (twitterDesc) twitterDesc.setAttribute('content', `Media: ${kpis.avgPrice.toFixed(4)} €/kWh | Ver análisis completo →`);
-                // --------------------------------------
-
-                document.getElementById('kpiAvg').textContent = kpis.avgPrice.toFixed(4);
-                document.getElementById('kpiMin').textContent = kpis.minPrice.toFixed(4);
-                document.getElementById('kpiMinDate').textContent = new Date(kpis.minHour.date).toLocaleDateString();
-                document.getElementById('kpiMax').textContent = kpis.maxPrice.toFixed(4);
-                document.getElementById('kpiMaxDate').textContent = new Date(kpis.maxHour.date).toLocaleDateString();
-
-                // Calcular Media Solar (12h a 17h)
-                const hourly = window.PVPC_STATS.getHourlyProfile(data).data;
-                const solarAvg = (hourly[12]+hourly[13]+hourly[14]+hourly[15]+hourly[16]+hourly[17]) / 6;
-                document.getElementById('kpiSolar').textContent = solarAvg.toFixed(4);
-
-                renderHeatmap(data);
-                renderClockChart(hourly);
-                renderWeekdayChart(window.PVPC_STATS.getWeekdayProfile(data));
-                renderDailyChart(window.PVPC_STATS.getDailyEvolution(data));
-                renderComparisonChart(geoId, ['2022', '2023', '2024', '2025', '2026']);
-                updateInsight(year, kpis.avgPrice, geoId);
-
-            } catch (e) { console.error(e); }
-            finally { loader.classList.add('hidden'); }
-        }
-
-        function renderHeatmap(yearData) {
-            const data = window.PVPC_STATS.getHeatmapData(yearData);
-            heatmap.innerHTML = '';
-            
-            // Crear 53 columnas (semanas)
-            data.forEach(day => {
-                const div = document.createElement('div');
-                div.className = 'heatmap-day';
-                div.style.background = `var(--color-level-${day.intensity})`;
-                div.setAttribute('data-tip', `${new Date(day.date).toLocaleDateString()}: ${day.price.toFixed(4)}€`);
-                heatmap.appendChild(div);
-            });
-        }
-
-        function renderClockChart(data) {
-            const ctx = document.getElementById('clockChart').getContext('2d');
-            if (charts.clock) charts.clock.destroy();
-            charts.clock = new Chart(ctx, {
-                type: 'polarArea',
-                data: {
-                    labels: Array.from({length:24}, (_,i)=>`${i}h`),
-                    datasets: [{
-                        data: data,
-                        backgroundColor: data.map(v => {
-                            const ratio = (v - Math.min(...data)) / (Math.max(...data) - Math.min(...data));
-                            return `hsla(${(1-ratio)*120}, 70%, 50%, 0.6)`;
-                        })
-                    }]
-                },
-                options: { 
-                    plugins: { legend: { display: false } },
-                    scales: { r: { ticks: { display: false } } }
-                }
-            });
-        }
-
-        function renderWeekdayChart(processed) {
-            const ctx = document.getElementById('weekdayChart').getContext('2d');
-            if (charts.weekday) charts.weekday.destroy();
-            charts.weekday = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: processed.labels,
-                    datasets: [{
-                        data: processed.data,
-                        backgroundColor: '#8b5cf6',
-                        borderRadius: 6
-                    }]
-                },
-                options: { plugins: { legend: { display: false } } }
-            });
-        }
-
-        function renderDailyChart(processed) {
-            const ctx = document.getElementById('dailyChart').getContext('2d');
-            if (charts.daily) charts.daily.destroy();
-            charts.daily = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: processed.labels,
-                    datasets: [{
-                        label: 'Precio (€/kWh)',
-                        data: processed.data,
-                        borderColor: '#3b82f6',
-                        fill: true,
-                        backgroundColor: 'rgba(59,130,246,0.1)',
-                        tension: 0.3,
-                        pointRadius: 0
-                    }]
-                },
-                options: { 
-                    interaction: { mode: 'index', intersect: false },
-                    plugins: { legend: { display: false } } 
-                }
-            });
-        }
-
-        async function renderComparisonChart(geoId, years) {
-            const ctx = document.getElementById('comparisonChart').getContext('2d');
-            const comparisonData = await window.PVPC_STATS.getMultiYearComparison(geoId, years);
-            if (charts.comparison) charts.comparison.destroy();
-            const colors = {'2022':'#ef4444','2023':'#f59e0b','2024':'#10b981','2025':'#3b82f6','2026':'#8b5cf6'};
-            charts.comparison = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: comparisonData.labels,
-                    datasets: comparisonData.datasets.map(ds => ({
-                        ...ds, borderColor: colors[ds.label] || '#999', borderWidth: ds.label === yearSel.value ? 4 : 1, pointRadius: 0
-                    }))
-                },
-                options: { interaction: { mode: 'index', intersect: false } }
-            });
-        }
-
-        async function updateInsight(year, currentAvg, geoId) {
-            const box = document.getElementById('insight');
-            const text = document.getElementById('insightText');
-            box.classList.remove('hidden');
-
-            const prevYear = parseInt(year) - 1;
-            if (prevYear >= 2022) {
-                const prevData = await window.PVPC_STATS.loadYearData(geoId, prevYear);
-                const prevAvg = window.PVPC_STATS.getKPIs(prevData).avgPrice;
-                const diff = ((currentAvg - prevAvg) / prevAvg) * 100;
-                const trend = diff > 0 ? 'más caro' : 'más barato';
-                text.textContent = `En ${year}, el PVPC está siendo un ${Math.abs(diff).toFixed(1)}% ${trend} que en ${prevYear}.`;
-            } else {
-                text.textContent = `Analizando el mercado de ${year}. Utiliza el Reloj del Ahorro para planificar tus consumos solares.`;
-            }
-        }
-
-        geoSel.addEventListener('change', () => {
-            updateURL();
-            updateStats();
-        });
-        yearSel.addEventListener('change', () => {
-            updateURL();
-            updateStats();
-        });
-
-        function updateURL() {
-            const params = new URLSearchParams();
-            params.set('geo', geoSel.value);
-            params.set('year', yearSel.value);
-            const newUrl = `${window.location.pathname}?${params.toString()}`;
-            window.history.replaceState({}, '', newUrl);
-        }
-
-        function readURL() {
-            const params = new URLSearchParams(window.location.search);
-            const y = params.get('year');
-            const g = params.get('geo');
-            if (y && document.querySelector(`#yearSelector option[value="${y}"]`)) {
-                yearSel.value = y;
-            }
-            if (g && document.querySelector(`#geoSelector option[value="${g}"]`)) {
-                geoSel.value = g;
-            }
-        }
-
-        // Inicializar
-        readURL();
-        updateStats();
-    });
+    ]
+  }
   </script>
 </body>
 </html>
