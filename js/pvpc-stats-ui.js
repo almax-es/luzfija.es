@@ -54,8 +54,6 @@
     exampleBadge: document.getElementById('exampleBadge'),
     exampleDate: document.getElementById('exampleDate'),
     clearExampleBtn: document.getElementById('clearExampleBtn'),
-    shareBtn: document.getElementById('shareBtn'),
-    resetBtn: document.getElementById('resetBtn'),
     toast: document.getElementById('toast'),
     modal: document.getElementById('dayModal'),
     modalTitle: document.getElementById('dayModalTitle'),
@@ -946,36 +944,6 @@
   });
 
   elements.clearExampleBtn.addEventListener('click', resetExample);
-
-  elements.shareBtn.addEventListener('click', async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      showToast('Enlace copiado al portapapeles.');
-    } catch (error) {
-      showToast('No se pudo copiar el enlace.');
-    }
-  });
-
-  elements.resetBtn.addEventListener('click', () => {
-    elements.geoSelector.value = '8741';
-    elements.yearSelector.value = '2026';
-    elements.dayType.value = 'any';
-    elements.usagePreset.value = 'custom';
-    elements.usageHours.value = '2';
-    elements.usageKwh.value = '1';
-    elements.usagePerMonth.value = '10';
-
-    state.geoId = elements.geoSelector.value;
-    state.year = elements.yearSelector.value;
-    state.dayType = elements.dayType.value;
-    state.usagePreset = elements.usagePreset.value;
-    state.usageHours = Number(elements.usageHours.value);
-    state.usageKwh = sanitizeKwh(elements.usageKwh.value);
-    state.usagePerMonth = sanitizeUsageCount(elements.usagePerMonth.value);
-    saveUsageStorage();
-    resetExample();
-    updateURL();
-  });
 
   elements.heatmapGrid.addEventListener('click', (event) => {
     const target = event.target.closest('.heatmap-day');
