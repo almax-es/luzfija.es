@@ -202,6 +202,31 @@ const PVPC_STATS = {
     },
 
     /**
+     * Prepara datos para el mapa de calor (Heatmap)
+     * Devuelve un array de días con su fecha, precio y nivel (0-4) para el color
+     */
+    getHeatmapData(yearData) {
+        const sortedDates = Object.keys(yearData.days).sort();
+        if (!sortedDates.length) return [];
+
+        const prices = sortedDates.map(d => {
+            const h = yearData.days[d];
+            return h.reduce((acc, curr) => acc + curr[1], 0) / h.length;
+        });
+
+        const min = Math.min(...prices);
+        const max = Math.max(...prices);
+        const range = max - min;
+
+        return sortedDates.map((date, i) => {
+            const price = prices[i];
+            // Calcular nivel de intensidad (0 a 4) para el color
+            const intensity = range > 0 ? Math.floor(((price - min) / range) * 4) : 0;
+            return { date, price, intensity };
+        });
+    },
+
+    /**
      * Analiza días de la semana (Lunes vs Domingo, etc)
      */
     getWeekdayProfile(yearData) {
