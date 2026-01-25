@@ -9,6 +9,7 @@
 
   const sections = {
     kpis: document.querySelector('[data-loading][aria-labelledby="kpiTitle"]'),
+    savings: document.querySelector('[data-loading][aria-labelledby="savingsTitle"]'),
     heatmap: document.querySelector('[data-loading][aria-labelledby="heatmapTitle"]'),
     clock: document.querySelector('[data-loading][aria-labelledby="clockTitle"]'),
     weekday: document.querySelector('[data-loading][aria-labelledby="weekdayTitle"]'),
@@ -18,6 +19,9 @@
   const elements = {
     geoSelector: document.getElementById('geoSelector'),
     yearSelector: document.getElementById('yearSelector'),
+    heroBadges: document.getElementById('heroBadges'),
+    dataWarning: document.getElementById('dataWarning'),
+    dataMeta: document.getElementById('dataMeta'),
     insightText: document.getElementById('insightText'),
     kpiAvg: document.getElementById('kpiAvg'),
     kpiMin: document.getElementById('kpiMin'),
@@ -25,6 +29,14 @@
     kpiMax: document.getElementById('kpiMax'),
     kpiMaxDate: document.getElementById('kpiMaxDate'),
     kpiSolar: document.getElementById('kpiSolar'),
+    savingsPreset: document.getElementById('savingsPreset'),
+    savingsDuration: document.getElementById('savingsDuration'),
+    savingsDayType: document.getElementById('savingsDayType'),
+    savingsKwh: document.getElementById('savingsKwh'),
+    savingsUses: document.getElementById('savingsUses'),
+    savingsWindows: document.getElementById('savingsWindows'),
+    savingsSummary: document.getElementById('savingsSummary'),
+    savingsHint: document.getElementById('savingsHint'),
     heatmapGrid: document.getElementById('heatmapGrid'),
     comparisonControls: document.getElementById('comparisonControls'),
     toast: document.getElementById('toast'),
@@ -57,8 +69,31 @@
     yearDataKey: null,
     lastAnalysis: null,
     comparisonToken: 0,
-    comparisonShowDaily: false
+    comparisonShowDaily: false,
+    comparisonSeriesByYear: null,
+    comparisonPrefsFromUrl: {},
+    savingsOverrides: {
+      duration: false,
+      kwh: false
+    },
+    savings: {
+      preset: 'lavadora',
+      duration: 1,
+      dayType: 'any',
+      kwh: 0.8,
+      usesPerMonth: 10
+    }
   };
+
+  const savingsPresets = {
+    lavadora: { label: 'Lavadora (1h)', duration: 1, kwh: 0.8 },
+    lavavajillas: { label: 'Lavavajillas (2h)', duration: 2, kwh: 1.2 },
+    termo: { label: 'Termo (3h)', duration: 3, kwh: 2.5 },
+    coche: { label: 'Coche EV (4h)', duration: 4, kwh: 12 },
+    personalizado: { label: 'Personalizado', duration: 2, kwh: 1.5 }
+  };
+
+  const bestWindowsCache = new Map();
 
   const setLoading = (section, isLoading) => {
     if (!section) return;
@@ -113,6 +148,17 @@
   const formatEuroKwh = (value) => {
     if (!Number.isFinite(value)) return '--';
     return `${value.toLocaleString('es-ES', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} €/kWh`;
+  };
+
+  const formatCurrency = (value) => {
+    if (!Number.isFinite(value)) return '--';
+    return value.toLocaleString('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 });
+  };
+
+  const formatDelta = (value) => {
+    if (!Number.isFinite(value)) return '--';
+    const sign = value >= 0 ? 'Ahorro' : 'Sobrecoste';
+    return `${sign} ${formatCurrency(Math.abs(value))}`;
   };
 
   const dayOfYear = (dateStr) => {
@@ -170,10 +216,51 @@
     });
   };
 
+  const clampNumber = (value, { min = 0, max = Infinity, fallback = 0 } = {}) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return fallback;
+    return Math.min(Math.max(parsed, min), max);
+  };
+
+  const allowedDurations = [1, 2, 3, 4, 6];
+
+  const normalizeDuration = (value, fallback) => {
+    const numeric = clampNumber(value, { min: 1, max: 6, fallback });
+    if (allowedDurations.includes(numeric)) return numeric;
+    return allowedDurations.reduce((prev, curr) => (
+      Math.abs(curr - numeric) < Math.abs(prev - numeric) ? curr : prev
+    ), allowedDurations[0]);
+  };
+
+  const buildShareParams = () => {
+    const params = new URLSearchParams();
+    params.set('geo', state.geoId);
+    params.set('year', state.year);
+    if (state.visibleYears?.size) {
+      params.set('visibleYears', Array.from(state.visibleYears).join(','));
+    }
+    if (state.comparisonShowDaily) {
+      params.set('comparisonShowDaily', '1');
+    }
+    if (state.savings?.preset) params.set('savingsPreset', state.savings.preset);
+    if (state.savings?.duration) params.set('savingsDuration', String(state.savings.duration));
+    if (state.savings?.dayType) params.set('savingsDayType', state.savings.dayType);
+    if (Number.isFinite(state.savings?.kwh)) params.set('savingsKwh', String(state.savings.kwh));
+    if (Number.isFinite(state.savings?.usesPerMonth)) params.set('savingsUses', String(state.savings.usesPerMonth));
+    return params;
+  };
+
   const readURL = () => {
     const params = new URLSearchParams(window.location.search);
     const year = params.get('year');
     const geo = params.get('geo');
+    const visibleYears = params.get('visibleYears');
+    const comparisonShowDaily = params.get('comparisonShowDaily');
+    const savingsPreset = params.get('savingsPreset');
+    const savingsDuration = params.get('savingsDuration');
+    const savingsDayType = params.get('savingsDayType');
+    const savingsKwh = params.get('savingsKwh');
+    const savingsUses = params.get('savingsUses');
 
     if (year && document.querySelector(`#yearSelector option[value="${year}"]`)) {
       elements.yearSelector.value = year;
@@ -184,12 +271,43 @@
       elements.geoSelector.value = geo;
       state.geoId = geo;
     }
+
+    if (visibleYears) {
+      const parsedYears = visibleYears.split(',').map(value => value.trim()).filter(Boolean);
+      state.comparisonPrefsFromUrl.visibleYears = parsedYears;
+      state.visibleYears = new Set(parsedYears);
+    }
+
+    if (comparisonShowDaily !== null) {
+      state.comparisonPrefsFromUrl.showDaily = comparisonShowDaily === '1' || comparisonShowDaily === 'true';
+      state.comparisonShowDaily = state.comparisonPrefsFromUrl.showDaily;
+    }
+
+    if (savingsPreset && savingsPresets[savingsPreset]) {
+      state.savings.preset = savingsPreset;
+    }
+
+    if (savingsDuration) {
+      state.savings.duration = normalizeDuration(savingsDuration, state.savings.duration);
+      state.savingsOverrides.duration = true;
+    }
+
+    if (savingsDayType && ['any', 'weekday', 'weekend'].includes(savingsDayType)) {
+      state.savings.dayType = savingsDayType;
+    }
+
+    if (savingsKwh) {
+      state.savings.kwh = clampNumber(savingsKwh, { min: 0.1, max: 100, fallback: state.savings.kwh });
+      state.savingsOverrides.kwh = true;
+    }
+
+    if (savingsUses) {
+      state.savings.usesPerMonth = clampNumber(savingsUses, { min: 1, max: 60, fallback: state.savings.usesPerMonth });
+    }
   };
 
   const updateURL = () => {
-    const params = new URLSearchParams();
-    params.set('geo', state.geoId);
-    params.set('year', state.year);
+    const params = buildShareParams();
     const newUrl = `${window.location.pathname}?${params.toString()}`;
     window.history.replaceState({}, '', newUrl);
   };
@@ -230,12 +348,81 @@
     elements.kpiSolar.textContent = formatValue(solarAvg || 0);
   };
 
-  const renderInsight = async (kpis, geoId) => {
+  const formatStatusDate = (dateStr) => {
+    if (!dateStr) return '--';
+    return new Date(`${dateStr}T12:00:00`).toLocaleDateString('es-ES');
+  };
+
+  const renderStatusBadges = (status) => {
+    if (!elements.heroBadges || !status) return;
+    const coverageStart = formatStatusDate(status.coverageFrom);
+    const updatedUntil = formatStatusDate(status.updatedUntil);
+    const coverageIsPartial = status.coverageFrom && status.coverageFrom !== `${state.year}-01-01`;
+    const completionPercent = Number.isFinite(status.coverageCompleteness)
+      ? Math.round(status.coverageCompleteness * 100)
+      : 0;
+
+    elements.heroBadges.innerHTML = `
+      <span class="badge badge-muted">Actualizado hasta: ${updatedUntil}</span>
+      <span class="badge badge-muted">${coverageIsPartial ? `Cobertura parcial oficial: desde ${coverageStart}` : `Cobertura: desde ${coverageStart}`}</span>
+      <span class="badge">Completitud (rango): ${completionPercent}%</span>
+    `;
+
+    if (elements.dataMeta) {
+      const months = status.monthsLoaded?.length ? status.monthsLoaded.join(', ') : '—';
+      elements.dataMeta.textContent = `Días cargados: ${status.loadedDays} · Meses: ${months}`;
+    }
+  };
+
+  const renderDataWarning = (status) => {
+    if (!elements.dataWarning || !status) return;
+    elements.dataWarning.textContent = '';
+    const currentYear = Number(state.year) === new Date().getFullYear();
+    if (!currentYear || !status.updatedUntil) return;
+    const updatedDate = new Date(`${status.updatedUntil}T12:00:00`);
+    const today = new Date();
+    const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    if (updatedDate < todayDate) {
+      elements.dataWarning.textContent = `Aviso: faltan días recientes. Último dato disponible el ${formatStatusDate(status.updatedUntil)}.`;
+    }
+  };
+
+  const calculateYtdAverage = (yearData, endDayOfYear) => {
+    const series = toDailySeries(yearData).values;
+    const limit = Math.min(series.length, endDayOfYear);
+    let sum = 0;
+    let count = 0;
+    for (let i = 0; i < limit; i += 1) {
+      const value = series[i];
+      if (Number.isFinite(value)) {
+        sum += value;
+        count += 1;
+      }
+    }
+    return count ? sum / count : null;
+  };
+
+  const renderInsight = async (kpis, geoId, status) => {
     const currentYear = Number(state.year);
     const prevYear = currentYear - 1;
 
     if (prevYear >= 2022) {
       const prevData = await window.PVPC_STATS.loadYearData(geoId, prevYear);
+      if (!prevData || !Object.keys(prevData.days).length) {
+        elements.insightText.textContent = `Analizando el mercado de ${currentYear}. Usa el reloj del ahorro para planificar tu consumo.`;
+        return;
+      }
+      const isCurrentYear = String(currentYear) === new Date().getFullYear().toString();
+      if (isCurrentYear && status?.updatedUntil) {
+        const endDay = dayOfYear(status.updatedUntil);
+        const prevYtd = calculateYtdAverage(prevData, endDay);
+        const currentYtd = calculateYtdAverage(state.yearData, endDay);
+        const diff = prevYtd ? ((currentYtd - prevYtd) / prevYtd) * 100 : 0;
+        const trend = diff > 0 ? 'más caro' : 'más barato';
+        elements.insightText.textContent = `YTD ${currentYear}: el PVPC está siendo un ${Math.abs(diff).toLocaleString('es-ES', { maximumFractionDigits: 1 })}% ${trend} que en ${prevYear} en el mismo rango.`;
+        return;
+      }
+
       const prevAvg = window.PVPC_STATS.getKPIs(prevData).avgPrice;
       const diff = prevAvg ? ((kpis.avgPrice - prevAvg) / prevAvg) * 100 : 0;
       const trend = diff > 0 ? 'más caro' : 'más barato';
@@ -333,6 +520,84 @@
     });
   };
 
+  const buildDailyHourlyAverages = (yearData, dayType = 'any') => {
+    const daily = [];
+    Object.entries(yearData.days).forEach(([dateStr, hours]) => {
+      if (dayType !== 'any') {
+        const day = new Date(`${dateStr}T12:00:00`).getDay();
+        const isWeekend = day === 0 || day === 6;
+        if (dayType === 'weekday' && isWeekend) return;
+        if (dayType === 'weekend' && !isWeekend) return;
+      }
+      const buckets = Array.from({ length: 24 }, () => ({ sum: 0, count: 0 }));
+      hours.forEach(([ts, price]) => {
+        const hour = new Date(ts * 1000).getHours();
+        buckets[hour].sum += price;
+        buckets[hour].count += 1;
+      });
+      const hourly = buckets.map(bucket => (bucket.count ? bucket.sum / bucket.count : null));
+      daily.push({ dateStr, hourly });
+    });
+    return daily;
+  };
+
+  const formatHourLabel = (startHour, duration) => {
+    const pad = (value) => String(value).padStart(2, '0');
+    const endHour = (startHour + duration) % 24;
+    return `${pad(startHour)}:00–${pad(endHour)}:00`;
+  };
+
+  const computeBestWindowsLocal = (yearData, options = {}) => {
+    const duration = Math.max(1, Number(options.duration) || 1);
+    const dayType = options.dayType || 'any';
+    const daily = buildDailyHourlyAverages(yearData, dayType);
+    const windows = [];
+
+    for (let start = 0; start < 24; start += 1) {
+      const values = [];
+      daily.forEach(({ hourly }) => {
+        let sum = 0;
+        let valid = true;
+        for (let offset = 0; offset < duration; offset += 1) {
+          const idx = (start + offset) % 24;
+          const value = hourly[idx];
+          if (!Number.isFinite(value)) {
+            valid = false;
+            break;
+          }
+          sum += value;
+        }
+        if (valid) {
+          values.push(sum / duration);
+        }
+      });
+
+      windows.push({
+        startHour: start,
+        label: formatHourLabel(start, duration),
+        sampleCount: values.length,
+        p10: window.PVPC_STATS.getPercentile(values, 0.1),
+        p50: window.PVPC_STATS.getPercentile(values, 0.5),
+        p90: window.PVPC_STATS.getPercentile(values, 0.9)
+      });
+    }
+
+    const validWindows = windows.filter(windowItem => windowItem.sampleCount > 0);
+    const sortedByP50 = [...validWindows].sort((a, b) => a.p50 - b.p50);
+    const topWindows = sortedByP50.slice(0, 3);
+    const worstWindow = [...validWindows].sort((a, b) => b.p50 - a.p50)[0] || null;
+    const peakWindow = duration === 2
+      ? validWindows.find(windowItem => windowItem.startHour === 20) || worstWindow
+      : worstWindow;
+
+    return {
+      topWindows,
+      worstWindow,
+      peakWindow,
+      dayCount: daily.length
+    };
+  };
+
   const toDailySeries = (yearData) => {
     if (window.PVPC_STATS?.toDailySeries) {
       return window.PVPC_STATS.toDailySeries(yearData);
@@ -359,6 +624,148 @@
 
   const buildComparisonFromSeries = (seriesByYear) => {
     return { seriesByYear };
+  };
+
+  const getBestWindowsCacheKey = (geoId, year, duration, dayType) => (
+    `bestWindows:${geoId}:${year}:${duration}:${dayType}`
+  );
+
+  const loadBestWindowsCache = (cacheKey, updatedUntil) => {
+    if (bestWindowsCache.has(cacheKey)) {
+      return bestWindowsCache.get(cacheKey);
+    }
+    try {
+      const raw = localStorage.getItem(cacheKey);
+      if (!raw) return null;
+      const stored = JSON.parse(raw);
+      if (stored?.updatedUntil && updatedUntil && stored.updatedUntil !== updatedUntil) {
+        return null;
+      }
+      bestWindowsCache.set(cacheKey, stored.result);
+      return stored.result;
+    } catch (error) {
+      return null;
+    }
+  };
+
+  const saveBestWindowsCache = (cacheKey, result, updatedUntil) => {
+    bestWindowsCache.set(cacheKey, result);
+    try {
+      localStorage.setItem(cacheKey, JSON.stringify({ updatedUntil, result }));
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const renderSavingsResults = (result) => {
+    if (!elements.savingsWindows || !elements.savingsSummary) return;
+    if (!result?.topWindows?.length) {
+      elements.savingsWindows.innerHTML = '<li class="window-item">No hay suficientes datos para esta combinación.</li>';
+      elements.savingsSummary.innerHTML = '';
+      if (elements.savingsHint) {
+        elements.savingsHint.textContent = 'Prueba con otra duración o rango de días.';
+      }
+      return;
+    }
+
+    const kwh = state.savings.kwh;
+    const uses = state.savings.usesPerMonth;
+    const avgPrice = state.lastAnalysis?.kpis?.avgPrice || 0;
+    const baseline = result.peakWindow || result.worstWindow;
+    const baselinePrice = baseline?.p50 || avgPrice;
+
+    elements.savingsWindows.innerHTML = result.topWindows.map((windowItem, index) => {
+      const costPerUse = windowItem.p50 * kwh;
+      const costPerMonth = costPerUse * uses;
+      const savingsVsPeak = (baselinePrice - windowItem.p50) * kwh;
+      const savingsVsAvg = (avgPrice - windowItem.p50) * kwh;
+      return `
+        <li class="window-item">
+          <div class="window-item__title">
+            <span>#${index + 1}</span>
+            <strong>${windowItem.label}</strong>
+          </div>
+          <div class="window-item__meta">
+            <span>Precio típico (P50): ${formatEuroKwh(windowItem.p50)}</span>
+            <span>Rango P10–P90: ${formatEuroKwh(windowItem.p10)} → ${formatEuroKwh(windowItem.p90)}</span>
+          </div>
+          <div class="window-item__meta window-item__meta--stack">
+            <span>≈ ${formatCurrency(costPerUse)} por uso · ≈ ${formatCurrency(costPerMonth)} / mes</span>
+            <span>${formatDelta(savingsVsPeak)} vs hora cara típica</span>
+            <span>${formatDelta(savingsVsAvg)} vs media anual</span>
+          </div>
+        </li>
+      `;
+    }).join('');
+
+    const best = result.topWindows[0];
+    const bestCost = best.p50 * kwh;
+    const bestMonthly = bestCost * uses;
+    const baselineCost = baselinePrice * kwh;
+    const monthlyPeakDiff = (baselinePrice - best.p50) * kwh * uses;
+    const monthlyAvgDiff = (avgPrice - best.p50) * kwh * uses;
+
+    elements.savingsSummary.innerHTML = `
+      <li><strong>Ventana líder:</strong> ${best.label} · ${formatEuroKwh(best.p50)}</li>
+      <li><strong>Coste estimado:</strong> ${formatCurrency(bestCost)} por uso · ${formatCurrency(bestMonthly)} al mes</li>
+      <li><strong>Hora cara típica:</strong> ${baseline?.label || '—'} · ${formatEuroKwh(baselinePrice)} (${formatCurrency(baselineCost)} por uso)</li>
+      <li><strong>Impacto mensual:</strong> ${formatDelta(monthlyPeakDiff)} vs hora cara · ${formatDelta(monthlyAvgDiff)} vs media anual</li>
+    `;
+
+    if (elements.savingsHint) {
+      elements.savingsHint.textContent = `Cálculo basado en ${result.dayCount} días con datos válidos. Ventanas permiten cruzar medianoche.`;
+    }
+  };
+
+  const loadSavingsWindows = async () => {
+    if (!state.yearData) return;
+    const { duration, dayType } = state.savings;
+    const cacheKey = getBestWindowsCacheKey(state.geoId, state.year, duration, dayType);
+    const updatedUntil = state.lastAnalysis?.status?.updatedUntil || null;
+
+    const cached = loadBestWindowsCache(cacheKey, updatedUntil);
+    if (cached) {
+      renderSavingsResults(cached);
+      setLoading(sections.savings, false);
+      return;
+    }
+
+    setLoading(sections.savings, true);
+    try {
+      const result = worker
+        ? await runWorker('bestWindows', { yearData: state.yearData, options: { duration, dayType } })
+        : computeBestWindowsLocal(state.yearData, { duration, dayType });
+      if (result) {
+        saveBestWindowsCache(cacheKey, result, updatedUntil);
+        renderSavingsResults(result);
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setLoading(sections.savings, false);
+    }
+  };
+
+  const syncSavingsInputs = () => {
+    if (!elements.savingsPreset) return;
+    elements.savingsPreset.value = state.savings.preset;
+    if (elements.savingsDuration) elements.savingsDuration.value = String(state.savings.duration);
+    if (elements.savingsDayType) elements.savingsDayType.value = state.savings.dayType;
+    if (elements.savingsKwh) elements.savingsKwh.value = String(state.savings.kwh);
+    if (elements.savingsUses) elements.savingsUses.value = String(state.savings.usesPerMonth);
+  };
+
+  const applyPreset = (presetKey, { sync = true } = {}) => {
+    const preset = savingsPresets[presetKey];
+    if (!preset) return;
+    state.savings.preset = presetKey;
+    if (!state.savingsOverrides.duration) {
+      state.savings.duration = preset.duration;
+    }
+    if (!state.savingsOverrides.kwh) {
+      state.savings.kwh = preset.kwh;
+    }
+    if (sync) syncSavingsInputs();
   };
 
   const hexToRgba = (hex, alpha) => {
@@ -426,9 +833,114 @@
     chart.update('none');
   };
 
+  const buildShareUrl = () => {
+    const params = buildShareParams();
+    return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
+  };
+
+  const copyShareUrl = async () => {
+    const url = buildShareUrl();
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        showToast('Enlace copiado al portapapeles.');
+      } else {
+        window.prompt('Copia el enlace:', url);
+      }
+    } catch (error) {
+      console.error(error);
+      showToast('No se pudo copiar el enlace.');
+    }
+  };
+
+  const downloadComparisonPng = () => {
+    const canvas = document.getElementById('comparisonChart');
+    if (!canvas) return;
+    const url = canvas.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `comparativa-pvpc-${state.geoId}-${state.year}.png`;
+    link.click();
+  };
+
+  const buildCsvForVisibleYears = () => {
+    const seriesByYear = state.comparisonSeriesByYear;
+    if (!seriesByYear) return '';
+    const fallbackYears = state.visibleYears?.size ? Array.from(state.visibleYears) : [state.year];
+    const years = fallbackYears.filter(year => seriesByYear[year]);
+    if (!years.length) return '';
+
+    if (years.length === 1) {
+      const year = years[0];
+      const values = seriesByYear[year]?.values || [];
+      const rows = ['date,dayOfYear,year,avgPriceEurKwh'];
+      values.forEach((value, index) => {
+        const day = index + 1;
+        const date = new Date(Date.UTC(Number(year), 0, day));
+        const dateStr = date.toISOString().slice(0, 10);
+        const valueStr = Number.isFinite(value) ? value.toFixed(6) : '';
+        rows.push(`${dateStr},${day},${year},${valueStr}`);
+      });
+      return rows.join('\n');
+    }
+
+    const rows = [];
+    const header = ['dateApprox', 'dayOfYear', ...years];
+    rows.push(header.join(','));
+    const maxDays = 366;
+    for (let index = 0; index < maxDays; index += 1) {
+      const day = index + 1;
+      const date = new Date(Date.UTC(2024, 0, day));
+      const dateApprox = date.toISOString().slice(5, 10);
+      const row = [dateApprox, day];
+      years.forEach((year) => {
+        const value = seriesByYear[year]?.values?.[index];
+        row.push(Number.isFinite(value) ? value.toFixed(6) : '');
+      });
+      rows.push(row.join(','));
+    }
+    return rows.join('\n');
+  };
+
+  const downloadComparisonCsv = () => {
+    const csv = buildCsvForVisibleYears();
+    if (!csv) return;
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `comparativa-pvpc-${state.geoId}-${state.year}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
   const renderComparisonControls = (years, selectedYear) => {
     if (!elements.comparisonControls) return;
     elements.comparisonControls.innerHTML = '';
+
+    const actions = document.createElement('div');
+    actions.className = 'comparison-actions';
+
+    const copyBtn = document.createElement('button');
+    copyBtn.type = 'button';
+    copyBtn.className = 'btn btn-sm btn-outline';
+    copyBtn.textContent = 'Copiar enlace';
+    copyBtn.addEventListener('click', copyShareUrl);
+
+    const pngBtn = document.createElement('button');
+    pngBtn.type = 'button';
+    pngBtn.className = 'btn btn-sm btn-outline';
+    pngBtn.textContent = 'Descargar PNG';
+    pngBtn.addEventListener('click', downloadComparisonPng);
+
+    const csvBtn = document.createElement('button');
+    csvBtn.type = 'button';
+    csvBtn.className = 'btn btn-sm btn-outline';
+    csvBtn.textContent = 'Descargar CSV';
+    csvBtn.addEventListener('click', downloadComparisonCsv);
+
+    actions.append(copyBtn, pngBtn, csvBtn);
+    elements.comparisonControls.appendChild(actions);
 
     const header = document.createElement('div');
     header.className = 'segmented';
@@ -442,6 +954,7 @@
       saveComparisonPrefs(state.geoId);
       renderComparisonControls(years, selectedYear);
       applyComparisonVisibility();
+      updateURL();
     });
 
     const isolateBtn = document.createElement('button');
@@ -453,6 +966,7 @@
       saveComparisonPrefs(state.geoId);
       renderComparisonControls(years, selectedYear);
       applyComparisonVisibility();
+      updateURL();
     });
 
     const dailyBtn = document.createElement('button');
@@ -465,6 +979,7 @@
       renderComparisonControls(years, selectedYear);
       updateComparisonSeries(charts.comparison);
       applyComparisonVisibility();
+      updateURL();
     });
 
     header.append(showAllBtn, isolateBtn, dailyBtn);
@@ -495,6 +1010,7 @@
         saveComparisonPrefs(state.geoId);
         renderComparisonControls(years, selectedYear);
         applyComparisonVisibility();
+        updateURL();
       });
 
       yearList.appendChild(btn);
@@ -672,18 +1188,26 @@
     });
 
     const prefs = loadComparisonPrefs(state.geoId);
-    if (prefs?.showDaily !== undefined) {
+    if (state.comparisonPrefsFromUrl?.showDaily !== undefined) {
+      state.comparisonShowDaily = state.comparisonPrefsFromUrl.showDaily;
+    } else if (prefs?.showDaily !== undefined) {
       state.comparisonShowDaily = prefs.showDaily;
-      updateComparisonSeries(charts.comparison);
     }
-    if (prefs?.visibleYears?.length) {
+
+    updateComparisonSeries(charts.comparison);
+
+    if (state.comparisonPrefsFromUrl?.visibleYears?.length) {
+      state.visibleYears = new Set(state.comparisonPrefsFromUrl.visibleYears.filter(year => years.includes(year)));
+    } else if (prefs?.visibleYears?.length) {
       state.visibleYears = new Set(prefs.visibleYears.filter((year) => years.includes(year)));
     } else {
       state.visibleYears = new Set(years);
     }
     state.visibleYears.add(selectedYear);
+    state.comparisonPrefsFromUrl = {};
     renderComparisonControls(years, selectedYear);
     applyComparisonVisibility();
+    updateURL();
   };
 
   const loadComparisonAsync = ({ geoId, years, token }) => {
@@ -728,6 +1252,7 @@
 
         const comparisonData = comparisonSeries?.seriesByYear || seriesByYear;
         if (Object.keys(comparisonData).length) {
+          state.comparisonSeriesByYear = comparisonData;
           renderComparisonChart(comparisonData, state.year, { window: 7 });
         }
       } catch (error) {
@@ -744,6 +1269,7 @@
     state.comparisonToken += 1;
     const comparisonToken = state.comparisonToken;
     setLoading(sections.kpis, true);
+    setLoading(sections.savings, true);
     setLoading(sections.heatmap, true);
     setLoading(sections.clock, true);
     setLoading(sections.weekday, true);
@@ -757,6 +1283,7 @@
       if (!yearData || !Object.keys(yearData.days).length) {
         elements.insightText.textContent = 'No hay datos disponibles para este año.';
         setLoading(sections.kpis, false);
+        setLoading(sections.savings, false);
         setLoading(sections.heatmap, false);
         setLoading(sections.clock, false);
         setLoading(sections.weekday, false);
@@ -781,9 +1308,13 @@
       renderClockChart(analysis.hourlyProfile);
       renderWeekdayChart(analysis.weekdayProfile);
       updateMeta(analysis.kpis);
-      renderInsight(analysis.kpis, geoId);
+      renderStatusBadges(analysis.status);
+      renderDataWarning(analysis.status);
+      renderInsight(analysis.kpis, geoId, analysis.status);
+      await loadSavingsWindows();
 
       setLoading(sections.kpis, false);
+      setLoading(sections.savings, false);
       setLoading(sections.heatmap, false);
       setLoading(sections.clock, false);
       setLoading(sections.weekday, false);
@@ -797,6 +1328,7 @@
       setLoading(sections.comparison, false);
     } finally {
       setLoading(sections.kpis, false);
+      setLoading(sections.savings, false);
       setLoading(sections.heatmap, false);
       setLoading(sections.clock, false);
       setLoading(sections.weekday, false);
@@ -937,6 +1469,57 @@
     loadData();
   });
 
+  if (elements.savingsPreset) {
+    elements.savingsPreset.addEventListener('change', () => {
+      state.savingsOverrides = { duration: false, kwh: false };
+      applyPreset(elements.savingsPreset.value);
+      updateURL();
+      loadSavingsWindows();
+    });
+  }
+
+  if (elements.savingsDuration) {
+    elements.savingsDuration.addEventListener('change', () => {
+      state.savingsOverrides.duration = true;
+      state.savings.duration = normalizeDuration(elements.savingsDuration.value, state.savings.duration);
+      if (state.savings.preset !== 'personalizado') {
+        state.savings.preset = 'personalizado';
+        if (elements.savingsPreset) elements.savingsPreset.value = 'personalizado';
+      }
+      updateURL();
+      loadSavingsWindows();
+    });
+  }
+
+  if (elements.savingsDayType) {
+    elements.savingsDayType.addEventListener('change', () => {
+      state.savings.dayType = elements.savingsDayType.value;
+      updateURL();
+      loadSavingsWindows();
+    });
+  }
+
+  if (elements.savingsKwh) {
+    elements.savingsKwh.addEventListener('change', () => {
+      state.savingsOverrides.kwh = true;
+      state.savings.kwh = clampNumber(elements.savingsKwh.value, { min: 0.1, max: 100, fallback: state.savings.kwh });
+      if (state.savings.preset !== 'personalizado') {
+        state.savings.preset = 'personalizado';
+        if (elements.savingsPreset) elements.savingsPreset.value = 'personalizado';
+      }
+      updateURL();
+      loadSavingsWindows();
+    });
+  }
+
+  if (elements.savingsUses) {
+    elements.savingsUses.addEventListener('change', () => {
+      state.savings.usesPerMonth = clampNumber(elements.savingsUses.value, { min: 1, max: 60, fallback: state.savings.usesPerMonth });
+      updateURL();
+      loadSavingsWindows();
+    });
+  }
+
   // --- Global Tooltip Logic ---
   const tooltip = document.createElement('div');
   tooltip.id = 'globalTooltip';
@@ -995,6 +1578,8 @@
   }
 
   readURL();
+  applyPreset(state.savings.preset, { sync: false });
+  syncSavingsInputs();
   updateURL();
   loadData();
 })();
