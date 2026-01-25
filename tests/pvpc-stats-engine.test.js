@@ -41,4 +41,26 @@ describe('PVPC_STATS date handling', () => {
     expect(profile.data[6]).toBeCloseTo(1);
     expect(profile.data[5]).toBeCloseTo(0);
   });
+
+  it('tracks completeness within a partial coverage range', () => {
+    const days = {};
+    const start = new Date(2021, 5, 1, 12, 0, 0);
+    for (let i = 0; i < 30; i++) {
+      const date = new Date(start.getTime() + i * 24 * 60 * 60 * 1000);
+      const dateStr = date.toISOString().slice(0, 10);
+      const ts = Math.floor(date.getTime() / 1000);
+      days[dateStr] = [[ts, 0.2]];
+    }
+
+    const yearData = {
+      days,
+      meta: { year: 2021 }
+    };
+
+    const status = window.PVPC_STATS.getYearStatus(yearData);
+    expect(status.coverageFrom).toBe('2021-06-01');
+    expect(status.coverageTo).toBe('2021-06-30');
+    expect(status.coverageCompleteness).toBeCloseTo(1, 5);
+    expect(status.yearCompleteness).toBeLessThan(0.1);
+  });
 });

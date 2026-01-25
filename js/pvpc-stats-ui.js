@@ -8,11 +8,11 @@
   };
 
   const presets = {
-    custom: { label: 'Personalizado', hours: 2 },
-    lavadora: { label: 'Lavadora (1h)', hours: 1 },
-    lavavajillas: { label: 'Lavavajillas (2h)', hours: 2 },
-    termo: { label: 'Termo eléctrico (3h)', hours: 3 },
-    coche: { label: 'Coche eléctrico (4h)', hours: 4 }
+    custom: { label: 'Personalizado', hours: 2, kwh: 1.0 },
+    lavadora: { label: 'Lavadora (1h)', hours: 1, kwh: 0.8 },
+    lavavajillas: { label: 'Lavavajillas (2h)', hours: 2, kwh: 1.2 },
+    termo: { label: 'Termo eléctrico (3h)', hours: 3, kwh: 3.0 },
+    coche: { label: 'Coche eléctrico (4h)', hours: 4, kwh: 12.0 }
   };
 
   const sections = {
@@ -30,6 +30,8 @@
     yearSelector: document.getElementById('yearSelector'),
     usagePreset: document.getElementById('usagePreset'),
     usageHours: document.getElementById('usageHours'),
+    usageKwh: document.getElementById('usageKwh'),
+    usagePerMonth: document.getElementById('usagePerMonth'),
     dayType: document.getElementById('dayType'),
     insightText: document.getElementById('insightText'),
     updatedBadge: document.getElementById('updatedBadge'),
@@ -81,10 +83,16 @@
     year: elements.yearSelector.value,
     usagePreset: 'custom',
     usageHours: Number(elements.usageHours.value),
+    usageKwh: Number(elements.usageKwh?.value) || 1,
+    usagePerMonth: Number(elements.usagePerMonth?.value) || 10,
     dayType: elements.dayType.value,
     exampleDay: null,
     comparisonYears: [],
-    visibleYears: new Set()
+    visibleYears: new Set(),
+    yearData: null,
+    yearDataKey: null,
+    lastAnalysis: null,
+    comparisonToken: 0
   };
 
   const setLoading = (section, isLoading) => {
@@ -132,6 +140,49 @@
   };
 
   const formatValue = (value) => value.toFixed(4);
+  const formatCurrency = (value) => value.toFixed(2);
+
+  const sanitizeKwh = (value) => {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
+  };
+
+  const sanitizeUsageCount = (value) => {
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed)) return 10;
+    return Math.min(200, Math.max(1, Math.round(parsed)));
+  };
+
+  const storageKey = 'pvpcStatsUsage';
+
+  const loadUsageStorage = () => {
+    try {
+      const saved = JSON.parse(localStorage.getItem(storageKey));
+      if (saved && typeof saved === 'object') {
+        if (typeof saved.kwh !== 'undefined') {
+          state.usageKwh = sanitizeKwh(saved.kwh);
+          if (elements.usageKwh) elements.usageKwh.value = String(state.usageKwh);
+        }
+        if (typeof saved.perMonth !== 'undefined') {
+          state.usagePerMonth = sanitizeUsageCount(saved.perMonth);
+          if (elements.usagePerMonth) elements.usagePerMonth.value = String(state.usagePerMonth);
+        }
+      }
+    } catch (error) {
+      console.warn('No se pudo leer el almacenamiento local.', error);
+    }
+  };
+
+  const saveUsageStorage = () => {
+    try {
+      localStorage.setItem(storageKey, JSON.stringify({
+        kwh: state.usageKwh,
+        perMonth: state.usagePerMonth
+      }));
+    } catch (error) {
+      console.warn('No se pudo guardar el almacenamiento local.', error);
+    }
+  };
 
   const readURL = () => {
     const params = new URLSearchParams(window.location.search);
@@ -164,6 +215,10 @@
     if (preset && presets[preset]) {
       elements.usagePreset.value = preset;
       state.usagePreset = preset;
+      if (elements.usageKwh) {
+        state.usageKwh = sanitizeKwh(presets[preset].kwh ?? state.usageKwh);
+        elements.usageKwh.value = String(state.usageKwh);
+      }
     }
   };
 
@@ -232,7 +287,7 @@
     }
   };
 
-  const renderWindowList = (windowStats, kpis) => {
+  const renderWindowList = (windowStats, kpis, usage) => {
     elements.cheapestWindows.innerHTML = '';
 
     if (!windowStats.cheapest.length) {
@@ -241,10 +296,17 @@
     }
 
     const expensive = windowStats.expensive?.avg || kpis.avgPrice;
+    const referencePrice = kpis.avgPrice;
+    const usageKwh = sanitizeKwh(usage?.kwh);
+    const usagePerMonth = sanitizeUsageCount(usage?.perMonth);
 
     windowStats.cheapest.forEach((window) => {
       const savingsVsExpensive = expensive - window.avg;
       const savingsVsAvg = kpis.avgPrice - window.avg;
+      const windowPrice = window.p50 ?? window.avg;
+      const costPerUse = windowPrice * usageKwh;
+      const savingsPerUse = Math.max(0, (referencePrice - windowPrice) * usageKwh);
+      const savingsPerMonth = savingsPerUse * usagePerMonth;
 
       const li = document.createElement('li');
       li.className = 'window-item';
@@ -259,6 +321,10 @@
         </div>
         <div class="window-item__meta">
           <span>Ahorro vs media anual: ${formatValue(savingsVsAvg)} €/kWh</span>
+        </div>
+        <div class="window-item__meta window-item__meta--stack">
+          <span>≈ ${formatCurrency(costPerUse)} € por uso</span>
+          <span>≈ ${formatCurrency(savingsPerMonth)} €/mes de ahorro (vs media anual)</span>
         </div>
       `;
       elements.cheapestWindows.appendChild(li);
@@ -281,9 +347,38 @@
     elements.savingsHighlight.textContent = `Hasta ${formatValue(worst.avg - best.avg)} €/kWh frente a la franja más cara.`;
   };
 
+  const updateSavingsDisplay = () => {
+    if (!state.lastAnalysis) return;
+    renderWindowList(state.lastAnalysis.windowStats, state.lastAnalysis.kpis, {
+      kwh: state.usageKwh,
+      perMonth: state.usagePerMonth
+    });
+  };
+
   const renderStatus = (status) => {
     elements.updatedBadge.textContent = `Actualizado hasta: ${formatDate(status.updatedUntil)}`;
-    elements.completenessBadge.textContent = `Completitud: ${(status.completeness * 100).toFixed(1)}%`;
+    const completenessValue = Number.isFinite(status.coverageCompleteness)
+      ? status.coverageCompleteness
+      : status.completeness;
+    elements.completenessBadge.textContent = `Completitud: ${(completenessValue * 100).toFixed(1)}%`;
+
+    const isFullCoverage = status.coverageFrom?.endsWith('-01-01') && status.coverageTo?.endsWith('-12-31');
+    const isCurrentYear = Number(state.year) === new Date().getFullYear();
+    const todayStr = new Date().toISOString().slice(0, 10);
+    const hasLag = isCurrentYear && status.coverageTo && status.coverageTo < todayStr;
+
+    if (!isFullCoverage && status.coverageFrom && status.coverageTo) {
+      const coverageText = `Cobertura: desde ${formatDate(status.coverageFrom)} hasta ${formatDate(status.coverageTo)}.`;
+      const completenessText = `Completitud dentro del rango: ${(status.coverageCompleteness * 100).toFixed(1)}%.`;
+      const lagText = hasLag ? `Datos actualizados hasta ${formatDate(status.coverageTo)}.` : '';
+      elements.dataWarning.textContent = [coverageText, completenessText, lagText].filter(Boolean).join(' ');
+      return;
+    }
+
+    if (hasLag) {
+      elements.dataWarning.textContent = `Datos actualizados hasta ${formatDate(status.coverageTo)}.`;
+      return;
+    }
 
     if (status.completeness < 0.98) {
       elements.dataWarning.textContent = `Datos incompletos: ${status.loadedDays} de ${status.totalDays} días cargados.`;
@@ -384,6 +479,54 @@
     });
   };
 
+  const buildComparisonLabels = () => {
+    const labels = [];
+    const date = new Date(2024, 0, 1);
+    for (let i = 0; i < 366; i++) {
+      labels.push(date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }));
+      date.setDate(date.getDate() + 1);
+    }
+    return labels;
+  };
+
+  const toDailySeries = (yearData) => {
+    if (window.PVPC_STATS?.toDailySeries) {
+      return window.PVPC_STATS.toDailySeries(yearData);
+    }
+
+    const values = new Array(366).fill(null);
+    const sortedDates = Object.keys(yearData.days).sort();
+    sortedDates.forEach(dateStr => {
+      const [y, m, d] = dateStr.split('-').map(Number);
+      const dayOfYear = getDayOfYearUTC(y, m, d);
+      const hours = yearData.days[dateStr];
+      const avg = hours.reduce((sum, h) => sum + h[1], 0) / hours.length;
+      if (dayOfYear >= 0 && dayOfYear < 366) {
+        values[dayOfYear] = avg;
+      }
+    });
+
+    return {
+      values,
+      coverageFrom: sortedDates.length ? sortedDates[0] : null,
+      coverageTo: sortedDates.length ? sortedDates[sortedDates.length - 1] : null
+    };
+  };
+
+  const buildComparisonFromSeries = (seriesByYear) => {
+    const datasets = Object.entries(seriesByYear).map(([year, series]) => ({
+      label: year,
+      data: series.values,
+      tension: 0.3,
+      pointRadius: 0
+    }));
+
+    return {
+      labels: buildComparisonLabels(),
+      datasets
+    };
+  };
+
   const applyComparisonVisibility = () => {
     if (!charts.comparison) return;
     charts.comparison.data.datasets.forEach(dataset => {
@@ -472,12 +615,114 @@
     applyComparisonVisibility();
   };
 
+  const loadComparisonAsync = ({ geoId, years, token }) => {
+    const requestToken = token;
+    setLoading(sections.comparison, true);
+
+    const schedule = (callback) => {
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(callback, { timeout: 800 });
+      } else {
+        setTimeout(callback, 50);
+      }
+    };
+
+    schedule(async () => {
+      if (requestToken !== state.comparisonToken) return;
+
+      try {
+        const tasks = years.map(yearOption => async () => {
+          if (requestToken !== state.comparisonToken) return null;
+          const data = await window.PVPC_STATS.loadYearData(geoId, yearOption);
+          if (requestToken !== state.comparisonToken) return null;
+          if (!data || !Object.keys(data.days).length) return null;
+          return { year: yearOption, series: toDailySeries(data) };
+        });
+
+        const results = await window.PVPC_STATS.runWithConcurrency(tasks, 2);
+        if (requestToken !== state.comparisonToken) return;
+
+        const seriesByYear = {};
+        results.forEach(result => {
+          if (result?.series) {
+            seriesByYear[result.year] = result.series;
+          }
+        });
+
+        const comparison = worker
+          ? await runWorker('compareSeries', { seriesByYear })
+          : buildComparisonFromSeries(seriesByYear);
+
+        if (requestToken !== state.comparisonToken) return;
+
+        if (comparison?.datasets?.length) {
+          renderComparisonChart(comparison);
+        }
+      } catch (error) {
+        console.error(error);
+      } finally {
+        if (requestToken === state.comparisonToken) {
+          setLoading(sections.comparison, false);
+        }
+      }
+    });
+  };
+
+  let lastFocused = null;
+  let modalKeydownHandler = null;
+
+  const getModalFocusables = () => {
+    const container = elements.modal.querySelector('.modal__content');
+    if (!container) return [];
+    return Array.from(container.querySelectorAll(
+      'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+    )).filter(el => !el.hasAttribute('disabled'));
+  };
+
   const openModal = () => {
+    lastFocused = document.activeElement;
     elements.modal.hidden = false;
+    elements.closeModalBtn?.focus();
+
+    modalKeydownHandler = (event) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        closeModal();
+        return;
+      }
+      if (event.key === 'Tab') {
+        const focusableItems = getModalFocusables();
+        if (!focusableItems.length) {
+          event.preventDefault();
+          return;
+        }
+        const first = focusableItems[0];
+        const last = focusableItems[focusableItems.length - 1];
+        if (event.shiftKey && document.activeElement === first) {
+          event.preventDefault();
+          last.focus();
+          return;
+        }
+        if (!event.shiftKey && document.activeElement === last) {
+          event.preventDefault();
+          first.focus();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', modalKeydownHandler);
   };
 
   const closeModal = () => {
     elements.modal.hidden = true;
+    if (modalKeydownHandler) {
+      document.removeEventListener('keydown', modalKeydownHandler);
+      modalKeydownHandler = null;
+    }
+    if (lastFocused && typeof lastFocused.focus === 'function') {
+      lastFocused.focus();
+      lastFocused = null;
+    }
   };
 
   const renderDayModal = (dateStr, detail) => {
@@ -530,6 +775,8 @@
   };
 
   const loadData = async () => {
+    state.comparisonToken += 1;
+    const comparisonToken = state.comparisonToken;
     setLoading(sections.savings, true);
     setLoading(sections.kpis, true);
     setLoading(sections.heatmap, true);
@@ -545,8 +792,18 @@
       const yearData = await window.PVPC_STATS.loadYearData(geoId, year);
       if (!yearData || !Object.keys(yearData.days).length) {
         elements.insightText.textContent = 'No hay datos disponibles para este año.';
+        setLoading(sections.savings, false);
+        setLoading(sections.kpis, false);
+        setLoading(sections.heatmap, false);
+        setLoading(sections.clock, false);
+        setLoading(sections.weekday, false);
+        setLoading(sections.daily, false);
+        setLoading(sections.comparison, false);
         return;
       }
+
+      state.yearData = yearData;
+      state.yearDataKey = `${geoId}-${year}`;
 
       const options = {
         duration: state.usageHours,
@@ -558,9 +815,13 @@
         ? await runWorker('analyzeYear', { yearData, options })
         : window.PVPC_STATS.analyzeYear(yearData, options);
 
+      state.lastAnalysis = analysis;
       renderKPIs(analysis);
       renderStatus(analysis.status);
-      renderWindowList(analysis.windowStats, analysis.kpis);
+      renderWindowList(analysis.windowStats, analysis.kpis, {
+        kwh: state.usageKwh,
+        perMonth: state.usagePerMonth
+      });
       renderSummary(analysis.summaryStats, analysis.kpis);
       buildHeatmap(analysis.heatmap);
       renderClockChart(analysis.hourlyProfile);
@@ -569,25 +830,20 @@
       updateMeta(analysis.kpis);
       renderInsight(analysis.kpis, geoId);
 
+      setLoading(sections.savings, false);
+      setLoading(sections.kpis, false);
+      setLoading(sections.heatmap, false);
+      setLoading(sections.clock, false);
+      setLoading(sections.weekday, false);
+      setLoading(sections.daily, false);
+
       const comparisonYears = Array.from(elements.yearSelector.options).map(option => option.value);
       state.comparisonYears = comparisonYears;
-      const comparisonDataByYear = {};
-
-      await Promise.all(comparisonYears.map(async (yearOption) => {
-        const data = await window.PVPC_STATS.loadYearData(geoId, yearOption);
-        if (data && Object.keys(data.days).length) {
-          comparisonDataByYear[yearOption] = data;
-        }
-      }));
-
-      const comparison = worker
-        ? await runWorker('compareYears', { dataByYear: comparisonDataByYear })
-        : window.PVPC_STATS.buildComparison(comparisonDataByYear);
-
-      renderComparisonChart(comparison);
+      loadComparisonAsync({ geoId, years: comparisonYears, token: comparisonToken });
     } catch (error) {
       elements.insightText.textContent = 'No se pudieron cargar los datos. Inténtalo de nuevo.';
       console.error(error);
+      setLoading(sections.comparison, false);
     } finally {
       setLoading(sections.savings, false);
       setLoading(sections.kpis, false);
@@ -595,12 +851,16 @@
       setLoading(sections.clock, false);
       setLoading(sections.weekday, false);
       setLoading(sections.daily, false);
-      setLoading(sections.comparison, false);
     }
   };
 
   const onDayClick = async (dateStr) => {
-    const yearData = await window.PVPC_STATS.loadYearData(state.geoId, state.year);
+    let yearData = state.yearData;
+    if (!yearData || state.yearDataKey !== `${state.geoId}-${state.year}`) {
+      yearData = await window.PVPC_STATS.loadYearData(state.geoId, state.year);
+      state.yearData = yearData;
+      state.yearDataKey = `${state.geoId}-${state.year}`;
+    }
     const detail = worker
       ? await runWorker('dayDetail', { yearData, dateStr })
       : getDayDetailLocal(yearData, dateStr);
@@ -650,12 +910,29 @@
     loadData();
   });
 
+  elements.usageKwh.addEventListener('change', () => {
+    state.usageKwh = sanitizeKwh(elements.usageKwh.value);
+    elements.usageKwh.value = String(state.usageKwh);
+    saveUsageStorage();
+    updateSavingsDisplay();
+  });
+
+  elements.usagePerMonth.addEventListener('change', () => {
+    state.usagePerMonth = sanitizeUsageCount(elements.usagePerMonth.value);
+    elements.usagePerMonth.value = String(state.usagePerMonth);
+    saveUsageStorage();
+    updateSavingsDisplay();
+  });
+
   elements.usagePreset.addEventListener('change', () => {
     const preset = elements.usagePreset.value;
     state.usagePreset = preset;
     if (presets[preset]) {
       state.usageHours = presets[preset].hours;
       elements.usageHours.value = String(state.usageHours);
+      state.usageKwh = sanitizeKwh(presets[preset].kwh ?? state.usageKwh);
+      if (elements.usageKwh) elements.usageKwh.value = String(state.usageKwh);
+      saveUsageStorage();
     }
     updateURL();
     loadData();
@@ -678,12 +955,17 @@
     elements.dayType.value = 'any';
     elements.usagePreset.value = 'custom';
     elements.usageHours.value = '2';
+    elements.usageKwh.value = '1';
+    elements.usagePerMonth.value = '10';
 
     state.geoId = elements.geoSelector.value;
     state.year = elements.yearSelector.value;
     state.dayType = elements.dayType.value;
     state.usagePreset = elements.usagePreset.value;
     state.usageHours = Number(elements.usageHours.value);
+    state.usageKwh = sanitizeKwh(elements.usageKwh.value);
+    state.usagePerMonth = sanitizeUsageCount(elements.usagePerMonth.value);
+    saveUsageStorage();
     resetExample();
     updateURL();
   });
@@ -709,12 +991,7 @@
     }
   });
 
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && !elements.modal.hidden) {
-      closeModal();
-    }
-  });
-
+  loadUsageStorage();
   readURL();
   updateURL();
   loadData();

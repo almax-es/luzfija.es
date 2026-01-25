@@ -24,10 +24,28 @@ const formatHourRange = (startDate, durationHours) => {
 const getYearStatus = (yearData) => {
   const year = yearData.meta?.year;
   const totalDays = isLeapYear(year) ? 366 : 365;
-  const loadedDays = Object.keys(yearData.days).length;
-  const completeness = totalDays ? loadedDays / totalDays : 0;
-  const updatedUntil = yearData.meta?.latestDate || (loadedDays ? Object.keys(yearData.days).sort().pop() : null);
-  return { updatedUntil, completeness, loadedDays, totalDays };
+  const sortedDates = Object.keys(yearData.days).sort();
+  const loadedDays = sortedDates.length;
+  const coverageFrom = sortedDates.length ? sortedDates[0] : null;
+  const coverageTo = sortedDates.length ? sortedDates[sortedDates.length - 1] : null;
+  const updatedUntil = yearData.meta?.latestDate || coverageTo;
+  const oneDay = 1000 * 60 * 60 * 24;
+  const coverageDays = coverageFrom && coverageTo
+    ? Math.round((parseDateLocal(coverageTo) - parseDateLocal(coverageFrom)) / oneDay) + 1
+    : 0;
+  const coverageCompleteness = coverageDays ? loadedDays / coverageDays : 0;
+  const yearCompleteness = totalDays ? loadedDays / totalDays : 0;
+  return {
+    updatedUntil,
+    completeness: yearCompleteness,
+    loadedDays,
+    totalDays,
+    coverageFrom,
+    coverageTo,
+    coverageDays,
+    coverageCompleteness,
+    yearCompleteness
+  };
 };
 
 const isLeapYear = (year) => ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0);
@@ -241,6 +259,28 @@ const buildComparison = (dataByYear) => {
   return { labels, datasets };
 };
 
+const buildComparisonFromSeries = (seriesByYear) => {
+  const datasets = [];
+  Object.entries(seriesByYear).forEach(([year, series]) => {
+    if (!series || !Array.isArray(series.values)) return;
+    datasets.push({
+      label: year,
+      data: series.values,
+      tension: 0.3,
+      pointRadius: 0
+    });
+  });
+
+  const labels = [];
+  const date = new Date(2024, 0, 1);
+  for (let i = 0; i < 366; i++) {
+    labels.push(date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }));
+    date.setDate(date.getDate() + 1);
+  }
+
+  return { labels, datasets };
+};
+
 const getDayDetail = (yearData, dateStr) => {
   const hours = yearData.days[dateStr] || [];
   const entries = hours.map(([ts, price]) => ({
@@ -275,6 +315,11 @@ self.onmessage = (event) => {
     }
     if (type === 'compareYears') {
       const result = buildComparison(payload.dataByYear);
+      self.postMessage({ id, result });
+      return;
+    }
+    if (type === 'compareSeries') {
+      const result = buildComparisonFromSeries(payload.seriesByYear || {});
       self.postMessage({ id, result });
       return;
     }
