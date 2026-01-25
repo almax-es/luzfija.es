@@ -10,9 +10,14 @@ Herramienta **gratuita**, **sin publicidad** y **de código abierto** para compa
 
 ## 🎯 Funcionalidades
 
-### 🔋 Comparador de Tarifas
+### 🏆 PVPC (Tarifa Regulada)
 - Comparación de tarifas **1P** y **3P** (discriminación horaria) + filtros rápidos (todas / 1P / 3P)
 - **PVPC** incluido (tarifa regulada) cuando la API está disponible
+- **Observatorio PVPC**: Nueva sección de estadísticas avanzadas con histórico desde 2021.
+  - **Evolución Anual**: Gráficos interactivos de precio medio diario.
+  - **Reloj Solar**: Visualización polar de las horas más baratas (Curva de Pato).
+  - **Heatmap Anual**: Mapa de calor para identificar patrones estacionales de un vistazo.
+  - **Comparativa Multianual**: Superposición de curvas de precio (2022-2026) para analizar tendencias.
 - Tarjeta PVPC en portada con **precios de hoy** y acceso a **detalle horario** (hoy/mañana) cuando está disponible
 - Bloque de **novedades/avisos** cargado desde `novedades.json`
 - Soporte completo para **placas solares** y **autoconsumo** (consumo + excedentes)
@@ -185,7 +190,9 @@ Este proyecto muestra el PVPC como **referencia** en el ranking (comparador de t
 - **HTML5 + CSS3** con variables CSS y design system
 - **Vanilla JavaScript** (ES6+, sin frameworks)
 - **Arquitectura modular** (20 módulos separados)
+- **Chart.js 4.x** (local en /vendor/) para visualización de datos en el Observatorio
 - **Gráfico Top 5** (implementación propia en JS/SVG/CSS, sin librerías externas)
+- **PDF.js 5.x** (lazy loading) para parseo de facturas
 - **PDF.js 5.x** (lazy loading) para parseo de facturas
 - **jsQR** (en precache) para escaneo de códigos QR
 - **Tesseract.js** (on-demand) para OCR

@@ -75,6 +75,10 @@ Documentación técnica precisa de la estructura de datos, actualización autom�
 | **8744** | Ceuta | Europe/Madrid | Ciudad Autónoma de Ceuta |
 | **8745** | Melilla | Europe/Madrid | Ciudad Autónoma de Melilla |
 
+**Cobertura Histórica:**
+- Desde **Junio 2021** (inicio tarifa 2.0TD) hasta la fecha actual.
+- Actualización diaria automática (21:00 Madrid).
+
 ---
 
 ## 3. Formato de Datos: Archivo Mensual
