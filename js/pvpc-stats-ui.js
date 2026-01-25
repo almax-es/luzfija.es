@@ -139,8 +139,15 @@
     return new Date(`${dateStr}T12:00:00`).toLocaleDateString('es-ES');
   };
 
-  const formatValue = (value) => value.toFixed(4);
-  const formatCurrency = (value) => value.toFixed(2);
+  const formatValue = (value) => {
+    if (!Number.isFinite(value)) return '--';
+    return value.toLocaleString('es-ES', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+  };
+
+  const formatCurrency = (value) => {
+    if (!Number.isFinite(value)) return '--';
+    return value.toLocaleString('es-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  };
 
   const sanitizeKwh = (value) => {
     const parsed = Number(value);
@@ -281,7 +288,7 @@
       const prevAvg = window.PVPC_STATS.getKPIs(prevData).avgPrice;
       const diff = prevAvg ? ((kpis.avgPrice - prevAvg) / prevAvg) * 100 : 0;
       const trend = diff > 0 ? 'más caro' : 'más barato';
-      elements.insightText.textContent = `En ${currentYear}, el PVPC está siendo un ${Math.abs(diff).toFixed(1)}% ${trend} que en ${prevYear}.`;
+      elements.insightText.textContent = `En ${currentYear}, el PVPC está siendo un ${Math.abs(diff).toLocaleString('es-ES', { maximumFractionDigits: 1 })}% ${trend} que en ${prevYear}.`;
     } else {
       elements.insightText.textContent = `Analizando el mercado de ${currentYear}. Usa el reloj del ahorro para planificar tu consumo.`;
     }
@@ -360,7 +367,7 @@
     const completenessValue = Number.isFinite(status.coverageCompleteness)
       ? status.coverageCompleteness
       : status.completeness;
-    elements.completenessBadge.textContent = `Completitud: ${(completenessValue * 100).toFixed(1)}%`;
+    elements.completenessBadge.textContent = `Completitud: ${(completenessValue * 100).toLocaleString('es-ES', { maximumFractionDigits: 1 })}%`;
 
     const isFullCoverage = status.coverageFrom?.endsWith('-01-01') && status.coverageTo?.endsWith('-12-31');
     const isCurrentYear = Number(state.year) === new Date().getFullYear();
@@ -369,7 +376,7 @@
 
     if (!isFullCoverage && status.coverageFrom && status.coverageTo) {
       const coverageText = `Cobertura: desde ${formatDate(status.coverageFrom)} hasta ${formatDate(status.coverageTo)}.`;
-      const completenessText = `Completitud dentro del rango: ${(status.coverageCompleteness * 100).toFixed(1)}%.`;
+      const completenessText = `Completitud dentro del rango: ${(status.coverageCompleteness * 100).toLocaleString('es-ES', { maximumFractionDigits: 1 })}%.`;
       const lagText = hasLag ? `Datos actualizados hasta ${formatDate(status.coverageTo)}.` : '';
       elements.dataWarning.textContent = [coverageText, completenessText, lagText].filter(Boolean).join(' ');
       return;
