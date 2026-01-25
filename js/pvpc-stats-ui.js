@@ -712,6 +712,15 @@
     elements.heatmapGrid.addEventListener('mouseover', (e) => {
       if (e.target.classList.contains('heatmap-day')) {
         tooltip.textContent = e.target.getAttribute('data-tip');
+        
+        // Posicionar inmediatamente para evitar "salto" o que no se vea
+        const x = e.clientX;
+        const y = e.clientY;
+        tooltip.style.transform = `translate(${x}px, ${y}px) translate(-50%, -130%)`;
+        
+        // Forzar reflow para asegurar que la posición se aplica antes de la opacidad
+        void tooltip.offsetWidth; 
+        
         tooltip.style.opacity = '1';
       }
     });
