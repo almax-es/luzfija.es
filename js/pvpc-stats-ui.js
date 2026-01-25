@@ -770,15 +770,25 @@
     const best = result.topWindows[0];
     const bestCost = best.p50 * kwh;
     const bestMonthly = bestCost * uses;
-    const baselineCost = baselinePrice * kwh;
     const monthlyPeakDiff = (baselinePrice - best.p50) * kwh * uses;
-    const monthlyAvgDiff = (avgPrice - best.p50) * kwh * uses;
 
     elements.savingsSummary.innerHTML = `
-      <li><strong>Ventana líder:</strong> ${best.label} · ${formatEuroKwh(best.p50)}</li>
-      <li><strong>Coste estimado:</strong> ${formatCurrency(bestCost)} por uso · ${formatCurrency(bestMonthly)} al mes</li>
-      <li><strong>Hora cara típica:</strong> ${baseline?.label || '—'} · ${formatEuroKwh(baselinePrice)} (${formatCurrency(baselineCost)} por uso)</li>
-      <li><strong>Impacto mensual:</strong> ${formatDelta(monthlyPeakDiff)} vs hora cara · ${formatDelta(monthlyAvgDiff)} vs media anual</li>
+      <div class="impact-metric">
+        <span class="impact-metric__label">Coste / Uso</span>
+        <span class="impact-metric__value">${formatCurrency(bestCost)}</span>
+      </div>
+      <div class="impact-metric">
+        <span class="impact-metric__label">Coste / Mes</span>
+        <span class="impact-metric__value">${formatCurrency(bestMonthly)}</span>
+      </div>
+      <div class="impact-metric impact-metric--highlight">
+        <span class="impact-metric__label">Ahorro vs Pico</span>
+        <span class="impact-metric__value">+${formatCurrency(monthlyPeakDiff)}</span>
+      </div>
+      <div class="impact-metric">
+        <span class="impact-metric__label">Mejor Horario</span>
+        <span class="impact-metric__value" style="font-size: 1rem;">${best.label}</span>
+      </div>
     `;
 
     if (elements.savingsHint) {

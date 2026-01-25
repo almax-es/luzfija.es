@@ -431,6 +431,43 @@ input[type="number"]::-webkit-inner-spin-button {
 [data-theme="dark"] .w-saving-badge {
   background: rgba(34, 197, 94, 0.2);
   color: #4ade80;
+.impact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.impact-metric {
+  background: var(--bg-card);
+  padding: 1rem;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+  text-align: center;
+}
+
+.impact-metric__label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 0.25rem;
+  display: block;
+}
+
+.impact-metric__value {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text-main);
+  display: block;
+}
+
+.impact-metric--highlight .impact-metric__value {
+  color: #16a34a;
+}
+
+[data-theme="dark"] .impact-metric--highlight .impact-metric__value {
+  color: #4ade80;
 }
 
 .kpi-grid {
