@@ -19,9 +19,7 @@
   const elements = {
     geoSelector: document.getElementById('geoSelector'),
     yearSelector: document.getElementById('yearSelector'),
-    heroBadges: document.getElementById('heroBadges'),
-    dataWarning: document.getElementById('dataWarning'),
-    dataMeta: document.getElementById('dataMeta'),
+    dataStatusContainer: document.getElementById('dataStatusContainer'),
     insightText: document.getElementById('insightText'),
     kpiAvg: document.getElementById('kpiAvg'),
     kpiMin: document.getElementById('kpiMin'),
@@ -425,38 +423,46 @@
   };
 
   const renderStatusBadges = (status) => {
-    if (!elements.heroBadges || !status) return;
-    const coverageStart = formatStatusDate(status.coverageFrom);
+    if (!elements.dataStatusContainer || !status) return;
+    
     const updatedUntil = formatStatusDate(status.updatedUntil);
-    const coverageIsPartial = status.coverageFrom && status.coverageFrom !== `${state.year}-01-01`;
     const completionPercent = Number.isFinite(status.coverageCompleteness)
       ? Math.round(status.coverageCompleteness * 100)
       : 0;
-
-    elements.heroBadges.innerHTML = `
-      <span class="badge badge-muted">Actualizado hasta: ${updatedUntil}</span>
-      <span class="badge badge-muted">${coverageIsPartial ? `Cobertura parcial oficial: desde ${coverageStart}` : `Cobertura: desde ${coverageStart}`}</span>
-      <span class="badge">Completitud (rango): ${completionPercent}%</span>
-    `;
-
-    if (elements.dataMeta) {
-      const months = status.monthsLoaded?.length ? status.monthsLoaded.join(', ') : '—';
-      elements.dataMeta.textContent = `Días cargados: ${status.loadedDays} · Meses: ${months}`;
-    }
-  };
-
-  const renderDataWarning = (status) => {
-    if (!elements.dataWarning || !status) return;
-    elements.dataWarning.textContent = '';
+    
+    // Check warning condition
+    let warningHtml = '';
     const currentYear = Number(state.year) === new Date().getFullYear();
-    if (!currentYear || !status.updatedUntil) return;
-    const updatedDate = new Date(`${status.updatedUntil}T12:00:00`);
-    const today = new Date();
-    const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-    if (updatedDate < todayDate) {
-      elements.dataWarning.textContent = `Aviso: faltan días recientes. Último dato disponible el ${formatStatusDate(status.updatedUntil)}.`;
+    if (currentYear && status.updatedUntil) {
+      const updatedDate = new Date(`${status.updatedUntil}T12:00:00`);
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      // Si el dato es más antiguo que ayer, mostrar aviso
+      if (updatedDate < new Date(today.setDate(today.getDate() - 2))) {
+         warningHtml = `<div class="status-row" style="color:var(--color-level-3); font-weight:700;">⚠️ Datos retrasados</div>`;
+      }
     }
+
+    elements.dataStatusContainer.innerHTML = `
+      <div class="data-status-card">
+        <div class="status-row">
+          <span class="status-label"><span class="pulse-dot"></span> Actualizado</span>
+          <span class="status-value">${updatedUntil}</span>
+        </div>
+        <div class="status-row">
+          <span class="status-label">📅 Días cargados</span>
+          <span class="status-value">${status.loadedDays}</span>
+        </div>
+        <div class="status-row">
+          <span class="status-label">📊 Completitud</span>
+          <span class="status-value">${completionPercent}%</span>
+        </div>
+        ${warningHtml}
+      </div>
+    `;
   };
+
+  const renderDataWarning = () => {}; // Deprecated, handled in renderStatusBadges
 
   const calculateYtdAverage = (yearData, endDayOfYear) => {
     const series = toDailySeries(yearData).values;
@@ -1392,7 +1398,6 @@
       renderWeekdayChart(analysis.weekdayProfile);
       updateMeta(analysis.kpis);
       renderStatusBadges(analysis.status);
-      renderDataWarning(analysis.status);
       renderInsight(analysis.kpis, geoId, analysis.status);
       await loadSavingsWindows();
 
