@@ -12,7 +12,6 @@
     heatmap: document.querySelector('[data-loading][aria-labelledby="heatmapTitle"]'),
     clock: document.querySelector('[data-loading][aria-labelledby="clockTitle"]'),
     weekday: document.querySelector('[data-loading][aria-labelledby="weekdayTitle"]'),
-    daily: document.querySelector('[data-loading][aria-labelledby="dailyTitle"]'),
     comparison: document.querySelector('[data-loading][aria-labelledby="comparisonTitle"]')
   };
 
@@ -41,7 +40,6 @@
   const charts = {
     clock: null,
     weekday: null,
-    daily: null,
     comparison: null,
     day: null
   };
@@ -279,30 +277,6 @@
     });
   };
 
-  const renderDailyChart = (dailyEvolution) => {
-    const ctx = document.getElementById('dailyChart').getContext('2d');
-    if (charts.daily) charts.daily.destroy();
-    charts.daily = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: dailyEvolution.labels,
-        datasets: [{
-          label: 'Precio (€/kWh)',
-          data: dailyEvolution.data,
-          borderColor: '#3b82f6',
-          fill: true,
-          backgroundColor: 'rgba(59,130,246,0.1)',
-          tension: 0.3,
-          pointRadius: 0
-        }]
-      },
-      options: {
-        interaction: { mode: 'index', intersect: false },
-        plugins: { legend: { display: false } }
-      }
-    });
-  };
-
   const buildComparisonLabels = () => {
     const labels = [];
     const date = new Date(2024, 0, 1);
@@ -431,7 +405,7 @@
       },
       options: {
         interaction: { mode: 'index', intersect: false },
-        plugins: { legend: { display: false } },
+        plugins: { legend: { display: true, position: 'top' } },
         elements: { 
             point: { radius: 0, hoverRadius: 4 },
             line: { tension: 0.3 }
@@ -539,7 +513,6 @@
       buildHeatmap(analysis.heatmap);
       renderClockChart(analysis.hourlyProfile);
       renderWeekdayChart(analysis.weekdayProfile);
-      renderDailyChart(analysis.dailyEvolution);
       updateMeta(analysis.kpis);
       renderInsight(analysis.kpis, geoId);
 
@@ -547,7 +520,6 @@
       setLoading(sections.heatmap, false);
       setLoading(sections.clock, false);
       setLoading(sections.weekday, false);
-      setLoading(sections.daily, false);
 
       const comparisonYears = Array.from(elements.yearSelector.options).map(option => option.value);
       state.comparisonYears = comparisonYears;
@@ -561,7 +533,6 @@
       setLoading(sections.heatmap, false);
       setLoading(sections.clock, false);
       setLoading(sections.weekday, false);
-      setLoading(sections.daily, false);
     }
   };
 
