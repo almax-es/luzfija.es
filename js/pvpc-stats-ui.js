@@ -281,7 +281,13 @@
     const labels = [];
     const date = new Date(2024, 0, 1);
     for (let i = 0; i < 366; i++) {
-      labels.push(date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }));
+      // Truco visual: Solo mostrar etiqueta si es el día 15 del mes para centrar el nombre
+      // O si preferimos el día 1: date.getDate() === 1
+      if (date.getDate() === 15) {
+        labels.push(date.toLocaleDateString('es-ES', { month: 'short' }).replace('.', '')); // 'Ene'
+      } else {
+        labels.push(''); // Etiqueta vacía para el resto de días
+      }
       date.setDate(date.getDate() + 1);
     }
     return labels;
@@ -401,7 +407,8 @@
   };
 
   const renderComparisonChart = (comparisonData) => {
-    const ctx = document.getElementById('comparisonChart').getContext('2d');
+    const canvas = document.getElementById('comparisonChart');
+    const ctx = canvas.getContext('2d');
     if (charts.comparison) charts.comparison.destroy();
 
     const colors = {
@@ -417,16 +424,28 @@
       const isSelected = ds.label === state.year;
       const baseColor = colors[ds.label] || '#94a3b8';
       
+      let backgroundColor = 'transparent';
+      
+      if (isSelected) {
+        // Crear gradiente vertical "Crypto style"
+        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+        gradient.addColorStop(0, `${baseColor}66`); // 40% opacidad arriba
+        gradient.addColorStop(1, `${baseColor}05`); // Casi transparente abajo
+        backgroundColor = gradient;
+      }
+
       return {
         ...ds,
         baseColor: baseColor,
-        borderColor: isSelected ? baseColor : `${baseColor}80`, // Transparencia para no seleccionados
+        borderColor: isSelected ? baseColor : `${baseColor}80`,
         borderWidth: isSelected ? 3 : 2,
-        backgroundColor: isSelected ? `${baseColor}15` : 'transparent', // Relleno sutil solo para el seleccionado
+        backgroundColor: backgroundColor,
         fill: isSelected,
         pointRadius: 0,
-        // Orden de apilamiento: seleccionado arriba (z-index visual en canvas)
-        order: isSelected ? 0 : 1 
+        order: isSelected ? 0 : 1,
+        // Pequeña sombra para la línea principal
+        shadowBlur: isSelected ? 10 : 0,
+        shadowColor: isSelected ? baseColor : 'transparent'
       };
     });
 
@@ -445,17 +464,27 @@
         plugins: {
           legend: {
             position: 'top',
-            labels: { usePointStyle: true, boxWidth: 8 }
+            labels: { usePointStyle: true, boxWidth: 8, font: { family: "'Outfit', sans-serif", size: 11 } }
           },
           tooltip: {
-            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+            backgroundColor: 'rgba(15, 23, 42, 0.95)',
             titleColor: '#fff',
+            titleFont: { family: "'Outfit', sans-serif", weight: 700 },
             bodyColor: '#cbd5e1',
+            bodyFont: { family: "'Outfit', sans-serif" },
             borderColor: 'rgba(255,255,255,0.1)',
             borderWidth: 1,
-            padding: 10,
-            itemSort: (a, b) => b.raw - a.raw, // Ordenar de más caro a más barato
+            padding: 12,
+            cornerRadius: 8,
+            itemSort: (a, b) => b.raw - a.raw,
             callbacks: {
+              title: (context) => {
+                // Recuperar la fecha real basada en el índice (día del año)
+                // Como labels tiene huecos (""), calculamos la fecha manual
+                const date = new Date(2024, 0, 1);
+                date.setDate(date.getDate() + context[0].dataIndex);
+                return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+              },
               label: (context) => {
                 let label = context.dataset.label || '';
                 if (label) label += ': ';
@@ -466,29 +495,31 @@
           }
         },
         elements: {
-          point: { radius: 0, hoverRadius: 4 },
+          point: { radius: 0, hoverRadius: 5, hoverBorderWidth: 2 },
           line: { tension: 0.4, borderJoinStyle: 'round' }
         },
         scales: {
           x: {
-            grid: { display: false },
-            ticks: { maxTicksLimit: 12 } // Mostrar aprox 1 etiqueta por mes
+            grid: { display: false, drawBorder: false },
+            ticks: { 
+              maxRotation: 0, 
+              autoSkip: false,
+              font: { size: 11, weight: 600 } 
+            } 
           },
           y: {
             beginAtZero: true,
-            grid: { color: 'rgba(0, 0, 0, 0.05)' },
+            border: { display: false },
+            grid: { color: 'rgba(0, 0, 0, 0.04)', drawBorder: false },
             ticks: {
+              padding: 10,
+              font: { size: 10 },
               callback: (value) => value.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })
             }
           }
         }
       }
     });
-
-    state.visibleYears = new Set(datasets.map(ds => ds.label));
-    renderComparisonControls(datasets);
-    applyComparisonVisibility();
-  };
 
   const loadComparisonAsync = ({ geoId, years, token }) => {
     const requestToken = token;
