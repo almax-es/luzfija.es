@@ -431,76 +431,99 @@
       };
     });
 
-    charts.comparison = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: comparisonData.labels,
-        datasets
-      },
-      options: {
-        responsive: true,
-        interaction: {
-          mode: 'index',
-          intersect: false,
-        },
-        plugins: {
-          legend: {
-            position: 'top',
-            labels: { usePointStyle: true, boxWidth: 8, font: { family: "'Outfit', sans-serif", size: 11 } }
+        charts.comparison = new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: comparisonData.labels,
+            datasets
           },
-          tooltip: {
-            backgroundColor: 'rgba(15, 23, 42, 0.95)',
-            titleColor: '#fff',
-            titleFont: { family: "'Outfit', sans-serif", weight: 700 },
-            bodyColor: '#cbd5e1',
-            bodyFont: { family: "'Outfit', sans-serif" },
-            borderColor: 'rgba(255,255,255,0.1)',
-            borderWidth: 1,
-            padding: 12,
-            cornerRadius: 8,
-            itemSort: (a, b) => b.raw - a.raw,
-            callbacks: {
-              title: (context) => {
-                const date = new Date(2024, 0, 1);
-                date.setDate(date.getDate() + context[0].dataIndex);
-                return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+          options: {
+            responsive: true,
+            interaction: {
+              mode: 'index',
+              intersect: false,
+            },
+            plugins: {
+              legend: {
+                display: false // Ocultamos leyenda nativa, ya tenemos los botones "pills" abajo
               },
-              label: (context) => {
-                let label = context.dataset.label || '';
-                if (label) label += ': ';
-                if (context.parsed.y !== null) label += formatValue(context.parsed.y) + ' €/kWh';
-                return label;
+              tooltip: {
+                backgroundColor: 'rgba(255, 255, 255, 0.95)', // Fondo blanco
+                titleColor: '#1e293b', // Texto oscuro
+                titleFont: { family: "'Outfit', sans-serif", weight: 800, size: 13 },
+                bodyColor: '#64748b',
+                bodyFont: { family: "'Outfit', sans-serif", size: 12 },
+                borderColor: 'rgba(0,0,0,0.05)',
+                borderWidth: 1,
+                padding: 16,
+                cornerRadius: 12,
+                boxPadding: 6,
+                usePointStyle: true,
+                titleAlign: 'center',
+                shadowOffsetX: 0,
+                shadowOffsetY: 10,
+                shadowBlur: 20,
+                shadowColor: 'rgba(0,0,0,0.15)', // Sombra suave "Apple style"
+                itemSort: (a, b) => b.raw - a.raw,
+                callbacks: {
+                  title: (context) => {
+                    const date = new Date(2024, 0, 1);
+                    date.setDate(date.getDate() + context[0].dataIndex);
+                    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
+                  },
+                  label: (context) => {
+                    let label = context.dataset.label || '';
+                    const val = context.parsed.y !== null ? formatValue(context.parsed.y) : '--';
+                    return ` ${label}: ${val} €/kWh`;
+                  },
+                  labelColor: (context) => {
+                    return {
+                      borderColor: 'transparent',
+                      backgroundColor: context.dataset.baseColor,
+                      borderRadius: 4
+                    };
+                  }
+                }
+              }
+            },
+            elements: {
+              point: { radius: 0, hoverRadius: 6, hoverBorderWidth: 3, hoverBorderColor: '#fff' },
+              line: { tension: 0.4, borderCapStyle: 'round' }
+            },
+            layout: {
+                padding: { top: 20, bottom: 10 }
+            },
+            scales: {
+              x: {
+                grid: { display: false, drawBorder: false }, // Limpieza total eje X
+                border: { display: false },
+                ticks: {
+                  maxRotation: 0,
+                  autoSkip: false,
+                  padding: 10,
+                  font: { family: "'Outfit', sans-serif", size: 11, weight: 600 },
+                  color: '#94a3b8'
+                }
+              },
+              y: {
+                beginAtZero: true,
+                border: { display: false }, // Sin línea vertical izquierda
+                grid: {
+                    color: '#f1f5f9', // Gris muy muy claro
+                    borderDash: [4, 4], // Punteado elegante
+                    drawBorder: false,
+                    tickLength: 0
+                },
+                ticks: {
+                  padding: 15,
+                  font: { family: "'Outfit', sans-serif", size: 10, weight: 500 },
+                  color: '#94a3b8',
+                  callback: (value) => value.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €'
+                }
               }
             }
           }
-        },
-        elements: {
-          point: { radius: 0, hoverRadius: 5, hoverBorderWidth: 2 },
-          line: { tension: 0.4, borderJoinStyle: 'round' }
-        },
-        scales: {
-          x: {
-            grid: { display: false, drawBorder: false },
-            ticks: { 
-              maxRotation: 0, 
-              autoSkip: false,
-              font: { size: 11, weight: 600 } 
-            } 
-          },
-          y: {
-            beginAtZero: true,
-            border: { display: false },
-            grid: { color: 'rgba(0, 0, 0, 0.04)', drawBorder: false },
-            ticks: {
-              padding: 10,
-              font: { size: 10 },
-              callback: (value) => value.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })
-            }
-          }
-        }
-      }
-    });
-
+        });
     state.visibleYears = new Set(datasets.map(ds => ds.label));
     renderComparisonControls(datasets);
     applyComparisonVisibility();
