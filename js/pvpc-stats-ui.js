@@ -704,51 +704,41 @@
   // --- Global Tooltip Logic ---
   const tooltip = document.createElement('div');
   tooltip.id = 'globalTooltip';
+  tooltip.style.pointerEvents = 'none'; // Asegurar que no bloquea ratón
   document.body.appendChild(tooltip);
 
   if (elements.heatmapGrid) {
     let rafId = null;
 
     elements.heatmapGrid.addEventListener('mouseover', (e) => {
-      if (e.target.classList.contains('heatmap-day')) {
-        tooltip.textContent = e.target.getAttribute('data-tip');
+      const target = e.target.closest('.heatmap-day');
+      if (target) {
+        tooltip.textContent = target.getAttribute('data-tip');
         
-        // Posicionar inmediatamente para evitar "salto" o que no se vea
-        const x = e.clientX;
-        const y = e.clientY;
-        tooltip.style.transform = `translate(${x}px, ${y}px) translate(-50%, -130%)`;
+        // Posicionar inicial
+        const rect = target.getBoundingClientRect();
+        // Centrar sobre la celda
+        const x = rect.left + rect.width / 2;
+        const y = rect.top;
         
-        // Forzar reflow para asegurar que la posición se aplica antes de la opacidad
-        void tooltip.offsetWidth; 
+        tooltip.style.left = `${x}px`;
+        tooltip.style.top = `${y}px`;
+        tooltip.style.transform = `translate(-50%, -130%)`; // Mover arriba y centrar
         
         tooltip.style.opacity = '1';
       }
     });
 
-    elements.heatmapGrid.addEventListener('mousemove', (e) => {
-      if (!e.target.classList.contains('heatmap-day')) return;
-      
-      if (rafId) return;
-      
-      const x = e.clientX;
-      const y = e.clientY;
-      
-      rafId = requestAnimationFrame(() => {
-        // Offset de -50% en X y -120% en Y (arriba) hecho manualmente o via transform
-        // Aquí usamos transform translate puro. 
-        // Nota: para centrarlo horizontalmente restamos un ancho estimado o usamos CSS transform: translate(-50%, -100%)
-        // Como el JS sobreescribe transform, lo incluimos todo aquí.
-        tooltip.style.transform = `translate(${x}px, ${y}px) translate(-50%, -130%)`;
-        rafId = null;
-      });
-    });
+    // Mousemove opcional: solo si queremos que siga al ratón dentro de la celda.
+    // Si la celda es pequeña (12px), es mejor que el tooltip se quede quieto sobre la celda.
+    // Voy a quitar el seguimiento del ratón para evitar el "baile" y mejorar performance.
+    // Es más estable si se posiciona relativo a la celda.
 
-    elements.heatmapGrid.addEventListener('mouseout', () => {
-      tooltip.style.opacity = '0';
-      if (rafId) {
-        cancelAnimationFrame(rafId);
-        rafId = null;
-      }
+    elements.heatmapGrid.addEventListener('mouseout', (e) => {
+       const target = e.target.closest('.heatmap-day');
+       if (target) {
+         tooltip.style.opacity = '0';
+       }
     });
   }
   // ----------------------------
