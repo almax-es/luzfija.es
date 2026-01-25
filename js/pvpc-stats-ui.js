@@ -293,17 +293,12 @@
           fill: true,
           backgroundColor: 'rgba(59,130,246,0.1)',
           tension: 0.3,
-          pointRadius: 0,
-          borderWidth: 2
+          pointRadius: 0
         }]
       },
       options: {
-        animation: false, // Performance
-        normalized: true, // Performance
-        parsing: false,   // Performance (datos ya formateados)
         interaction: { mode: 'index', intersect: false },
-        plugins: { legend: { display: false } },
-        elements: { point: { radius: 0 } } // Asegurar sin puntos
+        plugins: { legend: { display: false } }
       }
     });
   };
@@ -435,14 +430,11 @@
         datasets
       },
       options: {
-        animation: false, // Performance crítico con tantas series
-        normalized: true, // Performance
-        parsing: false,   // Performance
-        interaction: { mode: 'nearest', axis: 'x', intersect: false }, // Más ligero que 'index'
+        interaction: { mode: 'index', intersect: false },
         plugins: { legend: { display: false } },
         elements: { 
             point: { radius: 0, hoverRadius: 4 },
-            line: { tension: 0.3, borderJoinStyle: 'round' }
+            line: { tension: 0.3 }
         }
       }
     });
