@@ -16,14 +16,52 @@
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/fonts.css">
   
-  <!-- Chart.js desde vendor local -->
-  <script src="/vendor/chartjs/chart.umd.js"></script>
-  <!-- Motor de estadísticas -->
-  <script src="/js/pvpc-stats-engine.js"></script>
   <!-- Configuración -->
   <script src="/js/config.js"></script>
   <script src="/js/theme.js"></script>
   <script src="/js/tracking.js" defer data-goatcounter="https://luzfija.goatcounter.com/count"></script>
+
+  <!-- Schema.org FAQ -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "¿A qué hora es más barata la luz en España?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Gracias a la energía solar fotovoltaica, el precio de la luz suele desplomarse durante las horas centrales del día (entre las 13:00 y las 16:00). Anteriormente, la noche era el momento más barato, pero el patrón ha cambiado ('Curva de Pato'). Consulta el gráfico 'Reloj del Ahorro' en esta página para ver el patrón exacto de este año."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Por qué la luz es más cara por la tarde/noche?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Al atardecer, la producción solar desaparece mientras que la demanda de los hogares aumenta. Esto obliga a encender centrales de ciclo combinado (gas), que son más caras, elevando el precio del PVPC entre las 20:00 y las 22:00."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Me conviene PVPC o tarifa fija?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "El PVPC es volátil: tendrás meses muy baratos (primavera/viento) y otros caros. Si puedes adaptar tu consumo a las horas solares, suele ser muy competitivo a largo plazo. Si prefieres tranquilidad y saber cuánto pagarás siempre, usa nuestro comparador para encontrar una tarifa fija estable."
+        }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Los fines de semana es más barata la luz?",
+        "acceptedAnswer": {
+          "@type": "Answer",
+          "text": "Sí. En la tarifa 2.0TD, todos los fines de semana y festivos nacionales son periodo VALLE las 24 horas, lo que significa que los peajes y cargos son mínimos. Sin embargo, el coste de la energía sigue oscilando según el mercado."
+        }
+      }
+    ]
+  }
+  </script>
 
   <style>
     .stats-container {
@@ -43,6 +81,55 @@
         gap: 1rem;
         margin-bottom: 2rem;
         flex-wrap: wrap;
+    }
+
+    select {
+        appearance: none;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        padding: 0.6rem 2.5rem 0.6rem 1rem;
+        border-radius: 10px;
+        border: 2px solid var(--border-color);
+        background-color: var(--bg-card);
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%238b5cf6' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 1rem center;
+        color: var(--text-main);
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        min-width: 180px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    
+    select:hover {
+        border-color: var(--primary-color);
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    select:focus {
+        outline: none;
+        border-color: var(--primary-color);
+        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
+    }
+    
+    select option {
+        background-color: #ffffff;
+        color: #1a1a1a;
+        padding: 10px;
+    }
+
+    @media (prefers-color-scheme: dark) {
+        select option {
+            background-color: #1f2937;
+            color: #f3f4f6;
+        }
+    }
+    
+    [data-theme="dark"] select option {
+        background-color: #1f2937;
+        color: #f3f4f6;
     }
     
     .stats-card-grid {
@@ -96,66 +183,49 @@
     h2 { font-size: 1.5rem; margin-bottom: 0.5rem; }
     p.desc { color: var(--text-muted); font-size: 0.95rem; }
 
-    /* Ajustes para selects */
-    .stats-controls {
-        display: flex;
-        justify-content: center;
-        gap: 1rem;
-        margin-bottom: 2rem;
-        flex-wrap: wrap;
+    .faq-section {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid var(--border-color);
     }
-
-    select {
-        appearance: none;
-        -webkit-appearance: none;
-        -moz-appearance: none;
-        padding: 0.6rem 2.5rem 0.6rem 1rem;
-        border-radius: 10px;
-        border: 2px solid var(--border-color);
-        background-color: var(--bg-card);
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' fill='%238b5cf6' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 1rem center;
+    
+    .faq-item {
+        margin-bottom: 1.5rem;
+    }
+    
+    .faq-question {
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem;
         color: var(--text-main);
-        font-size: 1rem;
-        font-weight: 600;
-        cursor: pointer;
-        min-width: 180px;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        transition: border-color 0.2s, box-shadow 0.2s;
     }
     
-    select:hover {
-        border-color: var(--primary-color);
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    .faq-answer {
+        color: var(--text-muted);
+        line-height: 1.6;
     }
 
-    select:focus {
-        outline: none;
-        border-color: var(--primary-color);
-        box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.2);
-    }
-    
-    /* Forzar contraste en las opciones (Nativo) */
-    select option {
-        background-color: #ffffff;
-        color: #1a1a1a;
-        padding: 10px;
+    .cta-box {
+        background: linear-gradient(135deg, var(--bg-card) 0%, rgba(139, 92, 246, 0.1) 100%);
+        border: 2px solid var(--primary-color);
+        border-radius: 16px;
+        padding: 2rem;
+        text-align: center;
+        margin: 3rem 0;
     }
 
-    /* En modo oscuro, invertimos las opciones para que se vean bien */
-    @media (prefers-color-scheme: dark) {
-        select option {
-            background-color: #1f2937;
-            color: #f3f4f6;
-        }
+    .btn-cta {
+        display: inline-block;
+        background: var(--primary-color);
+        color: white;
+        padding: 0.8rem 2rem;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: 700;
+        margin-top: 1rem;
+        transition: transform 0.2s;
     }
-    
-    /* Si la web ya tiene una clase para el tema oscuro, la usamos también */
-    [data-theme="dark"] select option {
-        background-color: #1f2937;
-        color: #f3f4f6;
-    }
+    .btn-cta:hover { transform: scale(1.05); }
 
     .loading-overlay {
         position: fixed;
@@ -202,7 +272,7 @@
     </header>
 
     <div class="stats-controls">
-        <select id="geoSelector">
+        <select id="geoSelector" aria-label="Seleccionar zona geográfica">
             <option value="8741">Península</option>
             <option value="8742">Canarias</option>
             <option value="8743">Baleares</option>
@@ -210,7 +280,7 @@
             <option value="8745">Melilla</option>
         </select>
         
-        <select id="yearSelector">
+        <select id="yearSelector" aria-label="Seleccionar año">
             <option value="2026">2026 (En curso)</option>
             <option value="2025">2025</option>
             <option value="2024">2024</option>
@@ -245,7 +315,7 @@
             <h2>📉 Evolución Diaria del Precio</h2>
             <p class="desc">Precio medio diario a lo largo del año. Observa las tendencias estacionales.</p>
         </div>
-        <canvas id="dailyChart" height="100"></canvas>
+        <canvas id="dailyChart" height="100" role="img" aria-label="Gráfico de evolución diaria del precio de la luz"></canvas>
     </div>
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem;">
@@ -255,7 +325,7 @@
                 <h2>🕒 El "Reloj" del Ahorro</h2>
                 <p class="desc">Precio promedio por hora. ¿A qué hora es más barato consumir?</p>
             </div>
-            <canvas id="hourlyChart"></canvas>
+            <canvas id="hourlyChart" role="img" aria-label="Gráfico de barras mostrando el precio promedio por hora"></canvas>
         </div>
 
         <!-- Gráfico 3: Días de la semana -->
@@ -264,7 +334,7 @@
                 <h2>📅 Semáforo Semanal</h2>
                 <p class="desc">¿Es más barato el fin de semana? Promedio por día de la semana.</p>
             </div>
-            <canvas id="weekdayChart"></canvas>
+            <canvas id="weekdayChart" role="img" aria-label="Gráfico de barras mostrando el precio promedio por día de la semana"></canvas>
         </div>
     </div>
 
@@ -274,7 +344,42 @@
             <h2>🆚 Comparativa Histórica (2022 - 2026)</h2>
             <p class="desc">Evolución anual comparada. Visualiza cómo ha cambiado el precio de la luz a lo largo de los años.</p>
         </div>
-        <canvas id="comparisonChart" height="100"></canvas>
+        <canvas id="comparisonChart" height="100" role="img" aria-label="Gráfico comparativo de la evolución del precio en los últimos años"></canvas>
+    </div>
+
+    <!-- CTA Section (SEO) -->
+    <div class="cta-box">
+        <h2>💡 ¿Te conviene el PVPC o una Tarifa Fija?</h2>
+        <p style="margin: 1rem 0; color: var(--text-muted);">
+            El mercado cambia constantemente. Usa nuestro comparador gratuito para calcular tu factura real con tus datos de consumo y ver qué tarifa te ahorra más dinero hoy.
+        </p>
+        <a href="/" class="btn-cta">Ir al Comparador de Tarifas</a>
+    </div>
+
+    <!-- FAQ Section (SEO) -->
+    <div class="faq-section">
+        <h2 style="text-align: center; margin-bottom: 2rem;">Preguntas Frecuentes sobre el Precio de la Luz</h2>
+        
+        <div class="faq-item">
+            <div class="faq-question">¿A qué hora es más barata la luz en España?</div>
+            <div class="faq-answer">
+                Actualmente, debido al auge de la energía solar, las horas más baratas suelen concentrarse al mediodía, <strong>entre las 13:00 y las 16:00 horas</strong>. Es el momento ideal para programar electrodomésticos de alto consumo.
+            </div>
+        </div>
+        
+        <div class="faq-item">
+            <div class="faq-question">¿Por qué la luz sube por la noche?</div>
+            <div class="faq-answer">
+                Al anochecer desaparece la producción solar fotovoltaica, pero la demanda de los hogares aumenta (cocina, iluminación, TV). Esto obliga a usar fuentes de energía más caras, como el gas, elevando el precio del PVPC.
+            </div>
+        </div>
+
+        <div class="faq-item">
+            <div class="faq-question">¿Es más barata la luz los fines de semana?</div>
+            <div class="faq-answer">
+                Sí. En la tarifa regulada 2.0TD, <strong>todo el fin de semana y los festivos nacionales</strong> son periodo VALLE (P3), lo que significa que los peajes y cargos son mínimos las 24 horas del día.
+            </div>
+        </div>
     </div>
     
   </div>
@@ -283,6 +388,10 @@
     <p>Datos oficiales de ESIOS (Red Eléctrica de España). Cálculo propio.</p>
     <p>&copy; 2026 LuzFija.es</p>
   </footer>
+
+  <!-- Scripts al final para no bloquear rendering -->
+  <script src="/vendor/chartjs/chart.umd.js" defer></script>
+  <script src="/js/pvpc-stats-engine.js" defer></script>
 
   <script>
     // Lógica UI
@@ -293,13 +402,22 @@
         
         let charts = {};
 
+        // SEO: Títulos dinámicos
+        const baseTitle = "Estadísticas del Precio de la Luz (PVPC)";
+        
         async function updateStats() {
             loader.classList.remove('hidden');
             const geoId = geoSel.value;
             const year = yearSel.value;
 
+            // Actualizar Meta Title y Description dinámicamente
+            document.title = `Precio Luz ${year} - Estadísticas y Evolución | LuzFija.es`;
+            const metaDesc = document.querySelector('meta[name="description"]');
+            if (metaDesc) {
+                metaDesc.setAttribute('content', `Analiza el precio de la luz en ${year}. Gráficos de evolución diaria, horas más baratas y comparativa histórica para la zona ${geoSel.options[geoSel.selectedIndex].text}.`);
+            }
+
             try {
-                // Carga datos del año principal seleccionado
                 const data = await window.PVPC_STATS.loadYearData(geoId, year);
                 
                 if (!data || Object.keys(data.days).length === 0) {
@@ -323,8 +441,7 @@
                 renderHourlyChart(data);
                 renderWeekdayChart(data);
 
-                // 3. Gráfico Comparativo (Background Task)
-                // Comparamos los últimos años relevantes
+                // 3. Gráfico Comparativo
                 renderComparisonChart(geoId, ['2022', '2023', '2024', '2025', '2026']);
 
             } catch (e) {
@@ -341,54 +458,38 @@
             
             if (charts.comparison) charts.comparison.destroy();
 
-            // Colores distintivos para cada año
             const colors = {
-                '2022': '#ef4444', // Rojo (Crisis)
-                '2023': '#f59e0b', // Naranja
-                '2024': '#10b981', // Verde
-                '2025': '#3b82f6', // Azul
-                '2026': '#8b5cf6'  // Violeta (Actual)
+                '2022': '#ef4444',
+                '2023': '#f59e0b',
+                '2024': '#10b981',
+                '2025': '#3b82f6',
+                '2026': '#8b5cf6'
             };
 
             const datasets = comparisonData.datasets.map(ds => ({
                 ...ds,
                 borderColor: colors[ds.label] || '#999',
                 backgroundColor: 'transparent',
-                borderWidth: ds.label === yearSel.value ? 3 : 1.5, // Resaltar año seleccionado
+                borderWidth: ds.label === yearSel.value ? 3 : 1.5,
                 pointRadius: 0,
-                // Ocultar años sin datos (ej. 2026 futuro)
                 hidden: ds.data.every(v => v === null)
             }));
 
             charts.comparison = new Chart(ctx, {
                 type: 'line',
-                data: {
-                    labels: comparisonData.labels,
-                    datasets: datasets
-                },
+                data: { labels: comparisonData.labels, datasets: datasets },
                 options: {
                     responsive: true,
                     interaction: { mode: 'index', intersect: false },
-                    plugins: { 
-                        legend: { position: 'top' },
-                        tooltip: {
-                            callbacks: {
-                                label: function(context) {
-                                    let label = context.dataset.label || '';
-                                    if (label) {
-                                        label += ': ';
-                                    }
-                                    if (context.parsed.y !== null) {
-                                        label += context.parsed.y.toFixed(4) + ' €/kWh';
-                                    }
-                                    return label;
-                                }
-                            }
-                        }
-                    },
-                    scales: {
-                        y: { beginAtZero: true, title: { display: true, text: '€/kWh' } }
-                    }
+                    plugins: { legend: { position: 'top' }, tooltip: {
+                        callbacks: { label: function(context) {
+                            let label = context.dataset.label || '';
+                            if (label) label += ': ';
+                            if (context.parsed.y !== null) label += context.parsed.y.toFixed(4) + ' €/kWh';
+                            return label;
+                        }}
+                    }},
+                    scales: { y: { beginAtZero: true, title: { display: true, text: '€/kWh' } } }
                 }
             });
         }
@@ -396,9 +497,7 @@
         function renderDailyChart(data) {
             const ctx = document.getElementById('dailyChart').getContext('2d');
             const processed = window.PVPC_STATS.getDailyEvolution(data);
-            
             if (charts.daily) charts.daily.destroy();
-
             charts.daily = new Chart(ctx, {
                 type: 'line',
                 data: {
@@ -417,9 +516,7 @@
                     responsive: true,
                     interaction: { mode: 'index', intersect: false },
                     plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true, title: { display: true, text: '€/kWh' } }
-                    }
+                    scales: { y: { beginAtZero: true, title: { display: true, text: '€/kWh' } } }
                 }
             });
         }
@@ -427,74 +524,44 @@
         function renderHourlyChart(data) {
             const ctx = document.getElementById('hourlyChart').getContext('2d');
             const processed = window.PVPC_STATS.getHourlyProfile(data);
-            
             if (charts.hourly) charts.hourly.destroy();
-
-            // Colorear según precio (más rojo si es caro)
+            
             const colors = processed.data.map(val => {
-                // Normalizar entre min y max del dataset para degradado
                 const min = Math.min(...processed.data);
                 const max = Math.max(...processed.data);
                 const ratio = (val - min) / (max - min);
-                // Verde (120 hue) a Rojo (0 hue)
                 const hue = (1 - ratio) * 120; 
                 return `hsla(${hue}, 70%, 50%, 0.6)`;
             });
 
             charts.hourly = new Chart(ctx, {
                 type: 'bar',
-                data: {
-                    labels: processed.labels,
-                    datasets: [{
-                        label: 'Precio Promedio (€/kWh)',
-                        data: processed.data,
-                        backgroundColor: colors,
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true }
-                    }
-                }
+                data: { labels: processed.labels, datasets: [{ label: 'Precio Promedio (€/kWh)', data: processed.data, backgroundColor: colors, borderRadius: 4 }] },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
             });
         }
 
         function renderWeekdayChart(data) {
             const ctx = document.getElementById('weekdayChart').getContext('2d');
             const processed = window.PVPC_STATS.getWeekdayProfile(data);
-            
             if (charts.weekday) charts.weekday.destroy();
-
             charts.weekday = new Chart(ctx, {
                 type: 'bar',
-                data: {
-                    labels: processed.labels,
-                    datasets: [{
-                        label: 'Precio Promedio (€/kWh)',
-                        data: processed.data,
-                        backgroundColor: 'rgba(16, 185, 129, 0.6)',
-                        borderRadius: 4
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: { legend: { display: false } },
-                    scales: {
-                        y: { beginAtZero: true }
-                    }
-                }
+                data: { labels: processed.labels, datasets: [{ label: 'Precio Promedio (€/kWh)', data: processed.data, backgroundColor: 'rgba(16, 185, 129, 0.6)', borderRadius: 4 }] },
+                options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true } } }
             });
         }
 
-        // Event Listeners
         geoSelector.addEventListener('change', updateStats);
         yearSelector.addEventListener('change', updateStats);
 
-        // Init
-        updateStats();
+        // Inicializar
+        if(window.PVPC_STATS) {
+            updateStats();
+        } else {
+            // Fallback si el script carga después
+            window.addEventListener('load', updateStats);
+        }
     });
   </script>
 </body>
