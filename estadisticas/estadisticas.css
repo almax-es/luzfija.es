@@ -421,9 +421,9 @@ input[type="number"]::-webkit-inner-spin-button {
 
 .heatmap-grid {
   display: grid;
-  grid-template-columns: repeat(53, 1fr); /* 53 semanas */
+  grid-template-columns: repeat(53, 12px); /* Ancho fijo igual a la celda para compactar */
   grid-template-rows: auto repeat(7, 12px); /* Labels + 7 días */
-  gap: 1px; /* Gap mínimo para separar días pero mantener cohesión */
+  gap: 1px; /* Gap mínimo */
   width: max-content;
   margin: 0 auto; /* Centrar */
 }
