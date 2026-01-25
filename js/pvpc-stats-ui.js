@@ -191,21 +191,44 @@
     if (!elements.heatmapGrid) return;
     elements.heatmapGrid.innerHTML = '';
     const year = Number(state.year);
+    
+    // 1. Generar etiquetas de meses
+    const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    monthNames.forEach((m, i) => {
+      // Calcular columna aproximada (semana) para el mes
+      // Enero = semana 1, Feb = semana 5 aprox...
+      const date = new Date(year, i, 1);
+      const dayOfYear = getDayOfYearUTC(year, i + 1, 1);
+      const weekIndex = Math.floor(dayOfYear / 7) + 1;
+      
+      const label = document.createElement('div');
+      label.className = 'heatmap-month-label';
+      label.textContent = m;
+      label.style.gridColumnStart = weekIndex;
+      label.style.gridRowStart = 1;
+      elements.heatmapGrid.appendChild(label);
+    });
+
+    // 2. Generar días
     const firstDay = new Date(year, 0, 1);
-    const firstWeekday = (firstDay.getDay() + 6) % 7;
+    // Ajuste para que Lunes sea fila 2 (row 1 es labels)
+    // getDay(): 0(Dom)..6(Sab). Queremos Lunes(0)..Domingo(6) visualmente
+    // CSS Grid Row: Lunes=2, Martes=3... Domingo=8
+    const offsetDay = (day => (day + 6) % 7)(firstDay.getDay()); 
 
     heatmapData.forEach((day) => {
       const date = new Date(`${day.date}T12:00:00`);
       const dayOfYear = getDayOfYearUTC(date.getFullYear(), date.getMonth() + 1, date.getDate());
-      const weekIndex = Math.floor((dayOfYear + firstWeekday) / 7);
-      const dayIndex = (date.getDay() + 6) % 7;
+      // Ajustar semana teniendo en cuenta el desplazamiento del primer día
+      const weekIndex = Math.floor((dayOfYear + offsetDay) / 7) + 1;
+      const dayOfWeek = (date.getDay() + 6) % 7; // 0=Lunes
 
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'heatmap-day';
       btn.style.background = `var(--color-level-${day.intensity})`;
-      btn.style.gridColumnStart = weekIndex + 1;
-      btn.style.gridRowStart = dayIndex + 1;
+      btn.style.gridColumnStart = weekIndex;
+      btn.style.gridRowStart = dayOfWeek + 2; // +2 porque row 1 son labels
       btn.setAttribute('data-tip', `${formatDate(day.date)} · ${formatValue(day.price)} €/kWh`);
       btn.setAttribute('aria-label', `Detalle del día ${formatDate(day.date)}`);
       btn.dataset.date = day.date;
