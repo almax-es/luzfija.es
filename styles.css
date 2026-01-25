@@ -1384,6 +1384,7 @@
   transition:opacity .2s ease;
 }
 .modal-overlay.show{ opacity:1; pointer-events:auto; }
+[hidden]{ display:none !important; }
 .modal-content{ 
   max-width:600px; 
   width:calc(100% - 28px); 
@@ -4376,4 +4377,3 @@ html.light-mode .sun-club-breakdown-row span:last-child {
     margin-bottom: 8px;
   }
 }
-
