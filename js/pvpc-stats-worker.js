@@ -44,7 +44,8 @@ const getYearStatus = (yearData) => {
     coverageTo,
     coverageDays,
     coverageCompleteness,
-    yearCompleteness
+    yearCompleteness,
+    monthsLoaded: yearData.meta?.monthsLoaded || []
   };
 };
 
@@ -146,6 +147,84 @@ const getHeatmapData = (yearData) => {
     const intensity = range > 0 ? Math.floor(((price - min) / range) * 4) : 0;
     return { date, price, intensity };
   });
+};
+
+const buildDailyHourlyAverages = (yearData, dayType = 'any') => {
+  const daily = [];
+  Object.entries(yearData.days).forEach(([dateStr, hours]) => {
+    if (dayType !== 'any') {
+      const day = parseDateLocal(dateStr).getDay();
+      const isWeekend = day === 0 || day === 6;
+      if (dayType === 'weekday' && isWeekend) return;
+      if (dayType === 'weekend' && !isWeekend) return;
+    }
+    const buckets = Array.from({ length: 24 }, () => ({ sum: 0, count: 0 }));
+    hours.forEach(([ts, price]) => {
+      const hour = new Date(ts * 1000).getHours();
+      buckets[hour].sum += price;
+      buckets[hour].count += 1;
+    });
+    const hourly = buckets.map(bucket => (bucket.count ? bucket.sum / bucket.count : null));
+    daily.push({ dateStr, hourly });
+  });
+  return daily;
+};
+
+const formatHourLabel = (startHour, duration) => {
+  const pad = (value) => String(value).padStart(2, '0');
+  const endHour = (startHour + duration) % 24;
+  return `${pad(startHour)}:00–${pad(endHour)}:00`;
+};
+
+const getBestWindows = (yearData, options = {}) => {
+  const duration = Math.max(1, Number(options.duration) || 1);
+  const dayType = options.dayType || 'any';
+  const daily = buildDailyHourlyAverages(yearData, dayType);
+  const windows = [];
+
+  for (let start = 0; start < 24; start += 1) {
+    const values = [];
+    daily.forEach(({ hourly }) => {
+      let sum = 0;
+      let valid = true;
+      for (let offset = 0; offset < duration; offset += 1) {
+        const idx = (start + offset) % 24;
+        const value = hourly[idx];
+        if (!Number.isFinite(value)) {
+          valid = false;
+          break;
+        }
+        sum += value;
+      }
+      if (valid) {
+        values.push(sum / duration);
+      }
+    });
+
+    windows.push({
+      startHour: start,
+      label: formatHourLabel(start, duration),
+      sampleCount: values.length,
+      p10: getPercentile(values, 0.1),
+      p50: getPercentile(values, 0.5),
+      p90: getPercentile(values, 0.9)
+    });
+  }
+
+  const validWindows = windows.filter(window => window.sampleCount > 0);
+  const sortedByP50 = [...validWindows].sort((a, b) => a.p50 - b.p50);
+  const topWindows = sortedByP50.slice(0, 3);
+  const worstWindow = [...validWindows].sort((a, b) => b.p50 - a.p50)[0] || null;
+  const peakWindow = duration === 2
+    ? validWindows.find(window => window.startHour === 20) || worstWindow
+    : worstWindow;
+
+  return {
+    topWindows,
+    worstWindow,
+    peakWindow,
+    dayCount: daily.length
+  };
 };
 
 const getWindowStats = (yearData, options = {}) => {
@@ -307,6 +386,10 @@ self.onmessage = (event) => {
     }
     if (type === 'dayDetail') {
       const result = getDayDetail(payload.yearData, payload.dateStr);
+      self.postMessage({ id, result });
+    }
+    if (type === 'bestWindows') {
+      const result = getBestWindows(payload.yearData, payload.options || {});
       self.postMessage({ id, result });
     }
   } catch (error) {

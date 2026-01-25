@@ -70,6 +70,9 @@
         <p class="eyebrow">Observatorio PVPC</p>
         <h1>Estadísticas con ahorro accionable</h1>
         <p class="hero-subtitle">Explora patrones reales, compara años y decide cuándo consumir para ahorrar de verdad.</p>
+        <div class="hero-badges" id="heroBadges" aria-live="polite"></div>
+        <p class="hero-meta" id="dataMeta"></p>
+        <p class="data-warning" id="dataWarning" role="status"></p>
       </div>
 
       <div class="stats-hero__controls">
@@ -137,6 +140,67 @@
           <p class="kpi-value kpi-value--solar" id="kpiSolar">--</p>
           <p class="kpi-sub">Precio medio</p>
           <div class="skeleton skeleton-line"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel panel--savings" aria-labelledby="savingsTitle" data-loading="true">
+      <div class="panel__header">
+        <div>
+          <p class="eyebrow">Ahorro accionable</p>
+          <h2 id="savingsTitle">Ventanas óptimas</h2>
+          <p class="panel__subtitle">Calculamos las mejores franjas con percentiles P10/P50/P90. Las ventanas pueden cruzar medianoche.</p>
+        </div>
+      </div>
+      <div class="savings-controls">
+        <div class="control-group">
+          <label for="savingsPreset">Uso</label>
+          <select id="savingsPreset" aria-label="Selecciona el uso">
+            <option value="lavadora">Lavadora (1h)</option>
+            <option value="lavavajillas">Lavavajillas (2h)</option>
+            <option value="termo">Termo (3h)</option>
+            <option value="coche">Coche EV (4h)</option>
+            <option value="personalizado">Personalizado</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label for="savingsDuration">Duración</label>
+          <select id="savingsDuration" aria-label="Selecciona la duración">
+            <option value="1">1h</option>
+            <option value="2">2h</option>
+            <option value="3">3h</option>
+            <option value="4">4h</option>
+            <option value="6">6h</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label for="savingsDayType">Días</label>
+          <select id="savingsDayType" aria-label="Selecciona el tipo de día">
+            <option value="any">Cualquier día</option>
+            <option value="weekday">Laborables</option>
+            <option value="weekend">Fin de semana</option>
+          </select>
+        </div>
+        <div class="control-group">
+          <label for="savingsKwh">Consumo por uso (kWh)</label>
+          <input type="number" id="savingsKwh" min="0.1" step="0.1" value="0.8" aria-label="Consumo por uso en kWh">
+        </div>
+        <div class="control-group">
+          <label for="savingsUses">Usos al mes</label>
+          <input type="number" id="savingsUses" min="1" step="1" value="10" aria-label="Usos al mes">
+        </div>
+      </div>
+      <div class="savings-grid">
+        <div class="savings-card">
+          <p class="savings-card__title">Top 3 ventanas recomendadas</p>
+          <ol id="savingsWindows" class="window-list" aria-label="Top 3 ventanas óptimas"></ol>
+          <div class="skeleton skeleton-block"></div>
+        </div>
+        <div class="savings-card">
+          <p class="savings-card__title">Impacto y comparativas</p>
+          <ul id="savingsSummary" class="summary-list" aria-label="Resumen de ahorro"></ul>
+          <p id="savingsHint" class="panel__hint"></p>
+          <div class="skeleton skeleton-block"></div>
         </div>
       </div>
     </section>
@@ -210,25 +274,27 @@
     </section>
 
     <!-- CTA Premium -->
-    <section class="cta-card" style="margin-top: 4rem; text-align: center; padding: 3rem 2rem; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); color: white; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 20px 40px -10px rgba(0,0,0,0.3);">
-      <div style="max-width: 600px; margin: 0 auto;">
-        <h2 style="font-size: 2.2rem; margin-bottom: 1rem; background: linear-gradient(to right, #fbbf24, #f59e0b); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">¿El PVPC te está costando dinero?</h2>
-        <p style="font-size: 1.1rem; color: #cbd5e1; margin-bottom: 2rem; line-height: 1.6;">
-          El mercado regulado es volátil: un mes ahorras, al siguiente pagas el doble.
-          <br><strong>No adivines.</strong> Calcula tu factura real con tus propios datos de consumo y descubre si una tarifa fija te saldría más barata hoy mismo.
-        </p>
-        <a href="/" class="btn" style="background: #3b82f6; color: white; padding: 1rem 2rem; font-size: 1.1rem; border: none; font-weight: 700; box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4); transition: transform 0.2s;">
-          ⚡ Comparar con mi consumo real
-        </a>
-        <p style="font-size: 0.85rem; color: #64748b; margin-top: 1rem;">Gratis, sin registro y 100% privado.</p>
+    <section class="cta-premium" aria-labelledby="ctaPremiumTitle">
+      <div class="cta-premium__inner">
+        <div class="cta-premium__content">
+          <h2 id="ctaPremiumTitle" class="cta-premium__title">¿El PVPC te está costando dinero?</h2>
+          <p class="cta-premium__text">
+            El mercado regulado es volátil: un mes ahorras, al siguiente pagas el doble.
+            <br><strong>No adivines.</strong> Calcula tu factura real con tus propios datos de consumo y descubre si una tarifa fija te saldría más barata hoy mismo.
+          </p>
+          <p class="cta-premium__note">Gratis, sin registro y 100% privado.</p>
+        </div>
+        <div class="cta-premium__actions">
+          <a href="/" class="btn cta-premium__btn">⚡ Comparar con mi consumo real</a>
+        </div>
       </div>
     </section>
 
     <!-- FAQ Premium (Acordeón) -->
-    <section class="faq" aria-labelledby="faqTitle" style="max-width: 800px; margin: 4rem auto;">
-      <h2 id="faqTitle" style="text-align: center; margin-bottom: 2.5rem; font-size: 2rem;">Preguntas Frecuentes sobre el PVPC</h2>
+    <section class="faq" aria-labelledby="faqTitle">
+      <h2 id="faqTitle" class="faq__title">Preguntas Frecuentes sobre el PVPC</h2>
       
-      <div class="faq-grid" style="gap: 1rem;">
+      <div class="faq-grid">
         <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
           <summary class="faq-question" itemprop="name">¿A qué hora es más barata la luz en España?</summary>
           <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
@@ -244,7 +310,7 @@
           <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
             <div itemprop="text">
               <p>Es la "tormenta perfecta":</p>
-              <ul style="padding-left: 1.2rem; margin: 0.5rem 0;">
+              <ul>
                 <li>📉 <strong>Cero Solar:</strong> Las placas dejan de producir al atardecer.</li>
                 <li>📈 <strong>Pico de Demanda:</strong> Millones de familias llegan a casa y consumen a la vez.</li>
                 <li>🏭 <strong>Gas Caro:</strong> Para cubrir esa demanda sin sol, entran a funcionar las centrales de ciclo combinado (gas), que son las más costosas.</li>
@@ -269,7 +335,7 @@
           <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
             <div itemprop="text">
               <p>No hay una respuesta única, pero sí una regla de oro:</p>
-              <ul style="padding-left: 1.2rem; margin: 0.5rem 0;">
+              <ul>
                 <li>✅ <strong>Elige PVPC si:</strong> Puedes adaptar tu consumo al mediodía/fin de semana o tienes placas solares. A largo plazo suele ser más económico.</li>
                 <li>✅ <strong>Elige Fija si:</strong> Quieres tranquilidad total, saber qué vas a pagar siempre y no puedes estar pendiente del reloj.</li>
               </ul>
@@ -302,7 +368,7 @@
           <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
             <div itemprop="text">
               <p>Venimos de una montaña rusa:</p>
-              <ul style="padding-left: 1.2rem; margin: 0.5rem 0;">
+              <ul>
                 <li>🔴 <strong>2022:</strong> Crisis total (0,28 €/kWh media).</li>
                 <li>🟡 <strong>2023:</strong> Comienza la bajada (0,13 €/kWh).</li>
                 <li>🟢 <strong>2024-25:</strong> Estabilización gracias a las renovables (~0,09-0,11 €/kWh).</li>
@@ -315,7 +381,7 @@
           <summary class="faq-question" itemprop="name">¿Trucos rápidos para ahorrar en PVPC?</summary>
           <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
             <div itemprop="text">
-              <ol style="padding-left: 1.2rem; margin: 0.5rem 0;">
+              <ol>
                 <li>⏰ <strong>Mueve consumo:</strong> Lavadoras y lavavajillas al mediodía (14h) o fin de semana.</li>
                 <li>🚫 <strong>Evita la hora punta:</strong> Intenta no usar grandes electrodomésticos de 20h a 22h.</li>
                 <li>🔌 <strong>Revisa tu potencia:</strong> Bajar 1 kW de potencia contratada te ahorra unos 50€ al año fijos.</li>
@@ -327,58 +393,6 @@
       </div>
     </section>
 
-    <style>
-      /* Estilos específicos para el acordeón FAQ */
-      .faq-item {
-        background: var(--bg-card);
-        border: 1px solid var(--border-color);
-        border-radius: 12px;
-        overflow: hidden;
-        transition: all 0.2s ease;
-      }
-      .faq-item[open] {
-        border-color: var(--primary-color);
-        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      }
-      .faq-question {
-        padding: 1.2rem;
-        font-weight: 700;
-        font-size: 1.1rem;
-        cursor: pointer;
-        list-style: none; /* Ocultar triángulo defecto */
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        color: var(--text-main);
-      }
-      .faq-question::-webkit-details-marker { display: none; }
-      .faq-question::after {
-        content: '+';
-        font-size: 1.5rem;
-        font-weight: 300;
-        color: var(--primary-color);
-        transition: transform 0.2s;
-      }
-      .faq-item[open] .faq-question::after {
-        transform: rotate(45deg);
-      }
-      .faq-answer {
-        padding: 0 1.2rem 1.2rem 1.2rem;
-        color: var(--text-muted);
-        line-height: 1.6;
-        border-top: 1px solid var(--border-color);
-        margin-top: -0.5rem;
-        padding-top: 1rem;
-      }
-      .faq-answer a {
-        color: var(--primary-color);
-        text-decoration: none;
-        font-weight: 600;
-      }
-      .faq-answer a:hover {
-        text-decoration: underline;
-      }
-    </style>
   </main>
 
   <footer class="stats-footer">
@@ -417,7 +431,7 @@
 
   <script src="/vendor/chartjs/chart.umd.js" defer></script>
   <script src="/js/pvpc-stats-engine.js" defer></script>
-  <script src="/js/pvpc-stats-ui.js?v=3" defer></script>
+  <script src="/js/pvpc-stats-ui.js?v=4" defer></script>
 
   <script type="application/ld+json">
   {
