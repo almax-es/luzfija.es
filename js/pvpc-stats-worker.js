@@ -260,25 +260,7 @@ const buildComparison = (dataByYear) => {
 };
 
 const buildComparisonFromSeries = (seriesByYear) => {
-  const datasets = [];
-  Object.entries(seriesByYear).forEach(([year, series]) => {
-    if (!series || !Array.isArray(series.values)) return;
-    datasets.push({
-      label: year,
-      data: series.values,
-      tension: 0.3,
-      pointRadius: 0
-    });
-  });
-
-  const labels = [];
-  const date = new Date(2024, 0, 1);
-  for (let i = 0; i < 366; i++) {
-    labels.push(date.toLocaleDateString('es-ES', { month: 'short', day: 'numeric' }));
-    date.setDate(date.getDate() + 1);
-  }
-
-  return { labels, datasets };
+  return { seriesByYear };
 };
 
 const getDayDetail = (yearData, dateStr) => {

@@ -56,7 +56,8 @@
     yearData: null,
     yearDataKey: null,
     lastAnalysis: null,
-    comparisonToken: 0
+    comparisonToken: 0,
+    comparisonShowDaily: false
   };
 
   const setLoading = (section, isLoading) => {
@@ -107,6 +108,66 @@
   const formatValue = (value) => {
     if (!Number.isFinite(value)) return '--';
     return value.toLocaleString('es-ES', { minimumFractionDigits: 4, maximumFractionDigits: 4 });
+  };
+
+  const formatEuroKwh = (value) => {
+    if (!Number.isFinite(value)) return '--';
+    return `${value.toLocaleString('es-ES', { minimumFractionDigits: 3, maximumFractionDigits: 3 })} €/kWh`;
+  };
+
+  const dayOfYear = (dateStr) => {
+    const date = new Date(`${dateStr}T12:00:00`);
+    const start = new Date(Date.UTC(date.getUTCFullYear(), 0, 0));
+    const diff = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) - start;
+    return Math.floor(diff / (1000 * 60 * 60 * 24));
+  };
+
+  const buildDayOfYearTable = (year) => {
+    const totalDays = ((year % 4 === 0 && year % 100 !== 0) || year % 400 === 0) ? 366 : 365;
+    const table = [];
+    const date = new Date(Date.UTC(year, 0, 1));
+    for (let i = 1; i <= totalDays; i += 1) {
+      table[i] = {
+        month: date.toLocaleDateString('es-ES', { month: 'short' }).replace('.', ''),
+        day: date.getUTCDate()
+      };
+      date.setUTCDate(date.getUTCDate() + 1);
+    }
+    return table;
+  };
+
+  const buildMonthlyTicks = (year) => {
+    const monthLabels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return monthLabels.map((label, index) => {
+      const dateStr = `${year}-${String(index + 1).padStart(2, '0')}-15`;
+      return {
+        value: dayOfYear(dateStr),
+        label
+      };
+    });
+  };
+
+  const smoothMovingAverage = (points, window = 7) => {
+    const half = Math.floor(window / 2);
+    return points.map((point, index) => {
+      if (!Number.isFinite(point.y)) {
+        return { ...point, y: null };
+      }
+      let sum = 0;
+      let count = 0;
+      for (let i = index - half; i <= index + half; i += 1) {
+        if (i < 0 || i >= points.length) continue;
+        const value = points[i]?.y;
+        if (Number.isFinite(value)) {
+          sum += value;
+          count += 1;
+        }
+      }
+      return {
+        ...point,
+        y: count ? sum / count : null
+      };
+    });
   };
 
   const readURL = () => {
@@ -297,29 +358,43 @@
   };
 
   const buildComparisonFromSeries = (seriesByYear) => {
-    const datasets = Object.entries(seriesByYear).map(([year, series]) => ({
-      label: year,
-      data: series.values,
-      tension: 0.3,
-      pointRadius: 0
-    }));
+    return { seriesByYear };
+  };
 
-    // Generar labels mensuales
-    const labels = [];
-    const date = new Date(2024, 0, 1);
-    for (let i = 0; i < 366; i++) {
-      if (date.getDate() === 15) {
-        labels.push(date.toLocaleDateString('es-ES', { month: 'short' }).replace('.', ''));
-      } else {
-        labels.push('');
-      }
-      date.setDate(date.getDate() + 1);
+  const hexToRgba = (hex, alpha) => {
+    const value = hex.replace('#', '');
+    const numeric = value.length === 3
+      ? value.split('').map((c) => c + c).join('')
+      : value;
+    const int = parseInt(numeric, 16);
+    const r = (int >> 16) & 255;
+    const g = (int >> 8) & 255;
+    const b = int & 255;
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+  };
+
+  const getComparisonPrefsKey = (geoId) => `comparisonPrefs:${geoId}`;
+
+  const loadComparisonPrefs = (geoId) => {
+    try {
+      const raw = localStorage.getItem(getComparisonPrefsKey(geoId));
+      if (!raw) return null;
+      return JSON.parse(raw);
+    } catch (error) {
+      return null;
     }
+  };
 
-    return {
-      labels,
-      datasets
-    };
+  const saveComparisonPrefs = (geoId) => {
+    try {
+      const payload = {
+        visibleYears: Array.from(state.visibleYears),
+        showDaily: state.comparisonShowDaily
+      };
+      localStorage.setItem(getComparisonPrefsKey(geoId), JSON.stringify(payload));
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const applyComparisonVisibility = () => {
@@ -328,69 +403,107 @@
       dataset.hidden = !state.visibleYears.has(dataset.label);
       const isSelected = dataset.label === state.year;
       dataset.borderWidth = isSelected ? 3 : 1.5;
-      dataset.borderColor = isSelected ? dataset.baseColor : `${dataset.baseColor}55`;
+      dataset.borderColor = isSelected ? dataset.baseColor : hexToRgba(dataset.baseColor, 0.35);
+      dataset.backgroundColor = isSelected ? dataset.fillColor : 'transparent';
+      dataset.order = isSelected ? 0 : 1;
     });
-    charts.comparison.update();
+    charts.comparison.update('none');
   };
 
-  const renderComparisonControls = (datasets) => {
+  const updateComparisonVisibility = (chart, visibleYearsSet) => {
+    if (!chart) return;
+    chart.data.datasets.forEach(dataset => {
+      dataset.hidden = !visibleYearsSet.has(dataset.label);
+    });
+    chart.update('none');
+  };
+
+  const updateComparisonSeries = (chart) => {
+    if (!chart) return;
+    chart.data.datasets.forEach(dataset => {
+      dataset.data = state.comparisonShowDaily ? dataset.dailyPoints : dataset.smoothPoints;
+    });
+    chart.update('none');
+  };
+
+  const renderComparisonControls = (years, selectedYear) => {
     if (!elements.comparisonControls) return;
     elements.comparisonControls.innerHTML = '';
-    
-    const toggleAllBtn = document.createElement('button');
-    toggleAllBtn.type = 'button';
-    toggleAllBtn.className = 'btn btn-ghost btn-sm';
-    toggleAllBtn.style.fontSize = '0.75rem';
-    toggleAllBtn.textContent = state.visibleYears.size === datasets.length ? 'Ocultar todos' : 'Ver todos';
-    
-    toggleAllBtn.addEventListener('click', () => {
-      if (state.visibleYears.size === datasets.length) {
-        state.visibleYears.clear();
-        state.visibleYears.add(state.year); 
-      } else {
-        datasets.forEach(ds => state.visibleYears.add(ds.label));
-      }
-      renderComparisonControls(datasets);
+
+    const header = document.createElement('div');
+    header.className = 'segmented';
+
+    const showAllBtn = document.createElement('button');
+    showAllBtn.type = 'button';
+    showAllBtn.className = 'pill';
+    showAllBtn.textContent = 'Mostrar todo';
+    showAllBtn.addEventListener('click', () => {
+      state.visibleYears = new Set(years);
+      saveComparisonPrefs(state.geoId);
+      renderComparisonControls(years, selectedYear);
       applyComparisonVisibility();
     });
-    elements.comparisonControls.appendChild(toggleAllBtn);
 
-    datasets.forEach((ds) => {
-      const isActive = state.visibleYears.has(ds.label);
+    const isolateBtn = document.createElement('button');
+    isolateBtn.type = 'button';
+    isolateBtn.className = 'pill';
+    isolateBtn.textContent = 'Solo seleccionado';
+    isolateBtn.addEventListener('click', () => {
+      state.visibleYears = new Set([selectedYear]);
+      saveComparisonPrefs(state.geoId);
+      renderComparisonControls(years, selectedYear);
+      applyComparisonVisibility();
+    });
+
+    const dailyBtn = document.createElement('button');
+    dailyBtn.type = 'button';
+    dailyBtn.className = `pill ${state.comparisonShowDaily ? 'pill--active' : ''}`;
+    dailyBtn.textContent = state.comparisonShowDaily ? 'Ver suavizado' : 'Ver datos diarios';
+    dailyBtn.addEventListener('click', () => {
+      state.comparisonShowDaily = !state.comparisonShowDaily;
+      saveComparisonPrefs(state.geoId);
+      renderComparisonControls(years, selectedYear);
+      updateComparisonSeries(charts.comparison);
+      applyComparisonVisibility();
+    });
+
+    header.append(showAllBtn, isolateBtn, dailyBtn);
+    elements.comparisonControls.appendChild(header);
+
+    const yearList = document.createElement('div');
+    yearList.className = 'segmented segmented--years';
+
+    years.forEach((year) => {
+      const isActive = state.visibleYears.has(year);
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'year-pill';
+      btn.className = `pill ${isActive ? 'pill--active' : ''}`;
       btn.setAttribute('aria-pressed', isActive);
-      
-      if (isActive) {
-        btn.style.backgroundColor = ds.baseColor;
-        btn.style.borderColor = ds.baseColor;
-      } else {
-        btn.style.color = 'var(--text-muted)';
-      }
+      btn.dataset.year = year;
+      btn.textContent = year;
 
-      btn.innerHTML = `
-        ${!isActive ? `<span class="year-pill__dot" style="background-color:${ds.baseColor}"></span>` : ''}
-        ${ds.label}
-      `;
-
-      btn.addEventListener('click', () => {
-        if (isActive) {
+      btn.addEventListener('click', (event) => {
+        if (event.altKey) {
+          state.visibleYears = new Set([year]);
+        } else if (isActive) {
           if (state.visibleYears.size > 1) {
-             state.visibleYears.delete(ds.label);
+            state.visibleYears.delete(year);
           }
         } else {
-          state.visibleYears.add(ds.label);
+          state.visibleYears.add(year);
         }
-        renderComparisonControls(datasets); 
+        saveComparisonPrefs(state.geoId);
+        renderComparisonControls(years, selectedYear);
         applyComparisonVisibility();
       });
-      
-      elements.comparisonControls.appendChild(btn);
+
+      yearList.appendChild(btn);
     });
+
+    elements.comparisonControls.appendChild(yearList);
   };
 
-  const renderComparisonChart = (comparisonData) => {
+  const renderComparisonChart = (seriesByYear, selectedYear, options = {}) => {
     const canvas = document.getElementById('comparisonChart');
     const ctx = canvas.getContext('2d');
     if (charts.comparison) charts.comparison.destroy();
@@ -404,129 +517,172 @@
       '2021': '#64748b'
     };
 
-    const datasets = comparisonData.datasets.map(ds => {
-      const isSelected = ds.label === state.year;
-      const baseColor = colors[ds.label] || '#94a3b8';
-      
-      let backgroundColor = 'transparent';
-      
-      if (isSelected) {
-        const gradient = ctx.createLinearGradient(0, 0, 0, 400);
-        gradient.addColorStop(0, `${baseColor}66`);
-        gradient.addColorStop(1, `${baseColor}05`);
-        backgroundColor = gradient;
-      }
+    const computed = getComputedStyle(document.documentElement);
+    const textColor = computed.getPropertyValue('--text-main').trim() || '#0f172a';
+    const mutedColor = computed.getPropertyValue('--text-muted').trim() || '#64748b';
+    const borderColor = computed.getPropertyValue('--border-color').trim() || '#e2e8f0';
+    const bgCard = computed.getPropertyValue('--bg-card').trim() || '#ffffff';
+
+    const years = Object.keys(seriesByYear);
+    const selectedYearNumber = Number(selectedYear) || new Date().getFullYear();
+    const monthlyTicks = buildMonthlyTicks(selectedYearNumber);
+    const tickLabelMap = new Map(monthlyTicks.map((tick) => [tick.value, tick.label]));
+    const dayTable = buildDayOfYearTable(selectedYearNumber);
+
+    const datasets = years.map((year) => {
+      const series = seriesByYear[year];
+      const baseColor = colors[year] || '#94a3b8';
+      const points = (series?.values || []).map((value, index) => ({
+        x: index + 1,
+        y: Number.isFinite(value) ? value : null
+      }));
+      const smoothPoints = smoothMovingAverage(points, options.window || 7);
+      const isSelected = year === selectedYear;
+      const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+      gradient.addColorStop(0, hexToRgba(baseColor, 0.25));
+      gradient.addColorStop(1, hexToRgba(baseColor, 0));
 
       return {
-        ...ds,
-        baseColor: baseColor,
-        borderColor: isSelected ? baseColor : `${baseColor}80`,
-        borderWidth: isSelected ? 3 : 2,
-        backgroundColor: backgroundColor,
+        label: year,
+        data: state.comparisonShowDaily ? points : smoothPoints,
+        dailyPoints: points,
+        smoothPoints,
+        baseColor,
+        fillColor: gradient,
+        borderColor: isSelected ? baseColor : hexToRgba(baseColor, 0.35),
+        borderWidth: isSelected ? 3 : 1.5,
+        backgroundColor: isSelected ? gradient : 'transparent',
         fill: isSelected,
         pointRadius: 0,
-        order: isSelected ? 0 : 1,
-        shadowBlur: isSelected ? 10 : 0,
-        shadowColor: isSelected ? baseColor : 'transparent'
+        pointHoverRadius: 5,
+        tension: 0.35,
+        spanGaps: false,
+        order: isSelected ? 0 : 1
       };
     });
 
-        charts.comparison = new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: comparisonData.labels,
-            datasets
-          },
-          options: {
-            responsive: true,
-            interaction: {
-              mode: 'index',
-              intersect: false,
-            },
-            plugins: {
-              legend: {
-                display: false // Ocultamos leyenda nativa, ya tenemos los botones "pills" abajo
-              },
-              tooltip: {
-                backgroundColor: 'rgba(255, 255, 255, 0.95)', // Fondo blanco
-                titleColor: '#1e293b', // Texto oscuro
-                titleFont: { family: "'Outfit', sans-serif", weight: 800, size: 13 },
-                bodyColor: '#64748b',
-                bodyFont: { family: "'Outfit', sans-serif", size: 12 },
-                borderColor: 'rgba(0,0,0,0.05)',
-                borderWidth: 1,
-                padding: 16,
-                cornerRadius: 12,
-                boxPadding: 6,
-                usePointStyle: true,
-                titleAlign: 'center',
-                shadowOffsetX: 0,
-                shadowOffsetY: 10,
-                shadowBlur: 20,
-                shadowColor: 'rgba(0,0,0,0.15)', // Sombra suave "Apple style"
-                itemSort: (a, b) => b.raw - a.raw,
-                callbacks: {
-                  title: (context) => {
-                    const date = new Date(2024, 0, 1);
-                    date.setDate(date.getDate() + context[0].dataIndex);
-                    return date.toLocaleDateString('es-ES', { day: 'numeric', month: 'long' });
-                  },
-                  label: (context) => {
-                    let label = context.dataset.label || '';
-                    const val = context.parsed.y !== null ? formatValue(context.parsed.y) : '--';
-                    return ` ${label}: ${val} €/kWh`;
-                  },
-                  labelColor: (context) => {
-                    return {
-                      borderColor: 'transparent',
-                      backgroundColor: context.dataset.baseColor,
-                      borderRadius: 4
-                    };
-                  }
-                }
+    const tooltipCache = { dataIndex: null, topSet: null, total: 0 };
+
+    charts.comparison = new Chart(ctx, {
+      type: 'line',
+      data: { datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: {
+          mode: 'nearest',
+          intersect: false
+        },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: bgCard,
+            titleColor: textColor,
+            bodyColor: mutedColor,
+            borderColor,
+            borderWidth: 1,
+            padding: 14,
+            cornerRadius: 12,
+            boxPadding: 6,
+            usePointStyle: true,
+            itemSort: (a, b) => (b.raw?.y ?? -Infinity) - (a.raw?.y ?? -Infinity),
+            filter: (item) => {
+              const index = item.dataIndex;
+              if (tooltipCache.dataIndex !== index) {
+                const items = item.chart.data.datasets
+                  .map((dataset, datasetIndex) => {
+                    const value = dataset.data[index]?.y;
+                    return { datasetIndex, value };
+                  })
+                  .filter(entry => Number.isFinite(entry.value))
+                  .sort((a, b) => b.value - a.value);
+                tooltipCache.dataIndex = index;
+                tooltipCache.total = items.length;
+                tooltipCache.topSet = new Set(items.slice(0, 5).map(entry => entry.datasetIndex));
               }
+              return tooltipCache.topSet?.has(item.datasetIndex);
             },
-            elements: {
-              point: { radius: 0, hoverRadius: 6, hoverBorderWidth: 3, hoverBorderColor: '#fff' },
-              line: { tension: 0.4, borderCapStyle: 'round' }
-            },
-            layout: {
-                padding: { top: 20, bottom: 10 }
-            },
+            callbacks: {
+              title: (context) => {
+                const dayIndex = context[0].parsed.x;
+                const entry = dayTable[dayIndex];
+                if (!entry) return `Día ${dayIndex}`;
+                return `${entry.day} ${entry.month}`;
+              },
+              label: (context) => {
+                const label = context.dataset.label || '';
+                const value = context.parsed.y;
+                return `${label}: ${formatEuroKwh(value)}`;
+              },
+              labelColor: (context) => ({
+                borderColor: 'transparent',
+                backgroundColor: context.dataset.baseColor,
+                borderRadius: 4
+              }),
+              afterBody: (context) => {
+                const visibleCount = context.length;
+                const total = tooltipCache.total || visibleCount;
+                const hidden = total - visibleCount;
+                return hidden > 0 ? `+${hidden} más` : '';
+              }
+            }
+          }
+        },
+        elements: {
+          line: { borderCapStyle: 'round' }
+        },
         scales: {
           x: {
+            type: 'linear',
+            min: 1,
+            max: 366,
             border: { display: false },
-            grid: { display: false, drawBorder: false },
-            ticks: { 
-              maxRotation: 0, 
+            grid: { display: false },
+            afterBuildTicks: (scale) => {
+              scale.ticks = monthlyTicks.map(tick => ({ value: tick.value }));
+            },
+            ticks: {
               autoSkip: false,
+              maxRotation: 0,
+              color: mutedColor,
               padding: 10,
               font: { family: "'Outfit', sans-serif", size: 11, weight: 600 },
-              color: '#94a3b8' 
-            } 
+              callback: (value) => tickLabelMap.get(value) || ''
+            }
           },
           y: {
             beginAtZero: true,
             border: { display: false },
-            grid: { 
-                color: '#f1f5f9',
-                borderDash: [4, 4],
-                drawBorder: false,
-                tickLength: 0,
-                lineWidth: 1
+            grid: {
+              color: hexToRgba(borderColor, 0.5),
+              drawBorder: false
             },
-                ticks: {
-                  padding: 15,
-                  font: { family: "'Outfit', sans-serif", size: 10, weight: 500 },
-                  color: '#94a3b8',
-                  callback: (value) => value.toLocaleString('es-ES', { minimumFractionDigits: 2 }) + ' €'
-                }
+            ticks: {
+              padding: 12,
+              color: mutedColor,
+              font: { family: "'Outfit', sans-serif", size: 10, weight: 500 },
+              callback: (value) => {
+                if (!Number.isFinite(value)) return '';
+                return formatEuroKwh(value).replace(' €/kWh', ' €');
               }
             }
           }
-        });
-    state.visibleYears = new Set(datasets.map(ds => ds.label));
-    renderComparisonControls(datasets);
+        }
+      }
+    });
+
+    const prefs = loadComparisonPrefs(state.geoId);
+    if (prefs?.showDaily !== undefined) {
+      state.comparisonShowDaily = prefs.showDaily;
+      updateComparisonSeries(charts.comparison);
+    }
+    if (prefs?.visibleYears?.length) {
+      state.visibleYears = new Set(prefs.visibleYears.filter((year) => years.includes(year)));
+    } else {
+      state.visibleYears = new Set(years);
+    }
+    state.visibleYears.add(selectedYear);
+    renderComparisonControls(years, selectedYear);
     applyComparisonVisibility();
   };
 
@@ -564,14 +720,15 @@
           }
         });
 
-        const comparison = worker
+        const comparisonSeries = worker
           ? await runWorker('compareSeries', { seriesByYear })
           : buildComparisonFromSeries(seriesByYear);
 
         if (requestToken !== state.comparisonToken) return;
 
-        if (comparison?.datasets?.length) {
-          renderComparisonChart(comparison);
+        const comparisonData = comparisonSeries?.seriesByYear || seriesByYear;
+        if (Object.keys(comparisonData).length) {
+          renderComparisonChart(comparisonData, state.year, { window: 7 });
         }
       } catch (error) {
         console.error(error);
