@@ -496,7 +496,7 @@
         scales: {
           x: {
             border: { display: false },
-            grid: { display: false, drawBorder: false, drawOnChartArea: false, drawTicks: false },
+            grid: { display: false, drawBorder: false },
             ticks: { 
               maxRotation: 0, 
               autoSkip: false,
@@ -505,15 +505,16 @@
               color: '#94a3b8' 
             } 
           },
-              y: {
-                beginAtZero: true,
-                border: { display: false }, // Sin línea vertical izquierda
-                grid: {
-                    color: '#f1f5f9', // Gris muy muy claro
-                    borderDash: [4, 4], // Punteado elegante
-                    drawBorder: false,
-                    tickLength: 0
-                },
+          y: {
+            beginAtZero: true,
+            border: { display: false },
+            grid: { 
+                color: '#f1f5f9',
+                borderDash: [4, 4],
+                drawBorder: false,
+                tickLength: 0,
+                lineWidth: 1
+            },
                 ticks: {
                   padding: 15,
                   font: { family: "'Outfit', sans-serif", size: 10, weight: 500 },
