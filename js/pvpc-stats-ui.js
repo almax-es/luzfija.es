@@ -19,7 +19,9 @@
   const elements = {
     geoSelector: document.getElementById('geoSelector'),
     yearSelector: document.getElementById('yearSelector'),
-    dataStatusContainer: document.getElementById('dataStatusContainer'),
+    heroBadges: document.getElementById('heroBadges'),
+    dataWarning: document.getElementById('dataWarning'),
+    dataMeta: document.getElementById('dataMeta'),
     insightText: document.getElementById('insightText'),
     kpiAvg: document.getElementById('kpiAvg'),
     kpiMin: document.getElementById('kpiMin'),
@@ -35,7 +37,6 @@
     savingsWindows: document.getElementById('savingsWindows'),
     savingsSummary: document.getElementById('savingsSummary'),
     savingsHint: document.getElementById('savingsHint'),
-    usageChips: document.getElementById('usageChips'),
     heatmapGrid: document.getElementById('heatmapGrid'),
     comparisonControls: document.getElementById('comparisonControls'),
     toast: document.getElementById('toast'),
@@ -311,98 +312,28 @@
     window.history.replaceState({}, '', newUrl);
   };
 
-  const updateSchema = (kpis, yearLabel, geoName) => {
-    let schemaScript = document.getElementById('dynamic-schema');
-    if (!schemaScript) {
-      schemaScript = document.createElement('script');
-      schemaScript.id = 'dynamic-schema';
-      schemaScript.type = 'application/ld+json';
-      document.head.appendChild(schemaScript);
-    }
-
-    const avgPrice = kpis.avgPrice.toFixed(4);
-    const minPrice = kpis.minPrice.toFixed(4);
-    
-    const schemaData = {
-      "@context": "https://schema.org",
-      "@graph": [
-        {
-          "@type": "BreadcrumbList",
-          "itemListElement": [
-            {
-              "@type": "ListItem",
-              "position": 1,
-              "name": "Inicio",
-              "item": "https://luzfija.es/"
-            },
-            {
-              "@type": "ListItem",
-              "position": 2,
-              "name": "Estadísticas PVPC",
-              "item": window.location.href
-            }
-          ]
-        },
-        {
-          "@type": "Dataset",
-          "name": `Histórico Precio Luz PVPC ${yearLabel} - ${geoName}`,
-          "description": `Datos horarios y diarios del precio de la electricidad (PVPC) en ${geoName} durante ${yearLabel}. Precio medio: ${avgPrice} €/kWh.`,
-          "license": "https://creativecommons.org/licenses/by/4.0/",
-          "creator": {
-            "@type": "Organization",
-            "name": "LuzFija.es"
-          },
-          "distribution": [
-            {
-              "@type": "DataDownload",
-              "encodingFormat": "text/csv",
-              "contentUrl": `https://luzfija.es/data/pvpc/${state.geoId}/${state.year}.json` // Enlace lógico al recurso
-            }
-          ],
-          "variableMeasured": [
-            {
-              "@type": "PropertyValue",
-              "name": "Precio Medio",
-              "unitText": "EUR/kWh",
-              "value": avgPrice
-            },
-            {
-              "@type": "PropertyValue",
-              "name": "Precio Mínimo",
-              "unitText": "EUR/kWh",
-              "value": minPrice
-            }
-          ]
-        }
-      ]
-    };
-
-    schemaScript.textContent = JSON.stringify(schemaData);
-  };
-
   const updateMeta = (kpis) => {
-    const yearLabel = state.year === '2026' ? '2026' : state.year;
+    const yearLabel = state.year === '2026' ? '2026 (en curso)' : state.year;
     const geoName = geoNames[state.geoId] || 'España';
-    
-    // Título SEO-optimizado: Intención de búsqueda + Datos clave
-    document.title = `Precio Luz ${yearLabel}: Estadísticas PVPC y Horas Baratas ${geoName} | LuzFija.es`;
+    const descText = `Precio medio PVPC ${yearLabel} en ${geoName}: ${kpis.avgPrice.toFixed(4)} €/kWh. Mínimo ${kpis.minPrice.toFixed(4)} €, máximo ${kpis.maxPrice.toFixed(4)} €. Gráficos interactivos y análisis histórico.`;
 
-    // Descripción persuasiva (CTR)
-    const descText = `Consulta el histórico del precio de la luz en ${yearLabel}. Media actual: ${kpis.avgPrice.toFixed(4)} €/kWh. Descubre las horas más baratas para ahorrar y compara la evolución anual del PVPC en ${geoName}.`;
+    document.title = `Precio Luz ${yearLabel} - Estadísticas PVPC ${geoName} | LuzFija.es`;
 
     const metaDescription = document.getElementById('meta-description');
     const ogTitle = document.getElementById('og-title');
     const ogDescription = document.getElementById('og-description');
+    const ogUrl = document.getElementById('og-url');
+    const canonical = document.getElementById('canonical');
     const twitterTitle = document.getElementById('twitter-title');
     const twitterDesc = document.getElementById('twitter-description');
 
     if (metaDescription) metaDescription.setAttribute('content', descText);
-    if (ogTitle) ogTitle.setAttribute('content', `Precio Luz ${yearLabel}: Análisis y Estadísticas ${geoName}`);
+    if (ogTitle) ogTitle.setAttribute('content', `Estadísticas PVPC ${yearLabel} - ${geoName} | LuzFija.es`);
     if (ogDescription) ogDescription.setAttribute('content', descText);
+    if (ogUrl) ogUrl.setAttribute('content', 'https://luzfija.es/estadisticas/');
+    if (canonical) canonical.setAttribute('href', 'https://luzfija.es/estadisticas/');
     if (twitterTitle) twitterTitle.setAttribute('content', `Precio Luz ${yearLabel} - ${geoName}`);
-    if (twitterDesc) twitterDesc.setAttribute('content', `Media: ${kpis.avgPrice.toFixed(4)} €/kWh | ¿Cuándo es más barato consumir? Ver análisis →`);
-
-    updateSchema(kpis, yearLabel, geoName);
+    if (twitterDesc) twitterDesc.setAttribute('content', `Media: ${kpis.avgPrice.toFixed(4)} €/kWh | Ver análisis completo →`);
   };
 
   const renderKPIs = ({ kpis, hourlyProfile }) => {
@@ -423,46 +354,38 @@
   };
 
   const renderStatusBadges = (status) => {
-    if (!elements.dataStatusContainer || !status) return;
-    
+    if (!elements.heroBadges || !status) return;
+    const coverageStart = formatStatusDate(status.coverageFrom);
     const updatedUntil = formatStatusDate(status.updatedUntil);
+    const coverageIsPartial = status.coverageFrom && status.coverageFrom !== `${state.year}-01-01`;
     const completionPercent = Number.isFinite(status.coverageCompleteness)
       ? Math.round(status.coverageCompleteness * 100)
       : 0;
-    
-    // Check warning condition
-    let warningHtml = '';
-    const currentYear = Number(state.year) === new Date().getFullYear();
-    if (currentYear && status.updatedUntil) {
-      const updatedDate = new Date(`${status.updatedUntil}T12:00:00`);
-      const today = new Date();
-      today.setHours(0,0,0,0);
-      // Si el dato es más antiguo que ayer, mostrar aviso
-      if (updatedDate < new Date(today.setDate(today.getDate() - 2))) {
-         warningHtml = `<div class="status-row" style="color:var(--color-level-3); font-weight:700;">⚠️ Datos retrasados</div>`;
-      }
-    }
 
-    elements.dataStatusContainer.innerHTML = `
-      <div class="data-status-card">
-        <div class="status-row">
-          <span class="status-label"><span class="pulse-dot"></span> Actualizado</span>
-          <span class="status-value">${updatedUntil}</span>
-        </div>
-        <div class="status-row">
-          <span class="status-label">📅 Días cargados</span>
-          <span class="status-value">${status.loadedDays}</span>
-        </div>
-        <div class="status-row">
-          <span class="status-label">📊 Completitud</span>
-          <span class="status-value">${completionPercent}%</span>
-        </div>
-        ${warningHtml}
-      </div>
+    elements.heroBadges.innerHTML = `
+      <span class="badge badge-muted">Actualizado hasta: ${updatedUntil}</span>
+      <span class="badge badge-muted">${coverageIsPartial ? `Cobertura parcial oficial: desde ${coverageStart}` : `Cobertura: desde ${coverageStart}`}</span>
+      <span class="badge">Completitud (rango): ${completionPercent}%</span>
     `;
+
+    if (elements.dataMeta) {
+      const months = status.monthsLoaded?.length ? status.monthsLoaded.join(', ') : '—';
+      elements.dataMeta.textContent = `Días cargados: ${status.loadedDays} · Meses: ${months}`;
+    }
   };
 
-  const renderDataWarning = () => {}; // Deprecated, handled in renderStatusBadges
+  const renderDataWarning = (status) => {
+    if (!elements.dataWarning || !status) return;
+    elements.dataWarning.textContent = '';
+    const currentYear = Number(state.year) === new Date().getFullYear();
+    if (!currentYear || !status.updatedUntil) return;
+    const updatedDate = new Date(`${status.updatedUntil}T12:00:00`);
+    const today = new Date();
+    const todayDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+    if (updatedDate < todayDate) {
+      elements.dataWarning.textContent = `Aviso: faltan días recientes. Último dato disponible el ${formatStatusDate(status.updatedUntil)}.`;
+    }
+  };
 
   const calculateYtdAverage = (yearData, endDayOfYear) => {
     const series = toDailySeries(yearData).values;
@@ -753,48 +676,40 @@
 
     elements.savingsWindows.innerHTML = result.topWindows.map((windowItem, index) => {
       const costPerUse = windowItem.p50 * kwh;
+      const costPerMonth = costPerUse * uses;
       const savingsVsPeak = (baselinePrice - windowItem.p50) * kwh;
-      
+      const savingsVsAvg = (avgPrice - windowItem.p50) * kwh;
       return `
-        <div class="window-card-pro ${index === 0 ? 'window-card-pro--top' : ''}">
-          <span class="w-rank">#${index + 1}</span>
-          <span class="w-time">${windowItem.label}</span>
-          <div class="w-price-box">
-            <span class="w-price-main">${formatValue(windowItem.p50)} €/kWh</span>
+        <li class="window-item">
+          <div class="window-item__title">
+            <span>#${index + 1}</span>
+            <strong>${windowItem.label}</strong>
           </div>
-          <div class="w-meta">
-            ≈ ${formatCurrency(costPerUse)} por uso<br>
-            Rango: ${formatValue(windowItem.p10)} – ${formatValue(windowItem.p90)}
+          <div class="window-item__meta">
+            <span>Precio típico (P50): ${formatEuroKwh(windowItem.p50)}</span>
+            <span>Rango P10–P90: ${formatEuroKwh(windowItem.p10)} → ${formatEuroKwh(windowItem.p90)}</span>
           </div>
-          <div class="w-saving-badge">
-            -${formatCurrency(savingsVsPeak)} vs pico
+          <div class="window-item__meta window-item__meta--stack">
+            <span>≈ ${formatCurrency(costPerUse)} por uso · ≈ ${formatCurrency(costPerMonth)} / mes</span>
+            <span>${formatDelta(savingsVsPeak)} vs hora cara típica</span>
+            <span>${formatDelta(savingsVsAvg)} vs media anual</span>
           </div>
-        </div>
+        </li>
       `;
     }).join('');
 
     const best = result.topWindows[0];
     const bestCost = best.p50 * kwh;
     const bestMonthly = bestCost * uses;
+    const baselineCost = baselinePrice * kwh;
     const monthlyPeakDiff = (baselinePrice - best.p50) * kwh * uses;
+    const monthlyAvgDiff = (avgPrice - best.p50) * kwh * uses;
 
     elements.savingsSummary.innerHTML = `
-      <div class="impact-metric">
-        <span class="impact-metric__label">Coste / Uso</span>
-        <span class="impact-metric__value">${formatCurrency(bestCost)}</span>
-      </div>
-      <div class="impact-metric">
-        <span class="impact-metric__label">Coste / Mes</span>
-        <span class="impact-metric__value">${formatCurrency(bestMonthly)}</span>
-      </div>
-      <div class="impact-metric impact-metric--highlight">
-        <span class="impact-metric__label">Ahorro vs Pico</span>
-        <span class="impact-metric__value">+${formatCurrency(monthlyPeakDiff)}</span>
-      </div>
-      <div class="impact-metric">
-        <span class="impact-metric__label">Mejor Horario</span>
-        <span class="impact-metric__value" style="font-size: 1rem;">${best.label}</span>
-      </div>
+      <li><strong>Ventana líder:</strong> ${best.label} · ${formatEuroKwh(best.p50)}</li>
+      <li><strong>Coste estimado:</strong> ${formatCurrency(bestCost)} por uso · ${formatCurrency(bestMonthly)} al mes</li>
+      <li><strong>Hora cara típica:</strong> ${baseline?.label || '—'} · ${formatEuroKwh(baselinePrice)} (${formatCurrency(baselineCost)} por uso)</li>
+      <li><strong>Impacto mensual:</strong> ${formatDelta(monthlyPeakDiff)} vs hora cara · ${formatDelta(monthlyAvgDiff)} vs media anual</li>
     `;
 
     if (elements.savingsHint) {
@@ -832,12 +747,8 @@
   };
 
   const syncSavingsInputs = () => {
-    if (!elements.usageChips) return;
-    // Update active chip
-    elements.usageChips.querySelectorAll('.chip').forEach(c => {
-      c.classList.toggle('chip--active', c.dataset.preset === state.savings.preset);
-    });
-    
+    if (!elements.savingsPreset) return;
+    elements.savingsPreset.value = state.savings.preset;
     if (elements.savingsDuration) elements.savingsDuration.value = String(state.savings.duration);
     if (elements.savingsDayType) elements.savingsDayType.value = state.savings.dayType;
     if (elements.savingsKwh) elements.savingsKwh.value = String(state.savings.kwh);
@@ -1398,6 +1309,7 @@
       renderWeekdayChart(analysis.weekdayProfile);
       updateMeta(analysis.kpis);
       renderStatusBadges(analysis.status);
+      renderDataWarning(analysis.status);
       renderInsight(analysis.kpis, geoId, analysis.status);
       await loadSavingsWindows();
 
@@ -1557,12 +1469,10 @@
     loadData();
   });
 
-  if (elements.usageChips) {
-    elements.usageChips.addEventListener('click', (e) => {
-      const chip = e.target.closest('.chip');
-      if (!chip) return;
+  if (elements.savingsPreset) {
+    elements.savingsPreset.addEventListener('change', () => {
       state.savingsOverrides = { duration: false, kwh: false };
-      applyPreset(chip.dataset.preset);
+      applyPreset(elements.savingsPreset.value);
       updateURL();
       loadSavingsWindows();
     });

@@ -13,13 +13,11 @@ Herramienta **gratuita**, **sin publicidad** y **de código abierto** para compa
 ### 🏆 PVPC (Tarifa Regulada)
 - Comparación de tarifas **1P** y **3P** (discriminación horaria) + filtros rápidos (todas / 1P / 3P)
 - **PVPC** incluido (tarifa regulada) cuando la API está disponible
-- **Observatorio PVPC**: Nueva sección de estadísticas avanzadas (SaaS-grade) con histórico desde 2021.
-  - **Ahorro Accionable**: Algoritmo que calcula las mejores ventanas horarias (1h-6h) para tus electrodomésticos (lavadora, coche, termo) basándose en percentiles reales (P10/P50/P90).
-  - **Evolución Anual**: Gráficos interactivos de precio medio diario con suavizado (medias móviles) y detalle diario seleccionable.
+- **Observatorio PVPC**: Nueva sección de estadísticas avanzadas con histórico desde 2021.
+  - **Evolución Anual**: Gráficos interactivos de precio medio diario.
   - **Reloj Solar**: Visualización polar de las horas más baratas (Curva de Pato).
-  - **Heatmap Anual**: Mapa de calor compacto (gap 1px) para identificar patrones estacionales de un vistazo.
-  - **Comparativa Multianual**: Superposición de curvas de precio (2022-2026) con degradados verticales y tooltips unificados.
-  - **Arquitectura**: Cálculos pesados en **Web Worker** para no bloquear la UI, caché persistente y lazy loading.
+  - **Heatmap Anual**: Mapa de calor para identificar patrones estacionales de un vistazo.
+  - **Comparativa Multianual**: Superposición de curvas de precio (2022-2026) para analizar tendencias.
 - Tarjeta PVPC en portada con **precios de hoy** y acceso a **detalle horario** (hoy/mañana) cuando está disponible
 - Bloque de **novedades/avisos** cargado desde `novedades.json`
 - Soporte completo para **placas solares** y **autoconsumo** (consumo + excedentes)
