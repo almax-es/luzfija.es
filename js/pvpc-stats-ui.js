@@ -389,13 +389,22 @@
       '2021': '#64748b'
     };
 
-    const datasets = comparisonData.datasets.map(ds => ({
-      ...ds,
-      baseColor: colors[ds.label] || '#94a3b8',
-      borderColor: colors[ds.label] || '#94a3b8',
-      borderWidth: ds.label === state.year ? 3 : 1.5,
-      pointRadius: 0
-    }));
+    const datasets = comparisonData.datasets.map(ds => {
+      const isSelected = ds.label === state.year;
+      const baseColor = colors[ds.label] || '#94a3b8';
+      
+      return {
+        ...ds,
+        baseColor: baseColor,
+        borderColor: isSelected ? baseColor : `${baseColor}80`, // Transparencia para no seleccionados
+        borderWidth: isSelected ? 3 : 2,
+        backgroundColor: isSelected ? `${baseColor}15` : 'transparent', // Relleno sutil solo para el seleccionado
+        fill: isSelected,
+        pointRadius: 0,
+        // Orden de apilamiento: seleccionado arriba (z-index visual en canvas)
+        order: isSelected ? 0 : 1 
+      };
+    });
 
     charts.comparison = new Chart(ctx, {
       type: 'line',
@@ -404,11 +413,50 @@
         datasets
       },
       options: {
-        interaction: { mode: 'index', intersect: false },
-        plugins: { legend: { display: true, position: 'top' } },
-        elements: { 
-            point: { radius: 0, hoverRadius: 4 },
-            line: { tension: 0.3 }
+        responsive: true,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
+        plugins: {
+          legend: {
+            position: 'top',
+            labels: { usePointStyle: true, boxWidth: 8 }
+          },
+          tooltip: {
+            backgroundColor: 'rgba(15, 23, 42, 0.9)',
+            titleColor: '#fff',
+            bodyColor: '#cbd5e1',
+            borderColor: 'rgba(255,255,255,0.1)',
+            borderWidth: 1,
+            padding: 10,
+            itemSort: (a, b) => b.raw - a.raw, // Ordenar de más caro a más barato
+            callbacks: {
+              label: (context) => {
+                let label = context.dataset.label || '';
+                if (label) label += ': ';
+                if (context.parsed.y !== null) label += formatValue(context.parsed.y) + ' €/kWh';
+                return label;
+              }
+            }
+          }
+        },
+        elements: {
+          point: { radius: 0, hoverRadius: 4 },
+          line: { tension: 0.4, borderJoinStyle: 'round' }
+        },
+        scales: {
+          x: {
+            grid: { display: false },
+            ticks: { maxTicksLimit: 12 } // Mostrar aprox 1 etiqueta por mes
+          },
+          y: {
+            beginAtZero: true,
+            grid: { color: 'rgba(0, 0, 0, 0.05)' },
+            ticks: {
+              callback: (value) => value.toLocaleString('es-ES', { style: 'currency', currency: 'EUR' })
+            }
+          }
         }
       }
     });
