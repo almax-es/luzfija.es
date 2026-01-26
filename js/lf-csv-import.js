@@ -187,16 +187,21 @@ const esReal = isDatadisNuevo
       // i-DE suele usar etiquetas 00:00..23:00 como "inicio de tramo" => CNMC hora = hourNum + 1
       // Excepción: día de 25 horas (último domingo de octubre): 02:00 aparece dos veces.
       if (hourNum === 2) {
-        const inv = String(invVerRaw ?? '').trim();
-        if (inv === '0') return 25; // segundo 02:00 (hora repetida)
-        if (inv === '1') return 3;  // primer 02:00 (con horario de verano)
-        const key = `${ymdKeyLocal(fechaObj)}|02`;
-        const c = (seen.get(key) || 0) + 1;
-        seen.set(key, c);
-        if (c === 1) return 3;
-        if (c === 2) return 25;
-      }
-      return hourNum + 1;
+  // Día normal: solo hay un 02:00 (INV/VER suele ser 0 en todo invierno).
+  // Día cambio horario (fin de octubre): 02:00 aparece dos veces. Mapear a 3 y 25 según ocurrencia/INV/VER.
+  const key = `${ymdKeyLocal(fechaObj)}|02`;
+  const c = (seen.get(key) || 0) + 1;
+  seen.set(key, c);
+
+  const inv = String(invVerRaw ?? '').trim();
+  if (inv === '1') return 3;          // 02:00 en horario de verano (primera)
+  if (inv === '0') return (c >= 2) ? 25 : 3; // 02:00 repetida (segunda) solo si hay duplicidad
+
+  // Fallback si INV/VER no viene o es distinto: por orden de aparición
+  if (c === 1) return 3;
+  if (c === 2) return 25;
+}
+return hourNum + 1;
     }
 
     for (let i = 1; i < lines.length; i++) {
@@ -385,16 +390,21 @@ const esReal = isDatadisNuevo
     }
     function computeHoraCNMC(fechaObj, hourNum, invVerRaw) {
       if (hourNum === 2) {
-        const inv = String(invVerRaw ?? '').trim();
-        if (inv === '0') return 25;
-        if (inv === '1') return 3;
-        const key = `${ymdKeyLocal(fechaObj)}|02`;
-        const c = (seen.get(key) || 0) + 1;
-        seen.set(key, c);
-        if (c === 1) return 3;
-        if (c === 2) return 25;
-      }
-      return hourNum + 1;
+  // Día normal: solo hay un 02:00 (INV/VER suele ser 0 en todo invierno).
+  // Día cambio horario (fin de octubre): 02:00 aparece dos veces. Mapear a 3 y 25 según ocurrencia/INV/VER.
+  const key = `${ymdKeyLocal(fechaObj)}|02`;
+  const c = (seen.get(key) || 0) + 1;
+  seen.set(key, c);
+
+  const inv = String(invVerRaw ?? '').trim();
+  if (inv === '1') return 3;          // 02:00 en horario de verano (primera)
+  if (inv === '0') return (c >= 2) ? 25 : 3; // 02:00 repetida (segunda) solo si hay duplicidad
+
+  // Fallback si INV/VER no viene o es distinto: por orden de aparición
+  if (c === 1) return 3;
+  if (c === 2) return 25;
+}
+return hourNum + 1;
     }
 
     const consumos = [];
