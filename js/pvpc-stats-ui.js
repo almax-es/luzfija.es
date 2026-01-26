@@ -8,6 +8,7 @@
   };
 
   const sections = {
+    trend: document.querySelector('[data-loading][aria-labelledby="trendTitle"]'),
     kpis: document.querySelector('[data-loading][aria-labelledby="kpiTitle"]'),
     savings: document.querySelector('[data-loading][aria-labelledby="savingsTitle"]'),
     heatmap: document.querySelector('[data-loading][aria-labelledby="heatmapTitle"]'),
@@ -20,9 +21,21 @@
     geoSelector: document.getElementById('geoSelector'),
     yearSelector: document.getElementById('yearSelector'),
     heroBadges: document.getElementById('heroBadges'),
+    heroLastDay: document.getElementById('heroLastDay'),
+    heroLastDayDate: document.getElementById('heroLastDayDate'),
+    heroAvg7: document.getElementById('heroAvg7'),
+    heroAvg30: document.getElementById('heroAvg30'),
+    heroYoY: document.getElementById('heroYoY'),
+    heroYoYSub: document.getElementById('heroYoYSub'),
+    heroContext: document.getElementById('heroContext'),
+    heroContextSub: document.getElementById('heroContextSub'),
     dataWarning: document.getElementById('dataWarning'),
     dataMeta: document.getElementById('dataMeta'),
     insightText: document.getElementById('insightText'),
+    trendDailyBtn: document.getElementById('trendDailyBtn'),
+    trendMonthlyBtn: document.getElementById('trendMonthlyBtn'),
+    trendInsights: document.getElementById('trendInsights'),
+    trendHint: document.getElementById('trendHint'),
     kpiAvg: document.getElementById('kpiAvg'),
     kpiMin: document.getElementById('kpiMin'),
     kpiMinDate: document.getElementById('kpiMinDate'),
@@ -50,6 +63,7 @@
   };
 
   const charts = {
+    trend: null,
     clock: null,
     weekday: null,
     comparison: null,
@@ -69,7 +83,8 @@
     yearDataKey: null,
     lastAnalysis: null,
     comparisonToken: 0,
-    comparisonShowDaily: false,
+    comparisonMode: 'smooth',
+    trendMode: 'daily',
     comparisonSeriesByYear: null,
     comparisonPrefsFromUrl: {},
     savingsOverrides: {
@@ -173,8 +188,11 @@
     const table = [];
     const date = new Date(Date.UTC(year, 0, 1));
     for (let i = 1; i <= totalDays; i += 1) {
+      const iso = date.toISOString().slice(0, 10);
       table[i] = {
         month: date.toLocaleDateString('es-ES', { month: 'short' }).replace('.', ''),
+        monthIndex: date.getUTCMonth(),
+        iso,
         day: date.getUTCDate()
       };
       date.setUTCDate(date.getUTCDate() + 1);
@@ -191,6 +209,29 @@
         label
       };
     });
+  };
+
+  const buildMonthIndexTicks = () => {
+    const monthLabels = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+    return monthLabels.map((label, index) => ({ value: index + 1, label }));
+  };
+
+  const buildMonthlyPointsFromDaily = (values, dayTable) => {
+    const sums = new Array(12).fill(0);
+    const counts = new Array(12).fill(0);
+    (values || []).forEach((value, idx) => {
+      const v = Number.isFinite(value) ? value : null;
+      if (v === null) return;
+      const entry = dayTable[idx + 1];
+      const m = entry?.monthIndex;
+      if (m === undefined || m === null) return;
+      sums[m] += v;
+      counts[m] += 1;
+    });
+    return sums.map((sum, monthIndex) => ({
+      x: monthIndex + 1,
+      y: counts[monthIndex] ? sum / counts[monthIndex] : null
+    }));
   };
 
   const smoothMovingAverage = (points, window = 7) => {
@@ -239,8 +280,8 @@
     if (state.visibleYears?.size) {
       params.set('visibleYears', Array.from(state.visibleYears).join(','));
     }
-    if (state.comparisonShowDaily) {
-      params.set('comparisonShowDaily', '1');
+    if (state.comparisonMode && state.comparisonMode !== 'smooth') {
+      params.set('comparisonMode', state.comparisonMode);
     }
     if (state.savings?.preset) params.set('savingsPreset', state.savings.preset);
     if (state.savings?.duration) params.set('savingsDuration', String(state.savings.duration));
@@ -255,6 +296,7 @@
     const year = params.get('year');
     const geo = params.get('geo');
     const visibleYears = params.get('visibleYears');
+    const comparisonMode = params.get('comparisonMode');
     const comparisonShowDaily = params.get('comparisonShowDaily');
     const savingsPreset = params.get('savingsPreset');
     const savingsDuration = params.get('savingsDuration');
@@ -278,9 +320,13 @@
       state.visibleYears = new Set(parsedYears);
     }
 
-    if (comparisonShowDaily !== null) {
-      state.comparisonPrefsFromUrl.showDaily = comparisonShowDaily === '1' || comparisonShowDaily === 'true';
-      state.comparisonShowDaily = state.comparisonPrefsFromUrl.showDaily;
+    if (comparisonMode && ['smooth', 'daily', 'monthly'].includes(comparisonMode)) {
+      state.comparisonPrefsFromUrl.mode = comparisonMode;
+      state.comparisonMode = comparisonMode;
+    } else if (comparisonShowDaily !== null) {
+      const showDaily = comparisonShowDaily === '1' || comparisonShowDaily === 'true';
+      state.comparisonPrefsFromUrl.mode = showDaily ? 'daily' : 'smooth';
+      state.comparisonMode = state.comparisonPrefsFromUrl.mode;
     }
 
     if (savingsPreset && savingsPresets[savingsPreset]) {
@@ -334,6 +380,270 @@
     if (canonical) canonical.setAttribute('href', 'https://luzfija.es/estadisticas/');
     if (twitterTitle) twitterTitle.setAttribute('content', `Precio Luz ${yearLabel} - ${geoName}`);
     if (twitterDesc) twitterDesc.setAttribute('content', `Media: ${kpis.avgPrice.toFixed(4)} €/kWh | Ver análisis completo →`);
+  };
+
+  const setHeroLoading = (isLoading) => {
+    if (!elements.heroKpiGrid) return;
+    elements.heroKpiGrid.dataset.loading = isLoading ? 'true' : 'false';
+  };
+
+  const lastFinite = (values) => {
+    if (!Array.isArray(values)) return { index: -1, value: null };
+    for (let i = values.length - 1; i >= 0; i -= 1) {
+      if (Number.isFinite(values[i])) return { index: i, value: values[i] };
+    }
+    return { index: -1, value: null };
+  };
+
+  const avgLastN = (values, n) => {
+    if (!Array.isArray(values) || !values.length) return null;
+    let sum = 0;
+    let count = 0;
+    for (let i = values.length - 1; i >= 0 && count < n; i -= 1) {
+      const v = values[i];
+      if (Number.isFinite(v)) {
+        sum += v;
+        count += 1;
+      }
+    }
+    return count ? sum / count : null;
+  };
+
+  const percentileRank = (values, target) => {
+    const nums = (values || []).filter(Number.isFinite);
+    if (!nums.length || !Number.isFinite(target)) return null;
+    let below = 0;
+    nums.forEach((v) => { if (v <= target) below += 1; });
+    return below / nums.length;
+  };
+
+  const describeContext = (rank) => {
+    if (!Number.isFinite(rank)) return { label: '—', sub: '' };
+    const p = Math.round(rank * 100);
+    if (p <= 15) return { label: 'Muy barato', sub: `Percentil ${p} (muy bajo)` };
+    if (p <= 35) return { label: 'Barato', sub: `Percentil ${p} (bajo)` };
+    if (p <= 65) return { label: 'Normal', sub: `Percentil ${p} (típico)` };
+    if (p <= 85) return { label: 'Caro', sub: `Percentil ${p} (alto)` };
+    return { label: 'Muy caro', sub: `Percentil ${p} (muy alto)` };
+  };
+
+  const renderHeroSummary = async (analysis) => {
+    if (!analysis || !state.yearData) return;
+
+    setHeroLoading(true);
+
+    try {
+      const series = toDailySeries(state.yearData)?.values || [];
+      const last = lastFinite(series);
+      const lastDate = last.index >= 0
+        ? new Date(Date.UTC(Number(state.year), 0, last.index + 1)).toISOString().slice(0, 10)
+        : null;
+
+      const avg7 = avgLastN(series, 7);
+      const avg30 = avgLastN(series, 30);
+
+      if (elements.heroLastDay) elements.heroLastDay.textContent = Number.isFinite(last.value) ? formatEuroKwh(last.value) : '--';
+      if (elements.heroLastDayDate) elements.heroLastDayDate.textContent = lastDate ? formatDate(lastDate) : '—';
+      if (elements.heroAvg7) elements.heroAvg7.textContent = Number.isFinite(avg7) ? formatValue(avg7) : '--';
+      if (elements.heroAvg30) elements.heroAvg30.textContent = Number.isFinite(avg30) ? formatValue(avg30) : '--';
+
+      const rank = percentileRank(series, Number.isFinite(avg7) ? avg7 : last.value);
+      const context = describeContext(rank);
+
+      if (elements.heroContext) elements.heroContext.textContent = context.label;
+      if (elements.heroContextSub) elements.heroContextSub.textContent = context.sub;
+
+      // YoY (YTD) vs año anterior, mismo rango de días disponible
+      const currentYear = Number(state.year);
+      const prevYear = currentYear - 1;
+      const endDateStr = analysis?.status?.updatedUntil || lastDate;
+      const endDay = endDateStr ? dayOfYear(endDateStr) : null;
+
+      if (prevYear >= 2022 && endDay) {
+        const prevData = await window.PVPC_STATS.loadYearData(state.geoId, prevYear);
+        const prevYtd = calculateYtdAverage(prevData, endDay);
+        const currYtd = calculateYtdAverage(state.yearData, endDay);
+        if (Number.isFinite(prevYtd) && prevYtd > 0 && Number.isFinite(currYtd)) {
+          const diff = ((currYtd - prevYtd) / prevYtd) * 100;
+          const sign = diff >= 0 ? '+' : '';
+          if (elements.heroYoY) elements.heroYoY.textContent = `${sign}${diff.toLocaleString('es-ES', { maximumFractionDigits: 1 })}%`;
+          if (elements.heroYoYSub) elements.heroYoYSub.textContent = `YTD vs ${prevYear} (hasta ${formatDate(endDateStr)})`;
+        } else {
+          if (elements.heroYoY) elements.heroYoY.textContent = '--';
+          if (elements.heroYoYSub) elements.heroYoYSub.textContent = `Sin datos comparables (${prevYear}).`;
+        }
+      } else {
+        if (elements.heroYoY) elements.heroYoY.textContent = '--';
+        if (elements.heroYoYSub) elements.heroYoYSub.textContent = `Comparativa disponible desde 2022.`;
+      }
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setHeroLoading(false);
+    }
+  };
+
+  const updateTrendPills = () => {
+    const isDaily = state.trendMode === 'daily';
+    const isMonthly = state.trendMode === 'monthly';
+    if (elements.trendDailyBtn) {
+      elements.trendDailyBtn.classList.toggle('pill--active', isDaily);
+      elements.trendDailyBtn.setAttribute('aria-pressed', String(isDaily));
+    }
+    if (elements.trendMonthlyBtn) {
+      elements.trendMonthlyBtn.classList.toggle('pill--active', isMonthly);
+      elements.trendMonthlyBtn.setAttribute('aria-pressed', String(isMonthly));
+    }
+  };
+
+  const renderTrendChart = () => {
+    if (!state.yearData) return;
+    const canvas = document.getElementById('trendChart');
+    if (!canvas) return;
+
+    const ctx = canvas.getContext('2d');
+    if (charts.trend) charts.trend.destroy();
+
+    const computed = getComputedStyle(document.documentElement);
+    const primary = computed.getPropertyValue('--primary-color').trim() || '#3b82f6';
+    const textColor = computed.getPropertyValue('--text-main').trim() || '#0f172a';
+    const mutedColor = computed.getPropertyValue('--text-muted').trim() || '#64748b';
+    const borderColor = computed.getPropertyValue('--border-color').trim() || '#e2e8f0';
+    const bgCard = computed.getPropertyValue('--bg-card').trim() || '#ffffff';
+
+    const yearNumber = Number(state.year);
+    const dayTable = buildDayOfYearTable(yearNumber);
+    const series = toDailySeries(state.yearData)?.values || [];
+
+    const dailyPoints = series.map((value, idx) => ({
+      x: idx + 1,
+      y: Number.isFinite(value) ? value : null
+    }));
+
+    const monthlyPoints = buildMonthlyPointsFromDaily(series, dayTable);
+
+    const isMonthly = state.trendMode === 'monthly';
+    const xTicks = isMonthly ? buildMonthIndexTicks() : buildMonthlyTicks(yearNumber);
+    const tickLabelMap = new Map(xTicks.map(tick => [tick.value, tick.label]));
+    const xMax = isMonthly ? 12 : 366;
+
+    const dataset = {
+      label: `PVPC ${state.year}`,
+      data: isMonthly ? monthlyPoints : dailyPoints,
+      borderColor: primary,
+      backgroundColor: hexToRgba(primary, 0.16),
+      fill: true,
+      pointRadius: 0,
+      pointHoverRadius: 4,
+      tension: 0.25,
+      spanGaps: false,
+      borderWidth: 2
+    };
+
+    charts.trend = new Chart(ctx, {
+      type: 'line',
+      data: { datasets: [dataset] },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'nearest', intersect: false },
+        plugins: {
+          legend: { display: false },
+          tooltip: {
+            backgroundColor: bgCard,
+            titleColor: textColor,
+            bodyColor: mutedColor,
+            borderColor,
+            borderWidth: 1,
+            padding: 14,
+            cornerRadius: 12,
+            displayColors: false,
+            callbacks: {
+              title: (context) => {
+                const x = context[0]?.parsed?.x;
+                if (!Number.isFinite(x)) return '';
+                if (isMonthly) {
+                  return tickLabelMap.get(x) || `Mes ${x}`;
+                }
+                const entry = dayTable[x];
+                if (!entry) return `Día ${x}`;
+                return `${entry.day} ${entry.month}`;
+              },
+              label: (context) => `Media: ${formatEuroKwh(context.parsed.y)}`
+            }
+          }
+        },
+        scales: {
+          x: {
+            type: 'linear',
+            min: 1,
+            max: xMax,
+            border: { display: false },
+            grid: { display: false },
+            afterBuildTicks: (scale) => {
+              scale.ticks = xTicks.map(tick => ({ value: tick.value }));
+            },
+            ticks: {
+              autoSkip: false,
+              maxRotation: 0,
+              color: mutedColor,
+              padding: 10,
+              font: { family: "'Outfit', sans-serif", size: 11, weight: 600 },
+              callback: (value) => tickLabelMap.get(Number(value)) || ''
+            }
+          },
+          y: {
+            beginAtZero: false,
+            border: { display: false },
+            grid: { color: hexToRgba(borderColor, 0.5), drawBorder: false },
+            ticks: {
+              padding: 12,
+              color: mutedColor,
+              font: { family: "'Outfit', sans-serif", size: 10, weight: 500 },
+              callback: (value) => {
+                if (!Number.isFinite(value)) return '';
+                return formatEuroKwh(value).replace(' €/kWh', ' €');
+              }
+            }
+          }
+        }
+      }
+    });
+
+    // Insights laterales
+    if (elements.trendInsights) {
+      const dailyValues = series.filter(Number.isFinite);
+      const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+      const validMonths = monthlyPoints.filter(point => Number.isFinite(point.y));
+      const cheapestMonth = validMonths.reduce((best, curr) => (curr.y < best.y ? curr : best), validMonths[0] || { x: 1, y: null });
+      const expensiveMonth = validMonths.reduce((best, curr) => (curr.y > best.y ? curr : best), validMonths[0] || { x: 1, y: null });
+
+      const p10 = window.PVPC_STATS.getPercentile(dailyValues, 0.1);
+      const p90 = window.PVPC_STATS.getPercentile(dailyValues, 0.9);
+      const cheapDays = dailyValues.filter(v => v <= p10).length;
+      const expensiveDays = dailyValues.filter(v => v >= p90).length;
+
+      const solar = state.lastAnalysis?.hourlyProfile?.data || [];
+      const solarAvg = (solar[12] + solar[13] + solar[14] + solar[15] + solar[16] + solar[17]) / 6;
+      const avg = state.lastAnalysis?.kpis?.avgPrice || 0;
+      const solarDiff = Number.isFinite(solarAvg) && avg ? ((solarAvg - avg) / avg) * 100 : 0;
+
+      elements.trendInsights.innerHTML = `
+        <li><strong>Mes más barato:</strong> ${Number.isFinite(cheapestMonth.y) ? `${monthNames[(cheapestMonth.x || 1) - 1]} · ${formatEuroKwh(cheapestMonth.y)}` : '—'}</li>
+        <li><strong>Mes más caro:</strong> ${Number.isFinite(expensiveMonth.y) ? `${monthNames[(expensiveMonth.x || 1) - 1]} · ${formatEuroKwh(expensiveMonth.y)}` : '—'}</li>
+        <li><strong>Rango típico diario (P10–P90):</strong> ${Number.isFinite(p10) && Number.isFinite(p90) ? `${formatEuroKwh(p10)} → ${formatEuroKwh(p90)}` : '—'}</li>
+        <li><strong>Días extremos:</strong> ${cheapDays} muy baratos · ${expensiveDays} muy caros</li>
+        <li><strong>Valle solar (12–17h):</strong> ${Number.isFinite(solarAvg) ? `${formatEuroKwh(solarAvg)} (${solarDiff.toLocaleString('es-ES', { maximumFractionDigits: 1 })}% vs media)` : '—'}</li>
+      `;
+    }
+
+    if (elements.trendHint) {
+      elements.trendHint.textContent = isMonthly
+        ? 'Vista mensual: muestra la media de cada mes para ver la tendencia sin ruido.'
+        : 'Vista diaria: cada punto es la media del día. Útil para detectar picos y valles.';
+    }
+
+    updateTrendPills();
   };
 
   const renderKPIs = ({ kpis, hourlyProfile }) => {
@@ -477,48 +787,133 @@
     });
   };
 
-  const renderClockChart = (hourlyProfile) => {
-    const ctx = document.getElementById('clockChart').getContext('2d');
-    if (charts.clock) charts.clock.destroy();
-    const data = hourlyProfile.data;
-    const min = Math.min(...data);
-    const max = Math.max(...data);
+const renderClockChart = (hourlyProfile) => {
+  const canvas = document.getElementById('clockChart');
+  if (!canvas || !hourlyProfile) return;
+  const ctx = canvas.getContext('2d');
+  if (charts.clock) charts.clock.destroy();
 
-    charts.clock = new Chart(ctx, {
-      type: 'polarArea',
-      data: {
-        labels: hourlyProfile.labels,
-        datasets: [{
-          data,
-          backgroundColor: data.map((value) => {
-            const ratio = max !== min ? (value - min) / (max - min) : 0;
-            return `hsla(${(1 - ratio) * 120}, 70%, 50%, 0.65)`;
-          })
-        }]
+  const computed = getComputedStyle(document.documentElement);
+  const primary = computed.getPropertyValue('--primary-color').trim() || '#3b82f6';
+  const textColor = computed.getPropertyValue('--text-main').trim() || '#0f172a';
+  const mutedColor = computed.getPropertyValue('--text-muted').trim() || '#64748b';
+  const borderColor = computed.getPropertyValue('--border-color').trim() || '#e2e8f0';
+  const bgCard = computed.getPropertyValue('--bg-card').trim() || '#ffffff';
+
+  charts.clock = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: hourlyProfile.labels,
+      datasets: [{
+        label: 'Media horaria (€/kWh)',
+        data: hourlyProfile.data,
+        borderColor: primary,
+        backgroundColor: hexToRgba(primary, 0.18),
+        fill: true,
+        tension: 0.25,
+        pointRadius: 0,
+        pointHoverRadius: 4,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: bgCard,
+          titleColor: textColor,
+          bodyColor: mutedColor,
+          borderColor,
+          borderWidth: 1,
+          padding: 14,
+          cornerRadius: 12,
+          displayColors: false,
+          callbacks: {
+            label: (context) => `Media: ${formatEuroKwh(context.parsed.y)}`
+          }
+        }
       },
-      options: {
-        plugins: { legend: { display: false } },
-        scales: { r: { ticks: { display: false } } }
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: {
+            color: mutedColor,
+            font: { family: "'Outfit', sans-serif", size: 10, weight: 600 },
+            maxRotation: 0,
+            autoSkip: true
+          },
+          border: { display: false }
+        },
+        y: {
+          beginAtZero: false,
+          grid: { color: hexToRgba(borderColor, 0.5) },
+          ticks: {
+            color: mutedColor,
+            font: { family: "'Outfit', sans-serif", size: 10, weight: 500 },
+            callback: (value) => {
+              if (!Number.isFinite(value)) return '';
+              return formatEuroKwh(value).replace(' €/kWh', ' €');
+            }
+          },
+          border: { display: false }
+        }
       }
-    });
-  };
+    }
+  });
+};
 
-  const renderWeekdayChart = (weekdayProfile) => {
-    const ctx = document.getElementById('weekdayChart').getContext('2d');
-    if (charts.weekday) charts.weekday.destroy();
-    charts.weekday = new Chart(ctx, {
-      type: 'bar',
-      data: {
-        labels: weekdayProfile.labels,
-        datasets: [{
-          data: weekdayProfile.data,
-          backgroundColor: '#8b5cf6',
-          borderRadius: 6
-        }]
-      },
-      options: { plugins: { legend: { display: false } } }
-    });
-  };
+const renderWeekdayChart = (weekdayProfile) => {
+  const canvas = document.getElementById('weekdayChart');
+  if (!canvas || !weekdayProfile) return;
+  const ctx = canvas.getContext('2d');
+  if (charts.weekday) charts.weekday.destroy();
+
+  const computed = getComputedStyle(document.documentElement);
+  const primary = computed.getPropertyValue('--primary-color').trim() || '#3b82f6';
+  const mutedColor = computed.getPropertyValue('--text-muted').trim() || '#64748b';
+  const borderColor = computed.getPropertyValue('--border-color').trim() || '#e2e8f0';
+
+  charts.weekday = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: weekdayProfile.labels,
+      datasets: [{
+        data: weekdayProfile.data,
+        backgroundColor: hexToRgba(primary, 0.7),
+        borderColor: primary,
+        borderWidth: 1,
+        borderRadius: 8
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: mutedColor, font: { family: "'Outfit', sans-serif", size: 11, weight: 600 } },
+          border: { display: false }
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: hexToRgba(borderColor, 0.5) },
+          ticks: {
+            color: mutedColor,
+            font: { family: "'Outfit', sans-serif", size: 10, weight: 500 },
+            callback: (value) => {
+              if (!Number.isFinite(value)) return '';
+              return formatEuroKwh(value).replace(' €/kWh', ' €');
+            }
+          },
+          border: { display: false }
+        }
+      }
+    }
+  });
+};
 
   const buildDailyHourlyAverages = (yearData, dayType = 'any') => {
     const daily = [];
@@ -796,7 +1191,7 @@
     try {
       const payload = {
         visibleYears: Array.from(state.visibleYears),
-        showDaily: state.comparisonShowDaily
+        mode: state.comparisonMode
       };
       localStorage.setItem(getComparisonPrefsKey(geoId), JSON.stringify(payload));
     } catch (error) {
@@ -828,7 +1223,9 @@
   const updateComparisonSeries = (chart) => {
     if (!chart) return;
     chart.data.datasets.forEach(dataset => {
-      dataset.data = state.comparisonShowDaily ? dataset.dailyPoints : dataset.smoothPoints;
+      if (state.comparisonMode === 'daily') dataset.data = dataset.dailyPoints;
+      else if (state.comparisonMode === 'monthly') dataset.data = dataset.monthlyPoints;
+      else dataset.data = dataset.smoothPoints;
     });
     chart.update('none');
   };
@@ -969,21 +1366,43 @@
       updateURL();
     });
 
-    const dailyBtn = document.createElement('button');
-    dailyBtn.type = 'button';
-    dailyBtn.className = `pill ${state.comparisonShowDaily ? 'pill--active' : ''}`;
-    dailyBtn.textContent = state.comparisonShowDaily ? 'Ver suavizado' : 'Ver datos diarios';
-    dailyBtn.addEventListener('click', () => {
-      state.comparisonShowDaily = !state.comparisonShowDaily;
-      saveComparisonPrefs(state.geoId);
-      renderComparisonControls(years, selectedYear);
-      updateComparisonSeries(charts.comparison);
-      applyComparisonVisibility();
-      updateURL();
+    const modeGroup = document.createElement('div');
+    modeGroup.className = 'segmented';
+    modeGroup.setAttribute('role', 'group');
+    modeGroup.setAttribute('aria-label', 'Vista de la comparativa');
+
+    const modes = [
+      { key: 'monthly', label: 'Mensual' },
+      { key: 'smooth', label: 'Suavizado' },
+      { key: 'daily', label: 'Diario' }
+    ];
+
+    modes.forEach((mode) => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      const isActive = state.comparisonMode === mode.key;
+      btn.className = `pill ${isActive ? 'pill--active' : ''}`;
+      btn.textContent = mode.label;
+      btn.setAttribute('aria-pressed', isActive);
+      btn.addEventListener('click', () => {
+        if (state.comparisonMode === mode.key) return;
+        state.comparisonMode = mode.key;
+        saveComparisonPrefs(state.geoId);
+        if (state.comparisonSeriesByYear) {
+          renderComparisonChart(state.comparisonSeriesByYear, state.year, { window: 7 });
+          return;
+        }
+        renderComparisonControls(years, selectedYear);
+        updateComparisonSeries(charts.comparison);
+        applyComparisonVisibility();
+        updateURL();
+      });
+      modeGroup.appendChild(btn);
     });
 
-    header.append(showAllBtn, isolateBtn, dailyBtn);
+    header.append(showAllBtn, isolateBtn);
     elements.comparisonControls.appendChild(header);
+    elements.comparisonControls.appendChild(modeGroup);
 
     const yearList = document.createElement('div');
     yearList.className = 'segmented segmented--years';
@@ -1041,9 +1460,24 @@
 
     const years = Object.keys(seriesByYear);
     const selectedYearNumber = Number(selectedYear) || new Date().getFullYear();
-    const monthlyTicks = buildMonthlyTicks(selectedYearNumber);
-    const tickLabelMap = new Map(monthlyTicks.map((tick) => [tick.value, tick.label]));
-    const dayTable = buildDayOfYearTable(selectedYearNumber);
+    const referenceYear = 2024;
+    const dayTable = buildDayOfYearTable(referenceYear);
+
+    // Preferencias ya cargadas arriba
+    let effectiveMode = state.comparisonMode || 'smooth';
+    if (state.comparisonPrefsFromUrl?.mode && ['smooth', 'daily', 'monthly'].includes(state.comparisonPrefsFromUrl.mode)) {
+      effectiveMode = state.comparisonPrefsFromUrl.mode;
+    } else if (prefs?.mode && ['smooth', 'daily', 'monthly'].includes(prefs.mode)) {
+      effectiveMode = prefs.mode;
+    } else if (prefs?.showDaily !== undefined) {
+      // retro-compatibilidad con preferencias antiguas
+      effectiveMode = prefs.showDaily ? 'daily' : 'smooth';
+    }
+    state.comparisonMode = effectiveMode;
+
+    const xMax = effectiveMode === 'monthly' ? 12 : 366;
+    const xTicks = effectiveMode === 'monthly' ? buildMonthIndexTicks() : buildMonthlyTicks(referenceYear);
+    const tickLabelMap = new Map(xTicks.map((tick) => [tick.value, tick.label]));
 
     const datasets = years.map((year) => {
       const series = seriesByYear[year];
@@ -1053,6 +1487,7 @@
         y: Number.isFinite(value) ? value : null
       }));
       const smoothPoints = smoothMovingAverage(points, options.window || 7);
+      const monthlyPoints = buildMonthlyPointsFromDaily(series?.values || [], dayTable);
       const isSelected = year === selectedYear;
       const gradient = ctx.createLinearGradient(0, 0, 0, 400);
       gradient.addColorStop(0, hexToRgba(baseColor, 0.25));
@@ -1060,15 +1495,16 @@
 
       return {
         label: year,
-        data: state.comparisonShowDaily ? points : smoothPoints,
+        data: effectiveMode === 'daily' ? points : (effectiveMode === 'monthly' ? monthlyPoints : smoothPoints),
         dailyPoints: points,
         smoothPoints,
+        monthlyPoints,
         baseColor,
         fillColor: gradient,
         borderColor: isSelected ? baseColor : hexToRgba(baseColor, 0.35),
         borderWidth: isSelected ? 3 : 1.5,
         backgroundColor: isSelected ? gradient : 'transparent',
-        fill: isSelected,
+        fill: isSelected && effectiveMode !== 'monthly',
         pointRadius: 0,
         pointHoverRadius: 5,
         tension: 0.35,
@@ -1120,9 +1556,13 @@
             },
             callbacks: {
               title: (context) => {
-                const dayIndex = context[0].parsed.x;
-                const entry = dayTable[dayIndex];
-                if (!entry) return `Día ${dayIndex}`;
+                const x = context[0]?.parsed?.x;
+                if (!Number.isFinite(x)) return '';
+                if (effectiveMode === 'monthly') {
+                  return tickLabelMap.get(x) || `Mes ${x}`;
+                }
+                const entry = dayTable[x];
+                if (!entry) return `Día ${x}`;
                 return `${entry.day} ${entry.month}`;
               },
               label: (context) => {
@@ -1151,11 +1591,11 @@
           x: {
             type: 'linear',
             min: 1,
-            max: 366,
+            max: xMax,
             border: { display: false },
             grid: { display: false },
             afterBuildTicks: (scale) => {
-              scale.ticks = monthlyTicks.map(tick => ({ value: tick.value }));
+              scale.ticks = xTicks.map(tick => ({ value: tick.value }));
             },
             ticks: {
               autoSkip: false,
@@ -1163,7 +1603,7 @@
               color: mutedColor,
               padding: 10,
               font: { family: "'Outfit', sans-serif", size: 11, weight: 600 },
-              callback: (value) => tickLabelMap.get(value) || ''
+              callback: (value) => tickLabelMap.get(Number(value)) || ''
             }
           },
           y: {
@@ -1273,6 +1713,7 @@
     setLoading(sections.heatmap, true);
     setLoading(sections.clock, true);
     setLoading(sections.weekday, true);
+    setLoading(sections.trend, true);
     setLoading(sections.comparison, true);
 
     const geoId = state.geoId;
@@ -1282,11 +1723,13 @@
       const yearData = await window.PVPC_STATS.loadYearData(geoId, year);
       if (!yearData || !Object.keys(yearData.days).length) {
         elements.insightText.textContent = 'No hay datos disponibles para este año.';
+        setHeroLoading(false);
         setLoading(sections.kpis, false);
         setLoading(sections.savings, false);
         setLoading(sections.heatmap, false);
         setLoading(sections.clock, false);
         setLoading(sections.weekday, false);
+        setLoading(sections.trend, false);
         setLoading(sections.comparison, false);
         return;
       }
@@ -1303,6 +1746,9 @@
         : window.PVPC_STATS.analyzeYear(yearData, options);
 
       state.lastAnalysis = analysis;
+      await renderHeroSummary(analysis);
+      renderTrendChart();
+      setLoading(sections.trend, false);
       renderKPIs(analysis);
       buildHeatmap(analysis.heatmap);
       renderClockChart(analysis.hourlyProfile);
@@ -1324,7 +1770,9 @@
       loadComparisonAsync({ geoId, years: comparisonYears, token: comparisonToken });
     } catch (error) {
       elements.insightText.textContent = 'No se pudieron cargar los datos. Inténtalo de nuevo.';
+      setHeroLoading(false);
       console.error(error);
+      setLoading(sections.trend, false);
       setLoading(sections.comparison, false);
     } finally {
       setLoading(sections.kpis, false);
@@ -1332,6 +1780,7 @@
       setLoading(sections.heatmap, false);
       setLoading(sections.clock, false);
       setLoading(sections.weekday, false);
+      setLoading(sections.trend, false);
     }
   };
 
@@ -1399,26 +1848,77 @@
     elements.dayCheapest.innerHTML = detail.cheapest.map(item => `<li>${item.label} · ${formatValue(item.price)} €/kWh</li>`).join('');
     elements.dayExpensive.innerHTML = detail.expensive.map(item => `<li>${item.label} · ${formatValue(item.price)} €/kWh</li>`).join('');
 
-    const ctx = document.getElementById('dayChart').getContext('2d');
-    if (charts.day) charts.day.destroy();
-    charts.day = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: detail.labels,
-        datasets: [{
-          label: 'Precio (€/kWh)',
-          data: detail.data,
-          borderColor: '#8b5cf6',
-          backgroundColor: 'rgba(139,92,246,0.12)',
-          tension: 0.3,
-          pointRadius: 2
-        }]
-      },
-      options: { plugins: { legend: { display: false } } }
-    });
+  const ctx = document.getElementById('dayChart').getContext('2d');
+  if (charts.day) charts.day.destroy();
 
-    openModal();
-  }
+  const computed = getComputedStyle(document.documentElement);
+  const primary = computed.getPropertyValue('--primary-color').trim() || '#3b82f6';
+  const textColor = computed.getPropertyValue('--text-main').trim() || '#0f172a';
+  const mutedColor = computed.getPropertyValue('--text-muted').trim() || '#64748b';
+  const borderColor = computed.getPropertyValue('--border-color').trim() || '#e2e8f0';
+  const bgCard = computed.getPropertyValue('--bg-card').trim() || '#ffffff';
+
+  charts.day = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: detail.labels,
+      datasets: [{
+        label: 'Precio (€/kWh)',
+        data: detail.data,
+        borderColor: primary,
+        backgroundColor: hexToRgba(primary, 0.14),
+        tension: 0.25,
+        pointRadius: 2,
+        pointHoverRadius: 4,
+        fill: true,
+        borderWidth: 2
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'nearest', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          backgroundColor: bgCard,
+          titleColor: textColor,
+          bodyColor: mutedColor,
+          borderColor,
+          borderWidth: 1,
+          padding: 14,
+          cornerRadius: 12,
+          displayColors: false,
+          callbacks: {
+            label: (context) => `Precio: ${formatEuroKwh(context.parsed.y)}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          grid: { display: false },
+          ticks: { color: mutedColor, font: { family: "'Outfit', sans-serif", size: 10, weight: 600 } },
+          border: { display: false }
+        },
+        y: {
+          beginAtZero: false,
+          grid: { color: hexToRgba(borderColor, 0.5) },
+          ticks: {
+            color: mutedColor,
+            font: { family: "'Outfit', sans-serif", size: 10, weight: 500 },
+            callback: (value) => {
+              if (!Number.isFinite(value)) return '';
+              return formatEuroKwh(value).replace(' €/kWh', ' €');
+            }
+          },
+          border: { display: false }
+        }
+      }
+    }
+  });
+
+  openModal();
+}
 
   const getDayDetailLocal = (yearData, dateStr) => {
     const hours = yearData.days[dateStr] || [];
@@ -1520,6 +2020,22 @@
     });
   }
 
+  // --- Trend controls (Evolución anual) ---
+  if (elements.trendDailyBtn) {
+    elements.trendDailyBtn.addEventListener('click', () => {
+      if (state.trendMode === 'daily') return;
+      state.trendMode = 'daily';
+      renderTrendChart();
+    });
+  }
+
+  if (elements.trendMonthlyBtn) {
+    elements.trendMonthlyBtn.addEventListener('click', () => {
+      if (state.trendMode === 'monthly') return;
+      state.trendMode = 'monthly';
+      renderTrendChart();
+    });
+  }
   // --- Global Tooltip Logic ---
   const tooltip = document.createElement('div');
   tooltip.id = 'globalTooltip';
