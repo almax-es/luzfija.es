@@ -1463,6 +1463,8 @@ const renderWeekdayChart = (weekdayProfile) => {
     const referenceYear = 2024;
     const dayTable = buildDayOfYearTable(referenceYear);
 
+    const prefs = loadComparisonPrefs(state.geoId);
+
     // Preferencias ya cargadas arriba
     let effectiveMode = state.comparisonMode || 'smooth';
     if (state.comparisonPrefsFromUrl?.mode && ['smooth', 'daily', 'monthly'].includes(state.comparisonPrefsFromUrl.mode)) {
@@ -1627,7 +1629,6 @@ const renderWeekdayChart = (weekdayProfile) => {
       }
     });
 
-    const prefs = loadComparisonPrefs(state.geoId);
     if (state.comparisonPrefsFromUrl?.showDaily !== undefined) {
       state.comparisonShowDaily = state.comparisonPrefsFromUrl.showDaily;
     } else if (prefs?.showDaily !== undefined) {
