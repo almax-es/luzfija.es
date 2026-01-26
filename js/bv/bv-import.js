@@ -70,6 +70,7 @@ window.BVSim = window.BVSim || {};
 
     const normKey = (h) => stripOuterQuotes(String(h ?? ''))
       .trim()
+      .replace(/([a-z])([A-Z])/g, '$1_$2') // camelCase -> snake_case
       .toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/\(.*?\)/g, '')           // quita parentesis (p.ej. (kWh))
@@ -86,16 +87,28 @@ window.BVSim = window.BVSim || {};
       // consumo / excedentes neteados
       consumo: [
         'ae_kwh', 'consumo_kwh', 'energia_consumida_kwh', 'energia_consumida',
-        'import_kwh', 'importacion_kwh', 'energia_activa_importada_kwh'
+        'import_kwh', 'importacion_kwh', 'energia_activa_importada_kwh',
+        'ae_k_wh',
+        'consumo_k_wh',
+        'energia_consumida_k_wh'
       ],
       excedente: [
         'as_kwh', 'energia_vertida_kwh', 'energia_vertida', 'vertido_kwh',
         'excedente_kwh', 'export_kwh', 'exportacion_kwh', 'inyeccion_kwh',
-        'energia_activa_exportada_kwh'
+        'energia_activa_exportada_kwh',
+        'energiavertida_kwh',
+        'energiavertida',
+        'as_k_wh',
+        'energia_vertida_k_wh'
       ],
       autoconsumo: [
         'ae_autocons_kwh', 'energia_autoconsumida_kwh', 'energia_autoconsumida',
-        'autoconsumo_kwh'
+        'autoconsumo_kwh',
+        'energiaautoconsumida_kwh',
+        'energiaautoconsumida',
+        'ae_k_wh',
+        'consumo_k_wh',
+        'energia_consumida_k_wh'
       ],
       // calidad / real-estimado
       realEstimado: ['real_estimado', 'realest', 'metodoobtencion', 'metodo_obtencion'],
@@ -439,6 +452,7 @@ return hourNum + 1;
     // Intento adicional: formato estandar (Fecha + Hora + AE/AS, con o sin autoconsumo / real-estimado)
     const normKeyX = (h) => String(h ?? '')
       .trim()
+      .replace(/([a-z])([A-Z])/g, '$1_$2') // camelCase -> snake_case
       .toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/\(.*?\)/g, '')
@@ -496,6 +510,9 @@ return hourNum + 1;
 
       const idxAutoconsumo = pickUniqueIndexX(ALIAS_X.autoconsumo, false);
       const idxRealEstimado = pickUniqueIndexX(ALIAS_X.realEstimado, false);
+
+      if (idxAutoconsumo === -3) return null;
+      if (idxRealEstimado === -3) return null;
 
       const records = [];
       let total = 0;
