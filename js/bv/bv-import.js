@@ -70,7 +70,7 @@ window.BVSim = window.BVSim || {};
 
     const normKey = (h) => stripOuterQuotes(String(h ?? ''))
       .trim()
-      .replace(/([a-z])([A-Z])/g, '$1_$2') // camelCase -> snake_case
+      .replace(/([a-z])([A-Z])/g, '$1_$2') // camelCase -> snake_case (energiaVertida -> energia_Vertida)
       .toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/\(.*?\)/g, '')           // quita parentesis (p.ej. (kWh))
@@ -88,30 +88,24 @@ window.BVSim = window.BVSim || {};
       consumo: [
         'ae_kwh', 'consumo_kwh', 'energia_consumida_kwh', 'energia_consumida',
         'import_kwh', 'importacion_kwh', 'energia_activa_importada_kwh',
-        'ae_k_wh',
-        'consumo_k_wh',
-        'energia_consumida_k_wh'
+        'ae_k_wh', 'consumo_k_wh'
       ],
       excedente: [
         'as_kwh', 'energia_vertida_kwh', 'energia_vertida', 'vertido_kwh',
         'excedente_kwh', 'export_kwh', 'exportacion_kwh', 'inyeccion_kwh',
         'energia_activa_exportada_kwh',
-        'energiavertida_kwh',
-        'energiavertida',
-        'as_k_wh',
-        'energia_vertida_k_wh'
+        // Alias compactos por si acaso
+        'energiavertida_kwh', 'energiavertida',
+        'as_k_wh', 'energia_vertida_k_wh'
       ],
       autoconsumo: [
         'ae_autocons_kwh', 'energia_autoconsumida_kwh', 'energia_autoconsumida',
         'autoconsumo_kwh',
-        'energiaautoconsumida_kwh',
-        'energiaautoconsumida',
-        'ae_k_wh',
-        'consumo_k_wh',
-        'energia_consumida_k_wh'
+        // Alias compactos
+        'energiaautoconsumida_kwh', 'energiaautoconsumida'
       ],
       // calidad / real-estimado
-      realEstimado: ['real_estimado', 'realest', 'metodoobtencion', 'metodo_obtencion'],
+      realEstimado: ['real_estimado', 'realest', 'metodoobtencion', 'metodo_obtencion', 'metodoobtencion'],
     };
 
     const sampleForSupport = () => {
@@ -160,7 +154,6 @@ window.BVSim = window.BVSim || {};
     const idxRealEstimado = pickUniqueIndex(ALIAS.realEstimado, 'REAL/ESTIMADO', false);
 
     const records = [];
-    let appliedHourlyNetting = false;
     let totalDataLines = 0;
     let parsedLines = 0;
 
@@ -218,29 +211,16 @@ window.BVSim = window.BVSim || {};
     }
 
     if (records.length === 0) {
-      throw new Error('No se encontraron datos validos en // Validacion anti-silent-fail: algunos ficheros (p.ej. ciertas distribuidoras) pueden traer importacion (AE) y exportacion (AS)
-// simultaneas dentro de la misma hora (datos brutos). En ese caso, aplicamos neteo horario (RD 244/2019) para normalizar.
-const simult = records.filter(r => (r.kwh > 0) && (r.excedente > 0));
-if (simult.length > 0) {
-  for (const r of simult) {
-    const imp = Number(r.kwh) || 0;
-    const exp = Number(r.excedente) || 0;
-    r.kwh = Math.max(imp - exp, 0);
-    r.excedente = Math.max(exp - imp, 0);
-  }
-  appliedHourlyNetting = true;
+      throw new Error('No se encontraron datos validos en el CSV.' + supportHint());
+    }
 
-  // Si aun asi queda simultaneo, entonces si es un CSV incompatible (parse / mapeo incorrecto)
-  const still = records.filter(r => (r.kwh > 0) && (r.excedente > 0));
-  if (still.length > 0) {
-    throw new Error(
-      'CSV incompatible: se han detectado horas con consumo y excedente simultaneos. ' +
-      'No ha sido posible normalizar aplicando neteo horario, por lo que el mapeo de columnas o el separador no parecen correctos. ' +
-      'Envia el ejemplo a soporte.' +
-      supportHint()
-    );
-  }
-}
+    // Validacion anti-silent-fail: en formatos neteados AE/AS no deberian coexistir a la vez
+    const simult = records.filter(r => (r.kwh > 0) && (r.excedente > 0));
+    if (simult.length > 0) {
+      throw new Error(
+        'CSV incompatible: se han detectado horas con consumo y excedente simultaneos. ' +
+        'Esto suele indicar que el fichero NO viene neteado o que el mapeo de columnas no es el correcto. ' +
+        'Si tu distribuidora entrega consumo y generacion brutos, descarga el informe adecuado (autoconsumo/excedentes) o envia el ejemplo a soporte.' +
         supportHint()
       );
     }
@@ -257,8 +237,7 @@ if (simult.length > 0) {
     return {
       records,
       hasExcedenteColumn: idxExcedente >= 0,
-      hasAutoconsumoColumn: idxAutoconsumo >= 0,
-      appliedHourlyNetting
+      hasAutoconsumoColumn: idxAutoconsumo >= 0
     };
   }
 
@@ -467,7 +446,6 @@ return hourNum + 1;
     // Intento adicional: formato estandar (Fecha + Hora + AE/AS, con o sin autoconsumo / real-estimado)
     const normKeyX = (h) => String(h ?? '')
       .trim()
-      .replace(/([a-z])([A-Z])/g, '$1_$2') // camelCase -> snake_case
       .toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/\(.*?\)/g, '')
@@ -525,9 +503,6 @@ return hourNum + 1;
 
       const idxAutoconsumo = pickUniqueIndexX(ALIAS_X.autoconsumo, false);
       const idxRealEstimado = pickUniqueIndexX(ALIAS_X.realEstimado, false);
-
-      if (idxAutoconsumo === -3) return null;
-      if (idxRealEstimado === -3) return null;
 
       const records = [];
       let total = 0;
@@ -785,11 +760,6 @@ return hourNum + 1;
       let warning = null;
       if (!parsed.hasExcedenteColumn) {
         warning = 'No se han detectado excedentes (AS_kWh o similar). Se importara con excedentes = 0.';
-      }
-
-      if (parsed.appliedHourlyNetting) {
-        const msg = 'Se han detectado horas con importacion y exportacion simultaneas; se ha aplicado neteo horario (RD 244/2019) para normalizar.';
-        warning = warning ? (warning + ' ' + msg) : msg;
       }
 
       const meta = buildMeta(records, parsed.hasExcedenteColumn, parsed.hasAutoconsumoColumn);
