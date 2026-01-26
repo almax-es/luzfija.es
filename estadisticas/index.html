@@ -100,25 +100,27 @@
         </div>
 
         <div class="obs-kpis" aria-label="Resumen rápido">
-          <div class="kpi">
-            <div class="kpi__label">Último día disponible</div>
-            <div class="kpi__value" id="kpiLast">—</div>
-            <div class="kpi__sub" id="kpiLastSub">Cargando…</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi__label">Media 7 días</div>
-            <div class="kpi__value" id="kpiAvg7">—</div>
-            <div class="kpi__sub" id="kpiAvg7Sub">Cargando…</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi__label">Media 30 días</div>
-            <div class="kpi__value" id="kpiAvg30">—</div>
-            <div class="kpi__sub" id="kpiAvg30Sub">Cargando…</div>
-          </div>
-          <div class="kpi">
-            <div class="kpi__label">Vs año anterior</div>
-            <div class="kpi__value" id="kpiYoY">—</div>
-            <div class="kpi__sub" id="kpiYoYSub">A mismas fechas</div>
+          <div class="kpis-grid">
+            <div class="kpi">
+              <div class="kpi__label">Último día</div>
+              <div class="kpi__value" id="kpiLast">—</div>
+              <div class="kpi__sub" id="kpiLastSub">Cargando…</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi__label">Media 7 días</div>
+              <div class="kpi__value" id="kpiAvg7">—</div>
+              <div class="kpi__sub" id="kpiAvg7Sub">Cargando…</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi__label">Media 30 días</div>
+              <div class="kpi__value" id="kpiAvg30">—</div>
+              <div class="kpi__sub" id="kpiAvg30Sub">Cargando…</div>
+            </div>
+            <div class="kpi">
+              <div class="kpi__label">Vs año anterior</div>
+              <div class="kpi__value" id="kpiYoY">—</div>
+              <div class="kpi__sub" id="kpiYoYSub">A mismas fechas</div>
+            </div>
           </div>
           <div class="micro" id="coverageText">Cargando datos…</div>
         </div>
@@ -147,7 +149,7 @@
         <div class="planner-grid">
           <div class="planner-controls" aria-label="Controles del planificador">
             <div class="control">
-              <label for="savingsPreset">Uso</label>
+              <label for="savingsPreset">Uso / Electrodoméstico</label>
               <select id="savingsPreset">
                 <option value="lavadora">Lavadora</option>
                 <option value="lavavajillas">Lavavajillas</option>
@@ -156,49 +158,53 @@
                 <option value="personalizado">Personalizado</option>
               </select>
             </div>
-            <div class="control">
-              <label for="savingsDuration">Duración</label>
-              <select id="savingsDuration">
-                <option value="1">1h</option>
-                <option value="2">2h</option>
-                <option value="3">3h</option>
-                <option value="4">4h</option>
-                <option value="6">6h</option>
-              </select>
+            
+            <div class="control--row">
+              <div class="control">
+                <label for="savingsDuration">Duración</label>
+                <select id="savingsDuration">
+                  <option value="1">1h</option>
+                  <option value="2">2h</option>
+                  <option value="3">3h</option>
+                  <option value="4">4h</option>
+                  <option value="6">6h</option>
+                </select>
+              </div>
+              <div class="control">
+                <label for="savingsDayType">Días</label>
+                <select id="savingsDayType">
+                  <option value="any">Cualquiera</option>
+                  <option value="workday">Laborables</option>
+                  <option value="weekend">Findes</option>
+                </select>
+              </div>
             </div>
-            <div class="control">
-              <label for="savingsDayType">Días</label>
-              <select id="savingsDayType">
-                <option value="any">Cualquier día</option>
-                <option value="workday">Laborables</option>
-                <option value="weekend">Fines de semana</option>
-              </select>
-            </div>
-            <div class="control">
-              <label for="savingsKwh">kWh por uso</label>
-              <input id="savingsKwh" type="number" min="0" step="0.1" value="0.8" inputmode="decimal">
-              <div class="micro">Ej: 0,8 kWh</div>
-            </div>
-            <div class="control">
-              <label for="savingsUses">Usos al mes</label>
-              <input id="savingsUses" type="number" min="1" step="1" value="10" inputmode="numeric">
-              <div class="micro">Para estimar ahorro mensual</div>
+
+            <div class="control--row">
+              <div class="control">
+                <label for="savingsKwh">kWh / uso</label>
+                <input id="savingsKwh" type="number" min="0" step="0.1" value="0.8" inputmode="decimal">
+              </div>
+              <div class="control">
+                <label for="savingsUses">Usos / mes</label>
+                <input id="savingsUses" type="number" min="1" step="1" value="10" inputmode="numeric">
+              </div>
             </div>
 
             <div class="micro note">
-              Nota: “Laborables” = lunes a viernes (no contempla festivos). Los resultados se basan en medias horarias del histórico cargado.
+              Nota: “Laborables” = lunes a viernes. Los resultados se basan en medias horarias del histórico.
             </div>
 
             <div class="planner-actions">
-              <a class="btn primary" href="/simulador-bateria-virtual.html">Simula tu factura real</a>
-              <span class="micro muted">El simulador es la respuesta definitiva.</span>
+              <a class="btn primary" href="/simulador-bateria-virtual.html" style="width:100%; justify-content:center;">Simula tu factura real</a>
+              <div class="micro muted" style="margin-top:8px; text-align:center;">El simulador es la respuesta definitiva.</div>
             </div>
           </div>
 
           <div class="planner-results" aria-label="Resultados del planificador">
             <div class="results-head">
-              <h3>Ventanas recomendadas</h3>
-              <p class="muted micro">Top 3 por coste medio (€/kWh) en la franja seleccionada.</p>
+              <h3>Mejores ventanas para iniciar</h3>
+              <p class="muted micro">Top 3 franjas con menor coste medio para el uso seleccionado.</p>
             </div>
 
             <div id="planResults" class="results-grid">

@@ -315,13 +315,25 @@
         <div class="result-card">
           <div class="result-title">
             <strong>${hourRangeLabel(o.start, o.end)}</strong>
-            <span class="badge">#${idx + 1}</span>
+            <span class="badge">Opción #${idx + 1}</span>
           </div>
           <div class="result-metrics">
-            <div>Precio medio: <strong>${fmtCents(o.avg)}</strong></div>
-            <div>Coste/uso: <strong>${(costUse === null) ? '—' : `${toComma(costUse.toFixed(2))} €`}</strong></div>
-            <div>Ahorro/uso vs media: <strong>${(saveUse === null) ? '—' : `${toComma(saveUse.toFixed(2))} €`}</strong></div>
-            <div>Ahorro/mes: <strong>${(saveMonth === null) ? '—' : `${toComma(saveMonth.toFixed(2))} €`}</strong></div>
+            <div class="metric-item">
+              <span>Precio medio:</span>
+              <strong>${fmtCents(o.avg)}</strong>
+            </div>
+            <div class="metric-item">
+              <span>Coste por uso:</span>
+              <strong>${(costUse === null) ? '—' : `${toComma(costUse.toFixed(2))} €`}</strong>
+            </div>
+            <div class="metric-item">
+              <span>Ahorro vs media:</span>
+              <strong style="color:var(--obs-accent)">${(saveUse === null) ? '—' : `${toComma(saveUse.toFixed(2))} €`}</strong>
+            </div>
+            <div class="metric-item" style="margin-top:4px; padding-top:8px; border-top:1px dashed var(--obs-border)">
+              <span>Ahorro mensual:</span>
+              <strong style="font-size:1.1rem; color:var(--obs-accent)">${(saveMonth === null) ? '—' : `${toComma(saveMonth.toFixed(2))} €`}</strong>
+            </div>
           </div>
         </div>
       `;
