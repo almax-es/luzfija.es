@@ -92,15 +92,13 @@
       hora: ['hora', 'hour', 'periodo', 'intervalo'],
       consumo: [
         'ae_kwh', 'consumo_kwh', 'energia_consumida_kwh', 'energia_consumida',
-        'import_kwh', 'importacion_kwh', 'energia_activa_importada_kwh',
-        'ae_k_wh', 'consumo_k_wh'
+        'import_kwh', 'importacion_kwh', 'energia_activa_importada_kwh'
       ],
       excedente: [
         'as_kwh', 'energia_vertida_kwh', 'energia_vertida', 'vertido_kwh',
         'excedente_kwh', 'export_kwh', 'exportacion_kwh', 'inyeccion_kwh',
         'energia_activa_exportada_kwh',
-        'energiavertida_kwh', 'energiavertida',
-        'as_k_wh', 'energia_vertida_k_wh'
+        'energiavertida_kwh', 'energiavertida'
       ],
       autoconsumo: [
         'ae_autocons_kwh', 'energia_autoconsumida_kwh', 'energia_autoconsumida',
