@@ -267,10 +267,10 @@ ES12345,01/01/2024,2,2.456,Real`;
     expect(resultado.dias).toBe(1);
   });
 
-  it('Debe rechazar horas fuera de rango (1-24)', async () => {
+  it('Debe rechazar horas fuera de rango (1-25)', async () => {
     const csvContent = `CUPS;Fecha;Hora;Consumo_kWh;Método
 ES12345;01/01/2024;0;"1,234";Real
-ES12345;01/01/2024;25;"2,456";Real
+ES12345;01/01/2024;26;"2,456";Real
 ES12345;01/01/2024;1;"3,456";Real`;
 
     const blob = new Blob([csvContent], { type: 'text/csv' });
