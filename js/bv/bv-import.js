@@ -70,6 +70,7 @@ window.BVSim = window.BVSim || {};
 
     const normKey = (h) => stripOuterQuotes(String(h ?? ''))
       .trim()
+      .replace(/([a-z])([A-Z])/g, '$1_$2') // camelCase -> snake_case (energiaVertida -> energia_Vertida)
       .toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/\(.*?\)/g, '')           // quita parentesis (p.ej. (kWh))
@@ -91,14 +92,18 @@ window.BVSim = window.BVSim || {};
       excedente: [
         'as_kwh', 'energia_vertida_kwh', 'energia_vertida', 'vertido_kwh',
         'excedente_kwh', 'export_kwh', 'exportacion_kwh', 'inyeccion_kwh',
-        'energia_activa_exportada_kwh'
+        'energia_activa_exportada_kwh',
+        // Alias compactos por si acaso
+        'energiavertida_kwh', 'energiavertida'
       ],
       autoconsumo: [
         'ae_autocons_kwh', 'energia_autoconsumida_kwh', 'energia_autoconsumida',
-        'autoconsumo_kwh'
+        'autoconsumo_kwh',
+        // Alias compactos
+        'energiaautoconsumida_kwh', 'energiaautoconsumida'
       ],
       // calidad / real-estimado
-      realEstimado: ['real_estimado', 'realest', 'metodoobtencion', 'metodo_obtencion'],
+      realEstimado: ['real_estimado', 'realest', 'metodoobtencion', 'metodo_obtencion', 'metodoobtencion'],
     };
 
     const sampleForSupport = () => {
