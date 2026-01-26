@@ -22,7 +22,6 @@
     kpiAvg30Sub: document.getElementById('kpiAvg30Sub'),
     kpiYoY: document.getElementById('kpiYoY'),
     kpiYoYSub: document.getElementById('kpiYoYSub'),
-    coverageText: document.getElementById('coverageText'),
 
     trendModeMonthly: document.getElementById('trendModeMonthly'),
     trendModeDaily: document.getElementById('trendModeDaily'),
@@ -124,6 +123,7 @@
   }
 
   function setActive(elOn, elOff) {
+    if (!elOn || !elOff) return;
     elOn.classList.add('is-active');
     elOn.setAttribute('aria-selected', 'true');
     elOff.classList.remove('is-active');
@@ -131,32 +131,30 @@
   }
 
   function setLoadingText() {
-    els.kpiLast.textContent = '—';
-    els.kpiAvg7.textContent = '—';
-    els.kpiAvg30.textContent = '—';
-    els.kpiYoY.textContent = '—';
+    if (els.kpiLast) els.kpiLast.textContent = '—';
+    if (els.kpiAvg7) els.kpiAvg7.textContent = '—';
+    if (els.kpiAvg30) els.kpiAvg30.textContent = '—';
+    if (els.kpiYoY) els.kpiYoY.textContent = '—';
 
-    els.kpiLastSub.textContent = 'Cargando…';
-    els.kpiAvg7Sub.textContent = 'Cargando…';
-    els.kpiAvg30Sub.textContent = 'Cargando…';
-    els.kpiYoYSub.textContent = 'A mismas fechas';
+    if (els.kpiLastSub) els.kpiLastSub.textContent = 'Cargando…';
+    if (els.kpiAvg7Sub) els.kpiAvg7Sub.textContent = 'Cargando…';
+    if (els.kpiAvg30Sub) els.kpiAvg30Sub.textContent = 'Cargando…';
+    if (els.kpiYoYSub) els.kpiYoYSub.textContent = 'A mismas fechas';
 
-    els.coverageText.textContent = 'Cargando datos…';
-    els.trendMeta.textContent = 'Cargando…';
-    els.hourlyMeta.textContent = 'Cargando…';
-    els.hourlyCallout.textContent = 'Consejo: Cargando…';
+    if (els.trendMeta) els.trendMeta.textContent = 'Cargando…';
+    if (els.hourlyMeta) els.hourlyMeta.textContent = 'Cargando…';
+    if (els.hourlyCallout) els.hourlyCallout.textContent = 'Consejo: Cargando…';
 
-    els.insightCheapest.textContent = '—';
-    els.insightWorst.textContent = '—';
-    els.insightRange.textContent = '—';
+    if (els.insightCheapest) els.insightCheapest.textContent = '—';
+    if (els.insightWorst) els.insightWorst.textContent = '—';
+    if (els.insightRange) els.insightRange.textContent = '—';
   }
 
   function showError(msg) {
-    els.coverageText.textContent = msg;
-    els.kpiLastSub.textContent = msg;
-    els.trendMeta.textContent = msg;
-    els.hourlyMeta.textContent = msg;
-    els.hourlyCallout.textContent = msg;
+    if (els.kpiLastSub) els.kpiLastSub.textContent = msg;
+    if (els.trendMeta) els.trendMeta.textContent = msg;
+    if (els.hourlyMeta) els.hourlyMeta.textContent = msg;
+    if (els.hourlyCallout) els.hourlyCallout.textContent = msg;
   }
 
   function escapeHtml(s) {
@@ -456,15 +454,9 @@
     els.insightRange.textContent = `${fmtCents(kpis.minPrice)} – ${fmtCents(kpis.maxPrice)}`;
   }
 
-  function renderCoverage(status, geo, year) {
-    const zone = geoNames[String(geo)] || 'Zona';
-    const months = (status.monthsLoaded || []).join(', ');
-    const updated = status.updatedUntil ? status.updatedUntil : '—';
-    const days = status.loadedDays || 0;
-
-    let msg = `${zone} · ${year} · ${days} días · actualizado hasta ${updated}`;
-    if (months) msg += ` · meses: ${months}`;
-    els.coverageText.textContent = msg;
+  function setRange(kpis) {
+    if (!kpis) return;
+    els.insightRange.textContent = `${fmtCents(kpis.minPrice)} – ${fmtCents(kpis.maxPrice)}`;
   }
 
   function buildCompareYearChips(allYearsDesc, selectedYears, onToggle) {
@@ -631,7 +623,6 @@
       }
 
       const status = PVPC_STATS.getYearStatus(yearData);
-      renderCoverage(status, state.geo, state.year);
 
       const daily = PVPC_STATS.getDailyEvolution(yearData);
       const monthly = buildMonthlyFromDaily(daily.labels, daily.data);
