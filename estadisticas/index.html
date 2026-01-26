@@ -21,8 +21,8 @@
   <!-- Navegación Unificada (mantener estilo del sitio) -->
   <nav class="site-nav">
     <div class="site-nav__inner">
-      <div class="brand" style="display:flex; align-items:center; gap:12px;">
-        <div class="logo" aria-hidden="true" style="width:42px; height:42px;">
+      <a href="/" class="brand">
+        <div class="logo" aria-hidden="true" style="width:40px; height:40px;">
           <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
             <defs>
               <linearGradient id="logoGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
@@ -39,11 +39,11 @@
             <path d="M55 5 L25 55 H45 L35 95 L75 45 H55 Z" fill="url(#logoGrad2)" opacity="0.35"></path>
           </svg>
         </div>
-        <div style="line-height:1.1">
-          <div style="font-weight:800; letter-spacing:.2px;">LuzFija.es</div>
-          <div style="font-size:.9rem; opacity:.75;">Ahorro · PVPC · Solar</div>
+        <div class="brand__text">
+          <div class="brand__name">LuzFija.es</div>
+          <div class="brand__sub">Ahorro · PVPC · Solar</div>
         </div>
-      </div>
+      </a>
 
       <div class="site-nav__links">
         <a href="/" class="site-nav__link">Comparador</a>
@@ -61,11 +61,10 @@
   <main class="pvpc-obs" aria-live="polite">
     <header class="obs-hero">
       <div class="obs-hero__copy">
-        <p class="obs-eyebrow">Observatorio PVPC</p>
-        <h1>PVPC explicado con números útiles</h1>
+        <div class="obs-eyebrow">Datos Oficiales REE</div>
+        <h1>Precios PVPC<br>en tiempo real</h1>
         <p class="obs-lead">
-          Aquí no vienes a “ver gráficos”. Vienes a <strong>decidir</strong>: cuándo poner la lavadora, qué horas suelen ser más baratas
-          y cómo va el año comparado con otros.
+          Consulta la evolución del mercado regulado, identifica <strong>patrones de ahorro</strong> y planifica tus consumos con datos históricos consolidados.
         </p>
       </div>
 
