@@ -128,96 +128,11 @@
     </header>
 
     <nav class="obs-subnav" aria-label="Secciones del observatorio">
-      <a href="#planificador">Planificador</a>
       <a href="#evolucion">Evolución</a>
       <a href="#horas">Horas</a>
       <a href="#comparativa">Comparativa</a>
       <a href="#faq">FAQ</a>
     </nav>
-
-    <!-- 1) PLANIFICADOR -->
-    <section id="planificador" class="obs-section">
-      <div class="obs-section__head">
-        <h2>Planificador de consumo</h2>
-        <p class="muted">
-          Te digo <strong>cuándo suele ser más barato</strong> poner un uso típico según el histórico del año seleccionado.
-          Es una guía práctica: no intenta predecir cada día, sino darte una <strong>ventana razonable</strong> para ahorrar.
-        </p>
-      </div>
-
-      <div class="obs-card">
-        <div class="planner-grid">
-          <div class="planner-controls" aria-label="Controles del planificador">
-            <div class="control">
-              <label for="savingsPreset">Uso / Electrodoméstico</label>
-              <select id="savingsPreset">
-                <option value="lavadora">Lavadora</option>
-                <option value="lavavajillas">Lavavajillas</option>
-                <option value="termo">Termo eléctrico</option>
-                <option value="coche">Coche eléctrico</option>
-                <option value="personalizado">Personalizado</option>
-              </select>
-            </div>
-            
-            <div class="control--row">
-              <div class="control">
-                <label for="savingsDuration">Duración</label>
-                <select id="savingsDuration">
-                  <option value="1">1h</option>
-                  <option value="2">2h</option>
-                  <option value="3">3h</option>
-                  <option value="4">4h</option>
-                  <option value="6">6h</option>
-                </select>
-              </div>
-              <div class="control">
-                <label for="savingsDayType">Días</label>
-                <select id="savingsDayType">
-                  <option value="any">Cualquiera</option>
-                  <option value="workday">Laborables</option>
-                  <option value="weekend">Findes</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="control--row">
-              <div class="control">
-                <label for="savingsKwh">kWh / uso</label>
-                <input id="savingsKwh" type="number" min="0" step="0.1" value="0.8" inputmode="decimal">
-              </div>
-              <div class="control">
-                <label for="savingsUses">Usos / mes</label>
-                <input id="savingsUses" type="number" min="1" step="1" value="10" inputmode="numeric">
-              </div>
-            </div>
-
-            <div class="micro note">
-              Nota: “Laborables” = lunes a viernes. Los resultados se basan en medias horarias del histórico.
-            </div>
-
-            <div class="planner-actions">
-              <a class="btn primary" href="/simulador-bateria-virtual.html" style="width:100%; justify-content:center;">Simula tu factura real</a>
-              <div class="micro muted" style="margin-top:8px; text-align:center;">El simulador es la respuesta definitiva.</div>
-            </div>
-          </div>
-
-          <div class="planner-results" aria-label="Resultados del planificador">
-            <div class="results-head">
-              <h3>Mejores ventanas para iniciar</h3>
-              <p class="muted micro">Top 3 franjas con menor coste medio para el uso seleccionado.</p>
-            </div>
-
-            <div id="planResults" class="results-grid">
-              <div class="result-skel"></div>
-              <div class="result-skel"></div>
-              <div class="result-skel"></div>
-            </div>
-
-            <div class="micro" id="planFootnote"></div>
-          </div>
-        </div>
-      </div>
-    </section>
 
     <!-- 2) EVOLUCIÓN -->
     <section id="evolucion" class="obs-section">

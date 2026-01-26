@@ -9,14 +9,6 @@
     '8745': 'Melilla'
   };
 
-  const presetDefaults = {
-    lavadora: { duration: 1, kwh: 0.8 },
-    lavavajillas: { duration: 2, kwh: 1.2 },
-    termo: { duration: 3, kwh: 2.5 },
-    coche: { duration: 4, kwh: 8.0 },
-    personalizado: { duration: 1, kwh: 1.0 }
-  };
-
   const els = {
     geo: document.getElementById('geoSelector'),
     year: document.getElementById('yearSelector'),
@@ -32,14 +24,6 @@
     kpiYoY: document.getElementById('kpiYoY'),
     kpiYoYSub: document.getElementById('kpiYoYSub'),
     coverageText: document.getElementById('coverageText'),
-
-    preset: document.getElementById('savingsPreset'),
-    duration: document.getElementById('savingsDuration'),
-    dayType: document.getElementById('savingsDayType'),
-    kwh: document.getElementById('savingsKwh'),
-    uses: document.getElementById('savingsUses'),
-    planResults: document.getElementById('planResults'),
-    planFootnote: document.getElementById('planFootnote'),
 
     trendModeMonthly: document.getElementById('trendModeMonthly'),
     trendModeDaily: document.getElementById('trendModeDaily'),
@@ -103,11 +87,6 @@
     const defaults = {
       geo: '8741',
       year: String(now.getFullYear()),
-      savingsPreset: 'lavadora',
-      savingsDuration: '1',
-      savingsDayType: 'any',
-      savingsKwh: '0.8',
-      savingsUses: '10',
       trendMode: 'monthly',
       compareYears: ''
     };
@@ -118,11 +97,6 @@
     return {
       geo,
       year,
-      savingsPreset: p.get('savingsPreset') || defaults.savingsPreset,
-      savingsDuration: p.get('savingsDuration') || defaults.savingsDuration,
-      savingsDayType: p.get('savingsDayType') || defaults.savingsDayType,
-      savingsKwh: p.get('savingsKwh') || defaults.savingsKwh,
-      savingsUses: p.get('savingsUses') || defaults.savingsUses,
       trendMode: p.get('trendMode') || defaults.trendMode,
       compareYears: p.get('compareYears') || defaults.compareYears
     };
@@ -134,13 +108,6 @@
 
     p.set('geo', state.geo);
     p.set('year', state.year);
-
-    p.set('savingsPreset', state.savingsPreset);
-    p.set('savingsDuration', String(state.savingsDuration));
-    p.set('savingsDayType', state.savingsDayType);
-    p.set('savingsKwh', String(state.savingsKwh));
-    p.set('savingsUses', String(state.savingsUses));
-
     p.set('trendMode', state.trendMode);
 
     if (state.compareYears && state.compareYears.length) {
@@ -191,7 +158,6 @@
     els.trendMeta.textContent = msg;
     els.hourlyMeta.textContent = msg;
     els.hourlyCallout.textContent = msg;
-    els.planResults.innerHTML = `<div class="result-card"><strong>No se han podido cargar datos.</strong><div class="micro muted">${escapeHtml(msg)}</div></div>`;
   }
 
   function escapeHtml(s) {
@@ -271,78 +237,6 @@
 
     const avg = sums.map((s, i) => counts[i] ? s / counts[i] : null);
     return { avg, counts };
-  }
-
-  function setPlannerSkeleton() {
-    els.planResults.innerHTML = `
-      <div class="result-skel"></div>
-      <div class="result-skel"></div>
-      <div class="result-skel"></div>
-    `;
-    els.planFootnote.textContent = '';
-  }
-
-  function renderPlanner(yearData, state, yearKPIs) {
-    const duration = Number(state.savingsDuration);
-    const kwh = Number(state.savingsKwh);
-    const uses = Number(state.savingsUses);
-    const dayType = state.savingsDayType;
-
-    const { avg: hourlyAvg, counts } = computeHourlyByDayType(yearData, dayType);
-    const coverageHours = counts.reduce((a,b) => a + b, 0);
-    if (!coverageHours) {
-      els.planResults.innerHTML = `<div class="result-card"><strong>Sin datos suficientes</strong><div class="micro muted">No hay horas cargadas para calcular ventanas.</div></div>`;
-      return;
-    }
-
-    const options = computeWindowOptions(hourlyAvg, duration);
-    const top = options.slice(0, 3);
-
-    const avgPrice = Number.isFinite(yearKPIs?.avgPrice) ? yearKPIs.avgPrice : safeMean(hourlyAvg);
-
-    if (!top.length) {
-      els.planResults.innerHTML = `<div class="result-card"><strong>Sin datos suficientes</strong><div class="micro muted">No se pueden calcular ventanas para esa duración.</div></div>`;
-      return;
-    }
-
-    const html = top.map((o, idx) => {
-      const costUse = Number.isFinite(kwh) ? kwh * o.avg : null;
-      const costAvg = (Number.isFinite(kwh) && Number.isFinite(avgPrice)) ? kwh * avgPrice : null;
-      const saveUse = (costAvg !== null && costUse !== null) ? (costAvg - costUse) : null;
-      const saveMonth = (saveUse !== null && Number.isFinite(uses)) ? saveUse * uses : null;
-
-      return `
-        <div class="result-card">
-          <div class="result-title">
-            <strong>${hourRangeLabel(o.start, o.end)}</strong>
-            <span class="badge">Opción #${idx + 1}</span>
-          </div>
-          <div class="result-metrics">
-            <div class="metric-item">
-              <span>Precio medio:</span>
-              <strong>${fmtCents(o.avg)}</strong>
-            </div>
-            <div class="metric-item">
-              <span>Coste por uso:</span>
-              <strong>${(costUse === null) ? '—' : `${toComma(costUse.toFixed(2))} €`}</strong>
-            </div>
-            <div class="metric-item">
-              <span>Ahorro vs media:</span>
-              <strong style="color:var(--obs-accent)">${(saveUse === null) ? '—' : `${toComma(saveUse.toFixed(2))} €`}</strong>
-            </div>
-            <div class="metric-item" style="margin-top:4px; padding-top:8px; border-top:1px dashed var(--obs-border)">
-              <span>Ahorro mensual:</span>
-              <strong style="font-size:1.1rem; color:var(--obs-accent)">${(saveMonth === null) ? '—' : `${toComma(saveMonth.toFixed(2))} €`}</strong>
-            </div>
-          </div>
-        </div>
-      `;
-    }).join('');
-
-    els.planResults.innerHTML = html;
-
-    const dayTypeLabel = dayType === 'workday' ? 'laborables' : (dayType === 'weekend' ? 'fines de semana' : 'cualquier día');
-    els.planFootnote.textContent = `Calculado con medias horarias (${dayTypeLabel}). Duración: ${duration}h · ${toComma(kwh.toFixed(1))} kWh/uso · ${uses} usos/mes.`;
   }
 
   function buildTrendDataset(daily, monthly, mode) {
@@ -620,13 +514,6 @@
   function applyStateToControls(state) {
     if (els.geo) els.geo.value = state.geo;
     if (els.year) els.year.value = state.year;
-
-    if (els.preset) els.preset.value = state.savingsPreset;
-    if (els.duration) els.duration.value = String(state.savingsDuration);
-    if (els.dayType) els.dayType.value = state.savingsDayType;
-    if (els.kwh) els.kwh.value = String(state.savingsKwh);
-    if (els.uses) els.uses.value = String(state.savingsUses);
-
     setTrendMode(state);
   }
 
@@ -673,24 +560,6 @@
     els.geo.addEventListener('change', () => { state.geo = els.geo.value; onChange(); });
     els.year.addEventListener('change', () => { state.year = els.year.value; onChange(); });
 
-    els.preset.addEventListener('change', () => {
-      state.savingsPreset = els.preset.value;
-      const def = presetDefaults[state.savingsPreset] || presetDefaults.personalizado;
-      // Si no es personalizado, autocompletar para facilitar al usuario
-      if (state.savingsPreset !== 'personalizado') {
-        state.savingsDuration = def.duration;
-        state.savingsKwh = def.kwh;
-        els.duration.value = String(def.duration);
-        els.kwh.value = String(def.kwh);
-      }
-      onChange();
-    });
-
-    els.duration.addEventListener('change', () => { state.savingsDuration = Number(els.duration.value); onChange(); });
-    els.dayType.addEventListener('change', () => { state.savingsDayType = els.dayType.value; onChange(); });
-    els.kwh.addEventListener('change', () => { state.savingsKwh = Number(els.kwh.value); onChange(); });
-    els.uses.addEventListener('change', () => { state.savingsUses = Number(els.uses.value); onChange(); });
-
     els.trendModeMonthly.addEventListener('click', () => { state.trendMode = 'monthly'; rerender({ push: false }); });
     els.trendModeDaily.addEventListener('click', () => { state.trendMode = 'daily'; rerender({ push: false }); });
   }
@@ -736,11 +605,6 @@
     const state = {
       geo: params.geo,
       year: params.year,
-      savingsPreset: params.savingsPreset,
-      savingsDuration: Number(params.savingsDuration),
-      savingsDayType: params.savingsDayType,
-      savingsKwh: Number(params.savingsKwh),
-      savingsUses: Number(params.savingsUses),
       trendMode: params.trendMode === 'daily' ? 'daily' : 'monthly',
       compareYears: normalizeSelectedYears(params.year, params.compareYears)
     };
@@ -749,7 +613,6 @@
 
     const rerender = debounce(async ({ push = false } = {}) => {
       setLoadingText();
-      setPlannerSkeleton();
       writeParams(state, { replace: !push });
 
       // activar UI de modo
@@ -815,9 +678,6 @@
       els.trendMeta.textContent = `${geoNames[String(state.geo)] || 'Zona'} · ${state.year} · meses cargados: ${monthsLoaded}`;
       setInsights(monthly);
       setRange(kpis);
-
-      // Planner (ventanas recomendadas)
-      renderPlanner(yearData, state, kpis);
 
       // Horario
       const hourlyAll = PVPC_STATS.getHourlyProfile(yearData);
