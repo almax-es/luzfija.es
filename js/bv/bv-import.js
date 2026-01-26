@@ -148,16 +148,34 @@ const esReal = isDatadisNuevo
   function parseCSVIberdrolaCliente(lines) {
     const records = [];
 
+    // Iberdrola suele exportar con separador ';' (a veces con ';' final en cada línea).
+    // Detectamos el separador desde la cabecera y mapeamos columnas por nombre para ser robustos.
+    const headerLine = stripBomAndTrim(lines[0]);
+    const separator = detectCSVSeparator(headerLine);
+
+    const headerColsRaw = splitCSVLine(headerLine, separator);
+    const headerCols = headerColsRaw.map(c => stripOuterQuotes(String(c || '')).trim().toLowerCase());
+    const idxFechaHora = headerCols.indexOf('fecha-hora');
+    const idxConsumoWh = headerCols.indexOf('consumo wh');
+    const idxGeneracionWh = headerCols.indexOf('generacion wh');
+
+    if (idxFechaHora < 0 || idxConsumoWh < 0 || idxGeneracionWh < 0) {
+      throw new Error('Formato Iberdrola no reconocido: faltan columnas FECHA-HORA / CONSUMO Wh / GENERACION Wh');
+    }
+
     for (let i = 1; i < lines.length; i++) {
       const line = lines[i].trim();
       if (!line) continue;
 
-      const cols = splitCSVLine(line, ',');
-      if (cols.length < 6) continue;
+      let cols = splitCSVLine(line, separator);
+      // Si viene con separador final (p.ej. ';' al final), nos queda una última columna vacía.
+      if (cols.length && String(cols[cols.length - 1]).trim() === '') cols = cols.slice(0, -1);
 
-      const fechaHoraStr = stripOuterQuotes(cols[1]);
-      const consumoWhStr = stripOuterQuotes(cols[4]);
-      const generacionWhStr = stripOuterQuotes(cols[5]);
+      if (cols.length <= Math.max(idxFechaHora, idxConsumoWh, idxGeneracionWh)) continue;
+
+      const fechaHoraStr = stripOuterQuotes(cols[idxFechaHora]);
+      const consumoWhStr = stripOuterQuotes(cols[idxConsumoWh]);
+      const generacionWhStr = stripOuterQuotes(cols[idxGeneracionWh]);
 
       if (!fechaHoraStr || !consumoWhStr) continue;
 
