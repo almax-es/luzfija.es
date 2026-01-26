@@ -160,6 +160,7 @@ window.BVSim = window.BVSim || {};
     const idxRealEstimado = pickUniqueIndex(ALIAS.realEstimado, 'REAL/ESTIMADO', false);
 
     const records = [];
+    let appliedHourlyNetting = false;
     let totalDataLines = 0;
     let parsedLines = 0;
 
@@ -217,16 +218,29 @@ window.BVSim = window.BVSim || {};
     }
 
     if (records.length === 0) {
-      throw new Error('No se encontraron datos validos en el CSV.' + supportHint());
-    }
+      throw new Error('No se encontraron datos validos en // Validacion anti-silent-fail: algunos ficheros (p.ej. ciertas distribuidoras) pueden traer importacion (AE) y exportacion (AS)
+// simultaneas dentro de la misma hora (datos brutos). En ese caso, aplicamos neteo horario (RD 244/2019) para normalizar.
+const simult = records.filter(r => (r.kwh > 0) && (r.excedente > 0));
+if (simult.length > 0) {
+  for (const r of simult) {
+    const imp = Number(r.kwh) || 0;
+    const exp = Number(r.excedente) || 0;
+    r.kwh = Math.max(imp - exp, 0);
+    r.excedente = Math.max(exp - imp, 0);
+  }
+  appliedHourlyNetting = true;
 
-    // Validacion anti-silent-fail: en formatos neteados AE/AS no deberian coexistir a la vez
-    const simult = records.filter(r => (r.kwh > 0) && (r.excedente > 0));
-    if (simult.length > 0) {
-      throw new Error(
-        'CSV incompatible: se han detectado horas con consumo y excedente simultaneos. ' +
-        'Esto suele indicar que el fichero NO viene neteado o que el mapeo de columnas no es el correcto. ' +
-        'Si tu distribuidora entrega consumo y generacion brutos, descarga el informe adecuado (autoconsumo/excedentes) o envia el ejemplo a soporte.' +
+  // Si aun asi queda simultaneo, entonces si es un CSV incompatible (parse / mapeo incorrecto)
+  const still = records.filter(r => (r.kwh > 0) && (r.excedente > 0));
+  if (still.length > 0) {
+    throw new Error(
+      'CSV incompatible: se han detectado horas con consumo y excedente simultaneos. ' +
+      'No ha sido posible normalizar aplicando neteo horario, por lo que el mapeo de columnas o el separador no parecen correctos. ' +
+      'Envia el ejemplo a soporte.' +
+      supportHint()
+    );
+  }
+}
         supportHint()
       );
     }
@@ -243,7 +257,8 @@ window.BVSim = window.BVSim || {};
     return {
       records,
       hasExcedenteColumn: idxExcedente >= 0,
-      hasAutoconsumoColumn: idxAutoconsumo >= 0
+      hasAutoconsumoColumn: idxAutoconsumo >= 0,
+      appliedHourlyNetting
     };
   }
 
@@ -770,6 +785,11 @@ return hourNum + 1;
       let warning = null;
       if (!parsed.hasExcedenteColumn) {
         warning = 'No se han detectado excedentes (AS_kWh o similar). Se importara con excedentes = 0.';
+      }
+
+      if (parsed.appliedHourlyNetting) {
+        const msg = 'Se han detectado horas con importacion y exportacion simultaneas; se ha aplicado neteo horario (RD 244/2019) para normalizar.';
+        warning = warning ? (warning + ' ' + msg) : msg;
       }
 
       const meta = buildMeta(records, parsed.hasExcedenteColumn, parsed.hasAutoconsumoColumn);
