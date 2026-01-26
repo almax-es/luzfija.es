@@ -250,8 +250,17 @@
     } catch (_) {}
   }
 
+  function createGradient(ctx, color) {
+    const gradient = ctx.createLinearGradient(0, 0, 0, 400);
+    gradient.addColorStop(0, color.replace(')', ', 0.4)').replace('rgb', 'rgba'));
+    gradient.addColorStop(1, color.replace(')', ', 0.0)').replace('rgb', 'rgba'));
+    return gradient;
+  }
+
   function renderTrendChart(daily, monthly, mode, accent, gridColor, textColor) {
     const ds = buildTrendDataset(daily, monthly, mode);
+    const ctx = canvases.trend.getContext('2d');
+    const gradient = createGradient(ctx, accent);
 
     const config = {
       type: 'line',
@@ -261,19 +270,33 @@
           label: 'PVPC (media)',
           data: ds.data,
           borderColor: accent,
-          backgroundColor: accent,
-          borderWidth: 2,
+          backgroundColor: gradient,
+          borderWidth: 3,
           pointRadius: 0,
-          tension: 0.25,
-          fill: false
+          pointHoverRadius: 6,
+          pointHoverBackgroundColor: accent,
+          pointHoverBorderColor: '#fff',
+          pointHoverBorderWidth: 2,
+          tension: 0.4,
+          fill: true
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
         plugins: {
           legend: { display: false },
           tooltip: {
+            backgroundColor: 'rgba(20, 20, 22, 0.9)',
+            titleColor: '#fff',
+            bodyColor: '#ccc',
+            padding: 12,
+            cornerRadius: 12,
+            displayColors: false,
             callbacks: {
               label: (ctx) => ` ${fmtCents(ctx.parsed.y)}`
             }
@@ -281,12 +304,13 @@
         },
         scales: {
           x: {
-            ticks: { color: textColor, maxRotation: 0, autoSkip: true, maxTicksLimit: mode === 'daily' ? 8 : 12 },
-            grid: { color: gridColor }
+            ticks: { color: textColor, maxRotation: 0, autoSkip: true, maxTicksLimit: mode === 'daily' ? 8 : 12, font: { family: 'Outfit', weight: '600' } },
+            grid: { display: false }
           },
           y: {
-            ticks: { color: textColor, callback: (v) => `${toComma(Number(v).toFixed(2))}` },
-            grid: { color: gridColor }
+            ticks: { color: textColor, callback: (v) => `${toComma(Number(v).toFixed(2))}`, font: { family: 'Outfit', weight: '600' } },
+            grid: { color: gridColor, borderDash: [4, 4] },
+            border: { display: false }
           }
         }
       }
@@ -298,27 +322,41 @@
 
   function renderHourlyChart(hourlyAvg, accent, gridColor, textColor) {
     const labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
+    const ctx = canvases.hourly.getContext('2d');
+    const gradient = createGradient(ctx, accent);
+
     const config = {
       type: 'line',
       data: {
         labels,
         datasets: [{
-          label: 'PVPC por hora (media)',
+          label: 'PVPC por hora',
           data: hourlyAvg,
           borderColor: accent,
-          backgroundColor: accent,
-          borderWidth: 2,
+          backgroundColor: gradient,
+          borderWidth: 3,
           pointRadius: 0,
-          tension: 0.25,
-          fill: false
+          pointHoverRadius: 6,
+          pointHoverBackgroundColor: accent,
+          pointHoverBorderColor: '#fff',
+          tension: 0.4,
+          fill: true
         }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
         plugins: {
           legend: { display: false },
           tooltip: {
+            backgroundColor: 'rgba(20, 20, 22, 0.9)',
+            padding: 12,
+            cornerRadius: 12,
+            displayColors: false,
             callbacks: {
               label: (ctx) => ` ${fmtCents(ctx.parsed.y)}`
             }
@@ -326,12 +364,13 @@
         },
         scales: {
           x: {
-            ticks: { color: textColor, maxRotation: 0, autoSkip: true, maxTicksLimit: 8 },
-            grid: { color: gridColor }
+            ticks: { color: textColor, maxRotation: 0, autoSkip: true, maxTicksLimit: 8, font: { family: 'Outfit', weight: '600' } },
+            grid: { display: false }
           },
           y: {
-            ticks: { color: textColor, callback: (v) => `${toComma(Number(v).toFixed(2))}` },
-            grid: { color: gridColor }
+            ticks: { color: textColor, callback: (v) => `${toComma(Number(v).toFixed(2))}`, font: { family: 'Outfit', weight: '600' } },
+            grid: { color: gridColor, borderDash: [4, 4] },
+            border: { display: false }
           }
         }
       }
@@ -356,9 +395,10 @@
       data: d.data,
       borderColor: colors[i % colors.length],
       backgroundColor: colors[i % colors.length],
-      borderWidth: 2,
+      borderWidth: 3,
       pointRadius: 0,
-      tension: 0.25,
+      pointHoverRadius: 6,
+      tension: 0.4,
       fill: false
     }));
 
@@ -368,13 +408,26 @@
       options: {
         responsive: true,
         maintainAspectRatio: false,
+        interaction: {
+          mode: 'index',
+          intersect: false,
+        },
         plugins: {
-          legend: { display: true, labels: { color: textColor, boxWidth: 10, usePointStyle: true } },
-          tooltip: { callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${fmtCents(ctx.parsed.y)}` } }
+          legend: { display: true, labels: { color: textColor, boxWidth: 10, usePointStyle: true, font: { family: 'Outfit', weight: '700' } } },
+          tooltip: {
+            backgroundColor: 'rgba(20, 20, 22, 0.9)',
+            padding: 12,
+            cornerRadius: 12,
+            callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ${fmtCents(ctx.parsed.y)}` }
+          }
         },
         scales: {
-          x: { ticks: { color: textColor }, grid: { color: gridColor } },
-          y: { ticks: { color: textColor, callback: (v) => `${toComma(Number(v).toFixed(2))}` }, grid: { color: gridColor } }
+          x: { ticks: { color: textColor, font: { family: 'Outfit', weight: '600' } }, grid: { display: false } },
+          y: {
+            ticks: { color: textColor, callback: (v) => `${toComma(Number(v).toFixed(2))}`, font: { family: 'Outfit', weight: '600' } },
+            grid: { color: gridColor, borderDash: [4, 4] },
+            border: { display: false }
+          }
         }
       }
     };
