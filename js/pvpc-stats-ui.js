@@ -13,7 +13,6 @@
     geo: document.getElementById('geoSelector'),
     year: document.getElementById('yearSelector'),
     copyLinkBtn: document.getElementById('copyLinkBtn'),
-    shareStatus: document.getElementById('shareStatus'),
 
     kpiLast: document.getElementById('kpiLast'),
     kpiLastSub: document.getElementById('kpiLastSub'),
@@ -534,8 +533,11 @@
     const url = window.location.href;
     try {
       await navigator.clipboard.writeText(url);
-      els.shareStatus.textContent = 'Enlace copiado ✅';
-      setTimeout(() => { els.shareStatus.textContent = ''; }, 2000);
+      if (els.copyLinkBtn) {
+        const originalText = els.copyLinkBtn.textContent;
+        els.copyLinkBtn.textContent = '¡Copiado! ✅';
+        setTimeout(() => { els.copyLinkBtn.textContent = originalText; }, 2000);
+      }
     } catch (_) {
       // fallback
       const input = document.createElement('input');
@@ -544,8 +546,6 @@
       input.select();
       document.execCommand('copy');
       document.body.removeChild(input);
-      els.shareStatus.textContent = 'Enlace copiado ✅';
-      setTimeout(() => { els.shareStatus.textContent = ''; }, 2000);
     }
   }
 

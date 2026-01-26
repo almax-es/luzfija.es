@@ -61,17 +61,17 @@
   <main class="pvpc-obs" aria-live="polite">
     <header class="obs-hero">
       <div class="obs-hero__copy">
-        <div class="obs-eyebrow">Datos Oficiales REE</div>
-        <h1>Precios PVPC<br>en tiempo real</h1>
+        <div class="obs-eyebrow">Observatorio oficial PVPC</div>
+        <h1>Precios en tiempo real</h1>
         <p class="obs-lead">
-          Consulta la evolución del mercado regulado, identifica <strong>patrones de ahorro</strong> y planifica tus consumos con datos históricos consolidados.
+          Consulta la evolución del mercado, identifica patrones de ahorro y planifica tus consumos con datos consolidados.
         </p>
       </div>
 
       <div class="obs-hero__panel">
         <div class="obs-controls" role="group" aria-label="Parámetros del observatorio">
           <div class="control">
-            <label for="geoSelector">Zona</label>
+            <label for="geoSelector">Mercado</label>
             <select id="geoSelector">
               <option value="8741">Península</option>
               <option value="8742">Canarias</option>
@@ -83,19 +83,15 @@
           <div class="control">
             <label for="yearSelector">Año</label>
             <select id="yearSelector">
-              <option value="2026">2026 (En curso)</option>
+              <option value="2026">2026</option>
               <option value="2025">2025</option>
               <option value="2024">2024</option>
               <option value="2023">2023</option>
               <option value="2022">2022</option>
-              <option value="2021">2021 (Desde Junio)</option>
+              <option value="2021">2021</option>
             </select>
           </div>
-          <div class="control control--wide">
-            <label>Enlace</label>
-            <button id="copyLinkBtn" class="btn" type="button">Copiar enlace con ajustes</button>
-            <div id="shareStatus" class="micro" role="status" aria-live="polite"></div>
-          </div>
+          <button id="copyLinkBtn" class="btn" type="button">Copiar enlace</button>
         </div>
 
         <div class="obs-kpis" aria-label="Resumen rápido">
@@ -121,7 +117,6 @@
               <div class="kpi__sub" id="kpiYoYSub">A mismas fechas</div>
             </div>
           </div>
-          <div class="micro" id="coverageText">Cargando datos…</div>
         </div>
       </div>
     </header>
