@@ -279,26 +279,33 @@
         return result;
       }
 
-      // NUEVO: Extracción específica para potencias contratadas de Endesa
+      // NUEVO: Extracción específica para potencias contratadas de Endesa / Energía XXI
       function __LF_extractPotenciasEndesa(texto) {
         const lineas = texto.split(/\r?\n/).map(l => l.trim());
         
         // Buscar "Potencias contratadas: punta-llano X kW; valle Y kW"
+        // O versión Energía XXI: "Potencia contratada en punta-llano: 8,000 kW Potencia contratada en valle: 8,000 kW"
         for (let i = 0; i < lineas.length; i++) {
           const linea = lineas[i];
           const lineaLow = linea.toLowerCase();
           
-          if (lineaLow.includes('potencias contratadas')) {
-            // Patrón: "punta-llano 2,300 kW; valle 3,450 kW"
-            const matchPuntaLlano = linea.match(/punta[\s\-]*llano\s+([\d,\.]+)\s*kw/i);
-            const matchValle = linea.match(/valle\s+([\d,\.]+)\s*kw/i);
+          if (lineaLow.includes('potencia') && lineaLow.includes('contratada')) {
+            // Patrón 1: "punta-llano 2,300 kW; valle 3,450 kW" (Endesa Clásica)
+            // Patrón 2: "en punta-llano: 8,000 kW ... en valle: 8,000 kW" (Energía XXI)
             
-            if (matchPuntaLlano && matchValle) {
-              const p1 = parseFloat(matchPuntaLlano[1].replace(',', '.'));
+            // Intentar buscar P1 (Punta-Llano)
+            // Regex flexible: busca "punta...llano" seguido de números
+            const matchPunta = linea.match(/(?:punta[\s\-]*llano|p1)[^0-9]{0,30}([\d,\.]+)\s*kw/i);
+            
+            // Intentar buscar P2 (Valle) en la misma línea
+            const matchValle = linea.match(/(?:valle|p3)[^0-9]{0,30}([\d,\.]+)\s*kw/i);
+            
+            if (matchPunta && matchValle) {
+              const p1 = parseFloat(matchPunta[1].replace(',', '.'));
               const p2 = parseFloat(matchValle[1].replace(',', '.'));
               
               if (!isNaN(p1) && !isNaN(p2)) {
-                lfDbg('[ENDESA-POTENCIAS] Detectadas desde "Potencias contratadas":', { p1, p2 });
+                lfDbg('[ENDESA-POTENCIAS] Detectadas en misma línea:', { p1, p2 });
                 return { p1, p2 };
               }
             }
@@ -504,6 +511,10 @@
           t.includes('b99340564')
         ) return 'visalia';
 
+        // ✅ Energía XXI (Mercado Regulado Endesa) - ANTES de Endesa Libre
+        if (t.includes('energía xxi') || t.includes('energia xxi') || t.includes('energiaxxi')) return 'energiaxxi';
+        if (t.includes('plenitude') || t.includes('eni')) return 'plenitude';
+
         // ⚠️ Endesa: NO detectar por la distribuidora (e-distribución / endesadistribucion).
         // Solo marcamos "endesa" cuando hay señales claras de la comercializadora.
         if (t.includes('endesa')) {
@@ -555,9 +566,6 @@
 
         // Visalia (fallback por nombre)
         if (t.includes('visalia')) return 'visalia';
-
-        if (t.includes('energía xxi') || t.includes('energia xxi') || t.includes('energiaxxi')) return 'energiaxxi';  // ANTES de plenitude
-        if (t.includes('plenitude') || t.includes('eni')) return 'plenitude';
 
         // Enérgya VM: múltiples variantes
         if (t.includes('enérgya vm') || t.includes('energya vm') || t.includes('energya-vm') || 
@@ -647,6 +655,7 @@
       // Extraer potencias según compañía
       function __LF_extraerPotenciasCompania(texto, compania){
         switch(compania){
+          case 'energiaxxi': // Mismo formato que Endesa a menudo
           case 'endesa':
             // Endesa: usar función específica
             const endesaPotencias = __LF_extractPotenciasEndesa(texto);
