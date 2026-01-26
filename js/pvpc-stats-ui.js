@@ -12,7 +12,6 @@
   const els = {
     geo: document.getElementById('geoSelector'),
     year: document.getElementById('yearSelector'),
-    copyLinkBtn: document.getElementById('copyLinkBtn'),
 
     kpiLast: document.getElementById('kpiLast'),
     kpiLastSub: document.getElementById('kpiLastSub'),
@@ -574,31 +573,6 @@
     });
   }
 
-  async function copyShareLink() {
-    const url = window.location.href;
-    try {
-      await navigator.clipboard.writeText(url);
-      if (els.copyLinkBtn) {
-        const originalText = els.copyLinkBtn.textContent;
-        els.copyLinkBtn.textContent = '¡Copiado! ✅';
-        setTimeout(() => { els.copyLinkBtn.textContent = originalText; }, 2000);
-      }
-    } catch (_) {
-      // fallback
-      const input = document.createElement('input');
-      input.value = url;
-      document.body.appendChild(input);
-      input.select();
-      document.execCommand('copy');
-      document.body.removeChild(input);
-    }
-  }
-
-  function attachCopyLink() {
-    if (!els.copyLinkBtn) return;
-    els.copyLinkBtn.addEventListener('click', copyShareLink);
-  }
-
   function attachControlHandlers(state, rerender) {
     const onChange = () => rerender({ push: false });
 
@@ -644,7 +618,6 @@
     }
 
     attachThemeToggle();
-    attachCopyLink();
 
     const params = parseParams();
     const state = {
