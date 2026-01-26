@@ -48,164 +48,96 @@
   // ahora se importan desde lf-csv-utils.js para reutilización con bv-import.js
 
   function parseCSVConsumos(fileContent) {
+    // ⭐ FIX: Usar regex CRLF-aware para manejar archivos Windows/Mac/Linux
     const lines = String(fileContent || '').split(/\r?\n/);
     if (lines.length < 2) throw new Error('CSV vacío o inválido');
 
-    const headerLineRaw = stripBomAndTrim(lines[0]);
-    const headerForDetect = headerLineRaw.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const header = stripBomAndTrim(lines[0]).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    const isIberdrolaCliente = header.includes('consumo wh') && header.includes('generacion wh');
+    const isFormatoEspanol = header.includes('ae_kwh') || header.includes('consumo_kwh');
 
-    // 1) Formato i-DE / Iberdrola (cliente) bruto (consumo + generacion simultaneos)
-    const isIberdrolaCliente = headerForDetect.includes('consumo wh') && headerForDetect.includes('generacion wh');
+    if (!isFormatoEspanol && !isIberdrolaCliente) {
+      throw new Error('Formato CSV no reconocido. Se esperaba el formato estándar de distribuidoras españolas');
+    }
+
     if (isIberdrolaCliente) {
       return parseCSVIberdrolaCliente(lines);
     }
 
-    // 2) Formato estandar (distribuidoras / Datadis) -> mapeo por cabeceras dinámico
-    // Detectar separador de forma robusta
-    let separator = ';';
-    {
-      const semi = (headerLineRaw.match(/;/g) || []).length;
-      const comma = (headerLineRaw.match(/,/g) || []).length;
-      if (semi === 0 && comma === 0) {
-        separator = ';';
-      } else {
-        separator = semi >= comma ? ';' : ',';
-      }
-    }
+    const isDatadisNuevo = header.includes('consumo_kwh') && header.includes('metodoobtencion') && header.includes('energiavertida_kwh');
 
-    const headerColsRaw = splitCSVLine(headerLineRaw, separator);
-
-    const normKey = (h) => stripOuterQuotes(String(h ?? ''))
-      .trim()
-      .replace(/([a-z])([A-Z])/g, '$1_$2') // camelCase -> snake_case
-      .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-      .replace(/\(.*\)/g, '')
-      .replace(/[^a-z0-9]+/g, '_')
-      .replace(/^_+|_+$/g, '')
-      .replace(/_+/g, '_');
-
-    const headerKeys = headerColsRaw.map(normKey);
-
-    const ALIAS = {
-      fecha: ['fecha', 'date', 'dia'],
-      hora: ['hora', 'hour', 'periodo', 'intervalo'],
-      consumo: [
-        'ae_kwh', 'consumo_kwh', 'energia_consumida_kwh', 'energia_consumida',
-        'import_kwh', 'importacion_kwh', 'energia_activa_importada_kwh',
-        'ae_k_wh', 'consumo_k_wh'
-      ],
-      excedente: [
-        'as_kwh', 'energia_vertida_kwh', 'energia_vertida', 'vertido_kwh',
-        'excedente_kwh', 'export_kwh', 'exportacion_kwh', 'inyeccion_kwh',
-        'energia_activa_exportada_kwh',
-        'energiavertida_kwh', 'energiavertida',
-        'as_k_wh', 'energia_vertida_k_wh'
-      ],
-      autoconsumo: [
-        'ae_autocons_kwh', 'energia_autoconsumida_kwh', 'energia_autoconsumida',
-        'autoconsumo_kwh',
-        'energiaautoconsumida_kwh', 'energiaautoconsumida'
-      ],
-      realEstimado: ['real_estimado', 'realest', 'metodoobtencion', 'metodo_obtencion', 'metodoobtencion'],
-    };
-
-    const findCandidates = (aliases) => {
-      const set = new Set(aliases);
-      const idxs = [];
-      for (let i = 0; i < headerKeys.length; i++) {
-        if (set.has(headerKeys[i])) idxs.push(i);
-      }
-      return idxs;
-    };
-
-    const pickUniqueIndex = (aliases, fieldLabel, required) => {
-      const idxs = findCandidates(aliases);
-      if (idxs.length === 1) return idxs[0];
-      if (idxs.length === 0) {
-        if (required) throw new Error(`CSV no reconocido: no se encontró una columna de ${fieldLabel}.`);
-        return -1;
-      }
-      // Si hay ambigüedad, intentamos desempatar (ej: si hay 'consumo' y 'consumo_activa', preferimos el exacto si existe)
-      // Por ahora fail-closed para seguridad
-      const names = idxs.map(i => stripOuterQuotes(String(headerColsRaw[i] ?? '')).trim()).join(', ');
-      throw new Error(`CSV ambiguo: se han encontrado varias columnas candidatas para ${fieldLabel}: ${names}.`);
-    };
-
-    const idxFecha = pickUniqueIndex(ALIAS.fecha, 'fecha', true);
-    const idxHora = pickUniqueIndex(ALIAS.hora, 'hora', true);
-    const idxConsumo = pickUniqueIndex(ALIAS.consumo, 'consumo (AE)', true);
-    
-    const idxExcedente = pickUniqueIndex(ALIAS.excedente, 'excedentes', false);
-    const idxAutoconsumo = pickUniqueIndex(ALIAS.autoconsumo, 'autoconsumo', false);
-    const idxRealEstimado = pickUniqueIndex(ALIAS.realEstimado, 'REAL/ESTIMADO', false);
-
+    const tieneSolar = header.includes('as_kwh') || header.includes('energiavertida_kwh');
+    const tieneAutoconsumo = header.includes('ae_autocons_kwh') || header.includes('energiaautoconsumida_kwh');
     const consumos = [];
-    let totalDataLines = 0;
-    let parsedLines = 0;
+
+    // ⭐ FIX: Detectar separador automáticamente (';' o ',')
+    const separator = detectCSVSeparator(stripBomAndTrim(lines[0]));
 
     for (let i = 1; i < lines.length; i++) {
-      const line = String(lines[i] ?? '').trim();
+      const line = lines[i].trim();
       if (!line) continue;
 
-      totalDataLines++;
-
+      // ⭐ FIX: Usar splitCSVLine para respetar comillas y campos entrecomillados
       const cols = splitCSVLine(line, separator);
-      if (!cols || cols.length < 3) continue;
+      if (cols.length < 4) continue;
 
-      const fechaStr = stripOuterQuotes(cols[idxFecha]);
-      const horaRaw = stripOuterQuotes(cols[idxHora]);
-      const hora = parseInt(horaRaw, 10);
-      if (!Number.isFinite(hora) || hora < 1 || hora > 25) continue;
+      const fechaStr = stripOuterQuotes(cols[1]);
+      const hora = parseInt(stripOuterQuotes(cols[2]), 10);
 
-      const kwhStr = stripOuterQuotes(cols[idxConsumo]);
-      if (!kwhStr || String(kwhStr).trim() === '') continue;
+      // ⭐ FIX: Validar rango de hora (1-24)
+      if (hora < 1 || hora > 25) continue;
 
-      const fecha = parseDateFlexible(fechaStr);
-      if (!fecha) continue;
+      const kwhStr = stripOuterQuotes(cols[3]);
+
+let excedenteStr = null;
+let autoconsumoStr = null;
+let estadoStr = '';
+
+if (isDatadisNuevo) {
+  // cups;fecha;hora;consumo_kWh;metodoObtencion;energiaVertida_kWh;energiaGenerada_kWh;energiaAutoconsumida_kWh
+  excedenteStr = cols[5];
+  autoconsumoStr = cols[7];
+  estadoStr = cols.length > 4 ? stripOuterQuotes(cols[4]) : '';
+} else {
+  excedenteStr = tieneSolar ? cols[4] : null;
+  autoconsumoStr = tieneAutoconsumo ? cols[5] : null;
+
+  // Calcular índice de la columna REAL/ESTIMADO dinámicamente
+  let idxReal = 4;
+  if (tieneSolar) idxReal++;
+  if (tieneAutoconsumo) idxReal++;
+
+  estadoStr = idxReal < cols.length ? stripOuterQuotes(cols[idxReal]) : "";
+}
+
+const esReal = isDatadisNuevo
+  ? (estadoStr.toLowerCase().startsWith('real') || estadoStr === 'R')
+  : (estadoStr === 'R');
+
+
+      if (!kwhStr || kwhStr.trim() === '') continue;
 
       const kwh = parseNumberFlexibleCSV(kwhStr);
-      if (!Number.isFinite(kwh) || kwh < 0 || kwh > 10000) continue;
+      // ⭐ FIX: Validar rango razonable (evita datos corruptos)
+      if (isNaN(kwh) || kwh < 0 || kwh > 10000) continue;
 
       let excedente = 0;
-      if (idxExcedente >= 0) {
-        const excStr = stripOuterQuotes(cols[idxExcedente]);
-        if (excStr && String(excStr).trim() !== '') {
-          const exc = parseNumberFlexibleCSV(excStr);
-          if (Number.isFinite(exc) && exc >= 0) excedente = exc;
-        }
+      if (excedenteStr && excedenteStr.trim() !== '') {
+        const exc = parseNumberFlexibleCSV(excedenteStr);
+        if (!isNaN(exc)) excedente = exc;
       }
 
       let autoconsumo = 0;
-      if (idxAutoconsumo >= 0) {
-        const aStr = stripOuterQuotes(cols[idxAutoconsumo]);
-        if (aStr && String(aStr).trim() !== '') {
-          const a = parseNumberFlexibleCSV(aStr);
-          if (Number.isFinite(a) && a >= 0) autoconsumo = a;
-        }
+      if (autoconsumoStr && autoconsumoStr.trim() !== '') {
+        const auto = parseNumberFlexibleCSV(autoconsumoStr);
+        if (!isNaN(auto)) autoconsumo = auto;
       }
 
-      let esReal = true;
-      if (idxRealEstimado >= 0) {
-        const st = stripOuterQuotes(cols[idxRealEstimado]);
-        const s = String(st ?? '').trim().toLowerCase();
-        esReal = (s === 'r' || s.startsWith('real'));
-      }
+      // ⭐ FIX: Usar parseDateFlexible para manejar múltiples formatos (dd/mm/yyyy, yyyy-mm-dd, etc.)
+      const fecha = parseDateFlexible(fechaStr);
+      if (!fecha) continue;
 
       consumos.push({ fecha, hora, kwh, excedente, autoconsumo, esReal });
-      parsedLines++;
-    }
-
-    if (consumos.length === 0) {
-      throw new Error('No se encontraron datos válidos en el CSV.');
-    }
-
-    // Validación de seguridad (Chivato)
-    const simult = consumos.filter(r => (r.kwh > 0) && (r.excedente > 0));
-    if (simult.length > 0) {
-      // Para el comparador principal, quizas no queremos fallar tan fuerte, 
-      // pero el riesgo de calcular mal es alto. Mejor avisar.
-      console.warn('⚠️ Advertencia: Detectados consumo y excedente simultáneos en fichero estándar.');
     }
 
     return consumos;

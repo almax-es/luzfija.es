@@ -916,11 +916,6 @@ document.addEventListener('DOMContentLoaded', () => {
         window.BVSim._cachedImportResult = result;
         populateManualGridFromCSV(result);
 
-        if (result.warning) {
-          showToast(result.warning, 'info');
-        }
-
-
         // Scroll suave a la tabla para que vea los datos auto-rellenados
         setTimeout(() => {
           const manualZone = document.getElementById('bv-manual-zone');
