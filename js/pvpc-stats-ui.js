@@ -84,7 +84,7 @@
     const defaults = {
       geo: '8741',
       year: String(now.getFullYear()),
-      trendMode: 'monthly',
+      trendMode: 'daily',
       compareYears: ''
     };
 
