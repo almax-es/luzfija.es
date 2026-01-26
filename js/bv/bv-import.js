@@ -86,7 +86,7 @@ window.BVSim = window.BVSim || {};
 
       const fechaStr = stripOuterQuotes(cols[1]);
       const hora = parseInt(stripOuterQuotes(cols[2]), 10);
-      if (hora < 1 || hora > 24) continue; // Hora fuera de rango
+      if (hora < 1 || hora > 25) continue; // Hora fuera de rango (soporta día de 25 horas)
       const kwhStr = stripOuterQuotes(cols[3]);
 
 let excedenteStr = null;

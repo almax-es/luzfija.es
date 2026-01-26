@@ -85,7 +85,7 @@
       const hora = parseInt(stripOuterQuotes(cols[2]), 10);
 
       // ⭐ FIX: Validar rango de hora (1-24)
-      if (hora < 1 || hora > 24) continue;
+      if (hora < 1 || hora > 25) continue;
 
       const kwhStr = stripOuterQuotes(cols[3]);
 
@@ -101,7 +101,13 @@ if (isDatadisNuevo) {
 } else {
   excedenteStr = tieneSolar ? cols[4] : null;
   autoconsumoStr = tieneAutoconsumo ? cols[5] : null;
-  estadoStr = stripOuterQuotes(cols[tieneSolar && tieneAutoconsumo ? 6 : 4]);
+
+  // Calcular índice de la columna REAL/ESTIMADO dinámicamente
+  let idxReal = 4;
+  if (tieneSolar) idxReal++;
+  if (tieneAutoconsumo) idxReal++;
+
+  estadoStr = idxReal < cols.length ? stripOuterQuotes(cols[idxReal]) : "";
 }
 
 const esReal = isDatadisNuevo

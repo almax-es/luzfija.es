@@ -325,7 +325,7 @@
     if (esFinde || esFestivo) return 'P3';
 
     // Hora inicio: hora CNMC - 1 (hora 1 = 0-1h -> horaInicio=0)
-    const horaInicio = hora - 1;
+    const horaInicio = (hora === 25) ? 2 : (hora - 1); // hora 25 (cambio horario octubre) equivale a 02:00-03:00
 
     // Valle: 0-8h
     if (horaInicio >= 0 && horaInicio < 8) return 'P3';
