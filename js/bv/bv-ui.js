@@ -1,6 +1,26 @@
 window.BVSim = window.BVSim || {};
 
 document.addEventListener('DOMContentLoaded', () => {
+  const toastEl = document.getElementById('toast');
+  const toastTextEl = document.getElementById('toastText');
+  const toastDotEl = document.getElementById('toastDot');
+  let toastTimer = null;
+
+  function showToast(message, type = 'info') {
+    if (!toastEl || !toastTextEl) return;
+    toastTextEl.textContent = String(message || '');
+    if (toastDotEl) {
+      toastDotEl.classList.remove('ok', 'err');
+      if (type === 'ok') toastDotEl.classList.add('ok');
+      if (type === 'err') toastDotEl.classList.add('err');
+    }
+    toastEl.classList.add('show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => {
+      toastEl.classList.remove('show');
+    }, 4200);
+  }
+
   try {
     if (window.LF?.isDebugMode?.()) console.log('BVSim: Initializing UI...');
   } catch {}
@@ -448,27 +468,6 @@ document.addEventListener('DOMContentLoaded', () => {
     loadManualData();
     updateManualTotals();
     updateDataStatus();
-  }
-
-  // Toast (ya existe en el HTML)
-  const toastEl = document.getElementById('toast');
-  const toastTextEl = document.getElementById('toastText');
-  const toastDotEl = document.getElementById('toastDot');
-  let toastTimer = null;
-
-  function showToast(message, type = 'info') {
-    if (!toastEl || !toastTextEl) return;
-    toastTextEl.textContent = String(message || '');
-    if (toastDotEl) {
-      toastDotEl.classList.remove('ok', 'err');
-      if (type === 'ok') toastDotEl.classList.add('ok');
-      if (type === 'err') toastDotEl.classList.add('err');
-    }
-    toastEl.classList.add('show');
-    if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => {
-      toastEl.classList.remove('show');
-    }, 4200);
   }
 
   // --- UI INITIALIZATION ---
