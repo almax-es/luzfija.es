@@ -266,28 +266,40 @@
 
 .control select {
   appearance: none;
-  background: rgba(125, 125, 125, 0.05);
+  background: rgba(125, 125, 125, 0.1);
   border: 1px solid var(--obs-border);
   color: var(--obs-text);
   font-family: inherit;
   font-size: 1rem;
   font-weight: 700;
-  padding: 8px 36px 8px 16px;
-  border-radius: 14px;
+  padding: 10px 40px 10px 16px;
+  border-radius: 16px;
   cursor: pointer;
   transition: all 0.2s;
-  min-width: 140px;
+  min-width: 160px;
+}
+
+/* Fix visibility of options in different browsers/themes */
+.control select option {
+  background-color: var(--obs-bg);
+  color: var(--obs-text);
+  padding: 12px;
+}
+
+.light-mode .control select option {
+  background-color: #fff;
+  color: #000;
 }
 
 .control select:hover {
   border-color: var(--obs-accent);
-  background: rgba(139, 92, 246, 0.05);
+  background: rgba(139, 92, 246, 0.1);
 }
 
 .control select:focus {
   outline: none;
   border-color: var(--obs-accent);
-  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.15);
+  box-shadow: 0 0 0 4px rgba(139, 92, 246, 0.2);
 }
 
 /* KPI Cards - The Spotlight */
