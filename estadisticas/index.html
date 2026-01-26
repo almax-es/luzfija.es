@@ -5,36 +5,20 @@
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://luzfija.goatcounter.com; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark light"/>
-  <meta id="meta-description" name="description" content="Observatorio PVPC con datos oficiales (REE/ESIOS): evolución diaria, patrones horarios, mapa de calor y comparativas multianuales por zona.">
-
-  <title>Observatorio PVPC - Estadísticas de la Luz | LuzFija.es</title>
-
-  <meta id="og-title" property="og:title" content="Observatorio PVPC - Estadísticas de la Luz | LuzFija.es">
-  <meta id="og-description" property="og:description" content="Análisis histórico del precio de la luz (PVPC) en España. Visualiza tendencias, patrones horarios y comparativas anuales.">
-  <meta id="og-url" property="og:url" content="https://luzfija.es/estadisticas/">
+  <meta id="meta-description" name="description" content="Observatorio PVPC con datos oficiales (REE/ESIOS): planificador de consumo, tendencia anual, patrón horario y comparativa por años para Península, Canarias, Baleares, Ceuta y Melilla.">
+  <link rel="canonical" href="https://luzfija.es/estadisticas/">
+  <title>Observatorio PVPC: planificador y tendencias | LuzFija.es</title>
   <meta property="og:type" content="website">
-  <meta property="og:image" content="https://luzfija.es/og.png">
-
-  <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" id="twitter-title" content="Observatorio PVPC | LuzFija.es">
-  <meta name="twitter:description" id="twitter-description" content="Análisis histórico del precio de la luz">
-
-  <link id="canonical" rel="canonical" href="https://luzfija.es/estadisticas/">
-
-  <link rel="icon" href="/favicon.ico" sizes="any">
-  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
-  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
-
-  <link rel="stylesheet" href="/styles.css">
+  <meta property="og:title" content="Observatorio PVPC: planificador y tendencias">
+  <meta property="og:description" content="Planifica consumos (lavadora, termo, EV) con PVPC y entiende la tendencia del año con gráficos claros. Datos oficiales REE/ESIOS.">
+  <meta property="og:url" content="https://luzfija.es/estadisticas/">
   <link rel="stylesheet" href="/fonts.css">
-  <link rel="stylesheet" href="/estadisticas/estadisticas.css?v=5">
-
-  <script src="/js/config.js"></script>
-  <script src="/js/theme.js"></script>
-  <script src="/js/tracking.js" defer data-goatcounter="https://luzfija.goatcounter.com/count"></script>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/estadisticas/estadisticas.css?v=2">
 </head>
+
 <body>
-  <!-- Navegación Unificada -->
+  <!-- Navegación Unificada (mantener estilo del sitio) -->
   <nav class="site-nav">
     <div class="site-nav__inner">
       <div class="brand" style="display:flex; align-items:center; gap:12px;">
@@ -46,458 +30,333 @@
                 <stop offset="50%" style="stop-color:#f59e0b;stop-opacity:1"></stop>
                 <stop offset="100%" style="stop-color:#fbbf24;stop-opacity:1"></stop>
               </linearGradient>
-              <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1"></stop>
-                <stop offset="100%" style="stop-color:#6366f1;stop-opacity:1"></stop>
+              <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" style="stop-color:#fef3c7;stop-opacity:1"></stop>
+                <stop offset="100%" style="stop-color:#fbbf24;stop-opacity:1"></stop>
               </linearGradient>
             </defs>
-            <circle cx="50" cy="50" r="35" fill="url(#logoGrad2)" opacity="0.2"></circle>
-            <path d="M 55 15 L 35 48 L 48 48 L 45 85 L 70 45 L 57 45 Z" fill="url(#logoGrad1)" stroke="#fff" stroke-width="1.5" stroke-linejoin="round"></path>
+            <path d="M55 5 L25 55 H45 L35 95 L75 45 H55 Z" fill="url(#logoGrad1)"></path>
+            <path d="M55 5 L25 55 H45 L35 95 L75 45 H55 Z" fill="url(#logoGrad2)" opacity="0.35"></path>
           </svg>
         </div>
-        <a href="/" style="text-decoration:none; display:flex; flex-direction:column; line-height:1.1;">
-          <span style="font-weight:800; font-size:1.2rem; color:var(--text-main); letter-spacing:-0.5px;">LuzFija<span style="color:var(--primary-color)">.es</span></span>
-          <span style="font-size:0.75rem; color:var(--text-muted); font-weight:500;">Comparador de Tarifas</span>
-        </a>
+        <div style="line-height:1.1">
+          <div style="font-weight:800; letter-spacing:.2px;">LuzFija.es</div>
+          <div style="font-size:.9rem; opacity:.75;">Ahorro · PVPC · Solar</div>
+        </div>
       </div>
-      <a href="/" style="text-decoration:none; font-weight:bold; font-size:0.9rem; color:var(--text-main);">&larr; Volver al Comparador</a>
+
+      <div class="site-nav__links">
+        <a href="/" class="site-nav__link">Comparador</a>
+        <a href="/simulador-bateria-virtual.html" class="site-nav__link">Simulador Batería Virtual</a>
+        <a href="/guias/" class="site-nav__link">Guías</a>
+        <a href="/estadisticas/" class="site-nav__link is-active" aria-current="page">PVPC</a>
+      </div>
+
+      <div class="site-nav__actions">
+        <button id="themeToggle" class="btn" type="button" aria-label="Cambiar tema">Tema</button>
+      </div>
     </div>
   </nav>
 
-  <!-- Subnavegación local (mejora UX + accesibilidad) -->
-  <nav class="stats-subnav" aria-label="Secciones del observatorio">
-    <div class="stats-subnav__inner">
-      <a class="stats-subnav__link" href="#resumen">Resumen</a>
-      <a class="stats-subnav__link" href="#evolucion">Evolución</a>
-      <a class="stats-subnav__link" href="#ventanas">Ventanas</a>
-      <a class="stats-subnav__link" href="#mapa">Mapa</a>
-      <a class="stats-subnav__link" href="#patrones">Patrones</a>
-      <a class="stats-subnav__link" href="#comparativa">Comparativa</a>
-      <a class="stats-subnav__link" href="#faq">FAQ</a>
-    </div>
-  </nav>
-
-  <main class="stats-page" aria-live="polite">
-    <header class="stats-hero">
-      <div class="stats-hero__copy">
-        <p class="eyebrow">Observatorio PVPC</p>
-        <h1>Observatorio PVPC: estadísticas y patrones del precio de la luz</h1>
-        <p class="hero-subtitle">Evolución diaria, ventanas óptimas, mapas de calor y comparativas multianuales por zona. Datos oficiales REE/ESIOS.</p>
-
-        <!-- Resumen ejecutivo (se rellena por JS) -->
-        <div class="hero-kpi-grid" aria-label="Resumen ejecutivo" data-loading="true">
-          <div class="hero-kpi">
-            <p class="hero-kpi__label">Último día</p>
-            <p class="hero-kpi__value" id="heroLastDay">--</p>
-            <p class="hero-kpi__sub" id="heroLastDayDate">--</p>
-          </div>
-          <div class="hero-kpi">
-            <p class="hero-kpi__label">Media 7 días</p>
-            <p class="hero-kpi__value" id="heroAvg7">--</p>
-            <p class="hero-kpi__sub">€/kWh</p>
-          </div>
-          <div class="hero-kpi">
-            <p class="hero-kpi__label">Media 30 días</p>
-            <p class="hero-kpi__value" id="heroAvg30">--</p>
-            <p class="hero-kpi__sub">€/kWh</p>
-          </div>
-          <div class="hero-kpi hero-kpi--delta">
-            <p class="hero-kpi__label">Vs año anterior</p>
-            <p class="hero-kpi__value" id="heroYoY">--</p>
-            <p class="hero-kpi__sub" id="heroYoYSub">Mismo rango</p>
-          </div>
-          <div class="hero-kpi hero-kpi--status">
-            <p class="hero-kpi__label">Contexto</p>
-            <p class="hero-kpi__value" id="heroContext">--</p>
-            <p class="hero-kpi__sub" id="heroContextSub">Según percentiles</p>
-          </div>
-        </div>
-        <div class="hero-badges" id="heroBadges" aria-live="polite"></div>
-        <p class="hero-meta" id="dataMeta"></p>
-        <p class="data-warning" id="dataWarning" role="status"></p>
+  <main class="pvpc-obs" aria-live="polite">
+    <header class="obs-hero">
+      <div class="obs-hero__copy">
+        <p class="obs-eyebrow">Observatorio PVPC</p>
+        <h1>PVPC explicado con números útiles</h1>
+        <p class="obs-lead">
+          Aquí no vienes a “ver gráficos”. Vienes a <strong>decidir</strong>: cuándo poner la lavadora, qué horas suelen ser más baratas
+          y cómo va el año comparado con otros.
+        </p>
       </div>
 
-      <div class="stats-hero__controls">
-        <div class="control-group">
-          <label for="geoSelector">Zona PVPC</label>
-          <select id="geoSelector" aria-label="Selecciona la zona PVPC">
-            <option value="8741">Península</option>
-            <option value="8742">Canarias</option>
-            <option value="8743">Baleares</option>
-            <option value="8744">Ceuta</option>
-            <option value="8745">Melilla</option>
-          </select>
+      <div class="obs-hero__panel">
+        <div class="obs-controls" role="group" aria-label="Parámetros del observatorio">
+          <div class="control">
+            <label for="geoSelector">Zona</label>
+            <select id="geoSelector">
+              <option value="8741">Península</option>
+              <option value="8742">Canarias</option>
+              <option value="8743">Baleares</option>
+              <option value="8744">Ceuta</option>
+              <option value="8745">Melilla</option>
+            </select>
+          </div>
+          <div class="control">
+            <label for="yearSelector">Año</label>
+            <select id="yearSelector">
+              <option value="2026">2026 (En curso)</option>
+              <option value="2025">2025</option>
+              <option value="2024">2024</option>
+              <option value="2023">2023</option>
+              <option value="2022">2022</option>
+              <option value="2021">2021 (Desde Junio)</option>
+            </select>
+          </div>
+          <div class="control control--wide">
+            <label>Enlace</label>
+            <button id="copyLinkBtn" class="btn" type="button">Copiar enlace con ajustes</button>
+            <div id="shareStatus" class="micro" role="status" aria-live="polite"></div>
+          </div>
         </div>
-        <div class="control-group">
-          <label for="yearSelector">Año</label>
-          <select id="yearSelector" aria-label="Selecciona el año">
-            <option value="2026">2026 (En curso)</option>
-            <option value="2025">2025</option>
-            <option value="2024">2024</option>
-            <option value="2023">2023</option>
-            <option value="2022">2022</option>
-            <option value="2021">2021 (Desde Junio)</option>
-          </select>
+
+        <div class="obs-kpis" aria-label="Resumen rápido">
+          <div class="kpi">
+            <div class="kpi__label">Último día disponible</div>
+            <div class="kpi__value" id="kpiLast">—</div>
+            <div class="kpi__sub" id="kpiLastSub">Cargando…</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi__label">Media 7 días</div>
+            <div class="kpi__value" id="kpiAvg7">—</div>
+            <div class="kpi__sub" id="kpiAvg7Sub">Cargando…</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi__label">Media 30 días</div>
+            <div class="kpi__value" id="kpiAvg30">—</div>
+            <div class="kpi__sub" id="kpiAvg30Sub">Cargando…</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi__label">Vs año anterior</div>
+            <div class="kpi__value" id="kpiYoY">—</div>
+            <div class="kpi__sub" id="kpiYoYSub">A mismas fechas</div>
+          </div>
+          <div class="micro" id="coverageText">Cargando datos…</div>
         </div>
       </div>
     </header>
 
-    <section class="insight" id="resumen" aria-live="polite">
-      <div class="insight__icon">💡</div>
-      <div>
-        <p class="insight__title">Resumen rápido del año</p>
-        <p id="insightText" class="insight__text">Analizando tendencias...</p>
-      </div>
-    </section>
+    <nav class="obs-subnav" aria-label="Secciones del observatorio">
+      <a href="#planificador">Planificador</a>
+      <a href="#evolucion">Evolución</a>
+      <a href="#horas">Horas</a>
+      <a href="#comparativa">Comparativa</a>
+      <a href="#faq">FAQ</a>
+    </nav>
 
-    <section class="panel panel--trend" id="evolucion" aria-labelledby="trendTitle" data-loading="true">
-      <div class="panel__header">
-        <div>
-          <p class="eyebrow">Evolución</p>
-          <h2 id="trendTitle">Precio PVPC día a día</h2>
-          <p class="panel__subtitle">Media diaria del PVPC. Para leer la tendencia sin ruido, cambia a vista mensual.</p>
-        </div>
-        <div class="panel__actions">
-          <div class="segmented" role="group" aria-label="Vista de tendencia">
-            <button type="button" class="pill pill--active" id="trendDailyBtn">Diario</button>
-            <button type="button" class="pill" id="trendMonthlyBtn">Mensual</button>
+    <!-- 1) PLANIFICADOR -->
+    <section id="planificador" class="obs-section">
+      <div class="obs-section__head">
+        <h2>Planificador de consumo</h2>
+        <p class="muted">
+          Te digo <strong>cuándo suele ser más barato</strong> poner un uso típico según el histórico del año seleccionado.
+          Es una guía práctica: no intenta predecir cada día, sino darte una <strong>ventana razonable</strong> para ahorrar.
+        </p>
+      </div>
+
+      <div class="obs-card">
+        <div class="planner-grid">
+          <div class="planner-controls" aria-label="Controles del planificador">
+            <div class="control">
+              <label for="savingsPreset">Uso</label>
+              <select id="savingsPreset">
+                <option value="lavadora">Lavadora</option>
+                <option value="lavavajillas">Lavavajillas</option>
+                <option value="termo">Termo eléctrico</option>
+                <option value="coche">Coche eléctrico</option>
+                <option value="personalizado">Personalizado</option>
+              </select>
+            </div>
+            <div class="control">
+              <label for="savingsDuration">Duración</label>
+              <select id="savingsDuration">
+                <option value="1">1h</option>
+                <option value="2">2h</option>
+                <option value="3">3h</option>
+                <option value="4">4h</option>
+                <option value="6">6h</option>
+              </select>
+            </div>
+            <div class="control">
+              <label for="savingsDayType">Días</label>
+              <select id="savingsDayType">
+                <option value="any">Cualquier día</option>
+                <option value="workday">Laborables</option>
+                <option value="weekend">Fines de semana</option>
+              </select>
+            </div>
+            <div class="control">
+              <label for="savingsKwh">kWh por uso</label>
+              <input id="savingsKwh" type="number" min="0" step="0.1" value="0.8" inputmode="decimal">
+              <div class="micro">Ej: 0,8 kWh</div>
+            </div>
+            <div class="control">
+              <label for="savingsUses">Usos al mes</label>
+              <input id="savingsUses" type="number" min="1" step="1" value="10" inputmode="numeric">
+              <div class="micro">Para estimar ahorro mensual</div>
+            </div>
+
+            <div class="micro note">
+              Nota: “Laborables” = lunes a viernes (no contempla festivos). Los resultados se basan en medias horarias del histórico cargado.
+            </div>
+
+            <div class="planner-actions">
+              <a class="btn primary" href="/simulador-bateria-virtual.html">Simula tu factura real</a>
+              <span class="micro muted">El simulador es la respuesta definitiva.</span>
+            </div>
           </div>
-        </div>
-      </div>
 
-      <div class="trend-layout">
-        <div class="chart-shell chart-shell--trend">
-          <div class="skeleton skeleton-chart"></div>
-          <canvas id="trendChart" role="img" aria-label="Gráfico de línea con el precio medio diario del PVPC."></canvas>
-        </div>
+          <div class="planner-results" aria-label="Resultados del planificador">
+            <div class="results-head">
+              <h3>Ventanas recomendadas</h3>
+              <p class="muted micro">Top 3 por coste medio (€/kWh) en la franja seleccionada.</p>
+            </div>
 
-        <aside class="trend-aside" aria-label="Lectura rápida">
-          <h3 class="trend-aside__title">Lectura rápida</h3>
-          <ul id="trendInsights" class="summary-list" aria-label="Conclusiones rápidas"></ul>
-          <p id="trendHint" class="panel__hint"></p>
-        </aside>
-      </div>
-    </section>
+            <div id="planResults" class="results-grid">
+              <div class="result-skel"></div>
+              <div class="result-skel"></div>
+              <div class="result-skel"></div>
+            </div>
 
-    <section class="panel panel--kpis" aria-labelledby="kpiTitle" data-loading="true">
-      <div class="panel__header">
-        <div>
-          <p class="eyebrow">Indicadores clave</p>
-          <h2 id="kpiTitle">Radiografía anual</h2>
-        </div>
-        <p class="panel__subtitle">Precios medios y extremos para decidir con confianza.</p>
-      </div>
-      <div class="kpi-grid">
-        <div class="kpi-card">
-          <p class="kpi-label">Media anual</p>
-          <p class="kpi-value" id="kpiAvg">--</p>
-          <p class="kpi-sub">€/kWh</p>
-          <div class="skeleton skeleton-line"></div>
-        </div>
-        <div class="kpi-card">
-          <p class="kpi-label">Día más barato</p>
-          <p class="kpi-value kpi-value--good" id="kpiMin">--</p>
-          <p class="kpi-sub" id="kpiMinDate">--</p>
-          <div class="skeleton skeleton-line"></div>
-        </div>
-        <div class="kpi-card">
-          <p class="kpi-label">Día más caro</p>
-          <p class="kpi-value kpi-value--bad" id="kpiMax">--</p>
-          <p class="kpi-sub" id="kpiMaxDate">--</p>
-          <div class="skeleton skeleton-line"></div>
-        </div>
-        <div class="kpi-card">
-          <p class="kpi-label">Media Solar (12h-17h)</p>
-          <p class="kpi-value kpi-value--solar" id="kpiSolar">--</p>
-          <p class="kpi-sub">Precio medio</p>
-          <div class="skeleton skeleton-line"></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="panel panel--savings" id="ventanas" aria-labelledby="savingsTitle" data-loading="true">
-      <div class="panel__header">
-        <div>
-          <p class="eyebrow">Ahorro accionable</p>
-          <h2 id="savingsTitle">Ventanas óptimas</h2>
-          <p class="panel__subtitle">Calculamos las mejores franjas con percentiles P10/P50/P90. Las ventanas pueden cruzar medianoche.</p>
-        </div>
-      </div>
-      <div class="savings-controls">
-        <div class="control-group">
-          <label for="savingsPreset">Uso</label>
-          <select id="savingsPreset" aria-label="Selecciona el uso">
-            <option value="lavadora">Lavadora (1h)</option>
-            <option value="lavavajillas">Lavavajillas (2h)</option>
-            <option value="termo">Termo (3h)</option>
-            <option value="coche">Coche EV (4h)</option>
-            <option value="personalizado">Personalizado</option>
-          </select>
-        </div>
-        <div class="control-group">
-          <label for="savingsDuration">Duración</label>
-          <select id="savingsDuration" aria-label="Selecciona la duración">
-            <option value="1">1h</option>
-            <option value="2">2h</option>
-            <option value="3">3h</option>
-            <option value="4">4h</option>
-            <option value="6">6h</option>
-          </select>
-        </div>
-        <div class="control-group">
-          <label for="savingsDayType">Días</label>
-          <select id="savingsDayType" aria-label="Selecciona el tipo de día">
-            <option value="any">Cualquier día</option>
-            <option value="weekday">Laborables</option>
-            <option value="weekend">Fin de semana</option>
-          </select>
-        </div>
-        <div class="control-group">
-          <label for="savingsKwh">Consumo por uso (kWh)</label>
-          <input type="number" id="savingsKwh" min="0.1" step="0.1" value="0.8" aria-label="Consumo por uso en kWh">
-        </div>
-        <div class="control-group">
-          <label for="savingsUses">Usos al mes</label>
-          <input type="number" id="savingsUses" min="1" step="1" value="10" aria-label="Usos al mes">
-        </div>
-      </div>
-      <div class="savings-grid">
-        <div class="savings-card">
-          <p class="savings-card__title">Top 3 ventanas recomendadas</p>
-          <ol id="savingsWindows" class="window-list" aria-label="Top 3 ventanas óptimas"></ol>
-          <div class="skeleton skeleton-block"></div>
-        </div>
-        <div class="savings-card">
-          <p class="savings-card__title">Impacto y comparativas</p>
-          <ul id="savingsSummary" class="summary-list" aria-label="Resumen de ahorro"></ul>
-          <p id="savingsHint" class="panel__hint"></p>
-          <div class="skeleton skeleton-block"></div>
+            <div class="micro" id="planFootnote"></div>
+          </div>
         </div>
       </div>
     </section>
 
-    <section class="panel" id="mapa" aria-labelledby="heatmapTitle" data-loading="true">
-      <div class="panel__header">
-        <div>
-          <p class="eyebrow">Mapa anual</p>
-          <h2 id="heatmapTitle">Mapa de calor de precios</h2>
-          <p class="panel__subtitle">Cada día del año según su precio medio. Usa el teclado o haz clic para ver el detalle.</p>
-        </div>
-        <div class="panel__legend">
-          <span>Barato</span>
-          <span class="legend" data-color="0"></span>
-          <span class="legend" data-color="1"></span>
-          <span class="legend" data-color="2"></span>
-          <span class="legend" data-color="3"></span>
-          <span class="legend" data-color="4"></span>
-          <span>Caro</span>
-        </div>
+    <!-- 2) EVOLUCIÓN -->
+    <section id="evolucion" class="obs-section">
+      <div class="obs-section__head">
+        <h2>Evolución del PVPC</h2>
+        <p class="muted">
+          Vista <strong>mensual</strong> para entender la tendencia sin ruido (por defecto). Cambia a “diaria” si quieres el detalle.
+        </p>
       </div>
-      <div class="heatmap-container">
-        <div class="skeleton skeleton-heatmap"></div>
-        <div id="heatmapGrid" class="heatmap-grid" role="grid" aria-label="Mapa de calor anual"></div>
-      </div>
-    </section>
 
-    <div class="chart-grid" id="patrones">
-      <section class="panel" aria-labelledby="clockTitle" data-loading="true">
-        <div class="panel__header">
-          <div>
-            <p class="eyebrow">Patrón horario</p>
-            <h2 id="clockTitle">Reloj del ahorro</h2>
-            <p class="panel__subtitle">Promedio horario del año. El valle solar suele destacar al mediodía.</p>
+      <div class="obs-card">
+        <div class="chart-head">
+          <div class="chart-title">
+            <h3>Tendencia del año</h3>
+            <div class="micro muted" id="trendMeta">Cargando…</div>
+          </div>
+          <div class="segmented" role="tablist" aria-label="Modo del gráfico">
+            <button id="trendModeMonthly" class="segmented__btn is-active" type="button" role="tab" aria-selected="true">Mensual</button>
+            <button id="trendModeDaily" class="segmented__btn" type="button" role="tab" aria-selected="false">Diaria</button>
           </div>
         </div>
-        <div class="chart-shell">
-          <div class="skeleton skeleton-chart"></div>
-          <canvas id="clockChart" role="img" aria-label="Gráfico polar tipo reloj mostrando el precio promedio por hora del día."></canvas>
-        </div>
-      </section>
 
-      <section class="panel" aria-labelledby="weekdayTitle" data-loading="true">
-        <div class="panel__header">
-          <div>
-            <p class="eyebrow">Patrón semanal</p>
-            <h2 id="weekdayTitle">Promedio por día</h2>
-            <p class="panel__subtitle">Laborables vs fin de semana con datos reales del año.</p>
+        <div class="chart-wrap">
+          <canvas id="trendChart" height="140"></canvas>
+        </div>
+
+        <div class="insights-row" id="trendInsights">
+          <div class="insight">
+            <div class="insight__k" id="insightCheapest">—</div>
+            <div class="insight__l">Mejor mes (media)</div>
           </div>
-        </div>
-        <div class="chart-shell">
-          <div class="skeleton skeleton-chart"></div>
-          <canvas id="weekdayChart" role="img" aria-label="Gráfico de barras mostrando el precio promedio por día de la semana."></canvas>
-        </div>
-      </section>
-    </div>
-
-    <section class="panel" id="comparativa" aria-labelledby="comparisonTitle" data-loading="true">
-      <div class="panel__header">
-        <div>
-          <p class="eyebrow">Comparativa</p>
-          <h2 id="comparisonTitle">Comparativa Multianual</h2>
-          <p class="panel__subtitle">Comparación por día del año con tendencia suavizada y detalle por tooltip.</p>
-        </div>
-        <div id="comparisonControls" class="comparison-controls"></div>
-      </div>
-      <div class="chart-shell chart-shell--comparison">
-        <div class="skeleton skeleton-chart"></div>
-        <canvas id="comparisonChart" role="img" aria-label="Gráfico comparativo multianual mostrando la evolución del precio de la luz entre varios años."></canvas>
-      </div>
-    </section>
-
-    <!-- CTA Premium -->
-    <section class="cta-premium" aria-labelledby="ctaPremiumTitle">
-      <div class="cta-premium__inner">
-        <div class="cta-premium__content">
-          <h2 id="ctaPremiumTitle" class="cta-premium__title">¿El PVPC te está costando dinero?</h2>
-          <p class="cta-premium__text">
-            El mercado regulado es volátil: un mes ahorras, al siguiente pagas el doble.
-            <br><strong>No adivines.</strong> Calcula tu factura real con tus propios datos de consumo y descubre si una tarifa fija te saldría más barata hoy mismo.
-          </p>
-          <p class="cta-premium__note">Gratis, sin registro y 100% privado.</p>
-        </div>
-        <div class="cta-premium__actions">
-          <a href="/" class="btn cta-premium__btn">⚡ Comparar con mi consumo real</a>
+          <div class="insight">
+            <div class="insight__k" id="insightWorst">—</div>
+            <div class="insight__l">Peor mes (media)</div>
+          </div>
+          <div class="insight">
+            <div class="insight__k" id="insightRange">—</div>
+            <div class="insight__l">Rango (min–máx)</div>
+          </div>
         </div>
       </div>
     </section>
 
-    <!-- FAQ Premium (Acordeón) -->
-    <section class="faq" id="faq" aria-labelledby="faqTitle">
-      <h2 id="faqTitle" class="faq__title">Preguntas Frecuentes sobre el PVPC</h2>
-      
-      <div class="faq-grid">
-        <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <summary class="faq-question" itemprop="name">¿A qué hora es más barata la luz en España?</summary>
-          <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-            <div itemprop="text">
-              <p>En la mayoría de días, la franja más económica se concentra en las horas centrales (aprox. <strong>11:00–17:00</strong>), impulsada por la generación fotovoltaica.</p>
-              <p>La franja más cara suele desplazarse hacia el comienzo de la noche (aprox. <strong>20:00–22:00</strong>), cuando cae la producción solar y aumenta la demanda doméstica.</p>
+    <!-- 3) HORAS -->
+    <section id="horas" class="obs-section">
+      <div class="obs-section__head">
+        <h2>¿A qué horas suele ser más barato?</h2>
+        <p class="muted">
+          Perfil horario promedio del año. Útil para desplazar consumos: termo, lavadora, recarga, cocina, etc.
+        </p>
+      </div>
+
+      <div class="obs-card">
+        <div class="chart-head">
+          <div class="chart-title">
+            <h3>Perfil horario promedio</h3>
+            <div class="micro muted" id="hourlyMeta">Cargando…</div>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="hourlyChart" height="140"></canvas>
+        </div>
+
+        <div class="callout" id="hourlyCallout">
+          <strong>Consejo:</strong> Cargando…
+        </div>
+      </div>
+    </section>
+
+    <!-- 4) COMPARATIVA -->
+    <section id="comparativa" class="obs-section">
+      <div class="obs-section__head">
+        <h2>Comparativa por años</h2>
+        <p class="muted">
+          Comparación <strong>mensual</strong> (por defecto) para que sea legible. Activa/desactiva años para ver tendencias de fondo.
+        </p>
+      </div>
+
+      <div class="obs-card">
+        <div class="compare-grid">
+          <div class="compare-controls">
+            <h3>Años</h3>
+            <div id="compareYears" class="year-chips" aria-label="Selecciona años"></div>
+            <div class="micro muted" style="margin-top:.5rem">Sugerencia: 3 líneas máximo para que se entienda.</div>
+          </div>
+          <div class="compare-chart">
+            <div class="chart-wrap">
+              <canvas id="compareChart" height="160"></canvas>
             </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5) FAQ -->
+    <section id="faq" class="obs-section">
+      <div class="obs-section__head">
+        <h2>Preguntas frecuentes sobre PVPC</h2>
+        <p class="muted">Respuestas cortas y sin humo.</p>
+      </div>
+
+      <div class="faq">
+        <details>
+          <summary>¿Qué es el PVPC y por qué cambia cada hora?</summary>
+          <div class="faq__body">
+            El PVPC es una tarifa regulada cuyo precio refleja el coste horario de la electricidad en el mercado mayorista y ajustes del sistema. Por eso puede variar mucho entre horas y entre días.
           </div>
         </details>
 
-        <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <summary class="faq-question" itemprop="name">¿Por qué la luz es tan cara por la tarde?</summary>
-          <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-            <div itemprop="text">
-              <p>Se combinan varios factores a la vez:</p>
-              <ul>
-                <li><strong>Menos solar:</strong> la producción fotovoltaica cae al atardecer.</li>
-                <li><strong>Más demanda:</strong> sube el consumo residencial al volver a casa.</li>
-                <li><strong>Tecnologías marginales:</strong> para cubrir el pico entran tecnologías más caras (p. ej. ciclos combinados).</li>
-              </ul>
-              <p><a href="/guias/como-adaptar-tus-horarios-para-pagar-menos-luz.html">Ver guía completa sobre horarios →</a></p>
-            </div>
+        <details>
+          <summary>¿Esto predice el precio de mañana?</summary>
+          <div class="faq__body">
+            No. Este observatorio usa histórico para detectar patrones y ayudarte a elegir horarios habituales. Para una simulación exacta de tu caso, usa el simulador.
           </div>
         </details>
 
-        <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <summary class="faq-question" itemprop="name">¿Cuál es el mes más caro del año?</summary>
-          <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-            <div itemprop="text">
-              <p>Con frecuencia destacan <strong>enero</strong> (más calefacción y menos horas de sol) y <strong>agosto</strong> (más aire acondicionado). Aun así, depende del año: meteorología, disponibilidad de generación y precios de combustibles pueden cambiar el patrón.</p>
-              <p><em>Consejo:</em> Mira nuestro gráfico de "Comparativa Multianual" arriba para detectar las tendencias antes de que lleguen.</p>
-            </div>
+        <details>
+          <summary>¿Cuándo suele ser más barato?</summary>
+          <div class="faq__body">
+            A menudo las horas centrales del día tienden a ser más baratas (sobre todo con alta producción solar), pero depende del año y de la zona. El gráfico “Perfil horario” te lo muestra de forma directa.
           </div>
         </details>
 
-        <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <summary class="faq-question" itemprop="name">¿Me conviene el PVPC o una tarifa fija?</summary>
-          <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-            <div itemprop="text">
-              <p>No hay una respuesta única, pero hay una regla práctica:</p>
-              <ul>
-                <li><strong>PVPC:</strong> si puedes desplazar consumo a horas baratas (mediodía, fines de semana) y toleras la variabilidad.</li>
-                <li><strong>Fija:</strong> si priorizas estabilidad de precio y no quieres depender de horarios.</li>
-              </ul>
-              <p><a href="/">Usa nuestro comparador para ver la diferencia en euros →</a></p>
-            </div>
-          </div>
-        </details>
-
-        <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <summary class="faq-question" itemprop="name">¿Por qué hay precios negativos o a 0€?</summary>
-          <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-            <div itemprop="text">
-              <p>Sucede cuando nos "sobra" electricidad renovable (mucho viento y sol en primavera/otoño) y hay poca demanda. A las centrales les sale más caro parar que regalar la energía.</p>
-              <p><strong>Ojo:</strong> Aunque el precio del mercado sea 0€, tú sigues pagando peajes y cargos del sistema, por lo que tu factura nunca será cero, pero sí muy baja.</p>
-            </div>
-          </div>
-        </details>
-
-        <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <summary class="faq-question" itemprop="name">¿Es verdad que la luz es más barata el fin de semana?</summary>
-          <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-            <div itemprop="text">
-              <p>En general, sí. En la tarifa 2.0TD los sábados, domingos y festivos nacionales se consideran periodo valle las 24 horas, lo que reduce el componente regulado. Además, suele disminuir la demanda industrial. Consulta el gráfico de “Promedio por día” para ver el patrón del año seleccionado.</p>
-            </div>
-          </div>
-        </details>
-
-        <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <summary class="faq-question" itemprop="name">¿Cómo ha evolucionado el precio recientemente?</summary>
-          <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-            <div itemprop="text">
-              <p>El PVPC puede variar mucho de un año a otro. La forma más fiable de ver la evolución es comparar varios años con el mismo eje temporal (día del año) y una curva suavizada. Para una lectura rápida, cambia a la vista “Mensual” en la comparativa.</p>
-            </div>
-          </div>
-        </details>
-
-        <details class="faq-item" itemscope itemprop="mainEntity" itemtype="https://schema.org/Question">
-          <summary class="faq-question" itemprop="name">¿Trucos rápidos para ahorrar en PVPC?</summary>
-          <div class="faq-answer" itemscope itemprop="acceptedAnswer" itemtype="https://schema.org/Answer">
-            <div itemprop="text">
-              <ol>
-                <li><strong>Desplaza consumo:</strong> lavadora, lavavajillas y otras cargas a las horas centrales o fines de semana.</li>
-                <li><strong>Evita picos:</strong> reduce consumos intensivos al comienzo de la noche si puedes.</li>
-                <li><strong>Revisa potencia:</strong> ajustar la potencia contratada reduce el término fijo de la factura.</li>
-              </ol>
-              <p><a href="/guias/como-adaptar-tus-horarios-para-pagar-menos-luz.html">Guía avanzada de ahorro →</a></p>
-            </div>
+        <details>
+          <summary>¿Por qué “laborables” no incluye festivos?</summary>
+          <div class="faq__body">
+            Para mantener la herramienta simple y rápida, se usa un criterio calendario básico (lunes–viernes). Aun así, el patrón horario suele ser lo bastante estable como para orientar decisiones de consumo.
           </div>
         </details>
       </div>
     </section>
 
+    <footer class="obs-footer">
+      <p class="micro muted">
+        Datos: REE/ESIOS (dataset estático actualizado diariamente). Este observatorio es informativo: para decidir tarifa y factura, usa el simulador y el comparador.
+      </p>
+    </footer>
   </main>
 
-  <footer class="stats-footer">
-    <p>Datos oficiales REE/ESIOS (Indicador 1001). Los precios mostrados incluyen peajes y cargos pero no el IVA/IGIC/IPSI.</p>
-    <p>&copy; 2026 LuzFija.es — Herramienta independiente y gratuita.</p>
-  </footer>
-
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-  <div class="modal" id="dayModal" role="dialog" aria-modal="true" aria-labelledby="dayModalTitle" hidden>
-    <div class="modal__overlay" data-close="true"></div>
-    <div class="modal__content">
-      <div class="modal__header">
-        <h3 id="dayModalTitle">Detalle del día</h3>
-        <button class="btn btn-ghost" type="button" id="closeModalBtn" aria-label="Cerrar">Cerrar</button>
-      </div>
-      <p class="modal__subtitle" id="dayModalSubtitle">--</p>
-      <div class="modal__chart">
-        <canvas id="dayChart" aria-label="Gráfico horario del día"></canvas>
-      </div>
-      <div class="modal__lists">
-        <div>
-          <h4>Horas más baratas</h4>
-          <ol id="dayCheapest"></ol>
-        </div>
-        <div>
-          <h4>Horas más caras</h4>
-          <ol id="dayExpensive"></ol>
-        </div>
-      </div>
-      <div class="modal__actions">
-        <button class="btn btn-primary" id="useDayBtn" type="button">Usar este día como ejemplo</button>
-      </div>
-    </div>
-  </div>
-
-  <script src="/vendor/chartjs/chart.umd.js" defer></script>
-  <script src="/js/pvpc-stats-engine.js" defer></script>
-  <script src="/js/pvpc-stats-ui.js?v=6" defer></script>
+  <script src="/js/config.js"></script>
+  <script src="/js/theme.js"></script>
+  <script src="/js/tracking.js"></script>
+  <script src="/vendor/chartjs/chart.umd.js"></script>
+  <script src="/js/pvpc-stats-engine.js"></script>
+  <script src="/js/pvpc-stats-ui.js?v=7"></script>
 
   <script type="application/ld+json">
   {
@@ -506,67 +365,23 @@
     "mainEntity": [
       {
         "@type": "Question",
-        "name": "¿A qué hora es más barata la luz en España?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "En la mayoría de días, la franja más económica se concentra en las horas centrales (aprox. 11:00–17:00), impulsada por la generación fotovoltaica. La franja más cara suele aparecer al comienzo de la noche (aprox. 20:00–22:00), cuando cae la producción solar y aumenta la demanda."
-        }
+        "name": "¿Qué es el PVPC y por qué cambia cada hora?",
+        "acceptedAnswer": { "@type": "Answer", "text": "El PVPC es una tarifa regulada cuyo precio varía por hora porque refleja el coste horario del mercado y ajustes del sistema. Por eso cambia entre horas y días." }
       },
       {
         "@type": "Question",
-        "name": "¿Por qué la luz es tan cara por la tarde?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Al atardecer se combinan menos producción solar, más demanda residencial y la entrada de tecnologías marginales más caras para cubrir el pico. El resultado es una franja con precios más elevados que el resto del día."
-        }
+        "name": "¿Esto predice el precio de mañana?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No. Este observatorio usa histórico para detectar patrones y orientar horarios habituales. Para una simulación exacta de tu caso, utiliza el simulador." }
       },
       {
         "@type": "Question",
-        "name": "¿Cuál es el mes más caro del año?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Con frecuencia destacan enero (más calefacción y menos horas de sol) y agosto (más aire acondicionado). Aun así, depende del año: meteorología, disponibilidad de generación y precios de combustibles pueden modificar el patrón."
-        }
+        "name": "¿Cuándo suele ser más barato?",
+        "acceptedAnswer": { "@type": "Answer", "text": "A menudo las horas centrales del día tienden a ser más baratas, pero depende del año y la zona. El perfil horario promedio del observatorio lo muestra de forma directa." }
       },
       {
         "@type": "Question",
-        "name": "¿Me conviene el PVPC o una tarifa fija?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "El PVPC puede encajar si puedes desplazar consumo a horas baratas y toleras variabilidad. Una fija puede encajar si priorizas estabilidad y no quieres depender de horarios. Lo ideal es simular con tus datos reales de consumo."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "¿Por qué hay precios negativos o a 0€?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Puede ocurrir cuando hay exceso de generación renovable y poca demanda. Aun así, la factura final incluye componentes regulados, por lo que el total no llega a cero aunque el precio de energía sea muy bajo."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "¿Es verdad que la luz es más barata el fin de semana?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "En general, sí: los fines de semana y festivos nacionales se consideran periodo valle en 2.0TD y suele bajar la demanda industrial. El patrón exacto lo verás en el gráfico de promedio por día de la semana."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "¿Cómo ha evolucionado el precio recientemente?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "La manera más fiable de ver la evolución es comparar varios años con el mismo eje temporal (día del año) y una curva suavizada. Para una lectura rápida, la vista mensual resume la tendencia sin ruido."
-        }
-      },
-      {
-        "@type": "Question",
-        "name": "¿Trucos rápidos para ahorrar en PVPC?",
-        "acceptedAnswer": {
-          "@type": "Answer",
-          "text": "Tres ideas prácticas: (1) desplaza consumos intensivos a las horas centrales o fines de semana, (2) evita picos al comienzo de la noche cuando puedas, y (3) ajusta la potencia contratada para reducir el término fijo."
-        }
+        "name": "¿Por qué “laborables” no incluye festivos?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Se usa un criterio simple (lunes a viernes) para mantener la herramienta rápida y fácil de entender. Aun así, el patrón horario suele orientar bien la mayoría de decisiones de consumo." }
       }
     ]
   }
