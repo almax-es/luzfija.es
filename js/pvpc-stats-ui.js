@@ -58,9 +58,9 @@
     return String(n).replace('.', ',');
   }
 
-  function fmtCents(priceEurKwh, decimals = 1) {
+  function fmtCents(priceEurKwh, decimals = 3) {
     if (!Number.isFinite(priceEurKwh)) return '—';
-    return `${toComma((priceEurKwh * 100).toFixed(decimals))} c€/kWh`;
+    return `${toComma(priceEurKwh.toFixed(decimals))} €/kWh`;
   }
 
   function fmtPct(p, decimals = 0) {
@@ -278,7 +278,7 @@
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: (ctx) => ` ${fmtCents(ctx.parsed.y)} (${toComma((ctx.parsed.y ?? 0).toFixed(3))} €/kWh)`
+              label: (ctx) => ` ${fmtCents(ctx.parsed.y)}`
             }
           }
         },
