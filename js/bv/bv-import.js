@@ -70,7 +70,6 @@ window.BVSim = window.BVSim || {};
 
     const normKey = (h) => stripOuterQuotes(String(h ?? ''))
       .trim()
-      .replace(/([a-z])([A-Z])/g, '$1_$2') // camelCase -> snake_case (energiaVertida -> energia_Vertida)
       .toLowerCase()
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
       .replace(/\(.*?\)/g, '')           // quita parentesis (p.ej. (kWh))
@@ -87,25 +86,19 @@ window.BVSim = window.BVSim || {};
       // consumo / excedentes neteados
       consumo: [
         'ae_kwh', 'consumo_kwh', 'energia_consumida_kwh', 'energia_consumida',
-        'import_kwh', 'importacion_kwh', 'energia_activa_importada_kwh',
-        'ae_k_wh', 'consumo_k_wh'
+        'import_kwh', 'importacion_kwh', 'energia_activa_importada_kwh'
       ],
       excedente: [
         'as_kwh', 'energia_vertida_kwh', 'energia_vertida', 'vertido_kwh',
         'excedente_kwh', 'export_kwh', 'exportacion_kwh', 'inyeccion_kwh',
-        'energia_activa_exportada_kwh',
-        // Alias compactos por si acaso
-        'energiavertida_kwh', 'energiavertida',
-        'as_k_wh', 'energia_vertida_k_wh'
+        'energia_activa_exportada_kwh'
       ],
       autoconsumo: [
         'ae_autocons_kwh', 'energia_autoconsumida_kwh', 'energia_autoconsumida',
-        'autoconsumo_kwh',
-        // Alias compactos
-        'energiaautoconsumida_kwh', 'energiaautoconsumida'
+        'autoconsumo_kwh'
       ],
       // calidad / real-estimado
-      realEstimado: ['real_estimado', 'realest', 'metodoobtencion', 'metodo_obtencion', 'metodoobtencion'],
+      realEstimado: ['real_estimado', 'realest', 'metodoobtencion', 'metodo_obtencion'],
     };
 
     const sampleForSupport = () => {
