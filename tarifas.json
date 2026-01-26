@@ -65,7 +65,7 @@
       "web": "https://ofertas.imaginaenergia.com/plan-online-imagina/",
       "tipo": "1P",
       "fv": {
-        "exc": 0.04,
+        "exc": 0.03,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -250,7 +250,7 @@
       "tipo": "1P",
       "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 10.000 kWh/año",
       "fv": {
-        "exc": 0.07,
+        "exc": 0.06,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -360,7 +360,7 @@
       "web": "https://ofertas.imaginaenergia.com/plan-online-imagina/",
       "tipo": "3P",
       "fv": {
-        "exc": 0.04,
+        "exc": 0.03,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -452,7 +452,7 @@
       "tipo": "3P",
       "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 10.000 kWh/año",
       "fv": {
-        "exc": 0.07,
+        "exc": 0.06,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -517,5 +517,5 @@
       "requiereFV": true
     }
   ],
-  "updatedAt": "2026-01-26T15:19:24.027Z"
+  "updatedAt": "2026-01-26T18:59:29.456Z"
 }
