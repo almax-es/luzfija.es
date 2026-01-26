@@ -52,7 +52,7 @@
     const lines = String(fileContent || '').split(/\r?\n/);
     if (lines.length < 2) throw new Error('CSV vacío o inválido');
 
-    const header = stripBomAndTrim(lines[0]).toLowerCase();
+    const header = stripBomAndTrim(lines[0]).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
     const isIberdrolaCliente = header.includes('consumo wh') && header.includes('generacion wh');
     const isFormatoEspanol = header.includes('ae_kwh') || header.includes('consumo_kwh');
 
@@ -140,29 +140,71 @@ const esReal = isDatadisNuevo
   function parseCSVIberdrolaCliente(lines) {
     const consumos = [];
 
-    // Iberdrola suele exportar con separador ';' (a veces con ';' final en cada línea).
-    // Detectamos el separador desde la cabecera y mapeamos columnas por nombre para ser robustos.
+    // Formato i-DE / Iberdrola: normalmente
+    // CUPS;FECHA-HORA;INV / VER;PERIODO TARIFARIO;CONSUMO Wh;GENERACION Wh;
+    // (puede venir con ';' final). Además puede haber 25ª hora (cambio horario de octubre).
     const headerLine = stripBomAndTrim(lines[0]);
     const separator = detectCSVSeparator(headerLine);
 
+    const normHeader = (h) => stripOuterQuotes(String(h ?? ''))
+      .trim()
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // quitar acentos
+      .replace(/[^a-z0-9]+/g, '');                     // quitar separadores
+
     const headerColsRaw = splitCSVLine(headerLine, separator);
-    const headerCols = headerColsRaw.map(c => stripOuterQuotes(String(c || '')).trim().toLowerCase());
-    const idxFechaHora = headerCols.indexOf('fecha-hora');
-    const idxConsumoWh = headerCols.indexOf('consumo wh');
-    const idxGeneracionWh = headerCols.indexOf('generacion wh');
+    const headerKeys = headerColsRaw.map(normHeader);
+
+    const idxFechaHora = headerKeys.indexOf('fechahora');
+    const idxConsumoWh = headerKeys.indexOf('consumowh');
+    const idxGeneracionWh = headerKeys.indexOf('generacionwh');
+    const idxInvVer = headerKeys.indexOf('invver'); // "INV / VER"
+    const idxPeriodoTar = headerKeys.indexOf('periodotarifario');
 
     if (idxFechaHora < 0 || idxConsumoWh < 0 || idxGeneracionWh < 0) {
       throw new Error('Formato Iberdrola no reconocido: faltan columnas FECHA-HORA / CONSUMO Wh / GENERACION Wh');
     }
 
+    const mapPeriodo = (raw) => {
+      const p = String(raw ?? '').trim().toUpperCase();
+      if (!p) return null;
+      if (p.includes('PUNTA') || p === 'P1') return 'P1';
+      if (p.includes('LLANO') || p === 'P2') return 'P2';
+      if (p.includes('VALLE') || p === 'P3') return 'P3';
+      return null;
+    };
+
+    const seen = new Map(); // key: YYYY-MM-DD|hourNum -> count (para 02:00 duplicada sin INV/VER)
+
+    function ymdKeyLocal(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+
+    function computeHoraCNMC(fechaObj, hourNum, invVerRaw) {
+      // i-DE suele usar etiquetas 00:00..23:00 como "inicio de tramo" => CNMC hora = hourNum + 1
+      // Excepción: día de 25 horas (último domingo de octubre): 02:00 aparece dos veces.
+      if (hourNum === 2) {
+        const inv = String(invVerRaw ?? '').trim();
+        if (inv === '0') return 25; // segundo 02:00 (hora repetida)
+        if (inv === '1') return 3;  // primer 02:00 (con horario de verano)
+        const key = `${ymdKeyLocal(fechaObj)}|02`;
+        const c = (seen.get(key) || 0) + 1;
+        seen.set(key, c);
+        if (c === 1) return 3;
+        if (c === 2) return 25;
+      }
+      return hourNum + 1;
+    }
+
     for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
+      const line = String(lines[i] ?? '').trim();
       if (!line) continue;
 
-      // ⭐ FIX: Usar splitCSVLine para manejar comillas correctamente
       let cols = splitCSVLine(line, separator);
-
-      // Si viene con separador final (p.ej. ';' al final), nos queda una última columna vacía.
+      // Si viene con separador final, queda una última columna vacía
       if (cols.length && String(cols[cols.length - 1]).trim() === '') cols = cols.slice(0, -1);
 
       if (cols.length <= Math.max(idxFechaHora, idxConsumoWh, idxGeneracionWh)) continue;
@@ -170,35 +212,44 @@ const esReal = isDatadisNuevo
       const fechaHoraStr = stripOuterQuotes(cols[idxFechaHora]);
       const consumoWhStr = stripOuterQuotes(cols[idxConsumoWh]);
       const generacionWhStr = stripOuterQuotes(cols[idxGeneracionWh]);
+      const invVerStr = idxInvVer !== -1 ? stripOuterQuotes(cols[idxInvVer]) : '';
+      const periodoTarStr = idxPeriodoTar !== -1 ? stripOuterQuotes(cols[idxPeriodoTar]) : '';
 
-      if (!fechaHoraStr || !consumoWhStr) continue;
+      if (!fechaHoraStr) continue;
 
-      const [fechaParte, horaParte] = fechaHoraStr.split(' ');
+      const [fechaParte, horaParte] = String(fechaHoraStr).split(' ');
       if (!fechaParte || !horaParte) continue;
 
-      const horaNum = parseInt(horaParte.split(':')[0], 10);
+      const hourNum = parseInt(String(horaParte).split(':')[0], 10);
+      if (!Number.isFinite(hourNum) || hourNum < 0 || hourNum > 23) continue;
 
-      // ⭐ FIX: Usar parseDateFlexible para soportar múltiples formatos
       const fecha = parseDateFlexible(fechaParte);
       if (!fecha) continue;
 
-      const hora = horaNum + 1;
-
-      // ⭐ FIX: Validar rango de hora
-      if (hora < 1 || hora > 24) continue;
+      const hora = computeHoraCNMC(fecha, hourNum, invVerStr);
+      if (hora < 1 || hora > 25) continue;
 
       const consumoWh = parseNumberFlexibleCSV(consumoWhStr);
-      // ⭐ FIX: Validar rango razonable (en Wh, límite más alto)
-      if (isNaN(consumoWh) || consumoWh < 0 || consumoWh > 10000000) continue;
-      const kwh = consumoWh / 1000;
+      const generacionWh = parseNumberFlexibleCSV(generacionWhStr);
 
-      let excedente = 0;
-      if (generacionWhStr && generacionWhStr.trim() !== '') {
-        const generacionWh = parseNumberFlexibleCSV(generacionWhStr);
-        if (!isNaN(generacionWh)) excedente = generacionWh / 1000;
-      }
+      const importKwh = Number.isFinite(consumoWh) ? (consumoWh / 1000) : 0;
+      const exportKwh = Number.isFinite(generacionWh) ? (generacionWh / 1000) : 0;
 
-      consumos.push({ fecha, hora, kwh, excedente, autoconsumo: 0, esReal: true });
+      // Balance neto horario (saldo neto):
+      const kwh = Math.max(importKwh - exportKwh, 0);
+      const excedente = Math.max(exportKwh - importKwh, 0);
+
+      const periodo = mapPeriodo(periodoTarStr);
+
+      consumos.push({
+        fecha,
+        hora,
+        kwh,
+        excedente,
+        autoconsumo: 0,
+        periodo,
+        esReal: true
+      });
     }
 
     return consumos;
@@ -311,47 +362,86 @@ const esReal = isDatadisNuevo
       throw new Error('No se encontraron las columnas necesarias en el Excel');
     }
 
+    const colInvVer = headers.findIndex(h => {
+      const hStr = String(h).toUpperCase().replace(/\s+/g, '');
+      return hStr.includes('INV') && hStr.includes('VER');
+    });
+
+    const mapPeriodo = (raw) => {
+      const p = String(raw ?? '').trim().toUpperCase();
+      if (!p) return null;
+      if (p.includes('PUNTA') || p === 'P1') return 'P1';
+      if (p.includes('LLANO') || p === 'P2') return 'P2';
+      if (p.includes('VALLE') || p === 'P3') return 'P3';
+      return null;
+    };
+
+    const seen = new Map(); // YYYY-MM-DD|02 -> count (por si no viene INV/VER)
+    function ymdKeyLocal(d) {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    }
+    function computeHoraCNMC(fechaObj, hourNum, invVerRaw) {
+      if (hourNum === 2) {
+        const inv = String(invVerRaw ?? '').trim();
+        if (inv === '0') return 25;
+        if (inv === '1') return 3;
+        const key = `${ymdKeyLocal(fechaObj)}|02`;
+        const c = (seen.get(key) || 0) + 1;
+        seen.set(key, c);
+        if (c === 1) return 3;
+        if (c === 2) return 25;
+      }
+      return hourNum + 1;
+    }
+
     const consumos = [];
 
     for (let i = headerRow + 1; i < data.length; i++) {
       const row = data[i];
-      if (!row || row.length < 4) continue;
+      if (!row || row.length < 2) continue;
 
-      const fechaHoraStr = row[colFechaHora];
+      const fechaHoraRaw = row[colFechaHora];
+      if (!fechaHoraRaw) continue;
+
       const periodoTarifario = colPeriodo !== -1 ? String(row[colPeriodo] || '').trim() : '';
-      const consumoWh = parseFloat(row[colConsumo]) || 0;
-      const generacionWh = parseFloat(row[colGeneracion]) || 0;
+      const invVerRaw = colInvVer !== -1 ? row[colInvVer] : '';
 
-      if (!fechaHoraStr) continue;
+      const consumoWhRaw = parseNumberFlexible(row[colConsumo]);
+      const generacionWhRaw = parseNumberFlexible(row[colGeneracion]);
+      const consumoWh = Number.isFinite(consumoWhRaw) ? consumoWhRaw : 0;
+      const generacionWh = Number.isFinite(generacionWhRaw) ? generacionWhRaw : 0;
 
-      const [fechaStr, horaStr] = String(fechaHoraStr).split(' ');
+      const fechaHoraStr = String(fechaHoraRaw);
+      const [fechaStr, horaStr] = fechaHoraStr.split(' ');
       if (!fechaStr || !horaStr) continue;
 
-      const [año, mes, dia] = fechaStr.split('/').map(Number);
-      const horaXLSX = parseInt(horaStr.split(':')[0]);
-      const horaCNMC = horaXLSX + 1;
+      const fecha = parseDateFlexible(fechaStr);
+      if (!fecha) continue;
 
-      const fecha = new Date(año, mes - 1, dia);
-      if (isNaN(fecha.getTime())) continue;
+      const hourNum = parseInt(horaStr.split(':')[0], 10);
+      if (!Number.isFinite(hourNum) || hourNum < 0 || hourNum > 23) continue;
 
-      const consumoKwh = consumoWh / 1000;
-      const generacionKwh = generacionWh / 1000;
+      const horaCNMC = computeHoraCNMC(fecha, hourNum, invVerRaw);
 
-      let periodoCalculado = null;
-      if (periodoTarifario) {
-        const pUpper = periodoTarifario.toUpperCase();
-        if (pUpper.includes('PUNTA') || pUpper === 'P1') periodoCalculado = 'P1';
-        else if (pUpper.includes('LLANO') || pUpper === 'P2') periodoCalculado = 'P2';
-        else if (pUpper.includes('VALLE') || pUpper === 'P3') periodoCalculado = 'P3';
-      }
+      const importKwh = consumoWh / 1000;
+      const exportKwh = generacionWh / 1000;
+
+      // Balance neto horario (saldo neto)
+      const kwh = Math.max(importKwh - exportKwh, 0);
+      const excedente = Math.max(exportKwh - importKwh, 0);
+
+      const periodo = mapPeriodo(periodoTarifario);
 
       consumos.push({
         fecha,
         hora: horaCNMC,
-        kwh: consumoKwh,
-        excedente: generacionKwh,
+        kwh,
+        excedente,
         autoconsumo: 0,
-        periodo: periodoCalculado,
+        periodo,
         esReal: true
       });
     }
