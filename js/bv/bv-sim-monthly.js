@@ -18,14 +18,32 @@ window.BVSim = window.BVSim || {};
 function getPeriodoHorarioCSV(fecha, hora) {
   // Verificar que las utilidades canónicas están disponibles
   if (!window.LF || !window.LF.csvUtils || typeof window.LF.csvUtils.getPeriodoHorarioCSV !== 'function') {
-    throw new Error(
-      'BVSim: No se pudo acceder a window.LF.csvUtils.getPeriodoHorarioCSV. ' +
-      'Asegúrate de que lf-csv-utils.js está cargado antes que bv-sim-monthly.js.'
-    );
+    const errorMsg =
+      '❌ BVSim ERROR CRÍTICO: No se pudo acceder a window.LF.csvUtils.getPeriodoHorarioCSV.\n' +
+      '📋 Solución: Asegúrate de que lf-csv-utils.js está cargado ANTES que bv-sim-monthly.js en el HTML.\n' +
+      '🔍 Debug info:\n' +
+      `  - window.LF existe: ${!!window.LF}\n` +
+      `  - window.LF.csvUtils existe: ${!!(window.LF && window.LF.csvUtils)}\n` +
+      `  - getPeriodoHorarioCSV existe: ${!!(window.LF && window.LF.csvUtils && window.LF.csvUtils.getPeriodoHorarioCSV)}`;
+
+    console.error(errorMsg);
+    throw new Error(errorMsg);
   }
 
   // Delegar al cálculo canónico (que maneja correctamente hora 25)
   return window.LF.csvUtils.getPeriodoHorarioCSV(fecha, hora);
+}
+
+// Verificación temprana al cargar el módulo (advertencia en consola)
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    if (!window.LF || !window.LF.csvUtils || !window.LF.csvUtils.getPeriodoHorarioCSV) {
+      console.warn(
+        '⚠️ BVSim: window.LF.csvUtils no está disponible.\n' +
+        'Si usas el simulador BV, asegúrate de cargar lf-csv-utils.js primero.'
+      );
+    }
+  }, 0);
 }
 
 // ===== AGRUPACIÓN MENSUAL (BUCKETS) =====
