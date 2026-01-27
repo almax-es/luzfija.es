@@ -85,7 +85,7 @@ ES12345;01/01/2024;2;2,456;R`;
 
     it('Debe lanzar error con CSV vacío', async () => {
       const file = { name: 'empty.csv', _content: '' };
-      await expect(procesarCSVConsumos(file)).rejects.toThrow('CSV vacío o inválido'); 
+      await expect(procesarCSVConsumos(file)).rejects.toThrow(/cabecera del CSV/);
     });
 
     it('Debe manejar errores de lectura', async () => {

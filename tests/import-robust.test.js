@@ -67,7 +67,7 @@ describe('Importación robusta CSV (Datadis, e-distribución, i-DE)', () => {
   });
 
   it('Procesa Datadis nuevo con Hora "01:00" y neteo horario', async () => {
-    const csvContent = fs.readFileSync(path.resolve(__dirname, 'fixtures/datadis-nuevo.csv'), 'utf8');
+    const csvContent = fs.readFileSync(path.resolve(__dirname, 'fixtures/datadis_nuevo.csv'), 'utf8');
     const file = { name: 'datadis.csv', _content: csvContent };
 
     const result = await procesarCSVConsumos(file);
@@ -80,7 +80,7 @@ describe('Importación robusta CSV (Datadis, e-distribución, i-DE)', () => {
     const totalImport = records.reduce((acc, r) => acc + r.kwh, 0);
     const totalExport = records.reduce((acc, r) => acc + r.excedente, 0);
 
-    expect(totalImport).toBeCloseTo(0.8, 6);
+    expect(totalImport).toBeCloseTo(1.0, 6);
     expect(totalExport).toBeCloseTo(0.4, 6);
     records.forEach((r) => {
       expect(!(r.kwh > 0 && r.excedente > 0)).toBe(true);
@@ -88,7 +88,7 @@ describe('Importación robusta CSV (Datadis, e-distribución, i-DE)', () => {
   });
 
   it('Procesa e-distribución con CUPS vacío y hora 25', async () => {
-    const csvContent = fs.readFileSync(path.resolve(__dirname, 'fixtures/e-distribucion.csv'), 'utf8');
+    const csvContent = fs.readFileSync(path.resolve(__dirname, 'fixtures/edistribucion_octubre.csv'), 'utf8');
     const file = { name: 'edistribucion.csv', _content: csvContent };
 
     const result = await procesarCSVConsumos(file);
@@ -105,7 +105,7 @@ describe('Importación robusta CSV (Datadis, e-distribución, i-DE)', () => {
   });
 
   it('Procesa i-DE con consumo/generación simultáneos y Wh', async () => {
-    const csvContent = fs.readFileSync(path.resolve(__dirname, 'fixtures/ide-cliente.csv'), 'utf8');
+    const csvContent = fs.readFileSync(path.resolve(__dirname, 'fixtures/ide_bruto.csv'), 'utf8');
     const file = { name: 'ide.csv', _content: csvContent };
 
     const result = await procesarCSVConsumos(file);
@@ -124,6 +124,33 @@ describe('Importación robusta CSV (Datadis, e-distribución, i-DE)', () => {
 
     expect(result.warnings.some(w => w.toLowerCase().includes('wh'))).toBe(true);
     expect(result.warnings.some(w => w.toLowerCase().includes('hora 0..23'))).toBe(true);
+    expect(result.warnings.some(w => w.toLowerCase().includes('neteo'))).toBe(true);
+  });
+
+  it('Detecta cabecera aunque no sea la primera línea', async () => {
+    const csvContent = fs.readFileSync(path.resolve(__dirname, 'fixtures/cabecera_no_primera_linea.csv'), 'utf8');
+    const file = { name: 'cabecera.csv', _content: csvContent };
+
+    const result = await procesarCSVConsumos(file);
+    const records = result.consumosHorarios;
+
+    expect(records).toHaveLength(1);
+    expect(records[0].kwh).toBeCloseTo(1.0, 6);
+  });
+
+  it('Interpreta celdas vacías como 0 sin descartar filas', async () => {
+    const csvContent = fs.readFileSync(path.resolve(__dirname, 'fixtures/celdas_vacias.csv'), 'utf8');
+    const file = { name: 'celdas.csv', _content: csvContent };
+
+    const result = await procesarCSVConsumos(file);
+    const records = result.consumosHorarios;
+
+    expect(records).toHaveLength(2);
+    const totalImport = records.reduce((acc, r) => acc + r.kwh, 0);
+    const totalExport = records.reduce((acc, r) => acc + r.excedente, 0);
+    expect(totalImport).toBeCloseTo(0.4, 6);
+    expect(totalExport).toBeCloseTo(0.5, 6);
+    expect(result.warnings.some(w => w.toLowerCase().includes('celdas vacías'))).toBe(true);
   });
 
   it('Permite importar en BV con warning de excedentes ausentes', async () => {
