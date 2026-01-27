@@ -706,6 +706,7 @@
       const lastIdx = daily.labels.length - 1;
       const lastDate = lastIdx >= 0 ? daily.labels[lastIdx] : null;
       const lastVal = lastIdx >= 0 ? daily.data[lastIdx] : null;
+      const ytdAvg = safeMean(daily.data);
 
       const isCurrentYear = String(state.year) === String(new Date().getFullYear());
 
