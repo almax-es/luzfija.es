@@ -1043,4 +1043,25 @@
   .obs-section__head h2 {
     font-size: 1.8rem;
   }
+
+  .obs-subnav {
+    width: calc(100% - 8px);
+    max-width: 100%;
+    margin-bottom: 40px;
+    padding: 6px;
+    overflow-x: auto;
+    white-space: nowrap;
+    justify-content: flex-start;
+    scrollbar-width: none; /* Firefox */
+  }
+
+  .obs-subnav::-webkit-scrollbar {
+    display: none; /* Safari and Chrome */
+  }
+
+  .obs-subnav a {
+    padding: 8px 16px;
+    font-size: 0.8rem;
+    flex-shrink: 0;
+  }
 }
