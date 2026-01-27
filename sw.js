@@ -9,7 +9,7 @@
 // Para automatizar: sed -i "s/CACHE_VERSION = .*/CACHE_VERSION = \"$(date -u +%Y%m%d-%H%M%S)\";/" sw.js
 // O en scripts de CI/CD: echo "const CACHE_VERSION = \"$(date -u +%Y%m%d-%H%M%S)\";" > version.js
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260127-100257";
+const CACHE_VERSION = "20260127-115000";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
@@ -61,6 +61,7 @@ const ASSETS = [
   "estadisticas/estadisticas.css",
   "js/pvpc-stats-engine.js",
   "js/pvpc-stats-ui.js",
+  "js/pvpc-stats-worker.js",
   "vendor/chartjs/chart.umd.js",
   // Simulador Batería Virtual
   "comparador-tarifas-solares.html",
@@ -70,6 +71,7 @@ const ASSETS = [
   "js/bv/bv-import.js",
   // tarifas.json NO está en precache, se maneja con stale-while-revalidate
   "guias.html",
+  "guias/index.html",
   "manifest.webmanifest",
   "logo-512.png",
   "icon-192.png",
