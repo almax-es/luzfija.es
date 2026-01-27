@@ -220,6 +220,424 @@
     return Number(norm);
   }
 
+  // ===== NORMALIZACIÓN DE CABECERAS Y COLUMNAS =====
+
+  const HEADER_ALIASES = {
+    fecha: [
+      'fecha', 'date', 'dia', 'fecha_lectura', 'fecha_consumo', 'dia_lectura'
+    ],
+    hora: [
+      'hora', 'hour', 'intervalo', 'periodo', 'period', 'periodo_horario', 'tramo', 'hora_intervalo'
+    ],
+    fechaHora: [
+      'fecha_hora', 'fechahora', 'fecha_y_hora', 'fecha_hora_lectura', 'fecha_hora_consumo',
+      'fecha_hora_inicio', 'fecha_horaria'
+    ],
+    importacion: [
+      'ae_kwh', 'consumo_kwh', 'energia_consumida_kwh', 'energia_consumo_kwh',
+      'import_kwh', 'importacion_kwh', 'energia_importada_kwh', 'consumo_wh',
+      'energia_consumida_wh', 'energia_consumo_wh', 'consumo_energia_kwh', 'consumo_energia_wh'
+    ],
+    exportacion: [
+      'as_kwh', 'energia_vertida_kwh', 'vertido_kwh', 'export_kwh', 'exportacion_kwh',
+      'inyeccion_kwh', 'energia_exportada_kwh', 'energia_excedente_kwh', 'excedente_kwh',
+      'generacion_wh', 'generacion_kwh', 'energia_vertida_wh', 'as_wh'
+    ],
+    autoconsumo: [
+      'ae_autocons_kwh', 'energia_autoconsumida_kwh', 'autoconsumo_kwh', 'autoconsumo_wh'
+    ],
+    realEstimado: [
+      'real_estimado', 'metodo_obtencion', 'metodoobtencion', 'real_estimada'
+    ],
+    periodo: [
+      'periodo_tarifario', 'periodo_tarifa', 'periodo'
+    ],
+    invVer: [
+      'inv_ver', 'invver', 'invierno_verano'
+    ]
+  };
+
+  function normalizeHeaderName(value) {
+    let str = stripBomAndTrim(value);
+    if (!str) return '';
+
+    // Convertir camelCase a snake_case
+    str = str.replace(/([a-z0-9])([A-Z])/g, '$1_$2');
+
+    str = str.toLowerCase();
+    str = str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    str = str.replace(/[^a-z0-9]+/g, '_');
+    str = str.replace(/k_?w_?h/g, 'kwh');
+    str = str.replace(/_+/g, '_').replace(/^_+|_+$/g, '');
+
+    return str;
+  }
+
+  function normalizeHeaders(headers) {
+    return (headers || []).map(normalizeHeaderName);
+  }
+
+  function buildHeaderError(message, headersNorm) {
+    const headersList = headersNorm.length ? headersNorm.join(', ') : '(sin cabeceras)';
+    return new Error(
+      `${message}\nCabeceras normalizadas detectadas: ${headersList}\n` +
+      'Si el formato es correcto, envía el CSV/XLSX y tu distribuidora a soporte.'
+    );
+  }
+
+  function findHeaderMatches(headersNorm, aliases) {
+    const aliasSet = new Set(aliases);
+    const matches = [];
+    headersNorm.forEach((header, idx) => {
+      if (aliasSet.has(header)) matches.push(idx);
+    });
+    return matches;
+  }
+
+  function pickUniqueColumn(name, matches, headersNorm, required = true) {
+    if (matches.length > 1) {
+      throw buildHeaderError(`Columna "${name}" ambigua: se encontraron ${matches.length} coincidencias.`, headersNorm);
+    }
+    if (matches.length === 0) {
+      if (required) {
+        throw buildHeaderError(`No se identificó la columna obligatoria de "${name}".`, headersNorm);
+      }
+      return null;
+    }
+    return matches[0];
+  }
+
+  function detectColumnMapping(headersNorm) {
+    const fechaMatches = findHeaderMatches(headersNorm, HEADER_ALIASES.fecha);
+    const horaMatches = findHeaderMatches(headersNorm, HEADER_ALIASES.hora);
+    const fechaHoraMatches = findHeaderMatches(headersNorm, HEADER_ALIASES.fechaHora);
+
+    if (fechaHoraMatches.length > 1) {
+      throw buildHeaderError('Columna de fecha/hora ambigua: hay varias posibles.', headersNorm);
+    }
+    if (fechaHoraMatches.length === 1 && (fechaMatches.length || horaMatches.length)) {
+      throw buildHeaderError('No se puede decidir entre "fecha_hora" y columnas separadas de fecha/hora.', headersNorm);
+    }
+
+    const importMatches = findHeaderMatches(headersNorm, HEADER_ALIASES.importacion);
+    const exportMatches = findHeaderMatches(headersNorm, HEADER_ALIASES.exportacion);
+    const autoconsumoMatches = findHeaderMatches(headersNorm, HEADER_ALIASES.autoconsumo);
+    const realMatches = findHeaderMatches(headersNorm, HEADER_ALIASES.realEstimado);
+    const periodoMatches = findHeaderMatches(headersNorm, HEADER_ALIASES.periodo);
+    const invVerMatches = findHeaderMatches(headersNorm, HEADER_ALIASES.invVer);
+
+    const fechaIdx = fechaHoraMatches.length ? null : pickUniqueColumn('fecha', fechaMatches, headersNorm, true);
+    const horaIdx = fechaHoraMatches.length ? null : pickUniqueColumn('hora', horaMatches, headersNorm, true);
+    const fechaHoraIdx = fechaHoraMatches.length ? fechaHoraMatches[0] : null;
+
+    const importIdx = pickUniqueColumn('consumo/importación', importMatches, headersNorm, true);
+    const exportIdx = pickUniqueColumn('excedente/exportación', exportMatches, headersNorm, false);
+    const autoconsumoIdx = pickUniqueColumn('autoconsumo', autoconsumoMatches, headersNorm, false);
+    const realEstimadoIdx = pickUniqueColumn('real/estimado', realMatches, headersNorm, false);
+    const periodoIdx = pickUniqueColumn('periodo tarifario', periodoMatches, headersNorm, false);
+    const invVerIdx = pickUniqueColumn('INV/VER', invVerMatches, headersNorm, false);
+
+    return {
+      fechaIdx,
+      horaIdx,
+      fechaHoraIdx,
+      importIdx,
+      exportIdx,
+      autoconsumoIdx,
+      realEstimadoIdx,
+      periodoIdx,
+      invVerIdx
+    };
+  }
+
+  function extractHourNumber(raw) {
+    if (raw == null) return null;
+    if (typeof raw === 'number' && Number.isFinite(raw)) return Math.trunc(raw);
+    const str = stripOuterQuotes(raw).trim();
+    if (!str) return null;
+    const match = str.match(/(\d{1,2})/);
+    if (!match) return null;
+    const num = parseInt(match[1], 10);
+    return Number.isFinite(num) ? num : null;
+  }
+
+  function splitDateTime(value) {
+    if (value instanceof Date && !isNaN(value.getTime())) {
+      const date = new Date(value.getFullYear(), value.getMonth(), value.getDate());
+      return { date, hour: value.getHours() };
+    }
+    const raw = stripOuterQuotes(value);
+    if (!raw) return { date: null, hour: null };
+    const match = raw.match(/(\d{1,2}):(\d{2})/);
+    const timePart = match ? match[1] : null;
+    const datePart = raw.split(/[ T]/)[0];
+    const date = parseDateFlexible(datePart);
+    const hour = timePart !== null ? parseInt(timePart, 10) : null;
+    return { date, hour: Number.isFinite(hour) ? hour : null };
+  }
+
+  function detectHourBase(dataRows, mapping) {
+    const rows = dataRows || [];
+    let foundZero = false;
+    let found24 = false;
+    for (const row of rows) {
+      if (!row || !Array.isArray(row)) continue;
+      let hourNum = null;
+      if (mapping.fechaHoraIdx !== null && mapping.fechaHoraIdx !== undefined) {
+        const { hour } = splitDateTime(row[mapping.fechaHoraIdx]);
+        hourNum = hour;
+      } else {
+        hourNum = extractHourNumber(row[mapping.horaIdx]);
+      }
+      if (hourNum === null) continue;
+      if (hourNum === 0) foundZero = true;
+      if (hourNum === 24 || hourNum === 25) found24 = true;
+    }
+    if (foundZero) return 'zero';
+    if (found24) return 'cnmc';
+    return 'cnmc';
+  }
+
+  function buildHourResolver(mapping, hourBase) {
+    const seen = new Map();
+    return function resolveHour(fecha, hourNum, invVerRaw) {
+      if (!Number.isFinite(hourNum)) return null;
+      if (hourBase === 'zero') {
+        if (hourNum === 2 && mapping.invVerIdx !== null && mapping.invVerIdx !== undefined) {
+          const key = `${ymdLocal(fecha)}|02`;
+          const count = (seen.get(key) || 0) + 1;
+          seen.set(key, count);
+          const inv = String(invVerRaw ?? '').trim();
+          if (inv === '1') return 3;
+          if (inv === '0') return count >= 2 ? 25 : 3;
+          if (count === 1) return 3;
+          if (count === 2) return 25;
+        }
+        return hourNum + 1;
+      }
+      return hourNum;
+    };
+  }
+
+  function detectUnitFactor(headerNorm, sampleRows, columnIdx, parseNumber, warnings, label, warningSet) {
+    const warn = (msg) => {
+      if (warningSet.has(msg)) return;
+      warningSet.add(msg);
+      warnings.push(msg);
+    };
+
+    if (headerNorm.includes('kwh')) return 1;
+    if (headerNorm.includes('wh')) {
+      warn(`Se detectó ${label} en Wh; se convierte automáticamente a kWh.`);
+      return 0.001;
+    }
+
+    const samples = [];
+    for (let i = 0; i < sampleRows.length && samples.length < 20; i++) {
+      const row = sampleRows[i];
+      if (!row || !Array.isArray(row)) continue;
+      const value = parseNumber(row[columnIdx]);
+      if (Number.isFinite(value)) samples.push(value);
+    }
+    const max = samples.length ? Math.max(...samples) : 0;
+    if (max >= 100) {
+      warn(`No se indicó unidad para ${label}; se asume Wh y se convierte a kWh.`);
+      return 0.001;
+    }
+    return 1;
+  }
+
+  function parseEnergyTableRows(rows, options = {}) {
+    const parseNumber = options.parseNumber || parseNumberFlexible;
+    const headerRowIndex = Number.isFinite(options.headerRowIndex) ? options.headerRowIndex : 0;
+
+    if (!Array.isArray(rows) || rows.length <= headerRowIndex) {
+      throw new Error('Archivo vacío o formato no reconocido');
+    }
+
+    const headerRow = rows[headerRowIndex];
+    if (!Array.isArray(headerRow) || headerRow.length === 0) {
+      throw new Error('No se encontró una cabecera válida en el archivo');
+    }
+
+    const headersNorm = normalizeHeaders(headerRow);
+    const mapping = detectColumnMapping(headersNorm);
+    const warnings = [];
+    const warningSet = new Set();
+
+    if (mapping.exportIdx === null) {
+      warnings.push('No se detectaron excedentes; se importará con excedentes=0.');
+    }
+
+    const dataRows = rows.slice(headerRowIndex + 1);
+    const hourBase = detectHourBase(dataRows, mapping);
+    if (hourBase === 'zero') {
+      warnings.push('Hora 0..23 detectada; se ajustará a 1..24 (formato CNMC).');
+    }
+
+    const importFactor = detectUnitFactor(
+      headersNorm[mapping.importIdx], dataRows, mapping.importIdx, parseNumber, warnings,
+      'el consumo', warningSet
+    );
+    const exportFactor = mapping.exportIdx !== null
+      ? detectUnitFactor(
+        headersNorm[mapping.exportIdx], dataRows, mapping.exportIdx, parseNumber, warnings,
+        'los excedentes', warningSet
+      )
+      : 1;
+    const autoconsumoFactor = mapping.autoconsumoIdx !== null
+      ? detectUnitFactor(
+        headersNorm[mapping.autoconsumoIdx], dataRows, mapping.autoconsumoIdx, parseNumber, warnings,
+        'el autoconsumo', warningSet
+      )
+      : 1;
+
+    const resolveHour = buildHourResolver(mapping, hourBase);
+    const records = [];
+    let totalRows = 0;
+    let parsedRows = 0;
+
+    const mapPeriodo = (raw) => {
+      const p = String(raw ?? '').trim().toUpperCase();
+      if (!p) return null;
+      if (p.includes('PUNTA') || p === 'P1') return 'P1';
+      if (p.includes('LLANO') || p === 'P2') return 'P2';
+      if (p.includes('VALLE') || p === 'P3') return 'P3';
+      return null;
+    };
+
+    for (const row of dataRows) {
+      if (!row || !Array.isArray(row)) continue;
+      const hasData = row.some(cell => String(cell ?? '').trim() !== '');
+      if (!hasData) continue;
+      totalRows++;
+
+      let fecha = null;
+      let hourNum = null;
+
+      if (mapping.fechaHoraIdx !== null) {
+        const dt = splitDateTime(row[mapping.fechaHoraIdx]);
+        fecha = dt.date;
+        hourNum = dt.hour;
+      } else {
+        fecha = parseDateFlexible(row[mapping.fechaIdx]);
+        hourNum = extractHourNumber(row[mapping.horaIdx]);
+      }
+
+      if (!fecha || !Number.isFinite(hourNum)) continue;
+      const hora = resolveHour(fecha, hourNum, mapping.invVerIdx !== null ? row[mapping.invVerIdx] : null);
+      if (!Number.isFinite(hora) || hora < 1 || hora > 25) continue;
+
+      const importRaw = parseNumber(row[mapping.importIdx]);
+      if (!Number.isFinite(importRaw)) continue;
+      if (importRaw < 0) continue;
+
+      let exportRaw = 0;
+      if (mapping.exportIdx !== null) {
+        exportRaw = parseNumber(row[mapping.exportIdx]);
+        if (!Number.isFinite(exportRaw)) continue;
+        if (exportRaw < 0) continue;
+      }
+
+      let autoconsumoRaw = 0;
+      if (mapping.autoconsumoIdx !== null) {
+        const auto = parseNumber(row[mapping.autoconsumoIdx]);
+        if (Number.isFinite(auto) && auto >= 0) autoconsumoRaw = auto;
+      }
+
+      const importKwh = importRaw * importFactor;
+      const exportKwh = exportRaw * exportFactor;
+      const autoconsumo = autoconsumoRaw * autoconsumoFactor;
+
+      if (importKwh > 10000 || exportKwh > 10000) continue;
+
+      const kwh = Math.max(importKwh - exportKwh, 0);
+      const excedente = Math.max(exportKwh - importKwh, 0);
+
+      if (kwh > 1e-6 && excedente > 1e-6) {
+        throw buildHeaderError('Se detectaron importación y excedentes simultáneos tras el neteo horario.', headersNorm);
+      }
+
+      let esReal = true;
+      if (mapping.realEstimadoIdx !== null) {
+        const estado = String(row[mapping.realEstimadoIdx] ?? '').trim().toLowerCase();
+        esReal = estado.startsWith('real') || estado === 'r';
+      }
+
+      const periodo = mapping.periodoIdx !== null ? mapPeriodo(row[mapping.periodoIdx]) : null;
+
+      records.push({
+        fecha,
+        hora,
+        kwh,
+        excedente,
+        autoconsumo,
+        periodo,
+        esReal
+      });
+      parsedRows++;
+    }
+
+    if (totalRows > 0 && parsedRows / totalRows < 0.5) {
+      throw buildHeaderError('La mayoría de filas no se pudo interpretar; probable separador o cabecera incorrecta.', headersNorm);
+    }
+
+    return {
+      records,
+      warnings,
+      hasExcedenteColumn: mapping.exportIdx !== null,
+      hasAutoconsumoColumn: mapping.autoconsumoIdx !== null
+    };
+  }
+
+  function parseCSVToRows(fileContent) {
+    const lines = String(fileContent || '').split(/\r?\n/);
+    if (!lines.length) throw new Error('CSV vacío o inválido');
+
+    let headerIndex = -1;
+    for (let i = 0; i < lines.length; i++) {
+      if (stripBomAndTrim(lines[i])) {
+        headerIndex = i;
+        break;
+      }
+    }
+    if (headerIndex === -1) throw new Error('CSV vacío o inválido');
+
+    const headerLine = lines[headerIndex];
+    const separator = detectCSVSeparator(stripBomAndTrim(headerLine));
+    const rows = [];
+
+    rows.push(splitCSVLine(headerLine, separator));
+    for (let i = headerIndex + 1; i < lines.length; i++) {
+      const line = lines[i];
+      if (!stripBomAndTrim(line)) continue;
+      rows.push(splitCSVLine(line, separator));
+    }
+
+    return { rows, separator };
+  }
+
+  function guessEnergyHeaderRow(dataRows, maxRows = 10) {
+    const candidates = dataRows || [];
+    const aliasSet = new Set([
+      ...HEADER_ALIASES.fecha,
+      ...HEADER_ALIASES.hora,
+      ...HEADER_ALIASES.fechaHora,
+      ...HEADER_ALIASES.importacion,
+      ...HEADER_ALIASES.exportacion
+    ]);
+    for (let i = 0; i < Math.min(maxRows, candidates.length); i++) {
+      const row = candidates[i];
+      if (!row || !Array.isArray(row)) continue;
+      const headersNorm = normalizeHeaders(row);
+      const matches = headersNorm.filter(h => aliasSet.has(h));
+      const hasFecha = headersNorm.some(h => HEADER_ALIASES.fecha.includes(h) || HEADER_ALIASES.fechaHora.includes(h));
+      const hasImport = headersNorm.some(h => HEADER_ALIASES.importacion.includes(h));
+      if (matches.length >= 2 && hasFecha && hasImport) return i;
+    }
+    return -1;
+  }
+
   // ===== FESTIVOS Y PERIODOS TARIFARIOS =====
 
   /**
@@ -360,10 +778,15 @@
     stripOuterQuotes,
     parseNumberFlexibleCSV,
     parseNumberFlexible,
+    normalizeHeaderName,
+    normalizeHeaders,
 
     // Parsing CSV
     splitCSVLine,
     detectCSVSeparator,
+    parseCSVToRows,
+    parseEnergyTableRows,
+    guessEnergyHeaderRow,
 
     // Fechas
     parseDateFlexible,

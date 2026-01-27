@@ -267,7 +267,7 @@ ES12345,01/01/2024,2,2.456,Real`;
     expect(resultado.dias).toBe(1);
   });
 
-  it('Debe rechazar horas fuera de rango (1-25)', async () => {
+  it('Debe ajustar hora 0..23 y rechazar horas fuera de rango', async () => {
     const csvContent = `CUPS;Fecha;Hora;Consumo_kWh;Método
 ES12345;01/01/2024;0;"1,234";Real
 ES12345;01/01/2024;26;"2,456";Real
@@ -277,11 +277,11 @@ ES12345;01/01/2024;1;"3,456";Real`;
     const file = new File([blob], 'test.csv', { type: 'text/csv' });
 
     const resultado = await window.LF.procesarCSVConsumos(file);
-    // Solo debe contar el registro con hora=1
+    // Debe ajustar hora=0 y descartar hora=26
     expect(resultado.dias).toBe(1);
-    // Total debe ser solo 3.456 kWh (el único registro válido)
+    // Total debe ser 1.234 + 3.456 = 4.69 kWh
     const totalKwhNum = parseFloat(resultado.totalKwh.replace(',', '.'));
-    expect(totalKwhNum).toBeCloseTo(3.456, 2);
+    expect(totalKwhNum).toBeCloseTo(4.69, 2);
   });
 
   it('Debe rechazar valores de kWh absurdos (>10000)', async () => {
@@ -298,5 +298,4 @@ ES12345;01/01/2024;2;"1,234";Real`;
     expect(totalKwhNum).toBeCloseTo(1.234, 2);
   });
 });
-
 

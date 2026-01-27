@@ -48,222 +48,13 @@
   // ahora se importan desde lf-csv-utils.js para reutilización con bv-import.js
 
   function parseCSVConsumos(fileContent) {
-    // ⭐ FIX: Usar regex CRLF-aware para manejar archivos Windows/Mac/Linux
-    const lines = String(fileContent || '').split(/\r?\n/);
-    if (lines.length < 2) throw new Error('CSV vacío o inválido');
-
-    const header = stripBomAndTrim(lines[0]).toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
-    const isIberdrolaCliente = header.includes('consumo wh') && header.includes('generacion wh');
-    const isFormatoEspanol = header.includes('ae_kwh') || header.includes('consumo_kwh');
-
-    if (!isFormatoEspanol && !isIberdrolaCliente) {
-      throw new Error('Formato CSV no reconocido. Se esperaba el formato estándar de distribuidoras españolas');
+    const { parseCSVToRows, parseEnergyTableRows } = window.LF.csvUtils || {};
+    if (typeof parseCSVToRows !== 'function' || typeof parseEnergyTableRows !== 'function') {
+      throw new Error('No se pudo cargar el parser de CSV');
     }
 
-    if (isIberdrolaCliente) {
-      return parseCSVIberdrolaCliente(lines);
-    }
-
-    const isDatadisNuevo = header.includes('consumo_kwh') && header.includes('metodoobtencion') && header.includes('energiavertida_kwh');
-
-    const tieneSolar = header.includes('as_kwh') || header.includes('energiavertida_kwh');
-    const tieneAutoconsumo = header.includes('ae_autocons_kwh') || header.includes('energiaautoconsumida_kwh');
-    const consumos = [];
-
-    // ⭐ FIX: Detectar separador automáticamente (';' o ',')
-    const separator = detectCSVSeparator(stripBomAndTrim(lines[0]));
-
-    for (let i = 1; i < lines.length; i++) {
-      const line = lines[i].trim();
-      if (!line) continue;
-
-      // ⭐ FIX: Usar splitCSVLine para respetar comillas y campos entrecomillados
-      const cols = splitCSVLine(line, separator);
-      if (cols.length < 4) continue;
-
-      const fechaStr = stripOuterQuotes(cols[1]);
-      const hora = parseInt(stripOuterQuotes(cols[2]), 10);
-
-      // ⭐ FIX: Validar rango de hora (1-24)
-      if (hora < 1 || hora > 25) continue;
-
-      const kwhStr = stripOuterQuotes(cols[3]);
-
-let excedenteStr = null;
-let autoconsumoStr = null;
-let estadoStr = '';
-
-if (isDatadisNuevo) {
-  // cups;fecha;hora;consumo_kWh;metodoObtencion;energiaVertida_kWh;energiaGenerada_kWh;energiaAutoconsumida_kWh
-  excedenteStr = cols[5];
-  autoconsumoStr = cols[7];
-  estadoStr = cols.length > 4 ? stripOuterQuotes(cols[4]) : '';
-} else {
-  excedenteStr = tieneSolar ? cols[4] : null;
-  autoconsumoStr = tieneAutoconsumo ? cols[5] : null;
-
-  // Calcular índice de la columna REAL/ESTIMADO dinámicamente
-  let idxReal = 4;
-  if (tieneSolar) idxReal++;
-  if (tieneAutoconsumo) idxReal++;
-
-  estadoStr = idxReal < cols.length ? stripOuterQuotes(cols[idxReal]) : "";
-}
-
-const esReal = isDatadisNuevo
-  ? (estadoStr.toLowerCase().startsWith('real') || estadoStr === 'R')
-  : (estadoStr === 'R');
-
-
-      if (!kwhStr || kwhStr.trim() === '') continue;
-
-      const kwh = parseNumberFlexibleCSV(kwhStr);
-      // ⭐ FIX: Validar rango razonable (evita datos corruptos)
-      if (isNaN(kwh) || kwh < 0 || kwh > 10000) continue;
-
-      let excedente = 0;
-      if (excedenteStr && excedenteStr.trim() !== '') {
-        const exc = parseNumberFlexibleCSV(excedenteStr);
-        if (!isNaN(exc)) excedente = exc;
-      }
-
-      let autoconsumo = 0;
-      if (autoconsumoStr && autoconsumoStr.trim() !== '') {
-        const auto = parseNumberFlexibleCSV(autoconsumoStr);
-        if (!isNaN(auto)) autoconsumo = auto;
-      }
-
-      // ⭐ FIX: Usar parseDateFlexible para manejar múltiples formatos (dd/mm/yyyy, yyyy-mm-dd, etc.)
-      const fecha = parseDateFlexible(fechaStr);
-      if (!fecha) continue;
-
-      consumos.push({ fecha, hora, kwh, excedente, autoconsumo, esReal });
-    }
-
-    return consumos;
-  }
-
-  function parseCSVIberdrolaCliente(lines) {
-    const consumos = [];
-
-    // Formato i-DE / Iberdrola: normalmente
-    // CUPS;FECHA-HORA;INV / VER;PERIODO TARIFARIO;CONSUMO Wh;GENERACION Wh;
-    // (puede venir con ';' final). Además puede haber 25ª hora (cambio horario de octubre).
-    const headerLine = stripBomAndTrim(lines[0]);
-    const separator = detectCSVSeparator(headerLine);
-
-    const normHeader = (h) => stripOuterQuotes(String(h ?? ''))
-      .trim()
-      .toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // quitar acentos
-      .replace(/[^a-z0-9]+/g, '');                     // quitar separadores
-
-    const headerColsRaw = splitCSVLine(headerLine, separator);
-    const headerKeys = headerColsRaw.map(normHeader);
-
-    const idxFechaHora = headerKeys.indexOf('fechahora');
-    const idxConsumoWh = headerKeys.indexOf('consumowh');
-    const idxGeneracionWh = headerKeys.indexOf('generacionwh');
-    const idxInvVer = headerKeys.indexOf('invver'); // "INV / VER"
-    const idxPeriodoTar = headerKeys.indexOf('periodotarifario');
-
-    if (idxFechaHora < 0 || idxConsumoWh < 0 || idxGeneracionWh < 0) {
-      throw new Error('Formato Iberdrola no reconocido: faltan columnas FECHA-HORA / CONSUMO Wh / GENERACION Wh');
-    }
-
-    const mapPeriodo = (raw) => {
-      const p = String(raw ?? '').trim().toUpperCase();
-      if (!p) return null;
-      if (p.includes('PUNTA') || p === 'P1') return 'P1';
-      if (p.includes('LLANO') || p === 'P2') return 'P2';
-      if (p.includes('VALLE') || p === 'P3') return 'P3';
-      return null;
-    };
-
-    const seen = new Map(); // key: YYYY-MM-DD|hourNum -> count (para 02:00 duplicada sin INV/VER)
-
-    function ymdKeyLocal(d) {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${day}`;
-    }
-
-    function computeHoraCNMC(fechaObj, hourNum, invVerRaw) {
-      // i-DE suele usar etiquetas 00:00..23:00 como "inicio de tramo" => CNMC hora = hourNum + 1
-      // Excepción: día de 25 horas (último domingo de octubre): 02:00 aparece dos veces.
-      if (hourNum === 2) {
-  // Día normal: solo hay un 02:00 (INV/VER suele ser 0 en todo invierno).
-  // Día cambio horario (fin de octubre): 02:00 aparece dos veces. Mapear a 3 y 25 según ocurrencia/INV/VER.
-  const key = `${ymdKeyLocal(fechaObj)}|02`;
-  const c = (seen.get(key) || 0) + 1;
-  seen.set(key, c);
-
-  const inv = String(invVerRaw ?? '').trim();
-  if (inv === '1') return 3;          // 02:00 en horario de verano (primera)
-  if (inv === '0') return (c >= 2) ? 25 : 3; // 02:00 repetida (segunda) solo si hay duplicidad
-
-  // Fallback si INV/VER no viene o es distinto: por orden de aparición
-  if (c === 1) return 3;
-  if (c === 2) return 25;
-}
-return hourNum + 1;
-    }
-
-    for (let i = 1; i < lines.length; i++) {
-      const line = String(lines[i] ?? '').trim();
-      if (!line) continue;
-
-      let cols = splitCSVLine(line, separator);
-      // Si viene con separador final, queda una última columna vacía
-      if (cols.length && String(cols[cols.length - 1]).trim() === '') cols = cols.slice(0, -1);
-
-      if (cols.length <= Math.max(idxFechaHora, idxConsumoWh, idxGeneracionWh)) continue;
-
-      const fechaHoraStr = stripOuterQuotes(cols[idxFechaHora]);
-      const consumoWhStr = stripOuterQuotes(cols[idxConsumoWh]);
-      const generacionWhStr = stripOuterQuotes(cols[idxGeneracionWh]);
-      const invVerStr = idxInvVer !== -1 ? stripOuterQuotes(cols[idxInvVer]) : '';
-      const periodoTarStr = idxPeriodoTar !== -1 ? stripOuterQuotes(cols[idxPeriodoTar]) : '';
-
-      if (!fechaHoraStr) continue;
-
-      const [fechaParte, horaParte] = String(fechaHoraStr).split(' ');
-      if (!fechaParte || !horaParte) continue;
-
-      const hourNum = parseInt(String(horaParte).split(':')[0], 10);
-      if (!Number.isFinite(hourNum) || hourNum < 0 || hourNum > 23) continue;
-
-      const fecha = parseDateFlexible(fechaParte);
-      if (!fecha) continue;
-
-      const hora = computeHoraCNMC(fecha, hourNum, invVerStr);
-      if (hora < 1 || hora > 25) continue;
-
-      const consumoWh = parseNumberFlexibleCSV(consumoWhStr);
-      const generacionWh = parseNumberFlexibleCSV(generacionWhStr);
-
-      const importKwh = Number.isFinite(consumoWh) ? (consumoWh / 1000) : 0;
-      const exportKwh = Number.isFinite(generacionWh) ? (generacionWh / 1000) : 0;
-
-      // Balance neto horario (saldo neto):
-      const kwh = Math.max(importKwh - exportKwh, 0);
-      const excedente = Math.max(exportKwh - importKwh, 0);
-
-      const periodo = mapPeriodo(periodoTarStr);
-
-      consumos.push({
-        fecha,
-        hora,
-        kwh,
-        excedente,
-        autoconsumo: 0,
-        periodo,
-        esReal: true
-      });
-    }
-
-    return consumos;
+    const { rows } = parseCSVToRows(fileContent);
+    return parseEnergyTableRows(rows, { parseNumber: parseNumberFlexibleCSV });
   }
 
   // ===== PARSEO XLSX =====
@@ -324,7 +115,12 @@ return hourNum + 1;
         }
       }
 
-      return consumos;
+      return {
+        records: consumos,
+        warnings: ['No se detectaron excedentes; se importará con excedentes=0.'],
+        hasExcedenteColumn: false,
+        hasAutoconsumoColumn: false
+      };
     }
 
     // Intenta detectar matriz horaria en las primeras filas (típicamente la cabecera está en la fila 1)
@@ -340,129 +136,20 @@ return hourNum + 1;
     }
 
 
-    let headerRow = -1;
-    for (let i = 0; i < Math.min(5, data.length); i++) {
-      const row = data[i];
-      if (row && row.some(cell => {
-        const cellStr = String(cell).toUpperCase();
-        return cellStr.includes('FECHA-HORA') || cellStr.includes('FECHA');
-      })) {
-        headerRow = i;
-        break;
-      }
+    const { parseEnergyTableRows, guessEnergyHeaderRow } = window.LF.csvUtils || {};
+    if (typeof parseEnergyTableRows !== 'function' || typeof guessEnergyHeaderRow !== 'function') {
+      throw new Error('No se pudo cargar el parser de Excel');
     }
 
+    const headerRow = guessEnergyHeaderRow(data);
     if (headerRow === -1) {
       throw new Error('No se encontró la fila de cabecera en el Excel');
     }
 
-    const headers = data[headerRow];
-    if (!headers || headers.length < 4) {
-      throw new Error('Formato Excel no reconocido');
-    }
-
-    const colFechaHora = headers.findIndex(h => String(h).toUpperCase().includes('FECHA'));
-    const colPeriodo = headers.findIndex(h => {
-      const hStr = String(h).toUpperCase();
-      return hStr.includes('PERIODO') && hStr.includes('TARIFARIO');
+    return parseEnergyTableRows(data, {
+      headerRowIndex: headerRow,
+      parseNumber: parseNumberFlexible
     });
-    const colConsumo = headers.findIndex(h => String(h).toUpperCase().includes('CONSUMO'));
-    const colGeneracion = headers.findIndex(h => String(h).toUpperCase().includes('GENERACION'));
-
-    if (colFechaHora === -1 || colConsumo === -1 || colGeneracion === -1) {
-      throw new Error('No se encontraron las columnas necesarias en el Excel');
-    }
-
-    const colInvVer = headers.findIndex(h => {
-      const hStr = String(h).toUpperCase().replace(/\s+/g, '');
-      return hStr.includes('INV') && hStr.includes('VER');
-    });
-
-    const mapPeriodo = (raw) => {
-      const p = String(raw ?? '').trim().toUpperCase();
-      if (!p) return null;
-      if (p.includes('PUNTA') || p === 'P1') return 'P1';
-      if (p.includes('LLANO') || p === 'P2') return 'P2';
-      if (p.includes('VALLE') || p === 'P3') return 'P3';
-      return null;
-    };
-
-    const seen = new Map(); // YYYY-MM-DD|02 -> count (por si no viene INV/VER)
-    function ymdKeyLocal(d) {
-      const y = d.getFullYear();
-      const m = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
-      return `${y}-${m}-${day}`;
-    }
-    function computeHoraCNMC(fechaObj, hourNum, invVerRaw) {
-      if (hourNum === 2) {
-  // Día normal: solo hay un 02:00 (INV/VER suele ser 0 en todo invierno).
-  // Día cambio horario (fin de octubre): 02:00 aparece dos veces. Mapear a 3 y 25 según ocurrencia/INV/VER.
-  const key = `${ymdKeyLocal(fechaObj)}|02`;
-  const c = (seen.get(key) || 0) + 1;
-  seen.set(key, c);
-
-  const inv = String(invVerRaw ?? '').trim();
-  if (inv === '1') return 3;          // 02:00 en horario de verano (primera)
-  if (inv === '0') return (c >= 2) ? 25 : 3; // 02:00 repetida (segunda) solo si hay duplicidad
-
-  // Fallback si INV/VER no viene o es distinto: por orden de aparición
-  if (c === 1) return 3;
-  if (c === 2) return 25;
-}
-return hourNum + 1;
-    }
-
-    const consumos = [];
-
-    for (let i = headerRow + 1; i < data.length; i++) {
-      const row = data[i];
-      if (!row || row.length < 2) continue;
-
-      const fechaHoraRaw = row[colFechaHora];
-      if (!fechaHoraRaw) continue;
-
-      const periodoTarifario = colPeriodo !== -1 ? String(row[colPeriodo] || '').trim() : '';
-      const invVerRaw = colInvVer !== -1 ? row[colInvVer] : '';
-
-      const consumoWhRaw = parseNumberFlexible(row[colConsumo]);
-      const generacionWhRaw = parseNumberFlexible(row[colGeneracion]);
-      const consumoWh = Number.isFinite(consumoWhRaw) ? consumoWhRaw : 0;
-      const generacionWh = Number.isFinite(generacionWhRaw) ? generacionWhRaw : 0;
-
-      const fechaHoraStr = String(fechaHoraRaw);
-      const [fechaStr, horaStr] = fechaHoraStr.split(' ');
-      if (!fechaStr || !horaStr) continue;
-
-      const fecha = parseDateFlexible(fechaStr);
-      if (!fecha) continue;
-
-      const hourNum = parseInt(horaStr.split(':')[0], 10);
-      if (!Number.isFinite(hourNum) || hourNum < 0 || hourNum > 23) continue;
-
-      const horaCNMC = computeHoraCNMC(fecha, hourNum, invVerRaw);
-
-      const importKwh = consumoWh / 1000;
-      const exportKwh = generacionWh / 1000;
-
-      // Balance neto horario (saldo neto)
-      const kwh = Math.max(importKwh - exportKwh, 0);
-      const excedente = Math.max(exportKwh - importKwh, 0);
-
-      const periodo = mapPeriodo(periodoTarifario);
-
-      consumos.push({
-        fecha,
-        hora: horaCNMC,
-        kwh,
-        excedente,
-        autoconsumo: 0,
-        periodo,
-        esReal: true
-      });
-    }
-
-    return consumos;
   }
 
   // ===== FESTIVOS Y PERIODOS =====
@@ -538,7 +225,8 @@ return hourNum + 1;
       reader.onload = (e) => {
         try {
           const content = e.target.result;
-          const consumos = parseCSVConsumos(content);
+          const parsed = parseCSVConsumos(content);
+          const consumos = parsed.records || [];
           if (consumos.length === 0) {
             reject(new Error('No se encontraron datos válidos en el CSV'));
             return;
@@ -548,6 +236,10 @@ return hourNum + 1;
           resultado.formato = 'CSV';
           // ⭐ SUN CLUB: adjuntar consumos horarios (se guardan globalmente solo al aplicar)
           resultado.consumosHorarios = consumos;
+          resultado.warnings = parsed.warnings || [];
+          if (resultado.warnings.length && typeof toast === 'function') {
+            toast(`⚠️ ${resultado.warnings.join(' • ')}`);
+          }
           resolve(resultado);
         } catch (error) {
           reject(error);
@@ -564,7 +256,8 @@ return hourNum + 1;
       reader.onload = async (e) => {
         try {
           const buffer = e.target.result;
-          const consumos = await parseXLSXConsumos(buffer);
+          const parsed = await parseXLSXConsumos(buffer);
+          const consumos = parsed.records || [];
           if (consumos.length === 0) {
             reject(new Error('No se encontraron datos válidos en el Excel'));
             return;
@@ -574,6 +267,10 @@ return hourNum + 1;
           resultado.formato = 'XLSX';
           // ⭐ SUN CLUB: adjuntar consumos horarios (se guardan globalmente solo al aplicar)
           resultado.consumosHorarios = consumos;
+          resultado.warnings = parsed.warnings || [];
+          if (resultado.warnings.length && typeof toast === 'function') {
+            toast(`⚠️ ${resultado.warnings.join(' • ')}`);
+          }
           resolve(resultado);
         } catch (error) {
           reject(error);
