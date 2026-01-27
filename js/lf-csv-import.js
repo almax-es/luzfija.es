@@ -169,15 +169,36 @@
     return `${y}-${m}-${day}`;
   }
 
+  function ymLocal(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}`;
+  }
+
+  function applySpanValidation(consumos, warnings) {
+    const nextWarnings = Array.isArray(warnings) ? warnings.slice() : [];
+    if (typeof validateCsvSpanFromRecords !== 'function') {
+      return { ok: true, consumos, warnings: nextWarnings };
+    }
+    const spanCheck = validateCsvSpanFromRecords(consumos, { maxDays: 370 });
+    if (!spanCheck.ok) {
+      return { ok: false, error: spanCheck.error };
+    }
+    if (Array.isArray(spanCheck.monthsToDrop) && spanCheck.monthsToDrop.length > 0) {
+      const monthsToDrop = new Set(spanCheck.monthsToDrop);
+      const filtered = consumos.filter((record) => {
+        const fecha = record && record.fecha;
+        if (!(fecha instanceof Date) || isNaN(fecha.getTime())) return false;
+        return !monthsToDrop.has(ymLocal(fecha));
+      });
+      if (spanCheck.warning) nextWarnings.push(spanCheck.warning);
+      return { ok: true, consumos: filtered, warnings: nextWarnings };
+    }
+    return { ok: true, consumos, warnings: nextWarnings };
+  }
+
   // ===== CLASIFICAR CONSUMOS =====
   function clasificarConsumosPorPeriodo(consumos) {
-    if (typeof validateCsvSpanFromRecords === 'function') {
-      const spanCheck = validateCsvSpanFromRecords(consumos, { maxDays: 370 });
-      if (!spanCheck.ok) {
-        return { ok: false, error: spanCheck.error };
-      }
-    }
-
     const totales = {
       P1: 0, P2: 0, P3: 0,
       excedentesP1: 0, excedentesP2: 0, excedentesP3: 0,
@@ -240,7 +261,7 @@
         try {
           const content = e.target.result;
           const parsed = parseCSVConsumos(content);
-          const consumos = parsed.records || [];
+          let consumos = parsed.records || [];
           if (consumos.length === 0) {
             resolve({
               ok: false,
@@ -248,6 +269,13 @@
             });
             return;
           }
+
+          const spanResult = applySpanValidation(consumos, parsed.warnings || []);
+          if (!spanResult.ok) {
+            resolve({ ok: false, error: spanResult.error });
+            return;
+          }
+          consumos = spanResult.consumos;
           
           const resultado = clasificarConsumosPorPeriodo(consumos);
           if (!resultado.ok) {
@@ -258,7 +286,7 @@
           resultado.formato = 'CSV';
           // ⭐ SUN CLUB: adjuntar consumos horarios (se guardan globalmente solo al aplicar)
           resultado.consumosHorarios = consumos;
-          resultado.warnings = parsed.warnings || [];
+          resultado.warnings = spanResult.warnings;
           if (resultado.warnings.length && typeof toast === 'function') {
             toast(`⚠️ ${resultado.warnings.join('\n')}`);
           }
@@ -279,7 +307,7 @@
         try {
           const buffer = e.target.result;
           const parsed = await parseXLSXConsumos(buffer);
-          const consumos = parsed.records || [];
+          let consumos = parsed.records || [];
           if (consumos.length === 0) {
             resolve({
               ok: false,
@@ -287,6 +315,13 @@
             });
             return;
           }
+
+          const spanResult = applySpanValidation(consumos, parsed.warnings || []);
+          if (!spanResult.ok) {
+            resolve({ ok: false, error: spanResult.error });
+            return;
+          }
+          consumos = spanResult.consumos;
           
           const resultado = clasificarConsumosPorPeriodo(consumos);
           if (!resultado.ok) {
@@ -297,7 +332,7 @@
           resultado.formato = 'XLSX';
           // ⭐ SUN CLUB: adjuntar consumos horarios (se guardan globalmente solo al aplicar)
           resultado.consumosHorarios = consumos;
-          resultado.warnings = parsed.warnings || [];
+          resultado.warnings = spanResult.warnings;
           if (resultado.warnings.length && typeof toast === 'function') {
             toast(`⚠️ ${resultado.warnings.join('\n')}`);
           }
