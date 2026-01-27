@@ -93,6 +93,16 @@
   gap: 24px;
 }
 
+/* Grids responsivos para formularios */
+.bv-form-2col { grid-template-columns: 1fr 1fr; }
+.bv-form-3col { grid-template-columns: 1fr 1fr 1fr; }
+
+@media (max-width: 600px) {
+  .bv-form-2col, .bv-form-3col {
+    grid-template-columns: 1fr !important;
+  }
+}
+
 /* =========================================================
    DESGLOSE BV: Desktop (tabla) vs Móvil (tarjetas)
    ========================================================= */
