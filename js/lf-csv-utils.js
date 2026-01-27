@@ -941,13 +941,8 @@
 
     if (minTs === null || maxTs === null) {
       return {
-        ok: true,
-        spanDays: 0,
-        startYmd: '',
-        endYmd: '',
-        monthsDistinct,
-        monthsUsed,
-        monthsToDrop
+        ok: false,
+        error: 'No se encontraron fechas válidas en el CSV.'
       };
     }
 

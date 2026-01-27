@@ -193,6 +193,45 @@ ES123;01/01/2024;1;1,0;R`;
     expect(res.error).toContain('372 días');
   });
 
+  it('Falla si no hay fechas válidas en los registros', () => {
+    const { validateCsvSpanFromRecords } = window.LF.csvUtils;
+    const records = [
+      { fecha: null },
+      { fecha: new Date('invalid') },
+      { fecha: '2024-01-01' }
+    ];
+
+    const res = validateCsvSpanFromRecords(records);
+
+    expect(res.ok).toBe(false);
+    expect(res.error).toBe('No se encontraron fechas válidas en el CSV.');
+  });
+
+  it('Aborta si el recorte a 12 meses deja el CSV vacío', async () => {
+    const originalValidate = window.LF.csvUtils.validateCsvSpanFromRecords;
+    try {
+      window.LF.csvUtils.validateCsvSpanFromRecords = vi.fn(() => ({
+        ok: true,
+        monthsToDrop: ['2024-01'],
+        warning: 'Recorte aplicado.'
+      }));
+
+      importFn(global.window, global.lfDbg, MockFileReader);
+
+      const csvContent = `CUPS;Fecha;Hora;Consumo_kWh;Método
+ES123;01/01/2024;1;1,0;R`;
+      const file = { name: 'recorte.csv', _content: csvContent };
+
+      const result = await window.LF.procesarCSVConsumos(file);
+
+      expect(result.ok).toBe(false);
+      expect(result.error).toBe('Tras aplicar el recorte a 12 meses, no quedan registros válidos para procesar.');
+    } finally {
+      window.LF.csvUtils.validateCsvSpanFromRecords = originalValidate;
+      importFn(global.window, global.lfDbg, MockFileReader);
+    }
+  });
+
   it('Validación de meses distintos (13 warning, 14 error)', () => {
     const { validateCsvSpanFromRecords } = window.LF.csvUtils;
     
