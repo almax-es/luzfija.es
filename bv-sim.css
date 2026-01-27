@@ -439,18 +439,31 @@ html.light-mode .bv-manual-container {
 }
 
 .bv-manual-grid-scroll {
-  max-height: 450px;
-  overflow-y: auto;
-  padding-right: 8px;
+  /* En escritorio dejamos que el contenido crezca (sin scroll interno) para ver todos los meses de un vistazo */
+  overflow-y: visible;
+  padding-right: 0;
   margin-bottom: 12px;
   max-width: 100%;
   min-width: 0;
 }
 
-.bv-manual-header,
-.bv-manual-row,
-.bv-manual-totals-row {
-  min-width: 600px;
+/* En pantallas pequeñas, limitamos la altura y activamos scroll vertical para no hacer interminable la página */
+@media (max-width: 900px) {
+  .bv-manual-grid-scroll {
+    max-height: 450px;
+    overflow-y: auto;
+    padding-right: 8px;
+  }
+}
+
+/* En escritorio, la tabla debe encajar sin scroll horizontal.
+   En móvil, se permite scroll horizontal para no aplastar inputs. */
+@media (max-width: 900px) {
+  .bv-manual-header,
+  .bv-manual-row,
+  .bv-manual-totals-row {
+    min-width: 600px;
+  }
 }
 
 .bv-manual-grid-scroll::-webkit-scrollbar {
