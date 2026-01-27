@@ -93,30 +93,74 @@
 
         <div class="obs-kpis" aria-label="Resumen rápido">
           <div class="kpis-grid">
+            <!-- 1. Último Día -->
             <div class="kpi">
-              <div class="kpi__label">Último día</div>
-              <div class="kpi__value" id="kpiLast">—</div>
-              <div class="kpi__sub" id="kpiLastSub">Cargando…</div>
+              <div class="kpi__header">
+                <div class="kpi__label">Último día</div>
+                <div class="kpi__icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                </div>
+              </div>
+              <div class="kpi__body">
+                <div class="kpi__value" id="kpiLast">—</div>
+                <div class="kpi__sub" id="kpiLastSub">Cargando…</div>
+              </div>
             </div>
+
+            <!-- 2. Media 7 días -->
             <div class="kpi">
-              <div class="kpi__label">Media 7 días</div>
-              <div class="kpi__value" id="kpiAvg7">—</div>
-              <div class="kpi__sub" id="kpiAvg7Sub">Cargando…</div>
+              <div class="kpi__header">
+                <div class="kpi__label">Media 7 días</div>
+                <div class="kpi__icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                </div>
+              </div>
+              <div class="kpi__body">
+                <div class="kpi__value" id="kpiAvg7">—</div>
+                <div class="kpi__sub" id="kpiAvg7Sub">Cargando…</div>
+              </div>
             </div>
+
+            <!-- 3. Media 30 días -->
             <div class="kpi">
-              <div class="kpi__label">Media 30 días</div>
-              <div class="kpi__value" id="kpiAvg30">—</div>
-              <div class="kpi__sub" id="kpiAvg30Sub">Cargando…</div>
+              <div class="kpi__header">
+                <div class="kpi__label">Media 30 días</div>
+                <div class="kpi__icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </div>
+              </div>
+              <div class="kpi__body">
+                <div class="kpi__value" id="kpiAvg30">—</div>
+                <div class="kpi__sub" id="kpiAvg30Sub">Cargando…</div>
+              </div>
             </div>
+
+            <!-- 4. Media 12 meses -->
             <div class="kpi">
-              <div class="kpi__label">Media 12 meses</div>
-              <div class="kpi__value" id="kpiAvg12m">—</div>
-              <div class="kpi__sub" id="kpiAvg12mSub">Cargando…</div>
+              <div class="kpi__header">
+                <div class="kpi__label">Media 12 meses</div>
+                <div class="kpi__icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+                </div>
+              </div>
+              <div class="kpi__body">
+                <div class="kpi__value" id="kpiAvg12m">—</div>
+                <div class="kpi__sub" id="kpiAvg12mSub">Cargando…</div>
+              </div>
             </div>
+
+            <!-- 5. Vs Año Anterior -->
             <div class="kpi">
-              <div class="kpi__label">Vs año anterior</div>
-              <div class="kpi__value" id="kpiYoY">—</div>
-              <div class="kpi__sub" id="kpiYoYSub">A mismas fechas</div>
+              <div class="kpi__header">
+                <div class="kpi__label">Vs año anterior</div>
+                <div class="kpi__icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M21 3L9 15"/><path d="M21 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6"/></svg>
+                </div>
+              </div>
+              <div class="kpi__body">
+                <div class="kpi__value" id="kpiYoY">—</div>
+                <div class="kpi__sub" id="kpiYoYSub">A mismas fechas</div>
+              </div>
             </div>
           </div>
         </div>
