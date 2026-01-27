@@ -59,10 +59,13 @@
       position: relative;
       z-index: 1;
     }
-    .container{ max-width:1400px; margin:0 auto; padding: clamp(50px, 5vw, 70px) clamp(22px, 4.5vw, 60px); }
-    .topbar{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom: 22px; flex-wrap: wrap; }
-    @media (max-width: 520px){ .topbar{ justify-content: center; } }
-    .brand{display:flex; align-items:center; gap:14px; min-width: 240px; position: relative; flex-shrink: 0;}
+    .container{ max-width:1400px; margin:0 auto; padding: clamp(40px, 5vw, 70px) clamp(12px, 3vw, 60px); }
+    .topbar{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom: 22px; flex-wrap: wrap; width: 100%; box-sizing: border-box; }
+    @media (max-width: 520px){ 
+      .topbar{ justify-content: center; text-align: center; } 
+      .brand { flex-direction: column; text-align: center; width: 100%; }
+    }
+    .brand{display:flex; align-items:center; gap:14px; min-width: 240px; position: relative; flex-shrink: 1; max-width: 100%;}
     .tarifas-updated{ font-size: 12px; color: var(--muted); opacity: .9; display:flex; align-items:center; gap:8px; margin-top: 4px; }
     .tarifas-updated::before{ content:'🕒'; font-size: 13px; opacity: .9; }
 

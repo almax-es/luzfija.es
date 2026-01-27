@@ -413,6 +413,12 @@ html.light-mode .bv-upload-btn {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
+@media (max-width: 768px) {
+  .bv-manual-container {
+    padding: 12px;
+  }
+}
+
 html.light-mode .bv-manual-container {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(139, 92, 246, 0.03));
   border-color: rgba(139, 92, 246, 0.2);
@@ -421,21 +427,32 @@ html.light-mode .bv-manual-container {
 .bv-manual-scroll-wrapper {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  margin: 0 -8px;
-  padding: 0 8px 8px 8px;
+  margin: 0 -4px;
+  padding: 0 4px 12px 4px;
 }
 
 .bv-manual-grid-scroll {
   max-height: 450px;
   overflow-y: auto;
-  padding-right: 8px;
+  padding-right: 4px;
   margin-bottom: 12px;
+}
+
+@media (max-width: 520px) {
+  .bv-manual-header, .bv-manual-row {
+    grid-template-columns: 70px repeat(4, 85px);
+    gap: 6px;
+  }
+  
+  .bv-manual-row-label, .bv-manual-header span {
+    font-size: 0.7rem;
+  }
 }
 
 .bv-manual-header,
 .bv-manual-row,
 .bv-manual-totals-row {
-  min-width: 600px;
+  min-width: 410px;
 }
 
 .bv-manual-grid-scroll::-webkit-scrollbar {
@@ -1477,6 +1494,23 @@ html.light-mode .bv-tip-card {
 
 /* --- Responsive Móvil --- */
 @media (max-width: 768px) {
+  .brand {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    margin: 0 auto;
+  }
+
+  .topbar .logo {
+    margin-bottom: 12px;
+  }
+
+  .brand h1 {
+    font-size: 1.5rem !important;
+    line-height: 1.2 !important;
+    letter-spacing: normal !important;
+  }
+
   .bv-upload-compact {
     padding: 20px;
   }
