@@ -261,7 +261,7 @@
           resultado.consumosHorarios = consumos;
           resultado.warnings = parsed.warnings || [];
           if (resultado.warnings.length && typeof toast === 'function') {
-            toast(`⚠️ ${resultado.warnings.join(' • ')}`);
+            toast(`⚠️ ${resultado.warnings.join('\n')}`);
           }
           resolve(resultado);
         } catch (error) {
@@ -292,7 +292,7 @@
           resultado.consumosHorarios = consumos;
           resultado.warnings = parsed.warnings || [];
           if (resultado.warnings.length && typeof toast === 'function') {
-            toast(`⚠️ ${resultado.warnings.join(' • ')}`);
+            toast(`⚠️ ${resultado.warnings.join('\n')}`);
           }
           resolve(resultado);
         } catch (error) {

@@ -510,17 +510,10 @@
     };
   }
 
-  function detectUnitFactor(headerNorm, sampleRows, columnIdx, parseNumber, warnings, label, warningSet) {
-    const warn = (msg) => {
-      if (warningSet.has(msg)) return;
-      warningSet.add(msg);
-      warnings.push(msg);
-    };
-
-    if (headerNorm.includes('kwh')) return 1;
+  function detectUnitFactor(headerNorm, sampleRows, columnIdx, parseNumber) {
+    if (headerNorm.includes('kwh')) return { factor: 1, converted: false };
     if (headerNorm.includes('wh')) {
-      warn(`Se detectó ${label} en Wh; se convierte automáticamente a kWh.`);
-      return 0.001;
+      return { factor: 0.001, converted: true };
     }
 
     const samples = [];
@@ -531,11 +524,11 @@
       if (Number.isFinite(value)) samples.push(value);
     }
     const max = samples.length ? Math.max(...samples) : 0;
+    // Si el valor máximo es >= 100, es altamente probable que sean Wh (ej: 120Wh vs 0.12kWh)
     if (max >= 100) {
-      warn(`No se indicó unidad para ${label}; se asume Wh y se convierte a kWh.`);
-      return 0.001;
+      return { factor: 0.001, converted: true };
     }
-    return 1;
+    return { factor: 1, converted: false };
   }
 
   function parseEnergyTableRows(rows, options = {}) {
@@ -556,7 +549,6 @@
     const headersRaw = (headerRow || []).map(cell => stripBomAndTrim(cell));
     const mapping = detectColumnMapping(headersNorm, { separator });
     const warnings = [];
-    const warningSet = new Set();
     const emptyCells = {
       import: 0,
       export: 0
@@ -569,25 +561,28 @@
     const dataRows = rows.slice(headerRowIndex + 1);
     const hourBase = detectHourBase(dataRows, mapping);
     if (hourBase === 'zero') {
-      warnings.push('Hora 0..23 detectada; se ajustará a 1..24 (formato CNMC).');
+      warnings.push('Ajustado formato de hora (0-23 → 1-24).');
     }
 
-    const importFactor = detectUnitFactor(
-      headersNorm[mapping.importIdx], dataRows, mapping.importIdx, parseNumber, warnings,
-      'el consumo', warningSet
-    );
-    const exportFactor = mapping.exportIdx !== null
-      ? detectUnitFactor(
-        headersNorm[mapping.exportIdx], dataRows, mapping.exportIdx, parseNumber, warnings,
-        'los excedentes', warningSet
-      )
-      : 1;
-    const autoconsumoFactor = mapping.autoconsumoIdx !== null
-      ? detectUnitFactor(
-        headersNorm[mapping.autoconsumoIdx], dataRows, mapping.autoconsumoIdx, parseNumber, warnings,
-        'el autoconsumo', warningSet
-      )
-      : 1;
+    const importRes = detectUnitFactor(headersNorm[mapping.importIdx], dataRows, mapping.importIdx, parseNumber);
+    const exportRes = mapping.exportIdx !== null
+      ? detectUnitFactor(headersNorm[mapping.exportIdx], dataRows, mapping.exportIdx, parseNumber)
+      : { factor: 1, converted: false };
+    const autoRes = mapping.autoconsumoIdx !== null
+      ? detectUnitFactor(headersNorm[mapping.autoconsumoIdx], dataRows, mapping.autoconsumoIdx, parseNumber)
+      : { factor: 1, converted: false };
+
+    const importFactor = importRes.factor;
+    const exportFactor = exportRes.factor;
+    const autoconsumoFactor = autoRes.factor;
+
+    if (importRes.converted || exportRes.converted || autoRes.converted) {
+      const convertedFields = [];
+      if (importRes.converted) convertedFields.push('consumo');
+      if (exportRes.converted) convertedFields.push('excedentes');
+      if (autoRes.converted) convertedFields.push('autoconsumo');
+      warnings.push(`Valores en Wh detectados (${convertedFields.join(', ')}); convertidos a kWh.`);
+    }
 
     const resolveHour = buildHourResolver(mapping, hourBase);
     const records = [];
@@ -717,7 +712,7 @@
       warnings.push(`Se encontraron ${emptyCells.export} celdas vacías en la columna ${columnLabel(mapping.exportIdx)}; interpretadas como 0.`);
     }
     if (simultaneousCount > 0) {
-      warnings.push(`Se detectó importación y excedentes simultáneos en ${simultaneousCount} filas; aplicado neteo horario.`);
+      warnings.push(`Neteo horario aplicado en ${simultaneousCount} filas con consumo y excedentes simultáneos.`);
     }
 
     return {

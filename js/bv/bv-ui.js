@@ -917,7 +917,7 @@ document.addEventListener('DOMContentLoaded', () => {
         populateManualGridFromCSV(result);
 
         if (Array.isArray(result.warnings) && result.warnings.length) {
-          showToast(`⚠️ ${result.warnings.join(' • ')}`, 'ok');
+          showToast(`⚠️ ${result.warnings.join('\n')}`, 'ok');
         }
 
         // Scroll suave a la tabla para que vea los datos auto-rellenados

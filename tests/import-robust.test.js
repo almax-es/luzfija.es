@@ -123,7 +123,7 @@ describe('Importación robusta CSV (Datadis, e-distribución, i-DE)', () => {
     });
 
     expect(result.warnings.some(w => w.toLowerCase().includes('wh'))).toBe(true);
-    expect(result.warnings.some(w => w.toLowerCase().includes('hora 0..23'))).toBe(true);
+    expect(result.warnings.some(w => w.toLowerCase().includes('formato de hora'))).toBe(true);
     expect(result.warnings.some(w => w.toLowerCase().includes('neteo'))).toBe(true);
   });
 
