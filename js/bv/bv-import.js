@@ -10,7 +10,8 @@ window.BVSim = window.BVSim || {};
     parseNumberFlexibleCSV,
     getPeriodoHorarioCSV,
     ymdLocal,
-    buildImportError
+    buildImportError,
+    validateCsvSpanFromRecords
   } = window.LF.csvUtils || {};
 
   // ===== LAZY LOAD XLSX =====
@@ -219,18 +220,14 @@ window.BVSim = window.BVSim || {};
       }
 
       const warnings = Array.isArray(parsed.warnings) ? parsed.warnings.slice() : [];
-      const meta = buildMeta(records, parsed.hasExcedenteColumn, parsed.hasAutoconsumoColumn);
-
-      // Validar rango de fechas (máximo ~1 año)
-      if (meta.start && meta.end) {
-        const dStart = new Date(meta.start);
-        const dEnd = new Date(meta.end);
-        const diffTime = Math.abs(dEnd - dStart);
-        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
-        if (diffDays > 370) {
-          return { ok: false, error: 'El archivo contiene más de 12 meses (' + diffDays + ' días). Por favor, sube un fichero de máximo 1 año.' };
+      if (typeof validateCsvSpanFromRecords === 'function') {
+        const spanCheck = validateCsvSpanFromRecords(records, { maxDays: 370 });
+        if (!spanCheck.ok) {
+          return { ok: false, error: spanCheck.error };
         }
       }
+
+      const meta = buildMeta(records, parsed.hasExcedenteColumn, parsed.hasAutoconsumoColumn);
 
       return {
         ok: true,

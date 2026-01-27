@@ -18,7 +18,8 @@
     parseDateFlexible,
     getFestivosNacionales,
     getPeriodoHorarioCSV,
-    buildImportError
+    buildImportError,
+    validateCsvSpanFromRecords
   } = window.LF.csvUtils || {};
 
   // ===== LAZY LOAD XLSX =====
@@ -170,6 +171,13 @@
 
   // ===== CLASIFICAR CONSUMOS =====
   function clasificarConsumosPorPeriodo(consumos) {
+    if (typeof validateCsvSpanFromRecords === 'function') {
+      const spanCheck = validateCsvSpanFromRecords(consumos, { maxDays: 370 });
+      if (!spanCheck.ok) {
+        throw new Error(spanCheck.error);
+      }
+    }
+
     const totales = {
       P1: 0, P2: 0, P3: 0,
       excedentesP1: 0, excedentesP2: 0, excedentesP3: 0,
@@ -178,9 +186,6 @@
     const diasUnicos = new Set();
     let datosReales = 0;
     let datosEstimados = 0;
-    
-    let minTs = null;
-    let maxTs = null;
 
     consumos.forEach(c => {
       const periodo = c.periodo || getPeriodoHorarioCSV(c.fecha, c.hora);
@@ -194,22 +199,7 @@
 
       if (c.esReal) datosReales++;
       else datosEstimados++;
-      
-      // Tracking fechas
-      if (c.fecha) {
-        const ts = c.fecha.getTime();
-        if (minTs === null || ts < minTs) minTs = ts;
-        if (maxTs === null || ts > maxTs) maxTs = ts;
-      }
     });
-    
-    // Validar rango > 370 días
-    if (minTs !== null && maxTs !== null) {
-      const diffDays = (maxTs - minTs) / (1000 * 60 * 60 * 24);
-      if (diffDays > 370) {
-        throw new Error(`El archivo contiene más de 12 meses (${Math.ceil(diffDays)} días). Por favor, sube un fichero de máximo 1 año.`);
-      }
-    }
 
     const totalKwh = totales.P1 + totales.P2 + totales.P3;
     const totalExcedentes = totales.excedentesP1 + totales.excedentesP2 + totales.excedentesP3;

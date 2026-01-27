@@ -907,6 +907,51 @@
     return `${y}-${m}-${d}`;
   }
 
+  const MS_PER_DAY = 86400000;
+
+  function spanDaysInclusiveFromTimestamps(minTs, maxTs) {
+    if (!Number.isFinite(minTs) || !Number.isFinite(maxTs)) return 0;
+    const min = new Date(minTs);
+    const max = new Date(maxTs);
+    const minUTC = Date.UTC(min.getFullYear(), min.getMonth(), min.getDate());
+    const maxUTC = Date.UTC(max.getFullYear(), max.getMonth(), max.getDate());
+    return Math.floor((maxUTC - minUTC) / MS_PER_DAY) + 1;
+  }
+
+  function validateCsvSpanFromRecords(records, options = {}) {
+    const maxDays = Number.isFinite(options.maxDays) ? options.maxDays : 370;
+    let minTs = null;
+    let maxTs = null;
+
+    (records || []).forEach((record) => {
+      const fecha = record && record.fecha;
+      if (!(fecha instanceof Date) || isNaN(fecha.getTime())) return;
+      const ts = fecha.getTime();
+      if (minTs === null || ts < minTs) minTs = ts;
+      if (maxTs === null || ts > maxTs) maxTs = ts;
+    });
+
+    if (minTs === null || maxTs === null) {
+      return { ok: true, spanDays: 0, startYmd: '', endYmd: '' };
+    }
+
+    const spanDays = spanDaysInclusiveFromTimestamps(minTs, maxTs);
+    const startYmd = ymdLocal(new Date(minTs));
+    const endYmd = ymdLocal(new Date(maxTs));
+
+    if (spanDays > maxDays) {
+      return {
+        ok: false,
+        spanDays,
+        startYmd,
+        endYmd,
+        error: `El CSV abarca ${spanDays} días (rango ${startYmd} → ${endYmd}). El máximo permitido es 370 días. Recorta/exporta un periodo de ~1 año como máximo.`
+      };
+    }
+
+    return { ok: true, spanDays, startYmd, endYmd };
+  }
+
   // ===== EXPORTAR API PÚBLICA =====
 
   window.LF = window.LF || {};
@@ -932,6 +977,8 @@
     // Fechas
     parseDateFlexible,
     ymdLocal,
+    spanDaysInclusiveFromTimestamps,
+    validateCsvSpanFromRecords,
 
     // Festivos y periodos
     calcularViernesSanto,
