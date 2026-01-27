@@ -15,10 +15,12 @@
 
     kpiLast: document.getElementById('kpiLast'),
     kpiLastSub: document.getElementById('kpiLastSub'),
-    kpiAvg12m: document.getElementById('kpiAvg12m'),
-    kpiAvg12mSub: document.getElementById('kpiAvg12mSub'),
+    kpiAvg7: document.getElementById('kpiAvg7'),
+    kpiAvg7Sub: document.getElementById('kpiAvg7Sub'),
     kpiAvg30: document.getElementById('kpiAvg30'),
     kpiAvg30Sub: document.getElementById('kpiAvg30Sub'),
+    kpiAvg12m: document.getElementById('kpiAvg12m'),
+    kpiAvg12mSub: document.getElementById('kpiAvg12mSub'),
     kpiYoY: document.getElementById('kpiYoY'),
     kpiYoYSub: document.getElementById('kpiYoYSub'),
 
@@ -131,13 +133,15 @@
 
   function setLoadingText() {
     if (els.kpiLast) els.kpiLast.textContent = '—';
-    if (els.kpiAvg12m) els.kpiAvg12m.textContent = '—';
+    if (els.kpiAvg7) els.kpiAvg7.textContent = '—';
     if (els.kpiAvg30) els.kpiAvg30.textContent = '—';
+    if (els.kpiAvg12m) els.kpiAvg12m.textContent = '—';
     if (els.kpiYoY) els.kpiYoY.textContent = '—';
 
     if (els.kpiLastSub) els.kpiLastSub.textContent = 'Cargando…';
-    if (els.kpiAvg12mSub) els.kpiAvg12mSub.textContent = 'Cargando…';
+    if (els.kpiAvg7Sub) els.kpiAvg7Sub.textContent = 'Cargando…';
     if (els.kpiAvg30Sub) els.kpiAvg30Sub.textContent = 'Cargando…';
+    if (els.kpiAvg12mSub) els.kpiAvg12mSub.textContent = 'Cargando…';
     if (els.kpiYoYSub) els.kpiYoYSub.textContent = 'A mismas fechas';
 
     if (els.trendMeta) els.trendMeta.textContent = 'Cargando…';
@@ -696,17 +700,21 @@
       const lastVal = lastIdx >= 0 ? daily.data[lastIdx] : null;
 
       const rolling12m = computeRolling12m(yearData, prevYearData);
+      const last7 = safeMean(daily.data.slice(Math.max(0, daily.data.length - 7)));
       const last30 = safeMean(daily.data.slice(Math.max(0, daily.data.length - 30)));
       const ytdAvg = safeMean(daily.data); // hasta donde haya datos
 
       els.kpiLast.textContent = fmtCents(lastVal);
       els.kpiLastSub.textContent = lastDate ? `Media del día · ${lastDate}` : '—';
 
-      els.kpiAvg12m.textContent = fmtCents(rolling12m);
-      els.kpiAvg12mSub.textContent = lastDate ? 'Últimos 12 meses' : '—';
+      els.kpiAvg7.textContent = fmtCents(last7);
+      els.kpiAvg7Sub.textContent = lastDate ? `Últimos 7 días (hasta ${lastDate})` : '—';
 
       els.kpiAvg30.textContent = fmtCents(last30);
       els.kpiAvg30Sub.textContent = lastDate ? `Últimos 30 días (hasta ${lastDate})` : '—';
+
+      els.kpiAvg12m.textContent = fmtCents(rolling12m);
+      els.kpiAvg12mSub.textContent = lastDate ? 'Últimos 12 meses' : '—';
 
       // YoY (a mismas fechas)
       try {
