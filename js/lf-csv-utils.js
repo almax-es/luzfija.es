@@ -683,7 +683,15 @@
         esReal = estado.startsWith('real') || estado === 'r';
       }
 
-      const periodo = mapping.periodoIdx !== null ? mapPeriodo(row[mapping.periodoIdx]) : null;
+      // Si el CSV trae columna de periodo, usarla
+      // Si no, calcular automáticamente para evitar divergencias aguas abajo
+      let periodo = null;
+      if (mapping.periodoIdx !== null) {
+        periodo = mapPeriodo(row[mapping.periodoIdx]);
+      } else {
+        // Calcular periodo automáticamente usando la función canónica
+        periodo = getPeriodoHorarioCSV(fecha, hora);
+      }
 
       records.push({
         fecha,

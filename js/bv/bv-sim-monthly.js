@@ -1,68 +1,31 @@
 window.BVSim = window.BVSim || {};
 
 // ===== UTILIDADES DE FECHA =====
-function calcularViernesSanto(year) {
-  const a = year % 19;
-  const b = Math.floor(year / 100);
-  const c = year % 100;
-  const d = Math.floor(b / 4);
-  const e = b % 4;
-  const f = Math.floor((b + 8) / 25);
-  const g = Math.floor((b - f + 1) / 3);
-  const h = (19 * a + b - d - g + 15) % 30;
-  const i = Math.floor(c / 4);
-  const k = c % 4;
-  const l = (32 + 2 * e + 2 * i - h - k) % 7;
-  const m = Math.floor((a + 11 * h + 22 * l) / 451);
-  const month = Math.floor((h + l - 7 * m + 114) / 31);
-  const day = ((h + l - 7 * m + 114) % 31) + 1;
+// IMPORTANTE: Usar siempre las funciones canónicas de lf-csv-utils.js
+// para garantizar consistencia en el cálculo de periodos horarios entre
+// el comparador principal y el simulador BV.
+//
+// Las funciones duplicadas se han eliminado para evitar divergencias,
+// especialmente en el manejo de la hora 25 (cambio horario de octubre).
 
-  const pascua = new Date(year, month - 1, day);
-  const viernesSanto = new Date(pascua);
-  viernesSanto.setDate(pascua.getDate() - 2);
-
-  const mStr = String(viernesSanto.getMonth() + 1).padStart(2, '0');
-  const dStr = String(viernesSanto.getDate()).padStart(2, '0');
-  return `${year}-${mStr}-${dStr}`;
-}
-
-const _festivosCache = new Map();
-
-function getFestivosNacionales(year) {
-  const y = Number(year);
-  if (!Number.isFinite(y)) return new Set();
-  if (_festivosCache.has(y)) return _festivosCache.get(y);
-
-  const festivos = [
-    `${y}-01-01`, `${y}-01-06`,
-    calcularViernesSanto(y),
-    `${y}-05-01`, `${y}-08-15`, `${y}-10-12`,
-    `${y}-11-01`, `${y}-12-06`, `${y}-12-08`, `${y}-12-25`
-  ];
-
-  const set = new Set(festivos);
-  _festivosCache.set(y, set);
-  return set;
-}
-
+/**
+ * Obtiene el periodo horario usando la implementación canónica de csv-utils.
+ * Si window.LF.csvUtils no está disponible, falla con error claro.
+ * @param {Date} fecha - Fecha a evaluar
+ * @param {number} hora - Hora CNMC (1-24, donde 25 = cambio horario octubre)
+ * @returns {string} 'P1', 'P2' o 'P3'
+ */
 function getPeriodoHorarioCSV(fecha, hora) {
-  const diaSemana = fecha.getDay();
-  const esFinde = diaSemana === 0 || diaSemana === 6;
+  // Verificar que las utilidades canónicas están disponibles
+  if (!window.LF || !window.LF.csvUtils || typeof window.LF.csvUtils.getPeriodoHorarioCSV !== 'function') {
+    throw new Error(
+      'BVSim: No se pudo acceder a window.LF.csvUtils.getPeriodoHorarioCSV. ' +
+      'Asegúrate de que lf-csv-utils.js está cargado antes que bv-sim-monthly.js.'
+    );
+  }
 
-  const year = fecha.getFullYear();
-  const month = String(fecha.getMonth() + 1).padStart(2, '0');
-  const day = String(fecha.getDate()).padStart(2, '0');
-  const fechaStr = `${year}-${month}-${day}`;
-
-  const festivosNacionales = getFestivosNacionales(year);
-  const esFestivo = festivosNacionales.has(fechaStr);
-
-  if (esFinde || esFestivo) return 'P3';
-
-  const horaInicio = hora - 1;
-  if (horaInicio >= 0 && horaInicio < 8) return 'P3';
-  if ((horaInicio >= 10 && horaInicio < 14) || (horaInicio >= 18 && horaInicio < 22)) return 'P1';
-  return 'P2';
+  // Delegar al cálculo canónico (que maneja correctamente hora 25)
+  return window.LF.csvUtils.getPeriodoHorarioCSV(fecha, hora);
 }
 
 // ===== AGRUPACIÓN MENSUAL (BUCKETS) =====
