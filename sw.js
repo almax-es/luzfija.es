@@ -6,10 +6,8 @@
 // - resto de estáticos: stale-while-revalidate (sirve cache rápido y actualiza en segundo plano)
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
-// Para automatizar: sed -i "s/CACHE_VERSION = .*/CACHE_VERSION = \"$(date -u +%Y%m%d-%H%M%S)\";/" sw.js
-// O en scripts de CI/CD: echo "const CACHE_VERSION = \"$(date -u +%Y%m%d-%H%M%S)\";" > version.js
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260127-115000";
+const CACHE_VERSION = "20260127-123000";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
@@ -69,9 +67,80 @@ const ASSETS = [
   "js/bv/bv-ui.js",
   "js/bv/bv-sim-monthly.js",
   "js/bv/bv-import.js",
-  // tarifas.json NO está en precache, se maneja con stale-while-revalidate
+  // Guías y contenido estático (Carga Completa)
   "guias.html",
   "guias/index.html",
+  "guias/aerotermia-termo-electrico-y-bomba-de-calor-consumos-reales-y-tarifas.html",
+  "guias/autoconsumo-avanzado-excedentes-compensacion-y-bateria-virtual.html",
+  "guias/autoconsumo-y-placas-solares-lo-basico.html",
+  "guias/bono-social-electrico-quien-puede-pedirlo-y-como.html",
+  "guias/coche-electrico-que-tarifa-elegir-y-como-cargar-barato.html",
+  "guias/como-adaptar-tus-horarios-para-pagar-menos-luz.html",
+  "guias/como-cambiar-de-compania-sin-cortes-y-sin-que-te-li-en.html",
+  "guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html",
+  "guias/como-reclamar-a-comercializadora-distribuidora.html",
+  "guias/como-ver-tu-consumo-horario-real-el-del-contador-no-el-estimado.html",
+  "guias/cups-que-es-y-donde-encontrarlo.html",
+  "guias/diferencia-entre-comercializadora-y-distribuidora.html",
+  "guias/errores-tipicos-en-la-factura-de-la-luz.html",
+  "guias/estafas-y-llamadas-comerciales-como-detectarlas-y-que-hacer.html",
+  "guias/instalar-punto-recarga-garaje-comunitario.html",
+  "guias/la-letra-pequena-topes-de-kwh-cuotas-descuentos-y-permanencias.html",
+  "guias/lectura-real-vs-estimada-como-evitar-sustos-y-facturones.html",
+  "guias/mudanza-y-alquiler-cambio-de-titular-alta-baja-y-cosas-que-nadie-te-dice.html",
+  "guias/pvpc-vs-mercado-libre-cuando-te-conviene-cada-uno.html",
+  "guias/que-es-p1-p2-y-p3-en-tu-factura.html",
+  "guias/que-potencia-contratar-segun-tu-casa-y-tus-habitos.html",
+  "guias/servicios-extra-y-mantenimiento-como-detectarlos-y-quitarlos.html",
+  "guias/tarifas-indexadas-pool-cuota-cuando-interesan-y-cuando-no.html",
+  // Imágenes
+  "img/adaptar-horarios-ahorro-luz.png",
+  "img/aerotermia-consumo-eficiente.png",
+  "img/bateria-virtual-excedentes-solar.png",
+  "img/bono-social-descuento-factura.png",
+  "img/cambio-compania-luz-sin-cortes.png",
+  "img/coche-electrico-carga-barata.png",
+  "img/diferencia-distribuidora-comercializadora.png",
+  "img/donde-encontrar-codigo-cups-contador.png",
+  "img/errores-factura-luz-aviso.png",
+  "img/estafas-llamadas-comerciales-luz.png",
+  "img/horarios-luz-p1-p2-p3-2026.png",
+  "img/lectura-real-vs-estimada-luz.png",
+  "img/letra-pequena-tarifas-trampas.png",
+  "img/mudanza-cambio-titular-luz.png",
+  "img/partes-factura-luz-esquema.png",
+  "img/placas-solares-autoconsumo-basico.png",
+  "img/potencia-contratada-equilibrio.png",
+  "img/punto-recarga-garaje-comunitario.png",
+  "img/pvpc-vs-mercado-libre-comparativa.png",
+  "img/reclamar-factura-luz-guia.png",
+  "img/servicios-extra-mantenimiento-eliminar.png",
+  "img/tarifas-indexadas-pool-cuota-explicacion.png",
+  "img/vampiro-standby-consumo-fantasma.png",
+  "img/adaptar-horarios-ahorro-luz.webp",
+  "img/aerotermia-consumo-eficiente.webp",
+  "img/bateria-virtual-excedentes-solar.webp",
+  "img/bono-social-descuento-factura.webp",
+  "img/cambio-compania-luz-sin-cortes.webp",
+  "img/coche-electrico-carga-barata.webp",
+  "img/diferencia-distribuidora-comercializadora.webp",
+  "img/donde-encontrar-codigo-cups-contador.webp",
+  "img/errores-factura-luz-aviso.webp",
+  "img/estafas-llamadas-comerciales-luz.webp",
+  "img/horarios-luz-p1-p2-p3-2026.webp",
+  "img/lectura-real-vs-estimada-luz.webp",
+  "img/letra-pequena-tarifas-trampas.webp",
+  "img/mudanza-cambio-titular-luz.webp",
+  "img/partes-factura-luz-esquema.webp",
+  "img/placas-solares-autoconsumo-basico.webp",
+  "img/potencia-contratada-equilibrio.webp",
+  "img/punto-recarga-garaje-comunitario.webp",
+  "img/pvpc-vs-mercado-libre-comparativa.webp",
+  "img/reclamar-factura-luz-guia.webp",
+  "img/servicios-extra-mantenimiento-eliminar.webp",
+  "img/tarifas-indexadas-pool-cuota-explicacion.webp",
+  "img/vampiro-standby-consumo-fantasma.webp",
+  // Varios
   "manifest.webmanifest",
   "logo-512.png",
   "icon-192.png",
@@ -83,10 +152,10 @@ const ASSETS = [
   "comparar-pvpc-tarifa-fija.html",
   "privacidad.html",
   "aviso-legal.html",
-
-  // Librerías auto-hospedadas ligeras (QR)
+  "404.html",
+  "novedades.json",
+  "data/pvpc/index.json",
   "vendor/jsqr/jsQR.js",
-  // OCR (Tesseract + core wasm), PDF.js y Excel se cachean bajo demanda con stale-while-revalidate
 ];
 
 self.addEventListener("install", (event) => {
