@@ -17,7 +17,8 @@
     detectCSVSeparator,
     parseDateFlexible,
     getFestivosNacionales,
-    getPeriodoHorarioCSV
+    getPeriodoHorarioCSV,
+    buildImportError
   } = window.LF.csvUtils || {};
 
   // ===== LAZY LOAD XLSX =====
@@ -53,8 +54,12 @@
       throw new Error('No se pudo cargar el parser de CSV');
     }
 
-    const { rows } = parseCSVToRows(fileContent);
-    return parseEnergyTableRows(rows, { parseNumber: parseNumberFlexibleCSV });
+    const { rows, separator, headerRowIndex } = parseCSVToRows(fileContent);
+    return parseEnergyTableRows(rows, {
+      parseNumber: parseNumberFlexibleCSV,
+      separator,
+      headerRowIndex
+    });
   }
 
   // ===== PARSEO XLSX =====
@@ -66,7 +71,7 @@
     const data = XLSX.utils.sheet_to_json(firstSheet, { header: 1, raw: false });
 
     if (data.length < 2) {
-      throw new Error('Archivo Excel vacío o formato no reconocido');
+      throw buildImportError('Archivo Excel vacío o formato no reconocido.');
     }
 
     // --- Soporte adicional: Excel en formato matriz (Fecha + H01..H24) ---
@@ -143,7 +148,7 @@
 
     const headerRow = guessEnergyHeaderRow(data);
     if (headerRow === -1) {
-      throw new Error('No se encontró la fila de cabecera en el Excel');
+      throw buildImportError('No se encontró la fila de cabecera en el Excel.');
     }
 
     return parseEnergyTableRows(data, {
@@ -228,7 +233,7 @@
           const parsed = parseCSVConsumos(content);
           const consumos = parsed.records || [];
           if (consumos.length === 0) {
-            reject(new Error('No se encontraron datos válidos en el CSV'));
+            reject(buildImportError ? buildImportError('No se encontraron datos válidos en el CSV.') : new Error('No se encontraron datos válidos en el CSV.'));
             return;
           }
           
@@ -259,7 +264,7 @@
           const parsed = await parseXLSXConsumos(buffer);
           const consumos = parsed.records || [];
           if (consumos.length === 0) {
-            reject(new Error('No se encontraron datos válidos en el Excel'));
+            reject(buildImportError ? buildImportError('No se encontraron datos válidos en el Excel.') : new Error('No se encontraron datos válidos en el Excel.'));
             return;
           }
           

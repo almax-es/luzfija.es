@@ -231,7 +231,7 @@
     ],
     fechaHora: [
       'fecha_hora', 'fechahora', 'fecha_y_hora', 'fecha_hora_lectura', 'fecha_hora_consumo',
-      'fecha_hora_inicio', 'fecha_horaria'
+      'fecha_hora_inicio', 'fecha_hora_fin', 'fecha_horaria', 'timestamp', 'datetime'
     ],
     importacion: [
       'ae_kwh', 'consumo_kwh', 'energia_consumida_kwh', 'energia_consumo_kwh',
@@ -257,6 +257,13 @@
     ]
   };
 
+  const SUPPORT_MESSAGE = [
+    'Si tu archivo no se importa, escribe a hola@luzfija.es indicando:',
+    '(1) tu distribuidora,',
+    '(2) el archivo completo,',
+    '(3) y al menos 5 líneas de ejemplo incluyendo cabecera.'
+  ].join('\n');
+
   function normalizeHeaderName(value) {
     let str = stripBomAndTrim(value);
     if (!str) return '';
@@ -277,12 +284,18 @@
     return (headers || []).map(normalizeHeaderName);
   }
 
-  function buildHeaderError(message, headersNorm) {
+  function buildHeaderError(message, headersNorm, options = {}) {
     const headersList = headersNorm.length ? headersNorm.join(', ') : '(sin cabeceras)';
+    const separatorLabel = options.separator ? `"${options.separator}"` : 'N/A';
     return new Error(
-      `${message}\nCabeceras normalizadas detectadas: ${headersList}\n` +
-      'Si el formato es correcto, envía el CSV/XLSX y tu distribuidora a soporte.'
+      `${message}\nSeparador detectado: ${separatorLabel}\n` +
+      `Cabeceras normalizadas detectadas: ${headersList}\n${SUPPORT_MESSAGE}`
     );
+  }
+
+  function buildImportError(message, options = {}) {
+    const headersNorm = Array.isArray(options.headersNorm) ? options.headersNorm : [];
+    return buildHeaderError(message, headersNorm, { separator: options.separator || null });
   }
 
   function findHeaderMatches(headersNorm, aliases) {
@@ -294,29 +307,42 @@
     return matches;
   }
 
-  function pickUniqueColumn(name, matches, headersNorm, required = true) {
+  function pickUniqueColumn(name, matches, headersNorm, required = true, options = {}) {
     if (matches.length > 1) {
-      throw buildHeaderError(`Columna "${name}" ambigua: se encontraron ${matches.length} coincidencias.`, headersNorm);
+      const candidates = matches.map(idx => headersNorm[idx]).join(', ');
+      throw buildHeaderError(
+        `Columna "${name}" ambigua: se encontraron ${matches.length} coincidencias. Candidatas: ${candidates}.`,
+        headersNorm,
+        options
+      );
     }
     if (matches.length === 0) {
       if (required) {
-        throw buildHeaderError(`No se identificó la columna obligatoria de "${name}".`, headersNorm);
+        throw buildHeaderError(
+          `No se identificó la columna obligatoria de "${name}".`,
+          headersNorm,
+          options
+        );
       }
       return null;
     }
     return matches[0];
   }
 
-  function detectColumnMapping(headersNorm) {
+  function detectColumnMapping(headersNorm, options = {}) {
     const fechaMatches = findHeaderMatches(headersNorm, HEADER_ALIASES.fecha);
     const horaMatches = findHeaderMatches(headersNorm, HEADER_ALIASES.hora);
     const fechaHoraMatches = findHeaderMatches(headersNorm, HEADER_ALIASES.fechaHora);
 
     if (fechaHoraMatches.length > 1) {
-      throw buildHeaderError('Columna de fecha/hora ambigua: hay varias posibles.', headersNorm);
+      throw buildHeaderError('Columna de fecha/hora ambigua: hay varias posibles.', headersNorm, options);
     }
     if (fechaHoraMatches.length === 1 && (fechaMatches.length || horaMatches.length)) {
-      throw buildHeaderError('No se puede decidir entre "fecha_hora" y columnas separadas de fecha/hora.', headersNorm);
+      throw buildHeaderError(
+        'No se puede decidir entre "fecha_hora" y columnas separadas de fecha/hora.',
+        headersNorm,
+        options
+      );
     }
 
     const importMatches = findHeaderMatches(headersNorm, HEADER_ALIASES.importacion);
@@ -326,16 +352,16 @@
     const periodoMatches = findHeaderMatches(headersNorm, HEADER_ALIASES.periodo);
     const invVerMatches = findHeaderMatches(headersNorm, HEADER_ALIASES.invVer);
 
-    const fechaIdx = fechaHoraMatches.length ? null : pickUniqueColumn('fecha', fechaMatches, headersNorm, true);
-    const horaIdx = fechaHoraMatches.length ? null : pickUniqueColumn('hora', horaMatches, headersNorm, true);
+    const fechaIdx = fechaHoraMatches.length ? null : pickUniqueColumn('fecha', fechaMatches, headersNorm, true, options);
+    const horaIdx = fechaHoraMatches.length ? null : pickUniqueColumn('hora', horaMatches, headersNorm, true, options);
     const fechaHoraIdx = fechaHoraMatches.length ? fechaHoraMatches[0] : null;
 
-    const importIdx = pickUniqueColumn('consumo/importación', importMatches, headersNorm, true);
-    const exportIdx = pickUniqueColumn('excedente/exportación', exportMatches, headersNorm, false);
-    const autoconsumoIdx = pickUniqueColumn('autoconsumo', autoconsumoMatches, headersNorm, false);
-    const realEstimadoIdx = pickUniqueColumn('real/estimado', realMatches, headersNorm, false);
-    const periodoIdx = pickUniqueColumn('periodo tarifario', periodoMatches, headersNorm, false);
-    const invVerIdx = pickUniqueColumn('INV/VER', invVerMatches, headersNorm, false);
+    const importIdx = pickUniqueColumn('consumo/importación', importMatches, headersNorm, true, options);
+    const exportIdx = pickUniqueColumn('excedente/exportación', exportMatches, headersNorm, false, options);
+    const autoconsumoIdx = pickUniqueColumn('autoconsumo', autoconsumoMatches, headersNorm, false, options);
+    const realEstimadoIdx = pickUniqueColumn('real/estimado', realMatches, headersNorm, false, options);
+    const periodoIdx = pickUniqueColumn('periodo tarifario', periodoMatches, headersNorm, false, options);
+    const invVerIdx = pickUniqueColumn('INV/VER', invVerMatches, headersNorm, false, options);
 
     return {
       fechaIdx,
@@ -348,6 +374,71 @@
       periodoIdx,
       invVerIdx
     };
+  }
+
+  const HEADER_SCORE_TOKENS = new Set([
+    'fecha', 'hora', 'ae', 'as', 'consumo', 'import', 'export', 'excedente',
+    'vertida', 'vertido', 'generacion', 'metodo', 'real', 'estimado',
+    'real_estimado', 'metodo_obtencion', 'energia', 'autoconsumo'
+  ]);
+
+  function scoreHeaderRow(headersNorm) {
+    const aliasSet = new Set([
+      ...HEADER_ALIASES.fecha,
+      ...HEADER_ALIASES.hora,
+      ...HEADER_ALIASES.fechaHora,
+      ...HEADER_ALIASES.importacion,
+      ...HEADER_ALIASES.exportacion,
+      ...HEADER_ALIASES.autoconsumo,
+      ...HEADER_ALIASES.realEstimado
+    ]);
+
+    let score = 0;
+    let hasFecha = false;
+    let hasEnergy = false;
+    headersNorm.forEach((header) => {
+      if (aliasSet.has(header)) score += 2;
+      HEADER_SCORE_TOKENS.forEach((token) => {
+        if (header.includes(token)) score += 1;
+      });
+      if (HEADER_ALIASES.fecha.includes(header) || HEADER_ALIASES.fechaHora.includes(header)) {
+        hasFecha = true;
+      }
+      if (HEADER_ALIASES.importacion.includes(header) || HEADER_ALIASES.exportacion.includes(header)) {
+        hasEnergy = true;
+      }
+    });
+    return { score, hasFecha, hasEnergy };
+  }
+
+  function detectHeaderRow(lines, separator, maxRows = 30) {
+    const candidates = lines || [];
+    let scanned = 0;
+    for (let i = 0; i < candidates.length && scanned < maxRows; i++) {
+      const line = candidates[i];
+      if (!stripBomAndTrim(line)) continue;
+      scanned++;
+      const cols = splitCSVLine(line, separator);
+      if (cols.length < 3) continue;
+      const headersNorm = normalizeHeaders(cols);
+      const { score, hasFecha, hasEnergy } = scoreHeaderRow(headersNorm);
+      if (score >= 3 && hasFecha && hasEnergy) {
+        return { index: i, headers: cols, headersNorm };
+      }
+    }
+    return { index: -1, headers: [], headersNorm: [] };
+  }
+
+  function detectCSVSeparatorFromLines(lines, maxRows = 30) {
+    const separators = [';', ','];
+    const scores = separators.map((separator) => {
+      const result = detectHeaderRow(lines, separator, maxRows);
+      return { separator, score: result.headersNorm.length ? scoreHeaderRow(result.headersNorm).score : 0 };
+    });
+    const best = scores.sort((a, b) => b.score - a.score)[0];
+    if (best.score > 0) return best.separator;
+    const firstNonEmpty = (lines || []).find(line => stripBomAndTrim(line));
+    return detectCSVSeparator(stripBomAndTrim(firstNonEmpty || ''));
   }
 
   function extractHourNumber(raw) {
@@ -450,20 +541,26 @@
   function parseEnergyTableRows(rows, options = {}) {
     const parseNumber = options.parseNumber || parseNumberFlexible;
     const headerRowIndex = Number.isFinite(options.headerRowIndex) ? options.headerRowIndex : 0;
+    const separator = options.separator || null;
 
     if (!Array.isArray(rows) || rows.length <= headerRowIndex) {
-      throw new Error('Archivo vacío o formato no reconocido');
+      throw buildHeaderError('Archivo vacío o formato no reconocido.', [], { separator });
     }
 
     const headerRow = rows[headerRowIndex];
     if (!Array.isArray(headerRow) || headerRow.length === 0) {
-      throw new Error('No se encontró una cabecera válida en el archivo');
+      throw buildHeaderError('No se encontró una cabecera válida en el archivo.', [], { separator });
     }
 
     const headersNorm = normalizeHeaders(headerRow);
-    const mapping = detectColumnMapping(headersNorm);
+    const headersRaw = (headerRow || []).map(cell => stripBomAndTrim(cell));
+    const mapping = detectColumnMapping(headersNorm, { separator });
     const warnings = [];
     const warningSet = new Set();
+    const emptyCells = {
+      import: 0,
+      export: 0
+    };
 
     if (mapping.exportIdx === null) {
       warnings.push('No se detectaron excedentes; se importará con excedentes=0.');
@@ -496,6 +593,11 @@
     const records = [];
     let totalRows = 0;
     let parsedRows = 0;
+    let simultaneousCount = 0;
+    const threshold = 1e-6;
+
+    const isEmptyCell = (value) => stripOuterQuotes(value) === '';
+    const columnLabel = (idx) => headersRaw[idx] || headersNorm[idx] || `columna ${idx + 1}`;
 
     const mapPeriodo = (raw) => {
       const p = String(raw ?? '').trim().toUpperCase();
@@ -528,14 +630,28 @@
       const hora = resolveHour(fecha, hourNum, mapping.invVerIdx !== null ? row[mapping.invVerIdx] : null);
       if (!Number.isFinite(hora) || hora < 1 || hora > 25) continue;
 
-      const importRaw = parseNumber(row[mapping.importIdx]);
-      if (!Number.isFinite(importRaw)) continue;
+      let importRaw = parseNumber(row[mapping.importIdx]);
+      if (!Number.isFinite(importRaw)) {
+        if (isEmptyCell(row[mapping.importIdx])) {
+          importRaw = 0;
+          emptyCells.import += 1;
+        } else {
+          continue;
+        }
+      }
       if (importRaw < 0) continue;
 
       let exportRaw = 0;
       if (mapping.exportIdx !== null) {
         exportRaw = parseNumber(row[mapping.exportIdx]);
-        if (!Number.isFinite(exportRaw)) continue;
+        if (!Number.isFinite(exportRaw)) {
+          if (isEmptyCell(row[mapping.exportIdx])) {
+            exportRaw = 0;
+            emptyCells.export += 1;
+          } else {
+            continue;
+          }
+        }
         if (exportRaw < 0) continue;
       }
 
@@ -551,11 +667,19 @@
 
       if (importKwh > 10000 || exportKwh > 10000) continue;
 
+      if (importKwh > threshold && exportKwh > threshold) {
+        simultaneousCount++;
+      }
+
       const kwh = Math.max(importKwh - exportKwh, 0);
       const excedente = Math.max(exportKwh - importKwh, 0);
 
-      if (kwh > 1e-6 && excedente > 1e-6) {
-        throw buildHeaderError('Se detectaron importación y excedentes simultáneos tras el neteo horario.', headersNorm);
+      if (kwh > threshold && excedente > threshold) {
+        throw buildHeaderError(
+          'Se detectaron importación y excedentes simultáneos tras el neteo horario.',
+          headersNorm,
+          { separator }
+        );
       }
 
       let esReal = true;
@@ -579,7 +703,21 @@
     }
 
     if (totalRows > 0 && parsedRows / totalRows < 0.5) {
-      throw buildHeaderError('La mayoría de filas no se pudo interpretar; probable separador o cabecera incorrecta.', headersNorm);
+      throw buildHeaderError(
+        'La mayoría de filas no se pudo interpretar; probable separador o cabecera incorrecta.',
+        headersNorm,
+        { separator }
+      );
+    }
+
+    if (emptyCells.import > 0) {
+      warnings.push(`Se encontraron ${emptyCells.import} celdas vacías en la columna ${columnLabel(mapping.importIdx)}; interpretadas como 0.`);
+    }
+    if (mapping.exportIdx !== null && emptyCells.export > 0) {
+      warnings.push(`Se encontraron ${emptyCells.export} celdas vacías en la columna ${columnLabel(mapping.exportIdx)}; interpretadas como 0.`);
+    }
+    if (simultaneousCount > 0) {
+      warnings.push(`Se detectó importación y excedentes simultáneos en ${simultaneousCount} filas; aplicado neteo horario.`);
     }
 
     return {
@@ -592,48 +730,53 @@
 
   function parseCSVToRows(fileContent) {
     const lines = String(fileContent || '').split(/\r?\n/);
-    if (!lines.length) throw new Error('CSV vacío o inválido');
-
-    let headerIndex = -1;
-    for (let i = 0; i < lines.length; i++) {
-      if (stripBomAndTrim(lines[i])) {
-        headerIndex = i;
-        break;
-      }
+    if (!lines.length) {
+      throw buildHeaderError('CSV vacío o inválido.', [], { separator: null });
     }
-    if (headerIndex === -1) throw new Error('CSV vacío o inválido');
 
-    const headerLine = lines[headerIndex];
-    const separator = detectCSVSeparator(stripBomAndTrim(headerLine));
+    const separator = detectCSVSeparatorFromLines(lines, 30);
+    const headerInfo = detectHeaderRow(lines, separator, 30);
+    if (headerInfo.index === -1) {
+      const fallbackLine = lines.find(line => stripBomAndTrim(line));
+      const fallbackHeaders = fallbackLine ? normalizeHeaders(splitCSVLine(fallbackLine, separator)) : [];
+      throw buildHeaderError(
+        'No se pudo detectar la cabecera del CSV.',
+        fallbackHeaders,
+        { separator }
+      );
+    }
+
     const rows = [];
-
-    rows.push(splitCSVLine(headerLine, separator));
-    for (let i = headerIndex + 1; i < lines.length; i++) {
+    const headerRow = splitCSVLine(lines[headerInfo.index], separator);
+    const headerNorm = normalizeHeaders(headerRow);
+    rows.push(headerRow);
+    for (let i = headerInfo.index + 1; i < lines.length; i++) {
       const line = lines[i];
       if (!stripBomAndTrim(line)) continue;
-      rows.push(splitCSVLine(line, separator));
+      const row = splitCSVLine(line, separator);
+      const rowNorm = normalizeHeaders(row);
+      const headerScore = scoreHeaderRow(rowNorm);
+      if (rowNorm.length >= 3 && headerScore.score >= 3 && headerScore.hasFecha && headerScore.hasEnergy) {
+        if (rowNorm.join('|') === headerNorm.join('|')) continue;
+      }
+      rows.push(row);
     }
 
-    return { rows, separator };
+    return { rows, separator, headerRowIndex: 0 };
   }
 
-  function guessEnergyHeaderRow(dataRows, maxRows = 10) {
+  function guessEnergyHeaderRow(dataRows, maxRows = 30) {
     const candidates = dataRows || [];
-    const aliasSet = new Set([
-      ...HEADER_ALIASES.fecha,
-      ...HEADER_ALIASES.hora,
-      ...HEADER_ALIASES.fechaHora,
-      ...HEADER_ALIASES.importacion,
-      ...HEADER_ALIASES.exportacion
-    ]);
-    for (let i = 0; i < Math.min(maxRows, candidates.length); i++) {
+    let scanned = 0;
+    for (let i = 0; i < candidates.length && scanned < maxRows; i++) {
       const row = candidates[i];
       if (!row || !Array.isArray(row)) continue;
+      const hasContent = row.some(cell => stripBomAndTrim(cell));
+      if (!hasContent) continue;
+      scanned++;
       const headersNorm = normalizeHeaders(row);
-      const matches = headersNorm.filter(h => aliasSet.has(h));
-      const hasFecha = headersNorm.some(h => HEADER_ALIASES.fecha.includes(h) || HEADER_ALIASES.fechaHora.includes(h));
-      const hasImport = headersNorm.some(h => HEADER_ALIASES.importacion.includes(h));
-      if (matches.length >= 2 && hasFecha && hasImport) return i;
+      const { score, hasFecha, hasEnergy } = scoreHeaderRow(headersNorm);
+      if (headersNorm.length >= 3 && score >= 3 && hasFecha && hasEnergy) return i;
     }
     return -1;
   }
@@ -780,10 +923,13 @@
     parseNumberFlexible,
     normalizeHeaderName,
     normalizeHeaders,
+    buildImportError,
+    detectHeaderRow,
 
     // Parsing CSV
     splitCSVLine,
     detectCSVSeparator,
+    detectCSVSeparatorFromLines,
     parseCSVToRows,
     parseEnergyTableRows,
     guessEnergyHeaderRow,

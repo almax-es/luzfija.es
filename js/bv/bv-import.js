@@ -9,7 +9,8 @@ window.BVSim = window.BVSim || {};
     parseNumberFlexible,
     parseNumberFlexibleCSV,
     getPeriodoHorarioCSV,
-    ymdLocal
+    ymdLocal,
+    buildImportError
   } = window.LF.csvUtils || {};
 
   // ===== LAZY LOAD XLSX =====
@@ -37,10 +38,14 @@ window.BVSim = window.BVSim || {};
       throw new Error('No se pudo cargar el parser de CSV (lf-csv-utils.js faltante)');
     }
 
-    const { rows } = parseCSVToRows(fileContent);
+    const { rows, separator, headerRowIndex } = parseCSVToRows(fileContent);
     // parseEnergyTableRows devuelve { records: [...], warnings: [...] }
     // records tiene formato: { fecha, hora, kwh, excedente, autoconsumo, periodo, esReal }
-    return parseEnergyTableRows(rows, { parseNumber: parseNumberFlexibleCSV });
+    return parseEnergyTableRows(rows, {
+      parseNumber: parseNumberFlexibleCSV,
+      separator,
+      headerRowIndex
+    });
   }
 
   // ===== PARSEO XLSX =====
@@ -52,7 +57,7 @@ window.BVSim = window.BVSim || {};
     const data = XLSX.utils.sheet_to_json(firstSheet, { header: 1, raw: false });
 
     if (!data || data.length < 2) {
-      throw new Error('Archivo Excel vacío o formato no reconocido');
+      throw buildImportError('Archivo Excel vacío o formato no reconocido.');
     }
 
     const { parseEnergyTableRows, guessEnergyHeaderRow } = window.LF.csvUtils || {};
@@ -118,7 +123,7 @@ window.BVSim = window.BVSim || {};
     // Formato estándar (columnas)
     const headerRow = guessEnergyHeaderRow(data);
     if (headerRow === -1) {
-      throw new Error('No se encontró la fila de cabecera en el Excel');
+      throw buildImportError('No se encontró la fila de cabecera en el Excel.');
     }
 
     return parseEnergyTableRows(data, {
@@ -207,7 +212,10 @@ window.BVSim = window.BVSim || {};
 
       const records = Array.isArray(parsed.records) ? parsed.records : [];
       if (records.length === 0) {
-        return { ok: false, error: 'El archivo no contiene datos de consumo válidos o reconocibles.' };
+        const message = buildImportError
+          ? buildImportError('El archivo no contiene datos de consumo válidos o reconocibles.').message
+          : 'El archivo no contiene datos de consumo válidos o reconocibles.';
+        return { ok: false, error: message };
       }
 
       const warnings = Array.isArray(parsed.warnings) ? parsed.warnings.slice() : [];
