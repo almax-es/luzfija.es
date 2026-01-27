@@ -525,6 +525,28 @@ console.log('Correcto:', kwh === 0.18279);
 
 ---
 
+## 12. Observatorio PVPC
+
+El **Observatorio PVPC** (`/estadisticas/`) es una capa de visualización avanzada construida sobre los mismos datos JSON estáticos documentados aquí.
+
+### Funcionalidades
+- **Evolución**: Gráfica de tendencia anual (media diaria) para detectar patrones estacionales.
+- **Perfil Horario**: Promedio de precios por hora (0-23h) para identificar las horas más baratas (curva de pato).
+- **Comparativa**: Superposición de años anteriores (2021-presente) para analizar la tendencia del mercado.
+- **KPIs**: Tarjetas con precio medio del último día, semana, mes y año móvil.
+
+### Lógica de Frontend (`js/pvpc-stats-engine.js`)
+1. **Carga**: Descarga todos los JSONs mensuales del año seleccionado (y anteriores para comparativa).
+2. **Agregación**: Calcula medias diarias, mensuales y horarias en el cliente.
+3. **Cache**: Utiliza `localStorage` para persistir los cálculos costosos y evitar descargas repetitivas.
+4. **Renderizado**: Usa `Chart.js` para visualizar los datos procesados.
+
+### Dependencias
+- Requiere que los JSONs mensuales (`/data/pvpc/{geoId}/{YYYY-MM}.json`) estén actualizados.
+- No utiliza ninguna API externa en tiempo de ejecución (todo es estático).
+
+---
+
 ⚡ Arquitectura PVPC: **100% estática, sin backend, actualización automática diaria**
 
 *Documentación precisa para desarrollo y mantenimiento*

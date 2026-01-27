@@ -498,14 +498,19 @@ npm test
 
 ## 🛡️ Service Worker v5.8
 
-### Estrategias de Caché
+### Estrategias de Caché (App Shell)
 
-**Precache (instalación):**
-- HTML principal
-- CSS completo
-- JavaScript propio
+**Precache (Core App Shell):**
+- HTML principal (`index.html`, `comparador-tarifas-solares.html`, etc.)
+- CSS crítico (`styles.css`, `fonts.css`)
+- JavaScript core (`lf-*.js`, `pvpc.js`)
 - jsQR (escaneo QR instantáneo offline)
-- Imágenes y manifest
+- Assets UI esenciales (iconos, manifest)
+
+**Exclusiones (Runtime Caching):**
+- Guías educativas (`/guias/*.html`) - Estrategia Network-First
+- Imágenes de guías y og.png - Estrategia Cache-First
+- JSONs de datos (`tarifas.json`, PVPC) - Estrategia Stale-While-Revalidate
 
 **Network-first (HTML):**
 - Siempre intenta red para contenido actualizado
