@@ -504,6 +504,17 @@
       const rango = precioMax - precioMin;
       let col1 = '', col2 = '';
 
+      // === NUEVO LINK OBSERVATORIO (ARRIBA) ===
+      const observatorioLink = `
+        <div style="margin-bottom: 20px;">
+          <a href="/estadisticas/" style="display: flex; align-items: center; justify-content: center; gap: 10px; background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; padding: 12px 20px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 14px; box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25); transition: transform 0.2s, box-shadow 0.2s;">
+            <span style="font-size: 18px;">📊</span>
+            <span>Ver Observatorio Histórico y Tendencias</span>
+            <span style="opacity: 0.8;">→</span>
+          </a>
+        </div>
+      `;
+
       entries.forEach((e, idx) => {
         const precio = e.price;
         const hora = e.hour;   // hora local (0-23), puede repetirse en DST
@@ -544,6 +555,7 @@
       });
 
       const html = `
+        ${observatorioLink}
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
           <div>${col1}</div>
           <div>${col2}</div>
