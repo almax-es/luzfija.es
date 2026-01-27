@@ -1129,6 +1129,29 @@ html.light-mode select.input {
   letter-spacing: 0.5px;
 }
 
+/* --- Manual Cells (desktop-first) --- */
+/*
+  En escritorio la tabla se comporta como una grid de 5 columnas.
+  Para permitir un layout "tarjetas" en móvil sin duplicar DOM, las celdas
+  van agrupadas en .bv-manual-row-cells que por defecto se renderiza como
+  display: contents (sus hijos participan en la grid del padre).
+*/
+.bv-manual-row-cells {
+  display: contents;
+}
+
+.bv-manual-cell {
+  min-width: 0;
+}
+
+.bv-manual-cell .manual-input {
+  width: 100%;
+}
+
+.bv-manual-cell-label {
+  display: none;
+}
+
 .bv-manual-header span {
   transition: all 0.2s ease;
   padding: 4px;
@@ -1187,6 +1210,83 @@ html.light-mode select.input {
   color: var(--accent);
   font-size: 1rem;
   letter-spacing: 0.5px;
+}
+
+/* --- Mobile portrait: tabla -> tarjetas por mes (sin scroll horizontal) --- */
+@media (max-width: 520px) {
+  .bv-manual-scroll-wrapper {
+    /* Quitamos scroll interno: en móvil es más usable que todo scrollee con la página */
+    overflow: visible;
+    margin: 0;
+    padding: 0;
+  }
+
+  .bv-manual-grid-scroll {
+    overflow: visible;
+    max-height: none;
+    padding-right: 0;
+  }
+
+  .bv-manual-header {
+    display: none;
+  }
+
+  /* Anula el min-width aplicado en <=900px */
+  .bv-manual-header,
+  .bv-manual-row,
+  .bv-manual-totals-row {
+    min-width: 0 !important;
+  }
+
+  .bv-manual-row {
+    display: block;
+    padding: 14px 12px;
+    margin-bottom: 10px;
+    border: 1px solid rgba(139, 92, 246, 0.16);
+    background: linear-gradient(145deg, rgba(0,0,0,0.10), rgba(139, 92, 246, 0.03));
+  }
+
+  html.light-mode .bv-manual-row {
+    background: linear-gradient(145deg, rgba(255,255,255,0.85), rgba(139, 92, 246, 0.03));
+    border-color: rgba(139, 92, 246, 0.20);
+  }
+
+  .bv-manual-row-label {
+    display: block;
+    margin-bottom: 10px;
+    font-size: 0.95rem;
+  }
+
+  .bv-manual-row-cells {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .bv-manual-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .bv-manual-cell-label {
+    display: block;
+    font-size: 0.70rem;
+    font-weight: 900;
+    color: var(--muted);
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+  }
+
+  .bv-manual-cell .manual-input {
+    padding: 10px 12px;
+    font-size: 0.95rem;
+  }
+
+  /* En móvil, el resumen de totales es más claro que la fila TOTAL dentro de la tabla */
+  .bv-manual-totals-row {
+    display: none !important;
+  }
 }
 
 /* --- Privacy Panel Mejorado --- */

@@ -370,10 +370,24 @@ document.addEventListener('DOMContentLoaded', () => {
     manualGrid.innerHTML = monthNames.map((m, i) => `
       <div class="bv-manual-row">
         <span class="bv-manual-row-label">${m}</span>
-        <input class="input manual-input" type="text" data-month="${i}" data-type="p1" value="" inputmode="decimal" placeholder="Ej: 50" title="Consumo en punta (10-14h, 18-22h laborables)">
-        <input class="input manual-input" type="text" data-month="${i}" data-type="p2" value="" inputmode="decimal" placeholder="Ej: 70" title="Consumo en llano (8-10h, 14-18h, 22-24h laborables)">
-        <input class="input manual-input" type="text" data-month="${i}" data-type="p3" value="" inputmode="decimal" placeholder="Ej: 150" title="Consumo en valle (0-8h + fines semana)">
-        <input class="input manual-input" type="text" data-month="${i}" data-type="vert" value="" inputmode="decimal" placeholder="Ej: 200" title="Excedentes vertidos a la red">
+        <div class="bv-manual-row-cells">
+          <div class="bv-manual-cell">
+            <span class="bv-manual-cell-label">Punta</span>
+            <input class="input manual-input" type="text" data-month="${i}" data-type="p1" value="" inputmode="decimal" placeholder="Ej: 50" title="Consumo en punta (10-14h, 18-22h laborables)">
+          </div>
+          <div class="bv-manual-cell">
+            <span class="bv-manual-cell-label">Llano</span>
+            <input class="input manual-input" type="text" data-month="${i}" data-type="p2" value="" inputmode="decimal" placeholder="Ej: 70" title="Consumo en llano (8-10h, 14-18h, 22-24h laborables)">
+          </div>
+          <div class="bv-manual-cell">
+            <span class="bv-manual-cell-label">Valle</span>
+            <input class="input manual-input" type="text" data-month="${i}" data-type="p3" value="" inputmode="decimal" placeholder="Ej: 150" title="Consumo en valle (0-8h + fines de semana y festivos)">
+          </div>
+          <div class="bv-manual-cell">
+            <span class="bv-manual-cell-label">Vertido</span>
+            <input class="input manual-input" type="text" data-month="${i}" data-type="vert" value="" inputmode="decimal" placeholder="Ej: 200" title="Excedentes vertidos a la red">
+          </div>
+        </div>
       </div>
     `).join('');
 
