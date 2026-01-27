@@ -174,7 +174,7 @@
     if (typeof validateCsvSpanFromRecords === 'function') {
       const spanCheck = validateCsvSpanFromRecords(consumos, { maxDays: 370 });
       if (!spanCheck.ok) {
-        throw new Error(spanCheck.error);
+        return { ok: false, error: spanCheck.error };
       }
     }
 
@@ -207,6 +207,7 @@
     const tieneExcedentes = totalExcedentes > 0;
 
     return {
+      ok: true,
       punta: round2(totales.P1).toFixed(2).replace('.', ','),
       llano: round2(totales.P2).toFixed(2).replace('.', ','),
       valle: round2(totales.P3).toFixed(2).replace('.', ','),
@@ -241,11 +242,19 @@
           const parsed = parseCSVConsumos(content);
           const consumos = parsed.records || [];
           if (consumos.length === 0) {
-            reject(buildImportError ? buildImportError('No se encontraron datos válidos en el CSV.') : new Error('No se encontraron datos válidos en el CSV.'));
+            resolve({
+              ok: false,
+              error: (buildImportError ? buildImportError('No se encontraron datos válidos en el CSV.') : new Error('No se encontraron datos válidos en el CSV.')).message
+            });
             return;
           }
           
           const resultado = clasificarConsumosPorPeriodo(consumos);
+          if (!resultado.ok) {
+            resolve(resultado);
+            return;
+          }
+
           resultado.formato = 'CSV';
           // ⭐ SUN CLUB: adjuntar consumos horarios (se guardan globalmente solo al aplicar)
           resultado.consumosHorarios = consumos;
@@ -255,10 +264,10 @@
           }
           resolve(resultado);
         } catch (error) {
-          reject(error);
+          resolve({ ok: false, error: error?.message || 'Error al procesar el archivo.' });
         }
       };
-      reader.onerror = () => reject(new Error('Error al leer el archivo'));
+      reader.onerror = () => resolve({ ok: false, error: 'Error al leer el archivo' });
       reader.readAsText(file);
     });
   }
@@ -272,11 +281,19 @@
           const parsed = await parseXLSXConsumos(buffer);
           const consumos = parsed.records || [];
           if (consumos.length === 0) {
-            reject(buildImportError ? buildImportError('No se encontraron datos válidos en el Excel.') : new Error('No se encontraron datos válidos en el Excel.'));
+            resolve({
+              ok: false,
+              error: (buildImportError ? buildImportError('No se encontraron datos válidos en el Excel.') : new Error('No se encontraron datos válidos en el Excel.')).message
+            });
             return;
           }
           
           const resultado = clasificarConsumosPorPeriodo(consumos);
+          if (!resultado.ok) {
+            resolve(resultado);
+            return;
+          }
+
           resultado.formato = 'XLSX';
           // ⭐ SUN CLUB: adjuntar consumos horarios (se guardan globalmente solo al aplicar)
           resultado.consumosHorarios = consumos;
@@ -286,10 +303,10 @@
           }
           resolve(resultado);
         } catch (error) {
-          reject(error);
+          resolve({ ok: false, error: error?.message || 'Error al procesar el archivo.' });
         }
       };
-      reader.onerror = () => reject(new Error('Error al leer el archivo Excel'));
+      reader.onerror = () => resolve({ ok: false, error: 'Error al leer el archivo Excel' });
       reader.readAsArrayBuffer(file);
     });
   }
@@ -671,6 +688,14 @@
             resultado = await procesarXLSXConsumos(file);
           } else {
             throw new Error('Formato no soportado. Solo CSV y Excel (.xlsx, .xls)');
+          }
+
+          if (!resultado.ok) {
+            toast(resultado.error || 'Error al procesar el archivo', 'err');
+            btnCSV.disabled = false;
+            btnCSV.innerHTML = '<span>📊</span><span class="btn-text">Importar CSV</span>';
+            fileInput.value = '';
+            return;
           }
 
           mostrarPreviewCSV(resultado);
