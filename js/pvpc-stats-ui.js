@@ -15,8 +15,8 @@
 
     kpiLast: document.getElementById('kpiLast'),
     kpiLastSub: document.getElementById('kpiLastSub'),
-    kpiAvg7: document.getElementById('kpiAvg7'),
-    kpiAvg7Sub: document.getElementById('kpiAvg7Sub'),
+    kpiAvg12m: document.getElementById('kpiAvg12m'),
+    kpiAvg12mSub: document.getElementById('kpiAvg12mSub'),
     kpiAvg30: document.getElementById('kpiAvg30'),
     kpiAvg30Sub: document.getElementById('kpiAvg30Sub'),
     kpiYoY: document.getElementById('kpiYoY'),
@@ -131,12 +131,12 @@
 
   function setLoadingText() {
     if (els.kpiLast) els.kpiLast.textContent = '—';
-    if (els.kpiAvg7) els.kpiAvg7.textContent = '—';
+    if (els.kpiAvg12m) els.kpiAvg12m.textContent = '—';
     if (els.kpiAvg30) els.kpiAvg30.textContent = '—';
     if (els.kpiYoY) els.kpiYoY.textContent = '—';
 
     if (els.kpiLastSub) els.kpiLastSub.textContent = 'Cargando…';
-    if (els.kpiAvg7Sub) els.kpiAvg7Sub.textContent = 'Cargando…';
+    if (els.kpiAvg12mSub) els.kpiAvg12mSub.textContent = 'Cargando…';
     if (els.kpiAvg30Sub) els.kpiAvg30Sub.textContent = 'Cargando…';
     if (els.kpiYoYSub) els.kpiYoYSub.textContent = 'A mismas fechas';
 
@@ -611,6 +611,36 @@
     };
   }
 
+  function computeRolling12m(currentData, prevData) {
+    if (!currentData || !currentData.days) return null;
+
+    const merged = { ...(prevData?.days || {}), ...currentData.days };
+    const dates = Object.keys(merged).sort();
+    if (!dates.length) return null;
+
+    const lastDateStr = dates[dates.length - 1];
+    const parts = lastDateStr.split('-').map(Number);
+    // lastDateStr is YYYY-MM-DD. parts: [2026, 1, 27] (month is 1-based in split, but Date needs 0-based if using Date, but here we construct string)
+    // Cutoff string: Year-1
+    const cutoffYear = parts[0] - 1;
+    const cutoffStr = `${cutoffYear}-${String(parts[1]).padStart(2, '0')}-${String(parts[2]).padStart(2, '0')}`;
+
+    const validValues = [];
+    // Iterate backwards
+    for (let i = dates.length - 1; i >= 0; i--) {
+      const d = dates[i];
+      if (d <= cutoffStr) break; // Stop if we go beyond 1 year ago
+
+      const hours = merged[d];
+      if (hours && hours.length) {
+        const avg = hours.reduce((a, b) => a + b[1], 0) / hours.length;
+        validValues.push(avg);
+      }
+    }
+
+    return safeMean(validValues);
+  }
+
   async function main() {
     if (!window.PVPC_STATS) {
       showError('Motor PVPC no disponible.');
@@ -648,6 +678,12 @@
         return;
       }
 
+      // Cargar año anterior para media móvil 12 meses
+      let prevYearData = null;
+      try {
+        prevYearData = await PVPC_STATS.loadYearData(Number(state.geo), Number(state.year) - 1);
+      } catch (_) {}
+
       const status = PVPC_STATS.getYearStatus(yearData);
 
       const daily = PVPC_STATS.getDailyEvolution(yearData);
@@ -659,15 +695,15 @@
       const lastDate = lastIdx >= 0 ? daily.labels[lastIdx] : null;
       const lastVal = lastIdx >= 0 ? daily.data[lastIdx] : null;
 
-      const last7 = safeMean(daily.data.slice(Math.max(0, daily.data.length - 7)));
+      const rolling12m = computeRolling12m(yearData, prevYearData);
       const last30 = safeMean(daily.data.slice(Math.max(0, daily.data.length - 30)));
       const ytdAvg = safeMean(daily.data); // hasta donde haya datos
 
       els.kpiLast.textContent = fmtCents(lastVal);
       els.kpiLastSub.textContent = lastDate ? `Media del día · ${lastDate}` : '—';
 
-      els.kpiAvg7.textContent = fmtCents(last7);
-      els.kpiAvg7Sub.textContent = lastDate ? `Últimos 7 días (hasta ${lastDate})` : '—';
+      els.kpiAvg12m.textContent = fmtCents(rolling12m);
+      els.kpiAvg12mSub.textContent = lastDate ? 'Últimos 12 meses' : '—';
 
       els.kpiAvg30.textContent = fmtCents(last30);
       els.kpiAvg30Sub.textContent = lastDate ? `Últimos 30 días (hasta ${lastDate})` : '—';
