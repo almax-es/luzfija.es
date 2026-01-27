@@ -24,6 +24,9 @@
     kpiYoY: document.getElementById('kpiYoY'),
     kpiYoYSub: document.getElementById('kpiYoYSub'),
 
+    lblKpi2: document.getElementById('lblKpi2'),
+    lblKpi3: document.getElementById('lblKpi3'),
+
     trendModeMonthly: document.getElementById('trendModeMonthly'),
     trendModeDaily: document.getElementById('trendModeDaily'),
     trendMeta: document.getElementById('trendMeta'),
@@ -704,22 +707,53 @@
       const lastDate = lastIdx >= 0 ? daily.labels[lastIdx] : null;
       const lastVal = lastIdx >= 0 ? daily.data[lastIdx] : null;
 
-      const rolling12m = computeRolling12m(yearData, prevYearData);
-      const last7 = safeMean(daily.data.slice(Math.max(0, daily.data.length - 7)));
-      const last30 = safeMean(daily.data.slice(Math.max(0, daily.data.length - 30)));
-      const ytdAvg = safeMean(daily.data); // hasta donde haya datos
+      const isCurrentYear = String(state.year) === String(new Date().getFullYear());
 
+      // Kpi 1: Último día (o Cierre año)
       els.kpiLast.textContent = fmtCents(lastVal);
-      els.kpiLastSub.textContent = lastDate ? `Media del día · ${lastDate}` : '—';
+      els.kpiLastSub.textContent = lastDate ? (isCurrentYear ? `Media del día · ${lastDate}` : `Cierre a ${lastDate}`) : '—';
 
-      els.kpiAvg7.textContent = fmtCents(last7);
-      els.kpiAvg7Sub.textContent = lastDate ? `Últimos 7 días (hasta ${lastDate})` : '—';
+      // Kpi 2 & 3: Dinámicos
+      if (isCurrentYear) {
+        // Modo "En curso": 7 días y 30 días
+        const last7 = safeMean(daily.data.slice(Math.max(0, daily.data.length - 7)));
+        const last30 = safeMean(daily.data.slice(Math.max(0, daily.data.length - 30)));
 
-      els.kpiAvg30.textContent = fmtCents(last30);
-      els.kpiAvg30Sub.textContent = lastDate ? `Últimos 30 días (hasta ${lastDate})` : '—';
+        if (els.lblKpi2) els.lblKpi2.textContent = 'Media 7 días';
+        els.kpiAvg7.textContent = fmtCents(last7);
+        els.kpiAvg7Sub.textContent = lastDate ? `Últimos 7 días` : '—';
 
+        if (els.lblKpi3) els.lblKpi3.textContent = 'Media 30 días';
+        els.kpiAvg30.textContent = fmtCents(last30);
+        els.kpiAvg30Sub.textContent = lastDate ? `Últimos 30 días` : '—';
+      } else {
+        // Modo "Histórico": Mínimo y Máximo anual (media diaria)
+        let minDay = Infinity, maxDay = -Infinity;
+        let minDate = '', maxDate = '';
+        
+        daily.data.forEach((val, i) => {
+          if (Number.isFinite(val)) {
+            if (val < minDay) { minDay = val; minDate = daily.labels[i]; }
+            if (val > maxDay) { maxDay = val; maxDate = daily.labels[i]; }
+          }
+        });
+
+        if (minDay === Infinity) minDay = null;
+        if (maxDay === -Infinity) maxDay = null;
+
+        if (els.lblKpi2) els.lblKpi2.textContent = 'Mejor día del año';
+        els.kpiAvg7.textContent = fmtCents(minDay);
+        els.kpiAvg7Sub.textContent = minDate || '—';
+
+        if (els.lblKpi3) els.lblKpi3.textContent = 'Peor día del año';
+        els.kpiAvg30.textContent = fmtCents(maxDay);
+        els.kpiAvg30Sub.textContent = maxDate || '—';
+      }
+
+      // Kpi 4: 12 meses / Anual
+      const rolling12m = computeRolling12m(yearData, prevYearData);
       els.kpiAvg12m.textContent = fmtCents(rolling12m);
-      els.kpiAvg12mSub.textContent = lastDate ? 'Últimos 12 meses' : '—';
+      els.kpiAvg12mSub.textContent = lastDate ? (isCurrentYear ? 'Últimos 12 meses' : 'Media anual') : '—';
 
       // YoY (a mismas fechas)
       try {
