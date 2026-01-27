@@ -178,6 +178,9 @@
     const diasUnicos = new Set();
     let datosReales = 0;
     let datosEstimados = 0;
+    
+    let minTs = null;
+    let maxTs = null;
 
     consumos.forEach(c => {
       const periodo = c.periodo || getPeriodoHorarioCSV(c.fecha, c.hora);
@@ -191,7 +194,22 @@
 
       if (c.esReal) datosReales++;
       else datosEstimados++;
+      
+      // Tracking fechas
+      if (c.fecha) {
+        const ts = c.fecha.getTime();
+        if (minTs === null || ts < minTs) minTs = ts;
+        if (maxTs === null || ts > maxTs) maxTs = ts;
+      }
     });
+    
+    // Validar rango > 370 días
+    if (minTs !== null && maxTs !== null) {
+      const diffDays = (maxTs - minTs) / (1000 * 60 * 60 * 24);
+      if (diffDays > 370) {
+        throw new Error(`El archivo contiene más de 12 meses (${Math.ceil(diffDays)} días). Por favor, sube un fichero de máximo 1 año.`);
+      }
+    }
 
     const totalKwh = totales.P1 + totales.P2 + totales.P3;
     const totalExcedentes = totales.excedentesP1 + totales.excedentesP2 + totales.excedentesP3;
