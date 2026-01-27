@@ -1299,22 +1299,43 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Pdto: ${fEur(sobranteHucha)}`
           ? '<span class="bv-pill bv-pill--bv" title="Acumula excedente sobrante para meses futuros.">Con BV</span>'
           : '<span class="bv-pill bv-pill--no-bv" title="No acumula excedente sobrante; lo no compensado se pierde.">Sin BV</span>';
 
-        // MOSTRAR PAGADO COMO PRINCIPAL
         return `
-          <div class="bv-alt-card-detailed" style="margin-bottom: 24px; background:var(--card); border:1px solid var(--border); padding:24px; border-radius:16px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:16px;">
-              <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap;"><span class="bv-alt-rank" style="font-size:1.5rem; opacity:0.5; font-weight:900;">#${i+2}</span><h3 style="margin:0; font-size:1.3rem;">${altName}</h3>${pill}</div>
-              <div style="text-align:right;">
-                <div style="font-size:1.5rem; font-weight:900;">${fEur(r.totals.pagado)}</div>
-                <div style="opacity:0.75; font-size:0.85rem; margin-bottom: 4px;">Pagado total</div>
-                ${hasBV ? `<div style="color:#fbbf24; font-weight:700; font-size:1.1rem;">Saldo BV final: ${fEur(r.totals.bvFinal)}</div>` : ''}
+          <div class="bv-alt-card-compact">
+            <div class="bv-alt-header">
+              <div class="bv-alt-title-row">
+                <span class="bv-alt-rank">#${i+2}</span>
+                <h3 class="bv-alt-name">${altName}</h3>
+                ${pill}
+              </div>
+              <div class="bv-alt-price-box">
+                <div class="bv-alt-price">${fEur(r.totals.pagado)}</div>
+                <div class="bv-alt-price-label">Total a pagar</div>
+                ${hasBV ? `<div class="bv-alt-bv-saldo">💰 ${fEur(r.totals.bvFinal)} saldo BV</div>` : ''}
               </div>
             </div>
-            ${hasBV ? '' : '<div class="bv-note">Nota: sin BV, el excedente que no compense este mes se pierde.</div>'}
-            ${altUrl ? `<div style="margin: 16px 0;"><a href="${altUrl}" target="_blank" rel="noopener noreferrer" class="btn bv-link-tarifa" style="width:100%; justify-content:center; font-size:13px; padding:8px 12px;">🔗 Información de la tarifa</a></div>` : ''}
-            <details>
-              <summary style="cursor: pointer; color: var(--accent); font-weight:600; font-size:0.9rem;">Ver desglose</summary>
-              ${buildTable(r).replace('margin-top:16px','margin-top:12px')}
+
+            ${hasBV ? '' : '<div class="bv-note bv-note-compact">Sin BV: el excedente no compensado se pierde.</div>'}
+
+            <div class="bv-alt-actions">
+              ${altUrl ? `<a href="${altUrl}" target="_blank" rel="noopener noreferrer" class="bv-alt-btn bv-alt-btn-info">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                Información
+              </a>` : ''}
+              <button type="button" class="bv-alt-btn bv-alt-btn-toggle" onclick="this.closest('.bv-alt-card-compact').querySelector('details').toggleAttribute('open'); this.classList.toggle('active');">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+                Ver desglose
+              </button>
+            </div>
+
+            <details class="bv-alt-details">
+              <summary style="display:none;"></summary>
+              ${buildTable(r).replace('margin-top:16px','margin-top:16px')}
             </details>
           </div>
         `;
