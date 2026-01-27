@@ -85,12 +85,16 @@ ES12345;01/01/2024;2;2,456;R`;
 
     it('Debe lanzar error con CSV vacío', async () => {
       const file = { name: 'empty.csv', _content: '' };
-      await expect(procesarCSVConsumos(file)).rejects.toThrow(/cabecera del CSV/);
+      const result = await procesarCSVConsumos(file);
+      expect(result.ok).toBe(false);
+      expect(result.error).toMatch(/cabecera del CSV/);
     });
 
     it('Debe manejar errores de lectura', async () => {
       const file = { name: 'error.csv' }; // Trigger mock error
-      await expect(procesarCSVConsumos(file)).rejects.toThrow();
+      const result = await procesarCSVConsumos(file);
+      expect(result.ok).toBe(false);
+      expect(result.error).toMatch(/Error al leer/);
     });
   });
 
@@ -123,6 +127,7 @@ ES12345;01/01/2024;2;2,456;R`;
       
       const result = await procesarXLSXConsumos(file);
       
+      expect(result.ok).not.toBe(false);
       expect(result.dias).toBe(1);
       expect(result.totalKwh.replace(',', '.')).toBe('3.69');
       expect(result.formato).toBe('XLSX');
@@ -164,7 +169,9 @@ ES12345;01/01/2024;2;2,456;R`;
       global.XLSX.utils.sheet_to_json.mockReturnValue(mockData);
 
       const file = { name: 'invalid.xlsx' };
-      await expect(procesarXLSXConsumos(file)).rejects.toThrow();
+      const result = await procesarXLSXConsumos(file);
+      expect(result.ok).toBe(false);
+      expect(result.error).toMatch(/No se encontró la fila de cabecera/);
     });
   });
 
