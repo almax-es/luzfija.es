@@ -3,7 +3,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260127-130000";
+const CACHE_VERSION = "20260127-131000";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
@@ -57,7 +57,6 @@ const ASSETS = [
   "estadisticas/estadisticas.css",
   "js/pvpc-stats-engine.js",
   "js/pvpc-stats-ui.js",
-  "js/pvpc-stats-worker.js",
   "vendor/chartjs/chart.umd.js",
   // Simulador Batería Virtual
   "comparador-tarifas-solares.html",
