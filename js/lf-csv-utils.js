@@ -934,10 +934,21 @@
       months.add(monthKey);
     });
 
-    const monthsDistinct = months.size;
+    const monthsSorted = Array.from(months).sort();
+    const monthsDistinct = monthsSorted.length;
+    let monthsUsed = [];
+    let monthsToDrop = [];
 
     if (minTs === null || maxTs === null) {
-      return { ok: true, spanDays: 0, startYmd: '', endYmd: '', monthsDistinct };
+      return {
+        ok: true,
+        spanDays: 0,
+        startYmd: '',
+        endYmd: '',
+        monthsDistinct,
+        monthsUsed,
+        monthsToDrop
+      };
     }
 
     const spanDays = spanDaysInclusiveFromTimestamps(minTs, maxTs);
@@ -951,22 +962,52 @@
         startYmd,
         endYmd,
         monthsDistinct,
+        monthsUsed,
+        monthsToDrop,
         error: `El CSV abarca ${spanDays} días (rango ${startYmd} → ${endYmd}). El máximo permitido es ${maxDays} días. Recorta/exporta un periodo de ~1 año como máximo.`
       };
     }
 
-    if (monthsDistinct > 12) {
+    if (monthsDistinct > 13) {
       return {
         ok: false,
         spanDays,
         startYmd,
         endYmd,
         monthsDistinct,
-        error: `El CSV contiene ${monthsDistinct} meses distintos (máximo 12). Recorta/exporta un periodo de 12 meses consecutivos.`
+        monthsUsed,
+        monthsToDrop,
+        error: `El CSV contiene ${monthsDistinct} meses distintos (máximo 13). Recorta/exporta un periodo de ~1 año como máximo.`
       };
     }
 
-    return { ok: true, spanDays, startYmd, endYmd, monthsDistinct };
+    if (monthsDistinct === 13) {
+      monthsToDrop = [monthsSorted[0]];
+      monthsUsed = monthsSorted.slice(1);
+      const firstUsed = monthsUsed[0];
+      const lastUsed = monthsUsed[monthsUsed.length - 1];
+      return {
+        ok: true,
+        spanDays,
+        startYmd,
+        endYmd,
+        monthsDistinct,
+        monthsUsed,
+        monthsToDrop,
+        warning: `El CSV contiene 13 meses; se han usado los últimos 12 (rango ${firstUsed} → ${lastUsed}). Se ha omitido ${monthsToDrop[0]}.`
+      };
+    }
+
+    monthsUsed = monthsSorted;
+    return {
+      ok: true,
+      spanDays,
+      startYmd,
+      endYmd,
+      monthsDistinct,
+      monthsUsed,
+      monthsToDrop
+    };
   }
 
   // ===== EXPORTAR API PÚBLICA =====

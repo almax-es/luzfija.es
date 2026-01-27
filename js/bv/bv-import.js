@@ -134,6 +134,12 @@ window.BVSim = window.BVSim || {};
   }
 
   // ===== UTILIDAD DE FORMATO =====
+  function ymLocal(date) {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}`;
+  }
+
   function buildMeta(records, hasExcedenteColumn, hasAutoconsumoColumn) {
     let minDate = null;
     let maxDate = null;
@@ -225,13 +231,23 @@ window.BVSim = window.BVSim || {};
         if (!spanCheck.ok) {
           return { ok: false, error: spanCheck.error };
         }
+        if (Array.isArray(spanCheck.monthsToDrop) && spanCheck.monthsToDrop.length > 0) {
+          const monthsToDrop = new Set(spanCheck.monthsToDrop);
+          parsed.records = records.filter((record) => {
+            const fecha = record && record.fecha;
+            if (!(fecha instanceof Date) || isNaN(fecha.getTime())) return false;
+            return !monthsToDrop.has(ymLocal(fecha));
+          });
+          if (spanCheck.warning) warnings.push(spanCheck.warning);
+        }
       }
 
-      const meta = buildMeta(records, parsed.hasExcedenteColumn, parsed.hasAutoconsumoColumn);
+      const filteredRecords = Array.isArray(parsed.records) ? parsed.records : [];
+      const meta = buildMeta(filteredRecords, parsed.hasExcedenteColumn, parsed.hasAutoconsumoColumn);
 
       return {
         ok: true,
-        records,
+        records: filteredRecords,
         meta,
         warnings
       };
