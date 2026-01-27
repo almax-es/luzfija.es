@@ -193,57 +193,32 @@ ES123;01/01/2024;1;1,0;R`;
     expect(res.error).toContain('372 días');
   });
 
-  it('Validación de meses distintos (máximo 12)', () => {
+  it('Validación de meses distintos (13 warning, 14 error)', () => {
     const { validateCsvSpanFromRecords } = window.LF.csvUtils;
-    const records = [];
-    // Generar 13 meses distintos (Ene 2024 - Ene 2025)
-    for (let i = 0; i < 13; i++) {
-      records.push({ fecha: new Date(2024, i, 15) });
-    }
     
-    // Aunque el rango de días sea aceptable (366 + 15 aprox = ~380? no, 13 meses is > 370 days usually)
-    // Wait, 13 months distinct could be within 370 days?
-    // Jan 1 2024 to Jan 1 2025 is 13 distinct months (Jan, Feb... Dec, Jan) and 367 days.
-    // So checking months distinct is valuable.
-    
-    // Let's force a case where days are OK but months are > 12?
-    // Hard to do unless skipping days.
-    // But let's just test the months logic.
-    
-    const res = validateCsvSpanFromRecords(records);
-    // Either fails by days or months.
-    expect(res.ok).toBe(false);
-    // It might fail by days first (366 + ~15 > 370).
-    // Let's try to trigger specifically the month limit if possible, or just accept any failure.
-    
-    // To trigger strictly month limit: 
-    // Data: 2024-01-31 and 2025-01-01.
-    // Diff days: 366 (leap) + 1 = 367 days. OK (<370).
-    // Distinct months: Jan, Feb... Dec, Jan? No, only Jan and Jan?
-    // Distinct months logic uses "YYYY-MM".
-    // 2024-01, 2025-01. That's 2 distinct months.
-    
-    // To hit >12 months with <370 days:
-    // 2024-01-31 -> Month 1
-    // ...
-    // 2025-01-01 -> Month 13
-    // Span: 31 Jan to 1 Jan = 337 days? No.
-    // 1 Jan 2024 to 1 Jan 2025 = 367 days.
-    // Months: Jan, Feb, Mar, Apr, May, Jun, Jul, Aug, Sep, Oct, Nov, Dec, Jan. (13 months).
-    // So 13 months can fit in 367 days.
-    
+    // Caso 1: 13 meses -> OK con warning y recorte
     const records13 = [];
     const base = new Date('2024-01-01');
     for(let i=0; i<13; i++) {
         // 1st of each month
         records13.push({ fecha: new Date(base.getFullYear(), base.getMonth() + i, 1) });
     }
-    // Range: 2024-01-01 to 2025-01-01. Days: 367.
-    // validateCsvSpanFromRecords checks days > 370. 367 is OK.
-    // Then checks months > 12. 13 > 12. Error.
+    // Usamos maxDays alto para que no falle por días y testear la lógica de meses
+    const res13 = validateCsvSpanFromRecords(records13, { maxDays: 400 });
     
-    const res13 = validateCsvSpanFromRecords(records13, { maxDays: 370 });
-    expect(res13.ok).toBe(false);
-    expect(res13.error).toContain('13 meses distintos');
+    expect(res13.ok).toBe(true);
+    expect(res13.warning).toContain('13 meses');
+    expect(res13.monthsToDrop).toHaveLength(1);
+    expect(res13.monthsToDrop[0]).toBe('2024-01'); // Se descarta el más antiguo
+
+    // Caso 2: 14 meses -> Error
+    const records14 = [];
+    for(let i=0; i<14; i++) {
+        records14.push({ fecha: new Date(base.getFullYear(), base.getMonth() + i, 1) });
+    }
+    const res14 = validateCsvSpanFromRecords(records14, { maxDays: 500 });
+    
+    expect(res14.ok).toBe(false);
+    expect(res14.error).toContain('14 meses distintos');
   });
 });
