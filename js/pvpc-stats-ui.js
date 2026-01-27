@@ -656,13 +656,16 @@
     attachThemeToggle();
 
     const params = parseParams();
+    const currentSystemYear = String(new Date().getFullYear());
+    
     const state = {
       geo: params.geo,
-      year: params.year,
+      year: params.year || currentSystemYear,
       trendMode: params.trendMode === 'daily' ? 'daily' : 'monthly',
-      compareYears: normalizeSelectedYears(params.year, params.compareYears)
+      compareYears: normalizeSelectedYears(params.year || currentSystemYear, params.compareYears)
     };
 
+    console.log(`[PVPC-OBS] Año detectado por sistema: ${currentSystemYear}`);
     applyStateToControls(state);
 
     const rerender = debounce(async ({ push = false } = {}) => {
