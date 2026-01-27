@@ -922,6 +922,7 @@
     const maxDays = Number.isFinite(options.maxDays) ? options.maxDays : 370;
     let minTs = null;
     let maxTs = null;
+    const months = new Set();
 
     (records || []).forEach((record) => {
       const fecha = record && record.fecha;
@@ -929,10 +930,14 @@
       const ts = fecha.getTime();
       if (minTs === null || ts < minTs) minTs = ts;
       if (maxTs === null || ts > maxTs) maxTs = ts;
+      const monthKey = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+      months.add(monthKey);
     });
 
+    const monthsDistinct = months.size;
+
     if (minTs === null || maxTs === null) {
-      return { ok: true, spanDays: 0, startYmd: '', endYmd: '' };
+      return { ok: true, spanDays: 0, startYmd: '', endYmd: '', monthsDistinct };
     }
 
     const spanDays = spanDaysInclusiveFromTimestamps(minTs, maxTs);
@@ -945,11 +950,23 @@
         spanDays,
         startYmd,
         endYmd,
-        error: `El CSV abarca ${spanDays} días (rango ${startYmd} → ${endYmd}). El máximo permitido es 370 días. Recorta/exporta un periodo de ~1 año como máximo.`
+        monthsDistinct,
+        error: `El CSV abarca ${spanDays} días (rango ${startYmd} → ${endYmd}). El máximo permitido es ${maxDays} días. Recorta/exporta un periodo de ~1 año como máximo.`
       };
     }
 
-    return { ok: true, spanDays, startYmd, endYmd };
+    if (monthsDistinct > 12) {
+      return {
+        ok: false,
+        spanDays,
+        startYmd,
+        endYmd,
+        monthsDistinct,
+        error: `El CSV contiene ${monthsDistinct} meses distintos (máximo 12). Recorta/exporta un periodo de 12 meses consecutivos.`
+      };
+    }
+
+    return { ok: true, spanDays, startYmd, endYmd, monthsDistinct };
   }
 
   // ===== EXPORTAR API PÚBLICA =====
