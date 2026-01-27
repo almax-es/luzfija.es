@@ -444,7 +444,7 @@ luzfija.es/
 - **CSS**: ~3,334 líneas (4 archivos)
   - styles.css: ~2,500
   - **bv-sim.css: 834**
-- **HTML**: ~6,000 líneas (32 páginas, incluye simulador-bateria-virtual.html)
+- **HTML**: ~6,000 líneas (32 páginas, incluye comparador-tarifas-solares.html)
 - **Total proyecto**: ~42,000+ líneas
 
 ---
