@@ -9,7 +9,7 @@
 // Para automatizar: sed -i "s/CACHE_VERSION = .*/CACHE_VERSION = \"$(date -u +%Y%m%d-%H%M%S)\";/" sw.js
 // O en scripts de CI/CD: echo "const CACHE_VERSION = \"$(date -u +%Y%m%d-%H%M%S)\";" > version.js
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260127-093555";
+const CACHE_VERSION = "20260127-095454";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
