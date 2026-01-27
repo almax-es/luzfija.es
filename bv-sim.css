@@ -9,9 +9,13 @@
     overflow-x: hidden;
   }
 
-  .container, .card, .bv-form-container, .bv-results-grid, .bv-alternatives-list {
+  .container, .card, .bv-results-grid, .bv-alternatives-list {
     max-width: 100vw;
     overflow-x: hidden;
+  }
+
+  .bv-form-container {
+    max-width: 100vw;
   }
 
   * {
@@ -404,12 +408,24 @@ html.light-mode .bv-manual-container {
   border-color: rgba(139, 92, 246, 0.2);
 }
 
+.bv-manual-scroll-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin: 0 -8px;
+  padding: 0 8px 8px 8px;
+}
+
 .bv-manual-grid-scroll {
   max-height: 450px;
   overflow-y: auto;
-  overflow-x: hidden;
   padding-right: 8px;
   margin-bottom: 12px;
+}
+
+.bv-manual-header,
+.bv-manual-row,
+.bv-manual-totals-row {
+  min-width: 600px;
 }
 
 .bv-manual-grid-scroll::-webkit-scrollbar {

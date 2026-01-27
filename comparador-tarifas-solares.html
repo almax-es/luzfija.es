@@ -568,25 +568,27 @@
                         <!-- Tabla Manual (Siempre Visible) -->
                         <div id="bv-manual-zone">
                           <div class="bv-manual-container">
-                            <!-- Header con tooltips descriptivos -->
-                            <div class="bv-manual-header">
-                              <span>Mes</span>
-                              <span title="Consumo en periodo Punta (10-14h y 18-22h laborables)">C. Punta (kWh)</span>
-                              <span title="Consumo en periodo Llano (8-10h, 14-18h, 22-24h laborables)">C. Llano (kWh)</span>
-                              <span title="Consumo en periodo Valle (0-8h + fines de semana y festivos)">C. Valle (kWh)</span>
-                              <span title="Excedentes vertidos a la red (kWh)">Vertido</span>
-                            </div>
-                            <div id="bv-manual-grid" class="bv-manual-grid-scroll">
-                              <!-- Se generará por JS -->
-                            </div>
+                            <div class="bv-manual-scroll-wrapper">
+                              <!-- Header con tooltips descriptivos -->
+                              <div class="bv-manual-header">
+                                <span>Mes</span>
+                                <span title="Consumo en periodo Punta (10-14h y 18-22h laborables)">C. Punta (kWh)</span>
+                                <span title="Consumo en periodo Llano (8-10h, 14-18h, 22-24h laborables)">C. Llano (kWh)</span>
+                                <span title="Consumo en periodo Valle (0-8h + fines de semana y festivos)">C. Valle (kWh)</span>
+                                <span title="Excedentes vertidos a la red (kWh)">Vertido</span>
+                              </div>
+                              <div id="bv-manual-grid" class="bv-manual-grid-scroll">
+                                <!-- Se generará por JS -->
+                              </div>
 
-                            <!-- Fila de totales detallados -->
-                            <div id="bv-manual-totals-row" class="bv-manual-totals-row" style="display: none;">
-                              <span style="font-weight: 900; color: var(--accent);">TOTAL</span>
-                              <span id="bv-total-p1" style="font-weight: 700;">0</span>
-                              <span id="bv-total-p2" style="font-weight: 700;">0</span>
-                              <span id="bv-total-p3" style="font-weight: 700;">0</span>
-                              <span id="bv-total-vert" style="font-weight: 700;">0</span>
+                              <!-- Fila de totales detallados -->
+                              <div id="bv-manual-totals-row" class="bv-manual-totals-row" style="display: none;">
+                                <span style="font-weight: 900; color: var(--accent);">TOTAL</span>
+                                <span id="bv-total-p1" style="font-weight: 700;">0</span>
+                                <span id="bv-total-p2" style="font-weight: 700;">0</span>
+                                <span id="bv-total-p3" style="font-weight: 700;">0</span>
+                                <span id="bv-total-vert" style="font-weight: 700;">0</span>
+                              </div>
                             </div>
 
                             <!-- Totales generales -->
