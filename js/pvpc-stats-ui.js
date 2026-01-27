@@ -21,6 +21,8 @@
     kpiAvg30Sub: document.getElementById('kpiAvg30Sub'),
     kpiAvg12m: document.getElementById('kpiAvg12m'),
     kpiAvg12mSub: document.getElementById('kpiAvg12mSub'),
+    kpiYoY: document.getElementById('kpiYoY'),
+    kpiYoYSub: document.getElementById('kpiYoYSub'),
 
     trendModeMonthly: document.getElementById('trendModeMonthly'),
     trendModeDaily: document.getElementById('trendModeDaily'),
@@ -134,11 +136,13 @@
     if (els.kpiAvg7) els.kpiAvg7.textContent = '—';
     if (els.kpiAvg30) els.kpiAvg30.textContent = '—';
     if (els.kpiAvg12m) els.kpiAvg12m.textContent = '—';
+    if (els.kpiYoY) els.kpiYoY.textContent = '—';
 
     if (els.kpiLastSub) els.kpiLastSub.textContent = 'Cargando…';
     if (els.kpiAvg7Sub) els.kpiAvg7Sub.textContent = 'Cargando…';
     if (els.kpiAvg30Sub) els.kpiAvg30Sub.textContent = 'Cargando…';
     if (els.kpiAvg12mSub) els.kpiAvg12mSub.textContent = 'Cargando…';
+    if (els.kpiYoYSub) els.kpiYoYSub.textContent = 'A mismas fechas';
 
     if (els.trendMeta) els.trendMeta.textContent = 'Cargando…';
     if (els.hourlyMeta) els.hourlyMeta.textContent = 'Cargando…';
@@ -466,6 +470,26 @@
     return { labels, values };
   }
 
+  async function computeYoY(geo, year, currentEndDateStr, currentYtdAvg) {
+    const prevYear = String(Number(year) - 1);
+    if (Number(prevYear) < 2021) return null;
+    if (!currentEndDateStr) return null;
+
+    const [_, mm, dd] = currentEndDateStr.split('-');
+    const prevEnd = `${prevYear}-${mm}-${dd}`;
+
+    const prevData = await PVPC_STATS.loadYearData(Number(geo), Number(prevYear));
+    const prevDaily = PVPC_STATS.getDailyEvolution(prevData);
+    const prevValues = prevDaily.labels
+      .map((d, i) => (d <= prevEnd ? prevDaily.data[i] : null))
+      .filter(v => Number.isFinite(v));
+
+    const prevAvg = safeMean(prevValues);
+    if (!Number.isFinite(prevAvg) || !Number.isFinite(currentYtdAvg) || prevAvg === 0) return null;
+
+    return { prevAvg, pct: ((currentYtdAvg - prevAvg) / prevAvg) * 100, prevEnd };
+  }
+
   function setInsights(monthly) {
     const pairs = monthly.values.map((v, i) => ({ m: i, v })).filter(x => Number.isFinite(x.v));
     if (!pairs.length) return;
@@ -693,6 +717,21 @@
 
       els.kpiAvg12m.textContent = fmtCents(rolling12m);
       els.kpiAvg12mSub.textContent = lastDate ? 'Últimos 12 meses' : '—';
+
+      // YoY (a mismas fechas)
+      try {
+        const yoy = await computeYoY(state.geo, state.year, lastDate, ytdAvg);
+        if (yoy) {
+          els.kpiYoY.textContent = fmtPct(yoy.pct, 0);
+          els.kpiYoYSub.textContent = `Hasta ${lastDate} vs ${yoy.prevEnd}`;
+        } else {
+          els.kpiYoY.textContent = '—';
+          els.kpiYoYSub.textContent = 'Sin histórico comparable';
+        }
+      } catch (_) {
+        els.kpiYoY.textContent = '—';
+        els.kpiYoYSub.textContent = 'Sin histórico comparable';
+      }
 
       // Tendencia
       const mode = state.trendMode;
