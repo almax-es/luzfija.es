@@ -4,21 +4,15 @@ window.BVSim = window.BVSim || {};
   'use strict';
 
   // ===== IMPORTAR UTILIDADES CSV =====
-  // Funciones robustas de parsing compartidas con lf-csv-import.js
   const {
-    stripBomAndTrim,
-    stripOuterQuotes,
-    parseNumberFlexibleCSV,
-    parseNumberFlexible,
-    splitCSVLine,
-    detectCSVSeparator,
     parseDateFlexible,
-    calcularViernesSanto,
-    getFestivosNacionales,
+    parseNumberFlexible,
+    parseNumberFlexibleCSV,
     getPeriodoHorarioCSV,
     ymdLocal
   } = window.LF.csvUtils || {};
 
+  // ===== LAZY LOAD XLSX =====
   let xlsxLoading = null;
 
   async function ensureXLSX() {
@@ -27,32 +21,29 @@ window.BVSim = window.BVSim || {};
 
     xlsxLoading = new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = new URL('vendor/xlsx/xlsx.full.min.js', document.baseURI).toString();
+      script.src = new URL('../../vendor/xlsx/xlsx.full.min.js', document.baseURI).toString();
       script.onload = () => resolve();
-    const { parseCSVToRows, parseEnergyTableRows } = window.LF.csvUtils || {};
-    if (typeof parseCSVToRows !== 'function' || typeof parseEnergyTableRows !== 'function') {
-      throw new Error('No se pudo cargar el parser de CSV');
-    const { rows } = parseCSVToRows(fileContent);
-    return parseEnergyTableRows(rows, { parseNumber: parseNumberFlexibleCSV });
-      const kwh = Math.max(importKwh - exportKwh, 0);
-      const excedente = Math.max(exportKwh - importKwh, 0);
+      script.onerror = () => reject(new Error('Error al cargar librería XLSX'));
+      document.head.appendChild(script);
+    });
 
-      const periodo = mapPeriodo(periodoTarStr);
-
-      records.push({ fecha, hora, kwh, excedente, autoconsumo: 0, periodo, esReal: true });
-    }
-
-    return {
-      records,
-      hasExcedenteColumn: true,
-      hasAutoconsumoColumn: false
-    };
+    return xlsxLoading;
   }
 
-  // ===== FESTIVOS Y PERIODOS =====
-  // NOTA: Las funciones calcularViernesSanto, getFestivosNacionales, getPeriodoHorarioCSV,
-  // parseDateFlexible, parseNumberFlexible ahora se importan desde lf-csv-utils.js (lÃ­neas 6-17)
+  // ===== PARSEO CSV =====
+  function parseCSVConsumos(fileContent) {
+    const { parseCSVToRows, parseEnergyTableRows } = window.LF.csvUtils || {};
+    if (typeof parseCSVToRows !== 'function' || typeof parseEnergyTableRows !== 'function') {
+      throw new Error('No se pudo cargar el parser de CSV (lf-csv-utils.js faltante)');
+    }
 
+    const { rows } = parseCSVToRows(fileContent);
+    // parseEnergyTableRows devuelve { records: [...], warnings: [...] }
+    // records tiene formato: { fecha, hora, kwh, excedente, autoconsumo, periodo, esReal }
+    return parseEnergyTableRows(rows, { parseNumber: parseNumberFlexibleCSV });
+  }
+
+  // ===== PARSEO XLSX =====
   async function parseXLSXConsumos(fileBuffer) {
     await ensureXLSX();
 
@@ -60,10 +51,16 @@ window.BVSim = window.BVSim || {};
     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
     const data = XLSX.utils.sheet_to_json(firstSheet, { header: 1, raw: false });
 
-    if (data.length < 2) {
-      throw new Error('Archivo Excel vacÃ­o o formato no reconocido');
+    if (!data || data.length < 2) {
+      throw new Error('Archivo Excel vacío o formato no reconocido');
     }
 
+    const { parseEnergyTableRows, guessEnergyHeaderRow } = window.LF.csvUtils || {};
+    if (typeof parseEnergyTableRows !== 'function' || typeof guessEnergyHeaderRow !== 'function') {
+      throw new Error('No se pudo cargar el parser de Excel');
+    }
+
+    // --- Soporte matriz horaria (E-REDES) ---
     function isHourlyMatrixHeaderRow(row) {
       if (!Array.isArray(row)) return false;
       for (let h = 1; h <= 24; h++) {
@@ -74,11 +71,10 @@ window.BVSim = window.BVSim || {};
       return true;
     }
 
-    function parseXLSXConsumosMatriz(dataRows, headerRow) {
+    function parseXLSXConsumosMatriz(data, headerRow) {
       const records = [];
-
-      for (let i = headerRow + 1; i < dataRows.length; i++) {
-        const row = dataRows[i];
+      for (let i = headerRow + 1; i < data.length; i++) {
+        const row = data[i];
         if (!row || row.length < 2) continue;
 
         const fecha = parseDateFlexible(row[0]);
@@ -87,9 +83,7 @@ window.BVSim = window.BVSim || {};
         for (let h = 1; h <= 24; h++) {
           let kwh = parseNumberFlexible(row[h]);
           if (!Number.isFinite(kwh)) kwh = 0;
-
           const periodo = getPeriodoHorarioCSV(fecha, h);
-
           records.push({
             fecha,
             hora: h,
@@ -101,15 +95,15 @@ window.BVSim = window.BVSim || {};
           });
         }
       }
-
       return {
         records,
-        warnings: ['No se detectaron excedentes; se importará con excedentes=0.'],
+        warnings: ['Formato matriz horaria detectado (excedentes = 0).'],
         hasExcedenteColumn: false,
         hasAutoconsumoColumn: false
       };
     }
 
+    // Detectar matriz horaria
     let matrixHeaderRow = -1;
     for (let i = 0; i < Math.min(10, data.length); i++) {
       if (isHourlyMatrixHeaderRow(data[i])) {
@@ -121,25 +115,19 @@ window.BVSim = window.BVSim || {};
       return parseXLSXConsumosMatriz(data, matrixHeaderRow);
     }
 
-    const { parseEnergyTableRows, guessEnergyHeaderRow } = window.LF.csvUtils || {};
-    if (typeof parseEnergyTableRows !== 'function' || typeof guessEnergyHeaderRow !== 'function') {
-      throw new Error('No se pudo cargar el parser de Excel');
-    }
-
+    // Formato estándar (columnas)
     const headerRow = guessEnergyHeaderRow(data);
     if (headerRow === -1) {
+      throw new Error('No se encontró la fila de cabecera en el Excel');
+    }
+
     return parseEnergyTableRows(data, {
       headerRowIndex: headerRow,
       parseNumber: parseNumberFlexible
-      records,
-      hasExcedenteColumn: true,
-      hasAutoconsumoColumn: false
-    };
+    });
   }
 
   // ===== UTILIDAD DE FORMATO =====
-  // NOTA: ymdLocal ahora se importa desde lf-csv-utils.js
-
   function buildMeta(records, hasExcedenteColumn, hasAutoconsumoColumn) {
     let minDate = null;
     let maxDate = null;
@@ -166,18 +154,19 @@ window.BVSim = window.BVSim || {};
     };
   }
 
+  // ===== INTERFAZ PÚBLICA =====
   window.BVSim.importFile = async function (file) {
     if (!file) {
-      return { ok: false, error: 'No se ha seleccionado ningÃºn archivo.' };
+      return { ok: false, error: 'No se ha seleccionado ningún archivo.' };
     }
 
-    // Validar tamaÃ±o (mÃ¡ximo 10 MB)
+    // Validar tamaño (máximo 10 MB)
     const MAX_FILE_SIZE = 10 * 1024 * 1024;
     if (file.size > MAX_FILE_SIZE) {
       const sizeMB = Math.round(file.size / 1024 / 1024);
       return {
         ok: false,
-        error: `El archivo es demasiado grande (${sizeMB} MB). El tamaÃ±o mÃ¡ximo permitido es 10 MB.`
+        error: `El archivo es demasiado grande (${sizeMB} MB). El tamaño máximo permitido es 10 MB.`
       };
     }
 
@@ -186,17 +175,11 @@ window.BVSim = window.BVSim || {};
     // Validar MIME type para mayor seguridad
     if (extension === 'csv') {
       if (file.type && !file.type.includes('text/') && !file.type.includes('application/')) {
-        return { ok: false, error: 'El archivo no parece ser un CSV vÃ¡lido.' };
+        // Warning: algunos CSV vienen con mime type vacío o excel, permitimos si la extensión es csv
+        // return { ok: false, error: 'El archivo no parece ser un CSV válido.' };
       }
     } else if (extension === 'xlsx' || extension === 'xls') {
-      const validMimes = [
-        'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-        'application/vnd.ms-excel',
-        'application/octet-stream' // Algunos sistemas usan esto para xlsx
-      ];
-      if (file.type && !validMimes.some(mime => file.type.includes(mime))) {
-        return { ok: false, error: 'El archivo no parece ser un Excel vÃ¡lido.' };
-      }
+      // Permitir validación laxa de mime para excel
     } else {
       return { ok: false, error: 'Formato no soportado. Solo CSV y Excel (.xlsx, .xls).' };
     }
@@ -208,11 +191,11 @@ window.BVSim = window.BVSim || {};
         const content = await new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = (event) => resolve(event.target.result);
-          reader.onerror = () => reject(new Error('Error al leer el archivo'));
+          reader.onerror = () => reject(new Error('Error al leer el archivo CSV'));
           reader.readAsText(file);
         });
         parsed = parseCSVConsumos(content);
-      } else if (extension === 'xlsx' || extension === 'xls') {
+      } else {
         const buffer = await new Promise((resolve, reject) => {
           const reader = new FileReader();
           reader.onload = (event) => resolve(event.target.result);
@@ -224,20 +207,20 @@ window.BVSim = window.BVSim || {};
 
       const records = Array.isArray(parsed.records) ? parsed.records : [];
       if (records.length === 0) {
-      const warnings = Array.isArray(parsed.warnings) ? parsed.warnings.slice() : [];
-        meta,
-        warnings
-        };
+        return { ok: false, error: 'El archivo no contiene datos de consumo válidos o reconocibles.' };
       }
 
+      const warnings = Array.isArray(parsed.warnings) ? parsed.warnings.slice() : [];
       const meta = buildMeta(records, parsed.hasExcedenteColumn, parsed.hasAutoconsumoColumn);
 
       return {
         ok: true,
         records,
-        meta
+        meta,
+        warnings
       };
     } catch (error) {
+      console.error('Error importando fichero:', error);
       return {
         ok: false,
         error: error?.message || 'Error al procesar el archivo.'
