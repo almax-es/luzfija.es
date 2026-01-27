@@ -1481,8 +1481,14 @@ html.light-mode .bv-tip-card {
     padding: 20px;
   }
 
+  .bv-upload-title {
+    flex-wrap: wrap;
+  }
+
   .bv-winner-card-compact {
     padding: 28px 20px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .bv-kpi-value {
@@ -1534,6 +1540,13 @@ html.light-mode .bv-tip-card {
   grid-template-columns: 1fr 1fr;
   gap: 20px;
   font-size: 0.85rem;
+}
+
+@media (max-width: 600px) {
+  #bv-manual-totals-summary > div {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
 }
 
 #bv-manual-totals-summary > div > div {
