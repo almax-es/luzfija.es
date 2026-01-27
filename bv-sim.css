@@ -429,6 +429,8 @@ html.light-mode .bv-manual-container {
   -webkit-overflow-scrolling: touch;
   margin: 0 -4px;
   padding: 0 4px 12px 4px;
+  width: 100%;
+  display: block;
 }
 
 .bv-manual-grid-scroll {

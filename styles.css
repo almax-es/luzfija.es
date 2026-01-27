@@ -64,6 +64,7 @@
     @media (max-width: 520px){ 
       .topbar{ justify-content: center; text-align: center; } 
       .brand { flex-direction: column; text-align: center; width: 100%; }
+      .brand h1 { white-space: normal !important; word-break: break-word !important; font-size: 22px !important; line-height: 1.2 !important; text-align: center; }
     }
     .brand{display:flex; align-items:center; gap:14px; min-width: 240px; position: relative; flex-shrink: 1; max-width: 100%;}
     .tarifas-updated{ font-size: 12px; color: var(--muted); opacity: .9; display:flex; align-items:center; gap:8px; margin-top: 4px; }
