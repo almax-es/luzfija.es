@@ -14,8 +14,8 @@
     el.toast.classList.add('show');
     clearTimeout(el.toast._t);
     
-    // Duración dinámica: 3s base + 1s por cada 40 caracteres, máx 10s
-    const duration = Math.min(10000, 3000 + Math.floor((msg || '').length / 40) * 1000);
+    // Duración dinámica: 4s base + 1s por cada 30 caracteres, máx 15s
+    const duration = Math.min(15000, 4000 + Math.floor((msg || '').length / 30) * 1000);
     el.toast._t = setTimeout(() => el.toast.classList.remove('show'), duration);
   }
 
