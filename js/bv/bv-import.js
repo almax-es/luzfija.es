@@ -233,11 +233,18 @@ window.BVSim = window.BVSim || {};
         }
         if (Array.isArray(spanCheck.monthsToDrop) && spanCheck.monthsToDrop.length > 0) {
           const monthsToDrop = new Set(spanCheck.monthsToDrop);
-          parsed.records = records.filter((record) => {
+          const filtered = records.filter((record) => {
             const fecha = record && record.fecha;
             if (!(fecha instanceof Date) || isNaN(fecha.getTime())) return false;
             return !monthsToDrop.has(ymLocal(fecha));
           });
+          if (filtered.length === 0) {
+            return {
+              ok: false,
+              error: 'Tras aplicar el recorte a 12 meses, no quedan registros válidos para procesar.'
+            };
+          }
+          parsed.records = filtered;
           if (spanCheck.warning) warnings.push(spanCheck.warning);
         }
       }

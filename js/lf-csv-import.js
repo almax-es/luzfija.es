@@ -191,6 +191,12 @@
         if (!(fecha instanceof Date) || isNaN(fecha.getTime())) return false;
         return !monthsToDrop.has(ymLocal(fecha));
       });
+      if (filtered.length === 0) {
+        return {
+          ok: false,
+          error: 'Tras aplicar el recorte a 12 meses, no quedan registros válidos para procesar.'
+        };
+      }
       if (spanCheck.warning) nextWarnings.push(spanCheck.warning);
       return { ok: true, consumos: filtered, warnings: nextWarnings };
     }
