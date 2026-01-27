@@ -59,18 +59,32 @@
       position: relative;
       z-index: 1;
     }
-    .container{ max-width:1400px; margin:0 auto; padding: clamp(40px, 5vw, 70px) clamp(12px, 3vw, 60px); }
-    .topbar{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom: 22px; flex-wrap: wrap; width: 100%; box-sizing: border-box; }
-    @media (max-width: 520px){ 
-      .topbar{ justify-content: center; text-align: center; } 
-      .brand { flex-direction: column; text-align: center; width: 100%; }
-      .brand h1 { white-space: normal !important; word-break: break-word !important; font-size: 22px !important; line-height: 1.2 !important; text-align: center; }
-    }
-    .brand{display:flex; align-items:center; gap:14px; min-width: 240px; position: relative; flex-shrink: 1; max-width: 100%;}
+    .container{ max-width:1400px; margin:0 auto; padding: clamp(50px, 5vw, 70px) clamp(22px, 4.5vw, 60px); }
+    .topbar{ display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom: 22px; flex-wrap: wrap; }
+    @media (max-width: 520px){ .topbar{ justify-content: center; } }
+    .brand{display:flex; align-items:center; gap:14px; min-width: 240px; position: relative; flex-shrink: 0;}
     .tarifas-updated{ font-size: 12px; color: var(--muted); opacity: .9; display:flex; align-items:center; gap:8px; margin-top: 4px; }
     .tarifas-updated::before{ content:'🕒'; font-size: 13px; opacity: .9; }
 
-    @media (max-width: 520px){ .brand{ min-width: auto; } }
+    @media (max-width: 520px){
+  .brand{
+    min-width: 0;
+    flex: 1 1 100%;
+    flex-shrink: 1;
+    align-items: flex-start;
+  }
+  .brand > div{ min-width: 0; }
+  .brand h1{
+    font-size: clamp(18px, 5.5vw, 24px);
+    line-height: 1.12;
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+  .brand p{
+    overflow-wrap: anywhere;
+    word-break: break-word;
+  }
+}
     .logo{ width:60px; height:60px; border-radius:18px; background: linear-gradient(135deg, #667eea 0%, #764ba2 25%, #f093fb 50%, #4facfe 75%, #00f2fe 100%); background-size: 400% 400%; box-shadow: 0 0 30px rgba(139,92,246,.4), 0 0 60px rgba(139,92,246,.2), 0 10px 40px rgba(0,0,0,.3), inset 0 0 20px rgba(255,255,255,.1); display:grid; place-items:center; font-size: 32px; position: relative; overflow: hidden; animation: gradientShift 8s ease infinite, logoFloat 3s ease-in-out infinite; border: 2px solid rgba(255,255,255,.2); backdrop-filter: blur(10px); flex-shrink: 0; will-change: transform; contain: layout size style; }
     .logo::before{ content: ''; position: absolute; inset: -4px; border-radius: inherit; pointer-events: none; background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,.8) 50%, transparent 70%); animation: logoRotate 3s linear infinite; }
     .logo::after{ content: ''; position: absolute; top: -4px; left: -4px; right: -4px; bottom: -4px; border-radius: 20px; border: 2px solid transparent; background: linear-gradient(45deg, #667eea, #764ba2, #f093fb, #4facfe) border-box; -webkit-mask: linear-gradient(#fff, #fff) padding-box, linear-gradient(#fff, #fff); -webkit-mask-composite: xor; mask-composite: exclude; animation: ringPulse 2s ease-in-out infinite; opacity: 0.6; }

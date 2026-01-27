@@ -82,9 +82,20 @@
 /* --- Layout & Containers --- */
 .bv-form-container {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 32px;
   align-items: start;
+}
+
+/* Permite que contenidos con min-width (p.ej. la tabla manual) no “empujen” el layout en móvil */
+.bv-form-container > * {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .bv-form-container {
+    grid-template-columns: 1fr;
+  }
 }
 
 #bv-data-zone {
@@ -413,12 +424,6 @@ html.light-mode .bv-upload-btn {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
 }
 
-@media (max-width: 768px) {
-  .bv-manual-container {
-    padding: 12px;
-  }
-}
-
 html.light-mode .bv-manual-container {
   background: linear-gradient(145deg, rgba(255, 255, 255, 0.9), rgba(139, 92, 246, 0.03));
   border-color: rgba(139, 92, 246, 0.2);
@@ -427,34 +432,25 @@ html.light-mode .bv-manual-container {
 .bv-manual-scroll-wrapper {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
-  margin: 0 -4px;
-  padding: 0 4px 12px 4px;
-  width: 100%;
-  display: block;
+  margin: 0 -8px;
+  padding: 0 8px 8px 8px;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .bv-manual-grid-scroll {
   max-height: 450px;
   overflow-y: auto;
-  padding-right: 4px;
+  padding-right: 8px;
   margin-bottom: 12px;
-}
-
-@media (max-width: 520px) {
-  .bv-manual-header, .bv-manual-row {
-    grid-template-columns: 70px repeat(4, 85px);
-    gap: 6px;
-  }
-  
-  .bv-manual-row-label, .bv-manual-header span {
-    font-size: 0.7rem;
-  }
+  max-width: 100%;
+  min-width: 0;
 }
 
 .bv-manual-header,
 .bv-manual-row,
 .bv-manual-totals-row {
-  min-width: 410px;
+  min-width: 600px;
 }
 
 .bv-manual-grid-scroll::-webkit-scrollbar {
@@ -1496,35 +1492,12 @@ html.light-mode .bv-tip-card {
 
 /* --- Responsive Móvil --- */
 @media (max-width: 768px) {
-  .brand {
-    flex-direction: column;
-    align-items: center;
-    text-align: center;
-    margin: 0 auto;
-  }
-
-  .topbar .logo {
-    margin-bottom: 12px;
-  }
-
-  .brand h1 {
-    font-size: 1.5rem !important;
-    line-height: 1.2 !important;
-    letter-spacing: normal !important;
-  }
-
   .bv-upload-compact {
     padding: 20px;
   }
 
-  .bv-upload-title {
-    flex-wrap: wrap;
-  }
-
   .bv-winner-card-compact {
     padding: 28px 20px;
-    width: 100%;
-    box-sizing: border-box;
   }
 
   .bv-kpi-value {
@@ -1576,13 +1549,6 @@ html.light-mode .bv-tip-card {
   grid-template-columns: 1fr 1fr;
   gap: 20px;
   font-size: 0.85rem;
-}
-
-@media (max-width: 600px) {
-  #bv-manual-totals-summary > div {
-    grid-template-columns: 1fr;
-    gap: 12px;
-  }
 }
 
 #bv-manual-totals-summary > div > div {
