@@ -106,11 +106,11 @@ ES12345;01/01/2024;2;2,456;R`;
     it('Debe procesar un Excel válido', async () => {
       // Configurar mock de XLSX para devolver datos
       // El parser estandar espera que la columna Fecha contenga "dd/mm/yyyy HH:mm"
-      // Y que el consumo esté en Wh (Vatios hora)
+      // Y que el consumo esté en kWh si la cabecera lo indica
       const mockData = [
         ['CUPS', 'Fecha', 'Hora', 'Consumo_kWh', 'Generacion_kWh', 'Metodo'], // Header
-        ['ES...', '01/01/2024 00:00', 1, 1234, 0, 'R'], // 1234 Wh = 1.234 kWh
-        ['ES...', '01/01/2024 01:00', 2, 2456, 0, 'R']  // 2456 Wh = 2.456 kWh
+        ['ES...', '01/01/2024 00:00', 1, 1.234, 0, 'R'],
+        ['ES...', '01/01/2024 01:00', 2, 2.456, 0, 'R']
       ];
       
       global.XLSX.read.mockReturnValue({

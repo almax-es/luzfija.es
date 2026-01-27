@@ -1,0 +1,3 @@
+CUPS;Fecha;Hora;consumo_kWh;metodoObtencion;energiaVertida_kWh;energiaGenerada_kWh;energiaAutoconsumida_kWh
+ES123;01/01/2024;01:00;1,0;REAL;0,2;0,0;0,0
+ES123;01/01/2024;02:00;0,1;REAL;0,5;0,0;0,0
