@@ -969,7 +969,9 @@
       tbody td:nth-of-type(7)::before { content: "Diferencia"; font-weight:900; color:var(--muted); }
       tbody td:nth-of-type(8)::before { content: "Tipo"; font-weight:900; color:var(--muted); }
       tbody td:nth-of-type(9)::before { content: "Contratar"; font-weight:900; color:var(--muted); }
-      tbody td:nth-of-type(2) { display:block; text-align:center; font-size: 18px !important; margin-bottom: 10px; padding-bottom:10px; border-bottom: 2px solid var(--border); color: var(--text); }
+      tbody td:nth-of-type(2) { display:block; text-align:center; font-size: 18px !important; margin-bottom: 10px; padding-bottom:10px; border-bottom: 2px solid var(--border); color: var(--text); overflow: visible !important; padding-right: 4px; padding-left: 4px; }
+      tbody td:nth-of-type(2) .tarifa-icons{ margin-right: 2px; }
+
       .scroll-btn{ bottom: calc(80px + env(safe-area-inset-bottom, 0px)); right: 20px; font-size: 12px; padding: 12px 16px; }
     }
     @media (min-width: 1400px){ thead th:nth-child(2), tbody td:nth-child(2) { width: 28%; } tbody td:nth-child(2) { font-size: 15px; } }
