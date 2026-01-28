@@ -161,7 +161,7 @@
           : (r.pvpcWarning ? ' ⚠' : '');
 
         const requisitosTooltip = r.requisitos
-          ? `<span class="tooltip requisitos-icon" data-tip="${escapeHtml(r.requisitos)}" role="button" tabindex="0" aria-label="Requisitos de contratación" style="margin-left:4px; color:var(--warn); cursor:help;">ⓘ</span>`
+          ? `<span class="tooltip requisitos-icon" data-tip="${escapeHtml(r.requisitos)}" role="button" tabindex="0" aria-label="Requisitos de contratación" style="margin-left:4px; color:var(--warn); cursor:help;">i</span>`
           : '';
 
         // FV Icon
