@@ -106,6 +106,13 @@ self.addEventListener("activate", (event) => {
   );
 });
 
+// Listener para mensajes del cliente (actualizar en demanda)
+self.addEventListener("message", (event) => {
+  if (event.data && event.data.type === "SKIP_WAITING") {
+    self.skipWaiting();
+  }
+});
+
 async function cachePutSafe(cache, req, res) {
   try {
     if (res && res.ok) await cache.put(req, res.clone());
