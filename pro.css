@@ -68,22 +68,12 @@ body, html{
   color-scheme: dark light;
 }
 
-/* Aplicar transiciones suaves a todos los elementos con variables CSS */
-:where(
-  body, .card, .btn, .pill, .input, select, textarea,
-  .heroCard, .modal-content, .desglose-modal,
-  .topbar, .brand, .actions, .tooltip,
-  h1, h2, h3, h4, h5, h6, p, a, span
-){
-  transition-property: background-color, color, border-color, box-shadow;
-  transition-duration: 0.3s;
-  transition-timing-function: ease;
-}
-
-/* Excepciones: elementos con animaciones propias */
-.btn.primary, .logo, .particle{
-  transition-property: background-color, color, border-color;
-  transition-duration: 0.3s;
+/* Aplicar transiciones suaves de tema solo a elementos principales */
+body,
+.card,
+.modal-content,
+.desglose-modal{
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* ---- Tipografía y ritmo (ligero, sin cambiar identidad) ---- */
@@ -502,11 +492,12 @@ button, .btn, a{
   outline: none;
 }
 
-/* Fix: alto mínimo en touch targets (WCAG) */
+/* Fix: alto mínimo en touch targets (WCAG) - solo en elementos principales */
 @media (pointer: coarse){
-  button, .btn, a[role="button"], input[type="checkbox"], input[type="radio"]{
+  button:not(.modal-x):not(.desglose-close):not(.tooltip),
+  .btn:not(.tooltip),
+  a[role="button"]{
     min-height: 44px;
-    min-width: 44px;
   }
 }
 
@@ -534,16 +525,6 @@ button, .btn, a{
 .skip-link:focus{
   top: 0;
   left: 0;
-}
-
-/* Fix: prevenir flash de contenido sin estilo (FOUC) */
-html:not(.hydrated) body{
-  opacity: 0;
-}
-
-html.hydrated body{
-  opacity: 1;
-  transition: opacity 0.3s ease;
 }
 
 /* Fix: loading states consistentes */
