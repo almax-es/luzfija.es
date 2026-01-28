@@ -62,16 +62,35 @@
       </div>
 
       <div class="actions">
-        <button id="themeToggle" class="btn" type="button" aria-label="Cambiar tema" title="Cambiar tema">🌓</button>
-        <div class="menuWrap">
-          <button class="btn" id="btnMenu" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="menuPanel" title="Opciones">⚙️</button>
-          <div class="menuPanel" id="menuPanel" role="menu" aria-label="Opciones">
-            <a class="menuItem" role="menuitem" href="/">🏠 Comparador principal</a>
-            <a class="menuItem" role="menuitem" href="/comparador-tarifas-solares.html">🌞 Tarifas solares</a>
-            <a class="menuItem" role="menuitem" href="/guias/">📚 Guías</a>
-            <div class="menuSep"></div>
-            <a class="menuItem" role="menuitem" href="mailto:contacto@luzfija.es">✉️ Contacto</a>
-            <button class="menuItem" id="btnClearCache" role="menuitem" type="button">🧹 Limpiar caché</button>
+        <div class="actions-center">
+          <a href="/" class="btn" aria-label="Ir al comparador principal">
+            <span>🏠</span><span class="btn-text">Comparador</span>
+          </a>
+          <a href="/comparador-tarifas-solares.html" class="btn" aria-label="Ir al comparador de tarifas solares">
+            <span>☀️</span><span class="btn-text">Tarifas Solares</span>
+          </a>
+        </div>
+
+        <div class="actions-right">
+          <button class="btn" id="btnTheme" type="button" title="Cambiar tema" aria-label="Cambiar tema">🌓</button>
+          <div class="menu" id="menuRoot">
+            <button class="btn" id="btnMenu" type="button" aria-haspopup="menu" aria-controls="menuPanel" aria-expanded="false" title="Opciones" aria-label="Abrir menú de opciones">⚙️</button>
+            <div class="menuPanel" id="menuPanel" role="menu" aria-label="Opciones" aria-orientation="vertical">
+              <div class="menuHint">Opciones</div>
+              <a class="menuItem" role="menuitem" href="/">🏠 Comparador principal</a>
+              <a class="menuItem" role="menuitem" href="/comparador-tarifas-solares.html">🌞 Tarifas solares</a>
+              <a class="menuItem" role="menuitem" href="/guias.html">📚 Guías</a>
+              <div class="menuDivider"></div>
+              <a class="menuItem u-no-underline" href="mailto:hola@luzfija.es" role="menuitem">
+                <span class="mi-left">✉️ Contacto</span>
+                <span class="mi-right">email</span>
+              </a>
+              <div class="menuDivider"></div>
+              <button class="menuItem" id="btnClearCache" type="button" role="menuitem" aria-label="Limpiar caché">
+                <span class="mi-left">🗑️ Limpiar caché</span>
+                <span class="mi-right">web</span>
+              </button>
+            </div>
           </div>
         </div>
       </div>
