@@ -1149,7 +1149,34 @@
     }
 
     if (firstIsIncomplete && lastIsIncomplete) {
-      // Ambos incompletos → descartar ambos
+      // Ambos incompletos: intentar descartar solo el primero primero
+      // Si eso da exactamente 12 meses, lo usamos. Si no, descartar ambos.
+
+      const tryDropFirst = monthsSorted.slice(1);  // 12 meses si empezamos con 13
+
+      if (tryDropFirst.length === 12) {
+        // Descartar solo el primero es suficiente
+        monthsToDrop = [firstMonth];
+        monthsUsed = tryDropFirst;
+
+        return {
+          ok: true,
+          spanDays,
+          startYmd,
+          endYmd,
+          monthsDistinct,
+          monthsUsed,
+          monthsToDrop,
+          warning: `📊 CSV con 13 meses detectado (${startYmd} → ${endYmd}).\n\n` +
+                   `✂️ Se descarta ${formatMonthYear(firstMonth)} porque tiene datos incompletos:\n` +
+                   `   • Solo ${firstCoverage.daysWithData} de ${firstCoverage.daysInMonth} días (${Math.round(firstCoverage.coverage)}% cobertura)\n\n` +
+                   `✓ Se usan los últimos 12 meses:\n` +
+                   `   • ${formatMonthYear(monthsUsed[0])} → ${formatMonthYear(monthsUsed[monthsUsed.length - 1])}\n` +
+                   `   • Total: ~${spanDays - Math.round(spanDays / 13)} días utilizados`
+        };
+      }
+
+      // Si no es suficiente, descartar ambos
       monthsToDrop = [firstMonth, lastMonth];
       monthsUsed = monthsSorted.slice(1, -1);
 
