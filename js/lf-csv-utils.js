@@ -236,12 +236,16 @@
     importacion: [
       'ae_kwh', 'consumo_kwh', 'energia_consumida_kwh', 'energia_consumo_kwh',
       'import_kwh', 'importacion_kwh', 'energia_importada_kwh', 'consumo_wh',
-      'energia_consumida_wh', 'energia_consumo_wh', 'consumo_energia_kwh', 'consumo_energia_wh'
+      'energia_consumida_wh', 'energia_consumo_wh', 'consumo_energia_kwh', 'consumo_energia_wh',
+      // UFD (España): EHCR (kWh) = energía horaria consumida / importación
+      'ehcr_kwh', 'ehcr'
     ],
     exportacion: [
       'as_kwh', 'energia_vertida_kwh', 'vertido_kwh', 'export_kwh', 'exportacion_kwh',
       'inyeccion_kwh', 'energia_exportada_kwh', 'energia_excedente_kwh', 'excedente_kwh',
-      'generacion_wh', 'generacion_kwh', 'energia_vertida_wh', 'as_wh'
+      'generacion_wh', 'generacion_kwh', 'energia_vertida_wh', 'as_wh',
+      // UFD (España): EHEX (kWh) = energía horaria excedentaria / exportación
+      'ehex_kwh', 'ehex'
     ],
     autoconsumo: [
       'ae_autocons_kwh', 'energia_autoconsumida_kwh', 'autoconsumo_kwh', 'autoconsumo_wh'
@@ -591,7 +595,19 @@
     let simultaneousCount = 0;
     const threshold = 1e-6;
 
-    const isEmptyCell = (value) => stripOuterQuotes(value) === '';
+    const isNoDataCell = (value) => {
+      const s = stripOuterQuotes(value).trim().toLowerCase();
+      if (!s) return true;
+      // Algunos ficheros (p.ej. UFD) usan literales en vez de vacío
+      if (s === 'sin dato' || s === 'sin datos') return true;
+      if (s === 'n/a' || s === 'na') return true;
+      if (s === '-' || s === '—') return true;
+      if (s === 's/d' || s === 'sd') return true;
+      if (s === 'null' || s === 'undefined') return true;
+      return false;
+    };
+
+    const isEmptyCell = isNoDataCell;
     const columnLabel = (idx) => headersRaw[idx] || headersNorm[idx] || `columna ${idx + 1}`;
 
     const mapPeriodo = (raw) => {
@@ -714,10 +730,10 @@
     }
 
     if (emptyCells.import > 0) {
-      warnings.push(`Se encontraron ${emptyCells.import} celdas vacías en la columna ${columnLabel(mapping.importIdx)}; interpretadas como 0.`);
+      warnings.push(`Se encontraron ${emptyCells.import} celdas vacías o "Sin dato" en la columna ${columnLabel(mapping.importIdx)}; interpretadas como 0.`);
     }
     if (mapping.exportIdx !== null && emptyCells.export > 0) {
-      warnings.push(`Se encontraron ${emptyCells.export} celdas vacías en la columna ${columnLabel(mapping.exportIdx)}; interpretadas como 0.`);
+      warnings.push(`Se encontraron ${emptyCells.export} celdas vacías o "Sin dato" en la columna ${columnLabel(mapping.exportIdx)}; interpretadas como 0.`);
     }
     if (simultaneousCount > 0) {
       warnings.push(`Neteo horario aplicado en ${simultaneousCount} filas con consumo y excedentes simultáneos.`);
