@@ -537,61 +537,56 @@
     @media (max-width: 520px){ .form{grid-template-columns: 1fr;} }
     .group{display:flex; flex-direction:column; gap: 7px;}
     label{ font-size: 12px; color: var(--muted); font-weight: 900; letter-spacing: .2px; position: relative; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 16px; }
-    /* Tooltip icon (centro perfecto del símbolo dentro del círculo) */
+    /* Tooltip icon: centrado perfecto del símbolo dentro del círculo */
     .tooltip{
       position: relative;
       cursor: pointer;
-      display: inline-flex;          /* más fiable que grid para centrar texto/emoji */
+      display: inline-flex;
       align-items: center;
       justify-content: center;
       width: 16px;
       height: 16px;
       min-width: 16px;
       border-radius: 50%;
+      border: 0;
       background: rgba(139,92,246,.2);
       color: var(--accent);
-      font-size: 10px;
       font-weight: 900;
-      line-height: 1;               /* evita offsets por baseline */
+      line-height: 1;
       text-align: center;
       flex-shrink: 0;
       transition: box-shadow .15s ease, transform .15s ease;
       padding: 0;
+      vertical-align: middle;
+      -webkit-tap-highlight-color: transparent;
     }
     .tooltip:focus-visible{ outline: none; box-shadow: 0 0 0 3px rgba(139,92,246,.25); transform: translateY(-1px); }
-    /* Icono de info (SVG): centrado perfecto y consistente (evita offsets del carácter "i"/"ⓘ") */
-@supports (-webkit-mask: url("")) or (mask: url("")) {
-  .tooltip:not(.fv-icon){
-    font-size: 0;       /* ocultar el carácter y dibujar el icono con SVG */
-    --tt-i-size: 9px;   /* tamaño óptico del símbolo */
-  }
-  .tooltip:not(.fv-icon)::before{
-    content: "";
-    width: var(--tt-i-size);
-    height: var(--tt-i-size);
-    background: currentColor;
-    -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='11' y='10' width='2' height='8' rx='1'/%3E%3Ccircle cx='12' cy='7' r='1.25'/%3E%3C/svg%3E") center/contain no-repeat;
-    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect x='11' y='10' width='2' height='8' rx='1'/%3E%3Ccircle cx='12' cy='7' r='1.25'/%3E%3C/svg%3E") center/contain no-repeat;
-  }
-  @media (pointer: coarse){
-    .tooltip:not(.fv-icon){ --tt-i-size: 11px; }
-  }
-  .tarifa-icons .tooltip:not(.fv-icon){ --tt-i-size: 11px; }
-  @media (max-width: 768px){
-    .tarifa-icons .tooltip:not(.fv-icon){ --tt-i-size: 12px; }
-  }
-}
 
-/* Tooltips más grandes en dispositivos táctiles */
+    /* Forzamos un "i" consistente (evita offsets raros del glifo 'i'/'ⓘ' según la fuente) */
+    .tooltip:not(.fv-icon){
+      font-size: 0; /* ocultar el carácter real del HTML */
+      --tt-icon-size: 11px;
+    }
+    .tooltip:not(.fv-icon)::before{
+      content: "i";
+      font-size: var(--tt-icon-size);
+      font-weight: 900;
+      line-height: 1;
+      color: currentColor;
+      transform: translateY(-.5px);
+    }
+
+    /* Tooltips más grandes en dispositivos táctiles */
     @media (pointer: coarse) {
       .tooltip {
         width: 24px;
         height: 24px;
-        font-size: 12px;
-        line-height: 1;
+        min-width: 24px;
         padding: 0;
       }
+      .tooltip:not(.fv-icon){ --tt-icon-size: 14px; }
     }
+
     .form.fv-toggle{ grid-template-columns: 1fr; }
     .form.fv-toggle .group{ grid-column: 1 / -1; }
     .fv-check {
@@ -1994,23 +1989,24 @@
 
 /* Hacemos los iconos un poco más "tocables" en móvil */
 .tarifa-icons .tooltip{
+  --tt-icon-size: 12px;
   width: 20px;
   height: 20px;
-  font-size: 12px;
   padding: 0;
 }
 
+/* En la tabla, solo los iconos FV usan emoji/tamaño de fuente */
+.tarifa-icons .tooltip.fv-icon{ font-size: 12px; }
+.tarifa-icons .tooltip:not(.fv-icon){ font-size: 0; }
+
+
 /* Icono solar con BV: más destacado siempre */
 .tarifa-icons .fv-ranking {
-  display: inline-flex;            /* centrar emoji de forma consistente */
-  align-items: center;
-  justify-content: center;
+  display: grid;
+  place-items: center;
   width: 24px;
   height: 24px;
-  min-width: 24px;
   font-size: 14px;
-  line-height: 1;
-  text-align: center;
   background: rgba(251, 191, 36, 0.25);
   box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.3);
   animation: tooltipPulseRanking 2s ease-in-out infinite;
@@ -2030,14 +2026,17 @@
 
 @media (max-width: 768px){
   .tarifa-icons .tooltip{
+    --tt-icon-size: 14px;
     width: 22px;
     height: 22px;
-    font-size: 14px;
     background: rgba(139,92,246,.35);
     box-shadow: 0 0 0 2px rgba(139,92,246,.2);
     line-height: 1;
     padding: 0;
   }
+  .tarifa-icons .tooltip.fv-icon{ font-size: 14px; }
+  .tarifa-icons .tooltip:not(.fv-icon){ font-size: 0; }
+
   
   /* En móvil, el icono de ranking es aún más grande */
   .tarifa-icons .fv-ranking {
