@@ -942,8 +942,59 @@
     return Math.floor((maxUTC - minUTC) / MS_PER_DAY) + 1;
   }
 
+  /**
+   * Calcula la cobertura de datos por mes (días con datos / días totales del mes)
+   * @param {Array} records - Array de registros con fecha
+   * @returns {Map} Map con monthKey → { daysWithData, daysInMonth, coverage }
+   */
+  function calculateMonthCoverage(records) {
+    const monthData = new Map();
+
+    (records || []).forEach((record) => {
+      const fecha = record && record.fecha;
+      if (!(fecha instanceof Date) || isNaN(fecha.getTime())) return;
+
+      const year = fecha.getFullYear();
+      const month = fecha.getMonth();
+      const monthKey = `${year}-${String(month + 1).padStart(2, '0')}`;
+      const dayKey = `${monthKey}-${String(fecha.getDate()).padStart(2, '0')}`;
+
+      if (!monthData.has(monthKey)) {
+        const daysInMonth = new Date(year, month + 1, 0).getDate();
+        monthData.set(monthKey, {
+          daysWithData: new Set(),
+          daysInMonth,
+          coverage: 0
+        });
+      }
+
+      monthData.get(monthKey).daysWithData.add(dayKey);
+    });
+
+    // Calcular cobertura
+    monthData.forEach((data, key) => {
+      data.coverage = (data.daysWithData.size / data.daysInMonth) * 100;
+      data.daysWithData = data.daysWithData.size; // Convertir Set a número
+    });
+
+    return monthData;
+  }
+
+  /**
+   * Formatea un mes-año legible (2025-01 → "enero 2025")
+   */
+  function formatMonthYear(monthKey) {
+    const [year, month] = monthKey.split('-');
+    const monthNames = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio',
+                        'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    return `${monthNames[parseInt(month, 10) - 1]} ${year}`;
+  }
+
   function validateCsvSpanFromRecords(records, options = {}) {
     const maxDays = Number.isFinite(options.maxDays) ? options.maxDays : 370;
+    const requireExactly12Months = options.requireExactly12Months || false;
+    const coverageThreshold = options.coverageThreshold || 80; // % mínimo de cobertura
+
     let minTs = null;
     let maxTs = null;
     const months = new Set();
@@ -983,9 +1034,34 @@
         monthsDistinct,
         monthsUsed,
         monthsToDrop,
-        error: `El CSV abarca ${spanDays} días (rango ${startYmd} → ${endYmd}). El máximo permitido es ${maxDays} días. Recorta/exporta un periodo de ~1 año como máximo.`
+        error: `El CSV abarca ${spanDays} días (${startYmd} → ${endYmd}).\n\n` +
+               `El máximo permitido es ${maxDays} días (~1 año).\n\n` +
+               `💡 Exporta un período más corto desde tu distribuidora o plataforma de datos.`
       };
     }
+
+    // ===== MODO 1: Sin restricción de 12 meses (Comparador Principal) =====
+    if (!requireExactly12Months) {
+      monthsUsed = monthsSorted;
+
+      const message = monthsDistinct === 13
+        ? `✓ CSV procesado: ${spanDays} días en ${monthsDistinct} meses (${startYmd} → ${endYmd}).\n\n` +
+          `Se utilizan TODOS los datos sin descartar ningún mes.`
+        : `✓ CSV procesado: ${spanDays} días en ${monthsDistinct} meses (${startYmd} → ${endYmd}).`;
+
+      return {
+        ok: true,
+        spanDays,
+        startYmd,
+        endYmd,
+        monthsDistinct,
+        monthsUsed,
+        monthsToDrop: [],
+        info: message
+      };
+    }
+
+    // ===== MODO 2: Requiere exactamente 12 meses (Comparador Solar) =====
 
     if (monthsDistinct > 13) {
       return {
@@ -996,15 +1072,43 @@
         monthsDistinct,
         monthsUsed,
         monthsToDrop,
-        error: `El CSV contiene ${monthsDistinct} meses distintos (máximo 13). Recorta/exporta un periodo de ~1 año como máximo.`
+        error: `El CSV contiene ${monthsDistinct} meses distintos.\n\n` +
+               `El comparador solar requiere máximo 13 meses consecutivos (se ajusta automáticamente a 12).\n\n` +
+               `💡 Exporta un período de ~1 año desde tu distribuidora.`
       };
     }
 
-    if (monthsDistinct === 13) {
-      monthsToDrop = [monthsSorted[0]];
+    if (monthsDistinct <= 12) {
+      monthsUsed = monthsSorted;
+      return {
+        ok: true,
+        spanDays,
+        startYmd,
+        endYmd,
+        monthsDistinct,
+        monthsUsed,
+        monthsToDrop: []
+      };
+    }
+
+    // ===== Caso especial: 13 meses → descartar inteligentemente =====
+
+    const monthCoverage = calculateMonthCoverage(records);
+    const firstMonth = monthsSorted[0];
+    const lastMonth = monthsSorted[monthsSorted.length - 1];
+
+    const firstCoverage = monthCoverage.get(firstMonth);
+    const lastCoverage = monthCoverage.get(lastMonth);
+
+    const firstIsIncomplete = firstCoverage.coverage < coverageThreshold;
+    const lastIsIncomplete = lastCoverage.coverage < coverageThreshold;
+
+    // Decidir qué descartar
+    if (firstIsIncomplete && !lastIsIncomplete) {
+      // Descartar el primero (incompleto)
+      monthsToDrop = [firstMonth];
       monthsUsed = monthsSorted.slice(1);
-      const firstUsed = monthsUsed[0];
-      const lastUsed = monthsUsed[monthsUsed.length - 1];
+
       return {
         ok: true,
         spanDays,
@@ -1013,11 +1117,80 @@
         monthsDistinct,
         monthsUsed,
         monthsToDrop,
-        warning: `El CSV contiene 13 meses; se han usado los últimos 12 (rango ${firstUsed} → ${lastUsed}). Se ha omitido ${monthsToDrop[0]}.`
+        warning: `📊 CSV con 13 meses detectado (${startYmd} → ${endYmd}).\n\n` +
+                 `✂️ Se descarta ${formatMonthYear(firstMonth)} porque tiene datos incompletos:\n` +
+                 `   • Solo ${firstCoverage.daysWithData} de ${firstCoverage.daysInMonth} días (${Math.round(firstCoverage.coverage)}% cobertura)\n\n` +
+                 `✓ Se usan los últimos 12 meses completos:\n` +
+                 `   • ${formatMonthYear(monthsUsed[0])} → ${formatMonthYear(monthsUsed[monthsUsed.length - 1])}\n` +
+                 `   • Total: ~${spanDays - Math.round(spanDays / 13)} días utilizados`
       };
     }
 
-    monthsUsed = monthsSorted;
+    if (!firstIsIncomplete && lastIsIncomplete) {
+      // Descartar el último (incompleto)
+      monthsToDrop = [lastMonth];
+      monthsUsed = monthsSorted.slice(0, -1);
+
+      return {
+        ok: true,
+        spanDays,
+        startYmd,
+        endYmd,
+        monthsDistinct,
+        monthsUsed,
+        monthsToDrop,
+        warning: `📊 CSV con 13 meses detectado (${startYmd} → ${endYmd}).\n\n` +
+                 `✂️ Se descarta ${formatMonthYear(lastMonth)} porque tiene datos incompletos:\n` +
+                 `   • Solo ${lastCoverage.daysWithData} de ${lastCoverage.daysInMonth} días (${Math.round(lastCoverage.coverage)}% cobertura)\n\n` +
+                 `✓ Se usan los primeros 12 meses completos:\n` +
+                 `   • ${formatMonthYear(monthsUsed[0])} → ${formatMonthYear(monthsUsed[monthsUsed.length - 1])}\n` +
+                 `   • Total: ~${spanDays - Math.round(spanDays / 13)} días utilizados`
+      };
+    }
+
+    if (firstIsIncomplete && lastIsIncomplete) {
+      // Ambos incompletos → descartar ambos
+      monthsToDrop = [firstMonth, lastMonth];
+      monthsUsed = monthsSorted.slice(1, -1);
+
+      if (monthsUsed.length < 11) {
+        return {
+          ok: false,
+          spanDays,
+          startYmd,
+          endYmd,
+          monthsDistinct,
+          monthsUsed,
+          monthsToDrop,
+          error: `El CSV tiene datos muy fragmentados:\n\n` +
+                 `• ${formatMonthYear(firstMonth)}: ${firstCoverage.daysWithData}/${firstCoverage.daysInMonth} días (${Math.round(firstCoverage.coverage)}%)\n` +
+                 `• ${formatMonthYear(lastMonth)}: ${lastCoverage.daysWithData}/${lastCoverage.daysInMonth} días (${Math.round(lastCoverage.coverage)}%)\n\n` +
+                 `Tras descartar los meses incompletos quedan solo ${monthsUsed.length} meses.\n\n` +
+                 `💡 Exporta un período de 12 meses más completo.`
+        };
+      }
+
+      return {
+        ok: true,
+        spanDays,
+        startYmd,
+        endYmd,
+        monthsDistinct,
+        monthsUsed,
+        monthsToDrop,
+        warning: `📊 CSV con 13 meses detectado (${startYmd} → ${endYmd}).\n\n` +
+                 `✂️ Se descartan 2 meses con datos incompletos:\n` +
+                 `   • ${formatMonthYear(firstMonth)}: ${firstCoverage.daysWithData}/${firstCoverage.daysInMonth} días (${Math.round(firstCoverage.coverage)}%)\n` +
+                 `   • ${formatMonthYear(lastMonth)}: ${lastCoverage.daysWithData}/${lastCoverage.daysInMonth} días (${Math.round(lastCoverage.coverage)}%)\n\n` +
+                 `✓ Se usan los ${monthsUsed.length} meses centrales más completos:\n` +
+                 `   • ${formatMonthYear(monthsUsed[0])} → ${formatMonthYear(monthsUsed[monthsUsed.length - 1])}`
+      };
+    }
+
+    // Ambos completos → descartar el primero (criterio: usar los más recientes)
+    monthsToDrop = [firstMonth];
+    monthsUsed = monthsSorted.slice(1);
+
     return {
       ok: true,
       spanDays,
@@ -1025,7 +1198,12 @@
       endYmd,
       monthsDistinct,
       monthsUsed,
-      monthsToDrop
+      monthsToDrop,
+      warning: `📊 CSV con 13 meses detectado (${startYmd} → ${endYmd}).\n\n` +
+               `Todos los meses tienen datos completos.\n\n` +
+               `✂️ Se descarta ${formatMonthYear(firstMonth)} (el más antiguo) para usar los 12 meses más recientes:\n` +
+               `   • ${formatMonthYear(monthsUsed[0])} → ${formatMonthYear(monthsUsed[monthsUsed.length - 1])}\n` +
+               `   • Total: ~${spanDays - Math.round(spanDays / 13)} días utilizados`
     };
   }
 
@@ -1056,6 +1234,8 @@
     ymdLocal,
     spanDaysInclusiveFromTimestamps,
     validateCsvSpanFromRecords,
+    calculateMonthCoverage,
+    formatMonthYear,
 
     // Festivos y periodos
     calcularViernesSanto,

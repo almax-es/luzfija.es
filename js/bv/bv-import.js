@@ -227,10 +227,18 @@ window.BVSim = window.BVSim || {};
 
       const warnings = Array.isArray(parsed.warnings) ? parsed.warnings.slice() : [];
       if (typeof validateCsvSpanFromRecords === 'function') {
-        const spanCheck = validateCsvSpanFromRecords(records, { maxDays: 370 });
+        // Comparador solar: SÍ requiere exactamente 12 meses (tabla fija)
+        const spanCheck = validateCsvSpanFromRecords(records, {
+          maxDays: 370,
+          requireExactly12Months: true,  // ← Comparador solar: ajustar a 12 meses
+          coverageThreshold: 80          // ← 80% mínimo de cobertura por mes
+        });
+
         if (!spanCheck.ok) {
           return { ok: false, error: spanCheck.error };
         }
+
+        // Aplicar filtro de meses si es necesario
         if (Array.isArray(spanCheck.monthsToDrop) && spanCheck.monthsToDrop.length > 0) {
           const monthsToDrop = new Set(spanCheck.monthsToDrop);
           const filtered = records.filter((record) => {

@@ -180,10 +180,22 @@
     if (typeof validateCsvSpanFromRecords !== 'function') {
       return { ok: true, consumos, warnings: nextWarnings };
     }
-    const spanCheck = validateCsvSpanFromRecords(consumos, { maxDays: 370 });
+
+    // Comparador principal: NO requiere exactamente 12 meses, acepta hasta 370 días
+    const spanCheck = validateCsvSpanFromRecords(consumos, {
+      maxDays: 370,
+      requireExactly12Months: false  // ← Comparador principal: usar TODOS los datos
+    });
+
     if (!spanCheck.ok) {
       return { ok: false, error: spanCheck.error };
     }
+
+    // Agregar mensaje informativo si existe
+    if (spanCheck.info) {
+      nextWarnings.push(spanCheck.info);
+    }
+
     if (Array.isArray(spanCheck.monthsToDrop) && spanCheck.monthsToDrop.length > 0) {
       const monthsToDrop = new Set(spanCheck.monthsToDrop);
       const filtered = consumos.filter((record) => {
