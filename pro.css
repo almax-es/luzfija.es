@@ -291,36 +291,36 @@ html.light-mode :where(input, select, textarea)::placeholder{
 @media (max-width: 768px){
   .actions{
     width: 100%;
-    justify-content: space-between;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
   }
 
   .actions-center{
-    order: 2;
     width: 100%;
     justify-content: center;
+    display: flex;
+    gap: 6px;
   }
 
   .actions-right{
-    order: 1;
     margin-left: 0;
-    gap: 4px;
+    display: flex;
+    justify-content: center;
+    gap: 6px;
   }
 
+  .actions-center .btn,
   .actions-right .btn{
     min-width: 44px;
-    padding: 10px;
+    min-height: 44px;
+    padding: 8px;
     justify-content: center;
   }
 
   /* Texto de botones oculto en móvil para ahorrar espacio */
   .actions-center .btn-text{
     display: none;
-  }
-
-  /* En móvil, los botones de navegación son más pequeños */
-  .actions-center .btn{
-    min-width: 44px;
-    padding: 10px;
   }
 }
 
