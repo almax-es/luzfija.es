@@ -285,6 +285,7 @@ html.light-mode :where(input, select, textarea)::placeholder{
   align-items: center;
   gap: 8px;
   margin-left: auto;
+  flex-wrap: wrap;
 }
 
 /* Responsive: en móvil, reorganizar el header */
