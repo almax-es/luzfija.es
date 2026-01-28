@@ -19,6 +19,7 @@ const ASSETS = [
   "./",
   "index.html",
   "styles.css",
+  "pro.css",
   "fonts.css",
   "fonts/outfit-latin-100-normal.woff2",
   "fonts/outfit-latin-200-normal.woff2",
@@ -50,6 +51,7 @@ const ASSETS = [
   "js/factura.js",
   "js/index-extra.js",
   "js/tracking.js",
+  "js/shell-lite.js",
   "js/desglose-factura.js",
   "js/desglose-integration.js",
   // Observatorio PVPC
