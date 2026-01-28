@@ -260,6 +260,64 @@ html.light-mode :where(input, select, textarea)::placeholder{
 }
 
 /* =========================================================
+   UNIFICACIÓN DE HEADER EN TODAS LAS PÁGINAS
+   ========================================================= */
+
+/* Asegurar que .actions tenga el mismo layout en todas las páginas */
+.actions{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Botones de navegación centrales */
+.actions-center{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Botones de tema y menú a la derecha */
+.actions-right{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+}
+
+/* Responsive: en móvil, reorganizar el header */
+@media (max-width: 768px){
+  .actions{
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .actions-center{
+    order: 2;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .actions-right{
+    order: 1;
+    margin-left: 0;
+  }
+
+  /* Texto de botones oculto en móvil para ahorrar espacio */
+  .actions-center .btn-text{
+    display: none;
+  }
+
+  /* En móvil, los botones de navegación son más pequeños */
+  .actions-center .btn{
+    min-width: 44px;
+    padding: 10px;
+  }
+}
+
+/* =========================================================
    CONSISTENCIA VISUAL GLOBAL - Ultra Pro
    ========================================================= */
 

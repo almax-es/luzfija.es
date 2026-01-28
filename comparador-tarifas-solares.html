@@ -389,24 +389,38 @@
                 </div>
           
                       <div class="actions">
-                        <div class="actions-right" style="margin-left: auto; display: flex; gap: 8px;">
-                          <button class="btn" id="btnTheme" type="button" title="Cambiar tema" aria-label="Cambiar tema">🌓</button>                    <div class="menu" id="menuRoot">
-                      <button class="btn" id="btnMenu" type="button" aria-haspopup="menu" aria-controls="menuPanel" aria-expanded="false" title="Opciones" aria-label="Abrir menú de opciones">⚙️</button>
-                      <div class="menuPanel" id="menuPanel" role="menu" aria-label="Opciones" aria-orientation="vertical">
-                        <div class="menuHint">Opciones</div>
-                        <a class="menuItem u-no-underline" href="mailto:hola@luzfija.es" role="menuitem">
-                          <span class="mi-left">✉️ Contacto</span>
-                          <span class="mi-right">email</span>
-                        </a>
-                        <div class="menuDivider"></div>
-                        <button class="menuItem" id="btnClearCache" type="button" role="menuitem" aria-label="Limpiar caché">
-                          <span class="mi-left">🗑️ Limpiar caché</span>
-                          <span class="mi-right">web</span>
-                        </button>
+                        <div class="actions-center">
+                          <a href="/" class="btn" aria-label="Ir al comparador principal">
+                            <span>🏠</span><span class="btn-text">Comparador</span>
+                          </a>
+                          <a href="/estadisticas/" class="btn" aria-label="Ir al observatorio PVPC">
+                            <span>⚡</span><span class="btn-text">PVPC</span>
+                          </a>
+                        </div>
+
+                        <div class="actions-right">
+                          <button class="btn" id="btnTheme" type="button" title="Cambiar tema" aria-label="Cambiar tema">🌓</button>
+                          <div class="menu" id="menuRoot">
+                            <button class="btn" id="btnMenu" type="button" aria-haspopup="menu" aria-controls="menuPanel" aria-expanded="false" title="Opciones" aria-label="Abrir menú de opciones">⚙️</button>
+                            <div class="menuPanel" id="menuPanel" role="menu" aria-label="Opciones" aria-orientation="vertical">
+                              <div class="menuHint">Opciones</div>
+                              <a class="menuItem" role="menuitem" href="/">🏠 Comparador principal</a>
+                              <a class="menuItem" role="menuitem" href="/estadisticas/">⚡ Observatorio PVPC</a>
+                              <a class="menuItem" role="menuitem" href="/guias.html">📚 Guías</a>
+                              <div class="menuDivider"></div>
+                              <a class="menuItem u-no-underline" href="mailto:hola@luzfija.es" role="menuitem">
+                                <span class="mi-left">✉️ Contacto</span>
+                                <span class="mi-right">email</span>
+                              </a>
+                              <div class="menuDivider"></div>
+                              <button class="menuItem" id="btnClearCache" type="button" role="menuitem" aria-label="Limpiar caché">
+                                <span class="mi-left">🗑️ Limpiar caché</span>
+                                <span class="mi-right">web</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                </div>
               </div>
           
               <main id="main" tabindex="-1">
