@@ -111,6 +111,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Seneo 2",
+      "cPunta": 0.111,
+      "cLlano": 0.111,
+      "cValle": 0.111,
+      "p1": 0.089,
+      "p2": 0.089,
+      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Gana Energía",
       "cPunta": 0.111,
       "cLlano": 0.111,
@@ -273,6 +291,42 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Seneo 1",
+      "cPunta": 0.146,
+      "cLlano": 0.146,
+      "cValle": 0.146,
+      "p1": 0.095,
+      "p2": 0.018,
+      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Seneo 2 3P",
+      "cPunta": 0.163,
+      "cLlano": 0.096,
+      "cValle": 0.072,
+      "p1": 0.089,
+      "p2": 0.089,
+      "web": "https://www.seneo.org/es/tarifa-tramos-horarios-con-monedero-solar/",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
       },
       "requiereFV": false
     },
@@ -517,6 +571,24 @@
       "requiereFV": true
     },
     {
+      "nombre": "Seneo 1 3P",
+      "cPunta": 0.21,
+      "cLlano": 0.138,
+      "cValle": 0.106,
+      "p1": 0.095,
+      "p2": 0.018,
+      "web": "https://www.seneo.org/es/tarifa-tramos-horarios-con-monedero-solar/",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "CHC VE 3P",
       "cPunta": 0.224003,
       "cLlano": 0.220099,
@@ -535,5 +607,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-01-28T13:49:10.577Z"
+  "updatedAt": "2026-01-28T14:26:18.101Z"
 }
