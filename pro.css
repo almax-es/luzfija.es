@@ -1,0 +1,164 @@
+/* =========================================================
+   LuzFija — Pro Polish Layer
+   Objetivo: coherencia visual (desktop/móvil), dark/light,
+   y cero desbordamientos sin romper el diseño existente.
+   Cargar SIEMPRE después de styles.css y CSS específicos.
+   ========================================================= */
+
+/* ---- Seguridad anti-overflow (muy conservador) ---- */
+:where(img, video, canvas, svg, iframe){
+  max-width: 100%;
+  height: auto;
+}
+
+/* Flex children: evitar que textos largos empujen el layout */
+:where(.topbar, .brand, .actions, .card, .pill, .panel, .tableWrap, main, section, article){
+  min-width: 0;
+}
+
+/* Evitar scroll horizontal por inputs/table wrappers */
+:where(input, select, textarea, button){
+  max-width: 100%;
+}
+
+/* ---- Tipografía y ritmo (ligero, sin cambiar identidad) ---- */
+body{
+  text-rendering: optimizeLegibility;
+}
+
+:where(h1, h2, h3){
+  letter-spacing: -0.01em;
+}
+
+/* Enlaces: subrayado más limpio, especialmente en modo claro */
+a{
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+/* ---- Focus accesible y consistente ---- */
+:where(a, button, input, select, textarea):focus{
+  outline: none;
+}
+
+:where(a, button, input, select, textarea):focus-visible{
+  outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+/* ---- Inputs/Selects: consistencia light/dark ---- */
+html.light-mode :where(input, select, textarea){
+  background: rgba(15, 23, 42, .03);
+}
+
+html.light-mode :where(input, select, textarea)::placeholder{
+  color: rgba(15, 23, 42, .52);
+}
+
+/* ---- Breadcrumbs: unificar estética en páginas informativas ---- */
+.breadcrumbs, .breadcrumb{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.breadcrumbs a, .breadcrumb a{
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.breadcrumbs a:hover, .breadcrumb a:hover{
+  opacity: .85;
+}
+
+/* ---- Botones: micro-polish sin cambiar el look ---- */
+.btn{
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:active{
+  transform: translateY(1px);
+}
+
+/* ---- Reducir animaciones si el usuario lo pide ---- */
+@media (prefers-reduced-motion: reduce){
+  *{
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* =========================================================
+   PVPC Observatorio — acercarlo al "shell" LuzFija
+   (sin reescribir toda la página)
+   ========================================================= */
+
+.pvpc-obs{
+  margin-top: 8px;
+}
+
+.pvpc-obs .obs-hero{
+  text-align: left;
+  margin-bottom: 34px;
+}
+
+.pvpc-obs .obs-eyebrow{
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  box-shadow: none;
+  backdrop-filter: none;
+  animation: none;
+}
+
+.pvpc-obs .obs-hero h1{
+  font-size: clamp(28px, 5.2vw, 46px);
+  line-height: 1.06;
+  margin-bottom: 12px;
+  text-shadow: none;
+}
+
+.pvpc-obs .obs-lead{
+  font-size: 1rem;
+  max-width: 72ch;
+  margin: 0;
+}
+
+.pvpc-obs .obs-hero__panel{
+  margin-top: 22px;
+  gap: 22px;
+}
+
+.pvpc-obs .obs-controls{
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  border-radius: var(--radius);
+  padding: 14px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  box-shadow: var(--shadow2);
+  backdrop-filter: none;
+}
+
+.pvpc-obs .obs-controls:hover{
+  transform: none;
+  box-shadow: var(--shadow2);
+  border-color: var(--border2);
+}
+
+/* Hacer que los cards del observatorio encajen con los cards globales */
+.pvpc-obs :where(.obs-card, .obs-panel, .obs-grid > *):not(.card){
+  border-radius: var(--radius);
+}
+
+/* Ajuste móvil: menos aire, evitar saltos */
+@media (max-width: 640px){
+  .pvpc-obs .obs-hero{ margin-bottom: 22px; }
+  .pvpc-obs .obs-controls{ gap: 12px; }
+}
