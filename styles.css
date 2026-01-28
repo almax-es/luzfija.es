@@ -537,54 +537,48 @@
     @media (max-width: 520px){ .form{grid-template-columns: 1fr;} }
     .group{display:flex; flex-direction:column; gap: 7px;}
     label{ font-size: 12px; color: var(--muted); font-weight: 900; letter-spacing: .2px; position: relative; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 16px; }
-    /* Tooltip icon: centrado perfecto del símbolo dentro del círculo */
-    .tooltip{
-      position: relative;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      width: 16px;
-      height: 16px;
-      min-width: 16px;
-      border-radius: 50%;
-      border: 0;
-      background: rgba(139,92,246,.2);
-      color: var(--accent);
-      font-weight: 900;
-      line-height: 1;
-      text-align: center;
-      flex-shrink: 0;
-      transition: box-shadow .15s ease, transform .15s ease;
-      padding: 0;
-      vertical-align: middle;
-      -webkit-tap-highlight-color: transparent;
-    }
+    .tooltip{ --tt-size:16px; position: relative; cursor: pointer; display: grid; place-items: center; width: var(--tt-size); height: var(--tt-size); border-radius: 50%; background: rgba(139,92,246,.2); color: var(--accent); font-size: 10px; font-weight: 900; line-height: 1; flex-shrink: 0; transition: box-shadow .15s ease, transform .15s ease; padding: 0; }
     .tooltip:focus-visible{ outline: none; box-shadow: 0 0 0 3px rgba(139,92,246,.25); transform: translateY(-1px); }
-
-    /* Forzamos un "i" consistente (evita offsets raros del glifo 'i'/'ⓘ' según la fuente) */
-    .tooltip:not(.fv-icon){
-      font-size: 0; /* ocultar el carácter real del HTML */
-      --tt-icon-size: 11px;
-    }
-    .tooltip:not(.fv-icon)::before{
-      content: "i";
-      font-size: var(--tt-icon-size);
-      font-weight: 900;
-      line-height: 1;
-      color: currentColor;
-      transform: translateY(-.5px);
-    }
-
     /* Tooltips más grandes en dispositivos táctiles */
     @media (pointer: coarse) {
       .tooltip {
-        width: 24px;
-        height: 24px;
-        min-width: 24px;
+        --tt-size:24px;
+        width: var(--tt-size);
+        height: var(--tt-size);
+        font-size: 12px;
+        line-height: 1;
         padding: 0;
       }
-      .tooltip:not(.fv-icon){ --tt-icon-size: 14px; }
+    }
+
+    /* Tooltip (info): dibujamos una “i” perfecta (no depende de la fuente).
+       Excluimos iconos FV (☀️/🔋) porque esos sí son emoji/íconos. */
+    .tooltip:not(.fv-icon){
+      font-size: 0 !important;   /* oculta el glifo real (i/ⓘ) */
+      line-height: 0 !important;
+    }
+    .tooltip:not(.fv-icon)::before,
+    .tooltip:not(.fv-icon)::after{
+      content: "";
+      position: absolute;
+      left: 50%;
+      background: currentColor;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    /* Tallo */
+    .tooltip:not(.fv-icon)::before{
+      top: 58%;
+      width: clamp(2px, calc(var(--tt-size) * 0.12), 3px);
+      height: clamp(6px, calc(var(--tt-size) * 0.34), 10px);
+      border-radius: 999px;
+    }
+    /* Punto */
+    .tooltip:not(.fv-icon)::after{
+      top: 32%;
+      width: clamp(3px, calc(var(--tt-size) * 0.16), 4px);
+      height: clamp(3px, calc(var(--tt-size) * 0.16), 4px);
+      border-radius: 50%;
     }
 
     .form.fv-toggle{ grid-template-columns: 1fr; }
@@ -1989,16 +1983,13 @@
 
 /* Hacemos los iconos un poco más "tocables" en móvil */
 .tarifa-icons .tooltip{
-  --tt-icon-size: 12px;
-  width: 20px;
-  height: 20px;
+  --tt-size:20px;
+  width: var(--tt-size);
+  height: var(--tt-size);
+  font-size: 12px;
+  line-height: 1;
   padding: 0;
 }
-
-/* En la tabla, solo los iconos FV usan emoji/tamaño de fuente */
-.tarifa-icons .tooltip.fv-icon{ font-size: 12px; }
-.tarifa-icons .tooltip:not(.fv-icon){ font-size: 0; }
-
 
 /* Icono solar con BV: más destacado siempre */
 .tarifa-icons .fv-ranking {
@@ -2026,17 +2017,15 @@
 
 @media (max-width: 768px){
   .tarifa-icons .tooltip{
-    --tt-icon-size: 14px;
-    width: 22px;
-    height: 22px;
+    --tt-size:22px;
+    width: var(--tt-size);
+    height: var(--tt-size);
+    font-size: 14px;
     background: rgba(139,92,246,.35);
     box-shadow: 0 0 0 2px rgba(139,92,246,.2);
     line-height: 1;
     padding: 0;
   }
-  .tarifa-icons .tooltip.fv-icon{ font-size: 14px; }
-  .tarifa-icons .tooltip:not(.fv-icon){ font-size: 0; }
-
   
   /* En móvil, el icono de ranking es aún más grande */
   .tarifa-icons .fv-ranking {
