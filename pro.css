@@ -285,6 +285,7 @@ html.light-mode :where(input, select, textarea)::placeholder{
   align-items: center;
   gap: 8px;
   margin-left: auto;
+  flex-wrap: wrap;
 }
 
 /* Responsive: en móvil, reorganizar el header */
@@ -292,21 +293,15 @@ html.light-mode :where(input, select, textarea)::placeholder{
   .actions{
     width: 100%;
     justify-content: center;
-    flex-direction: column;
-    gap: 8px;
+    gap: 6px;
   }
 
   .actions-center{
-    width: 100%;
-    justify-content: center;
-    display: flex;
     gap: 6px;
   }
 
   .actions-right{
     margin-left: 0;
-    display: flex;
-    justify-content: center;
     gap: 6px;
   }
 
