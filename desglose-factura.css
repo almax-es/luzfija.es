@@ -31,77 +31,19 @@
   max-width: 900px;
   width: 90%;
   max-height: 90vh;
-  background: #ffffff;
+  background: var(--bg1);
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
   z-index: 9999;
   opacity: 0;
   visibility: hidden;
-  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease;
+  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease, background 0.3s ease, color 0.3s ease;
   display: flex;
   flex-direction: column;
+  color: var(--text);
 }
 
-/* Modo oscuro específico para LuzFija */
-html:not(.light-mode) .desglose-modal {
-  background: #1a1d2e;
-  color: #f9fafb;
-}
-
-html:not(.light-mode) .desglose-header {
-  border-bottom-color: #2d3748;
-}
-
-html:not(.light-mode) .desglose-header h2 {
-  color: #f9fafb;
-}
-
-html:not(.light-mode) .desglose-close {
-  color: #9ca3af;
-}
-
-html:not(.light-mode) .desglose-close:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #f9fafb;
-}
-
-html:not(.light-mode) .desglose-info {
-  background: #0f1117;
-}
-
-html:not(.light-mode) .desglose-tarifa {
-  color: #f9fafb;
-}
-
-html:not(.light-mode) .desglose-periodo {
-  color: #9ca3af;
-}
-
-html:not(.light-mode) .desglose-seccion {
-  background: #0f1117;
-  border-color: #2d3748;
-}
-
-html:not(.light-mode) .desglose-linea {
-  border-bottom-color: #2d3748;
-}
-
-html:not(.light-mode) .desglose-linea:hover {
-  background: rgba(139, 92, 246, 0.1);
-}
-
-html:not(.light-mode) .desglose-concepto,
-html:not(.light-mode) .desglose-importe {
-  color: #f9fafb;
-}
-
-html:not(.light-mode) .desglose-detalle {
-  color: #9ca3af;
-}
-
-html:not(.light-mode) .desglose-linea-sub {
-  background: rgba(255, 255, 255, 0.03);
-}
+/* Modo oscuro ya se hereda de las variables CSS globales, no necesita override específico */
 
 /* Línea de precio medio */
 .desglose-linea-precio-medio {
@@ -129,15 +71,17 @@ html:not(.light-mode) .desglose-linea-sub {
   justify-content: space-between;
   align-items: center;
   padding: 16px 24px;
-  border-bottom: 2px solid var(--border, #e5e7eb);
+  border-bottom: 2px solid var(--border);
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), rgba(34, 197, 94, 0.1));
+  transition: border-color 0.3s ease;
 }
 
 .desglose-header h2 {
   margin: 0;
   font-size: 20px;
   font-weight: 700;
-  color: var(--text, #1f2937);
+  color: var(--text);
+  transition: color 0.3s ease;
 }
 
 .desglose-close {
@@ -146,16 +90,16 @@ html:not(.light-mode) .desglose-linea-sub {
   cursor: pointer;
   padding: 8px;
   border-radius: 8px;
-  color: var(--muted, #6b7280);
-  transition: all 0.2s ease;
+  color: var(--muted);
+  transition: all 0.2s ease, color 0.3s ease;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
 .desglose-close:hover {
-  background: rgba(0, 0, 0, 0.05);
-  color: var(--text, #1f2937);
+  background: var(--card2);
+  color: var(--text);
 }
 
 /* Contenido del modal */
@@ -169,30 +113,34 @@ html:not(.light-mode) .desglose-linea-sub {
 .desglose-info {
   margin-bottom: 16px;
   padding: 12px;
-  background: var(--card, #f9fafb);
+  background: var(--card);
   border-radius: 12px;
   display: flex;
   flex-direction: column;
   gap: 6px;
+  transition: background 0.3s ease;
 }
 
 .desglose-tarifa {
   font-size: 16px;
-  color: var(--text, #1f2937);
+  color: var(--text);
+  transition: color 0.3s ease;
 }
 
 .desglose-periodo {
   font-size: 13px;
-  color: var(--muted, #6b7280);
+  color: var(--muted);
+  transition: color 0.3s ease;
 }
 
 /* Secciones del desglose */
 .desglose-seccion {
   margin-bottom: 16px;
-  border: 1px solid var(--border2, #e5e7eb);
+  border: 1px solid var(--border2);
   border-radius: 12px;
   overflow: hidden;
-  background: var(--card, #ffffff);
+  background: var(--card);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 
 .desglose-seccion-header {
@@ -201,22 +149,25 @@ html:not(.light-mode) .desglose-linea-sub {
   align-items: center;
   padding: 12px 16px;
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.05), rgba(34, 197, 94, 0.05));
-  border-bottom: 1px solid var(--border2, #e5e7eb);
+  border-bottom: 1px solid var(--border2);
+  transition: border-color 0.3s ease;
 }
 
 .desglose-seccion-header h3 {
   margin: 0;
   font-size: 14px;
   font-weight: 700;
-  color: var(--text, #1f2937);
+  color: var(--text);
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  transition: color 0.3s ease;
 }
 
 .desglose-importe-header {
   font-size: 16px;
   font-weight: 700;
-  color: var(--accent, #8b5cf6);
+  color: var(--accent);
+  transition: color 0.3s ease;
 }
 
 /* Líneas del desglose */
@@ -226,8 +177,8 @@ html:not(.light-mode) .desglose-linea-sub {
   gap: 12px;
   align-items: center;
   padding: 10px 16px;
-  border-bottom: 1px solid var(--border2, #f3f4f6);
-  transition: background 0.2s ease;
+  border-bottom: 1px solid var(--border2);
+  transition: background 0.2s ease, border-color 0.3s ease;
 }
 
 .desglose-linea:last-child {
@@ -240,7 +191,8 @@ html:not(.light-mode) .desglose-linea-sub {
 
 .desglose-linea-sub {
   padding-left: 40px;
-  background: rgba(0, 0, 0, 0.02);
+  background: var(--card2);
+  transition: background 0.3s ease;
 }
 
 .desglose-linea-destacada {
@@ -249,36 +201,42 @@ html:not(.light-mode) .desglose-linea-sub {
 }
 
 .desglose-linea-total {
-  border-top: 2px solid var(--border, #e5e7eb);
+  border-top: 2px solid var(--border);
   margin-top: 8px;
+  transition: border-color 0.3s ease;
 }
 
 .desglose-linea-final {
   background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(34, 197, 94, 0.15));
-  border-top: 3px solid var(--accent, #8b5cf6);
+  border-top: 3px solid var(--accent);
+  transition: border-color 0.3s ease;
 }
 
 .desglose-concepto {
   font-size: 14px;
-  color: var(--text, #1f2937);
+  color: var(--text);
+  transition: color 0.3s ease;
 }
 
 .desglose-detalle {
   font-size: 13px;
-  color: var(--muted, #6b7280);
+  color: var(--muted);
   font-family: 'Courier New', monospace;
+  transition: color 0.3s ease;
 }
 
 .desglose-importe {
   font-size: 15px;
   font-weight: 600;
-  color: var(--text, #1f2937);
+  color: var(--text);
   text-align: right;
+  transition: color 0.3s ease;
 }
 
 .desglose-importe-final {
   font-size: 22px;
-  color: var(--accent, #8b5cf6);
+  color: var(--accent);
+  transition: color 0.3s ease;
 }
 
 .desglose-importe-negativo {
@@ -311,7 +269,8 @@ html:not(.light-mode) .desglose-linea-sub {
 .desglose-seccion-total {
   margin-top: 32px;
   border-width: 2px;
-  border-color: var(--accent, #8b5cf6);
+  border-color: var(--accent);
+  transition: border-color 0.3s ease;
 }
 
 /* Nota informativa */
@@ -322,8 +281,9 @@ html:not(.light-mode) .desglose-linea-sub {
   border-left: 4px solid #3b82f6;
   border-radius: 8px;
   font-size: 12px;
-  color: var(--muted, #6b7280);
+  color: var(--muted);
   line-height: 1.5;
+  transition: color 0.3s ease, background 0.3s ease;
 }
 
 .desglose-nota p {
@@ -414,59 +374,7 @@ html:not(.light-mode) .desglose-linea-sub {
   }
 }
 
-/* Dark mode (opcional) */
-@media (prefers-color-scheme: dark) {
-  .desglose-modal {
-    background: #1f2937;
-  }
-
-  .desglose-header {
-    border-bottom-color: #374151;
-  }
-
-  .desglose-header h2 {
-    color: #f9fafb;
-  }
-
-  .desglose-close {
-    color: #9ca3af;
-  }
-
-  .desglose-close:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #f9fafb;
-  }
-
-  .desglose-info {
-    background: #111827;
-  }
-
-  .desglose-seccion {
-    background: #111827;
-    border-color: #374151;
-  }
-
-  .desglose-linea {
-    border-bottom-color: #374151;
-  }
-
-  .desglose-linea:hover {
-    background: rgba(139, 92, 246, 0.1);
-  }
-
-  .desglose-linea-sub {
-    background: rgba(0, 0, 0, 0.3);
-  }
-
-  .desglose-concepto,
-  .desglose-importe {
-    color: #f9fafb;
-  }
-
-  .desglose-detalle {
-    color: #9ca3af;
-  }
-}
+/* Dark mode ya se aplica automáticamente con las variables CSS globales */
 
 /* Precio clickable - estilo link */
 #table tbody tr td:nth-child(6) {
@@ -537,9 +445,10 @@ html.light-mode .desglose-close:hover{
 .desglose-resumen{
   margin: 12px 0 16px;
   padding: 12px;
-  border: 1px solid var(--border2, #e5e7eb);
+  border: 1px solid var(--border2);
   border-radius: 12px;
-  background: rgba(255,255,255,0.04);
+  background: var(--card2);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 .desglose-resumen-grid{
   display: grid;
@@ -552,8 +461,9 @@ html.light-mode .desglose-close:hover{
 .desglose-resumen-item{
   padding: 10px;
   border-radius: 10px;
-  background: rgba(0,0,0,0.12);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: var(--card);
+  border: 1px solid var(--border);
+  transition: background 0.3s ease, border-color 0.3s ease;
 }
 .desglose-resumen-label{
   font-size: 12px;
@@ -586,12 +496,12 @@ html.light-mode .desglose-close:hover{
   border-radius: 10px;
   font-size: 12px;
   line-height: 1.4;
-  color: var(--muted, #6b7280);
+  color: var(--muted);
   background: rgba(59,130,246,0.08);
   border: 1px solid rgba(59,130,246,0.18);
+  transition: color 0.3s ease, background 0.3s ease, border-color 0.3s ease;
 }
 html:not(.light-mode) .desglose-ayuda{
-  color: #cbd5e1;
   background: rgba(59,130,246,0.12);
   border-color: rgba(59,130,246,0.20);
 }
@@ -599,12 +509,12 @@ html:not(.light-mode) .desglose-ayuda{
 /* Variante semántica (por si quieres ajustar BV en el futuro) */
 .desglose-ayuda--bv{}
 
-.desglose-importe--accent{ color: var(--accent, #8b5cf6); }
+.desglose-importe--accent{ color: var(--accent); transition: color 0.3s ease; }
 
 /* ===== Eliminación de estilos inline (CSP-friendly) ===== */
 .desglose-linea--hl-green{ background: rgba(34,197,94,0.10); }
 .desglose-linea--hl-blue{ background: rgba(59,130,246,0.10); }
-.desglose-linea--top-accent{ border-top: 2px solid var(--accent, #8B5CF6); }
+.desglose-linea--top-accent{ border-top: 2px solid var(--accent); transition: border-color 0.3s ease; }
 
 .desglose-importe--pos{ color: #22c55e; }
 .desglose-importe--neg{ color: #ef4444; }
