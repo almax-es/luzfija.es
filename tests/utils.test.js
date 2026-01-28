@@ -82,10 +82,10 @@ describe('Utilidades Base (lf-utils.js)', () => {
       expect(window.LF.round2(1.005)).toBe(1.01); // Caso típico de error float
     });
 
-    it('clamp01to365Days: Debe validar el rango de días', () => {
+    it('clamp01to370Days: Debe validar el rango de días', () => {
       const clamp = window.LF.clamp01to365Days;
       expect(clamp(15)).toBe(15);
-      expect(clamp(400)).toBe(365);
+      expect(clamp(400)).toBe(370);
       expect(clamp(-5)).toBe(1);
       expect(clamp(0)).toBe(30); // Default según código
       expect(clamp("31.5")).toBe(31);

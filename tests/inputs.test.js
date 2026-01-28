@@ -123,11 +123,11 @@ describe('Inputs y Validación (lf-inputs.js)', () => {
     expect(window.LF.validateInputs()).toBe(false);
   });
 
-  it('Debe fallar si Días es 0 o >365', () => {
+  it('Debe fallar si Días es 0 o >370', () => {
     window.LF.el.inputs.dias.value = "0";
     expect(window.LF.validateInputs()).toBe(false);
 
-    window.LF.el.inputs.dias.value = "366";
+    window.LF.el.inputs.dias.value = "371";
     expect(window.LF.validateInputs()).toBe(false);
   });
 

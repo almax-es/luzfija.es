@@ -505,7 +505,7 @@
       const diasRaw = String(el.inputs.dias.value || '').trim();
       const diasNum = parseNum(el.inputs.dias.value);
       if (!diasRaw) {
-        message = 'Introduce los días de facturación (1-365).';
+        message = 'Introduce los días de facturación (1-370).';
         el.inputs.dias.classList.add('error');
       } else if (!esNumericoValido(diasRaw, 0)) {
         message = 'Los días deben ser un número válido (sin letras ni símbolos).';
@@ -513,8 +513,8 @@
       } else if (!Number.isFinite(diasNum) || diasNum <= 0) {
         message = 'Los días deben ser mayores que 0.';
         el.inputs.dias.classList.add('error');
-      } else if (diasNum > 365) {
-        message = 'Los días no pueden superar 365.';
+      } else if (diasNum > 370) {
+        message = 'Los días no pueden superar 370.';
         el.inputs.dias.classList.add('error');
       } else if (diasNum % 1 !== 0) {
         message = 'Los días deben ser un número entero (sin decimales).';

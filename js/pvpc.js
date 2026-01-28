@@ -177,7 +177,7 @@
     }
 
     function buildPvpcPeriodo(dias){
-      const d=Math.min(Math.max(Number(dias)||0,1),365);
+      const d=Math.min(Math.max(Number(dias)||0,1),370);
       
       // 1. Empezamos con "hoy"
       const today = new Date();
@@ -401,7 +401,7 @@
     // oficiales (REE/ESIOS, indicador 1001) previamente descargados en /data/pvpc.
     // Nota: este cálculo usa medias horarias por periodo (aproximación neutral).
     async function obtenerPVPC_LOCAL(values){
-      const dias = Math.min(Math.max(Math.trunc(values?.dias) || 0, 1), 365);
+      const dias = Math.min(Math.max(Math.trunc(values?.dias) || 0, 1), 370);
       const p1 = Math.max(0, asNumber(values?.p1, 0));
       const p2 = Math.max(0, asNumber(values?.p2, 0));
       const cPunta = Math.max(0, asNumber(values?.cPunta, 0));
@@ -766,7 +766,7 @@ const PEAJES_POT_DIA = {
                        : zonaRaw === 'CeutaMelilla' ? 'CeutaMelilla' 
                        : 'Península';
       const values={
-        dias: Math.min(Math.max(Math.trunc(v?.dias)||0,1),365),
+        dias: Math.min(Math.max(Math.trunc(v?.dias)||0,1),370),
         p1: norm(v?.p1),
         p2: norm(v?.p2),
         cPunta: norm(v?.cPunta),

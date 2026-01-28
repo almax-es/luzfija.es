@@ -121,7 +121,7 @@
   function clamp01to365Days(raw) {
     const d = Math.trunc(raw);
     if (!Number.isFinite(d) || d === 0) return 30;
-    return Math.min(365, Math.max(1, d));
+    return Math.min(370, Math.max(1, d));
   }
 
   function clampNonNeg(n) {
