@@ -77,6 +77,15 @@
       `;
     }
 
+    // Agregar botón de limpiar datos
+    container.innerHTML += `
+      <div style="display: flex; gap: 8px; margin-top: 12px;">
+        <button type="button" id="lf-clear-custom-tarifa" class="btn btn-secondary" style="flex: 1; display: none;">
+          🗑️ Limpiar datos guardados
+        </button>
+      </div>
+    `;
+
     // Normalizar formato decimal al salir del campo (punto → coma)
     const { formatValueForDisplay } = window.LF;
     const camposMiTarifa = ['mtPunta', 'mtLlano', 'mtValle', 'mtP1', 'mtP2', 'mtPrecioExc'];
@@ -90,6 +99,12 @@
         });
       }
     });
+
+    // Conectar listeners de guardado automático y cargar datos guardados
+    setTimeout(() => {
+      window.LF.attachSaveListeners();
+      window.LF.loadCustomTarifaMain();
+    }, 50);
   }
 
   // ===== AGREGAR MI TARIFA =====
@@ -229,14 +244,168 @@
     return tarifa;
   }
 
+  // ===== GUARDAR Y CARGAR TARIFA PERSONALIZADA =====
+  function saveCustomTarifaMain() {
+    try {
+      const data = {
+        punta: $('mtPunta')?.value || '',
+        llano: $('mtLlano')?.value || '',
+        valle: $('mtValle')?.value || '',
+        p1: $('mtP1')?.value || '',
+        p2: $('mtP2')?.value || '',
+        exc: $('mtPrecioExc')?.value || '',
+        savedAt: new Date().getTime()
+      };
+      localStorage.setItem('lf_custom_tarifa', JSON.stringify(data));
+      updateCustomTarifaIndicatorMain(data);
+    } catch(e) {
+      console.warn('No se pudo guardar tarifa personalizada:', e);
+    }
+  }
+
+  function updateCustomTarifaIndicatorMain(data) {
+    try {
+      const indicator = document.getElementById('lf-custom-tarifa-indicator');
+      const clearBtn = document.getElementById('lf-clear-custom-tarifa');
+      if (!indicator || !clearBtn) return;
+
+      if (data && data.savedAt) {
+        const date = new Date(data.savedAt);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const mins = String(date.getMinutes()).padStart(2, '0');
+        indicator.textContent = `💾 ${day}/${month} ${hours}:${mins}`;
+        indicator.style.display = 'inline-block';
+        clearBtn.style.display = 'block';
+      } else {
+        indicator.style.display = 'none';
+        clearBtn.style.display = 'none';
+      }
+    } catch(e) {
+      console.warn('Error actualizando indicador:', e);
+    }
+  }
+
+  function loadCustomTarifaMain() {
+    try {
+      const saved = localStorage.getItem('lf_custom_tarifa');
+      if (!saved) {
+        updateCustomTarifaIndicatorMain(null);
+        return false;
+      }
+      const data = JSON.parse(saved);
+      const mtPuntaEl = $('mtPunta');
+      const mtLlanoEl = $('mtLlano');
+      const mtValleEl = $('mtValle');
+      const mtP1El = $('mtP1');
+      const mtP2El = $('mtP2');
+      const mtPrecioExcEl = $('mtPrecioExc');
+
+      if (mtPuntaEl) mtPuntaEl.value = data.punta || '';
+      if (mtLlanoEl) mtLlanoEl.value = data.llano || '';
+      if (mtValleEl) mtValleEl.value = data.valle || '';
+      if (mtP1El) mtP1El.value = data.p1 || '';
+      if (mtP2El) mtP2El.value = data.p2 || '';
+      if (mtPrecioExcEl) mtPrecioExcEl.value = data.exc || '';
+
+      updateCustomTarifaIndicatorMain(data);
+      return true;
+    } catch(e) {
+      console.warn('Error cargando tarifa personalizada:', e);
+      updateCustomTarifaIndicatorMain(null);
+      return false;
+    }
+  }
+
+  function clearCustomTarifaMain() {
+    if (!confirm('¿Estás seguro de que quieres eliminar los datos guardados de tu tarifa?')) {
+      return;
+    }
+
+    try {
+      localStorage.removeItem('lf_custom_tarifa');
+      const mtPuntaEl = $('mtPunta');
+      const mtLlanoEl = $('mtLlano');
+      const mtValleEl = $('mtValle');
+      const mtP1El = $('mtP1');
+      const mtP2El = $('mtP2');
+      const mtPrecioExcEl = $('mtPrecioExc');
+
+      if (mtPuntaEl) mtPuntaEl.value = '';
+      if (mtLlanoEl) mtLlanoEl.value = '';
+      if (mtValleEl) mtValleEl.value = '';
+      if (mtP1El) mtP1El.value = '';
+      if (mtP2El) mtP2El.value = '';
+      if (mtPrecioExcEl) mtPrecioExcEl.value = '';
+
+      updateCustomTarifaIndicatorMain(null);
+
+      const clearBtn = document.getElementById('lf-clear-custom-tarifa');
+      if (clearBtn) {
+        const originalText = clearBtn.innerHTML;
+        clearBtn.innerHTML = '✓ Datos eliminados';
+        clearBtn.disabled = true;
+        setTimeout(() => {
+          clearBtn.innerHTML = originalText;
+          clearBtn.disabled = false;
+        }, 2000);
+      }
+    } catch(e) {
+      console.warn('Error limpiando tarifa personalizada:', e);
+      alert('Error al limpiar los datos.');
+    }
+  }
+
+  // Guardar al cambiar cualquier campo
+  function attachSaveListeners() {
+    const camposMiTarifa = ['mtPunta', 'mtLlano', 'mtValle', 'mtP1', 'mtP2', 'mtPrecioExc'];
+    camposMiTarifa.forEach(id => {
+      const campo = $(id);
+      if (campo && !campo.hasAttribute('data-save-attached')) {
+        let saveTimer = null;
+        campo.addEventListener('input', () => {
+          clearTimeout(saveTimer);
+          saveTimer = setTimeout(saveCustomTarifaMain, 800);
+        });
+        campo.setAttribute('data-save-attached', 'true');
+      }
+    });
+
+    // Conectar botón de limpiar
+    const clearBtn = document.getElementById('lf-clear-custom-tarifa');
+    if (clearBtn && !clearBtn.hasAttribute('data-clear-attached')) {
+      clearBtn.addEventListener('click', clearCustomTarifaMain);
+      clearBtn.setAttribute('data-clear-attached', 'true');
+    }
+  }
+
+  // Cargar al iniciar
+  setTimeout(loadCustomTarifaMain, 100);
+
   // ===== EXPORTAR =====
   window.LF = window.LF || {};
   Object.assign(window.LF, {
     updateMiTarifaForm,
-    agregarMiTarifa
+    agregarMiTarifa,
+    saveCustomTarifaMain,
+    loadCustomTarifaMain,
+    clearCustomTarifaMain,
+    attachSaveListeners
   });
 
   window.updateMiTarifaForm = updateMiTarifaForm;
   window.agregarMiTarifa = agregarMiTarifa;
+
+  // Hook para volver a conectar listeners después de que el formulario se renderice
+  const originalUpdateMiTarifaForm = window.LF.updateMiTarifaForm;
+  window.LF.updateMiTarifaForm = function() {
+    originalUpdateMiTarifaForm();
+    // Recargar datos guardados y conectar listeners
+    setTimeout(() => {
+      loadCustomTarifaMain();
+      attachSaveListeners();
+    }, 50);
+  };
 
 })();

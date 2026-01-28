@@ -473,7 +473,10 @@
                         <!-- Tarifa Actual (Opcional) -->
                         <div style="grid-column: 1 / -1; margin-top: 12px;">
                           <details class="seoDetails" style="background: rgba(255,255,255,0.03); border: 1px dashed var(--border);">
-                            <summary style="font-size: 13px; padding: 10px;">⭐ Comparar con mi tarifa actual</summary>
+                            <summary style="font-size: 13px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+                              <span>⭐ Comparar con mi tarifa actual</span>
+                              <span id="bv-custom-tarifa-indicator" style="font-size: 11px; color: var(--muted); margin-right: 8px; display: none;" title="Datos guardados en tu navegador"></span>
+                            </summary>
                             <div style="padding: 16px; display: grid; gap: 16px;">
 
                               <!-- Info box explicativo -->
@@ -543,6 +546,12 @@
                                   <input id="mtBV" type="checkbox" style="width: auto; cursor: pointer;">
                                   <span style="font-size: 13px;">Tiene batería virtual (acumula excedentes no compensados)</span>
                                 </label>
+                              </div>
+
+                              <div style="display: flex; gap: 8px; margin-top: 12px;">
+                                <button type="button" id="bv-clear-custom-tarifa" class="btn btn-secondary" style="flex: 1; display: none;">
+                                  🗑️ Limpiar datos guardados
+                                </button>
                               </div>
 
                             </div>

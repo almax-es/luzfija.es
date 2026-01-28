@@ -621,11 +621,76 @@ document.addEventListener('DOMContentLoaded', () => {
         p1: document.getElementById('mtP1').value,
         p2: document.getElementById('mtP2').value,
         exc: document.getElementById('mtExc').value,
-        bv: document.getElementById('mtBV')?.checked ?? false
+        bv: document.getElementById('mtBV')?.checked ?? false,
+        savedAt: new Date().getTime()
       };
       localStorage.setItem('bv_custom_tarifa', JSON.stringify(data));
+      updateCustomTarifaIndicator(data);
     } catch(e) {
       console.warn('No se pudo guardar tarifa personalizada:', e);
+    }
+  }
+
+  // Función para actualizar el indicador visual
+  function updateCustomTarifaIndicator(data) {
+    try {
+      const indicator = document.getElementById('bv-custom-tarifa-indicator');
+      const clearBtn = document.getElementById('bv-clear-custom-tarifa');
+      if (!indicator || !clearBtn) return;
+
+      // Mostrar indicador solo si hay datos guardados
+      if (data && data.savedAt) {
+        const date = new Date(data.savedAt);
+        const day = String(date.getDate()).padStart(2, '0');
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const mins = String(date.getMinutes()).padStart(2, '0');
+        indicator.textContent = `💾 ${day}/${month} ${hours}:${mins}`;
+        indicator.style.display = 'inline-block';
+        clearBtn.style.display = 'block';
+      } else {
+        indicator.style.display = 'none';
+        clearBtn.style.display = 'none';
+      }
+    } catch(e) {
+      console.warn('Error actualizando indicador:', e);
+    }
+  }
+
+  // Función para limpiar tarifa personalizada
+  function clearCustomTarifa() {
+    if (!confirm('¿Estás seguro de que quieres eliminar los datos guardados de tu tarifa?')) {
+      return;
+    }
+
+    try {
+      localStorage.removeItem('bv_custom_tarifa');
+      document.getElementById('mtPunta').value = '';
+      document.getElementById('mtLlano').value = '';
+      document.getElementById('mtValle').value = '';
+      document.getElementById('mtP1').value = '';
+      document.getElementById('mtP2').value = '';
+      document.getElementById('mtExc').value = '';
+      const mtBVEl = document.getElementById('mtBV');
+      if (mtBVEl) mtBVEl.checked = false;
+
+      // Actualizar indicador
+      updateCustomTarifaIndicator(null);
+
+      // Mostrar confirmación
+      const clearBtn = document.getElementById('bv-clear-custom-tarifa');
+      if (clearBtn) {
+        const originalText = clearBtn.innerHTML;
+        clearBtn.innerHTML = '✓ Datos eliminados';
+        clearBtn.disabled = true;
+        setTimeout(() => {
+          clearBtn.innerHTML = originalText;
+          clearBtn.disabled = false;
+        }, 2000);
+      }
+    } catch(e) {
+      console.warn('Error limpiando tarifa personalizada:', e);
+      alert('Error al limpiar los datos.');
     }
   }
 
@@ -633,7 +698,10 @@ document.addEventListener('DOMContentLoaded', () => {
   function loadCustomTarifa() {
     try {
       const saved = localStorage.getItem('bv_custom_tarifa');
-      if (!saved) return false;
+      if (!saved) {
+        updateCustomTarifaIndicator(null);
+        return false;
+      }
       const data = JSON.parse(saved);
       document.getElementById('mtPunta').value = data.punta || '';
       document.getElementById('mtLlano').value = data.llano || '';
@@ -643,15 +711,23 @@ document.addEventListener('DOMContentLoaded', () => {
       document.getElementById('mtExc').value = data.exc || '';
       const mtBVEl = document.getElementById('mtBV');
       if (mtBVEl) mtBVEl.checked = data.bv ?? false;
+      updateCustomTarifaIndicator(data);
       return true;
     } catch(e) {
       console.warn('Error cargando tarifa personalizada:', e);
+      updateCustomTarifaIndicator(null);
       return false;
     }
   }
 
   // Cargar tarifa personalizada al inicio
   loadCustomTarifa();
+
+  // Conectar botón de limpiar datos
+  const clearBtn = document.getElementById('bv-clear-custom-tarifa');
+  if (clearBtn) {
+    clearBtn.addEventListener('click', clearCustomTarifa);
+  }
 
   // Guardar automáticamente los cambios en tarifa personalizada
   ['mtPunta', 'mtLlano', 'mtValle', 'mtP1', 'mtP2', 'mtExc'].forEach(id => {
