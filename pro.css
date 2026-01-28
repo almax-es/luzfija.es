@@ -285,7 +285,6 @@ html.light-mode :where(input, select, textarea)::placeholder{
   align-items: center;
   gap: 8px;
   margin-left: auto;
-  flex-wrap: wrap;
 }
 
 /* Responsive: en móvil, reorganizar el header */
@@ -304,6 +303,13 @@ html.light-mode :where(input, select, textarea)::placeholder{
   .actions-right{
     order: 1;
     margin-left: 0;
+    gap: 4px;
+  }
+
+  .actions-right .btn{
+    min-width: 44px;
+    padding: 10px;
+    justify-content: center;
   }
 
   /* Texto de botones oculto en móvil para ahorrar espacio */
