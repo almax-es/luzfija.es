@@ -537,7 +537,7 @@
     @media (max-width: 520px){ .form{grid-template-columns: 1fr;} }
     .group{display:flex; flex-direction:column; gap: 7px;}
     label{ font-size: 12px; color: var(--muted); font-weight: 900; letter-spacing: .2px; position: relative; display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-height: 16px; }
-    .tooltip{ position: relative; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: rgba(139,92,246,.2); color: var(--accent); font-size: 10px; font-weight: 900; flex-shrink: 0; transition: box-shadow .15s ease, transform .15s ease; }
+    .tooltip{ position: relative; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: rgba(139,92,246,.2); color: var(--accent); font-size: 10px; font-weight: 900; flex-shrink: 0; transition: box-shadow .15s ease, transform .15s ease; line-height: 1; text-align: center; padding: 0; }
     .tooltip:focus-visible{ outline: none; box-shadow: 0 0 0 3px rgba(139,92,246,.25); transform: translateY(-1px); }
     /* Tooltips más grandes en dispositivos táctiles */
     @media (pointer: coarse) {
@@ -545,6 +545,8 @@
         width: 24px;
         height: 24px;
         font-size: 12px;
+        line-height: 1;
+        padding: 0;
       }
     }
     .form.fv-toggle{ grid-template-columns: 1fr; }
@@ -1952,6 +1954,8 @@
   width: 20px;
   height: 20px;
   font-size: 12px;
+  line-height: 1;
+  padding: 0;
 }
 
 /* Icono solar con BV: más destacado siempre */
@@ -1962,6 +1966,8 @@
   background: rgba(251, 191, 36, 0.25);
   box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.3);
   animation: tooltipPulseRanking 2s ease-in-out infinite;
+  line-height: 1;
+  padding: 0;
 }
 
 @keyframes tooltipPulseRanking {
@@ -1982,6 +1988,8 @@
     font-size: 14px;
     background: rgba(139,92,246,.35);
     box-shadow: 0 0 0 2px rgba(139,92,246,.2);
+    line-height: 1;
+    padding: 0;
   }
   
   /* En móvil, el icono de ranking es aún más grande */
@@ -1989,6 +1997,8 @@
     width: 32px;
     height: 32px;
     font-size: 16px;
+    line-height: 1;
+    padding: 0;
   }
   
   /* Pulso sutil para indicar que es clicable */
