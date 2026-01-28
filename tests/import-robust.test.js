@@ -232,32 +232,59 @@ ES123;01/01/2024;1;1,0;R`;
     }
   });
 
-  it('Validación de meses distintos (13 warning, 14 error)', () => {
+  it('Validación de meses distintos (modo comparador principal vs solar)', () => {
     const { validateCsvSpanFromRecords } = window.LF.csvUtils;
-    
-    // Caso 1: 13 meses -> OK con warning y recorte
+
+    // Preparar 13 meses de datos
     const records13 = [];
     const base = new Date('2024-01-01');
     for(let i=0; i<13; i++) {
-        // 1st of each month
         records13.push({ fecha: new Date(base.getFullYear(), base.getMonth() + i, 1) });
     }
-    // Usamos maxDays alto para que no falle por días y testear la lógica de meses
-    const res13 = validateCsvSpanFromRecords(records13, { maxDays: 400 });
-    
-    expect(res13.ok).toBe(true);
-    expect(res13.warning).toContain('13 meses');
-    expect(res13.monthsToDrop).toHaveLength(1);
-    expect(res13.monthsToDrop[0]).toBe('2024-01'); // Se descarta el más antiguo
 
-    // Caso 2: 14 meses -> Error
+    // Caso 1: Comparador PRINCIPAL (requireExactly12Months: false) -> NO descarta
+    const resMain = validateCsvSpanFromRecords(records13, {
+      maxDays: 400,
+      requireExactly12Months: false
+    });
+
+    expect(resMain.ok).toBe(true);
+    expect(resMain.info).toBeDefined(); // Debe tener mensaje info
+    expect(resMain.monthsToDrop).toHaveLength(0); // NO descarta nada
+    expect(resMain.monthsUsed).toHaveLength(13); // Usa TODOS los meses
+
+    // Caso 2: Comparador SOLAR (requireExactly12Months: true) -> SÍ descarta
+    const resSolar = validateCsvSpanFromRecords(records13, {
+      maxDays: 400,
+      requireExactly12Months: true
+    });
+
+    expect(resSolar.ok).toBe(true);
+    expect(resSolar.warning).toBeDefined(); // Debe tener warning explicativo
+    expect(resSolar.monthsToDrop).toHaveLength(1); // Descarta 1 mes
+    expect(resSolar.monthsToDrop[0]).toBe('2024-01'); // Descarta el más antiguo
+    expect(resSolar.monthsUsed).toHaveLength(12); // Usa 12 meses
+
+    // Caso 3: 14 meses con requireExactly12Months: true -> Error
     const records14 = [];
     for(let i=0; i<14; i++) {
         records14.push({ fecha: new Date(base.getFullYear(), base.getMonth() + i, 1) });
     }
-    const res14 = validateCsvSpanFromRecords(records14, { maxDays: 500 });
-    
+    const res14 = validateCsvSpanFromRecords(records14, {
+      maxDays: 500,
+      requireExactly12Months: true
+    });
+
     expect(res14.ok).toBe(false);
     expect(res14.error).toContain('14 meses distintos');
+
+    // Caso 4: 14 meses SIN requireExactly12Months -> OK (comparador principal acepta todo)
+    const res14Main = validateCsvSpanFromRecords(records14, {
+      maxDays: 500,
+      requireExactly12Months: false
+    });
+
+    expect(res14Main.ok).toBe(true); // Comparador principal acepta 14 meses
+    expect(res14Main.monthsUsed).toHaveLength(14); // Usa todos
   });
 });
