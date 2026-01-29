@@ -1204,16 +1204,16 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Pdto: ${fEur(sobranteHucha)}`
 
         const tipEneNeta = `${fEur(eBruta)} − ${fEur(excMes)} (comp.) = ${fEur(eNeta)}`;
         const taxLabel = String(row.impuestoIndirectoTipo || 'IVA').toUpperCase();
-        const tipImp = `📊 IEE: ${fEur(row.impuestoElec)}
-💶 ${taxLabel}: ${fEur(row.ivaCuota)}
-💵 Bono: ${fEur(row.costeBonoSocial)}
-🔢 Alq: ${fEur(row.alquilerContador)}`;
+        const tipImp = `💵 Bono: ${fEur(row.costeBonoSocial)}
+📊 IEE: ${fEur(row.impuestoElec)}
+🔢 Alq: ${fEur(row.alquilerContador)}
+💶 ${taxLabel}: ${fEur(row.ivaCuota)}`;
         const tipSub = `⚡ Pot: ${fEur(row.pot)}
 🔌 E.Neta: ${fEur(eNeta)}
-📊 IEE: ${fEur(row.impuestoElec)}
-💶 ${taxLabel}: ${fEur(row.ivaCuota)}
 💵 Bono: ${fEur(row.costeBonoSocial)}
+📊 IEE: ${fEur(row.impuestoElec)}
 🔢 Alq: ${fEur(row.alquilerContador)}
+💶 ${taxLabel}: ${fEur(row.ivaCuota)}
 ━━━━━━━━━━━━
 💰 Subtotal: ${fEur(subtotal)}`;
 
