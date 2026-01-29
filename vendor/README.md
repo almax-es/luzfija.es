@@ -2,7 +2,7 @@
 
 Este directorio contiene librerías de terceros alojadas localmente para garantizar la privacidad (evitar peticiones a CDNs externos), la estabilidad y el funcionamiento offline.
 
-**Última actualización del inventario:** 18/01/2026
+**Última actualización del inventario:** 29/01/2026
 
 ---
 
@@ -65,8 +65,9 @@ Lector de códigos QR en JavaScript puro.
 ## 🐐 GoatCounter
 Script de analítica respetuosa con la privacidad (sin cookies).
 
-- **Licencia:** EUPL-1.2
+- **Versión:** Latest (count.js)
+- **Licencia:** ISC
 - **Archivos:**
   - `count.js`
-    - **SHA-256:** `fc4097aa2f8ba0712dd066852843ebe8b00fc6579b8a5b7c6afeae877b2bc54d`
-    - **Tamaño:** 5.95 KB
+    - **SHA-256:** `030ad75a7c80a04107a9b91f79e4b1572da0a583a80a9b67e111b310da11cbe9`
+    - **Tamaño:** 8.73 KB
