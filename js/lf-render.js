@@ -170,24 +170,11 @@
         tr.dataset.tarifaNombre = nombreBase;
         tr.dataset.esPvpc = r.esPVPC ? '1' : '0';
         
-        // --- VALIDACIÓN NUFRI IN-LINE ---
-        let nufriWarningHtml = '';
+        // --- VALIDACIÓN NUFRI IN-LINE (ICONO) ---
+        let nufriWarnIcon = '';
         if (nufriExcede && nombreBase.toLowerCase().includes('nufri')) {
-            nufriWarningHtml = `<div style="font-size:11px; line-height:1.4; color:var(--danger); background:rgba(239,68,68,0.1); padding:8px 10px; border-radius:8px; margin-top:8px; border:1px solid rgba(239,68,68,0.3); width:100%; box-sizing:border-box;">
-            <strong style="display:flex; align-items:center; gap:6px;">
-              <span style="font-size:14px">⚠️</span> Requisitos Nufri
-            </strong>
-            <div style="margin-top:4px; opacity:0.9;">
-              Tu consumo estimado (~${Math.round(consumoAnualEst).toLocaleString('es-ES')} kWh/año) supera los límites.
-            </div>
-            <ul style="margin:4px 0 0 16px; padding:0; list-style-type:disc; opacity:0.8;">
-              <li>Máx por potencia: ${Math.round(limiteRatio).toLocaleString('es-ES')} kWh</li>
-              <li>Máx absoluto: 8.000 kWh</li>
-            </ul>
-            <div style="margin-top:4px; font-style:italic; opacity:0.75;">
-              Probablemente rechacen la contratación.
-            </div>
-            </div>`;
+          const tipText = `⚠️ Requisitos Nufri no cumplidos:\n\nTu consumo estimado (~${Math.round(consumoAnualEst).toLocaleString('es-ES')} kWh/año) supera el límite.\n\n• Máx por potencia: ${Math.round(limiteRatio).toLocaleString('es-ES')} kWh\n• Máx absoluto: 8.000 kWh\n\nProbablemente rechacen la contratación.`;
+          nufriWarnIcon = `<span class="tooltip nufri-icon" data-tip="${escapeHtml(tipText)}" role="button" tabindex="0" aria-label="Advertencia requisitos Nufri" style="margin-left:4px; color:var(--danger); cursor:help; font-size:1.1em;">⚠️</span>`;
         }
 
         // Guardar metaPvpc para desglose si es PVPC
@@ -257,7 +244,7 @@
           solarDetails = `<div class="solar-details">🔋 ${escapeHtml(parts.join(' • '))}</div>`;
         }
 
-        const icons = `<span class="tarifa-icons">${fvIcon || ""}${requisitosTooltip || ""}${nombreWarn || ""}</span>`;
+        const icons = `<span class="tarifa-icons">${fvIcon || ""}${requisitosTooltip || ""}${nombreWarn || ""}${nufriWarnIcon || ""}</span>`;
 
         const badgeRow = `<div class="tarifa-badges" aria-hidden="true">` +
           `<span class="badge rank">#${idx + 1}</span>` +
@@ -270,7 +257,6 @@
           `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>` +
           `${icons}` +
           `</div>` +
-          `${nufriWarningHtml}` +
           `${solarDetails || ""}`;
 
         tr.innerHTML =
@@ -305,6 +291,7 @@
     // Inicializar tooltips después de renderizar todo
     el.tbody.querySelectorAll('.requisitos-icon').forEach(t => bindTooltipElement(t));
     el.tbody.querySelectorAll('.fv-icon').forEach(t => bindTooltipElement(t));
+    el.tbody.querySelectorAll('.nufri-icon').forEach(t => bindTooltipElement(t));
     updateSortIcons();
   }
 
