@@ -121,6 +121,32 @@
     el.emptyBox.classList.remove('show');
     el.table.classList.add('show');
 
+    // --- PRE-CÁLCULO VALIDACIÓN NUFRI ---
+    // Obtenemos valores del DOM para calcular si se cumplen requisitos
+    const domP1 = document.getElementById('p1');
+    const valP1 = domP1 ? window.LF.parseNum(domP1.value) : 0;
+    const domP2 = document.getElementById('p2');
+    const valP2 = domP2 ? window.LF.parseNum(domP2.value) : 0;
+    const domDias = document.getElementById('dias');
+    const valDias = domDias ? window.LF.parseNum(domDias.value) : 30;
+    const domC1 = document.getElementById('cPunta');
+    const domC2 = document.getElementById('cLlano');
+    const domC3 = document.getElementById('cValle');
+    const valC1 = domC1 ? window.LF.parseNum(domC1.value) : 0;
+    const valC2 = domC2 ? window.LF.parseNum(domC2.value) : 0;
+    const valC3 = domC3 ? window.LF.parseNum(domC3.value) : 0;
+    const valConsumoTotal = valC1 + valC2 + valC3;
+    
+    // Proyección anual
+    const diasCalc = valDias > 0 ? valDias : 30;
+    const consumoAnualEst = (valConsumoTotal / diasCalc) * 365;
+    const potRef = Math.max(valP1, valP2);
+    // Límite Ratio: 0.75 MWh/kW = 750 kWh/kW
+    const limiteRatio = potRef * 750;
+    const limiteAbs = 8000;
+    // Flag global para Nufri en este render
+    const nufriExcede = (consumoAnualEst > limiteRatio || consumoAnualEst > limiteAbs);
+
     // Limpiar tbody existente
     el.tbody.replaceChildren();
 
@@ -144,6 +170,26 @@
         tr.dataset.tarifaNombre = nombreBase;
         tr.dataset.esPvpc = r.esPVPC ? '1' : '0';
         
+        // --- VALIDACIÓN NUFRI IN-LINE ---
+        let nufriWarningHtml = '';
+        if (nufriExcede && nombreBase.toLowerCase().includes('nufri')) {
+            nufriWarningHtml = `<div style="font-size:11px; line-height:1.4; color:var(--danger); background:rgba(239,68,68,0.1); padding:8px 10px; border-radius:8px; margin-top:8px; border:1px solid rgba(239,68,68,0.3); width:100%; box-sizing:border-box;">
+            <strong style="display:flex; align-items:center; gap:6px;">
+              <span style="font-size:14px">⚠️</span> Requisitos Nufri
+            </strong>
+            <div style="margin-top:4px; opacity:0.9;">
+              Tu consumo estimado (~${Math.round(consumoAnualEst).toLocaleString('es-ES')} kWh/año) supera los límites.
+            </div>
+            <ul style="margin:4px 0 0 16px; padding:0; list-style-type:disc; opacity:0.8;">
+              <li>Máx por potencia: ${Math.round(limiteRatio).toLocaleString('es-ES')} kWh</li>
+              <li>Máx absoluto: 8.000 kWh</li>
+            </ul>
+            <div style="margin-top:4px; font-style:italic; opacity:0.75;">
+              Probablemente rechacen la contratación.
+            </div>
+            </div>`;
+        }
+
         // Guardar metaPvpc para desglose si es PVPC
         if (r.esPVPC && r.metaPvpc) {
           tr.dataset.metaPvpc = JSON.stringify(r.metaPvpc);
@@ -224,6 +270,7 @@
           `<span class="tarifa-nombre">${escapeHtml(nombreBase)}</span>` +
           `${icons}` +
           `</div>` +
+          `${nufriWarningHtml}` +
           `${solarDetails || ""}`;
 
         tr.innerHTML =
