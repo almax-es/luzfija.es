@@ -647,7 +647,7 @@ const PEAJES_POT_DIA = {
         const bonoSocial = window.LF_CONFIG ? window.LF_CONFIG.calcularBonoSocial(dias) : (6.979247 / 365 * dias);
         
         // IMPUESTO ELÉCTRICO
-        const baseIEE = terminoFijo + terminoVariable + bonoSocial;
+        const baseIEE = terminoFijo + costeMargenPot + terminoVariable + bonoSocial;
         const impuestoElectrico = Math.max((5.11269632 / 100) * baseIEE, consumoTotal * 0.001);
         
         // ALQUILER
