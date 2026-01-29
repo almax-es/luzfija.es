@@ -100,8 +100,11 @@
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-      // Query-buster SOLO si forzamos refresh manual
-      const url = forceRefresh ? `${JSON_URL}?v=${Date.now()}` : JSON_URL;
+      // Query-buster:
+      // Si forzamos refresh (forceRefresh) O si hemos detectado que la caché local está caducada/no existe
+      // añadimos ?v=TIME para saltarnos la caché del navegador a nivel de red.
+      const needsBuster = forceRefresh || !readTarifasCache({ allowExpired: false });
+      const url = needsBuster ? `${JSON_URL}?v=${Date.now()}` : JSON_URL;
 
       const response = await fetch(url, {
         signal: controller.signal,
