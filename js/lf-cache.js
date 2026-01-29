@@ -80,12 +80,6 @@
   async function fetchTarifas(forceRefresh = false, opts) {
     const silent = Boolean(opts && opts.silent);
     
-    // 0) Prioridad: memoria (baseTarifasCache)
-    if (!forceRefresh && Array.isArray(window.LF.baseTarifasCache) && window.LF.baseTarifasCache.length > 0) {
-      renderTarifasUpdated(window.LF.__LF_tarifasMeta);
-      return true;
-    }
-
     // 1) Prioridad: localStorage (válido)
     if (!forceRefresh) {
       const cached = readTarifasCache({ allowExpired: false });
