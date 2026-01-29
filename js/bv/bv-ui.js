@@ -1145,15 +1145,23 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(allResults?.error || 'No se pudo calcular el ranking.');
       }
 
-      // Ranking: ordenar por lo que realmente pagas (y, en empate, por saldo BV final).
+      // Ranking: ordenar por coste real (sin aplicar BV anterior) y, en empate, por saldo BV final.
+      // Esto evita que el orden dependa del saldo inicial del usuario.
       const rankedResults = [...allResults.results].sort((a, b) => {
-        const diffPay = (a.totals.pagado || 0) - (b.totals.pagado || 0);
-        if (Math.abs(diffPay) < 0.01) return (b.totals.bvFinal || 0) - (a.totals.bvFinal || 0);
-        return diffPay;
+        const diffReal = (a.totals.real || 0) - (b.totals.real || 0);
+        if (Math.abs(diffReal) < 0.01) {
+          const bvA = (a.totals.bvFinal || 0);
+          const bvB = (b.totals.bvFinal || 0);
+          if (Math.abs(bvB - bvA) < 0.01) return (a.totals.pagado || 0) - (b.totals.pagado || 0);
+          return bvB - bvA;
+        }
+        return diffReal;
       });
 
       const winner = rankedResults[0];
-      const ahorroPct = rankedResults.length > 1 ? Math.round(((rankedResults[rankedResults.length-1].totals.pagado - winner.totals.pagado) / rankedResults[rankedResults.length-1].totals.pagado) * 100) : 0;
+      const ahorroPct = rankedResults.length > 1
+        ? Math.round(((rankedResults[rankedResults.length-1].totals.real - winner.totals.real) / rankedResults[rankedResults.length-1].totals.real) * 100)
+        : 0;
 
       const r2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 
@@ -1199,14 +1207,15 @@ document.addEventListener('DOMContentLoaded', () => {
 ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Pdto: ${fEur(sobranteHucha)}`}`;
 
         const tipEneNeta = `${fEur(eBruta)} − ${fEur(excMes)} (comp.) = ${fEur(eNeta)}`;
+        const taxLabel = String(row.impuestoIndirectoTipo || 'IVA').toUpperCase();
         const tipImp = `📊 IEE: ${fEur(row.impuestoElec)}
-💶 IVA: ${fEur(row.ivaCuota)}
+💶 ${taxLabel}: ${fEur(row.ivaCuota)}
 💵 Bono: ${fEur(row.costeBonoSocial)}
 🔢 Alq: ${fEur(row.alquilerContador)}`;
         const tipSub = `⚡ Pot: ${fEur(row.pot)}
 🔌 E.Neta: ${fEur(eNeta)}
 📊 IEE: ${fEur(row.impuestoElec)}
-💶 IVA: ${fEur(row.ivaCuota)}
+💶 ${taxLabel}: ${fEur(row.ivaCuota)}
 💵 Bono: ${fEur(row.costeBonoSocial)}
 🔢 Alq: ${fEur(row.alquilerContador)}
 ━━━━━━━━━━━━
@@ -1318,8 +1327,8 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Pdto: ${fEur(sobranteHucha)}`
       const buildTable = (resultItem) => {
         const hasBV = Boolean(resultItem?.tarifa?.fv?.bv);
         const head = hasBV
-          ? `<th style="text-align:left" title="Mes del año">Mes</th><th title="Término de potencia">Potencia</th><th title="Energía bruta consumida (sin compensar)">E. Bruta</th><th title="Excedentes compensados este mes">Compensación</th><th title="Energía neta facturada">E. Neta</th><th title="Impuestos (IEE + IVA/IGIC)">Impuestos</th><th title="Subtotal antes de aplicar BV">Subtotal</th><th title="Importe a pagar este mes">A Pagar</th><th title="Saldo BV usado este mes">Uso BV</th><th title="Saldo BV acumulado al final">Saldo BV</th>`
-          : `<th style="text-align:left" title="Mes del año">Mes</th><th title="Término de potencia">Potencia</th><th title="Energía bruta consumida (sin compensar)">E. Bruta</th><th title="Excedentes compensados este mes">Compensación</th><th title="Energía neta facturada">E. Neta</th><th title="Impuestos (IEE + IVA/IGIC)">Impuestos</th><th title="Subtotal de la factura">Subtotal</th><th title="Importe a pagar este mes">A Pagar</th>`;
+          ? `<th style="text-align:left" title="Mes del año">Mes</th><th title="Término de potencia">Potencia</th><th title="Energía bruta consumida (sin compensar)">E. Bruta</th><th title="Excedentes compensados este mes">Compensación</th><th title="Energía neta facturada">E. Neta</th><th title="Impuestos (IEE + IVA/IGIC/IPSI)">Impuestos</th><th title="Subtotal antes de aplicar BV">Subtotal</th><th title="Importe a pagar este mes">A Pagar</th><th title="Saldo BV usado este mes">Uso BV</th><th title="Saldo BV acumulado al final">Saldo BV</th>`
+          : `<th style="text-align:left" title="Mes del año">Mes</th><th title="Término de potencia">Potencia</th><th title="Energía bruta consumida (sin compensar)">E. Bruta</th><th title="Excedentes compensados este mes">Compensación</th><th title="Energía neta facturada">E. Neta</th><th title="Impuestos (IEE + IVA/IGIC/IPSI)">Impuestos</th><th title="Subtotal de la factura">Subtotal</th><th title="Importe a pagar este mes">A Pagar</th>`;
 
         // Ojo: buildRows ya omite celdas BV si no aplica.
         // En BV, para mantener el orden visual, las columnas "Hucha" y "Saldo" se colocan al final.
@@ -1361,9 +1370,14 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Pdto: ${fEur(sobranteHucha)}`
           </div>
           <div class="bv-kpis-stack">
             <div class="bv-kpi-card">
+              <span class="bv-kpi-label">Coste real (ranking)</span>
+              <span class="bv-kpi-value">${fEur(winner.totals.real)}</span>
+              <span class="bv-kpi-sub">Sin aplicar saldo previo</span>
+            </div>
+            <div class="bv-kpi-card">
               <span class="bv-kpi-label">Pagas en total</span>
               <span class="bv-kpi-value">${fEur(winner.totals.pagado)}</span>
-              <span class="bv-kpi-sub">Con saldo previo aplicado</span>
+              <span class="bv-kpi-sub">${winnerHasBV ? 'Con saldo previo aplicado' : 'Sin BV (igual al coste real)'}</span>
             </div>
             ${winnerHasBV ? `
             <div class="bv-kpi-card highlight">
@@ -1398,8 +1412,9 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Pdto: ${fEur(sobranteHucha)}`
                 ${pill}
               </div>
               <div class="bv-alt-price-box">
-                <div class="bv-alt-price">${fEur(r.totals.pagado)}</div>
-                <div class="bv-alt-price-label">Total a pagar</div>
+                <div class="bv-alt-price">${fEur(r.totals.real)}</div>
+                <div class="bv-alt-price-label">Coste real (ranking)</div>
+                ${hasBV ? `<div class="bv-alt-bv-saldo">💳 Pagas: ${fEur(r.totals.pagado)}</div>` : ''}
                 ${hasBV ? `<div class="bv-alt-bv-saldo">💰 ${fEur(r.totals.bvFinal)} saldo BV</div>` : ''}
               </div>
             </div>

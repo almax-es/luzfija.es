@@ -187,10 +187,12 @@ window.BVSim.calcMonthForTarifa = function ({
   
   // Excedentes
   const exKwh = Number(month.exportTotalKWh) || 0;
-  let precioExc = Number(tarifa.fv.exc);
+  // Blindaje: evitar NaN si exc viene como string ("INDEXADA") u otro valor no numérico.
+  let precioExc = Number(tarifa?.fv?.exc);
+  if (!Number.isFinite(precioExc)) precioExc = 0;
   
   // Si es indexada y no tiene precio fijo, estimamos 0.06 (media pool excedentes)
-  if (precioExc <= 0 && tarifa.tipo === 'INDEXADA') {
+  if (precioExc <= 0 && String(tarifa?.tipo || '').toUpperCase() === 'INDEXADA') {
     precioExc = 0.06;
   }
   
@@ -201,36 +203,69 @@ window.BVSim.calcMonthForTarifa = function ({
   const consAdj = round2(Math.max(0, consEur - credit1));
   const excedenteSobranteEur = round2(Math.max(0, creditoPotencial - credit1));
   
-  // Impuestos
-  const sumaBaseIEE = round2(pot + consAdj);
-  
+  // ===== IMPUESTOS (alineados con el comparador principal: js/lf-calc.js) =====
+  const CFG = window.LF_CONFIG || {};
+  const consumoTotalKwh = Number(month.importTotalKWh) || 0;
+
+  // Base para IEE: potencia + energía neta + bono social (financiación)
+  const sumaBase = round2(pot + consAdj + costeBonoSocial);
+
   let impuestoElec = 0;
-  if (window.LF_CONFIG && window.LF_CONFIG.calcularIEE) {
-    impuestoElec = round2(window.LF_CONFIG.calcularIEE(sumaBaseIEE, month.importTotalKWh, zonaFiscal));
+  if (CFG && typeof CFG.calcularIEE === 'function') {
+    impuestoElec = round2(CFG.calcularIEE(sumaBase, consumoTotalKwh));
   } else {
-    const tasaIEE = zonaFiscal === 'Península' ? 0.0511269632 : 0.01; 
-    impuestoElec = round2(Math.max(tasaIEE * sumaBaseIEE, month.importTotalKWh * 0.0005)); 
+    // Fallback coherente con LF_CONFIG por defecto.
+    const tasaIEE = 0.0511269632;
+    impuestoElec = round2(Math.max(tasaIEE * sumaBase, consumoTotalKwh * 0.001));
   }
 
   // Alquiler
   let alquilerContador = 0;
-  if (window.LF_CONFIG && window.LF_CONFIG.calcularAlquilerContador) {
-    alquilerContador = round2(window.LF_CONFIG.calcularAlquilerContador(dias));
+  if (CFG && typeof CFG.calcularAlquilerContador === 'function') {
+    alquilerContador = round2(CFG.calcularAlquilerContador(dias));
   } else {
     alquilerContador = round2(dias * 0.81 * 12 / 365);
   }
 
   // IVA / IGIC / IPSI
-  let tasaIVA = 0.21;
-  if (zonaFiscal === 'Canarias') {
-    tasaIVA = esVivienda ? 0.00 : 0.03; 
-  } else if (zonaFiscal === 'CeutaMelilla') {
-    tasaIVA = 0.01;
-  }
+  // Ojo: en Canarias y Ceuta/Melilla el contador tributa con un tipo distinto.
+  const terr = (CFG && typeof CFG.getTerritorio === 'function')
+    ? CFG.getTerritorio(zonaFiscal)
+    : null;
 
-  const ivaBase = round2(pot + consAdj + costeBonoSocial + impuestoElec + alquilerContador);
-  const ivaCuota = round2(ivaBase * tasaIVA);
-  const totalBase = round2(ivaBase + ivaCuota);
+  // `ivaCuota` = impuesto indirecto (IVA/IGIC/IPSI). Mantener el nombre para no romper la UI.
+  let ivaCuota = 0;
+  let totalBase = 0;
+
+  const tipoImpuesto = String(terr?.impuestos?.tipo || '').toUpperCase();
+
+  if (tipoImpuesto === 'IGIC') {
+    const potenciaContratada = Math.max(0, Number(potenciaP1) || 0, Number(potenciaP2) || 0);
+    const limiteKw = Number(terr?.limiteViviendaKw) || 10;
+    const esViviendaTipoCero = Boolean(esVivienda) && potenciaContratada > 0 && potenciaContratada <= limiteKw;
+
+    const igicEnergia = esViviendaTipoCero
+      ? 0
+      : round2((sumaBase + impuestoElec) * (Number(terr?.impuestos?.energiaOtros) || 0));
+    const igicContador = round2(alquilerContador * (Number(terr?.impuestos?.contador) || 0));
+
+    ivaCuota = round2(igicEnergia + igicContador);
+    totalBase = round2(sumaBase + impuestoElec + igicEnergia + alquilerContador + igicContador);
+  } else if (tipoImpuesto === 'IPSI') {
+    const ipsiEnergia = round2((sumaBase + impuestoElec) * (Number(terr?.impuestos?.energia) || 0));
+    const ipsiContador = round2(alquilerContador * (Number(terr?.impuestos?.contador) || 0));
+
+    ivaCuota = round2(ipsiEnergia + ipsiContador);
+    totalBase = round2(sumaBase + impuestoElec + ipsiEnergia + alquilerContador + ipsiContador);
+  } else {
+    // IVA (Península/Baleares): mismo tipo para energía y contador.
+    const ivaPorc = Number(terr?.impuestos?.energia);
+    const ivaRate = Number.isFinite(ivaPorc) ? ivaPorc : 0.21;
+    const ivaBase = round2(sumaBase + impuestoElec + alquilerContador);
+
+    ivaCuota = round2(ivaBase * ivaRate);
+    totalBase = round2(ivaBase + ivaCuota);
+  }
 
   // Batería Virtual (Hucha)
   // Importante: si la tarifa NO tiene BV, no debe aplicarse saldo previo ni acumular sobrantes.
@@ -254,6 +289,7 @@ window.BVSim.calcMonthForTarifa = function ({
     impuestoElec,
     alquilerContador,
     ivaCuota,
+    impuestoIndirectoTipo: terr?.impuestos?.tipo || (zonaFiscal === 'Canarias' ? 'IGIC' : (zonaFiscal === 'CeutaMelilla' ? 'IPSI' : 'IVA')),
     totalBase,
     exKwh,
     precioExc,
