@@ -173,7 +173,7 @@
         // --- VALIDACIÓN NUFRI IN-LINE (ICONO) ---
         let nufriWarnIcon = '';
         if (nufriExcede && nombreBase.toLowerCase().includes('nufri')) {
-          const tipText = `⚠️ Requisitos Nufri no cumplidos:\n\nTu consumo estimado (~${Math.round(consumoAnualEst).toLocaleString('es-ES')} kWh/año) supera el límite.\n\n• Máx por potencia: ${Math.round(limiteRatio).toLocaleString('es-ES')} kWh\n• Máx absoluto: 8.000 kWh\n\nProbablemente rechacen la contratación.`;
+          const tipText = `⚠️ Requisitos Nufri (Límites superados):\n\nTu consumo estimado (~${Math.round(consumoAnualEst).toLocaleString('es-ES')} kWh/año) supera los límites teóricos:\n\n• Máx por potencia: ${Math.round(limiteRatio).toLocaleString('es-ES')} kWh\n• Máx absoluto: 8.000 kWh\n\nNo obstante, se aconseja intentar la contratación si te interesa, ya que será Nufri quien confirme la validez final durante el proceso.`;
           nufriWarnIcon = `<span class="tooltip nufri-icon" data-tip="${escapeHtml(tipText)}" role="button" tabindex="0" aria-label="Advertencia requisitos Nufri" style="margin-left:4px; color:var(--danger); cursor:help; font-size:1.1em;">⚠️</span>`;
         }
 
