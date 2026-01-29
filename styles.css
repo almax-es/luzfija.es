@@ -621,22 +621,30 @@
     #globalTooltip{
       position: fixed;
       display: none;
-      padding: 8px 12px;
-      background: rgba(5,8,16,.95);
+      padding: 10px 14px;
+      background: rgba(5,8,16,.92);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
       color: #fff;
-      border-radius: 8px;
-      font-size: 11px;
-      font-weight: 600;
-      line-height: 1.5;
+      border-radius: 10px;
+      font-size: 12px;
+      font-weight: 500;
+      line-height: 1.6;
       white-space: pre-line;
-      max-width: calc(100vw - 16px);
+      max-width: min(calc(100vw - 32px), 340px);
       overflow-wrap: anywhere;
       word-break: break-word;
       text-align: left;
-      box-shadow: 0 8px 24px rgba(0,0,0,.4);
-      z-index: 9999;
-      border: 1px solid rgba(139,92,246,.4);
+      box-shadow: 0 12px 32px rgba(0,0,0,.5);
+      z-index: 10000;
+      border: 1px solid rgba(255,255,255,.1);
       pointer-events: none;
+    }
+    html.light-mode #globalTooltip{
+      background: rgba(255,255,255,.95);
+      color: #0F172A;
+      border-color: rgba(15,23,42,.12);
+      box-shadow: 0 12px 32px rgba(15,23,42,.15);
     }
     .input{ width:100%; padding: 14px 12px; border-radius: 12px; border: 1px solid var(--border); background: rgba(0,0,0,.22); color: var(--text); outline:none; font-weight: 900; font-size: 15px; transition: box-shadow .15s ease, border-color .15s ease, transform .15s ease, background .15s ease; min-height: 44px; position: relative; }
     .input:focus{ 
@@ -1281,12 +1289,7 @@
       color: white;
     }
 
-    html.light-mode #globalTooltip{
-      background: rgba(255,255,255,.98);
-      color: var(--text);
-      border-color: rgba(15,23,42,.18);
-      box-shadow: 0 8px 24px rgba(15,23,42,.12);
-    }
+
 
     /* FIX: modal "Subir factura" completamente legible en modo claro */
     html.light-mode .modal-overlay{
