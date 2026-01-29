@@ -79,14 +79,16 @@ describe('Sistema de Caché (lf-cache.js)', () => {
       json: async () => mockTarifas
     });
 
-    const success = await fetchTarifas();
-
+    const success = await global.window.LF.fetchTarifas(false);
+    
     expect(success).toBe(true);
     expect(global.window.LF.baseTarifasCache).toEqual(mockTarifas.tarifas);
-    expect(fetchMock).toHaveBeenCalledWith('tarifas.json', expect.anything());
+    // Ahora la URL puede llevar ?v=timestamp, así que usamos stringContaining
+    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('tarifas.json'), expect.anything());
+    // Verificamos que se guarda "Tarifa A" que es lo que hay en el mock
     expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      'lf_tarifas_cache', 
-      expect.stringContaining('Tarifa A')
+      'lf_tarifas_cache',
+      expect.stringContaining('"nombre":"Tarifa A"')
     );
   });
 
