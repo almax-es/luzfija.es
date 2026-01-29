@@ -92,6 +92,39 @@ describe('Sistema de Caché (lf-cache.js)', () => {
     );
   });
 
+  it('Debe añadir parámetro anti-caché (?v=) cuando se fuerza refresco o la caché expira', async () => {
+    fetchMock.mockResolvedValue({ ok: true, json: async () => mockTarifas });
+    
+    // Forzamos forceRefresh = true
+    await fetchTarifas(true);
+
+    // La URL debe contener explícitamente ?v=
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringMatching(/tarifas\.json\?v=\d+/), 
+      expect.anything()
+    );
+  });
+
+  it('Debe formatear la fecha incluyendo hora y minutos', () => {
+    // Simulamos un elemento DOM
+    const elMock = { textContent: '', title: '' };
+    global.window.LF.el.tarifasUpdated = elMock;
+
+    const meta = { updatedAt: "2026-01-29T10:30:00.000Z" }; // UTC
+    
+    global.window.LF.renderTarifasUpdated(meta);
+
+    // En horario de invierno (Enero), Madrid es UTC+1 -> 11:30
+    // Verificamos que contenga la fecha y la hora (formato aproximado por locales)
+    expect(elMock.textContent).toContain('Actualizado el');
+    expect(elMock.textContent).toMatch(/\d{2}\/\d{2}\/\d{4}/); // DD/MM/YYYY
+    expect(elMock.textContent).toMatch(/\d{2}:\d{2}/); // HH:mm
+    
+    // Opcional: Verificar hora exacta (11:30 en Madrid para esa fecha UTC)
+    // Nota: Esto depende de que Node tenga bien las timezones, si falla lo relajamos.
+    expect(elMock.textContent).toContain('11:30'); 
+  });
+
   it('Debe usar caché si la red falla (Offline Mode)', async () => {
     fetchMock.mockRejectedValue(new Error('Network error'));
 
