@@ -478,7 +478,8 @@
       }
     } catch (e) {}
     
-    fetchTarifas(false, { silent: true }).catch(() => {});
+    // Al entrar, forzamos siempre una descarga limpia para evitar datos obsoletos
+    fetchTarifas(true, { silent: true }).catch(() => {});
   });
 
   // ===== LIMPIEZA DE SW PROBLEMÁTICOS =====

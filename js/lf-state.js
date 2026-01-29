@@ -13,7 +13,7 @@
   const LS_KEY = 'almax_comparador_v6_inputs';
   const THEME_KEY = window.__ALMAX_THEME_KEY || 'almax_theme';
   const TARIFAS_CACHE_KEY = 'luzfija_tarifas_v1';
-  const TARIFAS_CACHE_TTL = 5 * 60 * 1000; // 5 minutos
+  const TARIFAS_CACHE_TTL = 30 * 1000; // 30 segundos (antes 5 min)
 
   // VALORES POR DEFECTO
   const DEFAULTS = {
