@@ -1146,7 +1146,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // Ranking: ordenar por "pagas" (coste total anual con BV aplicada).
-      // Nota: si el usuario introduce un saldo BV inicial > 0, el ranking reflejara ese saldo.
+      // Nota: si el usuario introduce un saldo BV inicial > 0, el ranking reflejará ese saldo.
       const rankedResults = [...allResults.results].sort((a, b) => {
         const diffPagado = (a.totals.pagado || 0) - (b.totals.pagado || 0);
         if (Math.abs(diffPagado) < 0.01) {
@@ -1410,7 +1410,7 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Pdto: ${fEur(sobranteHucha)}`
               <div class="bv-alt-price-box">
                 <div class="bv-alt-price">${fEur(r.totals.pagado)}</div>
                 <div class="bv-alt-price-label">Coste total anual</div>
-                ${hasBV ? `<div class="bv-alt-bv-saldo">${fEur(r.totals.bvFinal)} saldo BV final</div>` : ''}
+                ${hasBV ? `<div class="bv-alt-bv-saldo">${fEur(r.totals.bvFinal)} Saldo BV final</div>` : ''}
               </div>
             </div>
 
