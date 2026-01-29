@@ -1145,23 +1145,19 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(allResults?.error || 'No se pudo calcular el ranking.');
       }
 
-      // Ranking: ordenar por coste real (sin aplicar BV anterior) y, en empate, por saldo BV final.
-      // Esto evita que el orden dependa del saldo inicial del usuario.
+      // Ranking: ordenar por "pagas" (coste total anual con BV aplicada).
+      // Nota: si el usuario introduce un saldo BV inicial > 0, el ranking reflejara ese saldo.
       const rankedResults = [...allResults.results].sort((a, b) => {
-        const diffReal = (a.totals.real || 0) - (b.totals.real || 0);
-        if (Math.abs(diffReal) < 0.01) {
+        const diffPagado = (a.totals.pagado || 0) - (b.totals.pagado || 0);
+        if (Math.abs(diffPagado) < 0.01) {
           const bvA = (a.totals.bvFinal || 0);
           const bvB = (b.totals.bvFinal || 0);
-          if (Math.abs(bvB - bvA) < 0.01) return (a.totals.pagado || 0) - (b.totals.pagado || 0);
           return bvB - bvA;
         }
-        return diffReal;
+        return diffPagado;
       });
 
       const winner = rankedResults[0];
-      const ahorroPct = rankedResults.length > 1
-        ? Math.round(((rankedResults[rankedResults.length-1].totals.real - winner.totals.real) / rankedResults[rankedResults.length-1].totals.real) * 100)
-        : 0;
 
       const r2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 
@@ -1370,16 +1366,16 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Pdto: ${fEur(sobranteHucha)}`
           </div>
           <div class="bv-kpis-stack">
             <div class="bv-kpi-card">
-              <span class="bv-kpi-label">Coste real (ranking)</span>
-              <span class="bv-kpi-value">${fEur(winner.totals.real)}</span>
-              <span class="bv-kpi-sub">Sin aplicar saldo previo</span>
-            </div>
-            <div class="bv-kpi-card">
-              <span class="bv-kpi-label">Pagas en total</span>
+              <span class="bv-kpi-label">Coste total anual</span>
               <span class="bv-kpi-value">${fEur(winner.totals.pagado)}</span>
-              <span class="bv-kpi-sub">${winnerHasBV ? 'Con saldo previo aplicado' : 'Sin BV (igual al coste real)'}</span>
+              <span class="bv-kpi-sub">Suma de todas tus facturas mensuales</span>
             </div>
             ${winnerHasBV ? `
+            <div class="bv-kpi-card">
+              <span class="bv-kpi-label">Ahorro con BV</span>
+              <span class="bv-kpi-value">${fEur((winner.totals.credit1Total || 0) + (winner.totals.credit2Total || 0))}</span>
+              <span class="bv-kpi-sub">Compensación + uso de saldo BV</span>
+            </div>
             <div class="bv-kpi-card highlight">
               <span class="bv-kpi-label">Saldo BV final</span>
               <span class="bv-kpi-value surplus">${fEur(winner.totals.bvFinal)}</span>
@@ -1412,10 +1408,9 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Pdto: ${fEur(sobranteHucha)}`
                 ${pill}
               </div>
               <div class="bv-alt-price-box">
-                <div class="bv-alt-price">${fEur(r.totals.real)}</div>
-                <div class="bv-alt-price-label">Coste real (ranking)</div>
-                ${hasBV ? `<div class="bv-alt-bv-saldo">💳 Pagas: ${fEur(r.totals.pagado)}</div>` : ''}
-                ${hasBV ? `<div class="bv-alt-bv-saldo">💰 ${fEur(r.totals.bvFinal)} saldo BV</div>` : ''}
+                <div class="bv-alt-price">${fEur(r.totals.pagado)}</div>
+                <div class="bv-alt-price-label">Coste total anual</div>
+                ${hasBV ? `<div class="bv-alt-bv-saldo">${fEur(r.totals.bvFinal)} saldo BV final</div>` : ''}
               </div>
             </div>
 
@@ -1447,7 +1442,16 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Pdto: ${fEur(sobranteHucha)}`
       }).join('');
 
       const totalTarifas = rankedResults.length;
-      resultsEl.innerHTML = `<h2 style="text-align:center; font-size:1.8rem; font-weight:900; margin-bottom:2rem; color:var(--text);">Resultados de la Simulación</h2>${winnerHTML}<h3 style="text-align:center; margin-bottom: 24px; margin-top: 40px; color:var(--text);">Ranking completo (${totalTarifas} tarifas)</h3>${alternativesHTML}`;
+      const rankingNote = `
+        <div style="background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 24px; text-align: center;">
+          <div style="font-size: 0.95rem; color: var(--muted); line-height: 1.6;">
+            <strong>¿Cómo se calcula el ranking?</strong><br>
+            Las tarifas están ordenadas por el <strong>coste total anual</strong>: la suma de todas tus facturas mensuales durante el año.
+            ${saldoVal > 0 ? `<br><br><strong>Nota:</strong> has indicado un saldo BV inicial de ${fEur(saldoVal)} y se descuenta en el cálculo.` : ''}
+          </div>
+        </div>
+      `;
+      resultsEl.innerHTML = `<h2 style="text-align:center; font-size:1.8rem; font-weight:900; margin-bottom:2rem; color:var(--text);">Resultados de la Simulación</h2>${rankingNote}${winnerHTML}<h3 style="text-align:center; margin-bottom: 24px; margin-top: 40px; color:var(--text);">Ranking completo (${totalTarifas} tarifas)</h3>${alternativesHTML}`;
       resultsContainer.style.display = 'block';
       setTimeout(() => resultsContainer.classList.add('show'), 10);
       statusContainer.style.display = 'none';
