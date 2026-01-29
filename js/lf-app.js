@@ -503,8 +503,8 @@
 
           // Detectar cuando hay una actualización disponible
           if (registration.waiting) {
-            lfDbg('[SW] Update waiting already');
-            showUpdateNotification(registration.waiting);
+            lfDbg('[SW] Update waiting already, auto-updating...');
+            registration.waiting.postMessage({ type: 'SKIP_WAITING' });
           }
 
           registration.addEventListener('updatefound', function() {
@@ -513,8 +513,8 @@
 
             newWorker.addEventListener('statechange', function() {
               if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                lfDbg('[SW] New update installed and ready');
-                showUpdateNotification(newWorker);
+                lfDbg('[SW] New update installed, auto-updating...');
+                newWorker.postMessage({ type: 'SKIP_WAITING' });
               }
             });
           });
@@ -531,96 +531,9 @@
     });
   }
 
-  // Mostrar notificación de actualización disponible
+  // (Función showUpdateNotification eliminada por desuso)
   function showUpdateNotification(worker) {
-    const existing = document.getElementById('lf-update-toast');
-    if (existing) return;
-
-    const toast = document.createElement('div');
-    toast.id = 'lf-update-toast';
-    toast.setAttribute('role', 'alert');
-    toast.setAttribute('aria-live', 'polite');
-    toast.style.cssText = `
-      position: fixed;
-      bottom: 20px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: linear-gradient(135deg, rgba(34,197,94,0.95), rgba(139,92,246,0.95));
-      border: 1px solid rgba(34,197,94,0.6);
-      color: white;
-      padding: 14px 18px;
-      border-radius: 12px;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.3);
-      z-index: 9999;
-      font-size: 14px;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      max-width: 90vw;
-      font-family: 'Outfit', system-ui, sans-serif;
-      backdrop-filter: blur(10px);
-    `;
-
-    toast.innerHTML = `
-      <span style="flex-shrink: 0; font-size: 16px;">✨</span>
-      <span style="flex: 1;">Hay una nueva versión disponible</span>
-      <button id="lf-update-btn" style="
-        background: rgba(255,255,255,0.25);
-        border: 1px solid rgba(255,255,255,0.5);
-        color: white;
-        padding: 6px 12px;
-        border-radius: 6px;
-        cursor: pointer;
-        font-weight: 600;
-        font-family: inherit;
-        font-size: 12px;
-        transition: all 0.2s;
-      ">Actualizar</button>
-      <button id="lf-update-close" style="
-        background: transparent;
-        border: none;
-        color: white;
-        cursor: pointer;
-        font-size: 18px;
-        padding: 0;
-        flex-shrink: 0;
-        opacity: 0.7;
-        transition: opacity 0.2s;
-      ">×</button>
-    `;
-
-    document.body.appendChild(toast);
-
-    const updateBtn = document.getElementById('lf-update-btn');
-    const closeBtn = document.getElementById('lf-update-close');
-
-    updateBtn.addEventListener('mouseenter', function() {
-      this.style.background = 'rgba(255,255,255,0.35)';
-      this.style.transform = 'scale(1.05)';
-    });
-    updateBtn.addEventListener('mouseleave', function() {
-      this.style.background = 'rgba(255,255,255,0.25)';
-      this.style.transform = 'scale(1)';
-    });
-
-    closeBtn.addEventListener('mouseenter', function() {
-      this.style.opacity = '1';
-    });
-    closeBtn.addEventListener('mouseleave', function() {
-      this.style.opacity = '0.7';
-    });
-
-    updateBtn.addEventListener('click', function() {
-      lfDbg('[SW] User clicked update');
-      worker.postMessage({ type: 'SKIP_WAITING' });
-      toast.style.opacity = '0.5';
-      updateBtn.disabled = true;
-      closeBtn.disabled = true;
-    });
-
-    closeBtn.addEventListener('click', function() {
-      toast.remove();
-    });
+     // Auto-update activo: no mostramos UI
   }
 
   // ===== PWA INSTALL =====
