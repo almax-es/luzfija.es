@@ -384,9 +384,7 @@
       toggleMenu(false);
 
       try {
-        toast('Refrescando tarifas...', 'info');
-        await fetchTarifas(true, { silent: false });
-        toast('✅ Tarifas actualizadas');
+        await fetchTarifas(true, { silent: true });
 
         if (state.rows && state.rows.length > 0) {
           setTimeout(() => {

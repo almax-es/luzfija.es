@@ -132,8 +132,7 @@
       writeTarifasCache(tarifas, window.LF.__LF_tarifasMeta);
 
       if (!silent) {
-        setStatus('Datos actualizados', 'ok');
-        setTimeout(() => setStatus('Listo para calcular', 'idle'), 1500);
+        setTimeout(() => setStatus('Listo para calcular', 'idle'), 500);
       }
       return true;
 
