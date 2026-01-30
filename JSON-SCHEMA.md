@@ -181,7 +181,7 @@ Documentación precisa de los archivos JSON que alimentan el comparador de tarif
   "fecha": "2025-12-30",
   "tipo": "regulatorio",
   "titulo": "Confirmado: el bono social se mantiene en 2026",
-  "texto": "El Gobierno prorroga los descuentos del bono social durante todo 2026: 42,5% para vulnerables y 57,5% para vulnerables severos.",
+  "texto": "Desde 30/01/2026, los descuentos de Bono Social vuelven a valores base: 35% para vulnerables y 50% para vulnerables severos. Se espera nuevo decreto omnibus próximamente.",
   "enlace": "/guias/bono-social-electrico-quien-puede-pedirlo-y-como.html"
 }
 ```
