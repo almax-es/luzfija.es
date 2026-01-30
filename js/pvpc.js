@@ -537,9 +537,11 @@ const PEAJES_POT_DIA = {
           return Number.isFinite(h) ? h : 0;
         };
 
-        // Horarios según zona (Península/Canarias vs Ceuta/Melilla)
-        const horasPunta = esCeutaMelilla ? [11,12,13,14,19,20,21,22] : esCanarias ? [9,10,11,12,17,18,19,20] : [10,11,12,13,18,19,20,21];
-        const horasValle = esCeutaMelilla ? [0,1,2,3,4,5,6,7] : [0,1,2,3,4,5,6,7];
+        // Horarios según zona (CNMC Circular 3/2020)
+        // Península/Baleares/Canarias: iguales (10-14 y 18-22)
+        // Ceuta/Melilla: desplazados +1h (11-15 y 19-23)
+        const horasPunta = esCeutaMelilla ? [11,12,13,14,19,20,21,22] : [10,11,12,13,18,19,20,21];
+        const horasValle = [0,1,2,3,4,5,6,7]; // Igual para todas las zonas
         
         // Calcular precios medios por periodo (método de aproximación)
         let sumPunta = 0, countPunta = 0;

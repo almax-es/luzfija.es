@@ -13,9 +13,10 @@ window.BVSim = window.BVSim || {};
  * Si window.LF.csvUtils no está disponible, falla con error claro.
  * @param {Date} fecha - Fecha a evaluar
  * @param {number} hora - Hora CNMC (1-24, donde 25 = cambio horario octubre)
+ * @param {string} zona - Zona geográfica ('peninsula'|'ceutaMelilla'). Default: 'peninsula'
  * @returns {string} 'P1', 'P2' o 'P3'
  */
-function getPeriodoHorarioCSV(fecha, hora) {
+function getPeriodoHorarioCSV(fecha, hora, zona = 'peninsula') {
   // Verificar que las utilidades canónicas están disponibles
   if (!window.LF || !window.LF.csvUtils || typeof window.LF.csvUtils.getPeriodoHorarioCSV !== 'function') {
     const errorMsg =
@@ -30,8 +31,8 @@ function getPeriodoHorarioCSV(fecha, hora) {
     throw new Error(errorMsg);
   }
 
-  // Delegar al cálculo canónico (que maneja correctamente hora 25)
-  return window.LF.csvUtils.getPeriodoHorarioCSV(fecha, hora);
+  // Delegar al cálculo canónico (que maneja correctamente hora 25 y zonas CNMC)
+  return window.LF.csvUtils.getPeriodoHorarioCSV(fecha, hora, zona);
 }
 
 // Verificación temprana al cargar el módulo (advertencia en consola)

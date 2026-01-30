@@ -879,16 +879,21 @@
 
   /**
    * Determina el periodo tarifario (P1/P2/P3) para una fecha y hora dadas.
-   * Reglas CNMC para tarifa 2.0TD:
+   * Reglas CNMC Circular 3/2020 para tarifa 2.0TD:
    * - P3 (Valle): 0-8h, fines de semana, festivos nacionales
-   * - P1 (Punta): 10-14h y 18-22h (laborables)
+   * - P1 (Punta): según zona (ver abajo)
    * - P2 (Llano): resto de horas (laborables)
+   *
+   * Zonas soportadas (CNMC):
+   * - Península/Baleares/Canarias: P1 = 10-14h y 18-22h
+   * - Ceuta/Melilla: P1 = 11-15h y 19-23h
    *
    * @param {Date} fecha - Fecha a evaluar
    * @param {number} hora - Hora CNMC (1-24, donde 1 = 00:00-01:00)
+   * @param {string} zona - Zona geográfica ('peninsula'|'ceutaMelilla'). Default: 'peninsula'
    * @returns {string} 'P1', 'P2' o 'P3'
    */
-  function getPeriodoHorarioCSV(fecha, hora) {
+  function getPeriodoHorarioCSV(fecha, hora, zona = 'peninsula') {
     const diaSemana = fecha.getDay(); // 0=domingo, 6=sábado
     const esFinde = diaSemana === 0 || diaSemana === 6;
 
@@ -910,12 +915,21 @@
     // Hora inicio: hora CNMC - 1 (hora 1 = 0-1h -> horaInicio=0)
     const horaInicio = (hora === 25) ? 2 : (hora - 1); // hora 25 (cambio horario octubre) equivale a 02:00-03:00
 
-    // Valle: 0-8h
+    // Valle: 0-8h (igual para todas las zonas)
     if (horaInicio >= 0 && horaInicio < 8) return 'P3';
 
-    // Punta: 10-14h y 18-22h
-    if ((horaInicio >= 10 && horaInicio < 14) || (horaInicio >= 18 && horaInicio < 22)) {
-      return 'P1';
+    // Punta: según zona CNMC
+    const esCeutaMelilla = zona === 'ceutaMelilla' || zona === 'ceuta-melilla';
+    if (esCeutaMelilla) {
+      // Ceuta/Melilla: P1 = 11-15h y 19-23h
+      if ((horaInicio >= 11 && horaInicio < 15) || (horaInicio >= 19 && horaInicio < 23)) {
+        return 'P1';
+      }
+    } else {
+      // Península/Baleares/Canarias: P1 = 10-14h y 18-22h
+      if ((horaInicio >= 10 && horaInicio < 14) || (horaInicio >= 18 && horaInicio < 22)) {
+        return 'P1';
+      }
     }
 
     // Llano: resto
