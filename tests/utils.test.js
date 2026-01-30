@@ -110,8 +110,8 @@ describe('Utilidades Base (lf-utils.js)', () => {
       // Base descuento: Fijo(10) + Margen(0 en test) + Bono(1) + Variable(20 ya que 300kWh > limite_periodo)
       // Nota: limitePeriodo = (10000/365)*30 = 821 kWh. Como 300 < 821, bonifica los 20€ enteros.
       // Total Base Descuento = 10 + 1 + 20 = 31€
-      // Descuento = 31 * 0.425 = 13.175 -> round2 -> 13.18€
-      expect(res.descuentoEur).toBe(13.18);
+      // Descuento = 31 * 0.35 = 10.85€ (vulnerable, sin decreto omnibus)
+      expect(res.descuentoEur).toBe(10.85);
     });
 
     it('Debe aplicar el límite de kWh bonificables', () => {

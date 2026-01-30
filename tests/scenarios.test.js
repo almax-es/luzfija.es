@@ -112,10 +112,10 @@ describe('Escenarios de Negocio (Integración Fiscal y Bono Social)', () => {
     const res = calcPvpcBonoSocial(metaBase, inputs, global.window.LF_CONFIG);
 
     expect(res.descuentoEur).toBeGreaterThan(0);
-    // Verificar que el % aplicado es aprox 42.5%
+    // Verificar que el % aplicado es aprox 35% (vulnerable, sin decreto omnibus)
     // Base descontable aprox: Fijo + Variable + Financiación = 10 + 50 + 1 = 61
-    // Descuento esperado: 61 * 0.425 = ~25.92
-    expect(res.descuentoEur).toBeCloseTo(25.9, 0); 
+    // Descuento esperado: 61 * 0.35 = ~21.35
+    expect(res.descuentoEur).toBeCloseTo(21.35, 0); 
   });
 
   it('Escenario 6: Bono Social Severo (Descuento 57.5%)', () => {
@@ -130,9 +130,9 @@ describe('Escenarios de Negocio (Integración Fiscal y Bono Social)', () => {
     const res = calcPvpcBonoSocial(metaBase, inputs, global.window.LF_CONFIG);
 
     // Debe ser mayor que el vulnerable
-    // Base 61 * 0.575 = ~35.07
-    expect(res.descuentoEur).toBeGreaterThan(30);
-    expect(res.descuentoEur).toBeCloseTo(35.0, 0);
+    // Base 61 * 0.50 = ~30.5 (severo, sin decreto omnibus)
+    expect(res.descuentoEur).toBeGreaterThan(25);
+    expect(res.descuentoEur).toBeCloseTo(30.5, 0);
   });
 
   it('Escenario 7: Límite Energía Bono Social', () => {
