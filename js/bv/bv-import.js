@@ -89,14 +89,14 @@ window.BVSim = window.BVSim || {};
         for (let h = 1; h <= 24; h++) {
           let kwh = parseNumberFlexible(row[h]);
           if (!Number.isFinite(kwh)) kwh = 0;
-          const periodo = getPeriodoHorarioCSV(fecha, h);
+          // NO calcular periodo aquí: bucketizeByMonth lo hará con zona correcta
           records.push({
             fecha,
             hora: h,
             kwh,
             excedente: 0,
             autoconsumo: 0,
-            periodo,
+            periodo: null, // Se calculará en bucketizeByMonth con zona
             esReal: true
           });
         }

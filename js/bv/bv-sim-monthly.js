@@ -111,8 +111,21 @@ window.BVSim.bucketizeByMonth = function (records, zona = 'peninsula') {
     if (Number.isFinite(importKwh)) {
       bucket.importTotalKWh += importKwh;
       const hora = Number(record.hora);
-      // Pasar zona a getPeriodoHorarioCSV para soportar Ceuta/Melilla (CNMC)
-      const periodo = record.periodo || (Number.isFinite(hora) ? getPeriodoHorarioCSV(fecha, hora, zona) : null);
+
+      // Determinar periodo: en Ceuta/Melilla SIEMPRE recalcular por zona (CNMC)
+      // porque CSV puede traer periodos calculados con horario Península
+      const zonaNorm = (zona || '').toString().toLowerCase().replace(/[^a-z]/g, '');
+      const esCeutaMelilla = zonaNorm.includes('ceutamelilla') || zonaNorm === 'ceutamelilla';
+
+      let periodo = null;
+      if (esCeutaMelilla && Number.isFinite(hora)) {
+        // Ceuta/Melilla: ignorar record.periodo, recalcular con zona correcta
+        periodo = getPeriodoHorarioCSV(fecha, hora, zona);
+      } else {
+        // Península/Canarias: respetar record.periodo si existe, sino calcular
+        periodo = record.periodo || (Number.isFinite(hora) ? getPeriodoHorarioCSV(fecha, hora, zona) : null);
+      }
+
       if (periodo && bucket.importByPeriod[periodo] !== undefined) {
         bucket.importByPeriod[periodo] += importKwh;
       }
