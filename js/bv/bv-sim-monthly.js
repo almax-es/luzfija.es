@@ -115,7 +115,8 @@ window.BVSim.bucketizeByMonth = function (records, zona = 'peninsula') {
       // Determinar periodo: en Ceuta/Melilla SIEMPRE recalcular por zona (CNMC)
       // porque CSV puede traer periodos calculados con horario Península
       const zonaNorm = (zona || '').toString().toLowerCase().replace(/[^a-z]/g, '');
-      const esCeutaMelilla = zonaNorm.includes('ceutamelilla') || zonaNorm === 'ceutamelilla';
+      // Detección robusta: cualquier variante que contenga "ceuta" Y "melilla"
+      const esCeutaMelilla = zonaNorm.includes('ceuta') && zonaNorm.includes('melilla');
 
       let periodo = null;
       if (esCeutaMelilla && Number.isFinite(hora)) {

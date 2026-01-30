@@ -930,7 +930,8 @@
       .replace(/[^a-z]/g, ''); // Quitar espacios, guiones, etc.
 
     // Punta: según zona CNMC
-    const esCeutaMelilla = zonaNorm === 'ceutamelilla';
+    // Detección robusta: cualquier variante que contenga "ceuta" Y "melilla"
+    const esCeutaMelilla = zonaNorm.includes('ceuta') && zonaNorm.includes('melilla');
     if (esCeutaMelilla) {
       // Ceuta/Melilla: P1 = 11-15h y 19-23h
       if ((horaInicio >= 11 && horaInicio < 15) || (horaInicio >= 19 && horaInicio < 23)) {
