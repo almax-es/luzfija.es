@@ -706,7 +706,9 @@
         periodo = mapPeriodo(row[mapping.periodoIdx]);
       } else {
         // Calcular periodo automáticamente usando la función canónica
-        periodo = getPeriodoHorarioCSV(fecha, hora);
+        // Obtener zona del usuario para clasificar correctamente (CNMC)
+        const zonaFiscal = (typeof window !== 'undefined' && window.LF?.getInputValues?.()?.zonaFiscal) || 'Península';
+        periodo = getPeriodoHorarioCSV(fecha, hora, zonaFiscal);
       }
 
       records.push({
@@ -918,8 +920,15 @@
     // Valle: 0-8h (igual para todas las zonas)
     if (horaInicio >= 0 && horaInicio < 8) return 'P3';
 
+    // Normalizar zona para aceptar variantes (CeutaMelilla, ceutaMelilla, Ceuta-Melilla, etc.)
+    const zonaNorm = (zona || '')
+      .toString()
+      .toLowerCase()
+      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Quitar tildes
+      .replace(/[^a-z]/g, ''); // Quitar espacios, guiones, etc.
+
     // Punta: según zona CNMC
-    const esCeutaMelilla = zona === 'ceutaMelilla' || zona === 'ceuta-melilla';
+    const esCeutaMelilla = zonaNorm === 'ceutamelilla';
     if (esCeutaMelilla) {
       // Ceuta/Melilla: P1 = 11-15h y 19-23h
       if ((horaInicio >= 11 && horaInicio < 15) || (horaInicio >= 19 && horaInicio < 23)) {

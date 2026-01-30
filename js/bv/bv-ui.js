@@ -1011,8 +1011,8 @@ document.addEventListener('DOMContentLoaded', () => {
         window.BVSim._cachedImportResult = result;
         // Obtener zona seleccionada por el usuario para clasificar periodos correctamente
         const zonaVal = zonaFiscalInput ? zonaFiscalInput.value : 'Península';
-        const zonaParam = zonaVal === 'Ceuta-Melilla' ? 'ceutaMelilla' : 'peninsula';
-        populateManualGridFromCSV(result, zonaParam);
+        // Nota: Ya no necesitamos mapear porque getPeriodoHorarioCSV normaliza internamente
+        populateManualGridFromCSV(result, zonaVal);
 
         if (Array.isArray(result.warnings) && result.warnings.length) {
           showToast(`⚠️ ${result.warnings.join('\n')}`, 'ok');

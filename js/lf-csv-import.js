@@ -96,6 +96,9 @@
     function parseXLSXConsumosMatriz(data, headerRow) {
       const consumos = [];
 
+      // Obtener zona del usuario para clasificar periodos correctamente (CNMC)
+      const zonaFiscal = window.LF?.getInputValues?.()?.zonaFiscal || 'Península';
+
       for (let i = headerRow + 1; i < data.length; i++) {
         const row = data[i];
         if (!row || row.length < 2) continue;
@@ -107,7 +110,7 @@
           let kwh = parseNumberFlexible(row[h]);
           if (!Number.isFinite(kwh)) kwh = 0;
 
-          const periodoCalculado = getPeriodoHorarioCSV(fecha, h);
+          const periodoCalculado = getPeriodoHorarioCSV(fecha, h, zonaFiscal);
 
           consumos.push({
             fecha,
@@ -226,8 +229,11 @@
     let datosReales = 0;
     let datosEstimados = 0;
 
+    // Obtener zona del usuario para clasificar periodos correctamente (CNMC)
+    const zonaFiscal = window.LF?.getInputValues?.()?.zonaFiscal || 'Península';
+
     consumos.forEach(c => {
-      const periodo = c.periodo || getPeriodoHorarioCSV(c.fecha, c.hora);
+      const periodo = c.periodo || getPeriodoHorarioCSV(c.fecha, c.hora, zonaFiscal);
       totales[periodo] += c.kwh || 0;
 
       if (c.excedente) totales[`excedentes${periodo}`] += c.excedente;
