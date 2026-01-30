@@ -33,7 +33,7 @@ window.BVSim = window.BVSim || {};
   }
 
   // ===== PARSEO CSV =====
-  function parseCSVConsumos(fileContent) {
+  function parseCSVConsumos(fileContent, zona = null) {
     const { parseCSVToRows, parseEnergyTableRows } = window.LF.csvUtils || {};
     if (typeof parseCSVToRows !== 'function' || typeof parseEnergyTableRows !== 'function') {
       throw new Error('No se pudo cargar el parser de CSV (lf-csv-utils.js faltante)');
@@ -45,12 +45,13 @@ window.BVSim = window.BVSim || {};
     return parseEnergyTableRows(rows, {
       parseNumber: parseNumberFlexibleCSV,
       separator,
-      headerRowIndex
+      headerRowIndex,
+      zonaFiscal: zona // Pasar zona para clasificar periodos correctamente (BV)
     });
   }
 
   // ===== PARSEO XLSX =====
-  async function parseXLSXConsumos(fileBuffer) {
+  async function parseXLSXConsumos(fileBuffer, zona = null) {
     await ensureXLSX();
 
     const workbook = XLSX.read(fileBuffer, { type: 'array' });
@@ -129,7 +130,8 @@ window.BVSim = window.BVSim || {};
 
     return parseEnergyTableRows(data, {
       headerRowIndex: headerRow,
-      parseNumber: parseNumberFlexible
+      parseNumber: parseNumberFlexible,
+      zonaFiscal: zona // Pasar zona para clasificar periodos correctamente (BV)
     });
   }
 
@@ -167,7 +169,13 @@ window.BVSim = window.BVSim || {};
   }
 
   // ===== INTERFAZ PÚBLICA =====
-  window.BVSim.importFile = async function (file) {
+  /**
+   * Importa archivo CSV/XLSX con datos de consumo.
+   * @param {File} file - Archivo a importar
+   * @param {string} zona - Zona CNMC ('Península'|'Canarias'|'CeutaMelilla'). Opcional.
+   * @returns {Promise<Object>} {ok, records, warnings, error}
+   */
+  window.BVSim.importFile = async function (file, zona = null) {
     if (!file) {
       return { ok: false, error: 'No se ha seleccionado ningún archivo.' };
     }
@@ -206,7 +214,7 @@ window.BVSim = window.BVSim || {};
           reader.onerror = () => reject(new Error('Error al leer el archivo CSV'));
           reader.readAsText(file);
         });
-        parsed = parseCSVConsumos(content);
+        parsed = parseCSVConsumos(content, zona);
       } else {
         const buffer = await new Promise((resolve, reject) => {
           const reader = new FileReader();
@@ -214,7 +222,7 @@ window.BVSim = window.BVSim || {};
           reader.onerror = () => reject(new Error('Error al leer el archivo Excel'));
           reader.readAsArrayBuffer(file);
         });
-        parsed = await parseXLSXConsumos(buffer);
+        parsed = await parseXLSXConsumos(buffer, zona);
       }
 
       const records = Array.isArray(parsed.records) ? parsed.records : [];

@@ -1005,12 +1005,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Procesar automáticamente para rellenar el grid manual
     try {
-      const result = await window.BVSim.importFile(file);
+      // Obtener zona seleccionada ANTES de importar para clasificar periodos correctamente
+      const zonaVal = zonaFiscalInput ? zonaFiscalInput.value : 'Península';
+      const result = await window.BVSim.importFile(file, zonaVal);
       if (result && result.ok) {
         // Cachear el resultado
         window.BVSim._cachedImportResult = result;
-        // Obtener zona seleccionada por el usuario para clasificar periodos correctamente
-        const zonaVal = zonaFiscalInput ? zonaFiscalInput.value : 'Península';
         // Nota: Ya no necesitamos mapear porque getPeriodoHorarioCSV normaliza internamente
         populateManualGridFromCSV(result, zonaVal);
 

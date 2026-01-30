@@ -706,8 +706,10 @@
         periodo = mapPeriodo(row[mapping.periodoIdx]);
       } else {
         // Calcular periodo automáticamente usando la función canónica
-        // Obtener zona del usuario para clasificar correctamente (CNMC)
-        const zonaFiscal = (typeof window !== 'undefined' && window.LF?.getInputValues?.()?.zonaFiscal) || 'Península';
+        // Obtener zona: priorizar options.zonaFiscal (BV), fallback a comparador principal
+        const zonaFiscal = options.zonaFiscal ||
+                          (typeof window !== 'undefined' && window.LF?.getInputValues?.()?.zonaFiscal) ||
+                          'Península';
         periodo = getPeriodoHorarioCSV(fecha, hora, zonaFiscal);
       }
 
