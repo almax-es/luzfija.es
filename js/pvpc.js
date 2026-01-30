@@ -612,7 +612,9 @@ const PEAJES_POT_DIA = {
         
         // IMPUESTO ELÉCTRICO
         const baseIEE = terminoFijo + costeMargenPot + terminoVariable + bonoSocial;
-        const impuestoElectrico = Math.max((5.11269632 / 100) * baseIEE, consumoTotal * 0.001);
+        const impuestoElectrico = window.LF_CONFIG
+          ? round2(window.LF_CONFIG.calcularIEE(baseIEE, consumoTotal))
+          : round2(Math.max((5.11269632 / 100) * baseIEE, consumoTotal * 0.001));
         
         // ALQUILER
         const equipoMedida = window.LF_CONFIG ? window.LF_CONFIG.calcularAlquilerContador(dias) : (dias * 0.81 * 12 / 365);
