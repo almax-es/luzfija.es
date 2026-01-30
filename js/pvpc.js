@@ -612,7 +612,7 @@ const PEAJES_POT_DIA = {
         
         // IMPUESTO ELÉCTRICO
         const baseIEE = terminoFijo + costeMargenPot + terminoVariable + bonoSocial;
-        const impuestoElectrico = window.LF_CONFIG
+        const impuestoElectrico = (window.LF_CONFIG && typeof window.LF_CONFIG.calcularIEE === 'function')
           ? round2(window.LF_CONFIG.calcularIEE(baseIEE, consumoTotal))
           : round2(Math.max((5.11269632 / 100) * baseIEE, consumoTotal * 0.001));
         

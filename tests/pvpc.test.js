@@ -21,9 +21,18 @@ global.window.LF_CONFIG = {
     urlIndex: '/data/pvpc/index.json',
     urlMonthPattern: '/data/pvpc/{geoId}/{year}-{month}.json'
   },
+  iee: {
+    porcentaje: 5.11269632,
+    minimoEurosKwh: 0.001
+  },
   // Mocks necesarios para calculos fiscales
   calcularBonoSocial: vi.fn().mockReturnValue(0.50), // Valor fijo simulado
   calcularAlquilerContador: vi.fn().mockReturnValue(0.81), // Valor fijo simulado
+  calcularIEE: vi.fn().mockImplementation((base, consumoKwh) => {
+    const porPorcentaje = (5.11269632 / 100) * base;
+    const porMinimo = consumoKwh * 0.001;
+    return Math.max(porPorcentaje, porMinimo);
+  }),
   getTerritorio: vi.fn().mockReturnValue({ ie: 0.051127, iva: 0.21 }) // Mock basico de territorio
 };
 
