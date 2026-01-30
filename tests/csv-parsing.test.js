@@ -188,9 +188,11 @@ describe('CSV Utils - Parsing Robusto', () => {
       expect(festivos.has('2025-12-25')).toBe(true);
     });
 
-    it('Debe incluir festivos móviles (Viernes Santo 2025 = 18 Abril)', () => {
+    it('NO debe incluir festivos móviles (CNMC BOE-A-2020-1066)', () => {
+      // Viernes Santo 2025 = 18 de Abril (móvil)
+      // La normativa CNMC excluye los festivos sin fecha fija
       const festivos = csvUtils.getFestivosNacionales(2025);
-      expect(festivos.has('2025-04-18')).toBe(true);
+      expect(festivos.has('2025-04-18')).toBe(false);
     });
 
     it('Debe cachear resultados (mismo objeto para mismo año)', () => {

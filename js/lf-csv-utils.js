@@ -841,10 +841,14 @@
   const _festivosCache = new Map();
 
   /**
-   * Retorna los festivos nacionales españoles para un año.
-   * Incluye: Año Nuevo, Reyes, Viernes Santo, 1 Mayo, 15 Agosto, 12 Octubre,
+   * Retorna los festivos nacionales españoles para un año (CNMC Circular 3/2020).
+   * Solo incluye festivos de fecha FIJA (excluyendo móviles como Viernes Santo).
+   * Incluye: Año Nuevo, Reyes, 1 Mayo, 15 Agosto, 12 Octubre,
    * 1 Noviembre, 6/8/25 Diciembre.
    * Usa caché interno para mejorar performance.
+   *
+   * Nota: Viernes Santo (móvil) está EXCLUIDO según CNMC BOE-A-2020-1066
+   * "días festivos de ámbito nacional con exclusión de los que no tienen fecha fija"
    *
    * @param {number} year - Año
    * @returns {Set<string>} Set de fechas en formato 'yyyy-mm-dd'
@@ -859,7 +863,6 @@
     const festivos = [
       `${y}-01-01`, // Año Nuevo
       `${y}-01-06`, // Reyes
-      calcularViernesSanto(y), // Viernes Santo (calculado)
       `${y}-05-01`, // Día del Trabajo
       `${y}-08-15`, // Asunción
       `${y}-10-12`, // Fiesta Nacional

@@ -439,57 +439,19 @@
         return null;
       }
 
-      // Festivos nacionales: lista de fecha fija (MM-DD) + Viernes Santo (móvil).
-      // Se usa únicamente para la lógica de periodos 2.0TD (valle todo el día), y debe ser coherente con el importador CSV/XLS.
+      // Festivos nacionales de fecha FIJA (MM-DD) según CNMC Circular 3/2020.
+      // EXCLUYE festivos móviles como Viernes Santo (BOE-A-2020-1066).
+      // Se usa únicamente para la lógica de periodos 2.0TD (valle todo el día).
       const FESTIVOS_NACIONALES_MMDD = new Set([
         '01-01', '01-06', '05-01', '08-15', '10-12', '11-01', '12-06', '12-08', '12-25'
       ]);
 
-      // Viernes Santo (móvil): se calcula por año. Se incluye para mantener consistencia con el importador CSV/XLS.
-      const _viernesSantoCache = new Map();
-      const calcularViernesSanto = (year) => {
-        const y = Number(year);
-        if (!Number.isFinite(y) || y < 1900 || y > 2200) return null;
-        const cached = _viernesSantoCache.get(y);
-        if (cached) return cached;
-
-        // Algoritmo de Meeus/Jones/Butcher (idéntico al usado en lf-csv-import.js)
-        const a = y % 19;
-        const b = Math.floor(y / 100);
-        const c = y % 100;
-        const d = Math.floor(b / 4);
-        const e = b % 4;
-        const f = Math.floor((b + 8) / 25);
-        const g = Math.floor((b - f + 1) / 3);
-        const h = (19 * a + b - d - g + 15) % 30;
-        const i = Math.floor(c / 4);
-        const k = c % 4;
-        const l = (32 + 2 * e + 2 * i - h - k) % 7;
-        const m = Math.floor((a + 11 * h + 22 * l) / 451);
-        const month = Math.floor((h + l - 7 * m + 114) / 31);
-        const day = ((h + l - 7 * m + 114) % 31) + 1;
-
-        const pascua = new Date(y, month - 1, day);
-        const viernesSanto = new Date(pascua);
-        viernesSanto.setDate(pascua.getDate() - 2);
-
-        const mes = String(viernesSanto.getMonth() + 1).padStart(2, '0');
-        const dia = String(viernesSanto.getDate()).padStart(2, '0');
-        const ymd = `${y}-${mes}-${dia}`;
-        _viernesSantoCache.set(y, ymd);
-        return ymd;
-      };
-
-      // Festivo nacional (fijo + Viernes Santo). Input esperado: "YYYY-MM-DD".
+      // Festivo nacional (solo fecha fija). Input esperado: "YYYY-MM-DD".
       const esFestivoNacional = (ymd) => {
         const s = String(ymd || '');
         if (s.length < 10) return false;
         const mmdd = s.slice(5, 10);
-        if (FESTIVOS_NACIONALES_MMDD.has(mmdd)) return true;
-
-        const year = parseInt(s.slice(0, 4), 10);
-        const vs = calcularViernesSanto(year);
-        return vs ? s.slice(0, 10) === vs : false;
+        return FESTIVOS_NACIONALES_MMDD.has(mmdd);
       };
 const PEAJES_POT_DIA = {
         p1: 0.075901,

@@ -20,13 +20,16 @@ describe('Lógica CSV - Calendario y Festivos', () => {
       expect(periodo).toBe('P3');
     });
 
-    it('Debe detectar festivos móviles (Viernes Santo)', () => {
+    it('Viernes Santo NO es P3 (CNMC BOE-A-2020-1066 excluye móviles)', () => {
       // Viernes Santo 2025 es el 18 de Abril
       // (Pascua es el 20 de Abril de 2025)
-      const viernesSanto = new Date(2025, 3, 18); // Mes 3 es Abril
-      const periodo = helpers.getPeriodoHorarioCSV(viernesSanto, 10);
-      
-      expect(periodo).toBe('P3');
+      // Según CNMC, solo festivos de fecha FIJA cuentan como P3 24h.
+      // Viernes Santo es móvil, por lo que se comporta como laborable normal.
+      const viernesSanto = new Date(2025, 3, 18); // Viernes (laborable)
+      const periodo = helpers.getPeriodoHorarioCSV(viernesSanto, 11);
+
+      // A hora 11 (10:00-11:00) en un viernes laborable = P1 (punta: 10-14h)
+      expect(periodo).toBe('P1');
     });
 
     it('NO debe marcar como festivo un día laborable normal', () => {
