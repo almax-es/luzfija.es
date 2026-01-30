@@ -17,9 +17,9 @@
   function getFvExcPrice(fv) {
     if (!fv) return 0;
     const raw = fv.exc;
-    if (typeof raw === 'number' && Number.isFinite(raw)) return Math.max(0, raw);
-    if (typeof raw === 'string' && raw.toUpperCase() === 'INDEXADA') return null;
-    return 0;
+    // Solo se aceptan valores numéricos válidos. Las tarifas indexadas
+    // (ej: Nufri) se manejan con estimaciones numéricas + disclaimer en UI.
+    return (typeof raw === 'number' && Number.isFinite(raw)) ? Math.max(0, raw) : 0;
   }
 
   // ===== CÁLCULO LOCAL =====

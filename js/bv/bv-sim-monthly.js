@@ -219,14 +219,10 @@ window.BVSim.calcMonthForTarifa = function ({
   
   // Excedentes
   const exKwh = Number(month.exportTotalKWh) || 0;
-  // Blindaje: evitar NaN si exc viene como string ("INDEXADA") u otro valor no numérico.
+  // Solo se aceptan valores numéricos válidos. Las tarifas indexadas
+  // (ej: Nufri) se manejan con estimaciones numéricas en tarifas.json + disclaimer en UI.
   let precioExc = Number(tarifa?.fv?.exc);
   if (!Number.isFinite(precioExc)) precioExc = 0;
-  
-  // Si es indexada y no tiene precio fijo, estimamos 0.06 (media pool excedentes)
-  if (precioExc <= 0 && String(tarifa?.tipo || '').toUpperCase() === 'INDEXADA') {
-    precioExc = 0.06;
-  }
   
   const creditoPotencial = round2(exKwh * precioExc);
   
@@ -505,16 +501,12 @@ window.BVSim.loadTarifasBV = async function () {
     const data = await response.json();
     const tarifas = Array.isArray(data?.tarifas) ? data.tarifas : [];
 
-    // Solo tarifas que remuneren excedentes a precio fijo (exc > 0) y NO sean indexadas.
-    // (El usuario quiere excluir excedentes a precio indexado.)
+    // Solo tarifas que remuneren excedentes (exc > 0).
+    // Las indexadas (ej: Nufri) usan valores estimados en tarifas.json.
     const tarifasBV = tarifas.filter((tarifa) => {
       if (!tarifa || !tarifa.fv) return false;
       const exc = Number(tarifa.fv.exc);
-      if (!Number.isFinite(exc) || exc <= 0) return false;
-      const tipoTarifa = String(tarifa.tipo || '').toUpperCase();
-      const tipoFV = String(tarifa.fv.tipo || '').toUpperCase();
-      const isIndexada = tipoTarifa === 'INDEXADA' || tipoFV.includes('INDEX');
-      return !isIndexada;
+      return Number.isFinite(exc) && exc > 0;
     });
 
     if (tarifasBV.length === 0) {

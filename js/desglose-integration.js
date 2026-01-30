@@ -326,11 +326,11 @@
       tieneBV = tarifa.fv.bv || false;
       reglaBV = tarifa.fv.reglaBV || 'NO APLICA';
       
-      // Precio compensación
-      if (tarifa.fv.exc === 'INDEXADA') {
-        precioCompensacion = 0; // No se puede calcular
-      } else if (typeof tarifa.fv.exc === 'number') {
+      // Precio compensación (solo valores numéricos válidos)
+      if (typeof tarifa.fv.exc === 'number') {
         precioCompensacion = tarifa.fv.exc;
+      } else {
+        precioCompensacion = 0;
       }
     }
 

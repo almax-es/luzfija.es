@@ -1394,6 +1394,25 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Pdto: ${fEur(sobranteHucha)}`
         `;
       };
 
+      // Helper: Disclaimer para tarifas Nufri (precio indexado)
+      const getNufriDisclaimer = (nombreTarifa) => {
+        const esNufri = (nombreTarifa || '').includes('Nufri');
+        if (!esNufri) return '';
+        return `<div class="bv-nufri-disclaimer" style="
+          margin-top: 8px;
+          padding: 8px 12px;
+          background: color-mix(in srgb, var(--warning) 8%, transparent);
+          border-left: 2px solid var(--warning);
+          border-radius: 6px;
+          font-size: 0.8125rem;
+          line-height: 1.4;
+          color: var(--text);
+          opacity: 0.9;
+        ">
+          <span style="opacity: 0.7;">ℹ️</span> <strong>Precio estimado:</strong> Esta tarifa paga excedentes a precio indexado (pool OMIE). El valor mostrado es una estimación promedio.
+        </div>`;
+      };
+
       // HTML del Ganador
       const winnerName = escapeHtml(winner.tarifa?.nombre || '');
       const winnerUrl = sanitizeUrl(winner.tarifa?.web);
@@ -1401,6 +1420,7 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Pdto: ${fEur(sobranteHucha)}`
       const pillWinner = winnerHasBV
         ? '<span class="bv-pill bv-pill--bv" title="Esta tarifa acumula el excedente sobrante (en €) para meses futuros.">Con batería virtual</span>'
         : '<span class="bv-pill bv-pill--no-bv" title="Esta tarifa NO acumula excedente sobrante: lo no compensado se pierde cada mes.">Sin batería virtual</span>';
+      const winnerNufriNote = getNufriDisclaimer(winner.tarifa?.nombre);
 
       const winnerHTML = `
         <div class="bv-results-grid" style="margin-bottom: 40px;">
@@ -1408,6 +1428,7 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Pdto: ${fEur(sobranteHucha)}`
             <div class="bv-winner-badge">🏆 Mejor Opción</div>
             <h2 class="bv-winner-name">${winnerName}</h2>
             <div style="margin-top: 8px;">${pillWinner}</div>
+            ${winnerNufriNote}
             <div style="margin-top:auto; padding-top:1.5rem; width:100%">
               ${winnerUrl ? `<a href="${winnerUrl}" target="_blank" rel="noopener noreferrer" class="btn bv-link-tarifa" style="width:100%; justify-content:center; font-size:14px; padding:10px 14px;">🔗 Información de la tarifa</a>` : ''}
             </div>
@@ -1446,6 +1467,7 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Pdto: ${fEur(sobranteHucha)}`
         const pill = hasBV
           ? '<span class="bv-pill bv-pill--bv" title="Acumula excedente sobrante para meses futuros.">Con BV</span>'
           : '<span class="bv-pill bv-pill--no-bv" title="No acumula excedente sobrante; lo no compensado se pierde.">Sin BV</span>';
+        const altNufriNote = getNufriDisclaimer(r.tarifa?.nombre);
 
         return `
           <div class="bv-alt-card-compact">
@@ -1455,6 +1477,7 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Pdto: ${fEur(sobranteHucha)}`
                 <h3 class="bv-alt-name">${altName}</h3>
                 ${pill}
               </div>
+              ${altNufriNote}
               <div class="bv-alt-price-box">
                 <div class="bv-alt-price">${fEur(r.totals.pagado)}</div>
                 <div class="bv-alt-price-label">Coste total anual</div>
