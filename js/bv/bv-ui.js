@@ -901,12 +901,17 @@ document.addEventListener('DOMContentLoaded', () => {
   window.addEventListener('scroll', () => { tooltipEl.style.display = 'none'; }, { passive: true });
 
   // Función para poblar el grid manual desde el CSV importado
-  function populateManualGridFromCSV(importResult) {
+  /**
+   * @param {Object} importResult - Resultado de importación con records
+   * @param {string} zona - Zona CNMC ('peninsula'|'ceutaMelilla'). Default: 'peninsula'
+   */
+  function populateManualGridFromCSV(importResult, zona = 'peninsula') {
     if (!manualGrid || !importResult || !importResult.records) return;
 
     // 1. Agrupar por meses (usamos la lógica existente de simulación)
     // Pasamos potencias 0 porque solo queremos los consumos agregados
-    const simResult = window.BVSim.simulateMonthly(importResult, 0, 0);
+    // Pasamos zona para clasificar periodos correctamente (CNMC)
+    const simResult = window.BVSim.simulateMonthly(importResult, 0, 0, zona);
     if (!simResult || !simResult.months) return;
 
     // 2. Resetear grid primero
@@ -1004,7 +1009,10 @@ document.addEventListener('DOMContentLoaded', () => {
       if (result && result.ok) {
         // Cachear el resultado
         window.BVSim._cachedImportResult = result;
-        populateManualGridFromCSV(result);
+        // Obtener zona seleccionada por el usuario para clasificar periodos correctamente
+        const zonaVal = zonaFiscalInput ? zonaFiscalInput.value : 'Península';
+        const zonaParam = zonaVal === 'Ceuta-Melilla' ? 'ceutaMelilla' : 'peninsula';
+        populateManualGridFromCSV(result, zonaParam);
 
         if (Array.isArray(result.warnings) && result.warnings.length) {
           showToast(`⚠️ ${result.warnings.join('\n')}`, 'ok');

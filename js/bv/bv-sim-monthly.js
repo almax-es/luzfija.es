@@ -48,7 +48,14 @@ if (typeof window !== 'undefined') {
 }
 
 // ===== AGRUPACIÓN MENSUAL (BUCKETS) =====
-window.BVSim.bucketizeByMonth = function (records) {
+/**
+ * Agrupa registros de consumo por mes y período tarifario (P1/P2/P3).
+ *
+ * @param {Array} records - Records con {fecha, hora, kwh, excedente, periodo}
+ * @param {string} zona - Zona CNMC ('peninsula'|'ceutaMelilla'). Default: 'peninsula'
+ * @returns {Array} Meses agrupados con kWh por período
+ */
+window.BVSim.bucketizeByMonth = function (records, zona = 'peninsula') {
   const monthsMap = new Map();
 
   (records || []).forEach((record) => {
@@ -104,7 +111,8 @@ window.BVSim.bucketizeByMonth = function (records) {
     if (Number.isFinite(importKwh)) {
       bucket.importTotalKWh += importKwh;
       const hora = Number(record.hora);
-      const periodo = record.periodo || (Number.isFinite(hora) ? getPeriodoHorarioCSV(fecha, hora) : null);
+      // Pasar zona a getPeriodoHorarioCSV para soportar Ceuta/Melilla (CNMC)
+      const periodo = record.periodo || (Number.isFinite(hora) ? getPeriodoHorarioCSV(fecha, hora, zona) : null);
       if (periodo && bucket.importByPeriod[periodo] !== undefined) {
         bucket.importByPeriod[periodo] += importKwh;
       }
@@ -145,8 +153,17 @@ window.BVSim.bucketizeByMonth = function (records) {
 };
 
 // Solo devuelve los meses agrupados, la simulación económica va aparte
-window.BVSim.simulateMonthly = function (importResult, potenciaP1, potenciaP2) {
-  const months = window.BVSim.bucketizeByMonth(importResult.records);
+/**
+ * Agrupa records importados en meses.
+ *
+ * @param {Object} importResult - Resultado de importación con {records}
+ * @param {number} potenciaP1 - Potencia P1 (sin usar, para compatibilidad)
+ * @param {number} potenciaP2 - Potencia P2 (sin usar, para compatibilidad)
+ * @param {string} zona - Zona CNMC ('peninsula'|'ceutaMelilla'). Default: 'peninsula'
+ * @returns {Object} {ok, months}
+ */
+window.BVSim.simulateMonthly = function (importResult, potenciaP1, potenciaP2, zona = 'peninsula') {
+  const months = window.BVSim.bucketizeByMonth(importResult.records, zona);
   return { ok: true, months };
 };
 
