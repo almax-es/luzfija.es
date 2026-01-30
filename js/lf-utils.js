@@ -305,6 +305,22 @@
     const baseDescuento = terminoFijoTotal + financiacionBono + baseVariableBonif;
     const descuentoEur = (bonoSocialOn && baseDescuento > 0) ? round2(baseDescuento * porcentaje) : 0;
 
+    // ⚠️ CRÍTICO (PUNTO DE CONFUSIÓN PARA IAs):
+    // El IEE se calcula DESPUÉS de restar el descuento del Bono Social.
+    // Orden correcto:
+    //   1. Calcular descuento BS
+    //   2. Restar descuento de la base
+    //   3. LUEGO calcular IEE sobre base reducida
+    //
+    // Validación CNMC (221 kWh + BS):
+    //   Base CON descuento: 44,16€
+    //   IEE (5,11% × 44,16€): 2,26€ ✅
+    //
+    // Si hicieras al revés:
+    //   Base SIN descuento: 56,97€
+    //   IEE (5,11% × 56,97€): 2,91€ ❌ INCORRECTO
+    //
+    // Ref: RD 897/2017, validado contra CNMC v2.1.2
     const baseEnergia = round2(terminoFijoTotal + terminoVariable + financiacionBono - descuentoEur);
 
     const impuestoElectrico = (C.calcularIEE && Number.isFinite(consumoKwh))

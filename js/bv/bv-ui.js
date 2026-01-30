@@ -1003,6 +1003,46 @@ document.addEventListener('DOMContentLoaded', () => {
     if (fileNameDisplay) fileNameDisplay.textContent = file.name;
     if (fileSelectedMsg) fileSelectedMsg.style.display = 'flex';
 
+    // ⚠️ CRÍTICO: ZONA GEOGRAFICA - AISLAMIENTO DEL SIMULADOR BV
+    // ===========================================================
+    // El simulador BV tiene su PROPIA selector de zona (HTML input),
+    // independiente del comparador principal. La zona afecta:
+    //   - Clasificación de periodos horarios (P1/P2/P3)
+    //   - Horarios diferentes: Península (10-14, 18-22) vs Ceuta/Melilla (+1h)
+    //
+    // PROCEDIMIENTO:
+    // 1. Obtener zona DEL SELECTOR del simulador BV (NO del comparador)
+    // 2. Pasar zona a cada llamada: importFile → parseCSVConsumos → getPeriodoHorarioCSV
+    // 3. El nombre del parámetro es flexible (CNMC es flexible: "Península", "peninsula", etc.)
+    //    pero se normaliza internamente con NFD + toLowerCase
+    //
+    // NORMATIVA:
+    // - CNMC Circular 3/2020: Periodos diferentes por zona
+    // - Ceuta/Melilla: UTC+1 desplazado vs Península UTC+0 estándar
+    //
+    // POR QUÉ NO PASAR ZONA DEL COMPARADOR:
+    // El usuario podría estar comparando tarifas de Canarias en el comparador principal,
+    // pero queriendo simular BV para Península. Sin aislamiento, saldría mal.
+    //
+    // EJEMPLO NUMÉRICO (Ceuta/Melilla):
+    // ────────────────────────────────────
+    // CSV: Hora 11 (CNMC), Fecha 2026-01-30 (viernes, no festivo)
+    //
+    // ✅ Si zona = 'CeutaMelilla' (desde selector BV):
+    //    Hora 11 → P1 (Punta en Ceuta/Melilla: 11-15, 19-23)
+    //
+    // ❌ Si zona = 'Península' (por error del comparador principal):
+    //    Hora 11 → P1 (Punta en Península: 10-14, 18-22) - COINCIDE por suerte
+    //    Pero Hora 15 → P2 (llano en Península) vs P1 (punta en Ceuta/Melilla)
+    //    Diferencia de precio ≈ 30-40% según tarifa
+    //
+    // VALIDACIÓN:
+    // - bv-import.js pasa zona explícitamente en cada función
+    // - bv-sim-monthly.js recalcula periodos si zona = Ceuta/Melilla (línea 119-128)
+    // - CALC-FAQS.md documenta por qué Ceuta/Melilla necesitan recálculo
+    //
+    // ÚLTIMA ACTUALIZACIÓN: 30/01/2026
+    // ===========================================================
     // Procesar automáticamente para rellenar el grid manual
     try {
       // Obtener zona seleccionada ANTES de importar para clasificar periodos correctamente

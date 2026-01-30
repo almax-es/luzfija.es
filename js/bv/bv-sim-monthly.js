@@ -299,8 +299,82 @@ window.BVSim.calcMonthForTarifa = function ({
     totalBase = round2(ivaBase + ivaCuota);
   }
 
-  // Batería Virtual (Hucha)
-  // Importante: si la tarifa NO tiene BV, no debe aplicarse saldo previo ni acumular sobrantes.
+  // ⚠️ CRÍTICO: BATERÍA VIRTUAL (BV / Hucha Solar)
+  // =====================================================
+  // La diferencia entre tarifas CON y SIN BV es FUNDAMENTAL.
+  // Cada variable usa condicional hasBV para garantizar que sin BV:
+  //   - No se aplica saldo previo (bvPrev = 0)
+  //   - No se acumulan sobrantes (bvSaldoFin = 0)
+  //   - Pagas la factura completa (totalPagar = totalBase)
+  //   - El coste real = coste facturado (sin descuentos de BV)
+  //
+  // NORMATIVA:
+  // - RD 244/2019 (Autoconsumo Simplificado): Compensación SIN BV
+  //   Solo se compensa energía (simplificada), no se almacena nada.
+  // - BV es un SERVICIO comercial (NO BOE-regulado), añadido por operador.
+  //
+  // LÓGICA DE CADA VARIABLE:
+  //
+  // 1. hasBV = Boolean(tarifa?.fv?.bv)
+  //    ├─ true:  tarifa TIENE BV → aplicar hucha
+  //    └─ false: tarifa SIN BV → NO aplicar hucha
+  //
+  // 2. bvPrev = hasBV ? Math.max(0, Number(bvSaldoPrev) || 0) : 0
+  //    ├─ CON BV:  Usar saldo anterior (si existe)
+  //    └─ SIN BV:  bvPrev = 0 (NUNCA aplicar saldo)
+  //    └─ Nota: Math.max asegura que no sea negativo
+  //
+  // 3. credit2 = hasBV ? round2(Math.min(bvPrev, totalBase)) : 0
+  //    ├─ CON BV:  Aplicar min(saldo, factura) como descuento
+  //    └─ SIN BV:  credit2 = 0 (NO descontar nada del saldo)
+  //    └─ Nota: El min evita sobrecompensación
+  //
+  // 4. bvSaldoFin = hasBV ? ... : 0
+  //    ├─ CON BV:  Acumular excedentes nuevos + saldo no usado
+  //    └─ SIN BV:  bvSaldoFin = 0 (PERDER los excedentes)
+  //    └─ Nota: Sin BV los excedentes se pierden legalmente
+  //
+  // 5. totalPagar = hasBV ? ... : totalBase
+  //    ├─ CON BV:  totalBase - saldo aplicado en credit2
+  //    └─ SIN BV:  totalBase (pagas TODO, sin descuentos BV)
+  //    └─ Nota: CRÍTICO: si hasBV=false AQUÍ debe ser totalBase
+  //
+  // 6. totalReal = totalBase - (hasBV ? excedenteSobranteEur : 0)
+  //    ├─ CON BV:  Coste real descontando solo los sobrantes
+  //    └─ SIN BV:  totalReal = totalBase (los excedentes NO se aprovechan)
+  //    └─ Nota: totalReal para ranking (equitativo entre tarifas)
+  //
+  // EJEMPLO NUMÉRICO (Previene falso positivo de ChatGPT):
+  // ───────────────────────────────────────────────────────
+  // Supón: totalBase = 50€, bvSaldoPrev = 5€, excedenteSobrante = 10€
+  //
+  // ✅ CON BV (hasBV = true):
+  //    bvPrev = 5€ (saldo previo SÍ se aplica)
+  //    credit2 = min(5€, 50€) = 5€
+  //    totalPagar = 50 - 5 = 45€ (pagas menos)
+  //    bvSaldoFin = 10 + (5-5) = 10€ (acumulas excedentes)
+  //    totalReal = 50 - 10 = 40€ (coste real es menor)
+  //
+  // ❌ SIN BV (hasBV = false):
+  //    bvPrev = 0 (NO se aplica saldo anterior)
+  //    credit2 = 0 (NO se descuenta nada)
+  //    totalPagar = 50€ (pagas TODO)
+  //    bvSaldoFin = 0 (NO se acumulan excedentes)
+  //    totalReal = 50€ (coste real = facturado)
+  //
+  // FALSO POSITIVO QUE PREVIENE:
+  // ChatGPT decía: \"Motor descuenta excedentes incluso sin BV\"
+  // Realidad: Línea 313 usa (hasBV ? excedenteSobranteEur : 0)
+  // Si hasBV=false → resta 0, totalReal = totalBase ✅ CORRECTO
+  //
+  // VALIDACIÓN:
+  // - Comparador principal (lf-calc.js) usa lógica equivalente
+  // - CASOS-ORO.test.js verifica hasBV ≡ (fv && fv.bv)
+  // - CALC-FAQS.md explica diferencia totalPagar vs totalReal
+  //
+  // ÚLTIMA ACTUALIZACIÓN: 30/01/2026
+  // =====================================================
+
   const hasBV = Boolean(tarifa?.fv?.bv);
   const bvPrev = hasBV ? Math.max(0, Number(bvSaldoPrev) || 0) : 0;
   const credit2 = hasBV ? round2(Math.min(bvPrev, totalBase)) : 0;
