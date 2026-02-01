@@ -1477,7 +1477,6 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Pdto: ${fEur(sobranteHucha)}`
                 <h3 class="bv-alt-name">${altName}</h3>
                 ${pill}
               </div>
-              ${altNufriNote}
               <div class="bv-alt-price-box">
                 <div class="bv-alt-price">${fEur(r.totals.pagado)}</div>
                 <div class="bv-alt-price-label">Coste total anual</div>
@@ -1485,6 +1484,7 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Pdto: ${fEur(sobranteHucha)}`
               </div>
             </div>
 
+            ${altNufriNote}
             ${hasBV ? '' : '<div class="bv-note bv-note-compact">Sin BV: el excedente no compensado se pierde.</div>'}
 
             <div class="bv-alt-actions">
