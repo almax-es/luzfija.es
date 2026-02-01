@@ -1,0 +1,286 @@
+/* =========================================================================
+   MEJORAS VISUALES OBSERVATORIO PVPC - Estilo Premium Unificado v1.1
+   - Performance optimizada (CORREGIDO)
+   - Sin problemas de stacking context o containment
+   - Modo claro/oscuro
+   - Responsive mobile/desktop
+   ========================================================================= */
+
+/* === VARIABLES MEJORADAS === */
+:root {
+  /* Gradientes premium */
+  --grad-hero: linear-gradient(135deg, rgba(139,92,246,.14) 0%, rgba(34,197,94,.06) 100%);
+  --grad-hero-gold: linear-gradient(135deg, rgba(251, 191, 36, .15) 0%, rgba(139,92,246,.10) 100%);
+  --grad-shine: linear-gradient(90deg, transparent, rgba(255,255,255,.15), transparent);
+}
+
+.light-mode {
+  --grad-shine: linear-gradient(90deg, transparent, rgba(255,255,255,.5), transparent);
+}
+
+/* === ANIMACIONES (namespace específico para evitar conflictos) === */
+
+@keyframes obs-fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 30px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes obs-shine {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes obs-goldenPulse {
+  0%, 100% {
+    box-shadow:
+      0 4px 20px rgba(251, 191, 36, 0.2),
+      0 0 30px rgba(251, 191, 36, 0.1);
+  }
+  50% {
+    box-shadow:
+      0 4px 30px rgba(251, 191, 36, 0.4),
+      0 0 50px rgba(251, 191, 36, 0.2);
+  }
+}
+
+/* Respetar preferencias */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* === KPI CARDS MEJORADOS === */
+
+.kpi {
+  /* Gradiente base */
+  background: var(--grad-hero) !important;
+  border: 1px solid rgba(139, 92, 246, 0.3) !important;
+
+  /* CORREGIDO: position relative para ::before */
+  position: relative !important;
+
+  /* Animación con namespace específico */
+  animation: obs-fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards !important;
+
+  /* CORREGIDO: will-change solo en hover, no permanente */
+  will-change: auto;
+
+  /* Sombra más sutil */
+  box-shadow:
+    0 4px 16px rgba(0,0,0,0.08),
+    0 1px 3px rgba(0,0,0,0.05) !important;
+
+  /* CORREGIDO: Sin contain para no cortar sombras/glow */
+  /* contain: layout style paint; ❌ REMOVIDO */
+
+  /* CORREGIDO: Sin transform permanente para evitar stacking context issues */
+  /* transform: translate3d(0, 0, 0); ❌ REMOVIDO */
+
+  /* CORREGIDO: Sin backface-visibility para mejor antialiasing en texto */
+  /* backface-visibility: hidden; ❌ REMOVIDO */
+}
+
+/* Delays escalonados */
+.kpi:nth-child(1) { animation-delay: 0.05s !important; }
+.kpi:nth-child(2) { animation-delay: 0.10s !important; }
+.kpi:nth-child(3) { animation-delay: 0.15s !important; }
+.kpi:nth-child(4) { animation-delay: 0.20s !important; }
+.kpi:nth-child(5) { animation-delay: 0.25s !important; }
+
+/* Efecto shine */
+.kpi::before {
+  content: "" !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: -100% !important;
+  width: 100% !important;
+  height: 100% !important;
+  background: var(--grad-shine) !important;
+  opacity: 0 !important;
+  transition: opacity 0.3s ease !important;
+  pointer-events: none !important;
+  z-index: 10 !important;
+}
+
+/* Hover solo en desktop */
+@media (hover: hover) and (pointer: fine) {
+  .kpi:hover {
+    /* CORREGIDO: will-change solo en hover */
+    will-change: transform;
+    transform: translateY(-6px) !important;
+    box-shadow:
+      0 12px 32px rgba(139, 92, 246, 0.15),
+      0 4px 12px rgba(0,0,0,0.1) !important;
+    border-color: var(--obs-accent) !important;
+  }
+
+  .kpi:hover::before {
+    opacity: 1 !important;
+    animation: obs-shine 1.5s ease-in-out !important;
+  }
+
+  /* Limpiar will-change después de hover */
+  .kpi:not(:hover) {
+    will-change: auto;
+  }
+}
+
+/* Primer KPI destacado */
+.kpi:first-child {
+  background: var(--grad-hero-gold) !important;
+  border-color: rgba(251, 191, 36, 0.4) !important;
+  animation: obs-fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards,
+             obs-goldenPulse 3s ease-in-out infinite !important;
+  animation-delay: 0.05s, 1s !important;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .kpi:first-child:hover {
+    box-shadow:
+      0 12px 32px rgba(251, 191, 36, 0.3),
+      0 4px 16px rgba(0,0,0,0.12) !important;
+  }
+}
+
+/* === CARDS MEJORADAS === */
+
+.obs-card {
+  /* Gradiente sutil */
+  background: linear-gradient(145deg, var(--obs-card) 0%, rgba(139, 92, 246, 0.03) 100%) !important;
+  border: 1px solid rgba(139, 92, 246, 0.12) !important;
+
+  /* CORREGIDO: position relative para ::before */
+  position: relative !important;
+
+  /* Animación */
+  animation: obs-fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: 0.3s;
+
+  /* CORREGIDO: Sin contain/transform/backface-visibility */
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .obs-card:hover {
+    will-change: transform;
+    transform: translateY(-4px) !important;
+    box-shadow:
+      0 16px 48px rgba(139, 92, 246, 0.08),
+      0 4px 12px rgba(0,0,0,0.08) !important;
+  }
+
+  .obs-card:not(:hover) {
+    will-change: auto;
+  }
+}
+
+/* === HERO SECTION === */
+
+.obs-hero {
+  animation: obs-fadeInUp 0.7s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+.obs-hero__copy h1 {
+  animation: obs-fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: 0.1s;
+}
+
+.obs-hero__copy p {
+  animation: obs-fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: 0.2s;
+}
+
+/* === RESPONSIVE MOBILE === */
+
+@media (max-width: 768px) {
+  .kpi {
+    min-height: 140px !important;
+    padding: 24px 20px !important;
+  }
+
+  .kpi__value {
+    font-size: 2rem !important;
+  }
+
+  /* Touch feedback simple */
+  .kpi:active {
+    transform: scale(0.98) !important;
+    transition: transform 0.1s ease;
+  }
+
+  /* Sin backdrop-filter en móvil */
+  .site-nav {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background: var(--obs-bg) !important;
+  }
+
+  /* Sin pseudo-elementos complejos en móvil */
+  .kpi::after {
+    display: none !important;
+  }
+}
+
+/* === DARK MODE === */
+
+@media (prefers-color-scheme: dark) {
+  .kpi {
+    box-shadow:
+      0 4px 20px rgba(0,0,0,0.5),
+      0 1px 3px rgba(255,255,255,0.03) !important;
+  }
+
+  .kpi:first-child {
+    box-shadow:
+      0 4px 20px rgba(251, 191, 36, 0.25),
+      0 0 30px rgba(251, 191, 36, 0.15) !important;
+  }
+}
+
+/* === LIGHT MODE === */
+
+.light-mode .kpi {
+  background: linear-gradient(135deg, rgba(139,92,246,.08) 0%, rgba(34,197,94,.04) 100%) !important;
+  border-color: rgba(139, 92, 246, 0.15) !important;
+  box-shadow:
+    0 4px 16px rgba(0,0,0,0.06),
+    0 1px 3px rgba(0,0,0,0.04) !important;
+}
+
+.light-mode .kpi:first-child {
+  background: linear-gradient(135deg, rgba(251, 191, 36, .12) 0%, rgba(139,92,246,.06) 100%) !important;
+  border-color: rgba(251, 191, 36, 0.3) !important;
+}
+
+/* === ACCESIBILIDAD === */
+
+@media (prefers-contrast: high) {
+  .kpi {
+    border-width: 2px !important;
+  }
+
+  .kpi__value {
+    -webkit-text-fill-color: var(--obs-text) !important;
+  }
+}
+
+@media (prefers-reduced-transparency) {
+  .kpi::before,
+  .kpi::after {
+    opacity: 0 !important;
+  }
+}

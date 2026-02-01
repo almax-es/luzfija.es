@@ -57,12 +57,14 @@ const ASSETS = [
   // Observatorio PVPC
   "estadisticas/index.html",
   "estadisticas/estadisticas.css",
+  "estadisticas/estadisticas-mejorado.css",
   "js/pvpc-stats-engine.js",
   "js/pvpc-stats-ui.js",
   "vendor/chartjs/chart.umd.js",
   // Simulador Batería Virtual
   "comparador-tarifas-solares.html",
   "bv-sim.css",
+  "comparador-solar-mejorado.css",
   "js/bv/bv-ui.js",
   "js/bv/bv-sim-monthly.js",
   "js/bv/bv-import.js",

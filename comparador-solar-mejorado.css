@@ -1,0 +1,333 @@
+/* =========================================================================
+   MEJORAS VISUALES COMPARADOR TARIFAS SOLARES v1.1
+   - Performance optimizada (CORREGIDO)
+   - Sin problemas de stacking context o containment
+   - Modo claro/oscuro
+   - Responsive mobile/desktop
+   ========================================================================= */
+
+/* === ANIMACIONES (namespace específico para evitar conflictos) === */
+
+@keyframes solar-fadeInUp {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 30px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes solar-shine {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes solar-fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Respetar preferencias */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* === CARDS MEJORADAS === */
+
+.card {
+  /* Animación de entrada */
+  animation: solar-fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+
+  /* CORREGIDO: position relative para ::before */
+  position: relative !important;
+
+  /* CORREGIDO: will-change solo en hover, no permanente */
+  will-change: auto;
+
+  /* CORREGIDO: Sin contain para no cortar sombras/modales */
+  /* contain: layout style paint; ❌ REMOVIDO */
+
+  /* CORREGIDO: Sin transform permanente para evitar stacking context */
+  /* transform: translate3d(0, 0, 0); ❌ REMOVIDO */
+
+  /* CORREGIDO: Sin backface-visibility para mejor antialiasing */
+  /* backface-visibility: hidden; ❌ REMOVIDO */
+}
+
+/* Delays escalonados */
+.card:nth-of-type(1) { animation-delay: 0.05s; }
+.card:nth-of-type(2) { animation-delay: 0.10s; }
+.card:nth-of-type(3) { animation-delay: 0.15s; }
+.card:nth-of-type(4) { animation-delay: 0.20s; }
+
+/* Efecto shine en hover (solo desktop) */
+.card::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.12), transparent);
+  opacity: 0;
+  pointer-events: none;
+  z-index: 10;
+  transition: opacity 0.3s ease;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .card:hover {
+    /* CORREGIDO: will-change solo en hover */
+    will-change: transform;
+    transform: translateY(-4px);
+  }
+
+  .card:hover::before {
+    opacity: 1;
+    animation: solar-shine 1.2s ease-in-out;
+  }
+
+  /* Limpiar will-change después */
+  .card:not(:hover) {
+    will-change: auto;
+  }
+}
+
+/* Light mode ajuste */
+.light-mode .card::before {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.4), transparent);
+}
+
+/* === HERO KPIS === */
+
+.heroKpis {
+  animation: solar-fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: 0.1s;
+}
+
+.heroCard {
+  /* Animación entrada */
+  animation: solar-fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+
+  /* CORREGIDO: position relative para ::before */
+  position: relative !important;
+  overflow: hidden;
+
+  /* CORREGIDO: will-change solo en hover */
+  will-change: auto;
+
+  /* CORREGIDO: Sin transform/backface permanentes */
+}
+
+.heroCard:nth-child(1) { animation-delay: 0.1s; }
+.heroCard:nth-child(2) { animation-delay: 0.15s; }
+.heroCard:nth-child(3) { animation-delay: 0.2s; }
+
+/* Efecto shine para mejor tarifa */
+.heroCard.best::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.15), transparent);
+  animation: solar-shine 3s ease-in-out infinite;
+  animation-delay: 1s;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* === TABLA DE RESULTADOS === */
+
+/* CORREGIDO: Limitar animaciones en tablas para evitar lag */
+tbody tr {
+  animation: solar-fadeInUp 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+
+/* CORREGIDO: Solo animar primeras 15 filas para performance */
+tbody tr:nth-child(n+16) {
+  animation: none;
+}
+
+/* Delays solo primeras 10 filas */
+tbody tr:nth-child(1) { animation-delay: 0.05s; }
+tbody tr:nth-child(2) { animation-delay: 0.08s; }
+tbody tr:nth-child(3) { animation-delay: 0.11s; }
+tbody tr:nth-child(4) { animation-delay: 0.14s; }
+tbody tr:nth-child(5) { animation-delay: 0.17s; }
+tbody tr:nth-child(6) { animation-delay: 0.20s; }
+tbody tr:nth-child(7) { animation-delay: 0.23s; }
+tbody tr:nth-child(8) { animation-delay: 0.26s; }
+tbody tr:nth-child(9) { animation-delay: 0.29s; }
+tbody tr:nth-child(10) { animation-delay: 0.32s; }
+
+/* Hover mejorado (solo desktop) - Sin desplazamiento para evitar "baile" */
+@media (hover: hover) and (pointer: fine) {
+  tbody tr:hover {
+    background: rgba(139, 92, 246, 0.04);
+    transition: background 0.2s ease;
+  }
+}
+
+.light-mode tbody tr:hover {
+  background: rgba(139, 92, 246, 0.06);
+}
+
+/* === SECCIÓN DE RESULTADOS === */
+
+#seccionResultados {
+  animation: solar-fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: 0.2s;
+}
+
+/* === FORMULARIO === */
+
+.form-grid,
+.input-group {
+  animation: solar-fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  animation-delay: 0.05s;
+}
+
+/* === RESPONSIVE MOBILE === */
+
+@media (max-width: 768px) {
+  /* Simplificar animaciones */
+  .card,
+  .heroCard,
+  tbody tr {
+    animation-duration: 0.3s !important;
+  }
+
+  /* Sin efectos shine en móvil */
+  .card::before,
+  .heroCard.best::before {
+    display: none !important;
+  }
+
+  /* Touch feedback */
+  .card:active {
+    transform: scale(0.98);
+    transition: transform 0.1s ease;
+  }
+
+  /* Sin backdrop-filter en móvil */
+  .topbar,
+  .nav {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+  }
+
+  /* Sin animación en tablas en móvil */
+  tbody tr {
+    animation: none !important;
+  }
+}
+
+/* === DARK MODE === */
+
+@media (prefers-color-scheme: dark) {
+  .heroCard.best::before {
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent);
+  }
+}
+
+/* === LIGHT MODE === */
+
+.light-mode .heroCard.best::before {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,.3), transparent);
+}
+
+/* === BOTONES === */
+
+.btn {
+  /* CORREGIDO: will-change solo en hover */
+  will-change: auto;
+
+  /* CORREGIDO: Sin transform permanente */
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover {
+    will-change: transform;
+    transform: translateY(-2px) scale(1.02);
+  }
+
+  .btn:not(:hover) {
+    will-change: auto;
+  }
+}
+
+.btn:active {
+  transform: scale(0.96);
+}
+
+/* === TABS === */
+
+.segmented__btn {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.segmented__btn:hover:not(.is-active) {
+  transform: translateY(-1px);
+}
+
+/* === MODAL === */
+
+.modal {
+  animation: solar-fadeIn 0.2s ease-out;
+}
+
+.modal-content {
+  animation: solar-fadeInUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+
+  /* CORREGIDO: position relative si tiene ::before */
+  position: relative;
+}
+
+/* === ACCESIBILIDAD === */
+
+@media (prefers-contrast: high) {
+  .card,
+  .heroCard {
+    border-width: 2px !important;
+  }
+}
+
+@media (prefers-reduced-transparency) {
+  .card::before,
+  .heroCard.best::before {
+    opacity: 0 !important;
+  }
+}
+
+/* === LOADING === */
+
+.loading {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
