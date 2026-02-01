@@ -19,6 +19,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Plenitude",
+      "cPunta": 0.100881,
+      "cLlano": 0.100881,
+      "cValle": 0.100881,
+      "p1": 0.089528,
+      "p2": 0.089528,
+      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
+      "tipo": "1P",
+      "requisitos": "Potencia contratada ≤ 5 kW",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Visalia",
       "cPunta": 0.101995,
       "cLlano": 0.101995,
@@ -161,25 +180,6 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Plenitude",
-      "cPunta": 0.116106,
-      "cLlano": 0.116106,
-      "cValle": 0.116106,
-      "p1": 0.075902,
-      "p2": 0.075902,
-      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
-      "tipo": "1P",
-      "requisitos": "Potencia contratada ≤ 5 kW",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
       },
       "requiereFV": false
     },
@@ -607,5 +607,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-01-31T08:35:23.937Z"
+  "updatedAt": "2026-02-01T07:30:12.807Z"
 }
