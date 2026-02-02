@@ -694,8 +694,8 @@
     min-height: 32px;
   }
   .pvpc-type-select option{
-    color: var(--text);
-    background: var(--card);
+    color: #0f172a;
+    background: #ffffff;
   }
   html.light-mode .pvpc-type-select{
     background: rgba(15, 23, 42, .03);
