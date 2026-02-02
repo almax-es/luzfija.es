@@ -742,16 +742,18 @@
       setTimeout(() => {
         btnCerrarPVPCInfo.focus();
         modalAbriendo = false;
+        modalReadyToClose = true; // Permitir cerrar con click fuera
       }, 150);
     });
 
     // Cerrar modal
     const cerrarModal = () => {
+      modalReadyToClose = false; // Resetear flag
       modalPVPCInfo.classList.remove('show');
       setTimeout(() => {
         modalPVPCInfo.style.display = 'none';
         modalPVPCInfo.setAttribute('aria-hidden', 'true');
-        
+
         __pvpcUnlock();
 
         // Restaurar focus al elemento anterior
@@ -764,8 +766,13 @@
     btnCerrarPVPCInfo.addEventListener('click', cerrarModal);
     btnCerrarPVPCX?.addEventListener('click', cerrarModal);
     
+    // Prevenir que el click de apertura cierre el modal inmediatamente
+    let modalReadyToClose = false;
+
     modalPVPCInfo.addEventListener('click', (e) => {
-      if (e.target === modalPVPCInfo) cerrarModal();
+      if (e.target === modalPVPCInfo && modalReadyToClose) {
+        cerrarModal();
+      }
     });
     
     // Cerrar con ESC y manejar focus-trap
