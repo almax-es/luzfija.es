@@ -1089,7 +1089,7 @@
           return `
             <tr>
               <td data-label="Mes">${formatYmLabel(row.ym)}</td>
-              <td data-label="kWh"><span class="csv-td-value">${fmtKwh(row.kwh, 1)}</span></td>
+              <td data-label="Excedentes"><span class="csv-td-value">${fmtKwh(row.kwh, 1)}</span></td>
               <td data-label="€/kWh"><span class="csv-td-value">${fmtCents(row.avg, 4)}</span></td>
               <td data-label="€"><span class="csv-td-value">${fmtEur(row.eur)}</span></td>
               <td data-label="Ventana 80%"><span class="csv-td-value">${winLabel}</span></td>

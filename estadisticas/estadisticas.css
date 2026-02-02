@@ -1325,6 +1325,17 @@
     text-align: left;
   }
 
+  /* Asegurar que la fila de Excedentes (kWh) use el mismo layout que el resto */
+  .csv-table tbody td:nth-child(2) {
+    display: grid !important;
+    grid-template-columns: 110px 1fr !important;
+  }
+
+  .csv-table tbody td:nth-child(2)::before {
+    content: attr(data-label) !important;
+    display: block !important;
+  }
+
   /* Valor (segunda columna) alineado a la derecha para mejorar legibilidad */
   .csv-table tbody td:not(:first-child) .csv-td-value {
     display: block;
