@@ -135,14 +135,13 @@ def extract_values(payload: dict, filter_geo_id: int = None) -> List[Tuple[dt.da
     values = payload.get("indicator", {}).get("values") or []
     out: List[Tuple[dt.datetime, float]] = []
     
-    # Contador para detectar si estamos filtrando todo
     filtered_count = 0
+    parse_error_count = 0
 
     for v in values:
         # Filtrado estricto si se especifica
         if filter_geo_id is not None:
             raw_geo = v.get("geo_id")
-            # Intentar convertir a int para ser robustos (ej. "3" vs 3)
             try:
                 v_geo = int(raw_geo) if raw_geo is not None else None
             except (ValueError, TypeError):
@@ -155,17 +154,19 @@ def extract_values(payload: dict, filter_geo_id: int = None) -> List[Tuple[dt.da
         ts = v.get("datetime_utc") or v.get("datetime")
         val = v.get("value")
         if ts is None or val is None:
+            parse_error_count += 1
             continue
         try:
             dtu = parse_iso_datetime(str(ts))
             fv = float(val)
         except Exception:
+            parse_error_count += 1
             continue
         out.append((dtu, fv))
     
-    # Warning de seguridad: si había valores pero el filtro se los cargó todos
+    # Warning de seguridad
     if filter_geo_id is not None and len(values) > 0 and len(out) == 0:
-        print(f"⚠️ WARNING: Se recibieron {len(values)} valores pero el filtro geo_id={filter_geo_id} los descartó todos. (Ej: recibidos geo_id={[v.get('geo_id') for v in values[:3]]}...)", file=sys.stderr)
+        print(f"⚠️ WARNING: Se recibieron {len(values)} valores pero ninguno pasó el proceso (FiltroGeo={filtered_count}, ErrorParseo={parse_error_count}). Ej. geo_id recibidos: {[v.get('geo_id') for v in values[:3]]}...", file=sys.stderr)
 
     out.sort(key=lambda x: x[0])
     return out
