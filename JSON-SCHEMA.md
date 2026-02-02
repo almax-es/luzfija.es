@@ -220,9 +220,11 @@ Documentación precisa de los archivos JSON que alimentan el comparador de tarif
 
 ---
 
-## 3. Esquema de Datos PVPC (Estructura)
+## 3. Esquema de Datos PVPC y Excedentes (Estructura)
 
-**Ubicación**: `/data/pvpc/{geoId}/{YYYY-MM}.json`
+**Ubicaciones**:
+- `/data/pvpc/{geoId}/{YYYY-MM}.json` (PVPC, indicador 1001)
+- `/data/surplus/{geoId}/{YYYY-MM}.json` (Excedentes, indicador 1739)
 **Tamaño**: ~20-30 KB por mes
 **Total de zonas**: 5 (8741, 8742, 8743, 8744, 8745)
 **Rango de datos**: 2025-01 a presente

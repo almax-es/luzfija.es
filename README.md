@@ -12,13 +12,16 @@ Herramienta **gratuita**, **sin publicidad** y **de código abierto** para compa
 
 ### 🏆 PVPC (Tarifa Regulada)
 - Comparación de tarifas **1P** y **3P** (discriminación horaria) + filtros rápidos (todas / 1P / 3P)
-- **PVPC** incluido (tarifa regulada) cuando la API está disponible
-- **Observatorio PVPC**: Nueva sección de estadísticas avanzadas con histórico desde 2021.
-  - **Evolución Anual**: Gráficos interactivos de precio medio diario.
-  - **Reloj Solar**: Visualización polar de las horas más baratas (Curva de Pato).
-  - **Heatmap Anual**: Mapa de calor para identificar patrones estacionales de un vistazo.
-  - **Comparativa Multianual**: Superposición de curvas de precio (2022-2026) para analizar tendencias.
-- Tarjeta PVPC en portada con **precios de hoy** y acceso a **detalle horario** (hoy/mañana) cuando está disponible
+- **PVPC** incluido desde dataset estático `/data/pvpc/` (REE/ESIOS, indicador 1001)
+- **Excedentes PVPC** desde dataset estático `/data/surplus/` (REE/ESIOS, indicador 1739)
+- **Observatorio PVPC**: estadísticas avanzadas con histórico desde 2021.
+  - **Evolución** diaria y mensual para detectar tendencia real.
+  - **Perfil horario** promedio con “consejo” de bloque de 3 horas.
+  - **Comparativa multianual** con selección de años.
+  - **KPIs** dinámicos (último día, medias, rolling 12m, YoY).
+  - **Selector PVPC/Excedentes** + **selector por mes**.
+  - **CSV de excedentes**: subida CSV/XLSX y cálculo real por mes y año (€/kWh, € y ventana 80% de vertido).
+- Widget PVPC en portada con **precios de hoy** y **detalle horario** (hoy/mañana) + selector PVPC/Excedentes
 - Bloque de **novedades/avisos** cargado desde `novedades.json`
 - Soporte completo para **placas solares** y **autoconsumo** (consumo + excedentes)
 - **Compensación de excedentes** con precio por comercializadora
@@ -208,7 +211,8 @@ Este proyecto muestra el PVPC como **referencia** en el ranking (comparador de t
 ### Hosting y Datos
 - **GitHub Pages** (hosting estático, producción principal)
 - **100% estático sin backend**: Todo cálculo (tarifas, PVPC, facturas) ocurre en el navegador
-- **Datos PVPC**: JSONs versionados en `/data/pvpc/` (actualización diaria)
+- **Datos PVPC**: JSONs versionados en `/data/pvpc/` (actualización diaria, indicador 1001)
+- **Datos Excedentes**: JSONs versionados en `/data/surplus/` (actualización diaria, indicador 1739)
   - Actualizados automáticamente por GitHub Actions (21:00 Madrid)
   - Descarga de ESIOS API y detección de huecos
   - Token ESIOS en secrets (no expuesto en repo)
@@ -598,4 +602,4 @@ Para desarrolladores e interesados en la arquitectura de datos:
 ✅ CSP completo • ✅ PWA • ✅ Sin cookies de terceros • ✅ Accesibilidad (ARIA/focus) • ✅ Rendimiento optimizado
 
 
-<!-- Updated 2026-01-19 -->
+<!-- Updated 2026-02-03 -->

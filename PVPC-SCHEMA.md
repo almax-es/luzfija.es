@@ -1,4 +1,4 @@
-# ⚡ Arquitectura PVPC — Documentación Completa
+# ⚡ Arquitectura PVPC y Excedentes — Documentación Completa
 
 Documentación técnica precisa de la estructura de datos, actualización automática y procesos del **PVPC (Precio Voluntario del Pequeño Consumidor)** en luzfija.es.
 
@@ -13,6 +13,13 @@ Documentación técnica precisa de la estructura de datos, actualización autom�
 - **Actualización**: Diariamente a las 21:00 Madrid (20:00 UTC)
 - **Disponibilidad**: Precios horarios (24 períodos diarios)
 
+### ¿Qué son los Excedentes PVPC?
+- **Excedentes PVPC**: Compensación horaria para autoconsumo
+- **Indicador ESIOS**: 1739 (Precio de excedentes)
+- **Fuente**: REE / ESIOS API
+- **Actualización**: Diariamente a las 21:00 Madrid
+- **Disponibilidad**: Precios horarios (24 períodos diarios)
+
 ### Arquitectura del Proyecto PVPC
 ```
 ┌─────────────────────────────────────────────────────────┐
@@ -21,6 +28,7 @@ Documentación técnica precisa de la estructura de datos, actualización autom�
 │  lf-app.js + pvpc.js (cálculo en cliente)              │
 ├─────────────────────────────────────────────────────────┤
 │  /data/pvpc/{geoId}/{YYYY-MM}.json (estático)          │
+│  /data/surplus/{geoId}/{YYYY-MM}.json (estático)       │
 ├─────────────────────────────────────────────────────────┤
 │  GitHub Pages (hosting)                                 │
 ├─────────────────────────────────────────────────────────┤
@@ -62,6 +70,29 @@ Documentación técnica precisa de la estructura de datos, actualización autom�
 └── 8745/                         # Zona Melilla
     ├── index.json
     ├── 2025-01.json
+    └── ...
+```
+
+### Ubicación de Datos Excedentes
+
+```
+/data/surplus/
+├── index.json                    # Metadatos globales + índice de zonas
+├── 8741/                         # Zona Península
+│   ├── index.json               # Índice zona (metadatos)
+│   ├── 2025-01.json
+│   └── ...
+├── 8742/                         # Zona Canarias
+│   ├── index.json
+│   └── ...
+├── 8743/                         # Zona Baleares
+│   ├── index.json
+│   └── ...
+├── 8744/                         # Zona Ceuta
+│   ├── index.json
+│   └── ...
+└── 8745/                         # Zona Melilla
+    ├── index.json
     └── ...
 ```
 
@@ -116,7 +147,7 @@ Documentación técnica precisa de la estructura de datos, actualización autom�
 | `schema_version` | int | 2 | Versión del esquema (actual: 2) |
 | `geo_id` | int | 8741-8745 | Identificador geográfico |
 | `timezone` | string | "Europe/Madrid", "Atlantic/Canary" | Zona horaria de la región |
-| `indicator` | int | 1001 | Indicador ESIOS (PVPC) |
+| `indicator` | int | 1001 / 1739 | Indicador ESIOS (PVPC / Excedentes) |
 | `unit` | string | "EUR/kWh" | Unidad de precios (convertida desde €/MWh) |
 | `epoch_unit` | string | "s" | Unidad de timestamp (segundos) |
 | `from` | string | "YYYY-MM-DD" | Fecha inicio del mes |
@@ -201,6 +232,23 @@ Ejemplo:
 ```
 
 **Propósito**: Punto de entrada para descubrimiento de zonas geográficas disponibles.
+
+### `/data/surplus/index.json`
+
+Mismo formato que el índice PVPC, pero para excedentes (indicador 1739).
+
+```json
+{
+  "schema_version": 2,
+  "generated_at_utc": "2026-02-02T12:12:45+00:00",
+  "indicator": 1739,
+  "unit": "EUR/kWh",
+  "epoch_unit": "s",
+  "geos": [
+    { "geo_id": 8741, "timezone": "Europe/Madrid", "path": "8741/index.json" }
+  ]
+}
+```
 
 ---
 
@@ -531,9 +579,11 @@ El **Observatorio PVPC** (`/estadisticas/`) es una capa de visualización avanza
 
 ### Funcionalidades
 - **Evolución**: Gráfica de tendencia anual (media diaria) para detectar patrones estacionales.
-- **Perfil Horario**: Promedio de precios por hora (0-23h) para identificar las horas más baratas (curva de pato).
+- **Perfil Horario**: Promedio de precios por hora (0-23h) con consejo de mejor bloque 3h.
 - **Comparativa**: Superposición de años anteriores (2021-presente) para analizar la tendencia del mercado.
 - **KPIs**: Tarjetas con precio medio del último día, semana, mes y año móvil.
+- **Selector PVPC/Excedentes** y **selector por mes** para filtrar el perfil horario.
+- **CSV Excedentes**: subida CSV/XLSX y cálculo real por mes y total anual (€/kWh, € y ventana 80% de vertido).
 
 ### Lógica de Frontend (`js/pvpc-stats-engine.js`)
 1. **Carga**: Descarga todos los JSONs mensuales del año seleccionado (y anteriores para comparativa).
