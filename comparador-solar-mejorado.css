@@ -331,3 +331,212 @@ tbody tr:nth-child(10) { animation-delay: 0.32s; }
     opacity: 0.6;
   }
 }
+
+/* =========================================================================
+   SOLAR PRO RESKIN (premium, low-INP)
+   - Better hierarchy, calmer surfaces, zero heavy animations
+   - Safe in dark/light + desktop/mobile
+   ========================================================================= */
+
+body.solar-pro{
+  --solar-surface: rgba(255,255,255,.045);
+  --solar-surface-2: rgba(255,255,255,.075);
+  --solar-border: rgba(255,255,255,.14);
+  --solar-border-strong: rgba(255,255,255,.24);
+  --solar-shadow: 0 18px 45px rgba(0,0,0,.35);
+  background:
+    radial-gradient(1200px 600px at 18% -10%, rgba(139,92,246,.20), transparent 60%),
+    radial-gradient(900px 600px at 90% 6%, rgba(34,197,94,.18), transparent 55%),
+    var(--bg);
+}
+
+html.light-mode body.solar-pro{
+  --solar-surface: rgba(15,23,42,.03);
+  --solar-surface-2: rgba(15,23,42,.06);
+  --solar-border: rgba(15,23,42,.10);
+  --solar-border-strong: rgba(15,23,42,.18);
+  --solar-shadow: 0 16px 36px rgba(15,23,42,.10);
+  background:
+    radial-gradient(1200px 600px at 18% -10%, rgba(139,92,246,.10), transparent 60%),
+    radial-gradient(900px 600px at 90% 6%, rgba(34,197,94,.10), transparent 55%),
+    var(--bg);
+}
+
+body.solar-pro .card{
+  background: linear-gradient(180deg, var(--solar-surface), rgba(0,0,0,0));
+  border: 1px solid var(--solar-border);
+  box-shadow: var(--solar-shadow);
+}
+
+html.light-mode body.solar-pro .card{
+  background: linear-gradient(180deg, #fff, rgba(255,255,255,.85));
+}
+
+body.solar-pro .card::before{
+  opacity: 0.25;
+}
+
+/* Upload + manual zone: calmer, more product-led */
+body.solar-pro .bv-upload-compact{
+  background: linear-gradient(145deg, var(--solar-surface-2), rgba(139,92,246,.04));
+  border: 1px solid var(--solar-border);
+  box-shadow: 0 10px 28px rgba(0,0,0,.18);
+  transform: none;
+}
+
+body.solar-pro .bv-upload-compact::before{
+  content: none;
+}
+
+body.solar-pro .bv-upload-compact:hover{
+  border-color: var(--solar-border-strong);
+  box-shadow: 0 14px 34px rgba(0,0,0,.22);
+  transform: none;
+}
+
+body.solar-pro .bv-upload-btn{
+  box-shadow: 0 6px 18px rgba(139,92,246,.28);
+}
+
+body.solar-pro .bv-upload-btn:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 10px 24px rgba(139,92,246,.35);
+}
+
+body.solar-pro .bv-upload-hint{
+  margin-left: 0;
+}
+
+/* Results layout */
+body.solar-pro .bv-results-grid{
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  gap: 24px;
+}
+
+@media (max-width: 900px){
+  body.solar-pro .bv-results-grid{
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Winner card: premium, no shimmer */
+body.solar-pro .bv-winner-card-compact{
+  background: linear-gradient(160deg, rgba(34,197,94,.16), rgba(139,92,246,.08));
+  border: 1px solid rgba(34,197,94,.35);
+  border-radius: 22px;
+  box-shadow: 0 22px 50px rgba(0,0,0,.28);
+  padding: 30px;
+}
+
+body.solar-pro .bv-winner-card-compact::before,
+body.solar-pro .bv-winner-card-compact::after{
+  content: none;
+}
+
+body.solar-pro .bv-winner-card-compact:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 26px 60px rgba(0,0,0,.32);
+}
+
+body.solar-pro .bv-winner-badge{
+  animation: none;
+  background: rgba(34,197,94,.16);
+  border: 1px solid rgba(34,197,94,.35);
+  color: #d1fae5;
+  box-shadow: none;
+  letter-spacing: 1.2px;
+}
+
+html.light-mode body.solar-pro .bv-winner-badge{
+  color: #14532d;
+  background: rgba(34,197,94,.12);
+}
+
+body.solar-pro .bv-winner-name{
+  text-shadow: none;
+}
+
+/* KPI cards: quieter, clearer */
+body.solar-pro .bv-kpi-card{
+  background: linear-gradient(145deg, var(--solar-surface), rgba(139,92,246,.03));
+  border: 1px solid var(--solar-border);
+  box-shadow: 0 10px 24px rgba(0,0,0,.16);
+  animation: none;
+}
+
+body.solar-pro .bv-kpi-card::before{
+  opacity: 0.35;
+}
+
+body.solar-pro .bv-kpi-card:hover{
+  transform: translateY(-2px);
+  border-color: var(--solar-border-strong);
+  box-shadow: 0 14px 30px rgba(0,0,0,.2);
+}
+
+/* Alternatives: stable width + subtle left accent */
+body.solar-pro .bv-alt-card-compact{
+  background: linear-gradient(160deg, var(--solar-surface), rgba(139,92,246,.02));
+  border: 1px solid var(--solar-border);
+  box-shadow: 0 10px 24px rgba(0,0,0,.18);
+  max-width: min(100%, 980px);
+  margin: 0 auto;
+  position: relative;
+  animation: none;
+}
+
+body.solar-pro .bv-alt-card-compact::before{
+  content: "";
+  position: absolute;
+  left: 12px;
+  top: 14px;
+  bottom: 14px;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(139,92,246,.8), rgba(34,197,94,.7));
+  opacity: .7;
+}
+
+body.solar-pro .bv-alt-card-compact:hover{
+  border-color: var(--solar-border-strong);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 30px rgba(0,0,0,.22);
+}
+
+body.solar-pro .bv-alt-rank{
+  opacity: .55;
+}
+
+html.light-mode body.solar-pro .bv-alt-rank{
+  opacity: .65;
+}
+
+/* Buttons: reduce gloss, keep clarity */
+body.solar-pro .bv-alt-btn-info{
+  box-shadow: 0 6px 16px rgba(139,92,246,.28);
+}
+
+body.solar-pro .bv-alt-btn-info:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 10px 22px rgba(139,92,246,.38);
+}
+
+body.solar-pro .bv-alt-btn-toggle{
+  background: linear-gradient(135deg, var(--solar-surface-2), rgba(139,92,246,.03));
+}
+
+/* Notes + info boxes */
+body.solar-pro .bv-note,
+body.solar-pro .bv-note-compact{
+  border: 1px dashed var(--solar-border);
+  background: linear-gradient(135deg, var(--solar-surface), rgba(139,92,246,.04));
+}
+
+@media (max-width: 600px){
+  body.solar-pro .bv-upload-hint{
+    margin-left: 0;
+  }
+  body.solar-pro .bv-alt-card-compact::before{
+    left: 8px;
+  }
+}
