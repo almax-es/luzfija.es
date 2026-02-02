@@ -1305,11 +1305,13 @@
   /* Cada celda en una línea con su label (excepto primera celda) */
   .csv-table tbody td:not(:first-child) {
     display: grid;
-    grid-template-columns: 120px 1fr;
+    grid-template-columns: 110px 1fr;
+    column-gap: 12px;
     padding: 8px 0;
     border: none;
     font-size: 0.9rem;
     align-items: center;
+    text-align: left;
   }
 
   /* Añadir labels antes de cada valor (excepto primera celda) */
@@ -1320,6 +1322,16 @@
     font-size: 0.7rem;
     color: var(--obs-muted);
     letter-spacing: 0.05em;
+    text-align: left;
+  }
+
+  /* Valor (segunda columna) alineado a la derecha para mejorar legibilidad */
+  .csv-table tbody td:not(:first-child) .csv-td-value {
+    display: block;
+    justify-self: end;
+    text-align: right;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
   }
 
   /* Primera celda (mes) destacada - NO usa grid, es solo título */

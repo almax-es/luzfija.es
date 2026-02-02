@@ -738,9 +738,21 @@
       setTimeout(forceScroll, 50);
       setTimeout(forceScroll, 100);
 
-      // Dar focus al botón de cerrar y permitir nuevos clics
+      // Dar focus sin provocar scroll: algunos navegadores, al hacer focus en un elemento
+      // situado abajo (como el botón "Cerrar"), mueven el scroll del modal.
+      const focusNoScroll = (el) => {
+        if (!el || typeof el.focus !== 'function') return;
+        try {
+          el.focus({ preventScroll: true });
+        } catch (_) {
+          // Fallback para navegadores que no soportan preventScroll
+          el.focus();
+        }
+      };
+
       setTimeout(() => {
-        btnCerrarPVPCInfo.focus();
+        // Preferimos el botón "X" (arriba) para evitar saltos de scroll.
+        focusNoScroll(btnCerrarPVPCX || btnCerrarPVPCInfo);
         modalAbriendo = false;
         modalReadyToClose = true; // Permitir cerrar con click fuera
       }, 150);
