@@ -493,6 +493,9 @@
 
   // ===== PWA SERVICE WORKER =====
   if ('serviceWorker' in navigator) {
+    // Guardamos si ya había controlador al inicio para distinguir primera instalación de actualización
+    const hadController = !!navigator.serviceWorker.controller;
+
     window.addEventListener('load', function() {
       navigator.serviceWorker
         .register('sw.js')
@@ -523,8 +526,19 @@
     });
 
     // Listener para cuando el nuevo SW toma control
+    let refreshing = false;
     navigator.serviceWorker.addEventListener('controllerchange', function() {
+      if (refreshing) return;
+      
+      // Si no había controlador previo, es la primera instalación (clients.claim).
+      // No recargamos porque la página ya está fresca y cargada de red.
+      if (!hadController) {
+        lfDbg('[SW] First installation active. No reload needed.');
+        return;
+      }
+
       lfDbg('[SW] New controller activated, reloading page...');
+      refreshing = true;
       window.location.reload();
     });
   }
