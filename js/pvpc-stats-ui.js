@@ -875,6 +875,7 @@
       }
 
       // Comparativa años (mensual)
+      const currentYear = new Date().getFullYear();
       const allYears = [];
       for (let y = currentYear; y >= 2021; y--) allYears.push(y);
 
