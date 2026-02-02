@@ -582,10 +582,21 @@
     }
   }
 
-  async function renderComparison(type, geo, selectedYears, accent, gridColor, textColor) {
+  async function renderComparison(type, geo, selectedYears, year, accent, gridColor, textColor) {
     const datasets = [];
+    const baseYear = Number(year);
+    let years = Array.isArray(selectedYears) ? selectedYears.slice() : [];
+
+    if (!years.length && Number.isFinite(baseYear)) {
+      years = [baseYear, baseYear - 1, baseYear - 2];
+    }
+
+    years = years
+      .map((y) => Number(y))
+      .filter((y) => Number.isFinite(y) && y >= 2021);
+
     // cargar en paralelo
-    const promises = selectedYears.map(y => PVPC_STATS.loadYearData(Number(geo), Number(y), type).then(d => ({ y, d })).catch(() => null));
+    const promises = years.map(y => PVPC_STATS.loadYearData(Number(geo), Number(y), type).then(d => ({ y, d })).catch(() => null));
     const results = await Promise.all(promises);
 
     for (const r of results) {
@@ -880,11 +891,11 @@
         buildCompareYearChips(allYears, state.compareYears, toggleYear);
         writeParams(state, { replace: true });
 
-        await renderComparison(state.type, state.geo, state.compareYears, accent, gridColor, textColor);
+        await renderComparison(state.type, state.geo, state.compareYears, state.year, accent, gridColor, textColor);
       };
 
       buildCompareYearChips(allYears, state.compareYears, toggleYear);
-      await renderComparison(state.type, state.geo, state.compareYears, accent, gridColor, textColor);
+      await renderComparison(state.type, state.geo, state.compareYears, state.year, accent, gridColor, textColor);
     }, 80);
 
     attachControlHandlers(state, rerender);
