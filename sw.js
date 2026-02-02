@@ -3,7 +3,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260202-083812";
+const CACHE_VERSION = "20260202-235800";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
@@ -194,8 +194,8 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Datos PVPC: network-first
-  if (url.pathname.includes('/data/pvpc/')) {
+  // Datos PVPC y Excedentes: network-first
+  if (url.pathname.includes('/data/pvpc/') || url.pathname.includes('/data/surplus/')) {
     event.respondWith(
       (async () => {
         const cache = await caches.open(CACHE_NAME);
