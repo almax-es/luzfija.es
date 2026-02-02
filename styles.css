@@ -677,9 +677,34 @@
       color: var(--text);
     }
 
-    #zonaFiscal option:checked{
-      color: var(--text);
-    }
+  #zonaFiscal option:checked{
+    color: var(--text);
+  }
+
+  /* Selector del modal PVPC/Excedentes */
+  .pvpc-type-select{
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--text);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    line-height: 1.2;
+    min-height: 32px;
+  }
+  .pvpc-type-select option{
+    color: var(--text);
+    background: var(--card);
+  }
+  html.light-mode .pvpc-type-select{
+    background: rgba(15, 23, 42, .03);
+    color: var(--text);
+  }
+  html.light-mode .pvpc-type-select option{
+    background: #fff;
+    color: #0f172a;
+  }
     .input.error{ border-color: rgba(239,68,68,.7); box-shadow: 0 0 0 4px rgba(239,68,68,.12); background: rgba(239,68,68,.08); }
     .help{ margin-top: 12px; padding: 12px 12px; border-radius: 14px; border: 1px solid rgba(139,92,246,.25); background: rgba(139,92,246,.10); color: var(--muted); font-size: 12px; line-height: 1.35; }
     #avisoFactura{ white-space: pre-line; }
