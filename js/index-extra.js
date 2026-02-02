@@ -5,8 +5,9 @@
 
   // ===== PVPC: lectura desde dataset estático (data/pvpc) =====
   const PVPC_DATASET_BASE = window.PVPC_DATASET_BASE || '/data/pvpc';
+  const SURPLUS_DATASET_BASE = window.SURPLUS_DATASET_BASE || '/data/surplus';
 
-  // Cache en memoria de ficheros mensuales {key: `${geo}/${YYYY-MM}`}
+  // Cache en memoria de ficheros mensuales {key: `${base}/${geo}/${YYYY-MM}`}
   const __pvpcMonthCache = new Map();
 
   function __pvpcGetUserContext() {
@@ -44,13 +45,13 @@
     return dt.toISOString().slice(0, 10);
   }
 
-  async function __pvpcLoadMonth(geo, yyyyMM) {
-    const key = `${geo}/${yyyyMM}`;
+  async function __pvpcLoadMonth(base, geo, yyyyMM) {
+    const key = `${base}/${geo}/${yyyyMM}`;
     if (__pvpcMonthCache.has(key)) return __pvpcMonthCache.get(key);
 
-    const url = `${PVPC_DATASET_BASE}/${geo}/${yyyyMM}.json`;
+    const url = `${base}/${geo}/${yyyyMM}.json`;
     const p = fetch(url, { cache: 'no-cache' }).then(async (r) => {
-      if (!r.ok) throw new Error(`PVPC dataset no disponible: ${url} (${r.status})`);
+      if (!r.ok) throw new Error(`Dataset no disponible: ${url} (${r.status})`);
       return r.json();
     });
 
@@ -97,17 +98,17 @@
     return idx;
   }
 
-  async function __pvpcFetchDay(dateStr, ctx) {
+  async function __pvpcFetchDay(dateStr, ctx, base = PVPC_DATASET_BASE) {
     // Devuelve: { entries, tz, geo }
-    // Carga desde dataset estático en /data/pvpc/{geo}/{YYYY-MM}.json
+    // Carga desde dataset estático en /data/{type}/{geo}/{YYYY-MM}.json
     const geo = ctx?.geo ?? 8741;
     const tz = ctx?.tz ?? 'Europe/Madrid';
 
     const yyyyMM = dateStr.slice(0, 7);
-    const month = await __pvpcLoadMonth(geo, yyyyMM);
+    const month = await __pvpcLoadMonth(base, geo, yyyyMM);
     const dayPairs = month?.days?.[dateStr];
     if (!Array.isArray(dayPairs) || dayPairs.length < 23 || dayPairs.length > 25) {
-      throw new Error('Sin datos PVPC (dataset estático)');
+      throw new Error('Sin datos (dataset estático)');
     }
     const entries = __pvpcBuildEntries(dayPairs, tz);
     return { entries, tz, geo };
@@ -304,7 +305,7 @@
           const fechaStr = __pvpcYmdInTZ(new Date(), __ctx.tz);
 
           // PVPC desde dataset estático (data/pvpc) – sin llamadas a ESIOS en tiempo real
-          const day = await __pvpcFetchDay(fechaStr, __ctx);
+          const day = await __pvpcFetchDay(fechaStr, __ctx, PVPC_DATASET_BASE);
           const entries = day.entries;
 
           const precios = entries.map(e => e.price);
@@ -341,8 +342,12 @@
     const modalPVPCInfo = document.getElementById('modalPVPCInfo');
     const btnCerrarPVPCInfo = document.getElementById('btnCerrarPVPCInfo');
     const btnCerrarPVPCX = document.getElementById('btnCerrarPVPCX');
-    const tabHoy = document.getElementById('tabHoy');
-    const tabManana = document.getElementById('tabManana');
+      const tabHoy = document.getElementById('tabHoy');
+      const tabManana = document.getElementById('tabManana');
+      const pvpcTypeSelector = document.getElementById('pvpcTypeSelector');
+      const modalPVPCTitleText = document.getElementById('modalPVPCTitleText');
+      const modalPVPCTypeIcon = document.getElementById('modalPVPCTypeIcon');
+      const modalPVPCHeadline = document.getElementById('modalPVPCHeadline');
     
     if (!btnPVPCInfo || !modalPVPCInfo || !btnCerrarPVPCInfo) {
       if (window.__LF_DEBUG) console.log('[PVPC] Faltan elementos del modal');
@@ -361,17 +366,53 @@
       return `${get('year')}-${get('month')}-${get('day')}`;
     }
 
-    let pvpcHoy = null;
-    let pvpcManana = null;
-    let diaActivo = 'hoy';
+      let pvpcHoy = null;
+      let pvpcManana = null;
+      let modalType = 'pvpc';
+      let diaActivo = 'hoy';
     let __pvpcLocked = false;
     let __pvpcScrollY = 0;
-    function __pvpcLock(){
-      if (document.documentElement.style.overflow === 'hidden') return;
-      __pvpcScrollY = window.scrollY || 0;
-      document.documentElement.style.overflow = 'hidden';
-      __pvpcLocked = true;
-    }
+      function __pvpcLock(){
+        if (document.documentElement.style.overflow === 'hidden') return;
+        __pvpcScrollY = window.scrollY || 0;
+        document.documentElement.style.overflow = 'hidden';
+        __pvpcLocked = true;
+      }
+
+      function getModalConfig(type) {
+        if (type === 'surplus') {
+          return {
+            base: SURPLUS_DATASET_BASE,
+            title: 'Excedentes - Precios por hora',
+            icon: '☀️',
+            headline: 'Precio de excedentes (autoconsumo)',
+            showComments: false,
+            tzOverride: 'Europe/Madrid'
+          };
+        }
+        return {
+          base: PVPC_DATASET_BASE,
+          title: 'PVPC - Precios por hora',
+          icon: '⚡',
+          headline: 'Precio regulado de la luz',
+          showComments: true,
+          tzOverride: null
+        };
+      }
+
+      function applyModalType(type) {
+        modalType = type;
+        const cfg = getModalConfig(modalType);
+        if (modalPVPCTitleText) modalPVPCTitleText.textContent = cfg.title;
+        if (modalPVPCTypeIcon) modalPVPCTypeIcon.textContent = cfg.icon;
+        if (modalPVPCHeadline) modalPVPCHeadline.textContent = cfg.headline;
+      }
+
+      function resetModalData() {
+        pvpcHoy = null;
+        pvpcManana = null;
+        diaActivo = 'hoy';
+      }
     function __pvpcUnlock(){
       if (!__pvpcLocked) return;
       document.documentElement.style.overflow = '';
@@ -381,13 +422,15 @@
 
 
     // Cargar precios de HOY
-    async function cargarHoy() {
-      try {
-        const __ctx = __pvpcGetUserContext();
-        const fechaStr = __pvpcYmdInTZ(new Date(), __ctx.tz);
+      async function cargarHoy() {
+        try {
+          const __ctx = __pvpcGetUserContext();
+          const cfg = getModalConfig(modalType);
+          const tz = cfg.tzOverride || __ctx.tz;
+          const fechaStr = __pvpcYmdInTZ(new Date(), tz);
 
-        const day = await __pvpcFetchDay(fechaStr, __ctx);
-        const entries = day.entries;
+          const day = await __pvpcFetchDay(fechaStr, { ...__ctx, tz }, cfg.base);
+          const entries = day.entries;
         const precios = entries.map(e => e.price);
 
         const nowIdx = __pvpcFindNowIndex(entries);
@@ -414,17 +457,19 @@
     }
 
     // Cargar precios de MAÑANA (si están disponibles en el dataset estático)
-    async function cargarManana() {
-      try {
-        const __ctx = __pvpcGetUserContext();
+      async function cargarManana() {
+        try {
+          const __ctx = __pvpcGetUserContext();
+          const cfg = getModalConfig(modalType);
+          const tz = cfg.tzOverride || __ctx.tz;
 
-        // Mañana en la TZ del usuario
-        const hoyStr = __pvpcYmdInTZ(new Date(), __ctx.tz);
-        const fechaStr = __pvpcAddDaysYMD(hoyStr, 1);
+          // Mañana en la TZ del usuario
+          const hoyStr = __pvpcYmdInTZ(new Date(), tz);
+          const fechaStr = __pvpcAddDaysYMD(hoyStr, 1);
 
-        // Intentar cargar. Si no existe (aún no publicado/actualizado), salimos sin error visible.
-        const day = await __pvpcFetchDay(fechaStr, __ctx);
-        const entries = day.entries;
+          // Intentar cargar. Si no existe (aún no publicado/actualizado), salimos sin error visible.
+          const day = await __pvpcFetchDay(fechaStr, { ...__ctx, tz }, cfg.base);
+          const entries = day.entries;
         const precios = entries.map(e => e.price);
 
         const precioMin = Math.min(...precios);
@@ -515,7 +560,8 @@
         </div>
       `;
 
-      entries.forEach((e, idx) => {
+        const cfg = getModalConfig(modalType);
+        entries.forEach((e, idx) => {
         const precio = e.price;
         const hora = e.hour;   // hora local (0-23), puede repetirse en DST
         const horaLabel = e.label;
@@ -529,7 +575,10 @@
         else if (precio < precioMin + rango * 0.33) color = '#22c55e';
         else if (precio > precioMax - rango * 0.33) color = '#f97316';
 
-        const comentario = getComentario(precio, hora, precioMin, precioMax);
+          const comentario = cfg.showComments ? getComentario(precio, hora, precioMin, precioMax) : '';
+          const comentarioHtml = cfg.showComments
+            ? `${isNow ? '<strong style="color: var(--accent); font-size: 10px;">← AHORA</strong> • ' : ''}${comentario}`
+            : (isNow ? '<strong style="color: var(--accent); font-size: 10px;">← AHORA</strong>' : '');
 
         const item = `
           <div style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.06); ${isNow ? 'background: rgba(255,180,50,.06); border-bottom: 1px solid rgba(255,180,50,.2);' : ''}" ${isNow ? 'id="pvpc-hora-actual"' : ''}>
@@ -545,10 +594,10 @@
               </div>
             </div>
             <div style="font-size: 11px; color: var(--muted); margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255,255,255,.03); line-height: 1.3;">
-              ${isNow ? '<strong style="color: var(--accent); font-size: 10px;">← AHORA</strong> • ' : ''}${comentario}
+                ${comentarioHtml}
+              </div>
             </div>
-          </div>
-        `;
+          `;
 
         if (hora < 12) col1 += item;
         else col2 += item;
@@ -590,8 +639,20 @@
       }
     }
 
-    if (tabHoy) tabHoy.addEventListener('click', () => cambiarTab('hoy'));
-    if (tabManana) tabManana.addEventListener('click', () => cambiarTab('manana'));
+      if (tabHoy) tabHoy.addEventListener('click', () => cambiarTab('hoy'));
+      if (tabManana) tabManana.addEventListener('click', () => cambiarTab('manana'));
+
+      if (pvpcTypeSelector) {
+        pvpcTypeSelector.addEventListener('change', async () => {
+          applyModalType(pvpcTypeSelector.value || 'pvpc');
+          resetModalData();
+          document.getElementById('modalPVPCHoursList').innerHTML = '<p class="u-loading-text">⏳ Cargando...</p>';
+          await cargarHoy();
+          await cargarManana();
+          if (pvpcHoy) cambiarTab('hoy');
+        });
+        applyModalType(pvpcTypeSelector.value || 'pvpc');
+      }
 
     // Abrir modal
     let elementoAnterior = null;

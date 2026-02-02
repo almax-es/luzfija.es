@@ -939,11 +939,11 @@
   <div class="modal-overlay is-hidden" id="modalPVPCInfo" role="dialog" aria-modal="true" aria-label="Precios PVPC por hora" tabindex="-1">
     <div class="modal-content card u-max-w-650" role="document">
       <button class="modal-x" id="btnCerrarPVPCX" type="button" aria-label="Cerrar">✕</button>
-      <div class="head">
-        <div class="kicker">Precio regulado de la luz</div>
-        <h2 class="title">⚡ PVPC - Precios por hora</h2>
-      </div>
-      <div class="body">
+        <div class="head">
+          <div class="kicker" id="modalPVPCHeadline">Precio regulado de la luz</div>
+          <h2 class="title"><span id="modalPVPCTypeIcon">⚡</span> <span id="modalPVPCTitleText">PVPC - Precios por hora</span></h2>
+        </div>
+        <div class="body">
         <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding: 12px; background: linear-gradient(135deg, rgba(245,158,11,.15) 0%, rgba(217,119,6,.08) 100%); border-radius: 12px; border: 1px solid rgba(217,119,6,.3);">
           <div>
             <div style="font-size: 11px; font-weight: 700; text-transform: uppercase; opacity: 0.7; letter-spacing: 0.5px; margin-bottom: 4px;" id="modalPVPCLabel">Ahora</div>
@@ -960,19 +960,26 @@
           </div>
         </div>
 
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-          <h3 style="font-size: 14px; font-weight: 900; margin: 0; color: var(--text);">💡 Planifica tus consumos</h3>
-          
-          <!-- Tabs Hoy/Mañana -->
-          <div id="pvpcTabs" class="pvpc-tabs-container">
-            <button id="tabHoy" class="pvpc-tab pvpc-tab-active pvpc-tab-btn active" type="button">
-              Hoy
-            </button>
-            <button id="tabManana" class="pvpc-tab pvpc-tab-btn" type="button" style="display: none">
-              Mañana
-            </button>
+          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; gap: 12px;">
+            <h3 style="font-size: 14px; font-weight: 900; margin: 0; color: var(--text);">💡 Planifica tus consumos</h3>
+            
+            <!-- Tabs Hoy/Mañana -->
+            <div id="pvpcTabs" class="pvpc-tabs-container">
+              <button id="tabHoy" class="pvpc-tab pvpc-tab-active pvpc-tab-btn active" type="button">
+                Hoy
+              </button>
+              <button id="tabManana" class="pvpc-tab pvpc-tab-btn" type="button" style="display: none">
+                Mañana
+              </button>
+            </div>
           </div>
-        </div>
+          <div style="display:flex; justify-content:flex-end; margin-bottom: 12px;">
+            <label for="pvpcTypeSelector" class="u-text-12 u-opacity-80 u-mr-8">Ver</label>
+            <select id="pvpcTypeSelector" style="background: var(--card-bg); border: 1px solid var(--border); color: var(--text); border-radius: 8px; padding: 6px 10px; font-size: 12px;">
+              <option value="pvpc">PVPC (Consumo)</option>
+              <option value="surplus">Excedentes (Autoconsumo)</option>
+            </select>
+          </div>
         
         <div id="modalPVPCHoursList" class="u-expand-h">
           <p class="u-loading-text">Cargando precios...</p>
