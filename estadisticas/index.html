@@ -248,74 +248,6 @@
       <a href="#faq">FAQ</a>
     </nav>
 
-    <!-- 2) EVOLUCIÓN -->
-    <section id="evolucion" class="obs-section">
-      <div class="obs-section__head">
-        <h2>Evolución del PVPC</h2>
-        <p class="muted">
-          Vista <strong>mensual</strong> para entender la tendencia sin ruido (por defecto). Cambia a “diaria” si quieres el detalle.
-        </p>
-      </div>
-
-      <div class="obs-card">
-        <div class="chart-head">
-          <div class="chart-title">
-            <h3>Tendencia del año</h3>
-            <div class="micro muted" id="trendMeta">Cargando…</div>
-          </div>
-          <div class="segmented" role="tablist" aria-label="Modo del gráfico">
-            <button id="trendModeMonthly" class="segmented__btn" type="button" role="tab" aria-selected="false">Mensual</button>
-            <button id="trendModeDaily" class="segmented__btn is-active" type="button" role="tab" aria-selected="true">Diaria</button>
-          </div>
-        </div>
-
-        <div class="chart-wrap">
-          <canvas id="trendChart" height="140"></canvas>
-        </div>
-
-        <div class="insights-row" id="trendInsights">
-          <div class="insight">
-            <div class="insight__k" id="insightCheapest">—</div>
-              <div class="insight__l" id="insightCheapestLabel">Mejor mes (media)</div>
-          </div>
-          <div class="insight">
-            <div class="insight__k" id="insightWorst">—</div>
-              <div class="insight__l" id="insightWorstLabel">Peor mes (media)</div>
-          </div>
-          <div class="insight">
-            <div class="insight__k" id="insightRange">—</div>
-              <div class="insight__l" id="insightRangeLabel">Rango (min–máx)</div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 3) HORAS -->
-    <section id="horas" class="obs-section">
-      <div class="obs-section__head">
-        <h2 id="hourlyTitle">¿A qué horas suele ser más barato?</h2>
-        <p class="muted" id="hourlySubtitle">
-          Perfil horario promedio del año. Útil para desplazar consumos: termo, lavadora, recarga, cocina, etc.
-        </p>
-      </div>
-
-      <div class="obs-card">
-        <div class="chart-head">
-          <div class="chart-title">
-            <h3>Perfil horario promedio</h3>
-            <div class="micro muted" id="hourlyMeta">Cargando…</div>
-          </div>
-        </div>
-        <div class="chart-wrap">
-          <canvas id="hourlyChart" height="140"></canvas>
-        </div>
-
-        <div class="callout" id="hourlyCallout">
-          <strong>Consejo:</strong> Cargando…
-        </div>
-      </div>
-    </section>
-
     <!-- 3.5) CSV EXCEDENTES -->
     <section id="csv-excedentes" class="obs-section">
       <div class="obs-section__head">
@@ -386,6 +318,74 @@
         </div>
 
         <div class="micro muted" id="csvExcedentesNote" hidden></div>
+      </div>
+    </section>
+
+    <!-- 2) EVOLUCIÓN -->
+    <section id="evolucion" class="obs-section">
+      <div class="obs-section__head">
+        <h2>Evolución del PVPC</h2>
+        <p class="muted">
+          Vista <strong>mensual</strong> para entender la tendencia sin ruido (por defecto). Cambia a “diaria” si quieres el detalle.
+        </p>
+      </div>
+
+      <div class="obs-card">
+        <div class="chart-head">
+          <div class="chart-title">
+            <h3>Tendencia del año</h3>
+            <div class="micro muted" id="trendMeta">Cargando…</div>
+          </div>
+          <div class="segmented" role="tablist" aria-label="Modo del gráfico">
+            <button id="trendModeMonthly" class="segmented__btn" type="button" role="tab" aria-selected="false">Mensual</button>
+            <button id="trendModeDaily" class="segmented__btn is-active" type="button" role="tab" aria-selected="true">Diaria</button>
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <canvas id="trendChart" height="140"></canvas>
+        </div>
+
+        <div class="insights-row" id="trendInsights">
+          <div class="insight">
+            <div class="insight__k" id="insightCheapest">—</div>
+              <div class="insight__l" id="insightCheapestLabel">Mejor mes (media)</div>
+          </div>
+          <div class="insight">
+            <div class="insight__k" id="insightWorst">—</div>
+              <div class="insight__l" id="insightWorstLabel">Peor mes (media)</div>
+          </div>
+          <div class="insight">
+            <div class="insight__k" id="insightRange">—</div>
+              <div class="insight__l" id="insightRangeLabel">Rango (min–máx)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3) HORAS -->
+    <section id="horas" class="obs-section">
+      <div class="obs-section__head">
+        <h2 id="hourlyTitle">¿A qué horas suele ser más barato?</h2>
+        <p class="muted" id="hourlySubtitle">
+          Perfil horario promedio del año. Útil para desplazar consumos: termo, lavadora, recarga, cocina, etc.
+        </p>
+      </div>
+
+      <div class="obs-card">
+        <div class="chart-head">
+          <div class="chart-title">
+            <h3>Perfil horario promedio</h3>
+            <div class="micro muted" id="hourlyMeta">Cargando…</div>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="hourlyChart" height="140"></canvas>
+        </div>
+
+        <div class="callout" id="hourlyCallout">
+          <strong>Consejo:</strong> Cargando…
+        </div>
       </div>
     </section>
 
