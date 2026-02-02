@@ -10,6 +10,7 @@
   };
 
   const els = {
+    type: document.getElementById('typeSelector'),
     geo: document.getElementById('geoSelector'),
     year: document.getElementById('yearSelector'),
 
@@ -87,16 +88,19 @@
     const p = url.searchParams;
     const now = new Date();
     const defaults = {
+      type: 'pvpc',
       geo: '8741',
       year: String(now.getFullYear()),
       trendMode: 'daily',
       compareYears: ''
     };
 
+    const type = p.get('type') || defaults.type;
     const geo = p.get('geo') || defaults.geo;
     const year = p.get('year') || defaults.year;
 
     return {
+      type,
       geo,
       year,
       trendMode: p.get('trendMode') || defaults.trendMode,
@@ -108,6 +112,7 @@
     const url = new URL(window.location.href);
     const p = url.searchParams;
 
+    p.set('type', state.type);
     p.set('geo', state.geo);
     p.set('year', state.year);
     p.set('trendMode', state.trendMode);
@@ -473,7 +478,7 @@
     return { labels, values };
   }
 
-  async function computeYoY(geo, year, currentEndDateStr, currentYtdAvg) {
+  async function computeYoY(type, geo, year, currentEndDateStr, currentYtdAvg) {
     const prevYear = String(Number(year) - 1);
     if (Number(prevYear) < 2021) return null;
     if (!currentEndDateStr) return null;
@@ -481,7 +486,7 @@
     const [_, mm, dd] = currentEndDateStr.split('-');
     const prevEnd = `${prevYear}-${mm}-${dd}`;
 
-    const prevData = await PVPC_STATS.loadYearData(Number(geo), Number(prevYear));
+    const prevData = await PVPC_STATS.loadYearData(Number(geo), Number(prevYear), type);
     const prevDaily = PVPC_STATS.getDailyEvolution(prevData);
     const prevValues = prevDaily.labels
       .map((d, i) => (d <= prevEnd ? prevDaily.data[i] : null))
@@ -539,10 +544,10 @@
     }
   }
 
-  async function renderComparison(geo, selectedYears, accent, gridColor, textColor) {
+  async function renderComparison(type, geo, selectedYears, accent, gridColor, textColor) {
     const datasets = [];
     // cargar en paralelo
-    const promises = selectedYears.map(y => PVPC_STATS.loadYearData(Number(geo), Number(y)).then(d => ({ y, d })).catch(() => null));
+    const promises = selectedYears.map(y => PVPC_STATS.loadYearData(Number(geo), Number(y), type).then(d => ({ y, d })).catch(() => null));
     const results = await Promise.all(promises);
 
     for (const r of results) {
@@ -562,6 +567,7 @@
   }
 
   function applyStateToControls(state) {
+    if (els.type) els.type.value = state.type;
     if (els.geo) els.geo.value = state.geo;
     if (els.year) els.year.value = state.year;
     setTrendMode(state);
@@ -583,6 +589,7 @@
   function attachControlHandlers(state, rerender) {
     const onChange = () => rerender({ push: false });
 
+    if (els.type) els.type.addEventListener('change', () => { state.type = els.type.value; onChange(); });
     els.geo.addEventListener('change', () => { state.geo = els.geo.value; onChange(); });
     els.year.addEventListener('change', () => { state.year = els.year.value; onChange(); });
 
@@ -684,7 +691,7 @@
 
       let yearData;
       try {
-        yearData = await PVPC_STATS.loadYearData(Number(state.geo), Number(state.year));
+        yearData = await PVPC_STATS.loadYearData(Number(state.geo), Number(state.year), state.type);
       } catch (e) {
         showError('Error cargando dataset local.');
         return;
@@ -693,7 +700,7 @@
       // Cargar año anterior para media móvil 12 meses
       let prevYearData = null;
       try {
-        prevYearData = await PVPC_STATS.loadYearData(Number(state.geo), Number(state.year) - 1);
+        prevYearData = await PVPC_STATS.loadYearData(Number(state.geo), Number(state.year) - 1, state.type);
       } catch (_) {}
 
       const status = PVPC_STATS.getYearStatus(yearData);
@@ -758,7 +765,7 @@
 
       // YoY (a mismas fechas)
       try {
-        const yoy = await computeYoY(state.geo, state.year, lastDate, ytdAvg);
+        const yoy = await computeYoY(state.type, state.geo, state.year, lastDate, ytdAvg);
         if (yoy) {
           els.kpiYoY.textContent = fmtPct(yoy.pct, 0);
           els.kpiYoYSub.textContent = `Hasta ${lastDate} vs ${yoy.prevEnd}`;
@@ -776,7 +783,8 @@
       renderTrendChart(daily, monthly, mode, accent, gridColor, textColor);
 
       const monthsLoaded = status.monthsLoaded && status.monthsLoaded.length ? status.monthsLoaded.join(', ') : '—';
-      els.trendMeta.textContent = `${geoNames[String(state.geo)] || 'Zona'} · ${state.year} · meses cargados: ${monthsLoaded}`;
+      const labelPrefix = state.type === 'surplus' ? 'Excedentes' : (geoNames[String(state.geo)] || 'Zona');
+      els.trendMeta.textContent = `${labelPrefix} · ${state.year} · meses cargados: ${monthsLoaded}`;
       setInsights(monthly);
       setRange(kpis);
 
@@ -788,14 +796,13 @@
       // Consejito basado en mejor bloque 3h
       const window3 = computeWindowOptions(hourlyAll.data, 3)[0];
       if (window3) {
-        els.hourlyCallout.innerHTML = `<strong>Consejo:</strong> de media, el bloque de 3 horas más barato suele ser <strong>${hourRangeLabel(window3.start, window3.end)}</strong> (${fmtCents(window3.avg)}).`;
+        const consejoPrefix = state.type === 'surplus' ? 'de media, el bloque de 3 horas donde mejor se pagan los excedentes' : 'de media, el bloque de 3 horas más barato';
+        els.hourlyCallout.innerHTML = `<strong>Consejo:</strong> ${consejoPrefix} suele ser <strong>${hourRangeLabel(window3.start, window3.end)}</strong> (${fmtCents(window3.avg)}).`;
       } else {
         els.hourlyCallout.textContent = 'Consejo: sin datos suficientes.';
       }
 
       // Comparativa años (mensual)
-      const now = new Date();
-      const currentYear = now.getFullYear();
       const allYears = [];
       for (let y = currentYear; y >= 2021; y--) allYears.push(y);
 
@@ -812,11 +819,11 @@
         buildCompareYearChips(allYears, state.compareYears, toggleYear);
         writeParams(state, { replace: true });
 
-        await renderComparison(state.geo, state.compareYears, accent, gridColor, textColor);
+        await renderComparison(state.type, state.geo, state.compareYears, accent, gridColor, textColor);
       };
 
       buildCompareYearChips(allYears, state.compareYears, toggleYear);
-      await renderComparison(state.geo, state.compareYears, accent, gridColor, textColor);
+      await renderComparison(state.type, state.geo, state.compareYears, accent, gridColor, textColor);
     }, 80);
 
     attachControlHandlers(state, rerender);

@@ -37,7 +37,7 @@ except Exception:
     print("ERROR: Python 3.9+ required (zoneinfo).", file=sys.stderr)
     raise
 
-ESIOS_BASE = "https://api.esios.ree.es/indicators/1001"
+ESIOS_BASE_TEMPLATE = "https://api.esios.ree.es/indicators/{indicator}"
 ACCEPT_HEADER = "application/json; application/vnd.esios-api-v2+json"
 
 GEO_TZ = {
@@ -87,19 +87,20 @@ def month_ranges(start: dt.date, end: dt.date) -> List[MonthRange]:
             y += 1
     return ranges
 
-def build_url(start_utc_iso: str, end_utc_iso: str, geo_id: int) -> str:
+def build_url(indicator: int, start_utc_iso: str, end_utc_iso: str, geo_id: int) -> str:
+    base = ESIOS_BASE_TEMPLATE.format(indicator=indicator)
     q = {
         "start_date": start_utc_iso,
         "end_date": end_utc_iso,
         "geo_ids[]": str(geo_id),
     }
-    return ESIOS_BASE + "?" + urllib.parse.urlencode(q, doseq=True)
+    return base + "?" + urllib.parse.urlencode(q, doseq=True)
 
 def http_get_json(url: str, api_key: str, timeout_s: int = 60) -> dict:
     headers = {
         "Accept": ACCEPT_HEADER,
         "Content-Type": "application/json",
-        "User-Agent": "luzfija-pvpc-auto-fill/3.0",
+        "User-Agent": "luzfija-pvpc-auto-fill/4.0",
         "x-api-key": api_key,
     }
     req = urllib.request.Request(url, headers=headers, method="GET")
@@ -186,8 +187,13 @@ def validate_days(days: Dict[str, List[List[float]]]) -> List[str]:
     warnings: List[str] = []
     for day, arr in days.items():
         n = len(arr)
-        if n not in (23, 24, 25):
-            warnings.append(f"{day}: unexpected hours={n}")
+        # Soportar 23-25 (horario) y 92-100 (cuartohorario)
+        is_hourly = (20 <= n <= 30)
+        is_quarter = (90 <= n <= 110)
+        
+        if not (is_hourly or is_quarter):
+            warnings.append(f"{day}: unexpected points={n}")
+        
         for i in range(1, n):
             if arr[i][0] <= arr[i-1][0]:
                 warnings.append(f"{day}: non-monotonic epoch at idx {i}")
@@ -225,7 +231,7 @@ def merge_month_file(out_path: str, new_obj: dict) -> dict:
     new_obj["days"] = old_days
     return new_obj
 
-def rebuild_geo_index(geo_dir: str, geo_id: int, tz_name: str, generated_at_utc: str) -> dict:
+def rebuild_geo_index(geo_dir: str, geo_id: int, tz_name: str, indicator: int, generated_at_utc: str) -> dict:
     files = []
     warnings = []
     for name in sorted(os.listdir(geo_dir)):
@@ -247,7 +253,7 @@ def rebuild_geo_index(geo_dir: str, geo_id: int, tz_name: str, generated_at_utc:
         "generated_at_utc": generated_at_utc,
         "geo_id": geo_id,
         "timezone": tz_name,
-        "indicator": 1001,
+        "indicator": indicator,
         "unit": "EUR/kWh",
         "epoch_unit": "s",
         "files": files,
@@ -317,6 +323,7 @@ def auto_detect_range(geo_dir: str, tz: ZoneInfo) -> Tuple[dt.date, dt.date]:
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--out-dir", default="data/pvpc", help="Output root (default: data/pvpc)")
+    ap.add_argument("--indicator", type=int, default=1001, help="ESIOS Indicator ID (default: 1001)")
     ap.add_argument("--geos", nargs="+", type=int, default=[8741, 8742, 8743, 8744, 8745],
                     help="Geo IDs (default: 8741 8742 8743 8744 8745)")
     ap.add_argument("--from", dest="from_date", default=None, help="Start date (YYYY-MM-DD). Auto if omitted.")
@@ -344,7 +351,7 @@ def main() -> int:
     overall = {
         "schema_version": 2,
         "generated_at_utc": generated_at,
-        "indicator": 1001,
+        "indicator": args.indicator,
         "unit": "EUR/kWh",
         "epoch_unit": "s",
         "geos": [],
@@ -364,7 +371,7 @@ def main() -> int:
         else:
             start, end = auto_detect_range(geo_dir, tz)
 
-        print(f"\n🌍 Geo {geo} ({tz_name}): {start} → {end}")
+        print(f"\n🌍 Geo {geo} ({tz_name}) [Indicator {args.indicator}]: {start} → {end}")
 
         if end < start:
             print(f"ERROR: end < start for geo {geo}", file=sys.stderr)
@@ -372,7 +379,7 @@ def main() -> int:
 
         for mr in month_ranges(start, end):
             start_utc_iso, end_utc_iso = to_utc_range_for_local_days(tz, mr.start_local, mr.end_local)
-            url = build_url(start_utc_iso, end_utc_iso, geo)
+            url = build_url(args.indicator, start_utc_iso, end_utc_iso, geo)
 
             payload = http_get_json(url, api_key, timeout_s=args.timeout)
             days, meta = build_days(payload, tz, mr.start_local, mr.end_local)
@@ -386,7 +393,7 @@ def main() -> int:
                 "schema_version": 2,
                 "geo_id": geo,
                 "timezone": tz_name,
-                "indicator": 1001,
+                "indicator": args.indicator,
                 "unit": "EUR/kWh",
                 "epoch_unit": "s",
                 "from": mr.start_local.isoformat(),
@@ -404,7 +411,7 @@ def main() -> int:
             if args.sleep > 0:
                 time.sleep(args.sleep)
 
-        geo_index = rebuild_geo_index(geo_dir, geo, tz_name, generated_at)
+        geo_index = rebuild_geo_index(geo_dir, geo, tz_name, args.indicator, generated_at)
         write_json(os.path.join(geo_dir, "index.json"), geo_index)
 
         overall["geos"].append({"geo_id": geo, "timezone": tz_name, "path": f"{geo}/index.json"})

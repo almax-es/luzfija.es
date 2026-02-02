@@ -37,10 +37,11 @@ const PVPC_STATS = {
      * Carga todos los datos disponibles para una zona y año
      * @param {number} geoId - ID de la zona (8741 Península, etc)
      * @param {number} year - Año a cargar (ej. 2024)
+     * @param {string} type - Tipo de dato ('pvpc' o 'surplus')
      * @returns {Promise<Object>} - Objeto con todos los precios horarios del año
      */
-    async loadYearData(geoId, year) {
-        const cacheKey = `${geoId}-${year}`;
+    async loadYearData(geoId, year, type = 'pvpc') {
+        const cacheKey = `${type}-${geoId}-${year}`;
         if (this.cache.has(cacheKey)) {
             const cached = this.cache.get(cacheKey);
             this.touchCache(cacheKey, cached);
@@ -60,7 +61,7 @@ const PVPC_STATS = {
             if (Number(year) === 2021 && m < 6) continue;
 
             const monthStr = String(m).padStart(2, '0');
-            const url = `/data/pvpc/${geoId}/${year}-${monthStr}.json`;
+            const url = `/data/${type}/${geoId}/${year}-${monthStr}.json`;
             monthLabels.push(monthStr);
             tasks.push(async () => {
                 try {
@@ -260,11 +261,11 @@ const PVPC_STATS = {
     /**
      * Prepara datos para comparación multianual (varias líneas en un mismo gráfico)
      */
-    async getMultiYearComparison(geoId, years) {
+    async getMultiYearComparison(geoId, years, type = 'pvpc') {
         const datasets = [];
 
         for (const year of years) {
-            const data = await this.loadYearData(geoId, year);
+            const data = await this.loadYearData(geoId, year, type);
             if (!data || Object.keys(data.days).length === 0) continue;
 
             const values = new Array(366).fill(null);
