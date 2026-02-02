@@ -26,6 +26,8 @@
     kpiYoY: document.getElementById('kpiYoY'),
     kpiYoYSub: document.getElementById('kpiYoYSub'),
 
+    evolutionTitle: document.getElementById('evolutionTitle'),
+    trendTitle: document.getElementById('trendTitle'),
     lblKpi2: document.getElementById('lblKpi2'),
     lblKpi3: document.getElementById('lblKpi3'),
 
@@ -804,6 +806,12 @@
   }
 
   function updateCopyForType(isSurplus) {
+    if (els.evolutionTitle) {
+      els.evolutionTitle.textContent = isSurplus ? 'Evolución de los excedentes' : 'Evolución del PVPC';
+    }
+    if (els.trendTitle) {
+      els.trendTitle.textContent = isSurplus ? 'Tendencia de los excedentes' : 'Tendencia del año';
+    }
     if (els.insightCheapestLabel) {
       els.insightCheapestLabel.textContent = 'Mejor mes (media)';
     }
@@ -830,7 +838,7 @@
     }
     if (els.faqCheapestBody) {
       els.faqCheapestBody.textContent = isSurplus
-        ? 'A menudo las horas centrales del día tienden a pagar mejor los excedentes (sobre todo con alta producción solar), pero depende del año y de la zona. El gráfico “Perfil horario” te lo muestra de forma directa.'
+        ? 'Paradójicamente, las horas centrales (con más sol) suelen tener precios más bajos debido al exceso de oferta solar (efecto caníbal). A menudo los excedentes se pagan mejor a primera hora de la mañana o última de la tarde. El gráfico “Perfil horario” te muestra la realidad de tu zona.'
         : 'A menudo las horas centrales del día tienden a ser más baratas (sobre todo con alta producción solar), pero depende del año y de la zona. El gráfico “Perfil horario” te lo muestra de forma directa.';
     }
   }
