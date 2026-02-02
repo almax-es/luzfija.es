@@ -617,15 +617,22 @@
         lista.scrollTop = 0;
       }
 
-      // Forzar scroll a arriba después de renderizar
-      setTimeout(() => {
+      // Forzar scroll a arriba de forma múltiple para asegurar que funciona
+      const forceScrollTop = () => {
         try {
           if (lista) lista.scrollTop = 0;
           const modalContent = modalPVPCInfo.querySelector('.modal-content');
           if (modalContent) modalContent.scrollTop = 0;
           modalPVPCInfo.scrollTop = 0;
         } catch (_) {}
-      }, 10);
+      };
+
+      // Ejecutar varias veces para evitar que el navegador haga scroll automático
+      forceScrollTop();
+      requestAnimationFrame(() => {
+        forceScrollTop();
+        setTimeout(forceScrollTop, 50);
+      });
     }
 
     // Cambiar tab
@@ -670,35 +677,44 @@
     // Abrir modal
     let elementoAnterior = null;
     btnPVPCInfo.addEventListener('click', async () => {
+      // Prevenir doble clic mientras se está abriendo
+      if (btnPVPCInfo.disabled) return;
+      btnPVPCInfo.disabled = true;
+
       // Guardar elemento que tenía focus para restaurarlo después
       elementoAnterior = document.activeElement;
-      
+
       // Mostrar modal inmediatamente
       modalPVPCInfo.style.display = 'flex';
+
+      // Forzar reflow para asegurar que el display se aplica antes de la clase
+      void modalPVPCInfo.offsetHeight;
+
       modalPVPCInfo.classList.add('show');
       modalPVPCInfo.setAttribute('aria-hidden', 'false');
       __pvpcLock();
 
-      // Asegurar que el modal abre desde arriba
-      try {
-        modalPVPCInfo.scrollTop = 0;
-        const modalContent = modalPVPCInfo.querySelector('.modal-content');
-        if (modalContent) modalContent.scrollTop = 0;
-      } catch (_) {}
-      
+      // Forzar scroll a arriba inmediatamente
+      modalPVPCInfo.scrollTop = 0;
+      const modalContent = modalPVPCInfo.querySelector('.modal-content');
+      if (modalContent) modalContent.scrollTop = 0;
+
       // Dar focus al botón de cerrar
-      setTimeout(() => btnCerrarPVPCInfo.focus(), 100);
-      
+      setTimeout(() => {
+        btnCerrarPVPCInfo.focus();
+        btnPVPCInfo.disabled = false;
+      }, 300);
+
       // Cargar datos si no están cargados
       if (!pvpcHoy) {
         document.getElementById('modalPVPCHoursList').innerHTML = '<p class="u-loading-text">⏳ Cargando...</p>';
-        
+
         // Cargar precios de hoy
         await cargarHoy();
-        
+
         // Cargar precios de mañana si corresponde
         await cargarManana();
-        
+
         // Actualizar vista
         if (pvpcHoy) {
           cambiarTab(diaActivo);
@@ -708,6 +724,12 @@
       } else {
         cambiarTab(diaActivo);
       }
+
+      // Asegurar scroll arriba después de todo
+      requestAnimationFrame(() => {
+        modalPVPCInfo.scrollTop = 0;
+        if (modalContent) modalContent.scrollTop = 0;
+      });
     });
 
     // Cerrar modal

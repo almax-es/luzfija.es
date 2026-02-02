@@ -1276,48 +1276,65 @@
   }
 
   .csv-table-wrap {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    max-width: 100%;
+    overflow: visible;
   }
 
+  /* Ocultar el header de la tabla en móvil */
   .csv-table thead {
-    display: table-header-group;
+    display: none;
   }
 
-  .csv-table tbody,
-  .csv-table {
-    display: table;
+  /* Convertir tabla a lista de tarjetas */
+  .csv-table,
+  .csv-table tbody {
+    display: block;
     width: 100%;
-    font-size: 0.7rem;
-    min-width: 500px;
   }
 
-  .csv-table thead th {
-    padding: 8px 6px;
-    font-size: 0.6rem;
-    white-space: nowrap;
-  }
-
+  /* Cada fila es una tarjeta */
   .csv-table tbody tr {
-    display: table-row;
-    margin: 0;
-    border: none;
-    padding: 0;
-    background: transparent;
-    box-shadow: none;
+    display: block;
+    margin-bottom: 16px;
+    padding: 16px;
+    background: linear-gradient(145deg, var(--obs-card) 0%, rgba(139, 92, 246, 0.02) 100%);
+    border: 1px solid var(--hairline);
+    border-radius: 14px;
+    box-shadow: var(--shadow-sm);
   }
 
+  /* Cada celda en una línea con su label */
   .csv-table tbody td {
-    display: table-cell;
-    border-bottom: 1px solid rgba(255,255,255,0.04);
-    padding: 8px 6px;
-    font-size: 0.7rem;
-    white-space: nowrap;
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    padding: 8px 0;
+    border: none;
+    font-size: 0.9rem;
+    align-items: center;
   }
 
+  /* Añadir labels antes de cada valor */
   .csv-table tbody td::before {
-    content: none !important;
+    content: attr(data-label);
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.7rem;
+    color: var(--obs-muted);
+    letter-spacing: 0.05em;
+  }
+
+  /* Primera celda (mes) destacada */
+  .csv-table tbody td:first-child {
+    font-weight: 900;
+    font-size: 1.1rem;
+    color: var(--accent);
+    margin-bottom: 8px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .csv-table tbody td:first-child::before {
+    content: "📅 ";
+    font-size: 1rem;
   }
 
   .obs-controls {

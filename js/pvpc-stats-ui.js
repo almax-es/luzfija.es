@@ -1086,12 +1086,12 @@
           const peak = Number.isFinite(row.peakHour) ? `${String(row.peakHour).padStart(2, '0')}:00–${String((row.peakHour + 1) % 24).padStart(2, '0')}:00` : '—';
           return `
             <tr>
-              <td>${formatYmLabel(row.ym)}</td>
-              <td>${fmtKwh(row.kwh, 1)}</td>
-              <td>${fmtCents(row.avg, 4)}</td>
-              <td>${fmtEur(row.eur)}</td>
-              <td>${winLabel}</td>
-              <td>${peak}</td>
+              <td data-label="Mes">${formatYmLabel(row.ym)}</td>
+              <td data-label="kWh">${fmtKwh(row.kwh, 1)}</td>
+              <td data-label="€/kWh">${fmtCents(row.avg, 4)}</td>
+              <td data-label="€">${fmtEur(row.eur)}</td>
+              <td data-label="Ventana 80%">${winLabel}</td>
+              <td data-label="Hora pico">${peak}</td>
             </tr>
           `;
         }).join('');
