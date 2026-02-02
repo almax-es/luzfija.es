@@ -616,10 +616,16 @@
         lista.innerHTML = html;
         lista.scrollTop = 0;
       }
-      try {
-        const modalContent = modalPVPCInfo.querySelector('.modal-content');
-        if (modalContent) modalContent.scrollTop = 0;
-      } catch (_) {}
+
+      // Forzar scroll a arriba después de renderizar
+      setTimeout(() => {
+        try {
+          if (lista) lista.scrollTop = 0;
+          const modalContent = modalPVPCInfo.querySelector('.modal-content');
+          if (modalContent) modalContent.scrollTop = 0;
+          modalPVPCInfo.scrollTop = 0;
+        } catch (_) {}
+      }, 10);
     }
 
     // Cambiar tab
