@@ -1322,19 +1322,22 @@
     letter-spacing: 0.05em;
   }
 
-  /* Primera celda (mes) destacada */
+  /* Primera celda (mes) destacada - NO usa grid, es solo título */
   .csv-table tbody td:first-child {
+    display: block;
     font-weight: 900;
-    font-size: 1.1rem;
+    font-size: 1.3rem;
     color: var(--accent);
-    margin-bottom: 8px;
+    margin-bottom: 12px;
     padding-bottom: 12px;
-    border-bottom: 1px solid var(--hairline);
+    border-bottom: 2px solid var(--hairline);
+    text-align: center;
   }
 
   .csv-table tbody td:first-child::before {
     content: "📅 ";
-    font-size: 1rem;
+    font-size: 1.2rem;
+    margin-right: 6px;
   }
 
   .obs-controls {
