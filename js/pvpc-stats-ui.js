@@ -121,7 +121,7 @@
     if (typeof XLSX !== 'undefined') return;
     await new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = new URL('vendor/xlsx/xlsx.full.min.js', document.baseURI).toString();
+      script.src = '/vendor/xlsx/xlsx.full.min.js';
       script.onload = resolve;
       script.onerror = () => reject(new Error('No se pudo cargar XLSX'));
       document.head.appendChild(script);
