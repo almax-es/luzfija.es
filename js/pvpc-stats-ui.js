@@ -1019,7 +1019,6 @@
       compareYears: normalizeSelectedYears(params.year || currentSystemYear, params.compareYears)
     };
 
-    console.log(`[PVPC-OBS] Año detectado por sistema: ${currentSystemYear}`);
     applyStateToControls(state);
 
     const csvState = {
@@ -1089,11 +1088,11 @@
           return `
             <tr>
               <td data-label="Mes">${formatYmLabel(row.ym)}</td>
-              <td data-label="Excedentes"><span class="csv-td-value">${fmtKwh(row.kwh, 1)}</span></td>
-              <td data-label="€/kWh"><span class="csv-td-value">${fmtCents(row.avg, 4)}</span></td>
-              <td data-label="€"><span class="csv-td-value">${fmtEur(row.eur)}</span></td>
-              <td data-label="Ventana 80%"><span class="csv-td-value">${winLabel}</span></td>
-              <td data-label="Hora pico"><span class="csv-td-value">${peak}</span></td>
+              <td data-label="Energía vertida"><span class="csv-td-value">${fmtKwh(row.kwh, 1)}</span></td>
+              <td data-label="Precio medio"><span class="csv-td-value">${fmtCents(row.avg, 4)}</span></td>
+              <td data-label="Importe"><span class="csv-td-value">${fmtEur(row.eur)}</span></td>
+              <td data-label="Tramo principal (80%)"><span class="csv-td-value">${winLabel}</span></td>
+              <td data-label="Hora pico vertido"><span class="csv-td-value">${peak}</span></td>
             </tr>
           `;
         }).join('');
