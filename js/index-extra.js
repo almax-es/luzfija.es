@@ -676,10 +676,16 @@
 
     // Abrir modal
     let elementoAnterior = null;
-    btnPVPCInfo.addEventListener('click', async () => {
+    let modalAbriendo = false;
+
+    btnPVPCInfo.addEventListener('click', async (e) => {
+      // Prevenir comportamiento por defecto y propagación
+      e.preventDefault();
+      e.stopPropagation();
+
       // Prevenir doble clic mientras se está abriendo
-      if (btnPVPCInfo.disabled) return;
-      btnPVPCInfo.disabled = true;
+      if (modalAbriendo) return;
+      modalAbriendo = true;
 
       // Guardar elemento que tenía focus para restaurarlo después
       elementoAnterior = document.activeElement;
@@ -687,23 +693,17 @@
       // Mostrar modal inmediatamente
       modalPVPCInfo.style.display = 'flex';
 
-      // Forzar reflow para asegurar que el display se aplica antes de la clase
+      // Forzar reflow
       void modalPVPCInfo.offsetHeight;
 
       modalPVPCInfo.classList.add('show');
       modalPVPCInfo.setAttribute('aria-hidden', 'false');
       __pvpcLock();
 
-      // Forzar scroll a arriba inmediatamente
+      // Forzar scroll a arriba ANTES de cargar datos
       modalPVPCInfo.scrollTop = 0;
       const modalContent = modalPVPCInfo.querySelector('.modal-content');
       if (modalContent) modalContent.scrollTop = 0;
-
-      // Dar focus al botón de cerrar
-      setTimeout(() => {
-        btnCerrarPVPCInfo.focus();
-        btnPVPCInfo.disabled = false;
-      }, 300);
 
       // Cargar datos si no están cargados
       if (!pvpcHoy) {
@@ -725,11 +725,24 @@
         cambiarTab(diaActivo);
       }
 
-      // Asegurar scroll arriba después de todo
-      requestAnimationFrame(() => {
+      // Forzar scroll arriba múltiples veces
+      const forceScroll = () => {
         modalPVPCInfo.scrollTop = 0;
         if (modalContent) modalContent.scrollTop = 0;
-      });
+        const lista = document.getElementById('modalPVPCHoursList');
+        if (lista) lista.scrollTop = 0;
+      };
+
+      forceScroll();
+      requestAnimationFrame(forceScroll);
+      setTimeout(forceScroll, 50);
+      setTimeout(forceScroll, 100);
+
+      // Dar focus al botón de cerrar y permitir nuevos clics
+      setTimeout(() => {
+        btnCerrarPVPCInfo.focus();
+        modalAbriendo = false;
+      }, 500);
     });
 
     // Cerrar modal
