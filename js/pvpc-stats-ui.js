@@ -66,9 +66,9 @@
     }
   }
 
-  function getSolarBandColor() {
+  function getSolarAccent() {
     const isLight = document.documentElement.classList.contains('light-mode');
-    return isLight ? 'rgba(245, 158, 11, 0.10)' : 'rgba(245, 158, 11, 0.14)';
+    return isLight ? 'rgba(180, 83, 9, 0.92)' : 'rgba(245, 158, 11, 0.9)';
   }
 
   function toComma(n) {
@@ -353,23 +353,13 @@
     const labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
     const ctx = canvases.hourly.getContext('2d');
     const gradient = createGradient(ctx, accent);
-    const solarBandPlugin = {
-      id: 'solarBand',
-      beforeDatasetsDraw(chart, _args, options) {
-        const { ctx: c, chartArea, scales } = chart;
-        if (!chartArea || !scales?.x) return;
-        const start = Number(options?.startHour ?? 9);
-        const end = Number(options?.endHour ?? 18);
-        const endPlus = Math.min(end + 1, 24);
-        const x = scales.x;
-        const xStart = x.getPixelForValue(start);
-        const xEnd = x.getPixelForValue(endPlus);
-        c.save();
-        c.fillStyle = options?.color || getSolarBandColor();
-        c.fillRect(xStart, chartArea.top, xEnd - xStart, chartArea.bottom - chartArea.top);
-        c.restore();
-      }
-    };
+    const solarStart = 9;
+    const solarEnd = 19;
+    const solarAccent = getSolarAccent();
+    const isSolarHour = (idx) => idx >= solarStart && idx <= solarEnd;
+    const solarPointRadius = hourlyAvg.map((_, i) => (isSolarHour(i) ? 2.5 : 0));
+    const solarPointHoverRadius = hourlyAvg.map((_, i) => (isSolarHour(i) ? 4 : 0));
+    const solarPointColor = hourlyAvg.map((_, i) => (isSolarHour(i) ? solarAccent : 'transparent'));
 
     const config = {
       type: 'line',
@@ -387,6 +377,17 @@
           pointHoverBorderColor: '#fff',
           tension: 0.4,
           fill: true
+        }, {
+          label: 'Horas solares',
+          data: hourlyAvg,
+          borderColor: 'transparent',
+          backgroundColor: 'transparent',
+          pointRadius: solarPointRadius,
+          pointHoverRadius: solarPointHoverRadius,
+          pointBackgroundColor: solarPointColor,
+          pointBorderColor: solarPointColor,
+          showLine: false,
+          order: 10
         }]
       },
       options: {
@@ -397,7 +398,6 @@
           intersect: false,
         },
         plugins: {
-          solarBand: { startHour: 9, endHour: 18, color: getSolarBandColor() },
           legend: { display: false },
           tooltip: {
             backgroundColor: 'rgba(20, 20, 22, 0.9)',
@@ -411,7 +411,13 @@
         },
         scales: {
           x: {
-            ticks: { color: textColor, maxRotation: 0, autoSkip: true, maxTicksLimit: 8, font: { family: 'Outfit', weight: '600' } },
+            ticks: {
+              color: (ctx) => (isSolarHour(ctx.index) ? solarAccent : textColor),
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: 8,
+              font: { family: 'Outfit', weight: '600' }
+            },
             grid: { display: false }
           },
           y: {
@@ -423,7 +429,6 @@
       }
     };
 
-    config.plugins = [solarBandPlugin];
     destroyChart('hourly');
     charts.hourly = new Chart(canvases.hourly, config);
   }
