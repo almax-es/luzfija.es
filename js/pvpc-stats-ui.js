@@ -13,6 +13,7 @@
     type: document.getElementById('typeSelector'),
     geo: document.getElementById('geoSelector'),
     year: document.getElementById('yearSelector'),
+    month: document.getElementById('monthSelector'),
 
     kpiLast: document.getElementById('kpiLast'),
     kpiLastSub: document.getElementById('kpiLastSub'),
@@ -99,6 +100,7 @@
       type: 'pvpc',
       geo: '8741',
       year: String(now.getFullYear()),
+      month: 'all',
       trendMode: 'daily',
       compareYears: ''
     };
@@ -106,11 +108,13 @@
     const type = p.get('type') || defaults.type;
     const geo = p.get('geo') || defaults.geo;
     const year = p.get('year') || defaults.year;
+    const month = p.get('month') || defaults.month;
 
     return {
       type,
       geo,
       year,
+      month,
       trendMode: p.get('trendMode') || defaults.trendMode,
       compareYears: p.get('compareYears') || defaults.compareYears
     };
@@ -123,6 +127,7 @@
     p.set('type', state.type);
     p.set('geo', state.geo);
     p.set('year', state.year);
+    p.set('month', state.month);
     p.set('trendMode', state.trendMode);
 
     if (state.compareYears && state.compareYears.length) {
@@ -619,6 +624,7 @@
     if (els.type) els.type.value = state.type;
     if (els.geo) els.geo.value = state.geo;
     if (els.year) els.year.value = state.year;
+    if (els.month) els.month.value = state.month;
     setTrendMode(state);
   }
 
@@ -641,6 +647,7 @@
     if (els.type) els.type.addEventListener('change', () => { state.type = els.type.value; onChange(); });
     els.geo.addEventListener('change', () => { state.geo = els.geo.value; onChange(); });
     els.year.addEventListener('change', () => { state.year = els.year.value; onChange(); });
+    if (els.month) els.month.addEventListener('change', () => { state.month = els.month.value; onChange(); });
 
     els.trendModeMonthly.addEventListener('click', () => { state.trendMode = 'monthly'; rerender({ push: false }); });
     els.trendModeDaily.addEventListener('click', () => { state.trendMode = 'daily'; rerender({ push: false }); });
@@ -721,6 +728,7 @@
       type: params.type || 'pvpc',
       geo: params.geo,
       year: params.year || currentSystemYear,
+      month: params.month || 'all',
       trendMode: params.trendMode === 'daily' ? 'daily' : 'monthly',
       compareYears: normalizeSelectedYears(params.year || currentSystemYear, params.compareYears)
     };
@@ -854,7 +862,17 @@
       setRange(kpis);
 
       // Horario
-      const hourlyAll = PVPC_STATS.getHourlyProfile(yearData);
+      const hourlySource = (function () {
+        if (!state.month || state.month === 'all') return yearData;
+        const monthPrefix = `${state.year}-${state.month}-`;
+        const days = {};
+        Object.keys(yearData.days || {}).forEach((d) => {
+          if (d.startsWith(monthPrefix)) days[d] = yearData.days[d];
+        });
+        return { ...yearData, days };
+      })();
+
+      const hourlyAll = PVPC_STATS.getHourlyProfile(hourlySource);
       renderHourlyChart(
         hourlyAll.data,
         accent,
@@ -862,7 +880,9 @@
         textColor,
         isSurplus ? 'Excedentes por hora' : 'PVPC por hora'
       );
-      els.hourlyMeta.textContent = `Perfil promedio del año (${status.loadedDays} días)`;
+      const monthLabel = (state.month && state.month !== 'all') ? ` · ${fmtMonth(Number(state.month) - 1)}` : '';
+      const hourlyDays = Object.keys(hourlySource.days || {}).length;
+      els.hourlyMeta.textContent = `Perfil promedio${monthLabel} (${hourlyDays} días)`;
 
       // Consejito basado en mejor bloque 3h
       const windows3 = computeWindowOptions(hourlyAll.data, 3);
