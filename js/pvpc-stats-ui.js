@@ -86,10 +86,191 @@
     return map[m] || '';
   }
 
+  function fmtEur(value) {
+    if (!Number.isFinite(value)) return '—';
+    return `${toComma(value.toFixed(2))} €`;
+  }
+
+  function fmtKwh(value, decimals = 1) {
+    if (!Number.isFinite(value)) return '—';
+    return `${toComma(value.toFixed(decimals))} kWh`;
+  }
+
   function safeMean(values) {
     const nums = values.filter(v => Number.isFinite(v));
     if (!nums.length) return null;
     return nums.reduce((a,b) => a + b, 0) / nums.length;
+  }
+
+  function ymdKey(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function ymKey(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}`;
+  }
+
+  async function ensureXLSX() {
+    if (typeof XLSX !== 'undefined') return;
+    await new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = new URL('vendor/xlsx/xlsx.full.min.js', document.baseURI).toString();
+      script.onload = resolve;
+      script.onerror = () => reject(new Error('No se pudo cargar XLSX'));
+      document.head.appendChild(script);
+    });
+  }
+
+  async function parseCsvOrXlsx(file) {
+    const csvUtils = window.LF?.csvUtils;
+    if (!csvUtils) throw new Error('CSV utils no disponibles.');
+
+    const ext = String(file.name || '').split('.').pop().toLowerCase();
+    if (ext === 'csv') {
+      const content = await file.text();
+      const { parseCSVToRows, parseEnergyTableRows, parseNumberFlexibleCSV } = csvUtils;
+      const { rows, separator, headerRowIndex } = parseCSVToRows(content);
+      return parseEnergyTableRows(rows, {
+        parseNumber: parseNumberFlexibleCSV,
+        separator,
+        headerRowIndex
+      });
+    }
+
+    if (ext === 'xlsx' || ext === 'xls') {
+      await ensureXLSX();
+      const { parseEnergyTableRows, guessEnergyHeaderRow, parseNumberFlexible } = csvUtils;
+      const buffer = await file.arrayBuffer();
+      const workbook = XLSX.read(buffer, { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const data = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
+      const headerRowIndex = guessEnergyHeaderRow ? guessEnergyHeaderRow(data) : 0;
+      return parseEnergyTableRows(data, {
+        parseNumber: parseNumberFlexible,
+        headerRowIndex
+      });
+    }
+
+    throw new Error('Formato no soportado. Solo CSV/XLSX.');
+  }
+
+  const csvMonthCache = new Map();
+
+  function getHourIndex(rawHour, dateObj) {
+    const h = Number.isFinite(rawHour) ? Number(rawHour) : (dateObj ? dateObj.getHours() : NaN);
+    if (!Number.isFinite(h)) return null;
+    if (h === 24) return 23;
+    if (h >= 1 && h <= 24) return h - 1;
+    if (h >= 0 && h <= 23) return h;
+    return null;
+  }
+
+  async function loadSurplusMonth(geo, ym) {
+    const key = `${geo}-${ym}`;
+    if (csvMonthCache.has(key)) return csvMonthCache.get(key);
+    const url = `/data/surplus/${geo}/${ym}.json`;
+    try {
+      const res = await fetch(url);
+      if (!res.ok) {
+        csvMonthCache.set(key, null);
+        return null;
+      }
+      const data = await res.json();
+      csvMonthCache.set(key, data);
+      return data;
+    } catch (_) {
+      csvMonthCache.set(key, null);
+      return null;
+    }
+  }
+
+  async function computeCsvCompensation(records, geo) {
+    const monthSet = new Set();
+    const valid = records.filter(r => r && r.fecha instanceof Date && Number.isFinite(r.excedente) && r.excedente > 0);
+    valid.forEach(r => monthSet.add(ymKey(r.fecha)));
+    const months = Array.from(monthSet).sort();
+
+    const monthData = {};
+    await PVPC_STATS.runWithConcurrency(months.map((ym) => async () => {
+      monthData[ym] = await loadSurplusMonth(geo, ym);
+    }));
+
+    const monthly = {};
+    const hourly = new Array(24).fill(0);
+    let totalKwh = 0;
+    let totalEur = 0;
+    let missing = 0;
+
+    valid.forEach((r) => {
+      const dateKey = ymdKey(r.fecha);
+      const ym = ymKey(r.fecha);
+      const hourIdx = getHourIndex(r.hora, r.fecha);
+      if (hourIdx === null) { missing += 1; return; }
+
+      const data = monthData[ym];
+      const dayHours = data?.days?.[dateKey];
+      if (!dayHours || !dayHours[hourIdx]) { missing += 1; return; }
+
+      const price = Number(dayHours[hourIdx][1]);
+      if (!Number.isFinite(price)) { missing += 1; return; }
+
+      const kwh = Number(r.excedente) || 0;
+      const eur = kwh * price;
+      totalKwh += kwh;
+      totalEur += eur;
+      hourly[hourIdx] += kwh;
+
+      if (!monthly[ym]) monthly[ym] = { kwh: 0, eur: 0 };
+      monthly[ym].kwh += kwh;
+      monthly[ym].eur += eur;
+    });
+
+    const monthsOrdered = Object.keys(monthly).sort();
+    const monthlyRows = monthsOrdered.map((ym) => {
+      const row = monthly[ym];
+      return {
+        ym,
+        kwh: row.kwh,
+        eur: row.eur,
+        avg: row.kwh ? row.eur / row.kwh : 0
+      };
+    });
+
+    const avgPrice = totalKwh ? totalEur / totalKwh : 0;
+    const best = monthlyRows.reduce((acc, r) => (!acc || r.avg > acc.avg ? r : acc), null);
+    const worst = monthlyRows.reduce((acc, r) => (!acc || r.avg < acc.avg ? r : acc), null);
+
+    const solarStart = 9;
+    const solarEnd = 18;
+    const solarKwh = hourly.slice(solarStart, solarEnd + 1).reduce((a, b) => a + b, 0);
+    const solarShare = totalKwh ? (solarKwh / totalKwh) : 0;
+
+    const hourShares = hourly.map((kwh, h) => ({
+      h,
+      kwh,
+      share: totalKwh ? (kwh / totalKwh) : 0
+    })).filter(r => r.kwh > 0).sort((a, b) => b.kwh - a.kwh);
+
+    const topHours = hourShares.slice(0, 3);
+    const peakHour = topHours.length ? topHours[0] : null;
+
+    return {
+      totalKwh,
+      totalEur,
+      avgPrice,
+      best,
+      worst,
+      monthlyRows,
+      solarShare,
+      topHours,
+      peakHour,
+      missing
+    };
   }
 
   function parseParams() {
@@ -721,6 +902,24 @@
 
     attachThemeToggle();
 
+    const csvEls = {
+      input: document.getElementById('csvExcedentesInput'),
+      btn: document.getElementById('csvExcedentesBtn'),
+      kpis: document.getElementById('csvExcedentesKpis'),
+      totalKwh: document.getElementById('csvTotalKwh'),
+      totalEur: document.getElementById('csvTotalEur'),
+      avgEurKwh: document.getElementById('csvAvgEurKwh'),
+      bestMonth: document.getElementById('csvBestMonth'),
+      worstMonth: document.getElementById('csvWorstMonth'),
+      solarShare: document.getElementById('csvSolarShare'),
+      summary: document.getElementById('csvExcedentesSummary'),
+      peakHour: document.getElementById('csvPeakHour'),
+      topHours: document.getElementById('csvTopHours'),
+      tableWrap: document.getElementById('csvExcedentesTableWrap'),
+      tableBody: document.getElementById('csvExcedentesTableBody'),
+      note: document.getElementById('csvExcedentesNote')
+    };
+
     const params = parseParams();
     const currentSystemYear = String(new Date().getFullYear());
     
@@ -735,6 +934,115 @@
 
     console.log(`[PVPC-OBS] Año detectado por sistema: ${currentSystemYear}`);
     applyStateToControls(state);
+
+    const csvState = {
+      records: null
+    };
+
+    const formatYmLabel = (ym) => {
+      const [y, m] = String(ym).split('-');
+      const mi = Number(m) - 1;
+      return `${fmtMonth(mi)} ${y}`;
+    };
+
+    const renderCsvStats = (stats) => {
+      if (!csvEls.kpis) return;
+      const hasData = stats && Number.isFinite(stats.totalKwh) && stats.totalKwh > 0;
+      csvEls.kpis.hidden = !hasData;
+      csvEls.summary.hidden = !hasData;
+      csvEls.tableWrap.hidden = !hasData;
+      if (csvEls.note) csvEls.note.hidden = false;
+
+      if (!hasData) {
+        if (csvEls.note) {
+          csvEls.note.textContent = 'Sube un CSV/XLSX con excedentes horarios para ver el cálculo.';
+        }
+        return;
+      }
+
+      if (csvEls.totalKwh) csvEls.totalKwh.textContent = fmtKwh(stats.totalKwh, 1);
+      if (csvEls.totalEur) csvEls.totalEur.textContent = fmtEur(stats.totalEur);
+      if (csvEls.avgEurKwh) csvEls.avgEurKwh.textContent = fmtCents(stats.avgPrice, 4);
+
+      if (csvEls.bestMonth) {
+        csvEls.bestMonth.textContent = stats.best ? `${formatYmLabel(stats.best.ym)} · ${fmtCents(stats.best.avg, 4)}` : '—';
+      }
+      if (csvEls.worstMonth) {
+        csvEls.worstMonth.textContent = stats.worst ? `${formatYmLabel(stats.worst.ym)} · ${fmtCents(stats.worst.avg, 4)}` : '—';
+      }
+      if (csvEls.solarShare) {
+        csvEls.solarShare.textContent = `${toComma((stats.solarShare * 100).toFixed(1))}%`;
+      }
+
+      if (csvEls.peakHour) {
+        if (stats.peakHour) {
+          const h = stats.peakHour.h;
+          const next = (h + 1) % 24;
+          csvEls.peakHour.textContent = `${String(h).padStart(2, '0')}:00–${String(next).padStart(2, '0')}:00`;
+        } else {
+          csvEls.peakHour.textContent = '—';
+        }
+      }
+      if (csvEls.topHours) {
+        if (stats.topHours && stats.topHours.length) {
+          csvEls.topHours.textContent = stats.topHours.map((r) => {
+            const next = (r.h + 1) % 24;
+            return `${String(r.h).padStart(2, '0')}:00–${String(next).padStart(2, '0')}:00 (${toComma((r.share * 100).toFixed(1))}%)`;
+          }).join(' · ');
+        } else {
+          csvEls.topHours.textContent = '—';
+        }
+      }
+
+      if (csvEls.tableBody) {
+        csvEls.tableBody.innerHTML = stats.monthlyRows.map((row) => `
+          <tr>
+            <td>${formatYmLabel(row.ym)}</td>
+            <td>${fmtKwh(row.kwh, 1)}</td>
+            <td>${fmtCents(row.avg, 4)}</td>
+            <td>${fmtEur(row.eur)}</td>
+          </tr>
+        `).join('');
+      }
+
+      if (csvEls.note) {
+        csvEls.note.textContent = stats.missing
+          ? `Nota: ${stats.missing} horas no encontraron precio horario en el histórico para la zona seleccionada.`
+          : ' ';
+      }
+    };
+
+    const refreshCsvStats = async () => {
+      if (!csvState.records) return;
+      const stats = await computeCsvCompensation(csvState.records, state.geo);
+      renderCsvStats(stats);
+    };
+
+    if (csvEls.btn && csvEls.input) {
+      csvEls.btn.addEventListener('click', () => csvEls.input.click());
+      csvEls.input.addEventListener('change', async (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        csvEls.btn.disabled = true;
+        csvEls.btn.textContent = '⏳ Procesando...';
+        try {
+          const parsed = await parseCsvOrXlsx(file);
+          const records = Array.isArray(parsed.records) ? parsed.records : [];
+          csvState.records = records;
+          await refreshCsvStats();
+        } catch (err) {
+          renderCsvStats(null);
+          if (csvEls.note) {
+            csvEls.note.hidden = false;
+            csvEls.note.textContent = `Error: ${err?.message || 'No se pudo procesar el archivo.'}`;
+          }
+        } finally {
+          csvEls.btn.disabled = false;
+          csvEls.btn.textContent = '📤 Subir CSV/XLSX';
+          csvEls.input.value = '';
+        }
+      });
+    }
 
     const rerender = debounce(async ({ push = false } = {}) => {
       setLoadingText();
@@ -917,6 +1225,8 @@
 
       buildCompareYearChips(allYears, state.compareYears, toggleYear);
       await renderComparison(state.type, state.geo, state.compareYears, state.year, accent, gridColor, textColor);
+
+      await refreshCsvStats();
     }, 80);
 
     attachControlHandlers(state, rerender);

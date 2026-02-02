@@ -888,6 +888,109 @@
   font-weight: 800;
 }
 
+/* ===== CSV EXCEDENTES ===== */
+
+.csv-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.csv-actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.csv-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 14px;
+}
+
+.csv-kpi {
+  border: 1px solid var(--hairline);
+  background: linear-gradient(145deg, var(--obs-card) 0%, rgba(139, 92, 246, 0.02) 100%);
+  border-radius: 18px;
+  padding: 16px 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.csv-kpi__label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-weight: 900;
+  color: var(--obs-muted);
+}
+
+.csv-kpi__value {
+  font-size: 1.6rem;
+  font-weight: 900;
+  margin-top: 6px;
+  color: var(--obs-text);
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+
+.csv-kpi__sub {
+  font-size: 0.8rem;
+  color: var(--obs-muted);
+  margin-top: 2px;
+}
+
+.csv-summary {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-top: 20px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1px solid var(--hairline);
+  background: var(--obs-soft);
+}
+
+.csv-summary__item {
+  font-size: 0.9rem;
+  color: var(--obs-text);
+}
+
+.csv-table-wrap {
+  margin-top: 20px;
+  overflow-x: auto;
+  border-radius: 14px;
+  border: 1px solid var(--hairline);
+}
+
+.csv-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.csv-table thead th {
+  text-align: left;
+  padding: 12px 14px;
+  color: var(--obs-muted);
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.7rem;
+  border-bottom: 1px solid var(--hairline);
+  background: var(--obs-soft);
+}
+
+.csv-table tbody td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,0.04);
+  font-variant-numeric: tabular-nums;
+}
+
+.csv-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
 /* ===== COMPARATIVA GRID ===== */
 
 .compare-grid {
@@ -1133,6 +1236,14 @@
 
   .obs-card {
     padding: 22px 16px;
+  }
+
+  .csv-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .csv-summary {
+    flex-direction: column;
   }
 
   .obs-controls {

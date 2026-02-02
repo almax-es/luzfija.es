@@ -316,6 +316,84 @@
       </div>
     </section>
 
+    <!-- 3.5) CSV EXCEDENTES -->
+    <section id="csv-excedentes" class="obs-section">
+      <div class="obs-section__head">
+        <h2>Tu CSV de excedentes</h2>
+        <p class="muted">
+          Sube tu CSV/XLSX con excedentes horarios y calcula cuánto te habrían compensado (mes a mes y total anual).
+        </p>
+      </div>
+
+      <div class="obs-card">
+        <div class="csv-panel">
+          <div class="csv-actions">
+            <input type="file" id="csvExcedentesInput" accept=".csv,.xlsx,.xls" hidden>
+            <button class="btn" id="csvExcedentesBtn" type="button">📤 Subir CSV/XLSX</button>
+            <div class="micro muted" id="csvExcedentesHint">Procesado localmente en tu navegador. No se sube a ningún servidor.</div>
+          </div>
+
+          <div class="csv-kpis" id="csvExcedentesKpis" hidden>
+            <div class="csv-kpi">
+              <div class="csv-kpi__label">Excedentes anuales</div>
+              <div class="csv-kpi__value" id="csvTotalKwh">—</div>
+              <div class="csv-kpi__sub">kWh vertidos</div>
+            </div>
+            <div class="csv-kpi">
+              <div class="csv-kpi__label">Compensación anual</div>
+              <div class="csv-kpi__value" id="csvTotalEur">—</div>
+              <div class="csv-kpi__sub">€ estimados</div>
+            </div>
+            <div class="csv-kpi">
+              <div class="csv-kpi__label">Precio medio efectivo</div>
+              <div class="csv-kpi__value" id="csvAvgEurKwh">—</div>
+              <div class="csv-kpi__sub">€/kWh</div>
+            </div>
+            <div class="csv-kpi">
+              <div class="csv-kpi__label">Mejor mes</div>
+              <div class="csv-kpi__value" id="csvBestMonth">—</div>
+              <div class="csv-kpi__sub">€/kWh</div>
+            </div>
+            <div class="csv-kpi">
+              <div class="csv-kpi__label">Peor mes</div>
+              <div class="csv-kpi__value" id="csvWorstMonth">—</div>
+              <div class="csv-kpi__sub">€/kWh</div>
+            </div>
+            <div class="csv-kpi">
+              <div class="csv-kpi__label">% en horas solares</div>
+              <div class="csv-kpi__value" id="csvSolarShare">—</div>
+              <div class="csv-kpi__sub">9–18h</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="csv-summary" id="csvExcedentesSummary" hidden>
+          <div class="csv-summary__item">
+            <strong>Hora pico:</strong> <span id="csvPeakHour">—</span>
+          </div>
+          <div class="csv-summary__item">
+            <strong>Top horas:</strong> <span id="csvTopHours">—</span>
+          </div>
+        </div>
+
+        <div class="csv-table-wrap" id="csvExcedentesTableWrap" hidden>
+          <table class="csv-table">
+            <thead>
+              <tr>
+                <th>Mes</th>
+                <th>kWh</th>
+                <th>€/kWh</th>
+                <th>€</th>
+              </tr>
+            </thead>
+            <tbody id="csvExcedentesTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="micro muted" id="csvExcedentesNote" hidden></div>
+      </div>
+    </section>
+
     <!-- 4) COMPARATIVA -->
     <section id="comparativa" class="obs-section">
       <div class="obs-section__head">
@@ -391,6 +469,7 @@
   <script src="/js/tracking.js"></script>
   <script src="/js/shell-lite.js" defer></script>
   <script src="/vendor/chartjs/chart.umd.js"></script>
+  <script src="/js/lf-csv-utils.js"></script>
   <script src="/js/pvpc-stats-engine.js"></script>
   <script src="/js/pvpc-stats-ui.js?v=8"></script>
 
