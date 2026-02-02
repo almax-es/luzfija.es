@@ -146,16 +146,70 @@
 
     if (ext === 'xlsx' || ext === 'xls') {
       await ensureXLSX();
-      const { parseEnergyTableRows, guessEnergyHeaderRow, parseNumberFlexible } = csvUtils;
+      const { parseEnergyTableRows, guessEnergyHeaderRow, parseNumberFlexible, parseDateFlexible } = csvUtils;
       const buffer = await file.arrayBuffer();
       const workbook = XLSX.read(buffer, { type: 'array' });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       const data = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
-      const headerRowIndex = guessEnergyHeaderRow ? guessEnergyHeaderRow(data) : 0;
-      return parseEnergyTableRows(data, {
+      const headerRowIndexRaw = guessEnergyHeaderRow ? guessEnergyHeaderRow(data) : 0;
+      const headerRowIndex = headerRowIndexRaw >= 0 ? headerRowIndexRaw : 0;
+      const parsed = parseEnergyTableRows(data, {
         parseNumber: parseNumberFlexible,
         headerRowIndex
       });
+      const records = Array.isArray(parsed?.records) ? parsed.records : [];
+      const hasExcedentes = records.some(r => Number.isFinite(r?.excedente) && r.excedente > 0);
+      if (records.length && hasExcedentes) return parsed;
+
+      const normalizeHeader = (value) => {
+        let str = String(value ?? '').trim();
+        if (!str) return '';
+        str = str.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+        str = str.toLowerCase().replace(/[^a-z0-9]+/g, '_');
+        return str;
+      };
+
+      const headerRow = Array.isArray(data[headerRowIndex]) ? data[headerRowIndex] : [];
+      const headersNorm = headerRow.map(normalizeHeader);
+      const idxFecha = headersNorm.findIndex(h => h === 'fecha' || h === 'date');
+      const idxHora = headersNorm.findIndex(h => h === 'hora' || h === 'hour');
+      const idxFechaHora = headersNorm.findIndex(h => h === 'fecha_hora' || h === 'fecha_hora_consumo' || h === 'datetime');
+      const idxExport = headersNorm.findIndex(h => h.startsWith('ehex') || h.includes('export') || h.includes('excedente') || h.includes('vertido'));
+
+      if (idxExport === -1 || (idxFecha === -1 && idxFechaHora === -1)) {
+        return parsed;
+      }
+
+      const fallbackRecords = [];
+      for (let i = headerRowIndex + 1; i < data.length; i++) {
+        const row = data[i];
+        if (!row || !row.length) continue;
+        let fecha = null;
+        let hora = null;
+        if (idxFechaHora !== -1) {
+          fecha = parseDateFlexible ? parseDateFlexible(row[idxFechaHora]) : null;
+        } else {
+          fecha = parseDateFlexible ? parseDateFlexible(row[idxFecha]) : null;
+          hora = parseNumberFlexible ? parseNumberFlexible(row[idxHora]) : Number(row[idxHora]);
+        }
+        if (!fecha || !(fecha instanceof Date) || isNaN(fecha.getTime())) continue;
+        const excedente = parseNumberFlexible ? parseNumberFlexible(row[idxExport]) : Number(row[idxExport]);
+        if (!Number.isFinite(excedente)) continue;
+        fallbackRecords.push({
+          fecha,
+          hora,
+          kwh: 0,
+          excedente,
+          autoconsumo: 0,
+          periodo: null,
+          esReal: true
+        });
+      }
+
+      if (fallbackRecords.length) {
+        return { records: fallbackRecords, warnings: ['Importación XLSX: aplicado parser alternativo para excedentes.'] };
+      }
+      return parsed;
     }
 
     throw new Error('Formato no soportado. Solo CSV/XLSX.');
