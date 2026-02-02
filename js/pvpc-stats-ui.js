@@ -911,7 +911,6 @@
       avgEurKwh: document.getElementById('csvAvgEurKwh'),
       bestMonth: document.getElementById('csvBestMonth'),
       worstMonth: document.getElementById('csvWorstMonth'),
-      solarShare: document.getElementById('csvSolarShare'),
       summary: document.getElementById('csvExcedentesSummary'),
       peakHour: document.getElementById('csvPeakHour'),
       topHours: document.getElementById('csvTopHours'),
@@ -969,9 +968,6 @@
       }
       if (csvEls.worstMonth) {
         csvEls.worstMonth.textContent = stats.worst ? `${formatYmLabel(stats.worst.ym)} · ${fmtCents(stats.worst.avg, 4)}` : '—';
-      }
-      if (csvEls.solarShare) {
-        csvEls.solarShare.textContent = `${toComma((stats.solarShare * 100).toFixed(1))}%`;
       }
 
       if (csvEls.peakHour) {
