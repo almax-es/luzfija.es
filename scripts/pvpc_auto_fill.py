@@ -45,6 +45,12 @@ GEO_TZ = {
 }
 DEFAULT_TZ = "Europe/Madrid"
 
+# Configuración de indicadores especiales
+# 1739: Excedentes (Dato único nacional, geo_id 3 en ESIOS)
+NATIONAL_INDICATORS = {
+    1739: {"esios_geo_id": 3}
+}
+
 MONTH_RE = re.compile(r"^\d{4}-\d{2}\.json$")
 
 @dataclass(frozen=True)
@@ -92,8 +98,12 @@ def build_url(indicator: int, start_utc_iso: str, end_utc_iso: str, geo_id: int)
     q = {
         "start_date": start_utc_iso,
         "end_date": end_utc_iso,
-        "geo_ids[]": str(geo_id),
     }
+    
+    # Si NO es un indicador nacional, filtramos por el geo_id solicitado
+    if indicator not in NATIONAL_INDICATORS:
+        q["geo_ids[]"] = str(geo_id)
+
     return base + "?" + urllib.parse.urlencode(q, doseq=True)
 
 def http_get_json(url: str, api_key: str, timeout_s: int = 60) -> dict:
@@ -121,10 +131,17 @@ def http_get_json(url: str, api_key: str, timeout_s: int = 60) -> dict:
 def unit_suggests_mwh(unit_str: str) -> bool:
     return "mwh" in (unit_str or "").lower()
 
-def extract_values(payload: dict) -> List[Tuple[dt.datetime, float]]:
+def extract_values(payload: dict, filter_geo_id: int = None) -> List[Tuple[dt.datetime, float]]:
     values = payload.get("indicator", {}).get("values") or []
     out: List[Tuple[dt.datetime, float]] = []
+    
     for v in values:
+        # Filtrado estricto si se especifica
+        if filter_geo_id is not None:
+            v_geo = v.get("geo_id")
+            if v_geo != filter_geo_id:
+                continue
+
         ts = v.get("datetime_utc") or v.get("datetime")
         val = v.get("value")
         if ts is None or val is None:
@@ -145,11 +162,13 @@ def to_utc_range_for_local_days(tz: ZoneInfo, start_day: dt.date, end_day: dt.da
     end_utc = end_local.astimezone(dt.timezone.utc)
     return start_utc.isoformat(timespec="seconds"), end_utc.isoformat(timespec="seconds")
 
-def build_days(payload: dict, tz: ZoneInfo, start_day: dt.date, end_day: dt.date) -> Tuple[Dict[str, List[List[float]]], dict]:
+def build_days(payload: dict, tz: ZoneInfo, start_day: dt.date, end_day: dt.date, filter_geo_id: int = None) -> Tuple[Dict[str, List[List[float]]], dict]:
     ind = payload.get("indicator", {}) or {}
     unit = ind.get("unit") or ind.get("magnitud") or ind.get("magnitude") or ""
     suggests_mwh = unit_suggests_mwh(str(unit))
-    pts = extract_values(payload)
+    
+    # Extraemos valores aplicando filtro si es necesario
+    pts = extract_values(payload, filter_geo_id)
 
     prices: List[Tuple[dt.datetime, float]] = []
     for dtu, raw in pts:
@@ -164,6 +183,7 @@ def build_days(payload: dict, tz: ZoneInfo, start_day: dt.date, end_day: dt.date
         max_v = max([v for _, v in prices], default=0.0)
 
     days: Dict[str, List[List[float]]] = {}
+    
     for dtu, v in prices:
         local_day = dtu.astimezone(tz).date()
         if local_day < start_day or local_day > end_day:
@@ -356,10 +376,17 @@ def main() -> int:
         "epoch_unit": "s",
         "geos": [],
     }
+    
+    # Lógica para indicadores nacionales (ej. 1739)
+    is_national = args.indicator in NATIONAL_INDICATORS
+    filter_geo_id = NATIONAL_INDICATORS[args.indicator]["esios_geo_id"] if is_national else None
 
     for geo in args.geos:
-        tz_name = GEO_TZ.get(geo, DEFAULT_TZ)
-        tz = ZoneInfo(tz_name)
+        # Si es nacional, forzamos la TZ por defecto (Madrid) para alinear los días
+        # y evitar desplazamientos en Canarias que rompan el bucket diario.
+        # Si es regional (PVPC normal), usamos la TZ específica del geo.
+        target_tz_name = DEFAULT_TZ if is_national else GEO_TZ.get(geo, DEFAULT_TZ)
+        tz = ZoneInfo(target_tz_name)
 
         geo_dir = os.path.join(out_root, str(geo))
         ensure_dir(geo_dir)
@@ -371,7 +398,7 @@ def main() -> int:
         else:
             start, end = auto_detect_range(geo_dir, tz)
 
-        print(f"\n🌍 Geo {geo} ({tz_name}) [Indicator {args.indicator}]: {start} → {end}")
+        print(f"\n🌍 Geo {geo} (Proc: {target_tz_name}) [Ind: {args.indicator}, FiltroGeo: {filter_geo_id or 'Auto'}]: {start} → {end}")
 
         if end < start:
             print(f"ERROR: end < start for geo {geo}", file=sys.stderr)
@@ -382,7 +409,9 @@ def main() -> int:
             url = build_url(args.indicator, start_utc_iso, end_utc_iso, geo)
 
             payload = http_get_json(url, api_key, timeout_s=args.timeout)
-            days, meta = build_days(payload, tz, mr.start_local, mr.end_local)
+            
+            # Pasamos el filtro geo_id explícito
+            days, meta = build_days(payload, tz, mr.start_local, mr.end_local, filter_geo_id=filter_geo_id)
 
             warns = validate_days(days)
 
@@ -392,7 +421,7 @@ def main() -> int:
             month_obj = {
                 "schema_version": 2,
                 "geo_id": geo,
-                "timezone": tz_name,
+                "timezone": target_tz_name, # Guardamos la TZ real usada para el procesado
                 "indicator": args.indicator,
                 "unit": "EUR/kWh",
                 "epoch_unit": "s",
@@ -411,10 +440,10 @@ def main() -> int:
             if args.sleep > 0:
                 time.sleep(args.sleep)
 
-        geo_index = rebuild_geo_index(geo_dir, geo, tz_name, args.indicator, generated_at)
+        geo_index = rebuild_geo_index(geo_dir, geo, target_tz_name, args.indicator, generated_at)
         write_json(os.path.join(geo_dir, "index.json"), geo_index)
 
-        overall["geos"].append({"geo_id": geo, "timezone": tz_name, "path": f"{geo}/index.json"})
+        overall["geos"].append({"geo_id": geo, "timezone": target_tz_name, "path": f"{geo}/index.json"})
 
     write_json(os.path.join(out_root, "index.json"), overall)
     print(f"\n✅ Completado: {os.path.join(out_root, 'index.json')}")
