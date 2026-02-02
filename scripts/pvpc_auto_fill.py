@@ -135,11 +135,21 @@ def extract_values(payload: dict, filter_geo_id: int = None) -> List[Tuple[dt.da
     values = payload.get("indicator", {}).get("values") or []
     out: List[Tuple[dt.datetime, float]] = []
     
+    # Contador para detectar si estamos filtrando todo
+    filtered_count = 0
+
     for v in values:
         # Filtrado estricto si se especifica
         if filter_geo_id is not None:
-            v_geo = v.get("geo_id")
+            raw_geo = v.get("geo_id")
+            # Intentar convertir a int para ser robustos (ej. "3" vs 3)
+            try:
+                v_geo = int(raw_geo) if raw_geo is not None else None
+            except (ValueError, TypeError):
+                v_geo = raw_geo
+            
             if v_geo != filter_geo_id:
+                filtered_count += 1
                 continue
 
         ts = v.get("datetime_utc") or v.get("datetime")
@@ -152,6 +162,11 @@ def extract_values(payload: dict, filter_geo_id: int = None) -> List[Tuple[dt.da
         except Exception:
             continue
         out.append((dtu, fv))
+    
+    # Warning de seguridad: si había valores pero el filtro se los cargó todos
+    if filter_geo_id is not None and len(values) > 0 and len(out) == 0:
+        print(f"⚠️ WARNING: Se recibieron {len(values)} valores pero el filtro geo_id={filter_geo_id} los descartó todos. (Ej: recibidos geo_id={[v.get('geo_id') for v in values[:3]]}...)", file=sys.stderr)
+
     out.sort(key=lambda x: x[0])
     return out
 
