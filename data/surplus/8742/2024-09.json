@@ -1,0 +1,1 @@
+{"schema_version":2,"geo_id":8742,"timezone":"Atlantic/Canary","indicator":1739,"unit":"EUR/kWh","epoch_unit":"s","from":"2024-09-01","to":"2024-09-30","days":{},"meta":{"unit_from_api":[{"name":"Precio €/MWh","id":23}],"unit_suggests_mwh":true,"heuristic_applied":false,"max_after_conversion":0.0}}
