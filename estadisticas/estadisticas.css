@@ -1003,6 +1003,19 @@
   font-variant-numeric: tabular-nums;
 }
 
+.csv-table tbody tr {
+  background: transparent;
+  box-shadow: none;
+  transform: none;
+}
+
+.csv-table tbody tr td:first-child {
+  color: inherit;
+  font-weight: inherit;
+  font-size: inherit;
+  text-shadow: none;
+}
+
 .csv-table tbody tr:last-child td {
   border-bottom: none;
 }
