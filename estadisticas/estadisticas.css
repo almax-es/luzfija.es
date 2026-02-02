@@ -887,6 +887,17 @@
   align-items: start;
 }
 
+@media (min-width: 1400px) {
+  .compare-grid {
+    grid-template-columns: 210px 1fr;
+    gap: 28px;
+  }
+
+  .year-chips {
+    gap: 8px;
+  }
+}
+
 .compare-controls h3 {
   font-size: 1.15rem;
   font-weight: 800;
