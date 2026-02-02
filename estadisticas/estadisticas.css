@@ -148,6 +148,24 @@
   padding: 28px clamp(18px, 3.5vw, 48px);
 }
 
+@media (min-width: 1400px) {
+  .container {
+    max-width: 1600px;
+  }
+
+  .pvpc-obs {
+    max-width: 1580px;
+  }
+
+  .obs-card {
+    padding: 48px;
+  }
+
+  .chart-wrap {
+    height: 420px;
+  }
+}
+
 /* ===== NAVEGACIÓN PREMIUM ===== */
 
 .site-nav {
