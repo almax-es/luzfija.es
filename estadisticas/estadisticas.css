@@ -981,6 +981,15 @@
   background: var(--obs-soft);
 }
 
+.csv-table thead th:nth-child(2),
+.csv-table thead th:nth-child(3),
+.csv-table thead th:nth-child(4),
+.csv-table tbody td:nth-child(2),
+.csv-table tbody td:nth-child(3),
+.csv-table tbody td:nth-child(4) {
+  text-align: right;
+}
+
 .csv-table tbody td {
   padding: 12px 14px;
   border-bottom: 1px solid rgba(255,255,255,0.04);
