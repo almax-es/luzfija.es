@@ -1275,6 +1275,35 @@
     flex-direction: column;
   }
 
+  .csv-table thead {
+    display: table-header-group;
+  }
+
+  .csv-table tbody,
+  .csv-table {
+    display: table;
+    width: 100%;
+  }
+
+  .csv-table tbody tr {
+    display: table-row;
+    margin: 0;
+    border: none;
+    padding: 0;
+    background: transparent;
+    box-shadow: none;
+  }
+
+  .csv-table tbody td {
+    display: table-cell;
+    border-bottom: 1px solid rgba(255,255,255,0.04);
+    padding: 10px 10px;
+  }
+
+  .csv-table tbody td::before {
+    content: none !important;
+  }
+
   .obs-controls {
     flex-direction: column;
     width: 100%;
