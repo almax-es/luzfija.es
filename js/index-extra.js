@@ -581,7 +581,7 @@
             : (isNow ? '<strong style="color: var(--accent); font-size: 10px;">← AHORA</strong>' : '');
 
         const item = `
-          <div style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.06); ${isNow ? 'background: rgba(255,180,50,.06); border-bottom: 1px solid rgba(255,180,50,.2);' : ''}" ${isNow ? 'id="pvpc-hora-actual"' : ''}>
+          <div style="padding: 10px 0; border-bottom: 1px solid rgba(255,255,255,.06); ${isNow ? 'background: rgba(255,180,50,.06); border-bottom: 1px solid rgba(255,180,50,.2);' : ''}" data-is-now="${isNow ? 'true' : 'false'}">
             <div style="display: grid; grid-template-columns: 64px 1fr 80px; gap: 8px; align-items: center;">
               <div style="font-weight: 700; font-size: ${isNow ? '14px' : '13px'}; color: ${isNow ? 'var(--accent)' : 'var(--text)'};">
                 ${horaLabel}
@@ -742,7 +742,7 @@
       setTimeout(() => {
         btnCerrarPVPCInfo.focus();
         modalAbriendo = false;
-      }, 500);
+      }, 150);
     });
 
     // Cerrar modal

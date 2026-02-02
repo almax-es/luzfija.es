@@ -1324,20 +1324,23 @@
 
   /* Primera celda (mes) destacada - NO usa grid, es solo título */
   .csv-table tbody td:first-child {
-    display: block;
-    font-weight: 900;
-    font-size: 1.3rem;
-    color: var(--accent);
-    margin-bottom: 12px;
-    padding-bottom: 12px;
-    border-bottom: 2px solid var(--hairline);
-    text-align: center;
+    display: block !important;
+    grid-template-columns: unset !important;
+    font-weight: 900 !important;
+    font-size: 1.3rem !important;
+    color: var(--accent) !important;
+    margin-bottom: 12px !important;
+    padding: 12px 0 !important;
+    border-bottom: 2px solid var(--hairline) !important;
+    text-align: center !important;
+    width: 100% !important;
   }
 
   .csv-table tbody td:first-child::before {
-    content: "📅 ";
-    font-size: 1.2rem;
-    margin-right: 6px;
+    content: "📅 " !important;
+    font-size: 1.2rem !important;
+    margin-right: 6px !important;
+    display: inline !important;
   }
 
   .obs-controls {
