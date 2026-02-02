@@ -201,6 +201,7 @@
     }));
 
     const monthly = {};
+    const monthlyHourly = {};
     const hourly = new Array(24).fill(0);
     let totalKwh = 0;
     let totalEur = 0;
@@ -228,16 +229,45 @@
       if (!monthly[ym]) monthly[ym] = { kwh: 0, eur: 0 };
       monthly[ym].kwh += kwh;
       monthly[ym].eur += eur;
+
+      if (!monthlyHourly[ym]) monthlyHourly[ym] = new Array(24).fill(0);
+      monthlyHourly[ym][hourIdx] += kwh;
     });
+
+    function bestWindowForShare(hourlyKwh, shareTarget = 0.8) {
+      const total = hourlyKwh.reduce((a, b) => a + b, 0);
+      if (!total) return null;
+      const target = total * shareTarget;
+      let best = null;
+      for (let start = 0; start < 24; start++) {
+        let sum = 0;
+        for (let end = start; end < 24; end++) {
+          sum += hourlyKwh[end];
+          if (sum >= target) {
+            const len = end - start + 1;
+            if (!best || len < best.len || (len === best.len && sum > best.sum)) {
+              best = { start, end, len, sum };
+            }
+            break;
+          }
+        }
+      }
+      return best;
+    }
 
     const monthsOrdered = Object.keys(monthly).sort();
     const monthlyRows = monthsOrdered.map((ym) => {
       const row = monthly[ym];
+      const hourlyKwh = monthlyHourly[ym] || new Array(24).fill(0);
+      const window80 = bestWindowForShare(hourlyKwh, 0.8);
+      const peakHour = hourlyKwh.reduce((acc, v, i) => (v > acc.v ? { h: i, v } : acc), { h: 0, v: -1 });
       return {
         ym,
         kwh: row.kwh,
         eur: row.eur,
-        avg: row.kwh ? row.eur / row.kwh : 0
+        avg: row.kwh ? row.eur / row.kwh : 0,
+        window80,
+        peakHour: peakHour && peakHour.v > 0 ? peakHour.h : null
       };
     });
 
@@ -991,14 +1021,21 @@
       }
 
       if (csvEls.tableBody) {
-        csvEls.tableBody.innerHTML = stats.monthlyRows.map((row) => `
-          <tr>
-            <td>${formatYmLabel(row.ym)}</td>
-            <td>${fmtKwh(row.kwh, 1)}</td>
-            <td>${fmtCents(row.avg, 4)}</td>
-            <td>${fmtEur(row.eur)}</td>
-          </tr>
-        `).join('');
+        csvEls.tableBody.innerHTML = stats.monthlyRows.map((row) => {
+          const win = row.window80;
+          const winLabel = win ? `${String(win.start).padStart(2, '0')}:00–${String((win.end + 1) % 24).padStart(2, '0')}:00 (${win.len}h)` : '—';
+          const peak = Number.isFinite(row.peakHour) ? `${String(row.peakHour).padStart(2, '0')}:00–${String((row.peakHour + 1) % 24).padStart(2, '0')}:00` : '—';
+          return `
+            <tr>
+              <td>${formatYmLabel(row.ym)}</td>
+              <td>${fmtKwh(row.kwh, 1)}</td>
+              <td>${fmtCents(row.avg, 4)}</td>
+              <td>${fmtEur(row.eur)}</td>
+              <td>${winLabel}</td>
+              <td>${peak}</td>
+            </tr>
+          `;
+        }).join('');
       }
 
       if (csvEls.note) {

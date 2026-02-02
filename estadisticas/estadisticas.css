@@ -990,6 +990,13 @@
   text-align: right;
 }
 
+.csv-table thead th:nth-child(5),
+.csv-table thead th:nth-child(6),
+.csv-table tbody td:nth-child(5),
+.csv-table tbody td:nth-child(6) {
+  text-align: center;
+}
+
 .csv-table tbody td {
   padding: 12px 14px;
   border-bottom: 1px solid rgba(255,255,255,0.04);
