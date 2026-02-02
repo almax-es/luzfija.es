@@ -333,7 +333,7 @@
   margin-bottom: 32px;
   backdrop-filter: blur(16px);
   box-shadow: 0 8px 24px rgba(139, 92, 246, 0.2);
-  animation: pulse-glow 3s infinite;
+  animation: pulse-glow 6s ease-in-out infinite;
 }
 
 .obs-hero h1 {
@@ -581,6 +581,7 @@
   font-size: 2.1rem;
   font-weight: 900;
   letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
   background: linear-gradient(180deg, var(--obs-text) 20%, var(--obs-muted) 120%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -744,6 +745,7 @@
   font-size: 1.35rem;
   font-weight: 800;
   margin-bottom: 4px;
+  letter-spacing: -0.01em;
 }
 
 .micro {
@@ -762,6 +764,7 @@
   border: 1px solid var(--hairline);
   display: flex;
   gap: 4px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.02);
 }
 
 .segmented__btn {
@@ -791,12 +794,12 @@
 .chart-wrap {
   height: 380px;
   padding: 20px 0;
-  filter: drop-shadow(0 12px 32px rgba(139, 92, 246, 0.12));
+  filter: drop-shadow(0 8px 24px rgba(139, 92, 246, 0.12));
   transition: filter 0.3s ease;
 }
 
 .obs-card:hover .chart-wrap {
-  filter: drop-shadow(0 16px 48px rgba(139, 92, 246, 0.2));
+  filter: drop-shadow(0 12px 36px rgba(139, 92, 246, 0.18));
 }
 
 /* ===== INSIGHTS CARDS ===== */
@@ -845,6 +848,7 @@
   margin-bottom: 8px;
   position: relative;
   z-index: 1;
+  font-variant-numeric: tabular-nums;
 }
 
 .insight__l {
@@ -906,6 +910,7 @@
   font-size: 1.15rem;
   font-weight: 800;
   margin-bottom: 20px;
+  letter-spacing: -0.01em;
 }
 
 .year-chips {
