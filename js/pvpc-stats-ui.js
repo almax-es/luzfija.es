@@ -95,7 +95,9 @@
 
   function fmtKwh(value, decimals = 1) {
     if (!Number.isFinite(value)) return '—';
-    return `${toComma(value.toFixed(decimals))} kWh`;
+    // NBSP para que el espacio entre número y unidad no se "coma" visualmente
+    // y para evitar saltos de línea raros en móvil.
+    return `${toComma(value.toFixed(decimals))}\u00A0kWh`;
   }
 
   function safeMean(values) {
