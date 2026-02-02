@@ -66,6 +66,11 @@
     }
   }
 
+  function getSolarBandColor() {
+    const isLight = document.documentElement.classList.contains('light-mode');
+    return isLight ? 'rgba(245, 158, 11, 0.10)' : 'rgba(245, 158, 11, 0.14)';
+  }
+
   function toComma(n) {
     return String(n).replace('.', ',');
   }
@@ -348,6 +353,23 @@
     const labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
     const ctx = canvases.hourly.getContext('2d');
     const gradient = createGradient(ctx, accent);
+    const solarBandPlugin = {
+      id: 'solarBand',
+      beforeDatasetsDraw(chart, _args, options) {
+        const { ctx: c, chartArea, scales } = chart;
+        if (!chartArea || !scales?.x) return;
+        const start = Number(options?.startHour ?? 9);
+        const end = Number(options?.endHour ?? 18);
+        const endPlus = Math.min(end + 1, 24);
+        const x = scales.x;
+        const xStart = x.getPixelForValue(start);
+        const xEnd = x.getPixelForValue(endPlus);
+        c.save();
+        c.fillStyle = options?.color || getSolarBandColor();
+        c.fillRect(xStart, chartArea.top, xEnd - xStart, chartArea.bottom - chartArea.top);
+        c.restore();
+      }
+    };
 
     const config = {
       type: 'line',
@@ -375,6 +397,7 @@
           intersect: false,
         },
         plugins: {
+          solarBand: { startHour: 9, endHour: 18, color: getSolarBandColor() },
           legend: { display: false },
           tooltip: {
             backgroundColor: 'rgba(20, 20, 22, 0.9)',
@@ -400,6 +423,7 @@
       }
     };
 
+    config.plugins = [solarBandPlugin];
     destroyChart('hourly');
     charts.hourly = new Chart(canvases.hourly, config);
   }
