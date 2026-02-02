@@ -1023,7 +1023,10 @@
       if (csvEls.tableBody) {
         csvEls.tableBody.innerHTML = stats.monthlyRows.map((row) => {
           const win = row.window80;
-          const winLabel = win ? `${String(win.start).padStart(2, '0')}:00–${String((win.end + 1) % 24).padStart(2, '0')}:00 (${win.len}h)` : '—';
+          const winPct = win ? (win.sum / row.kwh) : 0;
+          const winLabel = win
+            ? `${String(win.start).padStart(2, '0')}:00–${String((win.end + 1) % 24).padStart(2, '0')}:00 (${win.len}h · ${toComma((winPct * 100).toFixed(1))}%)`
+            : '—';
           const peak = Number.isFinite(row.peakHour) ? `${String(row.peakHour).padStart(2, '0')}:00–${String((row.peakHour + 1) % 24).padStart(2, '0')}:00` : '—';
           return `
             <tr>
