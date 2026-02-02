@@ -665,6 +665,13 @@
       modalPVPCInfo.classList.add('show');
       modalPVPCInfo.setAttribute('aria-hidden', 'false');
       __pvpcLock();
+
+      // Asegurar que el modal abre desde arriba
+      try {
+        modalPVPCInfo.scrollTop = 0;
+        const modalContent = modalPVPCInfo.querySelector('.modal-content');
+        if (modalContent) modalContent.scrollTop = 0;
+      } catch (_) {}
       
       // Dar focus al botón de cerrar
       setTimeout(() => btnCerrarPVPCInfo.focus(), 100);
