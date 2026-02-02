@@ -69,6 +69,7 @@
   --obs-soft: rgba(0,0,0,0.04);
   --obs-soft-2: rgba(0,0,0,0.07);
   --hairline: rgba(0,0,0,0.08);
+  --obs-muted: rgba(15, 23, 42, 0.82);
 }
 
 /* ===== ANIMACIONES PREMIUM ===== */
@@ -778,6 +779,7 @@
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-family: inherit;
+  min-height: 36px;
 }
 
 .segmented__btn:hover {
@@ -1159,6 +1161,11 @@
 
   .chart-wrap {
     height: 250px;
+  }
+
+  .segmented__btn {
+    min-height: 40px;
+    padding: 8px 16px;
   }
 
   .obs-section__head h2 {
