@@ -612,7 +612,14 @@
       `;
 
       const lista = document.getElementById('modalPVPCHoursList');
-      if (lista) lista.innerHTML = html;
+      if (lista) {
+        lista.innerHTML = html;
+        lista.scrollTop = 0;
+      }
+      try {
+        const modalContent = modalPVPCInfo.querySelector('.modal-content');
+        if (modalContent) modalContent.scrollTop = 0;
+      } catch (_) {}
     }
 
     // Cambiar tab
