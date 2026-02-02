@@ -1486,6 +1486,8 @@
   overflow-y: auto;
   flex: 1;
   min-height: 0;
+  scroll-behavior: auto !important;
+  overflow-anchor: none;
 }
 .upload-area{
   border:3px dashed var(--border);

@@ -1302,8 +1302,8 @@
     box-shadow: var(--shadow-sm);
   }
 
-  /* Cada celda en una línea con su label */
-  .csv-table tbody td {
+  /* Cada celda en una línea con su label (excepto primera celda) */
+  .csv-table tbody td:not(:first-child) {
     display: grid;
     grid-template-columns: 120px 1fr;
     padding: 8px 0;
@@ -1312,8 +1312,8 @@
     align-items: center;
   }
 
-  /* Añadir labels antes de cada valor */
-  .csv-table tbody td::before {
+  /* Añadir labels antes de cada valor (excepto primera celda) */
+  .csv-table tbody td:not(:first-child)::before {
     content: attr(data-label);
     font-weight: 700;
     text-transform: uppercase;
