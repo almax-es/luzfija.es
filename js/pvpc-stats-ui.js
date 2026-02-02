@@ -50,6 +50,8 @@
     compareYears: document.getElementById('compareYears')
   };
 
+  const csvSection = document.getElementById('csv-excedentes');
+
   const canvases = {
     trend: document.getElementById('trendChart'),
     hourly: document.getElementById('hourlyChart'),
@@ -1112,6 +1114,7 @@
       const kpis = PVPC_STATS.getKPIs(yearData);
       const isSurplus = state.type === 'surplus';
       updateCopyForType(isSurplus);
+      if (csvSection) csvSection.hidden = !isSurplus;
 
       // KPIs principales
       const lastIdx = daily.labels.length - 1;
