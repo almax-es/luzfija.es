@@ -669,6 +669,7 @@
     const currentSystemYear = String(new Date().getFullYear());
     
     const state = {
+      type: params.type || 'pvpc',
       geo: params.geo,
       year: params.year || currentSystemYear,
       trendMode: params.trendMode === 'daily' ? 'daily' : 'monthly',
