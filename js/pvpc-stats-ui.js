@@ -34,9 +34,17 @@
     insightCheapest: document.getElementById('insightCheapest'),
     insightWorst: document.getElementById('insightWorst'),
     insightRange: document.getElementById('insightRange'),
+    insightCheapestLabel: document.getElementById('insightCheapestLabel'),
+    insightWorstLabel: document.getElementById('insightWorstLabel'),
+    insightRangeLabel: document.getElementById('insightRangeLabel'),
 
     hourlyMeta: document.getElementById('hourlyMeta'),
     hourlyCallout: document.getElementById('hourlyCallout'),
+    hourlyTitle: document.getElementById('hourlyTitle'),
+    hourlySubtitle: document.getElementById('hourlySubtitle'),
+
+    faqCheapestSummary: document.getElementById('faqCheapestSummary'),
+    faqCheapestBody: document.getElementById('faqCheapestBody'),
 
     compareYears: document.getElementById('compareYears')
   };
@@ -268,7 +276,7 @@
     return gradient;
   }
 
-  function renderTrendChart(daily, monthly, mode, accent, gridColor, textColor) {
+  function renderTrendChart(daily, monthly, mode, accent, gridColor, textColor, label) {
     const ds = buildTrendDataset(daily, monthly, mode);
     const ctx = canvases.trend.getContext('2d');
     const gradient = createGradient(ctx, accent);
@@ -278,7 +286,7 @@
       data: {
         labels: ds.labels,
         datasets: [{
-          label: 'PVPC (media)',
+          label,
           data: ds.data,
           borderColor: accent,
           backgroundColor: gradient,
@@ -331,7 +339,7 @@
     charts.trend = new Chart(canvases.trend, config);
   }
 
-  function renderHourlyChart(hourlyAvg, accent, gridColor, textColor) {
+  function renderHourlyChart(hourlyAvg, accent, gridColor, textColor, label) {
     const labels = Array.from({ length: 24 }, (_, i) => `${i}:00`);
     const ctx = canvases.hourly.getContext('2d');
     const gradient = createGradient(ctx, accent);
@@ -341,7 +349,7 @@
       data: {
         labels,
         datasets: [{
-          label: 'PVPC por hora',
+          label,
           data: hourlyAvg,
           borderColor: accent,
           backgroundColor: gradient,
@@ -498,7 +506,7 @@
     return { prevAvg, pct: ((currentYtdAvg - prevAvg) / prevAvg) * 100, prevEnd };
   }
 
-  function setInsights(monthly) {
+  function setInsights(monthly, isSurplus) {
     const pairs = monthly.values.map((v, i) => ({ m: i, v })).filter(x => Number.isFinite(x.v));
     if (!pairs.length) return;
 
@@ -509,8 +517,11 @@
       if (p.v > max.v) max = p;
     }
 
-    els.insightCheapest.textContent = `${fmtMonth(min.m)} · ${fmtCents(min.v)}`;
-    els.insightWorst.textContent = `${fmtMonth(max.m)} · ${fmtCents(max.v)}`;
+    const best = isSurplus ? max : min;
+    const worst = isSurplus ? min : max;
+
+    els.insightCheapest.textContent = `${fmtMonth(best.m)} · ${fmtCents(best.v)}`;
+    els.insightWorst.textContent = `${fmtMonth(worst.m)} · ${fmtCents(worst.v)}`;
   }
 
   function setRange(kpis) {
@@ -518,9 +529,36 @@
     els.insightRange.textContent = `${fmtCents(kpis.minPrice)} – ${fmtCents(kpis.maxPrice)}`;
   }
 
-  function setRange(kpis) {
-    if (!kpis) return;
-    els.insightRange.textContent = `${fmtCents(kpis.minPrice)} – ${fmtCents(kpis.maxPrice)}`;
+  function updateCopyForType(isSurplus) {
+    if (els.insightCheapestLabel) {
+      els.insightCheapestLabel.textContent = 'Mejor mes (media)';
+    }
+    if (els.insightWorstLabel) {
+      els.insightWorstLabel.textContent = 'Peor mes (media)';
+    }
+    if (els.insightRangeLabel) {
+      els.insightRangeLabel.textContent = 'Rango (min–máx)';
+    }
+    if (els.hourlyTitle) {
+      els.hourlyTitle.textContent = isSurplus
+        ? '¿A qué horas se pagan mejor los excedentes?'
+        : '¿A qué horas suele ser más barato?';
+    }
+    if (els.hourlySubtitle) {
+      els.hourlySubtitle.textContent = isSurplus
+        ? 'Perfil horario promedio del año. Útil para estimar a qué horas se pagan mejor los excedentes.'
+        : 'Perfil horario promedio del año. Útil para desplazar consumos: termo, lavadora, recarga, cocina, etc.';
+    }
+    if (els.faqCheapestSummary) {
+      els.faqCheapestSummary.textContent = isSurplus
+        ? '¿Cuándo se pagan mejor los excedentes?'
+        : '¿Cuándo suele ser más barato?';
+    }
+    if (els.faqCheapestBody) {
+      els.faqCheapestBody.textContent = isSurplus
+        ? 'A menudo las horas centrales del día tienden a pagar mejor los excedentes (sobre todo con alta producción solar), pero depende del año y de la zona. El gráfico “Perfil horario” te lo muestra de forma directa.'
+        : 'A menudo las horas centrales del día tienden a ser más baratas (sobre todo con alta producción solar), pero depende del año y de la zona. El gráfico “Perfil horario” te lo muestra de forma directa.';
+    }
   }
 
   function buildCompareYearChips(allYearsDesc, selectedYears, onToggle) {
@@ -709,6 +747,8 @@
       const daily = PVPC_STATS.getDailyEvolution(yearData);
       const monthly = buildMonthlyFromDaily(daily.labels, daily.data);
       const kpis = PVPC_STATS.getKPIs(yearData);
+      const isSurplus = state.type === 'surplus';
+      updateCopyForType(isSurplus);
 
       // KPIs principales
       const lastIdx = daily.labels.length - 1;
@@ -750,13 +790,18 @@
         if (minDay === Infinity) minDay = null;
         if (maxDay === -Infinity) maxDay = null;
 
+        const bestDayVal = isSurplus ? maxDay : minDay;
+        const bestDayDate = isSurplus ? maxDate : minDate;
+        const worstDayVal = isSurplus ? minDay : maxDay;
+        const worstDayDate = isSurplus ? minDate : maxDate;
+
         if (els.lblKpi2) els.lblKpi2.textContent = 'Mejor día del año';
-        els.kpiAvg7.textContent = fmtCents(minDay);
-        els.kpiAvg7Sub.textContent = minDate || '—';
+        els.kpiAvg7.textContent = fmtCents(bestDayVal);
+        els.kpiAvg7Sub.textContent = bestDayDate || '—';
 
         if (els.lblKpi3) els.lblKpi3.textContent = 'Peor día del año';
-        els.kpiAvg30.textContent = fmtCents(maxDay);
-        els.kpiAvg30Sub.textContent = maxDate || '—';
+        els.kpiAvg30.textContent = fmtCents(worstDayVal);
+        els.kpiAvg30Sub.textContent = worstDayDate || '—';
       }
 
       // Kpi 4: 12 meses / Anual
@@ -781,21 +826,36 @@
 
       // Tendencia
       const mode = state.trendMode;
-      renderTrendChart(daily, monthly, mode, accent, gridColor, textColor);
+      renderTrendChart(
+        daily,
+        monthly,
+        mode,
+        accent,
+        gridColor,
+        textColor,
+        isSurplus ? 'Excedentes (media)' : 'PVPC (media)'
+      );
 
       const monthsLoaded = status.monthsLoaded && status.monthsLoaded.length ? status.monthsLoaded.join(', ') : '—';
       const labelPrefix = state.type === 'surplus' ? 'Excedentes' : (geoNames[String(state.geo)] || 'Zona');
       els.trendMeta.textContent = `${labelPrefix} · ${state.year} · meses cargados: ${monthsLoaded}`;
-      setInsights(monthly);
+      setInsights(monthly, isSurplus);
       setRange(kpis);
 
       // Horario
       const hourlyAll = PVPC_STATS.getHourlyProfile(yearData);
-      renderHourlyChart(hourlyAll.data, accent, gridColor, textColor);
+      renderHourlyChart(
+        hourlyAll.data,
+        accent,
+        gridColor,
+        textColor,
+        isSurplus ? 'Excedentes por hora' : 'PVPC por hora'
+      );
       els.hourlyMeta.textContent = `Perfil promedio del año (${status.loadedDays} días)`;
 
       // Consejito basado en mejor bloque 3h
-      const window3 = computeWindowOptions(hourlyAll.data, 3)[0];
+      const windows3 = computeWindowOptions(hourlyAll.data, 3);
+      const window3 = windows3.length ? (isSurplus ? windows3[windows3.length - 1] : windows3[0]) : null;
       if (window3) {
         const consejoPrefix = state.type === 'surplus' ? 'de media, el bloque de 3 horas donde mejor se pagan los excedentes' : 'de media, el bloque de 3 horas más barato';
         els.hourlyCallout.innerHTML = `<strong>Consejo:</strong> ${consejoPrefix} suele ser <strong>${hourRangeLabel(window3.start, window3.end)}</strong> (${fmtCents(window3.avg)}).`;

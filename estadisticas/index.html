@@ -256,15 +256,15 @@
         <div class="insights-row" id="trendInsights">
           <div class="insight">
             <div class="insight__k" id="insightCheapest">—</div>
-            <div class="insight__l">Mejor mes (media)</div>
+              <div class="insight__l" id="insightCheapestLabel">Mejor mes (media)</div>
           </div>
           <div class="insight">
             <div class="insight__k" id="insightWorst">—</div>
-            <div class="insight__l">Peor mes (media)</div>
+              <div class="insight__l" id="insightWorstLabel">Peor mes (media)</div>
           </div>
           <div class="insight">
             <div class="insight__k" id="insightRange">—</div>
-            <div class="insight__l">Rango (min–máx)</div>
+              <div class="insight__l" id="insightRangeLabel">Rango (min–máx)</div>
           </div>
         </div>
       </div>
@@ -273,8 +273,8 @@
     <!-- 3) HORAS -->
     <section id="horas" class="obs-section">
       <div class="obs-section__head">
-        <h2>¿A qué horas suele ser más barato?</h2>
-        <p class="muted">
+        <h2 id="hourlyTitle">¿A qué horas suele ser más barato?</h2>
+        <p class="muted" id="hourlySubtitle">
           Perfil horario promedio del año. Útil para desplazar consumos: termo, lavadora, recarga, cocina, etc.
         </p>
       </div>
@@ -343,9 +343,9 @@
           </div>
         </details>
 
-        <details>
-          <summary>¿Cuándo suele ser más barato?</summary>
-          <div class="faq__body">
+          <details>
+            <summary id="faqCheapestSummary">¿Cuándo suele ser más barato?</summary>
+            <div class="faq__body" id="faqCheapestBody">
             A menudo las horas centrales del día tienden a ser más baratas (sobre todo con alta producción solar), pero depende del año y de la zona. El gráfico “Perfil horario” te lo muestra de forma directa.
           </div>
         </details>

@@ -165,10 +165,11 @@ def extract_values(payload: dict, filter_geo_id: int = None) -> List[Tuple[dt.da
         out.append((dtu, fv))
     
     # Warning de seguridad: avisar si se ha perdido algún dato por el camino
-    if len(values) > 0 and len(out) < len(values):
+    if len(values) > 0 and len(out) < len(values) and (filtered_count + parse_error_count) > 0:
+        geo_ids = sorted({v.get("geo_id") for v in values if v.get("geo_id") is not None})
         print(f"⚠️ WARNING: Se recibieron {len(values)} valores pero solo se procesaron {len(out)} "
               f"(DescartadosGeo={filtered_count}, ErrorParseo={parse_error_count}). "
-              f"Ej. geo_id recibidos: {list(set([v.get('geo_id') for v in values]))}", file=sys.stderr)
+              f"Ej. geo_id recibidos: {geo_ids}", file=sys.stderr)
 
     out.sort(key=lambda x: x[0])
     return out
