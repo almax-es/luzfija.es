@@ -260,7 +260,7 @@
       </div>
 
       <div class="actions">
-        <div class="pill" id="statusPill" role="status" aria-live="polite">
+        <div class="pill" id="statusPill" role="status" aria-live="polite" aria-atomic="true">
           <span id="statusText">Introduce tus datos y pulsa Calcular para ver el ranking</span>
         </div>
         
@@ -785,7 +785,7 @@
   </button>
 
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"><span class="dot" id="toastDot"></span><span id="toastText"></span></div>
-  <button type="button" id="scrollToResults" class="scroll-btn is-hidden" title="Ver resultados" aria-label="Desplazarse a los resultados del comparador">↓ Ver resultados</button>
+  <button type="button" id="scrollToResults" class="scroll-btn is-hidden" title="Ver resultados" aria-label="Desplazarse a los resultados del comparador" aria-controls="heroKpis">↓ Ver resultados</button>
   <div id="globalTooltip" role="tooltip" aria-hidden="true"></div>
 
   <div class="modal-overlay" id="modalFactura" role="dialog" aria-modal="true" aria-label="Subir factura y extraer datos" aria-hidden="true" tabindex="-1">
