@@ -16,7 +16,7 @@
 
   function bindThemeToggle() {
     const btn = document.getElementById('btnTheme');
-    if (!btn || btn.dataset.shellBound === '1') return;
+    if (!btn || btn.dataset.shellBound === '1' || btn.dataset.bvBound === '1') return;
     btn.dataset.shellBound = '1';
 
     // Icono/labels coherentes con el resto del sitio
@@ -40,7 +40,7 @@
   function bindMenu() {
     const btn = document.getElementById('btnMenu');
     const panel = document.getElementById('menuPanel');
-    if (!btn || !panel || btn.dataset.shellBound === '1') return;
+    if (!btn || !panel || btn.dataset.shellBound === '1' || btn.dataset.bvBound === '1') return;
     btn.dataset.shellBound = '1';
 
     const close = () => {
@@ -99,8 +99,11 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    bindThemeToggle();
-    bindMenu();
-    bindClearCache();
+    // Defer to allow page-specific handlers (e.g., BVSim) to bind first.
+    setTimeout(() => {
+      bindThemeToggle();
+      bindMenu();
+      bindClearCache();
+    }, 0);
   });
 })();
