@@ -26,6 +26,7 @@
       const actionText = isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro';
       btn.setAttribute('title', actionText);
       btn.setAttribute('aria-label', actionText);
+      btn.setAttribute('aria-pressed', isLight ? 'false' : 'true');
     };
     updateLabels();
 
@@ -45,12 +46,16 @@
     const close = () => {
       panel.classList.remove('show');
       btn.setAttribute('aria-expanded', 'false');
+      panel.setAttribute('aria-hidden', 'true');
     };
     const toggle = () => {
       const willOpen = !panel.classList.contains('show');
       panel.classList.toggle('show', willOpen);
       btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+      panel.setAttribute('aria-hidden', willOpen ? 'false' : 'true');
     };
+
+    panel.setAttribute('aria-hidden', panel.classList.contains('show') ? 'false' : 'true');
 
     btn.addEventListener('click', (e) => {
       e.preventDefault();

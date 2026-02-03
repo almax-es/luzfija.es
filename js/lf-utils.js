@@ -185,6 +185,7 @@
     colors.forEach((color, i) => {
       setTimeout(() => {
         const r = document.createElement('span');
+        r.setAttribute('aria-hidden', 'true');
         r.style.cssText = `position:absolute;width:${s}px;height:${s}px;border-radius:50%;background:${color};left:${x}px;top:${y}px;pointer-events:none;animation:rippleExpand 0.8s ease-out;`;
         b.appendChild(r);
         setTimeout(() => r.remove(), 800);
@@ -201,6 +202,7 @@
       setTimeout(() => {
         const particle = document.createElement('div');
         particle.className = 'success-particle';
+        particle.setAttribute('aria-hidden', 'true');
         particle.style.cssText = `
           left: 50%;
           top: 50%;

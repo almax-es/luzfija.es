@@ -328,7 +328,7 @@
 <div class="container">
     <div class="topbar">
       <div class="brand">
-        <span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span>
+        <span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span>
         <div class="logo" aria-hidden="true" onclick="window.location.href='/'" style="cursor:pointer">
           <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
             <!-- ... (logo content matches original) ... -->
@@ -403,7 +403,7 @@
                           <button class="btn" id="btnTheme" type="button" title="Cambiar tema" aria-label="Cambiar tema">🌓</button>
                           <div class="menu" id="menuRoot">
                             <button class="btn" id="btnMenu" type="button" aria-haspopup="menu" aria-controls="menuPanel" aria-expanded="false" title="Opciones" aria-label="Abrir menú de opciones">⚙️</button>
-                            <div class="menuPanel" id="menuPanel" role="menu" aria-label="Opciones" aria-orientation="vertical">
+                            <div class="menuPanel" id="menuPanel" role="menu" aria-label="Opciones" aria-orientation="vertical" aria-hidden="true">
                               <div class="menuHint">Opciones</div>
                               <a class="menuItem" role="menuitem" href="/">🏠 Comparador principal</a>
                               <a class="menuItem" role="menuitem" href="/estadisticas/">⚡ Observatorio PVPC</a>
@@ -653,8 +653,8 @@
                                 </div>
                               </div>
                               <div class="bv-privacy-status">
-                                <span id="bv-save-indicator" class="bv-save-indicator"></span>
-                                <div id="bv-data-status" class="bv-data-status"></div>
+                                <span id="bv-save-indicator" class="bv-save-indicator" role="status" aria-live="polite" aria-atomic="true"></span>
+                                <div id="bv-data-status" class="bv-data-status" role="status" aria-live="polite" aria-atomic="true"></div>
                               </div>
                             </div>
 
@@ -675,7 +675,7 @@
                     </div>
           
                     <div class="u-mt-24">
-                      <button class="btn primary" id="bv-simulate" type="button">
+                      <button class="btn primary" id="bv-simulate" type="button" aria-controls="bv-results-container">
                         <span class="bv-btn-text" style="font-size: 1.1rem;">Comparar Tarifas y Ver Ahorro &rarr;</span>
                         <span class="spinner" style="display:none"></span>
                       </button>
@@ -760,7 +760,7 @@
                         </div>              </footer>
             </div>
           
-            <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"><span class="dot" id="toastDot"></span><span id="toastText"></span></div>
+            <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"><span class="dot" id="toastDot" aria-hidden="true"></span><span id="toastText"></span></div>
           
             <!-- ⚠️ ORDEN CRÍTICO: lf-csv-utils.js DEBE cargarse ANTES que bv-sim-monthly.js -->
             <script src="/js/lf-config.js"></script>

@@ -499,6 +499,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const actionText = isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro';
     btnTheme.setAttribute('title', actionText);
     btnTheme.setAttribute('aria-label', actionText);
+    btnTheme.setAttribute('aria-pressed', isLight ? 'false' : 'true');
   }
 
   if (btnTheme && !btnTheme.dataset.bvBound) {
@@ -514,11 +515,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (btnMenu && menuPanel && !btnMenu.dataset.bvBound) {
     btnMenu.dataset.bvBound = '1';
+    menuPanel.setAttribute('aria-hidden', menuPanel.classList.contains('show') ? 'false' : 'true');
     btnMenu.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
       const isShow = menuPanel.classList.toggle('show');
       btnMenu.setAttribute('aria-expanded', String(isShow));
+      menuPanel.setAttribute('aria-hidden', isShow ? 'false' : 'true');
     });
   }
 
@@ -553,6 +556,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!menuPanel.contains(e.target)) {
         menuPanel.classList.remove('show');
         if (btnMenu) btnMenu.setAttribute('aria-expanded', 'false');
+        menuPanel.setAttribute('aria-hidden', 'true');
       }
     }
   });
@@ -561,6 +565,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (e.key === 'Escape' && menuPanel?.classList.contains('show')) {
       menuPanel.classList.remove('show');
       if (btnMenu) btnMenu.setAttribute('aria-expanded', 'false');
+      menuPanel.setAttribute('aria-hidden', 'true');
     }
   });
 
