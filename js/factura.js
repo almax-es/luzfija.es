@@ -21,6 +21,7 @@
       window.__LF_focusTrapCleanup = null;
       window.__LF_scrollY = 0;
       let __LF_lastParsedConfianza = 0;
+      let __LF_modalHideTimer = null;
 
       let __LF_pdfjsLoading = null;
 
@@ -1287,6 +1288,12 @@
 
         window.__LF_restoreFocusEl = document.activeElement;
 
+        if (__LF_modalHideTimer) {
+          clearTimeout(__LF_modalHideTimer);
+          __LF_modalHideTimer = null;
+        }
+        modal.removeAttribute('hidden');
+        modal.removeAttribute('inert');
         modal.classList.add('show');
         modal.setAttribute('aria-hidden','false');
         __LF_lockScroll();
@@ -1349,12 +1356,18 @@
 
         modal.classList.remove('show');
         modal.setAttribute('aria-hidden','true');
+        modal.setAttribute('inert', '');
         __LF_unlockScroll();
 
         __LF_focusTrapDetach();
         const prev = window.__LF_restoreFocusEl;
         if (prev && prev.focus) prev.focus();
         window.__LF_restoreFocusEl = null;
+
+        if (__LF_modalHideTimer) clearTimeout(__LF_modalHideTimer);
+        __LF_modalHideTimer = setTimeout(() => {
+          modal.setAttribute('hidden', '');
+        }, 200);
       }
 
       async function __LF_processPdf(file){

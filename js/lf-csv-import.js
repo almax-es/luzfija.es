@@ -726,7 +726,6 @@
       btnCSV.id = 'btnSubirCSV';
       btnCSV.innerHTML = '<span>📊</span><span class="btn-text">Importar CSV</span>';
       btnCSV.title = 'Subir consumo horario (CSV/Excel de tu distribuidora)';
-      btnCSV.setAttribute('aria-label', 'Subir consumo horario CSV o Excel');
 
       btnCSV.addEventListener('click', () => fileInput.click());
 
