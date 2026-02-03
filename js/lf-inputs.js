@@ -417,6 +417,11 @@
   function validateInputs() {
     clearErrorStyles();
     let message = '';
+    const markInvalid = (input) => {
+      if (!input) return;
+      input.classList.add('error');
+      input.setAttribute('aria-invalid', 'true');
+    };
 
     function esNumericoValido(str, maxDecimales = 2) {
       if (!str || !str.trim()) return false;
@@ -474,30 +479,30 @@
 
     if (!p1Raw) {
       message = 'Introduce la potencia P1 (punta).';
-      el.inputs.p1.classList.add('error');
+      markInvalid(el.inputs.p1);
     } else if (!esNumericoValido(p1Raw, 2)) {
       message = 'La potencia P1 debe ser un número válido.';
-      el.inputs.p1.classList.add('error');
+      markInvalid(el.inputs.p1);
     } else if (!Number.isFinite(p1Num) || p1Num <= 0) {
       message = 'La potencia P1 debe ser mayor que 0 kW.';
-      el.inputs.p1.classList.add('error');
+      markInvalid(el.inputs.p1);
     } else if (p1Num > 15) {
       message = 'La potencia P1 parece muy alta (máximo habitual: 15 kW).';
-      el.inputs.p1.classList.add('error');
+      markInvalid(el.inputs.p1);
     }
 
     if (!message && !p2Raw) {
       message = 'Introduce la potencia P2 (valle).';
-      el.inputs.p2.classList.add('error');
+      markInvalid(el.inputs.p2);
     } else if (!message && !esNumericoValido(p2Raw, 2)) {
       message = 'La potencia P2 debe ser un número válido.';
-      el.inputs.p2.classList.add('error');
+      markInvalid(el.inputs.p2);
     } else if (!message && (!Number.isFinite(p2Num) || p2Num <= 0)) {
       message = 'La potencia P2 debe ser mayor que 0 kW.';
-      el.inputs.p2.classList.add('error');
+      markInvalid(el.inputs.p2);
     } else if (!message && p2Num > 15) {
       message = 'La potencia P2 parece muy alta (máximo habitual: 15 kW).';
-      el.inputs.p2.classList.add('error');
+      markInvalid(el.inputs.p2);
     }
 
     // Días
@@ -506,19 +511,19 @@
       const diasNum = parseNum(el.inputs.dias.value);
       if (!diasRaw) {
         message = 'Introduce los días de facturación (1-370).';
-        el.inputs.dias.classList.add('error');
+        markInvalid(el.inputs.dias);
       } else if (!esNumericoValido(diasRaw, 0)) {
         message = 'Los días deben ser un número válido (sin letras ni símbolos).';
-        el.inputs.dias.classList.add('error');
+        markInvalid(el.inputs.dias);
       } else if (!Number.isFinite(diasNum) || diasNum <= 0) {
         message = 'Los días deben ser mayores que 0.';
-        el.inputs.dias.classList.add('error');
+        markInvalid(el.inputs.dias);
       } else if (diasNum > 370) {
         message = 'Los días no pueden superar 370.';
-        el.inputs.dias.classList.add('error');
+        markInvalid(el.inputs.dias);
       } else if (diasNum % 1 !== 0) {
         message = 'Los días deben ser un número entero (sin decimales).';
-        el.inputs.dias.classList.add('error');
+        markInvalid(el.inputs.dias);
       }
     }
 
@@ -533,42 +538,42 @@
 
       if (!cPuntaRaw) {
         message = 'Introduce el consumo en punta.';
-        el.inputs.cPunta.classList.add('error');
+        markInvalid(el.inputs.cPunta);
       } else if (!esNumericoValido(cPuntaRaw, 2)) {
         message = 'El consumo en punta debe ser un número válido.';
-        el.inputs.cPunta.classList.add('error');
+        markInvalid(el.inputs.cPunta);
       } else if (!Number.isFinite(cPuntaNum) || cPuntaNum < 0) {
         message = 'El consumo en punta no puede ser negativo.';
-        el.inputs.cPunta.classList.add('error');
+        markInvalid(el.inputs.cPunta);
       }
 
       if (!message && !cLlanoRaw) {
         message = 'Introduce el consumo en llano.';
-        el.inputs.cLlano.classList.add('error');
+        markInvalid(el.inputs.cLlano);
       } else if (!message && !esNumericoValido(cLlanoRaw, 2)) {
         message = 'El consumo en llano debe ser un número válido.';
-        el.inputs.cLlano.classList.add('error');
+        markInvalid(el.inputs.cLlano);
       } else if (!message && (!Number.isFinite(cLlanoNum) || cLlanoNum < 0)) {
         message = 'El consumo en llano no puede ser negativo.';
-        el.inputs.cLlano.classList.add('error');
+        markInvalid(el.inputs.cLlano);
       }
 
       if (!message && !cValleRaw) {
         message = 'Introduce el consumo en valle.';
-        el.inputs.cValle.classList.add('error');
+        markInvalid(el.inputs.cValle);
       } else if (!message && !esNumericoValido(cValleRaw, 2)) {
         message = 'El consumo en valle debe ser un número válido.';
-        el.inputs.cValle.classList.add('error');
+        markInvalid(el.inputs.cValle);
       } else if (!message && (!Number.isFinite(cValleNum) || cValleNum < 0)) {
         message = 'El consumo en valle no puede ser negativo.';
-        el.inputs.cValle.classList.add('error');
+        markInvalid(el.inputs.cValle);
       }
 
       if (!message && cPuntaNum === 0 && cLlanoNum === 0 && cValleNum === 0) {
         message = 'Debe haber consumo en al menos uno de los periodos.';
-        el.inputs.cPunta.classList.add('error');
-        el.inputs.cLlano.classList.add('error');
-        el.inputs.cValle.classList.add('error');
+        markInvalid(el.inputs.cPunta);
+        markInvalid(el.inputs.cLlano);
+        markInvalid(el.inputs.cValle);
       }
     }
 
@@ -581,27 +586,27 @@
 
       if (!exTotalRaw) {
         message = 'Introduce los excedentes del periodo (o 0 si no tienes).';
-        el.inputs.exTotal.classList.add('error');
+        markInvalid(el.inputs.exTotal);
       } else if (!esNumericoValido(exTotalRaw, 2)) {
         message = 'Los excedentes deben ser un número válido.';
-        el.inputs.exTotal.classList.add('error');
+        markInvalid(el.inputs.exTotal);
       } else if (!Number.isFinite(exTotalNum) || exTotalNum < 0) {
         message = 'Los excedentes no pueden ser negativos.';
-        el.inputs.exTotal.classList.add('error');
+        markInvalid(el.inputs.exTotal);
       }
 
       if (!message && !bvSaldoRaw) {
         message = 'Introduce el saldo de batería virtual (o 0 si no tienes).';
-        el.inputs.bvSaldo.classList.add('error');
+        markInvalid(el.inputs.bvSaldo);
       } else if (!message && !esNumericoValido(bvSaldoRaw, 2)) {
         message = 'El saldo de batería virtual debe ser un número válido.';
-        el.inputs.bvSaldo.classList.add('error');
+        markInvalid(el.inputs.bvSaldo);
       } else if (!message && !Number.isFinite(bvSaldoNum)) {
         message = 'El saldo de batería virtual debe ser un número válido.';
-        el.inputs.bvSaldo.classList.add('error');
+        markInvalid(el.inputs.bvSaldo);
       } else if (!message && bvSaldoNum < 0) {
         message = 'El saldo de batería virtual no puede ser negativo.';
-        el.inputs.bvSaldo.classList.add('error');
+        markInvalid(el.inputs.bvSaldo);
       }
     }
 

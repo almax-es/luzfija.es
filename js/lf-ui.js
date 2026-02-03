@@ -62,6 +62,7 @@
     Object.values(el.inputs).forEach(i => {
       if (!i) return;
       i.classList.remove('error');
+      i.removeAttribute('aria-invalid');
     });
   }
 
