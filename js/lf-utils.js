@@ -427,6 +427,8 @@
     if (typeof window === 'undefined' || typeof PerformanceObserver === 'undefined') return;
     if (typeof window.addEventListener !== 'function') return;
     if (typeof document === 'undefined' || typeof document.addEventListener !== 'function') return;
+    if (window.__LF_INP_DEBUG_ACTIVE) return;
+    window.__LF_INP_DEBUG_ACTIVE = true;
 
     let worst = { duration: 0, entry: null };
 
