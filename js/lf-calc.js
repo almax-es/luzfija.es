@@ -412,7 +412,16 @@
 
     // Ordenar resultados
     resultados.sort((a, b) => {
-      const diff = a.totalNum - b.totalNum;
+      const aNum = a.totalNum;
+      const bNum = b.totalNum;
+      const aFinite = Number.isFinite(aNum);
+      const bFinite = Number.isFinite(bNum);
+
+      if (!aFinite && !bFinite) return 0;
+      if (!aFinite) return 1;
+      if (!bFinite) return -1;
+
+      const diff = aNum - bNum;
       if (Math.abs(Math.round(diff * 100) / 100) < 0.01) {
         const bvA = Number(a.fvBvSaldoFin) || 0;
         const bvB = Number(b.fvBvSaldoFin) || 0;
