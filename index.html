@@ -198,7 +198,7 @@
 <div class="container">
     <div class="topbar">
       <div class="brand">
-        <span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span><span class="particle"></span>
+        <span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span>
         <div class="logo" aria-hidden="true">
           <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
             <defs>
@@ -255,7 +255,7 @@
           </nav>
           <h1>Comparador de Tarifas de Luz</h1>
           <p>Encuentra la tarifa más barata en segundos</p>
-          <div class="tarifas-updated" id="tarifasUpdated" title="Última actualización del listado de tarifas" aria-live="polite">Tarifas: cargando...</div>
+          <div class="tarifas-updated" id="tarifasUpdated" title="Última actualización del listado de tarifas" aria-live="polite" aria-atomic="true">Tarifas: cargando...</div>
         </div>
       </div>
 
@@ -545,9 +545,9 @@
 
           <div class="toolbar fade-container" id="toolbar">
             <div class="filters" role="group" aria-label="Filtrar por tipo de tarifa">
-              <button class="fbtn active" data-filter="all" type="button" aria-label="Mostrar todas las tarifas" aria-pressed="true">Todas</button>
-              <button class="fbtn" data-filter="1P" type="button" aria-label="Filtrar por tarifas de un periodo" aria-pressed="false"><span class="badge b1">1P</span></button>
-              <button class="fbtn" data-filter="3P" type="button" aria-label="Filtrar por tarifas de tres periodos" aria-pressed="false"><span class="badge b3">3P</span></button>
+              <button class="fbtn active" data-filter="all" type="button" aria-label="Mostrar todas las tarifas" aria-pressed="true" aria-controls="table">Todas</button>
+              <button class="fbtn" data-filter="1P" type="button" aria-label="Filtrar por tarifas de un periodo" aria-pressed="false" aria-controls="table"><span class="badge b1">1P</span></button>
+              <button class="fbtn" data-filter="3P" type="button" aria-label="Filtrar por tarifas de tres periodos" aria-pressed="false" aria-controls="table"><span class="badge b3">3P</span></button>
             </div>
           </div>
 
@@ -557,32 +557,32 @@
                 <tr>
                   <th scope="col">#</th>
                   <th scope="col" class="sort" data-sort="nombre" role="columnheader" aria-sort="none">
-                    <button type="button" class="sort-button" aria-label="Ordenar por nombre de tarifa">
+                    <button type="button" class="sort-button" aria-label="Ordenar por nombre de tarifa" aria-controls="table">
                       Tarifa <span class="sortIcon" id="si_nombre" aria-hidden="true"></span>
                     </button>
                   </th>
                   <th scope="col" class="sort" data-sort="potenciaNum" role="columnheader" aria-sort="none">
-                    <button type="button" class="sort-button" aria-label="Ordenar por coste de potencia">
+                    <button type="button" class="sort-button" aria-label="Ordenar por coste de potencia" aria-controls="table">
                       Potencia <span class="sortIcon" id="si_potenciaNum" aria-hidden="true"></span>
                     </button>
                   </th>
                   <th scope="col" class="sort" data-sort="consumoNum" role="columnheader" aria-sort="none">
-                    <button type="button" class="sort-button" aria-label="Ordenar por coste de consumo">
+                    <button type="button" class="sort-button" aria-label="Ordenar por coste de consumo" aria-controls="table">
                       Consumo <span class="sortIcon" id="si_consumoNum" aria-hidden="true"></span>
                     </button>
                   </th>
                   <th scope="col" class="sort" data-sort="impuestosNum" role="columnheader" aria-sort="none">
-                    <button type="button" class="sort-button" aria-label="Ordenar por impuestos">
+                    <button type="button" class="sort-button" aria-label="Ordenar por impuestos" aria-controls="table">
                       Impuestos <span class="sortIcon" id="si_impuestosNum" aria-hidden="true"></span>
                     </button>
                   </th>
                   <th scope="col" class="sort" data-sort="totalNum" role="columnheader" aria-sort="ascending">
-                    <button type="button" class="sort-button" aria-label="Ordenar por coste total">
+                    <button type="button" class="sort-button" aria-label="Ordenar por coste total" aria-controls="table">
                       Total <span class="sortIcon" id="si_totalNum" aria-hidden="true"></span>
                     </button>
                   </th>
                   <th scope="col" class="sort" data-sort="vsMejorNum" role="columnheader" aria-sort="none">
-                    <button type="button" class="sort-button" aria-label="Ordenar por diferencia con la mejor tarifa">
+                    <button type="button" class="sort-button" aria-label="Ordenar por diferencia con la mejor tarifa" aria-controls="table">
                       Vs mejor <span class="sortIcon" id="si_vsMejorNum" aria-hidden="true"></span>
                     </button>
                   </th>
@@ -592,7 +592,7 @@
               </thead>
               <tbody id="tbody"></tbody>
             </table>
-            <div class="empty fade-container" id="emptyBox">Aún no hay resultados. Pulsa ⚡ Calcular para generar el ranking.</div>
+            <div class="empty fade-container" id="emptyBox" role="status" aria-live="polite" aria-atomic="true">Aún no hay resultados. Pulsa ⚡ Calcular para generar el ranking.</div>
           </div>
 
         </div>
@@ -684,15 +684,15 @@
     </section>
 
     <!-- SECCIÓN NOVEDADES DEL MERCADO -->
-    <section class="section-container mt-60">
+    <section class="section-container mt-60" aria-labelledby="novedadesHeading">
       <div class="u-flex u-items-center u-gap-12 u-mb-24">
         <span class="u-text-28 u-leading-10">🔔</span>
-        <h2 style="font-size:clamp(20px, 3vw, 26px); font-weight:900; margin:0; color:var(--text);">
+        <h2 id="novedadesHeading" style="font-size:clamp(20px, 3vw, 26px); font-weight:900; margin:0; color:var(--text);">
           Novedades del Mercado
         </h2>
       </div>
       
-      <div id="novedadesContainer" style="display:grid; gap:16px;">
+      <div id="novedadesContainer" role="list" style="display:grid; gap:16px;">
         <!-- Las novedades se cargan aquí automáticamente desde novedades.json -->
       </div>
     </section>
@@ -784,7 +784,7 @@
     📲 Instalar LuzFija en este dispositivo
   </button>
 
-<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"><span class="dot" id="toastDot"></span><span id="toastText"></span></div>
+<div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"><span class="dot" id="toastDot" aria-hidden="true"></span><span id="toastText"></span></div>
   <button type="button" id="scrollToResults" class="scroll-btn is-hidden" title="Ver resultados" aria-label="Desplazarse a los resultados del comparador" aria-controls="heroKpis">↓ Ver resultados</button>
   <div id="globalTooltip" role="tooltip" aria-hidden="true"></div>
 

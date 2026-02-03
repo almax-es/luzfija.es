@@ -152,6 +152,7 @@
             const color = colores[nov.tipo] || 'var(--accent)';
             
             const novDiv = document.createElement('div');
+            novDiv.setAttribute('role', 'listitem');
             novDiv.style.cssText = `
               background: var(--card-bg);
               border: 1px solid var(--border);
