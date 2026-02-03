@@ -421,6 +421,58 @@
     };
   }
 
+  // ===== DEBUG: INP (solo cuando debug=1) =====
+  function initInpDebugObserver() {
+    if (!isDebugMode()) return;
+    if (typeof window === 'undefined' || typeof PerformanceObserver === 'undefined') return;
+
+    let worst = { duration: 0, entry: null };
+
+    const describeTarget = (target) => {
+      if (!target) return '';
+      const tag = target.tagName ? target.tagName.toLowerCase() : '';
+      const id = target.id ? `#${target.id}` : '';
+      const cls = target.className && typeof target.className === 'string'
+        ? `.${target.className.trim().split(/\s+/)[0]}`
+        : '';
+      return `${tag}${id || cls}`.trim();
+    };
+
+    const updateWorst = (entry) => {
+      const dur = Number(entry?.duration || 0);
+      if (dur <= worst.duration) return;
+      worst = { duration: dur, entry };
+    };
+
+    try {
+      const po = new PerformanceObserver((list) => {
+        for (const entry of list.getEntries()) {
+          // Filtra interacciones reales (click, keydown, pointerdown...)
+          updateWorst(entry);
+        }
+      });
+      po.observe({ type: 'event', durationThreshold: 40, buffered: true });
+    } catch (_) {
+      // Safari/Chromium antiguos podrían lanzar aquí
+    }
+
+    let logged = false;
+    const logWorst = () => {
+      if (logged || !worst.entry) return;
+      logged = true;
+      const e = worst.entry;
+      const name = e.name || 'interaction';
+      const target = describeTarget(e.target);
+      const duration = Math.round(worst.duration);
+      console.log(`[INP][debug] peor interacción: ${duration} ms (${name}${target ? ' en ' + target : ''})`);
+    };
+
+    window.addEventListener('pagehide', logWorst, { once: true });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'hidden') logWorst();
+    });
+  }
+
   // ===== EXPORTAR AL GLOBAL =====
   window.lfDbg = lfDbg;
   window.LF = window.LF || {};
@@ -446,5 +498,8 @@
       return new Promise(resolve => setTimeout(resolve, 0));
     }
   });
+
+  // Inicializar observador INP en modo debug.
+  initInpDebugObserver();
 
 })();
