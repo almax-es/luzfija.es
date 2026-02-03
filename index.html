@@ -280,7 +280,7 @@
           <button class="btn" id="btnTheme" type="button" title="Cambiar tema" aria-label="Cambiar tema">🌓</button>
           <div class="menu" id="menuRoot">
             <button class="btn" id="btnMenu" type="button" aria-haspopup="menu" aria-controls="menuPanel" aria-expanded="false" title="Opciones" aria-label="Abrir menú de opciones">⚙️</button>
-            <div class="menuPanel" id="menuPanel" role="menu" aria-label="Opciones" aria-orientation="vertical">
+            <div class="menuPanel" id="menuPanel" role="menu" aria-label="Opciones" aria-orientation="vertical" aria-hidden="true">
                           <div class="menuHint">Opciones</div>
                           <button class="menuItem" id="btnShare" type="button" role="menuitem" aria-label="Compartir configuración por URL">
                             <span class="mi-left">🔗 Compartir configuración</span>              <span class="mi-right">URL</span>
@@ -790,7 +790,7 @@
 
   <div class="modal-overlay" id="modalFactura" role="dialog" aria-modal="true" aria-label="Subir factura y extraer datos" aria-hidden="true" tabindex="-1">
     <div class="modal-content card" role="document">
-      <button class="modal-x" id="btnCerrarFacturaX" type="button" aria-label="Cerrar">✕</button>
+      <button class="modal-x" id="btnCerrarFacturaX" type="button" aria-label="Cerrar" aria-controls="modalFactura">✕</button>
       <div class="head">
         <div class="kicker">Subir factura</div>
         <h2 class="title">Extracción automática de datos</h2>
@@ -844,7 +844,7 @@
 
   <div class="modal-overlay is-hidden" id="modalSolarInfo" role="dialog" aria-modal="true" aria-label="Información sobre tarifas solares" aria-hidden="true" tabindex="-1">
     <div class="modal-content card u-max-w-600" role="document">
-      <button class="modal-x" id="btnCerrarSolarX" type="button" aria-label="Cerrar">✕</button>
+            <button class="modal-x" id="btnCerrarSolarX" type="button" aria-label="Cerrar" aria-controls="modalSolarInfo">✕</button>
       <div class="head">
         <div class="kicker">Autoconsumo fotovoltaico</div>
         <h2 class="title">☀️ Cómo funciona con placas solares</h2>
@@ -938,7 +938,7 @@
   <!-- Modal PVPC -->
   <div class="modal-overlay is-hidden" id="modalPVPCInfo" role="dialog" aria-modal="true" aria-label="Precios PVPC por hora" aria-hidden="true" tabindex="-1">
     <div class="modal-content card u-max-w-650" role="document">
-      <button class="modal-x" id="btnCerrarPVPCX" type="button" aria-label="Cerrar">✕</button>
+      <button class="modal-x" id="btnCerrarPVPCX" type="button" aria-label="Cerrar" aria-controls="modalPVPCInfo">✕</button>
         <div class="head">
           <div class="kicker" id="modalPVPCHeadline">Precio regulado de la luz</div>
           <h2 class="title"><span id="modalPVPCTypeIcon">⚡</span> <span id="modalPVPCTitleText">PVPC - Precios por hora</span></h2>

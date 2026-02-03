@@ -150,6 +150,7 @@
     const willOpen = (typeof force === 'boolean') ? force : !el.menuPanel.classList.contains('show');
     el.menuPanel.classList.toggle('show', willOpen);
     el.btnMenu.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+    el.menuPanel.setAttribute('aria-hidden', willOpen ? 'false' : 'true');
 
     if (willOpen) {
       if (options.focus === 'first') focusMenuItem('first');
