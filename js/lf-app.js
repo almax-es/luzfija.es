@@ -228,10 +228,17 @@
 
     // Filter buttons
     document.querySelectorAll('.fbtn').forEach(b => {
+      // Estado inicial accesible
+      b.setAttribute('aria-pressed', b.classList.contains('active') ? 'true' : 'false');
+
       b.addEventListener('click', (e) => {
         createRipple(b, e);
-        document.querySelectorAll('.fbtn').forEach(x => x.classList.remove('active'));
+        document.querySelectorAll('.fbtn').forEach(x => {
+          x.classList.remove('active');
+          x.setAttribute('aria-pressed', 'false');
+        });
         b.classList.add('active');
+        b.setAttribute('aria-pressed', 'true');
         state.filter = b.getAttribute('data-filter');
         renderTable();
       });

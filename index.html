@@ -535,7 +535,7 @@
             ⚠ PVPC no disponible: la tarifa regulada (PVPC) solo aplica para potencia &le; 10&nbsp;kW
           </div>
 
-          <div class="chartTop fade-container" id="chartTop">
+          <div class="chartTop fade-container" id="chartTop" role="region" aria-label="Comparación visual de tarifas">
             <div class="chartTop-header">
               <div class="kicker">Comparación visual</div>
               <div class="title">Top 5 tarifas (total factura)</div>
@@ -544,10 +544,10 @@
           </div>
 
           <div class="toolbar fade-container" id="toolbar">
-            <div class="filters">
-              <button class="fbtn active" data-filter="all" type="button" aria-label="Mostrar todas las tarifas">Todas</button>
-              <button class="fbtn" data-filter="1P" type="button" aria-label="Filtrar por tarifas de un periodo"><span class="badge b1">1P</span></button>
-              <button class="fbtn" data-filter="3P" type="button" aria-label="Filtrar por tarifas de tres periodos"><span class="badge b3">3P</span></button>
+            <div class="filters" role="group" aria-label="Filtrar por tipo de tarifa">
+              <button class="fbtn active" data-filter="all" type="button" aria-label="Mostrar todas las tarifas" aria-pressed="true">Todas</button>
+              <button class="fbtn" data-filter="1P" type="button" aria-label="Filtrar por tarifas de un periodo" aria-pressed="false"><span class="badge b1">1P</span></button>
+              <button class="fbtn" data-filter="3P" type="button" aria-label="Filtrar por tarifas de tres periodos" aria-pressed="false"><span class="badge b3">3P</span></button>
             </div>
           </div>
 
