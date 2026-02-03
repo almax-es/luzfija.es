@@ -826,7 +826,7 @@
 
           <div style="display:flex; gap:10px; margin-top:10px; flex-wrap:wrap">
             <button class="btn primary" id="btnAplicarFactura" type="button" aria-label="Aplicar datos extraídos de la factura al formulario">✅ Aplicar datos</button>
-            <button class="btn" id="btnCancelarFactura" type="button" aria-label="Cancelar y cerrar modal de importación de factura">❌ Cancelar</button>
+            <button class="btn" id="btnCancelarFactura" type="button" aria-label="Cancelar y cerrar modal de importación de factura" aria-controls="modalFactura">❌ Cancelar</button>
           </div>
 
           <div class="help" style="margin-top:10px; font-size:11px; opacity:0.9; border:1px solid var(--border); background: var(--card2); padding:8px; border-radius:10px; line-height:1.4;">
@@ -898,7 +898,7 @@
           Las tarifas con compensación activa muestran un icono ☀️ dorado con pulso. Al tocarlo verás todos los detalles (compensación, BV usada/acumulada, saldo final y ranking). Además, en tarifas con BV, el TOTAL tiene una bombilla 💡: al tocarla verás “Pagas” y “Ranking”.
         </p>
 
-        <button class="btn primary" id="btnCerrarSolarInfo" type="button" style="width: 100%; margin-top: 10px;" aria-label="Cerrar información de autoconsumo">
+        <button class="btn primary" id="btnCerrarSolarInfo" type="button" style="width: 100%; margin-top: 10px;" aria-label="Cerrar información de autoconsumo" aria-controls="modalSolarInfo">
           ✅ Entendido
         </button>
       </div>
@@ -985,7 +985,7 @@
           <p class="u-loading-text">Cargando precios...</p>
         </div>
 
-        <button class="btn primary u-w-full u-mt-8" id="btnCerrarPVPCInfo" type="button" aria-label="Cerrar">Cerrar</button>
+        <button class="btn primary u-w-full u-mt-8" id="btnCerrarPVPCInfo" type="button" aria-label="Cerrar" aria-controls="modalPVPCInfo">Cerrar</button>
       </div>
     </div>
   </div>
