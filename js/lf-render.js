@@ -30,6 +30,24 @@
     return `<span class="vs-text ${c}">${escapeHtml(s)}</span>`;
   }
 
+  // ===== URL SAFE =====
+  // Acepta solo http/https o rutas relativas (/, ./, ../). Bloquea esquemas peligrosos.
+  function safeUrl(raw) {
+    const s = String(raw ?? '').trim();
+    if (!s) return '';
+
+    // Permitir rutas relativas explícitas
+    if (/^(\/(?!\/)|\.\.?\/)/.test(s)) return s;
+
+    try {
+      const u = new URL(s);
+      if (u.protocol === 'http:' || u.protocol === 'https:') return u.href;
+    } catch (_) {
+      // URL inválida → bloquear
+    }
+    return '';
+  }
+
   // ===== FILTROS Y ORDENACIÓN =====
   function applyFilters(r) {
     const f = state.filter;
@@ -182,8 +200,9 @@
           tr.dataset.metaPvpc = JSON.stringify(r.metaPvpc);
         }
 
-        const w = r.webUrl && r.webUrl !== '#'
-          ? `<a class="web" href="${escapeHtml(r.webUrl)}" target="_blank" rel="noopener noreferrer" title="Abrir web" aria-label="Abrir oferta de ${escapeHtml(nombreBase)}">` +
+        const safeWebUrl = safeUrl(r.webUrl);
+        const w = safeWebUrl && safeWebUrl !== '#'
+          ? `<a class="web" href="${escapeHtml(safeWebUrl)}" target="_blank" rel="noopener noreferrer" title="Abrir web" aria-label="Abrir oferta de ${escapeHtml(nombreBase)}">` +
             `<span class="web-icon" aria-hidden="true">🔗</span>` +
             `<span class="web-text">Ver oferta</span>` +
             `</a>`

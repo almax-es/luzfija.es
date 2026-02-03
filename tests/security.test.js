@@ -71,7 +71,7 @@ describe('Seguridad e Integridad de Datos (Security Tests)', () => {
     expect(html).toContain('&lt;script&gt;alert("XSS")&lt;/script&gt;');
   });
 
-  it('XSS: Debe escapar URLs maliciosas en el botón "Ver oferta"', async () => {
+  it('XSS: Debe bloquear URLs maliciosas en el botón "Ver oferta"', async () => {
     const maliciousRow = {
       nombre: 'Tarifa Segura',
       webUrl: 'javascript:alert(1)', // Vector de ataque típico
@@ -83,13 +83,8 @@ describe('Seguridad e Integridad de Datos (Security Tests)', () => {
     await window.LF.renderTable();
 
     const link = window.LF.el.tbody.querySelector('a.web');
-    // El renderizado actual puede que no sanee protocolos (href="javascript:...").
-    // Si este test falla, sabremos que tenemos un agujero de seguridad.
-    // Lo ideal es que escapeHtml proteja al menos las comillas para romper el atributo,
-    // pero para protocolos se necesita validación extra.
-    
-    // Por ahora verificamos que al menos escape los caracteres HTML si los hubiera
-    expect(link.getAttribute('href')).toBe('javascript:alert(1)'); // HTML5 permite esto si no hay CSP
+    // Un esquema peligroso debe bloquear el enlace completamente
+    expect(link).toBeNull();
     
     // NOTA: Para mitigar esto, se debería usar una función isValidUrl o CSP.
     // Este test sirve de "canary": si alguien inyecta esto, el navegador lo ejecutará si el usuario hace clic.
@@ -108,12 +103,8 @@ describe('Seguridad e Integridad de Datos (Security Tests)', () => {
     // El payload original era: "> <img...
     // Si se escapa bien, el href debe empezar por "&quot;>..." o similar, conteniendo el ataque DENTRO.
     const linkMalicioso = window.LF.el.tbody.querySelector('a.web');
-    expect(linkMalicioso).not.toBeNull();
-    const hrefValue = linkMalicioso.getAttribute('href');
-    // El valor del atributo (propiedad DOM) tendrá el texto decodificado: "> <img..."
-    // Pero eso es SEGURO porque está dentro del atributo. Lo inseguro sería que el HTML tuviera:
-    // <a href=""> <img ... >
-    expect(hrefValue).toContain('<img src=x'); // Está dentro del valor, es seguro.
+    // URL inválida → no debe renderizarse el enlace
+    expect(linkMalicioso).toBeNull();
   });
 
   it('Robustez: Debe manejar tarifas con campos undefined/null sin explotar', async () => {
