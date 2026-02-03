@@ -440,6 +440,20 @@
       return `${tag}${id || cls}`.trim();
     };
 
+    const IGNORE_NAMES = new Set([
+      'pointerover', 'pointerout', 'pointerenter', 'pointerleave', 'pointermove',
+      'mouseover', 'mouseout', 'mouseenter', 'mouseleave', 'mousemove',
+      'scroll', 'wheel', 'touchmove'
+    ]);
+
+    const isInteraction = (entry) => {
+      const name = String(entry?.name || '');
+      if (IGNORE_NAMES.has(name)) return false;
+      if (entry?.interactionId && entry.interactionId > 0) return true;
+      // Fallback for older browsers: accept common interaction events only.
+      return name === 'click' || name === 'pointerdown' || name === 'pointerup' || name === 'keydown' || name === 'touchstart';
+    };
+
     const updateWorst = (entry) => {
       const dur = Number(entry?.duration || 0);
       if (dur <= worst.duration) return;
@@ -449,7 +463,7 @@
     try {
       const po = new PerformanceObserver((list) => {
         for (const entry of list.getEntries()) {
-          // Filtra interacciones reales (click, keydown, pointerdown...)
+          if (!isInteraction(entry)) continue;
           updateWorst(entry);
         }
       });
