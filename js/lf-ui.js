@@ -59,10 +59,19 @@
   }
 
   function clearErrorStyles() {
+    const errorDescId = 'errorText';
     Object.values(el.inputs).forEach(i => {
       if (!i) return;
       i.classList.remove('error');
       i.removeAttribute('aria-invalid');
+      // Limpiar aria-describedby del error si estaba presente
+      const desc = (i.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
+      const next = desc.filter(id => id !== errorDescId);
+      if (next.length) {
+        i.setAttribute('aria-describedby', next.join(' '));
+      } else {
+        i.removeAttribute('aria-describedby');
+      }
     });
   }
 
@@ -83,6 +92,8 @@
     const actionText = isLight ? 'Cambiar a modo oscuro' : 'Cambiar a modo claro';
     el.btnTheme.setAttribute('title', actionText);
     el.btnTheme.setAttribute('aria-label', actionText);
+    // Estado accesible del toggle (pressed = tema oscuro activo)
+    el.btnTheme.setAttribute('aria-pressed', isLight ? 'false' : 'true');
   }
 
   function toggleTheme() {

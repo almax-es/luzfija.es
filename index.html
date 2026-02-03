@@ -265,10 +265,10 @@
         </div>
         
         <div class="actions-center">
-          <button class="btn" id="btnSubirFactura" type="button" title="Subir factura PDF" aria-label="Subir factura PDF">
+          <button class="btn" id="btnSubirFactura" type="button" title="Subir factura PDF" aria-label="Subir factura PDF" aria-haspopup="dialog" aria-controls="modalFactura">
             <span>📄</span><span class="btn-text">Subir factura</span>
           </button>
-          <button class="btn" id="btnPVPCInfo" type="button" title="Ver precios PVPC de hoy por horas" aria-label="Ver precios PVPC de hoy por horas">
+          <button class="btn" id="btnPVPCInfo" type="button" title="Ver precios PVPC de hoy por horas" aria-label="Ver precios PVPC de hoy por horas" aria-haspopup="dialog" aria-controls="modalPVPCInfo">
             <span>⚡</span><span class="btn-text">PVPC</span>
           </button>
           <a href="/comparador-tarifas-solares.html" class="btn btn-feature" aria-label="Ir al comparador de tarifas solares">
@@ -398,7 +398,7 @@
               </div>
             </div>
             <div id="solarFields" class="form fv-fields u-mt-8" style="display:none;">
-              <button type="button" class="btn btn-info-solar" id="btnSolarInfo" aria-label="Información sobre cómo funcionan las placas solares en el comparador">
+              <button type="button" class="btn btn-info-solar" id="btnSolarInfo" aria-label="Información sobre cómo funcionan las placas solares en el comparador" aria-haspopup="dialog" aria-controls="modalSolarInfo">
                 ℹ️ ¿Cómo funciona con placas solares?
               </button>
               <div class="group">
@@ -788,7 +788,7 @@
   <button type="button" id="scrollToResults" class="scroll-btn is-hidden" title="Ver resultados" aria-label="Desplazarse a los resultados del comparador">↓ Ver resultados</button>
   <div id="globalTooltip" role="tooltip" aria-hidden="true"></div>
 
-  <div class="modal-overlay" id="modalFactura" role="dialog" aria-modal="true" aria-label="Subir factura y extraer datos" tabindex="-1">
+  <div class="modal-overlay" id="modalFactura" role="dialog" aria-modal="true" aria-label="Subir factura y extraer datos" aria-hidden="true" tabindex="-1">
     <div class="modal-content card" role="document">
       <button class="modal-x" id="btnCerrarFacturaX" type="button" aria-label="Cerrar">✕</button>
       <div class="head">
@@ -842,7 +842,7 @@
     </div>
   </div>
 
-  <div class="modal-overlay is-hidden" id="modalSolarInfo" role="dialog" aria-modal="true" aria-label="Información sobre tarifas solares" tabindex="-1">
+  <div class="modal-overlay is-hidden" id="modalSolarInfo" role="dialog" aria-modal="true" aria-label="Información sobre tarifas solares" aria-hidden="true" tabindex="-1">
     <div class="modal-content card u-max-w-600" role="document">
       <button class="modal-x" id="btnCerrarSolarX" type="button" aria-label="Cerrar">✕</button>
       <div class="head">
@@ -936,7 +936,7 @@
     <script src="js/index-extra.js" defer></script>
 
   <!-- Modal PVPC -->
-  <div class="modal-overlay is-hidden" id="modalPVPCInfo" role="dialog" aria-modal="true" aria-label="Precios PVPC por hora" tabindex="-1">
+  <div class="modal-overlay is-hidden" id="modalPVPCInfo" role="dialog" aria-modal="true" aria-label="Precios PVPC por hora" aria-hidden="true" tabindex="-1">
     <div class="modal-content card u-max-w-650" role="document">
       <button class="modal-x" id="btnCerrarPVPCX" type="button" aria-label="Cerrar">✕</button>
         <div class="head">

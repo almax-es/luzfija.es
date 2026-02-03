@@ -421,6 +421,13 @@
       if (!input) return;
       input.classList.add('error');
       input.setAttribute('aria-invalid', 'true');
+      // Enlazar el mensaje de error para lectores de pantalla
+      const errorDescId = 'errorText';
+      const desc = (input.getAttribute('aria-describedby') || '').split(/\s+/).filter(Boolean);
+      if (!desc.includes(errorDescId)) {
+        desc.push(errorDescId);
+        input.setAttribute('aria-describedby', desc.join(' '));
+      }
     };
 
     function esNumericoValido(str, maxDecimales = 2) {
