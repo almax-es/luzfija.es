@@ -425,6 +425,8 @@
   function initInpDebugObserver() {
     if (!isDebugMode()) return;
     if (typeof window === 'undefined' || typeof PerformanceObserver === 'undefined') return;
+    if (typeof window.addEventListener !== 'function') return;
+    if (typeof document === 'undefined' || typeof document.addEventListener !== 'function') return;
 
     let worst = { duration: 0, entry: null };
 
