@@ -552,42 +552,42 @@
           </div>
 
           <div class="tableWrap">
-            <table id="table" class="fade-container">
+            <table id="table" class="fade-container" aria-label="Ranking de tarifas">
               <thead>
                 <tr>
-                  <th>#</th>
-                  <th class="sort" data-sort="nombre" role="columnheader" aria-sort="none">
+                  <th scope="col">#</th>
+                  <th scope="col" class="sort" data-sort="nombre" role="columnheader" aria-sort="none">
                     <button type="button" class="sort-button" aria-label="Ordenar por nombre de tarifa">
                       Tarifa <span class="sortIcon" id="si_nombre" aria-hidden="true"></span>
                     </button>
                   </th>
-                  <th class="sort" data-sort="potenciaNum" role="columnheader" aria-sort="none">
+                  <th scope="col" class="sort" data-sort="potenciaNum" role="columnheader" aria-sort="none">
                     <button type="button" class="sort-button" aria-label="Ordenar por coste de potencia">
                       Potencia <span class="sortIcon" id="si_potenciaNum" aria-hidden="true"></span>
                     </button>
                   </th>
-                  <th class="sort" data-sort="consumoNum" role="columnheader" aria-sort="none">
+                  <th scope="col" class="sort" data-sort="consumoNum" role="columnheader" aria-sort="none">
                     <button type="button" class="sort-button" aria-label="Ordenar por coste de consumo">
                       Consumo <span class="sortIcon" id="si_consumoNum" aria-hidden="true"></span>
                     </button>
                   </th>
-                  <th class="sort" data-sort="impuestosNum" role="columnheader" aria-sort="none">
+                  <th scope="col" class="sort" data-sort="impuestosNum" role="columnheader" aria-sort="none">
                     <button type="button" class="sort-button" aria-label="Ordenar por impuestos">
                       Impuestos <span class="sortIcon" id="si_impuestosNum" aria-hidden="true"></span>
                     </button>
                   </th>
-                  <th class="sort" data-sort="totalNum" role="columnheader" aria-sort="ascending">
+                  <th scope="col" class="sort" data-sort="totalNum" role="columnheader" aria-sort="ascending">
                     <button type="button" class="sort-button" aria-label="Ordenar por coste total">
                       Total <span class="sortIcon" id="si_totalNum" aria-hidden="true"></span>
                     </button>
                   </th>
-                  <th class="sort" data-sort="vsMejorNum" role="columnheader" aria-sort="none">
+                  <th scope="col" class="sort" data-sort="vsMejorNum" role="columnheader" aria-sort="none">
                     <button type="button" class="sort-button" aria-label="Ordenar por diferencia con la mejor tarifa">
                       Vs mejor <span class="sortIcon" id="si_vsMejorNum" aria-hidden="true"></span>
                     </button>
                   </th>
-                  <th>Tipo</th>
-                  <th>Web</th>
+                  <th scope="col">Tipo</th>
+                  <th scope="col">Web</th>
                 </tr>
               </thead>
               <tbody id="tbody"></tbody>
