@@ -71,7 +71,6 @@
     btnMenu: null,
     menuPanel: null,
     btnTheme: null,
-    btnExport: null,
     btnReset: null,
     btnShare: null,
     btnRefreshTarifas: null,
@@ -148,7 +147,6 @@
     el.btnMenu = $('btnMenu');
     el.menuPanel = $('menuPanel');
     el.btnTheme = $('btnTheme');
-    el.btnExport = $('btnExport');
     el.btnReset = $('btnReset');
     el.btnShare = $('btnShare');
     el.btnRefreshTarifas = $('btnRefreshTarifas');

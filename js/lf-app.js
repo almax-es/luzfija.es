@@ -551,11 +551,6 @@
     });
   }
 
-  // (Función showUpdateNotification eliminada por desuso)
-  function showUpdateNotification(worker) {
-     // Auto-update activo: no mostramos UI
-  }
-
   // ===== PWA INSTALL =====
   let __lf_deferredInstallPrompt = null;
   let __lf_installButton = null;

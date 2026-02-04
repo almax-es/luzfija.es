@@ -381,22 +381,6 @@
       return { ...meta, precioPunta, precioLlano, precioValle, rangoFechas };
     }
 
-    function normalizeProxyBase(p){
-      const raw = String(p || '').trim();
-      if(!raw) return '';
-      // Si ya parece terminar en url=, perfecto
-      if(raw.endsWith('?url=') || raw.endsWith('&url=') || raw.endsWith('url=')) return raw;
-
-      // Si contiene ? pero no url=, añadir &url=
-      if(raw.includes('?')) {
-        const sep = (raw.endsWith('?') || raw.endsWith('&')) ? '' : '&';
-        return raw + sep + 'url=';
-      }
-
-      // Si no contiene ?, añadir ?url=
-      return raw + (raw.endsWith('/') ? '' : '') + '?url=';
-    }
-
     // PVPC (tarifa regulada) calculado 100% en local a partir de precios horarios
     // oficiales (REE/ESIOS, indicador 1001) previamente descargados en /data/pvpc.
     // Nota: este cálculo usa medias horarias por periodo (aproximación neutral).
