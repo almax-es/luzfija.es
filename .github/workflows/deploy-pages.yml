@@ -24,35 +24,60 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: Prepare publish artifact (auto + exclusions)
+      - name: Prepare publish artifact (production allowlist)
         run: |
           mkdir -p _site
-          rsync -a --delete \
-            --exclude '.git/' \
-            --exclude '.github/' \
-            --exclude '.claude/' \
-            --exclude 'node_modules/' \
-            --exclude 'tests/' \
-            --exclude 'scripts/' \
-            --exclude 'logs/' \
-            --exclude 'playwright-report/' \
-            --exclude 'test-results/' \
-            --exclude '_site/' \
-            --exclude '_site_check/' \
-            --exclude '.gitignore' \
-            --exclude 'package.json' \
-            --exclude 'package-lock.json' \
-            --exclude 'playwright.config.js' \
-            --exclude 'vitest.config.js' \
-            --exclude '*.md' \
-            ./ _site/
-
-      - name: Guardrail: ensure no dev folders leaked
-        run: |
-          test ! -d _site/tests
-          test ! -d _site/scripts
-          test ! -d _site/.github
-          test ! -d _site/node_modules
+          
+          copy_dir () {
+            if [ -d "$1" ]; then
+              mkdir -p "_site/$1"
+              rsync -a "$1/" "_site/$1/"
+            fi
+          }
+          
+          copy_file () {
+            if [ -f "$1" ]; then
+              mkdir -p "_site/$(dirname "$1")"
+              cp "$1" "_site/$1"
+            fi
+          }
+          
+          # Directorios de producción
+          for dir in .well-known data estadisticas fonts guias img js vendor; do
+            copy_dir "$dir"
+          done
+          
+          # Ficheros raíz de producción
+          for file in \
+            .nojekyll \
+            404.html \
+            apple-touch-icon.png \
+            aviso-legal.html \
+            bv-sim.css \
+            calcular-factura-luz.html \
+            CNAME \
+            comparador-solar-mejorado.css \
+            comparador-tarifas-solares.html \
+            comparar-pvpc-tarifa-fija.html \
+            desglose-factura.css \
+            favicon.ico \
+            fonts.css \
+            guias.html \
+            icon-192.png \
+            index.html \
+            logo-512.png \
+            manifest.webmanifest \
+            novedades.json \
+            og.png \
+            privacidad.html \
+            pro.css \
+            robots.txt \
+            sitemap.xml \
+            styles.css \
+            sw.js \
+            tarifas.json; do
+            copy_file "$file"
+          done
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
