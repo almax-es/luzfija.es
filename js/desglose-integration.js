@@ -198,7 +198,7 @@
       
       // Validar que los campos NO estén vacíos
       if (!mtPuntaVal || !mtLlanoVal || !mtValleVal || !mtP1Val || !mtP2Val) {
-        alert('⚠️ Completa todos los campos de "Mi tarifa" para ver el desglose');
+        toast('Completa todos los campos de "Mi tarifa" para ver el desglose', 'err');
         return;
       }
       
@@ -232,7 +232,7 @@
       // Cargar tarifas normales desde JSON
       const tarifas = await cargarTarifas();
       if (!tarifas || tarifas.length === 0) {
-        alert('Error: No se pudieron cargar las tarifas');
+        toast('No se pudieron cargar las tarifas', 'err');
         return;
       }
 
@@ -242,7 +242,7 @@
         
         // Obtener metaPvpc de window (calculado por pvpc.js)
         if (!window.pvpcLastMeta) {
-          alert('⚠️ No hay datos de PVPC calculados. Por favor, pulsa "⚡ Calcular" primero.');
+          toast('No hay datos de PVPC calculados. Pulsa "⚡ Calcular" primero.', 'err');
           return;
         }
         
@@ -307,7 +307,7 @@
 
     if (!tarifa) {
       lfDbg('[ERROR] ❌ No se encontró tarifa:', nombreTarifa);
-      alert('Error: No se pudo cargar la información de la tarifa');
+      toast('No se pudo cargar la información de la tarifa', 'err');
       return;
     }
 

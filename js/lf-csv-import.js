@@ -39,6 +39,7 @@
       script.onerror = () => reject(new Error('Error al cargar librería XLSX'));
       document.head.appendChild(script);
     });
+    xlsxLoading = xlsxLoading.catch(err => { xlsxLoading = null; throw err; });
 
     return xlsxLoading;
   }

@@ -59,8 +59,8 @@
         if (window.pdfjsLib && __LF_ensurePdfWorker()) return window.pdfjsLib;
 
         if (__LF_pdfjsLoading){
-          await __LF_pdfjsLoading;
-          __LF_pdfjsLoading = null;
+          try { await __LF_pdfjsLoading; }
+          finally { __LF_pdfjsLoading = null; }
           if (window.pdfjsLib && __LF_ensurePdfWorker()) return window.pdfjsLib;
         }
 
@@ -86,8 +86,8 @@
           return lib;
         })();
 
-        await __LF_pdfjsLoading;
-        __LF_pdfjsLoading = null;
+        try { await __LF_pdfjsLoading; }
+        finally { __LF_pdfjsLoading = null; }
 
         if (!window.pdfjsLib || !__LF_ensurePdfWorker()){
           throw new Error("PDF.js no disponible");
