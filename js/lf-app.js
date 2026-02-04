@@ -578,13 +578,16 @@
       }
 
       var ua = navigator.userAgent || '';
+      var installHint = '';
       if (/Android/i.test(ua)) {
-        alert('Para instalar LuzFija, abre el menú del navegador (⋮) y pulsa "Instalar app".');
+        installHint = 'Para instalar LuzFija, abre el menú del navegador (⋮) y pulsa "Instalar app".';
       } else if (/iPhone|iPad|iPod/i.test(ua)) {
-        alert('Para instalar LuzFija, pulsa el botón de compartir y luego "Añadir a pantalla de inicio".');
+        installHint = 'Para instalar LuzFija, pulsa el botón de compartir y luego "Añadir a pantalla de inicio".';
       } else {
-        alert('Puedes instalar esta web como app usando la opción "Instalar" de tu navegador.');
+        installHint = 'Puedes instalar esta web como app usando la opción "Instalar" de tu navegador.';
       }
+      if (typeof toast === 'function') toast(installHint, 'ok');
+      else alert(installHint);
     });
 
     if (__lf_deferredInstallPrompt) {

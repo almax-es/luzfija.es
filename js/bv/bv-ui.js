@@ -695,7 +695,7 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     } catch(e) {
       console.warn('Error limpiando tarifa personalizada:', e);
-      alert('Error al limpiar los datos.');
+      showToast('Error al limpiar los datos.', 'err');
     }
   }
 

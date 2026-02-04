@@ -353,7 +353,7 @@
       }
     } catch(e) {
       console.warn('Error limpiando tarifa personalizada:', e);
-      alert('Error al limpiar los datos.');
+      toast('Error al limpiar los datos.', 'err');
     }
   }
 

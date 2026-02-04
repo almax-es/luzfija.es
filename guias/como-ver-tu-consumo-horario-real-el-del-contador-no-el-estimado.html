@@ -820,7 +820,7 @@ function share(platform){
   }
   if(platform === 'copy'){
     const text = rawUrl;
-    const done = () => alert('¡Link copiado! 📋');
+    const done = () => { const n = document.createElement('div'); n.textContent = '¡Link copiado! 📋'; n.setAttribute('style','position:fixed;left:50%;bottom:20px;transform:translateX(-50%);padding:10px 14px;border-radius:10px;background:rgba(11,16,32,.95);color:#fff;font:600 13px/1.2 system-ui;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.25)'); document.body.appendChild(n); setTimeout(() => n.remove(), 1400); };
     if(navigator.clipboard && window.isSecureContext){
       navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
     } else {
