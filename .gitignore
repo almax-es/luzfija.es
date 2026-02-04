@@ -25,7 +25,3 @@ Thumbs.db
 # Logs
 *.log
 logs/
-
-# Playwright artifacts
-playwright-report/
-test-results/

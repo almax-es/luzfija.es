@@ -6,9 +6,7 @@
   "scripts": {
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test",
-    "test:e2e:visual": "playwright test tests/e2e/visual-regression.spec.js --project=desktop-chromium",
-    "test:e2e:visual:update": "playwright test tests/e2e/visual-regression.spec.js --project=desktop-chromium --update-snapshots"
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
     "@playwright/test": "^1.58.1",

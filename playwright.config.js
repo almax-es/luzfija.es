@@ -8,7 +8,6 @@ module.exports = defineConfig({
   retries: process.env.CI ? 1 : 0,
   workers: process.env.CI ? 1 : undefined,
   reporter: [['list'], ['html', { open: 'never' }]],
-  snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/{arg}{ext}',
   use: {
     baseURL: 'http://127.0.0.1:4173',
     serviceWorkers: 'block',
