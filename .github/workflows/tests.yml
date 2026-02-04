@@ -3,14 +3,41 @@ name: Tests
 on:
   push:
     branches: [ "main", "master" ]
+    paths:
+      - "**/*.html"
+      - "**/*.css"
+      - "js/**"
+      - "tests/**"
+      - "vendor/**"
+      - "sw.js"
+      - "package.json"
+      - "package-lock.json"
+      - "playwright.config.js"
+      - ".github/workflows/tests.yml"
   pull_request:
     branches: [ "main", "master" ]
+    paths:
+      - "**/*.html"
+      - "**/*.css"
+      - "js/**"
+      - "tests/**"
+      - "vendor/**"
+      - "sw.js"
+      - "package.json"
+      - "package-lock.json"
+      - "playwright.config.js"
+      - ".github/workflows/tests.yml"
+  workflow_dispatch:
 
 permissions:
   contents: read
 
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  test:
+  unit:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,3 +57,34 @@ jobs:
 
       - name: Run Tests
         run: npm test
+
+  visual:
+    needs: unit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run visual regression baseline
+        run: npm run test:e2e:visual
+
+      - name: Upload Playwright artifacts on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-failure-artifacts
+          if-no-files-found: ignore
+          path: |
+            playwright-report
+            test-results
