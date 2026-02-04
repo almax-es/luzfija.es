@@ -5,9 +5,11 @@
   "private": true,
   "scripts": {
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.1",
     "jsdom": "^27.0.0",
     "vitest": "^4.0.0"
   },
