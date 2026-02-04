@@ -24,27 +24,10 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v4
 
-      - name: Prepare publish artifact (exclude dev/QA files)
-        run: |
-          mkdir -p _site
-          rsync -a --delete \
-            --exclude '.git/' \
-            --exclude '.github/' \
-            --exclude '.claude/' \
-            --exclude 'node_modules/' \
-            --exclude 'tests/' \
-            --exclude 'scripts/' \
-            --exclude 'playwright-report/' \
-            --exclude 'test-results/' \
-            --exclude 'package.json' \
-            --exclude 'package-lock.json' \
-            --exclude 'playwright.config.js' \
-            ./ _site/
-
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          path: '_site'
+          path: '.'
 
   deploy:
     needs: build
