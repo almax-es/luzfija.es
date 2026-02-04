@@ -7,32 +7,11 @@
     "enlace": ""
   },
   {
-    "fecha": "2026-01-01",
-    "tipo": "promo",
-    "titulo": "DISA Electricidad: 0 € en consumo hasta el 15 de febrero",
-    "texto": "DISA Electricidad lanza una promoción para nuevos clientes de su tarifa DISA Tranquilidad: bonificación del 100 % del consumo de energía (kWh) hasta el 15 de febrero de 2026. La bonificación no incluye potencia, impuestos u otros conceptos. Oferta sujeta a condiciones indicadas en sus <a href=\"https://ahorracondisaelectricidad.com/assets/static/BasesLegales-DISAElectricidad-PEN-ENE26.pdf\" target=\"_blank\" rel=\"noopener\">Bases legales</a>.",
-    "enlace": "https://ahorracondisaelectricidad.com/"
-  },
-  {
-    "fecha": "2025-12-31",
-    "tipo": "alerta",
-    "titulo": "El 'modo reforzado' está encareciendo tu factura",
-    "texto": "Desde el apagón de abril, Red Eléctrica opera con más ciclos combinados para garantizar estabilidad. Esto eleva los servicios de ajuste, costando a los hogares unos 1,20€ extra al mes. El sobrecoste acumulado supera los 486 millones.",
-    "enlace": "/guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html"
-  },
-  {
     "fecha": "2026-01-30",
     "tipo": "regulatorio",
     "titulo": "Actualización: Porcentajes de Bono Social desde 30/01/2026",
     "texto": "Tras la derogación del decreto omnibus del Gobierno, los descuentos de Bono Social vuelven a porcentajes base desde 30/01/2026: 35% para vulnerables y 50% para vulnerables severos. Se espera que el Gobierno presente un nuevo decreto en próximas semanas. Mantén tu solicitud de Bono Social activa; los cambios retroactivos se abordan en facturación.",
     "enlace": "/guias/bono-social-electrico-quien-puede-pedirlo-y-como.html"
-  },
-  {
-    "fecha": "2025-12-20",
-    "tipo": "info",
-    "titulo": "Buenas noticias: la TUR del gas baja un 8,7%",
-    "texto": "Desde enero, la tarifa regulada de gas (TUR) individual baja un 8,7% y la vecinal entre 5,7-8,7%. Si tienes calefacción de gas, tu factura será más barata. Momento ideal para revisar también tu tarifa de luz.",
-    "enlace": ""
   },
   {
     "fecha": "2025-12-19",
