@@ -34,16 +34,11 @@ jobs:
             --exclude 'node_modules/' \
             --exclude 'tests/' \
             --exclude 'scripts/' \
-            --exclude 'logs/' \
             --exclude 'playwright-report/' \
             --exclude 'test-results/' \
-            --exclude '.gitignore' \
-            --exclude 'LICENSE' \
-            --exclude 'vitest.config.js' \
             --exclude 'package.json' \
             --exclude 'package-lock.json' \
             --exclude 'playwright.config.js' \
-            --exclude '*.md' \
             ./ _site/
 
       - name: Upload artifact
