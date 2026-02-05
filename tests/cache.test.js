@@ -54,7 +54,7 @@ const code = fs.readFileSync(path.resolve(__dirname, '../js/lf-cache.js'), 'utf8
 const fn = new Function('window', 'setStatus', 'toast', 'markPending', 'localStorage', 'lfDbg', code);
 fn(global.window, setStatus, toast, markPending, localStorageMock, global.lfDbg);
 
-describe('Sistema de Caché (lf-cache.js)', () => {
+describe('Sistema de Tarifas (sin caché)', () => {
   const { fetchTarifas } = global.window.LF;
 
   beforeEach(() => {
@@ -73,7 +73,7 @@ describe('Sistema de Caché (lf-cache.js)', () => {
     updatedAt: "2025-01-01T12:00:00Z"
   };
 
-  it('Debe descargar tarifas y guardarlas en caché (Happy Path)', async () => {
+  it('Debe descargar tarifas y actualizar el estado (sin caché)', async () => {
     fetchMock.mockResolvedValue({
       ok: true,
       json: async () => mockTarifas
@@ -83,20 +83,19 @@ describe('Sistema de Caché (lf-cache.js)', () => {
     
     expect(success).toBe(true);
     expect(global.window.LF.baseTarifasCache).toEqual(mockTarifas.tarifas);
-    // Ahora la URL puede llevar ?v=timestamp, así que usamos stringContaining
-    expect(fetchMock).toHaveBeenCalledWith(expect.stringContaining('tarifas.json'), expect.anything());
-    // Verificamos que se guarda "Tarifa A" que es lo que hay en el mock
-    expect(localStorageMock.setItem).toHaveBeenCalledWith(
-      'lf_tarifas_cache',
-      expect.stringContaining('"nombre":"Tarifa A"')
+    // Siempre debe llevar ?v=timestamp y cache: no-store
+    expect(fetchMock).toHaveBeenCalledWith(
+      expect.stringMatching(/tarifas\.json\?v=\d+/),
+      expect.objectContaining({ cache: 'no-store' })
     );
+    // No debe guardar nada en localStorage
+    expect(localStorageMock.setItem).not.toHaveBeenCalled();
   });
 
-  it('Debe añadir parámetro anti-caché (?v=) cuando se fuerza refresco o la caché expira', async () => {
+  it('Debe añadir parámetro anti-caché (?v=) siempre', async () => {
     fetchMock.mockResolvedValue({ ok: true, json: async () => mockTarifas });
     
-    // Forzamos forceRefresh = true
-    await fetchTarifas(true);
+    await fetchTarifas(false);
 
     // La URL debe contener explícitamente ?v=
     expect(fetchMock).toHaveBeenCalledWith(
@@ -125,33 +124,25 @@ describe('Sistema de Caché (lf-cache.js)', () => {
     expect(elMock.textContent).toContain('11:30'); 
   });
 
-  it('Debe usar caché si la red falla (Offline Mode)', async () => {
+  it('Debe fallar si la red no está disponible (sin caché)', async () => {
     fetchMock.mockRejectedValue(new Error('Network error'));
 
-    const cacheData = {
-      timestamp: Date.now(),
-      data: mockTarifas.tarifas,
-      meta: { updatedAt: "2025-01-01T12:00:00Z" }
-    };
-    localStorageMock.getItem.mockReturnValue(JSON.stringify(cacheData));
-
     const success = await fetchTarifas();
 
-    expect(success).toBe(true);
-    expect(global.window.LF.baseTarifasCache).toEqual(mockTarifas.tarifas);
-    expect(toast).toHaveBeenCalledWith(expect.stringContaining('Sin conexión'), 'err');
+    expect(success).toBe(false);
+    expect(toast).toHaveBeenCalledWith('Error cargando tarifas desde el servidor.', 'err');
+    expect(localStorageMock.getItem).not.toHaveBeenCalled();
   });
 
-  it('Debe manejar fallo total (Sin red y sin caché)', async () => {
+  it('Debe manejar fallo total (Sin red)', async () => {
     fetchMock.mockRejectedValue(new Error('Fail'));
-    localStorageMock.getItem.mockReturnValue(null); // Sin cache
 
     const success = await fetchTarifas();
 
-    // Sin red y sin cache -> Falla (devuelve undefined o false segun impl)
-    expect(success).not.toBe(true); 
-    // Verifica que intentó fetch
+    // Sin red -> Falla
+    expect(success).toBe(false);
     expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(localStorageMock.setItem).not.toHaveBeenCalled();
   });
 
 });
