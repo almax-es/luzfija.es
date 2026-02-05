@@ -181,7 +181,7 @@ Documentación precisa de los archivos JSON que alimentan el comparador de tarif
   "fecha": "2026-02-03",
   "tipo": "regulatorio",
   "titulo": "Bono Social: reactivados descuentos 42,5% y 57,5% (pendiente de Congreso)",
-  "texto": "El RDL 2/2026 (BOE 04/02/2026) reactiva los descuentos del Bono Social: 42,5% para vulnerable y 57,5% para vulnerable severo. El decreto debe convalidarse en el Congreso en el plazo de un mes.",
+  "texto": "El RDL 16/2025 (BOE 24/12/2025) establece los descuentos del Bono Social para 2026: 42,5% para vulnerable y 57,5% para vulnerable severo. El decreto debe convalidarse en el Congreso en el plazo de un mes.",
   "enlace": "/guias/bono-social-electrico-quien-puede-pedirlo-y-como.html"
 }
 ```
