@@ -178,10 +178,10 @@ Documentación precisa de los archivos JSON que alimentan el comparador de tarif
 #### Regulatorio (Cambio Legal)
 ```json
 {
-  "fecha": "2025-12-30",
+  "fecha": "2026-02-03",
   "tipo": "regulatorio",
-  "titulo": "Confirmado: el bono social se mantiene en 2026",
-  "texto": "Desde 30/01/2026, los descuentos de Bono Social vuelven a valores base: 35% para vulnerables y 50% para vulnerables severos. Se espera nuevo decreto omnibus próximamente.",
+  "titulo": "Bono Social: reactivados descuentos 42,5% y 57,5% (pendiente de Congreso)",
+  "texto": "El RDL 2/2026 (BOE 04/02/2026) reactiva los descuentos del Bono Social: 42,5% para vulnerable y 57,5% para vulnerable severo. El decreto debe convalidarse en el Congreso en el plazo de un mes.",
   "enlace": "/guias/bono-social-electrico-quien-puede-pedirlo-y-como.html"
 }
 ```
