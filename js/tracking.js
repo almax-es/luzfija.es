@@ -5,6 +5,13 @@
 (function() {
   'use strict';
 
+  // Guard global defensivo para scripts que esperan currentYear
+  try {
+    if (typeof window.currentYear !== 'number') {
+      window.currentYear = new Date().getFullYear();
+    }
+  } catch (_) {}
+
   // ===== COMPROBACIÓN OPT-OUT (PRIORIDAD MÁXIMA) =====
   // Si el usuario ha desactivado GoatCounter, salir inmediatamente
   const OPT_OUT_KEY = 'goatcounter_optout';
@@ -222,8 +229,14 @@
         msg += String(reason);
       }
       
-      // Truncar a 80 caracteres para no saturar tracking
-      msg = msg.substring(0, 80);
+      // Añadir ruta para ayudar a localizar la página
+      try {
+        const path = (location && location.pathname) ? location.pathname : '';
+        if (path) msg += ` @${path}`;
+      } catch (_) {}
+
+      // Truncar a 100 caracteres para no saturar tracking
+      msg = msg.substring(0, 100);
       
       trackEvent('error-promise', { title: msg });
       
