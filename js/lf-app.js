@@ -69,6 +69,38 @@
     calculate(true, forceRefresh);
   }
 
+  // ===== AUTO-REFRESH TARIFAS (agresivo) =====
+  const AUTO_REFRESH_MS = 2 * 60 * 1000; // 2 min
+  const AUTO_REFRESH_THROTTLE_MS = 15 * 1000; // evitar doble disparo (focus+visible)
+  let __lf_lastTarifasUpdatedAt = null;
+  let __lf_lastTarifasCheck = 0;
+
+  async function refreshTarifasAndMaybeRecalc(reason) {
+    const now = Date.now();
+    if (now - __lf_lastTarifasCheck < AUTO_REFRESH_THROTTLE_MS) return;
+    __lf_lastTarifasCheck = now;
+
+    const prev = __lf_lastTarifasUpdatedAt || window.LF.__LF_tarifasMeta?.updatedAt || null;
+    const ok = await fetchTarifas(true, { silent: true });
+    if (!ok) return;
+
+    const curr = window.LF.__LF_tarifasMeta?.updatedAt || null;
+
+    // Inicializar referencia sin notificar en la primera carga
+    if (!__lf_lastTarifasUpdatedAt) {
+      __lf_lastTarifasUpdatedAt = curr || prev;
+      return;
+    }
+
+    if (curr && prev && curr !== prev) {
+      __lf_lastTarifasUpdatedAt = curr;
+      toast('Tarifas actualizadas. Recalculando…', 'ok');
+      if ((state.rows && state.rows.length > 0) || state.lastSignature) {
+        runCalculation(true);
+      }
+    }
+  }
+
   async function calculate(isUserAction, forceRefresh = false) {
     if (!validateInputs()) {
       setStatus('Corrige los datos para calcular', 'err');
@@ -476,7 +508,27 @@
     });
 
     // Al entrar, descargar siempre tarifas desde red (sin caché)
-    fetchTarifas(true, { silent: true }).catch(() => {});
+    fetchTarifas(true, { silent: true })
+      .then((ok) => {
+        if (ok) {
+          __lf_lastTarifasUpdatedAt = window.LF.__LF_tarifasMeta?.updatedAt || null;
+        }
+      })
+      .catch(() => {});
+
+    // Auto-refresh agresivo: al volver al foco/visibilidad y cada 2 minutos
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') {
+        refreshTarifasAndMaybeRecalc('visible');
+      }
+    });
+    window.addEventListener('focus', () => refreshTarifasAndMaybeRecalc('focus'));
+    window.addEventListener('online', () => refreshTarifasAndMaybeRecalc('online'));
+
+    setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
+      refreshTarifasAndMaybeRecalc('interval');
+    }, AUTO_REFRESH_MS);
   });
 
   // ===== LIMPIEZA DE SW PROBLEMÁTICOS =====
