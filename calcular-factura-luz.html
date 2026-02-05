@@ -408,12 +408,62 @@
 </section>
 
 <script>
-// Registro del Service Worker para PWA
+// Registro del Service Worker para PWA (agresivo)
 if ('serviceWorker' in navigator) {
+  const hadController = !!navigator.serviceWorker.controller;
+  const SW_UPDATE_INTERVAL_MS = 2 * 60 * 1000; // 2 min
+  const SW_UPDATE_THROTTLE_MS = 15 * 1000;
+  let swReg = null;
+  let lastSwCheck = 0;
+
+  const requestSwUpdate = async () => {
+    const now = Date.now();
+    if (now - lastSwCheck < SW_UPDATE_THROTTLE_MS) return;
+    lastSwCheck = now;
+    try {
+      if (!swReg) swReg = await navigator.serviceWorker.getRegistration();
+      if (swReg) await swReg.update();
+    } catch (_) {}
+  };
+
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(err => {
+    navigator.serviceWorker.register('/sw.js').then(reg => {
+      swReg = reg;
+
+      if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+
+      reg.addEventListener('updatefound', () => {
+        const newWorker = reg.installing;
+        if (!newWorker) return;
+        newWorker.addEventListener('statechange', () => {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            newWorker.postMessage({ type: 'SKIP_WAITING' });
+          }
+        });
+      });
+
+      requestSwUpdate();
+    }).catch(err => {
       console.error('SW registration failed:', err);
     });
+  });
+
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') requestSwUpdate();
+  });
+  window.addEventListener('focus', requestSwUpdate);
+  window.addEventListener('online', requestSwUpdate);
+  setInterval(() => {
+    if (document.visibilityState !== 'visible') return;
+    requestSwUpdate();
+  }, SW_UPDATE_INTERVAL_MS);
+
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (refreshing) return;
+    if (!hadController) return;
+    refreshing = true;
+    window.location.reload();
   });
 }
 </script>

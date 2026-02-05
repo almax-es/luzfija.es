@@ -98,6 +98,72 @@
     });
   }
 
+  // ===== SERVICE WORKER UPDATE (agresivo) =====
+  if ('serviceWorker' in navigator) {
+    const hadController = !!navigator.serviceWorker.controller;
+    const SW_UPDATE_INTERVAL_MS = 2 * 60 * 1000; // 2 min
+    const SW_UPDATE_THROTTLE_MS = 15 * 1000;
+    let __lf_sw_reg = null;
+    let __lf_last_sw_check = 0;
+
+    async function requestSwUpdate(reason) {
+      const now = Date.now();
+      if (now - __lf_last_sw_check < SW_UPDATE_THROTTLE_MS) return;
+      __lf_last_sw_check = now;
+      try {
+        if (!__lf_sw_reg) {
+          __lf_sw_reg = await navigator.serviceWorker.getRegistration();
+        }
+        if (__lf_sw_reg) await __lf_sw_reg.update();
+      } catch (_) {
+        // silencioso
+      }
+    }
+
+    window.addEventListener('load', () => {
+      navigator.serviceWorker
+        .register('/sw.js')
+        .then((registration) => {
+          __lf_sw_reg = registration;
+
+          if (registration.waiting) {
+            registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+          }
+
+          registration.addEventListener('updatefound', () => {
+            const newWorker = registration.installing;
+            if (!newWorker) return;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                newWorker.postMessage({ type: 'SKIP_WAITING' });
+              }
+            });
+          });
+
+          requestSwUpdate('load');
+        })
+        .catch(() => {});
+    });
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') requestSwUpdate('visible');
+    });
+    window.addEventListener('focus', () => requestSwUpdate('focus'));
+    window.addEventListener('online', () => requestSwUpdate('online'));
+    setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
+      requestSwUpdate('interval');
+    }, SW_UPDATE_INTERVAL_MS);
+
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (refreshing) return;
+      if (!hadController) return;
+      refreshing = true;
+      window.location.reload();
+    });
+  }
+
   document.addEventListener('DOMContentLoaded', () => {
     // Defer to allow page-specific handlers (e.g., BVSim) to bind first.
     setTimeout(() => {

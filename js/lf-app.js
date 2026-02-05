@@ -546,11 +546,30 @@
   if ('serviceWorker' in navigator) {
     // Guardamos si ya había controlador al inicio para distinguir primera instalación de actualización
     const hadController = !!navigator.serviceWorker.controller;
+    const SW_UPDATE_INTERVAL_MS = 2 * 60 * 1000; // 2 min
+    const SW_UPDATE_THROTTLE_MS = 15 * 1000; // evitar doble disparo (focus+visible)
+    let __lf_sw_reg = null;
+    let __lf_last_sw_check = 0;
+
+    async function requestSwUpdate(reason) {
+      const now = Date.now();
+      if (now - __lf_last_sw_check < SW_UPDATE_THROTTLE_MS) return;
+      __lf_last_sw_check = now;
+      try {
+        if (!__lf_sw_reg) {
+          __lf_sw_reg = await navigator.serviceWorker.getRegistration();
+        }
+        if (__lf_sw_reg) await __lf_sw_reg.update();
+      } catch (_) {
+        // silencioso
+      }
+    }
 
     window.addEventListener('load', function() {
       navigator.serviceWorker
         .register('sw.js')
         .then(function(registration) {
+          __lf_sw_reg = registration;
           lfDbg('[SW] Registered successfully');
 
           // Detectar cuando hay una actualización disponible
@@ -570,11 +589,25 @@
               }
             });
           });
+          
+          // Forzar comprobación inmediata tras registrar
+          requestSwUpdate('load');
         })
         .catch(function(err) {
           lfDbg('[ERROR] SW registration failed', err);
         });
     });
+
+    // Auto-check de updates del SW (agresivo)
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') requestSwUpdate('visible');
+    });
+    window.addEventListener('focus', () => requestSwUpdate('focus'));
+    window.addEventListener('online', () => requestSwUpdate('online'));
+    setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
+      requestSwUpdate('interval');
+    }, SW_UPDATE_INTERVAL_MS);
 
     // Listener para cuando el nuevo SW toma control
     let refreshing = false;
