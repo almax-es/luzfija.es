@@ -296,7 +296,7 @@
     // Parámetros bono social (UI): tipo (% descuento) + límite anual (kWh)
     const bonoSocialOn = !!i.bonoSocialOn;
     const tipo = String(i.bonoSocialTipo || 'vulnerable');
-    const porcentaje = (tipo === 'severo') ? 0.50 : 0.35;
+    const porcentaje = (tipo === 'severo') ? 0.575 : 0.425;
     const limiteAnual = Number(i.bonoSocialLimite || 0);
     const limitePeriodo = limiteAnual > 0 ? (limiteAnual / 365) * dias : 0;
     // En el comparador no estimamos arrastres de kWh bonificables entre facturas (la CNMC tampoco lo permite en su simulador).
