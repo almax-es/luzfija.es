@@ -39,7 +39,7 @@ Una factura de electricidad en España contiene:
 │ - 6,979247 €/año prorrateo a días          │
 ├─────────────────────────────────────────────┤
 │ DESCUENTO BONO SOCIAL (si aplica)          │
-│ - 42,5% o 57,5% sobre base limitada (RDL 16/2025, BOE 24/12/2025) │
+│ - 42,5% o 57,5% sobre base limitada (RDL 2/2026, BOE 04/02/2026) │
 ├─────────────────────────────────────────────┤
 │ IMPUESTO ELÉCTRICO (IEE)                    │
 │ - 5,11269632% sobre base post-descuento     │
@@ -80,7 +80,7 @@ const kwhBonificable = Math.min(consumoTotal, limiteAhioKWh / 365 * dias);
 const ratioBonicable = consumoTotal > 0 ? kwhBonificable / consumoTotal : 0;
 const baseVariableBonicable = energia * ratioBonicable;
 const baseDescuento = potencia + financiacion + baseVariableBonicable;
-const descuentoBS = baseDescuento * (bonoSocialOn ? 0.425 : 0); // 42,5% vulnerable (RDL 16/2025, BOE 24/12/2025, pendiente de convalidación)
+const descuentoBS = baseDescuento * (bonoSocialOn ? 0.425 : 0); // 42,5% vulnerable (RDL 2/2026, BOE 04/02/2026, pendiente de convalidación)
 
 // PASO 5: BASE PARA IMPUESTOS
 const sumaBase = potencia + energia + financiacion - descuentoBS;
@@ -122,7 +122,7 @@ Financiación: 0,57 €
 ─────────────────
 Subtotal antes descuento: 56,97 €
 
-Descuento BS (42,5% sobre base limitada): -12,81 € (RDL 16/2025, BOE 24/12/2025, pendiente de convalidación)
+Descuento BS (42,5% sobre base limitada): -12,81 € (RDL 2/2026, BOE 04/02/2026, pendiente de convalidación)
 ─────────────────
 Base para IEE: 44,16 € ✅
 
@@ -222,9 +222,9 @@ const totalReal = totalBase - (hasBV ? excedenteSobranteEur : 0);
 
 ## Bono Social
 
-### 📜 Normativa (RD 897/2017, RDL 16/2025)
+### 📜 Normativa (RD 897/2017, RDL 2/2026)
 
-**Tipos de Bono Social vigentes (RDL 16/2025, BOE 24/12/2025, pendiente de convalidación)**:
+**Tipos de Bono Social vigentes (RDL 2/2026, BOE 04/02/2026, pendiente de convalidación)**:
 - Vulnerable: 42,5% descuento
 - Severo: 57,5% descuento
 
@@ -346,7 +346,7 @@ Inputs:
 - Potencia: 3,5 kW
 - Consumo: 221 kWh (64 P1, 54 P2, 103 P3)
 - Días: 31
-- Bono Social: Vulnerable (42,5%, RDL 16/2025, BOE 24/12/2025, pendiente de convalidación)
+- Bono Social: Vulnerable (42,5%, RDL 2/2026, BOE 04/02/2026, pendiente de convalidación)
 
 Descuento BS:
 - Base: 8,94 + 0,57 + (47,46 × 43,48%) = 30,15 €
