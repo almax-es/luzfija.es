@@ -14,6 +14,13 @@
   }
   window.__ALMAX_THEME_KEY = key;
 
+  // Guard global defensivo para scripts que esperan currentYear
+  try {
+    if (typeof window.currentYear !== 'number') {
+      window.currentYear = new Date().getFullYear();
+    }
+  } catch (_) {}
+
   // Cargar INP debug solo en modo debug (sin ensuciar producción)
   try {
     const params = new URLSearchParams(location.search);
