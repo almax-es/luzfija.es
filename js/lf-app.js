@@ -35,7 +35,7 @@
     // Tooltips
     initTooltips, bindTooltipElement,
     // Cache
-    fetchTarifas, readTarifasCache, renderTarifasUpdated,
+    fetchTarifas,
     // Inputs
     getInputValues, signatureFromValues, validateInputs, 
     loadInputs, saveInputs, resetInputs, resetToFirstLoadState,
@@ -475,16 +475,7 @@
       if ($('compararMiTarifa')?.checked) updateMiTarifaForm();
     });
 
-    // Precargar tarifas
-    try {
-      const cachedMeta = readTarifasCache({ allowExpired: true });
-      if (cachedMeta && cachedMeta.meta) {
-        window.LF.__LF_tarifasMeta = cachedMeta.meta;
-        renderTarifasUpdated(window.LF.__LF_tarifasMeta);
-      }
-    } catch (e) {}
-    
-    // Al entrar, forzamos siempre una descarga limpia para evitar datos obsoletos
+    // Al entrar, descargar siempre tarifas desde red (sin caché)
     fetchTarifas(true, { silent: true }).catch(() => {});
   });
 

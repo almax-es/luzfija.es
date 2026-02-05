@@ -3,7 +3,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260205-143751";
+const CACHE_VERSION = "20260205-204536";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
@@ -150,22 +150,24 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Tarifas: network-first
+  // Tarifas: SIEMPRE red (sin caché)
   if (url.pathname === TARIFAS_PATH) {
     event.respondWith(
       (async () => {
-        const cache = await caches.open(CACHE_NAME);
-        const cacheKey = new Request(TARIFAS_PATH);
         try {
-          const fresh = await fetch(req, { cache: "no-store" });
-          if (fresh && fresh.ok) {
-            await cachePutSafe(cache, cacheKey, fresh);
-            return fresh;
-          }
+          return await fetch(req, { cache: "no-store" });
         } catch (_) {
-          /* Network error */
+          return Response.error();
         }
-        return (await cache.match(cacheKey)) || (await cache.match(req));
+      })()
+    );
+    // Limpiar cualquier resto cacheado de tarifas
+    event.waitUntil(
+      (async () => {
+        try {
+          const cache = await caches.open(CACHE_NAME);
+          await cache.delete(new Request(TARIFAS_PATH));
+        } catch (_) {}
       })()
     );
     return;

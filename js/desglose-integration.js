@@ -93,7 +93,10 @@
     if (tarifasCache) return tarifasCache;
     
     try {
-      const response = await fetch('tarifas.json');
+      const baseUrl = (window.LF && window.LF.JSON_URL) ? window.LF.JSON_URL : 'tarifas.json';
+      const sep = baseUrl.includes('?') ? '&' : '?';
+      const url = `${baseUrl}${sep}v=${Date.now()}`;
+      const response = await fetch(url, { cache: 'no-store' });
       const data = await response.json();
       tarifasCache = data.tarifas || [];
       return tarifasCache;

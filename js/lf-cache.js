@@ -1,47 +1,19 @@
-// ===== LuzFija: Cache de Tarifas =====
+// ===== LuzFija: Tarifas (sin caché) =====
 
 (function() {
   'use strict';
 
   const { 
-    el, JSON_URL, TARIFAS_CACHE_KEY, TARIFAS_CACHE_TTL,
+    el, JSON_URL,
     setStatus, toast 
   } = window.LF;
 
-  // ===== LECTURA DE CACHÉ =====
-  function readTarifasCache(opts) {
-    const allowExpired = Boolean(opts && opts.allowExpired);
-    try {
-      const raw = localStorage.getItem(TARIFAS_CACHE_KEY);
-      if (!raw) return null;
+  // Evitar carreras: si hay una descarga en curso, reutilizamos la promesa.
+  let tarifasFetchPromise = null;
 
-      const parsed = JSON.parse(raw);
-      const data = parsed && parsed.data;
-      const ts = (parsed && parsed.timestamp) ? Number(parsed.timestamp) : 0;
-
-      if (!Array.isArray(data) || !data.length) return null;
-
-      const age = Date.now() - ts;
-      const expired = age > TARIFAS_CACHE_TTL;
-
-      if (expired && !allowExpired) return null;
-
-      return { data, expired, ageMs: age, meta: parsed };
-    } catch (e) {
-      return null;
-    }
-  }
-
-  // ===== ESCRITURA DE CACHÉ =====
-  function writeTarifasCache(tarifas, meta) {
-    try {
-      const payload = Object.assign({}, meta || {}, {
-        data: tarifas,
-        timestamp: Date.now()
-      });
-      localStorage.setItem(TARIFAS_CACHE_KEY, JSON.stringify(payload));
-    } catch (e) {}
-  }
+  // ===== CACHÉ DESACTIVADA (tarifas siempre desde red) =====
+  function readTarifasCache() { return null; }
+  function writeTarifasCache() {}
 
   // ===== RENDER FECHA ACTUALIZACIÓN =====
   function renderTarifasUpdated(meta) {
@@ -79,81 +51,63 @@
   // ===== FETCH TARIFAS =====
   async function fetchTarifas(forceRefresh = false, opts) {
     const silent = Boolean(opts && opts.silent);
-    
-    // 1) Prioridad: localStorage (válido)
-    if (!forceRefresh) {
-      const cached = readTarifasCache({ allowExpired: false });
-      if (cached && Array.isArray(cached.data) && cached.data.length > 0) {
-        window.LF.baseTarifasCache = cached.data;
-        window.LF.__LF_tarifasMeta = cached.meta || null;
-        renderTarifasUpdated(window.LF.__LF_tarifasMeta);
-        if (window.LF.__LF_tarifasMeta && window.LF.__LF_tarifasMeta.updatedAt) {
-          return true;
-        }
-      }
+
+    // Si ya hay una descarga en curso, reutilizarla (evita datos viejos por carreras).
+    if (tarifasFetchPromise) {
+      return tarifasFetchPromise;
     }
 
-    // 2) Red
+    // Red (siempre)
     if (!silent) setStatus('Cargando tarifas...', 'loading');
 
-    try {
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 15000);
+    tarifasFetchPromise = (async () => {
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 15000);
 
-      // Query-buster:
-      // Si forzamos refresh (forceRefresh) O si hemos detectado que la caché local está caducada/no existe
-      // añadimos ?v=TIME para saltarnos la caché del navegador a nivel de red.
-      const needsBuster = forceRefresh || !readTarifasCache({ allowExpired: false });
-      const url = needsBuster ? `${JSON_URL}?v=${Date.now()}` : JSON_URL;
+        // Siempre bust de caché para tarifas (no-store + query param)
+        const sep = JSON_URL.includes('?') ? '&' : '?';
+        const url = `${JSON_URL}${sep}v=${Date.now()}`;
 
-      const response = await fetch(url, {
-        signal: controller.signal,
-        cache: 'default'
-      });
+        const response = await fetch(url, {
+          signal: controller.signal,
+          cache: 'no-store'
+        });
 
-      clearTimeout(timeoutId);
+        clearTimeout(timeoutId);
 
-      if (!response.ok) throw new Error('HTTP ' + response.status);
+        if (!response.ok) throw new Error('HTTP ' + response.status);
 
-      const data = await response.json();
-      const tarifas = Array.isArray(data.tarifas) ? data.tarifas : null;
+        const data = await response.json();
+        const tarifas = Array.isArray(data.tarifas) ? data.tarifas : null;
 
-      if (!tarifas || tarifas.length === 0) {
-        throw new Error('JSON sin tarifas válidas');
-      }
+        if (!tarifas || tarifas.length === 0) {
+          throw new Error('JSON sin tarifas válidas');
+        }
 
-      window.LF.baseTarifasCache = tarifas;
-      window.LF.__LF_tarifasMeta = { updatedAt: data.updatedAt || null };
+        window.LF.baseTarifasCache = tarifas;
+        window.LF.__LF_tarifasMeta = { updatedAt: data.updatedAt || null };
 
-      renderTarifasUpdated(window.LF.__LF_tarifasMeta);
-      writeTarifasCache(tarifas, window.LF.__LF_tarifasMeta);
-
-      if (!silent) {
-        setTimeout(() => setStatus('Listo para calcular', 'idle'), 500);
-      }
-      return true;
-
-    } catch (e) {
-      // 3) Fallback: usar caché expirada si hay problemas de red
-      const cached = readTarifasCache({ allowExpired: true });
-      if (cached && Array.isArray(cached.data) && cached.data.length > 0) {
-        window.LF.baseTarifasCache = cached.data;
-        window.LF.__LF_tarifasMeta = cached.meta || null;
         renderTarifasUpdated(window.LF.__LF_tarifasMeta);
+
         if (!silent) {
-          toast('Sin conexión: usando tarifas cacheadas', 'err');
-          setStatus('Tarifas cacheadas', 'err');
+          setTimeout(() => setStatus('Listo para calcular', 'idle'), 500);
         }
         return true;
-      }
 
-      lfDbg('[ERROR] Error cargando tarifas JSON:', e);
-      if (!silent) {
-        setStatus('Error conexión', 'err');
-        toast('Error cargando tarifas desde el servidor.', 'err');
+      } catch (e) {
+        lfDbg('[ERROR] Error cargando tarifas JSON:', e);
+        if (!silent) {
+          setStatus('Error conexión', 'err');
+          toast('Error cargando tarifas desde el servidor.', 'err');
+        }
+        return false;
+      } finally {
+        tarifasFetchPromise = null;
       }
-      return false;
-    }
+    })();
+
+    return tarifasFetchPromise;
   }
 
   // ===== EXPORTAR =====

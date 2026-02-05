@@ -493,7 +493,10 @@ window.BVSim.simulateForAllTarifasBV = function ({
 // ===== CARGAR TARIFAS =====
 window.BVSim.loadTarifasBV = async function () {
   try {
-    const response = await fetch('tarifas.json');
+    const baseUrl = (window.LF && window.LF.JSON_URL) ? window.LF.JSON_URL : 'tarifas.json';
+    const sep = baseUrl.includes('?') ? '&' : '?';
+    const url = `${baseUrl}${sep}v=${Date.now()}`;
+    const response = await fetch(url, { cache: 'no-store' });
     if (!response.ok) {
       return { ok: false, error: `Error al cargar tarifas.json (${response.status}).` };
     }
