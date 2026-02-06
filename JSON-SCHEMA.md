@@ -7,10 +7,10 @@ Documentación precisa de los archivos JSON que alimentan el comparador de tarif
 ## 1. `tarifas.json` — Base de Datos de Tarifas Eléctricas
 
 **Ubicación**: `/tarifas.json`
-**Tamaño**: ~42 KB
+**Tamaño**: ~15 KB
 **Estructura**: Array de objetos dentro de `{ tarifas: [...] }`
-**Última actualización**: 2026-01-23
-**Total tarifas documentadas**: 24
+**Última actualización**: 2026-02-06
+**Total tarifas documentadas**: 33
 
 ### Esquema de Estructura
 
@@ -109,10 +109,10 @@ Documentación precisa de los archivos JSON que alimentan el comparador de tarif
 ## 2. `novedades.json` — Noticias, Alertas y Avisos
 
 **Ubicación**: `/novedades.json`
-**Tamaño**: ~5-10 KB
+**Tamaño**: ~1 KB
 **Estructura**: Array de objetos (NO envuelto en objeto padre)
-**Última actualización**: 2026-01-16
-**Total noticias activas**: 5 (histórico ilimitado)
+**Última actualización**: 2026-02-03
+**Total noticias activas**: 2 (histórico ilimitado)
 
 ### Esquema de Estructura
 
@@ -122,7 +122,7 @@ Documentación precisa de los archivos JSON que alimentan el comparador de tarif
     "fecha": "string (YYYY-MM-DD)",
     "tipo": "string ('promo' | 'alerta' | 'regulatorio' | 'info')",
     "titulo": "string (máx 100 caracteres, título visible)",
-    "texto": "string (HTML permitido, máx 500 caracteres)",
+    "texto": "string (texto plano; se detectan enlaces <a> HTTP/HTTPS, máx 500 caracteres)",
     "enlace": "string (URL absoluta o relativa, puede estar vacío)"
   }
 ]
@@ -135,7 +135,7 @@ Documentación precisa de los archivos JSON que alimentan el comparador de tarif
 | `fecha` | string | ✅ | "2026-01-01" | ISO 8601 (YYYY-MM-DD), se ordena DESC automáticamente |
 | `tipo` | string | ✅ | "promo" | Determina icono y color de la tarjeta |
 | `titulo` | string | ✅ | "DISA: 0€ consumo" | Aparece como titular de la noticia |
-| `texto` | string | ✅ | "DISA lanza promoción..." | Permite `<a>`, `<strong>`, `<em>` con `rel="noopener"` |
+| `texto` | string | ✅ | "DISA lanza promoción..." | Texto plano; si incluye `<a href=\"https://...\">...</a>` se convierte en enlace seguro |
 | `enlace` | string | ✅ | "/guias/..." o "" | URL interna o externa, "" = sin enlace |
 
 ### Tipos de Noticia y Comportamiento Visual
@@ -204,8 +204,9 @@ Documentación precisa de los archivos JSON que alimentan el comparador de tarif
 3. **Título**: Máximo 100 caracteres recomendado (se trunca visualmente en pantallas pequeñas)
 4. **Texto**:
    - Máximo 500 caracteres recomendado
-   - HTML permitido: `<a>`, `<strong>`, `<em>` únicamente
-   - Los enlaces deben tener `target="_blank" rel="noopener"`
+   - Se renderiza como texto plano (sin `innerHTML`)
+   - Solo se detectan enlaces en formato `<a href="https://...">texto</a>`
+   - Los enlaces válidos se normalizan con `target="_blank" rel="noopener"`
 5. **Enlace**:
    - URLs internas: `/ruta/local.html`
    - URLs externas: `https://ejemplo.com`
@@ -216,7 +217,7 @@ Documentación precisa de los archivos JSON que alimentan el comparador de tarif
 - **Máximo de noticias activas**: 5 (recomendado), sin límite técnico
 - **Antigüedad**: Las noticias antiguas pueden archivarse manualmente
 - **Actualización**: El widget se carga vía AJAX (no necesita recarga de página)
-- **Caché**: Se cachea 1 hora en localStorage (versión SW 5.8)
+- **Caché**: `novedades.json` se sirve con estrategia `stale-while-revalidate` en Service Worker
 
 ---
 
@@ -227,7 +228,7 @@ Documentación precisa de los archivos JSON que alimentan el comparador de tarif
 - `/data/surplus/{geoId}/{YYYY-MM}.json` (Excedentes, indicador 1739)
 **Tamaño**: ~20-30 KB por mes
 **Total de zonas**: 5 (8741, 8742, 8743, 8744, 8745)
-**Rango de datos**: 2025-01 a presente
+**Rango de datos**: 2021-06 a presente
 
 Véase `PVPC-SCHEMA.md` para documentación completa de la estructura PVPC.
 
@@ -267,9 +268,9 @@ node -e "const n = JSON.parse(require('fs').readFileSync('novedades.json')); n.f
 
 ## Historial de Cambios
 
-- **2026-01-16**: Documentación inicial (20 módulos, 24 tarifas, 5 noticias)
-- **2025-12-xx**: Última actualización de tarifas (precios mensuales)
-- **2025-12-xx**: Última adición de novedades
+- **2026-02-06**: Ajuste de métricas reales (33 tarifas), rango de datos PVPC (desde 2021-06) y estrategia de caché actual
+- **2026-02-03**: Actualización de `novedades.json` (2 noticias activas)
+- **2026-01-16**: Documentación inicial
 
 ---
 

@@ -401,7 +401,7 @@ if (tipoImpuesto === 'IGIC') {
 - [ ] ¿Rastré todo el flujo (entrada → salida)?
 - [ ] ¿Probé con ejemplos numéricos concretos?
 - [ ] ¿Leí los comentarios `⚠️ CRÍTICO` en el código?
-- [ ] ¿Consulté CASOS-ORO.test.js?
+- [ ] ¿Consulté suites de referencia (`tests/pvpc.test.js`, `tests/fiscal.test.js`, `tests/bv-fiscal-align.test.js`)?
 - [ ] ¿Verifiqué que el código reportado se ejecuta realmente?
 - [ ] ¿Entiendo el contexto (ej: en qué motor estoy)?
 - [ ] ¿Mi análisis contradice la normativa oficial?

@@ -193,8 +193,9 @@ separator = semi >= comma ? ';' : ',';
 ```javascript
 getFestivosNacionales(year)
 // Devuelve Set con fechas YYYY-MM-DD de festivos nacionales
-// Incluye: 1 Ene, 6 Ene, Viernes Santo (Gauss), 1 May, 15 Ago,
-//          12 Oct, 1 Nov, 6 Dic, 8 Dic, 25 Dic
+// Incluye solo festivos de fecha fija (criterio CNMC):
+// 1 Ene, 6 Ene, 1 May, 15 Ago, 12 Oct, 1 Nov, 6 Dic, 8 Dic, 25 Dic
+// Excluye festivos móviles (como Viernes Santo)
 ```
 
 #### 2. **bv-sim-monthly.js** - Motor de Cálculo
@@ -318,7 +319,7 @@ buildMobileCards(resultItem)
 // </section>
 ```
 
-### CSS (`/css/bv-sim.css` - 834 líneas)
+### CSS (`/bv-sim.css` - 1737 líneas)
 
 **Estructura**:
 - Grid layout (2 columnas desktop, 1 móvil)
@@ -1110,6 +1111,6 @@ Porque esas tarifas **no tienen batería virtual**. El desglose solo muestra "Us
 
 ---
 
-**Última actualización**: 20 de enero de 2026
-**Versión**: 1.0
+**Última actualización**: 6 de febrero de 2026
+**Versión**: 1.1
 **Autor**: aLMaX / LuzFija.es

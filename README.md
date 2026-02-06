@@ -58,7 +58,7 @@ Herramienta **gratuita**, **sin publicidad** y **de código abierto** para compa
 - Importa consumos horarios desde **CSV** y **XLSX/Excel** (e-distribución y formatos equivalentes)
 - Maneja datos reales y estimados, con validación de fechas en zona horaria Madrid
 - Clasifica automáticamente por periodos P1/P2/P3:
-  - Detecta festivos nacionales (cálculo de Pascua + calendario fijo)
+  - Detecta festivos nacionales de fecha fija (criterio CNMC Circular 3/2020)
   - Considera fines de semana
   - Aplica horarios según RD 148/2021
 - Extrae y aplica al comparador: **días**, consumo punta/llano/valle
@@ -78,7 +78,7 @@ Herramienta **gratuita**, **sin publicidad** y **de código abierto** para compa
 - **Ranking inteligente**: ordena por lo que realmente pagas (con BV)
 - **Desglose mes a mes** con tooltips explicativos de cada concepto
 - Soporte para 3 zonas fiscales (IVA/IGIC/IPSI diferenciados)
-- Detección automática de festivos nacionales (algoritmo de Gauss para Pascua)
+- Detección automática de festivos nacionales de fecha fija (CNMC Circular 3/2020)
 - Filtra automáticamente tarifas indexadas (solo muestra precio fijo)
 - **Responsive**: Desktop (tablas), Móvil (tarjetas sin scroll horizontal)
 - **Accesibilidad**: ARIA labels, focus management, tooltips táctiles
@@ -192,10 +192,9 @@ Este proyecto muestra el PVPC como **referencia** en el ranking (comparador de t
 ### Frontend
 - **HTML5 + CSS3** con variables CSS y design system
 - **Vanilla JavaScript** (ES6+, sin frameworks)
-- **Arquitectura modular** (20 módulos separados)
+- **Arquitectura modular** (módulos separados por responsabilidad)
 - **Chart.js 4.x** (local en /vendor/) para visualización de datos en el Observatorio
 - **Gráfico Top 5** (implementación propia en JS/SVG/CSS, sin librerías externas)
-- **PDF.js 5.x** (lazy loading) para parseo de facturas
 - **PDF.js 5.x** (lazy loading) para parseo de facturas
 - **jsQR** (en precache) para escaneo de códigos QR
 - **Tesseract.js** (on-demand) para OCR
@@ -203,7 +202,7 @@ Este proyecto muestra el PVPC como **referencia** en el ranking (comparador de t
 
 ### Arquitectura
 - **PWA** con Service Worker (caché versionada) y Web App Manifest
-- **Precache optimizado**: 1 MB (jsQR + HTML + CSS + JS propio)
+- **Precache en dos niveles**: `CORE_ASSETS` obligatorio (~0.54 MB) + `ASSETS` opcional best-effort (~1.75 MB si entra todo)
 - **Lazy loading**: PDF.js, Tesseract, Excel se cargan bajo demanda
 - **Diseño responsive** mobile-first
 - **Modo oscuro/claro** con persistencia en localStorage
@@ -220,16 +219,16 @@ Este proyecto muestra el PVPC como **referencia** en el ranking (comparador de t
 ---
 
 ### Seguridad
-- **Content Security Policy** en 31/31 páginas (100% cobertura)
+- **Content Security Policy** en 33/33 páginas (100% cobertura)
 - **frame-ancestors 'none'** (anti-clickjacking)
 - **form-action 'self'** (anti-exfiltración)
 - **Mitigación XSS**: escapeHtml() en inserciones de texto dinámico (tarifas/datos), y uso preferente de textContent cuando aplica
 - **Dependencias auto-hospedadas** en `/vendor/`
 - **Same-origin enforcement**
-- **wasm-unsafe-eval** solo en 2 páginas que usan OCR/PDF
+- **wasm-unsafe-eval** solo en 3 páginas que usan OCR/PDF
 
 ### Rendimiento y Optimizaciones
-- **Service Worker v5.8** con precache 1 MB (optimizado -93%)
+- **Service Worker con `CACHE_VERSION` por despliegue** (invalidación de caché controlada)
 - **jsQR en precache** (251 KB, escaneo QR instantáneo offline)
 - **Lazy loading** de recursos pesados (PDF.js ~1.5 MB, Tesseract ~8 MB, Excel ~1 MB)
 - **INP Optimizado (Chunking)**: El cálculo de tarifas se procesa en lotes de 8 elementos con `yieldControl()` para evitar bloquear el hilo principal (Main Thread), manteniendo la interfaz fluida incluso en móviles de gama baja.
@@ -285,9 +284,11 @@ luzfija.es/
 │       ├── bv-sim-monthly.js   # Motor cálculo mes a mes
 │       └── bv-ui.js            # UI y renderizado
 
-├── css/
-│   └── bv-sim.css              # Estilos simulador BV
-├── styles.css                  # Estilos globales (~121 KB)
+├── bv-sim.css                  # Estilos simulador BV
+├── comparador-solar-mejorado.css
+├── styles.css                  # Estilos globales
+├── pro.css
+├── fonts.css
 ├── desglose-factura.css        # CSS modal desglose
 ├── sw.js                       # Service Worker (PWA/offline)
 ├── tarifas.json                # Base de datos de tarifas
@@ -300,10 +301,11 @@ luzfija.es/
 │   ├── tessdata/              # Language data español (~2 MB, lazy loading)
 │   └── xlsx/                  # SheetJS (~1 MB, lazy loading)
 │
-├── guias/                      # 23 guías educativas HTML
+├── estadisticas/               # Observatorio PVPC
+├── guias/                      # 23 guías educativas + índice
 │
-├── favicon.svg / .png / .ico   # Favicons
-├── og.png / og.svg             # Open Graph
+├── favicon.ico / icon-192.png / apple-touch-icon.png
+├── og.png                      # Open Graph
 ├── manifest.webmanifest        # PWA manifest
 ├── robots.txt                  # SEO
 ├── sitemap.xml                 # Mapa del sitio
@@ -315,28 +317,28 @@ luzfija.es/
 **Separación de concerns (24 módulos):**
 - **config.js** (4 LOC): Config global (URLs, flags)
 - **lf-config.js** (213 LOC): Valores regulados y reglas fiscales por territorio
-- **lf-calc.js** (498 LOC): Motor de cálculo (potencia, energía, impuestos, solar, BV)
-- **lf-state.js** (187 LOC): Estado + persistencia (localStorage) + ordenación
-- **lf-app.js** (561 LOC): Coordinación general (carga, eventos, recalcular)
-- **lf-render.js** (534 LOC): Renderizado tabla + gráfico Top 5 + estados visuales
-- **lf-utils.js** (273 LOC): Utilidades puras (parseNum, escapeHtml, formatMoney, etc.)
-- **lf-csv-utils.js** (Nuevo): Motor compartido de parsing CSV robusto, detección de separadores y festivos
-- **lf-inputs.js** (607 LOC): Inputs (validación, formato, autosuma, ayudas contextuales)
+- **lf-calc.js** (614 LOC): Motor de cálculo (potencia, energía, impuestos, solar, BV)
+- **lf-state.js** (189 LOC): Estado + persistencia (localStorage) + ordenación
+- **lf-app.js** (707 LOC): Coordinación general (carga, eventos, recalcular)
+- **lf-render.js** (592 LOC): Renderizado tabla + gráfico Top 5 + estados visuales
+- **lf-utils.js** (523 LOC): Utilidades puras (parseNum, escapeHtml, formatMoney, etc.)
+- **lf-csv-utils.js** (1307 LOC): Motor compartido de parsing CSV robusto, detección de separadores y festivos
+- **lf-inputs.js** (655 LOC): Inputs (validación, formato, autosuma, ayudas contextuales)
 - **lf-tooltips.js** (147 LOC): Tooltips contextuales
-- **lf-ui.js** (155 LOC): UX (menús, modales, animaciones, accesibilidad)
-- **lf-cache.js** (175 LOC): Caché de tarifas/PVPC y utilidades offline
-- **lf-tarifa-custom.js** (242 LOC): Tarifa personalizada (compara con tu contrato)
-- **lf-csv-import.js** (Adaptado): Importador CSV/XLSX para web principal (delega en csv-utils)
-- **pvpc.js** (924 LOC): Cliente PVPC con caché local y validación
-- **index-extra.js** (677 LOC): Widget PVPC + bloque novedades en home
-- **theme.js** (16 LOC): Gestión tema claro/oscuro
-- **factura.js** (1,756 LOC): Parser PDF + QR + OCR (lazy loading, módulo más grande)
-- **desglose-factura.js** (606 LOC): Modal desglose detallado de tarifas
-- **desglose-integration.js** (407 LOC): Integración desglose con tabla
-- **tracking.js** (236 LOC): Analytics (GoatCounter, defer attribute)
-- **bv/bv-import.js** (Adaptado): Importador para BV (delega parsing en csv-utils)
-- **bv/bv-sim-monthly.js** (400 LOC): Motor simulación mensual BV (cálculo económico)
-- **bv/bv-ui.js** (655 LOC): UI simulador BV (tooltips, responsive, accesibilidad)
+- **lf-ui.js** (176 LOC): UX (menús, modales, animaciones, accesibilidad)
+- **lf-cache.js** (127 LOC): Caché de tarifas/PVPC y utilidades offline
+- **lf-tarifa-custom.js** (411 LOC): Tarifa personalizada (compara con tu contrato)
+- **lf-csv-import.js** (808 LOC): Importador CSV/XLSX para web principal (delega en csv-utils)
+- **pvpc.js** (909 LOC): Cliente PVPC con caché local y validación
+- **index-extra.js** (828 LOC): Widget PVPC + bloque novedades en home
+- **theme.js** (48 LOC): Gestión tema claro/oscuro
+- **factura.js** (1,786 LOC): Parser PDF + QR + OCR (lazy loading, módulo más grande)
+- **desglose-factura.js** (759 LOC): Modal desglose detallado de tarifas
+- **desglose-integration.js** (413 LOC): Integración desglose con tabla
+- **tracking.js** (249 LOC): Analytics (GoatCounter, defer attribute)
+- **bv/bv-import.js** (285 LOC): Importador para BV (delega parsing en csv-utils)
+- **bv/bv-sim-monthly.js** (526 LOC): Motor simulación mensual BV (cálculo económico)
+- **bv/bv-ui.js** (1,547 LOC): UI simulador BV (tooltips, responsive, accesibilidad)
 
 **Ventajas:**
 - Cambios aislados por módulo
@@ -379,11 +381,11 @@ luzfija.es/
 ### Seguridad Enterprise-Level
 
 **Content Security Policy (CSP):**
-- 31/31 páginas con CSP (100% cobertura)
+- 33/33 páginas con CSP (100% cobertura)
 - Políticas diferenciadas según necesidad
 - `frame-ancestors 'none'` (anti-clickjacking)
 - `form-action 'self'` (anti-exfiltración)
-- `wasm-unsafe-eval` solo en 2 páginas (index + calculadora factura)
+- `wasm-unsafe-eval` solo en 3 páginas (index + calculadora + comparador solar)
 - Mínimo privilegio aplicado
 
 **Protección XSS:**
@@ -401,19 +403,15 @@ luzfija.es/
 ## 📊 Métricas del Proyecto
 
 ### Archivos
-- 33 archivos HTML (10 páginas principales + 23 guías educativas)
-- 20 módulos JavaScript
-- 3 archivos CSS (incluye fonts.css)
-- 2 bases de datos JSON (tarifas + novedades)
+- 33 archivos HTML (10 páginas funcionales + 23 guías)
+- 28 archivos JavaScript en `js/` (incluye BV y Observatorio)
+- 8 archivos CSS propios
+- 2 JSON de negocio editables (`tarifas.json`, `novedades.json`) + datasets versionados en `/data/pvpc/` y `/data/surplus/`
 
 ### Tamaños
-- **Precache Service Worker**: ~1 MB
-  - HTML: 187 KB
-  - CSS: 134 KB
-  - JavaScript propio: 288 KB
-  - jsQR: 251 KB
-  - Imágenes: 144 KB
-  - Manifest: 2.5 KB
+- **Precache Service Worker**:
+  - Core obligatorio (`CORE_ASSETS`): ~0.54 MB
+  - Con opcionales (`ASSETS`) puede llegar a ~1.75 MB
 
 - **Lazy loading** (no en precache):
   - PDF.js: ~1.5 MB
@@ -421,35 +419,18 @@ luzfija.es/
   - Excel (xlsx): ~1 MB
 
 ### Líneas de Código
-- **JavaScript**: ~12,035 líneas (23 módulos)
-  - factura.js: 1,756
-  - lf-csv-import.js: 956
-  - pvpc.js: 924
-  - index-extra.js: 677
-  - **bv/bv-ui.js: 655**
-  - lf-inputs.js: 607
-  - desglose-factura.js: 606
-  - **bv/bv-import.js: 580**
-  - lf-app.js: 561
-  - lf-render.js: 534
-  - lf-calc.js: 498
-  - desglose-integration.js: 407
-  - **bv/bv-sim-monthly.js: 400**
-  - lf-utils.js: 273
-  - lf-tarifa-custom.js: 242
-  - tracking.js: 236
-  - lf-config.js: 213
-  - lf-state.js: 187
-  - lf-cache.js: 175
-  - lf-ui.js: 155
-  - lf-tooltips.js: 147
-  - theme.js: 16
-  - config.js: 4
-- **CSS**: ~3,334 líneas (4 archivos)
-  - styles.css: ~2,500
-  - **bv-sim.css: 834**
-- **HTML**: ~6,000 líneas (32 páginas, incluye comparador-tarifas-solares.html)
-- **Total proyecto**: ~42,000+ líneas
+- **JavaScript (`js/`)**: 15.958 líneas (28 archivos)
+  - factura.js: 1.786
+  - bv/bv-ui.js: 1.547
+  - lf-csv-utils.js: 1.307
+  - pvpc.js: 909
+  - index-extra.js: 828
+- **CSS**: 9.824 líneas (8 archivos)
+  - styles.css: 4.497
+  - bv-sim.css: 1.737
+  - estadisticas/estadisticas.css: 1.426
+- **HTML**: 23.344 líneas (33 páginas)
+- **Total (HTML + CSS + JS)**: 49.126 líneas aprox.
 
 ---
 
@@ -500,44 +481,36 @@ npm test
 
 ---
 
-## 🛡️ Service Worker v5.8
+## 🛡️ Service Worker (CACHE_VERSION dinámica)
 
-### Estrategias de Caché (App Shell)
+### Estrategias de Caché (App Shell + Runtime)
 
-**Precache (Core App Shell):**
-- HTML principal (`index.html`, `comparador-tarifas-solares.html`, etc.)
-- CSS crítico (`styles.css`, `fonts.css`)
-- JavaScript core (`lf-*.js`, `pvpc.js`)
-- jsQR (escaneo QR instantáneo offline)
-- Assets UI esenciales (iconos, manifest)
+**Precache (install):**
+- Core obligatorio (`CORE_ASSETS`) para garantizar arranque offline.
+- Assets opcionales (`ASSETS`) en modo best-effort: si alguno falla, no se rompe la instalación.
+- Limpieza automática de versiones antiguas al activar una nueva `CACHE_VERSION`.
 
-**Exclusiones (Runtime Caching):**
-- Guías educativas (`/guias/*.html`) - Estrategia Network-First
-- Imágenes de guías y og.png - Estrategia Cache-First
-- JSONs de datos (`tarifas.json`, PVPC) - Estrategia Stale-While-Revalidate
+**Network-first (HTML/documentos):**
+- Navegación intenta red primero para servir contenido actualizado.
+- Fallback a caché (y `index.html`) cuando no hay red.
 
-**Network-first (HTML):**
-- Siempre intenta red para contenido actualizado
-- Fallback a caché si offline
+**Network-only (`tarifas.json`):**
+- Se solicita siempre a red (`cache: no-store`).
+- El SW purga cualquier copia previa cacheada para evitar resultados obsoletos.
 
-**Stale-while-revalidate (tarifas.json):**
-- Respuesta inmediata desde caché
-- Actualización en segundo plano
+**Stale-while-revalidate (`novedades.json`):**
+- Respuesta rápida desde caché si existe + refresco en segundo plano.
 
-**Cache-first (imágenes):**
-- Caché permanente para assets estáticos
+**Network-first (`/data/pvpc/*` y `/data/surplus/*`):**
+- Prioriza datos frescos; si falla red, usa caché como fallback.
+
+**Stale-while-revalidate (resto de recursos):**
+- Scripts secundarios, imágenes y otros assets se cachean al vuelo.
 
 **Lazy loading (bajo demanda):**
 - PDF.js se descarga y cachea al subir primera factura
 - Tesseract OCR al activar OCR
 - Excel (xlsx) al importar primer CSV
-
-### Optimizaciones
-
-- **Precache**: 1 MB (vs 14 MB original, -93%)
-- **jsQR incluido**: Feature principal, disponible offline
-- **Recursos pesados excluidos**: Se cargan solo cuando se necesitan
-- **Limpieza automática**: Versión antigua se elimina al actualizar
 
 ---
 

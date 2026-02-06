@@ -466,7 +466,7 @@ Si eres una IA revisando este código:
 ### ✅ CHECKS OBLIGATORIOS
 
 1. **Valida contra CNMC Simulador Oficial** (v2.1.2 o posterior)
-   - Usa casos en `CASOS-ORO.test.js`
+   - Usa como referencia `tests/pvpc.test.js`, `tests/fiscal.test.js` y `tests/bv-fiscal-align.test.js`
    - Compara números exactos
 
 2. **Lee los comentarios `⚠️ CRÍTICO`** en el código
@@ -481,9 +481,9 @@ Si eres una IA revisando este código:
    - No solo analices sintaxis
    - Calcula resultados esperados
 
-5. **Consulta `CASOS-ORO.test.js`**
-   - Esos casos están validados contra normativa oficial
-   - Si tu análisis contradice un caso oro, probablemente estés equivocado
+5. **Consulta las suites de referencia**
+   - `tests/pvpc.test.js`, `tests/fiscal.test.js`, `tests/bv-fiscal-align.test.js`
+   - Si tu análisis contradice esos tests, probablemente estés equivocado
 
 ### ❌ ERRORES COMUNES
 

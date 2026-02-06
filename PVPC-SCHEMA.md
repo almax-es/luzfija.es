@@ -197,16 +197,11 @@ Ejemplo:
 ```json
 {
   "schema_version": 2,
-  "generated_at_utc": "2026-01-15T20:18:43+00:00",
+  "generated_at_utc": "2026-02-06T11:47:06+00:00",
   "indicator": 1001,
   "unit": "EUR/kWh",
   "epoch_unit": "s",
   "geos": [
-    {
-      "geo_id": 8741,
-      "timezone": "Europe/Madrid",
-      "path": "8741/index.json"
-    },
     {
       "geo_id": 8742,
       "timezone": "Atlantic/Canary",
@@ -232,6 +227,7 @@ Ejemplo:
 ```
 
 **Propósito**: Punto de entrada para descubrimiento de zonas geográficas disponibles.
+La lista de `geos` refleja exactamente lo publicado en el último build del dataset.
 
 ### `/data/surplus/index.json`
 
@@ -245,7 +241,11 @@ Mismo formato que el índice PVPC, pero para excedentes (indicador 1739).
   "unit": "EUR/kWh",
   "epoch_unit": "s",
   "geos": [
-    { "geo_id": 8741, "timezone": "Europe/Madrid", "path": "8741/index.json" }
+    { "geo_id": 8741, "timezone": "Europe/Madrid", "path": "8741/index.json" },
+    { "geo_id": 8742, "timezone": "Europe/Madrid", "path": "8742/index.json" },
+    { "geo_id": 8743, "timezone": "Europe/Madrid", "path": "8743/index.json" },
+    { "geo_id": 8744, "timezone": "Europe/Madrid", "path": "8744/index.json" },
+    { "geo_id": 8745, "timezone": "Europe/Madrid", "path": "8745/index.json" }
   ]
 }
 ```
@@ -259,7 +259,7 @@ Mismo formato que el índice PVPC, pero para excedentes (indicador 1739).
 **Archivo**: `.github/workflows/pvpc.yml`
 
 ```yaml
-name: PVPC Auto-Update
+name: PVPC Daily Update
 on:
   schedule:
     - cron: '0 20 * * *'  # 20:00 UTC = 21:00 Madrid
@@ -268,17 +268,19 @@ jobs:
   update-pvpc:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-      - name: Run PVPC update script
+      - uses: actions/checkout@v4
+      - name: Run PVPC + Excedentes update scripts
         env:
           ESIOS_API_KEY: ${{ secrets.ESIOS_API_KEY }}
-        run: python scripts/pvpc_auto_fill.py
+        run: |
+          python scripts/pvpc_auto_fill.py --out-dir data/pvpc --indicator 1001 --geos 8741 8742 8743 8744 8745
+          python scripts/pvpc_auto_fill.py --out-dir data/surplus --indicator 1739 --geos 8741 8742 8743 8744 8745
       - name: Commit and push
         run: |
-          git config user.email "automation@luzfija.es"
-          git config user.name "PVPC Bot"
-          git add data/pvpc/
-          git commit -m "chore: actualizar precios PVPC - $(date +'%H:%M')" || true
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "github-actions[bot]"
+          git add data/pvpc/ data/surplus/
+          git commit -m "chore: actualizar precios PVPC y Excedentes - $(date +'%H:%M')" || true
           git push
 ```
 
@@ -298,13 +300,13 @@ jobs:
 ```
 Flujo:
 1. Leer variable entorno ESIOS_API_KEY
-2. Para cada zona (8741-8745):
-   a. Detectar huecos en mes actual + anterior
+2. Para cada indicador (1001 PVPC, 1739 excedentes):
+   a. Para cada zona (8741-8745), detectar huecos en mes actual + anterior
    b. Descargar solo datos faltantes de ESIOS API
    c. Convertir €/MWh → €/kWh
-   d. Guardar en /data/pvpc/{geoId}/{YYYY-MM}.json
-   e. Actualizar metadatos (max_price, etc.)
-3. Si hay cambios, commitear a git
+   d. Guardar en /data/{pvpc|surplus}/{geoId}/{YYYY-MM}.json
+   e. Actualizar metadatos e índices (`index.json`)
+3. Si hay cambios, commitear y push desde el workflow
 ```
 
 **Requisitos**:
@@ -351,22 +353,18 @@ Flujo:
 
 ### Festivos Nacionales (España)
 
-Se consideran **valle** todo el día:
+Se consideran **valle** todo el día (criterio CNMC Circular 3/2020, solo festivos nacionales de fecha fija):
 - 1 enero (Año Nuevo)
 - 6 enero (Reyes Magos)
-- Viernes Santo (móvil, Pascua -2)
 - 1 mayo (Día del Trabajo)
 - 15 agosto (Asunción)
 - 12 octubre (Hispanidad)
 - 1 noviembre (Todos los Santos)
 - 6 diciembre (Constitución)
+- 8 diciembre (Inmaculada)
 - 25 diciembre (Navidad)
 
-**Cálculo de Pascua**:
-```javascript
-// Algoritmo Computus (Meeus)
-// Calcula el domingo de Pascua automáticamente cada año
-```
+No se incluyen festivos móviles (por ejemplo, Viernes Santo).
 
 ### Cálculo de Precios Promedio por Período
 
@@ -385,19 +383,21 @@ Ejemplo (1 enero 2025):
 ### Caché en localStorage
 
 ```
-Estructura: pvpc_cache_{geoId}_{YYYY-MM-DD}
+Prefijo de clave: pvpc_cache_v1
+Formato real (firma):
+pvpc_cache_v1:{anchorDate}:{zona}:{codigoPostal}:{viviendaCanarias}:{p1}:{p2}:{dias}:{cPunta}:{cLlano}:{cValle}
 
-Ejemplo:
+Payload típico:
 {
-  "pvpc_cache_8741_2026-01-15": {
-    "precios": {"punta": 0.27, "llano": 0.18, "valle": 0.08},
-    "timestamp": 1673798400,
-    "expiry": 86400  // 1 día en segundos
-  }
+  "tarifa": { "...": "..." },
+  "meta": { "precioPunta": 0.27, "precioLlano": 0.18, "precioValle": 0.08 },
+  "ts": 1707213672000
 }
 ```
 
-**Expiración**: 24 horas desde descarga
+**Control de antigüedad**:
+- Se usa `anchorDate` (ayer) para invalidez diaria natural.
+- Limpieza LRU por prefijo con límite de 30 entradas.
 
 ---
 
@@ -408,32 +408,19 @@ Ejemplo:
 **Archivo**: `js/lf-app.js` + `js/lf-calc.js`
 
 ```javascript
-// 1. Cargar zona geográfica (detectar o seleccionar)
-const geoId = userSelectedGeo || detectGeoFromIP();
-
-// 2. Obtener precios PVPC para mes actual
-const pvpcPrices = await pvpc.getPrices(geoId, yearMonth);
-// Retorna: { punta, llano, valle, fecha }
-
-// 3. Calcular factura PVPC
-const pvpcBill = lf.calc(
-  p1, p2, days,
-  pvpcPrices.punta,
-  pvpcPrices.llano,
-  pvpcPrices.valle,
-  geoId  // para aplicar impuestos correctos
-);
-
-// 4. Renderizar en tabla de tarifas
-table.addRow("PVPC", pvpcBill);
+// 1. Tomar zona fiscal del formulario (Península, Canarias, CeutaMelilla)
+// 2. Mapear zona -> geoId (8741..8745; Ceuta usa fallback a 8745 si falta mes)
+// 3. Cargar meses necesarios de /data/pvpc/{geoId}/{YYYY-MM}.json
+// 4. Calcular precio medio por periodo (P1/P2/P3) y factura PVPC
+// 5. Inyectar resultado PVPC en el ranking del comparador
 ```
 
 ### Variables Globales
 
 ```javascript
-window.PVPC_ZONES = [8741, 8742, 8743, 8744, 8745];
-window.PVPC_DATA_PATH = "/data/pvpc";
-window.PVPC_INDEX_URL = "/data/pvpc/index.json";
+window.PVPC_DATASET_BASE = "/data/pvpc";   // base dataset estático
+window.pvpcLastMeta = null;                // meta de cálculo PVPC para UI
+window.pvpcPotenciaExcedida = false;       // guardrail > 10 kW
 ```
 
 ---
@@ -588,7 +575,7 @@ El **Observatorio PVPC** (`/estadisticas/`) es una capa de visualización avanza
 ### Lógica de Frontend (`js/pvpc-stats-engine.js`)
 1. **Carga**: Descarga todos los JSONs mensuales del año seleccionado (y anteriores para comparativa).
 2. **Agregación**: Calcula medias diarias, mensuales y horarias en el cliente.
-3. **Cache**: Utiliza `localStorage` para persistir los cálculos costosos y evitar descargas repetitivas.
+3. **Cache**: Utiliza caché en memoria (`Map` + LRU simple) para evitar recalcular y redescargar dentro de la sesión.
 4. **Renderizado**: Usa `Chart.js` para visualizar los datos procesados.
 
 ### Dependencias

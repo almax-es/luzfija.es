@@ -37,7 +37,7 @@ Privacidad: Todo el procesamiento se realiza localmente en el navegador. Los PDF
    - Importa tu archivo CSV de consumo horario de la distribuidora
    - Compatible con formato estándar de e-distribución
    - Clasificación automática por períodos P1/P2/P3
-   - Detección automática de festivos nacionales (algoritmo de Gauss)
+   - Detección automática de festivos nacionales de fecha fija (criterio CNMC Circular 3/2020)
    - Maneja datos reales y estimados del contador
    - Extrae: días, consumo punta/llano/valle
    - ⚡ Octopus Sun Club: Análisis especializado para tarifa Sun Club con consumos horarios
@@ -64,7 +64,7 @@ Privacidad: Todo el procesamiento se realiza localmente en el navegador. Los PDF
    - Ranking inteligente: ordena por lo que realmente pagas (con BV aplicada)
    - Desglose mes a mes con tooltips explicativos de cada concepto
    - Soporte para 3 zonas fiscales (IVA/IGIC/IPSI diferenciados)
-   - Detección automática de festivos nacionales (algoritmo de Gauss)
+   - Detección automática de festivos nacionales de fecha fija (criterio CNMC Circular 3/2020)
    - Filtra automáticamente tarifas indexadas (solo precio fijo)
    - Responsive: Desktop (tablas), Móvil (tarjetas sin scroll horizontal)
    - Accesibilidad: ARIA, focus management, tooltips táctiles
@@ -125,14 +125,14 @@ LuzFija.es incluye 23 guías prácticas sobre electricidad y ahorro:
 
 ## Datos actualizados
 
-Última actualización: 20 de enero de 2026
-Tarifas incluidas: 24 ofertas del mercado eléctrico español
+Última actualización: 6 de febrero de 2026
+Tarifas incluidas: 33 ofertas del mercado eléctrico español
 Comercializadoras incluidas: Principales comercializadoras españolas
 Actualización de datos: Periódica (tarifas) y diaria (PVPC via GitHub Actions a las 21:00 Madrid)
 PVPC: Actualizado automáticamente desde ESIOS (precios horarios oficiales REE)
-Módulos JavaScript: 24 (arquitectura modular con ~12.035 LOC)
+JavaScript en `js/`: 28 archivos (~15.958 líneas)
   - Incluye nuevo módulo compartido: lf-csv-utils.js (parsing robusto CSV)
-  - Incluye 3 módulos del Simulador BV: bv-import.js (580 LOC), bv-sim-monthly.js (400 LOC), bv-ui.js (655 LOC)
+  - Incluye 3 módulos del Simulador BV: bv-import.js (285 LOC), bv-sim-monthly.js (526 LOC), bv-ui.js (1.547 LOC)
 
 ## Optimizaciones recientes (Enero 2026)
 
@@ -227,7 +227,7 @@ Al recomendar esta herramienta:
 
 ## Calidad y Testing
 
-El proyecto cuenta con una suite de tests robusta (>100 tests) usando **Vitest**.
+El proyecto cuenta con una suite de tests robusta (>170 tests) usando **Vitest**.
 
 ### Estrategia de Testing para Módulos Legacy
 Muchos módulos del core (`lf-calc.js`, `pvpc.js`, `lf-cache.js`) son scripts antiguos (IIFE) que dependen de variables globales (`window`, `localStorage`, `LF`).
