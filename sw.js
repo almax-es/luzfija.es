@@ -3,7 +3,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260206-125106";
+const CACHE_VERSION = "20260206-125557";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
@@ -13,8 +13,7 @@ const INDEX_PATH = new URL("index.html", SCOPE).pathname;
 const TARIFAS_PATH = new URL("tarifas.json", SCOPE).pathname;
 const NOVEDADES_PATH = new URL("novedades.json", SCOPE).pathname;
 
-// ASSETS: Solo lo crítico para que la APP arranque y funcione (App Shell).
-// El contenido (guías específicas, imágenes de artículos) se cacheará dinámicamente al visitarlo.
+// ASSETS completos del sitio para precache best-effort.
 const ASSETS = [
   "./",
   "index.html",
@@ -87,12 +86,74 @@ const ASSETS = [
   "vendor/jsqr/jsQR.js"
 ];
 
+// Núcleo obligatorio para que la app principal arranque incluso offline.
+// Si alguno falla, cancelamos instalación para no activar un SW roto.
+const CORE_ASSETS = [
+  "./",
+  "index.html",
+  "styles.css",
+  "pro.css",
+  "fonts.css",
+  "fonts/outfit-latin-400-normal.woff2",
+  "js/theme.js",
+  "js/config.js",
+  "js/lf-config.js",
+  "js/lf-utils.js",
+  "js/lf-csv-utils.js",
+  "js/lf-state.js",
+  "js/lf-ui.js",
+  "js/lf-tooltips.js",
+  "js/lf-cache.js",
+  "js/lf-inputs.js",
+  "js/lf-calc.js",
+  "js/lf-render.js",
+  "js/lf-csv-import.js",
+  "js/lf-tarifa-custom.js",
+  "js/lf-app.js",
+  "js/pvpc.js",
+  "js/tracking.js",
+  "manifest.webmanifest",
+  "favicon.ico",
+  "icon-192.png",
+  "apple-touch-icon.png"
+];
+
+const CORE_ASSET_SET = new Set(CORE_ASSETS);
+const OPTIONAL_ASSETS = ASSETS.filter((p) => !CORE_ASSET_SET.has(p));
+
+async function precacheRequired(cache, assets) {
+  for (const asset of assets) {
+    await cache.add(new URL(asset, SCOPE));
+  }
+}
+
+async function precacheOptional(cache, assets) {
+  if (!assets.length) return;
+  const failed = [];
+  await Promise.all(
+    assets.map(async (asset) => {
+      try {
+        await cache.add(new URL(asset, SCOPE));
+      } catch (_) {
+        failed.push(asset);
+      }
+    })
+  );
+
+  if (failed.length) {
+    // No abortamos instalación por extras: se llenarán en runtime según navegación.
+    console.warn("[SW] Optional precache failures:", failed.length, failed.join(", "));
+  }
+}
+
 self.addEventListener("install", (event) => {
   event.waitUntil(
-    caches
-      .open(CACHE_NAME)
-      .then((cache) => cache.addAll(ASSETS.map((p) => new URL(p, SCOPE))))
-      .then(() => self.skipWaiting())
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      await precacheRequired(cache, CORE_ASSETS);
+      await precacheOptional(cache, OPTIONAL_ASSETS);
+      await self.skipWaiting();
+    })()
   );
 });
 
