@@ -145,14 +145,17 @@
         .catch(() => {});
     });
 
+    const _ric = window.requestIdleCallback
+      ? (cb) => requestIdleCallback(cb, { timeout: 2000 })
+      : (cb) => setTimeout(cb, 150);
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') requestSwUpdate('visible');
+      if (document.visibilityState === 'visible') _ric(() => requestSwUpdate('visible'));
     });
-    window.addEventListener('focus', () => requestSwUpdate('focus'));
+    window.addEventListener('focus', () => _ric(() => requestSwUpdate('focus')));
     window.addEventListener('online', () => requestSwUpdate('online'));
     setInterval(() => {
       if (document.visibilityState !== 'visible') return;
-      requestSwUpdate('interval');
+      _ric(() => requestSwUpdate('interval'));
     }, SW_UPDATE_INTERVAL_MS);
 
     let refreshing = false;

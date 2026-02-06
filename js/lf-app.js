@@ -96,7 +96,19 @@
       __lf_lastTarifasUpdatedAt = curr;
       toast('Tarifas actualizadas. Recalculando…', 'ok');
       if ((state.rows && state.rows.length > 0) || state.lastSignature) {
-        runCalculation(true);
+        // Diferir recálculo a idle para no bloquear INP
+        const _ricCalc = window.requestIdleCallback
+          ? (cb) => requestIdleCallback(cb, { timeout: 3000 })
+          : (cb) => setTimeout(cb, 200);
+        let _recalcRetries = 0;
+        const tryRecalc = () => {
+          if (window.__LF_CALC_INFLIGHT) {
+            if (++_recalcRetries < 10) setTimeout(tryRecalc, 500);
+            return;
+          }
+          runCalculation(true);
+        };
+        _ricCalc(tryRecalc);
       }
     }
   }
@@ -516,18 +528,22 @@
       })
       .catch(() => {});
 
-    // Auto-refresh agresivo: al volver al foco/visibilidad y cada 2 minutos
+    // Auto-refresh: al volver al foco/visibilidad y cada 2 minutos
+    // Diferido con requestIdleCallback para no bloquear INP
+    const _ric = window.requestIdleCallback
+      ? (cb) => requestIdleCallback(cb, { timeout: 2000 })
+      : (cb) => setTimeout(cb, 150);
     document.addEventListener('visibilitychange', () => {
       if (document.visibilityState === 'visible') {
-        refreshTarifasAndMaybeRecalc('visible');
+        _ric(() => refreshTarifasAndMaybeRecalc('visible'));
       }
     });
-    window.addEventListener('focus', () => refreshTarifasAndMaybeRecalc('focus'));
+    window.addEventListener('focus', () => _ric(() => refreshTarifasAndMaybeRecalc('focus')));
     window.addEventListener('online', () => refreshTarifasAndMaybeRecalc('online'));
 
     setInterval(() => {
       if (document.visibilityState !== 'visible') return;
-      refreshTarifasAndMaybeRecalc('interval');
+      _ric(() => refreshTarifasAndMaybeRecalc('interval'));
     }, AUTO_REFRESH_MS);
   });
 
@@ -598,15 +614,18 @@
         });
     });
 
-    // Auto-check de updates del SW (agresivo)
+    // Auto-check de updates del SW — diferido para no bloquear INP
+    const _ricSw = window.requestIdleCallback
+      ? (cb) => requestIdleCallback(cb, { timeout: 2000 })
+      : (cb) => setTimeout(cb, 150);
     document.addEventListener('visibilitychange', () => {
-      if (document.visibilityState === 'visible') requestSwUpdate('visible');
+      if (document.visibilityState === 'visible') _ricSw(() => requestSwUpdate('visible'));
     });
-    window.addEventListener('focus', () => requestSwUpdate('focus'));
+    window.addEventListener('focus', () => _ricSw(() => requestSwUpdate('focus')));
     window.addEventListener('online', () => requestSwUpdate('online'));
     setInterval(() => {
       if (document.visibilityState !== 'visible') return;
-      requestSwUpdate('interval');
+      _ricSw(() => requestSwUpdate('interval'));
     }, SW_UPDATE_INTERVAL_MS);
 
     // Listener para cuando el nuevo SW toma control

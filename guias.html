@@ -1150,14 +1150,17 @@ if ('serviceWorker' in navigator) {
     });
   });
 
+  const _ric = window.requestIdleCallback
+    ? (cb) => requestIdleCallback(cb, { timeout: 2000 })
+    : (cb) => setTimeout(cb, 150);
   document.addEventListener('visibilitychange', () => {
-    if (document.visibilityState === 'visible') requestSwUpdate();
+    if (document.visibilityState === 'visible') _ric(requestSwUpdate);
   });
-  window.addEventListener('focus', requestSwUpdate);
+  window.addEventListener('focus', () => _ric(requestSwUpdate));
   window.addEventListener('online', requestSwUpdate);
   setInterval(() => {
     if (document.visibilityState !== 'visible') return;
-    requestSwUpdate();
+    _ric(requestSwUpdate);
   }, SW_UPDATE_INTERVAL_MS);
 
   let refreshing = false;
