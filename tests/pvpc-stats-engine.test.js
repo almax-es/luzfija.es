@@ -64,3 +64,54 @@ describe('PVPC_STATS date handling', () => {
     expect(status.yearCompleteness).toBeLessThan(0.1);
   });
 });
+
+describe('PVPC_STATS manifest-aware loading', () => {
+  it('loads only months listed in zone index manifest', async () => {
+    const originalFetch = global.fetch;
+    const calls = [];
+    const ok = (data) => ({ ok: true, json: async () => data });
+
+    global.fetch = async (url) => {
+      const u = String(url);
+      calls.push(u);
+
+      if (u.endsWith('/data/pvpc/8742/index.json')) {
+        return ok({
+          files: [
+            { file: '2024-01.json' },
+            { file: '2024-03.json' }
+          ]
+        });
+      }
+      if (u.endsWith('/data/pvpc/8742/2024-01.json')) {
+        return ok({
+          from: '2024-01-01',
+          to: '2024-01-31',
+          days: { '2024-01-01': [[1704067200, 0.12]] }
+        });
+      }
+      if (u.endsWith('/data/pvpc/8742/2024-03.json')) {
+        return ok({
+          from: '2024-03-01',
+          to: '2024-03-31',
+          days: { '2024-03-01': [[1709251200, 0.2]] }
+        });
+      }
+
+      throw new Error(`Unexpected fetch: ${u}`);
+    };
+
+    try {
+      window.PVPC_STATS.cache.clear();
+      window.PVPC_STATS.manifestCache.clear();
+
+      const yearData = await window.PVPC_STATS.loadYearData(8742, 2024, 'pvpc');
+      expect(Object.keys(yearData.days).sort()).toEqual(['2024-01-01', '2024-03-01']);
+      expect(calls.some((u) => u.endsWith('/data/pvpc/8742/2024-02.json'))).toBe(false);
+    } finally {
+      global.fetch = originalFetch;
+      window.PVPC_STATS.cache.clear();
+      window.PVPC_STATS.manifestCache.clear();
+    }
+  });
+});

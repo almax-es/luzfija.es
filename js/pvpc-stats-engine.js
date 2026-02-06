@@ -3,6 +3,7 @@
 
 const PVPC_STATS = {
     cache: new Map(),
+    manifestCache: new Map(),
     cacheMax: 8,
     maxConcurrentFetches: 4,
 
@@ -33,6 +34,49 @@ const PVPC_STATS = {
         return results;
     },
 
+    async loadGeoIndex(type, geoId) {
+        const key = `${type}-${geoId}`;
+        if (this.manifestCache.has(key)) {
+            return this.manifestCache.get(key);
+        }
+
+        try {
+            const res = await fetch(`/data/${type}/${geoId}/index.json`);
+            if (!res.ok) {
+                this.manifestCache.set(key, null);
+                return null;
+            }
+
+            const json = await res.json();
+            const monthsByYear = new Map();
+            const files = Array.isArray(json && json.files) ? json.files : [];
+
+            files.forEach((entry) => {
+                const fileName = entry && typeof entry.file === "string" ? entry.file : "";
+                const match = fileName.match(/^(\d{4})-(\d{2})\.json$/);
+                if (!match) return;
+
+                const y = Number(match[1]);
+                const month = match[2];
+                if (!monthsByYear.has(y)) monthsByYear.set(y, new Set());
+                monthsByYear.get(y).add(month);
+            });
+
+            const manifest = { monthsByYear };
+            this.manifestCache.set(key, manifest);
+            return manifest;
+        } catch (_) {
+            this.manifestCache.set(key, null);
+            return null;
+        }
+    },
+
+    async getAvailableMonths(type, geoId, year) {
+        const manifest = await this.loadGeoIndex(type, geoId);
+        if (!manifest || !manifest.monthsByYear) return null;
+        return manifest.monthsByYear.get(Number(year)) || new Set();
+    },
+
     /**
      * Carga todos los datos disponibles para una zona y año
      * @param {number} geoId - ID de la zona (8741 Península, etc)
@@ -50,6 +94,9 @@ const PVPC_STATS = {
 
         const tasks = [];
         const monthLabels = [];
+        // Si existe índice por zona, usarlo para pedir solo los meses publicados
+        // y evitar ruido 404 en huecos históricos.
+        const availableMonths = await this.getAvailableMonths(type, geoId, year);
         const now = new Date();
         const currentYear = now.getFullYear();
         const currentMonth = now.getMonth() + 1;
@@ -61,6 +108,7 @@ const PVPC_STATS = {
             if (Number(year) === 2021 && m < 6) continue;
 
             const monthStr = String(m).padStart(2, '0');
+            if (availableMonths && !availableMonths.has(monthStr)) continue;
             const url = `/data/${type}/${geoId}/${year}-${monthStr}.json`;
             monthLabels.push(monthStr);
             tasks.push(async () => {
