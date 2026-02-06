@@ -180,6 +180,22 @@
       .ripple {
         animation-duration: 0.3s !important;
       }
+
+      /* 10. Desactivar animaciones no compuestas infinitas (INP fix) */
+      .btn.primary:not(.calculating) {
+        animation: none !important;
+      }
+      .btn.primary:not(.calculating)::before {
+        animation: none !important;
+      }
+      .heroCard.best {
+        animation: fadeInUp 0.6s ease-out !important;
+        animation-fill-mode: both !important;
+      }
+      .heroCard.best::before {
+        animation: none !important;
+        display: none !important;
+      }
     }
     /* ================================================================= */
     /* FIN OPTIMIZACIÓN MÓVIL                                            */
@@ -262,7 +278,7 @@
     @keyframes shimmer { 0% { background-position: 0% center; } 100% { background-position: 200% center; } }
     @keyframes ripple { from { transform: scale(0); opacity: 1; } to { transform: scale(4); opacity: 0; } }
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-    @keyframes goldenPulse { 0%, 100% { box-shadow: 0 0 20px rgba(251, 191, 36, .3), 0 0 40px rgba(251, 191, 36, .1); } 50% { box-shadow: 0 0 30px rgba(251, 191, 36, .6), 0 0 60px rgba(251, 191, 36, .2); } }
+    @keyframes goldenPulse { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.005); opacity: 1; } }
     .brand p{color: var(--muted); font-size: 13px; margin-top: 3px;}
     .actions{display:flex; align-items:center; gap:10px; flex-wrap:wrap; justify-content:space-between; flex-shrink: 0; width: 100%;}
     .actions-center{display:flex; align-items:center; gap:10px; flex-shrink: 0;}
@@ -348,6 +364,7 @@
       z-index: -1;
       animation: borderGlow 3s ease infinite;
       opacity: 0.8;
+      filter: blur(8px);
     }
     .btn.primary::after{
       content: '';
@@ -361,9 +378,6 @@
       transform: translate(-50%, -50%);
       transition: width 0.6s, height 0.6s;
     }
-
-    .btn.primary.calculating::before{ animation: progressBar 2s ease-in-out; }
-
 
     .btn.primary #btnText {
       display: inline-block;
@@ -383,13 +397,11 @@
     }
     
     @keyframes borderGlow {
-      0%, 100% { 
-        background-position: 0% 50%;
-        filter: blur(8px);
+      0%, 100% {
+        opacity: 0.6;
       }
-      50% { 
-        background-position: 100% 50%;
-        filter: blur(12px);
+      50% {
+        opacity: 1;
       }
     }
     
@@ -410,6 +422,7 @@
       opacity: 0.3;
       animation: none;
     }
+    .btn.primary.calculating::before{ animation: progressBar 2s ease-in-out; }
     @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
     .spinner{ display:inline-block; width:16px; height:16px; border:2px solid rgba(255,255,255,.3); border-top-color: #fff; border-radius:50%; animation: spin 0.6s linear infinite; }
     
@@ -829,9 +842,9 @@
         0 0 40px rgba(34,197,94,0.1),
         inset 0 1px 0 rgba(255,255,255,0.15);
     }
-    .heroCard.best{ border: 2px solid rgba(251, 191, 36, .6); background: linear-gradient(135deg, rgba(251, 191, 36, .15), rgba(139,92,246,.10)); animation: fadeInUp 0.6s ease-out, goldenPulse 2s ease-in-out infinite; animation-delay: 0.1s, 0.8s; animation-fill-mode: both, forwards; position: relative; }
-    .heroCard.best::before{ content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent); animation: shine 3s infinite; }
-    @keyframes shine { 0% { left: -100%; } 50%, 100% { left: 200%; } }
+    .heroCard.best{ border: 2px solid rgba(251, 191, 36, .6); background: linear-gradient(135deg, rgba(251, 191, 36, .15), rgba(139,92,246,.10)); box-shadow: 0 0 25px rgba(251, 191, 36, .4), 0 0 50px rgba(251, 191, 36, .15); animation: fadeInUp 0.6s ease-out, goldenPulse 2s ease-in-out infinite; animation-delay: 0.1s, 0.8s; animation-fill-mode: both, forwards; position: relative; }
+    .heroCard.best::before{ content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,.1), transparent); animation: shine 3s infinite; }
+    @keyframes shine { 0% { transform: translateX(-100%); } 50%, 100% { transform: translateX(200%); } }
     .heroCard .k{ font-size: 11px; letter-spacing: 1.2px; text-transform: uppercase; color: var(--muted2); font-weight: 900; display:flex; align-items:center; justify-content:center; gap: 6px; }
     .heroCard.best .k::before{ content: "🏆"; font-size: 14px; }
     .heroCard .v{ font-size: clamp(28px, 2.6vw, 44px); font-weight: 900; letter-spacing: -0.6px; line-height: 1.0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-align: center; }
@@ -2044,12 +2057,12 @@
 
 @keyframes tooltipPulseRanking {
   0%, 100% {
-    box-shadow: 0 0 0 2px rgba(251, 191, 36, 0.3);
     transform: scale(1);
+    opacity: 0.85;
   }
   50% {
-    box-shadow: 0 0 0 4px rgba(251, 191, 36, 0.5), 0 0 10px rgba(251, 191, 36, 0.3);
     transform: scale(1.08);
+    opacity: 1;
   }
 }
 
@@ -2078,13 +2091,18 @@
   .tarifa-icons .tooltip {
     animation: tooltipPulse 2s ease-in-out infinite;
   }
+  .tarifa-icons .tooltip:focus-visible {
+    animation: none;
+  }
   
   @keyframes tooltipPulse {
     0%, 100% {
-      box-shadow: 0 0 0 2px rgba(139,92,246,.2);
+      transform: scale(1);
+      opacity: 0.85;
     }
     50% {
-      box-shadow: 0 0 0 4px rgba(139,92,246,.4);
+      transform: scale(1.05);
+      opacity: 1;
     }
   }
 }
