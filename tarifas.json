@@ -130,6 +130,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Iberdrola Online",
+      "cPunta": 0.1099,
+      "cLlano": 0.1099,
+      "cValle": 0.1099,
+      "p1": 0.108192,
+      "p2": 0.057507,
+      "web": "https://www.iberdrola.es/luz/plan-online",
+      "tipo": "1P",
+      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Seneo 2",
       "cPunta": 0.111,
       "cLlano": 0.111,
@@ -213,25 +232,6 @@
       "requisitos": "Consumo ≤ 10.000 kWh/año",
       "fv": {
         "exc": 0.06,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Iberdrola Online",
-      "cPunta": 0.1199,
-      "cLlano": 0.1199,
-      "cValle": 0.1199,
-      "p1": 0.108192,
-      "p2": 0.046548,
-      "web": "https://www.iberdrola.es/luz/plan-online",
-      "tipo": "1P",
-      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
-      "fv": {
-        "exc": 0.03,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -607,5 +607,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-02-05T20:10:06.773Z"
+  "updatedAt": "2026-02-06T06:45:20.434Z"
 }
