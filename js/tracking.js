@@ -107,7 +107,7 @@
 
   function trackEvent(eventName, metadata) {
     // 🔒 MODO PRIVACIDAD: Si está activo, no enviar NADA
-    if (window.__LF_PRIVACY_MODE === true) {
+    if (window.__LF_PRIVACY_MODE === true || window.__LF_FACTURA_BUSY === true) {
       dbg('Privacy mode activo, evento bloqueado:', eventName);
       return;
     }

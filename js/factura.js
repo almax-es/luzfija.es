@@ -3,7 +3,10 @@
       window.__LF_facturaParserLoaded = true;
 
       // Helper de debug: solo loguea si __LF_DEBUG está activo
-      const lfDbg = (...args) => { if (window.__LF_DEBUG && !window.__LF_PRIVACY_MODE) console.log(...args); };
+      // y no estamos en flujo sensible de factura.
+      const lfDbg = (...args) => {
+        if (window.__LF_DEBUG && !window.__LF_PRIVACY_MODE && !window.__LF_FACTURA_BUSY) console.log(...args);
+      };
 
       // Raíz del sitio calculada a partir de la URL del propio script.
       // Esto evita problemas con GitHub Pages cuando hay subpath (p.ej. /repo/).
@@ -24,6 +27,7 @@
       let __LF_modalHideTimer = null;
 
       let __LF_pdfjsLoading = null;
+      if (typeof window.__LF_FACTURA_BUSY !== 'boolean') window.__LF_FACTURA_BUSY = false;
 
       function __LF_pdfVerbosityErrors(){
         try{
@@ -841,11 +845,7 @@
             consumoValle: parseFloat(cfP3),
             dias: dias,
             confianza: 100,
-            fuenteDatos: 'QR',
-            cups: params.get('cups') || null,
-            fechaInicio: fechaInicio,
-            fechaFin: fechaFin,
-            importeTotal: params.get('imp') ? parseFloat(params.get('imp')) : null
+            fuenteDatos: 'QR'
           };
           
           lfDbg('[QR] ✅ Datos extraídos del QR:', datos);
@@ -1376,6 +1376,7 @@
           return;
         }
         __LF_lastFile = file;
+        window.__LF_FACTURA_BUSY = true;
 
         
 
@@ -1523,6 +1524,8 @@
           __LF_show(__LF_q('uploadAreaFactura'));
           if (typeof toast === 'function') toast('Error al procesar factura PDF', 'err');
           lfDbg('[ERROR] processPdf:', err);
+        } finally {
+          window.__LF_FACTURA_BUSY = false;
         }
       }
 
@@ -1555,6 +1558,7 @@
           return;
         }
 
+        window.__LF_FACTURA_BUSY = true;
         __LF_hide(__LF_q('uploadAreaFactura'));
         __LF_show(__LF_q('loaderFactura'));
         __LF_hide(__LF_q('resultadoFactura'));
@@ -1622,6 +1626,8 @@
           __LF_show(__LF_q('resultadoFactura'));
           if (typeof toast === 'function') toast('OCR falló o no pudo ejecutarse', 'err');
           lfDbg('[ERROR]', err);
+        } finally {
+          window.__LF_FACTURA_BUSY = false;
         }
       }
 
