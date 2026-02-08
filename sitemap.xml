@@ -186,16 +186,4 @@
     <priority>0.7</priority>
   </url>
 
-  <!-- Legal -->
-  <url>
-    <loc>https://luzfija.es/aviso-legal.html</loc>
-    <lastmod>2026-02-04</lastmod>
-    <priority>0.3</priority>
-  </url>
-  <url>
-    <loc>https://luzfija.es/privacidad.html</loc>
-    <lastmod>2026-02-04</lastmod>
-    <priority>0.3</priority>
-  </url>
-
 </urlset>
