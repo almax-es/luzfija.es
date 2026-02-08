@@ -1,578 +1,189 @@
-# ⚡ LuzFija.es — Comparador Avanzado de Tarifas Eléctricas (España)
-
-Herramienta **gratuita**, **sin publicidad** y **de código abierto** para comparar tarifas de electricidad en España. Calcula estimaciones precisas de factura según potencia contratada (P1/P2), días de facturación, consumos por periodos (punta/llano/valle), **placas solares**, **compensación de excedentes**, **batería virtual** y **PVPC (tarifa regulada)**.
-
-🔗 **Web**: [https://luzfija.es](https://luzfija.es)  
-📧 **Contacto**: [hola@luzfija.es](mailto:hola@luzfija.es)  
-📖 **Guías educativas**: [https://luzfija.es/guias.html](https://luzfija.es/guias.html)
-
----
-
-## 🎯 Funcionalidades
-
-### 🏆 PVPC (Tarifa Regulada)
-- Comparación de tarifas **1P** y **3P** (discriminación horaria) + filtros rápidos (todas / 1P / 3P)
-- **PVPC** incluido desde dataset estático `/data/pvpc/` (REE/ESIOS, indicador 1001)
-- **Excedentes PVPC** desde dataset estático `/data/surplus/` (REE/ESIOS, indicador 1739)
-- **Observatorio PVPC**: estadísticas avanzadas con histórico desde 2021.
-  - **Evolución** diaria y mensual para detectar tendencia real.
-  - **Perfil horario** promedio con “consejo” de bloque de 3 horas.
-  - **Comparativa multianual** con selección de años.
-  - **KPIs** dinámicos (último día, medias, rolling 12m, YoY).
-  - **Selector PVPC/Excedentes** + **selector por mes**.
-  - **CSV de excedentes**: subida CSV/XLSX y cálculo real por mes y año (€/kWh, € y ventana 80% de vertido).
-- Widget PVPC en portada con **precios de hoy** y **detalle horario** (hoy/mañana) + selector PVPC/Excedentes
-- Bloque de **novedades/avisos** cargado desde `novedades.json`
-- Soporte completo para **placas solares** y **autoconsumo** (consumo + excedentes)
-- **Compensación de excedentes** con precio por comercializadora
-- **Batería Virtual** (acumulación en € para meses futuros) y visualización de:
-  - **Coste real** (sin aplicar saldo BV anterior)
-  - **Pagas este mes** (aplicando saldo BV acumulado previo)
-- **Tarifa personalizada** (introduce precios de tu contrato para compararte)
-- Ranking ordenado por **coste real** (y tooltip explicativo cuando hay BV)
-- Tabla con **ordenación por columnas** (nombre, potencia, energía, impuestos, total, vs mejor)
-- **Gráfico Top 5** (visual rápido)
-- **Desglose detallado** por tarifa en modal (clic en nombre/total; PVPC muestra tarjeta específica)
-- Enlaces directos para contratar (si la tarifa aporta URL)
-- Compartir configuración por URL (querystring)
-- Utilidades: reset de inputs, refrescar tarifas y limpiar cachés locales (menú)
-
-### 📄 Extracción Automática de Facturas
-- **Sube tu factura PDF** y extrae datos automáticamente
-- **Extracción de código QR** (CNMC) con jsQR en 3 pasos:
-  - Paso 1: Extracción URL desde texto PDF
-  - Paso 2: Escaneo imagen con jsQR (múltiples escalas)
-  - Paso 3: Combinación inteligente datos QR + PDF
-- Reconocimiento de múltiples comercializadoras:
-  - Endesa, Iberdrola, Gana Energía, TotalEnergies
-  - Octopus Energy, Visalia, Eni Plenitude, Energía XXI
-  - Enérgya VM, Imagina Energía, y más
-- Extrae: potencias (P1/P2), días, consumos (punta/llano/valle), CUPS
-- Validación con confianza (%)
-- OCR para PDFs escaneados (Tesseract.js)
-- Sistema de advertencias contextuales
-- **Lazy loading**: PDF.js y OCR solo se cargan cuando subes factura
-- **Auto-cálculo**: Calcula automáticamente tras extraer datos
-
-### 📊 Importador de Datos CSV (e-distribución)
-- Importa consumos horarios desde **CSV** y **XLSX/Excel** (e-distribución y formatos equivalentes)
-- Maneja datos reales y estimados, con validación de fechas en zona horaria Madrid
-- Clasifica automáticamente por periodos P1/P2/P3:
-  - Detecta festivos nacionales de fecha fija (criterio CNMC Circular 3/2020)
-  - Considera fines de semana
-  - Aplica horarios según RD 148/2021
-- Extrae y aplica al comparador: **días**, consumo punta/llano/valle
-- Si el fichero incluye **generación/excedentes**, rellena excedentes y activa solar automáticamente
-- Muestra **periodo analizado** en función de los días con datos (si hay huecos en el CSV, se refleja)
-- **⚡ Octopus Sun Club**: análisis de Sun Club con consumos horarios (se presenta como tarjeta independiente)
-- **Auto-cálculo**: recalcula automáticamente tras aplicar datos
-
-### 🔋 Simulador de Batería Virtual
-- **Simulación mes a mes** con tus consumos reales (CSV/XLSX de distribuidora)
-- Compara todas las tarifas con batería virtual del mercado
-- Cálculo detallado para cada mes:
-  - **Compensación de excedentes** limitada a energía bruta del mes
-  - **Acumulación en batería virtual** (€) del excedente sobrante
-  - **Aplicación de saldo BV** del mes anterior para reducir factura
-  - Diferencia clave: **Coste real** vs **Lo que pagas** (con BV aplicada)
-- **Ranking inteligente**: ordena por lo que realmente pagas (con BV)
-- **Desglose mes a mes** con tooltips explicativos de cada concepto
-- Soporte para 3 zonas fiscales (IVA/IGIC/IPSI diferenciados)
-- Detección automática de festivos nacionales de fecha fija (CNMC Circular 3/2020)
-- Filtra automáticamente tarifas indexadas (solo muestra precio fijo)
-- **Responsive**: Desktop (tablas), Móvil (tarjetas sin scroll horizontal)
-- **Accesibilidad**: ARIA labels, focus management, tooltips táctiles
-
-### 📚 Guías Educativas
-23 guías completas sobre:
-- Cómo leer tu factura paso a paso
-- Qué es P1, P2 y P3
-- PVPC vs mercado libre
-- Qué potencia contratar
-- Autoconsumo y placas solares
-- Compensación de excedentes y batería virtual
-- Bono social eléctrico
-- Coche eléctrico y tarifas
-- Errores típicos en facturas
-- Estafas y llamadas comerciales
-- Y más...
-
-### 🎯 Páginas Especializadas
-- **[Comparador de Tarifas Solares](https://luzfija.es/comparador-tarifas-solares.html)**: **Herramienta independiente** para análisis avanzado con CSV y Batería Virtual.
-- **[Calculadora de Factura](https://luzfija.es/calcular-factura-luz.html)**: Guía y acceso directo al simulador principal.
-- **[Comparar PVPC vs Fija](https://luzfija.es/comparar-pvpc-tarifa-fija.html)**: Artículo informativo sobre el mercado regulado.
-
----
-
-## 📊 Cálculo de Factura
-
-### Inputs del Usuario
-
-**Básicos:**
-- Potencia contratada **P1** y **P2** (kW)
-- **Días** de facturación (1–365)
-- **Zona fiscal**: Península/Baleares, Canarias, o Ceuta/Melilla (diferentes impuestos)
-- Consumo por periodos (kWh):
-  - **Punta** (10h–14h y 18h–22h laborables)
-  - **Llano** (8h–10h, 14h–18h, 22h–24h laborables)
-  - **Valle** (0h–8h laborables + todo fin de semana)
-
-**Autoconsumo (opcional):**
-- Checkbox "Tengo placas solares"
-- **Excedentes** volcados a red (kWh)
-- **Batería Virtual acumulada** del mes anterior (€)
-- Cálculo automático de:
-  - Compensación según precio de cada comercializadora
-  - Batería Virtual para meses futuros
-  - Ahorro real vs sin autoconsumo
-
-### Fórmula de Cálculo
-
-**Término de potencia:**
-- P1 × precio/kW·día × días
-- P2 × precio/kW·día × días
-
-**Término de energía:**
-- Consumo punta × precio punta
-- Consumo llano × precio llano
-- Consumo valle × precio valle
-
-**Compensación solar (si aplica):**
-- Excedentes × precio compensación
-- Acumulación en Batería Virtual (€)
-- Uso de BV anterior para reducir factura
-
-**Impuestos:**
-- Impuesto eléctrico (IEE): 5,11269632%
-- IVA / IGIC / IPSI según zona fiscal:
-  - Península/Baleares: IVA 21%
-  - Canarias: IGIC 0% (vivienda ≤10kW si marcas la opción) o 3% (resto); contador al 7%
-  - Ceuta/Melilla: IPSI 1% (electricidad) y 4% (alquiler contador)
-- Alquiler contador (~0,81€/mes)
-
-> **Nota**: Es una **estimación orientativa**. La factura real puede variar por redondeos, condiciones contractuales, cambios regulatorios y otros conceptos específicos de cada comercializadora.
-
----
-
-## 🏆 PVPC (Tarifa Regulada)
-
-Este proyecto muestra el PVPC como **referencia** en el ranking (comparador de tarifas fijas).
-
-### Arquitectura de datos
-
-**Frontend (100% estático, sin backend):**
-- Carga precios horarios desde JSONs locales: `/data/pvpc/{geoId}/{YYYY-MM}.json`
-- Calcula el PVPC completamente en el navegador
-- Los JSONs contienen datos oficiales de REE/ESIOS (indicador 1001)
-
-**Actualización automática (GitHub Actions):**
-- Se ejecuta diariamente a las 21:00 Madrid
-- Script: `scripts/pvpc_auto_fill.py`
-- Detecta huecos en mes actual + anterior
-- Descarga SOLO datos nuevos/faltantes de ESIOS API
-- Guarda en JSONs del repo (versionados en git)
-
-**Requisitos:**
-- Token ESIOS API (variable de entorno `ESIOS_API_KEY`)
-- Configurado en GitHub Actions secrets
-
-### Metodología de cálculo (estimación)
-
-- **Precios horarios oficiales**: REE/ESIOS (indicador PVPC 1001)
-- **Periodificación 2.0TD**: punta/llano/valle (fines de semana + festivos = todo valle)
-- **Precio medio por periodo**: media horaria dentro del periodo (aproximación neutral)
-- **Zonas soportadas**: Península (8741), Canarias (8742), Baleares (8743), Ceuta (8744), Melilla (8745)
-
-> Nota: El PVPC mostrado es una estimación. La factura real puede diferir ligeramente por perfiles de consumo y redondeos de distribuidoras.
-
----
-
-## 🛠️ Stack Técnico
-
-### Frontend
-- **HTML5 + CSS3** con variables CSS y design system
-- **Vanilla JavaScript** (ES6+, sin frameworks)
-- **Arquitectura modular** (módulos separados por responsabilidad)
-- **Chart.js 4.x** (local en /vendor/) para visualización de datos en el Observatorio
-- **Gráfico Top 5** (implementación propia en JS/SVG/CSS, sin librerías externas)
-- **PDF.js 5.x** (lazy loading) para parseo de facturas
-- **jsQR** (en precache) para escaneo de códigos QR
-- **Tesseract.js** (on-demand) para OCR
-- **SheetJS (xlsx)** (lazy loading) para importación CSV
-
-### Arquitectura
-- **PWA** con Service Worker (caché versionada) y Web App Manifest
-- **Precache en dos niveles**: `CORE_ASSETS` obligatorio (~0.54 MB) + `ASSETS` opcional best-effort (~1.75 MB si entra todo)
-- **Lazy loading**: PDF.js, Tesseract, Excel se cargan bajo demanda
-- **Diseño responsive** mobile-first
-- **Modo oscuro/claro** con persistencia en localStorage
-
-### Hosting y Datos
-- **GitHub Pages** (hosting estático, producción principal)
-- **100% estático sin backend**: Todo cálculo (tarifas, PVPC, facturas) ocurre en el navegador
-- **Datos PVPC**: JSONs versionados en `/data/pvpc/` (actualización diaria, indicador 1001)
-- **Datos Excedentes**: JSONs versionados en `/data/surplus/` (actualización diaria, indicador 1739)
-  - Actualizados automáticamente por GitHub Actions (21:00 Madrid)
-  - Descarga de ESIOS API y detección de huecos
-  - Token ESIOS en secrets (no expuesto en repo)
-
----
-
-### Seguridad
-- **Content Security Policy** en 33/33 páginas (100% cobertura)
-- **frame-ancestors 'none'** (anti-clickjacking)
-- **form-action 'self'** (anti-exfiltración)
-- **Mitigación XSS**: escapeHtml() en inserciones de texto dinámico (tarifas/datos), y uso preferente de textContent cuando aplica
-- **Dependencias auto-hospedadas** en `/vendor/`
-- **Same-origin enforcement**
-- **wasm-unsafe-eval** solo en 3 páginas que usan OCR/PDF
-
-### Rendimiento y Optimizaciones
-- **Service Worker con `CACHE_VERSION` por despliegue** (invalidación de caché controlada)
-- **jsQR en precache** (251 KB, escaneo QR instantáneo offline)
-- **Lazy loading** de recursos pesados (PDF.js ~1.5 MB, Tesseract ~8 MB, Excel ~1 MB)
-- **INP Optimizado (Chunking)**: El cálculo de tarifas se procesa en lotes de 8 elementos con `yieldControl()` para evitar bloquear el hilo principal (Main Thread), manteniendo la interfaz fluida incluso en móviles de gama baja.
-- **Fuentes autoalojadas** (sin peticiones a terceros)
-- **JavaScript diferido** (tracking.js con defer)
-
-### Lógica Especial
-- **Octopus Sun Club**: Detección automática de horas solares (distintas a P1/P2/P3) al importar CSV para calcular esta tarifa específica (configurada en `js/lf-config.js`, no en el JSON estándar).
-
-### Accesibilidad
-- **WCAG 2.1 nivel AA**
-- aria-labels en inputs de búsqueda
-- Semántica HTML correcta
-- Navegación por teclado funcional
-
----
-
-## 📁 Estructura del Código
-
-```
-luzfija.es/
-├── index.html                  # Comparador principal
-├── calcular-factura-luz.html   # Calculadora simple
-├── comparar-pvpc-tarifa-fija.html
-├── comparador-tarifas-solares.html  # Comparador Solar (CSV/Manual)
-├── guias.html                  # Índice de guías
-├── 404.html                    # Página de error
-├── aviso-legal.html
-├── privacidad.html
-│
-├── js/                         # Arquitectura modular
-│   ├── config.js               # Config global (URLs, flags)
-│   ├── lf-app.js               # Orquestador principal
-│   ├── lf-state.js             # Estado + persistencia (localStorage)
-│   ├── lf-config.js            # Valores regulados (IEE/IVA/IGIC/IPSI, etc.)
-│   ├── lf-calc.js              # Motor de cálculo de tarifas
-│   ├── lf-render.js            # Render tabla + gráfico Top 5
-│   ├── lf-inputs.js            # Inputs, validación, autosuma, ayudas
-│   ├── lf-tooltips.js          # Tooltips y micro-ayuda contextual
-│   ├── lf-ui.js                # Modales, menú, UX
-│   ├── lf-cache.js             # Caché (tarifas/PVPC) y utilidades offline
-│   ├── lf-tarifa-custom.js     # Tarifa personalizada (tu contrato)
-│   ├── lf-csv-import.js        # Import CSV/XLSX (e-distribución) + Sun Club
-│   ├── pvpc.js                 # Cliente PVPC + caché (localStorage)
-│   ├── index-extra.js          # Widget PVPC + novedades en home
-│   ├── theme.js                # Gestión tema claro/oscuro
-│   ├── tracking.js             # Analytics (GoatCounter, defer)
-│   ├── factura.js              # Extractor factura PDF + QR/OCR
-│   ├── desglose-factura.js     # Modal desglose detallado
-│   ├── desglose-integration.js # Integración desglose con tabla
-│   └── bv/                     # Simulador Batería Virtual
-│       ├── bv-import.js        # Importador CSV/XLSX para BV
-│       ├── bv-sim-monthly.js   # Motor cálculo mes a mes
-│       └── bv-ui.js            # UI y renderizado
-
-├── bv-sim.css                  # Estilos simulador BV
-├── comparador-solar-mejorado.css
-├── styles.css                  # Estilos globales
-├── pro.css
-├── fonts.css
-├── desglose-factura.css        # CSS modal desglose
-├── sw.js                       # Service Worker (PWA/offline)
-├── tarifas.json                # Base de datos de tarifas
-│
-├── vendor/                     # Dependencias auto-hospedadas
-│   ├── jsqr/                  # jsQR 1.4.0 (escaneo QR, 251 KB, EN PRECACHE)
-│   ├── pdfjs/                 # PDF.js 5.x (~1.5 MB, lazy loading)
-│   ├── tesseract/             # Tesseract.js (lazy loading)
-│   ├── tesseract-core/        # WASM core OCR (lazy loading)
-│   ├── tessdata/              # Language data español (~2 MB, lazy loading)
-│   └── xlsx/                  # SheetJS (~1 MB, lazy loading)
-│
-├── estadisticas/               # Observatorio PVPC
-├── guias/                      # 23 guías educativas + índice
-│
-├── favicon.ico / icon-192.png / apple-touch-icon.png
-├── og.png                      # Open Graph
-├── manifest.webmanifest        # PWA manifest
-├── robots.txt                  # SEO
-├── sitemap.xml                 # Mapa del sitio
-└── llms.txt                    # Documentación para LLMs
-```
-
-### Arquitectura Modular
-
-**Separación de concerns (24 módulos):**
-- **config.js** (4 LOC): Config global (URLs, flags)
-- **lf-config.js** (213 LOC): Valores regulados y reglas fiscales por territorio
-- **lf-calc.js** (614 LOC): Motor de cálculo (potencia, energía, impuestos, solar, BV)
-- **lf-state.js** (189 LOC): Estado + persistencia (localStorage) + ordenación
-- **lf-app.js** (707 LOC): Coordinación general (carga, eventos, recalcular)
-- **lf-render.js** (592 LOC): Renderizado tabla + gráfico Top 5 + estados visuales
-- **lf-utils.js** (523 LOC): Utilidades puras (parseNum, escapeHtml, formatMoney, etc.)
-- **lf-csv-utils.js** (1307 LOC): Motor compartido de parsing CSV robusto, detección de separadores y festivos
-- **lf-inputs.js** (655 LOC): Inputs (validación, formato, autosuma, ayudas contextuales)
-- **lf-tooltips.js** (147 LOC): Tooltips contextuales
-- **lf-ui.js** (176 LOC): UX (menús, modales, animaciones, accesibilidad)
-- **lf-cache.js** (127 LOC): Caché de tarifas/PVPC y utilidades offline
-- **lf-tarifa-custom.js** (411 LOC): Tarifa personalizada (compara con tu contrato)
-- **lf-csv-import.js** (808 LOC): Importador CSV/XLSX para web principal (delega en csv-utils)
-- **pvpc.js** (909 LOC): Cliente PVPC con caché local y validación
-- **index-extra.js** (828 LOC): Widget PVPC + bloque novedades en home
-- **theme.js** (48 LOC): Gestión tema claro/oscuro
-- **factura.js** (1,786 LOC): Parser PDF + QR + OCR (lazy loading, módulo más grande)
-- **desglose-factura.js** (759 LOC): Modal desglose detallado de tarifas
-- **desglose-integration.js** (413 LOC): Integración desglose con tabla
-- **tracking.js** (249 LOC): Analytics (GoatCounter, defer attribute)
-- **bv/bv-import.js** (285 LOC): Importador para BV (delega parsing en csv-utils)
-- **bv/bv-sim-monthly.js** (526 LOC): Motor simulación mensual BV (cálculo económico)
-- **bv/bv-ui.js** (1,547 LOC): UI simulador BV (tooltips, responsive, accesibilidad)
-
-**Ventajas:**
-- Cambios aislados por módulo
-- Testing más fácil (funciones puras)
-- Debug simplificado (módulos pequeños)
-- Reutilización de código
-
----
-
-## 🔒 Privacidad y Seguridad
-
-### Sin Tracking Personal
-- Solo GoatCounter (analytics agregadas, sin cookies de terceros)
-- localStorage solo para preferencias locales
-- **Facturas procesadas 100% en navegador** (nunca se suben)
-- Sin cookies de terceros
-
-### Ciclo de Vida de los Datos
-
-| Tipo de Dato | Dónde vive | ¿Se guarda? | ¿Se envía fuera? |
-|--------------|------------|-------------|------------------|
-| **Inputs numéricos** (Potencia, Consumo) | Memoria navegador | ✅ Sí (localStorage) | ❌ Nunca |
-| **Preferencias** (Zona fiscal, Tema) | Memoria navegador | ✅ Sí (localStorage) | ❌ Nunca |
-| **Datos sensibles PDF** (Nombre, DNI, IBAN) | Memoria temporal | ❌ NO (Efímero) | ❌ Nunca |
-| **Archivos CSV** (Curvas de carga) | Memoria temporal | ❌ NO (Efímero) | ❌ Nunca |
-| **IP / User Agent** | Logs servidor (GitHub) | ✅ Logs estándar | ❌ No (salvo requerimiento legal) |
-
-**Datos que NO recopilamos:**
-- Nombre, email, teléfono
-- Dirección IP o geolocalización (más allá de logs técnicos)
-- Hábitos de navegación
-- Datos personales
-
-**localStorage usado para:**
-- Tema (claro/oscuro)
-- Última configuración del comparador
-- Caché de PVPC (por día)
-- Debug mode (?debug=1)
-
-### Seguridad Enterprise-Level
-
-**Content Security Policy (CSP):**
-- 33/33 páginas con CSP (100% cobertura)
-- Políticas diferenciadas según necesidad
-- `frame-ancestors 'none'` (anti-clickjacking)
-- `form-action 'self'` (anti-exfiltración)
-- `wasm-unsafe-eval` solo en 3 páginas (index + calculadora + comparador solar)
-- Mínimo privilegio aplicado
-
-**Protección XSS:**
-- Sanitización con `escapeHtml()` en todos los innerHTML
-- Sin eval() ni innerHTML sin sanitizar
-- Validación estricta de inputs
-
-**Dependencias:**
-- Todas auto-hospedadas en `/vendor/`
-- Sin CDNs externos
-- Control total de versiones
-
----
-
-## 📊 Métricas del Proyecto
-
-### Archivos
-- 33 archivos HTML (10 páginas funcionales + 23 guías)
-- 28 archivos JavaScript en `js/` (incluye BV y Observatorio)
-- 8 archivos CSS propios
-- 2 JSON de negocio editables (`tarifas.json`, `novedades.json`) + datasets versionados en `/data/pvpc/` y `/data/surplus/`
-
-### Tamaños
-- **Precache Service Worker**:
-  - Core obligatorio (`CORE_ASSETS`): ~0.54 MB
-  - Con opcionales (`ASSETS`) puede llegar a ~1.75 MB
-
-- **Lazy loading** (no en precache):
-  - PDF.js: ~1.5 MB
-  - Tesseract + core + data: ~8 MB
-  - Excel (xlsx): ~1 MB
-
-### Líneas de Código
-- **JavaScript (`js/`)**: 15.958 líneas (28 archivos)
-  - factura.js: 1.786
-  - bv/bv-ui.js: 1.547
-  - lf-csv-utils.js: 1.307
-  - pvpc.js: 909
-  - index-extra.js: 828
-- **CSS**: 9.824 líneas (8 archivos)
-  - styles.css: 4.497
-  - bv-sim.css: 1.737
-  - estadisticas/estadisticas.css: 1.426
-- **HTML**: 23.344 líneas (33 páginas)
-- **Total (HTML + CSS + JS)**: 49.126 líneas aprox.
-
----
-
-## 🧪 Testing
-
-El proyecto cuenta con una suite de tests robusta utilizando **Vitest** + **JSDOM** para simular el entorno del navegador.
-
-### Ejecutar Tests
+# LuzFija.es
+
+Comparador avanzado de tarifas electricas en Espana, gratuito, sin registro y con calculo local en navegador.
+
+- Web: `https://luzfija.es`
+- Comparador principal: `https://luzfija.es/`
+- Observatorio PVPC: `https://luzfija.es/estadisticas/`
+- Comparador tarifas solares (BV): `https://luzfija.es/comparador-tarifas-solares.html`
+- Guias: `https://luzfija.es/guias.html`
+- Contacto: `hola@luzfija.es`
+
+## Estado Actual (2026-02-08)
+
+- 33 paginas HTML publicas:
+- 8 en raiz.
+- 1 en `estadisticas/`.
+- 24 en `guias/` (indice + 23 guias).
+- 28 modulos JavaScript (`js/*.js` + `js/bv/*.js`).
+- 14.157 lineas JS aproximadas.
+- 33 tarifas en `tarifas.json`.
+- Suite de tests Vitest con 26 archivos y ~174 casos.
+
+## Que Incluye La Web (Inventario Completo)
+
+### 1. Comparador Principal (`/`)
+
+- Compara tarifas 1P y 3P del mercado libre.
+- Incluye PVPC estimado en el ranking (datos horarios oficiales ya publicados en dataset local).
+- Limite de modelo PVPC: no computable cuando potencia contratada > 10 kW.
+- Soporta:
+- discriminacion horaria,
+- placas solares,
+- compensacion de excedentes,
+- bateria virtual,
+- bono social,
+- tarifa personalizada del usuario.
+- Extrae datos de factura PDF (texto + QR + OCR opcional).
+- Importa consumos desde CSV/XLSX (incluye clasificacion P1/P2/P3 y soporte formatos distribuidoras).
+- Modal de aplicacion CSV con opcion de aplicar solo consumos o consumos+excedentes.
+- Incluye analisis especifico de Octopus Sun Club al aplicar CSV con curva horaria.
+- Tabla con filtros, ordenacion por columnas, top 5 visual y modal de desglose.
+- Bloque de novedades de mercado cargado desde `novedades.json`.
+- Menu de utilidades:
+- compartir configuracion por URL,
+- refrescar tarifas,
+- limpiar cache,
+- reset de formulario.
+- Boton de instalacion PWA cuando el navegador expone `beforeinstallprompt`.
+
+### 2. Observatorio PVPC (`/estadisticas/`)
+
+- Selector de tipo de dato: `pvpc` o `surplus`.
+- Selector geografia (8741..8745), ano y mes.
+- KPIs dinamicos (ultimo dia, medias/ extremos, rolling 12m, YoY).
+- Graficos:
+- evolucion (diaria o mensual),
+- perfil horario promedio,
+- comparativa multianual por chips.
+- Importador CSV/XLSX de excedentes del usuario con:
+- KPIs anuales,
+- tabla mensual con energia/precio/importe,
+- tramo horario principal (80% del vertido),
+- hora pico.
+- Esta seccion CSV se habilita en modo `surplus`.
+
+### 3. Simulador BV Independiente (`/comparador-tarifas-solares.html`)
+
+- Simulacion mes a mes con datos reales de autoconsumo.
+- Modo hibrido:
+- importas CSV/XLSX,
+- se auto-rellena tabla manual mensual,
+- puedes editar y simular escenarios.
+- Ranking anual:
+- orden por coste anual pagado,
+- desempate por mayor saldo BV final.
+- Desglose completo por tarifa en desktop (tabla) y movil (tarjetas).
+- Persistencia local avanzada:
+- autoguardado tabla manual,
+- export/import JSON de backup,
+- reset de datos manuales,
+- tarifa personalizada propia del simulador con guardado local.
+
+### 4. Contenido Y Soporte
+
+- `guias.html` + 23 guias educativas.
+- Landings de apoyo:
+- `calcular-factura-luz.html`
+- `comparar-pvpc-tarifa-fija.html`
+- `404.html` con enlaces rapidos y buscador hacia guias.
+- `aviso-legal.html` y `privacidad.html` (incluye opt-out de analitica GoatCounter).
+
+## Documentacion De Referencia
+
+### Inventario funcional (fuente de verdad)
+
+- `CAPACIDADES-WEB.md`:
+- mapa pagina por pagina,
+- flujos completos de usuario,
+- capacidades para asistentes IA,
+- reglas anti-lagunas.
+
+### Calculo y normativa
+
+- `ARQUITECTURA-CALCULOS.md`
+- `CALC-FAQS.md`
+
+### Esquemas de datos
+
+- `JSON-SCHEMA.md`
+- `PVPC-SCHEMA.md`
+
+### Simulador BV
+
+- `SIMULADOR-BV.md`
+
+### Documento para asistentes IA
+
+- `llms.txt`
+
+## Arquitectura Tecnica
+
+- Stack: HTML + CSS + Vanilla JS modular.
+- Hosting: GitHub Pages (sitio estatico).
+- Dependencias autoalojadas en `vendor/`:
+- PDF.js (lazy),
+- Tesseract (lazy),
+- jsQR,
+- SheetJS/xlsx (lazy),
+- Chart.js.
+- Sin backend para calculos: todo se ejecuta en cliente.
+
+### Datasets versionados
+
+- `tarifas.json` (ofertas comerciales).
+- `novedades.json` (avisos/noticias de home).
+- `/data/pvpc/` (REE/ESIOS indicador 1001).
+- `/data/surplus/` (REE/ESIOS indicador 1739).
+
+## PWA, Cache Y Offline
+
+- Service Worker en `sw.js` con versionado por despliegue (`CACHE_VERSION`).
+- Precache en dos niveles:
+- `CORE_ASSETS` (obligatorio).
+- `ASSETS` opcionales best-effort.
+- Estrategias de cache:
+- HTML: network-first.
+- `tarifas.json`: network-only (sin cache para evitar datos obsoletos).
+- `novedades.json`: stale-while-revalidate.
+- datasets PVPC/surplus: network-first.
+- resto de recursos: stale-while-revalidate.
+- Cliente con actualizacion agresiva de SW para aplicar nuevas versiones rapidamente.
+
+## Privacidad Y Seguridad
+
+- Procesamiento local para:
+- calculos,
+- parsing CSV,
+- parsing PDF/QR/OCR.
+- Politica de minimizacion:
+- no hay registro obligatorio,
+- no se envian facturas a backend propio.
+- Analitica con GoatCounter (sin cookies de terceros), con opt-out de usuario.
+- CSP por pagina + sanitizacion en renderizado dinamico + validacion de URL segura.
+
+## Testing
+
+Ejecutar:
+
 ```bash
 npm test
 ```
 
-### Cobertura Principal (120+ tests)
+Cobertura principal:
 
-1.  **Motor de Cálculo (`lf-calc.js`)**:
-    - Verifica fórmulas de potencia, energía, impuestos y topes del gas.
-    - Tests de regresión para cambios en peajes/cargos.
-    - Validación de casos borde (0 días, consumos negativos).
+- motor de calculo e impuestos,
+- PVPC y cache,
+- importadores CSV/XLSX,
+- factura PDF + QR/OCR,
+- desglose e integraciones UI,
+- seguridad URL/XSS,
+- privacidad/tracking.
 
-2.  **PVPC (`pvpc.js`)**:
-    - Simula descarga de precios horarios (fetch mock).
-    - Valida lógica de festivos nacionales y fines de semana.
-    - Asegura que la caché local (localStorage) funcione offline.
+## Mantenimiento De Datos
 
-3.  **Integración de Facturas PDF (`factura-integration.test.js`)**:
-    - **Black Box Testing**: Simula el flujo completo de subida de un archivo PDF.
-    - Mockea `PDF.js` para inyectar contenido de texto controlado sin dependencias externas.
-    - Verifica la extracción automática de datos: Compañía, P1/P2, Consumos y Fechas.
-
-4.  **Sistema de Caché (`lf-cache.js`)**:
-    - **Offline-first**: Verifica que la app funcione sin red si ya tiene datos.
-    - **Stale-while-revalidate**: Sirve datos rápidos y actualiza en segundo plano.
-    - Manejo de errores de red y corrupción de datos.
-
-5.  **Importación de Datos (`lf-csv-import.js`)**:
-    - **Formatos**: CSV (punto y coma, coma), Excel (.xlsx, .xls), Matriz Horaria.
-    - **Resiliencia**: Manejo de archivos corruptos, codificaciones raras (BOM) y columnas faltantes.
-    - **Solar**: Detección automática de excedentes y validación de rangos.
-
-6.  **Simulador Solar (`bv-sim-monthly.js`)**:
-    - Cálculo mes a mes de compensación y acumulación en Batería Virtual.
-    - Validación de reglas de caducidad de saldo (si aplica).
-
-7.  **Componentes UI y Lógica de Negocio**:
-    - **Desglose (`desglose.test.js`)**: Valida que la suma de los conceptos desglosados coincida exactamente con el total.
-    - **Tarifa Personalizada (`custom-tarifa.test.js`)**: Lógica de comparación contra contrato de usuario ("Mi Tarifa").
-    - **Inputs y Utils (`inputs.test.js`, `utils.test.js`)**: Sanitización de entradas, formateo de números y seguridad XSS.
-
----
-
-## 🛡️ Service Worker (CACHE_VERSION dinámica)
-
-### Estrategias de Caché (App Shell + Runtime)
-
-**Precache (install):**
-- Core obligatorio (`CORE_ASSETS`) para garantizar arranque offline.
-- Assets opcionales (`ASSETS`) en modo best-effort: si alguno falla, no se rompe la instalación.
-- Limpieza automática de versiones antiguas al activar una nueva `CACHE_VERSION`.
-
-**Network-first (HTML/documentos):**
-- Navegación intenta red primero para servir contenido actualizado.
-- Fallback a caché (y `index.html`) cuando no hay red.
-
-**Network-only (`tarifas.json`):**
-- Se solicita siempre a red (`cache: no-store`).
-- El SW purga cualquier copia previa cacheada para evitar resultados obsoletos.
-
-**Stale-while-revalidate (`novedades.json`):**
-- Respuesta rápida desde caché si existe + refresco en segundo plano.
-
-**Network-first (`/data/pvpc/*` y `/data/surplus/*`):**
-- Prioriza datos frescos; si falla red, usa caché como fallback.
-
-**Stale-while-revalidate (resto de recursos):**
-- Scripts secundarios, imágenes y otros assets se cachean al vuelo.
-
-**Lazy loading (bajo demanda):**
-- PDF.js se descarga y cachea al subir primera factura
-- Tesseract OCR al activar OCR
-- Excel (xlsx) al importar primer CSV
-
----
-
-## 💬 Contacto
-
-- 📧 **Email**: [hola@luzfija.es](mailto:hola@luzfija.es)
-- 🐛 **Issues**: GitHub Issues
-- 💬 **Sugerencias**: Email
-
----
-
-## 📜 Licencia
-
-**MIT License**
-
-```
-Copyright (c) 2026 LuzFija.es
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
-
----
-
-## 📖 Documentación Técnica
-
-Para desarrolladores e interesados en la arquitectura de datos:
-
-- [Esquema de Datos JSON (tarifas y novedades)](JSON-SCHEMA.md)
-- [Arquitectura y Esquema PVPC](PVPC-SCHEMA.md)
-- [Documentación del Simulador de Batería Virtual](SIMULADOR-BV.md)
-- [Contexto para LLMs / Asistentes IA](llms.txt)
-
----
-
-## 🙏 Agradecimientos
-
-- **REE/ESIOS** por API oficial de PVPC (indicador 1001)
-- **Comunidad open source** por librerías (PDF.js, Tesseract.js, jsQR, SheetJS)
-
----
-
-⚡ **Herramienta independiente para ayudar a consumidores españoles a comparar tarifas de luz** ⚡
-
-*Proyecto educativo y sin ánimo de lucro*
-
-✅ CSP completo • ✅ PWA • ✅ Sin cookies de terceros • ✅ Accesibilidad (ARIA/focus) • ✅ Rendimiento optimizado
-
-
-<!-- Updated 2026-02-03 -->
+- Actualizaciones de datasets PVPC/surplus via GitHub Actions.
+- Recomendacion operativa:
+- mantener `tarifas.json` actualizado con fecha `updatedAt`,
+- revisar `novedades.json` para avisos regulatorios,
+- validar cambios con `npm test` antes de publicar.

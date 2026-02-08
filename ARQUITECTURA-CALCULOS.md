@@ -3,6 +3,7 @@
 **Última actualización**: Febrero 2026
 **Estado**: ✅ Validado contra normativa CNMC/BOE
 **Referencia CNMC**: v2.1.2 (28/01/2026)
+**Nota de alcance**: Este documento cubre el motor de cálculo. Para inventario funcional completo de la web (todas las páginas y flujos), ver `CAPACIDADES-WEB.md`.
 
 ---
 

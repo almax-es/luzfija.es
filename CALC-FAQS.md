@@ -1,6 +1,7 @@
 # ❓ Preguntas Frecuentes - Cálculos LuzFija
 
 **Dirigido a**: Desarrolladores, auditores, IAs revisoras
+**Nota de alcance**: Este FAQ cubre dudas de cálculo. Para capacidades funcionales completas del sitio (home, observatorio, simulador BV, guías, legal), ver `CAPACIDADES-WEB.md`.
 
 ---
 

@@ -1,6 +1,7 @@
 # ⚡ Arquitectura PVPC y Excedentes — Documentación Completa
 
 Documentación técnica precisa de la estructura de datos, actualización automática y procesos del **PVPC (Precio Voluntario del Pequeño Consumidor)** en luzfija.es.
+Para inventario funcional completo del sitio (incluyendo observatorio, comparador principal y simulador BV), ver `CAPACIDADES-WEB.md`.
 
 ---
 

@@ -1,6 +1,7 @@
 # 🔋 Comparador de Tarifas Solares - Documentación Técnica
 
 **URL**: [https://luzfija.es/comparador-tarifas-solares.html](https://luzfija.es/comparador-tarifas-solares.html)
+**Nota de alcance**: Este documento profundiza en el simulador BV. Para el inventario completo de toda la web, ver `CAPACIDADES-WEB.md`.
 
 ## 📖 Índice
 
@@ -18,7 +19,7 @@
 
 ## ¿Qué es el Simulador BV?
 
-El **Simulador de Batería Virtual** es una herramienta especializada que permite comparar **todas las tarifas con batería virtual** del mercado español utilizando tus **consumos reales mes a mes**.
+El **Simulador de Batería Virtual** es una herramienta especializada que permite comparar tarifas con autoconsumo y compensación de excedentes (con y sin BV) utilizando tus **consumos reales mes a mes**.
 
 ### Diferencia con el Comparador Principal
 
@@ -27,7 +28,7 @@ El **Simulador de Batería Virtual** es una herramienta especializada que permit
 | **Input** | Datos agregados (días, kWh totales) | Consumos horarios (CSV/XLSX) |
 | **Cálculo** | Un periodo único | Mes a mes (histórico) |
 | **Batería Virtual** | Estimación simplificada | Simulación exacta mes a mes |
-| **Ranking** | Todas las tarifas | Solo tarifas BV (precio fijo) |
+| **Ranking** | Todas las tarifas | Tarifas con excedentes remunerados |
 | **Output** | Factura estimada | Evolución mensual completa |
 
 ### ¿Por qué es necesario?
@@ -124,10 +125,9 @@ Soporte para 3 zonas con impuestos diferenciados:
 
 **Solo muestra tarifas con**:
 - ✅ Campo `fv` (autoconsumo fotovoltaico)
-- ✅ Precio de excedentes fijo (`exc > 0`)
-- ✅ NO sean indexadas (tipo ≠ "INDEXADA")
+- ✅ Precio de excedentes numérico (`exc > 0`)
 
-**Razón**: El simulador necesita precio fijo de excedentes para calcular la compensación exacta.
+**Razón**: El simulador necesita un precio de excedentes utilizable para calcular la compensación. Si una tarifa indexada se incluye con valor estimado en `tarifas.json`, se muestra con nota informativa.
 
 ### 🔄 Modo Híbrido: CSV a Manual
 
@@ -270,9 +270,9 @@ window.BVSim.simulateForAllTarifasBV({
 
 ```javascript
 window.BVSim.loadTarifasBV()
-// Carga tarifas.json y filtra solo tarifas BV válidas
+// Carga tarifas.json y filtra tarifas con excedentes remunerados (fv.exc > 0)
 // Devuelve: { ok: true, tarifasBV: [...] }
-// Error si no hay tarifas BV disponibles
+// Error si no hay tarifas con excedentes disponibles
 ```
 
 #### 3. **bv-ui.js** - Interfaz de Usuario
@@ -630,7 +630,7 @@ await window.BVSim.loadTarifasBV()
 ```javascript
 {
   ok: false,
-  error: "No hay tarifas con batería virtual disponibles actualmente. El simulador solo muestra tarifas con precio fijo de excedentes (no indexadas)."
+  error: "No hay tarifas con excedentes remunerados disponibles actualmente."
 }
 ```
 
@@ -1044,9 +1044,9 @@ El simulador lee de `tarifas.json` automáticamente. Para añadir/actualizar tar
 
 ## Preguntas Frecuentes (FAQ)
 
-### ¿Por qué solo muestra tarifas con precio fijo de excedentes?
+### ¿Por qué filtra tarifas sin precio de excedentes utilizable?
 
-Para calcular la compensación exacta mes a mes, necesitamos conocer el precio de los excedentes de antemano. Las tarifas indexadas tienen precio variable según el pool, por lo que no podemos calcular el importe exacto sin saber los precios históricos del pool.
+El simulador necesita un valor numérico para `fv.exc`. Por eso solo carga tarifas con `fv.exc > 0`. Esto incluye precios fijos y, en algunos casos, precios indexados ya estimados en `tarifas.json` (mostrados con nota informativa en la UI).
 
 ### ¿Qué hago si mi CSV no tiene excedentes?
 

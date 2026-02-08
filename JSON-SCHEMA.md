@@ -1,6 +1,7 @@
 # 📋 Esquema de Datos JSON — luzfija.es
 
 Documentación precisa de los archivos JSON que alimentan el comparador de tarifas.
+Para inventario funcional completo de producto (todas las páginas y flujos), ver `CAPACIDADES-WEB.md`.
 
 ---
 
