@@ -14,7 +14,8 @@
   }
   window.__ALMAX_THEME_KEY = key;
 
-  // Guard global defensivo para scripts que esperan currentYear
+  // Guard global defensivo redundante (el principal está en config.js)
+  // Se mantiene por si theme.js se ejecuta antes que config.js en algún contexto
   try {
     if (typeof window.currentYear !== 'number') {
       window.currentYear = new Date().getFullYear();

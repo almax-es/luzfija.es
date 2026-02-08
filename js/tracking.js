@@ -5,7 +5,8 @@
 (function() {
   'use strict';
 
-  // Guard global defensivo para scripts que esperan currentYear
+  // Guard global defensivo redundante (el principal está en config.js)
+  // Se mantiene por si tracking.js se ejecuta en un contexto donde config.js no está cargado
   try {
     if (typeof window.currentYear !== 'number') {
       window.currentYear = new Date().getFullYear();
