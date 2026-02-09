@@ -71,18 +71,19 @@ Motor de reconocimiento óptico de caracteres (WASM + JS).
 ## 📱 jsQR
 Lector de códigos QR en JavaScript puro.
 
-- **Versión Detectada:** ~1.4.0 (Latest npm)
+- **Versión:** 1.4.0
+- **Licencia:** Apache License 2.0
 - **Archivos:**
-  - `jsQR.js`
+  - `jsqr/jsQR.js`
     - **SHA-256:** `3325b0888fa4745c4e6940897d8c4f426fbaae76901fcbfe1871a04e90a51655`
     - **Tamaño:** 250.71 KB
 
 ## 🐐 GoatCounter
 Script de analítica respetuosa con la privacidad (sin cookies).
 
-- **Versión:** Latest (count.js)
+- **Versión:** Latest (actualizado: 29/01/2026)
 - **Licencia:** ISC
 - **Archivos:**
-  - `count.js`
+  - `goatcounter/count.js`
     - **SHA-256:** `030ad75a7c80a04107a9b91f79e4b1572da0a583a80a9b67e111b310da11cbe9`
     - **Tamaño:** 8.73 KB
