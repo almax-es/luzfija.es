@@ -31,6 +31,16 @@ Renderizado y lectura de documentos PDF en el navegador.
     - **SHA-256:** `f499515a0dc93d97787d693a75218a439675719283f56812067c036dcae1f8d5`
     - **Tamaño:** 1.02 MB
 
+## 📈 Chart.js
+Librería de gráficos interactivos para visualización de datos.
+
+- **Versión:** 4.5.1
+- **Licencia:** MIT
+- **Archivos:**
+  - `chartjs/chart.umd.js`
+    - **SHA-256:** `ecc3cd1eeb8c34d2178e3f59fd63ec5a3d84358c11730af0b9958dc886d7652a`
+    - **Tamaño:** 204 KB
+
 ## 🧠 Tesseract.js (OCR)
 Motor de reconocimiento óptico de caracteres (WASM + JS).
 
