@@ -2,7 +2,7 @@
 
 Este directorio contiene librerías de terceros alojadas localmente para garantizar la privacidad (evitar peticiones a CDNs externos), la estabilidad y el funcionamiento offline.
 
-**Última actualización del inventario:** 29/01/2026
+**Última actualización del inventario:** 09/02/2026
 
 ---
 
@@ -20,15 +20,15 @@ Librería para la manipulación de hojas de cálculo (Excel, CSV).
 ## 📄 PDF.js
 Renderizado y lectura de documentos PDF en el navegador.
 
-- **Versión:** 5.4.530
-- **Build:** 50cc4adac
+- **Versión:** 5.4.624
+- **Build:** 384c6208b
 - **Licencia:** Apache License 2.0 (Mozilla Foundation)
 - **Archivos:**
   - `pdf.min.mjs` (Core)
-    - **SHA-256:** `9bf7819e37acc02ddff252e0253e1839e3a7b8085e9e36f85186d067c004e8ae`
-    - **Tamaño:** 416.62 KB
+    - **SHA-256:** `5f1177175790dcf5b5b0a888205f132bea690c35194e4613099d421a16423d0b`
+    - **Tamaño:** 414.62 KB
   - `pdf.worker.min.mjs` (Worker)
-    - **SHA-256:** `e833e0e7445b975c6f678c1294f2a8dfd47c0bb16634582945e0280b1f1c544a`
+    - **SHA-256:** `f499515a0dc93d97787d693a75218a439675719283f56812067c036dcae1f8d5`
     - **Tamaño:** 1.02 MB
 
 ## 🧠 Tesseract.js (OCR)
