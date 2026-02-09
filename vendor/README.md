@@ -34,21 +34,26 @@ Renderizado y lectura de documentos PDF en el navegador.
 ## 🧠 Tesseract.js (OCR)
 Motor de reconocimiento óptico de caracteres (WASM + JS).
 
-- **Versión (Wrapper):** 5.1.1
+- **Versión (Wrapper):** 7.0.0
+- **Versión (Core):** 5.1.0
 - **Licencia:** Apache License 2.0 (Ver `worker.min.js`)
 - **Archivos JS:**
   - `tesseract/tesseract.min.js`
-    - **SHA-256:** `a8e29918d098b2b06e1012bdaeffb4aec0445c5d5654709023e0bd1f442a80e8`
+    - **SHA-256:** `000c27d9cd0def655f77b36c72a389c0ab13793aa31cb4d7aab56d09c0afbc7e`
+    - **Tamaño:** 61.49 KB
   - `tesseract/worker.min.js`
-    - **SHA-256:** `aca1229639fc9907d86f96e825955a2b7c5716d17f3bc3acd71f9c7ab66181fc`
+    - **SHA-256:** `576b7df7e3393e137e51849357c9adb53fe7ac1bb69bfa06cf3d61520f182c6d`
+    - **Tamaño:** 108.61 KB
   - `tesseract/tesseract.esm.min.js`
-    - **SHA-256:** `2537be686335e4b2637e933cdc85a52dd80267a592689c1bd63235c8591540ae`
+    - **SHA-256:** `64871d76c75609fd5413b88a8171e2ef40deedd77d5875ba23df104b2d05eb29`
+    - **Tamaño:** 61.74 KB
 - **Archivos Core (WASM):**
   - `tesseract-core/tesseract-core.wasm`
     - **SHA-256:** `b47a852b19181ae0999f9d970c368cd351135a320ea978b35bd38602d8bcc0bc`
     - **Tamaño:** 3.30 MB
   - `tesseract-core/tesseract-core.wasm.js`
-    - **SHA-256:** `2b8c8c92b8788807061fb4bb16c5acdf000c149e100255f879f78d2c58ca9969`
+    - **SHA-256:** `fe68f746dc186bb19e2c55de3514d3d6c4036ede53488b5a4db00dfe3f75e5f1`
+    - **Tamaño:** 4.51 MB
 - **Datos de Idioma:**
   - `tessdata/spa.traineddata.gz` (Español)
     - **SHA-256:** `40be52f97b5d4eb7460073dc1f94cd546b27150333c0bf854ed7e7132db6bceb`
