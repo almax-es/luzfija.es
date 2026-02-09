@@ -136,6 +136,50 @@
   // Exponer función global para que app.js pueda usarla
   window.__LF_track = trackEvent;
 
+  function safeText(value) {
+    if (value === null || value === undefined) return '';
+    return String(value).replace(/\s+/g, ' ').trim();
+  }
+
+  function shortSource(urlLike) {
+    const raw = safeText(urlLike);
+    if (!raw) return '';
+    try {
+      const u = new URL(raw, location.origin);
+      if (u.origin === location.origin) return u.pathname || '';
+      return u.hostname || raw;
+    } catch (_) {
+      return raw;
+    }
+  }
+
+  // Detectar navegador de forma simple y segura
+  function getBrowserInfo() {
+    try {
+      const ua = navigator.userAgent || '';
+      // Detectar navegador y versión aproximada
+      if (ua.indexOf('Chrome') > -1 && ua.indexOf('Edge') === -1 && ua.indexOf('Edg') === -1) {
+        const match = ua.match(/Chrome\/(\d+)/);
+        return match ? 'Chrome/' + match[1] : 'Chrome';
+      }
+      if (ua.indexOf('Safari') > -1 && ua.indexOf('Chrome') === -1) {
+        const match = ua.match(/Version\/(\d+)/);
+        return match ? 'Safari/' + match[1] : 'Safari';
+      }
+      if (ua.indexOf('Firefox') > -1) {
+        const match = ua.match(/Firefox\/(\d+)/);
+        return match ? 'Firefox/' + match[1] : 'Firefox';
+      }
+      if (ua.indexOf('Edg') > -1) {
+        const match = ua.match(/Edg\/(\d+)/);
+        return match ? 'Edge/' + match[1] : 'Edge';
+      }
+      return 'Other';
+    } catch (_) {
+      return 'Unknown';
+    }
+  }
+
   // ===== EVENTOS AUTOMÁTICOS (no requieren modificar app.js) =====
   window.addEventListener('DOMContentLoaded', function() {
 
@@ -206,13 +250,33 @@
 
   });
 
-  // ===== TRACKING DE ERRORES (opcional) =====
+  // ===== TRACKING DE ERRORES (mejorado con info detallada) =====
   window.addEventListener('error', function(e) {
     try{
       const filename = e && e.filename ? String(e.filename) : '';
-      if (filename.includes('luzfija.es')) {
+      const message = safeText(e && e.message ? e.message : 'desconocido');
+      const source = shortSource(filename) || '(inline)';
+      const line = (e && typeof e.lineno === 'number') ? e.lineno : 0;
+      const col = (e && typeof e.colno === 'number') ? e.colno : 0;
+      const route = safeText(location && location.pathname ? location.pathname : '');
+      const browser = getBrowserInfo();
+
+      // Solo trackear errores de nuestro dominio o inline
+      const isOurError = !filename ||
+                         filename.includes(location.hostname) ||
+                         filename.includes('luzfija.es') ||
+                         source === '(inline)';
+
+      if (isOurError) {
+        const parts = [
+          message.substring(0, 60),
+          source + ':' + line + (col ? ':' + col : '')
+        ];
+        if (route && route !== '/') parts.push('@' + route);
+        parts.push(browser);
+
         trackEvent('error-javascript', {
-          title: 'Error JS: ' + String(e.message || 'desconocido').substring(0, 50)
+          title: parts.join(' | ').substring(0, 150)
         });
       }
     }catch(_){}
@@ -222,25 +286,26 @@
   window.addEventListener('unhandledrejection', function(e) {
     try {
       const reason = e && e.reason ? e.reason : 'unknown';
-      let msg = 'Promise reject: ';
-      
-      if (reason instanceof Error) {
-        msg += String(reason.message || reason.name || 'Error');
-      } else {
-        msg += String(reason);
-      }
-      
-      // Añadir ruta para ayudar a localizar la página
-      try {
-        const path = (location && location.pathname) ? location.pathname : '';
-        if (path) msg += ` @${path}`;
-      } catch (_) {}
+      const route = safeText(location && location.pathname ? location.pathname : '');
+      const browser = getBrowserInfo();
 
-      // Truncar a 100 caracteres para no saturar tracking
-      msg = msg.substring(0, 100);
-      
-      trackEvent('error-promise', { title: msg });
-      
+      let msg = '';
+      if (reason instanceof Error) {
+        msg = String(reason.message || reason.name || 'Error');
+      } else {
+        msg = String(reason);
+      }
+
+      const parts = [
+        'Promise: ' + msg.substring(0, 60)
+      ];
+      if (route && route !== '/') parts.push('@' + route);
+      parts.push(browser);
+
+      trackEvent('error-promise', {
+        title: parts.join(' | ').substring(0, 150)
+      });
+
       if (DEBUG) {
         dbg('Unhandled Promise rejection:', reason);
       }
