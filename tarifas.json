@@ -625,6 +625,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Visalia 3P",
+      "cPunta": 0.211299,
+      "cLlano": 0.13285,
+      "cValle": 0.102684,
+      "p1": 0.075903,
+      "p2": 0.001987,
+      "web": "https://visalia.es/luz/luz-3-periodos/",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "CHC VE 3P",
       "cPunta": 0.224003,
       "cLlano": 0.220099,
@@ -643,5 +661,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-02-10T08:22:48.548Z"
+  "updatedAt": "2026-02-10T10:41:35.442Z"
 }
