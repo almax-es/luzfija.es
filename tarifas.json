@@ -149,7 +149,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "Seneo 3",
+      "nombre": "Seneo Tarifa 3",
       "cPunta": 0.111,
       "cLlano": 0.111,
       "cValle": 0.111,
@@ -277,7 +277,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "Seneo 2",
+      "nombre": "Seneo Tarifa 2",
       "cPunta": 0.124,
       "cLlano": 0.124,
       "cValle": 0.124,
@@ -313,7 +313,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "Seneo 1",
+      "nombre": "Seneo Tarifa 1",
       "cPunta": 0.146,
       "cLlano": 0.146,
       "cValle": 0.146,
@@ -349,7 +349,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "Seneo 3 3P",
+      "nombre": "Seneo Tarifa 3 3P",
       "cPunta": 0.163,
       "cLlano": 0.096,
       "cValle": 0.072,
@@ -533,7 +533,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "Seneo 2 3P",
+      "nombre": "Seneo Tarifa 2 3P",
       "cPunta": 0.191,
       "cLlano": 0.121,
       "cValle": 0.086,
@@ -607,7 +607,7 @@
       "requiereFV": true
     },
     {
-      "nombre": "Seneo 1 3P",
+      "nombre": "Seneo Tarifa 1 3P",
       "cPunta": 0.21,
       "cLlano": 0.138,
       "cValle": 0.106,
@@ -643,5 +643,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-02-10T07:53:51.911Z"
+  "updatedAt": "2026-02-10T08:22:48.548Z"
 }
