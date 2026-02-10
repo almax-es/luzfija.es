@@ -329,7 +329,7 @@
           pvpcMaxHour.textContent = `${entries[idxMax].label}h`;
 
           pvpcInline.hidden = false;
-} catch (error) {
+        } catch (error) {
           const pvpcInline = document.getElementById('pvpcInline');
           if (pvpcInline) pvpcInline.hidden = true;
           console.error('Error cargando PVPC:', error);
