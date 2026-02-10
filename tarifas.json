@@ -9,6 +9,13 @@
       "p2": 0.093666,
       "web": "https://www.endesa.com/es/luz-y-gas/luz/conecta-de-endesa",
       "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
       "requiereFV": false
     },
     {
@@ -20,6 +27,14 @@
       "p2": 0.089528,
       "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
       "tipo": "1P",
+      "requisitos": "Potencia contratada ≤ 5 kW",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
       "requiereFV": false
     },
     {
@@ -31,6 +46,13 @@
       "p2": 0.060274,
       "web": "https://visalia.es/luz/fijo24horas/",
       "tipo": "1P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
       "requiereFV": false
     },
     {
@@ -42,6 +64,14 @@
       "p2": 0.046371,
       "web": "https://www.energianufri.com/es/landing/mas-tarifas-luz-gas",
       "tipo": "1P",
+      "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
       "requiereFV": false
     },
     {
@@ -53,6 +83,13 @@
       "p2": 0.044,
       "web": "https://ofertas.imaginaenergia.com/plan-online-imagina/",
       "tipo": "1P",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
       "requiereFV": false
     },
     {
@@ -64,6 +101,14 @@
       "p2": 0.046576,
       "web": "https://www.energyavm.es/luz/formula-fija-24-horas-luz/",
       "tipo": "1P",
+      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 6.000 kWh/año",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
       "requiereFV": false
     },
     {
@@ -75,6 +120,13 @@
       "p2": 0.072589,
       "web": "https://www.totalenergies.es/es/hogares/tarifas-luz-gas/a-tu-aire-siempre",
       "tipo": "1P",
+      "fv": {
+        "exc": 0.07,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
       "requiereFV": false
     },
     {
@@ -86,10 +138,18 @@
       "p2": 0.057507,
       "web": "https://www.iberdrola.es/luz/plan-online",
       "tipo": "1P",
+      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
       "requiereFV": false
     },
     {
-      "nombre": "Seneo 3",
+      "nombre": "Seneo 2",
       "cPunta": 0.111,
       "cLlano": 0.111,
       "cValle": 0.111,
@@ -97,6 +157,13 @@
       "p2": 0.089,
       "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
       "tipo": "1P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
       "requiereFV": false
     },
     {
@@ -108,6 +175,13 @@
       "p2": 0.089434,
       "web": "https://ganaenergia.com/tarifas-luz/24-horas",
       "tipo": "1P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
       "requiereFV": false
     },
     {
@@ -119,6 +193,13 @@
       "p2": 0.027,
       "web": "https://octopusenergy.es/unicaja#tarifas",
       "tipo": "1P",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
       "requiereFV": false
     },
     {
@@ -130,6 +211,13 @@
       "p2": 0.047,
       "web": "https://niba.es/luz-y-gas",
       "tipo": "1P",
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
       "requiereFV": false
     },
     {
@@ -141,6 +229,14 @@
       "p2": 0.059,
       "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
       "tipo": "1P",
+      "requisitos": "Consumo ≤ 10.000 kWh/año",
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
       "requiereFV": false
     },
     {
@@ -152,6 +248,14 @@
       "p2": 0.033677,
       "web": "https://www.naturgy.es/hogar/luz/tarifa_por_uso_luz",
       "tipo": "1P",
+      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 10.000 kWh/año",
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
       "requiereFV": false
     },
     {
@@ -163,17 +267,13 @@
       "p2": 0.093666,
       "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz",
       "tipo": "1P",
-      "requiereFV": false
-    },
-    {
-      "nombre": "Seneo 2",
-      "cPunta": 0.124,
-      "cLlano": 0.124,
-      "cValle": 0.124,
-      "p1": 0.081,
-      "p2": 0.081,
-      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
-      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
       "requiereFV": false
     },
     {
@@ -185,6 +285,13 @@
       "p2": 0.068219,
       "web": "https://www.repsol.es/particulares/hogar/luz-y-gas/tarifas/tarifa-ahorro-plus/",
       "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
       "requiereFV": false
     },
     {
@@ -196,6 +303,13 @@
       "p2": 0.018,
       "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
       "tipo": "1P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
       "requiereFV": false
     },
     {
@@ -207,10 +321,17 @@
       "p2": 0.090214,
       "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz-3periodos",
       "tipo": "3P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
       "requiereFV": false
     },
     {
-      "nombre": "Seneo 3 3P",
+      "nombre": "Seneo 2 3P",
       "cPunta": 0.163,
       "cLlano": 0.096,
       "cValle": 0.072,
@@ -218,6 +339,13 @@
       "p2": 0.089,
       "web": "https://www.seneo.org/es/tarifa-tramos-horarios-con-monedero-solar/",
       "tipo": "3P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
       "requiereFV": false
     },
     {
@@ -229,6 +357,13 @@
       "p2": 0.0894,
       "web": "https://ganaenergia.com/tarifas-luz/tramos-horarios",
       "tipo": "3P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
       "requiereFV": false
     },
     {
@@ -240,6 +375,14 @@
       "p2": 0.002739,
       "web": "https://www.energyavm.es/luz/formula-fija-3-periodos/",
       "tipo": "3P",
+      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 6.000 kWh/año",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
       "requiereFV": false
     },
     {
@@ -251,6 +394,14 @@
       "p2": 0.046371,
       "web": "https://www.energianufri.com/es/landing/mas-tarifas-luz-gas",
       "tipo": "3P",
+      "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
       "requiereFV": false
     },
     {
@@ -262,6 +413,13 @@
       "p2": 0.072575,
       "web": "https://www.totalenergies.es/es/hogares/tarifas-luz/a-tu-aire-programa-tu-ahorro",
       "tipo": "3P",
+      "fv": {
+        "exc": 0.07,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
       "requiereFV": false
     },
     {
@@ -273,6 +431,13 @@
       "p2": 0.022,
       "web": "https://ofertas.imaginaenergia.com/plan-online-imagina/",
       "tipo": "3P",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
       "requiereFV": false
     },
     {
@@ -284,6 +449,14 @@
       "p2": 0.059,
       "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
       "tipo": "3P",
+      "requisitos": "Consumo ≤ 10.000 kWh/año",
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
       "requiereFV": false
     },
     {
@@ -295,7 +468,14 @@
       "p2": 0.007407,
       "web": "https://esluz.es/tarifa-solar-2-0/",
       "tipo": "3P",
-      "requiereFV": false
+      "fv": {
+        "exc": 0.08,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": true
     },
     {
       "nombre": "Octopus Unicaja 3P",
@@ -306,6 +486,13 @@
       "p2": 0.027,
       "web": "https://octopusenergy.es/unicaja#tarifas",
       "tipo": "3P",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
       "requiereFV": false
     },
     {
@@ -317,17 +504,14 @@
       "p2": 0.033677,
       "web": "https://www.naturgy.es/hogar/luz/tarifa_noche",
       "tipo": "3P",
-      "requiereFV": false
-    },
-    {
-      "nombre": "Seneo 2 3P",
-      "cPunta": 0.191,
-      "cLlano": 0.121,
-      "cValle": 0.086,
-      "p1": 0.081,
-      "p2": 0.081,
-      "web": "https://www.seneo.org/es/tarifa-tramos-horarios-con-monedero-solar/",
-      "tipo": "3P",
+      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 10.000 kWh/año",
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
       "requiereFV": false
     },
     {
@@ -339,6 +523,14 @@
       "p2": 0.013483,
       "web": "https://www.iberdrola.es/luz/plan-online-tres-periodos",
       "tipo": "3P",
+      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
       "requiereFV": false
     },
     {
@@ -350,6 +542,13 @@
       "p2": 0.047,
       "web": "https://niba.es/luz-y-gas",
       "tipo": "3P",
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
       "requiereFV": false
     },
     {
@@ -361,7 +560,15 @@
       "p2": 0.042466,
       "web": "https://www.iberdrola.es/luz/plan-ahorro-solar",
       "tipo": "3P",
-      "requiereFV": false
+      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": true
     },
     {
       "nombre": "Seneo 1 3P",
@@ -372,6 +579,13 @@
       "p2": 0.018,
       "web": "https://www.seneo.org/es/tarifa-tramos-horarios-con-monedero-solar/",
       "tipo": "3P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
       "requiereFV": false
     },
     {
@@ -383,8 +597,15 @@
       "p2": 0.088382,
       "web": "https://chcenergia.es/tarifa-luz/vehiculo-electrico/",
       "tipo": "3P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-02-10T07:28:47.963Z"
+  "updatedAt": "2026-02-10T07:36:26.975Z"
 }
