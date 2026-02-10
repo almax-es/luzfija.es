@@ -1,0 +1,79 @@
+# ===========================================
+# Headers de cache y seguridad para LuzFija.es
+# Compatible con Netlify y Cloudflare Pages
+# ===========================================
+
+# --- Todas las paginas ---
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+
+# --- HTML: cache corto con revalidacion ---
+/*.html
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+/estadisticas/
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+# --- CSS y JS: cache largo ---
+/styles.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/pro.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/fonts.css
+  Cache-Control: public, max-age=31536000, immutable
+
+/js/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/vendor/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/estadisticas/*.css
+  Cache-Control: public, max-age=31536000, immutable
+
+# --- Fuentes: cache largo ---
+/fonts/*
+  Cache-Control: public, max-age=31536000, immutable
+
+# --- Imagenes y assets estaticos ---
+/*.png
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.ico
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.svg
+  Cache-Control: public, max-age=31536000, immutable
+
+/*.webp
+  Cache-Control: public, max-age=31536000, immutable
+
+# --- Manifest y SW ---
+/manifest.webmanifest
+  Cache-Control: public, max-age=86400
+
+/sw.js
+  Cache-Control: no-cache
+
+# --- Datos JSON (actualizados frecuentemente) ---
+/*.json
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+
+# --- Sitemap y robots ---
+/sitemap.xml
+  Cache-Control: public, max-age=86400
+
+/robots.txt
+  Cache-Control: public, max-age=86400
+
+# --- Feed RSS ---
+/feed.xml
+  Cache-Control: public, max-age=3600, stale-while-revalidate=86400

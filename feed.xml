@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>LuzFija.es - Novedades</title>
+    <link>https://luzfija.es/</link>
+    <description>Novedades sobre tarifas de luz, regulaciones y alertas del sector eléctrico en España.</description>
+    <language>es-ES</language>
+    <lastBuildDate>Mon, 03 Feb 2026 00:00:00 +0100</lastBuildDate>
+    <atom:link href="https://luzfija.es/feed.xml" rel="self" type="application/rss+xml"/>
+    <image>
+      <url>https://luzfija.es/logo-512.png</url>
+      <title>LuzFija.es</title>
+      <link>https://luzfija.es/</link>
+    </image>
+
+    <item>
+      <title>Bono Social: reactivados descuentos 42,5% y 57,5% (pendiente de Congreso)</title>
+      <link>https://luzfija.es/guias/bono-social-electrico-quien-puede-pedirlo-y-como.html</link>
+      <guid isPermaLink="false">luzfija-novedad-2026-02-03-bono-social</guid>
+      <pubDate>Tue, 03 Feb 2026 00:00:00 +0100</pubDate>
+      <category>regulatorio</category>
+      <description>El RDL 2/2026 (BOE 04/02/2026, en vigor 05/02/2026) restablece los descuentos del Bono Social: 42,5% para vulnerable y 57,5% para vulnerable severo. Las facturas con días entre el 27/01/2026 y la entrada en vigor se regularizan.</description>
+    </item>
+
+    <item>
+      <title>Alerta de Seguridad: Filtración de datos en Endesa</title>
+      <link>https://luzfija.es/novedades.html</link>
+      <guid isPermaLink="false">luzfija-novedad-2026-01-11-endesa-filtracion</guid>
+      <pubDate>Sun, 11 Jan 2026 00:00:00 +0100</pubDate>
+      <category>alerta</category>
+      <description>Se ha confirmado una brecha de seguridad masiva en Endesa que afecta a datos personales y comerciales de millones de clientes (incluyendo Energía XXI). La información filtrada incluye DNIs, datos de contacto y números de cuenta (IBAN). Se recomienda extremar la precaución ante posibles intentos de estafa por teléfono o email (phishing) y vigilar movimientos bancarios inusuales.</description>
+    </item>
+
+  </channel>
+</rss>
