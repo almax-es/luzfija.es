@@ -408,6 +408,21 @@
     }catch(_){}
   }, true);
 
+  // Ruido conocido de cache viejo (ya corregido en el código actual).
+  // Usuarios con SW/cache antiguo siguen ejecutando versiones viejas de JS
+  // donde estas variables se usaban como globales desnudos.
+  var STALE_CACHE_NOISE = [
+    'currentYear is not defined',
+    'currentYear no está definid'
+  ];
+
+  function isPromiseStaleNoise(msg) {
+    for (var i = 0; i < STALE_CACHE_NOISE.length; i++) {
+      if (msg.indexOf(STALE_CACHE_NOISE[i]) !== -1) return true;
+    }
+    return false;
+  }
+
   // Capturar errores de Promises no manejadas (crítico para PVPC/PDF)
   window.addEventListener('unhandledrejection', function(e) {
     try {
@@ -422,6 +437,12 @@
         stackSource = extractSourceFromStack(reason.stack || '');
       } else {
         msg = String(reason);
+      }
+
+      // Filtrar ruido de cache viejo (código ya corregido, solo llega desde SW antiguo)
+      if (isPromiseStaleNoise(msg)) {
+        if (DEBUG) dbg('Promise rejection ignorada (stale cache):', msg);
+        return;
       }
 
       const parts = [
