@@ -491,6 +491,53 @@
         return null;
       }
 
+      // Octopus multi-periodo: sumar consumos de varios periodos en la misma factura
+      // Ej: Periodo 1 "Punta 18,15 kWh" + Periodo 2 "Punta 16,85 kWh" = 35 kWh total
+      function __LF_extractConsumoOctopus(texto) {
+        if (!texto) return null;
+        const t = String(texto);
+
+        // Método 1: tabla de lecturas "Consumo kWh  35  28  56  0  0  0  119"
+        // Esta tabla tiene los totales reales del contador (siempre presente en Octopus)
+        const mTabla = t.match(/consumo\s+kwh\s+(\d+)\s+(\d+)\s+(\d+)/i);
+        if (mTabla) {
+          const p1 = parseInt(mTabla[1], 10);
+          const p2 = parseInt(mTabla[2], 10);
+          const p3 = parseInt(mTabla[3], 10);
+          if (p1 + p2 + p3 > 0) {
+            lfDbg('[OCTOPUS-CONSUMO] Tabla contador:', { p1, p2, p3 });
+            return { punta: p1, llano: p2, valle: p3 };
+          }
+        }
+
+        // Método 2: sumar valores de cada "Punta X kWh" principal en secciones Energía Activa
+        // (para facturas multi-periodo donde los valores están desglosados)
+        const sumAll = (re) => {
+          const r = new RegExp(re.source, 'gi');
+          const seen = new Set();
+          let m, total = 0;
+          while ((m = r.exec(t)) !== null) {
+            const v = parseFloat(m[1].replace(',', '.'));
+            if (!isNaN(v) && v > 0 && !seen.has(v)) {
+              seen.add(v);
+              total += v;
+            }
+          }
+          return total > 0 ? Math.round(total * 100) / 100 : null;
+        };
+
+        const punta = sumAll(/(?:^|\n)\s*punta\s+([0-9][0-9\.,]*)\s*kwh/i);
+        const llano = sumAll(/(?:^|\n)\s*llano\s+([0-9][0-9\.,]*)\s*kwh/i);
+        const valle = sumAll(/(?:^|\n)\s*valle\s+([0-9][0-9\.,]*)\s*kwh/i);
+
+        if (punta != null && llano != null && valle != null) {
+          lfDbg('[OCTOPUS-CONSUMO] Sumado multi-periodo:', { punta, llano, valle });
+          return { punta, llano, valle };
+        }
+
+        return null;
+      }
+
       // ========== DETECCIÓN Y EXTRACCIÓN POR COMPAÑÍA ==========
       
       
@@ -1090,7 +1137,11 @@
         lfDbg('[DEBUG POTENCIAS] P1:', p1, '| P2:', p2);
 
         // --- Consumos (kWh) ---
-        const triple = __LF_extractTripleConsumo(textLines) || __LF_extractTripleConsumo(textCompact);
+        let octopusTriple = null;
+        if (compania === 'octopus') {
+          octopusTriple = __LF_extractConsumoOctopus(tAll);
+        }
+        const triple = octopusTriple || __LF_extractTripleConsumo(textLines) || __LF_extractTripleConsumo(textCompact);
 
         let cPunta = null, cLlano = null, cValle = null;
 

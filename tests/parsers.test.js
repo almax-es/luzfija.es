@@ -115,14 +115,63 @@ describe('Motor de Extracción de Facturas (PDF Text)', () => {
     it('Debe extraer Punta, Llano, Valle de tabla estándar', () => {
       // Simula una línea de tabla de factura
       const texto = "Energía activa (kWh) Punta 120,5 Llano 80,2 Valle 150,0";
-      
+
       const p = extraerRegex(texto, /Punta\s+([0-9,]+)/i);
       const l = extraerRegex(texto, /Llano\s+([0-9,]+)/i);
       const v = extraerRegex(texto, /Valle\s+([0-9,]+)/i);
-      
+
       expect(p).toBe(120.5);
       expect(l).toBe(80.2);
       expect(v).toBe(150.0);
+    });
+  });
+
+  describe('Octopus Energy - Consumos multi-periodo', () => {
+    it('Debe extraer totales de tabla "Consumo kWh X Y Z"', () => {
+      // Tabla de lecturas de contador Octopus (tiene los totales reales)
+      const texto = "Consumo kWh 35 28 56 0 0 0 119";
+      const m = texto.match(/consumo\s+kwh\s+(\d+)\s+(\d+)\s+(\d+)/i);
+      expect(m).not.toBeNull();
+      expect(parseInt(m[1], 10)).toBe(35);
+      expect(parseInt(m[2], 10)).toBe(28);
+      expect(parseInt(m[3], 10)).toBe(56);
+    });
+
+    it('Debe sumar consumos de dos periodos distintos', () => {
+      // Simula factura Octopus con dos periodos de facturación
+      const texto = [
+        "Energía Activa 8,29 €",
+        "Punta 18,15 kWh",
+        "Llano 14,52 kWh",
+        "Valle 29,04 kWh",
+        "Energía Activa 7,63 €",
+        "Punta 16,85 kWh",
+        "Llano 13,48 kWh",
+        "Valle 26,96 kWh"
+      ].join("\n");
+
+      // El patrón sumAll debe acumular valores únicos de cada línea
+      const sumAll = (re) => {
+        const r = new RegExp(re.source, 'gi');
+        const seen = new Set();
+        let m, total = 0;
+        while ((m = r.exec(texto)) !== null) {
+          const v = parseFloat(m[1].replace(',', '.'));
+          if (!isNaN(v) && v > 0 && !seen.has(v)) {
+            seen.add(v);
+            total += v;
+          }
+        }
+        return total > 0 ? Math.round(total * 100) / 100 : null;
+      };
+
+      const punta = sumAll(/(?:^|\n)\s*punta\s+([0-9][0-9\.,]*)\s*kwh/i);
+      const llano = sumAll(/(?:^|\n)\s*llano\s+([0-9][0-9\.,]*)\s*kwh/i);
+      const valle = sumAll(/(?:^|\n)\s*valle\s+([0-9][0-9\.,]*)\s*kwh/i);
+
+      expect(punta).toBe(35);      // 18.15 + 16.85
+      expect(llano).toBe(28);      // 14.52 + 13.48
+      expect(valle).toBe(56);      // 29.04 + 26.96
     });
   });
 });
