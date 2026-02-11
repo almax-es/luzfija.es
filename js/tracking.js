@@ -153,6 +153,85 @@
     }
   }
 
+  const ERROR_DEDUP_KEY = 'lf_js_error_dedupe_v1';
+  const ERROR_DEDUP_MAX = 30;
+
+  function isSameOriginUrl(urlLike) {
+    const raw = safeText(urlLike);
+    if (!raw) return false;
+    try {
+      const u = new URL(raw, location.origin);
+      return u.origin === location.origin;
+    } catch (_) {
+      return raw.startsWith('/') ||
+             raw.includes(location.hostname) ||
+             raw.includes('luzfija.es');
+    }
+  }
+
+  function getScriptSourceFromErrorEvent(evt) {
+    try {
+      const t = evt && evt.target;
+      if (!t || t === window || t === document) return '';
+      const tag = safeText(t.tagName).toUpperCase();
+      if (tag !== 'SCRIPT') return '';
+
+      const rawSrc = safeText((t.getAttribute && t.getAttribute('src')) || t.src || '');
+      if (!rawSrc || !isSameOriginUrl(rawSrc)) return '';
+      return shortSource(rawSrc);
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function shouldTrackError(filename, source, scriptSource, route, line, col) {
+    // Error de carga de <script src="..."> de nuestro origen.
+    if (scriptSource) return true;
+
+    // Error en archivo JS servido por nosotros.
+    if (filename && isSameOriginUrl(filename)) return true;
+
+    // Evitar ruido: sin filename + sin source fiable suele venir de extensiones/terceros.
+    if (!filename) return false;
+
+    // Inline del propio documento con posición válida.
+    const hasPos = (line > 0 || col > 0);
+    if (!hasPos) return false;
+    if (!source || source === '(inline)') return false;
+    if (source === route) return true;
+    if (route === '/' && (source === '/' || source === location.pathname)) return true;
+    return false;
+  }
+
+  function isDuplicateError(message, source, line, col, route) {
+    try {
+      const fingerprint = [
+        safeText(message).substring(0, 90),
+        safeText(source),
+        String(line || 0),
+        String(col || 0),
+        safeText(route)
+      ].join('|');
+
+      const raw = sessionStorage.getItem(ERROR_DEDUP_KEY);
+      const parsed = raw ? JSON.parse(raw) : {};
+      const seenMap = (parsed && typeof parsed === 'object') ? parsed : {};
+
+      if (Object.prototype.hasOwnProperty.call(seenMap, fingerprint)) {
+        return true;
+      }
+
+      seenMap[fingerprint] = Date.now();
+      const entries = Object.entries(seenMap)
+        .sort((a, b) => Number(b[1]) - Number(a[1]))
+        .slice(0, ERROR_DEDUP_MAX);
+      const nextMap = {};
+      entries.forEach((pair) => { nextMap[pair[0]] = pair[1]; });
+      sessionStorage.setItem(ERROR_DEDUP_KEY, JSON.stringify(nextMap));
+    } catch (_) {}
+    return false;
+  }
+
   // Detectar navegador de forma simple y segura
   function getBrowserInfo() {
     try {
@@ -255,30 +334,33 @@
     try{
       const filename = e && e.filename ? String(e.filename) : '';
       const message = safeText(e && e.message ? e.message : 'desconocido');
-      const source = shortSource(filename) || '(inline)';
+      const sourceFromFile = shortSource(filename);
+      const scriptSource = getScriptSourceFromErrorEvent(e);
+      const source = scriptSource || sourceFromFile || '(inline)';
       const line = (e && typeof e.lineno === 'number') ? e.lineno : 0;
       const col = (e && typeof e.colno === 'number') ? e.colno : 0;
       const route = safeText(location && location.pathname ? location.pathname : '');
       const browser = getBrowserInfo();
 
-      // Solo trackear errores de nuestro dominio o inline
-      const isOurError = !filename ||
-                         filename.includes(location.hostname) ||
-                         filename.includes('luzfija.es') ||
-                         source === '(inline)';
-
-      if (isOurError) {
-        const parts = [
-          message.substring(0, 60),
-          source + ':' + line + (col ? ':' + col : '')
-        ];
-        if (route && route !== '/') parts.push('@' + route);
-        parts.push(browser);
-
-        trackEvent('error-javascript', {
-          title: parts.join(' | ').substring(0, 150)
-        });
+      if (!shouldTrackError(filename, source, scriptSource, route, line, col)) {
+        dbg('Error ignorado (origen no fiable):', message, filename || '(sin filename)');
+        return;
       }
+
+      if (isDuplicateError(message, source, line, col, route)) {
+        return;
+      }
+
+      const parts = [
+        message.substring(0, 60),
+        source + ':' + line + (col ? ':' + col : '')
+      ];
+      if (route && route !== '/') parts.push('@' + route);
+      parts.push(browser);
+
+      trackEvent('error-javascript', {
+        title: parts.join(' | ').substring(0, 150)
+      });
     }catch(_){}
   }, true);
 
