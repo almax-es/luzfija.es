@@ -95,4 +95,14 @@ describe('Tracking error filtering and dedupe', () => {
       })
     );
   });
+
+  it('ignora ruido legado del loader index-extra', () => {
+    bootstrapTracking();
+
+    window.__LF_track('error-javascript', {
+      title: 'Compat: index-extra omitido (sin soporte ES2020)'
+    });
+
+    expect(window.goatcounter.count).not.toHaveBeenCalled();
+  });
 });

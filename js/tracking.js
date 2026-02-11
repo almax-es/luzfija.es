@@ -130,6 +130,15 @@
       dbg('Privacy mode activo, evento bloqueado:', eventName);
       return;
     }
+
+    // Evitar ruido legado del loader antiguo de index-extra (clients con caché vieja).
+    const rawTitle = (metadata && metadata.title) ? String(metadata.title) : '';
+    if (eventName === 'error-javascript' &&
+        rawTitle &&
+        rawTitle.indexOf('Compat: index-extra omitido') !== -1) {
+      dbg('Ruido legado filtrado:', rawTitle);
+      return;
+    }
     
     const payload = {
       path: eventName,
