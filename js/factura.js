@@ -737,6 +737,36 @@
             return null;  // fallback a genérico
           }
 
+          case 'plenitude': {
+            // Plenitude: "Potencia contratada P1: 3,450 kW P2: 3,450 kW"
+            // y detalle: "Periodo P1 (...): 3,4500 kW * 0,073782 €/kW día * 32 días"
+            // NOTA: "3,450" usa coma decimal (=3.45 kW) pero normNum lo interpreta
+            // como miles US (=3450), así que parseamos con replace(',','.').
+            let p1_pl = null, p2_pl = null;
+
+            // Patrón 1: "Potencia contratada P1: X kW P2: Y kW"
+            const mPl1 = texto.match(/potencia\s+contratada\s+p1[:\s]+([0-9][0-9\.,]*)\s*kw\b/i);
+            const mPl2 = texto.match(/potencia\s+contratada\s+[^\n]*p2[:\s]+([0-9][0-9\.,]*)\s*kw\b/i);
+            if (mPl1) p1_pl = parseFloat(mPl1[1].replace(',', '.'));
+            if (mPl2) p2_pl = parseFloat(mPl2[1].replace(',', '.'));
+
+            // Patrón 2: "Periodo P1 (...): X kW *" (detalle factura)
+            if (p1_pl == null) {
+              const mD1 = texto.match(/periodo\s+p1\b[^:]*:\s*([0-9][0-9\.,]*)\s*kw\s*\*/i);
+              if (mD1) p1_pl = parseFloat(mD1[1].replace(',', '.'));
+            }
+            if (p2_pl == null) {
+              const mD2 = texto.match(/periodo\s+p2\b[^:]*:\s*([0-9][0-9\.,]*)\s*kw\s*\*/i);
+              if (mD2) p2_pl = parseFloat(mD2[1].replace(',', '.'));
+            }
+
+            if (p1_pl != null && p1_pl > 0 && p1_pl <= 40) {
+              lfDbg('[PLENITUDE-POTENCIAS] P1:', p1_pl, '| P2:', p2_pl);
+              return { p1: p1_pl, p2: p2_pl };
+            }
+            return null;
+          }
+
           default:
             // Genérico: patrones estándar
             return null;
@@ -1019,6 +1049,44 @@
           ], 0.1, 40, 'P2');
         }
         
+        // Safety net: si potencias son null, reintentar con comma-como-decimal
+        // Esto cubre compañías que escriben "3,300 kW" o "3,450 kW" donde
+        // normNum malinterpreta "X,XX0" como miles US en vez de decimal español.
+        if (p1 == null || p2 == null) {
+          const kwPatterns = [
+            /potencia\s*contratada\s*p1[:\s]+([0-9][0-9\.,]*)\s*kw\b/i,
+            /\b(?:p1|punta)\s+([0-9][0-9\.,]*)\s*kw\s*[\*x]/i,
+            /potencia\s+contratada\s*\(kw\)\s+([0-9][0-9\.,]*)/i,
+            /\bperiodo\s+p1\b[^:]*:\s*([0-9][0-9\.,]*)\s*kw\b/i,
+            /\bp1\b[^\d]{0,20}([0-9][0-9\.,]*)\s*kw\b(?!\s*h)/i
+          ];
+          const kwPatterns2 = [
+            /potencia\s*contratada\s*[^\n]*p2[:\s]+([0-9][0-9\.,]*)\s*kw\b/i,
+            /\b(?:p2|valle)\s+([0-9][0-9\.,]*)\s*kw\s*[\*x]/i,
+            /potencia\s+contratada\s*\(kw\)\s+[0-9][0-9\.,]*\s+([0-9][0-9\.,]*)/i,
+            /\bperiodo\s+p2\b[^:]*:\s*([0-9][0-9\.,]*)\s*kw\b/i,
+            /\bp2\b[^\d]{0,20}([0-9][0-9\.,]*)\s*kw\b(?!\s*h)/i
+          ];
+          const tryDecimal = (patterns) => {
+            for (const re of patterns) {
+              const m = tAll.match(re);
+              if (m) {
+                const v = parseFloat(m[1].replace(',', '.'));
+                if (v > 0 && v <= 40) return v;
+              }
+            }
+            return null;
+          };
+          if (p1 == null) {
+            p1 = tryDecimal(kwPatterns);
+            if (p1 != null) lfDbg('[POTENCIAS SAFETY-NET] P1 recuperado con comma-decimal:', p1);
+          }
+          if (p2 == null) {
+            p2 = tryDecimal(kwPatterns2);
+            if (p2 != null) lfDbg('[POTENCIAS SAFETY-NET] P2 recuperado con comma-decimal:', p2);
+          }
+        }
+
         lfDbg('[DEBUG POTENCIAS] P1:', p1, '| P2:', p2);
 
         // --- Consumos (kWh) ---

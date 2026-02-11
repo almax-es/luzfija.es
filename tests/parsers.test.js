@@ -92,6 +92,25 @@ describe('Motor de Extracción de Facturas (PDF Text)', () => {
     });
   });
 
+  describe('Plenitude - Potencias con formato X,XXX0', () => {
+    it('Debe parsear "3,450 kW" como 3.45 (no como 3450)', () => {
+      const texto = "Potencia contratada P1: 3,450 kW P2: 3,450 kW";
+      const m1 = texto.match(/potencia\s+contratada\s+p1[:\s]+([0-9][0-9\.,]*)\s*kw\b/i);
+      const m2 = texto.match(/potencia\s+contratada\s+[^\n]*p2[:\s]+([0-9][0-9\.,]*)\s*kw\b/i);
+      expect(m1).not.toBeNull();
+      expect(m2).not.toBeNull();
+      expect(parseFloat(m1[1].replace(',', '.'))).toBe(3.45);
+      expect(parseFloat(m2[1].replace(',', '.'))).toBe(3.45);
+    });
+
+    it('Debe parsear "3,4500 kW *" del detalle de factura', () => {
+      const texto = "Periodo P1 (15/10/2025 - 15/11/2025): 3,4500 kW * 0,073782 €/kW día * 32 días";
+      const m = texto.match(/periodo\s+p1\b[^:]*:\s*([0-9][0-9\.,]*)\s*kw\s*\*/i);
+      expect(m).not.toBeNull();
+      expect(parseFloat(m[1].replace(',', '.'))).toBe(3.45);
+    });
+  });
+
   describe('Extracción de Consumos (Triple)', () => {
     it('Debe extraer Punta, Llano, Valle de tabla estándar', () => {
       // Simula una línea de tabla de factura
