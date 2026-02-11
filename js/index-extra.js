@@ -17,7 +17,7 @@
       const raw = localStorage.getItem('almax_comparador_v6_inputs');
       if (!raw) return fallback;
       const v = JSON.parse(raw);
-      const zona = String(v?.zonaFiscal || '').toLowerCase();
+      const zona = String((v && v.zonaFiscal) || '').toLowerCase();
       if (zona.includes('canarias')) return { geo: 8742, tz: 'Atlantic/Canary' };
       if (zona.includes('ceutamelilla')) return { geo: 8744, tz: 'Europe/Madrid' };
       return fallback; // Península y Baleares
@@ -101,12 +101,12 @@
   async function __pvpcFetchDay(dateStr, ctx, base = PVPC_DATASET_BASE) {
     // Devuelve: { entries, tz, geo }
     // Carga desde dataset estático en /data/{type}/{geo}/{YYYY-MM}.json
-    const geo = ctx?.geo ?? 8741;
-    const tz = ctx?.tz ?? 'Europe/Madrid';
+    const geo = (ctx && ctx.geo != null) ? ctx.geo : 8741;
+    const tz = (ctx && ctx.tz != null) ? ctx.tz : 'Europe/Madrid';
 
     const yyyyMM = dateStr.slice(0, 7);
     const month = await __pvpcLoadMonth(base, geo, yyyyMM);
-    const dayPairs = month?.days?.[dateStr];
+    const dayPairs = (month && month.days) ? month.days[dateStr] : undefined;
     if (!Array.isArray(dayPairs) || dayPairs.length < 23 || dayPairs.length > 25) {
       throw new Error('Sin datos (dataset estático)');
     }
@@ -187,13 +187,13 @@
 
             const title = document.createElement('h3');
             title.style.cssText = 'font-size:15px; font-weight:700; margin:0 0 8px 0; color:var(--text); line-height:1.4;';
-            title.textContent = (nov.titulo ?? '').toString();
+            title.textContent = ((nov && nov.titulo != null) ? nov.titulo : '').toString();
 
             const text = document.createElement('p');
             text.style.cssText = 'font-size:13px; color:var(--muted); margin:0; line-height:1.5;';
             
             // Sanitización manual: solo permitir enlaces seguros (anti-XSS)
-            const textoRaw = (nov.texto ?? '').toString();
+            const textoRaw = ((nov && nov.texto != null) ? nov.texto : '').toString();
             const linkRegex = /<a\s+href="(https?:\/\/[^"]+)"[^>]*>([^<]+)<\/a>/g;
             
             let lastIndex = 0;
@@ -363,7 +363,10 @@
         month: '2-digit',
         day: '2-digit'
       }).formatToParts(date);
-      const get = (t) => parts.find(p => p.type === t)?.value;
+      const get = (t) => {
+        const match = parts.find(p => p.type === t);
+        return match ? match.value : '';
+      };
       return `${get('year')}-${get('month')}-${get('day')}`;
     }
 
@@ -446,7 +449,7 @@
           tz: day.tz,
           geo: day.geo,
           nowIdx,
-          precioActual: entries[nowIdx]?.price,
+          precioActual: entries[nowIdx] ? entries[nowIdx].price : undefined,
           precioMin,
           precioMax,
           idxMin,
@@ -493,7 +496,7 @@
         if (tabManana) tabManana.style.display = 'block';
       } catch (e) {
         // Si aún no hay datos de mañana en el dataset, no hacemos nada.
-        if (window.__LF_DEBUG) console.log('[PVPC] Mañana no disponible todavía:', e?.message || e);
+        if (window.__LF_DEBUG) console.log('[PVPC] Mañana no disponible todavía:', (e && e.message) || e);
       }
     }
 
@@ -530,7 +533,7 @@
       if (esHoy) {
         document.getElementById('modalPVPCLabel').textContent = 'Ahora';
         document.getElementById('modalPVPCNow').textContent = `${precioActual.toFixed(3).replace('.', ',')} €/kWh`;
-        const labelNow = entries?.[nowIdx]?.label || '--:--';
+        const labelNow = (entries && entries[nowIdx] && entries[nowIdx].label) || '--:--';
         document.getElementById('modalPVPCNowHour').textContent = `${labelNow}h`;
       } else {
         document.getElementById('modalPVPCLabel').textContent = 'Mañana';
@@ -538,8 +541,8 @@
         document.getElementById('modalPVPCNowHour').textContent = '';
       }
 
-      const labelMin = entries?.[idxMin]?.label || '--:--';
-      const labelMax = entries?.[idxMax]?.label || '--:--';
+      const labelMin = (entries && entries[idxMin] && entries[idxMin].label) || '--:--';
+      const labelMax = (entries && entries[idxMax] && entries[idxMax].label) || '--:--';
 
       document.getElementById('modalPVPCMin').textContent = `${precioMin.toFixed(3).replace('.', ',')}`;
       document.getElementById('modalPVPCMinHour').textContent = `${labelMin}h`;
@@ -777,7 +780,7 @@
     };
 
     btnCerrarPVPCInfo.addEventListener('click', cerrarModal);
-    btnCerrarPVPCX?.addEventListener('click', cerrarModal);
+    if (btnCerrarPVPCX) btnCerrarPVPCX.addEventListener('click', cerrarModal);
     
     // Prevenir que el click de apertura cierre el modal inmediatamente
     let modalReadyToClose = false;
