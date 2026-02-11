@@ -583,7 +583,7 @@
 
     window.addEventListener('load', function() {
       navigator.serviceWorker
-        .register('sw.js')
+        .register('sw.js', { updateViaCache: 'none' })
         .then(function(registration) {
           __lf_sw_reg = registration;
           lfDbg('[SW] Registered successfully');

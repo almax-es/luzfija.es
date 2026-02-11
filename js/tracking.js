@@ -43,6 +43,24 @@
     }
   }
 
+  function getTrackingBuildId() {
+    try {
+      if (typeof window.__LF_BUILD_ID === 'string' && window.__LF_BUILD_ID.trim()) {
+        return window.__LF_BUILD_ID.trim();
+      }
+
+      const cs = document.currentScript && document.currentScript.src ? String(document.currentScript.src) : '';
+      if (cs) {
+        const u = new URL(cs, location.href);
+        const v = u.searchParams.get('v');
+        if (v) return v;
+      }
+    } catch (_) {}
+    return 'unknown';
+  }
+
+  const TRACK_BUILD_ID = getTrackingBuildId();
+
   // Cola de eventos mientras GoatCounter termina de cargar
   const queue = [];
   let loadingPromise = null;
@@ -259,6 +277,22 @@
     }
   }
 
+  function extractSourceFromStack(stackLike) {
+    const stack = safeText(stackLike);
+    if (!stack) return '';
+    try {
+      // Chrome/Edge/Safari: at fn (url:line:col) / at url:line:col
+      // Firefox: fn@url:line:col
+      const m = stack.match(/((?:https?:\/\/|\/)[^\s)@]+):(\d+):(\d+)/);
+      if (!m) return '';
+      const src = shortSource(m[1]);
+      if (!src) return '';
+      return src + ':' + m[2] + ':' + m[3];
+    } catch (_) {
+      return '';
+    }
+  }
+
   // ===== EVENTOS AUTOMÁTICOS (no requieren modificar app.js) =====
   window.addEventListener('DOMContentLoaded', function() {
 
@@ -352,8 +386,9 @@
       }
 
       const parts = [
-        message.substring(0, 60),
-        source + ':' + line + (col ? ':' + col : '')
+        message.substring(0, 48),
+        source + ':' + line + (col ? ':' + col : ''),
+        'b:' + TRACK_BUILD_ID
       ];
       if (route && route !== '/') parts.push('@' + route);
       parts.push(browser);
@@ -372,15 +407,19 @@
       const browser = getBrowserInfo();
 
       let msg = '';
+      let stackSource = '';
       if (reason instanceof Error) {
         msg = String(reason.message || reason.name || 'Error');
+        stackSource = extractSourceFromStack(reason.stack || '');
       } else {
         msg = String(reason);
       }
 
       const parts = [
-        'Promise: ' + msg.substring(0, 60)
+        'Promise: ' + msg.substring(0, 48),
+        'b:' + TRACK_BUILD_ID
       ];
+      if (stackSource) parts.push(stackSource);
       if (route && route !== '/') parts.push('@' + route);
       parts.push(browser);
 

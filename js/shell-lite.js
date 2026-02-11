@@ -122,7 +122,7 @@
 
     window.addEventListener('load', () => {
       navigator.serviceWorker
-        .register('/sw.js')
+        .register('/sw.js', { updateViaCache: 'none' })
         .then((registration) => {
           __lf_sw_reg = registration;
 

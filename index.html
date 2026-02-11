@@ -908,6 +908,9 @@
   </div>
 
     <!-- LuzFija Modular Architecture -->
+    <!-- Tracking primero para capturar errores de scripts posteriores -->
+    <script src="js/tracking.js?v=20260211-141500" defer></script>
+
     <!-- 1. Módulos base (orden importante) -->
     <script src="js/lf-config.js" defer></script>
     <script src="js/lf-utils.js" defer></script>
@@ -934,8 +937,7 @@
     <script src="js/lf-app.js" defer></script>
 
 
-    <script src="js/tracking.js" defer></script>
-    <script src="js/index-extra.js" defer></script>
+    <script src="js/index-extra-loader.js?v=20260211-141500" defer></script>
 
   <!-- Modal PVPC -->
   <div class="modal-overlay is-hidden" id="modalPVPCInfo" role="dialog" aria-modal="true" aria-label="Precios PVPC por hora" aria-hidden="true" tabindex="-1">

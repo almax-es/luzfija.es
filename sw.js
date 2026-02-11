@@ -3,7 +3,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260211-073310";
+const CACHE_VERSION = "20260211-141500";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
@@ -49,6 +49,7 @@ const ASSETS = [
   "js/pvpc.js",
   "js/factura.js",
   "js/index-extra.js",
+  "js/index-extra-loader.js",
   "js/tracking.js",
   "js/shell-lite.js",
   "js/desglose-factura.js",
@@ -211,6 +212,24 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  // Scripts/CSS: network-first para evitar ejecutar JS/CSS obsoleto durante horas.
+  // Mantiene fallback a caché para modo offline.
+  if (req.destination === "script" || req.destination === "style" || req.destination === "worker") {
+    event.respondWith(
+      (async () => {
+        const cache = await caches.open(CACHE_NAME);
+        try {
+          const fresh = await fetch(req, { cache: "no-store" });
+          await cachePutSafe(cache, req, fresh);
+          return fresh;
+        } catch (_) {
+          return (await cache.match(req)) || Response.error();
+        }
+      })()
+    );
+    return;
+  }
+
   // Tarifas: SIEMPRE red (sin caché)
   if (url.pathname === TARIFAS_PATH) {
     event.respondWith(
@@ -274,7 +293,7 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Resto (Imágenes de guías, scripts secundarios, etc.): stale-while-revalidate
+  // Resto (imágenes y otros estáticos): stale-while-revalidate
   // Se cachean "al vuelo" la primera vez que se visitan.
   event.respondWith(
     (async () => {

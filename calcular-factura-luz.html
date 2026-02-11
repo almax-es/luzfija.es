@@ -388,7 +388,7 @@
 </article>
 
 </div>
-<script defer="" src="js/tracking.js"></script>
+<script defer="" src="js/tracking.js?v=20260211-141500"></script>
 
 <!-- INTERNAL LINKS SECTION -->
 <section class="u-s-6089d3d">
@@ -427,7 +427,7 @@ if ('serviceWorker' in navigator) {
   };
 
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').then(reg => {
+    navigator.serviceWorker.register('/sw.js', { updateViaCache: 'none' }).then(reg => {
       swReg = reg;
 
       if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
@@ -475,3 +475,4 @@ if ('serviceWorker' in navigator) {
     <a class="u-s-ae3c165" href="/aviso-legal.html">📋 Aviso legal</a> · <a class="u-s-ae3c165" href="/privacidad.html">Política de privacidad</a>
   </footer>
 </body></html>
+
