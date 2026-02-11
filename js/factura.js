@@ -696,7 +696,47 @@
             ], 0.1, 40);
             return { p1: p1_im, p2: p2_im };
           }
-            
+
+          case 'octopus': {
+            // Octopus Energy: "Punta 3,300 kW * 29 días" / "Valle 3,300 kW * 29 días"
+            // Y tabla: "Potencia Contratada (kW) 3,300 3,300 0 0 0 0"
+            // NOTA: "3,300" usa coma decimal (=3.3 kW) pero normNum lo interpreta
+            // como miles US (=3300), así que parseamos manualmente.
+            let p1_oc = null, p2_oc = null;
+
+            // Patrón 1: tabla "Potencia Contratada (kW) X,XXX Y,YYY"
+            const mPotC = texto.match(/potencia\s+contratada\s*\(kw\)\s+([0-9][0-9\.,]*)\s+([0-9][0-9\.,]*)/i);
+            if (mPotC) {
+              p1_oc = parseFloat(mPotC[1].replace(',', '.'));
+              p2_oc = parseFloat(mPotC[2].replace(',', '.'));
+            }
+
+            // Patrón 2: "Punta X,XXX kW *" (el * distingue potencia de consumo kWh)
+            if (p1_oc == null) {
+              const mP = texto.match(/punta\s+([0-9][0-9\.,]*)\s*kw\s*\*/i);
+              if (mP) p1_oc = parseFloat(mP[1].replace(',', '.'));
+            }
+            if (p2_oc == null) {
+              const mV = texto.match(/valle\s+([0-9][0-9\.,]*)\s*kw\s*\*/i);
+              if (mV) p2_oc = parseFloat(mV[1].replace(',', '.'));
+            }
+
+            // Patrón 3: "Potencia Facturada (kW) X,XXX Y,YYY"
+            if (p1_oc == null) {
+              const mPotF = texto.match(/potencia\s+facturada\s*\(kw\)\s+([0-9][0-9\.,]*)\s+([0-9][0-9\.,]*)/i);
+              if (mPotF) {
+                p1_oc = parseFloat(mPotF[1].replace(',', '.'));
+                p2_oc = parseFloat(mPotF[2].replace(',', '.'));
+              }
+            }
+
+            if (p1_oc != null && p1_oc > 0 && p1_oc <= 40) {
+              lfDbg('[OCTOPUS-POTENCIAS] P1:', p1_oc, '| P2:', p2_oc);
+              return { p1: p1_oc, p2: p2_oc };
+            }
+            return null;  // fallback a genérico
+          }
+
           default:
             // Genérico: patrones estándar
             return null;
@@ -959,8 +999,8 @@
             /periodo\s*(?:1|punta)[^\d]{0,50}([0-9][0-9\.,]*)\s*kw\b/i,
             // NUEVOS BRUTALES
             /pot[^\n]{0,50}\bp1\b[^\d]{0,40}([0-9][0-9\.,]*)/i,  // "pot ... P1 ... 3.45"
-            /\bp1[^\d]{0,30}([0-9][0-9\.,]*)\s*kw/i,  // "P1 ... 3.45 kW"
-            /punta[^\d]{0,40}([0-9][0-9\.,]*)\s*kw/i,  // "punta ... 3.45 kW"
+            /\bp1[^\d]{0,30}([0-9][0-9\.,]*)\s*kw\b/i,  // "P1 ... 3.45 kW" (kw\b evita kWh)
+            /punta[^\d]{0,40}([0-9][0-9\.,]*)\s*kw\b/i,  // "punta ... 3.45 kW" (kw\b evita kWh)
             /contratada[^\n]{0,80}p1[^\d]{0,40}([0-9][0-9\.,]*)/i  // "contratada ... P1 ... 3.45"
           ], 0.1, 40, 'P1');
 
@@ -973,8 +1013,8 @@
             /periodo\s*(?:2|valle|llano)[^\d]{0,50}([0-9][0-9\.,]*)\s*kw\b/i,
             // NUEVOS BRUTALES
             /pot[^\n]{0,50}\bp2\b[^\d]{0,40}([0-9][0-9\.,]*)/i,
-            /\bp2[^\d]{0,30}([0-9][0-9\.,]*)\s*kw/i,
-            /(?:valle|llano)[^\d]{0,40}([0-9][0-9\.,]*)\s*kw/i,
+            /\bp2[^\d]{0,30}([0-9][0-9\.,]*)\s*kw\b/i,  // kw\b evita kWh
+            /(?:valle|llano)[^\d]{0,40}([0-9][0-9\.,]*)\s*kw\b/i,  // kw\b evita kWh
             /contratada[^\n]{0,80}p2[^\d]{0,40}([0-9][0-9\.,]*)/i
           ], 0.1, 40, 'P2');
         }

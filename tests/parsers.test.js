@@ -64,6 +64,34 @@ describe('Motor de Extracción de Facturas (PDF Text)', () => {
     });
   });
 
+  describe('Octopus Energy - Potencias con formato X,XXX', () => {
+    it('No debe confundir kWh (consumo) con kW (potencia)', () => {
+      // Simula texto de factura Octopus con potencia "3,300 kW" y consumo "27,01 kWh"
+      const texto = "Potencia 11,33 €\nPunta 3,300 kW * 29 días 0,093 €/kW/día\nValle 3,300 kW * 29 días\nEnergía Activa 8,29 €\nPunta 27,01 kWh\nLlano 14,83 kWh\nValle 29,63 kWh";
+
+      // Los patrones de potencia con kw\b NO deben hacer match con kWh
+      const reP1_kw = /punta[^\d]{0,40}([0-9][0-9\.,]*)\s*kw\b/i;
+      const m1 = texto.match(reP1_kw);
+      expect(m1).not.toBeNull();
+      // Debe capturar 3,300 (el valor de kW), NO 27,01 (kWh)
+      expect(m1[1]).toBe('3,300');
+
+      // El patrón "Punta X kW *" distingue potencia de consumo
+      const reOctopus = /punta\s+([0-9][0-9\.,]*)\s*kw\s*\*/i;
+      const mOc = texto.match(reOctopus);
+      expect(mOc).not.toBeNull();
+      expect(parseFloat(mOc[1].replace(',', '.'))).toBe(3.3);
+    });
+
+    it('Debe extraer de tabla "Potencia Contratada (kW) X Y"', () => {
+      const texto = "Potencia Contratada (kW) 3,300 3,300 0 0 0 0";
+      const m = texto.match(/potencia\s+contratada\s*\(kw\)\s+([0-9][0-9\.,]*)\s+([0-9][0-9\.,]*)/i);
+      expect(m).not.toBeNull();
+      expect(parseFloat(m[1].replace(',', '.'))).toBe(3.3);
+      expect(parseFloat(m[2].replace(',', '.'))).toBe(3.3);
+    });
+  });
+
   describe('Extracción de Consumos (Triple)', () => {
     it('Debe extraer Punta, Llano, Valle de tabla estándar', () => {
       // Simula una línea de tabla de factura
