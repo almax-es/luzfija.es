@@ -371,8 +371,8 @@
       "cPunta": 0.163,
       "cLlano": 0.096,
       "cValle": 0.072,
-      "p1": 0.0894,
-      "p2": 0.0894,
+      "p1": 0.089434,
+      "p2": 0.089434,
       "web": "https://ganaenergia.com/tarifas-luz/tramos-horarios",
       "tipo": "3P",
       "fv": {
@@ -661,5 +661,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-02-12T06:39:25.380Z"
+  "updatedAt": "2026-02-12T10:25:33.715Z"
 }
