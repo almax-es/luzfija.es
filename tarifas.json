@@ -479,10 +479,10 @@
     },
     {
       "nombre": "Esluz 3P",
-      "cPunta": 0.182,
-      "cLlano": 0.134,
-      "cValle": 0.085,
-      "p1": 0.080247,
+      "cPunta": 0.187021,
+      "cLlano": 0.135066,
+      "cValle": 0.085298,
+      "p1": 0.080533,
       "p2": 0.007407,
       "web": "https://esluz.es/tarifa-solar-2-0/",
       "tipo": "3P",
@@ -661,5 +661,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-02-11T15:18:40.639Z"
+  "updatedAt": "2026-02-12T06:39:25.380Z"
 }
