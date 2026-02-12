@@ -38,6 +38,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Nufri Calma",
+      "cPunta": 0.101072,
+      "cLlano": 0.101072,
+      "cValle": 0.101072,
+      "p1": 0.094533,
+      "p2": 0.046371,
+      "web": "https://www.energianufri.com/es/landing/mas-tarifas-luz-gas",
+      "tipo": "1P",
+      "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Visalia",
       "cPunta": 0.101995,
       "cLlano": 0.101995,
@@ -52,25 +71,6 @@
         "tope": "ENERGIA",
         "bv": false,
         "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Nufri Calma",
-      "cPunta": 0.103386,
-      "cLlano": 0.103386,
-      "cValle": 0.103386,
-      "p1": 0.094533,
-      "p2": 0.046371,
-      "web": "https://www.energianufri.com/es/landing/mas-tarifas-luz-gas",
-      "tipo": "1P",
-      "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
       },
       "requiereFV": false
     },
@@ -385,6 +385,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Nufri Flex 3P",
+      "cPunta": 0.165812,
+      "cLlano": 0.090774,
+      "cValle": 0.058239,
+      "p1": 0.094533,
+      "p2": 0.046371,
+      "web": "https://www.energianufri.com/es/landing/mas-tarifas-luz-gas",
+      "tipo": "3P",
+      "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Energya VM 3P",
       "cPunta": 0.16605,
       "cLlano": 0.13005,
@@ -400,25 +419,6 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Nufri Flex 3P",
-      "cPunta": 0.168687,
-      "cLlano": 0.093465,
-      "cValle": 0.059869,
-      "p1": 0.094533,
-      "p2": 0.046371,
-      "web": "https://www.energianufri.com/es/landing/mas-tarifas-luz-gas",
-      "tipo": "3P",
-      "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
       },
       "requiereFV": false
     },
@@ -661,5 +661,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-02-12T12:40:39.443Z"
+  "updatedAt": "2026-02-12T20:06:09.825Z"
 }
