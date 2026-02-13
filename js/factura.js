@@ -577,7 +577,7 @@
 
         // ✅ Energía XXI (Mercado Regulado Endesa) - ANTES de Endesa Libre
         if (t.includes('energía xxi') || t.includes('energia xxi') || t.includes('energiaxxi')) return 'energiaxxi';
-        if (t.includes('plenitude') || t.includes('eni')) return 'plenitude';
+        if (t.includes('plenitude') || t.includes('eniplenitude')) return 'plenitude';
 
         // ⚠️ Endesa: NO detectar por la distribuidora (e-distribución / endesadistribucion).
         // Solo marcamos "endesa" cuando hay señales claras de la comercializadora.
@@ -888,126 +888,25 @@
         });
       }
 
-      function __LF_isCnmcQrUrl(data){
-        return /https:\/\/comparador\.cnmc\.gob\.es\/comparador\/QRE\?/i.test(String(data || ''));
-      }
-
-      function __LF_decodeCnmcQr(jsQR, imageData){
-        if (!imageData || !imageData.data || !imageData.width || !imageData.height) return null;
-        try{
-          const code = jsQR(imageData.data, imageData.width, imageData.height, {
-            inversionAttempts: "attemptBoth"
-          });
-          if (code && code.data && __LF_isCnmcQrUrl(code.data)) return code.data;
-        }catch(_){/* noop */}
-        return null;
-      }
-
-      function __LF_extractQrFromRenderedPage(jsQR, canvas, ctx, options = {}){
-        if (!canvas || !ctx) return null;
-        const w = canvas.width;
-        const h = canvas.height;
-        if (!w || !h) return null;
-        const denseGrid = !!options.denseGrid;
-
-        // Intento rápido: página completa
-        try{
-          const full = ctx.getImageData(0, 0, w, h);
-          const url = __LF_decodeCnmcQr(jsQR, full);
-          if (url) return url;
-        }catch(_){/* noop */}
-
-        const tryBlock = (b, allowUpscale = true) => {
-          if (b.sw < 40 || b.sh < 40) return null;
-          let region;
-          try{
-            region = ctx.getImageData(b.sx, b.sy, b.sw, b.sh);
-          }catch(_){
-            return null;
-          }
-
-          let url = __LF_decodeCnmcQr(jsQR, region);
-          if (url) return url;
-
-          // Reescalado (nearest) para QR pequeño.
-          if (allowUpscale){
-            const minSide = Math.min(b.sw, b.sh);
-            const scale = Math.max(1, Math.min(4, Math.floor(420 / Math.max(1, minSide))));
-            if (scale > 1){
-              try{
-                const up = document.createElement('canvas');
-                up.width = b.sw * scale;
-                up.height = b.sh * scale;
-                const upCtx = up.getContext('2d', { willReadFrequently: true });
-                if (upCtx){
-                  upCtx.imageSmoothingEnabled = false;
-                  upCtx.drawImage(canvas, b.sx, b.sy, b.sw, b.sh, 0, 0, up.width, up.height);
-                  const upData = upCtx.getImageData(0, 0, up.width, up.height);
-                  url = __LF_decodeCnmcQr(jsQR, upData);
-                  up.width = 0;
-                  up.height = 0;
-                  if (url) return url;
-                }
-              }catch(_){/* noop */}
-            }
-          }
-          return null;
-        };
-
-        // Priorizar zona habitual del QR (mitad inferior derecha).
-        const preferredBlock = {
-          sx: Math.floor(w * 0.50),
-          sy: Math.floor(h * 0.45),
-          sw: Math.floor(w * 0.50),
-          sh: Math.floor(h * 0.55)
-        };
-        const preferredUrl = tryBlock(preferredBlock, true);
-        if (preferredUrl) return preferredUrl;
-
-        // Modo ligero (sin pistas de QR): evitar rejilla densa para no penalizar tiempos.
-        if (!denseGrid) return null;
-
-        // Modo denso (con pistas de QR): escaneo por bloques con solape.
-        const blocks = [];
-        const grids = [2, 3];
-        for (const g of grids){
-          const bw = Math.floor(w / g);
-          const bh = Math.floor(h / g);
-          const ox = Math.floor(bw * 0.12);
-          const oy = Math.floor(bh * 0.12);
-          for (let gy = 0; gy < g; gy++){
-            for (let gx = 0; gx < g; gx++){
-              const sx = Math.max(0, gx * bw - ox);
-              const sy = Math.max(0, gy * bh - oy);
-              const ex = Math.min(w, (gx + 1) * bw + ox);
-              const ey = Math.min(h, (gy + 1) * bh + oy);
-              blocks.push({ sx, sy, sw: Math.max(1, ex - sx), sh: Math.max(1, ey - sy) });
-            }
-          }
-        }
-
-        for (const b of blocks){
-          const fromBlock = tryBlock(b, true);
-          if (fromBlock) return fromBlock;
-        }
-
-        return null;
-      }
-      
       /**
        * Extrae QR code de PDF usando jsQR
+       * Versión original multi-escala + qrHintPages para ordenar páginas candidatas
        */
       async function __LF_extractQRFromPDF(pdfFile, options = {}) {
         try {
           lfDbg('[QR jsQR] Escaneando PDF...');
-          
+
           const jsQR = await __LF_loadJsQR();
           const pdfjsLib = await __LF_ensurePdfJs();
-          
+
           const arrayBuffer = await pdfFile.arrayBuffer();
           const pdf = await pdfjsLib.getDocument({ data: arrayBuffer, verbosity: __LF_pdfVerbosityErrors() }).promise;
-          
+
+          // Intentar con múltiples escalas para mejor detección
+          const scales = [3.0, 2.5, 2.0, 1.5];
           const maxPages = Math.min(pdf.numPages, 3);
+
+          // Usar qrHintPages para priorizar páginas candidatas
           const hinted = Array.isArray(options.qrHintPages) ? options.qrHintPages : [];
           const hintedInRange = [...new Set(hinted.filter(n => Number.isInteger(n) && n >= 1 && n <= maxPages))];
           const pageOrder = [
@@ -1015,53 +914,36 @@
             ...Array.from({ length: maxPages }, (_, i) => i + 1).filter(n => !hintedInRange.includes(n))
           ];
 
-          // Fase rápida: bajo coste, busca QRs claros.
           for (const pageNum of pageOrder) {
-            lfDbg(`[QR jsQR] Página rápida ${pageNum}/${maxPages}...`);
+            lfDbg(`[QR jsQR] Página ${pageNum}/${maxPages}...`);
             const page = await pdf.getPage(pageNum);
-            const viewport = page.getViewport({ scale: 2.0 });
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d', { willReadFrequently: true });
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-            if (!context) continue;
 
-            await page.render({ canvasContext: context, viewport }).promise;
-            try {
-              const full = context.getImageData(0, 0, canvas.width, canvas.height);
-              const qrFast = __LF_decodeCnmcQr(jsQR, full);
-              if (qrFast) {
-                lfDbg(`[QR jsQR] ✅ QR encontrado en página ${pageNum} (escaneo rápido)`);
-                return qrFast;
+            for (const scale of scales) {
+              const viewport = page.getViewport({ scale });
+
+              const canvas = document.createElement('canvas');
+              const context = canvas.getContext('2d');
+              canvas.width = viewport.width;
+              canvas.height = viewport.height;
+
+              await page.render({ canvasContext: context, viewport }).promise;
+              const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+
+              // Intentar con y sin inversión
+              const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                inversionAttempts: "attemptBoth"
+              });
+
+              if (code && code.data) {
+                lfDbg(`[QR jsQR] Código detectado (escala ${scale}) [contenido oculto]`);
+                if (code.data.includes('comparador.cnmc.gob.es')) {
+                  lfDbg(`[QR jsQR] ✅ QR encontrado en página ${pageNum} (escala ${scale})`);
+                  return code.data;
+                }
               }
-            } catch (_) {/* noop */}
-          }
-
-          // Fase robusta: solo en páginas candidatas para evitar penalizar PDFs sin QR útil.
-          const robustPages = hintedInRange.length
-            ? hintedInRange
-            : [maxPages];
-
-          for (const pageNum of robustPages) {
-            lfDbg(`[QR jsQR] Página robusta ${pageNum}/${maxPages}...`);
-            const page = await pdf.getPage(pageNum);
-            const viewport = page.getViewport({ scale: 3.0 });
-            const canvas = document.createElement('canvas');
-            const context = canvas.getContext('2d', { willReadFrequently: true });
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-            if (!context) continue;
-
-            await page.render({ canvasContext: context, viewport }).promise;
-            const qrUrl = __LF_extractQrFromRenderedPage(jsQR, canvas, context, {
-              denseGrid: hintedInRange.includes(pageNum)
-            });
-            if (qrUrl) {
-              lfDbg(`[QR jsQR] ✅ QR encontrado en página ${pageNum} (escaneo robusto)`);
-              return qrUrl;
             }
           }
-          
+
           lfDbg('[QR jsQR] ⚠️ No se detectó QR en ninguna página');
           return null;
         } catch (error) {
@@ -1557,6 +1439,23 @@
         } else if (companiaEl) {
           __LF_hide(companiaEl);
         }
+
+        // Mostrar badge de fuente de datos
+        const fuenteBadge = __LF_q('fuenteDatosBadge');
+        if (fuenteBadge) {
+          const fuente = datos.fuenteDatos || 'PDF';
+          const fuenteMap = {
+            'QR+PDF':       { texto: 'QR + Parser',        bg: '#059669', color: '#fff' },
+            'LINK_CNMC+PDF':{ texto: 'Link CNMC + Parser', bg: '#059669', color: '#fff' },
+            'PDF':          { texto: 'Parser PDF',          bg: '#3b82f6', color: '#fff' },
+            'OCR':          { texto: 'OCR',                 bg: '#f59e0b', color: '#000' }
+          };
+          const info = fuenteMap[fuente] || fuenteMap['PDF'];
+          fuenteBadge.textContent = info.texto;
+          fuenteBadge.style.background = info.bg;
+          fuenteBadge.style.color = info.color;
+          fuenteBadge.style.display = 'inline-block';
+        }
       }
 
       function __LF_warn(msg){
@@ -1667,6 +1566,8 @@
             badge.classList.remove('alta','media','baja');
             badge.textContent = '--';
           }
+          const fuenteBadge = __LF_q('fuenteDatosBadge');
+          if (fuenteBadge){ fuenteBadge.style.display = 'none'; fuenteBadge.textContent = ''; }
           const form = __LF_q('formValidacionFactura');
           if (form) form.innerHTML = '';
           const companiaEl = __LF_q('companiaDetectada');
@@ -1752,10 +1653,12 @@
           const qrUrlTexto = __LF_extractQRUrl(tAll);
           
           let datosQR = null;
+          let qrOrigen = null; // 'LINK_CNMC+PDF' o 'QR+PDF'
           if (qrUrlTexto) {
             datosQR = __LF_parseQRData(qrUrlTexto);
+            if (datosQR) qrOrigen = 'LINK_CNMC+PDF';
           }
-          
+
           // ====================================================================
           // PASO 2: Intentar QR con jsQR (escaneo de imagen)
           // ====================================================================
@@ -1765,6 +1668,7 @@
               const qrUrlImagen = await __LF_extractQRFromPDF(file, { qrHintPages });
               if (qrUrlImagen) {
                 datosQR = __LF_parseQRData(qrUrlImagen);
+                if (datosQR) qrOrigen = 'QR+PDF';
               }
             } catch (jsqrError) {
               lfDbg('[QR jsQR] No disponible:', jsqrError.message);
@@ -1796,16 +1700,25 @@
                 const diasQR = datosQR.dias;
                 const diasPDF = datosPDF.dias;
 
-                // Prioridad absoluta al QR si viene completo/parseable.
-                if (diasQR != null) {
-                  lfDbg('[DÍAS] Usando QR por prioridad:', diasQR, '| PDF:', diasPDF);
+                // Si NO hay días en PDF → usar QR
+                if (!diasPDF) {
+                  lfDbg('[DÍAS] PDF no tiene días, usando QR:', diasQR);
                   return diasQR;
                 }
+
+                // Si QR y PDF coinciden → usar QR (fuente oficial)
+                if (diasQR === diasPDF) {
+                  lfDbg('[DÍAS] QR y PDF coinciden (' + diasQR + '), usando QR');
+                  return diasQR;
+                }
+
+                // Si son diferentes → usar PDF (lo que cobran)
+                lfDbg('[DÍAS] QR (' + diasQR + ') ≠ PDF (' + diasPDF + '), usando PDF (lo que cobran)');
                 return diasPDF;
               })(),
               
               confianza: 100,
-              fuenteDatos: 'QR+PDF',
+              fuenteDatos: qrOrigen || 'QR+PDF',
               compania: datosPDF.compania
             };
             
@@ -1825,11 +1738,12 @@
           // ====================================================================
           lfDbg('[QR] QR no encontrado - usando parseo PDF');
           const datos = __LF_parsearDatos(textLines, textCompact);
-          
+          datos.fuenteDatos = 'PDF';
+
           // AHORA SÍ: mostrar resultados con los datos completos
           __LF_hide(__LF_q('loaderFactura'));
           __LF_show(__LF_q('resultadoFactura'));
-          
+
           __LF_setBadge(datos.confianza);
           __LF_renderForm(datos);
 
@@ -1920,6 +1834,7 @@
           const lines = ocrText.split('\n').map(l=>l.trim()).filter(Boolean).join('\n');
 
           const datos = __LF_parsearDatos(lines, compact);
+          datos.fuenteDatos = 'OCR';
           __LF_setBadge(datos.confianza);
           __LF_renderForm(datos);
 

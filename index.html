@@ -813,7 +813,10 @@
 
         <div id="resultadoFactura" style="display:none; margin-top:10px">
           <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; flex-wrap:wrap; margin-bottom:6px">
-            <div class="confianza-badge" id="confianzaBadge">--</div>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <div class="confianza-badge" id="confianzaBadge">--</div>
+              <span id="fuenteDatosBadge" style="display:none; padding:3px 8px; border-radius:6px; font-size:10px; font-weight:700; letter-spacing:0.3px;"></span>
+            </div>
             <button class="btn is-hidden" id="btnOcrFactura" type="button" aria-label="OCR de factura">
               🧠 OCR
             </button>
