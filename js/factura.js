@@ -563,6 +563,14 @@
           t.includes('b99340564')
         ) return 'visalia';
 
+        // ✅ DISA Energía Eléctrica
+        if (
+          t.includes('disa energía') || t.includes('disa energia') ||
+          t.includes('disa energía eléctrica') || t.includes('disa energia electrica') ||
+          t.includes('disagrupo.es') || t.includes('oficinavirtual.disagrupo.es') ||
+          t.includes('descuento disa')
+        ) return 'disa';
+
         // ✅ Energía XXI (Mercado Regulado Endesa) - ANTES de Endesa Libre
         if (t.includes('energía xxi') || t.includes('energia xxi') || t.includes('energiaxxi')) return 'energiaxxi';
         if (t.includes('plenitude') || t.includes('eni')) return 'plenitude';
@@ -715,6 +723,32 @@
               return endesaPotencias;
             }
             return null;
+
+          case 'disa': {
+            // DISA: en el término de potencia suele venir P1 y P3 (sin P2 explícita).
+            // En 2.0TD tratamos P3 como el segundo periodo de potencia (P2 en el formulario).
+            const parseDecimal = (raw) => {
+              if (!raw) return null;
+              const v = parseFloat(String(raw).replace(',', '.'));
+              return (v > 0 && v <= 40) ? v : null;
+            };
+
+            const mP1 = texto.match(/\bp1\b[^\d]{0,20}([0-9][0-9\.,]*)\s*k\s*(?:w|vv)\b(?!\s*h)/i);
+            const mP2 = texto.match(/\bp2\b[^\d]{0,20}([0-9][0-9\.,]*)\s*k\s*(?:w|vv)\b(?!\s*h)/i);
+            const mP3 = texto.match(/\bp3\b[^\d]{0,20}([0-9][0-9\.,]*)\s*k\s*(?:w|vv)\b(?!\s*h)/i);
+
+            const p1_di = parseDecimal(mP1 && mP1[1]);
+            let p2_di = parseDecimal(mP2 && mP2[1]);
+            const p3_di = parseDecimal(mP3 && mP3[1]);
+
+            if (p2_di == null && p3_di != null) p2_di = p3_di;
+
+            if (p1_di != null || p2_di != null) {
+              lfDbg('[DISA-POTENCIAS] P1:', p1_di, '| P2:', p2_di, '| P3(raw):', p3_di);
+              return { p1: p1_di, p2: p2_di };
+            }
+            return null;
+          }
             
           case 'totalenergies':
             // TotalEnergies: "P1: 4,50 P2: 4,50 kW" (kW después de P2)
@@ -1383,7 +1417,8 @@
             'octopus': 'Octopus Energy',
             'visalia': 'Visalia',
             'plenitude': 'Eni Plenitude',
-            'energiaxxi': 'Energía XXI'
+            'energiaxxi': 'Energía XXI',
+            'disa': 'DISA Energía'
           };
           nombreEl.textContent = nombres[datos.compania] || datos.compania;
           __LF_show(companiaEl);

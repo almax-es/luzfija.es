@@ -149,4 +149,91 @@ describe('Factura PDF Integration (Black Box)', () => {
     const cia = document.getElementById('nombreCompania');
     expect(cia.textContent).toContain('Endesa');
   });
+
+  it('Debe detectar DISA y mapear potencia P3 como P2 cuando P2 no aparece en potencia', async () => {
+    const padding = Array(10).fill({ str: "relleno de texto para validacion de longitud minima", transform: [0,0,0,0, 0, 0] });
+
+    const mockTextItems = [
+      { str: "Factura", transform: [0,0,0,0, 10, 100] },
+      { str: "DISA Energía Eléctrica", transform: [0,0,0,0, 60, 100] },
+      { str: "disagrupo.es", transform: [0,0,0,0, 10, 90] },
+
+      { str: "Término Potencia", transform: [0,0,0,0, 10, 70] },
+      { str: "P1", transform: [0,0,0,0, 10, 60] },
+      { str: "3,450", transform: [0,0,0,0, 35, 60] },
+      { str: "kW", transform: [0,0,0,0, 70, 60] },
+      { str: "x", transform: [0,0,0,0, 90, 60] },
+      { str: "29", transform: [0,0,0,0, 105, 60] },
+      { str: "Días", transform: [0,0,0,0, 125, 60] },
+      { str: "x", transform: [0,0,0,0, 155, 60] },
+
+      { str: "P3", transform: [0,0,0,0, 10, 50] },
+      { str: "3,450", transform: [0,0,0,0, 35, 50] },
+      { str: "kW", transform: [0,0,0,0, 70, 50] },
+      { str: "x", transform: [0,0,0,0, 90, 50] },
+      { str: "29", transform: [0,0,0,0, 105, 50] },
+      { str: "Días", transform: [0,0,0,0, 125, 50] },
+      { str: "x", transform: [0,0,0,0, 155, 50] },
+
+      { str: "Término Energía", transform: [0,0,0,0, 10, 40] },
+      { str: "P1", transform: [0,0,0,0, 10, 30] },
+      { str: "346", transform: [0,0,0,0, 35, 30] },
+      { str: "kWh", transform: [0,0,0,0, 65, 30] },
+      { str: "P2", transform: [0,0,0,0, 90, 30] },
+      { str: "310", transform: [0,0,0,0, 115, 30] },
+      { str: "kWh", transform: [0,0,0,0, 145, 30] },
+      { str: "P3", transform: [0,0,0,0, 170, 30] },
+      { str: "313", transform: [0,0,0,0, 195, 30] },
+      { str: "kWh", transform: [0,0,0,0, 225, 30] },
+
+      ...padding
+    ];
+
+    window.pdfjsLib.getDocument.mockReturnValue({
+      promise: Promise.resolve({
+        numPages: 1,
+        getPage: () => Promise.resolve({
+          getTextContent: () => Promise.resolve({ items: mockTextItems }),
+          cleanup: () => {},
+          getViewport: () => ({ width: 100, height: 100 }),
+          render: () => ({ promise: Promise.resolve() })
+        }),
+        cleanup: () => {},
+        destroy: () => {}
+      })
+    });
+
+    await import('../js/factura.js');
+    if (window.__LF_bindFacturaParser) {
+      window.__LF_bindFacturaParser();
+    }
+
+    const fileInput = document.getElementById('fileInputFactura');
+    const mockFile = new File(['dummy content'], 'factura-disa.pdf', { type: 'application/pdf' });
+    mockFile.arrayBuffer = async () => new ArrayBuffer(10);
+
+    const event = new Event('change', { bubbles: true });
+    Object.defineProperty(event, 'target', { value: { files: [mockFile] } });
+    fileInput.dispatchEvent(event);
+
+    await new Promise(r => setTimeout(r, 500));
+
+    const form = document.getElementById('formValidacionFactura');
+    const getVal = (field) => {
+      const wrap = form.querySelector(`.input-validacion[data-field="${field}"]`);
+      if (!wrap) return null;
+      const input = wrap.querySelector('input');
+      return input ? input.value : null;
+    };
+
+    expect(getVal('p1')).toBe('3,45');
+    expect(getVal('p2')).toBe('3,45');
+    expect(getVal('dias')).toBe('29');
+    expect(getVal('consumoPunta')).toBe('346');
+    expect(getVal('consumoLlano')).toBe('310');
+    expect(getVal('consumoValle')).toBe('313');
+
+    const cia = document.getElementById('nombreCompania');
+    expect(cia.textContent).toContain('DISA');
+  });
 });
