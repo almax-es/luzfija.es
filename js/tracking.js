@@ -139,6 +139,10 @@
       dbg('Ruido legado filtrado:', rawTitle);
       return;
     }
+    if (eventName === 'error-promise' && isPromiseStaleNoise(rawTitle)) {
+      dbg('Ruido stale-cache filtrado:', rawTitle);
+      return;
+    }
     
     const payload = {
       path: eventName,
@@ -166,6 +170,16 @@
   function safeText(value) {
     if (value === null || value === undefined) return '';
     return String(value).replace(/\s+/g, ' ').trim();
+  }
+
+  function normalizeForMatch(value) {
+    const text = safeText(value).toLowerCase();
+    if (!text) return '';
+    try {
+      return text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    } catch (_) {
+      return text;
+    }
   }
 
   function shortSource(urlLike) {
@@ -413,13 +427,19 @@
   // donde estas variables se usaban como globales desnudos.
   var STALE_CACHE_NOISE = [
     'currentYear is not defined',
-    'currentYear no está definid'
+    'currentYear no está definid',
+    'currentYear no esta definid'
   ];
 
   function isPromiseStaleNoise(msg) {
+    var normalized = normalizeForMatch(msg);
+    if (!normalized || normalized.indexOf('currentyear') === -1) return false;
+
     for (var i = 0; i < STALE_CACHE_NOISE.length; i++) {
-      if (msg.indexOf(STALE_CACHE_NOISE[i]) !== -1) return true;
+      if (normalized.indexOf(normalizeForMatch(STALE_CACHE_NOISE[i])) !== -1) return true;
     }
+    // Variante antigua: "Promise reject: currentYear is not defined event"
+    if (normalized.indexOf('promise reject') !== -1 && normalized.indexOf('not defined') !== -1) return true;
     return false;
   }
 
@@ -435,6 +455,19 @@
       if (reason instanceof Error) {
         msg = String(reason.message || reason.name || 'Error');
         stackSource = extractSourceFromStack(reason.stack || '');
+      } else if (reason && typeof reason === 'object') {
+        if (typeof reason.message === 'string' && reason.message) {
+          msg = reason.message;
+        } else {
+          try {
+            msg = JSON.stringify(reason);
+          } catch (_) {
+            msg = String(reason);
+          }
+        }
+        if (typeof reason.stack === 'string' && reason.stack) {
+          stackSource = extractSourceFromStack(reason.stack);
+        }
       } else {
         msg = String(reason);
       }

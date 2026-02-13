@@ -13,6 +13,15 @@ function bootstrapTracking() {
   fn();
 }
 
+function dispatchUnhandledRejection(reason) {
+  const evt = new Event('unhandledrejection');
+  Object.defineProperty(evt, 'reason', {
+    value: reason,
+    configurable: true
+  });
+  window.dispatchEvent(evt);
+}
+
 beforeEach(() => {
   document.head.innerHTML = '';
   document.body.innerHTML = '';
@@ -102,6 +111,22 @@ describe('Tracking error filtering and dedupe', () => {
     window.__LF_track('error-javascript', {
       title: 'Compat: index-extra omitido (sin soporte ES2020)'
     });
+
+    expect(window.goatcounter.count).not.toHaveBeenCalled();
+  });
+
+  it('ignora ruido stale-cache de promesas con formato legacy', () => {
+    bootstrapTracking();
+
+    dispatchUnhandledRejection('Promise reject: currentYear is not defined event');
+
+    expect(window.goatcounter.count).not.toHaveBeenCalled();
+  });
+
+  it('ignora ruido stale-cache cuando reason es objeto con message', () => {
+    bootstrapTracking();
+
+    dispatchUnhandledRejection({ message: 'currentYear is not defined' });
 
     expect(window.goatcounter.count).not.toHaveBeenCalled();
   });
