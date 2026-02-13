@@ -883,6 +883,100 @@
           document.head.appendChild(script);
         });
       }
+
+      function __LF_isCnmcQrUrl(data){
+        return /https:\/\/comparador\.cnmc\.gob\.es\/comparador\/QRE\?/i.test(String(data || ''));
+      }
+
+      function __LF_decodeCnmcQr(jsQR, imageData){
+        if (!imageData || !imageData.data || !imageData.width || !imageData.height) return null;
+        try{
+          const code = jsQR(imageData.data, imageData.width, imageData.height, {
+            inversionAttempts: "attemptBoth"
+          });
+          if (code && code.data && __LF_isCnmcQrUrl(code.data)) return code.data;
+        }catch(_){/* noop */}
+        return null;
+      }
+
+      function __LF_extractQrFromRenderedPage(jsQR, canvas, ctx){
+        if (!canvas || !ctx) return null;
+        const w = canvas.width;
+        const h = canvas.height;
+        if (!w || !h) return null;
+
+        // Intento rápido: página completa
+        try{
+          const full = ctx.getImageData(0, 0, w, h);
+          const url = __LF_decodeCnmcQr(jsQR, full);
+          if (url) return url;
+        }catch(_){/* noop */}
+
+        // Fallback robusto: escaneo por bloques con solape + reescalado nearest-neighbor.
+        // Esto mejora detección de QRs pequeños en facturas donde jsQR falla en página completa.
+        const blocks = [];
+        const grids = [2, 3];
+
+        for (const g of grids){
+          const bw = Math.floor(w / g);
+          const bh = Math.floor(h / g);
+          const ox = Math.floor(bw * 0.12);
+          const oy = Math.floor(bh * 0.12);
+          for (let gy = 0; gy < g; gy++){
+            for (let gx = 0; gx < g; gx++){
+              const sx = Math.max(0, gx * bw - ox);
+              const sy = Math.max(0, gy * bh - oy);
+              const ex = Math.min(w, (gx + 1) * bw + ox);
+              const ey = Math.min(h, (gy + 1) * bh + oy);
+              blocks.push({ sx, sy, sw: Math.max(1, ex - sx), sh: Math.max(1, ey - sy) });
+            }
+          }
+        }
+
+        // Priorizar zonas habituales del QR (mitad inferior derecha) sin excluir el resto.
+        blocks.unshift({
+          sx: Math.floor(w * 0.50),
+          sy: Math.floor(h * 0.45),
+          sw: Math.floor(w * 0.50),
+          sh: Math.floor(h * 0.55)
+        });
+
+        for (const b of blocks){
+          if (b.sw < 40 || b.sh < 40) continue;
+          let region;
+          try{
+            region = ctx.getImageData(b.sx, b.sy, b.sw, b.sh);
+          }catch(_){
+            continue;
+          }
+
+          let url = __LF_decodeCnmcQr(jsQR, region);
+          if (url) return url;
+
+          // Reescalado (nearest) para QR pequeño.
+          const minSide = Math.min(b.sw, b.sh);
+          const scale = Math.max(1, Math.min(4, Math.floor(420 / Math.max(1, minSide))));
+          if (scale > 1){
+            try{
+              const up = document.createElement('canvas');
+              up.width = b.sw * scale;
+              up.height = b.sh * scale;
+              const upCtx = up.getContext('2d', { willReadFrequently: true });
+              if (upCtx){
+                upCtx.imageSmoothingEnabled = false;
+                upCtx.drawImage(canvas, b.sx, b.sy, b.sw, b.sh, 0, 0, up.width, up.height);
+                const upData = upCtx.getImageData(0, 0, up.width, up.height);
+                url = __LF_decodeCnmcQr(jsQR, upData);
+                up.width = 0;
+                up.height = 0;
+                if (url) return url;
+              }
+            }catch(_){/* noop */}
+          }
+        }
+
+        return null;
+      }
       
       /**
        * Extrae QR code de PDF usando jsQR
@@ -908,24 +1002,17 @@
               const viewport = page.getViewport({ scale });
               
               const canvas = document.createElement('canvas');
-              const context = canvas.getContext('2d');
+              const context = canvas.getContext('2d', { willReadFrequently: true });
               canvas.width = viewport.width;
               canvas.height = viewport.height;
+              if (!context) continue;
               
               await page.render({ canvasContext: context, viewport }).promise;
-              const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
-              
-              // Intentar con y sin inversión
-              const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                inversionAttempts: "attemptBoth"
-              });
-              
-              if (code && code.data) {
+              const qrUrl = __LF_extractQrFromRenderedPage(jsQR, canvas, context);
+              if (qrUrl) {
                 lfDbg(`[QR jsQR] Código detectado (escala ${scale}) [contenido oculto]`);
-                if (code.data.includes('comparador.cnmc.gob.es')) {
-                  lfDbg(`[QR jsQR] ✅ QR encontrado en página ${pageNum} (escala ${scale})`);
-                  return code.data;
-                }
+                lfDbg(`[QR jsQR] ✅ QR encontrado en página ${pageNum} (escala ${scale})`);
+                return qrUrl;
               }
             }
           }
@@ -1663,21 +1750,12 @@
               dias: (() => {
                 const diasQR = datosQR.dias;
                 const diasPDF = datosPDF.dias;
-                
-                // Si NO hay días en PDF → usar QR
-                if (!diasPDF) {
-                  lfDbg('[DÍAS] PDF no tiene días, usando QR:', diasQR);
+
+                // Prioridad absoluta al QR si viene completo/parseable.
+                if (diasQR != null) {
+                  lfDbg('[DÍAS] Usando QR por prioridad:', diasQR, '| PDF:', diasPDF);
                   return diasQR;
                 }
-                
-                // Si QR y PDF coinciden → usar QR (fuente oficial)
-                if (diasQR === diasPDF) {
-                  lfDbg('[DÍAS] QR y PDF coinciden (' + diasQR + '), usando QR');
-                  return diasQR;
-                }
-                
-                // Si son diferentes → usar PDF (lo que cobran)
-                lfDbg('[DÍAS] QR (' + diasQR + ') ≠ PDF (' + diasPDF + '), usando PDF (lo que cobran)');
                 return diasPDF;
               })(),
               
