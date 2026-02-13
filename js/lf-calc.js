@@ -479,6 +479,10 @@
     } else {
       window.LF.sunClubResult = null;
     }
+    // Yield al navegador antes de renderAll — evita que cálculo+render
+    // se ejecuten en la misma long task (mejora INP)
+    await window.LF.yieldControl();
+
     window.LF.renderAll({
       success: true,
       resumen: {

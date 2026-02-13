@@ -694,72 +694,58 @@
       // Guardar elemento que tenía focus para restaurarlo después
       elementoAnterior = document.activeElement;
 
-      // Mostrar modal inmediatamente
+      // Mostrar modal inmediatamente (display: flex para que sea visible)
       modalPVPCInfo.style.display = 'flex';
-
-      // Forzar reflow
-      void modalPVPCInfo.offsetHeight;
-
-      modalPVPCInfo.classList.add('show');
       modalPVPCInfo.setAttribute('aria-hidden', 'false');
-      __pvpcLock();
 
-      // Forzar scroll a arriba ANTES de cargar datos
-      modalPVPCInfo.scrollTop = 0;
-      const modalContent = modalPVPCInfo.querySelector('.modal-content');
-      if (modalContent) modalContent.scrollTop = 0;
+      // Diferir la clase .show y el trabajo pesado al siguiente frame
+      // para que el navegador pinte la caja del modal antes (mejora INP)
+      requestAnimationFrame(() => {
+        modalPVPCInfo.classList.add('show');
+        __pvpcLock();
 
-      // Cargar datos si no están cargados
-      if (!pvpcHoy) {
-        document.getElementById('modalPVPCHoursList').innerHTML = '<p class="u-loading-text">⏳ Cargando...</p>';
-
-        // Cargar precios de hoy
-        await cargarHoy();
-
-        // Cargar precios de mañana si corresponde
-        await cargarManana();
-
-        // Actualizar vista
-        if (pvpcHoy) {
-          cambiarTab(diaActivo);
-        } else {
-          document.getElementById('modalPVPCHoursList').innerHTML = '<p class="u-loading-text">❌ Error al cargar precios. Inténtalo de nuevo.</p>';
-        }
-      } else {
-        cambiarTab(diaActivo);
-      }
-
-      // Forzar scroll arriba múltiples veces
-      const forceScroll = () => {
+        // Scroll a arriba
         modalPVPCInfo.scrollTop = 0;
+        const modalContent = modalPVPCInfo.querySelector('.modal-content');
         if (modalContent) modalContent.scrollTop = 0;
-        const lista = document.getElementById('modalPVPCHoursList');
-        if (lista) lista.scrollTop = 0;
-      };
 
-      forceScroll();
-      requestAnimationFrame(forceScroll);
-      setTimeout(forceScroll, 50);
-      setTimeout(forceScroll, 100);
+        // Cargar datos en la siguiente microtarea
+        (async () => {
+          if (!pvpcHoy) {
+            document.getElementById('modalPVPCHoursList').innerHTML = '<p class="u-loading-text">⏳ Cargando...</p>';
+            await cargarHoy();
+            await cargarManana();
+            if (pvpcHoy) {
+              cambiarTab(diaActivo);
+            } else {
+              document.getElementById('modalPVPCHoursList').innerHTML = '<p class="u-loading-text">❌ Error al cargar precios. Inténtalo de nuevo.</p>';
+            }
+          } else {
+            cambiarTab(diaActivo);
+          }
 
-      // Dar focus sin provocar scroll: algunos navegadores, al hacer focus en un elemento
-      // situado abajo (como el botón "Cerrar"), mueven el scroll del modal.
-      const focusNoScroll = (el) => {
-        if (!el || typeof el.focus !== 'function') return;
-        try {
-          el.focus({ preventScroll: true });
-        } catch (_) {
-          // Fallback para navegadores que no soportan preventScroll
-          el.focus();
-        }
-      };
+          // Scroll arriba tras carga
+          const forceScroll = () => {
+            modalPVPCInfo.scrollTop = 0;
+            if (modalContent) modalContent.scrollTop = 0;
+            const lista = document.getElementById('modalPVPCHoursList');
+            if (lista) lista.scrollTop = 0;
+          };
+          forceScroll();
+          requestAnimationFrame(forceScroll);
 
-      setTimeout(() => {
-        // Preferimos el botón "X" (arriba) para evitar saltos de scroll.
-        focusNoScroll(btnCerrarPVPCX || btnCerrarPVPCInfo);
-        modalAbriendo = false;
-        modalReadyToClose = true; // Permitir cerrar con click fuera
-      }, 150);
+          // Dar focus sin provocar scroll
+          const focusNoScroll = (el) => {
+            if (!el || typeof el.focus !== 'function') return;
+            try { el.focus({ preventScroll: true }); } catch (_) { el.focus(); }
+          };
+          setTimeout(() => {
+            focusNoScroll(btnCerrarPVPCX || btnCerrarPVPCInfo);
+            modalAbriendo = false;
+            modalReadyToClose = true;
+          }, 150);
+        })();
+      });
     });
 
     // Cerrar modal

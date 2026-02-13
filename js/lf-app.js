@@ -284,7 +284,8 @@
         b.classList.add('active');
         b.setAttribute('aria-pressed', 'true');
         state.filter = b.getAttribute('data-filter');
-        renderTable();
+        // Defer render to next task — lets browser paint button state first (INP)
+        setTimeout(() => renderTable(), 0);
       });
     });
 
@@ -296,8 +297,9 @@
         if (!k) return;
         if (state.sort.key === k) state.sort.dir = (state.sort.dir === 'asc') ? 'desc' : 'asc';
         else { state.sort.key = k; state.sort.dir = 'asc'; }
-        renderTable();
-        updateSortIcons();
+        updateSortIcons(); // Show sort direction immediately (lightweight)
+        // Defer heavy table re-render to next task (INP)
+        setTimeout(() => renderTable(), 0);
       });
     });
 

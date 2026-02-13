@@ -307,11 +307,14 @@
 
     __lf_renderInProgress = false;
 
-    // Inicializar tooltips después de renderizar todo
-    el.tbody.querySelectorAll('.requisitos-icon').forEach(t => bindTooltipElement(t));
-    el.tbody.querySelectorAll('.fv-icon').forEach(t => bindTooltipElement(t));
-    el.tbody.querySelectorAll('.nufri-icon').forEach(t => bindTooltipElement(t));
-    updateSortIcons();
+    // Diferir binding de tooltips al siguiente frame (INP: no bloquear tras render)
+    requestAnimationFrame(() => {
+      if (myToken !== __lf_currentRenderToken) return;
+      el.tbody.querySelectorAll('.requisitos-icon').forEach(t => bindTooltipElement(t));
+      el.tbody.querySelectorAll('.fv-icon').forEach(t => bindTooltipElement(t));
+      el.tbody.querySelectorAll('.nufri-icon').forEach(t => bindTooltipElement(t));
+      updateSortIcons();
+    });
   }
 
   // ===== RENDER TOP CHART =====

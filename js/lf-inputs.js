@@ -242,16 +242,18 @@
 
         __solarPrevFocusEl = document.activeElement;
 
+        // Mostrar modal inmediatamente, diferir transición y lock a rAF (INP)
         modalSolarInfo.style.display = 'flex';
-        modalSolarInfo.classList.add('show');
         modalSolarInfo.setAttribute('aria-hidden', 'false');
-        __solarLock();
 
-        __solarFocusTrapAttach();
+        requestAnimationFrame(() => {
+          modalSolarInfo.classList.add('show');
+          __solarLock();
+          __solarFocusTrapAttach();
 
-        // Llevar foco dentro del modal (por defecto al botón de cerrar)
-        const target = btnCerrarSolarX || btnCerrarSolarInfo || __solarFocusables()[0] || modalSolarInfo;
-        setTimeout(() => { target?.focus?.(); }, 0);
+          const target = btnCerrarSolarX || btnCerrarSolarInfo || __solarFocusables()[0] || modalSolarInfo;
+          setTimeout(() => { target?.focus?.(); }, 0);
+        });
       });
 
       btnCerrarSolarX?.addEventListener('click', __solarClose);
