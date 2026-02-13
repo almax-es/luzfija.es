@@ -213,6 +213,17 @@
               try{ if (page && page.cleanup) await page.cleanup(); }catch(_){}
             }
 
+            // Extraer URLs de anotaciones (links embebidos en el PDF)
+            try {
+              const annots = await page.getAnnotations();
+              for (const a of annots) {
+                if (a.url) {
+                  items.push({ str: a.url, x: 0, y: 0 });
+                  lines.push(a.url);
+                }
+              }
+            } catch(_){}
+
             const pageCompact = items.map(i=>i.str).join(' ');
             compact += pageCompact + '\n';
             if (qrHintRe.test(pageCompact)) qrHintPages.push(p);
