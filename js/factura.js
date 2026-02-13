@@ -176,6 +176,8 @@
         try{
           let lines = [];
           let compact = '';
+          const qrHintPages = [];
+          const qrHintRe = /\bqr\b|comparador|cnmc|qre\?/i;
 
           for (let p=1; p<=pdf.numPages; p++){
             const page = await pdf.getPage(p);
@@ -211,12 +213,14 @@
               try{ if (page && page.cleanup) await page.cleanup(); }catch(_){}
             }
 
-            compact += items.map(i=>i.str).join(' ') + '\n';
+            const pageCompact = items.map(i=>i.str).join(' ');
+            compact += pageCompact + '\n';
+            if (qrHintRe.test(pageCompact)) qrHintPages.push(p);
           }
 
           const textLines = lines.join('\n');
           const textCompact = compact.replace(/\s+/g,' ').trim();
-          return { textLines, textCompact, textRawLen: (textCompact || '').length };
+          return { textLines, textCompact, textRawLen: (textCompact || '').length, qrHintPages };
         } finally {
           try{ if (pdf && pdf.cleanup) await pdf.cleanup(); }catch(_){}
           try{ if (pdf && pdf.destroy) await pdf.destroy(); }catch(_){}
@@ -899,11 +903,12 @@
         return null;
       }
 
-      function __LF_extractQrFromRenderedPage(jsQR, canvas, ctx){
+      function __LF_extractQrFromRenderedPage(jsQR, canvas, ctx, options = {}){
         if (!canvas || !ctx) return null;
         const w = canvas.width;
         const h = canvas.height;
         if (!w || !h) return null;
+        const denseGrid = !!options.denseGrid;
 
         // Intento rápido: página completa
         try{
@@ -912,11 +917,59 @@
           if (url) return url;
         }catch(_){/* noop */}
 
-        // Fallback robusto: escaneo por bloques con solape + reescalado nearest-neighbor.
-        // Esto mejora detección de QRs pequeños en facturas donde jsQR falla en página completa.
+        const tryBlock = (b, allowUpscale = true) => {
+          if (b.sw < 40 || b.sh < 40) return null;
+          let region;
+          try{
+            region = ctx.getImageData(b.sx, b.sy, b.sw, b.sh);
+          }catch(_){
+            return null;
+          }
+
+          let url = __LF_decodeCnmcQr(jsQR, region);
+          if (url) return url;
+
+          // Reescalado (nearest) para QR pequeño.
+          if (allowUpscale){
+            const minSide = Math.min(b.sw, b.sh);
+            const scale = Math.max(1, Math.min(4, Math.floor(420 / Math.max(1, minSide))));
+            if (scale > 1){
+              try{
+                const up = document.createElement('canvas');
+                up.width = b.sw * scale;
+                up.height = b.sh * scale;
+                const upCtx = up.getContext('2d', { willReadFrequently: true });
+                if (upCtx){
+                  upCtx.imageSmoothingEnabled = false;
+                  upCtx.drawImage(canvas, b.sx, b.sy, b.sw, b.sh, 0, 0, up.width, up.height);
+                  const upData = upCtx.getImageData(0, 0, up.width, up.height);
+                  url = __LF_decodeCnmcQr(jsQR, upData);
+                  up.width = 0;
+                  up.height = 0;
+                  if (url) return url;
+                }
+              }catch(_){/* noop */}
+            }
+          }
+          return null;
+        };
+
+        // Priorizar zona habitual del QR (mitad inferior derecha).
+        const preferredBlock = {
+          sx: Math.floor(w * 0.50),
+          sy: Math.floor(h * 0.45),
+          sw: Math.floor(w * 0.50),
+          sh: Math.floor(h * 0.55)
+        };
+        const preferredUrl = tryBlock(preferredBlock, true);
+        if (preferredUrl) return preferredUrl;
+
+        // Modo ligero (sin pistas de QR): evitar rejilla densa para no penalizar tiempos.
+        if (!denseGrid) return null;
+
+        // Modo denso (con pistas de QR): escaneo por bloques con solape.
         const blocks = [];
         const grids = [2, 3];
-
         for (const g of grids){
           const bw = Math.floor(w / g);
           const bh = Math.floor(h / g);
@@ -933,46 +986,9 @@
           }
         }
 
-        // Priorizar zonas habituales del QR (mitad inferior derecha) sin excluir el resto.
-        blocks.unshift({
-          sx: Math.floor(w * 0.50),
-          sy: Math.floor(h * 0.45),
-          sw: Math.floor(w * 0.50),
-          sh: Math.floor(h * 0.55)
-        });
-
         for (const b of blocks){
-          if (b.sw < 40 || b.sh < 40) continue;
-          let region;
-          try{
-            region = ctx.getImageData(b.sx, b.sy, b.sw, b.sh);
-          }catch(_){
-            continue;
-          }
-
-          let url = __LF_decodeCnmcQr(jsQR, region);
-          if (url) return url;
-
-          // Reescalado (nearest) para QR pequeño.
-          const minSide = Math.min(b.sw, b.sh);
-          const scale = Math.max(1, Math.min(4, Math.floor(420 / Math.max(1, minSide))));
-          if (scale > 1){
-            try{
-              const up = document.createElement('canvas');
-              up.width = b.sw * scale;
-              up.height = b.sh * scale;
-              const upCtx = up.getContext('2d', { willReadFrequently: true });
-              if (upCtx){
-                upCtx.imageSmoothingEnabled = false;
-                upCtx.drawImage(canvas, b.sx, b.sy, b.sw, b.sh, 0, 0, up.width, up.height);
-                const upData = upCtx.getImageData(0, 0, up.width, up.height);
-                url = __LF_decodeCnmcQr(jsQR, upData);
-                up.width = 0;
-                up.height = 0;
-                if (url) return url;
-              }
-            }catch(_){/* noop */}
-          }
+          const fromBlock = tryBlock(b, true);
+          if (fromBlock) return fromBlock;
         }
 
         return null;
@@ -981,7 +997,7 @@
       /**
        * Extrae QR code de PDF usando jsQR
        */
-      async function __LF_extractQRFromPDF(pdfFile) {
+      async function __LF_extractQRFromPDF(pdfFile, options = {}) {
         try {
           lfDbg('[QR jsQR] Escaneando PDF...');
           
@@ -991,29 +1007,58 @@
           const arrayBuffer = await pdfFile.arrayBuffer();
           const pdf = await pdfjsLib.getDocument({ data: arrayBuffer, verbosity: __LF_pdfVerbosityErrors() }).promise;
           
-          // Intentar con múltiples escalas para mejor detección
-          const scales = [3.0, 2.5, 2.0, 1.5];
-          
-          for (let pageNum = 1; pageNum <= Math.min(pdf.numPages, 3); pageNum++) {
-            lfDbg(`[QR jsQR] Página ${pageNum}/${Math.min(pdf.numPages, 3)}...`);
+          const maxPages = Math.min(pdf.numPages, 3);
+          const hinted = Array.isArray(options.qrHintPages) ? options.qrHintPages : [];
+          const hintedInRange = [...new Set(hinted.filter(n => Number.isInteger(n) && n >= 1 && n <= maxPages))];
+          const pageOrder = [
+            ...hintedInRange,
+            ...Array.from({ length: maxPages }, (_, i) => i + 1).filter(n => !hintedInRange.includes(n))
+          ];
+
+          // Fase rápida: bajo coste, busca QRs claros.
+          for (const pageNum of pageOrder) {
+            lfDbg(`[QR jsQR] Página rápida ${pageNum}/${maxPages}...`);
             const page = await pdf.getPage(pageNum);
-            
-            for (const scale of scales) {
-              const viewport = page.getViewport({ scale });
-              
-              const canvas = document.createElement('canvas');
-              const context = canvas.getContext('2d', { willReadFrequently: true });
-              canvas.width = viewport.width;
-              canvas.height = viewport.height;
-              if (!context) continue;
-              
-              await page.render({ canvasContext: context, viewport }).promise;
-              const qrUrl = __LF_extractQrFromRenderedPage(jsQR, canvas, context);
-              if (qrUrl) {
-                lfDbg(`[QR jsQR] Código detectado (escala ${scale}) [contenido oculto]`);
-                lfDbg(`[QR jsQR] ✅ QR encontrado en página ${pageNum} (escala ${scale})`);
-                return qrUrl;
+            const viewport = page.getViewport({ scale: 2.0 });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d', { willReadFrequently: true });
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            if (!context) continue;
+
+            await page.render({ canvasContext: context, viewport }).promise;
+            try {
+              const full = context.getImageData(0, 0, canvas.width, canvas.height);
+              const qrFast = __LF_decodeCnmcQr(jsQR, full);
+              if (qrFast) {
+                lfDbg(`[QR jsQR] ✅ QR encontrado en página ${pageNum} (escaneo rápido)`);
+                return qrFast;
               }
+            } catch (_) {/* noop */}
+          }
+
+          // Fase robusta: solo en páginas candidatas para evitar penalizar PDFs sin QR útil.
+          const robustPages = hintedInRange.length
+            ? hintedInRange
+            : [maxPages];
+
+          for (const pageNum of robustPages) {
+            lfDbg(`[QR jsQR] Página robusta ${pageNum}/${maxPages}...`);
+            const page = await pdf.getPage(pageNum);
+            const viewport = page.getViewport({ scale: 3.0 });
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d', { willReadFrequently: true });
+            canvas.width = viewport.width;
+            canvas.height = viewport.height;
+            if (!context) continue;
+
+            await page.render({ canvasContext: context, viewport }).promise;
+            const qrUrl = __LF_extractQrFromRenderedPage(jsQR, canvas, context, {
+              denseGrid: hintedInRange.includes(pageNum)
+            });
+            if (qrUrl) {
+              lfDbg(`[QR jsQR] ✅ QR encontrado en página ${pageNum} (escaneo robusto)`);
+              return qrUrl;
             }
           }
           
@@ -1686,7 +1731,7 @@
         __LF_show(__LF_q('loaderFactura'));
 
         try{
-          const { textLines, textCompact, textRawLen } = await __LF_extraerTextoPDF(file);
+          const { textLines, textCompact, textRawLen, qrHintPages } = await __LF_extraerTextoPDF(file);
 
           // NO mostrar resultados todavía, el QR puede tardar 2-3 segundos más
 
@@ -1717,7 +1762,7 @@
           if (!datosQR) {
             lfDbg('[QR] Texto no tiene URL, intentando jsQR...');
             try {
-              const qrUrlImagen = await __LF_extractQRFromPDF(file);
+              const qrUrlImagen = await __LF_extractQRFromPDF(file, { qrHintPages });
               if (qrUrlImagen) {
                 datosQR = __LF_parseQRData(qrUrlImagen);
               }
