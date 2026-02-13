@@ -306,10 +306,12 @@ describe('Factura PDF Integration (Black Box)', () => {
       return input ? input.value : null;
     };
 
-    // Valores del QR (no los del texto PDF)
+    // Potencias y consumos vienen del QR (prioridad)
     expect(getVal('p1')).toBe('3,45');
     expect(getVal('p2')).toBe('2,2');
-    expect(getVal('dias')).toBe('29');
+    // Días: QR dice 29 (iniF=01-01, finF=01-30), PDF dice 30 (del 01/01 al 31/01).
+    // Lógica correcta: si QR ≠ PDF → usar PDF (lo que cobran).
+    expect(getVal('dias')).toBe('30');
     expect(getVal('consumoPunta')).toBe('111');
     expect(getVal('consumoLlano')).toBe('222');
     expect(getVal('consumoValle')).toBe('333');

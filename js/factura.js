@@ -1443,18 +1443,23 @@
         // Mostrar badge de fuente de datos
         const fuenteBadge = __LF_q('fuenteDatosBadge');
         if (fuenteBadge) {
-          const fuente = datos.fuenteDatos || 'PDF';
-          const fuenteMap = {
-            'QR+PDF':       { texto: 'QR + Parser',        bg: '#059669', color: '#fff' },
-            'LINK_CNMC+PDF':{ texto: 'Link CNMC + Parser', bg: '#059669', color: '#fff' },
-            'PDF':          { texto: 'Parser PDF',          bg: '#3b82f6', color: '#fff' },
-            'OCR':          { texto: 'OCR',                 bg: '#f59e0b', color: '#000' }
-          };
-          const info = fuenteMap[fuente] || fuenteMap['PDF'];
-          fuenteBadge.textContent = info.texto;
-          fuenteBadge.style.background = info.bg;
-          fuenteBadge.style.color = info.color;
-          fuenteBadge.style.display = 'inline-block';
+          const fuente = datos.fuenteDatos;
+          if (!fuente) {
+            fuenteBadge.style.display = 'none';
+            fuenteBadge.textContent = '';
+          } else {
+            const fuenteMap = {
+              'QR+PDF':       { texto: 'QR + Parser',        bg: '#059669', color: '#fff' },
+              'LINK_CNMC+PDF':{ texto: 'Link CNMC + Parser', bg: '#059669', color: '#fff' },
+              'PDF':          { texto: 'Parser PDF',          bg: '#3b82f6', color: '#fff' },
+              'OCR':          { texto: 'OCR',                 bg: '#f59e0b', color: '#000' }
+            };
+            const info = fuenteMap[fuente] || fuenteMap['PDF'];
+            fuenteBadge.textContent = info.texto;
+            fuenteBadge.style.background = info.bg;
+            fuenteBadge.style.color = info.color;
+            fuenteBadge.style.display = 'inline-block';
+          }
         }
       }
 
@@ -1642,7 +1647,7 @@
             __LF_warn('⚠️ No se ha detectado texto seleccionable. Parece un PDF escaneado. Puedes probar OCR o introducir los datos manualmente.');
             __LF_show(__LF_q('btnOcrFactura'));
             __LF_setBadge(0);
-            __LF_renderForm({ p1:null,p2:null,dias:null,consumoPunta:null,consumoLlano:null,consumoValle:null,confianza:0 });
+            __LF_renderForm({ p1:null,p2:null,dias:null,consumoPunta:null,consumoLlano:null,consumoValle:null,confianza:0,fuenteDatos:null });
             return;
           }
 
