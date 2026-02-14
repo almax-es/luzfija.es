@@ -444,7 +444,7 @@
           ⚠️ <strong>Precio estimado:</strong> Nufri paga excedentes a precio <strong>indexado</strong> (pool OMIE horario). El valor mostrado (${this.fmtNum(datos.precioCompensacion, 4)} €/kWh) es una <strong>estimación promedio</strong>. El precio real variará según el mercado eléctrico.
         </div>` : ''}
         ${esCompParcial && compensa ? `<div class="desglose-resumen-note desglose-resumen-note--te">
-          ❗ <strong>Compensación parcial:</strong> Esta tarifa solo compensa sobre el coste de la energía sin peajes ni cargos. Estos conceptos (~40% del coste por kWh) no se descuentan, por lo que el ahorro real es inferior al que sugiere el precio de compensación.
+          ❗ <strong>Compensación parcial:</strong> Esta tarifa solo compensa sobre el coste de la energía sin peajes ni cargos (~60% del coste por kWh). El descuento mostrado aquí ya refleja esta limitación. Otras tarifas compensan contra el coste completo de la energía.
         </div>` : ''}
       </div>`;
 

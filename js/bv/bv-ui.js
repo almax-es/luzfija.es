@@ -1431,7 +1431,7 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHuc
           line-height: 1.4;
           color: var(--text);
         ">
-          ❗ <strong>Compensación parcial:</strong> Esta tarifa solo compensa sobre el coste de la energía sin peajes ni cargos. Estos conceptos (~40% del coste por kWh) no se descuentan, por lo que el ahorro real es inferior al que sugiere el precio de compensación.
+          ❗ <strong>Compensación parcial:</strong> Esta tarifa solo compensa sobre el coste de la energía sin peajes ni cargos (~60% del coste por kWh). Los resultados mostrados ya reflejan esta limitación. Otras tarifas compensan contra el coste completo de la energía.
         </div>`;
       };
 

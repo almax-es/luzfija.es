@@ -191,7 +191,7 @@
         // --- AVISO COMPENSACIÓN PARCIAL (tope ENERGIA_PARCIAL) ---
         let compParcialIcon = '';
         if (r.fvTope === 'ENERGIA_PARCIAL') {
-          const cpTip = `❗ COMPENSACIÓN PARCIAL\n\nEsta tarifa solo compensa sobre el coste de la energía sin peajes ni cargos. Estos conceptos (que suponen ~40% de lo que pagas por cada kWh) no se compensan.\n\nEn la práctica, por cada kWh de excedente solo te descuentan de una parte de tu factura, no del total. El ahorro real es notablemente inferior al de tarifas que compensan contra el coste completo de la energía.`;
+          const cpTip = `❗ COMPENSACIÓN PARCIAL\n\nEsta tarifa solo compensa sobre el coste de la energía sin peajes ni cargos. Aunque la comercializadora anuncie un precio de compensación (ej. 0,07 €/kWh), ese descuento no se aplica sobre todo lo que pagas por kWh, sino solo sobre la parte de energía pura (~60% del coste).\n\nEl cálculo mostrado aquí ya tiene esto en cuenta: la compensación que ves reflejada es la real, no la que anuncia la comercializadora.`;
           compParcialIcon = `<span class="tooltip te-warn-icon" data-tip="${escapeHtml(cpTip)}" role="button" tabindex="0" aria-label="Aviso compensación parcial" style="margin-left:4px; color:var(--danger); cursor:help; font-size:1.1em;">❗</span>`;
         }
 
