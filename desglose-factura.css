@@ -480,6 +480,24 @@ html.light-mode .desglose-close:hover{
   opacity: 0.92;
   line-height: 1.35;
 }
+/* Variante Nufri (precio indexado) */
+.desglose-resumen-note--nufri{
+  padding: 8px 12px;
+  border-radius: 6px;
+  border-left: 3px solid var(--warn);
+  background: rgba(245,158,11,0.10);
+  color: var(--text);
+  opacity: 1;
+}
+/* Variante TotalEnergies (compensación parcial) */
+.desglose-resumen-note--te{
+  padding: 8px 12px;
+  border-radius: 6px;
+  border-left: 3px solid var(--danger);
+  background: rgba(239,68,68,0.10);
+  color: var(--text);
+  opacity: 1;
+}
 
 /* Línea auxiliar dentro de un item del resumen */
 .desglose-resumen-sub{

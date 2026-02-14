@@ -1406,8 +1406,8 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHuc
         return `<div class="bv-nufri-disclaimer" style="
           margin-top: 8px;
           padding: 8px 12px;
-          background: color-mix(in srgb, var(--warning) 8%, transparent);
-          border-left: 2px solid var(--warning);
+          background: color-mix(in srgb, var(--warn) 8%, transparent);
+          border-left: 2px solid var(--warn);
           border-radius: 6px;
           font-size: 0.8125rem;
           line-height: 1.4;
