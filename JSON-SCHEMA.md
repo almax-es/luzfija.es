@@ -56,7 +56,7 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 | `requisitos` | string | ❌ | — | "Consumo ≤8.000 kWh" | Solo si hay condiciones especiales |
 | `fv.exc` | number | ✅ | 0.00–0.30 | 0.03 | €/kWh por excedentes volcados a la red |
 | `fv.tipo` | string | ✅ | Ver notas | "SIMPLE + BV" | Tipo de compensación: cómo se retribuyen excedentes |
-| `fv.tope` | string | ✅ | "ENERGIA" \| "POTENCIA" \| "—" | "ENERGIA" | Límite de compensación (si aplica) |
+| `fv.tope` | string | ✅ | "ENERGIA" \| "ENERGIA_PARCIAL" \| "POTENCIA" \| "—" | "ENERGIA" | Límite de compensación (si aplica) |
 | `fv.bv` | boolean | ✅ | true \| false | true | ¿Permite acumular excedentes en batería virtual? |
 | `fv.reglaBV` | string | ✅ | Ver notas | "BV MES ANTERIOR" | Cómo se aplica la BV acumulada |
 | `requiereFV` | boolean | ✅ | true \| false | false | ¿La tarifa requiere obligatoriamente placas solares? |
@@ -71,7 +71,8 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 - Otros tipos según evolución regulatoria
 
 #### `fv.tope` (Límite de Compensación)
-- `"ENERGIA"` — Limitada a energía consumida (no hay ingresos por excedentes)
+- `"ENERGIA"` — Limitada al coste total de energía consumida (incluye peajes y cargos)
+- `"ENERGIA_PARCIAL"` — Limitada al coste de energía pura (excluye peajes y cargos regulados). Solo se puede compensar sobre `consumo − peajesyCargos`. Ej.: Visalia, TotalEnergies
 - `"POTENCIA"` — Limitada a potencia contratada
 - `"—"` — Sin límite (tarifa lo especifica)
 

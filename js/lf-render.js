@@ -190,7 +190,7 @@
         
         // --- AVISO COMPENSACIÓN PARCIAL (tope ENERGIA_PARCIAL) ---
         let compParcialIcon = '';
-        if (r.fvTope === 'ENERGIA_PARCIAL') {
+        if (r.fvTope === 'ENERGIA_PARCIAL' && r.fvApplied) {
           const bc = Number(r.fvBaseCompensable) || 0;
           const pt = Number(r.fvPeajesTotal) || 0;
           const consBruto = Math.round((Number(r.consumoNum) + Number(r.fvCredit1 || 0)) * 100) / 100;
