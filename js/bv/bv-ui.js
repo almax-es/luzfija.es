@@ -1253,7 +1253,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalGen = r2(exKwh * (row.precioExc || 0));
         const tipExcedentes = `💰 Gen: ${fKwh(exKwh)} × ${fPrice(row.precioExc)} = ${fEur(totalGen)}
 ✅ Comp: ${fEur(excMes)} (máx: ${fEur(eBruta)})
-${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Pdto: ${fEur(sobranteHucha)}`}`;
+${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHucha)}`}`;
 
         const tipEneNeta = `${fEur(eBruta)} − ${fEur(excMes)} (comp.) = ${fEur(eNeta)}`;
         const taxLabel = String(row.impuestoIndirectoTipo || 'IVA').toUpperCase();
