@@ -1431,7 +1431,7 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHuc
           line-height: 1.4;
           color: var(--text);
         ">
-          ❗ <strong>Compensación parcial:</strong> TotalEnergies solo compensa el término puro de energía. Los peajes y cargos de la energía quedan fuera, por lo que la compensación real es menor de lo que sugiere el precio anunciado.
+          ❗ <strong>Compensación parcial:</strong> TotalEnergies solo compensa sobre el coste de la energía sin peajes ni cargos. Estos conceptos (~40% del coste por kWh) no se descuentan, por lo que el ahorro real es inferior al que sugiere el precio de 0,07 €/kWh.
         </div>`;
       };
 

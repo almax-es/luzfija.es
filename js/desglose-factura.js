@@ -444,7 +444,7 @@
           ⚠️ <strong>Precio estimado:</strong> Nufri paga excedentes a precio <strong>indexado</strong> (pool OMIE horario). El valor mostrado (${this.fmtNum(datos.precioCompensacion, 4)} €/kWh) es una <strong>estimación promedio</strong>. El precio real variará según el mercado eléctrico.
         </div>` : ''}
         ${esTE && compensa ? `<div class="desglose-resumen-note desglose-resumen-note--te">
-          ❗ <strong>Compensación parcial:</strong> TotalEnergies solo compensa el término puro de energía. Los peajes y cargos de la energía quedan fuera, por lo que la compensación real es menor de lo que sugiere el precio anunciado.
+          ❗ <strong>Compensación parcial:</strong> TotalEnergies solo compensa sobre el coste de la energía sin peajes ni cargos. Estos conceptos (~40% del coste por kWh) no se descuentan, por lo que el ahorro real es inferior al que sugiere el precio de 0,07 €/kWh.
         </div>` : ''}
       </div>`;
 
