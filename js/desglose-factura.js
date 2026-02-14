@@ -407,8 +407,8 @@
       
       // Detectar si es Nufri (precio indexado, usamos estimación)
       const esNufri = (datos.nombreTarifa || '').includes('Nufri');
-      // Detectar si es TotalEnergies (compensación parcial)
-      const esTE = (datos.nombreTarifa || '').startsWith('TE ');
+      // Detectar compensación parcial (solo término de energía, sin peajes ni cargos)
+      const esCompParcial = String(datos.topeCompensacion || '') === 'ENERGIA_PARCIAL';
       // Mostrar precio con menos decimales para mayor claridad (2 en lugar de 6)
       const precioLabel = esNufri ? `${this.fmtNum(datos.precioCompensacion, 2)} €/kWh <span style="color:#f59e0b">(est.)</span>` : `${this.fmtNum(datos.precioCompensacion, 2)} €/kWh`;
 
@@ -443,8 +443,8 @@
         ${esNufri && compensa ? `<div class="desglose-resumen-note desglose-resumen-note--nufri">
           ⚠️ <strong>Precio estimado:</strong> Nufri paga excedentes a precio <strong>indexado</strong> (pool OMIE horario). El valor mostrado (${this.fmtNum(datos.precioCompensacion, 4)} €/kWh) es una <strong>estimación promedio</strong>. El precio real variará según el mercado eléctrico.
         </div>` : ''}
-        ${esTE && compensa ? `<div class="desglose-resumen-note desglose-resumen-note--te">
-          ❗ <strong>Compensación parcial:</strong> TotalEnergies solo compensa sobre el coste de la energía sin peajes ni cargos. Estos conceptos (~40% del coste por kWh) no se descuentan, por lo que el ahorro real es inferior al que sugiere el precio de 0,07 €/kWh.
+        ${esCompParcial && compensa ? `<div class="desglose-resumen-note desglose-resumen-note--te">
+          ❗ <strong>Compensación parcial:</strong> Esta tarifa solo compensa sobre el coste de la energía sin peajes ni cargos. Estos conceptos (~40% del coste por kWh) no se descuentan, por lo que el ahorro real es inferior al que sugiere el precio de compensación.
         </div>` : ''}
       </div>`;
 

@@ -188,11 +188,11 @@
         tr.dataset.tarifaNombre = nombreBase;
         tr.dataset.esPvpc = r.esPVPC ? '1' : '0';
         
-        // --- AVISO TOTALENERGIES: compensación parcial ---
-        let teWarnIcon = '';
-        if (nombreBase.startsWith('TE ')) {
-          const teTip = `❗ COMPENSACIÓN PARCIAL\n\nTotalEnergies compensa excedentes a 0,07 €/kWh, pero solo sobre el coste de la energía sin peajes ni cargos. Estos conceptos (que suponen ~40% de lo que pagas por cada kWh) no se compensan.\n\nEn la práctica, por cada kWh de excedente solo te descuentan de una parte de tu factura, no del total. El ahorro real es notablemente inferior al de tarifas que compensan contra el coste completo de la energía.`;
-          teWarnIcon = `<span class="tooltip te-warn-icon" data-tip="${escapeHtml(teTip)}" role="button" tabindex="0" aria-label="Aviso compensación parcial TotalEnergies" style="margin-left:4px; color:var(--danger); cursor:help; font-size:1.1em;">❗</span>`;
+        // --- AVISO COMPENSACIÓN PARCIAL (tope ENERGIA_PARCIAL) ---
+        let compParcialIcon = '';
+        if (r.fvTope === 'ENERGIA_PARCIAL') {
+          const cpTip = `❗ COMPENSACIÓN PARCIAL\n\nEsta tarifa solo compensa sobre el coste de la energía sin peajes ni cargos. Estos conceptos (que suponen ~40% de lo que pagas por cada kWh) no se compensan.\n\nEn la práctica, por cada kWh de excedente solo te descuentan de una parte de tu factura, no del total. El ahorro real es notablemente inferior al de tarifas que compensan contra el coste completo de la energía.`;
+          compParcialIcon = `<span class="tooltip te-warn-icon" data-tip="${escapeHtml(cpTip)}" role="button" tabindex="0" aria-label="Aviso compensación parcial" style="margin-left:4px; color:var(--danger); cursor:help; font-size:1.1em;">❗</span>`;
         }
 
         // --- VALIDACIÓN NUFRI IN-LINE (ICONO) ---
@@ -270,7 +270,7 @@
           solarDetails = `<div class="solar-details">🔋 ${escapeHtml(parts.join(' • '))}</div>`;
         }
 
-        const icons = `<span class="tarifa-icons">${fvIcon || ""}${teWarnIcon || ""}${requisitosTooltip || ""}${nombreWarn || ""}${nufriWarnIcon || ""}</span>`;
+        const icons = `<span class="tarifa-icons">${fvIcon || ""}${compParcialIcon || ""}${requisitosTooltip || ""}${nombreWarn || ""}${nufriWarnIcon || ""}</span>`;
 
         const badgeRow = `<div class="tarifa-badges" aria-hidden="true">` +
           `<span class="badge rank">#${idx + 1}</span>` +
