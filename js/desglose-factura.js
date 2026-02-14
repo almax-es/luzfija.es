@@ -460,12 +460,17 @@
           const cpPeajes = d.peajesTotal || 0;
           const cpBase = d.baseCompensable || 0;
           const cpPct = cpCons > 0 ? Math.round(cpBase / cpCons * 100) : 0;
+          const pc = window.LF_CONFIG?.peajesCargosEnergia || {};
+          const cpP1 = round2(safeNum(datos.consumoPunta) * (pc.P1 || 0));
+          const cpP2 = round2(safeNum(datos.consumoLlano) * (pc.P2 || 0));
+          const cpP3 = round2(safeNum(datos.consumoValle) * (pc.P3 || 0));
           let cpMsg = `❗ <strong>Compensación parcial:</strong> Tu consumo cuesta ${this.fmt(cpCons)}, pero ${this.fmt(cpPeajes)} son peajes y cargos regulados. Esta tarifa solo compensa hasta ${this.fmt(cpBase)} (energía pura, ${cpPct}% del total).`;
+          cpMsg += `<br><span style="opacity:0.8; font-size:0.92em;">Peajes: P1 ${this.fmtNum(datos.consumoPunta)} kWh × ${this.fmtPrecio(pc.P1)} = ${this.fmt(cpP1)} + P2 ${this.fmtNum(datos.consumoLlano)} kWh × ${this.fmtPrecio(pc.P2)} = ${this.fmt(cpP2)} + P3 ${this.fmtNum(datos.consumoValle)} kWh × ${this.fmtPrecio(pc.P3)} = ${this.fmt(cpP3)}</span>`;
           if (creditoPotencial > cpBase) {
             const cpPerdido = round2(creditoPotencial - cpBase);
-            cpMsg += ` Tus excedentes (${this.fmt(creditoPotencial)}) superan este límite, perdiéndose ${this.fmt(cpPerdido)}.`;
+            cpMsg += `<br>Tus excedentes (${this.fmt(creditoPotencial)}) superan este límite, perdiéndose ${this.fmt(cpPerdido)}.`;
           } else {
-            cpMsg += ` Tus excedentes (${this.fmt(creditoPotencial)}) caben dentro de este límite. Otras tarifas compensan contra el coste completo.`;
+            cpMsg += `<br>Tus excedentes (${this.fmt(creditoPotencial)}) caben dentro de este límite. Otras tarifas compensan contra el coste completo.`;
           }
           return `<div class="desglose-resumen-note desglose-resumen-note--te">${cpMsg}</div>`;
         })() : ''}
