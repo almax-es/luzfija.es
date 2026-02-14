@@ -1,6 +1,6 @@
 # Capacidad Completa De LuzFija.es
 
-Ultima actualizacion: 2026-02-08
+Ultima actualizacion: 2026-02-14
 
 Este documento es la fuente de verdad funcional para describir todo lo que hace la web, pagina por pagina, sin omitir flujos relevantes para asistentes IA o documentacion de producto.
 
@@ -55,6 +55,10 @@ Este documento es la fuente de verdad funcional para describir todo lo que hace 
 
 10. `/404.html`
 - Pagina de error con enlaces rapidos, buscador que redirige a guias y bloque de "fun fact".
+
+11. `/novedades.html`
+- Archivo publico de novedades regulatorias y alertas del sector.
+- Incluye enlace RSS (`/feed.xml`) y enlaces de apoyo a guias relacionadas.
 
 ## 3. Funcionalidades Del Comparador Principal (`/`)
 
@@ -270,10 +274,10 @@ Este documento es la fuente de verdad funcional para describir todo lo que hace 
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 28 (`js/*.js` + `js/bv/*.js`).
-- Lineas JS aproximadas: 14.157.
+- Lineas JS aproximadas: 16.650.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
-- `tarifas.json` (33 tarifas).
+- `tarifas.json` (36 tarifas).
 - `novedades.json`.
 - `/data/pvpc/` (indicador 1001).
 - `/data/surplus/` (indicador 1739).
@@ -307,8 +311,8 @@ Este documento es la fuente de verdad funcional para describir todo lo que hace 
 ## 10. Testing Y Calidad
 
 - Suite Vitest/JSDOM.
-- 26 archivos de test (`tests/*.test.js`).
-- Aproximadamente 174 casos `it()/test()`.
+- 28 archivos de test (`tests/*.test.js`).
+- 191 casos `it()/test()`.
 - Cobertura de:
 - Calculo fiscal y de energia.
 - PVPC y caches.

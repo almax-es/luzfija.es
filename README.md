@@ -9,16 +9,16 @@ Comparador avanzado de tarifas electricas en Espana, gratuito, sin registro y co
 - Guias: `https://luzfija.es/guias.html`
 - Contacto: `hola@luzfija.es`
 
-## Estado Actual (2026-02-08)
+## Estado Actual (2026-02-14)
 
-- 33 paginas HTML publicas:
-- 8 en raiz.
+- 34 paginas HTML publicas:
+- 9 en raiz.
 - 1 en `estadisticas/`.
 - 24 en `guias/` (indice + 23 guias).
 - 28 modulos JavaScript (`js/*.js` + `js/bv/*.js`).
-- 14.157 lineas JS aproximadas.
-- 33 tarifas en `tarifas.json`.
-- Suite de tests Vitest con 26 archivos y ~174 casos.
+- 16.650 lineas JS aproximadas.
+- 36 tarifas en `tarifas.json`.
+- Suite de tests Vitest con 28 archivos y 191 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 
@@ -86,6 +86,7 @@ Comparador avanzado de tarifas electricas en Espana, gratuito, sin registro y co
 - Landings de apoyo:
 - `calcular-factura-luz.html`
 - `comparar-pvpc-tarifa-fija.html`
+- `novedades.html` (archivo publico de avisos y cambios regulatorios).
 - `404.html` con enlaces rapidos y buscador hacia guias.
 - `aviso-legal.html` y `privacidad.html` (incluye opt-out de analitica GoatCounter).
 

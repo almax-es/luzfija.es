@@ -8,10 +8,10 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 ## 1. `tarifas.json` — Base de Datos de Tarifas Eléctricas
 
 **Ubicación**: `/tarifas.json`
-**Tamaño**: ~15 KB
+**Tamaño**: ~17 KB
 **Estructura**: Array de objetos dentro de `{ tarifas: [...] }`
-**Última actualización**: 2026-02-06
-**Total tarifas documentadas**: 33
+**Última actualización**: 2026-02-14
+**Total tarifas documentadas**: 36
 
 ### Esquema de Estructura
 
@@ -270,6 +270,7 @@ node -e "const n = JSON.parse(require('fs').readFileSync('novedades.json')); n.f
 
 ## Historial de Cambios
 
+- **2026-02-14**: Actualización de métricas (`tarifas.json` con 36 tarifas, `updatedAt` renovado) y ajuste de tamaño documentado
 - **2026-02-06**: Ajuste de métricas reales (33 tarifas), rango de datos PVPC (desde 2021-06) y estrategia de caché actual
 - **2026-02-03**: Actualización de `novedades.json` (2 noticias activas)
 - **2026-01-16**: Documentación inicial

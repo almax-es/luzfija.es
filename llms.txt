@@ -1,6 +1,6 @@
 # LuzFija.es - LLM Reference
 
-Last updated: 2026-02-08
+Last updated: 2026-02-14
 
 ## Core identity
 
@@ -58,6 +58,10 @@ Language: Spanish (es-ES)
 
 9. https://luzfija.es/404.html
 - Error page with quick links and guides search redirect.
+
+10. https://luzfija.es/novedades.html
+- Public archive page for market notices and regulatory updates.
+- Includes RSS feed access (`/feed.xml`).
 
 ## Main capabilities assistants should mention
 
