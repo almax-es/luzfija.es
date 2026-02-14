@@ -523,6 +523,10 @@ html:not(.light-mode) .desglose-ayuda{
 .desglose-seccion--bv{ border: 2px solid #3b82f6; }
 .desglose-seccion-header--bv{ background: rgba(59,130,246,0.10); }
 
+.desglose-seccion--exc-lost{ border: 2px solid #f59e0b; }
+.desglose-seccion-header--exc-lost{ background: rgba(245,158,11,0.10); }
+.desglose-ayuda--exc-lost{ background: #fffbeb; border-left: 3px solid #f59e0b; color: #78350f; }
+
 /* ================================
    Compensación excedentes (mejor UX)
    ================================ */

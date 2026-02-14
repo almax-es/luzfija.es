@@ -679,9 +679,9 @@
       }
 
       if (d.excedenteSobranteEur > 0 || d.credit2 > 0) {
-        html += `<div class="desglose-seccion desglose-seccion--bv">
-          <div class="desglose-seccion-header desglose-seccion-header--bv"><h3>${(datos.tieneBV ? "🔋 BATERÍA VIRTUAL" : "☀️ EXCEDENTES NO COMPENSADOS")}</h3><span class="desglose-importe-header">${this.fmt(datos.tieneBV ? (d.bvSaldoFin || 0) : (d.excedenteSobranteEur || 0))}</span></div>
-          ${datos.bateriaVirtual > 0 ? `<div class="desglose-linea">
+        html += `<div class="desglose-seccion ${bvActiva ? 'desglose-seccion--bv' : 'desglose-seccion--exc-lost'}">
+          <div class="desglose-seccion-header ${bvActiva ? 'desglose-seccion-header--bv' : 'desglose-seccion-header--exc-lost'}"><h3>${(bvActiva ? "🔋 BATERÍA VIRTUAL" : "☀️ EXCEDENTES NO COMPENSADOS")}</h3><span class="desglose-importe-header">${this.fmt(bvActiva ? (d.bvSaldoFin || 0) : (d.excedenteSobranteEur || 0))}</span></div>
+          ${bvActiva && datos.bateriaVirtual > 0 ? `<div class="desglose-linea">
             <span class="desglose-concepto">Saldo mes anterior</span>
             <span class="desglose-detalle"></span>
             <span class="desglose-importe">${this.fmt(datos.bateriaVirtual)}</span>
@@ -693,11 +693,12 @@
           </div>` : ''}
           ${d.credit2 > 0 ? `<div class="desglose-ayuda desglose-ayuda--bv">✅ <strong>Ventaja Batería Virtual:</strong> Descuenta de TODA la factura (potencia, impuestos y alquiler incluidos), no solo del consumo.</div>` : ''}
           ${d.excedenteSobranteEur > 0 ? `<div class="desglose-linea">
-            <span class="desglose-concepto">${datos.tieneBV ? "Excedentes acumulados" : "Sobrante de excedentes"}</span>
-            <span class="desglose-detalle">${datos.tieneBV ? "No compensados este mes" : "No se compensa este mes"}</span>
+            <span class="desglose-concepto">${bvActiva ? "Excedentes acumulados" : "Sobrante de excedentes"}</span>
+            <span class="desglose-detalle">${bvActiva ? "No compensados este mes" : "No se compensa este mes"}</span>
             <span class="desglose-importe desglose-importe--pos">+${this.fmt(d.excedenteSobranteEur)}</span>
           </div>` : ''}
-          ${datos.tieneBV ? `<div class="desglose-linea">
+          ${!bvActiva && d.excedenteSobranteEur > 0 ? `<div class="desglose-ayuda desglose-ayuda--exc-lost">⚠️ Esta tarifa <strong>no tiene batería virtual</strong>. Los excedentes que superan el tope legal de compensación se pierden cada mes.</div>` : ''}
+          ${bvActiva ? `<div class="desglose-linea">
             <span class="desglose-concepto"><strong>Saldo BV próximo mes</strong></span>
             <span class="desglose-detalle"></span>
             <span class="desglose-importe"><strong>${this.fmt(d.bvSaldoFin || 0)}</strong></span>
@@ -722,7 +723,7 @@
           <span class="desglose-detalle"></span>
           <span class="desglose-importe desglose-importe-final ${d.totalFinal === 0 ? 'desglose-importe--pos' : ''}">${this.fmt(d.totalFinal)}</span>
         </div>
-        ${datos.tieneBV && d.excedenteSobranteEur > 0 ? `<div class="desglose-linea desglose-linea--top-accent">
+        ${bvActiva && d.excedenteSobranteEur > 0 ? `<div class="desglose-linea desglose-linea--top-accent">
           <span class="desglose-concepto"><strong>🏆 Coste neto (para comparar tarifas)</strong></span>
           <span class="desglose-detalle">Este es el coste real de <strong>${escapeHtml(datos.nombreTarifa || 'esta tarifa')}</strong> este mes, sin contar tu saldo BV del pasado. Úsalo para comparar con otras tarifas de forma justa.<br><span class="desglose-detalle-sub">Cálculo: ${this.fmt(d.totalBase)} (factura) − ${this.fmt(d.excedenteSobranteEur)} (excedentes hoy) = ${this.fmt(d.totalRanking)}</span></span>
           <span class="desglose-importe desglose-importe-final desglose-importe--accent">${this.fmt(d.totalRanking)}</span>
