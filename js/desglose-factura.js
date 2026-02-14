@@ -217,8 +217,15 @@
         const exKwh = clampNonNeg(excedentes);
         const creditoPotencial = round2(exKwh * precioCompensacion);
         
-        // Compensación simplificada: siempre sobre término de energía (RD 244/2019 Art. 14)
-        const baseCompensable = cons;
+        // Compensación: sobre término de energía completo, o solo energía pura si ENERGIA_PARCIAL
+        let baseCompensable = cons;
+        if (topeCompensacion === 'ENERGIA_PARCIAL') {
+          const pc = CFG.peajesCargosEnergia || {};
+          const peajesTotal = round2(
+            consumoPunta * (pc.P1 || 0) + consumoLlano * (pc.P2 || 0) + consumoValle * (pc.P3 || 0)
+          );
+          baseCompensable = clampNonNeg(cons - peajesTotal);
+        }
 
         credit1 = Math.min(creditoPotencial, baseCompensable);
         consAdj = round2(Math.max(0, cons - credit1));
