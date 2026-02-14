@@ -206,7 +206,14 @@
             } else if (exKwh > 0 && precioExc > 0) {
               fvApplied = true;
               const creditoPotencial = round2(exKwh * precioExc);
-              const baseCompensable = cons;
+              let baseCompensable = cons;
+              if (fv.tope === 'ENERGIA_PARCIAL') {
+                const pc = CFG.peajesCargosEnergia || {};
+                const peajesTotal = round2(
+                  cPunta * (pc.P1 || 0) + cLlano * (pc.P2 || 0) + cValle * (pc.P3 || 0)
+                );
+                baseCompensable = clampNonNeg(cons - peajesTotal);
+              }
               credit1 = Math.min(creditoPotencial, baseCompensable);
               consAdj = round2(Math.max(0, cons - credit1));
               excedenteSobranteEur = Math.max(0, creditoPotencial - credit1);

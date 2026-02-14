@@ -52,6 +52,20 @@
     },
 
     // ═══════════════════════════════════════════════════════════════════
+    // PEAJES Y CARGOS DE ENERGÍA — Tarifa 2.0TD (€/kWh por periodo)
+    // Peajes: Resolución CNMC 18/12/2025 (BOE-A-2025-26348), Circular 3/2020
+    // Cargos: Orden TED/1524/2025 (BOE-A-2025-26705)
+    // Vigentes desde 1 de enero de 2026
+    // ═══════════════════════════════════════════════════════════════════
+    peajesCargosEnergia: {
+      // Peajes transporte+distribución + Cargos del sistema (sumados)
+      P1: 0.097553,   // Punta:  peaje 0.033261 + cargo 0.064292
+      P2: 0.029267,   // Llano:  peaje 0.016409 + cargo 0.012858
+      P3: 0.003292,   // Valle:  peaje 0.000077 + cargo 0.003215
+      descripcion: 'Peajes + cargos energía 2.0TD 2026'
+    },
+
+    // ═══════════════════════════════════════════════════════════════════
     // IMPUESTOS POR TERRITORIO
     // ═══════════════════════════════════════════════════════════════════
     territorios: {

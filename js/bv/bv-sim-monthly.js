@@ -225,9 +225,19 @@ window.BVSim.calcMonthForTarifa = function ({
   if (!Number.isFinite(precioExc)) precioExc = 0;
   
   const creditoPotencial = round2(exKwh * precioExc);
-  
-  // Compensación (límite: coste energía)
-  const credit1 = round2(Math.min(creditoPotencial, consEur));
+
+  // Compensación (límite: coste energía, o energía pura si ENERGIA_PARCIAL)
+  let baseCompensable = consEur;
+  if (tarifa?.fv?.tope === 'ENERGIA_PARCIAL') {
+    const pc = (window.LF_CONFIG && window.LF_CONFIG.peajesCargosEnergia) || {};
+    const peajesTotal = round2(
+      (month.importByPeriod.P1 || 0) * (pc.P1 || 0)
+      + (month.importByPeriod.P2 || 0) * (pc.P2 || 0)
+      + (month.importByPeriod.P3 || 0) * (pc.P3 || 0)
+    );
+    baseCompensable = Math.max(0, consEur - peajesTotal);
+  }
+  const credit1 = round2(Math.min(creditoPotencial, baseCompensable));
   const consAdj = round2(Math.max(0, consEur - credit1));
   const excedenteSobranteEur = round2(Math.max(0, creditoPotencial - credit1));
   
