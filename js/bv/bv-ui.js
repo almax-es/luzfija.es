@@ -1251,10 +1251,19 @@ document.addEventListener('DOMContentLoaded', () => {
         // Cálculos Excedentes
         const exKwh = Number(row.exKwh) || Number(m.exportTotalKWh) || 0;
         const totalGen = r2(exKwh * (row.precioExc || 0));
-        const maxComp = (t?.fv?.tope === 'ENERGIA_PARCIAL' && row.baseCompensable != null)
+        const esCP = t?.fv?.tope === 'ENERGIA_PARCIAL';
+        const maxComp = (esCP && row.baseCompensable != null)
           ? r2(row.baseCompensable) : eBruta;
+        let tipMaxDetalle = '';
+        if (esCP && row.peajesTotal > 0) {
+          const pc = (window.LF_CONFIG && window.LF_CONFIG.peajesCargosEnergia) || {};
+          const pP1 = r2(kwhP1 * (pc.P1 || 0));
+          const pP2 = r2(kwhP2 * (pc.P2 || 0));
+          const pP3 = r2(kwhP3 * (pc.P3 || 0));
+          tipMaxDetalle = `\n❗ Peajes: P1 ${fEur(pP1)} + P2 ${fEur(pP2)} + P3 ${fEur(pP3)} = ${fEur(row.peajesTotal)}\n   Máx compensable: ${fEur(eBruta)} − ${fEur(row.peajesTotal)} = ${fEur(maxComp)}`;
+        }
         const tipExcedentes = `💰 Gen: ${fKwh(exKwh)} × ${fPrice(row.precioExc)} = ${fEur(totalGen)}
-✅ Comp: ${fEur(excMes)} (máx: ${fEur(maxComp)})
+✅ Comp: ${fEur(excMes)} (máx: ${fEur(maxComp)})${tipMaxDetalle}
 ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHucha)}`}`;
 
         const tipEneNeta = `${fEur(eBruta)} − ${fEur(excMes)} (comp.) = ${fEur(eNeta)}`;
