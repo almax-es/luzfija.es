@@ -525,7 +525,7 @@ html:not(.light-mode) .desglose-ayuda{
 
 .desglose-seccion--exc-lost{ border: 2px solid #f59e0b; }
 .desglose-seccion-header--exc-lost{ background: rgba(245,158,11,0.10); }
-.desglose-ayuda--exc-lost{ background: #fffbeb; border-left: 3px solid #f59e0b; color: #78350f; }
+.desglose-ayuda--exc-lost{ background: rgba(245,158,11,0.10); border-left: 3px solid #f59e0b; border-color: rgba(245,158,11,0.25); }
 
 /* ================================
    Compensación excedentes (mejor UX)
