@@ -188,6 +188,13 @@
         tr.dataset.tarifaNombre = nombreBase;
         tr.dataset.esPvpc = r.esPVPC ? '1' : '0';
         
+        // --- AVISO TOTALENERGIES: compensación parcial ---
+        let teWarnIcon = '';
+        if (nombreBase.startsWith('TE ')) {
+          const teTip = `❗ COMPENSACIÓN PARCIAL\n\nTotalEnergies solo compensa el término puro de energía. Los peajes y cargos (que suponen una parte importante de lo que pagas por kWh) quedan fuera de la compensación.\n\nEsto significa que aunque el precio de compensación sea 0,07 €/kWh, en la práctica solo se descuenta de una fracción de tu consumo, no del total. La compensación real es significativamente menor que en tarifas donde se compensa contra el coste total de la energía.`;
+          teWarnIcon = `<span class="tooltip te-warn-icon" data-tip="${escapeHtml(teTip)}" role="button" tabindex="0" aria-label="Aviso compensación parcial TotalEnergies" style="margin-left:4px; color:var(--danger); cursor:help; font-size:1.1em;">❗</span>`;
+        }
+
         // --- VALIDACIÓN NUFRI IN-LINE (ICONO) ---
         let nufriWarnIcon = '';
         if (nufriExcede && nombreBase.toLowerCase().includes('nufri')) {
@@ -263,7 +270,7 @@
           solarDetails = `<div class="solar-details">🔋 ${escapeHtml(parts.join(' • '))}</div>`;
         }
 
-        const icons = `<span class="tarifa-icons">${fvIcon || ""}${requisitosTooltip || ""}${nombreWarn || ""}${nufriWarnIcon || ""}</span>`;
+        const icons = `<span class="tarifa-icons">${fvIcon || ""}${teWarnIcon || ""}${requisitosTooltip || ""}${nombreWarn || ""}${nufriWarnIcon || ""}</span>`;
 
         const badgeRow = `<div class="tarifa-badges" aria-hidden="true">` +
           `<span class="badge rank">#${idx + 1}</span>` +
@@ -310,6 +317,7 @@
     // Diferir binding de tooltips al siguiente frame (INP: no bloquear tras render)
     requestAnimationFrame(() => {
       if (myToken !== __lf_currentRenderToken) return;
+      el.tbody.querySelectorAll('.te-warn-icon').forEach(t => bindTooltipElement(t));
       el.tbody.querySelectorAll('.requisitos-icon').forEach(t => bindTooltipElement(t));
       el.tbody.querySelectorAll('.fv-icon').forEach(t => bindTooltipElement(t));
       el.tbody.querySelectorAll('.nufri-icon').forEach(t => bindTooltipElement(t));
