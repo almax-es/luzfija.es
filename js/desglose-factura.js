@@ -407,6 +407,8 @@
       
       // Detectar si es Nufri (precio indexado, usamos estimación)
       const esNufri = (datos.nombreTarifa || '').includes('Nufri');
+      // Detectar si es TotalEnergies (compensación parcial)
+      const esTE = (datos.nombreTarifa || '').startsWith('TE ');
       // Mostrar precio con menos decimales para mayor claridad (2 en lugar de 6)
       const precioLabel = esNufri ? `${this.fmtNum(datos.precioCompensacion, 2)} €/kWh <span style="color:#f59e0b">(est.)</span>` : `${this.fmtNum(datos.precioCompensacion, 2)} €/kWh`;
 
@@ -440,6 +442,9 @@
         </div>` : ''}
         ${esNufri && compensa ? `<div class="desglose-resumen-note" style="background:#fffbeb;border-left:3px solid #f59e0b;color:#78350f">
           ⚠️ <strong>Precio estimado:</strong> Nufri paga excedentes a precio <strong>indexado</strong> (pool OMIE horario). El valor mostrado (${this.fmtNum(datos.precioCompensacion, 4)} €/kWh) es una <strong>estimación promedio</strong>. El precio real variará según el mercado eléctrico.
+        </div>` : ''}
+        ${esTE && compensa ? `<div class="desglose-resumen-note" style="background:#fef2f2;border-left:3px solid var(--danger);color:#991b1b">
+          ❗ <strong>Compensación parcial:</strong> TotalEnergies solo compensa el término puro de energía. Los peajes y cargos de la energía quedan fuera, por lo que la compensación real es menor de lo que sugiere el precio anunciado.
         </div>` : ''}
       </div>`;
 
