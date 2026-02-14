@@ -228,9 +228,10 @@ window.BVSim.calcMonthForTarifa = function ({
 
   // Compensación (límite: coste energía, o energía pura si ENERGIA_PARCIAL)
   let baseCompensable = consEur;
+  let peajesTotal = 0;
   if (tarifa?.fv?.tope === 'ENERGIA_PARCIAL') {
     const pc = (window.LF_CONFIG && window.LF_CONFIG.peajesCargosEnergia) || {};
-    const peajesTotal = round2(
+    peajesTotal = round2(
       (month.importByPeriod.P1 || 0) * (pc.P1 || 0)
       + (month.importByPeriod.P2 || 0) * (pc.P2 || 0)
       + (month.importByPeriod.P3 || 0) * (pc.P3 || 0)
@@ -412,7 +413,9 @@ window.BVSim.calcMonthForTarifa = function ({
     credit2,
     bvSaldoFin,
     totalPagar,
-    totalReal
+    totalReal,
+    baseCompensable,
+    peajesTotal
   };
 };
 

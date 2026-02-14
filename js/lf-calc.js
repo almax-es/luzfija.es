@@ -193,6 +193,8 @@
         let bvSaldoFin = null;
         const fv = t.fv;
         let fvApplied = false;
+        let fvBaseCompensable = 0;
+        let fvPeajesTotal = 0;
 
         let solarNoCalculable = false;
         if (solarOn && t.esPVPC) {
@@ -207,13 +209,16 @@
               fvApplied = true;
               const creditoPotencial = round2(exKwh * precioExc);
               let baseCompensable = cons;
+              let peajesTotal = 0;
               if (fv.tope === 'ENERGIA_PARCIAL') {
                 const pc = CFG.peajesCargosEnergia || {};
-                const peajesTotal = round2(
+                peajesTotal = round2(
                   cPunta * (pc.P1 || 0) + cLlano * (pc.P2 || 0) + cValle * (pc.P3 || 0)
                 );
                 baseCompensable = clampNonNeg(cons - peajesTotal);
               }
+              fvBaseCompensable = baseCompensable;
+              fvPeajesTotal = peajesTotal;
               credit1 = Math.min(creditoPotencial, baseCompensable);
               consAdj = round2(Math.max(0, cons - credit1));
               excedenteSobranteEur = Math.max(0, creditoPotencial - credit1);
@@ -287,6 +292,8 @@
             fvBvSaldoFin: bvSaldoFin,
             fvExcedenteSobrante: excedenteSobranteEur,
             fvTotalFinal: totalFinal,
+            fvBaseCompensable,
+            fvPeajesTotal,
             solarNoCalculable,
             bonoSocialDescuentoEur: bonoSocialDescuento,
             bonoSocialProximoMes: bonoSocialProximoMes
@@ -347,6 +354,8 @@
             fvBvSaldoFin: bvSaldoFin,
             fvExcedenteSobrante: excedenteSobranteEur,
             fvTotalFinal: totalFinal,
+            fvBaseCompensable,
+            fvPeajesTotal,
             solarNoCalculable,
             bonoSocialDescuentoEur: bonoSocialDescuento,
             bonoSocialProximoMes: bonoSocialProximoMes
@@ -399,6 +408,8 @@
             fvExcRaw: fv ? fv.exc : null,
             fvRegla: fv ? fv.reglaBV || null : null,
             fvApplied,
+            fvBaseCompensable,
+            fvPeajesTotal,
             bonoSocialDescuentoEur: bonoSocialDescuento,
             bonoSocialProximoMes: bonoSocialProximoMes,
             fvExKwh: exKwh,

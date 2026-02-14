@@ -191,7 +191,20 @@
         // --- AVISO COMPENSACIÓN PARCIAL (tope ENERGIA_PARCIAL) ---
         let compParcialIcon = '';
         if (r.fvTope === 'ENERGIA_PARCIAL') {
-          const cpTip = `❗ COMPENSACIÓN PARCIAL\n\nEsta tarifa solo compensa sobre el coste de la energía sin peajes ni cargos. Aunque la comercializadora anuncie un precio de compensación (ej. 0,07 €/kWh), ese descuento no se aplica sobre todo lo que pagas por kWh, sino solo sobre la parte de energía pura (~60% del coste).\n\nEl cálculo mostrado aquí ya tiene esto en cuenta: la compensación que ves reflejada es la real, no la que anuncia la comercializadora.`;
+          const bc = Number(r.fvBaseCompensable) || 0;
+          const pt = Number(r.fvPeajesTotal) || 0;
+          const consBruto = Math.round((Number(r.consumoNum) + Number(r.fvCredit1 || 0)) * 100) / 100;
+          const pctPura = consBruto > 0 ? Math.round(bc / consBruto * 100) : 0;
+
+          let cpTip = `❗ COMPENSACIÓN PARCIAL\n\n`;
+          if (bc > 0 && pt > 0) {
+            cpTip += `Tu consumo cuesta ${consBruto.toFixed(2)} €.\n`;
+            cpTip += `De eso, ${pt.toFixed(2)} € son peajes y cargos regulados.\n\n`;
+            cpTip += `Solo se puede compensar sobre ${bc.toFixed(2)} € de energía pura (${pctPura}% del total).\n\n`;
+          } else {
+            cpTip += `Esta tarifa solo compensa sobre el coste de la energía sin peajes ni cargos.\n\n`;
+          }
+          cpTip += `El cálculo mostrado ya refleja esta limitación.`;
           compParcialIcon = `<span class="tooltip te-warn-icon" data-tip="${escapeHtml(cpTip)}" role="button" tabindex="0" aria-label="Aviso compensación parcial" style="margin-left:4px; color:var(--danger); cursor:help; font-size:1.1em;">❗</span>`;
         }
 

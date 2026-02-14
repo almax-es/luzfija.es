@@ -1251,8 +1251,10 @@ document.addEventListener('DOMContentLoaded', () => {
         // Cálculos Excedentes
         const exKwh = Number(row.exKwh) || Number(m.exportTotalKWh) || 0;
         const totalGen = r2(exKwh * (row.precioExc || 0));
+        const maxComp = (t?.fv?.tope === 'ENERGIA_PARCIAL' && row.baseCompensable != null)
+          ? r2(row.baseCompensable) : eBruta;
         const tipExcedentes = `💰 Gen: ${fKwh(exKwh)} × ${fPrice(row.precioExc)} = ${fEur(totalGen)}
-✅ Comp: ${fEur(excMes)} (máx: ${fEur(eBruta)})
+✅ Comp: ${fEur(excMes)} (máx: ${fEur(maxComp)})
 ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHucha)}`}`;
 
         const tipEneNeta = `${fEur(eBruta)} − ${fEur(excMes)} (comp.) = ${fEur(eNeta)}`;
@@ -1419,8 +1421,24 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHuc
       };
 
       // Helper: Aviso compensación parcial (tope ENERGIA_PARCIAL)
-      const getCompParcialDisclaimer = (tarifa) => {
+      const getCompParcialDisclaimer = (tarifa, resultItem) => {
         if (!tarifa?.fv || tarifa.fv.tope !== 'ENERGIA_PARCIAL') return '';
+
+        let detalle = '';
+        if (resultItem?.rows?.length) {
+          let totalCons = 0, totalPeajes = 0, totalBase = 0;
+          resultItem.rows.forEach(row => {
+            totalCons += row.consEur || 0;
+            totalPeajes += row.peajesTotal || 0;
+            totalBase += row.baseCompensable || 0;
+          });
+          totalCons = r2(totalCons); totalPeajes = r2(totalPeajes); totalBase = r2(totalBase);
+          if (totalCons > 0 && totalPeajes > 0) {
+            const pct = Math.round(totalBase / totalCons * 100);
+            detalle = ` En tu caso: de ${fEur(totalCons)} de consumo anual, ${fEur(totalPeajes)} son peajes/cargos. Solo el ${pct}% (${fEur(totalBase)}) es compensable.`;
+          }
+        }
+
         return `<div class="bv-te-disclaimer" style="
           margin-top: 8px;
           padding: 8px 12px;
@@ -1431,7 +1449,7 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHuc
           line-height: 1.4;
           color: var(--text);
         ">
-          ❗ <strong>Compensación parcial:</strong> Esta tarifa solo compensa sobre el coste de la energía sin peajes ni cargos (~60% del coste por kWh). Los resultados mostrados ya reflejan esta limitación. Otras tarifas compensan contra el coste completo de la energía.
+          ❗ <strong>Compensación parcial:</strong> Esta tarifa solo compensa sobre energía pura (sin peajes ni cargos).${detalle} Los resultados ya reflejan esta limitación.
         </div>`;
       };
 
@@ -1443,7 +1461,7 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHuc
         ? '<span class="bv-pill bv-pill--bv" title="Esta tarifa acumula el excedente sobrante (en €) para meses futuros.">Con batería virtual</span>'
         : '<span class="bv-pill bv-pill--no-bv" title="Esta tarifa NO acumula excedente sobrante: lo no compensado se pierde cada mes.">Sin batería virtual</span>';
       const winnerNufriNote = getNufriDisclaimer(winner.tarifa?.nombre);
-      const winnerCompParcialNote = getCompParcialDisclaimer(winner.tarifa);
+      const winnerCompParcialNote = getCompParcialDisclaimer(winner.tarifa, winner);
 
       const winnerHTML = `
         <div class="bv-results-grid" style="margin-bottom: 40px;">
@@ -1492,7 +1510,7 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHuc
           ? '<span class="bv-pill bv-pill--bv" title="Acumula excedente sobrante para meses futuros.">Con BV</span>'
           : '<span class="bv-pill bv-pill--no-bv" title="No acumula excedente sobrante; lo no compensado se pierde.">Sin BV</span>';
         const altNufriNote = getNufriDisclaimer(r.tarifa?.nombre);
-        const altCompParcialNote = getCompParcialDisclaimer(r.tarifa);
+        const altCompParcialNote = getCompParcialDisclaimer(r.tarifa, r);
 
         return `
           <div class="bv-alt-card-compact">

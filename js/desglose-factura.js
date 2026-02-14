@@ -212,16 +212,18 @@
       let tarifaAdj = tarifaAcceso;
       let credit1 = 0;
       let excedenteSobranteEur = 0;
+      let baseCompensable = 0;
+      let peajesTotal = 0;
 
       if (solarOn && excedentes > 0 && precioCompensacion > 0 && tipoCompensacion !== 'NO COMPENSA') {
         const exKwh = clampNonNeg(excedentes);
         const creditoPotencial = round2(exKwh * precioCompensacion);
-        
+
         // Compensación: sobre término de energía completo, o solo energía pura si ENERGIA_PARCIAL
-        let baseCompensable = cons;
+        baseCompensable = cons;
         if (topeCompensacion === 'ENERGIA_PARCIAL') {
           const pc = CFG.peajesCargosEnergia || {};
-          const peajesTotal = round2(
+          peajesTotal = round2(
             consumoPunta * (pc.P1 || 0) + consumoLlano * (pc.P2 || 0) + consumoValle * (pc.P3 || 0)
           );
           baseCompensable = clampNonNeg(cons - peajesTotal);
@@ -265,7 +267,8 @@
         resultado = { pot, cons, consAdj, tarifaAcceso, tarifaAdj, credit1, excedenteSobranteEur,
           sumaBase, impuestoElec, baseEnergia, alquilerContador, igicBase, igicContador,
           impuestosNum, totalBase, credit2, bvSaldoFin, totalFinal, totalRanking,
-          isCanarias: true, isCeutaMelilla: false, usoFiscal };
+          isCanarias: true, isCeutaMelilla: false, usoFiscal,
+          baseCompensable, peajesTotal };
 
       } else if (isCeutaMelilla) {
         // ═══════════════════════════════════════════════════════════════
@@ -293,7 +296,8 @@
         resultado = { pot, cons, consAdj, tarifaAcceso, tarifaAdj, credit1, excedenteSobranteEur,
           sumaBase, impuestoElec, baseEnergia, alquilerContador, baseIPSI, ipsiEnergia, ipsiContador,
           impuestosNum, totalBase, credit2, bvSaldoFin, totalFinal, totalRanking,
-          isCanarias: false, isCeutaMelilla: true };
+          isCanarias: false, isCeutaMelilla: true,
+          baseCompensable, peajesTotal };
 
       } else {
         // ═══════════════════════════════════════════════════════════════
@@ -318,7 +322,8 @@
 
         resultado = { pot, cons, consAdj, tarifaAcceso, tarifaAdj, credit1, excedenteSobranteEur,
           sumaBase, impuestoElec, alquilerContador, baseEnergia, ivaBase, iva, impuestosNum,
-          totalBase, credit2, bvSaldoFin, totalFinal, totalRanking, isCanarias: false, isCeutaMelilla: false };
+          totalBase, credit2, bvSaldoFin, totalFinal, totalRanking, isCanarias: false, isCeutaMelilla: false,
+          baseCompensable, peajesTotal };
       }
 
       return resultado;
@@ -406,16 +411,16 @@
       const kwhExUsados = (solarOn && precioComp > 0 && d.credit1 > 0) ? clampNonNeg(d.credit1 / precioComp) : 0;
       const kwhExSobrantes = (solarOn && precioComp > 0 && exKwh > 0) ? clampNonNeg(exKwh - kwhExUsados) : 0;
       const tope = String(datos.topeCompensacion || 'ENERGIA');
+      // Detectar compensación parcial (solo término de energía, sin peajes ni cargos)
+      const esCompParcial = String(datos.topeCompensacion || '') === 'ENERGIA_PARCIAL';
       // Etiquetas de texto para la explicación de compensación
-      const topeLabel = 'consumo de luz';
+      const topeLabel = esCompParcial ? 'energía pura (sin peajes ni cargos)' : 'consumo de luz';
       const topeNoNeg = 'no puede dejar el consumo en negativo';
       const pagoMes = (typeof d.totalFinal === 'number') ? d.totalFinal : d.totalBase;
       const bvActiva = Boolean(datos.tieneBV) && String(datos.tipoCompensacion || '').includes('BV');
-      
+
       // Detectar si es Nufri (precio indexado, usamos estimación)
       const esNufri = (datos.nombreTarifa || '').includes('Nufri');
-      // Detectar compensación parcial (solo término de energía, sin peajes ni cargos)
-      const esCompParcial = String(datos.topeCompensacion || '') === 'ENERGIA_PARCIAL';
       // Mostrar precio con menos decimales para mayor claridad (2 en lugar de 6)
       const precioLabel = esNufri ? `${this.fmtNum(datos.precioCompensacion, 2)} €/kWh <span style="color:#f59e0b">(est.)</span>` : `${this.fmtNum(datos.precioCompensacion, 2)} €/kWh`;
 
@@ -440,19 +445,30 @@
           ${(d.credit1 > 0) ? `<div class="desglose-resumen-item">
             <div class="desglose-resumen-label">Compensación aplicada</div>
             <div class="desglose-resumen-value">${this.fmt(d.credit1)}</div>
-            <div class="desglose-resumen-sub">💡 <strong>Tope legal:</strong> Solo se puede compensar hasta el coste del ${topeLabel} del mes.</div>
+            <div class="desglose-resumen-sub">${esCompParcial && d.baseCompensable > 0 ? `💡 <strong>Tope:</strong> Solo se puede compensar hasta ${this.fmt(d.baseCompensable)} (energía pura). De los ${this.fmt(d.cons)} de consumo, ${this.fmt(d.peajesTotal)} son peajes y cargos que no se pueden compensar.` : `💡 <strong>Tope legal:</strong> Solo se puede compensar hasta el coste del ${topeLabel} del mes.`}</div>
             ${(solarOn && precioComp > 0 && exKwh > 0) ? `<div class="desglose-resumen-sub">✅ Compensados: <strong>${this.fmtNum(kwhExUsados)}</strong> kWh${bvActiva ? ` · 🔋 A batería virtual: <strong>${this.fmtNum(kwhExSobrantes)}</strong> kWh` : (kwhExSobrantes > 0 ? ` · ❌ Se pierden: <strong>${this.fmtNum(kwhExSobrantes)}</strong> kWh` : '')}</div>` : ''}
           </div>` : ''}
         </div>
         ${(d.credit1 > 0 && creditoPotencial > d.credit1) ? `<div class="desglose-resumen-note">
-          ✅ Has generado <strong>${this.fmt(creditoPotencial)}</strong> en excedentes. Se compensan <strong>${this.fmt(d.credit1)}</strong> este mes (tope legal: ${topeLabel}). ${bvActiva ? `Los <strong>${this.fmt(d.excedenteSobranteEur)}</strong> restantes se guardan en tu Batería Virtual para próximas facturas.` : 'El resto no se puede compensar este mes.'}
+          ✅ Has generado <strong>${this.fmt(creditoPotencial)}</strong> en excedentes. Se compensan <strong>${this.fmt(d.credit1)}</strong> este mes (tope: ${topeLabel}). ${bvActiva ? `Los <strong>${this.fmt(d.excedenteSobranteEur)}</strong> restantes se guardan en tu Batería Virtual para próximas facturas.` : 'El resto no se puede compensar este mes.'}
         </div>` : ''}
         ${esNufri && compensa ? `<div class="desglose-resumen-note desglose-resumen-note--nufri">
           ⚠️ <strong>Precio estimado:</strong> Nufri paga excedentes a precio <strong>indexado</strong> (pool OMIE horario). El valor mostrado (${this.fmtNum(datos.precioCompensacion, 4)} €/kWh) es una <strong>estimación promedio</strong>. El precio real variará según el mercado eléctrico.
         </div>` : ''}
-        ${esCompParcial && compensa ? `<div class="desglose-resumen-note desglose-resumen-note--te">
-          ❗ <strong>Compensación parcial:</strong> Esta tarifa solo compensa sobre el coste de la energía sin peajes ni cargos (~60% del coste por kWh). El descuento mostrado aquí ya refleja esta limitación. Otras tarifas compensan contra el coste completo de la energía.
-        </div>` : ''}
+        ${esCompParcial && compensa ? (() => {
+          const cpCons = d.cons || 0;
+          const cpPeajes = d.peajesTotal || 0;
+          const cpBase = d.baseCompensable || 0;
+          const cpPct = cpCons > 0 ? Math.round(cpBase / cpCons * 100) : 0;
+          let cpMsg = `❗ <strong>Compensación parcial:</strong> Tu consumo cuesta ${this.fmt(cpCons)}, pero ${this.fmt(cpPeajes)} son peajes y cargos regulados. Esta tarifa solo compensa hasta ${this.fmt(cpBase)} (energía pura, ${cpPct}% del total).`;
+          if (creditoPotencial > cpBase) {
+            const cpPerdido = round2(creditoPotencial - cpBase);
+            cpMsg += ` Tus excedentes (${this.fmt(creditoPotencial)}) superan este límite, perdiéndose ${this.fmt(cpPerdido)}.`;
+          } else {
+            cpMsg += ` Tus excedentes (${this.fmt(creditoPotencial)}) caben dentro de este límite. Otras tarifas compensan contra el coste completo.`;
+          }
+          return `<div class="desglose-resumen-note desglose-resumen-note--te">${cpMsg}</div>`;
+        })() : ''}
       </div>`;
 
 
