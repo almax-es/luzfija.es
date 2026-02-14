@@ -120,6 +120,7 @@
       "p2": 0.072589,
       "web": "https://www.totalenergies.es/es/hogares/tarifas-luz-gas/a-tu-aire-siempre",
       "tipo": "1P",
+      "requisitos": "Solo se compensa el término de energía. Peajes y cargos quedan fuera de la compensación.",
       "fv": {
         "exc": 0.07,
         "tipo": "SIMPLE",
@@ -431,6 +432,7 @@
       "p2": 0.072575,
       "web": "https://www.totalenergies.es/es/hogares/tarifas-luz/a-tu-aire-programa-tu-ahorro",
       "tipo": "3P",
+      "requisitos": "Solo se compensa el término de energía. Peajes y cargos quedan fuera de la compensación.",
       "fv": {
         "exc": 0.07,
         "tipo": "SIMPLE",
@@ -661,5 +663,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-02-14T08:04:39.399Z"
+  "updatedAt": "2026-02-14T09:24:27.818Z"
 }
