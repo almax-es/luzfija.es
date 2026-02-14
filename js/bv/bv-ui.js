@@ -1418,6 +1418,23 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHuc
         </div>`;
       };
 
+      // Helper: Aviso compensación parcial TotalEnergies
+      const getTEDisclaimer = (nombreTarifa) => {
+        if (!(nombreTarifa || '').startsWith('TE ')) return '';
+        return `<div class="bv-te-disclaimer" style="
+          margin-top: 8px;
+          padding: 8px 12px;
+          background: color-mix(in srgb, var(--danger) 10%, transparent);
+          border-left: 3px solid var(--danger);
+          border-radius: 6px;
+          font-size: 0.8125rem;
+          line-height: 1.4;
+          color: var(--text);
+        ">
+          ❗ <strong>Compensación parcial:</strong> TotalEnergies solo compensa el término puro de energía. Los peajes y cargos de la energía quedan fuera, por lo que la compensación real es menor de lo que sugiere el precio anunciado.
+        </div>`;
+      };
+
       // HTML del Ganador
       const winnerName = escapeHtml(winner.tarifa?.nombre || '');
       const winnerUrl = sanitizeUrl(winner.tarifa?.web);
@@ -1426,6 +1443,7 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHuc
         ? '<span class="bv-pill bv-pill--bv" title="Esta tarifa acumula el excedente sobrante (en €) para meses futuros.">Con batería virtual</span>'
         : '<span class="bv-pill bv-pill--no-bv" title="Esta tarifa NO acumula excedente sobrante: lo no compensado se pierde cada mes.">Sin batería virtual</span>';
       const winnerNufriNote = getNufriDisclaimer(winner.tarifa?.nombre);
+      const winnerTENote = getTEDisclaimer(winner.tarifa?.nombre);
 
       const winnerHTML = `
         <div class="bv-results-grid" style="margin-bottom: 40px;">
@@ -1434,6 +1452,7 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHuc
             <h2 class="bv-winner-name">${winnerName}</h2>
             <div style="margin-top: 8px;">${pillWinner}</div>
             ${winnerNufriNote}
+            ${winnerTENote}
             <div style="margin-top:auto; padding-top:1.5rem; width:100%">
               ${winnerUrl ? `<a href="${winnerUrl}" target="_blank" rel="noopener noreferrer" class="btn bv-link-tarifa" style="width:100%; justify-content:center; font-size:14px; padding:10px 14px;">🔗 Información de la tarifa</a>` : ''}
             </div>
@@ -1473,6 +1492,7 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHuc
           ? '<span class="bv-pill bv-pill--bv" title="Acumula excedente sobrante para meses futuros.">Con BV</span>'
           : '<span class="bv-pill bv-pill--no-bv" title="No acumula excedente sobrante; lo no compensado se pierde.">Sin BV</span>';
         const altNufriNote = getNufriDisclaimer(r.tarifa?.nombre);
+        const altTENote = getTEDisclaimer(r.tarifa?.nombre);
 
         return `
           <div class="bv-alt-card-compact">
@@ -1490,6 +1510,7 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHuc
             </div>
 
             ${altNufriNote}
+            ${altTENote}
             ${hasBV ? '' : '<div class="bv-note bv-note-compact">Sin BV: el excedente no compensado se pierde.</div>'}
 
             <div class="bv-alt-actions">

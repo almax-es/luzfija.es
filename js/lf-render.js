@@ -191,7 +191,7 @@
         // --- AVISO TOTALENERGIES: compensación parcial ---
         let teWarnIcon = '';
         if (nombreBase.startsWith('TE ')) {
-          const teTip = `❗ COMPENSACIÓN PARCIAL\n\nTotalEnergies solo compensa el término puro de energía. Los peajes y cargos (que suponen una parte importante de lo que pagas por kWh) quedan fuera de la compensación.\n\nEsto significa que aunque el precio de compensación sea 0,07 €/kWh, en la práctica solo se descuenta de una fracción de tu consumo, no del total. La compensación real es significativamente menor que en tarifas donde se compensa contra el coste total de la energía.`;
+          const teTip = `❗ COMPENSACIÓN PARCIAL\n\nTotalEnergies solo compensa el término puro de energía. Los peajes y cargos de la energía (que suponen una parte importante de lo que pagas por kWh) quedan fuera de la compensación.\n\nEsto significa que aunque el precio de compensación sea 0,07 €/kWh, en la práctica solo se descuenta de una fracción de tu consumo, no del total. La compensación real es significativamente menor que en tarifas donde se compensa contra el coste total de la energía.`;
           teWarnIcon = `<span class="tooltip te-warn-icon" data-tip="${escapeHtml(teTip)}" role="button" tabindex="0" aria-label="Aviso compensación parcial TotalEnergies" style="margin-left:4px; color:var(--danger); cursor:help; font-size:1.1em;">❗</span>`;
         }
 
