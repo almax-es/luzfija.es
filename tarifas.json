@@ -588,6 +588,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Visalia 3P",
+      "cPunta": 0.198434,
+      "cLlano": 0.121248,
+      "cValle": 0.091729,
+      "p1": 0.075903,
+      "p2": 0.001987,
+      "web": "https://visalia.es/luz/luz-3-periodos/",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA_PARCIAL",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Iberdrola Solar 3P",
       "cPunta": 0.203,
       "cLlano": 0.123,
@@ -625,24 +643,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Visalia 3P",
-      "cPunta": 0.211299,
-      "cLlano": 0.13285,
-      "cValle": 0.102684,
-      "p1": 0.075903,
-      "p2": 0.001987,
-      "web": "https://visalia.es/luz/luz-3-periodos/",
-      "tipo": "3P",
-      "fv": {
-        "exc": 0.04,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA_PARCIAL",
-        "bv": false,
-        "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "CHC VE 3P",
       "cPunta": 0.224003,
       "cLlano": 0.220099,
@@ -661,5 +661,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-02-16T13:15:03.124Z"
+  "updatedAt": "2026-02-16T18:40:13.004Z"
 }
