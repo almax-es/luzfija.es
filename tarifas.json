@@ -314,9 +314,9 @@
     },
     {
       "nombre": "Seneo Tarifa 1",
-      "cPunta": 0.146,
-      "cLlano": 0.146,
-      "cValle": 0.146,
+      "cPunta": 0.14,
+      "cLlano": 0.14,
+      "cValle": 0.14,
       "p1": 0.095,
       "p2": 0.018,
       "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
@@ -608,9 +608,9 @@
     },
     {
       "nombre": "Seneo Tarifa 1 3P",
-      "cPunta": 0.21,
-      "cLlano": 0.138,
-      "cValle": 0.106,
+      "cPunta": 0.204,
+      "cLlano": 0.132,
+      "cValle": 0.1,
       "p1": 0.095,
       "p2": 0.018,
       "web": "https://www.seneo.org/es/tarifa-tramos-horarios-con-monedero-solar/",
@@ -661,5 +661,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-02-16T06:50:32.608Z"
+  "updatedAt": "2026-02-16T11:39:23.081Z"
 }
