@@ -649,7 +649,7 @@
       "cValle": 0.059339,
       "p1": 0.088956,
       "p2": 0.088382,
-      "web": "https://chcenergia.es/tarifa-luz/vehiculo-electrico/",
+      "web": "https://chcenergia.es/luz/plan-vehiculo-electrico",
       "tipo": "3P",
       "fv": {
         "exc": 0.04,
@@ -661,5 +661,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-02-16T18:58:57.718Z"
+  "updatedAt": "2026-02-16T21:37:18.760Z"
 }
