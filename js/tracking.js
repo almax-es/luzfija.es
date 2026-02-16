@@ -139,9 +139,14 @@
       dbg('Ruido legado filtrado:', rawTitle);
       return;
     }
-    if (eventName === 'error-promise' && isPromiseStaleNoise(rawTitle)) {
-      dbg('Ruido stale-cache filtrado:', rawTitle);
-      return;
+    if (isPromiseStaleNoise(rawTitle)) {
+      const normalizedTitle = normalizeForMatch(rawTitle);
+      if (eventName === 'error-promise' ||
+          normalizedTitle.indexOf('promise reject') !== -1 ||
+          normalizedTitle.indexOf('promise:') !== -1) {
+        dbg('Ruido stale-cache filtrado:', rawTitle);
+        return;
+      }
     }
     
     const payload = {

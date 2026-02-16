@@ -22,6 +22,45 @@
     }
   } catch (_) {}
 
+  function normalizeErrorText(value) {
+    const text = (value === null || value === undefined) ? '' : String(value);
+    const lower = text.toLowerCase();
+    try {
+      return lower.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    } catch (_) {
+      return lower;
+    }
+  }
+
+  function extractErrorMessage(reason) {
+    if (!reason) return '';
+    if (reason instanceof Error) return String(reason.message || reason.name || '');
+    if (typeof reason === 'object' && typeof reason.message === 'string') {
+      return reason.message;
+    }
+    return String(reason);
+  }
+
+  function shouldSilenceLegacyCurrentYearError(reason) {
+    const msg = normalizeErrorText(extractErrorMessage(reason));
+    if (!msg || msg.indexOf('currentyear') === -1) return false;
+    if (msg.indexOf('not defined') !== -1) return true;
+    if (msg.indexOf('no esta definid') !== -1) return true;
+    return false;
+  }
+
+  // Bloquea ruido de clientes con JS viejo antes de que lo capture tracking.js legado.
+  if (window.__LF_LEGACY_CURRENTYEAR_FILTER !== true) {
+    window.__LF_LEGACY_CURRENTYEAR_FILTER = true;
+    window.addEventListener('unhandledrejection', function(e) {
+      try {
+        if (!shouldSilenceLegacyCurrentYearError(e && e.reason)) return;
+        if (typeof e.preventDefault === 'function') e.preventDefault();
+        if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+      } catch (_) {}
+    }, true);
+  }
+
   // Cargar INP debug solo en modo debug (sin ensuciar producción)
   try {
     const params = new URLSearchParams(location.search);
