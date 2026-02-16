@@ -130,6 +130,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Naturgy por uso",
+      "cPunta": 0.1099,
+      "cLlano": 0.1099,
+      "cValle": 0.1099,
+      "p1": 0.12303,
+      "p2": 0.037337,
+      "web": "https://www.naturgy.es/hogar/luz/tarifa_por_uso_luz",
+      "tipo": "1P",
+      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 10.000 kWh/año",
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Iberdrola Online",
       "cPunta": 0.1099,
       "cLlano": 0.1099,
@@ -230,25 +249,6 @@
       "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
       "tipo": "1P",
       "requisitos": "Consumo ≤ 10.000 kWh/año",
-      "fv": {
-        "exc": 0.06,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Naturgy por uso",
-      "cPunta": 0.1199,
-      "cLlano": 0.1199,
-      "cValle": 0.1199,
-      "p1": 0.11097,
-      "p2": 0.033677,
-      "web": "https://www.naturgy.es/hogar/luz/tarifa_por_uso_luz",
-      "tipo": "1P",
-      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 10.000 kWh/año",
       "fv": {
         "exc": 0.06,
         "tipo": "SIMPLE + BV",
@@ -478,6 +478,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Naturgy noche 3P",
+      "cPunta": 0.1802,
+      "cLlano": 0.1072,
+      "cValle": 0.0718,
+      "p1": 0.12303,
+      "p2": 0.037337,
+      "web": "https://www.naturgy.es/hogar/luz/tarifa_noche",
+      "tipo": "3P",
+      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 10.000 kWh/año",
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Esluz 3P",
       "cPunta": 0.187021,
       "cLlano": 0.135066,
@@ -506,25 +525,6 @@
       "tipo": "3P",
       "fv": {
         "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Naturgy noche 3P",
-      "cPunta": 0.189562,
-      "cLlano": 0.116955,
-      "cValle": 0.082281,
-      "p1": 0.11097,
-      "p2": 0.033677,
-      "web": "https://www.naturgy.es/hogar/luz/tarifa_noche",
-      "tipo": "3P",
-      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 10.000 kWh/año",
-      "fv": {
-        "exc": 0.06,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -661,5 +661,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-02-15T20:23:18.824Z"
+  "updatedAt": "2026-02-16T06:50:32.608Z"
 }
