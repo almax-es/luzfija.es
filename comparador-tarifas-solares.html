@@ -2,8 +2,8 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <!-- CSP pragmática para una página en evolución constante: permite JSON-LD inline sin gestionar hashes. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
+  <!-- CSP estricta: scripts inline permitidos solo mediante hashes explícitos. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-NSulPFUPS7KqjCbN4ODy9sZU2uHwIt+hbHfeam4jvmM=' 'sha256-GDdiOWCegw0ObPOUX/uwtHr211aPXBwN/Cvawb5Q8qY=' 'sha256-3oyFQiag7wQucIu1O462W9HBo7CEdCSsrB+8IViSVBI=' 'sha256-YL/Ey5nEtYSBKvljmuz5jIxu3bW0wCVvr4Ok1iq767o=' 'sha256-piO3wpqfRaqIAht45O1r9rcpMVz2fNPpDcLvZS6xCjg=' 'sha256-CFzgFa2uG20jFCq00tDKT2vbgKuaKe1RWFyC9FX3qog='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark light"/>
 <meta name="description" content="Compara tarifas eléctricas para autoconsumo con tus datos reales. Calcula excedentes y batería virtual para ver qué compañía te deja la factura más baja.">
