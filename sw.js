@@ -204,7 +204,7 @@ self.addEventListener("fetch", (event) => {
           await cachePutSafe(cache, req, fresh);
           return fresh;
         } catch (_) {
-          return (await cache.match(req)) || (await cache.match(INDEX_PATH)) || Response.error();
+          return (await cache.match(req, { ignoreSearch: true })) || (await cache.match(INDEX_PATH)) || Response.error();
         }
       })()
     );
