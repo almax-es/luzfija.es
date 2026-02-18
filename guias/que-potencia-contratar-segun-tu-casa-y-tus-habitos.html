@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-AdU9nVCPQ2rPG3pikx/wMXbAGbB6ef3u4yBRSrqRGJ8=' 'sha256-VQkmzLKXqXiQkIVOcA8Sdzc72dbaW/knlTQG6bFJBBM=' 'sha256-CctG+v5S3TRiV3QdIFH8vMUfkPNPq//LlGQP0vYWacQ=' 'sha256-yeryKvQR9GHGk6Zf0osRAytIPVu/FsAB4xlGtfTNHj8=' 'sha256-2iA7SUO5hLLn8Wtsjdzdo3WLnRmfURDpHeUIOUjQ95c=' 'sha256-KYvr3cbO9fg1cPlwG+yDjfy0PPFd0qlWknZeF6HQwZM='; style-src 'self' 'sha256-vPL1FNW8JIUdnNgI/CZmgIkfU1isG66acom/Ja4N2k4='; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-AdU9nVCPQ2rPG3pikx/wMXbAGbB6ef3u4yBRSrqRGJ8=' 'sha256-VQkmzLKXqXiQkIVOcA8Sdzc72dbaW/knlTQG6bFJBBM=' 'sha256-CctG+v5S3TRiV3QdIFH8vMUfkPNPq//LlGQP0vYWacQ=' 'sha256-yeryKvQR9GHGk6Zf0osRAytIPVu/FsAB4xlGtfTNHj8=' 'sha256-2iA7SUO5hLLn8Wtsjdzdo3WLnRmfURDpHeUIOUjQ95c=' 'sha256-KYvr3cbO9fg1cPlwG+yDjfy0PPFd0qlWknZeF6HQwZM='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; form-action 'self';">
 <meta name="color-scheme" content="dark light"/>
 <script>
     (function(){
@@ -443,11 +443,6 @@ html.light-mode .btn-small:hover{
   transform: translateY(-1px);
 }
 
-
-.lf-inline-figure{margin:30px 0;text-align:center}
-.lf-inline-figure-img{max-width:100%;height:auto;border-radius:12px;border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,.3)}
-.lf-inline-caption{font-size:14px;color:var(--muted);margin-top:12px}
-.lf-inline-right{text-align:right}
 </style>
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/fonts.css">
@@ -520,7 +515,7 @@ html.light-mode .btn-small:hover{
 </div>
 <div class="article-content">
 
-<figure class="lf-inline-figure">
+<figure style="margin: 30px 0; text-align: center;">
   <picture>
     <source type="image/webp" srcset="../img/potencia-contratada-equilibrio.webp">
     <img src="../img/potencia-contratada-equilibrio.png"
@@ -529,9 +524,9 @@ html.light-mode .btn-small:hover{
          fetchpriority="high"
          decoding="async"
          width="917" height="435"
-         class="lf-inline-figure-img">
+         style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
   </picture>
-  <figcaption class="lf-inline-caption">
+  <figcaption style="font-size: 14px; color: var(--muted); margin-top: 12px;">
     Contratar potencia es buscar el equilibrio: ni pagar de más, ni que salten los plomos.
   </figcaption>
 </figure>
@@ -657,7 +652,7 @@ html.light-mode .btn-small:hover{
 </div>
 <nav class="guide-nav">
   <a href="../guias.html" class="guide-nav-btn"><span class="guide-nav-label">← Volver</span><span class="guide-nav-title">Ver todas las guías</span></a>
-  <a href="como-adaptar-tus-horarios-para-pagar-menos-luz.html" class="guide-nav-btn lf-inline-right"><span class="guide-nav-label">Siguiente →</span><span class="guide-nav-title">Adaptar horarios para ahorrar</span></a>
+  <a href="como-adaptar-tus-horarios-para-pagar-menos-luz.html" class="guide-nav-btn" style="text-align: right;"><span class="guide-nav-label">Siguiente →</span><span class="guide-nav-title">Adaptar horarios para ahorrar</span></a>
 </nav>
 </article>
 <aside class="sidebar-actions">

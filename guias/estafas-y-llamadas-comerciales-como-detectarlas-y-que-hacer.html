@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-AdU9nVCPQ2rPG3pikx/wMXbAGbB6ef3u4yBRSrqRGJ8=' 'sha256-+3xA2F6oafKFrNR1oqIM2Ir8+K2OP5it7iS3PrEIjoE=' 'sha256-MMQx1cVWMCmyJL6ypcc8cO0BpTbHCsgoRCl+Np6JzZw=' 'sha256-jWW2paHJ+yR/d0WQY691GwJ3/ol9UZnv0uSVn9jg1Gs=' 'sha256-PJYQooBDGMJIp13k2BXFfSYgPqHQ4zDHZoR1+EPuWqY=' 'sha256-KYvr3cbO9fg1cPlwG+yDjfy0PPFd0qlWknZeF6HQwZM='; style-src 'self' 'sha256-vPL1FNW8JIUdnNgI/CZmgIkfU1isG66acom/Ja4N2k4='; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-AdU9nVCPQ2rPG3pikx/wMXbAGbB6ef3u4yBRSrqRGJ8=' 'sha256-+3xA2F6oafKFrNR1oqIM2Ir8+K2OP5it7iS3PrEIjoE=' 'sha256-MMQx1cVWMCmyJL6ypcc8cO0BpTbHCsgoRCl+Np6JzZw=' 'sha256-jWW2paHJ+yR/d0WQY691GwJ3/ol9UZnv0uSVn9jg1Gs=' 'sha256-PJYQooBDGMJIp13k2BXFfSYgPqHQ4zDHZoR1+EPuWqY=' 'sha256-KYvr3cbO9fg1cPlwG+yDjfy0PPFd0qlWknZeF6HQwZM='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; form-action 'self';">
 <meta name="color-scheme" content="dark light"/>
 <script>
     (function(){
@@ -443,11 +443,6 @@ html.light-mode .btn-small:hover{
   transform: translateY(-1px);
 }
 
-
-.lf-inline-figure{margin:30px 0;text-align:center}
-.lf-inline-figure-img{max-width:100%;height:auto;border-radius:12px;border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,.3)}
-.lf-inline-caption{font-size:14px;color:var(--muted);margin-top:12px}
-.lf-inline-right{text-align:right}
 </style>
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/fonts.css">
@@ -520,7 +515,7 @@ Cada año miles de personas acaban con contratos que no querían, facturas infla
 </div>
 <div class="article-content">
 
-<figure class="lf-inline-figure">
+<figure style="margin: 30px 0; text-align: center;">
   <picture>
     <source type="image/webp" srcset="../img/estafas-llamadas-comerciales-luz.webp">
     <img src="../img/estafas-llamadas-comerciales-luz.png"
@@ -529,9 +524,9 @@ Cada año miles de personas acaban con contratos que no querían, facturas infla
          fetchpriority="high"
          decoding="async"
          width="658" height="753"
-         class="lf-inline-figure-img">
+         style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
   </picture>
-  <figcaption class="lf-inline-caption">
+  <figcaption style="font-size: 14px; color: var(--muted); margin-top: 12px;">
     Desconfía de llamadas imprevistas que solicitan datos personales o presionan para cambios rápidos de contrato.
   </figcaption>
 </figure>
@@ -761,7 +756,7 @@ Si te llaman: educadamente di "No me interesa" y cuelga. Luego, si quieres cambi
 </div>
 <nav class="guide-nav">
   <a href="../guias.html" class="guide-nav-btn"><span class="guide-nav-label">← Volver</span><span class="guide-nav-title">Ver todas las guías</span></a>
-  <a href="como-leer-tu-factura-de-la-luz-paso-a-paso.html" class="guide-nav-btn lf-inline-right"><span class="guide-nav-label">Siguiente →</span><span class="guide-nav-title">Cómo leer tu factura paso a paso</span></a>
+  <a href="como-leer-tu-factura-de-la-luz-paso-a-paso.html" class="guide-nav-btn" style="text-align: right;"><span class="guide-nav-label">Siguiente →</span><span class="guide-nav-title">Cómo leer tu factura paso a paso</span></a>
 </nav>
 </article>
 <aside class="sidebar-actions">
