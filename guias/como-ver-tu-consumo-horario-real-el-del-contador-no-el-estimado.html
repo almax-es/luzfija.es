@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-AdU9nVCPQ2rPG3pikx/wMXbAGbB6ef3u4yBRSrqRGJ8=' 'sha256-1BhAkRGdxfnfJPfnkuafj46d3Is6E5NBioO9yfheGcU=' 'sha256-NyZwX8h+0zKtV2z5eglqPBG6OUqFFrW26oQm64iFfmA=' 'sha256-k/MFSHKjUgiIvi/O4x3fCbMQ/HwALzwWZmUjovRU39U=' 'sha256-Llu1LGqzf8zFnhnNvvFND+2HnnkQ4hacSLFo3kTYOO8=' 'sha256-KYvr3cbO9fg1cPlwG+yDjfy0PPFd0qlWknZeF6HQwZM='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-AdU9nVCPQ2rPG3pikx/wMXbAGbB6ef3u4yBRSrqRGJ8=' 'sha256-1BhAkRGdxfnfJPfnkuafj46d3Is6E5NBioO9yfheGcU=' 'sha256-NyZwX8h+0zKtV2z5eglqPBG6OUqFFrW26oQm64iFfmA=' 'sha256-k/MFSHKjUgiIvi/O4x3fCbMQ/HwALzwWZmUjovRU39U=' 'sha256-Llu1LGqzf8zFnhnNvvFND+2HnnkQ4hacSLFo3kTYOO8=' 'sha256-KYvr3cbO9fg1cPlwG+yDjfy0PPFd0qlWknZeF6HQwZM='; style-src 'self' 'sha256-vPL1FNW8JIUdnNgI/CZmgIkfU1isG66acom/Ja4N2k4='; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; form-action 'self';">
 <meta name="color-scheme" content="dark light"/>
 <script>
     (function(){
@@ -442,6 +442,11 @@ html.light-mode .btn-small:hover{
   transform: translateY(-1px);
 }
 
+
+.lf-inline-figure{margin:30px 0;text-align:center}
+.lf-inline-figure-img{max-width:100%;height:auto;border-radius:12px;border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.lf-inline-caption{font-size:14px;color:var(--muted);margin-top:12px}
+.lf-inline-right{text-align:right}
 </style>
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/fonts.css">
@@ -582,7 +587,7 @@ Si no puedes descargar: haz capturas de pantalla de las gráficas de consumo hor
 Mira qué horas tienen los picos más altos. Si tus picos están en P1 (10-14h y 18-22h), estás pagando caro. Si están en P3 (0-8h + fines de semana), bien hecho.
 </p>
 
-<figure style="margin: 30px 0; text-align: center;">
+<figure class="lf-inline-figure">
   <picture>
     <source type="image/webp" srcset="../img/vampiro-standby-consumo-fantasma.webp">
     <img src="../img/vampiro-standby-consumo-fantasma.png"
@@ -591,9 +596,9 @@ Mira qué horas tienen los picos más altos. Si tus picos están en P1 (10-14h y
          fetchpriority="high"
          decoding="async"
          width="1472" height="759"
-         style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+         class="lf-inline-figure-img">
   </picture>
-  <figcaption style="font-size: 14px; color: var(--muted); margin-top: 12px;">
+  <figcaption class="lf-inline-caption">
     El consumo fantasma puede suponer hasta un 10% de tu factura anual. Cázalo mirando tu consumo de madrugada.
   </figcaption>
 </figure>
@@ -728,7 +733,7 @@ Y si ves que tienes un consumo base alto de madrugada, investiga. Suele haber ap
 </div>
 <nav class="guide-nav">
   <a href="../guias.html" class="guide-nav-btn"><span class="guide-nav-label">← Volver</span><span class="guide-nav-title">Ver todas las guías</span></a>
-  <a href="lectura-real-vs-estimada-como-evitar-sustos-y-facturones.html" class="guide-nav-btn" style="text-align: right;"><span class="guide-nav-label">Siguiente →</span><span class="guide-nav-title">Lectura real vs estimada</span></a>
+  <a href="lectura-real-vs-estimada-como-evitar-sustos-y-facturones.html" class="guide-nav-btn lf-inline-right"><span class="guide-nav-label">Siguiente →</span><span class="guide-nav-title">Lectura real vs estimada</span></a>
 </nav>
 </article>
 <aside class="sidebar-actions">

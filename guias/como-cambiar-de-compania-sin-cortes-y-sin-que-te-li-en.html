@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-AdU9nVCPQ2rPG3pikx/wMXbAGbB6ef3u4yBRSrqRGJ8=' 'sha256-OoPFV0z+6+7QEDL3LMV09ghKXKV1GUpH3vP42aA8abY=' 'sha256-M0sX0n283ZKxyaJgeCSUjCYhDOP7F9ZKi5OvOE2Mxtw=' 'sha256-zBrll3PBwJOSQxI1HzGH+IiUoT6DF4e0MgNw8bdCYBM=' 'sha256-NrcnioIhjR/0HbmB0BUPrZfgPPs4ys8gZCKH9VrwIvo=' 'sha256-KYvr3cbO9fg1cPlwG+yDjfy0PPFd0qlWknZeF6HQwZM='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-AdU9nVCPQ2rPG3pikx/wMXbAGbB6ef3u4yBRSrqRGJ8=' 'sha256-OoPFV0z+6+7QEDL3LMV09ghKXKV1GUpH3vP42aA8abY=' 'sha256-M0sX0n283ZKxyaJgeCSUjCYhDOP7F9ZKi5OvOE2Mxtw=' 'sha256-zBrll3PBwJOSQxI1HzGH+IiUoT6DF4e0MgNw8bdCYBM=' 'sha256-NrcnioIhjR/0HbmB0BUPrZfgPPs4ys8gZCKH9VrwIvo=' 'sha256-KYvr3cbO9fg1cPlwG+yDjfy0PPFd0qlWknZeF6HQwZM='; style-src 'self' 'sha256-vPL1FNW8JIUdnNgI/CZmgIkfU1isG66acom/Ja4N2k4='; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; form-action 'self';">
 <meta name="color-scheme" content="dark light"/>
 <script>
     (function(){
@@ -443,6 +443,11 @@ html.light-mode .btn-small:hover{
   transform: translateY(-1px);
 }
 
+
+.lf-inline-figure{margin:30px 0;text-align:center}
+.lf-inline-figure-img{max-width:100%;height:auto;border-radius:12px;border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.lf-inline-caption{font-size:14px;color:var(--muted);margin-top:12px}
+.lf-inline-right{text-align:right}
 </style>
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/fonts.css">
@@ -519,7 +524,7 @@ html.light-mode .btn-small:hover{
 </div>
 <div class="article-content">
 
-<figure style="margin: 30px 0; text-align: center;">
+<figure class="lf-inline-figure">
   <picture>
     <source type="image/webp" srcset="../img/cambio-compania-luz-sin-cortes.webp">
     <img src="../img/cambio-compania-luz-sin-cortes.png"
@@ -528,9 +533,9 @@ html.light-mode .btn-small:hover{
          fetchpriority="high"
          decoding="async"
          width="1401" height="740"
-         style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+         class="lf-inline-figure-img">
   </picture>
-  <figcaption style="font-size: 14px; color: var(--muted); margin-top: 12px;">
+  <figcaption class="lf-inline-caption">
     El cambio de compañía es solo un trámite administrativo. La luz sigue fluyendo por los mismos cables sin interrupción.
   </figcaption>
 </figure>
@@ -707,7 +712,7 @@ No. La nueva se encarga de todo. De hecho, avisar a la antigua puede liarla (te 
 </div>
 <nav class="guide-nav">
   <a href="../guias.html" class="guide-nav-btn"><span class="guide-nav-label">← Volver</span><span class="guide-nav-title">Ver todas las guías</span></a>
-  <a href="mudanza-y-alquiler-cambio-de-titular-alta-baja-y-cosas-que-nadie-te-dice.html" class="guide-nav-btn" style="text-align: right;"><span class="guide-nav-label">Siguiente →</span><span class="guide-nav-title">Mudanza y alquiler</span></a>
+  <a href="mudanza-y-alquiler-cambio-de-titular-alta-baja-y-cosas-que-nadie-te-dice.html" class="guide-nav-btn lf-inline-right"><span class="guide-nav-label">Siguiente →</span><span class="guide-nav-title">Mudanza y alquiler</span></a>
 </nav>
 </article>
 <aside class="sidebar-actions">

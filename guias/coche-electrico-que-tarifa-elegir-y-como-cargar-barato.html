@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-AdU9nVCPQ2rPG3pikx/wMXbAGbB6ef3u4yBRSrqRGJ8=' 'sha256-Y+XTeD1A47tOtA65bsFQWu8Cb65QwMbsHFv49C5ezsY=' 'sha256-gjY6PbKZaxJSloiLRku01rsP9e5xLDAM54/aKyhA9aM=' 'sha256-lrmYQ3D1ShRMKHIOSMp33ZaN7ccvF8sZAkSGkeClVGI=' 'sha256-utKjRuLjAyULTl5wOekWc0UUxS+bEZwKmiROyugYFKE=' 'sha256-KYvr3cbO9fg1cPlwG+yDjfy0PPFd0qlWknZeF6HQwZM='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-AdU9nVCPQ2rPG3pikx/wMXbAGbB6ef3u4yBRSrqRGJ8=' 'sha256-Y+XTeD1A47tOtA65bsFQWu8Cb65QwMbsHFv49C5ezsY=' 'sha256-gjY6PbKZaxJSloiLRku01rsP9e5xLDAM54/aKyhA9aM=' 'sha256-lrmYQ3D1ShRMKHIOSMp33ZaN7ccvF8sZAkSGkeClVGI=' 'sha256-utKjRuLjAyULTl5wOekWc0UUxS+bEZwKmiROyugYFKE=' 'sha256-KYvr3cbO9fg1cPlwG+yDjfy0PPFd0qlWknZeF6HQwZM='; style-src 'self' 'sha256-vPL1FNW8JIUdnNgI/CZmgIkfU1isG66acom/Ja4N2k4='; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; form-action 'self';">
 <meta name="color-scheme" content="dark light"/>
 <script>
     (function(){
@@ -443,6 +443,11 @@ html.light-mode .btn-small:hover{
   transform: translateY(-1px);
 }
 
+
+.lf-inline-figure{margin:30px 0;text-align:center}
+.lf-inline-figure-img{max-width:100%;height:auto;border-radius:12px;border:1px solid var(--border);box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.lf-inline-caption{font-size:14px;color:var(--muted);margin-top:12px}
+.lf-inline-right{text-align:right}
 </style>
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/fonts.css">
@@ -513,7 +518,7 @@ html.light-mode .btn-small:hover{
 </div>
 <div class="article-content">
 
-<figure style="margin: 30px 0; text-align: center;">
+<figure class="lf-inline-figure">
   <picture>
     <source type="image/webp" srcset="../img/coche-electrico-carga-barata.webp">
     <img src="../img/coche-electrico-carga-barata.png"
@@ -522,9 +527,9 @@ html.light-mode .btn-small:hover{
          fetchpriority="high"
          decoding="async"
          width="1233" height="572"
-         style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+         class="lf-inline-figure-img">
   </picture>
-  <figcaption style="font-size: 14px; color: var(--muted); margin-top: 12px;">
+  <figcaption class="lf-inline-caption">
     Cargar el coche de noche puede ahorrarte más de 250 € al año en comparación con la carga en horas punta.
   </figcaption>
 </figure>
@@ -719,7 +724,7 @@ Coche eléctrico + PVPC 3 periodos + carga nocturna = la combinación perfecta. 
 </div>
 <nav class="guide-nav">
   <a href="../guias.html" class="guide-nav-btn"><span class="guide-nav-label">← Volver</span><span class="guide-nav-title">Ver todas las guías</span></a>
-  <a href="instalar-punto-recarga-garaje-comunitario.html" class="guide-nav-btn" style="text-align: right;"><span class="guide-nav-label">Siguiente →</span><span class="guide-nav-title">Instalar punto de recarga en garaje</span></a>
+  <a href="instalar-punto-recarga-garaje-comunitario.html" class="guide-nav-btn lf-inline-right"><span class="guide-nav-label">Siguiente →</span><span class="guide-nav-title">Instalar punto de recarga en garaje</span></a>
 </nav>
 </article>
 <aside class="sidebar-actions">
