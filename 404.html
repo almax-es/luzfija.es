@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self' https://luzfija.goatcounter.com; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-X5tyWOIsoIMnXciXSalul347ziAhmLUGaiRnq43p0wY='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self' https://luzfija.goatcounter.com; form-action 'self';">
 <script src="/js/theme.js?v=20260218-143620"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="color-scheme" content="dark light"/>
@@ -125,7 +125,7 @@ html.light-mode .btn-small:hover{
 <p class="error-subtitle">Como una factura de luz sin discriminación horaria: no la encuentras por ningún lado</p>
 
 <div class="search-box">
-<input type="text" class="search-input" placeholder="Busca lo que necesitas..." id="searchInput" aria-label="Buscar contenido" onkeyup="searchContent(event)"/>
+<input type="text" class="search-input" placeholder="Busca lo que necesitas..." id="searchInput" aria-label="Buscar contenido"/>
 </div>
 
 <div class="quick-links">
@@ -170,13 +170,15 @@ const facts = [
 ];
 document.getElementById('funFact').textContent = facts[Math.floor(Math.random() * facts.length)];
 
-function searchContent(e) {
-  if (e.key === 'Enter') {
-    const query = document.getElementById('searchInput').value;
+const searchInput = document.getElementById('searchInput');
+if (searchInput) {
+  searchInput.addEventListener('keyup', function(e) {
+    if (e.key !== 'Enter') return;
+    const query = searchInput.value;
     if (query.length > 0) {
       window.location.href = '/guias.html?q=' + encodeURIComponent(query);
     }
-  }
+  });
 }
 </script>
 </body>
