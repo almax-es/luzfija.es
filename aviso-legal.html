@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self' 'sha256-+8ZPjMYd318HelwTeX46vGrFRU3I38DeAFe/0bQbAKQ=' 'sha256-qIPK/HCH8Makc3zGeoaKuFZ4+bH1z0cSRykOEoslMKY='; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; form-action 'self';">
 <script src="/js/theme.js?v=20260218-153531"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="color-scheme" content="dark light"/>
@@ -122,15 +122,6 @@ html.light-mode .btn-small:hover{
   <link rel="stylesheet" href="/fonts.css">
 
     <meta name="theme-color" content="#8B5CF6">
-
-<style id="lf-inline-style-map">
-.lf-inline-s1{margin:12px 0;}
-.lf-inline-s2{margin:40px 0; border:none; border-top:1px solid var(--border);}
-.lf-inline-s3{color:var(--muted); font-size:14px;}
-.lf-inline-s4{text-align:center; margin:30px 0;}
-.lf-inline-s5{color:var(--accent); margin:0 12px;}
-.lf-inline-s6{display:inline-block; padding:12px 24px; background:var(--accent); color:#fff; text-decoration:none; border-radius:8px; font-weight:600;}
-</style>
 </head>
 <body>
 <header class="header">
@@ -181,7 +172,7 @@ html.light-mode .btn-small:hover{
     Los datos y cálculos mostrados son <strong>orientativos</strong> y pueden contener errores o desviaciones. 
     Aunque nos esforzamos por mantener la información actualizada y precisa:
   </p>
-  <ul class="lf-inline-s1">
+  <ul style="margin:12px 0;">
     <li>No garantizamos la exactitud absoluta de los precios ni cálculos.</li>
     <li>Las tarifas pueden cambiar sin previo aviso por parte de las comercializadoras.</li>
     <li>Recomendamos siempre consultar directamente con la comercializadora antes de contratar.</li>
@@ -195,7 +186,7 @@ html.light-mode .btn-small:hover{
 <summary>Fuentes de datos</summary>
 <div class="accordion-content">
 <p>Los datos de tarifas se obtienen de:</p>
-  <ul class="lf-inline-s1">
+  <ul style="margin:12px 0;">
     <li>Webs oficiales de comercializadoras</li>
     <li>CNMC (Comisión Nacional de los Mercados y la Competencia) para PVPC</li>
     <li>Información pública disponible</li>
@@ -220,7 +211,7 @@ html.light-mode .btn-small:hover{
 <summary>No afiliación</summary>
 <div class="accordion-content">
 <p>LuzFija.es es un proyecto <strong>independiente</strong> y no está afiliado ni avalado por:</p>
-  <ul class="lf-inline-s1">
+  <ul style="margin:12px 0;">
     <li>CNMC</li>
     <li>Red Eléctrica de España</li>
     <li>Ninguna comercializadora eléctrica</li>
@@ -243,16 +234,16 @@ html.light-mode .btn-small:hover{
 <p>Para sugerencias, errores o dudas sobre el comparador:</p>
   <p><strong>Email:</strong> <a href="mailto:hola@luzfija.es">hola@luzfija.es</a></p>
 
-  <hr class="lf-inline-s2"/>
+  <hr style="margin:40px 0; border:none; border-top:1px solid var(--border);"/>
 
-  <p class="lf-inline-s3">
+  <p style="color:var(--muted); font-size:14px;">
     Para más información sobre privacidad y tratamiento de datos, consulta nuestra 
     <a href="/privacidad.html">Política de Privacidad</a>.
   </p>
 
-  <p class="lf-inline-s4">
-    <a href="/privacidad.html" class="lf-inline-s5">Política de privacidad →</a>
-    <a href="/" class="lf-inline-s6">Volver al comparador</a>
+  <p style="text-align:center; margin:30px 0;">
+    <a href="/privacidad.html" style="color:var(--accent); margin:0 12px;">Política de privacidad →</a>
+    <a href="/" style="display:inline-block; padding:12px 24px; background:var(--accent); color:#fff; text-decoration:none; border-radius:8px; font-weight:600;">Volver al comparador</a>
   </p>
 
       </div>

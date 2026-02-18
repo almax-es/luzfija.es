@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-QLFivCtsSZVGl9ujaXUw62sBzCkoI8gVA098HT9lArY='; style-src 'self' 'sha256-+8ZPjMYd318HelwTeX46vGrFRU3I38DeAFe/0bQbAKQ=' 'sha256-x157Qf5pG2X5enLqQNoxTkQa1f+/wUfD7vQyIdl7jQo='; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-QLFivCtsSZVGl9ujaXUw62sBzCkoI8gVA098HT9lArY='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; form-action 'self';">
 <script src="/js/theme.js?v=20260218-153531"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="color-scheme" content="dark light"/>
@@ -122,18 +122,6 @@ html.light-mode .btn-small:hover{
   <link rel="stylesheet" href="/fonts.css">
 
     <meta name="theme-color" content="#8B5CF6">
-
-<style id="lf-inline-style-map">
-.lf-inline-s1{margin:12px 0;}
-.lf-inline-s2{margin-top:16px;}
-.lf-inline-s3{color:var(--accent); font-weight:600; text-decoration:underline;}
-.lf-inline-s4{color:var(--accent2); font-weight:600;}
-.lf-inline-s5{color:var(--muted); font-size:14px;}
-.lf-inline-s6{margin:40px 0; border:none; border-top:1px solid var(--border);}
-.lf-inline-s7{text-align:center; margin:30px 0;}
-.lf-inline-s8{color:var(--accent); margin:0 12px;}
-.lf-inline-s9{display:inline-block; padding:12px 24px; background:var(--accent); color:#fff; text-decoration:none; border-radius:8px; font-weight:600;}
-</style>
 </head>
 <body>
 <header class="header">
@@ -157,7 +145,7 @@ html.light-mode .btn-small:hover{
 <details class="accordion-item" open>
 <summary>Qué datos se tratan</summary>
 <div class="accordion-content">
-<ul class="lf-inline-s1">
+<ul style="margin:12px 0;">
   <li><strong>Datos técnicos de conexión</strong> (por ejemplo, dirección IP, cabeceras HTTP, fecha/hora, información del navegador) tratados principalmente por el <strong>hosting</strong> (GitHub Pages) y por los proveedores de analítica si está activada (GoatCounter).</li>
   <li><strong>Datos de uso básicos</strong> (por ejemplo, página visitada y referrer) <strong>solo</strong> si está activa la analítica con GoatCounter.</li>
   <li><strong>Contenido de comunicaciones</strong> si nos escribes por email (tu dirección, asunto y mensaje).</li>
@@ -215,10 +203,10 @@ html.light-mode .btn-small:hover{
   </p>
 <p><strong>Finalidad:</strong> comprender el uso del sitio (estadísticas de visitas, páginas vistas) para mejorarlo.</p>
 <p><strong>Base jurídica:</strong> interés legítimo (análisis de tráfico anónimo).</p>
-<p class="lf-inline-s2">
+<p style="margin-top:16px;">
     Si prefieres no participar en la medición de audiencia, puedes 
-    <a href="#" id="opt-out-analytics" class="lf-inline-s3">desactivar GoatCounter</a>.
-    <span id="opt-out-status" class="lf-inline-s4"></span>
+    <a href="#" id="opt-out-analytics" style="color:var(--accent); font-weight:600; text-decoration:underline;">desactivar GoatCounter</a>.
+    <span id="opt-out-status" style="color:var(--accent2); font-weight:600;"></span>
   </p>
 <h3>5) Email (contacto)</h3>
 <p>
@@ -230,7 +218,7 @@ html.light-mode .btn-small:hover{
 <p>
     La web puede utilizar almacenamiento del navegador (localStorage, sessionStorage) y caché del Service Worker para:
   </p>
-<ul class="lf-inline-s1">
+<ul style="margin:12px 0;">
 <li>Recordar tus preferencias (tema claro/oscuro, datos introducidos).</li>
 <li>Almacenar en caché recursos para uso offline (PWA).</li>
 </ul>
@@ -244,7 +232,7 @@ html.light-mode .btn-small:hover{
 <details class="accordion-item">
 <summary>Conservación de datos</summary>
 <div class="accordion-content">
-<ul class="lf-inline-s1">
+<ul style="margin:12px 0;">
 <li><strong>Datos tratados por terceros:</strong> se conservan según las políticas y plazos de cada proveedor (GitHub, GoatCounter).</li>
 <li><strong>Datos en tu dispositivo:</strong> permanecen hasta que los borres desde tu navegador (localStorage/caché).</li>
 <li><strong>Emails:</strong> se conservan el tiempo necesario para gestionar la consulta y, posteriormente, durante un plazo razonable para seguimiento o seguridad, salvo que solicites su supresión cuando sea aplicable.</li>
@@ -277,11 +265,11 @@ html.light-mode .btn-small:hover{
 <summary>Cambios en esta política</summary>
 <div class="accordion-content">
 <p>Esta política puede actualizarse para reflejar cambios técnicos o normativos.</p>
-<p class="lf-inline-s5"><em>Última actualización: 23 de enero de 2026</em></p>
-<hr class="lf-inline-s6"/>
-<p class="lf-inline-s7">
-<a href="/aviso-legal.html" class="lf-inline-s8">← Aviso legal</a>
-<a href="/" class="lf-inline-s9">Volver al comparador</a>
+<p style="color:var(--muted); font-size:14px;"><em>Última actualización: 23 de enero de 2026</em></p>
+<hr style="margin:40px 0; border:none; border-top:1px solid var(--border);"/>
+<p style="text-align:center; margin:30px 0;">
+<a href="/aviso-legal.html" style="color:var(--accent); margin:0 12px;">← Aviso legal</a>
+<a href="/" style="display:inline-block; padding:12px 24px; background:var(--accent); color:#fff; text-decoration:none; border-radius:8px; font-weight:600;">Volver al comparador</a>
 </p>
 </div>
 </div>

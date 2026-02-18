@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-CC5nElLL5xK8RpESJw/5cXD/uEfjnDARVqA3Tf6+kJQ=' 'sha256-6LvGpDp05r3WdGFp5Pp8I6DRz9uKYWx8rK7uossoArk=' 'sha256-K2Gy8eN5d3o0Tv+A1d1uNwnFm/yHtgeihOykGTDV2Jg='; style-src 'self' 'sha256-3uKFKU2d8pms7WWYnpC9P4YAE38WPrWdGp7po0GccBQ='; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-CC5nElLL5xK8RpESJw/5cXD/uEfjnDARVqA3Tf6+kJQ=' 'sha256-6LvGpDp05r3WdGFp5Pp8I6DRz9uKYWx8rK7uossoArk=' 'sha256-K2Gy8eN5d3o0Tv+A1d1uNwnFm/yHtgeihOykGTDV2Jg='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
   <script src="/js/theme.js?v=20260218-153531"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark light"/>
@@ -28,15 +28,6 @@
   <link rel="stylesheet" href="/pro.css?v=20260218-153531">
   <link rel="stylesheet" href="/estadisticas/estadisticas.css">
   <link rel="stylesheet" href="/estadisticas/estadisticas-mejorado.css">
-
-<style id="lf-inline-style-map">
-.lf-inline-s1{width:100%;height:100%;}
-.lf-inline-s2{stop-color:#fbbf24;stop-opacity:1}
-.lf-inline-s3{stop-color:#f59e0b;stop-opacity:1}
-.lf-inline-s4{stop-color:#8b5cf6;stop-opacity:1}
-.lf-inline-s5{stop-color:#6366f1;stop-opacity:1}
-.lf-inline-s6{margin-top:.5rem}
-</style>
 </head>
 
 <body>
@@ -46,16 +37,16 @@
     <div class="topbar">
       <div class="brand">
         <a class="logo" href="/" aria-label="Inicio">
-          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="lf-inline-s1">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
             <defs>
               <linearGradient id="logoGrad1pvpc" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" class="lf-inline-s2"></stop>
-                <stop offset="50%" class="lf-inline-s3"></stop>
-                <stop offset="100%" class="lf-inline-s2"></stop>
+                <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1"></stop>
+                <stop offset="50%" style="stop-color:#f59e0b;stop-opacity:1"></stop>
+                <stop offset="100%" style="stop-color:#fbbf24;stop-opacity:1"></stop>
               </linearGradient>
               <linearGradient id="logoGrad2pvpc" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" class="lf-inline-s4"></stop>
-                <stop offset="100%" class="lf-inline-s5"></stop>
+                <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1"></stop>
+                <stop offset="100%" style="stop-color:#6366f1;stop-opacity:1"></stop>
               </linearGradient>
               <filter id="glowpvpc">
                 <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
@@ -425,7 +416,7 @@
           <div class="compare-controls">
             <h3>Años</h3>
             <div id="compareYears" class="year-chips" aria-label="Selecciona años"></div>
-            <div class="micro muted lf-inline-s6">Sugerencia: 3 líneas máximo para que se entienda.</div>
+            <div class="micro muted" style="margin-top:.5rem">Sugerencia: 3 líneas máximo para que se entienda.</div>
           </div>
           <div class="compare-chart">
             <div class="chart-wrap">
