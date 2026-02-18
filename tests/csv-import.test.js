@@ -96,21 +96,6 @@ ES12345;01/01/2024;2;2,456;R`;
       expect(result.ok).toBe(false);
       expect(result.error).toMatch(/Error al leer/);
     });
-
-    it('Debe devolver porcentajes 0,0 cuando el consumo total es 0 (sin NaN)', async () => {
-      const csvContent = `Fecha;Hora;Consumo_kWh;Export_kWh
-01/01/2024;1;0;1,2
-01/01/2024;2;0;0,8`;
-
-      const file = { name: 'solo-excedentes.csv', _content: csvContent };
-      const result = await procesarCSVConsumos(file);
-
-      expect(result.ok).toBe(true);
-      expect(result.totalKwh).toBe('0,00');
-      expect(result.porcentajes.punta).toBe('0,0');
-      expect(result.porcentajes.llano).toBe('0,0');
-      expect(result.porcentajes.valle).toBe('0,0');
-    });
   });
 
   describe('procesarXLSXConsumos', () => {

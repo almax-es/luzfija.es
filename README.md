@@ -9,7 +9,7 @@ Comparador avanzado de tarifas electricas en Espana, gratuito, sin registro y co
 - Guias: `https://luzfija.es/guias.html`
 - Contacto: `hola@luzfija.es`
 
-## Estado Actual (2026-02-18)
+## Estado Actual (2026-02-14)
 
 - 34 paginas HTML publicas:
 - 9 en raiz.

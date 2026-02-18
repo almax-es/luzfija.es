@@ -252,10 +252,6 @@
     const totalAutoconsumo = totales.autoconsumoP1 + totales.autoconsumoP2 + totales.autoconsumoP3;
     const tieneExcedentes = totalExcedentes > 0;
 
-    const pctPunta = totalKwh > 0 ? round2(totales.P1 / totalKwh * 100) : 0;
-    const pctLlano = totalKwh > 0 ? round2(totales.P2 / totalKwh * 100) : 0;
-    const pctValle = totalKwh > 0 ? round2(totales.P3 / totalKwh * 100) : 0;
-
     return {
       ok: true,
       punta: round2(totales.P1).toFixed(2).replace('.', ','),
@@ -275,9 +271,9 @@
       datosReales,
       datosEstimados,
       porcentajes: {
-        punta: pctPunta.toFixed(1).replace('.', ','),
-        llano: pctLlano.toFixed(1).replace('.', ','),
-        valle: pctValle.toFixed(1).replace('.', ',')
+        punta: round2(totales.P1 / totalKwh * 100).toFixed(1).replace('.', ','),
+        llano: round2(totales.P2 / totalKwh * 100).toFixed(1).replace('.', ','),
+        valle: round2(totales.P3 / totalKwh * 100).toFixed(1).replace('.', ',')
       }
     };
   }

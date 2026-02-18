@@ -1,7 +1,5 @@
 import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
 
-let lastErrorMessage = '';
-
 // 1. Setup JSDOM
 document.body.innerHTML = `
   <form>
@@ -81,7 +79,7 @@ window.LF.clamp01to365Days = (n) => Math.max(1, Math.min(365, n));
 window.LF.round2 = (n) => Math.round(n * 100) / 100;
 window.LF.asBool = (v) => Boolean(v);
 window.LF.formatValueForDisplay = (v) => String(v).replace('.', ',');
-window.LF.showError = (msg) => { lastErrorMessage = msg; };
+window.LF.showError = (msg) => {}; // Mock
 window.LF.clearErrorStyles = () => {
   Object.values(window.LF.el.inputs).forEach(el => el?.classList?.remove('error'));
 };
@@ -108,7 +106,6 @@ describe('Inputs y Validación (lf-inputs.js)', () => {
     inputs.solarOn.checked = false;
     inputs.exTotal.value = "0";
     inputs.bvSaldo.value = "0";
-    lastErrorMessage = '';
     window.LF.clearErrorStyles();
   });
 
@@ -139,17 +136,6 @@ describe('Inputs y Validación (lf-inputs.js)', () => {
     window.LF.el.inputs.cLlano.value = "0";
     window.LF.el.inputs.cValle.value = "0";
     expect(window.LF.validateInputs()).toBe(false);
-  });
-
-  it('Debe mostrar mensaje aclaratorio si hay excedentes y consumo neto 0', () => {
-    window.LF.el.inputs.cPunta.value = "0";
-    window.LF.el.inputs.cLlano.value = "0";
-    window.LF.el.inputs.cValle.value = "0";
-    window.LF.el.inputs.solarOn.checked = true;
-    window.LF.el.inputs.exTotal.value = "2,50";
-    window.LF.el.inputs.bvSaldo.value = "0";
-    expect(window.LF.validateInputs()).toBe(false);
-    expect(lastErrorMessage).toContain('El consumo neto es 0 kWh');
   });
 
   it('Debe validar excedentes solo si Solar está activo', () => {

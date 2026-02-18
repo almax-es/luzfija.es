@@ -579,11 +579,7 @@
       }
 
       if (!message && cPuntaNum === 0 && cLlanoNum === 0 && cValleNum === 0) {
-        const solarOn = Boolean(el.inputs.solarOn?.checked);
-        const exTotalNum = parseNum(el.inputs.exTotal?.value);
-        message = (solarOn && Number.isFinite(exTotalNum) && exTotalNum > 0)
-          ? 'El consumo neto es 0 kWh. Si has importado un CSV, puede haberse compensado consumo y excedentes en las mismas horas.'
-          : 'Debe haber consumo en al menos uno de los periodos.';
+        message = 'Debe haber consumo en al menos uno de los periodos.';
         markInvalid(el.inputs.cPunta);
         markInvalid(el.inputs.cLlano);
         markInvalid(el.inputs.cValle);
