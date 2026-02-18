@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-AdU9nVCPQ2rPG3pikx/wMXbAGbB6ef3u4yBRSrqRGJ8=' 'sha256-bBIZ5/fayjDhyF2gjBepx5oO7Nsf3g+YOt0JK5VBdmE=' 'sha256-yaH5q2iY55uqmGTBHkA4jEbwgPh2VcvaIkVFL20bNTM=' 'sha256-moapC5ezqFkeoevr5CIyKVw3Ma3X44Wio+8Y5/L+VnU=' 'sha256-KYvr3cbO9fg1cPlwG+yDjfy0PPFd0qlWknZeF6HQwZM='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-AdU9nVCPQ2rPG3pikx/wMXbAGbB6ef3u4yBRSrqRGJ8=' 'sha256-bBIZ5/fayjDhyF2gjBepx5oO7Nsf3g+YOt0JK5VBdmE=' 'sha256-yaH5q2iY55uqmGTBHkA4jEbwgPh2VcvaIkVFL20bNTM=' 'sha256-moapC5ezqFkeoevr5CIyKVw3Ma3X44Wio+8Y5/L+VnU=' 'sha256-KYvr3cbO9fg1cPlwG+yDjfy0PPFd0qlWknZeF6HQwZM='; style-src 'self' 'sha256-EdhFkgdqb+1HWLBP54Ou51/rNktqkcYEYntmaIgdb9Y=' 'sha256-RokwSwzTwqE6piw3H8HoPYz3Hr4hqj/BPhDKrs/Vnjo='; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; form-action 'self';">
 <meta name="color-scheme" content="dark light"/>
 <script>
     (function(){
@@ -444,6 +444,14 @@ html.light-mode .btn-small:hover{
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/fonts.css">
   <meta name="theme-color" content="#8B5CF6">
+
+<style id="lf-inline-style-map">
+.lf-inline-s1{margin: 30px 0; text-align: center;}
+.lf-inline-s2{max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);}
+.lf-inline-s3{font-size: 14px; color: var(--muted); margin-top: 12px;}
+.lf-inline-s4{margin-top:8px;}
+.lf-inline-s5{text-align: right;}
+</style>
 </head>
 <body>
 <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
@@ -504,7 +512,7 @@ Aunque produzcas lo mismo que consumes, siempre pagarás algo. Factura mínima: 
 <p>
 Las comercializadoras con batería virtual (Gana Energía, Naturgy, Iberdrola, Próxima, Helios, Lidera, etc.) compensan TODO lo que quede en la factura con el saldo acumulado. Si tus excedentes acumulados son suficientes → <strong>factura 0€ real</strong>.
 </p>
-<figure style="margin: 30px 0; text-align: center;">
+<figure class="lf-inline-s1">
   <picture>
     <source type="image/webp" srcset="../img/bateria-virtual-excedentes-solar.webp">
     <img src="../img/bateria-virtual-excedentes-solar.png"
@@ -513,9 +521,9 @@ Las comercializadoras con batería virtual (Gana Energía, Naturgy, Iberdrola, P
          fetchpriority="high"
          decoding="async"
          width="1431" height="806"
-         style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+         class="lf-inline-s2">
   </picture>
-  <figcaption style="font-size: 14px; color: var(--muted); margin-top: 12px;">
+  <figcaption class="lf-inline-s3">
     Tus excedentes se convierten en euros guardados para facturas futuras.
   </figcaption>
 </figure>
@@ -532,7 +540,7 @@ No es una batería. Es una cuenta de "saldo". Tus excedentes se convierten en �
 <ul>
 <li><strong>Caducidad:</strong> Varía según comercializadora. Algunas caducan en 3-12 meses, otras en 24 meses (Iberdrola Cloud), y algunas no tienen caducidad (Próxima, Helios).</li>
 <li><strong>Qué compensa:</strong> Depende de la comercializadora:
-  <ul style="margin-top:8px;">
+  <ul class="lf-inline-s4">
 <li><strong>Generosas</strong> (Próxima, Iberdrola Cloud, Helios, Lidera): Compensan TODO lo que quede en tu factura (energía, potencia, peajes, impuestos, contador). Con excedentes suficientes → factura 0€ real.</li>
 <li><strong>Básicas:</strong> Solo compensan energía, dejando fuera potencia, impuestos y contador.</li>
 </ul>
@@ -719,7 +727,7 @@ Algunas comercializadoras llaman "balance neto" a su sistema de compensación po
 </div>
 <nav class="guide-nav">
   <a href="../guias.html" class="guide-nav-btn"><span class="guide-nav-label">← Volver</span><span class="guide-nav-title">Ver todas las guías</span></a>
-  <a href="como-reclamar-a-comercializadora-distribuidora.html" class="guide-nav-btn" style="text-align: right;"><span class="guide-nav-label">Siguiente →</span><span class="guide-nav-title">Cómo reclamar a tu compañía</span></a>
+  <a href="como-reclamar-a-comercializadora-distribuidora.html" class="guide-nav-btn lf-inline-s5"><span class="guide-nav-label">Siguiente →</span><span class="guide-nav-title">Cómo reclamar a tu compañía</span></a>
 </nav>
 </article>
 <aside class="sidebar-actions">

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-hG/RnZEI3Cjfw5r4wwyyfFeO57/sqUR8VvDE0JxrMiU='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-hG/RnZEI3Cjfw5r4wwyyfFeO57/sqUR8VvDE0JxrMiU='; style-src 'self' 'sha256-w+izzQoqVrfQfCj+2N7d7uj+eQPAqjfAUQpE2smUseI=' 'sha256-CMVLv0FTbYGuiphHyuQBpZUbxBXZOrzxK90YqY751+c='; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; form-action 'self';">
 <script src="/js/theme.js?v=20260218-143620"></script>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <meta name="color-scheme" content="dark light"/>
@@ -59,6 +59,11 @@
 .page-header h1 { font-size: clamp(28px, 5vw, 42px); font-weight: 800; margin-bottom: .5rem; }
 .page-header p { color: var(--muted, rgba(247,247,251,.72)); max-width: 600px; margin: 0 auto; }
 </style>
+
+<style id="lf-inline-style-map">
+.lf-inline-s1{text-align:center; padding:2rem 1rem; font-size:.85rem; color:var(--muted, rgba(247,247,251,.72));}
+.lf-inline-s2{color:var(--accent, #8B5CF6); text-decoration:none;}
+</style>
 </head>
 
 <body>
@@ -95,10 +100,10 @@
   </div>
 </main>
 
-<footer style="text-align:center; padding:2rem 1rem; font-size:.85rem; color:var(--muted, rgba(247,247,251,.72));">
-  <a href="/" style="color:var(--accent, #8B5CF6); text-decoration:none;">Comparador</a> &middot;
-  <a href="/guias.html" style="color:var(--accent, #8B5CF6); text-decoration:none;">Guías</a> &middot;
-  <a href="/aviso-legal.html" style="color:var(--accent, #8B5CF6); text-decoration:none;">Aviso legal</a>
+<footer class="lf-inline-s1">
+  <a href="/" class="lf-inline-s2">Comparador</a> &middot;
+  <a href="/guias.html" class="lf-inline-s2">Guías</a> &middot;
+  <a href="/aviso-legal.html" class="lf-inline-s2">Aviso legal</a>
 </footer>
 </body>
 </html>

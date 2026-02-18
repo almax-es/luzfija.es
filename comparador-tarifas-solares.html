@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <!-- CSP estricta: scripts inline permitidos solo mediante hashes explícitos. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-NSulPFUPS7KqjCbN4ODy9sZU2uHwIt+hbHfeam4jvmM=' 'sha256-GDdiOWCegw0ObPOUX/uwtHr211aPXBwN/Cvawb5Q8qY=' 'sha256-3oyFQiag7wQucIu1O462W9HBo7CEdCSsrB+8IViSVBI=' 'sha256-YL/Ey5nEtYSBKvljmuz5jIxu3bW0wCVvr4Ok1iq767o=' 'sha256-piO3wpqfRaqIAht45O1r9rcpMVz2fNPpDcLvZS6xCjg=' 'sha256-CFzgFa2uG20jFCq00tDKT2vbgKuaKe1RWFyC9FX3qog='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-NSulPFUPS7KqjCbN4ODy9sZU2uHwIt+hbHfeam4jvmM=' 'sha256-GDdiOWCegw0ObPOUX/uwtHr211aPXBwN/Cvawb5Q8qY=' 'sha256-3oyFQiag7wQucIu1O462W9HBo7CEdCSsrB+8IViSVBI=' 'sha256-YL/Ey5nEtYSBKvljmuz5jIxu3bW0wCVvr4Ok1iq767o=' 'sha256-piO3wpqfRaqIAht45O1r9rcpMVz2fNPpDcLvZS6xCjg=' 'sha256-CFzgFa2uG20jFCq00tDKT2vbgKuaKe1RWFyC9FX3qog='; style-src 'self' 'sha256-0MZ0A3UYpp7yTXhRAv7rjkjV4eSz0X5crn+xH1DynY8='; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark light"/>
 <meta name="description" content="Compara tarifas eléctricas para autoconsumo con tus datos reales. Calcula excedentes y batería virtual para ver qué compañía te deja la factura más baja.">
@@ -321,6 +321,58 @@
   <link rel="stylesheet" href="/comparador-solar-mejorado.css">
 
     <meta name="theme-color" content="#8B5CF6">
+
+<style id="lf-inline-style-map">
+.lf-inline-s1{width:100%;height:100%;}
+.lf-inline-s2{stop-color:#fbbf24;stop-opacity:1}
+.lf-inline-s3{stop-color:#f59e0b;stop-opacity:1}
+.lf-inline-s4{stop-color:#8b5cf6;stop-opacity:1}
+.lf-inline-s5{stop-color:#6366f1;stop-opacity:1}
+.lf-inline-s6{text-decoration:none; font-weight:bold;}
+.lf-inline-s7{margin-bottom: 24px; color:var(--muted); font-size: 0.95rem;}
+.lf-inline-s8{gap: 16px;}
+.lf-inline-s9{grid-column: 1 / -1;}
+.lf-inline-s10{font-size:11px; color:var(--muted); margin-top:4px;}
+.lf-inline-s11{grid-column: 1 / -1; display:none;}
+.lf-inline-s12{grid-column: 1 / -1; margin-top: 12px;}
+.lf-inline-s13{background: rgba(255,255,255,0.03); border: 1px dashed var(--border);}
+.lf-inline-s14{font-size: 13px; padding: 10px; display: flex; justify-content: space-between; align-items: center;}
+.lf-inline-s15{font-size: 11px; color: var(--muted); margin-right: 8px; display: none;}
+.lf-inline-s16{padding: 16px; display: grid; gap: 16px;}
+.lf-inline-s17{display: flex; align-items: start; gap: 10px;}
+.lf-inline-s18{font-size: 18px; flex-shrink: 0;}
+.lf-inline-s19{display: block; margin-bottom: 4px;}
+.lf-inline-s20{color: var(--muted2); font-size: 11px; line-height: 1.5;}
+.lf-inline-s21{gap: 10px;}
+.lf-inline-s22{margin-top: 4px;}
+.lf-inline-s23{margin-top: 8px;}
+.lf-inline-s24{display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;}
+.lf-inline-s25{width: auto; cursor: pointer;}
+.lf-inline-s26{font-size: 13px;}
+.lf-inline-s27{display: flex; gap: 8px; margin-top: 12px;}
+.lf-inline-s28{flex: 1; display: none;}
+.lf-inline-s29{display:none}
+.lf-inline-s30{display: none;}
+.lf-inline-s31{font-weight: 900; color: var(--accent);}
+.lf-inline-s32{font-weight: 700;}
+.lf-inline-s33{display: none; margin-top: 12px; padding: 10px; background: rgba(139, 92, 246, 0.1); border-radius: 8px; border: 1px solid rgba(139, 92, 246, 0.3);}
+.lf-inline-s34{display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12px;}
+.lf-inline-s35{color: var(--muted); margin-bottom: 4px;}
+.lf-inline-s36{font-size: 16px; font-weight: 700; color: var(--accent);}
+.lf-inline-s37{font-size: 1.1rem;}
+.lf-inline-s38{display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:30px; margin-bottom:30px;}
+.lf-inline-s39{color:var(--muted); font-size:12px; line-height:1.6; margin:0 0 12px 0;}
+.lf-inline-s40{color:var(--accent); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; transition: opacity 0.2s;}
+.lf-inline-s41{font-size:10px;}
+.lf-inline-s42{color:var(--danger);}
+.lf-inline-s43{color:var(--warn);}
+.lf-inline-s44{color:var(--accent2);}
+.lf-inline-s45{text-decoration:underline;}
+.lf-inline-s46{margin-top:30px; padding:28px 20px 24px; border-top:1px solid rgba(255,255,255,0.05); text-align:center;}
+.lf-inline-s47{font-size:11px; opacity:0.5; margin-bottom:8px;}
+.lf-inline-s48{margin-top:18px; padding-top:14px; border-top:1px solid var(--border);}
+.lf-inline-s49{color:inherit; text-decoration:none; font-weight:600;}
+</style>
 </head>
 
 <body class="solar-pro">
@@ -330,21 +382,21 @@
       <div class="brand">
         <span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span>
         <a class="logo" href="/" aria-label="Inicio">
-          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" class="lf-inline-s1">
             <!-- ... (logo content matches original) ... -->
             <defs>
               <linearGradient id="logoGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1">
+                <stop offset="0%" class="lf-inline-s2">
                   <animate attributeName="stop-color" values="#fbbf24;#f59e0b;#fbbf24" dur="2s" repeatCount="indefinite"/>
                 </stop>
-                <stop offset="50%" style="stop-color:#f59e0b;stop-opacity:1"/>
-                <stop offset="100%" style="stop-color:#fbbf24;stop-opacity:1">
+                <stop offset="50%" class="lf-inline-s3"/>
+                <stop offset="100%" class="lf-inline-s2">
                   <animate attributeName="stop-color" values="#fbbf24;#f59e0b;#fbbf24" dur="2s" repeatCount="indefinite"/>
                 </stop>
               </linearGradient>
               <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1"/>
-                <stop offset="100%" style="stop-color:#6366f1;stop-opacity:1"/>
+                <stop offset="0%" class="lf-inline-s4"/>
+                <stop offset="100%" class="lf-inline-s5"/>
               </linearGradient>
               <filter id="glow">
                 <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
@@ -381,7 +433,7 @@
         <div>
           <nav aria-label="Breadcrumb" class="u-mb-8">
             <ol class="breadcrumb">
-              <li><a href="/" style="text-decoration:none; font-weight:bold;">&larr; Volver al Comparador</a></li>
+              <li><a href="/" class="lf-inline-s6">&larr; Volver al Comparador</a></li>
             </ol>
           </nav>
                     <h1>Comparador de Tarifas Eléctricas con Placas Solares y Autoconsumo</h1>
@@ -431,13 +483,13 @@
                     <div class="title">Comparador de Tarifas para Autoconsumo Fotovoltaico</div>
                   </div>
                   <div class="body">
-                    <p style="margin-bottom: 24px; color:var(--muted); font-size: 0.95rem;">
+                    <p class="lf-inline-s7">
                       Sube tu CSV de consumo para auto-rellenar la tabla o introduce los datos manualmente mes a mes. Compara todas las tarifas del mercado y descubre cuál te ahorra más dinero con compensación de excedentes y batería virtual.
                     </p>
 
                     <div class="bv-form-container">
                       <!-- Inputs Comunes (Izquierda) -->
-                      <div class="form bv-form-2col" style="gap: 16px;">
+                      <div class="form bv-form-2col lf-inline-s8">
                         
                         <div class="group">
                           <label for="bv-p1">Potencia P1 (kW)</label>
@@ -449,13 +501,13 @@
                           <input class="input" type="text" id="bv-p2" inputmode="decimal" value="3,45" placeholder="Ej: 3,45">
                         </div>
 
-                        <div class="group" style="grid-column: 1 / -1;">
+                        <div class="group lf-inline-s9">
                           <label for="bv-saldo-inicial">Saldo en Hucha (€)</label>
                           <input class="input" type="text" id="bv-saldo-inicial" inputmode="decimal" value="0,00" placeholder="0,00">
-                          <div style="font-size:11px; color:var(--muted); margin-top:4px;">Si ya tienes dinero acumulado de meses anteriores.</div>
+                          <div class="lf-inline-s10">Si ya tienes dinero acumulado de meses anteriores.</div>
                         </div>
 
-                        <div class="group" style="grid-column: 1 / -1;">
+                        <div class="group lf-inline-s9">
                           <label for="bv-zona-fiscal">Zona Fiscal</label>
                           <select id="bv-zona-fiscal" class="input">
                             <option value="Península">Península y Baleares</option>
@@ -464,7 +516,7 @@
                           </select>
                         </div>
 
-                        <div class="group" id="bv-vivienda-canarias-wrapper" style="grid-column: 1 / -1; display:none;">
+                        <div class="group" id="bv-vivienda-canarias-wrapper" class="lf-inline-s11">
                           <label class="fv-check">
                             <input id="bv-vivienda-canarias" type="checkbox" checked>
                             <span>Es Vivienda (IGIC 0%)</span>
@@ -472,21 +524,21 @@
                         </div>
 
                         <!-- Tarifa Actual (Opcional) -->
-                        <div style="grid-column: 1 / -1; margin-top: 12px;">
-                          <details class="seoDetails" style="background: rgba(255,255,255,0.03); border: 1px dashed var(--border);">
-                            <summary style="font-size: 13px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+                        <div class="lf-inline-s12">
+                          <details class="seoDetails lf-inline-s13">
+                            <summary class="lf-inline-s14">
                               <span>⭐ Comparar con mi tarifa actual</span>
-                              <span id="bv-custom-tarifa-indicator" style="font-size: 11px; color: var(--muted); margin-right: 8px; display: none;" title="Datos guardados en tu navegador"></span>
+                              <span id="bv-custom-tarifa-indicator" class="lf-inline-s15" title="Datos guardados en tu navegador"></span>
                             </summary>
-                            <div style="padding: 16px; display: grid; gap: 16px;">
+                            <div class="lf-inline-s16">
 
                               <!-- Info box explicativo -->
                               <div class="info-box">
-                                <div style="display: flex; align-items: start; gap: 10px;">
-                                  <span style="font-size: 18px; flex-shrink: 0;">💡</span>
+                                <div class="lf-inline-s17">
+                                  <span class="lf-inline-s18">💡</span>
                                   <div>
-                                    <strong style="display: block; margin-bottom: 4px;">Busca estos precios en tu factura</strong>
-                                    <div style="color: var(--muted2); font-size: 11px; line-height: 1.5;">
+                                    <strong class="lf-inline-s19">Busca estos precios en tu factura</strong>
+                                    <div class="lf-inline-s20">
                                       Normalmente aparecen en la sección de "Detalle del importe" o "Términos de facturación"
                                     </div>
                                   </div>
@@ -499,7 +551,7 @@
                                 <h4 class="mt-seccion-title">Término de potencia</h4>
                                 <span class="mt-seccion-subtitle">Precio por kW contratado/día</span>
                               </div>
-                              <div class="form bv-form-2col" style="gap: 10px;">
+                              <div class="form bv-form-2col lf-inline-s21">
                                 <div class="group">
                                   <label for="mtP1">Potencia P1 (€/kW·día)</label>
                                   <input id="mtP1" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0891">
@@ -511,12 +563,12 @@
                               </div>
 
                               <!-- Término de Energía -->
-                              <div class="mt-seccion-header" style="margin-top: 4px;">
+                              <div class="mt-seccion-header lf-inline-s22">
                                 <span class="mt-seccion-icon">⚡</span>
                                 <h4 class="mt-seccion-title">Término de energía</h4>
                                 <span class="mt-seccion-subtitle">Precio por kWh consumido</span>
                               </div>
-                              <div class="form bv-form-3col" style="gap: 10px;">
+                              <div class="form bv-form-3col lf-inline-s21">
                                 <div class="group">
                                   <label for="mtPunta">Punta (€/kWh)</label>
                                   <input id="mtPunta" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,1543">
@@ -532,7 +584,7 @@
                               </div>
 
                               <!-- Compensación de Excedentes -->
-                              <div class="mt-seccion-header" style="margin-top: 4px;">
+                              <div class="mt-seccion-header lf-inline-s22">
                                 <span class="mt-seccion-icon">☀️</span>
                                 <h4 class="mt-seccion-title">Compensación de excedentes</h4>
                                 <span class="mt-seccion-subtitle">Precio que te pagan por verter a la red</span>
@@ -542,15 +594,15 @@
                                 <input id="mtExc" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0743">
                               </div>
 
-                              <div class="group" style="margin-top: 8px;">
-                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
-                                  <input id="mtBV" type="checkbox" style="width: auto; cursor: pointer;">
-                                  <span style="font-size: 13px;">Tiene batería virtual (acumula excedentes no compensados)</span>
+                              <div class="group lf-inline-s23">
+                                <label class="lf-inline-s24">
+                                  <input id="mtBV" type="checkbox" class="lf-inline-s25">
+                                  <span class="lf-inline-s26">Tiene batería virtual (acumula excedentes no compensados)</span>
                                 </label>
                               </div>
 
-                              <div style="display: flex; gap: 8px; margin-top: 12px;">
-                                <button type="button" id="bv-clear-custom-tarifa" class="btn btn-secondary" style="flex: 1; display: none;">
+                              <div class="lf-inline-s27">
+                                <button type="button" id="bv-clear-custom-tarifa" class="btn btn-secondary lf-inline-s28">
                                   🗑️ Limpiar datos guardados
                                 </button>
                               </div>
@@ -565,7 +617,7 @@
                       <div id="bv-data-zone">
                         <!-- Upload Zone Compacta -->
                         <div class="bv-upload-compact">
-                          <input class="bv-file-input" type="file" id="bv-file" accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" aria-label="Subir archivo CSV o XLSX para autocompletar datos" style="display:none">
+                          <input class="bv-file-input" type="file" id="bv-file" accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" aria-label="Subir archivo CSV o XLSX para autocompletar datos" class="lf-inline-s29">
 
                           <div class="bv-upload-header">
                             <div class="bv-upload-title">
@@ -579,7 +631,7 @@
                             <span>📁 Seleccionar archivo CSV</span>
                           </button>
 
-                          <div class="bv-file-selected-inline" id="file-selected-msg" style="display:none">
+                          <div class="bv-file-selected-inline" id="file-selected-msg" class="lf-inline-s29">
                             <span class="bv-file-status-icon">✓</span>
                             <span class="bv-file-name" id="file-name">archivo.csv</span>
                             <button type="button" class="bv-remove-file-inline" id="remove-file" aria-label="Eliminar archivo">✕</button>
@@ -617,27 +669,27 @@
                               </div>
 
                               <!-- Fila de totales detallados -->
-                              <div id="bv-manual-totals-row" class="bv-manual-totals-row" style="display: none;">
-                                <span style="font-weight: 900; color: var(--accent);">TOTAL</span>
-                                <span id="bv-total-p1" style="font-weight: 700;">0</span>
-                                <span id="bv-total-p2" style="font-weight: 700;">0</span>
-                                <span id="bv-total-p3" style="font-weight: 700;">0</span>
-                                <span id="bv-total-vert" style="font-weight: 700;">0</span>
+                              <div id="bv-manual-totals-row" class="bv-manual-totals-row lf-inline-s30">
+                                <span class="lf-inline-s31">TOTAL</span>
+                                <span id="bv-total-p1" class="lf-inline-s32">0</span>
+                                <span id="bv-total-p2" class="lf-inline-s32">0</span>
+                                <span id="bv-total-p3" class="lf-inline-s32">0</span>
+                                <span id="bv-total-vert" class="lf-inline-s32">0</span>
                               </div>
                             </div>
 
                             <!-- Totales generales -->
-                            <div id="bv-manual-totals-summary" style="display: none; margin-top: 12px; padding: 10px; background: rgba(139, 92, 246, 0.1); border-radius: 8px; border: 1px solid rgba(139, 92, 246, 0.3);">
-                              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12px;">
+                            <div id="bv-manual-totals-summary" class="lf-inline-s33">
+                              <div class="lf-inline-s34">
                                 <div>
-                                  <div style="color: var(--muted); margin-bottom: 4px;">Consumo total anual</div>
-                                  <div style="font-size: 16px; font-weight: 700; color: var(--accent);">
+                                  <div class="lf-inline-s35">Consumo total anual</div>
+                                  <div class="lf-inline-s36">
                                     <span id="bv-total-consumo">0</span> kWh
                                   </div>
                                 </div>
                                 <div>
-                                  <div style="color: var(--muted); margin-bottom: 4px;">Excedentes total anual</div>
-                                  <div style="font-size: 16px; font-weight: 700; color: var(--accent);">
+                                  <div class="lf-inline-s35">Excedentes total anual</div>
+                                  <div class="lf-inline-s36">
                                     <span id="bv-total-excedentes">0</span> kWh
                                   </div>
                                 </div>
@@ -676,22 +728,22 @@
           
                     <div class="u-mt-24">
                       <button class="btn primary" id="bv-simulate" type="button" aria-controls="bv-results-container">
-                        <span class="bv-btn-text" style="font-size: 1.1rem;">Comparar Tarifas y Ver Ahorro &rarr;</span>
-                        <span class="spinner" style="display:none"></span>
+                        <span class="bv-btn-text lf-inline-s37">Comparar Tarifas y Ver Ahorro &rarr;</span>
+                        <span class="spinner lf-inline-s29"></span>
                       </button>
                     </div>
                   </div>
                 </section>
           
                 <!-- Resultados (Ocultos por defecto) -->
-                <div id="bv-results-container" class="fade-container" style="display:none">
+                <div id="bv-results-container" class="fade-container lf-inline-s29">
                   <section class="card u-mt-16">
                     <div id="bv-results"></div>
                   </section>
                 </div>
           
                 <!-- Estado (Oculto por defecto o integrado en notificaciones) -->
-                <div id="bv-status-container" style="display:none">
+                <div id="bv-status-container" class="lf-inline-s29">
                   <section class="card u-mt-16">
                     <div class="head">
                       <h2>Estado</h2>
@@ -702,16 +754,16 @@
               </main>
           
               <footer class="footer-container">
-                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:30px; margin-bottom:30px;">
+                <div class="lf-inline-s38">
                           <div>
                             <h3 class="u-h3-strong-10">Sobre el Comparador</h3>
-                            <p style="color:var(--muted); font-size:12px; line-height:1.6; margin:0 0 12px 0;">
+                            <p class="lf-inline-s39">
                               Herramienta avanzada para <strong>comparar tarifas solares</strong> usando tus datos reales de autoconsumo y excedentes.
                             </p>
                             <p class="u-m-0">
-                              <a href="/guias.html" style="color:var(--accent); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; transition: opacity 0.2s;">
+                              <a href="/guias.html" class="lf-inline-s40">
                                 📚 Guías sobre tarifas eléctricas
-                                <span style="font-size:10px;">→</span>
+                                <span class="lf-inline-s41">→</span>
                               </a>
                             </p>
                           </div>
@@ -719,9 +771,9 @@
                           <div>
                             <h3 class="u-h3-strong-10">Horarios Discriminación</h3>
                             <ul class="u-list-muted-12">
-                              <li><strong style="color:var(--danger);">Punta:</strong> 10h-14h y 18h-22h</li>
-                              <li><strong style="color:var(--warn);">Llano:</strong> 8h-10h, 14h-18h, 22h-24h</li>
-                              <li><strong style="color:var(--accent2);">Valle:</strong> 0h-8h + fines de semana</li>
+                              <li><strong class="lf-inline-s42">Punta:</strong> 10h-14h y 18h-22h</li>
+                              <li><strong class="lf-inline-s43">Llano:</strong> 8h-10h, 14h-18h, 22h-24h</li>
+                              <li><strong class="lf-inline-s44">Valle:</strong> 0h-8h + fines de semana</li>
                             </ul>
                           </div>
                   
@@ -740,21 +792,21 @@
                             <h3 class="u-h3-strong-10">Contacto</h3>
                             <div class="contact-box">
                               <div class="u-label-xs">✉️ Email</div>
-                              <a href="mailto:hola@luzfija.es" class="u-color-accent u-fw-900 u-text-13" style="text-decoration:underline;">hola@luzfija.es</a>
+                              <a href="mailto:hola@luzfija.es" class="u-color-accent u-fw-900 u-text-13 lf-inline-s45">hola@luzfija.es</a>
                             </div>
                           </div>
                         </div>
                   
-                        <div style="margin-top:30px; padding:28px 20px 24px; border-top:1px solid rgba(255,255,255,0.05); text-align:center;">
-                          <p style="font-size:11px; opacity:0.5; margin-bottom:8px;">⚡ LuzFija.es · Comparador de Tarifas Solares</p>
+                        <div class="lf-inline-s46">
+                          <p class="lf-inline-s47">⚡ LuzFija.es · Comparador de Tarifas Solares</p>
                           <p class="u-text-10 u-opacity-40">Proyecto gratuito y sin publicidad · Tarifas actualizadas regularmente</p>
                   
-                          <div style="margin-top:18px; padding-top:14px; border-top:1px solid var(--border);">
+                          <div class="lf-inline-s48">
                             <div class="u-max-w-720 u-center-text-padded">
                               <p class="u-mt-10 u-text-10 u-opacity-65 u-leading-15">
                                 Analítica sin cookies · <a href="/privacidad.html" class="u-link-accent">Política de privacidad</a> · <a href="/aviso-legal.html" class="u-link-accent">Aviso legal</a>
                               </p>
-                              <div class="footer-credits">Desarrollado por <a href="https://github.com/almax-es" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:none; font-weight:600;">aLMaX</a></div>
+                              <div class="footer-credits">Desarrollado por <a href="https://github.com/almax-es" target="_blank" rel="noopener noreferrer" class="lf-inline-s49">aLMaX</a></div>
                             </div>
                           </div>
                         </div>              </footer>

@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8"/>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-AdU9nVCPQ2rPG3pikx/wMXbAGbB6ef3u4yBRSrqRGJ8=' 'sha256-zZUM+bZHLi06UQiOfs+zTrBAJbc46fA44FInJlBPVn4=' 'sha256-NzVQfCR9Ecga4OK4qIM/IBsaGU3gyI5RfMSMCpOnzUg=' 'sha256-/t5YXmnkFpk1h09b5uWq+nQUjVlgNDjPf0JyHDDWisE=' 'sha256-KYvr3cbO9fg1cPlwG+yDjfy0PPFd0qlWknZeF6HQwZM='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; form-action 'self';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-AdU9nVCPQ2rPG3pikx/wMXbAGbB6ef3u4yBRSrqRGJ8=' 'sha256-zZUM+bZHLi06UQiOfs+zTrBAJbc46fA44FInJlBPVn4=' 'sha256-NzVQfCR9Ecga4OK4qIM/IBsaGU3gyI5RfMSMCpOnzUg=' 'sha256-/t5YXmnkFpk1h09b5uWq+nQUjVlgNDjPf0JyHDDWisE=' 'sha256-KYvr3cbO9fg1cPlwG+yDjfy0PPFd0qlWknZeF6HQwZM='; style-src 'self' 'sha256-EdhFkgdqb+1HWLBP54Ou51/rNktqkcYEYntmaIgdb9Y=' 'sha256-lQuBakWT0fiM7KuuvSQUXpKXKfmVUng2r/FnTKE6Gog='; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; form-action 'self';">
 <meta name="color-scheme" content="dark light"/>
 <script>
     (function(){
@@ -444,6 +444,17 @@ html.light-mode .btn-small:hover{
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="stylesheet" href="/fonts.css">
   <meta name="theme-color" content="#8B5CF6">
+
+<style id="lf-inline-style-map">
+.lf-inline-s1{margin-top:10px;}
+.lf-inline-s2{margin: 30px 0; text-align: center;}
+.lf-inline-s3{max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);}
+.lf-inline-s4{font-size: 14px; color: var(--muted); margin-top: 12px;}
+.lf-inline-s5{color:#22C55E}
+.lf-inline-s6{color:#F59E0B}
+.lf-inline-s7{color:#8B5CF6}
+.lf-inline-s8{text-align: right;}
+</style>
 </head>
 <body>
 <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
@@ -469,7 +480,7 @@ html.light-mode .btn-small:hover{
 <div class="article-meta"><span>Por <strong>aLMaX</strong></span><span>·</span><span>18 ene 2026</span><span>·</span><span>⏱️ 6 min</span><span>·</span><span class="updated-badge">🔄 Act. 14 feb 2026</span></div>
 </div>
 <div class="article-content">
-<p style="margin-top:10px;">Esto de los tres periodos solo va con la tarifa 2.0 TD, que es la que tenemos la mayoría (si tienes menos de 15 kW contratados). Si tienes más potencia, te toca una tarifa 6.x TD con seis periodos en vez de tres, pero eso ya son palabras mayores.</p>
+<p class="lf-inline-s1">Esto de los tres periodos solo va con la tarifa 2.0 TD, que es la que tenemos la mayoría (si tienes menos de 15 kW contratados). Si tienes más potencia, te toca una tarifa 6.x TD con seis periodos en vez de tres, pero eso ya son palabras mayores.</p>
 <h2>Los tres tramos del día</h2>
 <div class="key-takeaway">
   <p><strong>Peajes y Cargos 2026:</strong> Aunque la CNMC ha bajado los peajes domésticos un 1,3%, los <strong>cargos del sistema</strong> (regulados por el Ministerio) han subido. En la práctica, los costes regulados de tu factura se mantienen estables o suben ligeramente respecto a 2025.</p>
@@ -488,7 +499,7 @@ html.light-mode .btn-small:hover{
 <div class="periodo-box">
 <p>Ojo: P2 solo existe entre semana. Los findes y festivos nacionales son todo P3 (valle), que es lo más barato. Bueno, casi todos: no todos los festivos cuentan como valle. Algunos (sobre todo autonómicos y ciertos de fecha variable) se tratan como un día normal. Son cosas de la regulación...</p>
 
-<figure style="margin: 30px 0; text-align: center;">
+<figure class="lf-inline-s2">
   <picture>
     <source type="image/webp" srcset="../img/horarios-luz-p1-p2-p3-2026.webp">
     <img src="../img/horarios-luz-p1-p2-p3-2026.png"
@@ -497,10 +508,10 @@ html.light-mode .btn-small:hover{
          fetchpriority="high"
          decoding="async"
          width="778" height="612"
-         style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+         class="lf-inline-s3">
   </picture>
-  <figcaption style="font-size: 14px; color: var(--muted); margin-top: 12px;">
-    Distribución visual: <span style="color:#22C55E">Verde (Valle)</span>, <span style="color:#F59E0B">Naranja (Llano)</span> y <span style="color:#8B5CF6">Morado (Punta)</span>.
+  <figcaption class="lf-inline-s4">
+    Distribución visual: <span class="lf-inline-s5">Verde (Valle)</span>, <span class="lf-inline-s6">Naranja (Llano)</span> y <span class="lf-inline-s7">Morado (Punta)</span>.
   </figcaption>
 </figure>
 
@@ -603,7 +614,7 @@ html.light-mode .btn-small:hover{
 </div>
 <nav class="guide-nav">
   <a href="../guias.html" class="guide-nav-btn"><span class="guide-nav-label">← Volver</span><span class="guide-nav-title">Ver todas las guías</span></a>
-  <a href="diferencia-entre-comercializadora-y-distribuidora.html" class="guide-nav-btn" style="text-align: right;"><span class="guide-nav-label">Siguiente →</span><span class="guide-nav-title">Comercializadora vs Distribuidora</span></a>
+  <a href="diferencia-entre-comercializadora-y-distribuidora.html" class="guide-nav-btn lf-inline-s8"><span class="guide-nav-label">Siguiente →</span><span class="guide-nav-title">Comercializadora vs Distribuidora</span></a>
 </nav>
 </article>
 <aside class="sidebar-actions">
