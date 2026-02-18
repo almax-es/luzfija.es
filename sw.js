@@ -222,7 +222,7 @@ self.addEventListener("fetch", (event) => {
           await cachePutSafe(cache, req, fresh);
           return fresh;
         } catch (_) {
-          return (await cache.match(req)) || Response.error();
+          return (await cache.match(req, { ignoreSearch: true })) || Response.error();
         }
       })()
     );
@@ -285,7 +285,7 @@ self.addEventListener("fetch", (event) => {
           await cachePutSafe(cache, req, fresh);
           return fresh;
         } catch (_) {
-          return (await cache.match(req)) || Response.error();
+          return (await cache.match(req, { ignoreSearch: true })) || Response.error();
         }
       })()
     );
@@ -297,7 +297,7 @@ self.addEventListener("fetch", (event) => {
   event.respondWith(
     (async () => {
       const cache = await caches.open(CACHE_NAME);
-      const cached = await cache.match(req);
+      const cached = await cache.match(req, { ignoreSearch: true });
       const fetchPromise = fetch(req).then(async (fresh) => {
         await cachePutSafe(cache, req, fresh);
         return fresh;
