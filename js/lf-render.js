@@ -470,7 +470,7 @@
         </div>
 
         ${result.web ? `
-          <a href="${escapeHtml(result.web)}" target="_blank" rel="noopener" class="sun-club-link">
+          <a href="${escapeHtml(result.web)}" target="_blank" rel="noopener noreferrer" class="sun-club-link">
             🔗 Más información sobre Sun Club
           </a>
         ` : ''}
@@ -516,7 +516,7 @@
             <span>${formatMoney(result.impuestos)}</span>
           </div>
         </div>
-        <a href="${escapeHtml(result.web)}" target="_blank" rel="noopener" class="sun-club-link">
+        <a href="${escapeHtml(result.web)}" target="_blank" rel="noopener noreferrer" class="sun-club-link">
           🔗 Más información sobre Sun Club
         </a>
       </div>
