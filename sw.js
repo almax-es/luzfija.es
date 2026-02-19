@@ -258,7 +258,7 @@ self.addEventListener("fetch", (event) => {
       (async () => {
         const cache = await caches.open(CACHE_NAME);
         const cacheKey = new Request(NOVEDADES_PATH);
-        const cached = (await cache.match(cacheKey)) || (await cache.match(req));
+        const cached = (await cache.match(cacheKey)) || (await cache.match(req, { ignoreSearch: true }));
         const fetchPromise = fetch(req, { cache: "no-store" })
           .then(async (fresh) => {
             await cachePutSafe(cache, cacheKey, fresh);
