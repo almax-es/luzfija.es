@@ -37,7 +37,8 @@ function extractInlineScriptBodies(html) {
 }
 
 function sha256Base64(content) {
-  return crypto.createHash('sha256').update(content, 'utf8').digest('base64');
+  const normalized = String(content).replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+  return crypto.createHash('sha256').update(normalized, 'utf8').digest('base64');
 }
 
 describe('CSP inline script hashes', () => {
