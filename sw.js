@@ -222,10 +222,12 @@ self.addEventListener("fetch", (event) => {
           await cachePutSafe(cache, req, fresh);
           return fresh;
         } catch (_) {
-          const exact = await cache.match(req);
-          if (exact) return exact;
-          // Evitar mezclar builds: si el recurso va versionado con ?v=..., no usar fallback ignoreSearch.
-          if (url.search) return Response.error();
+          // Recursos versionados (?v=...): intentar fallback por pathname exacto
+          // para no mezclar query-strings entre builds.
+          if (url.search) {
+            const versionedFallback = await cache.match(new Request(url.pathname));
+            return versionedFallback || Response.error();
+          }
           return (await cache.match(req, { ignoreSearch: true })) || Response.error();
         }
       })()
