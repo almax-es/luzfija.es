@@ -133,20 +133,13 @@
 
     // Evitar ruido legado del loader antiguo de index-extra (clients con caché vieja).
     const rawTitle = (metadata && metadata.title) ? String(metadata.title) : '';
-    if (eventName === 'error-javascript' &&
-        rawTitle &&
-        rawTitle.indexOf('Compat: index-extra omitido') !== -1) {
+    if (isLegacyIndexExtraCompatNoise(rawTitle)) {
       dbg('Ruido legado filtrado:', rawTitle);
       return;
     }
     if (isPromiseStaleNoise(rawTitle)) {
-      const normalizedTitle = normalizeForMatch(rawTitle);
-      if (eventName === 'error-promise' ||
-          normalizedTitle.indexOf('promise reject') !== -1 ||
-          normalizedTitle.indexOf('promise:') !== -1) {
-        dbg('Ruido stale-cache filtrado:', rawTitle);
-        return;
-      }
+      dbg('Ruido stale-cache filtrado:', rawTitle);
+      return;
     }
     
     const payload = {
@@ -404,6 +397,11 @@
       const route = safeText(location && location.pathname ? location.pathname : '');
       const browser = getBrowserInfo();
 
+      if (isLegacyIndexExtraCompatNoise(message) || isPromiseStaleNoise(message)) {
+        dbg('Error JS legacy filtrado:', message);
+        return;
+      }
+
       if (!shouldTrackError(filename, source, scriptSource, route, line, col)) {
         dbg('Error ignorado (origen no fiable):', message, filename || '(sin filename)');
         return;
@@ -436,6 +434,15 @@
     'currentYear no esta definid'
   ];
 
+  function isLegacyIndexExtraCompatNoise(msg) {
+    var normalized = normalizeForMatch(msg);
+    if (!normalized || normalized.indexOf('index-extra') === -1) return false;
+    if (normalized.indexOf('compat') === -1) return false;
+    if (normalized.indexOf('omitid') !== -1) return true;
+    if (normalized.indexOf('es2020') !== -1) return true;
+    return false;
+  }
+
   function isPromiseStaleNoise(msg) {
     var normalized = normalizeForMatch(msg);
     if (!normalized || normalized.indexOf('currentyear') === -1) return false;
@@ -445,6 +452,7 @@
     }
     // Variante antigua: "Promise reject: currentYear is not defined event"
     if (normalized.indexOf('promise reject') !== -1 && normalized.indexOf('not defined') !== -1) return true;
+    if (normalized.indexOf('promise') !== -1 && normalized.indexOf('undefined') !== -1) return true;
     return false;
   }
 
@@ -478,7 +486,7 @@
       }
 
       // Filtrar ruido de cache viejo (código ya corregido, solo llega desde SW antiguo)
-      if (isPromiseStaleNoise(msg)) {
+      if (isLegacyIndexExtraCompatNoise(msg) || isPromiseStaleNoise(msg)) {
         if (DEBUG) dbg('Promise rejection ignorada (stale cache):', msg);
         return;
       }

@@ -3,7 +3,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260220-161502";
+const CACHE_VERSION = "20260220-233500";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
@@ -222,6 +222,10 @@ self.addEventListener("fetch", (event) => {
           await cachePutSafe(cache, req, fresh);
           return fresh;
         } catch (_) {
+          const exact = await cache.match(req);
+          if (exact) return exact;
+          // Evitar mezclar builds: si el recurso va versionado con ?v=..., no usar fallback ignoreSearch.
+          if (url.search) return Response.error();
           return (await cache.match(req, { ignoreSearch: true })) || Response.error();
         }
       })()

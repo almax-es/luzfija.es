@@ -115,10 +115,30 @@ describe('Tracking error filtering and dedupe', () => {
     expect(window.goatcounter.count).not.toHaveBeenCalled();
   });
 
+  it('ignora ruido legado de index-extra aunque el eventName no sea error-javascript', () => {
+    bootstrapTracking();
+
+    window.__LF_track('custom-event', {
+      title: 'Compat: index-extra omitido (sin soporte ES2020) event'
+    });
+
+    expect(window.goatcounter.count).not.toHaveBeenCalled();
+  });
+
   it('ignora ruido stale-cache de promesas con formato legacy', () => {
     bootstrapTracking();
 
     dispatchUnhandledRejection('Promise reject: currentYear is not defined event');
+
+    expect(window.goatcounter.count).not.toHaveBeenCalled();
+  });
+
+  it('ignora ruido stale-cache aunque llegue con otro eventName', () => {
+    bootstrapTracking();
+
+    window.__LF_track('error-javascript', {
+      title: 'Promise reject: currentYear is not defined event'
+    });
 
     expect(window.goatcounter.count).not.toHaveBeenCalled();
   });
