@@ -552,9 +552,9 @@
     },
     {
       "nombre": "Iberdrola Online 3P",
-      "cPunta": 0.191661,
-      "cLlano": 0.133374,
-      "cValle": 0.099645,
+      "cPunta": 0.194,
+      "cLlano": 0.136,
+      "cValle": 0.09999,
       "p1": 0.091074,
       "p2": 0.013483,
       "web": "https://www.iberdrola.es/luz/plan-online-tres-periodos",
@@ -661,5 +661,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-02-22T16:32:37.605Z"
+  "updatedAt": "2026-02-23T06:37:47.844Z"
 }
