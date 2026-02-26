@@ -391,7 +391,11 @@
       const cPunta = Math.max(0, asNumber(values?.cPunta, 0));
       const cLlano = Math.max(0, asNumber(values?.cLlano, 0));
       const cValle = Math.max(0, asNumber(values?.cValle, 0));
-      
+
+      // MODO CSV EXACTO: leer consumos horarios si están disponibles (del CSV importado)
+      const consumosHorarios = Array.isArray(window.LF?.consumosHorarios) && window.LF.consumosHorarios.length > 0
+        ? window.LF.consumosHorarios : null;
+
       const fiscal = typeof __LF_getFiscalContext === 'function'
         ? __LF_getFiscalContext(values)
         : (() => {
@@ -450,12 +454,24 @@ const PEAJES_POT_DIA = {
       const geoId = geoMap[zonaFiscal] || 8741;
       const geoFallbackId = (zonaFiscal === 'CeutaMelilla') ? 8745 : null;
 
-      // Periodo: últimos N días cerrados, terminando en AYER (incluido).
-      // Se calcula en hora local para evitar desajustes por UTC (toISOString).
-      const endDate = startOfDayLocal(new Date());
-      endDate.setDate(endDate.getDate() - 1);
-      const startDate = new Date(endDate);
-      startDate.setDate(startDate.getDate() - (dias - 1));
+      // Periodo: si hay CSV, usar fechas del CSV; si no, últimos N días cerrados hasta AYER.
+      let startDate, endDate;
+      if (consumosHorarios) {
+        let minTs = Infinity, maxTs = -Infinity;
+        for (const c of consumosHorarios) {
+          if (!c.fecha) continue;
+          const ts = (c.fecha instanceof Date ? c.fecha : new Date(c.fecha)).getTime();
+          if (ts < minTs) minTs = ts;
+          if (ts > maxTs) maxTs = ts;
+        }
+        startDate = startOfDayLocal(new Date(minTs));
+        endDate = startOfDayLocal(new Date(maxTs));
+      } else {
+        endDate = startOfDayLocal(new Date());
+        endDate.setDate(endDate.getDate() - 1);
+        startDate = new Date(endDate);
+        startDate.setDate(startDate.getDate() - (dias - 1));
+      }
 
       const startStr = formatYMD(startDate);
       const endStr = formatYMD(endDate);
@@ -586,7 +602,31 @@ const PEAJES_POT_DIA = {
         const costeMargenPot = p1 * PEAJES_POT_DIA.margen * dias;
         
         // TÉRMINO VARIABLE
-        const terminoVariable = cPunta * precioP1 + cLlano * precioP2 + cValle * precioP3;
+        let terminoVariable = cPunta * precioP1 + cLlano * precioP2 + cValle * precioP3;
+        let modoExactoCSV = false;
+        if (consumosHorarios) {
+          let exactCost = 0, horasConDatos = 0, horasSinDatos = 0;
+          for (const c of consumosHorarios) {
+            const kwh = c.kwh || 0;
+            if (!kwh) continue;
+            const d = c.fecha instanceof Date ? c.fecha : new Date(c.fecha);
+            const dateStr = formatYMD(d);
+            const horaIdx = Math.max(0, (c.hora || 1) - 1); // CNMC hora 1-24 → índice 0-23
+            const dayPrices = allPrices[dateStr];
+            if (!dayPrices) { horasSinDatos++; continue; }
+            let price = null;
+            for (const [ts, precio] of dayPrices) {
+              if (hourFromTs(ts) === horaIdx) { price = precio; break; }
+            }
+            if (price === null) { horasSinDatos++; continue; }
+            exactCost += kwh * price;
+            horasConDatos++;
+          }
+          if (horasConDatos > 0 && horasConDatos >= horasSinDatos) {
+            terminoVariable = exactCost;
+            modoExactoCSV = true;
+          }
+        }
         
         const consumoTotal = cPunta + cLlano + cValle;
         const precioMedio = consumoTotal > 0 ? terminoVariable / consumoTotal : 0;
@@ -666,7 +706,9 @@ const PEAJES_POT_DIA = {
             {
               cabecera: 'Término variable',
               importe: terminoVariable.toFixed(2),
-              explicacion: `Coste energía: ${Math.round(consumoTotal)} kWh x ${precioMedio.toFixed(6)} €/kWh = ${terminoVariable.toFixed(2)} €\n\nPrecios medios estimados del término variable por periodo (incluye peajes/cargos + coste de la energía):\n- P1 (Punta): ${precioP1.toFixed(4)} €/kWh\n- P2 (Llano): ${precioP2.toFixed(4)} €/kWh\n- P3 (Valle): ${precioP3.toFixed(4)} €/kWh\n\nPrecio medio estimado del término variable: ${precioMedio.toFixed(6)} €/kWh\n\nMetodología: media horaria por periodo sobre precios oficiales horarios REE/ESIOS (indicador 1001). El simulador de la CNMC puede diferir ligeramente al aplicar perfiles estadísticos de consumo.`
+              explicacion: modoExactoCSV
+                ? `Coste energía (cálculo exacto hora a hora): ${Math.round(consumoTotal)} kWh × ${precioMedio.toFixed(6)} €/kWh = ${terminoVariable.toFixed(2)} €\n\nPrecios PVPC oficiales (REE/ESIOS, indicador 1001) cruzados hora a hora con los consumos del CSV.\nPrecios medios por periodo para referencia:\n- P1 (Punta): ${precioP1.toFixed(4)} €/kWh\n- P2 (Llano): ${precioP2.toFixed(4)} €/kWh\n- P3 (Valle): ${precioP3.toFixed(4)} €/kWh`
+                : `Coste energía: ${Math.round(consumoTotal)} kWh x ${precioMedio.toFixed(6)} €/kWh = ${terminoVariable.toFixed(2)} €\n\nPrecios medios estimados del término variable por periodo (incluye peajes/cargos + coste de la energía):\n- P1 (Punta): ${precioP1.toFixed(4)} €/kWh\n- P2 (Llano): ${precioP2.toFixed(4)} €/kWh\n- P3 (Valle): ${precioP3.toFixed(4)} €/kWh\n\nPrecio medio estimado del término variable: ${precioMedio.toFixed(6)} €/kWh\n\nMetodología: media horaria por periodo sobre precios oficiales horarios REE/ESIOS (indicador 1001). El simulador de la CNMC puede diferir ligeramente al aplicar perfiles estadísticos de consumo.`
             },
             {
               cabecera: 'Financiación del bono social',
@@ -800,7 +842,20 @@ const PEAJES_POT_DIA = {
         };
       }
 
-      const signature=pvpcSignatureFromValues(values);
+      let signature=pvpcSignatureFromValues(values);
+      // Si hay CSV, incluir su rango de fechas en la firma para no servir caché incorrecto
+      const _csvSig = Array.isArray(window.LF?.consumosHorarios) && window.LF.consumosHorarios.length > 0
+        ? window.LF.consumosHorarios : null;
+      if (_csvSig) {
+        let _minYmd = '', _maxYmd = '';
+        for (const c of _csvSig) {
+          if (!c.fecha) continue;
+          const ymd = formatYMD(c.fecha instanceof Date ? c.fecha : new Date(c.fecha));
+          if (!_minYmd || ymd < _minYmd) _minYmd = ymd;
+          if (!_maxYmd || ymd > _maxYmd) _maxYmd = ymd;
+        }
+        if (_minYmd && _maxYmd) signature = `${signature}|csv:${_minYmd}_${_maxYmd}`;
+      }
       if(pvpcInFlight.has(signature)) return pvpcInFlight.get(signature);
 
       const cached=readPvpcCacheEntry(signature);
