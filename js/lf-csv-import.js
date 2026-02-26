@@ -378,8 +378,8 @@
     const __prevSunClubEnabled = window.LF.sunClubEnabled === true;
     const __sunClubCheckedAttr = __prevSunClubEnabled ? 'checked' : '';
 
-    // ⭐ PVPC PERIODO: por defecto activado (usar precios del período del CSV)
-    const __prevPvpcPeriodo = window.LF.pvpcPeriodoCSV !== false;
+    // ⭐ PVPC PERIODO: por defecto desactivado (usar precios PVPC de hoy para comparar)
+    const __prevPvpcPeriodo = window.LF.pvpcPeriodoCSV === true;
     const __pvpcPeriodoCheckedAttr = __prevPvpcPeriodo ? 'checked' : '';
 
     const modal = document.createElement('div');
@@ -550,7 +550,7 @@
           <span style="font-size: 11px; color: var(--muted2); background: rgba(99, 102, 241, 0.15); padding: 3px 8px; border-radius: 4px; font-weight: 600;">Hora a hora</span>
         </label>
         <p style="margin: 8px 0 0 28px; font-size: 12px; color: var(--muted2); line-height: 1.4;">
-          Activado: usa los precios PVPC reales de cada hora del CSV (ideal para verificar tu factura). Desactivado: usa precios recientes (mejor para comparar tarifas actuales).
+          Activado: usa los precios PVPC de cuando consumiste (para verificar tu factura). Desactivado: usa los precios PVPC de hoy (para comparar opciones).
         </p>
       </div>
 
