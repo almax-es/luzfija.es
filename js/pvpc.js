@@ -855,7 +855,10 @@ const PEAJES_POT_DIA = {
           if (!_minYmd || ymd < _minYmd) _minYmd = ymd;
           if (!_maxYmd || ymd > _maxYmd) _maxYmd = ymd;
         }
-        if (_minYmd && _maxYmd) signature = `${signature}|csv:${_minYmd}_${_maxYmd}`;
+        if (_minYmd && _maxYmd) {
+          const periodoMode = window.LF?.pvpcPeriodoCSV === true ? 'periodo' : 'hoy';
+          signature = `${signature}|csv:${_minYmd}_${_maxYmd}:${periodoMode}`;
+        }
       }
       if(pvpcInFlight.has(signature)) return pvpcInFlight.get(signature);
 
