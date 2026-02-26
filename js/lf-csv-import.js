@@ -378,6 +378,10 @@
     const __prevSunClubEnabled = window.LF.sunClubEnabled === true;
     const __sunClubCheckedAttr = __prevSunClubEnabled ? 'checked' : '';
 
+    // ⭐ PVPC PERIODO: por defecto activado (usar precios del período del CSV)
+    const __prevPvpcPeriodo = window.LF.pvpcPeriodoCSV !== false;
+    const __pvpcPeriodoCheckedAttr = __prevPvpcPeriodo ? 'checked' : '';
+
     const modal = document.createElement('div');
     modal.className = 'modal-overlay show';
     modal.setAttribute('role', 'dialog');
@@ -538,7 +542,18 @@
           Se calculará automáticamente con tus datos horarios reales. El descuento se aplica mes siguiente.
         </p>
       </div>
-      
+
+      <div style="margin-top: 10px; padding: 14px 16px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px;">
+        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;">
+          <input type="checkbox" id="csvPvpcPeriodo" ${__pvpcPeriodoCheckedAttr} style="cursor: pointer; width: 18px; height: 18px; accent-color: #6366f1;">
+          <span style="font-size: 14px; color: var(--text); font-weight: 600; flex: 1;">📅 PVPC con precios del período</span>
+          <span style="font-size: 11px; color: var(--muted2); background: rgba(99, 102, 241, 0.15); padding: 3px 8px; border-radius: 4px; font-weight: 600;">Hora a hora</span>
+        </label>
+        <p style="margin: 8px 0 0 28px; font-size: 12px; color: var(--muted2); line-height: 1.4;">
+          Activado: usa los precios PVPC reales de cada hora del CSV (ideal para verificar tu factura). Desactivado: usa precios recientes (mejor para comparar tarifas actuales).
+        </p>
+      </div>
+
       <div style="margin-top: 20px;">
         <button id="btnAplicarCSV" class="btn primary" type="button" style="width: 100%;"><span id="btnAplicarTexto">✓ Aplicar consumos</span></button>
       </div>
@@ -572,6 +587,7 @@
     const cancelCSVModal = () => {
       window.LF = window.LF || {};
       window.LF.sunClubEnabled = __prevSunClubEnabled;
+      window.LF.pvpcPeriodoCSV = __prevPvpcPeriodo;
       closeCSVModal();
     };
     
@@ -653,6 +669,10 @@
         } else {
           if (window.LF) window.LF.sunClubEnabled = false;
         }
+
+        // ⭐ PVPC PERIODO: Guardar si usar precios del período del CSV o precios recientes
+        const pvpcPeriodoCheckbox = document.getElementById('csvPvpcPeriodo');
+        window.LF.pvpcPeriodoCSV = pvpcPeriodoCheckbox ? pvpcPeriodoCheckbox.checked : true;
 
         closeCSVModal();
 

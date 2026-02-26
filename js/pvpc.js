@@ -392,8 +392,9 @@
       const cLlano = Math.max(0, asNumber(values?.cLlano, 0));
       const cValle = Math.max(0, asNumber(values?.cValle, 0));
 
-      // MODO CSV EXACTO: leer consumos horarios si están disponibles (del CSV importado)
+      // MODO CSV EXACTO: activo si hay consumos horarios Y el usuario eligió usar precios del período
       const consumosHorarios = Array.isArray(window.LF?.consumosHorarios) && window.LF.consumosHorarios.length > 0
+        && window.LF.pvpcPeriodoCSV !== false
         ? window.LF.consumosHorarios : null;
 
       const fiscal = typeof __LF_getFiscalContext === 'function'
