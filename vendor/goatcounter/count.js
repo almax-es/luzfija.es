@@ -17,6 +17,38 @@
 
 	var enc = encodeURIComponent
 
+	// Filtro de ruido legacy específico de LuzFija:
+	// evita enviar dos falsos positivos antiguos que siguen apareciendo en clientes desfasados.
+	function gcNormalize(text) {
+		if (text === null || text === undefined) return ''
+		var s = String(text).toLowerCase()
+		try { return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '') }
+		catch (err) { return s }
+	}
+
+	function gcIsLegacyNoise(vars) {
+		if (!vars || typeof vars !== 'object') return false
+		var title = gcNormalize(vars.title || '')
+		var path  = gcNormalize(vars.path || '')
+		if (!title) return false
+
+		var isPromiseCurrentYear =
+			title.indexOf('promise reject') !== -1 &&
+			title.indexOf('currentyear') !== -1 &&
+			(title.indexOf('not defined') !== -1 || title.indexOf('undefined') !== -1)
+
+		var isCompatIndexExtra =
+			title.indexOf('index-extra') !== -1 &&
+			title.indexOf('compat') !== -1 &&
+			(title.indexOf('omitid') !== -1 || title.indexOf('es2020') !== -1)
+
+		if (isPromiseCurrentYear && (path === 'error-promise' || path === 'error-javascript' || path === ''))
+			return true
+		if (isCompatIndexExtra && (path === 'error-javascript' || path === 'error-promise' || path === ''))
+			return true
+		return false
+	}
+
 	// Get all data we're going to send off to the counter endpoint.
 	window.goatcounter.get_data = function(vars) {
 		vars = vars || {}
@@ -137,6 +169,8 @@
 
 	// Count a hit.
 	window.goatcounter.count = function(vars) {
+		if (gcIsLegacyNoise(vars))
+			return
 		var f = goatcounter.filter()
 		if (f)
 			return warn('not counting because of: ' + f)
