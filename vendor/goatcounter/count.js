@@ -26,11 +26,11 @@
 		catch (err) { return s }
 	}
 
-	function gcIsLegacyNoise(vars) {
-		if (!vars || typeof vars !== 'object') return false
+	function gcLegacyNoiseKind(vars) {
+		if (!vars || typeof vars !== 'object') return ''
 		var title = gcNormalize(vars.title || '')
 		var path  = gcNormalize(vars.path || '')
-		if (!title) return false
+		if (!title) return ''
 
 		var isPromiseCurrentYear =
 			title.indexOf('promise reject') !== -1 &&
@@ -43,10 +43,26 @@
 			(title.indexOf('omitid') !== -1 || title.indexOf('es2020') !== -1)
 
 		if (isPromiseCurrentYear && (path === 'error-promise' || path === 'error-javascript' || path === ''))
-			return true
+			return 'currentyear-stale'
 		if (isCompatIndexExtra && (path === 'error-javascript' || path === 'error-promise' || path === ''))
-			return true
-		return false
+			return 'index-extra-compat'
+		return ''
+	}
+
+	function gcRemapLegacyPayload(vars, kind) {
+		var path = gcNormalize((vars && vars.path) || '') || 'desconocido'
+		var build = (window && window.__LF_BUILD_ID) ? String(window.__LF_BUILD_ID) : 'unknown'
+		var title = [
+			'tipo:' + (kind || 'legacy'),
+			'origen:goatcounter-sender',
+			'evento:' + path,
+			'b:' + build
+		].join(' | ').substr(0, 150)
+		return {
+			path: 'error-legacy-filtrado',
+			title: title,
+			event: true
+		}
 	}
 
 	// Get all data we're going to send off to the counter endpoint.
@@ -169,8 +185,9 @@
 
 	// Count a hit.
 	window.goatcounter.count = function(vars) {
-		if (gcIsLegacyNoise(vars))
-			return
+		var kind = gcLegacyNoiseKind(vars)
+		if (kind)
+			vars = gcRemapLegacyPayload(vars, kind)
 		var f = goatcounter.filter()
 		if (f)
 			return warn('not counting because of: ' + f)

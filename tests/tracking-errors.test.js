@@ -105,49 +105,81 @@ describe('Tracking error filtering and dedupe', () => {
     );
   });
 
-  it('ignora ruido legado del loader index-extra', () => {
+  it('reclasifica ruido legado del loader index-extra', () => {
     bootstrapTracking();
 
     window.__LF_track('error-javascript', {
       title: 'Compat: index-extra omitido (sin soporte ES2020)'
     });
 
-    expect(window.goatcounter.count).not.toHaveBeenCalled();
+    expect(window.goatcounter.count).toHaveBeenCalledTimes(1);
+    expect(window.goatcounter.count).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: 'error-legacy-filtrado',
+        event: true,
+        title: expect.stringContaining('tipo:index-extra-compat')
+      })
+    );
   });
 
-  it('ignora ruido legado de index-extra aunque el eventName no sea error-javascript', () => {
+  it('reclasifica ruido legacy de index-extra aunque el eventName no sea error-javascript', () => {
     bootstrapTracking();
 
     window.__LF_track('custom-event', {
       title: 'Compat: index-extra omitido (sin soporte ES2020) event'
     });
 
-    expect(window.goatcounter.count).not.toHaveBeenCalled();
+    expect(window.goatcounter.count).toHaveBeenCalledTimes(1);
+    expect(window.goatcounter.count).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: 'error-legacy-filtrado',
+        event: true,
+        title: expect.stringContaining('tipo:index-extra-compat')
+      })
+    );
   });
 
-  it('ignora ruido stale-cache de promesas con formato legacy', () => {
+  it('reclasifica ruido stale-cache de promesas con formato legacy', () => {
     bootstrapTracking();
 
     dispatchUnhandledRejection('Promise reject: currentYear is not defined event');
 
-    expect(window.goatcounter.count).not.toHaveBeenCalled();
+    const calls = window.goatcounter.count.mock.calls.map(c => c[0]);
+    expect(calls.some((payload) =>
+      payload &&
+      payload.path === 'error-legacy-filtrado' &&
+      payload.event === true &&
+      String(payload.title || '').includes('tipo:currentyear-stale')
+    )).toBe(true);
   });
 
-  it('ignora ruido stale-cache aunque llegue con otro eventName', () => {
+  it('reclasifica ruido stale-cache aunque llegue con otro eventName', () => {
     bootstrapTracking();
 
     window.__LF_track('error-javascript', {
       title: 'Promise reject: currentYear is not defined event'
     });
 
-    expect(window.goatcounter.count).not.toHaveBeenCalled();
+    const calls = window.goatcounter.count.mock.calls.map(c => c[0]);
+    expect(calls.some((payload) =>
+      payload &&
+      payload.path === 'error-legacy-filtrado' &&
+      payload.event === true &&
+      String(payload.title || '').includes('tipo:currentyear-stale')
+    )).toBe(true);
   });
 
-  it('ignora ruido stale-cache cuando reason es objeto con message', () => {
+  it('reclasifica ruido stale-cache cuando reason es objeto con message', () => {
     bootstrapTracking();
 
     dispatchUnhandledRejection({ message: 'currentYear is not defined' });
 
-    expect(window.goatcounter.count).not.toHaveBeenCalled();
+    const calls = window.goatcounter.count.mock.calls.map(c => c[0]);
+    expect(calls.some((payload) =>
+      payload &&
+      payload.path === 'error-legacy-filtrado' &&
+      payload.event === true &&
+      String(payload.title || '').includes('tipo:currentyear-stale')
+    )).toBe(true);
   });
 });

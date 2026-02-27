@@ -48,20 +48,38 @@ function isLegacyIndexExtraCompatNoise(textLike) {
   return false;
 }
 
-function shouldDropLegacyGoatPayload(payload) {
-  if (!payload || typeof payload !== 'object') return false;
+function getLegacyGoatPayloadKind(payload) {
+  if (!payload || typeof payload !== 'object') return '';
   const path = normalizeLegacyErrorText(payload.path || '');
   const title = payload.title || '';
 
   if (isLegacyCurrentYearNoise(title)) {
-    if (path === 'error-promise' || path === 'error-javascript' || path === '') return true;
+    if (path === 'error-promise' || path === 'error-javascript' || path === '') return 'currentyear-stale';
   }
 
   if (isLegacyIndexExtraCompatNoise(title)) {
-    if (path === 'error-javascript' || path === 'error-promise' || path === '') return true;
+    if (path === 'error-javascript' || path === 'error-promise' || path === '') return 'index-extra-compat';
   }
 
-  return false;
+  return '';
+}
+
+function remapLegacyGoatPayload(payload, kind) {
+  const originalPath = normalizeLegacyErrorText(payload && payload.path ? payload.path : '');
+  const buildId = (typeof window.__LF_BUILD_ID === 'string' && window.__LF_BUILD_ID.trim())
+    ? window.__LF_BUILD_ID.trim()
+    : 'unknown';
+  const parts = [
+    'tipo:' + (kind || 'legacy'),
+    'origen:config-guard',
+    'evento:' + (originalPath || 'desconocido'),
+    'b:' + buildId
+  ];
+  return {
+    path: 'error-legacy-filtrado',
+    title: parts.join(' | ').substring(0, 150),
+    event: true
+  };
 }
 
 function wrapGoatCounterCount(goatcounterLike) {
@@ -71,7 +89,8 @@ function wrapGoatCounterCount(goatcounterLike) {
   const originalCount = goatcounterLike.count.bind(goatcounterLike);
   goatcounterLike.count = function(payload) {
     try {
-      if (shouldDropLegacyGoatPayload(payload)) return;
+      const kind = getLegacyGoatPayloadKind(payload);
+      if (kind) payload = remapLegacyGoatPayload(payload, kind);
     } catch (_) {}
     return originalCount(payload);
   };

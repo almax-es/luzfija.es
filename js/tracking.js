@@ -124,30 +124,7 @@
     }
   }
 
-  function trackEvent(eventName, metadata) {
-    // 🔒 MODO PRIVACIDAD: Si está activo, no enviar NADA
-    if (window.__LF_PRIVACY_MODE === true || window.__LF_FACTURA_BUSY === true) {
-      dbg('Privacy mode activo, evento bloqueado:', eventName);
-      return;
-    }
-
-    // Evitar ruido legado del loader antiguo de index-extra (clients con caché vieja).
-    const rawTitle = (metadata && metadata.title) ? String(metadata.title) : '';
-    if (isLegacyIndexExtraCompatNoise(rawTitle)) {
-      dbg('Ruido legado filtrado:', rawTitle);
-      return;
-    }
-    if (isPromiseStaleNoise(rawTitle)) {
-      dbg('Ruido stale-cache filtrado:', rawTitle);
-      return;
-    }
-    
-    const payload = {
-      path: eventName,
-      title: (metadata && metadata.title) ? metadata.title : eventName,
-      event: true,
-    };
-
+  function sendPayload(payload) {
     // Si GoatCounter ya está, enviar al momento
     if (isGoatReady()) {
       try { window.goatcounter.count(payload); } catch (e) {}
@@ -160,6 +137,52 @@
       if (ok) flushQueue();
       else queue.length = 0; // si está bloqueado, vaciar y no molestar más
     });
+  }
+
+  function getLegacyNoiseKind(msgLike) {
+    if (isLegacyIndexExtraCompatNoise(msgLike)) return 'index-extra-compat';
+    if (isPromiseStaleNoise(msgLike)) return 'currentyear-stale';
+    return '';
+  }
+
+  function buildLegacyNoiseTitle(kind, originalEventName, originTag) {
+    const route = safeText(location && location.pathname ? location.pathname : '');
+    const parts = [
+      'tipo:' + (kind || 'legacy'),
+      'origen:' + (originTag || 'tracking'),
+      'evento:' + (originalEventName || 'desconocido'),
+      'b:' + TRACK_BUILD_ID
+    ];
+    if (route && route !== '/') parts.push('@' + route);
+    return parts.join(' | ').substring(0, 150);
+  }
+
+  function trackEvent(eventName, metadata) {
+    // 🔒 MODO PRIVACIDAD: Si está activo, no enviar NADA
+    if (window.__LF_PRIVACY_MODE === true || window.__LF_FACTURA_BUSY === true) {
+      dbg('Privacy mode activo, evento bloqueado:', eventName);
+      return;
+    }
+
+    // Evitar ruido legado del loader antiguo de index-extra (clients con caché vieja).
+    const rawTitle = (metadata && metadata.title) ? String(metadata.title) : '';
+    const legacyKind = getLegacyNoiseKind(rawTitle);
+    if (legacyKind) {
+      dbg('Ruido legacy reclasificado:', rawTitle);
+    }
+
+    const finalEventName = legacyKind ? 'error-legacy-filtrado' : eventName;
+    const finalTitle = legacyKind
+      ? buildLegacyNoiseTitle(legacyKind, eventName, 'trackEvent')
+      : ((metadata && metadata.title) ? metadata.title : eventName);
+
+    const payload = {
+      path: finalEventName,
+      title: finalTitle,
+      event: true,
+    };
+
+    sendPayload(payload);
   }
 
   // Exponer función global para que app.js pueda usarla
@@ -399,6 +422,9 @@
 
       if (isLegacyIndexExtraCompatNoise(message) || isPromiseStaleNoise(message)) {
         dbg('Error JS legacy filtrado:', message);
+        trackEvent('error-legacy-filtrado', {
+          title: buildLegacyNoiseTitle(getLegacyNoiseKind(message), 'error-javascript', 'window.error')
+        });
         return;
       }
 
@@ -488,6 +514,9 @@
       // Filtrar ruido de cache viejo (código ya corregido, solo llega desde SW antiguo)
       if (isLegacyIndexExtraCompatNoise(msg) || isPromiseStaleNoise(msg)) {
         if (DEBUG) dbg('Promise rejection ignorada (stale cache):', msg);
+        trackEvent('error-legacy-filtrado', {
+          title: buildLegacyNoiseTitle(getLegacyNoiseKind(msg), 'error-promise', 'unhandledrejection')
+        });
         return;
       }
 

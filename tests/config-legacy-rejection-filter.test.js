@@ -60,7 +60,7 @@ describe('Config legacy rejection filter', () => {
     expect(evt.defaultPrevented).toBe(false);
   });
 
-  it('filtra ruido legacy en goatcounter.count cuando ya existe goatcounter', () => {
+  it('reclasifica ruido legacy en goatcounter.count cuando ya existe goatcounter', () => {
     const rawCount = vi.fn();
     window.goatcounter = { count: rawCount };
 
@@ -75,10 +75,26 @@ describe('Config legacy rejection filter', () => {
       title: 'Compat: index-extra omitido (sin soporte ES2020)'
     });
 
-    expect(rawCount).not.toHaveBeenCalled();
+    expect(rawCount).toHaveBeenCalledTimes(2);
+    expect(rawCount).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({
+        path: 'error-legacy-filtrado',
+        event: true,
+        title: expect.stringContaining('tipo:currentyear-stale')
+      })
+    );
+    expect(rawCount).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({
+        path: 'error-legacy-filtrado',
+        event: true,
+        title: expect.stringContaining('tipo:index-extra-compat')
+      })
+    );
   });
 
-  it('filtra ruido legacy en goatcounter.count cuando goatcounter se asigna después', () => {
+  it('reclasifica ruido legacy en goatcounter.count cuando goatcounter se asigna después', () => {
     bootstrapConfig();
 
     const rawCount = vi.fn();
@@ -88,7 +104,14 @@ describe('Config legacy rejection filter', () => {
       title: 'Compat: index-extra omitido (sin soporte ES2020)'
     });
 
-    expect(rawCount).not.toHaveBeenCalled();
+    expect(rawCount).toHaveBeenCalledTimes(1);
+    expect(rawCount).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: 'error-legacy-filtrado',
+        event: true,
+        title: expect.stringContaining('tipo:index-extra-compat')
+      })
+    );
   });
 
   it('permite eventos normales en goatcounter.count', () => {
