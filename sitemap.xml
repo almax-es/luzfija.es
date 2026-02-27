@@ -4,7 +4,7 @@
   <!-- Página principal (Comparador) -->
   <url>
     <loc>https://luzfija.es/</loc>
-    <lastmod>2026-02-19</lastmod>
+    <lastmod>2026-02-27</lastmod>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
@@ -49,7 +49,7 @@
   <!-- Novedades -->
   <url>
     <loc>https://luzfija.es/novedades.html</loc>
-    <lastmod>2026-02-19</lastmod>
+    <lastmod>2026-02-27</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.6</priority>
   </url>
@@ -75,7 +75,7 @@
   </url>
   <url>
     <loc>https://luzfija.es/guias/bono-social-electrico-quien-puede-pedirlo-y-como.html</loc>
-    <lastmod>2026-02-19</lastmod>
+    <lastmod>2026-02-27</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
