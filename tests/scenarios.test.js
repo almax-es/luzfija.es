@@ -118,7 +118,7 @@ describe('Escenarios de Negocio (Integración Fiscal y Bono Social)', () => {
     expect(res.descuentoEur).toBeCloseTo(21.35, 0);
   });
 
-  it('Escenario 6: Bono Social Severo (Descuento 57.5%)', () => {
+  it('Escenario 6: Bono Social Severo (Descuento 50%)', () => {
     const inputs = {
       dias: 30,
       bonoSocialOn: true,
