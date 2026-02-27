@@ -24,8 +24,10 @@ function dispatchUnhandledRejection(reason) {
 }
 
 beforeEach(() => {
+  try { delete window.goatcounter; } catch (_) {}
   delete window.currentYear;
   delete window.__LF_LEGACY_CURRENTYEAR_FILTER_CONFIG;
+  delete window.__LF_LEGACY_GOAT_GUARD_CONFIG;
 });
 
 afterEach(() => {
@@ -56,5 +58,53 @@ describe('Config legacy rejection filter', () => {
 
     expect(tailListener).toHaveBeenCalledTimes(1);
     expect(evt.defaultPrevented).toBe(false);
+  });
+
+  it('filtra ruido legacy en goatcounter.count cuando ya existe goatcounter', () => {
+    const rawCount = vi.fn();
+    window.goatcounter = { count: rawCount };
+
+    bootstrapConfig();
+
+    window.goatcounter.count({
+      path: 'error-promise',
+      title: 'Promise reject: currentYear is not defined event'
+    });
+    window.goatcounter.count({
+      path: 'error-javascript',
+      title: 'Compat: index-extra omitido (sin soporte ES2020)'
+    });
+
+    expect(rawCount).not.toHaveBeenCalled();
+  });
+
+  it('filtra ruido legacy en goatcounter.count cuando goatcounter se asigna después', () => {
+    bootstrapConfig();
+
+    const rawCount = vi.fn();
+    window.goatcounter = { count: rawCount };
+    window.goatcounter.count({
+      path: 'error-javascript',
+      title: 'Compat: index-extra omitido (sin soporte ES2020)'
+    });
+
+    expect(rawCount).not.toHaveBeenCalled();
+  });
+
+  it('permite eventos normales en goatcounter.count', () => {
+    const rawCount = vi.fn();
+    window.goatcounter = { count: rawCount };
+
+    bootstrapConfig();
+
+    const payload = {
+      path: 'calculo-realizado',
+      title: 'Usuario calculó tarifas',
+      event: true
+    };
+    window.goatcounter.count(payload);
+
+    expect(rawCount).toHaveBeenCalledTimes(1);
+    expect(rawCount).toHaveBeenCalledWith(payload);
   });
 });

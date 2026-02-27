@@ -39,6 +39,71 @@ function isLegacyCurrentYearNoise(reason) {
   return false;
 }
 
+function isLegacyIndexExtraCompatNoise(textLike) {
+  const msg = normalizeLegacyErrorText(textLike);
+  if (!msg || msg.indexOf('index-extra') === -1) return false;
+  if (msg.indexOf('compat') === -1) return false;
+  if (msg.indexOf('omitid') !== -1) return true;
+  if (msg.indexOf('es2020') !== -1) return true;
+  return false;
+}
+
+function shouldDropLegacyGoatPayload(payload) {
+  if (!payload || typeof payload !== 'object') return false;
+  const path = normalizeLegacyErrorText(payload.path || '');
+  const title = payload.title || '';
+
+  if (isLegacyCurrentYearNoise(title)) {
+    if (path === 'error-promise' || path === 'error-javascript' || path === '') return true;
+  }
+
+  if (isLegacyIndexExtraCompatNoise(title)) {
+    if (path === 'error-javascript' || path === 'error-promise' || path === '') return true;
+  }
+
+  return false;
+}
+
+function wrapGoatCounterCount(goatcounterLike) {
+  if (!goatcounterLike || typeof goatcounterLike.count !== 'function') return false;
+  if (goatcounterLike.__LF_LEGACY_NOISE_GUARD === true) return true;
+
+  const originalCount = goatcounterLike.count.bind(goatcounterLike);
+  goatcounterLike.count = function(payload) {
+    try {
+      if (shouldDropLegacyGoatPayload(payload)) return;
+    } catch (_) {}
+    return originalCount(payload);
+  };
+  goatcounterLike.__LF_LEGACY_NOISE_GUARD = true;
+  return true;
+}
+
+// Guard global de último recurso: filtra ruido legacy incluso si se ejecuta tracking antiguo.
+if (window.__LF_LEGACY_GOAT_GUARD_CONFIG !== true) {
+  window.__LF_LEGACY_GOAT_GUARD_CONFIG = true;
+
+  let goatRef = window.goatcounter;
+  wrapGoatCounterCount(goatRef);
+
+  try {
+    const desc = Object.getOwnPropertyDescriptor(window, 'goatcounter');
+    if (!desc || desc.configurable !== false) {
+      Object.defineProperty(window, 'goatcounter', {
+        configurable: true,
+        enumerable: true,
+        get: function() { return goatRef; },
+        set: function(value) {
+          goatRef = value;
+          wrapGoatCounterCount(goatRef);
+        }
+      });
+    }
+  } catch (_) {
+    // Entornos donde no se puede redefinir window.goatcounter: best-effort sobre el valor actual.
+  }
+}
+
 // Filtro temprano de ruido legacy antes de que tracking.js lo envíe a GoatCounter.
 if (window.__LF_LEGACY_CURRENTYEAR_FILTER_CONFIG !== true) {
   window.__LF_LEGACY_CURRENTYEAR_FILTER_CONFIG = true;
