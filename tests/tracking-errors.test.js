@@ -182,4 +182,35 @@ describe('Tracking error filtering and dedupe', () => {
       String(payload.title || '').includes('tipo:currentyear-stale')
     )).toBe(true);
   });
+
+  it('no reclasifica mensajes parecidos sin firma legacy', () => {
+    bootstrapTracking();
+
+    const title = 'currentYear helper inicializado correctamente';
+    window.__LF_track('error-javascript', { title });
+
+    expect(window.goatcounter.count).toHaveBeenCalledTimes(1);
+    expect(window.goatcounter.count).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: 'error-javascript',
+        event: true,
+        title
+      })
+    );
+  });
+
+  it('no duplica evento al reclasificar desde trackEvent directo', () => {
+    bootstrapTracking();
+
+    window.__LF_track('error-javascript', {
+      title: 'Compat: index-extra omitido (sin soporte ES2020)'
+    });
+
+    const calls = window.goatcounter.count.mock.calls.map(c => c[0]);
+    const legacyCalls = calls.filter((payload) => payload && payload.path === 'error-legacy-filtrado');
+    const jsErrorCalls = calls.filter((payload) => payload && payload.path === 'error-javascript');
+
+    expect(legacyCalls.length).toBe(1);
+    expect(jsErrorCalls.length).toBe(0);
+  });
 });

@@ -130,4 +130,21 @@ describe('Config legacy rejection filter', () => {
     expect(rawCount).toHaveBeenCalledTimes(1);
     expect(rawCount).toHaveBeenCalledWith(payload);
   });
+
+  it('no reclasifica payloads con menciones parciales de currentYear', () => {
+    const rawCount = vi.fn();
+    window.goatcounter = { count: rawCount };
+
+    bootstrapConfig();
+
+    const payload = {
+      path: 'error-javascript',
+      title: 'currentYear helper inicializado correctamente',
+      event: true
+    };
+    window.goatcounter.count(payload);
+
+    expect(rawCount).toHaveBeenCalledTimes(1);
+    expect(rawCount).toHaveBeenCalledWith(payload);
+  });
 });
