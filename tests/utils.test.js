@@ -95,7 +95,7 @@ describe('Utilidades Base (lf-utils.js)', () => {
   describe('calcPvpcBonoSocial: Lógica Fiscal PVPC', () => {
     const calc = window.LF.calcPvpcBonoSocial;
 
-    it('Debe calcular el descuento correcto para Vulnerable (42.5%)', () => {
+    it('Debe calcular el descuento correcto para Vulnerable (35%)', () => {
       const meta = { terminoFijo: 10, terminoVariable: 20, bonoSocial: 1, equipoMedida: 0.8 };
       const inputs = { 
         bonoSocialOn: true, 

@@ -100,7 +100,7 @@ describe('Escenarios de Negocio (Integración Fiscal y Bono Social)', () => {
     expect(res.meta.baseIPSI).toBeGreaterThan(0);
   });
 
-  it('Escenario 5: Bono Social Vulnerable (Descuento 42.5%)', () => {
+  it('Escenario 5: Bono Social Vulnerable (Descuento 35%)', () => {
     const inputs = {
       dias: 30,
       bonoSocialOn: true,
