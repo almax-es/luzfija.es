@@ -180,10 +180,10 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 #### Regulatorio (Cambio Legal)
 ```json
 {
-  "fecha": "2026-02-03",
+  "fecha": "2026-02-26",
   "tipo": "regulatorio",
-  "titulo": "Bono Social: reactivados descuentos 42,5% y 57,5% (pendiente de Congreso)",
-  "texto": "El RDL 2/2026 (BOE 04/02/2026) establece los descuentos del Bono Social para 2026: 42,5% para vulnerable y 57,5% para vulnerable severo. El decreto debe convalidarse en el Congreso en el plazo de un mes.",
+  "titulo": "Bono Social: el Congreso rechaza el RDL 2/2026 — bajan los descuentos al 35% y 50%",
+  "texto": "El Congreso derogó el 26/02/2026 el RDL 2/2026 (177 votos en contra). Rige el régimen permanente del RD 897/2017: 35% para vulnerable y 50% para vulnerable severo.",
   "enlace": "/guias/bono-social-electrico-quien-puede-pedirlo-y-como.html"
 }
 ```

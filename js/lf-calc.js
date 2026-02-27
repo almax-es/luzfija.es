@@ -48,7 +48,7 @@
     const bonoSocialDesc = {
       enabled: bonoSocialOn,
       tipo: bonoSocialTipo,
-      porcentaje: bonoSocialTipo === 'severo' ? 0.575 : 0.425,
+      porcentaje: bonoSocialTipo === 'severo' ? 0.50 : 0.35, // RD 897/2017 vigente desde 26/02/2026 (RDL 2/2026 rechazado por el Congreso)
       anualKwh: bonoSocialLimite,
       periodico: (bonoSocialLimite / 365) * dias,  // Límite en el período de facturación
       disponible: (bonoSocialLimite / 365) * dias,

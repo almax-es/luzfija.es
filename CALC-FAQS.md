@@ -25,11 +25,11 @@ const baseEnergia = terminoFijoTotal + terminoVariable + financiacionBono - desc
 const impuestoElectrico = C.calcularIEE(baseEnergia, consumoKwh);
 ```
 
-**Validación numérica** (desde RDL 2/2026, BOE 04/02/2026, pendiente de convalidación):
+**Validación numérica** (RD 897/2017, vigente desde 26/02/2026):
 - Consumo: 221 kWh
-- Bono Social: 42,5% (vulnerable, RDL 2/2026, BOE 04/02/2026, pendiente de convalidación)
-- Base después descuento: ~44,16 €
-- IEE: 44,16 × 5,11% = 2,26 € ✅
+- Bono Social: 35% (vulnerable, RD 897/2017)
+- Base después descuento: ~46,42 €
+- IEE: 46,42 × 5,11% = 2,37 € ✅
 
   *Nota: Los valores exactos dependen del caso CNMC específico, pero la relación orden (descuento ANTES de IEE) se mantiene.*
 
@@ -79,7 +79,7 @@ Base descuento:
 - Variable bonif: 47,46 × 43,48% = 20,64€ (solo esta parte)
 = 30,15€
 
-Descuento: 30,15 × 42,5% = 12,81€ ✅ (RDL 2/2026, BOE 04/02/2026, pendiente de convalidación)
+Descuento: 30,15 × 35% = 10,55€ ✅ (RD 897/2017, vigente desde 26/02/2026)
 ```
 
 ---
@@ -411,5 +411,5 @@ Si respondiste "no" a cualquiera, probablemente estés cometiendo un falso posit
 
 ---
 
-**Última actualización**: 30/01/2026
+**Última actualización**: 27/02/2026
 **Próxima revisión**: Cuando cambien normas CNMC/BOE
