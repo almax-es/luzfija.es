@@ -5,19 +5,5 @@
     "titulo": "Bono Social: el Congreso rechaza el RDL 2/2026 — bajan los descuentos al 35% y 50%",
     "texto": "El Congreso derogó el 26/02/2026 el Real Decreto-ley 2/2026 (177 votos en contra, 172 a favor). Sin respaldo legal del decreto, el bono social vuelve al régimen permanente del RD 897/2017: 35% para vulnerable y 50% para vulnerable severo. El simulador de luzfija.es ya refleja los porcentajes vigentes. El Gobierno podría aprobar un nuevo decreto en las próximas semanas.",
     "enlace": "/guias/bono-social-electrico-quien-puede-pedirlo-y-como.html"
-  },
-  {
-    "fecha": "2026-02-03",
-    "tipo": "regulatorio",
-    "titulo": "Bono Social: reactivados descuentos 42,5% y 57,5% con el RDL 2/2026 (derogado el 26/02/2026)",
-    "texto": "El RDL 2/2026 (BOE 04/02/2026, en vigor 05/02/2026) restableció temporalmente los descuentos del 42,5% y 57,5%. Fue rechazado por el Congreso el 26/02/2026, por lo que han dejado de aplicarse. Rigen de nuevo los porcentajes permanentes del RD 897/2017: 35% y 50%.",
-    "enlace": "/guias/bono-social-electrico-quien-puede-pedirlo-y-como.html"
-  },
-  {
-    "fecha": "2026-01-11",
-    "tipo": "alerta",
-    "titulo": "Alerta de Seguridad: Filtración de datos en Endesa",
-    "texto": "Se ha confirmado una brecha de seguridad masiva en Endesa que afecta a datos personales y comerciales de millones de clientes (incluyendo Energía XXI). La información filtrada incluye DNIs, datos de contacto y números de cuenta (IBAN). Se recomienda extremar la precaución ante posibles intentos de estafa por teléfono o email (phishing) y vigilar movimientos bancarios inusuales.",
-    "enlace": ""
   }
 ]
