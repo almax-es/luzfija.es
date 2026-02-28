@@ -26,25 +26,44 @@
 		catch (err) { return s }
 	}
 
+	function gcNormalizePath(pathLike) {
+		var p = gcNormalize(pathLike || '')
+		if (!p) return ''
+		var q = p.indexOf('?')
+		if (q !== -1) p = p.slice(0, q)
+		var h = p.indexOf('#')
+		if (h !== -1) p = p.slice(0, h)
+		p = p.replace(/^[\/#]+/, '').replace(/[\/#]+$/, '')
+		return p
+	}
+
+	function gcIsLegacyErrorPath(path) {
+		if (!path) return true
+		return path === 'error-promise' || path === 'error-javascript'
+	}
+
 	function gcLegacyNoiseKind(vars) {
 		if (!vars || typeof vars !== 'object') return ''
 		var title = gcNormalize(vars.title || '')
-		var path  = gcNormalize(vars.path || '')
+		var path  = gcNormalizePath(vars.path || '')
 		if (!title) return ''
 
-		var isPromiseCurrentYear =
-			title.indexOf('promise reject') !== -1 &&
+		var isCurrentYearUndefined =
 			title.indexOf('currentyear') !== -1 &&
-			(title.indexOf('not defined') !== -1 || title.indexOf('undefined') !== -1)
+			(
+				title.indexOf('not defined') !== -1 ||
+				title.indexOf('undefined') !== -1 ||
+				title.indexOf('no esta definid') !== -1
+			)
 
 		var isCompatIndexExtra =
 			title.indexOf('index-extra') !== -1 &&
 			title.indexOf('compat') !== -1 &&
 			(title.indexOf('omitid') !== -1 || title.indexOf('es2020') !== -1)
 
-		if (isPromiseCurrentYear && (path === 'error-promise' || path === 'error-javascript' || path === ''))
+		if (isCurrentYearUndefined && gcIsLegacyErrorPath(path))
 			return 'currentyear-stale'
-		if (isCompatIndexExtra && (path === 'error-javascript' || path === 'error-promise' || path === ''))
+		if (isCompatIndexExtra && gcIsLegacyErrorPath(path))
 			return 'index-extra-compat'
 		return ''
 	}

@@ -63,6 +63,20 @@ describe('GoatCounter sender legacy remap', () => {
     expect(queryParam(url, 't')).toContain('tipo:currentyear-stale');
   });
 
+  it('reclasifica variantes legacy aunque cambie formato de path/title', () => {
+    bootstrapSender();
+
+    window.goatcounter.count({
+      path: '/error-promise/?from=old',
+      title: 'currentYear is undefined',
+      event: true
+    });
+
+    const url = lastBeaconUrl();
+    expect(queryParam(url, 'p')).toBe('error-legacy-filtrado');
+    expect(queryParam(url, 't')).toContain('tipo:currentyear-stale');
+  });
+
   it('mantiene payload normal sin reclasificar', () => {
     bootstrapSender();
 
@@ -89,5 +103,19 @@ describe('GoatCounter sender legacy remap', () => {
     const url = lastBeaconUrl();
     expect(queryParam(url, 'p')).toBe('error-javascript');
     expect(queryParam(url, 't')).toBe('currentYear helper inicializado correctamente');
+  });
+
+  it('no reclasifica currentYear si no es evento de error legacy', () => {
+    bootstrapSender();
+
+    window.goatcounter.count({
+      path: 'calculo-realizado',
+      title: 'currentYear is not defined',
+      event: true
+    });
+
+    const url = lastBeaconUrl();
+    expect(queryParam(url, 'p')).toBe('calculo-realizado');
+    expect(queryParam(url, 't')).toBe('currentYear is not defined');
   });
 });

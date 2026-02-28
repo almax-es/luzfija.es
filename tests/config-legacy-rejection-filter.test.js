@@ -94,6 +94,27 @@ describe('Config legacy rejection filter', () => {
     );
   });
 
+  it('reclasifica variantes legacy con path normalizable', () => {
+    const rawCount = vi.fn();
+    window.goatcounter = { count: rawCount };
+
+    bootstrapConfig();
+
+    window.goatcounter.count({
+      path: '/error-promise/?from=old',
+      title: 'currentYear is undefined'
+    });
+
+    expect(rawCount).toHaveBeenCalledTimes(1);
+    expect(rawCount).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: 'error-legacy-filtrado',
+        event: true,
+        title: expect.stringContaining('tipo:currentyear-stale')
+      })
+    );
+  });
+
   it('reclasifica ruido legacy en goatcounter.count cuando goatcounter se asigna después', () => {
     bootstrapConfig();
 

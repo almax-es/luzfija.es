@@ -22,6 +22,22 @@ function normalizeLegacyErrorText(value) {
   }
 }
 
+function normalizeLegacyPath(pathLike) {
+  let path = normalizeLegacyErrorText(pathLike || '');
+  if (!path) return '';
+  const q = path.indexOf('?');
+  if (q !== -1) path = path.slice(0, q);
+  const h = path.indexOf('#');
+  if (h !== -1) path = path.slice(0, h);
+  return path.replace(/^[\/#]+/, '').replace(/[\/#]+$/, '');
+}
+
+function isLegacyErrorPath(pathLike) {
+  const path = normalizeLegacyPath(pathLike);
+  if (!path) return true;
+  return path === 'error-promise' || path === 'error-javascript';
+}
+
 function extractLegacyReasonMessage(reason) {
   if (!reason) return '';
   if (reason instanceof Error) return String(reason.message || reason.name || '');
@@ -35,6 +51,7 @@ function isLegacyCurrentYearNoise(reason) {
   const msg = normalizeLegacyErrorText(extractLegacyReasonMessage(reason));
   if (!msg || msg.indexOf('currentyear') === -1) return false;
   if (msg.indexOf('not defined') !== -1) return true;
+  if (msg.indexOf('undefined') !== -1) return true;
   if (msg.indexOf('no esta definid') !== -1) return true;
   return false;
 }
@@ -50,15 +67,15 @@ function isLegacyIndexExtraCompatNoise(textLike) {
 
 function getLegacyGoatPayloadKind(payload) {
   if (!payload || typeof payload !== 'object') return '';
-  const path = normalizeLegacyErrorText(payload.path || '');
+  const path = normalizeLegacyPath(payload.path || '');
   const title = payload.title || '';
 
   if (isLegacyCurrentYearNoise(title)) {
-    if (path === 'error-promise' || path === 'error-javascript' || path === '') return 'currentyear-stale';
+    if (isLegacyErrorPath(path)) return 'currentyear-stale';
   }
 
   if (isLegacyIndexExtraCompatNoise(title)) {
-    if (path === 'error-javascript' || path === 'error-promise' || path === '') return 'index-extra-compat';
+    if (isLegacyErrorPath(path)) return 'index-extra-compat';
   }
 
   return '';
