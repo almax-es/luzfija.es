@@ -38,13 +38,13 @@
       "requiereFV": false
     },
     {
-      "nombre": "Endesa Conecta",
-      "cPunta": 0.0999,
-      "cLlano": 0.0999,
-      "cValle": 0.0999,
+      "nombre": "Endesa One",
+      "cPunta": 0.099999,
+      "cLlano": 0.099999,
+      "cValle": 0.099999,
       "p1": 0.093666,
       "p2": 0.093666,
-      "web": "https://www.endesa.com/es/luz-y-gas/luz/conecta-de-endesa",
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz",
       "tipo": "1P",
       "fv": {
         "exc": 0.0,
@@ -259,13 +259,13 @@
       "requiereFV": false
     },
     {
-      "nombre": "Endesa One",
-      "cPunta": 0.121223,
-      "cLlano": 0.121223,
-      "cValle": 0.121223,
+      "nombre": "Endesa Conecta",
+      "cPunta": 0.119999,
+      "cLlano": 0.119999,
+      "cValle": 0.119999,
       "p1": 0.093666,
       "p2": 0.093666,
-      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz",
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/conecta-de-endesa",
       "tipo": "1P",
       "fv": {
         "exc": 0.0,
@@ -661,5 +661,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-03-03T06:19:06.109Z"
+  "updatedAt": "2026-03-03T10:25:23.293Z"
 }
