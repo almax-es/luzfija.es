@@ -389,8 +389,8 @@
       "cPunta": 0.1656,
       "cLlano": 0.0972,
       "cValle": 0.0738,
-      "p1": 0.090214,
-      "p2": 0.090214,
+      "p1": 0.073644,
+      "p2": 0.073644,
       "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz-3periodos",
       "tipo": "3P",
       "fv": {
@@ -661,5 +661,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-03-03T11:50:48.188Z"
+  "updatedAt": "2026-03-03T20:26:44.673Z"
 }
