@@ -38,7 +38,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "Endesa One",
+      "nombre": "Endesa Fija 24H Online",
       "cPunta": 0.099999,
       "cLlano": 0.099999,
       "cValle": 0.099999,
@@ -331,24 +331,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Endesa One 3P",
-      "cPunta": 0.1476,
-      "cLlano": 0.0792,
-      "cValle": 0.0558,
-      "p1": 0.090214,
-      "p2": 0.090214,
-      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz-3periodos",
-      "tipo": "3P",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Seneo Tarifa 3 3P",
       "cPunta": 0.163,
       "cLlano": 0.096,
@@ -397,6 +379,24 @@
         "exc": 0.07,
         "tipo": "SIMPLE",
         "tope": "ENERGIA_PARCIAL",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Endesa Conecta 3P",
+      "cPunta": 0.1656,
+      "cLlano": 0.0972,
+      "cValle": 0.0738,
+      "p1": 0.090214,
+      "p2": 0.090214,
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz-3periodos",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA"
       },
@@ -661,5 +661,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-03-03T10:25:23.293Z"
+  "updatedAt": "2026-03-03T11:50:48.188Z"
 }
