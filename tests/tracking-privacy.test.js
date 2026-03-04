@@ -59,7 +59,7 @@ describe('Tracking privacy behavior', () => {
     expect(appendSpy).toHaveBeenCalledTimes(1);
     const injectedScript = appendSpy.mock.calls[0][0];
     expect(injectedScript.tagName).toBe('SCRIPT');
-    expect(injectedScript.src).toContain('/vendor/goatcounter/count.js');
+    expect(injectedScript.src).toContain('/vendor/goatcounter/count.js?v=');
 
     window.goatcounter = { count: vi.fn() };
     injectedScript.dispatchEvent(new Event('load'));
@@ -70,6 +70,32 @@ describe('Tracking privacy behavior', () => {
       expect.objectContaining({
         path: 'evento-cola',
         title: 'Evento en cola',
+        event: true
+      })
+    );
+  });
+
+  it('reutiliza script existente de GoatCounter aunque no lleve query de versión', async () => {
+    const existing = document.createElement('script');
+    existing.src = '/vendor/goatcounter/count.js';
+    document.head.appendChild(existing);
+
+    const appendSpy = vi.spyOn(document.head, 'appendChild');
+
+    bootstrapTracking();
+    window.__LF_track('evento-reutilizado', { title: 'Reutiliza sender existente' });
+
+    expect(appendSpy).not.toHaveBeenCalled();
+
+    window.goatcounter = { count: vi.fn() };
+    existing.dispatchEvent(new Event('load'));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(window.goatcounter.count).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: 'evento-reutilizado',
+        title: 'Reutiliza sender existente',
         event: true
       })
     );
@@ -92,4 +118,3 @@ describe('Tracking privacy behavior', () => {
     expect(appendSpy).not.toHaveBeenCalled();
   });
 });
-

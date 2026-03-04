@@ -12,6 +12,8 @@ const SCOPE = self.registration.scope;
 const INDEX_PATH = new URL("index.html", SCOPE).pathname;
 const TARIFAS_PATH = new URL("tarifas.json", SCOPE).pathname;
 const NOVEDADES_PATH = new URL("novedades.json", SCOPE).pathname;
+const GOAT_SCRIPT_PATH = new URL("vendor/goatcounter/count.js", SCOPE).pathname;
+const TRACKING_SCRIPT_PATH = new URL("js/tracking.js", SCOPE).pathname;
 
 // ASSETS completos del sitio para precache best-effort.
 const ASSETS = [
@@ -222,6 +224,10 @@ self.addEventListener("fetch", (event) => {
           await cachePutSafe(cache, req, fresh);
           return fresh;
         } catch (_) {
+          // Para analytics preferimos no ejecutar sender legacy en modo degradado.
+          if (url.pathname === GOAT_SCRIPT_PATH || url.pathname === TRACKING_SCRIPT_PATH) {
+            return Response.error();
+          }
           // Recursos versionados (?v=...): intentar fallback por pathname exacto
           // para no mezclar query-strings entre builds.
           if (url.search) {

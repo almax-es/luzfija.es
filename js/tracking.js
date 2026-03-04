@@ -28,7 +28,6 @@
   }
 
   const DEFAULT_GOAT_ENDPOINT = 'https://luzfija.goatcounter.com/count';
-  const GOAT_SCRIPT_SRC = '/vendor/goatcounter/count.js'; // Autoalojado (antes: https://gc.zgo.at/count.js)
 
   const DEBUG = (function(){
     try{
@@ -60,6 +59,8 @@
   }
 
   const TRACK_BUILD_ID = getTrackingBuildId();
+  const GOAT_SCRIPT_PATH = '/vendor/goatcounter/count.js';
+  const GOAT_SCRIPT_SRC = GOAT_SCRIPT_PATH + '?v=' + encodeURIComponent(TRACK_BUILD_ID); // Autoalojado (antes: https://gc.zgo.at/count.js)
 
   // Cola de eventos mientras GoatCounter termina de cargar
   const queue = [];
@@ -69,6 +70,25 @@
     const existing = document.querySelector('script[data-goatcounter]');
     const val = existing && existing.getAttribute('data-goatcounter');
     return val || DEFAULT_GOAT_ENDPOINT;
+  }
+
+  function toAbsolutePath(urlLike) {
+    const raw = String(urlLike || '').trim();
+    if (!raw) return '';
+    try {
+      return new URL(raw, location.href).pathname || '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function findExistingGoatScript() {
+    const scripts = document.querySelectorAll('script[src]');
+    for (let i = 0; i < scripts.length; i++) {
+      const src = scripts[i].getAttribute('src') || scripts[i].src || '';
+      if (toAbsolutePath(src) === GOAT_SCRIPT_PATH) return scripts[i];
+    }
+    return null;
   }
 
   function isGoatReady(){
@@ -82,7 +102,7 @@
     loadingPromise = new Promise((resolve) => {
       try{
         // Si ya existe el script, esperar a que esté listo
-        const existingScript = document.querySelector('script[src="' + GOAT_SCRIPT_SRC + '"]');
+        const existingScript = findExistingGoatScript();
         if (existingScript) {
           existingScript.addEventListener('load', () => resolve(true), { once: true });
           existingScript.addEventListener('error', () => resolve(false), { once: true });
