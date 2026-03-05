@@ -168,7 +168,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "Seneo Tarifa 3",
+      "nombre": "Seneo Tarifa 2",
       "cPunta": 0.111,
       "cLlano": 0.111,
       "cValle": 0.111,
@@ -295,24 +295,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Seneo Tarifa 2",
-      "cPunta": 0.124,
-      "cLlano": 0.124,
-      "cValle": 0.124,
-      "p1": 0.081,
-      "p2": 0.081,
-      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
-      "tipo": "1P",
-      "fv": {
-        "exc": 0.07,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": true
-    },
-    {
       "nombre": "Seneo Tarifa 1",
       "cPunta": 0.14,
       "cLlano": 0.14,
@@ -331,7 +313,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "Seneo Tarifa 3 3P",
+      "nombre": "Seneo Tarifa 2 3P",
       "cPunta": 0.163,
       "cLlano": 0.096,
       "cValle": 0.072,
@@ -533,24 +515,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Seneo Tarifa 2 3P",
-      "cPunta": 0.191,
-      "cLlano": 0.121,
-      "cValle": 0.086,
-      "p1": 0.081,
-      "p2": 0.081,
-      "web": "https://www.seneo.org/es/tarifa-tramos-horarios-con-monedero-solar/",
-      "tipo": "3P",
-      "fv": {
-        "exc": 0.07,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": true
-    },
-    {
       "nombre": "Iberdrola Online 3P",
       "cPunta": 0.194,
       "cLlano": 0.136,
@@ -661,5 +625,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-03-05T08:57:55.494Z"
+  "updatedAt": "2026-03-05T13:06:46.299Z"
 }
