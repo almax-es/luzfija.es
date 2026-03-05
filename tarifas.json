@@ -259,6 +259,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Repsol",
+      "cPunta": 0.1199,
+      "cLlano": 0.1199,
+      "cValle": 0.1199,
+      "p1": 0.081918,
+      "p2": 0.081918,
+      "web": "https://www.repsol.es/particulares/hogar/luz-y-gas/tarifas/tarifa-ahorro-plus/",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Endesa Conecta",
       "cPunta": 0.119999,
       "cLlano": 0.119999,
@@ -293,24 +311,6 @@
         "reglaBV": "BV MES ANTERIOR"
       },
       "requiereFV": true
-    },
-    {
-      "nombre": "Repsol",
-      "cPunta": 0.1299,
-      "cLlano": 0.1299,
-      "cValle": 0.1299,
-      "p1": 0.068219,
-      "p2": 0.068219,
-      "web": "https://www.repsol.es/particulares/hogar/luz-y-gas/tarifas/tarifa-ahorro-plus/",
-      "tipo": "1P",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
     },
     {
       "nombre": "Seneo Tarifa 1",
@@ -661,5 +661,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-03-04T15:38:00.765Z"
+  "updatedAt": "2026-03-05T08:51:23.208Z"
 }
