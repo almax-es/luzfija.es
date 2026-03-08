@@ -1,3 +1,15 @@
+// Guard global defensivo redundante (el principal está en config.js).
+// Se mantiene aquí porque algunas entradas legacy cargan theme.js mucho antes
+// que cualquier otro script y algunos clientes viejos siguen esperando el
+// binding global desnudo `currentYear`.
+try {
+  if (typeof window.currentYear !== 'number') {
+    window.currentYear = new Date().getFullYear();
+  }
+  var currentYear = window.currentYear;
+  window.currentYear = currentYear;
+} catch (_) {}
+
 // Sistema de tema claro/oscuro (carga antes del render para evitar flash)
 (function(){
   const key = 'almax_theme';
@@ -13,14 +25,6 @@
     // localStorage no disponible (modo privado, etc.)
   }
   window.__ALMAX_THEME_KEY = key;
-
-  // Guard global defensivo redundante (el principal está en config.js)
-  // Se mantiene por si theme.js se ejecuta antes que config.js en algún contexto
-  try {
-    if (typeof window.currentYear !== 'number') {
-      window.currentYear = new Date().getFullYear();
-    }
-  } catch (_) {}
 
   function normalizeErrorText(value) {
     const text = (value === null || value === undefined) ? '' : String(value);
