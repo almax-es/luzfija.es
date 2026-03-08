@@ -158,12 +158,11 @@
       _ric(() => requestSwUpdate('interval'));
     }, SW_UPDATE_INTERVAL_MS);
 
-    let refreshing = false;
+    let swActivationHandled = false;
     navigator.serviceWorker.addEventListener('controllerchange', () => {
-      if (refreshing) return;
+      if (swActivationHandled) return;
       if (!hadController) return;
-      refreshing = true;
-      window.location.reload();
+      swActivationHandled = true;
     });
   }
 

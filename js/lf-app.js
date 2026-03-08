@@ -630,10 +630,12 @@
       _ricSw(() => requestSwUpdate('interval'));
     }, SW_UPDATE_INTERVAL_MS);
 
-    // Listener para cuando el nuevo SW toma control
-    let refreshing = false;
+    // Listener para cuando el nuevo SW toma control.
+    // Evitamos recargar aquí para no provocar una "doble carga" visible
+    // justo al entrar cuando coincide con una actualización del SW.
+    let swActivationHandled = false;
     navigator.serviceWorker.addEventListener('controllerchange', function() {
-      if (refreshing) return;
+      if (swActivationHandled) return;
       
       // Si no había controlador previo, es la primera instalación (clients.claim).
       // No recargamos porque la página ya está fresca y cargada de red.
@@ -642,9 +644,8 @@
         return;
       }
 
-      lfDbg('[SW] New controller activated, reloading page...');
-      refreshing = true;
-      window.location.reload();
+      swActivationHandled = true;
+      lfDbg('[SW] New controller activated. Skipping auto-reload to avoid visible double-load.');
     });
   }
 
