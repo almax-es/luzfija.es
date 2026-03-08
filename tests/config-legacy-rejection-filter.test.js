@@ -115,6 +115,26 @@ describe('Config legacy rejection filter', () => {
     );
   });
 
+  it('incluye la ruta actual al reclasificar para facilitar diagnostico', () => {
+    const rawCount = vi.fn();
+    window.goatcounter = { count: rawCount };
+    window.history.replaceState({}, '', '/guias.html');
+
+    bootstrapConfig();
+
+    window.goatcounter.count({
+      path: 'error-promise',
+      title: 'Promise reject: currentYear is not defined event'
+    });
+
+    expect(rawCount).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: 'error-legacy-filtrado',
+        title: expect.stringContaining('@/guias.html')
+      })
+    );
+  });
+
   it('reclasifica ruido legacy en goatcounter.count cuando goatcounter se asigna después', () => {
     bootstrapConfig();
 

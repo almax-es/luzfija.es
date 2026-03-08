@@ -68,6 +68,14 @@
 		return ''
 	}
 
+	function gcLegacyRouteTag() {
+		try {
+			if (location && typeof location.pathname === 'string' && location.pathname)
+				return location.pathname
+		} catch (err) {}
+		return '/'
+	}
+
 	function gcRemapLegacyPayload(vars, kind) {
 		var path = gcNormalize((vars && vars.path) || '') || 'desconocido'
 		var build = (window && window.__LF_BUILD_ID) ? String(window.__LF_BUILD_ID) : 'unknown'
@@ -75,7 +83,8 @@
 			'tipo:' + (kind || 'legacy'),
 			'origen:goatcounter-sender',
 			'evento:' + path,
-			'b:' + build
+			'b:' + build,
+			'@' + gcLegacyRouteTag()
 		].join(' | ').substr(0, 150)
 		return {
 			path: 'error-legacy-filtrado',

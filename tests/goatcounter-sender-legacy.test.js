@@ -38,6 +38,7 @@ beforeEach(() => {
   document.head.innerHTML = '<script data-goatcounter="https://luzfija.goatcounter.com/count"></script>';
   document.body.innerHTML = '';
   delete window.goatcounter;
+  window.history.replaceState({}, '', '/');
   Object.defineProperty(navigator, 'sendBeacon', {
     configurable: true,
     value: vi.fn().mockReturnValue(true)
@@ -75,6 +76,20 @@ describe('GoatCounter sender legacy remap', () => {
     const url = lastBeaconUrl();
     expect(queryParam(url, 'p')).toBe('error-legacy-filtrado');
     expect(queryParam(url, 't')).toContain('tipo:currentyear-stale');
+  });
+
+  it('incluye la ruta actual al reclasificar para facilitar diagnostico', () => {
+    window.history.replaceState({}, '', '/novedades.html');
+    bootstrapSender();
+
+    window.goatcounter.count({
+      path: 'error-promise',
+      title: 'Promise reject: currentYear is not defined event',
+      event: true
+    });
+
+    const url = lastBeaconUrl();
+    expect(queryParam(url, 't')).toContain('@/novedades.html');
   });
 
   it('mantiene payload normal sin reclasificar', () => {

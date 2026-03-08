@@ -166,14 +166,14 @@
   }
 
   function buildLegacyNoiseTitle(kind, originalEventName, originTag) {
-    const route = safeText(location && location.pathname ? location.pathname : '');
+    const route = safeText(location && location.pathname ? location.pathname : '/') || '/';
     const parts = [
       'tipo:' + (kind || 'legacy'),
       'origen:' + (originTag || 'tracking'),
       'evento:' + (originalEventName || 'desconocido'),
       'b:' + TRACK_BUILD_ID
     ];
-    if (route && route !== '/') parts.push('@' + route);
+    parts.push('@' + route);
     return parts.join(' | ').substring(0, 150);
   }
 

@@ -81,16 +81,27 @@ function getLegacyGoatPayloadKind(payload) {
   return '';
 }
 
+function getLegacyTelemetryRoute() {
+  try {
+    if (location && typeof location.pathname === 'string' && location.pathname) {
+      return location.pathname;
+    }
+  } catch (_) {}
+  return '/';
+}
+
 function remapLegacyGoatPayload(payload, kind) {
   const originalPath = normalizeLegacyErrorText(payload && payload.path ? payload.path : '');
   const buildId = (typeof window.__LF_BUILD_ID === 'string' && window.__LF_BUILD_ID.trim())
     ? window.__LF_BUILD_ID.trim()
     : 'unknown';
+  const route = getLegacyTelemetryRoute();
   const parts = [
     'tipo:' + (kind || 'legacy'),
     'origen:config-guard',
     'evento:' + (originalPath || 'desconocido'),
-    'b:' + buildId
+    'b:' + buildId,
+    '@' + route
   ];
   return {
     path: 'error-legacy-filtrado',
