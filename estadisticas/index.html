@@ -3,8 +3,41 @@
 <head>
   <meta charset="UTF-8">
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
-  <script src="/js/config.js?v=20260309-135246"></script>
-  <script src="/js/theme.js?v=20260309-135246"></script>
+  <script>
+  try {
+    if (typeof window.currentYear !== 'number') window.currentYear = new Date().getFullYear();
+    var currentYear = window.currentYear;
+    window.currentYear = currentYear;
+  } catch (_) {}
+  (function () {
+    if (window.__LF_INLINE_LEGACY_CURRENTYEAR_FILTER === true) return;
+    window.__LF_INLINE_LEGACY_CURRENTYEAR_FILTER = true;
+    function msgOf(reason) {
+      if (!reason) return '';
+      if (reason instanceof Error) return String(reason.message || reason.name || '');
+      if (typeof reason === 'object' && typeof reason.message === 'string') return reason.message;
+      return String(reason);
+    }
+    function norm(value) {
+      var text = String(value || '').toLowerCase();
+      try { return text.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+      catch (_) { return text; }
+    }
+    window.addEventListener('unhandledrejection', function (e) {
+      try {
+        var msg = norm(msgOf(e && e.reason));
+        if (!msg || msg.indexOf('currentyear') === -1) return;
+        if (msg.indexOf('not defined') === -1 &&
+            msg.indexOf('undefined') === -1 &&
+            msg.indexOf('no esta definid') === -1) return;
+        if (typeof e.preventDefault === 'function') e.preventDefault();
+        if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+      } catch (_) {}
+    }, true);
+  })();
+  </script>
+  <script src="/js/config.js?v=20260309-162150"></script>
+  <script src="/js/theme.js?v=20260309-162150"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark light"/>
   <meta id="meta-description" name="description" content="Observatorio PVPC con datos oficiales REE/ESIOS: planificador de consumo, tendencia anual y patrón horario por zonas de España.">
@@ -25,8 +58,8 @@
   <link rel="preconnect" href="https://luzfija.goatcounter.com">
   <link rel="alternate" type="application/rss+xml" title="LuzFija.es - Novedades" href="https://luzfija.es/feed.xml">
   <link rel="stylesheet" href="/fonts.css">
-  <link rel="stylesheet" href="/styles.css?v=20260309-135246">
-  <link rel="stylesheet" href="/pro.css?v=20260309-135246">
+  <link rel="stylesheet" href="/styles.css?v=20260309-162150">
+  <link rel="stylesheet" href="/pro.css?v=20260309-162150">
   <link rel="stylesheet" href="/estadisticas/estadisticas.css">
   <link rel="stylesheet" href="/estadisticas/estadisticas-mejorado.css">
 </head>
@@ -474,12 +507,12 @@
     </main>
   </div>
 
-  <script src="/js/tracking.js?v=20260309-135246"></script>
-  <script src="/js/shell-lite.js?v=20260309-135246" defer></script>
+  <script src="/js/tracking.js?v=20260309-162150"></script>
+  <script src="/js/shell-lite.js?v=20260309-162150" defer></script>
   <script src="/vendor/chartjs/chart.umd.js"></script>
   <script src="/js/lf-csv-utils.js"></script>
   <script src="/js/pvpc-stats-engine.js"></script>
-  <script src="/js/pvpc-stats-ui.js?v=20260309-135246"></script>
+  <script src="/js/pvpc-stats-ui.js?v=20260309-162150"></script>
 
   <script type="application/ld+json">
   {
