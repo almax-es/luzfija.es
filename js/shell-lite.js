@@ -103,8 +103,34 @@
     const hadController = !!navigator.serviceWorker.controller;
     const SW_UPDATE_INTERVAL_MS = 2 * 60 * 1000; // 2 min
     const SW_UPDATE_THROTTLE_MS = 15 * 1000;
+    const SW_RELOAD_DEADLINE_MS = 10 * 1000;
     let __lf_sw_reg = null;
     let __lf_last_sw_check = 0;
+    let swReloadBlocked = false;
+    const swReloadDeadline = Date.now() + SW_RELOAD_DEADLINE_MS;
+    const swReloadGuardKey = '__LF_SW_RELOAD__:' + (window.__LF_BUILD_ID || 'unknown') + ':' + location.pathname;
+    const swInteractionEvents = ['pointerdown', 'mousedown', 'touchstart', 'keydown', 'input', 'submit'];
+
+    function blockSwAutoReload() {
+      swReloadBlocked = true;
+      for (let i = 0; i < swInteractionEvents.length; i++) {
+        window.removeEventListener(swInteractionEvents[i], blockSwAutoReload, true);
+      }
+    }
+
+    function shouldReloadOnSwActivate() {
+      if (swReloadBlocked) return false;
+      if (Date.now() > swReloadDeadline) return false;
+      if (document.visibilityState === 'hidden') return false;
+      try {
+        if (sessionStorage.getItem(swReloadGuardKey) === '1') return false;
+      } catch (_) {}
+      return true;
+    }
+
+    for (let i = 0; i < swInteractionEvents.length; i++) {
+      window.addEventListener(swInteractionEvents[i], blockSwAutoReload, true);
+    }
 
     async function requestSwUpdate(reason) {
       const now = Date.now();
@@ -163,6 +189,11 @@
       if (swActivationHandled) return;
       if (!hadController) return;
       swActivationHandled = true;
+      if (!shouldReloadOnSwActivate()) return;
+      try {
+        sessionStorage.setItem(swReloadGuardKey, '1');
+      } catch (_) {}
+      location.reload();
     });
   }
 

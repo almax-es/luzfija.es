@@ -566,8 +566,34 @@
     const hadController = !!navigator.serviceWorker.controller;
     const SW_UPDATE_INTERVAL_MS = 2 * 60 * 1000; // 2 min
     const SW_UPDATE_THROTTLE_MS = 15 * 1000; // evitar doble disparo (focus+visible)
+    const SW_RELOAD_DEADLINE_MS = 10 * 1000;
     let __lf_sw_reg = null;
     let __lf_last_sw_check = 0;
+    let __lf_sw_reload_blocked = false;
+    const __lf_sw_reload_deadline = Date.now() + SW_RELOAD_DEADLINE_MS;
+    const __lf_sw_reload_guard_key = '__LF_SW_RELOAD__:' + (window.__LF_BUILD_ID || 'unknown') + ':' + location.pathname;
+    const __lf_sw_interaction_events = ['pointerdown', 'mousedown', 'touchstart', 'keydown', 'input', 'submit'];
+
+    function blockSwAutoReload() {
+      __lf_sw_reload_blocked = true;
+      for (let i = 0; i < __lf_sw_interaction_events.length; i++) {
+        window.removeEventListener(__lf_sw_interaction_events[i], blockSwAutoReload, true);
+      }
+    }
+
+    function shouldReloadOnSwActivate() {
+      if (__lf_sw_reload_blocked) return false;
+      if (Date.now() > __lf_sw_reload_deadline) return false;
+      if (document.visibilityState === 'hidden') return false;
+      try {
+        if (sessionStorage.getItem(__lf_sw_reload_guard_key) === '1') return false;
+      } catch (_) {}
+      return true;
+    }
+
+    for (let i = 0; i < __lf_sw_interaction_events.length; i++) {
+      window.addEventListener(__lf_sw_interaction_events[i], blockSwAutoReload, true);
+    }
 
     async function requestSwUpdate(reason) {
       const now = Date.now();
@@ -645,7 +671,17 @@
       }
 
       swActivationHandled = true;
-      lfDbg('[SW] New controller activated. Skipping auto-reload to avoid visible double-load.');
+      if (!shouldReloadOnSwActivate()) {
+        lfDbg('[SW] New controller activated. Reload skipped (interaction/late/hidden/already reloaded).');
+        return;
+      }
+
+      try {
+        sessionStorage.setItem(__lf_sw_reload_guard_key, '1');
+      } catch (_) {}
+
+      lfDbg('[SW] New controller activated. Reloading once before interaction to flush stale assets.');
+      window.location.reload();
     });
   }
 
