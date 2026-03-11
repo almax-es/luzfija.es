@@ -2,6 +2,12 @@ import { describe, it, expect } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 
+function snippetFromControllerChange(code, span = 700) {
+  const idx = code.indexOf("serviceWorker.addEventListener('controllerchange'");
+  if (idx === -1) return '';
+  return code.slice(idx, idx + span);
+}
+
 describe('Cleanup regressions', () => {
   it('pvpc.js no contiene normalizeProxyBase muerto', () => {
     const code = fs.readFileSync(path.resolve(__dirname, '../js/pvpc.js'), 'utf8');
@@ -13,16 +19,20 @@ describe('Cleanup regressions', () => {
     expect(code).not.toMatch(/\bfunction\s+showUpdateNotification\s*\(/);
   });
 
-  it('lf-app.js no fuerza reload dentro de controllerchange del service worker', () => {
+  it('lf-app.js no fuerza reload incondicional dentro de controllerchange del service worker', () => {
     const code = fs.readFileSync(path.resolve(__dirname, '../js/lf-app.js'), 'utf8');
-    const controllerChangeBlock = code.match(/serviceWorker\.addEventListener\('controllerchange'[\s\S]{0,700}?\}\);/);
-    expect(controllerChangeBlock?.[0] || '').not.toMatch(/\breload\s*\(/);
+    const block = snippetFromControllerChange(code, 900);
+    expect(block).toContain('shouldReloadOnSwActivate');
+    expect(block).toContain('sessionStorage.setItem');
+    expect(block).toMatch(/\breload\s*\(/);
   });
 
-  it('shell-lite.js no fuerza reload dentro de controllerchange del service worker', () => {
+  it('shell-lite.js no fuerza reload incondicional dentro de controllerchange del service worker', () => {
     const code = fs.readFileSync(path.resolve(__dirname, '../js/shell-lite.js'), 'utf8');
-    const controllerChangeBlock = code.match(/serviceWorker\.addEventListener\('controllerchange'[\s\S]{0,400}?\}\);/);
-    expect(controllerChangeBlock?.[0] || '').not.toMatch(/\breload\s*\(/);
+    const block = snippetFromControllerChange(code, 500);
+    expect(block).toContain('shouldReloadOnSwActivate');
+    expect(block).toContain('sessionStorage.setItem');
+    expect(block).toMatch(/\breload\s*\(/);
   });
 
   it('lf-state.js no mantiene referencia obsoleta a btnExport', () => {
