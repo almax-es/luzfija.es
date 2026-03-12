@@ -1039,6 +1039,7 @@ const guidesGrid = document.getElementById('guidesGrid');
 const featuredBlock = document.querySelector('.featured');
 const noResults = document.getElementById('noResults');
 const allCards = document.querySelectorAll('.guide-card');
+const gridCards = guidesGrid.querySelectorAll('.guide-card');
 
 function applySearch(term) {
   const searchTerm = term.toLowerCase();
@@ -1084,7 +1085,7 @@ categoryBtns.forEach(btn => {
     const category = btn.dataset.category;
     let visibleCount = 0;
 
-    allCards.forEach(card => {
+    gridCards.forEach(card => {
       if (category === 'todas') {
         card.style.display = 'flex';
         visibleCount++;
@@ -1099,9 +1100,12 @@ categoryBtns.forEach(btn => {
       }
     });
 
-    // Resetear búsqueda y restaurar bloque destacadas
+    // Resetear búsqueda y restaurar bloque destacadas siempre visible
     searchInput.value = '';
-    if (featuredBlock) featuredBlock.style.display = '';
+    if (featuredBlock) {
+      featuredBlock.style.display = '';
+      featuredBlock.querySelectorAll('.guide-card').forEach(c => c.style.display = 'flex');
+    }
 
     // Mostrar "sin resultados"
     if (visibleCount === 0) {
