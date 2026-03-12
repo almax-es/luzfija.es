@@ -1036,8 +1036,9 @@ html.light-mode .btn-small:hover{
 // Búsqueda en vivo
 const searchInput = document.getElementById('searchInput');
 const guidesGrid = document.getElementById('guidesGrid');
+const featuredBlock = document.querySelector('.featured');
 const noResults = document.getElementById('noResults');
-const allCards = guidesGrid.querySelectorAll('.guide-card');
+const allCards = document.querySelectorAll('.guide-card');
 
 function applySearch(term) {
   const searchTerm = term.toLowerCase();
@@ -1052,6 +1053,12 @@ function applySearch(term) {
       card.style.display = 'none';
     }
   });
+  // Ocultar el bloque destacadas si ninguna de sus cards coincide
+  if (featuredBlock) {
+    const anyFeaturedVisible = [...featuredBlock.querySelectorAll('.guide-card')]
+      .some(c => c.style.display !== 'none');
+    featuredBlock.style.display = anyFeaturedVisible ? '' : 'none';
+  }
   noResults.classList.toggle('show', visibleCount === 0);
 }
 
@@ -1092,8 +1099,9 @@ categoryBtns.forEach(btn => {
       }
     });
 
-    // Resetear búsqueda
+    // Resetear búsqueda y restaurar bloque destacadas
     searchInput.value = '';
+    if (featuredBlock) featuredBlock.style.display = '';
 
     // Mostrar "sin resultados"
     if (visibleCount === 0) {
