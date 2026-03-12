@@ -1042,6 +1042,10 @@ const allCards = document.querySelectorAll('.guide-card');
 const gridCards = guidesGrid.querySelectorAll('.guide-card');
 
 function applySearch(term) {
+  // La búsqueda toma el control: desactivar filtro de categoría activo
+  categoryBtns.forEach(b => b.classList.remove('active'));
+  document.querySelector('.category-btn[data-category="todas"]').classList.add('active');
+
   const searchTerm = term.toLowerCase();
   let visibleCount = 0;
   allCards.forEach(card => {
