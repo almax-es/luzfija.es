@@ -1040,6 +1040,7 @@ const featuredBlock = document.querySelector('.featured');
 const noResults = document.getElementById('noResults');
 const allCards = document.querySelectorAll('.guide-card');
 const gridCards = guidesGrid.querySelectorAll('.guide-card');
+const categoryBtns = document.querySelectorAll('.category-btn');
 
 function applySearch(term) {
   // La búsqueda toma el control: desactivar filtro de categoría activo
@@ -1077,8 +1078,6 @@ if (qParam) {
 searchInput.addEventListener('input', (e) => applySearch(e.target.value));
 
 // Filtro por categorías
-const categoryBtns = document.querySelectorAll('.category-btn');
-
 categoryBtns.forEach(btn => {
   btn.addEventListener('click', () => {
     // Actualizar botón activo
