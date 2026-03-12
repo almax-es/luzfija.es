@@ -991,49 +991,6 @@ html.light-mode .btn-small:hover{
       <span class="guide-arrow">→</span>
     </a>
 
-    <!-- Ya incluidas arriba en destacadas, pero las añado aquí también -->
-    <a href="guias/como-ver-tu-consumo-horario-real-el-del-contador-no-el-estimado.html" class="guide-card" data-categories="basico ahorro">
-      <div class="guide-header">
-        <span class="guide-icon">📊</span>
-        <div style="flex: 1;">
-          <div class="guide-meta">
-            <span class="guide-tag basico">Básico</span>
-          </div>
-          <h3>Ver tu consumo horario real</h3>
-        </div>
-      </div>
-      <p>La clave para elegir tarifa con cabeza. El del contador, no el "estimado".</p>
-      <span class="guide-arrow">→</span>
-    </a>
-
-    <a href="guias/lectura-real-vs-estimada-como-evitar-sustos-y-facturones.html" class="guide-card" data-categories="basico factura">
-      <div class="guide-header">
-        <span class="guide-icon">💸</span>
-        <div style="flex: 1;">
-          <div class="guide-meta">
-            <span class="guide-tag basico">Básico</span>
-          </div>
-          <h3>Lectura real vs estimada</h3>
-        </div>
-      </div>
-      <p>Cómo evitar sustos y "facturones". La telegestión funciona... hasta que no.</p>
-      <span class="guide-arrow">→</span>
-    </a>
-
-    <a href="guias/estafas-y-llamadas-comerciales-como-detectarlas-y-que-hacer.html" class="guide-card" data-categories="gestion">
-      <div class="guide-header">
-        <span class="guide-icon">🚨</span>
-        <div style="flex: 1;">
-          <div class="guide-meta">
-            <span class="guide-tag basico">Básico</span>
-          </div>
-          <h3>Estafas y llamadas comerciales</h3>
-        </div>
-      </div>
-      <p>Las tácticas más sucias (y cómo protegerte).</p>
-      <span class="guide-arrow">→</span>
-    </a>
-
     <a href="guias/como-reclamar-a-comercializadora-distribuidora.html" class="guide-card" data-categories="gestion factura">
       <div class="guide-header">
         <span class="guide-icon">⚖️</span>
@@ -1082,14 +1039,12 @@ const guidesGrid = document.getElementById('guidesGrid');
 const noResults = document.getElementById('noResults');
 const allCards = guidesGrid.querySelectorAll('.guide-card');
 
-searchInput.addEventListener('input', (e) => {
-  const searchTerm = e.target.value.toLowerCase();
+function applySearch(term) {
+  const searchTerm = term.toLowerCase();
   let visibleCount = 0;
-
   allCards.forEach(card => {
     const title = card.querySelector('h3').textContent.toLowerCase();
     const desc = card.querySelector('p').textContent.toLowerCase();
-    
     if (title.includes(searchTerm) || desc.includes(searchTerm)) {
       card.style.display = 'flex';
       visibleCount++;
@@ -1097,14 +1052,17 @@ searchInput.addEventListener('input', (e) => {
       card.style.display = 'none';
     }
   });
+  noResults.classList.toggle('show', visibleCount === 0);
+}
 
-  // Mostrar "sin resultados" si no hay coincidencias
-  if (visibleCount === 0) {
-    noResults.classList.add('show');
-  } else {
-    noResults.classList.remove('show');
-  }
-});
+// Pre-rellenar desde ?q= (ej: redirección desde 404)
+const qParam = new URLSearchParams(window.location.search).get('q');
+if (qParam) {
+  searchInput.value = qParam;
+  applySearch(qParam);
+}
+
+searchInput.addEventListener('input', (e) => applySearch(e.target.value));
 
 // Filtro por categorías
 const categoryBtns = document.querySelectorAll('.category-btn');
