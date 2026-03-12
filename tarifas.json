@@ -38,24 +38,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "TE A tu aire",
-      "cPunta": 0.0999,
-      "cLlano": 0.0999,
-      "cValle": 0.0999,
-      "p1": 0.072575,
-      "p2": 0.072575,
-      "web": "https://www.totalenergies.es/es/hogares/tarifas-luz-gas/a-tu-aire-siempre",
-      "tipo": "1P",
-      "fv": {
-        "exc": 0.07,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA_PARCIAL",
-        "bv": false,
-        "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Endesa Fija 24H Online",
       "cPunta": 0.099999,
       "cLlano": 0.099999,
@@ -105,6 +87,24 @@
         "exc": 0.0,
         "tipo": "NO COMPENSA",
         "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "TE A tu aire",
+      "cPunta": 0.1099,
+      "cLlano": 0.1099,
+      "cValle": 0.1099,
+      "p1": 0.072575,
+      "p2": 0.072575,
+      "web": "https://www.totalenergies.es/es/hogares/tarifas-luz-gas/a-tu-aire-siempre",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.07,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA_PARCIAL",
         "bv": false,
         "reglaBV": "NO APLICA"
       },
@@ -349,24 +349,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "TE A tu aire 3P",
-      "cPunta": 0.163572,
-      "cLlano": 0.09393,
-      "cValle": 0.066176,
-      "p1": 0.072575,
-      "p2": 0.072575,
-      "web": "https://www.totalenergies.es/es/hogares/tarifas-luz/a-tu-aire-programa-tu-ahorro",
-      "tipo": "3P",
-      "fv": {
-        "exc": 0.07,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA_PARCIAL",
-        "bv": false,
-        "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Endesa Conecta 3P",
       "cPunta": 0.1656,
       "cLlano": 0.0972,
@@ -398,6 +380,24 @@
         "exc": 0.0,
         "tipo": "NO COMPENSA",
         "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "TE A tu aire 3P",
+      "cPunta": 0.173572,
+      "cLlano": 0.10393,
+      "cValle": 0.076176,
+      "p1": 0.072575,
+      "p2": 0.072575,
+      "web": "https://www.totalenergies.es/es/hogares/tarifas-luz/a-tu-aire-programa-tu-ahorro",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.07,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA_PARCIAL",
         "bv": false,
         "reglaBV": "NO APLICA"
       },
@@ -625,5 +625,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-03-12T10:34:40.418Z"
+  "updatedAt": "2026-03-12T10:39:52.656Z"
 }
