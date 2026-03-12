@@ -7,7 +7,7 @@
       "cValle": 0.097999,
       "p1": 0.060274,
       "p2": 0.060274,
-      "web": "#VALUE!",
+      "web": "https://visalia.es/luz/fijo24horas/",
       "tipo": "1P",
       "fv": {
         "exc": 0.04,
@@ -625,5 +625,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-03-12T10:39:52.656Z"
+  "updatedAt": "2026-03-12T10:49:15.936Z"
 }
