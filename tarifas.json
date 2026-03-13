@@ -60,8 +60,8 @@
       "cPunta": 0.105,
       "cLlano": 0.105,
       "cValle": 0.105,
-      "p1": 0.087,
-      "p2": 0.044,
+      "p1": 0.105,
+      "p2": 0.048,
       "web": "https://ofertas.imaginaenergia.com/plan-online-imagina/",
       "tipo": "1P",
       "fv": {
@@ -625,5 +625,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-03-13T06:42:18.367Z"
+  "updatedAt": "2026-03-13T10:36:02.227Z"
 }
