@@ -149,24 +149,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Seneo Tarifa 2",
-      "cPunta": 0.111,
-      "cLlano": 0.111,
-      "cValle": 0.111,
-      "p1": 0.089,
-      "p2": 0.089,
-      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
-      "tipo": "1P",
-      "fv": {
-        "exc": 0.04,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Octopus Unicaja",
       "cPunta": 0.116,
       "cLlano": 0.116,
@@ -295,10 +277,28 @@
       "requiereFV": false
     },
     {
+      "nombre": "Seneo Tarifa 2",
+      "cPunta": 0.129,
+      "cLlano": 0.129,
+      "cValle": 0.129,
+      "p1": 0.089,
+      "p2": 0.089,
+      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Seneo Tarifa 1",
-      "cPunta": 0.14,
-      "cLlano": 0.14,
-      "cValle": 0.14,
+      "cPunta": 0.152,
+      "cLlano": 0.152,
+      "cValle": 0.152,
       "p1": 0.095,
       "p2": 0.018,
       "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
@@ -625,5 +625,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-03-16T06:57:25.479Z"
+  "updatedAt": "2026-03-16T09:39:47.977Z"
 }
