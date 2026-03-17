@@ -580,7 +580,8 @@
     renderTable().then(() => {
       renderSunClubCard();
       if (seccionResultados && esPrimeraVez) {
-        seccionResultados.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        const top = seccionResultados.getBoundingClientRect().top + window.pageYOffset;
+        window.scrollTo({ top, behavior: 'smooth' });
       }
     });
 
