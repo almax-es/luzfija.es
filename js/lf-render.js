@@ -576,12 +576,15 @@
     renderPvpcInfo();
 
     // Esperar a que la tabla termine de renderizarse antes de hacer scroll,
-    // para evitar que el scroll smooth salte al final mientras el DOM crece.
+    // para evitar que el scroll salte al final mientras el DOM crece.
     renderTable().then(() => {
       renderSunClubCard();
-      if (seccionResultados && esPrimeraVez) {
-        const top = seccionResultados.getBoundingClientRect().top + window.pageYOffset;
-        window.scrollTo({ top, behavior: 'smooth' });
+      if (seccionResultados) {
+        // RAF para que el layout esté estabilizado antes de leer la posición
+        requestAnimationFrame(() => {
+          const top = seccionResultados.getBoundingClientRect().top + window.pageYOffset;
+          window.scrollTo({ top, behavior: 'smooth' });
+        });
       }
     });
 
