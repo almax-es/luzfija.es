@@ -70,7 +70,7 @@
   }
 
   // ===== AUTO-REFRESH TARIFAS (agresivo) =====
-  const AUTO_REFRESH_MS = 2 * 60 * 1000; // 2 min
+  const AUTO_REFRESH_MS = 15 * 60 * 1000; // 15 min
   const AUTO_REFRESH_THROTTLE_MS = 15 * 1000; // evitar doble disparo (focus+visible)
   let __lf_lastTarifasUpdatedAt = null;
   let __lf_lastTarifasCheck = 0;
@@ -545,6 +545,7 @@
 
     setInterval(() => {
       if (document.visibilityState !== 'visible') return;
+      if ((!state.rows || state.rows.length === 0) && !state.lastSignature) return;
       _ric(() => refreshTarifasAndMaybeRecalc('interval'));
     }, AUTO_REFRESH_MS);
   });
@@ -564,7 +565,7 @@
   if ('serviceWorker' in navigator) {
     // Guardamos si ya había controlador al inicio para distinguir primera instalación de actualización
     const hadController = !!navigator.serviceWorker.controller;
-    const SW_UPDATE_INTERVAL_MS = 2 * 60 * 1000; // 2 min
+    const SW_UPDATE_INTERVAL_MS = 15 * 60 * 1000; // 15 min
     const SW_UPDATE_THROTTLE_MS = 15 * 1000; // evitar doble disparo (focus+visible)
     const SW_RELOAD_DEADLINE_MS = 10 * 1000;
     let __lf_sw_reg = null;

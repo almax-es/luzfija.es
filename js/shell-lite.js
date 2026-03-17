@@ -101,7 +101,7 @@
   // ===== SERVICE WORKER UPDATE (agresivo) =====
   if ('serviceWorker' in navigator) {
     const hadController = !!navigator.serviceWorker.controller;
-    const SW_UPDATE_INTERVAL_MS = 2 * 60 * 1000; // 2 min
+    const SW_UPDATE_INTERVAL_MS = 15 * 60 * 1000; // 15 min
     const SW_UPDATE_THROTTLE_MS = 15 * 1000;
     const SW_RELOAD_DEADLINE_MS = 10 * 1000;
     let __lf_sw_reg = null;
