@@ -580,11 +580,13 @@
     renderTable().then(() => {
       renderSunClubCard();
       if (seccionResultados) {
-        // RAF para que el layout esté estabilizado antes de leer la posición
-        requestAnimationFrame(() => {
-          const top = seccionResultados.getBoundingClientRect().top + window.pageYOffset;
-          window.scrollTo({ top, behavior: 'smooth' });
-        });
+        // Doble RAF: asegura que el layout tras display:none→block está completo
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          let top = 0;
+          let node = seccionResultados;
+          while (node) { top += node.offsetTop || 0; node = node.offsetParent; }
+          window.scrollTo(0, top);
+        }));
       }
     });
 
