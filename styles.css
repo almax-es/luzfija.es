@@ -308,8 +308,12 @@
     .pill.loading{border-color: rgba(139,92,246,.55); box-shadow: 0 0 0 4px rgba(139,92,246,.12), 0 18px 55px rgba(0,0,0,.35);}
     .pill.ok{border-color: rgba(34,197,94,.55); box-shadow: 0 0 0 4px rgba(34,197,94,.12), 0 18px 55px rgba(0,0,0,.35);}
     .pill.err{border-color: rgba(239,68,68,.55); box-shadow: 0 0 0 4px rgba(239,68,68,.12), 0 18px 55px rgba(0,0,0,.35);}
-    .btn{ border: 1px solid var(--border); background: var(--card); color: var(--text); padding: 10px 12px; border-radius: 12px; cursor:pointer; font-weight: 900; font-size: 13px; display:inline-flex; align-items:center; gap: 10px; transition: transform .15s ease, background .15s ease, border-color .15s ease, opacity .15s ease; backdrop-filter: blur(14px); min-height: 44px; touch-action: manipulation; will-change: transform, box-shadow; }
+    .btn{ border: 1px solid var(--border); background: var(--card); color: var(--text); padding: 10px 12px; border-radius: 12px; cursor:pointer; font-weight: 900; font-size: 13px; display:inline-flex; align-items:center; gap: 10px; transition: transform .15s ease, background .15s ease, border-color .15s ease, opacity .15s ease; backdrop-filter: blur(14px); min-height: 44px; touch-action: manipulation; will-change: auto; }
     .btn:hover{transform: translateY(-1px); border-color: var(--border2); background: var(--card2);}
+    .btn:hover,
+    .btn:active{
+      will-change: transform, box-shadow;
+    }
     .btn.primary:hover{ 
       transform: translateY(-4px) scale(1.05);
       box-shadow: 
@@ -342,12 +346,12 @@
       overflow: hidden;
       cursor: pointer;
       transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s ease;
-      animation: gradientShift 4s ease infinite;
+      animation: none;
       box-shadow: 
         0 0 0 0 rgba(139,92,246,0),
         0 20px 40px -10px rgba(139,92,246,0.4),
         inset 0 1px 0 rgba(255,255,255,0.2);
-      will-change: transform;
+      will-change: auto;
       transform: translateZ(0);
       width: 100% !important;
       display: flex;
@@ -360,12 +364,12 @@
       position: absolute;
       top: -2px; left: -2px; right: -2px; bottom: -2px;
       background: linear-gradient(135deg, #8B5CF6, #EC4899, #F59E0B, #8B5CF6);
-      background-size: 400% 400%;
+      background-size: 100% 100%;
       border-radius: 16px;
       z-index: -1;
-      animation: borderGlow 3s ease infinite;
-      opacity: 0.8;
-      filter: blur(8px);
+      animation: none;
+      opacity: 0.45;
+      filter: none;
     }
     .btn.primary::after{
       content: '';
@@ -901,8 +905,12 @@
     .badge.b3:hover{ transform: scale(1.05); box-shadow: 0 6px 16px rgba(245,158,11,.4); }
     .toolbar{ display:flex; align-items:center; justify-content:flex-end; gap: 12px; margin: 10px 0 12px; flex-wrap: wrap; }
     .filters{display:flex; gap: 10px; flex-wrap: wrap;}
-    .fbtn{ padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--card); color: var(--muted); cursor:pointer; font-weight: 900; font-size: 12px; transition: transform .15s ease, border-color .15s ease, background .15s ease; user-select:none; min-height: 44px; display:flex; align-items:center; touch-action: manipulation; will-change: transform; }
+    .fbtn{ padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--card); color: var(--muted); cursor:pointer; font-weight: 900; font-size: 12px; transition: transform .15s ease, border-color .15s ease, background .15s ease; user-select:none; min-height: 44px; display:flex; align-items:center; touch-action: manipulation; will-change: auto; }
     .fbtn:hover{transform: translateY(-1px); border-color: var(--border2); background: var(--card2);}
+    .fbtn:hover,
+    .fbtn:active{
+      will-change: transform;
+    }
     .fbtn.active{ background: rgba(139,92,246,.18); border-color: rgba(139,92,246,.55); color: var(--text); }
     .tableWrap{ background: transparent !important; border: none !important; overflow: visible !important; }
     table{ width: 100%; border-collapse: separate !important; border-spacing: 0 8px; table-layout: fixed; }
@@ -948,7 +956,7 @@
       outline-offset: 2px;
       border-radius: 4px;
     }
-    tbody tr { background: rgba(255, 255, 255, 0.03); transition: all 0.2s ease; backdrop-filter: blur(10px); }
+    tbody tr { background: rgba(255, 255, 255, 0.03); transition: all 0.2s ease; backdrop-filter: none; -webkit-backdrop-filter: none; }
     tbody td{ padding: 14px 12px; border-bottom: none !important; text-align:right; font-size: 15px; color: rgba(255,255,255,.88); vertical-align: middle; white-space: nowrap; }
     tbody tr td:first-child { border-radius: 12px 0 0 12px; }
     tbody tr td:last-child  { border-radius: 0 12px 12px 0; }
