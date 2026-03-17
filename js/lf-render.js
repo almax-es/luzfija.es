@@ -559,10 +559,6 @@
       if (gridContainer) {
         gridContainer.classList.add('has-results');
       }
-
-      setTimeout(() => {
-        seccionResultados.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }, 300);
     }
 
     const s = d.stats;
@@ -578,10 +574,14 @@
 
     renderTopChart();
     renderPvpcInfo();
-    
-    // Esperar a que la tabla termine de renderizarse antes de Sun Club
+
+    // Esperar a que la tabla termine de renderizarse antes de hacer scroll,
+    // para evitar que el scroll smooth salte al final mientras el DOM crece.
     renderTable().then(() => {
       renderSunClubCard();
+      if (seccionResultados && esPrimeraVez) {
+        seccionResultados.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
     });
 
     if (window.innerWidth < 1100) {
