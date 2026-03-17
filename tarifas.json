@@ -19,25 +19,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Plenitude",
-      "cPunta": 0.099866,
-      "cLlano": 0.099866,
-      "cValle": 0.099866,
-      "p1": 0.089528,
-      "p2": 0.089528,
-      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
-      "tipo": "1P",
-      "requisitos": "Potencia contratada ≤ 5 kW",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Endesa Fija 24H Online",
       "cPunta": 0.099999,
       "cLlano": 0.099999,
@@ -255,6 +236,25 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Plenitude",
+      "cPunta": 0.12863,
+      "cLlano": 0.12863,
+      "cValle": 0.12863,
+      "p1": 0.075902,
+      "p2": 0.075902,
+      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
+      "tipo": "1P",
+      "requisitos": "Potencia contratada ≤ 5 kW",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
       },
       "requiereFV": false
     },
@@ -625,5 +625,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-03-16T13:23:09.550Z"
+  "updatedAt": "2026-03-17T06:36:46.937Z"
 }
