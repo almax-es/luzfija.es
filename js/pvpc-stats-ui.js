@@ -577,6 +577,7 @@
         }]
       },
       options: {
+        animation: { duration: 0 },
         responsive: true,
         maintainAspectRatio: false,
         interaction: {
@@ -639,6 +640,7 @@
         }]
       },
       options: {
+        animation: { duration: 0 },
         responsive: true,
         maintainAspectRatio: false,
         interaction: {
@@ -701,6 +703,7 @@
       type: 'line',
       data: { labels: monthLabels, datasets: ds },
       options: {
+        animation: { duration: 0 },
         responsive: true,
         maintainAspectRatio: false,
         interaction: {
