@@ -334,13 +334,9 @@
             <!-- ... (logo content matches original) ... -->
             <defs>
               <linearGradient id="logoGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1">
-                  <animate attributeName="stop-color" values="#fbbf24;#f59e0b;#fbbf24" dur="2s" repeatCount="indefinite"/>
-                </stop>
+                <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1"/>
                 <stop offset="50%" style="stop-color:#f59e0b;stop-opacity:1"/>
-                <stop offset="100%" style="stop-color:#fbbf24;stop-opacity:1">
-                  <animate attributeName="stop-color" values="#fbbf24;#f59e0b;#fbbf24" dur="2s" repeatCount="indefinite"/>
-                </stop>
+                <stop offset="100%" style="stop-color:#fbbf24;stop-opacity:1"/>
               </linearGradient>
               <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
                 <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1"/>
@@ -354,28 +350,13 @@
                 </feMerge>
               </filter>
             </defs>
-            <circle cx="50" cy="50" r="35" fill="url(#logoGrad2)" opacity="0.2">
-              <animate attributeName="r" values="35;38;35" dur="2s" repeatCount="indefinite"/>
-              <animate attributeName="opacity" values="0.2;0.4;0.2" dur="2s" repeatCount="indefinite"/>
-            </circle>
+            <circle cx="50" cy="50" r="35" fill="url(#logoGrad2)" opacity="0.2"/>
             <path d="M 55 15 L 35 48 L 48 48 L 45 85 L 70 45 L 57 45 Z"
                   fill="url(#logoGrad1)" filter="url(#glow)"
-                  stroke="#fff" stroke-width="1.5" stroke-linejoin="round">
-              <animateTransform attributeName="transform" attributeType="XML" type="scale"
-                                values="1;1.08;1" dur="1.5s" repeatCount="indefinite" additive="sum"/>
-            </path>
-            <circle cx="30" cy="30" r="2" fill="#fbbf24" opacity="0">
-              <animate attributeName="opacity" values="0;1;0" dur="1.5s" repeatCount="indefinite"/>
-              <animate attributeName="r" values="2;3;2" dur="1.5s" repeatCount="indefinite"/>
-            </circle>
-            <circle cx="70" cy="35" r="2" fill="#fbbf24" opacity="0">
-              <animate attributeName="opacity" values="0;1;0" dur="1.5s" begin="0.5s" repeatCount="indefinite"/>
-              <animate attributeName="r" values="2;3;2" dur="1.5s" begin="0.5s" repeatCount="indefinite"/>
-            </circle>
-            <circle cx="65" cy="70" r="2" fill="#fbbf24" opacity="0">
-              <animate attributeName="opacity" values="0;1;0" dur="1.5s" begin="1s" repeatCount="indefinite"/>
-              <animate attributeName="r" values="2;3;2" dur="1.5s" begin="1s" repeatCount="indefinite"/>
-            </circle>
+                  stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
+            <circle cx="30" cy="30" r="2" fill="#fbbf24" opacity="0"/>
+            <circle cx="70" cy="35" r="2" fill="#fbbf24" opacity="0"/>
+            <circle cx="65" cy="70" r="2" fill="#fbbf24" opacity="0"/>
           </svg>
         </a>
         <div>
