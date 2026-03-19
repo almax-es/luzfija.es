@@ -124,6 +124,30 @@ describe('Motor de Extracción de Facturas (PDF Text)', () => {
       expect(l).toBe(80.2);
       expect(v).toBe(150.0);
     });
+
+    it('Visalia: lecturas de contador (15364,00) NO deben confundirse con consumo facturado', () => {
+      // invoice-21170005: pág. 3 tiene "P1 15364,00 15398,00 34,00" (lectura contador, periodo ene-feb)
+      // pero el consumo facturado en pág. 2 es: P1=0, P2=2,48 kWh, P3=4,32 kWh
+      // El extractor Visalia usa "Término de energía P1/P2/P3 X kWh" y devuelve 0 si P1 ausente
+      const texto = [
+        'Término de energia P2 2,48 kWh 0,097999 €/kWh 0,24 €',
+        'Término de energia P3 4,32 kWh 0,097922 €/kWh 0,42 €',
+        // Tabla de lecturas que NO debe usarse:
+        'P1 15364,00 15398,00 34,00 0,00',
+        'P2 3300,00 3327,00 27,00',
+        'P3 3424,00 3479,00 55,00 0,00',
+      ].join('\n');
+
+      const mP1 = texto.match(/t[eé]rmino\s+de\s+energ[ií]a\s+p1\s+([0-9][0-9\.,]*)\s*kwh/i);
+      const mP2 = texto.match(/t[eé]rmino\s+de\s+energ[ií]a\s+p2\s+([0-9][0-9\.,]*)\s*kwh/i);
+      const mP3 = texto.match(/t[eé]rmino\s+de\s+energ[ií]a\s+p3\s+([0-9][0-9\.,]*)\s*kwh/i);
+
+      expect(mP1).toBeNull();              // P1 no facturado → 0
+      expect(mP2).not.toBeNull();
+      expect(window.LF.parseNum(mP2[1])).toBe(2.48);
+      expect(mP3).not.toBeNull();
+      expect(window.LF.parseNum(mP3[1])).toBe(4.32);
+    });
   });
 
   describe('Octopus Energy - Consumos multi-periodo', () => {

@@ -553,6 +553,28 @@
         return null;
       }
 
+      // Visalia: extrae consumos de las líneas "Término de energía P1/P2/P3 X,XX kWh"
+      // de la página de detalle, ignorando la tabla "Lectura de la distribuidora" (página 3)
+      // que contiene lecturas brutas del contador (ej: P1=15364,00) que NO son el consumo facturado.
+      function __LF_extractConsumoVisalia(texto) {
+        if (!texto) return null;
+        const t = String(texto);
+
+        const mP1 = t.match(/t[eé]rmino\s+de\s+energ[ií]a\s+p1\s+([0-9][0-9\.,]*)\s*kwh/i);
+        const mP2 = t.match(/t[eé]rmino\s+de\s+energ[ií]a\s+p2\s+([0-9][0-9\.,]*)\s*kwh/i);
+        const mP3 = t.match(/t[eé]rmino\s+de\s+energ[ií]a\s+p3\s+([0-9][0-9\.,]*)\s*kwh/i);
+
+        // Si no hay ninguna línea de término de energía, no podemos ayudar
+        if (!mP1 && !mP2 && !mP3) return null;
+
+        const punta = mP1 ? (__LF_normNum(mP1[1]) ?? 0) : 0;
+        const llano = mP2 ? (__LF_normNum(mP2[1]) ?? 0) : 0;
+        const valle = mP3 ? (__LF_normNum(mP3[1]) ?? 0) : 0;
+
+        lfDbg('[VISALIA-CONSUMO] Extraído de "Término de energía":', { punta, llano, valle });
+        return { punta, llano, valle };
+      }
+
       // ========== DETECCIÓN Y EXTRACCIÓN POR COMPAÑÍA ==========
       
       
@@ -1200,7 +1222,13 @@
         if (compania === 'octopus') {
           octopusTriple = __LF_extractConsumoOctopus(tAll);
         }
-        const triple = octopusTriple || __LF_extractTripleConsumo(textLines) || __LF_extractTripleConsumo(textCompact);
+        let visaliaTriple = null;
+        if (compania === 'visalia') {
+          // Visalia pone lecturas brutas del contador en pág. 3 que confunden al parser genérico.
+          // Usamos el extractor específico que lee "Término de energía P1/P2/P3 X kWh" de pág. 2.
+          visaliaTriple = __LF_extractConsumoVisalia(textLines) || __LF_extractConsumoVisalia(tAll);
+        }
+        const triple = octopusTriple || visaliaTriple || __LF_extractTripleConsumo(textLines) || __LF_extractTripleConsumo(textCompact);
 
         let cPunta = null, cLlano = null, cValle = null;
 
