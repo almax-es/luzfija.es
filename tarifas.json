@@ -55,25 +55,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Energya VM",
-      "cPunta": 0.105705,
-      "cLlano": 0.105705,
-      "cValle": 0.105705,
-      "p1": 0.09315,
-      "p2": 0.046576,
-      "web": "https://www.energyavm.es/luz/formula-fija-24-horas-luz/",
-      "tipo": "1P",
-      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 6.000 kWh/año",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "TE A tu aire",
       "cPunta": 0.1099,
       "cLlano": 0.1099,
@@ -221,6 +202,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Energya VM",
+      "cPunta": 0.12519,
+      "cLlano": 0.12519,
+      "cValle": 0.12519,
+      "p1": 0.102252,
+      "p2": 0.05114,
+      "web": "https://www.energyavm.es/luz/formula-fija-24-horas-luz/",
+      "tipo": "1P",
+      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 6.000 kWh/año",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Nufri Calma",
       "cPunta": 0.125233,
       "cLlano": 0.125233,
@@ -332,11 +332,11 @@
     },
     {
       "nombre": "Energya VM 3P",
-      "cPunta": 0.16605,
-      "cLlano": 0.13005,
-      "cValle": 0.10305,
-      "p1": 0.082192,
-      "p2": 0.002739,
+      "cPunta": 0.16915,
+      "cLlano": 0.13515,
+      "cValle": 0.10115,
+      "p1": 0.090247,
+      "p2": 0.003014,
       "web": "https://www.energyavm.es/luz/formula-fija-3-periodos/",
       "tipo": "3P",
       "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 6.000 kWh/año",
@@ -625,5 +625,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-03-19T07:17:18.336Z"
+  "updatedAt": "2026-03-19T11:26:11.045Z"
 }
