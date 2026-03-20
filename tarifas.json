@@ -496,6 +496,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Neolux VE 3P",
+      "cPunta": 0.19,
+      "cLlano": 0.179,
+      "cValle": 0.039,
+      "p1": 0.095,
+      "p2": 0.085,
+      "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Nufri Flex 3P",
       "cPunta": 0.191853,
       "cLlano": 0.115288,
@@ -625,5 +643,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-03-20T10:16:34.125Z"
+  "updatedAt": "2026-03-20T13:12:34.492Z"
 }
