@@ -4,6 +4,9 @@ on:
   push:
     branches: ["main"]
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 # Cancelar deploys anteriores automáticamente
 concurrency:
   group: pages-deploy

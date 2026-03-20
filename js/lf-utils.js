@@ -352,8 +352,8 @@
     const esCeutaMelilla = (territorio.nombre || '') === 'Ceuta y Melilla';
 
     if (typeof C.calcularImpuestoIndirecto === 'function') {
-      usoFiscal = esCanarias && !!i.viviendaCanarias && potenciaMax <= (territorio.limiteViviendaKw || 10)
-        ? 'vivienda'
+      usoFiscal = esCanarias
+        ? ((!!i.viviendaCanarias && potenciaMax <= (territorio.limiteViviendaKw || 10)) ? 'vivienda' : 'otros')
         : (esCeutaMelilla ? 'ipsi' : 'iva');
 
       const taxCalc = C.calcularImpuestoIndirecto({
@@ -369,6 +369,7 @@
       iva = round2(taxCalc.iva);
       ivaBase = round2(taxCalc.ivaBase);
       baseIPSI = round2(taxCalc.baseIPSI);
+      usoFiscal = taxCalc.usoFiscal || usoFiscal;
     } else if (esCanarias) {
       const vivienda = !!i.viviendaCanarias && potenciaMax <= (territorio.limiteViviendaKw || 10);
       usoFiscal = vivienda ? 'vivienda' : 'otros';
