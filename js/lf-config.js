@@ -16,11 +16,13 @@
 (function(global) {
   'use strict';
 
+  const round2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+
   const LF_CONFIG = {
     // ═══════════════════════════════════════════════════════════════════
     // VERSIÓN Y METADATOS
     // ═══════════════════════════════════════════════════════════════════
-    version: '2026.01',
+    version: '2026.02',
     ultimaActualizacion: '2026-01-10',
 
     // ═══════════════════════════════════════════════════════════════════
@@ -133,6 +135,112 @@
         .replace('península', 'peninsula')
         .replace('ceuta y melilla', 'ceutamelilla');
       return this.territorios[key] || this.territorios.peninsula;
+    },
+
+    /**
+     * Formatea un tipo fraccional (0.21) como porcentaje legible ("21%")
+     * para evitar hardcodes de etiquetas en la UI.
+     * @param {number} rate - Tipo en fracción (ej. 0.21)
+     * @param {number} maxDecimals - Decimales máximos
+     * @returns {string} Porcentaje formateado
+     */
+    formatRatePercent: function(rate, maxDecimals = 2) {
+      const pct = Number(rate) * 100;
+      if (!Number.isFinite(pct)) return '0%';
+      const fixed = pct.toFixed(Math.max(0, maxDecimals));
+      const trimmed = fixed
+        .replace(/\.0+$/, '')
+        .replace(/(\.\d*?)0+$/, '$1')
+        .replace('.', ',');
+      return `${trimmed}%`;
+    },
+
+    /**
+     * Obtiene la info fiscal visible del impuesto indirecto aplicable
+     * para una zona y uso fiscal concretos.
+     * @param {string} zona - Zona fiscal
+     * @param {string} usoFiscal - 'vivienda', 'otros' o 'ipsi'
+     * @returns {Object} Tipo, etiquetas y tipos aplicables
+     */
+    getImpuestoInfo: function(zona, usoFiscal = 'otros') {
+      const territorio = this.getTerritorio(zona);
+      const impuestos = territorio.impuestos || {};
+      const tipo = String(impuestos.tipo || 'IVA').toUpperCase();
+      const esVivienda = usoFiscal === 'vivienda';
+
+      const energiaRateRaw = tipo === 'IGIC'
+        ? (esVivienda ? impuestos.energiaVivienda : impuestos.energiaOtros)
+        : impuestos.energia;
+      const contadorRateRaw = (impuestos.contador != null) ? impuestos.contador : energiaRateRaw;
+
+      const energiaRate = Number.isFinite(Number(energiaRateRaw)) ? Number(energiaRateRaw) : 0;
+      const contadorRate = Number.isFinite(Number(contadorRateRaw)) ? Number(contadorRateRaw) : 0;
+
+      return {
+        territorio,
+        tipo,
+        usoFiscal: esVivienda ? 'vivienda' : usoFiscal,
+        energiaRate,
+        contadorRate,
+        energiaLabel: tipo === 'IVA' ? 'IVA' : `${tipo} energía`,
+        contadorLabel: tipo === 'IVA' ? 'IVA' : `${tipo} contador`,
+        energiaPctText: this.formatRatePercent(energiaRate),
+        contadorPctText: this.formatRatePercent(contadorRate)
+      };
+    },
+
+    /**
+     * Calcula el impuesto indirecto completo desde una sola fuente central.
+     * La base energética debe incluir potencia + energía + financiación/otros
+     * previos al impuesto eléctrico.
+     * @param {Object} params - Bases de cálculo
+     * @returns {Object} Detalle fiscal reutilizable por todos los módulos
+     */
+    calcularImpuestoIndirecto: function({
+      zona,
+      usoFiscal = 'otros',
+      baseEnergia = 0,
+      impuestoElectrico = 0,
+      baseContador = 0
+    } = {}) {
+      const info = this.getImpuestoInfo(zona, usoFiscal);
+      const baseEnergiaNum = Number.isFinite(Number(baseEnergia)) ? Number(baseEnergia) : 0;
+      const impuestoElectricoNum = Number.isFinite(Number(impuestoElectrico)) ? Number(impuestoElectrico) : 0;
+      const baseContadorNum = Number.isFinite(Number(baseContador)) ? Number(baseContador) : 0;
+
+      let ivaBase = 0;
+      let baseIPSI = 0;
+      let impuestoEnergia = 0;
+      let impuestoContador = 0;
+      let iva = 0;
+
+      if (info.tipo === 'IGIC') {
+        impuestoEnergia = info.usoFiscal === 'vivienda'
+          ? 0
+          : round2((baseEnergiaNum + impuestoElectricoNum) * info.energiaRate);
+        impuestoContador = round2(baseContadorNum * info.contadorRate);
+      } else if (info.tipo === 'IPSI') {
+        baseIPSI = round2(baseEnergiaNum + impuestoElectricoNum);
+        impuestoEnergia = round2(baseIPSI * info.energiaRate);
+        impuestoContador = round2(baseContadorNum * info.contadorRate);
+      } else {
+        ivaBase = round2(baseEnergiaNum + impuestoElectricoNum + baseContadorNum);
+        iva = round2(ivaBase * info.energiaRate);
+        impuestoEnergia = iva;
+      }
+
+      return {
+        ...info,
+        baseEnergia: round2(baseEnergiaNum),
+        baseContador: round2(baseContadorNum),
+        baseEnergiaMasIEE: round2(baseEnergiaNum + impuestoElectricoNum),
+        ivaBase: round2(ivaBase),
+        baseIPSI: round2(baseIPSI),
+        impuestoEnergia: round2(impuestoEnergia),
+        impuestoContador: round2(impuestoContador),
+        iva: round2(iva),
+        impuestoTotal: round2(impuestoEnergia + impuestoContador)
+      };
     },
 
     /**

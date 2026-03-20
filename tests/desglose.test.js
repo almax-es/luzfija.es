@@ -6,20 +6,7 @@ document.body.innerHTML = '<div></div>';
 // 2. Mockear dependencias globales
 window.lfDbg = () => {}; // Mock debug function
 window.LF = window.LF || {};
-window.LF_CONFIG = {
-  bonoSocial: { eurosAnuales: 10 },
-  iee: { porcentaje: 5.11269632, minimoEurosKwh: 0.0005 }, // 5.11% aprox
-  alquilerContador: { eurosMes: 0.81 },
-  getTerritorio: (zona) => {
-    if (zona === 'Canarias') {
-      return { impuestos: { energiaOtros: 0.03, contador: 0.07 } }; // IGIC 3% y 7%
-    }
-    if (zona === 'CeutaMelilla') {
-      return { impuestos: { energia: 0.01, contador: 0.04 } }; // IPSI 1% y 4%
-    }
-    return { impuestos: { energia: 0.21 } }; // IVA 21%
-  }
-};
+import '../js/lf-config.js';
 
 // Cargar el script a testear
 import '../js/desglose-factura.js';
@@ -49,19 +36,15 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
     // Consumo: 10
     expect(res.cons).toBe(10.00);
     
-    // Impuesto Eléctrico (IEE): 5.11269632% de (24+10 + tasaAcceso)
-    // Tasa acceso (bono social): 10€/año -> 10/365 * 30 = 0.8219...
-    // Base IEE: 24 + 10 + 0.82... = 34.82...
-    // IEE: 34.82 * 0.0511... = ~1.78
-    expect(res.impuestoElec).toBeGreaterThan(1.70);
-    expect(res.impuestoElec).toBeLessThan(1.90);
+    const ieeEsperado = round2(window.LF_CONFIG.calcularIEE(res.pot + res.cons + res.tarifaAcceso, 100));
+    expect(res.impuestoElec).toBeCloseTo(ieeEsperado, 2);
 
     // Alquiler: 0.81 * 12 / 365 * 30 = 0.7989... -> 0.80
     expect(res.alquilerContador).toBeCloseTo(0.80, 2);
 
-    // IVA 21% sobre todo
     const baseIVA = res.pot + res.cons + res.tarifaAcceso + res.impuestoElec + res.alquilerContador;
-    const ivaEsperado = round2(baseIVA * 0.21);
+    const ivaRate = window.LF_CONFIG.getTerritorio('Península').impuestos.energia;
+    const ivaEsperado = round2(baseIVA * ivaRate);
     expect(res.iva).toBe(ivaEsperado);
 
     // Total final

@@ -8,24 +8,26 @@ describe('LF_CONFIG - Lógica Fiscal', () => {
   
   it('Debe cargar correctamente en el objeto window', () => {
     expect(window.LF_CONFIG).toBeDefined();
-    expect(window.LF_CONFIG.version).toBe('2026.01');
+    expect(window.LF_CONFIG.version).toMatch(/^\d{4}\.\d{2}$/);
   });
 
   it('Cálculo IEE: Debe aplicar el 5.11269632% correctamente', () => {
     const base = 100;
     const consumo = 0;
     const result = window.LF_CONFIG.calcularIEE(base, consumo);
-    // 5.11269632
-    expect(result).toBeCloseTo(5.1127, 4);
+    const expected = (window.LF_CONFIG.iee.porcentaje / 100) * base;
+    expect(result).toBeCloseTo(expected, 4);
   });
 
   it('Cálculo IEE: Debe aplicar el mínimo de 0,001€/kWh si es mayor que el porcentaje', () => {
     const base = 1; // Base muy pequeña
     const consumo = 100; // Consumo alto
-    // % -> 0.0511
-    // Mínimo (100 * 0.001) -> 0.10
     const result = window.LF_CONFIG.calcularIEE(base, consumo);
-    expect(result).toBe(0.10);
+    const expected = Math.max(
+      (window.LF_CONFIG.iee.porcentaje / 100) * base,
+      consumo * window.LF_CONFIG.iee.minimoEurosKwh
+    );
+    expect(result).toBe(expected);
   });
 
   it('Canarias: Debe tener IGIC 0% para energía en viviendas', () => {

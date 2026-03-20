@@ -2,19 +2,7 @@ import { describe, it, expect, beforeAll } from 'vitest';
 
 // Setup global window object for utils
 window.LF = window.LF || {};
-window.LF_CONFIG = window.LF_CONFIG || {};
-
-// Mock LF_CONFIG for calcPvpcBonoSocial tests
-window.LF_CONFIG = {
-  bonoSocial: { eurosAnuales: 10 },
-  iee: { porcentaje: 5.11269632, minimoEurosKwh: 0.0005 },
-  alquilerContador: { eurosMes: 0.81 },
-  getTerritorio: (zona) => {
-    if (zona === 'Canarias') return { nombre: 'Canarias', impuestos: { energiaOtros: 0.03, contador: 0.07 }, limiteViviendaKw: 10 };
-    if (zona === 'CeutaMelilla') return { nombre: 'Ceuta y Melilla', impuestos: { energia: 0.01, contador: 0.04 } };
-    return { nombre: 'Península', impuestos: { energia: 0.21, contador: 0.21 } };
-  }
-};
+import '../js/lf-config.js';
 
 // Import the utils
 import '../js/lf-utils.js';

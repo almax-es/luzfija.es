@@ -348,6 +348,9 @@
       this.modal.querySelector('.desglose-periodo').innerHTML = `${escapeHtml(datos.fechaInicio || fechaInicioDefault)} - ${escapeHtml(datos.fechaFin || fechaFinDefault)} (${datos.dias || diasDefault} días)`;
 
       let html = '';
+      const impuestoInfo = (window.LF_CONFIG && typeof window.LF_CONFIG.getImpuestoInfo === 'function')
+        ? window.LF_CONFIG.getImpuestoInfo(datos.zonaFiscal || 'Península', d.usoFiscal || 'otros')
+        : null;
 
       // Cuando una sección tiene sublíneas (P1/P2 o Punta/Llano/Valle), si redondeamos cada
       // sublínea a 2 decimales puede aparecer un descuadre típico (±0,01€) con el total.
@@ -651,15 +654,19 @@
         const igicEnergiaBase = (d.usoFiscal === 'vivienda') ? 0 : d.igicBase;
         const igicTarget = round2(igicEnergiaBase + d.alquilerContador + d.igicContador);
         const [igicEnergiaDisp, igicAlqDisp, igicContDisp] = reconcileToTarget(igicTarget, [igicEnergiaBase, d.alquilerContador, d.igicContador]);
+        const igicEnergiaLabel = impuestoInfo?.energiaLabel || 'IGIC energía';
+        const igicEnergiaPct = impuestoInfo?.energiaPctText || '3%';
+        const igicContadorLabel = impuestoInfo?.contadorLabel || 'IGIC contador';
+        const igicContadorPct = impuestoInfo?.contadorPctText || '7%';
         html += `<div class="desglose-seccion">
           <div class="desglose-seccion-header"><h3>💰 IMPUESTOS Y ALQUILER (IGIC)</h3><span class="desglose-importe-header">${this.fmt(igicTarget)}</span></div>
           ${d.usoFiscal === 'vivienda' ? `<div class="desglose-linea">
-            <span class="desglose-concepto">IGIC energía</span>
+            <span class="desglose-concepto">${igicEnergiaLabel}</span>
             <span class="desglose-detalle">Exento (vivienda ≤10kW)</span>
             <span class="desglose-importe">0,00 €</span>
           </div>` : `<div class="desglose-linea">
-            <span class="desglose-concepto">IGIC energía (3%)</span>
-            <span class="desglose-detalle">3% de ${this.fmt(d.baseEnergia + d.impuestoElec)}</span>
+            <span class="desglose-concepto">${igicEnergiaLabel} (${igicEnergiaPct})</span>
+            <span class="desglose-detalle">${igicEnergiaPct} de ${this.fmt(d.baseEnergia + d.impuestoElec)}</span>
             <span class="desglose-importe">${this.fmt(igicEnergiaDisp)}</span>
           </div>`}
           <div class="desglose-linea">
@@ -668,8 +675,8 @@
             <span class="desglose-importe">${this.fmt(igicAlqDisp)}</span>
           </div>
           <div class="desglose-linea">
-            <span class="desglose-concepto">IGIC contador (7%)</span>
-            <span class="desglose-detalle">7% de ${this.fmt(d.alquilerContador)}</span>
+            <span class="desglose-concepto">${igicContadorLabel} (${igicContadorPct})</span>
+            <span class="desglose-detalle">${igicContadorPct} de ${this.fmt(d.alquilerContador)}</span>
             <span class="desglose-importe">${this.fmt(igicContDisp)}</span>
           </div>
         </div>`;
@@ -679,11 +686,15 @@
         // ═══════════════════════════════════════════════════════════════
         const ipsiTarget = round2(d.ipsiEnergia + d.alquilerContador + d.ipsiContador);
         const [ipsiEnergiaDisp, ipsiAlqDisp, ipsiContDisp] = reconcileToTarget(ipsiTarget, [d.ipsiEnergia, d.alquilerContador, d.ipsiContador]);
+        const ipsiEnergiaLabel = impuestoInfo?.energiaLabel || 'IPSI energía';
+        const ipsiEnergiaPct = impuestoInfo?.energiaPctText || '1%';
+        const ipsiContadorLabel = impuestoInfo?.contadorLabel || 'IPSI contador';
+        const ipsiContadorPct = impuestoInfo?.contadorPctText || '4%';
         html += `<div class="desglose-seccion">
           <div class="desglose-seccion-header"><h3>💰 IMPUESTOS Y ALQUILER (IPSI)</h3><span class="desglose-importe-header">${this.fmt(ipsiTarget)}</span></div>
           <div class="desglose-linea">
-            <span class="desglose-concepto">IPSI energía (1%)</span>
-            <span class="desglose-detalle">1% de ${this.fmt(d.baseIPSI)} (Ley 8/1991)</span>
+            <span class="desglose-concepto">${ipsiEnergiaLabel} (${ipsiEnergiaPct})</span>
+            <span class="desglose-detalle">${ipsiEnergiaPct} de ${this.fmt(d.baseIPSI)} (Ley 8/1991)</span>
             <span class="desglose-importe">${this.fmt(ipsiEnergiaDisp)}</span>
           </div>
           <div class="desglose-linea">
@@ -692,8 +703,8 @@
             <span class="desglose-importe">${this.fmt(ipsiAlqDisp)}</span>
           </div>
           <div class="desglose-linea">
-            <span class="desglose-concepto">IPSI contador (4%)</span>
-            <span class="desglose-detalle">4% de ${this.fmt(d.alquilerContador)}</span>
+            <span class="desglose-concepto">${ipsiContadorLabel} (${ipsiContadorPct})</span>
+            <span class="desglose-detalle">${ipsiContadorPct} de ${this.fmt(d.alquilerContador)}</span>
             <span class="desglose-importe">${this.fmt(ipsiContDisp)}</span>
           </div>
         </div>`;
@@ -701,11 +712,13 @@
         // ═══════════════════════════════════════════════════════════════
         // PENÍNSULA Y BALEARES: IVA
         // ═══════════════════════════════════════════════════════════════
+        const ivaLabel = impuestoInfo?.energiaLabel || 'IVA';
+        const ivaPct = impuestoInfo?.energiaPctText || '21%';
         html += `<div class="desglose-seccion">
           <div class="desglose-seccion-header"><h3>💰 IVA</h3><span class="desglose-importe-header">${this.fmt(d.iva)}</span></div>
           <div class="desglose-linea">
-            <span class="desglose-concepto">IVA (21%)</span>
-            <span class="desglose-detalle">21% de ${this.fmt(d.ivaBase)}</span>
+            <span class="desglose-concepto">${ivaLabel} (${ivaPct})</span>
+            <span class="desglose-detalle">${ivaPct} de ${this.fmt(d.ivaBase)}</span>
             <span class="desglose-importe">${this.fmt(d.iva)}</span>
           </div>
         </div>`;

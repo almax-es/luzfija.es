@@ -15,27 +15,6 @@ global.window = {
 };
 global.fetch = vi.fn();
 
-// Mockeamos config global
-global.window.LF_CONFIG = {
-  pvpc: {
-    urlIndex: '/data/pvpc/index.json',
-    urlMonthPattern: '/data/pvpc/{geoId}/{year}-{month}.json'
-  },
-  iee: {
-    porcentaje: 5.11269632,
-    minimoEurosKwh: 0.001
-  },
-  // Mocks necesarios para calculos fiscales
-  calcularBonoSocial: vi.fn().mockReturnValue(0.50), // Valor fijo simulado
-  calcularAlquilerContador: vi.fn().mockReturnValue(0.81), // Valor fijo simulado
-  calcularIEE: vi.fn().mockImplementation((base, consumoKwh) => {
-    const porPorcentaje = (5.11269632 / 100) * base;
-    const porMinimo = consumoKwh * 0.001;
-    return Math.max(porPorcentaje, porMinimo);
-  }),
-  getTerritorio: vi.fn().mockReturnValue({ ie: 0.051127, iva: 0.21 }) // Mock basico de territorio
-};
-
 // Cargar dependencias necesarias
 const loadScript = (filePath) => {
   const code = fs.readFileSync(path.resolve(__dirname, filePath), 'utf8');
@@ -46,6 +25,8 @@ const loadScript = (filePath) => {
 // Activar debug para ver errores internos
 global.window.__LF_DEBUG = true;
 
+// Cargar config real antes que utilidades dependientes
+loadScript('../js/lf-config.js');
 // Cargar lf-utils primero (pvpc.js usa window.LF)
 loadScript('../js/lf-utils.js');
 // Cargar pvpc.js

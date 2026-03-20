@@ -72,41 +72,31 @@
 
     function computePvpcFiscal(meta, fiscal) {
       const CFG = window.LF_CONFIG;
-      const terr = CFG ? CFG.getTerritorio(fiscal?.zona) : null;
-      const impuestos = terr?.impuestos || {};
       const baseEnergia = (meta.terminoFijo || 0) + (meta.costeMargenPot || 0) + (meta.terminoVariable || 0) + (meta.bonoSocial || 0);
       const baseContador = meta.equipoMedida || 0;
       const impuestoElec = meta.impuestoElectrico || 0;
       const isCanarias = fiscal?.esCanarias || fiscal?.zona === 'canarias';
       const isCeutaMelilla = fiscal?.esCeutaMelilla || fiscal?.zona === 'ceutamelilla';
       const usoFiscal = fiscal?.usoFiscal || 'otros';
-      let impuestoEnergia = 0;
-      let impuestoContador = 0;
-      let ivaBase = 0;
-      let baseIPSI = 0;
-      let iva = 0;
+      const zonaFiscal = isCanarias ? 'Canarias' : isCeutaMelilla ? 'CeutaMelilla' : 'Península';
+      const taxCalc = (CFG && typeof CFG.calcularImpuestoIndirecto === 'function')
+        ? CFG.calcularImpuestoIndirecto({
+            zona: zonaFiscal,
+            usoFiscal,
+            baseEnergia,
+            impuestoElectrico: impuestoElec,
+            baseContador
+          })
+        : null;
 
-      if (isCanarias) {
-        const energiaOtros = Number.isFinite(impuestos.energiaOtros) ? impuestos.energiaOtros : 0;
-        impuestoEnergia = usoFiscal === 'vivienda' ? 0 : round2((baseEnergia + impuestoElec) * energiaOtros);
-        const tipoContador = Number.isFinite(impuestos.contador) ? impuestos.contador : 0;
-        impuestoContador = round2(baseContador * tipoContador);
-      } else if (isCeutaMelilla) {
-        baseIPSI = baseEnergia + impuestoElec;
-        const energia = Number.isFinite(impuestos.energia) ? impuestos.energia : 0;
-        impuestoEnergia = round2(baseIPSI * energia);
-        const tipoContador = Number.isFinite(impuestos.contador) ? impuestos.contador : 0;
-        impuestoContador = round2(baseContador * tipoContador);
-      } else {
-        ivaBase = baseEnergia + impuestoElec + baseContador;
-        const energia = Number.isFinite(impuestos.energia) ? impuestos.energia : 0;
-        impuestoEnergia = round2(ivaBase * energia);
-        iva = impuestoEnergia;
-      }
-
+      const impuestoEnergia = taxCalc ? taxCalc.impuestoEnergia : 0;
+      const impuestoContador = taxCalc ? taxCalc.impuestoContador : 0;
+      const ivaBase = taxCalc ? taxCalc.ivaBase : 0;
+      const baseIPSI = taxCalc ? taxCalc.baseIPSI : 0;
+      const iva = taxCalc ? taxCalc.iva : 0;
       const totalFactura = round2(baseEnergia + impuestoElec + baseContador + impuestoEnergia + impuestoContador);
       const impuestosTotal = round2((meta.bonoSocial || 0) + impuestoElec + baseContador + impuestoEnergia + impuestoContador);
-      const impuestoTipo = impuestos.tipo || (isCanarias ? 'IGIC' : isCeutaMelilla ? 'IPSI' : 'IVA');
+      const impuestoTipo = taxCalc ? taxCalc.tipo : (isCanarias ? 'IGIC' : isCeutaMelilla ? 'IPSI' : 'IVA');
 
       return {
         baseEnergia,
@@ -639,7 +629,10 @@ const PEAJES_POT_DIA = {
         const baseIEE = terminoFijo + costeMargenPot + terminoVariable + bonoSocial;
         const impuestoElectrico = (window.LF_CONFIG && typeof window.LF_CONFIG.calcularIEE === 'function')
           ? round2(window.LF_CONFIG.calcularIEE(baseIEE, consumoTotal))
-          : round2(Math.max((5.11269632 / 100) * baseIEE, consumoTotal * 0.001));
+          : round2(Math.max(
+              ((Number(window.LF_CONFIG?.iee?.porcentaje) || 0) / 100) * baseIEE,
+              consumoTotal * (Number(window.LF_CONFIG?.iee?.minimoEurosKwh) || 0)
+            ));
         
         // ALQUILER
         const equipoMedida = window.LF_CONFIG ? window.LF_CONFIG.calcularAlquilerContador(dias) : (dias * 0.81 * 12 / 365);

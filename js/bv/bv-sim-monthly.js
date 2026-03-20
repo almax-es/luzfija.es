@@ -253,9 +253,10 @@ window.BVSim.calcMonthForTarifa = function ({
   if (CFG && typeof CFG.calcularIEE === 'function') {
     impuestoElec = round2(CFG.calcularIEE(sumaBase, consumoTotalKwh));
   } else {
-    // Fallback coherente con LF_CONFIG por defecto.
-    const tasaIEE = 0.0511269632;
-    impuestoElec = round2(Math.max(tasaIEE * sumaBase, consumoTotalKwh * 0.001));
+    // Fallback derivado de la config si faltase la helper central.
+    const ieePct = Number(CFG?.iee?.porcentaje) || 0;
+    const ieeMin = Number(CFG?.iee?.minimoEurosKwh) || 0;
+    impuestoElec = round2(Math.max((ieePct / 100) * sumaBase, consumoTotalKwh * ieeMin));
   }
 
   // Alquiler
@@ -277,12 +278,22 @@ window.BVSim.calcMonthForTarifa = function ({
   let totalBase = 0;
 
   const tipoImpuesto = String(terr?.impuestos?.tipo || '').toUpperCase();
+  const potenciaContratada = Math.max(0, Number(potenciaP1) || 0, Number(potenciaP2) || 0);
+  const limiteKw = Number(terr?.limiteViviendaKw) || 10;
+  const esViviendaTipoCero = tipoImpuesto === 'IGIC' && Boolean(esVivienda) && potenciaContratada > 0 && potenciaContratada <= limiteKw;
 
-  if (tipoImpuesto === 'IGIC') {
-    const potenciaContratada = Math.max(0, Number(potenciaP1) || 0, Number(potenciaP2) || 0);
-    const limiteKw = Number(terr?.limiteViviendaKw) || 10;
-    const esViviendaTipoCero = Boolean(esVivienda) && potenciaContratada > 0 && potenciaContratada <= limiteKw;
+  if (CFG && typeof CFG.calcularImpuestoIndirecto === 'function') {
+    const taxCalc = CFG.calcularImpuestoIndirecto({
+      zona: zonaFiscal,
+      usoFiscal: esViviendaTipoCero ? 'vivienda' : (tipoImpuesto === 'IPSI' ? 'ipsi' : 'otros'),
+      baseEnergia: sumaBase,
+      impuestoElectrico: impuestoElec,
+      baseContador: alquilerContador
+    });
 
+    ivaCuota = round2(taxCalc.tipo === 'IVA' ? taxCalc.iva : taxCalc.impuestoTotal);
+    totalBase = round2(sumaBase + impuestoElec + alquilerContador + taxCalc.impuestoEnergia + taxCalc.impuestoContador);
+  } else if (tipoImpuesto === 'IGIC') {
     const igicEnergia = esViviendaTipoCero
       ? 0
       : round2((sumaBase + impuestoElec) * (Number(terr?.impuestos?.energiaOtros) || 0));
@@ -297,9 +308,7 @@ window.BVSim.calcMonthForTarifa = function ({
     ivaCuota = round2(ipsiEnergia + ipsiContador);
     totalBase = round2(sumaBase + impuestoElec + ipsiEnergia + alquilerContador + ipsiContador);
   } else {
-    // IVA (Península/Baleares): mismo tipo para energía y contador.
-    const ivaPorc = Number(terr?.impuestos?.energia);
-    const ivaRate = Number.isFinite(ivaPorc) ? ivaPorc : 0.21;
+    const ivaRate = Number(terr?.impuestos?.energia) || 0;
     const ivaBase = round2(sumaBase + impuestoElec + alquilerContador);
 
     ivaCuota = round2(ivaBase * ivaRate);

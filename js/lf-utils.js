@@ -348,14 +348,35 @@
     let ivaBase = 0;
     let baseIPSI = 0;
 
-    if ((territorio.nombre || '') === 'Canarias') {
+    const esCanarias = (territorio.nombre || '') === 'Canarias';
+    const esCeutaMelilla = (territorio.nombre || '') === 'Ceuta y Melilla';
+
+    if (typeof C.calcularImpuestoIndirecto === 'function') {
+      usoFiscal = esCanarias && !!i.viviendaCanarias && potenciaMax <= (territorio.limiteViviendaKw || 10)
+        ? 'vivienda'
+        : (esCeutaMelilla ? 'ipsi' : 'iva');
+
+      const taxCalc = C.calcularImpuestoIndirecto({
+        zona: zonaFiscal,
+        usoFiscal,
+        baseEnergia,
+        impuestoElectrico,
+        baseContador: equipoMedida
+      });
+
+      impuestoEnergia = round2(taxCalc.impuestoEnergia);
+      impuestoContador = round2(taxCalc.impuestoContador);
+      iva = round2(taxCalc.iva);
+      ivaBase = round2(taxCalc.ivaBase);
+      baseIPSI = round2(taxCalc.baseIPSI);
+    } else if (esCanarias) {
       const vivienda = !!i.viviendaCanarias && potenciaMax <= (territorio.limiteViviendaKw || 10);
       usoFiscal = vivienda ? 'vivienda' : 'otros';
       if (!vivienda) {
         impuestoEnergia = round2((baseEnergia + impuestoElectrico) * (territorio.impuestos?.energiaOtros || 0));
       }
       impuestoContador = round2(equipoMedida * (territorio.impuestos?.contador || 0));
-    } else if ((territorio.nombre || '') === 'Ceuta y Melilla') {
+    } else if (esCeutaMelilla) {
       usoFiscal = 'ipsi';
       baseIPSI = round2(baseEnergia + impuestoElectrico + equipoMedida);
       impuestoEnergia = round2((baseEnergia + impuestoElectrico) * (territorio.impuestos?.energia || 0));
