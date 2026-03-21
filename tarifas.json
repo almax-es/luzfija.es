@@ -240,25 +240,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Plenitude",
-      "cPunta": 0.12863,
-      "cLlano": 0.12863,
-      "cValle": 0.12863,
-      "p1": 0.075902,
-      "p2": 0.075902,
-      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
-      "tipo": "1P",
-      "requisitos": "Potencia contratada ≤ 5 kW",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Seneo Tarifa 2",
       "cPunta": 0.129,
       "cLlano": 0.129,
@@ -291,6 +272,25 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Plenitude",
+      "cPunta": 0.14719,
+      "cLlano": 0.14719,
+      "cValle": 0.14719,
+      "p1": 0.075902,
+      "p2": 0.075902,
+      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
+      "tipo": "1P",
+      "requisitos": "Potencia contratada ≤ 5 kW",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
       },
       "requiereFV": false
     },
@@ -643,5 +643,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-03-21T07:43:30.559Z"
+  "updatedAt": "2026-03-21T07:46:35.378Z"
 }
