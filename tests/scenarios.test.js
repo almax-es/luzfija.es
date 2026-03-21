@@ -40,16 +40,33 @@ describe('Escenarios de Negocio (Integración Fiscal y Bono Social)', () => {
     const inputs = {
       dias: 30,
       zonaFiscal: 'Península',
-      bonoSocialOn: false
+      p1: 4.6,
+      bonoSocialOn: false,
+      fechaYmd: '2026-03-21'
     };
 
     const res = calcPvpcBonoSocial(metaBase, inputs, global.window.LF_CONFIG);
     
-    // Península: IVA se aplica sobre (Energía + Potencia + IEE + Alquiler)
-    // Esperamos usoFiscal: 'iva'
-    expect(res.meta.usoFiscal).toBe('iva');
+    // Península antes del 22/03/2026: IVA general
+    expect(res.meta.usoFiscal).toBe('iva_general');
     expect(res.meta.impuestoEnergia).toBeGreaterThan(0); // Debe haber IVA
     expect(res.meta.totalFactura).toBeGreaterThan(61.81); // Base aprox
+  });
+
+  it('Escenario 1b: Península (<10kW) desde el 22/03/2026 -> IVA 10%', () => {
+    const inputs = {
+      dias: 30,
+      p1: 4.6,
+      zonaFiscal: 'Península',
+      bonoSocialOn: false,
+      fechaYmd: '2026-03-22'
+    };
+
+    const res = calcPvpcBonoSocial(metaBase, inputs, global.window.LF_CONFIG);
+
+    expect(res.meta.usoFiscal).toBe('iva_reducido');
+    expect(res.meta.impuestoEnergia).toBeGreaterThan(0);
+    expect(res.meta.iva).toBeCloseTo(res.meta.impuestoEnergia, 2);
   });
 
   it('Escenario 2: Canarias Vivienda (<10kW) -> IGIC 0% en energía', () => {

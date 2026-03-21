@@ -38,7 +38,7 @@ describe('BVSim - Fiscalidad alineada con comparador principal', () => {
     });
 
     const bono = r2(window.LF_CONFIG.calcularBonoSocial(dias));
-    const expectedIEE = r2(window.LF_CONFIG.calcularIEE(bono, 0));
+    const expectedIEE = r2(window.LF_CONFIG.calcularIEE(bono, 0, '2025-01-31'));
 
     expect(res.costeBonoSocial).toBeCloseTo(bono, 6);
     expect(res.impuestoElec).toBeCloseTo(expectedIEE, 2);
@@ -117,7 +117,7 @@ describe('BVSim - Fiscalidad alineada con comparador principal', () => {
     });
 
     const bono = r2(window.LF_CONFIG.calcularBonoSocial(dias));
-    const iee = r2(window.LF_CONFIG.calcularIEE(bono, 0));
+    const iee = r2(window.LF_CONFIG.calcularIEE(bono, 0, '2025-01-31'));
     const alquiler = r2(window.LF_CONFIG.calcularAlquilerContador(dias));
     const expectedEnergia = r2((bono + iee) * 0.01);
     const expectedContador = r2(alquiler * 0.04);

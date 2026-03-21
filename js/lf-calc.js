@@ -26,7 +26,11 @@
   async function calculateLocal(values) {
     const { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias, solarOn, exTotal, bvSaldo, bonoSocialOn, bonoSocialTipo, bonoSocialLimite } = values || getInputValues();
     
-    const fiscal = __LF_getFiscalContext({ p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias });
+    const fiscal = __LF_getFiscalContext({
+      p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias,
+      bonoSocialOn, bonoSocialTipo,
+      fechaYmd: values?.fechaYmd
+    });
     const isCanarias = fiscal.esCanarias;
     const isCeutaMelilla = fiscal.esCeutaMelilla;
     
@@ -35,13 +39,7 @@
 
     // Valores de configuración
     const bonoSocialAnual = CFG.bonoSocial.eurosAnuales;
-    const ieePorc = CFG.iee.porcentaje;
-    const ieeMinKwh = CFG.iee.minimoEurosKwh;
     const alquilerMes = CFG.alquilerContador.eurosMes;
-
-    // Impuestos por territorio
-    const terr = CFG.getTerritorio(fiscal.zona);
-    const impuestos = terr.impuestos;
 
     // Bono Social: Preparar cálculo de descuento para PVPC
     // Nota: bonoSocialLimite es ANUAL en kWh (1.587, 2.222, 2.698, o 4.761)
@@ -228,8 +226,20 @@
 
         const sumaBase = pot + consAdj + tarifaAdj;
         const consumoTotalKwh = cPunta + cLlano + cValle;
-        const impuestoElec = round2(Math.max((ieePorc / 100) * sumaBase, consumoTotalKwh * ieeMinKwh));
+        const impuestoElec = round2(CFG.calcularIEE(sumaBase, consumoTotalKwh, fiscal.fechaYmd));
         const alquilerContador = round2(dias * alquilerMes * 12 / 365);
+        const taxCalc = CFG.calcularImpuestoIndirecto({
+          zona: zonaFiscal,
+          usoFiscal: fiscal.usoFiscal,
+          baseEnergia: sumaBase,
+          impuestoElectrico: impuestoElec,
+          baseContador: alquilerContador,
+          potenciaContratada: fiscal.potenciaContratada,
+          viviendaCanarias,
+          bonoSocialOn,
+          bonoSocialTipo,
+          fechaYmd: fiscal.fechaYmd
+        });
 
         // ═══════════════════════════════════════════════════════════════
         // CÁLCULO POR TERRITORIO
@@ -240,10 +250,8 @@
           // CANARIAS: IGIC (0% vivienda ≤10kW, 3% otros, 7% contador)
           // ─────────────────────────────────────────────────────────────
           const baseEnergiaCan = sumaBase;
-          const igicEnergia = fiscal.usoFiscal === 'vivienda' 
-            ? 0 
-            : round2((baseEnergiaCan + impuestoElec) * impuestos.energiaOtros);
-          const igicContador = round2(alquilerContador * impuestos.contador);
+          const igicEnergia = round2(taxCalc.impuestoEnergia);
+          const igicContador = round2(taxCalc.impuestoContador);
           // Blindaje de redondeos: en la tabla (potencia + consumo + impuestos) debe cuadrar con TOTAL.
           // Ajustamos SOLO si la diferencia es un efecto de redondeo (±0,05€) y nunca permitimos negativos.
           const impuestosSum = round2(tarifaAdj + impuestoElec + igicEnergia + igicContador + alquilerContador);
@@ -304,9 +312,9 @@
           // CEUTA Y MELILLA: IPSI (1% energía, 4% contador)
           // Ley 8/1991 Art. 18
           // ─────────────────────────────────────────────────────────────
-          const baseIPSI = sumaBase + impuestoElec;
-          const ipsiEnergia = round2(baseIPSI * impuestos.energia);
-          const ipsiContador = round2(alquilerContador * impuestos.contador);
+          const baseIPSI = round2(taxCalc.baseIPSI);
+          const ipsiEnergia = round2(taxCalc.impuestoEnergia);
+          const ipsiContador = round2(taxCalc.impuestoContador);
           // Blindaje de redondeos (tabla): pot + consumo + impuestos = total (si el ajuste es solo por redondeo)
           const impuestosSum = round2(tarifaAdj + impuestoElec + ipsiEnergia + ipsiContador + alquilerContador);
           const totalBase = round2(sumaBase + impuestoElec + ipsiEnergia + alquilerContador + ipsiContador);
@@ -365,9 +373,8 @@
           // ─────────────────────────────────────────────────────────────
           // PENÍNSULA Y BALEARES: IVA 21%
           // ─────────────────────────────────────────────────────────────
-          const ivaBase = pot + consAdj + tarifaAdj + impuestoElec + alquilerContador;
-          const ivaPorc = impuestos.energia;
-          const ivaCuota = round2(ivaBase * ivaPorc);
+          const ivaBase = round2(taxCalc.ivaBase);
+          const ivaCuota = round2(taxCalc.iva);
           // Blindaje de redondeos (tabla): pot + consumo + impuestos = total (si el ajuste es solo por redondeo)
           const impuestosSum = round2(tarifaAdj + impuestoElec + alquilerContador + ivaCuota);
           const totalBase = round2(ivaBase + ivaCuota);
@@ -564,13 +571,14 @@
     const potencia = round2((p1 * dias * SUN_CLUB.precios.p1) + (p2 * dias * SUN_CLUB.precios.p2));
     
     // Contexto fiscal
-    const fiscal = __LF_getFiscalContext({ 
+    const fiscal = __LF_getFiscalContext({
       p1, p2, dias, 
       cPunta: precioEnergia, 
       cLlano: precioEnergia, 
       cValle: precioEnergia, 
       zonaFiscal, 
-      viviendaCanarias 
+      viviendaCanarias,
+      fechaYmd: values?.fechaYmd
     });
     
     // Configuración
@@ -578,31 +586,35 @@
     const bonoSocialAnual = CFG.bonoSocial.eurosAnuales;
     const tarifaAcceso = round2(bonoSocialAnual / 365 * dias);
     const sumaBase = potencia + consumoBase + tarifaAcceso;
-    const impuestoElec = round2(Math.max((CFG.iee.porcentaje / 100) * sumaBase, consumoTotalKwh * CFG.iee.minimoEurosKwh));
+    const impuestoElec = round2(CFG.calcularIEE(sumaBase, consumoTotalKwh, fiscal.fechaYmd));
     const alquilerContador = round2(dias * CFG.alquilerContador.eurosMes * 12 / 365);
-    
-    // Impuestos por territorio
-    const terr = CFG.getTerritorio(fiscal.zona);
-    const impuestos = terr.impuestos;
+    const taxCalc = CFG.calcularImpuestoIndirecto({
+      zona: zonaFiscal,
+      usoFiscal: fiscal.usoFiscal,
+      baseEnergia: sumaBase,
+      impuestoElectrico: impuestoElec,
+      baseContador: alquilerContador,
+      potenciaContratada: fiscal.potenciaContratada,
+      viviendaCanarias,
+      fechaYmd: fiscal.fechaYmd
+    });
     
     let totalAPagar;
     let impuestosTotal;
     
     if (fiscal.esCanarias) {
-      const igicEnergia = fiscal.usoFiscal === 'vivienda' 
-        ? 0 
-        : round2((sumaBase + impuestoElec) * impuestos.energiaOtros);
-      const igicContador = round2(alquilerContador * impuestos.contador);
+      const igicEnergia = round2(taxCalc.impuestoEnergia);
+      const igicContador = round2(taxCalc.impuestoContador);
       impuestosTotal = tarifaAcceso + impuestoElec + igicEnergia + igicContador + alquilerContador;
       totalAPagar = round2(sumaBase + impuestoElec + igicEnergia + alquilerContador + igicContador);
     } else if (fiscal.esCeutaMelilla) {
-      const ipsiEnergia = round2((sumaBase + impuestoElec) * impuestos.energia);
-      const ipsiContador = round2(alquilerContador * impuestos.contador);
+      const ipsiEnergia = round2(taxCalc.impuestoEnergia);
+      const ipsiContador = round2(taxCalc.impuestoContador);
       impuestosTotal = tarifaAcceso + impuestoElec + ipsiEnergia + ipsiContador + alquilerContador;
       totalAPagar = round2(sumaBase + impuestoElec + ipsiEnergia + alquilerContador + ipsiContador);
     } else {
-      const ivaBase = potencia + consumoBase + tarifaAcceso + impuestoElec + alquilerContador;
-      const ivaCuota = round2(ivaBase * impuestos.energia);
+      const ivaBase = round2(taxCalc.ivaBase);
+      const ivaCuota = round2(taxCalc.iva);
       impuestosTotal = tarifaAcceso + impuestoElec + alquilerContador + ivaCuota;
       totalAPagar = round2(ivaBase + ivaCuota);
     }

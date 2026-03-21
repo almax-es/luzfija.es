@@ -329,8 +329,19 @@
     // Ref: RD 897/2017, validado contra CNMC v2.1.2
     const baseEnergia = round2(terminoFijoTotal + terminoVariable + financiacionBono - descuentoEur);
 
+    const fiscalContext = (typeof C.getFiscalContext === 'function')
+      ? C.getFiscalContext({
+          zona: i.zonaFiscal,
+          potenciaContratada: potenciaMax,
+          viviendaCanarias: i.viviendaCanarias,
+          bonoSocialOn,
+          bonoSocialTipo: tipo,
+          fechaYmd: i.fechaYmd
+        })
+      : null;
+
     const impuestoElectrico = (C.calcularIEE && Number.isFinite(consumoKwh))
-      ? round2(C.calcularIEE(baseEnergia, consumoKwh))
+      ? round2(C.calcularIEE(baseEnergia, consumoKwh, fiscalContext?.fechaYmd || i.fechaYmd))
       : 0;
 
     const equipoMedida = Number.isFinite(Number(meta.equipoMedida))
@@ -352,16 +363,22 @@
     const esCeutaMelilla = (territorio.nombre || '') === 'Ceuta y Melilla';
 
     if (typeof C.calcularImpuestoIndirecto === 'function') {
-      usoFiscal = esCanarias
-        ? ((!!i.viviendaCanarias && potenciaMax <= (territorio.limiteViviendaKw || 10)) ? 'vivienda' : 'otros')
-        : (esCeutaMelilla ? 'ipsi' : 'iva');
+      usoFiscal = fiscalContext?.usoFiscal
+        || (esCanarias
+          ? ((!!i.viviendaCanarias && potenciaMax <= (territorio.limiteViviendaKw || 10)) ? 'vivienda' : 'otros')
+          : (esCeutaMelilla ? 'ipsi' : 'iva_general'));
 
       const taxCalc = C.calcularImpuestoIndirecto({
         zona: zonaFiscal,
         usoFiscal,
         baseEnergia,
         impuestoElectrico,
-        baseContador: equipoMedida
+        baseContador: equipoMedida,
+        potenciaContratada: potenciaMax,
+        viviendaCanarias: i.viviendaCanarias,
+        bonoSocialOn,
+        bonoSocialTipo: tipo,
+        fechaYmd: fiscalContext?.fechaYmd || i.fechaYmd
       });
 
       impuestoEnergia = round2(taxCalc.impuestoEnergia);
@@ -384,7 +401,7 @@
       impuestoContador = round2(equipoMedida * (territorio.impuestos?.contador || 0));
     } else {
       // Península y Baleares (IVA)
-      usoFiscal = 'iva';
+      usoFiscal = 'iva_general';
       ivaBase = round2(baseEnergia + impuestoElectrico + equipoMedida);
       iva = round2(ivaBase * (territorio.impuestos?.energia || 0));
       impuestoEnergia = iva;
@@ -418,6 +435,7 @@
       impuestosTotal: impuestosTotal,
       totalFactura: totalFactura,
       usoFiscal: usoFiscal,
+      fechaYmd: fiscalContext?.fechaYmd || i.fechaYmd || null,
 
       // ayuda a la UI (ranking)
       otrosConceptos: otrosConceptos,

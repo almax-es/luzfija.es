@@ -12,19 +12,41 @@
   // ===== CONTEXTO FISCAL =====
   function __LF_getFiscalContext(values) {
     const v = values || getInputValues();
-    const zonaRaw = (v?.zonaFiscal || '').toLowerCase();
-    const zona = zonaRaw === 'canarias' ? 'canarias' 
-               : zonaRaw === 'ceutamelilla' ? 'ceutamelilla' 
-               : 'península';
     const p1Num = clampNonNeg(parseNum(v?.p1));
     const p2Num = clampNonNeg(parseNum(v?.p2));
     const potenciaContratada = Math.max(p1Num || 0, p2Num || 0);
-    const esCanarias = (zona === 'canarias');
-    const esCeutaMelilla = (zona === 'ceutamelilla');
+    const C = window.LF_CONFIG;
+
+    if (C && typeof C.getFiscalContext === 'function') {
+      const ctx = C.getFiscalContext({
+        zona: v?.zonaFiscal,
+        potenciaContratada,
+        viviendaCanarias: v?.viviendaCanarias,
+        bonoSocialOn: v?.bonoSocialOn,
+        bonoSocialTipo: v?.bonoSocialTipo,
+        fechaYmd: v?.fechaYmd || v?.fechaFin || v?.fechaInicio
+      });
+      return {
+        zona: ctx.zona,
+        viviendaMarcada: ctx.viviendaMarcada,
+        potenciaContratada: ctx.potenciaContratada,
+        esViviendaTipoCero: ctx.esViviendaTipoCero,
+        usoFiscal: ctx.usoFiscal,
+        esCanarias: ctx.esCanarias,
+        esCeutaMelilla: ctx.esCeutaMelilla,
+        fechaYmd: ctx.fechaYmd
+      };
+    }
+
+    const zonaRaw = (v?.zonaFiscal || '').toLowerCase();
+    const zona = zonaRaw === 'canarias' ? 'canarias'
+               : zonaRaw === 'ceutamelilla' ? 'ceutamelilla'
+               : 'península';
+    const esCanarias = zona === 'canarias';
+    const esCeutaMelilla = zona === 'ceutamelilla';
     const viviendaMarcada = Boolean(v?.viviendaCanarias);
-    // Solo Canarias tiene distinción vivienda/otros para IGIC 0%
     const esViviendaTipoCero = esCanarias && viviendaMarcada && potenciaContratada > 0 && potenciaContratada <= 10;
-    const usoFiscal = esViviendaTipoCero ? 'vivienda' : 'otros';
+    const usoFiscal = esViviendaTipoCero ? 'vivienda' : (esCeutaMelilla ? 'ipsi' : 'otros');
 
     return { zona, viviendaMarcada, potenciaContratada, esViviendaTipoCero, usoFiscal, esCanarias, esCeutaMelilla };
   }

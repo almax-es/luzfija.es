@@ -2,12 +2,12 @@
  * lf-config.js - Configuración centralizada de valores regulados
  * 
  * Este archivo contiene todos los valores que pueden cambiar por legislación.
- * Actualizado: Enero 2026
+ * Actualizado: Marzo 2026
  * 
  * Referencias legales:
  * - Bono social: Orden TED/1524/2025 (BOE-A-2025-26705)
- * - IEE: Ley 38/1992 Art. 64 (5,11269632%)
- * - IVA: Ley 37/1992 (21% desde enero 2025)
+ * - IEE: Ley 38/1992 Art. 99 + RDL 7/2026 (reducción temporal)
+ * - IVA: Ley 37/1992 + RDL 7/2026 (reducción temporal)
  * - IGIC: Ley 4/2012 Art. 52 (0% vivienda ≤10kW, 3% otros, 7% contador)
  * - IPSI: Ley 8/1991 Art. 18 (1% electricidad, 4% servicios)
  * - Alquiler contador: Orden ITC/3860/2007 (0,81 €/mes)
@@ -22,8 +22,8 @@
     // ═══════════════════════════════════════════════════════════════════
     // VERSIÓN Y METADATOS
     // ═══════════════════════════════════════════════════════════════════
-    version: '2026.02',
-    ultimaActualizacion: '2026-01-10',
+    version: '2026.03',
+    ultimaActualizacion: '2026-03-21',
 
     // ═══════════════════════════════════════════════════════════════════
     // BONO SOCIAL (financiación)
@@ -42,6 +42,25 @@
       porcentaje: 5.11269632,       // %
       minimoEurosKwh: 0.001,        // €/kWh (mínimo legal)
       descripcion: 'Impuesto especial electricidad'
+    },
+
+    // ═══════════════════════════════════════════════════════════════════
+    // MEDIDAS TEMPORALES (RDL 7/2026, BOE 21/03/2026)
+    // Entrada en vigor: 22/03/2026
+    // Nota: junio de 2026 queda condicionado al IPC publicado en mayo.
+    // Si esa condición hiciera caer la rebaja en junio, bastará con poner
+    // junio2026Habilitado = false.
+    // ═══════════════════════════════════════════════════════════════════
+    medidasTemporales: {
+      rdl72026: {
+        entradaVigor: '2026-03-22',
+        fin: '2026-06-30',
+        junio2026Habilitado: true,
+        ieePorcentajeReducido: 0.5,
+        ivaPeninsulaReducido: 0.10,
+        potenciaMaxIvaReducidoKwExclusiva: 10,
+        bonoSocialTiposIvaReducido: ['severo', 'severo_exclusion']
+      }
     },
 
     // ═══════════════════════════════════════════════════════════════════
@@ -130,11 +149,171 @@
      * @param {string} zona - 'peninsula', 'canarias', 'ceutamelilla' o valores del select
      * @returns {Object} Configuración del territorio
      */
-    getTerritorio: function(zona) {
-      const key = (zona || '').toLowerCase()
+    normalizeZonaKey: function(zona) {
+      return (zona || '').toLowerCase()
         .replace('península', 'peninsula')
         .replace('ceuta y melilla', 'ceutamelilla');
+    },
+
+    getTerritorio: function(zona) {
+      const key = this.normalizeZonaKey(zona);
       return this.territorios[key] || this.territorios.peninsula;
+    },
+
+    formatDateYmdInMadrid: function(date) {
+      const d = (date instanceof Date && Number.isFinite(date.getTime())) ? date : new Date();
+      try {
+        const parts = new Intl.DateTimeFormat('en-CA', {
+          timeZone: 'Europe/Madrid',
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit'
+        }).formatToParts(d);
+        const map = Object.create(null);
+        parts.forEach(part => {
+          if (part && part.type) map[part.type] = part.value;
+        });
+        if (map.year && map.month && map.day) {
+          return `${map.year}-${map.month}-${map.day}`;
+        }
+      } catch (e) {}
+
+      const year = d.getFullYear();
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    },
+
+    getTodayYmd: function() {
+      return this.formatDateYmdInMadrid(new Date());
+    },
+
+    resolveFiscalDateYmd: function(fechaLike) {
+      if (fechaLike instanceof Date && Number.isFinite(fechaLike.getTime())) {
+        return this.formatDateYmdInMadrid(fechaLike);
+      }
+
+      const raw = String(fechaLike || '').trim();
+      if (!raw) return this.getTodayYmd();
+      if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) return raw;
+
+      const esMatch = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(raw);
+      if (esMatch) {
+        return `${esMatch[3]}-${esMatch[2]}-${esMatch[1]}`;
+      }
+
+      const parsed = new Date(raw);
+      if (Number.isFinite(parsed.getTime())) {
+        return this.formatDateYmdInMadrid(parsed);
+      }
+
+      return this.getTodayYmd();
+    },
+
+    isDateBetweenYmd: function(fechaYmd, inicioYmd, finYmd) {
+      const fecha = this.resolveFiscalDateYmd(fechaYmd);
+      return fecha >= inicioYmd && fecha <= finYmd;
+    },
+
+    isRdl72026ElectricidadActiva: function(fechaYmd) {
+      const fecha = this.resolveFiscalDateYmd(fechaYmd);
+      const medida = this.medidasTemporales.rdl72026;
+      if (fecha < medida.entradaVigor || fecha > medida.fin) return false;
+      if (!medida.junio2026Habilitado && fecha >= '2026-06-01' && fecha <= '2026-06-30') return false;
+      return true;
+    },
+
+    getIEEInfo: function(fechaYmd) {
+      const fecha = this.resolveFiscalDateYmd(fechaYmd);
+      const medidaActiva = this.isRdl72026ElectricidadActiva(fecha);
+      const medida = this.medidasTemporales.rdl72026;
+
+      return {
+        fechaYmd: fecha,
+        porcentaje: medidaActiva ? medida.ieePorcentajeReducido : this.iee.porcentaje,
+        minimoEurosKwh: this.iee.minimoEurosKwh,
+        reducidoTemporalmente: medidaActiva
+      };
+    },
+
+    desglosarIEE: function(base, consumoKwh, fechaYmd) {
+      const info = this.getIEEInfo(fechaYmd);
+      const baseNum = Number.isFinite(Number(base)) ? Number(base) : 0;
+      const consumoNum = Number.isFinite(Number(consumoKwh)) ? Number(consumoKwh) : 0;
+      const porPorcentaje = (info.porcentaje / 100) * baseNum;
+      const porMinimo = consumoNum * info.minimoEurosKwh;
+
+      return {
+        ...info,
+        base: baseNum,
+        consumoKwh: consumoNum,
+        porPorcentaje,
+        porMinimo,
+        importe: Math.max(porPorcentaje, porMinimo),
+        aplicaMinimo: porMinimo > porPorcentaje,
+        minimoEurosMwh: info.minimoEurosKwh * 1000
+      };
+    },
+
+    getPeninsulaUsoFiscal: function({
+      potenciaContratada = 0,
+      bonoSocialOn = false,
+      bonoSocialTipo = '',
+      fechaYmd
+    } = {}) {
+      const fecha = this.resolveFiscalDateYmd(fechaYmd);
+      const medida = this.medidasTemporales.rdl72026;
+      const potenciaNum = Number.isFinite(Number(potenciaContratada)) ? Number(potenciaContratada) : 0;
+      const tipoNormalizado = String(bonoSocialTipo || '').trim().toLowerCase();
+      const severeElegible = Boolean(bonoSocialOn) && medida.bonoSocialTiposIvaReducido.includes(tipoNormalizado);
+      const potenciaElegible = potenciaNum > 0 && potenciaNum < medida.potenciaMaxIvaReducidoKwExclusiva;
+
+      if (this.isRdl72026ElectricidadActiva(fecha) && (potenciaElegible || severeElegible)) {
+        return 'iva_reducido';
+      }
+      return 'iva_general';
+    },
+
+    getFiscalContext: function({
+      zona,
+      potenciaContratada = 0,
+      viviendaCanarias = false,
+      bonoSocialOn = false,
+      bonoSocialTipo = '',
+      fechaYmd
+    } = {}) {
+      const territorio = this.getTerritorio(zona);
+      const tipo = String(territorio?.impuestos?.tipo || 'IVA').toUpperCase();
+      const potenciaNum = Number.isFinite(Number(potenciaContratada)) ? Number(potenciaContratada) : 0;
+      const fecha = this.resolveFiscalDateYmd(fechaYmd);
+      const viviendaMarcada = Boolean(viviendaCanarias);
+
+      let usoFiscal = 'otros';
+      if (tipo === 'IGIC') {
+        const limiteKw = Number(territorio.limiteViviendaKw) || 10;
+        usoFiscal = viviendaMarcada && potenciaNum > 0 && potenciaNum <= limiteKw ? 'vivienda' : 'otros';
+      } else if (tipo === 'IPSI') {
+        usoFiscal = 'ipsi';
+      } else {
+        usoFiscal = this.getPeninsulaUsoFiscal({
+          potenciaContratada: potenciaNum,
+          bonoSocialOn,
+          bonoSocialTipo,
+          fechaYmd: fecha
+        });
+      }
+
+      return {
+        zona: this.normalizeZonaKey(zona),
+        territorio,
+        fechaYmd: fecha,
+        potenciaContratada: potenciaNum,
+        viviendaMarcada,
+        usoFiscal,
+        esViviendaTipoCero: usoFiscal === 'vivienda',
+        esCanarias: tipo === 'IGIC',
+        esCeutaMelilla: tipo === 'IPSI'
+      };
     },
 
     /**
@@ -162,16 +341,33 @@
      * @param {string} usoFiscal - 'vivienda', 'otros' o 'ipsi'
      * @returns {Object} Tipo, etiquetas y tipos aplicables
      */
-    getImpuestoInfo: function(zona, usoFiscal = 'otros') {
+    getImpuestoInfo: function(zona, usoFiscal = 'otros', extra = {}) {
       const territorio = this.getTerritorio(zona);
       const impuestos = territorio.impuestos || {};
       const tipo = String(impuestos.tipo || 'IVA').toUpperCase();
-      const esVivienda = usoFiscal === 'vivienda';
+      const contexto = tipo === 'IVA'
+        ? this.getFiscalContext({
+            zona,
+            potenciaContratada: extra.potenciaContratada,
+            viviendaCanarias: extra.viviendaCanarias,
+            bonoSocialOn: extra.bonoSocialOn,
+            bonoSocialTipo: extra.bonoSocialTipo,
+            fechaYmd: extra.fechaYmd
+          })
+        : null;
+      const usoFiscalResuelto = tipo === 'IVA'
+        ? ((usoFiscal === 'iva_reducido' || usoFiscal === 'iva_general') ? usoFiscal : (contexto?.usoFiscal || 'iva_general'))
+        : usoFiscal;
+      const esVivienda = usoFiscalResuelto === 'vivienda';
 
       const energiaRateRaw = tipo === 'IGIC'
         ? (esVivienda ? impuestos.energiaVivienda : impuestos.energiaOtros)
-        : impuestos.energia;
-      const contadorRateRaw = (impuestos.contador != null) ? impuestos.contador : energiaRateRaw;
+        : (tipo === 'IVA' && usoFiscalResuelto === 'iva_reducido')
+          ? this.medidasTemporales.rdl72026.ivaPeninsulaReducido
+          : impuestos.energia;
+      const contadorRateRaw = tipo === 'IVA'
+        ? energiaRateRaw
+        : ((impuestos.contador != null) ? impuestos.contador : energiaRateRaw);
 
       const energiaRate = Number.isFinite(Number(energiaRateRaw)) ? Number(energiaRateRaw) : 0;
       const contadorRate = Number.isFinite(Number(contadorRateRaw)) ? Number(contadorRateRaw) : 0;
@@ -179,7 +375,8 @@
       return {
         territorio,
         tipo,
-        usoFiscal: esVivienda ? 'vivienda' : usoFiscal,
+        fechaYmd: contexto?.fechaYmd || this.resolveFiscalDateYmd(extra.fechaYmd),
+        usoFiscal: esVivienda ? 'vivienda' : usoFiscalResuelto,
         energiaRate,
         contadorRate,
         energiaLabel: tipo === 'IVA' ? 'IVA' : `${tipo} energía`,
@@ -201,9 +398,20 @@
       usoFiscal = 'otros',
       baseEnergia = 0,
       impuestoElectrico = 0,
-      baseContador = 0
+      baseContador = 0,
+      potenciaContratada = 0,
+      viviendaCanarias = false,
+      bonoSocialOn = false,
+      bonoSocialTipo = '',
+      fechaYmd
     } = {}) {
-      const info = this.getImpuestoInfo(zona, usoFiscal);
+      const info = this.getImpuestoInfo(zona, usoFiscal, {
+        potenciaContratada,
+        viviendaCanarias,
+        bonoSocialOn,
+        bonoSocialTipo,
+        fechaYmd
+      });
       const baseEnergiaNum = Number.isFinite(Number(baseEnergia)) ? Number(baseEnergia) : 0;
       const impuestoElectricoNum = Number.isFinite(Number(impuestoElectrico)) ? Number(impuestoElectrico) : 0;
       const baseContadorNum = Number.isFinite(Number(baseContador)) ? Number(baseContador) : 0;
@@ -276,10 +484,8 @@
      * @param {number} consumoKwh - Consumo total en kWh
      * @returns {number} Importe del IEE
      */
-    calcularIEE: function(base, consumoKwh) {
-      const porPorcentaje = (this.iee.porcentaje / 100) * base;
-      const porMinimo = consumoKwh * this.iee.minimoEurosKwh;
-      return Math.max(porPorcentaje, porMinimo);
+    calcularIEE: function(base, consumoKwh, fechaYmd) {
+      return this.desglosarIEE(base, consumoKwh, fechaYmd).importe;
     }
   };
 
@@ -321,6 +527,8 @@
   Object.freeze(LF_CONFIG.iee);
   Object.freeze(LF_CONFIG.alquilerContador);
   Object.freeze(LF_CONFIG.pvpc);
+  Object.freeze(LF_CONFIG.medidasTemporales.rdl72026);
+  Object.freeze(LF_CONFIG.medidasTemporales);
   Object.keys(LF_CONFIG.territorios).forEach(k => {
     Object.freeze(LF_CONFIG.territorios[k].impuestos);
     Object.freeze(LF_CONFIG.territorios[k]);

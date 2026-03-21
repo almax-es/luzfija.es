@@ -248,10 +248,19 @@ window.BVSim.calcMonthForTarifa = function ({
 
   // Base para IEE: potencia + energía neta + bono social (financiación)
   const sumaBase = round2(pot + consAdj + costeBonoSocial);
+  const fiscalDateYmd = (() => {
+    const key = String(month?.key || '');
+    const m = /^(\d{4})-(\d{2})$/.exec(key);
+    if (!m) return undefined;
+    const year = Number(m[1]);
+    const monthNum = Number(m[2]);
+    const lastDay = new Date(year, monthNum, 0).getDate();
+    return `${m[1]}-${m[2]}-${String(lastDay).padStart(2, '0')}`;
+  })();
 
   let impuestoElec = 0;
   if (CFG && typeof CFG.calcularIEE === 'function') {
-    impuestoElec = round2(CFG.calcularIEE(sumaBase, consumoTotalKwh));
+    impuestoElec = round2(CFG.calcularIEE(sumaBase, consumoTotalKwh, fiscalDateYmd));
   } else {
     // Fallback derivado de la config si faltase la helper central.
     const ieePct = Number(CFG?.iee?.porcentaje) || 0;
@@ -281,14 +290,25 @@ window.BVSim.calcMonthForTarifa = function ({
   const potenciaContratada = Math.max(0, Number(potenciaP1) || 0, Number(potenciaP2) || 0);
   const limiteKw = Number(terr?.limiteViviendaKw) || 10;
   const esViviendaTipoCero = tipoImpuesto === 'IGIC' && Boolean(esVivienda) && potenciaContratada > 0 && potenciaContratada <= limiteKw;
+  const fiscalContext = (CFG && typeof CFG.getFiscalContext === 'function')
+    ? CFG.getFiscalContext({
+        zona: zonaFiscal,
+        potenciaContratada,
+        viviendaCanarias: esVivienda,
+        fechaYmd: fiscalDateYmd
+      })
+    : null;
 
   if (CFG && typeof CFG.calcularImpuestoIndirecto === 'function') {
     const taxCalc = CFG.calcularImpuestoIndirecto({
       zona: zonaFiscal,
-      usoFiscal: esViviendaTipoCero ? 'vivienda' : (tipoImpuesto === 'IPSI' ? 'ipsi' : 'otros'),
+      usoFiscal: fiscalContext?.usoFiscal || (esViviendaTipoCero ? 'vivienda' : (tipoImpuesto === 'IPSI' ? 'ipsi' : 'otros')),
       baseEnergia: sumaBase,
       impuestoElectrico: impuestoElec,
-      baseContador: alquilerContador
+      baseContador: alquilerContador,
+      potenciaContratada,
+      viviendaCanarias: esVivienda,
+      fechaYmd: fiscalDateYmd
     });
 
     ivaCuota = round2(taxCalc.tipo === 'IVA' ? taxCalc.iva : taxCalc.impuestoTotal);

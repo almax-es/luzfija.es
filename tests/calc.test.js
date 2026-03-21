@@ -75,17 +75,24 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     };
     window.LF.cachedTarifas = [tarifaTest];
 
-    // Configurar inputs
-    document.getElementById('p1').value = "4";
-    document.getElementById('p2').value = "4";
-    document.getElementById('dias').value = "30";
-    document.getElementById('cPunta').value = "100"; // 100 kWh total (punta)
-    document.getElementById('cLlano').value = "0";
-    document.getElementById('cValle').value = "0";
-    document.getElementById('zonaFiscal').value = "Península";
-
-    // Ejecutar cálculo
-    await window.LF.calculateLocal();
+    // Ejecutar cálculo antes de la entrada en vigor del BOE
+    await window.LF.calculateLocal({
+      p1: 4,
+      p2: 4,
+      dias: 30,
+      cPunta: 100,
+      cLlano: 0,
+      cValle: 0,
+      zonaFiscal: 'Península',
+      viviendaCanarias: false,
+      solarOn: false,
+      exTotal: 0,
+      bvSaldo: 0,
+      bonoSocialOn: false,
+      bonoSocialTipo: 'vulnerable',
+      bonoSocialLimite: 1587,
+      fechaYmd: '2026-03-21'
+    });
 
     // Verificaciones
     const resultado = window.LF.state.rows[0];
@@ -96,13 +103,70 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     // 2. Coste Energía: 100 kWh * 0.10 = 10 €
     expect(resultado.consumoNum).toBeCloseTo(10.00, 2);
 
-    // 3. IEE: 5.11269632% de (24 + 10) = 1.738...
-    // 4. Alquiler Contador: ~0.81€ (aprox, depende de LF_CONFIG)
-    // 5. IVA: 21% sobre todo
-    
-    // Verificamos que el total es coherente (aprox 43-44€)
-    expect(resultado.totalNum).toBeGreaterThan(40);
-    expect(resultado.totalNum).toBeLessThan(50);
+    const tarifaAcceso = window.LF_CONFIG.calcularBonoSocial(30);
+    const sumaBase = 24 + 10 + tarifaAcceso;
+    const iee = window.LF_CONFIG.calcularIEE(sumaBase, 100, '2026-03-21');
+    const alquiler = window.LF_CONFIG.calcularAlquilerContador(30);
+    const taxCalc = window.LF_CONFIG.calcularImpuestoIndirecto({
+      zona: 'Península',
+      usoFiscal: 'iva_general',
+      baseEnergia: sumaBase,
+      impuestoElectrico: iee,
+      baseContador: alquiler,
+      potenciaContratada: 4,
+      fechaYmd: '2026-03-21'
+    });
+    const totalEsperado = window.LF.round2(sumaBase + iee + alquiler + taxCalc.impuestoEnergia + taxCalc.impuestoContador);
+
+    expect(resultado.totalNum).toBeCloseTo(totalEsperado, 2);
+  });
+
+  it('Debe aplicar la rebaja temporal desde el 22/03/2026 en Península <10kW', async () => {
+    const tarifaTest = {
+      nombre: "Tarifa BOE",
+      p1: 0.10, p2: 0.10,
+      cPunta: 0.10, cLlano: 0.10, cValle: 0.10,
+      tipo: "1P",
+      esPVPC: false
+    };
+    window.LF.cachedTarifas = [tarifaTest];
+
+    await window.LF.calculateLocal({
+      p1: 4,
+      p2: 4,
+      dias: 30,
+      cPunta: 100,
+      cLlano: 0,
+      cValle: 0,
+      zonaFiscal: 'Península',
+      viviendaCanarias: false,
+      solarOn: false,
+      exTotal: 0,
+      bvSaldo: 0,
+      bonoSocialOn: false,
+      bonoSocialTipo: 'vulnerable',
+      bonoSocialLimite: 1587,
+      fechaYmd: '2026-03-22'
+    });
+
+    const resultado = window.LF.state.rows[0];
+    const tarifaAcceso = window.LF_CONFIG.calcularBonoSocial(30);
+    const sumaBase = 24 + 10 + tarifaAcceso;
+    const iee = window.LF_CONFIG.calcularIEE(sumaBase, 100, '2026-03-22');
+    const alquiler = window.LF_CONFIG.calcularAlquilerContador(30);
+    const taxCalc = window.LF_CONFIG.calcularImpuestoIndirecto({
+      zona: 'Península',
+      usoFiscal: 'iva_reducido',
+      baseEnergia: sumaBase,
+      impuestoElectrico: iee,
+      baseContador: alquiler,
+      potenciaContratada: 4,
+      fechaYmd: '2026-03-22'
+    });
+    const totalEsperado = window.LF.round2(sumaBase + iee + alquiler + taxCalc.impuestoEnergia + taxCalc.impuestoContador);
+
+    expect(taxCalc.energiaRate).toBe(0.10);
+    expect(Math.abs(resultado.totalNum - totalEsperado)).toBeLessThanOrEqual(0.02);
   });
 
   it('Debe aplicar compensación de excedentes solares', async () => {

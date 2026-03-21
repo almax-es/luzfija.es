@@ -6,13 +6,22 @@
     <link>https://luzfija.es/</link>
     <description>Novedades sobre tarifas de luz, regulaciones y alertas del sector eléctrico en España.</description>
     <language>es-ES</language>
-    <lastBuildDate>Fri, 27 Feb 2026 00:00:00 +0100</lastBuildDate>
+    <lastBuildDate>Sat, 21 Mar 2026 00:00:00 +0100</lastBuildDate>
     <atom:link href="https://luzfija.es/feed.xml" rel="self" type="application/rss+xml"/>
     <image>
       <url>https://luzfija.es/logo-512.png</url>
       <title>LuzFija.es</title>
       <link>https://luzfija.es/</link>
     </image>
+
+    <item>
+      <title>BOE 21/03/2026: el IVA de la luz baja al 10% y el IEE al 0,5% desde el 22/03</title>
+      <link>https://luzfija.es/calcular-factura-luz.html</link>
+      <guid isPermaLink="false">luzfija-novedad-2026-03-21-fiscalidad-electricidad-rdl7</guid>
+      <pubDate>Sat, 21 Mar 2026 00:00:00 +0100</pubDate>
+      <category>regulatorio</category>
+      <description>El Real Decreto-ley 7/2026, publicado en el BOE del 21/03/2026, rebaja temporalmente la fiscalidad eléctrica. Desde el 22/03/2026 el IVA pasa al 10% para suministros con potencia contratada inferior a 10 kW y para perceptores del bono social con condición de vulnerable severo o vulnerable severo en riesgo de exclusión social. El IEE baja al 0,5%, manteniendo el mínimo de 1 €/MWh para usos no industriales. LuzFija ya aplica la fecha de entrada en vigor correcta y mantiene la rebaja prevista hasta el 30/06/2026, con junio condicionado al IPC publicado en mayo.</description>
+    </item>
 
     <item>
       <title>Bono Social: el Congreso rechaza el RDL 2/2026 — bajan los descuentos al 35% y 50%</title>

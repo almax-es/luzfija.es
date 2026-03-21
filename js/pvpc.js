@@ -85,7 +85,12 @@
             usoFiscal,
             baseEnergia,
             impuestoElectrico: impuestoElec,
-            baseContador
+            baseContador,
+            potenciaContratada: fiscal?.potenciaContratada,
+            viviendaCanarias: fiscal?.viviendaMarcada,
+            bonoSocialOn: fiscal?.bonoSocialOn,
+            bonoSocialTipo: fiscal?.bonoSocialTipo,
+            fechaYmd: fiscal?.fechaYmd
           })
         : null;
 
@@ -109,6 +114,7 @@
         totalFactura,
         impuestosTotal,
         impuestoTipo,
+        fechaYmd: taxCalc?.fechaYmd || fiscal?.fechaYmd || null,
         usoFiscal,
         isCanarias,
         isCeutaMelilla
@@ -390,21 +396,30 @@
       const fiscal = typeof __LF_getFiscalContext === 'function'
         ? __LF_getFiscalContext(values)
         : (() => {
+          const cfg = window.LF_CONFIG;
           const _parseNum = window.LF?.parseNum || (v => Math.max(0, Number(v) || 0));
           const _clampNonNeg = window.LF?.clampNonNeg || (n => Math.max(0, Number(n) || 0));
-          const p1Num = _clampNonNeg(_parseNum(values?.p1));
-          const p2Num = _clampNonNeg(_parseNum(values?.p2));
+          const potenciaContratada = Math.max(_clampNonNeg(_parseNum(values?.p1)), _clampNonNeg(_parseNum(values?.p2)));
+          if (cfg && typeof cfg.getFiscalContext === 'function') {
+            return cfg.getFiscalContext({
+              zona: values?.zonaFiscal,
+              potenciaContratada,
+              viviendaCanarias: values?.viviendaCanarias,
+              bonoSocialOn: values?.bonoSocialOn,
+              bonoSocialTipo: values?.bonoSocialTipo,
+              fechaYmd: values?.fechaYmd
+            });
+          }
           const zonaRaw = (values?.zonaFiscal || '').toLowerCase();
           const zona = zonaRaw === 'canarias' ? 'canarias'
                      : zonaRaw === 'ceutamelilla' ? 'ceutamelilla'
                      : 'península';
-          const potenciaContratada = Math.max(p1Num || 0, p2Num || 0);
           const esCanarias = zona === 'canarias';
           const esCeutaMelilla = zona === 'ceutamelilla';
           const viviendaMarcada = Boolean(values?.viviendaCanarias);
           const esViviendaTipoCero = esCanarias && viviendaMarcada && potenciaContratada > 0 && potenciaContratada <= 10;
-          const usoFiscal = esViviendaTipoCero ? 'vivienda' : 'otros';
-          return { zona, viviendaMarcada, potenciaContratada, esViviendaTipoCero, usoFiscal, esCanarias, esCeutaMelilla };
+          const usoFiscal = esViviendaTipoCero ? 'vivienda' : (esCeutaMelilla ? 'ipsi' : 'otros');
+          return { zona, viviendaMarcada, potenciaContratada, esViviendaTipoCero, usoFiscal, esCanarias, esCeutaMelilla, fechaYmd: values?.fechaYmd };
         })();
 
       const esCanarias = fiscal?.esCanarias || (fiscal?.zona === 'canarias');
@@ -789,21 +804,30 @@ const PEAJES_POT_DIA = {
       const fiscal = typeof __LF_getFiscalContext === 'function'
         ? __LF_getFiscalContext(values)
         : (() => {
+          const cfg = window.LF_CONFIG;
           const _parseNum = window.LF?.parseNum || (v => Math.max(0, Number(v) || 0));
           const _clampNonNeg = window.LF?.clampNonNeg || (n => Math.max(0, Number(n) || 0));
-          const p1Num = _clampNonNeg(_parseNum(values?.p1));
-          const p2Num = _clampNonNeg(_parseNum(values?.p2));
+          const potenciaContratada = Math.max(_clampNonNeg(_parseNum(values?.p1)), _clampNonNeg(_parseNum(values?.p2)));
+          if (cfg && typeof cfg.getFiscalContext === 'function') {
+            return cfg.getFiscalContext({
+              zona: values?.zonaFiscal,
+              potenciaContratada,
+              viviendaCanarias: values?.viviendaCanarias,
+              bonoSocialOn: values?.bonoSocialOn,
+              bonoSocialTipo: values?.bonoSocialTipo,
+              fechaYmd: values?.fechaYmd
+            });
+          }
           const zonaRaw = (values?.zonaFiscal || '').toLowerCase();
           const zona = zonaRaw === 'canarias' ? 'canarias'
                      : zonaRaw === 'ceutamelilla' ? 'ceutamelilla'
                      : 'península';
-          const potenciaContratada = Math.max(p1Num || 0, p2Num || 0);
           const esCanarias = zona === 'canarias';
           const esCeutaMelilla = zona === 'ceutamelilla';
           const viviendaMarcada = Boolean(values?.viviendaCanarias);
           const esViviendaTipoCero = esCanarias && viviendaMarcada && potenciaContratada > 0 && potenciaContratada <= 10;
-          const usoFiscal = esViviendaTipoCero ? 'vivienda' : 'otros';
-          return { zona, viviendaMarcada, potenciaContratada, esViviendaTipoCero, usoFiscal, esCanarias, esCeutaMelilla };
+          const usoFiscal = esViviendaTipoCero ? 'vivienda' : (esCeutaMelilla ? 'ipsi' : 'otros');
+          return { zona, viviendaMarcada, potenciaContratada, esViviendaTipoCero, usoFiscal, esCanarias, esCeutaMelilla, fechaYmd: values?.fechaYmd };
         })();
       const esCanarias = fiscal?.esCanarias || (fiscal?.zona === 'canarias');
       const viviendaMarcada = Boolean(fiscal?.viviendaMarcada);
@@ -881,7 +905,12 @@ const PEAJES_POT_DIA = {
           const parsed=parsearRespuestaPVPC(data);
           if(!parsed){ if(!pvpcErrorShown){toast('PVPC: Error al procesar datos de precios.','err'); pvpcErrorShown=true;} return null; }
 
-          const fiscalMeta = computePvpcFiscal(parsed, fiscal);
+          const fiscalMeta = computePvpcFiscal(parsed, {
+            ...fiscal,
+            bonoSocialOn: values?.bonoSocialOn,
+            bonoSocialTipo: values?.bonoSocialTipo,
+            fechaYmd: parsed.rangoFechas?.fin || fiscal?.fechaYmd
+          });
           const totalFactura = (Number.isFinite(fiscalMeta.totalFactura) && fiscalMeta.totalFactura > 0)
             ? fiscalMeta.totalFactura
             : parsed.totalFactura;
@@ -913,7 +942,8 @@ const PEAJES_POT_DIA = {
               impuestosTotal:fiscalMeta.impuestosTotal,
               ivaBase:fiscalMeta.ivaBase,
               baseIPSI:fiscalMeta.baseIPSI,
-              usoFiscal:fiscalMeta.usoFiscal
+              usoFiscal:fiscalMeta.usoFiscal,
+              fechaYmd:fiscalMeta.fechaYmd || parsed.rangoFechas?.fin || null
             }
           };
 

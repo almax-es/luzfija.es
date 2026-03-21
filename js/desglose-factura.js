@@ -176,6 +176,10 @@
           isCeutaMelilla: isCeutaMelilla,
           isPVPC: true,
           usoFiscal: usoFiscal,
+          consumoTotalKwh: round2(safeNum(datos.consumoPunta) + safeNum(datos.consumoLlano) + safeNum(datos.consumoValle)),
+          fechaYmd: (window.LF_CONFIG && typeof window.LF_CONFIG.resolveFiscalDateYmd === 'function')
+            ? window.LF_CONFIG.resolveFiscalDateYmd(meta.fechaYmd || datos.fechaFin || datos.fechaInicio)
+            : undefined,
           bonoSocialDescuentoEur: round2(bonoSocialDescuentoEur),
           bonoSocialProximoMes: safeNum(meta.bonoSocialProximoMes, 'bonoSocialProximoMes'),
           bonoSocialCalc: bonoSocialCalc
@@ -199,10 +203,17 @@
       const isCanarias = zonaFiscal === 'Canarias';
       const isCeutaMelilla = zonaFiscal === 'CeutaMelilla';
       const potenciaContratada = Math.max(potenciaP1, potenciaP2);
+      const fiscal = (CFG && typeof CFG.getFiscalContext === 'function')
+        ? CFG.getFiscalContext({
+            zona: zonaFiscal,
+            potenciaContratada,
+            viviendaCanarias: esViviendaCanarias,
+            fechaYmd: datos.fechaFin || datos.fechaInicio
+          })
+        : null;
 
       // Obtener configuración del territorio
       const terr = CFG.getTerritorio(zonaFiscal);
-      const impuestosTerr = terr.impuestos;
 
       const pot = round2((potenciaP1 * dias * precioP1) + (potenciaP2 * dias * precioP2));
       const cons = round2((consumoPunta * precioPunta) + (consumoLlano * precioLlano) + (consumoValle * precioValle));
@@ -237,8 +248,18 @@
 
       const sumaBase = pot + consAdj + tarifaAdj;
       const consumoTotalKwh = consumoPunta + consumoLlano + consumoValle;
-      const impuestoElec = round2(Math.max((CFG.iee.porcentaje / 100) * sumaBase, consumoTotalKwh * CFG.iee.minimoEurosKwh));
+      const impuestoElec = round2(CFG.calcularIEE(sumaBase, consumoTotalKwh, fiscal?.fechaYmd || datos.fechaFin || datos.fechaInicio));
       const alquilerContador = round2(dias * CFG.alquilerContador.eurosMes * 12 / 365);
+      const taxCalc = CFG.calcularImpuestoIndirecto({
+        zona: zonaFiscal,
+        usoFiscal: fiscal?.usoFiscal || 'otros',
+        baseEnergia: sumaBase,
+        impuestoElectrico: impuestoElec,
+        baseContador: alquilerContador,
+        potenciaContratada,
+        viviendaCanarias: esViviendaCanarias,
+        fechaYmd: fiscal?.fechaYmd || datos.fechaFin || datos.fechaInicio
+      });
 
       let resultado = {};
 
@@ -247,9 +268,9 @@
         // CANARIAS: IGIC (0% vivienda ≤10kW, 3% otros, 7% contador)
         // ═══════════════════════════════════════════════════════════════
         const baseEnergia = sumaBase;
-        const usoFiscal = esViviendaCanarias && potenciaContratada > 0 && potenciaContratada <= 10 ? 'vivienda' : 'otros';
-        const igicBase = usoFiscal === 'vivienda' ? 0 : round2((baseEnergia + impuestoElec) * impuestosTerr.energiaOtros);
-        const igicContador = round2(alquilerContador * impuestosTerr.contador);
+        const usoFiscal = fiscal?.usoFiscal || (esViviendaCanarias && potenciaContratada > 0 && potenciaContratada <= 10 ? 'vivienda' : 'otros');
+        const igicBase = round2(taxCalc.impuestoEnergia);
+        const igicContador = round2(taxCalc.impuestoContador);
         const impuestosNum = impuestoElec + igicBase + igicContador;
         let totalBase = round2(baseEnergia + impuestoElec + igicBase + alquilerContador + igicContador);
 
@@ -276,9 +297,9 @@
         // Ley 8/1991 Art. 18
         // ═══════════════════════════════════════════════════════════════
         const baseEnergia = sumaBase;
-        const baseIPSI = sumaBase + impuestoElec;
-        const ipsiEnergia = round2(baseIPSI * impuestosTerr.energia);
-        const ipsiContador = round2(alquilerContador * impuestosTerr.contador);
+        const baseIPSI = round2(taxCalc.baseIPSI);
+        const ipsiEnergia = round2(taxCalc.impuestoEnergia);
+        const ipsiContador = round2(taxCalc.impuestoContador);
         const impuestosNum = impuestoElec + ipsiEnergia + ipsiContador;
         let totalBase = round2(sumaBase + impuestoElec + ipsiEnergia + alquilerContador + ipsiContador);
 
@@ -304,8 +325,8 @@
         // PENÍNSULA Y BALEARES: IVA 21%
         // ═══════════════════════════════════════════════════════════════
         const baseEnergia = sumaBase + impuestoElec + alquilerContador;
-        const ivaBase = pot + consAdj + tarifaAdj + impuestoElec + alquilerContador;
-        const iva = round2(ivaBase * impuestosTerr.energia);
+        const ivaBase = round2(taxCalc.ivaBase);
+        const iva = round2(taxCalc.iva);
         let totalBase = round2(ivaBase + iva);
 
         let credit2 = 0, bvSaldoFin = null, totalFinal = totalBase;
@@ -326,6 +347,10 @@
           baseCompensable, peajesTotal };
       }
 
+      resultado.consumoTotalKwh = round2(consumoTotalKwh);
+      resultado.fechaYmd = fiscal?.fechaYmd || (CFG && typeof CFG.resolveFiscalDateYmd === 'function'
+        ? CFG.resolveFiscalDateYmd(datos.fechaFin || datos.fechaInicio)
+        : undefined);
       return resultado;
     },
 
@@ -349,8 +374,19 @@
 
       let html = '';
       const impuestoInfo = (window.LF_CONFIG && typeof window.LF_CONFIG.getImpuestoInfo === 'function')
-        ? window.LF_CONFIG.getImpuestoInfo(datos.zonaFiscal || 'Península', d.usoFiscal || 'otros')
+        ? window.LF_CONFIG.getImpuestoInfo(datos.zonaFiscal || 'Península', d.usoFiscal || 'otros', {
+            fechaYmd: d.fechaYmd || datos.fechaFin || datos.fechaInicio,
+            potenciaContratada: Math.max(safeNum(datos.potenciaP1), safeNum(datos.potenciaP2))
+          })
         : null;
+      const ieeInfo = (window.LF_CONFIG && typeof window.LF_CONFIG.desglosarIEE === 'function')
+        ? window.LF_CONFIG.desglosarIEE(d.sumaBase, d.consumoTotalKwh || 0, d.fechaYmd || datos.fechaFin || datos.fechaInicio)
+        : null;
+      const ieeDetalle = ieeInfo
+        ? (ieeInfo.aplicaMinimo
+          ? `${this.fmtNum(ieeInfo.minimoEurosKwh, 3)} €/kWh × ${this.fmtNum(ieeInfo.consumoKwh)} kWh`
+          : `${this.fmtNum(ieeInfo.porcentaje, 2)}% de ${this.fmt(d.sumaBase)}`)
+        : `${this.fmtNum(window.LF_CONFIG.iee.porcentaje, 2)}% de ${this.fmt(d.sumaBase)}`;
 
       // Cuando una sección tiene sublíneas (P1/P2 o Punta/Llano/Valle), si redondeamos cada
       // sublínea a 2 decimales puede aparecer un descuadre típico (±0,01€) con el total.
@@ -637,7 +673,7 @@
         ${bonoSocialLineaHtml}
         <div class="desglose-linea">
           <span class="desglose-concepto">Impuesto eléctrico</span>
-          <span class="desglose-detalle">${this.fmtNum(window.LF_CONFIG.iee.porcentaje, 2)}% de ${this.fmt(d.sumaBase)}</span>
+          <span class="desglose-detalle">${ieeDetalle}</span>
           <span class="desglose-importe">${this.fmt(otrosIeeDisp)}</span>
         </div>
         ${hayAlquilerAqui ? `<div class="desglose-linea">

@@ -25,6 +25,7 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
       consumoPunta: 100, consumoLlano: 0, consumoValle: 0,
       precioPunta: 0.1, precioLlano: 0.1, precioValle: 0.1, // 100*0.1 = 10€ Energía
       zonaFiscal: 'Península',
+      fechaFin: '21/03/2026',
       solarOn: false
     };
 
@@ -36,19 +37,46 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
     // Consumo: 10
     expect(res.cons).toBe(10.00);
     
-    const ieeEsperado = round2(window.LF_CONFIG.calcularIEE(res.pot + res.cons + res.tarifaAcceso, 100));
+    const ieeEsperado = round2(window.LF_CONFIG.calcularIEE(res.pot + res.cons + res.tarifaAcceso, 100, '2026-03-21'));
     expect(res.impuestoElec).toBeCloseTo(ieeEsperado, 2);
 
     // Alquiler: 0.81 * 12 / 365 * 30 = 0.7989... -> 0.80
     expect(res.alquilerContador).toBeCloseTo(0.80, 2);
 
     const baseIVA = res.pot + res.cons + res.tarifaAcceso + res.impuestoElec + res.alquilerContador;
-    const ivaRate = window.LF_CONFIG.getTerritorio('Península').impuestos.energia;
+    const ivaRate = window.LF_CONFIG.getImpuestoInfo('Península', 'otros', {
+      potenciaContratada: 4,
+      fechaYmd: '2026-03-21'
+    }).energiaRate;
     const ivaEsperado = round2(baseIVA * ivaRate);
     expect(res.iva).toBe(ivaEsperado);
 
     // Total final
     expect(res.totalFinal).toBe(round2(baseIVA + ivaEsperado));
+  });
+
+  it('Debe aplicar IVA 10% e IEE 0,5% desde el 22/03/2026 en Península <10kW', () => {
+    const datos = {
+      potenciaP1: 4.6, potenciaP2: 4.6, dias: 30,
+      precioP1: 0.1, precioP2: 0.1,
+      consumoPunta: 100, consumoLlano: 0, consumoValle: 0,
+      precioPunta: 0.1, precioLlano: 0.1, precioValle: 0.1,
+      zonaFiscal: 'Península',
+      fechaFin: '22/03/2026',
+      solarOn: false
+    };
+
+    const res = Desglose.calcularDesglose(datos);
+    const ieeEsperado = round2(window.LF_CONFIG.calcularIEE(res.pot + res.cons + res.tarifaAcceso, 100, '2026-03-22'));
+    const ivaRate = window.LF_CONFIG.getImpuestoInfo('Península', 'otros', {
+      potenciaContratada: 4.6,
+      fechaYmd: '2026-03-22'
+    }).energiaRate;
+    const baseIVA = res.pot + res.cons + res.tarifaAcceso + res.impuestoElec + res.alquilerContador;
+
+    expect(res.impuestoElec).toBeCloseTo(ieeEsperado, 2);
+    expect(ivaRate).toBe(0.10);
+    expect(res.iva).toBe(round2(baseIVA * ivaRate));
   });
 
   it('Debe manejar CANARIAS (IGIC)', () => {
