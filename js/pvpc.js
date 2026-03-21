@@ -151,8 +151,45 @@
                        : zonaRaw === 'CeutaMelilla' ? 'CeutaMelilla' 
                        : 'Península';
       const viviendaCanarias = zonaFiscal === 'Canarias' && Boolean(values?.viviendaCanarias);
+      const bonoSocialOn = values?.bonoSocialOn ? '1' : '0';
+      const bonoSocialTipo = String(values?.bonoSocialTipo || 'vulnerable');
+      const bonoSocialLimite = String(values?.bonoSocialLimite || '');
       const codigoPostal = window.LF_CONFIG.getCodigoPostalAPI(zonaFiscal);
-      return `${PVPC_CACHE_PREFIX}:${getPvpcAnchorDate()}:${zonaFiscal}:${codigoPostal}:${viviendaCanarias?'1':'0'}:${p1}:${p2}:${dias}:${cPunta}:${cLlano}:${cValle}`;
+      const csvSignature = (() => {
+        const consumosHorarios = Array.isArray(window.LF?.consumosHorarios) && window.LF.consumosHorarios.length > 0
+          && window.LF.pvpcPeriodoCSV !== false
+          ? window.LF.consumosHorarios
+          : null;
+        if (!consumosHorarios) return 'nocsv';
+
+        let totalKwh = 0;
+        let firstToken = '';
+        let lastToken = '';
+        let hash = 2166136261;
+
+        const pushHash = (str) => {
+          for (let i = 0; i < str.length; i++) {
+            hash ^= str.charCodeAt(i);
+            hash = Math.imul(hash, 16777619) >>> 0;
+          }
+        };
+
+        consumosHorarios.forEach((entry, index) => {
+          const date = entry?.fecha instanceof Date ? entry.fecha : new Date(entry?.fecha);
+          const ymd = Number.isFinite(date.getTime()) ? formatYMD(date) : 'invalid';
+          const hora = Math.max(0, Number(entry?.hora || 0));
+          const kwh = asNumber(entry?.kwh, 0);
+          const token = `${ymd}:${hora}:${kwh.toFixed(6)}`;
+          totalKwh += kwh;
+          if (index === 0) firstToken = `${ymd}:${hora}`;
+          lastToken = `${ymd}:${hora}`;
+          pushHash(token);
+        });
+
+        return `csv:${consumosHorarios.length}:${Math.round(totalKwh * 1000)}:${firstToken}:${lastToken}:${hash.toString(36)}`;
+      })();
+
+      return `${PVPC_CACHE_PREFIX}:${getPvpcAnchorDate()}:${zonaFiscal}:${codigoPostal}:${viviendaCanarias?'1':'0'}:${p1}:${p2}:${dias}:${cPunta}:${cLlano}:${cValle}:${bonoSocialOn}:${bonoSocialTipo}:${bonoSocialLimite}:${csvSignature}`;
     }
 
     function readPvpcCacheEntry(key){
@@ -393,7 +430,7 @@
         && window.LF.pvpcPeriodoCSV !== false
         ? window.LF.consumosHorarios : null;
 
-      const fiscal = typeof __LF_getFiscalContext === 'function'
+      let fiscal = typeof __LF_getFiscalContext === 'function'
         ? __LF_getFiscalContext(values)
         : (() => {
           const cfg = window.LF_CONFIG;
@@ -481,6 +518,20 @@ const PEAJES_POT_DIA = {
 
       const startStr = formatYMD(startDate);
       const endStr = formatYMD(endDate);
+      if (typeof __LF_getFiscalContext === 'function') {
+        fiscal = __LF_getFiscalContext({ ...(values || {}), fechaYmd: endStr });
+      } else if (window.LF_CONFIG && typeof window.LF_CONFIG.getFiscalContext === 'function') {
+        fiscal = window.LF_CONFIG.getFiscalContext({
+          zona: values?.zonaFiscal,
+          potenciaContratada,
+          viviendaCanarias: values?.viviendaCanarias,
+          bonoSocialOn: values?.bonoSocialOn,
+          bonoSocialTipo: values?.bonoSocialTipo,
+          fechaYmd: endStr
+        });
+      } else if (fiscal && typeof fiscal === 'object') {
+        fiscal = { ...fiscal, fechaYmd: endStr };
+      }
 
       const weekdayFromYMD = (ymd) => {
         const parts = String(ymd || '').split('-').map(Number);
@@ -643,7 +694,7 @@ const PEAJES_POT_DIA = {
         // IMPUESTO ELÉCTRICO
         const baseIEE = terminoFijo + costeMargenPot + terminoVariable + bonoSocial;
         const impuestoElectrico = (window.LF_CONFIG && typeof window.LF_CONFIG.calcularIEE === 'function')
-          ? round2(window.LF_CONFIG.calcularIEE(baseIEE, consumoTotal))
+          ? round2(window.LF_CONFIG.calcularIEE(baseIEE, consumoTotal, fiscal?.fechaYmd || endStr))
           : round2(Math.max(
               ((Number(window.LF_CONFIG?.iee?.porcentaje) || 0) / 100) * baseIEE,
               consumoTotal * (Number(window.LF_CONFIG?.iee?.minimoEurosKwh) || 0)
@@ -905,11 +956,24 @@ const PEAJES_POT_DIA = {
           const parsed=parsearRespuestaPVPC(data);
           if(!parsed){ if(!pvpcErrorShown){toast('PVPC: Error al procesar datos de precios.','err'); pvpcErrorShown=true;} return null; }
 
+          const fiscalFechaFinal = parsed.rangoFechas?.fin || fiscal?.fechaYmd;
+          const fiscalResolved = typeof __LF_getFiscalContext === 'function'
+            ? __LF_getFiscalContext({ ...(values || {}), fechaYmd: fiscalFechaFinal })
+            : (window.LF_CONFIG && typeof window.LF_CONFIG.getFiscalContext === 'function')
+              ? window.LF_CONFIG.getFiscalContext({
+                  zona: values?.zonaFiscal,
+                  potenciaContratada: Math.max(asNumber(values?.p1, 0), asNumber(values?.p2, 0)),
+                  viviendaCanarias: values?.viviendaCanarias,
+                  bonoSocialOn: values?.bonoSocialOn,
+                  bonoSocialTipo: values?.bonoSocialTipo,
+                  fechaYmd: fiscalFechaFinal
+                })
+              : { ...(fiscal || {}), fechaYmd: fiscalFechaFinal };
           const fiscalMeta = computePvpcFiscal(parsed, {
-            ...fiscal,
+            ...fiscalResolved,
             bonoSocialOn: values?.bonoSocialOn,
             bonoSocialTipo: values?.bonoSocialTipo,
-            fechaYmd: parsed.rangoFechas?.fin || fiscal?.fechaYmd
+            fechaYmd: fiscalResolved?.fechaYmd || fiscalFechaFinal
           });
           const totalFactura = (Number.isFinite(fiscalMeta.totalFactura) && fiscalMeta.totalFactura > 0)
             ? fiscalMeta.totalFactura

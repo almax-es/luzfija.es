@@ -169,6 +169,56 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     expect(Math.abs(resultado.totalNum - totalEsperado)).toBeLessThanOrEqual(0.02);
   });
 
+  it('No debe trasladar el IVA reducido por bono social severo a tarifas libres con 10 kW exactos', async () => {
+    const tarifaLibre = {
+      nombre: "Libre exacta 10kW",
+      p1: 0.10, p2: 0.10,
+      cPunta: 0.10, cLlano: 0.10, cValle: 0.10,
+      tipo: "1P",
+      esPVPC: false
+    };
+    window.LF.cachedTarifas = [tarifaLibre];
+
+    await window.LF.calculateLocal({
+      p1: 10,
+      p2: 10,
+      dias: 30,
+      cPunta: 100,
+      cLlano: 0,
+      cValle: 0,
+      zonaFiscal: 'Península',
+      viviendaCanarias: false,
+      solarOn: false,
+      exTotal: 0,
+      bvSaldo: 0,
+      bonoSocialOn: true,
+      bonoSocialTipo: 'severo',
+      bonoSocialLimite: 1587,
+      fechaYmd: '2026-03-22'
+    });
+
+    const resultado = window.LF.state.rows[0];
+    const tarifaAcceso = window.LF_CONFIG.calcularBonoSocial(30);
+    const sumaBase = 60 + 10 + tarifaAcceso;
+    const iee = window.LF_CONFIG.calcularIEE(sumaBase, 100, '2026-03-22');
+    const alquiler = window.LF_CONFIG.calcularAlquilerContador(30);
+    const taxCalc = window.LF_CONFIG.calcularImpuestoIndirecto({
+      zona: 'Península',
+      usoFiscal: 'iva_general',
+      baseEnergia: sumaBase,
+      impuestoElectrico: iee,
+      baseContador: alquiler,
+      potenciaContratada: 10,
+      bonoSocialOn: false,
+      bonoSocialTipo: '',
+      fechaYmd: '2026-03-22'
+    });
+    const totalEsperado = window.LF.round2(sumaBase + iee + alquiler + taxCalc.impuestoEnergia + taxCalc.impuestoContador);
+
+    expect(taxCalc.energiaRate).toBe(0.21);
+    expect(Math.abs(resultado.totalNum - totalEsperado)).toBeLessThanOrEqual(0.02);
+  });
+
   it('Debe aplicar compensación de excedentes solares', async () => {
     // --- ESCENARIO SOLAR ---
     // Misma tarifa, añade excedentes a 0.05 €/kWh

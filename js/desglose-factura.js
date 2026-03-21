@@ -322,7 +322,7 @@
 
       } else {
         // ═══════════════════════════════════════════════════════════════
-        // PENÍNSULA Y BALEARES: IVA 21%
+        // PENÍNSULA Y BALEARES: IVA vigente
         // ═══════════════════════════════════════════════════════════════
         const baseEnergia = sumaBase + impuestoElec + alquilerContador;
         const ivaBase = round2(taxCalc.ivaBase);
@@ -373,10 +373,11 @@
       this.modal.querySelector('.desglose-periodo').innerHTML = `${escapeHtml(datos.fechaInicio || fechaInicioDefault)} - ${escapeHtml(datos.fechaFin || fechaFinDefault)} (${datos.dias || diasDefault} días)`;
 
       let html = '';
+      const potenciaContratada = Math.max(safeNum(datos.potenciaP1), safeNum(datos.potenciaP2));
       const impuestoInfo = (window.LF_CONFIG && typeof window.LF_CONFIG.getImpuestoInfo === 'function')
         ? window.LF_CONFIG.getImpuestoInfo(datos.zonaFiscal || 'Península', d.usoFiscal || 'otros', {
             fechaYmd: d.fechaYmd || datos.fechaFin || datos.fechaInicio,
-            potenciaContratada: Math.max(safeNum(datos.potenciaP1), safeNum(datos.potenciaP2))
+            potenciaContratada
           })
         : null;
       const ieeInfo = (window.LF_CONFIG && typeof window.LF_CONFIG.desglosarIEE === 'function')
@@ -749,7 +750,14 @@
         // PENÍNSULA Y BALEARES: IVA
         // ═══════════════════════════════════════════════════════════════
         const ivaLabel = impuestoInfo?.energiaLabel || 'IVA';
-        const ivaPct = impuestoInfo?.energiaPctText || '21%';
+        const ivaPct = impuestoInfo?.energiaPctText
+          || (window.LF_CONFIG && typeof window.LF_CONFIG.getImpuestoInfo === 'function'
+            ? window.LF_CONFIG.getImpuestoInfo(datos.zonaFiscal || 'Península', d.usoFiscal || 'iva_general', {
+                fechaYmd: d.fechaYmd || datos.fechaFin || datos.fechaInicio,
+                potenciaContratada
+              })?.energiaPctText
+            : null)
+          || '0%';
         html += `<div class="desglose-seccion">
           <div class="desglose-seccion-header"><h3>💰 IVA</h3><span class="desglose-importe-header">${this.fmt(d.iva)}</span></div>
           <div class="desglose-linea">

@@ -25,14 +25,22 @@
   // ===== CÁLCULO LOCAL =====
   async function calculateLocal(values) {
     const { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias, solarOn, exTotal, bvSaldo, bonoSocialOn, bonoSocialTipo, bonoSocialLimite } = values || getInputValues();
-    
-    const fiscal = __LF_getFiscalContext({
+    const fiscalBase = {
       p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias,
-      bonoSocialOn, bonoSocialTipo,
       fechaYmd: values?.fechaYmd
+    };
+    const fiscalMercadoLibre = __LF_getFiscalContext({
+      ...fiscalBase,
+      bonoSocialOn: false,
+      bonoSocialTipo: ''
     });
-    const isCanarias = fiscal.esCanarias;
-    const isCeutaMelilla = fiscal.esCeutaMelilla;
+    const fiscalPvpc = __LF_getFiscalContext({
+      ...fiscalBase,
+      bonoSocialOn,
+      bonoSocialTipo
+    });
+    const isCanarias = fiscalMercadoLibre.esCanarias;
+    const isCeutaMelilla = fiscalMercadoLibre.esCeutaMelilla;
     
     const cachedTarifas = window.LF.cachedTarifas;
     if (!cachedTarifas.length) return;
@@ -83,6 +91,9 @@
 
       for (let index = chunkStart; index < chunkEnd; index++) {
         const t = cachedTarifas[index];
+        const fiscal = t.esPVPC ? fiscalPvpc : fiscalMercadoLibre;
+        const fiscalBonoSocialOn = Boolean(t.esPVPC && bonoSocialOn);
+        const fiscalBonoSocialTipo = fiscalBonoSocialOn ? bonoSocialTipo : '';
 
         if (t.esPVPC && t.pvpcNotComputable) {
           resultados.push({
@@ -236,8 +247,8 @@
           baseContador: alquilerContador,
           potenciaContratada: fiscal.potenciaContratada,
           viviendaCanarias,
-          bonoSocialOn,
-          bonoSocialTipo,
+          bonoSocialOn: fiscalBonoSocialOn,
+          bonoSocialTipo: fiscalBonoSocialTipo,
           fechaYmd: fiscal.fechaYmd
         });
 
@@ -371,7 +382,7 @@
 
         } else {
           // ─────────────────────────────────────────────────────────────
-          // PENÍNSULA Y BALEARES: IVA 21%
+          // PENÍNSULA Y BALEARES: IVA vigente
           // ─────────────────────────────────────────────────────────────
           const ivaBase = round2(taxCalc.ivaBase);
           const ivaCuota = round2(taxCalc.iva);

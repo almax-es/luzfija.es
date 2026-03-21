@@ -129,8 +129,54 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     
     // No debe lanzar excepcion, sino devolver null (y loguear error)
     const result = await global.window.LF.pvpc.obtenerPVPC_LOCAL(inputs);
-    
+
     expect(result).toBeNull();
+  });
+
+  it('crearTarifaPVPC respeta la fecha fiscal del periodo al cruzar el cambio BOE', async () => {
+    const apiP1 = 0.20;
+    const apiP2 = 0.10;
+    const apiP3 = 0.05;
+    const mockJson = {
+      geo_id: 8741,
+      days: {
+        '2026-03-21': generateMockDayPrices(apiP1, apiP2, apiP3)
+      },
+      meta: { max_after_conversion: 0.20 }
+    };
+
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => mockJson
+    });
+
+    vi.setSystemTime(new Date('2026-03-22T12:00:00Z'));
+
+    const tarifa = await global.window.LF.pvpc.crearTarifaPVPC({
+      zonaFiscal: 'Península',
+      p1: 4,
+      p2: 4,
+      dias: 1,
+      cPunta: 10,
+      cLlano: 10,
+      cValle: 10,
+      bonoSocialOn: false,
+      bonoSocialTipo: 'vulnerable'
+    });
+
+    expect(tarifa).toBeTruthy();
+    expect(tarifa.metaPvpc.fechaYmd).toBe('2026-03-21');
+    expect(tarifa.metaPvpc.usoFiscal).toBe('iva_general');
+
+    const baseIEE = tarifa.metaPvpc.terminoFijo
+      + tarifa.metaPvpc.costeMargenPot
+      + tarifa.metaPvpc.terminoVariable
+      + tarifa.metaPvpc.bonoSocial;
+    const expectedIEE = Math.round(global.window.LF_CONFIG.calcularIEE(baseIEE, 30, '2026-03-21') * 100) / 100;
+
+    expect(tarifa.metaPvpc.impuestoElectrico).toBe(expectedIEE);
+
+    vi.useRealTimers();
   });
 
 });
