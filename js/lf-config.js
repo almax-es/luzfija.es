@@ -46,20 +46,19 @@
 
     // ═══════════════════════════════════════════════════════════════════
     // MEDIDAS TEMPORALES (RDL 7/2026, BOE 21/03/2026)
-    // Entrada en vigor: 22/03/2026
+    // Entrada operativa en la web: 21/03/2026
     // Nota: junio de 2026 queda condicionado al IPC publicado en mayo.
     // Si esa condición hiciera caer la rebaja en junio, bastará con poner
     // junio2026Habilitado = false.
     // ═══════════════════════════════════════════════════════════════════
     medidasTemporales: {
       rdl72026: {
-        entradaVigor: '2026-03-22',
+        entradaVigor: '2026-03-21',
         fin: '2026-06-30',
         junio2026Habilitado: true,
         ieePorcentajeReducido: 0.5,
         ivaPeninsulaReducido: 0.10,
-        potenciaMaxIvaReducidoKwExclusiva: 10,
-        bonoSocialTiposIvaReducido: ['severo', 'severo_exclusion']
+        potenciaMaxIvaReducidoKwExclusiva: 10
       }
     },
 
@@ -264,11 +263,9 @@
       const fecha = this.resolveFiscalDateYmd(fechaYmd);
       const medida = this.medidasTemporales.rdl72026;
       const potenciaNum = Number.isFinite(Number(potenciaContratada)) ? Number(potenciaContratada) : 0;
-      const tipoNormalizado = String(bonoSocialTipo || '').trim().toLowerCase();
-      const severeElegible = Boolean(bonoSocialOn) && medida.bonoSocialTiposIvaReducido.includes(tipoNormalizado);
       const potenciaElegible = potenciaNum > 0 && potenciaNum < medida.potenciaMaxIvaReducidoKwExclusiva;
 
-      if (this.isRdl72026ElectricidadActiva(fecha) && (potenciaElegible || severeElegible)) {
+      if (this.isRdl72026ElectricidadActiva(fecha) && potenciaElegible) {
         return 'iva_reducido';
       }
       return 'iva_general';

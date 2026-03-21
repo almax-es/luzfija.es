@@ -42,24 +42,24 @@ describe('Escenarios de Negocio (Integración Fiscal y Bono Social)', () => {
       zonaFiscal: 'Península',
       p1: 4.6,
       bonoSocialOn: false,
-      fechaYmd: '2026-03-21'
+      fechaYmd: '2026-03-20'
     };
 
     const res = calcPvpcBonoSocial(metaBase, inputs, global.window.LF_CONFIG);
     
-    // Península antes del 22/03/2026: IVA general
+    // Península antes del adelanto operativo: IVA general
     expect(res.meta.usoFiscal).toBe('iva_general');
     expect(res.meta.impuestoEnergia).toBeGreaterThan(0); // Debe haber IVA
     expect(res.meta.totalFactura).toBeGreaterThan(61.81); // Base aprox
   });
 
-  it('Escenario 1b: Península (<10kW) desde el 22/03/2026 -> IVA 10%', () => {
+  it('Escenario 1b: Península (<10kW) desde el 21/03/2026 -> IVA 10%', () => {
     const inputs = {
       dias: 30,
       p1: 4.6,
       zonaFiscal: 'Península',
       bonoSocialOn: false,
-      fechaYmd: '2026-03-22'
+      fechaYmd: '2026-03-21'
     };
 
     const res = calcPvpcBonoSocial(metaBase, inputs, global.window.LF_CONFIG);

@@ -75,7 +75,7 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     };
     window.LF.cachedTarifas = [tarifaTest];
 
-    // Ejecutar cálculo antes de la entrada en vigor del BOE
+    // Ejecutar cálculo antes del adelanto operativo
     await window.LF.calculateLocal({
       p1: 4,
       p2: 4,
@@ -91,7 +91,7 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
       bonoSocialOn: false,
       bonoSocialTipo: 'vulnerable',
       bonoSocialLimite: 1587,
-      fechaYmd: '2026-03-21'
+      fechaYmd: '2026-03-20'
     });
 
     // Verificaciones
@@ -105,7 +105,7 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
 
     const tarifaAcceso = window.LF_CONFIG.calcularBonoSocial(30);
     const sumaBase = 24 + 10 + tarifaAcceso;
-    const iee = window.LF_CONFIG.calcularIEE(sumaBase, 100, '2026-03-21');
+    const iee = window.LF_CONFIG.calcularIEE(sumaBase, 100, '2026-03-20');
     const alquiler = window.LF_CONFIG.calcularAlquilerContador(30);
     const taxCalc = window.LF_CONFIG.calcularImpuestoIndirecto({
       zona: 'Península',
@@ -114,14 +114,14 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
       impuestoElectrico: iee,
       baseContador: alquiler,
       potenciaContratada: 4,
-      fechaYmd: '2026-03-21'
+      fechaYmd: '2026-03-20'
     });
     const totalEsperado = window.LF.round2(sumaBase + iee + alquiler + taxCalc.impuestoEnergia + taxCalc.impuestoContador);
 
     expect(resultado.totalNum).toBeCloseTo(totalEsperado, 2);
   });
 
-  it('Debe aplicar la rebaja temporal desde el 22/03/2026 en Península <10kW', async () => {
+  it('Debe aplicar la rebaja temporal desde el 21/03/2026 en Península <10kW', async () => {
     const tarifaTest = {
       nombre: "Tarifa BOE",
       p1: 0.10, p2: 0.10,
@@ -146,13 +146,13 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
       bonoSocialOn: false,
       bonoSocialTipo: 'vulnerable',
       bonoSocialLimite: 1587,
-      fechaYmd: '2026-03-22'
+      fechaYmd: '2026-03-21'
     });
 
     const resultado = window.LF.state.rows[0];
     const tarifaAcceso = window.LF_CONFIG.calcularBonoSocial(30);
     const sumaBase = 24 + 10 + tarifaAcceso;
-    const iee = window.LF_CONFIG.calcularIEE(sumaBase, 100, '2026-03-22');
+    const iee = window.LF_CONFIG.calcularIEE(sumaBase, 100, '2026-03-21');
     const alquiler = window.LF_CONFIG.calcularAlquilerContador(30);
     const taxCalc = window.LF_CONFIG.calcularImpuestoIndirecto({
       zona: 'Península',
@@ -161,7 +161,7 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
       impuestoElectrico: iee,
       baseContador: alquiler,
       potenciaContratada: 4,
-      fechaYmd: '2026-03-22'
+      fechaYmd: '2026-03-21'
     });
     const totalEsperado = window.LF.round2(sumaBase + iee + alquiler + taxCalc.impuestoEnergia + taxCalc.impuestoContador);
 
@@ -169,7 +169,7 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     expect(Math.abs(resultado.totalNum - totalEsperado)).toBeLessThanOrEqual(0.02);
   });
 
-  it('No debe trasladar el IVA reducido por bono social severo a tarifas libres con 10 kW exactos', async () => {
+  it('Mantiene IVA general en tarifas libres con 10 kW exactos', async () => {
     const tarifaLibre = {
       nombre: "Libre exacta 10kW",
       p1: 0.10, p2: 0.10,
@@ -191,16 +191,16 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
       solarOn: false,
       exTotal: 0,
       bvSaldo: 0,
-      bonoSocialOn: true,
-      bonoSocialTipo: 'severo',
+      bonoSocialOn: false,
+      bonoSocialTipo: 'vulnerable',
       bonoSocialLimite: 1587,
-      fechaYmd: '2026-03-22'
+      fechaYmd: '2026-03-21'
     });
 
     const resultado = window.LF.state.rows[0];
     const tarifaAcceso = window.LF_CONFIG.calcularBonoSocial(30);
     const sumaBase = 60 + 10 + tarifaAcceso;
-    const iee = window.LF_CONFIG.calcularIEE(sumaBase, 100, '2026-03-22');
+    const iee = window.LF_CONFIG.calcularIEE(sumaBase, 100, '2026-03-21');
     const alquiler = window.LF_CONFIG.calcularAlquilerContador(30);
     const taxCalc = window.LF_CONFIG.calcularImpuestoIndirecto({
       zona: 'Península',
@@ -209,9 +209,7 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
       impuestoElectrico: iee,
       baseContador: alquiler,
       potenciaContratada: 10,
-      bonoSocialOn: false,
-      bonoSocialTipo: '',
-      fechaYmd: '2026-03-22'
+      fechaYmd: '2026-03-21'
     });
     const totalEsperado = window.LF.round2(sumaBase + iee + alquiler + taxCalc.impuestoEnergia + taxCalc.impuestoContador);
 
