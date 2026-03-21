@@ -18,7 +18,7 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
   // Función helper para formatear números como lo hace el código (round2)
   const round2 = (n) => Math.round(n * 100) / 100;
 
-  it('Debe calcular correctamente un desglose BÁSICO (Península)', () => {
+  it('Debe calcular correctamente un desglose BÁSICO (Península) con el régimen actual', () => {
     const datos = {
       potenciaP1: 4, potenciaP2: 4, dias: 30,
       precioP1: 0.1, precioP2: 0.1, // 4*30*0.1 = 12€ c/u -> 24€ Potencia
@@ -55,7 +55,7 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
     expect(res.totalFinal).toBe(round2(baseIVA + ivaEsperado));
   });
 
-  it('Debe aplicar IVA 10% e IEE 0,5% desde el 21/03/2026 en Península <10kW', () => {
+  it('Debe mantener IVA 10% e IEE 0,5% aunque cambie la fecha del periodo en Península <10kW', () => {
     const datos = {
       potenciaP1: 4.6, potenciaP2: 4.6, dias: 30,
       precioP1: 0.1, precioP2: 0.1,

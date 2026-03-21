@@ -11,19 +11,21 @@ describe('LF_CONFIG - Lógica Fiscal', () => {
     expect(window.LF_CONFIG.version).toMatch(/^\d{4}\.\d{2}$/);
   });
 
-  it('Cálculo IEE: antes del adelanto operativo aplica el 5.11269632%', () => {
+  it('Cálculo IEE: aplica el 0,5% configurado si supera el mínimo', () => {
     const base = 100;
     const consumo = 0;
     const result = window.LF_CONFIG.calcularIEE(base, consumo, '2026-03-20');
-    const expected = (window.LF_CONFIG.iee.porcentaje / 100) * base;
+    const expected = (window.LF_CONFIG.medidasTemporales.rdl72026.ieePorcentajeReducido / 100) * base;
     expect(result).toBeCloseTo(expected, 4);
   });
 
-  it('Cálculo IEE: desde el 21/03/2026 aplica el 0,5% si supera el mínimo', () => {
+  it('Cálculo IEE: ignora la fecha del periodo y mantiene el régimen actual', () => {
     const base = 100;
     const consumo = 0;
-    const result = window.LF_CONFIG.calcularIEE(base, consumo, '2026-03-21');
-    expect(result).toBeCloseTo(0.5, 4);
+    const before = window.LF_CONFIG.calcularIEE(base, consumo, '2026-03-20');
+    const after = window.LF_CONFIG.calcularIEE(base, consumo, '2026-03-21');
+    expect(before).toBeCloseTo(0.5, 4);
+    expect(after).toBeCloseTo(0.5, 4);
   });
 
   it('Cálculo IEE: mantiene el mínimo de 0,001€/kWh si es mayor que el porcentaje', () => {
@@ -37,7 +39,7 @@ describe('LF_CONFIG - Lógica Fiscal', () => {
     expect(result).toBe(expected);
   });
 
-  it('Península: aplica IVA 10% desde el 21/03/2026 si la potencia es inferior a 10 kW', () => {
+  it('Península: aplica IVA 10% si la potencia es inferior a 10 kW', () => {
     const info = window.LF_CONFIG.getImpuestoInfo('Península', 'otros', {
       potenciaContratada: 4.6,
       fechaYmd: '2026-03-21'

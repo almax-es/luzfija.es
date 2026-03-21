@@ -65,16 +65,24 @@
   }
 
   // ✅ Calcular fechas reales basadas en los días de facturación
-  function calcularFechasPeriodo(dias) {
-    const hoy = new Date();
-    
-    // Fecha fin = ayer (como hace PVPC)
-    const fechaFin = new Date(hoy);
-    fechaFin.setDate(fechaFin.getDate() - 1);
-    
+  // usando la misma fecha fiscal del cálculo principal.
+  function calcularFechasPeriodo(dias, fechaFinRef) {
+    const diasNum = Math.max(1, Math.round(parseNum(dias) || 30));
+    const fechaFinYmd = (window.LF_CONFIG && typeof window.LF_CONFIG.resolveFiscalDateYmd === 'function')
+      ? window.LF_CONFIG.resolveFiscalDateYmd(fechaFinRef)
+      : '';
+
+    let fechaFin;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(fechaFinYmd)) {
+      const [yyyy, mm, dd] = fechaFinYmd.split('-').map(Number);
+      fechaFin = new Date(yyyy, mm - 1, dd);
+    } else {
+      fechaFin = new Date();
+    }
+
     // Fecha inicio = fechaFin - dias + 1
     const fechaInicio = new Date(fechaFin);
-    fechaInicio.setDate(fechaInicio.getDate() - dias + 1);
+    fechaInicio.setDate(fechaInicio.getDate() - diasNum + 1);
     
     const formatear = (d) => {
       const dd = String(d.getDate()).padStart(2, '0');
@@ -85,7 +93,12 @@
     
     return {
       inicio: formatear(fechaInicio),
-      fin: formatear(fechaFin)
+      fin: formatear(fechaFin),
+      fechaYmd: fechaFinYmd || (
+        window.LF_CONFIG && typeof window.LF_CONFIG.formatDateYmdInMadrid === 'function'
+          ? window.LF_CONFIG.formatDateYmdInMadrid(fechaFin)
+          : ''
+      )
     };
   }
 
@@ -337,8 +350,14 @@
       }
     }
 
-    // ✅ Calcular fechas reales basadas en los días
-    const fechas = calcularFechasPeriodo(inputs.dias);
+    const fechaFiscalYmd = tarifa.esPVPC
+      ? (tarifa.metaPvpc?.fechaYmd || tarifa.metaPvpc?.rangoFechas?.fin || null)
+      : (window.LF_CONFIG && typeof window.LF_CONFIG.getTodayYmd === 'function'
+          ? window.LF_CONFIG.getTodayYmd()
+          : null);
+
+    // ✅ Calcular fechas reales basadas en la misma fecha fiscal del ranking
+    const fechas = calcularFechasPeriodo(inputs.dias, fechaFiscalYmd);
 
     // Para PVPC, obtener precios medios de window.pvpcLastMeta
     let precioPunta = tarifa.cPunta || 0;
@@ -366,6 +385,7 @@
       nombreTarifa: tarifa.nombre || tarifa.id || 'Tarifa',
       fechaInicio: fechas.inicio,  // ✅ Fecha calculada
       fechaFin: fechas.fin,        // ✅ Fecha calculada
+      fechaYmd: fechas.fechaYmd,
       dias: inputs.dias,
 
       potenciaP1: inputs.p1,

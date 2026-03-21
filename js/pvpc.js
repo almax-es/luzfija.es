@@ -518,8 +518,11 @@ const PEAJES_POT_DIA = {
 
       const startStr = formatYMD(startDate);
       const endStr = formatYMD(endDate);
+      const fiscalDateYmd = (window.LF_CONFIG && typeof window.LF_CONFIG.getTodayYmd === 'function')
+        ? window.LF_CONFIG.getTodayYmd()
+        : (values?.fechaYmd || endStr);
       if (typeof __LF_getFiscalContext === 'function') {
-        fiscal = __LF_getFiscalContext({ ...(values || {}), fechaYmd: endStr });
+        fiscal = __LF_getFiscalContext({ ...(values || {}), fechaYmd: fiscalDateYmd });
       } else if (window.LF_CONFIG && typeof window.LF_CONFIG.getFiscalContext === 'function') {
         fiscal = window.LF_CONFIG.getFiscalContext({
           zona: values?.zonaFiscal,
@@ -527,10 +530,10 @@ const PEAJES_POT_DIA = {
           viviendaCanarias: values?.viviendaCanarias,
           bonoSocialOn: values?.bonoSocialOn,
           bonoSocialTipo: values?.bonoSocialTipo,
-          fechaYmd: endStr
+          fechaYmd: fiscalDateYmd
         });
       } else if (fiscal && typeof fiscal === 'object') {
-        fiscal = { ...fiscal, fechaYmd: endStr };
+        fiscal = { ...fiscal, fechaYmd: fiscalDateYmd };
       }
 
       const weekdayFromYMD = (ymd) => {
@@ -694,7 +697,7 @@ const PEAJES_POT_DIA = {
         // IMPUESTO ELÉCTRICO
         const baseIEE = terminoFijo + costeMargenPot + terminoVariable + bonoSocial;
         const impuestoElectrico = (window.LF_CONFIG && typeof window.LF_CONFIG.calcularIEE === 'function')
-          ? round2(window.LF_CONFIG.calcularIEE(baseIEE, consumoTotal, fiscal?.fechaYmd || endStr))
+          ? round2(window.LF_CONFIG.calcularIEE(baseIEE, consumoTotal, fiscal?.fechaYmd || fiscalDateYmd))
           : round2(Math.max(
               ((Number(window.LF_CONFIG?.iee?.porcentaje) || 0) / 100) * baseIEE,
               consumoTotal * (Number(window.LF_CONFIG?.iee?.minimoEurosKwh) || 0)
@@ -956,7 +959,9 @@ const PEAJES_POT_DIA = {
           const parsed=parsearRespuestaPVPC(data);
           if(!parsed){ if(!pvpcErrorShown){toast('PVPC: Error al procesar datos de precios.','err'); pvpcErrorShown=true;} return null; }
 
-          const fiscalFechaFinal = parsed.rangoFechas?.fin || fiscal?.fechaYmd;
+          const fiscalFechaFinal = (window.LF_CONFIG && typeof window.LF_CONFIG.getTodayYmd === 'function')
+            ? window.LF_CONFIG.getTodayYmd()
+            : (values?.fechaYmd || parsed.rangoFechas?.fin || fiscal?.fechaYmd);
           const fiscalResolved = typeof __LF_getFiscalContext === 'function'
             ? __LF_getFiscalContext({ ...(values || {}), fechaYmd: fiscalFechaFinal })
             : (window.LF_CONFIG && typeof window.LF_CONFIG.getFiscalContext === 'function')

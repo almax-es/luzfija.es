@@ -46,13 +46,13 @@
 
     // ═══════════════════════════════════════════════════════════════════
     // MEDIDAS TEMPORALES (RDL 7/2026, BOE 21/03/2026)
-    // Entrada operativa en la web: 21/03/2026
-    // Nota: junio de 2026 queda condicionado al IPC publicado en mayo.
-    // Si esa condición hiciera caer la rebaja en junio, bastará con poner
-    // junio2026Habilitado = false.
+    // LuzFija usa SIEMPRE el régimen fiscal vigente configurado aquí.
+    // No se recalculan fiscalidades históricas por fecha de periodo.
+    // Las fechas se conservan solo como referencia normativa/copy.
     // ═══════════════════════════════════════════════════════════════════
     medidasTemporales: {
       rdl72026: {
+        activa: true,
         entradaVigor: '2026-03-21',
         fin: '2026-06-30',
         junio2026Habilitado: true,
@@ -215,11 +215,8 @@
     },
 
     isRdl72026ElectricidadActiva: function(fechaYmd) {
-      const fecha = this.resolveFiscalDateYmd(fechaYmd);
       const medida = this.medidasTemporales.rdl72026;
-      if (fecha < medida.entradaVigor || fecha > medida.fin) return false;
-      if (!medida.junio2026Habilitado && fecha >= '2026-06-01' && fecha <= '2026-06-30') return false;
-      return true;
+      return Boolean(medida && medida.activa);
     },
 
     getIEEInfo: function(fechaYmd) {
@@ -260,12 +257,11 @@
       bonoSocialTipo = '',
       fechaYmd
     } = {}) {
-      const fecha = this.resolveFiscalDateYmd(fechaYmd);
       const medida = this.medidasTemporales.rdl72026;
       const potenciaNum = Number.isFinite(Number(potenciaContratada)) ? Number(potenciaContratada) : 0;
       const potenciaElegible = potenciaNum > 0 && potenciaNum < medida.potenciaMaxIvaReducidoKwExclusiva;
 
-      if (this.isRdl72026ElectricidadActiva(fecha) && potenciaElegible) {
+      if (this.isRdl72026ElectricidadActiva(fechaYmd) && potenciaElegible) {
         return 'iva_reducido';
       }
       return 'iva_general';

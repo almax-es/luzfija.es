@@ -45,6 +45,12 @@ beforeEach(() => {
   window.toast = vi.fn();
   global.toast = window.toast;
 
+  window.LF_CONFIG = {
+    getTodayYmd: () => '2026-03-21',
+    resolveFiscalDateYmd: (value) => value || '2026-03-21',
+    formatDateYmdInMadrid: () => '2026-03-21'
+  };
+
   window.__LF_DesgloseFactura = { abrir: vi.fn() };
   delete window.pvpcLastMeta;
 
@@ -60,6 +66,7 @@ afterEach(() => {
   delete window.mostrarDesglose;
   delete window.__LF_DesgloseFactura;
   delete window.pvpcLastMeta;
+  delete window.LF_CONFIG;
   delete window.toast;
   delete global.toast;
   delete global.fetch;
@@ -94,5 +101,33 @@ describe('Desglose integration UX guardrails', () => {
       'err'
     );
     expect(window.__LF_DesgloseFactura.abrir).not.toHaveBeenCalled();
+  });
+
+  it('usa la misma fecha fiscal del cálculo principal para el desglose de tarifas libres', async () => {
+    global.fetch = vi.fn(async () => ({
+      json: async () => ({
+        tarifas: [{
+          id: 'visalia',
+          nombre: 'Visalia',
+          cPunta: 0.097999,
+          cLlano: 0.097999,
+          cValle: 0.097999,
+          p1: 0.0603,
+          p2: 0.0603
+        }]
+      })
+    }));
+
+    bootstrapIntegration();
+
+    await window.mostrarDesglose('Visalia');
+
+    expect(window.__LF_DesgloseFactura.abrir).toHaveBeenCalledWith(
+      expect.objectContaining({
+        fechaYmd: '2026-03-21',
+        fechaInicio: '20/02/2026',
+        fechaFin: '21/03/2026'
+      })
+    );
   });
 });

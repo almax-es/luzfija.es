@@ -42,7 +42,7 @@ describe('BVSim - Fiscalidad alineada con comparador principal', () => {
 
     expect(res.costeBonoSocial).toBeCloseTo(bono, 6);
     expect(res.impuestoElec).toBeCloseTo(expectedIEE, 2);
-    expect(res.impuestoElec).toBeGreaterThan(0);
+    expect(res.impuestoElec).toBeGreaterThanOrEqual(0);
   });
 
   it('Canarias vivienda: IGIC energia 0%, pero IGIC contador 7% sigue aplicando', () => {

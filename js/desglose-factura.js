@@ -208,7 +208,7 @@
             zona: zonaFiscal,
             potenciaContratada,
             viviendaCanarias: esViviendaCanarias,
-            fechaYmd: datos.fechaFin || datos.fechaInicio
+            fechaYmd: datos.fechaYmd || datos.fechaFin || datos.fechaInicio
           })
         : null;
 
@@ -248,7 +248,7 @@
 
       const sumaBase = pot + consAdj + tarifaAdj;
       const consumoTotalKwh = consumoPunta + consumoLlano + consumoValle;
-      const impuestoElec = round2(CFG.calcularIEE(sumaBase, consumoTotalKwh, fiscal?.fechaYmd || datos.fechaFin || datos.fechaInicio));
+      const impuestoElec = round2(CFG.calcularIEE(sumaBase, consumoTotalKwh, fiscal?.fechaYmd || datos.fechaYmd || datos.fechaFin || datos.fechaInicio));
       const alquilerContador = round2(dias * CFG.alquilerContador.eurosMes * 12 / 365);
       const taxCalc = CFG.calcularImpuestoIndirecto({
         zona: zonaFiscal,
@@ -258,7 +258,7 @@
         baseContador: alquilerContador,
         potenciaContratada,
         viviendaCanarias: esViviendaCanarias,
-        fechaYmd: fiscal?.fechaYmd || datos.fechaFin || datos.fechaInicio
+        fechaYmd: fiscal?.fechaYmd || datos.fechaYmd || datos.fechaFin || datos.fechaInicio
       });
 
       let resultado = {};
@@ -349,7 +349,7 @@
 
       resultado.consumoTotalKwh = round2(consumoTotalKwh);
       resultado.fechaYmd = fiscal?.fechaYmd || (CFG && typeof CFG.resolveFiscalDateYmd === 'function'
-        ? CFG.resolveFiscalDateYmd(datos.fechaFin || datos.fechaInicio)
+        ? CFG.resolveFiscalDateYmd(datos.fechaYmd || datos.fechaFin || datos.fechaInicio)
         : undefined);
       return resultado;
     },
@@ -376,12 +376,12 @@
       const potenciaContratada = Math.max(safeNum(datos.potenciaP1), safeNum(datos.potenciaP2));
       const impuestoInfo = (window.LF_CONFIG && typeof window.LF_CONFIG.getImpuestoInfo === 'function')
         ? window.LF_CONFIG.getImpuestoInfo(datos.zonaFiscal || 'Península', d.usoFiscal || 'otros', {
-            fechaYmd: d.fechaYmd || datos.fechaFin || datos.fechaInicio,
+            fechaYmd: d.fechaYmd || datos.fechaYmd || datos.fechaFin || datos.fechaInicio,
             potenciaContratada
           })
         : null;
       const ieeInfo = (window.LF_CONFIG && typeof window.LF_CONFIG.desglosarIEE === 'function')
-        ? window.LF_CONFIG.desglosarIEE(d.sumaBase, d.consumoTotalKwh || 0, d.fechaYmd || datos.fechaFin || datos.fechaInicio)
+        ? window.LF_CONFIG.desglosarIEE(d.sumaBase, d.consumoTotalKwh || 0, d.fechaYmd || datos.fechaYmd || datos.fechaFin || datos.fechaInicio)
         : null;
       const ieeDetalle = ieeInfo
         ? (ieeInfo.aplicaMinimo
