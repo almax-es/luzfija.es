@@ -609,9 +609,9 @@
     },
     {
       "nombre": "Seneo Tarifa 1 3P",
-      "cPunta": 0.215,
-      "cLlano": 0.144,
-      "cValle": 0.111,
+      "cPunta": 0.221,
+      "cLlano": 0.149,
+      "cValle": 0.117,
       "p1": 0.095,
       "p2": 0.018,
       "web": "https://www.seneo.org/es/tarifa-tramos-horarios-con-monedero-solar/",
@@ -644,5 +644,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-03-23T13:04:39.330Z"
+  "updatedAt": "2026-03-23T13:09:09.300Z"
 }
