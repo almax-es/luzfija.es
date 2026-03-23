@@ -497,7 +497,7 @@
     },
     {
       "nombre": "Neolux VE 3P",
-      "cPunta": 0.19,
+      "cPunta": 0.199,
       "cLlano": 0.179,
       "cValle": 0.039,
       "p1": 0.095,
@@ -644,5 +644,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-03-23T13:00:46.172Z"
+  "updatedAt": "2026-03-23T13:04:39.330Z"
 }
