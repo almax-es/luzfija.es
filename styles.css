@@ -4496,11 +4496,100 @@ html.light-mode .sun-club-breakdown-row span:last-child {
   left: 100%;
 }
 
-/* Ajuste m�vil */
+/* Ajuste m?vil */
 @media (max-width: 768px) {
   .btn-feature {
     min-width: 44px;
     padding: 8px;
     justify-content: center;
+  }
+}
+
+/* === BANNER FLOTANTE GRUPO FACEBOOK === */
+#fb-banner {
+  position: fixed;
+  bottom: 24px;
+  left: 20px;
+  z-index: 9997;
+  width: 260px;
+  background: var(--card, #161b2e);
+  border: 1px solid rgba(24,119,242,.35);
+  border-radius: 14px;
+  padding: 14px 16px 14px 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,.35), 0 0 0 1px rgba(24,119,242,.12);
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  transform: translateY(120%);
+  opacity: 0;
+  transition: transform .4s cubic-bezier(.34,1.56,.64,1), opacity .3s ease;
+  pointer-events: none;
+}
+#fb-banner.fb-banner--visible {
+  transform: translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+.fb-banner__icon {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  background: #1877f2;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
+  margin-top: 1px;
+}
+.fb-banner__body {
+  flex: 1;
+  min-width: 0;
+}
+.fb-banner__title {
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text, #f7f7fb);
+  margin: 0 0 3px;
+  line-height: 1.3;
+}
+.fb-banner__desc {
+  font-size: 11px;
+  color: var(--muted, rgba(247,247,251,.6));
+  margin: 0 0 10px;
+  line-height: 1.4;
+}
+.fb-banner__cta {
+  display: inline-block;
+  padding: 6px 12px;
+  background: #1877f2;
+  color: #fff;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: background .2s;
+}
+.fb-banner__cta:hover { background: #1464d0; }
+.fb-banner__close {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--muted, rgba(247,247,251,.5));
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  margin-top: -2px;
+  transition: color .2s;
+}
+.fb-banner__close:hover { color: var(--text, #f7f7fb); }
+@media (max-width: 480px) {
+  #fb-banner {
+    left: 12px;
+    right: 12px;
+    width: auto;
+    bottom: 16px;
   }
 }

@@ -814,6 +814,32 @@
   </button>
 
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"><span class="dot" id="toastDot" aria-hidden="true"></span><span id="toastText"></span></div>
+
+  <!-- Banner flotante grupo Facebook -->
+  <div id="fb-banner" role="complementary" aria-label="Únete al grupo de Facebook">
+    <div class="fb-banner__icon">💬</div>
+    <div class="fb-banner__body">
+      <p class="fb-banner__title">¿Dudas sobre tu tarifa?</p>
+      <p class="fb-banner__desc">Pregunta en nuestra comunidad y te ayudamos a pagar menos.</p>
+      <a href="https://www.facebook.com/groups/luzfija" target="_blank" rel="noopener noreferrer" class="fb-banner__cta">Unirme al grupo</a>
+    </div>
+    <button class="fb-banner__close" id="fb-banner-close" aria-label="Cerrar">✕</button>
+  </div>
+  <script>
+    (function(){
+      var KEY = 'lf_fb_banner_dismissed';
+      if(localStorage.getItem(KEY)) return;
+      var banner = document.getElementById('fb-banner');
+      var closeBtn = document.getElementById('fb-banner-close');
+      function dismiss(){
+        banner.classList.remove('fb-banner--visible');
+        localStorage.setItem(KEY, '1');
+      }
+      closeBtn.addEventListener('click', dismiss);
+      banner.querySelector('.fb-banner__cta').addEventListener('click', dismiss);
+      setTimeout(function(){ banner.classList.add('fb-banner--visible'); }, 4000);
+    })();
+  </script>
   <button type="button" id="scrollToResults" class="scroll-btn is-hidden" title="Ver resultados" aria-label="Desplazarse a los resultados del comparador" aria-controls="heroKpis">↓ Ver resultados</button>
   <div id="globalTooltip" role="tooltip" aria-hidden="true"></div>
 
