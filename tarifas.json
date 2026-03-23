@@ -157,7 +157,7 @@
       "tipo": "1P",
       "requisitos": "Consumo ≤ 10.000 kWh/año",
       "fv": {
-        "exc": 0.06,
+        "exc": 0.07,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -296,9 +296,9 @@
     },
     {
       "nombre": "Seneo Tarifa 1",
-      "cPunta": 0.152,
-      "cLlano": 0.152,
-      "cValle": 0.152,
+      "cPunta": 0.158,
+      "cLlano": 0.158,
+      "cValle": 0.158,
       "p1": 0.095,
       "p2": 0.018,
       "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
@@ -396,7 +396,7 @@
       "tipo": "3P",
       "requisitos": "Consumo ≤ 10.000 kWh/año",
       "fv": {
-        "exc": 0.06,
+        "exc": 0.07,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -504,12 +504,13 @@
       "p2": 0.085,
       "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
       "tipo": "3P",
+      "requisitos": "Consumo ≤ 10.000 kWh/año",
       "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
+        "exc": 0.07,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
       },
       "requiereFV": false
     },
@@ -643,5 +644,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-03-23T06:44:48.987Z"
+  "updatedAt": "2026-03-23T12:57:51.235Z"
 }
