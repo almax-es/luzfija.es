@@ -92,25 +92,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Iberdrola Online",
-      "cPunta": 0.1099,
-      "cLlano": 0.1099,
-      "cValle": 0.1099,
-      "p1": 0.108192,
-      "p2": 0.057507,
-      "web": "https://www.iberdrola.es/luz/plan-online",
-      "tipo": "1P",
-      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Octopus Unicaja",
       "cPunta": 0.116,
       "cLlano": 0.116,
@@ -158,6 +139,25 @@
       "requisitos": "Consumo ≤ 10.000 kWh/año",
       "fv": {
         "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Iberdrola Online",
+      "cPunta": 0.1199,
+      "cLlano": 0.1199,
+      "cValle": 0.1199,
+      "p1": 0.119151,
+      "p2": 0.058877,
+      "web": "https://www.iberdrola.es/luz/plan-online",
+      "tipo": "1P",
+      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
+      "fv": {
+        "exc": 0.03,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -590,11 +590,11 @@
     },
     {
       "nombre": "Iberdrola Solar 3P",
-      "cPunta": 0.203,
-      "cLlano": 0.123,
-      "cValle": 0.079,
-      "p1": 0.086301,
-      "p2": 0.042466,
+      "cPunta": 0.21,
+      "cLlano": 0.135,
+      "cValle": 0.089,
+      "p1": 0.091781,
+      "p2": 0.047945,
       "web": "https://www.iberdrola.es/luz/plan-ahorro-solar",
       "tipo": "3P",
       "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
@@ -644,5 +644,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-03-31T05:56:41.654Z"
+  "updatedAt": "2026-03-31T08:40:51.870Z"
 }
