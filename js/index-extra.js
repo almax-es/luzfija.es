@@ -130,6 +130,7 @@
           
           // Iconos según tipo
           const iconos = {
+            'regulatorio': '📜',
             'alerta': '⚠️',
             'novedad': '✨',
             'info': '📊',
@@ -139,6 +140,7 @@
           
           // Colores según tipo
           const colores = {
+            'regulatorio': '#3B82F6',
             'alerta': 'var(--danger)',
             'novedad': 'var(--accent)',
             'info': 'var(--accent2)',
