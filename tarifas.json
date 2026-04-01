@@ -570,25 +570,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Neolux VE 3P",
-      "cPunta": 0.199,
-      "cLlano": 0.179,
-      "cValle": 0.039,
-      "p1": 0.095,
-      "p2": 0.085,
-      "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
-      "tipo": "3P",
-      "requisitos": "Consumo ≤ 10.000 kWh/año",
-      "fv": {
-        "exc": 0.06,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Iberdrola Solar 3P",
       "cPunta": 0.21,
       "cLlano": 0.135,
@@ -644,5 +625,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-03-31T08:44:00.002Z"
+  "updatedAt": "2026-04-01T06:50:18.547Z"
 }
