@@ -29,10 +29,16 @@ Object.assign(global.window, {
     escapeHtml,
     createRipple,
     lfDbg,
+    parseNum: (value) => {
+      const normalized = String(value ?? '').replace(',', '.');
+      const parsed = Number(normalized);
+      return Number.isFinite(parsed) ? parsed : 0;
+    },
     // Funciones que render necesita llamar
     updateSortIcons: vi.fn(), 
     renderTarifasUpdated: vi.fn(),
-    bindTooltipElement: vi.fn()
+    bindTooltipElement: vi.fn(),
+    yieldControl: vi.fn(() => Promise.resolve())
   }
 });
 
@@ -52,6 +58,12 @@ describe('Renderizado UI (lf-render.js)', () => {
   // Setup del DOM antes de cada test
   beforeEach(() => {
     window.document.body.innerHTML = `
+      <input id="p1" value="0">
+      <input id="p2" value="0">
+      <input id="dias" value="30">
+      <input id="cPunta" value="0">
+      <input id="cLlano" value="0">
+      <input id="cValle" value="0">
       <div id="heroKpis">
         <div id="kpiBest"></div>
         <div id="kpiPrice"></div>
@@ -222,9 +234,86 @@ describe('Renderizado UI (lf-render.js)', () => {
     
     // Si la lógica de KPIs está en renderTable:
     if (document.getElementById('kpiBest').textContent) {
-       expect(document.getElementById('kpiBest').textContent).toContain('Tarifa Barata');
-       expect(document.getElementById('kpiPrice').textContent).toContain('50,00 €');
+      expect(document.getElementById('kpiBest').textContent).toContain('Tarifa Barata');
+      expect(document.getElementById('kpiPrice').textContent).toContain('50,00 €');
     }
+  });
+
+  it('Solo muestra el aviso de límites Nufri en las tarifas que lo declaran', async () => {
+    document.getElementById('p1').value = '3,45';
+    document.getElementById('p2').value = '3,45';
+    document.getElementById('dias').value = '30';
+    document.getElementById('cPunta').value = '900';
+
+    window.LF.state.rows = [
+      {
+        nombre: 'Nufri',
+        tipo: '1P',
+        totalNum: 50,
+        total: '50,00 €',
+        potencia: '10 €',
+        consumo: '30 €',
+        impuestos: '10 €',
+        webUrl: 'https://example.com/nufri'
+      },
+      {
+        nombre: 'Nufri Calma',
+        tipo: '1P',
+        totalNum: 51,
+        total: '51,00 €',
+        potencia: '10 €',
+        consumo: '31 €',
+        impuestos: '10 €',
+        webUrl: 'https://example.com/nufri-calma',
+        requisitos: 'Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.',
+        avisoConsumoEstimado: {
+          titulo: 'REQUISITOS NUFRI',
+          ratioKwhPorKw: 750,
+          maxKwhAnual: 8000
+        }
+      },
+      {
+        nombre: 'Nufri 3P',
+        tipo: '3P',
+        totalNum: 52,
+        total: '52,00 €',
+        potencia: '10 €',
+        consumo: '32 €',
+        impuestos: '10 €',
+        webUrl: 'https://example.com/nufri-3p'
+      },
+      {
+        nombre: 'Nufri Flex 3P',
+        tipo: '3P',
+        totalNum: 53,
+        total: '53,00 €',
+        potencia: '10 €',
+        consumo: '33 €',
+        impuestos: '10 €',
+        webUrl: 'https://example.com/nufri-flex-3p',
+        requisitos: 'Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.',
+        avisoConsumoEstimado: {
+          titulo: 'REQUISITOS NUFRI',
+          ratioKwhPorKw: 750,
+          maxKwhAnual: 8000
+        }
+      }
+    ];
+
+    await window.LF.renderTable();
+
+    const rows = [...document.querySelectorAll('#tbody tr')];
+    const getRow = (name) => rows.find((row) => row.textContent.includes(name));
+
+    expect(getRow('Nufri').querySelector('.consumo-limits-icon')).toBeNull();
+    expect(getRow('Nufri 3P').querySelector('.consumo-limits-icon')).toBeNull();
+
+    const calmaWarn = getRow('Nufri Calma').querySelector('.consumo-limits-icon');
+    const flexWarn = getRow('Nufri Flex 3P').querySelector('.consumo-limits-icon');
+
+    expect(calmaWarn).not.toBeNull();
+    expect(flexWarn).not.toBeNull();
+    expect(calmaWarn.getAttribute('data-tip')).toContain('REQUISITOS NUFRI');
   });
 
 });

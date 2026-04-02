@@ -139,8 +139,8 @@
     el.emptyBox.classList.remove('show');
     el.table.classList.add('show');
 
-    // --- PRE-CÁLCULO VALIDACIÓN NUFRI ---
-    // Obtenemos valores del DOM para calcular si se cumplen requisitos
+    // --- PRE-CÁLCULO AVISOS POR LÍMITES DE CONSUMO ---
+    // Obtenemos valores del DOM para calcular si se cumplen requisitos de contratación
     const domP1 = document.getElementById('p1');
     const valP1 = domP1 ? window.LF.parseNum(domP1.value) : 0;
     const domP2 = document.getElementById('p2');
@@ -159,11 +159,6 @@
     const diasCalc = valDias > 0 ? valDias : 30;
     const consumoAnualEst = (valConsumoTotal / diasCalc) * 365;
     const potRef = Math.max(valP1, valP2);
-    // Límite Ratio: 0.75 MWh/kW = 750 kWh/kW
-    const limiteRatio = potRef * 750;
-    const limiteAbs = 8000;
-    // Flag global para Nufri en este render
-    const nufriExcede = (consumoAnualEst > limiteRatio || consumoAnualEst > limiteAbs);
 
     // Limpiar tbody existente
     el.tbody.replaceChildren();
@@ -208,11 +203,28 @@
           compParcialIcon = `<span class="tooltip te-warn-icon" data-tip="${escapeHtml(cpTip)}" role="button" tabindex="0" aria-label="Aviso compensación parcial" style="margin-left:4px; color:var(--danger); cursor:help; font-size:1.1em;">❗</span>`;
         }
 
-        // --- VALIDACIÓN NUFRI IN-LINE (ICONO) ---
-        let nufriWarnIcon = '';
-        if (nufriExcede && nombreBase.toLowerCase().includes('nufri')) {
-          const tipText = `⚠️ REQUISITOS NUFRI (Límites superados)\n\nTu consumo estimado (~${Math.round(consumoAnualEst).toLocaleString('es-ES')} kWh/año) supera los límites teóricos para esta tarifa:\n\n• Máximo por potencia: ${Math.round(limiteRatio).toLocaleString('es-ES')} kWh\n• Máximo absoluto: 8.000 kWh\n\nNo obstante, se aconseja intentar la contratación si te interesa. Será la propia compañía quien confirme la validez final durante el proceso.`;
-          nufriWarnIcon = `<span class="tooltip nufri-icon" data-tip="${escapeHtml(tipText)}" role="button" tabindex="0" aria-label="Advertencia requisitos Nufri" style="margin-left:4px; color:var(--danger); cursor:help; font-size:1.1em;">⚠️</span>`;
+        // --- AVISO DE LÍMITES DE CONSUMO/POTENCIA (ICONO) ---
+        let limitesWarnIcon = '';
+        const avisoConsumoEstimado = r.avisoConsumoEstimado || null;
+        const ratioKwhPorKw = Number(avisoConsumoEstimado?.ratioKwhPorKw) || 0;
+        const maxKwhAnual = Number(avisoConsumoEstimado?.maxKwhAnual) || 0;
+        const limiteRatio = (ratioKwhPorKw > 0 && potRef > 0) ? (potRef * ratioKwhPorKw) : null;
+        const excedeLimitesConsumo = Boolean(avisoConsumoEstimado) && (
+          (limiteRatio !== null && consumoAnualEst > limiteRatio) ||
+          (maxKwhAnual > 0 && consumoAnualEst > maxKwhAnual)
+        );
+
+        if (excedeLimitesConsumo) {
+          const tituloAviso = avisoConsumoEstimado.titulo || 'REQUISITOS DE CONTRATACIÓN';
+          const limites = [];
+          if (limiteRatio !== null) {
+            limites.push(`• Máximo por potencia: ${Math.round(limiteRatio).toLocaleString('es-ES')} kWh`);
+          }
+          if (maxKwhAnual > 0) {
+            limites.push(`• Máximo absoluto: ${Math.round(maxKwhAnual).toLocaleString('es-ES')} kWh`);
+          }
+          const tipText = `⚠️ ${tituloAviso} (Límites superados)\n\nTu consumo estimado (~${Math.round(consumoAnualEst).toLocaleString('es-ES')} kWh/año) supera los límites teóricos para esta tarifa:\n\n${limites.join('\n')}\n\nNo obstante, se aconseja intentar la contratación si te interesa. Será la propia compañía quien confirme la validez final durante el proceso.`;
+          limitesWarnIcon = `<span class="tooltip consumo-limits-icon" data-tip="${escapeHtml(tipText)}" role="button" tabindex="0" aria-label="Advertencia límites de contratación" style="margin-left:4px; color:var(--danger); cursor:help; font-size:1.1em;">⚠️</span>`;
         }
 
         // Guardar metaPvpc para desglose si es PVPC
@@ -283,7 +295,7 @@
           solarDetails = `<div class="solar-details">🔋 ${escapeHtml(parts.join(' • '))}</div>`;
         }
 
-        const icons = `<span class="tarifa-icons">${fvIcon || ""}${compParcialIcon || ""}${requisitosTooltip || ""}${nombreWarn || ""}${nufriWarnIcon || ""}</span>`;
+        const icons = `<span class="tarifa-icons">${fvIcon || ""}${compParcialIcon || ""}${requisitosTooltip || ""}${nombreWarn || ""}${limitesWarnIcon || ""}</span>`;
 
         const badgeRow = `<div class="tarifa-badges" aria-hidden="true">` +
           `<span class="badge rank">#${idx + 1}</span>` +
@@ -333,7 +345,7 @@
       el.tbody.querySelectorAll('.te-warn-icon').forEach(t => bindTooltipElement(t));
       el.tbody.querySelectorAll('.requisitos-icon').forEach(t => bindTooltipElement(t));
       el.tbody.querySelectorAll('.fv-icon').forEach(t => bindTooltipElement(t));
-      el.tbody.querySelectorAll('.nufri-icon').forEach(t => bindTooltipElement(t));
+      el.tbody.querySelectorAll('.consumo-limits-icon').forEach(t => bindTooltipElement(t));
       updateSortIcons();
     });
   }
