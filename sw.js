@@ -3,7 +3,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260401-065027";
+const CACHE_VERSION = "20260402-065811";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
