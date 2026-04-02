@@ -19,6 +19,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Nufri",
+      "cPunta": 0.099,
+      "cLlano": 0.099,
+      "cValle": 0.099,
+      "p1": 0.099001,
+      "p2": 0.099001,
+      "web": "https://www.energianufri.com/es/tarifas-luz",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Endesa Fija 24H Online",
       "cPunta": 0.099999,
       "cLlano": 0.099999,
@@ -331,6 +349,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Nufri 3P",
+      "cPunta": 0.165621,
+      "cLlano": 0.089054,
+      "cValle": 0.054486,
+      "p1": 0.099001,
+      "p2": 0.099001,
+      "web": "https://www.energianufri.com/es/tarifas-luz",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Energya VM 3P",
       "cPunta": 0.16915,
       "cLlano": 0.13515,
@@ -625,5 +661,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-04-02T06:58:05.267Z"
+  "updatedAt": "2026-04-02T12:39:17.576Z"
 }
