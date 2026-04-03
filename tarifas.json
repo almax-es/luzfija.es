@@ -248,11 +248,6 @@
       "web": "https://www.energianufri.com/es/landing/mas-tarifas-luz-gas",
       "tipo": "1P",
       "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
-      "avisoConsumoEstimado": {
-        "titulo": "REQUISITOS NUFRI",
-        "ratioKwhPorKw": 750,
-        "maxKwhAnual": 8000
-      },
       "fv": {
         "exc": 0.03,
         "tipo": "SIMPLE + BV",
@@ -546,11 +541,6 @@
       "web": "https://www.energianufri.com/es/landing/mas-tarifas-luz-gas",
       "tipo": "3P",
       "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
-      "avisoConsumoEstimado": {
-        "titulo": "REQUISITOS NUFRI",
-        "ratioKwhPorKw": 750,
-        "maxKwhAnual": 8000
-      },
       "fv": {
         "exc": 0.03,
         "tipo": "SIMPLE + BV",
@@ -671,5 +661,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-04-02T12:55:18.537Z"
+  "updatedAt": "2026-04-03T06:35:02.946Z"
 }
