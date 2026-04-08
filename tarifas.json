@@ -644,9 +644,9 @@
     },
     {
       "nombre": "CHC VE 3P",
-      "cPunta": 0.224003,
-      "cLlano": 0.224003,
-      "cValle": 0.059339,
+      "cPunta": 0.225745,
+      "cLlano": 0.221841,
+      "cValle": 0.061081,
       "p1": 0.088956,
       "p2": 0.088382,
       "web": "https://chcenergia.es/tarifa-luz/vehiculo-electrico/",
@@ -661,5 +661,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-04-07T04:26:48.887Z"
+  "updatedAt": "2026-04-08T06:46:38.774Z"
 }
