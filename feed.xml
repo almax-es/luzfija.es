@@ -6,13 +6,22 @@
     <link>https://luzfija.es/</link>
     <description>Novedades sobre luz, gas, regulaciones y alertas para consumidores en España.</description>
     <language>es-ES</language>
-    <lastBuildDate>Tue, 31 Mar 2026 10:28:00 +0200</lastBuildDate>
+    <lastBuildDate>Fri, 10 Apr 2026 12:00:00 +0200</lastBuildDate>
     <atom:link href="https://luzfija.es/feed.xml" rel="self" type="application/rss+xml"/>
     <image>
       <url>https://luzfija.es/logo-512.png</url>
       <title>LuzFija.es</title>
       <link>https://luzfija.es/</link>
     </image>
+
+    <item>
+      <title>Revisión normativa de abril de 2026: 18 guías clave actualizadas en LuzFija</title>
+      <link>https://luzfija.es/novedades.html#revision-guias-abril-2026</link>
+      <guid isPermaLink="false">luzfija-novedad-2026-04-10-revision-guias-normativa</guid>
+      <pubDate>Fri, 10 Apr 2026 12:00:00 +0200</pubDate>
+      <category>regulatorio</category>
+      <description>LuzFija revisa y actualiza 18 guías a fecha 10/04/2026 para reflejar cambios reales en bono social, plazos de cambio de comercializadora y reclamación, autoconsumo, recarga en garaje comunitario, IVA vigente y otras reglas del sector eléctrico. Las fechas dateModified y el sitemap se han sincronizado con esta revisión.</description>
+    </item>
 
     <item>
       <title>Atulado Energía: la tarifa Milenial pasa a precio fijo único desde el 1 de abril de 2026</title>
@@ -42,12 +51,12 @@
     </item>
 
     <item>
-      <title>Bono Social: el Congreso rechaza el RDL 2/2026 — bajan los descuentos al 35% y 50%</title>
+      <title>26/02/2026: caída temporal del bono social al 35% y 50%, luego revertida por el RDL 7/2026</title>
       <link>https://luzfija.es/guias/bono-social-electrico-quien-puede-pedirlo-y-como.html</link>
       <guid isPermaLink="false">luzfija-novedad-2026-02-26-bono-social-rdl2</guid>
       <pubDate>Thu, 26 Feb 2026 00:00:00 +0100</pubDate>
       <category>regulatorio</category>
-      <description>El Congreso derogó el 26/02/2026 el Real Decreto-ley 2/2026 (177 votos en contra, 172 a favor). Sin respaldo legal del decreto, el bono social vuelve al régimen permanente del RD 897/2017: 35% para vulnerable y 50% para vulnerable severo. El simulador de luzfija.es ya refleja los porcentajes vigentes. El Gobierno podría aprobar un nuevo decreto en las próximas semanas.</description>
+      <description>El 26/02/2026, tras la caída del RDL 2/2026, el bono social volvió temporalmente al régimen permanente del RD 897/2017: 35% para vulnerable y 50% para vulnerable severo. Esa situación quedó después revertida por el RDL 7/2026, que restauró con carácter excepcional para 2026 los descuentos del 42,5% y 57,5%.</description>
     </item>
 
   </channel>

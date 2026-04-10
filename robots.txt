@@ -1,3 +1,4 @@
 User-agent: *
 Allow: /
 Sitemap: https://luzfija.es/sitemap.xml
+Sitemap: https://luzfija.es/feed.xml
