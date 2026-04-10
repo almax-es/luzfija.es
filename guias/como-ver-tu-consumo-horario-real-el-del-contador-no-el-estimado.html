@@ -55,7 +55,7 @@
     }
   },
   "datePublished": "2026-01-01",
-  "dateModified": "2026-02-14",
+  "dateModified": "2026-04-10",
   "mainEntityOfPage": {
     "@type": "WebPage",
     "@id": "https://luzfija.es/guias/como-ver-tu-consumo-horario-real-el-del-contador-no-el-estimado.html"
@@ -106,7 +106,7 @@
       "acceptedAnswer": {
         "@type": "Answer",
         "name": "Entra en la web de tu distribuidora (e-distribución, i-DE...",
-      "text": "Entra en la web de tu distribuidora (e-distribución, i-DE, Naturgy, etc.) o en Datadis.es. Necesitarás tu CUPS y crear una cuenta. Ahí puedes descargar tu consumo real horario, no el estimado que aparece en la factura."
+      "text": "Entra en la web de tu distribuidora (e-distribución, i-DE, UFD, e-Redes, etc.) o en Datadis. Normalmente tendrás que identificarte como titular o con acceso autorizado al suministro. Ahí puedes consultar y descargar tu consumo real horario, no solo el estimado que aparece en la factura."
       }
     },
     {
@@ -115,7 +115,7 @@
       "acceptedAnswer": {
         "@type": "Answer",
         "name": "Es una plataforma pública donde puedes consultar tu consu...",
-      "text": "Es una plataforma pública donde puedes consultar tu consumo horario real de todas las distribuidoras de España. Solo necesitas tu CUPS y darte de alta. Es gratuito y oficial, gestionado por la CNMC y las distribuidoras."
+      "text": "Es una plataforma digital de acceso unificado a datos de consumo eléctrico impulsada por distribuidoras. Sirve para consultar y descargar tu curva horaria desde un único sitio, siempre que seas titular del suministro o tengas acceso autorizado."
       }
     },
     {
@@ -451,13 +451,13 @@ html.light-mode .btn-small:hover{
   "@context": "https://schema.org",
   "@type": "HowTo",
   "name": "Cómo acceder a tu consumo horario real",
-  "description": "Guía paso a paso para descargar tu curva de carga desde la distribuidora.",
+  "description": "Guía paso a paso para descargar tu curva de carga desde la distribuidora o desde Datadis.",
   "step": [
     {
       "@type": "HowToStep",
       "position": 1,
-      "name": "Accede al portal de tu distribuidora (Red Eléctrica)",
-      "text": "Accede al portal de tu distribuidora (Red Eléctrica)"
+      "name": "Accede al portal de tu distribuidora o a Datadis",
+      "text": "Accede al portal de tu distribuidora o a Datadis"
     },
     {
       "@type": "HowToStep",
@@ -508,7 +508,7 @@ html.light-mode .btn-small:hover{
 <span class="article-category">📚 Guía</span>
 <h1>Cómo ver tu consumo horario real (el del contador, no el estimado)</h1>
 <p class="article-intro">Si quieres afinar de verdad, necesitas tu <strong>curva horaria</strong>: cuándo consumes cada hora. Eso lo tiene tu <strong>distribuidora</strong>. Con esos datos eliges tarifa mucho mejor que "a ojo".</p>
-<div class="article-meta"><span>Por <strong>aLMaX</strong></span><span>·</span><span>18 ene 2026</span><span>·</span><span>⏱️ 6 min</span><span>·</span><span class="updated-badge">🔄 Act. 14 feb 2026</span></div>
+<div class="article-meta"><span>Por <strong>aLMaX</strong></span><span>·</span><span>18 ene 2026</span><span>·</span><span>⏱️ 6 min</span><span>·</span><span class="updated-badge">🔄 Act. 10 abr 2026</span></div>
 </div>
 <div class="article-content">
 <h2>Por qué necesitas ver tu consumo real</h2>
@@ -532,8 +532,8 @@ En tu factura, busca "Distribuidora" o "Empresa distribuidora". Las más comunes
 <ul>
 <li><strong>i-DE</strong> (antes Iberdrola Distribución) → Madrid, Euskadi, parte de Andalucía, Murcia…</li>
 <li><strong>e-distribución</strong> (Endesa) → Cataluña, Aragón, Baleares, Canarias…</li>
-<li><strong>Naturgy</strong> → Galicia, parte de Castilla y León…</li>
-<li><strong>UFD</strong> → Parte de Madrid y zona centro</li>
+<li><strong>UFD</strong> (grupo Naturgy) → Galicia, parte de Castilla y León y otras zonas</li>
+<li><strong>e-Redes</strong> (grupo EDP) → Asturias y otras zonas donde opera esa distribuidora</li>
 <li><strong>Otras locales</strong> → Hay distribuidoras pequeñas en algunas zonas</li>
 </ul>
 <p>
@@ -612,10 +612,10 @@ Suma mentalmente (o con Excel) cuánto consumes en cada periodo:
 <ul>
 <li>P1 (punta): 10-14h y 18-22h laborables</li>
 <li>P2 (llano): 8-10h, 14-18h, 22-24h laborables</li>
-<li>P3 (valle): 0-8h laborables + todo el fin de semana + festivos nacionales</li>
+<li>P3 (valle): 0-8h laborables + todo el fin de semana + festivos nacionales que computen como valle</li>
 </ul>
 <p>
-Si más del 40% de tu consumo es en P1, una tarifa con discriminación horaria te está matando. Mejor una tarifa plana (1 solo precio).
+Si una parte muy alta de tu consumo cae en P1, revisa si te conviene cambiar hábitos o estudiar una tarifa de 1 solo precio. No siempre compensa seguir igual.
 </p>
 <p>
 Si más del 50% es en P3, perfecto. La discriminación horaria te beneficia.
@@ -713,11 +713,11 @@ Y si ves que tienes un consumo base alto de madrugada, investiga. Suele haber ap
   <h2>Preguntas frecuentes</h2>
   <details class="faq-item">
     <summary>¿Cómo puedo ver mi consumo real por horas?</summary>
-    <p>Entra en la web de tu distribuidora (e-distribución, i-DE, Naturgy, etc.) o en Datadis.es. Necesitarás tu CUPS y crear una cuenta. Ahí puedes descargar tu consumo real horario, no el estimado que aparece en la factura.</p>
+    <p>Entra en la web de tu distribuidora (e-distribución, i-DE, UFD, e-Redes, etc.) o en Datadis. Normalmente tendrás que identificarte como titular o con acceso autorizado al suministro. Ahí puedes consultar y descargar tu consumo real horario, no solo el estimado que aparece en la factura.</p>
   </details>
   <details class="faq-item">
     <summary>¿Qué es Datadis?</summary>
-    <p>Es una plataforma pública donde puedes consultar tu consumo horario real de todas las distribuidoras de España. Solo necesitas tu CUPS y darte de alta. Es gratuito y oficial, gestionado por la CNMC y las distribuidoras.</p>
+    <p>Es una plataforma digital de acceso unificado a datos de consumo eléctrico impulsada por distribuidoras. Sirve para consultar y descargar tu curva horaria desde un único sitio, siempre que seas titular del suministro o tengas acceso autorizado.</p>
   </details>
   <details class="faq-item">
     <summary>¿Por qué mi factura no coincide con mi consumo real?</summary>
