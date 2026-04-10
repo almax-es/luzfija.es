@@ -128,6 +128,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Plenitude",
+      "cPunta": 0.114511,
+      "cLlano": 0.114511,
+      "cValle": 0.114511,
+      "p1": 0.099817,
+      "p2": 0.099817,
+      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
+      "tipo": "1P",
+      "requisitos": "Potencia contratada ≤ 5 kW",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Octopus Unicaja",
       "cPunta": 0.116,
       "cLlano": 0.116,
@@ -290,25 +309,6 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Plenitude",
-      "cPunta": 0.14719,
-      "cLlano": 0.14719,
-      "cValle": 0.14719,
-      "p1": 0.075902,
-      "p2": 0.075902,
-      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
-      "tipo": "1P",
-      "requisitos": "Potencia contratada ≤ 5 kW",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
       },
       "requiereFV": false
     },
@@ -661,5 +661,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-04-09T04:52:21.837Z"
+  "updatedAt": "2026-04-10T09:14:19.745Z"
 }
