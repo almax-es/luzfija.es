@@ -55,24 +55,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Endesa Fija 24H Online",
-      "cPunta": 0.1055,
-      "cLlano": 0.1055,
-      "cValle": 0.1055,
-      "p1": 0.093666,
-      "p2": 0.093666,
-      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz",
-      "tipo": "1P",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "TE A tu aire",
       "cPunta": 0.1099,
       "cLlano": 0.1099,
@@ -661,5 +643,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-04-11T06:31:07.249Z"
+  "updatedAt": "2026-04-11T06:34:49.794Z"
 }
