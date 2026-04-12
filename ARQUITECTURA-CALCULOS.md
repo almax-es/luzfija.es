@@ -40,7 +40,7 @@ Una factura de electricidad en España contiene:
 │ - 6,979247 €/año prorrateo a días          │
 ├─────────────────────────────────────────────┤
 │ DESCUENTO BONO SOCIAL (si aplica)          │
-│ - 35% o 50% sobre base limitada (RD 897/2017, vigente desde 26/02/2026) │
+│ - 42,5% o 57,5% sobre base limitada (RDL 7/2026, vigente durante 2026) │
 ├─────────────────────────────────────────────┤
 │ IMPUESTO ELÉCTRICO (IEE)                    │
 │ - 5,11269632% sobre base post-descuento     │
@@ -81,7 +81,7 @@ const kwhBonificable = Math.min(consumoTotal, limiteAhioKWh / 365 * dias);
 const ratioBonicable = consumoTotal > 0 ? kwhBonificable / consumoTotal : 0;
 const baseVariableBonicable = energia * ratioBonicable;
 const baseDescuento = potencia + financiacion + baseVariableBonicable;
-const descuentoBS = baseDescuento * (bonoSocialOn ? 0.35 : 0); // 35% vulnerable (RD 897/2017, vigente desde 26/02/2026)
+const descuentoBS = baseDescuento * (bonoSocialOn ? 0.425 : 0); // 42,5% vulnerable (RDL 7/2026, vigente durante 2026)
 
 // PASO 5: BASE PARA IMPUESTOS
 const sumaBase = potencia + energia + financiacion - descuentoBS;
@@ -123,18 +123,18 @@ Financiación: 0,57 €
 ─────────────────
 Subtotal antes descuento: 56,97 €
 
-Descuento BS (35% sobre base limitada): -10,55 € (RD 897/2017, vigente desde 26/02/2026)
+Descuento BS (42,5% sobre base limitada): -12,81 € (RDL 7/2026, vigente durante 2026)
 ─────────────────
-Base para IEE: 46,42 € ✅
+Base para IEE: 44,16 € ✅
 
-IEE (5,11% × 46,42): 2,37 € ✅
+IEE (5,11% × 44,16): 2,26 € ✅
 Alquiler: 0,83 €
 
-Base para IVA: 46,42 + 2,37 + 0,83 = 49,62 €
-IVA (21%): 10,42 €
+Base para IVA: 44,16 + 2,26 + 0,83 = 47,25 €
+IVA (21%): 9,92 €
 
-TOTAL: 49,62 + 10,42 = 60,04 € ✅
-(Calculado sobre RD 897/2017 vigente desde 26/02/2026; pendiente de verificar contra CNMC cuando actualice su simulador)
+TOTAL: 47,25 + 9,92 = 57,17 € ✅
+(Calculado con el descuento excepcional del RDL 7/2026 vigente durante 2026; pendiente de verificar contra CNMC cuando actualice su simulador)
 ```
 
 ---
@@ -225,11 +225,11 @@ const totalReal = totalBase - (hasBV ? excedenteSobranteEur : 0);
 
 ### 📜 Normativa (RD 897/2017)
 
-**Tipos de Bono Social vigentes desde el 26/02/2026 (RD 897/2017, norma base permanente)**:
-- Vulnerable: **35%** descuento
-- Severo: **50%** descuento
+**Tipos de Bono Social vigentes a 12/04/2026 (RDL 7/2026, con carácter excepcional para 2026)**:
+- Vulnerable: **42,5%** descuento
+- Severo: **57,5%** descuento
 
-**Nota**: El RDL 2/2026 (BOE 04/02/2026), que aplicaba el 42,5%/57,5%, fue rechazado por el Congreso el 26/02/2026 (177 votos en contra). Si el Gobierno aprueba un nuevo decreto y el Congreso lo convalida, actualizar a los nuevos porcentajes.
+**Nota**: Tras la caída del RDL 2/2026 el 26/02/2026 volvió temporalmente el régimen base del RD 897/2017, pero el RDL 7/2026 restauró para todo 2026 el 42,5%/57,5% y ordenó regularizar las facturas afectadas.
 
 **Límite anual bonificable**:
 - Vulnerable: 1.587 kWh/año
@@ -250,7 +250,7 @@ const baseVariableBonif = terminoVariable * ratioBonificable;
 const baseDescuento = terminoFijoTotal + financiacionBono + baseVariableBonif;
 
 // 3. Aplicar descuento
-const descuentoEur = baseDescuento * porcentaje; // 0.35 o 0.50 (35% o 50%, RD 897/2017 vigente desde 26/02/2026)
+const descuentoEur = baseDescuento * porcentaje; // 0.425 o 0.575 (42,5% o 57,5%, RDL 7/2026 vigente durante 2026)
 
 // 4. ⭐ BASE PARA IMPUESTOS (CON DESCUENTO YA RESTADO)
 const baseEnergia = terminoFijoTotal + terminoVariable + financiacionBono - descuentoEur;
@@ -347,18 +347,18 @@ Inputs:
 - Potencia: 3,5 kW
 - Consumo: 221 kWh (64 P1, 54 P2, 103 P3)
 - Días: 31
-- Bono Social: Vulnerable (35%, RD 897/2017, vigente desde 26/02/2026)
+- Bono Social: Vulnerable (42,5%, RDL 7/2026, vigente durante 2026)
 
 Descuento BS:
 - Base: 8,94 + 0,57 + (47,46 × 43,48%) = 30,15 €
-- Descuento: 30,15 × 35% = 10,55 €
+- Descuento: 30,15 × 42,5% = 12,81 €
 
 Esperado:
-- Base IEE: 8,94 + 47,46 + 0,57 - 10,55 = 46,42 € ✅
-- IEE: 46,42 × 5,11% = 2,37 € ✅
-- Total: 60,04 €
+- Base IEE: 8,94 + 47,46 + 0,57 - 12,81 = 44,16 € ✅
+- IEE: 44,16 × 5,11% = 2,26 € ✅
+- Total: 57,17 €
 
-Referencia: RD 897/2017 (CNMC Simulador pendiente de actualizar a 26/02/2026)
+Referencia: RDL 7/2026 + RD 897/2017 (CNMC Simulador pendiente de reflejar el descuento excepcional de 2026)
 ```
 
 ---

@@ -2,10 +2,10 @@
  * lf-config.js - Configuración centralizada de valores regulados
  * 
  * Este archivo contiene todos los valores que pueden cambiar por legislación.
- * Actualizado: Marzo 2026
+ * Actualizado: Abril 2026
  * 
  * Referencias legales:
- * - Bono social: Orden TED/1524/2025 (BOE-A-2025-26705)
+ * - Bono social: RD 897/2017 + RDL 7/2026 + Orden TED/1524/2025 (financiación)
  * - IEE: Ley 38/1992 Art. 99 + RDL 7/2026 (reducción temporal)
  * - IVA: Ley 37/1992 + RDL 7/2026 (reducción temporal)
  * - IGIC: Ley 4/2012 Art. 52 (0% vivienda ≤10kW, 3% otros, 7% contador)
@@ -22,15 +22,20 @@
     // ═══════════════════════════════════════════════════════════════════
     // VERSIÓN Y METADATOS
     // ═══════════════════════════════════════════════════════════════════
-    version: '2026.03',
-    ultimaActualizacion: '2026-03-21',
+    version: '2026.04',
+    ultimaActualizacion: '2026-04-12',
 
     // ═══════════════════════════════════════════════════════════════════
-    // BONO SOCIAL (financiación)
-    // Orden TED/1524/2025, apartado Décimo d)
+    // BONO SOCIAL (descuento + financiación)
+    // Descuentos 2026: RDL 7/2026 | Financiación: Orden TED/1524/2025, apartado Décimo d)
     // ═══════════════════════════════════════════════════════════════════
     bonoSocial: {
       eurosAnuales: 6.979247,  // €/año
+      descuentos2026: {
+        vulnerable: 0.425,
+        severo: 0.575,
+        referencia: 'RDL 7/2026'
+      },
       descripcion: 'Financiación bono social 2026'
     },
 
@@ -45,7 +50,7 @@
     },
 
     // ═══════════════════════════════════════════════════════════════════
-    // MEDIDAS TEMPORALES (RDL 7/2026, BOE 21/03/2026)
+    // MEDIDAS TEMPORALES (RDL 7/2026, BOE 21/03/2026, vigor 22/03/2026)
     // LuzFija usa SIEMPRE el régimen fiscal vigente configurado aquí.
     // No se recalculan fiscalidades históricas por fecha de periodo.
     // Las fechas se conservan solo como referencia normativa/copy.
@@ -53,7 +58,7 @@
     medidasTemporales: {
       rdl72026: {
         activa: true,
-        entradaVigor: '2026-03-21',
+        entradaVigor: '2026-03-22',
         fin: '2026-06-30',
         junio2026Habilitado: true,
         ieePorcentajeReducido: 0.5,
@@ -463,6 +468,20 @@
     },
 
     /**
+     * Obtiene el porcentaje vigente del bono social eléctrico.
+     * A 12/04/2026 rige el descuento excepcional del RDL 7/2026 para todo 2026.
+     * @param {string} tipo - 'vulnerable' o 'severo'
+     * @returns {number} Tipo de descuento en formato decimal
+     */
+    getBonoSocialDiscountRate: function(tipo = 'vulnerable') {
+      const key = String(tipo || 'vulnerable').toLowerCase() === 'severo' ? 'severo' : 'vulnerable';
+      const descuentos = this.bonoSocial?.descuentos2026 || {};
+      return Number.isFinite(Number(descuentos[key]))
+        ? Number(descuentos[key])
+        : (key === 'severo' ? 0.575 : 0.425);
+    },
+
+    /**
      * Calcula el alquiler del contador para un periodo
      * @param {number} dias - Días del periodo
      * @returns {number} Importe del alquiler
@@ -516,6 +535,7 @@
   global.LF_TARIFAS_ESPECIALES = LF_TARIFAS_ESPECIALES;
 
   // Freeze para evitar modificaciones accidentales
+  Object.freeze(LF_CONFIG.bonoSocial.descuentos2026);
   Object.freeze(LF_CONFIG.bonoSocial);
   Object.freeze(LF_CONFIG.iee);
   Object.freeze(LF_CONFIG.alquilerContador);

@@ -83,7 +83,7 @@ describe('Utilidades Base (lf-utils.js)', () => {
   describe('calcPvpcBonoSocial: Lógica Fiscal PVPC', () => {
     const calc = window.LF.calcPvpcBonoSocial;
 
-    it('Debe calcular el descuento correcto para Vulnerable (35%)', () => {
+    it('Debe calcular el descuento correcto para Vulnerable (42,5%)', () => {
       const meta = { terminoFijo: 10, terminoVariable: 20, bonoSocial: 1, equipoMedida: 0.8 };
       const inputs = { 
         bonoSocialOn: true, 
@@ -98,8 +98,8 @@ describe('Utilidades Base (lf-utils.js)', () => {
       // Base descuento: Fijo(10) + Margen(0 en test) + Bono(1) + Variable(20 ya que 300kWh > limite_periodo)
       // Nota: limitePeriodo = (10000/365)*30 = 821 kWh. Como 300 < 821, bonifica los 20€ enteros.
       // Total Base Descuento = 10 + 1 + 20 = 31€
-      // Descuento = 31 * 0.35 = 10.85€ (vulnerable, RD 897/2017 vigente desde 26/02/2026)
-      expect(res.descuentoEur).toBe(10.85);
+      // Descuento = 31 * 0.425 = 13.18€ (vulnerable, RDL 7/2026 vigente durante 2026)
+      expect(res.descuentoEur).toBe(13.18);
     });
 
     it('Debe aplicar el límite de kWh bonificables', () => {
