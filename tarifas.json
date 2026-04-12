@@ -1,6 +1,24 @@
 {
   "tarifas": [
     {
+      "nombre": "Loviluz",
+      "cPunta": 0.096,
+      "cLlano": 0.096,
+      "cValle": 0.096,
+      "p1": 0.096,
+      "p2": 0.096,
+      "web": "https://www.loviluz.com/tarifas.html",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Visalia",
       "cPunta": 0.097999,
       "cLlano": 0.097999,
@@ -643,5 +661,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-04-11T06:34:49.794Z"
+  "updatedAt": "2026-04-12T06:12:45.956Z"
 }
