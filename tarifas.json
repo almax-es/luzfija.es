@@ -1,6 +1,25 @@
 {
   "tarifas": [
     {
+      "nombre": "Atulado Milenial",
+      "cPunta": 0.078818,
+      "cLlano": 0.078818,
+      "cValle": 0.078818,
+      "p1": 0.103717,
+      "p2": 0.041623,
+      "web": "https://clientes.atuladoenergia.com/tarifas",
+      "tipo": "1P",
+      "requisitos": "Los precios cambian cada trimestre natural. Potencia ≤ 15 kW",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Loviluz",
       "cPunta": 0.096,
       "cLlano": 0.096,
@@ -661,5 +680,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-04-13T14:02:11.644Z"
+  "updatedAt": "2026-04-13T14:13:53.052Z"
 }
