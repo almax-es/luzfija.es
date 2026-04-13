@@ -369,6 +369,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Atulado 3P",
+      "cPunta": 0.15086,
+      "cLlano": 0.080037,
+      "cValle": 0.053682,
+      "p1": 0.103717,
+      "p2": 0.033279,
+      "web": "https://clientes.atuladoenergia.com/tarifas",
+      "tipo": "3P",
+      "requisitos": "Los precios cambian cada trimestre natural. Potencia ≤ 15 kW",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Nufri 3P",
       "cPunta": 0.165621,
       "cLlano": 0.089054,
@@ -680,5 +699,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-04-13T14:13:53.052Z"
+  "updatedAt": "2026-04-13T14:23:58.513Z"
 }
