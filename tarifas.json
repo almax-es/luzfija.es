@@ -313,6 +313,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Seneo Tarifa 1",
+      "cPunta": 0.152,
+      "cLlano": 0.152,
+      "cValle": 0.152,
+      "p1": 0.095,
+      "p2": 0.018,
+      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Energya VM 3P",
       "cPunta": 0.14925,
       "cLlano": 0.11925,
@@ -328,24 +346,6 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Seneo Tarifa 1",
-      "cPunta": 0.152,
-      "cLlano": 0.152,
-      "cValle": 0.152,
-      "p1": 0.095,
-      "p2": 0.018,
-      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
-      "tipo": "1P",
-      "fv": {
-        "exc": 0.04,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
       },
       "requiereFV": false
     },
@@ -661,5 +661,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-04-13T13:52:35.819Z"
+  "updatedAt": "2026-04-13T14:02:11.644Z"
 }
