@@ -368,25 +368,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Energya VM 3P",
-      "cPunta": 0.14925,
-      "cLlano": 0.11925,
-      "cValle": 0.08925,
-      "p1": 0.090247,
-      "p2": 0.003014,
-      "web": "https://www.energyavm.es/luz/formula-fija-3-periodos/",
-      "tipo": "3P",
-      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 6.000 kWh/año",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "TE A tu aire 3P",
       "cPunta": 0.173572,
       "cLlano": 0.10393,
@@ -680,5 +661,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-04-13T13:49:33.906Z"
+  "updatedAt": "2026-04-13T13:52:35.819Z"
 }
