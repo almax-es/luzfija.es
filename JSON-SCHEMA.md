@@ -8,10 +8,10 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 ## 1. `tarifas.json` — Base de Datos de Tarifas Eléctricas
 
 **Ubicación**: `/tarifas.json`
-**Tamaño**: ~17 KB
+**Tamaño**: ~18 KB
 **Estructura**: Array de objetos dentro de `{ tarifas: [...] }`
-**Última actualización**: 2026-02-14
-**Total tarifas documentadas**: 36
+**Última actualización**: 2026-04-15
+**Total tarifas documentadas**: 38
 
 ### Esquema de Estructura
 
@@ -111,10 +111,10 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 ## 2. `novedades.json` — Noticias, Alertas y Avisos
 
 **Ubicación**: `/novedades.json`
-**Tamaño**: ~1 KB
+**Tamaño**: ~2,6 KB
 **Estructura**: Array de objetos (NO envuelto en objeto padre)
-**Última actualización**: 2026-02-03
-**Total noticias activas**: 2 (histórico ilimitado)
+**Última actualización**: 2026-04-15
+**Total noticias activas**: 4 (histórico ilimitado)
 
 ### Esquema de Estructura
 
@@ -122,7 +122,7 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 [
   {
     "fecha": "string (YYYY-MM-DD)",
-    "tipo": "string ('promo' | 'alerta' | 'regulatorio' | 'info')",
+    "tipo": "string ('novedad' | 'regulatorio' | 'alerta' | 'info' | 'tip' | 'caso')",
     "titulo": "string (máx 100 caracteres, título visible)",
     "texto": "string (texto plano; se detectan enlaces <a> HTTP/HTTPS, máx 500 caracteres)",
     "enlace": "string (URL absoluta o relativa, puede estar vacío)"
@@ -135,7 +135,7 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 | Campo | Tipo | Obligatorio | Ejemplos | Notas |
 |-------|------|-------------|----------|-------|
 | `fecha` | string | ✅ | "2026-01-01" | ISO 8601 (YYYY-MM-DD), se ordena DESC automáticamente |
-| `tipo` | string | ✅ | "promo" | Determina icono y color de la tarjeta |
+| `tipo` | string | ✅ | "novedad" | Determina icono y color de la tarjeta |
 | `titulo` | string | ✅ | "DISA: 0€ consumo" | Aparece como titular de la noticia |
 | `texto` | string | ✅ | "DISA lanza promoción..." | Texto plano; si incluye `<a href=\"https://...\">...</a>` se convierte en enlace seguro |
 | `enlace` | string | ✅ | "/guias/..." o "" | URL interna o externa, "" = sin enlace |
@@ -146,23 +146,25 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 ┌─────────────────────────────────────────────────────────┐
 │ Tipo        │ Color      │ Icono  │ Propósito           │
 ├─────────────────────────────────────────────────────────┤
-│ "promo"     │ Verde      │ 🎁     │ Ofertas especiales  │
-│ "alerta"    │ Rojo       │ ⚠️      │ Avisos importantes  │
-│ "regulatorio"│ Azul      │ ⚖️      │ Cambios legislativos│
-│ "info"      │ Gris       │ ℹ️      │ Información general │
+│ "novedad"   │ Violeta    │ ✨     │ Cambios destacados  │
+│ "regulatorio"│ Azul      │ 📜     │ Cambios regulatorios│
+│ "alerta"    │ Rojo       │ ⚠️     │ Avisos importantes  │
+│ "info"      │ Accent2    │ 📊     │ Información general │
+│ "tip"       │ Ámbar      │ 💡     │ Consejo práctico    │
+│ "caso"      │ Verde      │ 🎯     │ Caso de uso         │
 └─────────────────────────────────────────────────────────┘
 ```
 
 ### Ejemplo de Cada Tipo
 
-#### Promo (Oferta)
+#### Novedad
 ```json
 {
-  "fecha": "2026-01-01",
-  "tipo": "promo",
-  "titulo": "DISA Electricidad: 0 € en consumo hasta el 15 de febrero",
-  "texto": "DISA Electricidad lanza una promoción para nuevos clientes: bonificación del 100 % del consumo de energía (kWh) hasta el 15 de febrero de 2026. <a href=\"https://ejemplo.com\" target=\"_blank\" rel=\"noopener\">Ver bases legales</a>.",
-  "enlace": "https://ahorracondisaelectricidad.com/"
+  "fecha": "2026-03-31",
+  "tipo": "novedad",
+  "titulo": "Atulado Energía: la tarifa Milenial pasa a precio fijo único desde el 1 de abril de 2026",
+  "texto": "Desde el 01/04/2026 la tarifa Milenial de Atulado Energía pasa a ofrecer 1 periodo hasta 15 kW, con el mismo precio de energía en P1, P2 y P3 para despreocuparse de horarios.",
+  "enlace": "https://clientes.atuladoenergia.com/tarifas"
 }
 ```
 
@@ -202,13 +204,13 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 ### Reglas de Validación
 
 1. **Fecha**: Debe ser ISO 8601 (YYYY-MM-DD). El ordenamiento es automático (más reciente primero)
-2. **Tipo**: Debe ser exactamente uno de: `"promo"`, `"alerta"`, `"regulatorio"`, `"info"`
+2. **Tipo**: Debe ser exactamente uno de: `"novedad"`, `"regulatorio"`, `"alerta"`, `"info"`, `"tip"`, `"caso"`
 3. **Título**: Máximo 100 caracteres recomendado (se trunca visualmente en pantallas pequeñas)
 4. **Texto**:
    - Máximo 500 caracteres recomendado
    - Se renderiza como texto plano (sin `innerHTML`)
    - Solo se detectan enlaces en formato `<a href="https://...">texto</a>`
-   - Los enlaces válidos se normalizan con `target="_blank" rel="noopener"`
+   - Los enlaces válidos se normalizan con `target="_blank" rel="noopener noreferrer"`
 5. **Enlace**:
    - URLs internas: `/ruta/local.html`
    - URLs externas: `https://ejemplo.com`
@@ -270,6 +272,7 @@ node -e "const n = JSON.parse(require('fs').readFileSync('novedades.json')); n.f
 
 ## Historial de Cambios
 
+- **2026-04-15**: Sincronización con el repo actual (`tarifas.json` con 38 tarifas, `updatedAt` 2026-04-15T06:07:08.817Z y `novedades.json` con 4 entradas activas)
 - **2026-02-14**: Actualización de métricas (`tarifas.json` con 36 tarifas, `updatedAt` renovado) y ajuste de tamaño documentado
 - **2026-02-06**: Ajuste de métricas reales (33 tarifas), rango de datos PVPC (desde 2021-06) y estrategia de caché actual
 - **2026-02-03**: Actualización de `novedades.json` (2 noticias activas)

@@ -1,6 +1,6 @@
 # Capacidad Completa De LuzFija.es
 
-Ultima actualizacion: 2026-02-14
+Ultima actualizacion: 2026-04-15
 
 Este documento es la fuente de verdad funcional para describir todo lo que hace la web, pagina por pagina, sin omitir flujos relevantes para asistentes IA o documentacion de producto.
 
@@ -160,7 +160,7 @@ Este documento es la fuente de verdad funcional para describir todo lo que hace 
 
 - Carga de `novedades.json` en cliente.
 - Ordenacion por fecha descendente y render de maximo 5 novedades.
-- Soporte de etiquetas (ej. `regulatorio`, `oferta`) y enlaces asociados.
+- Soporte de etiquetas (ej. `regulatorio`, `novedad`, `alerta`) y enlaces asociados.
 
 ## 4. Funcionalidades Del Observatorio PVPC (`/estadisticas/`)
 
@@ -273,12 +273,12 @@ Este documento es la fuente de verdad funcional para describir todo lo que hace 
 ## 7. Arquitectura Tecnica
 
 - Stack: HTML + CSS + Vanilla JS modular.
-- Modulos JS: 28 (`js/*.js` + `js/bv/*.js`).
-- Lineas JS aproximadas: 16.650.
+- Modulos JS: 29 (`js/*.js` + `js/bv/*.js`).
+- Lineas JS aproximadas: 15.767.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
-- `tarifas.json` (36 tarifas).
-- `novedades.json`.
+- `tarifas.json` (38 tarifas).
+- `novedades.json` (4 entradas activas).
 - `/data/pvpc/` (indicador 1001).
 - `/data/surplus/` (indicador 1739).
 
@@ -311,8 +311,8 @@ Este documento es la fuente de verdad funcional para describir todo lo que hace 
 ## 10. Testing Y Calidad
 
 - Suite Vitest/JSDOM.
-- 28 archivos de test (`tests/*.test.js`).
-- 191 casos `it()/test()`.
+- 37 archivos de test (`tests/*.test.js`).
+- 235 casos `it()/test()` en la ultima ejecucion local verificada.
 - Cobertura de:
 - Calculo fiscal y de energia.
 - PVPC y caches.
