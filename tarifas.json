@@ -42,8 +42,8 @@
       "cPunta": 0.097999,
       "cLlano": 0.097999,
       "cValle": 0.097999,
-      "p1": 0.060274,
-      "p2": 0.060274,
+      "p1": 0.071233,
+      "p2": 0.071233,
       "web": "https://visalia.es/luz/fijo24horas/",
       "tipo": "1P",
       "fv": {
@@ -627,9 +627,9 @@
     },
     {
       "nombre": "Visalia 3P",
-      "cPunta": 0.195822,
-      "cLlano": 0.114195,
-      "cValle": 0.086543,
+      "cPunta": 0.207607,
+      "cLlano": 0.124931,
+      "cValle": 0.097349,
       "p1": 0.075903,
       "p2": 0.001987,
       "web": "https://visalia.es/luz/luz-3-periodos/",
@@ -699,5 +699,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-04-13T14:23:58.513Z"
+  "updatedAt": "2026-04-15T06:07:08.817Z"
 }
