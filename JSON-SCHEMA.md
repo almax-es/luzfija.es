@@ -281,4 +281,3 @@ node -e "const n = JSON.parse(require('fs').readFileSync('novedades.json')); n.f
 ---
 
 ⚡ Documentación precisa para mantenimiento sin errores.
-cisa para mantenimiento sin errores.

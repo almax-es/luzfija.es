@@ -300,7 +300,7 @@ const FESTIVOS_FIJOS = new Set([
 
 **Conclusión**: Hacer que CNMC diga explícitamente qué hace. No es omisión, es norma.
 
-**Nota sobre festivos locales/autonómicos**: Al igual que los móviles, los festivos locales o de comunidades autónomas (como San Isidro en Madrid o la Diada en Cataluña) tampoco cambian el periodo a P3 a menos que coincidan con un festivo nacional de fecha fija. Los contadores inteligentes están programados únicamente con el calendario de festivos nacionales fijos del BOE para evitar disparidades territoriales en la facturación.
+**Nota sobre festivos locales/autonómicos**: Tampoco cambian el periodo a P3. La Circular 3/2020 limita esta regla a los festivos de ámbito nacional y excluye tanto los festivos sustituibles como los que no tienen fecha fija. Por tanto, un festivo autonómico o local solo sería P3 todo el día si además coincidiera con uno de los festivos nacionales fijos listados arriba.
 
 ---
 
