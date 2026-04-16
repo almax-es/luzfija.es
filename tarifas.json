@@ -406,6 +406,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Seneo Tarifa 2 3P",
+      "cPunta": 0.171,
+      "cLlano": 0.104,
+      "cValle": 0.08,
+      "p1": 0.089,
+      "p2": 0.089,
+      "web": "https://www.seneo.org/es/tarifa-tramos-horarios-con-monedero-solar/",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Gana Energía 3P",
       "cPunta": 0.171,
       "cLlano": 0.104,
@@ -508,24 +526,6 @@
       "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 10.000 kWh/año",
       "fv": {
         "exc": 0.06,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Seneo Tarifa 2 3P",
-      "cPunta": 0.181,
-      "cLlano": 0.114,
-      "cValle": 0.09,
-      "p1": 0.089,
-      "p2": 0.089,
-      "web": "https://www.seneo.org/es/tarifa-tramos-horarios-con-monedero-solar/",
-      "tipo": "3P",
-      "fv": {
-        "exc": 0.04,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -737,5 +737,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-04-16T08:26:55.034Z"
+  "updatedAt": "2026-04-16T12:53:51.689Z"
 }
