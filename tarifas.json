@@ -231,7 +231,7 @@
       "tipo": "1P",
       "requisitos": "Consumo ≤ 10.000 kWh/año",
       "fv": {
-        "exc": 0.06,
+        "exc": 0.07,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -488,7 +488,7 @@
       "tipo": "3P",
       "requisitos": "Consumo ≤ 10.000 kWh/año",
       "fv": {
-        "exc": 0.06,
+        "exc": 0.07,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -681,6 +681,44 @@
       "requiereFV": false
     },
     {
+      "nombre": "Neolux VE Easy 3P",
+      "cPunta": 0.23,
+      "cLlano": 0.22,
+      "cValle": 0.098,
+      "p1": 0.11,
+      "p2": 0.024,
+      "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
+      "tipo": "3P",
+      "requisitos": "Consumo ≤ 10.000 kWh/año",
+      "fv": {
+        "exc": 0.07,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Neolux VE Smart 3P",
+      "cPunta": 0.239,
+      "cLlano": 0.229,
+      "cValle": 0.069,
+      "p1": 0.12,
+      "p2": 0.039,
+      "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
+      "tipo": "3P",
+      "requisitos": "Consumo ≤ 10.000 kWh/año",
+      "fv": {
+        "exc": 0.07,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "CHC VE 3P",
       "cPunta": 0.225745,
       "cLlano": 0.221841,
@@ -699,5 +737,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-04-16T05:41:35.232Z"
+  "updatedAt": "2026-04-16T08:14:04.365Z"
 }
