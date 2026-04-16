@@ -3,6 +3,7 @@
  */
 
 import { describe, it, expect } from 'vitest';
+import { execFileSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
@@ -115,6 +116,7 @@ function loadPages() {
 
     return {
       relPath,
+      html,
       title,
       description,
       robots,
@@ -125,6 +127,40 @@ function loadPages() {
       twitterCard: normalizeWhitespace(byName.get('twitter:card') || '')
     };
   });
+}
+
+function extractDateModifiedValues(html) {
+  const values = [];
+  const scripts = html.match(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi) || [];
+
+  for (const script of scripts) {
+    for (const match of script.matchAll(/"dateModified"\s*:\s*"([^"]+)"/g)) {
+      values.push(String(match[1] || '').trim());
+    }
+  }
+
+  return values;
+}
+
+const gitDateCache = new Map();
+
+function getGitLastModifiedDate(relPath) {
+  if (gitDateCache.has(relPath)) return gitDateCache.get(relPath);
+
+  let value = '';
+  try {
+    value = String(
+      execFileSync('git', ['log', '-1', '--format=%cs', '--', relPath], {
+        cwd: REPO_ROOT,
+        encoding: 'utf8'
+      })
+    ).trim();
+  } catch {
+    value = '';
+  }
+
+  gitDateCache.set(relPath, value);
+  return value;
 }
 
 const pages = loadPages();
@@ -239,6 +275,64 @@ describe('SEO metadata guardrails', () => {
 
       if (!page.indexable && sitemapUrls.has(normalizedPageUrl)) {
         errors.push(`${page.relPath}: noindex URL present in sitemap (${pageUrl})`);
+      }
+    }
+
+    expect(errors).toEqual([]);
+  });
+
+  it('keeps structured data dateModified aligned with the current file revision', () => {
+    const errors = [];
+
+    for (const page of pages) {
+      const values = extractDateModifiedValues(page.html);
+      if (!values.length) continue;
+
+      const expected = getGitLastModifiedDate(page.relPath);
+      if (!expected) {
+        errors.push(`${page.relPath}: missing git history for dateModified check`);
+        continue;
+      }
+
+      for (const value of values) {
+        if (!value.startsWith(expected)) {
+          errors.push(`${page.relPath}: dateModified ${value} does not match git ${expected}`);
+        }
+      }
+    }
+
+    expect(errors).toEqual([]);
+  });
+
+  it('keeps sitemap lastmod aligned with current file revisions', () => {
+    const sitemapPath = path.join(REPO_ROOT, 'sitemap.xml');
+    const sitemap = fs.readFileSync(sitemapPath, 'utf8');
+    const urlBlocks = [...sitemap.matchAll(/<url>\s*([\s\S]*?)\s*<\/url>/gi)];
+    const pageByUrl = new Map(
+      pages.map((page) => [normalizeSiteUrl(pageUrlFromRelPath(page.relPath)), page])
+    );
+    const errors = [];
+
+    for (const [, block] of urlBlocks) {
+      const locMatch = String(block || '').match(/<loc>([^<]+)<\/loc>/i);
+      const lastmodMatch = String(block || '').match(/<lastmod>([^<]+)<\/lastmod>/i);
+      const normalizedLoc = normalizeSiteUrl(String(locMatch?.[1] || '').trim());
+
+      if (!normalizedLoc) continue;
+
+      const page = pageByUrl.get(normalizedLoc);
+      if (!page || !page.indexable) continue;
+
+      const expected = getGitLastModifiedDate(page.relPath);
+      const actual = String(lastmodMatch?.[1] || '').trim();
+
+      if (!expected) {
+        errors.push(`${page.relPath}: missing git history for sitemap lastmod check`);
+        continue;
+      }
+
+      if (actual !== expected) {
+        errors.push(`${page.relPath}: sitemap lastmod ${actual} does not match git ${expected}`);
       }
     }
 
