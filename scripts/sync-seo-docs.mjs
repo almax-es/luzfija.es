@@ -7,7 +7,8 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..');
 const BASE_URL = 'https://luzfija.es';
-const HTML_SKIP_DIRS = new Set(['.git', 'node_modules', 'logs', 'scripts']);
+const HTML_SKIP_DIRS = new Set(['.git', 'node_modules', 'logs', 'scripts', 'vendor']);
+const VITEST_SUMMARY_PATH = path.join(REPO_ROOT, 'logs', 'vitest-summary.json');
 
 function runGit(args) {
   try {
@@ -71,6 +72,10 @@ function updateFile(relPath, transform) {
   if (next !== current) writeUtf8(relPath, next);
 }
 
+function ensureAuxDirs() {
+  fs.mkdirSync(path.dirname(VITEST_SUMMARY_PATH), { recursive: true });
+}
+
 function walkHtmlFiles(dirPath) {
   const entries = fs.readdirSync(dirPath, { withFileTypes: true });
   const files = [];
@@ -111,71 +116,12 @@ function walkFiles(dirPath, predicate) {
   return files;
 }
 
-function parseAttributes(tag) {
-  const attrs = {};
-  const attrRegex = /([a-zA-Z:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
-
-  for (const match of tag.matchAll(attrRegex)) {
-    const key = String(match[1] || '').toLowerCase();
-    const value = String(match[2] ?? match[3] ?? '').trim();
-    attrs[key] = value;
-  }
-
-  return attrs;
-}
-
-function pageUrlFromRelPath(relPath) {
-  const normalized = relPath.split(path.sep).join('/');
-  if (normalized === 'index.html') return `${BASE_URL}/`;
-  if (normalized.endsWith('/index.html')) {
-    return `${BASE_URL}/${normalized.slice(0, -'/index.html'.length)}/`;
-  }
-  return `${BASE_URL}/${normalized}`;
-}
-
 function relPathFromSiteUrl(siteUrl) {
   const url = new URL(siteUrl);
   if (url.origin !== BASE_URL) return null;
   if (url.pathname === '/') return 'index.html';
   if (url.pathname.endsWith('/')) return `${url.pathname.slice(1)}index.html`.replace(/\//g, path.sep);
   return url.pathname.slice(1).replace(/\//g, path.sep);
-}
-
-function normalizeSiteUrl(rawUrl) {
-  try {
-    const url = new URL(rawUrl, BASE_URL);
-    if (url.origin !== BASE_URL) return null;
-    let pathname = url.pathname;
-    if (pathname.length > 1 && pathname.endsWith('/')) pathname = pathname.slice(0, -1);
-    return `${url.origin}${pathname}`;
-  } catch {
-    return null;
-  }
-}
-
-function getIndexablePages() {
-  const htmlFiles = walkHtmlFiles(REPO_ROOT);
-  return htmlFiles
-    .map((filePath) => {
-      const relPath = path.relative(REPO_ROOT, filePath);
-      const html = fs.readFileSync(filePath, 'utf8');
-      const metaTags = html.match(/<meta\b[^>]*>/gi) || [];
-      let robots = '';
-      for (const tag of metaTags) {
-        const attrs = parseAttributes(tag);
-        if (String(attrs.name || '').toLowerCase() === 'robots') {
-          robots = String(attrs.content || '').toLowerCase();
-          break;
-        }
-      }
-
-      return {
-        relPath,
-        url: pageUrlFromRelPath(relPath),
-        indexable: !robots.includes('noindex')
-      };
-    })
-    .sort((a, b) => a.relPath.localeCompare(b.relPath));
 }
 
 function replaceDateModified(content, ymd) {
@@ -261,11 +207,16 @@ function countTestMetrics() {
     .filter((name) => name.endsWith('.test.js'))
     .map((name) => path.join(testsDir, name));
 
-  let caseCount = 0;
-  for (const filePath of files) {
-    const source = fs.readFileSync(filePath, 'utf8');
-    const matches = source.match(/\b(?:it|test)\s*\(/g);
-    caseCount += matches ? matches.length : 0;
+  let caseCount = null;
+  if (fs.existsSync(VITEST_SUMMARY_PATH)) {
+    try {
+      const summary = JSON.parse(fs.readFileSync(VITEST_SUMMARY_PATH, 'utf8'));
+      if (summary?.success === true && Number.isInteger(summary?.numTotalTests)) {
+        caseCount = summary.numTotalTests;
+      }
+    } catch {
+      caseCount = null;
+    }
   }
 
   return {
@@ -278,7 +229,8 @@ function getSnapshotDate() {
   const trackedFiles = [
     ...walkFiles(path.join(REPO_ROOT, 'js'), (_fullPath, name) => name.endsWith('.js')),
     ...walkHtmlFiles(REPO_ROOT),
-    ...walkFiles(path.join(REPO_ROOT, 'tests'), (_fullPath, name) => name.endsWith('.test.js')),
+    ...walkFiles(REPO_ROOT, (_fullPath, name) => ['sw.js', 'styles.css', 'fonts.css'].includes(name)),
+    ...walkFiles(REPO_ROOT, (_fullPath, name) => name.endsWith('.webmanifest')),
     path.join(REPO_ROOT, 'tarifas.json'),
     path.join(REPO_ROOT, 'novedades.json')
   ]
@@ -319,7 +271,13 @@ function syncReadmeAndCapacidades() {
         next = next.replace(/- [\d.]+ lineas JS aproximadas\./, `- ${js.lineCount.toLocaleString('de-DE')} lineas JS aproximadas.`);
         next = next.replace(/- \d+ tarifas en `tarifas\.json`\./, `- ${tarifas.tarifas.length} tarifas en \`tarifas.json\`.`);
         next = next.replace(/- \d+ novedades activas en `novedades\.json`\./, `- ${novedades.length} novedades activas en \`novedades.json\`.`);
-        next = next.replace(/- Suite de tests Vitest con \d+ archivos y \d+ casos\./, `- Suite de tests Vitest con ${tests.fileCount} archivos y ${tests.caseCount} casos.`);
+        if (tests.caseCount !== null) {
+          next = next.replace(/- Suite de tests Vitest con \d+ archivos y \d+ casos\./, `- Suite de tests Vitest con ${tests.fileCount} archivos y ${tests.caseCount} casos.`);
+        } else {
+          next = next.replace(/- Suite de tests Vitest con \d+ archivos y \d+ casos\./, (line) =>
+            line.replace(/Suite de tests Vitest con \d+ archivos/, `Suite de tests Vitest con ${tests.fileCount} archivos`)
+          );
+        }
         return next;
       }
     },
@@ -332,7 +290,9 @@ function syncReadmeAndCapacidades() {
         next = next.replace(/- `tarifas\.json` \(\d+ tarifas\)\./, `- \`tarifas.json\` (${tarifas.tarifas.length} tarifas).`);
         next = next.replace(/- `novedades\.json` \(\d+ entradas activas\)\./, `- \`novedades.json\` (${novedades.length} entradas activas).`);
         next = next.replace(/- \d+ archivos de test \(`tests\/\*\.test\.js`\)\./, `- ${tests.fileCount} archivos de test (\`tests/*.test.js\`).`);
-        next = next.replace(/- \d+ casos `it\(\)\/test\(\)` en la ultima ejecucion local verificada\./, `- ${tests.caseCount} casos \`it()/test()\` en la ultima ejecucion local verificada.`);
+        if (tests.caseCount !== null) {
+          next = next.replace(/- \d+ casos `it\(\)\/test\(\)` en la ultima ejecucion local verificada\./, `- ${tests.caseCount} casos \`it()/test()\` en la ultima ejecucion local verificada.`);
+        }
         return next;
       }
     }
@@ -369,6 +329,7 @@ function syncJsonSchema() {
 }
 
 function main() {
+  ensureAuxDirs();
   syncHtmlDateModified();
   syncSitemap();
   syncFeed();

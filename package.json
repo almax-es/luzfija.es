@@ -5,7 +5,9 @@
   "private": true,
   "scripts": {
     "sync:seo-docs": "node scripts/sync-seo-docs.mjs",
-    "test": "npm run sync:seo-docs && vitest run",
+    "pretest": "npm run sync:seo-docs",
+    "test": "vitest run --reporter=default --reporter=json --outputFile=logs/vitest-summary.json",
+    "posttest": "npm run sync:seo-docs",
     "test:watch": "npm run sync:seo-docs && vitest"
   },
   "devDependencies": {

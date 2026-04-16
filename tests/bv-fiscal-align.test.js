@@ -2,6 +2,7 @@ import { describe, it, expect } from 'vitest';
 
 // Cargar configuración fiscal real y el motor BV.
 import '../js/lf-config.js';
+import '../js/lf-csv-utils.js';
 import '../js/bv/bv-sim-monthly.js';
 
 describe('BVSim - Fiscalidad alineada con comparador principal', () => {

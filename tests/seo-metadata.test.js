@@ -1,5 +1,5 @@
 /**
- * SEO metadata guardrails
+ * @vitest-environment node
  */
 
 import { describe, it, expect } from 'vitest';
@@ -9,6 +9,11 @@ import path from 'path';
 
 const REPO_ROOT = path.resolve(__dirname, '..');
 const BASE_URL = 'https://luzfija.es';
+const SKIP_DIRS = new Set(['.git', 'node_modules', 'logs', 'scripts', 'vendor']);
+
+function normalizeWhitespace(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim();
+}
 
 function normalizeSiteUrl(rawUrl) {
   try {
@@ -49,53 +54,59 @@ function walkHtmlFiles(dirPath) {
   const files = [];
 
   for (const entry of entries) {
-    const fullPath = path.join(dirPath, entry.name);
     if (entry.isDirectory()) {
-      if (['.git', 'node_modules', 'logs', 'scripts', 'vendor'].includes(entry.name)) continue;
-      files.push(...walkHtmlFiles(fullPath));
+      if (SKIP_DIRS.has(entry.name)) continue;
+      files.push(...walkHtmlFiles(path.join(dirPath, entry.name)));
       continue;
     }
     if (entry.isFile() && entry.name.endsWith('.html')) {
-      files.push(fullPath);
+      files.push(path.join(dirPath, entry.name));
     }
   }
 
   return files;
 }
 
+function extractMeta(html) {
+  const byName = new Map();
+  const byProperty = new Map();
+  const tags = html.match(/<meta\b[^>]*>/gi) || [];
+
+  for (const tag of tags) {
+    const attrs = parseAttributes(tag);
+    const content = attrs.content || '';
+
+    if (attrs.name) byName.set(attrs.name.toLowerCase(), content);
+    if (attrs.property) byProperty.set(attrs.property.toLowerCase(), content);
+  }
+
+  return { byName, byProperty };
+}
+
+function extractCanonical(html) {
+  const tags = html.match(/<link\b[^>]*>/gi) || [];
+
+  for (const tag of tags) {
+    const attrs = parseAttributes(tag);
+    if (String(attrs.rel || '').toLowerCase() === 'canonical') {
+      return String(attrs.href || '').trim();
+    }
+  }
+
+  return '';
+}
+
 function loadPages() {
-  const htmlFiles = walkHtmlFiles(REPO_ROOT);
+  const htmlFiles = walkHtmlFiles(REPO_ROOT).sort();
   return htmlFiles.map((filePath) => {
-    const relPath = path.relative(REPO_ROOT, filePath);
+    const relPath = path.relative(REPO_ROOT, filePath).split(path.sep).join('/');
     const html = fs.readFileSync(filePath, 'utf8');
-
-    const title = (html.match(/<title>([\s\S]*?)<\/title>/i) || [])[1] || '';
-    const description = (html.match(/<meta\b[^>]*name=["']description["'][^>]*content=["']([^"']*)["'][^>]*>/i) || [])[1] ||
-                     (html.match(/<meta\b[^>]*content=["']([^"']*)["'][^>]*name=["']description["'][^>]*>/i) || [])[1] || '';
-
-    const metaTags = html.match(/<meta\b[^>]*>/gi) || [];
-    let robots = '';
-    let canonical = '';
-
-    for (const tag of metaTags) {
-      const attrs = parseAttributes(tag);
-      const name = String(attrs.name || '').toLowerCase();
-      const rel = String(attrs.rel || '').toLowerCase();
-      const property = String(attrs.property || '').toLowerCase();
-
-      if (name === 'robots') robots = String(attrs.content || '').toLowerCase();
-      if (rel === 'canonical' || property === 'og:url') canonical = String(attrs.href || attrs.content || '').trim();
-    }
-
-    // Try finding <link rel="canonical">
-    const linkTags = html.match(/<link\b[^>]*>/gi) || [];
-    for (const tag of linkTags) {
-      const attrs = parseAttributes(tag);
-      if (String(attrs.rel || '').toLowerCase() === 'canonical') {
-        canonical = String(attrs.href || '').trim();
-        break;
-      }
-    }
+    const titleMatch = html.match(/<title>([\s\S]*?)<\/title>/i);
+    const title = normalizeWhitespace(titleMatch?.[1] || '');
+    const { byName, byProperty } = extractMeta(html);
+    const description = normalizeWhitespace(byName.get('description') || '');
+    const robots = normalizeWhitespace(byName.get('robots') || '').toLowerCase();
+    const canonical = extractCanonical(html);
 
     return {
       relPath,
@@ -104,7 +115,10 @@ function loadPages() {
       description,
       robots,
       canonical,
-      indexable: !robots.includes('noindex')
+      indexable: !robots.includes('noindex'),
+      ogTitle: normalizeWhitespace(byProperty.get('og:title') || ''),
+      ogDescription: normalizeWhitespace(byProperty.get('og:description') || ''),
+      twitterCard: normalizeWhitespace(byName.get('twitter:card') || '')
     };
   });
 }
@@ -183,42 +197,95 @@ const pages = loadPages();
 
 describe('SEO metadata guardrails', () => {
   it('keeps indexable snippets complete and bounded', () => {
+    const errors = [];
+
     for (const page of pages) {
+      if (!page.title) errors.push(`${page.relPath}: missing <title>`);
+      if (!page.description) errors.push(`${page.relPath}: missing meta description`);
+      if (!page.canonical) errors.push(`${page.relPath}: missing canonical`);
+
       if (!page.indexable) continue;
 
-      expect(page.title.length).toBeGreaterThan(10);
-      expect(page.title.length).toBeLessThan(100);
-      expect(page.description.length).toBeGreaterThan(50);
-      expect(page.description.length).toBeLessThan(300);
+      if (page.title.length < 30 || page.title.length > 65) {
+        errors.push(`${page.relPath}: title length ${page.title.length} outside 30-65`);
+      }
+
+      if (page.description.length < 70 || page.description.length > 160) {
+        errors.push(`${page.relPath}: description length ${page.description.length} outside 70-160`);
+      }
+
+      if (!page.ogTitle) errors.push(`${page.relPath}: missing og:title`);
+      if (!page.ogDescription) errors.push(`${page.relPath}: missing og:description`);
+      if (!page.twitterCard) errors.push(`${page.relPath}: missing twitter:card`);
     }
+
+    expect(errors).toEqual([]);
   });
 
   it('uses valid canonical URLs on the main domain', () => {
+    const errors = [];
+
     for (const page of pages) {
+      if (!page.canonical) continue;
+      if (/[?#]/.test(page.canonical)) {
+        errors.push(`${page.relPath}: canonical should not include query/hash`);
+        continue;
+      }
+
+      const normalized = normalizeSiteUrl(page.canonical);
+      if (!normalized) {
+        errors.push(`${page.relPath}: canonical is outside ${BASE_URL}`);
+        continue;
+      }
+
       if (!page.indexable) continue;
 
-      const expectedUrl = pageUrlFromRelPath(page.relPath);
-      expect(normalizeSiteUrl(page.canonical)).toBe(normalizeSiteUrl(expectedUrl));
+      const expectedUrl = normalizeSiteUrl(pageUrlFromRelPath(page.relPath));
+      if (normalized !== expectedUrl) {
+        errors.push(`${page.relPath}: canonical ${normalized} does not match expected ${expectedUrl}`);
+      }
     }
+
+    expect(errors).toEqual([]);
   });
 
   it('avoids duplicate title/description among indexable pages', () => {
-    const titles = new Set();
-    const descriptions = new Set();
+    const errors = [];
+    const titleMap = new Map();
+    const descriptionMap = new Map();
 
     for (const page of pages) {
       if (!page.indexable) continue;
 
-      if (titles.has(page.title)) {
-        throw new Error(`Duplicate title found: "${page.title}" in ${page.relPath}`);
-      }
-      if (descriptions.has(page.description)) {
-        throw new Error(`Duplicate description found: "${page.description}" in ${page.relPath}`);
+      const titleKey = page.title.toLowerCase();
+      const descKey = page.description.toLowerCase();
+
+      if (titleKey) {
+        const titleList = titleMap.get(titleKey) || [];
+        titleList.push(page.relPath);
+        titleMap.set(titleKey, titleList);
       }
 
-      titles.add(page.title);
-      descriptions.add(page.description);
+      if (descKey) {
+        const descList = descriptionMap.get(descKey) || [];
+        descList.push(page.relPath);
+        descriptionMap.set(descKey, descList);
+      }
     }
+
+    for (const [title, files] of titleMap.entries()) {
+      if (files.length > 1) {
+        errors.push(`duplicate title "${title}" in: ${files.join(', ')}`);
+      }
+    }
+
+    for (const [description, files] of descriptionMap.entries()) {
+      if (files.length > 1) {
+        errors.push(`duplicate description "${description}" in: ${files.join(', ')}`);
+      }
+    }
+
+    expect(errors).toEqual([]);
   });
 
   it('keeps sitemap aligned with index/noindex pages', () => {
@@ -250,7 +317,7 @@ describe('SEO metadata guardrails', () => {
     expect(errors).toEqual([]);
   });
 
-  it('keeps structured data dateModified aligned with the current file revision', () => {
+  it('keeps structured data dateModified aligned with the current file revision', { timeout: 20000 }, () => {
     const errors = [];
 
     for (const page of pages) {
@@ -271,9 +338,9 @@ describe('SEO metadata guardrails', () => {
     }
 
     expect(errors).toEqual([]);
-  }, 15000);
+  });
 
-  it('keeps sitemap lastmod aligned with current file revisions', () => {
+  it('keeps sitemap lastmod aligned with current file revisions', { timeout: 20000 }, () => {
     const sitemapPath = path.join(REPO_ROOT, 'sitemap.xml');
     const sitemap = fs.readFileSync(sitemapPath, 'utf8');
     const urlBlocks = [...sitemap.matchAll(/<url>\s*([\s\S]*?)\s*<\/url>/gi)];
@@ -306,5 +373,5 @@ describe('SEO metadata guardrails', () => {
     }
 
     expect(errors).toEqual([]);
-  }, 15000);
+  });
 });

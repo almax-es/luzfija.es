@@ -19,7 +19,7 @@ Comparador avanzado de tarifas electricas en Espana, gratuito, sin registro y co
 - 17.779 lineas JS aproximadas.
 - 40 tarifas en `tarifas.json`.
 - 4 novedades activas en `novedades.json`.
-- Suite de tests Vitest con 37 archivos y 241 casos.
+- Suite de tests Vitest con 37 archivos y 237 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 

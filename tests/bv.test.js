@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeAll } from 'vitest';
+import '../js/lf-csv-utils.js';
 
 // 1. Setup del entorno JSDOM simulado
 document.body.innerHTML = '<div id="test"></div>';

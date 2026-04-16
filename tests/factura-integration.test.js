@@ -40,6 +40,14 @@ describe('Factura PDF Integration (Black Box)', () => {
 
     // Mock jsQR para evitar carga de script externo que cuelga JSDOM
     window.jsQR = vi.fn(() => null); // Retorna null (no QR encontrado)
+
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(() => ({
+      getImageData: () => ({ data: new Uint8ClampedArray(4), width: 1, height: 1 }),
+      drawImage: () => {},
+      putImageData: () => {},
+      clearRect: () => {},
+      fillRect: () => {}
+    }));
   });
 
   afterEach(() => {
