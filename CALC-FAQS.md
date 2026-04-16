@@ -300,6 +300,8 @@ const FESTIVOS_FIJOS = new Set([
 
 **Conclusión**: Hacer que CNMC diga explícitamente qué hace. No es omisión, es norma.
 
+**Nota sobre festivos locales/autonómicos**: Al igual que los móviles, los festivos locales o de comunidades autónomas (como San Isidro en Madrid o la Diada en Cataluña) tampoco cambian el periodo a P3 a menos que coincidan con un festivo nacional de fecha fija. Los contadores inteligentes están programados únicamente con el calendario de festivos nacionales fijos del BOE para evitar disparidades territoriales en la facturación.
+
 ---
 
 ## Zonas Geográficas

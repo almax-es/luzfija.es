@@ -272,7 +272,7 @@ node -e "const n = JSON.parse(require('fs').readFileSync('novedades.json')); n.f
 
 ## Historial de Cambios
 
-- **2026-04-15**: Sincronización con el repo actual (`tarifas.json` con 38 tarifas, `updatedAt` 2026-04-15T06:07:08.817Z y `novedades.json` con 4 entradas activas)
+- **2026-04-16**: Sincronización con el repo actual (`tarifas.json` con 40 tarifas y `novedades.json` con 4 entradas activas)
 - **2026-02-14**: Actualización de métricas (`tarifas.json` con 36 tarifas, `updatedAt` renovado) y ajuste de tamaño documentado
 - **2026-02-06**: Ajuste de métricas reales (33 tarifas), rango de datos PVPC (desde 2021-06) y estrategia de caché actual
 - **2026-02-03**: Actualización de `novedades.json` (2 noticias activas)
@@ -281,3 +281,4 @@ node -e "const n = JSON.parse(require('fs').readFileSync('novedades.json')); n.f
 ---
 
 ⚡ Documentación precisa para mantenimiento sin errores.
+cisa para mantenimiento sin errores.

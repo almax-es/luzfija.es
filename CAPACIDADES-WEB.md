@@ -274,10 +274,10 @@ Este documento es la fuente de verdad funcional para describir todo lo que hace 
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 29 (`js/*.js` + `js/bv/*.js`).
-- Lineas JS aproximadas: 15.767.
+- Lineas JS aproximadas: 17.750.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
-- `tarifas.json` (38 tarifas).
+- `tarifas.json` (40 tarifas).
 - `novedades.json` (4 entradas activas).
 - `/data/pvpc/` (indicador 1001).
 - `/data/surplus/` (indicador 1739).
