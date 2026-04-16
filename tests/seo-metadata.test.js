@@ -136,6 +136,12 @@ function extractDateModifiedValues(html) {
   return values;
 }
 
+function extractMarkdownValue(markdown, label) {
+  const pattern = new RegExp(`\\*\\*${label}\\*\\*:\\s*([^\\r\\n]+)`);
+  const match = markdown.match(pattern);
+  return String(match?.[1] || '').trim();
+}
+
 const gitDateCache = new Map();
 const dirtyPathCache = new Map();
 
@@ -373,5 +379,23 @@ describe('SEO metadata guardrails', () => {
     }
 
     expect(errors).toEqual([]);
+  });
+
+  it('keeps JSON-SCHEMA metadata aligned with live JSON files', () => {
+    const markdown = fs.readFileSync(path.join(REPO_ROOT, 'JSON-SCHEMA.md'), 'utf8');
+    const tarifas = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'tarifas.json'), 'utf8'));
+    const novedades = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'novedades.json'), 'utf8'));
+
+    const tarifasUpdatedAt = extractMarkdownValue(markdown, 'Última actualización');
+    const tarifasCount = extractMarkdownValue(markdown, 'Total tarifas documentadas');
+    const novedadesSection = markdown.match(/## 2\. `novedades\.json`[\s\S]*?(?=\n---|\n## |\Z)/);
+    const novedadesBlock = novedadesSection?.[0] || '';
+    const novedadesUpdatedAt = extractMarkdownValue(novedadesBlock, 'Última actualización');
+    const novedadesCount = extractMarkdownValue(novedadesBlock, 'Total noticias activas');
+
+    expect(tarifasUpdatedAt).toContain(String(tarifas.updatedAt));
+    expect(tarifasCount).toBe(String(tarifas.tarifas.length));
+    expect(novedadesUpdatedAt).toBe(getExpectedDate('novedades.json'));
+    expect(novedadesCount).toBe(`${novedades.length} (histórico ilimitado)`);
   });
 });

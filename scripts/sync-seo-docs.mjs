@@ -154,10 +154,25 @@ function syncSitemap() {
 }
 
 function formatRssBuildDate(ymd) {
-  const date = new Date(`${ymd}T12:00:00+02:00`);
-  const weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-  return `${weekdays[date.getUTCDay()]}, ${String(date.getUTCDate()).padStart(2, '0')} ${months[date.getUTCMonth()]} ${date.getUTCFullYear()} 12:00:00 +0200`;
+  const date = new Date(`${ymd}T12:00:00Z`);
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Madrid',
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    timeZoneName: 'shortOffset'
+  }).formatToParts(date);
+
+  const map = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const offsetMatch = String(map.timeZoneName || '').match(/^GMT([+-]\d{1,2})(?::?(\d{2}))?$/);
+  const offsetHours = offsetMatch ? offsetMatch[1] : '+00';
+  const offsetMinutes = offsetMatch?.[2] || '00';
+  const offsetSign = offsetHours.startsWith('-') ? '-' : '+';
+  const offsetHourDigits = offsetHours.replace(/^[-+]/, '').padStart(2, '0');
+  const normalizedOffset = `${offsetSign}${offsetHourDigits}${offsetMinutes}`;
+
+  return `${map.weekday}, ${map.day} ${map.month} ${map.year} 12:00:00 ${normalizedOffset}`;
 }
 
 function syncFeed() {
