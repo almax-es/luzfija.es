@@ -281,8 +281,8 @@
       "cPunta": 0.1199,
       "cLlano": 0.1199,
       "cValle": 0.1199,
-      "p1": 0.081918,
-      "p2": 0.081918,
+      "p1": 0.090137,
+      "p2": 0.090137,
       "web": "https://www.repsol.es/particulares/hogar/luz-y-gas/tarifas/tarifa-ahorro-plus/",
       "tipo": "1P",
       "fv": {
@@ -737,5 +737,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-04-16T12:54:48.359Z"
+  "updatedAt": "2026-04-16T13:20:26.073Z"
 }
