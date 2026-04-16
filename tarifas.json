@@ -96,8 +96,8 @@
       "cPunta": 0.1099,
       "cLlano": 0.1099,
       "cValle": 0.1099,
-      "p1": 0.072575,
-      "p2": 0.072575,
+      "p1": 0.081479,
+      "p2": 0.081479,
       "web": "https://www.totalenergies.es/es/hogares/tarifas-luz-gas/a-tu-aire-siempre",
       "tipo": "1P",
       "fv": {
@@ -240,6 +240,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Gana Energía",
+      "cPunta": 0.119,
+      "cLlano": 0.119,
+      "cValle": 0.119,
+      "p1": 0.089434,
+      "p2": 0.089434,
+      "web": "https://ganaenergia.com/tarifas-luz/24-horas",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Iberdrola Online",
       "cPunta": 0.1199,
       "cLlano": 0.1199,
@@ -306,24 +324,6 @@
       "tipo": "1P",
       "fv": {
         "exc": 0.04,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Gana Energía",
-      "cPunta": 0.129,
-      "cLlano": 0.129,
-      "cValle": 0.129,
-      "p1": 0.089434,
-      "p2": 0.089434,
-      "web": "https://ganaenergia.com/tarifas-luz/24-horas",
-      "tipo": "1P",
-      "fv": {
-        "exc": 0.06,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -406,12 +406,30 @@
       "requiereFV": false
     },
     {
+      "nombre": "Gana Energía 3P",
+      "cPunta": 0.171,
+      "cLlano": 0.104,
+      "cValle": 0.08,
+      "p1": 0.089434,
+      "p2": 0.089434,
+      "web": "https://ganaenergia.com/tarifas-luz/tramos-horarios",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "TE A tu aire 3P",
       "cPunta": 0.173572,
       "cLlano": 0.10393,
       "cValle": 0.076176,
-      "p1": 0.072575,
-      "p2": 0.072575,
+      "p1": 0.081479,
+      "p2": 0.081479,
       "web": "https://www.totalenergies.es/es/hogares/tarifas-luz/a-tu-aire-programa-tu-ahorro",
       "tipo": "3P",
       "fv": {
@@ -508,24 +526,6 @@
       "tipo": "3P",
       "fv": {
         "exc": 0.04,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Gana Energía 3P",
-      "cPunta": 0.181,
-      "cLlano": 0.114,
-      "cValle": 0.09,
-      "p1": 0.089434,
-      "p2": 0.089434,
-      "web": "https://ganaenergia.com/tarifas-luz/tramos-horarios",
-      "tipo": "3P",
-      "fv": {
-        "exc": 0.06,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -699,5 +699,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-04-15T06:07:08.817Z"
+  "updatedAt": "2026-04-16T05:41:35.232Z"
 }
