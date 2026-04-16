@@ -4,8 +4,9 @@
   "description": "Comparador de tarifas eléctricas",
   "private": true,
   "scripts": {
-    "test": "vitest run",
-    "test:watch": "vitest"
+    "sync:seo-docs": "node scripts/sync-seo-docs.mjs",
+    "test": "npm run sync:seo-docs && vitest run",
+    "test:watch": "npm run sync:seo-docs && vitest"
   },
   "devDependencies": {
     "jsdom": "^27.0.0",
