@@ -199,6 +199,22 @@ function getExpectedDate(relPath) {
   return isDirtyPath(relPath) ? getTodayDate() : getGitLastModifiedDate(relPath);
 }
 
+function getMadridOffsetForDate(ymd) {
+  const date = new Date(`${ymd}T12:00:00Z`);
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Madrid',
+    timeZoneName: 'shortOffset'
+  }).formatToParts(date);
+
+  const map = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const match = String(map.timeZoneName || '').match(/^GMT([+-]\d{1,2})(?::?(\d{2}))?$/);
+  const hours = match ? match[1] : '+00';
+  const minutes = match?.[2] || '00';
+  const sign = hours.startsWith('-') ? '-' : '+';
+  const hourDigits = hours.replace(/^[-+]/, '').padStart(2, '0');
+  return `${sign}${hourDigits}:${minutes}`;
+}
+
 const pages = loadPages();
 
 describe('SEO metadata guardrails', () => {
@@ -339,6 +355,14 @@ describe('SEO metadata guardrails', () => {
       for (const value of values) {
         if (!value.startsWith(expected)) {
           errors.push(`${page.relPath}: dateModified ${value} does not match git ${expected}`);
+        }
+
+        const offsetMatch = value.match(/([+-]\d{2}:\d{2})$/);
+        if (offsetMatch) {
+          const expectedOffset = getMadridOffsetForDate(expected);
+          if (offsetMatch[1] !== expectedOffset) {
+            errors.push(`${page.relPath}: dateModified ${value} has offset ${offsetMatch[1]} but Europe/Madrid is ${expectedOffset}`);
+          }
         }
       }
     }

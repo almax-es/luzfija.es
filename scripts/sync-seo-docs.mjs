@@ -124,10 +124,34 @@ function relPathFromSiteUrl(siteUrl) {
   return url.pathname.slice(1).replace(/\//g, path.sep);
 }
 
+function getMadridOffsetParts(ymd) {
+  const date = new Date(`${ymd}T12:00:00Z`);
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Madrid',
+    timeZoneName: 'shortOffset'
+  }).formatToParts(date);
+
+  const map = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const offsetMatch = String(map.timeZoneName || '').match(/^GMT([+-]\d{1,2})(?::?(\d{2}))?$/);
+  const offsetHours = offsetMatch ? offsetMatch[1] : '+00';
+  const offsetMinutes = offsetMatch?.[2] || '00';
+  const offsetSign = offsetHours.startsWith('-') ? '-' : '+';
+  const offsetHourDigits = offsetHours.replace(/^[-+]/, '').padStart(2, '0');
+
+  return {
+    compact: `${offsetSign}${offsetHourDigits}${offsetMinutes}`,
+    iso: `${offsetSign}${offsetHourDigits}:${offsetMinutes}`
+  };
+}
+
 function replaceDateModified(content, ymd) {
+  const expectedOffset = getMadridOffsetParts(ymd).iso;
   return content.replace(
     /("dateModified"\s*:\s*")(\d{4}-\d{2}-\d{2})([^"]*)(")/g,
-    (_, prefix, _date, suffix, quote) => `${prefix}${ymd}${suffix}${quote}`
+    (_, prefix, _date, suffix, quote) => {
+      const normalizedSuffix = String(suffix || '').replace(/([+-]\d{2}:\d{2})$/, expectedOffset);
+      return `${prefix}${ymd}${normalizedSuffix}${quote}`;
+    }
   );
 }
 
@@ -165,12 +189,7 @@ function formatRssBuildDate(ymd) {
   }).formatToParts(date);
 
   const map = Object.fromEntries(parts.map((part) => [part.type, part.value]));
-  const offsetMatch = String(map.timeZoneName || '').match(/^GMT([+-]\d{1,2})(?::?(\d{2}))?$/);
-  const offsetHours = offsetMatch ? offsetMatch[1] : '+00';
-  const offsetMinutes = offsetMatch?.[2] || '00';
-  const offsetSign = offsetHours.startsWith('-') ? '-' : '+';
-  const offsetHourDigits = offsetHours.replace(/^[-+]/, '').padStart(2, '0');
-  const normalizedOffset = `${offsetSign}${offsetHourDigits}${offsetMinutes}`;
+  const normalizedOffset = getMadridOffsetParts(ymd).compact;
 
   return `${map.weekday}, ${map.day} ${map.month} ${map.year} 12:00:00 ${normalizedOffset}`;
 }
