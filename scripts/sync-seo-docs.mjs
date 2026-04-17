@@ -283,6 +283,11 @@ function formatApproxKb(bytes) {
   return `~${kb.toFixed(1).replace('.', ',')} KB`;
 }
 
+function getNormalizedUtf8Size(relPath) {
+  const normalized = readUtf8(relPath).replace(/\r\n/g, '\n');
+  return Buffer.byteLength(normalized, 'utf8');
+}
+
 function syncReadmeAndCapacidades() {
   const snapshotDate = getSnapshotDate();
   const html = countHtmlMetrics();
@@ -338,12 +343,10 @@ function syncReadmeAndCapacidades() {
 }
 
 function syncJsonSchema() {
-  const tarifasPath = path.join(REPO_ROOT, 'tarifas.json');
-  const novedadesPath = path.join(REPO_ROOT, 'novedades.json');
-  const tarifas = JSON.parse(fs.readFileSync(tarifasPath, 'utf8'));
-  const novedades = JSON.parse(fs.readFileSync(novedadesPath, 'utf8'));
-  const tarifasSize = formatApproxKb(fs.statSync(tarifasPath).size);
-  const novedadesSize = formatApproxKb(fs.statSync(novedadesPath).size);
+  const tarifas = JSON.parse(readUtf8('tarifas.json'));
+  const novedades = JSON.parse(readUtf8('novedades.json'));
+  const tarifasSize = formatApproxKb(getNormalizedUtf8Size('tarifas.json'));
+  const novedadesSize = formatApproxKb(getNormalizedUtf8Size('novedades.json'));
   const novedadesDate = getExpectedDate('novedades.json');
 
   updateFile('JSON-SCHEMA.md', (content) => {

@@ -142,6 +142,17 @@ function extractMarkdownValue(markdown, label) {
   return String(match?.[1] || '').trim();
 }
 
+function formatApproxKb(bytes) {
+  const kb = bytes / 1024;
+  if (kb >= 10) return `~${Math.round(kb)} KB`;
+  return `~${kb.toFixed(1).replace('.', ',')} KB`;
+}
+
+function getNormalizedUtf8Size(relPath) {
+  const content = fs.readFileSync(path.join(REPO_ROOT, relPath), 'utf8').replace(/\r\n/g, '\n');
+  return Buffer.byteLength(content, 'utf8');
+}
+
 const gitDateCache = new Map();
 const dirtyPathCache = new Map();
 
@@ -411,14 +422,18 @@ describe('SEO metadata guardrails', () => {
     const novedades = JSON.parse(fs.readFileSync(path.join(REPO_ROOT, 'novedades.json'), 'utf8'));
 
     const tarifasUpdatedAt = extractMarkdownValue(markdown, 'Última actualización');
+    const tarifasSize = extractMarkdownValue(markdown, 'Tamaño');
     const tarifasCount = extractMarkdownValue(markdown, 'Total tarifas documentadas');
     const novedadesSection = markdown.match(/## 2\. `novedades\.json`[\s\S]*?(?=\n---|\n## |\Z)/);
     const novedadesBlock = novedadesSection?.[0] || '';
+    const novedadesSize = extractMarkdownValue(novedadesBlock, 'Tamaño');
     const novedadesUpdatedAt = extractMarkdownValue(novedadesBlock, 'Última actualización');
     const novedadesCount = extractMarkdownValue(novedadesBlock, 'Total noticias activas');
 
     expect(tarifasUpdatedAt).toContain(String(tarifas.updatedAt));
+    expect(tarifasSize).toBe(formatApproxKb(getNormalizedUtf8Size('tarifas.json')));
     expect(tarifasCount).toBe(String(tarifas.tarifas.length));
+    expect(novedadesSize).toBe(formatApproxKb(getNormalizedUtf8Size('novedades.json')));
     expect(novedadesUpdatedAt).toBe(getExpectedDate('novedades.json'));
     expect(novedadesCount).toBe(`${novedades.length} (histórico ilimitado)`);
   });
