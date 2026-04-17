@@ -311,8 +311,8 @@ Este documento es la fuente de verdad funcional para describir todo lo que hace 
 ## 10. Testing Y Calidad
 
 - Suite Vitest/JSDOM.
-- 38 archivos de test (`tests/*.test.js`).
-- 243 casos `it()/test()` en la ultima ejecucion local verificada.
+- 39 archivos de test (`tests/*.test.js`).
+- 246 casos `it()/test()` en la ultima ejecucion local verificada.
 - Cobertura de:
 - Calculo fiscal y de energia.
 - PVPC y caches.

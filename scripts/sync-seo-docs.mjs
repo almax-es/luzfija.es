@@ -403,16 +403,158 @@ function formatRssBuildDate(ymd) {
   return `${map.weekday}, ${map.day} ${map.month} ${map.year} 12:00:00 ${normalizedOffset}`;
 }
 
+function formatRssItemDate(ymd) {
+  const date = new Date(`${ymd}T12:00:00Z`);
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'Europe/Madrid',
+    weekday: 'short',
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric'
+  }).formatToParts(date);
+
+  const map = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const normalizedOffset = getMadridOffsetParts(ymd).compact;
+
+  return `${map.weekday}, ${map.day} ${map.month} ${map.year} 00:00:00 ${normalizedOffset}`;
+}
+
+function decodeHtmlEntities(value) {
+  return String(value || '')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>')
+    .replace(/&middot;/g, '·')
+    .replace(/&rarr;/g, '→');
+}
+
+function stripHtml(value) {
+  return normalizeWhitespace(decodeHtmlEntities(String(value || '').replace(/<[^>]+>/g, ' ')));
+}
+
+function xmlEscape(value) {
+  return String(value || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&apos;');
+}
+
+function extractNovedadesPageItems(html) {
+  const items = [];
+  const articleBlocks = [...String(html || '').matchAll(/<article class="novedad" id="([^"]+)">([\s\S]*?)<\/article>/gi)];
+
+  for (const [, id, body] of articleBlocks) {
+    const fecha = String(body.match(/<time[^>]+datetime="([^"]+)"/i)?.[1] || '').trim();
+    const tipo = normalizeWhitespace(body.match(/<span class="novedad-tipo [^"]+">([\s\S]*?)<\/span>/i)?.[1] || '').toLowerCase();
+    const titulo = stripHtml(body.match(/<h3>([\s\S]*?)<\/h3>/i)?.[1] || '');
+    const texto = stripHtml(body.match(/<p>([\s\S]*?)<\/p>/i)?.[1] || '');
+
+    if (!id || !fecha || !tipo || !titulo || !texto) continue;
+
+    items.push({
+      id,
+      fecha,
+      tipo,
+      titulo,
+      texto,
+      link: `${BASE_URL}/novedades.html#${id}`
+    });
+  }
+
+  return items;
+}
+
+function parseExistingFeedEntries(content) {
+  const entries = [];
+  const itemBlocks = [...String(content || '').matchAll(/<item>\s*([\s\S]*?)\s*<\/item>/gi)];
+
+  for (const [, block] of itemBlocks) {
+    const title = stripHtml(block.match(/<title>([\s\S]*?)<\/title>/i)?.[1] || '');
+    const link = decodeHtmlEntities(String(block.match(/<link>([\s\S]*?)<\/link>/i)?.[1] || '').trim());
+    const guid = decodeHtmlEntities(String(block.match(/<guid\b[^>]*>([\s\S]*?)<\/guid>/i)?.[1] || '').trim());
+
+    if (!title && !link && !guid) continue;
+
+    entries.push({ title, link, guid });
+  }
+
+  return entries;
+}
+
+function buildFeedGuid(item) {
+  const safeId = String(item?.id || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+
+  return `luzfija-novedad-${item.fecha}-${safeId}`;
+}
+
 function syncFeed() {
+  const novedadesItems = extractNovedadesPageItems(readUtf8('novedades.html'));
   const buildDate = formatRssBuildDate(
     [getExpectedDate('novedades.html'), getExpectedDate('novedades.json')]
       .sort()
       .slice(-1)[0]
   );
 
-  updateFile('feed.xml', (content) =>
-    content.replace(/<lastBuildDate>[^<]+<\/lastBuildDate>/i, `<lastBuildDate>${buildDate}</lastBuildDate>`)
-  );
+  updateFile('feed.xml', (content) => {
+    const currentEntries = parseExistingFeedEntries(content);
+    const guidByLink = new Map(
+      currentEntries
+        .filter((entry) => entry.link && entry.guid)
+        .map((entry) => [entry.link, entry.guid])
+    );
+    const guidByTitle = new Map(
+      currentEntries
+        .filter((entry) => entry.title && entry.guid)
+        .map((entry) => [entry.title, entry.guid])
+    );
+
+    const itemBlocks = novedadesItems.map((item) => {
+      const guid = guidByLink.get(item.link) || guidByTitle.get(item.titulo) || buildFeedGuid(item);
+
+      return [
+        '    <item>',
+        `      <title>${xmlEscape(item.titulo)}</title>`,
+        `      <link>${xmlEscape(item.link)}</link>`,
+        `      <guid isPermaLink="false">${xmlEscape(guid)}</guid>`,
+        `      <pubDate>${formatRssItemDate(item.fecha)}</pubDate>`,
+        `      <category>${xmlEscape(item.tipo)}</category>`,
+        `      <description>${xmlEscape(item.texto)}</description>`,
+        '    </item>'
+      ].join('\n');
+    });
+
+    return [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      '<?xml-stylesheet type="text/xsl" href="/feed.xsl"?>',
+      '<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">',
+      '  <channel>',
+      '    <title>LuzFija.es - Novedades</title>',
+      '    <link>https://luzfija.es/</link>',
+      '    <description>Novedades sobre luz, gas, regulaciones y alertas para consumidores en España.</description>',
+      '    <language>es-ES</language>',
+      `    <lastBuildDate>${buildDate}</lastBuildDate>`,
+      '    <atom:link href="https://luzfija.es/feed.xml" rel="self" type="application/rss+xml"/>',
+      '    <image>',
+      '      <url>https://luzfija.es/logo-512.png</url>',
+      '      <title>LuzFija.es</title>',
+      '      <link>https://luzfija.es/</link>',
+      '    </image>',
+      '',
+      itemBlocks.join('\n\n'),
+      '',
+      '  </channel>',
+      '</rss>',
+      ''
+    ].join('\n');
+  });
 }
 
 function countJsMetrics() {

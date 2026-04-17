@@ -111,9 +111,9 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 ## 2. `novedades.json` — Noticias, Alertas y Avisos
 
 **Ubicación**: `/novedades.json`
-**Tamaño**: ~2,6 KB
+**Tamaño**: ~2,7 KB
 **Estructura**: Array de objetos (NO envuelto en objeto padre)
-**Última actualización**: 2026-04-10
+**Última actualización**: 2026-04-17
 **Total noticias activas**: 4 (histórico ilimitado)
 
 ### Esquema de Estructura
