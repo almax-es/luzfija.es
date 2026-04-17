@@ -4,6 +4,7 @@
   "description": "Comparador de tarifas eléctricas",
   "private": true,
   "scripts": {
+    "setup:hooks": "git config core.hooksPath .githooks",
     "sync:seo-docs": "node scripts/sync-seo-docs.mjs",
     "sync:repo-docs": "node scripts/sync-seo-docs.mjs --include-repo-docs",
     "pretest": "npm run sync:seo-docs",
