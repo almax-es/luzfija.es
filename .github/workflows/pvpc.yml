@@ -49,13 +49,14 @@ jobs:
       - name: Check if there are changes
         id: check_changes
         run: |
-          if git diff --quiet data/; then
+          CHANGED_FILES=$(git status --porcelain -- data/ | wc -l)
+          if [ "$CHANGED_FILES" -eq 0 ]; then
             echo "has_changes=false" >> $GITHUB_OUTPUT
             echo "No hay cambios (datos ya actualizados)"
           else
-            CHANGED_FILES=$(git diff --name-only data/ | wc -l)
             echo "has_changes=true" >> $GITHUB_OUTPUT
             echo "Actualizados $CHANGED_FILES archivos"
+            git status --short -- data/
           fi
 
       - name: Commit and push if there are changes
