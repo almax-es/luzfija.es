@@ -35,7 +35,7 @@ function isSyncInput(relPath) {
 }
 
 const repoRoot = runGit(['rev-parse', '--show-toplevel']);
-const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm';
+const syncScriptPath = path.join(repoRoot, 'scripts', 'sync-seo-docs.mjs');
 process.chdir(repoRoot);
 
 const stagedFiles = splitLines(runGit(['diff', '--cached', '--name-only', '--diff-filter=ACMR']));
@@ -59,7 +59,7 @@ if (blockingFiles.length > 0) {
 }
 
 console.log('Synchronizing sitemap, feed and repo docs before commit...');
-run(npmCommand, ['run', 'sync:repo-docs'], {
+run(process.execPath, [syncScriptPath, '--include-repo-docs'], {
   cwd: repoRoot,
   stdio: 'inherit'
 });
