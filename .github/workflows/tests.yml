@@ -5,6 +5,7 @@ on:
     branches: [ "main", "master" ]
   pull_request:
     branches: [ "main", "master" ]
+  workflow_dispatch:
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -17,6 +18,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
       
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -27,9 +30,25 @@ jobs:
       - name: Install dependencies
         run: npm ci
         
-      - name: Security Audit
-        # Falla si hay vulnerabilidades críticas en las dependencias de desarrollo
-        run: npm audit --audit-level=high || true
+      - name: Security Audit (informational)
+        continue-on-error: true
+        run: npm audit --audit-level=high
 
       - name: Run Tests
         run: npm test
+
+      - name: Verify synchronized repo state
+        run: |
+          if ! git diff --quiet || ! git diff --cached --quiet; then
+            echo "::error::npm test modified tracked files. Run npm test locally and commit the resulting changes."
+            git status --short
+            git diff --stat
+            exit 1
+          fi
+
+          UNTRACKED="$(git ls-files --others --exclude-standard)"
+          if [ -n "$UNTRACKED" ]; then
+            echo "::error::Unexpected untracked files generated during CI:"
+            echo "$UNTRACKED"
+            exit 1
+          fi
