@@ -358,7 +358,7 @@
       "p2": 0.003014,
       "web": "https://www.energyavm.es/luz/formula-fija-3-periodos/",
       "tipo": "3P",
-      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 6.000 kWh/año. 25% descuento término energía durante 3 meses incluido en el precio.",
+      "requisitos": "25% descuento término energía durante 3 meses incluido en el precio.Potencia ≤ 15 kW. Consumo ≤ 6.000 kWh/año.",
       "fv": {
         "exc": 0.0,
         "tipo": "NO COMPENSA",
@@ -737,5 +737,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-04-17T05:37:57.585Z"
+  "updatedAt": "2026-04-17T06:43:30.156Z"
 }
