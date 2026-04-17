@@ -1,6 +1,11 @@
 import fs from 'fs';
 import path from 'path';
 import { execFileSync } from 'child_process';
+import {
+  getBlockingManagedFiles,
+  getFilesToRestage,
+  needsSync
+} from './pre-commit-sync-lib.mjs';
 
 function run(command, args, options = {}) {
   return execFileSync(command, args, {
@@ -21,40 +26,46 @@ function splitLines(value) {
     .filter(Boolean);
 }
 
-function isSyncInput(relPath) {
-  return (
-    relPath.endsWith('.html') ||
-    /^js\/.+\.js$/.test(relPath) ||
-    relPath === 'sw.js' ||
-    relPath === 'styles.css' ||
-    relPath === 'fonts.css' ||
-    relPath.endsWith('.webmanifest') ||
-    relPath === 'tarifas.json' ||
-    relPath === 'novedades.json'
-  );
-}
-
 const repoRoot = runGit(['rev-parse', '--show-toplevel']);
 const syncScriptPath = path.join(repoRoot, 'scripts', 'sync-seo-docs.mjs');
 process.chdir(repoRoot);
 
-const stagedFiles = splitLines(runGit(['diff', '--cached', '--name-only', '--diff-filter=ACMR']));
+const stagedFiles = splitLines(runGit(['diff', '--cached', '--name-only', '--diff-filter=ACMRD']));
 if (stagedFiles.length === 0) process.exit(0);
 
-const needsSync = stagedFiles.some(isSyncInput);
-if (!needsSync) process.exit(0);
+if (!needsSync(stagedFiles)) process.exit(0);
 
-const blockingFiles = [
-  ...splitLines(runGit(['diff', '--name-only'])),
-  ...splitLines(runGit(['ls-files', '--others', '--exclude-standard']))
-].filter((relPath) => isSyncInput(relPath) && !stagedFiles.includes(relPath));
+const blocking = getBlockingManagedFiles({
+  stagedFiles,
+  unstagedFiles: splitLines(runGit(['diff', '--name-only'])),
+  untrackedFiles: splitLines(runGit(['ls-files', '--others', '--exclude-standard']))
+});
 
-if (blockingFiles.length > 0) {
-  console.error('Cannot auto-sync docs/SEO with unstaged relevant changes present:');
-  for (const file of blockingFiles) {
-    console.error(`- ${file}`);
+if (blocking.hasBlocking) {
+  console.error('Cannot auto-sync docs/SEO with dirty managed files present.');
+
+  if (blocking.partiallyStagedManaged.length > 0) {
+    console.error('Partially staged managed files:');
+    for (const file of blocking.partiallyStagedManaged) {
+      console.error(`- ${file}`);
+    }
   }
-  console.error('Stage or stash those files first, then retry the commit.');
+
+  if (blocking.dirtyButUnstagedManaged.length > 0) {
+    console.error('Unstaged managed files:');
+    for (const file of blocking.dirtyButUnstagedManaged) {
+      console.error(`- ${file}`);
+    }
+  }
+
+  if (blocking.untrackedManaged.length > 0) {
+    console.error('Untracked managed files:');
+    for (const file of blocking.untrackedManaged) {
+      console.error(`- ${file}`);
+    }
+  }
+
+  console.error('Stage, stash or discard those managed files first, then retry the commit.');
   process.exit(1);
 }
 
@@ -64,21 +75,7 @@ run(process.execPath, [syncScriptPath, '--include-repo-docs'], {
   stdio: 'inherit'
 });
 
-const filesToStage = new Set([
-  'sitemap.xml',
-  'feed.xml',
-  'README.md',
-  'CAPACIDADES-WEB.md',
-  'JSON-SCHEMA.md'
-]);
-
-for (const relPath of stagedFiles) {
-  if (relPath.endsWith('.html')) {
-    filesToStage.add(relPath);
-  }
-}
-
-const existingFiles = [...filesToStage].filter((relPath) =>
+const existingFiles = getFilesToRestage(stagedFiles).filter((relPath) =>
   fs.existsSync(path.join(repoRoot, relPath))
 );
 

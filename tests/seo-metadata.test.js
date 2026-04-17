@@ -166,6 +166,11 @@ function extractVisibleGuidePublishedDate(html) {
   return normalizeWhitespace(match?.[1] || '');
 }
 
+function extractVisibleGuideUpdatedDate(html) {
+  const match = html.match(/<span class="updated-badge">[^<]*Act\.\s*([^<]+)<\/span>/i);
+  return normalizeWhitespace(match?.[1] || '');
+}
+
 function parseSpanishShortDate(rawValue) {
   const value = normalizeWhitespace(rawValue).toLowerCase();
   const match = value.match(/^(\d{1,2})\s+([a-zñ]{3})\s+(\d{4})$/i);
@@ -444,6 +449,36 @@ describe('SEO metadata guardrails', () => {
 
       if (datePublished !== visibleDate) {
         errors.push(`${page.relPath}: datePublished ${datePublished} does not match visible ${visibleDate}`);
+      }
+    }
+
+    expect(errors).toEqual([]);
+  });
+
+  it('keeps guide update badges aligned with structured data dateModified', () => {
+    const errors = [];
+
+    for (const page of pages) {
+      if (!page.relPath.startsWith('guias/') || page.relPath === 'guias/index.html') continue;
+
+      const articleNode = extractJsonLdObjects(page.html).find(
+        (node) => normalizeWhitespace(node?.['@type'] || '').toLowerCase() === 'article'
+      );
+      const dateModified = String(articleNode?.dateModified || '').trim().slice(0, 10);
+      const visibleDate = parseSpanishShortDate(extractVisibleGuideUpdatedDate(page.html));
+
+      if (!dateModified) {
+        errors.push(`${page.relPath}: missing Article.dateModified`);
+        continue;
+      }
+
+      if (!visibleDate) {
+        errors.push(`${page.relPath}: missing or unparsable visible updated date`);
+        continue;
+      }
+
+      if (dateModified !== visibleDate) {
+        errors.push(`${page.relPath}: dateModified ${dateModified} does not match updated badge ${visibleDate}`);
       }
     }
 

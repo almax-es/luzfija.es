@@ -117,6 +117,103 @@ function walkFiles(dirPath, predicate) {
   return files;
 }
 
+function normalizeWhitespace(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim();
+}
+
+function normalizeSiteUrl(rawUrl) {
+  try {
+    const url = new URL(rawUrl, BASE_URL);
+    if (url.origin !== BASE_URL) return null;
+    let pathname = url.pathname;
+    if (pathname.length > 1 && pathname.endsWith('/')) pathname = pathname.slice(0, -1);
+    return `${url.origin}${pathname}`;
+  } catch {
+    return null;
+  }
+}
+
+function pageUrlFromRelPath(relPath) {
+  const normalized = relPath.split(path.sep).join('/');
+  if (normalized === 'index.html') return `${BASE_URL}/`;
+  if (normalized.endsWith('/index.html')) {
+    return `${BASE_URL}/${normalized.slice(0, -'/index.html'.length)}/`;
+  }
+  return `${BASE_URL}/${normalized}`;
+}
+
+function parseAttributes(tag) {
+  const attrs = {};
+  const attrRegex = /([a-zA-Z:-]+)\s*=\s*(?:"([^"]*)"|'([^']*)')/g;
+
+  for (const match of tag.matchAll(attrRegex)) {
+    const key = String(match[1] || '').toLowerCase();
+    const value = String(match[2] ?? match[3] ?? '').trim();
+    attrs[key] = value;
+  }
+
+  return attrs;
+}
+
+function extractMeta(html) {
+  const byName = new Map();
+  const byProperty = new Map();
+  const tags = html.match(/<meta\b[^>]*>/gi) || [];
+
+  for (const tag of tags) {
+    const attrs = parseAttributes(tag);
+    const content = attrs.content || '';
+
+    if (attrs.name) byName.set(attrs.name.toLowerCase(), content);
+    if (attrs.property) byProperty.set(attrs.property.toLowerCase(), content);
+  }
+
+  return { byName, byProperty };
+}
+
+function parseExistingSitemapEntries(content) {
+  const entries = [];
+  const urlBlocks = [...content.matchAll(/<url>\s*([\s\S]*?)\s*<\/url>/gi)];
+
+  for (const [, block] of urlBlocks) {
+    const locMatch = String(block || '').match(/<loc>([^<]+)<\/loc>/i);
+    const changefreqMatch = String(block || '').match(/<changefreq>([^<]+)<\/changefreq>/i);
+    const priorityMatch = String(block || '').match(/<priority>([^<]+)<\/priority>/i);
+    const normalizedLoc = normalizeSiteUrl(String(locMatch?.[1] || '').trim());
+
+    if (!normalizedLoc) continue;
+
+    entries.push({
+      loc: normalizedLoc,
+      changefreq: String(changefreqMatch?.[1] || '').trim(),
+      priority: String(priorityMatch?.[1] || '').trim()
+    });
+  }
+
+  return entries;
+}
+
+function loadPages() {
+  const htmlFiles = walkHtmlFiles(REPO_ROOT).sort();
+
+  return htmlFiles.map((filePath) => {
+    const relPath = path.relative(REPO_ROOT, filePath);
+    const html = fs.readFileSync(filePath, 'utf8');
+    const { byName } = extractMeta(html);
+    const robots = normalizeWhitespace(byName.get('robots') || '').toLowerCase();
+    const normalizedRelPath = relPath.split(path.sep).join('/');
+    const pageUrl = pageUrlFromRelPath(relPath);
+
+    return {
+      relPath,
+      normalizedRelPath,
+      url: pageUrl,
+      normalizedUrl: normalizeSiteUrl(pageUrl),
+      indexable: !robots.includes('noindex')
+    };
+  });
+}
+
 function relPathFromSiteUrl(siteUrl) {
   const url = new URL(siteUrl);
   if (url.origin !== BASE_URL) return null;
@@ -156,26 +253,137 @@ function replaceDateModified(content, ymd) {
   );
 }
 
-function syncHtmlDateModified() {
+function formatSpanishShortDate(ymd) {
+  const [year, month, day] = String(ymd || '').split('-');
+  const months = {
+    '01': 'ene',
+    '02': 'feb',
+    '03': 'mar',
+    '04': 'abr',
+    '05': 'may',
+    '06': 'jun',
+    '07': 'jul',
+    '08': 'ago',
+    '09': 'sep',
+    '10': 'oct',
+    '11': 'nov',
+    '12': 'dic'
+  };
+
+  if (!year || !month || !day || !months[month]) return String(ymd || '');
+  return `${Number(day)} ${months[month]} ${year}`;
+}
+
+function replaceVisibleUpdatedBadge(content, ymd) {
+  return content.replace(
+    /(<span class="updated-badge">[^<]*Act\.\s*)([^<]+)(<\/span>)/g,
+    `$1${formatSpanishShortDate(ymd)}$3`
+  );
+}
+
+function syncHtmlDateMetadata() {
   for (const filePath of walkHtmlFiles(REPO_ROOT)) {
     const relPath = path.relative(REPO_ROOT, filePath);
-    updateFile(relPath, (content) => replaceDateModified(content, getExpectedDate(relPath)));
+    const normalizedRelPath = relPath.split(path.sep).join('/');
+    const expectedDate = getExpectedDate(relPath);
+
+    updateFile(relPath, (content) => {
+      let next = replaceDateModified(content, expectedDate);
+
+      if (normalizedRelPath.startsWith('guias/') && normalizedRelPath !== 'guias/index.html') {
+        next = replaceVisibleUpdatedBadge(next, expectedDate);
+      }
+
+      return next;
+    });
   }
 }
 
 function syncSitemap() {
-  updateFile('sitemap.xml', (content) =>
-    content.replace(/<url>\s*([\s\S]*?)\s*<\/url>/g, (block) => {
-      const locMatch = block.match(/<loc>([^<]+)<\/loc>/i);
-      if (!locMatch) return block;
+  updateFile('sitemap.xml', (content) => {
+    const currentEntries = parseExistingSitemapEntries(content);
+    const currentByUrl = new Map(currentEntries.map((entry) => [entry.loc, entry]));
+    const currentOrder = new Map(currentEntries.map((entry, index) => [entry.loc, index]));
+    const pages = loadPages()
+      .filter((page) => page.indexable && page.normalizedUrl)
+      .map((page) => {
+        const existing = currentByUrl.get(page.normalizedUrl) || {};
+        const relPath = relPathFromSiteUrl(page.url);
+        let changefreq = existing.changefreq || 'monthly';
+        let priority = existing.priority || '0.7';
 
-      const relPath = relPathFromSiteUrl(String(locMatch[1] || '').trim());
-      if (!relPath) return block;
+        if (!existing.changefreq || !existing.priority) {
+          if (page.normalizedRelPath === 'index.html') {
+            changefreq = 'daily';
+            priority = '1.0';
+          } else if (page.normalizedRelPath === 'guias.html') {
+            changefreq = 'monthly';
+            priority = '0.9';
+          } else if (page.normalizedRelPath === 'comparador-tarifas-solares.html') {
+            changefreq = 'weekly';
+            priority = '0.9';
+          } else if (page.normalizedRelPath === 'calcular-factura-luz.html') {
+            changefreq = 'monthly';
+            priority = '0.9';
+          } else if (page.normalizedRelPath === 'comparar-pvpc-tarifa-fija.html') {
+            changefreq = 'monthly';
+            priority = '0.8';
+          } else if (page.normalizedRelPath === 'estadisticas/index.html') {
+            changefreq = 'weekly';
+            priority = '0.8';
+          } else if (page.normalizedRelPath === 'novedades.html') {
+            changefreq = 'weekly';
+            priority = '0.6';
+          } else if (page.normalizedRelPath.startsWith('guias/')) {
+            changefreq = 'monthly';
+            priority = '0.7';
+          }
+        }
 
-      const expectedDate = getExpectedDate(relPath);
-      return block.replace(/<lastmod>[^<]+<\/lastmod>/i, `<lastmod>${expectedDate}</lastmod>`);
-    })
-  );
+        return {
+          loc: page.url,
+          normalizedLoc: page.normalizedUrl,
+          lastmod: getExpectedDate(relPath || page.relPath),
+          changefreq,
+          priority,
+          normalizedRelPath: page.normalizedRelPath
+        };
+      });
+
+    pages.sort((a, b) => {
+      const aExisting = currentOrder.has(a.normalizedLoc);
+      const bExisting = currentOrder.has(b.normalizedLoc);
+
+      if (aExisting && bExisting) return currentOrder.get(a.normalizedLoc) - currentOrder.get(b.normalizedLoc);
+      if (aExisting) return -1;
+      if (bExisting) return 1;
+
+      const aGuide = a.normalizedRelPath.startsWith('guias/');
+      const bGuide = b.normalizedRelPath.startsWith('guias/');
+      if (aGuide !== bGuide) return aGuide ? 1 : -1;
+
+      return a.loc.localeCompare(b.loc);
+    });
+
+    const blocks = pages.map((page) => [
+      '  <url>',
+      `    <loc>${page.loc}</loc>`,
+      `    <lastmod>${page.lastmod}</lastmod>`,
+      `    <changefreq>${page.changefreq}</changefreq>`,
+      `    <priority>${page.priority}</priority>`,
+      '  </url>'
+    ].join('\n'));
+
+    return [
+      '<?xml version="1.0" encoding="UTF-8"?>',
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+      '',
+      blocks.join('\n\n'),
+      '',
+      '</urlset>',
+      ''
+    ].join('\n');
+  });
 }
 
 function formatRssBuildDate(ymd) {
@@ -368,7 +576,7 @@ function syncJsonSchema() {
 
 function main() {
   ensureAuxDirs();
-  syncHtmlDateModified();
+  syncHtmlDateMetadata();
   syncSitemap();
   syncFeed();
   if (INCLUDE_REPO_DOCS) {
