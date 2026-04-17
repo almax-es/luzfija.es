@@ -136,6 +136,62 @@ function extractDateModifiedValues(html) {
   return values;
 }
 
+function extractJsonLdObjects(html) {
+  const objects = [];
+  const scripts = html.match(/<script\b[^>]*type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/gi) || [];
+
+  for (const script of scripts) {
+    const jsonMatch = script.match(/<script\b[^>]*>([\s\S]*?)<\/script>/i);
+    if (!jsonMatch?.[1]) continue;
+
+    try {
+      const parsed = JSON.parse(jsonMatch[1]);
+      if (Array.isArray(parsed)) {
+        objects.push(...parsed.filter((item) => item && typeof item === 'object'));
+      } else if (parsed && typeof parsed === 'object') {
+        objects.push(parsed);
+      }
+    } catch {
+      // Invalid JSON-LD is covered elsewhere; skip here to keep this guardrail focused.
+    }
+  }
+
+  return objects;
+}
+
+function extractVisibleGuidePublishedDate(html) {
+  const match = html.match(
+    /<div class="article-meta">[\s\S]*?<span>Por <strong>[\s\S]*?<\/strong><\/span><span>·<\/span><span>([^<]+)<\/span>/i
+  );
+  return normalizeWhitespace(match?.[1] || '');
+}
+
+function parseSpanishShortDate(rawValue) {
+  const value = normalizeWhitespace(rawValue).toLowerCase();
+  const match = value.match(/^(\d{1,2})\s+([a-zñ]{3})\s+(\d{4})$/i);
+  if (!match) return '';
+
+  const months = {
+    ene: '01',
+    feb: '02',
+    mar: '03',
+    abr: '04',
+    may: '05',
+    jun: '06',
+    jul: '07',
+    ago: '08',
+    sep: '09',
+    oct: '10',
+    nov: '11',
+    dic: '12'
+  };
+
+  const month = months[match[2]];
+  if (!month) return '';
+
+  return `${match[3]}-${month}-${match[1].padStart(2, '0')}`;
+}
+
 const gitDateCache = new Map();
 const dirtyPathCache = new Map();
 
@@ -358,6 +414,36 @@ describe('SEO metadata guardrails', () => {
             errors.push(`${page.relPath}: dateModified ${value} has offset ${offsetMatch[1]} but Europe/Madrid is ${expectedOffset}`);
           }
         }
+      }
+    }
+
+    expect(errors).toEqual([]);
+  });
+
+  it('keeps guide published dates aligned between visible metadata and structured data', () => {
+    const errors = [];
+
+    for (const page of pages) {
+      if (!page.relPath.startsWith('guias/') || page.relPath === 'guias/index.html') continue;
+
+      const articleNode = extractJsonLdObjects(page.html).find(
+        (node) => normalizeWhitespace(node?.['@type'] || '').toLowerCase() === 'article'
+      );
+      const datePublished = String(articleNode?.datePublished || '').trim().slice(0, 10);
+      const visibleDate = parseSpanishShortDate(extractVisibleGuidePublishedDate(page.html));
+
+      if (!datePublished) {
+        errors.push(`${page.relPath}: missing Article.datePublished`);
+        continue;
+      }
+
+      if (!visibleDate) {
+        errors.push(`${page.relPath}: missing or unparsable visible publish date`);
+        continue;
+      }
+
+      if (datePublished !== visibleDate) {
+        errors.push(`${page.relPath}: datePublished ${datePublished} does not match visible ${visibleDate}`);
       }
     }
 

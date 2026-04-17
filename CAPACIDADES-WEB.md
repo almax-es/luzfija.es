@@ -312,7 +312,7 @@ Este documento es la fuente de verdad funcional para describir todo lo que hace 
 
 - Suite Vitest/JSDOM.
 - 37 archivos de test (`tests/*.test.js`).
-- 237 casos `it()/test()` en la ultima ejecucion local verificada.
+- 238 casos `it()/test()` en la ultima ejecucion local verificada.
 - Cobertura de:
 - Calculo fiscal y de energia.
 - PVPC y caches.
