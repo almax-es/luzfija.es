@@ -7,6 +7,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..');
 const BASE_URL = 'https://luzfija.es';
+const INCLUDE_REPO_DOCS = process.argv.includes('--include-repo-docs');
 const HTML_SKIP_DIRS = new Set(['.git', 'node_modules', 'logs', 'scripts', 'vendor']);
 const VITEST_SUMMARY_PATH = path.join(REPO_ROOT, 'logs', 'vitest-summary.json');
 
@@ -370,8 +371,10 @@ function main() {
   syncHtmlDateModified();
   syncSitemap();
   syncFeed();
-  syncReadmeAndCapacidades();
-  syncJsonSchema();
+  if (INCLUDE_REPO_DOCS) {
+    syncReadmeAndCapacidades();
+    syncJsonSchema();
+  }
 }
 
 main();
