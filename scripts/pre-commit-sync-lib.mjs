@@ -24,7 +24,7 @@ export function isSyncManagedPath(relPath) {
 }
 
 export function needsSync(stagedFiles) {
-  return stagedFiles.some(isSyncInput);
+  return stagedFiles.some(isSyncManagedPath);
 }
 
 export function getBlockingManagedFiles({ stagedFiles, unstagedFiles, untrackedFiles }) {

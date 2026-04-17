@@ -432,7 +432,14 @@ function decodeHtmlEntities(value) {
 }
 
 function stripHtml(value) {
-  return normalizeWhitespace(decodeHtmlEntities(String(value || '').replace(/<[^>]+>/g, ' ')));
+  return normalizeWhitespace(decodeHtmlEntities(String(value || '').replace(/<[^>]+>/g, ' ')))
+    .replace(/\s+([,.;:!?%)])/g, '$1');
+}
+
+function extractParagraphTexts(fragment) {
+  return [...String(fragment || '').matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)]
+    .map((match) => stripHtml(match[1] || ''))
+    .filter(Boolean);
 }
 
 function xmlEscape(value) {
@@ -452,7 +459,7 @@ function extractNovedadesPageItems(html) {
     const fecha = String(body.match(/<time[^>]+datetime="([^"]+)"/i)?.[1] || '').trim();
     const tipo = normalizeWhitespace(body.match(/<span class="novedad-tipo [^"]+">([\s\S]*?)<\/span>/i)?.[1] || '').toLowerCase();
     const titulo = stripHtml(body.match(/<h3>([\s\S]*?)<\/h3>/i)?.[1] || '');
-    const texto = stripHtml(body.match(/<p>([\s\S]*?)<\/p>/i)?.[1] || '');
+    const texto = extractParagraphTexts(body).join(' ');
 
     if (!id || !fecha || !tipo || !titulo || !texto) continue;
 

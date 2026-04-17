@@ -14,6 +14,10 @@ describe('pre-commit sync guardrails', () => {
     expect(needsSync(['guias/nueva-guia.html'])).toBe(true);
   });
 
+  it('requires sync when a managed output is staged directly', () => {
+    expect(needsSync(['sitemap.xml'])).toBe(true);
+  });
+
   it('blocks partially staged managed files', () => {
     const result = getBlockingManagedFiles({
       stagedFiles: ['guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html'],

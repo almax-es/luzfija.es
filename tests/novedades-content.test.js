@@ -26,7 +26,14 @@ function decodeHtmlEntities(value) {
 }
 
 function stripHtml(value) {
-  return normalizeWhitespace(decodeHtmlEntities(String(value || '').replace(/<[^>]+>/g, ' ')));
+  return normalizeWhitespace(decodeHtmlEntities(String(value || '').replace(/<[^>]+>/g, ' ')))
+    .replace(/\s+([,.;:!?%)])/g, '$1');
+}
+
+function extractParagraphTexts(fragment) {
+  return [...String(fragment || '').matchAll(/<p\b[^>]*>([\s\S]*?)<\/p>/gi)]
+    .map((match) => stripHtml(match[1] || ''))
+    .filter(Boolean);
 }
 
 function resolveUrl(rawUrl) {
@@ -63,7 +70,7 @@ function extractNovedadesPageItems(html) {
       fecha: String(body.match(/<time[^>]+datetime="([^"]+)"/i)?.[1] || '').trim(),
       tipo: normalizeWhitespace(body.match(/<span class="novedad-tipo [^"]+">([\s\S]*?)<\/span>/i)?.[1] || '').toLowerCase(),
       titulo: stripHtml(body.match(/<h3>([\s\S]*?)<\/h3>/i)?.[1] || ''),
-      texto: stripHtml(body.match(/<p>([\s\S]*?)<\/p>/i)?.[1] || ''),
+      texto: extractParagraphTexts(body).join(' '),
       enlace: String(body.match(/<a class="novedad-link" href="([^"]+)"/i)?.[1] || '').trim()
     }))
     .filter((item) => item.id && item.fecha && item.tipo && item.titulo && item.texto);
@@ -113,6 +120,31 @@ const pageItems = extractNovedadesPageItems(novedadesHtml);
 const feedItems = extractFeedItems(feedXml);
 
 describe('Novedades content guardrails', () => {
+  it('supports novedades articles with multiple paragraphs', () => {
+    const html = `
+      <article class="novedad" id="multi-paragraph">
+        <div class="novedad-header">
+          <span class="novedad-tipo regulatorio">Regulatorio</span>
+          <time class="novedad-fecha" datetime="2026-04-17">17 de abril de 2026</time>
+        </div>
+        <h3>Ejemplo</h3>
+        <p>Primer bloque.</p>
+        <p>Segundo bloque con <strong>detalle</strong>.</p>
+      </article>
+    `;
+
+    expect(extractNovedadesPageItems(html)).toEqual([
+      {
+        id: 'multi-paragraph',
+        fecha: '2026-04-17',
+        tipo: 'regulatorio',
+        titulo: 'Ejemplo',
+        texto: 'Primer bloque. Segundo bloque con detalle.',
+        enlace: ''
+      }
+    ]);
+  });
+
   it('keeps novedades page and JSON entries aligned', () => {
     expect(novedadesJson).toHaveLength(pageItems.length);
 
