@@ -11,6 +11,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Dominio principal: `https://luzfija.es`.
 - Publico objetivo: usuarios en Espana que quieren comparar tarifas electricas con datos reales.
 - Privacidad por diseno: procesamiento local en navegador para calculos, PDF y CSV.
+- Proyecto independiente y no comercial: sin referidos, comisiones, publicidad, venta de leads ni ranking patrocinado.
 
 ## 2. Mapa Completo De Paginas
 
@@ -37,7 +38,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 
 4. `/como-funciona-luzfija.html`
 - Pagina publica de explicacion del proyecto.
-- Resume herramientas, datos, metodologia, privacidad y limites del sitio.
+- Resume herramientas, datos, metodologia, privacidad, independencia y limites del sitio.
 - Pensada para usuarios, medios, buscadores, rastreadores y asistentes.
 
 5. `/calcular-factura-luz.html`

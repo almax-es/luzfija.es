@@ -11,6 +11,8 @@ No es solo "un comparador de tarifas". Es una suite frontend local-first con cua
 3. `/comparador-tarifas-solares.html`: simulador independiente mes a mes para tarifas con excedentes remunerados, con o sin BV.
 4. Capa editorial y soporte: `guias/`, `guias.html`, `novedades.html`, `feed.xml`, `como-funciona-luzfija.html`, `404.html`, `privacidad.html`, `aviso-legal.html`.
 
+Tambien es importante lo que no es: no monetiza el ranking, no vende leads y no tiene referidos, comisiones, publicidad ni acuerdos comerciales que condicionen el orden de resultados.
+
 ## Orden Recomendado De Lectura
 
 1. `CAPACIDADES-WEB.md`
