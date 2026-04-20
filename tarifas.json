@@ -460,24 +460,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Endesa Conecta 3P",
-      "cPunta": 0.1755,
-      "cLlano": 0.1071,
-      "cValle": 0.0837,
-      "p1": 0.073644,
-      "p2": 0.073644,
-      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz-3periodos",
-      "tipo": "3P",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Imagina Energía 3P",
       "cPunta": 0.177,
       "cLlano": 0.103,
@@ -737,5 +719,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-04-20T05:38:26.352Z"
+  "updatedAt": "2026-04-20T12:15:04.025Z"
 }

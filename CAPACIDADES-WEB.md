@@ -277,7 +277,7 @@ Este documento es la fuente de verdad funcional para describir todo lo que hace 
 - Lineas JS aproximadas: 17.779.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
-- `tarifas.json` (40 tarifas).
+- `tarifas.json` (39 tarifas).
 - `novedades.json` (4 entradas activas).
 - `/data/pvpc/` (indicador 1001).
 - `/data/surplus/` (indicador 1739).
