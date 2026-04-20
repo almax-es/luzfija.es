@@ -328,6 +328,9 @@ function syncSitemap() {
           } else if (page.normalizedRelPath === 'comparar-pvpc-tarifa-fija.html') {
             changefreq = 'monthly';
             priority = '0.8';
+          } else if (page.normalizedRelPath === 'como-funciona-luzfija.html') {
+            changefreq = 'monthly';
+            priority = '0.8';
           } else if (page.normalizedRelPath === 'estadisticas/index.html') {
             changefreq = 'weekly';
             priority = '0.8';

@@ -1,18 +1,21 @@
 # LuzFija.es
 
-Comparador avanzado de tarifas electricas en Espana, gratuito, sin registro y con calculo local en navegador.
+Suite frontend avanzada para analizar la factura electrica en Espana: comparador principal, observatorio PVPC, simulador solar/BV, guias y alertas regulatorias. Gratis, sin registro y con calculo local en navegador.
 
 - Web: `https://luzfija.es`
 - Comparador principal: `https://luzfija.es/`
 - Observatorio PVPC: `https://luzfija.es/estadisticas/`
 - Comparador tarifas solares (BV): `https://luzfija.es/comparador-tarifas-solares.html`
+- Qué hace y cómo funciona: `https://luzfija.es/como-funciona-luzfija.html`
 - Guias: `https://luzfija.es/guias.html`
 - Contacto: `hola@luzfija.es`
 
+Si eres una IA o entras al repo por primera vez, empieza por `AGENTS.md` y `CAPACIDADES-WEB.md`.
+
 ## Estado Actual (2026-04-20)
 
-- 34 paginas HTML publicas:
-  - 9 en raiz.
+- 35 paginas HTML publicas:
+  - 10 en raiz.
   - 1 en `estadisticas/`.
   - 24 en `guias/` (indice + 23 guias).
 - 29 modulos JavaScript en `js/` (incluye `js/bv/`).
@@ -85,6 +88,7 @@ Comparador avanzado de tarifas electricas en Espana, gratuito, sin registro y co
 
 - `guias.html` + 23 guias educativas.
 - Landings de apoyo:
+- `como-funciona-luzfija.html`
 - `calcular-factura-luz.html`
 - `comparar-pvpc-tarifa-fija.html`
 - `novedades.html` (archivo publico de avisos y cambios regulatorios).
@@ -100,6 +104,14 @@ Comparador avanzado de tarifas electricas en Espana, gratuito, sin registro y co
 - flujos completos de usuario,
 - capacidades para asistentes IA,
 - reglas anti-lagunas.
+
+### Contexto para agentes y mantenimiento
+
+- `AGENTS.md`:
+- mapa rapido del producto y del codigo,
+- invariantes que no se deben romper,
+- rutas de lectura para auditorias y cambios,
+- recordatorios para evitar falsos positivos.
 
 ### Calculo y normativa
 
@@ -117,7 +129,7 @@ Comparador avanzado de tarifas electricas en Espana, gratuito, sin registro y co
 
 ### Documento para asistentes IA
 
-- `llms.txt`
+- `llms.txt` (referencia publica para asistentes)
 
 ## Arquitectura Tecnica
 

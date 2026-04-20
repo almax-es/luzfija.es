@@ -3,6 +3,7 @@
 Ultima actualizacion: 2026-04-20
 
 Este documento es la fuente de verdad funcional para describir todo lo que hace la web, pagina por pagina, sin omitir flujos relevantes para asistentes IA o documentacion de producto.
+Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y luego este documento para el inventario funcional completo.
 
 ## 1. Alcance General
 
@@ -34,29 +35,34 @@ Este documento es la fuente de verdad funcional para describir todo lo que hace 
 
 ### 2.2 Paginas De Apoyo
 
-4. `/calcular-factura-luz.html`
+4. `/como-funciona-luzfija.html`
+- Pagina publica de explicacion del proyecto.
+- Resume herramientas, datos, metodologia, privacidad y limites del sitio.
+- Pensada para usuarios, medios, buscadores, rastreadores y asistentes.
+
+5. `/calcular-factura-luz.html`
 - Landing explicativa y de entrada al comparador.
 
-5. `/comparar-pvpc-tarifa-fija.html`
+6. `/comparar-pvpc-tarifa-fija.html`
 - Landing/articulo de comparacion regulado vs mercado libre.
 
-6. `/guias.html`
+7. `/guias.html`
 - Indice de guias con buscador en vivo y filtros por categoria.
 
-7. `/guias/*.html`
+8. `/guias/*.html`
 - 23 articulos educativos + `guias/index.html`.
 
-8. `/aviso-legal.html`
+9. `/aviso-legal.html`
 - Informacion legal.
 
-9. `/privacidad.html`
+10. `/privacidad.html`
 - Politica de privacidad con acordeones.
 - Opt-out de analitica GoatCounter (localStorage `goatcounter_optout=true`).
 
-10. `/404.html`
+11. `/404.html`
 - Pagina de error con enlaces rapidos, buscador que redirige a guias y bloque de "fun fact".
 
-11. `/novedades.html`
+12. `/novedades.html`
 - Archivo publico de novedades regulatorias y alertas del sector.
 - Incluye enlace RSS (`/feed.xml`) y enlaces de apoyo a guias relacionadas.
 

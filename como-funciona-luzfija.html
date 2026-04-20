@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self' https://luzfija.goatcounter.com; form-action 'self';">
+<script src="/js/config.js?v=20260420-124712"></script>
+<script src="/js/theme.js?v=20260420-124712"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="color-scheme" content="dark light"/>
+<meta name="description" content="Página oficial sobre qué hace LuzFija.es y cómo calcula tarifas, PVPC, excedentes, facturas PDF y batería virtual, todo en local."/>
+<meta name="keywords" content="qué hace LuzFija.es, cómo funciona LuzFija.es, comparador luz, PVPC, excedentes, batería virtual, factura PDF, CSV luz, autoconsumo solar"/>
+<title>Qué hace LuzFija.es y cómo funciona | LuzFija.es</title>
+<link rel="canonical" href="https://luzfija.es/como-funciona-luzfija.html"/>
+<link rel="alternate" type="application/rss+xml" title="LuzFija.es - Novedades" href="https://luzfija.es/feed.xml"/>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180"/>
+
+<meta property="og:type" content="website"/>
+<meta property="og:title" content="Qué hace LuzFija.es y cómo funciona | LuzFija.es"/>
+<meta property="og:description" content="Resumen oficial de las herramientas, métodos de cálculo, fuentes de datos y privacidad de LuzFija.es."/>
+<meta property="og:url" content="https://luzfija.es/como-funciona-luzfija.html"/>
+<meta property="og:image" content="https://luzfija.es/og.png"/>
+<meta property="og:locale" content="es_ES"/>
+<meta property="og:site_name" content="LuzFija.es"/>
+
+<meta name="twitter:card" content="summary_large_image"/>
+<meta name="twitter:title" content="Qué hace LuzFija.es y cómo funciona | LuzFija.es"/>
+<meta name="twitter:description" content="Resumen oficial de las herramientas, métodos de cálculo, fuentes de datos y privacidad de LuzFija.es."/>
+<meta name="twitter:image" content="https://luzfija.es/og.png"/>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://luzfija.es/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Cómo funciona LuzFija.es",
+      "item": "https://luzfija.es/como-funciona-luzfija.html"
+    }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "AboutPage",
+  "name": "Qué hace LuzFija.es y cómo funciona",
+  "description": "Explicación pública de las herramientas, métodos, datos y límites de LuzFija.es.",
+  "url": "https://luzfija.es/como-funciona-luzfija.html",
+  "dateModified": "2026-04-20",
+  "inLanguage": "es",
+  "isPartOf": {
+    "@type": "WebSite",
+    "name": "LuzFija.es",
+    "url": "https://luzfija.es"
+  },
+  "about": {
+    "@type": "SoftwareApplication",
+    "name": "LuzFija.es",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Any",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR"
+    }
+  }
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  "name": "Herramientas de LuzFija.es",
+  "numberOfItems": 5,
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "url": "https://luzfija.es/",
+      "name": "Comparador principal de tarifas"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "url": "https://luzfija.es/estadisticas/",
+      "name": "Observatorio PVPC y excedentes"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "url": "https://luzfija.es/comparador-tarifas-solares.html",
+      "name": "Simulador solar y bateria virtual"
+    },
+    {
+      "@type": "ListItem",
+      "position": 4,
+      "url": "https://luzfija.es/guias.html",
+      "name": "Guias y contenido educativo"
+    },
+    {
+      "@type": "ListItem",
+      "position": 5,
+      "url": "https://luzfija.es/novedades.html",
+      "name": "Novedades y archivo regulatorio"
+    }
+  ]
+}
+</script>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Qué es exactamente LuzFija.es",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "LuzFija.es es una suite web local-first para el mercado eléctrico doméstico en España: compara tarifas del mercado libre, estima PVPC, analiza excedentes, simula autoconsumo con batería virtual, extrae datos de facturas PDF y procesa curvas horarias CSV/XLSX."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Cómo calcula el PVPC",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "El PVPC se calcula en el navegador con datasets horarios ya publicados en el propio sitio, a partir de precios oficiales REE/ESIOS versionados en /data/pvpc/. No depende de una llamada live a ESIOS desde la página."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "Qué hace con las facturas PDF y los CSV",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "El análisis de facturas PDF y de ficheros CSV/XLSX se hace en local. La extracción combina texto PDF, enlaces QR CNMC, jsQR y OCR opcional, y el parser horario clasifica consumos y excedentes por periodo y por fecha."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Necesita registro o backend propio?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "No. LuzFija.es es un sitio estatico y gratuito, sin registro obligatorio y sin backend propio para calculos. Los resultados se generan en el navegador del usuario."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿En qué se diferencian el comparador principal y el simulador solar?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "El comparador principal estima una factura o periodo agregado y mezcla tarifas del mercado libre con PVPC. El simulador solar trabaja mes a mes con histórico real y ranking anual, especialmente para comparar tarifas con excedentes remunerados y batería virtual."
+      }
+    }
+  ]
+}
+</script>
+
+<link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="/fonts.css">
+
+<style>
+:root{--bg:#0B1020;--surface:#141b2e;--card:rgba(255,255,255,.06);--border:rgba(255,255,255,.10);--text:#F7F7FB;--muted:rgba(247,247,251,.72);--accent:#8B5CF6;--accent2:#22C55E;--warn:#F59E0B;--danger:#EF4444;--gradient:linear-gradient(135deg,#8B5CF6,#EC4899,#22C55E)}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',-apple-system,system-ui,sans-serif;background:linear-gradient(135deg,var(--bg),var(--surface));color:var(--text);line-height:1.7;overflow-x:hidden;min-height:100vh}
+.header{position:sticky;top:0;background:rgba(11,16,32,.96);backdrop-filter:blur(16px);border-bottom:1px solid var(--border);padding:18px 0;z-index:100}
+.header-container{max-width:1180px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.logo{font-size:24px;font-weight:900;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none}
+.nav-buttons{display:flex;gap:12px;flex-wrap:wrap}
+.btn{padding:10px 18px;border-radius:10px;text-decoration:none;font-weight:700;font-size:14px;transition:all .25s}
+.btn-secondary{background:rgba(255,255,255,.08);border:1px solid var(--border);color:var(--text)}
+.btn-secondary:hover{background:rgba(255,255,255,.14);transform:translateY(-1px)}
+.btn-primary{background:var(--accent);color:white}
+.btn-primary:hover{background:#7C3AED;transform:translateY(-1px);box-shadow:0 8px 20px rgba(139,92,246,.35)}
+.hero{max-width:1180px;margin:56px auto 28px;padding:0 24px;text-align:center}
+.eyebrow{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;border-radius:999px;border:1px solid rgba(34,197,94,.35);background:rgba(34,197,94,.10);font-size:14px;font-weight:700;margin-bottom:18px}
+.hero h1{font-size:clamp(34px,6vw,58px);font-weight:900;line-height:1.05;margin-bottom:18px;background:var(--gradient);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero p{max-width:860px;margin:0 auto;color:var(--muted);font-size:clamp(17px,2.6vw,22px)}
+.container{max-width:1180px;margin:0 auto;padding:0 24px 84px}
+.section{background:var(--card);border:1px solid var(--border);border-radius:22px;padding:34px;margin-top:26px;box-shadow:0 12px 36px rgba(0,0,0,.20)}
+.section h2{font-size:clamp(25px,4vw,34px);font-weight:900;margin-bottom:18px;color:var(--text)}
+.section h3{font-size:clamp(19px,3vw,22px);font-weight:800;margin:24px 0 10px;color:var(--text)}
+.section p{color:var(--muted);margin-bottom:14px}
+.lead{font-size:18px}
+.tools-grid,.signals-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:18px}
+.tool-card,.signal-card{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:16px;padding:20px}
+.tool-card h3,.signal-card h3{margin:0 0 8px 0}
+.tool-card a{color:inherit;text-decoration:none}
+.tool-card p,.signal-card p{margin:0;color:var(--muted);font-size:15px}
+.pill-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;background:rgba(255,255,255,.06);border:1px solid var(--border);font-size:13px;font-weight:700;color:var(--text)}
+.cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px;margin-top:16px}
+.list{margin:0;padding-left:20px;color:var(--muted)}
+.list li{margin:0 0 10px 0}
+.note{margin-top:18px;padding:16px 18px;border-radius:16px;background:rgba(139,92,246,.10);border:1px solid rgba(139,92,246,.30)}
+.note strong{color:var(--text)}
+.faq-list{display:grid;gap:14px;margin-top:18px}
+.faq-item{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:16px;padding:18px}
+.faq-item h3{margin:0 0 8px 0;font-size:18px}
+.faq-item p{margin:0}
+.cta-box{margin-top:28px;padding:28px;border-radius:18px;background:rgba(255,255,255,.04);border:1px solid var(--border);text-align:center}
+.cta-box h2{margin-bottom:10px}
+.cta-links{display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-top:18px}
+code{font-family:ui-monospace,SFMono-Regular,Consolas,monospace;background:rgba(255,255,255,.07);padding:2px 6px;border-radius:6px}
+.footer{background:rgba(11,16,32,.95);border-top:1px solid var(--border);padding:40px 24px;margin-top:80px}
+.footer-content{max-width:1180px;margin:0 auto;text-align:center;color:var(--muted);font-size:14px}
+.footer-links{display:flex;justify-content:center;gap:20px;flex-wrap:wrap;margin-bottom:20px}
+.footer-links a{color:var(--muted);text-decoration:none}
+.footer-links a:hover{color:var(--accent)}
+html.light-mode{--bg:#F4F6FB;--surface:#FFFFFF;--card:rgba(15,23,42,.04);--border:rgba(15,23,42,.10);--text:#0F172A;--muted:rgba(15,23,42,.75);--accent:#6D28D9;--accent2:#15803D;--warn:#B45309;--danger:#B91C1C}
+html.light-mode body{background:linear-gradient(135deg,var(--bg),var(--surface)) !important;color:var(--text)}
+html.light-mode .header{background:rgba(255,255,255,.92)}
+@media (max-width:768px){.hero{margin-top:40px}.section{padding:26px}.container{padding:0 16px 72px}}
+</style>
+<meta name="theme-color" content="#8B5CF6">
+</head>
+<body>
+<header class="header">
+  <div class="header-container">
+    <a class="logo" href="/">LuzFija.es</a>
+    <nav class="nav-buttons" aria-label="Navegación rápida">
+      <a class="btn btn-secondary" href="/estadisticas/">Observatorio PVPC</a>
+      <a class="btn btn-secondary" href="/comparador-tarifas-solares.html">Tarifas solares</a>
+      <a class="btn btn-primary" href="/">Ir al comparador</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+  <section class="hero">
+    <div class="eyebrow">🧭 Página oficial de explicación del proyecto</div>
+    <h1>Qué hace LuzFija.es y cómo funciona</h1>
+    <p>Esta página resume el alcance real de LuzFija.es para usuarios, buscadores, rastreadores, medios y asistentes: herramientas públicas, fuentes de datos, metodología de cálculo, privacidad y límites del sistema.</p>
+  </section>
+
+  <div class="container">
+    <section class="section">
+      <h2>Resumen rápido</h2>
+      <p class="lead">LuzFija.es es una suite web local-first para el mercado eléctrico doméstico en España. No se limita a comparar tarifas: también estima PVPC, analiza excedentes, procesa facturas PDF y curvas horarias CSV/XLSX, simula autoconsumo con batería virtual mes a mes y publica guías y novedades regulatorias.</p>
+      <div class="pill-row">
+        <span class="pill">Sin registro</span>
+        <span class="pill">Cálculo en navegador</span>
+        <span class="pill">PVPC y excedentes con datasets locales</span>
+        <span class="pill">PDF + QR + OCR opcional</span>
+        <span class="pill">CSV/XLSX horario</span>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Herramientas públicas</h2>
+      <div class="tools-grid">
+        <article class="tool-card">
+          <a href="/">
+            <h3>Comparador principal</h3>
+            <p>Compara tarifas 1P y 3P del mercado libre, incluye PVPC estimado y soporta autoconsumo, excedentes, batería virtual, bono social, tarifa propia e importación PDF/CSV.</p>
+          </a>
+        </article>
+        <article class="tool-card">
+          <a href="/estadisticas/">
+            <h3>Observatorio PVPC</h3>
+            <p>Analiza históricos PVPC y de excedentes por geografía, año y mes, con KPIs, perfil horario, comparativa multianual y cálculo económico de vertidos desde CSV/XLSX.</p>
+          </a>
+        </article>
+        <article class="tool-card">
+          <a href="/comparador-tarifas-solares.html">
+            <h3>Simulador solar y BV</h3>
+            <p>Simula mes a mes tarifas con excedentes remunerados, con o sin batería virtual, usando datos reales importados o una tabla manual editable para escenarios futuros.</p>
+          </a>
+        </article>
+        <article class="tool-card">
+          <a href="/guias.html">
+            <h3>Guías y explicaciones</h3>
+            <p>Contenido educativo sobre factura, PVPC, mercado libre, autoconsumo, coche eléctrico, potencia contratada, reclamaciones y otros temas útiles para consumidores.</p>
+          </a>
+        </article>
+        <article class="tool-card">
+          <a href="/novedades.html">
+            <h3>Novedades y RSS</h3>
+            <p>Archivo de cambios regulatorios, alertas y movimientos relevantes del mercado, con feed público en <code>/feed.xml</code> para seguimiento automatizado.</p>
+          </a>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Cómo se calculan los resultados</h2>
+      <div class="cols">
+        <div>
+          <h3>Tarifas comerciales</h3>
+          <ul class="list">
+            <li>Las ofertas del mercado libre se sirven desde <code>/tarifas.json</code>.</li>
+            <li>La home calcula potencia, energía, impuestos, compensación de excedentes y métrica de ranking por tarifa.</li>
+            <li>Si una tarifa tiene batería virtual, la UI distingue entre lo que pagas y el coste de comparación.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>PVPC y excedentes oficiales</h3>
+          <ul class="list">
+            <li>El PVPC usa datasets horarios locales en <code>/data/pvpc/</code> basados en REE/ESIOS, indicador 1001.</li>
+            <li>El observatorio de excedentes usa <code>/data/surplus/</code>, indicador 1739.</li>
+            <li>La web no necesita consultar ESIOS en directo desde el navegador para mostrar esos cálculos.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Importacion horaria</h3>
+          <ul class="list">
+            <li>El parser CSV/XLSX detecta cabeceras, separadores, formatos ES/US, conversión Wh a kWh y casos de hora 25 por cambio horario.</li>
+            <li>Clasifica el consumo por P1, P2 y P3 según calendario y zona.</li>
+            <li>En la home puede cruzar la curva importada con precios PVPC del periodo para una comparación más fiel.</li>
+          </ul>
+        </div>
+        <div>
+          <h3>Facturas PDF</h3>
+          <ul class="list">
+            <li>La extracción intenta primero leer texto del PDF.</li>
+            <li>Después busca la URL/QR CNMC en el texto o por imagen con jsQR.</li>
+            <li>Si hace falta, ofrece OCR con Tesseract para PDFs escaneados.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="note">
+        <strong>Diferencia clave:</strong> el comparador principal y el simulador solar no son la misma herramienta. La home estima un periodo agregado; el simulador solar trabaja mes a mes con histórico real y ranking anual.
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Datos, privacidad y arquitectura</h2>
+      <div class="signals-grid">
+        <article class="signal-card">
+          <h3>Procesamiento local</h3>
+          <p>Los cálculos, el parsing de CSV, el tratamiento de facturas PDF, el QR y el OCR ocurren en el navegador del usuario. No hay backend propio para esos flujos.</p>
+        </article>
+        <article class="signal-card">
+          <h3>Sin cuenta obligatoria</h3>
+          <p>No hace falta registrarse. La web usa almacenamiento local para preferencias, cachés y algunas persistencias de ayuda, como el modo manual del simulador solar.</p>
+        </article>
+        <article class="signal-card">
+          <h3>Analítica minimizada</h3>
+          <p>La analítica usa GoatCounter sin cookies de terceros y con opt-out en <code>goatcounter_optout</code>, explicado en la política de privacidad.</p>
+        </article>
+        <article class="signal-card">
+          <h3>Sitio estático</h3>
+          <p>LuzFija.es se sirve como web estática, con dependencias autoalojadas y un service worker para PWA, caché y actualizaciones de recursos.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2>Límites y advertencias importantes</h2>
+      <ul class="list">
+        <li>El PVPC no se computa en la home cuando la potencia contratada supera 10 kW.</li>
+        <li>Las facturas calculadas son estimaciones y pueden diferir de la factura final por redondeos, reglas comerciales o cambios regulatorios.</li>
+        <li>La vista horaria de mañana puede no estar disponible hasta que exista dataset publicado.</li>
+        <li>Algunas tarifas con excedentes indexados se muestran con nota de precio estimado y no como precio fijo definitivo.</li>
+      </ul>
+    </section>
+
+    <section class="section">
+      <h2>Preguntas frecuentes</h2>
+      <div class="faq-list">
+        <article class="faq-item">
+          <h3>Entonces, ¿LuzFija.es es un comparador o una suite completa?</h3>
+          <p>Ambas cosas, pero describirlo solo como comparador se queda corto. El comparador es el centro, pero alrededor hay observatorio PVPC, simulador solar/BV, parser de facturas, importación horaria, guías y novedades regulatorias.</p>
+        </article>
+        <article class="faq-item">
+          <h3>¿Consulta precios oficiales en directo?</h3>
+          <p>No en el flujo normal del sitio público. La web sirve datasets locales ya preparados para poder calcular de forma rápida, reproducible y estable.</p>
+        </article>
+        <article class="faq-item">
+          <h3>¿Qué diferencia hay entre la home y el simulador solar?</h3>
+          <p>La home es mejor para comparar un periodo concreto o tu factura actual. El simulador solar es mejor cuando quieres ver el efecto anual del autoconsumo, la compensación y la batería virtual.</p>
+        </article>
+        <article class="faq-item">
+          <h3>¿Existe una referencia específica para asistentes?</h3>
+          <p>Sí. Además de esta página pública, existe <a href="/llms.txt">/llms.txt</a> como referencia textual para asistentes y agentes que quieran resumir correctamente el proyecto.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="cta-box">
+      <h2>Enlaces clave del proyecto</h2>
+      <p>Si quieres entender o usar LuzFija.es de verdad, estos son los puntos de entrada correctos.</p>
+      <div class="cta-links">
+        <a class="btn btn-primary" href="/">Comparador principal</a>
+        <a class="btn btn-secondary" href="/estadisticas/">Observatorio PVPC</a>
+        <a class="btn btn-secondary" href="/comparador-tarifas-solares.html">Simulador solar</a>
+        <a class="btn btn-secondary" href="/guias.html">Guías</a>
+        <a class="btn btn-secondary" href="/llms.txt">llms.txt</a>
+      </div>
+    </section>
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="footer-content">
+    <div class="footer-links">
+      <a href="/">Inicio</a>
+      <a href="/como-funciona-luzfija.html">Cómo funciona</a>
+      <a href="/guias.html">Guías</a>
+      <a href="/novedades.html">Novedades</a>
+      <a href="/privacidad.html">Privacidad</a>
+      <a href="/aviso-legal.html">Aviso legal</a>
+    </div>
+    <p>LuzFija.es explica, compara y simula tarifas de luz en España con cálculo local en navegador.</p>
+  </div>
+</footer>
+</body>
+</html>

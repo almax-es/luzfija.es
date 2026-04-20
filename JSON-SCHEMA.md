@@ -10,7 +10,7 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 **Ubicación**: `/tarifas.json`
 **Tamaño**: ~18 KB
 **Estructura**: Array de objetos dentro de `{ tarifas: [...] }`
-**Última actualización**: 2026-04-20 (`updatedAt`: `2026-04-20T12:47:07.025Z`)
+**Última actualización**: 2026-04-20 (`updatedAt`: `2026-04-20T16:27:04.564Z`)
 **Total tarifas documentadas**: 39
 
 ### Esquema de Estructura
@@ -272,7 +272,7 @@ node -e "const n = JSON.parse(require('fs').readFileSync('novedades.json')); n.f
 
 ## Historial de Cambios
 
-- **2026-04-16**: Sincronización con el repo actual (`tarifas.json` con 40 tarifas y `novedades.json` con 4 entradas activas)
+- **2026-04-20**: Ajuste de métricas del repo actual (`tarifas.json` con 39 tarifas y `novedades.json` con 4 entradas activas)
 - **2026-02-14**: Actualización de métricas (`tarifas.json` con 36 tarifas, `updatedAt` renovado) y ajuste de tamaño documentado
 - **2026-02-06**: Ajuste de métricas reales (33 tarifas), rango de datos PVPC (desde 2021-06) y estrategia de caché actual
 - **2026-02-03**: Actualización de `novedades.json` (2 noticias activas)
