@@ -129,7 +129,8 @@ Si eres una IA o entras al repo por primera vez, empieza por `AGENTS.md` y `CAPA
 
 ### Documento para asistentes IA
 
-- `llms.txt` (referencia publica para asistentes)
+- `llms.txt` (referencia publica breve para asistentes)
+- `llms-full.txt` (referencia publica ampliada para asistentes)
 
 ## Arquitectura Tecnica
 

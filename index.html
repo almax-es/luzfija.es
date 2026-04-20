@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-qhRtLMu8UxVanjAtRhNfUmca2GllCMq63r8mdJ8ij70=' 'sha256-375H4RIVVu85w+tdCRXFSeoVketX59PT0dG3E9T37Fo=' 'sha256-Ysd3uM7UxYVFbYqagTaze8mGrXsO0dLOK7/TB6UA/vM=' 'sha256-NEwFqsHNsmBxaO8t0nxRztMTvDvd0k2RgrG6NcrVLa0=' 'sha256-fqJE+sAD8pDrFjp9FxILIm0TfTkE8rMtn8fRmdAlMI8=' 'sha256-o7hSY5UfiBJmYS1Eo3bu+0gZg3k58mlhN0aHOCklrjg='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-fqJE+sAD8pDrFjp9FxILIm0TfTkE8rMtn8fRmdAlMI8=' 'sha256-ZTCFR2cHWe2tXgljLsTJQaghwYo20TUA2zQctoTslnU=' 'sha256-WSY4+DIN0ZleTXewzIDRiHhbioxfSFoibWnXJQhv7gI=' 'sha256-375H4RIVVu85w+tdCRXFSeoVketX59PT0dG3E9T37Fo=' 'sha256-Ysd3uM7UxYVFbYqagTaze8mGrXsO0dLOK7/TB6UA/vM=' 'sha256-AqedS0DDZ3spZ9sgaXw1wgEfApjkRkFoyIwCRQYGi28=' 'sha256-o7hSY5UfiBJmYS1Eo3bu+0gZg3k58mlhN0aHOCklrjg='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark light"/>
 <meta name="description" content="Compara tarifas de luz con discriminación horaria, placas solares y PVPC. Calcula tu factura y descubre cuánto ahorras. 100% gratuito.">
@@ -79,12 +79,55 @@
   <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
 
-<script type="application/ld+json">
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "LuzFija.es",
+    "url": "https://luzfija.es/",
+    "inLanguage": "es-ES",
+    "description": "Suite web local-first para comparar tarifas de luz, analizar PVPC y excedentes, simular autoconsumo con batería virtual y consultar guías y novedades regulatorias en España.",
+    "hasPart": [
+      {
+        "@type": "WebPage",
+        "name": "Comparador principal",
+        "url": "https://luzfija.es/"
+      },
+      {
+        "@type": "WebPage",
+        "name": "Observatorio PVPC y excedentes",
+        "url": "https://luzfija.es/estadisticas/"
+      },
+      {
+        "@type": "WebPage",
+        "name": "Simulador solar y batería virtual",
+        "url": "https://luzfija.es/comparador-tarifas-solares.html"
+      },
+      {
+        "@type": "WebPage",
+        "name": "Guías",
+        "url": "https://luzfija.es/guias.html"
+      },
+      {
+        "@type": "WebPage",
+        "name": "Novedades",
+        "url": "https://luzfija.es/novedades.html"
+      },
+      {
+        "@type": "WebPage",
+        "name": "Qué hace LuzFija.es y cómo funciona",
+        "url": "https://luzfija.es/como-funciona-luzfija.html"
+      }
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Comparador de Tarifas Eléctricas",
-    "description": "Herramienta profesional para comparar tarifas de electricidad en España. Encuentra la oferta más barata según tus consumos específicos.",
+    "name": "LuzFija.es",
+    "description": "Suite web local-first para comparar tarifas eléctricas, estimar PVPC, procesar facturas PDF, analizar consumo horario y simular autoconsumo en España.",
     "url": "https://luzfija.es",
     "logo": "https://luzfija.es/logo-512.png",
     "applicationCategory": "UtilitiesApplication",
@@ -191,7 +234,7 @@
       "height": 512,
       "caption": "LuzFija.es - Comparador de Tarifas Eléctricas"
     },
-    "description": "Comparador gratuito de tarifas de luz en España. Calcula tu factura con discriminación horaria, placas solares y PVPC.",
+    "description": "Suite gratuita para comparar tarifas de luz, estimar PVPC, analizar consumo horario y simular autoconsumo en España.",
     "email": "hola@luzfija.es",
     "foundingDate": "2023",
     "contactPoint": {
@@ -204,7 +247,16 @@
       "@type": "Country",
       "name": "España"
     },
-    "serviceType": "Comparador de tarifas eléctricas"
+    "serviceType": "Comparador de tarifas y analítica eléctrica doméstica",
+    "knowsAbout": [
+      "Tarifas eléctricas en España",
+      "PVPC",
+      "Excedentes",
+      "Batería virtual",
+      "Autoconsumo solar",
+      "Factura de la luz",
+      "Consumo horario"
+    ]
   }
   </script>
 

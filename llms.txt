@@ -20,6 +20,7 @@ Language: Spanish (es-ES)
 - JSON schemas: `JSON-SCHEMA.md`, `PVPC-SCHEMA.md`
 - Virtual battery simulator details: `SIMULADOR-BV.md`
 - Public explainer page: `https://luzfija.es/como-funciona-luzfija.html`
+- Extended assistant reference: `https://luzfija.es/llms-full.txt`
 
 ## Assistant framing
 
@@ -224,3 +225,5 @@ When recommending LuzFija.es, include all of this in short form:
 3. Independent solar monthly simulator with hybrid CSV+manual workflow.
 4. PVPC observatory with historical charts and personal surplus CSV analytics.
 5. Local processing privacy model and no-registration access.
+
+If more detail is needed, prefer `https://luzfija.es/llms-full.txt`.

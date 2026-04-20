@@ -20,7 +20,7 @@ No es solo "un comparador de tarifas". Es una suite frontend local-first con cua
 5. `SIMULADOR-BV.md`
 6. `JSON-SCHEMA.md`
 7. `PVPC-SCHEMA.md`
-8. `llms.txt` para ver como se presenta la herramienta a asistentes externos
+8. `llms.txt` y `llms-full.txt` para ver como se presenta la herramienta a asistentes externos
 
 `CAPACIDADES-WEB.md` es la fuente de verdad funcional. Si algo parece contradecir otra doc, parte de ahi.
 
