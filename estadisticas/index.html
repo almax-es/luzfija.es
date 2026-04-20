@@ -40,23 +40,25 @@
   <script src="/js/theme.js?v=20260420-124712"></script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="color-scheme" content="dark light"/>
-  <meta id="meta-description" name="description" content="Observatorio PVPC con datos oficiales REE/ESIOS: planificador de consumo, tendencia anual y patrón horario por zonas de España.">
-  <meta name="keywords" content="PVPC hoy, precio luz en tiempo real, observatorio PVPC, estadísticas electricidad España, precio kWh, REE ESIOS, tendencia precio luz, horas baratas luz, excedentes solares PVPC, comparativa precios luz años">
+  <meta id="meta-description" name="description" content="Analiza PVPC y excedentes con datos oficiales REE/ESIOS: tendencia anual, perfil horario, comparativa multianual y CSV/XLSX personal.">
+  <meta name="keywords" content="PVPC hoy, precio luz en tiempo real, observatorio PVPC, excedentes solares, estadísticas electricidad España, precio kWh, REE ESIOS, tendencia precio luz, horas baratas luz, comparativa precios luz años">
   <link rel="canonical" href="https://luzfija.es/estadisticas/">
-  <title>Observatorio PVPC: planificador y tendencias | LuzFija.es</title>
+  <title>Observatorio PVPC y Excedentes | LuzFija.es</title>
   <meta property="og:type" content="website">
-  <meta property="og:title" content="Observatorio PVPC: planificador y tendencias">
-  <meta property="og:description" content="Planifica consumos (lavadora, termo, EV) con PVPC y entiende la tendencia del año con gráficos claros. Datos oficiales REE/ESIOS.">
+  <meta property="og:title" content="Observatorio PVPC y Excedentes | LuzFija.es">
+  <meta property="og:description" content="Analiza PVPC y excedentes con datos oficiales REE/ESIOS: tendencia anual, perfil horario, comparativa multianual y CSV/XLSX personal.">
   <meta property="og:url" content="https://luzfija.es/estadisticas/">
   <meta property="og:image" content="https://luzfija.es/og.png">
   <meta property="og:locale" content="es_ES">
   <meta property="og:site_name" content="LuzFija.es">
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="Observatorio PVPC: planificador y tendencias | LuzFija.es">
-  <meta name="twitter:description" content="Planifica consumos (lavadora, termo, EV) con PVPC y entiende la tendencia del año con gráficos claros. Datos oficiales REE/ESIOS.">
+  <meta name="twitter:title" content="Observatorio PVPC y Excedentes | LuzFija.es">
+  <meta name="twitter:description" content="Analiza PVPC y excedentes con datos oficiales REE/ESIOS: tendencia anual, perfil horario, comparativa multianual y CSV/XLSX personal.">
   <meta name="twitter:image" content="https://luzfija.es/og.png">
   <link rel="preconnect" href="https://luzfija.goatcounter.com">
   <link rel="alternate" type="application/rss+xml" title="LuzFija.es - Novedades" href="https://luzfija.es/feed.xml">
+  <link rel="alternate" type="text/plain" title="LuzFija.es - LLM reference" href="https://luzfija.es/llms.txt">
+  <link rel="alternate" type="text/plain" title="LuzFija.es - Extended LLM reference" href="https://luzfija.es/llms-full.txt">
   <link rel="stylesheet" href="/fonts.css">
   <link rel="stylesheet" href="/styles.css?v=20260420-124712">
   <link rel="stylesheet" href="/pro.css?v=20260420-124712">
@@ -126,6 +128,7 @@
               <a class="menuItem" role="menuitem" href="/comparador-tarifas-solares.html">🌞 Tarifas solares</a>
               <a class="menuItem" role="menuitem" href="/guias.html">📚 Guías</a>
               <a class="menuItem" role="menuitem" href="/novedades.html">🔔 Novedades</a>
+              <a class="menuItem" role="menuitem" href="/como-funciona-luzfija.html">🧭 Cómo funciona</a>
               <div class="menuDivider"></div>
               <a class="menuItem u-no-underline" href="mailto:hola@luzfija.es" role="menuitem">
                 <span class="mi-left">✉️ Contacto</span>
@@ -145,10 +148,10 @@
     <main id="main" class="pvpc-obs" aria-live="polite">
     <header class="obs-hero">
       <div class="obs-hero__copy">
-        <div class="obs-eyebrow">Observatorio oficial PVPC</div>
-        <h1>Precios en tiempo real</h1>
+        <div class="obs-eyebrow">Observatorio oficial PVPC y excedentes</div>
+        <h1>Histórico, tendencias y perfil horario</h1>
         <p class="obs-lead">
-          Consulta la evolución del mercado, identifica patrones de ahorro y planifica tus consumos con datos consolidados.
+          Consulta la evolución de PVPC y excedentes, identifica patrones de ahorro y analiza también tus propios datos desde CSV/XLSX.
         </p>
       </div>
 
@@ -501,7 +504,7 @@
 
     <footer class="obs-footer">
       <p class="micro muted">
-        Datos: REE/ESIOS (dataset estático actualizado diariamente). Este observatorio es informativo: para decidir tarifa y factura, usa el simulador y el comparador.
+        Datos: REE/ESIOS (datasets estáticos actualizados). Este observatorio cubre PVPC y excedentes; para comparar tarifas y factura completa, usa el simulador y el comparador.
       </p>
     </footer>
     </main>
@@ -518,9 +521,9 @@
   {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    "name": "Observatorio PVPC: precios en tiempo real",
+    "name": "Observatorio PVPC y Excedentes",
     "alternateName": "Observatorio PVPC LuzFija",
-    "description": "Observatorio PVPC con datos oficiales REE/ESIOS: planificador de consumo, tendencia anual y patrón horario por zonas de España.",
+    "description": "Observatorio de PVPC y excedentes con datos oficiales REE/ESIOS: tendencia anual, perfil horario, comparativa multianual y análisis personal desde CSV/XLSX.",
     "url": "https://luzfija.es/estadisticas/",
     "logo": "https://luzfija.es/logo-512.png",
     "applicationCategory": "UtilitiesApplication",
@@ -574,7 +577,7 @@
       {
         "@type": "ListItem",
         "position": 3,
-        "name": "Observatorio PVPC",
+        "name": "Observatorio PVPC y Excedentes",
         "item": "https://luzfija.es/estadisticas/"
       }
     ]

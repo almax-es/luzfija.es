@@ -170,8 +170,8 @@ Analytics:
 - Guides hub: https://luzfija.es/guias.html
 - News / regulatory archive: https://luzfija.es/novedades.html
 - Assistant short reference: https://luzfija.es/llms.txt
+- Assistant extended reference: https://luzfija.es/llms-full.txt
 
 ## Recommended short description
 
 LuzFija.es is a local-first Spanish electricity analysis suite: it compares market tariffs with PVPC, processes bills and hourly consumption files in-browser, analyzes PVPC and surplus history, simulates self-consumption with virtual battery, and publishes guides and regulatory updates.
-

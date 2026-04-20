@@ -352,8 +352,24 @@ function syncSitemap() {
           normalizedRelPath: page.normalizedRelPath
         };
       });
+    const assistantRefs = ['llms.txt', 'llms-full.txt']
+      .filter((relPath) => fs.existsSync(path.join(REPO_ROOT, relPath)))
+      .map((relPath) => {
+        const url = `${BASE_URL}/${relPath}`;
+        const normalizedUrl = normalizeSiteUrl(url);
+        const existing = currentByUrl.get(normalizedUrl) || {};
+        return {
+          loc: url,
+          normalizedLoc: normalizedUrl,
+          lastmod: getExpectedDate(relPath),
+          changefreq: existing.changefreq || 'monthly',
+          priority: existing.priority || (relPath === 'llms.txt' ? '0.5' : '0.4'),
+          normalizedRelPath: relPath
+        };
+      });
+    const entries = [...pages, ...assistantRefs];
 
-    pages.sort((a, b) => {
+    entries.sort((a, b) => {
       const aExisting = currentOrder.has(a.normalizedLoc);
       const bExisting = currentOrder.has(b.normalizedLoc);
 
@@ -368,7 +384,7 @@ function syncSitemap() {
       return a.loc.localeCompare(b.loc);
     });
 
-    const blocks = pages.map((page) => [
+    const blocks = entries.map((page) => [
       '  <url>',
       `    <loc>${page.loc}</loc>`,
       `    <lastmod>${page.lastmod}</lastmod>`,
