@@ -191,7 +191,9 @@
         let fecha = null;
         let hora = null;
         if (idxFechaHora !== -1) {
-          fecha = parseDateFlexible ? parseDateFlexible(row[idxFechaHora]) : null;
+          const dateHour = parseDateHourValue(row[idxFechaHora], parseDateFlexible);
+          fecha = dateHour.fecha;
+          hora = dateHour.hora;
         } else {
           fecha = parseDateFlexible ? parseDateFlexible(row[idxFecha]) : null;
           hora = parseNumberFlexible ? parseNumberFlexible(row[idxHora]) : Number(row[idxHora]);
@@ -219,6 +221,34 @@
     throw new Error('Formato no soportado. Solo CSV/XLSX.');
   }
 
+  function parseDateHourValue(value, parseDateFlexible) {
+    if (value instanceof Date && !isNaN(value.getTime())) {
+      return {
+        fecha: new Date(value.getFullYear(), value.getMonth(), value.getDate()),
+        // Normalizar a hora CNMC (1-24) para que getHourIndex mantenga el mismo contrato.
+        hora: value.getHours() + 1
+      };
+    }
+
+    const raw = String(value ?? '').trim();
+    if (!raw) return { fecha: null, hora: null };
+
+    const combined = raw.match(/^(\d{1,2}[\/\-]\d{1,2}[\/\-]\d{4}|\d{4}[\/\-]\d{1,2}[\/\-]\d{1,2})[T\s]+(\d{1,2})(?::(\d{2}))?(?::(\d{2}))?(?:\s*(?:Z|[+-]\d{2}:?\d{2}))?$/i);
+    if (combined) {
+      const fecha = parseDateFlexible ? parseDateFlexible(combined[1]) : null;
+      const hour = Number(combined[2]);
+      if (fecha instanceof Date && !isNaN(fecha.getTime()) && Number.isFinite(hour) && hour >= 0 && hour <= 23) {
+        return { fecha, hora: hour + 1 };
+      }
+    }
+
+    const fecha = parseDateFlexible ? parseDateFlexible(raw) : null;
+    return {
+      fecha: fecha instanceof Date && !isNaN(fecha.getTime()) ? fecha : null,
+      hora: null
+    };
+  }
+
   const csvMonthCache = new Map();
 
   function getHourIndex(rawHour, dateObj) {
@@ -229,6 +259,12 @@
     if (h >= 0 && h <= 23) return h;
     return null;
   }
+
+  window.LF = window.LF || {};
+  window.LF.pvpcStatsCsvHelpers = Object.assign({}, window.LF.pvpcStatsCsvHelpers, {
+    parseDateHourValue,
+    getHourIndex
+  });
 
   async function loadSurplusMonth(geo, ym) {
     const key = `${geo}-${ym}`;
