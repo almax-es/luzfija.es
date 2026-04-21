@@ -22,7 +22,7 @@ Si eres una IA o entras al repo por primera vez, empieza por `AGENTS.md` y `CAPA
 - 18.401 lineas JS aproximadas.
 - 39 tarifas en `tarifas.json`.
 - 4 novedades activas en `novedades.json`.
-- Suite de tests Vitest con 41 archivos y 256 casos.
+- Suite de tests Vitest con 41 archivos y 257 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 
