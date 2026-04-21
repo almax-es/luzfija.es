@@ -507,6 +507,7 @@
   function computeHourlyByDayType(yearData, dayType) {
     const sums = new Array(24).fill(0);
     const counts = new Array(24).fill(0);
+    const geoId = yearData?.meta?.geoId;
 
     const dates = Object.keys(yearData.days || {}).sort();
     for (const dateStr of dates) {
@@ -519,8 +520,8 @@
 
       const hours = yearData.days[dateStr] || [];
       for (const [ts, price] of hours) {
-        const hour = new Date(ts * 1000).getHours();
-        if (hour < 0 || hour > 23) continue;
+        const hour = PVPC_STATS.getTimestampHour(ts, geoId);
+        if (!Number.isFinite(hour) || hour < 0 || hour > 23) continue;
         if (!Number.isFinite(price)) continue;
         sums[hour] += price;
         counts[hour] += 1;

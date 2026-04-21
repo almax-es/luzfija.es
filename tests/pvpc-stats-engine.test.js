@@ -7,25 +7,44 @@ beforeAll(async () => {
 });
 
 describe('PVPC_STATS date handling', () => {
-  it('uses timestamps to map hours on DST forward days', () => {
-    const start = new Date(2024, 2, 10, 0, 0, 0);
-    const hours = [];
-    for (let i = 0; i < 23; i++) {
-      const ts = Math.floor((start.getTime() + i * 3600 * 1000) / 1000);
-      const hour = new Date(ts * 1000).getHours();
-      hours.push([ts, hour]);
-    }
+  it('bins Canary hourly data using the dataset timezone instead of the runtime timezone', () => {
+    // 2026-04-01 00:00/01:00/02:00 in Atlantic/Canary.
+    const hours = [
+      [1774998000, 1],
+      [1775001600, 2],
+      [1775005200, 3]
+    ];
 
     const yearData = {
       days: {
-        '2024-03-10': hours
+        '2026-04-01': hours
       },
-      meta: { year: 2024 }
+      meta: { year: 2026, geoId: 8742 }
     };
 
     const profile = window.PVPC_STATS.getHourlyProfile(yearData);
-    expect(profile.data[2]).toBe(0);
-    expect(profile.data[3]).toBe(3);
+    expect(profile.data[0]).toBe(1);
+    expect(profile.data[1]).toBe(2);
+    expect(profile.data[2]).toBe(3);
+  });
+
+  it('formats rolling windows using the dataset timezone for Canary', () => {
+    const yearData = {
+      days: {
+        '2026-04-01': [
+          [1774998000, 0.1],
+          [1775001600, 0.2],
+          [1775005200, 0.3]
+        ]
+      },
+      meta: { year: 2026, geoId: 8742 }
+    };
+
+    const stats = window.PVPC_STATS.getWindowStats(yearData, { duration: 2 });
+    const midnightWindow = stats.windows.find((entry) => entry.label === '00:00–02:00');
+
+    expect(midnightWindow).toBeTruthy();
+    expect(midnightWindow.avg).toBeCloseTo(0.15, 5);
   });
 
   it('parses weekday using a stable local date', () => {

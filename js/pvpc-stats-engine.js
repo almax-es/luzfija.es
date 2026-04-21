@@ -4,8 +4,43 @@
 const PVPC_STATS = {
     cache: new Map(),
     manifestCache: new Map(),
+    hourFormatterCache: new Map(),
     cacheMax: 8,
     maxConcurrentFetches: 4,
+
+    getGeoTimeZone(geoId) {
+        return Number(geoId) === 8742 ? 'Atlantic/Canary' : 'Europe/Madrid';
+    },
+
+    getHourFormatter(geoId) {
+        const tz = this.getGeoTimeZone(geoId);
+        if (this.hourFormatterCache.has(tz)) {
+            return this.hourFormatterCache.get(tz);
+        }
+
+        const formatter = new Intl.DateTimeFormat('en-GB', {
+            timeZone: tz,
+            hour: '2-digit',
+            hourCycle: 'h23',
+            hour12: false
+        });
+
+        this.hourFormatterCache.set(tz, formatter);
+        return formatter;
+    },
+
+    getTimestampHour(timestampSeconds, geoId) {
+        const ts = timestampSeconds instanceof Date
+            ? Math.floor(timestampSeconds.getTime() / 1000)
+            : Number(timestampSeconds);
+
+        if (!Number.isFinite(ts)) return null;
+
+        const parts = this.getHourFormatter(geoId).formatToParts(new Date(ts * 1000));
+        const hourPart = parts.find((part) => part.type === 'hour');
+        const hour = Number(hourPart ? hourPart.value : NaN);
+        return Number.isFinite(hour) ? hour : null;
+    },
 
     touchCache(key, value) {
         if (this.cache.has(key)) {
@@ -290,11 +325,12 @@ const PVPC_STATS = {
     getHourlyProfile(yearData) {
         const hourlySums = new Array(24).fill(0);
         const hourlyCounts = new Array(24).fill(0);
+        const geoId = yearData?.meta?.geoId;
 
         Object.values(yearData.days).forEach(hours => {
             hours.forEach(([ts, price]) => {
-                const date = new Date(ts * 1000);
-                const hour = date.getHours();
+                const hour = this.getTimestampHour(ts, geoId);
+                if (!Number.isFinite(hour)) return;
                 hourlySums[hour] += price;
                 hourlyCounts[hour]++;
             });
@@ -399,10 +435,21 @@ const PVPC_STATS = {
         return { labels: orderedLabels, data: orderedData };
     },
 
-    formatHourRange(startDate, durationHours) {
-        const endDate = new Date(startDate.getTime() + durationHours * 60 * 60 * 1000);
-        const format = (date) => date.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
-        return `${format(startDate)}–${format(endDate)}`;
+    formatHourRange(startRef, durationHours, geoId) {
+        const startTs = startRef instanceof Date
+            ? Math.floor(startRef.getTime() / 1000)
+            : Number(startRef);
+
+        if (!Number.isFinite(startTs)) return '';
+
+        const startHour = this.getTimestampHour(startTs, geoId);
+        const endHour = this.getTimestampHour(startTs + (durationHours * 60 * 60), geoId);
+
+        if (!Number.isFinite(startHour) || !Number.isFinite(endHour)) return '';
+
+        const startLabel = `${String(startHour).padStart(2, '0')}:00`;
+        const endLabel = `${String(endHour).padStart(2, '0')}:00`;
+        return `${startLabel}–${endLabel}`;
     },
 
     getWindowStats(yearData, options = {}) {
@@ -410,6 +457,7 @@ const PVPC_STATS = {
         const dayType = options.dayType || 'any';
         const exampleDay = options.exampleDay || null;
         const windowsMap = new Map();
+        const geoId = yearData?.meta?.geoId;
 
         const dateKeys = exampleDay ? [exampleDay] : Object.keys(yearData.days);
         dateKeys.forEach(dateStr => {
@@ -423,7 +471,7 @@ const PVPC_STATS = {
                 if (dayType === 'weekend' && !isWeekend) return;
             }
 
-            const entries = hours.map(([ts, price]) => ({ ts, price, date: new Date(ts * 1000) }));
+            const entries = hours.map(([ts, price]) => ({ ts, price }));
 
             for (let i = 0; i <= entries.length - duration; i++) {
                 let sum = 0;
@@ -432,7 +480,7 @@ const PVPC_STATS = {
                 }
 
                 const average = sum / duration;
-                const label = this.formatHourRange(entries[i].date, duration);
+                const label = this.formatHourRange(entries[i].ts, duration, geoId);
                 const existing = windowsMap.get(label) || { values: [], sum: 0, count: 0 };
                 existing.values.push(average);
                 existing.sum += average;
