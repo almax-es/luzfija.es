@@ -157,7 +157,7 @@ export function buildGuidesSearchIndex(repoRoot = REPO_ROOT) {
   const guides = guideFiles.map((name) => extractGuideEntry(repoRoot, path.join(GUIDES_DIR_REL, name), cardMetadata));
 
   return {
-    generatedAtUtc: new Date().toISOString(),
+    generatedAtUtc: null,
     totalGuides: guides.length,
     guides
   };
@@ -166,8 +166,35 @@ export function buildGuidesSearchIndex(repoRoot = REPO_ROOT) {
 export function syncGuidesSearchIndex(repoRoot = REPO_ROOT) {
   const payload = buildGuidesSearchIndex(repoRoot);
   const outputPath = path.join(repoRoot, OUTPUT_REL);
-  const next = JSON.stringify(payload);
   const current = fs.existsSync(outputPath) ? readUtf8(outputPath) : '';
+
+  let currentParsed = null;
+  if (current) {
+    try {
+      currentParsed = JSON.parse(current);
+    } catch {
+      currentParsed = null;
+    }
+  }
+
+  const comparablePayload = {
+    ...payload,
+    generatedAtUtc: null
+  };
+
+  const comparableCurrent = currentParsed
+    ? {
+        ...currentParsed,
+        generatedAtUtc: null
+      }
+    : null;
+
+  payload.generatedAtUtc = comparableCurrent &&
+    JSON.stringify(comparableCurrent) === JSON.stringify(comparablePayload)
+    ? currentParsed.generatedAtUtc
+    : new Date().toISOString();
+
+  const next = JSON.stringify(payload);
 
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   if (current !== next) {
