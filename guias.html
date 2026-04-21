@@ -59,7 +59,7 @@
   "name": "Guías sobre Tarifas de Luz",
   "description": "Guías prácticas sobre electricidad en España: factura de la luz, tarifas, autoconsumo solar, coche eléctrico, PVPC y ahorro energético.",
   "url": "https://luzfija.es/guias.html",
-  "dateModified": "2026-04-20",
+  "dateModified": "2026-04-21",
   "inLanguage": "es",
   "isPartOf": {
     "@type": "WebSite",
@@ -228,6 +228,34 @@ body::before {
   transform: translateY(-50%);
   font-size: 20px;
   color: var(--muted);
+}
+
+.search-status {
+  margin: 0 auto 24px auto;
+  max-width: 980px;
+  padding: 14px 18px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,.05);
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.search-status[data-state="loading"] {
+  color: var(--text);
+  border-color: rgba(139, 92, 246, 0.35);
+  background: rgba(139, 92, 246, 0.10);
+}
+
+.search-status[data-state="ready"] {
+  color: var(--text);
+}
+
+.search-status[data-state="fallback"] {
+  border-color: rgba(245, 158, 11, 0.35);
+  background: rgba(245, 158, 11, 0.10);
 }
 
 /* === FILTROS/CATEGORÍAS === */
@@ -401,6 +429,14 @@ body::before {
   color: var(--muted);
   line-height: 1.5;
   flex-grow: 1;
+}
+
+.search-match {
+  margin-top: 12px;
+  font-size: 13px;
+  line-height: 1.45;
+  color: var(--accent2);
+  font-weight: 600;
 }
 
 .guide-arrow {
@@ -668,7 +704,7 @@ html.light-mode .btn-small:hover{
     
     <!-- Búsqueda -->
     <div class="search-box">
-      <input type="text" id="searchInput" placeholder="Buscar guías... (ej: 'factura', 'solar', 'coche')" aria-label="Buscar guías">
+      <input type="text" id="searchInput" placeholder="Buscar en títulos, FAQs y contenido... (ej: 'factura', 'Datadis', 'reclamación')" aria-label="Buscar guías">
       <span class="search-icon">🔍</span>
     </div>
   </div>
@@ -683,6 +719,9 @@ html.light-mode .btn-small:hover{
     <button class="category-btn" data-category="ahorro">💰 Ahorro</button>
     <button class="category-btn" data-category="gestion">🔧 Gestión</button>
   </div>
+
+  <div class="search-status" id="searchStatus" aria-live="polite" hidden></div>
+  <div class="guides-grid" id="searchResults" hidden></div>
 
   <!-- Destacadas -->
   <div class="featured">
@@ -1051,92 +1090,13 @@ html.light-mode .btn-small:hover{
   <a href="/privacidad.html">Política de privacidad</a>
 </footer>
 
+<script src="/js/guides-search.js"></script>
 <script>
-// Búsqueda en vivo
-const searchInput = document.getElementById('searchInput');
-const guidesGrid = document.getElementById('guidesGrid');
-const featuredBlock = document.querySelector('.featured');
-const noResults = document.getElementById('noResults');
-const allCards = document.querySelectorAll('.guide-card');
-const gridCards = guidesGrid.querySelectorAll('.guide-card');
-const categoryBtns = document.querySelectorAll('.category-btn');
-
-function applySearch(term) {
-  // La búsqueda toma el control: desactivar filtro de categoría activo
-  categoryBtns.forEach(b => b.classList.remove('active'));
-  document.querySelector('.category-btn[data-category="todas"]').classList.add('active');
-
-  const searchTerm = term.toLowerCase();
-  let visibleCount = 0;
-  allCards.forEach(card => {
-    const title = card.querySelector('h3').textContent.toLowerCase();
-    const desc = card.querySelector('p').textContent.toLowerCase();
-    if (title.includes(searchTerm) || desc.includes(searchTerm)) {
-      card.style.display = 'flex';
-      visibleCount++;
-    } else {
-      card.style.display = 'none';
-    }
+if (window.LFGuideSearch) {
+  window.LFGuideSearch.init({
+    indexUrl: '/data/guides-search-index.json'
   });
-  // Ocultar el bloque destacadas si ninguna de sus cards coincide
-  if (featuredBlock) {
-    const anyFeaturedVisible = [...featuredBlock.querySelectorAll('.guide-card')]
-      .some(c => c.style.display !== 'none');
-    featuredBlock.style.display = anyFeaturedVisible ? '' : 'none';
-  }
-  noResults.classList.toggle('show', visibleCount === 0);
 }
-
-// Pre-rellenar desde ?q= (ej: redirección desde 404)
-const qParam = new URLSearchParams(window.location.search).get('q');
-if (qParam) {
-  searchInput.value = qParam;
-  applySearch(qParam);
-}
-
-searchInput.addEventListener('input', (e) => applySearch(e.target.value));
-
-// Filtro por categorías
-categoryBtns.forEach(btn => {
-  btn.addEventListener('click', () => {
-    // Actualizar botón activo
-    categoryBtns.forEach(b => b.classList.remove('active'));
-    btn.classList.add('active');
-
-    // Filtrar cards
-    const category = btn.dataset.category;
-    let visibleCount = 0;
-
-    gridCards.forEach(card => {
-      if (category === 'todas') {
-        card.style.display = 'flex';
-        visibleCount++;
-      } else {
-        const categories = card.dataset.categories;
-        if (categories && categories.includes(category)) {
-          card.style.display = 'flex';
-          visibleCount++;
-        } else {
-          card.style.display = 'none';
-        }
-      }
-    });
-
-    // Resetear búsqueda y restaurar bloque destacadas siempre visible
-    searchInput.value = '';
-    if (featuredBlock) {
-      featuredBlock.style.display = '';
-      featuredBlock.querySelectorAll('.guide-card').forEach(c => c.style.display = 'flex');
-    }
-
-    // Mostrar "sin resultados"
-    if (visibleCount === 0) {
-      noResults.classList.add('show');
-    } else {
-      noResults.classList.remove('show');
-    }
-  });
-});
 </script>
 
 <script>

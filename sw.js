@@ -3,7 +3,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260420-124712";
+const CACHE_VERSION = "20260421-131500";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
@@ -12,6 +12,7 @@ const SCOPE = self.registration.scope;
 const INDEX_PATH = new URL("index.html", SCOPE).pathname;
 const TARIFAS_PATH = new URL("tarifas.json", SCOPE).pathname;
 const NOVEDADES_PATH = new URL("novedades.json", SCOPE).pathname;
+const GUIDES_SEARCH_INDEX_PATH = new URL("data/guides-search-index.json", SCOPE).pathname;
 const GOAT_SCRIPT_PATH = new URL("vendor/goatcounter/count.js", SCOPE).pathname;
 const TRACKING_SCRIPT_PATH = new URL("js/tracking.js", SCOPE).pathname;
 
@@ -54,6 +55,7 @@ const ASSETS = [
   "js/index-extra-loader.js",
   "js/tracking.js",
   "js/shell-lite.js",
+  "js/guides-search.js",
   "js/desglose-factura.js",
   "js/desglose-integration.js",
   // Observatorio PVPC
@@ -73,6 +75,7 @@ const ASSETS = [
   // Páginas principales
   "guias.html",
   "guias/index.html", // Índice de guías (ligero)
+  "data/guides-search-index.json",
   "calcular-factura-luz.html",
   "comparar-pvpc-tarifa-fija.html",
   "privacidad.html",
@@ -283,6 +286,23 @@ self.addEventListener("fetch", (event) => {
           return cached;
         }
         return (await fetchPromise) || Response.error();
+      })()
+    );
+    return;
+  }
+
+  // Índice de búsqueda de guías: network-first para no mezclar una UI nueva con un índice viejo.
+  if (url.pathname === GUIDES_SEARCH_INDEX_PATH) {
+    event.respondWith(
+      (async () => {
+        const cache = await caches.open(CACHE_NAME);
+        try {
+          const fresh = await fetch(req, { cache: "no-store" });
+          await cachePutSafe(cache, req, fresh);
+          return fresh;
+        } catch (_) {
+          return (await cache.match(req, { ignoreSearch: true })) || Response.error();
+        }
       })()
     );
     return;

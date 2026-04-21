@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { execFileSync } from 'child_process';
 import { fileURLToPath } from 'url';
+import { syncGuidesSearchIndex } from './build-guides-search-index.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -744,6 +745,7 @@ function syncJsonSchema() {
 
 function main() {
   ensureAuxDirs();
+  syncGuidesSearchIndex(REPO_ROOT);
   syncHtmlDateMetadata();
   syncSitemap();
   syncFeed();

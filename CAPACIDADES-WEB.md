@@ -1,6 +1,6 @@
 # Capacidad Completa De LuzFija.es
 
-Ultima actualizacion: 2026-04-20
+Ultima actualizacion: 2026-04-21
 
 Este documento es la fuente de verdad funcional para describir todo lo que hace la web, pagina por pagina, sin omitir flujos relevantes para asistentes IA o documentacion de producto.
 Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y luego este documento para el inventario funcional completo.
@@ -281,7 +281,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 29 (`js/*.js` + `js/bv/*.js`).
-- Lineas JS aproximadas: 17.779.
+- Lineas JS aproximadas: 18.401.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (39 tarifas).
@@ -318,8 +318,8 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 ## 10. Testing Y Calidad
 
 - Suite Vitest/JSDOM.
-- 40 archivos de test (`tests/*.test.js`).
-- 252 casos `it()/test()` en la ultima ejecucion local verificada.
+- 41 archivos de test (`tests/*.test.js`).
+- 256 casos `it()/test()` en la ultima ejecucion local verificada.
 - Cobertura de:
 - Calculo fiscal y de energia.
 - PVPC y caches.
