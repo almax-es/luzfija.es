@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
 import { beforeAll, describe, expect, it } from 'vitest';
+import { buildGuidesSearchIndex } from '../scripts/build-guides-search-index.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -19,6 +20,17 @@ beforeAll(() => {
 });
 
 describe('guides search index', () => {
+  it('stays synchronized with the current guides source content', () => {
+    const generated = buildGuidesSearchIndex(path.join(__dirname, '..'));
+    expect({
+      ...payload,
+      generatedAtUtc: null
+    }).toEqual({
+      ...generated,
+      generatedAtUtc: null
+    });
+  });
+
   it('normalizes accents and punctuation', () => {
     expect(GuideSearch.normalizeText('Compañía, período y batería virtual')).toBe('compania periodo y bateria virtual');
   });

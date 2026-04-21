@@ -1,6 +1,7 @@
 const SYNC_OUTPUTS = new Set([
   'sitemap.xml',
   'feed.xml',
+  'data/guides-search-index.json',
   'README.md',
   'CAPACIDADES-WEB.md',
   'JSON-SCHEMA.md'

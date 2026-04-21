@@ -34,11 +34,14 @@ describe('pre-commit sync guardrails', () => {
   it('blocks dirty derived outputs before re-sync', () => {
     const result = getBlockingManagedFiles({
       stagedFiles: ['guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html'],
-      unstagedFiles: ['sitemap.xml'],
+      unstagedFiles: ['sitemap.xml', 'data/guides-search-index.json'],
       untrackedFiles: []
     });
 
-    expect(result.dirtyButUnstagedManaged).toEqual(['sitemap.xml']);
+    expect(result.dirtyButUnstagedManaged).toEqual([
+      'sitemap.xml',
+      'data/guides-search-index.json'
+    ]);
     expect(result.hasBlocking).toBe(true);
   });
 
@@ -46,6 +49,7 @@ describe('pre-commit sync guardrails', () => {
     expect(getFilesToRestage(['guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html'])).toEqual([
       'sitemap.xml',
       'feed.xml',
+      'data/guides-search-index.json',
       'README.md',
       'CAPACIDADES-WEB.md',
       'JSON-SCHEMA.md',

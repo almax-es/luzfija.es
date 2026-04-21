@@ -69,7 +69,7 @@ if (blocking.hasBlocking) {
   process.exit(1);
 }
 
-console.log('Synchronizing sitemap, feed and repo docs before commit...');
+console.log('Synchronizing sitemap, feed, guides search index and repo docs before commit...');
 run(process.execPath, [syncScriptPath, '--include-repo-docs'], {
   cwd: repoRoot,
   stdio: 'inherit'
