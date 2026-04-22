@@ -19,10 +19,10 @@ Si eres una IA o entras al repo por primera vez, empieza por `AGENTS.md` y `CAPA
   - 1 en `estadisticas/`.
   - 24 en `guias/` (indice + 23 guias).
 - 30 modulos JavaScript en `js/` (incluye `js/bv/`).
-- 18.846 lineas JS aproximadas.
+- 18.918 lineas JS aproximadas.
 - 39 tarifas en `tarifas.json`.
 - 4 novedades activas en `novedades.json`.
-- Suite de tests Vitest con 45 archivos y 283 casos.
+- Suite de tests Vitest con 46 archivos y 286 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 

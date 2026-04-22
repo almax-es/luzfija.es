@@ -10,20 +10,34 @@
   // Cache en memoria de ficheros mensuales {key: `${base}/${geo}/${YYYY-MM}`}
   const __pvpcMonthCache = new Map();
 
-  function __pvpcGetUserContext() {
-    // Intenta usar la zona fiscal ya elegida en el comparador (si existe)
-    const fallback = { geo: 8741, tz: 'Europe/Madrid' };
+  function __pvpcContextFromZona(zonaRaw) {
+    const zona = String(zonaRaw || '').toLowerCase();
+    if (zona.includes('canarias')) return { geo: 8742, tz: 'Atlantic/Canary' };
+    if (zona.includes('ceutamelilla')) return { geo: 8744, tz: 'Europe/Madrid' };
+    return { geo: 8741, tz: 'Europe/Madrid' }; // Península y Baleares
+  }
+
+  function __pvpcGetLiveZonaFiscal() {
+    const select = document.getElementById('zonaFiscal') || window.LF?.el?.inputs?.zonaFiscal;
+    const value = select && typeof select.value === 'string' ? select.value : '';
+    return value || null;
+  }
+
+  function __pvpcGetSavedZonaFiscal() {
     try {
       const raw = localStorage.getItem('almax_comparador_v6_inputs');
-      if (!raw) return fallback;
+      if (!raw) return null;
       const v = JSON.parse(raw);
-      const zona = String((v && v.zonaFiscal) || '').toLowerCase();
-      if (zona.includes('canarias')) return { geo: 8742, tz: 'Atlantic/Canary' };
-      if (zona.includes('ceutamelilla')) return { geo: 8744, tz: 'Europe/Madrid' };
-      return fallback; // Península y Baleares
+      return (v && typeof v.zonaFiscal === 'string' && v.zonaFiscal) ? v.zonaFiscal : null;
     } catch (_) {
-      return fallback;
+      return null;
     }
+  }
+
+  function __pvpcGetUserContext() {
+    // Priorizar el valor visible del formulario; si no está disponible,
+    // usar el último estado guardado como fallback.
+    return __pvpcContextFromZona(__pvpcGetLiveZonaFiscal() || __pvpcGetSavedZonaFiscal());
   }
 
   function __pvpcYmdInTZ(dateObj, tz) {
@@ -44,6 +58,20 @@
     const dt = new Date(Date.UTC(y, mo - 1, d + days, 0, 0, 0));
     return dt.toISOString().slice(0, 10);
   }
+
+  function __pvpcBuildQuickViewKey(type = 'pvpc', now = new Date()) {
+    const ctx = __pvpcGetUserContext();
+    const tz = type === 'surplus' ? 'Europe/Madrid' : ctx.tz;
+    return [type, ctx.geo, tz, __pvpcYmdInTZ(now, tz)].join('|');
+  }
+
+  window.LF = window.LF || {};
+  window.LF.indexExtraPvpcHelpers = Object.assign({}, window.LF.indexExtraPvpcHelpers, {
+    getUserContext: __pvpcGetUserContext,
+    getLiveZonaFiscal: __pvpcGetLiveZonaFiscal,
+    getSavedZonaFiscal: __pvpcGetSavedZonaFiscal,
+    buildQuickViewKey: __pvpcBuildQuickViewKey
+  });
 
   async function __pvpcLoadMonth(base, geo, yyyyMM) {
     const key = `${base}/${geo}/${yyyyMM}`;
@@ -289,8 +317,9 @@
         return fecha.toLocaleDateString('es-ES', opciones);
       }
 
-      // Cargar precio PVPC
-      (async function cargarPVPC() {
+      let __pvpcInlineKey = null;
+
+      async function cargarPVPC(force = false) {
         try {
           const pvpcInline = document.getElementById('pvpcInline');
           const pvpcNow = document.getElementById('pvpcNow');
@@ -302,6 +331,9 @@
           const pvpcMaxHour = document.getElementById('pvpcMaxHour');
 
           if (!pvpcInline || !pvpcNow || !pvpcAvg || !pvpcMin || !pvpcMax || !pvpcNowHour || !pvpcMinHour || !pvpcMaxHour) return;
+
+          const nextInlineKey = __pvpcBuildQuickViewKey('pvpc');
+          if (!force && __pvpcInlineKey === nextInlineKey) return;
           
           // Fecha de HOY según la zona del usuario (si ya eligió zona fiscal en el comparador)
           const __ctx = __pvpcGetUserContext();
@@ -330,13 +362,37 @@
           pvpcMax.textContent = `${precioMax.toFixed(3)} €/kWh`;
           pvpcMaxHour.textContent = `${entries[idxMax].label}h`;
 
+          __pvpcInlineKey = nextInlineKey;
           pvpcInline.hidden = false;
         } catch (error) {
+          __pvpcInlineKey = null;
           const pvpcInline = document.getElementById('pvpcInline');
           if (pvpcInline) pvpcInline.hidden = true;
           console.error('Error cargando PVPC:', error);
         }
-      })();
+      }
+
+      function __pvpcBindInlineSync() {
+        const zonaFiscal = document.getElementById('zonaFiscal') || window.LF?.el?.inputs?.zonaFiscal;
+        if (zonaFiscal && zonaFiscal.dataset.pvpcInlineSyncBound !== '1') {
+          zonaFiscal.dataset.pvpcInlineSyncBound = '1';
+          zonaFiscal.addEventListener('change', () => {
+            __pvpcInlineKey = null;
+            cargarPVPC(true);
+          });
+        }
+        if (!window.__LF_indexExtraPvpcInlineRefreshBound) {
+          window.__LF_indexExtraPvpcInlineRefreshBound = true;
+          window.addEventListener('focus', () => { cargarPVPC(false); });
+          document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) cargarPVPC(false);
+          });
+        }
+      }
+
+      cargarPVPC(true);
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', __pvpcBindInlineSync);
+      else __pvpcBindInlineSync();
 
 
   // Setup modal PVPC con tabs Hoy/Mañana y grid 2 columnas
@@ -374,6 +430,7 @@
 
       let pvpcHoy = null;
       let pvpcManana = null;
+      let pvpcCacheKey = null;
       let modalType = 'pvpc';
       let diaActivo = 'hoy';
     let __pvpcLocked = false;
@@ -672,12 +729,22 @@
         pvpcTypeSelector.addEventListener('change', async () => {
           applyModalType(pvpcTypeSelector.value || 'pvpc');
           resetModalData();
+          pvpcCacheKey = null;
           document.getElementById('modalPVPCHoursList').innerHTML = '<p class="u-loading-text">⏳ Cargando...</p>';
           await cargarHoy();
           await cargarManana();
           if (pvpcHoy) cambiarTab('hoy');
         });
         applyModalType(pvpcTypeSelector.value || 'pvpc');
+      }
+
+      const zonaFiscal = document.getElementById('zonaFiscal') || window.LF?.el?.inputs?.zonaFiscal;
+      if (zonaFiscal && zonaFiscal.dataset.pvpcModalSyncBound !== '1') {
+        zonaFiscal.dataset.pvpcModalSyncBound = '1';
+        zonaFiscal.addEventListener('change', () => {
+          resetModalData();
+          pvpcCacheKey = null;
+        });
       }
 
     // Abrir modal
@@ -697,14 +764,19 @@
       elementoAnterior = document.activeElement;
 
       // Mostrar modal inmediatamente (display: flex para que sea visible)
-      modalPVPCInfo.style.display = 'flex';
-      modalPVPCInfo.setAttribute('aria-hidden', 'false');
+        modalPVPCInfo.style.display = 'flex';
+        modalPVPCInfo.setAttribute('aria-hidden', 'false');
 
-      // Diferir la clase .show y el trabajo pesado al siguiente frame
-      // para que el navegador pinte la caja del modal antes (mejora INP)
-      requestAnimationFrame(() => {
-        modalPVPCInfo.classList.add('show');
-        __pvpcLock();
+        // Diferir la clase .show y el trabajo pesado al siguiente frame
+        // para que el navegador pinte la caja del modal antes (mejora INP)
+        requestAnimationFrame(() => {
+          const nextCacheKey = __pvpcBuildQuickViewKey(modalType);
+          if (pvpcCacheKey !== nextCacheKey) {
+            resetModalData();
+            pvpcCacheKey = nextCacheKey;
+          }
+          modalPVPCInfo.classList.add('show');
+          __pvpcLock();
 
         // Scroll a arriba
         modalPVPCInfo.scrollTop = 0;
