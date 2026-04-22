@@ -1933,18 +1933,6 @@
       }
 
       function __LF_applyValues(){
-        // Limpiar datos de CSV/Sun Club al aplicar factura
-        if (window.LF) {
-          if (typeof window.LF.clearCsvImportState === 'function') {
-            window.LF.clearCsvImportState();
-          } else {
-            window.LF.consumosHorarios = null;
-            window.LF.csvConsumosRef = null;
-            window.LF.pvpcPeriodoCSV = false;
-          }
-          window.LF.sunClubEnabled = false;
-        }
-        
         const v = {
           p1: __LF_normNum(__LF_q('val_p1')?.value),
           p2: __LF_normNum(__LF_q('val_p2')?.value),
@@ -1968,6 +1956,18 @@
         if (!ok){
           if (typeof toast === 'function') toast('Revisa los campos marcados en rojo antes de aplicar', 'err');
           return;
+        }
+
+        // Limpiar datos de CSV/Sun Club solo cuando la factura es válida
+        if (window.LF) {
+          if (typeof window.LF.clearCsvImportState === 'function') {
+            window.LF.clearCsvImportState();
+          } else {
+            window.LF.consumosHorarios = null;
+            window.LF.csvConsumosRef = null;
+            window.LF.pvpcPeriodoCSV = false;
+          }
+          window.LF.sunClubEnabled = false;
         }
 
         const set = (id, val) => { 

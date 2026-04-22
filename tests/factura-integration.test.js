@@ -383,4 +383,45 @@ describe('Factura PDF Integration (Black Box)', () => {
     expect(aviso.innerHTML).toContain('<b>');
     expect(aviso.innerHTML).not.toContain('&lt;b&gt;');
   });
+
+  it('No borra el modo CSV previo si aplicar factura falla la validación', async () => {
+    document.getElementById('formValidacionFactura').innerHTML = `
+      <div class="input-validacion" data-field="p1"><input id="val_p1" value=""></div>
+      <div class="input-validacion" data-field="p2"><input id="val_p2" value="3,45"></div>
+      <div class="input-validacion" data-field="dias"><input id="val_dias" value="30"></div>
+      <div class="input-validacion" data-field="consumoPunta"><input id="val_consumoPunta" value="100"></div>
+      <div class="input-validacion" data-field="consumoLlano"><input id="val_consumoLlano" value="50"></div>
+      <div class="input-validacion" data-field="consumoValle"><input id="val_consumoValle" value="25"></div>
+    `;
+
+    const curve = [{ fecha: new Date('2025-01-01T00:00:00'), hora: 1, kwh: 1 }];
+    const ref = { dias: 30, cPunta: 100, cLlano: 50, cValle: 25 };
+    const clearCsvImportState = vi.fn(() => {
+      window.LF.consumosHorarios = null;
+      window.LF.csvConsumosRef = null;
+      window.LF.pvpcPeriodoCSV = false;
+    });
+
+    window.LF = {
+      consumosHorarios: curve,
+      csvConsumosRef: ref,
+      pvpcPeriodoCSV: true,
+      sunClubEnabled: true,
+      clearCsvImportState
+    };
+
+    await import('../js/factura.js');
+    if (window.__LF_bindFacturaParser) {
+      window.__LF_bindFacturaParser();
+    }
+
+    document.getElementById('btnAplicarFactura').click();
+
+    expect(clearCsvImportState).not.toHaveBeenCalled();
+    expect(window.LF.consumosHorarios).toBe(curve);
+    expect(window.LF.csvConsumosRef).toBe(ref);
+    expect(window.LF.pvpcPeriodoCSV).toBe(true);
+    expect(window.LF.sunClubEnabled).toBe(true);
+    expect(document.querySelector('.input-validacion[data-field="p1"]').classList.contains('err')).toBe(true);
+  });
 });

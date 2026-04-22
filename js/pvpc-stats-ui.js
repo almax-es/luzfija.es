@@ -250,10 +250,72 @@
   }
 
   const csvMonthCache = new Map();
+  const csvHourIndexCache = new WeakMap();
+  const csvHourFormatterCache = new Map();
 
-  function getHourIndex(rawHour, dateObj) {
+  function getHourFormatter(timeZone) {
+    const zone = timeZone || 'Europe/Madrid';
+    if (!csvHourFormatterCache.has(zone)) {
+      csvHourFormatterCache.set(zone, new Intl.DateTimeFormat('es-ES', {
+        hour: '2-digit',
+        hour12: false,
+        timeZone: zone
+      }));
+    }
+    return csvHourFormatterCache.get(zone);
+  }
+
+  function hourFromTs(tsSeconds, timeZone) {
+    const hStr = getHourFormatter(timeZone).format(new Date(Number(tsSeconds) * 1000));
+    let h = parseInt(hStr, 10);
+    if (h === 24) h = 0;
+    return Number.isFinite(h) ? h : 0;
+  }
+
+  function buildCnmcHourIndexMap(dayHours, timeZone = 'Europe/Madrid') {
+    if (!Array.isArray(dayHours)) return new Map();
+
+    let perZone = csvHourIndexCache.get(dayHours);
+    if (perZone && perZone.has(timeZone)) return perZone.get(timeZone);
+
+    const totalsByHour = new Map();
+    const rawEntries = dayHours.map(([ts], index) => ({
+      index,
+      hour: hourFromTs(ts, timeZone)
+    }));
+
+    rawEntries.forEach((entry) => {
+      totalsByHour.set(entry.hour, (totalsByHour.get(entry.hour) || 0) + 1);
+    });
+
+    const seenByHour = new Map();
+    const byCnmcHour = new Map();
+    rawEntries.forEach((entry) => {
+      const occurrence = (seenByHour.get(entry.hour) || 0) + 1;
+      seenByHour.set(entry.hour, occurrence);
+
+      const totalOccurrences = totalsByHour.get(entry.hour) || 1;
+      const cnmcHour = totalOccurrences > 1 && occurrence > 1
+        ? 25
+        : (entry.hour + 1);
+      byCnmcHour.set(cnmcHour, entry.index);
+    });
+
+    if (!perZone) {
+      perZone = new Map();
+      csvHourIndexCache.set(dayHours, perZone);
+    }
+    perZone.set(timeZone, byCnmcHour);
+    return byCnmcHour;
+  }
+
+  function getHourIndex(rawHour, dateObj, dayHours = null, timeZone = 'Europe/Madrid') {
     const h = Number.isFinite(rawHour) ? Number(rawHour) : (dateObj ? dateObj.getHours() : NaN);
     if (!Number.isFinite(h)) return null;
+    if (Array.isArray(dayHours) && dayHours.length) {
+      const exactMap = buildCnmcHourIndexMap(dayHours, timeZone);
+      return exactMap.has(h) ? exactMap.get(h) : null;
+    }
     if (h === 24) return 23;
     if (h >= 1 && h <= 24) return h - 1;
     if (h >= 0 && h <= 23) return h;
@@ -263,7 +325,8 @@
   window.LF = window.LF || {};
   window.LF.pvpcStatsCsvHelpers = Object.assign({}, window.LF.pvpcStatsCsvHelpers, {
     parseDateHourValue,
-    getHourIndex
+    getHourIndex,
+    buildCnmcHourIndexMap
   });
 
   async function loadSurplusMonth(geo, ym) {
@@ -306,12 +369,13 @@
     valid.forEach((r) => {
       const dateKey = ymdKey(r.fecha);
       const ym = ymKey(r.fecha);
-      const hourIdx = getHourIndex(r.hora, r.fecha);
-      if (hourIdx === null) { missing += 1; return; }
-
       const data = monthData[ym];
       const dayHours = data?.days?.[dateKey];
-      if (!dayHours || !dayHours[hourIdx]) { missing += 1; return; }
+      if (!dayHours) { missing += 1; return; }
+
+      const timeZone = data?.timezone || (geo === '8742' ? 'Atlantic/Canary' : 'Europe/Madrid');
+      const hourIdx = getHourIndex(r.hora, r.fecha, dayHours, timeZone);
+      if (hourIdx === null || !dayHours[hourIdx]) { missing += 1; return; }
 
       const price = Number(dayHours[hourIdx][1]);
       if (!Number.isFinite(price)) { missing += 1; return; }

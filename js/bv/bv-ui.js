@@ -1,5 +1,98 @@
 window.BVSim = window.BVSim || {};
 
+window.BVSim.manualUi = window.BVSim.manualUi || {};
+
+window.BVSim.manualUi.normalizeMonthMeta = function normalizeMonthMeta(meta) {
+  const key = typeof meta?.key === 'string' ? meta.key.trim() : '';
+  if (!/^\d{4}-\d{2}$/.test(key)) return null;
+
+  const daysWithData = Math.round(Number(meta?.daysWithData));
+  if (!Number.isFinite(daysWithData) || daysWithData <= 0) return null;
+
+  const [year, month] = key.split('-').map(Number);
+  const daysInMonth = new Date(year, month, 0).getDate();
+  const normalized = {
+    key,
+    daysWithData: Math.min(daysWithData, daysInMonth)
+  };
+
+  const explicitDaysInMonth = Math.round(Number(meta?.daysInMonth));
+  if (Number.isFinite(explicitDaysInMonth) && explicitDaysInMonth > 0) {
+    normalized.daysInMonth = explicitDaysInMonth;
+  }
+
+  return normalized;
+};
+
+window.BVSim.manualUi.pickLatestMonthData = function pickLatestMonthData(months) {
+  const monthDataMap = new Map();
+  const yearsFound = new Set();
+
+  (Array.isArray(months) ? months : []).forEach((month) => {
+    const key = typeof month?.key === 'string' ? month.key : '';
+    const [yearStr, monthStr] = key.split('-');
+    const year = parseInt(yearStr, 10);
+    const monthIndex = parseInt(monthStr, 10) - 1;
+    if (!Number.isFinite(year) || !Number.isInteger(monthIndex) || monthIndex < 0 || monthIndex > 11) return;
+
+    yearsFound.add(year);
+    const existing = monthDataMap.get(monthIndex);
+    if (existing && existing.year >= year) return;
+
+    monthDataMap.set(monthIndex, {
+      year,
+      p1: Number(month?.importByPeriod?.P1) || 0,
+      p2: Number(month?.importByPeriod?.P2) || 0,
+      p3: Number(month?.importByPeriod?.P3) || 0,
+      vert: Number(month?.exportTotalKWh) || 0,
+      meta: window.BVSim.manualUi.normalizeMonthMeta({
+        key,
+        daysWithData: month?.daysWithData,
+        daysInMonth: month?.daysInMonth
+      })
+    });
+  });
+
+  return { monthDataMap, yearsFound };
+};
+
+window.BVSim.manualUi.buildSimulationMonths = function buildSimulationMonths(entries, options = {}) {
+  const currentYear = Number.isFinite(options.currentYear) ? options.currentYear : new Date().getFullYear();
+  const monthMetaByIndex = options.monthMetaByIndex || {};
+  const months = [];
+
+  for (let i = 0; i < 12; i++) {
+    const entry = entries?.[i] || {};
+    const p1 = Number(entry.p1) || 0;
+    const p2 = Number(entry.p2) || 0;
+    const p3 = Number(entry.p3) || 0;
+    const totalCons = p1 + p2 + p3;
+    const vert = Number(entry.vert) || 0;
+    if (!(p1 > 0 || p2 > 0 || p3 > 0 || vert > 0)) continue;
+
+    const rawMeta = monthMetaByIndex instanceof Map ? monthMetaByIndex.get(i) : monthMetaByIndex[i];
+    const meta = window.BVSim.manualUi.normalizeMonthMeta(rawMeta);
+    const fallbackKey = `${currentYear}-${String(i + 1).padStart(2, '0')}`;
+    const key = meta?.key || fallbackKey;
+    const [year, month] = key.split('-').map(Number);
+    const daysInMonth = new Date(year, month, 0).getDate();
+
+    months.push({
+      key,
+      daysWithData: meta?.daysWithData || daysInMonth,
+      importTotalKWh: totalCons,
+      exportTotalKWh: vert,
+      importByPeriod: {
+        P1: p1,
+        P2: p2,
+        P3: p3
+      }
+    });
+  }
+
+  return months;
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   const toastEl = document.getElementById('toast');
   const toastTextEl = document.getElementById('toastText');
@@ -45,6 +138,22 @@ document.addEventListener('DOMContentLoaded', () => {
   const statusEl = document.getElementById('bv-status');
 
   const manualGrid = document.getElementById('bv-manual-grid');
+  const manualMonthMetaByIndex = window.BVSim._manualMonthMeta = {};
+
+  function clearManualMonthMeta() {
+    Object.keys(manualMonthMetaByIndex).forEach((key) => {
+      delete manualMonthMetaByIndex[key];
+    });
+  }
+
+  function setManualMonthMeta(monthIndex, meta) {
+    const normalized = window.BVSim.manualUi.normalizeMonthMeta(meta);
+    if (normalized) {
+      manualMonthMetaByIndex[monthIndex] = normalized;
+    } else {
+      delete manualMonthMetaByIndex[monthIndex];
+    }
+  }
 
   // --- MANUAL ENTRY INITIALIZATION ---
   const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
@@ -84,12 +193,14 @@ document.addEventListener('DOMContentLoaded', () => {
       const vIn = manualGrid.querySelector(`input[data-month="${i}"][data-type="vert"]`);
 
       if (p1In && p2In && p3In && vIn) {
+        const meta = window.BVSim.manualUi.normalizeMonthMeta(manualMonthMetaByIndex[i]);
         data[i] = {
           p1: p1In.value,
           p2: p2In.value,
           p3: p3In.value,
           vert: vIn.value
         };
+        if (meta) data[i].meta = meta;
       }
     }
     try {
@@ -129,6 +240,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!data) return false;
 
+      clearManualMonthMeta();
       let hasData = false;
       for (let i = 0; i < 12; i++) {
         const p1In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p1"]`);
@@ -148,6 +260,7 @@ document.addEventListener('DOMContentLoaded', () => {
           if (p2In) p2In.value = formatNumberES(p2);
           if (p3In) p3In.value = formatNumberES(p3);
           if (vIn) vIn.value = formatNumberES(vert);
+          setManualMonthMeta(i, data[i].meta);
 
           if (p1 > 0 || p2 > 0 || p3 > 0 || vert > 0) {
             hasData = true;
@@ -471,6 +584,7 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.removeItem('bv_manual_data_v2');
       localStorage.removeItem('bv_manual_data');
       localStorage.removeItem('bv_manual_data_timestamp');
+      clearManualMonthMeta();
       updateManualTotals();
       updateDataStatus();
       showToast('✓ Todos los datos han sido borrados', 'ok');
@@ -925,30 +1039,11 @@ document.addEventListener('DOMContentLoaded', () => {
       input.value = '';
       input.classList.remove('error', 'valid');
     });
+    clearManualMonthMeta();
 
     // 3. Mapear datos. Si hay múltiples años para el mismo mes, nos quedamos con el más reciente.
     // Estructura de month.key: "YYYY-MM"
-    const monthDataMap = new Map(); // Map<monthIndex 0-11, monthData>
-    const yearsFound = new Set();
-
-    simResult.months.forEach(m => {
-      const [yearStr, monthStr] = m.key.split('-');
-      const monthIndex = parseInt(monthStr, 10) - 1; // 0-11
-      const year = parseInt(yearStr, 10);
-      yearsFound.add(year);
-
-      // Si ya tenemos datos para este mes, solo sobrescribimos si el año es mayor
-      const existing = monthDataMap.get(monthIndex);
-      if (!existing || existing.year < year) {
-        monthDataMap.set(monthIndex, {
-          year: year,
-          p1: m.importByPeriod.P1,
-          p2: m.importByPeriod.P2,
-          p3: m.importByPeriod.P3,
-          vert: m.exportTotalKWh
-        });
-      }
-    });
+    const { monthDataMap, yearsFound } = window.BVSim.manualUi.pickLatestMonthData(simResult.months);
 
     // 4. Escribir en el DOM
     let filledCount = 0;
@@ -964,6 +1059,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (p2In) p2In.value = formatNumberES(r2(data.p2));
       if (p3In) p3In.value = formatNumberES(r2(data.p3));
       if (vIn) vIn.value = formatNumberES(r2(data.vert));
+      setManualMonthMeta(monthIndex, data.meta);
       
       // Marcar visualmente como válidos
       [p1In, p2In, p3In, vIn].forEach(el => {
@@ -1125,8 +1221,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       // Siempre usar datos de la tabla manual (auto-rellenada o manual)
-      const manualMonths = [];
       const currentYear = new Date().getFullYear();
+      const manualEntries = [];
 
       for (let i = 0; i < 12; i++) {
         const p1Input = manualGrid.querySelector(`input[data-month="${i}"][data-type="p1"]`);
@@ -1149,25 +1245,20 @@ document.addEventListener('DOMContentLoaded', () => {
         // Sanity check básico
         if (vertKwh > 10000) vertKwh = 10000;
 
-        const key = `${currentYear}-${String(i + 1).padStart(2, '0')}`;
-
-        // Calcular días reales del mes (28/29/30/31)
-        const realDays = new Date(currentYear, i + 1, 0).getDate();
-
-        manualMonths.push({
-          key,
-          daysWithData: realDays,
-          importTotalKWh: totalCons,
-          exportTotalKWh: vertKwh,
-          importByPeriod: {
-            P1: p1,
-            P2: p2,
-            P3: p3
-          }
-        });
+        manualEntries[i] = {
+          p1,
+          p2,
+          p3,
+          vert: vertKwh
+        };
       }
 
       // Validar que haya al menos 1 mes con datos
+      const manualMonths = window.BVSim.manualUi.buildSimulationMonths(manualEntries, {
+        currentYear,
+        monthMetaByIndex: manualMonthMetaByIndex
+      });
+
       if (manualMonths.length === 0) {
         throw new Error('Introduce datos para al menos un mes. Rellena los valores de consumo (P1/P2/P3) y/o vertido, o sube un archivo CSV.');
       }
