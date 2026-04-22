@@ -322,11 +322,22 @@
     return null;
   }
 
+  function getVisualHourBucket(rawHour, dateObj) {
+    const h = Number.isFinite(rawHour) ? Number(rawHour) : (dateObj ? dateObj.getHours() : NaN);
+    if (!Number.isFinite(h)) return null;
+    if (h === 25) return 2;
+    if (h === 24) return 23;
+    if (h >= 1 && h <= 24) return Math.min(h - 1, 23);
+    if (h >= 0 && h <= 23) return h;
+    return null;
+  }
+
   window.LF = window.LF || {};
   window.LF.pvpcStatsCsvHelpers = Object.assign({}, window.LF.pvpcStatsCsvHelpers, {
     parseDateHourValue,
     getHourIndex,
-    buildCnmcHourIndexMap
+    buildCnmcHourIndexMap,
+    getVisualHourBucket
   });
 
   async function loadSurplusMonth(geo, ym) {
@@ -382,16 +393,18 @@
 
       const kwh = Number(r.excedente) || 0;
       const eur = kwh * price;
+      const visualHour = getVisualHourBucket(r.hora, r.fecha);
+      if (visualHour === null) { missing += 1; return; }
       totalKwh += kwh;
       totalEur += eur;
-      hourly[hourIdx] += kwh;
+      hourly[visualHour] += kwh;
 
       if (!monthly[ym]) monthly[ym] = { kwh: 0, eur: 0 };
       monthly[ym].kwh += kwh;
       monthly[ym].eur += eur;
 
       if (!monthlyHourly[ym]) monthlyHourly[ym] = new Array(24).fill(0);
-      monthlyHourly[ym][hourIdx] += kwh;
+      monthlyHourly[ym][visualHour] += kwh;
     });
 
     function bestWindowForShare(hourlyKwh, shareTarget = 0.8) {

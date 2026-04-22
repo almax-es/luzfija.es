@@ -50,7 +50,7 @@ describe('PVPC stats UI CSV fallback helpers', () => {
   });
 
   it('maps DST fallback days with exact CNMC hours, including hora 25 and later hours', () => {
-    const { getHourIndex, buildCnmcHourIndexMap } = window.LF.pvpcStatsCsvHelpers;
+    const { getHourIndex, buildCnmcHourIndexMap, getVisualHourBucket } = window.LF.pvpcStatsCsvHelpers;
     const baseTs = Date.parse('2024-10-26T22:00:00Z') / 1000; // 00:00 local del 27/10/2024
     const dayHours = Array.from({ length: 25 }, (_, i) => [baseTs + i * 3600, i / 100]);
 
@@ -63,5 +63,17 @@ describe('PVPC stats UI CSV fallback helpers', () => {
     expect(getHourIndex(3, new Date('2024-10-27T00:00:00'), dayHours, 'Europe/Madrid')).toBe(2);
     expect(getHourIndex(25, new Date('2024-10-27T00:00:00'), dayHours, 'Europe/Madrid')).toBe(3);
     expect(getHourIndex(4, new Date('2024-10-27T00:00:00'), dayHours, 'Europe/Madrid')).toBe(4);
+
+    expect(getVisualHourBucket(24, new Date('2024-10-27T00:00:00'))).toBe(23);
+    expect(getVisualHourBucket(25, new Date('2024-10-27T00:00:00'))).toBe(2);
+    expect(getVisualHourBucket(4, new Date('2024-10-27T00:00:00'))).toBe(3);
+
+    const hourly = new Array(24).fill(0);
+    hourly[getVisualHourBucket(24)] += 1;
+    hourly[getVisualHourBucket(25)] += 1;
+
+    expect(hourly).toHaveLength(24);
+    expect(hourly[23]).toBe(1);
+    expect(hourly[2]).toBe(1);
   });
 });
