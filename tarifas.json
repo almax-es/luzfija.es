@@ -47,7 +47,7 @@
       "web": "https://visalia.es/luz/fijo24horas/",
       "tipo": "1P",
       "fv": {
-        "exc": 0.04,
+        "exc": 0.03,
         "tipo": "SIMPLE",
         "tope": "ENERGIA_PARCIAL",
         "bv": false,
@@ -617,7 +617,7 @@
       "web": "https://visalia.es/luz/luz-3-periodos/",
       "tipo": "3P",
       "fv": {
-        "exc": 0.04,
+        "exc": 0.03,
         "tipo": "SIMPLE",
         "tope": "ENERGIA_PARCIAL",
         "bv": false,
@@ -719,5 +719,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-04-22T06:57:26.946Z"
+  "updatedAt": "2026-04-22T12:02:57.613Z"
 }
