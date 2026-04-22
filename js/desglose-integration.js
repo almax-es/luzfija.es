@@ -142,6 +142,7 @@
       const td = t.closest('td');
       if (!td) return;
       if (!td.classList.contains('total-cell') && !td.classList.contains('tarifa-cell')) return;
+      if (td.getAttribute('aria-disabled') === 'true') return;
 
       const tr = td.closest('tr');
       const nombreTarifa = tr?.dataset?.tarifaNombre || '';
@@ -171,6 +172,7 @@
       const td = t.closest('td');
       if (!td) return;
       if (!td.classList.contains('total-cell') && !td.classList.contains('tarifa-cell')) return;
+      if (td.getAttribute('aria-disabled') === 'true') return;
 
       ev.preventDefault();
       td.click();

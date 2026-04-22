@@ -103,6 +103,22 @@ describe('Desglose integration UX guardrails', () => {
     expect(window.__LF_DesgloseFactura.abrir).not.toHaveBeenCalled();
   });
 
+  it('ignora clics en celdas marcadas como no comparables', () => {
+    bootstrapIntegration();
+
+    document.getElementById('tbody').innerHTML = `
+      <tr data-tarifa-nombre="PVPC (Regulada) ⚡">
+        <td class="tarifa-cell" aria-disabled="true">PVPC (Regulada) ⚡</td>
+        <td class="total-cell" aria-disabled="true">—</td>
+      </tr>
+    `;
+
+    document.querySelector('.total-cell').click();
+
+    expect(window.__LF_DesgloseFactura.abrir).not.toHaveBeenCalled();
+    expect(window.toast).not.toHaveBeenCalled();
+  });
+
   it('usa la misma fecha fiscal del cálculo principal para el desglose de tarifas libres', async () => {
     global.fetch = vi.fn(async () => ({
       json: async () => ({

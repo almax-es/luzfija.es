@@ -306,11 +306,8 @@
     // Calculate button
     currentEl.btnCalc.addEventListener('click', (e) => {
       createRipple(currentEl.btnCalc, e);
-      // Limpiar Sun Club al calcular manualmente (no viene de CSV)
-      if (window.LF) {
-        window.LF.sunClubEnabled = false;
-        window.LF.consumosHorarios = null;
-      }
+      // Si el cálculo viene de un CSV ya aplicado, hay que preservar la curva horaria.
+      // El motor ya desactiva Sun Club por sí solo si no hay consumos horarios válidos.
       runCalculation(false);
     });
 
@@ -320,11 +317,6 @@
       input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
-          // Limpiar Sun Club al calcular manualmente (no viene de CSV)
-          if (window.LF) {
-            window.LF.sunClubEnabled = false;
-            window.LF.consumosHorarios = null;
-          }
           createRipple(currentEl.btnCalc, {
             clientX: currentEl.btnCalc.offsetLeft + currentEl.btnCalc.offsetWidth / 2,
             clientY: currentEl.btnCalc.offsetTop + currentEl.btnCalc.offsetHeight / 2

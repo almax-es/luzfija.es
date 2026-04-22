@@ -239,6 +239,45 @@ describe('Renderizado UI (lf-render.js)', () => {
     }
   });
 
+  it('Marca PVPC en modo solar como no comparable y desactiva su desglose', async () => {
+    window.LF.state.rows = [
+      {
+        nombre: 'Tarifa Solar',
+        tipo: '1P',
+        totalNum: 50,
+        total: '50,00 €',
+        potencia: '10 €',
+        consumo: '30 €',
+        impuestos: '10 €',
+        webUrl: 'https://example.com/solar'
+      },
+      {
+        nombre: 'PVPC',
+        tipo: '1P',
+        totalNum: Number.POSITIVE_INFINITY,
+        total: '—',
+        potencia: '—',
+        consumo: '—',
+        impuestos: '—',
+        webUrl: 'https://example.com/pvpc',
+        solarNoCalculable: true,
+        solarNoCalculableReason: 'PVPC no se compara en modo solar desde la home.'
+      }
+    ];
+
+    await window.LF.renderTable();
+
+    const rows = [...document.querySelectorAll('#tbody tr')];
+    const pvpcRow = rows.find((row) => row.textContent.includes('PVPC'));
+
+    expect(pvpcRow).toBeTruthy();
+    expect(pvpcRow.querySelector('.pvpc-warn')).not.toBeNull();
+    expect(pvpcRow.querySelector('.pvpc-warn').getAttribute('title')).toContain('modo solar');
+    expect(pvpcRow.querySelector('.tarifa-cell').getAttribute('aria-disabled')).toBe('true');
+    expect(pvpcRow.querySelector('.total-cell').getAttribute('aria-disabled')).toBe('true');
+    expect(pvpcRow.querySelector('.desglose-icon')).toBeNull();
+  });
+
   it('Solo muestra el aviso de límites Nufri en las tarifas que lo declaran', async () => {
     document.getElementById('p1').value = '3,45';
     document.getElementById('p2').value = '3,45';

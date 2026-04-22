@@ -277,6 +277,63 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     expect(filas[0].esMejor).toBe(true);
   });
 
+  it('Debe dejar PVPC fuera del ranking comparable cuando el modo solar está activo', async () => {
+    const tarifaSolar = {
+      nombre: 'Solar Compensa',
+      p1: 0.10, p2: 0.10,
+      cPunta: 0.10, cLlano: 0.10, cValle: 0.10,
+      tipo: '1P',
+      esPVPC: false,
+      fv: { exc: 0.05, tipo: 'SIMPLE', bv: false }
+    };
+    const tarifaPVPC = {
+      nombre: 'PVPC',
+      tipo: '1P',
+      esPVPC: true,
+      metaPvpc: {
+        terminoFijo: 8,
+        terminoVariable: 12,
+        bonoSocial: 0.5,
+        impuestoElectrico: 0.1,
+        equipoMedida: 0.2,
+        iva: 1.5,
+        totalFactura: 22.3
+      }
+    };
+    window.LF.cachedTarifas = [tarifaPVPC, tarifaSolar];
+
+    await window.LF.calculateLocal({
+      p1: 4,
+      p2: 4,
+      dias: 30,
+      cPunta: 100,
+      cLlano: 0,
+      cValle: 0,
+      zonaFiscal: 'Península',
+      viviendaCanarias: false,
+      solarOn: true,
+      exTotal: 50,
+      bvSaldo: 0,
+      bonoSocialOn: false,
+      bonoSocialTipo: 'vulnerable',
+      bonoSocialLimite: 1587,
+      fechaYmd: '2026-03-20'
+    });
+
+    const filas = window.LF.state.rows;
+    const pvpc = filas.find((row) => row.nombre === 'PVPC');
+    const mejor = filas[0];
+
+    expect(mejor.nombre).toBe('Solar Compensa');
+    expect(mejor.esMejor).toBe(true);
+
+    expect(pvpc).toBeTruthy();
+    expect(pvpc.solarNoCalculable).toBe(true);
+    expect(pvpc.total).toBe('—');
+    expect(pvpc.totalNum).toBe(Number.POSITIVE_INFINITY);
+    expect(pvpc.esMejor).toBe(false);
+  });
+
   describe('Casos Extremos (Edge Cases)', () => {
     
     it('Debe manejar Consumo Cero correctamente', async () => {

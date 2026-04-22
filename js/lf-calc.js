@@ -114,6 +114,24 @@
           });
           continue;
         }
+        if (t.esPVPC && solarOn) {
+          resultados.push({
+            ...t,
+            posicion: index + 1,
+            potenciaNum: 0,
+            potencia: '—',
+            consumoNum: 0,
+            consumo: '—',
+            impuestosNum: 0,
+            impuestos: '—',
+            totalNum: Number.POSITIVE_INFINITY,
+            total: '—',
+            webUrl: t.web,
+            solarNoCalculable: true,
+            solarNoCalculableReason: 'PVPC no se compara en modo solar desde la home porque este ranking no modela autoconsumo ni compensación de excedentes para la tarifa regulada.'
+          });
+          continue;
+        }
         if (t.esPVPC && t.metaPvpc) {
           const m = t.metaPvpc;
 
@@ -173,7 +191,7 @@
             totalNum,
             total: formatMoney(totalNum),
             webUrl: t.web,
-            solarNoCalculable: solarOn,
+            solarNoCalculable: false,
             bonoSocialDescuentoEur: bonoSocialDescuentoEur,
             bonoSocialProximoMes: bonoSocialProximoMes
           });
@@ -208,9 +226,7 @@
         let fvPeajesTotal = 0;
 
         let solarNoCalculable = false;
-        if (solarOn && t.esPVPC) {
-          solarNoCalculable = true;
-        } else if (solarOn && !t.esPVPC) {
+        if (solarOn && !t.esPVPC) {
           exKwh = clampNonNeg(exTotal);
           if (fv && fv.tipo !== 'NO COMPENSA') {
             precioExc = getFvExcPrice(fv);

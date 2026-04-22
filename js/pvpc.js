@@ -596,6 +596,43 @@ const PEAJES_POT_DIA = {
           if (h === 24) h = 0;
           return Number.isFinite(h) ? h : 0;
         };
+        const buildCnmcHourEntries = (dayPrices) => {
+          const totalsByHour = new Map();
+          const rawEntries = (dayPrices || []).map(([ts, precio]) => ({
+            ts,
+            precio,
+            hour: hourFromTs(ts)
+          }));
+
+          rawEntries.forEach((entry) => {
+            totalsByHour.set(entry.hour, (totalsByHour.get(entry.hour) || 0) + 1);
+          });
+
+          const seenByHour = new Map();
+          return rawEntries.map((entry) => {
+            const occurrence = (seenByHour.get(entry.hour) || 0) + 1;
+            seenByHour.set(entry.hour, occurrence);
+
+            return {
+              ...entry,
+              occurrence,
+              totalOccurrences: totalsByHour.get(entry.hour) || 1,
+              cnmcHour: (totalsByHour.get(entry.hour) || 0) > 1 && occurrence > 1
+                ? 25
+                : (entry.hour + 1)
+            };
+          });
+        };
+        const exactDayEntriesCache = new Map();
+        const getExactDayEntries = (dateStr, dayPrices) => {
+          if (exactDayEntriesCache.has(dateStr)) return exactDayEntriesCache.get(dateStr);
+          const byCnmcHour = new Map();
+          buildCnmcHourEntries(dayPrices).forEach((entry) => {
+            byCnmcHour.set(entry.cnmcHour, entry.precio);
+          });
+          exactDayEntriesCache.set(dateStr, byCnmcHour);
+          return byCnmcHour;
+        };
 
         // Horarios según zona (CNMC Circular 3/2020)
         // Península/Baleares/Canarias: iguales (10-14 y 18-22)
@@ -671,14 +708,12 @@ const PEAJES_POT_DIA = {
             if (!kwh) continue;
             const d = c.fecha instanceof Date ? c.fecha : new Date(c.fecha);
             const dateStr = formatYMD(d);
-            const horaIdx = Math.max(0, (c.hora || 1) - 1); // CNMC hora 1-24 → índice 0-23
             const dayPrices = allPrices[dateStr];
             if (!dayPrices) { horasSinDatos++; continue; }
-            let price = null;
-            for (const [ts, precio] of dayPrices) {
-              if (hourFromTs(ts) === horaIdx) { price = precio; break; }
-            }
-            if (price === null) { horasSinDatos++; continue; }
+            const cnmcHour = Number(c.hora || 0);
+            const dayEntries = getExactDayEntries(dateStr, dayPrices);
+            if (!dayEntries.has(cnmcHour)) { horasSinDatos++; continue; }
+            const price = dayEntries.get(cnmcHour);
             exactCost += kwh * price;
             horasConDatos++;
           }

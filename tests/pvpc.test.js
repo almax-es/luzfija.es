@@ -38,6 +38,8 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     vi.clearAllMocks();
     global.window.localStorage.getItem.mockReturnValue(null);
     vi.spyOn(console, 'log'); // Espiar logs
+    delete global.window.LF.consumosHorarios;
+    delete global.window.LF.pvpcPeriodoCSV;
   });
 
   // Helper para generar datos horarios para un dia
@@ -61,6 +63,21 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     for(let h=18; h<22; h++) prices.push([baseTs + h*3600, p1]);
     // 22-24h: Llano (P2)
     for(let h=22; h<24; h++) prices.push([baseTs + h*3600, p2]);
+    return prices;
+  }
+
+  function generateDstFallbackDayPrices() {
+    const prices = [];
+    const baseTs = Date.parse('2024-10-26T22:00:00Z') / 1000; // 00:00 local del 27/10/2024
+
+    for (let i = 0; i < 25; i++) {
+      const ts = baseTs + i * 3600;
+      let price = 0.10;
+      if (i === 2) price = 0.20; // primera 02:00 local
+      if (i === 3) price = 0.50; // segunda 02:00 local (hora 25)
+      prices.push([ts, price]);
+    }
+
     return prices;
   }
 
@@ -177,6 +194,41 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     expect(tarifa.metaPvpc.impuestoElectrico).toBe(expectedIEE);
 
     vi.useRealTimers();
+  });
+
+  it('obtenerPVPC_LOCAL cruza correctamente la hora 25 del cambio horario en modo CSV exacto', async () => {
+    const mockJson = {
+      geo_id: 8741,
+      timezone: 'Europe/Madrid',
+      days: {
+        '2024-10-27': generateDstFallbackDayPrices()
+      },
+      meta: { max_after_conversion: 0.50 }
+    };
+
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => mockJson
+    });
+
+    global.window.LF.consumosHorarios = [
+      { fecha: new Date(2024, 9, 27), hora: 3, kwh: 1 },
+      { fecha: new Date(2024, 9, 27), hora: 25, kwh: 1 }
+    ];
+    global.window.LF.pvpcPeriodoCSV = true;
+
+    const result = await global.window.LF.pvpc.obtenerPVPC_LOCAL({
+      zonaFiscal: 'Península',
+      p1: 3.45,
+      p2: 3.45,
+      dias: 1,
+      cPunta: 2,
+      cLlano: 0,
+      cValle: 0
+    });
+
+    expect(result).toBeTruthy();
+    expect(result.terminoVariable).toBeCloseTo(0.70, 3);
   });
 
 });

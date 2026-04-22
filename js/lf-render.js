@@ -240,7 +240,9 @@
             `</a>`
           : r.esPersonalizada ? '' : '';
 
-        const nombreWarn = r.pvpcNotComputable
+        const nombreWarn = r.solarNoCalculable
+          ? `<span class="pvpc-warn" title="${escapeHtml(r.solarNoCalculableReason || 'PVPC no comparable con solar en este ranking')}">⚠</span>`
+          : r.pvpcNotComputable
           ? `<span class="pvpc-warn" title="PVPC no disponible para esta configuración">⚠</span>`
           : (r.pvpcWarning ? ' ⚠' : '');
 
@@ -302,6 +304,14 @@
           `${rowTipoBadge(r.tipo)}` +
           `</div>`;
 
+        const canOpenDesglose = Number.isFinite(r.totalNum) && !r.solarNoCalculable && !r.pvpcNotComputable && r.total !== '—';
+        const tarifaCellAttrs = canOpenDesglose
+          ? `class="tarifa-cell" title="${escapeHtml(nombreBase)}" role="button" tabindex="0" aria-label="Ver desglose de ${escapeHtml(nombreBase)}"`
+          : `class="tarifa-cell" title="${escapeHtml(r.solarNoCalculableReason || nombreBase)}" aria-disabled="true"`;
+        const totalCellAttrs = canOpenDesglose
+          ? `class="total-cell" role="button" tabindex="0" title="${isBV ? `Clic para ver desglose completo • Pagas: ${escapeHtml(bvPagasFmt)} • Ranking: ${escapeHtml(bvRankingFmt)}` : `Clic para ver desglose completo de la factura`}"`
+          : `class="total-cell" aria-disabled="true" title="${escapeHtml(r.solarNoCalculableReason || 'No hay desglose disponible para esta fila')}"`;
+
         const nombreDisplay =
           `${badgeRow}` +
           `<div class="tarifa-title">` +
@@ -312,11 +322,11 @@
 
         tr.innerHTML =
           `<td>${idx + 1}</td>` +
-          `<td class="tarifa-cell" title="${escapeHtml(nombreBase)}" role="button" tabindex="0" aria-label="Ver desglose de ${escapeHtml(nombreBase)}">${nombreDisplay}</td>` +
+          `<td ${tarifaCellAttrs}>${nombreDisplay}</td>` +
           `<td>${escapeHtml(r.potencia)}</td>` +
           `<td>${escapeHtml(r.consumo)}</td>` +
           `<td>${escapeHtml(r.impuestos)}</td>` +
-          `<td class="total-cell" role="button" tabindex="0" title="${isBV ? `Clic para ver desglose completo • Pagas: ${escapeHtml(bvPagasFmt)} • Ranking: ${escapeHtml(bvRankingFmt)}` : `Clic para ver desglose completo de la factura`}"><span class="total-pill"><strong class="total-price js-total-amount"${isBV ? ` data-pagas="${escapeHtml(bvPagasFmt)}" data-ranking="${escapeHtml(bvRankingFmt)}"` : ""}>${escapeHtml(r.total)}</strong><span class="desglose-icon" aria-hidden="true">💡</span></span></td>` +
+          `<td ${totalCellAttrs}><span class="total-pill"><strong class="total-price js-total-amount"${isBV ? ` data-pagas="${escapeHtml(bvPagasFmt)}" data-ranking="${escapeHtml(bvRankingFmt)}"` : ""}>${escapeHtml(r.total)}</strong>${canOpenDesglose ? '<span class="desglose-icon" aria-hidden="true">💡</span>' : ''}</span></td>` +
           `<td>${formatVsWithBar(r.vsMejor, r.vsMejorNum)}</td>` +
           `<td style="text-align:center">${rowTipoBadge(r.tipo)}</td>` +
           `<td style="text-align:center">${w}</td>`;
@@ -356,7 +366,7 @@
     const body = document.getElementById('chartTopBody');
     if (!c || !body) return;
 
-    const rows = (state.rows || []).filter(r => !r.pvpcNotComputable && r.total !== '—');
+    const rows = (state.rows || []).filter(r => !r.pvpcNotComputable && !r.solarNoCalculable && r.total !== '—');
     if (!rows.length) {
       c.classList.remove('show');
       body.innerHTML = '';
