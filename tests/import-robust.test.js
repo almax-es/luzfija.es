@@ -171,6 +171,31 @@ ES123;01/01/2024;1;1,0;R`;
     expect(result.warnings.some(w => w.toLowerCase().includes('excedentes'))).toBe(true);
   });
 
+  it('Infiere formato 0-23 en CSV parciales ambiguos para Home y BV', async () => {
+    const csvContent = `CUPS;Fecha;Hora;Consumo_kWh;Método
+ES123;01/04/2026;10;1,0;R
+ES123;01/04/2026;18;1,0;R`;
+
+    const homeFile = { name: 'parcial-ambigua.csv', _content: csvContent };
+    const homeResult = await procesarCSVConsumos(homeFile);
+    expect(homeResult.ok).not.toBe(false);
+    expect(homeResult.consumosHorarios.map(r => r.hora)).toEqual([11, 19]);
+    expect(homeResult.consumosHorarios.map(r => r.periodo)).toEqual(['P1', 'P1']);
+    expect(homeResult.warnings.some(w => w.toLowerCase().includes('ambiguo'))).toBe(true);
+
+    const bvFile = {
+      name: 'parcial-ambigua.csv',
+      _content: csvContent,
+      size: csvContent.length,
+      type: 'text/csv'
+    };
+    const bvResult = await window.BVSim.importFile(bvFile, 'Península');
+    expect(bvResult.ok).toBe(true);
+    expect(bvResult.records.map(r => r.hora)).toEqual([11, 19]);
+    expect(bvResult.records.map(r => r.periodo)).toEqual(['P1', 'P1']);
+    expect(bvResult.warnings.some(w => w.toLowerCase().includes('ambiguo'))).toBe(true);
+  });
+
   it('Validación de rango de fechas (máximo 370 días)', () => {
     const { validateCsvSpanFromRecords } = window.LF.csvUtils;
     const day = 86400000;

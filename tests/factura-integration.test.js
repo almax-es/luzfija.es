@@ -324,4 +324,63 @@ describe('Factura PDF Integration (Black Box)', () => {
     expect(getVal('consumoLlano')).toBe('222');
     expect(getVal('consumoValle')).toBe('333');
   });
+
+  it('Debe renderizar avisos contextuales con marcado permitido sin mostrar etiquetas literales', async () => {
+    const padding = Array(10).fill({ str: "relleno de texto para validacion de longitud minima", transform: [0,0,0,0, 0, 0] });
+
+    const mockTextItems = [
+      { str: "Factura", transform: [0,0,0,0, 10, 100] },
+      { str: "Endesa Energía S.A.", transform: [0,0,0,0, 60, 100] },
+      { str: "Periodo de facturación:", transform: [0,0,0,0, 10, 80] },
+      { str: "del", transform: [0,0,0,0, 50, 80] },
+      { str: "01/01/2025", transform: [0,0,0,0, 70, 80] },
+      { str: "al", transform: [0,0,0,0, 120, 80] },
+      { str: "15/01/2025", transform: [0,0,0,0, 140, 80] },
+      { str: "Potencia contratada", transform: [0,0,0,0, 10, 60] },
+      { str: "Punta", transform: [0,0,0,0, 60, 60] },
+      { str: "3,45", transform: [0,0,0,0, 100, 60] },
+      { str: "kW", transform: [0,0,0,0, 140, 60] },
+      { str: "Valle", transform: [0,0,0,0, 160, 60] },
+      { str: "4,00", transform: [0,0,0,0, 200, 60] },
+      { str: "kW", transform: [0,0,0,0, 240, 60] },
+      { str: "Energía consumida", transform: [0,0,0,0, 10, 40] },
+      { str: "Punta", transform: [0,0,0,0, 50, 40] },
+      { str: "120,50", transform: [0,0,0,0, 100, 40] },
+      { str: "kWh", transform: [0,0,0,0, 140, 40] },
+      ...padding
+    ];
+
+    window.pdfjsLib.getDocument.mockReturnValue({
+      promise: Promise.resolve({
+        numPages: 1,
+        getPage: () => Promise.resolve({
+          getTextContent: () => Promise.resolve({ items: mockTextItems }),
+          cleanup: () => {},
+          getViewport: () => ({ width: 100, height: 100 }),
+          render: () => ({ promise: Promise.resolve() })
+        }),
+        cleanup: () => {},
+        destroy: () => {}
+      })
+    });
+
+    await import('../js/factura.js');
+    if (window.__LF_bindFacturaParser) {
+      window.__LF_bindFacturaParser();
+    }
+
+    const fileInput = document.getElementById('fileInputFactura');
+    const mockFile = new File(['dummy content'], 'factura-aviso.pdf', { type: 'application/pdf' });
+    mockFile.arrayBuffer = async () => new ArrayBuffer(10);
+
+    const event = new Event('change', { bubbles: true });
+    Object.defineProperty(event, 'target', { value: { files: [mockFile] } });
+    fileInput.dispatchEvent(event);
+
+    await new Promise(r => setTimeout(r, 500));
+
+    const aviso = document.getElementById('avisoFactura');
+    expect(aviso.innerHTML).toContain('<b>');
+    expect(aviso.innerHTML).not.toContain('&lt;b&gt;');
+  });
 });

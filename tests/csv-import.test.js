@@ -96,6 +96,24 @@ ES12345;01/01/2024;2;2,456;R`;
       expect(result.ok).toBe(false);
       expect(result.error).toMatch(/Error al leer/);
     });
+
+    it('Debe devolver 0,0% por periodo cuando el CSV solo tiene excedentes netos', async () => {
+      const csvContent = `Fecha;Hora;Consumo_kWh;Excedente_kWh
+01/04/2026;1;0;1,0
+01/04/2026;2;0;2,0`;
+
+      const file = { name: 'solo-excedentes.csv', _content: csvContent };
+      const result = await procesarCSVConsumos(file);
+
+      expect(result.ok).not.toBe(false);
+      expect(result.totalKwh).toBe('0,00');
+      expect(result.totalExcedentes).toBe('3,00');
+      expect(result.porcentajes).toEqual({
+        punta: '0,0',
+        llano: '0,0',
+        valle: '0,0'
+      });
+    });
   });
 
   describe('procesarXLSXConsumos', () => {

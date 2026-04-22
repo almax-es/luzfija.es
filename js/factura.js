@@ -1502,10 +1502,29 @@
         }
       }
 
+      function __LF_escapeWarnHtml(text){
+        return String(text ?? '')
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
       function __LF_warn(msg){
         const a = __LF_q('avisoFactura');
         if (!a) return;
-        a.textContent = String(msg ?? '');
+        const markerOpen = '__LF_B_OPEN__';
+        const markerClose = '__LF_B_CLOSE__';
+        const html = __LF_escapeWarnHtml(
+          String(msg ?? '')
+            .replace(/<\s*b\s*>/gi, markerOpen)
+            .replace(/<\s*\/\s*b\s*>/gi, markerClose)
+        )
+          .replace(new RegExp(markerOpen, 'g'), '<b>')
+          .replace(new RegExp(markerClose, 'g'), '</b>')
+          .replace(/\n/g, '<br>');
+        a.innerHTML = html;
         __LF_show(a);
       }
 

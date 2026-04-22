@@ -456,6 +456,15 @@
     return Number.isFinite(num) ? num : null;
   }
 
+  function mapPeriodoLabel(raw) {
+    const p = String(raw ?? '').trim().toUpperCase();
+    if (!p) return null;
+    if (p.includes('PUNTA') || p === 'P1') return 'P1';
+    if (p.includes('LLANO') || p === 'P2') return 'P2';
+    if (p.includes('VALLE') || p === 'P3') return 'P3';
+    return null;
+  }
+
   function splitDateTime(value) {
     if (value instanceof Date && !isNaN(value.getTime())) {
       const date = new Date(value.getFullYear(), value.getMonth(), value.getDate());
@@ -471,26 +480,80 @@
     return { date, hour: Number.isFinite(hour) ? hour : null };
   }
 
-  function detectHourBase(dataRows, mapping) {
+  function getRowDateHour(row, mapping) {
+    if (!row || !Array.isArray(row)) return { fecha: null, hourNum: null };
+    if (mapping.fechaHoraIdx !== null && mapping.fechaHoraIdx !== undefined) {
+      const dt = splitDateTime(row[mapping.fechaHoraIdx]);
+      return { fecha: dt.date, hourNum: dt.hour };
+    }
+    return {
+      fecha: parseDateFlexible(row[mapping.fechaIdx]),
+      hourNum: extractHourNumber(row[mapping.horaIdx])
+    };
+  }
+
+  function inferHourBaseFromPeriods(dataRows, mapping, zonaFiscal) {
+    if (mapping.periodoIdx === null || mapping.periodoIdx === undefined) return null;
+
+    let zeroMatches = 0;
+    let cnmcMatches = 0;
+
+    for (const row of dataRows || []) {
+      const expected = mapPeriodoLabel(row && row[mapping.periodoIdx]);
+      if (!expected) continue;
+
+      const { fecha, hourNum } = getRowDateHour(row, mapping);
+      if (!(fecha instanceof Date) || isNaN(fecha.getTime()) || !Number.isFinite(hourNum)) continue;
+
+      if (hourNum >= 1 && hourNum <= 25) {
+        if (getPeriodoHorarioCSV(fecha, hourNum, zonaFiscal) === expected) cnmcMatches++;
+      }
+
+      const zeroHour = hourNum + 1;
+      if (zeroHour >= 1 && zeroHour <= 25) {
+        if (getPeriodoHorarioCSV(fecha, zeroHour, zonaFiscal) === expected) zeroMatches++;
+      }
+    }
+
+    if (zeroMatches === 0 && cnmcMatches === 0) return null;
+    if (zeroMatches > cnmcMatches) return { base: 'zero', reason: 'periodMatch' };
+    if (cnmcMatches > zeroMatches) return { base: 'cnmc', reason: 'periodMatch' };
+    return null;
+  }
+
+  function detectHourBase(dataRows, mapping, options = {}) {
     const rows = dataRows || [];
     let foundZero = false;
+    let foundOne = false;
     let found24 = false;
+    let parsedHours = 0;
     for (const row of rows) {
-      if (!row || !Array.isArray(row)) continue;
-      let hourNum = null;
-      if (mapping.fechaHoraIdx !== null && mapping.fechaHoraIdx !== undefined) {
-        const { hour } = splitDateTime(row[mapping.fechaHoraIdx]);
-        hourNum = hour;
-      } else {
-        hourNum = extractHourNumber(row[mapping.horaIdx]);
-      }
+      const { hourNum } = getRowDateHour(row, mapping);
       if (hourNum === null) continue;
+      parsedHours++;
       if (hourNum === 0) foundZero = true;
+      if (hourNum === 1) foundOne = true;
       if (hourNum === 24 || hourNum === 25) found24 = true;
     }
-    if (foundZero) return 'zero';
-    if (found24) return 'cnmc';
-    return 'cnmc';
+    if (foundZero) return { base: 'zero', reason: 'explicitZero' };
+    if (found24) return { base: 'cnmc', reason: 'explicitCnmc' };
+
+    if (mapping.fechaHoraIdx !== null && mapping.fechaHoraIdx !== undefined) {
+      // Una columna fecha_hora representa horas reales del reloj local.
+      return { base: 'zero', reason: 'dateTimeColumn' };
+    }
+
+    const zonaFiscal = options.zonaFiscal ||
+      (typeof window !== 'undefined' && window.LF?.getInputValues?.()?.zonaFiscal) ||
+      'Península';
+    const inferredByPeriod = inferHourBaseFromPeriods(rows, mapping, zonaFiscal);
+    if (inferredByPeriod) return inferredByPeriod;
+
+    if (!foundOne && parsedHours > 0) {
+      return { base: 'zero', reason: 'ambiguousPartialHourColumn' };
+    }
+
+    return { base: 'cnmc', reason: 'default' };
   }
 
   function buildHourResolver(mapping, hourBase) {
@@ -563,9 +626,14 @@
     }
 
     const dataRows = rows.slice(headerRowIndex + 1);
-    const hourBase = detectHourBase(dataRows, mapping);
-    if (hourBase === 'zero') {
+    const hourBaseInfo = detectHourBase(dataRows, mapping, { zonaFiscal: options.zonaFiscal });
+    const hourBase = hourBaseInfo.base;
+    if (hourBase === 'zero' && hourBaseInfo.reason === 'explicitZero') {
       warnings.push('Ajustado formato de hora (0-23 → 1-24).');
+    } else if (hourBase === 'zero' && hourBaseInfo.reason === 'ambiguousPartialHourColumn') {
+      warnings.push('Formato horario ambiguo: no aparecen horas 00/01/24/25. Se asume 0-23 y se ajusta a 1-24.');
+    } else if (hourBase === 'zero' && hourBaseInfo.reason === 'periodMatch') {
+      warnings.push('Formato horario inferido como 0-23 por coherencia con el periodo tarifario.');
     }
 
     const importRes = detectUnitFactor(headersNorm[mapping.importIdx], dataRows, mapping.importIdx, parseNumber);
@@ -610,32 +678,13 @@
     const isEmptyCell = isNoDataCell;
     const columnLabel = (idx) => headersRaw[idx] || headersNorm[idx] || `columna ${idx + 1}`;
 
-    const mapPeriodo = (raw) => {
-      const p = String(raw ?? '').trim().toUpperCase();
-      if (!p) return null;
-      if (p.includes('PUNTA') || p === 'P1') return 'P1';
-      if (p.includes('LLANO') || p === 'P2') return 'P2';
-      if (p.includes('VALLE') || p === 'P3') return 'P3';
-      return null;
-    };
-
     for (const row of dataRows) {
       if (!row || !Array.isArray(row)) continue;
       const hasData = row.some(cell => String(cell ?? '').trim() !== '');
       if (!hasData) continue;
       totalRows++;
 
-      let fecha = null;
-      let hourNum = null;
-
-      if (mapping.fechaHoraIdx !== null) {
-        const dt = splitDateTime(row[mapping.fechaHoraIdx]);
-        fecha = dt.date;
-        hourNum = dt.hour;
-      } else {
-        fecha = parseDateFlexible(row[mapping.fechaIdx]);
-        hourNum = extractHourNumber(row[mapping.horaIdx]);
-      }
+      const { fecha, hourNum } = getRowDateHour(row, mapping);
 
       if (!fecha || !Number.isFinite(hourNum)) continue;
       const hora = resolveHour(fecha, hourNum, mapping.invVerIdx !== null ? row[mapping.invVerIdx] : null);

@@ -251,6 +251,10 @@
     const totalExcedentes = totales.excedentesP1 + totales.excedentesP2 + totales.excedentesP3;
     const totalAutoconsumo = totales.autoconsumoP1 + totales.autoconsumoP2 + totales.autoconsumoP3;
     const tieneExcedentes = totalExcedentes > 0;
+    const formatPercent = (value) => {
+      if (totalKwh <= 0) return '0,0';
+      return round2(value / totalKwh * 100).toFixed(1).replace('.', ',');
+    };
 
     return {
       ok: true,
@@ -271,9 +275,9 @@
       datosReales,
       datosEstimados,
       porcentajes: {
-        punta: round2(totales.P1 / totalKwh * 100).toFixed(1).replace('.', ','),
-        llano: round2(totales.P2 / totalKwh * 100).toFixed(1).replace('.', ','),
-        valle: round2(totales.P3 / totalKwh * 100).toFixed(1).replace('.', ',')
+        punta: formatPercent(totales.P1),
+        llano: formatPercent(totales.P2),
+        valle: formatPercent(totales.P3)
       }
     };
   }
