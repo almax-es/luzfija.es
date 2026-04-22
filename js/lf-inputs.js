@@ -73,6 +73,33 @@
     return { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias, solarOn, exTotal, bvSaldo, bonoSocialOn, bonoSocialTipo, bonoSocialLimite };
   }
 
+  function buildCsvConsumosRef(values) {
+    const v = values || getInputValues();
+    return {
+      dias: clamp01to365Days(parseNum(v?.dias)),
+      cPunta: round2(clampNonNeg(parseNum(v?.cPunta))),
+      cLlano: round2(clampNonNeg(parseNum(v?.cLlano))),
+      cValle: round2(clampNonNeg(parseNum(v?.cValle)))
+    };
+  }
+
+  function csvConsumosRefMatches(values, ref) {
+    if (!ref || typeof ref !== 'object') return false;
+    const current = buildCsvConsumosRef(values);
+    const expected = buildCsvConsumosRef(ref);
+    return current.dias === expected.dias
+      && current.cPunta === expected.cPunta
+      && current.cLlano === expected.cLlano
+      && current.cValle === expected.cValle;
+  }
+
+  function clearCsvImportState() {
+    window.LF = window.LF || {};
+    window.LF.consumosHorarios = null;
+    window.LF.csvConsumosRef = null;
+    window.LF.pvpcPeriodoCSV = false;
+  }
+
   // ===== SIGNATURE =====
   function signatureFromValues(v) {
     return [v.p1, v.p2, v.dias, v.cPunta, v.cLlano, v.cValle, v.zonaFiscal,
@@ -653,6 +680,9 @@
   Object.assign(window.LF, {
     __LF_getFiscalContext,
     getInputValues,
+    buildCsvConsumosRef,
+    csvConsumosRefMatches,
+    clearCsvImportState,
     signatureFromValues,
     migrateExcedentes,
     updateZonaFiscalUI,

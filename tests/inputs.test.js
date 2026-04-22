@@ -75,7 +75,11 @@ window.LF.parseNum = (s) => {
   return parseFloat(String(s).replace(',', '.'));
 };
 window.LF.clampNonNeg = (n) => Math.max(0, n);
-window.LF.clamp01to365Days = (n) => Math.max(1, Math.min(365, n));
+window.LF.clamp01to365Days = (n) => {
+  const d = Math.trunc(n);
+  if (!Number.isFinite(d) || d === 0) return 30;
+  return Math.min(370, Math.max(1, d));
+};
 window.LF.round2 = (n) => Math.round(n * 100) / 100;
 window.LF.asBool = (v) => Boolean(v);
 window.LF.formatValueForDisplay = (v) => String(v).replace('.', ',');
@@ -167,6 +171,61 @@ describe('Inputs y Validación (lf-inputs.js)', () => {
     const ctx = window.LF.__LF_getFiscalContext();
     expect(ctx.esCanarias).toBe(true);
     expect(ctx.esViviendaTipoCero).toBe(true);
+  });
+
+  it('Normaliza la referencia de consumos importados desde CSV', () => {
+    const ref = window.LF.buildCsvConsumosRef({
+      dias: '30,4',
+      cPunta: '10,126',
+      cLlano: '20,124',
+      cValle: '30,125'
+    });
+
+    expect(ref).toEqual({
+      dias: 30,
+      cPunta: 10.13,
+      cLlano: 20.12,
+      cValle: 30.13
+    });
+  });
+
+  it('Detecta si el formulario sigue coincidiendo con la referencia CSV activa', () => {
+    const ref = { dias: 30, cPunta: 100, cLlano: 20, cValle: 5 };
+
+    expect(window.LF.csvConsumosRefMatches({
+      dias: 30,
+      cPunta: 100,
+      cLlano: 20,
+      cValle: 5
+    }, ref)).toBe(true);
+
+    expect(window.LF.csvConsumosRefMatches({
+      dias: 31,
+      cPunta: 100,
+      cLlano: 20,
+      cValle: 5
+    }, ref)).toBe(false);
+
+    expect(window.LF.csvConsumosRefMatches({
+      dias: 30,
+      cPunta: 100,
+      cLlano: 21,
+      cValle: 5
+    }, ref)).toBe(false);
+  });
+
+  it('Invalida juntos los tres campos del modo CSV', () => {
+    window.LF.consumosHorarios = [{ fecha: new Date(), hora: 1, kwh: 1 }];
+    window.LF.csvConsumosRef = { dias: 30, cPunta: 10, cLlano: 20, cValle: 30 };
+    window.LF.pvpcPeriodoCSV = true;
+    window.LF.sunClubEnabled = true;
+
+    window.LF.clearCsvImportState();
+
+    expect(window.LF.consumosHorarios).toBeNull();
+    expect(window.LF.csvConsumosRef).toBeNull();
+    expect(window.LF.pvpcPeriodoCSV).toBe(false);
+    expect(window.LF.sunClubEnabled).toBe(true);
   });
 
 });

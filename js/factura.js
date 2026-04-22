@@ -1935,8 +1935,14 @@
       function __LF_applyValues(){
         // Limpiar datos de CSV/Sun Club al aplicar factura
         if (window.LF) {
+          if (typeof window.LF.clearCsvImportState === 'function') {
+            window.LF.clearCsvImportState();
+          } else {
+            window.LF.consumosHorarios = null;
+            window.LF.csvConsumosRef = null;
+            window.LF.pvpcPeriodoCSV = false;
+          }
           window.LF.sunClubEnabled = false;
-          window.LF.consumosHorarios = null;
         }
         
         const v = {

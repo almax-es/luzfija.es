@@ -663,7 +663,23 @@
 
         // ⭐ SUN CLUB: Guardar consumos horarios (solo al aplicar)
         window.LF = window.LF || {};
-        window.LF.consumosHorarios = Array.isArray(resultado.consumosHorarios) ? resultado.consumosHorarios : null;
+        const importedCurve = Array.isArray(resultado.consumosHorarios) ? resultado.consumosHorarios : null;
+        window.LF.consumosHorarios = importedCurve;
+        window.LF.csvConsumosRef = importedCurve
+          ? (typeof window.LF.buildCsvConsumosRef === 'function'
+              ? window.LF.buildCsvConsumosRef({
+                  dias: resultado.dias,
+                  cPunta: resultado.punta,
+                  cLlano: resultado.llano,
+                  cValle: resultado.valle
+                })
+              : {
+                  dias: Number(resultado.dias) || 0,
+                  cPunta: Number(resultado.punta) || 0,
+                  cLlano: Number(resultado.llano) || 0,
+                  cValle: Number(resultado.valle) || 0
+                })
+          : null;
 
         // ⭐ SUN CLUB: Guardar estado del checkbox antes de cerrar el modal
         const sunClubCheckbox = document.getElementById('csvCalcularSunClub');
@@ -676,7 +692,9 @@
 
         // ⭐ PVPC PERIODO: Guardar si usar precios del período del CSV o precios recientes
         const pvpcPeriodoCheckbox = document.getElementById('csvPvpcPeriodo');
-        window.LF.pvpcPeriodoCSV = pvpcPeriodoCheckbox ? pvpcPeriodoCheckbox.checked : true;
+        window.LF.pvpcPeriodoCSV = importedCurve
+          ? (pvpcPeriodoCheckbox ? pvpcPeriodoCheckbox.checked : true)
+          : false;
 
         closeCSVModal();
 

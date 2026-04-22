@@ -120,6 +120,19 @@
     }
     
     const values = getInputValues();
+    const hasCsvCurve = Array.isArray(window.LF?.consumosHorarios) && window.LF.consumosHorarios.length > 0;
+    const csvStillMatches = typeof window.LF?.csvConsumosRefMatches === 'function'
+      ? window.LF.csvConsumosRefMatches(values, window.LF.csvConsumosRef)
+      : false;
+    if (hasCsvCurve && !csvStillMatches) {
+      if (typeof window.LF?.clearCsvImportState === 'function') {
+        window.LF.clearCsvImportState();
+      } else if (window.LF) {
+        window.LF.consumosHorarios = null;
+        window.LF.csvConsumosRef = null;
+        window.LF.pvpcPeriodoCSV = false;
+      }
+    }
     const signature = signatureFromValues(values);
 
     if (!forceRefresh && !isUserAction && state.lastSignature === signature) {
