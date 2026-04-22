@@ -524,7 +524,6 @@
   function detectHourBase(dataRows, mapping, options = {}) {
     const rows = dataRows || [];
     let foundZero = false;
-    let foundOne = false;
     let found24 = false;
     let parsedHours = 0;
     for (const row of rows) {
@@ -532,7 +531,6 @@
       if (hourNum === null) continue;
       parsedHours++;
       if (hourNum === 0) foundZero = true;
-      if (hourNum === 1) foundOne = true;
       if (hourNum === 24 || hourNum === 25) found24 = true;
     }
     if (foundZero) return { base: 'zero', reason: 'explicitZero' };
@@ -549,8 +547,8 @@
     const inferredByPeriod = inferHourBaseFromPeriods(rows, mapping, zonaFiscal);
     if (inferredByPeriod) return inferredByPeriod;
 
-    if (!foundOne && parsedHours > 0) {
-      return { base: 'zero', reason: 'ambiguousPartialHourColumn' };
+    if (parsedHours > 0) {
+      return { base: 'cnmc', reason: 'ambiguousDefault' };
     }
 
     return { base: 'cnmc', reason: 'default' };
@@ -630,10 +628,10 @@
     const hourBase = hourBaseInfo.base;
     if (hourBase === 'zero' && hourBaseInfo.reason === 'explicitZero') {
       warnings.push('Ajustado formato de hora (0-23 → 1-24).');
-    } else if (hourBase === 'zero' && hourBaseInfo.reason === 'ambiguousPartialHourColumn') {
-      warnings.push('Formato horario ambiguo: no aparecen horas 00/01/24/25. Se asume 0-23 y se ajusta a 1-24.');
     } else if (hourBase === 'zero' && hourBaseInfo.reason === 'periodMatch') {
       warnings.push('Formato horario inferido como 0-23 por coherencia con el periodo tarifario.');
+    } else if (hourBase === 'cnmc' && hourBaseInfo.reason === 'ambiguousDefault') {
+      warnings.push('Formato horario ambiguo: no hay señal suficiente para distinguir 0-23 de 1-24. Se conserva 1-24 (CNMC).');
     }
 
     const importRes = detectUnitFactor(headersNorm[mapping.importIdx], dataRows, mapping.importIdx, parseNumber);
@@ -752,7 +750,7 @@
       // Si no, calcular automáticamente para evitar divergencias aguas abajo
       let periodo = null;
       if (mapping.periodoIdx !== null) {
-        periodo = mapPeriodo(row[mapping.periodoIdx]);
+        periodo = mapPeriodoLabel(row[mapping.periodoIdx]);
       } else {
         // Calcular periodo automáticamente usando la función canónica
         // Obtener zona: priorizar options.zonaFiscal (BV), fallback a comparador principal

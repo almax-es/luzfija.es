@@ -171,17 +171,17 @@ ES123;01/01/2024;1;1,0;R`;
     expect(result.warnings.some(w => w.toLowerCase().includes('excedentes'))).toBe(true);
   });
 
-  it('Infiere formato 0-23 en CSV parciales ambiguos para Home y BV', async () => {
-    const csvContent = `CUPS;Fecha;Hora;Consumo_kWh;Método
-ES123;01/04/2026;10;1,0;R
-ES123;01/04/2026;18;1,0;R`;
+  it('Infiere formato 0-23 cuando el CSV trae periodo tarifario coherente para Home y BV', async () => {
+    const csvContent = `CUPS;Fecha;Hora;Periodo_tarifario;Consumo_kWh;Método
+ES123;01/04/2026;10;P1;1,0;R
+ES123;01/04/2026;18;P1;1,0;R`;
 
     const homeFile = { name: 'parcial-ambigua.csv', _content: csvContent };
     const homeResult = await procesarCSVConsumos(homeFile);
-    expect(homeResult.ok).not.toBe(false);
+    expect(homeResult.ok).toBe(true);
     expect(homeResult.consumosHorarios.map(r => r.hora)).toEqual([11, 19]);
     expect(homeResult.consumosHorarios.map(r => r.periodo)).toEqual(['P1', 'P1']);
-    expect(homeResult.warnings.some(w => w.toLowerCase().includes('ambiguo'))).toBe(true);
+    expect(homeResult.warnings.some(w => w.toLowerCase().includes('periodo tarifario'))).toBe(true);
 
     const bvFile = {
       name: 'parcial-ambigua.csv',
@@ -193,7 +193,21 @@ ES123;01/04/2026;18;1,0;R`;
     expect(bvResult.ok).toBe(true);
     expect(bvResult.records.map(r => r.hora)).toEqual([11, 19]);
     expect(bvResult.records.map(r => r.periodo)).toEqual(['P1', 'P1']);
-    expect(bvResult.warnings.some(w => w.toLowerCase().includes('ambiguo'))).toBe(true);
+    expect(bvResult.warnings.some(w => w.toLowerCase().includes('periodo tarifario'))).toBe(true);
+  });
+
+  it('Conserva horas CNMC en CSV parciales ambiguos sin señal adicional', async () => {
+    const csvContent = `CUPS;Fecha;Hora;Consumo_kWh;Método
+ES123;01/04/2026;2;1,0;R
+ES123;01/04/2026;3;1,0;R`;
+
+    const file = { name: 'subset-cnmc.csv', _content: csvContent };
+    const result = await procesarCSVConsumos(file);
+
+    expect(result.ok).toBe(true);
+    expect(result.consumosHorarios.map(r => r.hora)).toEqual([2, 3]);
+    expect(result.consumosHorarios.map(r => r.periodo)).toEqual(['P3', 'P3']);
+    expect(result.warnings.some(w => w.toLowerCase().includes('ambiguo'))).toBe(true);
   });
 
   it('Validación de rango de fechas (máximo 370 días)', () => {
