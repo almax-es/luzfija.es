@@ -275,10 +275,38 @@ function formatSpanishShortDate(ymd) {
   return `${Number(day)} ${months[month]} ${year}`;
 }
 
+function formatSpanishLongDate(ymd) {
+  const [year, month, day] = String(ymd || '').split('-');
+  const months = {
+    '01': 'enero',
+    '02': 'febrero',
+    '03': 'marzo',
+    '04': 'abril',
+    '05': 'mayo',
+    '06': 'junio',
+    '07': 'julio',
+    '08': 'agosto',
+    '09': 'septiembre',
+    '10': 'octubre',
+    '11': 'noviembre',
+    '12': 'diciembre'
+  };
+
+  if (!year || !month || !day || !months[month]) return String(ymd || '');
+  return `${Number(day)} de ${months[month]} de ${year}`;
+}
+
 function replaceVisibleUpdatedBadge(content, ymd) {
   return content.replace(
     /(<span class="updated-badge">[^<]*Act\.\s*)([^<]+)(<\/span>)/g,
     `$1${formatSpanishShortDate(ymd)}$3`
+  );
+}
+
+function replaceVisibleUpdatedDate(content, ymd) {
+  return content.replace(
+    /(Última actualización:\s*)([^<]+)(<\/em><\/p>)/i,
+    `$1${formatSpanishLongDate(ymd)}$3`
   );
 }
 
@@ -293,6 +321,10 @@ function syncHtmlDateMetadata() {
 
       if (normalizedRelPath.startsWith('guias/') && normalizedRelPath !== 'guias/index.html') {
         next = replaceVisibleUpdatedBadge(next, expectedDate);
+      }
+
+      if (normalizedRelPath === 'privacidad.html') {
+        next = replaceVisibleUpdatedDate(next, expectedDate);
       }
 
       return next;
