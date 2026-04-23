@@ -2,7 +2,7 @@
 
 Este directorio contiene librerías de terceros alojadas localmente para garantizar la privacidad (evitar peticiones a CDNs externos), la estabilidad y el funcionamiento offline.
 
-**Última actualización del inventario:** 09/02/2026
+**Última actualización del inventario:** 23/04/2026
 
 ---
 
@@ -71,7 +71,8 @@ Motor de reconocimiento óptico de caracteres (WASM + JS).
 ## 📱 jsQR
 Lector de códigos QR en JavaScript puro.
 
-- **Versión:** 1.4.0
+- **Versión:** 1.4.0 (build local distinta del artefacto npm/jsDelivr actual)
+- **Nota de verificación:** la diferencia detectada contra `jsqr@1.4.0/dist/jsQR.js` son dos líneas de código muerto (`lengths`/`size`) en la detección del alignment pattern; `size` no se usa en el retorno ni cambia la API pública.
 - **Licencia:** Apache License 2.0
 - **Archivos:**
   - `jsqr/jsQR.js`
@@ -81,9 +82,10 @@ Lector de códigos QR en JavaScript puro.
 ## 🐐 GoatCounter
 Script de analítica respetuosa con la privacidad (sin cookies).
 
-- **Versión:** Latest (actualizado: 29/01/2026)
+- **Versión:** `count.js` autoalojado con parche local LuzFija (parcheado: 08/03/2026)
+- **Nota de verificación:** este archivo no es una copia byte a byte de `https://gc.zgo.at/count.js`; incluye el filtro local de ruido legacy (`gcNormalize`, `gcLegacyNoiseKind`, `gcRemapLegacyPayload`, etc.) que redirige falsos positivos antiguos a `error-legacy-filtrado`. No sustituir por upstream sin portar antes este parche y repetir los tests de tracking.
 - **Licencia:** ISC
 - **Archivos:**
   - `goatcounter/count.js`
-    - **SHA-256:** `030ad75a7c80a04107a9b91f79e4b1572da0a583a80a9b67e111b310da11cbe9`
-    - **Tamaño:** 8.73 KB
+    - **SHA-256:** `f77e6b334b5b05d2f4f1f7b9a41a89856fbd61919ba00bd9350d459e881312c6`
+    - **Tamaño:** 10.98 KB (11.244 bytes)
