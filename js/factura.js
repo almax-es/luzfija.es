@@ -1665,6 +1665,12 @@
           if (typeof toast === 'function') toast('Sube un PDF válido', 'err');
           return;
         }
+        const MAX_PDF_SIZE = 20 * 1024 * 1024;
+        if (file.size > MAX_PDF_SIZE) {
+          const sizeMB = Math.round(file.size / 1024 / 1024);
+          if (typeof toast === 'function') toast(`El PDF es demasiado grande (${sizeMB} MB). Máximo 20 MB.`, 'err');
+          return;
+        }
         __LF_lastFile = file;
         window.__LF_FACTURA_BUSY = true;
 

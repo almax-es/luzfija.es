@@ -133,6 +133,11 @@
   }
 
   async function parseCsvOrXlsx(file) {
+    const MAX_FILE_SIZE = 10 * 1024 * 1024;
+    if (file.size > MAX_FILE_SIZE) {
+      const sizeMB = Math.round(file.size / 1024 / 1024);
+      throw new Error(`El archivo es demasiado grande (${sizeMB} MB). El tamaño máximo permitido es 10 MB.`);
+    }
     const csvUtils = window.LF?.csvUtils;
     if (!csvUtils) throw new Error('CSV utils no disponibles.');
 
