@@ -119,12 +119,6 @@ const PVPC_STATS = {
         }
     },
 
-    async getAvailableMonths(type, geoId, year) {
-        const manifest = await this.loadGeoIndex(type, geoId);
-        if (!manifest || !manifest.monthsByYear) return null;
-        return manifest.monthsByYear.get(Number(year)) || new Set();
-    },
-
     /**
      * Carga todos los datos disponibles para una zona y año
      * @param {number} geoId - ID de la zona (8741 Península, etc)
