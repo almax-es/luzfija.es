@@ -222,24 +222,42 @@ def build_days(payload: dict, tz: ZoneInfo, start_day: dt.date, end_day: dt.date
     }
     return days, meta
 
-def validate_days(days: Dict[str, List[List[float]]]) -> List[str]:
+def expected_hourly_points(day: dt.date, tz: ZoneInfo) -> int:
+    start_local = dt.datetime(day.year, day.month, day.day, 0, 0, 0, tzinfo=tz)
+    next_day = day + dt.timedelta(days=1)
+    end_local = dt.datetime(next_day.year, next_day.month, next_day.day, 0, 0, 0, tzinfo=tz)
+    delta = end_local.astimezone(dt.timezone.utc) - start_local.astimezone(dt.timezone.utc)
+    return int(delta.total_seconds() // 3600)
+
+def expected_points_for_day(day_str: str, tz: ZoneInfo) -> Tuple[int, int]:
+    day = dt.date.fromisoformat(day_str)
+    hourly = expected_hourly_points(day, tz)
+    return hourly, hourly * 4
+
+def validate_days(days: Dict[str, List[List[float]]], tz: ZoneInfo) -> List[str]:
     warnings: List[str] = []
     for day, arr in days.items():
         n = len(arr)
-        # Soportar 23-25 (horario) y 92-100 (cuartohorario)
-        is_hourly = (20 <= n <= 30)
-        is_quarter = (90 <= n <= 110)
+        expected_hourly, expected_quarter = expected_points_for_day(day, tz)
+        is_hourly = (n == expected_hourly)
+        is_quarter = (n == expected_quarter)
         
         if not (is_hourly or is_quarter):
-            warnings.append(f"{day}: unexpected points={n}")
+            warnings.append(f"{day}: unexpected points={n} expected={expected_hourly} or {expected_quarter}")
         
+        expected_step = 900 if is_quarter else 3600
         for i in range(1, n):
             if arr[i][0] <= arr[i-1][0]:
                 warnings.append(f"{day}: non-monotonic epoch at idx {i}")
                 break
+            if is_hourly or is_quarter:
+                step = arr[i][0] - arr[i-1][0]
+                if step != expected_step:
+                    warnings.append(f"{day}: unexpected epoch step={step} at idx {i}")
+                    break
     return warnings
 
-def merge_month_file(out_path: str, new_obj: dict) -> dict:
+def merge_month_file(out_path: str, new_obj: dict, tz: ZoneInfo) -> dict:
     if not os.path.exists(out_path):
         return new_obj
 
@@ -257,7 +275,19 @@ def merge_month_file(out_path: str, new_obj: dict) -> dict:
     if not isinstance(old_days, dict) or not isinstance(new_days, dict):
         raise RuntimeError(f"Bad days shape in merge for {out_path}")
 
-    old_days.update(new_days)
+    for day, new_arr in new_days.items():
+        old_arr = old_days.get(day)
+        if old_arr is None:
+            old_days[day] = new_arr
+            continue
+
+        old_warnings = validate_days({day: old_arr}, tz)
+        new_warnings = validate_days({day: new_arr}, tz)
+        old_is_complete = not old_warnings
+        new_is_complete = not new_warnings
+
+        if new_is_complete or not old_is_complete or len(new_arr) >= len(old_arr):
+            old_days[day] = new_arr
 
     keys = sorted(old_days.keys())
     if keys:
@@ -299,9 +329,23 @@ def rebuild_geo_index(geo_dir: str, geo_id: int, tz_name: str, indicator: int, g
         "warnings": warnings,
     }
 
-def detect_missing_days(geo_dir: str, current_month: str, previous_month: str) -> Set[dt.date]:
-    """Detecta días faltantes en mes actual y anterior"""
-    missing = set()
+def detect_missing_days(geo_dir: str, tz: ZoneInfo, current_month: str, previous_month: str) -> Set[dt.date]:
+    """Detecta días faltantes o incompletos que deben refrescarse."""
+    missing: Set[dt.date] = set()
+    today = dt.datetime.now(tz).date()
+
+    for name in sorted(os.listdir(geo_dir)):
+        if not MONTH_RE.match(name):
+            continue
+        file_path = os.path.join(geo_dir, name)
+        try:
+            data = read_json(file_path)
+            for day_str, arr in (data.get("days") or {}).items():
+                day = dt.date.fromisoformat(day_str)
+                if day <= today and validate_days({day_str: arr}, tz):
+                    missing.add(day)
+        except Exception as e:
+            print(f"Warning: Error reading {file_path}: {e}", file=sys.stderr)
     
     for yyyymm in [previous_month, current_month]:
         file_path = os.path.join(geo_dir, f"{yyyymm}.json")
@@ -347,7 +391,7 @@ def auto_detect_range(geo_dir: str, tz: ZoneInfo) -> Tuple[dt.date, dt.date]:
         previous_month = f"{today.year}-{today.month - 1:02d}"
     
     # Detectar días faltantes (incluyendo hoy si falta)
-    missing = detect_missing_days(geo_dir, current_month, previous_month)
+    missing = detect_missing_days(geo_dir, tz, current_month, previous_month)
     
     if missing:
         # Descargar desde el primer día faltante hasta mañana
@@ -432,8 +476,6 @@ def main() -> int:
             # Pasamos el filtro geo_id explícito
             days, meta = build_days(payload, tz, mr.start_local, mr.end_local, filter_geo_id=filter_geo_id)
 
-            warns = validate_days(days)
-
             out_name = f"{mr.year:04d}-{mr.month:02d}.json"
             out_path = os.path.join(geo_dir, out_name)
 
@@ -449,10 +491,13 @@ def main() -> int:
                 "days": days,
                 "meta": meta,
             }
+            merged = merge_month_file(out_path, month_obj, tz)
+            warns = validate_days(merged.get("days") or {}, tz)
             if warns:
-                month_obj["warnings"] = warns
+                merged["warnings"] = warns
+            else:
+                merged.pop("warnings", None)
 
-            merged = merge_month_file(out_path, month_obj)
             write_json(out_path, merged)
             print(f"  ✓ {out_name}: +{len(days)} días (total: {len(merged.get('days', {}))})")
 
