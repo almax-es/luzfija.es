@@ -12,8 +12,18 @@ const PVPC_STATS = {
         return Number(geoId) === 8742 ? 'Atlantic/Canary' : 'Europe/Madrid';
     },
 
-    getHourFormatter(geoId) {
-        const tz = this.getGeoTimeZone(geoId);
+    getDatasetTimeZone(context) {
+        if (context && typeof context === 'object') {
+            if (typeof context.timezone === 'string' && context.timezone) return context.timezone;
+            if (context.type === 'surplus') return 'Europe/Madrid';
+            return this.getGeoTimeZone(context.geoId);
+        }
+
+        return this.getGeoTimeZone(context);
+    },
+
+    getHourFormatter(context) {
+        const tz = this.getDatasetTimeZone(context);
         if (this.hourFormatterCache.has(tz)) {
             return this.hourFormatterCache.get(tz);
         }
@@ -29,14 +39,14 @@ const PVPC_STATS = {
         return formatter;
     },
 
-    getTimestampHour(timestampSeconds, geoId) {
+    getTimestampHour(timestampSeconds, context) {
         const ts = timestampSeconds instanceof Date
             ? Math.floor(timestampSeconds.getTime() / 1000)
             : Number(timestampSeconds);
 
         if (!Number.isFinite(ts)) return null;
 
-        const parts = this.getHourFormatter(geoId).formatToParts(new Date(ts * 1000));
+        const parts = this.getHourFormatter(context).formatToParts(new Date(ts * 1000));
         const hourPart = parts.find((part) => part.type === 'hour');
         const hour = Number(hourPart ? hourPart.value : NaN);
         return Number.isFinite(hour) ? hour : null;
@@ -97,7 +107,10 @@ const PVPC_STATS = {
                 monthsByYear.get(y).add(month);
             });
 
-            const manifest = { monthsByYear };
+            const manifest = {
+                monthsByYear,
+                timezone: typeof json?.timezone === 'string' ? json.timezone : null
+            };
             this.manifestCache.set(key, manifest);
             return manifest;
         } catch (_) {
@@ -131,7 +144,8 @@ const PVPC_STATS = {
         const monthLabels = [];
         // Si existe índice por zona, usarlo para pedir solo los meses publicados
         // y evitar ruido 404 en huecos históricos.
-        const availableMonths = await this.getAvailableMonths(type, geoId, year);
+        const manifest = await this.loadGeoIndex(type, geoId);
+        const availableMonths = manifest && manifest.monthsByYear ? manifest.monthsByYear.get(Number(year)) || new Set() : null;
         const now = new Date();
         const currentYear = now.getFullYear();
         const currentMonth = now.getMonth() + 1;
@@ -164,6 +178,8 @@ const PVPC_STATS = {
             meta: {
                 geoId,
                 year,
+                type,
+                timezone: manifest?.timezone || this.getGeoTimeZone(geoId),
                 monthsLoaded: [],
                 from: null,
                 to: null,
@@ -176,6 +192,9 @@ const PVPC_STATS = {
             if (monthData && monthData.days) {
                 Object.assign(yearData.days, monthData.days);
                 yearData.meta.monthsLoaded.push(monthLabels[index]);
+                if (typeof monthData.timezone === 'string' && monthData.timezone) {
+                    yearData.meta.timezone = monthData.timezone;
+                }
                 if (monthData.from) {
                     yearData.meta.from = yearData.meta.from ? Math.min(Date.parse(`${monthData.from}T00:00:00`), yearData.meta.from) : Date.parse(`${monthData.from}T00:00:00`);
                 }
@@ -325,11 +344,11 @@ const PVPC_STATS = {
     getHourlyProfile(yearData) {
         const hourlySums = new Array(24).fill(0);
         const hourlyCounts = new Array(24).fill(0);
-        const geoId = yearData?.meta?.geoId;
+        const timeContext = yearData?.meta;
 
         Object.values(yearData.days).forEach(hours => {
             hours.forEach(([ts, price]) => {
-                const hour = this.getTimestampHour(ts, geoId);
+                const hour = this.getTimestampHour(ts, timeContext);
                 if (!Number.isFinite(hour)) return;
                 hourlySums[hour] += price;
                 hourlyCounts[hour]++;
@@ -435,15 +454,15 @@ const PVPC_STATS = {
         return { labels: orderedLabels, data: orderedData };
     },
 
-    formatHourRange(startRef, durationHours, geoId) {
+    formatHourRange(startRef, durationHours, context) {
         const startTs = startRef instanceof Date
             ? Math.floor(startRef.getTime() / 1000)
             : Number(startRef);
 
         if (!Number.isFinite(startTs)) return '';
 
-        const startHour = this.getTimestampHour(startTs, geoId);
-        const endHour = this.getTimestampHour(startTs + (durationHours * 60 * 60), geoId);
+        const startHour = this.getTimestampHour(startTs, context);
+        const endHour = this.getTimestampHour(startTs + (durationHours * 60 * 60), context);
 
         if (!Number.isFinite(startHour) || !Number.isFinite(endHour)) return '';
 
@@ -457,7 +476,7 @@ const PVPC_STATS = {
         const dayType = options.dayType || 'any';
         const exampleDay = options.exampleDay || null;
         const windowsMap = new Map();
-        const geoId = yearData?.meta?.geoId;
+        const timeContext = yearData?.meta;
 
         const dateKeys = exampleDay ? [exampleDay] : Object.keys(yearData.days);
         dateKeys.forEach(dateStr => {
@@ -480,7 +499,7 @@ const PVPC_STATS = {
                 }
 
                 const average = sum / duration;
-                const label = this.formatHourRange(entries[i].ts, duration, geoId);
+                const label = this.formatHourRange(entries[i].ts, duration, timeContext);
                 const existing = windowsMap.get(label) || { values: [], sum: 0, count: 0 };
                 existing.values.push(average);
                 existing.sum += average;

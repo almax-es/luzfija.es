@@ -47,6 +47,33 @@ describe('PVPC_STATS date handling', () => {
     expect(midnightWindow.avg).toBeCloseTo(0.15, 5);
   });
 
+  it('uses Madrid timezone for Canary surplus hourly analysis', () => {
+    // 2026-04-01 00:00/01:00/02:00 in Europe/Madrid.
+    const hours = [
+      [1774994400, 1],
+      [1774998000, 2],
+      [1775001600, 3]
+    ];
+
+    const yearData = {
+      days: {
+        '2026-04-01': hours
+      },
+      meta: { year: 2026, geoId: 8742, type: 'surplus', timezone: 'Europe/Madrid' }
+    };
+
+    const profile = window.PVPC_STATS.getHourlyProfile(yearData);
+    expect(profile.data[0]).toBe(1);
+    expect(profile.data[1]).toBe(2);
+    expect(profile.data[2]).toBe(3);
+
+    const stats = window.PVPC_STATS.getWindowStats(yearData, { duration: 2 });
+    const midnightWindow = stats.windows.find((entry) => entry.label === '00:00–02:00');
+
+    expect(midnightWindow).toBeTruthy();
+    expect(midnightWindow.avg).toBeCloseTo(1.5, 5);
+  });
+
   it('parses weekday using a stable local date', () => {
     const ts = Math.floor(new Date(2024, 2, 10, 12, 0, 0).getTime() / 1000);
     const yearData = {
@@ -127,6 +154,56 @@ describe('PVPC_STATS manifest-aware loading', () => {
       const yearData = await window.PVPC_STATS.loadYearData(8742, 2024, 'pvpc');
       expect(Object.keys(yearData.days).sort()).toEqual(['2024-01-01', '2024-03-01']);
       expect(calls.some((u) => u.endsWith('/data/pvpc/8742/2024-02.json'))).toBe(false);
+    } finally {
+      global.fetch = originalFetch;
+      window.PVPC_STATS.cache.clear();
+      window.PVPC_STATS.manifestCache.clear();
+    }
+  });
+
+  it('preserves manifest timezone when loading Canary surplus data', async () => {
+    const originalFetch = global.fetch;
+    const ok = (data) => ({ ok: true, json: async () => data });
+
+    global.fetch = async (url) => {
+      const u = String(url);
+
+      if (u.endsWith('/data/surplus/8742/index.json')) {
+        return ok({
+          timezone: 'Europe/Madrid',
+          files: [
+            { file: '2024-04.json' }
+          ]
+        });
+      }
+      if (u.endsWith('/data/surplus/8742/2024-04.json')) {
+        return ok({
+          timezone: 'Europe/Madrid',
+          from: '2024-04-01',
+          to: '2024-04-01',
+          days: {
+            '2024-04-01': [
+              [1711922400, 1],
+              [1711926000, 2]
+            ]
+          }
+        });
+      }
+
+      throw new Error(`Unexpected fetch: ${u}`);
+    };
+
+    try {
+      window.PVPC_STATS.cache.clear();
+      window.PVPC_STATS.manifestCache.clear();
+
+      const yearData = await window.PVPC_STATS.loadYearData(8742, 2024, 'surplus');
+      expect(yearData.meta.type).toBe('surplus');
+      expect(yearData.meta.timezone).toBe('Europe/Madrid');
+
+      const profile = window.PVPC_STATS.getHourlyProfile(yearData);
+      expect(profile.data[0]).toBe(1);
+      expect(profile.data[1]).toBe(2);
     } finally {
       global.fetch = originalFetch;
       window.PVPC_STATS.cache.clear();
