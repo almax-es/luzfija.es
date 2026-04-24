@@ -49,6 +49,19 @@ describe('PVPC stats UI CSV fallback helpers', () => {
     expect(parsed.hora).toBeNull();
   });
 
+  it('rejects personal CSV/XLSX files above 10 MB before reading them', async () => {
+    const { parseCsvOrXlsx } = window.LF.pvpcStatsCsvHelpers;
+    const hugeFile = {
+      name: 'huge.csv',
+      size: 10 * 1024 * 1024 + 1,
+      text: () => {
+        throw new Error('should not read file contents');
+      }
+    };
+
+    await expect(parseCsvOrXlsx(hugeFile)).rejects.toThrow(/10 MB/);
+  });
+
   it('maps DST fallback days with exact CNMC hours, including hora 25 and later hours', () => {
     const { getHourIndex, buildCnmcHourIndexMap, getVisualHourBucket } = window.LF.pvpcStatsCsvHelpers;
     const baseTs = Date.parse('2024-10-26T22:00:00Z') / 1000; // 00:00 local del 27/10/2024

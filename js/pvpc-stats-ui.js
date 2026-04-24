@@ -132,12 +132,24 @@
     });
   }
 
+  const MAX_CSV_FILE_SIZE_MB = 10;
+  const MAX_CSV_FILE_SIZE_BYTES = MAX_CSV_FILE_SIZE_MB * 1024 * 1024;
+
+  function formatSizeMb(bytes) {
+    const n = Number(bytes);
+    if (!Number.isFinite(n) || n <= 0) return 0;
+    return Math.ceil(n / 1024 / 1024);
+  }
+
+  function assertCsvFileSize(file) {
+    const size = Number(file?.size);
+    if (!Number.isFinite(size) || size <= MAX_CSV_FILE_SIZE_BYTES) return;
+    const sizeMB = formatSizeMb(size);
+    throw new Error(`El archivo es demasiado grande (${sizeMB} MB). El tamaño máximo permitido es ${MAX_CSV_FILE_SIZE_MB} MB.`);
+  }
+
   async function parseCsvOrXlsx(file) {
-    const MAX_FILE_SIZE = 10 * 1024 * 1024;
-    if (file.size > MAX_FILE_SIZE) {
-      const sizeMB = Math.round(file.size / 1024 / 1024);
-      throw new Error(`El archivo es demasiado grande (${sizeMB} MB). El tamaño máximo permitido es 10 MB.`);
-    }
+    assertCsvFileSize(file);
     const csvUtils = window.LF?.csvUtils;
     if (!csvUtils) throw new Error('CSV utils no disponibles.');
 
@@ -342,7 +354,8 @@
     parseDateHourValue,
     getHourIndex,
     buildCnmcHourIndexMap,
-    getVisualHourBucket
+    getVisualHourBucket,
+    parseCsvOrXlsx
   });
 
   async function loadSurplusMonth(geo, ym) {

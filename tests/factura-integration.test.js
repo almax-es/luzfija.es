@@ -40,6 +40,8 @@ describe('Factura PDF Integration (Black Box)', () => {
 
     // Mock jsQR para evitar carga de script externo que cuelga JSDOM
     window.jsQR = vi.fn(() => null); // Retorna null (no QR encontrado)
+    global.toast = vi.fn();
+    window.toast = global.toast;
 
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockImplementation(() => ({
       getImageData: () => ({ data: new Uint8ClampedArray(4), width: 1, height: 1 }),
@@ -52,7 +54,84 @@ describe('Factura PDF Integration (Black Box)', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    delete global.toast;
+    delete window.toast;
     document.body.innerHTML = '';
+  });
+
+  it('Rechaza PDFs mayores de 20 MB antes de leerlos', async () => {
+    await import('../js/factura.js');
+    if (window.__LF_bindFacturaParser) {
+      window.__LF_bindFacturaParser();
+    }
+
+    const fileInput = document.getElementById('fileInputFactura');
+    const mockFile = {
+      name: 'factura-enorme.pdf',
+      type: 'application/pdf',
+      size: 20 * 1024 * 1024 + 1,
+      arrayBuffer: vi.fn()
+    };
+
+    const event = new Event('change', { bubbles: true });
+    Object.defineProperty(event, 'target', { value: { files: [mockFile] } });
+    fileInput.dispatchEvent(event);
+
+    await new Promise(r => setTimeout(r, 50));
+
+    expect(mockFile.arrayBuffer).not.toHaveBeenCalled();
+    expect(window.pdfjsLib.getDocument).not.toHaveBeenCalled();
+    expect(global.toast).toHaveBeenCalledWith(expect.stringContaining('Máximo 20 MB'), 'err');
+  });
+
+  it('Limita el parseo de texto a las primeras 20 páginas del PDF', async () => {
+    const qrUrl = "https://comparador.cnmc.gob.es/comparador/QRE?pP1=3.450&pP2=2.200&cfP1=111&cfP2=222&cfP3=333&iniF=2025-01-01&finF=2025-01-30";
+    const getPage = vi.fn((pageNum) => Promise.resolve({
+      getTextContent: () => Promise.resolve({
+        items: pageNum === 1
+          ? [
+              { str: "Factura con enlace QR CNMC", transform: [0,0,0,0, 10, 100] },
+              { str: qrUrl, transform: [0,0,0,0, 10, 90] },
+              { str: "relleno suficiente para superar el mínimo de texto seleccionable", transform: [0,0,0,0, 10, 80] }
+            ]
+          : [
+              { str: `Página ${pageNum} relleno de factura`, transform: [0,0,0,0, 10, 100] }
+            ]
+      }),
+      getAnnotations: () => Promise.resolve([]),
+      cleanup: () => {},
+      getViewport: () => ({ width: 100, height: 100 }),
+      render: () => ({ promise: Promise.resolve() })
+    }));
+
+    window.pdfjsLib.getDocument.mockReturnValue({
+      promise: Promise.resolve({
+        numPages: 25,
+        getPage,
+        cleanup: () => {},
+        destroy: () => {}
+      })
+    });
+
+    await import('../js/factura.js');
+    if (window.__LF_bindFacturaParser) {
+      window.__LF_bindFacturaParser();
+    }
+
+    const fileInput = document.getElementById('fileInputFactura');
+    const mockFile = new File(['dummy content'], 'factura-muchas-paginas.pdf', { type: 'application/pdf' });
+    mockFile.arrayBuffer = async () => new ArrayBuffer(10);
+
+    const event = new Event('change', { bubbles: true });
+    Object.defineProperty(event, 'target', { value: { files: [mockFile] } });
+    fileInput.dispatchEvent(event);
+
+    await new Promise(r => setTimeout(r, 500));
+
+    const pagesRead = getPage.mock.calls.map(([pageNum]) => pageNum);
+    expect(Math.max(...pagesRead)).toBe(20);
+    expect(pagesRead).not.toContain(21);
+    expect(document.getElementById('avisoFactura').textContent).toContain('primeras 20');
   });
 
   it('Debe procesar un PDF simulado y rellenar el formulario correctamente', async () => {

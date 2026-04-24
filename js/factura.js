@@ -28,6 +28,15 @@
 
       let __LF_pdfjsLoading = null;
       if (typeof window.__LF_FACTURA_BUSY !== 'boolean') window.__LF_FACTURA_BUSY = false;
+      const __LF_MAX_PDF_SIZE_MB = 20;
+      const __LF_MAX_PDF_SIZE_BYTES = __LF_MAX_PDF_SIZE_MB * 1024 * 1024;
+      const __LF_MAX_PDF_TEXT_PAGES = 20;
+
+      function __LF_formatSizeMb(bytes){
+        const n = Number(bytes);
+        if (!Number.isFinite(n) || n <= 0) return 0;
+        return Math.ceil(n / 1024 / 1024);
+      }
 
       function __LF_pdfVerbosityErrors(){
         try{
@@ -178,8 +187,10 @@
           let compact = '';
           const qrHintPages = [];
           const qrHintRe = /\bqr\b|comparador|cnmc|qre\?/i;
+          const pagesTotal = Number.isFinite(pdf.numPages) ? pdf.numPages : 0;
+          const pagesScanned = Math.min(pagesTotal, __LF_MAX_PDF_TEXT_PAGES);
 
-          for (let p=1; p<=pdf.numPages; p++){
+          for (let p=1; p<=pagesScanned; p++){
             const page = await pdf.getPage(p);
             let items = [];
             try{
@@ -231,7 +242,7 @@
 
           const textLines = lines.join('\n');
           const textCompact = compact.replace(/\s+/g,' ').trim();
-          return { textLines, textCompact, textRawLen: (textCompact || '').length, qrHintPages };
+          return { textLines, textCompact, textRawLen: (textCompact || '').length, qrHintPages, pagesTotal, pagesScanned };
         } finally {
           try{ if (pdf && pdf.cleanup) await pdf.cleanup(); }catch(_){}
           try{ if (pdf && pdf.destroy) await pdf.destroy(); }catch(_){}
@@ -1511,12 +1522,10 @@
           .replace(/'/g, '&#39;');
       }
 
-      function __LF_warn(msg){
-        const a = __LF_q('avisoFactura');
-        if (!a) return;
+      function __LF_warnHtml(msg){
         const markerOpen = '__LF_B_OPEN__';
         const markerClose = '__LF_B_CLOSE__';
-        const html = __LF_escapeWarnHtml(
+        return __LF_escapeWarnHtml(
           String(msg ?? '')
             .replace(/<\s*b\s*>/gi, markerOpen)
             .replace(/<\s*\/\s*b\s*>/gi, markerClose)
@@ -1524,8 +1533,33 @@
           .replace(new RegExp(markerOpen, 'g'), '<b>')
           .replace(new RegExp(markerClose, 'g'), '</b>')
           .replace(/\n/g, '<br>');
+      }
+
+      function __LF_warn(msg){
+        const a = __LF_q('avisoFactura');
+        if (!a) return;
+        const html = __LF_warnHtml(msg);
         a.innerHTML = html;
         __LF_show(a);
+      }
+
+      function __LF_appendWarn(msg){
+        const a = __LF_q('avisoFactura');
+        if (!a) return;
+        const html = __LF_warnHtml(msg);
+        if (a.innerHTML.trim()) {
+          a.innerHTML += '<br><br>' + html;
+        } else {
+          a.innerHTML = html;
+        }
+        __LF_show(a);
+      }
+
+      function __LF_pdfPageLimitWarning(meta){
+        const total = Number(meta?.pagesTotal);
+        const scanned = Number(meta?.pagesScanned);
+        if (!Number.isFinite(total) || !Number.isFinite(scanned) || total <= scanned) return '';
+        return `⚠️ El PDF tiene ${total} páginas. Para evitar bloqueos se han analizado solo las primeras ${scanned}. Si faltan datos, sube el PDF de factura sin anexos o introduce los datos manualmente.`;
       }
 
       function __LF_focusTrapAttach(modal){
@@ -1665,10 +1699,9 @@
           if (typeof toast === 'function') toast('Sube un PDF válido', 'err');
           return;
         }
-        const MAX_PDF_SIZE = 20 * 1024 * 1024;
-        if (file.size > MAX_PDF_SIZE) {
-          const sizeMB = Math.round(file.size / 1024 / 1024);
-          if (typeof toast === 'function') toast(`El PDF es demasiado grande (${sizeMB} MB). Máximo 20 MB.`, 'err');
+        if (file.size > __LF_MAX_PDF_SIZE_BYTES) {
+          const sizeMB = __LF_formatSizeMb(file.size);
+          if (typeof toast === 'function') toast(`El PDF es demasiado grande (${sizeMB} MB). Máximo ${__LF_MAX_PDF_SIZE_MB} MB.`, 'err');
           return;
         }
         __LF_lastFile = file;
@@ -1701,7 +1734,8 @@
         __LF_show(__LF_q('loaderFactura'));
 
         try{
-          const { textLines, textCompact, textRawLen, qrHintPages } = await __LF_extraerTextoPDF(file);
+          const { textLines, textCompact, textRawLen, qrHintPages, pagesTotal, pagesScanned } = await __LF_extraerTextoPDF(file);
+          const pdfPageWarning = __LF_pdfPageLimitWarning({ pagesTotal, pagesScanned });
 
           // NO mostrar resultados todavía, el QR puede tardar 2-3 segundos más
 
@@ -1709,6 +1743,7 @@
             __LF_hide(__LF_q('loaderFactura'));
             __LF_show(__LF_q('resultadoFactura'));
             __LF_warn('⚠️ No se ha detectado texto seleccionable. Parece un PDF escaneado. Puedes probar OCR o introducir los datos manualmente.');
+            if (pdfPageWarning) __LF_appendWarn(pdfPageWarning);
             __LF_show(__LF_q('btnOcrFactura'));
             __LF_setBadge(0);
             __LF_renderForm({ p1:null,p2:null,dias:null,consumoPunta:null,consumoLlano:null,consumoValle:null,confianza:0,fuenteDatos:null });
@@ -1799,6 +1834,7 @@
             
             __LF_setBadge(100);
             __LF_renderForm(datosCombinados);
+            if (pdfPageWarning) __LF_appendWarn(pdfPageWarning);
             return;
           }
 
@@ -1818,6 +1854,7 @@
 
           // Mostrar advertencias contextuales
           __LF_showContextualWarnings(datos);
+          if (pdfPageWarning) __LF_appendWarn(pdfPageWarning);
 
         }catch(err){
           __LF_hide(__LF_q('loaderFactura'));

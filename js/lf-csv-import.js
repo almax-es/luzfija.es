@@ -283,12 +283,28 @@
   }
 
   // ===== PROCESAR ARCHIVOS =====
+  const MAX_IMPORT_FILE_SIZE_MB = 10;
+  const MAX_IMPORT_FILE_SIZE_BYTES = MAX_IMPORT_FILE_SIZE_MB * 1024 * 1024;
+
+  function formatSizeMb(bytes) {
+    const n = Number(bytes);
+    if (!Number.isFinite(n) || n <= 0) return 0;
+    return Math.ceil(n / 1024 / 1024);
+  }
+
+  function fileSizeLimitResult(file) {
+    const size = Number(file?.size);
+    if (!Number.isFinite(size) || size <= MAX_IMPORT_FILE_SIZE_BYTES) return null;
+    const sizeMB = formatSizeMb(size);
+    return {
+      ok: false,
+      error: `El archivo es demasiado grande (${sizeMB} MB). El tamaño máximo permitido es ${MAX_IMPORT_FILE_SIZE_MB} MB.`
+    };
+  }
+
   async function procesarCSVConsumos(file) {
-    const MAX_FILE_SIZE = 10 * 1024 * 1024;
-    if (file.size > MAX_FILE_SIZE) {
-      const sizeMB = Math.round(file.size / 1024 / 1024);
-      return { ok: false, error: `El archivo es demasiado grande (${sizeMB} MB). El tamaño máximo permitido es 10 MB.` };
-    }
+    const sizeError = fileSizeLimitResult(file);
+    if (sizeError) return sizeError;
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = (e) => {
@@ -335,11 +351,8 @@
   }
 
   async function procesarXLSXConsumos(file) {
-    const MAX_FILE_SIZE = 10 * 1024 * 1024;
-    if (file.size > MAX_FILE_SIZE) {
-      const sizeMB = Math.round(file.size / 1024 / 1024);
-      return { ok: false, error: `El archivo es demasiado grande (${sizeMB} MB). El tamaño máximo permitido es 10 MB.` };
-    }
+    const sizeError = fileSizeLimitResult(file);
+    if (sizeError) return sizeError;
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = async (e) => {

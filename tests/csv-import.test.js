@@ -97,6 +97,16 @@ ES12345;01/01/2024;2;2,456;R`;
       expect(result.error).toMatch(/Error al leer/);
     });
 
+    it('Debe rechazar CSV mayores de 10 MB antes de leerlos', async () => {
+      const file = { name: 'error.csv', size: 10 * 1024 * 1024 + 1 };
+      const result = await procesarCSVConsumos(file);
+
+      expect(result.ok).toBe(false);
+      expect(result.error).toMatch(/demasiado grande/);
+      expect(result.error).toContain('10 MB');
+      expect(result.error).not.toMatch(/Error al leer/);
+    });
+
     it('Debe devolver 0,0% por periodo cuando el CSV solo tiene excedentes netos', async () => {
       const csvContent = `Fecha;Hora;Consumo_kWh;Excedente_kWh
 01/04/2026;1;0;1,0
@@ -190,6 +200,16 @@ ES12345;01/01/2024;2;2,456;R`;
       const result = await procesarXLSXConsumos(file);
       expect(result.ok).toBe(false);
       expect(result.error).toMatch(/No se encontró la fila de cabecera/);
+    });
+
+    it('Debe rechazar Excel mayores de 10 MB antes de leerlos', async () => {
+      const file = { name: 'error.xlsx', size: 10 * 1024 * 1024 + 1 };
+      const result = await procesarXLSXConsumos(file);
+
+      expect(result.ok).toBe(false);
+      expect(result.error).toMatch(/demasiado grande/);
+      expect(result.error).toContain('10 MB');
+      expect(result.error).not.toMatch(/Error al leer/);
     });
   });
 
