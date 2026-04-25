@@ -1,7 +1,7 @@
 {
-  "name": "LuzFija.es – Comparador de tarifas eléctricas",
+  "name": "LuzFija.es – Suite de análisis eléctrico",
   "short_name": "LuzFija",
-  "description": "Comparador de tarifas eléctricas del mercado libre español. Calcula y compara precios de luz para encontrar la tarifa más barata según tu consumo.",
+  "description": "Suite local-first para comparar tarifas de luz con PVPC, analizar facturas y curvas horarias, revisar excedentes y simular autoconsumo con batería virtual.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -37,7 +37,7 @@
       "sizes": "1200x630",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "Comparador de tarifas eléctricas"
+      "label": "Suite LuzFija.es de comparación y análisis eléctrico"
     }
   ],
   "shortcuts": [
@@ -58,6 +58,30 @@
       "short_name": "Guías",
       "description": "Ver guías sobre tarifas eléctricas",
       "url": "/guias.html",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Observatorio PVPC",
+      "short_name": "PVPC",
+      "description": "Analiza históricos PVPC y excedentes",
+      "url": "/estadisticas/",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Simulador solar",
+      "short_name": "Solar",
+      "description": "Simula autoconsumo y batería virtual",
+      "url": "/comparador-tarifas-solares.html",
       "icons": [
         {
           "src": "/icon-192.png",
