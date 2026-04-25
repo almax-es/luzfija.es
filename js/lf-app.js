@@ -535,7 +535,7 @@
       })
       .catch(() => {});
 
-    // Auto-refresh: al volver al foco/visibilidad y cada 2 minutos
+    // Auto-refresh: al volver al foco/visibilidad y cada 15 minutos
     // Diferido con requestIdleCallback para no bloquear INP
     const _ric = window.requestIdleCallback
       ? (cb) => requestIdleCallback(cb, { timeout: 2000 })

@@ -161,7 +161,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Reset completo de valores.
 - Tema claro/oscuro con persistencia local.
 - Boton de instalacion PWA (`beforeinstallprompt`) con fallback de instrucciones por plataforma.
-- Auto-refresh de tarifas al volver foco/online/visibilidad y cada ~2 minutos.
+- Auto-refresh de tarifas al volver foco/online/visibilidad y cada ~15 minutos.
 
 ### 3.7 Novedades De Mercado En Home
 
