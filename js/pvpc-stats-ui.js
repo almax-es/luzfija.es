@@ -1280,7 +1280,9 @@
       });
     }
 
+    let _rerenderToken = 0;
     const rerender = debounce(async ({ push = false } = {}) => {
+      const myToken = ++_rerenderToken;
       setLoadingText();
       writeParams(state, { replace: !push });
 
@@ -1298,12 +1300,14 @@
         showError('Error cargando dataset local.');
         return;
       }
+      if (myToken !== _rerenderToken) return;
 
       // Cargar año anterior para media móvil 12 meses
       let prevYearData = null;
       try {
         prevYearData = await PVPC_STATS.loadYearData(Number(state.geo), Number(state.year) - 1, state.type);
       } catch (_) {}
+      if (myToken !== _rerenderToken) return;
 
       const status = PVPC_STATS.getYearStatus(yearData);
 
@@ -1376,6 +1380,7 @@
       // YoY (a mismas fechas)
       try {
         const yoy = await computeYoY(state.type, state.geo, state.year, lastDate, ytdAvg);
+        if (myToken !== _rerenderToken) return;
         if (yoy) {
           els.kpiYoY.textContent = fmtPct(yoy.pct, 0);
           els.kpiYoYSub.textContent = `Hasta ${lastDate} vs ${yoy.prevEnd}`;
@@ -1387,6 +1392,7 @@
         els.kpiYoY.textContent = '—';
         els.kpiYoYSub.textContent = 'Sin histórico comparable';
       }
+      if (myToken !== _rerenderToken) return;
 
       // Tendencia
       const mode = state.trendMode;
@@ -1462,6 +1468,7 @@
 
       buildCompareYearChips(allYears, state.compareYears, toggleYear);
       await renderComparison(state.type, state.geo, state.compareYears, state.year, accent, gridColor, textColor);
+      if (myToken !== _rerenderToken) return;
 
       await refreshCsvStats();
     }, 80);
