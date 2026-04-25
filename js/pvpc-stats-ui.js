@@ -1000,6 +1000,8 @@
   }
 
   async function renderComparison(type, geo, selectedYears, year, accent, gridColor, textColor, isCurrent) {
+    if (isCurrent && !isCurrent()) return;
+
     const datasets = [];
     const baseYear = Number(year);
     let years = Array.isArray(selectedYears) ? selectedYears.slice() : [];
@@ -1250,9 +1252,13 @@
       }
     };
 
-    const refreshCsvStats = async () => {
+    const refreshCsvStats = async (isCurrent) => {
       if (!csvState.records) return;
-      const stats = await computeCsvCompensation(csvState.records, state.geo);
+      const records = csvState.records;
+      const geo = state.geo;
+      const stats = await computeCsvCompensation(records, geo);
+      if (records !== csvState.records || String(geo) !== String(state.geo)) return;
+      if (isCurrent && !isCurrent()) return;
       renderCsvStats(stats);
     };
 
@@ -1283,6 +1289,7 @@
     }
 
     let _rerenderToken = 0;
+    let _comparisonToken = 0;
     const rerender = debounce(async ({ push = false } = {}) => {
       const myToken = ++_rerenderToken;
       setLoadingText();
@@ -1466,14 +1473,34 @@
         buildCompareYearChips(allYears, state.compareYears, toggleYear);
         writeParams(state, { replace: true });
 
-        await renderComparison(state.type, state.geo, state.compareYears, state.year, accent, gridColor, textColor, () => myToken === _rerenderToken);
+        const comparisonToken = ++_comparisonToken;
+        await renderComparison(
+          state.type,
+          state.geo,
+          state.compareYears,
+          state.year,
+          accent,
+          gridColor,
+          textColor,
+          () => myToken === _rerenderToken && comparisonToken === _comparisonToken
+        );
       };
 
       buildCompareYearChips(allYears, state.compareYears, toggleYear);
-      await renderComparison(state.type, state.geo, state.compareYears, state.year, accent, gridColor, textColor, () => myToken === _rerenderToken);
+      const comparisonToken = ++_comparisonToken;
+      await renderComparison(
+        state.type,
+        state.geo,
+        state.compareYears,
+        state.year,
+        accent,
+        gridColor,
+        textColor,
+        () => myToken === _rerenderToken && comparisonToken === _comparisonToken
+      );
       if (myToken !== _rerenderToken) return;
 
-      await refreshCsvStats();
+      await refreshCsvStats(() => myToken === _rerenderToken);
     }, 80);
 
     attachControlHandlers(state, rerender);
