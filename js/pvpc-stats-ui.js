@@ -999,7 +999,7 @@
     }
   }
 
-  async function renderComparison(type, geo, selectedYears, year, accent, gridColor, textColor) {
+  async function renderComparison(type, geo, selectedYears, year, accent, gridColor, textColor, isCurrent) {
     const datasets = [];
     const baseYear = Number(year);
     let years = Array.isArray(selectedYears) ? selectedYears.slice() : [];
@@ -1015,6 +1015,8 @@
     // cargar en paralelo
     const promises = years.map(y => PVPC_STATS.loadYearData(Number(geo), Number(y), type).then(d => ({ y, d })).catch(() => null));
     const results = await Promise.all(promises);
+
+    if (isCurrent && !isCurrent()) return;
 
     for (const r of results) {
       if (!r || !r.d) continue;
@@ -1389,6 +1391,7 @@
           els.kpiYoYSub.textContent = 'Sin histórico comparable';
         }
       } catch (_) {
+        if (myToken !== _rerenderToken) return;
         els.kpiYoY.textContent = '—';
         els.kpiYoYSub.textContent = 'Sin histórico comparable';
       }
@@ -1463,11 +1466,11 @@
         buildCompareYearChips(allYears, state.compareYears, toggleYear);
         writeParams(state, { replace: true });
 
-        await renderComparison(state.type, state.geo, state.compareYears, state.year, accent, gridColor, textColor);
+        await renderComparison(state.type, state.geo, state.compareYears, state.year, accent, gridColor, textColor, () => myToken === _rerenderToken);
       };
 
       buildCompareYearChips(allYears, state.compareYears, toggleYear);
-      await renderComparison(state.type, state.geo, state.compareYears, state.year, accent, gridColor, textColor);
+      await renderComparison(state.type, state.geo, state.compareYears, state.year, accent, gridColor, textColor, () => myToken === _rerenderToken);
       if (myToken !== _rerenderToken) return;
 
       await refreshCsvStats();
