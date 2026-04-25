@@ -112,6 +112,103 @@ describe('PVPC_STATS date handling', () => {
 });
 
 describe('PVPC_STATS manifest-aware loading', () => {
+  it('deduplicates concurrent year loads for the same dataset', async () => {
+    const originalFetch = global.fetch;
+    const calls = [];
+    const ok = (data) => ({ ok: true, json: async () => data });
+
+    global.fetch = async (url) => {
+      const u = String(url);
+      calls.push(u);
+
+      if (u.endsWith('/data/pvpc/8741/index.json')) {
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        return ok({
+          files: [
+            { file: '2024-01.json' }
+          ]
+        });
+      }
+      if (u.endsWith('/data/pvpc/8741/2024-01.json')) {
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        return ok({
+          from: '2024-01-01',
+          to: '2024-01-01',
+          days: { '2024-01-01': [[1704067200, 0.12]] }
+        });
+      }
+
+      throw new Error(`Unexpected fetch: ${u}`);
+    };
+
+    try {
+      window.PVPC_STATS.cache.clear();
+      window.PVPC_STATS.manifestCache.clear();
+      window.PVPC_STATS.inFlightYearData.clear();
+      window.PVPC_STATS.inFlightGeoIndexes.clear();
+
+      const [first, second] = await Promise.all([
+        window.PVPC_STATS.loadYearData(8741, 2024, 'pvpc'),
+        window.PVPC_STATS.loadYearData(8741, 2024, 'pvpc')
+      ]);
+
+      expect(first).toBe(second);
+      expect(Object.keys(first.days)).toEqual(['2024-01-01']);
+      expect(calls.filter((u) => u.endsWith('/data/pvpc/8741/index.json'))).toHaveLength(1);
+      expect(calls.filter((u) => u.endsWith('/data/pvpc/8741/2024-01.json'))).toHaveLength(1);
+      expect(window.PVPC_STATS.inFlightYearData.size).toBe(0);
+      expect(window.PVPC_STATS.inFlightGeoIndexes.size).toBe(0);
+    } finally {
+      global.fetch = originalFetch;
+      window.PVPC_STATS.cache.clear();
+      window.PVPC_STATS.manifestCache.clear();
+      window.PVPC_STATS.inFlightYearData.clear();
+      window.PVPC_STATS.inFlightGeoIndexes.clear();
+    }
+  });
+
+  it('deduplicates concurrent manifest loads', async () => {
+    const originalFetch = global.fetch;
+    const calls = [];
+    const ok = (data) => ({ ok: true, json: async () => data });
+
+    global.fetch = async (url) => {
+      const u = String(url);
+      calls.push(u);
+
+      if (u.endsWith('/data/pvpc/8741/index.json')) {
+        await new Promise((resolve) => setTimeout(resolve, 5));
+        return ok({
+          timezone: 'Europe/Madrid',
+          files: [
+            { file: '2024-01.json' }
+          ]
+        });
+      }
+
+      throw new Error(`Unexpected fetch: ${u}`);
+    };
+
+    try {
+      window.PVPC_STATS.manifestCache.clear();
+      window.PVPC_STATS.inFlightGeoIndexes.clear();
+
+      const [first, second] = await Promise.all([
+        window.PVPC_STATS.loadGeoIndex('pvpc', 8741),
+        window.PVPC_STATS.loadGeoIndex('pvpc', 8741)
+      ]);
+
+      expect(first).toBe(second);
+      expect(first.monthsByYear.get(2024).has('01')).toBe(true);
+      expect(calls).toEqual(['/data/pvpc/8741/index.json']);
+      expect(window.PVPC_STATS.inFlightGeoIndexes.size).toBe(0);
+    } finally {
+      global.fetch = originalFetch;
+      window.PVPC_STATS.manifestCache.clear();
+      window.PVPC_STATS.inFlightGeoIndexes.clear();
+    }
+  });
+
   it('loads only months listed in zone index manifest', async () => {
     const originalFetch = global.fetch;
     const calls = [];

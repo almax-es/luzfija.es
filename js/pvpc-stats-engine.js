@@ -4,6 +4,8 @@
 const PVPC_STATS = {
     cache: new Map(),
     manifestCache: new Map(),
+    inFlightYearData: new Map(),
+    inFlightGeoIndexes: new Map(),
     hourFormatterCache: new Map(),
     cacheMax: 8,
     maxConcurrentFetches: 4,
@@ -84,8 +86,11 @@ const PVPC_STATS = {
         if (this.manifestCache.has(key)) {
             return this.manifestCache.get(key);
         }
+        if (this.inFlightGeoIndexes.has(key)) {
+            return this.inFlightGeoIndexes.get(key);
+        }
 
-        try {
+        const loadPromise = (async () => {
             const res = await fetch(`/data/${type}/${geoId}/index.json`);
             if (!res.ok) {
                 this.manifestCache.set(key, null);
@@ -113,27 +118,20 @@ const PVPC_STATS = {
             };
             this.manifestCache.set(key, manifest);
             return manifest;
-        } catch (_) {
-            this.manifestCache.set(key, null);
-            return null;
-        }
+        })()
+            .catch(() => {
+                this.manifestCache.set(key, null);
+                return null;
+            })
+            .finally(() => {
+                this.inFlightGeoIndexes.delete(key);
+            });
+
+        this.inFlightGeoIndexes.set(key, loadPromise);
+        return loadPromise;
     },
 
-    /**
-     * Carga todos los datos disponibles para una zona y año
-     * @param {number} geoId - ID de la zona (8741 Península, etc)
-     * @param {number} year - Año a cargar (ej. 2024)
-     * @param {string} type - Tipo de dato ('pvpc' o 'surplus')
-     * @returns {Promise<Object>} - Objeto con todos los precios horarios del año
-     */
-    async loadYearData(geoId, year, type = 'pvpc') {
-        const cacheKey = `${type}-${geoId}-${year}`;
-        if (this.cache.has(cacheKey)) {
-            const cached = this.cache.get(cacheKey);
-            this.touchCache(cacheKey, cached);
-            return cached;
-        }
-
+    async buildYearData(geoId, year, type = 'pvpc', cacheKey = `${type}-${geoId}-${year}`) {
         const tasks = [];
         const monthLabels = [];
         // Si existe índice por zona, usarlo para pedir solo los meses publicados
@@ -204,6 +202,34 @@ const PVPC_STATS = {
 
         this.touchCache(cacheKey, yearData);
         return yearData;
+    },
+
+    /**
+     * Carga todos los datos disponibles para una zona y año
+     * @param {number} geoId - ID de la zona (8741 Península, etc)
+     * @param {number} year - Año a cargar (ej. 2024)
+     * @param {string} type - Tipo de dato ('pvpc' o 'surplus')
+     * @returns {Promise<Object>} - Objeto con todos los precios horarios del año
+     */
+    async loadYearData(geoId, year, type = 'pvpc') {
+        const cacheKey = `${type}-${geoId}-${year}`;
+        if (this.cache.has(cacheKey)) {
+            const cached = this.cache.get(cacheKey);
+            this.touchCache(cacheKey, cached);
+            return cached;
+        }
+
+        if (this.inFlightYearData.has(cacheKey)) {
+            return this.inFlightYearData.get(cacheKey);
+        }
+
+        const loadPromise = this.buildYearData(geoId, year, type, cacheKey)
+            .finally(() => {
+                this.inFlightYearData.delete(cacheKey);
+            });
+
+        this.inFlightYearData.set(cacheKey, loadPromise);
+        return loadPromise;
     },
 
     getYearStatus(yearData) {
