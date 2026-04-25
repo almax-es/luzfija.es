@@ -645,7 +645,9 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!confirm('¿Limpiar toda la caché y reiniciar?')) return;
       
       try {
+        const analyticsOptOut = localStorage.getItem('goatcounter_optout');
         localStorage.clear();
+        if (analyticsOptOut === 'true') localStorage.setItem('goatcounter_optout', 'true');
         sessionStorage.clear();
         
         if ('serviceWorker' in navigator) {

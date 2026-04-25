@@ -468,7 +468,12 @@
       try {
         toast('Limpiando caché...', 'info');
 
-        try { localStorage.clear(); lfDbg('[CACHE] localStorage limpiado'); } catch (e) {}
+        try {
+          const analyticsOptOut = localStorage.getItem('goatcounter_optout');
+          localStorage.clear();
+          if (analyticsOptOut === 'true') localStorage.setItem('goatcounter_optout', 'true');
+          lfDbg('[CACHE] localStorage limpiado');
+        } catch (e) {}
         try { sessionStorage.clear(); lfDbg('[CACHE] sessionStorage limpiado'); } catch (e) {}
 
         if ('serviceWorker' in navigator) {

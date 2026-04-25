@@ -7,6 +7,8 @@ import path from 'path';
  */
 
 const trackingCode = fs.readFileSync(path.resolve(__dirname, '../js/tracking.js'), 'utf8');
+const lfAppCode = fs.readFileSync(path.resolve(__dirname, '../js/lf-app.js'), 'utf8');
+const bvUiCode = fs.readFileSync(path.resolve(__dirname, '../js/bv/bv-ui.js'), 'utf8');
 
 function bootstrapTracking() {
   const fn = new Function(trackingCode);
@@ -36,6 +38,13 @@ describe('Tracking privacy behavior', () => {
 
     expect(window.__LF_track).toBeUndefined();
     expect(appendSpy).not.toHaveBeenCalled();
+  });
+
+  it('preserva el opt-out de analítica al limpiar caché local', () => {
+    for (const code of [lfAppCode, bvUiCode]) {
+      expect(code).toMatch(/getItem\('goatcounter_optout'\)/);
+      expect(code).toMatch(/setItem\('goatcounter_optout', 'true'\)/);
+    }
   });
 
   it('bloquea eventos cuando __LF_PRIVACY_MODE está activo', () => {
