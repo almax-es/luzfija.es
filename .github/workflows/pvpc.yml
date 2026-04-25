@@ -1,8 +1,8 @@
 name: PVPC Daily Update
 
 on:
-  # Ejecución diaria a las 21:00 Madrid (20:00 UTC)
-  # ESIOS publica precios de mañana ~20:15, así que 21:00 es seguro
+  # Ejecución diaria a las 20:00 UTC (21:00 CET / 22:00 CEST en Madrid)
+  # Se ejecuta tras la ventana habitual de publicación de precios de mañana
   schedule:
     - cron: '0 20 * * *'
 

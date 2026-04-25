@@ -11,14 +11,14 @@ Para inventario funcional completo del sitio (incluyendo observatorio, comparado
 - **PVPC**: Tarifa regulada de electricidad fijada por el Gobierno español
 - **Indicador ESIOS**: 1001 (Precio de mercado del PVPC)
 - **Fuente**: REE (Red Eléctrica de España) / ESIOS API
-- **Actualización**: Diariamente a las 21:00 Madrid (20:00 UTC)
+- **Actualización**: Diariamente a las 20:00 UTC (21:00 CET / 22:00 CEST en Madrid)
 - **Disponibilidad**: Precios horarios (24 períodos diarios)
 
 ### ¿Qué son los Excedentes PVPC?
 - **Excedentes PVPC**: Compensación horaria para autoconsumo
 - **Indicador ESIOS**: 1739 (Precio de excedentes)
 - **Fuente**: REE / ESIOS API
-- **Actualización**: Diariamente a las 21:00 Madrid
+- **Actualización**: Diariamente a las 20:00 UTC (21:00 CET / 22:00 CEST en Madrid)
 - **Disponibilidad**: Precios horarios (24 períodos diarios)
 
 ### Arquitectura del Proyecto PVPC
@@ -34,7 +34,7 @@ Para inventario funcional completo del sitio (incluyendo observatorio, comparado
 │  GitHub Pages (hosting)                                 │
 ├─────────────────────────────────────────────────────────┤
 │  GitHub Actions (CI/CD)                                 │
-│  └─ pvpc_auto_fill.py cada día 21:00 Madrid           │
+│  └─ pvpc_auto_fill.py cada día 20:00 UTC              │
 ├─────────────────────────────────────────────────────────┤
 │  ESIOS API (REE) — datos oficiales                     │
 └─────────────────────────────────────────────────────────┘
@@ -109,7 +109,7 @@ Para inventario funcional completo del sitio (incluyendo observatorio, comparado
 
 **Cobertura Histórica:**
 - Desde **Junio 2021** (inicio tarifa 2.0TD) hasta la fecha actual.
-- Actualización diaria automática (21:00 Madrid).
+- Actualización diaria automática a las 20:00 UTC (21:00 CET / 22:00 CEST en Madrid).
 
 ---
 
@@ -263,7 +263,7 @@ Mismo formato que el índice PVPC, pero para excedentes (indicador 1739).
 name: PVPC Daily Update
 on:
   schedule:
-    - cron: '0 20 * * *'  # 20:00 UTC = 21:00 Madrid
+    - cron: '0 20 * * *'  # 20:00 UTC = 21:00 CET / 22:00 CEST en Madrid
 
 jobs:
   update-pvpc:
@@ -289,8 +289,8 @@ jobs:
 
 | Parámetro | Valor | Notas |
 |-----------|-------|-------|
-| **Hora Madrid** | 21:00 | Después del corte de mercado diario de REE |
-| **Hora UTC** | 20:00 | UTC+1 en invierno |
+| **Hora UTC** | 20:00 | GitHub Actions usa UTC |
+| **Hora Madrid** | 21:00 CET / 22:00 CEST | Después de la ventana habitual de publicación |
 | **Frecuencia** | Diaria | Se ejecuta automáticamente |
 | **Timezone cron** | UTC | GitHub Actions usa UTC |
 
@@ -519,7 +519,7 @@ localStorage.removeItem('pvpc_cache_8741_2026-01-15');
 location.reload();
 ```
 
-### Problema: Precios no actualizados después de las 21:00
+### Problema: Precios no actualizados después de la ejecución diaria
 
 **Causas posibles**:
 1. GitHub Actions no se ejecutó → verificar logs en `.github/workflows/`

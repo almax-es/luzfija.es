@@ -378,7 +378,7 @@ window.BVSim.calcMonthForTarifa = function ({
   // 6. totalReal = totalBase - (hasBV ? excedenteSobranteEur : 0)
   //    ├─ CON BV:  Coste real descontando solo los sobrantes
   //    └─ SIN BV:  totalReal = totalBase (los excedentes NO se aprovechan)
-  //    └─ Nota: totalReal para ranking (equitativo entre tarifas)
+  //    └─ Nota: métrica auxiliar; el ranking visible usa totals.pagado y bvFinal
   //
   // EJEMPLO NUMÉRICO (Previene falso positivo de ChatGPT):
   // ───────────────────────────────────────────────────────

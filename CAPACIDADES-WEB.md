@@ -244,7 +244,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - BV (uso y acumulacion si la tarifa la soporta).
 - Metricas:
 - `totalPagar`: coste facturado efectivo.
-- `totalReal`: coste neto para comparacion justa.
+- `totalReal`: coste neto auxiliar sin saldo BV previo.
 - Ranking anual:
 - Orden principal por total anual pagado.
 - Desempate por mayor saldo BV final.

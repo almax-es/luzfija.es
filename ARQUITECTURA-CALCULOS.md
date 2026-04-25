@@ -279,8 +279,10 @@ totalPagar = Lo que PAGAS este mes
 
 totalReal = Coste REAL del mes sin saldo anterior
           = totalBase - (excedentes sobrantes)
-          → Para ranking justo (comparar tarifas)
+          → Métrica auxiliar para auditoría y comparación sin saldo previo
 ```
+
+El ranking visible del simulador solar no usa `totalReal`: ordena por `totals.pagado` y desempata por `totals.bvFinal`.
 
 ### ⚠️ Comportamiento según tipo tarifa
 
@@ -416,7 +418,7 @@ const totalNum = solarOn && fv && fv.bv ? (totalBase - excedenteSobranteEur) : t
 // Motor BV (bv-sim-monthly.js)
 const totalReal = totalBase - (hasBV ? excedenteSobranteEur : 0);
 
-// Ambas son equivalentes en contexto BV
+// Ambas son equivalentes como métrica neta en contexto BV
 // hasBV = Boolean(tarifa?.fv?.bv) ≡ (fv && fv.bv)
 ```
 

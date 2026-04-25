@@ -188,9 +188,9 @@ totalReal = 60 - nuevos_excedentes = ? ← Coste real de febrero
 
 **¿Por qué dos métricas?**
 - `totalPagar`: Para el usuario (lo que ve en su factura)
-- `totalReal`: Para el ranking (comparar tarifas equitativamente)
+- `totalReal`: Métrica auxiliar para auditar el coste del mes sin saldo BV previo
 
-Sin `totalReal`, una tarifa con BV anterior acumulado saldría injustamente barata en el ranking.
+El ranking visible del simulador solar usa `totals.pagado` y desempata por `totals.bvFinal`. `totalReal` no es el criterio principal de ordenación actual.
 
 ---
 
