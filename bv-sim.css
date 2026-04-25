@@ -104,6 +104,28 @@
   gap: 24px;
 }
 
+.solar-pro details.seoDetails > div {
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.solar-pro details.seoDetails > div > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.solar-pro details.seoDetails label {
+  align-items: flex-start;
+  overflow: visible;
+  text-overflow: clip;
+  white-space: normal;
+}
+
+.solar-pro details.seoDetails label > span {
+  min-width: 0;
+  white-space: normal;
+}
+
 /* Grids responsivos para formularios */
 .bv-form-2col { grid-template-columns: 1fr 1fr; }
 .bv-form-3col { grid-template-columns: 1fr 1fr 1fr; }
