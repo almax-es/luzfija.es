@@ -57,6 +57,9 @@ if (typeof window !== 'undefined') {
  */
 window.BVSim.bucketizeByMonth = function (records, zona = 'peninsula') {
   const monthsMap = new Map();
+  const round2 = typeof window.BVSim.round2 === 'function'
+    ? window.BVSim.round2
+    : (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 
   (records || []).forEach((record) => {
     if (!record || !record.fecha) return;
@@ -157,9 +160,13 @@ window.BVSim.bucketizeByMonth = function (records, zona = 'peninsula') {
         daysWithData,
         daysInMonth: month.daysInMonth,
         coveragePct,
-        importByPeriod: month.importByPeriod,
-        importTotalKWh: month.importTotalKWh,
-        exportTotalKWh: month.exportTotalKWh
+        importByPeriod: {
+          P1: round2(month.importByPeriod.P1),
+          P2: round2(month.importByPeriod.P2),
+          P3: round2(month.importByPeriod.P3)
+        },
+        importTotalKWh: round2(month.importTotalKWh),
+        exportTotalKWh: round2(month.exportTotalKWh)
       };
     });
 

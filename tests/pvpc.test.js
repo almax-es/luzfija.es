@@ -231,4 +231,52 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     expect(result.terminoVariable).toBeCloseTo(0.70, 3);
   });
 
+  it('obtenerPVPC_LOCAL cede el hilo durante el cruce CSV exacto largo', async () => {
+    const yieldControl = vi.fn(() => Promise.resolve());
+    global.window.LF.yieldControl = yieldControl;
+
+    let now = 0;
+    const nowSpy = vi.spyOn(performance, 'now').mockImplementation(() => {
+      now += 20;
+      return now;
+    });
+
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        geo_id: 8741,
+        timezone: 'Europe/Madrid',
+        days: {
+          '2025-01-07': generateMockDayPrices(0.20, 0.10, 0.05)
+        }
+      })
+    });
+
+    global.window.LF.consumosHorarios = Array.from({ length: 512 }, (_, i) => ({
+      fecha: new Date('2025-01-07T00:00:00'),
+      hora: (i % 24) + 1,
+      kwh: 1
+    }));
+    global.window.LF.pvpcPeriodoCSV = true;
+
+    try {
+      const result = await global.window.LF.pvpc.obtenerPVPC_LOCAL({
+        zonaFiscal: 'Península',
+        p1: 3.45,
+        p2: 3.45,
+        dias: 1,
+        cPunta: 512,
+        cLlano: 0,
+        cValle: 0,
+        bonoSocialOn: false,
+        bonoSocialTipo: 'vulnerable'
+      });
+
+      expect(result).toBeTruthy();
+      expect(yieldControl).toHaveBeenCalled();
+    } finally {
+      nowSpy.mockRestore();
+    }
+  });
+
 });

@@ -50,6 +50,18 @@ describe('Simulador Solar Mensual (bv-sim-monthly.js)', () => {
     expect(feb.exportTotalKWh).toBe(0);
   });
 
+  it('bucketizeByMonth: normaliza acumuladores kWh al cerrar el mes', () => {
+    const buckets = window.BVSim.bucketizeByMonth([
+      { fecha: new Date('2025-01-01T10:00:00'), kwh: 0.1, excedente: 0.1, periodo: 'P1' },
+      { fecha: new Date('2025-01-01T11:00:00'), kwh: 0.2, excedente: 0.2, periodo: 'P1' }
+    ]);
+
+    const jan = buckets.find(b => b.key === '2025-01');
+    expect(jan.importTotalKWh).toBe(0.3);
+    expect(jan.exportTotalKWh).toBe(0.3);
+    expect(jan.importByPeriod.P1).toBe(0.3);
+  });
+
   it('simulateForTarifaDemo: Debe calcular factura básica SIN batería virtual', () => {
     // Tarifa simple: energía 0.10, excedentes 0.05
     const tarifaSimple = {

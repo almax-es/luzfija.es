@@ -549,6 +549,23 @@ const PEAJES_POT_DIA = {
       if (PVPC_DEBUG) console.groupEnd();
 
       try {
+        const nowForYield = () => (
+          typeof performance !== 'undefined' && typeof performance.now === 'function'
+            ? performance.now()
+            : Date.now()
+        );
+        let lastYieldAt = nowForYield();
+        const maybeYield = async () => {
+          const yieldControl = window.LF && typeof window.LF.yieldControl === 'function'
+            ? window.LF.yieldControl
+            : null;
+          if (!yieldControl) return;
+          const now = nowForYield();
+          if (now - lastYieldAt < 16) return;
+          await yieldControl();
+          lastYieldAt = nowForYield();
+        };
+
         const filesToRead = new Set();
         for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
           const year = d.getFullYear();
@@ -678,6 +695,7 @@ const PEAJES_POT_DIA = {
           }
           
           curr.setDate(curr.getDate() + 1);
+          await maybeYield();
         }
         
         if (countPunta === 0 && countLlano === 0 && countValle === 0) {
@@ -703,7 +721,12 @@ const PEAJES_POT_DIA = {
         let modoExactoCSV = false;
         if (consumosHorarios) {
           let exactCost = 0, horasConDatos = 0, horasSinDatos = 0;
+          let csvLoopCount = 0;
           for (const c of consumosHorarios) {
+            csvLoopCount++;
+            if (csvLoopCount % 256 === 0) {
+              await maybeYield();
+            }
             const kwh = c.kwh || 0;
             if (!kwh) continue;
             const d = c.fecha instanceof Date ? c.fecha : new Date(c.fecha);

@@ -9,11 +9,25 @@
   let tooltipPinned = false;
   let tooltipRaf = null;
 
+  function isTooltipTargetConnected(target) {
+    return Boolean(target && target.isConnected && document.contains(target));
+  }
+
   function positionTooltip(target) {
     if (!target) return;
+    if (!isTooltipTargetConnected(target)) {
+      hideTooltip(true);
+      return;
+    }
     if (tooltipRaf) cancelAnimationFrame(tooltipRaf);
     
     tooltipRaf = requestAnimationFrame(() => {
+      tooltipRaf = null;
+      if (!isTooltipTargetConnected(target)) {
+        hideTooltip(true);
+        return;
+      }
+
       // Verificar si el elemento todavía está visible en viewport
       const rect = target.getBoundingClientRect();
       const isVisible = rect.top >= 0 &&
@@ -55,6 +69,10 @@
 
   function hideTooltip(force = false) {
     if (!force && tooltipPinned) return;
+    if (tooltipRaf) {
+      cancelAnimationFrame(tooltipRaf);
+      tooltipRaf = null;
+    }
     el.globalTooltip.style.display = 'none';
     el.globalTooltip.setAttribute('aria-hidden', 'true');
     activeTooltip = null;
@@ -62,6 +80,10 @@
   }
 
   function openTooltip(target) {
+    if (!isTooltipTargetConnected(target)) {
+      hideTooltip(true);
+      return;
+    }
     activeTooltip = target;
     positionTooltip(target);
   }
