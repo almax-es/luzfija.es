@@ -12,7 +12,7 @@ Suite frontend avanzada para analizar la factura electrica en Espana: comparador
 
 Si eres una IA o entras al repo por primera vez, empieza por `AGENTS.md` y `CAPACIDADES-WEB.md`.
 
-## Estado Actual (2026-04-25)
+## Estado Actual (2026-04-26)
 
 - 35 paginas HTML publicas:
   - 10 en raiz.
