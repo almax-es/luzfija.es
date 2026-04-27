@@ -166,6 +166,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Niba Zen",
+      "cPunta": 0.115,
+      "cLlano": 0.115,
+      "cValle": 0.115,
+      "p1": 0.089,
+      "p2": 0.089,
+      "web": "https://niba.es/luz-y-gas",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Octopus Unicaja",
       "cPunta": 0.116,
       "cLlano": 0.116,
@@ -176,24 +194,6 @@
       "tipo": "1P",
       "fv": {
         "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Niba Zen",
-      "cPunta": 0.118,
-      "cLlano": 0.118,
-      "cValle": 0.118,
-      "p1": 0.097,
-      "p2": 0.047,
-      "web": "https://niba.es/luz-y-gas",
-      "tipo": "1P",
-      "fv": {
-        "exc": 0.06,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -591,11 +591,11 @@
     },
     {
       "nombre": "Niba 3P",
-      "cPunta": 0.195,
-      "cLlano": 0.116,
-      "cValle": 0.079,
-      "p1": 0.097,
-      "p2": 0.047,
+      "cPunta": 0.198,
+      "cLlano": 0.119,
+      "cValle": 0.082,
+      "p1": 0.089,
+      "p2": 0.089,
       "web": "https://niba.es/luz-y-gas",
       "tipo": "3P",
       "fv": {
@@ -719,5 +719,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-04-26T18:48:34.588Z"
+  "updatedAt": "2026-04-27T05:44:04.484Z"
 }
