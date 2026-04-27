@@ -735,6 +735,7 @@ function syncReadmeAndCapacidades() {
       apply(content) {
         let next = content;
         next = next.replace(/Ultima actualizacion: \d{4}-\d{2}-\d{2}/, `Ultima actualizacion: ${snapshotDate}`);
+        next = next.replace(/- Modulos JS: \d+ \(`js\/\*\.js` \+ `js\/bv\/\*\.js`\)\./, `- Modulos JS: ${js.moduleCount} (\`js/*.js\` + \`js/bv/*.js\`).`);
         next = next.replace(/- Lineas JS aproximadas: [\d.]+\./, `- Lineas JS aproximadas: ${js.lineCount.toLocaleString('de-DE')}.`);
         next = next.replace(/- `tarifas\.json` \(\d+ tarifas\)\./, `- \`tarifas.json\` (${tarifas.tarifas.length} tarifas).`);
         next = next.replace(/- `novedades\.json` \(\d+ entradas activas\)\./, `- \`novedades.json\` (${novedades.length} entradas activas).`);

@@ -280,7 +280,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 ## 7. Arquitectura Tecnica
 
 - Stack: HTML + CSS + Vanilla JS modular.
-- Modulos JS: 29 (`js/*.js` + `js/bv/*.js`).
+- Modulos JS: 30 (`js/*.js` + `js/bv/*.js`).
 - Lineas JS aproximadas: 19.160.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
