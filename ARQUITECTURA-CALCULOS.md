@@ -49,7 +49,7 @@ Una factura de electricidad en España contiene:
 │ - 0,81 €/mes prorrateo a días              │
 ├─────────────────────────────────────────────┤
 │ IMPUESTO INDIRECTO (IVA/IGIC/IPSI)          │
-│ - Península: 21% (IVA)                      │
+│ - Península: IVA vigente (10% temporal <10 kW, 21% resto) │
 │ - Canarias: 0-7% (IGIC)                     │
 │ - Ceuta/Melilla: 1-4% (IPSI)                │
 └─────────────────────────────────────────────┘
@@ -107,7 +107,7 @@ if (zona === 'Canarias') {
 } else if (zona === 'CeutaMelilla') {
   impuestoIndirecto = baseImpuestoIndirecto * 0.01; // IPSI 1% energía
 } else {
-  impuestoIndirecto = baseImpuestoIndirecto * 0.21; // IVA 21%
+  impuestoIndirecto = baseImpuestoIndirecto * tipoIvaVigente; // IVA 10% temporal <10 kW o 21% general
 }
 
 // PASO 10: TOTAL
@@ -131,9 +131,9 @@ IEE (5,11% × 44,16): 2,26 € ✅
 Alquiler: 0,83 €
 
 Base para IVA: 44,16 + 2,26 + 0,83 = 47,25 €
-IVA (21%): 9,92 €
+IVA (tipo vigente según potencia y normativa temporal): calculado por `lf-config.js`
 
-TOTAL: 47,25 + 9,92 = 57,17 € ✅
+TOTAL: base + IVA vigente ✅
 (Calculado con el descuento excepcional del RDL 7/2026 vigente durante 2026; pendiente de verificar contra CNMC cuando actualice su simulador)
 ```
 

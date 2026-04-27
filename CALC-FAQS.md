@@ -332,12 +332,12 @@ const horasPunta = esCeutaMelilla
 
 | Zona | Impuesto | Potencia | Energía | Contador |
 |------|----------|----------|---------|----------|
-| Península/Baleares | IVA | 21% | 21% | 21% |
+| Península/Baleares | IVA | 10% temporal <10 kW / 21% general | 10% temporal <10 kW / 21% general | 10% temporal <10 kW / 21% general |
 | Canarias | IGIC | — | 0% (vivienda) / 3% (otros) | 7% |
 | Ceuta/Melilla | IPSI | — | 1% | 4% |
 
 **Normativa**:
-- Península: IVA estándar (Ley 37/1992)
+- Península: IVA estándar (Ley 37/1992) con rebaja temporal configurada en `lf-config.js` para suministros elegibles
 - Canarias: IGIC Ley 20/1991, reducción vivienda
 - Ceuta/Melilla: IPSI Ley 8/1991
 
@@ -355,7 +355,7 @@ if (tipoImpuesto === 'IGIC') {
   ipsiContador = alquiler × 4%;
 } else {
   // IVA (Península)
-  iva = base × 21%;
+  iva = base × tipoIvaVigente; // 10% temporal si aplica, 21% general
 }
 ```
 

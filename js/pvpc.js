@@ -127,10 +127,6 @@
       d.setHours(0,0,0,0);return d;
     }
 
-    function addDays(date,n){
-      const d=new Date(date);d.setDate(d.getDate()+n);return d;
-    }
-
     function formatYMD(date){
       const y=date.getFullYear();
       const m=String(date.getMonth()+1).padStart(2,'0');
@@ -207,30 +203,6 @@
       try{ localStorage.setItem(key, JSON.stringify(payload)); }catch(e){}
       pvpcCacheMemory.set(key,payload);
       enforcePvpcCacheLimit();
-    }
-
-    function buildPvpcPeriodo(dias){
-      const d=Math.min(Math.max(Number(dias)||0,1),370);
-      
-      // 1. Empezamos con "hoy"
-      const today = new Date();
-      
-      // 2. Definimos el "fin" como AYER (para tener el día completo cerrado)
-      const end = startOfDayLocal(today);
-      end.setDate(end.getDate() - 1);
-      
-      // 3. El inicio es "fin - dias"
-      const start = addDays(end, -d);
-      
-      // Formateo YYYY-MM-DD
-      const periodoFacturacion = `${formatYMD(start)},${formatYMD(end)}`;
-      
-      return {
-        periodoFacturacion,
-        fechaInicio: `${formatYMD(start)}T00:00:00`,
-        inicioFacturacion: start.getTime(),
-        finFacturacion: end.getTime()
-      };
     }
 
     async function fetchJsonWithTimeout(url, ms, headers){

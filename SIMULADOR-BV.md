@@ -117,7 +117,7 @@ Soporte para 3 zonas con impuestos diferenciados:
 
 | Zona | IVA/IGIC/IPSI | Alquiler Contador |
 |---|---|---|
-| **Península/Baleares** | IVA 21% | 21% |
+| **Península/Baleares** | IVA vigente (10% temporal <10 kW, 21% general) | mismo tipo IVA vigente |
 | **Canarias** | IGIC 0% (vivienda ≤10kW) o 3% | IGIC 7% |
 | **Ceuta/Melilla** | IPSI 1% | IPSI 4% |
 
