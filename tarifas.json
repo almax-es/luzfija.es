@@ -92,6 +92,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Plenitude",
+      "cPunta": 0.105691,
+      "cLlano": 0.105691,
+      "cValle": 0.105691,
+      "p1": 0.099817,
+      "p2": 0.099817,
+      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
+      "tipo": "1P",
+      "requisitos": "Potencia contratada ≤ 5 kW",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "TE A tu aire",
       "cPunta": 0.1099,
       "cLlano": 0.1099,
@@ -137,25 +156,6 @@
       "p2": 0.093666,
       "web": "https://www.endesa.com/es/luz-y-gas/luz/conecta-de-endesa",
       "tipo": "1P",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Plenitude",
-      "cPunta": 0.114511,
-      "cLlano": 0.114511,
-      "cValle": 0.114511,
-      "p1": 0.099817,
-      "p2": 0.099817,
-      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
-      "tipo": "1P",
-      "requisitos": "Potencia contratada ≤ 5 kW",
       "fv": {
         "exc": 0.0,
         "tipo": "NO COMPENSA",
@@ -719,5 +719,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-04-27T05:44:04.484Z"
+  "updatedAt": "2026-04-27T09:13:30.609Z"
 }
