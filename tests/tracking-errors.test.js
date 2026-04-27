@@ -29,6 +29,7 @@ beforeEach(() => {
   sessionStorage.clear();
 
   window.goatcounter = { count: vi.fn() };
+  delete window.currentYear;
   delete window.__LF_track;
   delete window.__LF_PRIVACY_MODE;
 });
@@ -38,6 +39,13 @@ afterEach(() => {
 });
 
 describe('Tracking error filtering and dedupe', () => {
+  it('define currentYear si tracking se ejecuta sin config.js previo', () => {
+    bootstrapTracking();
+
+    expect(typeof window.currentYear).toBe('number');
+    expect(new Function('return typeof currentYear')()).toBe('number');
+  });
+
   it('ignora errores sin origen fiable (filename vacío)', () => {
     bootstrapTracking();
 

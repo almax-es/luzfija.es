@@ -2,16 +2,19 @@
 // Este archivo registra eventos importantes para entender cómo usan la web los usuarios.
 // Importante: el tracking nunca debe romper la web si falla el contador.
 
+// Guard global defensivo redundante (el principal está en config.js).
+// Debe vivir en el scope global para crear también el binding desnudo `currentYear`
+// si tracking.js llega a ejecutarse desde HTML legacy sin config.js previo.
+try {
+  if (typeof window.currentYear !== 'number') {
+    window.currentYear = new Date().getFullYear();
+  }
+  var currentYear = window.currentYear;
+  window.currentYear = currentYear;
+} catch (_) {}
+
 (function() {
   'use strict';
-
-  // Guard global defensivo redundante (el principal está en config.js)
-  // Se mantiene por si tracking.js se ejecuta en un contexto donde config.js no está cargado
-  try {
-    if (typeof window.currentYear !== 'number') {
-      window.currentYear = new Date().getFullYear();
-    }
-  } catch (_) {}
 
   // ===== COMPROBACIÓN OPT-OUT (PRIORIDAD MÁXIMA) =====
   // Si el usuario ha desactivado GoatCounter, salir inmediatamente
