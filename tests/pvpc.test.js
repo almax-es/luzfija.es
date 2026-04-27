@@ -196,6 +196,53 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     vi.useRealTimers();
   });
 
+  it('crearTarifaPVPC separa la caché PVPC por bono social severo para no reutilizar IVA reducido indebidamente', async () => {
+    const mockJson = {
+      geo_id: 8741,
+      days: {
+        '2026-03-20': generateMockDayPrices(0.20, 0.10, 0.05)
+      },
+      meta: { max_after_conversion: 0.20 }
+    };
+
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => mockJson
+    });
+
+    vi.setSystemTime(new Date('2026-03-21T12:00:00Z'));
+
+    const baseInputs = {
+      zonaFiscal: 'Península',
+      p1: 10,
+      p2: 10,
+      dias: 1,
+      cPunta: 10,
+      cLlano: 10,
+      cValle: 10
+    };
+
+    const severe = await global.window.LF.pvpc.crearTarifaPVPC({
+      ...baseInputs,
+      bonoSocialOn: true,
+      bonoSocialTipo: 'severo',
+      bonoSocialLimite: 1587
+    });
+
+    const noBonus = await global.window.LF.pvpc.crearTarifaPVPC({
+      ...baseInputs,
+      bonoSocialOn: false,
+      bonoSocialTipo: 'vulnerable',
+      bonoSocialLimite: 1587
+    });
+
+    expect(severe.metaPvpc.usoFiscal).toBe('iva_reducido');
+    expect(noBonus.metaPvpc.usoFiscal).toBe('iva_general');
+    expect(global.fetch).toHaveBeenCalledTimes(2);
+
+    vi.useRealTimers();
+  });
+
   it('obtenerPVPC_LOCAL cruza correctamente la hora 25 del cambio horario en modo CSV exacto', async () => {
     const mockJson = {
       geo_id: 8741,

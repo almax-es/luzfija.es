@@ -858,7 +858,10 @@ const PEAJES_POT_DIA = {
         cLlano: norm(v?.cLlano),
         cValle: norm(v?.cValle),
         zonaFiscal,
-        viviendaCanarias: zonaFiscal === 'Canarias' && Boolean(v?.viviendaCanarias)
+        viviendaCanarias: zonaFiscal === 'Canarias' && Boolean(v?.viviendaCanarias),
+        bonoSocialOn: Boolean(v?.bonoSocialOn),
+        bonoSocialTipo: v?.bonoSocialTipo || 'vulnerable',
+        bonoSocialLimite: v?.bonoSocialLimite || ''
       };
       return buildPvpcCacheKey(values);
     }

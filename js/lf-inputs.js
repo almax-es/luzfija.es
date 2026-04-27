@@ -68,9 +68,29 @@
     const exTotal = clampNonNeg(parseNum(el.inputs.exTotal?.value));
     const bvSaldo = clampNonNeg(parseNum(el.inputs.bvSaldo?.value));
     const bonoSocialOn = Boolean(el.inputs.bonoSocialOn?.checked);
-    const bonoSocialTipo = document.querySelector('input[name="bonoSocialTipo"]:checked')?.value || 'vulnerable';
-    const bonoSocialLimite = clampNonNeg(parseNum(document.querySelector('input[name="bonoSocialLimite"]:checked')?.value || '1587'));
+    const bonoSocialTipo = getRadioValue('bonoSocialTipo', 'vulnerable');
+    const bonoSocialLimite = clampNonNeg(parseNum(getRadioValue('bonoSocialLimite', '1587')));
     return { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias, solarOn, exTotal, bvSaldo, bonoSocialOn, bonoSocialTipo, bonoSocialLimite };
+  }
+
+  function getRadioValue(name, fallback) {
+    return document.querySelector(`input[name="${name}"]:checked`)?.value || fallback;
+  }
+
+  function setRadioValue(name, value, fallback) {
+    const radios = Array.from(document.querySelectorAll(`input[name="${name}"]`));
+    if (!radios.length) return;
+    const desired = String(value ?? fallback ?? '');
+    const fallbackStr = String(fallback ?? '');
+    const target = radios.find(r => String(r.value) === desired)
+      || radios.find(r => String(r.value) === fallbackStr)
+      || radios[0];
+    if (target) target.checked = true;
+  }
+
+  function applyBonoSocialRadioValues(data) {
+    setRadioValue('bonoSocialTipo', data?.bonoSocialTipo, DEFAULTS.bonoSocialTipo);
+    setRadioValue('bonoSocialLimite', data?.bonoSocialLimite, DEFAULTS.bonoSocialLimite);
   }
 
   function buildCsvConsumosRef(values) {
@@ -332,6 +352,7 @@
         if (el.inputs[k].type === 'checkbox') el.inputs[k].checked = asBool(DEFAULTS[k], DEFAULTS[k]);
         else el.inputs[k].value = formatValueForDisplay(DEFAULTS[k]);
       }
+      applyBonoSocialRadioValues(DEFAULTS);
       updateKwhHint();
       updateZonaFiscalUI();
       updateSolarUI();
@@ -346,6 +367,7 @@
         if (el.inputs[k].type === 'checkbox') el.inputs[k].checked = asBool(d[k], DEFAULTS[k]);
         else el.inputs[k].value = formatValueForDisplay(d[k]);
       }
+      applyBonoSocialRadioValues(d);
       updateKwhHint();
       updateZonaFiscalUI();
       updateSolarUI();
@@ -367,6 +389,7 @@
       if (el.inputs[k].type === 'checkbox') el.inputs[k].checked = asBool(finalData[k], DEFAULTS[k]);
       else el.inputs[k].value = formatValueForDisplay(finalData[k]);
     }
+    applyBonoSocialRadioValues(finalData);
 
     updateKwhHint();
     updateZonaFiscalUI();
@@ -394,6 +417,8 @@
       if (!el.inputs[k]) continue;
       d[k] = el.inputs[k].type === 'checkbox' ? Boolean(el.inputs[k].checked) : el.inputs[k].value;
     }
+    d.bonoSocialTipo = getRadioValue('bonoSocialTipo', DEFAULTS.bonoSocialTipo);
+    d.bonoSocialLimite = getRadioValue('bonoSocialLimite', DEFAULTS.bonoSocialLimite);
     try {
       localStorage.setItem(LS_KEY, JSON.stringify(d));
     } catch (e) {
@@ -411,6 +436,7 @@
       if (el.inputs[k].type === 'checkbox') el.inputs[k].checked = asBool(DEFAULTS[k], false);
       else el.inputs[k].value = formatValueForDisplay(DEFAULTS[k]);
     }
+    applyBonoSocialRadioValues(DEFAULTS);
     saveInputs();
     updateKwhHint();
     updateZonaFiscalUI();

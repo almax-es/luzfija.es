@@ -23,6 +23,10 @@ document.body.innerHTML = `
     <input id="bvSaldo" value="">
     <div id="bonoSocialFields"></div>
     <input id="bonoSocialOn" type="checkbox">
+    <input id="bonoSocialVulnerable" name="bonoSocialTipo" type="radio" value="vulnerable" checked>
+    <input id="bonoSocialSevero" name="bonoSocialTipo" type="radio" value="severo">
+    <input id="bonoSocialLimite1587" name="bonoSocialLimite" type="radio" value="1587" checked>
+    <input id="bonoSocialLimite4761" name="bonoSocialLimite" type="radio" value="4761">
     <button id="btnCalc"></button>
     <div id="statusPill"></div>
     <div id="statusText"></div>
@@ -37,7 +41,24 @@ document.body.innerHTML = `
 
 // 2. Mockear dependencias
 window.LF = window.LF || {};
-window.LF.DEFAULTS = { p1: '3.45', dias: '30' };
+window.LF.DEFAULTS = {
+  p1: '3.45',
+  p2: '3.45',
+  dias: '30',
+  cPunta: '100',
+  cLlano: '100',
+  cValle: '100',
+  zonaFiscal: 'Península',
+  viviendaCanarias: true,
+  solarOn: false,
+  exTotal: '0',
+  bvSaldo: '0',
+  bonoSocialOn: false,
+  bonoSocialTipo: 'vulnerable',
+  bonoSocialLimite: '1587'
+};
+window.LF.SERVER_PARAMS = {};
+window.LF.LS_KEY = 'almax_comparador_v6_inputs';
 window.LF.el = {
   inputs: {
     p1: document.getElementById('p1'),
@@ -110,6 +131,11 @@ describe('Inputs y Validación (lf-inputs.js)', () => {
     inputs.solarOn.checked = false;
     inputs.exTotal.value = "0";
     inputs.bvSaldo.value = "0";
+    inputs.bonoSocialOn.checked = false;
+    document.getElementById('bonoSocialVulnerable').checked = true;
+    document.getElementById('bonoSocialLimite1587').checked = true;
+    Object.keys(window.LF.SERVER_PARAMS).forEach((key) => delete window.LF.SERVER_PARAMS[key]);
+    localStorage.clear();
     window.LF.clearErrorStyles();
   });
 
@@ -161,6 +187,56 @@ describe('Inputs y Validación (lf-inputs.js)', () => {
     window.LF.el.inputs.p1.value = "3,45";
     const vals = window.LF.getInputValues();
     expect(vals.p1).toBe(3.45);
+  });
+
+  it('Lee, guarda y comparte tipo y límite del bono social seleccionados en radio buttons', () => {
+    window.LF.el.inputs.bonoSocialOn.checked = true;
+    document.getElementById('bonoSocialSevero').checked = true;
+    document.getElementById('bonoSocialLimite4761').checked = true;
+
+    const vals = window.LF.getInputValues();
+    const saved = window.LF.saveInputs();
+    const persisted = JSON.parse(localStorage.getItem(window.LF.LS_KEY));
+    const qp = new URLSearchParams(saved).toString();
+
+    expect(vals.bonoSocialTipo).toBe('severo');
+    expect(vals.bonoSocialLimite).toBe(4761);
+    expect(saved.bonoSocialTipo).toBe('severo');
+    expect(saved.bonoSocialLimite).toBe('4761');
+    expect(persisted.bonoSocialTipo).toBe('severo');
+    expect(persisted.bonoSocialLimite).toBe('4761');
+    expect(qp).toContain('bonoSocialTipo=severo');
+    expect(qp).toContain('bonoSocialLimite=4761');
+  });
+
+  it('Restaura tipo y límite del bono social desde localStorage', () => {
+    localStorage.setItem(window.LF.LS_KEY, JSON.stringify({
+      bonoSocialOn: true,
+      bonoSocialTipo: 'severo',
+      bonoSocialLimite: '4761'
+    }));
+
+    window.LF.loadInputs();
+
+    expect(document.querySelector('input[name="bonoSocialTipo"]:checked')?.value).toBe('severo');
+    expect(document.querySelector('input[name="bonoSocialLimite"]:checked')?.value).toBe('4761');
+    expect(window.LF.getInputValues().bonoSocialTipo).toBe('severo');
+    expect(window.LF.getInputValues().bonoSocialLimite).toBe(4761);
+  });
+
+  it('Restaura tipo y límite del bono social desde parámetros compartidos', () => {
+    Object.assign(window.LF.SERVER_PARAMS, {
+      bonoSocialOn: 'true',
+      bonoSocialTipo: 'severo',
+      bonoSocialLimite: '4761'
+    });
+
+    window.LF.loadInputs();
+
+    expect(document.querySelector('input[name="bonoSocialTipo"]:checked')?.value).toBe('severo');
+    expect(document.querySelector('input[name="bonoSocialLimite"]:checked')?.value).toBe('4761');
+    expect(window.LF.getInputValues().bonoSocialTipo).toBe('severo');
+    expect(window.LF.getInputValues().bonoSocialLimite).toBe(4761);
   });
 
   it('Debe detectar zona fiscal y contexto', () => {

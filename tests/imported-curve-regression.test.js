@@ -30,6 +30,11 @@ describe('Regresión - Persistencia de curva horaria importada', () => {
     expect(code).toMatch(/clearCsvImportState\s*\(/);
   });
 
+  it('los radios de bono social guardan estado y dejan el cálculo pendiente', () => {
+    expect(code).toContain('input[name="bonoSocialTipo"], input[name="bonoSocialLimite"]');
+    expect(code).toMatch(/saveInputs\(\);\s*scheduleCalculateDebounced\(\);/);
+  });
+
   it('al aplicar CSV guarda también la referencia de dias\/punta\/llano\/valle', () => {
     expect(csvImportCode).toMatch(/window\.LF\.csvConsumosRef\s*=/);
     expect(csvImportCode).toMatch(/buildCsvConsumosRef/);

@@ -332,7 +332,7 @@ const horasPunta = esCeutaMelilla
 
 | Zona | Impuesto | Potencia | Energía | Contador |
 |------|----------|----------|---------|----------|
-| Península/Baleares | IVA | 10% temporal <10 kW / 21% general | 10% temporal <10 kW / 21% general | 10% temporal <10 kW / 21% general |
+| Península/Baleares | IVA | 10% temporal <10 kW o bono social severo / 21% general | 10% temporal <10 kW o bono social severo / 21% general | 10% temporal <10 kW o bono social severo / 21% general |
 | Canarias | IGIC | — | 0% (vivienda) / 3% (otros) | 7% |
 | Ceuta/Melilla | IPSI | — | 1% | 4% |
 

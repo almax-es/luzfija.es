@@ -265,8 +265,20 @@
       const medida = this.medidasTemporales.rdl72026;
       const potenciaNum = Number.isFinite(Number(potenciaContratada)) ? Number(potenciaContratada) : 0;
       const potenciaElegible = potenciaNum > 0 && potenciaNum < medida.potenciaMaxIvaReducidoKwExclusiva;
+      const tipoBonoNorm = String(bonoSocialTipo || '')
+        .toLowerCase()
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '');
+      const bonoSeveroElegible = Boolean(bonoSocialOn) && (
+        tipoBonoNorm === 'severo'
+        || tipoBonoNorm === 'vulnerable_severo'
+        || tipoBonoNorm === 'riesgo_exclusion'
+        || tipoBonoNorm === 'vulnerable_severo_riesgo_exclusion'
+      );
 
-      if (this.isRdl72026ElectricidadActiva(fechaYmd) && potenciaElegible) {
+      if (this.isRdl72026ElectricidadActiva(fechaYmd) && (potenciaElegible || bonoSeveroElegible)) {
         return 'iva_reducido';
       }
       return 'iva_general';

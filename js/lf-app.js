@@ -275,6 +275,13 @@
       });
     }
 
+    document.querySelectorAll('input[name="bonoSocialTipo"], input[name="bonoSocialLimite"]').forEach(input => {
+      input.addEventListener('change', () => {
+        saveInputs();
+        scheduleCalculateDebounced();
+      });
+    });
+
     // Theme button
     if (currentEl.btnTheme) {
       currentEl.btnTheme.addEventListener('click', (e) => {
