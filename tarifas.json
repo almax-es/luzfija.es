@@ -56,6 +56,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "EnergyAsset",
+      "cPunta": 0.099,
+      "cLlano": 0.099,
+      "cValle": 0.099,
+      "p1": 0.0759,
+      "p2": 0.0639,
+      "web": "https://energyasset.es/#tarifa",
+      "tipo": "1P",
+      "requisitos": "15% descuento término energía durante 3 meses incluido en el precio.",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Nufri",
       "cPunta": 0.099,
       "cLlano": 0.099,
@@ -378,6 +397,25 @@
       "web": "https://clientes.atuladoenergia.com/tarifas",
       "tipo": "3P",
       "requisitos": "Los precios cambian cada trimestre natural. Potencia ≤ 15 kW",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "EnergyAsset 3P",
+      "cPunta": 0.16,
+      "cLlano": 0.12,
+      "cValle": 0.08,
+      "p1": 0.0759,
+      "p2": 0.038,
+      "web": "https://energyasset.es/#tarifa",
+      "tipo": "1P",
+      "requisitos": "15% descuento término energía durante 3 meses incluido en el precio.",
       "fv": {
         "exc": 0.0,
         "tipo": "NO COMPENSA",
@@ -719,5 +757,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-04-27T16:31:09.077Z"
+  "updatedAt": "2026-04-28T17:36:44.506Z"
 }

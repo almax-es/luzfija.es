@@ -12,7 +12,7 @@ Suite frontend avanzada para analizar la factura electrica en Espana: comparador
 
 Si eres una IA o entras al repo por primera vez, empieza por `AGENTS.md` y `CAPACIDADES-WEB.md`.
 
-## Estado Actual (2026-04-27)
+## Estado Actual (2026-04-28)
 
 - 35 paginas HTML publicas:
   - 10 en raiz.
@@ -20,7 +20,7 @@ Si eres una IA o entras al repo por primera vez, empieza por `AGENTS.md` y `CAPA
   - 24 en `guias/` (indice + 23 guias).
 - 30 modulos JavaScript en `js/` (incluye `js/bv/`).
 - 19.160 lineas JS aproximadas.
-- 39 tarifas en `tarifas.json`.
+- 41 tarifas en `tarifas.json`.
 - 4 novedades activas en `novedades.json`.
 - Suite de tests Vitest con 49 archivos y 310 casos.
 
