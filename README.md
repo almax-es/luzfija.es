@@ -12,7 +12,18 @@ Suite frontend avanzada para analizar la factura electrica en Espana: comparador
 
 Si eres una IA o entras al repo por primera vez, empieza por `AGENTS.md` y `CAPACIDADES-WEB.md`.
 
-## Estado Actual (2026-04-28)
+## Licencia Y Uso
+
+LuzFija.es es un proyecto `source-available`: el código está publicado para transparencia, auditoría y colaboración, pero no es una licencia open source permisiva tipo MIT.
+
+- Código fuente: PolyForm Shield License 1.0.0, ver `LICENSE`. No se permite usarlo para proporcionar productos o servicios que compitan con LuzFija.es.
+- Contenido, guías, documentación, microcopy, diseño y datasets curados: todos los derechos reservados, ver `CONTENT-LICENSE.md`.
+- Fuentes oficiales y datos de terceros conservan sus propios derechos; LuzFija.es protege su selección, normalización, estructura, comentarios, comparaciones y trabajo de curación.
+- Para permisos comerciales, integraciones, republicación o usos competitivos: `hola@luzfija.es`.
+
+Las versiones anteriores del repositorio pudieron publicarse bajo otros términos. Esta licencia aplica desde la versión que introduce este cambio en adelante, sin revocar permisos concedidos válidamente para versiones previas.
+
+## Estado Actual (2026-04-29)
 
 - 35 paginas HTML publicas:
   - 10 en raiz.
