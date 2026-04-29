@@ -1,3 +1,10 @@
+/**
+ * @license PolyForm-Shield-1.0.0
+ * Required Notice: Copyright (c) 2026 Luis Oscar Soler Bernal / LuzFija.es
+ * This software is licensed under the PolyForm Shield License 1.0.0.
+ * See the LICENSE file in the repository root for full terms.
+ */
+
 // Motor de cálculo para estadísticas PVPC
 // Se encarga de cargar datos y procesarlos para gráficos
 

@@ -1,3 +1,10 @@
+/**
+ * @license PolyForm-Shield-1.0.0
+ * Required Notice: Copyright (c) 2026 Luis Oscar Soler Bernal / LuzFija.es
+ * This software is licensed under the PolyForm Shield License 1.0.0.
+ * See the LICENSE file in the repository root for full terms.
+ */
+
 // ===== BEGIN PVPC MODULE =====
     // Precios PVPC: Se cargan desde dataset estático en /data/pvpc/{geoId}/{YYYY-MM}.json
     // Dataset actualizado diariamente por GitHub Actions (scripts/pvpc_auto_fill.py)
