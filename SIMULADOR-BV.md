@@ -1036,7 +1036,7 @@ El simulador lee de `tarifas.json` automáticamente. Para añadir/actualizar tar
 | **Todas las tarifas BV** | ✅ Ranking completo | ⚠️ Solo algunas |
 | **Privacidad** | ✅ 100% local | ❌ Envía datos |
 | **Gratuito** | ✅ Sin coste | ⚠️ De pago |
-| **Open source** | ✅ GitHub | ❌ Cerrado |
+| **Código visible** | ✅ Source-available en GitHub | ❌ Cerrado |
 | **Tooltips detallados** | ✅ Cada concepto | ❌ Limitado |
 | **Responsive** | ✅ Desktop + móvil | ⚠️ Solo desktop |
 
@@ -1101,16 +1101,16 @@ Porque esas tarifas **no tienen batería virtual**. El desglose solo muestra "Us
 
 ## Soporte y Contribuciones
 
-**Proyecto Open Source**: [github.com/almax-es/luzfija.es](https://github.com/almax-es/luzfija.es)
+**Proyecto source-available**: [github.com/almax-es/luzfija.es](https://github.com/almax-es/luzfija.es)
 
 **Contacto**: hola@luzfija.es
 
 **Issues**: Si encuentras un bug o tienes una sugerencia, abre un issue en GitHub.
 
-**Pull Requests**: Bienvenidas. Por favor, sigue el estilo de código existente y añade tests si es posible.
+**Pull Requests**: Bienvenidas bajo los términos de licencia vigentes. Por favor, sigue el estilo de código existente y añade tests si es posible.
 
 ---
 
-**Última actualización**: 14 de febrero de 2026
-**Versión**: 1.1
+**Última actualización**: 29 de abril de 2026
+**Versión**: 1.1.1
 **Autor**: aLMaX / LuzFija.es
