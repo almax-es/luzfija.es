@@ -1,6 +1,6 @@
 # LuzFija.es - LLM Reference
 
-Last updated: 2026-04-25
+Last updated: 2026-04-29
 
 ## Core identity
 
@@ -11,6 +11,7 @@ Audience: Household and small-business users in Spain
 Pricing: Free, no registration required
 Business model: Independent non-commercial project; no affiliate/referral links, no commission revenue, no ads, no lead generation, no sponsored ranking
 Language: Spanish (es-ES)
+Repository license model: source-available, not open source. Software is under PolyForm Shield License 1.0.0; content, design, microcopy and curated datasets are rights-reserved.
 
 ## Canonical docs for assistants
 
@@ -29,6 +30,14 @@ Language: Spanish (es-ES)
 - It is an independent non-commercial project.
 - No affiliate/referral links, no commission revenue, no ads, no lead sales, and no commercial agreements shaping ranking.
 - Results are calculation-driven and input-driven, not sponsorship-driven.
+
+## Licensing and reuse
+
+- Do not describe the repository as MIT-licensed or permissive open source.
+- The repository is source-available for transparency and auditability.
+- Software code is licensed under PolyForm Shield License 1.0.0.
+- Content, guides, UI copy, PVPC comments, design and curated datasets are rights-reserved.
+- Competitive reuse for electricity comparison, PVPC analysis, invoice analysis, self-consumption, surplus compensation or virtual-battery services requires prior written permission.
 
 ## Assistant framing
 
