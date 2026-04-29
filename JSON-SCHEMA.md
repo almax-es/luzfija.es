@@ -9,7 +9,7 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 
 **Ubicación**: `/tarifas.json`
 **Tamaño**: ~19 KB
-**Estructura**: Array de objetos dentro de `{ tarifas: [...] }`
+**Estructura**: Objeto raíz con aviso `_meta`, array de tarifas en `tarifas` y sello `updatedAt`
 **Última actualización**: 2026-04-28 (`updatedAt`: `2026-04-28T17:36:44.506Z`)
 **Total tarifas documentadas**: 41
 
@@ -17,6 +17,11 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 
 ```json
 {
+  "_meta": {
+    "copyright": "string (titular de derechos)",
+    "license": "string (aviso de derechos reservados para selección, normalización, estructura, anotaciones y curación)",
+    "usage": "string (restricciones de reutilización comercial y servicios competidores)"
+  },
   "tarifas": [
     {
       "nombre": "string (nombre comercial de la tarifa)",
@@ -37,9 +42,18 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
       },
       "requiereFV": "boolean (true = requiere obligatoriamente placas solares)"
     }
-  ]
+  ],
+  "updatedAt": "string (ISO 8601 UTC, momento de generación del dataset)"
 }
 ```
+
+### Campos Raíz
+
+| Campo | Tipo | Obligatorio | Notas |
+|-------|------|-------------|-------|
+| `_meta` | object | ✅ | Aviso operativo de titularidad y restricciones de reutilización del dataset curado. No forma parte del cálculo. |
+| `tarifas` | array | ✅ | Lista de tarifas comparables. Es la fuente que consumen el comparador principal y el simulador solar. |
+| `updatedAt` | string | ✅ | Fecha/hora UTC de generación del JSON, usada por la web para mostrar el estado de actualización. |
 
 ### Campos Detallados
 
@@ -112,7 +126,7 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 
 **Ubicación**: `/novedades.json`
 **Tamaño**: ~2,7 KB
-**Estructura**: Array de objetos (NO envuelto en objeto padre)
+**Estructura**: Array de objetos (NO envuelto en objeto padre; no incluye `_meta` para no romper consumidores actuales)
 **Última actualización**: 2026-04-17
 **Total noticias activas**: 4 (histórico ilimitado)
 
@@ -272,6 +286,7 @@ node -e "const n = JSON.parse(require('fs').readFileSync('novedades.json')); n.f
 
 ## Historial de Cambios
 
+- **2026-04-29**: `tarifas.json` añade `_meta` con aviso de derechos y restricciones de reutilización; `novedades.json` se mantiene como array raíz por compatibilidad
 - **2026-04-20**: Ajuste de métricas del repo actual (`tarifas.json` con 39 tarifas y `novedades.json` con 4 entradas activas)
 - **2026-02-14**: Actualización de métricas (`tarifas.json` con 36 tarifas, `updatedAt` renovado) y ajuste de tamaño documentado
 - **2026-02-06**: Ajuste de métricas reales (33 tarifas), rango de datos PVPC (desde 2021-06) y estrategia de caché actual

@@ -1,3 +1,10 @@
+/**
+ * @license PolyForm-Shield-1.0.0
+ * Required Notice: Copyright (c) 2026 Luis Oscar Soler Bernal / LuzFija.es
+ * This software is licensed under the PolyForm Shield License 1.0.0.
+ * See the LICENSE file in the repository root for full terms.
+ */
+
 // Guard global defensivo redundante (el principal está en config.js).
 // Se mantiene aquí porque algunas entradas legacy cargan theme.js mucho antes
 // que cualquier otro script y algunos clientes viejos siguen esperando el

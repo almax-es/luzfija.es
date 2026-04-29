@@ -1,4 +1,9 @@
 {
+  "_meta": {
+    "copyright": "Copyright (c) 2026 Luis Oscar Soler Bernal / LuzFija.es",
+    "license": "All rights reserved for LuzFija.es' selection, normalization, structure, annotations and curation. See CONTENT-LICENSE.md at https://github.com/almax-es/luzfija.es/blob/main/CONTENT-LICENSE.md",
+    "usage": "Commercial reuse, scraping or use for competing electricity comparison, PVPC analysis, invoice analysis, self-consumption, surplus compensation or virtual-battery services requires prior written permission."
+  },
   "tarifas": [
     {
       "nombre": "Atulado Milenial",

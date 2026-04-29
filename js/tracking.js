@@ -1,3 +1,10 @@
+/**
+ * @license PolyForm-Shield-1.0.0
+ * Required Notice: Copyright (c) 2026 Luis Oscar Soler Bernal / LuzFija.es
+ * This software is licensed under the PolyForm Shield License 1.0.0.
+ * See the LICENSE file in the repository root for full terms.
+ */
+
 // ===== TRACKING CON GOATCOUNTER (sin cookies, sin tracking personal) =====
 // Este archivo registra eventos importantes para entender cómo usan la web los usuarios.
 // Importante: el tracking nunca debe romper la web si falla el contador.
