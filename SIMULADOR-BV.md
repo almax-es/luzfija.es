@@ -1111,6 +1111,6 @@ Porque esas tarifas **no tienen batería virtual**. El desglose solo muestra "Us
 
 ---
 
-**Última actualización**: 29 de abril de 2026
-**Versión**: 1.1.1
+**Última actualización**: 30 de abril de 2026
+**Versión**: 1.2.0
 **Autor**: aLMaX / LuzFija.es
