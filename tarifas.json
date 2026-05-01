@@ -319,6 +319,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Lumisa Simple 24h",
+      "cPunta": 0.125141,
+      "cLlano": 0.125141,
+      "cValle": 0.125141,
+      "p1": 0.118638,
+      "p2": 0.024595,
+      "web": "https://lumisa.es/es/tarifa-fija",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Nufri Calma",
       "cPunta": 0.125233,
       "cLlano": 0.125233,
@@ -688,6 +706,24 @@
       "requiereFV": true
     },
     {
+      "nombre": "Lumisa 3P",
+      "cPunta": 0.210136,
+      "cLlano": 0.140644,
+      "cValle": 0.107595,
+      "p1": 0.118638,
+      "p2": 0.024595,
+      "web": "https://lumisa.es/es/tarifa-fija",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Seneo Tarifa 1 3P",
       "cPunta": 0.215,
       "cLlano": 0.144,
@@ -762,5 +798,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-01T06:28:07.954Z"
+  "updatedAt": "2026-05-01T16:11:05.800Z"
 }
