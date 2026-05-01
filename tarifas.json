@@ -135,6 +135,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Octopus Relax",
+      "cPunta": 0.109,
+      "cLlano": 0.109,
+      "cValle": 0.109,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://octopusenergy.es/precios",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.01,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "TE A tu aire",
       "cPunta": 0.1099,
       "cLlano": 0.1099,
@@ -577,6 +595,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Octopus 3P",
+      "cPunta": 0.181,
+      "cLlano": 0.102,
+      "cValle": 0.083,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://octopusenergy.es/precios",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.01,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Esluz 3P",
       "cPunta": 0.187021,
       "cLlano": 0.135066,
@@ -742,6 +778,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "CHC VE 3P",
+      "cPunta": 0.225745,
+      "cLlano": 0.221841,
+      "cValle": 0.061081,
+      "p1": 0.088956,
+      "p2": 0.088382,
+      "web": "https://chcenergia.es/tarifa-luz/vehiculo-electrico/",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Neolux VE Easy 3P",
       "cPunta": 0.23,
       "cLlano": 0.22,
@@ -780,23 +834,41 @@
       "requiereFV": false
     },
     {
-      "nombre": "CHC VE 3P",
-      "cPunta": 0.225745,
-      "cLlano": 0.221841,
-      "cValle": 0.061081,
-      "p1": 0.088956,
-      "p2": 0.088382,
-      "web": "https://chcenergia.es/tarifa-luz/vehiculo-electrico/",
+      "nombre": "Octopus Solar",
+      "cPunta": 0.245,
+      "cLlano": 0.155,
+      "cValle": 0.13,
+      "p1": 0.097,
+      "p2": 0.03,
+      "web": "https://octopusenergy.es/precios/tarifa-solar",
       "tipo": "3P",
       "fv": {
-        "exc": 0.04,
-        "tipo": "SIMPLE",
+        "exc": 0.035,
+        "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Octopus Go",
+      "cPunta": 0.248,
+      "cLlano": 0.248,
+      "cValle": 0.104,
+      "p1": 0.104,
+      "p2": 0.024,
+      "web": "https://octopusenergy.es/precios/tarifa-ev",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA"
       },
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-01T16:11:05.800Z"
+  "updatedAt": "2026-05-01T17:30:32.430Z"
 }
