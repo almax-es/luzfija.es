@@ -71,9 +71,9 @@
       "tipo": "1P",
       "requisitos": "15% descuento término energía durante 3 meses incluido en el precio.",
       "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
+        "exc": -1.0,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
         "bv": false,
         "reglaBV": "NO APLICA"
       },
@@ -282,7 +282,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "Seneo Tarifa 3",
+      "nombre": "Seneo Tarifa 2",
       "cPunta": 0.119,
       "cLlano": 0.119,
       "cValle": 0.119,
@@ -383,25 +383,7 @@
       "tipo": "1P",
       "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
       "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Seneo Tarifa 2",
-      "cPunta": 0.129,
-      "cLlano": 0.129,
-      "cValle": 0.129,
-      "p1": 0.121,
-      "p2": 0.029,
-      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
-      "tipo": "1P",
-      "fv": {
-        "exc": 0.04,
+        "exc": -1.0,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -476,9 +458,9 @@
       "tipo": "3P",
       "requisitos": "15% descuento término energía durante 3 meses incluido en el precio.",
       "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
+        "exc": -1.0,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
         "bv": false,
         "reglaBV": "NO APLICA"
       },
@@ -677,7 +659,7 @@
       "tipo": "3P",
       "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
       "fv": {
-        "exc": 0.03,
+        "exc": -1.0,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -852,7 +834,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "Octopus Solar",
+      "nombre": "Octopus Solar 3P",
       "cPunta": 0.245,
       "cLlano": 0.155,
       "cValle": 0.13,
@@ -870,7 +852,25 @@
       "requiereFV": false
     },
     {
-      "nombre": "Octopus Go",
+      "nombre": "Nufri Solar 3P",
+      "cPunta": 0.247809,
+      "cLlano": 0.170519,
+      "cValle": 0.136579,
+      "p1": 0.111519,
+      "p2": 0.037604,
+      "web": "https://www.energianufri.com/es/tarifas-luz",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.08,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Octopus Go 3P",
       "cPunta": 0.248,
       "cLlano": 0.248,
       "cValle": 0.104,
@@ -888,5 +888,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-04T09:48:24.748Z"
+  "updatedAt": "2026-05-04T16:10:47.259Z"
 }

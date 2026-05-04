@@ -1510,10 +1510,10 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHuc
         `;
       };
 
-      // Helper: Disclaimer para tarifas Nufri (precio indexado)
-      const getNufriDisclaimer = (nombreTarifa) => {
-        const esNufri = (nombreTarifa || '').includes('Nufri');
-        if (!esNufri) return '';
+      // Helper: Disclaimer para tarifas con precio indexado (marcadas con -1)
+      const getIndexadoDisclaimer = (tarifa) => {
+        const esIndexada = tarifa?.fv?.exc === -1;
+        if (!esIndexada) return '';
         return `<div class="bv-nufri-disclaimer" style="
           margin-top: 8px;
           padding: 8px 12px;
@@ -1569,7 +1569,7 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHuc
       const pillWinner = winnerHasBV
         ? '<span class="bv-pill bv-pill--bv" title="Esta tarifa acumula el excedente sobrante (en €) para meses futuros.">Con batería virtual</span>'
         : '<span class="bv-pill bv-pill--no-bv" title="Esta tarifa NO acumula excedente sobrante: lo no compensado se pierde cada mes.">Sin batería virtual</span>';
-      const winnerNufriNote = getNufriDisclaimer(winner.tarifa?.nombre);
+      const winnerNufriNote = getIndexadoDisclaimer(winner.tarifa);
       const winnerCompParcialNote = getCompParcialDisclaimer(winner.tarifa, winner);
 
       const winnerHTML = `
@@ -1618,7 +1618,7 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHuc
         const pill = hasBV
           ? '<span class="bv-pill bv-pill--bv" title="Acumula excedente sobrante para meses futuros.">Con BV</span>'
           : '<span class="bv-pill bv-pill--no-bv" title="No acumula excedente sobrante; lo no compensado se pierde.">Sin BV</span>';
-        const altNufriNote = getNufriDisclaimer(r.tarifa?.nombre);
+        const altNufriNote = getIndexadoDisclaimer(r.tarifa);
         const altCompParcialNote = getCompParcialDisclaimer(r.tarifa, r);
 
         return `

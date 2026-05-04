@@ -281,7 +281,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 30 (`js/*.js` + `js/bv/*.js`).
-- Lineas JS aproximadas: 19.370.
+- Lineas JS aproximadas: 19.372.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (48 tarifas).
