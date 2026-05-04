@@ -468,7 +468,7 @@
 
       // Buscar la tarifa para ver si es indexada
       const tarifaData = window.LF_CONFIG?.tarifas?.find(t => t.nombre === datos.nombreTarifa);
-      const esIndexada = tarifaData?.fv?.exc === -1;
+      const esIndexada = Boolean(datos.precioCompensacionIndexada) || tarifaData?.fv?.exc === -1;
       // Mostrar precio con menos decimales para mayor claridad (2 en lugar de 6)
       const precioLabel = esIndexada ? `${this.fmtNum(datos.precioCompensacion, 2)} €/kWh <span style="color:#f59e0b">(est.)</span>` : `${this.fmtNum(datos.precioCompensacion, 2)} €/kWh`;
 
@@ -500,7 +500,7 @@
         ${(d.credit1 > 0 && creditoPotencial > d.credit1) ? `<div class="desglose-resumen-note">
           ✅ Has generado <strong>${this.fmt(creditoPotencial)}</strong> en excedentes. Se compensan <strong>${this.fmt(d.credit1)}</strong> este mes (tope: ${topeLabel}). ${bvActiva ? `Los <strong>${this.fmt(d.excedenteSobranteEur)}</strong> restantes se guardan en tu Batería Virtual para próximas facturas.` : 'El resto no se puede compensar este mes.'}
         </div>` : ''}
-        ${esIndexada && compensa ? `<div class="desglose-resumen-note desglose-resumen-note--nufri">
+        ${esIndexada && solarOn ? `<div class="desglose-resumen-note desglose-resumen-note--nufri">
           ⚠️ <strong>Precio estimado:</strong> Esta tarifa paga excedentes a precio <strong>indexado</strong> (pool OMIE horario). El valor mostrado (${this.fmtNum(datos.precioCompensacion, 4)} €/kWh) es una <strong>estimación promedio</strong>. El precio real variará según el mercado eléctrico.
         </div>` : ''}
         ${esCompParcial && compensa ? (() => {

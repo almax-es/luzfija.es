@@ -419,6 +419,7 @@
       bateriaVirtual: tieneBV ? inputs.bvSaldo : 0,
       tieneBV: tieneBV,
       reglaBV: reglaBV,
+      precioCompensacionIndexada: tarifa.fv?.exc === -1,
 
       zonaFiscal: inputs.zonaFiscal,
       esViviendaCanarias: inputs.viviendaCanarias,
