@@ -351,8 +351,10 @@
       tieneBV = tarifa.fv.bv || false;
       reglaBV = tarifa.fv.reglaBV || 'NO APLICA';
       
-      // Precio compensación (solo valores numéricos válidos)
-      if (typeof tarifa.fv.exc === 'number') {
+      // Precio compensación (solo valores numéricos válidos o estimación para -1)
+      if (tarifa.fv.exc === -1) {
+        precioCompensacion = 0.03;
+      } else if (typeof tarifa.fv.exc === 'number') {
         precioCompensacion = tarifa.fv.exc;
       } else {
         precioCompensacion = 0;

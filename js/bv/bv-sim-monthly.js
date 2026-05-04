@@ -233,9 +233,8 @@ window.BVSim.calcMonthForTarifa = function ({
   
   // Excedentes
   const exKwh = Number(month.exportTotalKWh) || 0;
-  // Solo se aceptan valores numéricos válidos. Las tarifas indexadas
-  // (ej: Nufri) se manejan con estimaciones numéricas en tarifas.json + disclaimer en UI.
-  let precioExc = Number(tarifa?.fv?.exc);
+  // Las tarifas indexadas (-1) usan estimación de 0.03
+  let precioExc = tarifa?.fv?.exc === -1 ? 0.03 : Number(tarifa?.fv?.exc);
   if (!Number.isFinite(precioExc)) precioExc = 0;
   
   const creditoPotencial = round2(exKwh * precioExc);
@@ -560,11 +559,11 @@ window.BVSim.loadTarifasBV = async function () {
     const data = await response.json();
     const tarifas = Array.isArray(data?.tarifas) ? data.tarifas : [];
 
-    // Solo tarifas que remuneren excedentes (exc > 0).
-    // Las indexadas (ej: Nufri) usan valores estimados en tarifas.json.
+    // Solo tarifas que remuneren excedentes (exc > 0 o indexadas exc === -1).
     const tarifasBV = tarifas.filter((tarifa) => {
       if (!tarifa || !tarifa.fv) return false;
-      const exc = Number(tarifa.fv.exc);
+      const rawExc = tarifa.fv.exc;
+      const exc = rawExc === -1 ? 0.03 : Number(rawExc);
       return Number.isFinite(exc) && exc > 0;
     });
 
