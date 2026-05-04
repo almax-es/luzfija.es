@@ -282,6 +282,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Seneo Tarifa 3",
+      "cPunta": 0.119,
+      "cLlano": 0.119,
+      "cValle": 0.119,
+      "p1": 0.089,
+      "p2": 0.089,
+      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Gana Energía",
       "cPunta": 0.119,
       "cLlano": 0.119,
@@ -393,9 +411,9 @@
     },
     {
       "nombre": "Seneo Tarifa 1",
-      "cPunta": 0.152,
-      "cLlano": 0.152,
-      "cValle": 0.152,
+      "cPunta": 0.158,
+      "cLlano": 0.158,
+      "cValle": 0.158,
       "p1": 0.095,
       "p2": 0.018,
       "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
@@ -494,7 +512,7 @@
       "web": "https://www.seneo.org/es/tarifa-tramos-horarios-con-monedero-solar/",
       "tipo": "3P",
       "fv": {
-        "exc": 0.04,
+        "exc": 0.06,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -761,9 +779,9 @@
     },
     {
       "nombre": "Seneo Tarifa 1 3P",
-      "cPunta": 0.215,
-      "cLlano": 0.144,
-      "cValle": 0.111,
+      "cPunta": 0.221,
+      "cLlano": 0.149,
+      "cValle": 0.117,
       "p1": 0.095,
       "p2": 0.018,
       "web": "https://www.seneo.org/es/tarifa-tramos-horarios-con-monedero-solar/",
@@ -870,5 +888,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-04T06:37:29.382Z"
+  "updatedAt": "2026-05-04T09:01:50.991Z"
 }
