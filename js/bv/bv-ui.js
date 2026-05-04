@@ -1525,7 +1525,7 @@ ${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHuc
           color: var(--text);
           opacity: 0.9;
         ">
-          <span style="opacity: 0.7;">ℹ️</span> <strong>Precio estimado:</strong> Esta tarifa paga excedentes a precio indexado (pool OMIE). El valor mostrado es una estimación promedio.
+          <span style="opacity: 0.7;">ℹ️</span> <strong>Precio estimado:</strong> Esta tarifa paga excedentes a precio indexado (pool OMIE horario). El valor mostrado (0,0300 €/kWh) es una estimación promedio. El precio real variará según el mercado eléctrico.
         </div>`;
       };
 
