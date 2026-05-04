@@ -559,19 +559,19 @@ window.BVSim.loadTarifasBV = async function () {
     const data = await response.json();
     const tarifas = Array.isArray(data?.tarifas) ? data.tarifas : [];
 
-    // Solo tarifas con batería virtual y excedentes remunerados.
-    // BV se decide por fv.bv; el precio de excedentes puede ser fijo o indexado (-1).
+    // Solo tarifas con excedentes remunerados.
+    // BV se decide en la UI por fv.bv; el precio de excedentes puede ser fijo o indexado (-1).
     const tarifasBV = tarifas.filter((tarifa) => {
       if (!tarifa || !tarifa.fv) return false;
       const rawExc = tarifa.fv.exc;
       const tieneExcRemunerado = (rawExc === -1) || (Number.isFinite(Number(rawExc)) && Number(rawExc) > 0);
-      return Boolean(tarifa.fv.bv) && tieneExcRemunerado;
+      return tieneExcRemunerado;
     });
 
     if (tarifasBV.length === 0) {
       return {
         ok: false,
-        error: 'No hay tarifas con batería virtual disponibles actualmente. El simulador solo muestra tarifas con BV y excedentes remunerados.'
+        error: 'No hay tarifas remuneradas de excedentes disponibles actualmente.'
       };
     }
 
