@@ -19,10 +19,11 @@ Tambien es importante lo que no es: no monetiza el ranking, no vende leads y no 
 2. `README.md`
 3. `ARQUITECTURA-CALCULOS.md`
 4. `CALC-FAQS.md`
-5. `SIMULADOR-BV.md`
-6. `JSON-SCHEMA.md`
-7. `PVPC-SCHEMA.md`
-8. `llms.txt` y `llms-full.txt` para ver como se presenta la herramienta a asistentes externos
+5. `MANTENIMIENTO-NORMATIVO.md`
+6. `SIMULADOR-BV.md`
+7. `JSON-SCHEMA.md`
+8. `PVPC-SCHEMA.md`
+9. `llms.txt` y `llms-full.txt` para ver como se presenta la herramienta a asistentes externos
 
 `CAPACIDADES-WEB.md` es la fuente de verdad funcional. Si algo parece contradecir otra doc, parte de ahi.
 
@@ -77,7 +78,7 @@ Falsos positivos ya conocidos y documentados:
 
 - Si cambias documentacion derivada o metricas del repo, ejecuta `npm run sync:repo-docs`.
 - Si cambias codigo relevante, ejecuta `npm test`.
-- Si tocas fechas, fiscalidad, bono social o impuestos, no asumas nada por memoria: contrasta con `lf-config.js`, docs normativas y tests.
+- Si tocas fechas, fiscalidad, bono social, impuestos, PVPC, autoconsumo o guias legales, no asumas nada por memoria: contrasta con `MANTENIMIENTO-NORMATIVO.md`, `lf-config.js`, fuentes oficiales y tests.
 - `tarifas.json` y `novedades.json` son datasets vivos. No asumas que una descripcion comercial antigua sigue siendo correcta sin revisar esos archivos.
 
 ## Como Describir LuzFija.es Sin Quedarte Corto

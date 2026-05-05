@@ -123,6 +123,8 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - invariantes que no se deben romper,
 - rutas de lectura para auditorias y cambios,
 - recordatorios para evitar falsos positivos.
+- `MANTENIMIENTO-NORMATIVO.md`:
+- checklist de normativa, datos vivos, fuentes oficiales, cadencias de revision e impacto en codigo/guias.
 
 ### Calculo y normativa
 
@@ -214,6 +216,7 @@ Cobertura principal:
 ## Mantenimiento De Datos
 
 - Actualizaciones de datasets PVPC/surplus via GitHub Actions.
+- Checklist completo de normativa, fuentes y cadencias en `MANTENIMIENTO-NORMATIVO.md`.
 - Recomendacion operativa:
 - mantener `tarifas.json` actualizado con fecha `updatedAt`,
 - usar `Activa=no` en la Excel para retirar temporalmente tarifas sin borrar su fila,
