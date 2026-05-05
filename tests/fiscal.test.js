@@ -39,7 +39,7 @@ describe('LF_CONFIG - Lógica Fiscal', () => {
     expect(result).toBe(expected);
   });
 
-  it('Península: aplica IVA 10% si la potencia es inferior a 10 kW', () => {
+  it('Península: aplica IVA 10% si la potencia es inferior o igual a 10 kW', () => {
     const info = window.LF_CONFIG.getImpuestoInfo('Península', 'otros', {
       potenciaContratada: 4.6,
       fechaYmd: '2026-03-21'
