@@ -798,6 +798,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Octopus Solar 3P",
+      "cPunta": 0.245,
+      "cLlano": 0.155,
+      "cValle": 0.13,
+      "p1": 0.097,
+      "p2": 0.03,
+      "web": "https://octopusenergy.es/precios/tarifa-solar",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.035,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Nufri Solar 3P",
       "cPunta": 0.247809,
       "cLlano": 0.170519,
@@ -834,5 +852,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-05T05:56:11.082Z"
+  "updatedAt": "2026-05-05T07:41:13.908Z"
 }
