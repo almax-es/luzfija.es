@@ -687,12 +687,12 @@
       "requiereFV": false
     },
     {
-      "nombre": "Niba 3P",
-      "cPunta": 0.198,
-      "cLlano": 0.119,
-      "cValle": 0.082,
-      "p1": 0.089,
-      "p2": 0.089,
+      "nombre": "Niba Tres 3P",
+      "cPunta": 0.196,
+      "cLlano": 0.169,
+      "cValle": 0.089,
+      "p1": 0.079,
+      "p2": 0.059,
       "web": "https://niba.es/luz-y-gas",
       "tipo": "3P",
       "fv": {
@@ -888,5 +888,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-04T16:52:12.929Z"
+  "updatedAt": "2026-05-05T05:45:40.077Z"
 }
