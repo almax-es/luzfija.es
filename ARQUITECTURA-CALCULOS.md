@@ -49,7 +49,7 @@ Una factura de electricidad en España contiene:
 │ - 0,81 €/mes prorrateo a días              │
 ├─────────────────────────────────────────────┤
 │ IMPUESTO INDIRECTO (IVA/IGIC/IPSI)          │
-│ - Península: IVA vigente (10% temporal <10 kW o bono social severo, 21% resto) │
+│ - Península: IVA vigente (10% temporal <=10 kW desde RDL 10/2026 o bono social severo, 21% resto) │
 │ - Canarias: 0-7% (IGIC)                     │
 │ - Ceuta/Melilla: 1-4% (IPSI)                │
 └─────────────────────────────────────────────┘

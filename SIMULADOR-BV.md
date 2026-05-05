@@ -117,7 +117,7 @@ Soporte para 3 zonas con impuestos diferenciados:
 
 | Zona | IVA/IGIC/IPSI | Alquiler Contador |
 |---|---|---|
-| **Península/Baleares** | IVA vigente (10% temporal <10 kW, 21% general) | mismo tipo IVA vigente |
+| **Península/Baleares** | IVA vigente (10% temporal <= 10 kW desde RDL 10/2026, 21% general) | mismo tipo IVA vigente |
 | **Canarias** | IGIC 0% (vivienda ≤10kW) o 3% | IGIC 7% |
 | **Ceuta/Melilla** | IPSI 1% | IPSI 4% |
 
@@ -125,9 +125,9 @@ Soporte para 3 zonas con impuestos diferenciados:
 
 **Solo muestra tarifas con**:
 - ✅ Campo `fv` (autoconsumo fotovoltaico)
-- ✅ Precio de excedentes numérico (`exc > 0`)
+- ✅ Precio de excedentes remunerado: `exc > 0` o `exc = -1` para indexado estimado
 
-**Razón**: El simulador necesita un precio de excedentes utilizable para calcular la compensación. Si una tarifa indexada se incluye con valor estimado en `tarifas.json`, se muestra con nota informativa.
+**Razón**: El simulador necesita un precio de excedentes utilizable para calcular la compensación. Las tarifas indexadas marcadas como `fv.exc = -1` se cargan con estimación operativa y se muestran con nota informativa.
 
 ### 🔄 Modo Híbrido: CSV a Manual
 
@@ -270,7 +270,7 @@ window.BVSim.simulateForAllTarifasBV({
 
 ```javascript
 window.BVSim.loadTarifasBV()
-// Carga tarifas.json y filtra tarifas con excedentes remunerados (fv.exc > 0)
+// Carga tarifas.json y filtra tarifas con excedentes remunerados (fv.exc > 0 o fv.exc = -1)
 // Devuelve: { ok: true, tarifasBV: [...] }
 // Error si no hay tarifas con excedentes disponibles
 ```
@@ -1046,7 +1046,7 @@ El simulador lee de `tarifas.json` automáticamente. Para añadir/actualizar tar
 
 ### ¿Por qué filtra tarifas sin precio de excedentes utilizable?
 
-El simulador necesita un valor numérico para `fv.exc`. Por eso solo carga tarifas con `fv.exc > 0`. Esto incluye precios fijos y, en algunos casos, precios indexados ya estimados en `tarifas.json` (mostrados con nota informativa en la UI).
+El simulador necesita un valor de excedentes utilizable. Por eso carga tarifas con `fv.exc > 0` y tambien tarifas indexadas marcadas con `fv.exc = -1`. En estas ultimas la web usa una estimacion operativa y muestra una nota informativa en la UI.
 
 ### ¿Qué hago si mi CSV no tiene excedentes?
 
