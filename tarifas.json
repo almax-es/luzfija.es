@@ -226,24 +226,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Octopus Unicaja",
-      "cPunta": 0.116,
-      "cLlano": 0.116,
-      "cValle": 0.116,
-      "p1": 0.097,
-      "p2": 0.027,
-      "web": "https://octopusenergy.es/unicaja#tarifas",
-      "tipo": "1P",
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Energya VM",
       "cPunta": 0.118235,
       "cLlano": 0.118235,
@@ -631,24 +613,6 @@
       "requiereFV": true
     },
     {
-      "nombre": "Octopus Unicaja 3P",
-      "cPunta": 0.188,
-      "cLlano": 0.113,
-      "cValle": 0.077,
-      "p1": 0.097,
-      "p2": 0.027,
-      "web": "https://octopusenergy.es/unicaja#tarifas",
-      "tipo": "3P",
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Nufri Flex 3P",
       "cPunta": 0.191853,
       "cLlano": 0.115288,
@@ -834,24 +798,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Octopus Solar 3P",
-      "cPunta": 0.245,
-      "cLlano": 0.155,
-      "cValle": 0.13,
-      "p1": 0.097,
-      "p2": 0.03,
-      "web": "https://octopusenergy.es/precios/tarifa-solar",
-      "tipo": "3P",
-      "fv": {
-        "exc": 0.035,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Nufri Solar 3P",
       "cPunta": 0.247809,
       "cLlano": 0.170519,
@@ -888,5 +834,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-05T05:45:40.077Z"
+  "updatedAt": "2026-05-05T05:54:40.282Z"
 }
