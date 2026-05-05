@@ -33,7 +33,10 @@ Este documento lista las piezas de LuzFija.es que dependen de normativa, fuentes
 | Factura PDF/QR CNMC | Formato de URL QR, campos y cambios en modelos de factura | Trimestral y cuando fallen facturas reales | CNMC y facturas reales anonimizadas | `js/factura.js`, tests de factura, guias de factura |
 | Consumo horario y lecturas | Acceso a curva horaria, Datadis, portales de distribuidoras, lecturas reales/estimadas y formatos CSV/XLSX | Semestral y cuando cambien formatos de descarga | Datadis, distribuidoras, CNMC | `js/lf-csv-utils.js`, importadores, guias de consumo horario y lecturas |
 | Potencia contratada y maximetro | Derechos, excesos, tramos, maximetro y casos domesticos/no domesticos | Semestral y cada cambio regulatorio | BOE, CNMC, distribuidoras | Guia de potencia, calculadora, textos de ayuda |
+| Contratacion, cambios y atencion al cliente | Plazos de cambio de comercializadora, respuesta a reclamaciones, desistimiento, canales de atencion y obligaciones de empresa | Semestral y cada cambio de consumidores/energia | BOE, CNMC, RD 88/2026 y normativa posterior | Guias de cambio de compania, reclamaciones, estafas y servicios extra |
+| Altas, bajas, CUPS y cambio de titular | Derechos regulados, CUPS inactivos, altas/bajas, mudanzas, alquileres, fallecimientos y cambios de titular | Semestral y cada cambio de normativa de acceso/contratacion | BOE, CNMC, distribuidoras y comercializadoras | Guias de CUPS, mudanza/alquiler, potencia, errores de factura |
 | Coche electrico | ITC-BT-52, comunidad de propietarios, potencias y costes orientativos | Semestral | REBT/ITC-BT-52, Ley de Propiedad Horizontal, IDAE | Guia de punto de recarga y coche electrico |
+| Equipos, climatizacion y costes orientativos | Consumos, precios medios, ayudas, subvenciones, deducciones fiscales, mantenimiento y vida util de placas, baterias, aerotermia, termo, bombas de calor y coche electrico | Trimestral y antes de actualizar guias de ahorro/inversion | IDAE, MITECO, CCAA/ayuntamientos, mercado y fabricantes | Guias de aerotermia, autoconsumo, coche electrico y potencia |
 | Guias legales/reclamaciones | Plazos, organismos, procedimientos y derechos del consumidor | Semestral | CNMC, MITECO, consumo autonomico, BOE | Guias de reclamacion, errores de factura, cambios de compania |
 | Estafas, telemarketing y datos personales | Derecho de desistimiento, Lista Robinson, AEPD, suplantaciones y canales de reclamacion | Semestral y ante cambios de consumo/proteccion de datos | AEPD, normativa de consumidores, Lista Robinson, organismos de consumo | Guia de estafas, privacidad, reclamaciones |
 | Gas/TUR y novedades energeticas no electricas | Avisos puntuales que aparecen en `novedades.json` o guias relacionadas aunque no sean calculo electrico | Cada novedad publicada y revision trimestral | BOE, MITECO, CNMC, comercializadoras de referencia | `novedades.json`, `novedades.html`, feed, guias relacionadas |
@@ -46,6 +49,7 @@ Este documento lista las piezas de LuzFija.es que dependen de normativa, fuentes
 - Cada cambio de ano: revisar peajes/cargos, calendario de periodos, festivos nacionales, datasets PVPC/surplus y textos de guias que mencionen importes anuales.
 - Cada cambio de Excel de tarifas: ejecutar generador, revisar el informe del validador y confirmar que las inactivas no se publican pero siguen apareciendo en validacion.
 - Cada novedad energetica publicada: confirmar si requiere tocar `novedades.json`, `feed.xml`, guias, landings o calculos. No limitar la revision a electricidad si la noticia trata TUR/gas u otro suministro.
+- Cada guia con importes orientativos: revisar que los rangos sigan siendo razonables o marcar claramente que son ejemplos no contractuales.
 
 ## Protocolo Para Cambios Normativos
 
