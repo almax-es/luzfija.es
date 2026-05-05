@@ -169,7 +169,7 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     expect(Math.abs(resultado.totalNum - totalEsperado)).toBeLessThanOrEqual(0.02);
   });
 
-  it('Mantiene IVA general en tarifas libres con 10 kW exactos', async () => {
+  it('Aplica IVA reducido en tarifas libres con 10 kW exactos', async () => {
     const tarifaLibre = {
       nombre: "Libre exacta 10kW",
       p1: 0.10, p2: 0.10,
@@ -204,7 +204,7 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     const alquiler = window.LF_CONFIG.calcularAlquilerContador(30);
     const taxCalc = window.LF_CONFIG.calcularImpuestoIndirecto({
       zona: 'Península',
-      usoFiscal: 'iva_general',
+      usoFiscal: 'iva_reducido',
       baseEnergia: sumaBase,
       impuestoElectrico: iee,
       baseContador: alquiler,
@@ -213,7 +213,7 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     });
     const totalEsperado = window.LF.round2(sumaBase + iee + alquiler + taxCalc.impuestoEnergia + taxCalc.impuestoContador);
 
-    expect(taxCalc.energiaRate).toBe(0.21);
+    expect(taxCalc.energiaRate).toBe(0.10);
     expect(Math.abs(resultado.totalNum - totalEsperado)).toBeLessThanOrEqual(0.02);
   });
 

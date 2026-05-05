@@ -196,7 +196,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     vi.useRealTimers();
   });
 
-  it('crearTarifaPVPC separa la caché PVPC por bono social severo para no reutilizar IVA reducido indebidamente', async () => {
+  it('crearTarifaPVPC aplica IVA reducido con 10 kW exactos y separa la caché por bono social', async () => {
     const mockJson = {
       geo_id: 8741,
       days: {
@@ -237,7 +237,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     });
 
     expect(severe.metaPvpc.usoFiscal).toBe('iva_reducido');
-    expect(noBonus.metaPvpc.usoFiscal).toBe('iva_general');
+    expect(noBonus.metaPvpc.usoFiscal).toBe('iva_reducido');
     expect(global.fetch).toHaveBeenCalledTimes(2);
 
     vi.useRealTimers();

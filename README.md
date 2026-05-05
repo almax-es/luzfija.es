@@ -30,7 +30,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
   - 1 en `estadisticas/`.
   - 24 en `guias/` (indice + 23 guias).
 - 30 modulos JavaScript en `js/` (incluye `js/bv/`).
-- 19.375 lineas JS aproximadas.
+- 19.376 lineas JS aproximadas.
 - 45 tarifas en `tarifas.json`.
 - 4 novedades activas en `novedades.json`.
 - Suite de tests Vitest con 49 archivos y 310 casos.
@@ -162,6 +162,11 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - `/data/pvpc/` (REE/ESIOS indicador 1001).
 - `/data/surplus/` (REE/ESIOS indicador 1739).
 
+Notas de tarifas:
+
+- `fv.exc` es el precio de excedentes en €/kWh; `-1` significa precio indexado y la web calcula con una estimacion operativa de 0,030 €/kWh mostrando aviso visible.
+- La columna privada `Activa` de la Excel no se publica en JSON: `no` excluye una tarifa de `tarifas.json` y del post de Facebook, pero el validador privado la sigue revisando.
+
 ## PWA, Cache Y Offline
 
 - Service Worker en `sw.js` con versionado por despliegue (`CACHE_VERSION`).
@@ -211,5 +216,7 @@ Cobertura principal:
 - Actualizaciones de datasets PVPC/surplus via GitHub Actions.
 - Recomendacion operativa:
 - mantener `tarifas.json` actualizado con fecha `updatedAt`,
+- usar `Activa=no` en la Excel para retirar temporalmente tarifas sin borrar su fila,
+- revisar antes del 30/06/2026 el IVA reducido temporal: tras el RDL 10/2026 el umbral operativo es potencia inferior o igual a 10 kW,
 - revisar `novedades.json` para avisos regulatorios,
 - validar cambios con `npm test` antes de publicar.

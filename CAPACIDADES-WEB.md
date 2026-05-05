@@ -261,8 +261,8 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 
 ### 5.5 Notas De Modelo
 
-- Incluye tarifas con `fv.exc` numerico positivo.
-- Si una tarifa usa precio indexado estimado (por ejemplo Nufri), se muestra nota explicita en UI.
+- Incluye tarifas con `fv.exc` numerico positivo y tarifas indexadas marcadas con `fv.exc = -1`.
+- Si una tarifa usa precio indexado, la web calcula con una estimacion operativa de 0,030 €/kWh y muestra nota explicita en UI.
 - En tarifas sin BV, el excedente sobrante no se acumula.
 
 ## 6. Guias, Landings, 404 Y Legal
@@ -281,13 +281,15 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 30 (`js/*.js` + `js/bv/*.js`).
-- Lineas JS aproximadas: 19.375.
+- Lineas JS aproximadas: 19.376.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (45 tarifas).
 - `novedades.json` (4 entradas activas).
 - `/data/pvpc/` (indicador 1001).
 - `/data/surplus/` (indicador 1739).
+- Fuente privada de tarifas: Excel local `Tarifas Luz.xlsx`. Su columna interna `Activa` controla publicacion; `no` excluye la tarifa de `tarifas.json` y del post de Facebook, pero no del validador privado.
+- Fiscalidad Peninsula/Baleares: el IVA reducido temporal de 2026 aplica a potencia contratada inferior o igual a 10 kW desde la correccion del RDL 10/2026.
 
 ## 8. Service Worker Y Funcionamiento Offline
 

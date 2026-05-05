@@ -34,7 +34,7 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
       "tipo": "string ('1P' para uniforme, '3P' para discriminación horaria)",
       "requisitos": "string (optional, condiciones especiales si aplican)",
       "fv": {
-        "exc": "number (€/kWh compensación excedentes solares)",
+        "exc": "number (€/kWh compensación excedentes solares; -1 = indexado estimado)",
         "tipo": "string (tipo de compensación: 'NO COMPENSA', 'SIMPLE', 'SIMPLE + BV', etc.)",
         "tope": "string (límite de compensación: 'ENERGIA', 'POTENCIA', '—' si no aplica)",
         "bv": "boolean (true = permite batería virtual)",
@@ -68,7 +68,7 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 | `web` | string | ✅ | URL válida | https://endesa.com/... | Enlace a la tarifa (se abre en nueva pestaña) |
 | `tipo` | string | ✅ | "1P" \| "3P" | "1P" | 1P = precio uniforme, 3P = discriminación horaria |
 | `requisitos` | string | ❌ | — | "Consumo ≤8.000 kWh" | Solo si hay condiciones especiales |
-| `fv.exc` | number | ✅ | 0.00–0.30 | 0.03 | €/kWh por excedentes volcados a la red |
+| `fv.exc` | number | ✅ | -1 o 0.00–0.30 | 0.03 | €/kWh por excedentes volcados a la red. `-1` marca precio indexado y la web usa una estimación de 0,030 €/kWh con aviso visible. |
 | `fv.tipo` | string | ✅ | Ver notas | "SIMPLE + BV" | Tipo de compensación: cómo se retribuyen excedentes |
 | `fv.tope` | string | ✅ | "ENERGIA" \| "ENERGIA_PARCIAL" \| "POTENCIA" \| "—" | "ENERGIA" | Límite de compensación (si aplica) |
 | `fv.bv` | boolean | ✅ | true \| false | true | ¿Permite acumular excedentes en batería virtual? |
@@ -83,6 +83,11 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 - `"SIMPLE + BV"` — Compensación + acumulación mensual
 - `"NETO"` — Neteo (excedentes contra consumo)
 - Otros tipos según evolución regulatoria
+
+#### `fv.exc` (Precio de Excedentes)
+- `0` — No remunera excedentes o no se usa en una tarifa sin compensación.
+- Número positivo — Precio fijo publicado en €/kWh.
+- `-1` — Precio indexado/no fijo. Los cálculos usan 0,030 €/kWh como estimación operativa y la interfaz muestra aviso de precio estimado.
 
 #### `fv.tope` (Límite de Compensación)
 - `"ENERGIA"` — Limitada al coste total de energía consumida (incluye peajes y cargos)
@@ -264,6 +269,14 @@ node -e "console.log(JSON.parse(require('fs').readFileSync('tarifas.json')))"
 node -e "const t = JSON.parse(require('fs').readFileSync('tarifas.json')); console.log('Tarifas:', t.tarifas.length)"
 ```
 
+### Campo interno `Activa` de la Excel
+
+La hoja privada `Tarifas Luz.xlsx` puede incluir una columna `Activa`. Esta columna no forma parte de `tarifas.json`.
+
+- Vacío, `sí` o cualquier valor no negativo: la tarifa se publica.
+- `no`, `n`, `false`, `falso` o `0`: la tarifa se omite al generar `tarifas.json` y el post de Facebook.
+- El validador privado sigue revisando también las tarifas inactivas y marca su estado de publicación en el informe.
+
 ### Cómo validar `novedades.json`
 
 ```bash
@@ -286,6 +299,7 @@ node -e "const n = JSON.parse(require('fs').readFileSync('novedades.json')); n.f
 
 ## Historial de Cambios
 
+- **2026-05-05**: Documentado `fv.exc = -1` para excedentes indexados estimados y el campo interno `Activa` de la Excel, que filtra publicación sin excluir validación.
 - **2026-04-29**: `tarifas.json` añade `_meta` con aviso de derechos y restricciones de reutilización; `novedades.json` se mantiene como array raíz por compatibilidad
 - **2026-04-20**: Ajuste de métricas del repo actual (`tarifas.json` con 39 tarifas y `novedades.json` con 4 entradas activas)
 - **2026-02-14**: Actualización de métricas (`tarifas.json` con 36 tarifas, `updatedAt` renovado) y ajuste de tamaño documentado

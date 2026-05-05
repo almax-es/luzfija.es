@@ -14,7 +14,7 @@
  * Referencias legales:
  * - Bono social: RD 897/2017 + RDL 7/2026 + Orden TED/1524/2025 (financiación)
  * - IEE: Ley 38/1992 Art. 99 + RDL 7/2026 (reducción temporal)
- * - IVA: Ley 37/1992 + RDL 7/2026 (reducción temporal)
+ * - IVA: Ley 37/1992 + RDL 7/2026, modificado por RDL 10/2026 (reducción temporal)
  * - IGIC: Ley 4/2012 Art. 52 (0% vivienda ≤10kW, 3% otros, 7% contador)
  * - IPSI: Ley 8/1991 Art. 18 (1% electricidad, 4% servicios)
  * - Alquiler contador: Orden ITC/3860/2007 (0,81 €/mes)
@@ -29,8 +29,8 @@
     // ═══════════════════════════════════════════════════════════════════
     // VERSIÓN Y METADATOS
     // ═══════════════════════════════════════════════════════════════════
-    version: '2026.04',
-    ultimaActualizacion: '2026-04-12',
+    version: '2026.05',
+    ultimaActualizacion: '2026-05-05',
 
     // ═══════════════════════════════════════════════════════════════════
     // BONO SOCIAL (descuento + financiación)
@@ -58,6 +58,7 @@
 
     // ═══════════════════════════════════════════════════════════════════
     // MEDIDAS TEMPORALES (RDL 7/2026, BOE 21/03/2026, vigor 22/03/2026)
+    // RDL 10/2026 corrige el umbral de IVA reducido a potencia <= 10 kW.
     // LuzFija usa SIEMPRE el régimen fiscal vigente configurado aquí.
     // No se recalculan fiscalidades históricas por fecha de periodo.
     // Las fechas se conservan solo como referencia normativa/copy.
@@ -70,7 +71,7 @@
         junio2026Habilitado: true,
         ieePorcentajeReducido: 0.5,
         ivaPeninsulaReducido: 0.10,
-        potenciaMaxIvaReducidoKwExclusiva: 10
+        potenciaMaxIvaReducidoKwIncluida: 10
       }
     },
 
@@ -271,7 +272,7 @@
     } = {}) {
       const medida = this.medidasTemporales.rdl72026;
       const potenciaNum = Number.isFinite(Number(potenciaContratada)) ? Number(potenciaContratada) : 0;
-      const potenciaElegible = potenciaNum > 0 && potenciaNum < medida.potenciaMaxIvaReducidoKwExclusiva;
+      const potenciaElegible = potenciaNum > 0 && potenciaNum <= medida.potenciaMaxIvaReducidoKwIncluida;
       const tipoBonoNorm = String(bonoSocialTipo || '')
         .toLowerCase()
         .normalize('NFD')
