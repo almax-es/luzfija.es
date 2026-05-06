@@ -308,6 +308,31 @@ totalPagar = totalBase - credit2           // Pagas menos (con saldo)
 totalReal = totalBase - excedenteSobranteEur // Coste real (sin saldo anterior)
 ```
 
+### ☀️ Compensación parcial y BV
+
+Algunas tarifas FV no permiten compensar peajes/cargos de energía en la factura del mes. En `tarifas.json` se modelan con:
+
+```json
+{
+  "fv": {
+    "tope": "ENERGIA_PARCIAL",
+    "bv": true
+  }
+}
+```
+
+La compensación directa se calcula así:
+
+```javascript
+baseCompensable = energiaBruta - peajesYCargosEnergia;
+credit1 = min(creditoPotencial, baseCompensable);
+excedenteSobranteEur = creditoPotencial - credit1;
+```
+
+Si `fv.bv = true`, **todo** `excedenteSobranteEur` se acumula en BV, incluida la parte que no se pudo aplicar por el límite de peajes/cargos. Si `fv.bv = false`, no se acumula.
+
+Ejemplo: energía bruta `33,09€`, peajes/cargos `7,23€`, base compensable `25,86€`, excedentes `29,14€`. La factura compensa `25,86€` y los `3,28€` restantes pasan a BV si la tarifa tiene batería virtual.
+
 ### ✅ Validación
 
 En `bv-sim-monthly.js:313`:

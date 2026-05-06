@@ -227,6 +227,38 @@ if (hasBV) {
 
 ---
 
+### ¿Qué ocurre si una tarifa solo compensa la energía pura y deja fuera peajes/cargos?
+
+**Respuesta**: La compensación directa se limita a la energía pura, pero si la tarifa tiene BV el sobrante no aplicado pasa a la batería virtual.
+
+En tarifas marcadas como `fv.tope = "ENERGIA_PARCIAL"`:
+
+```javascript
+baseCompensable = energiaBruta - peajesYCargosEnergia;
+compensacion = min(excedentesValorados, baseCompensable);
+excedenteSobrante = excedentesValorados - compensacion;
+```
+
+**Caso de ejemplo realista**:
+
+```
+Energía bruta: 33,09€
+Peajes/cargos energía: 7,23€
+Base compensable: 25,86€
+Excedentes generados: 29,14€
+
+Compensación directa: 25,86€
+Sobrante: 29,14 - 25,86 = 3,28€
+```
+
+Si la tarifa tiene BV, esos `3,28€` pasan a saldo BV para próximas facturas. No se pierden por el hecho de proceder del límite de peajes/cargos. Si la tarifa no tiene BV, el sobrante no se acumula.
+
+Esta regla se aplica en los dos motores:
+- Comparador principal: `js/lf-calc.js`.
+- Simulador solar mensual: `js/bv/bv-sim-monthly.js`.
+
+---
+
 ## Periodos Horarios
 
 ### ¿Cómo se clasifican las horas en P1/P2/P3?

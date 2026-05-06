@@ -264,6 +264,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Incluye tarifas con `fv.exc` numerico positivo y tarifas indexadas marcadas con `fv.exc = -1`.
 - Si una tarifa usa precio indexado, la web calcula con una estimacion operativa de 0,030 €/kWh y muestra nota explicita en UI.
 - En tarifas sin BV, el excedente sobrante no se acumula.
+- En tarifas de compensacion parcial (`fv.tope = "ENERGIA_PARCIAL"`), la compensacion directa excluye peajes/cargos de energia; si la tarifa tiene BV, el sobrante no aplicado por ese limite tambien se acumula en BV.
 
 ## 6. Guias, Landings, 404 Y Legal
 

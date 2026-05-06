@@ -62,7 +62,7 @@ Para **cada mes** de **cada tarifa**, calcula:
 
 1. **Potencia**: `P1 × días × precio_P1 + P2 × días × precio_P2`
 2. **Energía Bruta**: `kWh_P1 × precio_punta + kWh_P2 × precio_llano + kWh_P3 × precio_valle`
-3. **Compensación Excedentes**: `min(kWh_excedentes × precio_exc, energía_bruta)`
+3. **Compensación Excedentes**: `min(kWh_excedentes × precio_exc, base_compensable)`
 4. **Energía Neta**: `energía_bruta - compensación`
 5. **Impuestos**: IEE + IVA/IGIC/IPSI + bono social + alquiler contador
 6. **Subtotal**: `potencia + energía_neta + impuestos`
@@ -70,6 +70,12 @@ Para **cada mes** de **cada tarifa**, calcula:
 8. **Uso Hucha**: `min(saldo_BV_mes_anterior, subtotal)` (solo si tarifa tiene BV)
 9. **A Pagar Este Mes**: `subtotal - uso_hucha`
 10. **Saldo BV Final**: `excedente_sobrante + saldo_BV_anterior - uso_hucha`
+
+**Base compensable**:
+- En tarifas normales: `base_compensable = energía_bruta`.
+- En tarifas con compensación parcial (`fv.tope = "ENERGIA_PARCIAL"`): `base_compensable = energía_bruta - peajes_y_cargos_energía`.
+
+Si una tarifa con compensación parcial también tiene BV, el excedente no aplicado por el límite de peajes/cargos **no se marca como perdido**: forma parte de `excedente_sobrante` y pasa a BV para meses posteriores. Si la tarifa no tiene BV, ese sobrante sí se pierde.
 
 ### 📊 Ranking Inteligente
 
@@ -393,11 +399,13 @@ Para cada tarifa BV:
   Para cada mes:
     1. Calcular potencia (P1 + P2)
     2. Calcular energía bruta (punta + llano + valle)
-    3. Calcular compensación excedentes (límite: energía bruta)
+    3. Calcular compensación excedentes
+       - límite normal: energía bruta
+       - límite parcial: energía bruta - peajes/cargos
     4. Calcular energía neta (bruta - compensación)
     5. Calcular impuestos (IEE + IVA/IGIC + bono + alquiler)
     6. Calcular subtotal (potencia + energía_neta + impuestos)
-    7. Calcular excedente sobrante → acumular en BV
+    7. Calcular excedente sobrante → acumular en BV si la tarifa la soporta
     8. Usar saldo BV anterior para reducir factura
     9. Actualizar saldo BV final
 
