@@ -370,6 +370,45 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
       expect(res.totalNum).toBeGreaterThan(0); // Sigue pagando potencia
     });
 
+    it('ENERGIA_PARCIAL con BV no acumula peajes/cargos en el comparador principal', async () => {
+      window.LF.cachedTarifas = [{
+        nombre: "Solar Parcial BV",
+        p1: 0.080533,
+        p2: 0.007407,
+        cPunta: 0.187021,
+        cLlano: 0.135066,
+        cValle: 0.085298,
+        tipo: "3P",
+        fv: { exc: 0.08, tipo: "SIMPLE + BV", tope: "ENERGIA_PARCIAL", bv: true }
+      }];
+
+      await window.LF.calculateLocal({
+        p1: 4.5,
+        p2: 5,
+        dias: 30,
+        cPunta: 52.48,
+        cLlano: 50.24,
+        cValle: 193.29,
+        zonaFiscal: 'Península',
+        viviendaCanarias: false,
+        solarOn: true,
+        exTotal: 364.30,
+        bvSaldo: 0,
+        bonoSocialOn: false,
+        bonoSocialTipo: 'vulnerable',
+        bonoSocialLimite: 1587,
+        fechaYmd: '2026-05-06'
+      });
+
+      const res = window.LF.state.rows[0];
+
+      expect(res.fvCredit1).toBeCloseTo(25.86, 2);
+      expect(res.fvExcedenteNoCompensable).toBeCloseTo(3.28, 2);
+      expect(res.fvExcedenteSobrante).toBe(0);
+      expect(res.fvBvSaldoFin).toBe(0);
+      expect(res.totalNum).toBeCloseTo(res.fvTotalFinal, 2);
+    });
+
     it('Debe manejar Días = 0 usando valor por defecto (30 días)', async () => {
       window.LF.cachedTarifas = [{ nombre: "Zero Days", p1:0.1, p2:0.1, cPunta:0.1, cLlano:0.1, cValle:0.1, tipo:"1P" }];
       document.getElementById('dias').value = "0";
