@@ -232,6 +232,7 @@
         let fvApplied = false;
         let fvBaseCompensable = 0;
         let fvPeajesTotal = 0;
+        let fvExcedenteNoCompensable = 0;
 
         let solarNoCalculable = false;
         if (solarOn && !t.esPVPC) {
@@ -256,7 +257,14 @@
               fvPeajesTotal = peajesTotal;
               credit1 = Math.min(creditoPotencial, baseCompensable);
               consAdj = round2(Math.max(0, cons - credit1));
-              excedenteSobranteEur = Math.max(0, creditoPotencial - credit1);
+              const esCompParcial = fv.tope === 'ENERGIA_PARCIAL';
+              const hasBV = Boolean(fv.bv);
+              fvExcedenteNoCompensable = esCompParcial
+                ? round2(Math.max(0, Math.min(creditoPotencial, cons) - credit1))
+                : 0;
+              excedenteSobranteEur = (esCompParcial && hasBV)
+                ? round2(Math.max(0, creditoPotencial - cons))
+                : round2(Math.max(0, creditoPotencial - credit1));
             }
           }
         }
@@ -339,6 +347,7 @@
             fvTotalFinal: totalFinal,
             fvBaseCompensable,
             fvPeajesTotal,
+            fvExcedenteNoCompensable,
             solarNoCalculable,
             bonoSocialDescuentoEur: bonoSocialDescuento,
             bonoSocialProximoMes: bonoSocialProximoMes
@@ -401,6 +410,7 @@
             fvTotalFinal: totalFinal,
             fvBaseCompensable,
             fvPeajesTotal,
+            fvExcedenteNoCompensable,
             solarNoCalculable,
             bonoSocialDescuentoEur: bonoSocialDescuento,
             bonoSocialProximoMes: bonoSocialProximoMes
@@ -454,6 +464,7 @@
             fvApplied,
             fvBaseCompensable,
             fvPeajesTotal,
+            fvExcedenteNoCompensable,
             bonoSocialDescuentoEur: bonoSocialDescuento,
             bonoSocialProximoMes: bonoSocialProximoMes,
             fvExKwh: exKwh,

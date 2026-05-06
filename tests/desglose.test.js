@@ -154,6 +154,47 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
     expect(res.bvSaldoFin).toBeCloseTo(0, 2);
   });
 
+  it('Debe explicar compensación parcial con BV sin mandar peajes/cargos a la batería virtual', () => {
+    Desglose.init();
+
+    const datos = {
+      nombreTarifa: 'Esluz 3P',
+      potenciaP1: 4.5,
+      potenciaP2: 5,
+      dias: 30,
+      precioP1: 0.080533,
+      precioP2: 0.007407,
+      consumoPunta: 52.48,
+      consumoLlano: 50.24,
+      consumoValle: 193.29,
+      precioPunta: 0.187021,
+      precioLlano: 0.135066,
+      precioValle: 0.085298,
+      excedentes: 364.30,
+      precioCompensacion: 0.08,
+      tipoCompensacion: 'SIMPLE + BV',
+      topeCompensacion: 'ENERGIA_PARCIAL',
+      bateriaVirtual: 0,
+      tieneBV: true,
+      solarOn: true,
+      zonaFiscal: 'Península',
+      fechaFin: '06/05/2026'
+    };
+
+    const desglose = Desglose.calcularDesglose(datos);
+    Desglose.renderizar(desglose, datos);
+
+    const bodyText = Desglose.modal.querySelector('.desglose-body').textContent;
+    expect(desglose.credit1).toBeCloseTo(25.86, 2);
+    expect(desglose.excedenteNoCompensableEur).toBeCloseTo(3.28, 2);
+    expect(desglose.excedenteSobranteEur).toBe(0);
+    expect(desglose.bvSaldoFin).toBe(0);
+    expect(desglose.totalRanking).toBe(desglose.totalBase);
+    expect(bodyText).toContain('no se compensan por peajes/cargos');
+    expect(bodyText).not.toContain('pasan a tu Batería Virtual');
+    expect(bodyText).not.toContain('A batería virtual');
+  });
+
   it('Debe renderizar (smoke test)', () => {
     // Verificar que la función renderizar no explota
     Desglose.init(); // Crea el DOM
@@ -170,8 +211,8 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
     const desglose = Desglose.calcularDesglose(datos);
     Desglose.renderizar(desglose, datos);
 
-    const tarifaDiv = document.querySelector('.desglose-tarifa');
-    const body = document.querySelector('.desglose-body');
+    const tarifaDiv = Desglose.modal.querySelector('.desglose-tarifa');
+    const body = Desglose.modal.querySelector('.desglose-body');
     
     expect(tarifaDiv.innerHTML).toContain('Test Tarifa');
     expect(body.innerHTML).toContain('TOTAL FACTURA');

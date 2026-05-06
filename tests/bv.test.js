@@ -134,6 +134,41 @@ describe('Simulador Solar Mensual (bv-sim-monthly.js)', () => {
     expect(res.bvSaldoFin).toBeGreaterThan(8); // Debe haber acumulado saldo (restará impuestos si aplica)
   });
 
+  it('simulateForTarifaDemo: ENERGIA_PARCIAL con BV no acumula la parte bloqueada por peajes/cargos', () => {
+    window.LF_CONFIG.peajesCargosEnergia = { P1: 0.05, P2: 0, P3: 0 };
+
+    const tarifaBVParcial = {
+      nombre: "Con BV parcial",
+      p1: 0.1, p2: 0.1,
+      cPunta: 0.1, cLlano: 0.1, cValle: 0.1,
+      fv: { exc: 0.08, bv: true, tope: 'ENERGIA_PARCIAL' }
+    };
+
+    const mockMonth = {
+      key: '2025-06',
+      daysWithData: 30,
+      importByPeriod: { P1: 100, P2: 0, P3: 0 },
+      importTotalKWh: 100,
+      exportTotalKWh: 100
+    };
+
+    const res = window.BVSim.calcMonthForTarifa({
+      month: mockMonth,
+      tarifa: tarifaBVParcial,
+      potenciaP1: 1,
+      potenciaP2: 1,
+      bvSaldoPrev: 0,
+      zonaFiscal: 'Península'
+    });
+
+    expect(res.consEur).toBeCloseTo(10.00, 2);
+    expect(res.baseCompensable).toBeCloseTo(5.00, 2);
+    expect(res.credit1).toBeCloseTo(5.00, 2);
+    expect(res.excedenteNoCompensableEur).toBeCloseTo(3.00, 2);
+    expect(res.excedenteSobranteEur).toBe(0);
+    expect(res.bvSaldoFin).toBe(0);
+  });
+
   it('simulateForTarifaDemo: Debe usar saldo BV del mes anterior', () => {
     // Tarifa con BV
     const tarifaBV = {

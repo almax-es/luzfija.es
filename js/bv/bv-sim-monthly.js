@@ -238,11 +238,13 @@ window.BVSim.calcMonthForTarifa = function ({
   if (!Number.isFinite(precioExc)) precioExc = 0;
   
   const creditoPotencial = round2(exKwh * precioExc);
+  const hasBV = Boolean(tarifa?.fv?.bv);
 
   // Compensación (límite: coste energía, o energía pura si ENERGIA_PARCIAL)
   let baseCompensable = consEur;
   let peajesTotal = 0;
-  if (tarifa?.fv?.tope === 'ENERGIA_PARCIAL') {
+  const esCompParcial = tarifa?.fv?.tope === 'ENERGIA_PARCIAL';
+  if (esCompParcial) {
     const pc = (window.LF_CONFIG && window.LF_CONFIG.peajesCargosEnergia) || {};
     peajesTotal = round2(
       (month.importByPeriod.P1 || 0) * (pc.P1 || 0)
@@ -253,7 +255,12 @@ window.BVSim.calcMonthForTarifa = function ({
   }
   const credit1 = round2(Math.min(creditoPotencial, baseCompensable));
   const consAdj = round2(Math.max(0, consEur - credit1));
-  const excedenteSobranteEur = round2(Math.max(0, creditoPotencial - credit1));
+  const excedenteNoCompensableEur = esCompParcial
+    ? round2(Math.max(0, Math.min(creditoPotencial, consEur) - credit1))
+    : 0;
+  const excedenteSobranteEur = (esCompParcial && hasBV)
+    ? round2(Math.max(0, creditoPotencial - consEur))
+    : round2(Math.max(0, creditoPotencial - credit1));
   
   // ===== IMPUESTOS (alineados con el comparador principal: js/lf-calc.js) =====
   const CFG = window.LF_CONFIG || {};
@@ -424,7 +431,6 @@ window.BVSim.calcMonthForTarifa = function ({
   // ÚLTIMA ACTUALIZACIÓN: 30/01/2026
   // =====================================================
 
-  const hasBV = Boolean(tarifa?.fv?.bv);
   const bvPrev = hasBV ? Math.max(0, Number(bvSaldoPrev) || 0) : 0;
   const credit2 = hasBV ? round2(Math.min(bvPrev, totalBase)) : 0;
   const bvSaldoFin = hasBV
@@ -450,6 +456,7 @@ window.BVSim.calcMonthForTarifa = function ({
     precioExc,
     credit1,
     excedenteSobranteEur,
+    excedenteNoCompensableEur,
     hasBV,
     bvSaldoPrev: bvPrev,
     credit2,

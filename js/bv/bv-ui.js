@@ -1327,6 +1327,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const subtotal = r2(row.totalBase || 0);
         const usoHucha = r2(row.credit2 || 0);
         const sobranteHucha = r2(row.excedenteSobranteEur || 0);
+        const noCompensableParcial = r2(row.excedenteNoCompensableEur || 0);
         const restoHucha = r2(Math.max(0, (row.bvSaldoPrev || 0) - usoHucha));
 
         // Cálculos Potencia
@@ -1364,7 +1365,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const tipExcedentes = `💰 Gen: ${fKwh(exKwh)} × ${fPrice(row.precioExc)} = ${fEur(totalGen)}
 ✅ Comp: ${fEur(excMes)} (máx: ${fEur(maxComp)})${tipMaxDetalle}
-${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHucha)}`}`;
+${noCompensableParcial > 0 ? `❌ No compensable: ${fEur(noCompensableParcial)}\n` : ''}${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHucha)}`}`;
 
         const tipEneNeta = `${fEur(eBruta)} − ${fEur(excMes)} (comp.) = ${fEur(eNeta)}`;
         const taxLabel = String(row.impuestoIndirectoTipo || 'IVA').toUpperCase();

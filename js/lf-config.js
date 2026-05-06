@@ -30,7 +30,7 @@
     // VERSIÓN Y METADATOS
     // ═══════════════════════════════════════════════════════════════════
     version: '2026.05',
-    ultimaActualizacion: '2026-05-05',
+    ultimaActualizacion: '2026-05-06',
 
     // ═══════════════════════════════════════════════════════════════════
     // BONO SOCIAL (descuento + financiación)
