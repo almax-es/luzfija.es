@@ -251,13 +251,10 @@
         credit1 = Math.min(creditoPotencial, baseCompensable);
         consAdj = round2(Math.max(0, cons - credit1));
         const esCompParcial = topeCompensacion === 'ENERGIA_PARCIAL';
-        const bvActivaCalc = Boolean(tieneBV) && String(tipoCompensacion || '').includes('BV');
         excedenteNoCompensableEur = esCompParcial
           ? round2(Math.max(0, Math.min(creditoPotencial, cons) - credit1))
           : 0;
-        excedenteSobranteEur = (esCompParcial && bvActivaCalc)
-          ? round2(Math.max(0, creditoPotencial - cons))
-          : round2(Math.max(0, creditoPotencial - credit1));
+        excedenteSobranteEur = round2(Math.max(0, creditoPotencial - credit1));
       }
 
       const sumaBase = pot + consAdj + tarifaAdj;
@@ -463,8 +460,6 @@
       const creditoPotencial = compensa ? round2(exKwh * precioComp) : 0;
       // kWh de excedentes realmente usados vs sobrantes (más intuitivo que solo €)
       const kwhExUsados = (solarOn && precioComp > 0 && d.credit1 > 0) ? clampNonNeg(d.credit1 / precioComp) : 0;
-      const excedenteNoCompensableEur = round2(d.excedenteNoCompensableEur || 0);
-      const kwhExNoCompensables = (solarOn && precioComp > 0 && excedenteNoCompensableEur > 0) ? clampNonNeg(excedenteNoCompensableEur / precioComp) : 0;
       const kwhExBv = (solarOn && precioComp > 0 && d.excedenteSobranteEur > 0) ? clampNonNeg(d.excedenteSobranteEur / precioComp) : 0;
       const kwhExSobrantes = (solarOn && precioComp > 0 && exKwh > 0) ? clampNonNeg(exKwh - kwhExUsados) : 0;
       const tope = String(datos.topeCompensacion || 'ENERGIA');
@@ -504,11 +499,11 @@
             <div class="desglose-resumen-label">Compensación aplicada</div>
             <div class="desglose-resumen-value">${this.fmt(d.credit1)}</div>
             <div class="desglose-resumen-sub">${esCompParcial && d.baseCompensable > 0 ? `💡 <strong>Tope:</strong> Solo se puede compensar hasta ${this.fmt(d.baseCompensable)} (energía pura). De los ${this.fmt(d.cons)} de consumo, ${this.fmt(d.peajesTotal)} son peajes y cargos que no se pueden compensar.` : `💡 <strong>Tope legal:</strong> Solo se puede compensar hasta el coste del ${topeLabel} del mes.`}</div>
-            ${(solarOn && precioComp > 0 && exKwh > 0) ? `<div class="desglose-resumen-sub">✅ Compensados: <strong>${this.fmtNum(kwhExUsados)}</strong> kWh${kwhExNoCompensables > 0 ? ` · ❌ No compensables: <strong>${this.fmtNum(kwhExNoCompensables)}</strong> kWh` : ''}${bvActiva && kwhExBv > 0 ? ` · 🔋 A batería virtual: <strong>${this.fmtNum(kwhExBv)}</strong> kWh` : (!bvActiva && kwhExSobrantes > 0 ? ` · ❌ Se pierden: <strong>${this.fmtNum(kwhExSobrantes)}</strong> kWh` : '')}</div>` : ''}
+            ${(solarOn && precioComp > 0 && exKwh > 0) ? `<div class="desglose-resumen-sub">✅ Compensados: <strong>${this.fmtNum(kwhExUsados)}</strong> kWh${bvActiva && kwhExBv > 0 ? ` · 🔋 A batería virtual: <strong>${this.fmtNum(kwhExBv)}</strong> kWh` : (!bvActiva && kwhExSobrantes > 0 ? ` · ❌ Se pierden: <strong>${this.fmtNum(kwhExSobrantes)}</strong> kWh` : '')}</div>` : ''}
           </div>` : ''}
         </div>
         ${(d.credit1 > 0 && creditoPotencial > d.credit1) ? `<div class="desglose-resumen-note">
-          ✅ Has generado <strong>${this.fmt(creditoPotencial)}</strong> en excedentes. Se compensan <strong>${this.fmt(d.credit1)}</strong> este mes (tope: ${topeLabel}). ${excedenteNoCompensableEur > 0 ? `<strong>${this.fmt(excedenteNoCompensableEur)}</strong> no se compensan por peajes/cargos y no pasan a Batería Virtual. ` : ''}${bvActiva && d.excedenteSobranteEur > 0 ? `Los <strong>${this.fmt(d.excedenteSobranteEur)}</strong> restantes se guardan en tu Batería Virtual para próximas facturas.` : (!bvActiva ? 'El resto no se puede compensar este mes.' : '')}
+          ✅ Has generado <strong>${this.fmt(creditoPotencial)}</strong> en excedentes. Se compensan <strong>${this.fmt(d.credit1)}</strong> este mes (tope: ${topeLabel}). ${bvActiva && d.excedenteSobranteEur > 0 ? `Los <strong>${this.fmt(d.excedenteSobranteEur)}</strong> restantes se guardan en tu Batería Virtual para próximas facturas.` : (!bvActiva ? 'El resto no se puede compensar este mes.' : '')}
         </div>` : ''}
         ${esIndexada && solarOn ? `<div class="desglose-resumen-note desglose-resumen-note--nufri">
           ⚠️ <strong>Precio estimado:</strong> Esta tarifa paga excedentes a precio <strong>indexado</strong> (pool OMIE horario). El valor mostrado (${this.fmtNum(datos.precioCompensacion, 4)} €/kWh) es una <strong>estimación promedio</strong>. El precio real variará según el mercado eléctrico.
@@ -526,10 +521,11 @@
           cpMsg += `<br><span style="opacity:0.8; font-size:0.92em;">Peajes: P1 ${this.fmtNum(datos.consumoPunta)} kWh × ${this.fmtPrecio(pc.P1)} = ${this.fmt(cpP1)} + P2 ${this.fmtNum(datos.consumoLlano)} kWh × ${this.fmtPrecio(pc.P2)} = ${this.fmt(cpP2)} + P3 ${this.fmtNum(datos.consumoValle)} kWh × ${this.fmtPrecio(pc.P3)} = ${this.fmt(cpP3)}</span>`;
           if (creditoPotencial > cpBase) {
             const cpPerdido = round2(creditoPotencial - cpBase);
-            const cpNoComp = round2(d.excedenteNoCompensableEur || Math.min(cpPerdido, cpPeajes));
-            const cpBv = round2(Math.max(0, cpPerdido - cpNoComp));
-            cpMsg += `<br>Tus excedentes (${this.fmt(creditoPotencial)}) superan este límite. ${this.fmt(cpNoComp)} no se compensan por peajes/cargos.`;
-            if (bvActiva && cpBv > 0) cpMsg += ` ${this.fmt(cpBv)} pasan a tu Batería Virtual.`;
+            if (bvActiva) {
+              cpMsg += `<br>Tus excedentes (${this.fmt(creditoPotencial)}) superan este límite. Los ${this.fmt(d.excedenteSobranteEur || cpPerdido)} no usados este mes pasan a tu Batería Virtual.`;
+            } else {
+              cpMsg += `<br>Tus excedentes (${this.fmt(creditoPotencial)}) superan este límite, perdiéndose ${this.fmt(cpPerdido)}.`;
+            }
           } else {
             cpMsg += `<br>Tus excedentes (${this.fmt(creditoPotencial)}) caben dentro de este límite. Otras tarifas compensan contra el coste completo.`;
           }
@@ -604,7 +600,7 @@
         </div>
         ${d.credit1 > 0 ? `<div class="desglose-linea desglose-linea--hl-green">
           <span class="desglose-concepto">☀️ Compensación excedentes</span>
-          <span class="desglose-detalle desglose-detalle--exced">  <span class="exced-item">Generados: <span class="nowrap">${this.fmtNum(datos.excedentes)} kWh</span>   <span class="nowrap">× ${precioLabel} = ${this.fmt(creditoPotencial)}</span></span>  <span class="exced-sep">·</span>  <span class="exced-item">✅ Compensados hoy: <span class="nowrap">${this.fmtNum(kwhExUsados)} kWh</span>   <span class="nowrap">(${this.fmt(d.credit1)})</span></span>  ${excedenteNoCompensableEur > 0 ? `<span class="exced-sep">·</span>  <span class="exced-item">❌ No compensables: <span class="nowrap">${this.fmtNum(kwhExNoCompensables)} kWh</span>   <span class="nowrap">(${this.fmt(excedenteNoCompensableEur)})</span></span>` : ''}${bvActiva && d.excedenteSobranteEur > 0 ? `<span class="exced-sep">·</span>  <span class="exced-item">🔋 A batería virtual: <span class="nowrap">${this.fmtNum(kwhExBv)} kWh</span>   <span class="nowrap">(${this.fmt(d.excedenteSobranteEur)})</span></span>` : (!bvActiva && kwhExSobrantes > 0 ? `<span class="exced-sep">·</span>  <span class="exced-item">❌ Se pierden (sin batería virtual): <span class="nowrap">${this.fmtNum(kwhExSobrantes)} kWh</span>   <span class="nowrap">(${this.fmt(d.excedenteSobranteEur)})</span></span>` : '')}</span>
+          <span class="desglose-detalle desglose-detalle--exced">  <span class="exced-item">Generados: <span class="nowrap">${this.fmtNum(datos.excedentes)} kWh</span>   <span class="nowrap">× ${precioLabel} = ${this.fmt(creditoPotencial)}</span></span>  <span class="exced-sep">·</span>  <span class="exced-item">✅ Compensados hoy: <span class="nowrap">${this.fmtNum(kwhExUsados)} kWh</span>   <span class="nowrap">(${this.fmt(d.credit1)})</span></span>  ${bvActiva && d.excedenteSobranteEur > 0 ? `<span class="exced-sep">·</span>  <span class="exced-item">🔋 A batería virtual: <span class="nowrap">${this.fmtNum(kwhExBv)} kWh</span>   <span class="nowrap">(${this.fmt(d.excedenteSobranteEur)})</span></span>` : (!bvActiva && kwhExSobrantes > 0 ? `<span class="exced-sep">·</span>  <span class="exced-item">❌ Se pierden (sin batería virtual): <span class="nowrap">${this.fmtNum(kwhExSobrantes)} kWh</span>   <span class="nowrap">(${this.fmt(d.excedenteSobranteEur)})</span></span>` : '')}</span>
           <span class="desglose-importe desglose-importe--pos">-${this.fmt(d.credit1)}</span>
         </div>
         <div class="desglose-linea">

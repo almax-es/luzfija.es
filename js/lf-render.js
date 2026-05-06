@@ -266,6 +266,7 @@
         const credit2 = Number(r.fvCredit2 || 0);
         const bvSaldoFin = r.fvBvSaldoFin;
         const excSobrante = Number(r.fvExcedenteSobrante || 0);
+        const excNoCompensable = Number(r.fvExcedenteNoCompensable || 0);
 
         const isBV = r.fvTipo && r.fvTipo.includes('BV');
         const totalFinal = Number(r.fvTotalFinal) || Number(r.totalNum) || 0;
@@ -277,7 +278,9 @@
           const parts = [];
           
           if (isBV && (credit2 > 0 || bvSaldoFin !== null)) {
-            parts.push(`💰 Pagas este mes: ${bvPagasFmt} (usando BV acumulada)`);
+            parts.push(credit2 > 0
+              ? `💰 Pagas este mes: ${bvPagasFmt} (usando BV acumulada)`
+              : `💰 Pagas este mes: ${bvPagasFmt}`);
             parts.push(`🏆 Ranking (coste real): ${bvRankingFmt} (sin BV del pasado)`);
             
             if (bvSaldoFin !== null && bvSaldoFin !== undefined) {
@@ -290,6 +293,7 @@
           parts.push(`☀️ Excedentes vertidos: ${exKwh.toFixed(2)} kWh`);
           parts.push(`💰 Precio compensación: ${precioExc.toFixed(3)} €/kWh`);
           parts.push(`✅ Compensado este mes: ${credit1.toFixed(2)} € (descontado de tu consumo de energía)`);
+          if (excNoCompensable > 0) parts.push(`⚠️ No aplicado en factura por peajes/cargos: ${excNoCompensable.toFixed(2)} €`);
           if (credit2 > 0) parts.push(`🔋 BV usada: ${credit2.toFixed(2)} € (ahorros de meses anteriores aplicados ahora)`);
           
           const tip = parts.join('\n');

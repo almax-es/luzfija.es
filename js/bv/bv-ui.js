@@ -1365,7 +1365,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         const tipExcedentes = `💰 Gen: ${fKwh(exKwh)} × ${fPrice(row.precioExc)} = ${fEur(totalGen)}
 ✅ Comp: ${fEur(excMes)} (máx: ${fEur(maxComp)})${tipMaxDetalle}
-${noCompensableParcial > 0 ? `❌ No compensable: ${fEur(noCompensableParcial)}\n` : ''}${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHucha)}`}`;
+${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCompensableParcial)}\n` : ''}${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHucha)}`}`;
 
         const tipEneNeta = `${fEur(eBruta)} − ${fEur(excMes)} (comp.) = ${fEur(eNeta)}`;
         const taxLabel = String(row.impuestoIndirectoTipo || 'IVA').toUpperCase();

@@ -258,13 +258,10 @@
               credit1 = Math.min(creditoPotencial, baseCompensable);
               consAdj = round2(Math.max(0, cons - credit1));
               const esCompParcial = fv.tope === 'ENERGIA_PARCIAL';
-              const hasBV = Boolean(fv.bv);
               fvExcedenteNoCompensable = esCompParcial
                 ? round2(Math.max(0, Math.min(creditoPotencial, cons) - credit1))
                 : 0;
-              excedenteSobranteEur = (esCompParcial && hasBV)
-                ? round2(Math.max(0, creditoPotencial - cons))
-                : round2(Math.max(0, creditoPotencial - credit1));
+              excedenteSobranteEur = round2(Math.max(0, creditoPotencial - credit1));
             }
           }
         }

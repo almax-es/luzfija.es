@@ -154,7 +154,7 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
     expect(res.bvSaldoFin).toBeCloseTo(0, 2);
   });
 
-  it('Debe explicar compensación parcial con BV sin mandar peajes/cargos a la batería virtual', () => {
+  it('Debe explicar compensación parcial con BV acumulando el sobrante no usado', () => {
     Desglose.init();
 
     const datos = {
@@ -187,12 +187,11 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
     const bodyText = Desglose.modal.querySelector('.desglose-body').textContent;
     expect(desglose.credit1).toBeCloseTo(25.86, 2);
     expect(desglose.excedenteNoCompensableEur).toBeCloseTo(3.28, 2);
-    expect(desglose.excedenteSobranteEur).toBe(0);
-    expect(desglose.bvSaldoFin).toBe(0);
-    expect(desglose.totalRanking).toBe(desglose.totalBase);
-    expect(bodyText).toContain('no se compensan por peajes/cargos');
-    expect(bodyText).not.toContain('pasan a tu Batería Virtual');
-    expect(bodyText).not.toContain('A batería virtual');
+    expect(desglose.excedenteSobranteEur).toBeCloseTo(3.28, 2);
+    expect(desglose.bvSaldoFin).toBeCloseTo(3.28, 2);
+    expect(desglose.totalRanking).toBeCloseTo(desglose.totalBase - 3.28, 2);
+    expect(bodyText).toContain('pasan a tu Batería Virtual');
+    expect(bodyText).toContain('A batería virtual');
   });
 
   it('Debe renderizar (smoke test)', () => {

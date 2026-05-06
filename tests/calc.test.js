@@ -370,7 +370,7 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
       expect(res.totalNum).toBeGreaterThan(0); // Sigue pagando potencia
     });
 
-    it('ENERGIA_PARCIAL con BV no acumula peajes/cargos en el comparador principal', async () => {
+    it('ENERGIA_PARCIAL con BV acumula el sobrante no usado en el comparador principal', async () => {
       window.LF.cachedTarifas = [{
         nombre: "Solar Parcial BV",
         p1: 0.080533,
@@ -404,9 +404,48 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
 
       expect(res.fvCredit1).toBeCloseTo(25.86, 2);
       expect(res.fvExcedenteNoCompensable).toBeCloseTo(3.28, 2);
-      expect(res.fvExcedenteSobrante).toBe(0);
-      expect(res.fvBvSaldoFin).toBe(0);
-      expect(res.totalNum).toBeCloseTo(res.fvTotalFinal, 2);
+      expect(res.fvExcedenteSobrante).toBeCloseTo(3.28, 2);
+      expect(res.fvBvSaldoFin).toBeCloseTo(3.28, 2);
+      expect(res.totalNum).toBeCloseTo(res.fvTotalFinal - 3.28, 2);
+    });
+
+    it('ENERGIA_PARCIAL con BV acumula todo el sobrante no usado aunque supere peajes/cargos', async () => {
+      window.LF.cachedTarifas = [{
+        nombre: "Solar Parcial BV Mucho Excedente",
+        p1: 0.080533,
+        p2: 0.007407,
+        cPunta: 0.187021,
+        cLlano: 0.135066,
+        cValle: 0.085298,
+        tipo: "3P",
+        fv: { exc: 0.08, tipo: "SIMPLE + BV", tope: "ENERGIA_PARCIAL", bv: true }
+      }];
+
+      await window.LF.calculateLocal({
+        p1: 4.5,
+        p2: 5,
+        dias: 30,
+        cPunta: 52.48,
+        cLlano: 50.24,
+        cValle: 193.29,
+        zonaFiscal: 'Península',
+        viviendaCanarias: false,
+        solarOn: true,
+        exTotal: 500,
+        bvSaldo: 0,
+        bonoSocialOn: false,
+        bonoSocialTipo: 'vulnerable',
+        bonoSocialLimite: 1587,
+        fechaYmd: '2026-05-06'
+      });
+
+      const res = window.LF.state.rows[0];
+
+      expect(res.fvCredit1).toBeCloseTo(25.86, 2);
+      expect(res.fvExcedenteNoCompensable).toBeCloseTo(7.23, 2);
+      expect(res.fvExcedenteSobrante).toBeCloseTo(14.14, 2);
+      expect(res.fvBvSaldoFin).toBeCloseTo(14.14, 2);
+      expect(res.totalNum).toBeCloseTo(res.fvTotalFinal - 14.14, 2);
     });
 
     it('Debe manejar Días = 0 usando valor por defecto (30 días)', async () => {

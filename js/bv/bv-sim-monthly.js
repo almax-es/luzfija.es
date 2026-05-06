@@ -258,9 +258,7 @@ window.BVSim.calcMonthForTarifa = function ({
   const excedenteNoCompensableEur = esCompParcial
     ? round2(Math.max(0, Math.min(creditoPotencial, consEur) - credit1))
     : 0;
-  const excedenteSobranteEur = (esCompParcial && hasBV)
-    ? round2(Math.max(0, creditoPotencial - consEur))
-    : round2(Math.max(0, creditoPotencial - credit1));
+  const excedenteSobranteEur = round2(Math.max(0, creditoPotencial - credit1));
   
   // ===== IMPUESTOS (alineados con el comparador principal: js/lf-calc.js) =====
   const CFG = window.LF_CONFIG || {};

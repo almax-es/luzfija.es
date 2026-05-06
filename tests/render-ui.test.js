@@ -355,4 +355,39 @@ describe('Renderizado UI (lf-render.js)', () => {
     expect(calmaWarn.getAttribute('data-tip')).toContain('REQUISITOS NUFRI');
   });
 
+  it('Muestra el tramo no aplicado en factura y el saldo BV sin decir que usa BV previa', async () => {
+    window.LF.state.rows = [{
+      nombre: 'Solar Parcial BV',
+      tipo: '3P',
+      totalNum: 19.69,
+      total: '19,69 €',
+      potencia: '11,98 €',
+      consumo: '7,23 €',
+      consumoNum: 7.23,
+      impuestos: '3,76 €',
+      webUrl: 'https://example.com/solar-parcial',
+      fvTipo: 'SIMPLE + BV',
+      fvTope: 'ENERGIA_PARCIAL',
+      fvApplied: true,
+      fvExKwh: 364.30,
+      fvPriceUsed: 0.08,
+      fvCredit1: 25.86,
+      fvCredit2: 0,
+      fvBvSaldoFin: 3.28,
+      fvExcedenteSobrante: 3.28,
+      fvExcedenteNoCompensable: 3.28,
+      fvTotalFinal: 22.97,
+      fvBaseCompensable: 25.86,
+      fvPeajesTotal: 7.23
+    }];
+
+    await window.LF.renderTable();
+
+    const tip = document.querySelector('.fv-icon').getAttribute('data-tip');
+    expect(tip).toContain('No aplicado en factura por peajes/cargos: 3.28 €');
+    expect(tip).toContain('Saldo BV final: 3.28 €');
+    expect(tip).toContain('Pagas este mes: 22.97 €');
+    expect(tip).not.toContain('usando BV acumulada');
+  });
+
 });
