@@ -606,7 +606,7 @@
       "fv": {
         "exc": 0.08,
         "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
+        "tope": "ENERGIA_PARCIAL",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
       },
@@ -852,5 +852,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-05T07:41:13.908Z"
+  "updatedAt": "2026-05-06T09:43:25.523Z"
 }
