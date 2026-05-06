@@ -370,6 +370,44 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
       expect(res.totalNum).toBeGreaterThan(0); // Sigue pagando potencia
     });
 
+    it('SIMPLE + BV acumula excedente sobrante normal cuando supera el consumo', async () => {
+      window.LF.cachedTarifas = [{
+        nombre: "Solar BV Sobrante",
+        p1: 0.1,
+        p2: 0.1,
+        cPunta: 0.1,
+        cLlano: 0.1,
+        cValle: 0.1,
+        tipo: "1P",
+        fv: { exc: 0.1, tipo: "SIMPLE + BV", bv: true }
+      }];
+
+      await window.LF.calculateLocal({
+        p1: 2,
+        p2: 2,
+        dias: 30,
+        cPunta: 10,
+        cLlano: 0,
+        cValle: 0,
+        zonaFiscal: 'Península',
+        viviendaCanarias: false,
+        solarOn: true,
+        exTotal: 100,
+        bvSaldo: 0,
+        bonoSocialOn: false,
+        bonoSocialTipo: 'vulnerable',
+        bonoSocialLimite: 1587,
+        fechaYmd: '2026-05-06'
+      });
+
+      const res = window.LF.state.rows[0];
+
+      expect(res.fvCredit1).toBeCloseTo(1.00, 2);
+      expect(res.fvExcedenteSobrante).toBeCloseTo(9.00, 2);
+      expect(res.fvBvSaldoFin).toBeCloseTo(9.00, 2);
+      expect(res.totalNum).toBeCloseTo(res.fvTotalFinal - 9.00, 2);
+    });
+
     it('ENERGIA_PARCIAL con BV acumula el sobrante no usado en el comparador principal', async () => {
       window.LF.cachedTarifas = [{
         nombre: "Solar Parcial BV",
