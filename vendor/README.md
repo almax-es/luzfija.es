@@ -82,10 +82,9 @@ Lector de códigos QR en JavaScript puro.
 ## 🐐 GoatCounter
 Script de analítica respetuosa con la privacidad (sin cookies).
 
-- **Versión:** `count.js` autoalojado con parche local LuzFija (parcheado: 08/03/2026)
-- **Nota de verificación:** este archivo no es una copia byte a byte de `https://gc.zgo.at/count.js`; incluye el filtro local de ruido legacy (`gcNormalize`, `gcLegacyNoiseKind`, `gcRemapLegacyPayload`, etc.) que redirige falsos positivos antiguos a `error-legacy-filtrado`. No sustituir por upstream sin portar antes este parche y repetir los tests de tracking.
+- **Versión:** `count.js` upstream sin modificaciones (actualizado: 07/05/2026)
+- **Nota:** este archivo debe permanecer lo más cercano al upstream posible. Todo el filtrado de ruido legacy vive en `js/tracking.js` y `js/config.js`, no aquí.
+- **Actualizar:** `curl -s https://gc.zgo.at/count.js > vendor/goatcounter/count.js`
 - **Licencia:** ISC
 - **Archivos:**
   - `goatcounter/count.js`
-    - **SHA-256:** `f77e6b334b5b05d2f4f1f7b9a41a89856fbd61919ba00bd9350d459e881312c6`
-    - **Tamaño:** 10.98 KB (11.244 bytes)

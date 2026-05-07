@@ -17,82 +17,6 @@
 
 	var enc = encodeURIComponent
 
-	// Filtro de ruido legacy específico de LuzFija:
-	// evita enviar dos falsos positivos antiguos que siguen apareciendo en clientes desfasados.
-	function gcNormalize(text) {
-		if (text === null || text === undefined) return ''
-		var s = String(text).toLowerCase()
-		try { return s.normalize('NFD').replace(/[\u0300-\u036f]/g, '') }
-		catch (err) { return s }
-	}
-
-	function gcNormalizePath(pathLike) {
-		var p = gcNormalize(pathLike || '')
-		if (!p) return ''
-		var q = p.indexOf('?')
-		if (q !== -1) p = p.slice(0, q)
-		var h = p.indexOf('#')
-		if (h !== -1) p = p.slice(0, h)
-		p = p.replace(/^[\/#]+/, '').replace(/[\/#]+$/, '')
-		return p
-	}
-
-	function gcIsLegacyErrorPath(path) {
-		if (!path) return true
-		return path === 'error-promise' || path === 'error-javascript'
-	}
-
-	function gcLegacyNoiseKind(vars) {
-		if (!vars || typeof vars !== 'object') return ''
-		var title = gcNormalize(vars.title || '')
-		var path  = gcNormalizePath(vars.path || '')
-		if (!title) return ''
-
-		var isCurrentYearUndefined =
-			title.indexOf('currentyear') !== -1 &&
-			(
-				title.indexOf('not defined') !== -1 ||
-				title.indexOf('undefined') !== -1 ||
-				title.indexOf('no esta definid') !== -1
-			)
-
-		var isCompatIndexExtra =
-			title.indexOf('index-extra') !== -1 &&
-			title.indexOf('compat') !== -1 &&
-			(title.indexOf('omitid') !== -1 || title.indexOf('es2020') !== -1)
-
-		if (isCurrentYearUndefined && gcIsLegacyErrorPath(path))
-			return 'currentyear-stale'
-		if (isCompatIndexExtra && gcIsLegacyErrorPath(path))
-			return 'index-extra-compat'
-		return ''
-	}
-
-	function gcLegacyRouteTag() {
-		try {
-			if (location && typeof location.pathname === 'string' && location.pathname)
-				return location.pathname
-		} catch (err) {}
-		return '/'
-	}
-
-	function gcRemapLegacyPayload(vars, kind) {
-		var path = gcNormalize((vars && vars.path) || '') || 'desconocido'
-		var build = (window && window.__LF_BUILD_ID) ? String(window.__LF_BUILD_ID) : 'unknown'
-		var title = [
-			'tipo:' + (kind || 'legacy'),
-			'origen:goatcounter-sender',
-			'evento:' + path,
-			'b:' + build,
-			'@' + gcLegacyRouteTag()
-		].join(' | ').substr(0, 150)
-		return {
-			path: 'error-legacy-filtrado',
-			title: title,
-			event: true
-		}
-	}
-
 	// Get all data we're going to send off to the counter endpoint.
 	window.goatcounter.get_data = function(vars) {
 		vars = vars || {}
@@ -114,6 +38,7 @@
 		if (is_empty(data.r)) data.r = document.referrer
 		if (is_empty(data.t)) data.t = document.title
 		if (is_empty(data.p)) data.p = get_path()
+		if (vars.no_session) data.ns = (typeof(vars.no_session) === 'function' ? vars.no_session(false) : vars.no_session)
 
 		if (rcb) data.r = rcb(data.r)
 		if (tcb) data.t = tcb(data.t)
@@ -213,9 +138,6 @@
 
 	// Count a hit.
 	window.goatcounter.count = function(vars) {
-		var kind = gcLegacyNoiseKind(vars)
-		if (kind)
-			vars = gcRemapLegacyPayload(vars, kind)
 		var f = goatcounter.filter()
 		if (f)
 			return warn('not counting because of: ' + f)
@@ -223,7 +145,7 @@
 		if (!url)
 			return warn('not counting because path callback returned null')
 
-		if (!navigator.sendBeacon(url)) {
+		if (!navigator || !navigator.sendBeacon || !navigator.sendBeacon(url)) {
 			// This mostly fails due to being blocked by CSP; try again with an
 			// image-based fallback.
 			var img = document.createElement('img')
@@ -258,10 +180,11 @@
 		var send = function(elem) {
 			return function() {
 				goatcounter.count({
-					event:    true,
-					path:     (elem.dataset.goatcounterClick || elem.name || elem.id || ''),
-					title:    (elem.dataset.goatcounterTitle || elem.title || (elem.innerHTML || '').substr(0, 200) || ''),
-					referrer: (elem.dataset.goatcounterReferrer || elem.dataset.goatcounterReferral || ''),
+					event:      true,
+					path:       (elem.dataset.goatcounterClick || elem.name || elem.id || ''),
+					title:      (elem.dataset.goatcounterTitle || elem.title || (elem.innerHTML || '').substr(0, 200) || ''),
+					referrer:   (elem.dataset.goatcounterReferrer || elem.dataset.goatcounterReferral || ''),
+					no_session: ['1', 't', 'true'].indexOf((elem.dataset.goatcounterNoSession || '').toLowerCase()) !== -1,
 				})
 			}
 		}
