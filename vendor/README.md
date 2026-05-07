@@ -22,6 +22,7 @@ Renderizado y lectura de documentos PDF en el navegador.
 
 - **Versión:** 5.7.284
 - **Licencia:** Apache License 2.0 (Mozilla Foundation)
+- **Carga:** lazy desde `js/factura.js`. `pdf.min.mjs` y `pdf.worker.min.mjs` se cargan con el `?v=` del propio `factura.js` mediante `__LF_versionedUrl(...)`; mantener core y worker siempre en la misma versión/build.
 - **Archivos:**
   - `pdf.min.mjs` (Core)
     - **SHA-256:** `b0fc97331dc1fc03c4a381ebdd88f751a4d12de4ec97fa1faf18bb37721a4b5b`
@@ -46,6 +47,7 @@ Motor de reconocimiento óptico de caracteres (WASM + JS).
 - **Versión (Wrapper):** 7.0.0
 - **Versión (Core):** 5.1.0
 - **Licencia:** Apache License 2.0 (Ver `worker.min.js`)
+- **Carga:** lazy desde `js/factura.js` sin `?v=` en `workerPath`, `corePath` ni `langPath`; `langPath` es una URL de directorio que Tesseract usa para construir rutas internas.
 - **Archivos JS:**
   - `tesseract/tesseract.min.js`
     - **SHA-256:** `000c27d9cd0def655f77b36c72a389c0ab13793aa31cb4d7aab56d09c0afbc7e`
@@ -72,6 +74,7 @@ Lector de códigos QR en JavaScript puro.
 
 - **Versión:** 1.4.0 (build local distinta del artefacto npm/jsDelivr actual)
 - **Nota de verificación:** la diferencia detectada contra `jsqr@1.4.0/dist/jsQR.js` son dos líneas de código muerto (`lengths`/`size`) en la detección del alignment pattern; `size` no se usa en el retorno ni cambia la API pública.
+- **Carga:** lazy desde `js/factura.js` con el `?v=` del propio `factura.js` mediante `__LF_versionedUrl(...)`.
 - **Licencia:** Apache License 2.0
 - **Archivos:**
   - `jsqr/jsQR.js`
@@ -83,6 +86,7 @@ Script de analítica respetuosa con la privacidad (sin cookies).
 
 - **Versión:** `count.js` upstream sin modificaciones (actualizado: 07/05/2026)
 - **Nota:** este archivo debe permanecer lo más cercano al upstream posible. Todo el filtrado de ruido legacy vive en `js/tracking.js` y `js/config.js`, no aquí.
+- **Carga:** lazy desde `js/tracking.js` como `/vendor/goatcounter/count.js?v=<buildId>`.
 - **Actualizar:** `curl -s https://gc.zgo.at/count.js > vendor/goatcounter/count.js`
 - **Licencia:** ISC
 - **Archivos:**
