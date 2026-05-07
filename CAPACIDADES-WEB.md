@@ -1,6 +1,6 @@
 # Capacidad Completa De LuzFija.es
 
-Ultima actualizacion: 2026-05-06
+Ultima actualizacion: 2026-05-07
 
 Este documento es la fuente de verdad funcional para describir todo lo que hace la web, pagina por pagina, sin omitir flujos relevantes para asistentes IA o documentacion de producto.
 Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y luego este documento para el inventario funcional completo.
@@ -322,8 +322,8 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 ## 10. Testing Y Calidad
 
 - Suite Vitest/JSDOM.
-- 49 archivos de test (`tests/*.test.js`).
-- 316 casos `it()/test()` en la ultima ejecucion local verificada.
+- 48 archivos de test (`tests/*.test.js`).
+- 311 casos `it()/test()` en la ultima ejecucion local verificada.
 - Cobertura de:
 - Calculo fiscal y de energia.
 - PVPC y caches.
