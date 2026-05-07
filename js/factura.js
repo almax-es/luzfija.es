@@ -25,7 +25,11 @@
           return new URL('./', document.baseURI);
         }
       })();
-      const __LF_assetUrl = (rel) => new URL(rel, __LF_SITE_ROOT).toString();
+      const __LF_BUILD_VER = (typeof window.__LF_BUILD_ID === 'string' && window.__LF_BUILD_ID.trim()) ? window.__LF_BUILD_ID.trim() : '';
+      const __LF_assetUrl = (rel) => {
+        const url = new URL(rel, __LF_SITE_ROOT).toString();
+        return __LF_BUILD_VER ? url + '?v=' + encodeURIComponent(__LF_BUILD_VER) : url;
+      };
 
       window.__LF_restoreFocusEl = null;
       window.__LF_focusTrapCleanup = null;
