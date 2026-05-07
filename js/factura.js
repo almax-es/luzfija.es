@@ -25,9 +25,18 @@
           return new URL('./', document.baseURI);
         }
       })();
-      const __LF_BUILD_VER = (typeof window.__LF_BUILD_ID === 'string' && window.__LF_BUILD_ID.trim()) ? window.__LF_BUILD_ID.trim() : '';
-      const __LF_assetUrl = (rel) => {
-        const url = new URL(rel, __LF_SITE_ROOT).toString();
+      const __LF_assetUrl = (rel) => new URL(rel, __LF_SITE_ROOT).toString();
+      const __LF_BUILD_VER = (() => {
+        try {
+          if (typeof window.__LF_BUILD_ID === 'string' && window.__LF_BUILD_ID.trim())
+            return window.__LF_BUILD_ID.trim();
+          const cur = document.currentScript && document.currentScript.src;
+          if (cur) return new URL(cur, location.href).searchParams.get('v') || '';
+        } catch (_) {}
+        return '';
+      })();
+      const __LF_versionedUrl = (rel) => {
+        const url = __LF_assetUrl(rel);
         return __LF_BUILD_VER ? url + '?v=' + encodeURIComponent(__LF_BUILD_VER) : url;
       };
 
@@ -62,7 +71,7 @@
         const lib = window.pdfjsLib;
         if (!lib) return false;
         if (!lib.GlobalWorkerOptions.workerSrc) {
-          lib.GlobalWorkerOptions.workerSrc = __LF_assetUrl("vendor/pdfjs/pdf.worker.min.mjs");
+          lib.GlobalWorkerOptions.workerSrc = __LF_versionedUrl("vendor/pdfjs/pdf.worker.min.mjs");
         }
         return true;
       }
@@ -88,7 +97,7 @@
           if (window.pdfjsLib && __LF_ensurePdfWorker()) return window.pdfjsLib;
         }
 
-        const src = __LF_assetUrl("vendor/pdfjs/pdf.min.mjs");
+        const src = __LF_versionedUrl("vendor/pdfjs/pdf.min.mjs");
         __LF_pdfjsLoading = (async()=>{
           const mod = await import(src);
           const lib = (mod && (mod.pdfjsLib || mod.default)) ? (mod.pdfjsLib || mod.default) : mod;
@@ -936,7 +945,7 @@
         return new Promise((resolve, reject) => {
           const script = document.createElement('script');
           // Self-host: /vendor/jsqr/jsQR.js
-          script.src = __LF_assetUrl('vendor/jsqr/jsQR.js');
+          script.src = __LF_versionedUrl('vendor/jsqr/jsQR.js');
           script.onload = () => resolve(window.jsQR);
           script.onerror = () => reject(new Error('jsQR no disponible'));
           document.head.appendChild(script);
