@@ -33,7 +33,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - 19.420 lineas JS aproximadas.
 - 46 tarifas en `tarifas.json`.
 - 4 novedades activas en `novedades.json`.
-- Suite de tests Vitest con 49 archivos y 313 casos.
+- Suite de tests Vitest con 50 archivos y 316 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 
