@@ -2,7 +2,7 @@
 
 Este directorio contiene librerías de terceros alojadas localmente para garantizar la privacidad (evitar peticiones a CDNs externos), la estabilidad y el funcionamiento offline.
 
-**Última actualización del inventario:** 23/04/2026
+**Última actualización del inventario:** 07/05/2026
 
 ---
 
@@ -88,3 +88,5 @@ Script de analítica respetuosa con la privacidad (sin cookies).
 - **Licencia:** ISC
 - **Archivos:**
   - `goatcounter/count.js`
+    - **SHA-256:** `792b7abd26c1fb6ae62906833e09a301251e2641816e69e4f95aba518f3fe3f0`
+    - **Tamaño:** 9.00 KB (9.213 bytes)
