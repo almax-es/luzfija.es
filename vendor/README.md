@@ -20,16 +20,15 @@ Librería para la manipulación de hojas de cálculo (Excel, CSV).
 ## 📄 PDF.js
 Renderizado y lectura de documentos PDF en el navegador.
 
-- **Versión:** 5.4.624
-- **Build:** 384c6208b
+- **Versión:** 5.7.284
 - **Licencia:** Apache License 2.0 (Mozilla Foundation)
 - **Archivos:**
   - `pdf.min.mjs` (Core)
-    - **SHA-256:** `5f1177175790dcf5b5b0a888205f132bea690c35194e4613099d421a16423d0b`
-    - **Tamaño:** 414.62 KB
+    - **SHA-256:** `b0fc97331dc1fc03c4a381ebdd88f751a4d12de4ec97fa1faf18bb37721a4b5b`
+    - **Tamaño:** 425.18 KB (435.381 bytes)
   - `pdf.worker.min.mjs` (Worker)
-    - **SHA-256:** `f499515a0dc93d97787d693a75218a439675719283f56812067c036dcae1f8d5`
-    - **Tamaño:** 1.02 MB
+    - **SHA-256:** `52fadd5b81b6abd1eb665bab0c3749a8ad6a293fcb6ee9d9e0309f29d4f82619`
+    - **Tamaño:** 1.17 MB (1.232.303 bytes)
 
 ## 📈 Chart.js
 Librería de gráficos interactivos para visualización de datos.
