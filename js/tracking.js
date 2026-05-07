@@ -370,6 +370,10 @@ try {
   // ===== EVENTOS AUTOMÁTICOS (no requieren modificar app.js) =====
   window.addEventListener('DOMContentLoaded', function() {
 
+    // Cargar GoatCounter en cuanto el DOM está listo para registrar el page view de todos los visitantes.
+    // count.js envía el page view automáticamente al cargarse (no_onload no está activo).
+    ensureGoatCounterLoaded();
+
     // 1. Trackear clicks en "Calcular"
     const btnCalc = document.getElementById('btnCalc');
     if (btnCalc) {
