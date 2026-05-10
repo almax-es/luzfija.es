@@ -1,6 +1,6 @@
 # Capacidad Completa De LuzFija.es
 
-Ultima actualizacion: 2026-05-09
+Ultima actualizacion: 2026-05-10
 
 Este documento es la fuente de verdad funcional para describir todo lo que hace la web, pagina por pagina, sin omitir flujos relevantes para asistentes IA o documentacion de producto.
 Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y luego este documento para el inventario funcional completo.
@@ -285,7 +285,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Lineas JS aproximadas: 19.420.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
-- `tarifas.json` (46 tarifas).
+- `tarifas.json` (45 tarifas).
 - `novedades.json` (4 entradas activas).
 - `/data/pvpc/` (indicador 1001).
 - `/data/surplus/` (indicador 1739).

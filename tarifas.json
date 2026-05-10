@@ -832,25 +832,7 @@
         "reglaBV": "BV MES ANTERIOR"
       },
       "requiereFV": false
-    },
-    {
-      "nombre": "Octopus Go 3P",
-      "cPunta": 0.248,
-      "cLlano": 0.248,
-      "cValle": 0.104,
-      "p1": 0.104,
-      "p2": 0.024,
-      "web": "https://octopusenergy.es/precios/tarifa-ev",
-      "tipo": "3P",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-09T12:17:21.252Z"
+  "updatedAt": "2026-05-10T06:51:30.321Z"
 }
