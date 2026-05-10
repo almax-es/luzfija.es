@@ -98,6 +98,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Octopus Unicaja",
+      "cPunta": 0.104,
+      "cLlano": 0.104,
+      "cValle": 0.104,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://octopusenergy.es/unicaja#tarifas",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.01,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Imagina Energía",
       "cPunta": 0.105,
       "cLlano": 0.105,
@@ -834,5 +852,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-10T06:51:30.321Z"
+  "updatedAt": "2026-05-10T17:21:23.773Z"
 }
