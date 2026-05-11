@@ -285,7 +285,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Lineas JS aproximadas: 19.420.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
-- `tarifas.json` (46 tarifas).
+- `tarifas.json` (47 tarifas).
 - `novedades.json` (4 entradas activas).
 - `/data/pvpc/` (indicador 1001).
 - `/data/surplus/` (indicador 1739).
