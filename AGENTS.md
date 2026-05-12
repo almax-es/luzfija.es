@@ -37,7 +37,7 @@ Tambien es importante lo que no es: no monetiza el ranking, no vende leads y no 
 - `comparador-tarifas-solares.html` + `js/bv/*.js`: simulador solar/BV y flujo hibrido CSV -> manual.
 - `js/lf-csv-utils.js`: parser horario compartido y clasificacion P1/P2/P3 canonica.
 - `sw.js`: cache/PWA/update flow.
-- `scripts/sync-seo-docs.mjs`: sincroniza sitemap/feed y, con `--include-repo-docs`, tambien README/CAPACIDADES/JSON-SCHEMA.
+- `scripts/sync-seo-docs.mjs`: sincroniza sitemap e indice de busqueda y, con `--include-repo-docs`, tambien README/CAPACIDADES/JSON-SCHEMA.
 
 ## Invariantes Criticos
 

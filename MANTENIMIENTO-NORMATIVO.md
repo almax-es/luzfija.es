@@ -1,6 +1,6 @@
 # Mantenimiento Normativo Y Operativo
 
-Ultima actualizacion: 2026-05-05
+Ultima actualizacion: 2026-05-12
 
 Este documento lista las piezas de LuzFija.es que dependen de normativa, fuentes oficiales o datos vivos. Sirve como checklist para que calculos, guias y mensajes publicos no queden desfasados.
 
@@ -9,7 +9,7 @@ Este documento lista las piezas de LuzFija.es que dependen de normativa, fuentes
 - No cambiar fiscalidad, PVPC, bono social, peajes, cargos, autoconsumo, excedentes, derechos regulados ni guias legales por memoria.
 - Revisar siempre la fuente oficial y dejar la referencia en el commit, en el comentario de codigo o en la documentacion afectada.
 - Si cambia una regla que afecta calculos, actualizar tambien tests antes de publicar.
-- Si cambia un texto publico, revisar guias, landings, `novedades.json`, datos estructurados, sitemap e indice de busqueda.
+- Si cambia un texto publico, revisar guias, landings, datos estructurados, sitemap e indice de busqueda.
 
 ## Checklist Permanente
 
@@ -39,8 +39,8 @@ Este documento lista las piezas de LuzFija.es que dependen de normativa, fuentes
 | Equipos, climatizacion y costes orientativos | Consumos, precios medios, ayudas, subvenciones, deducciones fiscales, mantenimiento y vida util de placas, baterias, aerotermia, termo, bombas de calor y coche electrico | Trimestral y antes de actualizar guias de ahorro/inversion | IDAE, MITECO, CCAA/ayuntamientos, mercado y fabricantes | Guias de aerotermia, autoconsumo, coche electrico y potencia |
 | Guias legales/reclamaciones | Plazos, organismos, procedimientos y derechos del consumidor | Semestral | CNMC, MITECO, consumo autonomico, BOE | Guias de reclamacion, errores de factura, cambios de compania |
 | Estafas, telemarketing y datos personales | Derecho de desistimiento, Lista Robinson, AEPD, suplantaciones y canales de reclamacion | Semestral y ante cambios de consumo/proteccion de datos | AEPD, normativa de consumidores, Lista Robinson, organismos de consumo | Guia de estafas, privacidad, reclamaciones |
-| Gas/TUR y novedades energeticas no electricas | Avisos puntuales que aparecen en `novedades.json` o guias relacionadas aunque no sean calculo electrico | Cada novedad publicada y revision trimestral | BOE, MITECO, CNMC, comercializadoras de referencia | `novedades.json`, `novedades.html`, feed, guias relacionadas |
-| SEO, feed y datos estructurados | `dateModified`, canonical, OpenGraph/Twitter, JSON-LD, sitemap, RSS, indice de busqueda y enlaces internos | Cada cambio de pagina, guia o novedad | Fuentes internas del repo y validadores SEO/Schema | HTML publico, `sitemap.xml`, `feed.xml`, `data/guides-search-index.json`, tests SEO |
+| Gas/TUR y avisos energeticos no electricos | Avisos puntuales que aparezcan en guias o landings aunque no sean calculo electrico | Revision trimestral y cada cambio normativo relevante | BOE, MITECO, CNMC, comercializadoras de referencia | Guias relacionadas, landings y datos estructurados |
+| SEO y datos estructurados | `dateModified`, canonical, OpenGraph/Twitter, JSON-LD, sitemap, indice de busqueda y enlaces internos | Cada cambio de pagina o guia | Fuentes internas del repo y validadores SEO/Schema | HTML publico, `sitemap.xml`, `data/guides-search-index.json`, tests SEO |
 | PWA, cache y dependencias web | Version de service worker, estrategia de cache, manifest, assetlinks, librerias autoalojadas y compatibilidad de APIs de navegador | Trimestral y al actualizar dependencias o despliegue | Docs de navegadores, upstream de librerias, pruebas e2e/seguridad | `sw.js`, `manifest.webmanifest`, `.well-known/assetlinks.json`, `vendor/`, tests SW/seguridad |
 | Privacidad y analitica | GoatCounter, localStorage, CSP, dependencias autoalojadas | Trimestral y al cambiar tracking/dependencias | Politica propia, docs GoatCounter, navegador/CSP | `privacidad.html`, `tracking.js`, tests de privacidad/seguridad |
 | Licencia, derechos y reutilizacion | Licencia del codigo, derechos sobre contenido/datasets curados y avisos de uso de datos | Al cambiar licencia, datasets o textos legales | `LICENSE`, `CONTENT-LICENSE.md`, fuentes de terceros | README, aviso legal, `_meta` de `tarifas.json`, docs de esquema |
@@ -50,7 +50,7 @@ Este documento lista las piezas de LuzFija.es que dependen de normativa, fuentes
 - Antes del 30/06/2026: revisar si sigue vigente el IVA reducido temporal en Peninsula/Baleares y si el condicionante de IPC publicado por el INE mantiene o corta la rebaja en junio.
 - Cada cambio de ano: revisar peajes/cargos, calendario de periodos, festivos nacionales, datasets PVPC/surplus y textos de guias que mencionen importes anuales.
 - Cada cambio de Excel de tarifas: ejecutar generador, revisar el informe del validador y confirmar que las inactivas no se publican pero siguen apareciendo en validacion.
-- Cada novedad energetica publicada: confirmar si requiere tocar `novedades.json`, `feed.xml`, guias, landings o calculos. No limitar la revision a electricidad si la noticia trata TUR/gas u otro suministro.
+- Cada cambio energetico relevante: confirmar si requiere tocar guias, landings, datos estructurados o calculos. No limitar la revision a electricidad si la noticia trata TUR/gas u otro suministro.
 - Cada guia con importes orientativos: revisar que los rangos sigan siendo razonables o marcar claramente que son ejemplos no contractuales.
 - Cada despliegue o cambio de assets: revisar service worker, cache y metadatos SEO generados para evitar que produccion sirva contenido antiguo.
 
@@ -60,9 +60,9 @@ Este documento lista las piezas de LuzFija.es que dependen de normativa, fuentes
 2. Localizar impacto con `rg` en codigo, tests, guias y documentacion.
 3. Cambiar primero la regla fuente (`js/lf-config.js`, motores PVPC/BV o datasets).
 4. Actualizar tests que cubran frontera y caso normal.
-5. Actualizar copy publico: guias, landings, `novedades.json` si procede y docs internas.
+5. Actualizar copy publico: guias, landings, datos estructurados si procede y docs internas.
 6. Ejecutar `npm test`.
-7. Si se tocan guias o SEO, dejar sincronizados sitemap, feed e indice de busqueda.
+7. Si se tocan guias o SEO, dejar sincronizados sitemap e indice de busqueda.
 8. Commit con mensaje que mencione la norma o fuente.
 
 ## Puntos Donde Es Facil Meter La Pata
