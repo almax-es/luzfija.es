@@ -127,124 +127,7 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 
 ---
 
-## 2. `novedades.json` — Noticias, Alertas y Avisos
-
-**Ubicación**: `/novedades.json`
-**Tamaño**: ~2,7 KB
-**Estructura**: Array de objetos (NO envuelto en objeto padre; no incluye `_meta` para no romper consumidores actuales)
-**Última actualización**: 2026-04-17
-**Total noticias activas**: 4 (histórico ilimitado)
-
-### Esquema de Estructura
-
-```json
-[
-  {
-    "fecha": "string (YYYY-MM-DD)",
-    "tipo": "string ('novedad' | 'regulatorio' | 'alerta' | 'info' | 'tip' | 'caso')",
-    "titulo": "string (máx 100 caracteres, título visible)",
-    "texto": "string (texto plano; se detectan enlaces <a> HTTP/HTTPS, máx 500 caracteres)",
-    "enlace": "string (URL absoluta o relativa, puede estar vacío)"
-  }
-]
-```
-
-### Campos Detallados
-
-| Campo | Tipo | Obligatorio | Ejemplos | Notas |
-|-------|------|-------------|----------|-------|
-| `fecha` | string | ✅ | "2026-01-01" | ISO 8601 (YYYY-MM-DD), se ordena DESC automáticamente |
-| `tipo` | string | ✅ | "novedad" | Determina icono y color de la tarjeta |
-| `titulo` | string | ✅ | "DISA: 0€ consumo" | Aparece como titular de la noticia |
-| `texto` | string | ✅ | "DISA lanza promoción..." | Texto plano; si incluye `<a href=\"https://...\">...</a>` se convierte en enlace seguro |
-| `enlace` | string | ✅ | "/guias/..." o "" | URL interna o externa, "" = sin enlace |
-
-### Tipos de Noticia y Comportamiento Visual
-
-```
-┌─────────────────────────────────────────────────────────┐
-│ Tipo        │ Color      │ Icono  │ Propósito           │
-├─────────────────────────────────────────────────────────┤
-│ "novedad"   │ Violeta    │ ✨     │ Cambios destacados  │
-│ "regulatorio"│ Azul      │ 📜     │ Cambios regulatorios│
-│ "alerta"    │ Rojo       │ ⚠️     │ Avisos importantes  │
-│ "info"      │ Accent2    │ 📊     │ Información general │
-│ "tip"       │ Ámbar      │ 💡     │ Consejo práctico    │
-│ "caso"      │ Verde      │ 🎯     │ Caso de uso         │
-└─────────────────────────────────────────────────────────┘
-```
-
-### Ejemplo de Cada Tipo
-
-#### Novedad
-```json
-{
-  "fecha": "2026-03-31",
-  "tipo": "novedad",
-  "titulo": "Atulado Energía: la tarifa Milenial pasa a precio fijo único desde el 1 de abril de 2026",
-  "texto": "Desde el 01/04/2026 la tarifa Milenial de Atulado Energía pasa a ofrecer 1 periodo hasta 15 kW, con el mismo precio de energía en P1, P2 y P3 para despreocuparse de horarios.",
-  "enlace": "https://clientes.atuladoenergia.com/tarifas"
-}
-```
-
-#### Alerta (Aviso Importante)
-```json
-{
-  "fecha": "2025-12-31",
-  "tipo": "alerta",
-  "titulo": "El 'modo reforzado' está encareciendo tu factura",
-  "texto": "Desde abril, Red Eléctrica opera con más ciclos combinados. Esto eleva los servicios de ajuste, costando a los hogares unos 1,20€ extra al mes.",
-  "enlace": "/guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html"
-}
-```
-
-#### Regulatorio (Cambio Legal)
-```json
-{
-  "fecha": "2026-02-26",
-  "tipo": "regulatorio",
-  "titulo": "Bono Social: el Congreso rechaza el RDL 2/2026 — bajan los descuentos al 35% y 50%",
-  "texto": "El Congreso derogó el 26/02/2026 el RDL 2/2026 (177 votos en contra). Rige el régimen permanente del RD 897/2017: 35% para vulnerable y 50% para vulnerable severo.",
-  "enlace": "/guias/bono-social-electrico-quien-puede-pedirlo-y-como.html"
-}
-```
-
-#### Info (Informativo General)
-```json
-{
-  "fecha": "2025-12-20",
-  "tipo": "info",
-  "titulo": "Buenas noticias: la TUR del gas baja un 8,7%",
-  "texto": "Desde enero, la tarifa regulada de gas (TUR) individual baja un 8,7%. Si tienes calefacción de gas, tu factura será más barata.",
-  "enlace": ""
-}
-```
-
-### Reglas de Validación
-
-1. **Fecha**: Debe ser ISO 8601 (YYYY-MM-DD). El ordenamiento es automático (más reciente primero)
-2. **Tipo**: Debe ser exactamente uno de: `"novedad"`, `"regulatorio"`, `"alerta"`, `"info"`, `"tip"`, `"caso"`
-3. **Título**: Máximo 100 caracteres recomendado (se trunca visualmente en pantallas pequeñas)
-4. **Texto**:
-   - Máximo 500 caracteres recomendado
-   - Se renderiza como texto plano (sin `innerHTML`)
-   - Solo se detectan enlaces en formato `<a href="https://...">texto</a>`
-   - Los enlaces válidos se normalizan con `target="_blank" rel="noopener noreferrer"`
-5. **Enlace**:
-   - URLs internas: `/ruta/local.html`
-   - URLs externas: `https://ejemplo.com`
-   - Sin enlace: `""` (cadena vacía)
-
-### Límites Prácticos
-
-- **Máximo de noticias activas**: 5 (recomendado), sin límite técnico
-- **Antigüedad**: Las noticias antiguas pueden archivarse manualmente
-- **Actualización**: El widget se carga vía AJAX (no necesita recarga de página)
-- **Caché**: `novedades.json` se sirve con estrategia `stale-while-revalidate` en Service Worker
-
----
-
-## 3. Esquema de Datos PVPC y Excedentes (Estructura)
+## 2. Esquema de Datos PVPC y Excedentes (Estructura)
 
 **Ubicaciones**:
 - `/data/pvpc/{geoId}/{YYYY-MM}.json` (PVPC, indicador 1001)
@@ -277,18 +160,6 @@ La hoja privada `Tarifas Luz.xlsx` puede incluir una columna `Activa`. Esta colu
 - `no`, `n`, `false`, `falso` o `0`: la tarifa se omite al generar `tarifas.json` y el post de Facebook.
 - El validador privado sigue revisando también las tarifas inactivas y marca su estado de publicación en el informe.
 
-### Cómo validar `novedades.json`
-
-```bash
-# Sintaxis JSON válida
-node -e "console.log(JSON.parse(require('fs').readFileSync('novedades.json')))"
-
-# Comprobar tipos
-node -e "const n = JSON.parse(require('fs').readFileSync('novedades.json')); n.forEach(x => console.log(x.tipo))"
-```
-
----
-
 ## Herramientas Recomendadas para Edición
 
 - **VS Code**: Extensión "JSON Schema Validator"
@@ -300,11 +171,10 @@ node -e "const n = JSON.parse(require('fs').readFileSync('novedades.json')); n.f
 ## Historial de Cambios
 
 - **2026-05-05**: Documentado `fv.exc = -1` para excedentes indexados estimados y el campo interno `Activa` de la Excel, que filtra publicación sin excluir validación.
-- **2026-04-29**: `tarifas.json` añade `_meta` con aviso de derechos y restricciones de reutilización; `novedades.json` se mantiene como array raíz por compatibilidad
-- **2026-04-20**: Ajuste de métricas del repo actual (`tarifas.json` con 39 tarifas y `novedades.json` con 4 entradas activas)
+- **2026-04-29**: `tarifas.json` añade `_meta` con aviso de derechos y restricciones de reutilización.
+- **2026-04-20**: Ajuste de métricas del repo actual (`tarifas.json` con 39 tarifas)
 - **2026-02-14**: Actualización de métricas (`tarifas.json` con 36 tarifas, `updatedAt` renovado) y ajuste de tamaño documentado
 - **2026-02-06**: Ajuste de métricas reales (33 tarifas), rango de datos PVPC (desde 2021-06) y estrategia de caché actual
-- **2026-02-03**: Actualización de `novedades.json` (2 noticias activas)
 - **2026-01-16**: Documentación inicial
 
 ---

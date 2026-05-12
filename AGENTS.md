@@ -9,7 +9,7 @@ No es solo "un comparador de tarifas". Es una suite frontend local-first con cua
 1. `/`: comparador principal de tarifas del mercado libre con PVPC, autoconsumo, bateria virtual, bono social, importacion CSV/XLSX y extraccion de factura PDF.
 2. `/estadisticas/`: observatorio PVPC y excedentes con historico, KPIs, graficos y analitica personal desde CSV/XLSX.
 3. `/comparador-tarifas-solares.html`: simulador independiente mes a mes para tarifas con excedentes remunerados, con o sin BV.
-4. Capa editorial y soporte: `guias/`, `guias.html`, `novedades.html`, `feed.xml`, `como-funciona-luzfija.html`, `404.html`, `privacidad.html`, `aviso-legal.html`.
+4. Capa editorial y soporte: `guias/`, `guias.html`, `como-funciona-luzfija.html`, `404.html`, `privacidad.html`, `aviso-legal.html`.
 
 Tambien es importante lo que no es: no monetiza el ranking, no vende leads y no tiene referidos, comisiones, publicidad ni acuerdos comerciales que condicionen el orden de resultados.
 
@@ -79,7 +79,7 @@ Falsos positivos ya conocidos y documentados:
 - Si cambias documentacion derivada o metricas del repo, ejecuta `npm run sync:repo-docs`.
 - Si cambias codigo relevante, ejecuta `npm test`.
 - Si tocas fechas, fiscalidad, bono social, impuestos, PVPC, autoconsumo o guias legales, no asumas nada por memoria: contrasta con `MANTENIMIENTO-NORMATIVO.md`, `lf-config.js`, fuentes oficiales y tests.
-- `tarifas.json` y `novedades.json` son datasets vivos. No asumas que una descripcion comercial antigua sigue siendo correcta sin revisar esos archivos.
+- `tarifas.json` es un dataset vivo. No asumas que una descripcion comercial antigua sigue siendo correcta sin revisar ese archivo.
 
 ## Como Describir LuzFija.es Sin Quedarte Corto
 

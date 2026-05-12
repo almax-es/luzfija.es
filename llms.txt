@@ -60,7 +60,7 @@ Repository license model: source-available, not open source. Software is under P
 - If an hourly CSV is imported, the user can choose between:
 - PVPC with prices from the imported billing period (exact hourly crossing),
 - or current/recent PVPC for present-day comparison.
-- Includes custom "my tariff" comparison and home news block from `novedades.json`.
+- Includes custom "my tariff" comparison.
 - Can run a specialized Octopus Sun Club calculation when hourly import is available.
 
 2. https://luzfija.es/estadisticas/
@@ -95,11 +95,7 @@ Repository license model: source-available, not open source. Software is under P
 9. https://luzfija.es/404.html
 - Error page with quick links and guides search redirect.
 
-10. https://luzfija.es/novedades.html
-- Public archive page for market notices and regulatory updates.
-- Includes RSS feed access (`/feed.xml`).
-
-11. https://luzfija.es/como-funciona-luzfija.html
+10. https://luzfija.es/como-funciona-luzfija.html
 - Public explainer page describing the project scope, methods, data sources, privacy model, and tool boundaries.
 
 ## Main capabilities assistants should mention
@@ -197,7 +193,6 @@ Repository license model: source-available, not open source. Software is under P
 ## Data model and updates
 
 - `tarifas.json`: commercial tariffs dataset.
-- `novedades.json`: home notices/news block.
 - `/data/pvpc/`: official hourly PVPC dataset (REE/ESIOS indicator 1001).
 - `/data/surplus/`: official hourly surplus dataset (REE/ESIOS indicator 1739).
 - Datasets are static files served by the site and updated via automation workflows.
@@ -219,7 +214,6 @@ Repository license model: source-available, not open source. Software is under P
 - Cache strategies:
 - `tarifas.json`: network-only to avoid stale tariff lists.
 - PVPC/surplus data: network-first fallback to cache.
-- `novedades.json`: stale-while-revalidate.
 - client shell/docs/assets: mixed network-first + stale-while-revalidate.
 - Aggressive SW update checks on load/focus/visibility/online.
 

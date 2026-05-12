@@ -11,7 +11,6 @@ const PAGES = [
   'estadisticas/index.html',
   'guias.html',
   'index.html',
-  'novedades.html',
   'privacidad.html'
 ];
 

@@ -63,10 +63,6 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 11. `/404.html`
 - Pagina de error con enlaces rapidos, buscador que redirige a guias y bloque de "fun fact".
 
-12. `/novedades.html`
-- Archivo publico de novedades regulatorias y alertas del sector.
-- Incluye enlace RSS (`/feed.xml`) y enlaces de apoyo a guias relacionadas.
-
 ## 3. Funcionalidades Del Comparador Principal (`/`)
 
 ### 3.1 Entrada De Datos Y Contexto Fiscal
@@ -162,12 +158,6 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Tema claro/oscuro con persistencia local.
 - Boton de instalacion PWA (`beforeinstallprompt`) con fallback de instrucciones por plataforma.
 - Auto-refresh de tarifas al volver foco/online/visibilidad y cada ~15 minutos.
-
-### 3.7 Novedades De Mercado En Home
-
-- Carga de `novedades.json` en cliente.
-- Ordenacion por fecha descendente y render de maximo 5 novedades.
-- Soporte de etiquetas (ej. `regulatorio`, `novedad`, `alerta`) y enlaces asociados.
 
 ## 4. Funcionalidades Del Observatorio PVPC (`/estadisticas/`)
 
@@ -282,11 +272,10 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 30 (`js/*.js` + `js/bv/*.js`).
-- Lineas JS aproximadas: 19.420.
+- Lineas JS aproximadas: 19.244.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (47 tarifas).
-- `novedades.json` (4 entradas activas).
 - `/data/pvpc/` (indicador 1001).
 - `/data/surplus/` (indicador 1739).
 - Fuente privada de tarifas: Excel local `Tarifas Luz.xlsx`. Su columna interna `Activa` controla publicacion; `no` excluye la tarifa de `tarifas.json` y del post de Facebook, pero no del validador privado.
@@ -302,7 +291,6 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Estrategias:
 - `network-first` para navegacion HTML.
 - `network-only` para `tarifas.json` (sin cache para evitar desactualizados).
-- `stale-while-revalidate` para `novedades.json`.
 - `network-first` para datasets PVPC/surplus.
 - `stale-while-revalidate` para resto de assets.
 - Update agresivo en cliente:
@@ -322,8 +310,8 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 ## 10. Testing Y Calidad
 
 - Suite Vitest/JSDOM.
-- 50 archivos de test (`tests/*.test.js`).
-- 316 casos `it()/test()` en la ultima ejecucion local verificada.
+- 49 archivos de test (`tests/*.test.js`).
+- 312 casos `it()/test()` en la ultima ejecucion local verificada.
 - Cobertura de:
 - Calculo fiscal y de energia.
 - PVPC y caches.

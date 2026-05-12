@@ -3,7 +3,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260512-054937";
+const CACHE_VERSION = "20260512-072830";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
@@ -11,7 +11,6 @@ const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 const SCOPE = self.registration.scope;
 const INDEX_PATH = new URL("index.html", SCOPE).pathname;
 const TARIFAS_PATH = new URL("tarifas.json", SCOPE).pathname;
-const NOVEDADES_PATH = new URL("novedades.json", SCOPE).pathname;
 const GUIDES_SEARCH_INDEX_PATH = new URL("data/guides-search-index.json", SCOPE).pathname;
 const GOAT_SCRIPT_PATH = new URL("vendor/goatcounter/count.js", SCOPE).pathname;
 const TRACKING_SCRIPT_PATH = new URL("js/tracking.js", SCOPE).pathname;
@@ -263,29 +262,6 @@ self.addEventListener("fetch", (event) => {
           const cache = await caches.open(CACHE_NAME);
           await cache.delete(new Request(TARIFAS_PATH));
         } catch (_) {}
-      })()
-    );
-    return;
-  }
-
-  // Novedades: stale-while-revalidate
-  if (url.pathname === NOVEDADES_PATH) {
-    event.respondWith(
-      (async () => {
-        const cache = await caches.open(CACHE_NAME);
-        const cacheKey = new Request(NOVEDADES_PATH);
-        const cached = (await cache.match(cacheKey)) || (await cache.match(req, { ignoreSearch: true }));
-        const fetchPromise = fetch(req, { cache: "no-store" })
-          .then(async (fresh) => {
-            await cachePutSafe(cache, cacheKey, fresh);
-            return fresh;
-          })
-          .catch(() => null);
-        if (cached) {
-          event.waitUntil(fetchPromise);
-          return cached;
-        }
-        return (await fetchPromise) || Response.error();
       })()
     );
     return;

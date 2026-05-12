@@ -25,15 +25,14 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 
 ## Estado Actual (2026-05-12)
 
-- 35 paginas HTML publicas:
-  - 10 en raiz.
+- 34 paginas HTML publicas:
+  - 9 en raiz.
   - 1 en `estadisticas/`.
   - 24 en `guias/` (indice + 23 guias).
 - 30 modulos JavaScript en `js/` (incluye `js/bv/`).
-- 19.420 lineas JS aproximadas.
+- 19.244 lineas JS aproximadas.
 - 47 tarifas en `tarifas.json`.
-- 4 novedades activas en `novedades.json`.
-- Suite de tests Vitest con 50 archivos y 316 casos.
+- Suite de tests Vitest con 49 archivos y 312 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 
@@ -54,7 +53,6 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - Modal de aplicacion CSV con opcion de aplicar solo consumos o consumos+excedentes.
 - Incluye analisis especifico de Octopus Sun Club al aplicar CSV con curva horaria.
 - Tabla con filtros, ordenacion por columnas, top 5 visual y modal de desglose.
-- Bloque de novedades de mercado cargado desde `novedades.json`.
 - Menu de utilidades:
 - compartir configuracion por URL,
 - refrescar tarifas,
@@ -102,7 +100,6 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - `como-funciona-luzfija.html`
 - `calcular-factura-luz.html`
 - `comparar-pvpc-tarifa-fija.html`
-- `novedades.html` (archivo publico de avisos y cambios regulatorios).
 - `404.html` con enlaces rapidos y buscador hacia guias.
 - `aviso-legal.html` y `privacidad.html` (incluye opt-out de analitica GoatCounter).
 
@@ -160,7 +157,6 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 ### Datasets versionados
 
 - `tarifas.json` (ofertas comerciales).
-- `novedades.json` (avisos/noticias de home).
 - `/data/pvpc/` (REE/ESIOS indicador 1001).
 - `/data/surplus/` (REE/ESIOS indicador 1739).
 
@@ -178,7 +174,6 @@ Notas de tarifas:
 - Estrategias de cache:
 - HTML: network-first.
 - `tarifas.json`: network-only (sin cache para evitar datos obsoletos).
-- `novedades.json`: stale-while-revalidate.
 - datasets PVPC/surplus: network-first.
 - resto de recursos: stale-while-revalidate.
 - Cliente con actualizacion agresiva de SW para aplicar nuevas versiones rapidamente.
@@ -221,5 +216,4 @@ Cobertura principal:
 - mantener `tarifas.json` actualizado con fecha `updatedAt`,
 - usar `Activa=no` en la Excel para retirar temporalmente tarifas sin borrar su fila,
 - revisar antes del 30/06/2026 el IVA reducido temporal: tras el RDL 10/2026 el umbral operativo es potencia inferior o igual a 10 kW,
-- revisar `novedades.json` para avisos regulatorios,
 - validar cambios con `npm test` antes de publicar.

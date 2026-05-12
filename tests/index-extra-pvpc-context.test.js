@@ -55,7 +55,6 @@ describe('index-extra PVPC quick views', () => {
 
     global.fetch = vi.fn(async (url) => {
       const u = String(url);
-      if (u.endsWith('/novedades.json')) return okJson([]);
       if (u.endsWith('/data/pvpc/8742/2026-04.json')) {
         return okJson({ days: { '2026-04-22': buildDayPairs('2026-04-22') } });
       }
@@ -77,7 +76,6 @@ describe('index-extra PVPC quick views', () => {
 
     const fetchSpy = vi.fn(async (url) => {
       const u = String(url);
-      if (u.endsWith('/novedades.json')) return okJson([]);
       if (u.endsWith('/data/pvpc/8741/2026-04.json')) {
         return okJson({ days: { '2026-04-22': buildDayPairs('2026-04-22') } });
       }
@@ -104,7 +102,6 @@ describe('index-extra PVPC quick views', () => {
   it('genera una key distinta cuando cambia la zona o cambia el día', async () => {
     global.fetch = vi.fn(async (url) => {
       const u = String(url);
-      if (u.endsWith('/novedades.json')) return okJson([]);
       if (u.endsWith('/data/pvpc/8741/2026-04.json')) {
         return okJson({ days: { '2026-04-22': buildDayPairs('2026-04-22') } });
       }

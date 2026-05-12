@@ -1,6 +1,5 @@
 const SYNC_OUTPUTS = new Set([
   'sitemap.xml',
-  'feed.xml',
   'data/guides-search-index.json',
   'README.md',
   'CAPACIDADES-WEB.md',
@@ -15,8 +14,7 @@ export function isSyncInput(relPath) {
     relPath === 'styles.css' ||
     relPath === 'fonts.css' ||
     relPath.endsWith('.webmanifest') ||
-    relPath === 'tarifas.json' ||
-    relPath === 'novedades.json'
+    relPath === 'tarifas.json'
   );
 }
 

@@ -9,7 +9,7 @@ Unless a file states otherwise, this notice applies to all non-software material
 - editorial content, guides, articles, documentation and support pages;
 - UI copy, PVPC comments, examples, labels, explanations and other microcopy;
 - visual design, layout, brand presentation, screenshots and non-functional creative elements;
-- curated datasets, including `tarifas.json`, `novedades.json`, tariff normalizations, rankings, commercial conditions, schema-specific annotations and derived search/index data.
+- curated datasets, including `tarifas.json`, tariff normalizations, rankings, commercial conditions, schema-specific annotations and derived search/index data.
 
 ## Rights Reserved
 

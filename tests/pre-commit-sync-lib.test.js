@@ -48,7 +48,6 @@ describe('pre-commit sync guardrails', () => {
   it('restages generated outputs and staged HTML pages', () => {
     expect(getFilesToRestage(['guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html'])).toEqual([
       'sitemap.xml',
-      'feed.xml',
       'data/guides-search-index.json',
       'README.md',
       'CAPACIDADES-WEB.md',
