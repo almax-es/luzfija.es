@@ -25,6 +25,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Plenitude",
+      "cPunta": 0.095998,
+      "cLlano": 0.095998,
+      "cValle": 0.095998,
+      "p1": 0.097731,
+      "p2": 0.097731,
+      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
+      "tipo": "1P",
+      "requisitos": "Potencia contratada ≤ 5 kW",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Loviluz",
       "cPunta": 0.096,
       "cLlano": 0.096,
@@ -134,25 +153,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Plenitude",
-      "cPunta": 0.105691,
-      "cLlano": 0.105691,
-      "cValle": 0.105691,
-      "p1": 0.099817,
-      "p2": 0.099817,
-      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
-      "tipo": "1P",
-      "requisitos": "Potencia contratada ≤ 5 kW",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Octopus Relax",
       "cPunta": 0.109,
       "cLlano": 0.109,
@@ -209,9 +209,9 @@
     },
     {
       "nombre": "Endesa Conecta",
-      "cPunta": 0.112534,
-      "cLlano": 0.112534,
-      "cValle": 0.112534,
+      "cPunta": 0.1135,
+      "cLlano": 0.1135,
+      "cValle": 0.1135,
       "p1": 0.093666,
       "p2": 0.093666,
       "web": "https://www.endesa.com/es/luz-y-gas/luz/conecta-de-endesa",
@@ -870,5 +870,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-12T05:49:30.682Z"
+  "updatedAt": "2026-05-12T08:43:11.089Z"
 }
