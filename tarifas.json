@@ -208,6 +208,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Energya VM",
+      "cPunta": 0.11128,
+      "cLlano": 0.11128,
+      "cValle": 0.11128,
+      "p1": 0.090247,
+      "p2": 0.003014,
+      "web": "https://www.energyavm.es/luz/formula-fija-24-horas-luz/",
+      "tipo": "1P",
+      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 6.000 kWh/año",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Endesa Conecta",
       "cPunta": 0.1135,
       "cLlano": 0.1135,
@@ -240,25 +259,6 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Energya VM",
-      "cPunta": 0.118235,
-      "cLlano": 0.118235,
-      "cValle": 0.118235,
-      "p1": 0.102252,
-      "p2": 0.05114,
-      "web": "https://www.energyavm.es/luz/formula-fija-24-horas-luz/",
-      "tipo": "1P",
-      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 6.000 kWh/año",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
       },
       "requiereFV": false
     },
@@ -870,5 +870,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-12T08:43:11.089Z"
+  "updatedAt": "2026-05-12T08:46:39.646Z"
 }
