@@ -158,13 +158,13 @@
   }
 
   function updateKwhHint() {
-    if (el.kwhHint) el.kwhHint.removeAttribute('data-placeholder');
     const v = getInputValues();
     const t = v.cPunta + v.cLlano + v.cValle;
     const ex = v.exTotal;
     const tStr = t.toFixed(2).replace('.', ',');
     const exStr = ex.toFixed(2).replace('.', ',');
     if (v.solarOn) {
+      if (el.kwhHint) el.kwhHint.removeAttribute('data-placeholder');
       el.kwhHint.innerHTML = `
         <div class="kwh-split">
           <div class="kwh-pill">
@@ -178,8 +178,12 @@
             <span class="kwh-unit">kWh</span>
           </div>
         </div>`;
-    } else {
+    } else if (t > 0) {
+      if (el.kwhHint) el.kwhHint.removeAttribute('data-placeholder');
       el.kwhHint.textContent = `${tStr} kWh`;
+    } else {
+      if (el.kwhHint) el.kwhHint.setAttribute('data-placeholder', '');
+      el.kwhHint.textContent = '—';
     }
   }
 

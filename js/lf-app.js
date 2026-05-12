@@ -242,7 +242,7 @@
     updateSolarUI();
 
     validateInputs();
-    markPending('Introduce tus datos y pulsa Calcular para ver el ranking.');
+    markPending('Rellena tus datos y calcula');
 
     // Event listeners para inputs
     Object.values(currentEl.inputs).forEach(i => {
