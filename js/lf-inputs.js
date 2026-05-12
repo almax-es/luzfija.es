@@ -158,6 +158,7 @@
   }
 
   function updateKwhHint() {
+    if (el.kwhHint) el.kwhHint.removeAttribute('data-placeholder');
     const v = getInputValues();
     const t = v.cPunta + v.cLlano + v.cValle;
     const ex = v.exTotal;

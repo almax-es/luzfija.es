@@ -771,6 +771,7 @@
       min-width: 0;
     }
     #kwhHint{ min-width: 0; }
+    #kwhHint[data-placeholder]{ opacity: 0.3; }
     .kwh-split{
       display:flex;
       gap:10px;
@@ -1240,6 +1241,11 @@
     html.light-mode .kwhPill{
       background: rgba(15,23,42,.03);
       border-color: rgba(15,23,42,.10);
+    }
+
+    /* card head: use light-mode accent RGB to keep tint coherent */
+    html.light-mode .card .head {
+      background: linear-gradient(180deg, rgba(109,40,217,.06), transparent);
     }
 
     /* inputs: avoid dark backgrounds in light mode */
@@ -3277,11 +3283,7 @@ html.light-mode{ --line: rgba(15,23,42,.10); }
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  color: var(--accent);
-  background: linear-gradient(135deg, #8B5CF6 0%, #EC4899 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+  color: var(--muted2);
 }
 
 /* Spacing entre checkboxes en opciones avanzadas */
