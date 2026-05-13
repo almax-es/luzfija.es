@@ -267,8 +267,8 @@
       "cPunta": 0.119,
       "cLlano": 0.119,
       "cValle": 0.119,
-      "p1": 0.095,
-      "p2": 0.059,
+      "p1": 0.119,
+      "p2": 0.095,
       "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
       "tipo": "1P",
       "requisitos": "Consumo ≤ 10.000 kWh/año",
@@ -561,8 +561,8 @@
       "cPunta": 0.179,
       "cLlano": 0.125,
       "cValle": 0.079,
-      "p1": 0.095,
-      "p2": 0.059,
+      "p1": 0.119,
+      "p2": 0.095,
       "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
       "tipo": "3P",
       "requisitos": "Consumo ≤ 10.000 kWh/año",
@@ -781,9 +781,9 @@
       "nombre": "Neolux VE Easy 3P",
       "cPunta": 0.23,
       "cLlano": 0.22,
-      "cValle": 0.098,
-      "p1": 0.11,
-      "p2": 0.024,
+      "cValle": 0.099,
+      "p1": 0.119,
+      "p2": 0.039,
       "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
       "tipo": "3P",
       "requisitos": "Consumo ≤ 10.000 kWh/año",
@@ -801,8 +801,8 @@
       "cPunta": 0.239,
       "cLlano": 0.229,
       "cValle": 0.069,
-      "p1": 0.12,
-      "p2": 0.039,
+      "p1": 0.129,
+      "p2": 0.059,
       "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
       "tipo": "3P",
       "requisitos": "Consumo ≤ 10.000 kWh/año",
@@ -870,5 +870,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-13T09:25:23.306Z"
+  "updatedAt": "2026-05-13T14:58:03.623Z"
 }
