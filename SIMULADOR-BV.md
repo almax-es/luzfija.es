@@ -674,6 +674,26 @@ ES0000000000000000XX;01/01/2025;2;0,098;0,050;0,000;R
 
 **Separador**: Punto y coma (`;`) o coma (`,`) detectado automáticamente
 
+### CSV - Formato UFD (Naturgy)
+
+**Estructura**:
+```csv
+CUPS;Fecha;Hora;Consumo_kWh;Exportacion_kWh
+ES0000000000000000XX;01/01/2025;1;0,123;0,045
+...
+```
+
+**Columnas principales**:
+- `CUPS`: Código único del punto de suministro
+- `Fecha`: DD/MM/YYYY
+- `Hora`: 1-24
+- `EHCR` / `consumo`: Energía horaria consumida (kWh)
+- `EHEX` / `exportacion`: Energía horaria excedentaria (kWh) **[OBLIGATORIO]**
+- `INV/VER`: Marca de invierno/verano para el cambio horario (opcional)
+- Columnas unificadas `fecha_hora` soportadas como alternativa
+
+**Separador**: Punto y coma (`;`) o coma (`,`) detectado automáticamente
+
 ### CSV - Formato Iberdrola Cliente
 
 **Estructura**:

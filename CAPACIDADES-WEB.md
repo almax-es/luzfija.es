@@ -278,7 +278,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - `tarifas.json` (47 tarifas).
 - `/data/pvpc/` (indicador 1001).
 - `/data/surplus/` (indicador 1739).
-- Fuente privada de tarifas: Excel local `Tarifas Luz.xlsx`. Su columna interna `Activa` controla publicacion; `no` excluye la tarifa de `tarifas.json` y del post de Facebook, pero no del validador privado.
+- Fuente privada de tarifas: Excel local `Tarifas Luz.xlsx`. Su columna interna `Activa` controla publicacion; valores como `no`, `n`, `false`, `falso` o `0` excluyen la tarifa de `tarifas.json` y del post de Facebook, pero no del validador privado.
 - Fiscalidad Peninsula/Baleares: el IVA reducido temporal de 2026 aplica a potencia contratada inferior o igual a 10 kW desde la correccion del RDL 10/2026.
 - Inventario de mantenimiento normativo, fuentes oficiales, cadencias e impacto tecnico: `MANTENIMIENTO-NORMATIVO.md`.
 

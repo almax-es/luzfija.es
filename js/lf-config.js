@@ -9,7 +9,7 @@
  * lf-config.js - Configuración centralizada de valores regulados
  * 
  * Este archivo contiene todos los valores que pueden cambiar por legislación.
- * Actualizado: Abril 2026
+ * Actualizado: Mayo 2026
  * 
  * Referencias legales:
  * - Bono social: RD 897/2017 + RDL 7/2026 + Orden TED/1524/2025 (financiación)
