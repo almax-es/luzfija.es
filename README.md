@@ -1,13 +1,13 @@
 # LuzFija.es
 
-Suite frontend avanzada para analizar la factura electrica en Espana: comparador principal, observatorio PVPC, simulador solar/BV, guias y alertas regulatorias. Gratis, sin registro, con calculo local en navegador y sin monetizacion del ranking: no hay referidos, comisiones, publicidad, lead gen ni acuerdos comerciales que alteren resultados.
+Suite frontend avanzada para analizar la factura eléctrica en España: comparador principal, observatorio PVPC, simulador solar/BV, guías y alertas regulatorias. Gratis, sin registro, con cálculo local en navegador y sin monetización del ranking: no hay referidos, comisiones, publicidad, lead gen ni acuerdos comerciales que alteren resultados.
 
 - Web: `https://luzfija.es`
 - Comparador principal: `https://luzfija.es/`
 - Observatorio PVPC: `https://luzfija.es/estadisticas/`
 - Comparador tarifas solares (BV): `https://luzfija.es/comparador-tarifas-solares.html`
 - Qué hace y cómo funciona: `https://luzfija.es/como-funciona-luzfija.html`
-- Guias: `https://luzfija.es/guias.html`
+- Guías: `https://luzfija.es/guías.html`
 - Contacto: `hola@luzfija.es`
 
 Si eres una IA o entras al repo por primera vez, empieza por `AGENTS.md` y `CAPACIDADES-WEB.md`.
@@ -25,16 +25,16 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 
 ## Estado Actual (2026-05-13)
 
-- 34 paginas HTML publicas:
-  - 9 en raiz.
+- 34 páginas HTML públicas:
+  - 9 en raíz.
   - 1 en `estadisticas/`.
-  - 24 en `guias/` (indice + 23 guias).
-- 30 modulos JavaScript en `js/` (incluye `js/bv/`).
-- 19.249 lineas JS aproximadas.
+  - 24 en `guías/` (indice + 23 guías).
+- 30 módulos JavaScript en `js/` (incluye `js/bv/`).
+- 19.249 líneas JS aproximadas.
 - 47 tarifas en `tarifas.json`.
 - Suite de tests Vitest con 49 archivos y 312 casos.
 
-## Que Incluye La Web (Inventario Completo)
+## Qué Incluye La Web (Inventario Completo)
 
 ### 1. Comparador Principal (`/`)
 
@@ -42,86 +42,86 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - Incluye PVPC estimado en el ranking (datos horarios oficiales ya publicados en dataset local).
 - Limite de modelo PVPC: no computable cuando potencia contratada > 10 kW.
 - Soporta:
-- discriminacion horaria,
-- placas solares,
-- compensacion de excedentes,
-- bateria virtual,
-- bono social,
-- tarifa personalizada del usuario.
+  - discriminación horaria,
+  - placas solares,
+  - compensación de excedentes,
+  - batería virtual,
+  - bono social,
+  - tarifa personalizada del usuario.
 - Extrae datos de factura PDF (texto + QR + OCR opcional).
-- Importa consumos desde CSV/XLSX (incluye clasificacion P1/P2/P3 y soporte formatos distribuidoras).
-- Modal de aplicacion CSV con opcion de aplicar solo consumos o consumos+excedentes.
-- Incluye analisis especifico de Octopus Sun Club al aplicar CSV con curva horaria.
-- Tabla con filtros, ordenacion por columnas, top 5 visual y modal de desglose.
-- Menu de utilidades:
-- compartir configuracion por URL,
-- refrescar tarifas,
-- limpiar cache,
-- reset de formulario.
-- Boton de instalacion PWA cuando el navegador expone `beforeinstallprompt`.
+- Importa consumos desde CSV/XLSX (incluye clasificación P1/P2/P3 y soporte formatos distribuidoras).
+- Modal de aplicación CSV con opción de aplicar solo consumos o consumos+excedentes.
+- Incluye análisis específico de Octopus Sun Club al aplicar CSV con curva horaria.
+- Tabla con filtros, ordenación por columnas, top 5 visual y modal de desglose.
+- Menú de utilidades:
+  - compartir configuración por URL,
+  - refrescar tarifas,
+  - limpiar cache,
+  - reset de formulario.
+- Botón de instalación PWA cuando el navegador expone `beforeinstallprompt`.
 
 ### 2. Observatorio PVPC (`/estadisticas/`)
 
 - Selector de tipo de dato: `pvpc` o `surplus`.
-- Selector geografia (8741..8745), ano y mes.
-- KPIs dinamicos (ultimo dia, medias/ extremos, rolling 12m, YoY).
+- Selector geografia (8741..8745), año y mes.
+- KPIs dinámicos (ultimo día, medias/ extremos, rolling 12m, YoY).
 - Graficos:
-- evolucion (diaria o mensual),
-- perfil horario promedio,
-- comparativa multianual por chips.
+  - evolución (diaria o mensual),
+  - perfil horario promedio,
+  - comparativa multianual por chips.
 - Importador CSV/XLSX de excedentes del usuario con:
-- KPIs anuales,
-- tabla mensual con energia/precio/importe,
-- tramo horario principal (80% del vertido),
-- hora pico.
-- Esta seccion CSV se habilita en modo `surplus`.
+  - KPIs anuales,
+  - tabla mensual con energía/precio/importe,
+  - tramo horario principal (80% del vertido),
+  - hora pico.
+- Esta sección CSV se habilita en modo `surplus`.
 
 ### 3. Simulador BV Independiente (`/comparador-tarifas-solares.html`)
 
-- Simulacion mes a mes con datos reales de autoconsumo.
+- Simulación mes a mes con datos reales de autoconsumo.
 - Modo hibrido:
-- importas CSV/XLSX,
-- se auto-rellena tabla manual mensual,
-- puedes editar y simular escenarios.
+  - importas CSV/XLSX,
+  - se auto-rellena tabla manual mensual,
+  - puedes editar y simular escenarios.
 - Ranking anual:
-- orden por coste anual pagado,
-- desempate por mayor saldo BV final.
-- Desglose completo por tarifa en desktop (tabla) y movil (tarjetas).
+  - orden por coste anual pagado,
+  - desempate por mayor saldo BV final.
+- Desglose completo por tarifa en desktop (tabla) y móvil (tarjetas).
 - Persistencia local avanzada:
-- autoguardado tabla manual,
-- export/import JSON de backup,
-- reset de datos manuales,
-- tarifa personalizada propia del simulador con guardado local.
+  - autoguardado tabla manual,
+  - export/import JSON de backup,
+  - reset de datos manuales,
+  - tarifa personalizada propia del simulador con guardado local.
 
 ### 4. Contenido Y Soporte
 
-- `guias.html` + 23 guias educativas.
+- `guías.html` + 23 guías educativas.
 - Landings de apoyo:
-- `como-funciona-luzfija.html`
-- `calcular-factura-luz.html`
-- `comparar-pvpc-tarifa-fija.html`
-- `404.html` con enlaces rapidos y buscador hacia guias.
-- `aviso-legal.html` y `privacidad.html` (incluye opt-out de analitica GoatCounter).
+  - `como-funciona-luzfija.html`
+  - `calcular-factura-luz.html`
+  - `comparar-pvpc-tarifa-fija.html`
+  - `404.html` con enlaces rápidos y buscador hacia guías.
+  - `aviso-legal.html` y `privacidad.html` (incluye opt-out de analítica GoatCounter).
 
-## Documentacion De Referencia
+## Documentación De Referencia
 
 ### Inventario funcional (fuente de verdad)
 
 - `CAPACIDADES-WEB.md`:
-- mapa pagina por pagina,
-- flujos completos de usuario,
-- capacidades para asistentes IA,
-- reglas anti-lagunas.
+  - mapa página por página,
+  - flujos completos de usuario,
+  - capacidades para asistentes IA,
+  - reglas anti-lagunas.
 
 ### Contexto para agentes y mantenimiento
 
 - `AGENTS.md`:
-- mapa rapido del producto y del codigo,
-- invariantes que no se deben romper,
-- rutas de lectura para auditorias y cambios,
-- recordatorios para evitar falsos positivos.
+  - mapa rapido del producto y del código,
+  - invariantes que no se deben romper,
+  - rutas de lectura para auditorias y cambios,
+  - recordatorios para evitar falsos positivos.
 - `MANTENIMIENTO-NORMATIVO.md`:
-- checklist de normativa, datos vivos, fuentes oficiales, cadencias de revision e impacto en codigo/guias.
+  - checklist de normativa, datos vivos, fuentes oficiales, cadencias de revisión e impacto en código/guías.
 
 ### Calculo y normativa
 
@@ -139,20 +139,20 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 
 ### Documento para asistentes IA
 
-- `llms.txt` (referencia publica breve para asistentes)
-- `llms-full.txt` (referencia publica ampliada para asistentes)
+- `llms.txt` (referencia pública breve para asistentes)
+- `llms-full.txt` (referencia pública ampliada para asistentes)
 
-## Arquitectura Tecnica
+## Arquitectura Técnica
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Hosting: GitHub Pages (sitio estatico).
 - Dependencias autoalojadas en `vendor/`:
-- PDF.js (lazy),
-- Tesseract (lazy),
-- jsQR,
-- SheetJS/xlsx (lazy),
-- Chart.js.
-- Sin backend para calculos: todo se ejecuta en cliente.
+  - PDF.js (lazy),
+  - Tesseract (lazy),
+  - jsQR,
+  - SheetJS/xlsx (lazy),
+  - Chart.js.
+- Sin backend para cálculos: todo se ejecuta en cliente.
 
 ### Datasets versionados
 
@@ -163,32 +163,32 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 Notas de tarifas:
 
 - `fv.exc` es el precio de excedentes en €/kWh; `-1` significa precio indexado y la web calcula con una estimacion operativa de 0,030 €/kWh mostrando aviso visible.
-- La columna privada `Activa` de la Excel no se publica en JSON: `no` excluye una tarifa de `tarifas.json` y del post de Facebook, pero el validador privado la sigue revisando.
+- La columna privada `Activa` de la Excel no se pública en JSON: `no` excluye una tarifa de `tarifas.json` y del post de Facebook, pero el validador privado la sigue revisando.
 
 ## PWA, Cache Y Offline
 
 - Service Worker en `sw.js` con versionado por despliegue (`CACHE_VERSION`).
 - Precache en dos niveles:
-- `CORE_ASSETS` (obligatorio).
-- `ASSETS` opcionales best-effort.
+  - `CORE_ASSETS` (obligatorio).
+  - `ASSETS` opcionales best-effort.
 - Estrategias de cache:
-- HTML: network-first.
-- `tarifas.json`: network-only (sin cache para evitar datos obsoletos).
-- datasets PVPC/surplus: network-first.
-- resto de recursos: stale-while-revalidate.
-- Cliente con actualizacion agresiva de SW para aplicar nuevas versiones rapidamente.
+  - HTML: network-first.
+  - `tarifas.json`: network-only (sin cache para evitar datos obsoletos).
+  - datasets PVPC/surplus: network-first.
+  - resto de recursos: stale-while-revalidate.
+- Cliente con actualización agresiva de SW para aplicar nuevas versiones rápidamente.
 
 ## Privacidad Y Seguridad
 
 - Procesamiento local para:
-- calculos,
-- parsing CSV,
-- parsing PDF/QR/OCR.
-- Politica de minimizacion:
-- no hay registro obligatorio,
-- no se envian facturas a backend propio.
+  - cálculos,
+  - parsing CSV,
+  - parsing PDF/QR/OCR.
+- Politica de minimización:
+  - no hay registro obligatorio,
+  - no se envían facturas a backend propio.
 - Analitica con GoatCounter (sin cookies de terceros), con opt-out de usuario.
-- CSP por pagina + sanitizacion en renderizado dinamico + validacion de URL segura.
+- CSP por página + sanitización en renderizado dinámico + validación de URL segura.
 
 ## Testing
 
@@ -200,7 +200,7 @@ npm test
 
 Cobertura principal:
 
-- motor de calculo e impuestos,
+- motor de cálculo e impuestos,
 - PVPC y cache,
 - importadores CSV/XLSX,
 - factura PDF + QR/OCR,
@@ -212,8 +212,8 @@ Cobertura principal:
 
 - Actualizaciones de datasets PVPC/surplus via GitHub Actions.
 - Checklist completo de normativa, fuentes y cadencias en `MANTENIMIENTO-NORMATIVO.md`.
-- Recomendacion operativa:
-- mantener `tarifas.json` actualizado con fecha `updatedAt`,
-- usar `Activa=no` en la Excel para retirar temporalmente tarifas sin borrar su fila,
-- revisar antes del 30/06/2026 el IVA reducido temporal: tras el RDL 10/2026 el umbral operativo es potencia inferior o igual a 10 kW,
-- validar cambios con `npm test` antes de publicar.
+- Recomendación operativa:
+  - mantener `tarifas.json` actualizado con fecha `updatedAt`,
+  - usar `Activa=no` en la Excel para retirar temporalmente tarifas sin borrar su fila,
+  - revisar antes del 30/06/2026 el IVA reducido temporal: tras el RDL 10/2026 el umbral operativo es potencia inferior o igual a 10 kW,
+  - validar cambios con `npm test` antes de publicar.

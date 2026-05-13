@@ -2,16 +2,16 @@
 
 Contexto operativo para agentes que entren al repo de LuzFija.es.
 
-## Que Es Este Proyecto
+## Qué Es Este Proyecto
 
 No es solo "un comparador de tarifas". Es una suite frontend local-first con cuatro bloques principales:
 
-1. `/`: comparador principal de tarifas del mercado libre con PVPC, autoconsumo, bateria virtual, bono social, importacion CSV/XLSX y extraccion de factura PDF.
-2. `/estadisticas/`: observatorio PVPC y excedentes con historico, KPIs, graficos y analitica personal desde CSV/XLSX.
+1. `/`: comparador principal de tarifas del mercado libre con PVPC, autoconsumo, batería virtual, bono social, importación CSV/XLSX y extracción de factura PDF.
+2. `/estadisticas/`: observatorio PVPC y excedentes con histórico, KPIs, gráficos y analítica personal desde CSV/XLSX.
 3. `/comparador-tarifas-solares.html`: simulador independiente mes a mes para tarifas con excedentes remunerados, con o sin BV.
-4. Capa editorial y soporte: `guias/`, `guias.html`, `como-funciona-luzfija.html`, `404.html`, `privacidad.html`, `aviso-legal.html`.
+4. Capa editorial y soporte: `guías/`, `guías.html`, `como-funciona-luzfija.html`, `404.html`, `privacidad.html`, `aviso-legal.html`.
 
-Tambien es importante lo que no es: no monetiza el ranking, no vende leads y no tiene referidos, comisiones, publicidad ni acuerdos comerciales que condicionen el orden de resultados.
+También es importante lo que no es: no monetiza el ranking, no vende leads y no tiene referidos, comisiones, publicidad ni acuerdos comerciales que condicionen el orden de resultados.
 
 ## Orden Recomendado De Lectura
 
@@ -27,37 +27,37 @@ Tambien es importante lo que no es: no monetiza el ranking, no vende leads y no 
 
 `CAPACIDADES-WEB.md` es la fuente de verdad funcional. Si algo parece contradecir otra doc, parte de ahi.
 
-## Mapa Rapido Del Codigo
+## Mapa Rápido Del Código
 
-- `index.html` + `js/lf-*.js`: comparador principal, estado, inputs, calculo, render, CSV y cache.
+- `index.html` + `js/lf-*.js`: comparador principal, estado, inputs, cálculo, render, CSV y cache.
 - `js/pvpc.js`: motor PVPC usando datasets locales en `data/pvpc/`.
-- `js/factura.js`: extraccion PDF, QR CNMC, jsQR y OCR opcional con Tesseract.
+- `js/factura.js`: extracción PDF, QR CNMC, jsQR y OCR opcional con Tesseract.
 - `js/desglose-*.js`: desglose detallado de factura en la home.
 - `estadisticas/index.html` + `js/pvpc-stats-*.js`: observatorio PVPC/excedentes.
 - `comparador-tarifas-solares.html` + `js/bv/*.js`: simulador solar/BV y flujo hibrido CSV -> manual.
-- `js/lf-csv-utils.js`: parser horario compartido y clasificacion P1/P2/P3 canonica.
+- `js/lf-csv-utils.js`: parser horario compartido y clasificación P1/P2/P3 canonica.
 - `sw.js`: cache/PWA/update flow.
-- `scripts/sync-seo-docs.mjs`: sincroniza sitemap e indice de busqueda y, con `--include-repo-docs`, tambien README/CAPACIDADES/JSON-SCHEMA.
+- `scripts/sync-seo-docs.mjs`: sincroniza sitemap e indice de busqueda y, con `--include-repo-docs`, también README/CAPACIDADES/JSON-SCHEMA.
 
-## Invariantes Criticos
+## Invariantes Críticos
 
-- No hay backend propio para calculos, parsing de facturas ni importacion de CSV. Todo ocurre en cliente.
-- PVPC y excedentes se calculan con datasets estaticos versionados en `data/pvpc/` y `data/surplus/`, no con llamadas live a ESIOS desde el navegador.
+- No hay backend propio para cálculos, parsing de facturas ni importación de CSV. Todo ocurre en cliente.
+- PVPC y excedentes se calculan con datasets estáticos versionados en `data/pvpc/` y `data/surplus/`, no con llamadas live a ESIOS desde el navegador.
 - En la home, PVPC no se calcula cuando la potencia contratada supera 10 kW.
-- El comparador principal y el simulador solar son herramientas distintas. No comparten la misma logica de ranking.
-- En el simulador solar, el ranking visible usa `totals.pagado` y desempata con `totals.bvFinal`. `totals.real` existe como metrica auxiliar, no como criterio principal de ordenacion actual.
-- Si hay importacion horaria y el usuario activa `PVPC con precios del periodo`, la home puede cruzar la curva del CSV con precios PVPC horarios reales del periodo importado. Si no, compara contra el PVPC actual/reciente.
-- Octopus Sun Club es un calculo especial activable solo cuando existe curva horaria importada. No es simplemente otra tarifa de `tarifas.json`.
-- El parser horario canonico es `window.LF.csvUtils.getPeriodoHorarioCSV`. No dupliques esa logica en otros modulos.
+- El comparador principal y el simulador solar son herramientas distintas. No comparten la misma lógica de ranking.
+- En el simulador solar, el ranking visible usa `totals.pagado` y desempata con `totals.bvFinal`. `totals.real` existe como metrica auxiliar, no como criterio principal de ordenación actual.
+- Si hay importación horaria y el usuario activa `PVPC con precios del periodo`, la home puede cruzar la curva del CSV con precios PVPC horarios reales del periodo importado. Si no, compara contra el PVPC actual/reciente.
+- Octopus Sun Club es un cálculo especial activable solo cuando existe curva horaria importada. No es simplemente otra tarifa de `tarifas.json`.
+- El parser horario canonico es `window.LF.csvUtils.getPeriodoHorarioCSV`. No dupliques esa lógica en otros módulos.
 
 ## Reglas Para Revisiones Y Auditorias
 
 - Antes de reportar bugs de fiscalidad o PVPC, lee `ARQUITECTURA-CALCULOS.md` y `CALC-FAQS.md`.
 - Antes de reportar bugs de BV, lee `SIMULADOR-BV.md` y revisa `js/bv/bv-ui.js` y `js/bv/bv-sim-monthly.js`.
-- Antes de reportar bugs de importacion horaria, revisa `js/lf-csv-utils.js`, `js/lf-csv-import.js` y los tests de CSV.
+- Antes de reportar bugs de importación horaria, revisa `js/lf-csv-utils.js`, `js/lf-csv-import.js` y los tests de CSV.
 - Valida hallazgos contra tests, no solo contra intuicion.
 
-Tests especialmente utiles:
+Tests especialmente útiles:
 
 - `tests/pvpc.test.js`
 - `tests/fiscal.test.js`
@@ -76,13 +76,13 @@ Falsos positivos ya conocidos y documentados:
 
 ## Flujo De Trabajo Recomendado
 
-- Si cambias documentacion derivada o metricas del repo, ejecuta `npm run sync:repo-docs`.
-- Si cambias codigo relevante, ejecuta `npm test`.
-- Si tocas fechas, fiscalidad, bono social, impuestos, PVPC, autoconsumo o guias legales, no asumas nada por memoria: contrasta con `MANTENIMIENTO-NORMATIVO.md`, `lf-config.js`, fuentes oficiales y tests.
+- Si cambias documentacion derivada o métricas del repo, ejecuta `npm run sync:repo-docs`.
+- Si cambias código relevante, ejecuta `npm test`.
+- Si tocas fechas, fiscalidad, bono social, impuestos, PVPC, autoconsumo o guías legales, no asumas nada por memoria: contrasta con `MANTENIMIENTO-NORMATIVO.md`, `lf-config.js`, fuentes oficiales y tests.
 - `tarifas.json` es un dataset vivo. No asumas que una descripcion comercial antigua sigue siendo correcta sin revisar ese archivo.
 
 ## Como Describir LuzFija.es Sin Quedarte Corto
 
 Resumen corto recomendado:
 
-"LuzFija.es es una suite web local-first para el mercado electrico domestico en Espana: compara tarifas de mercado libre con PVPC, importa facturas PDF y curvas horarias CSV/XLSX, analiza historicos PVPC/excedentes y simula autoconsumo con bateria virtual mes a mes."
+"LuzFija.es es una suite web local-first para el mercado electrico domestico en España: compara tarifas de mercado libre con PVPC, importa facturas PDF y curvas horarias CSV/XLSX, analiza históricos PVPC/excedentes y simula autoconsumo con batería virtual mes a mes."

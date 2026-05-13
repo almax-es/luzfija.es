@@ -54,7 +54,7 @@ Las tarifas con **batería virtual** acumulan los excedentes solares sobrantes (
   - Tamaño máximo: 10 MB
   - Validación de MIME type
   - Validación de rangos (kWh, horas)
-- **Requisitos**: El archivo DEBE incluir columna de excedentes/generación
+- **Excedentes**: si el archivo incluye columna de excedentes/generación, se usa para simular autoconsumo real. Algunos formatos de matriz horaria solo aportan consumo; en ese caso el importador asigna excedentes = 0 y muestra aviso.
 
 ### 🧮 Motor de Cálculo
 
@@ -211,7 +211,7 @@ getFestivosNacionales(year)
 - Cálculo económico mes a mes
 - Simulación de batería virtual (acumulación + uso)
 - Aplicación de impuestos por zona fiscal
-- Simulación masiva (todas las tarifas)
+- Simulación masiva de tarifas con excedentes remunerados
 
 **Funciones principales**:
 
@@ -270,7 +270,7 @@ window.BVSim.simulateForAllTarifasBV({
   zonaFiscal,
   esVivienda
 })
-// Simula todas las tarifas en paralelo
+// Simula todas las tarifas con excedentes remunerados en paralelo
 // Devuelve: { ok: true, results: [...] }
 ```
 
@@ -415,7 +415,7 @@ Para cada tarifa BV:
 ### Paso 4: Ranking y Visualización
 
 ```
-Array de resultados (todas las tarifas simuladas)
+Array de resultados (tarifas con excedentes remunerados simuladas)
     ↓
 Ordenar por totalPagar (ASC)
   - En empate, ordenar por bvFinal (DESC)
@@ -706,7 +706,7 @@ Fecha y Hora;Dirección;Consumo Wh;Generación Wh
 - `Fecha`: DD/MM/YYYY o YYYY-MM-DD
 - `H01` a `H24`: Consumo en kWh para cada hora
 
-**Nota**: Este formato NO incluye excedentes, se asume 0.
+**Nota**: Este formato NO incluye excedentes; el importador asume 0 y lo indica con un warning. Sirve para rellenar consumos mensuales, pero no representa un escenario FV real salvo que el usuario edite después los excedentes en la tabla manual.
 
 ### XLSX - Formato Tabla (Iberdrola)
 
@@ -778,12 +778,15 @@ if (!fecha) continue;
 #### 3. Columna de Excedentes
 
 ```javascript
-if (!parsed.hasExcedenteColumn) {
-  return {
-    ok: false,
-    error: 'El archivo no incluye excedentes/exportación; esta herramienta es solo para autoconsumo con BV.'
-  };
-}
+// En formatos con columna de exportación, el importador marca hasExcedenteColumn=true.
+// En formatos de solo consumo (por ejemplo matriz H01-H24), se permiten registros
+// con excedente 0 y se avisa al usuario.
+return {
+  records,
+  warnings: ['Formato matriz horaria detectado (excedentes = 0).'],
+  hasExcedenteColumn: false,
+  hasAutoconsumoColumn: false
+};
 ```
 
 ### Sanitización HTML
@@ -964,7 +967,7 @@ showToast('Subiendo archivo...', 'info');  // Azul
 
 **Paso a paso**:
 1. Carga tu CSV anual completo
-2. Simula con todas las tarifas
+2. Simula con las tarifas con excedentes remunerados
 3. Abre el desglose mes a mes de varias tarifas
 4. Observa:
    - **Verano**: Compensación alta, excedente sobrante → Acumula en BV
@@ -1058,7 +1061,7 @@ El simulador necesita un valor de excedentes utilizable. Por eso carga tarifas c
 
 ### ¿Qué hago si mi CSV no tiene excedentes?
 
-El simulador es específico para autoconsumo con batería virtual. Si no tienes placas solares o tu CSV no incluye excedentes, usa el **comparador principal** en lugar de este simulador.
+El simulador está pensado para autoconsumo con excedentes. Si tu CSV/XLSX no incluye excedentes, el importador puede cargar consumos y dejar excedentes a 0 en los formatos soportados; después puedes editar la tabla manual. Si no tienes placas solares o no quieres simular vertido, usa el **comparador principal**.
 
 ### ¿Por qué el ranking es diferente al comparador principal?
 
@@ -1119,6 +1122,6 @@ Porque esas tarifas **no tienen batería virtual**. El desglose solo muestra "Us
 
 ---
 
-**Última actualización**: 30 de abril de 2026
-**Versión**: 1.2.0
+**Última actualización**: 13 de mayo de 2026
+**Versión**: 1.2.11
 **Autor**: aLMaX / LuzFija.es

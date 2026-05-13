@@ -93,7 +93,6 @@ Test 4: Fin de semana (sábado hora 20)
 ## 🔗 Referencias
 
 - Bug detectado por ChatGPT en revisión de código
-- Fix aplicado en commit: [añadir hash cuando hagas commit]
 - Archivos modificados:
   - `js/bv/bv-sim-monthly.js` (eliminó código duplicado)
   - `js/lf-csv-utils.js` (asignación automática de periodo)
