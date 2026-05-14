@@ -421,12 +421,13 @@
       // BLINDAJE REDONDEOS
       // =====================
       // POTENCIA (todas las tarifas): P1 + P2 = total POTENCIA
+      const _pvpcPot = window.LF_CONFIG?.peajesPotenciaPVPC ?? {};
       const diasCalc = safeNum(datos.dias);
       const rawPotP1 = d.isPVPC
-        ? (safeNum(datos.potenciaP1) * 0.075901 * diasCalc)
+        ? (safeNum(datos.potenciaP1) * (_pvpcPot.p1 ?? 0.075901) * diasCalc)
         : (safeNum(datos.potenciaP1) * diasCalc * safeNum(datos.precioP1));
       const rawPotP2 = d.isPVPC
-        ? (safeNum(datos.potenciaP2) * 0.001987 * diasCalc)
+        ? (safeNum(datos.potenciaP2) * (_pvpcPot.p2 ?? 0.001987) * diasCalc)
         : (safeNum(datos.potenciaP2) * diasCalc * safeNum(datos.precioP2));
       const [potP1Disp, potP2Disp] = reconcileToTarget(d.pot, [rawPotP1, rawPotP2]);
 

@@ -99,6 +99,18 @@
     },
 
     // ═══════════════════════════════════════════════════════════════════
+    // PEAJES DE POTENCIA PVPC — Tarifa 2.0TD (€/kW·día)
+    // Resolución CNMC 18/12/2025 (BOE-A-2025-26348)
+    // Vigentes desde 1 de enero de 2026
+    // ═══════════════════════════════════════════════════════════════════
+    peajesPotenciaPVPC: {
+      p1:     0.075901, // €/kW·día peaje potencia P1 (punta)
+      p2:     0.001987, // €/kW·día peaje potencia P2 (valle)
+      margen: 0.008529, // €/kW·día margen de comercialización fijo
+      descripcion: 'Peajes potencia PVPC 2.0TD 2026'
+    },
+
+    // ═══════════════════════════════════════════════════════════════════
     // IMPUESTOS POR TERRITORIO
     // ═══════════════════════════════════════════════════════════════════
     territorios: {
@@ -560,6 +572,7 @@
   Object.freeze(LF_CONFIG.iee);
   Object.freeze(LF_CONFIG.alquilerContador);
   Object.freeze(LF_CONFIG.pvpc);
+  Object.freeze(LF_CONFIG.peajesPotenciaPVPC);
   Object.freeze(LF_CONFIG.medidasTemporales.rdl72026);
   Object.freeze(LF_CONFIG.medidasTemporales);
   Object.keys(LF_CONFIG.territorios).forEach(k => {

@@ -387,8 +387,9 @@
       }
       
       // Precios de potencia (€/kW·día) - valores regulados PVPC
-      precioP1 = 0.075901;  // Peaje P1 punta
-      precioP2 = 0.001987;  // Peaje P2 valle
+      const _pvpcPot = window.LF_CONFIG?.peajesPotenciaPVPC ?? {};
+      precioP1 = _pvpcPot.p1 ?? 0.075901;  // Peaje P1 punta
+      precioP2 = _pvpcPot.p2 ?? 0.001987;  // Peaje P2 valle
       lfDbg('✅ Precios potencia PVPC:', { precioP1, precioP2 });
     }
 
@@ -430,7 +431,7 @@
       metaPvpc: tarifa.metaPvpc || null,
 
       // PVPC: margen de comercialización (para cálculo en desglose)
-      pvpcMargenUnitario: 0.008529  // €/kW·día (regulado)
+      pvpcMargenUnitario: window.LF_CONFIG?.peajesPotenciaPVPC?.margen ?? 0.008529  // €/kW·día (regulado)
     };
 
     lfDbg('Datos para desglose:', datos);

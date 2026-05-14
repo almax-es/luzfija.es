@@ -460,11 +460,7 @@
         const mmdd = String(ymd || '').slice(5, 10);
         return window.LF?.csvUtils?.esFestivoNacionalMmdd?.(mmdd) === true;
       };
-const PEAJES_POT_DIA = {
-        p1: 0.075901,
-        p2: 0.001987,
-        margen: 0.008529
-      };
+const PEAJES_POT_DIA = window.LF_CONFIG?.peajesPotenciaPVPC ?? { p1: 0.075901, p2: 0.001987, margen: 0.008529 };
 
       // GeoId para precios horarios (REE/ESIOS). En el UI Ceuta/Melilla viene combinado;
       // usamos el geo_id de Ceuta (8744). Si por cualquier razón faltase, hacemos fallback a 8745.

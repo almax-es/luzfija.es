@@ -284,9 +284,10 @@
     const consumoKwh = cPunta + cLlano + cValle;
 
     // Fallbacks regulados (si por cualquier razón falta meta)
-    const PEAJES_POT_DIA_P1 = 0.075901;
-    const PEAJES_POT_DIA_P2 = 0.001987;
-    const MARGEN_KW_DIA = 0.008529; // 3,113 €/kW·año / 365
+    const _pvpcPot = window.LF_CONFIG?.peajesPotenciaPVPC ?? {};
+    const PEAJES_POT_DIA_P1 = _pvpcPot.p1     ?? 0.075901;
+    const PEAJES_POT_DIA_P2 = _pvpcPot.p2     ?? 0.001987;
+    const MARGEN_KW_DIA     = _pvpcPot.margen ?? 0.008529;
 
     const terminoFijoPeajes = Number.isFinite(Number(meta.terminoFijo))
       ? Number(meta.terminoFijo)
