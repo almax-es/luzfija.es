@@ -25,18 +25,20 @@ const baseEnergia = terminoFijoTotal + terminoVariable + financiacionBono - desc
 const impuestoElectrico = C.calcularIEE(baseEnergia, consumoKwh);
 ```
 
-**Validación numérica** (RDL 7/2026 vigente durante 2026):
+**Validación numérica** (RDL 7/2026 vigente durante 2026, IEE al 0,5%):
 - Consumo: 221 kWh
 - Bono Social: 42,5% (vulnerable, RDL 7/2026)
 - Base después descuento: ~44,16 €
-- IEE: 44,16 × 5,11% = 2,26 € ✅
+- IEE: max(44,16 × 0,5%, 221 × 0,001) = max(0,22€, 0,22€) = 0,22 € ✅
+  ← Histórico CNMC 28/01/2026 (IEE al 5,11%): 2,26 €
 
-  *Nota: Los valores exactos dependen del caso CNMC específico, pero la relación orden (descuento ANTES de IEE) se mantiene.*
+  *La relación de orden (descuento ANTES de IEE) se mantiene independientemente de la tasa.*
 
-**Si lo hicieras al revés** (IEE antes de descuento):
+**Si lo hicieras al revés** (IEE antes de descuento, tasa actual 0,5%):
 - Base SIN descuento: 56,97 €
-- IEE: 56,97 × 5,11% = 2,91 € ❌ (incorrecto)
-- Diferencia: +0,65€ de sobrecargo
+- IEE (incorrecto): 56,97 × 0,5% = 0,28 € ❌
+- IEE (correcto):   44,16 × 0,5% = 0,22 €
+- Sobrecargo: +0,06€ (con RDL 7/2026; con tasa 5,11% era +0,65€)
 
 **Conclusión**: El order importa. DESCUENTO primero, IEE después.
 
@@ -96,11 +98,13 @@ Descuento: 30,15 × 42,5% = 12,81€ ✅ (RDL 7/2026, vigente durante 2026)
 de todas las contraprestaciones" (potencia, energía, etc.)
 ```
 
-**Implementación** (`lf-config.js:157-161`):
+**Implementación** (`lf-config.js — calcularIEE/desglosarIEE`):
 ```javascript
-calcularIEE: function(base, consumoKwh) {
-  const porPorcentaje = (this.iee.porcentaje / 100) * base;  // 5,11% de (potencia + otros)
-  const porMinimo = consumoKwh * this.iee.minimoEurosKwh;    // 0,001 €/kWh consumido
+calcularIEE: function(base, consumoKwh, fechaYmd) {
+  // getIEEInfo() devuelve la tasa correcta: 0,5% (RDL 7/2026 activo) o 5,11% (base)
+  const info = this.getIEEInfo(fechaYmd);
+  const porPorcentaje = (info.porcentaje / 100) * base;  // tasa dinámica
+  const porMinimo = consumoKwh * this.iee.minimoEurosKwh; // 0,001 €/kWh consumido
   return Math.max(porPorcentaje, porMinimo);
 }
 ```
@@ -110,13 +114,13 @@ calcularIEE: function(base, consumoKwh) {
 | Escenario | Base | kWh | IEE | Explicación |
 |-----------|------|-----|-----|-------------|
 | 0 kWh sin potencia | 0€ | 0 | 0€ | CUPS inactivo (no factura) |
-| 0 kWh con potencia | 9€ | 0 | max(0.46€, 0€) = 0.46€ | ✅ CNMC oficial |
-| 100 kWh | 15€ | 100 | max(0.77€, 0.10€) = 0.77€ | ✅ Normal |
+| 0 kWh con potencia | 9€ | 0 | max(0.05€, 0€) = 0.05€ | ✅ lógica correcta (a 0,5%) |
+| 100 kWh | 15€ | 100 | max(0.08€, 0.10€) = 0.10€ | ✅ Normal (a 0,5%) |
 
-**Validación CNMC** (29/12/2025 - 29/01/2026):
+**Validación CNMC** (29/12/2025 - 29/01/2026, IEE al 5,11% vigente en esa fecha):
 - Input: 3,5 kW, 31 días, 0 kWh
-- IEE: 0,51€ ✅ (sobre la potencia)
-- Total: 13,65€
+- IEE: 0,51€ ✅ (sobre la potencia; con RDL 7/2026 activo ≈ 0,05€)
+- Total histórico: 13,65€
 
 **Conclusión**: Si hay base imponible (potencia, etc.), hay IEE. Aunque consumo = 0.
 
@@ -134,19 +138,20 @@ de euro por kilovatio hora consumido"
 
 0,5 céntimos = 0,005€, pero operativamente funciona como 0,001€/kWh.
 
-**Implementación**:
+**Implementación** (simplificada; la tasa real es dinámica vía `getIEEInfo(fechaYmd)`):
 ```javascript
+// Tasa actual: 0,5% (RDL 7/2026 activo). Tasa base sin medidas: 5,11269632%
 return Math.max(
-  base * 0.0511269632,  // 5,11% (lo normal)
+  base * (tasa / 100),  // tasa dinámica
   consumoKwh * 0.001    // Mínimo: 0,001 €/kWh
 );
 ```
 
-**Ejemplo**:
+**Ejemplo** (con tasa 0,5%, RDL 7/2026):
 - Base: 10€, kWh: 200
-- Por porcentaje: 10 × 5,11% = 0,51€
+- Por porcentaje: 10 × 0,5% = 0,05€
 - Por mínimo: 200 × 0,001 = 0,20€
-- IEE: max(0,51€, 0,20€) = 0,51€ ✅
+- IEE: max(0,05€, 0,20€) = 0,20€ ✅ (el mínimo prevalece)
 
 ---
 
@@ -387,7 +392,7 @@ if (tipoImpuesto === 'IGIC') {
   ipsiContador = alquiler × 4%;
 } else {
   // IVA (Península)
-  iva = base × tipoIvaVigente; // 10% temporal si aplica, 21% general
+  iva = base × tipoIvaVigente; // 10% si potencia ≤10 kW (RDL 10/2026), 21% resto
 }
 ```
 
@@ -399,7 +404,8 @@ if (tipoImpuesto === 'IGIC') {
 
 **Por qué está mal**:
 - Código real en `lf-utils.js:308` SÍ aplica descuento antes
-- CNMC oficial valida: 44,16€ base → 2,26€ IEE ✅
+- Validación: 44,16€ base → 0,22€ IEE (RDL 7/2026, 0,5%) ✅
+  ← Histórico CNMC 28/01/2026 (5,11%): 2,26€
 - La auditoría confundió código encontrado con código ejecutado
 
 **Cómo verificar**: Rastrea el flujo desde entrada hasta salida, no asumas.
@@ -445,5 +451,5 @@ Si respondiste "no" a cualquiera, probablemente estés cometiendo un falso posit
 
 ---
 
-**Última actualización**: 27/02/2026
+**Última actualización**: 14/05/2026
 **Próxima revisión**: Cuando cambien normas CNMC/BOE
