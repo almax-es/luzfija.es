@@ -449,19 +449,16 @@
         return null;
       }
 
-      // Festivos nacionales de fecha FIJA (MM-DD) según CNMC Circular 3/2020.
+      // Festivo nacional (solo fecha fija MM-DD) según CNMC Circular 3/2020.
       // EXCLUYE festivos móviles como Viernes Santo (BOE-A-2020-1066).
-      // Se usa únicamente para la lógica de periodos 2.0TD (valle todo el día).
-      const FESTIVOS_NACIONALES_MMDD = new Set([
-        '01-01', '01-06', '05-01', '08-15', '10-12', '11-01', '12-06', '12-08', '12-25'
-      ]);
-
-      // Festivo nacional (solo fecha fija). Input esperado: "YYYY-MM-DD".
+      // La fuente única vive en lf-csv-utils.js (FESTIVOS_NACIONALES_MMDD) y
+      // se consume vía window.LF.csvUtils.esFestivoNacionalMmdd para que el
+      // motor PVPC y la clasificación CSV no puedan divergir.
+      // Fallback defensivo: si csvUtils no está cargado (carga aislada en
+      // tests), devolvemos false sin romper el cálculo.
       const esFestivoNacional = (ymd) => {
-        const s = String(ymd || '');
-        if (s.length < 10) return false;
-        const mmdd = s.slice(5, 10);
-        return FESTIVOS_NACIONALES_MMDD.has(mmdd);
+        const mmdd = String(ymd || '').slice(5, 10);
+        return window.LF?.csvUtils?.esFestivoNacionalMmdd?.(mmdd) === true;
       };
 const PEAJES_POT_DIA = {
         p1: 0.075901,

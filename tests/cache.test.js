@@ -28,7 +28,6 @@ global.window = {
   LF: {
     JSON_URL: 'tarifas.json',
     TARIFAS_CACHE_KEY: 'lf_tarifas_cache',
-    TARIFAS_CACHE_TTL: 3600000,
     el: {
       tarifasUpdated: { textContent: '' } 
     },

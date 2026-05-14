@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest';
 
 // Cargamos el script. Al no ser un módulo ESM con export, Vitest/JSDOM lo ejecuta
 // y el IIFE colgará LF_CONFIG del objeto global window.
@@ -91,5 +91,50 @@ describe('LF_CONFIG - Lógica Fiscal', () => {
     const dias = 365;
     const result = window.LF_CONFIG.calcularBonoSocial(dias);
     expect(result).toBeCloseTo(6.979247, 6);
+  });
+
+  describe('Régimen base post-RDL 7/2026 (medida desactivada)', () => {
+    // Cuando expire el RDL 7/2026 (fin: 2026-06-30) y no se prorrogue,
+    // bastará con cambiar medidasTemporales.rdl72026.activa = false en
+    // lf-config.js. Estos tests cubren esa rama vía spyOn — el objeto
+    // medidasTemporales.rdl72026 está congelado y no se puede mutar
+    // directamente, pero isRdl72026ElectricidadActiva sí se puede mockear
+    // porque LF_CONFIG raíz no está frozen.
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it('IEE: vuelve al 5,11269632% cuando la medida está desactivada', () => {
+      vi.spyOn(window.LF_CONFIG, 'isRdl72026ElectricidadActiva').mockReturnValue(false);
+
+      const info = window.LF_CONFIG.getIEEInfo('2026-07-15');
+      expect(info.porcentaje).toBe(5.11269632);
+      expect(info.reducidoTemporalmente).toBe(false);
+    });
+
+    it('IEE: el cálculo aplica la tasa base sobre la base imponible', () => {
+      vi.spyOn(window.LF_CONFIG, 'isRdl72026ElectricidadActiva').mockReturnValue(false);
+
+      const base = 100;
+      const consumo = 0;
+      const result = window.LF_CONFIG.calcularIEE(base, consumo, '2026-07-15');
+      expect(result).toBeCloseTo(base * 0.0511269632, 4);
+    });
+
+    it('IVA Península: no aplica el reducido al pasar por la ruta normal de uso fiscal', () => {
+      vi.spyOn(window.LF_CONFIG, 'isRdl72026ElectricidadActiva').mockReturnValue(false);
+
+      // Pasamos 'otros' (no 'iva_general' ni 'iva_reducido') para forzar la
+      // resolución por contexto y demostrar que, aunque la potencia sea
+      // elegible (≤10 kW), sin la medida activa no aplica el reducido.
+      const info = window.LF_CONFIG.getImpuestoInfo('Península', 'otros', {
+        potenciaContratada: 4.6,
+        fechaYmd: '2026-07-15'
+      });
+      expect(info.usoFiscal).toBe('iva_general');
+      expect(info.energiaRate).toBe(0.21);
+      expect(info.contadorRate).toBe(0.21);
+    });
   });
 });

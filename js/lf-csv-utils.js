@@ -892,6 +892,38 @@
   }
 
   /**
+   * Fuente única de los festivos nacionales españoles de fecha FIJA (MM-DD)
+   * según CNMC Circular 3/2020 (BOE-A-2020-1066). EXCLUYE festivos móviles
+   * (Viernes Santo, Corpus Christi). También se consume desde pvpc.js para
+   * evitar divergencia entre el motor PVPC y la clasificación CSV.
+   * @type {ReadonlySet<string>}
+   */
+  const FESTIVOS_NACIONALES_MMDD = Object.freeze(new Set([
+    '01-01', // Año Nuevo
+    '01-06', // Reyes
+    '05-01', // Día del Trabajo
+    '08-15', // Asunción
+    '10-12', // Fiesta Nacional
+    '11-01', // Todos los Santos
+    '12-06', // Constitución
+    '12-08', // Inmaculada
+    '12-25'  // Navidad
+  ]));
+
+  /**
+   * Comprueba si una cadena 'MM-DD' corresponde a un festivo nacional fijo.
+   * Acepta solo strings de formato exacto 'MM-DD'; cualquier otra entrada
+   * devuelve false (defensivo). Es la API pública compartida con pvpc.js.
+   *
+   * @param {string} mmdd - Cadena en formato 'MM-DD'
+   * @returns {boolean}
+   */
+  function esFestivoNacionalMmdd(mmdd) {
+    if (typeof mmdd !== 'string' || mmdd.length !== 5 || mmdd[2] !== '-') return false;
+    return FESTIVOS_NACIONALES_MMDD.has(mmdd);
+  }
+
+  /**
    * Caché de festivos por año para optimizar cálculos repetidos.
    * Reduce complejidad de O(n) a O(1) para cada año único.
    * @type {Map<number, Set<string>>}
@@ -918,17 +950,10 @@
     // Retornar desde caché si existe
     if (_festivosCache.has(y)) return _festivosCache.get(y);
 
-    const festivos = [
-      `${y}-01-01`, // Año Nuevo
-      `${y}-01-06`, // Reyes
-      `${y}-05-01`, // Día del Trabajo
-      `${y}-08-15`, // Asunción
-      `${y}-10-12`, // Fiesta Nacional
-      `${y}-11-01`, // Todos los Santos
-      `${y}-12-06`, // Constitución
-      `${y}-12-08`, // Inmaculada
-      `${y}-12-25`  // Navidad
-    ];
+    const festivos = [];
+    for (const mmdd of FESTIVOS_NACIONALES_MMDD) {
+      festivos.push(`${y}-${mmdd}`);
+    }
 
     const set = new Set(festivos);
     _festivosCache.set(y, set);
@@ -1350,6 +1375,7 @@
     // Festivos y periodos
     calcularViernesSanto,
     getFestivosNacionales,
+    esFestivoNacionalMmdd,
     getPeriodoHorarioCSV
   };
 

@@ -18,10 +18,6 @@
   // Evitar carreras: si hay una descarga en curso, reutilizamos la promesa.
   let tarifasFetchPromise = null;
 
-  // ===== CACHÉ DESACTIVADA (tarifas siempre desde red) =====
-  function readTarifasCache() { return null; }
-  function writeTarifasCache() {}
-
   // ===== RENDER FECHA ACTUALIZACIÓN =====
   function renderTarifasUpdated(meta) {
     if (!el.tarifasUpdated) return;
@@ -120,14 +116,11 @@
   // ===== EXPORTAR =====
   window.LF = window.LF || {};
   Object.assign(window.LF, {
-    readTarifasCache,
-    writeTarifasCache,
     renderTarifasUpdated,
     fetchTarifas
   });
 
   // Compatibilidad
-  window.readTarifasCache = readTarifasCache;
   window.fetchTarifas = fetchTarifas;
   window.renderTarifasUpdated = renderTarifasUpdated;
 
