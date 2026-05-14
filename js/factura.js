@@ -695,10 +695,19 @@
         // Visalia (fallback por nombre)
         if (t.includes('visalia')) return 'visalia';
 
+        // ✅ Atulado Energía (Hidroeléctrica El Carmen Energía, S.L.)
+        if (
+          t.includes('atulado') ||
+          t.includes('atuladoenergia.com') ||
+          t.includes('hidroeléctrica el carmen') || t.includes('hidroelectrica el carmen') ||
+          t.includes('b82773888')
+        ) return 'atulado';
+
         // Enérgya VM: múltiples variantes
-        if (t.includes('enérgya vm') || t.includes('energya vm') || t.includes('energya-vm') || 
-            t.includes('enérgya') || t.includes('energyavm') || 
-            (t.includes('energ') && t.includes('gestión'))) return 'energyavm';
+        // Nota: usar 'energya' (no 'energ') para evitar falso positivo con "Energía" + "Telegestión"
+        if (t.includes('enérgya vm') || t.includes('energya vm') || t.includes('energya-vm') ||
+            t.includes('enérgya') || t.includes('energyavm') ||
+            (t.includes('energya') && t.includes('gestión'))) return 'energyavm';
 
         // Imagina Energía
         if (t.includes('imagina energía') || t.includes('imagina energia') || t.includes('imaginaenergia')) return 'imagina';
@@ -1498,6 +1507,7 @@
             'ganaenergia': 'Gana Energía',
             'totalenergies': 'TotalEnergies',
             'energyavm': 'Enérgya VM',
+            'atulado': 'Atulado Energía',
             'octopus': 'Octopus Energy',
             'visalia': 'Visalia',
             'plenitude': 'Eni Plenitude',
