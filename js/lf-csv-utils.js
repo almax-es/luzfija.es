@@ -945,7 +945,7 @@
    */
   function getFestivosNacionales(year) {
     const y = Number(year);
-    if (!Number.isFinite(y)) return new Set();
+    if (!Number.isFinite(y) || y < 1) return new Set();
 
     // Retornar desde caché si existe
     if (_festivosCache.has(y)) return _festivosCache.get(y);
