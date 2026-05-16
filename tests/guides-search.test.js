@@ -40,6 +40,13 @@ describe('guides search index', () => {
     expect(payload.guides.some((guide) => guide.path === '/guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html')).toBe(true);
   });
 
+  it('does not duplicate nested list items in searchable content', () => {
+    const guide = payload.guides.find((entry) => entry.path === '/guias/autoconsumo-avanzado-excedentes-compensacion-y-bateria-virtual.html');
+    expect(guide).toBeTruthy();
+    expect(guide.content).toContain('Amplias: algunas permiten aplicar saldo a más conceptos o a otras facturas.');
+    expect(guide.content.match(/Amplias: algunas permiten aplicar saldo a más conceptos o a otras facturas\./g)).toHaveLength(1);
+  });
+
   it('finds guides by FAQ terms that are not visible in the card summary', () => {
     const results = GuideSearch.searchGuides(preparedGuides, 'propietario');
     expect(results.length).toBeGreaterThan(0);

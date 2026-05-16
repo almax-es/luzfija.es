@@ -36,6 +36,13 @@ function textContent(node) {
   return normalizeWhitespace(node?.textContent || '');
 }
 
+function textContentWithoutNestedLists(node) {
+  if (!node) return '';
+  const clone = node.cloneNode(true);
+  clone.querySelectorAll('ul, ol').forEach((childList) => childList.remove());
+  return normalizeWhitespace(clone.textContent || '');
+}
+
 function splitKeywords(value) {
   return String(value || '')
     .split(',')
@@ -114,7 +121,7 @@ function extractGuideEntry(repoRoot, relPath, cardMetadata) {
     .map((node) => textContent(node))
     .filter(Boolean);
   const contentBlocks = [...doc.querySelectorAll('.article-content p, .article-content li')]
-    .map((node) => textContent(node))
+    .map((node) => node.tagName === 'LI' ? textContentWithoutNestedLists(node) : textContent(node))
     .filter(Boolean);
   const content = truncateAtWordBoundary(contentBlocks.join(' '), 6000);
   const metadata = extractArticleMetadata(doc);

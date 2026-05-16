@@ -28,7 +28,7 @@ El **Simulador de Batería Virtual** es una herramienta especializada que permit
 | **Input** | Datos agregados (días, kWh totales) | Consumos horarios (CSV/XLSX) |
 | **Cálculo** | Un periodo único | Mes a mes (histórico) |
 | **Batería Virtual** | Estimación simplificada | Simulación exacta mes a mes |
-| **Ranking** | Todas las tarifas | Tarifas con excedentes remunerados |
+| **Ranking** | Mercado libre + PVPC integrado | Tarifas con excedentes remunerados |
 | **Output** | Factura estimada | Evolución mensual completa |
 
 ### ¿Por qué es necesario?
@@ -840,7 +840,7 @@ function sanitizeUrl(url) {
 - **Sin backend**: Todos los cálculos en el navegador
 - **Sin uploads**: El archivo nunca se envía a ningún servidor
 - **Sin persistencia**: El archivo CSV original **no se guarda** en el navegador. Solo se extraen los totales mensuales necesarios para la simulación.
-- **Sin tracking**: Sin analytics en el simulador (solo en página principal)
+- **Sin tracking específico del simulador**: esta página no carga `tracking.js`; otras páginas del sitio sí pueden usar la analítica común documentada en la política de privacidad.
 - **Privacidad total**: Tus datos de consumo NO salen de tu ordenador
 
 ---
@@ -1061,7 +1061,7 @@ El simulador lee de `tarifas.json` automáticamente. Para añadir/actualizar tar
 | **Datos reales** | ✅ CSV horarios | ❌ Estimaciones |
 | **Mes a mes** | ✅ Evolución completa | ❌ Cálculo único |
 | **BV simulada** | ✅ Acumulación exacta | ❌ o simplificada |
-| **Todas las tarifas BV** | ✅ Ranking completo | ⚠️ Solo algunas |
+| **Tarifas solares elegibles** | ✅ Ranking completo | ⚠️ Solo algunas |
 | **Privacidad** | ✅ 100% local | ❌ Envía datos |
 | **Gratuito** | ✅ Sin coste | ⚠️ De pago |
 | **Código visible** | ✅ Source-available en GitHub | ❌ Cerrado |

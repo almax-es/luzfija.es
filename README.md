@@ -32,7 +32,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - 30 modulos JavaScript en `js/` (incluye `js/bv/`).
 - 19.285 lineas JS aproximadas.
 - 47 tarifas en `tarifas.json`.
-- Suite de tests Vitest con 49 archivos y 315 casos.
+- Suite de tests Vitest con 49 archivos y 316 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 
@@ -215,5 +215,5 @@ Cobertura principal:
 - Recomendacion operativa:
 - mantener `tarifas.json` actualizado con fecha `updatedAt`,
 - usar `Activa=no` en la Excel para retirar temporalmente tarifas sin borrar su fila,
-- revisar antes del 30/06/2026 el IVA reducido temporal: tras el RDL 10/2026 el umbral operativo es potencia inferior o igual a 10 kW,
+- revisar al entrar junio de 2026 el IVA reducido temporal: tras el RDL 10/2026 el umbral operativo es potencia inferior o igual a 10 kW,
 - validar cambios con `npm test` antes de publicar.

@@ -24,8 +24,9 @@ describe('Guide regulatory guardrails', () => {
   it('documents the conditional June end of the temporary 10% electricity VAT', () => {
     const facturaGuide = readGuideText('guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html');
 
-    expect(facturaGuide).toContain('si en abril la variación del IPC de la electricidad no supera en más de un 15%');
-    expect(facturaGuide).toContain('esa rebaja dejará de aplicarse en junio');
+    expect(facturaGuide).toContain('el RDL 10/2026 condiciona su aplicación en junio');
+    expect(facturaGuide).toContain('IPC de electricidad de abril publicado por el INE en mayo');
+    expect(facturaGuide).toContain('debe revisarse al entrar junio antes de cambiar el cálculo');
   });
 
   it('keeps the PVPC eligibility requirements complete', () => {

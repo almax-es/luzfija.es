@@ -2,7 +2,7 @@
 
 **Última actualización**: Mayo 2026
 **Estado**: ✅ Validado contra normativa CNMC/BOE
-**Referencia CNMC**: v2.1.2 (28/01/2026) — fiscalidad vigente a 14/05/2026 (RDL 7/2026 + RDL 10/2026)
+**Referencia CNMC**: v2.1.2 (28/01/2026) — fiscalidad vigente a 16/05/2026 (RDL 7/2026 + RDL 10/2026)
 **Nota de alcance**: Este documento cubre el motor de cálculo. Para inventario funcional completo de la web (todas las páginas y flujos), ver `CAPACIDADES-WEB.md`.
 
 ---
@@ -78,10 +78,10 @@ const financiacion = 6.979247 / 365 * dias;
 //    - Término fijo COMPLETO
 //    - Financiación COMPLETA
 //    - Solo parte del término variable (la bonificable según kWh con derecho)
-const kwhBonificable = Math.min(consumoTotal, limiteAhioKWh / 365 * dias);
-const ratioBonicable = consumoTotal > 0 ? kwhBonificable / consumoTotal : 0;
-const baseVariableBonicable = energia * ratioBonicable;
-const baseDescuento = potencia + financiacion + baseVariableBonicable;
+const kwhBonificable = Math.min(consumoTotal, limiteAnualKWh / 365 * dias);
+const ratioBonificable = consumoTotal > 0 ? kwhBonificable / consumoTotal : 0;
+const baseVariableBonificable = energia * ratioBonificable;
+const baseDescuento = potencia + financiacion + baseVariableBonificable;
 const descuentoBS = baseDescuento * (bonoSocialOn ? 0.425 : 0); // 42,5% vulnerable (RDL 7/2026, vigente durante 2026)
 
 // PASO 5: BASE PARA IMPUESTOS
@@ -257,7 +257,7 @@ const totalReal = totalBase - (hasBV ? excedenteSobranteEur : 0);
 
 ```javascript
 // 1. Calcular % de kWh bonificable
-const kwhBonificable = Math.min(consumoKwh, limiteAhio / 365 * dias);
+const kwhBonificable = Math.min(consumoKwh, limiteAnual / 365 * dias);
 const ratioBonificable = consumoKwh > 0 ? (kwhBonificable / consumoKwh) : 0;
 
 // 2. Calcular base del descuento
@@ -521,7 +521,7 @@ Si eres una IA revisando este código:
    - Marcan puntos que confunden a IAs
 
 3. **Verifica que el código se ejecuta realmente**
-   - No asumasque código incorrecto "parece" que se ejecuta
+   - No asumas que código incorrecto "parece" que se ejecuta
    - Rastrea el flujo completo
 
 4. **Prueba con ejemplos numéricos**
@@ -553,6 +553,6 @@ Si eres una IA revisando este código:
 
 ---
 
-**Última revisión**: 14/05/2026
+**Última revisión**: 16/05/2026
 **Próxima revisión**: Cuando cambien normativas (CNMC/BOE)
 **Mantenedor**: Equipo de LuzFija.es

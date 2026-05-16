@@ -40,7 +40,7 @@ const impuestoElectrico = C.calcularIEE(baseEnergia, consumoKwh);
 - IEE (correcto):   44,16 × 0,5% = 0,22 €
 - Sobrecargo: +0,06€ (con RDL 7/2026; con tasa 5,11% era +0,65€)
 
-**Conclusión**: El order importa. DESCUENTO primero, IEE después.
+**Conclusión**: El orden importa. DESCUENTO primero, IEE después.
 
 ---
 
@@ -57,7 +57,7 @@ Límite anual bonificable (2026):
 
 **Implementación** (`lf-utils.js:301-305`):
 ```javascript
-const kwhBonificable = Math.min(consumoKwh, limiteAhio / 365 * dias);
+const kwhBonificable = Math.min(consumoKwh, limiteAnual / 365 * dias);
 const ratioBonificable = consumoKwh > 0 ? (kwhBonificable / consumoKwh) : 0;
 
 // El descuento se aplica a:
@@ -451,5 +451,5 @@ Si respondiste "no" a cualquiera, probablemente estés cometiendo un falso posit
 
 ---
 
-**Última actualización**: 14/05/2026
+**Última actualización**: 16/05/2026
 **Próxima revisión**: Cuando cambien normas CNMC/BOE
