@@ -47,7 +47,7 @@ Este documento lista las piezas de LuzFija.es que dependen de normativa, fuentes
 
 ## Fechas Criticas Conocidas
 
-- Antes del 30/06/2026: revisar si sigue vigente el IVA reducido temporal en Peninsula/Baleares y si el condicionante de IPC publicado por el INE mantiene o corta la rebaja en junio.
+- Al entrar junio de 2026: revisar si sigue vigente el IVA reducido temporal en Peninsula/Baleares y aplicar entonces el condicionante de IPC publicado por el INE, sin anticipar cambios de calculo antes de la fecha efectiva.
 - Cada cambio de ano: revisar peajes/cargos, calendario de periodos, festivos nacionales, datasets PVPC/surplus y textos de guias que mencionen importes anuales.
 - Cada cambio de Excel de tarifas: ejecutar generador, revisar el informe del validador y confirmar que las inactivas no se publican pero siguen apareciendo en validacion.
 - Cada cambio energetico relevante: confirmar si requiere tocar guias, landings, datos estructurados o calculos. No limitar la revision a electricidad si la noticia trata TUR/gas u otro suministro.

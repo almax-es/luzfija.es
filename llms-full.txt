@@ -1,6 +1,6 @@
 # LuzFija.es - Extended LLM Reference
 
-Last updated: 2026-05-13
+Last updated: 2026-05-16
 
 ## Purpose of this file
 

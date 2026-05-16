@@ -12,14 +12,14 @@ Para inventario funcional completo del sitio (incluyendo observatorio, comparado
 - **Indicador ESIOS**: 1001 (Precio de mercado del PVPC)
 - **Fuente**: REE (Red Eléctrica de España) / ESIOS API
 - **Actualización**: Diariamente a las 20:00 UTC (21:00 CET / 22:00 CEST en Madrid)
-- **Disponibilidad**: Precios horarios (24 períodos diarios)
+- **Disponibilidad**: Precios horarios (23, 24 o 25 períodos diarios según cambio horario)
 
 ### ¿Qué son los Excedentes PVPC?
 - **Excedentes PVPC**: Compensación horaria para autoconsumo
 - **Indicador ESIOS**: 1739 (Precio de excedentes)
 - **Fuente**: REE / ESIOS API
 - **Actualización**: Diariamente a las 20:00 UTC (21:00 CET / 22:00 CEST en Madrid)
-- **Disponibilidad**: Precios horarios (24 períodos diarios)
+- **Disponibilidad**: Precios horarios (23, 24 o 25 períodos diarios según cambio horario)
 
 ### Arquitectura del Proyecto PVPC
 ```
@@ -167,12 +167,12 @@ Para inventario funcional completo del sitio (incluyendo observatorio, comparado
   [1735689600, 0.18319],
   [1735693200, 0.18874000000000002],
   ...
-  // 24 entradas (una cada hora)
+  // 23, 24 o 25 entradas según el día y la zona horaria
 ]
 ```
 
 **Notas**:
-- Exactamente **24 precios por día** (uno cada hora)
+- Normalmente hay **24 precios por día**, pero los cambios de hora generan días de **23 o 25 precios**
 - Timestamps en **Unix epoch (segundos)**
 - Precios en **EUR/kWh** (convertidos desde €/MWh de ESIOS)
 - Horario de la zona geográfica (ver `timezone`)
@@ -198,11 +198,16 @@ Ejemplo:
 ```json
 {
   "schema_version": 2,
-  "generated_at_utc": "2026-02-06T11:47:06+00:00",
+  "generated_at_utc": "2026-05-15T20:48:39+00:00",
   "indicator": 1001,
   "unit": "EUR/kWh",
   "epoch_unit": "s",
   "geos": [
+    {
+      "geo_id": 8741,
+      "timezone": "Europe/Madrid",
+      "path": "8741/index.json"
+    },
     {
       "geo_id": 8742,
       "timezone": "Atlantic/Canary",
@@ -237,7 +242,7 @@ Mismo formato que el índice PVPC, pero para excedentes (indicador 1739).
 ```json
 {
   "schema_version": 2,
-  "generated_at_utc": "2026-02-02T12:12:45+00:00",
+  "generated_at_utc": "2026-05-15T20:48:40+00:00",
   "indicator": 1739,
   "unit": "EUR/kWh",
   "epoch_unit": "s",
@@ -269,21 +274,43 @@ jobs:
   update-pvpc:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Run PVPC + Excedentes update scripts
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+      - name: Download PVPC data (auto-detect gaps)
         env:
           ESIOS_API_KEY: ${{ secrets.ESIOS_API_KEY }}
         run: |
           python scripts/pvpc_auto_fill.py --out-dir data/pvpc --indicator 1001 --geos 8741 8742 8743 8744 8745
           python scripts/pvpc_auto_fill.py --out-dir data/surplus --indicator 1739 --geos 8741 8742 8743 8744 8745
-      - name: Commit and push
+      - name: Check if there are changes
+        id: check_changes
+        run: |
+          CHANGED_FILES=$(git status --porcelain -- data/ | wc -l)
+          if [ "$CHANGED_FILES" -eq 0 ]; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            git status --short -- data/
+          fi
+      - name: Commit and push if there are changes
+        if: steps.check_changes.outputs.has_changes == 'true'
         run: |
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git config user.name "github-actions[bot]"
           git add data/pvpc/ data/surplus/
-          git commit -m "chore: actualizar precios PVPC y Excedentes - $(date +'%H:%M')" || true
+          HORA=$(TZ=Europe/Madrid date +%H:%M)
+          git commit -m "chore: actualizar precios PVPC y Excedentes - $HORA"
+          git pull --rebase
           git push
 ```
+
+El workflow real también dispara `tests.yml` mediante la API de GitHub cuando publica nuevos datos.
 
 ### Horario de Actualización
 
@@ -434,7 +461,7 @@ window.pvpcPotenciaExcedida = false;       // guardrail > 10 kW
 # Sintaxis válida
 node -e "console.log(JSON.parse(require('fs').readFileSync('data/pvpc/8741/2025-01.json')))"
 
-# Contar horas por día (debe ser 24)
+# Contar horas por día (23/24/25 según cambio horario)
 node -e "
   const d = JSON.parse(require('fs').readFileSync('data/pvpc/8741/2025-01.json'));
   Object.entries(d.days).forEach(([date, hours]) => {
