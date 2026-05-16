@@ -211,7 +211,7 @@ getFestivosNacionales(year)
 - Cálculo económico mes a mes
 - Simulación de batería virtual (acumulación + uso)
 - Aplicación de impuestos por zona fiscal
-- Simulación masiva (todas las tarifas)
+- Simulación masiva (tarifas con excedentes remunerados)
 
 **Funciones principales**:
 
@@ -270,7 +270,7 @@ window.BVSim.simulateForAllTarifasBV({
   zonaFiscal,
   esVivienda
 })
-// Simula todas las tarifas en paralelo
+// Simula el conjunto de tarifas solares elegibles en paralelo
 // Devuelve: { ok: true, results: [...] }
 ```
 
@@ -415,7 +415,7 @@ Para cada tarifa BV:
 ### Paso 4: Ranking y Visualización
 
 ```
-Array de resultados (todas las tarifas simuladas)
+Array de resultados (tarifas solares elegibles simuladas)
     ↓
 Ordenar por totalPagar (ASC)
   - En empate, ordenar por bvFinal (DESC)
@@ -984,7 +984,7 @@ showToast('Subiendo archivo...', 'info');  // Azul
 
 **Paso a paso**:
 1. Carga tu CSV anual completo
-2. Simula con todas las tarifas
+2. Simula con el conjunto de tarifas solares elegibles
 3. Abre el desglose mes a mes de varias tarifas
 4. Observa:
    - **Verano**: Compensación alta, excedente sobrante → Acumula en BV
