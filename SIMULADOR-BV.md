@@ -835,13 +835,13 @@ function sanitizeUrl(url) {
 }
 ```
 
-### Procesamiento 100% Local
+### Procesamiento local
 
 - **Sin backend**: Todos los cálculos en el navegador
-- **Sin uploads**: El archivo nunca se envía a ningún servidor
+- **Sin uploads**: El archivo no se envía a un servidor de cálculo
 - **Sin persistencia**: El archivo CSV original **no se guarda** en el navegador. Solo se extraen los totales mensuales necesarios para la simulación.
 - **Sin tracking específico del simulador**: esta página no carga `tracking.js`; otras páginas del sitio sí pueden usar la analítica común documentada en la política de privacidad.
-- **Privacidad total**: Tus datos de consumo NO salen de tu ordenador
+- **Procesamiento local**: Tus datos de consumo se calculan en tu navegador
 
 ---
 
@@ -1062,7 +1062,7 @@ El simulador lee de `tarifas.json` automáticamente. Para añadir/actualizar tar
 | **Mes a mes** | ✅ Evolución completa | ❌ Cálculo único |
 | **BV simulada** | ✅ Acumulación exacta | ❌ o simplificada |
 | **Tarifas solares elegibles** | ✅ Ranking completo | ⚠️ Solo algunas |
-| **Privacidad** | ✅ 100% local | ❌ Envía datos |
+| **Privacidad** | ✅ Procesamiento local | ❌ Envía datos |
 | **Gratuito** | ✅ Sin coste | ⚠️ De pago |
 | **Código visible** | ✅ Source-available en GitHub | ❌ Cerrado |
 | **Tooltips detallados** | ✅ Cada concepto | ❌ Limitado |
@@ -1090,7 +1090,7 @@ Sí, deja el campo "Saldo BV inicial" en 0. El simulador empezará desde cero y 
 
 ### ¿Los datos de mi CSV se envían a algún servidor?
 
-**No**. Todo el procesamiento es 100% local en tu navegador. Tu CSV nunca sale de tu ordenador.
+**No**. El procesamiento se realiza localmente en tu navegador. Tu CSV no se sube a un servidor de cálculo.
 
 ### ¿Qué son "días con datos" vs "días del mes"?
 
