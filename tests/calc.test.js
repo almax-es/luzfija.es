@@ -502,6 +502,7 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
           viviendaCanarias: false,
           fechaYmd: '2026-03-21'
         };
+        const fiscal = window.LF.__LF_getFiscalContext(values);
         const res = window.LF.calcularSunClub(values);
 
         const potencia = window.LF.round2((4 * 30 * window.LF_TARIFAS_ESPECIALES.sunClub.precios.p1) + (4 * 30 * window.LF_TARIFAS_ESPECIALES.sunClub.precios.p2));
@@ -511,11 +512,11 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
         const alquiler = window.LF.round2(window.LF_CONFIG.calcularAlquilerContador(30));
         const taxCalc = window.LF_CONFIG.calcularImpuestoIndirecto({
           zona: 'Península',
-          usoFiscal: 'iva_reducido',
+          usoFiscal: fiscal.usoFiscal,
           baseEnergia: sumaBase,
           impuestoElectrico: 20,
           baseContador: alquiler,
-          potenciaContratada: 4,
+          potenciaContratada: fiscal.potenciaContratada,
           viviendaCanarias: false,
           fechaYmd: '2026-03-21'
         });
