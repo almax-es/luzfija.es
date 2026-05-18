@@ -16,6 +16,8 @@ describe('Factura PDF Integration (Black Box)', () => {
         <input type="file" id="fileInputFactura" />
         <button id="btnSubirFactura"></button>
         <button id="btnAplicarFactura"></button>
+        <button id="btnCancelarFactura"></button>
+        <button id="btnCerrarFacturaX"></button>
         <div id="loaderFactura" style="display:none"></div>
         <div id="resultadoFactura" style="display:none"></div>
         <div id="confianzaBadge"></div>
@@ -82,6 +84,20 @@ describe('Factura PDF Integration (Black Box)', () => {
     expect(mockFile.arrayBuffer).not.toHaveBeenCalled();
     expect(window.pdfjsLib.getDocument).not.toHaveBeenCalled();
     expect(global.toast).toHaveBeenCalledWith(expect.stringContaining('Máximo 20 MB'), 'err');
+  });
+
+  it('Libera __LF_FACTURA_BUSY al cerrar el modal aunque haya trabajo pendiente', async () => {
+    await import('../js/factura.js');
+    window.__LF_bindFacturaParser?.();
+
+    const modal = document.getElementById('modalFactura');
+    modal.classList.add('show');
+    window.__LF_FACTURA_BUSY = true;
+
+    document.getElementById('btnCancelarFactura').click();
+
+    expect(window.__LF_FACTURA_BUSY).toBe(false);
+    expect(modal.classList.contains('show')).toBe(false);
   });
 
   it('Limita el parseo de texto a las primeras 20 páginas del PDF', async () => {

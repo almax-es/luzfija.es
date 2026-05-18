@@ -75,8 +75,6 @@
 
     // Valores de configuración
     const bonoSocialAnual = CFG.bonoSocial.eurosAnuales;
-    const alquilerMes = CFG.alquilerContador.eurosMes;
-
     // Bono Social: Preparar cálculo de descuento para PVPC
     // Nota: bonoSocialLimite es ANUAL en kWh (1.587, 2.222, 2.698, o 4.761)
     const bonoSocialDesc = {
