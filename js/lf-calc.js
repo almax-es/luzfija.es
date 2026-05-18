@@ -30,6 +30,26 @@
     return (typeof raw === 'number' && Number.isFinite(raw)) ? Math.max(0, raw) : 0;
   }
 
+  function __LF_aplicarImpuestos(params) {
+    const fiscal = params.fiscal;
+    const impuestoElec = round2(CFG.calcularIEE(params.sumaBase, params.consumoTotalKwh, fiscal.fechaYmd));
+    const alquilerContador = round2(params.dias * CFG.alquilerContador.eurosMes * 12 / 365);
+    const taxCalc = CFG.calcularImpuestoIndirecto({
+      zona: params.zonaFiscal,
+      usoFiscal: fiscal.usoFiscal,
+      baseEnergia: params.sumaBase,
+      impuestoElectrico: impuestoElec,
+      baseContador: alquilerContador,
+      potenciaContratada: fiscal.potenciaContratada,
+      viviendaCanarias: params.viviendaCanarias,
+      bonoSocialOn: params.bonoSocialOn,
+      bonoSocialTipo: params.bonoSocialTipo,
+      fechaYmd: fiscal.fechaYmd
+    });
+
+    return { impuestoElec, alquilerContador, taxCalc };
+  }
+
   // ===== CÁLCULO LOCAL =====
   async function calculateLocal(values) {
     const { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias, solarOn, exTotal, bvSaldo, bonoSocialOn, bonoSocialTipo, bonoSocialLimite } = values || getInputValues();
@@ -268,20 +288,18 @@
 
         const sumaBase = pot + consAdj + tarifaAdj;
         const consumoTotalKwh = cPunta + cLlano + cValle;
-        const impuestoElec = round2(CFG.calcularIEE(sumaBase, consumoTotalKwh, fiscal.fechaYmd));
-        const alquilerContador = round2(dias * alquilerMes * 12 / 365);
-        const taxCalc = CFG.calcularImpuestoIndirecto({
+        const impuestosAplicados = __LF_aplicarImpuestos({
+          fiscal,
+          sumaBase,
+          consumoTotalKwh,
+          dias,
           zona: zonaFiscal,
-          usoFiscal: fiscal.usoFiscal,
-          baseEnergia: sumaBase,
-          impuestoElectrico: impuestoElec,
-          baseContador: alquilerContador,
-          potenciaContratada: fiscal.potenciaContratada,
+          zonaFiscal,
           viviendaCanarias,
           bonoSocialOn: fiscalBonoSocialOn,
-          bonoSocialTipo: fiscalBonoSocialTipo,
-          fechaYmd: fiscal.fechaYmd
+          bonoSocialTipo: fiscalBonoSocialTipo
         });
+        const { impuestoElec, alquilerContador, taxCalc } = impuestosAplicados;
 
         // ═══════════════════════════════════════════════════════════════
         // CÁLCULO POR TERRITORIO
@@ -631,18 +649,16 @@
     const bonoSocialAnual = CFG.bonoSocial.eurosAnuales;
     const tarifaAcceso = round2(bonoSocialAnual / 365 * dias);
     const sumaBase = potencia + consumoBase + tarifaAcceso;
-    const impuestoElec = round2(CFG.calcularIEE(sumaBase, consumoTotalKwh, fiscal.fechaYmd));
-    const alquilerContador = round2(dias * CFG.alquilerContador.eurosMes * 12 / 365);
-    const taxCalc = CFG.calcularImpuestoIndirecto({
+    const impuestosAplicados = __LF_aplicarImpuestos({
+      fiscal,
+      sumaBase,
+      consumoTotalKwh,
+      dias,
       zona: zonaFiscal,
-      usoFiscal: fiscal.usoFiscal,
-      baseEnergia: sumaBase,
-      impuestoElectrico: impuestoElec,
-      baseContador: alquilerContador,
-      potenciaContratada: fiscal.potenciaContratada,
-      viviendaCanarias,
-      fechaYmd: fiscal.fechaYmd
+      zonaFiscal,
+      viviendaCanarias
     });
+    const { impuestoElec, alquilerContador, taxCalc } = impuestosAplicados;
     
     let totalAPagar;
     let impuestosTotal;

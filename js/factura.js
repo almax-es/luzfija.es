@@ -1664,9 +1664,10 @@
         setTimeout(()=>{ (__LF_q('uploadAreaFactura') || modal).focus?.(); }, 0);
       }
 
-            function __LF_closeModal(){
+      function __LF_closeModal(){
         // 🔓 DESACTIVAR MODO PRIVACIDAD (reactiva tracking)
         window.__LF_PRIVACY_MODE = false;
+        window.__LF_FACTURA_BUSY = false;
 
         // ✅ PRIVACIDAD: soltar referencias a la factura al cerrar
         // (evita que quede accesible desde JS después de cerrar el modal)

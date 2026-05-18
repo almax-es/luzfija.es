@@ -547,11 +547,11 @@
       horaFin: 18,     // 18:00
       descuentoPct: 45,
       
-      // Precios (actualizado: 16/04/2026)
+      // Precios (actualizado: 18/05/2026)
       precios: {
-        energia: 0.130,    // €/kWh (mismo precio todo el día)
-        p1: 0.098,         // €/kW·día
-        p2: 0.098          // €/kW·día
+        energia: 0.128,    // €/kWh (mismo precio todo el día)
+        p1: 0.093,         // €/kW·día
+        p2: 0.093          // €/kW·día
       },
       
       // Metadata
