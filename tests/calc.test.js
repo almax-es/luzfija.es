@@ -334,6 +334,50 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     expect(pvpc.esMejor).toBe(false);
   });
 
+  it('Aplica bono social en PVPC desde calculateLocal()', async () => {
+    window.LF.cachedTarifas = [{
+      nombre: 'PVPC',
+      tipo: 'PVPC',
+      esPVPC: true,
+      metaPvpc: {
+        terminoFijo: 10,
+        costeMargenPot: 0,
+        terminoVariable: 20,
+        bonoSocial: 1,
+        equipoMedida: 0.8
+      }
+    }];
+
+    await window.LF.calculateLocal({
+      p1: 4,
+      p2: 4,
+      dias: 30,
+      cPunta: 100,
+      cLlano: 100,
+      cValle: 100,
+      zonaFiscal: 'Península',
+      viviendaCanarias: false,
+      solarOn: false,
+      exTotal: 0,
+      bvSaldo: 0,
+      bonoSocialOn: true,
+      bonoSocialTipo: 'severo',
+      bonoSocialLimite: 9999,
+      fechaYmd: '2026-03-21'
+    });
+
+    const resultado = window.LF.state.rows[0];
+    const expectedRate = window.LF_CONFIG.getBonoSocialDiscountRate('severo');
+    const expectedDiscount = window.LF.round2((10 + 0 + 1 + 20) * expectedRate);
+
+    expect(resultado.bonoSocialDescuentoEur).toBe(expectedDiscount);
+    expect(resultado.metaPvpc.bonoSocialDescuentoEur).toBe(expectedDiscount);
+    expect(resultado.metaPvpc.bonoSocialCalc.on).toBe(true);
+    expect(resultado.metaPvpc.bonoSocialCalc.tipo).toBe('severo');
+    expect(resultado.metaPvpc.bonoSocialCalc.kwhBonificable).toBe(300);
+    expect(resultado.totalNum).toBeLessThan(10 + 20 + 1 + 0.8);
+  });
+
   describe('Casos Extremos (Edge Cases)', () => {
     
     it('Debe manejar Consumo Cero correctamente', async () => {
