@@ -245,6 +245,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Endesa 24h Online",
+      "cPunta": 0.1135,
+      "cLlano": 0.1135,
+      "cValle": 0.1135,
+      "p1": 0.093666,
+      "p2": 0.093666,
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Niba Zen",
       "cPunta": 0.115,
       "cLlano": 0.115,
@@ -384,6 +402,42 @@
       "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
       "fv": {
         "exc": -1.0,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Endesa 24h",
+      "cPunta": 0.127688,
+      "cLlano": 0.127688,
+      "cValle": 0.127688,
+      "p1": 0.093666,
+      "p2": 0.093666,
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/tarifa-fija-24h-promo",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Endesa Solar Plus",
+      "cPunta": 0.14027,
+      "cLlano": 0.14027,
+      "cValle": 0.14027,
+      "p1": 0.093666,
+      "p2": 0.093666,
+      "web": "https://www.endesa.com/es/luz-y-gas/catalogo-solar/endesa-solar-plus-bateria-virtual",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.06,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -613,6 +667,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Endesa Conecta 3P",
+      "cPunta": 0.18621,
+      "cLlano": 0.11781,
+      "cValle": 0.09441,
+      "p1": 0.073644,
+      "p2": 0.073644,
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz-3periodos",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Esluz 3P",
       "cPunta": 0.187021,
       "cLlano": 0.135066,
@@ -628,7 +700,7 @@
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
       },
-      "requiereFV": true
+      "requiereFV": false
     },
     {
       "nombre": "Nufri Flex 3P",
@@ -721,7 +793,7 @@
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
       },
-      "requiereFV": true
+      "requiereFV": false
     },
     {
       "nombre": "Lumisa 3P",
@@ -870,5 +942,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-19T09:16:04.715Z"
+  "updatedAt": "2026-05-19T18:52:34.252Z"
 }
