@@ -519,6 +519,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Iner Tranquilidad",
+      "cPunta": 0.1297,
+      "cLlano": 0.1297,
+      "cValle": 0.1297,
+      "p1": 0.0882,
+      "p2": 0.0882,
+      "web": "https://inerenergia.es/luz/hogar",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Endesa Solar Plus",
       "cPunta": 0.14027,
       "cLlano": 0.14027,
@@ -958,6 +976,60 @@
       "requiereFV": false
     },
     {
+      "nombre": "Iner La Clásica 3P",
+      "cPunta": 0.1998,
+      "cLlano": 0.1243,
+      "cValle": 0.0963,
+      "p1": 0.0882,
+      "p2": 0.0882,
+      "web": "https://inerenergia.es/luz/hogar",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Iner Coche Eléctrico 3P",
+      "cPunta": 0.1998,
+      "cLlano": 0.1998,
+      "cValle": 0.0713,
+      "p1": 0.0882,
+      "p2": 0.0882,
+      "web": "https://inerenergia.es/luz/hogar",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Iner Solar 3P",
+      "cPunta": 0.2048,
+      "cLlano": 0.1293,
+      "cValle": 0.0913,
+      "p1": 0.0882,
+      "p2": 0.0882,
+      "web": "https://inerenergia.es/luz/hogar",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Visalia 3P",
       "cPunta": 0.207607,
       "cLlano": 0.124931,
@@ -1177,5 +1249,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-20T12:23:57.921Z"
+  "updatedAt": "2026-05-20T12:52:48.160Z"
 }
