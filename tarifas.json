@@ -99,6 +99,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Eres Sobresaliente",
+      "cPunta": 0.099,
+      "cLlano": 0.099,
+      "cValle": 0.099,
+      "p1": 0.099,
+      "p2": 0.099,
+      "web": "https://eresenergia.com/#tarifas",
+      "tipo": "1P",
+      "requisitos": "Consumo ≤ 4.000 kWh/año",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Nufri",
       "cPunta": 0.099,
       "cLlano": 0.099,
@@ -354,6 +373,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Eres 24",
+      "cPunta": 0.1197,
+      "cLlano": 0.1197,
+      "cValle": 0.1197,
+      "p1": 0.0879,
+      "p2": 0.0739,
+      "web": "https://eresenergia.com/#tarifas",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Nexus Estable",
       "cPunta": 0.1199,
       "cLlano": 0.1199,
@@ -492,6 +529,24 @@
       "tipo": "1P",
       "fv": {
         "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Eres Solar 24",
+      "cPunta": 0.1449,
+      "cLlano": 0.1449,
+      "cValle": 0.1449,
+      "p1": 0.0759,
+      "p2": 0.0759,
+      "web": "https://eresenergia.com/#tarifas",
+      "tipo": "1P",
+      "fv": {
+        "exc": -1.0,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -885,6 +940,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Eres Estable 3P",
+      "cPunta": 0.1995,
+      "cLlano": 0.1379,
+      "cValle": 0.0986,
+      "p1": 0.0969,
+      "p2": 0.0379,
+      "web": "https://eresenergia.com/#tarifas",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Visalia 3P",
       "cPunta": 0.207607,
       "cLlano": 0.124931,
@@ -899,6 +972,24 @@
         "tope": "ENERGIA_PARCIAL",
         "bv": false,
         "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Eres Solar Estable 3P",
+      "cPunta": 0.2095,
+      "cLlano": 0.1379,
+      "cValle": 0.1088,
+      "p1": 0.0759,
+      "p2": 0.0759,
+      "web": "https://eresenergia.com/#tarifas",
+      "tipo": "3P",
+      "fv": {
+        "exc": -1.0,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
       },
       "requiereFV": false
     },
@@ -1086,5 +1177,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-20T10:15:36.826Z"
+  "updatedAt": "2026-05-20T12:23:57.921Z"
 }
