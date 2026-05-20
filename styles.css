@@ -2456,6 +2456,23 @@ html.light-mode .custom-tariff-highlight {
   font-weight: 800;
 }
 
+#table td.total-cell .total-price--with-bv{
+  display: inline-flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  line-height: 1.08;
+}
+
+#table td.total-cell .total-bv-saldo{
+  display: block;
+  color: #fbbf24;
+  font-size: 0.72em;
+  font-weight: 800;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
 
 #table td.total-cell:hover .total-pill,
 #table td.total-cell:focus-within .total-pill{
@@ -2551,6 +2568,10 @@ html.light-mode .custom-tariff-highlight {
   tbody td.total-cell{
     padding-top: 14px;
     padding-bottom: 14px;
+  }
+
+  #table td.total-cell .total-price--with-bv{
+    max-width: 150px;
   }
 
   /* CTA “Ver oferta” en móvil */

@@ -341,7 +341,7 @@
           `${solarDetails || ""}`;
         const totalAmountAttrs = isBV ? ` data-pagas="${escapeHtml(bvPagasFmt)}" data-ranking="${escapeHtml(bvRankingFmt)}"` : "";
         const totalAmountHtml = showBvSaldoInTotal
-          ? `<strong class="total-price js-total-amount"${totalAmountAttrs}><span>${escapeHtml(r.total)}</span><span class="total-bv-saldo" style="display:block;font-size:0.72em;line-height:1.1;color:#fbbf24;font-weight:800;white-space:nowrap;">BV +${escapeHtml(formatMoney(bvSaldoFinNum))}</span></strong>`
+          ? `<strong class="total-price total-price--with-bv js-total-amount"${totalAmountAttrs}><span>${escapeHtml(r.total)}</span><span class="total-bv-saldo">BV +${escapeHtml(formatMoney(bvSaldoFinNum))}</span></strong>`
           : `<strong class="total-price js-total-amount"${totalAmountAttrs}>${escapeHtml(r.total)}</strong>`;
 
         tr.innerHTML =
