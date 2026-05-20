@@ -354,6 +354,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Nexus Estable",
+      "cPunta": 0.1199,
+      "cLlano": 0.1199,
+      "cValle": 0.1199,
+      "p1": 0.112899,
+      "p2": 0.052636,
+      "web": "https://www.nexusenergia.com/hogar/tarifas-luz/",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Iberdrola Online",
       "cPunta": 0.1199,
       "cLlano": 0.1199,
@@ -553,6 +571,24 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Nexus Eficiente 3P",
+      "cPunta": 0.1689,
+      "cLlano": 0.1306,
+      "cValle": 0.0957,
+      "p1": 0.095342,
+      "p2": 0.067562,
+      "web": "https://www.nexusenergia.com/hogar/tarifas-luz/",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
       },
       "requiereFV": false
     },
@@ -978,5 +1014,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-20T09:30:04.289Z"
+  "updatedAt": "2026-05-20T09:52:18.470Z"
 }
