@@ -281,6 +281,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "El Corte Inglés Despreocúpate",
+      "cPunta": 0.117983,
+      "cLlano": 0.117983,
+      "cValle": 0.117983,
+      "p1": 0.099699,
+      "p2": 0.099699,
+      "web": "https://tarifas.energiaelcorteingles.es/",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Neolux 24h",
       "cPunta": 0.119,
       "cLlano": 0.119,
@@ -607,6 +625,24 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "El Corte Inglés Benefíciate 3P",
+      "cPunta": 0.178875,
+      "cLlano": 0.122975,
+      "cValle": 0.099675,
+      "p1": 0.113216,
+      "p2": 0.073323,
+      "web": "https://tarifas.energiaelcorteingles.es/",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
       },
       "requiereFV": false
     },
@@ -942,5 +978,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-20T07:50:01.072Z"
+  "updatedAt": "2026-05-20T09:30:04.289Z"
 }
