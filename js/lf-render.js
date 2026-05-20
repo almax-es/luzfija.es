@@ -82,9 +82,9 @@
 
       // Desempate
       if (key === 'totalNum') {
-        const paA = Number(a.fvTotalFinal) || Number(a.totalNum) || 0;
-        const paB = Number(b.fvTotalFinal) || Number(b.totalNum) || 0;
-        if (paA !== paB) return asc ? (paA - paB) : (paB - paA);
+        const bvA = Number(a.fvBvSaldoFin) || 0;
+        const bvB = Number(b.fvBvSaldoFin) || 0;
+        if (bvA !== bvB) return bvB - bvA;
       }
 
       return 0;
@@ -269,10 +269,19 @@
         const excNoCompensable = Number(r.fvExcedenteNoCompensable || 0);
 
         const isBV = r.fvTipo && r.fvTipo.includes('BV');
+        const bvSaldoFinNum = Number(bvSaldoFin);
+        const totalNumValue = Number(r.totalNum);
         const totalFinal = Number(r.fvTotalFinal) || Number(r.totalNum) || 0;
         const totalRanking = Number(r.totalNum) || 0;
         const bvPagasFmt = formatMoney(totalFinal);
         const bvRankingFmt = formatMoney(totalRanking);
+        const showBvSaldoInTotal = isBV
+          && bvSaldoFin !== null
+          && bvSaldoFin !== undefined
+          && Number.isFinite(bvSaldoFinNum)
+          && bvSaldoFinNum > 0
+          && Number.isFinite(totalNumValue)
+          && Math.abs(totalNumValue) < 0.005;
 
         if (r.fvApplied && credit1 > 0) {
           const parts = [];
@@ -330,6 +339,10 @@
           `${icons}` +
           `</div>` +
           `${solarDetails || ""}`;
+        const totalAmountAttrs = isBV ? ` data-pagas="${escapeHtml(bvPagasFmt)}" data-ranking="${escapeHtml(bvRankingFmt)}"` : "";
+        const totalAmountHtml = showBvSaldoInTotal
+          ? `<strong class="total-price js-total-amount"${totalAmountAttrs}><span>${escapeHtml(r.total)}</span><span class="total-bv-saldo" style="display:block;font-size:0.72em;line-height:1.1;color:#fbbf24;font-weight:800;white-space:nowrap;">BV +${escapeHtml(formatMoney(bvSaldoFinNum))}</span></strong>`
+          : `<strong class="total-price js-total-amount"${totalAmountAttrs}>${escapeHtml(r.total)}</strong>`;
 
         tr.innerHTML =
           `<td>${idx + 1}</td>` +
@@ -337,7 +350,7 @@
           `<td>${escapeHtml(r.potencia)}</td>` +
           `<td>${escapeHtml(r.consumo)}</td>` +
           `<td>${escapeHtml(r.impuestos)}</td>` +
-          `<td ${totalCellAttrs}><span class="total-pill"><strong class="total-price js-total-amount"${isBV ? ` data-pagas="${escapeHtml(bvPagasFmt)}" data-ranking="${escapeHtml(bvRankingFmt)}"` : ""}>${escapeHtml(r.total)}</strong>${canOpenDesglose ? '<span class="desglose-icon" aria-hidden="true">💡</span>' : ''}</span></td>` +
+          `<td ${totalCellAttrs}><span class="total-pill">${totalAmountHtml}${canOpenDesglose ? '<span class="desglose-icon" aria-hidden="true">💡</span>' : ''}</span></td>` +
           `<td>${formatVsWithBar(r.vsMejor, r.vsMejorNum)}</td>` +
           `<td style="text-align:center">${rowTipoBadge(r.tipo)}</td>` +
           `<td style="text-align:center">${w}</td>`;

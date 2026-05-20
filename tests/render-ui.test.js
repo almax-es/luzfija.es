@@ -209,6 +209,43 @@ describe('Renderizado UI (lf-render.js)', () => {
     expect(firstRow.innerHTML).toContain('Tarifa Cara');
   });
 
+  it('Desempata totales a 0 por mayor saldo BV y lo muestra en Total', async () => {
+    window.LF.state.rows = [
+      {
+        nombre: 'BV menos saldo',
+        tipo: '3P',
+        totalNum: 0,
+        total: '0,00 €',
+        potencia: '0 €',
+        consumo: '0 €',
+        impuestos: '0 €',
+        webUrl: 'https://example.com/bv-menor',
+        fvTipo: 'SIMPLE + BV',
+        fvBvSaldoFin: 20,
+        fvTotalFinal: 0
+      },
+      {
+        nombre: 'BV más saldo',
+        tipo: '3P',
+        totalNum: 0,
+        total: '0,00 €',
+        potencia: '0 €',
+        consumo: '0 €',
+        impuestos: '0 €',
+        webUrl: 'https://example.com/bv-mayor',
+        fvTipo: 'SIMPLE + BV',
+        fvBvSaldoFin: 50,
+        fvTotalFinal: 10
+      }
+    ];
+
+    await window.LF.renderTable();
+
+    const rows = [...document.querySelectorAll('#tbody tr')];
+    expect(rows[0].textContent).toContain('BV más saldo');
+    expect(rows[0].querySelector('.total-bv-saldo').textContent).toContain('BV +50 €');
+  });
+
   it('Debe mostrar mensaje de vacío si no hay resultados', () => {
     window.LF.state.rows = [];
     window.LF.renderTable();
