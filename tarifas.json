@@ -446,6 +446,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Esluz Fija 24h",
+      "cPunta": 0.123,
+      "cLlano": 0.123,
+      "cValle": 0.123,
+      "p1": 0.113,
+      "p2": 0.031,
+      "web": "https://esluz.es/tarifas-electricidad-hogares/",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Lumisa Simple 24h",
       "cPunta": 0.125141,
       "cLlano": 0.125141,
@@ -1249,5 +1267,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-20T14:45:06.691Z"
+  "updatedAt": "2026-05-20T19:33:19.601Z"
 }
