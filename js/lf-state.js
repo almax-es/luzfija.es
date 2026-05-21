@@ -67,6 +67,7 @@
     statMax: null,
     chartTop: null,
     toolbar: null,
+    resultsLiveStatus: null,
     table: null,
     tbody: null,
     emptyBox: null,
@@ -143,6 +144,7 @@
     el.statMax = $('statMax');
     el.chartTop = $('chartTop');
     el.toolbar = $('toolbar');
+    el.resultsLiveStatus = $('resultsLiveStatus');
     el.table = $('table');
     el.tbody = $('tbody');
     el.emptyBox = $('emptyBox');

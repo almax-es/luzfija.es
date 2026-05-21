@@ -114,6 +114,7 @@
   let __lf_tableRenderTimer = null;
   let __lf_renderInProgress = false;
   let __lf_currentRenderToken = 0;
+  let __lf_resultsAnnounceTimer = null;
 
   async function renderTable() {
     const f = applyFilters(state.rows);
@@ -575,6 +576,28 @@
     }
   }
 
+  function announceResultsSummary(d) {
+    const live = el.resultsLiveStatus || document.getElementById('resultsLiveStatus');
+    if (!live) return;
+
+    const rowsShown = applyFilters(state.rows || []).filter(r => !r.pvpcNotComputable).length;
+    const resumen = d?.resumen || {};
+    const tarifaLabel = rowsShown === 1 ? 'tarifa' : 'tarifas';
+    const parts = rowsShown > 0
+      ? [`Resultados actualizados: ${rowsShown} ${tarifaLabel} en el ranking.`]
+      : ['Resultados actualizados: no hay tarifas para mostrar con el filtro actual.'];
+
+    if (resumen.mejor && resumen.mejor !== '—') parts.push(`Mejor opción: ${resumen.mejor}.`);
+    if (resumen.precio && resumen.precio !== '—') parts.push(`Factura mínima: ${resumen.precio}.`);
+
+    live.textContent = '';
+    if (__lf_resultsAnnounceTimer) clearTimeout(__lf_resultsAnnounceTimer);
+    __lf_resultsAnnounceTimer = setTimeout(() => {
+      live.textContent = parts.join(' ');
+      __lf_resultsAnnounceTimer = null;
+    }, 0);
+  }
+
   // ===== RENDER ALL =====
   function renderAll(d) {
     if (!d || !d.success) {
@@ -625,6 +648,7 @@
     // para evitar que el scroll salte al final mientras el DOM crece.
     renderTable().then(() => {
       renderSunClubCard();
+      announceResultsSummary(d);
       if (seccionResultados) {
         seccionResultados.scrollIntoView();
       }

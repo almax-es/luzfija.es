@@ -104,6 +104,26 @@ describe('Importación robusta CSV (Datadis, e-distribución, i-DE)', () => {
     expect(totalExport).toBeCloseTo(0.3, 6);
   });
 
+  it('Procesa el cambio horario de marzo con 23 registros y sin hora inexistente', async () => {
+    const hours = [1, 2, ...Array.from({ length: 21 }, (_, i) => i + 4)];
+    const csvContent = [
+      'CUPS;Fecha;Hora;Consumo_kWh;Método',
+      ...hours.map((hour) => `ES123;29/03/2026;${hour};1,0;R`)
+    ].join('\n');
+    const file = { name: 'dst-marzo.csv', _content: csvContent };
+
+    const result = await procesarCSVConsumos(file);
+    const records = result.consumosHorarios;
+
+    expect(result.ok).toBe(true);
+    expect(records).toHaveLength(23);
+    expect(records.some(r => r.hora === 3)).toBe(false);
+    expect(records.map(r => r.hora)).toEqual(hours);
+
+    const totalImport = records.reduce((acc, r) => acc + r.kwh, 0);
+    expect(totalImport).toBeCloseTo(23, 6);
+  });
+
   it('Procesa i-DE con consumo/generación simultáneos y Wh', async () => {
     const csvContent = fs.readFileSync(path.resolve(__dirname, 'fixtures/ide_bruto.csv'), 'utf8');
     const file = { name: 'ide.csv', _content: csvContent };
@@ -230,6 +250,43 @@ ES123;01/04/2026;3;1,0;R`;
     const res = validateCsvSpanFromRecords(recordsFail);
     expect(res.ok).toBe(false);
     expect(res.error).toContain('372 días');
+  });
+
+  it('Avisa si el CSV es antiguo sin bloquear la importación', () => {
+    const { validateCsvSpanFromRecords } = window.LF.csvUtils;
+    const records = [
+      { fecha: new Date(2023, 0, 1) },
+      { fecha: new Date(2023, 11, 31) }
+    ];
+
+    const res = validateCsvSpanFromRecords(records, {
+      maxDays: 370,
+      requireExactly12Months: false,
+      staleWarningMonths: 18,
+      today: new Date(2026, 4, 21)
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.warning).toContain('CSV antiguo');
+    expect(res.warning).toContain('2023-12-31');
+  });
+
+  it('No avisa por antigüedad si el CSV está dentro del umbral configurado', () => {
+    const { validateCsvSpanFromRecords } = window.LF.csvUtils;
+    const records = [
+      { fecha: new Date(2024, 2, 1) },
+      { fecha: new Date(2025, 2, 21) }
+    ];
+
+    const res = validateCsvSpanFromRecords(records, {
+      maxDays: 400,
+      requireExactly12Months: false,
+      staleWarningMonths: 18,
+      today: new Date(2026, 4, 21)
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.warning).toBeUndefined();
   });
 
   it('Falla si no hay fechas válidas en los registros', () => {

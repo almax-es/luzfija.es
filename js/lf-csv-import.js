@@ -195,7 +195,8 @@
     // Comparador principal: NO requiere exactamente 12 meses, acepta hasta 370 días
     const spanCheck = validateCsvSpanFromRecords(consumos, {
       maxDays: 370,
-      requireExactly12Months: false  // ← Comparador principal: usar TODOS los datos
+      requireExactly12Months: false,  // ← Comparador principal: usar TODOS los datos
+      staleWarningMonths: 18
     });
 
     if (!spanCheck.ok) {
@@ -205,6 +206,9 @@
     // Agregar mensaje informativo si existe
     if (spanCheck.info) {
       nextWarnings.push(spanCheck.info);
+    }
+    if (spanCheck.warning) {
+      nextWarnings.push(spanCheck.warning);
     }
 
     if (Array.isArray(spanCheck.monthsToDrop) && spanCheck.monthsToDrop.length > 0) {
@@ -220,7 +224,6 @@
           error: 'Tras aplicar el recorte a 12 meses, no quedan registros válidos para procesar.'
         };
       }
-      if (spanCheck.warning) nextWarnings.push(spanCheck.warning);
       return { ok: true, consumos: filtered, warnings: nextWarnings };
     }
     return { ok: true, consumos, warnings: nextWarnings };

@@ -81,6 +81,20 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     return prices;
   }
 
+  function generateDstSpringForwardDayPrices() {
+    const prices = [];
+    const baseTs = Date.parse('2026-03-28T23:00:00Z') / 1000; // 00:00 local del 29/03/2026
+
+    for (let i = 0; i < 23; i++) {
+      const ts = baseTs + i * 3600;
+      let price = 0.10;
+      if (i === 2) price = 0.50; // 03:00 local; la hora 02:00 no existe
+      prices.push([ts, price]);
+    }
+
+    return prices;
+  }
+
   it('obtenerPVPC_LOCAL debe descargar y calcular precios medios correctamente', async () => {
     const apiP1 = 0.20;
     const apiP2 = 0.10;
@@ -276,6 +290,43 @@ describe('PVPC Engine (js/pvpc.js)', () => {
 
     expect(result).toBeTruthy();
     expect(result.terminoVariable).toBeCloseTo(0.70, 3);
+  });
+
+  it('obtenerPVPC_LOCAL cruza correctamente el cambio horario de marzo con 23 horas', async () => {
+    const mockJson = {
+      geo_id: 8741,
+      timezone: 'Europe/Madrid',
+      days: {
+        '2026-03-29': generateDstSpringForwardDayPrices()
+      },
+      meta: { max_after_conversion: 0.50 }
+    };
+
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => mockJson
+    });
+
+    const cnmcHours = [1, 2, ...Array.from({ length: 21 }, (_, i) => i + 4)];
+    global.window.LF.consumosHorarios = cnmcHours.map((hora) => ({
+      fecha: new Date(2026, 2, 29),
+      hora,
+      kwh: 1
+    }));
+    global.window.LF.pvpcPeriodoCSV = true;
+
+    const result = await global.window.LF.pvpc.obtenerPVPC_LOCAL({
+      zonaFiscal: 'Península',
+      p1: 3.45,
+      p2: 3.45,
+      dias: 1,
+      cPunta: 23,
+      cLlano: 0,
+      cValle: 0
+    });
+
+    expect(result).toBeTruthy();
+    expect(result.terminoVariable).toBeCloseTo(2.70, 3);
   });
 
   it('obtenerPVPC_LOCAL cede el hilo durante el cruce CSV exacto largo', async () => {

@@ -29,6 +29,13 @@ Object.assign(global.window, {
     escapeHtml,
     createRipple,
     lfDbg,
+    setStatus: vi.fn(),
+    toast: vi.fn(),
+    animateCounter: (element, text) => {
+      if (element) element.textContent = text;
+    },
+    createSuccessParticles: vi.fn(),
+    initTooltips: vi.fn(),
     parseNum: (value) => {
       const normalized = String(value ?? '').replace(',', '.');
       const parsed = Number(normalized);
@@ -57,6 +64,7 @@ describe('Renderizado UI (lf-render.js)', () => {
 
   // Setup del DOM antes de cada test
   beforeEach(() => {
+    Object.defineProperty(window, 'innerWidth', { value: 1200, configurable: true });
     window.document.body.innerHTML = `
       <input id="p1" value="0">
       <input id="p2" value="0">
@@ -73,6 +81,9 @@ describe('Renderizado UI (lf-render.js)', () => {
         <div id="statAvg"></div>
         <div id="statMax"></div>
       </div>
+      <div id="toolbar"></div>
+      <div id="pvpcInfo"></div>
+      <div id="resultsLiveStatus" role="status" aria-live="polite" aria-atomic="true"></div>
       <div id="chartTopBody"></div>
       <table id="table">
         <thead>
@@ -93,11 +104,16 @@ describe('Renderizado UI (lf-render.js)', () => {
     
     // Vincular elementos al objeto LF.el (como hace initElements)
     window.LF.el = {
+      heroKpis: document.getElementById('heroKpis'),
       kpiBest: document.getElementById('kpiBest'),
       kpiPrice: document.getElementById('kpiPrice'),
+      statsBar: document.getElementById('statsBar'),
       statMin: document.getElementById('statMin'),
       statAvg: document.getElementById('statAvg'),
       statMax: document.getElementById('statMax'),
+      toolbar: document.getElementById('toolbar'),
+      pvpcInfo: document.getElementById('pvpcInfo'),
+      resultsLiveStatus: document.getElementById('resultsLiveStatus'),
       chartTopBody: document.getElementById('chartTopBody'),
       table: document.getElementById('table'),
       tbody: document.getElementById('tbody'),
@@ -273,6 +289,34 @@ describe('Renderizado UI (lf-render.js)', () => {
     if (document.getElementById('kpiBest').textContent) {
       expect(document.getElementById('kpiBest').textContent).toContain('Tarifa Barata');
       expect(document.getElementById('kpiPrice').textContent).toContain('50,00 €');
+    }
+  });
+
+  it('Anuncia un resumen accesible al terminar de renderizar resultados', async () => {
+    vi.useFakeTimers();
+    try {
+      window.LF.renderAll({
+        success: true,
+        resumen: {
+          mejor: 'Tarifa Barata',
+          precio: '50,00 €'
+        },
+        stats: {
+          precioMin: '50,00 €',
+          precioMedio: '75,00 €',
+          precioMax: '100,00 €'
+        },
+        resultados: [...mockRows]
+      });
+
+      await vi.runAllTimersAsync();
+
+      const live = document.getElementById('resultsLiveStatus');
+      expect(live.textContent).toContain('Resultados actualizados: 3 tarifas en el ranking.');
+      expect(live.textContent).toContain('Mejor opción: Tarifa Barata.');
+      expect(live.textContent).toContain('Factura mínima: 50,00 €.');
+    } finally {
+      vi.useRealTimers();
     }
   });
 

@@ -1098,10 +1098,29 @@
     return `${monthNames[parseInt(month, 10) - 1]} ${year}`;
   }
 
+  function monthsAgoCutoff(today, months) {
+    const base = today instanceof Date && !isNaN(today.getTime()) ? today : new Date();
+    const targetMonth = base.getMonth() - months;
+    const firstOfMonth = new Date(base.getFullYear(), targetMonth, 1);
+    const lastDay = new Date(firstOfMonth.getFullYear(), firstOfMonth.getMonth() + 1, 0).getDate();
+    const cutoff = new Date(
+      firstOfMonth.getFullYear(),
+      firstOfMonth.getMonth(),
+      Math.min(base.getDate(), lastDay)
+    );
+    cutoff.setHours(0, 0, 0, 0);
+    return cutoff;
+  }
+
   function validateCsvSpanFromRecords(records, options = {}) {
     const maxDays = Number.isFinite(options.maxDays) ? options.maxDays : 370;
     const requireExactly12Months = options.requireExactly12Months || false;
     const coverageThreshold = options.coverageThreshold || 80; // % mínimo de cobertura
+    const staleWarningMonths = Number.isFinite(options.staleWarningMonths) && options.staleWarningMonths > 0
+      ? options.staleWarningMonths
+      : null;
+    const todayRaw = options.today instanceof Date ? options.today : (options.today ? new Date(options.today) : new Date());
+    const today = todayRaw instanceof Date && !isNaN(todayRaw.getTime()) ? todayRaw : new Date();
 
     let minTs = null;
     let maxTs = null;
@@ -1132,6 +1151,13 @@
     const spanDays = spanDaysInclusiveFromTimestamps(minTs, maxTs);
     const startYmd = ymdLocal(new Date(minTs));
     const endYmd = ymdLocal(new Date(maxTs));
+    const staleWarning = (() => {
+      if (!staleWarningMonths) return '';
+      const endDate = new Date(maxTs);
+      if (endDate >= monthsAgoCutoff(today, staleWarningMonths)) return '';
+      return `⚠️ CSV antiguo: los datos terminan el ${endYmd}, hace más de ${staleWarningMonths} meses.\n\n` +
+             `Las tarifas actuales pueden no representar bien ese período; revisa que estás importando el archivo correcto.`;
+    })();
 
     if (spanDays > maxDays) {
       return {
@@ -1165,7 +1191,8 @@
         monthsDistinct,
         monthsUsed,
         monthsToDrop: [],
-        info: message
+        info: message,
+        warning: staleWarning || undefined
       };
     }
 
