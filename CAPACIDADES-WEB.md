@@ -310,8 +310,8 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 ## 10. Testing Y Calidad
 
 - Suite Vitest/JSDOM.
-- 49 archivos de test (`tests/*.test.js`).
-- 320 casos `it()/test()` en la ultima ejecucion local verificada.
+- 50 archivos de test (`tests/*.test.js`).
+- 321 casos `it()/test()` en la ultima ejecucion local verificada.
 - Cobertura de:
 - Calculo fiscal y de energia.
 - PVPC y caches.
