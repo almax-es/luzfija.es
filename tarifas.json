@@ -172,24 +172,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Octopus Relax",
-      "cPunta": 0.109,
-      "cLlano": 0.109,
-      "cValle": 0.109,
-      "p1": 0.093,
-      "p2": 0.093,
-      "web": "https://octopusenergy.es/precios",
-      "tipo": "1P",
-      "fv": {
-        "exc": 0.01,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "TE A tu aire",
       "cPunta": 0.1099,
       "cLlano": 0.1099,
@@ -292,6 +274,24 @@
       "tipo": "1P",
       "fv": {
         "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Octopus Relax",
+      "cPunta": 0.115,
+      "cLlano": 0.115,
+      "cValle": 0.115,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://octopusenergy.es/precios",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.01,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -848,24 +848,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Octopus 3P",
-      "cPunta": 0.181,
-      "cLlano": 0.102,
-      "cValle": 0.083,
-      "p1": 0.093,
-      "p2": 0.093,
-      "web": "https://octopusenergy.es/precios",
-      "tipo": "3P",
-      "fv": {
-        "exc": 0.01,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Endesa Conecta 3P",
       "cPunta": 0.18621,
       "cLlano": 0.11781,
@@ -931,6 +913,24 @@
       "requisitos": "Ratio consumo/potencia ≤ 0,75 MWh/kW. Consumo anual ≤ 8.000 kWh/año.",
       "fv": {
         "exc": -1.0,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Octopus 3P",
+      "cPunta": 0.193,
+      "cLlano": 0.107,
+      "cValle": 0.088,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://octopusenergy.es/precios",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.01,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -1267,5 +1267,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-21T15:01:04.661Z"
+  "updatedAt": "2026-05-21T15:05:36.377Z"
 }
