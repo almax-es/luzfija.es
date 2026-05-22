@@ -1,6 +1,6 @@
 # Capacidad Completa De LuzFija.es
 
-Ultima actualizacion: 2026-05-21
+Ultima actualizacion: 2026-05-22
 
 Este documento es la fuente de verdad funcional para describir todo lo que hace la web, pagina por pagina, sin omitir flujos relevantes para asistentes IA o documentacion de producto.
 Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y luego este documento para el inventario funcional completo.
@@ -275,7 +275,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Lineas JS aproximadas: 19.369.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
-- `tarifas.json` (69 tarifas).
+- `tarifas.json` (68 tarifas).
 - `/data/pvpc/` (indicador 1001).
 - `/data/surplus/` (indicador 1739).
 - Fuente privada de tarifas: Excel local `Tarifas Luz.xlsx`. Su columna interna `Activa` controla publicacion; valores como `no`, `n`, `false`, `falso` o `0` excluyen la tarifa de `tarifas.json` y del post de Facebook, pero no del validador privado.
