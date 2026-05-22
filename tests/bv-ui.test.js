@@ -82,4 +82,13 @@ describe('BV UI manual month helpers', () => {
     expect(months[0].daysWithData).toBe(31);
     expect(months[0].daysInMonth).toBe(31);
   });
+
+  it('setHourlyTraceFromImport lee meta.hasExcedenteColumn, no el flag de nivel raíz (regresión: bug era importResult?.hasExcedenteColumn)', () => {
+    // El path de detección "sin columna de excedentes" solo es alcanzable si se lee
+    // importResult.meta.hasExcedenteColumn, que es donde bv-import.js lo expone.
+    // Un check en importResult.hasExcedenteColumn (nivel raíz) siempre sería undefined → false,
+    // dejando el trace poblado cuando no debería estarlo.
+    expect(uiCode).toContain('importResult?.meta?.hasExcedenteColumn === false');
+    expect(uiCode).not.toContain('importResult?.hasExcedenteColumn === false');
+  });
 });

@@ -164,7 +164,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function setHourlyTraceFromImport(importResult, zonaFiscal) {
-    if (importResult?.hasExcedenteColumn === false) {
+    if (importResult?.meta?.hasExcedenteColumn === false) {
       clearHourlyTraceState();
       hourlyTraceState.reason = 'no-hourly-surplus-column';
       return;
