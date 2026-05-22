@@ -1762,13 +1762,25 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
       }).join('');
 
       const totalTarifas = rankedResults.length;
+      let indexedFallbackMsg = '';
+      if (hasIndexedTariffs && indexedTraceMode !== 'hourly-index-base') {
+        const _traceActive = Array.isArray(hourlyTraceState.records) && hourlyTraceState.records.length > 0 && !hourlyTraceState.dirty;
+        const _traceZona = hourlyTraceState.zonaFiscal;
+        if (_traceActive && _traceZona && String(_traceZona) !== String(zonaFiscalVal || '')) {
+          indexedFallbackMsg = 'El CSV importado es de <strong>' + escapeHtml(String(_traceZona)) + '</strong>; cambia la zona o reimporta para usar el cálculo exacto. Se usa 0,030&nbsp;€/kWh de referencia.';
+        } else if (hourlyTraceState.stats && hourlyTraceState.stats.totalKwh === 0 && (hourlyTraceState.stats.missing || 0) > 0) {
+          indexedFallbackMsg = 'No hay precios del índice disponibles para el periodo del CSV. Se usa 0,030&nbsp;€/kWh de referencia.';
+        } else {
+          indexedFallbackMsg = 'Sin CSV con excedentes activo, se usa 0,030&nbsp;€/kWh de referencia orientativa.';
+        }
+      }
       const rankingNote = `
         <div style="background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 24px; text-align: center;">
           <div style="font-size: 0.95rem; color: var(--muted); line-height: 1.6;">
             <strong>¿Cómo se calcula el ranking?</strong><br>
             Las tarifas están ordenadas por el <strong>${totalCostLabel.toLowerCase()}</strong>: la suma de tus facturas mensuales ${totalCostNote}.
             ${hasIndexedTariffs && indexedTraceMode === 'hourly-index-base' ? '<br><br><strong>Indexadas:</strong> se han calculado con tu CSV horario según el índice base disponible.' : ''}
-            ${hasIndexedTariffs && indexedTraceMode !== 'hourly-index-base' ? '<br><br><strong>Indexadas:</strong> al no haber trazabilidad horaria activa, se usa 0,030 €/kWh solo como referencia orientativa.' : ''}
+            ${indexedFallbackMsg ? '<br><br><strong>Indexadas:</strong> ' + indexedFallbackMsg : ''}
             ${saldoVal > 0 ? `<br><br><strong>Nota:</strong> has indicado un saldo BV inicial de ${fEur(saldoVal)} y se descuenta en el cálculo.` : ''}
           </div>
         </div>
