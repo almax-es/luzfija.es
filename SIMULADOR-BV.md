@@ -131,9 +131,12 @@ Soporte para 3 zonas con impuestos diferenciados:
 
 **Solo muestra tarifas con**:
 - ✅ Campo `fv` (autoconsumo fotovoltaico)
-- ✅ Precio de excedentes remunerado: `exc > 0` o `exc = -1` para indexado estimado
+- ✅ Precio de excedentes remunerado: `exc > 0` o `exc = -1` para indexado
 
-**Razón**: El simulador necesita un precio de excedentes utilizable para calcular la compensación. Las tarifas indexadas marcadas como `fv.exc = -1` se cargan con estimación operativa y se muestran con nota informativa.
+**Razón**: El simulador necesita un valor de excedentes utilizable para calcular la compensación. Las tarifas indexadas marcadas como `fv.exc = -1` se cargan siempre, pero el tratamiento depende de la trazabilidad:
+
+- Con CSV horario sin editar, `js/lf-surplus-prices.js` calcula el valor mes a mes contra `data/surplus/` segun el indice base disponible.
+- Si el usuario edita la tabla manual o introduce solo datos mensuales, se pierde la trazabilidad horaria y se usa 0,030 €/kWh solo como referencia orientativa.
 
 ### 🔄 Modo Híbrido: CSV a Manual
 
@@ -1074,7 +1077,7 @@ El simulador lee de `tarifas.json` automáticamente. Para añadir/actualizar tar
 
 ### ¿Por qué filtra tarifas sin precio de excedentes utilizable?
 
-El simulador necesita un valor de excedentes utilizable. Por eso carga tarifas con `fv.exc > 0` y tambien tarifas indexadas marcadas con `fv.exc = -1`. En estas ultimas la web usa una estimacion operativa y muestra una nota informativa en la UI.
+El simulador necesita un valor de excedentes utilizable. Por eso carga tarifas con `fv.exc > 0` y tambien tarifas indexadas marcadas con `fv.exc = -1`. En estas ultimas, si conserva los registros horarios del CSV, valora los excedentes mes a mes con `data/surplus/`. Si solo hay datos mensuales, usa 0,030 €/kWh como referencia orientativa y muestra una nota informativa en la UI.
 
 ### ¿Qué hago si mi CSV no tiene excedentes?
 

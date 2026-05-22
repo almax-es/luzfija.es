@@ -98,6 +98,104 @@ describe('Simulador Solar Mensual (bv-sim-monthly.js)', () => {
     expect(res.bvSaldoFin).toBe(0);            // No acumula (sin BV)
   });
 
+  it('calcMonthForTarifa: usa crédito horario real para excedentes indexados cuando el mes lo trae', () => {
+    const tarifaIndexada = {
+      nombre: "Indexada",
+      p1: 0.1, p2: 0.1,
+      cPunta: 0.1, cLlano: 0.1, cValle: 0.1,
+      fv: { exc: -1, bv: false }
+    };
+
+    const mockMonth = {
+      key: '2025-06',
+      daysWithData: 30,
+      importByPeriod: { P1: 100, P2: 0, P3: 0 },
+      importTotalKWh: 100,
+      exportTotalKWh: 20,
+      indexedSurplusEur: 1.6,
+      indexedAvgPrice: 0.08,
+      indexedSurplusSource: 'hourly-index-base'
+    };
+
+    const res = window.BVSim.calcMonthForTarifa({
+      month: mockMonth,
+      tarifa: tarifaIndexada,
+      potenciaP1: 1,
+      potenciaP2: 1,
+      bvSaldoPrev: 0,
+      zonaFiscal: 'Península'
+    });
+
+    expect(res.precioExcSource).toBe('hourly-index-base');
+    expect(res.creditoPotencial).toBeCloseTo(1.6, 2);
+    expect(res.precioExc).toBeCloseTo(0.08, 5);
+    expect(res.credit1).toBeCloseTo(1.6, 2);
+  });
+
+  it('calcMonthForTarifa: mantiene 0,03 como referencia si la indexada no conserva trazabilidad horaria', () => {
+    const tarifaIndexada = {
+      nombre: "Indexada referencia",
+      p1: 0.1, p2: 0.1,
+      cPunta: 0.1, cLlano: 0.1, cValle: 0.1,
+      fv: { exc: -1, bv: false }
+    };
+
+    const mockMonth = {
+      key: '2025-06',
+      daysWithData: 30,
+      importByPeriod: { P1: 100, P2: 0, P3: 0 },
+      importTotalKWh: 100,
+      exportTotalKWh: 20
+    };
+
+    const res = window.BVSim.calcMonthForTarifa({
+      month: mockMonth,
+      tarifa: tarifaIndexada,
+      potenciaP1: 1,
+      potenciaP2: 1,
+      bvSaldoPrev: 0,
+      zonaFiscal: 'Península'
+    });
+
+    expect(res.precioExcSource).toBe('reference-0.03');
+    expect(res.precioExc).toBe(0.03);
+    expect(res.creditoPotencial).toBeCloseTo(0.6, 2);
+  });
+
+  it('calcMonthForTarifa: no cae a 0,03 si la trazabilidad horaria indexada da importe negativo', () => {
+    const tarifaIndexada = {
+      nombre: "Indexada negativa",
+      p1: 0.1, p2: 0.1,
+      cPunta: 0.1, cLlano: 0.1, cValle: 0.1,
+      fv: { exc: -1, bv: false }
+    };
+
+    const mockMonth = {
+      key: '2026-03',
+      daysWithData: 31,
+      importByPeriod: { P1: 100, P2: 0, P3: 0 },
+      importTotalKWh: 100,
+      exportTotalKWh: 20,
+      indexedSurplusEur: -0.8,
+      indexedAvgPrice: -0.04,
+      indexedSurplusSource: 'hourly-index-base'
+    };
+
+    const res = window.BVSim.calcMonthForTarifa({
+      month: mockMonth,
+      tarifa: tarifaIndexada,
+      potenciaP1: 1,
+      potenciaP2: 1,
+      bvSaldoPrev: 0,
+      zonaFiscal: 'Península'
+    });
+
+    expect(res.precioExcSource).toBe('hourly-index-base');
+    expect(res.creditoPotencial).toBe(0);
+    expect(res.precioExc).toBe(0);
+    expect(res.credit1).toBe(0);
+  });
+
   it('simulateForTarifaDemo: Debe acumular saldo en Batería Virtual (BV)', () => {
     // Tarifa con BV: energía 0.10, excedentes 0.10 (muy altos para que sobre)
     const tarifaBV = {

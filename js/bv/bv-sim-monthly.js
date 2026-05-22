@@ -233,11 +233,31 @@ window.BVSim.calcMonthForTarifa = function ({
   
   // Excedentes
   const exKwh = Number(month.exportTotalKWh) || 0;
-  // Las tarifas indexadas (-1) usan estimación de 0.03
-  let precioExc = tarifa?.fv?.exc === -1 ? 0.03 : Number(tarifa?.fv?.exc);
-  if (!Number.isFinite(precioExc)) precioExc = 0;
-  
-  const creditoPotencial = round2(exKwh * precioExc);
+  const esIndexada = tarifa?.fv?.exc === -1;
+  let precioExcSource = 'fixed';
+  let precioExc = Number(tarifa?.fv?.exc);
+  let creditoPotencial = 0;
+
+  if (esIndexada) {
+    const indexedEur = Number(month?.indexedSurplusEur);
+    const hasIndexedHourlyValue = month?.indexedSurplusSource === 'hourly-index-base'
+      && Number.isFinite(indexedEur);
+
+    if (hasIndexedHourlyValue) {
+      creditoPotencial = round2(Math.max(0, indexedEur));
+      precioExc = exKwh > 0 ? creditoPotencial / exKwh : 0;
+      precioExcSource = 'hourly-index-base';
+    } else {
+      precioExc = 0.03;
+      creditoPotencial = round2(exKwh * precioExc);
+      precioExcSource = 'reference-0.03';
+    }
+  } else {
+    if (!Number.isFinite(precioExc)) precioExc = 0;
+    precioExc = Math.max(0, precioExc);
+    creditoPotencial = round2(exKwh * precioExc);
+  }
+
   const hasBV = Boolean(tarifa?.fv?.bv);
 
   // Compensación (límite: coste energía, o energía pura si ENERGIA_PARCIAL)
@@ -452,6 +472,11 @@ window.BVSim.calcMonthForTarifa = function ({
     totalBase,
     exKwh,
     precioExc,
+    precioExcSource,
+    creditoPotencial,
+    indexedSurplusEur: Number.isFinite(Number(month?.indexedSurplusEur)) ? Number(month.indexedSurplusEur) : null,
+    indexedAvgPrice: Number.isFinite(Number(month?.indexedAvgPrice)) ? Number(month.indexedAvgPrice) : null,
+    indexedMissingHours: Number.isFinite(Number(month?.indexedMissingHours)) ? Number(month.indexedMissingHours) : 0,
     credit1,
     excedenteSobranteEur,
     excedenteNoCompensableEur,

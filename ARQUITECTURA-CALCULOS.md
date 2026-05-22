@@ -155,14 +155,16 @@ TOTAL: base + IVA vigente ✅
 
 **Excedentes en tarifas indexadas (valor `-1`)**:
 
-En `tarifas.json`, si `fv.exc = -1`, la tarifa es indexada y el precio de excedentes varía diariamente. Para los cálculos de comparación, `lf-calc.js` aplica una estimación operativa de **0,030 €/kWh**:
+En `tarifas.json`, si `fv.exc = -1`, la tarifa es indexada y el precio de excedentes varia hora a hora. En la home, si el usuario solo aporta kWh agregados, no existe curva de vertido y `lf-calc.js` aplica **0,030 €/kWh** como referencia orientativa:
 
 ```javascript
 // lf-calc.js: getFvExcPrice()
-if (raw === -1) return 0.03; // Estimación operativa para tarifas indexadas
+if (raw === -1) return 0.03; // Referencia orientativa sin curva horaria
 ```
 
-Esta estimación solo se usa en el motor del comparador. Está documentada también en `JSON-SCHEMA.md` y `CAPACIDADES-WEB.md`.
+No se usa un perfil solar sintetico porque seguiria inventando el vertido del usuario. Con CSV horario trazable, el simulador solar puede valorar tarifas indexadas mes a mes mediante `js/lf-surplus-prices.js`, multiplicando cada hora vertida por el precio horario disponible en `data/surplus/`. Ese calculo es exacto solo respecto al indice base disponible; si una comercializadora aplica ajustes o formula propia, debe presentarse como calculo segun indice base.
+
+Esta referencia y el modo horario estan documentados tambien en `JSON-SCHEMA.md` y `CAPACIDADES-WEB.md`.
 
 **Validación normativa**:
 - Estructura factura: ✅ BOE-A-1992-28147

@@ -507,7 +507,7 @@
           ✅ Has generado <strong>${this.fmt(creditoPotencial)}</strong> en excedentes. Se compensan <strong>${this.fmt(d.credit1)}</strong> este mes (tope: ${topeLabel}). ${bvActiva && d.excedenteSobranteEur > 0 ? `Los <strong>${this.fmt(d.excedenteSobranteEur)}</strong> restantes se guardan en tu Batería Virtual para próximas facturas.` : (!bvActiva ? 'El resto no se puede compensar este mes.' : '')}
         </div>` : ''}
         ${esIndexada && solarOn ? `<div class="desglose-resumen-note desglose-resumen-note--nufri">
-          ⚠️ <strong>Precio estimado:</strong> Esta tarifa paga excedentes a precio <strong>indexado</strong> (pool OMIE horario). El valor mostrado (${this.fmtNum(datos.precioCompensacion, 4)} €/kWh) es una <strong>estimación promedio</strong>. El precio real variará según el mercado eléctrico.
+          ⚠️ <strong>Referencia orientativa:</strong> Esta tarifa paga excedentes a precio <strong>indexado</strong>. Sin curva horaria de vertido, el valor mostrado (${this.fmtNum(datos.precioCompensacion, 4)} €/kWh) no es un cálculo real; el importe depende de las horas exactas de vertido y de la fórmula comercial.
         </div>` : ''}
         ${esCompParcial && compensa ? (() => {
           const cpCons = d.cons || 0;

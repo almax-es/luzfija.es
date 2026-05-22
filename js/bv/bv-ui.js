@@ -87,6 +87,7 @@ window.BVSim.manualUi.buildSimulationMonths = function buildSimulationMonths(ent
     months.push({
       key,
       daysWithData: meta?.daysWithData || daysInMonth,
+      daysInMonth,
       importTotalKWh: totalCons,
       exportTotalKWh: vert,
       importByPeriod: {
@@ -146,6 +147,48 @@ document.addEventListener('DOMContentLoaded', () => {
 
   const manualGrid = document.getElementById('bv-manual-grid');
   const manualMonthMetaByIndex = window.BVSim._manualMonthMeta = {};
+  const hourlyTraceState = window.BVSim._hourlyTraceState = {
+    records: null,
+    zonaFiscal: null,
+    dirty: false,
+    reason: '',
+    stats: null
+  };
+
+  function clearHourlyTraceState() {
+    hourlyTraceState.records = null;
+    hourlyTraceState.zonaFiscal = null;
+    hourlyTraceState.dirty = false;
+    hourlyTraceState.reason = '';
+    hourlyTraceState.stats = null;
+  }
+
+  function setHourlyTraceFromImport(importResult, zonaFiscal) {
+    if (importResult?.hasExcedenteColumn === false) {
+      clearHourlyTraceState();
+      hourlyTraceState.reason = 'no-hourly-surplus-column';
+      return;
+    }
+    hourlyTraceState.records = Array.isArray(importResult?.records) ? importResult.records : null;
+    hourlyTraceState.zonaFiscal = zonaFiscal || null;
+    hourlyTraceState.dirty = false;
+    hourlyTraceState.reason = '';
+    hourlyTraceState.stats = null;
+  }
+
+  function invalidateHourlyTrace(reason) {
+    if (!hourlyTraceState.records) return;
+    hourlyTraceState.dirty = true;
+    hourlyTraceState.reason = reason || 'manual-edit';
+    hourlyTraceState.stats = null;
+  }
+
+  function canUseHourlyTrace(zonaFiscal) {
+    return Array.isArray(hourlyTraceState.records)
+      && hourlyTraceState.records.length > 0
+      && !hourlyTraceState.dirty
+      && String(hourlyTraceState.zonaFiscal || '') === String(zonaFiscal || '');
+  }
 
   function clearManualMonthMeta() {
     Object.keys(manualMonthMetaByIndex).forEach((key) => {
@@ -280,6 +323,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('✓ Datos guardados cargados correctamente', 'ok');
       }
 
+      clearHourlyTraceState();
       return hasData;
     } catch(e) {
       console.warn('Error cargando datos:', e);
@@ -382,6 +426,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
           // Recargar datos en la interfaz
           loadManualData();
+          clearHourlyTraceState();
           updateManualTotals();
 
           showToast('✓ Datos importados correctamente', 'ok');
@@ -517,6 +562,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let saveTimer = null;
     manualGrid.addEventListener('input', (e) => {
       if (e.target.classList.contains('manual-input')) {
+        invalidateHourlyTrace('manual-edit');
         const rawValue = e.target.value.trim();
 
         // Validar que el string raw sea numérico antes de parsear
@@ -592,6 +638,7 @@ document.addEventListener('DOMContentLoaded', () => {
       localStorage.removeItem('bv_manual_data');
       localStorage.removeItem('bv_manual_data_timestamp');
       clearManualMonthMeta();
+      clearHourlyTraceState();
       updateManualTotals();
       updateDataStatus();
       showToast('✓ Todos los datos han sido borrados', 'ok');
@@ -1161,6 +1208,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (result && result.ok) {
         // Cachear el resultado
         window.BVSim._cachedImportResult = result;
+        setHourlyTraceFromImport(result, zonaVal);
         // Nota: Ya no necesitamos mapear porque getPeriodoHorarioCSV normaliza internamente
         populateManualGridFromCSV(result, zonaVal);
 
@@ -1201,6 +1249,8 @@ document.addEventListener('DOMContentLoaded', () => {
     removeFileBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       window.BVSim.file = null;
+      window.BVSim._cachedImportResult = null;
+      clearHourlyTraceState();
       fileInput.value = '';
       if (fileSelectedMsg) fileSelectedMsg.style.display = 'none';
       if (resultsContainer) resultsContainer.style.display = 'none';
@@ -1284,6 +1334,20 @@ document.addEventListener('DOMContentLoaded', () => {
         if (statusEl) statusEl.innerHTML = '<span class="spinner"></span> Calculando (incluida tu tarifa actual)...';
       }
 
+      const hasIndexedTariffs = tarifasResult.tarifasBV.some((tarifa) => tarifa?.fv?.exc === -1);
+      let indexedTraceMode = 'reference';
+      if (hasIndexedTariffs && canUseHourlyTrace(zonaFiscalVal) && window.LF?.surplusPrices?.computeHourlyCompensation) {
+        if (statusEl) statusEl.innerHTML = '<span class="spinner"></span> Calculando excedentes indexados con tu curva horaria...';
+        const stats = await window.LF.surplusPrices.computeHourlyCompensation(hourlyTraceState.records, {
+          zonaFiscal: zonaFiscalVal
+        });
+        hourlyTraceState.stats = stats;
+        monthlyResult.months = window.LF.surplusPrices.applyMonthlyIndexedValues(monthlyResult.months, stats);
+        indexedTraceMode = monthlyResult.months.some((month) => month.indexedSurplusSource === 'hourly-index-base')
+          ? 'hourly-index-base'
+          : 'reference';
+      }
+
       const monthMap = new Map((monthlyResult.months || []).map((m) => [m.key, m]));
       
       const allResults = window.BVSim.simulateForAllTarifasBV({
@@ -1298,7 +1362,7 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(allResults?.error || 'No se pudo calcular el ranking.');
       }
 
-      // Ranking: ordenar por "pagas" (coste total anual con BV aplicada).
+      // Ranking: ordenar por "pagas" (coste del periodo simulado con BV aplicada).
       // Nota: si el usuario introduce un saldo BV inicial > 0, el ranking reflejará ese saldo.
       const rankedResults = [...allResults.results].sort((a, b) => {
         const diffPagado = (a.totals.pagado || 0) - (b.totals.pagado || 0);
@@ -1313,6 +1377,24 @@ document.addEventListener('DOMContentLoaded', () => {
       const winner = rankedResults[0];
 
       const r2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+      const simulatedMonths = monthlyResult.months || [];
+      const completeMonths = simulatedMonths.filter((month) => {
+        const daysInMonth = Number(month.daysInMonth) || (() => {
+          const m = /^(\d{4})-(\d{2})$/.exec(String(month.key || ''));
+          return m ? new Date(Number(m[1]), Number(m[2]), 0).getDate() : 31;
+        })();
+        const daysWithData = Number(month.daysWithData) || 0;
+        return daysWithData >= Math.ceil(daysInMonth * 0.8);
+      }).length;
+      const isAnnualScope = simulatedMonths.length >= 12 && completeMonths >= 12;
+      const totalCostLabel = isAnnualScope ? 'Coste total anual' : 'Coste periodo simulado';
+      const totalCostSub = isAnnualScope
+        ? 'Suma de todas tus facturas mensuales'
+        : `Suma de ${simulatedMonths.length} mes${simulatedMonths.length === 1 ? '' : 'es'} simulado${simulatedMonths.length === 1 ? '' : 's'}`;
+      const totalCostNote = isAnnualScope
+        ? 'durante el año'
+        : `durante el periodo introducido (${simulatedMonths.length} mes${simulatedMonths.length === 1 ? '' : 'es'}). No se presenta como ranking anual porque no hay 12 meses razonablemente completos`;
+      const scopeAdjective = isAnnualScope ? 'anual' : 'del periodo';
 
       // --- HELPERS DE CÁLCULO POR MES (una sola fuente de verdad) ---
       const computeRowView = (row, resultItem) => {
@@ -1351,7 +1433,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Cálculos Excedentes
         const exKwh = Number(row.exKwh) || Number(m.exportTotalKWh) || 0;
-        const totalGen = r2(exKwh * (row.precioExc || 0));
+        const totalGen = r2(Number(row.creditoPotencial) || (exKwh * (row.precioExc || 0)));
+        const usesHourlyIndex = row.precioExcSource === 'hourly-index-base';
         const esCP = t?.fv?.tope === 'ENERGIA_PARCIAL';
         const maxComp = (esCP && row.baseCompensable != null)
           ? r2(row.baseCompensable) : eBruta;
@@ -1363,7 +1446,13 @@ document.addEventListener('DOMContentLoaded', () => {
           const pP3 = r2(kwhP3 * (pc.P3 || 0));
           tipMaxDetalle = `\n❗ Peajes: P1 ${fEur(pP1)} + P2 ${fEur(pP2)} + P3 ${fEur(pP3)} = ${fEur(row.peajesTotal)}\n   Máx compensable: ${fEur(eBruta)} − ${fEur(row.peajesTotal)} = ${fEur(maxComp)}`;
         }
-        const tipExcedentes = `💰 Gen: ${fKwh(exKwh)} × ${fPrice(row.precioExc)} = ${fEur(totalGen)}
+        const tipGen = usesHourlyIndex
+          ? `💰 Índice horario: ${fKwh(exKwh)} → ${fEur(totalGen)} (media ${fPrice(row.precioExc)} €/kWh)`
+          : `💰 Gen: ${fKwh(exKwh)} × ${fPrice(row.precioExc)} = ${fEur(totalGen)}`;
+        const tipIndexMissing = usesHourlyIndex && Number(row.indexedMissingHours) > 0
+          ? `\n⚠️ ${Number(row.indexedMissingHours)} horas sin precio horario en el histórico.`
+          : '';
+        const tipExcedentes = `${tipGen}${tipIndexMissing}
 ✅ Comp: ${fEur(excMes)} (máx: ${fEur(maxComp)})${tipMaxDetalle}
 ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCompensableParcial)}\n` : ''}${hasBV ? `💚 BV: ${fEur(sobranteHucha)}` : `❌ Se pierde: ${fEur(sobranteHucha)}`}`;
 
@@ -1512,9 +1601,15 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
       };
 
       // Helper: Disclaimer para tarifas con precio indexado (marcadas con -1)
-      const getIndexadoDisclaimer = (tarifa) => {
+      const getIndexadoDisclaimer = (tarifa, resultItem) => {
         const esIndexada = tarifa?.fv?.exc === -1;
         if (!esIndexada) return '';
+        const rows = Array.isArray(resultItem?.rows) ? resultItem.rows : [];
+        const usesHourlyIndex = rows.some((row) => row.precioExcSource === 'hourly-index-base');
+        const missing = rows.reduce((acc, row) => acc + (Number(row.indexedMissingHours) || 0), 0);
+        const text = usesHourlyIndex
+          ? `Cálculo horario según índice base: los excedentes importados se valoran hora a hora con el histórico disponible. Es exacto solo si la fórmula comercial coincide con ese índice; si hay ajustes, costes de gestión o fórmula propia, puede variar.${missing > 0 ? ` ${missing} horas no encontraron precio horario.` : ''}`
+          : 'Referencia orientativa: sin curva horaria trazable, esta tarifa indexada usa 0,0300 €/kWh como referencia. El importe real depende de las horas exactas de vertido y de la fórmula comercial.';
         return `<div class="bv-nufri-disclaimer" style="
           margin-top: 8px;
           padding: 8px 12px;
@@ -1526,7 +1621,7 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
           color: var(--text);
           opacity: 0.9;
         ">
-          <span style="opacity: 0.7;">ℹ️</span> <strong>Precio estimado:</strong> Esta tarifa paga excedentes a precio indexado (pool OMIE horario). El valor mostrado (0,0300 €/kWh) es una estimación promedio. El precio real variará según el mercado eléctrico.
+          <span style="opacity: 0.7;">ℹ️</span> <strong>Tarifa indexada:</strong> ${escapeHtml(text)}
         </div>`;
       };
 
@@ -1545,7 +1640,7 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
           totalCons = r2(totalCons); totalPeajes = r2(totalPeajes); totalBase = r2(totalBase);
           if (totalCons > 0 && totalPeajes > 0) {
             const pct = Math.round(totalBase / totalCons * 100);
-            detalle = ` En tu caso: de ${fEur(totalCons)} de consumo anual, ${fEur(totalPeajes)} son peajes/cargos. Solo el ${pct}% (${fEur(totalBase)}) es compensable.`;
+            detalle = ` En tu caso: de ${fEur(totalCons)} de consumo ${scopeAdjective}, ${fEur(totalPeajes)} son peajes/cargos. Solo el ${pct}% (${fEur(totalBase)}) es compensable.`;
           }
         }
 
@@ -1570,7 +1665,7 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
       const pillWinner = winnerHasBV
         ? '<span class="bv-pill bv-pill--bv" title="Esta tarifa acumula el excedente sobrante (en €) para meses futuros.">Con batería virtual</span>'
         : '<span class="bv-pill bv-pill--no-bv" title="Esta tarifa NO acumula excedente sobrante: lo no compensado se pierde cada mes.">Sin batería virtual</span>';
-      const winnerNufriNote = getIndexadoDisclaimer(winner.tarifa);
+      const winnerNufriNote = getIndexadoDisclaimer(winner.tarifa, winner);
       const winnerCompParcialNote = getCompParcialDisclaimer(winner.tarifa, winner);
 
       const winnerHTML = `
@@ -1587,9 +1682,9 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
           </div>
           <div class="bv-kpis-stack">
             <div class="bv-kpi-card">
-              <span class="bv-kpi-label">Coste total anual</span>
+              <span class="bv-kpi-label">${totalCostLabel}</span>
               <span class="bv-kpi-value">${fEur(winner.totals.pagado)}</span>
-              <span class="bv-kpi-sub">Suma de todas tus facturas mensuales</span>
+              <span class="bv-kpi-sub">${totalCostSub}</span>
             </div>
             ${winnerHasBV ? `
             <div class="bv-kpi-card">
@@ -1619,7 +1714,7 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
         const pill = hasBV
           ? '<span class="bv-pill bv-pill--bv" title="Acumula excedente sobrante para meses futuros.">Con BV</span>'
           : '<span class="bv-pill bv-pill--no-bv" title="No acumula excedente sobrante; lo no compensado se pierde.">Sin BV</span>';
-        const altNufriNote = getIndexadoDisclaimer(r.tarifa);
+        const altNufriNote = getIndexadoDisclaimer(r.tarifa, r);
         const altCompParcialNote = getCompParcialDisclaimer(r.tarifa, r);
 
         return `
@@ -1632,7 +1727,7 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
               </div>
               <div class="bv-alt-price-box">
                 <div class="bv-alt-price">${fEur(r.totals.pagado)}</div>
-                <div class="bv-alt-price-label">Coste total anual</div>
+                <div class="bv-alt-price-label">${totalCostLabel}</div>
                 ${hasBV ? `<div class="bv-alt-bv-saldo">${fEur(r.totals.bvFinal)} Saldo BV final</div>` : ''}
               </div>
             </div>
@@ -1671,7 +1766,9 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
         <div style="background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 24px; text-align: center;">
           <div style="font-size: 0.95rem; color: var(--muted); line-height: 1.6;">
             <strong>¿Cómo se calcula el ranking?</strong><br>
-            Las tarifas están ordenadas por el <strong>coste total anual</strong>: la suma de todas tus facturas mensuales durante el año.
+            Las tarifas están ordenadas por el <strong>${totalCostLabel.toLowerCase()}</strong>: la suma de tus facturas mensuales ${totalCostNote}.
+            ${hasIndexedTariffs && indexedTraceMode === 'hourly-index-base' ? '<br><br><strong>Indexadas:</strong> se han calculado con tu CSV horario según el índice base disponible.' : ''}
+            ${hasIndexedTariffs && indexedTraceMode !== 'hourly-index-base' ? '<br><br><strong>Indexadas:</strong> al no haber trazabilidad horaria activa, se usa 0,030 €/kWh solo como referencia orientativa.' : ''}
             ${saldoVal > 0 ? `<br><br><strong>Nota:</strong> has indicado un saldo BV inicial de ${fEur(saldoVal)} y se descuenta en el cálculo.` : ''}
           </div>
         </div>

@@ -63,6 +63,7 @@ describe('BV UI manual month helpers', () => {
     expect(months[0]).toMatchObject({
       key: '2025-01',
       daysWithData: 10,
+      daysInMonth: 31,
       importTotalKWh: 25,
       exportTotalKWh: 3,
       importByPeriod: { P1: 12, P2: 8, P3: 5 }
@@ -79,5 +80,6 @@ describe('BV UI manual month helpers', () => {
     expect(months).toHaveLength(1);
     expect(months[0].key).toBe('2026-01');
     expect(months[0].daysWithData).toBe(31);
+    expect(months[0].daysInMonth).toBe(31);
   });
 });

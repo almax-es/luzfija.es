@@ -385,6 +385,10 @@
   }
 
   async function computeCsvCompensation(records, geo) {
+    if (window.LF?.surplusPrices?.computeHourlyCompensation) {
+      return window.LF.surplusPrices.computeHourlyCompensation(records, { geo });
+    }
+
     const monthSet = new Set();
     const valid = records.filter(r => r && r.fecha instanceof Date && Number.isFinite(r.excedente) && r.excedente > 0);
     valid.forEach(r => monthSet.add(ymKey(r.fecha)));

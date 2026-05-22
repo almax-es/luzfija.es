@@ -242,10 +242,10 @@ window.BVSim = window.BVSim || {};
 
       const warnings = Array.isArray(parsed.warnings) ? parsed.warnings.slice() : [];
       if (typeof validateCsvSpanFromRecords === 'function') {
-        // Comparador solar: SÍ requiere exactamente 12 meses (tabla fija)
+        // Comparador solar: acepta hasta 12 meses; si llegan 13, recorta a 12.
         const spanCheck = validateCsvSpanFromRecords(records, {
           maxDays: 370,
-          requireExactly12Months: true,  // ← Comparador solar: ajustar a 12 meses
+          requireExactly12Months: true,  // ← Modo solar: máximo 13 meses, ajuste a 12 si procede
           coverageThreshold: 80          // ← 80% mínimo de cobertura por mes
         });
 

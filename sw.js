@@ -3,7 +3,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260522-064116";
+const CACHE_VERSION = "20260522-075750";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
@@ -38,6 +38,7 @@ const ASSETS = [
   // Módulos LuzFija (Core)
   "js/lf-utils.js",
   "js/lf-csv-utils.js",
+  "js/lf-surplus-prices.js",
   "js/lf-state.js",
   "js/lf-ui.js",
   "js/lf-tooltips.js",

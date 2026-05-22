@@ -29,10 +29,10 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
   - 9 en raiz.
   - 1 en `estadisticas/`.
   - 24 en `guias/` (indice + 23 guias).
-- 30 modulos JavaScript en `js/` (incluye `js/bv/`).
-- 19.369 lineas JS aproximadas.
+- 31 modulos JavaScript en `js/` (incluye `js/bv/`).
+- 19.849 lineas JS aproximadas.
 - 68 tarifas en `tarifas.json`.
-- Suite de tests Vitest con 50 archivos y 326 casos.
+- Suite de tests Vitest con 51 archivos y 332 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 
@@ -162,7 +162,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 
 Notas de tarifas:
 
-- `fv.exc` es el precio de excedentes en €/kWh; `-1` significa precio indexado y la web calcula con una estimacion operativa de 0,030 €/kWh mostrando aviso visible.
+- `fv.exc` es el precio de excedentes en €/kWh; `-1` significa precio indexado. Sin curva horaria se usa 0,030 €/kWh solo como referencia orientativa; con CSV horario trazable el simulador puede valorar el periodo importado contra `data/surplus/`.
 - La columna privada `Activa` de la Excel no se publica en JSON: `no` excluye una tarifa de `tarifas.json` y del post de Facebook, pero el validador privado la sigue revisando.
 
 ## PWA, Cache Y Offline
