@@ -1770,6 +1770,10 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
           indexedFallbackMsg = 'El CSV importado es de <strong>' + escapeHtml(String(_traceZona)) + '</strong>; cambia la zona o reimporta para usar el cálculo exacto. Se usa 0,030&nbsp;€/kWh de referencia.';
         } else if (hourlyTraceState.stats && hourlyTraceState.stats.totalKwh === 0 && (hourlyTraceState.stats.missing || 0) > 0) {
           indexedFallbackMsg = 'No hay precios del índice disponibles para el periodo del CSV. Se usa 0,030&nbsp;€/kWh de referencia.';
+        } else if (hourlyTraceState.reason === 'no-hourly-surplus-column') {
+          indexedFallbackMsg = 'El CSV importado no tiene columna de excedentes (AS_kWh). Se usa 0,030&nbsp;€/kWh de referencia.';
+        } else if (_traceActive && hourlyTraceState.stats && hourlyTraceState.stats.totalKwh === 0 && (hourlyTraceState.stats.missing || 0) === 0) {
+          indexedFallbackMsg = 'Tu CSV no registra excedentes para este periodo. Se usa 0,030&nbsp;€/kWh de referencia.';
         } else {
           indexedFallbackMsg = 'Sin CSV con excedentes activo, se usa 0,030&nbsp;€/kWh de referencia orientativa.';
         }
