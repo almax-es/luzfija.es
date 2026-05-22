@@ -302,6 +302,7 @@
           
           parts.push(`☀️ Excedentes vertidos: ${exKwh.toFixed(2)} kWh`);
           parts.push(`💰 Precio compensación: ${precioExc.toFixed(3)} €/kWh`);
+          if (r.fvExcRaw === -1) parts.push(`ℹ️ Referencia orientativa: el precio real varía según las horas exactas de vertido`);
           parts.push(`✅ Compensado este mes: ${credit1.toFixed(2)} € (descontado de tu consumo de energía)`);
           if (excNoCompensable > 0) parts.push(`⚠️ No aplicado en factura por peajes/cargos: ${excNoCompensable.toFixed(2)} €`);
           if (credit2 > 0) parts.push(`🔋 BV usada: ${credit2.toFixed(2)} € (ahorros de meses anteriores aplicados ahora)`);
