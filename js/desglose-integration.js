@@ -208,6 +208,10 @@
     lfDbg('Inputs parseados:', inputs);
 
     let tarifa = null;
+    const selectedRow = Array.from(document.querySelectorAll('#tbody tr')).find((fila) => (
+      fila?.dataset?.tarifaNombre === nombreTarifa
+    )) || null;
+    const selectedRowDataset = selectedRow?.dataset || {};
     
     // ✅ CASO ESPECIAL: Mi Tarifa personalizada
     if (nombreTarifa === 'Mi tarifa ⭐') {
@@ -351,9 +355,10 @@
       tieneBV = tarifa.fv.bv || false;
       reglaBV = tarifa.fv.reglaBV || 'NO APLICA';
       
-      // Precio compensación (solo valores numéricos válidos o estimación para -1)
+      // Precio compensación: preferimos el precio usado por el ranking si el render lo dejó en la fila.
+      const rowPriceUsed = Number(selectedRowDataset.fvPriceUsed);
       if (tarifa.fv.exc === -1) {
-        precioCompensacion = 0.03;
+        precioCompensacion = Number.isFinite(rowPriceUsed) ? rowPriceUsed : 0.03;
       } else if (typeof tarifa.fv.exc === 'number') {
         precioCompensacion = tarifa.fv.exc;
       } else {
@@ -421,6 +426,7 @@
       tieneBV: tieneBV,
       reglaBV: reglaBV,
       precioCompensacionIndexada: tarifa.fv?.exc === -1,
+      precioCompensacionSource: selectedRowDataset.fvPriceSource || (tarifa.fv?.exc === -1 ? 'reference-0.03' : 'fixed'),
 
       zonaFiscal: inputs.zonaFiscal,
       esViviendaCanarias: inputs.viviendaCanarias,

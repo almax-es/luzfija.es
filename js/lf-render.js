@@ -190,6 +190,9 @@
         const nombreBase = r.nombre || '';
         tr.dataset.tarifaNombre = nombreBase;
         tr.dataset.esPvpc = r.esPVPC ? '1' : '0';
+        if (r.fvExcRaw !== undefined && r.fvExcRaw !== null) tr.dataset.fvExcRaw = String(r.fvExcRaw);
+        if (Number.isFinite(Number(r.fvPriceUsed))) tr.dataset.fvPriceUsed = String(r.fvPriceUsed);
+        tr.dataset.fvPriceSource = r.fvPriceSource || r.precioExcSource || (r.fvExcRaw === -1 ? 'reference-0.03' : 'fixed');
         
         // --- AVISO COMPENSACIÓN PARCIAL (tope ENERGIA_PARCIAL) ---
         let compParcialIcon = '';

@@ -146,4 +146,47 @@ describe('Desglose integration UX guardrails', () => {
       })
     );
   });
+
+  it('usa el precio FV ya calculado en la fila para tarifas indexadas', async () => {
+    global.fetch = vi.fn(async () => ({
+      json: async () => ({
+        tarifas: [{
+          id: 'indexada',
+          nombre: 'Indexada Solar',
+          cPunta: 0.12,
+          cLlano: 0.12,
+          cValle: 0.12,
+          p1: 0.05,
+          p2: 0.05,
+          fv: {
+            exc: -1,
+            tipo: 'SIMPLE',
+            tope: 'ENERGIA',
+            bv: false
+          }
+        }]
+      })
+    }));
+
+    document.getElementById('solarOn').checked = true;
+    document.getElementById('exTotal').value = '150';
+    document.getElementById('tbody').innerHTML = `
+      <tr data-tarifa-nombre="Indexada Solar" data-fv-price-used="0.078" data-fv-price-source="hourly-index-base">
+        <td class="tarifa-cell">Indexada Solar</td>
+        <td class="total-cell">10,00 €</td>
+      </tr>
+    `;
+
+    bootstrapIntegration();
+
+    await window.mostrarDesglose('Indexada Solar');
+
+    expect(window.__LF_DesgloseFactura.abrir).toHaveBeenCalledWith(
+      expect.objectContaining({
+        precioCompensacion: 0.078,
+        precioCompensacionIndexada: true,
+        precioCompensacionSource: 'hourly-index-base'
+      })
+    );
+  });
 });

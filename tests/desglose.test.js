@@ -217,4 +217,36 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
     expect(body.innerHTML).toContain('TOTAL FACTURA');
   });
 
+  it('Muestra índice base en lugar de estimado para excedentes indexados con trazabilidad horaria', () => {
+    Desglose.init();
+
+    const datos = {
+      nombreTarifa: 'Indexada Solar',
+      potenciaP1: 4,
+      potenciaP2: 4,
+      dias: 30,
+      precioP1: 0.1,
+      precioP2: 0.1,
+      consumoPunta: 100,
+      precioPunta: 0.2,
+      excedentes: 50,
+      precioCompensacion: 0.078,
+      precioCompensacionIndexada: true,
+      precioCompensacionSource: 'hourly-index-base',
+      tipoCompensacion: 'SIMPLE',
+      topeCompensacion: 'ENERGIA',
+      solarOn: true,
+      zonaFiscal: 'Península',
+      fechaFin: '20/03/2026'
+    };
+
+    const desglose = Desglose.calcularDesglose(datos);
+    Desglose.renderizar(desglose, datos);
+
+    const bodyText = Desglose.modal.querySelector('.desglose-body').textContent;
+    expect(bodyText).toContain('índice base');
+    expect(bodyText).toContain('Cálculo según índice base');
+    expect(bodyText).not.toContain('(est.)');
+  });
+
 });

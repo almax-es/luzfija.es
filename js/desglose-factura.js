@@ -475,8 +475,11 @@
       // Buscar la tarifa para ver si es indexada
       const tarifaData = window.LF_CONFIG?.tarifas?.find(t => t.nombre === datos.nombreTarifa);
       const esIndexada = Boolean(datos.precioCompensacionIndexada) || tarifaData?.fv?.exc === -1;
+      const esIndiceBase = esIndexada && datos.precioCompensacionSource === 'hourly-index-base';
       // Mostrar precio con menos decimales para mayor claridad (2 en lugar de 6)
-      const precioLabel = esIndexada ? `${this.fmtNum(datos.precioCompensacion, 2)} €/kWh <span style="color:#f59e0b">(est.)</span>` : `${this.fmtNum(datos.precioCompensacion, 2)} €/kWh`;
+      const precioLabel = esIndexada
+        ? `${this.fmtNum(datos.precioCompensacion, 2)} €/kWh <span style="color:${esIndiceBase ? '#22c55e' : '#f59e0b'}">(${esIndiceBase ? 'índice base' : 'est.'})</span>`
+        : `${this.fmtNum(datos.precioCompensacion, 2)} €/kWh`;
 
       html += `<div class="desglose-resumen">
         <div class="desglose-resumen-grid">
@@ -507,7 +510,10 @@
           ✅ Has generado <strong>${this.fmt(creditoPotencial)}</strong> en excedentes. Se compensan <strong>${this.fmt(d.credit1)}</strong> este mes (tope: ${topeLabel}). ${bvActiva && d.excedenteSobranteEur > 0 ? `Los <strong>${this.fmt(d.excedenteSobranteEur)}</strong> restantes se guardan en tu Batería Virtual para próximas facturas.` : (!bvActiva ? 'El resto no se puede compensar este mes.' : '')}
         </div>` : ''}
         ${esIndexada && solarOn ? `<div class="desglose-resumen-note desglose-resumen-note--nufri">
-          ⚠️ <strong>Referencia orientativa:</strong> Esta tarifa paga excedentes a precio <strong>indexado</strong>. Sin curva horaria de vertido, el valor mostrado (${this.fmtNum(datos.precioCompensacion, 4)} €/kWh) no es un cálculo real; el importe depende de las horas exactas de vertido y de la fórmula comercial.
+          ${esIndiceBase
+            ? `ℹ️ <strong>Cálculo según índice base:</strong> el precio mostrado (${this.fmtNum(datos.precioCompensacion, 4)} €/kWh) sale de la curva horaria disponible. Es exacto solo si la fórmula comercial coincide con ese índice; si hay ajustes o costes de gestión, puede variar.`
+            : `⚠️ <strong>Referencia orientativa:</strong> Esta tarifa paga excedentes a precio <strong>indexado</strong>. Sin curva horaria de vertido, el valor mostrado (${this.fmtNum(datos.precioCompensacion, 4)} €/kWh) no es un cálculo real; el importe depende de las horas exactas de vertido y de la fórmula comercial.`
+          }
         </div>` : ''}
         ${esCompParcial && compensa ? (() => {
           const cpCons = d.cons || 0;
