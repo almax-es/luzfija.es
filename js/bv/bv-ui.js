@@ -215,6 +215,12 @@ document.addEventListener('DOMContentLoaded', () => {
     reason: '',
     stats: null
   };
+  const escapeHtml = (window.LF?.escapeHtml) ? window.LF.escapeHtml : (v) => String(v ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
   const hourlyTraceControls = window.BVSim._hourlyTraceControls = window.BVSim.manualUi.createHourlyTraceControls(hourlyTraceState, escapeHtml);
   const clearHourlyTraceState = hourlyTraceControls.clear;
   const setHourlyTraceFromImport = hourlyTraceControls.setFromImport;
@@ -797,13 +803,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const n = Number.parseFloat(normalized);
     return Number.isFinite(n) ? n : 0;
   }
-
-  const escapeHtml = (window.LF?.escapeHtml) ? window.LF.escapeHtml : (v) => String(v ?? '')
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#039;');
 
   const escapeAttr = (v) => escapeHtml(v).replace(/\n/g, '&#10;');
 

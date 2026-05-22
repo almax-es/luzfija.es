@@ -174,4 +174,33 @@ describe('BV UI manual month helpers', () => {
     expect(buildIndexedFallbackMsg(true, 'reference', 'Canarias'))
       .toContain('No hay precios del índice disponibles');
   });
+
+  it('inicializa DOMContentLoaded sin usar variables antes de inicializarlas', () => {
+    document.body.innerHTML = `
+      <div id="toast"><span id="toastText"></span><span id="toastDot"></span></div>
+      <input id="bv-file" type="file">
+      <button id="upload-csv-btn"></button>
+      <span id="file-name"></span>
+      <div id="file-selected-msg"></div>
+      <button id="remove-file"></button>
+      <input id="bv-p1" value="3.45">
+      <input id="bv-p2" value="3.45">
+      <input id="bv-saldo-inicial" value="0">
+      <select id="bv-zona-fiscal"><option value="Península" selected>Península</option></select>
+      <div id="bv-vivienda-canarias-wrapper"></div>
+      <input id="bv-vivienda-canarias" type="checkbox">
+      <button id="bv-simulate"><span class="bv-btn-text"></span><span class="spinner"></span></button>
+      <div id="bv-results-container"></div>
+      <div id="bv-results"></div>
+      <div id="bv-status-container"></div>
+      <div id="bv-status"></div>
+      <div id="bv-manual-grid"></div>
+      <div id="bv-data-status"></div>
+    `;
+    window.BVSim = {};
+    loadBvUi(window);
+
+    expect(() => document.dispatchEvent(new Event('DOMContentLoaded'))).not.toThrow();
+    expect(window.BVSim._hourlyTraceControls).toBeTruthy();
+  });
 });
