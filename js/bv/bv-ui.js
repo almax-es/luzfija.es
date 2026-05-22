@@ -101,6 +101,67 @@ window.BVSim.manualUi.buildSimulationMonths = function buildSimulationMonths(ent
   return months;
 };
 
+window.BVSim.manualUi.createHourlyTraceControls = function createHourlyTraceControls(hourlyTraceState, escapeHtmlFn = (value) => String(value || '')) {
+  function clearHourlyTraceState() {
+    hourlyTraceState.records = null;
+    hourlyTraceState.zonaFiscal = null;
+    hourlyTraceState.dirty = false;
+    hourlyTraceState.reason = '';
+    hourlyTraceState.stats = null;
+  }
+
+  function setHourlyTraceFromImport(importResult, zonaFiscal) {
+    if (importResult?.meta?.hasExcedenteColumn === false) {
+      clearHourlyTraceState();
+      hourlyTraceState.reason = 'no-hourly-surplus-column';
+      return;
+    }
+    hourlyTraceState.records = Array.isArray(importResult?.records) ? importResult.records : null;
+    hourlyTraceState.zonaFiscal = zonaFiscal || null;
+    hourlyTraceState.dirty = false;
+    hourlyTraceState.reason = '';
+    hourlyTraceState.stats = null;
+  }
+
+  function invalidateHourlyTrace(reason) {
+    if (!hourlyTraceState.records) return;
+    hourlyTraceState.dirty = true;
+    hourlyTraceState.reason = reason || 'manual-edit';
+    hourlyTraceState.stats = null;
+  }
+
+  function canUseHourlyTrace(zonaFiscal) {
+    return Array.isArray(hourlyTraceState.records)
+      && hourlyTraceState.records.length > 0
+      && !hourlyTraceState.dirty
+      && String(hourlyTraceState.zonaFiscal || '') === String(zonaFiscal || '');
+  }
+
+  function buildIndexedFallbackMsg(hasIndexedTariffs, indexedTraceMode, zonaFiscalVal) {
+    if (!hasIndexedTariffs || indexedTraceMode === 'hourly-index-base') return '';
+    const _traceActive = Array.isArray(hourlyTraceState.records) && hourlyTraceState.records.length > 0 && !hourlyTraceState.dirty;
+    const _traceZona = hourlyTraceState.zonaFiscal;
+    if (_traceActive && _traceZona && String(_traceZona) !== String(zonaFiscalVal || '')) {
+      return 'El CSV importado es de <strong>' + escapeHtmlFn(String(_traceZona)) + '</strong>; cambia la zona o reimporta para usar el cálculo exacto. Se usa 0,030&nbsp;€/kWh de referencia.';
+    } else if (hourlyTraceState.stats && hourlyTraceState.stats.totalKwh === 0 && (hourlyTraceState.stats.missing || 0) > 0) {
+      return 'No hay precios del índice disponibles para el periodo del CSV. Se usa 0,030&nbsp;€/kWh de referencia.';
+    } else if (hourlyTraceState.reason === 'no-hourly-surplus-column') {
+      return 'El CSV importado no tiene columna de excedentes (AS_kWh). Se usa 0,030&nbsp;€/kWh de referencia.';
+    } else if (_traceActive && hourlyTraceState.stats && hourlyTraceState.stats.totalKwh === 0 && (hourlyTraceState.stats.missing || 0) === 0) {
+      return 'Tu CSV no registra excedentes para este periodo. Se usa 0,030&nbsp;€/kWh de referencia.';
+    }
+    return 'Sin CSV con excedentes activo, se usa 0,030&nbsp;€/kWh de referencia orientativa.';
+  }
+
+  return {
+    clear: clearHourlyTraceState,
+    setFromImport: setHourlyTraceFromImport,
+    invalidate: invalidateHourlyTrace,
+    canUse: canUseHourlyTrace,
+    buildIndexedFallbackMsg
+  };
+};
+
 document.addEventListener('DOMContentLoaded', () => {
   const toastEl = document.getElementById('toast');
   const toastTextEl = document.getElementById('toastText');
@@ -154,41 +215,12 @@ document.addEventListener('DOMContentLoaded', () => {
     reason: '',
     stats: null
   };
-
-  function clearHourlyTraceState() {
-    hourlyTraceState.records = null;
-    hourlyTraceState.zonaFiscal = null;
-    hourlyTraceState.dirty = false;
-    hourlyTraceState.reason = '';
-    hourlyTraceState.stats = null;
-  }
-
-  function setHourlyTraceFromImport(importResult, zonaFiscal) {
-    if (importResult?.meta?.hasExcedenteColumn === false) {
-      clearHourlyTraceState();
-      hourlyTraceState.reason = 'no-hourly-surplus-column';
-      return;
-    }
-    hourlyTraceState.records = Array.isArray(importResult?.records) ? importResult.records : null;
-    hourlyTraceState.zonaFiscal = zonaFiscal || null;
-    hourlyTraceState.dirty = false;
-    hourlyTraceState.reason = '';
-    hourlyTraceState.stats = null;
-  }
-
-  function invalidateHourlyTrace(reason) {
-    if (!hourlyTraceState.records) return;
-    hourlyTraceState.dirty = true;
-    hourlyTraceState.reason = reason || 'manual-edit';
-    hourlyTraceState.stats = null;
-  }
-
-  function canUseHourlyTrace(zonaFiscal) {
-    return Array.isArray(hourlyTraceState.records)
-      && hourlyTraceState.records.length > 0
-      && !hourlyTraceState.dirty
-      && String(hourlyTraceState.zonaFiscal || '') === String(zonaFiscal || '');
-  }
+  const hourlyTraceControls = window.BVSim._hourlyTraceControls = window.BVSim.manualUi.createHourlyTraceControls(hourlyTraceState, escapeHtml);
+  const clearHourlyTraceState = hourlyTraceControls.clear;
+  const setHourlyTraceFromImport = hourlyTraceControls.setFromImport;
+  const invalidateHourlyTrace = hourlyTraceControls.invalidate;
+  const canUseHourlyTrace = hourlyTraceControls.canUse;
+  const buildIndexedFallbackMsg = hourlyTraceControls.buildIndexedFallbackMsg;
 
   function clearManualMonthMeta() {
     Object.keys(manualMonthMetaByIndex).forEach((key) => {
@@ -1762,22 +1794,7 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
       }).join('');
 
       const totalTarifas = rankedResults.length;
-      let indexedFallbackMsg = '';
-      if (hasIndexedTariffs && indexedTraceMode !== 'hourly-index-base') {
-        const _traceActive = Array.isArray(hourlyTraceState.records) && hourlyTraceState.records.length > 0 && !hourlyTraceState.dirty;
-        const _traceZona = hourlyTraceState.zonaFiscal;
-        if (_traceActive && _traceZona && String(_traceZona) !== String(zonaFiscalVal || '')) {
-          indexedFallbackMsg = 'El CSV importado es de <strong>' + escapeHtml(String(_traceZona)) + '</strong>; cambia la zona o reimporta para usar el cálculo exacto. Se usa 0,030&nbsp;€/kWh de referencia.';
-        } else if (hourlyTraceState.stats && hourlyTraceState.stats.totalKwh === 0 && (hourlyTraceState.stats.missing || 0) > 0) {
-          indexedFallbackMsg = 'No hay precios del índice disponibles para el periodo del CSV. Se usa 0,030&nbsp;€/kWh de referencia.';
-        } else if (hourlyTraceState.reason === 'no-hourly-surplus-column') {
-          indexedFallbackMsg = 'El CSV importado no tiene columna de excedentes (AS_kWh). Se usa 0,030&nbsp;€/kWh de referencia.';
-        } else if (_traceActive && hourlyTraceState.stats && hourlyTraceState.stats.totalKwh === 0 && (hourlyTraceState.stats.missing || 0) === 0) {
-          indexedFallbackMsg = 'Tu CSV no registra excedentes para este periodo. Se usa 0,030&nbsp;€/kWh de referencia.';
-        } else {
-          indexedFallbackMsg = 'Sin CSV con excedentes activo, se usa 0,030&nbsp;€/kWh de referencia orientativa.';
-        }
-      }
+      const indexedFallbackMsg = buildIndexedFallbackMsg(hasIndexedTariffs, indexedTraceMode, zonaFiscalVal);
       const rankingNote = `
         <div style="background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 24px; text-align: center;">
           <div style="font-size: 0.95rem; color: var(--muted); line-height: 1.6;">

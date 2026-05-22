@@ -14,6 +14,17 @@ describe('BV UI manual month helpers', () => {
     document.body.innerHTML = '';
     window.BVSim = {};
     loadBvUi(window);
+    window.BVSim._hourlyTraceState = {
+      records: null,
+      zonaFiscal: null,
+      dirty: false,
+      reason: '',
+      stats: null
+    };
+    window.BVSim._hourlyTraceControls = window.BVSim.manualUi.createHourlyTraceControls(
+      window.BVSim._hourlyTraceState,
+      (value) => String(value || '')
+    );
   });
 
   it('pickLatestMonthData conserva el mes más reciente y su metadata real', () => {
@@ -83,12 +94,84 @@ describe('BV UI manual month helpers', () => {
     expect(months[0].daysInMonth).toBe(31);
   });
 
-  it('setHourlyTraceFromImport lee meta.hasExcedenteColumn, no el flag de nivel raíz (regresión: bug era importResult?.hasExcedenteColumn)', () => {
-    // El path de detección "sin columna de excedentes" solo es alcanzable si se lee
-    // importResult.meta.hasExcedenteColumn, que es donde bv-import.js lo expone.
-    // Un check en importResult.hasExcedenteColumn (nivel raíz) siempre sería undefined → false,
-    // dejando el trace poblado cuando no debería estarlo.
-    expect(uiCode).toContain('importResult?.meta?.hasExcedenteColumn === false');
-    expect(uiCode).not.toContain('importResult?.hasExcedenteColumn === false');
+  it('setHourlyTraceFromImport limpia el trace cuando meta.hasExcedenteColumn es false', () => {
+    const { setFromImport, canUse, buildIndexedFallbackMsg } = window.BVSim._hourlyTraceControls;
+
+    setFromImport({
+      ok: true,
+      records: [{ fecha: new Date(2026, 0, 1), hora: 12, excedente: 3 }],
+      meta: { hasExcedenteColumn: false }
+    }, 'Península');
+
+    expect(window.BVSim._hourlyTraceState.records).toBeNull();
+    expect(window.BVSim._hourlyTraceState.reason).toBe('no-hourly-surplus-column');
+    expect(canUse('Península')).toBe(false);
+    expect(buildIndexedFallbackMsg(true, 'reference', 'Península'))
+      .toContain('no tiene columna de excedentes');
+  });
+
+  it('invalidateHourlyTrace no pisa el motivo no-hourly-surplus-column cuando no hay records', () => {
+    const { setFromImport, invalidate } = window.BVSim._hourlyTraceControls;
+
+    setFromImport({ ok: true, records: [], meta: { hasExcedenteColumn: false } }, 'Península');
+    invalidate('manual-edit');
+
+    expect(window.BVSim._hourlyTraceState.records).toBeNull();
+    expect(window.BVSim._hourlyTraceState.reason).toBe('no-hourly-surplus-column');
+    expect(window.BVSim._hourlyTraceState.dirty).toBe(false);
+  });
+
+  it('reimportar un CSV sin excedentes limpia records y stats previos', () => {
+    const { setFromImport } = window.BVSim._hourlyTraceControls;
+
+    setFromImport({
+      ok: true,
+      records: [{ fecha: new Date(2026, 0, 1), hora: 12, excedente: 3 }],
+      meta: { hasExcedenteColumn: true }
+    }, 'Península');
+    window.BVSim._hourlyTraceState.stats = { totalKwh: 3, missing: 0 };
+
+    setFromImport({ ok: true, records: [], meta: { hasExcedenteColumn: false } }, 'Península');
+
+    expect(window.BVSim._hourlyTraceState.records).toBeNull();
+    expect(window.BVSim._hourlyTraceState.stats).toBeNull();
+    expect(window.BVSim._hourlyTraceState.reason).toBe('no-hourly-surplus-column');
+  });
+
+  it('buildIndexedFallbackMsg distingue CSV activo con excedentes a cero de ausencia de CSV', () => {
+    const { setFromImport, buildIndexedFallbackMsg } = window.BVSim._hourlyTraceControls;
+
+    expect(buildIndexedFallbackMsg(true, 'reference', 'Península'))
+      .toContain('Sin CSV con excedentes activo');
+
+    setFromImport({
+      ok: true,
+      records: [{ fecha: new Date(2026, 0, 1), hora: 12, excedente: 0 }],
+      meta: { hasExcedenteColumn: true }
+    }, 'Península');
+    window.BVSim._hourlyTraceState.stats = { totalKwh: 0, missing: 0 };
+
+    expect(buildIndexedFallbackMsg(true, 'reference', 'Península'))
+      .toContain('no registra excedentes');
+  });
+
+  it('buildIndexedFallbackMsg prioriza zona distinta y missing total sobre ramas nuevas', () => {
+    const { setFromImport, buildIndexedFallbackMsg } = window.BVSim._hourlyTraceControls;
+
+    setFromImport({
+      ok: true,
+      records: [{ fecha: new Date(2026, 0, 1), hora: 12, excedente: 2 }],
+      meta: { hasExcedenteColumn: true }
+    }, 'Península');
+    window.BVSim._hourlyTraceState.stats = { totalKwh: 0, missing: 0 };
+
+    expect(buildIndexedFallbackMsg(true, 'reference', 'Canarias'))
+      .toContain('El CSV importado es de <strong>Península</strong>');
+
+    window.BVSim._hourlyTraceState.zonaFiscal = 'Canarias';
+    window.BVSim._hourlyTraceState.stats = { totalKwh: 0, missing: 2 };
+
+    expect(buildIndexedFallbackMsg(true, 'reference', 'Canarias'))
+      .toContain('No hay precios del índice disponibles');
   });
 });
