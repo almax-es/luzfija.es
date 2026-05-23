@@ -555,6 +555,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Repsol Solar BV",
+      "cPunta": 0.1299,
+      "cLlano": 0.1299,
+      "cValle": 0.1299,
+      "p1": 0.090137,
+      "p2": 0.090137,
+      "web": "https://www.repsol.es/particulares/hogar/energia-solar/tarifas/tarifa-solar-bateria-virtual/",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Endesa Solar Plus",
       "cPunta": 0.14027,
       "cLlano": 0.14027,
@@ -1285,5 +1303,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-23T08:47:06.168Z"
+  "updatedAt": "2026-05-23T09:57:31.399Z"
 }
