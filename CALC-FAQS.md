@@ -130,13 +130,15 @@ calcularIEE: function(base, consumoKwh, fechaYmd) {
 
 **Respuesta**: 0,001 €/kWh consumido.
 
-**Normativa** (Ley 38/1992, Art. 8):
+**Normativa** (Ley 38/1992, Art. 99):
 ```
-"En ningún caso la cuota a ingresar podrá ser inferior a 0,5 céntimos
-de euro por kilovatio hora consumido"
+"En ningún caso las cuotas resultantes de la aplicación de los tipos
+impositivos podrán ser inferiores a 1 euro por megavatio hora (0,001 €/kWh)
+cuando la electricidad suministrada o consumida se destine a otros usos."
 ```
 
-0,5 céntimos = 0,005€, pero operativamente funciona como 0,001€/kWh.
+Para consumidores domésticos, esos "otros usos" equivalen a 1 euro por megavatio hora,
+es decir, exactamente 0,001 €/kWh.
 
 **Implementación** (simplificada; la tasa real es dinámica vía `getIEEInfo(fechaYmd)`):
 ```javascript
