@@ -17,7 +17,8 @@ function runGit(args) {
     return String(
       execFileSync('git', args, {
         cwd: REPO_ROOT,
-        encoding: 'utf8'
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'ignore']
       })
     ).trim();
   } catch {
@@ -610,8 +611,8 @@ function syncAssistantReferences() {
 
 function main() {
   ensureAuxDirs();
-  syncGuidesSearchIndex(REPO_ROOT);
   syncHtmlDateMetadata();
+  syncGuidesSearchIndex(REPO_ROOT);
   if (INCLUDE_REPO_DOCS) {
     syncReadmeAndCapacidades();
     syncJsonSchema();

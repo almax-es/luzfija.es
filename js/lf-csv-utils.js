@@ -184,8 +184,8 @@
     const str = String(value ?? '').trim();
     if (!str) return null;
 
-    // Ignorar hora si existe (tomar solo la parte de fecha)
-    const firstToken = str.split(' ')[0];
+    // Ignorar hora si existe (tomar solo la parte de fecha; separa por espacio o T de ISO 8601)
+    const firstToken = str.split(/[T\s]/)[0];
 
     // Formato: dd/mm/yyyy o dd-mm-yyyy
     let match = firstToken.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);

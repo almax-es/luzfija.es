@@ -176,6 +176,16 @@ describe('CSV Utils - Parsing Robusto', () => {
       expect(csvUtils.parseDateFlexible('2025-13-01')).toBeNull();  // mes 13 formato ISO
       expect(csvUtils.parseDateFlexible('31/13/2025')).toBeNull();  // mes 13 formato ES
       expect(csvUtils.parseDateFlexible('00/06/2025')).toBeNull();  // día 0
+      expect(csvUtils.parseDateFlexible('2025-02-31T00:00')).toBeNull();    // ISO con T, rollover
+      expect(csvUtils.parseDateFlexible('2025-02-31T00:00:00Z')).toBeNull(); // ISO con T y Z
+    });
+
+    it('Debe aceptar fecha ISO con T válida', () => {
+      const date = csvUtils.parseDateFlexible('2024-02-29T00:00');
+      expect(date).not.toBeNull();
+      expect(date.getFullYear()).toBe(2024);
+      expect(date.getMonth()).toBe(1);
+      expect(date.getDate()).toBe(29);
     });
 
     it('Debe aceptar 29/02 en año bisiesto', () => {
