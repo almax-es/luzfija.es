@@ -191,6 +191,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Octopus Unicaja",
+      "cPunta": 0.11,
+      "cLlano": 0.11,
+      "cValle": 0.11,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://octopusenergy.es/unicaja#tarifas",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.01,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Energya VM",
       "cPunta": 0.11128,
       "cLlano": 0.11128,
@@ -830,6 +848,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Octopus Unicaja 3P",
+      "cPunta": 0.183,
+      "cLlano": 0.102,
+      "cValle": 0.084,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://octopusenergy.es/unicaja#tarifas",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.01,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Endesa Conecta 3P",
       "cPunta": 0.18621,
       "cLlano": 0.11781,
@@ -1249,5 +1285,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-22T10:30:28.781Z"
+  "updatedAt": "2026-05-23T08:47:06.168Z"
 }
