@@ -582,15 +582,42 @@ function syncJsonSchema() {
   });
 }
 
+function syncAssistantReferences() {
+  const snapshotDate = getSnapshotDate();
+  const tarifas = JSON.parse(readUtf8('tarifas.json'));
+  const count = tarifas.tarifas.length;
+
+  updateFile('llms.txt', (content) => {
+    let next = content;
+    next = next.replace(/Last updated: \d{4}-\d{2}-\d{2}/, `Last updated: ${snapshotDate}`);
+    next = next.replace(
+      /`tarifas\.json`: commercial tariffs dataset \(\d+ tariffs as of \d{4}-\d{2}-\d{2}\)\./,
+      `\`tarifas.json\`: commercial tariffs dataset (${count} tariffs as of ${snapshotDate}).`
+    );
+    return next;
+  });
+
+  updateFile('llms-full.txt', (content) => {
+    let next = content;
+    next = next.replace(/Last updated: \d{4}-\d{2}-\d{2}/, `Last updated: ${snapshotDate}`);
+    next = next.replace(
+      /current documented size: \d+ tariffs as of \d{4}-\d{2}-\d{2}/,
+      `current documented size: ${count} tariffs as of ${snapshotDate}`
+    );
+    return next;
+  });
+}
+
 function main() {
   ensureAuxDirs();
   syncGuidesSearchIndex(REPO_ROOT);
   syncHtmlDateMetadata();
-  syncSitemap();
   if (INCLUDE_REPO_DOCS) {
     syncReadmeAndCapacidades();
     syncJsonSchema();
+    syncAssistantReferences();
   }
+  syncSitemap();
 }
 
 main();
