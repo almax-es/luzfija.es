@@ -93,6 +93,14 @@ describe('LF_CONFIG - Lógica Fiscal', () => {
     expect(result).toBeCloseTo(6.979247, 6);
   });
 
+  it('Guardrail: no mantiene activa la medida RDL 7/2026 después de su fecha de fin', () => {
+    const medida = window.LF_CONFIG.medidasTemporales.rdl72026;
+    const today = window.LF_CONFIG.getTodayYmd();
+    if (today > medida.fin) {
+      expect(medida.activa).toBe(false);
+    }
+  });
+
   describe('Régimen base post-RDL 7/2026 (medida desactivada)', () => {
     // Cuando expire el RDL 7/2026 (fin: 2026-06-30) y no se prorrogue,
     // bastará con cambiar medidasTemporales.rdl72026.activa = false en

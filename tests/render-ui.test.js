@@ -262,6 +262,11 @@ describe('Renderizado UI (lf-render.js)', () => {
     expect(rows[0].querySelector('.total-bv-saldo').textContent).toContain('BV +50 €');
   });
 
+  it('renderTable no lanza excepción con state.rows = null', async () => {
+    window.LF.state.rows = null;
+    await expect(window.LF.renderTable()).resolves.not.toThrow();
+  });
+
   it('Debe mostrar mensaje de vacío si no hay resultados', () => {
     window.LF.state.rows = [];
     window.LF.renderTable();

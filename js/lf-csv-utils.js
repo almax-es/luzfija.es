@@ -148,6 +148,19 @@
 
   // ===== PARSING DE FECHAS =====
 
+  function makeStrictDate(y, mo, d) {
+    const dt = new Date(y, mo - 1, d);
+    if (
+      Number.isNaN(dt.getTime()) ||
+      dt.getFullYear() !== y ||
+      dt.getMonth() !== mo - 1 ||
+      dt.getDate() !== d
+    ) {
+      return null;
+    }
+    return dt;
+  }
+
   /**
    * Parsea una fecha de forma flexible aceptando múltiples formatos.
    * Formatos soportados:
@@ -177,21 +190,13 @@
     // Formato: dd/mm/yyyy o dd-mm-yyyy
     let match = firstToken.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
     if (match) {
-      const d = Number(match[1]);
-      const mo = Number(match[2]);
-      const y = Number(match[3]);
-      const dt = new Date(y, mo - 1, d);
-      return isNaN(dt.getTime()) ? null : dt;
+      return makeStrictDate(Number(match[3]), Number(match[2]), Number(match[1]));
     }
 
     // Formato: yyyy/mm/dd o yyyy-mm-dd
     match = firstToken.match(/^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/);
     if (match) {
-      const y = Number(match[1]);
-      const mo = Number(match[2]);
-      const d = Number(match[3]);
-      const dt = new Date(y, mo - 1, d);
-      return isNaN(dt.getTime()) ? null : dt;
+      return makeStrictDate(Number(match[1]), Number(match[2]), Number(match[3]));
     }
 
     // Último recurso: Date.parse (depende del navegador)

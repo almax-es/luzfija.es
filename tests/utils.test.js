@@ -63,6 +63,32 @@ describe('Utilidades Base (lf-utils.js)', () => {
     });
   });
 
+  describe('formatMoney: Formato monetario defensivo', () => {
+    it('Formatea número con dos decimales y coma', () => {
+      expect(window.LF.formatMoney(12.3)).toBe('12,30 €');
+    });
+
+    it('Formatea cero correctamente', () => {
+      expect(window.LF.formatMoney(0)).toBe('0,00 €');
+    });
+
+    it('Formatea negativos', () => {
+      expect(window.LF.formatMoney(-5.5)).toBe('-5,50 €');
+    });
+
+    it('Devuelve — para null', () => {
+      expect(window.LF.formatMoney(null)).toBe('—');
+    });
+
+    it('Devuelve — para undefined', () => {
+      expect(window.LF.formatMoney(undefined)).toBe('—');
+    });
+
+    it('Devuelve — para NaN', () => {
+      expect(window.LF.formatMoney(NaN)).toBe('—');
+    });
+  });
+
   describe('Clamping y Redondeo', () => {
     it('round2: Debe redondear correctamente a 2 decimales', () => {
       expect(window.LF.round2(10.456)).toBe(10.46);
@@ -85,16 +111,16 @@ describe('Utilidades Base (lf-utils.js)', () => {
 
     it('Debe calcular el descuento correcto para Vulnerable (42,5%)', () => {
       const meta = { terminoFijo: 10, terminoVariable: 20, bonoSocial: 1, equipoMedida: 0.8 };
-      const inputs = { 
-        bonoSocialOn: true, 
-        bonoSocialTipo: 'vulnerable', 
-        bonoSocialLimite: 10000, 
+      const inputs = {
+        bonoSocialOn: true,
+        bonoSocialTipo: 'vulnerable',
+        bonoSocialLimite: 10000,
         dias: 30,
         cPunta: 100, cLlano: 100, cValle: 100 // Consumo total 300 kWh
       };
-      
+
       const res = calc(meta, inputs, window.LF_CONFIG);
-      
+
       // Base descuento: Fijo(10) + Margen(0 en test) + Bono(1) + Variable(20 ya que 300kWh > limite_periodo)
       // Nota: limitePeriodo = (10000/365)*30 = 821 kWh. Como 300 < 821, bonifica los 20€ enteros.
       // Total Base Descuento = 10 + 1 + 20 = 31€
@@ -104,16 +130,16 @@ describe('Utilidades Base (lf-utils.js)', () => {
 
     it('Debe aplicar el límite de kWh bonificables', () => {
       const meta = { terminoFijo: 10, terminoVariable: 100 }; // 100€ de energía
-      const inputs = { 
-        bonoSocialOn: true, 
-        bonoSocialTipo: 'vulnerable', 
+      const inputs = {
+        bonoSocialOn: true,
+        bonoSocialTipo: 'vulnerable',
         bonoSocialLimite: 365, // 1 kWh al día de límite
         dias: 30,
         cPunta: 100, cLlano: 0, cValle: 0 // 100 kWh consumo total
       };
-      
+
       const res = calc(meta, inputs, window.LF_CONFIG);
-      
+
       // Límite periodo = (365 / 365) * 30 = 30 kWh
       expect(res.kwhBonificable).toBe(30);
       // Ratio = 30/100 = 0.3
@@ -123,9 +149,9 @@ describe('Utilidades Base (lf-utils.js)', () => {
     it('Debe aplicar fiscalidad de Canarias (IGIC 0% vivienda)', () => {
       const meta = { terminoFijo: 10, terminoVariable: 20, equipoMedida: 1 };
       const inputs = { zonaFiscal: 'Canarias', viviendaCanarias: true, p1: 3.45, p2: 3.45 };
-      
+
       const res = calc(meta, inputs, window.LF_CONFIG);
-      
+
       expect(res.meta.usoFiscal).toBe('vivienda');
       expect(res.meta.iva).toBe(0); // Vivienda en Canarias no paga IGIC energía
     });

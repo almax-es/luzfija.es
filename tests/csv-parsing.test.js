@@ -169,6 +169,23 @@ describe('CSV Utils - Parsing Robusto', () => {
       expect(csvUtils.parseDateFlexible(null)).toBeNull();
     });
 
+    it('Debe rechazar fechas imposibles (rollover JavaScript)', () => {
+      expect(csvUtils.parseDateFlexible('31/02/2025')).toBeNull();
+      expect(csvUtils.parseDateFlexible('2025-02-31')).toBeNull();
+      expect(csvUtils.parseDateFlexible('29/02/2025')).toBeNull();  // 2025 no es bisiesto
+      expect(csvUtils.parseDateFlexible('2025-13-01')).toBeNull();  // mes 13 formato ISO
+      expect(csvUtils.parseDateFlexible('31/13/2025')).toBeNull();  // mes 13 formato ES
+      expect(csvUtils.parseDateFlexible('00/06/2025')).toBeNull();  // día 0
+    });
+
+    it('Debe aceptar 29/02 en año bisiesto', () => {
+      const date = csvUtils.parseDateFlexible('29/02/2024');
+      expect(date).not.toBeNull();
+      expect(date.getFullYear()).toBe(2024);
+      expect(date.getMonth()).toBe(1);
+      expect(date.getDate()).toBe(29);
+    });
+
     it('Debe aceptar objetos Date como pass-through', () => {
       const originalDate = new Date(2024, 11, 25);
       const result = csvUtils.parseDateFlexible(originalDate);

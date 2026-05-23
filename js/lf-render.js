@@ -117,7 +117,8 @@
   let __lf_resultsAnnounceTimer = null;
 
   async function renderTable() {
-    const f = applyFilters(state.rows);
+    const rows = Array.isArray(state.rows) ? state.rows : [];
+    const f = applyFilters(rows);
     // Filtrar PVPC no computable (potencia > 10 kW)
     const fFiltered = f.filter(r => !r.pvpcNotComputable);
     const s = applySort(fFiltered);

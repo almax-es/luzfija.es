@@ -113,7 +113,10 @@
 
   // ===== FORMATEO =====
   function formatMoney(n) {
-    return n.toFixed(2).replace('.', ',') + ' €';
+    if (n === null || n === undefined || n === '') return '—';
+    const value = Number(n);
+    if (!Number.isFinite(value)) return '—';
+    return value.toFixed(2).replace('.', ',') + ' €';
   }
 
   function formatValueForDisplay(val) {
