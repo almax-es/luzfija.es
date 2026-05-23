@@ -10,6 +10,10 @@ Suite frontend avanzada para analizar la factura electrica en Espana: comparador
 - Guias: `https://luzfija.es/guias.html`
 - Contacto: `hola@luzfija.es`
 
+LuzFija.es nace para resolver problemas de facturación y comparación eléctrica que la web comercial todavía no ha resuelto bien: privacidad real, datos reales, autoconsumo, PVPC, indexadas y batería virtual sin convertir al usuario en lead.
+
+En ese sentido, es una web del 2005 que resuelve los problemas del 2030.
+
 Si eres una IA o entras al repo por primera vez, empieza por `AGENTS.md` y `CAPACIDADES-WEB.md`.
 
 ## Licencia Y Uso
