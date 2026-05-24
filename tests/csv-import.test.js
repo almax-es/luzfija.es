@@ -83,6 +83,20 @@ ES12345;01/01/2024;2;2,456;R`;
       expect(result.formato).toBe('CSV');
     });
 
+    it('No debe conservar ni exponer valores CUPS del CSV en el resultado importado', async () => {
+      const cups = 'ES0021000000000000AB';
+      const csvContent = `CUPS;Fecha;Hora;Consumo_kWh;Método
+${cups};01/01/2024;1;1,234;R
+${cups};01/01/2024;2;2,456;R`;
+
+      const file = { name: 'cups-privacidad.csv', _content: csvContent };
+      const result = await procesarCSVConsumos(file);
+
+      expect(result.ok).not.toBe(false);
+      expect(JSON.stringify(result)).not.toContain(cups);
+      expect(Object.keys(result).join('|').toLowerCase()).not.toContain('cups');
+    });
+
     it('Debe lanzar error con CSV vacío', async () => {
       const file = { name: 'empty.csv', _content: '' };
       const result = await procesarCSVConsumos(file);

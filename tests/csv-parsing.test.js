@@ -131,6 +131,38 @@ describe('CSV Utils - Parsing Robusto', () => {
     });
   });
 
+  describe('parseEnergyTableRows privacy contract', () => {
+    it('No incluye CUPS ni strings libres del CSV en los registros parseados', () => {
+      const cups = 'ES0021000000000000AB';
+      const rows = [
+        ['CUPS', 'Fecha', 'Hora', 'Consumo_kWh', 'Método'],
+        [cups, '01/01/2024', '1', '1,234', 'Real']
+      ];
+
+      const result = csvUtils.parseEnergyTableRows(rows, { headerRowIndex: 0 });
+
+      expect(result.records).toHaveLength(1);
+      expect(result.records[0]).toMatchObject({
+        hora: 1,
+        kwh: 1.234,
+        excedente: 0,
+        autoconsumo: 0,
+        esReal: true
+      });
+      expect(JSON.stringify(result)).not.toContain(cups);
+      expect(Object.keys(result.records[0]).join('|').toLowerCase()).not.toContain('cups');
+      expect(Object.keys(result.records[0])).toEqual([
+        'fecha',
+        'hora',
+        'kwh',
+        'excedente',
+        'autoconsumo',
+        'periodo',
+        'esReal'
+      ]);
+    });
+  });
+
   describe('parseDateFlexible', () => {
     it('Debe parsear formato dd/mm/yyyy', () => {
       const date = csvUtils.parseDateFlexible('25/12/2024');
@@ -327,4 +359,3 @@ ES12345;01/01/2024;2;"1,234";Real`;
     expect(totalKwhNum).toBeCloseTo(1.234, 2);
   });
 });
-
