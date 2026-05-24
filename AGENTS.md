@@ -55,6 +55,7 @@ Tambien es importante lo que no es: no monetiza el ranking, no vende leads y no 
 - Antes de reportar bugs de fiscalidad o PVPC, lee `ARQUITECTURA-CALCULOS.md` y `CALC-FAQS.md`.
 - Antes de reportar bugs de BV, lee `SIMULADOR-BV.md` y revisa `js/bv/bv-ui.js` y `js/bv/bv-sim-monthly.js`.
 - Antes de reportar bugs de importacion horaria, revisa `js/lf-csv-utils.js`, `js/lf-csv-import.js` y los tests de CSV.
+- Antes de reportar riesgos XSS/privacidad por CSV, ten en cuenta que `CUPS` puede reconocerse como nombre de columna para detectar cabecera/formato, pero sus valores no se guardan ni se renderizan. Los importadores solo muestran agregados numericos derivados (kWh, dias, porcentajes, importes).
 - Valida hallazgos contra tests, no solo contra intuicion.
 
 Tests especialmente utiles:
@@ -73,6 +74,7 @@ Falsos positivos ya conocidos y documentados:
 - "El IEE de PVPC se calcula sin restar el descuento del bono social."
 - "La BV se aplica a tarifas que no tienen BV."
 - "Si el consumo es 0 kWh entonces el IEE deberia ser 0 en cualquier factura."
+- "Los CSV exponen CUPS o strings libres en la UI y por eso las paginas CSV necesitan CSP mas estricta."
 
 ## Flujo De Trabajo Recomendado
 

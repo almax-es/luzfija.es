@@ -303,6 +303,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 
 - Calculos, importaciones CSV y parseo PDF se ejecutan en local.
 - Datos sensibles de factura no se persisten como perfil remoto.
+- En importaciones CSV/XLSX, `CUPS` puede reconocerse como cabecera para detectar formato/separador, pero sus valores no se guardan ni se renderizan. La UI solo muestra agregados numericos derivados (kWh, dias, porcentajes e importes), no strings libres del fichero.
 - CSP definida por pagina.
 - Escape/sanitizacion de contenido dinamico.
 - Dependencias autoalojadas en `vendor/`.
