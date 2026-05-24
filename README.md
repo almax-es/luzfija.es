@@ -36,7 +36,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - 31 modulos JavaScript en `js/` (incluye `js/bv/`).
 - 19.906 lineas JS aproximadas.
 - 71 tarifas en `tarifas.json`.
-- Suite de tests Vitest con 51 archivos y 356 casos.
+- Suite de tests Vitest con 52 archivos y 361 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 
@@ -211,6 +211,16 @@ Cobertura principal:
 - desglose e integraciones UI,
 - seguridad URL/XSS,
 - privacidad/tracking.
+
+## Desarrollo Local
+
+Tras clonar el repositorio, activa el hook de pre-commit:
+
+```bash
+npm run setup:hooks
+```
+
+El hook (`scripts/pre-commit-sync.mjs`) regenera y re-stagea automáticamente el sitemap, el índice de búsqueda y los documentos del repo (`README.md`, `llms.txt`, etc.) cuando un commit incluye cambios en HTML, JS, CSS u otros inputs gestionados. Sin este paso, Git ignora el hook y los documentos derivados pueden quedar desactualizados.
 
 ## Mantenimiento De Datos
 

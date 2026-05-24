@@ -20,7 +20,9 @@ export function isSyncInput(relPath) {
     relPath === 'styles.css' ||
     relPath === 'fonts.css' ||
     relPath.endsWith('.webmanifest') ||
-    relPath === 'tarifas.json'
+    relPath === 'tarifas.json' ||
+    relPath === 'scripts/sync-seo-docs.mjs' ||
+    relPath === 'scripts/build-guides-search-index.mjs'
   );
 }
 

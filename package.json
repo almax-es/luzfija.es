@@ -11,7 +11,8 @@
     "pretest": "npm run sync:seo-docs",
     "test": "vitest run --reporter=default --reporter=json --outputFile=logs/vitest-summary.json",
     "test:fast": "vitest run",
-    "test:watch": "npm run sync:seo-docs && vitest"
+    "test:watch": "npm run sync:seo-docs && vitest",
+    "check:repo-docs": "npm run sync:repo-docs && git diff --exit-code -- README.md CAPACIDADES-WEB.md JSON-SCHEMA.md llms.txt llms-full.txt sitemap.xml data/guides-search-index.json"
   },
   "devDependencies": {
     "jsdom": "^29.1.1",
