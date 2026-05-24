@@ -1375,6 +1375,13 @@
 
   .control {
     width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .control label {
+    white-space: normal;
   }
 
   .control select {
