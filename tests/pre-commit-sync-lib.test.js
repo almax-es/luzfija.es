@@ -3,9 +3,12 @@
  */
 
 import { describe, expect, it } from 'vitest';
+import fs from 'fs';
+import path from 'path';
 import {
   getBlockingManagedFiles,
   getFilesToRestage,
+  getSyncOutputs,
   needsSync
 } from '../scripts/pre-commit-sync-lib.mjs';
 
@@ -52,7 +55,18 @@ describe('pre-commit sync guardrails', () => {
       'README.md',
       'CAPACIDADES-WEB.md',
       'JSON-SCHEMA.md',
+      'llms.txt',
+      'llms-full.txt',
       'guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html'
     ]);
+  });
+
+  it('keeps literal sync-seo-docs outputs declared as managed outputs', () => {
+    const script = fs.readFileSync(path.join(process.cwd(), 'scripts/sync-seo-docs.mjs'), 'utf8');
+    const literalUpdateTargets = [...script.matchAll(/updateFile\('([^']+)'/g)]
+      .map((match) => match[1])
+      .filter((relPath) => !relPath.endsWith('.html'));
+
+    expect(getSyncOutputs()).toEqual(expect.arrayContaining(literalUpdateTargets));
   });
 });

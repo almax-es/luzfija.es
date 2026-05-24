@@ -3,8 +3,14 @@ const SYNC_OUTPUTS = new Set([
   'data/guides-search-index.json',
   'README.md',
   'CAPACIDADES-WEB.md',
-  'JSON-SCHEMA.md'
+  'JSON-SCHEMA.md',
+  'llms.txt',
+  'llms-full.txt'
 ]);
+
+export function getSyncOutputs() {
+  return [...SYNC_OUTPUTS];
+}
 
 export function isSyncInput(relPath) {
   return (
