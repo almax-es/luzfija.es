@@ -71,13 +71,14 @@ Tests especialmente utiles:
 
 Falsos positivos ya conocidos y documentados:
 
-- "El IEE de PVPC se calcula sin restar el descuento del bono social."
-- "La BV se aplica a tarifas que no tienen BV."
-- "Si el consumo es 0 kWh entonces el IEE deberia ser 0 en cualquier factura."
-- "Los CSV exponen CUPS o strings libres en la UI y por eso las paginas CSV necesitan CSP mas estricta."
+- "El IEE de PVPC se calcula sin restar el descuento del bono social." Falso: el descuento se resta antes de calcular el IEE. Ver `ARQUITECTURA-CALCULOS.md` y `CALC-FAQS.md`.
+- "La BV se aplica a tarifas que no tienen BV." Falso: el simulador comprueba `tarifa.fv.bv`; sin BV, el sobrante no se acumula. Ver `SIMULADOR-BV.md`.
+- "Si el consumo es 0 kWh entonces el IEE deberia ser 0 en cualquier factura." Falso: si hay termino de potencia/base imponible, puede haber IEE aunque el consumo sea 0. Ver `CALC-FAQS.md`.
+- "Los CSV exponen CUPS o strings libres en la UI y por eso las paginas CSV necesitan CSP mas estricta." Falso: `CUPS` puede reconocerse como cabecera, pero sus valores no se guardan ni se renderizan; la UI muestra agregados numericos.
 
 ## Flujo De Trabajo Recomendado
 
+- Entrada rapida en un checkout limpio: `npm install` si faltan dependencias y luego `npm test`.
 - Si cambias documentacion derivada o metricas del repo, ejecuta `npm run sync:repo-docs`.
 - Si cambias codigo relevante, ejecuta `npm test`.
 - Si tocas fechas, fiscalidad, bono social, impuestos, PVPC, autoconsumo o guias legales, no asumas nada por memoria: contrasta con `MANTENIMIENTO-NORMATIVO.md`, `lf-config.js`, fuentes oficiales y tests.
