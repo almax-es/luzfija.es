@@ -875,8 +875,8 @@
   // Exportar helpers para testing
   // NOTA: Las funciones de utilidad ahora están en window.LF.csvUtils
   window.LF.csvHelpers = {
-    getPeriodoHorarioCSV: window.LF.csvUtils.getPeriodoHorarioCSV,
-    getFestivosNacionales: window.LF.csvUtils.getFestivosNacionales,
+    getPeriodoHorarioCSV: window.LF.csvUtils?.getPeriodoHorarioCSV,
+    getFestivosNacionales: window.LF.csvUtils?.getFestivosNacionales,
     parseCSVConsumos
   };
 
