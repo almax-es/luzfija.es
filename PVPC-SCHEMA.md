@@ -238,6 +238,8 @@ La lista de `geos` refleja exactamente lo publicado en el último build del data
 ### `/data/surplus/index.json`
 
 Mismo formato que el índice PVPC, pero para excedentes (indicador 1739).
+El indicador 1739 es un dato nacional en ESIOS; por eso el generador lo procesa con
+`Europe/Madrid` para todas las zonas y evita desplazar los buckets diarios de excedentes.
 
 ```json
 {

@@ -191,6 +191,24 @@ describe('Tracking error filtering and dedupe', () => {
     )).toBe(true);
   });
 
+  it('redacta posibles datos personales en errores no manejados antes de trackearlos', () => {
+    bootstrapTracking();
+
+    dispatchUnhandledRejection(new Error('Fallo procesando ES0021000000000000AB usuario@example.com https://example.com/factura/123456789'));
+
+    const payload = window.goatcounter.count.mock.calls
+      .map((call) => call[0])
+      .find((item) => item && item.path === 'error-promise' && String(item.title || '').includes('[cups]'));
+    expect(payload).toBeTruthy();
+    expect(payload.path).toBe('error-promise');
+    expect(payload.title).toContain('[cups]');
+    expect(payload.title).toContain('[email]');
+    expect(payload.title).toContain('[url]');
+    expect(payload.title).not.toContain('ES0021000000000000AB');
+    expect(payload.title).not.toContain('usuario@example.com');
+    expect(payload.title).not.toContain('https://example.com');
+  });
+
   it('no reclasifica mensajes parecidos sin firma legacy', () => {
     bootstrapTracking();
 

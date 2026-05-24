@@ -223,6 +223,14 @@ try {
     return String(value).replace(/\s+/g, ' ').trim();
   }
 
+  function sanitizeErrorMessageForTracking(value) {
+    return safeText(value)
+      .replace(/\bES[0-9A-Z]{16,24}\b/gi, '[cups]')
+      .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, '[email]')
+      .replace(/https?:\/\/[^\s]+/gi, '[url]')
+      .replace(/\b\d{8,}\b/g, '[num]');
+  }
+
   function normalizeForMatch(value) {
     const text = safeText(value).toLowerCase();
     if (!text) return '';
@@ -445,7 +453,7 @@ try {
   window.addEventListener('error', function(e) {
     try{
       const filename = e && e.filename ? String(e.filename) : '';
-      const message = safeText(e && e.message ? e.message : 'desconocido');
+      const message = sanitizeErrorMessageForTracking(e && e.message ? e.message : 'desconocido');
       const sourceFromFile = shortSource(filename);
       const scriptSource = getScriptSourceFromErrorEvent(e);
       const source = scriptSource || sourceFromFile || '(inline)';
@@ -526,23 +534,23 @@ try {
       let msg = '';
       let stackSource = '';
       if (reason instanceof Error) {
-        msg = String(reason.message || reason.name || 'Error');
+        msg = sanitizeErrorMessageForTracking(reason.message || reason.name || 'Error');
         stackSource = extractSourceFromStack(reason.stack || '');
       } else if (reason && typeof reason === 'object') {
         if (typeof reason.message === 'string' && reason.message) {
-          msg = reason.message;
+          msg = sanitizeErrorMessageForTracking(reason.message);
         } else {
           try {
-            msg = JSON.stringify(reason);
+            msg = sanitizeErrorMessageForTracking(JSON.stringify(reason));
           } catch (_) {
-            msg = String(reason);
+            msg = sanitizeErrorMessageForTracking(reason);
           }
         }
         if (typeof reason.stack === 'string' && reason.stack) {
           stackSource = extractSourceFromStack(reason.stack);
         }
       } else {
-        msg = String(reason);
+        msg = sanitizeErrorMessageForTracking(reason);
       }
 
       // Filtrar ruido de cache viejo (código ya corregido, solo llega desde SW antiguo)
