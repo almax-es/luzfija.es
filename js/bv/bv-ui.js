@@ -1700,7 +1700,7 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
           : '❌ Sin saldo BV';
 
         return {
-          key: row.key,
+          key: formatMonthKeyLabel(row.key),
           hasBV,
           pot: row.pot,
           eBruta,
