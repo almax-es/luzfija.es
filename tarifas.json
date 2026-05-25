@@ -574,9 +574,9 @@
     },
     {
       "nombre": "Endesa Solar Plus",
-      "cPunta": 0.14027,
-      "cLlano": 0.14027,
-      "cValle": 0.14027,
+      "cPunta": 0.135915,
+      "cLlano": 0.135915,
+      "cValle": 0.135915,
       "p1": 0.093666,
       "p2": 0.093666,
       "web": "https://www.endesa.com/es/luz-y-gas/catalogo-solar/endesa-solar-plus-bateria-virtual",
@@ -1303,5 +1303,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-25T12:35:30.453Z"
+  "updatedAt": "2026-05-25T12:39:12.781Z"
 }
