@@ -569,3 +569,141 @@ body.solar-pro .bv-note-compact{
     left: 8px;
   }
 }
+
+/* BV monthly tables: explicit contrast in every theme, independent of hover state */
+body.solar-pro .bv-manual-container,
+body.solar-pro .bv-table-container,
+body.solar-pro .bv-month-card{
+  color: var(--text);
+}
+
+body.solar-pro .bv-manual-header{
+  color: var(--muted);
+  color: color-mix(in srgb, var(--text) 72%, transparent);
+}
+
+body.solar-pro .bv-manual-header span{
+  color: inherit;
+}
+
+body.solar-pro .bv-manual-row{
+  color: var(--text);
+}
+
+body.solar-pro .bv-manual-row-label{
+  color: var(--text);
+}
+
+body.solar-pro .bv-manual-cell-label{
+  color: var(--muted);
+  color: color-mix(in srgb, var(--text) 72%, transparent);
+}
+
+body.solar-pro .bv-manual-cell .manual-input{
+  background: rgba(0, 0, 0, .24);
+  background: color-mix(in srgb, var(--bg0) 74%, var(--text) 7%);
+  color: var(--text) !important;
+  -webkit-text-fill-color: var(--text);
+  caret-color: var(--accent);
+  opacity: 1;
+  text-shadow: none;
+}
+
+body.solar-pro .bv-manual-cell .manual-input::placeholder{
+  color: rgba(247, 247, 251, .56);
+  opacity: 1;
+}
+
+html.light-mode body.solar-pro .bv-manual-header,
+html.light-mode body.solar-pro .bv-manual-cell-label{
+  color: rgba(15, 23, 42, .74);
+}
+
+html.light-mode body.solar-pro .bv-manual-row-label{
+  color: #0f172a;
+}
+
+html.light-mode body.solar-pro .bv-manual-cell .manual-input{
+  background: rgba(255, 255, 255, .96);
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a;
+  border-color: rgba(15, 23, 42, .18);
+}
+
+html.light-mode body.solar-pro .bv-manual-cell .manual-input::placeholder{
+  color: rgba(15, 23, 42, .52);
+}
+
+body.solar-pro .bv-table{
+  color: var(--text);
+}
+
+body.solar-pro .bv-table tbody tr{
+  animation: none !important;
+  background: rgba(255, 255, 255, .018);
+}
+
+body.solar-pro .bv-table tbody tr:nth-child(even){
+  background: rgba(255, 255, 255, .035);
+}
+
+body.solar-pro .bv-table tbody tr:hover{
+  background: rgba(139, 92, 246, .09);
+}
+
+body.solar-pro .bv-table th{
+  color: var(--muted);
+  color: color-mix(in srgb, var(--text) 72%, transparent);
+}
+
+body.solar-pro .bv-table td{
+  color: var(--text);
+}
+
+body.solar-pro .bv-table .bv-cell-value{
+  color: inherit;
+  opacity: 1;
+  text-shadow: none;
+}
+
+html.light-mode body.solar-pro .bv-table tbody tr{
+  background: rgba(255, 255, 255, .92);
+}
+
+html.light-mode body.solar-pro .bv-table tbody tr:nth-child(even){
+  background: rgba(248, 250, 252, .96);
+}
+
+html.light-mode body.solar-pro .bv-table tbody tr:hover{
+  background: rgba(109, 40, 217, .08);
+}
+
+html.light-mode body.solar-pro .bv-table th{
+  color: rgba(15, 23, 42, .70);
+}
+
+html.light-mode body.solar-pro .bv-table td{
+  color: #0f172a;
+}
+
+body.solar-pro .bv-month-label{
+  color: var(--muted);
+  color: color-mix(in srgb, var(--text) 72%, transparent);
+}
+
+body.solar-pro .bv-month-value:not(.bv-val-good):not(.bv-val-warn):not(.bv-val-pay):not(.bv-val-bv){
+  color: var(--text);
+}
+
+body.solar-pro .bv-month-value{
+  opacity: 1;
+  text-shadow: none;
+}
+
+html.light-mode body.solar-pro .bv-month-label{
+  color: rgba(15, 23, 42, .74);
+}
+
+html.light-mode body.solar-pro .bv-month-value:not(.bv-val-good):not(.bv-val-warn):not(.bv-val-pay):not(.bv-val-bv){
+  color: #0f172a;
+}
