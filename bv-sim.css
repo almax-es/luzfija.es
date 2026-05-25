@@ -1823,6 +1823,11 @@ html.light-mode .bv-tip-card {
   white-space: nowrap;
 }
 
+.bv-cs-value--placeholder {
+  font-style: italic;
+  color: var(--muted);
+}
+
 .bv-cs-chevron {
   width: 20px;
   height: 20px;

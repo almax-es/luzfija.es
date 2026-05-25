@@ -226,10 +226,16 @@ document.addEventListener('DOMContentLoaded', () => {
       requestAnimationFrame(render);
     }
 
+    function setValueElText(selected) {
+      if (!valueEl) return;
+      valueEl.textContent = selected ? selected.label : DEFAULT_LABEL;
+      valueEl.classList.toggle('bv-cs-value--placeholder', !selected || selected.value === '');
+    }
+
     function render() {
       _renderPending = false;
       const selected = _items.find((i) => i.value === _value);
-      if (valueEl) valueEl.textContent = selected ? selected.label : DEFAULT_LABEL;
+      setValueElText(selected);
 
       btnEl.disabled = _disabled;
       wrapperEl.setAttribute('aria-disabled', String(_disabled));
@@ -255,7 +261,7 @@ document.addEventListener('DOMContentLoaded', () => {
       wrapperEl.setAttribute('aria-expanded', 'true');
       btnEl.setAttribute('aria-expanded', 'true');
       const target = listEl.querySelector('[aria-selected="true"]') || listEl.querySelector('.bv-cs-item');
-      if (target) requestAnimationFrame(() => target.focus());
+      if (target) target.focus();
     }
 
     function close() {
@@ -266,7 +272,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function pick(val) {
       _value = String(val ?? '');
       const selected = _items.find((i) => i.value === _value);
-      if (valueEl) valueEl.textContent = selected ? selected.label : DEFAULT_LABEL;
+      setValueElText(selected);
       listEl.querySelectorAll('.bv-cs-item').forEach((li) => {
         li.setAttribute('aria-selected', String(li.dataset.value === _value));
       });
