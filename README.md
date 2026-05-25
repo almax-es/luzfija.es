@@ -91,6 +91,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - orden por coste anual pagado,
 - desempate por mayor saldo BV final.
 - Selector de mes de inicio del contrato para simular la hucha desde la contratacion.
+- Simulacion por patron anual: si el ciclo empieza en junio, los meses enero-mayo del final representan la continuacion del ciclo con los mismos datos historicos.
 - Desglose completo por tarifa en desktop (tabla) y movil (tarjetas).
 - Persistencia local avanzada:
 - autoguardado tabla manual,

@@ -201,6 +201,20 @@ El ranking visible del simulador solar usa `totals.pagado` y desempata por `tota
 
 ---
 
+### ¿El mes de inicio cambia los datos del CSV?
+
+**Respuesta**: No. Cambia el orden de arrastre de la BV, no los kWh ni los excedentes de cada mes.
+
+Si el usuario sube un año completo enero-diciembre y elige junio como mes de inicio, el simulador recorre:
+
+```text
+jun → jul → ago → sep → oct → nov → dic → ene → feb → mar → abr → may
+```
+
+Los datos de enero siguen siendo los datos de enero del CSV. En la simulación representan el siguiente enero del patrón anual, porque la BV depende del saldo acumulado en meses anteriores. Por eso el año concreto no debe interpretarse como cronología histórica literal en el desglose rotado.
+
+---
+
 ### ¿Qué pasa en una tarifa SIN Batería Virtual?
 
 **Respuesta**: Los excedentes se pierden.

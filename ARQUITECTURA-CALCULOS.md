@@ -211,6 +211,11 @@ Con RDL 7/2026 activo (0,5%): IEE caso 0 kWh ≈ 0,05€; caso 221 kWh ≈ 0,22�
 - ✅ Acumula sobrantes en hucha (solo si tarifa tiene BV)
 - ✅ Calcula `totalPagar` (con saldo anterior) y `totalReal` (sin él)
 
+**Orden mensual y mes de inicio**:
+- El motor arrastra la BV siguiendo el orden del array `months` recibido.
+- La UI del simulador puede rotar ese array para modelar un contrato iniciado en un mes concreto.
+- Esa rotación trata los datos como patrón anual: no altera los kWh/excedentes de cada mes ni genera fechas futuras reales.
+
 **Punto crítico en `bv-sim-monthly.js:304-313`**:
 ```javascript
 // ⚠️ CRÍTICO: Aplicar BV SOLO si tarifa lo tiene

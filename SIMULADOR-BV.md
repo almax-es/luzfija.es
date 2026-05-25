@@ -84,6 +84,8 @@ El usuario puede elegir el mes desde el que empieza la simulación de la tarifa.
 - Los kWh y excedentes de cada mes no cambian.
 - Solo se reordena el ciclo antes de llamar al motor mensual.
 - Ejemplo con 12 meses enero-diciembre y contrato en mayo: `may → jun → jul → ago → sep → oct → nov → dic → ene → feb → mar → abr`.
+- El simulador trata esos meses como un **patrón anual de consumo y producción**. Si el CSV original contiene enero-diciembre y el usuario empieza en mayo, los meses enero-abril del final representan el siguiente tramo del ciclo simulado, aunque los datos procedan del mismo CSV histórico.
+- El año concreto (`YYYY`) es metadato técnico para agrupar/enriquecer datos; la UI muestra el mes para evitar que el usuario interprete la rotación como una cronología histórica literal.
 - La rotación se aplica después de enriquecer excedentes indexados por `YYYY-MM`, por lo que cada mes conserva su valor horario real cuando existe trazabilidad CSV.
 
 ### 📊 Ranking Inteligente
@@ -273,7 +275,7 @@ window.BVSim.simulateForTarifaDemo({
 // Devuelve: rows (mes a mes) + totals (pagado, real, bvFinal)
 ```
 
-El orden de `months` define el arrastre de saldo BV. La UI puede rotarlo con `window.BVSim.manualUi.rotateMonthsByStart(months, startKey)` antes de llamar al motor para representar un contrato iniciado en un mes concreto.
+El orden de `months` define el arrastre de saldo BV. La UI puede rotarlo con `window.BVSim.manualUi.rotateMonthsByStart(months, startKey)` antes de llamar al motor para representar un contrato iniciado en un mes concreto. La rotación no crea meses nuevos ni desplaza fechas reales: reordena el patrón anual disponible para que el saldo BV empiece en el mes seleccionado y se arrastre hasta completar la ventana simulada.
 
 ```javascript
 window.BVSim.simulateForAllTarifasBV({
@@ -995,16 +997,18 @@ showToast('Subiendo archivo...', 'info');  // Azul
 
 ### Caso 3: Estacionalidad y BV
 
-**Situación**: Generas mucho en verano pero poco en invierno. Quieres ver cómo la BV suaviza las diferencias.
+**Situación**: Generas mucho en verano pero poco en invierno. Quieres ver cómo la BV suaviza las diferencias y qué cambia si contratas la tarifa en un mes distinto.
 
 **Paso a paso**:
 1. Carga tu CSV anual completo
 2. Simula con el conjunto de tarifas solares elegibles
-3. Abre el desglose mes a mes de varias tarifas
-4. Observa:
+3. Si quieres modelar una contratación nueva, elige el mes de inicio del contrato
+4. Abre el desglose mes a mes de varias tarifas
+5. Observa:
    - **Verano**: Compensación alta, excedente sobrante → Acumula en BV
    - **Invierno**: Compensación baja, pero usas BV acumulada → Pagas menos
    - **Saldo BV**: Evolución a lo largo del año
+   - **Ciclo rotado**: si empiezas en junio, la simulación recorre junio-diciembre y después enero-mayo usando el mismo patrón anual de datos
 
 **Resultado**: Entiendes cómo la BV equilibra tu factura a lo largo del año.
 
@@ -1106,6 +1110,8 @@ Sí, deja el campo "Saldo BV inicial" en 0. El simulador empezará desde cero y 
 ### ¿Por qué importa el mes de inicio del contrato?
 
 Porque la BV usa saldo de meses anteriores. Si empiezas en mayo, puedes acumular excedentes de verano para usarlos en invierno dentro de la misma ventana simulada; si empiezas en enero, parte de ese saldo puede quedar al final del periodo. El selector cambia el orden de simulación, no los datos energéticos de cada mes.
+
+Cuando hay 12 meses de datos, el simulador usa esos meses como un patrón anual. Por ejemplo, si el CSV contiene enero-diciembre y eliges junio, la ventana simulada será `jun → jul → ago → sep → oct → nov → dic → ene → feb → mar → abr → may`. Los meses enero-mayo del final representan la continuación del ciclo anual, no una segunda lectura del año histórico.
 
 ### ¿Los datos de mi CSV se envían a algún servidor?
 

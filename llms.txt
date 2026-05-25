@@ -74,6 +74,7 @@ Repository license model: source-available, not open source. Software is under P
 - Independent monthly simulator for solar + remunerated-surplus scenarios (with and without BV).
 - Hybrid workflow: CSV/XLSX import -> editable manual monthly grid.
 - Annual ranking by paid cost, tie-break by final virtual battery balance.
+- Contract start month can rotate the annual month pattern for BV carry-over; it changes simulation order, not the kWh/surplus attached to each month.
 - Local autosave + JSON export/import for manual data.
 - Supports a simulator-specific custom tariff stored locally.
 

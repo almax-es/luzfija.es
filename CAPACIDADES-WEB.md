@@ -33,6 +33,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Simulacion mensual para tarifas con excedentes remunerados.
 - Modo hibrido CSV -> tabla manual editable.
 - Selector de mes de inicio del contrato para ordenar el ciclo BV desde la contratacion.
+- La simulacion de 12 meses usa los datos como patron anual: si se empieza en junio, recorre junio-diciembre y despues enero-mayo sin cambiar los kWh/excedentes de cada mes.
 - Ranking anual por coste pagado (con desempate por saldo BV final).
 
 ### 2.2 Paginas De Apoyo
@@ -235,6 +236,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Impuestos por zona.
 - BV (uso y acumulacion si la tarifa la soporta).
 - Mes de inicio: reordena los meses disponibles antes de simular, sin modificar consumos ni excedentes de cada mes.
+- Los meses se tratan como patron anual de consumo/produccion, no como una segunda cronologia historica. Por eso enero-mayo pueden aparecer despues de diciembre cuando el ciclo empieza en junio.
 - Metricas:
 - `totalPagar`: coste facturado efectivo.
 - `totalReal`: coste neto auxiliar sin saldo BV previo.

@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8"/>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self' https://luzfija.goatcounter.com; form-action 'self';">
-<script src="/js/config.js?v=20260525-163341"></script>
-<script src="/js/theme.js?v=20260525-163341"></script>
+<script src="/js/config.js?v=20260525-191320"></script>
+<script src="/js/theme.js?v=20260525-191320"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="color-scheme" content="dark light"/>
 <meta name="description" content="Página oficial sobre qué hace LuzFija.es, cómo calcula tarifas y por qué es un proyecto independiente, sin comisiones ni ranking patrocinado."/>
@@ -164,7 +164,7 @@
       "name": "¿En qué se diferencian el comparador principal y el simulador solar?",
       "acceptedAnswer": {
         "@type": "Answer",
-        "text": "El comparador principal estima una factura o periodo agregado y mezcla tarifas del mercado libre con PVPC. El simulador solar trabaja mes a mes con histórico real y ranking anual, especialmente para comparar tarifas con excedentes remunerados y batería virtual."
+        "text": "El comparador principal estima una factura o periodo agregado y mezcla tarifas del mercado libre con PVPC. El simulador solar trabaja mes a mes con histórico real y ranking anual, especialmente para comparar tarifas con excedentes remunerados y batería virtual. También permite elegir el mes de inicio del contrato para rotar el patrón anual de datos y simular cómo se arrastra la batería virtual desde ese punto."
       }
     }
   ]
@@ -172,7 +172,7 @@
 </script>
 
 <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/fonts.css?v=20260525-163341">
+<link rel="stylesheet" href="/fonts.css?v=20260525-191320">
 
 <style>
 :root{--bg:#0B1020;--surface:#141b2e;--card:rgba(255,255,255,.06);--border:rgba(255,255,255,.10);--text:#F7F7FB;--muted:rgba(247,247,251,.72);--accent:#8B5CF6;--accent2:#22C55E;--warn:#F59E0B;--danger:#EF4444;--gradient:linear-gradient(135deg,#8B5CF6,#EC4899,#22C55E)}
@@ -282,7 +282,7 @@ html.light-mode .header{background:rgba(255,255,255,.92)}
         <article class="tool-card">
           <a href="/comparador-tarifas-solares.html">
             <h3>Simulador solar y BV</h3>
-            <p>Simula mes a mes tarifas con excedentes remunerados, con o sin batería virtual, usando datos reales importados o una tabla manual editable para escenarios futuros.</p>
+            <p>Simula mes a mes tarifas con excedentes remunerados, con o sin batería virtual, usando datos reales importados o una tabla manual editable. Puede rotar el ciclo anual desde el mes de contratación para ver cómo se arrastra la hucha BV.</p>
           </a>
         </article>
         <article class="tool-card">
@@ -331,7 +331,7 @@ html.light-mode .header{background:rgba(255,255,255,.92)}
         </div>
       </div>
       <div class="note">
-        <strong>Diferencia clave:</strong> el comparador principal y el simulador solar no son la misma herramienta. La home estima un periodo agregado; el simulador solar trabaja mes a mes con histórico real y ranking anual.
+        <strong>Diferencia clave:</strong> el comparador principal y el simulador solar no son la misma herramienta. La home estima un periodo agregado; el simulador solar trabaja mes a mes con histórico real y ranking anual. Si eliges un mes de inicio, rota el patrón anual de datos (por ejemplo junio-diciembre y después enero-mayo) sin cambiar los kWh ni los excedentes de cada mes.
       </div>
     </section>
 
@@ -398,7 +398,7 @@ html.light-mode .header{background:rgba(255,255,255,.92)}
         </article>
         <article class="faq-item">
           <h3>¿Qué diferencia hay entre la home y el simulador solar?</h3>
-          <p>La home es mejor para comparar un periodo concreto o tu factura actual. El simulador solar es mejor cuando quieres ver el efecto anual del autoconsumo, la compensación y la batería virtual.</p>
+          <p>La home es mejor para comparar un periodo concreto o tu factura actual. El simulador solar es mejor cuando quieres ver el efecto anual del autoconsumo, la compensación y la batería virtual. Además, puedes elegir el mes de inicio del contrato: el simulador rota el patrón anual de consumo/producción para que la BV empiece a arrastrarse desde ese mes.</p>
         </article>
         <article class="faq-item">
           <h3>¿Existe una referencia específica para asistentes?</h3>
