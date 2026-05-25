@@ -404,7 +404,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const monthIndex = Number(match[2]) - 1;
     const monthName = monthNames[monthIndex] || match[2];
-    return `${monthName} ${match[1]}`;
+    return monthName;
   }
 
   function updateMesInicioSelector(months) {
