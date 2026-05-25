@@ -10,7 +10,7 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 **Ubicación**: `/tarifas.json`
 **Tamaño**: ~32 KB
 **Estructura**: Objeto raíz con aviso `_meta`, array de tarifas en `tarifas` y sello `updatedAt`
-**Última actualización**: 2026-05-25 (`updatedAt`: `2026-05-25T05:36:33.153Z`)
+**Última actualización**: 2026-05-25 (`updatedAt`: `2026-05-25T07:02:22.530Z`)
 **Total tarifas documentadas**: 71
 
 ### Esquema de Estructura
