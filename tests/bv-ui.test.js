@@ -238,7 +238,7 @@ describe('BV UI manual month helpers', () => {
       <input id="bv-p1" value="3.45">
       <input id="bv-p2" value="3.45">
       <input id="bv-saldo-inicial" value="0">
-      <select id="bv-mes-inicio"><option value="">Orden de la tabla (por defecto)</option></select>
+      <div class="bv-cs" id="bv-mes-inicio"><button type="button" id="bv-mes-inicio-btn" disabled aria-haspopup="listbox" aria-expanded="false"><span class="bv-cs-value">Orden de la tabla (por defecto)</span></button><ul id="bv-mes-inicio-list"></ul></div>
       <select id="bv-zona-fiscal"><option value="Península" selected>Península</option></select>
       <div id="bv-vivienda-canarias-wrapper"></div>
       <input id="bv-vivienda-canarias" type="checkbox">

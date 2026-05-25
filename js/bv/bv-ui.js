@@ -207,7 +207,115 @@ document.addEventListener('DOMContentLoaded', () => {
   const p1Input = document.getElementById('bv-p1');
   const p2Input = document.getElementById('bv-p2');
   const saldoInput = document.getElementById('bv-saldo-inicial');
-  const mesInicioInput = document.getElementById('bv-mes-inicio');
+  const mesInicioInput = (function () {
+    const wrapperEl = document.getElementById('bv-mes-inicio');
+    const btnEl = document.getElementById('bv-mes-inicio-btn');
+    const valueEl = btnEl && btnEl.querySelector('.bv-cs-value');
+    const listEl = document.getElementById('bv-mes-inicio-list');
+    if (!wrapperEl || !btnEl || !listEl) return null;
+
+    const DEFAULT_LABEL = 'Orden de la tabla (por defecto)';
+    let _value = '';
+    let _disabled = true;
+    let _items = [];
+    let _renderPending = false;
+
+    function scheduleRender() {
+      if (_renderPending) return;
+      _renderPending = true;
+      requestAnimationFrame(render);
+    }
+
+    function render() {
+      _renderPending = false;
+      const selected = _items.find((i) => i.value === _value);
+      if (valueEl) valueEl.textContent = selected ? selected.label : DEFAULT_LABEL;
+
+      btnEl.disabled = _disabled;
+      wrapperEl.setAttribute('aria-disabled', String(_disabled));
+      if (_disabled) close();
+
+      listEl.innerHTML = '';
+      _items.forEach((item) => {
+        const li = document.createElement('li');
+        li.className = 'bv-cs-item' + (item.isDefault ? ' bv-cs-item--default' : '');
+        li.setAttribute('role', 'option');
+        li.setAttribute('aria-selected', String(item.value === _value));
+        li.setAttribute('tabindex', '-1');
+        li.textContent = item.label;
+        li.dataset.value = item.value;
+        li.addEventListener('click', () => { pick(item.value); close(); btnEl.focus(); });
+        li.addEventListener('keydown', onItemKeydown);
+        listEl.appendChild(li);
+      });
+    }
+
+    function open() {
+      if (_disabled) return;
+      wrapperEl.setAttribute('aria-expanded', 'true');
+      btnEl.setAttribute('aria-expanded', 'true');
+      const target = listEl.querySelector('[aria-selected="true"]') || listEl.querySelector('.bv-cs-item');
+      if (target) requestAnimationFrame(() => target.focus());
+    }
+
+    function close() {
+      wrapperEl.setAttribute('aria-expanded', 'false');
+      btnEl.setAttribute('aria-expanded', 'false');
+    }
+
+    function pick(val) {
+      _value = String(val ?? '');
+      const selected = _items.find((i) => i.value === _value);
+      if (valueEl) valueEl.textContent = selected ? selected.label : DEFAULT_LABEL;
+      listEl.querySelectorAll('.bv-cs-item').forEach((li) => {
+        li.setAttribute('aria-selected', String(li.dataset.value === _value));
+      });
+    }
+
+    function onItemKeydown(e) {
+      const items = Array.from(listEl.querySelectorAll('.bv-cs-item'));
+      const idx = items.indexOf(e.currentTarget);
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault(); pick(e.currentTarget.dataset.value); close(); btnEl.focus();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault(); if (idx < items.length - 1) items[idx + 1].focus();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault(); if (idx > 0) items[idx - 1].focus(); else btnEl.focus();
+      } else if (e.key === 'Escape' || e.key === 'Tab') {
+        close(); if (e.key === 'Escape') { e.preventDefault(); btnEl.focus(); }
+      }
+    }
+
+    btnEl.addEventListener('click', () => {
+      wrapperEl.getAttribute('aria-expanded') === 'true' ? close() : open();
+    });
+
+    btnEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') { e.preventDefault(); open(); }
+      else if (e.key === 'Escape') close();
+    });
+
+    document.addEventListener('pointerdown', (e) => {
+      if (!wrapperEl.contains(e.target)) close();
+    });
+
+    wrapperEl.addEventListener('focusout', (e) => {
+      if (!wrapperEl.contains(e.relatedTarget)) close();
+    });
+
+    return {
+      get value() { return _value; },
+      set value(v) { _value = String(v ?? ''); scheduleRender(); },
+      get disabled() { return _disabled; },
+      set disabled(v) { _disabled = Boolean(v); scheduleRender(); },
+      set title(v) { if (btnEl) btnEl.title = String(v ?? ''); },
+      set innerHTML(v) { _items = []; _value = ''; scheduleRender(); },
+      appendChild(optEl) {
+        _items.push({ value: optEl.value, label: optEl.textContent, isDefault: optEl.value === '' });
+        scheduleRender();
+      }
+    };
+  })();
   const zonaFiscalInput = document.getElementById('bv-zona-fiscal');
   const viviendaCanariasWrapper = document.getElementById('bv-vivienda-canarias-wrapper');
   const viviendaCanariasInput = document.getElementById('bv-vivienda-canarias');

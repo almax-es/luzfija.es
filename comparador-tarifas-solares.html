@@ -19,7 +19,7 @@
   <meta name="apple-mobile-web-app-title" content="Comparador Tarifas">
 
   <link rel="preconnect" href="https://luzfija.goatcounter.com">
-  <script src="/js/config.js?v=20260525-112039"></script>
+  <script src="/js/config.js?v=20260525-114125"></script>
 
   <meta property="og:title" content="Comparador de tarifas para placas solares | LuzFija.es">
   <meta property="og:description" content="Compara tarifas eléctricas para autoconsumo con tus datos reales. Calcula excedentes y batería virtual para ver qué compañía te deja la factura más baja.">
@@ -275,7 +275,7 @@
   }
   </script>
 
-  <script src="/js/theme.js?v=20260525-112039"></script>
+  <script src="/js/theme.js?v=20260525-114125"></script>
 
   <script type="application/ld+json">
   {
@@ -309,18 +309,18 @@
   }
   </script>
 
-    <link rel="stylesheet" href="/styles.css?v=20260525-112039">
-    <link rel="stylesheet" href="/pro.css?v=20260525-112039">
+    <link rel="stylesheet" href="/styles.css?v=20260525-114125">
+    <link rel="stylesheet" href="/pro.css?v=20260525-114125">
   <!-- CSS del desglose (solo se usa al abrir el modal). Se carga sin bloquear el render inicial -->
-  <link rel="preload" href="/desglose-factura.css?v=20260525-112039" as="style">
-  <link rel="stylesheet" href="/desglose-factura.css?v=20260525-112039" media="all">
-  <noscript><link rel="stylesheet" href="/desglose-factura.css?v=20260525-112039"></noscript>
+  <link rel="preload" href="/desglose-factura.css?v=20260525-114125" as="style">
+  <link rel="stylesheet" href="/desglose-factura.css?v=20260525-114125" media="all">
+  <noscript><link rel="stylesheet" href="/desglose-factura.css?v=20260525-114125"></noscript>
 
   <!-- PDF.js se carga dinámicamente cuando el usuario sube una factura (ver factura.js) -->
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/fonts.css?v=20260525-112039">
-  <link rel="stylesheet" href="/bv-sim.css?v=20260525-112039">
-  <link rel="stylesheet" href="/comparador-solar-mejorado.css?v=20260525-112039">
+  <link rel="stylesheet" href="/fonts.css?v=20260525-114125">
+  <link rel="stylesheet" href="/bv-sim.css?v=20260525-114125">
+  <link rel="stylesheet" href="/comparador-solar-mejorado.css?v=20260525-114125">
 
     <meta name="theme-color" content="#8B5CF6">
 </head>
@@ -440,10 +440,17 @@
                         </div>
 
                         <div class="group">
-                          <label for="bv-mes-inicio">Mes de inicio del contrato</label>
-                          <select class="input" id="bv-mes-inicio" disabled>
-                            <option value="">Orden de la tabla (por defecto)</option>
-                          </select>
+                          <label for="bv-mes-inicio-btn">Mes de inicio del contrato</label>
+                          <div class="bv-cs" id="bv-mes-inicio">
+                            <button type="button" class="bv-cs-btn" id="bv-mes-inicio-btn"
+                                    disabled aria-haspopup="listbox" aria-expanded="false">
+                              <span class="bv-cs-value">Orden de la tabla (por defecto)</span>
+                              <svg class="bv-cs-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/>
+                              </svg>
+                            </button>
+                            <ul class="bv-cs-list" role="listbox" aria-label="Mes de inicio del contrato" id="bv-mes-inicio-list"></ul>
+                          </div>
                           <div style="font-size:11px; color:var(--muted); margin-top:4px;">Elige el mes en que empieza la nueva tarifa con la hucha inicial indicada.</div>
                         </div>
 
@@ -761,13 +768,13 @@
             <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"><span class="dot" id="toastDot" aria-hidden="true"></span><span id="toastText"></span></div>
           
             <!-- ⚠️ ORDEN CRÍTICO: lf-csv-utils.js DEBE cargarse ANTES que bv-sim-monthly.js -->
-            <script src="/js/lf-config.js?v=20260525-112039"></script>
-            <script src="/js/lf-utils.js?v=20260525-112039"></script>
-            <script src="/js/lf-csv-utils.js?v=20260525-112039"></script>
-            <script src="/js/lf-surplus-prices.js?v=20260525-112039"></script>
-            <script src="/js/bv/bv-import.js?v=20260525-112039"></script>
-            <script src="/js/bv/bv-sim-monthly.js?v=20260525-112039"></script>
-            <script src="/js/bv/bv-ui.js?v=20260525-112039"></script>
-            <script src="/js/shell-lite.js?v=20260525-112039" defer></script>
+            <script src="/js/lf-config.js?v=20260525-114125"></script>
+            <script src="/js/lf-utils.js?v=20260525-114125"></script>
+            <script src="/js/lf-csv-utils.js?v=20260525-114125"></script>
+            <script src="/js/lf-surplus-prices.js?v=20260525-114125"></script>
+            <script src="/js/bv/bv-import.js?v=20260525-114125"></script>
+            <script src="/js/bv/bv-sim-monthly.js?v=20260525-114125"></script>
+            <script src="/js/bv/bv-ui.js?v=20260525-114125"></script>
+            <script src="/js/shell-lite.js?v=20260525-114125" defer></script>
           </body></html>
 
