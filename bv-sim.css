@@ -142,6 +142,21 @@
 
 .bv-breakdown-mobile { display: none; }
 
+.bv-cycle-note {
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--accent) 8%, transparent);
+  color: var(--muted);
+  font-size: 0.86rem;
+  line-height: 1.45;
+}
+
+.bv-cycle-note strong {
+  color: var(--text);
+}
+
 @media (max-width: 768px){
   .bv-breakdown-desktop { display: none; }
   .bv-breakdown-mobile { display: block; }

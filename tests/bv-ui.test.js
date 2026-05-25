@@ -94,6 +94,58 @@ describe('BV UI manual month helpers', () => {
     expect(months[0].daysInMonth).toBe(31);
   });
 
+  it('rotateMonthsByStart rota un ciclo anual desde el mes elegido sin mutar el original', () => {
+    const months = Array.from({ length: 12 }, (_, i) => ({
+      key: `2026-${String(i + 1).padStart(2, '0')}`
+    }));
+
+    const rotated = window.BVSim.manualUi.rotateMonthsByStart(months, '2026-05');
+
+    expect(rotated.map((month) => month.key)).toEqual([
+      '2026-05', '2026-06', '2026-07', '2026-08',
+      '2026-09', '2026-10', '2026-11', '2026-12',
+      '2026-01', '2026-02', '2026-03', '2026-04'
+    ]);
+    expect(months[0].key).toBe('2026-01');
+    expect(rotated).not.toBe(months);
+    expect(rotated[0]).toBe(months[4]);
+  });
+
+  it('rotateMonthsByStart funciona con periodos parciales', () => {
+    const months = ['2026-05', '2026-06', '2026-07', '2026-08', '2026-09', '2026-10']
+      .map((key) => ({ key }));
+
+    const rotated = window.BVSim.manualUi.rotateMonthsByStart(months, '2026-08');
+
+    expect(rotated.map((month) => month.key)).toEqual([
+      '2026-08', '2026-09', '2026-10', '2026-05', '2026-06', '2026-07'
+    ]);
+  });
+
+  it('rotateMonthsByStart no cambia el orden si el mes no existe o no se elige', () => {
+    const months = [{ key: '2026-03' }, { key: '2026-04' }];
+
+    expect(window.BVSim.manualUi.rotateMonthsByStart(months, '').map((month) => month.key))
+      .toEqual(['2026-03', '2026-04']);
+    expect(window.BVSim.manualUi.rotateMonthsByStart(months, '2026-08').map((month) => month.key))
+      .toEqual(['2026-03', '2026-04']);
+  });
+
+  it('rotateMonthsByStart conserva los datos enriquecidos de cada mes', () => {
+    const months = [
+      { key: '2026-01', indexedSurplusEur: 1.23 },
+      { key: '2026-02', indexedSurplusEur: 4.56 }
+    ];
+
+    const rotated = window.BVSim.manualUi.rotateMonthsByStart(months, '2026-02');
+
+    expect(rotated[0]).toMatchObject({
+      key: '2026-02',
+      indexedSurplusEur: 4.56
+    });
+    expect(rotated[0]).toBe(months[1]);
+  });
+
   it('setHourlyTraceFromImport limpia el trace cuando meta.hasExcedenteColumn es false', () => {
     const { setFromImport, canUse, buildIndexedFallbackMsg } = window.BVSim._hourlyTraceControls;
 
@@ -186,6 +238,7 @@ describe('BV UI manual month helpers', () => {
       <input id="bv-p1" value="3.45">
       <input id="bv-p2" value="3.45">
       <input id="bv-saldo-inicial" value="0">
+      <select id="bv-mes-inicio"><option value="">Orden de la tabla (por defecto)</option></select>
       <select id="bv-zona-fiscal"><option value="Península" selected>Península</option></select>
       <div id="bv-vivienda-canarias-wrapper"></div>
       <input id="bv-vivienda-canarias" type="checkbox">

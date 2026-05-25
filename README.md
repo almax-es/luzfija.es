@@ -34,9 +34,9 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
   - 1 en `estadisticas/`.
   - 24 en `guias/` (indice + 23 guias).
 - 31 modulos JavaScript en `js/` (incluye `js/bv/`).
-- 19.914 lineas JS aproximadas.
+- 19.995 lineas JS aproximadas.
 - 71 tarifas en `tarifas.json`.
-- Suite de tests Vitest con 52 archivos y 364 casos.
+- Suite de tests Vitest con 52 archivos y 368 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 
@@ -90,6 +90,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - Ranking anual:
 - orden por coste anual pagado,
 - desempate por mayor saldo BV final.
+- Selector de mes de inicio del contrato para simular la hucha desde la contratacion.
 - Desglose completo por tarifa en desktop (tabla) y movil (tarjetas).
 - Persistencia local avanzada:
 - autoguardado tabla manual,

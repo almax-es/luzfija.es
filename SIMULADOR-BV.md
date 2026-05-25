@@ -77,6 +77,15 @@ Para **cada mes** de **cada tarifa**, calcula:
 
 Si una tarifa con compensación parcial también tiene BV, el excedente no aplicado por el límite de peajes/cargos **no se marca como perdido**: forma parte de `excedente_sobrante` y pasa a BV para meses posteriores. Si la tarifa no tiene BV, ese sobrante sí se pierde.
 
+### 📅 Mes de Inicio del Contrato
+
+El usuario puede elegir el mes desde el que empieza la simulación de la tarifa. Esto modela el caso real de cambiar de comercializadora con la BV empezando desde el saldo inicial indicado (normalmente 0 €).
+
+- Los kWh y excedentes de cada mes no cambian.
+- Solo se reordena el ciclo antes de llamar al motor mensual.
+- Ejemplo con 12 meses enero-diciembre y contrato en mayo: `may → jun → jul → ago → sep → oct → nov → dic → ene → feb → mar → abr`.
+- La rotación se aplica después de enriquecer excedentes indexados por `YYYY-MM`, por lo que cada mes conserva su valor horario real cuando existe trazabilidad CSV.
+
 ### 📊 Ranking Inteligente
 
 **Criterio de ordenación**: Lo que **realmente pagas** (con BV aplicada)
@@ -263,6 +272,8 @@ window.BVSim.simulateForTarifaDemo({
 // Simula todos los meses de una tarifa
 // Devuelve: rows (mes a mes) + totals (pagado, real, bvFinal)
 ```
+
+El orden de `months` define el arrastre de saldo BV. La UI puede rotarlo con `window.BVSim.manualUi.rotateMonthsByStart(months, startKey)` antes de llamar al motor para representar un contrato iniciado en un mes concreto.
 
 ```javascript
 window.BVSim.simulateForAllTarifasBV({
@@ -1091,6 +1102,10 @@ El comparador principal calcula un periodo único. El simulador BV calcula mes a
 ### ¿Puedo simular sin saldo BV inicial?
 
 Sí, deja el campo "Saldo BV inicial" en 0. El simulador empezará desde cero y acumulará lo que generes en cada mes.
+
+### ¿Por qué importa el mes de inicio del contrato?
+
+Porque la BV usa saldo de meses anteriores. Si empiezas en mayo, puedes acumular excedentes de verano para usarlos en invierno dentro de la misma ventana simulada; si empiezas en enero, parte de ese saldo puede quedar al final del periodo. El selector cambia el orden de simulación, no los datos energéticos de cada mes.
 
 ### ¿Los datos de mi CSV se envían a algún servidor?
 

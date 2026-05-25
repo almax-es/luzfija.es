@@ -101,6 +101,17 @@ window.BVSim.manualUi.buildSimulationMonths = function buildSimulationMonths(ent
   return months;
 };
 
+window.BVSim.manualUi.rotateMonthsByStart = function rotateMonthsByStart(months, startKey) {
+  const list = Array.isArray(months) ? months : [];
+  const key = typeof startKey === 'string' ? startKey.trim() : '';
+  if (!key) return list.slice();
+
+  const startIdx = list.findIndex((month) => month?.key === key);
+  if (startIdx <= 0) return list.slice();
+
+  return list.slice(startIdx).concat(list.slice(0, startIdx));
+};
+
 window.BVSim.manualUi.createHourlyTraceControls = function createHourlyTraceControls(hourlyTraceState, escapeHtmlFn = (value) => String(value || '')) {
   function clearHourlyTraceState() {
     hourlyTraceState.records = null;
@@ -196,6 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const p1Input = document.getElementById('bv-p1');
   const p2Input = document.getElementById('bv-p2');
   const saldoInput = document.getElementById('bv-saldo-inicial');
+  const mesInicioInput = document.getElementById('bv-mes-inicio');
   const zonaFiscalInput = document.getElementById('bv-zona-fiscal');
   const viviendaCanariasWrapper = document.getElementById('bv-vivienda-canarias-wrapper');
   const viviendaCanariasInput = document.getElementById('bv-vivienda-canarias');
@@ -253,6 +265,80 @@ document.addEventListener('DOMContentLoaded', () => {
     if (num > max) return max;
     if (!isFinite(num)) return 0;
     return num;
+  }
+
+  function readManualEntriesFromGrid() {
+    const entries = [];
+    if (!manualGrid) return entries;
+
+    for (let i = 0; i < 12; i++) {
+      const p1In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p1"]`);
+      const p2In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p2"]`);
+      const p3In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p3"]`);
+      const vIn = manualGrid.querySelector(`input[data-month="${i}"][data-type="vert"]`);
+
+      const p1 = validateAndClampKwh(p1In ? p1In.value : 0);
+      const p2 = validateAndClampKwh(p2In ? p2In.value : 0);
+      const p3 = validateAndClampKwh(p3In ? p3In.value : 0);
+      const vert = validateAndClampKwh(vIn ? vIn.value : 0);
+
+      if (p1 > 0 || p2 > 0 || p3 > 0 || vert > 0) {
+        entries[i] = { p1, p2, p3, vert };
+      }
+    }
+
+    return entries;
+  }
+
+  function formatMonthKeyLabel(key) {
+    const match = /^(\d{4})-(\d{2})$/.exec(String(key || ''));
+    if (!match) return String(key || '');
+
+    const monthIndex = Number(match[2]) - 1;
+    const monthName = monthNames[monthIndex] || match[2];
+    return `${monthName} ${match[1]}`;
+  }
+
+  function updateMesInicioSelector(months) {
+    if (!mesInicioInput) return;
+
+    const currentVal = mesInicioInput.value;
+    const availableMonths = (Array.isArray(months) ? months : [])
+      .filter((month) => /^\d{4}-\d{2}$/.test(String(month?.key || '')));
+
+    mesInicioInput.innerHTML = '';
+
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = 'Orden de la tabla (por defecto)';
+    mesInicioInput.appendChild(defaultOpt);
+
+    availableMonths.forEach((month) => {
+      const opt = document.createElement('option');
+      opt.value = month.key;
+      opt.textContent = formatMonthKeyLabel(month.key);
+      mesInicioInput.appendChild(opt);
+    });
+
+    const canChoose = availableMonths.length > 1;
+    if (canChoose && currentVal && availableMonths.some((month) => month.key === currentVal)) {
+      mesInicioInput.value = currentVal;
+    } else {
+      mesInicioInput.value = '';
+    }
+
+    mesInicioInput.disabled = !canChoose;
+    mesInicioInput.title = canChoose
+      ? 'Elige el primer mes de la simulación para modelar la batería virtual desde ese punto.'
+      : 'Introduce datos en al menos dos meses para cambiar el mes de inicio.';
+  }
+
+  function updateMesInicioSelectorFromGrid() {
+    const months = window.BVSim.manualUi.buildSimulationMonths(readManualEntriesFromGrid(), {
+      currentYear: new Date().getFullYear(),
+      monthMetaByIndex: manualMonthMetaByIndex
+    });
+    updateMesInicioSelector(months);
   }
 
   // Función para formatear número al estilo español (decimales con coma)
@@ -355,6 +441,8 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }
       }
+
+      updateMesInicioSelectorFromGrid();
 
       if (hasData) {
         updateDataStatus();
@@ -466,6 +554,7 @@ document.addEventListener('DOMContentLoaded', () => {
           loadManualData();
           clearHourlyTraceState();
           updateManualTotals();
+          updateMesInicioSelectorFromGrid();
 
           showToast('✓ Datos importados correctamente', 'ok');
         } catch(err) {
@@ -628,6 +717,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Actualizar totales en tiempo real
         updateManualTotals();
+        updateMesInicioSelectorFromGrid();
 
         showSaveIndicator('saving');
         clearTimeout(saveTimer);
@@ -678,6 +768,7 @@ document.addEventListener('DOMContentLoaded', () => {
       clearManualMonthMeta();
       clearHourlyTraceState();
       updateManualTotals();
+      updateMesInicioSelectorFromGrid();
       updateDataStatus();
       showToast('✓ Todos los datos han sido borrados', 'ok');
     });
@@ -687,6 +778,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (manualGrid) {
     loadManualData();
     updateManualTotals();
+    updateMesInicioSelectorFromGrid();
     updateDataStatus();
   }
 
@@ -1159,6 +1251,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // 5. Actualizar totales y guardar
     if (filledCount > 0) {
       updateManualTotals();
+      updateMesInicioSelectorFromGrid();
       saveManualData();
 
       // Mensaje informativo sobre múltiples años
@@ -1312,36 +1405,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       // Siempre usar datos de la tabla manual (auto-rellenada o manual)
       const currentYear = new Date().getFullYear();
-      const manualEntries = [];
-
-      for (let i = 0; i < 12; i++) {
-        const p1Input = manualGrid.querySelector(`input[data-month="${i}"][data-type="p1"]`);
-        const p2Input = manualGrid.querySelector(`input[data-month="${i}"][data-type="p2"]`);
-        const p3Input = manualGrid.querySelector(`input[data-month="${i}"][data-type="p3"]`);
-        const vInput = manualGrid.querySelector(`input[data-month="${i}"][data-type="vert"]`);
-
-        // Validación robusta de inputs
-        const p1 = validateAndClampKwh(p1Input ? p1Input.value : 0);
-        const p2 = validateAndClampKwh(p2Input ? p2Input.value : 0);
-        const p3 = validateAndClampKwh(p3Input ? p3Input.value : 0);
-        const totalCons = p1 + p2 + p3;
-
-        let vertKwh = validateAndClampKwh(vInput ? vInput.value : 0);
-
-        // Solo incluir el mes si tiene al menos algún dato > 0
-        const tieneAlgunDato = p1 > 0 || p2 > 0 || p3 > 0 || vertKwh > 0;
-        if (!tieneAlgunDato) continue; // Saltar este mes
-
-        // Sanity check básico
-        if (vertKwh > 10000) vertKwh = 10000;
-
-        manualEntries[i] = {
-          p1,
-          p2,
-          p3,
-          vert: vertKwh
-        };
-      }
+      const manualEntries = readManualEntriesFromGrid();
 
       // Validar que haya al menos 1 mes con datos
       const manualMonths = window.BVSim.manualUi.buildSimulationMonths(manualEntries, {
@@ -1379,10 +1443,16 @@ document.addEventListener('DOMContentLoaded', () => {
           : 'reference';
       }
 
-      const monthMap = new Map((monthlyResult.months || []).map((m) => [m.key, m]));
-      
+      const baseMonths = monthlyResult.months || [];
+      updateMesInicioSelector(baseMonths);
+      const mesInicioVal = mesInicioInput && !mesInicioInput.disabled ? (mesInicioInput.value || '') : '';
+      const mesInicioActivo = Boolean(mesInicioVal && baseMonths.some((month) => month.key === mesInicioVal));
+      const mesInicioLabel = mesInicioActivo ? formatMonthKeyLabel(mesInicioVal) : '';
+      const simulationMonths = window.BVSim.manualUi.rotateMonthsByStart(baseMonths, mesInicioVal);
+      const monthMap = new Map(baseMonths.map((m) => [m.key, m]));
+
       const allResults = window.BVSim.simulateForAllTarifasBV({
-        months: monthlyResult.months,
+        months: simulationMonths,
         tarifasBV: tarifasResult.tarifasBV,
         potenciaP1: p1Val, potenciaP2: p2Val, bvSaldoInicial: saldoVal,
         zonaFiscal: zonaFiscalVal,
@@ -1408,7 +1478,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const winner = rankedResults[0];
 
       const r2 = (n) => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
-      const simulatedMonths = monthlyResult.months || [];
+      const simulatedMonths = simulationMonths;
       const completeMonths = simulatedMonths.filter((month) => {
         const daysInMonth = Number(month.daysInMonth) || (() => {
           const m = /^(\d{4})-(\d{2})$/.exec(String(month.key || ''));
@@ -1420,10 +1490,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const isAnnualScope = simulatedMonths.length >= 12 && completeMonths >= 12;
       const totalCostLabel = isAnnualScope ? 'Coste total anual' : 'Coste periodo simulado';
       const totalCostSub = isAnnualScope
-        ? 'Suma de todas tus facturas mensuales'
+        ? (mesInicioActivo ? `Suma de 12 meses desde ${mesInicioLabel}` : 'Suma de todas tus facturas mensuales')
         : `Suma de ${simulatedMonths.length} mes${simulatedMonths.length === 1 ? '' : 'es'} simulado${simulatedMonths.length === 1 ? '' : 's'}`;
       const totalCostNote = isAnnualScope
-        ? 'durante el año'
+        ? (mesInicioActivo ? `durante 12 meses desde ${mesInicioLabel}` : 'durante el año')
         : `durante el periodo introducido (${simulatedMonths.length} mes${simulatedMonths.length === 1 ? '' : 'es'}). No se presenta como ranking anual porque no hay 12 meses razonablemente completos`;
       const scopeAdjective = isAnnualScope ? 'anual' : 'del periodo';
 
@@ -1610,12 +1680,16 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
         const head = hasBV
           ? `<th style="text-align:left" title="Mes del año">Mes</th><th title="Término de potencia">Potencia</th><th title="Energía bruta consumida (sin compensar)">E. Bruta</th><th title="Excedentes compensados este mes">Compensación</th><th title="Energía neta facturada">E. Neta</th><th title="Impuestos (IEE + IVA/IGIC/IPSI)">Impuestos</th><th title="Subtotal antes de aplicar BV">Subtotal</th><th title="Importe a pagar este mes">A Pagar</th><th title="Saldo BV usado este mes">Uso BV</th><th title="Saldo BV acumulado al final">Saldo BV</th>`
           : `<th style="text-align:left" title="Mes del año">Mes</th><th title="Término de potencia">Potencia</th><th title="Energía bruta consumida (sin compensar)">E. Bruta</th><th title="Excedentes compensados este mes">Compensación</th><th title="Energía neta facturada">E. Neta</th><th title="Impuestos (IEE + IVA/IGIC/IPSI)">Impuestos</th><th title="Subtotal de la factura">Subtotal</th><th title="Importe a pagar este mes">A Pagar</th>`;
+        const cycleNote = mesInicioActivo
+          ? `<div class="bv-cycle-note"><strong>Simulación desde ${escapeHtml(mesInicioLabel)}.</strong> La batería virtual se arrastra en el orden mostrado.</div>`
+          : '';
 
         // Ojo: buildRows ya omite celdas BV si no aplica.
         // En BV, para mantener el orden visual, las columnas "Hucha" y "Saldo" se colocan al final.
         // (En móvil se verán como filas etiquetadas igualmente.)
         return `
           <div class="bv-breakdown" style="margin-top:16px;">
+            ${cycleNote}
             <div class="bv-breakdown-desktop">
               <div class="bv-table-container">
                 <table class="bv-table">
@@ -1794,6 +1868,12 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
 
       const totalTarifas = rankedResults.length;
       const indexedFallbackMsg = buildIndexedFallbackMsg(hasIndexedTariffs, indexedTraceMode, zonaFiscalVal);
+      const mesInicioNote = mesInicioActivo
+        ? `<br><br><strong>Mes de inicio:</strong> simulación desde ${escapeHtml(mesInicioLabel)}${saldoVal > 0 ? ` con saldo BV inicial de ${fEur(saldoVal)}` : ' con BV inicial a 0 €'}. La hucha se arrastra en el orden mostrado en los desgloses.`
+        : '';
+      const saldoInicialNote = !mesInicioActivo && saldoVal > 0
+        ? `<br><br><strong>Nota:</strong> has indicado un saldo BV inicial de ${fEur(saldoVal)} y se descuenta en el cálculo.`
+        : '';
       const rankingNote = `
         <div style="background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 24px; text-align: center;">
           <div style="font-size: 0.95rem; color: var(--muted); line-height: 1.6;">
@@ -1801,7 +1881,8 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
             Las tarifas están ordenadas por el <strong>${totalCostLabel.toLowerCase()}</strong>: la suma de tus facturas mensuales ${totalCostNote}.
             ${hasIndexedTariffs && indexedTraceMode === 'hourly-index-base' ? '<br><br><strong>Indexadas:</strong> se han calculado con tu CSV horario según el índice base disponible.' : ''}
             ${indexedFallbackMsg ? '<br><br><strong>Indexadas:</strong> ' + indexedFallbackMsg : ''}
-            ${saldoVal > 0 ? `<br><br><strong>Nota:</strong> has indicado un saldo BV inicial de ${fEur(saldoVal)} y se descuenta en el cálculo.` : ''}
+            ${mesInicioNote}
+            ${saldoInicialNote}
           </div>
         </div>
       `;

@@ -32,6 +32,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 3. `/comparador-tarifas-solares.html` (simulador BV independiente)
 - Simulacion mensual para tarifas con excedentes remunerados.
 - Modo hibrido CSV -> tabla manual editable.
+- Selector de mes de inicio del contrato para ordenar el ciclo BV desde la contratacion.
 - Ranking anual por coste pagado (con desempate por saldo BV final).
 
 ### 2.2 Paginas De Apoyo
@@ -206,6 +207,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Entradas base:
 - Potencias P1/P2.
 - Saldo BV inicial.
+- Mes de inicio del contrato para simular la BV desde ese punto.
 - Zona fiscal + vivienda canarias.
 - Importacion CSV/XLSX para autoconsumo.
 - Tabla manual mensual (12 meses) siempre disponible.
@@ -232,6 +234,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Compensacion limitada por energia.
 - Impuestos por zona.
 - BV (uso y acumulacion si la tarifa la soporta).
+- Mes de inicio: reordena los meses disponibles antes de simular, sin modificar consumos ni excedentes de cada mes.
 - Metricas:
 - `totalPagar`: coste facturado efectivo.
 - `totalReal`: coste neto auxiliar sin saldo BV previo.
@@ -274,7 +277,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 31 (`js/*.js` + `js/bv/*.js`).
-- Lineas JS aproximadas: 19.914.
+- Lineas JS aproximadas: 19.995.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (71 tarifas).
@@ -314,7 +317,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 
 - Suite Vitest/JSDOM.
 - 52 archivos de test (`tests/*.test.js`).
-- 364 casos `it()/test()` en la ultima ejecucion local verificada.
+- 368 casos `it()/test()` en la ultima ejecucion local verificada.
 - Cobertura de:
 - Calculo fiscal y de energia.
 - PVPC y caches.
