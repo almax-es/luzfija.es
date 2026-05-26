@@ -136,6 +136,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Energya VM",
+      "cPunta": 0.104325,
+      "cLlano": 0.104325,
+      "cValle": 0.104325,
+      "p1": 0.090247,
+      "p2": 0.003014,
+      "web": "https://www.energyavm.es/luz/formula-fija-24-horas-luz/",
+      "tipo": "1P",
+      "requisitos": "25% descuento término energía durante 3 meses incluido en el precio. Consumo ≤ 6.000 kWh/año",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Imagina Energía",
       "cPunta": 0.105,
       "cLlano": 0.105,
@@ -186,25 +205,6 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Energya VM",
-      "cPunta": 0.11128,
-      "cLlano": 0.11128,
-      "cValle": 0.11128,
-      "p1": 0.090247,
-      "p2": 0.003014,
-      "web": "https://www.energyavm.es/luz/formula-fija-24-horas-luz/",
-      "tipo": "1P",
-      "requisitos": "Potencia ≤ 15 kW. Consumo ≤ 6.000 kWh/año",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
       },
       "requiereFV": false
     },
@@ -1303,5 +1303,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-26T06:22:17.388Z"
+  "updatedAt": "2026-05-26T08:42:46.762Z"
 }
