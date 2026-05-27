@@ -318,6 +318,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Imagina Energía Solar",
+      "cPunta": 0.119,
+      "cLlano": 0.119,
+      "cValle": 0.119,
+      "p1": 0.105,
+      "p2": 0.048,
+      "web": "https://imaginaenergia.com/tarifa-luz-solar/",
+      "tipo": "1P",
+      "requisitos": "20% descuento término energía durante 12 meses incluido en el precio.",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Neolux 24h",
       "cPunta": 0.119,
       "cLlano": 0.119,
@@ -1339,5 +1358,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-27T15:40:44.499Z"
+  "updatedAt": "2026-05-27T16:52:12.432Z"
 }
