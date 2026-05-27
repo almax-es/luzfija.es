@@ -609,20 +609,20 @@
       "requiereFV": false
     },
     {
-      "nombre": "Fenie Fijo Uniprecio",
-      "cPunta": 0.181574,
-      "cLlano": 0.181574,
-      "cValle": 0.181574,
-      "p1": 0.075903,
-      "p2": 0.001987,
-      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-uniprecio",
+      "nombre": "Bassols Hogar Solar",
+      "cPunta": 0.149,
+      "cLlano": 0.149,
+      "cValle": 0.149,
+      "p1": 0.077,
+      "p2": 0.077,
+      "web": "https://bassolsenergia.com/es/monedero-solar/",
       "tipo": "1P",
       "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
+        "exc": 0.033,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
       },
       "requiereFV": false
     },
@@ -641,6 +641,24 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Fenie Fijo Uniprecio",
+      "cPunta": 0.181574,
+      "cLlano": 0.181574,
+      "cValle": 0.181574,
+      "p1": 0.075903,
+      "p2": 0.001987,
+      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-uniprecio",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
       },
       "requiereFV": false
     },
@@ -1157,6 +1175,24 @@
       "requiereFV": false
     },
     {
+      "nombre": "Bassols Hogar Solar 3P",
+      "cPunta": 0.221,
+      "cLlano": 0.15,
+      "cValle": 0.115,
+      "p1": 0.099,
+      "p2": 0.025,
+      "web": "https://bassolsenergia.com/es/monedero-solar/",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.033,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Seneo Tarifa 1 3P",
       "cPunta": 0.223,
       "cLlano": 0.152,
@@ -1303,5 +1339,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-27T05:38:40.134Z"
+  "updatedAt": "2026-05-27T15:40:44.499Z"
 }
