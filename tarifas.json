@@ -33,7 +33,7 @@
       "p2": 0.097731,
       "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
       "tipo": "1P",
-      "requisitos": "Potencia contratada ≤ 5 kW",
+      "requisitos": "Potencia contratada ≤ 5 kW.",
       "fv": {
         "exc": 0.0,
         "tipo": "NO COMPENSA",
@@ -107,7 +107,7 @@
       "p2": 0.099,
       "web": "https://eresenergia.com/#tarifas",
       "tipo": "1P",
-      "requisitos": "Consumo ≤ 4.000 kWh/año",
+      "requisitos": "Consumo ≤ 4.000 kWh/año.",
       "fv": {
         "exc": 0.0,
         "tipo": "NO COMPENSA",
@@ -144,7 +144,7 @@
       "p2": 0.003014,
       "web": "https://www.energyavm.es/luz/formula-fija-24-horas-luz/",
       "tipo": "1P",
-      "requisitos": "25% descuento término energía durante 3 meses incluido en el precio. Consumo ≤ 6.000 kWh/año",
+      "requisitos": "25% descuento término energía durante 3 meses incluido en el precio. Consumo ≤ 6.000 kWh/año.",
       "fv": {
         "exc": 0.0,
         "tipo": "NO COMPENSA",
@@ -217,7 +217,7 @@
       "p2": 0.061562,
       "web": "https://www.naturgy.es/hogar/luz/tarifa_por_uso_luz",
       "tipo": "1P",
-      "requisitos": "Consumo ≤ 10.000 kWh/año",
+      "requisitos": "Consumo ≤ 10.000 kWh/año.",
       "fv": {
         "exc": 0.06,
         "tipo": "SIMPLE + BV",
@@ -345,7 +345,7 @@
       "p2": 0.095,
       "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
       "tipo": "1P",
-      "requisitos": "Consumo ≤ 10.000 kWh/año",
+      "requisitos": "Consumo ≤ 10.000 kWh/año.",
       "fv": {
         "exc": 0.07,
         "tipo": "SIMPLE + BV",
@@ -436,7 +436,7 @@
       "p2": 0.058877,
       "web": "https://www.iberdrola.es/luz/plan-online",
       "tipo": "1P",
-      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
+      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año.",
       "fv": {
         "exc": 0.03,
         "tipo": "SIMPLE + BV",
@@ -837,7 +837,7 @@
       "p2": 0.061562,
       "web": "https://www.naturgy.es/hogar/luz/tarifa_noche",
       "tipo": "3P",
-      "requisitos": "Consumo ≤ 10.000 kWh/año",
+      "requisitos": "Consumo ≤ 10.000 kWh/año.",
       "fv": {
         "exc": 0.06,
         "tipo": "SIMPLE + BV",
@@ -892,7 +892,7 @@
       "p2": 0.095,
       "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
       "tipo": "3P",
-      "requisitos": "Consumo ≤ 10.000 kWh/año",
+      "requisitos": "Consumo ≤ 10.000 kWh/año.",
       "fv": {
         "exc": 0.07,
         "tipo": "SIMPLE + BV",
@@ -1020,7 +1020,7 @@
       "p2": 0.013483,
       "web": "https://www.iberdrola.es/luz/plan-online-tres-periodos",
       "tipo": "3P",
-      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
+      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año.",
       "fv": {
         "exc": 0.03,
         "tipo": "SIMPLE + BV",
@@ -1165,7 +1165,7 @@
       "p2": 0.047945,
       "web": "https://www.iberdrola.es/luz/plan-ahorro-solar",
       "tipo": "3P",
-      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año",
+      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año.",
       "fv": {
         "exc": 0.04,
         "tipo": "SIMPLE + BV",
@@ -1256,7 +1256,7 @@
       "p2": 0.039,
       "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
       "tipo": "3P",
-      "requisitos": "Consumo ≤ 10.000 kWh/año",
+      "requisitos": "Consumo ≤ 10.000 kWh/año.",
       "fv": {
         "exc": 0.07,
         "tipo": "SIMPLE + BV",
@@ -1275,7 +1275,7 @@
       "p2": 0.059,
       "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
       "tipo": "3P",
-      "requisitos": "Consumo ≤ 10.000 kWh/año",
+      "requisitos": "Consumo ≤ 10.000 kWh/año.",
       "fv": {
         "exc": 0.07,
         "tipo": "SIMPLE + BV",
@@ -1358,5 +1358,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-28T06:28:29.076Z"
+  "updatedAt": "2026-05-28T06:34:36.841Z"
 }
