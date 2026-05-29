@@ -184,11 +184,11 @@
       "tipo": "1P",
       "requisitos": "10% descuento término energía durante 12 meses incluido en el precio.",
       "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR"
       },
       "requiereFV": false
     },
@@ -1379,5 +1379,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-29T14:26:10.464Z"
+  "updatedAt": "2026-05-29T15:20:24.055Z"
 }
