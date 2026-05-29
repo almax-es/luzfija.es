@@ -520,24 +520,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Fenie Fijo Energético",
-      "cPunta": 0.125574,
-      "cLlano": 0.125574,
-      "cValle": 0.125574,
-      "p1": 0.123346,
-      "p2": 0.033103,
-      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-energetico-1p",
-      "tipo": "1P",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Endesa 24h",
       "cPunta": 0.127688,
       "cLlano": 0.127688,
@@ -588,6 +570,24 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Fenie Fijo Energético",
+      "cPunta": 0.132542,
+      "cLlano": 0.132542,
+      "cValle": 0.132542,
+      "p1": 0.123346,
+      "p2": 0.033103,
+      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-energetico-1p",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
       },
       "requiereFV": false
     },
@@ -665,9 +665,9 @@
     },
     {
       "nombre": "Fenie Fijo Uniprecio",
-      "cPunta": 0.181574,
-      "cLlano": 0.181574,
-      "cValle": 0.181574,
+      "cPunta": 0.188542,
+      "cLlano": 0.188542,
+      "cValle": 0.188542,
       "p1": 0.075903,
       "p2": 0.001987,
       "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-uniprecio",
@@ -957,24 +957,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Fenie Fijo Energético 3P",
-      "cPunta": 0.191751,
-      "cLlano": 0.114016,
-      "cValle": 0.088915,
-      "p1": 0.123346,
-      "p2": 0.033103,
-      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-energetico-3p",
-      "tipo": "3P",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Nufri Flex 3P",
       "cPunta": 0.191853,
       "cLlano": 0.115288,
@@ -1045,6 +1027,24 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR"
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Fenie Fijo Energético 3P",
+      "cPunta": 0.197622,
+      "cLlano": 0.120611,
+      "cValle": 0.096402,
+      "p1": 0.123346,
+      "p2": 0.033103,
+      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-energetico-3p",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
       },
       "requiereFV": false
     },
@@ -1304,24 +1304,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Fenie Fijo 3P",
-      "cPunta": 0.247751,
-      "cLlano": 0.170016,
-      "cValle": 0.144915,
-      "p1": 0.075903,
-      "p2": 0.001987,
-      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-3-periodos",
-      "tipo": "3P",
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA"
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Nufri Solar 3P",
       "cPunta": 0.247809,
       "cLlano": 0.170519,
@@ -1356,7 +1338,25 @@
         "reglaBV": "NO APLICA"
       },
       "requiereFV": false
+    },
+    {
+      "nombre": "Fenie Fijo 3P",
+      "cPunta": 0.253622,
+      "cLlano": 0.176611,
+      "cValle": 0.152402,
+      "p1": 0.075903,
+      "p2": 0.001987,
+      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-3-periodos",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA"
+      },
+      "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-29T06:39:52.330Z"
+  "updatedAt": "2026-05-29T13:30:25.596Z"
 }
