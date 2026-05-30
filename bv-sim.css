@@ -802,7 +802,8 @@ html.light-mode .bv-manual-container {
   border: 2px solid rgba(139, 92, 246, 0.15);
   padding: 16px 20px;
   border-radius: 14px;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  transition: border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
   animation: slideInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   animation-fill-mode: both;
