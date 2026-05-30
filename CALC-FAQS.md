@@ -164,10 +164,10 @@ return Math.max(
 
 ```javascript
 totalPagar = Lo que PAGAS este mes
-           = totalBase - (saldo BV anterior usado)
+           = totalBaseConCosteBV - (saldo BV anterior usado)
 
 totalReal = Coste REAL del mes sin saldo anterior
-          = totalBase - (excedentes sobrantes)
+          = totalBaseConCosteBV - (excedentes sobrantes)
 ```
 
 **Caso de ejemplo**:
@@ -175,7 +175,7 @@ totalReal = Coste REAL del mes sin saldo anterior
 ```
 Mes: Enero
 ─────────────────────────────────────
-totalBase: 50€ (factura bruta)
+totalBaseConCosteBV: 50€ (factura bruta, incluida cuota BV si aplica)
 
 Excedentes generados este mes: 10€ (sobrantes tras compensación)
 Saldo BV anterior: 5€ (de diciembre)
@@ -186,7 +186,7 @@ totalReal = 50 - 10 = 40€ ← Coste REAL del mes (para comparar tarifas)
 Mes: Febrero
 ─────────────────────────────────────
 Saldo BV inicial: 10 + (5-5) = 10€ (excedentes + lo que quedó del saldo anterior)
-totalBase: 60€
+totalBaseConCosteBV: 60€
 
 totalPagar = 60 - 10 = 50€ ← Pagas menos gracias a saldo acumulado
 totalReal = 60 - nuevos_excedentes = ? ← Coste real de febrero
@@ -430,8 +430,8 @@ if (tipoImpuesto === 'IGIC') {
 ### ❌ "Motor BV descuenta excedentes en tarifas sin BV"
 
 **Por qué está mal**:
-- Línea 313 usa: `(hasBV ? excedenteSobranteEur : 0)`
-- Si `hasBV = false` → resta 0 (correcto)
+- El motor calcula `totalReal` como `totalBaseConCosteBV - (hasBV ? excedenteSobranteEur : 0)`
+- Si `hasBV = false`, resta 0 y no acumula saldo BV
 - La auditoría comparó sintaxis sin entender lógica
 
 **Cómo verificar**: Prueba con ejemplos numéricos en ambos casos.
