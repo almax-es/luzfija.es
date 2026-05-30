@@ -816,19 +816,19 @@ html.light-mode .bv-manual-container {
 }
 
 /* Cuando se abre el desglose, expandir al ancho completo */
-.bv-alt-card-compact:has(details[open]) {
+.bv-alt-card-compact:has(.bv-alt-btn-toggle.active) {
   max-width: 100%;
 }
 
 /* Desktop: quitar padding horizontal para que la tabla ocupe todo el ancho de la tarjeta */
 @media (min-width: 769px) {
-  .bv-alt-card-compact:has(details[open]) {
+  .bv-alt-card-compact:has(.bv-alt-btn-toggle.active) {
     padding-left: 0;
     padding-right: 0;
   }
 
   /* Devolver el padding a los elementos de cabecera (todo excepto el desglose) */
-  .bv-alt-card-compact:has(details[open]) > *:not(.bv-alt-details) {
+  .bv-alt-card-compact:has(.bv-alt-btn-toggle.active) > *:not(.bv-alt-details) {
     padding-left: 20px;
     padding-right: 20px;
   }

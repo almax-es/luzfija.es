@@ -576,7 +576,7 @@ window.BVSim.calcMonthForTarifa({
   credit2: 10.00,
   bvSaldoFin: 0.01,
   totalPagar: 141.74,
-  totalReal: 151.74
+  totalReal: 151.73
 }
 ```
 

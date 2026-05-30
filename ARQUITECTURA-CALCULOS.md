@@ -221,19 +221,20 @@ Con la rebaja temporal del RDL 7/2026 activa (22/03/2026-31/05/2026): IEE caso 0
 const hasBV = Boolean(tarifa?.fv?.bv);
 
 // Si NO tiene BV: los excedentes se pierden
-const totalReal = round2(Math.max(0, totalBase - (hasBV ? excedenteSobranteEur : 0)));
-//                                                        ↑
-//                                        Si hasBV=false → resta 0 (correcto)
-//                                        Si hasBV=true → resta sobrantes (correcto)
+const totalBaseConCosteBV = round2(totalBase + costeBV);
+const totalReal = round2(Math.max(0, totalBaseConCosteBV - (hasBV ? excedenteSobranteEur : 0)));
+//                                                                  ↑
+//                                                  Si hasBV=false → resta 0 (correcto)
+//                                                  Si hasBV=true → resta sobrantes (correcto)
 ```
 
 **Equivalencia con motor principal**:
 ```javascript
 // Motor principal (lf-calc.js)
-const totalNum = solarOn && fv && fv.bv ? (totalBase - excedenteSobranteEur) : totalBase;
+const totalNum = solarOn && fv && fv.bv ? (totalBaseConCosteBV - excedenteSobranteEur) : totalBaseConCosteBV;
 
 // Motor BV (bv-sim-monthly.js)
-const totalReal = totalBase - (hasBV ? excedenteSobranteEur : 0);
+const totalReal = totalBaseConCosteBV - (hasBV ? excedenteSobranteEur : 0);
 
 // En contexto BV, ambas son equivalentes:
 // hasBV = Boolean(tarifa?.fv?.bv) ≡ (fv && fv.bv)
@@ -295,11 +296,11 @@ La Batería Virtual (BV) es un servicio comercial que permite:
 
 ```
 totalPagar = Lo que PAGAS este mes
-           = totalBase - (saldo BV anterior usado)
+           = totalBaseConCosteBV - (saldo BV anterior usado)
            → Para factura real
 
 totalReal = Coste REAL del mes sin saldo anterior
-          = totalBase - (excedentes sobrantes)
+          = totalBaseConCosteBV - (excedentes sobrantes)
           → Métrica auxiliar para auditoría y comparación sin saldo previo
 ```
 
@@ -322,11 +323,11 @@ totalReal = totalBase   // Coste real = factura (excedentes se pierden)
 ```javascript
 hasBV = true
 
-bvPrev = 5.00                              // Tienes saldo anterior
-credit2 = min(5.00, totalBase)            // Usas lo que necesites
-bvSaldoFin = excedenteSobranteEur + resto // Acumulas sobrantes
-totalPagar = totalBase - credit2           // Pagas menos (con saldo)
-totalReal = totalBase - excedenteSobranteEur // Coste real (sin saldo anterior)
+bvPrev = 5.00                                          // Tienes saldo anterior
+credit2 = min(5.00, totalBaseConCosteBV)             // Usas lo que necesites
+bvSaldoFin = excedenteSobranteEur + resto             // Acumulas sobrantes
+totalPagar = totalBaseConCosteBV - credit2            // Pagas menos (con saldo)
+totalReal = totalBaseConCosteBV - excedenteSobranteEur // Coste real (sin saldo anterior)
 ```
 
 ### 💳 Cuota fija mensual de BV (`precioBV`)
@@ -381,10 +382,11 @@ Ejemplo: energía bruta `33,09€`, peajes/cargos `7,23€`, base compensable `2
 En `bv-sim-monthly.js:313`:
 ```javascript
 // Si NO tiene BV: excedentes se pierden
-const totalReal = round2(Math.max(0, totalBase - (hasBV ? excedenteSobranteEur : 0)));
-//                                                      ↑
-//                                   false → resta 0
-//                                   true  → resta sobrantes
+const totalBaseConCosteBV = round2(totalBase + costeBV);
+const totalReal = round2(Math.max(0, totalBaseConCosteBV - (hasBV ? excedenteSobranteEur : 0)));
+//                                                                ↑
+//                                                false → resta 0
+//                                                true  → resta sobrantes
 ```
 
 ---
@@ -474,22 +476,24 @@ const impuestoElectrico = C.calcularIEE(baseEnergia, consumoKwh);
 **La realidad**:
 ```javascript
 // ✅ CORRECTO: Solo descuenta si hasBV es true
-const totalReal = totalBase - (hasBV ? excedenteSobranteEur : 0);
-//                                    ↑
-//                   false → resta 0 (no descuenta)
-//                   true  → resta sobrantes (sí descuenta)
+const totalBaseConCosteBV = round2(totalBase + costeBV); // costeBV=0 si tarifa sin cuota BV
+const totalReal = totalBaseConCosteBV - (hasBV ? excedenteSobranteEur : 0);
+//                                              ↑
+//                               false → resta 0 (no descuenta)
+//                               true  → resta sobrantes (sí descuenta)
 ```
 
 **Equivalencia demostrada**:
 ```javascript
 // Motor principal (lf-calc.js)
-const totalNum = solarOn && fv && fv.bv ? (totalBase - excedenteSobranteEur) : totalBase;
+const totalNum = solarOn && fv && fv.bv ? (totalBaseConCosteBV - excedenteSobranteEur) : totalBaseConCosteBV;
 
 // Motor BV (bv-sim-monthly.js)
-const totalReal = totalBase - (hasBV ? excedenteSobranteEur : 0);
+const totalReal = totalBaseConCosteBV - (hasBV ? excedenteSobranteEur : 0);
 
 // Ambas son equivalentes como métrica neta en contexto BV
 // hasBV = Boolean(tarifa?.fv?.bv) ≡ (fv && fv.bv)
+// costeBV = 0 cuando fv.precioBV = 0 (tarifa sin cuota mensual)
 ```
 
 **Por qué la auditoría falló**:

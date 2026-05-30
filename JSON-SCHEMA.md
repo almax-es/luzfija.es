@@ -10,7 +10,7 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 **Ubicación**: `/tarifas.json`
 **Tamaño**: ~36 KB
 **Estructura**: Objeto raíz con aviso `_meta`, array de tarifas en `tarifas` y sello `updatedAt`
-**Última actualización**: 2026-05-30 (`updatedAt`: `2026-05-30T18:26:10.278Z`)
+**Última actualización**: 2026-05-30 (`updatedAt`: `2026-05-30T18:42:03.330Z`)
 **Total tarifas documentadas**: 75
 
 ### Esquema de Estructura
@@ -74,7 +74,7 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 | `fv.tope` | string | ✅ | "ENERGIA" \| "ENERGIA_PARCIAL" \| "POTENCIA" \| "—" | "ENERGIA" | Límite de compensación (si aplica) |
 | `fv.bv` | boolean | ✅ | true \| false | true | ¿Permite acumular excedentes en batería virtual? |
 | `fv.reglaBV` | string | ✅ | Ver notas | "BV MES ANTERIOR" | Cómo se aplica la BV acumulada |
-| `fv.precioBV` | number | ✅ | ≥ 0 | 0 | €/mes cuota fija mensual por el servicio de batería virtual. Solo aplica cuando `fv.bv = true` y `fv.tipo = "SIMPLE + BV"`. Se prorratea al período de facturación. Tarifas sin cuota usan `0`. |
+| `fv.precioBV` | number | ✅ | ≥ 0 | 0 | €/mes cuota fija mensual por el servicio de batería virtual. Se prorratea al período de facturación. Tarifas sin cuota usan `0`. El comparador principal lo aplica cuando `fv.bv = true` y `fv.tipo = "SIMPLE + BV"`; el simulador solar solo requiere `fv.bv = true`. En el dataset actual ambas condiciones coinciden. |
 | `requiereFV` | boolean | ✅ | true \| false | false | ¿La tarifa requiere obligatoriamente placas solares? |
 
 ### Valores Permitidos
