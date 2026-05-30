@@ -8,9 +8,9 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 ## 1. `tarifas.json` — Base de Datos de Tarifas Eléctricas
 
 **Ubicación**: `/tarifas.json`
-**Tamaño**: ~33 KB
+**Tamaño**: ~34 KB
 **Estructura**: Objeto raíz con aviso `_meta`, array de tarifas en `tarifas` y sello `updatedAt`
-**Última actualización**: 2026-05-30 (`updatedAt`: `2026-05-30T14:28:11.139Z`)
+**Última actualización**: 2026-05-30 (`updatedAt`: `2026-05-30T14:35:07.493Z`)
 **Total tarifas documentadas**: 75
 
 ### Esquema de Estructura

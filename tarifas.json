@@ -14,7 +14,7 @@
       "p2": 0.041623,
       "web": "https://clientes.atuladoenergia.com/tarifas",
       "tipo": "1P",
-      "requisitos": "Los precios cambian cada trimestre natural.",
+      "requisitos": "Precio revisable cada trimestre natural. Desde el 01/07, el término de consumo será 0,135959 €/kWh.",
       "fv": {
         "exc": 0.0,
         "tipo": "NO COMPENSA",
@@ -729,7 +729,7 @@
       "p2": 0.033279,
       "web": "https://clientes.atuladoenergia.com/tarifas",
       "tipo": "3P",
-      "requisitos": "Los precios cambian cada trimestre natural.",
+      "requisitos": "Precio revisable cada trimestre natural. Desde el 01/07, el término de consumo será: punta 0,213420 €/kWh, llano  0,134353 €/kWh y valle 0,109399 €/kWh.",
       "fv": {
         "exc": 0.0,
         "tipo": "NO COMPENSA",
@@ -1379,5 +1379,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-05-30T14:28:11.139Z"
+  "updatedAt": "2026-05-30T14:35:07.493Z"
 }
