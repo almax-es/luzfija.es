@@ -1816,7 +1816,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}━━━━━━━�
             ${cycleNote}
             <div class="bv-breakdown-desktop">
               <div class="bv-table-container">
-                <table class="bv-table">
+                <table class="bv-table ${hasBV ? 'bv-table--bv' : ''} ${hasCosteBV ? 'bv-table--with-coste-bv' : ''}">
                   <thead><tr>${head}</tr></thead>
                   <tbody>${buildRows(resultItem)}</tbody>
                 </table>

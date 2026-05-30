@@ -803,7 +803,8 @@ html.light-mode .bv-manual-container {
   padding: 16px 20px;
   border-radius: 14px;
   transition: border-color 0.3s cubic-bezier(0.4, 0, 0.2, 1),
-              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+              box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
   animation: slideInUp 0.5s cubic-bezier(0.4, 0, 0.2, 1);
   animation-fill-mode: both;
@@ -1029,6 +1030,50 @@ html.light-mode .bv-table-container {
   font-size: 0.9rem;
   table-layout: auto !important;
 }
+
+.bv-table--with-coste-bv {
+  min-width: 1040px;
+  table-layout: fixed !important;
+  font-size: 0.84rem;
+}
+
+.bv-table--with-coste-bv th,
+.bv-table--with-coste-bv td {
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+.bv-table--with-coste-bv th:first-child,
+.bv-table--with-coste-bv td:first-child {
+  width: 92px !important;
+}
+
+.bv-table--with-coste-bv th {
+  letter-spacing: 0.45px;
+}
+
+.bv-table--with-coste-bv th:nth-child(1),
+.bv-table--with-coste-bv td:nth-child(1) { width: 8%; }
+.bv-table--with-coste-bv th:nth-child(2),
+.bv-table--with-coste-bv td:nth-child(2) { width: 8%; }
+.bv-table--with-coste-bv th:nth-child(3),
+.bv-table--with-coste-bv td:nth-child(3) { width: 9%; }
+.bv-table--with-coste-bv th:nth-child(4),
+.bv-table--with-coste-bv td:nth-child(4) { width: 11%; }
+.bv-table--with-coste-bv th:nth-child(5),
+.bv-table--with-coste-bv td:nth-child(5) { width: 8%; }
+.bv-table--with-coste-bv th:nth-child(6),
+.bv-table--with-coste-bv td:nth-child(6) { width: 8%; }
+.bv-table--with-coste-bv th:nth-child(7),
+.bv-table--with-coste-bv td:nth-child(7) { width: 8%; }
+.bv-table--with-coste-bv th:nth-child(8),
+.bv-table--with-coste-bv td:nth-child(8) { width: 8%; }
+.bv-table--with-coste-bv th:nth-child(9),
+.bv-table--with-coste-bv td:nth-child(9) { width: 8%; }
+.bv-table--with-coste-bv th:nth-child(10),
+.bv-table--with-coste-bv td:nth-child(10) { width: 8%; }
+.bv-table--with-coste-bv th:nth-child(11),
+.bv-table--with-coste-bv td:nth-child(11) { width: 8%; }
 
 @media (max-width: 768px) {
   .bv-table {

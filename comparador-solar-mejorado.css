@@ -508,7 +508,8 @@ body.solar-pro .bv-alt-card-compact{
   background: linear-gradient(160deg, var(--solar-surface), rgba(139,92,246,.02));
   border: 1px solid var(--solar-border);
   box-shadow: 0 10px 24px rgba(0,0,0,.18);
-  max-width: min(100%, 980px);
+  width: 100%;
+  max-width: 100%;
   margin: 0 auto;
   position: relative;
   animation: none;
@@ -530,6 +531,10 @@ body.solar-pro .bv-alt-card-compact:hover{
   border-color: var(--solar-border-strong);
   transform: translateY(-1px);
   box-shadow: 0 14px 30px rgba(0,0,0,.22);
+}
+
+body.solar-pro .bv-alt-card-compact:has(.bv-alt-btn-toggle.active)::before{
+  display: none;
 }
 
 body.solar-pro .bv-alt-rank{
