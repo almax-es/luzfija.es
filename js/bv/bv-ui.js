@@ -1621,6 +1621,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const eBruta = r2(row.consEur || 0);
         const excMes = r2(row.credit1 || 0);
         const eNeta = r2(eBruta - excMes);
+        const costeBV = r2(row.costeBV || 0);
         const subtotal = r2(row.totalBase || 0);
         const usoHucha = r2(row.credit2 || 0);
         const sobranteHucha = r2(row.excedenteSobranteEur || 0);
@@ -1683,7 +1684,7 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
 📊 IEE: ${fEur(row.impuestoElec)}
 🔢 Alq: ${fEur(row.alquilerContador)}
 💶 ${taxLabel}: ${fEur(row.ivaCuota)}
-━━━━━━━━━━━━
+${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}━━━━━━━━━━━━
 💰 Subtotal: ${fEur(subtotal)}`;
 
         const tipHucha = hasBV
@@ -1707,6 +1708,7 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
           excMes,
           eNeta,
           imp,
+          costeBV,
           subtotal,
           pagar: row.totalPagar,
           usoHucha,
@@ -1727,12 +1729,17 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
 
       // --- DESKTOP: filas en tabla (clásico) ---
       const buildRows = (resultItem) => {
+        const resultHasCosteBV = Boolean(resultItem?.tarifa?.fv?.bv)
+          && (resultItem?.rows || []).some((row) => Number(row.costeBV || 0) > 0);
         return resultItem.rows.map((row) => {
           const v = computeRowView(row, resultItem);
           const hasBV = v.hasBV;
           const huchaCell = hasBV ? (v.usoHucha > 0 ? `-${fEur(v.usoHucha)}` : fEur(0)) : '';
           const saldoCell = hasBV ? fEur(v.bvSaldoFin) : '';
           const saldoStyle = hasBV ? 'color:#fbbf24; font-weight:700;' : '';
+          const cuotaBVCell = resultHasCosteBV
+            ? `<td data-label="Cuota BV" class="bv-tooltip-trigger" data-tip="Coste fijo mensual de la batería virtual, prorrateado si el mes está incompleto."><span class="bv-cell-value">${fEur(v.costeBV)}</span></td>`
+            : '';
 
           const extraCells = hasBV ? `
               <td data-label="Uso BV" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.hucha)}"><span class="bv-cell-value">${huchaCell}</span></td>
@@ -1747,6 +1754,7 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
               <td data-label="Compensación" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.exc)}" style="color:var(--accent2);"><span class="bv-cell-value">${v.excMes > 0 ? `-${fEur(v.excMes)}` : fEur(0)}</span></td>
               <td data-label="E. Neta" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.eNeta)}" style="font-weight:700;"><span class="bv-cell-value">${fEur(v.eNeta)}</span></td>
               <td data-label="Impuestos" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.imp)}" style="color:var(--danger);"><span class="bv-cell-value">${fEur(v.imp)}</span></td>
+              ${cuotaBVCell}
               <td data-label="Subtotal" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.subtotal)}" style="background:rgba(255,255,255,0.02); font-weight:700;"><span class="bv-cell-value">${fEur(v.subtotal)}</span></td>
               <td data-label="Pagar" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.pagar)}" style="color:var(--accent2); font-weight:800;"><span class="bv-cell-value">${fEur(v.pagar)}</span></td>
               ${extraCells}
@@ -1779,6 +1787,7 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
                 ${item('Compensación', (v.excMes > 0 ? `-${fEur(v.excMes)}` : fEur(0)), v.tips.exc, (v.excMes > 0 ? 'bv-val-good' : ''))}
                 ${item('E. Neta', fEur(v.eNeta), v.tips.eNeta)}
                 ${item('Impuestos', fEur(v.imp), v.tips.imp, (v.imp > 0 ? 'bv-val-warn' : ''))}
+                ${hasBV && v.costeBV > 0 ? item('Cuota BV', fEur(v.costeBV), 'Coste fijo mensual de la batería virtual, prorrateado si el mes está incompleto.') : ''}
                 ${item('Subtotal', fEur(v.subtotal), v.tips.subtotal)}
                 ${item('A Pagar', fEur(v.pagar), v.tips.pagar, 'bv-val-pay')}
                 ${hasBV ? item('Uso BV', huchaCell, v.tips.hucha) : ''}
@@ -1791,8 +1800,9 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
 
       const buildTable = (resultItem) => {
         const hasBV = Boolean(resultItem?.tarifa?.fv?.bv);
+        const hasCosteBV = hasBV && (resultItem?.rows || []).some((row) => Number(row.costeBV || 0) > 0);
         const head = hasBV
-          ? `<th style="text-align:left" title="Mes del año">Mes</th><th title="Término de potencia">Potencia</th><th title="Energía bruta consumida (sin compensar)">E. Bruta</th><th title="Excedentes compensados este mes">Compensación</th><th title="Energía neta facturada">E. Neta</th><th title="Impuestos (IEE + IVA/IGIC/IPSI)">Impuestos</th><th title="Subtotal antes de aplicar BV">Subtotal</th><th title="Importe a pagar este mes">A Pagar</th><th title="Saldo BV usado este mes">Uso BV</th><th title="Saldo BV acumulado al final">Saldo BV</th>`
+          ? `<th style="text-align:left" title="Mes del año">Mes</th><th title="Término de potencia">Potencia</th><th title="Energía bruta consumida (sin compensar)">E. Bruta</th><th title="Excedentes compensados este mes">Compensación</th><th title="Energía neta facturada">E. Neta</th><th title="Impuestos (IEE + IVA/IGIC/IPSI)">Impuestos</th>${hasCosteBV ? '<th title="Coste fijo mensual de la batería virtual">Cuota BV</th>' : ''}<th title="Subtotal antes de aplicar BV">Subtotal</th><th title="Importe a pagar este mes">A Pagar</th><th title="Saldo BV usado este mes">Uso BV</th><th title="Saldo BV acumulado al final">Saldo BV</th>`
           : `<th style="text-align:left" title="Mes del año">Mes</th><th title="Término de potencia">Potencia</th><th title="Energía bruta consumida (sin compensar)">E. Bruta</th><th title="Excedentes compensados este mes">Compensación</th><th title="Energía neta facturada">E. Neta</th><th title="Impuestos (IEE + IVA/IGIC/IPSI)">Impuestos</th><th title="Subtotal de la factura">Subtotal</th><th title="Importe a pagar este mes">A Pagar</th>`;
         const cycleNote = mesInicioActivo
           ? `<div class="bv-cycle-note"><strong>Simulación desde ${escapeHtml(mesInicioLabel)}.</strong> La batería virtual se arrastra en el orden mostrado.</div>`

@@ -200,6 +200,11 @@ window.BVSim.round2 = function (n) {
   return Math.round((Number(n) + Number.EPSILON) * 100) / 100;
 };
 
+window.BVSim.getPrecioBVMensual = function (tarifa) {
+  const raw = Number(tarifa?.fv?.precioBV);
+  return Number.isFinite(raw) ? Math.max(0, raw) : 0;
+};
+
 // ===== SIMULACIÓN ECONÓMICA (MES INDIVIDUAL) =====
 window.BVSim.calcMonthForTarifa = function ({
   month,
@@ -259,6 +264,11 @@ window.BVSim.calcMonthForTarifa = function ({
   }
 
   const hasBV = Boolean(tarifa?.fv?.bv);
+  const precioBVMensual = hasBV ? window.BVSim.getPrecioBVMensual(tarifa) : 0;
+  const daysInMonth = Number(month?.daysInMonth) || dias || 30;
+  const costeBV = hasBV && precioBVMensual > 0
+    ? round2(precioBVMensual * Math.min(Math.max(dias, 0), daysInMonth) / daysInMonth)
+    : 0;
 
   // Compensación (límite: coste energía, o energía pura si ENERGIA_PARCIAL)
   let baseCompensable = consEur;
@@ -449,15 +459,16 @@ window.BVSim.calcMonthForTarifa = function ({
   // ÚLTIMA ACTUALIZACIÓN: 30/01/2026
   // =====================================================
 
+  const totalBaseConCosteBV = round2(totalBase + costeBV);
   const bvPrev = hasBV ? Math.max(0, Number(bvSaldoPrev) || 0) : 0;
-  const credit2 = hasBV ? round2(Math.min(bvPrev, totalBase)) : 0;
+  const credit2 = hasBV ? round2(Math.min(bvPrev, totalBaseConCosteBV)) : 0;
   const bvSaldoFin = hasBV
     ? round2(excedenteSobranteEur + Math.max(0, bvPrev - credit2))
     : 0;
-  const totalPagar = hasBV ? round2(Math.max(0, totalBase - credit2)) : totalBase;
+  const totalPagar = hasBV ? round2(Math.max(0, totalBaseConCosteBV - credit2)) : totalBaseConCosteBV;
 
   // Coste Real (si no tuvieras hucha anterior)
-  const totalReal = round2(Math.max(0, totalBase - (hasBV ? excedenteSobranteEur : 0)));
+  const totalReal = round2(Math.max(0, totalBaseConCosteBV - (hasBV ? excedenteSobranteEur : 0)));
 
   return {
     key: month.key,
@@ -469,7 +480,10 @@ window.BVSim.calcMonthForTarifa = function ({
     alquilerContador,
     ivaCuota,
     impuestoIndirectoTipo: terr?.impuestos?.tipo || (zonaFiscal === 'Canarias' ? 'IGIC' : (zonaFiscal === 'CeutaMelilla' ? 'IPSI' : 'IVA')),
-    totalBase,
+    totalBase: totalBaseConCosteBV,
+    totalBaseSinCosteBV: totalBase,
+    precioBVMensual,
+    costeBV,
     exKwh,
     precioExc,
     precioExcSource,

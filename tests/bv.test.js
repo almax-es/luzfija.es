@@ -340,4 +340,44 @@ describe('Simulador Solar Mensual (bv-sim-monthly.js)', () => {
     expect(res.bvSaldoFin).toBeGreaterThan(20);
   });
 
+  it('calcMonthForTarifa: aplica precioBV mensual y permite cubrirlo con saldo BV', () => {
+    const baseTarifa = {
+      nombre: "Con BV de pago",
+      p1: 0.1, p2: 0.1,
+      cPunta: 0.1, cLlano: 0.1, cValle: 0.1,
+      fv: { exc: 0.05, bv: true }
+    };
+
+    const mockMonth = {
+      key: '2025-12',
+      daysWithData: 31,
+      daysInMonth: 31,
+      importByPeriod: { P1: 100, P2: 0, P3: 0 },
+      importTotalKWh: 100,
+      exportTotalKWh: 0
+    };
+
+    const sinCuota = window.BVSim.calcMonthForTarifa({
+      month: mockMonth,
+      tarifa: baseTarifa,
+      potenciaP1: 1,
+      potenciaP2: 1,
+      bvSaldoPrev: 0,
+      zonaFiscal: 'Península'
+    });
+    const conCuota = window.BVSim.calcMonthForTarifa({
+      month: mockMonth,
+      tarifa: { ...baseTarifa, fv: { ...baseTarifa.fv, precioBV: 2 } },
+      potenciaP1: 1,
+      potenciaP2: 1,
+      bvSaldoPrev: 50,
+      zonaFiscal: 'Península'
+    });
+
+    expect(conCuota.costeBV).toBe(2);
+    expect(conCuota.totalBase).toBeCloseTo(sinCuota.totalBase + 2, 2);
+    expect(conCuota.credit2).toBeCloseTo(conCuota.totalBase, 2);
+    expect(conCuota.totalPagar).toBe(0);
+  });
+
 });

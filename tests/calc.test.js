@@ -452,6 +452,46 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
       expect(res.totalNum).toBeCloseTo(res.fvTotalFinal - 9.00, 2);
     });
 
+    it('SIMPLE + BV suma precioBV prorrateado por días y permite cubrirlo con saldo', async () => {
+      window.LF.cachedTarifas = [{
+        nombre: "Solar BV Pago",
+        p1: 0.1,
+        p2: 0.1,
+        cPunta: 0.1,
+        cLlano: 0.1,
+        cValle: 0.1,
+        tipo: "1P",
+        fv: { exc: 0.05, tipo: "SIMPLE + BV", bv: true, precioBV: 2 }
+      }];
+
+      await window.LF.calculateLocal({
+        p1: 2,
+        p2: 2,
+        dias: 30,
+        cPunta: 100,
+        cLlano: 0,
+        cValle: 0,
+        zonaFiscal: 'Península',
+        viviendaCanarias: false,
+        solarOn: true,
+        exTotal: 0,
+        bvSaldo: 100,
+        bonoSocialOn: false,
+        bonoSocialTipo: 'vulnerable',
+        bonoSocialLimite: 1587,
+        fechaYmd: '2026-05-06'
+      });
+
+      const res = window.LF.state.rows[0];
+      const cuotaProrrateada = 2 * 30 * 12 / 365;
+
+      expect(res.fvPrecioBV).toBe(2);
+      expect(res.fvCosteBV).toBeCloseTo(cuotaProrrateada, 2);
+      expect(res.fvCredit2).toBeGreaterThan(res.fvCosteBV);
+      expect(res.fvTotalFinal).toBe(0);
+      expect(res.fvBvSaldoFin).toBeLessThan(100);
+    });
+
     it('ENERGIA_PARCIAL con BV acumula el sobrante no usado en el comparador principal', async () => {
       window.LF.cachedTarifas = [{
         nombre: "Solar Parcial BV",

@@ -30,6 +30,11 @@
     return (typeof raw === 'number' && Number.isFinite(raw)) ? Math.max(0, raw) : 0;
   }
 
+  function getPrecioBVMensual(fv) {
+    const raw = Number(fv?.precioBV);
+    return Number.isFinite(raw) ? Math.max(0, raw) : 0;
+  }
+
   function __LF_aplicarImpuestos(params) {
     const fiscal = params.fiscal;
     const impuestoElec = round2(CFG.calcularIEE(params.sumaBase, params.consumoTotalKwh, fiscal.fechaYmd));
@@ -246,6 +251,8 @@
         let precioExc = 0;
         let exKwh = 0;
         let bvSaldoFin = null;
+        let fvPrecioBV = 0;
+        let fvCosteBV = 0;
         const fv = t.fv;
         let fvApplied = false;
         let fvBaseCompensable = 0;
@@ -286,6 +293,9 @@
 
         const sumaBase = pot + consAdj + tarifaAdj;
         const consumoTotalKwh = cPunta + cLlano + cValle;
+        const tieneBVSimple = Boolean(solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV');
+        fvPrecioBV = tieneBVSimple ? getPrecioBVMensual(fv) : 0;
+        fvCosteBV = fvPrecioBV > 0 ? round2(fvPrecioBV * dias * 12 / 365) : 0;
         const impuestosAplicados = __LF_aplicarImpuestos({
           fiscal,
           sumaBase,
@@ -312,20 +322,21 @@
           const igicContador = round2(taxCalc.impuestoContador);
           // Blindaje de redondeos: en la tabla (potencia + consumo + impuestos) debe cuadrar con TOTAL.
           // Ajustamos SOLO si la diferencia es un efecto de redondeo (±0,05€) y nunca permitimos negativos.
-          const impuestosSum = round2(tarifaAdj + impuestoElec + igicEnergia + igicContador + alquilerContador);
+          const impuestosSum = round2(tarifaAdj + impuestoElec + igicEnergia + igicContador + alquilerContador + fvCosteBV);
           const totalBase = round2(baseEnergiaCan + impuestoElec + igicEnergia + alquilerContador + igicContador);
+          const totalBaseConCosteBV = round2(totalBase + fvCosteBV);
 
-          let totalFinal = totalBase;
-          if (solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV') {
+          let totalFinal = totalBaseConCosteBV;
+          if (tieneBVSimple) {
             let disponible = bvSaldo;
-            credit2 = Math.min(clampNonNeg(disponible), totalBase);
+            credit2 = Math.min(clampNonNeg(disponible), totalBaseConCosteBV);
             bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bvSaldo - credit2));
-            totalFinal = credit2 > 0 ? round2(Math.max(0, totalBase - credit2)) : totalBase;
+            totalFinal = credit2 > 0 ? round2(Math.max(0, totalBaseConCosteBV - credit2)) : totalBaseConCosteBV;
           }
 
-          const totalNum = solarOn && fv && fv.bv
-            ? round2(Math.max(0, totalBase - excedenteSobranteEur))
-            : totalBase;
+          const totalNum = tieneBVSimple
+            ? round2(Math.max(0, totalBaseConCosteBV - excedenteSobranteEur))
+            : totalBaseConCosteBV;
 
           const impuestosResidual = round2(totalNum - pot - consAdj);
           const impuestosNum = (impuestosResidual >= 0 && Math.abs(impuestosResidual - impuestosSum) <= 0.05)
@@ -357,6 +368,8 @@
             fvCredit2: credit2,
             fvBvSaldoFin: bvSaldoFin,
             fvExcedenteSobrante: excedenteSobranteEur,
+            fvPrecioBV,
+            fvCosteBV,
             fvTotalFinal: totalFinal,
             fvBaseCompensable,
             fvPeajesTotal,
@@ -375,20 +388,21 @@
           const ipsiEnergia = round2(taxCalc.impuestoEnergia);
           const ipsiContador = round2(taxCalc.impuestoContador);
           // Blindaje de redondeos (tabla): pot + consumo + impuestos = total (si el ajuste es solo por redondeo)
-          const impuestosSum = round2(tarifaAdj + impuestoElec + ipsiEnergia + ipsiContador + alquilerContador);
+          const impuestosSum = round2(tarifaAdj + impuestoElec + ipsiEnergia + ipsiContador + alquilerContador + fvCosteBV);
           const totalBase = round2(sumaBase + impuestoElec + ipsiEnergia + alquilerContador + ipsiContador);
+          const totalBaseConCosteBV = round2(totalBase + fvCosteBV);
 
-          let totalFinal = totalBase;
-          if (solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV') {
+          let totalFinal = totalBaseConCosteBV;
+          if (tieneBVSimple) {
             let disponible = bvSaldo;
-            credit2 = Math.min(clampNonNeg(disponible), totalBase);
+            credit2 = Math.min(clampNonNeg(disponible), totalBaseConCosteBV);
             bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bvSaldo - credit2));
-            totalFinal = credit2 > 0 ? round2(Math.max(0, totalBase - credit2)) : totalBase;
+            totalFinal = credit2 > 0 ? round2(Math.max(0, totalBaseConCosteBV - credit2)) : totalBaseConCosteBV;
           }
 
-          const totalNum = solarOn && fv && fv.bv
-            ? round2(Math.max(0, totalBase - excedenteSobranteEur))
-            : totalBase;
+          const totalNum = tieneBVSimple
+            ? round2(Math.max(0, totalBaseConCosteBV - excedenteSobranteEur))
+            : totalBaseConCosteBV;
 
           const impuestosResidual = round2(totalNum - pot - consAdj);
           const impuestosNum = (impuestosResidual >= 0 && Math.abs(impuestosResidual - impuestosSum) <= 0.05)
@@ -420,6 +434,8 @@
             fvCredit2: credit2,
             fvBvSaldoFin: bvSaldoFin,
             fvExcedenteSobrante: excedenteSobranteEur,
+            fvPrecioBV,
+            fvCosteBV,
             fvTotalFinal: totalFinal,
             fvBaseCompensable,
             fvPeajesTotal,
@@ -436,20 +452,21 @@
           const ivaBase = round2(taxCalc.ivaBase);
           const ivaCuota = round2(taxCalc.iva);
           // Blindaje de redondeos (tabla): pot + consumo + impuestos = total (si el ajuste es solo por redondeo)
-          const impuestosSum = round2(tarifaAdj + impuestoElec + alquilerContador + ivaCuota);
+          const impuestosSum = round2(tarifaAdj + impuestoElec + alquilerContador + ivaCuota + fvCosteBV);
           const totalBase = round2(ivaBase + ivaCuota);
+          const totalBaseConCosteBV = round2(totalBase + fvCosteBV);
 
-          let totalFinal = totalBase;
-          if (solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV') {
+          let totalFinal = totalBaseConCosteBV;
+          if (tieneBVSimple) {
             let disponible = bvSaldo;
-            credit2 = Math.min(clampNonNeg(disponible), totalBase);
+            credit2 = Math.min(clampNonNeg(disponible), totalBaseConCosteBV);
             bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bvSaldo - credit2));
-            totalFinal = credit2 > 0 ? round2(Math.max(0, totalBase - credit2)) : totalBase;
+            totalFinal = credit2 > 0 ? round2(Math.max(0, totalBaseConCosteBV - credit2)) : totalBaseConCosteBV;
           }
 
-          const totalNum = solarOn && fv && fv.bv
-            ? round2(Math.max(0, totalBase - excedenteSobranteEur))
-            : totalBase;
+          const totalNum = tieneBVSimple
+            ? round2(Math.max(0, totalBaseConCosteBV - excedenteSobranteEur))
+            : totalBaseConCosteBV;
 
           const impuestosResidual = round2(totalNum - pot - consAdj);
           const impuestosNum = (impuestosResidual >= 0 && Math.abs(impuestosResidual - impuestosSum) <= 0.05)
@@ -486,6 +503,8 @@
             fvCredit2: credit2,
             fvBvSaldoFin: bvSaldoFin,
             fvExcedenteSobrante: excedenteSobranteEur,
+            fvPrecioBV,
+            fvCosteBV,
             fvTotalFinal: totalFinal,
             solarNoCalculable
           });

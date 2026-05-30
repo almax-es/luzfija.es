@@ -202,6 +202,7 @@
         excedentes = 0, precioCompensacion = 0,
         tipoCompensacion = 'SIMPLE', topeCompensacion = 'ENERGIA',
         bateriaVirtual = 0, reglaBV = 'BV MES ANTERIOR', tieneBV = false,
+        precioBV = 0,
         zonaFiscal = 'Península', esViviendaCanarias = true, solarOn = false
       } = datos;
 
@@ -261,6 +262,11 @@
       const consumoTotalKwh = consumoPunta + consumoLlano + consumoValle;
       const impuestoElec = round2(CFG.calcularIEE(sumaBase, consumoTotalKwh, fiscal?.fechaYmd || datos.fechaYmd || datos.fechaFin || datos.fechaInicio));
       const alquilerContador = round2(dias * CFG.alquilerContador.eurosMes * 12 / 365);
+      const bvActivaSimple = Boolean(solarOn && tieneBV && tipoCompensacion === 'SIMPLE + BV');
+      const precioBVMensual = Math.max(0, safeNum(precioBV));
+      const costeBV = bvActivaSimple && precioBVMensual > 0
+        ? round2(precioBVMensual * dias * 12 / 365)
+        : 0;
       const taxCalc = CFG.calcularImpuestoIndirecto({
         zona: zonaFiscal,
         usoFiscal: fiscal?.usoFiscal || 'otros',
@@ -282,25 +288,25 @@
         const usoFiscal = fiscal?.usoFiscal || (esViviendaCanarias && potenciaContratada > 0 && potenciaContratada <= 10 ? 'vivienda' : 'otros');
         const igicBase = round2(taxCalc.impuestoEnergia);
         const igicContador = round2(taxCalc.impuestoContador);
-        const impuestosNum = impuestoElec + igicBase + igicContador;
-        let totalBase = round2(baseEnergia + impuestoElec + igicBase + alquilerContador + igicContador);
+        const impuestosNum = round2(impuestoElec + igicBase + igicContador + costeBV);
+        let totalBase = round2(baseEnergia + impuestoElec + igicBase + alquilerContador + igicContador + costeBV);
 
         let credit2 = 0, bvSaldoFin = null, totalFinal = totalBase;
 
-        if (solarOn && tieneBV && tipoCompensacion === 'SIMPLE + BV') {
+        if (bvActivaSimple) {
           let disponible = bateriaVirtual;
           credit2 = Math.min(clampNonNeg(disponible), totalBase);
           bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bateriaVirtual - credit2));
           totalFinal = credit2 > 0 ? round2(Math.max(0, totalBase - credit2)) : totalBase;
         }
 
-        const totalRanking = solarOn && tieneBV ? round2(Math.max(0, totalBase - excedenteSobranteEur)) : totalBase;
+        const totalRanking = bvActivaSimple ? round2(Math.max(0, totalBase - excedenteSobranteEur)) : totalBase;
 
         resultado = { pot, cons, consAdj, tarifaAcceso, tarifaAdj, credit1, excedenteSobranteEur, excedenteNoCompensableEur,
           sumaBase, impuestoElec, baseEnergia, alquilerContador, igicBase, igicContador,
           impuestosNum, totalBase, credit2, bvSaldoFin, totalFinal, totalRanking,
           isCanarias: true, isCeutaMelilla: false, usoFiscal,
-          baseCompensable, peajesTotal };
+          precioBVMensual, costeBV, baseCompensable, peajesTotal };
 
       } else if (isCeutaMelilla) {
         // ═══════════════════════════════════════════════════════════════
@@ -311,25 +317,25 @@
         const baseIPSI = round2(taxCalc.baseIPSI);
         const ipsiEnergia = round2(taxCalc.impuestoEnergia);
         const ipsiContador = round2(taxCalc.impuestoContador);
-        const impuestosNum = impuestoElec + ipsiEnergia + ipsiContador;
-        let totalBase = round2(sumaBase + impuestoElec + ipsiEnergia + alquilerContador + ipsiContador);
+        const impuestosNum = round2(impuestoElec + ipsiEnergia + ipsiContador + costeBV);
+        let totalBase = round2(sumaBase + impuestoElec + ipsiEnergia + alquilerContador + ipsiContador + costeBV);
 
         let credit2 = 0, bvSaldoFin = null, totalFinal = totalBase;
 
-        if (solarOn && tieneBV && tipoCompensacion === 'SIMPLE + BV') {
+        if (bvActivaSimple) {
           let disponible = bateriaVirtual;
           credit2 = Math.min(clampNonNeg(disponible), totalBase);
           bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bateriaVirtual - credit2));
           totalFinal = credit2 > 0 ? round2(Math.max(0, totalBase - credit2)) : totalBase;
         }
 
-        const totalRanking = solarOn && tieneBV ? round2(Math.max(0, totalBase - excedenteSobranteEur)) : totalBase;
+        const totalRanking = bvActivaSimple ? round2(Math.max(0, totalBase - excedenteSobranteEur)) : totalBase;
 
         resultado = { pot, cons, consAdj, tarifaAcceso, tarifaAdj, credit1, excedenteSobranteEur, excedenteNoCompensableEur,
           sumaBase, impuestoElec, baseEnergia, alquilerContador, baseIPSI, ipsiEnergia, ipsiContador,
           impuestosNum, totalBase, credit2, bvSaldoFin, totalFinal, totalRanking,
           isCanarias: false, isCeutaMelilla: true,
-          baseCompensable, peajesTotal };
+          precioBVMensual, costeBV, baseCompensable, peajesTotal };
 
       } else {
         // ═══════════════════════════════════════════════════════════════
@@ -338,24 +344,24 @@
         const baseEnergia = sumaBase + impuestoElec + alquilerContador;
         const ivaBase = round2(taxCalc.ivaBase);
         const iva = round2(taxCalc.iva);
-        let totalBase = round2(ivaBase + iva);
+        let totalBase = round2(ivaBase + iva + costeBV);
 
         let credit2 = 0, bvSaldoFin = null, totalFinal = totalBase;
 
-        if (solarOn && tieneBV && tipoCompensacion === 'SIMPLE + BV') {
+        if (bvActivaSimple) {
           let disponible = bateriaVirtual;
           credit2 = Math.min(clampNonNeg(disponible), totalBase);
           bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bateriaVirtual - credit2));
           totalFinal = credit2 > 0 ? round2(Math.max(0, totalBase - credit2)) : totalBase;
         }
 
-        const totalRanking = solarOn && tieneBV ? round2(Math.max(0, totalBase - excedenteSobranteEur)) : totalBase;
-        const impuestosNum = round2(tarifaAdj + impuestoElec + alquilerContador + iva);
+        const totalRanking = bvActivaSimple ? round2(Math.max(0, totalBase - excedenteSobranteEur)) : totalBase;
+        const impuestosNum = round2(tarifaAdj + impuestoElec + alquilerContador + iva + costeBV);
 
         resultado = { pot, cons, consAdj, tarifaAcceso, tarifaAdj, credit1, excedenteSobranteEur, excedenteNoCompensableEur,
           sumaBase, impuestoElec, alquilerContador, baseEnergia, ivaBase, iva, impuestosNum,
           totalBase, credit2, bvSaldoFin, totalFinal, totalRanking, isCanarias: false, isCeutaMelilla: false,
-          baseCompensable, peajesTotal };
+          precioBVMensual, costeBV, baseCompensable, peajesTotal };
       }
 
       resultado.consumoTotalKwh = round2(consumoTotalKwh);
@@ -495,6 +501,10 @@
             <div class="desglose-resumen-label">BV aplicada</div>
             <div class="desglose-resumen-value">${this.fmt(d.credit2)}</div>
           </div>` : ''}
+          ${d.costeBV > 0 ? `<div class="desglose-resumen-item">
+            <div class="desglose-resumen-label">Cuota BV</div>
+            <div class="desglose-resumen-value">${this.fmt(d.costeBV)}</div>
+          </div>` : ''}
           ${bvActiva && typeof d.bvSaldoFin === 'number' ? `<div class="desglose-resumen-item">
             <div class="desglose-resumen-label">Saldo BV próximo mes</div>
             <div class="desglose-resumen-value">${this.fmt(d.bvSaldoFin)}</div>
@@ -618,8 +628,8 @@
       </div>`;
 
       const otrosConceptosHeader = (d.isCanarias || d.isCeutaMelilla)
-        ? (d.tarifaAdj + d.impuestoElec + (d.isPVPC && d.margen > 0 ? d.margen : 0) - (d.isPVPC ? d.bonoSocialDescuentoEur : 0))
-        : (d.tarifaAdj + d.impuestoElec + d.alquilerContador + (d.isPVPC && d.margen > 0 ? d.margen : 0) - (d.isPVPC ? d.bonoSocialDescuentoEur : 0));
+        ? (d.tarifaAdj + d.impuestoElec + (d.costeBV || 0) + (d.isPVPC && d.margen > 0 ? d.margen : 0) - (d.isPVPC ? d.bonoSocialDescuentoEur : 0))
+        : (d.tarifaAdj + d.impuestoElec + d.alquilerContador + (d.costeBV || 0) + (d.isPVPC && d.margen > 0 ? d.margen : 0) - (d.isPVPC ? d.bonoSocialDescuentoEur : 0));
 
       // OTROS CONCEPTOS (todas las tarifas): blindaje de redondeos para que la suma de líneas
       // (excluyendo subtotales informativos) coincida exactamente con el total mostrado.
@@ -636,6 +646,8 @@
       otrosParts.push(d.impuestoElec);
       const hayAlquilerAqui = !(d.isCanarias || d.isCeutaMelilla);
       if (hayAlquilerAqui) otrosParts.push(d.alquilerContador);
+      const hayCosteBV = (d.costeBV || 0) > 0;
+      if (hayCosteBV) otrosParts.push(d.costeBV);
 
       const otrosPartsDisp = reconcileToTarget(otrosTarget, otrosParts);
       let _oi = 0;
@@ -645,6 +657,7 @@
       const otrosDescDisp = hayDescuentoBono ? (otrosPartsDisp[_oi++] ?? 0) : null; // negativo
       const otrosIeeDisp = otrosPartsDisp[_oi++] ?? 0;
       const otrosAlqDisp = hayAlquilerAqui ? (otrosPartsDisp[_oi++] ?? 0) : null;
+      const otrosCosteBVDisp = hayCosteBV ? (otrosPartsDisp[_oi++] ?? 0) : null;
 
       // PVPC + Bono Social: mostrar el descuento donde corresponde (entre margen e IEE), con la fórmula estilo CNMC.
       let bonoSocialLineaHtml = '';
@@ -705,6 +718,11 @@
           <span class="desglose-concepto">Alquiler de contador (${this.fmtNum(window.LF_CONFIG.alquilerContador.eurosMes, 2)} €/mes)</span>
           <span class="desglose-detalle">Prorrateado a ${datos.dias} días</span>
           <span class="desglose-importe">${this.fmt(otrosAlqDisp || 0)}</span>
+        </div>` : ''}
+        ${hayCosteBV ? `<div class="desglose-linea">
+          <span class="desglose-concepto">Cuota batería virtual (${this.fmtNum(d.precioBVMensual, 2)} €/mes)</span>
+          <span class="desglose-detalle">Prorrateado a ${datos.dias} días</span>
+          <span class="desglose-importe">${this.fmt(otrosCosteBVDisp || 0)}</span>
         </div>` : ''}
       </div>`;
 

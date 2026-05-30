@@ -425,6 +425,7 @@
       bateriaVirtual: tieneBV ? inputs.bvSaldo : 0,
       tieneBV: tieneBV,
       reglaBV: reglaBV,
+      precioBV: tieneBV ? Math.max(0, Number(tarifa.fv?.precioBV) || 0) : 0,
       precioCompensacionIndexada: tarifa.fv?.exc === -1,
       precioCompensacionSource: selectedRowDataset.fvPriceSource || (tarifa.fv?.exc === -1 ? 'reference-0.03' : 'fixed'),
 
