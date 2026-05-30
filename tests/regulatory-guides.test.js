@@ -21,12 +21,11 @@ function readGuideText(relPath) {
 }
 
 describe('Guide regulatory guardrails', () => {
-  it('documents the conditional June end of the temporary 10% electricity VAT', () => {
+  it('documents the June end of the temporary 10% electricity VAT', () => {
     const facturaGuide = readGuideText('guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html');
 
-    expect(facturaGuide).toContain('el RDL 10/2026 condiciona su aplicación en junio');
-    expect(facturaGuide).toContain('IPC de electricidad de abril publicado por el INE en mayo');
-    expect(facturaGuide).toContain('debe revisarse al entrar junio antes de cambiar el cálculo');
+    expect(facturaGuide).toContain('confirmada la condición del IPC eléctrico de abril prevista en el RDL 7/2026 y el RDL 10/2026');
+    expect(facturaGuide).toContain('desde el 01/06/2026 vuelve el tipo general del 21% para la electricidad');
   });
 
   it('keeps the PVPC eligibility requirements complete', () => {

@@ -134,7 +134,7 @@ Soporte para 3 zonas con impuestos diferenciados:
 
 | Zona | IVA/IGIC/IPSI | Alquiler Contador |
 |---|---|---|
-| **Península/Baleares** | IVA vigente (10% temporal <= 10 kW desde RDL 10/2026, 21% general) | mismo tipo IVA vigente |
+| **Península/Baleares** | IVA vigente (21% desde 01/06/2026 tras desactivarse la rebaja temporal electrica) | mismo tipo IVA vigente |
 | **Canarias** | IGIC 0% (vivienda ≤10kW) o 3% | IGIC 7% |
 | **Ceuta/Melilla** | IPSI 1% | IPSI 4% |
 

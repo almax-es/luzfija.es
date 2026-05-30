@@ -109,7 +109,7 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     const alquiler = window.LF_CONFIG.calcularAlquilerContador(30);
     const taxCalc = window.LF_CONFIG.calcularImpuestoIndirecto({
       zona: 'Península',
-      usoFiscal: 'iva_reducido',
+      usoFiscal: 'otros',
       baseEnergia: sumaBase,
       impuestoElectrico: iee,
       baseContador: alquiler,
@@ -121,7 +121,7 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     expect(Math.abs(resultado.totalNum - totalEsperado)).toBeLessThanOrEqual(0.02);
   });
 
-  it('Mantiene el mismo régimen actual aunque cambie la fecha del periodo en Península <10kW', async () => {
+  it('Mantiene el régimen general actual aunque cambie la fecha del periodo en Península <10kW', async () => {
     const tarifaTest = {
       nombre: "Tarifa BOE",
       p1: 0.10, p2: 0.10,
@@ -156,7 +156,7 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     const alquiler = window.LF_CONFIG.calcularAlquilerContador(30);
     const taxCalc = window.LF_CONFIG.calcularImpuestoIndirecto({
       zona: 'Península',
-      usoFiscal: 'iva_reducido',
+      usoFiscal: 'otros',
       baseEnergia: sumaBase,
       impuestoElectrico: iee,
       baseContador: alquiler,
@@ -165,11 +165,11 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     });
     const totalEsperado = window.LF.round2(sumaBase + iee + alquiler + taxCalc.impuestoEnergia + taxCalc.impuestoContador);
 
-    expect(taxCalc.energiaRate).toBe(0.10);
+    expect(taxCalc.energiaRate).toBe(0.21);
     expect(Math.abs(resultado.totalNum - totalEsperado)).toBeLessThanOrEqual(0.02);
   });
 
-  it('Aplica IVA reducido en tarifas libres con 10 kW exactos', async () => {
+  it('Aplica IVA general en tarifas libres con 10 kW exactos tras desactivar la reducción', async () => {
     const tarifaLibre = {
       nombre: "Libre exacta 10kW",
       p1: 0.10, p2: 0.10,
@@ -204,7 +204,7 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     const alquiler = window.LF_CONFIG.calcularAlquilerContador(30);
     const taxCalc = window.LF_CONFIG.calcularImpuestoIndirecto({
       zona: 'Península',
-      usoFiscal: 'iva_reducido',
+      usoFiscal: 'otros',
       baseEnergia: sumaBase,
       impuestoElectrico: iee,
       baseContador: alquiler,
@@ -213,7 +213,7 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     });
     const totalEsperado = window.LF.round2(sumaBase + iee + alquiler + taxCalc.impuestoEnergia + taxCalc.impuestoContador);
 
-    expect(taxCalc.energiaRate).toBe(0.10);
+    expect(taxCalc.energiaRate).toBe(0.21);
     expect(Math.abs(resultado.totalNum - totalEsperado)).toBeLessThanOrEqual(0.02);
   });
 

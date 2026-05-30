@@ -197,7 +197,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
 
     expect(tarifa).toBeTruthy();
     expect(tarifa.metaPvpc.fechaYmd).toBe('2026-03-21');
-    expect(tarifa.metaPvpc.usoFiscal).toBe('iva_reducido');
+    expect(tarifa.metaPvpc.usoFiscal).toBe('iva_general');
 
     const baseIEE = tarifa.metaPvpc.terminoFijo
       + tarifa.metaPvpc.costeMargenPot
@@ -210,7 +210,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     vi.useRealTimers();
   });
 
-  it('crearTarifaPVPC aplica IVA reducido con 10 kW exactos y separa la caché por bono social', async () => {
+  it('crearTarifaPVPC aplica IVA general con 10 kW exactos y separa la caché por bono social', async () => {
     const mockJson = {
       geo_id: 8741,
       days: {
@@ -250,8 +250,8 @@ describe('PVPC Engine (js/pvpc.js)', () => {
       bonoSocialLimite: 1587
     });
 
-    expect(severe.metaPvpc.usoFiscal).toBe('iva_reducido');
-    expect(noBonus.metaPvpc.usoFiscal).toBe('iva_reducido');
+    expect(severe.metaPvpc.usoFiscal).toBe('iva_general');
+    expect(noBonus.metaPvpc.usoFiscal).toBe('iva_general');
     expect(global.fetch).toHaveBeenCalledTimes(2);
 
     vi.useRealTimers();

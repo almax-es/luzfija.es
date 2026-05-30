@@ -55,7 +55,7 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
     expect(res.totalFinal).toBe(round2(baseIVA + ivaEsperado));
   });
 
-  it('Debe mantener IVA 10% e IEE 0,5% aunque cambie la fecha del periodo en Península <10kW', () => {
+  it('Debe mantener IVA 21% e IEE general aunque cambie la fecha del periodo en Península <10kW', () => {
     const datos = {
       potenciaP1: 4.6, potenciaP2: 4.6, dias: 30,
       precioP1: 0.1, precioP2: 0.1,
@@ -75,7 +75,7 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
     const baseIVA = res.pot + res.cons + res.tarifaAcceso + res.impuestoElec + res.alquilerContador;
 
     expect(res.impuestoElec).toBeCloseTo(ieeEsperado, 2);
-    expect(ivaRate).toBe(0.10);
+    expect(ivaRate).toBe(0.21);
     expect(res.iva).toBe(round2(baseIVA * ivaRate));
   });
 

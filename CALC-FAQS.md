@@ -25,20 +25,19 @@ const baseEnergia = terminoFijoTotal + terminoVariable + financiacionBono - desc
 const impuestoElectrico = C.calcularIEE(baseEnergia, consumoKwh);
 ```
 
-**Validación numérica** (RDL 7/2026 vigente durante 2026, IEE al 0,5%):
+**Validación numérica** (régimen general desde 01/06/2026, IEE al 5,11269632%):
 - Consumo: 221 kWh
 - Bono Social: 42,5% (vulnerable, RDL 7/2026)
 - Base después descuento: ~44,16 €
-- IEE: max(44,16 × 0,5%, 221 × 0,001) = max(0,22€, 0,22€) = 0,22 € ✅
-  ← Histórico CNMC 28/01/2026 (IEE al 5,11%): 2,26 €
+- IEE: max(44,16 × 5,11269632%, 221 × 0,001) = max(2,26€, 0,22€) = 2,26 € ✅
 
   *La relación de orden (descuento ANTES de IEE) se mantiene independientemente de la tasa.*
 
-**Si lo hicieras al revés** (IEE antes de descuento, tasa actual 0,5%):
+**Si lo hicieras al revés** (IEE antes de descuento, tasa general):
 - Base SIN descuento: 56,97 €
-- IEE (incorrecto): 56,97 × 0,5% = 0,28 € ❌
-- IEE (correcto):   44,16 × 0,5% = 0,22 €
-- Sobrecargo: +0,06€ (con RDL 7/2026; con tasa 5,11% era +0,65€)
+- IEE (incorrecto): 56,97 × 5,11269632% = 2,91 € ❌
+- IEE (correcto):   44,16 × 5,11269632% = 2,26 €
+- Sobrecargo: +0,65€
 
 **Conclusión**: El orden importa. DESCUENTO primero, IEE después.
 
@@ -101,7 +100,7 @@ de todas las contraprestaciones" (potencia, energía, etc.)
 **Implementación** (`lf-config.js — calcularIEE/desglosarIEE`):
 ```javascript
 calcularIEE: function(base, consumoKwh, fechaYmd) {
-  // getIEEInfo() devuelve la tasa correcta: 0,5% (RDL 7/2026 activo) o 5,11% (base)
+  // getIEEInfo() devuelve la tasa correcta centralizada
   const info = this.getIEEInfo(fechaYmd);
   const porPorcentaje = (info.porcentaje / 100) * base;  // tasa dinámica
   const porMinimo = consumoKwh * this.iee.minimoEurosKwh; // 0,001 €/kWh consumido
@@ -114,12 +113,12 @@ calcularIEE: function(base, consumoKwh, fechaYmd) {
 | Escenario | Base | kWh | IEE | Explicación |
 |-----------|------|-----|-----|-------------|
 | 0 kWh sin potencia | 0€ | 0 | 0€ | CUPS inactivo (no factura) |
-| 0 kWh con potencia | 9€ | 0 | max(0.05€, 0€) = 0.05€ | ✅ lógica correcta (a 0,5%) |
-| 100 kWh | 15€ | 100 | max(0.08€, 0.10€) = 0.10€ | ✅ Normal (a 0,5%) |
+| 0 kWh con potencia | 9€ | 0 | max(0.46€, 0€) = 0.46€ | ✅ lógica correcta (a 5,11269632%) |
+| 100 kWh | 15€ | 100 | max(0.77€, 0.10€) = 0.77€ | ✅ Normal (a 5,11269632%) |
 
 **Validación CNMC** (29/12/2025 - 29/01/2026, IEE al 5,11% vigente en esa fecha):
 - Input: 3,5 kW, 31 días, 0 kWh
-- IEE: 0,51€ ✅ (sobre la potencia; con RDL 7/2026 activo ≈ 0,05€)
+- IEE: 0,51€ ✅ (sobre la potencia; durante la rebaja temporal del RDL 7/2026 ≈ 0,05€)
 - Total histórico: 13,65€
 
 **Conclusión**: Si hay base imponible (potencia, etc.), hay IEE. Aunque consumo = 0.
@@ -142,18 +141,18 @@ es decir, exactamente 0,001 €/kWh.
 
 **Implementación** (simplificada; la tasa real es dinámica vía `getIEEInfo(fechaYmd)`):
 ```javascript
-// Tasa actual: 0,5% (RDL 7/2026 activo). Tasa base sin medidas: 5,11269632%
+// Tasa actual desde 01/06/2026: 5,11269632%
 return Math.max(
   base * (tasa / 100),  // tasa dinámica
   consumoKwh * 0.001    // Mínimo: 0,001 €/kWh
 );
 ```
 
-**Ejemplo** (con tasa 0,5%, RDL 7/2026):
+**Ejemplo** (con tasa general 5,11269632%):
 - Base: 10€, kWh: 200
-- Por porcentaje: 10 × 0,5% = 0,05€
+- Por porcentaje: 10 × 5,11269632% = 0,51€
 - Por mínimo: 200 × 0,001 = 0,20€
-- IEE: max(0,05€, 0,20€) = 0,20€ ✅ (el mínimo prevalece)
+- IEE: max(0,51€, 0,20€) = 0,51€ ✅
 
 ---
 
@@ -385,12 +384,12 @@ const horasPunta = esCeutaMelilla
 
 | Zona | Impuesto | Potencia | Energía | Contador |
 |------|----------|----------|---------|----------|
-| Península/Baleares | IVA | 10% temporal <= 10 kW desde RDL 10/2026 o bono social severo / 21% general | 10% temporal <= 10 kW desde RDL 10/2026 o bono social severo / 21% general | 10% temporal <= 10 kW desde RDL 10/2026 o bono social severo / 21% general |
+| Península/Baleares | IVA | 21% desde 01/06/2026 | 21% desde 01/06/2026 | 21% desde 01/06/2026 |
 | Canarias | IGIC | — | 0% (vivienda) / 3% (otros) | 7% |
 | Ceuta/Melilla | IPSI | — | 1% | 4% |
 
 **Normativa**:
-- Península: IVA estándar (Ley 37/1992) con rebaja temporal configurada en `lf-config.js` para suministros elegibles
+- Península: IVA estándar (Ley 37/1992). La rebaja temporal eléctrica de 2026 queda desactivada desde 01/06/2026.
 - Canarias: IGIC Ley 20/1991, reducción vivienda
 - Ceuta/Melilla: IPSI Ley 8/1991
 
@@ -408,7 +407,7 @@ if (tipoImpuesto === 'IGIC') {
   ipsiContador = alquiler × 4%;
 } else {
   // IVA (Península)
-  iva = base × tipoIvaVigente; // 10% si potencia ≤10 kW (RDL 10/2026), 21% resto
+  iva = base × tipoIvaVigente; // 21% desde 01/06/2026
 }
 ```
 
@@ -420,7 +419,7 @@ if (tipoImpuesto === 'IGIC') {
 
 **Por qué está mal**:
 - Código real en `lf-utils.js:308` SÍ aplica descuento antes
-- Validación: 44,16€ base → 0,22€ IEE (RDL 7/2026, 0,5%) ✅
+- Validación: 44,16€ base → 2,26€ IEE (régimen general desde 01/06/2026) ✅
   ← Histórico CNMC 28/01/2026 (5,11%): 2,26€
 - La auditoría confundió código encontrado con código ejecutado
 
@@ -467,5 +466,5 @@ Si respondiste "no" a cualquiera, probablemente estés cometiendo un falso posit
 
 ---
 
-**Última actualización**: 16/05/2026
+**Última actualización**: 30/05/2026
 **Próxima revisión**: Cuando cambien normas CNMC/BOE

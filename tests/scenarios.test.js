@@ -36,7 +36,7 @@ describe('Escenarios de Negocio (Integración Fiscal y Bono Social)', () => {
     equipoMedida: 0.81
   };
 
-  it('Escenario 1: Península (<10kW) usa el IVA reducido del régimen actual', () => {
+  it('Escenario 1: Península (<10kW) usa el IVA general del régimen actual', () => {
     const inputs = {
       dias: 30,
       zonaFiscal: 'Península',
@@ -47,12 +47,12 @@ describe('Escenarios de Negocio (Integración Fiscal y Bono Social)', () => {
 
     const res = calcPvpcBonoSocial(metaBase, inputs, global.window.LF_CONFIG);
     
-    expect(res.meta.usoFiscal).toBe('iva_reducido');
+    expect(res.meta.usoFiscal).toBe('iva_general');
     expect(res.meta.impuestoEnergia).toBeGreaterThan(0); // Debe haber IVA
     expect(res.meta.totalFactura).toBeGreaterThan(0);
   });
 
-  it('Escenario 1b: Península (<10kW) mantiene IVA 10% aunque cambie la fecha', () => {
+  it('Escenario 1b: Península (<10kW) mantiene IVA 21% aunque cambie la fecha', () => {
     const inputs = {
       dias: 30,
       p1: 4.6,
@@ -63,7 +63,7 @@ describe('Escenarios de Negocio (Integración Fiscal y Bono Social)', () => {
 
     const res = calcPvpcBonoSocial(metaBase, inputs, global.window.LF_CONFIG);
 
-    expect(res.meta.usoFiscal).toBe('iva_reducido');
+    expect(res.meta.usoFiscal).toBe('iva_general');
     expect(res.meta.impuestoEnergia).toBeGreaterThan(0);
     expect(res.meta.iva).toBeCloseTo(res.meta.impuestoEnergia, 2);
   });

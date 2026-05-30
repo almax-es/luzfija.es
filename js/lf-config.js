@@ -9,12 +9,12 @@
  * lf-config.js - Configuración centralizada de valores regulados
  * 
  * Este archivo contiene todos los valores que pueden cambiar por legislación.
- * Actualizado: Mayo 2026
+ * Actualizado: 30/05/2026
  * 
  * Referencias legales:
  * - Bono social: RD 897/2017 + RDL 7/2026 + Orden TED/1524/2025 (financiación)
- * - IEE: Ley 38/1992 Art. 99 + RDL 7/2026 (reducción temporal)
- * - IVA: Ley 37/1992 + RDL 7/2026, modificado por RDL 10/2026 (reducción temporal)
+ * - IEE: Ley 38/1992 Art. 99 + RDL 7/2026 (reducción temporal desactivada desde 01/06/2026)
+ * - IVA: Ley 37/1992 + RDL 7/2026, modificado por RDL 10/2026 (reducción temporal desactivada desde 01/06/2026)
  * - IGIC: Ley 4/2012 Art. 52 (0% vivienda ≤10kW, 3% otros, 7% contador)
  * - IPSI: Ley 8/1991 Art. 18 (1% electricidad, 4% servicios)
  * - Alquiler contador: Orden ITC/3860/2007 (0,81 €/mes)
@@ -29,8 +29,8 @@
     // ═══════════════════════════════════════════════════════════════════
     // VERSIÓN Y METADATOS
     // ═══════════════════════════════════════════════════════════════════
-    version: '2026.05',
-    ultimaActualizacion: '2026-05-06',
+    version: '2026.06',
+    ultimaActualizacion: '2026-05-30',
 
     // ═══════════════════════════════════════════════════════════════════
     // BONO SOCIAL (descuento + financiación)
@@ -59,16 +59,19 @@
     // ═══════════════════════════════════════════════════════════════════
     // MEDIDAS TEMPORALES (RDL 7/2026, BOE 21/03/2026, vigor 22/03/2026)
     // RDL 10/2026 corrige el umbral de IVA reducido a potencia <= 10 kW.
+    // El IPC electrico de abril 2026 desactiva la reduccion desde 01/06/2026.
+    // Ref: RDL 7/2026 arts. 40 y 42; confirmacion publica del 14/05/2026.
     // LuzFija usa SIEMPRE el régimen fiscal vigente configurado aquí.
     // No se recalculan fiscalidades históricas por fecha de periodo.
     // Las fechas se conservan solo como referencia normativa/copy.
     // ═══════════════════════════════════════════════════════════════════
     medidasTemporales: {
       rdl72026: {
-        activa: true,
+        activa: false,
         entradaVigor: '2026-03-22',
         fin: '2026-06-30',
-        junio2026Habilitado: true,
+        finEfectivoElectricidad: '2026-05-31',
+        junio2026Habilitado: false,
         ieePorcentajeReducido: 0.5,
         ivaPeninsulaReducido: 0.10,
         potenciaMaxIvaReducidoKwIncluida: 10

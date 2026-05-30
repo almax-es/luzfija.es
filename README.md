@@ -34,7 +34,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
   - 1 en `estadisticas/`.
   - 24 en `guias/` (indice + 23 guias).
 - 31 modulos JavaScript en `js/` (incluye `js/bv/`).
-- 20.109 lineas JS aproximadas.
+- 20.112 lineas JS aproximadas.
 - 75 tarifas en `tarifas.json`.
 - Suite de tests Vitest con 52 archivos y 368 casos.
 
@@ -231,5 +231,5 @@ El hook (`scripts/pre-commit-sync.mjs`) regenera y re-stagea automáticamente el
 - Recomendacion operativa:
 - mantener `tarifas.json` actualizado con fecha `updatedAt`,
 - usar `Activa=no` en la Excel para retirar temporalmente tarifas sin borrar su fila,
-- revisar al entrar junio de 2026 el IVA reducido temporal: tras el RDL 10/2026 el umbral operativo es potencia inferior o igual a 10 kW,
+- revisar cambios fiscales electricos posteriores al 01/06/2026: tras confirmarse el condicionante de IPC de abril, el comparador queda en IVA 21% e IEE 5,11269632%,
 - validar cambios con `npm test` antes de publicar.

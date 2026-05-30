@@ -1,6 +1,6 @@
 # Mantenimiento Normativo Y Operativo
 
-Ultima actualizacion: 2026-05-16
+Ultima actualizacion: 2026-05-30
 
 Este documento lista las piezas de LuzFija.es que dependen de normativa, fuentes oficiales o datos vivos. Sirve como checklist para que calculos, guias y mensajes publicos no queden desfasados.
 
@@ -15,7 +15,7 @@ Este documento lista las piezas de LuzFija.es que dependen de normativa, fuentes
 
 | Area | Que revisar | Cuando | Fuente principal | Impacto en repo |
 | --- | --- | --- | --- | --- |
-| IVA Peninsula/Baleares | Tipo vigente, umbral de potencia, excepciones por bono social y fin de medidas temporales | Al entrar junio de 2026 y cada BOE energetico/fiscal | BOE: Ley 37/1992, RDL 7/2026, RDL 10/2026 y normas posteriores | `js/lf-config.js`, `tests/fiscal.test.js`, `tests/calc.test.js`, `tests/pvpc.test.js`, guias de factura, README/CAPACIDADES |
+| IVA Peninsula/Baleares | Tipo vigente, umbral de potencia, excepciones por bono social y fin de medidas temporales | Cada BOE energetico/fiscal | BOE: Ley 37/1992, RDL 7/2026, RDL 10/2026 y normas posteriores | `js/lf-config.js`, `tests/fiscal.test.js`, `tests/calc.test.js`, `tests/pvpc.test.js`, guias de factura, README/CAPACIDADES |
 | IEE | Porcentaje vigente, minimo aplicable y duracion de reducciones temporales | Trimestral y cada BOE fiscal/energetico | BOE: Ley 38/1992 y reales decretos temporales | `js/lf-config.js`, desglose, PVPC, tests fiscales |
 | IGIC Canarias | Tipos para vivienda, otros usos y contador; umbral de potencia | Trimestral y cada cambio del Gobierno de Canarias | Ley 4/2012 y normativa canaria vigente | `js/lf-config.js`, `js/desglose-factura.js`, tests fiscales, guia factura |
 | IPSI Ceuta/Melilla | Tipos de electricidad, contador y servicios | Trimestral y cada ordenanza/cambio local | Normativa local + Ley 8/1991 | `js/lf-config.js`, desglose, tests fiscales |
@@ -47,7 +47,7 @@ Este documento lista las piezas de LuzFija.es que dependen de normativa, fuentes
 
 ## Fechas Criticas Conocidas
 
-- Al entrar junio de 2026: revisar el IPC de electricidad de abril de 2026 publicado por el INE, confirmar si sigue vigente el IVA reducido temporal en Peninsula/Baleares y aplicar entonces el condicionante del RDL 10/2026, sin anticipar cambios de calculo antes de la fecha efectiva.
+- 30/05/2026: confirmado el condicionante de IPC de abril de 2026; desde el 01/06/2026 se desactiva la rebaja temporal de IVA electrico e IEE en Peninsula/Baleares. `LF_CONFIG` queda preparado con IVA 21% e IEE 5,11269632%.
 - Cada cambio de ano: revisar peajes/cargos, calendario de periodos, festivos nacionales, datasets PVPC/surplus y textos de guias que mencionen importes anuales.
 - Cada cambio de Excel de tarifas: ejecutar generador, revisar el informe del validador y confirmar que las inactivas no se publican pero siguen apareciendo en validacion.
 - Cada cambio energetico relevante: confirmar si requiere tocar guias, landings, datos estructurados o calculos. No limitar la revision a electricidad si la noticia trata TUR/gas u otro suministro.
@@ -67,7 +67,7 @@ Este documento lista las piezas de LuzFija.es que dependen de normativa, fuentes
 
 ## Puntos Donde Es Facil Meter La Pata
 
-- `10 kW` no siempre significa lo mismo: PVPC tiene elegibilidad `<= 10 kW`; el IVA reducido temporal de 2026 queda `<= 10 kW` tras RDL 10/2026; otras reglas pueden usar limites distintos.
+- `10 kW` no siempre significa lo mismo: PVPC tiene elegibilidad `<= 10 kW`; la rebaja temporal de IVA electrico de 2026 quedo condicionada por IPC y se desactiva desde el 01/06/2026; otras reglas pueden usar limites distintos.
 - La fiscalidad vigente se aplica de forma centralizada desde `LF_CONFIG`; no duplicar porcentajes en modulos.
 - PVPC no se consulta en vivo desde el navegador: se calcula contra datasets estaticos versionados.
 - Una tarifa inactiva en Excel no debe aparecer en `tarifas.json` ni en el post, pero si debe seguir validandose.

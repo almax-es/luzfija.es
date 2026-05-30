@@ -11,11 +11,11 @@ describe('LF_CONFIG - Lógica Fiscal', () => {
     expect(window.LF_CONFIG.version).toMatch(/^\d{4}\.\d{2}$/);
   });
 
-  it('Cálculo IEE: aplica el 0,5% configurado si supera el mínimo', () => {
+  it('Cálculo IEE: aplica el tipo general configurado si supera el mínimo', () => {
     const base = 100;
     const consumo = 0;
     const result = window.LF_CONFIG.calcularIEE(base, consumo, '2026-03-20');
-    const expected = (window.LF_CONFIG.medidasTemporales.rdl72026.ieePorcentajeReducido / 100) * base;
+    const expected = (window.LF_CONFIG.iee.porcentaje / 100) * base;
     expect(result).toBeCloseTo(expected, 4);
   });
 
@@ -24,8 +24,8 @@ describe('LF_CONFIG - Lógica Fiscal', () => {
     const consumo = 0;
     const before = window.LF_CONFIG.calcularIEE(base, consumo, '2026-03-20');
     const after = window.LF_CONFIG.calcularIEE(base, consumo, '2026-03-21');
-    expect(before).toBeCloseTo(0.5, 4);
-    expect(after).toBeCloseTo(0.5, 4);
+    expect(before).toBeCloseTo(5.11269632, 4);
+    expect(after).toBeCloseTo(5.11269632, 4);
   });
 
   it('Cálculo IEE: mantiene el mínimo de 0,001€/kWh si es mayor que el porcentaje', () => {
@@ -33,51 +33,51 @@ describe('LF_CONFIG - Lógica Fiscal', () => {
     const consumo = 100; // Consumo alto
     const result = window.LF_CONFIG.calcularIEE(base, consumo, '2026-03-21');
     const expected = Math.max(
-      (0.5 / 100) * base,
+      (window.LF_CONFIG.iee.porcentaje / 100) * base,
       consumo * window.LF_CONFIG.iee.minimoEurosKwh
     );
     expect(result).toBe(expected);
   });
 
-  it('Península: aplica IVA 10% si la potencia es inferior o igual a 10 kW', () => {
+  it('Península: aplica IVA 21% si la reducción temporal está desactivada', () => {
     const info = window.LF_CONFIG.getImpuestoInfo('Península', 'otros', {
       potenciaContratada: 4.6,
       fechaYmd: '2026-03-21'
     });
-    expect(info.usoFiscal).toBe('iva_reducido');
-    expect(info.energiaRate).toBe(0.10);
-    expect(info.contadorRate).toBe(0.10);
+    expect(info.usoFiscal).toBe('iva_general');
+    expect(info.energiaRate).toBe(0.21);
+    expect(info.contadorRate).toBe(0.21);
   });
 
-  it('Península: aplica IVA 10% con 10 kW exactos aunque no haya bono social severo', () => {
+  it('Península: aplica IVA 21% con 10 kW exactos aunque no haya bono social severo', () => {
     const info = window.LF_CONFIG.getImpuestoInfo('Península', 'otros', {
       potenciaContratada: 10,
       fechaYmd: '2026-03-21'
     });
-    expect(info.usoFiscal).toBe('iva_reducido');
-    expect(info.energiaRate).toBe(0.10);
+    expect(info.usoFiscal).toBe('iva_general');
+    expect(info.energiaRate).toBe(0.21);
   });
 
-  it('Península: aplica IVA 10% con 10 kW exactos si hay bono social vulnerable severo', () => {
+  it('Península: aplica IVA 21% con 10 kW exactos aunque haya bono social vulnerable severo', () => {
     const info = window.LF_CONFIG.getImpuestoInfo('Península', 'otros', {
       potenciaContratada: 10,
       bonoSocialOn: true,
       bonoSocialTipo: 'severo',
       fechaYmd: '2026-03-21'
     });
-    expect(info.usoFiscal).toBe('iva_reducido');
-    expect(info.energiaRate).toBe(0.10);
+    expect(info.usoFiscal).toBe('iva_general');
+    expect(info.energiaRate).toBe(0.21);
   });
 
-  it('Península: aplica IVA 10% con 10 kW exactos aunque el bono social sea vulnerable no severo', () => {
+  it('Península: aplica IVA 21% con 10 kW exactos aunque el bono social sea vulnerable no severo', () => {
     const info = window.LF_CONFIG.getImpuestoInfo('Península', 'otros', {
       potenciaContratada: 10,
       bonoSocialOn: true,
       bonoSocialTipo: 'vulnerable',
       fechaYmd: '2026-03-21'
     });
-    expect(info.usoFiscal).toBe('iva_reducido');
-    expect(info.energiaRate).toBe(0.10);
+    expect(info.usoFiscal).toBe('iva_general');
+    expect(info.energiaRate).toBe(0.21);
   });
 
   it('Canarias: Debe tener IGIC 0% para energía en viviendas', () => {

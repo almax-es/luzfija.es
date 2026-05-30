@@ -2,7 +2,7 @@
 
 **Última actualización**: Mayo 2026
 **Estado**: ✅ Validado contra normativa CNMC/BOE
-**Referencia CNMC**: v2.1.2 (28/01/2026) — fiscalidad vigente a 16/05/2026 (RDL 7/2026 + RDL 10/2026)
+**Referencia CNMC**: v2.1.2 (28/01/2026) — fiscalidad configurada a 30/05/2026 para vigencia desde 01/06/2026 (IVA 21% e IEE 5,11269632%)
 **Nota de alcance**: Este documento cubre el motor de cálculo. Para inventario funcional completo de la web (todas las páginas y flujos), ver `CAPACIDADES-WEB.md`.
 
 ---
@@ -43,14 +43,14 @@ Una factura de electricidad en España contiene:
 │ - 42,5% o 57,5% sobre base limitada (RDL 7/2026, vigente durante 2026) │
 ├─────────────────────────────────────────────┤
 │ IMPUESTO ELÉCTRICO (IEE)                    │
-│ - 0,5% (RDL 7/2026 activo) o 5,11% (tarifa base) │
+│ - 5,11269632% (regimen general desde 01/06/2026) │
 │   sobre base post-descuento                 │
 ├─────────────────────────────────────────────┤
 │ ALQUILER CONTADOR                           │
 │ - 0,81 €/mes prorrateo a días              │
 ├─────────────────────────────────────────────┤
 │ IMPUESTO INDIRECTO (IVA/IGIC/IPSI)          │
-│ - Península: IVA vigente (10% temporal <=10 kW desde RDL 10/2026 o bono social severo, 21% resto) │
+│ - Península: IVA vigente (21% desde 01/06/2026) │
 │ - Canarias: 0-7% (IGIC)                     │
 │ - Ceuta/Melilla: 1-4% (IPSI)                │
 └─────────────────────────────────────────────┘
@@ -89,7 +89,7 @@ const sumaBase = potencia + energia + financiacion - descuentoBS;
 
 // PASO 6: ⭐ CALCULAR IEE (PUNTO CRÍTICO)
 // El IEE se calcula sobre la base YA CON EL DESCUENTO RESTADO
-// Tasa dinámica: 0,5% (RDL 7/2026 activo) o 5,11269632% (tarifa base)
+// Tasa dinámica centralizada: 5,11269632% desde 01/06/2026
 // La función C.calcularIEE() aplica la tasa correcta según la fecha
 // Ref: Ley 38/1992 + RDL 7/2026
 const iee = C.calcularIEE(sumaBase, consumoTotal, fechaFactura);
@@ -108,7 +108,7 @@ if (zona === 'Canarias') {
 } else if (zona === 'CeutaMelilla') {
   impuestoIndirecto = baseImpuestoIndirecto * 0.01; // IPSI 1% energía
 } else {
-  impuestoIndirecto = baseImpuestoIndirecto * tipoIvaVigente; // IVA 10% si potencia ≤10 kW (RDL 10/2026), 21% resto
+  impuestoIndirecto = baseImpuestoIndirecto * tipoIvaVigente; // IVA vigente centralizado en lf-config.js
 }
 
 // PASO 10: TOTAL
@@ -128,15 +128,14 @@ Descuento BS (42,5% sobre base limitada): -12,81 € (RDL 7/2026, vigente durant
 ─────────────────
 Base para IEE: 44,16 € ✅
 
-IEE: max(44,16 × 0,5%, 221 × 0,001) = max(0,22€, 0,22€) = 0,22 € (RDL 7/2026) ✅
-  ← Histórico CNMC 28/01/2026 (IEE al 5,11%): 2,26 €
+IEE con regimen general desde 01/06/2026: max(44,16 × 5,11269632%, 221 × 0,001) = max(2,26€, 0,22€) = 2,26 € ✅
 Alquiler: 0,83 €
 
 Base para IVA: 44,16 + 2,26 + 0,83 = 47,25 €
-IVA (tipo vigente según potencia y normativa temporal): calculado por `lf-config.js`
+IVA vigente: calculado por `lf-config.js`
 
 TOTAL: base + IVA vigente ✅
-(Calculado con el descuento excepcional del RDL 7/2026 vigente durante 2026; pendiente de verificar contra CNMC cuando actualice su simulador)
+(Calculado con el descuento excepcional del bono social del RDL 7/2026 vigente durante 2026; pendiente de verificar contra CNMC cuando actualice su simulador)
 ```
 
 ---
@@ -197,7 +196,7 @@ const impuestoElectrico = round2(C.calcularIEE(baseEnergia, consumoKwh, fechaYmd
 - Caso CNMC (0 kWh): IEE = 0,51€, Total = 13,65€ ✅
 - Caso CNMC (221 kWh + BS): Base IEE = 44,16€, IEE = 2,26€ ✅
 
-Con RDL 7/2026 activo (0,5%): IEE caso 0 kWh ≈ 0,05€; caso 221 kWh ≈ 0,22€.
+Con la rebaja temporal del RDL 7/2026 activa (22/03/2026-31/05/2026): IEE caso 0 kWh ≈ 0,05€; caso 221 kWh ≈ 0,22€.
 
 ---
 
@@ -277,7 +276,7 @@ const descuentoEur = baseDescuento * porcentaje; // 0.425 o 0.575 (42,5% o 57,5%
 // 4. ⭐ BASE PARA IMPUESTOS (CON DESCUENTO YA RESTADO)
 const baseEnergia = terminoFijoTotal + terminoVariable + financiacionBono - descuentoEur;
 
-// 5. IEE sobre base con descuento (tasa dinámica: 0,5% RDL 7/2026 o 5,11% base)
+// 5. IEE sobre base con descuento (tasa dinámica centralizada; 5,11% desde 01/06/2026)
 const impuestoElectrico = C.calcularIEE(baseEnergia, consumoKwh, fechaYmd);
 ```
 
@@ -374,7 +373,7 @@ const totalReal = round2(Math.max(0, totalBase - (hasBV ? excedenteSobranteEur :
 
 Todos estos casos están validados contra el **Simulador Oficial CNMC v2.1.2** (28/01/2026).
 
-> ⚠️ **Nota fiscal**: Los valores de IEE en los casos siguientes corresponden a la validación de enero 2026 (IEE al 5,11%). Desde el 22/03/2026 el RDL 7/2026 redujo el IEE al 0,5%, por lo que los importes de IEE ya no coinciden con el motor actual. La lógica del **orden de operaciones** (descuento BS antes de IEE) sigue siendo válida.
+> ⚠️ **Nota fiscal**: Los valores de IEE en los casos siguientes corresponden a la validación de enero 2026 (IEE al 5,11%). Desde el 01/06/2026 el motor vuelve al tipo general, por lo que estos importes vuelven a ser la referencia fiscal vigente para IEE. La lógica del **orden de operaciones** (descuento BS antes de IEE) sigue siendo válida.
 
 #### Caso 1: PVPC sin consumo
 ```
@@ -386,11 +385,11 @@ Inputs:
 
 Histórico CNMC 28/01/2026 (IEE al 5,11%):
 - Término fijo: 9,36 €
-- IEE: 0,51 € (a 5,11%; con RDL 7/2026 activo ≈ 0,05 €)
+- IEE: 0,51 € (a 5,11%; durante la rebaja temporal del RDL 7/2026 ≈ 0,05 €)
 - Total: 13,65 €
 
 Referencia: CNMC Simulador, 29/12/2025 - 29/01/2026
-Nota: Válido para verificar que IEE > 0 aunque consumo = 0. Importe cambia con tasa actual (0,5%).
+Nota: Válido para verificar que IEE > 0 aunque consumo = 0.
 ```
 
 #### Caso 2: PVPC con Bono Social
@@ -405,10 +404,9 @@ Descuento BS:
 - Base: 8,94 + 0,57 + (47,46 × 43,48%) = 30,15 €
 - Descuento: 30,15 × 42,5% = 12,81 €
 
-Con fiscalidad vigente a mayo 2026 (RDL 7/2026, IEE al 0,5%):
+Con fiscalidad configurada desde 01/06/2026 (IEE al 5,11269632%):
 - Base IEE: 8,94 + 47,46 + 0,57 - 12,81 = 44,16 € ✅
-- IEE: max(44,16 × 0,5%, 221 × 0,001) = max(0,22€, 0,22€) = 0,22 € ✅
-  ← Histórico CNMC 28/01/2026 (IEE al 5,11%): 2,26 €, Total: 57,17 €
+- IEE: max(44,16 × 5,11269632%, 221 × 0,001) = max(2,26€, 0,22€) = 2,26 € ✅
 
 Referencia: RDL 7/2026 + RD 897/2017
 ```
@@ -493,16 +491,16 @@ La ley se refiere a CUPS inactivos sin facturación de ningún concepto. En una 
 
 ```javascript
 // ✅ CORRECTO: IEE se calcula aunque consumo sea 0
-// Tasa dinámica: 0,5% (RDL 7/2026 activo) o 5,11% (base). Nunca hardcodear la tasa.
+// Tasa dinámica centralizada. Nunca hardcodear la tasa.
 const impuestoElec = C.calcularIEE(sumaBase, consumoTotal, fechaYmd);
 // Implementación: Math.max(sumaBase × tasa, consumoTotal × 0,001 €/kWh)
 
-// Si consumo = 0 y base ≈ 10€: IEE = max(10 × 0,005, 0) ≈ 0,05€ (RDL 7/2026)
+// Si consumo = 0 y base ≈ 10€: IEE = max(10 × 0,0511269632, 0) ≈ 0,51€ (tipo general)
 //                               IEE ≠ 0, porque hay base imponible por potencia contratada
 ```
 
 **Validación histórica**: CNMC Simulador oficial (28/01/2026, IEE 5,11%): 0 kWh → IEE = 0,51€ ✅
-Con RDL 7/2026 activo (0,5%): mismo razonamiento, IEE ≈ 0,05€ — sigue siendo > 0 ✅
+Con el tipo general desde 01/06/2026: mismo razonamiento, IEE ≈ 0,51€ — sigue siendo > 0 ✅
 
 **Por qué la auditoría falló**:
 - Interpretó la normativa de forma literal sin contexto
@@ -560,6 +558,6 @@ Si eres una IA revisando este código:
 
 ---
 
-**Última revisión**: 16/05/2026
+**Última revisión**: 30/05/2026
 **Próxima revisión**: Cuando cambien normativas (CNMC/BOE)
 **Mantenedor**: Equipo de LuzFija.es
