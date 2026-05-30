@@ -329,6 +329,28 @@ totalPagar = totalBase - credit2           // Pagas menos (con saldo)
 totalReal = totalBase - excedenteSobranteEur // Coste real (sin saldo anterior)
 ```
 
+### 💳 Cuota fija mensual de BV (`precioBV`)
+
+Algunas tarifas con BV cobran una cuota mensual por el servicio. Se define en `tarifas.json` como `fv.precioBV` (€/mes). Solo aplica cuando `fv.bv = true` y `fv.tipo = "SIMPLE + BV"`.
+
+```javascript
+// lf-calc.js (home, período arbitrario en días)
+fvCosteBV = precioBV * dias * 12 / 365
+
+// bv-sim-monthly.js (simulador, mes calendario exacto)
+costeBV = precioBV * min(dias, daysInMonth) / daysInMonth
+```
+
+La cuota se suma a `totalBase` antes de aplicar el saldo BV anterior, por lo que el saldo puede cubrir también la cuota:
+
+```javascript
+totalBaseConCosteBV = totalBase + costeBV
+credit2 = min(bvPrev, totalBaseConCosteBV)
+totalPagar = totalBaseConCosteBV - credit2
+```
+
+Tarifas con cuota no nula (2026): Bualá `0,04 €/mes`, Repsol Solar BV `1,99 €/mes`, Endesa Solar Plus `2,00 €/mes`.
+
 ### ☀️ Compensación parcial y BV
 
 Algunas tarifas FV no permiten compensar peajes/cargos de energía en la factura del mes. En `tarifas.json` se modelan con:

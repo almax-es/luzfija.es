@@ -65,11 +65,12 @@ Para **cada mes** de **cada tarifa**, calcula:
 3. **Compensación Excedentes**: `min(kWh_excedentes × precio_exc, base_compensable)`
 4. **Energía Neta**: `energía_bruta - compensación`
 5. **Impuestos**: IEE + IVA/IGIC/IPSI + bono social + alquiler contador
-6. **Subtotal**: `potencia + energía_neta + impuestos`
-7. **Excedente Sobrante**: `(kWh_excedentes × precio_exc) - compensación` → **Acumula en BV**
-8. **Uso Hucha**: `min(saldo_BV_mes_anterior, subtotal)` (solo si tarifa tiene BV)
-9. **A Pagar Este Mes**: `subtotal - uso_hucha`
-10. **Saldo BV Final**: `excedente_sobrante + saldo_BV_anterior - uso_hucha`
+6. **Cuota BV**: `fv.precioBV × días / días_del_mes` (solo si `fv.bv = true` y `fv.precioBV > 0`; prorrateado si el mes tiene datos parciales)
+7. **Subtotal**: `potencia + energía_neta + impuestos + cuota_BV`
+8. **Excedente Sobrante**: `(kWh_excedentes × precio_exc) - compensación` → **Acumula en BV**
+9. **Uso Hucha**: `min(saldo_BV_mes_anterior, subtotal)` (solo si tarifa tiene BV; puede cubrir también la cuota BV)
+10. **A Pagar Este Mes**: `subtotal - uso_hucha`
+11. **Saldo BV Final**: `excedente_sobrante + saldo_BV_anterior - uso_hucha`
 
 **Base compensable**:
 - En tarifas normales: `base_compensable = energía_bruta`.
@@ -562,7 +563,10 @@ window.BVSim.calcMonthForTarifa({
   impuestoElec: 6.78,
   alquilerContador: 0.72,
   ivaCuota: 27.89,
-  totalBase: 150.00,
+  totalBaseSinCosteBV: 150.00,
+  precioBVMensual: 1.99,
+  costeBV: 1.74,
+  totalBase: 151.74,
   exKwh: 456.78,
   precioExc: 0.06,
   credit1: 27.40,
@@ -571,8 +575,8 @@ window.BVSim.calcMonthForTarifa({
   bvSaldoPrev: 10.00,
   credit2: 10.00,
   bvSaldoFin: 0.01,
-  totalPagar: 140.00,
-  totalReal: 150.00
+  totalPagar: 141.74,
+  totalReal: 151.74
 }
 ```
 

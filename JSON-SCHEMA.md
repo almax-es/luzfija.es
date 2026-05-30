@@ -38,7 +38,8 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
         "tipo": "string (tipo de compensación: 'NO COMPENSA', 'SIMPLE', 'SIMPLE + BV', etc.)",
         "tope": "string (límite de compensación: 'ENERGIA', 'POTENCIA', '—' si no aplica)",
         "bv": "boolean (true = permite batería virtual)",
-        "reglaBV": "string (regla de acumulación: 'NO APLICA', 'BV MES ANTERIOR', etc.)"
+        "reglaBV": "string (regla de acumulación: 'NO APLICA', 'BV MES ANTERIOR', etc.)",
+        "precioBV": "number (€/mes cuota fija mensual por el servicio de batería virtual; 0 = sin cuota)"
       },
       "requiereFV": "boolean (true = requiere obligatoriamente placas solares)"
     }
@@ -73,6 +74,7 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 | `fv.tope` | string | ✅ | "ENERGIA" \| "ENERGIA_PARCIAL" \| "POTENCIA" \| "—" | "ENERGIA" | Límite de compensación (si aplica) |
 | `fv.bv` | boolean | ✅ | true \| false | true | ¿Permite acumular excedentes en batería virtual? |
 | `fv.reglaBV` | string | ✅ | Ver notas | "BV MES ANTERIOR" | Cómo se aplica la BV acumulada |
+| `fv.precioBV` | number | ✅ | ≥ 0 | 0 | €/mes cuota fija mensual por el servicio de batería virtual. Solo aplica cuando `fv.bv = true` y `fv.tipo = "SIMPLE + BV"`. Se prorratea al período de facturación. Tarifas sin cuota usan `0`. |
 | `requiereFV` | boolean | ✅ | true \| false | false | ¿La tarifa requiere obligatoriamente placas solares? |
 
 ### Valores Permitidos
@@ -119,7 +121,8 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
     "tipo": "SIMPLE + BV",
     "tope": "ENERGIA",
     "bv": true,
-    "reglaBV": "BV MES ANTERIOR"
+    "reglaBV": "BV MES ANTERIOR",
+    "precioBV": 0
   },
   "requiereFV": false
 }
@@ -170,6 +173,7 @@ La hoja privada `Tarifas Luz.xlsx` puede incluir una columna `Activa`. Esta colu
 
 ## Historial de Cambios
 
+- **2026-05-30**: Añadido campo `fv.precioBV` (€/mes cuota fija de batería virtual). Implementado en `lf-calc.js`, `bv-sim-monthly.js`, `desglose-factura.js` y `bv-ui.js`. Tarifas con cuota no nula: Bualá (0,04), Repsol Solar BV (1,99), Endesa Solar Plus (2,00).
 - **2026-05-05**: Documentado `fv.exc = -1` para excedentes indexados y el campo interno `Activa` de la Excel, que filtra publicación sin excluir validación.
 - **2026-04-29**: `tarifas.json` añade `_meta` con aviso de derechos y restricciones de reutilización.
 - **2026-04-20**: Ajuste de métricas del repo actual (`tarifas.json` con 39 tarifas)
