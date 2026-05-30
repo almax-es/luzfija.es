@@ -101,10 +101,10 @@ describe('LF_CONFIG - Lógica Fiscal', () => {
     }
   });
 
-  describe('Régimen base post-RDL 7/2026 (medida desactivada)', () => {
-    // Cuando expire el RDL 7/2026 (fin: 2026-06-30) y no se prorrogue,
-    // bastará con cambiar medidasTemporales.rdl72026.activa = false en
-    // lf-config.js. Estos tests cubren esa rama vía spyOn — el objeto
+  describe('Régimen base con la medida RDL 7/2026 desactivada', () => {
+    // Desde el 01/06/2026 la rebaja temporal electrica queda desactivada
+    // por el condicionante de IPC de abril. Estos tests cubren esa rama
+    // vía spyOn — el objeto
     // medidasTemporales.rdl72026 está congelado y no se puede mutar
     // directamente, pero isRdl72026ElectricidadActiva sí se puede mockear
     // porque LF_CONFIG raíz no está frozen.
