@@ -820,6 +820,20 @@ html.light-mode .bv-manual-container {
   max-width: 100%;
 }
 
+/* Desktop: quitar padding horizontal para que la tabla ocupe todo el ancho de la tarjeta */
+@media (min-width: 769px) {
+  .bv-alt-card-compact:has(details[open]) {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  /* Devolver el padding a los elementos de cabecera (todo excepto el desglose) */
+  .bv-alt-card-compact:has(details[open]) > *:not(.bv-alt-details) {
+    padding-left: 20px;
+    padding-right: 20px;
+  }
+}
+
 .bv-alt-header {
   display: flex;
   justify-content: space-between;
