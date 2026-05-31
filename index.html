@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-fqJE+sAD8pDrFjp9FxILIm0TfTkE8rMtn8fRmdAlMI8=' 'sha256-oKNpq7b6ylWwSLDD5qzh0JovSIoI6fn+/ZBlDpxiScQ=' 'sha256-WSY4+DIN0ZleTXewzIDRiHhbioxfSFoibWnXJQhv7gI=' 'sha256-375H4RIVVu85w+tdCRXFSeoVketX59PT0dG3E9T37Fo=' 'sha256-diBqL/pmbq8X3kD+3Ur4vs6FWPN3mzWL/ngHD/CK6ds=' 'sha256-AqedS0DDZ3spZ9sgaXw1wgEfApjkRkFoyIwCRQYGi28=' 'sha256-o7hSY5UfiBJmYS1Eo3bu+0gZg3k58mlhN0aHOCklrjg='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-fqJE+sAD8pDrFjp9FxILIm0TfTkE8rMtn8fRmdAlMI8=' 'sha256-oKNpq7b6ylWwSLDD5qzh0JovSIoI6fn+/ZBlDpxiScQ=' 'sha256-WSY4+DIN0ZleTXewzIDRiHhbioxfSFoibWnXJQhv7gI=' 'sha256-375H4RIVVu85w+tdCRXFSeoVketX59PT0dG3E9T37Fo=' 'sha256-kFvVb2sIHwl2m95IlH6P5XnyL388FOs++fJ/ulZv0zQ=' 'sha256-AqedS0DDZ3spZ9sgaXw1wgEfApjkRkFoyIwCRQYGi28=' 'sha256-o7hSY5UfiBJmYS1Eo3bu+0gZg3k58mlhN0aHOCklrjg='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark light"/>
 <meta name="description" content="Compara tarifas de luz, PVPC y autoconsumo sin anuncios, sin registro y sin comisiones. Usa tu factura PDF o consumo horario y encuentra la más barata.">
@@ -48,7 +48,7 @@
     }, true);
   })();
   </script>
-  <script src="/js/config.js?v=20260531-181020"></script>
+  <script src="/js/config.js?v=20260531-181622"></script>
 
   <meta property="og:title" content="Comparador de Tarifas de Luz sin Registro ni Comisiones">
   <meta property="og:description" content="Compara tarifas de luz, PVPC y autoconsumo sin anuncios, sin registro y sin comisiones. Usa tu factura PDF o consumo horario y encuentra la más barata.">
@@ -210,7 +210,7 @@
       {
         "@type":"Question",
         "name":"¿Cómo funciona con placas solares y autoconsumo?",
-        "acceptedAnswer":{"@type":"Answer","text":"El comparador calcula la compensación de excedentes según el precio de cada comercializadora. Para tarifas con Batería Virtual (BV), los excedentes sobrantes se acumulan en euros para descontarlos en meses futuros. El ranking ordena por coste real mensual de cada tarifa, sin contar la batería virtual del mes anterior, permitiendo comparar tarifas de forma justa. La columna TOTAL muestra dos valores: 'Pagas' (lo que pagas hoy usando BV anterior) y 'Ranking' (coste real sin BV anterior). El icono solar dorado muestra todos los detalles del cálculo."}
+        "acceptedAnswer":{"@type":"Answer","text":"El comparador calcula la compensación de excedentes según el precio de cada comercializadora. Para tarifas con Batería Virtual (BV), los excedentes sobrantes se acumulan en euros para descontarlos en meses futuros. El ranking ordena por coste mensual calculado de cada tarifa, sin contar la batería virtual del mes anterior, permitiendo comparar tarifas de forma justa. La columna TOTAL muestra dos valores: 'Pagas' (lo que pagas hoy usando BV anterior) y 'Ranking' (coste calculado sin BV anterior). El icono solar dorado muestra todos los detalles del cálculo."}
       }
     ]
   }
@@ -256,18 +256,18 @@
   }
   </script>
 
-  <script src="/js/theme.js?v=20260531-181020"></script>
+  <script src="/js/theme.js?v=20260531-181622"></script>
 
-    <link rel="stylesheet" href="/styles.css?v=20260531-181020">
-    <link rel="stylesheet" href="/pro.css?v=20260531-181020">
+    <link rel="stylesheet" href="/styles.css?v=20260531-181622">
+    <link rel="stylesheet" href="/pro.css?v=20260531-181622">
   <!-- CSS del desglose (solo se usa al abrir el modal) -->
-  <link rel="preload" href="/desglose-factura.css?v=20260531-181020" as="style">
-  <link rel="stylesheet" href="/desglose-factura.css?v=20260531-181020" media="all">
-  <noscript><link rel="stylesheet" href="/desglose-factura.css?v=20260531-181020"></noscript>
+  <link rel="preload" href="/desglose-factura.css?v=20260531-181622" as="style">
+  <link rel="stylesheet" href="/desglose-factura.css?v=20260531-181622" media="all">
+  <noscript><link rel="stylesheet" href="/desglose-factura.css?v=20260531-181622"></noscript>
 
   <!-- PDF.js se carga dinámicamente cuando el usuario sube una factura (ver factura.js) -->
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/fonts.css?v=20260531-181020">
+  <link rel="stylesheet" href="/fonts.css?v=20260531-181622">
 
     <meta name="theme-color" content="#8B5CF6">
 </head>
@@ -727,7 +727,7 @@
           <ul class="u-content-list">
             <li><strong>Compensación de excedentes</strong>: Los kWh que viertes a la red se compensan según el precio que pague cada comercializadora</li>
             <li><strong>Batería Virtual (BV)</strong>: Algunas tarifas acumulan excedentes en euros para descontarlos en meses futuros</li>
-            <li><strong>Ranking ajustado</strong>: El orden considera el ahorro real, restando los excedentes que acumulas para próximos meses</li>
+            <li><strong>Ranking ajustado</strong>: El orden considera el coste calculado y el efecto de los excedentes acumulados para próximos meses</li>
           </ul>
           <p>En la columna <strong>TOTAL</strong> verás dos valores cuando hay BV activa: lo que <strong>pagas este mes</strong> y el <strong>coste para ranking</strong> (que considera tu ahorro acumulado). El icono ☀️ dorado muestra todos los detalles al hacer clic.</p>
         </div>
@@ -790,7 +790,7 @@
             <li>✓ Extracción automática de facturas PDF</li>
             <li>✓ Importador de consumos horarios (CSV/XLSX)</li>
             <li>✓ Comparación con tu tarifa actual</li>
-            <li>✓ Ranking ajustado por ahorro real</li>
+            <li>✓ Ranking ajustado por coste calculado</li>
           </ul>
         </div>
 
@@ -999,35 +999,35 @@
 
     <!-- LuzFija Modular Architecture -->
     <!-- Tracking primero para capturar errores de scripts posteriores -->
-    <script src="js/tracking.js?v=20260531-181020" defer></script>
+    <script src="js/tracking.js?v=20260531-181622" defer></script>
 
     <!-- 1. Módulos base (orden importante) -->
-    <script src="js/lf-config.js?v=20260531-181020" defer></script>
-    <script src="js/lf-utils.js?v=20260531-181020" defer></script>
-    <script src="js/lf-csv-utils.js?v=20260531-181020" defer></script>
-    <script src="js/lf-state.js?v=20260531-181020" defer></script>
-    <script src="js/lf-ui.js?v=20260531-181020" defer></script>
-    <script src="js/lf-tooltips.js?v=20260531-181020" defer></script>
-    <script src="js/lf-cache.js?v=20260531-181020" defer></script>
-    <script src="js/lf-inputs.js?v=20260531-181020" defer></script>
-    <script src="js/lf-calc.js?v=20260531-181020" defer></script>
-    <script src="js/lf-render.js?v=20260531-181020" defer></script>
-    <script src="js/lf-csv-import.js?v=20260531-181020" defer></script>
-    <script src="js/lf-tarifa-custom.js?v=20260531-181020" defer></script>
+    <script src="js/lf-config.js?v=20260531-181622" defer></script>
+    <script src="js/lf-utils.js?v=20260531-181622" defer></script>
+    <script src="js/lf-csv-utils.js?v=20260531-181622" defer></script>
+    <script src="js/lf-state.js?v=20260531-181622" defer></script>
+    <script src="js/lf-ui.js?v=20260531-181622" defer></script>
+    <script src="js/lf-tooltips.js?v=20260531-181622" defer></script>
+    <script src="js/lf-cache.js?v=20260531-181622" defer></script>
+    <script src="js/lf-inputs.js?v=20260531-181622" defer></script>
+    <script src="js/lf-calc.js?v=20260531-181622" defer></script>
+    <script src="js/lf-render.js?v=20260531-181622" defer></script>
+    <script src="js/lf-csv-import.js?v=20260531-181622" defer></script>
+    <script src="js/lf-tarifa-custom.js?v=20260531-181622" defer></script>
     
     <!-- 2. Módulos externos -->
-    <script src="js/pvpc.js?v=20260531-181020" defer></script>
-    <script src="js/factura.js?v=20260531-181020" defer></script>
+    <script src="js/pvpc.js?v=20260531-181622" defer></script>
+    <script src="js/factura.js?v=20260531-181622" defer></script>
     <!-- 2b. Sistema de desglose de factura -->
-    <script src="js/desglose-factura.js?v=20260531-181020" defer></script>
-    <script src="js/desglose-integration.js?v=20260531-181020" defer></script>
+    <script src="js/desglose-factura.js?v=20260531-181622" defer></script>
+    <script src="js/desglose-integration.js?v=20260531-181622" defer></script>
 
     <!-- 3. Coordinador principal -->
     <!-- XLSX se carga bajo demanda cuando se necesita -->
-    <script src="js/lf-app.js?v=20260531-181020" defer></script>
+    <script src="js/lf-app.js?v=20260531-181622" defer></script>
 
 
-    <script src="js/index-extra.js?v=20260531-181020" defer></script>
+    <script src="js/index-extra.js?v=20260531-181622" defer></script>
 
   <!-- Modal PVPC -->
   <div class="modal-overlay is-hidden" id="modalPVPCInfo" role="dialog" aria-modal="true" aria-label="Precios PVPC por hora" aria-hidden="true" tabindex="-1">
