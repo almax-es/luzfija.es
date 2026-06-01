@@ -198,7 +198,7 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.04
+        "precioBV": 4.0
       },
       "requiereFV": false
     },
@@ -1456,5 +1456,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-01T05:38:49.955Z"
+  "updatedAt": "2026-06-01T07:24:31.353Z"
 }
