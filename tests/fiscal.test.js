@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, afterEach, vi } from 'vitest';
+import { describe, it, expect } from 'vitest';
 
 // Cargamos el script. Al no ser un módulo ESM con export, Vitest/JSDOM lo ejecuta
 // y el IIFE colgará LF_CONFIG del objeto global window.
@@ -93,37 +93,18 @@ describe('LF_CONFIG - Lógica Fiscal', () => {
     expect(result).toBeCloseTo(6.979247, 6);
   });
 
-  it('Guardrail: no mantiene activa la medida RDL 7/2026 después de su fecha de fin', () => {
-    const medida = window.LF_CONFIG.medidasTemporales.rdl72026;
-    const today = window.LF_CONFIG.getTodayYmd();
-    if (today > medida.fin) {
-      expect(medida.activa).toBe(false);
-    }
+  it('Guardrail: no mantiene configurada la rama temporal RDL 7/2026 retirada', () => {
+    expect(window.LF_CONFIG.medidasTemporales).toBeUndefined();
   });
 
-  describe('Régimen base con la medida RDL 7/2026 desactivada', () => {
-    // Desde el 01/06/2026 la rebaja temporal electrica queda desactivada
-    // por el condicionante de IPC de abril. Estos tests cubren esa rama
-    // vía spyOn — el objeto
-    // medidasTemporales.rdl72026 está congelado y no se puede mutar
-    // directamente, pero isRdl72026ElectricidadActiva sí se puede mockear
-    // porque LF_CONFIG raíz no está frozen.
-
-    afterEach(() => {
-      vi.restoreAllMocks();
-    });
-
-    it('IEE: vuelve al 5,11269632% cuando la medida está desactivada', () => {
-      vi.spyOn(window.LF_CONFIG, 'isRdl72026ElectricidadActiva').mockReturnValue(false);
-
+  describe('Régimen base vigente', () => {
+    it('IEE: usa el tipo vigente 5,11269632%', () => {
       const info = window.LF_CONFIG.getIEEInfo('2026-07-15');
       expect(info.porcentaje).toBe(5.11269632);
       expect(info.reducidoTemporalmente).toBe(false);
     });
 
     it('IEE: el cálculo aplica la tasa base sobre la base imponible', () => {
-      vi.spyOn(window.LF_CONFIG, 'isRdl72026ElectricidadActiva').mockReturnValue(false);
-
       const base = 100;
       const consumo = 0;
       const result = window.LF_CONFIG.calcularIEE(base, consumo, '2026-07-15');
@@ -131,9 +112,7 @@ describe('LF_CONFIG - Lógica Fiscal', () => {
     });
 
     it('IVA Península: no aplica el reducido al pasar por la ruta normal de uso fiscal', () => {
-      vi.spyOn(window.LF_CONFIG, 'isRdl72026ElectricidadActiva').mockReturnValue(false);
-
-      // Pasamos 'otros' (no 'iva_general' ni 'iva_reducido') para forzar la
+      // Pasamos 'otros' (no 'iva_general') para forzar la
       // resolución por contexto y demostrar que, aunque la potencia sea
       // elegible (≤10 kW), sin la medida activa no aplica el reducido.
       const info = window.LF_CONFIG.getImpuestoInfo('Península', 'otros', {

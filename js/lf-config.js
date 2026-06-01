@@ -57,28 +57,6 @@
     },
 
     // ═══════════════════════════════════════════════════════════════════
-    // MEDIDAS TEMPORALES (RDL 7/2026, BOE 21/03/2026, vigor 22/03/2026)
-    // RDL 10/2026 corrige el umbral de IVA reducido a potencia <= 10 kW.
-    // El IPC electrico de abril 2026 desactiva la reduccion desde 01/06/2026.
-    // Ref: RDL 7/2026 arts. 40 y 42; confirmacion publica del 14/05/2026.
-    // LuzFija usa SIEMPRE el régimen fiscal vigente configurado aquí.
-    // No se recalculan fiscalidades históricas por fecha de periodo.
-    // Las fechas se conservan solo como referencia normativa/copy.
-    // ═══════════════════════════════════════════════════════════════════
-    medidasTemporales: {
-      rdl72026: {
-        activa: false,
-        entradaVigor: '2026-03-22',
-        fin: '2026-06-30',
-        finEfectivoElectricidad: '2026-05-31',
-        junio2026Habilitado: false,
-        ieePorcentajeReducido: 0.5,
-        ivaPeninsulaReducido: 0.10,
-        potenciaMaxIvaReducidoKwIncluida: 10
-      }
-    },
-
-    // ═══════════════════════════════════════════════════════════════════
     // ALQUILER CONTADOR
     // Orden ITC/3860/2007
     // ═══════════════════════════════════════════════════════════════════
@@ -237,26 +215,14 @@
       return this.getTodayYmd();
     },
 
-    isDateBetweenYmd: function(fechaYmd, inicioYmd, finYmd) {
-      const fecha = this.resolveFiscalDateYmd(fechaYmd);
-      return fecha >= inicioYmd && fecha <= finYmd;
-    },
-
-    isRdl72026ElectricidadActiva: function(fechaYmd) {
-      const medida = this.medidasTemporales.rdl72026;
-      return Boolean(medida && medida.activa);
-    },
-
     getIEEInfo: function(fechaYmd) {
       const fecha = this.resolveFiscalDateYmd(fechaYmd);
-      const medidaActiva = this.isRdl72026ElectricidadActiva(fecha);
-      const medida = this.medidasTemporales.rdl72026;
 
       return {
         fechaYmd: fecha,
-        porcentaje: medidaActiva ? medida.ieePorcentajeReducido : this.iee.porcentaje,
+        porcentaje: this.iee.porcentaje,
         minimoEurosKwh: this.iee.minimoEurosKwh,
-        reducidoTemporalmente: medidaActiva
+        reducidoTemporalmente: false
       };
     },
 
@@ -285,25 +251,6 @@
       bonoSocialTipo = '',
       fechaYmd
     } = {}) {
-      const medida = this.medidasTemporales.rdl72026;
-      const potenciaNum = Number.isFinite(Number(potenciaContratada)) ? Number(potenciaContratada) : 0;
-      const potenciaElegible = potenciaNum > 0 && potenciaNum <= medida.potenciaMaxIvaReducidoKwIncluida;
-      const tipoBonoNorm = String(bonoSocialTipo || '')
-        .toLowerCase()
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-        .replace(/[^a-z0-9]+/g, '_')
-        .replace(/^_+|_+$/g, '');
-      const bonoSeveroElegible = Boolean(bonoSocialOn) && (
-        tipoBonoNorm === 'severo'
-        || tipoBonoNorm === 'vulnerable_severo'
-        || tipoBonoNorm === 'riesgo_exclusion'
-        || tipoBonoNorm === 'vulnerable_severo_riesgo_exclusion'
-      );
-
-      if (this.isRdl72026ElectricidadActiva(fechaYmd) && (potenciaElegible || bonoSeveroElegible)) {
-        return 'iva_reducido';
-      }
       return 'iva_general';
     },
 
@@ -389,15 +336,13 @@
           })
         : null;
       const usoFiscalResuelto = tipo === 'IVA'
-        ? ((usoFiscal === 'iva_reducido' || usoFiscal === 'iva_general') ? usoFiscal : (contexto?.usoFiscal || 'iva_general'))
+        ? (contexto?.usoFiscal || 'iva_general')
         : usoFiscal;
       const esVivienda = usoFiscalResuelto === 'vivienda';
 
       const energiaRateRaw = tipo === 'IGIC'
         ? (esVivienda ? impuestos.energiaVivienda : impuestos.energiaOtros)
-        : (tipo === 'IVA' && usoFiscalResuelto === 'iva_reducido')
-          ? this.medidasTemporales.rdl72026.ivaPeninsulaReducido
-          : impuestos.energia;
+        : impuestos.energia;
       const contadorRateRaw = tipo === 'IVA'
         ? energiaRateRaw
         : ((impuestos.contador != null) ? impuestos.contador : energiaRateRaw);
@@ -576,8 +521,6 @@
   Object.freeze(LF_CONFIG.alquilerContador);
   Object.freeze(LF_CONFIG.pvpc);
   Object.freeze(LF_CONFIG.peajesPotenciaPVPC);
-  Object.freeze(LF_CONFIG.medidasTemporales.rdl72026);
-  Object.freeze(LF_CONFIG.medidasTemporales);
   Object.keys(LF_CONFIG.territorios).forEach(k => {
     Object.freeze(LF_CONFIG.territorios[k].impuestos);
     Object.freeze(LF_CONFIG.territorios[k]);
