@@ -1536,8 +1536,8 @@
       "cPunta": 0.248,
       "cLlano": 0.248,
       "cValle": 0.104,
-      "p1": 0.104,
-      "p2": 0.024,
+      "p1": 0.11,
+      "p2": 0.05,
       "web": "https://octopusenergy.es/precios/tarifa-ev",
       "tipo": "3P",
       "fv": {
@@ -1608,5 +1608,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-02T09:12:46.823Z"
+  "updatedAt": "2026-06-02T09:23:36.791Z"
 }
