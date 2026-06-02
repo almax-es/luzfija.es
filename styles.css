@@ -4568,7 +4568,7 @@ html.light-mode .sun-club-breakdown-row span:last-child {
   flex-shrink: 0;
   width: 36px;
   height: 36px;
-  background: #1877f2;
+  background: #1461cc;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -4597,7 +4597,7 @@ html.light-mode .sun-club-breakdown-row span:last-child {
 .fb-banner__cta {
   display: inline-block;
   padding: 6px 12px;
-  background: #1877f2;
+  background: #1461cc;
   color: #fff;
   border-radius: 8px;
   font-size: 11px;
