@@ -684,6 +684,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Contigo Energía Fácil",
+      "cPunta": 0.1399,
+      "cLlano": 0.1399,
+      "cValle": 0.1399,
+      "p1": 0.063603,
+      "p2": 0.063603,
+      "web": "https://contigoenergia.com/tarifas/tarifa-de-luz-facil/",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Eres Solar 24",
       "cPunta": 0.1449,
       "cLlano": 0.1449,
@@ -1492,7 +1511,26 @@
         "precioBV": 0.0
       },
       "requiereFV": false
+    },
+    {
+      "nombre": "Contigo Energía Horas 3P",
+      "cPunta": 0.262571,
+      "cLlano": 0.16451,
+      "cValle": 0.13848,
+      "p1": 0.084122,
+      "p2": 0.010207,
+      "web": "https://contigoenergia.com/tarifas/tarifa-luz-horas/",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-02T07:43:11.764Z"
+  "updatedAt": "2026-06-02T07:55:47.578Z"
 }
