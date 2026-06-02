@@ -282,7 +282,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Lineas JS aproximadas: 20.052.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
-- `tarifas.json` (75 tarifas).
+- `tarifas.json` (77 tarifas).
 - `/data/pvpc/` (indicador 1001).
 - `/data/surplus/` (indicador 1739).
 - Fuente privada de tarifas: Excel local `Tarifas Luz.xlsx`. Su columna interna `Activa` controla publicacion; valores como `no`, `n`, `false`, `falso` o `0` excluyen la tarifa de `tarifas.json` y del post de Facebook, pero no del validador privado.

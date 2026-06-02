@@ -493,7 +493,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "Repsol",
+      "nombre": "Repsol Ahorro Plus",
       "cPunta": 0.1199,
       "cLlano": 0.1199,
       "cValle": 0.1199,
@@ -665,6 +665,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Repsol Tranquilísima",
+      "cPunta": 0.1399,
+      "cLlano": 0.1399,
+      "cValle": 0.1399,
+      "p1": 0.081918,
+      "p2": 0.081918,
+      "web": "https://www.repsol.es/particulares/hogar/luz-y-gas/tarifas/tarifa-tranquilisima/",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Eres Solar 24",
       "cPunta": 0.1449,
       "cLlano": 0.1449,
@@ -717,6 +736,25 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Repsol Ahorro Potencia",
+      "cPunta": 0.1699,
+      "cLlano": 0.1699,
+      "cValle": 0.1699,
+      "p1": 0.084431,
+      "p2": 0.001987,
+      "web": "https://www.repsol.es/particulares/hogar/luz-y-gas/tarifas/tarifa-ahorro-potencia/",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -1456,5 +1494,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-02T07:20:02.534Z"
+  "updatedAt": "2026-06-02T07:43:11.764Z"
 }
