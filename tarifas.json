@@ -742,9 +742,9 @@
     },
     {
       "nombre": "Bassols Hogar Solar",
-      "cPunta": 0.149,
-      "cLlano": 0.149,
-      "cValle": 0.149,
+      "cPunta": 0.152,
+      "cLlano": 0.152,
+      "cValle": 0.152,
       "p1": 0.077,
       "p2": 0.077,
       "web": "https://bassolsenergia.com/es/monedero-solar/",
@@ -1417,9 +1417,9 @@
     },
     {
       "nombre": "Bassols Hogar Solar 3P",
-      "cPunta": 0.221,
-      "cLlano": 0.15,
-      "cValle": 0.115,
+      "cPunta": 0.224,
+      "cLlano": 0.153,
+      "cValle": 0.118,
       "p1": 0.099,
       "p2": 0.025,
       "web": "https://bassolsenergia.com/es/monedero-solar/",
@@ -1537,7 +1537,7 @@
       "cLlano": 0.248,
       "cValle": 0.104,
       "p1": 0.11,
-      "p2": 0.05,
+      "p2": 0.024,
       "web": "https://octopusenergy.es/precios/tarifa-ev",
       "tipo": "3P",
       "fv": {
@@ -1608,5 +1608,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-02T10:08:25.304Z"
+  "updatedAt": "2026-06-02T11:45:36.437Z"
 }
