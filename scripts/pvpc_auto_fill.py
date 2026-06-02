@@ -360,8 +360,9 @@ def detect_missing_days(geo_dir: str, tz: ZoneInfo, current_month: str, previous
             year, month = map(int, yyyymm.split("-"))
             last_day = calendar.monthrange(year, month)[1]
             
-            # Limitar al mes completo o hasta hoy
-            today = dt.date.today()
+            # Limitar al mes completo o hasta hoy en la zona objetivo.
+            # GitHub Actions corre en UTC; cerca de medianoche puede ser ya
+            # otro día en Madrid/Canarias y la UI necesita esa fecha local.
             if year == today.year and month == today.month:
                 last_day = min(last_day, today.day)
             
