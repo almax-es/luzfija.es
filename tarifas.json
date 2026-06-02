@@ -589,6 +589,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "CHC Ilumina Promo",
+      "cPunta": 0.129,
+      "cLlano": 0.129,
+      "cValle": 0.129,
+      "p1": 0.083753,
+      "p2": 0.08318,
+      "web": "https://chcenergia.es/luz/plan-ilumina-promo",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Iner Tranquilidad",
       "cPunta": 0.1297,
       "cLlano": 0.1297,
@@ -741,6 +760,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "CHC Ahorro Solar",
+      "cPunta": 0.155223,
+      "cLlano": 0.155223,
+      "cValle": 0.155223,
+      "p1": 0.083754,
+      "p2": 0.08318,
+      "web": "https://chcenergia.es/solar/plan-ahorro-solar",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.155223,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Seneo Tarifa 1",
       "cPunta": 0.162,
       "cLlano": 0.162,
@@ -755,6 +793,44 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "CHC BV",
+      "cPunta": 0.162544,
+      "cLlano": 0.162544,
+      "cValle": 0.162544,
+      "p1": 0.088956,
+      "p2": 0.088382,
+      "web": "https://chcenergia.es/index.php/solar/bateria-virtual",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.1,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 2.99
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "CHC Ilumina Duo Promo",
+      "cPunta": 0.169,
+      "cLlano": 0.169,
+      "cValle": 0.169,
+      "p1": 0.077569,
+      "p2": 0.010403,
+      "web": "https://chcenergia.es/luz/plan-ilumina-duo-promo",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -1532,5 +1608,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-02T07:55:47.578Z"
+  "updatedAt": "2026-06-02T09:11:52.195Z"
 }
