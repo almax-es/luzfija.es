@@ -144,6 +144,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Bonpreu Hacemos Piña",
+      "cPunta": 0.0998,
+      "cLlano": 0.0998,
+      "cValle": 0.0998,
+      "p1": 0.072999,
+      "p2": 0.072999,
+      "web": "https://www.bonpreuesclat.cat/es/web/bonpreu/planes-energia-bonpreu",
+      "tipo": "1P",
+      "requisitos": "5.000 plazas disponibles.",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Plenitude",
       "cPunta": 0.099972,
       "cLlano": 0.099972,
@@ -700,6 +720,25 @@
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
         "precioBV": 1.99
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Bonpreu Hagámoslo Fácil",
+      "cPunta": 0.131737,
+      "cLlano": 0.131737,
+      "cValle": 0.131737,
+      "p1": 0.091013,
+      "p2": 0.032581,
+      "web": "https://www.bonpreuesclat.cat/es/web/bonpreu/planes-energia-bonpreu",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
       },
       "requiereFV": false
     },
@@ -1415,6 +1454,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Bonpreu Noche y Día",
+      "cPunta": 0.205003,
+      "cLlano": 0.128574,
+      "cValle": 0.098753,
+      "p1": 0.091013,
+      "p2": 0.032581,
+      "web": "https://www.bonpreuesclat.cat/es/web/bonpreu/planes-energia-bonpreu",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Visalia 3P",
       "cPunta": 0.207607,
       "cLlano": 0.124931,
@@ -1488,6 +1546,25 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Bonpreu Solar",
+      "cPunta": 0.220034,
+      "cLlano": 0.141385,
+      "cValle": 0.096693,
+      "p1": 0.091013,
+      "p2": 0.032581,
+      "web": "https://www.bonpreuesclat.cat/es/web/bonpreu/planes-energia-bonpreu",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.031,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -1705,5 +1782,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-03T13:07:32.034Z"
+  "updatedAt": "2026-06-03T16:37:28.644Z"
 }
