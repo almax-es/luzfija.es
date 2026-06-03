@@ -1683,8 +1683,8 @@ ${noCompensableParcial > 0 ? `⚠️ No aplicado por peajes/cargos: ${fEur(noCom
 💵 Bono: ${fEur(row.costeBonoSocial)}
 📊 IEE: ${fEur(row.impuestoElec)}
 🔢 Alq: ${fEur(row.alquilerContador)}
-💶 ${taxLabel}: ${fEur(row.ivaCuota)}
-${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}━━━━━━━━━━━━
+${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEur(row.ivaCuota)}
+━━━━━━━━━━━━
 💰 Subtotal: ${fEur(subtotal)}`;
 
         const tipHucha = hasBV
