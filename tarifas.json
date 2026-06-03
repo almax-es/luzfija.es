@@ -65,6 +65,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Clarity 0,09",
+      "cPunta": 0.09897,
+      "cLlano": 0.09897,
+      "cValle": 0.09897,
+      "p1": 0.128767,
+      "p2": 0.128767,
+      "web": "https://www.clarityenergy.es/tarifas-luz/",
+      "tipo": "1P",
+      "requisitos": "Revisión de precios semestral.",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "EnergyAsset",
       "cPunta": 0.099,
       "cLlano": 0.099,
@@ -972,6 +992,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Repsol 3P",
+      "cPunta": 0.1689,
+      "cLlano": 0.1189,
+      "cValle": 0.0999,
+      "p1": 0.090137,
+      "p2": 0.090137,
+      "web": "https://www.repsol.es/particulares/hogar/luz-y-gas/tarifas/tarifa-discriminacion-horaria/",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Nexus Eficiente 3P",
       "cPunta": 0.1689,
       "cLlano": 0.1306,
@@ -1625,7 +1664,27 @@
         "precioBV": 0.0
       },
       "requiereFV": false
+    },
+    {
+      "nombre": "Clarity 0,04 3P",
+      "cPunta": 0.27,
+      "cLlano": 0.17,
+      "cValle": 0.049,
+      "p1": 0.0989,
+      "p2": 0.0989,
+      "web": "https://www.clarityenergy.es/tarifas-luz/",
+      "tipo": "3P",
+      "requisitos": "Revisión de precios semestral.",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-03T08:37:05.894Z"
+  "updatedAt": "2026-06-03T09:39:42.126Z"
 }
