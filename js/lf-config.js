@@ -318,26 +318,26 @@
      * Obtiene la info fiscal visible del impuesto indirecto aplicable
      * para una zona y uso fiscal concretos.
      * @param {string} zona - Zona fiscal
-     * @param {string} usoFiscal - 'vivienda', 'otros' o 'ipsi'
+     * @param {string} usoFiscal - Opcional. 'vivienda', 'otros' o 'ipsi'. Si se omite, se deriva del contexto fiscal.
      * @returns {Object} Tipo, etiquetas y tipos aplicables
      */
-    getImpuestoInfo: function(zona, usoFiscal = 'otros', extra = {}) {
+    getImpuestoInfo: function(zona, usoFiscal, extra = {}) {
       const territorio = this.getTerritorio(zona);
       const impuestos = territorio.impuestos || {};
       const tipo = String(impuestos.tipo || 'IVA').toUpperCase();
-      const contexto = tipo === 'IVA'
-        ? this.getFiscalContext({
-            zona,
-            potenciaContratada: extra.potenciaContratada,
-            viviendaCanarias: extra.viviendaCanarias,
-            bonoSocialOn: extra.bonoSocialOn,
-            bonoSocialTipo: extra.bonoSocialTipo,
-            fechaYmd: extra.fechaYmd
-          })
-        : null;
+      const contexto = this.getFiscalContext({
+        zona,
+        potenciaContratada: extra.potenciaContratada,
+        viviendaCanarias: extra.viviendaCanarias,
+        bonoSocialOn: extra.bonoSocialOn,
+        bonoSocialTipo: extra.bonoSocialTipo,
+        fechaYmd: extra.fechaYmd
+      });
+      const usoFiscalInformado = usoFiscal !== undefined && usoFiscal !== null && String(usoFiscal).trim() !== '';
+      const fallbackPorTipo = tipo === 'IVA' ? 'iva_general' : (tipo === 'IPSI' ? 'ipsi' : 'otros');
       const usoFiscalResuelto = tipo === 'IVA'
-        ? (contexto?.usoFiscal || 'iva_general')
-        : usoFiscal;
+        ? (contexto?.usoFiscal || fallbackPorTipo)
+        : (usoFiscalInformado ? usoFiscal : (contexto?.usoFiscal || fallbackPorTipo));
       const esVivienda = usoFiscalResuelto === 'vivienda';
 
       const energiaRateRaw = tipo === 'IGIC'
@@ -371,20 +371,20 @@
      * @param {Object} params - Bases de cálculo
      * @returns {Object} Detalle fiscal reutilizable por todos los módulos
      */
-    calcularImpuestoIndirecto: function({
-      zona,
-      usoFiscal = 'otros',
-      baseEnergia = 0,
-      impuestoElectrico = 0,
-      baseContador = 0,
-      baseServicios = 0,
-      potenciaContratada = 0,
-      viviendaCanarias = false,
-      bonoSocialOn = false,
-      bonoSocialTipo = '',
-      fechaYmd
-    } = {}) {
-      const info = this.getImpuestoInfo(zona, usoFiscal, {
+    calcularImpuestoIndirecto: function(params = {}) {
+      const {
+        zona,
+        baseEnergia = 0,
+        impuestoElectrico = 0,
+        baseContador = 0,
+        baseServicios = 0,
+        potenciaContratada = 0,
+        viviendaCanarias = false,
+        bonoSocialOn = false,
+        bonoSocialTipo = '',
+        fechaYmd
+      } = params;
+      const info = this.getImpuestoInfo(zona, params.usoFiscal, {
         potenciaContratada,
         viviendaCanarias,
         bonoSocialOn,

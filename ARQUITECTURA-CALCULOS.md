@@ -89,8 +89,9 @@ const sumaBase = potencia + energia + financiacion - descuentoBS;
 
 // PASO 6: ⭐ CALCULAR IEE (PUNTO CRÍTICO)
 // El IEE se calcula sobre la base YA CON EL DESCUENTO RESTADO
-// Tasa dinámica centralizada: 5,11269632% desde 01/06/2026
-// La función C.calcularIEE() aplica la tasa correcta según la fecha
+// Tasa centralizada vigente configurada: 5,11269632% desde 01/06/2026
+// C.calcularIEE(fechaYmd) conserva la fecha por compatibilidad/trazabilidad,
+// pero no reconstruye tipos históricos de IEE/IVA por fecha de factura.
 // Ref: Ley 38/1992 + RDL 7/2026
 const iee = C.calcularIEE(sumaBase, consumoTotal, fechaFactura);
 // Implementación interna: Math.max(sumaBase × (tasa/100), consumoTotal × 0,001 €/kWh)
@@ -350,7 +351,7 @@ credit2 = min(bvPrev, totalBaseConCosteBV)
 totalPagar = totalBaseConCosteBV - credit2
 ```
 
-Tarifas con cuota no nula (2026): Bualá `0,04 €/mes`, Repsol Solar BV `1,99 €/mes`, Endesa Solar Plus `2,00 €/mes`.
+Las tarifas con cuota BV no nula se consultan directamente en `tarifas.json`, que es la fuente viva del dataset. Esta documentación define la semántica de `fv.precioBV`, no el inventario actualizado de tarifas.
 
 ### ☀️ Compensación parcial y BV
 

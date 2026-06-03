@@ -104,6 +104,92 @@ describe('LF_CONFIG - Lógica Fiscal', () => {
     expect(tax.impuestoTotal).toBe(0.21);
   });
 
+  it('Canarias: calcularImpuestoIndirecto resuelve vivienda 0% aunque no se pase usoFiscal', () => {
+    const tax = window.LF_CONFIG.calcularImpuestoIndirecto({
+      zona: 'Canarias',
+      baseEnergia: 100,
+      impuestoElectrico: 5,
+      baseContador: 1,
+      baseServicios: 2,
+      potenciaContratada: 4,
+      viviendaCanarias: true
+    });
+
+    expect(tax.usoFiscal).toBe('vivienda');
+    expect(tax.impuestoEnergia).toBe(0);
+    expect(tax.impuestoContador).toBe(0.07);
+    expect(tax.impuestoServicios).toBe(0.14);
+    expect(tax.impuestoTotal).toBe(0.21);
+  });
+
+  it('Canarias: respeta usoFiscal otros si se pasa explícitamente', () => {
+    const tax = window.LF_CONFIG.calcularImpuestoIndirecto({
+      zona: 'Canarias',
+      usoFiscal: 'otros',
+      baseEnergia: 100,
+      impuestoElectrico: 5,
+      baseContador: 1,
+      baseServicios: 2,
+      potenciaContratada: 4,
+      viviendaCanarias: true
+    });
+
+    expect(tax.usoFiscal).toBe('otros');
+    expect(tax.impuestoEnergia).toBe(3.15);
+    expect(tax.impuestoContador).toBe(0.07);
+    expect(tax.impuestoServicios).toBe(0.14);
+    expect(tax.impuestoTotal).toBe(3.36);
+  });
+
+  it('Canarias: si viviendaCanarias=false, aunque potencia <=10kW, aplica otros', () => {
+    const tax = window.LF_CONFIG.calcularImpuestoIndirecto({
+      zona: 'Canarias',
+      baseEnergia: 100,
+      impuestoElectrico: 5,
+      baseContador: 1,
+      baseServicios: 2,
+      potenciaContratada: 4,
+      viviendaCanarias: false
+    });
+
+    expect(tax.usoFiscal).toBe('otros');
+    expect(tax.impuestoEnergia).toBe(3.15);
+    expect(tax.impuestoTotal).toBe(3.36);
+  });
+
+  it('Canarias: vivienda con potencia >10kW no aplica energía 0%', () => {
+    const tax = window.LF_CONFIG.calcularImpuestoIndirecto({
+      zona: 'Canarias',
+      baseEnergia: 100,
+      impuestoElectrico: 5,
+      baseContador: 1,
+      baseServicios: 2,
+      potenciaContratada: 10.1,
+      viviendaCanarias: true
+    });
+
+    expect(tax.usoFiscal).toBe('otros');
+    expect(tax.impuestoEnergia).toBe(3.15);
+    expect(tax.impuestoTotal).toBe(3.36);
+  });
+
+  it('Ceuta/Melilla: calcularImpuestoIndirecto resuelve usoFiscal ipsi aunque no se pase', () => {
+    const tax = window.LF_CONFIG.calcularImpuestoIndirecto({
+      zona: 'CeutaMelilla',
+      baseEnergia: 100,
+      impuestoElectrico: 5,
+      baseContador: 1,
+      baseServicios: 2,
+      potenciaContratada: 4
+    });
+
+    expect(tax.usoFiscal).toBe('ipsi');
+    expect(tax.impuestoEnergia).toBe(1.05);
+    expect(tax.impuestoContador).toBe(0.04);
+    expect(tax.impuestoServicios).toBe(0.08);
+    expect(tax.impuestoTotal).toBe(1.17);
+  });
+
   it('Península: incluye las cuotas de servicios en la base de IVA', () => {
     const tax = window.LF_CONFIG.calcularImpuestoIndirecto({
       zona: 'Península',
