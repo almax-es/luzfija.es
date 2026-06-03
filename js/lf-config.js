@@ -377,6 +377,7 @@
       baseEnergia = 0,
       impuestoElectrico = 0,
       baseContador = 0,
+      baseServicios = 0,
       potenciaContratada = 0,
       viviendaCanarias = false,
       bonoSocialOn = false,
@@ -393,11 +394,13 @@
       const baseEnergiaNum = Number.isFinite(Number(baseEnergia)) ? Number(baseEnergia) : 0;
       const impuestoElectricoNum = Number.isFinite(Number(impuestoElectrico)) ? Number(impuestoElectrico) : 0;
       const baseContadorNum = Number.isFinite(Number(baseContador)) ? Number(baseContador) : 0;
+      const baseServiciosNum = Number.isFinite(Number(baseServicios)) ? Number(baseServicios) : 0;
 
       let ivaBase = 0;
       let baseIPSI = 0;
       let impuestoEnergia = 0;
       let impuestoContador = 0;
+      let impuestoServicios = 0;
       let iva = 0;
 
       if (info.tipo === 'IGIC') {
@@ -405,12 +408,14 @@
           ? 0
           : round2((baseEnergiaNum + impuestoElectricoNum) * info.energiaRate);
         impuestoContador = round2(baseContadorNum * info.contadorRate);
+        impuestoServicios = round2(baseServiciosNum * info.contadorRate);
       } else if (info.tipo === 'IPSI') {
         baseIPSI = round2(baseEnergiaNum + impuestoElectricoNum);
         impuestoEnergia = round2(baseIPSI * info.energiaRate);
         impuestoContador = round2(baseContadorNum * info.contadorRate);
+        impuestoServicios = round2(baseServiciosNum * info.contadorRate);
       } else {
-        ivaBase = round2(baseEnergiaNum + impuestoElectricoNum + baseContadorNum);
+        ivaBase = round2(baseEnergiaNum + impuestoElectricoNum + baseContadorNum + baseServiciosNum);
         iva = round2(ivaBase * info.energiaRate);
         impuestoEnergia = iva;
       }
@@ -419,13 +424,15 @@
         ...info,
         baseEnergia: round2(baseEnergiaNum),
         baseContador: round2(baseContadorNum),
+        baseServicios: round2(baseServiciosNum),
         baseEnergiaMasIEE: round2(baseEnergiaNum + impuestoElectricoNum),
         ivaBase: round2(ivaBase),
         baseIPSI: round2(baseIPSI),
         impuestoEnergia: round2(impuestoEnergia),
         impuestoContador: round2(impuestoContador),
+        impuestoServicios: round2(impuestoServicios),
         iva: round2(iva),
-        impuestoTotal: round2(impuestoEnergia + impuestoContador)
+        impuestoTotal: round2(impuestoEnergia + impuestoContador + impuestoServicios)
       };
     },
 

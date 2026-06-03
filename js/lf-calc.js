@@ -45,6 +45,7 @@
       baseEnergia: params.sumaBase,
       impuestoElectrico: impuestoElec,
       baseContador: alquilerContador,
+      baseServicios: params.baseServicios || 0,
       potenciaContratada: fiscal.potenciaContratada,
       viviendaCanarias: params.viviendaCanarias,
       bonoSocialOn: params.bonoSocialOn,
@@ -301,6 +302,7 @@
           sumaBase,
           consumoTotalKwh,
           dias,
+          baseServicios: fvCosteBV,
           zona: zonaFiscal,
           zonaFiscal,
           viviendaCanarias,
@@ -320,11 +322,11 @@
           const baseEnergiaCan = sumaBase;
           const igicEnergia = round2(taxCalc.impuestoEnergia);
           const igicContador = round2(taxCalc.impuestoContador);
+          const impuestoServicios = round2(taxCalc.impuestoServicios || 0);
           // Blindaje de redondeos: en la tabla (potencia + consumo + impuestos) debe cuadrar con TOTAL.
           // Ajustamos SOLO si la diferencia es un efecto de redondeo (±0,05€) y nunca permitimos negativos.
-          const impuestosSum = round2(tarifaAdj + impuestoElec + igicEnergia + igicContador + alquilerContador + fvCosteBV);
-          const totalBase = round2(baseEnergiaCan + impuestoElec + igicEnergia + alquilerContador + igicContador);
-          const totalBaseConCosteBV = round2(totalBase + fvCosteBV);
+          const impuestosSum = round2(tarifaAdj + impuestoElec + igicEnergia + igicContador + impuestoServicios + alquilerContador + fvCosteBV);
+          const totalBaseConCosteBV = round2(baseEnergiaCan + impuestoElec + igicEnergia + alquilerContador + igicContador + fvCosteBV + impuestoServicios);
 
           let totalFinal = totalBaseConCosteBV;
           if (tieneBVSimple) {
@@ -387,10 +389,10 @@
           const baseIPSI = round2(taxCalc.baseIPSI);
           const ipsiEnergia = round2(taxCalc.impuestoEnergia);
           const ipsiContador = round2(taxCalc.impuestoContador);
+          const impuestoServicios = round2(taxCalc.impuestoServicios || 0);
           // Blindaje de redondeos (tabla): pot + consumo + impuestos = total (si el ajuste es solo por redondeo)
-          const impuestosSum = round2(tarifaAdj + impuestoElec + ipsiEnergia + ipsiContador + alquilerContador + fvCosteBV);
-          const totalBase = round2(sumaBase + impuestoElec + ipsiEnergia + alquilerContador + ipsiContador);
-          const totalBaseConCosteBV = round2(totalBase + fvCosteBV);
+          const impuestosSum = round2(tarifaAdj + impuestoElec + ipsiEnergia + ipsiContador + impuestoServicios + alquilerContador + fvCosteBV);
+          const totalBaseConCosteBV = round2(sumaBase + impuestoElec + ipsiEnergia + alquilerContador + ipsiContador + fvCosteBV + impuestoServicios);
 
           let totalFinal = totalBaseConCosteBV;
           if (tieneBVSimple) {
@@ -454,7 +456,7 @@
           // Blindaje de redondeos (tabla): pot + consumo + impuestos = total (si el ajuste es solo por redondeo)
           const impuestosSum = round2(tarifaAdj + impuestoElec + alquilerContador + ivaCuota + fvCosteBV);
           const totalBase = round2(ivaBase + ivaCuota);
-          const totalBaseConCosteBV = round2(totalBase + fvCosteBV);
+          const totalBaseConCosteBV = totalBase;
 
           let totalFinal = totalBaseConCosteBV;
           if (tieneBVSimple) {

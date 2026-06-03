@@ -273,6 +273,7 @@
         baseEnergia: sumaBase,
         impuestoElectrico: impuestoElec,
         baseContador: alquilerContador,
+        baseServicios: costeBV,
         potenciaContratada,
         viviendaCanarias: esViviendaCanarias,
         fechaYmd: fiscal?.fechaYmd || datos.fechaYmd || datos.fechaFin || datos.fechaInicio
@@ -288,8 +289,9 @@
         const usoFiscal = fiscal?.usoFiscal || (esViviendaCanarias && potenciaContratada > 0 && potenciaContratada <= 10 ? 'vivienda' : 'otros');
         const igicBase = round2(taxCalc.impuestoEnergia);
         const igicContador = round2(taxCalc.impuestoContador);
-        const impuestosNum = round2(impuestoElec + igicBase + igicContador + costeBV);
-        let totalBase = round2(baseEnergia + impuestoElec + igicBase + alquilerContador + igicContador + costeBV);
+        const impuestoServicios = round2(taxCalc.impuestoServicios || 0);
+        const impuestosNum = round2(impuestoElec + igicBase + igicContador + impuestoServicios + costeBV);
+        let totalBase = round2(baseEnergia + impuestoElec + igicBase + alquilerContador + igicContador + costeBV + impuestoServicios);
 
         let credit2 = 0, bvSaldoFin = null, totalFinal = totalBase;
 
@@ -304,7 +306,7 @@
 
         resultado = { pot, cons, consAdj, tarifaAcceso, tarifaAdj, credit1, excedenteSobranteEur, excedenteNoCompensableEur,
           sumaBase, impuestoElec, baseEnergia, alquilerContador, igicBase, igicContador,
-          impuestosNum, totalBase, credit2, bvSaldoFin, totalFinal, totalRanking,
+          impuestoServicios, impuestosNum, totalBase, credit2, bvSaldoFin, totalFinal, totalRanking,
           isCanarias: true, isCeutaMelilla: false, usoFiscal,
           precioBVMensual, costeBV, baseCompensable, peajesTotal };
 
@@ -317,8 +319,9 @@
         const baseIPSI = round2(taxCalc.baseIPSI);
         const ipsiEnergia = round2(taxCalc.impuestoEnergia);
         const ipsiContador = round2(taxCalc.impuestoContador);
-        const impuestosNum = round2(impuestoElec + ipsiEnergia + ipsiContador + costeBV);
-        let totalBase = round2(sumaBase + impuestoElec + ipsiEnergia + alquilerContador + ipsiContador + costeBV);
+        const impuestoServicios = round2(taxCalc.impuestoServicios || 0);
+        const impuestosNum = round2(impuestoElec + ipsiEnergia + ipsiContador + impuestoServicios + costeBV);
+        let totalBase = round2(sumaBase + impuestoElec + ipsiEnergia + alquilerContador + ipsiContador + costeBV + impuestoServicios);
 
         let credit2 = 0, bvSaldoFin = null, totalFinal = totalBase;
 
@@ -333,7 +336,7 @@
 
         resultado = { pot, cons, consAdj, tarifaAcceso, tarifaAdj, credit1, excedenteSobranteEur, excedenteNoCompensableEur,
           sumaBase, impuestoElec, baseEnergia, alquilerContador, baseIPSI, ipsiEnergia, ipsiContador,
-          impuestosNum, totalBase, credit2, bvSaldoFin, totalFinal, totalRanking,
+          impuestoServicios, impuestosNum, totalBase, credit2, bvSaldoFin, totalFinal, totalRanking,
           isCanarias: false, isCeutaMelilla: true,
           precioBVMensual, costeBV, baseCompensable, peajesTotal };
 
@@ -344,7 +347,7 @@
         const baseEnergia = sumaBase + impuestoElec + alquilerContador;
         const ivaBase = round2(taxCalc.ivaBase);
         const iva = round2(taxCalc.iva);
-        let totalBase = round2(ivaBase + iva + costeBV);
+        let totalBase = round2(ivaBase + iva);
 
         let credit2 = 0, bvSaldoFin = null, totalFinal = totalBase;
 
@@ -731,8 +734,9 @@
         // CANARIAS: IGIC
         // ═══════════════════════════════════════════════════════════════
         const igicEnergiaBase = (d.usoFiscal === 'vivienda') ? 0 : d.igicBase;
-        const igicTarget = round2(igicEnergiaBase + d.alquilerContador + d.igicContador);
-        const [igicEnergiaDisp, igicAlqDisp, igicContDisp] = reconcileToTarget(igicTarget, [igicEnergiaBase, d.alquilerContador, d.igicContador]);
+        const igicServicios = round2(d.impuestoServicios || 0);
+        const igicTarget = round2(igicEnergiaBase + d.alquilerContador + d.igicContador + igicServicios);
+        const [igicEnergiaDisp, igicAlqDisp, igicContDisp, igicServDisp] = reconcileToTarget(igicTarget, [igicEnergiaBase, d.alquilerContador, d.igicContador, igicServicios]);
         const igicEnergiaLabel = impuestoInfo?.energiaLabel || 'IGIC energía';
         const igicEnergiaPct = impuestoInfo?.energiaPctText || '3%';
         const igicContadorLabel = impuestoInfo?.contadorLabel || 'IGIC contador';
@@ -758,13 +762,19 @@
             <span class="desglose-detalle">${igicContadorPct} de ${this.fmt(d.alquilerContador)}</span>
             <span class="desglose-importe">${this.fmt(igicContDisp)}</span>
           </div>
+          ${d.costeBV > 0 ? `<div class="desglose-linea">
+            <span class="desglose-concepto">IGIC servicios (${igicContadorPct})</span>
+            <span class="desglose-detalle">${igicContadorPct} de ${this.fmt(d.costeBV)}</span>
+            <span class="desglose-importe">${this.fmt(igicServDisp)}</span>
+          </div>` : ''}
         </div>`;
       } else if (d.isCeutaMelilla) {
         // ═══════════════════════════════════════════════════════════════
         // CEUTA Y MELILLA: IPSI (Ley 8/1991)
         // ═══════════════════════════════════════════════════════════════
-        const ipsiTarget = round2(d.ipsiEnergia + d.alquilerContador + d.ipsiContador);
-        const [ipsiEnergiaDisp, ipsiAlqDisp, ipsiContDisp] = reconcileToTarget(ipsiTarget, [d.ipsiEnergia, d.alquilerContador, d.ipsiContador]);
+        const ipsiServicios = round2(d.impuestoServicios || 0);
+        const ipsiTarget = round2(d.ipsiEnergia + d.alquilerContador + d.ipsiContador + ipsiServicios);
+        const [ipsiEnergiaDisp, ipsiAlqDisp, ipsiContDisp, ipsiServDisp] = reconcileToTarget(ipsiTarget, [d.ipsiEnergia, d.alquilerContador, d.ipsiContador, ipsiServicios]);
         const ipsiEnergiaLabel = impuestoInfo?.energiaLabel || 'IPSI energía';
         const ipsiEnergiaPct = impuestoInfo?.energiaPctText || '1%';
         const ipsiContadorLabel = impuestoInfo?.contadorLabel || 'IPSI contador';
@@ -786,6 +796,11 @@
             <span class="desglose-detalle">${ipsiContadorPct} de ${this.fmt(d.alquilerContador)}</span>
             <span class="desglose-importe">${this.fmt(ipsiContDisp)}</span>
           </div>
+          ${d.costeBV > 0 ? `<div class="desglose-linea">
+            <span class="desglose-concepto">IPSI servicios (${ipsiContadorPct})</span>
+            <span class="desglose-detalle">${ipsiContadorPct} de ${this.fmt(d.costeBV)}</span>
+            <span class="desglose-importe">${this.fmt(ipsiServDisp)}</span>
+          </div>` : ''}
         </div>`;
       } else {
         // ═══════════════════════════════════════════════════════════════

@@ -354,30 +354,33 @@ window.BVSim.calcMonthForTarifa = function ({
       baseEnergia: sumaBase,
       impuestoElectrico: impuestoElec,
       baseContador: alquilerContador,
+      baseServicios: costeBV,
       potenciaContratada,
       viviendaCanarias: esVivienda,
       fechaYmd: fiscalDateYmd
     });
 
     ivaCuota = round2(taxCalc.tipo === 'IVA' ? taxCalc.iva : taxCalc.impuestoTotal);
-    totalBase = round2(sumaBase + impuestoElec + alquilerContador + taxCalc.impuestoEnergia + taxCalc.impuestoContador);
+    totalBase = round2(sumaBase + impuestoElec + alquilerContador + costeBV + taxCalc.impuestoEnergia + taxCalc.impuestoContador + (taxCalc.impuestoServicios || 0));
   } else if (tipoImpuesto === 'IGIC') {
     const igicEnergia = esViviendaTipoCero
       ? 0
       : round2((sumaBase + impuestoElec) * (Number(terr?.impuestos?.energiaOtros) || 0));
     const igicContador = round2(alquilerContador * (Number(terr?.impuestos?.contador) || 0));
+    const igicServicios = round2(costeBV * (Number(terr?.impuestos?.contador) || 0));
 
-    ivaCuota = round2(igicEnergia + igicContador);
-    totalBase = round2(sumaBase + impuestoElec + igicEnergia + alquilerContador + igicContador);
+    ivaCuota = round2(igicEnergia + igicContador + igicServicios);
+    totalBase = round2(sumaBase + impuestoElec + igicEnergia + alquilerContador + igicContador + costeBV + igicServicios);
   } else if (tipoImpuesto === 'IPSI') {
     const ipsiEnergia = round2((sumaBase + impuestoElec) * (Number(terr?.impuestos?.energia) || 0));
     const ipsiContador = round2(alquilerContador * (Number(terr?.impuestos?.contador) || 0));
+    const ipsiServicios = round2(costeBV * (Number(terr?.impuestos?.contador) || 0));
 
-    ivaCuota = round2(ipsiEnergia + ipsiContador);
-    totalBase = round2(sumaBase + impuestoElec + ipsiEnergia + alquilerContador + ipsiContador);
+    ivaCuota = round2(ipsiEnergia + ipsiContador + ipsiServicios);
+    totalBase = round2(sumaBase + impuestoElec + ipsiEnergia + alquilerContador + ipsiContador + costeBV + ipsiServicios);
   } else {
     const ivaRate = Number(terr?.impuestos?.energia) || 0;
-    const ivaBase = round2(sumaBase + impuestoElec + alquilerContador);
+    const ivaBase = round2(sumaBase + impuestoElec + alquilerContador + costeBV);
 
     ivaCuota = round2(ivaBase * ivaRate);
     totalBase = round2(ivaBase + ivaCuota);
@@ -391,7 +394,7 @@ window.BVSim.calcMonthForTarifa = function ({
   // - totalReal descuenta el excedente nuevo acumulable, pero no el saldo heredado.
   // - Sin BV: no se usa saldo previo, no se acumula sobrante y totalReal=totalPagar.
 
-  const totalBaseConCosteBV = round2(totalBase + costeBV);
+  const totalBaseConCosteBV = totalBase;
   const bvPrev = hasBV ? Math.max(0, Number(bvSaldoPrev) || 0) : 0;
   const credit2 = hasBV ? round2(Math.min(bvPrev, totalBaseConCosteBV)) : 0;
   const bvSaldoFin = hasBV
