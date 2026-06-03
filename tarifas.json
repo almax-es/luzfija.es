@@ -356,6 +356,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Nordy 24H V",
+      "cPunta": 0.119,
+      "cLlano": 0.119,
+      "cValle": 0.119,
+      "p1": 0.079,
+      "p2": 0.079,
+      "web": "https://nordy.es/tarifas",
+      "tipo": "1P",
+      "fv": {
+        "exc": -1.0,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 2.99
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Imagina Energía Solar",
       "cPunta": 0.119,
       "cLlano": 0.119,
@@ -1608,5 +1627,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-02T16:42:20.367Z"
+  "updatedAt": "2026-06-03T08:37:05.894Z"
 }
