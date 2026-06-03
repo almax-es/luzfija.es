@@ -203,6 +203,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Chippio Constante",
+      "cPunta": 0.109,
+      "cLlano": 0.109,
+      "cValle": 0.109,
+      "p1": 0.079,
+      "p2": 0.079,
+      "web": "https://chippio.es/tarifa-constante",
+      "tipo": "1P",
+      "fv": {
+        "exc": -1.0,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Bualá",
       "cPunta": 0.1098,
       "cLlano": 0.1098,
@@ -1686,5 +1705,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-03T09:39:42.126Z"
+  "updatedAt": "2026-06-03T13:07:32.034Z"
 }
