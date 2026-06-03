@@ -152,7 +152,7 @@
       "p2": 0.072999,
       "web": "https://www.bonpreuesclat.cat/es/web/bonpreu/planes-energia-bonpreu",
       "tipo": "1P",
-      "requisitos": "5.000 plazas disponibles.",
+      "requisitos": "Revisión de precios trimestral. 5.000 plazas disponibles.",
       "fv": {
         "exc": 0.0,
         "tipo": "NO COMPENSA",
@@ -732,6 +732,7 @@
       "p2": 0.032581,
       "web": "https://www.bonpreuesclat.cat/es/web/bonpreu/planes-energia-bonpreu",
       "tipo": "1P",
+      "requisitos": "Revisión de precios trimestral.",
       "fv": {
         "exc": 0.0,
         "tipo": "NO COMPENSA",
@@ -1462,6 +1463,7 @@
       "p2": 0.032581,
       "web": "https://www.bonpreuesclat.cat/es/web/bonpreu/planes-energia-bonpreu",
       "tipo": "3P",
+      "requisitos": "Revisión de precios trimestral.",
       "fv": {
         "exc": 0.0,
         "tipo": "NO COMPENSA",
@@ -1559,6 +1561,7 @@
       "p2": 0.032581,
       "web": "https://www.bonpreuesclat.cat/es/web/bonpreu/planes-energia-bonpreu",
       "tipo": "3P",
+      "requisitos": "Revisión de precios trimestral.",
       "fv": {
         "exc": 0.031,
         "tipo": "SIMPLE + BV",
@@ -1782,5 +1785,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-03T16:37:28.644Z"
+  "updatedAt": "2026-06-03T16:49:39.734Z"
 }
