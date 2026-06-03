@@ -221,7 +221,7 @@ Con la rebaja temporal del RDL 7/2026 activa (22/03/2026-31/05/2026): IEE caso 0
 const hasBV = Boolean(tarifa?.fv?.bv);
 
 // Si NO tiene BV: los excedentes se pierden
-const totalBaseConCosteBV = round2(totalBase + costeBV);
+const totalBaseConCosteBV = totalBase; // totalBase ya incluye costeBV y su IVA/IGIC/IPSI si aplica
 const totalReal = round2(Math.max(0, totalBaseConCosteBV - (hasBV ? excedenteSobranteEur : 0)));
 //                                                                  ↑
 //                                                  Si hasBV=false → resta 0 (correcto)
@@ -332,7 +332,7 @@ totalReal = totalBaseConCosteBV - excedenteSobranteEur // Coste real (sin saldo 
 
 ### 💳 Cuota fija mensual de BV (`precioBV`)
 
-Algunas tarifas con BV cobran una cuota mensual por el servicio. Se define en `tarifas.json` como `fv.precioBV` (€/mes). Solo aplica cuando `fv.bv = true` y `fv.tipo = "SIMPLE + BV"`.
+Algunas tarifas con BV cobran una cuota mensual por el servicio. Se define en `tarifas.json` como `fv.precioBV` (€/mes netos, antes de IVA/IGIC/IPSI). Solo aplica cuando `fv.bv = true` y `fv.tipo = "SIMPLE + BV"`.
 
 ```javascript
 // lf-calc.js (home, período arbitrario en días)
@@ -342,10 +342,10 @@ fvCosteBV = precioBV * dias * 12 / 365
 costeBV = precioBV * min(dias, daysInMonth) / daysInMonth
 ```
 
-La cuota se suma a `totalBase` antes de aplicar el saldo BV anterior, por lo que el saldo puede cubrir también la cuota:
+La cuota se suma como servicio antes de calcular el impuesto indirecto de la zona. No forma parte de la base del IEE, pero sí de IVA/IGIC/IPSI. El saldo BV anterior se aplica después sobre la factura bruta, por lo que puede cubrir también la cuota y su impuesto:
 
 ```javascript
-totalBaseConCosteBV = totalBase + costeBV
+totalBaseConCosteBV = totalBase // potencia + energía neta + IEE + alquiler + costeBV + IVA/IGIC/IPSI
 credit2 = min(bvPrev, totalBaseConCosteBV)
 totalPagar = totalBaseConCosteBV - credit2
 ```
@@ -382,7 +382,7 @@ Ejemplo: energía bruta `33,09€`, peajes/cargos `7,23€`, base compensable `2
 En `bv-sim-monthly.js:313`:
 ```javascript
 // Si NO tiene BV: excedentes se pierden
-const totalBaseConCosteBV = round2(totalBase + costeBV);
+const totalBaseConCosteBV = totalBase; // totalBase ya incluye costeBV y su IVA/IGIC/IPSI si aplica
 const totalReal = round2(Math.max(0, totalBaseConCosteBV - (hasBV ? excedenteSobranteEur : 0)));
 //                                                                ↑
 //                                                false → resta 0
@@ -476,7 +476,7 @@ const impuestoElectrico = C.calcularIEE(baseEnergia, consumoKwh);
 **La realidad**:
 ```javascript
 // ✅ CORRECTO: Solo descuenta si hasBV es true
-const totalBaseConCosteBV = round2(totalBase + costeBV); // costeBV=0 si tarifa sin cuota BV
+const totalBaseConCosteBV = totalBase; // totalBase ya incluye costeBV y su IVA/IGIC/IPSI si aplica
 const totalReal = totalBaseConCosteBV - (hasBV ? excedenteSobranteEur : 0);
 //                                              ↑
 //                               false → resta 0 (no descuenta)

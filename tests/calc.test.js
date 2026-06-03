@@ -484,9 +484,12 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
 
       const res = window.LF.state.rows[0];
       const cuotaProrrateada = 2 * 30 * 12 / 365;
+      const ivaCuotaBV = window.LF.round2(cuotaProrrateada * 0.21);
 
       expect(res.fvPrecioBV).toBe(2);
       expect(res.fvCosteBV).toBeCloseTo(cuotaProrrateada, 2);
+      expect(res.totalNum).toBeGreaterThan(res.fvTotalFinal);
+      expect(res.totalNum).toBeGreaterThanOrEqual(window.LF.round2(res.fvCosteBV + ivaCuotaBV));
       expect(res.fvCredit2).toBeGreaterThan(res.fvCosteBV);
       expect(res.fvTotalFinal).toBe(0);
       expect(res.fvBvSaldoFin).toBeLessThan(100);

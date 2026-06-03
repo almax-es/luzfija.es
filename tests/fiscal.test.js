@@ -86,6 +86,38 @@ describe('LF_CONFIG - Lógica Fiscal', () => {
     expect(canarias.impuestos.tipo).toBe('IGIC');
   });
 
+  it('Canarias: aplica IGIC de servicios a cuotas no energéticas como la batería virtual', () => {
+    const tax = window.LF_CONFIG.calcularImpuestoIndirecto({
+      zona: 'Canarias',
+      usoFiscal: 'vivienda',
+      baseEnergia: 100,
+      impuestoElectrico: 5,
+      baseContador: 1,
+      baseServicios: 2,
+      potenciaContratada: 4,
+      viviendaCanarias: true
+    });
+
+    expect(tax.impuestoEnergia).toBe(0);
+    expect(tax.impuestoContador).toBe(0.07);
+    expect(tax.impuestoServicios).toBe(0.14);
+    expect(tax.impuestoTotal).toBe(0.21);
+  });
+
+  it('Península: incluye las cuotas de servicios en la base de IVA', () => {
+    const tax = window.LF_CONFIG.calcularImpuestoIndirecto({
+      zona: 'Península',
+      baseEnergia: 100,
+      impuestoElectrico: 5,
+      baseContador: 1,
+      baseServicios: 2,
+      potenciaContratada: 4
+    });
+
+    expect(tax.ivaBase).toBe(108);
+    expect(tax.iva).toBe(22.68);
+  });
+
   it('Bono Social: Debe prorratear correctamente por días', () => {
     // 6.979247 anual
     const dias = 365;

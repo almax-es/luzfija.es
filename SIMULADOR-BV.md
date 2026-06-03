@@ -64,9 +64,9 @@ Para **cada mes** de **cada tarifa**, calcula:
 2. **Energía Bruta**: `kWh_P1 × precio_punta + kWh_P2 × precio_llano + kWh_P3 × precio_valle`
 3. **Compensación Excedentes**: `min(kWh_excedentes × precio_exc, base_compensable)`
 4. **Energía Neta**: `energía_bruta - compensación`
-5. **Impuestos**: IEE + IVA/IGIC/IPSI + bono social + alquiler contador
-6. **Cuota BV**: `fv.precioBV × días / días_del_mes` (solo si `fv.bv = true` y `fv.precioBV > 0`; prorrateado si el mes tiene datos parciales)
-7. **Subtotal**: `potencia + energía_neta + impuestos + cuota_BV`
+5. **Cuota BV neta**: `fv.precioBV × días / días_del_mes` (solo si `fv.bv = true` y `fv.precioBV > 0`; prorrateado si el mes tiene datos parciales)
+6. **Impuestos**: IEE + IVA/IGIC/IPSI + bono social + alquiler contador. La cuota BV no entra en IEE, pero sí en IVA/IGIC/IPSI como servicio.
+7. **Subtotal**: `potencia + energía_neta + cuota_BV + impuestos`
 8. **Excedente Sobrante**: `(kWh_excedentes × precio_exc) - compensación` → **Acumula en BV**
 9. **Uso Hucha**: `min(saldo_BV_mes_anterior, subtotal)` (solo si tarifa tiene BV; puede cubrir también la cuota BV)
 10. **A Pagar Este Mes**: `subtotal - uso_hucha`

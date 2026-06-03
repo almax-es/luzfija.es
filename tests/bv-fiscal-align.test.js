@@ -127,5 +127,53 @@ describe('BVSim - Fiscalidad alineada con comparador principal', () => {
     expect(res.impuestoIndirectoTipo).toBe('IPSI');
     expect(res.ivaCuota).toBeCloseTo(expectedIPSI, 2);
   });
+
+  it('Península: la cuota de batería virtual es base neta y soporta IVA', () => {
+    const dias = 30;
+    const month = {
+      key: '2025-01',
+      daysWithData: dias,
+      daysInMonth: 30,
+      importByPeriod: { P1: 0, P2: 0, P3: 0 },
+      importTotalKWh: 0,
+      exportTotalKWh: 0
+    };
+
+    const tarifaSinCuota = {
+      nombre: 'Sin cuota',
+      tipo: '1P',
+      p1: 0,
+      p2: 0,
+      cPunta: 0,
+      cLlano: 0,
+      cValle: 0,
+      fv: { exc: 0, bv: true, precioBV: 0 }
+    };
+    const tarifaConCuota = {
+      ...tarifaSinCuota,
+      nombre: 'Con cuota',
+      fv: { exc: 0, bv: true, precioBV: 2 }
+    };
+
+    const base = window.BVSim.calcMonthForTarifa({
+      month,
+      tarifa: tarifaSinCuota,
+      potenciaP1: 0,
+      potenciaP2: 0,
+      bvSaldoPrev: 0,
+      zonaFiscal: 'Península'
+    });
+    const conCuota = window.BVSim.calcMonthForTarifa({
+      month,
+      tarifa: tarifaConCuota,
+      potenciaP1: 0,
+      potenciaP2: 0,
+      bvSaldoPrev: 0,
+      zonaFiscal: 'Península'
+    });
+
+    expect(conCuota.costeBV).toBe(2);
+    expect(conCuota.totalBase).toBeCloseTo(r2(base.totalBase + 2 + 2 * 0.21), 2);
+  });
 });
 
