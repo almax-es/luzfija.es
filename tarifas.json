@@ -839,6 +839,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Holaluz Clásica",
+      "cPunta": 0.147,
+      "cLlano": 0.147,
+      "cValle": 0.147,
+      "p1": 0.082,
+      "p2": 0.082,
+      "web": "https://www.holaluz.com/luz/tarifas-luz/",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Bassols Hogar Solar",
       "cPunta": 0.152,
       "cLlano": 0.152,
@@ -1553,6 +1572,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Holaluz 3P",
+      "cPunta": 0.213,
+      "cLlano": 0.14,
+      "cValle": 0.113,
+      "p1": 0.082,
+      "p2": 0.082,
+      "web": "https://www.holaluz.com/luz/tarifas-luz/",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Bonpreu Solar",
       "cPunta": 0.220034,
       "cLlano": 0.141385,
@@ -1785,5 +1823,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-04T09:37:41.910Z"
+  "updatedAt": "2026-06-04T09:49:43.354Z"
 }
