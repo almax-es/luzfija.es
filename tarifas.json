@@ -896,6 +896,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Catgas 2.0 TDL",
+      "cPunta": 0.1599,
+      "cLlano": 0.1599,
+      "cValle": 0.1599,
+      "p1": 0.093726,
+      "p2": 0.028027,
+      "web": "https://catgas.cat/es/tarifes-catllum-llar",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Seneo Tarifa 1",
       "cPunta": 0.162,
       "cLlano": 0.162,
@@ -1861,5 +1880,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-04T16:44:33.393Z"
+  "updatedAt": "2026-06-04T16:53:47.886Z"
 }
