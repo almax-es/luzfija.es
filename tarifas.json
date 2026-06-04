@@ -1077,7 +1077,6 @@
       "p2": 0.038,
       "web": "https://energyasset.es/#tarifa",
       "tipo": "3P",
-      "requisitos": "15% descuento término energía durante 3 meses incluido en el precio.",
       "fv": {
         "exc": -1.0,
         "tipo": "SIMPLE",
@@ -1880,5 +1879,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-04T19:09:21.910Z"
+  "updatedAt": "2026-06-04T19:15:43.197Z"
 }
