@@ -972,6 +972,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Fortuluz Precio Único",
+      "cPunta": 0.177,
+      "cLlano": 0.177,
+      "cValle": 0.177,
+      "p1": 0.103,
+      "p2": 0.029,
+      "web": "https://fortuluz.es/ofertas/unico",
+      "tipo": "1P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Fenie Fijo Uniprecio",
       "cPunta": 0.188542,
       "cLlano": 0.188542,
@@ -1688,6 +1707,25 @@
       "requiereFV": false
     },
     {
+      "nombre": "Fortuluz A Contraluz",
+      "cPunta": 0.231,
+      "cLlano": 0.182,
+      "cValle": 0.138,
+      "p1": 0.103,
+      "p2": 0.029,
+      "web": "https://fortuluz.es/ofertas/a-contraluz",
+      "tipo": "3P",
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Neolux VE Smart 3P",
       "cPunta": 0.239,
       "cLlano": 0.229,
@@ -1823,5 +1861,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-04T16:33:58.530Z"
+  "updatedAt": "2026-06-04T16:44:33.393Z"
 }
