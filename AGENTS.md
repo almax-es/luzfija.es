@@ -56,6 +56,7 @@ Tambien es importante lo que no es: no monetiza el ranking, no vende leads y no 
 - Antes de reportar bugs de BV, lee `SIMULADOR-BV.md` y revisa `js/bv/bv-ui.js` y `js/bv/bv-sim-monthly.js`.
 - Antes de reportar bugs de importacion horaria, revisa `js/lf-csv-utils.js`, `js/lf-csv-import.js` y los tests de CSV.
 - Antes de reportar riesgos XSS/privacidad por CSV, ten en cuenta que `CUPS` puede reconocerse como nombre de columna para detectar cabecera/formato, pero sus valores no se guardan ni se renderizan. Los importadores solo muestran agregados numericos derivados (kWh, dias, porcentajes, importes).
+- Antes de reportar CSP laxa en guias o paginas editoriales, distingue superficie sensible de superficie editorial. El flujo sensible de datos personales es la extraccion de factura PDF en la home (`index.html` + `js/factura.js`), y ahi `script-src` esta reforzado con hashes. Las guias, paginas legales, 404 y `como-funciona-luzfija.html` no procesan datos sensibles del usuario; endurecer su CSP puede ser higiene tecnica, pero no debe elevarse como hallazgo de privacidad relevante por si solo.
 - Valida hallazgos contra tests, no solo contra intuicion.
 
 Tests especialmente utiles:
@@ -75,6 +76,7 @@ Falsos positivos ya conocidos y documentados:
 - "La BV se aplica a tarifas que no tienen BV." Falso: el simulador comprueba `tarifa.fv.bv`; sin BV, el sobrante no se acumula. Ver `SIMULADOR-BV.md`.
 - "Si el consumo es 0 kWh entonces el IEE deberia ser 0 en cualquier factura." Falso: si hay termino de potencia/base imponible, puede haber IEE aunque el consumo sea 0. Ver `CALC-FAQS.md`.
 - "Los CSV exponen CUPS o strings libres en la UI y por eso las paginas CSV necesitan CSP mas estricta." Falso: `CUPS` puede reconocerse como cabecera, pero sus valores no se guardan ni se renderizan; la UI muestra agregados numericos.
+- "Las guias o paginas editoriales con `unsafe-inline` son un riesgo de privacidad importante." Falso como hallazgo prioritario: esas paginas no procesan facturas, CSV ni datos sensibles. La pagina que procesa la factura PDF es la home y ya tiene CSP reforzada con hashes. En guias/editorial, CSP estricta es una mejora de hardening general, no un problema relevante de proteccion de datos.
 
 ## Flujo De Trabajo Recomendado
 

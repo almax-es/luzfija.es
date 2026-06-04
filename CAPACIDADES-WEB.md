@@ -1,6 +1,6 @@
 # Capacidad Completa De LuzFija.es
 
-Ultima actualizacion: 2026-06-03
+Ultima actualizacion: 2026-06-04
 
 Este documento es la fuente de verdad funcional para describir todo lo que hace la web, pagina por pagina, sin omitir flujos relevantes para asistentes IA o documentacion de producto.
 Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y luego este documento para el inventario funcional completo.
@@ -34,7 +34,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Modo hibrido CSV -> tabla manual editable.
 - Selector de mes de inicio del contrato para ordenar el ciclo BV desde la contratacion.
 - La simulacion de 12 meses usa los datos como patron anual: si se empieza en junio, recorre junio-diciembre y despues enero-mayo sin cambiar los kWh/excedentes de cada mes.
-- Ranking anual por coste pagado (con desempate por saldo BV final).
+- Ranking por coste pagado del periodo simulado; se presenta como anual cuando hay 12 meses razonablemente completos (con desempate por saldo BV final).
 
 ### 2.2 Paginas De Apoyo
 
@@ -240,8 +240,8 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Metricas:
 - `totalPagar`: coste facturado efectivo.
 - `totalReal`: coste neto auxiliar sin saldo BV previo.
-- Ranking anual:
-- Orden principal por total anual pagado.
+- Ranking del periodo simulado:
+- Orden principal por total pagado del periodo; anual solo cuando hay 12 meses razonablemente completos.
 - Desempate por mayor saldo BV final.
 - Resultado:
 - Tarifa ganadora.
@@ -309,6 +309,8 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Calculos, importaciones CSV y parseo PDF se ejecutan en local.
 - Datos sensibles de factura no se persisten como perfil remoto.
 - En importaciones CSV/XLSX, `CUPS` puede reconocerse como cabecera para detectar formato/separador, pero sus valores no se guardan ni se renderizan. La UI solo muestra agregados numericos derivados (kWh, dias, porcentajes e importes), no strings libres del fichero.
+- La superficie sensible de datos personales es el extractor de factura PDF de la home (`/`); esa pagina usa CSP con hashes en `script-src`, modo privacidad y bloqueo de tracking del modal de factura.
+- Guias, paginas legales, 404 y `como-funciona-luzfija.html` no procesan facturas/CSV ni datos sensibles del usuario; endurecer su CSP puede ser hardening general, pero no debe tratarse como hallazgo prioritario de privacidad por si solo.
 - CSP definida por pagina.
 - Escape/sanitizacion de contenido dinamico.
 - Dependencias autoalojadas en `vendor/`.

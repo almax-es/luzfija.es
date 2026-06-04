@@ -91,7 +91,7 @@ El usuario puede elegir el mes desde el que empieza la simulación de la tarifa.
 
 ### 📊 Ranking Inteligente
 
-**Criterio de ordenación**: Lo que **realmente pagas** (con BV aplicada)
+**Criterio de ordenación**: lo que **realmente pagas en el periodo simulado** (suma de `totalPagar`, con BV aplicada)
 
 ```javascript
 // Ordena por totalPagar (con BV), en empate por mayor saldo BV final
@@ -105,10 +105,10 @@ rankedResults.sort((a, b) => {
 ```
 
 **Diferencia clave**:
-- **`totalPagar`**: Lo que pagas este mes (con BV aplicada del mes anterior)
-- **`totalReal`**: Coste real del mes (sin contar BV anterior)
+- **`totalPagar`**: lo que pagas en esa fila mensual (con BV aplicada del mes anterior).
+- **`totalReal`**: coste neto auxiliar de esa fila mensual (sin contar BV anterior).
 
-El ranking usa `totalPagar` porque refleja lo que **realmente sale de tu bolsillo**.
+El ranking suma `totalPagar` en `totals.pagado` para el periodo simulado y desempata por `totals.bvFinal`. `totalReal` existe como métrica auxiliar, no como criterio principal de ordenación.
 
 ### 📉 Desglose Detallado
 
@@ -157,8 +157,8 @@ El comparador incluye una funcionalidad única de **"Edición sobre datos reales
 
 1. El usuario sube su CSV.
 2. El sistema calcula internamente los totales mensuales (P1, P2, P3 y Excedentes).
-3. **Automáticamente rellena la tabla de "Entrada Manual"** con estos datos.
-4. El usuario puede cambiar a la pestaña "Manual" y ajustar valores específicos (ej: "este mes estuve de vacaciones, pero el año que viene no").
+3. **Automáticamente rellena la tabla manual mensual** con estos datos.
+4. El usuario puede ajustar valores específicos en esa tabla visible (ej: "este mes estuve de vacaciones, pero el año que viene no").
 5. Permite realizar simulaciones "What-If" basadas en datos reales pero ajustados.
 
 ---
@@ -685,7 +685,7 @@ ES0000000000000000XX;01/01/2025;2;0,098;0,050;0,000;R
 ```
 
 **Columnas**:
-- `CUPS`: Código único del punto de suministro
+- `CUPS`: Código único del punto de suministro. Se reconoce para detectar formato/cabecera; sus valores no se guardan ni se renderizan.
 - `Fecha`: DD/MM/YYYY
 - `Hora`: 1-24 (hora final del periodo)
 - `AE_kWh`: Energía activa consumida (kWh)
@@ -705,7 +705,7 @@ ES0000000000000000XX;01/01/2025;1;0,123;0,045
 ```
 
 **Columnas principales**:
-- `CUPS`: Código único del punto de suministro
+- `CUPS`: Código único del punto de suministro. Se reconoce para detectar formato/cabecera; sus valores no se guardan ni se renderizan.
 - `Fecha`: DD/MM/YYYY
 - `Hora`: 1-24
 - `EHCR` / `consumo`: Energía horaria consumida (kWh)

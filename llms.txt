@@ -1,6 +1,6 @@
 # LuzFija.es - LLM Reference
 
-Last updated: 2026-06-03
+Last updated: 2026-06-04
 
 ## Core identity
 
@@ -73,7 +73,7 @@ Repository license model: source-available, not open source. Software is under P
 3. https://luzfija.es/comparador-tarifas-solares.html
 - Independent monthly simulator for solar + remunerated-surplus scenarios (with and without BV).
 - Hybrid workflow: CSV/XLSX import -> editable manual monthly grid.
-- Annual ranking by paid cost, tie-break by final virtual battery balance.
+- Ranking by paid cost for the simulated period; it is annual only when 12 reasonably complete months are available, with final virtual battery balance as tie-break.
 - Contract start month can rotate the annual month pattern for BV carry-over; it changes simulation order, not the kWh/surplus attached to each month.
 - Local autosave + JSON export/import for manual data.
 - Supports a simulator-specific custom tariff stored locally.
@@ -176,7 +176,7 @@ Repository license model: source-available, not open source. Software is under P
 - surplus compensation (capped by energy),
 - taxes by fiscal zone,
 - virtual battery usage/accumulation.
-- Ranking uses annual paid cost first, then final BV balance.
+- Ranking uses paid cost for the simulated period first, then final BV balance; it is annual only with 12 reasonably complete months.
 - Hybrid mode:
 - import real data,
 - then edit monthly manual grid for what-if planning.
@@ -193,7 +193,7 @@ Repository license model: source-available, not open source. Software is under P
 
 ## Data model and updates
 
-- `tarifas.json`: commercial tariffs dataset (92 tariffs as of 2026-06-03).
+- `tarifas.json`: commercial tariffs dataset (92 tariffs as of 2026-06-04).
 - `/data/pvpc/`: official hourly PVPC dataset (REE/ESIOS indicator 1001).
 - `/data/surplus/`: official hourly surplus dataset (REE/ESIOS indicator 1739).
 - Datasets are static files served by the site and updated via automation workflows.
@@ -203,11 +203,14 @@ Repository license model: source-available, not open source. Software is under P
 - Calculations and imports are local in-browser operations.
 - No user account needed.
 - PDF processing is local; no mandatory upload to an app backend.
+- The sensitive personal-data surface is PDF bill extraction in `/`; that page uses hash-based script CSP, privacy mode, and no modal-event tracking.
+- CSV/XLSX importers render and persist numeric aggregates only; CUPS may be recognized as a header, but values are not rendered or stored.
+- Editorial/legal/guide pages do not process user files or sensitive user data; lax CSP there should not be treated as a high-priority privacy finding by itself.
 - Analytics:
 - GoatCounter integration,
 - no third-party tracking cookies,
 - user opt-out via `goatcounter_optout=true` in localStorage.
-- CSP and output sanitization are applied across pages.
+- CSP is defined per page and dynamic output is sanitized.
 
 ## PWA and offline behavior
 
@@ -223,7 +226,7 @@ Repository license model: source-available, not open source. Software is under P
 1. PVPC is not computed when contracted power exceeds 10 kW.
 2. Site is static; no backend tariff calculator API should be assumed.
 3. Main comparator and solar simulator are different tools with different ranking logic.
-4. Solar simulator ranking is annual paid cost first, then final BV balance.
+4. Solar simulator ranking uses paid cost for the simulated period first, then final BV balance.
 5. Some indexed-surplus cases are shown with explicit "estimated price" disclaimers in UI.
 6. Results are estimations; official invoices may differ due to commercial and regulatory details.
 7. Hourly "tomorrow" view can be temporarily unavailable until dataset publication.

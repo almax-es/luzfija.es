@@ -27,7 +27,7 @@ LuzFija.es es un proyecto `source-available`: el código está publicado para tr
 
 Las versiones anteriores del repositorio pudieron publicarse bajo otros términos. Esta licencia aplica desde la versión que introduce este cambio en adelante, sin revocar permisos concedidos válidamente para versiones previas.
 
-## Estado Actual (2026-06-03)
+## Estado Actual (2026-06-04)
 
 - 34 paginas HTML publicas:
   - 9 en raiz.
@@ -87,8 +87,9 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - importas CSV/XLSX,
 - se auto-rellena tabla manual mensual,
 - puedes editar y simular escenarios.
-- Ranking anual:
-- orden por coste anual pagado,
+- Ranking del periodo simulado:
+- anual cuando hay 12 meses razonablemente completos,
+- orden por coste pagado,
 - desempate por mayor saldo BV final.
 - Selector de mes de inicio del contrato para simular la hucha desde la contratacion.
 - Simulacion por patron anual: si el ciclo empieza en junio, los meses enero-mayo del final representan la continuacion del ciclo con los mismos datos historicos.
@@ -193,6 +194,9 @@ Notas de tarifas:
 - Politica de minimizacion:
 - no hay registro obligatorio,
 - no se envian facturas a backend propio.
+- Superficie sensible principal: extractor de factura PDF en `/`, con CSP reforzada por hashes, modo privacidad y sin tracking de eventos del modal.
+- CSV/XLSX se procesa en local y solo se muestran/persisten agregados numericos; no se renderizan strings libres ni valores CUPS.
+- Guias, paginas legales, 404 y contenido editorial no procesan facturas/CSV ni datos sensibles del usuario; su CSP es hardening general, no proteccion directa de datos personales.
 - Analitica con GoatCounter (sin cookies de terceros), con opt-out de usuario.
 - CSP por pagina + sanitizacion en renderizado dinamico + validacion de URL segura.
 

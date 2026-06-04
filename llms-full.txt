@@ -1,6 +1,6 @@
 # LuzFija.es - Extended LLM Reference
 
-Last updated: 2026-06-03
+Last updated: 2026-06-04
 
 ## Purpose of this file
 
@@ -132,7 +132,7 @@ Correct framing:
 Commercial tariffs:
 - source file: `/tarifas.json`
 - contains market-offer data used by the comparator
-- current documented size: 92 tariffs as of 2026-06-03
+- current documented size: 92 tariffs as of 2026-06-04
 
 PVPC:
 - local datasets under `/data/pvpc/`
@@ -162,6 +162,9 @@ More precisely:
 - OCR is local when used
 - no registration is required
 - there is no proprietary backend required for the calculation flows
+- The sensitive personal-data surface is PDF bill extraction in `/`; that page uses hash-based script CSP, privacy mode, and no modal-event tracking.
+- CSV/XLSX importers render and persist numeric aggregates only; CUPS may be recognized as a header, but values are not rendered or stored.
+- Editorial/legal/guide pages do not process user files or sensitive user data; lax CSP there should not be treated as a high-priority privacy finding by itself.
 
 Analytics:
 - GoatCounter
@@ -172,7 +175,7 @@ Analytics:
 
 1. PVPC is not computed in the main comparator when contracted power exceeds 10 kW.
 2. Main comparator and solar simulator are different tools and should not be merged conceptually.
-3. Solar simulator ranking uses annual paid cost first and final virtual-battery balance as tie-break.
+3. Solar simulator ranking uses paid cost for the simulated period first and final virtual-battery balance as tie-break; it is annual only when 12 reasonably complete months are available.
 4. Some indexed-surplus cases are shown as estimated prices, not hard fixed final prices.
 5. Results are estimates and may differ from final invoices because of commercial details, rounding, or regulatory changes.
 6. Hourly tomorrow data can be temporarily unavailable until the corresponding dataset exists.
