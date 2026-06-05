@@ -1436,7 +1436,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "Eres Estable 3P",
+      "nombre": "Eres 3 3P",
       "cPunta": 0.1995,
       "cLlano": 0.1379,
       "cValle": 0.0986,
@@ -1880,5 +1880,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-05T12:15:48.572Z"
+  "updatedAt": "2026-06-05T12:21:47.829Z"
 }
