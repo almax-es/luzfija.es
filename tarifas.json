@@ -232,6 +232,7 @@
       "p2": 0.079,
       "web": "https://chippio.es/tarifa-constante",
       "tipo": "1P",
+      "requisitos": "No incluye Servicios de Ajuste.",
       "fv": {
         "exc": -1.0,
         "tipo": "SIMPLE",
@@ -1881,5 +1882,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-06T16:22:30.974Z"
+  "updatedAt": "2026-06-06T16:35:13.044Z"
 }
