@@ -34,9 +34,9 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
   - 1 en `estadisticas/`.
   - 24 en `guias/` (indice + 23 guias).
 - 31 modulos JavaScript en `js/` (incluye `js/bv/`).
-- 20.079 lineas JS aproximadas.
+- 20.080 lineas JS aproximadas.
 - 97 tarifas en `tarifas.json`.
-- Suite de tests Vitest con 52 archivos y 378 casos.
+- Suite de tests Vitest con 53 archivos y 379 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 
@@ -166,11 +166,13 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - `tarifas.json` (ofertas comerciales).
 - `/data/pvpc/` (REE/ESIOS indicador 1001).
 - `/data/surplus/` (REE/ESIOS indicador 1739).
+- `/data/ssaa/` (REE/ESIOS indicador 10328, servicios de ajuste medios mensuales).
 
 Notas de tarifas:
 
 - `fv.exc` es el precio de excedentes en €/kWh; `-1` significa precio indexado. Sin curva horaria se usa 0,030 €/kWh solo como referencia orientativa; con CSV horario trazable el simulador puede valorar el periodo importado contra `data/surplus/`.
 - La columna privada `Activa` de la Excel no se publica en JSON: `no` excluye una tarifa de `tarifas.json` y del post de Facebook, pero el validador privado la sigue revisando.
+- La columna privada recomendada `incluyeServiciosAjuste` debe ser booleana (`SI`/`NO`); cuando se publique en JSON, el calculo podra aplicar `/data/ssaa/` solo a las tarifas que no incluyan SSAA en su precio.
 
 ## PWA, Cache Y Offline
 
@@ -181,7 +183,7 @@ Notas de tarifas:
 - Estrategias de cache:
 - HTML: network-first.
 - `tarifas.json`: network-only (sin cache para evitar datos obsoletos).
-- datasets PVPC/surplus: network-first.
+- datasets PVPC/surplus/SSAA: network-first.
 - resto de recursos: stale-while-revalidate.
 - Cliente con actualizacion agresiva de SW para aplicar nuevas versiones rapidamente.
 
@@ -230,7 +232,7 @@ El hook (`scripts/pre-commit-sync.mjs`) regenera y re-stagea automáticamente el
 
 ## Mantenimiento De Datos
 
-- Actualizaciones de datasets PVPC/surplus via GitHub Actions.
+- Actualizaciones de datasets PVPC/surplus/SSAA via GitHub Actions.
 - Checklist completo de normativa, fuentes y cadencias en `MANTENIMIENTO-NORMATIVO.md`.
 - Recomendacion operativa:
 - mantener `tarifas.json` actualizado con fecha `updatedAt`,

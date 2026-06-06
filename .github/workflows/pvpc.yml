@@ -46,6 +46,11 @@ jobs:
             --indicator 1739 \
             --geos 8741 8742 8743 8744 8745
 
+          # 3. Servicios de Ajuste del Sistema (10328)
+          python scripts/ssaa_auto_fill.py \
+            --out-file data/ssaa/index.json \
+            --indicator 10328
+
       - name: Check if there are changes
         id: check_changes
         run: |
@@ -64,9 +69,9 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add data/pvpc/ data/surplus/
+          git add data/pvpc/ data/surplus/ data/ssaa/
           HORA=$(TZ=Europe/Madrid date +%H:%M)
-          git commit -m "chore: actualizar precios PVPC y Excedentes - $HORA"
+          git commit -m "chore: actualizar precios PVPC, Excedentes y SSAA - $HORA"
           git pull --rebase
           git push
 

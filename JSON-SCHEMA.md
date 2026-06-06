@@ -8,9 +8,9 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 ## 1. `tarifas.json` — Base de Datos de Tarifas Eléctricas
 
 **Ubicación**: `/tarifas.json`
-**Tamaño**: ~46 KB
+**Tamaño**: ~50 KB
 **Estructura**: Objeto raíz con aviso `_meta`, array de tarifas en `tarifas` y sello `updatedAt`
-**Última actualización**: 2026-06-06 (`updatedAt`: `2026-06-06T16:35:13.044Z`)
+**Última actualización**: 2026-06-06 (`updatedAt`: `2026-06-06T17:19:04.637Z`)
 **Total tarifas documentadas**: 97
 
 ### Esquema de Estructura
@@ -33,6 +33,7 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
       "web": "string (URL de contratación)",
       "tipo": "string ('1P' para uniforme, '3P' para discriminación horaria)",
       "requisitos": "string (optional, condiciones especiales si aplican)",
+      "incluyeServiciosAjuste": "boolean (optional, false si el precio publicado no incluye SSAA)",
       "fv": {
         "exc": "number (€/kWh compensación excedentes solares; -1 = indexado)",
         "tipo": "string (tipo de compensación: 'NO COMPENSA', 'SIMPLE', 'SIMPLE + BV', etc.)",
@@ -69,6 +70,7 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 | `web` | string | ✅ | URL válida | https://endesa.com/... | Enlace a la tarifa (se abre en nueva pestaña) |
 | `tipo` | string | ✅ | "1P" \| "3P" | "1P" | 1P = precio uniforme, 3P = discriminación horaria |
 | `requisitos` | string | ❌ | — | "Consumo ≤8.000 kWh" | Solo si hay condiciones especiales |
+| `incluyeServiciosAjuste` | boolean | ❌ | true \| false | false | Campo recomendado para la Excel/generador: `false` si el precio publicado no incluye SSAA y debe aplicarse el dataset `/data/ssaa/`. Si falta, se debe tratar como desconocido/compatible legacy, no inferir desde texto libre. |
 | `fv.exc` | number | ✅ | -1 o 0.00–0.30 | 0.03 | €/kWh por excedentes volcados a la red. `-1` marca precio indexado: sin curva horaria se usa 0,030 €/kWh como referencia orientativa; con CSV horario el simulador puede usar el indice horario disponible. |
 | `fv.tipo` | string | ✅ | Ver notas | "SIMPLE + BV" | Tipo de compensación: cómo se retribuyen excedentes |
 | `fv.tope` | string | ✅ | "ENERGIA" \| "ENERGIA_PARCIAL" \| "POTENCIA" \| "—" | "ENERGIA" | Límite de compensación (si aplica) |
@@ -143,6 +145,48 @@ Véase `PVPC-SCHEMA.md` para documentación completa de la estructura PVPC.
 
 ---
 
+## 3. `data/ssaa/index.json` — Servicios De Ajuste Mensuales
+
+**Ubicación**: `/data/ssaa/index.json`
+**Fuente**: REE/ESIOS, indicador 10328
+**Unidad normalizada**: `EUR/kWh`
+**Uso previsto**: sumar una referencia mensual a tarifas cuyo precio publicado no incluye servicios de ajuste.
+
+```json
+{
+  "schema_version": 1,
+  "generated_at_utc": "string (ISO 8601 UTC)",
+  "source": "ESIOS",
+  "source_url": "https://api.esios.ree.es/indicators/10328",
+  "indicator": 10328,
+  "name": "Precio medio mensual componente servicios ajuste del sistema",
+  "timezone": "Europe/Madrid",
+  "unit": "EUR/kWh",
+  "from": "YYYY-MM",
+  "to": "YYYY-MM",
+  "latest_complete_month": "YYYY-MM",
+  "latest_value": "number (EUR/kWh)",
+  "values": {
+    "YYYY-MM": "number (EUR/kWh)"
+  },
+  "meta": {
+    "source_unit": "string or object from ESIOS",
+    "unit_suggests_mwh": "boolean",
+    "heuristic_applied": "boolean",
+    "raw_value_count": "number",
+    "parse_error_count": "number"
+  }
+}
+```
+
+Notas:
+
+- ESIOS publica el indicador en `EUR/MWh`; el script `scripts/ssaa_auto_fill.py` lo divide entre 1000.
+- `latest_complete_month` excluye el mes en curso y usa el último mes disponible en el dataset.
+- No debe aplicarse a PVPC, porque PVPC ya se calcula desde su propio indicador oficial.
+
+---
+
 ## Validación y Testing
 
 ### Cómo validar `tarifas.json`
@@ -173,6 +217,7 @@ La hoja privada `Tarifas Luz.xlsx` puede incluir una columna `Activa`. Esta colu
 
 ## Historial de Cambios
 
+- **2026-06-06**: Añadido dataset `/data/ssaa/index.json` para servicios de ajuste mensuales (ESIOS 10328) y documentado el futuro campo opcional `incluyeServiciosAjuste`.
 - **2026-05-30**: Añadido campo `fv.precioBV` (€/mes cuota fija neta de batería virtual, antes de IVA/IGIC/IPSI). Implementado en `lf-calc.js`, `bv-sim-monthly.js`, `desglose-factura.js` y `bv-ui.js`. Las tarifas con cuota no nula se consultan en `tarifas.json`, fuente viva del dataset.
 - **2026-05-05**: Documentado `fv.exc = -1` para excedentes indexados y el campo interno `Activa` de la Excel, que filtra publicación sin excluir validación.
 - **2026-04-29**: `tarifas.json` añade `_meta` con aviso de derechos y restricciones de reutilización.

@@ -172,5 +172,6 @@ if (window.__LF_LEGACY_CURRENTYEAR_FILTER_CONFIG !== true) {
 
 // Configuración PVPC - Dataset estático
 // PVPC se calcula 100% en local a partir del dataset en /data/pvpc.
-// Dataset actualizado diariamente por GitHub Actions desde ESIOS API.
+// Datasets actualizados diariamente por GitHub Actions desde ESIOS API.
 window.PVPC_DATASET_BASE = "/data/pvpc";
+window.SSAA_DATASET_URL = "/data/ssaa/index.json";
