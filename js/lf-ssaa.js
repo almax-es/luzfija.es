@@ -48,13 +48,27 @@
     return datasetPromise;
   }
 
-  function getRateForMonth(dataset, monthKey) {
+  function isUsableMonth(ds, monthKey) {
+    if (!monthKey || !ds?.values || ds.values[monthKey] === undefined) return false;
+    return !ds.latest_complete_month || monthKey <= ds.latest_complete_month;
+  }
+
+  function resolveRate(dataset, monthKey) {
     const ds = normalizeDataset(dataset);
-    if (!ds) return 0;
-    const direct = monthKey && ds.values ? Number(ds.values[monthKey]) : NaN;
-    if (Number.isFinite(direct) && direct > 0) return direct;
+    if (!ds) return { rate: 0, month: null };
+    if (isUsableMonth(ds, monthKey)) {
+      const direct = Number(ds.values[monthKey]);
+      if (Number.isFinite(direct) && direct > 0) return { rate: direct, month: monthKey };
+    }
     const latest = Number(ds.latest_value);
-    return Number.isFinite(latest) && latest > 0 ? latest : 0;
+    return {
+      rate: Number.isFinite(latest) && latest > 0 ? latest : 0,
+      month: ds.latest_complete_month || null
+    };
+  }
+
+  function getRateForMonth(dataset, monthKey) {
+    return resolveRate(dataset, monthKey).rate;
   }
 
   function mustApply(tarifa) {
@@ -66,15 +80,16 @@
       return { aplica: false, rate: 0, eur: 0, month: null };
     }
     const kwh = Number(consumoKwh);
-    const rate = getRateForMonth(dataset, monthKey);
+    const resolved = resolveRate(dataset, monthKey);
+    const rate = resolved.rate;
     if (!Number.isFinite(kwh) || kwh <= 0 || rate <= 0) {
-      return { aplica: true, rate, eur: 0, month: monthKey || dataset?.latest_complete_month || null };
+      return { aplica: true, rate, eur: 0, month: resolved.month || null };
     }
     return {
       aplica: true,
       rate,
       eur: round2(kwh * rate),
-      month: (monthKey && dataset?.values?.[monthKey] !== undefined) ? monthKey : (dataset?.latest_complete_month || monthKey || null)
+      month: resolved.month || null
     };
   }
 

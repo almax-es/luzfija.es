@@ -40,4 +40,15 @@ describe('Service Worker query fallback', () => {
 
     expect(missingIgnoreSearch, JSON.stringify(missingIgnoreSearch, null, 2)).toEqual([]);
   });
+
+  it('precaches the SSAA helper loaded by the main calculators', () => {
+    const root = path.resolve(__dirname, '..');
+    const indexHtml = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+    const solarHtml = fs.readFileSync(path.join(root, 'comparador-tarifas-solares.html'), 'utf8');
+    const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
+
+    expect(indexHtml).toContain('js/lf-ssaa.js');
+    expect(solarHtml).toContain('js/lf-ssaa.js');
+    expect(sw).toContain('"js/lf-ssaa.js"');
+  });
 });
