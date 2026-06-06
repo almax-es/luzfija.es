@@ -1544,6 +1544,9 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       const hasIndexedTariffs = tarifasResult.tarifasBV.some((tarifa) => tarifa?.fv?.exc === -1);
+      const ssaaDataset = (window.LF?.ssaa && typeof window.LF.ssaa.loadDataset === 'function')
+        ? await window.LF.ssaa.loadDataset()
+        : null;
       let indexedTraceMode = 'reference';
       if (hasIndexedTariffs && canUseHourlyTrace(zonaFiscalVal) && window.LF?.surplusPrices?.computeHourlyCompensation) {
         if (statusEl) statusEl.innerHTML = '<span class="spinner"></span> Calculando excedentes indexados con tu curva horaria...';
@@ -1570,7 +1573,8 @@ document.addEventListener('DOMContentLoaded', () => {
         tarifasBV: tarifasResult.tarifasBV,
         potenciaP1: p1Val, potenciaP2: p2Val, bvSaldoInicial: saldoVal,
         zonaFiscal: zonaFiscalVal,
-        esVivienda: esViviendaCanarias
+        esVivienda: esViviendaCanarias,
+        ssaaDataset
       });
 
       if (!allResults || !allResults.ok || !Array.isArray(allResults.results) || allResults.results.length === 0) {
@@ -1618,6 +1622,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const m = monthMap.get(row.key) || {};
 
         const imp = r2((row.impuestoElec || 0) + (row.ivaCuota || 0) + (row.costeBonoSocial || 0) + (row.alquilerContador || 0));
+        const ssaaEur = r2(row.ssaaEur || 0);
         const eBruta = r2(row.consEur || 0);
         const excMes = r2(row.credit1 || 0);
         const eNeta = r2(eBruta - excMes);
@@ -1642,9 +1647,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const eP1 = r2(kwhP1 * t.cPunta);
         const eP2 = r2(kwhP2 * t.cLlano);
         const eP3 = r2(kwhP3 * t.cValle);
+        const ssaaLine = ssaaEur > 0
+          ? `\n⚙️ SSAA: ${fKwh(row.importTotalKWh || (kwhP1 + kwhP2 + kwhP3))} × ${fPrice(row.ssaaRate)} = ${fEur(ssaaEur)}${row.ssaaMonth ? ` (${row.ssaaMonth})` : ''}`
+          : '';
         const tipEneBruta = `🔴 Punta: ${fKwh(kwhP1)} × ${priceFmt.format(t.cPunta)} = ${fEur(eP1)}
 🟡 Llano: ${fKwh(kwhP2)} × ${priceFmt.format(t.cLlano)} = ${fEur(eP2)}
 🟢 Valle: ${fKwh(kwhP3)} × ${priceFmt.format(t.cValle)} = ${fEur(eP3)}
+${ssaaLine}
 💰 Total: ${fEur(eBruta)}`;
 
         // Cálculos Excedentes

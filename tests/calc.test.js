@@ -26,6 +26,7 @@ window.LF_CONFIG = window.LF_CONFIG || {};
 
 // Cargar scripts en orden (simulando index.html)
 import '../js/lf-utils.js'; // Necesario para parseNum, round2
+import '../js/lf-ssaa.js';
 import '../js/lf-state.js'; // Estado global
 import '../js/lf-config.js'; // Config fiscal
 import '../js/lf-inputs.js'; // Lectura de inputs
@@ -54,6 +55,7 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
   beforeEach(() => {
     // Resetear estado
     window.LF.cachedTarifas = [];
+    window.LF.ssaa._setDatasetForTests({ latest_value: 0, values: {} });
     document.getElementById('solarOn').checked = false;
     document.getElementById('exTotal').value = "0";
   });
@@ -119,6 +121,62 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     const totalEsperado = window.LF.round2(sumaBase + iee + alquiler + taxCalc.impuestoEnergia + taxCalc.impuestoContador);
 
     expect(Math.abs(resultado.totalNum - totalEsperado)).toBeLessThanOrEqual(0.02);
+  });
+
+  it('Suma SSAA antes de IEE e IVA cuando la tarifa no los incluye', async () => {
+    window.LF.ssaa._setDatasetForTests({
+      latest_complete_month: '2026-04',
+      latest_value: 0.02,
+      values: { '2026-04': 0.02 }
+    });
+
+    window.LF.cachedTarifas = [{
+      nombre: 'Sin SSAA',
+      p1: 0.10, p2: 0.10,
+      cPunta: 0.10, cLlano: 0.10, cValle: 0.10,
+      tipo: '1P',
+      incluyeServiciosAjuste: false,
+      esPVPC: false
+    }];
+
+    await window.LF.calculateLocal({
+      p1: 4,
+      p2: 4,
+      dias: 30,
+      cPunta: 100,
+      cLlano: 0,
+      cValle: 0,
+      zonaFiscal: 'Península',
+      viviendaCanarias: false,
+      solarOn: false,
+      exTotal: 0,
+      bvSaldo: 0,
+      bonoSocialOn: false,
+      bonoSocialTipo: 'vulnerable',
+      bonoSocialLimite: 1587,
+      fechaYmd: '2026-03-20'
+    });
+
+    const resultado = window.LF.state.rows[0];
+    const tarifaAcceso = window.LF_CONFIG.calcularBonoSocial(30);
+    const energiaConSsaa = 10 + 2;
+    const sumaBase = 24 + energiaConSsaa + tarifaAcceso;
+    const iee = window.LF_CONFIG.calcularIEE(sumaBase, 100, '2026-03-20');
+    const alquiler = window.LF_CONFIG.calcularAlquilerContador(30);
+    const taxCalc = window.LF_CONFIG.calcularImpuestoIndirecto({
+      zona: 'Península',
+      usoFiscal: 'otros',
+      baseEnergia: sumaBase,
+      impuestoElectrico: iee,
+      baseContador: alquiler,
+      potenciaContratada: 4,
+      fechaYmd: '2026-03-20'
+    });
+
+    expect(resultado.consumoBaseNum).toBeCloseTo(10, 2);
+    expect(resultado.ssaaNum).toBeCloseTo(2, 2);
+    expect(resultado.consumoNum).toBeCloseTo(12, 2);
+    expect(resultado.totalNum).toBeCloseTo(window.LF.round2(sumaBase + iee + alquiler + taxCalc.impuestoEnergia + taxCalc.impuestoContador), 2);
   });
 
   it('Mantiene el régimen general actual aunque cambie la fecha del periodo en Península <10kW', async () => {

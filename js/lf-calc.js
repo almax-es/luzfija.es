@@ -78,6 +78,9 @@
     
     const cachedTarifas = window.LF.cachedTarifas;
     if (!cachedTarifas.length) return;
+    const ssaaDataset = (window.LF.ssaa && typeof window.LF.ssaa.loadDataset === 'function')
+      ? await window.LF.ssaa.loadDataset()
+      : null;
 
     // Valores de configuración
     const bonoSocialAnual = CFG.bonoSocial.eurosAnuales;
@@ -231,7 +234,12 @@
         }
 
         const pot = round2((p1 * dias * t.p1) + (p2 * dias * t.p2));
-        const cons = round2((cPunta * t.cPunta) + (cLlano * t.cLlano) + (cValle * t.cValle));
+        const consBase = round2((cPunta * t.cPunta) + (cLlano * t.cLlano) + (cValle * t.cValle));
+        const consumoTotalKwh = cPunta + cLlano + cValle;
+        const ssaa = (window.LF.ssaa && typeof window.LF.ssaa.calcCharge === 'function')
+          ? window.LF.ssaa.calcCharge(t, consumoTotalKwh, ssaaDataset)
+          : { aplica: false, rate: 0, eur: 0, month: null };
+        const cons = round2(consBase + (ssaa.eur || 0));
         const tarifaAcceso = round2(bonoSocialAnual / 365 * dias);
 
         // Bono Social: Aplicar descuento en consumo para PVPC
@@ -293,7 +301,6 @@
         }
 
         const sumaBase = pot + consAdj + tarifaAdj;
-        const consumoTotalKwh = cPunta + cLlano + cValle;
         const tieneBVSimple = Boolean(solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV');
         fvPrecioBV = tieneBVSimple ? getPrecioBVMensual(fv) : 0;
         fvCosteBV = fvPrecioBV > 0 ? round2(fvPrecioBV * dias * 12 / 365) : 0;
@@ -352,6 +359,11 @@
             potencia: formatMoney(pot),
             consumoNum: consAdj,
             consumo: formatMoney(consAdj),
+            consumoBaseNum: consBase,
+            ssaaNum: round2(ssaa.eur || 0),
+            ssaaRate: ssaa.rate || 0,
+            ssaaMonth: ssaa.month || null,
+            ssaaApplied: Boolean(ssaa.aplica && ssaa.eur > 0),
             impuestosNum: impuestosNum,
             impuestos: formatMoney(impuestosNum),
             totalNum,
@@ -418,6 +430,11 @@
             potencia: formatMoney(pot),
             consumoNum: consAdj,
             consumo: formatMoney(consAdj),
+            consumoBaseNum: consBase,
+            ssaaNum: round2(ssaa.eur || 0),
+            ssaaRate: ssaa.rate || 0,
+            ssaaMonth: ssaa.month || null,
+            ssaaApplied: Boolean(ssaa.aplica && ssaa.eur > 0),
             impuestosNum: impuestosNum,
             impuestos: formatMoney(impuestosNum),
             totalNum,
@@ -482,6 +499,11 @@
             potencia: formatMoney(pot),
             consumoNum: consAdj,
             consumo: formatMoney(consAdj),
+            consumoBaseNum: consBase,
+            ssaaNum: round2(ssaa.eur || 0),
+            ssaaRate: ssaa.rate || 0,
+            ssaaMonth: ssaa.month || null,
+            ssaaApplied: Boolean(ssaa.aplica && ssaa.eur > 0),
             impuestosNum: impuestosNum,
             impuestos: formatMoney(impuestosNum),
             totalNum,

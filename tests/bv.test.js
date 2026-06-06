@@ -18,6 +18,7 @@ if (!window.LF_CONFIG.alquilerContador) {
 }
 
 // Cargar el módulo bajo test
+import '../js/lf-ssaa.js';
 import '../js/bv/bv-sim-monthly.js';
 
 describe('Simulador Solar Mensual (bv-sim-monthly.js)', () => {
@@ -96,6 +97,43 @@ describe('Simulador Solar Mensual (bv-sim-monthly.js)', () => {
     expect(res.credit1).toBeCloseTo(1.00, 2);  // 1€ compensado
     expect(res.excedenteSobranteEur).toBe(0);  // No sobra nada
     expect(res.bvSaldoFin).toBe(0);            // No acumula (sin BV)
+  });
+
+  it('calcMonthForTarifa: suma SSAA del mes como energía antes de impuestos', () => {
+    const tarifaSimple = {
+      nombre: 'Solar sin SSAA',
+      p1: 0.1, p2: 0.1,
+      cPunta: 0.1, cLlano: 0.1, cValle: 0.1,
+      incluyeServiciosAjuste: false,
+      fv: { exc: 0, bv: false }
+    };
+    const mockMonth = {
+      key: '2026-04',
+      daysWithData: 30,
+      importByPeriod: { P1: 100, P2: 0, P3: 0 },
+      importTotalKWh: 100,
+      exportTotalKWh: 0
+    };
+
+    const res = window.BVSim.calcMonthForTarifa({
+      month: mockMonth,
+      tarifa: tarifaSimple,
+      potenciaP1: 0,
+      potenciaP2: 0,
+      bvSaldoPrev: 0,
+      zonaFiscal: 'Península',
+      ssaaDataset: {
+        latest_complete_month: '2026-04',
+        latest_value: 0.02,
+        values: { '2026-04': 0.02 }
+      }
+    });
+
+    expect(res.consBaseEur).toBeCloseTo(10, 2);
+    expect(res.ssaaEur).toBeCloseTo(2, 2);
+    expect(res.consEur).toBeCloseTo(12, 2);
+    expect(res.ssaaMonth).toBe('2026-04');
+    expect(res.sumaBase).toBeCloseTo(window.BVSim.round2(12 + res.costeBonoSocial), 2);
   });
 
   it('calcMonthForTarifa: usa crédito horario real para excedentes indexados cuando el mes lo trae', () => {

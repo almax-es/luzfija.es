@@ -33,10 +33,10 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
   - 9 en raiz.
   - 1 en `estadisticas/`.
   - 24 en `guias/` (indice + 23 guias).
-- 31 modulos JavaScript en `js/` (incluye `js/bv/`).
-- 20.080 lineas JS aproximadas.
+- 32 modulos JavaScript en `js/` (incluye `js/bv/`).
+- 20.242 lineas JS aproximadas.
 - 97 tarifas en `tarifas.json`.
-- Suite de tests Vitest con 53 archivos y 379 casos.
+- Suite de tests Vitest con 53 archivos y 382 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 
@@ -172,7 +172,7 @@ Notas de tarifas:
 
 - `fv.exc` es el precio de excedentes en €/kWh; `-1` significa precio indexado. Sin curva horaria se usa 0,030 €/kWh solo como referencia orientativa; con CSV horario trazable el simulador puede valorar el periodo importado contra `data/surplus/`.
 - La columna privada `Activa` de la Excel no se publica en JSON: `no` excluye una tarifa de `tarifas.json` y del post de Facebook, pero el validador privado la sigue revisando.
-- La columna privada recomendada `incluyeServiciosAjuste` debe ser booleana (`SI`/`NO`); cuando se publique en JSON, el calculo podra aplicar `/data/ssaa/` solo a las tarifas que no incluyan SSAA en su precio.
+- La columna privada recomendada `incluyeServiciosAjuste` debe ser booleana (`SI`/`NO`); cuando vale `NO`, el comparador aplica `/data/ssaa/` como mayor coste de energia antes de IEE e IVA/IGIC/IPSI.
 
 ## PWA, Cache Y Offline
 

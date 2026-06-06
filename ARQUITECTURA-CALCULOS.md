@@ -70,6 +70,12 @@ const potencia = (p1 * dias * tarifaP1) + (p2 * dias * tarifaP2);
 // PASO 2: Calcular energía
 const energia = (kwhP1 * precioP1) + (kwhP2 * precioP2) + (kwhP3 * precioP3);
 
+// PASO 2B: Añadir SSAA si el precio publicado NO los incluye
+// Se tratan como mayor coste de energía antes de impuestos, no como impuesto.
+// Entran en base del IEE y después en base del IVA/IGIC/IPSI.
+const ssaa = tarifa.incluyeServiciosAjuste === false ? consumoTotal * ssaaMensualEurKwh : 0;
+const energiaConSsaa = energia + ssaa;
+
 // PASO 3: Calcular financiación Bono Social
 const financiacion = 6.979247 / 365 * dias;
 
@@ -85,7 +91,7 @@ const baseDescuento = potencia + financiacion + baseVariableBonificable;
 const descuentoBS = baseDescuento * (bonoSocialOn ? 0.425 : 0); // 42,5% vulnerable (RDL 7/2026, vigente durante 2026)
 
 // PASO 5: BASE PARA IMPUESTOS
-const sumaBase = potencia + energia + financiacion - descuentoBS;
+const sumaBase = potencia + energiaConSsaa + financiacion - descuentoBS;
 
 // PASO 6: ⭐ CALCULAR IEE (PUNTO CRÍTICO)
 // El IEE se calcula sobre la base YA CON EL DESCUENTO RESTADO

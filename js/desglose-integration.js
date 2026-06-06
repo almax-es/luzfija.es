@@ -426,6 +426,10 @@
       tieneBV: tieneBV,
       reglaBV: reglaBV,
       precioBV: tieneBV ? Math.max(0, Number(tarifa.fv?.precioBV) || 0) : 0,
+      incluyeServiciosAjuste: tarifa.incluyeServiciosAjuste !== false,
+      ssaaNum: Number(selectedRowDataset.ssaaNum) || 0,
+      ssaaRate: Number(selectedRowDataset.ssaaRate) || 0,
+      ssaaMonth: selectedRowDataset.ssaaMonth || null,
       precioCompensacionIndexada: tarifa.fv?.exc === -1,
       precioCompensacionSource: selectedRowDataset.fvPriceSource || (tarifa.fv?.exc === -1 ? 'reference-0.03' : 'fixed'),
 

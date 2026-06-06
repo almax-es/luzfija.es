@@ -55,6 +55,34 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
     expect(res.totalFinal).toBe(round2(baseIVA + ivaEsperado));
   });
 
+  it('Muestra SSAA como sublínea de consumo y lo incluye en bases fiscales', () => {
+    Desglose.init();
+
+    const datos = {
+      nombreTarifa: 'Sin SSAA',
+      potenciaP1: 4, potenciaP2: 4, dias: 30,
+      precioP1: 0.1, precioP2: 0.1,
+      consumoPunta: 100, consumoLlano: 0, consumoValle: 0,
+      precioPunta: 0.1, precioLlano: 0.1, precioValle: 0.1,
+      incluyeServiciosAjuste: false,
+      ssaaNum: 2,
+      ssaaRate: 0.02,
+      ssaaMonth: '2026-04',
+      zonaFiscal: 'Península',
+      fechaFin: '20/03/2026',
+      solarOn: false
+    };
+
+    const res = Desglose.calcularDesglose(datos);
+    Desglose.renderizar(res, datos);
+
+    expect(res.consBase).toBe(10);
+    expect(res.ssaa).toBe(2);
+    expect(res.cons).toBe(12);
+    expect(res.sumaBase).toBeCloseTo(res.pot + res.cons + res.tarifaAcceso, 2);
+    expect(Desglose.modal.querySelector('.desglose-body').textContent).toContain('Servicios de ajuste');
+  });
+
   it('Debe mantener IVA 21% e IEE general aunque cambie la fecha del periodo en Península <10kW', () => {
     const datos = {
       potenciaP1: 4.6, potenciaP2: 4.6, dias: 30,

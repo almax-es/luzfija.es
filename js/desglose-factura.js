@@ -203,6 +203,7 @@
         tipoCompensacion = 'SIMPLE', topeCompensacion = 'ENERGIA',
         bateriaVirtual = 0, reglaBV = 'BV MES ANTERIOR', tieneBV = false,
         precioBV = 0,
+        incluyeServiciosAjuste = true, ssaaNum = 0, ssaaRate = 0, ssaaMonth = null,
         zonaFiscal = 'Península', esViviendaCanarias = true, solarOn = false
       } = datos;
 
@@ -224,7 +225,11 @@
       const terr = CFG.getTerritorio(zonaFiscal);
 
       const pot = round2((potenciaP1 * dias * precioP1) + (potenciaP2 * dias * precioP2));
-      const cons = round2((consumoPunta * precioPunta) + (consumoLlano * precioLlano) + (consumoValle * precioValle));
+      const consBase = round2((consumoPunta * precioPunta) + (consumoLlano * precioLlano) + (consumoValle * precioValle));
+      const ssaa = !incluyeServiciosAjuste
+        ? round2(Math.max(0, safeNum(ssaaNum)))
+        : 0;
+      const cons = round2(consBase + ssaa);
       const tarifaAcceso = round2(CFG.bonoSocial.eurosAnuales / 365 * dias);
 
       let consAdj = cons;
@@ -308,7 +313,8 @@
           sumaBase, impuestoElec, baseEnergia, alquilerContador, igicBase, igicContador,
           impuestoServicios, impuestosNum, totalBase, credit2, bvSaldoFin, totalFinal, totalRanking,
           isCanarias: true, isCeutaMelilla: false, usoFiscal,
-          precioBVMensual, costeBV, baseCompensable, peajesTotal };
+          precioBVMensual, costeBV, baseCompensable, peajesTotal,
+          consBase, ssaa, ssaaRate: Math.max(0, safeNum(ssaaRate)), ssaaMonth };
 
       } else if (isCeutaMelilla) {
         // ═══════════════════════════════════════════════════════════════
@@ -338,7 +344,8 @@
           sumaBase, impuestoElec, baseEnergia, alquilerContador, baseIPSI, ipsiEnergia, ipsiContador,
           impuestoServicios, impuestosNum, totalBase, credit2, bvSaldoFin, totalFinal, totalRanking,
           isCanarias: false, isCeutaMelilla: true,
-          precioBVMensual, costeBV, baseCompensable, peajesTotal };
+          precioBVMensual, costeBV, baseCompensable, peajesTotal,
+          consBase, ssaa, ssaaRate: Math.max(0, safeNum(ssaaRate)), ssaaMonth };
 
       } else {
         // ═══════════════════════════════════════════════════════════════
@@ -364,7 +371,8 @@
         resultado = { pot, cons, consAdj, tarifaAcceso, tarifaAdj, credit1, excedenteSobranteEur, excedenteNoCompensableEur,
           sumaBase, impuestoElec, alquilerContador, baseEnergia, ivaBase, iva, impuestosNum,
           totalBase, credit2, bvSaldoFin, totalFinal, totalRanking, isCanarias: false, isCeutaMelilla: false,
-          precioBVMensual, costeBV, baseCompensable, peajesTotal };
+          precioBVMensual, costeBV, baseCompensable, peajesTotal,
+          consBase, ssaa, ssaaRate: Math.max(0, safeNum(ssaaRate)), ssaaMonth };
       }
 
       resultado.consumoTotalKwh = round2(consumoTotalKwh);
@@ -454,11 +462,13 @@
       const rawConsP1 = safeNum(datos.consumoPunta) * safeNum(datos.precioPunta);
       const rawConsP2 = safeNum(datos.consumoLlano) * safeNum(datos.precioLlano);
       const rawConsP3 = safeNum(datos.consumoValle) * safeNum(datos.precioValle);
-      const [consP1Disp, consP2Disp, consP3Disp] = reconcileToTarget(d.cons, [rawConsP1, rawConsP2, rawConsP3]);
+      const ssaaImporte = round2(safeNum(d.ssaa));
+      const consumoBaseTarget = Number.isFinite(Number(d.consBase)) ? Number(d.consBase) : round2(safeNum(d.cons) - ssaaImporte);
+      const [consP1Disp, consP2Disp, consP3Disp] = reconcileToTarget(consumoBaseTarget, [rawConsP1, rawConsP2, rawConsP3]);
 
       // Calcular precio medio por kWh (antes de impuestos y compensación de excedentes)
       const consumoTotalKwh = safeNum(datos.consumoPunta) + safeNum(datos.consumoLlano) + safeNum(datos.consumoValle);
-      const importeConsumoTotal = consP1Disp + consP2Disp + consP3Disp;
+      const importeConsumoTotal = consP1Disp + consP2Disp + consP3Disp + ssaaImporte;
       const precioMedioPorKwh = consumoTotalKwh > 0 ? importeConsumoTotal / consumoTotalKwh : 0;
 
       // ===== RESUMEN CLARO (Factura "perfecta") =====
@@ -618,6 +628,11 @@
           <span class="desglose-detalle">${this.fmtNum(datos.consumoValle)} kWh × ${this.fmtPrecio(datos.precioValle)} €/kWh</span>
           <span class="desglose-importe">${this.fmt(consP3Disp)}</span>
         </div>
+        ${ssaaImporte > 0 ? `<div class="desglose-linea desglose-linea-sub">
+          <span class="desglose-concepto">→ Servicios de ajuste</span>
+          <span class="desglose-detalle">${this.fmtNum(consumoTotalKwh)} kWh × ${this.fmtPrecio(d.ssaaRate)} €/kWh${d.ssaaMonth ? ` (${escapeHtml(d.ssaaMonth)})` : ''}</span>
+          <span class="desglose-importe">${this.fmt(ssaaImporte)}</span>
+        </div>` : ''}
         ${d.credit1 > 0 ? `<div class="desglose-linea desglose-linea--hl-green">
           <span class="desglose-concepto">☀️ Compensación excedentes</span>
           <span class="desglose-detalle desglose-detalle--exced">  <span class="exced-item">Generados: <span class="nowrap">${this.fmtNum(datos.excedentes)} kWh</span>   <span class="nowrap">× ${precioLabel} = ${this.fmt(creditoPotencial)}</span></span>  <span class="exced-sep">·</span>  <span class="exced-item">✅ Compensados hoy: <span class="nowrap">${this.fmtNum(kwhExUsados)} kWh</span>   <span class="nowrap">(${this.fmt(d.credit1)})</span></span>  ${bvActiva && d.excedenteSobranteEur > 0 ? `<span class="exced-sep">·</span>  <span class="exced-item">🔋 A batería virtual: <span class="nowrap">${this.fmtNum(kwhExBv)} kWh</span>   <span class="nowrap">(${this.fmt(d.excedenteSobranteEur)})</span></span>` : (!bvActiva && kwhExSobrantes > 0 ? `<span class="exced-sep">·</span>  <span class="exced-item">❌ Se pierden (sin batería virtual): <span class="nowrap">${this.fmtNum(kwhExSobrantes)} kWh</span>   <span class="nowrap">(${this.fmt(d.excedenteSobranteEur)})</span></span>` : '')}</span>

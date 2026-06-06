@@ -213,7 +213,8 @@ window.BVSim.calcMonthForTarifa = function ({
   potenciaP2,
   bvSaldoPrev,
   zonaFiscal = 'Península',
-  esVivienda = true
+  esVivienda = true,
+  ssaaDataset = null
 }) {
   const round2 = window.BVSim.round2;
   // Importante: para evitar inflar costes si el CSV tiene huecos, usamos SOLO los días con datos.
@@ -223,11 +224,16 @@ window.BVSim.calcMonthForTarifa = function ({
   const pot = round2((potenciaP1 * dias * tarifa.p1) + (potenciaP2 * dias * tarifa.p2));
   
   // Consumo (Energía)
-  const consEur = round2(
+  const consBaseEur = round2(
     (month.importByPeriod.P1 * tarifa.cPunta)
     + (month.importByPeriod.P2 * tarifa.cLlano)
     + (month.importByPeriod.P3 * tarifa.cValle)
   );
+  const ssaa = (window.LF?.ssaa && typeof window.LF.ssaa.calcCharge === 'function')
+    ? window.LF.ssaa.calcCharge(tarifa, Number(month.importTotalKWh) || 0, ssaaDataset, month.key)
+    : { aplica: false, rate: 0, eur: 0, month: null };
+  const ssaaEur = round2(ssaa.eur || 0);
+  const consEur = round2(consBaseEur + ssaaEur);
   
   // Bono social (Financiación)
   const bonoSocialAnual = (window.LF_CONFIG && window.LF_CONFIG.bonoSocial) 
@@ -411,6 +417,7 @@ window.BVSim.calcMonthForTarifa = function ({
     pot,
     consEur,
     costeBonoSocial,
+    sumaBase,
     impuestoElec,
     alquilerContador,
     ivaCuota,
@@ -436,7 +443,13 @@ window.BVSim.calcMonthForTarifa = function ({
     totalPagar,
     totalReal,
     baseCompensable,
-    peajesTotal
+    peajesTotal,
+    consBaseEur,
+    importTotalKWh: consumoTotalKwh,
+    ssaaEur,
+    ssaaRate: ssaa.rate || 0,
+    ssaaMonth: ssaa.month || null,
+    ssaaApplied: Boolean(ssaa.aplica && ssaaEur > 0)
   };
 };
 
@@ -448,7 +461,8 @@ window.BVSim.simulateForTarifaDemo = function ({
   potenciaP2,
   bvSaldoInicial = 0,
   zonaFiscal = 'Península',
-  esVivienda = true
+  esVivienda = true,
+  ssaaDataset = null
 }) {
   if (!Array.isArray(months) || !tarifa) {
     return { ok: false, error: 'Parámetros inválidos.' };
@@ -463,7 +477,8 @@ window.BVSim.simulateForTarifaDemo = function ({
       potenciaP2,
       bvSaldoPrev: bvSaldo,
       zonaFiscal,
-      esVivienda
+      esVivienda,
+      ssaaDataset
     });
     bvSaldo = row.bvSaldoFin;
     return row;
@@ -503,7 +518,8 @@ window.BVSim.simulateForAllTarifasBV = function ({
   potenciaP2,
   bvSaldoInicial = 0,
   zonaFiscal = 'Península',
-  esVivienda = true
+  esVivienda = true,
+  ssaaDataset = null
 }) {
   try {
     const results = tarifasBV.map((tarifa) => {
@@ -514,7 +530,8 @@ window.BVSim.simulateForAllTarifasBV = function ({
         potenciaP2,
         bvSaldoInicial,
         zonaFiscal,
-        esVivienda
+        esVivienda,
+        ssaaDataset
       });
     });
 
