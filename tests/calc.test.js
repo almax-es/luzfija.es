@@ -47,7 +47,6 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     
     // Mockear renderTable para evitar chunking asíncrono en tests
     window.LF.renderTable = vi.fn().mockResolvedValue(true);
-    window.LF.renderSunClubCard = vi.fn();
     window.LF.renderPvpcInfo = vi.fn();
     window.LF.renderTopChart = vi.fn();
   });
@@ -629,50 +628,6 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
       expect(res.fvExcedenteSobrante).toBeCloseTo(14.14, 2);
       expect(res.fvBvSaldoFin).toBeCloseTo(14.14, 2);
       expect(res.totalNum).toBeCloseTo(res.fvTotalFinal - 14.14, 2);
-    });
-
-    it('Sun Club usa el IEE vigente de la fecha del periodo', () => {
-      const originalIEE = window.LF_CONFIG.calcularIEE;
-      window.LF.consumosHorarios = [{ hora: 13, kwh: 100 }];
-      window.LF_CONFIG.calcularIEE = vi.fn((base, consumoKwh, fechaYmd) => {
-        return fechaYmd === '2026-03-21' ? 20 : originalIEE.call(window.LF_CONFIG, base, consumoKwh, fechaYmd);
-      });
-
-      try {
-        const values = {
-          p1: 4,
-          p2: 4,
-          dias: 30,
-          zonaFiscal: 'Península',
-          viviendaCanarias: false,
-          fechaYmd: '2026-03-21'
-        };
-        const fiscal = window.LF.__LF_getFiscalContext(values);
-        const res = window.LF.calcularSunClub(values);
-
-        const potencia = window.LF.round2((4 * 30 * window.LF_TARIFAS_ESPECIALES.sunClub.precios.p1) + (4 * 30 * window.LF_TARIFAS_ESPECIALES.sunClub.precios.p2));
-        const consumo = 100 * window.LF_TARIFAS_ESPECIALES.sunClub.precios.energia;
-        const tarifaAcceso = window.LF.round2(window.LF_CONFIG.calcularBonoSocial(30));
-        const sumaBase = potencia + consumo + tarifaAcceso;
-        const alquiler = window.LF.round2(window.LF_CONFIG.calcularAlquilerContador(30));
-        const taxCalc = window.LF_CONFIG.calcularImpuestoIndirecto({
-          zona: 'Península',
-          usoFiscal: fiscal.usoFiscal,
-          baseEnergia: sumaBase,
-          impuestoElectrico: 20,
-          baseContador: alquiler,
-          potenciaContratada: fiscal.potenciaContratada,
-          viviendaCanarias: false,
-          fechaYmd: '2026-03-21'
-        });
-        const totalEsperado = window.LF.round2(sumaBase + 20 + alquiler + taxCalc.impuestoEnergia + taxCalc.impuestoContador);
-
-        expect(window.LF_CONFIG.calcularIEE).toHaveBeenCalledWith(sumaBase, 100, '2026-03-21');
-        expect(res.aPagar).toBeCloseTo(totalEsperado, 2);
-      } finally {
-        window.LF_CONFIG.calcularIEE = originalIEE;
-        window.LF.consumosHorarios = null;
-      }
     });
 
     it('Debe manejar Días = 0 usando valor por defecto (30 días)', async () => {

@@ -501,7 +501,6 @@ describe('Factura PDF Integration (Black Box)', () => {
       consumosHorarios: curve,
       csvConsumosRef: ref,
       pvpcPeriodoCSV: true,
-      sunClubEnabled: true,
       clearCsvImportState
     };
 
@@ -516,7 +515,6 @@ describe('Factura PDF Integration (Black Box)', () => {
     expect(window.LF.consumosHorarios).toBe(curve);
     expect(window.LF.csvConsumosRef).toBe(ref);
     expect(window.LF.pvpcPeriodoCSV).toBe(true);
-    expect(window.LF.sunClubEnabled).toBe(true);
     expect(document.querySelector('.input-validacion[data-field="p1"]').classList.contains('err')).toBe(true);
   });
 });

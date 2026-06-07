@@ -23,7 +23,6 @@ global.window = {
     updateSortIcons: vi.fn(),
     renderTopChart: vi.fn(),
     renderPvpcInfo: vi.fn(),
-    renderSunClubCard: vi.fn(),
     // Helpers
     $: (id) => document.getElementById(id),
     rowTipoBadge: (t) => t,

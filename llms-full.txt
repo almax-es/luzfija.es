@@ -61,7 +61,6 @@ Important detail:
 - if the user imports hourly data, the comparator can optionally cross that real hourly curve with PVPC prices from the imported billing period instead of current/recent PVPC
 
 Special side calculation:
-- Octopus Sun Club can be analyzed from imported hourly data
 - it is not just another regular tariff row in `tarifas.json`
 
 ### 2. PVPC and surplus observatory

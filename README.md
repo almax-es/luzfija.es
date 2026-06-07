@@ -34,9 +34,9 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
   - 1 en `estadisticas/`.
   - 24 en `guias/` (indice + 23 guias).
 - 32 modulos JavaScript en `js/` (incluye `js/bv/`).
-- 20.257 lineas JS aproximadas.
+- 19.977 lineas JS aproximadas.
 - 97 tarifas en `tarifas.json`.
-- Suite de tests Vitest con 54 archivos y 386 casos.
+- Suite de tests Vitest con 54 archivos y 385 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 
@@ -55,7 +55,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - Extrae datos de factura PDF (texto + QR + OCR opcional).
 - Importa consumos desde CSV/XLSX (incluye clasificacion P1/P2/P3 y soporte formatos distribuidoras).
 - Modal de aplicacion CSV con opcion de aplicar solo consumos o consumos+excedentes.
-- Incluye analisis especifico de Octopus Sun Club al aplicar CSV con curva horaria.
+- Opcion de comparar PVPC usando precios horarios del periodo importado.
 - Tabla con filtros, ordenacion por columnas, top 5 visual y modal de desglose.
 - Menu de utilidades:
 - compartir configuracion por URL,

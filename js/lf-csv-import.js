@@ -344,7 +344,7 @@
           }
 
           resultado.formato = 'CSV';
-          // ⭐ SUN CLUB: adjuntar consumos horarios (se guardan globalmente solo al aplicar)
+          // Adjuntar consumos horarios para PVPC por periodo (se guardan globalmente solo al aplicar)
           resultado.consumosHorarios = consumos;
           resultado.warnings = spanResult.warnings;
           if (resultado.warnings.length && typeof toast === 'function') {
@@ -392,7 +392,7 @@
           }
 
           resultado.formato = 'XLSX';
-          // ⭐ SUN CLUB: adjuntar consumos horarios (se guardan globalmente solo al aplicar)
+          // Adjuntar consumos horarios para PVPC por periodo (se guardan globalmente solo al aplicar)
           resultado.consumosHorarios = consumos;
           resultado.warnings = spanResult.warnings;
           if (resultado.warnings.length && typeof toast === 'function') {
@@ -410,10 +410,7 @@
 
   // ===== MODAL PREVIEW =====
   function mostrarPreviewCSV(resultado) {
-    // ⭐ SUN CLUB: Guardar estado previo (cerrar sin aplicar no cambia nada)
     window.LF = window.LF || {};
-    const __prevSunClubEnabled = window.LF.sunClubEnabled === true;
-    const __sunClubCheckedAttr = __prevSunClubEnabled ? 'checked' : '';
 
     // ⭐ PVPC PERIODO: por defecto desactivado (usar precios PVPC de hoy para comparar)
     const __prevPvpcPeriodo = window.LF.pvpcPeriodoCSV === true;
@@ -568,19 +565,8 @@
         </div>
       </div>
       ${excedenteHTML}
-      
-      <div style="margin-top: 16px; padding: 14px 16px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px;">
-        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;">
-          <input type="checkbox" id="csvCalcularSunClub" ${__sunClubCheckedAttr} style="cursor: pointer; width: 18px; height: 18px; accent-color: #10b981;">
-          <span style="font-size: 14px; color: var(--text); font-weight: 600; flex: 1;">⚡ Calcular Octopus Sun Club</span>
-          <span style="font-size: 11px; color: var(--muted2); background: rgba(16, 185, 129, 0.15); padding: 3px 8px; border-radius: 4px; font-weight: 600;">45% dto. 12-18h</span>
-        </label>
-        <p style="margin: 8px 0 0 28px; font-size: 12px; color: var(--muted2); line-height: 1.4;">
-          Se calculará automáticamente con tus datos horarios reales. El descuento se aplica mes siguiente.
-        </p>
-      </div>
 
-      <div style="margin-top: 10px; padding: 14px 16px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px;">
+      <div style="margin-top: 16px; padding: 14px 16px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px;">
         <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;">
           <input type="checkbox" id="csvPvpcPeriodo" ${__pvpcPeriodoCheckedAttr} style="cursor: pointer; width: 18px; height: 18px; accent-color: #6366f1;">
           <span style="font-size: 14px; color: var(--text); font-weight: 600; flex: 1;">📅 PVPC con precios del período</span>
@@ -606,7 +592,7 @@
     const btnCerrarX = content.querySelector('#btnCerrarCSVX');
     let __csvCloseOnEsc = null;
     let __csvCloseOnBackdrop = null;
-    
+
     const closeCSVModal = () => {
       if (__csvCloseOnEsc) document.removeEventListener('keydown', __csvCloseOnEsc);
       if (__csvCloseOnBackdrop) modal.removeEventListener('click', __csvCloseOnBackdrop);
@@ -619,17 +605,16 @@
         __csvPrevFocusEl.focus();
       }
     };
-    
-    // ⭐ SUN CLUB: Cerrar sin aplicar (X/Escape/backdrop) => no cambia el estado
+
+    // Cerrar sin aplicar (X/Escape/backdrop) => no cambia el estado PVPC del periodo
     const cancelCSVModal = () => {
       window.LF = window.LF || {};
-      window.LF.sunClubEnabled = __prevSunClubEnabled;
       window.LF.pvpcPeriodoCSV = __prevPvpcPeriodo;
       closeCSVModal();
     };
-    
-    
-    // ⭐ SUN CLUB: Cerrar con X (sin aplicar)
+
+
+    // Cerrar con X (sin aplicar)
     btnCerrarX?.addEventListener('click', cancelCSVModal);
 
     // Foco inicial (botón cerrar)
@@ -694,7 +679,7 @@
           }, 100);
         }
 
-        // ⭐ SUN CLUB: Guardar consumos horarios (solo al aplicar)
+        // Guardar consumos horarios (solo al aplicar)
         window.LF = window.LF || {};
         const importedCurve = Array.isArray(resultado.consumosHorarios) ? resultado.consumosHorarios : null;
         window.LF.consumosHorarios = importedCurve;
@@ -713,15 +698,6 @@
                   cValle: Number(resultado.valle) || 0
                 })
           : null;
-
-        // ⭐ SUN CLUB: Guardar estado del checkbox antes de cerrar el modal
-        const sunClubCheckbox = document.getElementById('csvCalcularSunClub');
-        if (sunClubCheckbox) {
-          window.LF = window.LF || {};
-          window.LF.sunClubEnabled = sunClubCheckbox.checked;
-        } else {
-          if (window.LF) window.LF.sunClubEnabled = false;
-        }
 
         // ⭐ PVPC PERIODO: Guardar si usar precios del período del CSV o precios recientes
         const pvpcPeriodoCheckbox = document.getElementById('csvPvpcPeriodo');

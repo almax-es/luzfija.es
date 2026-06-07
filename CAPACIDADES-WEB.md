@@ -127,10 +127,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Muestra warnings de calidad de datos.
 - Modal de aplicacion con control explicito:
 - Aplicar solo consumos o consumos+excedentes.
-- Activar/desactivar calculo especial Octopus Sun Club.
-- Flujo opcional Octopus Sun Club:
-- Usa curva horaria real importada.
-- Calculo especializado y tarjeta dedicada en resultados.
+- Activar/desactivar PVPC con precios horarios del periodo importado.
 
 ### 3.5 Extractor De Factura PDF
 
@@ -279,7 +276,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 32 (`js/*.js` + `js/bv/*.js`).
-- Lineas JS aproximadas: 20.257.
+- Lineas JS aproximadas: 19.977.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (97 tarifas).
@@ -323,7 +320,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 
 - Suite Vitest/JSDOM.
 - 54 archivos de test (`tests/*.test.js`).
-- 386 casos `it()/test()` en la ultima ejecucion local verificada.
+- 385 casos `it()/test()` en la ultima ejecucion local verificada.
 - Cobertura de:
 - Calculo fiscal y de energia.
 - PVPC y caches.

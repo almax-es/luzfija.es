@@ -505,88 +505,6 @@
     initTooltips();
   }
 
-  // ===== RENDER SUN CLUB CARD =====
-  function renderSunClubCard() {
-    // Limpiar tarjeta anterior si existe
-    const oldCard = document.querySelector('.sun-club-card');
-    if (oldCard) oldCard.remove();
-
-    const result = window.LF?.sunClubResult;
-    if (!result) return;
-
-    const card = document.createElement('div');
-    card.className = 'sun-club-card';
-
-    // Caso especial: tarifa no disponible en territorio
-    if (result.unavailable) {
-      card.innerHTML = `
-        <h3>⚡ Octopus Sun Club (cálculo especial)</h3>
-        <div class="sun-club-badge">📊 Calculado con tu CSV real</div>
-
-        <div class="sun-club-unavailable">
-          ${escapeHtml(result.message || 'Sun Club no disponible en tu territorio')}
-        </div>
-
-        ${result.web ? `
-          <a href="${escapeHtml(result.web)}" target="_blank" rel="noopener noreferrer" class="sun-club-link">
-            🔗 Más información sobre Sun Club
-          </a>
-        ` : ''}
-      `;
-
-      const seccionResultados = document.getElementById('seccionResultados');
-      if (seccionResultados) seccionResultados.appendChild(card);
-      return;
-    }
-
-    card.innerHTML = `
-      <h3>⚡ Octopus Sun Club (cálculo especial)</h3>
-      <div class="sun-club-badge">📊 Calculado con tu CSV real</div>
-
-      <div class="sun-club-info">
-        <div class="sun-club-row">
-          <span>💶 A pagar este mes:</span>
-          <strong>${formatMoney(result.aPagar)}</strong>
-        </div>
-        <div class="sun-club-row">
-          <span>💰 Crédito mes siguiente:</span>
-          <strong>${formatMoney(result.credito)}</strong>
-        </div>
-        <div class="sun-club-detail">
-          45% descuento sobre ${result.kwhSolares.toFixed(1)} kWh consumidos 12-18h
-          (${result.pctSolares.toFixed(1)}% de tu consumo total de ${result.kwhTotal.toFixed(1)} kWh)
-        </div>
-        <div class="sun-club-note">
-          ⚠️ Sun Club no es compatible con compensación de excedentes (Solar Wallet).
-        </div>
-        <div class="sun-club-breakdown">
-          <div class="sun-club-breakdown-title">Desglose del mes:</div>
-          <div class="sun-club-breakdown-row">
-            <span>Potencia:</span>
-            <span>${formatMoney(result.potencia)}</span>
-          </div>
-          <div class="sun-club-breakdown-row">
-            <span>Consumo energía:</span>
-            <span>${formatMoney(result.consumo)}</span>
-          </div>
-          <div class="sun-club-breakdown-row">
-            <span>Impuestos:</span>
-            <span>${formatMoney(result.impuestos)}</span>
-          </div>
-        </div>
-        <a href="${escapeHtml(result.web)}" target="_blank" rel="noopener noreferrer" class="sun-club-link">
-          🔗 Más información sobre Sun Club
-        </a>
-      </div>
-    `;
-
-    // Insertar después de la sección de resultados
-    const seccionResultados = document.getElementById('seccionResultados');
-    if (seccionResultados) {
-      seccionResultados.appendChild(card);
-    }
-  }
-
   function announceResultsSummary(d) {
     const live = el.resultsLiveStatus || document.getElementById('resultsLiveStatus');
     if (!live) return;
@@ -658,7 +576,6 @@
     // Esperar a que la tabla termine de renderizarse antes de hacer scroll,
     // para evitar que el scroll salte al final mientras el DOM crece.
     renderTable().then(() => {
-      renderSunClubCard();
       announceResultsSummary(d);
       if (seccionResultados) {
         seccionResultados.scrollIntoView();
@@ -683,7 +600,6 @@
     renderTable,
     renderTopChart,
     renderPvpcInfo,
-    renderSunClubCard,
     renderAll,
     cancelRender: () => {
       __lf_renderInProgress = false;

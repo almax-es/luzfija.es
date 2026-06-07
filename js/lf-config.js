@@ -488,38 +488,8 @@
     }
   };
 
-  // ═══════════════════════════════════════════════════════════════════
-  // TARIFAS ESPECIALES
-  // ═══════════════════════════════════════════════════════════════════
-  
-  const LF_TARIFAS_ESPECIALES = {
-    sunClub: {
-      activa: true,
-      nombre: "Octopus Sun Club",
-      
-      // Configuración horaria
-      horaInicio: 12,  // 12:00
-      horaFin: 18,     // 18:00
-      descuentoPct: 45,
-      
-      // Precios (actualizado: 21/05/2026)
-      precios: {
-        energia: 0.142,    // €/kWh (mismo precio todo el día)
-        p1: 0.093,         // €/kW·día
-        p2: 0.093          // €/kW·día
-      },
-      
-      // Metadata
-      web: "https://octopusenergy.es/sun-club",
-      descripcion: "Descuento 45% en consumo 12-18h aplicado mes siguiente",
-      requiereCSV: true,
-      compensaExcedentes: false
-    }
-  };
-
   // Exportar
   global.LF_CONFIG = LF_CONFIG;
-  global.LF_TARIFAS_ESPECIALES = LF_TARIFAS_ESPECIALES;
 
   // Freeze para evitar modificaciones accidentales
   Object.freeze(LF_CONFIG.bonoSocial.descuentos2026);
@@ -533,10 +503,5 @@
     Object.freeze(LF_CONFIG.territorios[k]);
   });
   Object.freeze(LF_CONFIG.territorios);
-  
-  // Freeze tarifas especiales
-  Object.freeze(LF_TARIFAS_ESPECIALES.sunClub.precios);
-  Object.freeze(LF_TARIFAS_ESPECIALES.sunClub);
-  Object.freeze(LF_TARIFAS_ESPECIALES);
 
 })(typeof window !== 'undefined' ? window : this);

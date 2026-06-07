@@ -47,7 +47,6 @@ Tambien es importante lo que no es: no monetiza el ranking, no vende leads y no 
 - El comparador principal y el simulador solar son herramientas distintas. No comparten la misma logica de ranking.
 - En el simulador solar, el ranking visible usa `totals.pagado` y desempata con `totals.bvFinal`. `totals.real` existe como metrica auxiliar, no como criterio principal de ordenacion actual.
 - Si hay importacion horaria y el usuario activa `PVPC con precios del periodo`, la home puede cruzar la curva del CSV con precios PVPC horarios reales del periodo importado. Si no, compara contra el PVPC actual/reciente.
-- Octopus Sun Club es un calculo especial activable solo cuando existe curva horaria importada. No es simplemente otra tarifa de `tarifas.json`.
 - El parser horario canonico es `window.LF.csvUtils.getPeriodoHorarioCSV`. No dupliques esa logica en otros modulos.
 
 ## Reglas Para Revisiones Y Auditorias

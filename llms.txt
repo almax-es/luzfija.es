@@ -61,7 +61,6 @@ Repository license model: source-available, not open source. Software is under P
 - PVPC with prices from the imported billing period (exact hourly crossing),
 - or current/recent PVPC for present-day comparison.
 - Includes custom "my tariff" comparison.
-- Can run a specialized Octopus Sun Club calculation when hourly import is available.
 
 2. https://luzfija.es/estadisticas/
 - PVPC observatory (historical analytics).
@@ -150,7 +149,6 @@ Repository license model: source-available, not open source. Software is under P
 - Computes billing days and period totals from hourly curves.
 - Can auto-fill solar surplus fields.
 - CSV apply modal can apply only consumption or consumption+surplus.
-- Includes Octopus Sun Club specialized analysis when hourly data is present.
 - Includes a toggle to compare against PVPC from the imported period instead of current/recent PVPC.
 
 ### D) PVPC observatory (`/estadisticas/`)
@@ -230,7 +228,6 @@ Repository license model: source-available, not open source. Software is under P
 5. Some indexed-surplus cases are shown with explicit "estimated price" disclaimers in UI.
 6. Results are estimations; official invoices may differ due to commercial and regulatory details.
 7. Hourly "tomorrow" view can be temporarily unavailable until dataset publication.
-8. Octopus Sun Club is a side calculation triggered by hourly CSV import, not a normal tariff row from `tarifas.json`.
 
 ## Recommended assistant summary template
 

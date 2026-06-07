@@ -294,14 +294,12 @@ describe('Inputs y Validación (lf-inputs.js)', () => {
     window.LF.consumosHorarios = [{ fecha: new Date(), hora: 1, kwh: 1 }];
     window.LF.csvConsumosRef = { dias: 30, cPunta: 10, cLlano: 20, cValle: 30 };
     window.LF.pvpcPeriodoCSV = true;
-    window.LF.sunClubEnabled = true;
 
     window.LF.clearCsvImportState();
 
     expect(window.LF.consumosHorarios).toBeNull();
     expect(window.LF.csvConsumosRef).toBeNull();
     expect(window.LF.pvpcPeriodoCSV).toBe(false);
-    expect(window.LF.sunClubEnabled).toBe(true);
   });
 
 });

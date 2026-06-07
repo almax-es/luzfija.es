@@ -587,30 +587,6 @@
     const min = preciosValidos.length ? Math.min(...preciosValidos) : null;
     const max = preciosValidos.length ? Math.max(...preciosValidos) : null;
     const avg = preciosValidos.length ? (preciosValidos.reduce((a, b) => a + b, 0) / preciosValidos.length) : null;
-    // ⭐ SUN CLUB: Calcular si está marcado (estado guardado cuando se aplicó el CSV)
-    window.LF = window.LF || {};
-    
-    // Si sunClubEnabled está activo pero no hay consumosHorarios, desactivarlo
-    const tieneConsumosHorarios = Array.isArray(window.LF.consumosHorarios) && window.LF.consumosHorarios.length > 0;
-    if (window.LF.sunClubEnabled === true && !tieneConsumosHorarios) {
-      window.LF.sunClubEnabled = false;
-    }
-    
-    const sunClubOn = window.LF.sunClubEnabled === true && tieneConsumosHorarios;
-
-    if (sunClubOn) {
-      if (isCeutaMelilla) {
-        window.LF.sunClubResult = {
-          unavailable: true,
-          message: 'Sun Club no disponible en Ceuta/Melilla',
-          web: window.LF_TARIFAS_ESPECIALES?.sunClub?.web || ''
-        };
-      } else {
-        window.LF.sunClubResult = calcularSunClub(values || getInputValues());
-      }
-    } else {
-      window.LF.sunClubResult = null;
-    }
     // Yield al navegador antes de renderAll — evita que cálculo+render
     // se ejecuten en la misma long task (mejora INP)
     await window.LF.yieldControl();
@@ -630,122 +606,11 @@
     });
   }
 
-  // ===== CALCULAR SUN CLUB =====
-  function calcularSunClub(values) {
-    
-    if (!window.LF_TARIFAS_ESPECIALES || !window.LF_TARIFAS_ESPECIALES.sunClub.activa) {
-      return null;
-    }
-    
-    if (!window.LF || !window.LF.consumosHorarios || window.LF.consumosHorarios.length === 0) {
-      return null;
-    }
-    
-    const SUN_CLUB = window.LF_TARIFAS_ESPECIALES.sunClub;
-    const { p1, p2, dias, zonaFiscal, viviendaCanarias } = values;
-    
-    // Calcular kWh en horas solares desde CSV
-    let kwhSolares = 0;
-    let kwhNormales = 0;
-    
-    window.LF.consumosHorarios.forEach(c => {
-      const horaInicio24h = c.hora - 1; // Convertir formato CNMC a hora inicio
-      const kwh = c.kwh || 0;
-      
-      if (horaInicio24h >= SUN_CLUB.horaInicio && horaInicio24h < SUN_CLUB.horaFin) {
-        kwhSolares += kwh;
-      } else {
-        kwhNormales += kwh;
-      }
-    });
-    
-    const consumoTotalKwh = kwhSolares + kwhNormales;
-    if (consumoTotalKwh === 0) return null;
-    
-    // Precios
-    const precioEnergia = SUN_CLUB.precios.energia;
-    
-    // Cálculo consumo (todo se paga al mismo precio base)
-    const consumoBase = consumoTotalKwh * precioEnergia;
-    
-    // Crédito descuento (45% sobre horas solares)
-    const creditoDescuento = round2(kwhSolares * precioEnergia * (SUN_CLUB.descuentoPct / 100));
-    
-    // Potencia
-    const potencia = round2((p1 * dias * SUN_CLUB.precios.p1) + (p2 * dias * SUN_CLUB.precios.p2));
-    
-    // Contexto fiscal
-    const fiscal = __LF_getFiscalContext({
-      p1, p2, dias, 
-      cPunta: precioEnergia, 
-      cLlano: precioEnergia, 
-      cValle: precioEnergia, 
-      zonaFiscal, 
-      viviendaCanarias,
-      fechaYmd: values?.fechaYmd
-    });
-    
-    // Configuración
-    const CFG = window.LF_CONFIG;
-    const bonoSocialAnual = CFG.bonoSocial.eurosAnuales;
-    const tarifaAcceso = round2(bonoSocialAnual / 365 * dias);
-    const sumaBase = potencia + consumoBase + tarifaAcceso;
-    const impuestosAplicados = __LF_aplicarImpuestos({
-      fiscal,
-      sumaBase,
-      consumoTotalKwh,
-      dias,
-      zona: zonaFiscal,
-      zonaFiscal,
-      viviendaCanarias
-    });
-    const { impuestoElec, alquilerContador, taxCalc } = impuestosAplicados;
-    
-    let totalAPagar;
-    let impuestosTotal;
-    
-    if (fiscal.esCanarias) {
-      const igicEnergia = round2(taxCalc.impuestoEnergia);
-      const igicContador = round2(taxCalc.impuestoContador);
-      impuestosTotal = tarifaAcceso + impuestoElec + igicEnergia + igicContador + alquilerContador;
-      totalAPagar = round2(sumaBase + impuestoElec + igicEnergia + alquilerContador + igicContador);
-    } else if (fiscal.esCeutaMelilla) {
-      const ipsiEnergia = round2(taxCalc.impuestoEnergia);
-      const ipsiContador = round2(taxCalc.impuestoContador);
-      impuestosTotal = tarifaAcceso + impuestoElec + ipsiEnergia + ipsiContador + alquilerContador;
-      totalAPagar = round2(sumaBase + impuestoElec + ipsiEnergia + alquilerContador + ipsiContador);
-    } else {
-      const ivaBase = round2(taxCalc.ivaBase);
-      const ivaCuota = round2(taxCalc.iva);
-      impuestosTotal = tarifaAcceso + impuestoElec + alquilerContador + ivaCuota;
-      totalAPagar = round2(ivaBase + ivaCuota);
-    }
-    
-    const pctSolares = (kwhSolares / consumoTotalKwh) * 100;
-    
-    const resultado = {
-      nombre: SUN_CLUB.nombre,
-      aPagar: totalAPagar,
-      potencia: potencia,
-      consumo: round2(consumoBase),
-      impuestos: impuestosTotal,
-      credito: creditoDescuento,
-      kwhSolares: kwhSolares,
-      kwhNormales: kwhNormales,
-      kwhTotal: consumoTotalKwh,
-      pctSolares: pctSolares,
-      web: SUN_CLUB.web
-    };
-    
-    return resultado;
-  }
-
   // ===== EXPORTAR =====
   window.LF = window.LF || {};
   Object.assign(window.LF, {
     getFvExcPrice,
-    calculateLocal,
-    calcularSunClub
+    calculateLocal
   });
 
   window.calculateLocal = calculateLocal;

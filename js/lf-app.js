@@ -334,7 +334,6 @@
     currentEl.btnCalc.addEventListener('click', (e) => {
       createRipple(currentEl.btnCalc, e);
       // Si el cálculo viene de un CSV ya aplicado, hay que preservar la curva horaria.
-      // El motor ya desactiva Sun Club por sí solo si no hay consumos horarios válidos.
       runCalculation(false);
     });
 

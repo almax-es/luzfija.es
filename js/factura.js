@@ -2032,7 +2032,7 @@
           return;
         }
 
-        // Limpiar datos de CSV/Sun Club solo cuando la factura es válida
+        // Limpiar datos de CSV solo cuando la factura es válida
         if (window.LF) {
           if (typeof window.LF.clearCsvImportState === 'function') {
             window.LF.clearCsvImportState();
@@ -2041,7 +2041,6 @@
             window.LF.csvConsumosRef = null;
             window.LF.pvpcPeriodoCSV = false;
           }
-          window.LF.sunClubEnabled = false;
         }
 
         const set = (id, val) => { 
