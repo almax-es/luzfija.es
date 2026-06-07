@@ -1,6 +1,6 @@
 # LuzFija.es - LLM Reference
 
-Last updated: 2026-06-06
+Last updated: 2026-06-07
 
 ## Core identity
 
@@ -193,7 +193,7 @@ Repository license model: source-available, not open source. Software is under P
 
 ## Data model and updates
 
-- `tarifas.json`: commercial tariffs dataset (97 tariffs as of 2026-06-06).
+- `tarifas.json`: commercial tariffs dataset (97 tariffs as of 2026-06-07).
 - `/data/pvpc/`: official hourly PVPC dataset (REE/ESIOS indicator 1001).
 - `/data/surplus/`: official hourly surplus dataset (REE/ESIOS indicator 1739).
 - Datasets are static files served by the site and updated via automation workflows.
