@@ -3,7 +3,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260607-171705";
+const CACHE_VERSION = "20260607-174643";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
@@ -14,6 +14,10 @@ const TARIFAS_PATH = new URL("tarifas.json", SCOPE).pathname;
 const GUIDES_SEARCH_INDEX_PATH = new URL("data/guides-search-index.json", SCOPE).pathname;
 const GOAT_SCRIPT_PATH = new URL("vendor/goatcounter/count.js", SCOPE).pathname;
 const TRACKING_SCRIPT_PATH = new URL("js/tracking.js", SCOPE).pathname;
+const ASSISTANT_REFERENCE_PATHS = new Set([
+  new URL("llms.txt", SCOPE).pathname,
+  new URL("llms-full.txt", SCOPE).pathname
+]);
 
 // ASSETS completos del sitio para precache best-effort.
 const ASSETS = [
@@ -271,7 +275,7 @@ self.addEventListener("fetch", (event) => {
   }
 
   // Índice de búsqueda de guías: network-first para no mezclar una UI nueva con un índice viejo.
-  if (url.pathname === GUIDES_SEARCH_INDEX_PATH) {
+  if (url.pathname === GUIDES_SEARCH_INDEX_PATH || ASSISTANT_REFERENCE_PATHS.has(url.pathname)) {
     event.respondWith(
       (async () => {
         const cache = await caches.open(CACHE_NAME);

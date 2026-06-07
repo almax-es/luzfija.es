@@ -51,4 +51,15 @@ describe('Service Worker query fallback', () => {
     expect(solarHtml).toContain('js/lf-ssaa.js');
     expect(sw).toContain('"js/lf-ssaa.js"');
   });
+
+  it('serves assistant reference files network-first to avoid stale LLM metadata', () => {
+    const root = path.resolve(__dirname, '..');
+    const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
+
+    expect(sw).toContain('ASSISTANT_REFERENCE_PATHS');
+    expect(sw).toContain('new URL("llms.txt", SCOPE).pathname');
+    expect(sw).toContain('new URL("llms-full.txt", SCOPE).pathname');
+    expect(sw).toMatch(/url\.pathname\s*===\s*GUIDES_SEARCH_INDEX_PATH\s*\|\|\s*ASSISTANT_REFERENCE_PATHS\.has\(url\.pathname\)/);
+    expect(sw).toMatch(/fetch\(req,\s*\{\s*cache:\s*"no-store"\s*\}\)/);
+  });
 });
