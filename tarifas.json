@@ -256,6 +256,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Endesa Conecta",
+      "cPunta": 0.109,
+      "cLlano": 0.109,
+      "cValle": 0.109,
+      "p1": 0.093666,
+      "p2": 0.093666,
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/conecta-de-endesa",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Bualá",
       "cPunta": 0.1098,
       "cLlano": 0.1098,
@@ -265,7 +285,7 @@
       "web": "https://buala.es/luz/",
       "tipo": "1P",
       "requisitos": "10% descuento término energía durante 12 meses incluido en el precio.",
-      "incluyeServiciosAjuste": true,
+      "incluyeServiciosAjuste": false,
       "fv": {
         "exc": 0.04,
         "tipo": "SIMPLE + BV",
@@ -333,46 +353,6 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Endesa Conecta",
-      "cPunta": 0.1135,
-      "cLlano": 0.1135,
-      "cValle": 0.1135,
-      "p1": 0.093666,
-      "p2": 0.093666,
-      "web": "https://www.endesa.com/es/luz-y-gas/luz/conecta-de-endesa",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Endesa 24h Online",
-      "cPunta": 0.1135,
-      "cLlano": 0.1135,
-      "cValle": 0.1135,
-      "p1": 0.093666,
-      "p2": 0.093666,
-      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -662,14 +642,15 @@
       "requiereFV": false
     },
     {
-      "nombre": "Endesa 24h",
-      "cPunta": 0.127688,
-      "cLlano": 0.127688,
-      "cValle": 0.127688,
+      "nombre": "Endesa 24h Online",
+      "cPunta": 0.128235,
+      "cLlano": 0.128235,
+      "cValle": 0.128235,
       "p1": 0.093666,
       "p2": 0.093666,
-      "web": "https://www.endesa.com/es/luz-y-gas/luz/tarifa-fija-24h-promo",
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz",
       "tipo": "1P",
+      "requisitos": "20% descuento término energía durante 12 meses incluido en el precio.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -1715,6 +1696,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Octopus Solar 3P",
+      "cPunta": 0.216,
+      "cLlano": 0.126,
+      "cValle": 0.101,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://octopusenergy.es/precios/tarifa-solar",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.035,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Bonpreu Solar",
       "cPunta": 0.220034,
       "cLlano": 0.141385,
@@ -1858,26 +1859,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Octopus Solar 3P",
-      "cPunta": 0.245,
-      "cLlano": 0.155,
-      "cValle": 0.13,
-      "p1": 0.097,
-      "p2": 0.03,
-      "web": "https://octopusenergy.es/precios/tarifa-solar",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.035,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Octopus Go 3P",
       "cPunta": 0.248,
       "cLlano": 0.248,
@@ -1979,5 +1960,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-08T13:56:39.699Z"
+  "updatedAt": "2026-06-09T12:33:04.118Z"
 }
