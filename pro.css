@@ -317,6 +317,33 @@ html.light-mode :where(input, select, textarea)::placeholder{
   .actions-center .btn-text{
     display: none;
   }
+
+  /* Excepción: botones de función de la home (factura, CSV, PVPC, solar)
+     mantienen etiqueta visible bajo el icono para que sean descubribles */
+  #btnSubirFactura,
+  #btnSubirCSV,
+  #btnPVPCInfo,
+  .actions-center .btn-feature{
+    flex-direction: column;
+    gap: 3px;
+    flex: 0 0 64px;
+    width: 64px;
+    min-width: 64px;
+    padding: 7px 6px;
+    justify-content: center;
+  }
+
+  #btnSubirFactura .btn-text,
+  #btnSubirCSV .btn-text,
+  #btnPVPCInfo .btn-text,
+  .actions-center .btn-feature .btn-text{
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: 0;
+    text-align: center;
+  }
 }
 
 /* =========================================================
