@@ -284,7 +284,7 @@
       "p2": 0.08059,
       "web": "https://buala.es/luz/",
       "tipo": "1P",
-      "requisitos": "10% descuento término energía durante 12 meses incluido en el precio.",
+      "requisitos": "10% descuento término energía durante 12 meses incluido en el precio. No incluye Servicios de Ajuste.",
       "incluyeServiciosAjuste": false,
       "fv": {
         "exc": 0.04,
@@ -1960,5 +1960,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-10T13:33:52.267Z"
+  "updatedAt": "2026-06-10T15:17:56.865Z"
 }
