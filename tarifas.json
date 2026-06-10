@@ -1371,26 +1371,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Esluz 3P",
-      "cPunta": 0.187021,
-      "cLlano": 0.135066,
-      "cValle": 0.085298,
-      "p1": 0.080533,
-      "p2": 0.007407,
-      "web": "https://esluz.es/tarifa-solar-2-0/",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.08,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA_PARCIAL",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Octopus 3P",
       "cPunta": 0.193,
       "cLlano": 0.107,
@@ -1589,6 +1569,26 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Esluz 3P",
+      "cPunta": 0.207014,
+      "cLlano": 0.155066,
+      "cValle": 0.105298,
+      "p1": 0.080533,
+      "p2": 0.007407,
+      "web": "https://esluz.es/tarifa-solar-2-0/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": -1.0,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA_PARCIAL",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -1960,5 +1960,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-10T16:53:02.043Z"
+  "updatedAt": "2026-06-10T17:05:36.721Z"
 }
