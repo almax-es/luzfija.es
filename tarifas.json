@@ -785,6 +785,27 @@
       "requiereFV": false
     },
     {
+      "nombre": "Endesa Solar Plus",
+      "cPunta": 0.135915,
+      "cLlano": 0.135915,
+      "cValle": 0.135915,
+      "p1": 0.093666,
+      "p2": 0.093666,
+      "web": "https://www.endesa.com/es/luz-y-gas/catalogo-solar/endesa-solar-plus-bateria-virtual",
+      "tipo": "1P",
+      "requisitos": "7% descuento término energía durante 12 meses incluido en el precio.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 2.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Repsol Tranquilísima",
       "cPunta": 0.1399,
       "cLlano": 0.1399,
@@ -861,27 +882,6 @@
         "bv": false,
         "reglaBV": "NO APLICA",
         "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Endesa Solar Plus",
-      "cPunta": 0.148707,
-      "cLlano": 0.148707,
-      "cValle": 0.148707,
-      "p1": 0.093666,
-      "p2": 0.093666,
-      "web": "https://www.endesa.com/es/luz-y-gas/catalogo-solar/endesa-solar-plus-bateria-virtual",
-      "tipo": "1P",
-      "requisitos": "7% descuento término energía durante 12 meses incluido en el precio.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.06,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 2.0
       },
       "requiereFV": false
     },
@@ -1960,5 +1960,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-10T12:08:32.087Z"
+  "updatedAt": "2026-06-10T13:33:52.267Z"
 }
