@@ -1580,7 +1580,7 @@
       "cValle": 0.105298,
       "p1": 0.080533,
       "p2": 0.007407,
-      "web": "https://esluz.es/tarifa-solar-2-0/",
+      "web": "https://esluz.es/tarifas-electricidad-hogares/",
       "tipo": "3P",
       "incluyeServiciosAjuste": true,
       "fv": {
@@ -1960,5 +1960,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-10T17:36:13.703Z"
+  "updatedAt": "2026-06-10T19:19:34.320Z"
 }
