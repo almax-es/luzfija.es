@@ -19,13 +19,14 @@
 
   // Referencia a configuración
   const CFG = window.LF_CONFIG;
+  const INDEXED_SURPLUS_REFERENCE_PRICE = 0.02;
 
   // ===== PRECIO EXCEDENTES =====
   function getFvExcPrice(fv) {
     if (!fv) return 0;
     const raw = fv.exc;
-    // Sin curva horaria de vertido, -1 usa 0.03 €/kWh como referencia orientativa.
-    if (raw === -1) return 0.03;
+    // Sin curva horaria de vertido, -1 usa una referencia orientativa conservadora.
+    if (raw === -1) return INDEXED_SURPLUS_REFERENCE_PRICE;
     // Solo se aceptan valores numéricos válidos
     return (typeof raw === 'number' && Number.isFinite(raw)) ? Math.max(0, raw) : 0;
   }

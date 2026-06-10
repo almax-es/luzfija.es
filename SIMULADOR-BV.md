@@ -148,8 +148,8 @@ Soporte para 3 zonas con impuestos diferenciados:
 **Razón**: El simulador necesita un valor de excedentes utilizable para calcular la compensación. Las tarifas indexadas marcadas como `fv.exc = -1` se cargan siempre, pero el tratamiento depende de la trazabilidad:
 
 - Con CSV horario sin editar, `js/lf-surplus-prices.js` calcula el valor mes a mes contra `data/surplus/` segun el indice base disponible.
-- Si el usuario edita la tabla manual o introduce solo datos mensuales, se pierde la trazabilidad horaria y se usa 0,030 €/kWh solo como referencia orientativa.
-- Si el indice horario mensual resulta negativo, el simulador mantiene el modo horario pero limita el credito de excedentes a 0 EUR; no cae a la referencia de 0,030 €/kWh.
+- Si el usuario edita la tabla manual o introduce solo datos mensuales, se pierde la trazabilidad horaria y se usa 0,020 €/kWh solo como referencia orientativa.
+- Si el indice horario mensual resulta negativo, el simulador mantiene el modo horario pero limita el credito de excedentes a 0 EUR; no cae a la referencia de 0,020 €/kWh.
 
 ### 🔄 Modo Híbrido: CSV a Manual
 
@@ -1097,7 +1097,7 @@ El simulador lee de `tarifas.json` automáticamente. Para añadir/actualizar tar
 
 ### ¿Por qué filtra tarifas sin precio de excedentes utilizable?
 
-El simulador necesita un valor de excedentes utilizable. Por eso carga tarifas con `fv.exc > 0` y tambien tarifas indexadas marcadas con `fv.exc = -1`. En estas ultimas, si conserva los registros horarios del CSV, valora los excedentes mes a mes con `data/surplus/`. Si el valor horario mensual es negativo, se limita el credito a 0 EUR. Si solo hay datos mensuales, usa 0,030 €/kWh como referencia orientativa y muestra una nota informativa en la UI.
+El simulador necesita un valor de excedentes utilizable. Por eso carga tarifas con `fv.exc > 0` y tambien tarifas indexadas marcadas con `fv.exc = -1`. En estas ultimas, si conserva los registros horarios del CSV, valora los excedentes mes a mes con `data/surplus/`. Si el valor horario mensual es negativo, se limita el credito a 0 EUR. Si solo hay datos mensuales, usa 0,020 €/kWh como referencia orientativa y muestra una nota informativa en la UI.
 
 ### ¿Qué hago si mi CSV no tiene excedentes?
 

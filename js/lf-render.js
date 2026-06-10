@@ -193,7 +193,7 @@
         tr.dataset.esPvpc = r.esPVPC ? '1' : '0';
         if (r.fvExcRaw !== undefined && r.fvExcRaw !== null) tr.dataset.fvExcRaw = String(r.fvExcRaw);
         if (Number.isFinite(Number(r.fvPriceUsed))) tr.dataset.fvPriceUsed = String(r.fvPriceUsed);
-        tr.dataset.fvPriceSource = r.fvPriceSource || r.precioExcSource || (r.fvExcRaw === -1 ? 'reference-0.03' : 'fixed');
+        tr.dataset.fvPriceSource = r.fvPriceSource || r.precioExcSource || (r.fvExcRaw === -1 ? 'reference-0.02' : 'fixed');
         if (Number.isFinite(Number(r.ssaaNum))) tr.dataset.ssaaNum = String(r.ssaaNum);
         if (Number.isFinite(Number(r.ssaaRate))) tr.dataset.ssaaRate = String(r.ssaaRate);
         if (r.ssaaMonth) tr.dataset.ssaaMonth = String(r.ssaaMonth);

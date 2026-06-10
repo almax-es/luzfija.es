@@ -10,7 +10,7 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 **Ubicación**: `/tarifas.json`
 **Tamaño**: ~49 KB
 **Estructura**: Objeto raíz con aviso `_meta`, array de tarifas en `tarifas` y sello `updatedAt`
-**Última actualización**: 2026-06-10 (`updatedAt`: `2026-06-10T17:05:36.721Z`)
+**Última actualización**: 2026-06-10 (`updatedAt`: `2026-06-10T17:36:13.703Z`)
 **Total tarifas documentadas**: 96
 
 ### Esquema de Estructura
@@ -71,7 +71,7 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 | `tipo` | string | ✅ | "1P" \| "3P" | "1P" | 1P = precio uniforme, 3P = discriminación horaria |
 | `requisitos` | string | ❌ | — | "Consumo ≤8.000 kWh" | Solo si hay condiciones especiales |
 | `incluyeServiciosAjuste` | boolean | ❌ | true \| false | false | Campo recomendado para la Excel/generador: `false` si el precio publicado no incluye SSAA. El comparador suma el valor mensual de `/data/ssaa/` como mayor coste de energía antes de IEE e IVA/IGIC/IPSI. Si falta, se trata como compatible legacy y no se aplica SSAA. |
-| `fv.exc` | number | ✅ | -1 o 0.00–0.30 | 0.03 | €/kWh por excedentes volcados a la red. `-1` marca precio indexado: sin curva horaria se usa 0,030 €/kWh como referencia orientativa; con CSV horario el simulador puede usar el indice horario disponible. |
+| `fv.exc` | number | ✅ | -1 o 0.00–0.30 | 0.02 | €/kWh por excedentes volcados a la red. `-1` marca precio indexado: sin curva horaria se usa 0,020 €/kWh como referencia orientativa; con CSV horario el simulador puede usar el indice horario disponible. |
 | `fv.tipo` | string | ✅ | Ver notas | "SIMPLE + BV" | Tipo de compensación: cómo se retribuyen excedentes |
 | `fv.tope` | string | ✅ | "ENERGIA" \| "ENERGIA_PARCIAL" \| "POTENCIA" \| "—" | "ENERGIA" | Límite de compensación (si aplica) |
 | `fv.bv` | boolean | ✅ | true \| false | true | ¿Permite acumular excedentes en batería virtual? |
@@ -91,7 +91,7 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 #### `fv.exc` (Precio de Excedentes)
 - `0` — No remunera excedentes o no se usa en una tarifa sin compensación.
 - Número positivo — Precio fijo publicado en €/kWh.
-- `-1` — Precio indexado/no fijo. Sin trazabilidad horaria los cálculos usan 0,030 €/kWh como referencia orientativa y la interfaz lo avisa. Con CSV horario, el simulador solar puede calcular el valor mes a mes contra `data/surplus/` segun el indice base disponible.
+- `-1` — Precio indexado/no fijo. Sin trazabilidad horaria los cálculos usan 0,020 €/kWh como referencia orientativa y la interfaz lo avisa. Con CSV horario, el simulador solar puede calcular el valor mes a mes contra `data/surplus/` segun el indice base disponible.
 
 #### `fv.tope` (Límite de Compensación)
 - `"ENERGIA"` — Limitada al coste total de energía consumida (incluye peajes y cargos)

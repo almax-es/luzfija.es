@@ -205,6 +205,8 @@ window.BVSim.getPrecioBVMensual = function (tarifa) {
   return Number.isFinite(raw) ? Math.max(0, raw) : 0;
 };
 
+window.BVSim.INDEXED_SURPLUS_REFERENCE_PRICE = 0.02;
+
 // ===== SIMULACIÓN ECONÓMICA (MES INDIVIDUAL) =====
 window.BVSim.calcMonthForTarifa = function ({
   month,
@@ -259,9 +261,9 @@ window.BVSim.calcMonthForTarifa = function ({
       precioExc = exKwh > 0 ? creditoPotencial / exKwh : 0;
       precioExcSource = 'hourly-index-base';
     } else {
-      precioExc = 0.03;
+      precioExc = window.BVSim.INDEXED_SURPLUS_REFERENCE_PRICE;
       creditoPotencial = round2(exKwh * precioExc);
-      precioExcSource = 'reference-0.03';
+      precioExcSource = 'reference-0.02';
     }
   } else {
     if (!Number.isFinite(precioExc)) precioExc = 0;

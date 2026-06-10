@@ -255,7 +255,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 
 - Incluye tarifas con `fv.exc` numerico positivo y tarifas indexadas marcadas con `fv.exc = -1`.
 - Si una tarifa usa precio indexado, la web distingue trazabilidad:
-  - Sin curva horaria: usa 0,030 €/kWh como referencia orientativa y muestra nota explicita en UI.
+  - Sin curva horaria: usa 0,020 €/kWh como referencia orientativa y muestra nota explicita en UI.
   - Con CSV horario conservado en el simulador solar: calcula el valor mensual contra `data/surplus/` segun el indice base disponible.
 - En tarifas sin BV, el excedente sobrante no se acumula.
 - En tarifas de compensacion parcial (`fv.tope = "ENERGIA_PARCIAL"`), la compensacion directa excluye peajes/cargos de energia; si la tarifa tiene BV, el sobrante no aplicado por ese limite tambien se acumula en BV.
@@ -276,7 +276,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 32 (`js/*.js` + `js/bv/*.js`).
-- Lineas JS aproximadas: 19.977.
+- Lineas JS aproximadas: 19.980.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (96 tarifas).

@@ -358,7 +358,7 @@
       // Precio compensación: preferimos el precio usado por el ranking si el render lo dejó en la fila.
       const rowPriceUsed = Number(selectedRowDataset.fvPriceUsed);
       if (tarifa.fv.exc === -1) {
-        precioCompensacion = Number.isFinite(rowPriceUsed) ? rowPriceUsed : 0.03;
+        precioCompensacion = Number.isFinite(rowPriceUsed) ? rowPriceUsed : 0.02;
       } else if (typeof tarifa.fv.exc === 'number') {
         precioCompensacion = tarifa.fv.exc;
       } else {
@@ -431,7 +431,7 @@
       ssaaRate: Number(selectedRowDataset.ssaaRate) || 0,
       ssaaMonth: selectedRowDataset.ssaaMonth || null,
       precioCompensacionIndexada: tarifa.fv?.exc === -1,
-      precioCompensacionSource: selectedRowDataset.fvPriceSource || (tarifa.fv?.exc === -1 ? 'reference-0.03' : 'fixed'),
+      precioCompensacionSource: selectedRowDataset.fvPriceSource || (tarifa.fv?.exc === -1 ? 'reference-0.02' : 'fixed'),
 
       zonaFiscal: inputs.zonaFiscal,
       esViviendaCanarias: inputs.viviendaCanarias,

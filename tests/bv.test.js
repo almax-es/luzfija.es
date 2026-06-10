@@ -195,9 +195,9 @@ describe('Simulador Solar Mensual (bv-sim-monthly.js)', () => {
       zonaFiscal: 'Península'
     });
 
-    expect(res.precioExcSource).toBe('reference-0.03');
-    expect(res.precioExc).toBe(0.03);
-    expect(res.creditoPotencial).toBeCloseTo(0.6, 2);
+    expect(res.precioExcSource).toBe('reference-0.02');
+    expect(res.precioExc).toBe(0.02);
+    expect(res.creditoPotencial).toBeCloseTo(0.4, 2);
   });
 
   it('calcMonthForTarifa: no cae a 0,03 si la trazabilidad horaria indexada da importe negativo', () => {

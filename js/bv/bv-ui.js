@@ -153,15 +153,15 @@ window.BVSim.manualUi.createHourlyTraceControls = function createHourlyTraceCont
     const _traceActive = Array.isArray(hourlyTraceState.records) && hourlyTraceState.records.length > 0 && !hourlyTraceState.dirty;
     const _traceZona = hourlyTraceState.zonaFiscal;
     if (_traceActive && _traceZona && String(_traceZona) !== String(zonaFiscalVal || '')) {
-      return 'El CSV importado es de <strong>' + escapeHtmlFn(String(_traceZona)) + '</strong>; cambia la zona o reimporta para usar el cálculo exacto. Se usa 0,030&nbsp;€/kWh de referencia.';
+      return 'El CSV importado es de <strong>' + escapeHtmlFn(String(_traceZona)) + '</strong>; cambia la zona o reimporta para usar el cálculo exacto. Se usa 0,020&nbsp;€/kWh de referencia.';
     } else if (hourlyTraceState.stats && hourlyTraceState.stats.totalKwh === 0 && (hourlyTraceState.stats.missing || 0) > 0) {
-      return 'No hay precios del índice disponibles para el periodo del CSV. Se usa 0,030&nbsp;€/kWh de referencia.';
+      return 'No hay precios del índice disponibles para el periodo del CSV. Se usa 0,020&nbsp;€/kWh de referencia.';
     } else if (hourlyTraceState.reason === 'no-hourly-surplus-column') {
-      return 'El CSV importado no tiene columna de excedentes (AS_kWh). Se usa 0,030&nbsp;€/kWh de referencia.';
+      return 'El CSV importado no tiene columna de excedentes (AS_kWh). Se usa 0,020&nbsp;€/kWh de referencia.';
     } else if (_traceActive && hourlyTraceState.stats && hourlyTraceState.stats.totalKwh === 0 && (hourlyTraceState.stats.missing || 0) === 0) {
-      return 'Tu CSV no registra excedentes para este periodo. Se usa 0,030&nbsp;€/kWh de referencia.';
+      return 'Tu CSV no registra excedentes para este periodo. Se usa 0,020&nbsp;€/kWh de referencia.';
     }
-    return 'Sin CSV con excedentes activo, se usa 0,030&nbsp;€/kWh de referencia orientativa.';
+    return 'Sin CSV con excedentes activo, se usa 0,020&nbsp;€/kWh de referencia orientativa.';
   }
 
   return {
@@ -1847,7 +1847,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
         const missing = rows.reduce((acc, row) => acc + (Number(row.indexedMissingHours) || 0), 0);
         const text = usesHourlyIndex
           ? `Cálculo horario según índice base: los excedentes importados se valoran hora a hora con el histórico disponible. Es exacto solo si la fórmula comercial coincide con ese índice; si hay ajustes, costes de gestión o fórmula propia, puede variar.${missing > 0 ? ` ${missing} horas no encontraron precio horario.` : ''}`
-          : 'Referencia orientativa: sin curva horaria trazable, esta tarifa indexada usa 0,0300 €/kWh como referencia. El importe real depende de las horas exactas de vertido y de la fórmula comercial.';
+          : 'Referencia orientativa: sin curva horaria trazable, esta tarifa indexada usa 0,0200 €/kWh como referencia. El importe real depende de las horas exactas de vertido y de la fórmula comercial.';
         return `<div class="bv-nufri-disclaimer" style="
           margin-top: 8px;
           padding: 8px 12px;
