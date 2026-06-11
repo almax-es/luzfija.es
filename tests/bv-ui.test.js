@@ -227,6 +227,41 @@ describe('BV UI manual month helpers', () => {
       .toContain('No hay precios del índice disponibles');
   });
 
+  describe('resolveSaldoConfig: saldo BV inicial solo para "Mi tarifa" con BV', () => {
+    const customConBV = { nombre: 'Mi tarifa ⭐', esPersonalizada: true, fv: { exc: 0.05, bv: true } };
+    const customSinBV = { nombre: 'Mi tarifa ⭐', esPersonalizada: true, fv: { exc: 0.05, bv: false } };
+    const candidataBV = { nombre: 'Candidata', fv: { exc: 0.05, bv: true } };
+
+    it('con Mi tarifa con BV: aplica el saldo solo a ella, candidatas a 0', () => {
+      const cfg = window.BVSim.manualUi.resolveSaldoConfig(customConBV, 50);
+      expect(cfg.aplicado).toBe(true);
+      expect(cfg.sinDestino).toBe(false);
+      expect(cfg.resolver(customConBV)).toBe(50);
+      expect(cfg.resolver(candidataBV)).toBe(0);
+    });
+
+    it('saldo sin destino: hay saldo pero no Mi tarifa, o Mi tarifa sin BV', () => {
+      const sinCustom = window.BVSim.manualUi.resolveSaldoConfig(null, 50);
+      expect(sinCustom.aplicado).toBe(false);
+      expect(sinCustom.sinDestino).toBe(true);
+      expect(sinCustom.resolver(candidataBV)).toBe(0);
+
+      const customNoBV = window.BVSim.manualUi.resolveSaldoConfig(customSinBV, 50);
+      expect(customNoBV.aplicado).toBe(false);
+      expect(customNoBV.sinDestino).toBe(true);
+      expect(customNoBV.resolver(customSinBV)).toBe(0);
+    });
+
+    it('saldo 0, negativo o no numérico: ni aplicado ni aviso', () => {
+      [0, -25, NaN, undefined].forEach((saldo) => {
+        const cfg = window.BVSim.manualUi.resolveSaldoConfig(customConBV, saldo);
+        expect(cfg.aplicado).toBe(false);
+        expect(cfg.sinDestino).toBe(false);
+        expect(cfg.resolver(customConBV)).toBe(0);
+      });
+    });
+  });
+
   it('inicializa DOMContentLoaded sin usar variables antes de inicializarlas', () => {
     document.body.innerHTML = `
       <div id="toast"><span id="toastText"></span><span id="toastDot"></span></div>

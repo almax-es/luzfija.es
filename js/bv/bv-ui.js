@@ -101,6 +101,24 @@ window.BVSim.manualUi.buildSimulationMonths = function buildSimulationMonths(ent
   return months;
 };
 
+/**
+ * Decide cómo aplicar el saldo BV inicial introducido por el usuario.
+ * La hucha pertenece a la comercializadora actual y no se transfiere al cambiar,
+ * así que solo aplica a "Mi tarifa ⭐" (esPersonalizada) si tiene BV.
+ * @param {Object|null} customTarifa - Tarifa personalizada (o null si no está rellenada)
+ * @param {number} saldoVal - Saldo introducido en el formulario
+ * @returns {{aplicado: boolean, sinDestino: boolean, resolver: function}}
+ */
+window.BVSim.manualUi.resolveSaldoConfig = function resolveSaldoConfig(customTarifa, saldoVal) {
+  const saldo = Math.max(0, Number(saldoVal) || 0);
+  const customHasBV = Boolean(customTarifa?.esPersonalizada && customTarifa?.fv?.bv);
+  return {
+    aplicado: saldo > 0 && customHasBV,
+    sinDestino: saldo > 0 && !customHasBV,
+    resolver: (tarifa) => (tarifa?.esPersonalizada && tarifa?.fv?.bv) ? saldo : 0
+  };
+};
+
 window.BVSim.manualUi.rotateMonthsByStart = function rotateMonthsByStart(months, startKey) {
   const list = Array.isArray(months) ? months : [];
   const key = typeof startKey === 'string' ? startKey.trim() : '';
@@ -1570,18 +1588,17 @@ document.addEventListener('DOMContentLoaded', () => {
       const simulationMonths = window.BVSim.manualUi.rotateMonthsByStart(baseMonths, mesInicioVal);
       const monthMap = new Map(baseMonths.map((m) => [m.key, m]));
 
-      // Saldo BV inicial: la hucha pertenece a la comercializadora actual y no se
-      // transfiere al cambiar, así que solo se aplica a "Mi tarifa ⭐" (si tiene BV).
-      // Las candidatas nuevas empiezan siempre con hucha a 0.
-      const customHasBV = Boolean(customTarifa?.fv?.bv);
-      const saldoAplicado = saldoVal > 0 && customHasBV;
-      const saldoSinDestino = saldoVal > 0 && !customHasBV;
+      // Saldo BV inicial: solo aplica a "Mi tarifa ⭐" con BV (la hucha no se
+      // transfiere entre comercializadoras); las candidatas empiezan a 0.
+      const saldoConfig = window.BVSim.manualUi.resolveSaldoConfig(customTarifa, saldoVal);
+      const saldoAplicado = saldoConfig.aplicado;
+      const saldoSinDestino = saldoConfig.sinDestino;
 
       const allResults = window.BVSim.simulateForAllTarifasBV({
         months: simulationMonths,
         tarifasBV: tarifasResult.tarifasBV,
         potenciaP1: p1Val, potenciaP2: p2Val,
-        bvSaldoInicial: (tarifa) => (tarifa?.esPersonalizada && tarifa?.fv?.bv) ? saldoVal : 0,
+        bvSaldoInicial: saldoConfig.resolver,
         zonaFiscal: zonaFiscalVal,
         esVivienda: esViviendaCanarias,
         ssaaDataset
@@ -1924,12 +1941,22 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
       let customDeltaKpi = '';
       if (customResult && !winnerIsCustom) {
         const deltaVsCustom = r2((customResult.totals.pagado || 0) - (winner.totals.pagado || 0));
-        customDeltaKpi = `
+        if (deltaVsCustom > 0.005) {
+          customDeltaKpi = `
             <div class="bv-kpi-card highlight">
               <span class="bv-kpi-label">Frente a tu tarifa actual</span>
               <span class="bv-kpi-value surplus">−${fEur(deltaVsCustom)}</span>
               <span class="bv-kpi-sub">Mi tarifa ⭐ pagaría ${fEur(customResult.totals.pagado)} (#${customRank} del ranking)${saldoAplicado ? ', ya contando el saldo BV que perderías al cambiar' : ''}</span>
             </div>`;
+        } else {
+          // Empate en coste: el puesto se ha decidido por el saldo BV final
+          customDeltaKpi = `
+            <div class="bv-kpi-card highlight">
+              <span class="bv-kpi-label">Frente a tu tarifa actual</span>
+              <span class="bv-kpi-value">Empate</span>
+              <span class="bv-kpi-sub">Mismo coste del periodo que Mi tarifa ⭐ (#${customRank}); el puesto se decide por el saldo BV final</span>
+            </div>`;
+        }
       }
       const winnerCustomNote = winnerIsCustom
         ? '<div class="bv-note bv-note-compact" style="margin-top:8px;">⭐ Es tu tarifa actual: ninguna de las simuladas mejora su coste del periodo.</div>'
