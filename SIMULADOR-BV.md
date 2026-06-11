@@ -989,7 +989,7 @@ showToast('Subiendo archivo...', 'info');  // Azul
 3. Arrastra el CSV al simulador
 4. Introduce tus potencias P1/P2
 5. Selecciona tu zona fiscal
-6. Haz clic en "Calcular ahorro"
+6. Haz clic en "Comparar Tarifas y Ver Ahorro →"
 7. El simulador te mostrará:
    - **Ganador**: La tarifa que menos pagas en total
    - **Saldo BV final**: Cuánto dinero acumulas al final
