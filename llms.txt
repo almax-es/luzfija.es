@@ -73,6 +73,7 @@ Repository license model: source-available, not open source. Software is under P
 - Independent monthly simulator for solar + remunerated-surplus scenarios (with and without BV).
 - Hybrid workflow: CSV/XLSX import -> editable manual monthly grid.
 - Ranking by paid cost for the simulated period; it is annual only when 12 reasonably complete months are available, with final virtual battery balance as tie-break.
+- Secondary net-cost metric for BV tariffs when a final balance remains: paid cost minus final BV balance. It does not alter ranking and only matters if the user keeps that provider and consumes the balance later.
 - Contract start month can rotate the annual month pattern for BV carry-over; it changes simulation order, not the kWh/surplus attached to each month.
 - Local autosave + JSON export/import for manual data.
 - Supports a simulator-specific custom tariff stored locally.
@@ -174,13 +175,15 @@ Repository license model: source-available, not open source. Software is under P
 - surplus compensation (capped by energy),
 - taxes by fiscal zone,
 - virtual battery usage/accumulation.
-- Ranking uses paid cost for the simulated period first, then final BV balance; it is annual only with 12 reasonably complete months.
+- Ranking uses paid cost for the simulated period first, then final BV balance as tie-break; it is annual only with 12 reasonably complete months.
+- Shows secondary net cost for BV tariffs when final BV balance remains (paid cost minus final balance), without reordering the ranking.
 - Hybrid mode:
 - import real data,
 - then edit monthly manual grid for what-if planning.
 - Ranking and output:
 - annual paid total,
 - final BV balance,
+- secondary net cost when final BV balance remains,
 - winner card + full alternative ranking,
 - desktop table + mobile cards.
 - Local data features:
@@ -224,7 +227,7 @@ Repository license model: source-available, not open source. Software is under P
 1. PVPC is not computed when contracted power exceeds 10 kW.
 2. Site is static; no backend tariff calculator API should be assumed.
 3. Main comparator and solar simulator are different tools with different ranking logic.
-4. Solar simulator ranking uses paid cost for the simulated period first, then final BV balance.
+4. Solar simulator ranking uses paid cost for the simulated period first, then final BV balance as tie-break. Net cost (paid minus final BV balance) is displayed as a secondary metric when relevant, but does not reorder results.
 5. Some indexed-surplus cases are shown with explicit "estimated price" disclaimers in UI.
 6. Results are estimations; official invoices may differ due to commercial and regulatory details.
 7. Hourly "tomorrow" view can be temporarily unavailable until dataset publication.

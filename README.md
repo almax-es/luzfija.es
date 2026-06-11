@@ -91,7 +91,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - anual cuando hay 12 meses razonablemente completos,
 - orden por coste pagado,
 - desempate por mayor saldo BV final,
-- metrica secundaria de coste neto (pagado menos saldo BV final) en tarifas con BV.
+- metrica secundaria de coste neto (pagado menos saldo BV final) en tarifas con BV cuando queda saldo final relevante; no altera el orden.
 - Selector de mes de inicio del contrato para simular la hucha desde la contratacion.
 - Simulacion por patron anual: si el ciclo empieza en junio, los meses enero-mayo del final representan la continuacion del ciclo con los mismos datos historicos.
 - Desglose completo por tarifa en desktop (tabla) y movil (tarjetas).

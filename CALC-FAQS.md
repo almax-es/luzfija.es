@@ -166,7 +166,7 @@ return Math.max(
 totalPagar = Lo que PAGAS este mes
            = totalBaseConCosteBV - (saldo BV anterior usado)
 
-totalReal = Coste REAL del mes sin saldo anterior
+totalReal = Coste auxiliar del mes sin saldo anterior
           = totalBaseConCosteBV - (excedentes sobrantes)
 ```
 
@@ -181,7 +181,7 @@ Excedentes generados este mes: 10€ (sobrantes tras compensación)
 Saldo BV anterior: 5€ (de diciembre)
 
 totalPagar = 50 - 5 = 45€ ← Lo que FACTURAS (pagas menos gracias a saldo)
-totalReal = 50 - 10 = 40€ ← Coste REAL del mes (para comparar tarifas)
+totalReal = 50 - 10 = 40€ ← Métrica auxiliar del mes sin saldo anterior
 
 Mes: Febrero
 ─────────────────────────────────────
@@ -189,7 +189,7 @@ Saldo BV inicial: 10 + (5-5) = 10€ (excedentes + lo que quedó del saldo anter
 totalBaseConCosteBV: 60€
 
 totalPagar = 60 - 10 = 50€ ← Pagas menos gracias a saldo acumulado
-totalReal = 60 - nuevos_excedentes = ? ← Coste real de febrero
+totalReal = 60 - nuevos_excedentes = ? ← Métrica auxiliar de febrero
 ```
 
 **¿Por qué dos métricas?**
@@ -197,6 +197,14 @@ totalReal = 60 - nuevos_excedentes = ? ← Coste real de febrero
 - `totalReal`: Métrica auxiliar para auditar el coste del mes sin saldo BV previo
 
 El ranking visible del simulador solar usa `totals.pagado` y desempata por `totals.bvFinal`. `totalReal` no es el criterio principal de ordenación actual.
+
+Además, la UI muestra una métrica secundaria de coste neto del periodo cuando una tarifa con BV acaba con saldo final relevante:
+
+```javascript
+costeNetoPeriodo = totals.pagado - totals.bvFinal
+```
+
+Ese coste neto no reordena el ranking. Sirve para corregir el artefacto del mes de corte cuando la hucha queda cargada, pero depende de seguir con la comercializadora y poder consumir ese saldo en facturas futuras. Si sale negativo se presenta como "saldo a favor", no como coste negativo garantizado.
 
 ---
 
@@ -226,7 +234,7 @@ if (!hasBV) {
   bvSaldo = 0;
   bvSaldoFin = 0;
   totalPagar = totalBase;      // Pagas todo (sin saldo para descontar)
-  totalReal = totalBase;       // Coste real = factura (excedentes se pierden)
+  totalReal = totalBase;       // Métrica auxiliar = factura (excedentes se pierden)
 }
 
 if (hasBV) {
@@ -241,7 +249,7 @@ if (hasBV) {
 | totalBase | 50€ | 50€ |
 | Excedentes sobrantes | 10€ | 10€ |
 | totalReal | 50 - 10 = 40€ | 50 - 0 = 50€ |
-| Diferencia | Aparece barata en ranking | Aparece cara en ranking |
+| Diferencia | Reduce `totalReal` auxiliar | No reduce `totalReal` auxiliar |
 
 **Conclusión**: Sin BV, `totalReal = totalBase` (los excedentes no se aprovechan).
 

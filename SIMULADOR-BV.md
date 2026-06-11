@@ -27,7 +27,7 @@ El **Simulador de Batería Virtual** es una herramienta especializada que permit
 |---|---|---|
 | **Input** | Datos agregados (días, kWh totales) | Consumos horarios (CSV/XLSX) |
 | **Cálculo** | Un periodo único | Mes a mes (histórico) |
-| **Batería Virtual** | Estimación simplificada | Simulación exacta mes a mes |
+| **Batería Virtual** | Estimación simplificada | Simulación mensual detallada |
 | **Ranking** | Mercado libre + PVPC integrado | Tarifas con excedentes remunerados |
 | **Output** | Factura estimada | Evolución mensual completa |
 
@@ -35,7 +35,7 @@ El **Simulador de Batería Virtual** es una herramienta especializada que permit
 
 Las tarifas con **batería virtual** acumulan los excedentes solares sobrantes (que no se compensan en el mismo mes) en una "hucha" en euros para usarlos en meses futuros. Esta característica hace que:
 
-1. **El ahorro real dependa del histórico**: Un mes malo puede ser compensado por la BV acumulada en meses buenos
+1. **El ahorro estimado dependa del histórico**: Un mes malo puede ser compensado por la BV acumulada en meses buenos
 2. **La comparación simple no funcione**: Necesitas simular mes a mes para ver el efecto acumulativo
 3. **El orden del ranking cambie**: La mejor tarifa con BV puede no ser la mejor sin BV
 
@@ -106,9 +106,12 @@ rankedResults.sort((a, b) => {
 
 **Diferencia clave**:
 - **`totalPagar`**: lo que pagas en esa fila mensual (con BV aplicada del mes anterior).
-- **`totalReal`**: coste neto auxiliar de esa fila mensual (sin contar BV anterior).
+- **`totalReal`**: métrica auxiliar de esa fila mensual (sin contar BV anterior).
+- **Coste neto del periodo**: métrica secundaria de UI para tarifas con BV, calculada como `totals.pagado - totals.bvFinal`.
 
 El ranking suma `totalPagar` en `totals.pagado` para el periodo simulado y desempata por `totals.bvFinal`. `totalReal` existe como métrica auxiliar, no como criterio principal de ordenación.
+
+El coste neto del periodo se muestra solo como dato secundario cuando hay BV y saldo final relevante. Corrige el artefacto de cerrar el ciclo con la hucha cargada, pero no cambia el ganador: el saldo final cuenta solo si el usuario sigue con esa comercializadora y puede consumirlo en facturas futuras. Si `totals.pagado - totals.bvFinal` es negativo, la UI lo presenta como **saldo a favor tras cubrir el periodo**.
 
 ### 📉 Desglose Detallado
 
@@ -127,7 +130,7 @@ Para cada mes muestra:
 | **Uso Hucha** | BV usada este mes | Saldo anterior aplicado |
 | **Saldo Fin** | BV acumulada al final | Resto + Nuevo excedente |
 
-**Tooltips contextuales**: Cada concepto tiene un tooltip explicando el cálculo exacto con los números reales.
+**Tooltips contextuales**: Cada concepto tiene un tooltip explicando el cálculo aplicado con los números reales.
 
 ### 🌍 Zonas Fiscales
 
@@ -440,7 +443,8 @@ Ordenar por totalPagar (ASC)
     ↓
 Renderizar:
   - Winner card (mejor tarifa)
-  - KPIs (pagado total, saldo BV final)
+  - KPIs (pagado total, compensación, uso de hucha, saldo BV final)
+  - Coste neto secundario si hay saldo BV final relevante (pagado - bvFinal)
   - Desglose mes a mes (con tooltips)
   - Alternativas (resto del ranking)
 ```
@@ -613,6 +617,14 @@ window.BVSim.simulateForTarifaDemo({
   }
 }
 ```
+
+La UI puede derivar de esos totales el coste neto secundario del periodo:
+
+```javascript
+costeNetoPeriodo = totals.pagado - totals.bvFinal
+```
+
+No se guarda como criterio de ordenación ni sustituye a `totals.pagado`.
 
 #### Simulación Masiva
 
@@ -977,14 +989,14 @@ showToast('Subiendo archivo...', 'info');  // Azul
 3. Arrastra el CSV al simulador
 4. Introduce tus potencias P1/P2
 5. Selecciona tu zona fiscal
-6. Haz clic en "Calcular Ahorro Real →"
+6. Haz clic en "Calcular ahorro"
 7. El simulador te mostrará:
    - **Ganador**: La tarifa que menos pagas en total
    - **Saldo BV final**: Cuánto dinero acumulas al final
    - **Coste neto si aprovechas el saldo final**: pagado menos saldo BV final; cuenta solo si sigues con la comercializadora (si sale negativo se muestra como "saldo a favor")
    - **Desglose mes a mes**: Evolución mensual de cada tarifa
 
-**Resultado**: Sabrás qué tarifa BV te ahorra más dinero considerando la acumulación mensual.
+**Resultado**: Sabrás qué tarifa BV reduce más el pago del periodo y qué saldo queda pendiente para facturas futuras.
 
 ### Caso 2: Comparar con tu Tarifa Actual
 
@@ -1084,7 +1096,7 @@ El simulador lee de `tarifas.json` automáticamente. Para añadir/actualizar tar
 |---|---|---|
 | **Datos reales** | ✅ CSV horarios | ❌ Estimaciones |
 | **Mes a mes** | ✅ Evolución completa | ❌ Cálculo único |
-| **BV simulada** | ✅ Acumulación exacta | ❌ o simplificada |
+| **BV simulada** | ✅ Acumulación mes a mes | ❌ o simplificada |
 | **Tarifas solares elegibles** | ✅ Ranking completo | ⚠️ Solo algunas |
 | **Privacidad** | ✅ Procesamiento local | ❌ Envía datos |
 | **Gratuito** | ✅ Sin coste | ⚠️ De pago |

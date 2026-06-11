@@ -171,7 +171,7 @@ Analytics:
 
 1. PVPC is not computed in the main comparator when contracted power exceeds 10 kW.
 2. Main comparator and solar simulator are different tools and should not be merged conceptually.
-3. Solar simulator ranking uses paid cost for the simulated period first and final virtual-battery balance as tie-break; it is annual only when 12 reasonably complete months are available.
+3. Solar simulator ranking uses paid cost for the simulated period first and final virtual-battery balance as tie-break; it is annual only when 12 reasonably complete months are available. Net cost (paid cost minus final BV balance) is shown as a secondary metric when relevant, but it does not reorder results.
 4. Some indexed-surplus cases are shown as estimated prices, not hard fixed final prices.
 5. Results are estimates and may differ from final invoices because of commercial details, rounding, or regulatory changes.
 6. Hourly tomorrow data can be temporarily unavailable until the corresponding dataset exists.

@@ -299,19 +299,27 @@ La Batería Virtual (BV) es un servicio comercial que permite:
 2. Acumular sobrantes en una "hucha" virtual
 3. Usar el saldo acumulado en meses posteriores
 
-### 📊 Dos métricas importantes
+### 📊 Métricas importantes
 
 ```
 totalPagar = Lo que PAGAS este mes
            = totalBaseConCosteBV - (saldo BV anterior usado)
            → Para factura real
 
-totalReal = Coste REAL del mes sin saldo anterior
+totalReal = Coste auxiliar del mes sin saldo anterior
           = totalBaseConCosteBV - (excedentes sobrantes)
           → Métrica auxiliar para auditoría y comparación sin saldo previo
 ```
 
 El ranking visible del simulador solar no usa `totalReal`: ordena por `totals.pagado` y desempata por `totals.bvFinal`.
+
+La UI también muestra una métrica secundaria para tarifas con BV cuando queda saldo final relevante:
+
+```javascript
+costeNetoPeriodo = totals.pagado - totals.bvFinal
+```
+
+No altera el orden del ranking. Indica cuánto quedaría si el usuario aprovecha el saldo final en facturas futuras; por eso es valor condicionado a seguir con la comercializadora y a sus reglas de uso/caducidad. Si sale negativo se muestra como saldo a favor, no como coste negativo garantizado.
 
 ### ⚠️ Comportamiento según tipo tarifa
 
@@ -323,7 +331,7 @@ bvPrev = 0              // No tiene saldo previo
 credit2 = 0             // No usa nada
 bvSaldoFin = 0          // No acumula
 totalPagar = totalBase  // Pagas todo
-totalReal = totalBase   // Coste real = factura (excedentes se pierden)
+totalReal = totalBase   // Métrica auxiliar = factura (excedentes se pierden)
 ```
 
 **Tarifa CON Batería Virtual**:
@@ -334,7 +342,7 @@ bvPrev = 5.00                                          // Tienes saldo anterior
 credit2 = min(5.00, totalBaseConCosteBV)             // Usas lo que necesites
 bvSaldoFin = excedenteSobranteEur + resto             // Acumulas sobrantes
 totalPagar = totalBaseConCosteBV - credit2            // Pagas menos (con saldo)
-totalReal = totalBaseConCosteBV - excedenteSobranteEur // Coste real (sin saldo anterior)
+totalReal = totalBaseConCosteBV - excedenteSobranteEur // Métrica auxiliar sin saldo anterior
 ```
 
 ### 💳 Cuota fija mensual de BV (`precioBV`)
