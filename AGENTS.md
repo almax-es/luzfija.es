@@ -45,7 +45,7 @@ Tambien es importante lo que no es: no monetiza el ranking, no vende leads y no 
 - PVPC y excedentes se calculan con datasets estaticos versionados en `data/pvpc/` y `data/surplus/`, no con llamadas live a ESIOS desde el navegador.
 - En la home, PVPC no se calcula cuando la potencia contratada supera 10 kW.
 - El comparador principal y el simulador solar son herramientas distintas. No comparten la misma logica de ranking.
-- En el simulador solar, el ranking visible usa `totals.pagado` y desempata con `totals.bvFinal`. `totals.real` existe como metrica auxiliar, no como criterio principal de ordenacion actual.
+- En el simulador solar, el ranking visible usa `totals.pagado` y desempata con `totals.bvFinal`. `totals.real` existe como metrica auxiliar, no como criterio principal de ordenacion actual. La UI puede mostrar `totals.pagado - totals.bvFinal` como coste neto secundario si queda saldo BV final relevante, pero no reordena el ranking.
 - Si hay importacion horaria y el usuario activa `PVPC con precios del periodo`, la home puede cruzar la curva del CSV con precios PVPC horarios reales del periodo importado. Si no, compara contra el PVPC actual/reciente.
 - El parser horario canonico es `window.LF.csvUtils.getPeriodoHorarioCSV`. No dupliques esa logica en otros modulos.
 
@@ -73,6 +73,7 @@ Falsos positivos ya conocidos y documentados:
 
 - "El IEE de PVPC se calcula sin restar el descuento del bono social." Falso: el descuento se resta antes de calcular el IEE. Ver `ARQUITECTURA-CALCULOS.md` y `CALC-FAQS.md`.
 - "La BV se aplica a tarifas que no tienen BV." Falso: el simulador comprueba `tarifa.fv.bv`; sin BV, el sobrante no se acumula. Ver `SIMULADOR-BV.md`.
+- "El ranking del simulador solar deberia ordenar por coste neto (`pagado - bvFinal`)." No es un bug actual: el ranking ordena por lo efectivamente pagado en el periodo, usa `bvFinal` solo como desempate y muestra el coste neto como metrica secundaria condicionada a seguir con la comercializadora.
 - "Si el consumo es 0 kWh entonces el IEE deberia ser 0 en cualquier factura." Falso: si hay termino de potencia/base imponible, puede haber IEE aunque el consumo sea 0. Ver `CALC-FAQS.md`.
 - "Los CSV exponen CUPS o strings libres en la UI y por eso las paginas CSV necesitan CSP mas estricta." Falso: `CUPS` puede reconocerse como cabecera, pero sus valores no se guardan ni se renderizan; la UI muestra agregados numericos.
 - "Las guias o paginas editoriales con `unsafe-inline` son un riesgo de privacidad importante." Falso como hallazgo prioritario: esas paginas no procesan facturas, CSV ni datos sensibles. La pagina que procesa la factura PDF es la home y ya tiene CSP reforzada con hashes. En guias/editorial, CSP estricta es una mejora de hardening general, no un problema relevante de proteccion de datos.

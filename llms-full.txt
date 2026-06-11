@@ -80,7 +80,7 @@ What it does:
 - works with and without virtual battery
 - supports hybrid workflow: import real data, then edit monthly manual values
 - supports contract start month: this rotates the annual month pattern for BV carry-over without changing each month's kWh/surplus data
-- ranks annual outcomes
+- ranks paid cost for the simulated period, annual only when 12 reasonably complete months are available
 - stores simulator-specific local state
 - supports JSON export/import for manual scenarios
 
