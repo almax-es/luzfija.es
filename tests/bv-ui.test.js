@@ -262,6 +262,41 @@ describe('BV UI manual month helpers', () => {
     });
   });
 
+  describe('resolveCosteNeto: métrica secundaria pagado − saldo BV final', () => {
+    it('con BV y saldo final: muestra el coste neto como resta exacta', () => {
+      const r = window.BVSim.manualUi.resolveCosteNeto({ pagado: 320, bvFinal: 60 }, true);
+      expect(r.mostrar).toBe(true);
+      expect(r.neto).toBe(260);
+      expect(r.aFavor).toBe(false);
+      expect(r.importe).toBe(260);
+      expect(r.label).toBe('Coste neto si aprovechas el saldo final');
+    });
+
+    it('neto negativo: se presenta como saldo a favor con importe positivo', () => {
+      const r = window.BVSim.manualUi.resolveCosteNeto({ pagado: 40, bvFinal: 55.5 }, true);
+      expect(r.mostrar).toBe(true);
+      expect(r.neto).toBe(-15.5);
+      expect(r.aFavor).toBe(true);
+      expect(r.importe).toBe(15.5);
+      expect(r.label).toBe('Saldo a favor tras cubrir el periodo');
+    });
+
+    it('sin BV o con saldo final residual no se muestra (sería redundante con pagado)', () => {
+      expect(window.BVSim.manualUi.resolveCosteNeto({ pagado: 320, bvFinal: 60 }, false).mostrar).toBe(false);
+      expect(window.BVSim.manualUi.resolveCosteNeto({ pagado: 320, bvFinal: 0 }, true).mostrar).toBe(false);
+      expect(window.BVSim.manualUi.resolveCosteNeto({ pagado: 320, bvFinal: 0.004 }, true).mostrar).toBe(false);
+    });
+
+    it('totales ausentes o no numéricos: no rompe y no se muestra', () => {
+      [null, undefined, {}, { pagado: NaN, bvFinal: 'x' }].forEach((totals) => {
+        const r = window.BVSim.manualUi.resolveCosteNeto(totals, true);
+        expect(r.mostrar).toBe(false);
+        expect(r.neto).toBe(0);
+        expect(r.aFavor).toBe(false);
+      });
+    });
+  });
+
   it('inicializa DOMContentLoaded sin usar variables antes de inicializarlas', () => {
     document.body.innerHTML = `
       <div id="toast"><span id="toastText"></span><span id="toastDot"></span></div>

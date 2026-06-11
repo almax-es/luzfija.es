@@ -119,6 +119,31 @@ window.BVSim.manualUi.resolveSaldoConfig = function resolveSaldoConfig(customTar
   };
 };
 
+/**
+ * Métrica secundaria "coste neto": pagado − saldo BV final del periodo.
+ * Corrige el artefacto del mes de corte (si el ciclo termina tras meses solares
+ * buenos, la hucha queda cargada y el "pagado" infravalora la tarifa), pero el
+ * ranking sigue ordenando por "pagado": el saldo final es valor condicionado a
+ * seguir con la comercializadora. No reutilizar totals.real (clampa mes a mes
+ * y descarta el sobrante estival).
+ * @param {Object|null} totals - Totales de la simulación ({pagado, bvFinal})
+ * @param {boolean} hasBV - Si la tarifa tiene batería virtual
+ * @returns {{mostrar: boolean, neto: number, aFavor: boolean, importe: number, label: string}}
+ */
+window.BVSim.manualUi.resolveCosteNeto = function resolveCosteNeto(totals, hasBV) {
+  const pagado = Number(totals?.pagado) || 0;
+  const bvFinal = Number(totals?.bvFinal) || 0;
+  const neto = Math.round((pagado - bvFinal) * 100) / 100;
+  const aFavor = neto < -0.005;
+  return {
+    mostrar: Boolean(hasBV) && bvFinal > 0.005,
+    neto,
+    aFavor,
+    importe: Math.abs(neto),
+    label: aFavor ? 'Saldo a favor tras cubrir el periodo' : 'Coste neto si aprovechas el saldo final'
+  };
+};
+
 window.BVSim.manualUi.rotateMonthsByStart = function rotateMonthsByStart(months, startKey) {
   const list = Array.isArray(months) ? months : [];
   const key = typeof startKey === 'string' ? startKey.trim() : '';
@@ -1928,6 +1953,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
       const winnerName = escapeHtml(winner.tarifa?.nombre || '');
       const winnerUrl = sanitizeUrl(winner.tarifa?.web);
       const winnerHasBV = Boolean(winner.tarifa?.fv?.bv);
+      const winnerNeto = window.BVSim.manualUi.resolveCosteNeto(winner.totals, winnerHasBV);
       const pillWinner = winnerHasBV
         ? '<span class="bv-pill bv-pill--bv" title="Esta tarifa acumula el excedente sobrante (en €) para meses futuros.">Con batería virtual</span>'
         : '<span class="bv-pill bv-pill--no-bv" title="Esta tarifa NO acumula excedente sobrante: lo no compensado se pierde cada mes.">Sin batería virtual</span>';
@@ -1998,6 +2024,13 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
               <span class="bv-kpi-value surplus">${fEur(winner.totals.bvFinal)}</span>
               <span class="bv-kpi-sub">Acumulado al final · uso y caducidad según condiciones de la comercializadora</span>
             </div>
+            ${winnerNeto.mostrar ? `
+            <div class="bv-kpi-card">
+              <span class="bv-kpi-label">${winnerNeto.label}</span>
+              <span class="bv-kpi-value${winnerNeto.aFavor ? ' surplus' : ''}">${fEur(winnerNeto.importe)}</span>
+              <span class="bv-kpi-sub">Pagado menos saldo BV final; cuenta solo si sigues con la comercializadora y lo consumes en facturas futuras</span>
+            </div>
+            ` : ''}
             ` : ''}
           </div>
         </div>
@@ -2021,6 +2054,10 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
         const deltaHTML = deltaVsWinner > 0.005
           ? `<div class="bv-alt-delta" style="font-size:11px; font-weight:700; color:var(--warn); margin-top:2px;">+${fEur(deltaVsWinner)} vs mejor opción</div>`
           : '';
+        const altNeto = window.BVSim.manualUi.resolveCosteNeto(r.totals, hasBV);
+        const altNetoHTML = altNeto.mostrar
+          ? `<div class="bv-alt-neto">${altNeto.label}: ${fEur(altNeto.importe)}</div>`
+          : '';
 
         return `
           <div class="bv-alt-card-compact">
@@ -2035,6 +2072,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
                 <div class="bv-alt-price-label">${totalCostLabel}</div>
                 ${deltaHTML}
                 ${hasBV ? `<div class="bv-alt-bv-saldo">${fEur(r.totals.bvFinal)} Saldo BV final</div>` : ''}
+                ${altNetoHTML}
               </div>
             </div>
 

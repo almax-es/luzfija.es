@@ -903,6 +903,13 @@ html.light-mode .bv-manual-container {
   text-shadow: 0 0 10px rgba(251, 191, 36, 0.2);
 }
 
+.bv-alt-neto {
+  font-size: 0.75rem;
+  color: var(--muted);
+  font-weight: 600;
+  margin-top: 2px;
+}
+
 .bv-note-compact {
   margin: 0 0 14px 0;
   padding: 10px 14px;
