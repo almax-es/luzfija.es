@@ -1915,12 +1915,31 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
       const winnerNufriNote = getIndexadoDisclaimer(winner.tarifa, winner);
       const winnerCompParcialNote = getCompParcialDisclaimer(winner.tarifa, winner);
 
+      // Delta frente a "Mi tarifa ⭐" (si el usuario la ha rellenado)
+      const customResult = rankedResults.find((r) => r.tarifa?.esPersonalizada);
+      const customRank = customResult ? rankedResults.indexOf(customResult) + 1 : 0;
+      const winnerIsCustom = Boolean(winner.tarifa?.esPersonalizada);
+      let customDeltaKpi = '';
+      if (customResult && !winnerIsCustom) {
+        const deltaVsCustom = r2((customResult.totals.pagado || 0) - (winner.totals.pagado || 0));
+        customDeltaKpi = `
+            <div class="bv-kpi-card highlight">
+              <span class="bv-kpi-label">Frente a tu tarifa actual</span>
+              <span class="bv-kpi-value surplus">−${fEur(deltaVsCustom)}</span>
+              <span class="bv-kpi-sub">Mi tarifa ⭐ pagaría ${fEur(customResult.totals.pagado)} (#${customRank} del ranking)${saldoAplicado ? ', ya contando el saldo BV que perderías al cambiar' : ''}</span>
+            </div>`;
+      }
+      const winnerCustomNote = winnerIsCustom
+        ? '<div class="bv-note bv-note-compact" style="margin-top:8px;">⭐ Es tu tarifa actual: ninguna de las simuladas mejora su coste del periodo.</div>'
+        : '';
+
       const winnerHTML = `
         <div class="bv-results-grid" style="margin-bottom: 40px;">
           <div class="bv-winner-card-compact">
             <div class="bv-winner-badge">🏆 Mejor Opción</div>
             <h2 class="bv-winner-name">${winnerName}</h2>
             <div style="margin-top: 8px;">${pillWinner}</div>
+            ${winnerCustomNote}
             ${winnerNufriNote}
             ${winnerCompParcialNote}
             <div style="margin-top:auto; padding-top:1.5rem; width:100%">
@@ -1933,11 +1952,17 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
               <span class="bv-kpi-value">${fEur(winner.totals.pagado)}</span>
               <span class="bv-kpi-sub">${totalCostSub}</span>
             </div>
+            ${customDeltaKpi}
+            <div class="bv-kpi-card">
+              <span class="bv-kpi-label">Compensación de excedentes</span>
+              <span class="bv-kpi-value">${fEur(winner.totals.credit1Total || 0)}</span>
+              <span class="bv-kpi-sub">Descontada de tus facturas mes a mes</span>
+            </div>
             ${winnerHasBV ? `
             <div class="bv-kpi-card">
-              <span class="bv-kpi-label">Ahorro con BV</span>
-              <span class="bv-kpi-value">${fEur((winner.totals.credit1Total || 0) + (winner.totals.credit2Total || 0))}</span>
-              <span class="bv-kpi-sub">Compensación + uso de saldo BV</span>
+              <span class="bv-kpi-label">Uso de hucha BV</span>
+              <span class="bv-kpi-value">${fEur(winner.totals.credit2Total || 0)}</span>
+              <span class="bv-kpi-sub">Saldo BV gastado en facturas del periodo</span>
             </div>
             <div class="bv-kpi-card highlight">
               <span class="bv-kpi-label">Saldo BV final</span>
@@ -1963,6 +1988,10 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
           : '<span class="bv-pill bv-pill--no-bv" title="No acumula excedente sobrante; lo no compensado se pierde.">Sin BV</span>';
         const altNufriNote = getIndexadoDisclaimer(r.tarifa, r);
         const altCompParcialNote = getCompParcialDisclaimer(r.tarifa, r);
+        const deltaVsWinner = r2((r.totals.pagado || 0) - (winner.totals.pagado || 0));
+        const deltaHTML = deltaVsWinner > 0.005
+          ? `<div class="bv-alt-delta" style="font-size:11px; font-weight:700; color:var(--warn); margin-top:2px;">+${fEur(deltaVsWinner)} vs mejor opción</div>`
+          : '';
 
         return `
           <div class="bv-alt-card-compact">
@@ -1975,6 +2004,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
               <div class="bv-alt-price-box">
                 <div class="bv-alt-price">${fEur(r.totals.pagado)}</div>
                 <div class="bv-alt-price-label">${totalCostLabel}</div>
+                ${deltaHTML}
                 ${hasBV ? `<div class="bv-alt-bv-saldo">${fEur(r.totals.bvFinal)} Saldo BV final</div>` : ''}
               </div>
             </div>
