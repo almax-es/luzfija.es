@@ -1,0 +1,10 @@
+# Commits de higiene masiva que conviene ignorar en git blame.
+# GitHub lo detecta automáticamente por el nombre del archivo; en local:
+#   git config blame.ignoreRevsFile .git-blame-ignore-revs
+# Si estos commits se rebasean (p.ej. por el .bat de deploy), actualizar los hashes.
+
+# chore: normalizar finales de linea a LF con .gitattributes (2026-06-11)
+4cdc55ad152152e72be8363da4f31efa2dfe96d1
+
+# chore: eliminar espacios finales historicos y actualizar hash CSP (2026-06-11)
+eb9f7ee05b16b3fc8dd9acdcf1889fa8d9bb3010
