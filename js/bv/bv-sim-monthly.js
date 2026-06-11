@@ -513,6 +513,9 @@ window.BVSim.simulateForTarifaDemo = function ({
 };
 
 // ===== SIMULACIÓN MASIVA (TODAS LAS TARIFAS) =====
+// `bvSaldoInicial` admite un número (mismo saldo para todas, comportamiento clásico)
+// o una función (tarifa) => número, para que la UI decida a qué tarifa aplica el
+// saldo (p.ej. solo a "Mi tarifa": la hucha no se transfiere entre comercializadoras).
 window.BVSim.simulateForAllTarifasBV = function ({
   months,
   tarifasBV,
@@ -524,13 +527,16 @@ window.BVSim.simulateForAllTarifasBV = function ({
   ssaaDataset = null
 }) {
   try {
+    const resolveSaldoInicial = typeof bvSaldoInicial === 'function'
+      ? bvSaldoInicial
+      : () => bvSaldoInicial;
     const results = tarifasBV.map((tarifa) => {
       return window.BVSim.simulateForTarifaDemo({
         months,
         tarifa,
         potenciaP1,
         potenciaP2,
-        bvSaldoInicial,
+        bvSaldoInicial: Math.max(0, Number(resolveSaldoInicial(tarifa)) || 0),
         zonaFiscal,
         esVivienda,
         ssaaDataset

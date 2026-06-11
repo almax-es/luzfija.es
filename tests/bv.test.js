@@ -418,4 +418,84 @@ describe('Simulador Solar Mensual (bv-sim-monthly.js)', () => {
     expect(conCuota.totalPagar).toBe(0);
   });
 
+  describe('simulateForAllTarifasBV: saldo BV inicial por tarifa', () => {
+    const mockMonths = [{
+      key: '2025-12',
+      daysWithData: 30,
+      daysInMonth: 31,
+      importByPeriod: { P1: 100, P2: 0, P3: 0 },
+      importTotalKWh: 100,
+      exportTotalKWh: 0
+    }];
+
+    const miTarifa = {
+      nombre: 'Mi tarifa ⭐',
+      esPersonalizada: true,
+      p1: 0.1, p2: 0.1,
+      cPunta: 0.1, cLlano: 0.1, cValle: 0.1,
+      fv: { exc: 0.05, bv: true }
+    };
+    const candidataBV = {
+      nombre: 'Candidata BV',
+      p1: 0.1, p2: 0.1,
+      cPunta: 0.1, cLlano: 0.1, cValle: 0.1,
+      fv: { exc: 0.05, bv: true }
+    };
+
+    it('con resolver: aplica el saldo solo a la tarifa personalizada, las candidatas empiezan a 0', () => {
+      const saldoVal = 50;
+      const out = window.BVSim.simulateForAllTarifasBV({
+        months: mockMonths,
+        tarifasBV: [candidataBV, miTarifa],
+        potenciaP1: 1, potenciaP2: 1,
+        bvSaldoInicial: (tarifa) => (tarifa?.esPersonalizada && tarifa?.fv?.bv) ? saldoVal : 0,
+        zonaFiscal: 'Península'
+      });
+
+      expect(out.ok).toBe(true);
+      const resCandidata = out.results.find(r => r.tarifa.nombre === 'Candidata BV');
+      const resMia = out.results.find(r => r.tarifa.nombre === 'Mi tarifa ⭐');
+
+      // La candidata no hereda hucha: paga la factura completa
+      expect(resCandidata.rows[0].bvSaldoPrev).toBe(0);
+      expect(resCandidata.totals.pagado).toBeGreaterThan(10);
+
+      // Mi tarifa conserva su hucha y la usa: paga 0 este mes
+      expect(resMia.rows[0].bvSaldoPrev).toBe(50);
+      expect(resMia.totals.pagado).toBe(0);
+      expect(resMia.totals.bvFinal).toBeGreaterThan(20);
+    });
+
+    it('retrocompatibilidad: bvSaldoInicial numérico sigue aplicándose a todas las tarifas con BV', () => {
+      const out = window.BVSim.simulateForAllTarifasBV({
+        months: mockMonths,
+        tarifasBV: [candidataBV, miTarifa],
+        potenciaP1: 1, potenciaP2: 1,
+        bvSaldoInicial: 50,
+        zonaFiscal: 'Península'
+      });
+
+      expect(out.ok).toBe(true);
+      out.results.forEach((r) => {
+        expect(r.rows[0].bvSaldoPrev).toBe(50);
+        expect(r.totals.pagado).toBe(0);
+      });
+    });
+
+    it('el resolver no puede inyectar saldos negativos ni no numéricos', () => {
+      const out = window.BVSim.simulateForAllTarifasBV({
+        months: mockMonths,
+        tarifasBV: [candidataBV, miTarifa],
+        potenciaP1: 1, potenciaP2: 1,
+        bvSaldoInicial: (tarifa) => tarifa.esPersonalizada ? -25 : NaN,
+        zonaFiscal: 'Península'
+      });
+
+      expect(out.ok).toBe(true);
+      out.results.forEach((r) => {
+        expect(r.rows[0].bvSaldoPrev).toBe(0);
+      });
+    });
+  });
+
 });

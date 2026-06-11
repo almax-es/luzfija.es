@@ -1568,10 +1568,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const simulationMonths = window.BVSim.manualUi.rotateMonthsByStart(baseMonths, mesInicioVal);
       const monthMap = new Map(baseMonths.map((m) => [m.key, m]));
 
+      // Saldo BV inicial: la hucha pertenece a la comercializadora actual y no se
+      // transfiere al cambiar, así que solo se aplica a "Mi tarifa ⭐" (si tiene BV).
+      // Las candidatas nuevas empiezan siempre con hucha a 0.
+      const customHasBV = Boolean(customTarifa?.fv?.bv);
+      const saldoAplicado = saldoVal > 0 && customHasBV;
+      const saldoSinDestino = saldoVal > 0 && !customHasBV;
+
       const allResults = window.BVSim.simulateForAllTarifasBV({
         months: simulationMonths,
         tarifasBV: tarifasResult.tarifasBV,
-        potenciaP1: p1Val, potenciaP2: p2Val, bvSaldoInicial: saldoVal,
+        potenciaP1: p1Val, potenciaP2: p2Val,
+        bvSaldoInicial: (tarifa) => (tarifa?.esPersonalizada && tarifa?.fv?.bv) ? saldoVal : 0,
         zonaFiscal: zonaFiscalVal,
         esVivienda: esViviendaCanarias,
         ssaaDataset
@@ -1582,7 +1590,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
 
       // Ranking: ordenar por "pagas" (coste del periodo simulado con BV aplicada).
-      // Nota: si el usuario introduce un saldo BV inicial > 0, el ranking reflejará ese saldo.
+      // El saldo BV inicial solo afecta a "Mi tarifa ⭐": para esa tarifa el ranking
+      // refleja la ventaja real de conservar la hucha al no cambiar de comercializadora.
       const rankedResults = [...allResults.results].sort((a, b) => {
         const diffPagado = (a.totals.pagado || 0) - (b.totals.pagado || 0);
         if (Math.abs(diffPagado) < 0.01) {
@@ -2002,11 +2011,14 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
       const totalTarifas = rankedResults.length;
       const indexedFallbackMsg = buildIndexedFallbackMsg(hasIndexedTariffs, indexedTraceMode, zonaFiscalVal);
       const mesInicioNote = mesInicioActivo
-        ? `<br><br><strong>Mes de inicio:</strong> simulación desde ${escapeHtml(mesInicioLabel)}${saldoVal > 0 ? ` con saldo BV inicial de ${fEur(saldoVal)}` : ' con BV inicial a 0 €'}. La hucha se arrastra en el orden mostrado en los desgloses.`
+        ? `<br><br><strong>Mes de inicio:</strong> simulación desde ${escapeHtml(mesInicioLabel)}. La hucha se arrastra en el orden mostrado en los desgloses.`
         : '';
-      const saldoInicialNote = !mesInicioActivo && saldoVal > 0
-        ? `<br><br><strong>Nota:</strong> has indicado un saldo BV inicial de ${fEur(saldoVal)} y se descuenta en el cálculo.`
-        : '';
+      let saldoInicialNote = '';
+      if (saldoAplicado) {
+        saldoInicialNote = `<br><br><strong>Saldo BV inicial:</strong> los ${fEur(saldoVal)} indicados se aplican solo a <strong>Mi tarifa ⭐</strong>. Las demás tarifas empiezan con la hucha a 0 €: el saldo acumulado no se transfiere al cambiar de comercializadora.`;
+      } else if (saldoSinDestino) {
+        saldoInicialNote = `<br><br><strong>⚠️ Saldo BV inicial no aplicado:</strong> has indicado ${fEur(saldoVal)}, pero no hay ninguna tarifa actual con batería virtual a la que aplicarlo. Rellena "Comparar con mi tarifa actual" y marca "Tiene batería virtual" si tu hucha está en tu contrato de ahora.`;
+      }
       const rankingNote = `
         <div style="background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 24px; text-align: center;">
           <div style="font-size: 0.95rem; color: var(--muted); line-height: 1.6;">
@@ -2023,7 +2035,11 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
       resultsContainer.style.display = 'block';
       setTimeout(() => resultsContainer.classList.add('show'), 10);
       statusContainer.style.display = 'none';
-      showToast('Cálculo completado.', 'ok');
+      if (saldoSinDestino) {
+        showToast('Cálculo completado. El saldo BV inicial no se ha aplicado: no hay tarifa actual con batería virtual.', 'err');
+      } else {
+        showToast('Cálculo completado.', 'ok');
+      }
       
     } catch (e) {
       console.error('BVSim Error:', e);
