@@ -1,0 +1,17 @@
+# Normalización de finales de línea: LF en el repositorio para todo el texto.
+# Evita que herramientas Windows (scripts de deploy, editores) reintroduzcan CRLF.
+* text=auto eol=lf
+
+# Binarios explícitos (text=auto ya los detecta; esto es cinturón y tirantes)
+*.png binary
+*.webp binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+*.woff binary
+*.woff2 binary
+*.ttf binary
+*.eot binary
+*.pdf binary
+*.zip binary
