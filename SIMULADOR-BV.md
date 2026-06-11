@@ -981,6 +981,7 @@ showToast('Subiendo archivo...', 'info');  // Azul
 7. El simulador te mostrará:
    - **Ganador**: La tarifa que menos pagas en total
    - **Saldo BV final**: Cuánto dinero acumulas al final
+   - **Coste neto si aprovechas el saldo final**: pagado menos saldo BV final; cuenta solo si sigues con la comercializadora (si sale negativo se muestra como "saldo a favor")
    - **Desglose mes a mes**: Evolución mensual de cada tarifa
 
 **Resultado**: Sabrás qué tarifa BV te ahorra más dinero considerando la acumulación mensual.

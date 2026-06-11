@@ -35,6 +35,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Selector de mes de inicio del contrato para ordenar el ciclo BV desde la contratacion.
 - La simulacion de 12 meses usa los datos como patron anual: si se empieza en junio, recorre junio-diciembre y despues enero-mayo sin cambiar los kWh/excedentes de cada mes.
 - Ranking por coste pagado del periodo simulado; se presenta como anual cuando hay 12 meses razonablemente completos (con desempate por saldo BV final).
+- Metrica secundaria por tarifa con BV: coste neto (pagado menos saldo BV final), presentada como "saldo a favor" si sale negativa; no altera el orden del ranking.
 
 ### 2.2 Paginas De Apoyo
 
