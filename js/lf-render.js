@@ -528,14 +528,26 @@
   }
 
   // ===== RENDER ALL =====
+  // ===== AVISO SOLAR (HOME) =====
+  // El ranking de la home estima los excedentes con el total del periodo;
+  // si el cálculo renderizado es solar, se recomienda el Simulador Solar.
+  // Depende del modo con que se calculó (state.lastRenderSolarOn), no del
+  // checkbox actual del formulario, para no desincronizarse de los resultados.
+  function renderSolarHomeNotice() {
+    const notice = document.getElementById('solarHomeEstimatorNotice');
+    if (!notice) return;
+    notice.hidden = !state.lastRenderSolarOn;
+  }
+
   function renderAll(d) {
     if (!d || !d.success) {
       setStatus('Error de cálculo', 'err');
       window.LF.toast('Error al calcular', 'err');
       return;
     }
-    
+
     state.pending = false;
+    state.lastRenderSolarOn = Boolean(d.solarOn);
     setStatus('Resultados actualizados', 'ok');
 
     const r = d.resumen || {};
@@ -570,6 +582,7 @@
     state.rows = Array.isArray(d.resultados) ? d.resultados : [];
     el.toolbar.classList.add('show');
 
+    renderSolarHomeNotice();
     renderTopChart();
     renderPvpcInfo();
 
@@ -600,6 +613,7 @@
     renderTable,
     renderTopChart,
     renderPvpcInfo,
+    renderSolarHomeNotice,
     renderAll,
     cancelRender: () => {
       __lf_renderInProgress = false;

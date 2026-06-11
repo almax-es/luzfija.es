@@ -84,6 +84,7 @@ describe('Renderizado UI (lf-render.js)', () => {
       <div id="toolbar"></div>
       <div id="pvpcInfo"></div>
       <div id="resultsLiveStatus" role="status" aria-live="polite" aria-atomic="true"></div>
+      <div id="solarHomeEstimatorNotice" hidden></div>
       <div id="chartTopBody"></div>
       <table id="table">
         <thead>
@@ -323,6 +324,51 @@ describe('Renderizado UI (lf-render.js)', () => {
     } finally {
       vi.useRealTimers();
     }
+  });
+
+  it('Muestra el aviso del Simulador Solar solo si el cálculo renderizado es solar', () => {
+    const notice = document.getElementById('solarHomeEstimatorNotice');
+    expect(notice.hidden).toBe(true);
+
+    // Cálculo en modo solar → el aviso se muestra
+    window.LF.renderAll({
+      success: true,
+      solarOn: true,
+      resumen: { mejor: 'Tarifa Solar', precio: '50,00 €' },
+      stats: null,
+      resultados: [...mockRows]
+    });
+    expect(notice.hidden).toBe(false);
+
+    // El aviso describe el cálculo renderizado, no el formulario: un cálculo
+    // posterior sin solar lo oculta, aunque hubiera un checkbox marcado
+    window.LF.renderAll({
+      success: true,
+      resumen: { mejor: 'Tarifa Barata', precio: '50,00 €' },
+      stats: null,
+      resultados: [...mockRows]
+    });
+    expect(notice.hidden).toBe(true);
+  });
+
+  it('El aviso solar de index.html enlaza al simulador y respeta el guardrail de copy', () => {
+    const html = fs.readFileSync(path.resolve(__dirname, '../index.html'), 'utf8');
+
+    const noticeMatch = html.match(/<div id="solarHomeEstimatorNotice"[\s\S]*?<\/div>/);
+    expect(noticeMatch, 'falta el contenedor #solarHomeEstimatorNotice en index.html').toBeTruthy();
+    expect(noticeMatch[0]).toContain('hidden');
+    expect(noticeMatch[0]).toContain('/comparador-tarifas-solares.html');
+    expect(noticeMatch[0].toLowerCase()).not.toContain('exacto');
+
+    // El modal solar también recomienda el simulador
+    const modalMatch = html.match(/<div class="modal-overlay[^>]*id="modalSolarInfo"[\s\S]*?btnCerrarSolarInfo/);
+    expect(modalMatch, 'falta modalSolarInfo en index.html').toBeTruthy();
+    expect(modalMatch[0]).toContain('/comparador-tarifas-solares.html');
+
+    // Y el bloque de excedentes del import CSV enlaza al simulador
+    const csvSource = fs.readFileSync(path.resolve(__dirname, '../js/lf-csv-import.js'), 'utf8');
+    expect(csvSource).toContain('Excedentes solares detectados');
+    expect(csvSource).toContain('/comparador-tarifas-solares.html');
   });
 
   it('Marca PVPC en modo solar como no comparable y desactiva su desglose', async () => {

@@ -582,6 +582,10 @@
           </div>
           <div id="resultsLiveStatus" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
 
+          <div id="solarHomeEstimatorNotice" hidden role="note" aria-label="Recomendación para autoconsumo" style="margin-bottom:14px; padding:12px 14px; background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(217, 119, 6, 0.3); border-left: 3px solid var(--warn); border-radius: 10px; font-size: 13px; line-height: 1.55; color: var(--text);">
+            ☀️ <strong>¿Tienes placas solares?</strong> Este ranking estima los excedentes con el total del periodo. Para autoconsumo, usa el <a href="/comparador-tarifas-solares.html" style="color: var(--warn); font-weight: 800;">Simulador Solar →</a>: calcula mes a mes con batería virtual, mes de inicio y tu CSV de consumo.
+          </div>
+
           <div class="chartTop fade-container" id="chartTop" role="region" aria-label="Comparación visual de tarifas">
             <div class="chartTop-header">
               <div class="kicker">Comparación visual</div>
@@ -975,6 +979,12 @@
         <p class="u-text-muted-13-16">
           Las tarifas con compensación activa muestran un icono ☀️ dorado con pulso. Al tocarlo verás todos los detalles (compensación, BV usada/acumulada, saldo final y ranking). Además, en tarifas con BV, el TOTAL tiene una bombilla 💡: al tocarla verás “Pagas” y “Ranking”.
         </p>
+
+        <div style="margin-top: 14px; padding: 12px 14px; background: rgba(245, 158, 11, 0.08); border-left: 3px solid var(--warn); border-radius: 10px;">
+          <p class="u-text-muted-13-16" style="margin: 0;">
+            💡 Esta vista es una estimación rápida con el total del periodo. La herramienta específica para autoconsumo es el <a href="/comparador-tarifas-solares.html" style="color: var(--warn); font-weight: 800;">Simulador Solar</a>: cálculo mes a mes con batería virtual, mes de inicio y tu CSV de consumo.
+          </p>
+        </div>
 
         <button class="btn primary" id="btnCerrarSolarInfo" type="button" style="width: 100%; margin-top: 10px;" aria-label="Cerrar información de autoconsumo" aria-controls="modalSolarInfo">
           ✅ Entendido
