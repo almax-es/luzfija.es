@@ -959,20 +959,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const clearBtn = e.target.closest('#btnClearCache');
     if (clearBtn) {
       if (!confirm('¿Limpiar toda la caché y reiniciar?')) return;
-      
+
       try {
         const analyticsOptOut = localStorage.getItem('goatcounter_optout');
         localStorage.clear();
         if (analyticsOptOut === 'true') localStorage.setItem('goatcounter_optout', 'true');
         sessionStorage.clear();
-        
+
         if ('serviceWorker' in navigator) {
           const registrations = await navigator.serviceWorker.getRegistrations();
           for (const registration of registrations) {
             await registration.unregister();
           }
         }
-        
+
         if ('caches' in window) {
           const keys = await caches.keys();
           await Promise.all(keys.map(key => caches.delete(key)));
@@ -1284,18 +1284,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const updateTooltipPosition = (target) => {
     const tip = target.getAttribute('data-tip');
     if (!tip) return;
-    
+
     tooltipEl.textContent = tip;
     tooltipEl.style.display = 'block';
-    
+
     const rect = target.getBoundingClientRect();
     const ttWidth = tooltipEl.offsetWidth;
     const ttHeight = tooltipEl.offsetHeight;
-    
+
     let top = rect.top - ttHeight - 10;
     let left = rect.left + (rect.width / 2) - (ttWidth / 2);
-    
-    if (top < 10) top = rect.bottom + 10; 
+
+    if (top < 10) top = rect.bottom + 10;
     if (left < 10) left = 10;
     if (left + ttWidth > window.innerWidth - 10) left = window.innerWidth - ttWidth - 10;
 
@@ -1371,7 +1371,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (p3In) p3In.value = formatNumberES(r2(data.p3));
       if (vIn) vIn.value = formatNumberES(r2(data.vert));
       setManualMonthMeta(monthIndex, data.meta);
-      
+
       // Marcar visualmente como válidos
       [p1In, p2In, p3In, vIn].forEach(el => {
         if (el && el.value !== '') el.classList.add('valid');
@@ -1524,7 +1524,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const esViviendaCanarias = viviendaCanariasInput ? viviendaCanariasInput.checked : true;
 
     if (p1Val <= 0) { showToast('Te falta poner la potencia contratada (P1).', 'err'); return; }
-    
+
     if (resultsContainer) { resultsContainer.classList.remove('show'); resultsContainer.style.display = 'none'; }
     if (statusContainer) { statusContainer.style.display = 'block'; statusEl.innerHTML = '<span class="spinner"></span> Calculando...'; }
 
@@ -2100,7 +2100,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
       } else {
         showToast('Cálculo completado.', 'ok');
       }
-      
+
     } catch (e) {
       console.error('BVSim Error:', e);
       const msg = e?.message ? String(e.message) : 'Error inesperado.';

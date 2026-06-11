@@ -357,7 +357,7 @@
                     <p>Compara excedentes y batería virtual con tus datos reales de autoconsumo, sin registro ni comisiones</p>
                   </div>
                 </div>
-          
+
                       <div class="actions">
                         <div class="actions-center">
                           <a href="/" class="btn" aria-label="Ir al comparador principal">
@@ -393,7 +393,7 @@
                         </div>
                       </div>
               </div>
-          
+
               <main id="main" tabindex="-1">
                 <section class="card">
                   <div class="head">
@@ -408,7 +408,7 @@
                     <div class="bv-form-container">
                       <!-- Inputs Comunes (Izquierda) -->
                       <div class="form bv-form-2col" style="gap: 16px;">
-                        
+
                         <div class="group">
                           <label for="bv-p1">Potencia P1 (kW)</label>
                           <input class="input" type="text" id="bv-p1" inputmode="decimal" value="3,45" placeholder="Ej: 3,45">
@@ -545,7 +545,7 @@
                         </div>
 
                       </div>
-          
+
                       <!-- Zona de Datos -->
                       <div id="bv-data-zone">
                         <!-- Upload Zone Compacta -->
@@ -658,7 +658,7 @@
                       </div>
 
                     </div>
-          
+
                     <div class="u-mt-24">
                       <button class="btn primary" id="bv-simulate" type="button" aria-controls="bv-results-container">
                         <span class="bv-btn-text" style="font-size: 1.1rem;">Comparar Tarifas y Ver Ahorro &rarr;</span>
@@ -667,14 +667,14 @@
                     </div>
                   </div>
                 </section>
-          
+
                 <!-- Resultados (Ocultos por defecto) -->
                 <div id="bv-results-container" class="fade-container" style="display:none">
                   <section class="card u-mt-16">
                     <div id="bv-results"></div>
                   </section>
                 </div>
-          
+
                 <!-- Estado (Oculto por defecto o integrado en notificaciones) -->
                 <div id="bv-status-container" style="display:none">
                   <section class="card u-mt-16">
@@ -685,7 +685,7 @@
                   </section>
                 </div>
               </main>
-          
+
               <footer class="footer-container">
                 <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:30px; margin-bottom:30px;">
                           <div>
@@ -706,7 +706,7 @@
                               </a>
                             </p>
                           </div>
-                  
+
                           <div>
                             <h3 class="u-h3-strong-10">Horarios Discriminación</h3>
                             <ul class="u-list-muted-12">
@@ -715,7 +715,7 @@
                               <li><strong style="color:var(--accent2);">Valle:</strong> 0h-8h + fines de semana</li>
                             </ul>
                           </div>
-                  
+
                           <div>
                             <h3 class="u-h3-strong-10">¿Qué Analizamos?</h3>
                             <ul class="u-list-muted-12">
@@ -726,7 +726,7 @@
                               <li>✓ Ranking por coste mensual simulado</li>
                             </ul>
                           </div>
-                  
+
                           <div id="contacto">
                             <h3 class="u-h3-strong-10">Contacto</h3>
                             <div class="contact-box">
@@ -735,11 +735,11 @@
                             </div>
                           </div>
                         </div>
-                  
+
                         <div style="margin-top:30px; padding:28px 20px 24px; border-top:1px solid rgba(255,255,255,0.05); text-align:center;">
                           <p style="font-size:11px; opacity:0.5; margin-bottom:8px;">⚡ LuzFija.es · Comparador de Tarifas Solares</p>
                           <p class="u-text-10 u-opacity-40">Proyecto gratuito y sin publicidad · Tarifas actualizadas regularmente</p>
-                  
+
                           <div style="margin-top:18px; padding-top:14px; border-top:1px solid var(--border);">
                             <div class="u-max-w-720 u-center-text-padded">
                               <p class="u-mt-10 u-text-10 u-opacity-65 u-leading-15">
@@ -750,9 +750,9 @@
                           </div>
                         </div>              </footer>
             </div>
-          
+
             <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"><span class="dot" id="toastDot" aria-hidden="true"></span><span id="toastText"></span></div>
-          
+
             <!-- ⚠️ ORDEN CRÍTICO: lf-csv-utils.js DEBE cargarse ANTES que bv-sim-monthly.js -->
             <script src="/js/lf-config.js?v=20260611-081611"></script>
             <script src="/js/lf-utils.js?v=20260611-081611"></script>

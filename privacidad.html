@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-QLFivCtsSZVGl9ujaXUw62sBzCkoI8gVA098HT9lArY='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-VXmRrlolCS0vO6SlOUrlokpuzDaQXvlWG0bpL0lMm1w='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self'; form-action 'self';">
 <script src="/js/config.js?v=20260611-081611"></script>
 <script src="/js/theme.js?v=20260611-081611"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -206,7 +206,7 @@ html.light-mode .btn-small:hover{
 <p><strong>Finalidad:</strong> comprender el uso del sitio (estadísticas de visitas, páginas vistas) para mejorarlo.</p>
 <p><strong>Base jurídica:</strong> interés legítimo (análisis de tráfico anónimo).</p>
 <p style="margin-top:16px;">
-    Si prefieres no participar en la medición de audiencia, puedes 
+    Si prefieres no participar en la medición de audiencia, puedes
     <a href="#" id="opt-out-analytics" style="color:var(--accent); font-weight:600; text-decoration:underline;">desactivar GoatCounter</a>.
     <span id="opt-out-status" style="color:var(--accent2); font-weight:600;"></span>
   </p>
@@ -284,9 +284,9 @@ html.light-mode .btn-small:hover{
 </main>
 <footer class="footer">
 <div class="footer-links">
-<a href="/">⚡ Comparador</a> · 
-<a href="/guias.html">📚 Guías</a> · 
-<a href="/aviso-legal.html">Aviso legal</a> · 
+<a href="/">⚡ Comparador</a> ·
+<a href="/guias.html">📚 Guías</a> ·
+<a href="/aviso-legal.html">Aviso legal</a> ·
 <a href="/privacidad.html">Privacidad</a>
 </div>
 </footer>
@@ -295,13 +295,13 @@ html.light-mode .btn-small:hover{
 // === OPT-OUT DE GOATCOUNTER ===
 (function() {
   'use strict';
-  
+
   const OPT_OUT_KEY = 'goatcounter_optout';
   const linkEl = document.getElementById('opt-out-analytics');
   const statusEl = document.getElementById('opt-out-status');
-  
+
   if (!linkEl || !statusEl) return; // Solo ejecutar en página de privacidad
-  
+
   // Función para verificar estado actual
   function isOptedOut() {
     try {
@@ -310,7 +310,7 @@ html.light-mode .btn-small:hover{
       return false;
     }
   }
-  
+
   // Actualizar UI según estado
   function updateUI() {
     if (isOptedOut()) {
@@ -321,22 +321,22 @@ html.light-mode .btn-small:hover{
       statusEl.textContent = '';
     }
   }
-  
+
   // Manejar click en el enlace
   linkEl.addEventListener('click', function(e) {
     e.preventDefault();
-    
+
     try {
       const currentState = isOptedOut();
       localStorage.setItem(OPT_OUT_KEY, !currentState);
-      
+
       // Mensaje temporal
       const action = !currentState ? 'desactivado' : 'reactivado';
       statusEl.textContent = `✓ GoatCounter ${action} correctamente`;
-      
+
       // Actualizar enlace
       setTimeout(updateUI, 100);
-      
+
       // Info al usuario
       if (!currentState) {
         // Acabamos de desactivar
@@ -349,7 +349,7 @@ html.light-mode .btn-small:hover{
       statusEl.style.color = 'var(--warn, #f59e0b)';
     }
   });
-  
+
   // Estado inicial
   updateUI();
 })();

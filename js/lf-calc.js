@@ -76,7 +76,7 @@
     });
     const isCanarias = fiscalMercadoLibre.esCanarias;
     const isCeutaMelilla = fiscalMercadoLibre.esCeutaMelilla;
-    
+
     const cachedTarifas = window.LF.cachedTarifas;
     if (!cachedTarifas.length) return;
     const ssaaDataset = (window.LF.ssaa && typeof window.LF.ssaa.loadDataset === 'function')
@@ -352,7 +352,7 @@
           const impuestosNum = (impuestosResidual >= 0 && Math.abs(impuestosResidual - impuestosSum) <= 0.05)
             ? impuestosResidual
             : impuestosSum;
-            
+
           resultados.push({
             ...t,
             posicion: index + 1,
@@ -423,7 +423,7 @@
           const impuestosNum = (impuestosResidual >= 0 && Math.abs(impuestosResidual - impuestosSum) <= 0.05)
             ? impuestosResidual
             : impuestosSum;
-            
+
           resultados.push({
             ...t,
             posicion: index + 1,
@@ -492,7 +492,7 @@
           const impuestosNum = (impuestosResidual >= 0 && Math.abs(impuestosResidual - impuestosSum) <= 0.05)
             ? impuestosResidual
             : impuestosSum;
-            
+
           resultados.push({
             ...t,
             posicion: index + 1,
@@ -571,7 +571,7 @@
 
     const firstValida = resultadosFiltrados.find(r => Number.isFinite(r.totalNum)) || resultadosFiltrados[0];
     const bestPrice = firstValida ? firstValida.totalNum : 0;
-    
+
     let processed = resultadosFiltrados.map((r, i) => {
       const esMejor = firstValida ? r === firstValida : i === 0;
       const diff = (Number.isFinite(r.totalNum) && Number.isFinite(bestPrice)) ? (r.totalNum - bestPrice) : Number.POSITIVE_INFINITY;

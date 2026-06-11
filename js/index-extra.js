@@ -165,7 +165,7 @@
 
           const nextInlineKey = __pvpcBuildQuickViewKey('pvpc');
           if (!force && __pvpcInlineKey === nextInlineKey) return;
-          
+
           // Fecha de HOY según la zona del usuario (si ya eligió zona fiscal en el comparador)
           const __ctx = __pvpcGetUserContext();
           const fechaStr = __pvpcYmdInTZ(new Date(), __ctx.tz);
@@ -238,7 +238,7 @@
       const modalPVPCTitleText = document.getElementById('modalPVPCTitleText');
       const modalPVPCTypeIcon = document.getElementById('modalPVPCTypeIcon');
       const modalPVPCHeadline = document.getElementById('modalPVPCHeadline');
-    
+
     if (!btnPVPCInfo || !modalPVPCInfo || !btnCerrarPVPCInfo) {
       if (window.__LF_DEBUG) console.log('[PVPC] Faltan elementos del modal');
       return;
@@ -380,7 +380,7 @@
           idxMin,
           idxMax
         };
-        
+
         // Mostrar el botón de mañana si se cargaron los datos
         const tabManana = document.getElementById('tabManana');
         if (tabManana) tabManana.style.display = 'block';
@@ -395,7 +395,7 @@
       const rango = precioMax - precioMin;
       const umbralBajo = precioMin + (rango * 0.25);
       const umbralAlto = precioMax - (rango * 0.25);
-      
+
       if (precio === precioMin) {
         return ["🌟 <strong>HORA MÁS BARATA</strong> - Esto es una ganga", "💰 <strong>CHOLLO MÁXIMO</strong> - ¡A cargar todo!", "🎉 <strong>PRECIO MÍNIMO</strong> - Aprovecha ahora"][hora % 3];
       }
@@ -532,7 +532,7 @@
     // Cambiar tab
     function cambiarTab(tab) {
       diaActivo = tab;
-      
+
       // Estilos tabs
       if (tab === 'hoy') {
         tabHoy.style.background = 'var(--accent)';
@@ -672,7 +672,7 @@
 
     btnCerrarPVPCInfo.addEventListener('click', cerrarModal);
     if (btnCerrarPVPCX) btnCerrarPVPCX.addEventListener('click', cerrarModal);
-    
+
     // Prevenir que el click de apertura cierre el modal inmediatamente
     let modalReadyToClose = false;
 
@@ -681,7 +681,7 @@
         cerrarModal();
       }
     });
-    
+
     // Cerrar con ESC y manejar focus-trap
     document.addEventListener('keydown', (e) => {
       if (modalPVPCInfo.classList.contains('show')) {
@@ -698,7 +698,7 @@
           if (!focusables.length) return;
           const firstFocusable = focusables[0];
           const lastFocusable = focusables[focusables.length - 1];
-          
+
           if (e.shiftKey && document.activeElement === firstFocusable) {
             e.preventDefault();
             lastFocusable.focus();

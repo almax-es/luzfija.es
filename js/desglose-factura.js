@@ -36,7 +36,7 @@
     init() {
       this.overlay = document.createElement('div');
       this.overlay.className = 'desglose-overlay';
-      
+
       this.modal = document.createElement('div');
       this.modal.className = 'desglose-modal';
       this.modal.innerHTML = `
@@ -58,7 +58,7 @@
 
       this.overlay.addEventListener('click', () => this.cerrar());
       this.modal.querySelector('.desglose-close').addEventListener('click', () => this.cerrar());
-      
+
       document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape' && this.modal.classList.contains('active')) this.cerrar();
       });
@@ -396,7 +396,7 @@
       const fechaInicioDefault = formatFecha(primerDia);
       const fechaFinDefault = formatFecha(ultimoDia);
       const diasDefault = ultimoDia.getDate();
-      
+
       this.modal.querySelector('.desglose-tarifa').innerHTML = `<strong>${escapeHtml(datos.nombreTarifa || 'Tarifa')}</strong>`;
       this.modal.querySelector('.desglose-periodo').innerHTML = `${escapeHtml(datos.fechaInicio || fechaInicioDefault)} - ${escapeHtml(datos.fechaFin || fechaFinDefault)} (${datos.dias || diasDefault} días)`;
 

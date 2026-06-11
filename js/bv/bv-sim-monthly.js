@@ -221,10 +221,10 @@ window.BVSim.calcMonthForTarifa = function ({
   const round2 = window.BVSim.round2;
   // Importante: para evitar inflar costes si el CSV tiene huecos, usamos SOLO los días con datos.
   const dias = Number(month?.daysWithData) || 0;
-  
+
   // Potencia
   const pot = round2((potenciaP1 * dias * tarifa.p1) + (potenciaP2 * dias * tarifa.p2));
-  
+
   // Consumo (Energía)
   const consBaseEur = round2(
     (month.importByPeriod.P1 * tarifa.cPunta)
@@ -236,14 +236,14 @@ window.BVSim.calcMonthForTarifa = function ({
     : { aplica: false, rate: 0, eur: 0, month: null };
   const ssaaEur = round2(ssaa.eur || 0);
   const consEur = round2(consBaseEur + ssaaEur);
-  
+
   // Bono social (Financiación)
-  const bonoSocialAnual = (window.LF_CONFIG && window.LF_CONFIG.bonoSocial) 
-    ? window.LF_CONFIG.bonoSocial.eurosAnuales 
-    : 6.979247; 
-  
+  const bonoSocialAnual = (window.LF_CONFIG && window.LF_CONFIG.bonoSocial)
+    ? window.LF_CONFIG.bonoSocial.eurosAnuales
+    : 6.979247;
+
   const costeBonoSocial = round2(bonoSocialAnual / 365 * dias);
-  
+
   // Excedentes
   const exKwh = Number(month.exportTotalKWh) || 0;
   const esIndexada = tarifa?.fv?.exc === -1;
@@ -297,7 +297,7 @@ window.BVSim.calcMonthForTarifa = function ({
     ? round2(Math.max(0, Math.min(creditoPotencial, consEur) - credit1))
     : 0;
   const excedenteSobranteEur = round2(Math.max(0, creditoPotencial - credit1));
-  
+
   // ===== IMPUESTOS (alineados con el comparador principal: js/lf-calc.js) =====
   const CFG = window.LF_CONFIG || {};
   const consumoTotalKwh = Number(month.importTotalKWh) || 0;

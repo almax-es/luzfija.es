@@ -336,7 +336,7 @@
             return;
           }
           consumos = spanResult.consumos;
-          
+
           const resultado = clasificarConsumosPorPeriodo(consumos);
           if (!resultado.ok) {
             resolve(resultado);
@@ -384,7 +384,7 @@
             return;
           }
           consumos = spanResult.consumos;
-          
+
           const resultado = clasificarConsumosPorPeriodo(consumos);
           if (!resultado.ok) {
             resolve(resultado);
@@ -482,14 +482,14 @@
 
     let __csvLocked = false;
     let __csvScrollY = 0;
-    
+
     function __csvLock() {
       if (document.documentElement.style.overflow === 'hidden') return;
       __csvScrollY = window.scrollY || 0;
       document.documentElement.style.overflow = 'hidden';
       __csvLocked = true;
     }
-    
+
     function __csvUnlock() {
       if (!__csvLocked) return;
       document.documentElement.style.overflow = '';
@@ -821,14 +821,14 @@
       });
 
       document.body.appendChild(fileInput);
-      
+
       const btnSubirFactura = document.getElementById('btnSubirFactura');
       if (btnSubirFactura) {
         btnSubirFactura.after(btnCSV);
       } else {
         actionsCenterContainer.appendChild(btnCSV);
       }
-      
+
       lfDbg('[CSV] Botón de importar CSV añadido');
     } catch (error) {
       lfDbg('[CSV] ERROR CRÍTICO:', error);
@@ -847,7 +847,7 @@
   window.initCSVImporter = initCSVImporter;
   window.procesarCSVConsumos = procesarCSVConsumos;
   window.procesarXLSXConsumos = procesarXLSXConsumos;
-  
+
   // Exportar helpers para testing
   // NOTA: Las funciones de utilidad ahora están en window.LF.csvUtils
   window.LF.csvHelpers = {

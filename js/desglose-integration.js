@@ -7,7 +7,7 @@
 
 /**
  * INTEGRACIÓN DEL DESGLOSE DE FACTURA
- * 
+ *
  * CORRECCIONES APLICADAS:
  * - Fechas calculadas dinámicamente (no hardcodeadas)
  * - Parser numérico robusto (soporta formatos: 1.234,56 / 1234.56 / 1234,56)
@@ -90,14 +90,14 @@
     // Fecha inicio = fechaFin - dias + 1
     const fechaInicio = new Date(fechaFin);
     fechaInicio.setDate(fechaInicio.getDate() - diasNum + 1);
-    
+
     const formatear = (d) => {
       const dd = String(d.getDate()).padStart(2, '0');
       const mm = String(d.getMonth() + 1).padStart(2, '0');
       const yyyy = d.getFullYear();
       return `${dd}/${mm}/${yyyy}`;
     };
-    
+
     return {
       inicio: formatear(fechaInicio),
       fin: formatear(fechaFin),
@@ -111,7 +111,7 @@
 
   async function cargarTarifas() {
     if (tarifasCache) return tarifasCache;
-    
+
     try {
       const baseUrl = (window.LF && window.LF.JSON_URL) ? window.LF.JSON_URL : 'tarifas.json';
       const sep = baseUrl.includes('?') ? '&' : '?';
@@ -134,7 +134,7 @@
 
     function init() {
     lfDbg('Integración desglose inicializada');
-    
+
     const tbody = document.querySelector('#tbody');
     if (!tbody) return;
 
@@ -189,7 +189,7 @@
   window.mostrarDesglose = async function(nombreTarifa) {
     lfDbg('=== DESGLOSE ===');
     lfDbg('Tarifa:', nombreTarifa);
-    
+
     // ✅ Usar parser robusto en lugar de parseFloat simple
     const inputs = {
       p1: parseNum(document.getElementById('p1')?.value),
@@ -212,11 +212,11 @@
       fila?.dataset?.tarifaNombre === nombreTarifa
     )) || null;
     const selectedRowDataset = selectedRow?.dataset || {};
-    
+
     // ✅ CASO ESPECIAL: Mi Tarifa personalizada
     if (nombreTarifa === 'Mi tarifa ⭐') {
       lfDbg('✅ Detectada tarifa personalizada');
-      
+
       // Leer valores RAW primero (antes de parsear)
       const mtPuntaVal = document.getElementById('mtPunta')?.value?.trim() || '';
       const mtLlanoVal = document.getElementById('mtLlano')?.value?.trim() || '';
@@ -224,13 +224,13 @@
       const mtP1Val = document.getElementById('mtP1')?.value?.trim() || '';
       const mtP2Val = document.getElementById('mtP2')?.value?.trim() || '';
       const mtPrecioExcVal = document.getElementById('mtPrecioExc')?.value?.trim() || '';
-      
+
       // Validar que los campos NO estén vacíos
       if (!mtPuntaVal || !mtLlanoVal || !mtValleVal || !mtP1Val || !mtP2Val) {
         toast('Completa todos los campos de "Mi tarifa" para ver el desglose', 'err');
         return;
       }
-      
+
       // Ahora sí parsear (ya sabemos que tienen valor)
       const mtPunta = parseNum(mtPuntaVal);
       const mtLlano = parseNum(mtLlanoVal);
@@ -238,7 +238,7 @@
       const mtP1 = parseNum(mtP1Val);
       const mtP2 = parseNum(mtP2Val);
       const mtPrecioExc = inputs.solarOn && mtPrecioExcVal ? parseNum(mtPrecioExcVal) : 0;
-      
+
       // Construir tarifa personalizada
       const es1P = (mtPunta === mtLlano && mtLlano === mtValle);
       tarifa = {
@@ -268,13 +268,13 @@
       // CASO ESPECIAL: PVPC
       if (nombreTarifa && nombreTarifa.toLowerCase().includes('pvpc')) {
         lfDbg('✅ Detectada tarifa PVPC');
-        
+
         // Obtener metaPvpc de window (calculado por pvpc.js)
         if (!window.pvpcLastMeta) {
           toast('No hay datos de PVPC calculados. Pulsa "⚡ Calcular" primero.', 'err');
           return;
         }
-        
+
         // Construir tarifa PVPC con los datos calculados
         tarifa = {
           nombre: 'PVPC (Regulada) ⚡',
@@ -290,7 +290,7 @@
             totalFactura: 0
           }
         };
-        
+
         // Intentar obtener metaPvpc de la tarifa guardada en resultados
         const resultadosContainer = document.querySelector('#tbody');
         if (resultadosContainer) {
@@ -313,7 +313,7 @@
       } else {
         // PASO 1: Buscar coincidencia EXACTA
         tarifa = tarifas.find(t => (t.nombre || t.id) === nombreTarifa);
-        
+
         // PASO 2: Si no encuentra, buscar parcial priorizando nombres MÁS LARGOS
         // (para que "Imagina Energía 3P" tenga prioridad sobre "Imagina Energía")
         if (!tarifa) {
@@ -321,14 +321,14 @@
             const n = t.nombre || t.id;
             return n.includes(nombreTarifa) || nombreTarifa.includes(n);
           });
-          
+
           // Ordenar por longitud de nombre (más largo primero)
           candidatos.sort((a, b) => {
             const nameA = a.nombre || a.id || '';
             const nameB = b.nombre || b.id || '';
             return nameB.length - nameA.length;
           });
-          
+
           tarifa = candidatos[0];
         }
       }
@@ -354,7 +354,7 @@
       topeCompensacion = tarifa.fv.tope || 'ENERGIA';
       tieneBV = tarifa.fv.bv || false;
       reglaBV = tarifa.fv.reglaBV || 'NO APLICA';
-      
+
       // Precio compensación: preferimos el precio usado por el ranking si el render lo dejó en la fila.
       const rowPriceUsed = Number(selectedRowDataset.fvPriceUsed);
       if (tarifa.fv.exc === -1) {
@@ -381,7 +381,7 @@
     let precioValle = tarifa.cValle || 0;
     let precioP1 = tarifa.p1 || 0;
     let precioP2 = tarifa.p2 || 0;
-    
+
     if (tarifa.esPVPC) {
       // Precios de energía (€/kWh)
       if (window.pvpcLastMeta) {
@@ -390,7 +390,7 @@
         precioValle = window.pvpcLastMeta.precioValle || 0;
         lfDbg('✅ Precios energía PVPC:', { precioPunta, precioLlano, precioValle });
       }
-      
+
       // Precios de potencia (€/kW·día) - valores regulados PVPC
       const _pvpcPot = window.LF_CONFIG?.peajesPotenciaPVPC ?? {};
       precioP1 = _pvpcPot.p1 ?? 0.075901;  // Peaje P1 punta

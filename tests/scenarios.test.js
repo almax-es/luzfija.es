@@ -46,7 +46,7 @@ describe('Escenarios de Negocio (Integración Fiscal y Bono Social)', () => {
     };
 
     const res = calcPvpcBonoSocial(metaBase, inputs, global.window.LF_CONFIG);
-    
+
     expect(res.meta.usoFiscal).toBe('iva_general');
     expect(res.meta.impuestoEnergia).toBeGreaterThan(0); // Debe haber IVA
     expect(res.meta.totalFactura).toBeGreaterThan(0);
@@ -167,7 +167,7 @@ describe('Escenarios de Negocio (Integración Fiscal y Bono Social)', () => {
 
     // Solo se debe bonificar 30kWh de los 300kWh (10%)
     expect(res.ratioBonificable).toBeCloseTo(0.1, 1);
-    
+
     // El descuento será mucho menor que si cubriera todo
     // Aprox: (Fijo + (Variable * 0.1)) * 42,5%
     // (11 + 5) * 0.425 = 6.8
