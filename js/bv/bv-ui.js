@@ -153,7 +153,7 @@ window.BVSim.manualUi.createHourlyTraceControls = function createHourlyTraceCont
     const _traceActive = Array.isArray(hourlyTraceState.records) && hourlyTraceState.records.length > 0 && !hourlyTraceState.dirty;
     const _traceZona = hourlyTraceState.zonaFiscal;
     if (_traceActive && _traceZona && String(_traceZona) !== String(zonaFiscalVal || '')) {
-      return 'El CSV importado es de <strong>' + escapeHtmlFn(String(_traceZona)) + '</strong>; cambia la zona o reimporta para usar el cálculo exacto. Se usa 0,020&nbsp;€/kWh de referencia.';
+      return 'El CSV importado es de <strong>' + escapeHtmlFn(String(_traceZona)) + '</strong>; cambia la zona o reimporta para usar el cálculo horario con tu curva. Se usa 0,020&nbsp;€/kWh de referencia.';
     } else if (hourlyTraceState.stats && hourlyTraceState.stats.totalKwh === 0 && (hourlyTraceState.stats.missing || 0) > 0) {
       return 'No hay precios del índice disponibles para el periodo del CSV. Se usa 0,020&nbsp;€/kWh de referencia.';
     } else if (hourlyTraceState.reason === 'no-hourly-surplus-column') {
@@ -1498,7 +1498,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
   simulateButton.addEventListener('click', async () => {
     const p1Val = p1Input.value === '' ? 0 : parseInput(p1Input.value);
-    const p2Val = p2Input.value === '' ? 0 : parseInput(p2Input.value);
+    // P2 vacío o 0 no es válido en 2.0TD: usar P1 (mismo fallback que "Mi tarifa")
+    let p2Val = p2Input.value === '' ? 0 : parseInput(p2Input.value);
+    if (!(p2Val > 0)) p2Val = p1Val;
     const saldoVal = saldoInput.value === '' ? 0 : parseInput(saldoInput.value);
     const zonaFiscalVal = zonaFiscalInput ? zonaFiscalInput.value : 'Península';
     const esViviendaCanarias = viviendaCanariasInput ? viviendaCanariasInput.checked : true;
@@ -1967,7 +1969,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
             <div class="bv-kpi-card highlight">
               <span class="bv-kpi-label">Saldo BV final</span>
               <span class="bv-kpi-value surplus">${fEur(winner.totals.bvFinal)}</span>
-              <span class="bv-kpi-sub">Acumulado (si no lo gastas)</span>
+              <span class="bv-kpi-sub">Acumulado al final · uso y caducidad según condiciones de la comercializadora</span>
             </div>
             ` : ''}
           </div>
@@ -2056,6 +2058,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
             Las tarifas están ordenadas por el <strong>${totalCostLabel.toLowerCase()}</strong>: la suma de tus facturas mensuales ${totalCostNote}.
             ${hasIndexedTariffs && indexedTraceMode === 'hourly-index-base' ? '<br><br><strong>Indexadas:</strong> se han calculado con tu CSV horario según el índice base disponible.' : ''}
             ${indexedFallbackMsg ? '<br><br><strong>Indexadas:</strong> ' + indexedFallbackMsg : ''}
+            <br><br><strong>Batería virtual:</strong> el simulador modela una BV amplia: el excedente sobrante se acumula en euros y se aplica a facturas posteriores, sin caducidad. Las condiciones reales (caducidad del saldo, qué parte de la factura cubre) varían según cada comercializadora.
             ${mesInicioNote}
             ${saldoInicialNote}
           </div>
