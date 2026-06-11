@@ -459,27 +459,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Neolux 24h",
-      "cPunta": 0.119,
-      "cLlano": 0.119,
-      "cValle": 0.119,
-      "p1": 0.119,
-      "p2": 0.095,
-      "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
-      "tipo": "1P",
-      "requisitos": "Consumo ≤ 10.000 kWh/año.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.07,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Seneo Tarifa 2",
       "cPunta": 0.119,
       "cLlano": 0.119,
@@ -1289,27 +1268,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Neolux 3P",
-      "cPunta": 0.179,
-      "cLlano": 0.125,
-      "cValle": 0.079,
-      "p1": 0.119,
-      "p2": 0.095,
-      "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
-      "tipo": "3P",
-      "requisitos": "Consumo ≤ 10.000 kWh/año.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.07,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Naturgy noche 3P",
       "cPunta": 0.1822,
       "cLlano": 0.1092,
@@ -1797,27 +1755,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Neolux VE Easy 3P",
-      "cPunta": 0.23,
-      "cLlano": 0.22,
-      "cValle": 0.099,
-      "p1": 0.119,
-      "p2": 0.039,
-      "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
-      "tipo": "3P",
-      "requisitos": "Consumo ≤ 10.000 kWh/año.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.07,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Fortuluz A Contraluz",
       "cPunta": 0.231,
       "cLlano": 0.182,
@@ -1833,27 +1770,6 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Neolux VE Smart 3P",
-      "cPunta": 0.239,
-      "cLlano": 0.229,
-      "cValle": 0.069,
-      "p1": 0.129,
-      "p2": 0.059,
-      "web": "https://neoluxenergy.com/comercializadora-energia-renovable/",
-      "tipo": "3P",
-      "requisitos": "Consumo ≤ 10.000 kWh/año.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.07,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -1960,5 +1876,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-11T20:20:39.442Z"
+  "updatedAt": "2026-06-11T20:32:31.354Z"
 }
