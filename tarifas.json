@@ -1045,27 +1045,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Atulado 3P",
-      "cPunta": 0.15086,
-      "cLlano": 0.080037,
-      "cValle": 0.053682,
-      "p1": 0.103717,
-      "p2": 0.033279,
-      "web": "https://clientes.atuladoenergia.com/tarifas",
-      "tipo": "3P",
-      "requisitos": "Precio revisable cada trimestre natural. Desde el 01/07, el término de consumo será: punta 0,213420 €/kWh, llano  0,134353 €/kWh y valle 0,109399 €/kWh.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "EnergyAsset 3P",
       "cPunta": 0.16,
       "cLlano": 0.12,
@@ -1855,5 +1834,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-12T09:37:48.118Z"
+  "updatedAt": "2026-06-12T10:08:07.401Z"
 }
