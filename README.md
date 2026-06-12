@@ -63,6 +63,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - limpiar cache,
 - reset de formulario.
 - Boton de instalacion PWA cuando el navegador expone `beforeinstallprompt`.
+- Banner de donacion a la AECC (solo escritorio, tras calcular): muestra el codigo Bizum `11244` con boton de copia; LuzFija no recibe dinero, comision ni datos de la donacion. Detalle en `CAPACIDADES-WEB.md` seccion 3.6.
 
 ### 2. Observatorio PVPC (`/estadisticas/`)
 

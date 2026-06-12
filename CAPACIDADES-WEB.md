@@ -158,6 +158,13 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Tema claro/oscuro con persistencia local.
 - Boton de instalacion PWA (`beforeinstallprompt`) con fallback de instrucciones por plataforma.
 - Auto-refresh de tarifas al volver foco/online/visibilidad y cada ~15 minutos.
+- Banner de donacion a la AECC (`js/aecc-banner.js`, solo home y solo escritorio >=1024px):
+- Aparece tras un calculo iniciado por el usuario con resultados visibles (eventos `lf:results-requested`/`lf:results-ready`); el auto-refresh no lo dispara.
+- Muestra el logo oficial de la AECC (`img/aecc-logo.svg`, autoalojado) y el codigo Bizum de donacion `11244` con boton de copia (clipboard + fallback `execCommand`).
+- Se aparta solo cuando el formulario entra en viewport o los resultados salen (IntersectionObserver sobre `btnCalc` y `seccionResultados`); no cuenta como cierre.
+- Cooldown de 7 dias en `lf_aecc_banner_dismissed_at` (se activa al cerrar o al copiar); la clave se preserva en el "Limpiar cache" del menu.
+- Eventos GoatCounter: `aecc-banner-mostrado`, `aecc-banner-copiado`, `aecc-banner-cerrado` (solo si no copio), `aecc-banner-copia-fallida`. Aceptacion = copiados/mostrados.
+- LuzFija no interviene en la donacion: el usuario dona por Bizum desde su app bancaria directamente a la AECC.
 
 ## 4. Funcionalidades Del Observatorio PVPC (`/estadisticas/`)
 
@@ -319,6 +326,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Dependencias autoalojadas en `vendor/`.
 - Tracking con GoatCounter sin cookies de terceros.
 - Opt-out de analitica por usuario (`goatcounter_optout`).
+- El banner AECC no maneja datos personales: solo copia un codigo publico al portapapeles y guarda un timestamp local de descarte (`lf_aecc_banner_dismissed_at`).
 
 ## 10. Testing Y Calidad
 
