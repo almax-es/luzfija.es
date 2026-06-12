@@ -6,27 +6,6 @@
   },
   "tarifas": [
     {
-      "nombre": "Atulado Milenial",
-      "cPunta": 0.078818,
-      "cLlano": 0.078818,
-      "cValle": 0.078818,
-      "p1": 0.103717,
-      "p2": 0.041623,
-      "web": "https://clientes.atuladoenergia.com/tarifas",
-      "tipo": "1P",
-      "requisitos": "Precio revisable cada trimestre natural. Desde el 01/07, el término de consumo será 0,135959 €/kWh.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Loviluz",
       "cPunta": 0.096,
       "cLlano": 0.096,
@@ -781,6 +760,27 @@
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
         "precioBV": 2.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Atulado Milenial",
+      "cPunta": 0.135959,
+      "cLlano": 0.135959,
+      "cValle": 0.135959,
+      "p1": 0.103717,
+      "p2": 0.041623,
+      "web": "https://clientes.atuladoenergia.com/tarifas",
+      "tipo": "1P",
+      "requisitos": "Precio revisable cada trimestre natural.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
       },
       "requiereFV": false
     },
@@ -1876,5 +1876,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-11T20:32:31.354Z"
+  "updatedAt": "2026-06-12T06:56:12.784Z"
 }
