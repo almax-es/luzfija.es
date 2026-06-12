@@ -34,6 +34,8 @@
   var blockedByFacebookThisSession = false;
   var retryCount = 0;
   var requestedAt = 0;
+  var copiedThisSession = false;
+  var copyHideTimer = 0;
 
   function safeGet(key) {
     try { return localStorage.getItem(key); } catch (_) { return null; }
@@ -123,6 +125,7 @@
     shownThisSession = true;
     banner.classList.add('aecc-banner--visible');
     banner.setAttribute('aria-hidden', 'false');
+    banner.removeAttribute('inert');
     track(EVENTS.shown);
   }
 
@@ -130,12 +133,13 @@
     if (!banner) return;
     banner.classList.remove('aecc-banner--visible');
     banner.setAttribute('aria-hidden', 'true');
+    banner.setAttribute('inert', '');
   }
 
   function dismissBanner() {
     safeSet(DISMISSED_KEY, String(Date.now()));
     hideBanner();
-    track(EVENTS.closed);
+    if (!copiedThisSession) track(EVENTS.closed);
   }
 
   function setCopyFeedback(ok) {
@@ -184,7 +188,17 @@
     if (!copied) copied = fallbackCopy(DONATION_CODE);
 
     setCopyFeedback(copied);
-    track(copied ? EVENTS.copied : EVENTS.copyFailed);
+    if (copied) {
+      if (!copiedThisSession) {
+        copiedThisSession = true;
+        safeSet(DISMISSED_KEY, String(Date.now()));
+        track(EVENTS.copied);
+      }
+      if (copyHideTimer) clearTimeout(copyHideTimer);
+      copyHideTimer = setTimeout(hideBanner, 2200);
+    } else {
+      track(EVENTS.copyFailed);
+    }
   }
 
   function buildBanner() {
@@ -196,6 +210,7 @@
     node.setAttribute('role', 'complementary');
     node.setAttribute('aria-label', 'Donación directa a la AECC');
     node.setAttribute('aria-hidden', 'true');
+    node.setAttribute('inert', '');
     node.innerHTML = [
       '<div class="aecc-banner__mark" aria-hidden="true">AECC</div>',
       '<div class="aecc-banner__body">',

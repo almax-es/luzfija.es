@@ -74,6 +74,7 @@ describe('AECC donation banner', () => {
     const banner = document.getElementById('aecc-banner');
     expect(banner).toBeTruthy();
     expect(banner.classList.contains('aecc-banner--visible')).toBe(true);
+    expect(banner.hasAttribute('inert')).toBe(false);
     expect(window.__LF_track).toHaveBeenCalledWith('aecc-banner-mostrado', { title: 'origen:home' });
 
     banner.querySelector('.aecc-banner__close').click();
@@ -82,7 +83,7 @@ describe('AECC donation banner', () => {
     expect(window.__LF_track).toHaveBeenCalledWith('aecc-banner-cerrado', { title: 'origen:home' });
   });
 
-  it('copia el codigo Bizum y segmenta el evento en solar', async () => {
+  it('copia el codigo Bizum, guarda cooldown y no cuenta el cierre como rechazo', async () => {
     const writeText = vi.fn().mockResolvedValue();
     Object.defineProperty(window.navigator, 'clipboard', {
       value: { writeText },
@@ -111,6 +112,15 @@ describe('AECC donation banner', () => {
 
     expect(writeText).toHaveBeenCalledWith('11244');
     expect(document.querySelector('.aecc-banner__status').textContent).toContain('copiado');
+    expect(localStorage.getItem('lf_aecc_banner_dismissed_at')).toMatch(/^\d+$/);
     expect(window.__LF_track).toHaveBeenCalledWith('aecc-banner-copiado', { title: 'origen:solar' });
+
+    document.querySelector('.aecc-banner__close').click();
+    expect(window.__LF_track).not.toHaveBeenCalledWith('aecc-banner-cerrado', { title: 'origen:solar' });
+
+    vi.advanceTimersByTime(2200);
+    const banner = document.getElementById('aecc-banner');
+    expect(banner.classList.contains('aecc-banner--visible')).toBe(false);
+    expect(banner.hasAttribute('inert')).toBe(true);
   });
 });
