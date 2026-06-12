@@ -3,7 +3,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260612-174008";
+const CACHE_VERSION = "20260612-175308";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
@@ -92,6 +92,7 @@ const ASSETS = [
   "logo-512.png",
   "icon-192.png",
   "og.png",
+  "img/aecc-logo.svg",
   "favicon.ico",
   "apple-touch-icon.png",
   "desglose-factura.css",

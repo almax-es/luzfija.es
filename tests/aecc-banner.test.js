@@ -49,6 +49,19 @@ describe('AECC donation banner', () => {
     expect(document.getElementById('aecc-banner')).toBeNull();
   });
 
+  it('no se inicializa en el comparador solar', () => {
+    document.body.innerHTML = `
+      <button id="bv-simulate"></button>
+      <div id="bv-results-container" style="display:block">
+        <div id="bv-results"><article>Resultado</article></div>
+      </div>
+    `;
+
+    loadAeccBanner();
+
+    expect(document.getElementById('aecc-banner')).toBeNull();
+  });
+
   it('no se muestra con resultados listos si no hubo solicitud previa de calculo', () => {
     document.body.innerHTML = `
       <button id="btnCalc"></button>
@@ -93,7 +106,7 @@ describe('AECC donation banner', () => {
     expect(window.__LF_track).toHaveBeenCalledWith('aecc-banner-cerrado', { title: 'origen:home' });
   });
 
-  it('copia el codigo Bizum, guarda cooldown y no cuenta el cierre como rechazo', async () => {
+  it('copia el codigo Bizum en home, guarda cooldown y no cuenta el cierre como rechazo', async () => {
     const writeText = vi.fn().mockResolvedValue();
     Object.defineProperty(window.navigator, 'clipboard', {
       value: { writeText },
@@ -101,18 +114,17 @@ describe('AECC donation banner', () => {
     });
 
     document.body.innerHTML = `
-      <button id="bv-simulate"></button>
-      <div id="bv-results-container" style="display:block">
-        <div id="bv-results"><article>Resultado</article></div>
-      </div>
+      <button id="btnCalc"></button>
+      <section id="seccionResultados" class="visible"></section>
+      <table><tbody id="tbody"><tr><td>Tarifa</td></tr></tbody></table>
     `;
 
     loadAeccBanner();
     document.dispatchEvent(new CustomEvent('lf:results-requested', {
-      detail: { origin: 'solar' }
+      detail: { origin: 'home' }
     }));
     document.dispatchEvent(new CustomEvent('lf:results-ready', {
-      detail: { origin: 'solar', rows: 2 }
+      detail: { origin: 'home', rows: 1 }
     }));
     vi.advanceTimersByTime(2800);
 
@@ -123,10 +135,10 @@ describe('AECC donation banner', () => {
     expect(writeText).toHaveBeenCalledWith('11244');
     expect(document.querySelector('.aecc-banner__status').textContent).toContain('copiado');
     expect(localStorage.getItem('lf_aecc_banner_dismissed_at')).toMatch(/^\d+$/);
-    expect(window.__LF_track).toHaveBeenCalledWith('aecc-banner-copiado', { title: 'origen:solar' });
+    expect(window.__LF_track).toHaveBeenCalledWith('aecc-banner-copiado', { title: 'origen:home' });
 
     document.querySelector('.aecc-banner__close').click();
-    expect(window.__LF_track).not.toHaveBeenCalledWith('aecc-banner-cerrado', { title: 'origen:solar' });
+    expect(window.__LF_track).not.toHaveBeenCalledWith('aecc-banner-cerrado', { title: 'origen:home' });
 
     vi.advanceTimersByTime(2200);
     const banner = document.getElementById('aecc-banner');

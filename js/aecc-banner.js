@@ -44,7 +44,6 @@
   }
 
   function detectPageOrigin() {
-    if (document.getElementById('bv-simulate')) return 'solar';
     if (document.getElementById('btnCalc')) return 'home';
     return '';
   }
@@ -75,13 +74,6 @@
   }
 
   function hasVisibleResults(detail) {
-    if (pageOrigin === 'solar') {
-      var solarContainer = document.getElementById('bv-results-container');
-      if (!solarContainer) return false;
-      var solarVisible = solarContainer.style.display !== 'none';
-      return solarVisible && Boolean(document.getElementById('bv-results')?.children.length || detail?.rows);
-    }
-
     var tbody = document.getElementById('tbody');
     var section = document.getElementById('seccionResultados');
     var sectionVisible = !section || section.classList.contains('visible');
