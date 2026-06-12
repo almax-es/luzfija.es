@@ -28,6 +28,7 @@ afterEach(() => {
   vi.useRealTimers();
   vi.restoreAllMocks();
   delete window.__LF_track;
+  delete window.IntersectionObserver;
 });
 
 describe('AECC donation banner', () => {
@@ -104,6 +105,46 @@ describe('AECC donation banner', () => {
 
     expect(localStorage.getItem('lf_aecc_banner_dismissed_at')).toMatch(/^\d+$/);
     expect(window.__LF_track).toHaveBeenCalledWith('aecc-banner-cerrado', { title: 'origen:home' });
+  });
+
+  it('se aparta cuando el formulario entra en pantalla y reaparece al salir', () => {
+    let observerCallback = null;
+    const observeFn = vi.fn();
+    const disconnectFn = vi.fn();
+    window.IntersectionObserver = function (cb) {
+      observerCallback = cb;
+      this.observe = observeFn;
+      this.disconnect = disconnectFn;
+    };
+
+    document.body.innerHTML = `
+      <button id="btnCalc"></button>
+      <section id="seccionResultados" class="visible"></section>
+      <table><tbody id="tbody"><tr><td>Tarifa</td></tr></tbody></table>
+    `;
+
+    loadAeccBanner();
+    document.dispatchEvent(new CustomEvent('lf:results-requested', { detail: { origin: 'home' } }));
+    document.dispatchEvent(new CustomEvent('lf:results-ready', { detail: { origin: 'home', rows: 1 } }));
+    vi.advanceTimersByTime(2800);
+
+    const banner = document.getElementById('aecc-banner');
+    expect(banner.classList.contains('aecc-banner--visible')).toBe(true);
+    expect(observeFn).toHaveBeenCalled();
+
+    // El usuario sube al formulario: el boton Calcular entra en viewport
+    observerCallback([{ isIntersecting: true }]);
+    expect(banner.classList.contains('aecc-banner--visible')).toBe(false);
+    // No cuenta como cierre: sin cooldown ni evento "cerrado"
+    expect(localStorage.getItem('lf_aecc_banner_dismissed_at')).toBeNull();
+    expect(window.__LF_track).not.toHaveBeenCalledWith('aecc-banner-cerrado', { title: 'origen:home' });
+
+    // Vuelve a bajar a los resultados
+    observerCallback([{ isIntersecting: false }]);
+    expect(banner.classList.contains('aecc-banner--visible')).toBe(true);
+    // El evento "mostrado" solo se emitio una vez
+    const shownCalls = window.__LF_track.mock.calls.filter((c) => c[0] === 'aecc-banner-mostrado');
+    expect(shownCalls.length).toBe(1);
   });
 
   it('copia el codigo Bizum en home, guarda cooldown y no cuenta el cierre como rechazo', async () => {

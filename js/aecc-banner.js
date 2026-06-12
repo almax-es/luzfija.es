@@ -121,13 +121,19 @@
     }, SHOW_DELAY_MS);
   }
 
-  function showBanner() {
-    if (!banner || shownThisSession) return;
-    shownThisSession = true;
+  function revealBanner() {
+    if (!banner) return;
     banner.classList.add('aecc-banner--visible');
     banner.setAttribute('aria-hidden', 'false');
     banner.removeAttribute('inert');
+  }
+
+  function showBanner() {
+    if (!banner || shownThisSession) return;
+    shownThisSession = true;
+    revealBanner();
     track(EVENTS.shown);
+    startFormWatch();
   }
 
   function hideBanner() {
@@ -137,8 +143,41 @@
     banner.setAttribute('inert', '');
   }
 
+  // Apartar el banner cuando el usuario vuelve al formulario (el boton Calcular
+  // entra en pantalla) y re-mostrarlo al bajar de nuevo a los resultados.
+  // No cuenta como cierre ni re-emite el evento "mostrado".
+  var formObserver = null;
+
+  function startFormWatch() {
+    if (typeof IntersectionObserver !== 'function' || formObserver) return;
+    var formSentinel = document.getElementById('btnCalc');
+    if (!formSentinel) return;
+
+    formObserver = new IntersectionObserver(function (entries) {
+      if (isDismissedRecently()) {
+        stopFormWatch();
+        return;
+      }
+      var entry = entries[0];
+      if (entry && entry.isIntersecting) {
+        hideBanner();
+      } else {
+        revealBanner();
+      }
+    });
+    formObserver.observe(formSentinel);
+  }
+
+  function stopFormWatch() {
+    if (formObserver) {
+      try { formObserver.disconnect(); } catch (_) {}
+      formObserver = null;
+    }
+  }
+
   function dismissBanner() {
     safeSet(DISMISSED_KEY, String(Date.now()));
+    stopFormWatch();
     hideBanner();
     if (!copiedThisSession) track(EVENTS.closed);
   }
@@ -196,7 +235,10 @@
         track(EVENTS.copied);
       }
       if (copyHideTimer) clearTimeout(copyHideTimer);
-      copyHideTimer = setTimeout(hideBanner, 2200);
+      copyHideTimer = setTimeout(function () {
+        stopFormWatch();
+        hideBanner();
+      }, 2200);
     } else {
       track(EVENTS.copyFailed);
     }
