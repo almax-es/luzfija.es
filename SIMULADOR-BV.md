@@ -567,7 +567,6 @@ window.BVSim.calcMonthForTarifa({
   impuestoElec: 6.78,
   alquilerContador: 0.72,
   ivaCuota: 27.89,
-  totalBaseSinCosteBV: 150.00,
   precioBVMensual: 1.99,
   costeBV: 1.74,
   totalBase: 151.74,

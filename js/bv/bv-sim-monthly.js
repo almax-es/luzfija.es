@@ -425,7 +425,6 @@ window.BVSim.calcMonthForTarifa = function ({
     ivaCuota,
     impuestoIndirectoTipo: terr?.impuestos?.tipo || (zonaFiscal === 'Canarias' ? 'IGIC' : (zonaFiscal === 'CeutaMelilla' ? 'IPSI' : 'IVA')),
     totalBase: totalBaseConCosteBV,
-    totalBaseSinCosteBV: totalBase,
     precioBVMensual,
     costeBV,
     exKwh,
