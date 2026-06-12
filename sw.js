@@ -3,7 +3,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260612-100819";
+const CACHE_VERSION = "20260612-163620";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
@@ -59,6 +59,7 @@ const ASSETS = [
   "js/index-extra.js",
   "js/index-extra-loader.js",
   "js/tracking.js",
+  "js/aecc-banner.js",
   "js/shell-lite.js",
   "js/guides-search.js",
   "js/desglose-factura.js",
@@ -330,4 +331,3 @@ self.addEventListener("fetch", (event) => {
     })()
   );
 });
-

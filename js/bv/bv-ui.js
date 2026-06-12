@@ -397,6 +397,26 @@ document.addEventListener('DOMContentLoaded', () => {
   const canUseHourlyTrace = hourlyTraceControls.canUse;
   const buildIndexedFallbackMsg = hourlyTraceControls.buildIndexedFallbackMsg;
 
+  function dispatchResultsReady(rowsCount) {
+    if (!Number.isFinite(rowsCount) || rowsCount <= 0) return;
+    try {
+      document.dispatchEvent(new CustomEvent('lf:results-ready', {
+        detail: {
+          origin: 'solar',
+          rows: rowsCount
+        }
+      }));
+    } catch (_) {}
+  }
+
+  function dispatchResultsRequested() {
+    try {
+      document.dispatchEvent(new CustomEvent('lf:results-requested', {
+        detail: { origin: 'solar' }
+      }));
+    } catch (_) {}
+  }
+
   function clearManualMonthMeta() {
     Object.keys(manualMonthMetaByIndex).forEach((key) => {
       delete manualMonthMetaByIndex[key];
@@ -987,8 +1007,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
       try {
         const analyticsOptOut = localStorage.getItem('goatcounter_optout');
+        const aeccDismissedAt = localStorage.getItem('lf_aecc_banner_dismissed_at');
         localStorage.clear();
         if (analyticsOptOut === 'true') localStorage.setItem('goatcounter_optout', 'true');
+        if (/^\d+$/.test(aeccDismissedAt || '')) {
+          localStorage.setItem('lf_aecc_banner_dismissed_at', aeccDismissedAt);
+        }
         sessionStorage.clear();
 
         if ('serviceWorker' in navigator) {
@@ -1549,6 +1573,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const esViviendaCanarias = viviendaCanariasInput ? viviendaCanariasInput.checked : true;
 
     if (p1Val <= 0) { showToast('Te falta poner la potencia contratada (P1).', 'err'); return; }
+    dispatchResultsRequested();
 
     if (resultsContainer) { resultsContainer.classList.remove('show'); resultsContainer.style.display = 'none'; }
     if (statusContainer) { statusContainer.style.display = 'block'; statusEl.innerHTML = '<span class="spinner"></span> Calculando...'; }
@@ -2131,7 +2156,10 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
       `;
       resultsEl.innerHTML = `<h2 style="text-align:center; font-size:1.8rem; font-weight:900; margin-bottom:2rem; color:var(--text);">Resultados de la Simulación</h2>${rankingNote}${winnerHTML}<h3 style="text-align:center; margin-bottom: 24px; margin-top: 40px; color:var(--text);">Ranking completo (${totalTarifas} tarifas)</h3>${alternativesHTML}`;
       resultsContainer.style.display = 'block';
-      setTimeout(() => resultsContainer.classList.add('show'), 10);
+      setTimeout(() => {
+        resultsContainer.classList.add('show');
+        dispatchResultsReady(totalTarifas);
+      }, 10);
       statusContainer.style.display = 'none';
       if (saldoSinDestino) {
         showToast('Cálculo completado. El saldo BV inicial no se ha aplicado: no hay tarifa actual con batería virtual.', 'err');

@@ -76,6 +76,14 @@
     calculate(true, forceRefresh);
   }
 
+  function dispatchResultsRequested() {
+    try {
+      document.dispatchEvent(new CustomEvent('lf:results-requested', {
+        detail: { origin: 'home' }
+      }));
+    } catch (_) {}
+  }
+
   // ===== AUTO-REFRESH TARIFAS (agresivo) =====
   const AUTO_REFRESH_MS = 15 * 60 * 1000; // 15 min
   const AUTO_REFRESH_THROTTLE_MS = 15 * 1000; // evitar doble disparo (focus+visible)
@@ -333,6 +341,7 @@
     // Calculate button
     currentEl.btnCalc.addEventListener('click', (e) => {
       createRipple(currentEl.btnCalc, e);
+      dispatchResultsRequested();
       // Si el cálculo viene de un CSV ya aplicado, hay que preservar la curva horaria.
       runCalculation(false);
     });
@@ -343,6 +352,7 @@
       input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
+          dispatchResultsRequested();
           createRipple(currentEl.btnCalc, {
             clientX: currentEl.btnCalc.offsetLeft + currentEl.btnCalc.offsetWidth / 2,
             clientY: currentEl.btnCalc.offsetTop + currentEl.btnCalc.offsetHeight / 2
@@ -483,8 +493,12 @@
 
         try {
           const analyticsOptOut = localStorage.getItem('goatcounter_optout');
+          const aeccDismissedAt = localStorage.getItem('lf_aecc_banner_dismissed_at');
           localStorage.clear();
           if (analyticsOptOut === 'true') localStorage.setItem('goatcounter_optout', 'true');
+          if (/^\d+$/.test(aeccDismissedAt || '')) {
+            localStorage.setItem('lf_aecc_banner_dismissed_at', aeccDismissedAt);
+          }
           lfDbg('[CACHE] localStorage limpiado');
         } catch (e) {}
         try { sessionStorage.clear(); lfDbg('[CACHE] sessionStorage limpiado'); } catch (e) {}

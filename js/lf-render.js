@@ -539,6 +539,18 @@
     notice.hidden = !state.lastRenderSolarOn;
   }
 
+  function dispatchResultsReady(rowsCount) {
+    if (!Number.isFinite(rowsCount) || rowsCount <= 0) return;
+    try {
+      document.dispatchEvent(new CustomEvent('lf:results-ready', {
+        detail: {
+          origin: 'home',
+          rows: rowsCount
+        }
+      }));
+    } catch (_) {}
+  }
+
   function renderAll(d) {
     if (!d || !d.success) {
       setStatus('Error de cálculo', 'err');
@@ -590,6 +602,7 @@
     // para evitar que el scroll salte al final mientras el DOM crece.
     renderTable().then(() => {
       announceResultsSummary(d);
+      dispatchResultsReady(el.tbody ? el.tbody.querySelectorAll('tr').length : 0);
       if (seccionResultados) {
         seccionResultados.scrollIntoView();
       }

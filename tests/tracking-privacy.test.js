@@ -44,6 +44,8 @@ describe('Tracking privacy behavior', () => {
     for (const code of [lfAppCode, bvUiCode]) {
       expect(code).toMatch(/getItem\('goatcounter_optout'\)/);
       expect(code).toMatch(/setItem\('goatcounter_optout', 'true'\)/);
+      expect(code).toMatch(/getItem\('lf_aecc_banner_dismissed_at'\)/);
+      expect(code).toMatch(/setItem\('lf_aecc_banner_dismissed_at'/);
     }
   });
 
