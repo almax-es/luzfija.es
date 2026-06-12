@@ -130,17 +130,30 @@ describe('AECC donation banner', () => {
 
     const banner = document.getElementById('aecc-banner');
     expect(banner.classList.contains('aecc-banner--visible')).toBe(true);
-    expect(observeFn).toHaveBeenCalled();
+    expect(observeFn).toHaveBeenCalledTimes(2);
+
+    const btnCalc = document.getElementById('btnCalc');
+    const seccion = document.getElementById('seccionResultados');
 
     // El usuario sube al formulario: el boton Calcular entra en viewport
-    observerCallback([{ isIntersecting: true }]);
+    observerCallback([
+      { target: btnCalc, isIntersecting: true },
+      { target: seccion, isIntersecting: false }
+    ]);
     expect(banner.classList.contains('aecc-banner--visible')).toBe(false);
     // No cuenta como cierre: sin cooldown ni evento "cerrado"
     expect(localStorage.getItem('lf_aecc_banner_dismissed_at')).toBeNull();
     expect(window.__LF_track).not.toHaveBeenCalledWith('aecc-banner-cerrado', { title: 'origen:home' });
 
+    // Sigue subiendo hasta arriba del todo: ni formulario ni resultados a la vista
+    observerCallback([{ target: btnCalc, isIntersecting: false }]);
+    expect(banner.classList.contains('aecc-banner--visible')).toBe(false);
+
     // Vuelve a bajar a los resultados
-    observerCallback([{ isIntersecting: false }]);
+    observerCallback([
+      { target: btnCalc, isIntersecting: false },
+      { target: seccion, isIntersecting: true }
+    ]);
     expect(banner.classList.contains('aecc-banner--visible')).toBe(true);
     // El evento "mostrado" solo se emitio una vez
     const shownCalls = window.__LF_track.mock.calls.filter((c) => c[0] === 'aecc-banner-mostrado');

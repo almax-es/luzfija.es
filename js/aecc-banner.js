@@ -143,14 +143,18 @@
     banner.setAttribute('inert', '');
   }
 
-  // Apartar el banner cuando el usuario vuelve al formulario (el boton Calcular
-  // entra en pantalla) y re-mostrarlo al bajar de nuevo a los resultados.
+  // Apartar el banner cuando el usuario no esta mirando los resultados:
+  // se esconde si el formulario (boton Calcular) esta en pantalla O si los
+  // resultados no lo estan (p. ej. arriba del todo, en el encabezado).
   // No cuenta como cierre ni re-emite el evento "mostrado".
   var formObserver = null;
+  var formInView = false;
+  var resultsInView = true;
 
   function startFormWatch() {
     if (typeof IntersectionObserver !== 'function' || formObserver) return;
     var formSentinel = document.getElementById('btnCalc');
+    var resultsSentinel = document.getElementById('seccionResultados') || document.getElementById('tbody');
     if (!formSentinel) return;
 
     formObserver = new IntersectionObserver(function (entries) {
@@ -158,14 +162,19 @@
         stopFormWatch();
         return;
       }
-      var entry = entries[0];
-      if (entry && entry.isIntersecting) {
+      for (var i = 0; i < entries.length; i++) {
+        var entry = entries[i];
+        if (entry.target === formSentinel) formInView = entry.isIntersecting;
+        else if (entry.target === resultsSentinel) resultsInView = entry.isIntersecting;
+      }
+      if (formInView || !resultsInView) {
         hideBanner();
       } else {
         revealBanner();
       }
     });
     formObserver.observe(formSentinel);
+    if (resultsSentinel) formObserver.observe(resultsSentinel);
   }
 
   function stopFormWatch() {
