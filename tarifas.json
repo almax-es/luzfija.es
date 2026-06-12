@@ -764,27 +764,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Atulado Milenial",
-      "cPunta": 0.135959,
-      "cLlano": 0.135959,
-      "cValle": 0.135959,
-      "p1": 0.103717,
-      "p2": 0.041623,
-      "web": "https://clientes.atuladoenergia.com/tarifas",
-      "tipo": "1P",
-      "requisitos": "Precio revisable cada trimestre natural.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Repsol Tranquilísima",
       "cPunta": 0.1399,
       "cLlano": 0.1399,
@@ -1836,9 +1815,9 @@
     },
     {
       "nombre": "Contigo Energía Horas 3P",
-      "cPunta": 0.262571,
-      "cLlano": 0.16451,
-      "cValle": 0.13848,
+      "cPunta": 0.263987,
+      "cLlano": 0.16536,
+      "cValle": 0.13935,
       "p1": 0.084122,
       "p2": 0.010207,
       "web": "https://contigoenergia.com/tarifas/tarifa-luz-horas/",
@@ -1876,5 +1855,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-12T06:56:12.784Z"
+  "updatedAt": "2026-06-12T07:02:11.636Z"
 }

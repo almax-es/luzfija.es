@@ -128,7 +128,7 @@ Correct framing:
 Commercial tariffs:
 - source file: `/tarifas.json`
 - contains market-offer data used by the comparator
-- current documented size: 92 tariffs as of 2026-06-12
+- current documented size: 91 tariffs as of 2026-06-12
 
 PVPC:
 - local datasets under `/data/pvpc/`
