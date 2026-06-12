@@ -49,6 +49,16 @@
     return '';
   }
 
+  // Solo escritorio: en moviles/tablets el banner tapa los resultados.
+  function isDesktopViewport() {
+    try {
+      if (typeof window.matchMedia !== 'function') return false;
+      return window.matchMedia('(min-width: 1024px)').matches;
+    } catch (_) {
+      return false;
+    }
+  }
+
   function isDismissedRecently() {
     var raw = safeGet(DISMISSED_KEY);
     var ts = raw ? Number(raw) : 0;
@@ -94,6 +104,7 @@
 
   function canShowNow(detail) {
     if (!banner || shownThisSession || isDismissedRecently()) return false;
+    if (!isDesktopViewport()) return false;
     if (Date.now() - requestedAt > REQUEST_WINDOW_MS) return false;
     if (window.__LF_PRIVACY_MODE === true || window.__LF_FACTURA_BUSY === true) return false;
     if (!hasVisibleResults(detail)) return false;
@@ -211,10 +222,8 @@
     node.setAttribute('inert', '');
     node.innerHTML = [
       '<button class="aecc-banner__close" type="button" aria-label="Cerrar banner de donación">✕</button>',
-      '<div class="aecc-banner__head">',
-        '<span class="aecc-banner__ribbon" aria-hidden="true">🎗️</span>',
-        '<p class="aecc-banner__title">¿Te ha sido útil LuzFija?</p>',
-      '</div>',
+      '<span class="aecc-banner__logo-chip"><img class="aecc-banner__logo" src="/img/aecc-logo.svg" alt="AECC — Asociación Española Contra el Cáncer" width="140" height="44"></span>',
+      '<p class="aecc-banner__title">¿Te ha sido útil LuzFija?</p>',
       '<p class="aecc-banner__desc">Dona contra el cáncer por Bizum, directamente a la AECC. LuzFija.es no recibe dinero, comisión ni datos de la donación.</p>',
       '<div class="aecc-banner__action">',
         '<span class="aecc-banner__code" title="Código de donación Bizum">11244</span>',
@@ -256,6 +265,7 @@
     pageOrigin = detectPageOrigin();
     if (!pageOrigin) return;
     if (isDismissedRecently()) return;
+    if (!isDesktopViewport()) return;
 
     bindBanner();
     document.addEventListener('lf:results-requested', onResultsRequested);

@@ -20,6 +20,8 @@ beforeEach(() => {
   document.body.innerHTML = '';
   localStorage.clear();
   window.__LF_track = vi.fn();
+  // jsdom no hace layout: simulamos viewport de escritorio por defecto
+  window.matchMedia = vi.fn(() => ({ matches: true }));
 });
 
 afterEach(() => {
@@ -31,6 +33,15 @@ afterEach(() => {
 describe('AECC donation banner', () => {
   it('no se inicializa si hay cooldown activo', () => {
     localStorage.setItem('lf_aecc_banner_dismissed_at', String(Date.now()));
+    document.body.innerHTML = '<button id="btnCalc"></button>';
+
+    loadAeccBanner();
+
+    expect(document.getElementById('aecc-banner')).toBeNull();
+  });
+
+  it('no se inicializa en viewports moviles/tablet (solo escritorio)', () => {
+    window.matchMedia = vi.fn(() => ({ matches: false }));
     document.body.innerHTML = '<button id="btnCalc"></button>';
 
     loadAeccBanner();
