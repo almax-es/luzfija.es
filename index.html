@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-fqJE+sAD8pDrFjp9FxILIm0TfTkE8rMtn8fRmdAlMI8=' 'sha256-oKNpq7b6ylWwSLDD5qzh0JovSIoI6fn+/ZBlDpxiScQ=' 'sha256-wbH8myRpajlmIYZoFOlBhborLyOdDoC+LbxV4067IuE=' 'sha256-375H4RIVVu85w+tdCRXFSeoVketX59PT0dG3E9T37Fo=' 'sha256-kFvVb2sIHwl2m95IlH6P5XnyL388FOs++fJ/ulZv0zQ=' 'sha256-AqedS0DDZ3spZ9sgaXw1wgEfApjkRkFoyIwCRQYGi28=' 'sha256-o7hSY5UfiBJmYS1Eo3bu+0gZg3k58mlhN0aHOCklrjg='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-fqJE+sAD8pDrFjp9FxILIm0TfTkE8rMtn8fRmdAlMI8=' 'sha256-oKNpq7b6ylWwSLDD5qzh0JovSIoI6fn+/ZBlDpxiScQ=' 'sha256-wbH8myRpajlmIYZoFOlBhborLyOdDoC+LbxV4067IuE=' 'sha256-375H4RIVVu85w+tdCRXFSeoVketX59PT0dG3E9T37Fo=' 'sha256-kFvVb2sIHwl2m95IlH6P5XnyL388FOs++fJ/ulZv0zQ=' 'sha256-AqedS0DDZ3spZ9sgaXw1wgEfApjkRkFoyIwCRQYGi28='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark light"/>
 <meta name="description" content="Compara tarifas de luz, PVPC y autoconsumo sin anuncios, sin registro y sin comisiones. Usa tu factura PDF o consumo horario y encuentra la más barata.">
@@ -48,7 +48,7 @@
     }, true);
   })();
   </script>
-  <script src="/js/config.js?v=20260612-164219"></script>
+  <script src="/js/config.js?v=20260612-171443"></script>
 
   <meta property="og:title" content="Comparador de Tarifas de Luz sin Registro ni Comisiones">
   <meta property="og:description" content="Compara tarifas de luz, PVPC y autoconsumo sin anuncios, sin registro y sin comisiones. Usa tu factura PDF o consumo horario y encuentra la más barata.">
@@ -242,18 +242,18 @@
   }
   </script>
 
-  <script src="/js/theme.js?v=20260612-164219"></script>
+  <script src="/js/theme.js?v=20260612-171443"></script>
 
-    <link rel="stylesheet" href="/styles.css?v=20260612-164219">
-    <link rel="stylesheet" href="/pro.css?v=20260612-164219">
+    <link rel="stylesheet" href="/styles.css?v=20260612-171443">
+    <link rel="stylesheet" href="/pro.css?v=20260612-171443">
   <!-- CSS del desglose (solo se usa al abrir el modal) -->
-  <link rel="preload" href="/desglose-factura.css?v=20260612-164219" as="style">
-  <link rel="stylesheet" href="/desglose-factura.css?v=20260612-164219" media="all">
-  <noscript><link rel="stylesheet" href="/desglose-factura.css?v=20260612-164219"></noscript>
+  <link rel="preload" href="/desglose-factura.css?v=20260612-171443" as="style">
+  <link rel="stylesheet" href="/desglose-factura.css?v=20260612-171443" media="all">
+  <noscript><link rel="stylesheet" href="/desglose-factura.css?v=20260612-171443"></noscript>
 
   <!-- PDF.js se carga dinámicamente cuando el usuario sube una factura (ver factura.js) -->
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/fonts.css?v=20260612-164219">
+  <link rel="stylesheet" href="/fonts.css?v=20260612-171443">
 
     <meta name="theme-color" content="#8B5CF6">
 </head>
@@ -839,31 +839,6 @@
 
 <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"><span class="dot" id="toastDot" aria-hidden="true"></span><span id="toastText"></span></div>
 
-  <!-- Banner flotante grupo Facebook -->
-  <div id="fb-banner" role="complementary" aria-label="Únete al grupo de Facebook">
-    <div class="fb-banner__icon">💬</div>
-    <div class="fb-banner__body">
-      <p class="fb-banner__title">¿Dudas sobre tu tarifa?</p>
-      <p class="fb-banner__desc">Pregunta en nuestra comunidad y te ayudamos a pagar menos.</p>
-      <a href="https://www.facebook.com/groups/luzfija" target="_blank" rel="noopener noreferrer" class="fb-banner__cta">Unirme al grupo</a>
-    </div>
-    <button class="fb-banner__close" id="fb-banner-close" aria-label="Cerrar">✕</button>
-  </div>
-  <script>
-    (function(){
-      var KEY = 'lf_fb_banner_dismissed';
-      if(localStorage.getItem(KEY)) return;
-      var banner = document.getElementById('fb-banner');
-      var closeBtn = document.getElementById('fb-banner-close');
-      function dismiss(){
-        banner.classList.remove('fb-banner--visible');
-        localStorage.setItem(KEY, '1');
-      }
-      closeBtn.addEventListener('click', dismiss);
-      banner.querySelector('.fb-banner__cta').addEventListener('click', dismiss);
-      setTimeout(function(){ banner.classList.add('fb-banner--visible'); }, 4000);
-    })();
-  </script>
   <button type="button" id="scrollToResults" class="scroll-btn is-hidden" title="Ver resultados" aria-label="Desplazarse a los resultados del comparador" aria-controls="heroKpis">↓ Ver resultados</button>
   <div id="globalTooltip" role="tooltip" aria-hidden="true"></div>
 
@@ -995,37 +970,37 @@
 
     <!-- LuzFija Modular Architecture -->
     <!-- Tracking primero para capturar errores de scripts posteriores -->
-    <script src="js/tracking.js?v=20260612-164219" defer></script>
+    <script src="js/tracking.js?v=20260612-171443" defer></script>
 
     <!-- 1. Módulos base (orden importante) -->
-    <script src="js/lf-config.js?v=20260612-164219" defer></script>
-    <script src="js/lf-utils.js?v=20260612-164219" defer></script>
-    <script src="js/lf-ssaa.js?v=20260612-164219" defer></script>
-    <script src="js/lf-csv-utils.js?v=20260612-164219" defer></script>
-    <script src="js/lf-state.js?v=20260612-164219" defer></script>
-    <script src="js/lf-ui.js?v=20260612-164219" defer></script>
-    <script src="js/lf-tooltips.js?v=20260612-164219" defer></script>
-    <script src="js/lf-cache.js?v=20260612-164219" defer></script>
-    <script src="js/lf-inputs.js?v=20260612-164219" defer></script>
-    <script src="js/lf-calc.js?v=20260612-164219" defer></script>
-    <script src="js/lf-render.js?v=20260612-164219" defer></script>
-    <script src="js/lf-csv-import.js?v=20260612-164219" defer></script>
-    <script src="js/lf-tarifa-custom.js?v=20260612-164219" defer></script>
+    <script src="js/lf-config.js?v=20260612-171443" defer></script>
+    <script src="js/lf-utils.js?v=20260612-171443" defer></script>
+    <script src="js/lf-ssaa.js?v=20260612-171443" defer></script>
+    <script src="js/lf-csv-utils.js?v=20260612-171443" defer></script>
+    <script src="js/lf-state.js?v=20260612-171443" defer></script>
+    <script src="js/lf-ui.js?v=20260612-171443" defer></script>
+    <script src="js/lf-tooltips.js?v=20260612-171443" defer></script>
+    <script src="js/lf-cache.js?v=20260612-171443" defer></script>
+    <script src="js/lf-inputs.js?v=20260612-171443" defer></script>
+    <script src="js/lf-calc.js?v=20260612-171443" defer></script>
+    <script src="js/lf-render.js?v=20260612-171443" defer></script>
+    <script src="js/lf-csv-import.js?v=20260612-171443" defer></script>
+    <script src="js/lf-tarifa-custom.js?v=20260612-171443" defer></script>
     
     <!-- 2. Módulos externos -->
-    <script src="js/pvpc.js?v=20260612-164219" defer></script>
-    <script src="js/factura.js?v=20260612-164219" defer></script>
+    <script src="js/pvpc.js?v=20260612-171443" defer></script>
+    <script src="js/factura.js?v=20260612-171443" defer></script>
     <!-- 2b. Sistema de desglose de factura -->
-    <script src="js/desglose-factura.js?v=20260612-164219" defer></script>
-    <script src="js/desglose-integration.js?v=20260612-164219" defer></script>
+    <script src="js/desglose-factura.js?v=20260612-171443" defer></script>
+    <script src="js/desglose-integration.js?v=20260612-171443" defer></script>
 
     <!-- 3. Coordinador principal -->
     <!-- XLSX se carga bajo demanda cuando se necesita -->
-    <script src="js/lf-app.js?v=20260612-164219" defer></script>
+    <script src="js/lf-app.js?v=20260612-171443" defer></script>
 
 
-    <script src="js/index-extra.js?v=20260612-164219" defer></script>
-    <script src="js/aecc-banner.js?v=20260612-164219" defer></script>
+    <script src="js/index-extra.js?v=20260612-171443" defer></script>
+    <script src="js/aecc-banner.js?v=20260612-171443" defer></script>
 
   <!-- Modal PVPC -->
   <div class="modal-overlay is-hidden" id="modalPVPCInfo" role="dialog" aria-modal="true" aria-label="Precios PVPC por hora" aria-hidden="true" tabindex="-1">

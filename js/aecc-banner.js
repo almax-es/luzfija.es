@@ -12,7 +12,6 @@
 
   var DONATION_CODE = '11244';
   var DISMISSED_KEY = 'lf_aecc_banner_dismissed_at';
-  var FB_DISMISSED_KEY = 'lf_fb_banner_dismissed';
   var COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
   var SHOW_DELAY_MS = 2800;
   var RETRY_DELAY_MS = 900;
@@ -31,7 +30,6 @@
   var statusEl = null;
   var showTimer = 0;
   var shownThisSession = false;
-  var blockedByFacebookThisSession = false;
   var retryCount = 0;
   var requestedAt = 0;
   var copiedThisSession = false;
@@ -103,7 +101,7 @@
   }
 
   function scheduleShow(detail) {
-    if (shownThisSession || isDismissedRecently() || blockedByFacebookThisSession) return;
+    if (shownThisSession || isDismissedRecently()) return;
     if (showTimer) clearTimeout(showTimer);
 
     showTimer = setTimeout(function tryShow() {
@@ -212,15 +210,18 @@
     node.setAttribute('aria-hidden', 'true');
     node.setAttribute('inert', '');
     node.innerHTML = [
-      '<div class="aecc-banner__mark" aria-hidden="true">AECC</div>',
-      '<div class="aecc-banner__body">',
+      '<button class="aecc-banner__close" type="button" aria-label="Cerrar banner de donación">✕</button>',
+      '<div class="aecc-banner__head">',
+        '<span class="aecc-banner__ribbon" aria-hidden="true">🎗️</span>',
         '<p class="aecc-banner__title">¿Te ha sido útil LuzFija?</p>',
-        '<p class="aecc-banner__desc">Puedes donar directamente a la AECC por Bizum. LuzFija.es no recibe dinero, comisión ni datos de la donación.</p>',
-        '<p class="aecc-banner__steps">Bizum &gt; Donar a ONG &gt; código <strong class="aecc-banner__code">11244</strong></p>',
-        '<button class="aecc-banner__cta" type="button">Copiar código</button>',
-        '<span class="aecc-banner__status" role="status" aria-live="polite" aria-atomic="true"></span>',
       '</div>',
-      '<button class="aecc-banner__close" type="button" aria-label="Cerrar banner de donación">x</button>'
+      '<p class="aecc-banner__desc">Dona contra el cáncer por Bizum, directamente a la AECC. LuzFija.es no recibe dinero, comisión ni datos de la donación.</p>',
+      '<div class="aecc-banner__action">',
+        '<span class="aecc-banner__code" title="Código de donación Bizum">11244</span>',
+        '<button class="aecc-banner__cta" type="button">Copiar código</button>',
+      '</div>',
+      '<p class="aecc-banner__steps">En tu app bancaria: Bizum → Donar a ONG</p>',
+      '<span class="aecc-banner__status" role="status" aria-live="polite" aria-atomic="true"></span>'
     ].join('');
 
     document.body.appendChild(node);
@@ -255,11 +256,6 @@
     pageOrigin = detectPageOrigin();
     if (!pageOrigin) return;
     if (isDismissedRecently()) return;
-
-    if (pageOrigin === 'home' && safeGet(FB_DISMISSED_KEY) !== '1') {
-      blockedByFacebookThisSession = true;
-      return;
-    }
 
     bindBanner();
     document.addEventListener('lf:results-requested', onResultsRequested);

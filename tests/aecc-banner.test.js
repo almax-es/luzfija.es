@@ -29,7 +29,8 @@ afterEach(() => {
 });
 
 describe('AECC donation banner', () => {
-  it('no se inicializa en home si el banner de Facebook aun no fue descartado', () => {
+  it('no se inicializa si hay cooldown activo', () => {
+    localStorage.setItem('lf_aecc_banner_dismissed_at', String(Date.now()));
     document.body.innerHTML = '<button id="btnCalc"></button>';
 
     loadAeccBanner();
@@ -38,7 +39,6 @@ describe('AECC donation banner', () => {
   });
 
   it('no se muestra con resultados listos si no hubo solicitud previa de calculo', () => {
-    localStorage.setItem('lf_fb_banner_dismissed', '1');
     document.body.innerHTML = `
       <button id="btnCalc"></button>
       <section id="seccionResultados" class="visible"></section>
@@ -55,7 +55,6 @@ describe('AECC donation banner', () => {
   });
 
   it('se muestra tras resultados reales en home y guarda cooldown al cerrar', () => {
-    localStorage.setItem('lf_fb_banner_dismissed', '1');
     document.body.innerHTML = `
       <button id="btnCalc"></button>
       <section id="seccionResultados" class="visible"></section>
