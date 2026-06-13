@@ -2023,7 +2023,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
             ${winnerNufriNote}
             ${winnerCompParcialNote}
             <div style="margin-top:auto; padding-top:1.5rem; width:100%">
-              ${winnerUrl ? `<a href="${winnerUrl}" target="_blank" rel="noopener noreferrer" class="btn bv-link-tarifa" style="width:100%; justify-content:center; font-size:14px; padding:10px 14px;">🔗 Información de la tarifa</a>` : ''}
+              ${winnerUrl ? `<a href="${winnerUrl}" target="_blank" rel="noopener nofollow" referrerpolicy="origin" class="btn bv-link-tarifa" style="width:100%; justify-content:center; font-size:14px; padding:10px 14px;">🔗 Información de la tarifa</a>` : ''}
             </div>
           </div>
           <div class="bv-kpis-stack">
@@ -2106,7 +2106,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
             ${hasBV ? '' : '<div class="bv-note bv-note-compact">Sin BV: el excedente no compensado se pierde.</div>'}
 
             <div class="bv-alt-actions">
-              ${altUrl ? `<a href="${altUrl}" target="_blank" rel="noopener noreferrer" class="bv-alt-btn bv-alt-btn-info">
+              ${altUrl ? `<a href="${altUrl}" target="_blank" rel="noopener nofollow" referrerpolicy="origin" class="bv-alt-btn bv-alt-btn-info">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10"></circle>
                   <line x1="12" y1="16" x2="12" y2="12"></line>

@@ -249,7 +249,7 @@
 
         const safeWebUrl = safeUrl(r.webUrl);
         const w = safeWebUrl && safeWebUrl !== '#'
-          ? `<a class="web" href="${escapeHtml(safeWebUrl)}" target="_blank" rel="noopener noreferrer" title="Abrir web" aria-label="Abrir oferta de ${escapeHtml(nombreBase)}">` +
+          ? `<a class="web" href="${escapeHtml(safeWebUrl)}" target="_blank" rel="noopener nofollow" referrerpolicy="origin" title="Abrir web" aria-label="Abrir oferta de ${escapeHtml(nombreBase)}">` +
             `<span class="web-icon" aria-hidden="true">🔗</span>` +
             `<span class="web-text">Ver oferta</span>` +
             `</a>`
