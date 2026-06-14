@@ -225,12 +225,7 @@ try {
       title: finalTitle,
       event: true,
     };
-    
-    // Eliminamos la inyección por defecto de no_session para no inflar artificialmente
-    // el contador total de visitas en el panel de GoatCounter.
-    if (metadata && metadata.noSession === true) {
-      payload.no_session = true;
-    }
+    if (!metadata || metadata.noSession !== false) payload.no_session = true;
 
     sendPayload(payload);
   }
