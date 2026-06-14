@@ -93,4 +93,20 @@ describe('GoatCounter eager page view on DOMContentLoaded', () => {
 
     expect(window.goatcounter.referrer).toBe('https://example.com');
   });
+
+  it('descarta referrers con esquemas opacos o no navegables', () => {
+    for (const referrer of ['about:blank', 'data:text/plain,hello', 'blob:https://example.com/id', 'http://[::1']) {
+      document.head.innerHTML = '';
+      delete window.goatcounter;
+      Object.defineProperty(document, 'referrer', {
+        value: referrer,
+        configurable: true
+      });
+
+      bootstrapTracking();
+      fireDOMContentLoaded();
+
+      expect(window.goatcounter.referrer).toBe('');
+    }
+  });
 });

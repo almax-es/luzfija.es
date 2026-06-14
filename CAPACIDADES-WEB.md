@@ -170,7 +170,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 
 - Analitica con GoatCounter sin cookies y con opt-out local desde `privacidad.html`.
 - Pageviews canonicos sin query/hash y referrers saneados para no filtrar busquedas ni configuraciones compartidas.
-- Eventos de interaccion con `no_session: true` para que no inflen visitas.
+- Eventos de interaccion con `no_session: true` para contar acciones repetidas; las visitas reales se miran con pageviews (`is:pageview` en GoatCounter).
 - Taxonomia detallada por `path` para comparar uso real de herramientas, guias, CSV, filtros, resultados y clicks de tarifa.
 - La carga/extraccion de factura PDF no se trackea: `factura.js` activa modo privacidad y `tracking.js` bloquea eventos del modal `#modalFactura`.
 - Documento de mantenimiento: `ANALITICA-GOATCOUNTER.md`.
@@ -296,7 +296,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 33 (`js/*.js` + `js/bv/*.js`).
-- Lineas JS aproximadas: 21.039.
+- Lineas JS aproximadas: 21.040.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (90 tarifas).
@@ -341,7 +341,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 
 - Suite Vitest/JSDOM.
 - 57 archivos de test (`tests/*.test.js`).
-- 419 casos `it()/test()` en la ultima ejecucion local verificada.
+- 421 casos `it()/test()` en la ultima ejecucion local verificada.
 - Cobertura de:
 - Calculo fiscal y de energia.
 - PVPC y caches.

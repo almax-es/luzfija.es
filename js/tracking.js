@@ -314,10 +314,11 @@ try {
     if (!raw) return '';
     try {
       const u = new URL(raw, location.href);
+      if (u.protocol !== 'http:' && u.protocol !== 'https:') return '';
       if (u.origin === location.origin) {
         return u.origin + normalizePathOnly(u.pathname || '/');
       }
-      return u.origin || '';
+      return (u.origin && u.origin !== 'null') ? u.origin : '';
     } catch (_) {
       return '';
     }

@@ -24,6 +24,7 @@ beforeEach(() => {
   delete window.goatcounter;
   delete window.__LF_track;
   delete window.__LF_PRIVACY_MODE;
+  delete window.__LF_FACTURA_BUSY;
 });
 
 afterEach(() => {
@@ -57,6 +58,17 @@ describe('Tracking privacy behavior', () => {
     expect(typeof window.__LF_track).toBe('function');
     window.__LF_PRIVACY_MODE = true;
     window.__LF_track('evento-privado', { title: 'No debería enviarse' });
+
+    expect(appendSpy).not.toHaveBeenCalled();
+  });
+
+  it('bloquea eventos cuando la extracción de factura está ocupada', () => {
+    const appendSpy = vi.spyOn(document.head, 'appendChild');
+    bootstrapTracking();
+
+    expect(typeof window.__LF_track).toBe('function');
+    window.__LF_FACTURA_BUSY = true;
+    window.__LF_track('evento-factura', { title: 'No debería enviarse' });
 
     expect(appendSpy).not.toHaveBeenCalled();
   });

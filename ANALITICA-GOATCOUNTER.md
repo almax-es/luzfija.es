@@ -22,8 +22,9 @@ No existe para monetizar, vender leads, crear perfiles personales, atribuir usua
 - GoatCounter se usa sin cookies.
 - El usuario puede desactivar la analitica desde `privacidad.html`; el opt-out se guarda en `localStorage` como `goatcounter_optout=true`.
 - Los eventos nunca deben incluir CUPS, emails, telefonos, nombres de archivo, busquedas literales, kWh, euros introducidos, potencias, datos de factura, datos OCR, QR CNMC ni texto libre del usuario.
-- Los eventos de interaccion se envian con `no_session: true` por defecto para no inflar visitas ni sesiones.
-- Las visitas se cuentan mediante pageviews reales, no mediante eventos.
+- Los eventos de interaccion se envian con `no_session: true` por defecto para contar cada accion repetida como evento independiente.
+- En GoatCounter, `no_session: true` no oculta el hit del total mixto del panel. Para ver trafico humano real hay que filtrar por pageviews (`is:pageview`).
+- Las visitas reales del sitio se interpretan mediante pageviews canonicos, no mediante el total mixto pageviews+eventos.
 - El tracking no debe romper nunca la web: si GoatCounter falla o esta bloqueado, la app debe seguir funcionando.
 
 ## 3. Zona Prohibida: Factura PDF
@@ -55,6 +56,7 @@ Reglas de saneo:
 - Pageview actual: solo `pathname` canonico. Ejemplo: `/guias.html?q=factura&cPunta=123` se cuenta como `/guias.html`.
 - Referrer same-origin: `origin + pathname`, sin query ni hash. Ejemplo: `https://luzfija.es/guias.html?q=factura#x` pasa a `https://luzfija.es/guias.html`.
 - Referrer externo: solo `origin`. Ejemplo: `https://example.com/post?q=x` pasa a `https://example.com`.
+- Referrers con esquemas no HTTP/HTTPS u origen opaco se descartan.
 - Sin referrer: cadena vacia.
 
 Ademas, el `count.js` vendorizado usa `safe_query()` para no enviar la query completa. Solo se conservan parametros UTM no personales:
@@ -216,7 +218,7 @@ Antes de anadir un evento:
 4. Reduce valores a categorias, slugs, estados o buckets.
 5. No envies datos personales, importes, kWh, potencias, busquedas literales, nombres de archivo ni texto libre.
 6. No trackees nada dentro de `#modalFactura`.
-7. No actives eventos que puedan inflar visitas; deja `no_session: true`.
+7. Deja `no_session: true` salvo que quieras deduplicar clicks repetidos en la misma ruta. Recuerda que el total mixto de GoatCounter incluye eventos; usa `is:pageview` para visitas reales.
 8. Si la pagina nueva carga tracking, actualiza CSP.
 9. Si anades un HTML publico real, debe pasar `tests/tracking-html-coverage.test.js`.
 10. Anade o actualiza tests cuando el evento sea nuevo, sensible o compartido por varias paginas.
