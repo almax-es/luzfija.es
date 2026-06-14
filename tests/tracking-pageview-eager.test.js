@@ -29,6 +29,7 @@ beforeEach(() => {
   document.head.innerHTML = '';
   document.body.innerHTML = '';
   localStorage.clear();
+  Object.defineProperty(document, 'referrer', { value: '', configurable: true });
   delete window.goatcounter;
   delete window.__LF_track;
   delete window.__LF_PRIVACY_MODE;
@@ -59,5 +60,37 @@ describe('GoatCounter eager page view on DOMContentLoaded', () => {
     const scripts = Array.from(document.head.querySelectorAll('script[src]'))
       .filter(s => (s.getAttribute('src') || '').includes('goatcounter/count.js'));
     expect(scripts.length).toBe(1);
+  });
+
+  it('configura pageviews con ruta canónica sin query sensible', () => {
+    window.history.replaceState({}, '', '/guias.html?q=factura&cPunta=123');
+    bootstrapTracking();
+    fireDOMContentLoaded();
+    expect(window.goatcounter.path).toBe('/guias.html');
+  });
+
+  it('configura referrer same-origin sin query ni hash sensibles', () => {
+    const origin = window.location.origin;
+    Object.defineProperty(document, 'referrer', {
+      value: `${origin}/guias.html?q=factura&cPunta=123#resultado`,
+      configurable: true
+    });
+
+    bootstrapTracking();
+    fireDOMContentLoaded();
+
+    expect(window.goatcounter.referrer).toBe(`${origin}/guias.html`);
+  });
+
+  it('configura referrer externo solo con el origen', () => {
+    Object.defineProperty(document, 'referrer', {
+      value: 'https://example.com/path?q=algo#hash',
+      configurable: true
+    });
+
+    bootstrapTracking();
+    fireDOMContentLoaded();
+
+    expect(window.goatcounter.referrer).toBe('https://example.com');
   });
 });

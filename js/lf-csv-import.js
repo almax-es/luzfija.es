@@ -13,6 +13,14 @@
 
   const { toast, formatMoney, round2 } = window.LF;
 
+  function trackCsvEvent(eventName, detail, title) {
+    try {
+      if (typeof window.__LF_trackDetail === 'function') {
+        window.__LF_trackDetail(eventName, detail, { title });
+      }
+    } catch (_) {}
+  }
+
   // ===== IMPORTAR UTILIDADES CSV =====
   // Funciones robustas de parsing compartidas con bv-import.js
   const {
@@ -708,6 +716,12 @@
           ? (pvpcPeriodoCheckbox ? pvpcPeriodoCheckbox.checked : true)
           : false;
 
+        trackCsvEvent('csv-import-aplicado', [
+          'home',
+          debeAplicarExcedentes ? 'consumos-excedentes' : 'consumos',
+          window.LF.pvpcPeriodoCSV ? 'pvpc-periodo' : 'pvpc-reciente'
+        ], 'CSV aplicado en home: ' + (debeAplicarExcedentes ? 'consumos+excedentes' : 'consumos'));
+
         closeCSVModal();
 
         if (typeof toast === 'function') {
@@ -804,6 +818,7 @@
           }
 
           if (!resultado.ok) {
+            trackCsvEvent('csv-import-error', ['home', extension || 'desconocido'], 'Error importando CSV/XLSX en home');
             toast(resultado.error || 'Error al procesar el archivo', 'err');
             btnCSV.disabled = false;
             btnCSV.innerHTML = '<span>📊</span><span class="btn-text">Importar CSV</span>';
@@ -811,11 +826,14 @@
             return;
           }
 
+          trackCsvEvent('csv-import-preview', ['home', extension || 'desconocido'], 'Preview CSV/XLSX listo en home');
           mostrarPreviewCSV(resultado);
           btnCSV.disabled = false;
           btnCSV.innerHTML = '<span>📊</span><span class="btn-text">Importar CSV</span>';
           fileInput.value = '';
         } catch (error) {
+          const extension = file.name.split('.').pop().toLowerCase();
+          trackCsvEvent('csv-import-error', ['home', extension || 'desconocido'], 'Error importando CSV/XLSX en home');
           toast(error.message || 'Error al procesar el archivo', 'err');
           btnCSV.disabled = false;
           btnCSV.innerHTML = '<span>📊</span><span class="btn-text">Importar CSV</span>';

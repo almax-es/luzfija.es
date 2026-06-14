@@ -287,7 +287,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 33 (`js/*.js` + `js/bv/*.js`).
-- Lineas JS aproximadas: 20.498.
+- Lineas JS aproximadas: 21.039.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (90 tarifas).
@@ -331,8 +331,8 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 ## 10. Testing Y Calidad
 
 - Suite Vitest/JSDOM.
-- 55 archivos de test (`tests/*.test.js`).
-- 406 casos `it()/test()` en la ultima ejecucion local verificada.
+- 57 archivos de test (`tests/*.test.js`).
+- 419 casos `it()/test()` en la ultima ejecucion local verificada.
 - Cobertura de:
 - Calculo fiscal y de energia.
 - PVPC y caches.

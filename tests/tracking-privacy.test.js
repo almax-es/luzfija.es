@@ -9,6 +9,7 @@ import path from 'path';
 const trackingCode = fs.readFileSync(path.resolve(__dirname, '../js/tracking.js'), 'utf8');
 const lfAppCode = fs.readFileSync(path.resolve(__dirname, '../js/lf-app.js'), 'utf8');
 const bvUiCode = fs.readFileSync(path.resolve(__dirname, '../js/bv/bv-ui.js'), 'utf8');
+const goatCounterCode = fs.readFileSync(path.resolve(__dirname, '../vendor/goatcounter/count.js'), 'utf8');
 
 function bootstrapTracking() {
   const fn = new Function(trackingCode);
@@ -127,5 +128,10 @@ describe('Tracking privacy behavior', () => {
       })
     );
     expect(appendSpy).not.toHaveBeenCalled();
+  });
+
+  it('el count.js local no envía query completa con configuraciones o búsquedas', () => {
+    expect(goatCounterCode).toContain('safe_query()');
+    expect(goatCounterCode).not.toContain('q: location.search');
   });
 });

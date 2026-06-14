@@ -105,7 +105,21 @@ try {
     return (typeof window.goatcounter !== 'undefined' && typeof window.goatcounter.count === 'function');
   }
 
+  function configureGoatCounterDefaults() {
+    window.goatcounter = window.goatcounter || {};
+    if (typeof window.goatcounter.path === 'undefined') {
+      window.goatcounter.path = canonicalPageviewPath();
+    }
+    if (typeof window.goatcounter.title === 'undefined') {
+      window.goatcounter.title = safeText(document.title || currentPageKey());
+    }
+    if (typeof window.goatcounter.referrer === 'undefined') {
+      window.goatcounter.referrer = canonicalReferrer();
+    }
+  }
+
   function ensureGoatCounterLoaded(){
+    configureGoatCounterDefaults();
     if (isGoatReady()) return Promise.resolve(true);
     if (loadingPromise) return loadingPromise;
 
@@ -211,16 +225,161 @@ try {
       title: finalTitle,
       event: true,
     };
+    if (!metadata || metadata.noSession !== false) payload.no_session = true;
 
     sendPayload(payload);
   }
 
+  function trackDetailedEvent(baseName, detail, metadata) {
+    const path = buildEventPath(baseName, detail);
+    trackEvent(path, metadata || {});
+  }
+
   // Exponer función global para que app.js pueda usarla
   window.__LF_track = trackEvent;
+  window.__LF_trackDetail = trackDetailedEvent;
+  window.__LF_trackingUtils = {
+    buildEventPath,
+    eventSegment
+  };
 
   function safeText(value) {
     if (value === null || value === undefined) return '';
     return String(value).replace(/\s+/g, ' ').trim();
+  }
+
+  function eventSegment(value, fallback) {
+    const fb = fallback || 'sin-detalle';
+    let text = safeText(value);
+    if (!text) return fb;
+
+    try {
+      text = text.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+    } catch (_) {}
+
+    text = text
+      .toLowerCase()
+      .replace(/&/g, ' y ')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .substring(0, 90)
+      .replace(/-+$/g, '');
+
+    return text || fb;
+  }
+
+  function buildEventPath(base, detail) {
+    const cleanBase = eventSegment(base, 'evento');
+    if (detail === null || detail === undefined || detail === '') return cleanBase;
+
+    const parts = Array.isArray(detail) ? detail : [detail];
+    const cleanParts = parts.map((part) => eventSegment(part, '')).filter(Boolean);
+    return [cleanBase].concat(cleanParts).join('/').substring(0, 180);
+  }
+
+  function canonicalPathFromHref(href) {
+    const raw = safeText(href);
+    if (!raw) return '';
+    try {
+      const u = new URL(raw, location.href);
+      if (u.origin !== location.origin) return '';
+      let p = u.pathname || '/';
+      if (p.length > 1 && p.endsWith('/index.html')) p = p.slice(0, -'index.html'.length);
+      return p || '/';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function normalizePathOnly(pathLike) {
+    let p = safeText(pathLike) || '/';
+    if (p.length > 1 && p.endsWith('/index.html')) p = p.slice(0, -'index.html'.length);
+    if (p.length > 1 && p.endsWith('/')) p = p.replace(/\/+$/, '/');
+    return p || '/';
+  }
+
+  function canonicalPageviewPath() {
+    try {
+      const c = document.querySelector('link[rel="canonical"][href]');
+      if (c && c.href) {
+        const u = new URL(c.href, location.href);
+        if (u.origin === location.origin) return normalizePathOnly(u.pathname || '/');
+      }
+    } catch (_) {}
+    return normalizePathOnly(location && location.pathname ? location.pathname : '/');
+  }
+
+  function canonicalReferrer() {
+    const raw = safeText(document && document.referrer ? document.referrer : '');
+    if (!raw) return '';
+    try {
+      const u = new URL(raw, location.href);
+      if (u.origin === location.origin) {
+        return u.origin + normalizePathOnly(u.pathname || '/');
+      }
+      return u.origin || '';
+    } catch (_) {
+      return '';
+    }
+  }
+
+  function guideSlugFromPath(pathLike) {
+    const p = safeText(pathLike);
+    const m = p.match(/\/guias\/([^/?#]+)\.html$/i);
+    return m ? m[1] : '';
+  }
+
+  function currentPageKey() {
+    const p = safeText(location && location.pathname ? location.pathname : '/') || '/';
+    if (p === '/comparador-tarifas-solares.html') return 'solar';
+    if (p === '/estadisticas/' || p === '/estadisticas/index.html') return 'estadisticas';
+    if (p === '/guias.html') return 'guias';
+    if (/^\/guias\//.test(p)) return 'guia';
+    if (p === '/' || p === '/index.html') return 'home';
+    if (p === '/calcular-factura-luz.html') return 'calcular-factura';
+    if (p === '/comparar-pvpc-tarifa-fija.html') return 'pvpc-vs-fija';
+    if (p === '/como-funciona-luzfija.html') return 'como-funciona';
+    if (p === '/privacidad.html') return 'privacidad';
+    if (p === '/aviso-legal.html') return 'aviso-legal';
+    if (p === '/404.html') return '404';
+    return eventSegment(p.replace(/^\//, '').replace(/\.html$/, ''), 'pagina');
+  }
+
+  function titleFromElement(el) {
+    if (!el) return '';
+    const aria = el.getAttribute && el.getAttribute('aria-label');
+    const title = el.getAttribute && el.getAttribute('title');
+    return safeText(aria || title || el.textContent || '');
+  }
+
+  function boolState(value) {
+    return value ? 'activado' : 'desactivado';
+  }
+
+  function tarifaNameFromContext(el) {
+    const row = el && el.closest ? el.closest('tr') : null;
+    const card = el && el.closest ? el.closest('.bv-winner-card-compact, .bv-alt-card-compact') : null;
+    return safeText(
+      (row && row.dataset && row.dataset.tarifaNombre) ||
+      (row && row.querySelector && row.querySelector('.tarifa-nombre')?.textContent) ||
+      (card && card.querySelector && (card.querySelector('.bv-winner-name, .bv-alt-name')?.textContent)) ||
+      ''
+    );
+  }
+
+  function externalTargetFromHref(href) {
+    const raw = safeText(href);
+    if (!raw) return '';
+    const lower = raw.toLowerCase();
+    if (lower.startsWith('mailto:')) return 'email';
+    if (lower.startsWith('tel:')) return 'telefono';
+    try {
+      const u = new URL(raw, location.href);
+      if (u.origin === location.origin) return '';
+      return eventSegment(u.hostname.replace(/^www\./, ''), 'externo');
+    } catch (_) {
+      return '';
+    }
   }
 
   function sanitizeErrorMessageForTracking(value) {
@@ -382,19 +541,29 @@ try {
     // count.js envía el page view automáticamente al cargarse (no_onload no está activo).
     ensureGoatCounterLoaded();
 
-    // 1. Trackear clicks en "Calcular"
-    const btnCalc = document.getElementById('btnCalc');
-    if (btnCalc) {
-      btnCalc.addEventListener('click', function() {
-        trackEvent('calculo-realizado', { title: 'Usuario calculó tarifas' });
+    // 1. Cálculos solicitados y completados. El mismo evento interno lo emiten
+    //    home y simulador solar, así evitamos duplicar selectores de botones.
+    document.addEventListener('lf:results-requested', function(e) {
+      const origin = eventSegment((e && e.detail && e.detail.origin) || currentPageKey(), 'pagina');
+      trackDetailedEvent('calculo-realizado', origin, {
+        title: 'Cálculo solicitado: ' + origin
       });
-    }
+    });
 
-    // 2. Trackear exportación de CSV
+    document.addEventListener('lf:results-ready', function(e) {
+      const detail = (e && e.detail) || {};
+      const origin = eventSegment(detail.origin || currentPageKey(), 'pagina');
+      const rows = Number(detail.rows) || 0;
+      trackDetailedEvent('calculo-resultados', origin, {
+        title: 'Resultados listos: ' + origin + (rows ? ' | filas:' + rows : '')
+      });
+    });
+
+    // 2. Trackear exportación de CSV legacy si el botón existe
     const btnExport = document.getElementById('btnExport');
     if (btnExport) {
       btnExport.addEventListener('click', function() {
-        trackEvent('csv-exportado', { title: 'Usuario descargó CSV' });
+        trackDetailedEvent('csv-exportado', currentPageKey(), { title: 'Usuario descargó CSV' });
       });
     }
 
@@ -402,7 +571,7 @@ try {
     const btnShare = document.getElementById('btnShare');
     if (btnShare) {
       btnShare.addEventListener('click', function() {
-        trackEvent('url-compartida', { title: 'Usuario compartió URL' });
+        trackDetailedEvent('url-compartida', currentPageKey(), { title: 'Usuario compartió URL' });
       });
     }
 
@@ -413,37 +582,326 @@ try {
     const btnTheme = document.getElementById('btnTheme');
     if (btnTheme) {
       btnTheme.addEventListener('click', function() {
-        const isLight = document.documentElement.classList.contains('light-mode');
-        trackEvent('tema-cambiado', {
-          title: isLight ? 'Cambió a tema claro' : 'Cambió a tema oscuro'
-        });
-      });
-    }
-
-    // 7. Trackear clicks en enlaces de contratación (tabla de resultados)
-    const tbody = document.getElementById('tbody');
-    if (tbody) {
-      tbody.addEventListener('click', function(e) {
-        const link = e.target && e.target.closest ? e.target.closest('a.web') : null;
-        if (link) {
-          const tarifaRow = link.closest('tr');
-          const tarifaNombre = tarifaRow && tarifaRow.querySelector ? (tarifaRow.querySelector('.tarifa-nombre')?.textContent || 'Desconocida') : 'Desconocida';
-          trackEvent('tarifa-click-contratar', {
-            title: 'Click en contratar: ' + tarifaNombre
+        setTimeout(function() {
+          const mode = document.documentElement.classList.contains('light-mode') ? 'claro' : 'oscuro';
+          trackDetailedEvent('tema-cambiado', mode, {
+            title: 'Cambió a tema ' + mode
           });
-        }
+        }, 0);
       });
     }
 
-    // 8. Trackear navegación a la página de guías
-    //    Delegación de eventos para evitar recorrer y enlazar todos los links en el DOM (más ligero en móvil)
+    // 5. Eventos de navegación y clicks en elementos dinámicos.
     document.addEventListener('click', function(e) {
+      const target = e && e.target;
+      if (!target || !target.closest) return;
+      if (target.closest('#modalFactura')) return;
+
+      const tarifaLink = target.closest('a[data-lf-track-tarifa], #tbody a.web, a.bv-link-tarifa, a.bv-alt-btn-info');
+      if (tarifaLink) {
+        const tarifaNombre = safeText(
+          tarifaLink.getAttribute('data-lf-track-tarifa') ||
+          tarifaNameFromContext(tarifaLink) ||
+          'Desconocida'
+        );
+        const context = eventSegment(tarifaLink.getAttribute('data-lf-track-context') || currentPageKey(), 'pagina');
+        trackDetailedEvent('tarifa-click-contratar', [context, tarifaNombre], {
+          title: 'Click en contratar: ' + tarifaNombre + ' | origen:' + context
+        });
+        return;
+      }
+
+      const homeDesgloseCell = target.closest('#tbody td.total-cell, #tbody td.tarifa-cell');
+      if (homeDesgloseCell && homeDesgloseCell.getAttribute('aria-disabled') !== 'true') {
+        if (!target.closest('a, button, input, select, textarea, .tooltip, .tooltip-icon')) {
+          const tarifaNombre = tarifaNameFromContext(homeDesgloseCell) || 'Desconocida';
+          trackDetailedEvent('desglose-abierto', ['home', tarifaNombre], {
+            title: 'Desglose abierto: ' + tarifaNombre + ' | origen:home'
+          });
+          return;
+        }
+      }
+
+      const solarDetailButton = target.closest('.bv-alt-btn-toggle');
+      if (solarDetailButton) {
+        const tarifaNombre = tarifaNameFromContext(solarDetailButton) || 'Desconocida';
+        trackDetailedEvent('desglose-abierto', ['solar', tarifaNombre], {
+          title: 'Desglose abierto: ' + tarifaNombre + ' | origen:solar'
+        });
+        return;
+      }
+
+      const solarWinnerSummary = target.closest('.bv-results-grid summary');
+      if (solarWinnerSummary) {
+        const tarifaNombre = tarifaNameFromContext(solarWinnerSummary) || 'ganador';
+        trackDetailedEvent('desglose-abierto', ['solar', tarifaNombre], {
+          title: 'Desglose abierto: ' + tarifaNombre + ' | origen:solar'
+        });
+        return;
+      }
+
+      const solarTooltip = target.closest('#tbody .fv-icon, #tbody .consumo-limits-icon, #tbody .requisitos-icon, #tbody .te-warn-icon');
+      if (solarTooltip) {
+        const tarifaNombre = tarifaNameFromContext(solarTooltip) || 'Desconocida';
+        const kind = solarTooltip.classList.contains('fv-icon') ? 'solar-bv' :
+          (solarTooltip.classList.contains('consumo-limits-icon') ? 'limites' :
+          (solarTooltip.classList.contains('requisitos-icon') ? 'requisitos' : 'compensacion-parcial'));
+        trackDetailedEvent('detalle-tarifa-abierto', ['home', kind, tarifaNombre], {
+          title: 'Detalle tarifa: ' + kind + ' | ' + tarifaNombre
+        });
+        return;
+      }
+
+      const csvButton = target.closest('#btnSubirCSV, #upload-csv-btn, #csvExcedentesBtn');
+      if (csvButton) {
+        const id = csvButton.id || '';
+        const origin = id === 'upload-csv-btn' ? 'solar' : (id === 'csvExcedentesBtn' ? 'estadisticas' : 'home');
+        trackDetailedEvent('csv-import-iniciado', origin, {
+          title: 'Importación CSV/XLSX iniciada: ' + origin
+        });
+        return;
+      }
+
+      const systemButton = target.closest('#btnRefreshTarifas, #btnClearCache, #btnReset, #scrollToResults, [data-install-pwa]');
+      if (systemButton) {
+        const actionMap = {
+          btnRefreshTarifas: 'refrescar-tarifas',
+          btnClearCache: 'limpiar-cache',
+          btnReset: 'restablecer-formulario',
+          scrollToResults: 'ir-a-resultados'
+        };
+        const action = systemButton.hasAttribute('data-install-pwa')
+          ? 'instalar-pwa'
+          : (actionMap[systemButton.id] || systemButton.id || 'accion');
+        trackDetailedEvent('accion-interfaz', [currentPageKey(), action], {
+          title: 'Acción interfaz: ' + action + ' | origen:' + currentPageKey()
+        });
+        return;
+      }
+
+      const homeInfoButton = target.closest('#btnSolarInfo');
+      if (homeInfoButton) {
+        trackDetailedEvent('modal-info-abierto', ['home', 'solar'], {
+          title: 'Modal informativo abierto: solar | origen:home'
+        });
+        return;
+      }
+
+      const solarBackupButton = target.closest('#bv-export-manual, #bv-import-manual, #bv-reset-manual, #remove-file, #bv-clear-custom-tarifa');
+      if (solarBackupButton) {
+        const actionMap = {
+          'bv-export-manual': 'exportar-datos',
+          'bv-import-manual': 'importar-datos',
+          'bv-reset-manual': 'borrar-datos',
+          'remove-file': 'quitar-archivo',
+          'bv-clear-custom-tarifa': 'borrar-mi-tarifa'
+        };
+        const action = actionMap[solarBackupButton.id] || solarBackupButton.id || 'accion';
+        trackDetailedEvent('accion-solar', action, {
+          title: 'Acción solar: ' + action
+        });
+        return;
+      }
+
+      const mesInicioItem = target.closest('#bv-mes-inicio-list .bv-cs-item');
+      if (mesInicioItem) {
+        trackDetailedEvent('simulador-solar-mes-inicio', mesInicioItem.dataset.value || 'orden-tabla', {
+          title: 'Mes inicio solar: ' + (mesInicioItem.textContent || mesInicioItem.dataset.value || 'orden-tabla')
+        });
+        return;
+      }
+
+      const compareYear = target.closest('#compareYears .chip');
+      if (compareYear) {
+        const text = titleFromElement(compareYear) || 'year';
+        trackDetailedEvent('observatorio-comparativa-year', text, {
+          title: 'Observatorio comparativa año: ' + text
+        });
+        return;
+      }
+
+      const filterButton = target.closest('.fbtn[data-filter]');
+      if (filterButton) {
+        const filter = filterButton.getAttribute('data-filter') || 'all';
+        trackDetailedEvent('filtro-tarifas', filter, {
+          title: 'Filtro tarifas: ' + filter
+        });
+        return;
+      }
+
+      const sortButton = target.closest('thead .sort-button');
+      if (sortButton) {
+        const th = sortButton.closest('th[data-sort]');
+        const sortKey = th ? th.getAttribute('data-sort') : '';
+        if (sortKey) {
+          trackDetailedEvent('orden-tarifas', sortKey, {
+            title: 'Ordenación tarifas: ' + sortKey
+          });
+          return;
+        }
+      }
+
+      const pvpcButton = target.closest('#btnPVPCInfo');
+      if (pvpcButton) {
+        const typeSelector = document.getElementById('pvpcTypeSelector');
+        const type = typeSelector ? (typeSelector.value || 'pvpc') : 'pvpc';
+        trackDetailedEvent('pvpc-modal-abierto', type, {
+          title: 'Modal horario abierto: ' + type
+        });
+        return;
+      }
+
+      const trendButton = target.closest('#trendModeMonthly, #trendModeDaily');
+      if (trendButton) {
+        const mode = trendButton.id === 'trendModeDaily' ? 'daily' : 'monthly';
+        trackDetailedEvent('observatorio-tendencia', mode, {
+          title: 'Observatorio tendencia: ' + mode
+        });
+        return;
+      }
+
       const a = e && e.target && e.target.closest ? e.target.closest('a') : null;
       if (!a) return;
-      const href = a.getAttribute('href') || '';
-      // Sólo enlaces internos / relativos que contengan "guias"
-      if (href && href.indexOf('guias') !== -1) {
-        trackEvent('navegacion-guias', { title: 'Usuario fue a Guías' });
+      const rawHref = a.getAttribute('href') || '';
+      if (!rawHref || rawHref.charAt(0) === '#') {
+        if (a.classList && a.classList.contains('share-btn')) {
+          const onclick = safeText(a.getAttribute('onclick') || '');
+          const match = onclick.match(/share\(['"]([^'"]+)['"]\)/);
+          const platform = match ? match[1] : (titleFromElement(a) || 'desconocido');
+          const currentGuide = guideSlugFromPath(location && location.pathname ? location.pathname : '');
+          if (currentGuide) {
+            trackDetailedEvent('guia-compartida', [currentGuide, platform], {
+              title: 'Guía compartida: ' + currentGuide + ' | canal:' + platform
+            });
+          }
+        }
+        return;
+      }
+
+      const path = canonicalPathFromHref(rawHref);
+      if (!path) {
+        const externalTarget = externalTargetFromHref(rawHref);
+        if (externalTarget) {
+          trackDetailedEvent('enlace-externo', [currentPageKey(), externalTarget], {
+            title: 'Enlace externo: ' + externalTarget + ' | origen:' + currentPageKey()
+          });
+        }
+        return;
+      }
+
+      const guideSlug = guideSlugFromPath(path);
+      if (guideSlug) {
+        trackDetailedEvent('guia-click', guideSlug, {
+          title: 'Click guía: ' + (titleFromElement(a) || guideSlug) + ' | origen:' + currentPageKey()
+        });
+        return;
+      }
+
+      if (path === '/guias.html' || path === '/guias/') {
+        trackDetailedEvent('navegacion-guias', 'indice', {
+          title: 'Usuario fue a Guías | origen:' + currentPageKey()
+        });
+        return;
+      }
+
+      if (path === '/llms.txt' || path === '/llms-full.txt') {
+        trackDetailedEvent('navegacion-recurso', path === '/llms-full.txt' ? 'llms-full' : 'llms', {
+          title: 'Navegación recurso: ' + path + ' | origen:' + currentPageKey()
+        });
+        return;
+      }
+
+      const toolMap = {
+        '/': 'comparador',
+        '/estadisticas/': 'observatorio',
+        '/comparador-tarifas-solares.html': 'solar',
+        '/calcular-factura-luz.html': 'calcular-factura',
+        '/comparar-pvpc-tarifa-fija.html': 'pvpc-vs-fija',
+        '/como-funciona-luzfija.html': 'como-funciona',
+        '/privacidad.html': 'privacidad',
+        '/aviso-legal.html': 'aviso-legal'
+      };
+      const toolKey = toolMap[path];
+      if (toolKey) {
+        trackDetailedEvent('navegacion-herramienta', toolKey, {
+          title: 'Navegación herramienta: ' + toolKey + ' | origen:' + currentPageKey()
+        });
+      }
+    }, { capture: true });
+
+    document.addEventListener('change', function(e) {
+      const target = e && e.target;
+      if (!target || !target.id) return;
+      if (target.closest && target.closest('#modalFactura')) return;
+
+      if (target.id === 'pvpcTypeSelector') {
+        trackDetailedEvent('pvpc-modal-tipo', target.value || 'pvpc', {
+          title: 'Modal horario cambió a: ' + (target.value || 'pvpc')
+        });
+      } else if (target.id === 'typeSelector') {
+        trackDetailedEvent('observatorio-tipo', target.value || 'pvpc', {
+          title: 'Observatorio tipo: ' + (target.value || 'pvpc')
+        });
+      } else if (target.id === 'geoSelector') {
+        trackDetailedEvent('observatorio-zona', target.value || '8741', {
+          title: 'Observatorio zona: ' + (target.value || '8741')
+        });
+      } else if (target.id === 'monthSelector') {
+        trackDetailedEvent('observatorio-mes', target.value || 'all', {
+          title: 'Observatorio mes: ' + (target.value || 'all')
+        });
+      } else if (target.id === 'yearSelector') {
+        trackDetailedEvent('observatorio-year', target.value || 'desconocido', {
+          title: 'Observatorio año: ' + (target.value || 'desconocido')
+        });
+      } else if (target.id === 'zonaFiscal') {
+        trackDetailedEvent('comparador-zona-fiscal', target.value || 'peninsula', {
+          title: 'Zona fiscal comparador: ' + (target.value || 'peninsula')
+        });
+      } else if (target.id === 'viviendaCanarias') {
+        trackDetailedEvent('comparador-vivienda-canarias', boolState(target.checked), {
+          title: 'Vivienda Canarias: ' + boolState(target.checked)
+        });
+      } else if (target.id === 'solarOn') {
+        trackDetailedEvent('comparador-opcion', ['solar', boolState(target.checked)], {
+          title: 'Opción solar: ' + boolState(target.checked)
+        });
+      } else if (target.id === 'bonoSocialOn') {
+        trackDetailedEvent('comparador-opcion', ['bono-social', boolState(target.checked)], {
+          title: 'Opción bono social: ' + boolState(target.checked)
+        });
+      } else if (target.name === 'bonoSocialTipo') {
+        trackDetailedEvent('comparador-bono-social-tipo', target.value || 'vulnerable', {
+          title: 'Bono social tipo: ' + (target.value || 'vulnerable')
+        });
+      } else if (target.name === 'bonoSocialLimite') {
+        trackDetailedEvent('comparador-bono-social-limite', target.value || 'desconocido', {
+          title: 'Bono social límite: ' + (target.value || 'desconocido')
+        });
+      } else if (target.id === 'compararMiTarifa') {
+        trackDetailedEvent('comparador-opcion', ['mi-tarifa', boolState(target.checked)], {
+          title: 'Opción mi tarifa: ' + boolState(target.checked)
+        });
+      } else if (target.id === 'csvAplicarExcedentes') {
+        trackDetailedEvent('csv-opcion', ['home', 'excedentes', boolState(target.checked)], {
+          title: 'CSV opción excedentes: ' + boolState(target.checked)
+        });
+      } else if (target.id === 'csvPvpcPeriodo') {
+        trackDetailedEvent('csv-opcion', ['home', 'pvpc-periodo', boolState(target.checked)], {
+          title: 'CSV opción PVPC periodo: ' + boolState(target.checked)
+        });
+      } else if (target.id === 'bv-zona-fiscal') {
+        trackDetailedEvent('simulador-solar-zona-fiscal', target.value || 'peninsula', {
+          title: 'Zona fiscal solar: ' + (target.value || 'peninsula')
+        });
+      } else if (target.id === 'bv-vivienda-canarias') {
+        trackDetailedEvent('simulador-solar-vivienda-canarias', boolState(target.checked), {
+          title: 'Vivienda Canarias solar: ' + boolState(target.checked)
+        });
+      } else if (target.id === 'mtBV') {
+        trackDetailedEvent('simulador-solar-mi-tarifa-bv', boolState(target.checked), {
+          title: 'Mi tarifa solar BV: ' + boolState(target.checked)
+        });
       }
     }, { capture: true });
 

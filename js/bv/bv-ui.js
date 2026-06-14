@@ -237,6 +237,14 @@ document.addEventListener('DOMContentLoaded', () => {
     }, 4200);
   }
 
+  function trackBvEvent(eventName, detail, title) {
+    try {
+      if (typeof window.__LF_trackDetail === 'function') {
+        window.__LF_trackDetail(eventName, detail, { title });
+      }
+    } catch (_) {}
+  }
+
   try {
     if (window.LF?.isDebugMode?.()) console.log('BVSim: Initializing UI...');
   } catch {}
@@ -1521,6 +1529,13 @@ document.addEventListener('DOMContentLoaded', () => {
           showToast(`⚠️ ${result.warnings.join('\n')}`, 'ok');
         }
 
+        const extension = String(file.name || '').split('.').pop().toLowerCase() || 'desconocido';
+        trackBvEvent('csv-import-completado', [
+          'solar',
+          extension,
+          result?.meta?.hasExcedenteColumn === false ? 'sin-excedentes' : 'con-excedentes'
+        ], 'CSV/XLSX importado en simulador solar');
+
         // Scroll suave a la tabla para que vea los datos auto-rellenados
         setTimeout(() => {
           const manualZone = document.getElementById('bv-manual-zone');
@@ -1530,10 +1545,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 300);
       } else if (result && result.error) {
         console.info('Info: No se pudo pre-procesar CSV:', result.error);
+        const extension = String(file.name || '').split('.').pop().toLowerCase() || 'desconocido';
+        trackBvEvent('csv-import-error', ['solar', extension], 'Error importando CSV/XLSX en simulador solar');
         showToast(result.error, 'err');
       }
     } catch (e) {
       console.warn('Error procesando CSV:', e);
+      const extension = String(file.name || '').split('.').pop().toLowerCase() || 'desconocido';
+      trackBvEvent('csv-import-error', ['solar', extension], 'Error importando CSV/XLSX en simulador solar');
       showToast('Error al procesar el archivo CSV', 'err');
     }
   }
@@ -1692,6 +1711,11 @@ document.addEventListener('DOMContentLoaded', () => {
         ? (mesInicioActivo ? `durante 12 meses desde ${mesInicioLabel}` : 'durante el año')
         : `durante el periodo introducido (${simulatedMonths.length} mes${simulatedMonths.length === 1 ? '' : 'es'}). No se presenta como ranking anual porque no hay 12 meses razonablemente completos`;
       const scopeAdjective = isAnnualScope ? 'anual' : 'del periodo';
+      trackBvEvent('simulador-solar-resultados', [
+        isAnnualScope ? 'anual' : 'parcial',
+        customTarifa ? 'con-mi-tarifa' : 'sin-mi-tarifa',
+        indexedTraceMode === 'hourly-index-base' ? 'indexado-horario' : 'indexado-referencia'
+      ], 'Resultados simulador solar: ' + (isAnnualScope ? 'anual' : 'parcial'));
 
       // --- HELPERS DE CÁLCULO POR MES (una sola fuente de verdad) ---
       const computeRowView = (row, resultItem) => {
@@ -2023,7 +2047,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
             ${winnerNufriNote}
             ${winnerCompParcialNote}
             <div style="margin-top:auto; padding-top:1.5rem; width:100%">
-              ${winnerUrl ? `<a href="${winnerUrl}" target="_blank" rel="noopener nofollow" referrerpolicy="origin" class="btn bv-link-tarifa" style="width:100%; justify-content:center; font-size:14px; padding:10px 14px;">🔗 Información de la tarifa</a>` : ''}
+              ${winnerUrl ? `<a href="${winnerUrl}" target="_blank" rel="noopener nofollow" referrerpolicy="origin" class="btn bv-link-tarifa" data-lf-track-context="solar" data-lf-track-tarifa="${escapeAttr(winner.tarifa?.nombre || '')}" style="width:100%; justify-content:center; font-size:14px; padding:10px 14px;">🔗 Información de la tarifa</a>` : ''}
             </div>
           </div>
           <div class="bv-kpis-stack">
@@ -2106,7 +2130,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
             ${hasBV ? '' : '<div class="bv-note bv-note-compact">Sin BV: el excedente no compensado se pierde.</div>'}
 
             <div class="bv-alt-actions">
-              ${altUrl ? `<a href="${altUrl}" target="_blank" rel="noopener nofollow" referrerpolicy="origin" class="bv-alt-btn bv-alt-btn-info">
+              ${altUrl ? `<a href="${altUrl}" target="_blank" rel="noopener nofollow" referrerpolicy="origin" class="bv-alt-btn bv-alt-btn-info" data-lf-track-context="solar" data-lf-track-tarifa="${escapeAttr(r.tarifa?.nombre || '')}">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
                   <circle cx="12" cy="12" r="10"></circle>
                   <line x1="12" y1="16" x2="12" y2="12"></line>

@@ -69,6 +69,14 @@
 
   let charts = { trend: null, hourly: null, compare: null };
 
+  function trackStatsEvent(eventName, detail, title) {
+    try {
+      if (typeof window.__LF_trackDetail === 'function') {
+        window.__LF_trackDetail(eventName, detail, { title });
+      }
+    } catch (_) {}
+  }
+
   function getCssVar(name, fallback = '') {
     try {
       return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
@@ -1278,6 +1286,7 @@
       csvEls.input.addEventListener('change', async (e) => {
         const file = e.target.files && e.target.files[0];
         if (!file) return;
+        const extension = String(file.name || '').split('.').pop().toLowerCase() || 'desconocido';
         csvEls.btn.disabled = true;
         csvEls.btn.textContent = '⏳ Procesando...';
         try {
@@ -1285,7 +1294,9 @@
           const records = Array.isArray(parsed.records) ? parsed.records : [];
           csvState.records = records;
           await refreshCsvStats();
+          trackStatsEvent('csv-import-completado', ['estadisticas', extension], 'CSV/XLSX de excedentes importado en observatorio');
         } catch (err) {
+          trackStatsEvent('csv-import-error', ['estadisticas', extension], 'Error importando CSV/XLSX en observatorio');
           renderCsvStats(null);
           if (csvEls.note) {
             csvEls.note.hidden = false;

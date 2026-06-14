@@ -27,7 +27,7 @@
 			e: !!(vars.event || goatcounter.event),
 			s: window.screen.width,
 			b: is_bot(),
-			q: location.search,
+			q: safe_query(),
 		}
 
 		var rcb, pcb, tcb  // Save callbacks to apply later.
@@ -97,6 +97,29 @@
 				loc = a
 		}
 		return (loc.pathname + loc.search) || '/'
+	}
+
+	// LuzFija: no enviar queries de configuración, búsquedas o consumos a GoatCounter.
+	// Solo conservamos parámetros de campaña explícitamente no personales.
+	var safe_query = function() {
+		var allow = {
+			utm_source: true,
+			utm_medium: true,
+			utm_campaign: true,
+			utm_content: true,
+			utm_term: true
+		}
+		var out = []
+		try {
+			var params = new URLSearchParams(location.search || '')
+			params.forEach(function(value, key) {
+				var k = String(key || '').toLowerCase()
+				if (!allow[k]) return
+				var v = String(value || '').replace(/[^\w .~:-]/g, '').substr(0, 80)
+				if (v) out.push(k + '=' + v)
+			})
+		} catch (e) {}
+		return out.length ? '?' + out.join('&') : ''
 	}
 
 	// Run function after DOM is loaded.

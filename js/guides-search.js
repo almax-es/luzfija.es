@@ -396,6 +396,32 @@
     }
   }
 
+  function trackGuideEvent(eventName, detail, title) {
+    try {
+      if (typeof root.__LF_trackDetail === 'function') {
+        root.__LF_trackDetail(eventName, detail, { title });
+      }
+    } catch (_) {}
+  }
+
+  function resultBucket(count) {
+    const n = Number(count) || 0;
+    if (n <= 0) return '0';
+    if (n === 1) return '1';
+    if (n <= 5) return '2-5';
+    if (n <= 10) return '6-10';
+    return '10-plus';
+  }
+
+  function queryLengthBucket(query) {
+    const len = normalizeWhitespace(query).length;
+    if (len <= 0) return 'vacia';
+    if (len <= 3) return '1-3';
+    if (len <= 8) return '4-8';
+    if (len <= 16) return '9-16';
+    return '17-plus';
+  }
+
   function updateUrlQuery(query) {
     if (!root.history || !root.location) return;
     try {
@@ -547,6 +573,7 @@
 
       noResults.classList.toggle('show', visibleCount === 0);
       updateUrlQuery(term);
+      trackGuideEvent('guias-busqueda', ['fallback', resultBucket(visibleCount), queryLengthBucket(term)], 'Búsqueda guías fallback: ' + resultBucket(visibleCount));
     }
 
     async function applySearch(term) {
@@ -576,6 +603,7 @@
         const guides = await ensureIndex();
         const results = searchGuides(guides, rawQuery);
         renderSearchResults(config, results, rawQuery);
+        trackGuideEvent('guias-busqueda', ['index', resultBucket(results.length), queryLengthBucket(rawQuery)], 'Búsqueda guías: ' + resultBucket(results.length));
       } catch (_) {
         fallbackSearch(rawQuery);
       }
@@ -592,7 +620,9 @@
 
     categoryButtons.forEach((button) => {
       button.addEventListener('click', () => {
-        applyCategory(button.dataset.category || 'todas');
+        const category = button.dataset.category || 'todas';
+        applyCategory(category);
+        trackGuideEvent('guias-categoria', category, 'Categoría guías: ' + category);
       });
     });
 
