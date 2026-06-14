@@ -166,6 +166,15 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Eventos GoatCounter: `aecc-banner-mostrado`, `aecc-banner-copiado`, `aecc-banner-cerrado` (solo si no copio), `aecc-banner-copia-fallida`. Aceptacion = copiados/mostrados.
 - LuzFija no interviene en la donacion: el usuario dona por Bizum desde su app bancaria directamente a la AECC.
 
+### 3.7 Analitica Y Privacidad
+
+- Analitica con GoatCounter sin cookies y con opt-out local desde `privacidad.html`.
+- Pageviews canonicos sin query/hash y referrers saneados para no filtrar busquedas ni configuraciones compartidas.
+- Eventos de interaccion con `no_session: true` para que no inflen visitas.
+- Taxonomia detallada por `path` para comparar uso real de herramientas, guias, CSV, filtros, resultados y clicks de tarifa.
+- La carga/extraccion de factura PDF no se trackea: `factura.js` activa modo privacidad y `tracking.js` bloquea eventos del modal `#modalFactura`.
+- Documento de mantenimiento: `ANALITICA-GOATCOUNTER.md`.
+
 ## 4. Funcionalidades Del Observatorio PVPC (`/estadisticas/`)
 
 ### 4.1 Controles

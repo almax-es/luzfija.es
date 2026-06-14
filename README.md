@@ -131,6 +131,11 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - recordatorios para evitar falsos positivos.
 - `MANTENIMIENTO-NORMATIVO.md`:
 - checklist de normativa, datos vivos, fuentes oficiales, cadencias de revision e impacto en codigo/guias.
+- `ANALITICA-GOATCOUNTER.md`:
+- taxonomia de eventos GoatCounter,
+- reglas de privacidad,
+- saneo de pageviews/referrers,
+- checklist para anadir tracking sin filtrar datos sensibles.
 
 ### Calculo y normativa
 

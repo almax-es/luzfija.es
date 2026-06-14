@@ -21,9 +21,10 @@ Tambien es importante lo que no es: no monetiza el ranking, no vende leads y no 
 4. `CALC-FAQS.md`
 5. `MANTENIMIENTO-NORMATIVO.md`
 6. `SIMULADOR-BV.md`
-7. `JSON-SCHEMA.md`
-8. `PVPC-SCHEMA.md`
-9. `llms.txt` y `llms-full.txt` para ver como se presenta la herramienta a asistentes externos
+7. `ANALITICA-GOATCOUNTER.md`
+8. `JSON-SCHEMA.md`
+9. `PVPC-SCHEMA.md`
+10. `llms.txt` y `llms-full.txt` para ver como se presenta la herramienta a asistentes externos
 
 `CAPACIDADES-WEB.md` es la fuente de verdad funcional. Si algo parece contradecir otra doc, parte de ahi.
 
@@ -36,6 +37,7 @@ Tambien es importante lo que no es: no monetiza el ranking, no vende leads y no 
 - `estadisticas/index.html` + `js/pvpc-stats-*.js`: observatorio PVPC/excedentes.
 - `comparador-tarifas-solares.html` + `js/bv/*.js`: simulador solar/BV y flujo hibrido CSV -> manual.
 - `js/lf-csv-utils.js`: parser horario compartido y clasificacion P1/P2/P3 canonica.
+- `js/tracking.js` + `vendor/goatcounter/count.js`: analitica GoatCounter, pageviews canonicos, eventos, privacidad y saneo de referrers. Ver `ANALITICA-GOATCOUNTER.md`.
 - `sw.js`: cache/PWA/update flow.
 - `scripts/sync-seo-docs.mjs`: sincroniza sitemap e indice de busqueda y, con `--include-repo-docs`, tambien README/CAPACIDADES/JSON-SCHEMA.
 
@@ -54,6 +56,7 @@ Tambien es importante lo que no es: no monetiza el ranking, no vende leads y no 
 - Antes de reportar bugs de fiscalidad o PVPC, lee `ARQUITECTURA-CALCULOS.md` y `CALC-FAQS.md`.
 - Antes de reportar bugs de BV, lee `SIMULADOR-BV.md` y revisa `js/bv/bv-ui.js` y `js/bv/bv-sim-monthly.js`.
 - Antes de reportar bugs de importacion horaria, revisa `js/lf-csv-utils.js`, `js/lf-csv-import.js` y los tests de CSV.
+- Antes de cambiar o auditar analitica, lee `ANALITICA-GOATCOUNTER.md`, `js/tracking.js`, `vendor/goatcounter/count.js` y los tests `tests/tracking-*.test.js`.
 - Antes de reportar riesgos XSS/privacidad por CSV, ten en cuenta que `CUPS` puede reconocerse como nombre de columna para detectar cabecera/formato, pero sus valores no se guardan ni se renderizan. Los importadores solo muestran agregados numericos derivados (kWh, dias, porcentajes, importes).
 - Antes de reportar CSP laxa en guias o paginas editoriales, distingue superficie sensible de superficie editorial. El flujo sensible de datos personales es la extraccion de factura PDF en la home (`index.html` + `js/factura.js`), y ahi `script-src` esta reforzado con hashes. Las guias, paginas legales, 404 y `como-funciona-luzfija.html` no procesan datos sensibles del usuario; endurecer su CSP puede ser higiene tecnica, pero no debe elevarse como hallazgo de privacidad relevante por si solo.
 - Valida hallazgos contra tests, no solo contra intuicion.
@@ -67,6 +70,9 @@ Tests especialmente utiles:
 - `tests/csv-parsing.test.js`
 - `tests/desglose*.test.js`
 - `tests/tracking-privacy.test.js`
+- `tests/tracking-events.test.js`
+- `tests/tracking-pageview-eager.test.js`
+- `tests/tracking-html-coverage.test.js`
 - `tests/security.test.js`
 
 Falsos positivos ya conocidos y documentados:
