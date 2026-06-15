@@ -194,7 +194,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "Imagina Energía",
+      "nombre": "Imagina Tarifa Base Sin Horas",
       "cPunta": 0.105,
       "cLlano": 0.105,
       "cValle": 0.105,
@@ -1186,7 +1186,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "Imagina Energía 3P",
+      "nombre": "Imagina Tarifa Base Noches y Findes 3P",
       "cPunta": 0.177,
       "cLlano": 0.103,
       "cValle": 0.069,
@@ -1834,5 +1834,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-15T07:17:00.051Z"
+  "updatedAt": "2026-06-15T18:18:22.254Z"
 }
