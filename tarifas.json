@@ -194,7 +194,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "Imagina Tarifa Base Sin Horas",
+      "nombre": "Imagina Base Sin Horas",
       "cPunta": 0.105,
       "cLlano": 0.105,
       "cValle": 0.105,
@@ -1186,7 +1186,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "Imagina Tarifa Base Noches y Findes 3P",
+      "nombre": "Imagina Base Noches y Findes 3P",
       "cPunta": 0.177,
       "cLlano": 0.103,
       "cValle": 0.069,
@@ -1834,5 +1834,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-15T18:18:22.254Z"
+  "updatedAt": "2026-06-15T18:22:48.191Z"
 }
