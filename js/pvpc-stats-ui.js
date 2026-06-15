@@ -379,7 +379,7 @@
     const url = `/data/surplus/${geo}/${ym}.json`;
     try {
       const res = await fetch(url);
-      if (!res.ok) {
+      if (!res || !res.ok) {
         csvMonthCache.set(key, null);
         return null;
       }

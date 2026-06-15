@@ -417,6 +417,27 @@
       "requiereFV": false
     },
     {
+      "nombre": "Imagina Sin Horas",
+      "cPunta": 0.119,
+      "cLlano": 0.119,
+      "cValle": 0.119,
+      "p1": 0.105,
+      "p2": 0.048,
+      "web": "https://imaginaenergia.com/tarifa-luz-sin-horas/",
+      "tipo": "1P",
+      "requisitos": "20% descuento término energía durante 12 meses incluido en el precio.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Nordy 24H V",
       "cPunta": 0.119,
       "cLlano": 0.119,
@@ -1267,6 +1288,27 @@
       "requiereFV": false
     },
     {
+      "nombre": "Imagina Noches y Findes 3P",
+      "cPunta": 0.184,
+      "cLlano": 0.124,
+      "cValle": 0.099,
+      "p1": 0.101,
+      "p2": 0.029,
+      "web": "https://imaginaenergia.com/tarifa-luz-noche-y-findes/",
+      "tipo": "3P",
+      "requisitos": "20% descuento término energía durante 12 meses incluido en el precio.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Endesa Conecta 3P",
       "cPunta": 0.18621,
       "cLlano": 0.11781,
@@ -1834,5 +1876,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-15T18:34:02.863Z"
+  "updatedAt": "2026-06-15T19:39:16.772Z"
 }

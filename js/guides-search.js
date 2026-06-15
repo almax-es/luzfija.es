@@ -522,8 +522,8 @@
       if (!indexPromise) {
         indexPromise = root.fetch(options?.indexUrl || DEFAULT_INDEX_URL, { cache: 'no-store' })
           .then((response) => {
-            if (!response.ok) {
-              throw new Error(`Index request failed with ${response.status}`);
+            if (!response || !response.ok) {
+              throw new Error(`Index request failed with ${response ? response.status : 'unknown'}`);
             }
             return response.json();
           })

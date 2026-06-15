@@ -55,6 +55,7 @@ beforeEach(() => {
   delete window.pvpcLastMeta;
 
   global.fetch = vi.fn(async () => ({
+    ok: true,
     json: async () => ({
       tarifas: [{ id: 'x', nombre: 'Tarifa X' }]
     })
@@ -121,6 +122,7 @@ describe('Desglose integration UX guardrails', () => {
 
   it('usa la misma fecha fiscal del cálculo principal para el desglose de tarifas libres', async () => {
     global.fetch = vi.fn(async () => ({
+      ok: true,
       json: async () => ({
         tarifas: [{
           id: 'visalia',
@@ -149,6 +151,7 @@ describe('Desglose integration UX guardrails', () => {
 
   it('usa el precio FV ya calculado en la fila para tarifas indexadas', async () => {
     global.fetch = vi.fn(async () => ({
+      ok: true,
       json: async () => ({
         tarifas: [{
           id: 'indexada',

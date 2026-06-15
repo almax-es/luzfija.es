@@ -79,7 +79,7 @@
 
         clearTimeout(timeoutId);
 
-        if (!response.ok) throw new Error('HTTP ' + response.status);
+        if (!response || !response.ok) throw new Error('HTTP ' + (response ? response.status : 'unknown'));
 
         const data = await response.json();
         const tarifas = Array.isArray(data.tarifas) ? data.tarifas : null;
