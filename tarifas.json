@@ -337,6 +337,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Esluz Fija 24h",
+      "cPunta": 0.115,
+      "cLlano": 0.115,
+      "cValle": 0.115,
+      "p1": 0.113,
+      "p2": 0.031,
+      "web": "https://esluz.es/tarifas-electricidad-hogares/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Niba Zen",
       "cPunta": 0.115,
       "cLlano": 0.115,
@@ -547,26 +567,6 @@
       "p1": 0.090137,
       "p2": 0.090137,
       "web": "https://www.repsol.es/particulares/hogar/luz-y-gas/tarifas/tarifa-ahorro-plus/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Esluz Fija 24h",
-      "cPunta": 0.123,
-      "cLlano": 0.123,
-      "cValle": 0.123,
-      "p1": 0.113,
-      "p2": 0.031,
-      "web": "https://esluz.es/tarifas-electricidad-hogares/",
       "tipo": "1P",
       "incluyeServiciosAjuste": true,
       "fv": {
@@ -844,26 +844,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Bassols Hogar Solar",
-      "cPunta": 0.152,
-      "cLlano": 0.152,
-      "cValle": 0.152,
-      "p1": 0.077,
-      "p2": 0.077,
-      "web": "https://bassolsenergia.com/es/monedero-solar/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.033,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "CHC Ahorro Solar",
       "cPunta": 0.155223,
       "cLlano": 0.155223,
@@ -879,6 +859,26 @@
         "tope": "ENERGIA",
         "bv": false,
         "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Bassols Hogar Solar",
+      "cPunta": 0.158,
+      "cLlano": 0.158,
+      "cValle": 0.158,
+      "p1": 0.077,
+      "p2": 0.077,
+      "web": "https://bassolsenergia.com/es/monedero-solar/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.035,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -1086,11 +1086,11 @@
     },
     {
       "nombre": "Repsol 3P",
-      "cPunta": 0.1689,
-      "cLlano": 0.1189,
-      "cValle": 0.0999,
-      "p1": 0.090137,
-      "p2": 0.090137,
+      "cPunta": 0.1659,
+      "cLlano": 0.1159,
+      "cValle": 0.0969,
+      "p1": 0.120274,
+      "p2": 0.06,
       "web": "https://www.repsol.es/particulares/hogar/luz-y-gas/tarifas/tarifa-discriminacion-horaria/",
       "tipo": "3P",
       "incluyeServiciosAjuste": true,
@@ -1653,26 +1653,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Bassols Hogar Solar 3P",
-      "cPunta": 0.224,
-      "cLlano": 0.153,
-      "cValle": 0.118,
-      "p1": 0.099,
-      "p2": 0.025,
-      "web": "https://bassolsenergia.com/es/monedero-solar/",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.033,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "CHC VE 3P",
       "cPunta": 0.225745,
       "cLlano": 0.221841,
@@ -1704,6 +1684,26 @@
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.033,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Bassols Hogar Solar 3P",
+      "cPunta": 0.229,
+      "cLlano": 0.158,
+      "cValle": 0.124,
+      "p1": 0.099,
+      "p2": 0.025,
+      "web": "https://bassolsenergia.com/es/monedero-solar/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.035,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -1834,5 +1834,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-15T18:22:48.191Z"
+  "updatedAt": "2026-06-15T18:34:02.863Z"
 }
