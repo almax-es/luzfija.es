@@ -965,9 +965,9 @@
     },
     {
       "nombre": "Repsol Ahorro Potencia",
-      "cPunta": 0.1699,
-      "cLlano": 0.1699,
-      "cValle": 0.1699,
+      "cPunta": 0.17019,
+      "cLlano": 0.17019,
+      "cValle": 0.17019,
       "p1": 0.084431,
       "p2": 0.001987,
       "web": "https://www.repsol.es/particulares/hogar/luz-y-gas/tarifas/tarifa-ahorro-potencia/",
@@ -1834,5 +1834,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-15T05:49:19.637Z"
+  "updatedAt": "2026-06-15T07:17:00.051Z"
 }
