@@ -117,9 +117,6 @@
       const sep = baseUrl.includes('?') ? '&' : '?';
       const url = `${baseUrl}${sep}v=${Date.now()}`;
       const response = await fetch(url, { cache: 'no-store' });
-      if (!response || !response.ok) {
-        throw new Error('Error de red al cargar tarifas');
-      }
       const data = await response.json();
       tarifasCache = data.tarifas || [];
       return tarifasCache;

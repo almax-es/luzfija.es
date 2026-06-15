@@ -99,7 +99,7 @@ const PVPC_STATS = {
 
         const loadPromise = (async () => {
             const res = await fetch(`/data/${type}/${geoId}/index.json`);
-            if (!res || !res.ok) {
+            if (!res.ok) {
                 this.manifestCache.set(key, null);
                 return null;
             }
@@ -162,7 +162,7 @@ const PVPC_STATS = {
             tasks.push(async () => {
                 try {
                     const res = await fetch(url);
-                    if (!res || !res.ok) return null;
+                    if (!res.ok) return null;
                     return await res.json();
                 } catch (error) {
                     return null;

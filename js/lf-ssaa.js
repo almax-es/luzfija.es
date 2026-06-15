@@ -35,7 +35,7 @@
 
     const url = window.SSAA_DATASET_URL || DEFAULT_URL;
     datasetPromise = fetch(url, { cache: 'no-store' })
-      .then((response) => (response && response.ok) ? response.json() : null)
+      .then((response) => response.ok ? response.json() : null)
       .then((data) => {
         datasetCache = normalizeDataset(data);
         return datasetCache;
