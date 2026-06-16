@@ -443,7 +443,9 @@
       metaPvpc: tarifa.metaPvpc || null,
 
       // PVPC: margen de comercialización (para cálculo en desglose)
-      pvpcMargenUnitario: window.LF_CONFIG?.peajesPotenciaPVPC?.margen ?? 0.008529  // €/kW·día (regulado)
+      pvpcMargenUnitario: window.LF_CONFIG?.peajesPotenciaPVPC?.margen ?? 0.008529,  // €/kW·día (regulado)
+
+      requisitos: tarifa.requisitos || null
     };
 
     lfDbg('Datos para desglose:', datos);

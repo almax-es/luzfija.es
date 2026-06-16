@@ -133,6 +133,16 @@
   transition: color 0.3s ease;
 }
 
+.desglose-requisitos {
+  font-size: 12px;
+  line-height: 1.4;
+  padding: 5px 8px;
+  border-radius: 6px;
+  border-left: 3px solid var(--warn);
+  background: rgba(245,158,11,0.08);
+  color: var(--text);
+}
+
 /* Secciones del desglose */
 .desglose-seccion {
   margin-bottom: 16px;

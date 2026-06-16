@@ -48,6 +48,7 @@
           <div class="desglose-info">
             <div class="desglose-tarifa"></div>
             <div class="desglose-periodo"></div>
+            <div class="desglose-requisitos" style="display:none;"></div>
           </div>
           <div class="desglose-body"></div>
         </div>
@@ -399,6 +400,15 @@
 
       this.modal.querySelector('.desglose-tarifa').innerHTML = `<strong>${escapeHtml(datos.nombreTarifa || 'Tarifa')}</strong>`;
       this.modal.querySelector('.desglose-periodo').innerHTML = `${escapeHtml(datos.fechaInicio || fechaInicioDefault)} - ${escapeHtml(datos.fechaFin || fechaFinDefault)} (${datos.dias || diasDefault} días)`;
+      const reqEl = this.modal.querySelector('.desglose-requisitos');
+      if (reqEl) {
+        if (datos.requisitos) {
+          reqEl.textContent = datos.requisitos;
+          reqEl.style.display = '';
+        } else {
+          reqEl.style.display = 'none';
+        }
+      }
 
       let html = '';
       const potenciaContratada = Math.max(safeNum(datos.potenciaP1), safeNum(datos.potenciaP2));

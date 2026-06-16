@@ -1940,6 +1940,23 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
         `;
       };
 
+      // Helper: Aviso condiciones/revisión de precio (campo requisitos)
+      const getRequisitosDisclaimer = (tarifa) => {
+        const req = tarifa?.requisitos;
+        if (!req) return '';
+        return `<div style="
+          margin-top: 8px;
+          padding: 8px 12px;
+          background: color-mix(in srgb, var(--warn) 8%, transparent);
+          border-left: 2px solid var(--warn);
+          border-radius: 6px;
+          font-size: 0.8125rem;
+          line-height: 1.4;
+          color: var(--text);
+          opacity: 0.9;
+        ">ℹ️ ${escapeHtml(req)}</div>`;
+      };
+
       // Helper: Disclaimer para tarifas con precio indexado (marcadas con -1)
       const getIndexadoDisclaimer = (tarifa, resultItem) => {
         const esIndexada = tarifa?.fv?.exc === -1;
@@ -2008,6 +2025,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
         : '<span class="bv-pill bv-pill--no-bv" title="Esta tarifa NO acumula excedente sobrante: lo no compensado se pierde cada mes.">Sin batería virtual</span>';
       const winnerNufriNote = getIndexadoDisclaimer(winner.tarifa, winner);
       const winnerCompParcialNote = getCompParcialDisclaimer(winner.tarifa, winner);
+      const winnerReqNote = getRequisitosDisclaimer(winner.tarifa);
 
       // Delta frente a "Mi tarifa ⭐" (si el usuario la ha rellenado)
       const customResult = rankedResults.find((r) => r.tarifa?.esPersonalizada);
@@ -2044,6 +2062,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
             <h2 class="bv-winner-name">${winnerName}</h2>
             <div style="margin-top: 8px;">${pillWinner}</div>
             ${winnerCustomNote}
+            ${winnerReqNote}
             ${winnerNufriNote}
             ${winnerCompParcialNote}
             <div style="margin-top:auto; padding-top:1.5rem; width:100%">
@@ -2099,6 +2118,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
           : '<span class="bv-pill bv-pill--no-bv" title="No acumula excedente sobrante; lo no compensado se pierde.">Sin BV</span>';
         const altNufriNote = getIndexadoDisclaimer(r.tarifa, r);
         const altCompParcialNote = getCompParcialDisclaimer(r.tarifa, r);
+        const altReqNote = getRequisitosDisclaimer(r.tarifa);
         const deltaVsWinner = r2((r.totals.pagado || 0) - (winner.totals.pagado || 0));
         const deltaHTML = deltaVsWinner > 0.005
           ? `<div class="bv-alt-delta" style="font-size:11px; font-weight:700; color:var(--warn); margin-top:2px;">+${fEur(deltaVsWinner)} vs mejor opción</div>`
@@ -2125,6 +2145,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
               </div>
             </div>
 
+            ${altReqNote}
             ${altNufriNote}
             ${altCompParcialNote}
             ${hasBV ? '' : '<div class="bv-note bv-note-compact">Sin BV: el excedente no compensado se pierde.</div>'}
