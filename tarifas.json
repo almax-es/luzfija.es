@@ -204,7 +204,7 @@
       "tipo": "1P",
       "incluyeServiciosAjuste": true,
       "fv": {
-        "exc": 0.03,
+        "exc": 0.04,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -1695,6 +1695,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Imagina Vehículo Eléctrico 3P",
+      "cPunta": 0.223,
+      "cLlano": 0.149,
+      "cValle": 0.084,
+      "p1": 0.103,
+      "p2": 0.048,
+      "web": "https://imaginaenergia.com/tarifa-luz-vehiculo-electrico/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "CHC VE 3P",
       "cPunta": 0.225745,
       "cLlano": 0.221841,
@@ -1876,5 +1896,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-16T06:34:47.637Z"
+  "updatedAt": "2026-06-16T07:56:53.459Z"
 }
