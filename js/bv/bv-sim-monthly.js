@@ -62,7 +62,8 @@ if (typeof window !== 'undefined') {
  * @param {string} zona - Zona CNMC ('peninsula'|'ceutaMelilla'). Default: 'peninsula'
  * @returns {Array} Meses agrupados con kWh por período
  */
-window.BVSim.bucketizeByMonth = function (records, zona = 'peninsula') {
+window.BVSim.bucketizeByMonth = function (records, zona = 'peninsula', opts = {}) {
+  const isDatadisMonthly = Boolean(opts.isDatadisMonthly);
   const monthsMap = new Map();
   const round2 = typeof window.BVSim.round2 === 'function'
     ? window.BVSim.round2
@@ -150,14 +151,18 @@ window.BVSim.bucketizeByMonth = function (records, zona = 'peninsula') {
   const months = Array.from(monthsMap.values())
     .sort((a, b) => a.key.localeCompare(b.key))
     .map((month) => {
-      const daysWithData = month._daysSet.size;
-      const coveragePct = month.daysInMonth > 0
+      // Para Datadis mensual todos los registros tienen fecha = día 1 → _daysSet.size = 1.
+      // Forzar cobertura completa para que calcMonthForTarifa use el mes entero.
+      const daysWithData = isDatadisMonthly ? month.daysInMonth : month._daysSet.size;
+      const coveragePct = isDatadisMonthly ? 100 : (month.daysInMonth > 0
         ? Math.round((daysWithData / month.daysInMonth) * 1000) / 10
-        : 0;
+        : 0);
 
-      const spanDays = month._minStamp !== null && month._maxStamp !== null
-        ? Math.round((month._maxStamp - month._minStamp) / 86400000) + 1
-        : 0;
+      const spanDays = isDatadisMonthly ? month.daysInMonth : (
+        month._minStamp !== null && month._maxStamp !== null
+          ? Math.round((month._maxStamp - month._minStamp) / 86400000) + 1
+          : 0
+      );
 
       return {
         key: month.key,
@@ -191,7 +196,8 @@ window.BVSim.bucketizeByMonth = function (records, zona = 'peninsula') {
  * @returns {Object} {ok, months}
  */
 window.BVSim.simulateMonthly = function (importResult, potenciaP1, potenciaP2, zona = 'peninsula') {
-  const months = window.BVSim.bucketizeByMonth(importResult.records, zona);
+  const isDatadisMonthly = Boolean(importResult?.meta?.isDatadisMonthly);
+  const months = window.BVSim.bucketizeByMonth(importResult.records, zona, { isDatadisMonthly });
   return { ok: true, months };
 };
 

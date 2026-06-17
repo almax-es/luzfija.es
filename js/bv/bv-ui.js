@@ -165,9 +165,11 @@ window.BVSim.manualUi.createHourlyTraceControls = function createHourlyTraceCont
   }
 
   function setHourlyTraceFromImport(importResult, zonaFiscal) {
-    if (importResult?.meta?.hasExcedenteColumn === false) {
+    if (importResult?.meta?.hasExcedenteColumn === false || importResult?.meta?.isDatadisMonthly === true) {
       clearHourlyTraceState();
-      hourlyTraceState.reason = 'no-hourly-surplus-column';
+      hourlyTraceState.reason = importResult?.meta?.isDatadisMonthly
+        ? 'datadis-monthly-no-hourly-trace'
+        : 'no-hourly-surplus-column';
       return;
     }
     hourlyTraceState.records = Array.isArray(importResult?.records) ? importResult.records : null;

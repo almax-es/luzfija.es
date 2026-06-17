@@ -63,6 +63,41 @@ describe('Simulador Solar Mensual (bv-sim-monthly.js)', () => {
     expect(jan.importByPeriod.P1).toBe(0.3);
   });
 
+  it('bucketizeByMonth con isDatadisMonthly: daysWithData = daysInMonth para cada mes', () => {
+    // Registros sintéticos Datadis: todos en día 1
+    const datadisRecords = [
+      { fecha: new Date(2025, 0, 1), hora: 1,  kwh: 100, excedente: 0,  periodo: 'P3' },
+      { fecha: new Date(2025, 0, 1), hora: 11, kwh: 50,  excedente: 0,  periodo: 'P2' },
+      { fecha: new Date(2025, 0, 1), hora: 12, kwh: 30,  excedente: 20, periodo: 'P1' },
+      { fecha: new Date(2025, 1, 1), hora: 1,  kwh: 90,  excedente: 0,  periodo: 'P3' },
+      { fecha: new Date(2025, 1, 1), hora: 11, kwh: 40,  excedente: 0,  periodo: 'P2' },
+      { fecha: new Date(2025, 1, 1), hora: 12, kwh: 25,  excedente: 15, periodo: 'P1' },
+    ];
+
+    const buckets = window.BVSim.bucketizeByMonth(datadisRecords, 'peninsula', { isDatadisMonthly: true });
+
+    expect(buckets).toHaveLength(2);
+    const jan = buckets.find(b => b.key === '2025-01');
+    expect(jan.daysWithData).toBe(31);
+    expect(jan.daysInMonth).toBe(31);
+    expect(jan.coveragePct).toBe(100);
+    expect(jan.spanDays).toBe(31);
+
+    const feb = buckets.find(b => b.key === '2025-02');
+    expect(feb.daysWithData).toBe(28);
+    expect(feb.daysInMonth).toBe(28);
+    expect(feb.coveragePct).toBe(100);
+  });
+
+  it('bucketizeByMonth sin flag: daysWithData sigue siendo 1 para registros en día 1 (comportamiento original)', () => {
+    const records = [
+      { fecha: new Date(2025, 0, 1), hora: 1, kwh: 100, excedente: 0, periodo: 'P3' },
+    ];
+    const buckets = window.BVSim.bucketizeByMonth(records);
+    const jan = buckets.find(b => b.key === '2025-01');
+    expect(jan.daysWithData).toBe(1);
+  });
+
   it('simulateForTarifaDemo: Debe calcular factura básica SIN batería virtual', () => {
     // Tarifa simple: energía 0.10, excedentes 0.05
     const tarifaSimple = {

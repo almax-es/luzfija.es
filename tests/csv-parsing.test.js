@@ -359,3 +359,224 @@ ES12345;01/01/2024;2;"1,234";Real`;
     expect(totalKwhNum).toBeCloseTo(1.234, 2);
   });
 });
+
+// ===== DATADIS MENSUAL =====
+
+const DATADIS_HEADER = 'CUPS;Fecha;Valle;Llano;Punta;Energia_vertida_kWh;Energia_generada_kWh;Energia_autoconsumida_kWh;Consumo_Anual';
+
+function datadisRow(mes, valle, llano, punta, vert, gen, auto) {
+  return `ES001;${mes};${valle};${llano};${punta};${vert};${gen};${auto};`;
+}
+
+function makeDatadisCSV12Months() {
+  const lines = [DATADIS_HEADER];
+  for (let m = 1; m <= 12; m++) {
+    const mes = `2025/${String(m).padStart(2, '0')}`;
+    lines.push(datadisRow(mes, 100, 50, 30, 20, 80, 60));
+  }
+  return lines.join('\n');
+}
+
+describe('parseDateFlexible - formato YYYY/MM (Datadis)', () => {
+  let csvUtils;
+  beforeAll(() => { csvUtils = window.LF.csvUtils; });
+
+  it('Debe parsear YYYY/MM como día 1 del mes', () => {
+    const date = csvUtils.parseDateFlexible('2025/01');
+    expect(date).toBeInstanceOf(Date);
+    expect(date.getFullYear()).toBe(2025);
+    expect(date.getMonth()).toBe(0);
+    expect(date.getDate()).toBe(1);
+  });
+
+  it('Debe parsear YYYY/MM de agosto correctamente', () => {
+    const date = csvUtils.parseDateFlexible('2025/08');
+    expect(date.getMonth()).toBe(7);
+    expect(date.getDate()).toBe(1);
+  });
+
+  it('No debe confundir YYYY/MM con YYYY/MM/DD', () => {
+    const date = csvUtils.parseDateFlexible('2025/01/15');
+    expect(date.getDate()).toBe(15);
+  });
+});
+
+describe('isDatadisMonthlyFormat', () => {
+  let csvUtils;
+  beforeAll(() => { csvUtils = window.LF.csvUtils; });
+
+  it('Detecta formato Datadis con las tres columnas solares', () => {
+    const headers = ['CUPS', 'Fecha', 'Valle', 'Llano', 'Punta', 'Energia_vertida_kWh', 'Energia_generada_kWh', 'Energia_autoconsumida_kWh', 'Consumo_Anual'];
+    const headersNorm = headers.map(h => csvUtils.normalizeHeaderName(h));
+    expect(csvUtils.isDatadisMonthlyFormat(headersNorm)).toBe(true);
+  });
+
+  it('Detecta formato Datadis con al menos una columna solar', () => {
+    const headers = ['Fecha', 'Valle', 'Llano', 'Punta', 'Energia_vertida_kWh'];
+    const headersNorm = headers.map(h => csvUtils.normalizeHeaderName(h));
+    expect(csvUtils.isDatadisMonthlyFormat(headersNorm)).toBe(true);
+  });
+
+  it('Rechaza CSV horario normal (sin valle/llano/punta)', () => {
+    const headers = ['CUPS', 'Fecha', 'Hora', 'Consumo_kWh'];
+    const headersNorm = headers.map(h => csvUtils.normalizeHeaderName(h));
+    expect(csvUtils.isDatadisMonthlyFormat(headersNorm)).toBe(false);
+  });
+
+  it('Rechaza si solo tiene valle/llano/punta pero sin columna solar', () => {
+    const headers = ['Fecha', 'Valle', 'Llano', 'Punta'];
+    const headersNorm = headers.map(h => csvUtils.normalizeHeaderName(h));
+    expect(csvUtils.isDatadisMonthlyFormat(headersNorm)).toBe(false);
+  });
+});
+
+describe('parseEnergyTableRows - Datadis mensual', () => {
+  let csvUtils;
+  beforeAll(() => { csvUtils = window.LF.csvUtils; });
+
+  function makeRows(dataLines) {
+    return [
+      ['CUPS', 'Fecha', 'Valle', 'Llano', 'Punta', 'Energia_vertida_kWh', 'Energia_generada_kWh', 'Energia_autoconsumida_kWh', 'Consumo_Anual'],
+      ...dataLines
+    ];
+  }
+
+  it('Produce 3 registros sintéticos por mes para 12 meses', () => {
+    const rows = makeRows(
+      Array.from({ length: 12 }, (_, i) => {
+        const m = String(i + 1).padStart(2, '0');
+        return ['ES001', `2025/${m}`, '100', '50', '30', '20', '80', '60', ''];
+      })
+    );
+    const result = csvUtils.parseEnergyTableRows(rows);
+    expect(result.isDatadisMonthly).toBe(true);
+    expect(result.records).toHaveLength(36);
+    expect(result.hasExcedenteColumn).toBe(true);
+    expect(result.hasAutoconsumoColumn).toBe(true);
+  });
+
+  it('Asigna periodos P3/P2/P1 a los registros por mes', () => {
+    const rows = makeRows([['ES001', '2025/06', '100', '50', '30', '20', '80', '60', '']]);
+    const result = csvUtils.parseEnergyTableRows(rows);
+    const periodos = result.records.map(r => r.periodo).sort();
+    expect(periodos).toEqual(['P1', 'P2', 'P3']);
+    const p3 = result.records.find(r => r.periodo === 'P3');
+    expect(p3.kwh).toBe(100);
+    const p2 = result.records.find(r => r.periodo === 'P2');
+    expect(p2.kwh).toBe(50);
+    const p1 = result.records.find(r => r.periodo === 'P1');
+    expect(p1.kwh).toBe(30);
+    expect(p1.excedente).toBe(20);
+    expect(p1.autoconsumo).toBe(60);
+  });
+
+  it('Fecha de los registros es día 1 del mes', () => {
+    const rows = makeRows([['ES001', '2025/03', '100', '50', '30', '20', '80', '60', '']]);
+    const result = csvUtils.parseEnergyTableRows(rows);
+    result.records.forEach(r => {
+      expect(r.fecha.getFullYear()).toBe(2025);
+      expect(r.fecha.getMonth()).toBe(2);
+      expect(r.fecha.getDate()).toBe(1);
+    });
+  });
+
+  it('Lanza error si Generada ≠ Vertida + Autoconsumida (bug Codex: Generada=0, Vertida=1, Autoconsumida=1)', () => {
+    const rows = makeRows([['ES001', '2025/01', '100', '50', '30', '1', '0', '1', '']]);
+    expect(() => csvUtils.parseEnergyTableRows(rows)).toThrow(/inconsistentes/i);
+  });
+
+  it('Lanza error si la diferencia supera 0.05 kWh', () => {
+    const rows = makeRows([['ES001', '2025/01', '100', '50', '30', '20', '81', '60', '']]);
+    expect(() => csvUtils.parseEnergyTableRows(rows)).toThrow(/inconsistentes/i);
+  });
+
+  it('Acepta diferencia de flotante pequeña (≤0.05 kWh)', () => {
+    // gen=80.03, vert=20, auto=60 → diff=0.03 → ok
+    const rows = makeRows([['ES001', '2025/01', '100', '50', '30', '20', '80,03', '60', '']]);
+    expect(() => csvUtils.parseEnergyTableRows(rows)).not.toThrow();
+  });
+
+  it('Lanza error si columnas solares no son numéricas', () => {
+    const rows = makeRows([['ES001', '2025/01', '100', '50', '30', 'N/A', '80', '60', '']]);
+    expect(() => csvUtils.parseEnergyTableRows(rows)).toThrow(/no num/i);
+  });
+
+  it('Lanza error si una fila tiene datos pero fecha vacía', () => {
+    const rows = makeRows([
+      ['ES001', '2025/01', '100', '50', '30', '20', '80', '60', ''],
+      ['ES001', '',        '4',   '5',  '6',  '1',  '2',  '1',  '']
+    ]);
+    expect(() => csvUtils.parseEnergyTableRows(rows)).toThrow(/sin fecha/i);
+  });
+
+  it('Lanza error si una fila no vacía tiene fecha inválida', () => {
+    const rows = makeRows([
+      ['ES001', '2025/01', '100', '50', '30', '20', '80', '60', ''],
+      ['ES001', 'bad-date', '100', '50', '30', '20', '80', '60', '']
+    ]);
+    expect(() => csvUtils.parseEnergyTableRows(rows)).toThrow(/fecha no reconocida/i);
+  });
+
+  it('Lanza error si Valle/Llano/Punta no son numéricos', () => {
+    const rows = makeRows([['ES001', '2025/01', 'N/A', '50', '30', '20', '80', '60', '']]);
+    expect(() => csvUtils.parseEnergyTableRows(rows)).toThrow(/valle/i);
+  });
+
+  it('Lanza error si falta alguna de las tres columnas de generación solar', () => {
+    // Tiene Vertida pero le faltan Generada y Autoconsumida
+    // → isDatadisMonthlyFormat devuelve true, pero parseDatadisMonthlyRows detecta que faltan
+    const rowsNoSolar = [
+      ['Fecha', 'Valle', 'Llano', 'Punta', 'Energia_vertida_kWh'],
+      ['2025/01', '100', '50', '30', '20']
+    ];
+    expect(() => csvUtils.parseEnergyTableRows(rowsNoSolar)).toThrow(/tres columnas/i);
+  });
+});
+
+describe('validateCsvSpanFromRecords - Datadis mensual', () => {
+  let csvUtils;
+  beforeAll(() => { csvUtils = window.LF.csvUtils; });
+
+  function makeDatadisRecords12Months() {
+    return Array.from({ length: 12 }, (_, i) => ({
+      fecha: new Date(2025, i, 1)
+    }));
+  }
+
+  it('Sin flag: span enero-diciembre = 335 días (día 1 a día 1)', () => {
+    const records = makeDatadisRecords12Months();
+    const result = csvUtils.validateCsvSpanFromRecords(records, { maxDays: 370 });
+    expect(result.ok).toBe(true);
+    expect(result.spanDays).toBeLessThan(366);
+  });
+
+  it('Con isDatadisMonthly: span usa último día de diciembre (≈365)', () => {
+    const records = makeDatadisRecords12Months();
+    const result = csvUtils.validateCsvSpanFromRecords(records, { maxDays: 370, isDatadisMonthly: true });
+    expect(result.ok).toBe(true);
+    expect(result.spanDays).toBeGreaterThanOrEqual(365);
+    expect(result.endYmd).toBe('2025-12-31');
+  });
+
+  it('Con isDatadisMonthly: detecta 12 meses correctamente', () => {
+    const records = makeDatadisRecords12Months();
+    const result = csvUtils.validateCsvSpanFromRecords(records, { maxDays: 370, isDatadisMonthly: true });
+    expect(result.monthsDistinct).toBe(12);
+  });
+});
+
+describe('Regresión: CSV horario estándar no afectado por cambios Datadis', () => {
+  it('CSV horario Endesa sigue parseando igual', async () => {
+    const csvContent = `CUPS;Fecha;Hora;Consumo_kWh;Método
+ES12345;01/06/2025;1;1,234;Real
+ES12345;01/06/2025;2;2,100;Real`;
+    const blob = new Blob([csvContent], { type: 'text/csv' });
+    const file = new File([blob], 'endesa.csv', { type: 'text/csv' });
+    const resultado = await window.LF.procesarCSVConsumos(file);
+    expect(resultado.ok).toBe(true);
+    expect(resultado.isDatadisMonthly).toBeFalsy();
+    expect(resultado.dias).toBe(1);
+    const total = parseFloat(resultado.totalKwh.replace(',', '.'));
+    expect(total).toBeCloseTo(3.334, 2);
+  });
+});

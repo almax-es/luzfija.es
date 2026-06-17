@@ -149,7 +149,7 @@ window.BVSim = window.BVSim || {};
     return `${y}-${m}`;
   }
 
-  function buildMeta(records, hasExcedenteColumn, hasAutoconsumoColumn) {
+  function buildMeta(records, hasExcedenteColumn, hasAutoconsumoColumn, isDatadisMonthly = false) {
     let minDate = null;
     let maxDate = null;
     const months = new Set();
@@ -171,7 +171,8 @@ window.BVSim = window.BVSim || {};
       end: maxDate ? ymdLocal(maxDate) : '',
       months: months.size,
       hasExcedenteColumn: Boolean(hasExcedenteColumn),
-      hasAutoconsumoColumn: Boolean(hasAutoconsumoColumn)
+      hasAutoconsumoColumn: Boolean(hasAutoconsumoColumn),
+      isDatadisMonthly: Boolean(isDatadisMonthly)
     };
   }
 
@@ -246,7 +247,8 @@ window.BVSim = window.BVSim || {};
         const spanCheck = validateCsvSpanFromRecords(records, {
           maxDays: 370,
           requireExactly12Months: true,  // ← Modo solar: máximo 13 meses, ajuste a 12 si procede
-          coverageThreshold: 80          // ← 80% mínimo de cobertura por mes
+          coverageThreshold: 80,         // ← 80% mínimo de cobertura por mes
+          isDatadisMonthly: parsed.isDatadisMonthly || false
         });
 
         if (!spanCheck.ok) {
@@ -273,7 +275,7 @@ window.BVSim = window.BVSim || {};
       }
 
       const filteredRecords = Array.isArray(parsed.records) ? parsed.records : [];
-      const meta = buildMeta(filteredRecords, parsed.hasExcedenteColumn, parsed.hasAutoconsumoColumn);
+      const meta = buildMeta(filteredRecords, parsed.hasExcedenteColumn, parsed.hasAutoconsumoColumn, parsed.isDatadisMonthly || false);
 
       return {
         ok: true,

@@ -194,7 +194,7 @@
     return `${y}-${m}`;
   }
 
-  function applySpanValidation(consumos, warnings) {
+  function applySpanValidation(consumos, warnings, options = {}) {
     const nextWarnings = Array.isArray(warnings) ? warnings.slice() : [];
     if (typeof validateCsvSpanFromRecords !== 'function') {
       return { ok: true, consumos, warnings: nextWarnings };
@@ -204,7 +204,8 @@
     const spanCheck = validateCsvSpanFromRecords(consumos, {
       maxDays: 370,
       requireExactly12Months: false,  // ← Comparador principal: usar TODOS los datos
-      staleWarningMonths: 18
+      staleWarningMonths: 18,
+      isDatadisMonthly: options.isDatadisMonthly || false
     });
 
     if (!spanCheck.ok) {
@@ -338,7 +339,9 @@
             return;
           }
 
-          const spanResult = applySpanValidation(consumos, parsed.warnings || []);
+          const spanResult = applySpanValidation(consumos, parsed.warnings || [], {
+            isDatadisMonthly: parsed.isDatadisMonthly || false
+          });
           if (!spanResult.ok) {
             resolve({ ok: false, error: spanResult.error });
             return;
@@ -352,8 +355,24 @@
           }
 
           resultado.formato = 'CSV';
-          // Adjuntar consumos horarios para PVPC por periodo (se guardan globalmente solo al aplicar)
-          resultado.consumosHorarios = consumos;
+
+          if (parsed.isDatadisMonthly) {
+            // Registros sintéticos: todos en día 1 de cada mes → diasUnicos.size = nº meses.
+            // Recalcular con días reales de cada mes calendario.
+            const monthKeys = new Set(consumos.map(r => ymLocal(r.fecha)));
+            let totalDias = 0;
+            monthKeys.forEach(key => {
+              const [y, m] = key.split('-').map(Number);
+              totalDias += new Date(y, m, 0).getDate();
+            });
+            resultado.dias = totalDias;
+            resultado.consumosHorarios = null; // no hay traza horaria real
+            resultado.isDatadisMonthly = true;
+          } else {
+            // Adjuntar consumos horarios para PVPC por periodo (se guardan globalmente solo al aplicar)
+            resultado.consumosHorarios = consumos;
+          }
+
           resultado.warnings = spanResult.warnings;
           if (resultado.warnings.length && typeof toast === 'function') {
             toast(`⚠️ ${resultado.warnings.join('\n')}`);
@@ -386,7 +405,9 @@
             return;
           }
 
-          const spanResult = applySpanValidation(consumos, parsed.warnings || []);
+          const spanResult = applySpanValidation(consumos, parsed.warnings || [], {
+            isDatadisMonthly: parsed.isDatadisMonthly || false
+          });
           if (!spanResult.ok) {
             resolve({ ok: false, error: spanResult.error });
             return;
@@ -400,8 +421,21 @@
           }
 
           resultado.formato = 'XLSX';
-          // Adjuntar consumos horarios para PVPC por periodo (se guardan globalmente solo al aplicar)
-          resultado.consumosHorarios = consumos;
+
+          if (parsed.isDatadisMonthly) {
+            const monthKeys = new Set(consumos.map(r => ymLocal(r.fecha)));
+            let totalDias = 0;
+            monthKeys.forEach(key => {
+              const [y, m] = key.split('-').map(Number);
+              totalDias += new Date(y, m, 0).getDate();
+            });
+            resultado.dias = totalDias;
+            resultado.consumosHorarios = null;
+            resultado.isDatadisMonthly = true;
+          } else {
+            resultado.consumosHorarios = consumos;
+          }
+
           resultado.warnings = spanResult.warnings;
           if (resultado.warnings.length && typeof toast === 'function') {
             toast(`⚠️ ${resultado.warnings.join('\n')}`);
@@ -577,14 +611,16 @@
       </div>
       ${excedenteHTML}
 
-      <div style="margin-top: 16px; padding: 14px 16px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px;">
-        <label style="display: flex; align-items: center; gap: 10px; cursor: pointer; user-select: none;">
-          <input type="checkbox" id="csvPvpcPeriodo" ${__pvpcPeriodoCheckedAttr} style="cursor: pointer; width: 18px; height: 18px; accent-color: #6366f1;">
+      <div style="margin-top: 16px; padding: 14px 16px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; ${resultado.isDatadisMonthly ? 'opacity: 0.5;' : ''}">
+        <label style="display: flex; align-items: center; gap: 10px; ${resultado.isDatadisMonthly ? 'cursor: not-allowed;' : 'cursor: pointer;'} user-select: none;">
+          <input type="checkbox" id="csvPvpcPeriodo" ${__pvpcPeriodoCheckedAttr} ${resultado.isDatadisMonthly ? 'disabled' : ''} style="${resultado.isDatadisMonthly ? 'cursor: not-allowed;' : 'cursor: pointer;'} width: 18px; height: 18px; accent-color: #6366f1;">
           <span style="font-size: 14px; color: var(--text); font-weight: 600; flex: 1;">📅 PVPC con precios del período</span>
           <span style="font-size: 11px; color: var(--muted2); background: rgba(99, 102, 241, 0.15); padding: 3px 8px; border-radius: 4px; font-weight: 600;">Hora a hora</span>
         </label>
         <p style="margin: 8px 0 0 28px; font-size: 12px; color: var(--muted2); line-height: 1.4;">
-          Activado: usa los precios PVPC de cuando consumiste (para verificar tu factura). Desactivado: usa los precios PVPC de hoy (para comparar opciones).
+          ${resultado.isDatadisMonthly
+            ? 'No disponible con datos mensuales de Datadis (no hay traza horaria). El PVPC se calculará con precios recientes.'
+            : 'Activado: usa los precios PVPC de cuando consumiste (para verificar tu factura). Desactivado: usa los precios PVPC de hoy (para comparar opciones).'}
         </p>
       </div>
 

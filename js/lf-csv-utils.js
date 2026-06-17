@@ -187,6 +187,12 @@
     // Ignorar hora si existe (tomar solo la parte de fecha; separa por espacio o T de ISO 8601)
     const firstToken = str.split(/[T\s]/)[0];
 
+    // Formato Datadis mensual: YYYY/MM (sin día; devuelve día 1 del mes)
+    const matchYMOnly = firstToken.match(/^(\d{4})\/(\d{2})$/);
+    if (matchYMOnly) {
+      return makeStrictDate(Number(matchYMOnly[1]), Number(matchYMOnly[2]), 1);
+    }
+
     // Formato: dd/mm/yyyy o dd-mm-yyyy
     let match = firstToken.match(/^(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{4})$/);
     if (match) {
@@ -298,6 +304,135 @@
 
   function normalizeHeaders(headers) {
     return (headers || []).map(normalizeHeaderName);
+  }
+
+  // ===== DATADIS MENSUAL =====
+
+  function isDatadisMonthlyFormat(headersNorm) {
+    const set = new Set(headersNorm);
+    return set.has('fecha')
+      && set.has('valle') && set.has('llano') && set.has('punta')
+      && (set.has('energia_vertida_kwh') || set.has('energia_generada_kwh') || set.has('energia_autoconsumida_kwh'));
+  }
+
+  function parseDatadisMonthlyRows(rows, options = {}) {
+    const headerRowIndex = Number.isFinite(options.headerRowIndex) ? options.headerRowIndex : 0;
+    const separator = options.separator || null;
+    const parseNumber = options.parseNumber || parseNumberFlexible;
+    const r2 = n => Math.round((Number(n) + Number.EPSILON) * 100) / 100;
+
+    const headerRow = rows[headerRowIndex];
+    const headersNorm = normalizeHeaders(headerRow);
+
+    const fechaIdx    = headersNorm.indexOf('fecha');
+    const valleIdx    = headersNorm.indexOf('valle');
+    const llanoIdx    = headersNorm.indexOf('llano');
+    const puntaIdx    = headersNorm.indexOf('punta');
+    const vertidaIdx  = headersNorm.indexOf('energia_vertida_kwh');
+    const generadaIdx = headersNorm.indexOf('energia_generada_kwh');
+    const autoIdx     = headersNorm.indexOf('energia_autoconsumida_kwh');
+
+    if (fechaIdx === -1 || valleIdx === -1 || llanoIdx === -1 || puntaIdx === -1) {
+      throw buildHeaderError(
+        'Formato Datadis mensual: faltan columnas obligatorias (Fecha, Valle, Llano, Punta).',
+        headersNorm, { separator }
+      );
+    }
+
+    const missingSolar = [
+      vertidaIdx  === -1 && 'Energia_vertida_kWh',
+      generadaIdx === -1 && 'Energia_generada_kWh',
+      autoIdx     === -1 && 'Energia_autoconsumida_kWh'
+    ].filter(Boolean);
+    if (missingSolar.length > 0) {
+      throw buildHeaderError(
+        `Formato Datadis mensual: para validar la generación solar se necesitan las tres columnas ` +
+        `(${missingSolar.join(', ')}).`,
+        headersNorm, { separator }
+      );
+    }
+
+    const dataRows = rows.slice(headerRowIndex + 1);
+    const records = [];
+
+    for (const row of dataRows) {
+      if (!row || !Array.isArray(row)) continue;
+      if (!row.some(cell => String(cell ?? '').trim() !== '')) continue;
+
+      const fechaRaw = String(row[fechaIdx] ?? '').trim();
+      if (!fechaRaw) {
+        // La fila tiene contenido en otros campos pero falta la fecha → error
+        throw buildHeaderError(
+          `Formato Datadis mensual: se encontró una fila con datos pero sin fecha. ` +
+          `El formato esperado es YYYY/MM (ej: 2025/01).`,
+          headersNorm, { separator }
+        );
+      }
+      const fecha = parseDateFlexible(fechaRaw);
+      if (!fecha || isNaN(fecha.getTime())) {
+        throw buildHeaderError(
+          `Formato Datadis mensual: fecha no reconocida en una fila de datos ("${fechaRaw}"). ` +
+          `El formato esperado es YYYY/MM (ej: 2025/01).`,
+          headersNorm, { separator }
+        );
+      }
+
+      const valle = parseNumber(row[valleIdx]);
+      const llano = parseNumber(row[llanoIdx]);
+      const punta = parseNumber(row[puntaIdx]);
+      if (!Number.isFinite(valle) || !Number.isFinite(llano) || !Number.isFinite(punta)) {
+        const monthKey = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+        const badField = !Number.isFinite(valle) ? 'Valle' : !Number.isFinite(llano) ? 'Llano' : 'Punta';
+        throw buildHeaderError(
+          `Error en ${formatMonthYear(monthKey)}: el campo "${badField}" no contiene un número válido ` +
+          `(valor: "${row[!Number.isFinite(valle) ? valleIdx : !Number.isFinite(llano) ? llanoIdx : puntaIdx]}").`,
+          headersNorm, { separator }
+        );
+      }
+
+      const vert = parseNumber(row[vertidaIdx]);
+      const gen  = parseNumber(row[generadaIdx]);
+      const auto = parseNumber(row[autoIdx]);
+
+      const monthKey = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+
+      if (!Number.isFinite(vert) || !Number.isFinite(gen) || !Number.isFinite(auto)) {
+        throw buildHeaderError(
+          `Error en ${formatMonthYear(monthKey)}: los campos de generación solar contienen valores no numéricos ` +
+          `(Vertida=${vert}, Generada=${gen}, Autoconsumida=${auto}).`,
+          headersNorm, { separator }
+        );
+      }
+
+      if (Math.abs(gen - (vert + auto)) > 0.05) {
+        throw buildHeaderError(
+          `Error en ${formatMonthYear(monthKey)}: Energia_generada (${r2(gen)} kWh) ≠ ` +
+          `Energia_vertida (${r2(vert)} kWh) + Energia_autoconsumida (${r2(auto)} kWh).\n\n` +
+          `Los datos de generación solar son inconsistentes. ` +
+          `Descarga el archivo de nuevo o contacta con tu distribuidora.`,
+          headersNorm, { separator }
+        );
+      }
+
+      records.push({ fecha, hora: 1,  kwh: r2(valle), excedente: 0,       autoconsumo: 0,       periodo: 'P3', esReal: true });
+      records.push({ fecha, hora: 11, kwh: r2(llano), excedente: 0,       autoconsumo: 0,       periodo: 'P2', esReal: true });
+      records.push({ fecha, hora: 12, kwh: r2(punta), excedente: r2(vert), autoconsumo: r2(auto), periodo: 'P1', esReal: true });
+    }
+
+    if (records.length === 0) {
+      throw buildHeaderError(
+        'Formato Datadis mensual: no se encontraron filas de datos válidas.',
+        headersNorm, { separator }
+      );
+    }
+
+    return {
+      records,
+      warnings: [],
+      hasExcedenteColumn: true,
+      hasAutoconsumoColumn: true,
+      isDatadisMonthly: true
+    };
   }
 
   function buildHeaderError(message, headersNorm, options = {}) {
@@ -623,6 +758,13 @@
     }
 
     const headersNorm = normalizeHeaders(headerRow);
+
+    // Desvío: formato mensual Datadis — debe evaluarse antes de detectColumnMapping
+    // porque Datadis no tiene columna 'importacion' y la función fallaría
+    if (isDatadisMonthlyFormat(headersNorm)) {
+      return parseDatadisMonthlyRows(rows, options);
+    }
+
     const headersRaw = (headerRow || []).map(cell => stripBomAndTrim(cell));
     const mapping = detectColumnMapping(headersNorm, { separator });
     const warnings = [];
@@ -1141,6 +1283,13 @@
       months.add(monthKey);
     });
 
+    // Para Datadis mensual los records tienen fecha = día 1 de cada mes.
+    // Ajustar maxTs al último día del mes más reciente para que spanDays y endYmd sean correctos.
+    if (options.isDatadisMonthly && maxTs !== null) {
+      const d = new Date(maxTs);
+      maxTs = new Date(d.getFullYear(), d.getMonth() + 1, 0).getTime();
+    }
+
     const monthsSorted = Array.from(months).sort();
     const monthsDistinct = monthsSorted.length;
     let monthsUsed = [];
@@ -1395,6 +1544,8 @@
     parseCSVToRows,
     parseEnergyTableRows,
     guessEnergyHeaderRow,
+    isDatadisMonthlyFormat,
+    parseDatadisMonthlyRows,
 
     // Fechas
     parseDateFlexible,
