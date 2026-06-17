@@ -100,6 +100,7 @@
     if (Date.now() - requestedAt > REQUEST_WINDOW_MS) return false;
     if (window.__LF_PRIVACY_MODE === true || window.__LF_FACTURA_BUSY === true) return false;
     if (!hasVisibleResults(detail)) return false;
+    if (shouldKeepBannerHidden()) return false;
     return !isBlockingUiVisible();
   }
 
@@ -144,18 +145,121 @@
   }
 
   // Apartar el banner cuando el usuario no esta mirando los resultados:
-  // se esconde si el formulario (boton Calcular) esta en pantalla O si los
-  // resultados no lo estan (p. ej. arriba del todo, en el encabezado).
+  // se esconde si el formulario (boton Calcular) esta en pantalla, si algun
+  // campo numerico cae bajo la zona del banner, O si los resultados no lo
+  // estan (p. ej. arriba del todo, en el encabezado).
   // No cuenta como cierre ni re-emite el evento "mostrado".
   var formObserver = null;
   var formInView = false;
   var resultsInView = true;
+  var visibilityWatchBound = false;
+  var visibilityWatchTicking = false;
+
+  function getViewportSize() {
+    var doc = document.documentElement || {};
+    return {
+      width: window.innerWidth || doc.clientWidth || 0,
+      height: window.innerHeight || doc.clientHeight || 0
+    };
+  }
+
+  function rectIntersects(a, b) {
+    return Boolean(a && b &&
+      a.left < b.right &&
+      a.right > b.left &&
+      a.top < b.bottom &&
+      a.bottom > b.top);
+  }
+
+  function getBannerFootprint() {
+    var viewport = getViewportSize();
+    if (!viewport.width || !viewport.height) return null;
+
+    var width = 372;
+    var height = 260;
+    try {
+      if (banner) {
+        var styles = window.getComputedStyle(banner);
+        var parsedWidth = parseFloat(styles.width);
+        var parsedHeight = parseFloat(styles.height);
+        if (Number.isFinite(parsedWidth) && parsedWidth > 0) width = parsedWidth;
+        if (Number.isFinite(parsedHeight) && parsedHeight > 0) height = parsedHeight;
+      }
+    } catch (_) {}
+
+    width = Math.min(width, Math.max(0, viewport.width - 24));
+    return {
+      left: 20,
+      right: 20 + width,
+      top: Math.max(0, viewport.height - 24 - height),
+      bottom: viewport.height
+    };
+  }
+
+  function isProtectedInputInBannerZone() {
+    var footprint = getBannerFootprint();
+    if (!footprint) return false;
+
+    var ids = ['p1', 'p2', 'dias', 'cPunta', 'cLlano', 'cValle', 'exTotal', 'bvSaldo'];
+    for (var i = 0; i < ids.length; i++) {
+      var input = document.getElementById(ids[i]);
+      if (!input || typeof input.getBoundingClientRect !== 'function') continue;
+      var rect = input.getBoundingClientRect();
+      if (!rect || rect.width <= 0 || rect.height <= 0) continue;
+      if (rectIntersects(rect, footprint)) return true;
+    }
+    return false;
+  }
+
+  function shouldKeepBannerHidden() {
+    return Boolean(formInView || !resultsInView || isProtectedInputInBannerZone());
+  }
+
+  function updateBannerVisibility() {
+    if (!banner || !shownThisSession || isDismissedRecently()) return;
+    if (shouldKeepBannerHidden()) {
+      hideBanner();
+    } else {
+      revealBanner();
+    }
+  }
+
+  function requestBannerVisibilityUpdate() {
+    if (visibilityWatchTicking) return;
+    visibilityWatchTicking = true;
+    var raf = window.requestAnimationFrame || function (cb) { return setTimeout(cb, 16); };
+    raf(function () {
+      visibilityWatchTicking = false;
+      updateBannerVisibility();
+    });
+  }
+
+  function bindVisibilityWatch() {
+    if (visibilityWatchBound) return;
+    visibilityWatchBound = true;
+    window.addEventListener('scroll', requestBannerVisibilityUpdate, { passive: true });
+    window.addEventListener('resize', requestBannerVisibilityUpdate);
+  }
+
+  function unbindVisibilityWatch() {
+    if (!visibilityWatchBound) return;
+    visibilityWatchBound = false;
+    window.removeEventListener('scroll', requestBannerVisibilityUpdate);
+    window.removeEventListener('resize', requestBannerVisibilityUpdate);
+  }
 
   function startFormWatch() {
-    if (typeof IntersectionObserver !== 'function' || formObserver) return;
+    bindVisibilityWatch();
+    if (typeof IntersectionObserver !== 'function' || formObserver) {
+      updateBannerVisibility();
+      return;
+    }
     var formSentinel = document.getElementById('btnCalc');
     var resultsSentinel = document.getElementById('seccionResultados') || document.getElementById('tbody');
-    if (!formSentinel) return;
+    if (!formSentinel) {
+      updateBannerVisibility();
+      return;
+    }
 
     formObserver = new IntersectionObserver(function (entries) {
       if (isDismissedRecently()) {
@@ -167,17 +271,15 @@
         if (entry.target === formSentinel) formInView = entry.isIntersecting;
         else if (entry.target === resultsSentinel) resultsInView = entry.isIntersecting;
       }
-      if (formInView || !resultsInView) {
-        hideBanner();
-      } else {
-        revealBanner();
-      }
+      updateBannerVisibility();
     });
     formObserver.observe(formSentinel);
     if (resultsSentinel) formObserver.observe(resultsSentinel);
+    updateBannerVisibility();
   }
 
   function stopFormWatch() {
+    unbindVisibilityWatch();
     if (formObserver) {
       try { formObserver.disconnect(); } catch (_) {}
       formObserver = null;

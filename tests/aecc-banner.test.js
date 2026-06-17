@@ -22,6 +22,7 @@ beforeEach(() => {
   window.__LF_track = vi.fn();
   // jsdom no hace layout: simulamos viewport de escritorio por defecto
   window.matchMedia = vi.fn(() => ({ matches: true }));
+  window.requestAnimationFrame = vi.fn((cb) => setTimeout(cb, 0));
 });
 
 afterEach(() => {
@@ -158,6 +159,44 @@ describe('AECC donation banner', () => {
     // El evento "mostrado" solo se emitio una vez
     const shownCalls = window.__LF_track.mock.calls.filter((c) => c[0] === 'aecc-banner-mostrado');
     expect(shownCalls.length).toBe(1);
+  });
+
+  it('se aparta si un campo numerico queda bajo la zona del banner aunque el boton calcular no este visible', () => {
+    const observeFn = vi.fn();
+    window.IntersectionObserver = function () {
+      this.observe = observeFn;
+      this.disconnect = vi.fn();
+    };
+
+    let inputRect = { left: 40, right: 220, top: 80, bottom: 124, width: 180, height: 44 };
+    document.body.innerHTML = `
+      <input id="p1">
+      <button id="btnCalc"></button>
+      <section id="seccionResultados" class="visible"></section>
+      <table><tbody id="tbody"><tr><td>Tarifa</td></tr></tbody></table>
+    `;
+    document.getElementById('p1').getBoundingClientRect = () => inputRect;
+
+    loadAeccBanner();
+    document.dispatchEvent(new CustomEvent('lf:results-requested', { detail: { origin: 'home' } }));
+    document.dispatchEvent(new CustomEvent('lf:results-ready', { detail: { origin: 'home', rows: 1 } }));
+    vi.advanceTimersByTime(2800);
+
+    const banner = document.getElementById('aecc-banner');
+    expect(banner.classList.contains('aecc-banner--visible')).toBe(true);
+
+    inputRect = { left: 40, right: 220, top: 560, bottom: 604, width: 180, height: 44 };
+    window.dispatchEvent(new Event('scroll'));
+    vi.advanceTimersByTime(0);
+
+    expect(banner.classList.contains('aecc-banner--visible')).toBe(false);
+    expect(localStorage.getItem('lf_aecc_banner_dismissed_at')).toBeNull();
+
+    inputRect = { left: 40, right: 220, top: 80, bottom: 124, width: 180, height: 44 };
+    window.dispatchEvent(new Event('scroll'));
+    vi.advanceTimersByTime(0);
+
+    expect(banner.classList.contains('aecc-banner--visible')).toBe(true);
   });
 
   it('copia el codigo Bizum en home, guarda cooldown y no cuenta el cierre como rechazo', async () => {
