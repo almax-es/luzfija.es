@@ -426,8 +426,8 @@
     currentEl.btnReset.addEventListener('click', (e) => {
       createRipple(currentEl.btnReset, e);
       toggleMenu(false);
-      try { localStorage.removeItem(LS_KEY); } catch (e) {}
-      try { sessionStorage.removeItem(LS_KEY); } catch (e) {}
+      try { localStorage.removeItem(LS_KEY); } catch (_e) {}
+      try { sessionStorage.removeItem(LS_KEY); } catch (_e) {}
       window.location.href = window.location.pathname + '?reset=1';
     });
 
