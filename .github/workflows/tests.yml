@@ -32,7 +32,7 @@ jobs:
         
       - name: Security Audit (informational)
         continue-on-error: true
-        run: npm audit --audit-level=high
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Run Tests
         run: npm test
