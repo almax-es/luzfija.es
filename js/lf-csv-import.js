@@ -454,9 +454,11 @@
   function mostrarPreviewCSV(resultado) {
     window.LF = window.LF || {};
 
-    // ⭐ PVPC PERIODO: por defecto desactivado (usar precios PVPC de hoy para comparar)
+    // ⭐ PVPC PERIODO: con curva horaria real, por defecto usa precios del período importado.
     const __prevPvpcPeriodo = window.LF.pvpcPeriodoCSV === true;
-    const __pvpcPeriodoCheckedAttr = __prevPvpcPeriodo ? 'checked' : '';
+    const __hasHourlyCurve = Array.isArray(resultado.consumosHorarios) && resultado.consumosHorarios.length > 0;
+    const __pvpcPeriodoDefault = __hasHourlyCurve && !resultado.isDatadisMonthly;
+    const __pvpcPeriodoCheckedAttr = __pvpcPeriodoDefault ? 'checked' : '';
 
     const modal = document.createElement('div');
     modal.className = 'modal-overlay show';
