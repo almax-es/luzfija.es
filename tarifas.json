@@ -785,6 +785,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Holaluz Clásica",
+      "cPunta": 0.139,
+      "cLlano": 0.139,
+      "cValle": 0.139,
+      "p1": 0.095,
+      "p2": 0.095,
+      "web": "https://www.holaluz.com/luz/tarifas-luz/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Repsol Tranquilísima",
       "cPunta": 0.1399,
       "cLlano": 0.1399,
@@ -840,26 +860,6 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Holaluz Clásica",
-      "cPunta": 0.147,
-      "cLlano": 0.147,
-      "cValle": 0.147,
-      "p1": 0.082,
-      "p2": 0.082,
-      "web": "https://www.holaluz.com/luz/tarifas-luz/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -1532,6 +1532,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Holaluz 3P",
+      "cPunta": 0.206,
+      "cLlano": 0.137,
+      "cValle": 0.113,
+      "p1": 0.095,
+      "p2": 0.095,
+      "web": "https://www.holaluz.com/luz/tarifas-luz/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Esluz 3P",
       "cPunta": 0.207014,
       "cLlano": 0.155066,
@@ -1621,26 +1641,6 @@
       "p1": 0.118638,
       "p2": 0.024595,
       "web": "https://lumisa.es/es/tarifa-fija",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Holaluz 3P",
-      "cPunta": 0.213,
-      "cLlano": 0.14,
-      "cValle": 0.113,
-      "p1": 0.082,
-      "p2": 0.082,
-      "web": "https://www.holaluz.com/luz/tarifas-luz/",
       "tipo": "3P",
       "incluyeServiciosAjuste": true,
       "fv": {
@@ -1795,6 +1795,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Nufri Solar 3P",
+      "cPunta": 0.246549,
+      "cLlano": 0.16682,
+      "cValle": 0.133643,
+      "p1": 0.111519,
+      "p2": 0.037604,
+      "web": "https://www.energianufri.com/es/tarifas-luz",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.08,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Octopus Go 3P",
       "cPunta": 0.248,
       "cLlano": 0.248,
@@ -1810,26 +1830,6 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Nufri Solar 3P",
-      "cPunta": 0.251888,
-      "cLlano": 0.174278,
-      "cValle": 0.139938,
-      "p1": 0.111519,
-      "p2": 0.037604,
-      "web": "https://www.energianufri.com/es/tarifas-luz",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.08,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -1896,5 +1896,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-18T15:23:24.626Z"
+  "updatedAt": "2026-06-18T19:14:01.865Z"
 }
