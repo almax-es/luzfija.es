@@ -266,53 +266,29 @@ El indicador 1739 es un dato nacional en ESIOS; por eso el generador lo procesa 
 
 **Archivo**: `.github/workflows/pvpc.yml`
 
+El workflow se ejecuta diariamente a las 20:00 UTC y descarga los tres datasets (PVPC, Excedentes, SSAA). Dispone de un desplegable manual para backfill completo desde la UI de GitHub Actions:
+
 ```yaml
-name: PVPC Daily Update
 on:
   schedule:
     - cron: '0 20 * * *'  # 20:00 UTC = 21:00 CET / 22:00 CEST en Madrid
-
-jobs:
-  update-pvpc:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
-      - name: Set up Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.14'
-      - name: Download PVPC data (auto-detect gaps)
-        env:
-          ESIOS_API_KEY: ${{ secrets.ESIOS_API_KEY }}
-        run: |
-          python scripts/pvpc_auto_fill.py --out-dir data/pvpc --indicator 1001 --geos 8741 8742 8743 8744 8745
-          python scripts/pvpc_auto_fill.py --out-dir data/surplus --indicator 1739 --geos 8741 8742 8743 8744 8745
-      - name: Check if there are changes
-        id: check_changes
-        run: |
-          CHANGED_FILES=$(git status --porcelain -- data/ | wc -l)
-          if [ "$CHANGED_FILES" -eq 0 ]; then
-            echo "has_changes=false" >> $GITHUB_OUTPUT
-          else
-            echo "has_changes=true" >> $GITHUB_OUTPUT
-            git status --short -- data/
-          fi
-      - name: Commit and push if there are changes
-        if: steps.check_changes.outputs.has_changes == 'true'
-        run: |
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git config user.name "github-actions[bot]"
-          git add data/pvpc/ data/surplus/
-          HORA=$(TZ=Europe/Madrid date +%H:%M)
-          git commit -m "chore: actualizar precios PVPC y Excedentes - $HORA"
-          git pull --rebase
-          git push
+  workflow_dispatch:
+    inputs:
+      rango:
+        description: 'Rango de descarga'
+        required: true
+        default: 'automatico'
+        type: choice
+        options:
+          - automatico        # usa ventana de corrección (6 meses)
+          - 2021-06-01        # backfill completo desde inicio de la tarifa 2.0TD
 ```
 
-El workflow real también dispara `tests.yml` mediante la API de GitHub cuando publica nuevos datos.
+En la ejecución programada (y en dispatch con `automatico`) `RANGO` queda vacío y el script usa el modo automático. Solo cuando se elige `2021-06-01` se pasa `--from 2021-06-01` al script.
+
+Tras la descarga, si hay cambios:
+- Se hace commit con `git add data/pvpc/ data/surplus/ data/ssaa/`
+- Se dispara `tests.yml` mediante la API de GitHub
 
 ### Horario de Actualización
 
@@ -323,20 +299,35 @@ El workflow real también dispara `tests.yml` mediante la API de GitHub cuando p
 | **Frecuencia** | Diaria | Se ejecuta automáticamente |
 | **Timezone cron** | UTC | GitHub Actions usa UTC |
 
-### Script Python: `scripts/pvpc_auto_fill.py`
+### Scripts Python
 
-**Función**: Descargar precios de ESIOS y actualizar JSONs locales
+**`scripts/pvpc_auto_fill.py`** — PVPC (1001) y Excedentes (1739)
 
 ```
-Flujo:
+Flujo (modo automatico):
 1. Leer variable entorno ESIOS_API_KEY
-2. Para cada indicador (1001 PVPC, 1739 excedentes):
-   a. Para cada zona (8741-8745), detectar huecos en mes actual + anterior
-   b. Descargar solo datos faltantes de ESIOS API
-   c. Convertir €/MWh → €/kWh
-   d. Guardar en /data/{pvpc|surplus}/{geoId}/{YYYY-MM}.json
-   e. Actualizar metadatos e índices (`index.json`)
-3. Si hay cambios, commitear y push desde el workflow
+2. Para cada indicador y cada zona (8741-8745):
+   a. Siempre re-descargar los ultimos 6 meses completos (ventana de corrección)
+      → Captura rectificaciones de REE en precios ya publicados
+   b. Detectar adicionalmente dias faltantes o incompletos fuera de esa ventana
+   c. Descargar de ESIOS API, convertir EUR/MWh → EUR/kWh
+   d. Merge con fichero mensual existente: sobreescribe el dia si el dato nuevo
+      es estructuralmente completo (24/23/25 puntos segun cambio horario)
+   e. Guardar en /data/{pvpc|surplus}/{geoId}/{YYYY-MM}.json
+   f. Actualizar indices (index.json)
+3. Si hay cambios, el workflow los commitea y hace push
+
+Flujo (backfill manual con --from 2021-06-01):
+  Mismo proceso pero descargando todo el historico desde esa fecha.
+  El merge garantiza que no se pierden datos ya correctos.
+```
+
+**`scripts/ssaa_auto_fill.py`** — Servicios de Ajuste (10328)
+
+```
+Descarga siempre los ultimos 24 meses en una sola peticion HTTP (dato mensual).
+Sobreescribe data/ssaa/index.json completo en cada ejecucion.
+Cualquier correccion de REE queda recogida automaticamente.
 ```
 
 **Requisitos**:
@@ -344,10 +335,10 @@ Flujo:
 - Token ESIOS API (variable de entorno `ESIOS_API_KEY`)
 - Permisos de push en GitHub (token de Actions)
 
-**Detección de Huecos**:
-- Si faltan precios para hoy → descargar
-- Si mes anterior incompleto → rellenar
-- Si huecos en mes actual → detectar y descargar
+**Ventana de corrección (pvpc_auto_fill.py)**:
+- Los ultimos 6 meses se re-descargan siempre, aunque los datos parezcan completos
+- Motivo: REE publica rectificaciones de precios pasados que no alteran el numero de puntos horarios pero si sus valores
+- Para correcciones mas antiguas: lanzar backfill manual desde GitHub Actions → Run workflow → `2021-06-01`
 
 ---
 
