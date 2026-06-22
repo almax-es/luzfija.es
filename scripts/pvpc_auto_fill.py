@@ -379,7 +379,7 @@ def detect_missing_days(geo_dir: str, tz: ZoneInfo, current_month: str, previous
     
     return missing
 
-def auto_detect_range(geo_dir: str, tz: ZoneInfo, correction_window_months: int = 3) -> Tuple[dt.date, dt.date]:
+def auto_detect_range(geo_dir: str, tz: ZoneInfo, correction_window_months: int = 6) -> Tuple[dt.date, dt.date]:
     """Detecta automáticamente el rango a descargar: huecos + ventana corrección + mañana"""
     today = dt.datetime.now(tz).date()
     tomorrow = today + dt.timedelta(days=1)
