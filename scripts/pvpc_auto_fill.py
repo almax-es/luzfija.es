@@ -379,30 +379,36 @@ def detect_missing_days(geo_dir: str, tz: ZoneInfo, current_month: str, previous
     
     return missing
 
-def auto_detect_range(geo_dir: str, tz: ZoneInfo) -> Tuple[dt.date, dt.date]:
-    """Detecta automáticamente el rango a descargar: huecos + mañana"""
+def auto_detect_range(geo_dir: str, tz: ZoneInfo, correction_window_months: int = 3) -> Tuple[dt.date, dt.date]:
+    """Detecta automáticamente el rango a descargar: huecos + ventana corrección + mañana"""
     today = dt.datetime.now(tz).date()
     tomorrow = today + dt.timedelta(days=1)
-    
+
     # Mes actual y anterior
     current_month = today.strftime("%Y-%m")
     if today.month == 1:
         previous_month = f"{today.year - 1}-12"
     else:
         previous_month = f"{today.year}-{today.month - 1:02d}"
-    
+
     # Detectar días faltantes (incluyendo hoy si falta)
     missing = detect_missing_days(geo_dir, tz, current_month, previous_month)
-    
-    if missing:
-        # Descargar desde el primer día faltante hasta mañana
-        start = min(missing)
-        print(f"📊 Detectados {len(missing)} días faltantes desde {start}")
-        return start, tomorrow
-    else:
-        # No hay huecos, solo descargar mañana
-        print(f"✓ No hay huecos, descargando solo mañana")
-        return tomorrow, tomorrow
+
+    # Siempre re-descargar desde el día 1 de hace N meses para capturar rectificaciones de REE
+    window_year = today.year
+    window_month = today.month - correction_window_months
+    while window_month <= 0:
+        window_month += 12
+        window_year -= 1
+    window_start = dt.date(window_year, window_month, 1)
+    d = window_start
+    while d <= today:
+        missing.add(d)
+        d += dt.timedelta(days=1)
+
+    start = min(missing)
+    print(f"📊 Rango: {start} → {tomorrow} (ventana corrección: {correction_window_months} meses)")
+    return start, tomorrow
 
 def main() -> int:
     ap = argparse.ArgumentParser()
@@ -412,6 +418,8 @@ def main() -> int:
                     help="Geo IDs (default: 8741 8742 8743 8744 8745)")
     ap.add_argument("--from", dest="from_date", default=None, help="Start date (YYYY-MM-DD). Auto if omitted.")
     ap.add_argument("--to", dest="to_date", default=None, help="End date (YYYY-MM-DD). Auto if omitted.")
+    ap.add_argument("--correction-window", type=int, default=6,
+                    help="Meses hacia atras que se re-descargan siempre para capturar rectificaciones de REE (default: 6)")
     ap.add_argument("--sleep", type=float, default=0.0, help="Sleep between requests (default: 0)")
     ap.add_argument("--timeout", type=int, default=60, help="HTTP timeout (default: 60)")
     args = ap.parse_args()
@@ -460,7 +468,8 @@ def main() -> int:
             start = dt.date.fromisoformat(args.from_date)
             end = dt.date.fromisoformat(args.to_date) if args.to_date else dt.datetime.now(tz).date()
         else:
-            start, end = auto_detect_range(geo_dir, tz)
+            start, end = auto_detect_range(geo_dir, tz, args.correction_window)
+
 
         print(f"\n🌍 Geo {geo} (Proc: {target_tz_name}) [Ind: {args.indicator}, FiltroGeo: {filter_geo_id or 'Auto'}]: {start} → {end}")
 

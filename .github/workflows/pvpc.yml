@@ -7,6 +7,15 @@ on:
     - cron: '0 20 * * *'
 
   workflow_dispatch:
+    inputs:
+      from_date:
+        description: 'Backfill desde (YYYY-MM-DD). Vacío = modo automático (6 meses)'
+        required: false
+        default: ''
+      to_date:
+        description: 'Backfill hasta (YYYY-MM-DD). Vacío = mañana'
+        required: false
+        default: ''
 
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -33,23 +42,34 @@ jobs:
       - name: Download PVPC data (auto-detect gaps)
         env:
           ESIOS_API_KEY: ${{ secrets.ESIOS_API_KEY }}
+          FROM_DATE: ${{ github.event.inputs.from_date }}
+          TO_DATE: ${{ github.event.inputs.to_date }}
         run: |
+          # Construir args opcionales de rango para backfill manual
+          FROM_ARG=""
+          TO_ARG=""
+          if [ -n "$FROM_DATE" ]; then FROM_ARG="--from $FROM_DATE"; fi
+          if [ -n "$TO_DATE" ]; then TO_ARG="--to $TO_DATE"; fi
+
           # 1. PVPC Consumo (1001)
           python scripts/pvpc_auto_fill.py \
             --out-dir data/pvpc \
             --indicator 1001 \
-            --geos 8741 8742 8743 8744 8745
-          
+            --geos 8741 8742 8743 8744 8745 \
+            $FROM_ARG $TO_ARG
+
           # 2. PVPC Excedentes (1739)
           python scripts/pvpc_auto_fill.py \
             --out-dir data/surplus \
             --indicator 1739 \
-            --geos 8741 8742 8743 8744 8745
+            --geos 8741 8742 8743 8744 8745 \
+            $FROM_ARG $TO_ARG
 
           # 3. Servicios de Ajuste del Sistema (10328)
           python scripts/ssaa_auto_fill.py \
             --out-file data/ssaa/index.json \
-            --indicator 10328
+            --indicator 10328 \
+            $FROM_ARG $TO_ARG
 
       - name: Check if there are changes
         id: check_changes
