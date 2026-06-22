@@ -341,7 +341,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 
 - Suite Vitest/JSDOM.
 - 57 archivos de test (`tests/*.test.js`).
-- 446 casos `it()/test()` en la ultima ejecucion local verificada.
+- 445 casos `it()/test()` en la ultima ejecucion local verificada.
 - Cobertura de:
 - Calculo fiscal y de energia.
 - PVPC y caches.
