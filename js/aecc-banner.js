@@ -19,21 +19,15 @@
   var REQUEST_WINDOW_MS = 2 * 60 * 1000;
   var EVENTS = {
     shown: 'aecc-banner-mostrado',
-    copied: 'aecc-banner-copiado',
-    closed: 'aecc-banner-cerrado',
-    copyFailed: 'aecc-banner-copia-fallida'
+    closed: 'aecc-banner-cerrado'
   };
 
   var pageOrigin = '';
   var banner = null;
-  var copyButton = null;
-  var statusEl = null;
   var showTimer = 0;
   var shownThisSession = false;
   var retryCount = 0;
   var requestedAt = 0;
-  var copiedThisSession = false;
-  var copyHideTimer = 0;
 
   function safeGet(key) {
     try { return localStorage.getItem(key); } catch (_) { return null; }
@@ -290,69 +284,7 @@
     safeSet(DISMISSED_KEY, String(Date.now()));
     stopFormWatch();
     hideBanner();
-    if (!copiedThisSession) track(EVENTS.closed);
-  }
-
-  function setCopyFeedback(ok) {
-    if (!copyButton || !statusEl) return;
-    if (ok) {
-      copyButton.textContent = 'Copiado';
-      statusEl.textContent = 'Código Bizum copiado.';
-      setTimeout(function () {
-        if (copyButton) copyButton.textContent = 'Copiar código';
-      }, 1800);
-      return;
-    }
-
-    statusEl.textContent = 'No se pudo copiar. Selecciona el código 11244.';
-  }
-
-  function fallbackCopy(text) {
-    var textarea = document.createElement('textarea');
-    textarea.value = text;
-    textarea.setAttribute('readonly', '');
-    textarea.style.position = 'fixed';
-    textarea.style.left = '-9999px';
-    textarea.style.top = '0';
-    document.body.appendChild(textarea);
-    textarea.focus();
-    textarea.select();
-
-    var ok = false;
-    try { ok = document.execCommand('copy'); } catch (_) { ok = false; }
-    textarea.remove();
-    return ok;
-  }
-
-  async function copyDonationCode() {
-    var copied = false;
-
-    try {
-      if (navigator.clipboard && typeof navigator.clipboard.writeText === 'function') {
-        await navigator.clipboard.writeText(DONATION_CODE);
-        copied = true;
-      }
-    } catch (_) {
-      copied = false;
-    }
-
-    if (!copied) copied = fallbackCopy(DONATION_CODE);
-
-    setCopyFeedback(copied);
-    if (copied) {
-      if (!copiedThisSession) {
-        copiedThisSession = true;
-        safeSet(DISMISSED_KEY, String(Date.now()));
-        track(EVENTS.copied);
-      }
-      if (copyHideTimer) clearTimeout(copyHideTimer);
-      copyHideTimer = setTimeout(function () {
-        stopFormWatch();
-        hideBanner();
-      }, 2200);
-    } else {
-      track(EVENTS.copyFailed);
-    }
+    track(EVENTS.closed);
   }
 
   function buildBanner() {
@@ -372,10 +304,8 @@
       '<p class="aecc-banner__desc">Dona contra el cáncer por Bizum, directamente a la AECC. LuzFija.es no recibe dinero, comisión ni datos de la donación.</p>',
       '<div class="aecc-banner__action">',
         '<span class="aecc-banner__code" title="Código de donación Bizum">11244</span>',
-        '<button class="aecc-banner__cta" type="button">Copiar código</button>',
       '</div>',
-      '<p class="aecc-banner__steps">En tu app bancaria: Bizum → Donar a ONG</p>',
-      '<span class="aecc-banner__status" role="status" aria-live="polite" aria-atomic="true"></span>'
+      '<p class="aecc-banner__steps">En tu app bancaria: Bizum → Donar a ONG → escribe este código</p>'
     ].join('');
 
     document.body.appendChild(node);
@@ -384,11 +314,7 @@
 
   function bindBanner() {
     banner = buildBanner();
-    copyButton = banner.querySelector('.aecc-banner__cta');
-    statusEl = banner.querySelector('.aecc-banner__status');
-
     var closeButton = banner.querySelector('.aecc-banner__close');
-    if (copyButton) copyButton.addEventListener('click', copyDonationCode);
     if (closeButton) closeButton.addEventListener('click', dismissBanner);
   }
 

@@ -199,43 +199,4 @@ describe('AECC donation banner', () => {
     expect(banner.classList.contains('aecc-banner--visible')).toBe(true);
   });
 
-  it('copia el codigo Bizum en home, guarda cooldown y no cuenta el cierre como rechazo', async () => {
-    const writeText = vi.fn().mockResolvedValue();
-    Object.defineProperty(window.navigator, 'clipboard', {
-      value: { writeText },
-      configurable: true
-    });
-
-    document.body.innerHTML = `
-      <button id="btnCalc"></button>
-      <section id="seccionResultados" class="visible"></section>
-      <table><tbody id="tbody"><tr><td>Tarifa</td></tr></tbody></table>
-    `;
-
-    loadAeccBanner();
-    document.dispatchEvent(new CustomEvent('lf:results-requested', {
-      detail: { origin: 'home' }
-    }));
-    document.dispatchEvent(new CustomEvent('lf:results-ready', {
-      detail: { origin: 'home', rows: 1 }
-    }));
-    vi.advanceTimersByTime(2800);
-
-    document.querySelector('.aecc-banner__cta').click();
-    await Promise.resolve();
-    await Promise.resolve();
-
-    expect(writeText).toHaveBeenCalledWith('11244');
-    expect(document.querySelector('.aecc-banner__status').textContent).toContain('copiado');
-    expect(localStorage.getItem('lf_aecc_banner_dismissed_at')).toMatch(/^\d+$/);
-    expect(window.__LF_track).toHaveBeenCalledWith('aecc-banner-copiado', { title: 'origen:home' });
-
-    document.querySelector('.aecc-banner__close').click();
-    expect(window.__LF_track).not.toHaveBeenCalledWith('aecc-banner-cerrado', { title: 'origen:home' });
-
-    vi.advanceTimersByTime(2200);
-    const banner = document.getElementById('aecc-banner');
-    expect(banner.classList.contains('aecc-banner--visible')).toBe(false);
-    expect(banner.hasAttribute('inert')).toBe(true);
-  });
 });
