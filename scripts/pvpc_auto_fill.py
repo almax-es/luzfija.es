@@ -29,7 +29,7 @@ import urllib.parse
 import urllib.request
 from dataclasses import dataclass
 from getpass import getpass
-from typing import Dict, List, Tuple, Set
+from typing import Dict, List, Tuple
 
 try:
     from zoneinfo import ZoneInfo
@@ -329,86 +329,21 @@ def rebuild_geo_index(geo_dir: str, geo_id: int, tz_name: str, indicator: int, g
         "warnings": warnings,
     }
 
-def detect_missing_days(geo_dir: str, tz: ZoneInfo, current_month: str, previous_month: str) -> Set[dt.date]:
-    """Detecta días faltantes o incompletos que deben refrescarse."""
-    missing: Set[dt.date] = set()
-    today = dt.datetime.now(tz).date()
-
-    for name in sorted(os.listdir(geo_dir)):
-        if not MONTH_RE.match(name):
-            continue
-        file_path = os.path.join(geo_dir, name)
-        try:
-            data = read_json(file_path)
-            for day_str, arr in (data.get("days") or {}).items():
-                day = dt.date.fromisoformat(day_str)
-                if day <= today and validate_days({day_str: arr}, tz):
-                    missing.add(day)
-        except Exception as e:
-            print(f"Warning: Error reading {file_path}: {e}", file=sys.stderr)
-    
-    for yyyymm in [previous_month, current_month]:
-        file_path = os.path.join(geo_dir, f"{yyyymm}.json")
-        if not os.path.exists(file_path):
-            continue
-        
-        try:
-            data = read_json(file_path)
-            existing_days = set(data.get("days", {}).keys())
-            
-            # Calcular todos los días que deberían existir en ese mes
-            year, month = map(int, yyyymm.split("-"))
-            last_day = calendar.monthrange(year, month)[1]
-            
-            # Limitar al mes completo o hasta hoy en la zona objetivo.
-            # GitHub Actions corre en UTC; cerca de medianoche puede ser ya
-            # otro día en Madrid/Canarias y la UI necesita esa fecha local.
-            if year == today.year and month == today.month:
-                last_day = min(last_day, today.day)
-            
-            expected_days = {
-                dt.date(year, month, day).isoformat()
-                for day in range(1, last_day + 1)
-            }
-            
-            # Días que faltan
-            missing_in_month = expected_days - existing_days
-            missing.update(dt.date.fromisoformat(d) for d in missing_in_month)
-        except Exception as e:
-            print(f"Warning: Error reading {file_path}: {e}", file=sys.stderr)
-    
-    return missing
 
 def auto_detect_range(geo_dir: str, tz: ZoneInfo, correction_window_months: int = 6) -> Tuple[dt.date, dt.date]:
-    """Detecta automáticamente el rango a descargar: huecos + ventana corrección + mañana"""
+    """Rango a descargar: día 1 de hace N meses hasta mañana."""
     today = dt.datetime.now(tz).date()
     tomorrow = today + dt.timedelta(days=1)
 
-    # Mes actual y anterior
-    current_month = today.strftime("%Y-%m")
-    if today.month == 1:
-        previous_month = f"{today.year - 1}-12"
-    else:
-        previous_month = f"{today.year}-{today.month - 1:02d}"
-
-    # Detectar días faltantes (incluyendo hoy si falta)
-    missing = detect_missing_days(geo_dir, tz, current_month, previous_month)
-
-    # Siempre re-descargar desde el día 1 de hace N meses para capturar rectificaciones de REE
     window_year = today.year
     window_month = today.month - correction_window_months
     while window_month <= 0:
         window_month += 12
         window_year -= 1
     window_start = dt.date(window_year, window_month, 1)
-    d = window_start
-    while d <= today:
-        missing.add(d)
-        d += dt.timedelta(days=1)
 
-    start = min(missing)
-    print(f"📊 Rango: {start} → {tomorrow} (ventana corrección: {correction_window_months} meses)")
-    return start, tomorrow
+    print(f"📊 Rango: {window_start} → {tomorrow} (ventana: {correction_window_months} meses)")
+    return window_start, tomorrow
 
 def main() -> int:
     ap = argparse.ArgumentParser()
