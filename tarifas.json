@@ -965,13 +965,13 @@
       "requiereFV": false
     },
     {
-      "nombre": "Repsol Ahorro Potencia",
-      "cPunta": 0.17019,
-      "cLlano": 0.17019,
-      "cValle": 0.17019,
-      "p1": 0.084431,
-      "p2": 0.001987,
-      "web": "https://www.repsol.es/particulares/hogar/luz-y-gas/tarifas/tarifa-ahorro-potencia/",
+      "nombre": "Fortuluz Precio Único",
+      "cPunta": 0.177,
+      "cLlano": 0.177,
+      "cValle": 0.177,
+      "p1": 0.103,
+      "p2": 0.029,
+      "web": "https://fortuluz.es/ofertas/unico",
       "tipo": "1P",
       "incluyeServiciosAjuste": true,
       "fv": {
@@ -985,13 +985,13 @@
       "requiereFV": false
     },
     {
-      "nombre": "Fortuluz Precio Único",
-      "cPunta": 0.177,
-      "cLlano": 0.177,
-      "cValle": 0.177,
-      "p1": 0.103,
-      "p2": 0.029,
-      "web": "https://fortuluz.es/ofertas/unico",
+      "nombre": "Repsol Ahorro Potencia",
+      "cPunta": 0.183,
+      "cLlano": 0.183,
+      "cValle": 0.183,
+      "p1": 0.084431,
+      "p2": 0.001987,
+      "web": "https://www.repsol.es/particulares/hogar/luz-y-gas/tarifas/tarifa-ahorro-potencia/",
       "tipo": "1P",
       "incluyeServiciosAjuste": true,
       "fv": {
@@ -1856,5 +1856,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-24T11:56:11.342Z"
+  "updatedAt": "2026-06-24T19:02:39.386Z"
 }
