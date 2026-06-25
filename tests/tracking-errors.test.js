@@ -220,6 +220,26 @@ describe('Tracking error filtering and dedupe', () => {
     expect(calls.some((p) => p && p.path === 'error-promise')).toBe(false);
   });
 
+  it('ignora rejections de extensiones del navegador (chrome-extension:// y moz-extension://)', () => {
+    // El stack de una extension usa un esquema con "//". La regex captura la
+    // forma protocolo-relativa ("//uuid/script.js"), que new URL() resuelve a
+    // un host distinto a luzfija.es => isSameOriginUrl=false => se descarta.
+    bootstrapTracking();
+
+    const stacks = [
+      'at handler (chrome-extension://abcdefghijklmnop/content.js:12:5)',
+      'onMessage@moz-extension://11111111-2222-3333/inject.js:7:9'
+    ];
+    for (const stack of stacks) {
+      const err = new Error("undefined is not an object (evaluating 'response.data')");
+      err.stack = stack;
+      dispatchUnhandledRejection(err);
+    }
+
+    const calls = window.goatcounter.count.mock.calls.map(c => c[0]);
+    expect(calls.some((p) => p && p.path === 'error-promise')).toBe(false);
+  });
+
   it('rastrea rejections cuyo stack apunta a nuestro propio origen', () => {
     bootstrapTracking();
 
