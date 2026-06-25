@@ -144,7 +144,7 @@
       
       document.addEventListener('click', (evt) => {
         if (!tooltipPinned) return;
-        if (!evt.target.closest('.tooltip')) hideTooltip(true);
+        if (!(evt.target instanceof Element) || !evt.target.closest('.tooltip')) hideTooltip(true);
       });
 
       window.addEventListener('scroll', () => {

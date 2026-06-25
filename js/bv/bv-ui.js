@@ -1011,7 +1011,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   document.addEventListener('click', async (e) => {
-    const clearBtn = e.target.closest('#btnClearCache');
+    const clearBtn = (e.target instanceof Element) ? e.target.closest('#btnClearCache') : null;
     if (clearBtn) {
       if (!confirm('¿Limpiar toda la caché y reiniciar?')) return;
 
@@ -1365,11 +1365,13 @@ document.addEventListener('DOMContentLoaded', () => {
   // Desktop: hover.
   if (canHover) {
     document.addEventListener('mouseover', (e) => {
+      if (!(e.target instanceof Element)) return;
       const trigger = e.target.closest('.bv-tooltip-trigger');
       if (trigger) updateTooltipPosition(trigger);
     });
 
     document.addEventListener('mouseout', (e) => {
+      if (!(e.target instanceof Element)) return;
       const trigger = e.target.closest('.bv-tooltip-trigger');
       if (trigger) tooltipEl.style.display = 'none';
     });
@@ -1378,6 +1380,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Móvil/táctil: tap => modal.
   document.addEventListener('click', (e) => {
     if (canHover && !isCoarse) return;
+    if (!(e.target instanceof Element)) return;
     const trigger = e.target.closest('.bv-tooltip-trigger');
     if (!trigger) return;
     const tip = trigger.getAttribute('data-tip');
