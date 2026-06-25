@@ -3,7 +3,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260625-184735";
+const CACHE_VERSION = "20260625-192147";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 
 
@@ -232,7 +232,7 @@ self.addEventListener("fetch", (event) => {
       (async () => {
         const cache = await caches.open(CACHE_NAME);
         try {
-          const fresh = await fetch(req, { cache: "no-store" });
+          const fresh = await fetch(req, { cache: "no-cache" });
           await cachePutSafe(cache, req, fresh);
           return fresh;
         } catch (_) {
