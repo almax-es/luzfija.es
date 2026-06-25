@@ -694,10 +694,10 @@
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.06,
-        "tipo": "SIMPLE",
+        "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
-        "bv": false,
-        "reglaBV": "NO APLICA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -1876,5 +1876,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-25T11:38:46.928Z"
+  "updatedAt": "2026-06-25T11:48:59.396Z"
 }
