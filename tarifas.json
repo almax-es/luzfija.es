@@ -785,6 +785,27 @@
       "requiereFV": false
     },
     {
+      "nombre": "Atulado Milenial",
+      "cPunta": 0.135959,
+      "cLlano": 0.135959,
+      "cValle": 0.135959,
+      "p1": 0.103717,
+      "p2": 0.041623,
+      "web": "https://clientes.atuladoenergia.com/tarifas",
+      "tipo": "1P",
+      "requisitos": "Precio revisable cada trimestre natural.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Holaluz Clásica",
       "cPunta": 0.139,
       "cLlano": 0.139,
@@ -1674,6 +1695,27 @@
       "requiereFV": false
     },
     {
+      "nombre": "Atulado 3P",
+      "cPunta": 0.21342,
+      "cLlano": 0.134353,
+      "cValle": 0.109399,
+      "p1": 0.103717,
+      "p2": 0.033279,
+      "web": "https://clientes.atuladoenergia.com/tarifas",
+      "tipo": "3P",
+      "requisitos": "Precio revisable cada trimestre natural.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Bonpreu Solar",
       "cPunta": 0.220034,
       "cLlano": 0.141385,
@@ -1896,5 +1938,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-25T18:40:48.357Z"
+  "updatedAt": "2026-06-25T18:47:29.684Z"
 }
