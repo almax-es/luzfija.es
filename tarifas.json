@@ -1207,6 +1207,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Octopus Unicaja 3P",
+      "cPunta": 0.175,
+      "cLlano": 0.093,
+      "cValle": 0.075,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://octopusenergy.es/unicaja#tarifas",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.01,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Imagina Base Noches y Findes 3P",
       "cPunta": 0.177,
       "cLlano": 0.103,
@@ -1876,5 +1896,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-25T17:46:36.637Z"
+  "updatedAt": "2026-06-25T18:40:48.357Z"
 }

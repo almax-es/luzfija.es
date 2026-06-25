@@ -299,7 +299,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 - Lineas JS aproximadas: 21.330.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
-- `tarifas.json` (92 tarifas).
+- `tarifas.json` (93 tarifas).
 - `/data/pvpc/` (indicador 1001).
 - `/data/surplus/` (indicador 1739).
 - `/data/ssaa/` (indicador 10328, servicios de ajuste medios mensuales).
@@ -341,7 +341,7 @@ Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y
 
 - Suite Vitest/JSDOM.
 - 57 archivos de test (`tests/*.test.js`).
-- 447 casos `it()/test()` en la ultima ejecucion local verificada.
+- 448 casos `it()/test()` en la ultima ejecucion local verificada.
 - Cobertura de:
 - Calculo fiscal y de energia.
 - PVPC y caches.
