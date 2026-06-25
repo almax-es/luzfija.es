@@ -535,6 +535,20 @@ try {
     }
   }
 
+  // URL cruda (sin linea:col) del primer frame del stack, o '' si no hay.
+  // Sirve para decidir si una Promise rejection viene de un script de tercero
+  // (extension, content-blocker) y no de nuestro propio codigo.
+  function extractRawUrlFromStack(stackLike) {
+    const stack = safeText(stackLike);
+    if (!stack) return '';
+    try {
+      const m = stack.match(/((?:https?:\/\/|\/)[^\s)@]+):(\d+):(\d+)/);
+      return m ? m[1] : '';
+    } catch (_) {
+      return '';
+    }
+  }
+
   // ===== EVENTOS AUTOMÁTICOS (no requieren modificar app.js) =====
   window.addEventListener('DOMContentLoaded', function() {
 
@@ -992,9 +1006,11 @@ try {
 
       let msg = '';
       let stackSource = '';
+      let rawStack = '';
       if (reason instanceof Error) {
         msg = sanitizeErrorMessageForTracking(reason.message || reason.name || 'Error');
-        stackSource = extractSourceFromStack(reason.stack || '');
+        rawStack = reason.stack || '';
+        stackSource = extractSourceFromStack(rawStack);
       } else if (reason && typeof reason === 'object') {
         if (typeof reason.message === 'string' && reason.message) {
           msg = sanitizeErrorMessageForTracking(reason.message);
@@ -1006,7 +1022,8 @@ try {
           }
         }
         if (typeof reason.stack === 'string' && reason.stack) {
-          stackSource = extractSourceFromStack(reason.stack);
+          rawStack = reason.stack;
+          stackSource = extractSourceFromStack(rawStack);
         }
       } else {
         msg = sanitizeErrorMessageForTracking(reason);
@@ -1018,6 +1035,15 @@ try {
         trackEvent('error-legacy-filtrado', {
           title: buildLegacyNoiseTitle(getLegacyNoiseKind(msg), 'error-promise', 'unhandledrejection')
         });
+        return;
+      }
+
+      // Descartar rechazos originados en scripts de terceros (extensiones,
+      // content-blockers). Solo se filtra cuando el stack apunta a una URL de
+      // OTRO origen; si no hay stack o es de nuestro dominio se rastrea igual.
+      const rawStackUrl = extractRawUrlFromStack(rawStack);
+      if (rawStackUrl && !isSameOriginUrl(rawStackUrl)) {
+        if (DEBUG) dbg('Promise rejection de tercero ignorada:', msg, rawStackUrl);
         return;
       }
 

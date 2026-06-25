@@ -209,6 +209,30 @@ describe('Tracking error filtering and dedupe', () => {
     expect(payload.title).not.toContain('https://example.com');
   });
 
+  it('ignora rejections originadas en scripts de terceros (stack cross-origin)', () => {
+    bootstrapTracking();
+
+    const err = new Error("undefined is not an object (evaluating 'response.foo')");
+    err.stack = "global code@https://hidden/inject.js:99:15";
+    dispatchUnhandledRejection(err);
+
+    const calls = window.goatcounter.count.mock.calls.map(c => c[0]);
+    expect(calls.some((p) => p && p.path === 'error-promise')).toBe(false);
+  });
+
+  it('rastrea rejections cuyo stack apunta a nuestro propio origen', () => {
+    bootstrapTracking();
+
+    const err = new Error('Error al cargar tarifas');
+    err.stack = "at fetchTarifas (/js/pvpc.js:554:20)";
+    dispatchUnhandledRejection(err);
+
+    const calls = window.goatcounter.count.mock.calls.map(c => c[0]);
+    expect(calls.some((p) =>
+      p && p.path === 'error-promise' && String(p.title || '').includes('/js/pvpc.js:554')
+    )).toBe(true);
+  });
+
   it('no reclasifica mensajes parecidos sin firma legacy', () => {
     bootstrapTracking();
 
