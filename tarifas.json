@@ -6,16 +6,16 @@
   },
   "tarifas": [
     {
-      "nombre": "Loviluz",
+      "nombre": "Loviluz Lov VERANO",
       "cPunta": 0.096,
       "cLlano": 0.096,
       "cValle": 0.096,
-      "p1": 0.096,
-      "p2": 0.096,
+      "p1": 0.0875,
+      "p2": 0.0875,
       "web": "https://www.loviluz.com/tarifas.html",
       "tipo": "1P",
-      "requisitos": "No incluye Servicios de Ajuste.",
-      "incluyeServiciosAjuste": false,
+      "requisitos": "Consumo ≤ 5.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
         "tipo": "NO COMPENSA",
@@ -676,6 +676,26 @@
         "exc": 0.0,
         "tipo": "NO COMPENSA",
         "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Loviluz Lov US (SOLAR)",
+      "cPunta": 0.1299,
+      "cLlano": 0.1299,
+      "cValle": 0.1299,
+      "p1": 0.0875,
+      "p2": 0.0875,
+      "web": "https://www.loviluz.com/tarifas.html",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
         "bv": false,
         "reglaBV": "NO APLICA",
         "precioBV": 0.0
@@ -1856,5 +1876,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-25T07:52:52.654Z"
+  "updatedAt": "2026-06-25T11:38:46.928Z"
 }
