@@ -48,6 +48,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Octopus Unicaja",
+      "cPunta": 0.098,
+      "cLlano": 0.098,
+      "cValle": 0.098,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://octopusenergy.es/unicaja#tarifas",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.01,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Clarity 0,09",
       "cPunta": 0.09897,
       "cLlano": 0.09897,
@@ -161,6 +181,27 @@
       "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
       "tipo": "1P",
       "requisitos": "Potencia contratada ≤ 5 kW.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Esluz Promo Verano 24h",
+      "cPunta": 0.1,
+      "cLlano": 0.1,
+      "cValle": 0.1,
+      "p1": 0.0839,
+      "p2": 0.0839,
+      "web": "https://esluz.es/tarifas-electricidad-hogares/",
+      "tipo": "1P",
+      "requisitos": "Precio promocional durante 6 meses, revisable al finalizar el periodo. Esta promoción está sujeta a estudio y validación del suministro.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -332,26 +373,6 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Esluz Fija 24h",
-      "cPunta": 0.115,
-      "cLlano": 0.115,
-      "cValle": 0.115,
-      "p1": 0.113,
-      "p2": 0.031,
-      "web": "https://esluz.es/tarifas-electricidad-hogares/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -1370,6 +1391,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Esluz Fija 3P",
+      "cPunta": 0.187021,
+      "cLlano": 0.135066,
+      "cValle": 0.085298,
+      "p1": 0.080533,
+      "p2": 0.007407,
+      "web": "https://esluz.es/tarifas-electricidad-hogares/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Iberdrola Online 3P",
       "cPunta": 0.194,
       "cLlano": 0.136,
@@ -1568,26 +1609,6 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Esluz 3P",
-      "cPunta": 0.207014,
-      "cLlano": 0.155066,
-      "cValle": 0.105298,
-      "p1": 0.080533,
-      "p2": 0.007407,
-      "web": "https://esluz.es/tarifas-electricidad-hogares/",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": -1.0,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA_PARCIAL",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -1938,5 +1959,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-26T07:14:03.793Z"
+  "updatedAt": "2026-06-26T16:26:29.084Z"
 }
