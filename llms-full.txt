@@ -1,6 +1,6 @@
 # LuzFija.es - Extended LLM Reference
 
-Last updated: 2026-06-25
+Last updated: 2026-06-26
 
 ## Purpose of this file
 
@@ -128,7 +128,7 @@ Correct framing:
 Commercial tariffs:
 - source file: `/tarifas.json`
 - contains market-offer data used by the comparator
-- current documented size: 95 tariffs as of 2026-06-25
+- current documented size: 95 tariffs as of 2026-06-26
 
 PVPC:
 - local datasets under `/data/pvpc/`
