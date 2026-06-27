@@ -856,7 +856,8 @@
           }
 
           if (!resultado.ok) {
-            trackCsvEvent('csv-import-error', ['home', extension || 'desconocido'], 'Error importando CSV/XLSX en home');
+            const msgError = String(resultado.error || 'Desconocido').substring(0, 40);
+            trackCsvEvent('csv-import-error', ['home', extension || 'desconocido'], msgError);
             toast(resultado.error || 'Error al procesar el archivo', 'err');
             btnCSV.disabled = false;
             btnCSV.innerHTML = '<span>📊</span><span class="btn-text">Importar CSV</span>';
@@ -871,7 +872,8 @@
           fileInput.value = '';
         } catch (error) {
           const extension = file.name.split('.').pop().toLowerCase();
-          trackCsvEvent('csv-import-error', ['home', extension || 'desconocido'], 'Error importando CSV/XLSX en home');
+          const msgError = String((error && error.message) || 'Desconocido').substring(0, 40);
+          trackCsvEvent('csv-import-error', ['home', extension || 'desconocido'], msgError);
           toast(error.message || 'Error al procesar el archivo', 'err');
           btnCSV.disabled = false;
           btnCSV.innerHTML = '<span>📊</span><span class="btn-text">Importar CSV</span>';
