@@ -1551,13 +1551,15 @@ document.addEventListener('DOMContentLoaded', () => {
       } else if (result && result.error) {
         console.info('Info: No se pudo pre-procesar CSV:', result.error);
         const extension = String(file.name || '').split('.').pop().toLowerCase() || 'desconocido';
-        trackBvEvent('csv-import-error', ['solar', extension], 'Error importando CSV/XLSX en simulador solar');
+        const msgError = String(result.error || 'Desconocido').substring(0, 40);
+        trackBvEvent('csv-import-error', ['solar', extension], msgError);
         showToast(result.error, 'err');
       }
     } catch (e) {
       console.warn('Error procesando CSV:', e);
       const extension = String(file.name || '').split('.').pop().toLowerCase() || 'desconocido';
-      trackBvEvent('csv-import-error', ['solar', extension], 'Error importando CSV/XLSX en simulador solar');
+      const msgError = String((e && e.message) || 'Desconocido').substring(0, 40);
+      trackBvEvent('csv-import-error', ['solar', extension], msgError);
       showToast('Error al procesar el archivo CSV', 'err');
     }
   }
