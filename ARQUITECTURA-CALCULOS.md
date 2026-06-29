@@ -37,7 +37,8 @@ Una factura de electricidad en España contiene:
 │ - P3: 100 kWh × 0,112 €/kWh                │
 ├─────────────────────────────────────────────┤
 │ FINANCIACIÓN BONO SOCIAL (si aplica)       │
-│ - 6,979247 €/año prorrateo a días          │
+│ - 9,011295 €/año                           │
+│ - prorrateo a días                         │
 ├─────────────────────────────────────────────┤
 │ DESCUENTO BONO SOCIAL (si aplica)          │
 │ - 42,5% o 57,5% sobre base limitada (RDL 7/2026, vigente durante 2026) │
@@ -77,7 +78,7 @@ const ssaa = tarifa.incluyeServiciosAjuste === false ? consumoTotal * ssaaMensua
 const energiaConSsaa = energia + ssaa;
 
 // PASO 3: Calcular financiación Bono Social
-const financiacion = 6.979247 / 365 * dias;
+const financiacion = 9.011295 / 365 * dias;
 
 // PASO 4: CALCULAR DESCUENTO BONO SOCIAL
 // ⚠️ IMPORTANTE: El descuento se aplica a:
@@ -265,7 +266,7 @@ const totalReal = totalBaseConCosteBV - (hasBV ? excedenteSobranteEur : 0);
 - Otros: Varían según tipo
 
 **Financiación anual (Orden TED/1524/2025)**:
-- 6,979247 €/año (se prorratea a días del periodo)
+- 9,011295 €/año (se prorratea a días del periodo)
 
 ### ✅ Implementación en `lf-utils.js:295-312`
 

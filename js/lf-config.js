@@ -9,10 +9,10 @@
  * lf-config.js - Configuración centralizada de valores regulados
  * 
  * Este archivo contiene todos los valores que pueden cambiar por legislación.
- * Actualizado: 30/05/2026
+ * Actualizado: 29/06/2026
  * 
  * Referencias legales:
- * - Bono social: RD 897/2017 + RDL 7/2026 + Orden TED/1524/2025 (financiación)
+ * - Bono social: RD 897/2017 + RDL 7/2026 + revision aplicable desde 01/07/2026 (financiación)
  * - IEE: Ley 38/1992 Art. 99 + RDL 7/2026 (reducción temporal desactivada desde 01/06/2026)
  * - IVA: Ley 37/1992 + RDL 7/2026, modificado por RDL 10/2026 (reducción temporal desactivada desde 01/06/2026)
  * - IGIC: Ley 4/2012 Art. 52 (0% vivienda ≤10kW, 3% otros, 7% contador)
@@ -29,15 +29,15 @@
     // ═══════════════════════════════════════════════════════════════════
     // VERSIÓN Y METADATOS
     // ═══════════════════════════════════════════════════════════════════
-    version: '2026.06',
-    ultimaActualizacion: '2026-05-30',
+    version: '2026.07',
+    ultimaActualizacion: '2026-06-29',
 
     // ═══════════════════════════════════════════════════════════════════
     // BONO SOCIAL (descuento + financiación)
-    // Descuentos 2026: RDL 7/2026 | Financiación: Orden TED/1524/2025, apartado Décimo d)
+    // Descuentos 2026: RDL 7/2026 | Financiación: revision aplicable desde 01/07/2026
     // ═══════════════════════════════════════════════════════════════════
     bonoSocial: {
-      eurosAnuales: 6.979247,  // €/año
+      eurosAnuales: 9.011295,  // €/año
       descuentos2026: {
         vulnerable: 0.425,
         severo: 0.575,

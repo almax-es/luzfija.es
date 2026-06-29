@@ -1,6 +1,6 @@
 # Mantenimiento Normativo Y Operativo
 
-Ultima actualizacion: 2026-05-30
+Ultima actualizacion: 2026-06-29
 
 Este documento lista las piezas de LuzFija.es que dependen de normativa, fuentes oficiales o datos vivos. Sirve como checklist para que calculos, guias y mensajes publicos no queden desfasados.
 
@@ -49,6 +49,7 @@ Este documento lista las piezas de LuzFija.es que dependen de normativa, fuentes
 ## Fechas Criticas Conocidas
 
 - 30/05/2026: confirmado el condicionante de IPC de abril de 2026; desde el 01/06/2026 se desactiva la rebaja temporal de IVA electrico e IEE en Peninsula/Baleares. `LF_CONFIG` queda preparado con IVA 21% e IEE 5,11269632%.
+- 29/06/2026: actualizada la financiacion del bono social a 9,011295 EUR/CUPS en `LF_CONFIG`.
 - Cada cambio de ano: revisar peajes/cargos, calendario de periodos, festivos nacionales, datasets PVPC/surplus y textos de guias que mencionen importes anuales.
 - Cada cambio de Excel de tarifas: ejecutar generador, revisar el informe del validador y confirmar que las inactivas no se publican pero siguen apareciendo en validacion.
 - Cada cambio energetico relevante: confirmar si requiere tocar guias, landings, datos estructurados o calculos. No limitar la revision a electricidad si la noticia trata TUR/gas u otro suministro.

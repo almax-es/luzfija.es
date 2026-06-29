@@ -204,11 +204,10 @@ describe('LF_CONFIG - Lógica Fiscal', () => {
     expect(tax.iva).toBe(22.68);
   });
 
-  it('Bono Social: Debe prorratear correctamente por días', () => {
-    // 6.979247 anual
+  it('Bono Social: prorratea el valor anual vigente por días', () => {
     const dias = 365;
     const result = window.LF_CONFIG.calcularBonoSocial(dias);
-    expect(result).toBeCloseTo(6.979247, 6);
+    expect(result).toBeCloseTo(9.011295, 6);
   });
 
   it('Guardrail: no mantiene configurada la rama temporal RDL 7/2026 retirada', () => {

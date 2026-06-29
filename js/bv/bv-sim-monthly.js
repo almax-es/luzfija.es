@@ -243,13 +243,6 @@ window.BVSim.calcMonthForTarifa = function ({
   const ssaaEur = round2(ssaa.eur || 0);
   const consEur = round2(consBaseEur + ssaaEur);
 
-  // Bono social (Financiación)
-  const bonoSocialAnual = (window.LF_CONFIG && window.LF_CONFIG.bonoSocial)
-    ? window.LF_CONFIG.bonoSocial.eurosAnuales
-    : 6.979247;
-
-  const costeBonoSocial = round2(bonoSocialAnual / 365 * dias);
-
   // Excedentes
   const exKwh = Number(month.exportTotalKWh) || 0;
   const esIndexada = tarifa?.fv?.exc === -1;
@@ -307,9 +300,6 @@ window.BVSim.calcMonthForTarifa = function ({
   // ===== IMPUESTOS (alineados con el comparador principal: js/lf-calc.js) =====
   const CFG = window.LF_CONFIG || {};
   const consumoTotalKwh = Number(month.importTotalKWh) || 0;
-
-  // Base para IEE: potencia + energía neta + bono social (financiación)
-  const sumaBase = round2(pot + consAdj + costeBonoSocial);
   const fiscalDateYmd = (() => {
     const key = String(month?.key || '');
     const m = /^(\d{4})-(\d{2})$/.exec(key);
@@ -319,6 +309,16 @@ window.BVSim.calcMonthForTarifa = function ({
     const lastDay = new Date(year, monthNum, 0).getDate();
     return `${m[1]}-${m[2]}-${String(lastDay).padStart(2, '0')}`;
   })();
+
+  // Bono social (financiacion)
+  const costeBonoSocial = round2(
+    CFG && typeof CFG.calcularBonoSocial === 'function'
+      ? CFG.calcularBonoSocial(dias)
+      : (9.011295 / 365 * dias)
+  );
+
+  // Base para IEE: potencia + energía neta + bono social (financiación)
+  const sumaBase = round2(pot + consAdj + costeBonoSocial);
 
   let impuestoElec = 0;
   if (CFG && typeof CFG.calcularIEE === 'function') {

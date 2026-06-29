@@ -722,7 +722,7 @@ const PEAJES_POT_DIA = window.LF_CONFIG?.peajesPotenciaPVPC ?? { p1: 0.075901, p
         const precioMedio = consumoTotal > 0 ? terminoVariable / consumoTotal : 0;
         
         // BONO SOCIAL
-        const bonoSocial = window.LF_CONFIG ? window.LF_CONFIG.calcularBonoSocial(dias) : (6.979247 / 365 * dias);
+        const bonoSocial = window.LF_CONFIG ? window.LF_CONFIG.calcularBonoSocial(dias) : (9.011295 / 365 * dias);
         
         // IMPUESTO ELÉCTRICO
         const baseIEE = terminoFijo + costeMargenPot + terminoVariable + bonoSocial;
