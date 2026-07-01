@@ -377,26 +377,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "El Corte Inglés Despreocúpate",
-      "cPunta": 0.117983,
-      "cLlano": 0.117983,
-      "cValle": 0.117983,
-      "p1": 0.099699,
-      "p2": 0.099699,
-      "web": "https://tarifas.energiaelcorteingles.es/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Imagina Sin Horas",
       "cPunta": 0.119,
       "cLlano": 0.119,
@@ -806,13 +786,13 @@
       "requiereFV": false
     },
     {
-      "nombre": "Holaluz Clásica",
-      "cPunta": 0.139,
-      "cLlano": 0.139,
-      "cValle": 0.139,
-      "p1": 0.095,
-      "p2": 0.095,
-      "web": "https://www.holaluz.com/luz/tarifas-luz/",
+      "nombre": "El Corte Inglés Despreocúpate",
+      "cPunta": 0.137424,
+      "cLlano": 0.137424,
+      "cValle": 0.137424,
+      "p1": 0.099699,
+      "p2": 0.099699,
+      "web": "https://tarifas.energiaelcorteingles.es/",
       "tipo": "1P",
       "incluyeServiciosAjuste": true,
       "fv": {
@@ -881,6 +861,26 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Holaluz Clásica",
+      "cPunta": 0.147,
+      "cLlano": 0.147,
+      "cValle": 0.147,
+      "p1": 0.099,
+      "p2": 0.099,
+      "web": "https://www.holaluz.com/luz/tarifas-luz/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -1268,26 +1268,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "El Corte Inglés Benefíciate 3P",
-      "cPunta": 0.178875,
-      "cLlano": 0.122975,
-      "cValle": 0.099675,
-      "p1": 0.113216,
-      "p2": 0.073323,
-      "web": "https://tarifas.energiaelcorteingles.es/",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Naturgy noche 3P",
       "cPunta": 0.1822,
       "cLlano": 0.1092,
@@ -1472,6 +1452,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "El Corte Inglés Benefíciate 3P",
+      "cPunta": 0.196316,
+      "cLlano": 0.140416,
+      "cValle": 0.117116,
+      "p1": 0.113216,
+      "p2": 0.073323,
+      "web": "https://tarifas.energiaelcorteingles.es/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Eres 3 3P",
       "cPunta": 0.1995,
       "cLlano": 0.1379,
@@ -1577,8 +1577,8 @@
       "cPunta": 0.206,
       "cLlano": 0.137,
       "cValle": 0.113,
-      "p1": 0.095,
-      "p2": 0.095,
+      "p1": 0.099,
+      "p2": 0.099,
       "web": "https://www.holaluz.com/luz/tarifas-luz/",
       "tipo": "3P",
       "incluyeServiciosAjuste": true,
@@ -1938,5 +1938,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-07-01T08:08:44.343Z"
+  "updatedAt": "2026-07-01T20:24:12.663Z"
 }
