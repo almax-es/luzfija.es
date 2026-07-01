@@ -1899,9 +1899,9 @@
     },
     {
       "nombre": "Contigo Energía Horas 3P",
-      "cPunta": 0.263987,
-      "cLlano": 0.16536,
-      "cValle": 0.13935,
+      "cPunta": 0.257604,
+      "cLlano": 0.160185,
+      "cValle": 0.133972,
       "p1": 0.084122,
       "p2": 0.010207,
       "web": "https://contigoenergia.com/tarifas/tarifa-luz-horas/",
@@ -1959,5 +1959,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-06-30T12:42:56.373Z"
+  "updatedAt": "2026-07-01T06:22:05.877Z"
 }
