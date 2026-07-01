@@ -1,0 +1,26 @@
+name: _temp-fix-lock
+
+on:
+  workflow_dispatch:
+
+jobs:
+  regenerate-lock:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+
+      - name: Regenerate lock file
+        run: |
+          rm -f package-lock.json
+          npm install --package-lock-only
+
+      - name: Upload fixed lock file
+        uses: actions/upload-artifact@v4
+        with:
+          name: fixed-package-lock
+          path: package-lock.json
