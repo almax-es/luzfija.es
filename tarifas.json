@@ -151,27 +151,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Bonpreu Hacemos Piña",
-      "cPunta": 0.0998,
-      "cLlano": 0.0998,
-      "cValle": 0.0998,
-      "p1": 0.072999,
-      "p2": 0.072999,
-      "web": "https://www.bonpreuesclat.cat/es/web/bonpreu/planes-energia-bonpreu",
-      "tipo": "1P",
-      "requisitos": "Revisión de precios trimestral. No incluye Servicios de Ajuste.",
-      "incluyeServiciosAjuste": false,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Plenitude",
       "cPunta": 0.099972,
       "cLlano": 0.099972,
@@ -1959,5 +1938,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-07-01T06:40:40.781Z"
+  "updatedAt": "2026-07-01T08:08:44.343Z"
 }
