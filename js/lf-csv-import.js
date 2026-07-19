@@ -1,0 +1,941 @@
+/**
+ * @license PolyForm-Shield-1.0.0
+ * Required Notice: Copyright (c) 2026 Luis Oscar Soler Bernal / LuzFija.es
+ * This software is licensed under the PolyForm Shield License 1.0.0.
+ * See the LICENSE file in the repository root for full terms.
+ */
+
+// ===== LuzFija: CSV/XLSX Import =====
+// Importación de archivos de consumo de distribuidoras
+
+(function() {
+  'use strict';
+
+  const { toast, round2 } = window.LF;
+
+  function trackCsvEvent(eventName, detail, title) {
+    try {
+      if (typeof window.__LF_trackDetail === 'function') {
+        window.__LF_trackDetail(eventName, detail, { title });
+      }
+    } catch (_) {}
+  }
+
+  // ===== IMPORTAR UTILIDADES CSV =====
+  // Funciones robustas de parsing compartidas con bv-import.js
+  const {
+    parseNumberFlexibleCSV,
+    parseNumberFlexible,
+    parseDateFlexible,
+    getPeriodoHorarioCSV,
+    buildImportError,
+    csvErrorCodeForTracking,
+    safeFileExtensionForTracking,
+    validateCsvSpanFromRecords
+  } = window.LF.csvUtils || {};
+
+  // Privacidad: a analítica nunca viaja la extensión cruda (un nombre sin punto
+  // haría que split('.').pop() devolviera el nombre de archivo entero).
+  function trackSafeExt(fileName) {
+    return typeof safeFileExtensionForTracking === 'function'
+      ? safeFileExtensionForTracking(fileName) : 'desconocido';
+  }
+
+  // ===== LAZY LOAD XLSX =====
+  let xlsxLoading = null;
+
+  async function ensureXLSX() {
+    if (typeof XLSX !== 'undefined') return;
+    if (xlsxLoading) return xlsxLoading;
+
+    xlsxLoading = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = new URL('vendor/xlsx/xlsx.full.min.js', document.baseURI).toString();
+      script.onload = () => {
+        lfDbg('[XLSX] Librería cargada bajo demanda');
+        resolve();
+      };
+      script.onerror = () => reject(new Error('Error al cargar librería XLSX'));
+      document.head.appendChild(script);
+    });
+    xlsxLoading = xlsxLoading.catch(err => { xlsxLoading = null; throw err; });
+
+    return xlsxLoading;
+  }
+
+  // ===== PARSEO CSV =====
+  // Normalización robusta de celdas CSV (BOM, comillas y formatos numéricos ES/EN).
+  // E-REDES (Portugal) suele exportar CSV con separador ';' y números entrecomillados con coma decimal.
+  // NOTA: Las funciones stripBomAndTrim, stripOuterQuotes, parseNumberFlexibleCSV
+  // ahora se importan desde lf-csv-utils.js para reutilización con bv-import.js
+
+  function parseCSVConsumos(fileContent) {
+    const { parseCSVToRows, parseEnergyTableRows } = window.LF.csvUtils || {};
+    if (typeof parseCSVToRows !== 'function' || typeof parseEnergyTableRows !== 'function') {
+      throw new Error('No se pudo cargar el parser de CSV');
+    }
+
+    const { rows, separator, headerRowIndex } = parseCSVToRows(fileContent);
+    return parseEnergyTableRows(rows, {
+      parseNumber: parseNumberFlexibleCSV,
+      separator,
+      headerRowIndex
+    });
+  }
+
+  // ===== PARSEO XLSX =====
+  async function parseXLSXConsumos(fileBuffer) {
+    await ensureXLSX();
+
+    const workbook = XLSX.read(fileBuffer, { type: 'array' });
+    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+    const data = XLSX.utils.sheet_to_json(firstSheet, { header: 1, raw: false });
+
+    if (data.length < 2) {
+      throw buildImportError('Archivo Excel vacío o formato no reconocido.');
+    }
+
+    // --- Soporte adicional: Excel en formato matriz (Fecha + H01..H24) ---
+    // Formato observado en E-REDES (distribuidora Portugal) y exportaciones similares: una fila por día
+    // y 24 columnas H01..H24 con kWh por hora.
+    // Este bloque lo detecta y lo transforma al mismo formato interno (24 registros por día) sin afectar al
+    // import existente basado en columnas FECHA/CONSUMO/GENERACION.
+    function isHourlyMatrixHeaderRow(row) {
+      if (!Array.isArray(row)) return false;
+      for (let h = 1; h <= 24; h++) {
+        const expected = `H${String(h).padStart(2, '0')}`;
+        const got = String(row[h] ?? '').trim().toUpperCase();
+        if (got !== expected) return false;
+      }
+      return true;
+    }
+
+    // ⭐ NOTA: Las funciones parseDateFlexible y parseNumberFlexible ahora se usan desde csvUtils
+    // (importadas al inicio del archivo) en vez de redefinirlas localmente
+
+    function parseXLSXConsumosMatriz(data, headerRow) {
+      const consumos = [];
+      let celdasSinDato = 0;
+      let valoresNegativos = 0;
+
+      // Obtener zona del usuario para clasificar periodos correctamente (CNMC)
+      const zonaFiscal = window.LF?.getInputValues?.()?.zonaFiscal || 'Península';
+
+      for (let i = headerRow + 1; i < data.length; i++) {
+        const row = data[i];
+        if (!row || row.length < 2) continue;
+
+        const fecha = parseDateFlexible(row[0]);
+        if (!fecha) continue;
+
+        for (let h = 1; h <= 25; h++) {
+          if (h === 25 && (row[25] === undefined || row[25] === null)) continue;
+
+          let kwh = parseNumberFlexible(row[h]);
+          if (!Number.isFinite(kwh)) {
+            if (h === 25) continue;
+            celdasSinDato++;
+            kwh = 0;
+          } else if (kwh < 0) {
+            // Igual que parseEnergyTableRows: un consumo negativo es un error de
+            // exportación, no un dato válido; no debe restar del total.
+            valoresNegativos++;
+            kwh = 0;
+          }
+
+          const periodoCalculado = getPeriodoHorarioCSV(fecha, h, zonaFiscal);
+
+          consumos.push({
+            fecha,
+            hora: h,          // H01 => 1 (00:00-01:00) ... H24 => 24 (23:00-24:00)
+            kwh,              // el fichero matriz suele venir en kWh por hora
+            excedente: 0,
+            autoconsumo: 0,
+            periodo: periodoCalculado,
+            esReal: true
+          });
+        }
+      }
+
+      const warnings = ['No se detectaron excedentes; se importará con excedentes=0.'];
+      if (celdasSinDato > 0) {
+        warnings.push(`Se encontraron ${celdasSinDato} horas sin dato válido en el Excel; interpretadas como 0 kWh.`);
+      }
+      if (valoresNegativos > 0) {
+        warnings.push(`Se encontraron ${valoresNegativos} valores de consumo negativos en el Excel; interpretados como 0 kWh.`);
+      }
+
+      return {
+        records: consumos,
+        warnings,
+        hasExcedenteColumn: false,
+        hasAutoconsumoColumn: false
+      };
+    }
+
+    // Intenta detectar matriz horaria en las primeras filas (típicamente la cabecera está en la fila 1)
+    let matrixHeaderRow = -1;
+    for (let i = 0; i < Math.min(10, data.length); i++) {
+      if (isHourlyMatrixHeaderRow(data[i])) {
+        matrixHeaderRow = i;
+        break;
+      }
+    }
+    if (matrixHeaderRow !== -1) {
+      return parseXLSXConsumosMatriz(data, matrixHeaderRow);
+    }
+
+
+    const { parseEnergyTableRows, guessEnergyHeaderRow } = window.LF.csvUtils || {};
+    if (typeof parseEnergyTableRows !== 'function' || typeof guessEnergyHeaderRow !== 'function') {
+      throw new Error('No se pudo cargar el parser de Excel');
+    }
+
+    const headerRow = guessEnergyHeaderRow(data);
+    if (headerRow === -1) {
+      throw buildImportError('No se encontró la fila de cabecera en el Excel.');
+    }
+
+    return parseEnergyTableRows(data, {
+      headerRowIndex: headerRow,
+      parseNumber: parseNumberFlexible
+    });
+  }
+
+  // ===== FESTIVOS Y PERIODOS =====
+  // NOTA: Las funciones calcularViernesSanto, getFestivosNacionales, getPeriodoHorarioCSV
+  // ahora se importan desde lf-csv-utils.js (con caché optimizado para festivos)
+
+  function ymdLocal(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${y}-${m}-${day}`;
+  }
+
+  function ymLocal(d) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}`;
+  }
+
+  function applySpanValidation(consumos, warnings, options = {}) {
+    const nextWarnings = Array.isArray(warnings) ? warnings.slice() : [];
+    if (typeof validateCsvSpanFromRecords !== 'function') {
+      return { ok: true, consumos, warnings: nextWarnings };
+    }
+
+    // Comparador principal: NO requiere exactamente 12 meses, acepta hasta 370 días
+    const spanCheck = validateCsvSpanFromRecords(consumos, {
+      maxDays: 370,
+      requireExactly12Months: false,  // ← Comparador principal: usar TODOS los datos
+      staleWarningMonths: 18,
+      isDatadisMonthly: options.isDatadisMonthly || false
+    });
+
+    if (!spanCheck.ok) {
+      return { ok: false, error: spanCheck.error };
+    }
+
+    // Agregar mensaje informativo si existe
+    if (spanCheck.info) {
+      nextWarnings.push(spanCheck.info);
+    }
+    if (spanCheck.warning) {
+      nextWarnings.push(spanCheck.warning);
+    }
+
+    if (Array.isArray(spanCheck.monthsToDrop) && spanCheck.monthsToDrop.length > 0) {
+      const monthsToDrop = new Set(spanCheck.monthsToDrop);
+      const filtered = consumos.filter((record) => {
+        const fecha = record && record.fecha;
+        if (!(fecha instanceof Date) || isNaN(fecha.getTime())) return false;
+        return !monthsToDrop.has(ymLocal(fecha));
+      });
+      if (filtered.length === 0) {
+        return {
+          ok: false,
+          error: 'Tras aplicar el recorte a 12 meses, no quedan registros válidos para procesar.'
+        };
+      }
+      return { ok: true, consumos: filtered, warnings: nextWarnings };
+    }
+    return { ok: true, consumos, warnings: nextWarnings };
+  }
+
+  // ===== CLASIFICAR CONSUMOS =====
+  function clasificarConsumosPorPeriodo(consumos) {
+    const totales = {
+      P1: 0, P2: 0, P3: 0,
+      excedentesP1: 0, excedentesP2: 0, excedentesP3: 0,
+      autoconsumoP1: 0, autoconsumoP2: 0, autoconsumoP3: 0
+    };
+    const diasUnicos = new Set();
+    let datosReales = 0;
+    let datosEstimados = 0;
+
+    // Obtener zona del usuario para clasificar periodos correctamente (CNMC)
+    const zonaFiscal = window.LF?.getInputValues?.()?.zonaFiscal || 'Península';
+
+    consumos.forEach(c => {
+      const periodo = c.periodo || getPeriodoHorarioCSV(c.fecha, c.hora, zonaFiscal);
+      totales[periodo] += c.kwh || 0;
+
+      if (c.excedente) totales[`excedentes${periodo}`] += c.excedente;
+      if (c.autoconsumo) totales[`autoconsumo${periodo}`] += c.autoconsumo;
+
+      const fechaKey = ymdLocal(c.fecha);
+      diasUnicos.add(fechaKey);
+
+      if (c.esReal) datosReales++;
+      else datosEstimados++;
+    });
+
+    const totalKwh = totales.P1 + totales.P2 + totales.P3;
+    const totalExcedentes = totales.excedentesP1 + totales.excedentesP2 + totales.excedentesP3;
+    const totalAutoconsumo = totales.autoconsumoP1 + totales.autoconsumoP2 + totales.autoconsumoP3;
+    const tieneExcedentes = totalExcedentes > 0;
+    const formatPercent = (value) => {
+      if (totalKwh <= 0) return '0,0';
+      return round2(value / totalKwh * 100).toFixed(1).replace('.', ',');
+    };
+
+    return {
+      ok: true,
+      punta: round2(totales.P1).toFixed(2).replace('.', ','),
+      llano: round2(totales.P2).toFixed(2).replace('.', ','),
+      valle: round2(totales.P3).toFixed(2).replace('.', ','),
+      excedentesPunta: round2(totales.excedentesP1).toFixed(2).replace('.', ','),
+      excedentesLlano: round2(totales.excedentesP2).toFixed(2).replace('.', ','),
+      excedentesValle: round2(totales.excedentesP3).toFixed(2).replace('.', ','),
+      autoconsumoPunta: round2(totales.autoconsumoP1).toFixed(2).replace('.', ','),
+      autoconsumoLlano: round2(totales.autoconsumoP2).toFixed(2).replace('.', ','),
+      autoconsumoValle: round2(totales.autoconsumoP3).toFixed(2).replace('.', ','),
+      dias: diasUnicos.size,
+      totalKwh: round2(totalKwh).toFixed(2).replace('.', ','),
+      totalExcedentes: round2(totalExcedentes).toFixed(2).replace('.', ','),
+      totalAutoconsumo: round2(totalAutoconsumo).toFixed(2).replace('.', ','),
+      tieneExcedentes,
+      datosReales,
+      datosEstimados,
+      porcentajes: {
+        punta: formatPercent(totales.P1),
+        llano: formatPercent(totales.P2),
+        valle: formatPercent(totales.P3)
+      }
+    };
+  }
+
+  // ===== PROCESAR ARCHIVOS =====
+  const MAX_IMPORT_FILE_SIZE_MB = 10;
+  const MAX_IMPORT_FILE_SIZE_BYTES = MAX_IMPORT_FILE_SIZE_MB * 1024 * 1024;
+
+  function formatSizeMb(bytes) {
+    const n = Number(bytes);
+    if (!Number.isFinite(n) || n <= 0) return 0;
+    return Math.ceil(n / 1024 / 1024);
+  }
+
+  function fileSizeLimitResult(file) {
+    const size = Number(file?.size);
+    if (!Number.isFinite(size) || size <= MAX_IMPORT_FILE_SIZE_BYTES) return null;
+    const sizeMB = formatSizeMb(size);
+    return {
+      ok: false,
+      error: `El archivo es demasiado grande (${sizeMB} MB). El tamaño máximo permitido es ${MAX_IMPORT_FILE_SIZE_MB} MB.`
+    };
+  }
+
+  async function procesarCSVConsumos(file) {
+    const sizeError = fileSizeLimitResult(file);
+    if (sizeError) return sizeError;
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const content = e.target.result;
+          const parsed = parseCSVConsumos(content);
+          let consumos = parsed.records || [];
+          if (consumos.length === 0) {
+            resolve({
+              ok: false,
+              error: (buildImportError ? buildImportError('No se encontraron datos válidos en el CSV.') : new Error('No se encontraron datos válidos en el CSV.')).message
+            });
+            return;
+          }
+
+          const spanResult = applySpanValidation(consumos, parsed.warnings || [], {
+            isDatadisMonthly: parsed.isDatadisMonthly || false
+          });
+          if (!spanResult.ok) {
+            resolve({ ok: false, error: spanResult.error });
+            return;
+          }
+          consumos = spanResult.consumos;
+
+          const resultado = clasificarConsumosPorPeriodo(consumos);
+          if (!resultado.ok) {
+            resolve(resultado);
+            return;
+          }
+
+          resultado.formato = 'CSV';
+
+          if (parsed.isDatadisMonthly) {
+            // Registros sintéticos: todos en día 1 de cada mes → diasUnicos.size = nº meses.
+            // Recalcular con días reales de cada mes calendario.
+            const monthKeys = new Set(consumos.map(r => ymLocal(r.fecha)));
+            let totalDias = 0;
+            monthKeys.forEach(key => {
+              const [y, m] = key.split('-').map(Number);
+              totalDias += new Date(y, m, 0).getDate();
+            });
+            resultado.dias = totalDias;
+            resultado.consumosHorarios = null; // no hay traza horaria real
+            resultado.isDatadisMonthly = true;
+          } else {
+            // Adjuntar consumos horarios para PVPC por periodo (se guardan globalmente solo al aplicar)
+            resultado.consumosHorarios = consumos;
+          }
+
+          resultado.warnings = spanResult.warnings;
+          if (resultado.warnings.length && typeof toast === 'function') {
+            toast(`⚠️ ${resultado.warnings.join('\n')}`);
+          }
+          resolve(resultado);
+        } catch (error) {
+          resolve({ ok: false, error: error?.message || 'Error al procesar el archivo.' });
+        }
+      };
+      reader.onerror = () => resolve({ ok: false, error: 'Error al leer el archivo' });
+      reader.readAsText(file);
+    });
+  }
+
+  async function procesarXLSXConsumos(file) {
+    const sizeError = fileSizeLimitResult(file);
+    if (sizeError) return sizeError;
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const buffer = e.target.result;
+          const parsed = await parseXLSXConsumos(buffer);
+          let consumos = parsed.records || [];
+          if (consumos.length === 0) {
+            resolve({
+              ok: false,
+              error: (buildImportError ? buildImportError('No se encontraron datos válidos en el Excel.') : new Error('No se encontraron datos válidos en el Excel.')).message
+            });
+            return;
+          }
+
+          const spanResult = applySpanValidation(consumos, parsed.warnings || [], {
+            isDatadisMonthly: parsed.isDatadisMonthly || false
+          });
+          if (!spanResult.ok) {
+            resolve({ ok: false, error: spanResult.error });
+            return;
+          }
+          consumos = spanResult.consumos;
+
+          const resultado = clasificarConsumosPorPeriodo(consumos);
+          if (!resultado.ok) {
+            resolve(resultado);
+            return;
+          }
+
+          resultado.formato = 'XLSX';
+
+          if (parsed.isDatadisMonthly) {
+            const monthKeys = new Set(consumos.map(r => ymLocal(r.fecha)));
+            let totalDias = 0;
+            monthKeys.forEach(key => {
+              const [y, m] = key.split('-').map(Number);
+              totalDias += new Date(y, m, 0).getDate();
+            });
+            resultado.dias = totalDias;
+            resultado.consumosHorarios = null;
+            resultado.isDatadisMonthly = true;
+          } else {
+            resultado.consumosHorarios = consumos;
+          }
+
+          resultado.warnings = spanResult.warnings;
+          if (resultado.warnings.length && typeof toast === 'function') {
+            toast(`⚠️ ${resultado.warnings.join('\n')}`);
+          }
+          resolve(resultado);
+        } catch (error) {
+          resolve({ ok: false, error: error?.message || 'Error al procesar el archivo.' });
+        }
+      };
+      reader.onerror = () => resolve({ ok: false, error: 'Error al leer el archivo Excel' });
+      reader.readAsArrayBuffer(file);
+    });
+  }
+
+  // ===== MODAL PREVIEW =====
+  function mostrarPreviewCSV(resultado) {
+    window.LF = window.LF || {};
+
+    // ⭐ PVPC PERIODO: con curva horaria real, por defecto usa precios del período importado.
+    const __prevPvpcPeriodo = window.LF.pvpcPeriodoCSV === true;
+    const __hasHourlyCurve = Array.isArray(resultado.consumosHorarios) && resultado.consumosHorarios.length > 0;
+    const __pvpcPeriodoDefault = __hasHourlyCurve && !resultado.isDatadisMonthly;
+    const __pvpcPeriodoCheckedAttr = __pvpcPeriodoDefault ? 'checked' : '';
+
+    const modal = document.createElement('div');
+    modal.className = 'modal-overlay show';
+    modal.setAttribute('role', 'dialog');
+    modal.setAttribute('aria-modal', 'true');
+    modal.setAttribute('aria-hidden', 'false');
+    modal.tabIndex = -1;
+
+    // Accesibilidad: restaurar foco + focus trap
+    const __csvPrevFocusEl = document.activeElement;
+    let __csvFocusTrapCleanup = null;
+
+    const __csvFocusableSelector = [
+      'a[href]:not([tabindex="-1"])',
+      'button:not([disabled]):not([tabindex="-1"])',
+      'input:not([disabled]):not([type="hidden"]):not([tabindex="-1"])',
+      'select:not([disabled]):not([tabindex="-1"])',
+      'textarea:not([disabled]):not([tabindex="-1"])',
+      '[tabindex]:not([tabindex="-1"])'
+    ].join(',');
+
+    function __csvIsVisible(node){
+      if (!node) return false;
+      if (node.hasAttribute('disabled')) return false;
+      if (node.getAttribute('aria-hidden') === 'true') return false;
+      return !!(node.offsetWidth || node.offsetHeight || node.getClientRects().length);
+    }
+
+    function __csvFocusables(){
+      return Array.from(modal.querySelectorAll(__csvFocusableSelector)).filter(__csvIsVisible);
+    }
+
+    function __csvFocusTrapAttach(){
+      if (__csvFocusTrapCleanup) return;
+      const onKeyDown = (e) => {
+        if (!document.body.contains(modal)) return;
+        if (e.key !== 'Tab') return;
+        const els = __csvFocusables();
+        if (!els.length) return;
+        const first = els[0];
+        const last = els[els.length - 1];
+
+        if (!modal.contains(document.activeElement)) {
+          e.preventDefault();
+          first.focus();
+          return;
+        }
+
+        if (e.shiftKey && document.activeElement === first){
+          e.preventDefault();
+          last.focus();
+        } else if (!e.shiftKey && document.activeElement === last){
+          e.preventDefault();
+          first.focus();
+        }
+      };
+      modal.addEventListener('keydown', onKeyDown);
+      __csvFocusTrapCleanup = () => {
+        modal.removeEventListener('keydown', onKeyDown);
+        __csvFocusTrapCleanup = null;
+      };
+    }
+
+    const isLightMode = document.documentElement.classList.contains('light-mode');
+
+    let __csvLocked = false;
+    let __csvScrollY = 0;
+
+    function __csvLock() {
+      if (document.documentElement.style.overflow === 'hidden') return;
+      __csvScrollY = window.scrollY || 0;
+      document.documentElement.style.overflow = 'hidden';
+      __csvLocked = true;
+    }
+
+    function __csvUnlock() {
+      if (!__csvLocked) return;
+      document.documentElement.style.overflow = '';
+      window.scrollTo(0, __csvScrollY);
+      __csvLocked = false;
+    }
+
+    const content = document.createElement('div');
+    content.className = 'modal-content card';
+    content.style.maxWidth = '520px';
+
+    let excedenteHTML = '';
+    if (resultado.tieneExcedentes) {
+      const excBg = isLightMode ? 'rgba(245, 158, 11, 0.15)' : 'rgba(245, 158, 11, 0.12)';
+      const excBorder = isLightMode ? 'rgba(217, 119, 6, 0.4)' : 'rgba(217, 119, 6, 0.3)';
+      excedenteHTML = `
+        <div style="background: ${excBg}; padding: 16px; border-radius: 12px; margin-top: 16px; border: 1px solid ${excBorder};">
+          <div style="font-size: 13px; font-weight: 900; margin-bottom: 12px; color: var(--text); display: flex; align-items: center; gap: 6px;">
+            ☀️ Excedentes solares detectados
+          </div>
+          <div style="display: grid; gap: 8px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 12px; color: var(--muted2);">Total excedentes</span>
+              <span style="font-size: 14px; font-weight: 700; color: var(--warn);">${resultado.totalExcedentes} kWh</span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; padding-top: 8px; border-top: 1px solid var(--border);">
+              <div><div style="font-size: 10px; color: var(--muted2); margin-bottom: 2px;">Punta</div><div style="font-size: 12px; font-weight: 700; color: var(--text);">${resultado.excedentesPunta} kWh</div></div>
+              <div><div style="font-size: 10px; color: var(--muted2); margin-bottom: 2px;">Llano</div><div style="font-size: 12px; font-weight: 700; color: var(--text);">${resultado.excedentesLlano} kWh</div></div>
+              <div><div style="font-size: 10px; color: var(--muted2); margin-bottom: 2px;">Valle</div><div style="font-size: 12px; font-weight: 700; color: var(--text);">${resultado.excedentesValle} kWh</div></div>
+            </div>
+            ${resultado.totalAutoconsumo !== '0,00' ? `
+            <div style="padding-top: 8px; border-top: 1px solid var(--border);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 11px; color: var(--muted2);">Autoconsumo directo</span>
+                <span style="font-size: 13px; font-weight: 600; color: var(--text);">${resultado.totalAutoconsumo} kWh</span>
+              </div>
+            </div>
+            ` : ''}
+          </div>
+          <label style="display: flex; align-items: center; gap: 8px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border); cursor: pointer;">
+            <input type="checkbox" id="csvAplicarExcedentes" checked style="cursor: pointer; width: 18px; height: 18px;">
+            <span style="font-size: 13px; color: var(--text); font-weight: 600;">☀️ Incluir excedentes en el cálculo</span>
+          </label>
+          <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); line-height: 1.5;">
+            💡 Con este mismo archivo puedes hacer la simulación mes a mes en el <a href="/comparador-tarifas-solares.html" style="color: var(--warn); font-weight: 700;">Simulador Solar</a>, la herramienta recomendada para autoconsumo.
+          </div>
+        </div>
+      `;
+    }
+
+    content.innerHTML = `
+      <button class="modal-x" id="btnCerrarCSVX" type="button" aria-label="Cerrar">✕</button>
+      <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 900; color: var(--text);">
+        📊 Consumos detectados${resultado.tieneExcedentes ? ' ☀️' : ''}
+      </h3>
+      <div style="background: ${isLightMode ? 'rgba(15, 23, 42, 0.06)' : 'rgba(255, 255, 255, 0.06)'}; padding: 16px; border-radius: 12px; margin-bottom: 16px; border: 1px solid var(--border);">
+        <div style="display: grid; gap: 12px;">
+          <div>
+            <div style="font-size: 12px; color: var(--muted2); margin-bottom: 4px;">Periodo analizado</div>
+            <div style="font-size: 16px; font-weight: 700; color: var(--text);">${resultado.dias} días (${resultado.formato})</div>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
+            <div><div style="font-size: 11px; color: var(--muted2); margin-bottom: 4px;">Punta</div><div style="font-size: 14px; font-weight: 700; color: var(--text);">${resultado.punta} kWh</div><div style="font-size: 10px; color: var(--muted2);">${resultado.porcentajes.punta}%</div></div>
+            <div><div style="font-size: 11px; color: var(--muted2); margin-bottom: 4px;">Llano</div><div style="font-size: 14px; font-weight: 700; color: var(--text);">${resultado.llano} kWh</div><div style="font-size: 10px; color: var(--muted2);">${resultado.porcentajes.llano}%</div></div>
+            <div><div style="font-size: 11px; color: var(--muted2); margin-bottom: 4px;">Valle</div><div style="font-size: 14px; font-weight: 700; color: var(--text);">${resultado.valle} kWh</div><div style="font-size: 10px; color: var(--muted2);">${resultado.porcentajes.valle}%</div></div>
+          </div>
+          <div style="padding-top: 12px; border-top: 1px solid var(--border);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 12px; color: var(--muted2);">Total consumo</span>
+              <span style="font-size: 15px; font-weight: 700; color: var(--text);">${resultado.totalKwh} kWh</span>
+            </div>
+          </div>
+          <div style="font-size: 10px; color: var(--muted2); padding-top: 8px; border-top: 1px solid var(--border);">
+            ${resultado.datosReales} lecturas reales • ${resultado.datosEstimados} estimadas
+          </div>
+        </div>
+      </div>
+      ${excedenteHTML}
+
+      <div style="margin-top: 16px; padding: 14px 16px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.08); border-radius: 10px; ${resultado.isDatadisMonthly ? 'opacity: 0.5;' : ''}">
+        <label style="display: flex; align-items: center; gap: 10px; ${resultado.isDatadisMonthly ? 'cursor: not-allowed;' : 'cursor: pointer;'} user-select: none;">
+          <input type="checkbox" id="csvPvpcPeriodo" ${__pvpcPeriodoCheckedAttr} ${resultado.isDatadisMonthly ? 'disabled' : ''} style="${resultado.isDatadisMonthly ? 'cursor: not-allowed;' : 'cursor: pointer;'} width: 18px; height: 18px; accent-color: #6366f1;">
+          <span style="font-size: 14px; color: var(--text); font-weight: 600; flex: 1;">📅 PVPC con precios del período</span>
+          <span style="font-size: 11px; color: var(--muted2); background: rgba(99, 102, 241, 0.15); padding: 3px 8px; border-radius: 4px; font-weight: 600;">Hora a hora</span>
+        </label>
+        <p style="margin: 8px 0 0 28px; font-size: 12px; color: var(--muted2); line-height: 1.4;">
+          ${resultado.isDatadisMonthly
+            ? 'No disponible con datos mensuales de Datadis (no hay traza horaria). El PVPC se calculará con precios recientes.'
+            : 'Activado: usa los precios PVPC de cuando consumiste (para verificar tu factura). Desactivado: usa los precios PVPC de hoy (para comparar opciones).'}
+        </p>
+      </div>
+
+      <div style="margin-top: 20px;">
+        <button id="btnAplicarCSV" class="btn primary" type="button" style="width: 100%;"><span id="btnAplicarTexto">✓ Aplicar consumos</span></button>
+      </div>
+    `;
+
+    modal.appendChild(content);
+    document.body.appendChild(modal);
+    __csvLock();
+
+    // Activar focus trap y llevar foco dentro del modal
+    __csvFocusTrapAttach();
+
+    const btnCerrarX = content.querySelector('#btnCerrarCSVX');
+    let __csvCloseOnEsc = null;
+    let __csvCloseOnBackdrop = null;
+
+    const closeCSVModal = () => {
+      if (__csvCloseOnEsc) document.removeEventListener('keydown', __csvCloseOnEsc);
+      if (__csvCloseOnBackdrop) modal.removeEventListener('click', __csvCloseOnBackdrop);
+      if (typeof __csvFocusTrapCleanup === 'function') __csvFocusTrapCleanup();
+      __csvUnlock();
+      modal.remove();
+
+      // Restaurar foco al elemento previo
+      if (__csvPrevFocusEl && __csvPrevFocusEl.focus) {
+        __csvPrevFocusEl.focus();
+      }
+    };
+
+    // Cerrar sin aplicar (X/Escape/backdrop) => no cambia el estado PVPC del periodo
+    const cancelCSVModal = () => {
+      window.LF = window.LF || {};
+      window.LF.pvpcPeriodoCSV = __prevPvpcPeriodo;
+      closeCSVModal();
+    };
+
+
+    // Cerrar con X (sin aplicar)
+    btnCerrarX?.addEventListener('click', cancelCSVModal);
+
+    // Foco inicial (botón cerrar)
+    setTimeout(() => {
+      const target = btnCerrarX || content.querySelector('#btnAplicarCSV') || modal;
+      target?.focus?.();
+    }, 0);
+
+    const btnAplicar = document.getElementById('btnAplicarCSV');
+    const btnAplicarTexto = document.getElementById('btnAplicarTexto');
+
+    if (resultado.tieneExcedentes) {
+      const checkboxExcedentes = document.getElementById('csvAplicarExcedentes');
+      if (checkboxExcedentes && btnAplicarTexto) {
+        btnAplicarTexto.textContent = checkboxExcedentes.checked ? '✓ Aplicar con excedentes' : '✓ Aplicar solo consumos';
+        checkboxExcedentes.addEventListener('change', () => {
+          btnAplicarTexto.textContent = checkboxExcedentes.checked ? '✓ Aplicar con excedentes' : '✓ Aplicar solo consumos';
+        });
+      }
+    }
+
+    if (btnAplicar) {
+      btnAplicar.addEventListener('click', () => {
+        const diasInput = document.getElementById('dias');
+        const puntaInput = document.getElementById('cPunta');
+        const llanoInput = document.getElementById('cLlano');
+        const valleInput = document.getElementById('cValle');
+
+        if (diasInput) diasInput.value = resultado.dias;
+        if (puntaInput) { puntaInput.value = resultado.punta; puntaInput.dispatchEvent(new Event('input', { bubbles: true })); }
+        if (llanoInput) { llanoInput.value = resultado.llano; llanoInput.dispatchEvent(new Event('input', { bubbles: true })); }
+        if (valleInput) { valleInput.value = resultado.valle; valleInput.dispatchEvent(new Event('input', { bubbles: true })); }
+
+        const solarCheckbox = document.getElementById('solarOn');
+        let debeAplicarExcedentes = false;
+        if (resultado.tieneExcedentes) {
+          const checkboxExcedentes = document.getElementById('csvAplicarExcedentes');
+          debeAplicarExcedentes = checkboxExcedentes ? checkboxExcedentes.checked : false;
+        }
+
+        if (debeAplicarExcedentes) {
+          if (solarCheckbox && !solarCheckbox.checked) {
+            solarCheckbox.checked = true;
+            solarCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+          setTimeout(() => {
+            const exTotalInput = document.getElementById('exTotal');
+            if (exTotalInput) {
+              exTotalInput.value = resultado.totalExcedentes;
+              exTotalInput.dispatchEvent(new Event('input', { bubbles: true }));
+              setTimeout(() => { if (typeof updateKwhHint === 'function') updateKwhHint(); }, 50);
+            }
+          }, 100);
+        } else {
+          if (solarCheckbox && solarCheckbox.checked) {
+            solarCheckbox.checked = false;
+            solarCheckbox.dispatchEvent(new Event('change', { bubbles: true }));
+          }
+          setTimeout(() => {
+            const exTotalInput = document.getElementById('exTotal');
+            if (exTotalInput) { exTotalInput.value = ''; exTotalInput.dispatchEvent(new Event('input', { bubbles: true })); }
+          }, 100);
+        }
+
+        // Guardar consumos horarios (solo al aplicar)
+        window.LF = window.LF || {};
+        const importedCurve = Array.isArray(resultado.consumosHorarios) ? resultado.consumosHorarios : null;
+        window.LF.consumosHorarios = importedCurve;
+        window.LF.csvConsumosRef = importedCurve
+          ? window.LF.buildCsvConsumosRef({
+              dias: resultado.dias,
+              cPunta: resultado.punta,
+              cLlano: resultado.llano,
+              cValle: resultado.valle
+            })
+          : null;
+
+        // ⭐ PVPC PERIODO: Guardar si usar precios del período del CSV o precios recientes
+        const pvpcPeriodoCheckbox = document.getElementById('csvPvpcPeriodo');
+        window.LF.pvpcPeriodoCSV = importedCurve
+          ? (pvpcPeriodoCheckbox ? pvpcPeriodoCheckbox.checked : true)
+          : false;
+
+        trackCsvEvent('csv-import-aplicado', [
+          'home',
+          debeAplicarExcedentes ? 'consumos-excedentes' : 'consumos',
+          window.LF.pvpcPeriodoCSV ? 'pvpc-periodo' : 'pvpc-reciente'
+        ], 'CSV aplicado en home: ' + (debeAplicarExcedentes ? 'consumos+excedentes' : 'consumos'));
+
+        closeCSVModal();
+
+        if (typeof toast === 'function') {
+          toast(debeAplicarExcedentes ? '✓ Consumos y excedentes aplicados' : '✓ Consumos aplicados desde ' + resultado.formato);
+        }
+
+        try {
+          if (typeof updateKwhHint === 'function') updateKwhHint();
+          if (typeof validateInputs === 'function') validateInputs();
+          if (typeof saveInputs === 'function') saveInputs();
+        } catch (e) {}
+
+        try {
+          const bvSaldoInput = document.getElementById('bvSaldo');
+          if (bvSaldoInput) { bvSaldoInput.value = '0'; bvSaldoInput.dispatchEvent(new Event('input', { bubbles: true })); }
+        } catch (e) {}
+
+        setTimeout(async () => {
+          const maxWait = 1000;
+          const startTime = Date.now();
+          let camposListos = false;
+
+          while (Date.now() - startTime < maxWait && !camposListos) {
+            const diasOk = document.getElementById('dias')?.value;
+            const puntaOk = document.getElementById('cPunta')?.value;
+            const llanoOk = document.getElementById('cLlano')?.value;
+            const valleOk = document.getElementById('cValle')?.value;
+
+            if (diasOk && puntaOk && llanoOk && valleOk) {
+              if (debeAplicarExcedentes) {
+                const exTotalOk = document.getElementById('exTotal')?.value;
+                if (exTotalOk) camposListos = true;
+              } else {
+                camposListos = true;
+              }
+            }
+            if (!camposListos) await new Promise(resolve => setTimeout(resolve, 50));
+          }
+
+          try {
+            if (typeof hideResultsToInitialState === 'function') hideResultsToInitialState();
+            if (typeof setStatus === 'function') setStatus('Calculando...', 'loading');
+            if (typeof runCalculation === 'function') runCalculation();
+          } catch (e) {}
+        }, 150);
+      });
+    }
+
+    __csvCloseOnEsc = (e) => { if (e.key === 'Escape') cancelCSVModal(); };
+    document.addEventListener('keydown', __csvCloseOnEsc);
+
+    __csvCloseOnBackdrop = (e) => { if (e.target === modal) cancelCSVModal(); };
+    modal.addEventListener('click', __csvCloseOnBackdrop);
+  }
+
+  // ===== INIT CSV IMPORTER =====
+  function initCSVImporter() {
+    try {
+      const actionsCenterContainer = document.querySelector('.actions-center');
+      if (!actionsCenterContainer) return;
+
+      const fileInput = document.createElement('input');
+      fileInput.type = 'file';
+      fileInput.accept = '.csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel';
+      fileInput.style.display = 'none';
+      fileInput.id = 'csvConsumoInput';
+
+      const btnCSV = document.createElement('button');
+      btnCSV.type = 'button';
+      btnCSV.className = 'btn';
+      btnCSV.id = 'btnSubirCSV';
+      btnCSV.innerHTML = '<span>📊</span><span class="btn-text">Importar CSV</span>';
+      btnCSV.title = 'Subir consumo horario (CSV/Excel de tu distribuidora)';
+
+      btnCSV.addEventListener('click', () => fileInput.click());
+
+      fileInput.addEventListener('change', async (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        btnCSV.disabled = true;
+        btnCSV.innerHTML = '⏳ Procesando...';
+
+        try {
+          let resultado;
+          const extension = file.name.split('.').pop().toLowerCase();
+
+          if (extension === 'csv') {
+            resultado = await procesarCSVConsumos(file);
+          } else if (extension === 'xlsx' || extension === 'xls') {
+            resultado = await procesarXLSXConsumos(file);
+          } else {
+            throw new Error('Formato no soportado. Solo CSV y Excel (.xlsx, .xls)');
+          }
+
+          if (!resultado.ok) {
+            // Privacidad: a analítica solo viaja un código de error normalizado, nunca
+            // el mensaje (puede interpolar contenido del archivo del usuario).
+            const errorCode = typeof csvErrorCodeForTracking === 'function'
+              ? csvErrorCodeForTracking(resultado.error) : 'otro';
+            trackCsvEvent('csv-import-error', ['home', trackSafeExt(file.name), errorCode], 'Error al procesar CSV/XLSX en home');
+            toast(resultado.error || 'Error al procesar el archivo', 'err');
+            btnCSV.disabled = false;
+            btnCSV.innerHTML = '<span>📊</span><span class="btn-text">Importar CSV</span>';
+            fileInput.value = '';
+            return;
+          }
+
+          trackCsvEvent('csv-import-preview', ['home', trackSafeExt(file.name)], 'Preview CSV/XLSX listo en home');
+          mostrarPreviewCSV(resultado);
+          btnCSV.disabled = false;
+          btnCSV.innerHTML = '<span>📊</span><span class="btn-text">Importar CSV</span>';
+          fileInput.value = '';
+        } catch (error) {
+          const errorCode = typeof csvErrorCodeForTracking === 'function'
+            ? csvErrorCodeForTracking(error && error.message) : 'otro';
+          trackCsvEvent('csv-import-error', ['home', trackSafeExt(file.name), errorCode], 'Error al procesar CSV/XLSX en home');
+          toast(error.message || 'Error al procesar el archivo', 'err');
+          btnCSV.disabled = false;
+          btnCSV.innerHTML = '<span>📊</span><span class="btn-text">Importar CSV</span>';
+          fileInput.value = '';
+        }
+      });
+
+      document.body.appendChild(fileInput);
+
+      const btnSubirFactura = document.getElementById('btnSubirFactura');
+      if (btnSubirFactura) {
+        btnSubirFactura.after(btnCSV);
+      } else {
+        actionsCenterContainer.appendChild(btnCSV);
+      }
+
+      lfDbg('[CSV] Botón de importar CSV añadido');
+    } catch (error) {
+      lfDbg('[CSV] ERROR CRÍTICO:', error);
+    }
+  }
+
+  // ===== EXPORTAR =====
+  window.LF = window.LF || {};
+  Object.assign(window.LF, {
+    ensureXLSX,
+    initCSVImporter,
+    procesarCSVConsumos,
+    procesarXLSXConsumos
+  });
+
+  window.initCSVImporter = initCSVImporter;
+  window.procesarCSVConsumos = procesarCSVConsumos;
+  window.procesarXLSXConsumos = procesarXLSXConsumos;
+
+  // Exportar helpers para testing
+  // NOTA: Las funciones de utilidad ahora están en window.LF.csvUtils
+  window.LF.csvHelpers = {
+    getPeriodoHorarioCSV: window.LF.csvUtils?.getPeriodoHorarioCSV,
+    getFestivosNacionales: window.LF.csvUtils?.getFestivosNacionales,
+    parseCSVConsumos
+  };
+
+})();

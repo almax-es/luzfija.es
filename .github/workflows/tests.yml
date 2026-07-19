@@ -1,0 +1,100 @@
+name: Tests
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: read
+
+
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Security Audit (informational)
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run Tests
+        run: npm test
+
+      - name: Verify synchronized repo state
+        run: |
+          if ! git diff --quiet || ! git diff --cached --quiet; then
+            echo "::error::npm test modified tracked files. Run npm test locally and commit the resulting changes."
+            git status --short
+            echo "Changed tracked files:"
+            git diff --name-only
+            git diff --stat
+            exit 1
+          fi
+
+          UNTRACKED="$(git ls-files --others --exclude-standard)"
+          if [ -n "$UNTRACKED" ]; then
+            echo "::error::Unexpected untracked files generated during CI:"
+            echo "$UNTRACKED"
+            exit 1
+          fi
+
+  build_pages:
+    needs: test
+    if: ${{ needs.test.result == 'success' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref_name == 'main' || github.ref_name == 'master') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v6
+
+      - name: Excluir archivos de desarrollo del artefacto
+        run: |
+          rm -rf tests scripts .github
+          rm -f package.json package-lock.json eslint.config.mjs vitest.config.js .gitignore .gitattributes .git-blame-ignore-revs
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: '.'
+
+  deploy_pages:
+    needs: build_pages
+    if: ${{ needs.build_pages.result == 'success' }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: github-pages-${{ github.ref }}
+      cancel-in-progress: false
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5

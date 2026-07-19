@@ -1,0 +1,668 @@
+/* =========================================================
+   LuzFija — Pro Polish Layer
+   Objetivo: coherencia visual (desktop/móvil), dark/light,
+   y cero desbordamientos sin romper el diseño existente.
+   Cargar SIEMPRE después de styles.css y CSS específicos.
+
+   SISTEMA DE BREAKPOINTS RECOMENDADO:
+   - 480px:  Mobile pequeño
+   - 640px:  Mobile grande / Tablet pequeño
+   - 768px:  Tablet
+   - 1024px: Desktop pequeño
+   - 1400px: Desktop grande
+
+   Nota: Los breakpoints legacy (520px, 760px, 900px) se mantienen
+   en styles.css para no romper layouts específicos.
+   ========================================================= */
+
+/* ---- Seguridad anti-overflow (muy conservador) ---- */
+:where(img, video, canvas, svg, iframe){
+  max-width: 100%;
+  height: auto;
+}
+
+/* Flex children: evitar que textos largos empujen el layout */
+:where(.topbar, .brand, .actions, .card, .pill, .panel, .tableWrap, main, section, article){
+  min-width: 0;
+}
+
+/* Evitar scroll horizontal por inputs/table wrappers */
+:where(input, select, textarea, button){
+  max-width: 100%;
+}
+
+/* Prevenir overflow en elementos de texto largos */
+:where(h1, h2, h3, h4, h5, h6, p, span, div, td, th){
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+/* Asegurar que ningún elemento cause scroll horizontal */
+body, html{
+  overflow-x: hidden;
+}
+
+/* Contenedor principal sin desbordamiento */
+.container{
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Tablas responsive sin desbordamiento */
+.tableWrap{
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  max-width: 100%;
+}
+
+/* Modales: prevenir desbordamiento en móvil */
+.modal-content, .desglose-modal{
+  max-width: calc(100vw - 32px);
+  max-height: calc(100vh - 32px);
+  overflow-y: auto;
+}
+
+/* ---- Transiciones suaves de tema ---- */
+:root{
+  color-scheme: dark light;
+}
+
+/* Aplicar transiciones suaves de tema solo a elementos principales */
+body,
+.card,
+.modal-content,
+.desglose-modal{
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ---- Tipografía y ritmo (ligero, sin cambiar identidad) ---- */
+body{
+  text-rendering: optimizeLegibility;
+}
+
+:where(h1, h2, h3){
+  letter-spacing: -0.01em;
+}
+
+/* Enlaces: subrayado más limpio, especialmente en modo claro */
+a{
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+/* ---- Focus accesible y consistente ---- */
+:where(a, button, input, select, textarea):focus{
+  outline: none;
+}
+
+:where(a, button, input, select, textarea):focus-visible{
+  outline: 3px solid color-mix(in srgb, var(--accent) 55%, transparent);
+  outline-offset: 2px;
+  border-radius: 12px;
+}
+
+/* ---- Inputs/Selects: consistencia light/dark ---- */
+html.light-mode :where(input, select, textarea){
+  background: rgba(15, 23, 42, .03);
+}
+
+html.light-mode :where(input, select, textarea)::placeholder{
+  color: rgba(15, 23, 42, .52);
+}
+
+/* ---- Breadcrumbs: unificar estética en páginas informativas ---- */
+.breadcrumbs, .breadcrumb{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.breadcrumbs a, .breadcrumb a{
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.breadcrumbs a:hover, .breadcrumb a:hover{
+  opacity: .85;
+}
+
+/* ---- Botones: micro-polish sin cambiar el look ---- */
+.btn{
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:active{
+  transform: translateY(1px);
+}
+
+/* ---- Optimización de animaciones para móvil ---- */
+@media (pointer: coarse), (hover: none) {
+  /* Simplificar logo en móvil */
+  .logo{
+    animation: gradientShift 8s ease infinite;
+  }
+  .logo::before, .logo::after{
+    animation: none;
+  }
+
+  /* Desactivar partículas en móvil */
+  .particle{
+    display: none;
+  }
+
+  /* Simplificar backdrop-filter en móvil para mejor rendimiento */
+  .card, .btn, .pill{
+    backdrop-filter: none;
+  }
+
+  /* Reducir complejidad de sombras en móvil */
+  .card, .heroCard{
+    box-shadow: var(--shadowMobile, 0 4px 12px rgba(0,0,0,.30));
+  }
+
+  .btn{
+    box-shadow: var(--shadowBtnMobile, 0 2px 8px rgba(0,0,0,.20));
+  }
+
+  /* Simplificar hover en móvil (usar :active en su lugar) */
+  .card:hover, .btn:hover, .pill:hover{
+    transform: none;
+  }
+
+  /* Desactivar aurora/gradiente de fondo animado en móvil */
+  body::before{
+    opacity: 0 !important;
+    display: none;
+  }
+}
+
+/* ---- Reducir animaciones si el usuario lo pide ---- */
+@media (prefers-reduced-motion: reduce){
+  *{
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* =========================================================
+   PVPC Observatorio — acercarlo al "shell" LuzFija
+   (sin reescribir toda la página)
+   ========================================================= */
+
+.pvpc-obs{
+  margin-top: 8px;
+}
+
+.pvpc-obs .obs-hero{
+  text-align: left;
+  margin-bottom: 34px;
+}
+
+.pvpc-obs .obs-eyebrow{
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  box-shadow: none;
+  backdrop-filter: none;
+  animation: none;
+}
+
+.pvpc-obs .obs-hero h1{
+  font-size: clamp(28px, 5.2vw, 46px);
+  line-height: 1.06;
+  margin-bottom: 12px;
+  text-shadow: none;
+}
+
+.pvpc-obs .obs-lead{
+  font-size: 1rem;
+  max-width: 72ch;
+  margin: 0;
+}
+
+.pvpc-obs .obs-hero__panel{
+  margin-top: 22px;
+  gap: 22px;
+}
+
+.pvpc-obs .obs-controls{
+  width: 100%;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  border-radius: var(--radius);
+  padding: 14px;
+  border: 1px solid var(--border);
+  background: var(--card-bg);
+  box-shadow: var(--shadow2);
+  backdrop-filter: none;
+}
+
+.pvpc-obs .obs-controls:hover{
+  transform: none;
+  box-shadow: var(--shadow2);
+  border-color: var(--border2);
+}
+
+/* Hacer que los cards del observatorio encajen con los cards globales */
+.pvpc-obs :where(.obs-card, .obs-panel, .obs-grid > *):not(.card){
+  border-radius: var(--radius);
+}
+
+/* Ajuste móvil: menos aire, evitar saltos */
+@media (max-width: 640px){
+  .pvpc-obs .obs-hero{ margin-bottom: 22px; }
+  .pvpc-obs .obs-controls{ gap: 12px; }
+}
+
+/* =========================================================
+   UNIFICACIÓN DE HEADER EN TODAS LAS PÁGINAS
+   ========================================================= */
+
+/* Asegurar que .actions tenga el mismo layout en todas las páginas */
+.actions{
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+/* Botones de navegación centrales */
+.actions-center{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Botones de tema y menú a la derecha */
+.actions-right{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+/* Responsive: en móvil, reorganizar el header */
+@media (max-width: 768px){
+  .actions{
+    width: 100%;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  .actions-center{
+    gap: 6px;
+  }
+
+  .actions-right{
+    margin-left: 0;
+    gap: 6px;
+  }
+
+  .actions-center .btn,
+  .actions-right .btn{
+    min-width: 44px;
+    min-height: 44px;
+    padding: 8px;
+    justify-content: center;
+  }
+
+  /* Texto de botones oculto en móvil para ahorrar espacio */
+  .actions-center .btn-text{
+    display: none;
+  }
+
+  /* Excepción: botones de función de la home (factura, CSV, PVPC, solar)
+     mantienen etiqueta visible bajo el icono para que sean descubribles */
+  #btnSubirFactura,
+  #btnSubirCSV,
+  #btnPVPCInfo,
+  .actions-center .btn-feature{
+    flex-direction: column;
+    gap: 3px;
+    flex: 0 0 64px;
+    width: 64px;
+    min-width: 64px;
+    padding: 7px 6px;
+    justify-content: center;
+  }
+
+  #btnSubirFactura .btn-text,
+  #btnSubirCSV .btn-text,
+  #btnPVPCInfo .btn-text,
+  .actions-center .btn-feature .btn-text{
+    display: block;
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 1.1;
+    letter-spacing: 0;
+    text-align: center;
+  }
+}
+
+/* =========================================================
+   CONSISTENCIA VISUAL GLOBAL - Ultra Pro
+   ========================================================= */
+
+/* ---- Todos los modales con estilo unificado ---- */
+.modal-overlay{
+  transition: opacity 0.3s ease, visibility 0.3s ease, backdrop-filter 0.3s ease;
+}
+
+.modal-content, .desglose-modal{
+  transition: opacity 0.3s ease, visibility 0.3s ease, transform 0.3s ease, background 0.3s ease;
+}
+
+/* Botones de cerrar modales: estilo unificado */
+.modal-x, .desglose-close{
+  width: 40px;
+  height: 40px;
+  min-width: 40px;
+  min-height: 40px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 18px;
+  line-height: 1;
+  padding: 0;
+}
+
+/* ---- Tooltips: consistencia entre light/dark ---- */
+#globalTooltip{
+  background: var(--card);
+  border: 1px solid var(--border2);
+  color: var(--text);
+  box-shadow: var(--shadow2);
+  backdrop-filter: blur(12px);
+  transition: opacity 0.2s ease, transform 0.2s ease, background 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+/* ---- Scrollbar personalizado (solo desktop) ---- */
+@media (pointer: fine) {
+  ::-webkit-scrollbar{
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track{
+    background: var(--card);
+    border-radius: 10px;
+  }
+  ::-webkit-scrollbar-thumb{
+    background: var(--border2);
+    border-radius: 10px;
+    transition: background 0.2s ease;
+  }
+  ::-webkit-scrollbar-thumb:hover{
+    background: var(--accent);
+  }
+}
+
+/* ---- Pills y badges: consistencia ---- */
+.pill, .badge, .u-pill-accent{
+  transition: background 0.3s ease, border-color 0.3s ease, color 0.3s ease;
+}
+
+/* ---- Cards: hover unificado ---- */
+.card, .heroCard, .statCard{
+  will-change: transform;
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease, border-color 0.3s ease;
+}
+
+/* ---- Formularios: focus ring consistente ---- */
+.input:focus, select:focus, textarea:focus{
+  outline: none;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: var(--accent);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+/* ---- Tablas: hover row consistente ---- */
+#table tbody tr{
+  transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* ---- Toast notifications: transiciones suaves ---- */
+.toast{
+  transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease, color 0.3s ease;
+}
+
+/* ---- Botón scroll-to-results: consistencia ---- */
+.scroll-btn{
+  transition: opacity 0.3s ease, transform 0.3s ease, background 0.3s ease;
+}
+
+/* ---- Menú contextual: transiciones ---- */
+.menuPanel, .menu{
+  transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease, background 0.3s ease;
+}
+
+.menuItem{
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+/* ---- Consistency: todos los enlaces ---- */
+a{
+  transition: color 0.15s ease, opacity 0.15s ease, text-decoration-color 0.15s ease;
+}
+
+/* ---- Consistency: todos los botones ---- */
+button, .btn{
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* ---- Chart bars: transiciones suaves ---- */
+.chartTop-bar{
+  transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
+}
+
+/* ---- Filtros de tabla: estado activo consistente ---- */
+.fbtn{
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+
+.fbtn.active{
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+/* ---- PWA install button: consistencia ---- */
+#lf-install-pwa{
+  transition: all 0.2s ease;
+}
+
+/* ---- Guides banner: hover suave ---- */
+.guides-banner{
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background 0.3s ease;
+}
+
+/* ---- Footer: links consistentes ---- */
+.footer-container a{
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+
+/* ---- Breadcrumbs: consistencia ---- */
+.breadcrumb, .breadcrumbs{
+  transition: color 0.15s ease;
+}
+
+/* ---- SEO fold: detalles expandibles ---- */
+.seoDetails{
+  transition: background 0.2s ease, border-color 0.3s ease;
+}
+
+.seoDetails[open]{
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 16px;
+}
+
+summary{
+  cursor: pointer;
+  padding: 12px;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+summary:hover{
+  background: var(--card2);
+  border-radius: 8px;
+}
+
+/* =========================================================
+   CASOS EDGE Y FIXES FINALES
+   ========================================================= */
+
+/* Asegurar que los emojis no rompan el layout */
+span[aria-label],
+.btn span:first-child{
+  display: inline-block;
+  vertical-align: middle;
+}
+
+/* Fix: inputs de checkbox/radio no deben tener max-width */
+input[type="checkbox"],
+input[type="radio"]{
+  max-width: none;
+  width: auto;
+  height: auto;
+}
+
+/* Fix: SVG logos no deben distorsionarse */
+.logo svg{
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Fix: prevenir doble tap zoom en botones iOS */
+button, .btn, a{
+  touch-action: manipulation;
+}
+
+/* Fix: text selection bonito */
+::selection{
+  background: color-mix(in srgb, var(--accent) 30%, transparent);
+  color: var(--text);
+}
+
+/* Fix: loading spinner consistente */
+.spinner{
+  border-color: color-mix(in srgb, var(--accent) 20%, transparent);
+  border-top-color: var(--accent);
+}
+
+/* Fix: placeholder text consistente en ambos temas */
+::placeholder{
+  color: var(--muted2);
+  opacity: 0.7;
+  transition: color 0.3s ease;
+}
+
+/* Fix: focus visible solo con teclado, no con mouse */
+:focus:not(:focus-visible){
+  outline: none;
+}
+
+/* Fix: alto mínimo en touch targets (WCAG) - solo en elementos principales */
+@media (pointer: coarse){
+  button:not(.modal-x):not(.desglose-close):not(.tooltip),
+  .btn:not(.tooltip),
+  a[role="button"]{
+    min-height: 44px;
+  }
+}
+
+/* Fix: smooth scroll solo si no hay preferencia de reduced motion */
+@media (prefers-reduced-motion: no-preference){
+  html{
+    scroll-behavior: smooth;
+  }
+}
+
+/* Fix: skip link accesible */
+.skip-link{
+  position: absolute;
+  top: -999px;
+  left: -999px;
+  background: var(--accent);
+  color: white;
+  padding: 12px 20px;
+  text-decoration: none;
+  border-radius: 0 0 8px 0;
+  z-index: 10000;
+  transition: all 0.2s ease;
+}
+
+.skip-link:focus{
+  top: 0;
+  left: 0;
+}
+
+/* Fix: loading states consistentes */
+.loading, [aria-busy="true"]{
+  cursor: wait;
+  opacity: 0.6;
+  pointer-events: none;
+}
+
+/* Fix: disabled states consistentes */
+:disabled, [disabled], [aria-disabled="true"]{
+  cursor: not-allowed !important;
+  opacity: 0.5 !important;
+}
+
+/* Fix: tablas en móvil sin romper layout */
+@media (max-width: 640px){
+  table{
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Asegurar que el grid de resultados no se rompa */
+  .grid{
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+}
+
+/* Fix: z-index stack consistente */
+.topbar{
+  z-index: 100;
+}
+
+.modal-overlay, .desglose-overlay{
+  z-index: 9998;
+}
+
+.modal-content, .desglose-modal{
+  z-index: 9999;
+}
+
+#globalTooltip{
+  z-index: 10000;
+}
+
+.toast{
+  z-index: 10001;
+}
+
+.skip-link:focus{
+  z-index: 10002;
+}
+
+/* =========================================================
+   FIN PRO POLISH LAYER
+   ========================================================= */

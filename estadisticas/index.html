@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-fqJE+sAD8pDrFjp9FxILIm0TfTkE8rMtn8fRmdAlMI8=' 'sha256-dxVZWudYL8DqI0qsi1y7eCvUN0O03ru4QuBxeDx5I/Y=' 'sha256-QPmgvt4rH3byN5JjxtY8e1EGSFX4arXJcUrkI9StAPk=' 'sha256-xBlSwXO5h/pzLoXlMPrnZYsUdZk0ZzThb8LUwWT2+LE='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
+  <script>
+  try {
+    if (typeof window.currentYear !== 'number') window.currentYear = new Date().getFullYear();
+    var currentYear = window.currentYear;
+    window.currentYear = currentYear;
+  } catch (_) {}
+  (function () {
+    if (window.__LF_INLINE_LEGACY_CURRENTYEAR_FILTER === true) return;
+    window.__LF_INLINE_LEGACY_CURRENTYEAR_FILTER = true;
+    function msgOf(reason) {
+      if (!reason) return '';
+      if (reason instanceof Error) return String(reason.message || reason.name || '');
+      if (typeof reason === 'object' && typeof reason.message === 'string') return reason.message;
+      return String(reason);
+    }
+    function norm(value) {
+      var text = String(value || '').toLowerCase();
+      try { return text.normalize('NFD').replace(/[\u0300-\u036f]/g, ''); }
+      catch (_) { return text; }
+    }
+    window.addEventListener('unhandledrejection', function (e) {
+      try {
+        var msg = norm(msgOf(e && e.reason));
+        if (!msg || msg.indexOf('currentyear') === -1) return;
+        if (msg.indexOf('not defined') === -1 &&
+            msg.indexOf('undefined') === -1 &&
+            msg.indexOf('no esta definid') === -1) return;
+        if (typeof e.preventDefault === 'function') e.preventDefault();
+        if (typeof e.stopImmediatePropagation === 'function') e.stopImmediatePropagation();
+      } catch (_) {}
+    }, true);
+  })();
+  </script>
+  <script src="/js/config.js?v=20260719-113708"></script>
+  <script src="/js/theme.js?v=20260719-113708"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark light"/>
+  <meta id="meta-description" name="description" content="Histórico y evolución del PVPC y precios de excedentes solares en España. Gráficos interactivos, análisis por horas y herramientas de ahorro gratuitas.">
+  <meta name="keywords" content="PVPC hoy, precio luz por horas, observatorio PVPC, excedentes solares, estadísticas electricidad España, precio kWh, REE ESIOS, tendencia precio luz, horas baratas luz, comparativa precios luz años">
+  <link rel="canonical" href="https://luzfija.es/estadisticas/">
+  <title>Histórico PVPC y Excedentes Solares | Observatorio LuzFija</title>
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Histórico PVPC y Excedentes Solares | Observatorio LuzFija">
+  <meta property="og:description" content="Histórico y evolución del PVPC y precios de excedentes solares en España. Gráficos interactivos, análisis por horas y herramientas de ahorro gratuitas.">
+  <meta property="og:url" content="https://luzfija.es/estadisticas/">
+  <meta property="og:image" content="https://luzfija.es/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Histórico PVPC y Excedentes Solares | Observatorio LuzFija"/>
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:site_name" content="LuzFija.es">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Histórico PVPC y Excedentes Solares | Observatorio LuzFija">
+  <meta name="twitter:description" content="Histórico y evolución del PVPC y precios de excedentes solares en España. Gráficos interactivos, análisis por horas y herramientas de ahorro gratuitas.">
+  <meta name="twitter:image" content="https://luzfija.es/og.png">
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+  <link rel="preconnect" href="https://luzfija.goatcounter.com">
+  <link rel="alternate" type="text/plain" title="LuzFija.es - LLM reference" href="https://luzfija.es/llms.txt">
+  <link rel="alternate" type="text/plain" title="LuzFija.es - Extended LLM reference" href="https://luzfija.es/llms-full.txt">
+  <link rel="stylesheet" href="/fonts.css?v=20260719-113708">
+  <link rel="stylesheet" href="/styles.css?v=20260719-113708">
+  <link rel="stylesheet" href="/pro.css?v=20260719-113708">
+  <link rel="stylesheet" href="/estadisticas/estadisticas.css?v=20260719-113708">
+  <link rel="stylesheet" href="/estadisticas/estadisticas-mejorado.css?v=20260719-113708">
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Saltar al contenido</a>
+
+  <div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <a class="logo" href="/" aria-label="Inicio">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+            <defs>
+              <linearGradient id="logoGrad1pvpc" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1"></stop>
+                <stop offset="50%" style="stop-color:#f59e0b;stop-opacity:1"></stop>
+                <stop offset="100%" style="stop-color:#fbbf24;stop-opacity:1"></stop>
+              </linearGradient>
+              <linearGradient id="logoGrad2pvpc" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1"></stop>
+                <stop offset="100%" style="stop-color:#6366f1;stop-opacity:1"></stop>
+              </linearGradient>
+              <filter id="glowpvpc">
+                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            <circle cx="50" cy="50" r="35" fill="url(#logoGrad2pvpc)" opacity="0.2"></circle>
+            <path d="M 55 15 L 35 48 L 48 48 L 45 85 L 70 45 L 57 45 Z" fill="url(#logoGrad1pvpc)" filter="url(#glowpvpc)"></path>
+          </svg>
+        </a>
+        <div>
+          <div class="kicker">Observatorio PVPC</div>
+          <nav class="breadcrumbs" aria-label="Navegación">
+            <a href="/">Comparador</a>
+            <span class="muted">/</span>
+            <a href="/comparador-tarifas-solares.html">Tarifas solares</a>
+            <span class="muted">/</span>
+            <span aria-current="page">PVPC</span>
+          </nav>
+        </div>
+      </div>
+
+      <div class="actions">
+        <div class="actions-center">
+          <a href="/" class="btn" aria-label="Ir al comparador principal">
+            <span>🏠</span><span class="btn-text">Comparador</span>
+          </a>
+          <a href="/comparador-tarifas-solares.html" class="btn" aria-label="Ir al comparador de tarifas solares">
+            <span>☀️</span><span class="btn-text">Tarifas Solares</span>
+          </a>
+        </div>
+
+        <div class="actions-right">
+          <button class="btn" id="btnTheme" type="button" title="Cambiar tema" aria-label="Cambiar tema">🌓</button>
+          <div class="menu" id="menuRoot">
+            <button class="btn" id="btnMenu" type="button" aria-haspopup="menu" aria-controls="menuPanel" aria-expanded="false" title="Opciones" aria-label="Abrir menú de opciones">⚙️</button>
+            <div class="menuPanel" id="menuPanel" role="menu" aria-label="Opciones" aria-orientation="vertical" aria-hidden="true">
+              <div class="menuHint">Opciones</div>
+              <a class="menuItem" role="menuitem" href="/">🏠 Comparador principal</a>
+              <a class="menuItem" role="menuitem" href="/comparador-tarifas-solares.html">🌞 Tarifas solares</a>
+              <a class="menuItem" role="menuitem" href="/guias.html">📚 Guías</a>
+              <a class="menuItem" role="menuitem" href="/como-funciona-luzfija.html">🧭 Cómo funciona</a>
+              <div class="menuDivider"></div>
+              <a class="menuItem u-no-underline" href="mailto:hola@luzfija.es" role="menuitem">
+                <span class="mi-left">✉️ Contacto</span>
+                <span class="mi-right">email</span>
+              </a>
+              <div class="menuDivider"></div>
+              <button class="menuItem" id="btnClearCache" type="button" role="menuitem" aria-label="Limpiar caché">
+                <span class="mi-left">🗑️ Limpiar caché</span>
+                <span class="mi-right">web</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <main id="main" class="pvpc-obs">
+    <header class="obs-hero">
+      <div class="obs-hero__copy">
+        <div class="obs-eyebrow">Observatorio PVPC y excedentes</div>
+        <h1>Histórico PVPC, excedentes y perfil horario</h1>
+        <p class="obs-lead">
+          Consulta la evolución de PVPC y excedentes, identifica patrones de ahorro y analiza también tus propios datos desde CSV/XLSX.
+        </p>
+      </div>
+
+      <div class="obs-hero__panel">
+        <div class="obs-controls" role="group" aria-label="Parámetros del observatorio">
+          <div class="control">
+            <label for="typeSelector">Dato</label>
+            <div class="select-wrapper">
+              <select id="typeSelector">
+                <option value="pvpc">Consumo (PVPC)</option>
+                <option value="surplus">Excedentes</option>
+              </select>
+            </div>
+          </div>
+          <div class="control">
+            <label for="geoSelector">Mercado</label>
+            <div class="select-wrapper">
+              <select id="geoSelector">
+                <option value="8741">Península</option>
+                <option value="8742">Canarias</option>
+                <option value="8743">Baleares</option>
+                <option value="8744">Ceuta</option>
+                <option value="8745">Melilla</option>
+              </select>
+            </div>
+          </div>
+          <div class="control">
+            <label for="yearSelector">Año</label>
+            <div class="select-wrapper">
+              <select id="yearSelector">
+                <option value="2026">2026</option>
+                <option value="2025">2025</option>
+                <option value="2024">2024</option>
+                <option value="2023">2023</option>
+                <option value="2022">2022</option>
+                <option value="2021">2021</option>
+              </select>
+            </div>
+          </div>
+          <div class="control">
+            <label for="monthSelector">Mes (perfil horario)</label>
+            <div class="select-wrapper">
+              <select id="monthSelector">
+                <option value="all">Todo el año</option>
+                <option value="01">Enero</option>
+                <option value="02">Febrero</option>
+                <option value="03">Marzo</option>
+                <option value="04">Abril</option>
+                <option value="05">Mayo</option>
+                <option value="06">Junio</option>
+                <option value="07">Julio</option>
+                <option value="08">Agosto</option>
+                <option value="09">Septiembre</option>
+                <option value="10">Octubre</option>
+                <option value="11">Noviembre</option>
+                <option value="12">Diciembre</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="obs-kpis" aria-label="Resumen rápido">
+          <div class="kpis-grid">
+            <!-- 1. Último Día -->
+            <div class="kpi">
+              <div class="kpi__header">
+                <div class="kpi__label">Último día</div>
+                <div class="kpi__icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"></path></svg>
+                </div>
+              </div>
+              <div class="kpi__body">
+                <div class="kpi__value" id="kpiLast">—</div>
+                <div class="kpi__sub" id="kpiLastSub">Cargando…</div>
+              </div>
+            </div>
+
+            <!-- 2. Media 7 días -->
+            <div class="kpi">
+              <div class="kpi__header">
+                <div class="kpi__label" id="lblKpi2">Media 7 días</div>
+                <div class="kpi__icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                </div>
+              </div>
+              <div class="kpi__body">
+                <div class="kpi__value" id="kpiAvg7">—</div>
+                <div class="kpi__sub" id="kpiAvg7Sub">Cargando…</div>
+              </div>
+            </div>
+
+            <!-- 3. Media 30 días -->
+            <div class="kpi">
+              <div class="kpi__header">
+                <div class="kpi__label" id="lblKpi3">Media 30 días</div>
+                <div class="kpi__icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </div>
+              </div>
+              <div class="kpi__body">
+                <div class="kpi__value" id="kpiAvg30">—</div>
+                <div class="kpi__sub" id="kpiAvg30Sub">Cargando…</div>
+              </div>
+            </div>
+
+            <!-- 4. Media 12 meses -->
+            <div class="kpi">
+              <div class="kpi__header">
+                <div class="kpi__label" id="lblKpi4">Media 12 meses</div>
+                <div class="kpi__icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18.7 8l-5.1 5.2-2.8-2.7L7 14.3"/></svg>
+                </div>
+              </div>
+              <div class="kpi__body">
+                <div class="kpi__value" id="kpiAvg12m">—</div>
+                <div class="kpi__sub" id="kpiAvg12mSub">Cargando…</div>
+              </div>
+            </div>
+
+            <!-- 5. Vs Año Anterior -->
+            <div class="kpi">
+              <div class="kpi__header">
+                <div class="kpi__label">Vs año anterior</div>
+                <div class="kpi__icon">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3h5v5"/><path d="M21 3L9 15"/><path d="M21 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6"/></svg>
+                </div>
+              </div>
+              <div class="kpi__body">
+                <div class="kpi__value" id="kpiYoY">—</div>
+                <div class="kpi__sub" id="kpiYoYSub">A mismas fechas</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <nav class="obs-subnav" aria-label="Secciones del observatorio">
+      <a href="#evolucion">Evolución</a>
+      <a href="#horas">Horas</a>
+      <a href="#comparativa">Comparativa</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+
+    <!-- 3.5) CSV EXCEDENTES -->
+    <section id="csv-excedentes" class="obs-section">
+      <div class="obs-section__head">
+        <h2>Tu CSV de excedentes</h2>
+        <p class="muted">
+          Sube tu CSV/XLSX con excedentes horarios y calcula cuánto te habrían compensado (mes a mes y total anual).
+        </p>
+      </div>
+
+      <div class="obs-card">
+        <div class="csv-panel">
+          <div class="csv-actions">
+            <input type="file" id="csvExcedentesInput" accept=".csv,.xlsx,.xls" aria-label="Subir archivo CSV o XLSX de excedentes" hidden>
+            <button class="btn" id="csvExcedentesBtn" type="button">📤 Subir CSV/XLSX</button>
+            <div class="micro muted" id="csvExcedentesHint">Procesado localmente en tu navegador. No se sube a ningún servidor.</div>
+          </div>
+
+          <div class="csv-kpis" id="csvExcedentesKpis" hidden>
+            <div class="csv-kpi">
+              <div class="csv-kpi__label">Excedentes anuales</div>
+              <div class="csv-kpi__value" id="csvTotalKwh">—</div>
+              <div class="csv-kpi__sub">Vertidos</div>
+            </div>
+            <div class="csv-kpi">
+              <div class="csv-kpi__label">Compensación anual</div>
+              <div class="csv-kpi__value" id="csvTotalEur">—</div>
+              <div class="csv-kpi__sub">Estimados</div>
+            </div>
+            <div class="csv-kpi">
+              <div class="csv-kpi__label">Precio medio efectivo</div>
+              <div class="csv-kpi__value" id="csvAvgEurKwh">—</div>
+              <div class="csv-kpi__sub">Media anual</div>
+            </div>
+            <div class="csv-kpi">
+              <div class="csv-kpi__label">Mejor mes</div>
+              <div class="csv-kpi__value" id="csvBestMonth">—</div>
+              <div class="csv-kpi__sub">Media del mes</div>
+            </div>
+            <div class="csv-kpi">
+              <div class="csv-kpi__label">Peor mes</div>
+              <div class="csv-kpi__value" id="csvWorstMonth">—</div>
+              <div class="csv-kpi__sub">Media del mes</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="csv-summary" id="csvExcedentesSummary" hidden>
+          <div class="csv-summary__item">
+            <strong>Hora pico:</strong> <span id="csvPeakHour">—</span>
+          </div>
+          <div class="csv-summary__item">
+            <strong>Top horas:</strong> <span id="csvTopHours">—</span>
+          </div>
+        </div>
+
+        <div class="csv-table-wrap" id="csvExcedentesTableWrap" hidden>
+          <table class="csv-table">
+            <thead>
+              <tr>
+                <th>Mes</th>
+                <th title="Total de energía excedentaria vertida a la red">Energía vertida</th>
+                <th title="Precio medio ponderado obtenido por tus excedentes">Precio medio</th>
+                <th title="Valor económico total estimado de los excedentes">Importe</th>
+                <th title="Tramo horario donde se concentra el 80% de tu vertido">Tramo principal (80%)</th>
+                <th title="Hora individual con mayor volumen de vertido">Hora pico vertido</th>
+              </tr>
+            </thead>
+            <tbody id="csvExcedentesTableBody"></tbody>
+          </table>
+        </div>
+
+        <div class="micro muted" id="csvExcedentesNote" hidden></div>
+      </div>
+    </section>
+
+    <!-- 2) EVOLUCIÓN -->
+    <section id="evolucion" class="obs-section">
+      <div class="obs-section__head">
+        <h2 id="evolutionTitle">Evolución del PVPC</h2>
+        <p class="muted">
+          Vista <strong>mensual</strong> para entender la tendencia sin ruido (por defecto). Cambia a “diaria” si quieres el detalle.
+        </p>
+      </div>
+
+      <div class="obs-card">
+        <div class="chart-head">
+          <div class="chart-title">
+            <h3 id="trendTitle">Tendencia del año</h3>
+            <div class="micro muted" id="trendMeta">Cargando…</div>
+          </div>
+          <div class="segmented" role="tablist" aria-label="Modo del gráfico">
+            <button id="trendModeMonthly" class="segmented__btn" type="button" role="tab" aria-selected="false">Mensual</button>
+            <button id="trendModeDaily" class="segmented__btn is-active" type="button" role="tab" aria-selected="true">Diaria</button>
+          </div>
+        </div>
+
+        <div class="chart-wrap">
+          <canvas id="trendChart" height="140" role="img" aria-label="Gráfico de tendencia de precios del año seleccionado"></canvas>
+        </div>
+
+        <div class="insights-row" id="trendInsights">
+          <div class="insight">
+            <div class="insight__k" id="insightCheapest">—</div>
+              <div class="insight__l" id="insightCheapestLabel">Mejor mes (media)</div>
+          </div>
+          <div class="insight">
+            <div class="insight__k" id="insightWorst">—</div>
+              <div class="insight__l" id="insightWorstLabel">Peor mes (media)</div>
+          </div>
+          <div class="insight">
+            <div class="insight__k" id="insightRange">—</div>
+              <div class="insight__l" id="insightRangeLabel">Rango (min–máx)</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3) HORAS -->
+    <section id="horas" class="obs-section">
+      <div class="obs-section__head">
+        <h2 id="hourlyTitle">¿A qué horas suele ser más barato?</h2>
+        <p class="muted" id="hourlySubtitle">
+          Perfil horario promedio del año. Útil para desplazar consumos: termo, lavadora, recarga, cocina, etc.
+        </p>
+      </div>
+
+      <div class="obs-card">
+        <div class="chart-head">
+          <div class="chart-title">
+            <h3>Perfil horario promedio</h3>
+            <div class="micro muted" id="hourlyMeta">Cargando…</div>
+          </div>
+        </div>
+        <div class="chart-wrap">
+          <canvas id="hourlyChart" height="140" role="img" aria-label="Gráfico del perfil horario promedio de precios"></canvas>
+        </div>
+
+        <div class="callout" id="hourlyCallout">
+          <strong>Consejo:</strong> Cargando…
+        </div>
+      </div>
+    </section>
+
+    <!-- 4) COMPARATIVA -->
+    <section id="comparativa" class="obs-section">
+      <div class="obs-section__head">
+        <h2>Comparativa por años</h2>
+        <p class="muted">
+          Comparación <strong>mensual</strong> (por defecto) para que sea legible. Activa/desactiva años para ver tendencias de fondo.
+        </p>
+      </div>
+
+      <div class="obs-card">
+        <div class="compare-grid">
+          <div class="compare-controls">
+            <h3>Años</h3>
+            <div id="compareYears" class="year-chips" aria-label="Selecciona años"></div>
+            <div class="micro muted" style="margin-top:.5rem">Sugerencia: 3 líneas máximo para que se entienda.</div>
+          </div>
+          <div class="compare-chart">
+            <div class="chart-wrap">
+              <canvas id="compareChart" height="160" role="img" aria-label="Gráfico comparativo de precios entre años"></canvas>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5) FAQ -->
+    <section id="faq" class="obs-section">
+      <div class="obs-section__head">
+        <h2>Preguntas frecuentes sobre PVPC</h2>
+        <p class="muted">Respuestas cortas y sin humo.</p>
+      </div>
+
+      <div class="faq">
+        <details>
+          <summary>¿Qué es el PVPC y por qué cambia cada hora?</summary>
+          <div class="faq__body">
+            El PVPC es una tarifa regulada cuyo precio refleja el coste horario de la electricidad en el mercado mayorista y ajustes del sistema. Por eso puede variar mucho entre horas y entre días.
+          </div>
+        </details>
+
+        <details>
+          <summary>¿Esto predice el precio de mañana?</summary>
+          <div class="faq__body">
+            No. Este observatorio usa histórico para detectar patrones y ayudarte a elegir horarios habituales. Para una simulación personalizada de tu caso, usa el simulador.
+          </div>
+        </details>
+
+          <details>
+            <summary id="faqCheapestSummary">¿Cuándo suele ser más barato?</summary>
+            <div class="faq__body" id="faqCheapestBody">
+            A menudo las horas centrales del día tienden a ser más baratas (sobre todo con alta producción solar), pero depende del año y de la zona. El gráfico “Perfil horario” te lo muestra de forma directa.
+          </div>
+        </details>
+
+        <details>
+          <summary>¿Por qué “laborables” no incluye festivos?</summary>
+          <div class="faq__body">
+            Para mantener la herramienta simple y rápida, se usa un criterio calendario básico (lunes–viernes). Aun así, el patrón horario suele ser lo bastante estable como para orientar decisiones de consumo.
+          </div>
+        </details>
+      </div>
+    </section>
+
+    <footer class="obs-footer">
+      <p class="micro muted">
+        Datos: REE/ESIOS (datasets estáticos actualizados). Este observatorio cubre PVPC y excedentes; para comparar tarifas y factura completa, usa el simulador y el comparador.
+      </p>
+    </footer>
+    </main>
+  </div>
+
+  <script src="/js/tracking.js?v=20260719-113708"></script>
+  <script src="/js/lf-sw-update.js?v=20260719-113708" defer></script>
+  <script src="/js/shell-lite.js?v=20260719-113708" defer></script>
+  <script src="/vendor/chartjs/chart.umd.js?v=20260719-113708"></script>
+  <script src="/js/lf-csv-utils.js?v=20260719-113708"></script>
+  <script src="/js/lf-surplus-prices.js?v=20260719-113708"></script>
+  <script src="/js/pvpc-stats-engine.js?v=20260719-113708"></script>
+  <script src="/js/pvpc-stats-csv.js?v=20260719-113708"></script>
+  <script src="/js/pvpc-stats-ui.js?v=20260719-113708"></script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Observatorio PVPC y Excedentes",
+    "alternateName": "Observatorio PVPC LuzFija",
+    "description": "Observatorio de PVPC y excedentes con datos oficiales REE/ESIOS: tendencia anual, perfil horario, comparativa multianual y análisis personal desde CSV/XLSX.",
+    "url": "https://luzfija.es/estadisticas/",
+    "logo": "https://luzfija.es/logo-512.png",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Any",
+    "image": "https://luzfija.es/og.png",
+    "inLanguage": "es",
+    "dateModified": "2026-07-19",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR",
+      "availability": "https://schema.org/InStock"
+    },
+    "creator": {
+      "@type": "Person",
+      "name": "aLMaX"
+    }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    "itemListElement": [
+      {
+        "@type": "ListItem",
+        "position": 1,
+        "name": "Comparador",
+        "item": "https://luzfija.es/"
+      },
+      {
+        "@type": "ListItem",
+        "position": 2,
+        "name": "Tarifas solares",
+        "item": "https://luzfija.es/comparador-tarifas-solares.html"
+      },
+      {
+        "@type": "ListItem",
+        "position": 3,
+        "name": "Observatorio PVPC y Excedentes",
+        "item": "https://luzfija.es/estadisticas/"
+      }
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    "mainEntity": [
+      {
+        "@type": "Question",
+        "name": "¿Qué es el PVPC y por qué cambia cada hora?",
+        "acceptedAnswer": { "@type": "Answer", "text": "El PVPC es una tarifa regulada cuyo precio varía por hora porque refleja el coste horario del mercado y ajustes del sistema. Por eso cambia entre horas y días." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Esto predice el precio de mañana?",
+        "acceptedAnswer": { "@type": "Answer", "text": "No. Este observatorio usa histórico para detectar patrones y orientar horarios habituales. Para una simulación personalizada de tu caso, utiliza el simulador." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Cuándo suele ser más barato o mejor pagado?",
+        "acceptedAnswer": { "@type": "Answer", "text": "A menudo las horas centrales del día tienden a ser más baratas para consumo y a pagar mejor los excedentes (con alta producción solar), pero depende del año y la zona. El perfil horario promedio del observatorio lo muestra de forma directa." }
+      },
+      {
+        "@type": "Question",
+        "name": "¿Por qué “laborables” no incluye festivos?",
+        "acceptedAnswer": { "@type": "Answer", "text": "Se usa un criterio simple (lunes a viernes) para mantener la herramienta rápida y fácil de entender. Aun así, el patrón horario suele orientar bien la mayoría de decisiones de consumo." }
+      }
+    ]
+  }
+  </script>
+</body>
+</html>

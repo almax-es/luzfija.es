@@ -1,0 +1,1983 @@
+{
+  "_meta": {
+    "copyright": "Copyright (c) 2026 Luis Oscar Soler Bernal / LuzFija.es",
+    "license": "All rights reserved for LuzFija.es' selection, normalization, structure, annotations and curation. See CONTENT-LICENSE.md at https://github.com/almax-es/luzfija.es/blob/main/CONTENT-LICENSE.md",
+    "usage": "Commercial reuse, scraping or use for competing electricity comparison, PVPC analysis, invoice analysis, self-consumption, surplus compensation or virtual-battery services requires prior written permission."
+  },
+  "tarifas": [
+    {
+      "nombre": "Loviluz Lov VERANO",
+      "cPunta": 0.096,
+      "cLlano": 0.096,
+      "cValle": 0.096,
+      "p1": 0.0875,
+      "p2": 0.0875,
+      "web": "https://www.loviluz.com/tarifas.html",
+      "tipo": "1P",
+      "requisitos": "Consumo ≤ 5.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Plenitude",
+      "cPunta": 0.097296,
+      "cLlano": 0.097296,
+      "cValle": 0.097296,
+      "p1": 0.099984,
+      "p2": 0.099984,
+      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
+      "tipo": "1P",
+      "requisitos": "Potencia contratada ≤ 5 kW.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Visalia",
+      "cPunta": 0.097999,
+      "cLlano": 0.097999,
+      "cValle": 0.097999,
+      "p1": 0.071233,
+      "p2": 0.071233,
+      "web": "https://visalia.es/luz/fijo24horas/",
+      "tipo": "1P",
+      "requisitos": "Consumo ≤ 7.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA_PARCIAL",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Octopus Unicaja",
+      "cPunta": 0.098,
+      "cLlano": 0.098,
+      "cValle": 0.098,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://octopusenergy.es/unicaja#tarifas",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.01,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Clarity 0,09",
+      "cPunta": 0.09897,
+      "cLlano": 0.09897,
+      "cValle": 0.09897,
+      "p1": 0.128767,
+      "p2": 0.128767,
+      "web": "https://www.clarityenergy.es/tarifas-luz/",
+      "tipo": "1P",
+      "requisitos": "Revisión de precios semestral.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Eres Sobresaliente",
+      "cPunta": 0.099,
+      "cLlano": 0.099,
+      "cValle": 0.099,
+      "p1": 0.099,
+      "p2": 0.099,
+      "web": "https://eresenergia.com/#tarifas",
+      "tipo": "1P",
+      "requisitos": "Consumo ≤ 4.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "BonArea Relax",
+      "cPunta": 0.099,
+      "cLlano": 0.099,
+      "cValle": 0.099,
+      "p1": 0.099,
+      "p2": 0.099,
+      "web": "https://www.bonarea-energia.com/es/Electricitat/TarifaRelaxElectricitat",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "BonArea Solar Relax",
+      "cPunta": 0.099,
+      "cLlano": 0.099,
+      "cValle": 0.099,
+      "p1": 0.1099,
+      "p2": 0.1099,
+      "web": "https://www.bonarea-energia.com/es/Electricitat/TarifaSolarRelaxElectricitat",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "TE A Tu Aire Siempre",
+      "cPunta": 0.0999,
+      "cLlano": 0.0999,
+      "cValle": 0.0999,
+      "p1": 0.086274,
+      "p2": 0.086274,
+      "web": "https://www.totalenergies.es/es/hogares/tarifas-luz-gas/a-tu-aire-siempre",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.07,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA_PARCIAL",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Esluz Promo Verano 24h",
+      "cPunta": 0.1,
+      "cLlano": 0.1,
+      "cValle": 0.1,
+      "p1": 0.0839,
+      "p2": 0.0839,
+      "web": "https://esluz.es/tarifas-electricidad-hogares/",
+      "tipo": "1P",
+      "requisitos": "Precio promocional durante 6 meses, revisable al finalizar el periodo. Esta promoción está sujeta a estudio y validación del suministro.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Octopus Relax",
+      "cPunta": 0.103,
+      "cLlano": 0.103,
+      "cValle": 0.103,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://octopusenergy.es/precios",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.01,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Energya VM",
+      "cPunta": 0.104325,
+      "cLlano": 0.104325,
+      "cValle": 0.104325,
+      "p1": 0.090247,
+      "p2": 0.003014,
+      "web": "https://www.energyavm.es/luz/formula-fija-24-horas-luz/",
+      "tipo": "1P",
+      "requisitos": "25% descuento término energía durante 3 meses incluido en el precio. Consumo ≤ 6.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Imagina Base Sin Horas 4000",
+      "cPunta": 0.10744,
+      "cLlano": 0.10744,
+      "cValle": 0.10744,
+      "p1": 0.105527,
+      "p2": 0.04834,
+      "web": "https://online.imaginaenergia.com/luz?p=15915&canal=ade9e93a-5d82-42c4-9653-07ac798f74b1",
+      "tipo": "1P",
+      "requisitos": "Consumo ≤ 4.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Chippio Constante",
+      "cPunta": 0.109,
+      "cLlano": 0.109,
+      "cValle": 0.109,
+      "p1": 0.079,
+      "p2": 0.079,
+      "web": "https://chippio.es/tarifa-constante",
+      "tipo": "1P",
+      "requisitos": "No incluye Servicios de Ajuste.",
+      "incluyeServiciosAjuste": false,
+      "fv": {
+        "exc": -1.0,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Endesa Conecta",
+      "cPunta": 0.109,
+      "cLlano": 0.109,
+      "cValle": 0.109,
+      "p1": 0.093666,
+      "p2": 0.093666,
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/conecta-de-endesa",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Bualá",
+      "cPunta": 0.1098,
+      "cLlano": 0.1098,
+      "cValle": 0.1098,
+      "p1": 0.08059,
+      "p2": 0.08059,
+      "web": "https://buala.es/luz/",
+      "tipo": "1P",
+      "requisitos": "10% descuento término energía durante 12 meses incluido en el precio. No incluye Servicios de Ajuste.",
+      "incluyeServiciosAjuste": false,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 4.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Naturgy por uso",
+      "cPunta": 0.112,
+      "cLlano": 0.112,
+      "cValle": 0.112,
+      "p1": 0.12303,
+      "p2": 0.061562,
+      "web": "https://www.naturgy.es/hogar/luz/tarifa_por_uso_luz",
+      "tipo": "1P",
+      "requisitos": "Consumo ≤ 10.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Imagina Base Sin Horas 8000",
+      "cPunta": 0.11353,
+      "cLlano": 0.11353,
+      "cValle": 0.11353,
+      "p1": 0.105527,
+      "p2": 0.04834,
+      "web": "https://online.imaginaenergia.com/luz?p=15918&canal=ade9e93a-5d82-42c4-9653-07ac798f74b1",
+      "tipo": "1P",
+      "requisitos": "Consumo >4000 y ≤ 8.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Niba Zen",
+      "cPunta": 0.115,
+      "cLlano": 0.115,
+      "cValle": 0.115,
+      "p1": 0.089,
+      "p2": 0.089,
+      "web": "https://niba.es/luz-y-gas",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Imagina Sin Horas",
+      "cPunta": 0.119,
+      "cLlano": 0.119,
+      "cValle": 0.119,
+      "p1": 0.105527,
+      "p2": 0.04834,
+      "web": "https://online.imaginaenergia.com/luz?p=12305&cta_web=sin_Horas_header&canal=ade9e93a-5d82-42c4-9653-07ac798f74b1",
+      "tipo": "1P",
+      "requisitos": "20% descuento término energía durante 12 meses incluido en el precio.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Nordy 24H V",
+      "cPunta": 0.119,
+      "cLlano": 0.119,
+      "cValle": 0.119,
+      "p1": 0.079,
+      "p2": 0.079,
+      "web": "https://nordy.es/tarifas",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": -1.0,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 2.99
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Imagina Energía Solar",
+      "cPunta": 0.119,
+      "cLlano": 0.119,
+      "cValle": 0.119,
+      "p1": 0.105527,
+      "p2": 0.04834,
+      "web": "https://online.imaginaenergia.com/luz?p=13176&cta_web=solar_header&canal=ade9e93a-5d82-42c4-9653-07ac798f74b1",
+      "tipo": "1P",
+      "requisitos": "20% descuento término energía durante 12 meses incluido en el precio.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Seneo Tarifa 2",
+      "cPunta": 0.119,
+      "cLlano": 0.119,
+      "cValle": 0.119,
+      "p1": 0.089,
+      "p2": 0.089,
+      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Gana Energía",
+      "cPunta": 0.119,
+      "cLlano": 0.119,
+      "cValle": 0.119,
+      "p1": 0.089434,
+      "p2": 0.089434,
+      "web": "https://ganaenergia.com/tarifas-luz/24-horas",
+      "tipo": "1P",
+      "requisitos": "Monedero virtual incluido durante las 12 primeras facturas; después, desde unos 2,13 €/mes",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Eres 24",
+      "cPunta": 0.1197,
+      "cLlano": 0.1197,
+      "cValle": 0.1197,
+      "p1": 0.0879,
+      "p2": 0.0739,
+      "web": "https://eresenergia.com/#tarifas",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Nexus Estable",
+      "cPunta": 0.1199,
+      "cLlano": 0.1199,
+      "cValle": 0.1199,
+      "p1": 0.112899,
+      "p2": 0.052636,
+      "web": "https://www.nexusenergia.com/hogar/tarifas-luz/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Iberdrola Online",
+      "cPunta": 0.1199,
+      "cLlano": 0.1199,
+      "cValle": 0.1199,
+      "p1": 0.119151,
+      "p2": 0.058877,
+      "web": "https://www.iberdrola.es/luz/plan-online",
+      "tipo": "1P",
+      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Repsol Ahorro Plus",
+      "cPunta": 0.1199,
+      "cLlano": 0.1199,
+      "cValle": 0.1199,
+      "p1": 0.090137,
+      "p2": 0.090137,
+      "web": "https://www.repsol.es/particulares/hogar/luz-y-gas/tarifas/tarifa-ahorro-plus/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "CHC Plan Estrella Duo",
+      "cPunta": 0.119911,
+      "cLlano": 0.119911,
+      "cValle": 0.119911,
+      "p1": 0.078144,
+      "p2": 0.059938,
+      "web": "https://chcenergia.es/luz/plan-estrella-duo",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Nufri Sin Horarios",
+      "cPunta": 0.124312,
+      "cLlano": 0.124312,
+      "cValle": 0.124312,
+      "p1": 0.109053,
+      "p2": 0.082261,
+      "web": "https://www.energianufri.com/es/tarifas-luz",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Lumisa Simple 24h",
+      "cPunta": 0.125141,
+      "cLlano": 0.125141,
+      "cValle": 0.125141,
+      "p1": 0.118638,
+      "p2": 0.024595,
+      "web": "https://lumisa.es/es/tarifa-fija",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Endesa 24h Online",
+      "cPunta": 0.128235,
+      "cLlano": 0.128235,
+      "cValle": 0.128235,
+      "p1": 0.093666,
+      "p2": 0.093666,
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz",
+      "tipo": "1P",
+      "requisitos": "20% descuento término energía durante 12 meses incluido en el precio.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Fenie Fijo Energético",
+      "cPunta": 0.128654,
+      "cLlano": 0.128654,
+      "cValle": 0.128654,
+      "p1": 0.123346,
+      "p2": 0.033103,
+      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-energetico-1p",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Iner Tranquilidad",
+      "cPunta": 0.1297,
+      "cLlano": 0.1297,
+      "cValle": 0.1297,
+      "p1": 0.0882,
+      "p2": 0.0882,
+      "web": "https://inerenergia.es/luz/hogar",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Loviluz Lov US (SOLAR)",
+      "cPunta": 0.1299,
+      "cLlano": 0.1299,
+      "cValle": 0.1299,
+      "p1": 0.0875,
+      "p2": 0.0875,
+      "web": "https://www.loviluz.com/tarifas.html",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Repsol Solar BV",
+      "cPunta": 0.1299,
+      "cLlano": 0.1299,
+      "cValle": 0.1299,
+      "p1": 0.090137,
+      "p2": 0.090137,
+      "web": "https://www.repsol.es/particulares/hogar/energia-solar/tarifas/tarifa-solar-bateria-virtual/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 1.99
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Bonpreu Hagámoslo Fácil",
+      "cPunta": 0.131737,
+      "cLlano": 0.131737,
+      "cValle": 0.131737,
+      "p1": 0.091013,
+      "p2": 0.032581,
+      "web": "https://www.bonpreuesclat.cat/es/web/bonpreu/planes-energia-bonpreu",
+      "tipo": "1P",
+      "requisitos": "Revisión de precios trimestral. No incluye Servicios de Ajuste.",
+      "incluyeServiciosAjuste": false,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Atulado Milenial",
+      "cPunta": 0.135959,
+      "cLlano": 0.135959,
+      "cValle": 0.135959,
+      "p1": 0.103717,
+      "p2": 0.041623,
+      "web": "https://clientes.atuladoenergia.com/tarifas",
+      "tipo": "1P",
+      "requisitos": "Precio revisable cada trimestre natural.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "El Corte Inglés Despreocúpate",
+      "cPunta": 0.137424,
+      "cLlano": 0.137424,
+      "cValle": 0.137424,
+      "p1": 0.099699,
+      "p2": 0.099699,
+      "web": "https://tarifas.energiaelcorteingles.es/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Repsol Tranquilísima",
+      "cPunta": 0.1399,
+      "cLlano": 0.1399,
+      "cValle": 0.1399,
+      "p1": 0.081918,
+      "p2": 0.081918,
+      "web": "https://www.repsol.es/particulares/hogar/luz-y-gas/tarifas/tarifa-tranquilisima/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Contigo Energía Fácil",
+      "cPunta": 0.1399,
+      "cLlano": 0.1399,
+      "cValle": 0.1399,
+      "p1": 0.063603,
+      "p2": 0.063603,
+      "web": "https://contigoenergia.com/tarifas/tarifa-de-luz-facil/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Eres Solar 24",
+      "cPunta": 0.1449,
+      "cLlano": 0.1449,
+      "cValle": 0.1449,
+      "p1": 0.0759,
+      "p2": 0.0759,
+      "web": "https://eresenergia.com/#tarifas",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": -1.0,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Holaluz Clásica",
+      "cPunta": 0.147,
+      "cLlano": 0.147,
+      "cValle": 0.147,
+      "p1": 0.099,
+      "p2": 0.099,
+      "web": "https://www.holaluz.com/luz/tarifas-luz/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Endesa Solar Plus",
+      "cPunta": 0.148707,
+      "cLlano": 0.148707,
+      "cValle": 0.148707,
+      "p1": 0.093666,
+      "p2": 0.093666,
+      "web": "https://www.endesa.com/es/luz-y-gas/catalogo-solar/endesa-solar-plus-bateria-virtual",
+      "tipo": "1P",
+      "requisitos": "7% descuento término energía durante 12 meses incluido en el precio.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 2.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Bassols Hogar Solar",
+      "cPunta": 0.153,
+      "cLlano": 0.153,
+      "cValle": 0.153,
+      "p1": 0.077,
+      "p2": 0.077,
+      "web": "https://bassolsenergia.com/es/monedero-solar/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.033,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "CHC Ahorro Solar",
+      "cPunta": 0.155223,
+      "cLlano": 0.155223,
+      "cValle": 0.155223,
+      "p1": 0.083754,
+      "p2": 0.08318,
+      "web": "https://chcenergia.es/solar/plan-ahorro-solar",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.155223,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Catgas 2.0 TDL",
+      "cPunta": 0.1599,
+      "cLlano": 0.1599,
+      "cValle": 0.1599,
+      "p1": 0.093726,
+      "p2": 0.028027,
+      "web": "https://catgas.cat/es/tarifes-catllum-llar",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "CHC BV",
+      "cPunta": 0.162544,
+      "cLlano": 0.162544,
+      "cValle": 0.162544,
+      "p1": 0.088956,
+      "p2": 0.088382,
+      "web": "https://chcenergia.es/index.php/solar/bateria-virtual",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.1,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 2.99
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Seneo Tarifa 1",
+      "cPunta": 0.163,
+      "cLlano": 0.163,
+      "cValle": 0.163,
+      "p1": 0.095,
+      "p2": 0.018,
+      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.033,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "CHC Plan Ilumina Duo Promo",
+      "cPunta": 0.169,
+      "cLlano": 0.169,
+      "cValle": 0.169,
+      "p1": 0.077569,
+      "p2": 0.013231,
+      "web": "https://chcenergia.es/luz/plan-ilumina-duo-promo",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Fortuluz Precio Único",
+      "cPunta": 0.177,
+      "cLlano": 0.177,
+      "cValle": 0.177,
+      "p1": 0.103,
+      "p2": 0.029,
+      "web": "https://fortuluz.es/ofertas/unico",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Repsol Ahorro Potencia",
+      "cPunta": 0.183,
+      "cLlano": 0.183,
+      "cValle": 0.183,
+      "p1": 0.084431,
+      "p2": 0.001987,
+      "web": "https://www.repsol.es/particulares/hogar/luz-y-gas/tarifas/tarifa-ahorro-potencia/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Fenie Fijo Uniprecio",
+      "cPunta": 0.184654,
+      "cLlano": 0.184654,
+      "cValle": 0.184654,
+      "p1": 0.075903,
+      "p2": 0.001987,
+      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-uniprecio",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Energya VM 3P",
+      "cPunta": 0.14925,
+      "cLlano": 0.11925,
+      "cValle": 0.08925,
+      "p1": 0.090247,
+      "p2": 0.003014,
+      "web": "https://www.energyavm.es/luz/formula-fija-3-periodos/",
+      "tipo": "3P",
+      "requisitos": "25% descuento término energía durante 3 meses incluido en el precio. Consumo ≤ 6.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "TE A Tu Aire Programa Tu Ahorro 3P",
+      "cPunta": 0.163572,
+      "cLlano": 0.09393,
+      "cValle": 0.066176,
+      "p1": 0.086274,
+      "p2": 0.086274,
+      "web": "https://www.totalenergies.es/es/hogares/tarifas-luz/a-tu-aire-programa-tu-ahorro",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.07,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA_PARCIAL",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Repsol 3P",
+      "cPunta": 0.1659,
+      "cLlano": 0.1159,
+      "cValle": 0.0969,
+      "p1": 0.120274,
+      "p2": 0.06,
+      "web": "https://www.repsol.es/particulares/hogar/luz-y-gas/tarifas/tarifa-discriminacion-horaria/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Nexus Eficiente 3P",
+      "cPunta": 0.1689,
+      "cLlano": 0.1306,
+      "cValle": 0.0957,
+      "p1": 0.095342,
+      "p2": 0.067562,
+      "web": "https://www.nexusenergia.com/hogar/tarifas-luz/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Seneo Tarifa 2 3P",
+      "cPunta": 0.171,
+      "cLlano": 0.104,
+      "cValle": 0.08,
+      "p1": 0.089,
+      "p2": 0.089,
+      "web": "https://www.seneo.org/es/tarifa-tramos-horarios-con-monedero-solar/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Gana Energía 3P",
+      "cPunta": 0.171,
+      "cLlano": 0.104,
+      "cValle": 0.08,
+      "p1": 0.089434,
+      "p2": 0.089434,
+      "web": "https://ganaenergia.com/tarifas-luz/tramos-horarios",
+      "tipo": "3P",
+      "requisitos": "Monedero virtual incluido durante las 12 primeras facturas; después, desde unos 2,13 €/mes",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Octopus Unicaja 3P",
+      "cPunta": 0.175,
+      "cLlano": 0.093,
+      "cValle": 0.075,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://octopusenergy.es/unicaja#tarifas",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.01,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Imagina Base Noches y Findes 4000",
+      "cPunta": 0.179721,
+      "cLlano": 0.1059,
+      "cValle": 0.071503,
+      "p1": 0.10184,
+      "p2": 0.022498,
+      "web": "https://online.imaginaenergia.com/luz?p=15911&canal=ade9e93a-5d82-42c4-9653-07ac798f74b1",
+      "tipo": "3P",
+      "requisitos": "Consumo ≤ 4.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Naturgy noche 3P",
+      "cPunta": 0.1822,
+      "cLlano": 0.1092,
+      "cValle": 0.0739,
+      "p1": 0.12303,
+      "p2": 0.061562,
+      "web": "https://www.naturgy.es/hogar/luz/tarifa_noche",
+      "tipo": "3P",
+      "requisitos": "Consumo ≤ 10.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Octopus 3P",
+      "cPunta": 0.184,
+      "cLlano": 0.098,
+      "cValle": 0.079,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://octopusenergy.es/precios",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.01,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Imagina Noches y Findes 3P",
+      "cPunta": 0.184808,
+      "cLlano": 0.124127,
+      "cValle": 0.099427,
+      "p1": 0.101961,
+      "p2": 0.029003,
+      "web": "https://online.imaginaenergia.com/luz?p=12307&cta_web=Noche_Findes_body&canal=ade9e93a-5d82-42c4-9653-07ac798f74b1",
+      "tipo": "3P",
+      "requisitos": "20% descuento término energía durante 12 meses incluido en el precio.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Imagina Base Noches y Findes 8000 3P",
+      "cPunta": 0.185811,
+      "cLlano": 0.11199,
+      "cValle": 0.077593,
+      "p1": 0.10184,
+      "p2": 0.022498,
+      "web": "https://online.imaginaenergia.com/luz?p=15921&canal=ade9e93a-5d82-42c4-9653-07ac798f74b1",
+      "tipo": "3P",
+      "requisitos": "Consumo >4000 y ≤ 8.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Endesa Conecta 3P",
+      "cPunta": 0.18621,
+      "cLlano": 0.11781,
+      "cValle": 0.09441,
+      "p1": 0.073644,
+      "p2": 0.073644,
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz-3periodos",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Esluz Fija 3P",
+      "cPunta": 0.187021,
+      "cLlano": 0.135066,
+      "cValle": 0.085298,
+      "p1": 0.080533,
+      "p2": 0.007407,
+      "web": "https://esluz.es/tarifas-electricidad-hogares/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "BonArea Triple 3P",
+      "cPunta": 0.1929,
+      "cLlano": 0.1299,
+      "cValle": 0.089,
+      "p1": 0.099,
+      "p2": 0.05,
+      "web": "https://www.bonarea-energia.com/es/Electricitat/TarifaTripleElectricitat",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "BonArea Solar Triple 3P",
+      "cPunta": 0.1929,
+      "cLlano": 0.1299,
+      "cValle": 0.089,
+      "p1": 0.11,
+      "p2": 0.089,
+      "web": "https://www.bonarea-energia.com/es/Electricitat/TarifaSolarTripleElectricitat",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Nufri Con Horarios 3P",
+      "cPunta": 0.193551,
+      "cLlano": 0.112789,
+      "cValle": 0.078844,
+      "p1": 0.109053,
+      "p2": 0.082261,
+      "web": "https://www.energianufri.com/es/tarifas-luz",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Iberdrola Online 3P",
+      "cPunta": 0.194,
+      "cLlano": 0.136,
+      "cValle": 0.09999,
+      "p1": 0.091074,
+      "p2": 0.013483,
+      "web": "https://www.iberdrola.es/luz/plan-online-tres-periodos",
+      "tipo": "3P",
+      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Fenie Fijo Energético 3P",
+      "cPunta": 0.195314,
+      "cLlano": 0.117086,
+      "cValle": 0.091805,
+      "p1": 0.123346,
+      "p2": 0.033103,
+      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-energetico-3p",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Niba Tres 3P",
+      "cPunta": 0.196,
+      "cLlano": 0.169,
+      "cValle": 0.089,
+      "p1": 0.079,
+      "p2": 0.059,
+      "web": "https://niba.es/luz-y-gas",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "El Corte Inglés Benefíciate 3P",
+      "cPunta": 0.196316,
+      "cLlano": 0.140416,
+      "cValle": 0.117116,
+      "p1": 0.113216,
+      "p2": 0.073323,
+      "web": "https://tarifas.energiaelcorteingles.es/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Eres 3 3P",
+      "cPunta": 0.1995,
+      "cLlano": 0.1379,
+      "cValle": 0.0986,
+      "p1": 0.0969,
+      "p2": 0.0379,
+      "web": "https://eresenergia.com/#tarifas",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Iner La Clásica 3P",
+      "cPunta": 0.1998,
+      "cLlano": 0.1243,
+      "cValle": 0.0963,
+      "p1": 0.0882,
+      "p2": 0.0882,
+      "web": "https://inerenergia.es/luz/hogar",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Iner Coche Eléctrico 3P",
+      "cPunta": 0.1998,
+      "cLlano": 0.1998,
+      "cValle": 0.0713,
+      "p1": 0.0882,
+      "p2": 0.0882,
+      "web": "https://inerenergia.es/luz/hogar",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Iner Solar 3P",
+      "cPunta": 0.2048,
+      "cLlano": 0.1293,
+      "cValle": 0.0913,
+      "p1": 0.0882,
+      "p2": 0.0882,
+      "web": "https://inerenergia.es/luz/hogar",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Bonpreu Noche y Día 3P",
+      "cPunta": 0.205003,
+      "cLlano": 0.128574,
+      "cValle": 0.098753,
+      "p1": 0.091013,
+      "p2": 0.032581,
+      "web": "https://www.bonpreuesclat.cat/es/web/bonpreu/planes-energia-bonpreu",
+      "tipo": "3P",
+      "requisitos": "Revisión de precios trimestral. No incluye Servicios de Ajuste.",
+      "incluyeServiciosAjuste": false,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Holaluz 3P",
+      "cPunta": 0.206,
+      "cLlano": 0.137,
+      "cValle": 0.113,
+      "p1": 0.099,
+      "p2": 0.099,
+      "web": "https://www.holaluz.com/luz/tarifas-luz/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Visalia 3P",
+      "cPunta": 0.207607,
+      "cLlano": 0.124931,
+      "cValle": 0.097349,
+      "p1": 0.075903,
+      "p2": 0.001987,
+      "web": "https://visalia.es/luz/luz-3-periodos/",
+      "tipo": "3P",
+      "requisitos": "Consumo ≤ 7.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA_PARCIAL",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Octopus Solar 3P",
+      "cPunta": 0.209,
+      "cLlano": 0.118,
+      "cValle": 0.093,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://octopusenergy.es/precios/tarifa-solar",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.035,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Eres Solar Estable 3P",
+      "cPunta": 0.2095,
+      "cLlano": 0.1379,
+      "cValle": 0.1088,
+      "p1": 0.0759,
+      "p2": 0.0759,
+      "web": "https://eresenergia.com/#tarifas",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": -1.0,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Iberdrola Solar 3P",
+      "cPunta": 0.21,
+      "cLlano": 0.135,
+      "cValle": 0.089,
+      "p1": 0.091781,
+      "p2": 0.047945,
+      "web": "https://www.iberdrola.es/luz/plan-ahorro-solar",
+      "tipo": "3P",
+      "requisitos": "Potencia ≥ 10 kW ->Permanencia 1 año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Lumisa 3P",
+      "cPunta": 0.210136,
+      "cLlano": 0.140644,
+      "cValle": 0.107595,
+      "p1": 0.118638,
+      "p2": 0.024595,
+      "web": "https://lumisa.es/es/tarifa-fija",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Atulado 3P",
+      "cPunta": 0.21342,
+      "cLlano": 0.134353,
+      "cValle": 0.109399,
+      "p1": 0.103717,
+      "p2": 0.033279,
+      "web": "https://clientes.atuladoenergia.com/tarifas",
+      "tipo": "3P",
+      "requisitos": "Precio revisable cada trimestre natural.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Bonpreu Solar 3P",
+      "cPunta": 0.220034,
+      "cLlano": 0.141385,
+      "cValle": 0.096693,
+      "p1": 0.091013,
+      "p2": 0.032581,
+      "web": "https://www.bonpreuesclat.cat/es/web/bonpreu/planes-energia-bonpreu",
+      "tipo": "3P",
+      "requisitos": "Revisión de precios trimestral. No incluye Servicios de Ajuste.",
+      "incluyeServiciosAjuste": false,
+      "fv": {
+        "exc": 0.031,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Imagina Vehículo Eléctrico 3P",
+      "cPunta": 0.223415,
+      "cLlano": 0.14935,
+      "cValle": 0.084332,
+      "p1": 0.105527,
+      "p2": 0.04834,
+      "web": "https://online.imaginaenergia.com/luz?p=12318&cta_web=Vehiculo_Electrico_header&canal=ade9e93a-5d82-42c4-9653-07ac798f74b1",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Bassols Hogar Solar 3P",
+      "cPunta": 0.224,
+      "cLlano": 0.153,
+      "cValle": 0.119,
+      "p1": 0.099,
+      "p2": 0.025,
+      "web": "https://bassolsenergia.com/es/monedero-solar/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.033,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "CHC VE 3P",
+      "cPunta": 0.225745,
+      "cLlano": 0.221841,
+      "cValle": 0.061081,
+      "p1": 0.088956,
+      "p2": 0.088382,
+      "web": "https://chcenergia.es/tarifa-luz/vehiculo-electrico/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Seneo Tarifa 1 3P",
+      "cPunta": 0.226,
+      "cLlano": 0.155,
+      "cValle": 0.123,
+      "p1": 0.095,
+      "p2": 0.018,
+      "web": "https://www.seneo.org/es/tarifa-tramos-horarios-con-monedero-solar/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.033,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Fortuluz A Contraluz 3P",
+      "cPunta": 0.231,
+      "cLlano": 0.182,
+      "cValle": 0.138,
+      "p1": 0.103,
+      "p2": 0.029,
+      "web": "https://fortuluz.es/ofertas/a-contraluz",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Fenie Fijo 3P",
+      "cPunta": 0.251314,
+      "cLlano": 0.173086,
+      "cValle": 0.147805,
+      "p1": 0.075903,
+      "p2": 0.001987,
+      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-3-periodos",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Nufri Solar 3P",
+      "cPunta": 0.256199,
+      "cLlano": 0.175435,
+      "cValle": 0.14149,
+      "p1": 0.111519,
+      "p2": 0.037604,
+      "web": "https://www.energianufri.com/es/tarifas-luz",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.08,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Contigo Energía Horas 3P",
+      "cPunta": 0.269732,
+      "cLlano": 0.170445,
+      "cValle": 0.144117,
+      "p1": 0.084122,
+      "p2": 0.010207,
+      "web": "https://contigoenergia.com/tarifas/tarifa-luz-horas/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Clarity 0,04 3P",
+      "cPunta": 0.27,
+      "cLlano": 0.17,
+      "cValle": 0.049,
+      "p1": 0.0989,
+      "p2": 0.0989,
+      "web": "https://www.clarityenergy.es/tarifas-luz/",
+      "tipo": "3P",
+      "requisitos": "Revisión de precios semestral.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Octopus Go 3P",
+      "cPunta": 0.311,
+      "cLlano": 0.311,
+      "cValle": 0.075,
+      "p1": 0.11,
+      "p2": 0.05,
+      "web": "https://octopusenergy.es/precios/tarifa-ev",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    }
+  ],
+  "updatedAt": "2026-07-19T11:37:02.080Z"
+}

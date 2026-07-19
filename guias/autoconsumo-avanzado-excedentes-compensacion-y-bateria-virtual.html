@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https:; connect-src 'self' https://luzfija.goatcounter.com; form-action 'self';">
+<meta name="color-scheme" content="dark light"/>
+<script>
+    (function(){
+      var key='almax_theme';
+      try{
+        var saved=localStorage.getItem(key);
+        if(saved==='light')document.documentElement.classList.add('light-mode');
+        else document.documentElement.classList.remove('light-mode');
+        window.__ALMAX_THEME_SAVED=saved;
+      }catch(e){}
+      window.__ALMAX_THEME_KEY=key;
+    })();
+  </script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Autoconsumo avanzado: excedentes y batería | LuzFija.es</title>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+<meta name="description" content="Guía completa sobre excedentes solares, compensación simplificada y batería virtual. Maximiza el ahorro de tus placas solares con la tarifa correcta."/>
+  <link rel="canonical" href="https://luzfija.es/guias/autoconsumo-avanzado-excedentes-compensacion-y-bateria-virtual.html"/>
+  <meta property="og:type" content="article"/>
+  <meta property="og:title" content="Autoconsumo avanzado: excedentes y batería | LuzFija"/>
+  <meta property="og:description" content="Guía completa sobre excedentes solares, compensación simplificada y batería virtual. Maximiza el ahorro de tus placas solares con la tarifa correcta."/>
+  <meta property="og:url" content="https://luzfija.es/guias/autoconsumo-avanzado-excedentes-compensacion-y-bateria-virtual.html"/>
+  <meta property="og:image" content="https://luzfija.es/img/bateria-virtual-excedentes-solar.png"/>
+  <meta property="og:image:width" content="1431">
+  <meta property="og:image:height" content="806">
+  <meta property="og:image:alt" content="Autoconsumo avanzado: excedentes y batería | LuzFija"/>
+  <meta property="og:locale" content="es_ES"/>
+  <meta property="og:site_name" content="LuzFija.es"/>
+  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="twitter:title" content="Autoconsumo avanzado: excedentes y batería | LuzFija"/>
+  <meta name="twitter:description" content="Guía completa sobre excedentes solares, compensación simplificada y batería virtual. Maximiza el ahorro de tus placas solares con la tarifa correcta."/>
+  <meta name="twitter:image" content="https://luzfija.es/img/bateria-virtual-excedentes-solar.png"/>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "Autoconsumo avanzado: excedentes, compensación y \"batería virtual\" | LuzFija",
+  "description": "Lo que nadie te explica cuando te venden placas",
+  "author": {
+    "@type": "Person",
+    "name": "aLMaX",
+    "url": "https://nergiza.com/foro/members/almax.14048/",
+    "sameAs": [
+      "https://nergiza.com/foro/members/almax.14048/",
+      "https://github.com/almax-es"
+    ]
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "LuzFija.es",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://luzfija.es/logo-512.png"
+    }
+  },
+  "datePublished": "2026-01-19",
+  "dateModified": "2026-07-16",
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://luzfija.es/guias/autoconsumo-avanzado-excedentes-compensacion-y-bateria-virtual.html"
+  },
+  "image": {
+    "@type": "ImageObject",
+    "url": "https://luzfija.es/og.png",
+    "width": 1200,
+    "height": 630
+  },
+  "articleSection": "Guías de Ahorro Energético"
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position": 1,
+      "name": "Inicio",
+      "item": "https://luzfija.es/"
+    },
+    {
+      "@type": "ListItem",
+      "position": 2,
+      "name": "Guías",
+      "item": "https://luzfija.es/guias.html"
+    },
+    {
+      "@type": "ListItem",
+      "position": 3,
+      "name": "Autoconsumo avanzado: excedentes, compensación y batería",
+      "item": "https://luzfija.es/guias/autoconsumo-avanzado-excedentes-compensacion-y-bateria-virtual.html"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "¿Qué es la compensación de excedentes?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Es cuando la energía que tus placas solares generan de más y viertes a la red te la compensan económicamente en tu factura. En mercado libre el valor depende del contrato; en PVPC se aplica la fórmula regulada. No es un balance 1:1 y, en compensación simplificada, no puede dejar el término de energía del mes en negativo."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Qué es la batería virtual?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "La batería virtual es un servicio comercial de algunas comercializadoras que guarda como saldo el valor económico de excedentes no aprovechados en ese mes. No es una batería física ni una figura regulada por el RD 244/2019: depende del contrato, la caducidad del saldo y los conceptos que permita compensar."
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "¿Conviene más batería virtual o compensación mensual?",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "Depende de tu patrón de consumo. Si en verano produces mucho más de lo que consumes, la batería virtual te permite aprovechar ese excedente en invierno. Si tu consumo es estable todo el año, la compensación mensual puede ser suficiente."
+      }
+    }
+  ]
+}
+</script>
+<style>
+:root{--bg:#0B1020;--surface:#141b2e;--card:rgba(255,255,255,.06);--border:rgba(255,255,255,.10);--text:#F7F7FB;--muted:rgba(247,247,251,.72);--accent:#8B5CF6;--accent2:#22C55E;--warn:#F59E0B}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Outfit',-apple-system,system-ui,sans-serif;background:linear-gradient(135deg,var(--bg),var(--surface));color:var(--text);line-height:1.7;overflow-x:hidden}
+.progress-bar{position:fixed;top:0;left:0;width:100%;height:4px;background:rgba(255,255,255,.05);z-index:1000}
+.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),#EC4899);width:0%;transition:width .2s ease}
+.header{position:sticky;top:0;background:rgba(11,16,32,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:16px 0;z-index:100}
+.header-container{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:20px}
+.breadcrumbs{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);flex-wrap:wrap}
+.breadcrumbs a{color:var(--accent);text-decoration:none;transition:opacity .2s}
+.breadcrumbs a:hover{opacity:.8}
+.header-actions{display:flex;gap:12px}
+.btn-small{padding:8px 16px;background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:8px;color:var(--text);text-decoration:none;font-size:14px;font-weight:600;transition:all .3s ease;display:inline-flex;align-items:center;gap:6px}
+.btn-small:hover{background:rgba(139,92,246,.2);border-color:var(--accent);transform:translateY(-1px)}
+.container{max-width:1400px;margin:0 auto;padding:40px 24px 80px;display:grid;grid-template-columns:280px 1fr 280px;gap:40px;align-items:start}
+.toc{position:sticky;top:100px;background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;max-height:calc(100vh - 120px);overflow-y:auto}
+.toc h3{font-size:14px;font-weight:800;text-transform:uppercase;letter-spacing:.5px;margin-bottom:16px;color:var(--muted)}
+.toc-list{list-style:none}
+.toc-list li{margin-bottom:8px}
+.toc-list a{display:block;color:var(--muted);text-decoration:none;font-size:14px;padding:6px 12px;border-radius:6px;transition:all .2s;border-left:2px solid transparent}
+.toc-list a:hover{color:var(--text);background:rgba(255,255,255,.05);border-left-color:var(--accent)}
+.toc-list a.active{color:var(--accent);background:rgba(139,92,246,.15);border-left-color:var(--accent);font-weight:600}
+.article{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:60px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.article-header{margin-bottom:40px;padding-bottom:30px;border-bottom:1px solid var(--border)}
+.article-category{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(139,92,246,.2);border:1px solid var(--accent);border-radius:100px;font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:20px}
+.article h1{font-size:clamp(32px,5vw,48px);font-weight:900;line-height:1.1;margin-bottom:16px;background:linear-gradient(135deg,var(--text),var(--muted));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.article-intro{font-size:20px;color:var(--muted);line-height:1.6;margin-bottom:20px}
+.article-meta{display:flex;align-items:center;gap:20px;font-size:14px;color:var(--muted);flex-wrap:wrap}
+.article-meta strong{color:var(--text)}
+.article-content h2{font-size:28px;font-weight:800;margin:48px 0 20px;color:var(--text);scroll-margin-top:100px}
+.article-content h2::before{content:'';display:block;width:40px;height:4px;background:linear-gradient(90deg,var(--accent),transparent);margin-bottom:12px}
+.article-content h3{font-size:22px;font-weight:700;margin:32px 0 16px;color:var(--text)}
+.article-content p{margin-bottom:20px;font-size:16px;line-height:1.8}
+.article-content ul,.article-content ol{margin:20px 0 20px 24px}
+.article-content li{margin-bottom:12px;padding-left:8px}
+.article-content strong{color:var(--text);font-weight:700}
+.article-content a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(139,92,246,.3);transition:all .2s}
+.article-content a:hover{border-bottom-color:var(--accent)}
+.faq-section{margin-top:60px;padding-top:40px;border-top:1px solid var(--border)}
+.faq-section h2{font-size:32px;font-weight:800;margin-bottom:30px;text-align:center}
+.faq-item{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;transition:all .3s ease}
+.faq-item:hover{border-color:rgba(139,92,246,.5)}
+.faq-item summary{padding:18px 24px;font-weight:600;font-size:16px;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;user-select:none}
+.faq-item summary::after{content:'+';font-size:24px;color:var(--accent);transition:transform .3s}
+.faq-item[open] summary::after{transform:rotate(45deg)}
+.faq-item p{padding:0 24px 20px;color:var(--muted);font-size:15px;line-height:1.7}
+.sidebar-actions{position:sticky;top:100px}
+.action-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:20px}
+.action-card h3{font-size:18px;font-weight:800;margin-bottom:12px}
+.action-card p{font-size:14px;color:var(--muted);margin-bottom:16px;line-height:1.5}
+.action-btn{display:block;width:100%;padding:12px;background:var(--accent);color:white;text-align:center;text-decoration:none;border-radius:10px;font-weight:700;font-size:14px;transition:all .3s ease}
+.action-btn:hover{background:#7C3AED;transform:translateY(-2px);box-shadow:0 8px 20px rgba(139,92,246,.4)}
+.share-buttons{display:flex;flex-direction:column;gap:8px}
+.share-btn{display:flex;align-items:center;gap:10px;padding:10px 16px;background:rgba(255,255,255,.06);border:1px solid var(--border);border-radius:8px;color:var(--text);text-decoration:none;font-size:13px;font-weight:600;transition:all .3s ease}
+.share-btn:hover{background:rgba(255,255,255,.1);border-color:var(--accent);transform:translateX(4px)}
+.guide-nav{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:60px;padding-top:40px;border-top:1px solid var(--border)}
+.guide-nav-btn{display:flex;flex-direction:column;padding:20px;background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;text-decoration:none;color:var(--text);transition:all .3s ease}
+.guide-nav-btn:hover{background:rgba(139,92,246,.15);border-color:var(--accent);transform:translateY(-2px)}
+.guide-nav-label{font-size:12px;color:var(--muted);margin-bottom:8px;text-transform:uppercase;font-weight:700;letter-spacing:.5px}
+.guide-nav-title{font-size:16px;font-weight:600}
+@media (max-width:1200px){.container{grid-template-columns:1fr}.toc{display:none}.sidebar-actions{display:none}}
+@media (max-width:768px){.article{padding:32px 24px}.container{padding:20px 16px}.article h1{font-size:32px}.guide-nav{grid-template-columns:1fr}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.article{animation:fadeIn .6s ease}
+/* === Light mode (shared) === */
+html.light-mode{
+  --bg:#F4F6FB;
+  --surface:#FFFFFF;
+  --card: rgba(15, 23, 42, .04);
+  --border: rgba(15, 23, 42, .10);
+  --text:#0F172A;
+  --muted: rgba(15, 23, 42, .75);
+  --card2: rgba(15, 23, 42, .06);
+  --border2: rgba(15, 23, 42, .16);
+  --muted2: rgba(15, 23, 42, .58);
+  --accent:#6D28D9; /* mejor contraste en modo claro */
+  --accent2:#15803D; /* mejor contraste en modo claro */
+  --warn:#B45309; /* mejor contraste en modo claro */
+}
+html.light-mode body{
+  background: linear-gradient(135deg, var(--bg), var(--surface)) !important;
+  color: var(--text);
+}
+/* Generic fixes for hard-coded dark headers/buttons in light mode */
+html.light-mode .header{
+  background: rgba(255,255,255,.92) !important;
+  border-bottom-color: var(--border) !important;
+}
+html.light-mode .btn-secondary,
+html.light-mode .btn-small{
+  background: rgba(15, 23, 42, .04) !important;
+  border-color: var(--border) !important;
+  color: var(--text) !important;
+}
+html.light-mode .btn-secondary:hover,
+html.light-mode .btn-small:hover{
+  background: rgba(139, 92, 246, .12) !important;
+}
+/* === Ajustes "pixel-perfect" para móviles === */
+/* iOS Safari: evita el zoom automático cuando un input tiene <16px */
+@supports (-webkit-touch-callout: none) {
+  input, select, textarea { font-size: 16px !important; }
+}
+/* 100vh puede fallar en móvil por la barra del navegador (usa dvh si existe) */
+@supports (height: 100dvh) {
+  body { min-height: 100dvh; }
+  .toc { max-height: calc(100dvh - 120px); }
+}
+/* === Sources Section === */
+.sources-section {
+  margin-top: 40px;
+  padding: 32px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+}
+.sources-section h2 {
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 20px;
+  color: var(--text);
+}
+.sources-section h3 {
+  font-size: 16px;
+  font-weight: 700;
+  margin-top: 20px;
+  margin-bottom: 12px;
+  color: var(--text);
+}
+.sources-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.sources-list li {
+  margin-bottom: 10px;
+  padding-left: 0;
+}
+.sources-list a {
+  color: var(--accent);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(139,92,246,.3);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.sources-list a:hover {
+  border-bottom-color: var(--accent);
+  opacity: .8;
+}
+.updated-badge {
+  background: rgba(34, 197, 94, 0.15);
+  color: var(--accent2);
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.key-takeaway {
+  background: linear-gradient(135deg, rgba(34, 197, 94, 0.1), rgba(34, 197, 94, 0.05));
+  border: 1px solid var(--accent2);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 30px 0;
+  position: relative;
+}
+.key-takeaway::before {
+  content: 'Dato Clave';
+  position: absolute;
+  top: -12px;
+  left: 20px;
+  background: var(--bg);
+  padding: 0 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent2);
+  border: 1px solid var(--accent2);
+  border-radius: 100px;
+}
+.key-takeaway strong { color: var(--accent2); }
+
+
+/* === GUÍAS RELACIONADAS (CONSISTENCIA ENTRE ARTÍCULOS) === */
+.related-guides-section{
+  margin: 44px 0 0;
+  padding: 28px;
+  background: rgba(139,92,246,.08);
+  border: 1px solid rgba(139,92,246,.22);
+  border-radius: 16px;
+}
+.related-guides-section h2{
+  font-size: 22px;
+  font-weight: 900;
+  margin: 0 0 18px;
+  color: var(--text);
+}
+.related-guides-grid{
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px){
+  .related-guides-grid{
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+.related-guide-card{
+  display: block;
+  padding: 14px 16px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  text-decoration: none;
+  color: inherit;
+  transition: all .2s ease;
+}
+.related-guide-card:hover{
+  background: rgba(255,255,255,.06);
+  border-color: rgba(139,92,246,.55);
+  transform: translateY(-1px);
+}
+.related-guide-top{
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.related-guide-title{
+  font-weight: 800;
+  line-height: 1.25;
+  color: var(--text);
+}
+.related-guide-desc{
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+.related-guide-arrow{
+  color: var(--accent);
+  font-weight: 900;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+
+/* === Extra UI components used en algunas guías === */
+.periodo-box{
+  margin: 18px 0;
+  padding: 18px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+}
+.periodo-box h3{ margin: 0 0 8px; }
+.tabla-comparativa{
+  width: 100%;
+  border-collapse: collapse;
+  margin: 18px 0;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+.tabla-comparativa th,
+.tabla-comparativa td{
+  padding: 12px;
+  border-bottom: 1px solid var(--border);
+  vertical-align: top;
+}
+.tabla-comparativa th{
+  text-align: left;
+  font-weight: 800;
+  background: rgba(255,255,255,.04);
+}
+.tabla-comparativa tr:last-child td{ border-bottom: 0; }
+
+.more-info-section{
+  margin-top: 34px;
+  padding: 22px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: rgba(139,92,246,.08);
+}
+.more-info-title{
+  margin: 0 0 14px;
+  font-size: 16px;
+  font-weight: 900;
+}
+.more-info-grid{
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr;
+}
+@media (min-width: 640px){
+  .more-info-grid{ grid-template-columns: repeat(2, 1fr); }
+}
+.more-info-link{
+  display: block;
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid var(--border);
+  text-decoration: none;
+  color: var(--text);
+  font-weight: 700;
+  transition: all .2s ease;
+}
+.more-info-link:hover{
+  background: rgba(255,255,255,.06);
+  border-color: rgba(139,92,246,.55);
+  transform: translateY(-1px);
+}
+
+</style>
+  <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts.css">
+  <meta name="theme-color" content="#8B5CF6">
+</head>
+<body>
+<div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+<header class="header">
+<div class="header-container">
+<nav class="breadcrumbs">
+<a href="/">🏠 Inicio</a><span>›</span><a href="/guias.html">📚 Guías</a><span>›</span><span>Autoconsumo avanzado: excedentes, compensación y "batería virtual"</span>
+</nav>
+<div class="header-actions">
+<a href="/guias.html" class="btn-small">📚 Todas</a>
+<a href="/" class="btn-small">⚡ Comparador</a>
+</div>
+</div>
+</header>
+<main id="main">
+<div class="container">
+<aside class="toc"><h3>En esta guía</h3><ul class="toc-list" id="tocList"></ul></aside>
+<article class="article">
+<div class="article-header">
+<span class="article-category">📚 Guía</span>
+<h1>Autoconsumo avanzado: excedentes, compensación y "batería virtual"</h1>
+<p class="article-intro">Si ya sabes lo básico de placas solares, el siguiente nivel es entender <strong>qué pasa con lo que te sobra</strong>. Porque ahí es donde te pueden vender humo con lo de "te sale gratis".</p>
+<div class="article-meta"><span>Por <strong>aLMaX</strong></span><span>·</span><span>19 ene 2026</span><span>·</span><span>⏱️ 8 min</span><span>·</span><span class="updated-badge">🔄 Act. 16 jul 2026</span></div>
+</div>
+<div class="article-content">
+<h2>Compensación de excedentes (la realidad)</h2>
+<p><strong>Cómo funciona:</strong></p>
+<ol>
+<li>Produces más de lo que consumes en ese momento</li>
+<li>El excedente va a la red (lo "regalas" al sistema)</li>
+<li>Te lo compensan en la factura a un precio (normalmente bajo)</li>
+<li>Esa compensación se descuenta del término de energía</li>
+</ol>
+<p><strong>Rangos orientativos, no fijos:</strong></p>
+<ul>
+<li>PVPC: el valor horario que resulte de la fórmula regulada, por lo que cambia constantemente.</li>
+<li>Mercado libre: lo que ponga en tu contrato de compensación, que puede variar bastante entre comercializadoras.</li>
+</ul>
+<p><strong>Ejemplo orientativo de comparación:</strong></p>
+<p>
+Compras electricidad a 0,12-0,16 €/kWh. Viertes excedentes a 0,05-0,08 €/kWh. No es 1:1. Por cada kWh que viertes, normalmente te compensan bastante menos de lo que te cuesta uno que compras, aunque la diferencia exacta depende del contrato y de tu tarifa.
+</p>
+<p><strong>Límite de compensación simplificada (por ley RD 244/2019):</strong></p>
+<p>
+La compensación de excedentes está regulada por ley. Todas las comercializadoras deben aplicar el mismo tope:
+</p>
+<ul>
+<li><strong>Tope legal:</strong> Solo se puede compensar hasta el coste del término de energía del mes (€)</li>
+<li><strong>NO se compensa:</strong> Potencia contratada, peajes y cargos fijos de potencia, alquiler de contador y los impuestos que recaen sobre esos conceptos no compensables. La parte variable de peajes y cargos vinculada al consumo de energía SÍ se compensa hasta que el término de energía llegue a 0€.</li>
+<li><strong>Con monedero o batería virtual comercial:</strong> el excedente primero se compensa dentro del mes según el límite legal y, si el contrato lo prevé, el sobrante se transforma en saldo para usos futuros.</li>
+<li><strong>Sin monedero:</strong> solo hay compensación del mes, sin acumulación de saldo.</li>
+</ul>
+<p><strong>Resultado SIN batería virtual:</strong></p>
+<p>
+Aunque produzcas lo mismo que consumes, con la compensación simplificada normal seguirás pagando los conceptos no compensables de ese mes.
+</p>
+<p><strong>Resultado CON batería virtual:</strong></p>
+<p>
+Con algunos contratos de batería virtual comercial, el saldo acumulado puede aplicarse también a otros conceptos o a facturas futuras. Pero eso <strong>no lo fija el RD 244/2019</strong>: depende del contrato y de la comercializadora.
+</p>
+<figure style="margin: 30px 0; text-align: center;">
+  <picture>
+    <source type="image/webp" srcset="../img/bateria-virtual-excedentes-solar.webp">
+    <img src="../img/bateria-virtual-excedentes-solar.png"
+         alt="Esquema funcionamiento batería virtual y compensación de excedentes solares"
+         loading="eager"
+         fetchpriority="high"
+         decoding="async"
+         width="1431" height="806"
+         style="max-width: 100%; height: auto; border-radius: 12px; border: 1px solid var(--border); box-shadow: 0 4px 20px rgba(0,0,0,0.3);">
+  </picture>
+  <figcaption style="font-size: 14px; color: var(--muted); margin-top: 12px;">
+    En algunos contratos, tus excedentes se convierten en saldo para facturas futuras.
+  </figcaption>
+</figure>
+
+<h2>Batería virtual (el concepto con trampa)</h2>
+<p><strong>Qué te venden:</strong></p>
+<p>
+"Tus excedentes se guardan en una batería virtual y puedes usarlos cuando quieras. Es como tener una batería física pero sin coste."
+</p>
+<p><strong>La realidad:</strong></p>
+<p>
+No es una batería. Suele ser una bolsa de saldo en euros asociada a un contrato comercial que puedes usar para compensar otras facturas. Pero con letra pequeña:
+</p>
+<ul>
+<li><strong>Caducidad:</strong> varía según comercializadora. Revísala en contrato porque puede cambiar.</li>
+<li><strong>Qué compensa:</strong> depende de la comercializadora:
+  <ul style="margin-top:8px;">
+<li><strong>Amplias:</strong> algunas permiten aplicar saldo a más conceptos o a otras facturas.</li>
+<li><strong>Básicas:</strong> otras solo dejan compensar energía.</li>
+</ul>
+</li>
+<li><strong>Precio conversión:</strong> El € que acumulas al verter puede valer menos que el € que pagas al comprar (te lo convierten a peor precio). Compara <a href="pvpc-vs-mercado-libre-cuando-te-conviene-cada-uno.html">PVPC vs mercado libre</a> para optimizar tus precios.</li>
+<li><strong>Segunda vivienda:</strong> Algunas permiten usar saldo en otra vivienda tuya, pero con limitaciones.</li>
+</ul>
+<p><strong>Ejemplo orientativo:</strong></p>
+<p>
+Produces 300 kWh de excedentes en verano. Te dan 0,06 €/kWh = 18 € de saldo.
+<br/>
+En invierno consumes 400 kWh. Pagas 0,13 €/kWh = 52 €. Usas tu saldo de 18 € → Pagas 34 € ese mes.
+<br/>
+Ahorro: 18 €. Pero ojo: ese mismo volumen de energía comprado a tu tarifa habría tenido un valor distinto. La diferencia entre ambos importes depende del contrato, del precio de compra y de qué conceptos te deje compensar.
+</p>
+<p>
+No es mala, pero tampoco equivale a guardar kWh físicos ni funciona igual en todas las comercializadoras.
+</p>
+<h2>Batería física vs virtual (números sin humo)</h2>
+<p><strong>Batería física (10 kWh):</strong></p>
+<ul>
+<li><strong>Coste:</strong> 5.000-7.000 € instalada</li>
+<li><strong>Vida útil:</strong> 10-15 años (después pierde capacidad)</li>
+<li><strong>Eficiencia:</strong> 90-95% (pierdes 5-10% cargando/descargando)</li>
+<li><strong>Ventaja:</strong> Autoconsumo casi 100%, independencia de red</li>
+<li><strong>Ahorro anual:</strong> 200-400 € (depende de tu perfil de consumo)</li>
+<li><strong>Amortización:</strong> 15-30 años → Solo compensa si buscas independencia o tienes cortes frecuentes</li>
+</ul>
+<p><strong>Batería virtual:</strong></p>
+<ul>
+<li><strong>Coste:</strong> depende del contrato; algunas tarifas la incluyen y otras cobran cuota</li>
+<li><strong>Vida útil:</strong> mientras mantengas el contrato y se cumplan sus condiciones</li>
+<li><strong>Aprovechamiento económico:</strong> depende del precio de compensación, del precio de compra, de la caducidad del saldo y de qué conceptos te deje descontar</li>
+<li><strong>Ventaja:</strong> sin inversión inicial y fácil de activar</li>
+<li><strong>Ahorro anual:</strong> muy variable según excedentes y condiciones contractuales</li>
+<li><strong>Amortización:</strong> no aplica como en una batería física; conviene mirar saldo útil neto y posibles cuotas</li>
+</ul>
+<p><strong>Conclusión:</strong> No hay una ganadora universal. La batería virtual suele tener sentido si quieres aprovechar excedentes sin invertir más, y la batería física si priorizas autosuficiencia o respaldo frente a cortes.</p>
+<h2>Trucos para aprovechar excedentes al máximo</h2>
+<p><strong>1. Mueve consumos a horas de sol</strong></p>
+<p>
+Lavavajillas, lavadora, secadora: ponlas a mediodía (12-15h) cuando produces más. Así aprovechas el autoconsumo directo en vez de verter y que te compensen a un valor normalmente inferior al de tu consumo evitado.
+</p>
+<p><strong>2. Termo eléctrico de día (en verano)</strong></p>
+<p>
+Si tienes excedentes en verano, programa el termo para que caliente agua 12-16h (con tu sol) en vez de por la noche (comprando de red). Ahorro: 10-15 €/mes en verano.
+</p>
+<p><strong>3. Carga coche eléctrico de día (si teletrabajas)</strong></p>
+<p>
+Si trabajas en casa y tienes excedentes, <a href="coche-electrico-que-tarifa-elegir-y-como-cargar-barato.html">carga el coche 10-16h</a>. Aprovechas tu producción en vez de verterla a un precio de compensación normalmente menor que el de compra nocturna.
+</p>
+<p><strong>4. Aire acondicionado en verano</strong></p>
+<p>
+Usa el aire de día (cuando produces). Por la noche, aguanta con ventilador. Así maximizas autoconsumo directo.
+</p>
+<h2>Modalidades de autoconsumo (qué elegir)</h2>
+<p><strong>Autoconsumo sin excedentes:</strong></p>
+<p>
+No viertes nada a la red (vertido = 0). Todo lo que produces lo consumes o se desperdicia. Solo tiene sentido si:
+</p>
+<ul>
+<li>Tu consumo de día es MUY alto (siempre consumes más de lo que produces)</li>
+<li>Trámites más simples (no necesitas contrato de compensación)</li>
+</ul>
+<p>
+Para casa normal, NO merece la pena. Pierdes los excedentes.</p>
+<p><strong>Autoconsumo con excedentes acogido a compensación:</strong></p>
+<p>
+Lo normal para viviendas. Produces, consumes, lo que sobra se compensa en factura. Requisitos:
+</p>
+<ul>
+<li>Potencia instalada ≤100 kW (todas las casas cumplen)</li>
+<li>Contrato con comercializadora que admita compensación (la mayoría)</li>
+<li>Tramitar en distribuidora</li>
+</ul>
+<p><strong>Autoconsumo con venta de excedentes:</strong></p>
+<p>
+En vez de compensación, vendes los excedentes como generador. Solo interesa para instalaciones grandes (empresas, naves). Requieres:
+</p>
+<ul>
+<li>Darte de alta como productor</li>
+<li>Facturar la venta</li>
+<li>Pagar impuestos sobre esa venta</li>
+</ul>
+<p>
+Para una casa normal no merece la pena: los líos fiscales superan con creces el beneficio.</p>
+<h2>Errores típicos con placas + excedentes</h2>
+<p><strong>Error 1: Dimensionar placas "para cubrir todo tu consumo anual"</strong></p>
+<p>
+Te dicen "produces 4.000 kWh/año, consumes 4.000 kWh/año → perfecto". Pero olvidan que produces de día y consumes de noche. Resultado: vertido masivo en verano (mal compensado) y compras caras en invierno/noche. Mejor: dimensiona para cubrir consumo DE DÍA, no anual.</p>
+<p><strong>Error 2: No mover consumos a horas de sol</strong></p>
+<p>
+Sigues poniendo lavadoras de noche. Las placas no sirven de nada ahí. Autoconsumo real: 20-30%. Desaprovechas 70% de la inversión.</p>
+<p><strong>Error 3: Creer que "batería virtual = gratis"</strong></p>
+<p>
+Lees el folleto, piensas que produces 300 kWh y te los "devuelven" igual. Pero el saldo que te reconocen puede ser bastante menor que el valor del kWh que dejas de comprar. Mira precio de compensación, cuota, caducidad y qué conceptos cubre.</p>
+<p><strong>Error 4: Confundir compensación con balance neto</strong></p>
+<p>
+<strong>Balance neto verdadero</strong> (1 kWh por 1 kWh al mismo precio) nunca ha existido en España. El RD 244/2019 (desde 2019) estableció la <strong>compensación simplificada</strong>, que es compensación <strong>económica</strong> a precio de mercado, no energética. La diferencia:
+</p>
+<ul>
+<li><strong>Balance neto real:</strong> Produces 1 kWh → te dan 1 kWh gratis cuando lo necesites (no existe en España)</li>
+<li><strong>Compensación española:</strong> Produces 1 kWh → te compensan económicamente según contrato o fórmula regulada. Cuando compras 1 kWh → pagas el precio de tu tarifa. No es un intercambio 1:1.</li>
+</ul>
+<p>
+Algunas comercializadoras llaman "balance neto" a su sistema de compensación por marketing, pero técnicamente es compensación económica, no balance neto real.
+</p>
+<h2>Checklist antes de instalar placas</h2>
+<ul>
+<li>¿Tu consumo de día es alto? (si no, las placas rendirán poco)</li>
+<li>¿Puedes mover lavadora/lavavajillas/termo a mediodía?</li>
+<li>¿Tu comercializadora admite compensación excedentes?</li>
+<li>¿Entiendes cómo te compensan, si el saldo caduca y qué conceptos cubre? (no es 1:1)</li>
+<li>¿Has calculado ROI realista? (amortización 8-12 años típico, no 4-5)</li>
+<li>¿Has incluido mantenimiento en el cálculo? (limpieza, inversor se rompe a los 10-15 años)</li>
+</ul>
+<h2>Consejo final</h2>
+<p>
+                Las placas solares son una excelente inversión a largo plazo, pero no eliminan la factura por arte de magia. Con un sistema bien optimizado puedes reducir mucho el recibo. Si tus excedentes son altos, busca una <a href="/comparador-tarifas-solares.html">tarifa solar con batería virtual</a> y revisa siempre el contrato: caducidad del saldo y qué conceptos compensa realmente.
+</p>
+<p>
+                Para elegir bien, prueba tus datos reales en nuestro <a href="../comparador-tarifas-solares.html">simulador de batería virtual</a> y compara qué compañía te compensa más según tu perfil de vertido.
+</p>
+<p>Y para la foto completa, el <a href="/">comparador de tarifas de luz con autoconsumo</a> te deja ver cómo queda tu tarifa solar frente al resto del mercado.</p>
+<section class="more-info-section">
+<h3 class="more-info-title">📚 Más información</h3>
+<div class="more-info-grid">
+<a class="more-info-link" href="/comparador-tarifas-solares.html">
+<strong>☀️ Mejor tarifa con placas solares</strong>
+<p>Encuentra la tarifa que mejor compensa tus excedentes</p>
+</a>
+</div>
+</section>
+<section class="related-guides-section" aria-labelledby="guias-relacionadas">
+  <h2 id="guias-relacionadas">📚 Guías relacionadas</h2>
+  <div class="related-guides-grid">
+    <a class="related-guide-card" href="tengo-placas-que-tarifa-elegir-segun-produccion-y-excedentes.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">🧭 Tengo placas: qué tarifa elegir</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Árbol de decisión práctico según tu producción y excedentes.</span>
+    </a>
+    <a class="related-guide-card" href="autoconsumo-y-placas-solares-lo-basico.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">☀️ Autoconsumo: lo básico</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Cómo funciona y qué mirar en facturas y contratos.</span>
+    </a>
+    <a class="related-guide-card" href="coche-electrico-que-tarifa-elegir-y-como-cargar-barato.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">🚗 Coche eléctrico: cargar barato</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Tarifas, horarios y hábitos para ahorrar cargando.</span>
+    </a>
+    <a class="related-guide-card" href="pvpc-vs-mercado-libre-cuando-te-conviene-cada-uno.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">⚡ PVPC vs mercado libre</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Cuándo conviene cada uno según tu consumo y riesgos.</span>
+    </a>
+    <a class="related-guide-card" href="que-es-p1-p2-y-p3-en-tu-factura.html">
+      <div class="related-guide-top">
+        <span class="related-guide-title">⏰ Qué es P1, P2 y P3</span>
+        <span class="related-guide-arrow" aria-hidden="true">→</span>
+      </div>
+      <span class="related-guide-desc">Horarios valle/llano/punta y cómo afectan a tu precio.</span>
+    </a>
+  </div>
+</section>
+
+
+
+<section class="faq-section" id="faq">
+  <h2>Preguntas frecuentes</h2>
+  <details class="faq-item">
+    <summary>¿Qué es la compensación de excedentes?</summary>
+    <p>Es cuando la energía que tus placas solares generan de más y viertes a la red te la compensan económicamente en tu factura. En mercado libre el valor depende del contrato; en PVPC se aplica la fórmula regulada. No es un balance 1:1 y, en compensación simplificada, no puede dejar el término de energía del mes en negativo.</p>
+  </details>
+  <details class="faq-item">
+    <summary>¿Qué es la batería virtual?</summary>
+    <p>La batería virtual es un servicio comercial de algunas comercializadoras que guarda como saldo el valor económico de excedentes no aprovechados en ese mes. No es una batería física ni una figura regulada por el RD 244/2019: depende del contrato, la caducidad del saldo y los conceptos que permita compensar.</p>
+  </details>
+  <details class="faq-item">
+    <summary>¿Conviene más batería virtual o compensación mensual?</summary>
+    <p>Depende de tu patrón de consumo. Si en verano produces mucho más de lo que consumes, la batería virtual te permite aprovechar ese excedente en invierno. Si tu consumo es estable todo el año, la compensación mensual puede ser suficiente.</p>
+  </details>
+</section>
+
+</div>
+<nav class="guide-nav">
+  <a href="../guias.html" class="guide-nav-btn"><span class="guide-nav-label">← Volver</span><span class="guide-nav-title">Ver todas las guías</span></a>
+  <a href="como-reclamar-a-comercializadora-distribuidora.html" class="guide-nav-btn" style="text-align: right;"><span class="guide-nav-label">Siguiente →</span><span class="guide-nav-title">Cómo reclamar a tu compañía</span></a>
+</nav>
+</article>
+<aside class="sidebar-actions">
+  <div class="action-card">
+    <h3>⚡ Comparador</h3>
+    <p>Compara tarifas reales</p>
+    <a href="/" class="action-btn">Ir al comparador</a>
+  </div>
+  <div class="action-card">
+    <h3>📤 Compartir</h3>
+    <div class="share-buttons">
+      <a href="#" class="share-btn" onclick="return share('twitter')"><span>🐦</span><span>Twitter</span></a>
+      <a href="#" class="share-btn" onclick="return share('whatsapp')"><span>💬</span><span>WhatsApp</span></a>
+      <a href="#" class="share-btn" onclick="return share('copy')"><span>🔗</span><span>Copiar</span></a>
+    </div>
+  </div>
+</aside>
+</div>
+</main>
+<script>
+/* Progreso de lectura + TOC + scroll suave */
+(function(){
+  const progressFill = document.getElementById('progressFill');
+  if(progressFill){
+    window.addEventListener('scroll', () => {
+      const s = document.documentElement.scrollTop || document.body.scrollTop;
+      const h = (document.documentElement.scrollHeight - document.documentElement.clientHeight) || 1;
+      const p = (s / h) * 100;
+      progressFill.style.width = p + '%';
+    }, { passive: true });
+  }
+
+  const tocList = document.getElementById('tocList');
+  const toc = document.querySelector('.toc');
+  const headings = Array.from(document.querySelectorAll('.article-content h2'));
+
+  if(tocList && headings.length){
+    headings.forEach((heading, index) => {
+      if(!heading.id) heading.id = 'section-' + index;
+      const li = document.createElement('li');
+      const a = document.createElement('a');
+      a.href = '#' + heading.id;
+      a.textContent = heading.textContent;
+      li.appendChild(a);
+      tocList.appendChild(li);
+    });
+
+    const tocLinks = Array.from(document.querySelectorAll('.toc-list a'));
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if(entry.isIntersecting){
+          const id = entry.target.id;
+          tocLinks.forEach(link => {
+            link.classList.toggle('active', link.getAttribute('href') === '#' + id);
+          });
+        }
+      });
+    }, { rootMargin: '-100px 0px -80% 0px' });
+
+    headings.forEach(h => observer.observe(h));
+  } else if(toc){
+    toc.style.display = 'none';
+  }
+
+  document.querySelectorAll('a[href^="#"]:not([href="#"])').forEach(anchor => {
+    anchor.addEventListener('click', function(e){
+      const target = document.querySelector(this.getAttribute('href'));
+      if(target){
+        e.preventDefault();
+        target.scrollIntoView({ behavior:'smooth', block:'start' });
+      }
+    });
+  });
+})();
+
+/* Compartir (global para onclick) */
+function share(platform){
+  const rawUrl = window.location.href;
+  const url = encodeURIComponent(rawUrl);
+  const title = encodeURIComponent(document.title);
+
+  if(platform === 'twitter'){
+    window.open(`https://twitter.com/intent/tweet?url=${url}&text=${title}`, '_blank', 'noopener');
+    return false;
+  }
+  if(platform === 'whatsapp'){
+    window.open(`https://wa.me/?text=${title}%20${url}`, '_blank', 'noopener');
+    return false;
+  }
+  if(platform === 'copy'){
+    const text = rawUrl;
+    const done = () => { const n = document.createElement('div'); n.textContent = '¡Link copiado! 📋'; n.setAttribute('style','position:fixed;left:50%;bottom:20px;transform:translateX(-50%);padding:10px 14px;border-radius:10px;background:rgba(11,16,32,.95);color:#fff;font:600 13px/1.2 system-ui;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.25)'); document.body.appendChild(n); setTimeout(() => n.remove(), 1400); };
+    if(navigator.clipboard && window.isSecureContext){
+      navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
+    } else {
+      fallbackCopy(text, done);
+    }
+    return false;
+  }
+  return false;
+
+  function fallbackCopy(text, done){
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.top = '-1000px';
+    ta.style.left = '-1000px';
+    document.body.appendChild(ta);
+    ta.focus();
+    ta.select();
+    try{ document.execCommand('copy'); }catch(e){}
+    document.body.removeChild(ta);
+    done();
+  }
+}
+</script>
+  <script src="/js/tracking.js?v=20260719-113708" defer></script>
+</body>
+</html>
+

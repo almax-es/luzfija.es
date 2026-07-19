@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <!-- CSP con hashes para JSON-LD inline; el script de deploy los recalcula al publicar. -->
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-GDdiOWCegw0ObPOUX/uwtHr211aPXBwN/Cvawb5Q8qY=' 'sha256-eooA04DYnoUtEHXQV8gILAcI1rCIt72aFefNIG0H9Wo=' 'sha256-w7A0zfYxLaqXc9xXZZbqnUZWiCvfyIVfnvHvLK6nx84=' 'sha256-HeJurbBK84t4X/fFRNa0BRm9LAjNtBTV2DVcLO7w30U=' 'sha256-ItIrYKAJQRW7iaWSixjOCAWlxlDYAFHg/epJScymEAA=' 'sha256-5eX3tlPn/qaNcdCPVBqrVdd7LFS/WD4hQEeotrgXfZU='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="dark light"/>
+<meta name="description" content="Compara tarifas solares con excedentes y batería virtual mes a mes. Simulador independiente: sin registro, sin comisiones y sin ofertas patrocinadas.">
+  <meta name="keywords" content="comparador tarifas solares, autoconsumo fotovoltaico, placas solares, batería virtual, compensación excedentes, tarifa luz placas solares, ahorro energía solar, fotovoltaica, autoconsumo españa, comparar tarifas autoconsumo, excedentes fotovoltaicos, tarifa solar más barata, simulador solar, calculadora autoconsumo">
+  <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1">
+  <meta name="author" content="LuzFija.es - aLMaX">
+  <meta name="theme-color" content="#8B5CF6">
+  <meta name="application-name" content="LuzFija Comparador Solar">
+  <meta name="mobile-web-app-capable" content="yes">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Comparador Tarifas">
+
+  <link rel="preconnect" href="https://luzfija.goatcounter.com">
+  <script src="/js/config.js?v=20260719-113708"></script>
+
+  <meta property="og:title" content="Comparador de Tarifas Solares y Batería Virtual | LuzFija.es">
+  <meta property="og:description" content="Compara tarifas solares con excedentes y batería virtual mes a mes. Simulador independiente: sin registro, sin comisiones y sin ofertas patrocinadas.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://luzfija.es/comparador-tarifas-solares.html">
+  <meta property="og:locale" content="es_ES">
+  <meta property="og:site_name" content="LuzFija.es">
+  <meta property="og:image" content="https://luzfija.es/og.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:type" content="image/png">
+  <meta property="og:image:alt" content="Comparador de Tarifas Solares y Batería Virtual | LuzFija.es">
+
+  <!-- Logo para Google Search (marca) -->
+
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="Comparador de Tarifas Solares y Batería Virtual | LuzFija.es">
+  <meta name="twitter:description" content="Compara tarifas solares con excedentes y batería virtual mes a mes. Simulador independiente: sin registro, sin comisiones y sin ofertas patrocinadas.">
+  <meta name="twitter:image" content="https://luzfija.es/og.png">
+
+  <link rel="canonical" href="https://luzfija.es/comparador-tarifas-solares.html">
+  <link rel="alternate" hreflang="es-ES" href="https://luzfija.es/comparador-tarifas-solares.html">
+  <link rel="alternate" hreflang="x-default" href="https://luzfija.es/comparador-tarifas-solares.html">
+  <link rel="alternate" type="text/plain" title="LuzFija.es - LLM reference" href="https://luzfija.es/llms.txt">
+  <link rel="alternate" type="text/plain" title="LuzFija.es - Extended LLM reference" href="https://luzfija.es/llms-full.txt">
+
+
+  <title>Comparador de Tarifas Solares y Batería Virtual | LuzFija.es</title>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="192x192" href="/icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">
+
+<script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    "name": "Comparador de Tarifas Eléctricas para Placas Solares y Autoconsumo",
+    "alternateName": "Comparador Solar LuzFija",
+    "description": "Herramienta gratuita para comparar tarifas eléctricas con excedentes remunerados usando tus datos reales de autoconsumo fotovoltaico. Calcula compensación de excedentes, batería virtual, y descubre qué tarifa solar te ahorra más dinero cada mes. Sin registro, datos de consumo procesados en tu navegador.",
+    "url": "https://luzfija.es/comparador-tarifas-solares.html",
+    "logo": "https://luzfija.es/logo-512.png",
+    "applicationCategory": "UtilitiesApplication",
+    "operatingSystem": "Any",
+    "image": "https://luzfija.es/og.png",
+    "inLanguage": "es-ES",
+    "browserRequirements": "Requires JavaScript. HTML5 compatible browser.",
+    "softwareVersion": "2.0",
+    "datePublished": "2024-01-15",
+    "dateModified": "2026-07-16",
+    "offers": {
+      "@type": "Offer",
+      "price": "0",
+      "priceCurrency": "EUR",
+      "availability": "https://schema.org/InStock"
+    },
+    "featureList": [
+      "Comparación de tarifas con excedentes remunerados",
+      "Cálculo de compensación de excedentes fotovoltaicos",
+      "Análisis de batería virtual mes a mes",
+      "Importación de datos desde CSV (Datadis, distribuidoras, Iberdrola)",
+      "Entrada manual de consumos por periodos",
+      "Procesamiento local: datos de consumo en tu navegador",
+      "Ranking automático por coste del periodo simulado",
+      "Exportación e importación de configuraciones",
+      "Compatible con tarifas 1P y 3P",
+      "Cálculo de impuestos (IEE, IVA/IGIC)",
+      "Soporte Península, Canarias, Ceuta y Melilla"
+    ],
+    "screenshot": "https://luzfija.es/og.png",
+    "creator": {
+      "@type": "Person",
+      "name": "aLMaX",
+      "url": "https://luzfija.es"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "LuzFija.es",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://luzfija.es/logo-512.png"
+      }
+    }
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"BreadcrumbList",
+    "itemListElement":[
+      {"@type":"ListItem","position":1,"name":"Inicio","item":"https://luzfija.es/"},
+      {"@type":"ListItem","position":2,"name":"Comparador Tarifas Placas Solares","item":"https://luzfija.es/comparador-tarifas-solares.html"}
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "HowTo",
+    "name": "Cómo comparar tarifas eléctricas con placas solares",
+    "description": "Guía paso a paso para encontrar la tarifa eléctrica más barata para tu instalación de autoconsumo fotovoltaico",
+    "image": "https://luzfija.es/og.png",
+    "totalTime": "PT5M",
+    "estimatedCost": {
+      "@type": "MonetaryAmount",
+      "currency": "EUR",
+      "value": "0"
+    },
+    "step": [
+      {
+        "@type": "HowToStep",
+        "name": "Obtén tus datos de consumo",
+        "text": "Descarga tu CSV de consumo desde Datadis, tu distribuidora o comercializadora. También puedes introducir los datos manualmente.",
+        "position": 1
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Sube tu archivo o rellena manualmente",
+        "text": "Sube tu CSV haciendo clic en el botón 'Seleccionar archivo CSV' o introduce tus consumos mensuales por periodos (Punta, Llano, Valle) y excedentes vertidos.",
+        "position": 2
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Configura tus datos",
+        "text": "Introduce tu potencia contratada (P1 y P2), zona fiscal y saldo inicial de batería virtual si lo tienes.",
+        "position": 3
+      },
+      {
+        "@type": "HowToStep",
+        "name": "Compara y elige",
+        "text": "Pulsa 'Comparar Tarifas y Ver Ahorro' y revisa el ranking completo. Verás cuánto pagarías con cada tarifa, compensación de excedentes y saldo de batería virtual acumulado.",
+        "position": 4
+      }
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context":"https://schema.org",
+    "@type":"FAQPage",
+    "mainEntity":[
+      {
+        "@type":"Question",
+        "name":"¿Qué significan punta, llano y valle?",
+        "acceptedAnswer":{"@type":"Answer","text":"Son periodos horarios con precios distintos en tarifas 3P. En general, punta es más caro, valle más barato y llano intermedio (los horarios exactos dependen del calendario y la tarifa)."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Qué es P1 y P2 en la potencia contratada?",
+        "acceptedAnswer":{"@type":"Answer","text":"La potencia se paga por días y puede variar por periodo (P1/P2). En muchas viviendas se contrata la misma potencia en ambos, pero puedes optimizarla según tu uso."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿El comparador incluye impuestos?",
+        "acceptedAnswer":{"@type":"Answer","text":"Sí: el cálculo muestra potencia, consumo y una estimación de impuestos/IVA según el modelo del comparador."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Necesito registrarme?",
+        "acceptedAnswer":{"@type":"Answer","text":"No. Es una herramienta gratuita, sin registro. Puedes exportar e importar tus datos en un archivo JSON local para conservar tu configuración."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿De dónde salen los precios?",
+        "acceptedAnswer":{"@type":"Answer","text":"Las tarifas se recopilan de condiciones públicas de las comercializadoras y se actualizan regularmente. Este simulador compara tarifas con precio de excedentes utilizable; para consultar PVPC y excedentes regulados, usa el Observatorio PVPC enlazado desde la página."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Incluye PVPC en el ranking del simulador solar?",
+        "acceptedAnswer":{"@type":"Answer","text":"No. El ranking del simulador solar se calcula con tarifas de mercado libre que tienen compensación de excedentes utilizable. El PVPC y los excedentes regulados se analizan en el Observatorio PVPC."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Por qué no aparecen tarifas sin excedentes?",
+        "acceptedAnswer":{"@type":"Answer","text":"El simulador necesita un precio de excedentes para calcular la compensación mes a mes. Por eso filtra tarifas sin compensación utilizable y muestra tarifas con excedente fijo positivo o indexado documentado."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Cómo funciona con placas solares y autoconsumo?",
+        "acceptedAnswer":{"@type":"Answer","text":"El comparador analiza tus datos reales de autoconsumo (CSV) o los meses que introduzcas manualmente y calcula mes a mes la compensación de excedentes según el precio de cada comercializadora. Para tarifas con Batería Virtual (BV), los excedentes sobrantes se acumulan en euros para descontarlos en meses futuros. El ranking ordena las tarifas solares elegibles por coste del periodo simulado; solo se presenta como anual cuando hay 12 meses razonablemente completos."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Qué es la batería virtual en tarifas eléctricas?",
+        "acceptedAnswer":{"@type":"Answer","text":"La batería virtual es un sistema que permite acumular en euros el valor de los excedentes fotovoltaicos que no se compensan en el mes actual, para usarlos como descuento en facturas futuras. Es como una hucha de energía solar en forma de dinero, sin necesidad de instalar baterías físicas."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Puedo comparar tarifas sin subir ningún archivo?",
+        "acceptedAnswer":{"@type":"Answer","text":"Sí, puedes introducir manualmente tus consumos mensuales por periodos (Punta, Llano, Valle) y excedentes vertidos. La tabla manual está siempre visible y puedes rellenar solo los meses que quieras simular. También puedes exportar e importar tus datos para no perderlos."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Qué formatos de CSV acepta el comparador?",
+        "acceptedAnswer":{"@type":"Answer","text":"Acepta CSV de Datadis, distribuidoras (Naturgy, Endesa, Iberdrola, UFD, etc.), archivos de comercializadoras y también archivos Excel (.xlsx, .xls). El sistema detecta automáticamente el formato y extrae los datos de consumo y excedentes."}
+      },
+      {
+        "@type":"Question",
+        "name":"¿Mis datos de consumo son privados?",
+        "acceptedAnswer":{"@type":"Answer","text":"Sí. Todos los cálculos se realizan localmente en tu navegador. Tus datos de consumo, CSV y configuraciones no se envían a un servidor de cálculo; solo quedan guardados localmente si así lo deseas."}
+      }
+    ]
+  }
+  </script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "LuzFija.es",
+    "alternateName": "Luzfija",
+    "url": "https://luzfija.es",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://luzfija.es/logo-512.png",
+      "width": 512,
+      "height": 512,
+      "caption": "LuzFija.es - Comparador de Tarifas Eléctricas"
+    },
+    "description": "Suite gratuita para comparar tarifas de luz, estimar PVPC, analizar consumo horario y simular autoconsumo en España.",
+    "email": "hola@luzfija.es",
+    "foundingDate": "2023",
+    "sameAs": [
+      "https://luzfija.es"
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "contactType": "customer support",
+      "email": "hola@luzfija.es",
+      "availableLanguage": ["es"]
+    },
+    "areaServed": {
+      "@type": "Country",
+      "name": "España"
+    },
+    "serviceType": "Comparador de tarifas y analítica eléctrica doméstica"
+  }
+  </script>
+
+  <script src="/js/theme.js?v=20260719-113708"></script>
+
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Article",
+    "headline": "Cómo encontrar la mejor tarifa eléctrica con placas solares",
+    "description": "Guía completa para usuarios de autoconsumo fotovoltaico: cómo comparar tarifas, calcular compensación de excedentes y maximizar el ahorro con batería virtual.",
+    "image": "https://luzfija.es/og.png",
+    "datePublished": "2024-01-15T08:00:00+01:00",
+    "dateModified": "2026-07-16T15:30:00+02:00",
+    "author": {
+      "@type": "Person",
+      "name": "aLMaX",
+      "url": "https://luzfija.es"
+    },
+    "publisher": {
+      "@type": "Organization",
+      "name": "LuzFija.es",
+      "logo": {
+        "@type": "ImageObject",
+        "url": "https://luzfija.es/logo-512.png"
+      }
+    },
+    "mainEntityOfPage": {
+      "@type": "WebPage",
+      "@id": "https://luzfija.es/comparador-tarifas-solares.html"
+    },
+    "keywords": "tarifas solares, autoconsumo fotovoltaico, compensación excedentes, batería virtual, placas solares, ahorro energía",
+    "articleSection": "Energía Solar",
+    "articleBody": "El comparador permite a usuarios con instalaciones fotovoltaicas encontrar la tarifa eléctrica más económica analizando datos reales de consumo y excedentes. Calcula automáticamente la compensación de excedentes y el funcionamiento de la batería virtual mes a mes."
+  }
+  </script>
+
+    <link rel="stylesheet" href="/styles.css?v=20260719-113708">
+    <link rel="stylesheet" href="/pro.css?v=20260719-113708">
+  <!-- CSS del desglose (solo se usa al abrir el modal). Se carga sin bloquear el render inicial -->
+  <link rel="preload" href="/desglose-factura.css?v=20260719-113708" as="style">
+  <link rel="stylesheet" href="/desglose-factura.css?v=20260719-113708" media="all">
+  <noscript><link rel="stylesheet" href="/desglose-factura.css?v=20260719-113708"></noscript>
+
+  <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/fonts.css?v=20260719-113708">
+  <link rel="stylesheet" href="/bv-sim.css?v=20260719-113708">
+  <link rel="stylesheet" href="/comparador-solar-mejorado.css?v=20260719-113708">
+
+    <meta name="theme-color" content="#8B5CF6">
+</head>
+
+<body class="solar-pro">
+  <a class="skip-link" href="#main">Saltar al contenido</a>
+<div class="container">
+    <div class="topbar">
+      <div class="brand">
+        <span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span>
+        <a class="logo" href="/" aria-label="Inicio">
+          <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%;">
+            <!-- ... (logo content matches original) ... -->
+            <defs>
+              <linearGradient id="logoGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1"/>
+                <stop offset="50%" style="stop-color:#f59e0b;stop-opacity:1"/>
+                <stop offset="100%" style="stop-color:#fbbf24;stop-opacity:1"/>
+              </linearGradient>
+              <linearGradient id="logoGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:1"/>
+                <stop offset="100%" style="stop-color:#6366f1;stop-opacity:1"/>
+              </linearGradient>
+              <filter id="glow">
+                <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+            </defs>
+            <circle cx="50" cy="50" r="35" fill="url(#logoGrad2)" opacity="0.2"/>
+            <path d="M 55 15 L 35 48 L 48 48 L 45 85 L 70 45 L 57 45 Z"
+                  fill="url(#logoGrad1)" filter="url(#glow)"
+                  stroke="#fff" stroke-width="1.5" stroke-linejoin="round"/>
+            <circle cx="30" cy="30" r="2" fill="#fbbf24" opacity="0"/>
+            <circle cx="70" cy="35" r="2" fill="#fbbf24" opacity="0"/>
+            <circle cx="65" cy="70" r="2" fill="#fbbf24" opacity="0"/>
+          </svg>
+        </a>
+        <div>
+          <nav aria-label="Breadcrumb" class="u-mb-8">
+            <ol class="breadcrumb">
+              <li><a href="/" style="text-decoration:none; font-weight:bold;">&larr; Volver al Comparador</a></li>
+            </ol>
+          </nav>
+                    <h1>Comparador de Tarifas Eléctricas con Placas Solares y Autoconsumo</h1>
+                    <p>Compara excedentes y batería virtual con tus datos reales de autoconsumo, sin registro ni comisiones</p>
+                  </div>
+                </div>
+
+                      <div class="actions">
+                        <div class="actions-center">
+                          <a href="/" class="btn" aria-label="Ir al comparador principal">
+                            <span>🏠</span><span class="btn-text">Comparador</span>
+                          </a>
+                          <a href="/estadisticas/" class="btn" aria-label="Ir al observatorio PVPC">
+                            <span>⚡</span><span class="btn-text">PVPC</span>
+                          </a>
+                        </div>
+
+                        <div class="actions-right">
+                          <button class="btn" id="btnTheme" type="button" title="Cambiar tema" aria-label="Cambiar tema">🌓</button>
+                          <div class="menu" id="menuRoot">
+                            <button class="btn" id="btnMenu" type="button" aria-haspopup="menu" aria-controls="menuPanel" aria-expanded="false" title="Opciones" aria-label="Abrir menú de opciones">⚙️</button>
+                            <div class="menuPanel" id="menuPanel" role="menu" aria-label="Opciones" aria-orientation="vertical" aria-hidden="true">
+                              <div class="menuHint">Opciones</div>
+                              <a class="menuItem" role="menuitem" href="/">🏠 Comparador principal</a>
+                              <a class="menuItem" role="menuitem" href="/estadisticas/">⚡ Observatorio PVPC</a>
+                              <a class="menuItem" role="menuitem" href="/guias.html">📚 Guías</a>
+                              <a class="menuItem" role="menuitem" href="/como-funciona-luzfija.html">🧭 Cómo funciona</a>
+                              <div class="menuDivider"></div>
+                              <a class="menuItem u-no-underline" href="mailto:hola@luzfija.es" role="menuitem">
+                                <span class="mi-left">✉️ Contacto</span>
+                                <span class="mi-right">email</span>
+                              </a>
+                              <div class="menuDivider"></div>
+                              <button class="menuItem" id="btnClearCache" type="button" role="menuitem" aria-label="Limpiar caché">
+                                <span class="mi-left">🗑️ Limpiar caché</span>
+                                <span class="mi-right">web</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+              </div>
+
+              <main id="main" tabindex="-1">
+                <section class="card">
+                  <div class="head">
+                    <div class="kicker">Simulador con Datos Reales</div>
+                    <div class="title">Comparador de Tarifas para Autoconsumo Fotovoltaico</div>
+                  </div>
+                  <div class="body">
+                    <p style="margin-bottom: 24px; color:var(--muted); font-size: 0.95rem;">
+                      Sube tu CSV de consumo para auto-rellenar la tabla o introduce los datos manualmente mes a mes. Compara tarifas con excedentes remunerados y descubre cuál te ahorra más dinero con compensación de excedentes y batería virtual.
+                    </p>
+
+                    <div class="bv-form-container">
+                      <!-- Inputs Comunes (Izquierda) -->
+                      <div class="form bv-form-2col" style="gap: 16px;">
+
+                        <div class="group">
+                          <label for="bv-p1">Potencia P1 (kW)</label>
+                          <input class="input" type="text" id="bv-p1" inputmode="decimal" value="3,45" placeholder="Ej: 3,45">
+                        </div>
+
+                        <div class="group">
+                          <label for="bv-p2">Potencia P2 (kW)</label>
+                          <input class="input" type="text" id="bv-p2" inputmode="decimal" value="3,45" placeholder="Ej: 3,45">
+                        </div>
+
+                        <div class="group">
+                          <label for="bv-saldo-inicial">Saldo en Hucha (€)</label>
+                          <input class="input" type="text" id="bv-saldo-inicial" inputmode="decimal" value="0,00" placeholder="0,00">
+                          <div style="font-size:11px; color:var(--muted); margin-top:4px;">Saldo acumulado en tu tarifa actual. Solo se aplica a "Mi tarifa ⭐" con batería virtual: la hucha no se transfiere al cambiar de comercializadora.</div>
+                        </div>
+
+                        <div class="group">
+                          <label for="bv-mes-inicio-btn">Mes de inicio del contrato</label>
+                          <div class="bv-cs" id="bv-mes-inicio">
+                            <button type="button" class="bv-cs-btn" id="bv-mes-inicio-btn"
+                                    disabled aria-haspopup="listbox" aria-expanded="false">
+                              <span class="bv-cs-value">Orden de la tabla (por defecto)</span>
+                              <svg class="bv-cs-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M6 9l6 6 6-6"/>
+                              </svg>
+                            </button>
+                            <ul class="bv-cs-list" role="listbox" aria-label="Mes de inicio del contrato" id="bv-mes-inicio-list"></ul>
+                          </div>
+                          <div style="font-size:11px; color:var(--muted); margin-top:4px;">Elige el mes en que empieza la simulación: la hucha se arrastra desde ahí en ese orden.</div>
+                        </div>
+
+                        <div class="group" style="grid-column: 1 / -1;">
+                          <label for="bv-zona-fiscal">Zona Fiscal</label>
+                          <select id="bv-zona-fiscal" class="input">
+                            <option value="Península">Península y Baleares</option>
+                            <option value="Canarias">Canarias</option>
+                            <option value="CeutaMelilla">Ceuta y Melilla</option>
+                          </select>
+                        </div>
+
+                        <div class="group" id="bv-vivienda-canarias-wrapper" style="grid-column: 1 / -1; display:none;">
+                          <label class="fv-check">
+                            <input id="bv-vivienda-canarias" type="checkbox" checked>
+                            <span>Titular persona física en su vivienda (IGIC 0% si ≤10 kW)</span>
+                          </label>
+                        </div>
+
+                        <!-- Tarifa Actual (Opcional) -->
+                        <div style="grid-column: 1 / -1; margin-top: 12px;">
+                          <details class="seoDetails" style="background: rgba(255,255,255,0.03); border: 1px dashed var(--border);">
+                            <summary style="font-size: 13px; padding: 10px; display: flex; justify-content: space-between; align-items: center;">
+                              <span>⭐ Comparar con mi tarifa actual</span>
+                              <span id="bv-custom-tarifa-indicator" style="font-size: 11px; color: var(--muted); margin-right: 8px; display: none;" title="Datos guardados en tu navegador"></span>
+                            </summary>
+                            <div style="padding: 16px; display: grid; gap: 16px;">
+
+                              <!-- Info box explicativo -->
+                              <div class="info-box">
+                                <div style="display: flex; align-items: start; gap: 10px;">
+                                  <span style="font-size: 18px; flex-shrink: 0;">💡</span>
+                                  <div>
+                                    <strong style="display: block; margin-bottom: 4px;">Busca estos precios en tu factura</strong>
+                                    <div style="color: var(--muted2); font-size: 11px; line-height: 1.5;">
+                                      Normalmente aparecen en la sección de "Detalle del importe" o "Términos de facturación"
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+
+                              <!-- Término de Potencia -->
+                              <div class="mt-seccion-header">
+                                <span class="mt-seccion-icon">📊</span>
+                                <h4 class="mt-seccion-title">Término de potencia</h4>
+                                <span class="mt-seccion-subtitle">Precio por kW contratado/día</span>
+                              </div>
+                              <div class="form bv-form-2col" style="gap: 10px;">
+                                <div class="group">
+                                  <label for="mtP1">Potencia P1 (€/kW·día)</label>
+                                  <input id="mtP1" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0891">
+                                </div>
+                                <div class="group">
+                                  <label for="mtP2">Potencia P2 (€/kW·día)</label>
+                                  <input id="mtP2" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0445">
+                                </div>
+                              </div>
+
+                              <!-- Término de Energía -->
+                              <div class="mt-seccion-header" style="margin-top: 4px;">
+                                <span class="mt-seccion-icon">⚡</span>
+                                <h4 class="mt-seccion-title">Término de energía</h4>
+                                <span class="mt-seccion-subtitle">Precio por kWh consumido</span>
+                              </div>
+                              <div class="form bv-form-3col" style="gap: 10px;">
+                                <div class="group">
+                                  <label for="mtPunta">Punta (€/kWh)</label>
+                                  <input id="mtPunta" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,1543">
+                                </div>
+                                <div class="group">
+                                  <label for="mtLlano">Llano (€/kWh)</label>
+                                  <input id="mtLlano" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,1234">
+                                </div>
+                                <div class="group">
+                                  <label for="mtValle">Valle (€/kWh)</label>
+                                  <input id="mtValle" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0899">
+                                </div>
+                              </div>
+
+                              <!-- Compensación de Excedentes -->
+                              <div class="mt-seccion-header" style="margin-top: 4px;">
+                                <span class="mt-seccion-icon">☀️</span>
+                                <h4 class="mt-seccion-title">Compensación de excedentes</h4>
+                                <span class="mt-seccion-subtitle">Precio que te pagan por verter a la red</span>
+                              </div>
+                              <div class="group">
+                                <label for="mtExc">Precio compensación (€/kWh)</label>
+                                <input id="mtExc" class="input" type="text" inputmode="decimal" placeholder="Ej: 0,0743">
+                              </div>
+
+                              <div class="group" style="margin-top: 8px;">
+                                <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
+                                  <input id="mtBV" type="checkbox" style="width: auto; cursor: pointer;">
+                                  <span style="font-size: 13px;">Tiene batería virtual (acumula excedentes no compensados)</span>
+                                </label>
+                              </div>
+
+                              <div style="display: flex; gap: 8px; margin-top: 12px;">
+                                <button type="button" id="bv-clear-custom-tarifa" class="btn btn-secondary" style="flex: 1; display: none;">
+                                  🗑️ Limpiar datos guardados
+                                </button>
+                              </div>
+
+                            </div>
+                          </details>
+                        </div>
+
+                      </div>
+
+                      <!-- Zona de Datos -->
+                      <div id="bv-data-zone">
+                        <!-- Upload Zone Compacta -->
+                        <div class="bv-upload-compact">
+                          <input class="bv-file-input" type="file" id="bv-file" accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel" aria-label="Subir archivo CSV o XLSX para autocompletar datos" style="display:none">
+
+                          <div class="bv-upload-header">
+                            <div class="bv-upload-title">
+                              <span class="bv-upload-icon-small">📄</span>
+                              <span>Subir CSV para auto-rellenar</span>
+                            </div>
+                            <div class="bv-upload-hint">Soporta Datadis, Distribuidoras, Iberdrola y Excel</div>
+                          </div>
+
+                          <button type="button" class="btn bv-upload-btn" id="upload-csv-btn">
+                            <span>📁 Seleccionar archivo CSV</span>
+                          </button>
+
+                          <div class="bv-file-selected-inline" id="file-selected-msg" style="display:none">
+                            <span class="bv-file-status-icon">✓</span>
+                            <span class="bv-file-name" id="file-name">archivo.csv</span>
+                            <button type="button" class="bv-remove-file-inline" id="remove-file" aria-label="Eliminar archivo">✕</button>
+                          </div>
+
+                          <div class="bv-observatorio-cta" role="note" aria-label="Compensación real PVPC">
+                            <div class="bv-observatorio-title">🔎 Compensación real en PVPC (tu CSV)</div>
+                            <div class="bv-observatorio-text">
+                              Calcula cuánto te habrían compensado los excedentes con el <strong>histórico oficial PVPC</strong> (REE/ESIOS).
+                            </div>
+                            <a class="btn bv-observatorio-btn" href="/estadisticas/?type=surplus#csv-excedentes">
+                              Ver en Observatorio PVPC
+                            </a>
+                          </div>
+
+                          <div class="bv-upload-divider">
+                            <span>o rellena manualmente</span>
+                          </div>
+                        </div>
+
+                        <!-- Tabla Manual (Siempre Visible) -->
+                        <div id="bv-manual-zone">
+                          <div class="bv-manual-container">
+                            <div class="bv-manual-scroll-wrapper">
+                              <!-- Header con tooltips descriptivos -->
+                              <div class="bv-manual-header">
+                                <span>Mes</span>
+                                <span title="Consumo en periodo Punta (10-14h y 18-22h laborables)">C. Punta (kWh)</span>
+                                <span title="Consumo en periodo Llano (8-10h, 14-18h, 22-24h laborables)">C. Llano (kWh)</span>
+                                <span title="Consumo en periodo Valle (0-8h + fines de semana y festivos)">C. Valle (kWh)</span>
+                                <span title="Excedentes vertidos a la red (kWh)">Vertido</span>
+                              </div>
+                              <div id="bv-manual-grid" class="bv-manual-grid-scroll">
+                                <!-- Se generará por JS -->
+                              </div>
+
+                              <!-- Fila de totales detallados -->
+                              <div id="bv-manual-totals-row" class="bv-manual-totals-row" style="display: none;">
+                                <span style="font-weight: 900; color: var(--accent);">TOTAL</span>
+                                <span id="bv-total-p1" style="font-weight: 700;">0</span>
+                                <span id="bv-total-p2" style="font-weight: 700;">0</span>
+                                <span id="bv-total-p3" style="font-weight: 700;">0</span>
+                                <span id="bv-total-vert" style="font-weight: 700;">0</span>
+                              </div>
+                            </div>
+
+                            <!-- Totales generales -->
+                            <div id="bv-manual-totals-summary" style="display: none; margin-top: 12px; padding: 10px; background: rgba(139, 92, 246, 0.1); border-radius: 8px; border: 1px solid rgba(139, 92, 246, 0.3);">
+                              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; font-size: 12px;">
+                                <div>
+                                  <div style="color: var(--muted); margin-bottom: 4px;">Consumo total introducido</div>
+                                  <div style="font-size: 16px; font-weight: 700; color: var(--accent);">
+                                    <span id="bv-total-consumo">0</span> kWh
+                                  </div>
+                                </div>
+                                <div>
+                                  <div style="color: var(--muted); margin-bottom: 4px;">Excedentes introducidos</div>
+                                  <div style="font-size: 16px; font-weight: 700; color: var(--accent);">
+                                    <span id="bv-total-excedentes">0</span> kWh
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+
+                            <!-- Privacidad y Controles -->
+                            <div class="bv-privacy-panel">
+                              <div class="bv-privacy-info">
+                                <span class="bv-privacy-icon">🔒</span>
+                                <div class="bv-privacy-text">
+                                  <strong>Procesamiento local:</strong> Tus datos se guardan automáticamente <strong>solo en tu navegador</strong>. No se envían a un servidor de cálculo.
+                                </div>
+                              </div>
+                              <div class="bv-privacy-status">
+                                <span id="bv-save-indicator" class="bv-save-indicator" role="status" aria-live="polite" aria-atomic="true"></span>
+                                <div id="bv-data-status" class="bv-data-status" role="status" aria-live="polite" aria-atomic="true"></div>
+                              </div>
+                            </div>
+
+                            <div class="bv-controls-wrapper">
+                              <div class="bv-controls-hint">
+                                Rellena solo los meses que quieras simular (ej: marzo a noviembre).
+                              </div>
+                              <div class="bv-controls-buttons">
+                                <button type="button" id="bv-export-manual" class="bv-control-btn" title="Descargar datos como archivo JSON (backup local)">💾 Exportar</button>
+                                <button type="button" id="bv-import-manual" class="bv-control-btn" title="Cargar datos desde archivo JSON">📂 Importar</button>
+                                <button type="button" id="bv-reset-manual" class="bv-reset-btn">🗑️ Borrar</button>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                    </div>
+
+                    <div class="u-mt-24">
+                      <button class="btn primary" id="bv-simulate" type="button" aria-controls="bv-results-container">
+                        <span class="bv-btn-text" style="font-size: 1.1rem;">Comparar Tarifas y Ver Ahorro &rarr;</span>
+                        <span class="spinner" style="display:none"></span>
+                      </button>
+                    </div>
+                  </div>
+                </section>
+
+                <!-- Resultados (Ocultos por defecto) -->
+                <div id="bv-results-container" class="fade-container" style="display:none">
+                  <section class="card u-mt-16">
+                    <div id="bv-results"></div>
+                  </section>
+                </div>
+
+                <!-- Estado (Oculto por defecto o integrado en notificaciones) -->
+                <div id="bv-status-container" style="display:none">
+                  <section class="card u-mt-16">
+                    <div class="head">
+                      <h2>Estado</h2>
+                    </div>
+                    <div id="bv-status"></div>
+                  </section>
+                </div>
+              </main>
+
+              <footer class="footer-container">
+                <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:30px; margin-bottom:30px;">
+                          <div>
+                            <h3 class="u-h3-strong-10">Sobre el Comparador</h3>
+                            <p style="color:var(--muted); font-size:12px; line-height:1.6; margin:0 0 12px 0;">
+                              Herramienta avanzada para <strong>comparar tarifas solares</strong> usando tus datos reales de autoconsumo y excedentes.
+                            </p>
+                            <p class="u-m-0">
+                              <a href="/guias.html" style="color:var(--accent); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; transition: opacity 0.2s;">
+                                📚 Guías sobre tarifas eléctricas
+                                <span style="font-size:10px;">→</span>
+                              </a>
+                            </p>
+                            <p class="u-m-0" style="margin-top:10px;">
+                              <a href="/como-funciona-luzfija.html" style="color:var(--accent2); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; transition: opacity 0.2s;">
+                                🧭 Qué hace LuzFija.es y cómo funciona
+                                <span style="font-size:10px;">→</span>
+                              </a>
+                            </p>
+                          </div>
+
+                          <div>
+                            <h3 class="u-h3-strong-10">Horarios Discriminación</h3>
+                            <ul class="u-list-muted-12">
+                              <li><strong style="color:var(--danger);">Punta:</strong> 10h-14h y 18h-22h</li>
+                              <li><strong style="color:var(--warn);">Llano:</strong> 8h-10h, 14h-18h, 22h-24h</li>
+                              <li><strong style="color:var(--accent2);">Valle:</strong> 0h-8h + fines de semana</li>
+                            </ul>
+                          </div>
+
+                          <div>
+                            <h3 class="u-h3-strong-10">¿Qué Analizamos?</h3>
+                            <ul class="u-list-muted-12">
+                              <li>✓ Tarifas con excedentes remunerados</li>
+                              <li>✓ Compensación de excedentes (€)</li>
+                              <li>✓ Batería Virtual (acumulación)</li>
+                              <li>✓ Enlace al histórico PVPC/excedentes</li>
+                              <li>✓ Ranking por coste mensual simulado</li>
+                            </ul>
+                          </div>
+
+                          <div id="contacto">
+                            <h3 class="u-h3-strong-10">Contacto</h3>
+                            <div class="contact-box">
+                              <div class="u-label-xs">✉️ Email</div>
+                              <a href="mailto:hola@luzfija.es" class="u-color-accent u-fw-900 u-text-13" style="text-decoration:underline;">hola@luzfija.es</a>
+                            </div>
+                          </div>
+                        </div>
+
+                        <div style="margin-top:30px; padding:28px 20px 24px; border-top:1px solid rgba(255,255,255,0.05); text-align:center;">
+                          <p style="font-size:11px; opacity:0.5; margin-bottom:8px;">⚡ LuzFija.es · Comparador de Tarifas Solares</p>
+                          <p class="u-text-10 u-opacity-40">Proyecto gratuito y sin publicidad · Tarifas actualizadas regularmente</p>
+
+                          <div style="margin-top:18px; padding-top:14px; border-top:1px solid var(--border);">
+                            <div class="u-max-w-720 u-center-text-padded">
+                              <p class="u-mt-10 u-text-10 u-opacity-65 u-leading-15">
+                                Analítica sin cookies · <a href="/privacidad.html" class="u-link-accent">Política de privacidad</a> · <a href="/aviso-legal.html" class="u-link-accent">Aviso legal</a>
+                              </p>
+                              <div class="footer-credits">Desarrollado por <a href="https://github.com/almax-es" target="_blank" rel="noopener noreferrer" style="color:inherit; text-decoration:none; font-weight:600;">aLMaX</a></div>
+                            </div>
+                          </div>
+                        </div>              </footer>
+            </div>
+
+            <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"><span class="dot" id="toastDot" aria-hidden="true"></span><span id="toastText"></span></div>
+
+            <!-- ⚠️ ORDEN CRÍTICO: lf-csv-utils.js DEBE cargarse ANTES que bv-sim-monthly.js -->
+            <script src="/js/tracking.js?v=20260719-113708"></script>
+            <script src="/js/lf-config.js?v=20260719-113708"></script>
+            <script src="/js/lf-utils.js?v=20260719-113708"></script>
+            <script src="/js/lf-ssaa.js?v=20260719-113708"></script>
+            <script src="/js/lf-csv-utils.js?v=20260719-113708"></script>
+            <script src="/js/lf-surplus-prices.js?v=20260719-113708"></script>
+            <script src="/js/bv/bv-import.js?v=20260719-113708"></script>
+            <script src="/js/bv/bv-sim-monthly.js?v=20260719-113708"></script>
+            <script src="/js/bv/bv-ui-helpers.js?v=20260719-113708"></script>
+            <script src="/js/bv/bv-ui.js?v=20260719-113708"></script>
+            <script src="/js/lf-sw-update.js?v=20260719-113708" defer></script>
+            <script src="/js/shell-lite.js?v=20260719-113708" defer></script>
+          </body></html>

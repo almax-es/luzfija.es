@@ -1,0 +1,28 @@
+{
+  "name": "luzfija-es",
+  "version": "1.2.12",
+  "description": "Comparador de tarifas eléctricas",
+  "license": "SEE LICENSE IN LICENSE",
+  "private": true,
+  "scripts": {
+    "setup:hooks": "git config core.hooksPath .githooks",
+    "sync:seo-docs": "node scripts/sync-seo-docs.mjs",
+    "sync:repo-docs": "node scripts/sync-seo-docs.mjs --include-repo-docs",
+    "lint": "eslint js",
+    "pretest": "npm run sync:seo-docs",
+    "test": "vitest run --reporter=default --reporter=json --outputFile=logs/vitest-summary.json",
+    "test:fast": "vitest run",
+    "test:watch": "npm run sync:seo-docs && vitest",
+    "check:repo-docs": "npm run sync:repo-docs && git diff --exit-code -- README.md CAPACIDADES-WEB.md JSON-SCHEMA.md llms.txt llms-full.txt sitemap.xml data/guides-search-index.json"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.7.0",
+    "globals": "^17.7.0",
+    "jsdom": "^29.1.1",
+    "vitest": "^4.1.5"
+  },
+  "dependencies": {
+    "chart.js": "^4.5.1"
+  }
+}

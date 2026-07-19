@@ -1,0 +1,623 @@
+/**
+ * @license PolyForm-Shield-1.0.0
+ * Required Notice: Copyright (c) 2026 Luis Oscar Soler Bernal / LuzFija.es
+ * This software is licensed under the PolyForm Shield License 1.0.0.
+ * See the LICENSE file in the repository root for full terms.
+ */
+
+// ===== LuzFija: Motor de Cálculo =====
+// Usa LF_CONFIG para valores regulados
+
+(function() {
+  'use strict';
+
+  const {
+    clampNonNeg, round2, formatMoney,
+    __LF_getFiscalContext, getInputValues
+  } = window.LF;
+
+  // Referencia a configuración
+  const CFG = window.LF_CONFIG;
+  const INDEXED_SURPLUS_REFERENCE_PRICE = window.LF_CONFIG?.INDEXED_SURPLUS_REFERENCE_PRICE ?? 0.02;
+
+  // ===== PRECIO EXCEDENTES =====
+  function getFvExcPrice(fv) {
+    if (!fv) return 0;
+    const raw = fv.exc;
+    // Sin curva horaria de vertido, -1 usa una referencia orientativa conservadora.
+    if (raw === -1) return INDEXED_SURPLUS_REFERENCE_PRICE;
+    // Solo se aceptan precios numericos no negativos.
+    return (typeof raw === 'number' && Number.isFinite(raw) && raw >= 0) ? raw : null;
+  }
+
+  function getPrecioBVMensual(fv) {
+    const raw = Number(fv?.precioBV);
+    return Number.isFinite(raw) ? Math.max(0, raw) : 0;
+  }
+
+  function __LF_aplicarImpuestos(params) {
+    const fiscal = params.fiscal;
+    const impuestoElec = round2(CFG.calcularIEE(params.sumaBase, params.consumoTotalKwh, fiscal.fechaYmd));
+    const alquilerContador = round2(params.dias * CFG.alquilerContador.eurosMes * 12 / 365);
+    const taxCalc = CFG.calcularImpuestoIndirecto({
+      zona: params.zonaFiscal,
+      usoFiscal: fiscal.usoFiscal,
+      baseEnergia: params.sumaBase,
+      impuestoElectrico: impuestoElec,
+      baseContador: alquilerContador,
+      baseServicios: params.baseServicios || 0,
+      potenciaContratada: fiscal.potenciaContratada,
+      viviendaCanarias: params.viviendaCanarias,
+      bonoSocialOn: params.bonoSocialOn,
+      bonoSocialTipo: params.bonoSocialTipo,
+      fechaYmd: fiscal.fechaYmd
+    });
+
+    return { impuestoElec, alquilerContador, taxCalc };
+  }
+
+  // ===== CÁLCULO LOCAL =====
+  async function calculateLocal(values) {
+    const { p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias, solarOn, exTotal, bvSaldo, bonoSocialOn, bonoSocialTipo, bonoSocialLimite } = values || getInputValues();
+    const fiscalBase = {
+      p1, p2, dias, cPunta, cLlano, cValle, zonaFiscal, viviendaCanarias,
+      fechaYmd: values?.fechaYmd
+    };
+    const fiscalMercadoLibre = __LF_getFiscalContext({
+      ...fiscalBase,
+      bonoSocialOn: false,
+      bonoSocialTipo: ''
+    });
+    const fiscalPvpc = __LF_getFiscalContext({
+      ...fiscalBase,
+      bonoSocialOn,
+      bonoSocialTipo
+    });
+    const isCanarias = fiscalMercadoLibre.esCanarias;
+    const isCeutaMelilla = fiscalMercadoLibre.esCeutaMelilla;
+
+    const cachedTarifas = window.LF.cachedTarifas;
+    if (!cachedTarifas.length) return;
+    const ssaaDataset = (window.LF.ssaa && typeof window.LF.ssaa.loadDataset === 'function')
+      ? await window.LF.ssaa.loadDataset()
+      : null;
+
+    // Bono Social: Preparar cálculo de descuento para PVPC
+    // Nota: bonoSocialLimite es ANUAL en kWh (1.587, 2.222, 2.698, o 4.761)
+    const bonoSocialDesc = {
+      enabled: bonoSocialOn,
+      tipo: bonoSocialTipo,
+      porcentaje: CFG.getBonoSocialDiscountRate
+        ? CFG.getBonoSocialDiscountRate(bonoSocialTipo)
+        : (bonoSocialTipo === 'severo' ? 0.575 : 0.425), // RDL 7/2026 vigente durante 2026
+      anualKwh: bonoSocialLimite,
+      periodico: (bonoSocialLimite / 365) * dias,  // Límite en el período de facturación
+      disponible: (bonoSocialLimite / 365) * dias,
+      consumoTotal: cPunta + cLlano + cValle
+    };
+    bonoSocialDesc.descuentoKwh = Math.min(bonoSocialDesc.consumoTotal, bonoSocialDesc.disponible);
+    bonoSocialDesc.sobrante = 0; // No estimamos arrastre de kWh bonificables en el comparador
+
+
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // OPTIMIZACIÓN INP (Interaction to Next Paint): Evitar bloqueo del main thread
+    // ═══════════════════════════════════════════════════════════════════════════════
+    // El cálculo de ~500 tarifas sin chunking bloqueaba el navegador durante 300+ ms.
+    // Ahora se procesa en lotes de 8 tarifas con pausas asincrónicas (setTimeout)
+    // que ceden control al navegador entre chunks.
+    //
+    // RESULTADO: INP mejoró de ~300ms a ~170ms (dentro del límite de Web Vitals)
+    //
+    // ⚠️ NO CAMBIAR CHUNK_SIZE sin ejecutar:
+    //   1. npm run build
+    //   2. Medir INP en DevTools (Lighthouse o Performance tab)
+    //   3. Validar que siga <200ms en desktop + móvil
+    //
+    // Valores probados:
+    //   - CHUNK_SIZE = 32: INP sube a ~240ms (demasiado bloqueo)
+    //   - CHUNK_SIZE = 8:  INP = ~170ms ✓ ÓPTIMO
+    //   - CHUNK_SIZE = 4:  INP = ~200ms (muchos yields, overhead)
+    // ═══════════════════════════════════════════════════════════════════════════════
+    const CHUNK_SIZE = 8;
+    const resultados = [];
+
+    for (let chunkStart = 0; chunkStart < cachedTarifas.length; chunkStart += CHUNK_SIZE) {
+      const chunkEnd = Math.min(chunkStart + CHUNK_SIZE, cachedTarifas.length);
+
+      for (let index = chunkStart; index < chunkEnd; index++) {
+        const t = cachedTarifas[index];
+        const fiscal = t.esPVPC ? fiscalPvpc : fiscalMercadoLibre;
+        const fiscalBonoSocialOn = Boolean(t.esPVPC && bonoSocialOn);
+        const fiscalBonoSocialTipo = fiscalBonoSocialOn ? bonoSocialTipo : '';
+
+        if (t.esPVPC && t.pvpcNotComputable) {
+          resultados.push({
+            ...t,
+            posicion: index + 1,
+            potenciaNum: 0,
+            potencia: '—',
+            consumoNum: 0,
+            consumo: '—',
+            impuestosNum: 0,
+            impuestos: '—',
+            totalNum: Number.POSITIVE_INFINITY,
+            total: '—',
+            webUrl: t.web,
+            solarNoCalculable: solarOn
+          });
+          continue;
+        }
+        if (t.esPVPC && solarOn) {
+          resultados.push({
+            ...t,
+            posicion: index + 1,
+            potenciaNum: 0,
+            potencia: '—',
+            consumoNum: 0,
+            consumo: '—',
+            impuestosNum: 0,
+            impuestos: '—',
+            totalNum: Number.POSITIVE_INFINITY,
+            total: '—',
+            webUrl: t.web,
+            solarNoCalculable: true,
+            solarNoCalculableReason: 'PVPC no se compara en modo solar desde la home porque este ranking no modela autoconsumo ni compensación de excedentes para la tarifa regulada.'
+          });
+          continue;
+        }
+        if (t.esPVPC && t.metaPvpc) {
+          const m = t.metaPvpc;
+
+          // En PVPC, la CNMC separa el margen de comercialización del peaje de potencia.
+          // Para mantener la semántica de la columna "Potencia" (P1+P2) y cuadrar el total,
+          // calculamos "Impuestos" como (TOTAL - Potencia - Energía), incorporando margen y demás conceptos.
+          const potenciaNum = round2(m.terminoFijo || 0);
+          const consumoNum = round2(m.terminoVariable || 0);
+
+          let metaPvpc = m;
+          let bonoSocialDescuentoEur = 0;
+          let bonoSocialProximoMes = 0;
+
+          // Aplicar descuento del Bono Social (solo PVPC) siguiendo la lógica del simulador CNMC:
+          // Descuento = % * (Término fijo + Financiación bono social + %kWh bonificable del término variable)
+          if (bonoSocialOn) {
+            const pvpcInputs = {
+              dias,
+              p1,
+              p2,
+              cPunta,
+              cLlano,
+              cValle,
+              zonaFiscal,
+              viviendaCanarias,
+              bonoSocialOn,
+              bonoSocialTipo,
+              bonoSocialLimite
+            };
+            const pvpcRes = (window.LF && window.LF.calcPvpcBonoSocial)
+              ? window.LF.calcPvpcBonoSocial(m, pvpcInputs, window.LF_CONFIG)
+              : null;
+            if (pvpcRes && pvpcRes.meta) {
+              metaPvpc = pvpcRes.meta;
+              bonoSocialDescuentoEur = pvpcRes.descuentoEur || 0;
+              bonoSocialProximoMes = pvpcRes.meta.bonoSocialProximoMes || 0;
+            }
+          }
+
+          const totalNum = Number.isFinite(metaPvpc.totalFactura)
+            ? round2(metaPvpc.totalFactura)
+            : round2((metaPvpc.terminoFijo || 0) + (metaPvpc.costeMargenPot || 0) + (metaPvpc.terminoVariable || 0) + (metaPvpc.bonoSocial || 0) + (metaPvpc.impuestoElectrico || 0) + (metaPvpc.equipoMedida || 0) + (metaPvpc.impuestoEnergia || 0) + (metaPvpc.impuestoContador || 0) - (metaPvpc.bonoSocialDescuentoEur || 0));
+
+          // Cuadrar columnas (potencia + energía + impuestos = total), incluyendo margen, bono social, impuestos y descuento.
+          const impuestosNum = round2(totalNum - potenciaNum - consumoNum);
+
+          resultados.push({
+            ...t,
+            metaPvpc,
+            posicion: index + 1,
+            potenciaNum,
+            potencia: formatMoney(potenciaNum),
+            consumoNum,
+            consumo: formatMoney(consumoNum),
+            impuestosNum,
+            impuestos: formatMoney(impuestosNum),
+            totalNum,
+            total: formatMoney(totalNum),
+            webUrl: t.web,
+            solarNoCalculable: false,
+            bonoSocialDescuentoEur: bonoSocialDescuentoEur,
+            bonoSocialProximoMes: bonoSocialProximoMes
+          });
+          continue;
+        }
+
+        const pot = round2((p1 * dias * t.p1) + (p2 * dias * t.p2));
+        const consBase = round2((cPunta * t.cPunta) + (cLlano * t.cLlano) + (cValle * t.cValle));
+        const consumoTotalKwh = cPunta + cLlano + cValle;
+        const ssaa = (window.LF.ssaa && typeof window.LF.ssaa.calcCharge === 'function')
+          ? window.LF.ssaa.calcCharge(t, consumoTotalKwh, ssaaDataset)
+          : { aplica: false, rate: 0, eur: 0, month: null };
+        const cons = round2(consBase + (ssaa.eur || 0));
+        // Financiación del bono social: fórmula regulada centralizada en LF_CONFIG.
+        const costeBonoSocial = round2(CFG.calcularBonoSocial(dias));
+
+        // Bono Social: Aplicar descuento en consumo para PVPC
+        let bonoSocialDescuento = 0;
+        let bonoSocialProximoMes = 0;
+        if (bonoSocialOn && t.esPVPC && bonoSocialDesc.consumoTotal > 0) {
+          const avgPrecioKwh = cons / bonoSocialDesc.consumoTotal;
+          const costoKwhConDescuento = round2(bonoSocialDesc.descuentoKwh * avgPrecioKwh);
+          bonoSocialDescuento = round2(costoKwhConDescuento * bonoSocialDesc.porcentaje);
+          bonoSocialProximoMes = 0;
+        }
+
+        let consAdj = bonoSocialOn && t.esPVPC ? round2(Math.max(0, cons - bonoSocialDescuento)) : cons;
+        let tarifaAdj = costeBonoSocial;
+        let credit1 = 0;
+        let credit2 = 0;
+        let excedenteSobranteEur = 0;
+        let precioExc = 0;
+        let exKwh = 0;
+        let bvSaldoFin = null;
+        let fvPrecioBV;
+        let fvCosteBV;
+        const fv = t.fv;
+        let fvApplied = false;
+        let fvBaseCompensable = 0;
+        let fvPeajesTotal = 0;
+        let fvExcedenteNoCompensable = 0;
+
+        let solarNoCalculable = false;
+        if (solarOn && !t.esPVPC) {
+          exKwh = clampNonNeg(exTotal);
+          if (fv && fv.tipo !== 'NO COMPENSA') {
+            precioExc = getFvExcPrice(fv);
+            if (precioExc === null) {
+              solarNoCalculable = true;
+            } else if (exKwh > 0 && precioExc > 0) {
+              fvApplied = true;
+              const creditoPotencial = round2(exKwh * precioExc);
+              let baseCompensable = cons;
+              let peajesTotal = 0;
+              if (fv.tope === 'ENERGIA_PARCIAL') {
+                const pc = CFG.peajesCargosEnergia || {};
+                peajesTotal = round2(
+                  cPunta * (pc.P1 || 0) + cLlano * (pc.P2 || 0) + cValle * (pc.P3 || 0)
+                );
+                baseCompensable = clampNonNeg(cons - peajesTotal);
+              }
+              fvBaseCompensable = baseCompensable;
+              fvPeajesTotal = peajesTotal;
+              credit1 = Math.min(creditoPotencial, baseCompensable);
+              consAdj = round2(Math.max(0, cons - credit1));
+              const esCompParcial = fv.tope === 'ENERGIA_PARCIAL';
+              fvExcedenteNoCompensable = esCompParcial
+                ? round2(Math.max(0, Math.min(creditoPotencial, cons) - credit1))
+                : 0;
+              excedenteSobranteEur = round2(Math.max(0, creditoPotencial - credit1));
+            }
+          }
+        }
+
+        const sumaBase = pot + consAdj + tarifaAdj;
+        const tieneBVSimple = Boolean(solarOn && fv && fv.bv && fv.tipo === 'SIMPLE + BV');
+        fvPrecioBV = tieneBVSimple ? getPrecioBVMensual(fv) : 0;
+        // Cuota BV anualizada (×12/365, misma convención que el alquiler de contador).
+        // DELIBERADO: difiere del simulador solar (bv-sim-monthly.js), que prorratea
+        // por mes natural (dias/daysInMonth) porque allí sí se conoce el mes concreto.
+        // Para 30 días: aquí 0,986 × cuota mensual; en el simulador 1,000. No es un bug.
+        fvCosteBV = fvPrecioBV > 0 ? round2(fvPrecioBV * dias * 12 / 365) : 0;
+        const impuestosAplicados = __LF_aplicarImpuestos({
+          fiscal,
+          sumaBase,
+          consumoTotalKwh,
+          dias,
+          baseServicios: fvCosteBV,
+          zona: zonaFiscal,
+          zonaFiscal,
+          viviendaCanarias,
+          bonoSocialOn: fiscalBonoSocialOn,
+          bonoSocialTipo: fiscalBonoSocialTipo
+        });
+        const { impuestoElec, alquilerContador, taxCalc } = impuestosAplicados;
+
+        // ═══════════════════════════════════════════════════════════════
+        // CÁLCULO POR TERRITORIO
+        // ═══════════════════════════════════════════════════════════════
+
+        if (isCanarias) {
+          // ─────────────────────────────────────────────────────────────
+          // CANARIAS: IGIC (0% vivienda ≤10kW, 3% otros, 7% contador)
+          // ─────────────────────────────────────────────────────────────
+          const baseEnergiaCan = sumaBase;
+          const igicEnergia = round2(taxCalc.impuestoEnergia);
+          const igicContador = round2(taxCalc.impuestoContador);
+          const impuestoServicios = round2(taxCalc.impuestoServicios || 0);
+          // Blindaje de redondeos: en la tabla (potencia + consumo + impuestos) debe cuadrar con TOTAL.
+          // Ajustamos SOLO si la diferencia es un efecto de redondeo (±0,05€) y nunca permitimos negativos.
+          const impuestosSum = round2(tarifaAdj + impuestoElec + igicEnergia + igicContador + impuestoServicios + alquilerContador + fvCosteBV);
+          const totalBaseConCosteBV = round2(baseEnergiaCan + impuestoElec + igicEnergia + alquilerContador + igicContador + fvCosteBV + impuestoServicios);
+
+          let totalFinal = totalBaseConCosteBV;
+          if (tieneBVSimple) {
+            let disponible = bvSaldo;
+            credit2 = Math.min(clampNonNeg(disponible), totalBaseConCosteBV);
+            bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bvSaldo - credit2));
+            totalFinal = credit2 > 0 ? round2(Math.max(0, totalBaseConCosteBV - credit2)) : totalBaseConCosteBV;
+          }
+
+          const totalNum = tieneBVSimple
+            ? round2(Math.max(0, totalBaseConCosteBV - excedenteSobranteEur))
+            : totalBaseConCosteBV;
+
+          const impuestosResidual = round2(totalNum - pot - consAdj);
+          const impuestosNum = (impuestosResidual >= 0 && Math.abs(impuestosResidual - impuestosSum) <= 0.05)
+            ? impuestosResidual
+            : impuestosSum;
+
+          resultados.push({
+            ...t,
+            posicion: index + 1,
+            potenciaNum: pot,
+            potencia: formatMoney(pot),
+            consumoNum: consAdj,
+            consumo: formatMoney(consAdj),
+            consumoBaseNum: consBase,
+            ssaaNum: round2(ssaa.eur || 0),
+            ssaaRate: ssaa.rate || 0,
+            ssaaMonth: ssaa.month || null,
+            ssaaApplied: Boolean(ssaa.aplica && ssaa.eur > 0),
+            impuestosNum: impuestosNum,
+            impuestos: formatMoney(impuestosNum),
+            totalNum,
+            total: formatMoney(totalNum),
+            webUrl: t.web,
+            iva: 0,
+            territorio: 'canarias',
+            fvTipo: fv ? fv.tipo || null : null,
+            fvTope: fv ? fv.tope || null : null,
+            fvExcRaw: fv ? fv.exc : null,
+            fvRegla: fv ? fv.reglaBV || null : null,
+            fvApplied,
+            fvExKwh: exKwh,
+            fvPriceUsed: precioExc,
+            fvCredit1: credit1,
+            fvCredit2: credit2,
+            fvBvSaldoFin: bvSaldoFin,
+            fvExcedenteSobrante: excedenteSobranteEur,
+            fvPrecioBV,
+            fvCosteBV,
+            fvTotalFinal: totalFinal,
+            fvBaseCompensable,
+            fvPeajesTotal,
+            fvExcedenteNoCompensable,
+            solarNoCalculable,
+            bonoSocialDescuentoEur: bonoSocialDescuento,
+            bonoSocialProximoMes: bonoSocialProximoMes
+          });
+
+        } else if (isCeutaMelilla) {
+          // ─────────────────────────────────────────────────────────────
+          // CEUTA Y MELILLA: IPSI (1% energía, 4% contador)
+          // Ley 8/1991 Art. 18
+          // ─────────────────────────────────────────────────────────────
+          const ipsiEnergia = round2(taxCalc.impuestoEnergia);
+          const ipsiContador = round2(taxCalc.impuestoContador);
+          const impuestoServicios = round2(taxCalc.impuestoServicios || 0);
+          // Blindaje de redondeos (tabla): pot + consumo + impuestos = total (si el ajuste es solo por redondeo)
+          const impuestosSum = round2(tarifaAdj + impuestoElec + ipsiEnergia + ipsiContador + impuestoServicios + alquilerContador + fvCosteBV);
+          const totalBaseConCosteBV = round2(sumaBase + impuestoElec + ipsiEnergia + alquilerContador + ipsiContador + fvCosteBV + impuestoServicios);
+
+          let totalFinal = totalBaseConCosteBV;
+          if (tieneBVSimple) {
+            let disponible = bvSaldo;
+            credit2 = Math.min(clampNonNeg(disponible), totalBaseConCosteBV);
+            bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bvSaldo - credit2));
+            totalFinal = credit2 > 0 ? round2(Math.max(0, totalBaseConCosteBV - credit2)) : totalBaseConCosteBV;
+          }
+
+          const totalNum = tieneBVSimple
+            ? round2(Math.max(0, totalBaseConCosteBV - excedenteSobranteEur))
+            : totalBaseConCosteBV;
+
+          const impuestosResidual = round2(totalNum - pot - consAdj);
+          const impuestosNum = (impuestosResidual >= 0 && Math.abs(impuestosResidual - impuestosSum) <= 0.05)
+            ? impuestosResidual
+            : impuestosSum;
+
+          resultados.push({
+            ...t,
+            posicion: index + 1,
+            potenciaNum: pot,
+            potencia: formatMoney(pot),
+            consumoNum: consAdj,
+            consumo: formatMoney(consAdj),
+            consumoBaseNum: consBase,
+            ssaaNum: round2(ssaa.eur || 0),
+            ssaaRate: ssaa.rate || 0,
+            ssaaMonth: ssaa.month || null,
+            ssaaApplied: Boolean(ssaa.aplica && ssaa.eur > 0),
+            impuestosNum: impuestosNum,
+            impuestos: formatMoney(impuestosNum),
+            totalNum,
+            total: formatMoney(totalNum),
+            webUrl: t.web,
+            iva: 0,
+            territorio: 'ceutamelilla',
+            fvTipo: fv ? fv.tipo || null : null,
+            fvTope: fv ? fv.tope || null : null,
+            fvExcRaw: fv ? fv.exc : null,
+            fvRegla: fv ? fv.reglaBV || null : null,
+            fvApplied,
+            fvExKwh: exKwh,
+            fvPriceUsed: precioExc,
+            fvCredit1: credit1,
+            fvCredit2: credit2,
+            fvBvSaldoFin: bvSaldoFin,
+            fvExcedenteSobrante: excedenteSobranteEur,
+            fvPrecioBV,
+            fvCosteBV,
+            fvTotalFinal: totalFinal,
+            fvBaseCompensable,
+            fvPeajesTotal,
+            fvExcedenteNoCompensable,
+            solarNoCalculable,
+            bonoSocialDescuentoEur: bonoSocialDescuento,
+            bonoSocialProximoMes: bonoSocialProximoMes
+          });
+
+        } else {
+          // ─────────────────────────────────────────────────────────────
+          // PENÍNSULA Y BALEARES: IVA vigente
+          // ─────────────────────────────────────────────────────────────
+          const ivaBase = round2(taxCalc.ivaBase);
+          const ivaCuota = round2(taxCalc.iva);
+          // Blindaje de redondeos (tabla): pot + consumo + impuestos = total (si el ajuste es solo por redondeo)
+          const impuestosSum = round2(tarifaAdj + impuestoElec + alquilerContador + ivaCuota + fvCosteBV);
+          const totalBase = round2(ivaBase + ivaCuota);
+          const totalBaseConCosteBV = totalBase;
+
+          let totalFinal = totalBaseConCosteBV;
+          if (tieneBVSimple) {
+            let disponible = bvSaldo;
+            credit2 = Math.min(clampNonNeg(disponible), totalBaseConCosteBV);
+            bvSaldoFin = round2(excedenteSobranteEur + Math.max(0, bvSaldo - credit2));
+            totalFinal = credit2 > 0 ? round2(Math.max(0, totalBaseConCosteBV - credit2)) : totalBaseConCosteBV;
+          }
+
+          const totalNum = tieneBVSimple
+            ? round2(Math.max(0, totalBaseConCosteBV - excedenteSobranteEur))
+            : totalBaseConCosteBV;
+
+          const impuestosResidual = round2(totalNum - pot - consAdj);
+          const impuestosNum = (impuestosResidual >= 0 && Math.abs(impuestosResidual - impuestosSum) <= 0.05)
+            ? impuestosResidual
+            : impuestosSum;
+
+          resultados.push({
+            ...t,
+            posicion: index + 1,
+            potenciaNum: pot,
+            potencia: formatMoney(pot),
+            consumoNum: consAdj,
+            consumo: formatMoney(consAdj),
+            consumoBaseNum: consBase,
+            ssaaNum: round2(ssaa.eur || 0),
+            ssaaRate: ssaa.rate || 0,
+            ssaaMonth: ssaa.month || null,
+            ssaaApplied: Boolean(ssaa.aplica && ssaa.eur > 0),
+            impuestosNum: impuestosNum,
+            impuestos: formatMoney(impuestosNum),
+            totalNum,
+            total: formatMoney(totalNum),
+            webUrl: t.web,
+            iva: ivaCuota,
+            territorio: 'peninsula',
+            fvTipo: fv ? fv.tipo || null : null,
+            fvTope: fv ? fv.tope || null : null,
+            fvExcRaw: fv ? fv.exc : null,
+            fvRegla: fv ? fv.reglaBV || null : null,
+            fvApplied,
+            fvBaseCompensable,
+            fvPeajesTotal,
+            fvExcedenteNoCompensable,
+            bonoSocialDescuentoEur: bonoSocialDescuento,
+            bonoSocialProximoMes: bonoSocialProximoMes,
+            fvExKwh: exKwh,
+            fvPriceUsed: precioExc,
+            fvCredit1: credit1,
+            fvCredit2: credit2,
+            fvBvSaldoFin: bvSaldoFin,
+            fvExcedenteSobrante: excedenteSobranteEur,
+            fvPrecioBV,
+            fvCosteBV,
+            fvTotalFinal: totalFinal,
+            solarNoCalculable
+          });
+        }
+      }
+
+      // ⏸️ Yield al navegador después de cada chunk
+      // yieldControl() cede control de forma óptima permitiendo renderizado y eventos.
+      if (chunkEnd < cachedTarifas.length) {
+        await window.LF.yieldControl();
+      }
+    }
+
+    // Ordenar resultados
+    resultados.sort((a, b) => {
+      const aNum = a.totalNum;
+      const bNum = b.totalNum;
+      const aFinite = Number.isFinite(aNum);
+      const bFinite = Number.isFinite(bNum);
+
+      if (!aFinite && !bFinite) return 0;
+      if (!aFinite) return 1;
+      if (!bFinite) return -1;
+
+      const diff = aNum - bNum;
+      if (Math.abs(Math.round(diff * 100) / 100) < 0.01) {
+        const bvA = Number(a.fvBvSaldoFin) || 0;
+        const bvB = Number(b.fvBvSaldoFin) || 0;
+        return bvB - bvA;
+      }
+      return diff;
+    });
+
+    // Filtrar tarifas que requieren FV si usuario no tiene solar
+    let resultadosFiltrados = resultados;
+    if (!solarOn) {
+      resultadosFiltrados = resultados.filter(r => !r.requiereFV);
+    }
+
+    const firstValida = resultadosFiltrados.find(r => Number.isFinite(r.totalNum)) || resultadosFiltrados[0];
+    const bestPrice = firstValida ? firstValida.totalNum : 0;
+
+    let processed = resultadosFiltrados.map((r, i) => {
+      const esMejor = firstValida ? r === firstValida : i === 0;
+      const diff = (Number.isFinite(r.totalNum) && Number.isFinite(bestPrice)) ? (r.totalNum - bestPrice) : Number.POSITIVE_INFINITY;
+      return {
+        ...r,
+        posicion: i + 1,
+        esMejor,
+        vsMejorNum: diff,
+        vsMejor: esMejor ? '—' : (Number.isFinite(diff) ? '+' + formatMoney(diff) : '—')
+      };
+    });
+
+    const preciosValidos = processed.filter(r => Number.isFinite(r.totalNum)).map(r => r.totalNum);
+    const min = preciosValidos.length ? Math.min(...preciosValidos) : null;
+    const max = preciosValidos.length ? Math.max(...preciosValidos) : null;
+    const avg = preciosValidos.length ? (preciosValidos.reduce((a, b) => a + b, 0) / preciosValidos.length) : null;
+    // Yield al navegador antes de renderAll — evita que cálculo+render
+    // se ejecuten en la misma long task (mejora INP)
+    await window.LF.yieldControl();
+
+    window.LF.renderAll({
+      success: true,
+      // Modo del cálculo: el render lo usa para avisos que describen ESTOS
+      // resultados (no el estado actual del formulario, que puede cambiar después)
+      solarOn: Boolean(solarOn),
+      resumen: {
+        mejor: firstValida ? firstValida.nombre : (processed[0]?.nombre || '—'),
+        precio: (firstValida && Number.isFinite(firstValida.totalNum)) ? formatMoney(firstValida.totalNum) : '—'
+      },
+      stats: preciosValidos.length ? {
+        precioMin: formatMoney(min),
+        precioMax: formatMoney(max),
+        precioMedio: formatMoney(avg)
+      } : null,
+      resultados: processed
+    });
+  }
+
+  // ===== EXPORTAR =====
+  window.LF = window.LF || {};
+  Object.assign(window.LF, {
+    getFvExcPrice,
+    calculateLocal
+  });
+
+  window.calculateLocal = calculateLocal;
+
+})();

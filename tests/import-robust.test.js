@@ -1,0 +1,386 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import fs from 'fs';
+import path from 'path';
+
+/**
+ * @vitest-environment jsdom
+ */
+
+global.window = {
+  LF: {
+    toast: vi.fn(),
+    formatMoney: vi.fn(),
+    round2: (n) => Math.round(n * 100) / 100,
+    csvUtils: {}
+  },
+  BVSim: {},
+  document: {
+    createElement: vi.fn(() => ({})),
+    head: { appendChild: vi.fn() },
+    baseURI: 'http://localhost'
+  }
+};
+
+global.document = global.window.document;
+global.lfDbg = vi.fn();
+
+class MockFileReader {
+  readAsText(file) {
+    setTimeout(() => {
+      if (file.name.includes('error')) {
+        this.onerror();
+      } else {
+        this.onload({ target: { result: file._content || '' } });
+      }
+    }, 5);
+  }
+  readAsArrayBuffer(file) {
+    setTimeout(() => {
+      if (file.name.includes('error')) {
+        this.onerror();
+      } else {
+        this.onload({ target: { result: new ArrayBuffer(8) } });
+      }
+    }, 5);
+  }
+}
+
+global.FileReader = MockFileReader;
+
+const utilsCode = fs.readFileSync(path.resolve(__dirname, '../js/lf-csv-utils.js'), 'utf8');
+const utilsFn = new Function('window', utilsCode);
+utilsFn(global.window);
+
+const importCode = fs.readFileSync(path.resolve(__dirname, '../js/lf-csv-import.js'), 'utf8');
+const importFn = new Function('window', 'lfDbg', 'FileReader', importCode);
+importFn(global.window, global.lfDbg, MockFileReader);
+
+const bvImportCode = fs.readFileSync(path.resolve(__dirname, '../js/bv/bv-import.js'), 'utf8');
+const bvImportFn = new Function('window', 'FileReader', bvImportCode);
+bvImportFn(global.window, MockFileReader);
+
+describe('Importación robusta CSV (Datadis, e-distribución, i-DE)', () => {
+  const { procesarCSVConsumos } = window.LF;
+
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it('Procesa Datadis nuevo con Hora "01:00" y neteo horario', async () => {
+    const csvContent = fs.readFileSync(path.resolve(__dirname, 'fixtures/datadis_nuevo.csv'), 'utf8');
+    const file = { name: 'datadis.csv', _content: csvContent };
+
+    const result = await procesarCSVConsumos(file);
+    const records = result.consumosHorarios;
+
+    expect(records).toHaveLength(2);
+    expect(records.some(r => r.hora === 1)).toBe(true);
+    expect(records.some(r => r.hora === 2)).toBe(true);
+
+    const totalImport = records.reduce((acc, r) => acc + r.kwh, 0);
+    const totalExport = records.reduce((acc, r) => acc + r.excedente, 0);
+
+    expect(totalImport).toBeCloseTo(1.0, 6);
+    expect(totalExport).toBeCloseTo(0.4, 6);
+    records.forEach((r) => {
+      expect(!(r.kwh > 0 && r.excedente > 0)).toBe(true);
+    });
+  });
+
+  it('Procesa e-distribución con CUPS vacío y hora 25', async () => {
+    const csvContent = fs.readFileSync(path.resolve(__dirname, 'fixtures/edistribucion_octubre.csv'), 'utf8');
+    const file = { name: 'edistribucion.csv', _content: csvContent };
+
+    const result = await procesarCSVConsumos(file);
+    const records = result.consumosHorarios;
+
+    expect(records).toHaveLength(2);
+    expect(records.some(r => r.hora === 25)).toBe(true);
+
+    const totalImport = records.reduce((acc, r) => acc + r.kwh, 0);
+    const totalExport = records.reduce((acc, r) => acc + r.excedente, 0);
+
+    expect(totalImport).toBeCloseTo(1.0, 6);
+    expect(totalExport).toBeCloseTo(0.3, 6);
+  });
+
+  it('Procesa el cambio horario de marzo con 23 registros y sin hora inexistente', async () => {
+    const hours = [1, 2, ...Array.from({ length: 21 }, (_, i) => i + 4)];
+    const csvContent = [
+      'CUPS;Fecha;Hora;Consumo_kWh;Método',
+      ...hours.map((hour) => `ES123;29/03/2026;${hour};1,0;R`)
+    ].join('\n');
+    const file = { name: 'dst-marzo.csv', _content: csvContent };
+
+    const result = await procesarCSVConsumos(file);
+    const records = result.consumosHorarios;
+
+    expect(result.ok).toBe(true);
+    expect(records).toHaveLength(23);
+    expect(records.some(r => r.hora === 3)).toBe(false);
+    expect(records.map(r => r.hora)).toEqual(hours);
+
+    const totalImport = records.reduce((acc, r) => acc + r.kwh, 0);
+    expect(totalImport).toBeCloseTo(23, 6);
+  });
+
+  it('Procesa i-DE con consumo/generación simultáneos y Wh', async () => {
+    const csvContent = fs.readFileSync(path.resolve(__dirname, 'fixtures/ide_bruto.csv'), 'utf8');
+    const file = { name: 'ide.csv', _content: csvContent };
+
+    const result = await procesarCSVConsumos(file);
+    const records = result.consumosHorarios;
+
+    expect(records).toHaveLength(2);
+
+    const totalImport = records.reduce((acc, r) => acc + r.kwh, 0);
+    const totalExport = records.reduce((acc, r) => acc + r.excedente, 0);
+
+    expect(totalImport).toBeCloseTo(0.3, 6);
+    expect(totalExport).toBeCloseTo(0.3, 6);
+    records.forEach((r) => {
+      expect(!(r.kwh > 0 && r.excedente > 0)).toBe(true);
+    });
+
+    expect(result.warnings.some(w => w.toLowerCase().includes('wh'))).toBe(true);
+    expect(result.warnings.some(w => w.toLowerCase().includes('formato de hora'))).toBe(true);
+    expect(result.warnings.some(w => w.toLowerCase().includes('neteo'))).toBe(true);
+  });
+
+  it('Detecta cabecera aunque no sea la primera línea', async () => {
+    const csvContent = fs.readFileSync(path.resolve(__dirname, 'fixtures/cabecera_no_primera_linea.csv'), 'utf8');
+    const file = { name: 'cabecera.csv', _content: csvContent };
+
+    const result = await procesarCSVConsumos(file);
+    const records = result.consumosHorarios;
+
+    expect(records).toHaveLength(1);
+    expect(records[0].kwh).toBeCloseTo(1.0, 6);
+  });
+
+  it('Interpreta celdas vacías como 0 sin descartar filas', async () => {
+    const csvContent = fs.readFileSync(path.resolve(__dirname, 'fixtures/celdas_vacias.csv'), 'utf8');
+    const file = { name: 'celdas.csv', _content: csvContent };
+
+    const result = await procesarCSVConsumos(file);
+    const records = result.consumosHorarios;
+
+    expect(records).toHaveLength(2);
+    const totalImport = records.reduce((acc, r) => acc + r.kwh, 0);
+    const totalExport = records.reduce((acc, r) => acc + r.excedente, 0);
+    expect(totalImport).toBeCloseTo(0.4, 6);
+    expect(totalExport).toBeCloseTo(0.5, 6);
+    expect(result.warnings.some(w => w.toLowerCase().includes('celdas vacías'))).toBe(true);
+  });
+
+  it('Permite importar en BV con warning de excedentes ausentes', async () => {
+    const csvContent = `CUPS;Fecha;Hora;Consumo_kWh;Método
+ES123;01/01/2024;1;1,0;R`;
+    const file = {
+      name: 'consumo-solo.csv',
+      _content: csvContent,
+      size: csvContent.length,
+      type: 'text/csv'
+    };
+
+    const result = await window.BVSim.importFile(file);
+
+    expect(result.ok).toBe(true);
+    expect(result.records.length).toBeGreaterThan(0);
+    expect(Array.isArray(result.warnings)).toBe(true);
+    expect(result.warnings.some(w => w.toLowerCase().includes('excedentes'))).toBe(true);
+  });
+
+  it('Infiere formato 0-23 cuando el CSV trae periodo tarifario coherente para Home y BV', async () => {
+    const csvContent = `CUPS;Fecha;Hora;Periodo_tarifario;Consumo_kWh;Método
+ES123;01/04/2026;10;P1;1,0;R
+ES123;01/04/2026;18;P1;1,0;R`;
+
+    const homeFile = { name: 'parcial-ambigua.csv', _content: csvContent };
+    const homeResult = await procesarCSVConsumos(homeFile);
+    expect(homeResult.ok).toBe(true);
+    expect(homeResult.consumosHorarios.map(r => r.hora)).toEqual([11, 19]);
+    expect(homeResult.consumosHorarios.map(r => r.periodo)).toEqual(['P1', 'P1']);
+    expect(homeResult.warnings.some(w => w.toLowerCase().includes('periodo tarifario'))).toBe(true);
+
+    const bvFile = {
+      name: 'parcial-ambigua.csv',
+      _content: csvContent,
+      size: csvContent.length,
+      type: 'text/csv'
+    };
+    const bvResult = await window.BVSim.importFile(bvFile, 'Península');
+    expect(bvResult.ok).toBe(true);
+    expect(bvResult.records.map(r => r.hora)).toEqual([11, 19]);
+    expect(bvResult.records.map(r => r.periodo)).toEqual(['P1', 'P1']);
+    expect(bvResult.warnings.some(w => w.toLowerCase().includes('periodo tarifario'))).toBe(true);
+  });
+
+  it('Conserva horas CNMC en CSV parciales ambiguos sin señal adicional', async () => {
+    const csvContent = `CUPS;Fecha;Hora;Consumo_kWh;Método
+ES123;01/04/2026;2;1,0;R
+ES123;01/04/2026;3;1,0;R`;
+
+    const file = { name: 'subset-cnmc.csv', _content: csvContent };
+    const result = await procesarCSVConsumos(file);
+
+    expect(result.ok).toBe(true);
+    expect(result.consumosHorarios.map(r => r.hora)).toEqual([2, 3]);
+    expect(result.consumosHorarios.map(r => r.periodo)).toEqual(['P3', 'P3']);
+    expect(result.warnings.some(w => w.toLowerCase().includes('ambiguo'))).toBe(true);
+  });
+
+  it('Validación de rango de fechas (máximo 370 días)', () => {
+    const { validateCsvSpanFromRecords } = window.LF.csvUtils;
+    const day = 86400000;
+    const start = new Date('2024-01-01').getTime();
+
+    // Caso OK: 360 días
+    const recordsOk = [
+      { fecha: new Date(start) },
+      { fecha: new Date(start + 360 * day) }
+    ];
+    expect(validateCsvSpanFromRecords(recordsOk).ok).toBe(true);
+
+    // Caso Error: 371 días (rango total 372)
+    const recordsFail = [
+      { fecha: new Date(start) },
+      { fecha: new Date(start + 371 * day) }
+    ];
+    const res = validateCsvSpanFromRecords(recordsFail);
+    expect(res.ok).toBe(false);
+    expect(res.error).toContain('372 días');
+  });
+
+  it('Avisa si el CSV es antiguo sin bloquear la importación', () => {
+    const { validateCsvSpanFromRecords } = window.LF.csvUtils;
+    const records = [
+      { fecha: new Date(2023, 0, 1) },
+      { fecha: new Date(2023, 11, 31) }
+    ];
+
+    const res = validateCsvSpanFromRecords(records, {
+      maxDays: 370,
+      requireExactly12Months: false,
+      staleWarningMonths: 18,
+      today: new Date(2026, 4, 21)
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.warning).toContain('CSV antiguo');
+    expect(res.warning).toContain('2023-12-31');
+  });
+
+  it('No avisa por antigüedad si el CSV está dentro del umbral configurado', () => {
+    const { validateCsvSpanFromRecords } = window.LF.csvUtils;
+    const records = [
+      { fecha: new Date(2024, 2, 1) },
+      { fecha: new Date(2025, 2, 21) }
+    ];
+
+    const res = validateCsvSpanFromRecords(records, {
+      maxDays: 400,
+      requireExactly12Months: false,
+      staleWarningMonths: 18,
+      today: new Date(2026, 4, 21)
+    });
+
+    expect(res.ok).toBe(true);
+    expect(res.warning).toBeUndefined();
+  });
+
+  it('Falla si no hay fechas válidas en los registros', () => {
+    const { validateCsvSpanFromRecords } = window.LF.csvUtils;
+    const records = [
+      { fecha: null },
+      { fecha: new Date('invalid') },
+      { fecha: '2024-01-01' }
+    ];
+
+    const res = validateCsvSpanFromRecords(records);
+
+    expect(res.ok).toBe(false);
+    expect(res.error).toBe('No se encontraron fechas válidas en el CSV.');
+  });
+
+  it('Aborta si el recorte a 12 meses deja el CSV vacío', async () => {
+    const originalValidate = window.LF.csvUtils.validateCsvSpanFromRecords;
+    try {
+      window.LF.csvUtils.validateCsvSpanFromRecords = vi.fn(() => ({
+        ok: true,
+        monthsToDrop: ['2024-01'],
+        warning: 'Recorte aplicado.'
+      }));
+
+      importFn(global.window, global.lfDbg, MockFileReader);
+
+      const csvContent = `CUPS;Fecha;Hora;Consumo_kWh;Método
+ES123;01/01/2024;1;1,0;R`;
+      const file = { name: 'recorte.csv', _content: csvContent };
+
+      const result = await window.LF.procesarCSVConsumos(file);
+
+      expect(result.ok).toBe(false);
+      expect(result.error).toBe('Tras aplicar el recorte a 12 meses, no quedan registros válidos para procesar.');
+    } finally {
+      window.LF.csvUtils.validateCsvSpanFromRecords = originalValidate;
+      importFn(global.window, global.lfDbg, MockFileReader);
+    }
+  });
+
+  it('Validación de meses distintos (modo comparador principal vs solar)', () => {
+    const { validateCsvSpanFromRecords } = window.LF.csvUtils;
+
+    // Preparar 13 meses de datos
+    const records13 = [];
+    const base = new Date('2024-01-01');
+    for(let i=0; i<13; i++) {
+        records13.push({ fecha: new Date(base.getFullYear(), base.getMonth() + i, 1) });
+    }
+
+    // Caso 1: Comparador PRINCIPAL (requireExactly12Months: false) -> NO descarta
+    const resMain = validateCsvSpanFromRecords(records13, {
+      maxDays: 400,
+      requireExactly12Months: false
+    });
+
+    expect(resMain.ok).toBe(true);
+    expect(resMain.info).toBeDefined(); // Debe tener mensaje info
+    expect(resMain.monthsToDrop).toHaveLength(0); // NO descarta nada
+    expect(resMain.monthsUsed).toHaveLength(13); // Usa TODOS los meses
+
+    // Caso 2: Comparador SOLAR (requireExactly12Months: true) -> SÍ descarta
+    const resSolar = validateCsvSpanFromRecords(records13, {
+      maxDays: 400,
+      requireExactly12Months: true
+    });
+
+    expect(resSolar.ok).toBe(true);
+    expect(resSolar.warning).toBeDefined(); // Debe tener warning explicativo
+    expect(resSolar.monthsToDrop).toHaveLength(1); // Descarta 1 mes
+    expect(resSolar.monthsToDrop[0]).toBe('2024-01'); // Descarta el más antiguo
+    expect(resSolar.monthsUsed).toHaveLength(12); // Usa 12 meses
+
+    // Caso 3: 14 meses con requireExactly12Months: true -> Error
+    const records14 = [];
+    for(let i=0; i<14; i++) {
+        records14.push({ fecha: new Date(base.getFullYear(), base.getMonth() + i, 1) });
+    }
+    const res14 = validateCsvSpanFromRecords(records14, {
+      maxDays: 500,
+      requireExactly12Months: true
+    });
+
+    expect(res14.ok).toBe(false);
+    expect(res14.error).toContain('14 meses distintos');
+
+    // Caso 4: 14 meses SIN requireExactly12Months -> OK (comparador principal acepta todo)
+    const res14Main = validateCsvSpanFromRecords(records14, {
+      maxDays: 500,
+      requireExactly12Months: false
+    });
+
+    expect(res14Main.ok).toBe(true); // Comparador principal acepta 14 meses
+    expect(res14Main.monthsUsed).toHaveLength(14); // Usa todos
+  });
+});

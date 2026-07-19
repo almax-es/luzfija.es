@@ -1,0 +1,124 @@
+name: PVPC Daily Update
+
+on:
+  # Ejecución diaria a las 20:00 UTC (21:00 CET / 22:00 CEST en Madrid)
+  # Se ejecuta tras la ventana habitual de publicación de precios de mañana
+  schedule:
+    - cron: '0 20 * * *'
+
+  workflow_dispatch:
+    inputs:
+      rango:
+        description: 'Rango de descarga'
+        required: true
+        default: 'automatico'
+        type: choice
+        options:
+          - automatico
+          - 2021-06-01
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  update-pvpc:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+
+      - name: Download PVPC data (auto-detect gaps)
+        env:
+          ESIOS_API_KEY: ${{ secrets.ESIOS_API_KEY }}
+          RANGO: ${{ github.event.inputs.rango }}
+        run: |
+          # Si se eligió "desde el principio", pasar --from; si no, modo automático (6 meses)
+          FROM_ARG=""
+          if [ "$RANGO" = "2021-06-01" ]; then FROM_ARG="--from 2021-06-01"; fi
+
+          # 1. PVPC Consumo (1001)
+          python scripts/pvpc_auto_fill.py \
+            --out-dir data/pvpc \
+            --indicator 1001 \
+            --geos 8741 8742 8743 8744 8745 \
+            $FROM_ARG
+
+          # 2. PVPC Excedentes (1739)
+          python scripts/pvpc_auto_fill.py \
+            --out-dir data/surplus \
+            --indicator 1739 \
+            --geos 8741 8742 8743 8744 8745 \
+            $FROM_ARG
+
+          # 3. Servicios de Ajuste del Sistema (10328)
+          python scripts/ssaa_auto_fill.py \
+            --out-file data/ssaa/index.json \
+            --indicator 10328 \
+            $FROM_ARG
+
+      - name: Verificar frescura de datos
+        # Falla si la descarga terminó "bien" pero los datos siguen rancios
+        # (ESIOS respondiendo vacío, clave caducada, cambio de formato).
+        # El fallo del workflow genera la notificación de GitHub al propietario.
+        # El self-test valida primero el propio guard con fixtures sintéticos.
+        run: |
+          python scripts/check_data_freshness.py --self-test
+          python scripts/check_data_freshness.py
+
+      - name: Check if there are changes
+        id: check_changes
+        run: |
+          CHANGED_FILES=$(git status --porcelain -- data/ | wc -l)
+          if [ "$CHANGED_FILES" -eq 0 ]; then
+            echo "has_changes=false" >> $GITHUB_OUTPUT
+            echo "No hay cambios (datos ya actualizados)"
+          else
+            echo "has_changes=true" >> $GITHUB_OUTPUT
+            echo "Actualizados $CHANGED_FILES archivos"
+            git status --short -- data/
+          fi
+
+      - name: Commit and push if there are changes
+        if: steps.check_changes.outputs.has_changes == 'true'
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/pvpc/ data/surplus/ data/ssaa/
+          HORA=$(TZ=Europe/Madrid date +%H:%M)
+          git commit -m "chore: actualizar precios PVPC, Excedentes y SSAA - $HORA"
+          git pull --rebase
+          git push
+
+      - name: Trigger tests workflow for published data update
+        if: steps.check_changes.outputs.has_changes == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          curl --fail-with-body -L \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$GH_REPO/actions/workflows/tests.yml/dispatches" \
+            -d '{"ref":"main"}'
+
+      - name: Summary
+        run: |
+          if [ "${{ steps.check_changes.outputs.has_changes }}" == "true" ]; then
+            echo "Precios actualizados correctamente"
+          else
+            echo "Datos ya estaban actualizados"
+          fi
