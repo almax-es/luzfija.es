@@ -94,6 +94,50 @@ describe('Config legacy rejection filter', () => {
     );
   });
 
+  it('reclasifica ruido legacy tambien en los paths de error con segmentos', () => {
+    // Desde 2026-07 los errores llevan fichero/linea/build en el path. Si el
+    // guard siguiera comparando la ruta exacta, este ruido se colaria.
+    const rawCount = vi.fn();
+    window.goatcounter = { count: rawCount };
+
+    bootstrapConfig();
+
+    window.goatcounter.count({
+      path: 'error-promise/index-extra/101/20260721-075326',
+      title: 'Promise reject: currentYear is not defined event'
+    });
+    window.goatcounter.count({
+      path: 'error-javascript/index-extra/12/desconocido',
+      title: 'Compat: index-extra omitido (sin soporte ES2020)'
+    });
+
+    expect(rawCount).toHaveBeenCalledTimes(2);
+    expect(rawCount).toHaveBeenNthCalledWith(
+      1,
+      expect.objectContaining({ path: 'error-legacy-filtrado', event: true })
+    );
+    expect(rawCount).toHaveBeenNthCalledWith(
+      2,
+      expect.objectContaining({ path: 'error-legacy-filtrado', event: true })
+    );
+  });
+
+  it('no reclasifica un path de producto que empiece parecido', () => {
+    const rawCount = vi.fn();
+    window.goatcounter = { count: rawCount };
+
+    bootstrapConfig();
+
+    window.goatcounter.count({
+      path: 'error-javascript-manual/algo',
+      title: 'currentYear is not defined'
+    });
+
+    expect(rawCount).toHaveBeenCalledWith(
+      expect.objectContaining({ path: 'error-javascript-manual/algo' })
+    );
+  });
+
   it('reclasifica variantes legacy con path normalizable', () => {
     const rawCount = vi.fn();
     window.goatcounter = { count: rawCount };

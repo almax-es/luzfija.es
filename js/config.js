@@ -42,7 +42,13 @@ function normalizeLegacyPath(pathLike) {
 function isLegacyErrorPath(pathLike) {
   const path = normalizeLegacyPath(pathLike);
   if (!path) return true;
-  return path === 'error-promise' || path === 'error-javascript';
+  // Desde 2026-07 los errores llevan detalle en el path
+  // (error-javascript/<fichero>/<linea>/<build>), asi que no basta comparar
+  // la ruta exacta: hay que reconocer tambien las variantes con segmentos.
+  return path === 'error-promise' ||
+         path === 'error-javascript' ||
+         path.startsWith('error-promise/') ||
+         path.startsWith('error-javascript/');
 }
 
 function extractLegacyReasonMessage(reason) {

@@ -74,7 +74,7 @@ describe('Tracking error filtering and dedupe', () => {
     expect(window.goatcounter.count).toHaveBeenCalledTimes(1);
     expect(window.goatcounter.count).toHaveBeenCalledWith(
       expect.objectContaining({
-        path: 'error-javascript',
+        path: 'error-javascript/index-extra/101/desconocido',
         event: true
       })
     );
@@ -106,7 +106,7 @@ describe('Tracking error filtering and dedupe', () => {
     expect(window.goatcounter.count).toHaveBeenCalledTimes(1);
     expect(window.goatcounter.count).toHaveBeenCalledWith(
       expect.objectContaining({
-        path: 'error-javascript',
+        path: 'error-javascript/pvpc/0/desconocido',
         event: true,
         title: expect.stringContaining('/js/pvpc.js:0')
       })
@@ -196,11 +196,17 @@ describe('Tracking error filtering and dedupe', () => {
 
     dispatchUnhandledRejection(new Error('Fallo procesando ES0021000000000000AB usuario@example.com https://example.com/factura/123456789'));
 
+    // El path no se compara exacto: el stack real de este test depende del SO
+    // (en Linux es absoluto y se parsea, en Windows no), asi que solo se exige
+    // la base. Lo que si es invariante: ningun dato personal llega al path.
     const payload = window.goatcounter.count.mock.calls
       .map((call) => call[0])
-      .find((item) => item && item.path === 'error-promise' && String(item.title || '').includes('[cups]'));
+      .find((item) => item && String(item.path || '').startsWith('error-promise') && String(item.title || '').includes('[cups]'));
     expect(payload).toBeTruthy();
-    expect(payload.path).toBe('error-promise');
+    expect(payload.path).toMatch(/^error-promise\//);
+    expect(payload.path).not.toContain('ES0021000000000000AB');
+    expect(payload.path).not.toContain('usuario@example.com');
+    expect(payload.path).not.toContain('example.com');
     expect(payload.title).toContain('[cups]');
     expect(payload.title).toContain('[email]');
     expect(payload.title).toContain('[url]');
@@ -217,7 +223,7 @@ describe('Tracking error filtering and dedupe', () => {
     dispatchUnhandledRejection(err);
 
     const calls = window.goatcounter.count.mock.calls.map(c => c[0]);
-    expect(calls.some((p) => p && p.path === 'error-promise')).toBe(false);
+    expect(calls.some((p) => p && String(p.path || '').startsWith('error-promise'))).toBe(false);
   });
 
   it('ignora rejections de extensiones del navegador (chrome-extension:// y moz-extension://)', () => {
@@ -237,7 +243,7 @@ describe('Tracking error filtering and dedupe', () => {
     }
 
     const calls = window.goatcounter.count.mock.calls.map(c => c[0]);
-    expect(calls.some((p) => p && p.path === 'error-promise')).toBe(false);
+    expect(calls.some((p) => p && String(p.path || '').startsWith('error-promise'))).toBe(false);
   });
 
   it('rastrea rejections cuyo stack apunta a nuestro propio origen', () => {
@@ -249,7 +255,8 @@ describe('Tracking error filtering and dedupe', () => {
 
     const calls = window.goatcounter.count.mock.calls.map(c => c[0]);
     expect(calls.some((p) =>
-      p && p.path === 'error-promise' && String(p.title || '').includes('/js/pvpc.js:554')
+      p && p.path === 'error-promise/pvpc/554/desconocido' &&
+      String(p.title || '').includes('/js/pvpc.js:554')
     )).toBe(true);
   });
 
@@ -282,5 +289,138 @@ describe('Tracking error filtering and dedupe', () => {
 
     expect(legacyCalls.length).toBe(1);
     expect(jsErrorCalls.length).toBe(0);
+  });
+});
+
+// GoatCounter agrupa por `path` y solo sustituye el `title` de una ruta cuando el
+// titulo nuevo se repite mas de 10 veces. Si fichero/linea/build viajaran solo en
+// el titulo, un error nuevo quedaria escondido bajo el contador de uno antiguo.
+describe('Path de errores: fichero, linea y build', () => {
+  function dispatchJsError({ filename, lineno, colno, message }) {
+    window.dispatchEvent(new ErrorEvent('error', {
+      message: message || 'Uncaught TypeError: x is not a function',
+      filename,
+      lineno,
+      colno
+    }));
+  }
+
+  function paths() {
+    return window.goatcounter.count.mock.calls
+      .map((c) => c[0])
+      .filter(Boolean)
+      .map((p) => p.path);
+  }
+
+  it('separa en rutas distintas errores de ficheros distintos', () => {
+    bootstrapTracking();
+
+    dispatchJsError({ filename: '/js/bv/bv-ui.js', lineno: 1187, colno: 32 });
+    dispatchJsError({ filename: '/js/pvpc.js', lineno: 1187, colno: 32 });
+
+    expect(paths()).toEqual([
+      'error-javascript/bv-ui/1187/desconocido',
+      'error-javascript/pvpc/1187/desconocido'
+    ]);
+  });
+
+  it('separa en rutas distintas errores de lineas distintas del mismo fichero', () => {
+    bootstrapTracking();
+
+    dispatchJsError({ filename: '/js/bv/bv-ui.js', lineno: 1187, colno: 32 });
+    dispatchJsError({ filename: '/js/bv/bv-ui.js', lineno: 1193, colno: 32 });
+
+    expect(paths()).toEqual([
+      'error-javascript/bv-ui/1187/desconocido',
+      'error-javascript/bv-ui/1193/desconocido'
+    ]);
+  });
+
+  it('nunca lleva al path el mensaje de error ni datos personales', () => {
+    bootstrapTracking();
+
+    dispatchJsError({
+      filename: '/js/factura.js',
+      lineno: 42,
+      colno: 7,
+      message: 'Fallo con ES0021000000000000AB y usuario@example.com en https://example.com/f/123456789'
+    });
+
+    const payload = window.goatcounter.count.mock.calls.map((c) => c[0])[0];
+    expect(payload.path).toBe('error-javascript/factura/42/desconocido');
+    expect(payload.path).not.toContain('ES0021000000000000AB');
+    expect(payload.path).not.toContain('usuario@example.com');
+    expect(payload.path).not.toContain('example.com');
+    expect(payload.path).not.toContain('Fallo');
+    // El mensaje saneado sigue viajando en el title.
+    expect(payload.title).toContain('[cups]');
+  });
+
+});
+
+// El build viaja en el path para poder distinguir un fallo del codigo actual de
+// uno que solo sobrevive en clientes con cache antigua. Se prueba en unitario
+// sobre el constructor: los listeners de `error` se acumulan entre tests dentro
+// del mismo fichero (jsdom comparte `window`) y el dedupe dejaria pasar solo el
+// del primer bootstrap, mientras que `__LF_trackingUtils` si se reasigna.
+describe('buildErrorEventPath', () => {
+  function utilsWithBuild(buildId) {
+    if (buildId === null) delete window.__LF_BUILD_ID;
+    else window.__LF_BUILD_ID = buildId;
+    bootstrapTracking();
+    return window.__LF_trackingUtils;
+  }
+
+  afterEach(() => {
+    delete window.__LF_BUILD_ID;
+  });
+
+  it('incluye el build id valido para distinguir codigo antiguo del actual', () => {
+    const utils = utilsWithBuild('20260721-075326');
+
+    expect(utils.buildErrorEventPath('error-javascript', '/js/bv/bv-ui.js', 1187))
+      .toBe('error-javascript/bv-ui/1187/20260721-075326');
+  });
+
+  it('degrada a "desconocido" un build id con formato invalido', () => {
+    const utils = utilsWithBuild('../../etc/passwd');
+
+    expect(utils.buildErrorEventPath('error-javascript', '/js/bv/bv-ui.js', 1187))
+      .toBe('error-javascript/bv-ui/1187/desconocido');
+  });
+
+  it('reduce el fichero a basename sin ruta, query ni extension', () => {
+    const utils = utilsWithBuild('20260721-075326');
+
+    expect(utils.buildErrorEventPath('error-javascript', '/js/bv/bv-ui.js?v=20260721-075326', 9))
+      .toBe('error-javascript/bv-ui/9/20260721-075326');
+    expect(utils.buildErrorEventPath('error-promise', 'https://luzfija.es/js/pvpc.js#frag', 554))
+      .toBe('error-promise/pvpc/554/20260721-075326');
+  });
+
+  it('normaliza fichero ausente y lineas no numericas o negativas', () => {
+    const utils = utilsWithBuild('20260721-075326');
+
+    expect(utils.buildErrorEventPath('error-promise', '', 0))
+      .toBe('error-promise/desconocido/0/20260721-075326');
+    expect(utils.buildErrorEventPath('error-promise', '(inline)', 'abc'))
+      .toBe('error-promise/inline/0/20260721-075326');
+    expect(utils.buildErrorEventPath('error-promise', '/js/pvpc.js', -5))
+      .toBe('error-promise/pvpc/0/20260721-075326');
+  });
+
+  it('no deja pasar al path datos personales aunque vengan en el nombre de fichero', () => {
+    const utils = utilsWithBuild('20260721-075326');
+
+    const p = utils.buildErrorEventPath(
+      'error-javascript',
+      '/js/ES0021000000000000AB usuario@example.com.js',
+      42
+    );
+    // eventSegment solo pasa a minusculas: sin redactar, el CUPS seguiria ahi.
+    expect(p.toLowerCase()).not.toContain('es0021000000000000ab');
+    expect(p).not.toContain('@');
+    expect(p).toBe('error-javascript/cups-email/42/20260721-075326');
+    expect(p).toMatch(/^error-javascript\/[a-z0-9-]+\/42\/20260721-075326$/);
   });
 });

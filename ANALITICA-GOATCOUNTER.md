@@ -186,11 +186,32 @@ No se envia la busqueda literal. Tampoco debe viajar por referrer gracias al san
 
 ### 6.5 Errores
 
-Ejemplos:
+El path lleva fichero, linea y build:
 
-- `error-javascript`
-- `error-promise`
-- `error-legacy-filtrado`
+- `error-javascript/<fichero>/<linea>/<build>` (ej. `error-javascript/bv-ui/1187/20260721-075326`)
+- `error-promise/<fichero>/<linea>/<build>` (ej. `error-promise/pvpc/554/20260721-075326`)
+- `error-legacy-filtrado` (sin segmentos: es un cajon de ruido conocido)
+
+Por que el detalle va en el path y no solo en el title: GoatCounter agrupa por
+`path` y **solo sustituye el `title` de una ruta cuando el titulo nuevo se repite
+mas de 10 veces** (ver `updateTitle` en `path.go` de GoatCounter). Con todos los
+errores bajo un unico path, el titulo mostrado puede quedar congelado en un error
+antiguo y un fallo nuevo queda escondido bajo su contador, sin forma de saber si
+pertenece al codigo actual o a clientes con cache vieja. Esto se detecto en julio
+de 2026 investigando `error-javascript`, cuyo titulo apuntaba a un build de un mes
+antes.
+
+Construccion del path (`buildErrorEventPath`, expuesto en `__LF_trackingUtils`):
+
+- **fichero**: solo el basename, sin ruta, sin query/hash y sin extension. Se
+  redacta con `sanitizeErrorMessageForTracking()` y se acota a 40 caracteres antes
+  de pasar por `eventSegment()` (que solo normaliza a minusculas, no redacta).
+  Si no hay fichero -> `desconocido`.
+- **linea**: entero positivo; cualquier otra cosa -> `0`.
+- **build**: se valida contra `YYYYMMDD-HHMMSS`; si no encaja -> `desconocido`.
+
+Al path NUNCA van: mensaje libre, URL completa, stack, query, CUPS, email ni
+ningun dato del usuario. El mensaje sanitizado sigue viajando en el `title`.
 
 Las descripciones de error se sanitizan con `sanitizeErrorMessageForTracking()`:
 
@@ -200,6 +221,13 @@ Las descripciones de error se sanitizan con `sanitizeErrorMessageForTracking()`:
 - numeros largos -> `[num]`
 
 Los errores se deduplican por sesion para evitar ruido.
+
+Cardinalidad: el build multiplica rutas por despliegue, pero en errores el volumen
+es pequeno y es justo lo que permite distinguir codigo actual de cache antigua.
+
+Tests: `tests/tracking-errors.test.js` (separacion por fichero/linea/build y
+privacidad del path) y `tests/bv-ui-tooltip-textnode.test.js` (regresion del
+`e.target.closest is not a function` con target que no es Element).
 
 ## 7. Cobertura HTML Y CSP
 
@@ -235,6 +263,10 @@ Mecanismo:
 - Cuando `goatcounter.count()` recibe un payload de error, `getLegacyGoatPayloadKind` comprueba si es ruido conocido.
 - Si es ruido, `remapLegacyGoatPayload` reescribe el path a `error-legacy-filtrado` y estructura el titulo con tipo, origen, evento original y build ID.
 - Si no es ruido, el payload pasa sin modificar.
+
+`isLegacyErrorPath` reconoce tanto la ruta pelada (`error-javascript`) como las
+variantes con segmentos (`error-javascript/<fichero>/<linea>/<build>`), para que el
+guard siga filtrando ruido legacy tras el cambio de taxonomia de la seccion 6.5.
 
 Esto garantiza que el ruido de errores tempranos (antes de que `tracking.js` cargue) no contamine las estadisticas. Es un guard transparente: no afecta a eventos de producto ni pageviews normales.
 

@@ -241,7 +241,8 @@ try {
   window.__LF_trackDetail = trackDetailedEvent;
   window.__LF_trackingUtils = {
     buildEventPath,
-    eventSegment
+    eventSegment,
+    buildErrorEventPath
   };
 
   function safeText(value) {
@@ -414,6 +415,48 @@ try {
     }
   }
 
+  // ===== PATH DE ERRORES =====
+  // GoatCounter agrupa por `path`, y solo sustituye el `title` de una ruta cuando
+  // el titulo nuevo se repite mas de 10 veces (ver path.go, updateTitle). Por eso
+  // el detalle que permite distinguir un fallo NO puede vivir solo en el titulo:
+  // un error nuevo quedaria escondido bajo el contador de otro antiguo.
+  // Al path van tres datos acotados y no personales: fichero, linea y build.
+  // NUNCA van al path: mensaje libre, URL completa, stack, query, CUPS, email ni
+  // ningun dato del usuario. El mensaje saneado sigue viajando en el `title`.
+  function errorFileSegment(sourceLike) {
+    const raw = safeText(sourceLike);
+    if (!raw) return 'desconocido';
+    // Solo el basename: descarta query/hash, directorios y extension.
+    let base = raw.split(/[?#]/)[0];
+    const slash = base.lastIndexOf('/');
+    if (slash !== -1) base = base.slice(slash + 1);
+    base = base.replace(/\.[a-z0-9]+$/i, '');
+    // Defensa en profundidad: un basename no deberia contener nunca datos
+    // personales, pero se redacta igual antes de convertirlo en segmento
+    // (eventSegment solo pasa a minusculas, no redacta) y se acota la longitud.
+    base = sanitizeErrorMessageForTracking(base).substring(0, 40);
+    return eventSegment(base, 'desconocido');
+  }
+
+  function errorLineSegment(lineLike) {
+    const n = Number(lineLike);
+    if (!isFinite(n) || n <= 0) return '0';
+    return String(Math.floor(n));
+  }
+
+  function errorBuildSegment(buildLike) {
+    const raw = safeText(buildLike);
+    return /^\d{8}-\d{6}$/.test(raw) ? raw : 'desconocido';
+  }
+
+  function buildErrorEventPath(base, sourceLike, lineLike) {
+    return buildEventPath(base, [
+      errorFileSegment(sourceLike),
+      errorLineSegment(lineLike),
+      errorBuildSegment(TRACK_BUILD_ID)
+    ]);
+  }
+
   const ERROR_DEDUP_KEY = 'lf_js_error_dedupe_v1';
   const ERROR_DEDUP_MAX = 30;
 
@@ -520,20 +563,24 @@ try {
     }
   }
 
-  function extractSourceFromStack(stackLike) {
+  function extractSourcePartsFromStack(stackLike) {
     const stack = safeText(stackLike);
-    if (!stack) return '';
+    if (!stack) return null;
     try {
       // Chrome/Edge/Safari: at fn (url:line:col) / at url:line:col
       // Firefox: fn@url:line:col
       const m = stack.match(/((?:https?:\/\/|\/)[^\s)@]+):(\d+):(\d+)/);
-      if (!m) return '';
+      if (!m) return null;
       const src = shortSource(m[1]);
-      if (!src) return '';
-      return src + ':' + m[2] + ':' + m[3];
+      if (!src) return null;
+      return { source: src, line: m[2], col: m[3] };
     } catch (_) {
-      return '';
+      return null;
     }
+  }
+
+  function formatStackSource(parts) {
+    return parts ? parts.source + ':' + parts.line + ':' + parts.col : '';
   }
 
   // URL cruda (sin linea:col) del primer frame del stack, o '' si no hay.
@@ -959,7 +1006,7 @@ try {
       if (route && route !== '/') parts.push('@' + route);
       parts.push(browser);
 
-      trackEvent('error-javascript', {
+      trackEvent(buildErrorEventPath('error-javascript', source, line), {
         title: parts.join(' | ').substring(0, 150)
       });
     }catch(_){}
@@ -1005,11 +1052,13 @@ try {
 
       let msg = '';
       let stackSource = '';
+      let stackParts = null;
       let rawStack = '';
       if (reason instanceof Error) {
         msg = sanitizeErrorMessageForTracking(reason.message || reason.name || 'Error');
         rawStack = reason.stack || '';
-        stackSource = extractSourceFromStack(rawStack);
+        stackParts = extractSourcePartsFromStack(rawStack);
+        stackSource = formatStackSource(stackParts);
       } else if (reason && typeof reason === 'object') {
         if (typeof reason.message === 'string' && reason.message) {
           msg = sanitizeErrorMessageForTracking(reason.message);
@@ -1022,7 +1071,8 @@ try {
         }
         if (typeof reason.stack === 'string' && reason.stack) {
           rawStack = reason.stack;
-          stackSource = extractSourceFromStack(rawStack);
+          stackParts = extractSourcePartsFromStack(rawStack);
+          stackSource = formatStackSource(stackParts);
         }
       } else {
         msg = sanitizeErrorMessageForTracking(reason);
@@ -1054,7 +1104,11 @@ try {
       if (route && route !== '/') parts.push('@' + route);
       parts.push(browser);
 
-      trackEvent('error-promise', {
+      trackEvent(buildErrorEventPath(
+        'error-promise',
+        stackParts ? stackParts.source : '',
+        stackParts ? stackParts.line : 0
+      ), {
         title: parts.join(' | ').substring(0, 150)
       });
 
