@@ -493,3 +493,102 @@ describe('Deduplicado de errores por build', () => {
     );
   });
 });
+
+// `init-incompleto` es la senal con la que se vigila si las defensas de carga
+// parcial actuan sobre usuarios reales. Sin build en el path, GoatCounter suma en
+// una sola fila las degradaciones de builds distintos (comprobado en el export del
+// 22/07/2026: init-incompleto/estadisticas/stats-csv mezclaba 091724 y 103502) y
+// solo quedaba atribuirlas correlacionando por hora, que es aproximado.
+describe('sello de build en init-incompleto', () => {
+  function bootWithBuild(buildId) {
+    if (buildId === null) delete window.__LF_BUILD_ID;
+    else window.__LF_BUILD_ID = buildId;
+    bootstrapTracking();
+  }
+
+  function paths() {
+    return window.goatcounter.count.mock.calls.map((c) => c[0]).filter(Boolean).map((p) => p.path);
+  }
+
+  afterEach(() => {
+    delete window.__LF_BUILD_ID;
+  });
+
+  it('anade el build actual como ultimo segmento', () => {
+    bootWithBuild('20260722-121753');
+
+    window.__LF_trackDetail('init-incompleto', ['home', 'app-core'], { title: 'x' });
+
+    expect(paths()).toEqual(['init-incompleto/home/app-core/20260722-121753']);
+  });
+
+  it('separa el mismo evento emitido desde builds distintos', () => {
+    bootWithBuild('20260722-091724');
+    window.__LF_trackDetail('init-incompleto', ['estadisticas', 'stats-csv'], { title: 'x' });
+
+    bootWithBuild('20260722-103502');
+    window.__LF_trackDetail('init-incompleto', ['estadisticas', 'stats-csv'], { title: 'x' });
+
+    expect(paths()).toEqual([
+      'init-incompleto/estadisticas/stats-csv/20260722-091724',
+      'init-incompleto/estadisticas/stats-csv/20260722-103502'
+    ]);
+  });
+
+  it('degrada a "desconocido" un build con formato invalido', () => {
+    bootWithBuild('../../etc/passwd');
+
+    window.__LF_trackDetail('init-incompleto', ['solar', 'manual-ui'], { title: 'x' });
+
+    expect(paths()).toEqual(['init-incompleto/solar/manual-ui/desconocido']);
+  });
+
+  it('sella tambien si el emisor no escribe el slug exacto', () => {
+    bootWithBuild('20260722-121753');
+
+    window.__LF_trackDetail('Init-Incompleto', ['home', 'app-core'], { title: 'x' });
+
+    expect(paths()).toEqual(['init-incompleto/home/app-core/20260722-121753']);
+  });
+
+  it('no sella los eventos normales de producto', () => {
+    bootWithBuild('20260722-121753');
+
+    window.__LF_trackDetail('calculo-realizado', 'home', { title: 'x' });
+    window.__LF_trackDetail('csv-import-error', ['home', 'csv', 'cabecera'], { title: 'x' });
+
+    expect(paths()).toEqual(['calculo-realizado/home', 'csv-import-error/home/csv/cabecera']);
+  });
+
+  it('no muta el array de detalle del emisor', () => {
+    bootWithBuild('20260722-121753');
+    const detail = ['home', 'app-core'];
+
+    window.__LF_trackDetail('init-incompleto', detail, { title: 'x' });
+
+    expect(detail).toEqual(['home', 'app-core']);
+  });
+
+  it('mantiene el path acotado y sin datos libres del emisor', () => {
+    bootWithBuild('20260722-121753');
+
+    window.__LF_trackDetail('init-incompleto', ['home', 'app-core'], {
+      title: 'Fallo con ES0021000000000000AB y usuario@example.com'
+    });
+
+    const path = paths()[0];
+    expect(path.length).toBeLessThanOrEqual(180);
+    expect(path).not.toContain('@');
+    expect(path.toLowerCase()).not.toContain('es0021000000000000ab');
+  });
+
+  it('reserva el sufijo del build aunque los detalles agoten el limite del path', () => {
+    bootWithBuild('20260722-121753');
+
+    window.__LF_trackDetail('init-incompleto', ['a'.repeat(90), 'b'.repeat(90)], { title: 'x' });
+
+    const path = paths()[0];
+    expect(path.length).toBeLessThanOrEqual(180);
+    expect(path).toMatch(/\/20260722-121753$/);
+  });
+});

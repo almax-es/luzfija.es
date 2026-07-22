@@ -192,7 +192,20 @@ El path lleva fichero, linea y build:
 - `error-script-load/<fichero>/0/<build>` para fallos de carga de `<script src>`; el titulo indica ademas si el navegador estaba online y bajo control del service worker
 - `error-promise/<fichero-o-familia>/<linea>/<build>` (ej. `error-promise/pvpc/554/20260721-075326`). Si el navegador no aporta stack, el segundo segmento usa una familia cerrada y no sensible (`network`, `dynamic-import`, `not-a-function`, `property-access`, etc.) en vez de agrupar todo bajo `desconocido`.
 - `error-legacy-filtrado` (sin segmentos: es un cajon de ruido conocido)
-- `init-incompleto/<aplicacion>/<dependencia>` cuando un guard detecta que falta una dependencia esencial y deja la UI en estado degradado. Ejemplos: `init-incompleto/home/app-core`, `init-incompleto/home/factura-module`, `init-incompleto/home/desglose-integration`, `init-incompleto/solar/manual-ui` e `init-incompleto/estadisticas/stats-csv`. Esta familia no lleva build en el path; para atribuir QA sintetico se usa la hora del export.
+- `init-incompleto/<aplicacion>/<dependencia>/<build>` cuando un guard detecta que falta una dependencia esencial y deja la UI en estado degradado. Ejemplos: `init-incompleto/home/app-core/20260722-121753`, `init-incompleto/home/factura-module/...`, `init-incompleto/home/desglose-integration/...`, `init-incompleto/solar/manual-ui/...` e `init-incompleto/estadisticas/stats-csv/...`.
+
+El sello de build de esta familia NO lo ponen los emisores: lo anade
+`trackDetailedEvent()` a cualquier evento cuya base normalizada este en
+`BUILD_STAMPED_EVENT_BASES`, con la misma validacion `YYYYMMDD-HHMMSS` que usan
+los errores. El constructor reserva el espacio del sufijo antes de aplicar el
+limite de 180 caracteres, de modo que un detalle largo tampoco puede eliminar el
+build. Es un unico punto de verdad, y asi un emisor nuevo no puede olvidarlo.
+Hasta el 22/07/2026 esta familia no llevaba build y GoatCounter sumaba
+en una sola fila degradaciones de builds distintos (el export de ese dia mezclaba
+`091724` y `103502` bajo `init-incompleto/estadisticas/stats-csv`), obligando a
+atribuirlas correlacionando por hora, que es aproximado. El alcance es deliberado:
+`csv-import-error/*` NO se sella, porque ahi el eje relevante es el fichero del
+usuario, no la version del codigo.
 
 Por que el detalle va en el path y no solo en el title: GoatCounter agrupa por
 `path` y **solo sustituye el `title` de una ruta cuando el titulo nuevo se repite

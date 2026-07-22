@@ -290,8 +290,23 @@ try {
     sendPayload(payload);
   }
 
+  // Familias de diagnostico que deben poder atribuirse a un build concreto.
+  // Los errores ya lo llevan via buildErrorEventPath; `init-incompleto` se sella
+  // aqui, en el unico punto por el que pasan todos sus emisores, para que ningun
+  // emisor nuevo pueda olvidarlo. Sin esto, GoatCounter suma en una sola fila las
+  // degradaciones de builds distintos y solo quedaria atribuirlas correlacionando
+  // por hora, que es aproximado (ver ANALITICA-GOATCOUNTER.md).
+  // Alcance deliberado: NO se aplica a `csv-import-error/*`, donde el eje
+  // relevante es el fichero del usuario, no la version del codigo.
+  const BUILD_STAMPED_EVENT_BASES = new Set(['init-incompleto']);
+
   function trackDetailedEvent(baseName, detail, metadata) {
-    const path = buildEventPath(baseName, detail);
+    // Se compara la base YA NORMALIZADA: un emisor que escriba 'Init-Incompleto'
+    // debe recibir el sello igual que uno que escriba el slug exacto.
+    const normalizedBase = eventSegment(baseName, 'evento');
+    const path = BUILD_STAMPED_EVENT_BASES.has(normalizedBase)
+      ? buildStampedEventPath(baseName, detail, TRACK_BUILD_ID)
+      : buildEventPath(baseName, detail);
     trackEvent(path, metadata || {});
   }
 
@@ -329,13 +344,28 @@ try {
     return text || fb;
   }
 
+  const EVENT_PATH_MAX_LENGTH = 180;
+
   function buildEventPath(base, detail) {
     const cleanBase = eventSegment(base, 'evento');
     if (detail === null || detail === undefined || detail === '') return cleanBase;
 
     const parts = Array.isArray(detail) ? detail : [detail];
     const cleanParts = parts.map((part) => eventSegment(part, '')).filter(Boolean);
-    return [cleanBase].concat(cleanParts).join('/').substring(0, 180);
+    return [cleanBase].concat(cleanParts).join('/').substring(0, EVENT_PATH_MAX_LENGTH);
+  }
+
+  function buildStampedEventPath(base, detail, buildLike) {
+    const build = errorBuildSegment(buildLike);
+    const suffix = '/' + build;
+    // Limitar primero el prefijo reserva siempre el espacio del sello. Si se
+    // truncase el path completo al final, un detalle largo podria borrar justo
+    // el build y volver a mezclar versiones en GoatCounter.
+    const maxPrefixLength = EVENT_PATH_MAX_LENGTH - suffix.length;
+    const prefix = buildEventPath(base, detail)
+      .substring(0, maxPrefixLength)
+      .replace(/\/+$/, '');
+    return prefix + suffix;
   }
 
   function canonicalPathFromHref(href) {
