@@ -124,10 +124,14 @@ describe('observatorio con dependencias parciales', () => {
 
   function statsDom() {
     document.body.innerHTML = `
-      <span id="kpiLastSub"></span>
-      <span id="trendMeta"></span>
-      <span id="hourlyMeta"></span>
-      <span id="hourlyCallout"></span>
+      <span id="kpiLastSub">Cargando…</span>
+      <span id="kpiAvg7Sub">Cargando…</span>
+      <span id="kpiAvg30Sub">Cargando…</span>
+      <span id="kpiAvg12mSub">Cargando…</span>
+      <span id="kpiYoYSub">A mismas fechas</span>
+      <span id="trendMeta">Cargando…</span>
+      <span id="hourlyMeta">Cargando…</span>
+      <span id="hourlyCallout">Consejo: Cargando…</span>
     `;
     Object.defineProperty(document, 'readyState', {
       configurable: true,
@@ -147,6 +151,8 @@ describe('observatorio con dependencias parciales', () => {
 
     expect(listenerErrors).toEqual([]);
     expect(document.getElementById('kpiLastSub').textContent).toContain('no terminó de cargarse');
+    expect([...document.querySelectorAll('*')].some((node) => node.textContent.includes('Cargando')))
+      .toBe(false);
     expect(window.__LF_trackDetail).toHaveBeenCalledWith(
       'init-incompleto',
       ['estadisticas', 'stats-csv'],
@@ -215,6 +221,32 @@ describe('comparador principal con módulos parciales', () => {
     expect(document.getElementById('btnCalc').disabled).toBe(true);
     expect(document.getElementById('statusText').textContent).toContain('no terminó de cargarse');
     expect(window.LF.toast).toHaveBeenCalledWith(expect.stringContaining('no terminó de cargarse'), 'err');
+    expect(window.__LF_trackDetail).toHaveBeenCalledWith(
+      'init-incompleto',
+      ['home', 'app-core'],
+      expect.any(Object)
+    );
+  });
+
+  it('conserva la telemetría y el estado visible aunque falle el toast', () => {
+    document.body.innerHTML = `
+      <span id="statusText">Rellena tus datos y calcula</span>
+      <button id="btnCalc" type="button">Calcular</button>
+    `;
+    window.LF = {
+      toast: vi.fn(() => {
+        throw new Error('fallo visual simulado');
+      })
+    };
+    window.__LF_trackDetail = vi.fn();
+
+    expect(() => loadLfApp(window)).not.toThrow();
+    document.dispatchEvent(new window.Event('DOMContentLoaded'));
+
+    expect(listenerErrors).toEqual([]);
+    expect(document.getElementById('btnCalc').disabled).toBe(true);
+    expect(document.getElementById('statusText').textContent).toContain('no terminó de cargarse');
+    expect(window.LF.toast).toHaveBeenCalled();
     expect(window.__LF_trackDetail).toHaveBeenCalledWith(
       'init-incompleto',
       ['home', 'app-core'],

@@ -226,6 +226,11 @@
     if (els.trendMeta) els.trendMeta.textContent = msg;
     if (els.hourlyMeta) els.hourlyMeta.textContent = msg;
     if (els.hourlyCallout) els.hourlyCallout.textContent = msg;
+    // Subtitulos estrechos: el mensaje largo se queda en los bloques anchos y
+    // aqui basta con retirar el "Cargando..." que si no quedaria indefinido.
+    if (els.kpiAvg7Sub) els.kpiAvg7Sub.textContent = 'No disponible';
+    if (els.kpiAvg30Sub) els.kpiAvg30Sub.textContent = 'No disponible';
+    if (els.kpiAvg12mSub) els.kpiAvg12mSub.textContent = 'No disponible';
   }
 
   function buildMonthlyFromDaily(labels, dailyValues) {

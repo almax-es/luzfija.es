@@ -33,14 +33,20 @@
       button.title = 'La calculadora no terminó de cargarse; recarga la página.';
     }
     if (status) status.textContent = 'La calculadora no terminó de cargarse. Recarga la página.';
-    if (window.LF && typeof window.LF.toast === 'function') {
-      window.LF.toast('La calculadora no terminó de cargarse. Recarga la página para intentarlo de nuevo.', 'err');
-    }
+
+    // La telemetria va ANTES del aviso visual: es el escenario en que la UI esta
+    // rota, asi que el diagnostico no puede depender de que la UI tenga exito.
     try {
       if (typeof window.__LF_trackDetail === 'function') {
         window.__LF_trackDetail('init-incompleto', ['home', 'app-core'], {
           title: 'Comparador principal con dependencias incompletas'
         });
+      }
+    } catch (_) {}
+
+    try {
+      if (window.LF && typeof window.LF.toast === 'function') {
+        window.LF.toast('La calculadora no terminó de cargarse. Recarga la página para intentarlo de nuevo.', 'err');
       }
     } catch (_) {}
   }

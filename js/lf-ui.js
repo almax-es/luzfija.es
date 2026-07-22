@@ -14,16 +14,32 @@
   const { el, state, THEME_KEY } = window.LF;
 
   // ===== TOAST =====
+  // `el` lo puebla initElements() (lf-state.js). toast() puede invocarse antes de
+  // ese init desde rutas de arranque degradado (showIncompleteApp en lf-app.js),
+  // donde el.toastText todavia es null. Resolver aqui evita que el aviso de "la
+  // pagina no cargo bien" muera con un TypeError propio.
+  function resolveToastNodes() {
+    const box = (el && el.toast) || document.getElementById('toast');
+    const text = (el && el.toastText) || document.getElementById('toastText');
+    const dot = (el && el.toastDot) || document.getElementById('toastDot');
+    return { box, text, dot };
+  }
+
   function toast(msg, mode = 'ok') {
-    el.toastText.textContent = msg;
-    el.toastDot.classList.remove('ok', 'err');
-    el.toastDot.classList.add(mode === 'err' ? 'err' : 'ok');
-    el.toast.classList.add('show');
-    clearTimeout(el.toast._t);
+    const { box, text, dot } = resolveToastNodes();
+    if (!box || !text) return;
+
+    text.textContent = msg;
+    if (dot) {
+      dot.classList.remove('ok', 'err');
+      dot.classList.add(mode === 'err' ? 'err' : 'ok');
+    }
+    box.classList.add('show');
+    clearTimeout(box._t);
     
     // Duración dinámica: 4s base + 1s por cada 30 caracteres, máx 15s
     const duration = Math.min(15000, 4000 + Math.floor((msg || '').length / 30) * 1000);
-    el.toast._t = setTimeout(() => el.toast.classList.remove('show'), duration);
+    box._t = setTimeout(() => box.classList.remove('show'), duration);
   }
 
   // ===== STATUS =====
