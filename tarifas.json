@@ -6,6 +6,27 @@
   },
   "tarifas": [
     {
+      "nombre": "Spock Tarifa luz 24 horas",
+      "cPunta": 0.0852,
+      "cLlano": 0.0852,
+      "cValle": 0.0852,
+      "p1": 0.08,
+      "p2": 0.08,
+      "web": "https://spock.es/compra-colectiva-mercurio-26",
+      "tipo": "1P",
+      "requisitos": "Consumo ≤ 3.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Loviluz Lov VERANO",
       "cPunta": 0.096,
       "cLlano": 0.096,
@@ -1979,5 +2000,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-07-22T13:38:36.504Z"
+  "updatedAt": "2026-07-22T14:30:13.796Z"
 }
