@@ -3,7 +3,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260722-074107";
+const CACHE_VERSION = "20260722-080441";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 // El build 20260620-051941 contenía un handler del simulador solar que podía
 // llamar `target.closest()` sobre un target no-Element. A diferencia de las
@@ -141,6 +141,15 @@ const CORE_ASSETS = [
   "js/lf-sw-update.js",
   "js/lf-app.js",
   "js/pvpc.js",
+  // La home los carga siempre y tienen dependencias de orden estrictas.
+  // Deben instalarse de forma atomica con el shell: si falta uno, activar el
+  // SW nuevo dejaria factura/desglose a medias y produciria errores en cascada.
+  "js/factura-parsers.js",
+  "js/factura.js",
+  "js/desglose-calculo.js",
+  "js/desglose-render.js",
+  "js/desglose-factura.js",
+  "js/desglose-integration.js",
   "js/tracking.js",
   "manifest.webmanifest",
   "favicon.ico",
@@ -271,6 +280,9 @@ self.addEventListener("fetch", (event) => {
         const cache = await caches.open(CACHE_NAME);
         try {
           const fresh = await fetch(req, { cache: "no-cache" });
+          // fetch() no rechaza en HTTP 4xx/5xx. No entregar una respuesta de
+          // error si tenemos el asset sano en la cache del build activo.
+          if (!fresh.ok) throw new Error(`HTTP ${fresh.status}`);
           await cachePutSafe(cache, req, fresh);
           return fresh;
         } catch (_) {

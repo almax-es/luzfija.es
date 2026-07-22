@@ -34,6 +34,17 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (_) {}
   }
 
+  // bv-ui-helpers.js define window.BVSim.manualUi y se carga antes que este
+  // fichero. Si no llego a cargarse (fallo de red puntual, bloqueador), abortar
+  // con un aviso: sin esta guarda el simulador revienta con un TypeError opaco
+  // al construir los controles y la pagina queda rota en silencio.
+  if (!window.BVSim || !window.BVSim.manualUi ||
+      typeof window.BVSim.manualUi.createHourlyTraceControls !== 'function') {
+    showToast('La página no terminó de cargarse. Recárgala para usar el simulador.', 'err');
+    trackBvEvent('init-incompleto', ['solar', 'manual-ui'], 'Simulador solar sin bv-ui-helpers');
+    return;
+  }
+
   try {
     if (window.LF?.isDebugMode?.()) console.log('BVSim: Initializing UI...');
   } catch {}

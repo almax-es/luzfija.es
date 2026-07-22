@@ -998,15 +998,21 @@ try {
         return;
       }
 
+      const eventBase = scriptSource ? 'error-script-load' : 'error-javascript';
+      const errorLabel = scriptSource ? 'Carga de script fallida' : message.substring(0, 48);
       const parts = [
-        message.substring(0, 48),
+        errorLabel,
         source + ':' + line + (col ? ':' + col : ''),
         'b:' + TRACK_BUILD_ID
       ];
+      if (scriptSource) {
+        parts.push('online:' + (navigator.onLine === false ? 'no' : 'si'));
+        parts.push('sw:' + (navigator.serviceWorker && navigator.serviceWorker.controller ? 'si' : 'no'));
+      }
       if (route && route !== '/') parts.push('@' + route);
       parts.push(browser);
 
-      trackEvent(buildErrorEventPath('error-javascript', source, line), {
+      trackEvent(buildErrorEventPath(eventBase, source, line), {
         title: parts.join(' | ').substring(0, 150)
       });
     }catch(_){}

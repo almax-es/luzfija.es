@@ -95,7 +95,7 @@ describe('Tracking error filtering and dedupe', () => {
     expect(window.goatcounter.count).toHaveBeenCalledTimes(1);
   });
 
-  it('trackea error de carga en <script src> first-party aunque filename venga vacío', () => {
+  it('separa el error de carga de <script src> de las excepciones JS', () => {
     bootstrapTracking();
 
     const script = document.createElement('script');
@@ -106,9 +106,9 @@ describe('Tracking error filtering and dedupe', () => {
     expect(window.goatcounter.count).toHaveBeenCalledTimes(1);
     expect(window.goatcounter.count).toHaveBeenCalledWith(
       expect.objectContaining({
-        path: 'error-javascript/pvpc/0/desconocido',
+        path: 'error-script-load/pvpc/0/desconocido',
         event: true,
-        title: expect.stringContaining('/js/pvpc.js:0')
+        title: expect.stringMatching(/Carga de script fallida.*\/js\/pvpc\.js:0.*online:(?:si|no).*sw:(?:si|no)/)
       })
     );
   });

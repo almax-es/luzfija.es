@@ -89,7 +89,10 @@
         }
       });
 
-      lfDbg('Sistema de desglose de factura inicializado');
+      // `lfDbg` es un global que exporta lf-utils.js. Si ese fichero no llego a
+      // cargarse, la referencia desnuda lanzaria ReferenceError y tumbaria el
+      // init del modal. Mismo patron defensivo que en lf-csv-utils.js.
+      if (typeof lfDbg === 'function') lfDbg('Sistema de desglose de factura inicializado');
     },
 
     abrir(datos) {
@@ -121,9 +124,42 @@
         // Si se cerró o se abrió otro desglose, abortar
         if (mySeq !== this._openSeq) return;
         if (!this.modal || !this.modal.classList.contains('active')) return;
+        // `calcularDesglose` y `renderizar` los aportan desglose-calculo.js y
+        // desglose-render.js via Object.assign sobre este mismo objeto. Si alguno
+        // no llego a cargarse (fallo de red puntual, bloqueador), este objeto
+        // existe pero sin esos metodos: sin esta guarda el modal se queda
+        // colgado en "Calculando desglose..." y salta un TypeError opaco.
+        if (typeof this.calcularDesglose !== 'function' || typeof this.renderizar !== 'function') {
+          this.mostrarErrorDeCarga(body);
+          return;
+        }
         const desglose = this.calcularDesglose(datos);
         this.renderizar(desglose, datos);
       }, 0);
+    },
+
+    // Mensaje de fallo de carga con accion de recarga. Sin handlers inline para
+    // no depender de 'unsafe-inline' en la CSP.
+    mostrarErrorDeCarga(body) {
+      if (!body) return;
+      body.innerHTML = '';
+
+      const wrap = document.createElement('div');
+      wrap.style.cssText = 'padding:14px; font-weight:700; line-height:1.5;';
+
+      const msg = document.createElement('p');
+      msg.style.cssText = 'margin:0 0 12px;';
+      msg.textContent = 'No se pudo cargar el desglose: la página no terminó de descargarse. Recarga para volver a intentarlo.';
+
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'btn';
+      btn.textContent = 'Recargar la página';
+      btn.addEventListener('click', () => location.reload());
+
+      wrap.appendChild(msg);
+      wrap.appendChild(btn);
+      body.appendChild(wrap);
     },
 
     cerrar() {

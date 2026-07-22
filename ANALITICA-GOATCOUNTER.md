@@ -189,6 +189,7 @@ No se envia la busqueda literal. Tampoco debe viajar por referrer gracias al san
 El path lleva fichero, linea y build:
 
 - `error-javascript/<fichero>/<linea>/<build>` (ej. `error-javascript/bv-ui/1187/20260721-075326`)
+- `error-script-load/<fichero>/0/<build>` para fallos de carga de `<script src>`; el titulo indica ademas si el navegador estaba online y bajo control del service worker
 - `error-promise/<fichero>/<linea>/<build>` (ej. `error-promise/pvpc/554/20260721-075326`)
 - `error-legacy-filtrado` (sin segmentos: es un cajon de ruido conocido)
 
@@ -264,8 +265,8 @@ Mecanismo:
 - Si es ruido, `remapLegacyGoatPayload` reescribe el path a `error-legacy-filtrado` y estructura el titulo con tipo, origen, evento original y build ID.
 - Si no es ruido, el payload pasa sin modificar.
 
-`isLegacyErrorPath` reconoce tanto la ruta pelada (`error-javascript`) como las
-variantes con segmentos (`error-javascript/<fichero>/<linea>/<build>`), para que el
+`isLegacyErrorPath` reconoce las rutas de error peladas y las variantes con
+segmentos (`error-javascript/...`, `error-script-load/...`, `error-promise/...`), para que el
 guard siga filtrando ruido legacy tras el cambio de taxonomia de la seccion 6.5.
 
 Esto garantiza que el ruido de errores tempranos (antes de que `tracking.js` cargue) no contamine las estadisticas. Es un guard transparente: no afecta a eventos de producto ni pageviews normales.

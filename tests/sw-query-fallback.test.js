@@ -52,6 +52,34 @@ describe('Service Worker query fallback', () => {
     expect(sw).toContain('"js/lf-ssaa.js"');
   });
 
+  it('instala como core las cadenas de factura y desglose cargadas siempre por la home', () => {
+    const root = path.resolve(__dirname, '..');
+    const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
+    const coreBlock = sw.match(/const CORE_ASSETS = \[([\s\S]*?)\n\];/);
+
+    expect(coreBlock).not.toBeNull();
+    for (const asset of [
+      'js/factura-parsers.js',
+      'js/factura.js',
+      'js/desglose-calculo.js',
+      'js/desglose-render.js',
+      'js/desglose-factura.js',
+      'js/desglose-integration.js'
+    ]) {
+      expect(coreBlock[1]).toContain(`"${asset}"`);
+    }
+  });
+
+  it('usa la cache del build ante respuestas HTTP fallidas de scripts', () => {
+    const root = path.resolve(__dirname, '..');
+    const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
+    const scriptBranch = sw.match(/if \(req\.destination === "script"[\s\S]*?\n  }\n\n  \/\/ Tarifas:/);
+
+    expect(scriptBranch).not.toBeNull();
+    expect(scriptBranch[0]).toMatch(/if \(!fresh\.ok\) throw new Error/);
+    expect(scriptBranch[0]).toMatch(/cache\.match\(new Request\(url\.pathname\)\)/);
+  });
+
   it('serves assistant reference files network-first to avoid stale LLM metadata', () => {
     const root = path.resolve(__dirname, '..');
     const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');

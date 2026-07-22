@@ -301,7 +301,7 @@ Si vas a hacer una auditoria tecnica, lee tambien `AUDITORIA-IA.md` antes de cla
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 39 (`js/*.js` + `js/bv/*.js`).
-- Lineas JS aproximadas: 22.196.
+- Lineas JS aproximadas: 22.273.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (97 tarifas).
@@ -347,8 +347,8 @@ Si vas a hacer una auditoria tecnica, lee tambien `AUDITORIA-IA.md` antes de cla
 ## 10. Testing Y Calidad
 
 - Suite Vitest/JSDOM.
-- 64 archivos de test (`tests/*.test.js`).
-- 549 casos `it()/test()` en la ultima ejecucion local verificada.
+- 65 archivos de test (`tests/*.test.js`).
+- 560 casos `it()/test()` en la ultima ejecucion local verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

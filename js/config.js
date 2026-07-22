@@ -47,8 +47,10 @@ function isLegacyErrorPath(pathLike) {
   // la ruta exacta: hay que reconocer tambien las variantes con segmentos.
   return path === 'error-promise' ||
          path === 'error-javascript' ||
+         path === 'error-script-load' ||
          path.startsWith('error-promise/') ||
-         path.startsWith('error-javascript/');
+         path.startsWith('error-javascript/') ||
+         path.startsWith('error-script-load/');
 }
 
 function extractLegacyReasonMessage(reason) {

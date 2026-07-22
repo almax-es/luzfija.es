@@ -7,11 +7,33 @@
 
     (function(){
       if (window.__LF_facturaParserLoaded) return;
-      window.__LF_facturaParserLoaded = true;
 
       if (!window.__LF_FacturaParsers) {
-        throw new Error('Factura parsers no disponibles. Asegurate de cargar js/factura-parsers.js antes de js/factura.js.');
+        // factura-parsers.js se carga antes que este fichero. Si una descarga
+        // puntual falla, no lanzar una excepcion que rompa la inicializacion de
+        // la home: dejamos el boton con un aviso accionable y permitimos que un
+        // reintento futuro vuelva a ejecutar este modulo.
+        window.__LF_facturaModuleReady = false;
+        window.__LF_bindFacturaParser = function() {
+          const btn = document.getElementById('btnSubirFactura');
+          if (!btn || btn.dataset.lfFacturaUnavailableBound === '1') return;
+          btn.dataset.lfFacturaUnavailableBound = '1';
+          btn.addEventListener('click', function() {
+            const msg = 'La lectura de facturas no terminó de cargarse. Recarga la página para volver a intentarlo.';
+            if (window.LF && typeof window.LF.toast === 'function') window.LF.toast(msg, 'err');
+            else if (typeof window.toast === 'function') window.toast(msg, 'err');
+          });
+        };
+        try {
+          if (typeof window.__LF_trackDetail === 'function') {
+            window.__LF_trackDetail('init-incompleto', ['home', 'factura-parsers'], {
+              title: 'Extractor de factura sin factura-parsers'
+            });
+          }
+        } catch (_) {}
+        return;
       }
+      window.__LF_facturaParserLoaded = true;
       const {
         __LF_normNum,
         __LF_extractQRUrl,
