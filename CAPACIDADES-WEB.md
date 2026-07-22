@@ -304,7 +304,7 @@ Si vas a hacer una auditoria tecnica, lee tambien `AUDITORIA-IA.md` antes de cla
 - Lineas JS aproximadas: 22.860.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
-- `tarifas.json` (98 tarifas).
+- `tarifas.json` (100 tarifas).
 - `/data/pvpc/` (indicador 1001).
 - `/data/surplus/` (indicador 1739).
 - `/data/ssaa/` (indicador 10328, servicios de ajuste medios mensuales).

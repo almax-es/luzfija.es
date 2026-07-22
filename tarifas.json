@@ -6,7 +6,7 @@
   },
   "tarifas": [
     {
-      "nombre": "Spock Tarifa luz 24 horas",
+      "nombre": "Spock Tarifa Luz 24 Horas",
       "cPunta": 0.0852,
       "cLlano": 0.0852,
       "cValle": 0.0852,
@@ -638,6 +638,26 @@
         "tope": "ENERGIA",
         "bv": false,
         "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Spock Tarifa Luz Con Excedentes",
+      "cPunta": 0.12306,
+      "cLlano": 0.12306,
+      "cValle": 0.12306,
+      "p1": 0.105527,
+      "p2": 0.04834,
+      "web": "https://spock.es/compra-colectiva-mercurio-27",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -1778,6 +1798,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Spock Tarifa Luz 3 Periodos",
+      "cPunta": 0.219607,
+      "cLlano": 0.136931,
+      "cValle": 0.109349,
+      "p1": 0.075902,
+      "p2": 0.001987,
+      "web": "https://spock.es/compra-colectiva-mercurio-26",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA_PARCIAL",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Bonpreu Solar 3P",
       "cPunta": 0.220034,
       "cLlano": 0.141385,
@@ -2000,5 +2040,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-07-22T14:30:13.796Z"
+  "updatedAt": "2026-07-22T14:46:27.812Z"
 }
