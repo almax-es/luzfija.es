@@ -287,22 +287,25 @@ coordinadores ausentes) y
 
 Las validaciones E2E del 22/07/2026 bloquearon intencionadamente scripts en
 produccion y generaron tanto `error-script-load/*` como `init-incompleto/*`.
-GoatCounter exporta `hit_stats.jsonl` agregado por hora. Ventanas sinteticas
-CONFIRMADAS contra el export de `2026-07-22T12:57:08Z`:
+GoatCounter exporta `hit_stats.jsonl` agregado por hora. Ventanas sinteticas y
+cubos de control contrastados con los exports de `2026-07-22T12:57:08Z` y
+`2026-07-22T14:53:53Z`:
 
 - `09:00Z`: bateria E2E completa sobre el build `20260722-091724` (cinco
   `error-script-load` mas `init-incompleto` de solar, estadisticas y factura).
 - `11:00Z`: re-test sobre el build `20260722-103502` (`lf-utils` y
   `pvpc-stats-csv`, mas `init-incompleto/home/app-core`).
-- `12:00Z`: sin eventos de error pese a tener 73 hits de trafico normal. La
-  auditoria final sobre `20260722-121753` no aparece en ese export; puede ser
-  retardo de agregacion, asi que conviene volver a mirar ese cubo en el
-  siguiente export antes de darlo por organico.
+- `12:00Z`: el primer export mostraba 73 hits y cero eventos de error. El export
+  posterior de `2026-07-22T14:53:53Z` completo la agregacion hasta 83 hits y
+  siguio mostrando cero `error-*` y cero `init-incompleto/*`. La auditoria final
+  anunciada sobre `20260722-121753` no dejo senales de diagnostico en GoatCounter;
+  por tanto, esta hora NO debe excluirse como ventana sintetica de esas familias.
 
 La ventana declarada inicialmente para esa auditoria (`12:00:00Z`) resulto no
-coincidir con el dato: por eso la regla es comprobar en que horas aparecen ambas
-familias y ampliar o mover la exclusion segun el export, en vez de heredar una
-ventana anunciada. No se debe asumir que todo el build esta contaminado.
+coincidir con el dato, ni siquiera tras completarse la agregacion: por eso la
+regla es comprobar en que horas aparecen ambas familias y ampliar o mover la
+exclusion segun el export, en vez de heredar una ventana anunciada. No se debe
+asumir que todo el build esta contaminado.
 
 ## 7. Cobertura HTML Y CSP
 
