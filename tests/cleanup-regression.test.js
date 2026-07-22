@@ -43,4 +43,11 @@ describe('Cleanup regressions', () => {
     const html = fs.readFileSync(path.resolve(__dirname, '../estadisticas/index.html'), 'utf8');
     expect(html).not.toContain("'wasm-unsafe-eval'");
   });
+
+  it('los consumidores de lfDbg tienen un no-op local si lf-utils no cargó', () => {
+    for (const rel of ['../js/lf-app.js', '../js/lf-csv-import.js']) {
+      const code = fs.readFileSync(path.resolve(__dirname, rel), 'utf8');
+      expect(code).toMatch(/const lfDbg = typeof window\.lfDbg === 'function'/);
+    }
+  });
 });

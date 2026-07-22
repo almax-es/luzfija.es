@@ -44,6 +44,7 @@
     // difiere (usuario activo, pestaña oculta, recién cargada). Se re-evalúa después.
     let pageIsStale = false;
     let reloadCheckInFlight = false;
+    let staleReloadTimer = null;
     const swLoadSuppressUntil = Date.now() + SW_RELOAD_SUPPRESS_MS;
     // Guard anti-bucle por VERSIÓN real del SW activo (CACHE_VERSION, via
     // GET_VERSION): recargamos como mucho una vez por versión y pestaña. La clave
@@ -59,6 +60,7 @@
 
     function noteInteraction() {
       lastInteractionAt = Date.now();
+      if (pageIsStale) scheduleStaleReload('interaction');
     }
 
     function interactedRecently() {
@@ -70,6 +72,28 @@
       if (Date.now() < swLoadSuppressUntil) return false;
       if (document.visibilityState === 'hidden') return false;
       return true;
+    }
+
+    function clearStaleReloadTimer() {
+      if (!staleReloadTimer) return;
+      clearTimeout(staleReloadTimer);
+      staleReloadTimer = null;
+    }
+
+    function scheduleStaleReload(reason, minimumDelay) {
+      if (!pageIsStale || document.visibilityState === 'hidden') return;
+      const now = Date.now();
+      const suppressDelay = Math.max(0, swLoadSuppressUntil - now);
+      const interactionDelay = lastInteractionAt > 0
+        ? Math.max(0, SW_INTERACTION_IDLE_MS - (now - lastInteractionAt))
+        : 0;
+      const delay = Math.max(50, Number(minimumDelay) || 0, suppressDelay, interactionDelay) + 25;
+
+      clearStaleReloadTimer();
+      staleReloadTimer = setTimeout(function () {
+        staleReloadTimer = null;
+        tryReloadOnStale('deferred-' + reason);
+      }, delay);
     }
 
     function getLastReloadedVersion() {
@@ -129,6 +153,7 @@
       if (!pageIsStale || reloadCheckInFlight) return;
       if (!shouldReloadOnSwActivate()) {
         dbg('[SW] Stale page, reload deferred on ' + reason + ' (interaction/fresh/hidden). Will re-evaluate.');
+        scheduleStaleReload(reason);
         return;
       }
       reloadCheckInFlight = true;
@@ -136,14 +161,20 @@
         const version = await getSwVersion(navigator.serviceWorker.controller);
         if (!version) {
           dbg('[SW] Stale page but SW version unreadable on ' + reason + '. Will retry later.');
+          scheduleStaleReload('version-unreadable', SW_VERSION_TIMEOUT_MS);
           return;
         }
         if (getLastReloadedVersion() === version) {
           pageIsStale = false;
+          clearStaleReloadTimer();
           dbg('[SW] Already reloaded once for version ' + version + '. Skipping.');
           return;
         }
-        if (!shouldReloadOnSwActivate()) return;
+        if (!shouldReloadOnSwActivate()) {
+          scheduleStaleReload('eligibility-changed');
+          return;
+        }
+        clearStaleReloadTimer();
         markReloadedVersion(version);
         dbg('[SW] New SW version ' + version + ' active. Reloading to flush stale assets (' + reason + ').');
         window.location.reload();
@@ -226,7 +257,10 @@
       requestSwUpdate('focus');
       tryReloadOnStale('focus');
     }));
-    window.addEventListener('online', () => requestSwUpdate('online'));
+    window.addEventListener('online', () => {
+      requestSwUpdate('online');
+      tryReloadOnStale('online');
+    });
     setInterval(() => {
       if (document.visibilityState !== 'visible') return;
       ric(() => {

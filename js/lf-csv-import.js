@@ -11,6 +11,8 @@
 (function() {
   'use strict';
 
+  const lfDbg = typeof window.lfDbg === 'function' ? window.lfDbg : function () {};
+
   const { toast, round2 } = window.LF;
 
   function trackCsvEvent(eventName, detail, title) {

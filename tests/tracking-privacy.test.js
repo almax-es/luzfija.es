@@ -32,6 +32,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.restoreAllMocks();
 });
 
@@ -127,6 +128,63 @@ describe('Tracking privacy behavior', () => {
         event: true
       })
     );
+  });
+
+  it('retira un sender fallido, reintenta y conserva la cola ante un fallo transitorio', async () => {
+    vi.useFakeTimers();
+    const originalAppend = document.head.appendChild.bind(document.head);
+    const appendSpy = vi.spyOn(document.head, 'appendChild').mockImplementation((node) => originalAppend(node));
+
+    bootstrapTracking();
+    window.__LF_track('evento-reintento', { title: 'Debe sobrevivir al primer fallo' });
+
+    const firstScript = appendSpy.mock.calls[0][0];
+    firstScript.dispatchEvent(new Event('error'));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(firstScript.isConnected).toBe(false);
+
+    await vi.advanceTimersByTimeAsync(5000);
+    const secondScript = appendSpy.mock.calls[1][0];
+    expect(secondScript).toBeTruthy();
+    expect(secondScript).not.toBe(firstScript);
+
+    window.goatcounter = { count: vi.fn() };
+    secondScript.dispatchEvent(new Event('load'));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(window.goatcounter.count).toHaveBeenCalledWith(
+      expect.objectContaining({ path: 'evento-reintento' })
+    );
+  });
+
+  it('respeta el backoff y no supera tres cargas hasta que vuelva la conexión', async () => {
+    vi.useFakeTimers();
+    const originalAppend = document.head.appendChild.bind(document.head);
+    const appendSpy = vi.spyOn(document.head, 'appendChild').mockImplementation((node) => originalAppend(node));
+
+    bootstrapTracking();
+    window.__LF_track('evento-uno');
+    appendSpy.mock.calls[0][0].dispatchEvent(new Event('error'));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    window.__LF_track('evento-durante-backoff');
+    expect(appendSpy).toHaveBeenCalledTimes(1);
+
+    await vi.advanceTimersByTimeAsync(5000);
+    appendSpy.mock.calls[1][0].dispatchEvent(new Event('error'));
+    await Promise.resolve();
+    await Promise.resolve();
+    await vi.advanceTimersByTimeAsync(20000);
+    appendSpy.mock.calls[2][0].dispatchEvent(new Event('error'));
+    await Promise.resolve();
+    await Promise.resolve();
+
+    window.__LF_track('evento-tras-agotar-intentos');
+    await Promise.resolve();
+    expect(appendSpy).toHaveBeenCalledTimes(3);
   });
 
   it('si GoatCounter ya está listo, envía sin inyectar script', () => {

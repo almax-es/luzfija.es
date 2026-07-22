@@ -190,7 +190,7 @@ El path lleva fichero, linea y build:
 
 - `error-javascript/<fichero>/<linea>/<build>` (ej. `error-javascript/bv-ui/1187/20260721-075326`)
 - `error-script-load/<fichero>/0/<build>` para fallos de carga de `<script src>`; el titulo indica ademas si el navegador estaba online y bajo control del service worker
-- `error-promise/<fichero>/<linea>/<build>` (ej. `error-promise/pvpc/554/20260721-075326`)
+- `error-promise/<fichero-o-familia>/<linea>/<build>` (ej. `error-promise/pvpc/554/20260721-075326`). Si el navegador no aporta stack, el segundo segmento usa una familia cerrada y no sensible (`network`, `dynamic-import`, `not-a-function`, `property-access`, etc.) en vez de agrupar todo bajo `desconocido`.
 - `error-legacy-filtrado` (sin segmentos: es un cajon de ruido conocido)
 
 Por que el detalle va en el path y no solo en el title: GoatCounter agrupa por
@@ -207,7 +207,8 @@ Construccion del path (`buildErrorEventPath`, expuesto en `__LF_trackingUtils`):
 - **fichero**: solo el basename, sin ruta, sin query/hash y sin extension. Se
   redacta con `sanitizeErrorMessageForTracking()` y se acota a 40 caracteres antes
   de pasar por `eventSegment()` (que solo normaliza a minusculas, no redacta).
-  Si no hay fichero -> `desconocido`.
+  Si no hay fichero en un error JS -> `desconocido`; en una promesa sin stack se
+  usa una de las familias cerradas descritas arriba.
 - **linea**: entero positivo; cualquier otra cosa -> `0`.
 - **build**: se valida contra `YYYYMMDD-HHMMSS`; si no encaja -> `desconocido`.
 
@@ -223,11 +224,25 @@ Las descripciones de error se sanitizan con `sanitizeErrorMessageForTracking()`:
 
 Los errores se deduplican por sesion para evitar ruido.
 
+Las tres aplicaciones instalan `error-bootstrap.js` antes de `config.js`. Este
+buffer conserva en memoria como maximo 12 fallos first-party tempranos y solo
+guarda tipo, pathname y posicion: nunca mensaje, stack ni datos del usuario.
+`tracking.js` lo vacia al arrancar y pasa las entradas por los mismos guardrails
+de opt-out, privacidad y saneo que el resto de eventos.
+
+Si el sender autoalojado `vendor/goatcounter/count.js` falla de forma transitoria,
+`tracking.js` retira el elemento fallido, conserva una cola acotada y realiza hasta
+tres intentos con espera creciente. Un evento `online` abre una nueva oportunidad.
+El service worker mantiene el sender como network-only, pero permite recuperar
+`tracking.js` desde la cache del build activo para no perder la captura de errores.
+
 Cardinalidad: el build multiplica rutas por despliegue, pero en errores el volumen
 es pequeno y es justo lo que permite distinguir codigo actual de cache antigua.
 
-Tests: `tests/tracking-errors.test.js` (separacion por fichero/linea/build y
-privacidad del path) y `tests/bv-ui-tooltip-textnode.test.js` (regresion del
+Tests: `tests/tracking-errors.test.js` (separacion por fichero/linea/build/familia y
+privacidad del path), `tests/tracking-privacy.test.js` (cola y reintento del sender),
+`tests/error-bootstrap.test.js` (entrega de errores tempranos) y
+`tests/bv-ui-tooltip-textnode.test.js` (regresion del
 `e.target.closest is not a function` con target que no es Element).
 
 ## 7. Cobertura HTML Y CSP

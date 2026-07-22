@@ -24,11 +24,42 @@
 (function() {
   'use strict';
 
+  function showIncompleteApp() {
+    const button = document.getElementById('btnCalc');
+    const status = document.getElementById('statusText');
+    if (button) {
+      button.disabled = true;
+      button.setAttribute('aria-disabled', 'true');
+      button.title = 'La calculadora no terminó de cargarse; recarga la página.';
+    }
+    if (status) status.textContent = 'La calculadora no terminó de cargarse. Recarga la página.';
+    if (window.LF && typeof window.LF.toast === 'function') {
+      window.LF.toast('La calculadora no terminó de cargarse. Recarga la página para intentarlo de nuevo.', 'err');
+    }
+    try {
+      if (typeof window.__LF_trackDetail === 'function') {
+        window.__LF_trackDetail('init-incompleto', ['home', 'app-core'], {
+          title: 'Comparador principal con dependencias incompletas'
+        });
+      }
+    } catch (_) {}
+  }
+
   // Verificar que LF está disponible
   if (!window.LF) {
     console.error('[LuzFija] Error: módulos no cargados. Verifica el orden de scripts.');
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', showIncompleteApp);
+    } else {
+      showIncompleteApp();
+    }
     return;
   }
+
+  // lf-utils.js publica el logger global. Mantener un no-op local evita que un
+  // fallo de carga parcial convierta un simple mensaje de diagnóstico en un
+  // ReferenceError adicional que oculte la causa original.
+  const lfDbg = typeof window.lfDbg === 'function' ? window.lfDbg : function () {};
 
   const {
     // State
@@ -57,6 +88,17 @@
     updateMiTarifaForm, agregarMiTarifa,
     validateMiTarifa
   } = window.LF;
+
+  const requiredAppFunctions = {
+    $, initElements, formatValueForDisplay, copyText, createRipple,
+    toast, setStatus, markPending, applyThemeClass, updateThemeIcon, toggleTheme,
+    initTooltips, fetchTarifas, getInputValues, signatureFromValues, validateInputs,
+    loadInputs, saveInputs, updateKwhHint, updateZonaFiscalUI, updateSolarUI,
+    calculateLocal, renderTable, updateSortIcons, initCSVImporter,
+    updateMiTarifaForm, agregarMiTarifa, validateMiTarifa
+  };
+  const appDependenciesReady = state && typeof state === 'object' && el && typeof el === 'object' &&
+    Object.values(requiredAppFunctions).every((fn) => typeof fn === 'function');
 
   // ===== DEBOUNCE CALCULATION =====
   function scheduleCalculateDebounced() {
@@ -253,6 +295,10 @@
 
   // ===== DOM READY =====
   document.addEventListener('DOMContentLoaded', async () => {
+    if (!appDependenciesReady) {
+      showIncompleteApp();
+      return;
+    }
     // Inicializar referencias DOM
     initElements();
     

@@ -33,10 +33,10 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
   - 9 en raiz.
   - 1 en `estadisticas/`.
   - 26 en `guias/` (indice + 25 guias).
-- 39 modulos JavaScript en `js/` (incluye `js/bv/`).
-- 22.273 lineas JS aproximadas.
+- 40 modulos JavaScript en `js/` (incluye `js/bv/`).
+- 22.611 lineas JS aproximadas.
 - 97 tarifas en `tarifas.json`.
-- Suite de tests Vitest con 65 archivos y 560 casos.
+- Suite de tests Vitest con 68 archivos y 583 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 
@@ -186,14 +186,16 @@ Notas de tarifas:
 - Service Worker en `sw.js` con versionado por despliegue (`CACHE_VERSION`).
 - Precache en dos niveles:
 - `CORE_ASSETS` (obligatorio).
-- `ASSETS` opcionales best-effort.
+- `ASSETS` opcionales best-effort, con nucleos atomicos por ruta para solar y estadisticas: un build no se activa si deja una de esas herramientas a medias.
+- Los recursos obligatorios se reintentan antes de abortar; si persiste el fallo, queda activo el SW anterior.
 - Estrategias de cache:
-- HTML: network-first.
+- HTML: network-first, con fallback a una copia sana ante 408/429/5xx (los 404/410 reales se respetan).
 - `tarifas.json`: network-only (sin cache para evitar datos obsoletos).
 - JS/CSS: network-first (evita ejecutar codigo obsoleto durante horas).
 - datasets PVPC/surplus/SSAA e indice de busqueda de guias: network-first.
 - resto de recursos (imagenes y otros estaticos): stale-while-revalidate.
 - Cliente con actualizacion agresiva de SW para aplicar nuevas versiones rapidamente.
+- Una recarga diferida por actividad o por la ventana inicial programa su propio reintento al vencer el bloqueo; no espera al intervalo general de 15 minutos.
 - App Android (TWA): `.well-known/assetlinks.json` declara el paquete `es.luzfija.twa` para que la app abra el dominio verificado a pantalla completa.
 
 ## Privacidad Y Seguridad

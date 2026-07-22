@@ -452,10 +452,22 @@
 
     lfDbg('Datos para desglose:', datos);
 
-    if (window.__LF_DesgloseFactura) {
+    if (window.__LF_DesgloseFactura && typeof window.__LF_DesgloseFactura.abrir === 'function') {
       window.__LF_DesgloseFactura.abrir(datos);
     } else {
       lfDbg('[ERROR] Sistema de desglose no disponible');
+      const message = 'El desglose no terminó de cargarse. Recarga la página para intentarlo de nuevo.';
+      const toastFn = window.LF && typeof window.LF.toast === 'function'
+        ? window.LF.toast
+        : (typeof window.toast === 'function' ? window.toast : null);
+      if (toastFn) toastFn(message, 'err');
+      try {
+        if (typeof window.__LF_trackDetail === 'function') {
+          window.__LF_trackDetail('init-incompleto', ['home', 'desglose-modal'], {
+            title: 'Desglose solicitado sin desglose-factura disponible'
+          });
+        }
+      } catch (_) {}
     }
   };
 

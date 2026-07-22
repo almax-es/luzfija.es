@@ -64,9 +64,28 @@ describe('Service Worker query fallback', () => {
       'js/desglose-calculo.js',
       'js/desglose-render.js',
       'js/desglose-factura.js',
-      'js/desglose-integration.js'
+      'js/desglose-integration.js',
+      'js/error-bootstrap.js'
     ]) {
       expect(coreBlock[1]).toContain(`"${asset}"`);
+    }
+  });
+
+  it('mantiene atomicos los nucleos funcionales de solar y estadisticas', () => {
+    const root = path.resolve(__dirname, '..');
+    const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
+
+    expect(sw).toContain('REQUIRED_ROUTE_GROUPS');
+    expect(sw).toContain('assertRequiredRouteGroups(optionalFailures)');
+    for (const asset of [
+      'js/bv/bv-sim-monthly.js',
+      'js/bv/bv-import.js',
+      'js/pvpc-stats-engine.js',
+      'js/pvpc-stats-csv.js',
+      'js/pvpc-stats-ui.js',
+      'vendor/chartjs/chart.umd.js'
+    ]) {
+      expect(sw).toContain(`"${asset}"`);
     }
   });
 

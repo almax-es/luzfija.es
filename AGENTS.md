@@ -50,6 +50,7 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
 | Modulo | Proposito |
 | --- | --- |
 | `js/config.js` | Guard global defensivo (define `currentYear` y globals legacy antes que el resto de scripts). No confundir con `lf-config.js`. |
+| `js/error-bootstrap.js` | Buffer efimero y sin mensajes para errores first-party ocurridos antes de que `tracking.js` este listo. |
 | `js/theme.js` | Guard redundante + tema temprano para entradas legacy que cargan `theme.js` antes que nada. |
 | `js/shell-lite.js` | Tema + menu para paginas sin `lf-app`/`bv-ui` (guias, landings, legal, 404). |
 | `js/lf-sw-update.js` | Registro + auto-update + guard de recarga del service worker (`window.LF.initSwUpdate`), compartido por `lf-app.js` y `shell-lite.js`. Debe cargarse antes que ellos en el HTML. |

@@ -34,15 +34,63 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (_) {}
   }
 
+  function markSolarUnavailable(detail, title) {
+    const message = 'La página no terminó de cargarse. Recárgala para usar el simulador.';
+    showToast(message, 'err');
+    trackBvEvent('init-incompleto', detail, title);
+    const statusContainer = document.getElementById('bv-status-container');
+    const status = document.getElementById('bv-status');
+    if (statusContainer) statusContainer.style.display = 'block';
+    if (status) status.textContent = message;
+    for (const id of ['bv-simulate', 'upload-csv-btn', 'bv-file']) {
+      const control = document.getElementById(id);
+      if (!control) continue;
+      control.disabled = true;
+      control.setAttribute('aria-disabled', 'true');
+      control.title = 'El simulador no terminó de cargarse; recarga la página.';
+    }
+  }
+
   // bv-ui-helpers.js define window.BVSim.manualUi y se carga antes que este
   // fichero. Si no llego a cargarse (fallo de red puntual, bloqueador), abortar
   // con un aviso: sin esta guarda el simulador revienta con un TypeError opaco
   // al construir los controles y la pagina queda rota en silencio.
   if (!window.BVSim || !window.BVSim.manualUi ||
       typeof window.BVSim.manualUi.createHourlyTraceControls !== 'function') {
-    showToast('La página no terminó de cargarse. Recárgala para usar el simulador.', 'err');
-    trackBvEvent('init-incompleto', ['solar', 'manual-ui'], 'Simulador solar sin bv-ui-helpers');
+    markSolarUnavailable(['solar', 'manual-ui'], 'Simulador solar sin bv-ui-helpers');
     return;
+  }
+
+  const requiredManualUi = [
+    'buildSimulationMonths',
+    'createHourlyTraceControls',
+    'normalizeMonthMeta',
+    'pickLatestMonthData',
+    'resolveCosteNeto',
+    'resolveSaldoConfig',
+    'rotateMonthsByStart'
+  ];
+  const requiredSimulation = ['loadTarifasBV', 'simulateForAllTarifasBV', 'simulateMonthly'];
+  const missingSimulationDependency =
+    requiredManualUi.some((name) => typeof window.BVSim.manualUi[name] !== 'function') ||
+    requiredSimulation.some((name) => typeof window.BVSim[name] !== 'function') ||
+    !window.LF || typeof window.LF.parseNum !== 'function';
+
+  if (missingSimulationDependency) {
+    markSolarUnavailable(['solar', 'simulation-core'], 'Simulador solar con dependencias incompletas');
+    return;
+  }
+
+  if (typeof window.BVSim.importFile !== 'function') {
+    const importButton = document.getElementById('upload-csv-btn');
+    const importInput = document.getElementById('bv-file');
+    if (importButton) {
+      importButton.disabled = true;
+      importButton.setAttribute('aria-disabled', 'true');
+      importButton.title = 'El importador no terminó de cargarse; recarga la página.';
+    }
+    if (importInput) importInput.disabled = true;
+    trackBvEvent('init-incompleto', ['solar', 'importador'], 'Simulador solar sin bv-import');
   }
 
   try {
@@ -1349,6 +1397,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // ===========================================================
     // Procesar automáticamente para rellenar el grid manual
     try {
+      if (typeof window.BVSim.importFile !== 'function') {
+        showToast('El importador no terminó de cargarse. Recarga la página para subir el archivo.', 'err');
+        trackBvEvent('init-incompleto', ['solar', 'importador'], 'Simulador solar sin bv-import');
+        return;
+      }
       // Obtener zona seleccionada ANTES de importar para clasificar periodos correctamente
       const zonaVal = zonaFiscalInput ? zonaFiscalInput.value : 'Península';
       const result = await window.BVSim.importFile(file, zonaVal);

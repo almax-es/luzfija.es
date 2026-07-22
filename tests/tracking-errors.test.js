@@ -260,6 +260,22 @@ describe('Tracking error filtering and dedupe', () => {
     )).toBe(true);
   });
 
+  it('separa familias de promesas sin stack sin llevar el mensaje libre al path', () => {
+    bootstrapTracking();
+
+    dispatchUnhandledRejection('calculateTotal is not a function');
+    dispatchUnhandledRejection('Failed to fetch');
+
+    const promisePaths = window.goatcounter.count.mock.calls
+      .map((call) => call[0] && call[0].path)
+      .filter((value) => String(value || '').startsWith('error-promise/'));
+    expect(promisePaths).toContain('error-promise/not-a-function/0/desconocido');
+    expect(promisePaths).toContain('error-promise/network/0/desconocido');
+    expect(promisePaths).not.toContain('error-promise/desconocido/0/desconocido');
+    expect(promisePaths.join('|')).not.toContain('calculateTotal');
+    expect(promisePaths.join('|')).not.toContain('Failed');
+  });
+
   it('no reclasifica mensajes parecidos sin firma legacy', () => {
     bootstrapTracking();
 

@@ -8,13 +8,21 @@
 (() => {
   'use strict';
 
-  if (!window.__LF_PvpcStatsCsv) {
-    throw new Error('PVPC stats CSV no disponible. Asegurate de cargar js/pvpc-stats-csv.js antes de js/pvpc-stats-ui.js.');
-  }
+  const statsCsvModule = window.__LF_PvpcStatsCsv || {};
   const {
     computeCsvCompensation,
     parseCsvOrXlsx
-  } = window.__LF_PvpcStatsCsv;
+  } = statsCsvModule;
+
+  function trackStatsInitIncomplete(dependency) {
+    try {
+      if (typeof window.__LF_trackDetail === 'function') {
+        window.__LF_trackDetail('init-incompleto', ['estadisticas', dependency], {
+          title: `Observatorio sin dependencia ${dependency}`
+        });
+      }
+    } catch (_) {}
+  }
 
   const geoNames = {
     '8741': 'Península',
@@ -735,8 +743,19 @@
   }
 
   async function main() {
+    if (typeof computeCsvCompensation !== 'function' || typeof parseCsvOrXlsx !== 'function') {
+      showError('La página no terminó de cargarse. Recárgala para abrir el observatorio.');
+      trackStatsInitIncomplete('stats-csv');
+      return;
+    }
     if (!window.PVPC_STATS) {
       showError('Motor PVPC no disponible.');
+      trackStatsInitIncomplete('stats-engine');
+      return;
+    }
+    if (typeof window.Chart !== 'function') {
+      showError('Los gráficos no terminaron de cargarse. Recarga la página para intentarlo de nuevo.');
+      trackStatsInitIncomplete('chartjs');
       return;
     }
 

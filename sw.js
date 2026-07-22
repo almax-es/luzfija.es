@@ -3,7 +3,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260722-080441";
+const CACHE_VERSION = "20260722-091724";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 // El build 20260620-051941 contenía un handler del simulador solar que podía
 // llamar `target.closest()` sobre un target no-Element. A diferencia de las
@@ -20,7 +20,6 @@ const INDEX_PATH = new URL("index.html", SCOPE).pathname;
 const TARIFAS_PATH = new URL("tarifas.json", SCOPE).pathname;
 const GUIDES_SEARCH_INDEX_PATH = new URL("data/guides-search-index.json", SCOPE).pathname;
 const GOAT_SCRIPT_PATH = new URL("vendor/goatcounter/count.js", SCOPE).pathname;
-const TRACKING_SCRIPT_PATH = new URL("js/tracking.js", SCOPE).pathname;
 const ASSISTANT_REFERENCE_PATHS = new Set([
   new URL("llms.txt", SCOPE).pathname,
   new URL("llms-full.txt", SCOPE).pathname
@@ -45,6 +44,7 @@ const ASSETS = [
   // Scripts de configuración
   "js/theme.js",
   "js/config.js",
+  "js/error-bootstrap.js",
   "js/lf-config.js",
   // Módulos LuzFija (Core)
   "js/lf-utils.js",
@@ -122,6 +122,7 @@ const CORE_ASSETS = [
   "pro.css",
   "fonts.css",
   "fonts/outfit-latin-400-normal.woff2",
+  "js/error-bootstrap.js",
   "js/theme.js",
   "js/config.js",
   "js/lf-config.js",
@@ -159,10 +160,53 @@ const CORE_ASSETS = [
 
 const CORE_ASSET_SET = new Set(CORE_ASSETS);
 const OPTIONAL_ASSETS = ASSETS.filter((p) => !CORE_ASSET_SET.has(p));
+const REQUIRED_ROUTE_GROUPS = {
+  solar: [
+    "comparador-tarifas-solares.html",
+    "bv-sim.css",
+    "comparador-solar-mejorado.css",
+    "js/shell-lite.js",
+    "js/bv/bv-ui-helpers.js",
+    "js/bv/bv-ui.js",
+    "js/bv/bv-sim-monthly.js",
+    "js/bv/bv-import.js"
+  ],
+  estadisticas: [
+    "estadisticas/index.html",
+    "estadisticas/estadisticas.css",
+    "estadisticas/estadisticas-mejorado.css",
+    "js/shell-lite.js",
+    "js/pvpc-stats-engine.js",
+    "js/pvpc-stats-csv.js",
+    "js/pvpc-stats-ui.js",
+    "vendor/chartjs/chart.umd.js"
+  ]
+};
+
+const PRECACHE_REQUIRED_ATTEMPTS = 3;
+const PRECACHE_OPTIONAL_ATTEMPTS = 2;
+
+function waitFor(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+async function addToCacheWithRetry(cache, asset, attempts) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= attempts; attempt++) {
+    try {
+      await cache.add(new URL(asset, SCOPE));
+      return;
+    } catch (error) {
+      lastError = error;
+      if (attempt < attempts) await waitFor(150 * attempt);
+    }
+  }
+  throw lastError || new Error(`No se pudo precachear ${asset}`);
+}
 
 async function precacheRequired(cache, assets) {
   for (const asset of assets) {
-    await cache.add(new URL(asset, SCOPE));
+    await addToCacheWithRetry(cache, asset, PRECACHE_REQUIRED_ATTEMPTS);
   }
 }
 
@@ -172,7 +216,7 @@ async function precacheOptional(cache, assets) {
   await Promise.all(
     assets.map(async (asset) => {
       try {
-        await cache.add(new URL(asset, SCOPE));
+        await addToCacheWithRetry(cache, asset, PRECACHE_OPTIONAL_ATTEMPTS);
       } catch (_) {
         failed.push(asset);
       }
@@ -182,6 +226,18 @@ async function precacheOptional(cache, assets) {
   if (failed.length) {
     // No abortamos instalación por extras: se llenarán en runtime según navegación.
     console.warn("[SW] Optional precache failures:", failed.length, failed.join(", "));
+  }
+  return failed;
+}
+
+function assertRequiredRouteGroups(failedAssets) {
+  if (!failedAssets || !failedAssets.length) return;
+  const failedSet = new Set(failedAssets);
+  const incompleteGroups = Object.entries(REQUIRED_ROUTE_GROUPS)
+    .filter(([, assets]) => assets.some((asset) => failedSet.has(asset)))
+    .map(([name]) => name);
+  if (incompleteGroups.length) {
+    throw new Error(`Precache incompleto para rutas: ${incompleteGroups.join(", ")}`);
   }
 }
 
@@ -204,7 +260,11 @@ self.addEventListener("install", (event) => {
     (async () => {
       const cache = await caches.open(CACHE_NAME);
       await precacheRequired(cache, CORE_ASSETS);
-      await precacheOptional(cache, OPTIONAL_ASSETS);
+      const optionalFailures = await precacheOptional(cache, OPTIONAL_ASSETS);
+      // Solar y estadísticas pueden tolerar extras ausentes, pero no una cadena
+      // funcional partida. Si falla su núcleo, conservar el SW anterior y volver
+      // a intentar la instalación en la siguiente comprobación de actualización.
+      assertRequiredRouteGroups(optionalFailures);
       await self.skipWaiting();
     })()
   );
@@ -262,6 +322,13 @@ self.addEventListener("fetch", (event) => {
         const cache = await caches.open(CACHE_NAME);
         try {
           const fresh = await fetch(req);
+          // fetch() resuelve también ante HTTP 4xx/5xx. Para errores transitorios
+          // del servidor o rate limiting, preferir una copia visitada y sana.
+          // Los 404/410 reales se conservan para no revivir páginas retiradas.
+          if (fresh.status === 408 || fresh.status === 429 || fresh.status >= 500) {
+            return (await cache.match(req, { ignoreSearch: true })) ||
+              (await cache.match(INDEX_PATH)) || fresh;
+          }
           await cachePutSafe(cache, req, fresh);
           return fresh;
         } catch (_) {
@@ -286,8 +353,11 @@ self.addEventListener("fetch", (event) => {
           await cachePutSafe(cache, req, fresh);
           return fresh;
         } catch (_) {
-          // Para analytics preferimos no ejecutar sender legacy en modo degradado.
-          if (url.pathname === GOAT_SCRIPT_PATH || url.pathname === TRACKING_SCRIPT_PATH) {
+          // El sender de GoatCounter sigue siendo network-only: sin red no puede
+          // enviar y no queremos ejecutar copias antiguas. tracking.js sí debe
+          // recuperarse desde la caché del build activo para poder observar el
+          // resto de fallos de carga; activate purga las cachés de builds previos.
+          if (url.pathname === GOAT_SCRIPT_PATH) {
             return Response.error();
           }
           // Recursos versionados (?v=...): intentar fallback por pathname exacto

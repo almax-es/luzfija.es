@@ -31,6 +31,12 @@ beforeEach(() => {
 afterEach(() => {
   window.removeEventListener('error', onWindowError);
   vi.restoreAllMocks();
+  delete window.BVSim;
+  delete window.LF;
+  delete window.PVPC_STATS;
+  delete window.Chart;
+  delete window.__LF_PvpcStatsCsv;
+  delete window.__LF_trackDetail;
 });
 
 describe('bv-ui sin bv-ui-helpers cargado', () => {
@@ -72,6 +78,148 @@ describe('bv-ui sin bv-ui-helpers cargado', () => {
 
     // Si hubiera seguido, habria construido los controles horarios.
     expect(window.BVSim._hourlyTraceControls).toBeUndefined();
+  });
+});
+
+describe('bv-ui con motor mensual incompleto', () => {
+  const loadBvUiSolo = new Function('window', readJs('bv', 'bv-ui.js'));
+
+  it('deshabilita el cálculo y reporta la dependencia sin continuar a medias', () => {
+    document.body.innerHTML = `
+      <div id="toast"><span id="toastText"></span><span id="toastDot"></span></div>
+      <button id="bv-simulate" type="button">Comparar</button>
+    `;
+    const noOp = vi.fn();
+    window.BVSim = {
+      manualUi: {
+        buildSimulationMonths: noOp,
+        createHourlyTraceControls: noOp,
+        normalizeMonthMeta: noOp,
+        pickLatestMonthData: noOp,
+        resolveCosteNeto: noOp,
+        resolveSaldoConfig: noOp,
+        rotateMonthsByStart: noOp
+      }
+      // Faltan loadTarifasBV/simulateMonthly/simulateForAllTarifasBV.
+    };
+    window.LF = { parseNum: vi.fn() };
+    window.__LF_trackDetail = vi.fn();
+
+    loadBvUiSolo(window);
+    document.dispatchEvent(new window.Event('DOMContentLoaded'));
+
+    expect(listenerErrors).toEqual([]);
+    expect(document.getElementById('toastText').textContent).toContain('no terminó de cargarse');
+    expect(document.getElementById('bv-simulate').disabled).toBe(true);
+    expect(window.__LF_trackDetail).toHaveBeenCalledWith(
+      'init-incompleto',
+      ['solar', 'simulation-core'],
+      expect.objectContaining({ title: expect.stringContaining('dependencias incompletas') })
+    );
+  });
+});
+
+describe('observatorio con dependencias parciales', () => {
+  const loadStatsUi = new Function('window', readJs('pvpc-stats-ui.js'));
+
+  function statsDom() {
+    document.body.innerHTML = `
+      <span id="kpiLastSub"></span>
+      <span id="trendMeta"></span>
+      <span id="hourlyMeta"></span>
+      <span id="hourlyCallout"></span>
+    `;
+    Object.defineProperty(document, 'readyState', {
+      configurable: true,
+      get: () => 'loading'
+    });
+    window.__LF_trackDetail = vi.fn();
+  }
+
+  it('no lanza si falta pvpc-stats-csv y deja un aviso visible', () => {
+    statsDom();
+    delete window.__LF_PvpcStatsCsv;
+    window.PVPC_STATS = {};
+    window.Chart = vi.fn();
+
+    expect(() => loadStatsUi(window)).not.toThrow();
+    document.dispatchEvent(new window.Event('DOMContentLoaded'));
+
+    expect(listenerErrors).toEqual([]);
+    expect(document.getElementById('kpiLastSub').textContent).toContain('no terminó de cargarse');
+    expect(window.__LF_trackDetail).toHaveBeenCalledWith(
+      'init-incompleto',
+      ['estadisticas', 'stats-csv'],
+      expect.any(Object)
+    );
+  });
+
+  it('no intenta renderizar gráficos si Chart.js no llegó a cargar', () => {
+    statsDom();
+    window.__LF_PvpcStatsCsv = {
+      computeCsvCompensation: vi.fn(),
+      parseCsvOrXlsx: vi.fn()
+    };
+    window.PVPC_STATS = {};
+    delete window.Chart;
+
+    expect(() => loadStatsUi(window)).not.toThrow();
+    document.dispatchEvent(new window.Event('DOMContentLoaded'));
+
+    expect(listenerErrors).toEqual([]);
+    expect(document.getElementById('kpiLastSub').textContent).toContain('gráficos no terminaron');
+    expect(window.__LF_trackDetail).toHaveBeenCalledWith(
+      'init-incompleto',
+      ['estadisticas', 'chartjs'],
+      expect.any(Object)
+    );
+  });
+});
+
+describe('comparador principal con módulos parciales', () => {
+  const loadLfApp = new Function('window', readJs('lf-app.js'));
+
+  it('también deja un aviso accionable si falta por completo el namespace LF', () => {
+    document.body.innerHTML = `
+      <span id="statusText">Rellena tus datos y calcula</span>
+      <button id="btnCalc" type="button">Calcular</button>
+    `;
+    delete window.LF;
+    window.__LF_trackDetail = vi.fn();
+
+    expect(() => loadLfApp(window)).not.toThrow();
+    document.dispatchEvent(new window.Event('DOMContentLoaded'));
+
+    expect(listenerErrors).toEqual([]);
+    expect(document.getElementById('btnCalc').disabled).toBe(true);
+    expect(document.getElementById('statusText').textContent).toContain('no terminó de cargarse');
+    expect(window.__LF_trackDetail).toHaveBeenCalledWith(
+      'init-incompleto',
+      ['home', 'app-core'],
+      expect.any(Object)
+    );
+  });
+
+  it('deshabilita calcular y deja un estado visible sin generar errores en cascada', () => {
+    document.body.innerHTML = `
+      <span id="statusText">Rellena tus datos y calcula</span>
+      <button id="btnCalc" type="button">Calcular</button>
+    `;
+    window.LF = { toast: vi.fn() };
+    window.__LF_trackDetail = vi.fn();
+
+    expect(() => loadLfApp(window)).not.toThrow();
+    document.dispatchEvent(new window.Event('DOMContentLoaded'));
+
+    expect(listenerErrors).toEqual([]);
+    expect(document.getElementById('btnCalc').disabled).toBe(true);
+    expect(document.getElementById('statusText').textContent).toContain('no terminó de cargarse');
+    expect(window.LF.toast).toHaveBeenCalledWith(expect.stringContaining('no terminó de cargarse'), 'err');
+    expect(window.__LF_trackDetail).toHaveBeenCalledWith(
+      'init-incompleto',
+      ['home', 'app-core'],
+      expect.any(Object)
+    );
   });
 });
 

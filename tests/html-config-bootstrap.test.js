@@ -20,6 +20,12 @@ const TRACKED_PAGES = [
   'estadisticas/index.html'
 ];
 
+const APP_PAGES = [
+  'index.html',
+  'comparador-tarifas-solares.html',
+  'estadisticas/index.html'
+];
+
 describe('HTML bootstrap order', () => {
   it('carga config.js antes de theme.js en las entradas principales', () => {
     for (const page of PAGES) {
@@ -42,6 +48,17 @@ describe('HTML bootstrap order', () => {
       expect(inlinePos, page + ' should include inline legacy currentYear guard').toBeGreaterThanOrEqual(0);
       expect(configPos, page + ' should include config.js').toBeGreaterThanOrEqual(0);
       expect(inlinePos, page + ' should place inline guard before config.js').toBeLessThan(configPos);
+    }
+  });
+
+  it('instala el buffer de errores first-party antes de config.js en las aplicaciones', () => {
+    for (const page of APP_PAGES) {
+      const html = fs.readFileSync(path.resolve(__dirname, '..', page), 'utf8');
+      const bufferPos = html.indexOf('/js/error-bootstrap.js?v=');
+      const configPos = html.indexOf('/js/config.js?v=');
+
+      expect(bufferPos, page + ' should include error-bootstrap.js').toBeGreaterThanOrEqual(0);
+      expect(bufferPos, page + ' should load error-bootstrap.js before config.js').toBeLessThan(configPos);
     }
   });
 });

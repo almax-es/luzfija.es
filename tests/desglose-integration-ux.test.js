@@ -153,6 +153,27 @@ describe('Desglose integration UX guardrails', () => {
     expect(window.toast).not.toHaveBeenCalled();
   });
 
+  it('avisa y reporta si el modal de desglose no llegó a cargarse', async () => {
+    global.fetch = vi.fn(async () => ({
+      ok: true,
+      json: async () => ({
+        tarifas: [{ id: 'visalia', nombre: 'Visalia', cPunta: 0.1, cLlano: 0.1, cValle: 0.1, p1: 0.05, p2: 0.02 }]
+      })
+    }));
+    delete window.__LF_DesgloseFactura;
+    window.__LF_trackDetail = vi.fn();
+    bootstrapIntegration();
+
+    await window.mostrarDesglose('Visalia');
+
+    expect(window.toast).toHaveBeenCalledWith(expect.stringContaining('no terminó de cargarse'), 'err');
+    expect(window.__LF_trackDetail).toHaveBeenCalledWith(
+      'init-incompleto',
+      ['home', 'desglose-modal'],
+      expect.any(Object)
+    );
+  });
+
   it('usa la misma fecha fiscal del cálculo principal para el desglose de tarifas libres', async () => {
     global.fetch = vi.fn(async () => ({
       ok: true,

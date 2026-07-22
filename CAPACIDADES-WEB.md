@@ -300,8 +300,8 @@ Si vas a hacer una auditoria tecnica, lee tambien `AUDITORIA-IA.md` antes de cla
 ## 7. Arquitectura Tecnica
 
 - Stack: HTML + CSS + Vanilla JS modular.
-- Modulos JS: 39 (`js/*.js` + `js/bv/*.js`).
-- Lineas JS aproximadas: 22.273.
+- Modulos JS: 40 (`js/*.js` + `js/bv/*.js`).
+- Lineas JS aproximadas: 22.611.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (97 tarifas).
@@ -318,9 +318,9 @@ Si vas a hacer una auditoria tecnica, lee tambien `AUDITORIA-IA.md` antes de cla
 - Archivo: `sw.js` con `CACHE_VERSION` por despliegue.
 - Precache en dos niveles:
 - `CORE_ASSETS` obligatorios.
-- `ASSETS` opcionales best-effort.
+- `ASSETS` opcionales best-effort, con nucleos atomicos para las rutas solar y estadisticas. Los recursos se reintentan y un build que deje incompleta una cadena funcional no llega a activarse.
 - Estrategias:
-- `network-first` para navegacion HTML.
+- `network-first` para navegacion HTML, usando una copia sana ante 408/429/5xx sin ocultar 404/410 reales.
 - `network-only` para `tarifas.json` (sin cache para evitar desactualizados).
 - `network-first` para JS/CSS (evita ejecutar codigo obsoleto durante horas).
 - `network-first` para datasets PVPC/surplus/SSAA y el indice de busqueda de guias.
@@ -328,6 +328,7 @@ Si vas a hacer una auditoria tecnica, lee tambien `AUDITORIA-IA.md` antes de cla
 - Update agresivo en cliente:
 - Comprobacion periodica de SW.
 - `SKIP_WAITING` + recarga controlada con `controllerchange`.
+- Si la recarga queda diferida por entrada reciente o interaccion, se reintenta al vencer exactamente la ventana correspondiente.
 
 ## 9. Privacidad Y Seguridad
 
@@ -347,8 +348,8 @@ Si vas a hacer una auditoria tecnica, lee tambien `AUDITORIA-IA.md` antes de cla
 ## 10. Testing Y Calidad
 
 - Suite Vitest/JSDOM.
-- 65 archivos de test (`tests/*.test.js`).
-- 560 casos `it()/test()` en la ultima ejecucion local verificada.
+- 68 archivos de test (`tests/*.test.js`).
+- 583 casos `it()/test()` en la ultima ejecucion local verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

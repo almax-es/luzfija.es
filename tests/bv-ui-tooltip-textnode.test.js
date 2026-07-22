@@ -40,6 +40,9 @@ function bootDevice({ hover, coarse }) {
   window.BVSim = {};
   window.LF = window.LF || {};
   window.LF.parseNum = (val) => (val === null || val === undefined ? 0 : parseFloat(String(val).replace(',', '.')));
+  window.BVSim.loadTarifasBV = vi.fn();
+  window.BVSim.simulateForAllTarifasBV = vi.fn();
+  window.BVSim.simulateMonthly = vi.fn();
   loadBvUi(window);
   // Todo bv-ui vive dentro de un handler de DOMContentLoaded: sin esto no se
   // registra ningun listener y el test pasaria sin probar nada.

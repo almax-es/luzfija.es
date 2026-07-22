@@ -75,6 +75,11 @@ try {
   // Cola de eventos mientras GoatCounter termina de cargar
   const queue = [];
   let loadingPromise = null;
+  let retryTimer = null;
+  let loadAttempts = 0;
+  const GOAT_MAX_LOAD_ATTEMPTS = 3;
+  const GOAT_RETRY_DELAYS_MS = [5000, 20000];
+  const GOAT_QUEUE_MAX = 50;
 
   function getGoatEndpointFromPage(){
     const existing = document.querySelector('script[data-goatcounter]');
@@ -122,8 +127,10 @@ try {
     configureGoatCounterDefaults();
     if (isGoatReady()) return Promise.resolve(true);
     if (loadingPromise) return loadingPromise;
+    if (loadAttempts >= GOAT_MAX_LOAD_ATTEMPTS) return Promise.resolve(false);
 
-    loadingPromise = new Promise((resolve) => {
+    loadAttempts += 1;
+    const attemptPromise = new Promise((resolve) => {
       try{
         // Si ya existe el script, esperar a que esté listo
         const existingScript = findExistingGoatScript();
@@ -153,6 +160,21 @@ try {
       }
     });
 
+    loadingPromise = attemptPromise.then((ok) => {
+      if (ok) {
+        loadAttempts = 0;
+        return true;
+      }
+
+      // Un <script> fallido permanece en el DOM y findExistingGoatScript() lo
+      // reutilizaría eternamente. Retirarlo y liberar la promesa permite que un
+      // fallo transitorio se recupere sin exigir una recarga de página.
+      const failedScript = findExistingGoatScript();
+      if (failedScript && failedScript.parentNode) failedScript.parentNode.removeChild(failedScript);
+      loadingPromise = null;
+      return false;
+    });
+
     return loadingPromise;
   }
 
@@ -168,6 +190,24 @@ try {
     }
   }
 
+  function scheduleGoatRetry() {
+    if (retryTimer || isGoatReady()) return;
+    if (loadAttempts >= GOAT_MAX_LOAD_ATTEMPTS) {
+      queue.length = 0;
+      return;
+    }
+
+    const delayIndex = Math.max(0, loadAttempts - 1);
+    const delay = GOAT_RETRY_DELAYS_MS[Math.min(delayIndex, GOAT_RETRY_DELAYS_MS.length - 1)];
+    retryTimer = setTimeout(() => {
+      retryTimer = null;
+      ensureGoatCounterLoaded().then((ok) => {
+        if (ok) flushQueue();
+        else scheduleGoatRetry();
+      });
+    }, delay);
+  }
+
   function sendPayload(payload) {
     // Si GoatCounter ya está, enviar al momento
     if (isGoatReady()) {
@@ -176,12 +216,31 @@ try {
     }
 
     // Si no está listo, encolar y lanzar carga
+    if (queue.length >= GOAT_QUEUE_MAX) queue.shift();
     queue.push(payload);
+    // Respetar el backoff ya programado: eventos nuevos se quedan en la cola,
+    // pero no abren cargas paralelas ni adelantan el siguiente intento.
+    if (retryTimer) return;
     ensureGoatCounterLoaded().then((ok) => {
       if (ok) flushQueue();
-      else queue.length = 0; // si está bloqueado, vaciar y no molestar más
+      else scheduleGoatRetry();
     });
   }
+
+  window.addEventListener('online', function () {
+    if (isGoatReady()) return;
+    if (retryTimer) {
+      clearTimeout(retryTimer);
+      retryTimer = null;
+    }
+    // Un cambio explícito a online abre una nueva oportunidad aunque los tres
+    // intentos anteriores se agotaran mientras el dispositivo estaba sin red.
+    loadAttempts = 0;
+    ensureGoatCounterLoaded().then((ok) => {
+      if (ok) flushQueue();
+      else scheduleGoatRetry();
+    });
+  });
 
   function getLegacyNoiseKind(msgLike) {
     if (isLegacyIndexExtraCompatNoise(msgLike)) return 'index-extra-compat';
@@ -597,12 +656,42 @@ try {
     }
   }
 
+  // Las promesas rechazadas sin stack no tienen fichero/línea. No usar el
+  // mensaje libre en el path: podría contener datos del usuario y generaría
+  // cardinalidad ilimitada. Estas firmas cerradas separan las familias útiles
+  // sin exponer texto, URL, nombres de archivo ni valores introducidos.
+  function stacklessPromiseKind(reason, messageLike) {
+    const msg = normalizeForMatch(messageLike);
+    const rawName = reason && typeof reason === 'object' && typeof reason.name === 'string'
+      ? normalizeForMatch(reason.name)
+      : '';
+
+    if (/dynamic import|importing a module|module script|failed to fetch dynamically imported/.test(msg)) return 'dynamic-import';
+    if (/failed to fetch|networkerror|network error|load failed|network request failed/.test(msg)) return 'network';
+    if (/aborterror|aborted|abortad/.test(msg) || rawName === 'aborterror') return 'abort';
+    if (/quotaexceeded|quota exceeded|cuota excedida/.test(msg) || rawName === 'quotaexceedederror') return 'quota';
+    if (/json|unexpected token.*position|unterminated.*json/.test(msg) && (rawName === 'syntaxerror' || /parse/.test(msg))) return 'json-parse';
+    if (/not a function|no es una funcion/.test(msg)) return 'not-a-function';
+    if (/cannot read (properties|property)|undefined is not an object|null is not an object/.test(msg)) return 'property-access';
+    if (/is not defined|no esta definid/.test(msg) || rawName === 'referenceerror') return 'reference';
+    if (rawName === 'typeerror') return 'type-error';
+    if (rawName === 'syntaxerror') return 'syntax-error';
+    if (rawName === 'rangeerror') return 'range-error';
+    if (reason instanceof Error) return 'error';
+    if (reason && typeof reason === 'object') return 'object';
+    if (typeof reason === 'string') return 'string';
+    if (reason === null || reason === undefined) return 'desconocido';
+    return 'primitive';
+  }
+
   // ===== EVENTOS AUTOMÁTICOS (no requieren modificar app.js) =====
   window.addEventListener('DOMContentLoaded', function() {
 
     // Cargar GoatCounter en cuanto el DOM está listo para registrar el page view de todos los visitantes.
     // count.js envía el page view automáticamente al cargarse (no_onload no está activo).
-    ensureGoatCounterLoaded();
+    ensureGoatCounterLoaded().then((ok) => {
+      if (!ok) scheduleGoatRetry();
+    });
 
     // 1. Cálculos solicitados y completados. El mismo evento interno lo emiten
     //    home y simulador solar, así evitamos duplicar selectores de botones.
@@ -1112,7 +1201,7 @@ try {
 
       trackEvent(buildErrorEventPath(
         'error-promise',
-        stackParts ? stackParts.source : '',
+        stackParts ? stackParts.source : stacklessPromiseKind(reason, msg),
         stackParts ? stackParts.line : 0
       ), {
         title: parts.join(' | ').substring(0, 150)
@@ -1123,5 +1212,30 @@ try {
       }
     } catch(_) {}
   });
+
+  // Consumir el buffer mínimo instalado antes de config/theme. Marcar primero
+  // el listener como listo evita que el bootstrap vuelva a encolar un error que
+  // ya puede procesar el listener normal de tracking.js.
+  window.__LF_TRACKING_ERROR_READY = true;
+  try {
+    const earlyErrors = Array.isArray(window.__LF_EARLY_ERRORS)
+      ? window.__LF_EARLY_ERRORS.splice(0)
+      : [];
+    earlyErrors.forEach((entry) => {
+      if (!entry || !entry.source) return;
+      const isScriptLoad = entry.kind === 'script-load';
+      const source = shortSource(entry.source) || entry.source;
+      const line = Number(entry.line) > 0 ? Number(entry.line) : 0;
+      const col = Number(entry.col) > 0 ? Number(entry.col) : 0;
+      const label = isScriptLoad ? 'Carga temprana de script fallida' : 'Error JS temprano';
+      trackEvent(buildErrorEventPath(
+        isScriptLoad ? 'error-script-load' : 'error-javascript',
+        source,
+        line
+      ), {
+        title: `${label} | ${source}:${line}${col ? ':' + col : ''} | b:${TRACK_BUILD_ID}`
+      });
+    });
+  } catch (_) {}
 
 })();

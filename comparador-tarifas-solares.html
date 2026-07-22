@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <!-- CSP con hashes para JSON-LD inline; el script de deploy los recalcula al publicar. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-GDdiOWCegw0ObPOUX/uwtHr211aPXBwN/Cvawb5Q8qY=' 'sha256-eooA04DYnoUtEHXQV8gILAcI1rCIt72aFefNIG0H9Wo=' 'sha256-w7A0zfYxLaqXc9xXZZbqnUZWiCvfyIVfnvHvLK6nx84=' 'sha256-HeJurbBK84t4X/fFRNa0BRm9LAjNtBTV2DVcLO7w30U=' 'sha256-ItIrYKAJQRW7iaWSixjOCAWlxlDYAFHg/epJScymEAA=' 'sha256-5eX3tlPn/qaNcdCPVBqrVdd7LFS/WD4hQEeotrgXfZU='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-GDdiOWCegw0ObPOUX/uwtHr211aPXBwN/Cvawb5Q8qY=' 'sha256-eooA04DYnoUtEHXQV8gILAcI1rCIt72aFefNIG0H9Wo=' 'sha256-w7A0zfYxLaqXc9xXZZbqnUZWiCvfyIVfnvHvLK6nx84=' 'sha256-HeJurbBK84t4X/fFRNa0BRm9LAjNtBTV2DVcLO7w30U=' 'sha256-b3N8mwC1wd5j1NUOG1Th3wqckLmdxlP5lraoGGDCcCU=' 'sha256-10h8UlpCAHerEWe5c3EGocLBBxNyFEKo0vZ6r1M1nj0='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark light"/>
 <meta name="description" content="Compara tarifas solares con excedentes y batería virtual mes a mes. Simulador independiente: sin registro, sin comisiones y sin ofertas patrocinadas.">
@@ -19,7 +19,8 @@
   <meta name="apple-mobile-web-app-title" content="Comparador Tarifas">
 
   <link rel="preconnect" href="https://luzfija.goatcounter.com">
-  <script src="/js/config.js?v=20260722-080441"></script>
+  <script src="/js/error-bootstrap.js?v=20260722-091724"></script>
+  <script src="/js/config.js?v=20260722-091724"></script>
 
   <meta property="og:title" content="Comparador de Tarifas Solares y Batería Virtual | LuzFija.es">
   <meta property="og:description" content="Compara tarifas solares con excedentes y batería virtual mes a mes. Simulador independiente: sin registro, sin comisiones y sin ofertas patrocinadas.">
@@ -68,7 +69,7 @@
     "browserRequirements": "Requires JavaScript. HTML5 compatible browser.",
     "softwareVersion": "2.0",
     "datePublished": "2024-01-15",
-    "dateModified": "2026-07-16",
+    "dateModified": "2026-07-22",
     "offers": {
       "@type": "Offer",
       "price": "0",
@@ -261,7 +262,7 @@
   }
   </script>
 
-  <script src="/js/theme.js?v=20260722-080441"></script>
+  <script src="/js/theme.js?v=20260722-091724"></script>
 
   <script type="application/ld+json">
   {
@@ -271,7 +272,7 @@
     "description": "Guía completa para usuarios de autoconsumo fotovoltaico: cómo comparar tarifas, calcular compensación de excedentes y maximizar el ahorro con batería virtual.",
     "image": "https://luzfija.es/og.png",
     "datePublished": "2024-01-15T08:00:00+01:00",
-    "dateModified": "2026-07-16T15:30:00+02:00",
+    "dateModified": "2026-07-22T15:30:00+02:00",
     "author": {
       "@type": "Person",
       "name": "aLMaX",
@@ -295,17 +296,17 @@
   }
   </script>
 
-    <link rel="stylesheet" href="/styles.css?v=20260722-080441">
-    <link rel="stylesheet" href="/pro.css?v=20260722-080441">
+    <link rel="stylesheet" href="/styles.css?v=20260722-091724">
+    <link rel="stylesheet" href="/pro.css?v=20260722-091724">
   <!-- CSS del desglose (solo se usa al abrir el modal). Se carga sin bloquear el render inicial -->
-  <link rel="preload" href="/desglose-factura.css?v=20260722-080441" as="style">
-  <link rel="stylesheet" href="/desglose-factura.css?v=20260722-080441" media="all">
-  <noscript><link rel="stylesheet" href="/desglose-factura.css?v=20260722-080441"></noscript>
+  <link rel="preload" href="/desglose-factura.css?v=20260722-091724" as="style">
+  <link rel="stylesheet" href="/desglose-factura.css?v=20260722-091724" media="all">
+  <noscript><link rel="stylesheet" href="/desglose-factura.css?v=20260722-091724"></noscript>
 
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/fonts.css?v=20260722-080441">
-  <link rel="stylesheet" href="/bv-sim.css?v=20260722-080441">
-  <link rel="stylesheet" href="/comparador-solar-mejorado.css?v=20260722-080441">
+  <link rel="stylesheet" href="/fonts.css?v=20260722-091724">
+  <link rel="stylesheet" href="/bv-sim.css?v=20260722-091724">
+  <link rel="stylesheet" href="/comparador-solar-mejorado.css?v=20260722-091724">
 
     <meta name="theme-color" content="#8B5CF6">
 </head>
@@ -753,16 +754,16 @@
             <div class="toast" id="toast" role="status" aria-live="polite" aria-atomic="true"><span class="dot" id="toastDot" aria-hidden="true"></span><span id="toastText"></span></div>
 
             <!-- ⚠️ ORDEN CRÍTICO: lf-csv-utils.js DEBE cargarse ANTES que bv-sim-monthly.js -->
-            <script src="/js/tracking.js?v=20260722-080441"></script>
-            <script src="/js/lf-config.js?v=20260722-080441"></script>
-            <script src="/js/lf-utils.js?v=20260722-080441"></script>
-            <script src="/js/lf-ssaa.js?v=20260722-080441"></script>
-            <script src="/js/lf-csv-utils.js?v=20260722-080441"></script>
-            <script src="/js/lf-surplus-prices.js?v=20260722-080441"></script>
-            <script src="/js/bv/bv-import.js?v=20260722-080441"></script>
-            <script src="/js/bv/bv-sim-monthly.js?v=20260722-080441"></script>
-            <script src="/js/bv/bv-ui-helpers.js?v=20260722-080441"></script>
-            <script src="/js/bv/bv-ui.js?v=20260722-080441"></script>
-            <script src="/js/lf-sw-update.js?v=20260722-080441" defer></script>
-            <script src="/js/shell-lite.js?v=20260722-080441" defer></script>
+            <script src="/js/tracking.js?v=20260722-091724"></script>
+            <script src="/js/lf-config.js?v=20260722-091724"></script>
+            <script src="/js/lf-utils.js?v=20260722-091724"></script>
+            <script src="/js/lf-ssaa.js?v=20260722-091724"></script>
+            <script src="/js/lf-csv-utils.js?v=20260722-091724"></script>
+            <script src="/js/lf-surplus-prices.js?v=20260722-091724"></script>
+            <script src="/js/bv/bv-import.js?v=20260722-091724"></script>
+            <script src="/js/bv/bv-sim-monthly.js?v=20260722-091724"></script>
+            <script src="/js/bv/bv-ui-helpers.js?v=20260722-091724"></script>
+            <script src="/js/bv/bv-ui.js?v=20260722-091724"></script>
+            <script src="/js/lf-sw-update.js?v=20260722-091724" defer></script>
+            <script src="/js/shell-lite.js?v=20260722-091724" defer></script>
           </body></html>
