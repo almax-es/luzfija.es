@@ -330,6 +330,13 @@ Si vas a hacer una auditoria tecnica, lee tambien `AUDITORIA-IA.md` antes de cla
 - `SKIP_WAITING` + recarga controlada con `controllerchange`.
 - Si la recarga queda diferida por entrada reciente o interaccion, se reintenta al vencer exactamente la ventana correspondiente.
 
+### 8.1 Resiliencia Ante Cargas Parciales
+
+- Las tres aplicaciones cargan `error-bootstrap.js` antes de `config.js` para capturar fallos first-party tempranos.
+- Los modulos principales tienen guards visibles ante dependencias incompletas: deshabilitan controles afectados, retiran estados `Cargando...` indefinidos y muestran una instruccion de recarga sin lanzar errores en cascada.
+- Si no llega a descargarse el coordinador completo de home, factura, desglose, solar u observatorio, el watchdog temprano aplica el estado degradado que ese fichero ya no podria ejecutar por si mismo.
+- Los fallos se distinguen en GoatCounter por fichero, linea y build (`error-*`) y por aplicacion/dependencia (`init-incompleto/*`), sin enviar mensajes libres, URLs completas, stacks ni datos del usuario.
+
 ## 9. Privacidad Y Seguridad
 
 - Calculos, importaciones CSV y parseo PDF se ejecutan en local.

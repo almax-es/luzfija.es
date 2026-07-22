@@ -1,6 +1,6 @@
 # Guia Para Auditorias IA De LuzFija.es
 
-Ultima actualizacion: 2026-07-16
+Ultima actualizacion: 2026-07-22
 
 Este documento existe para reducir falsos positivos en auditorias repetidas. No sustituye a `AGENTS.md` ni a `CAPACIDADES-WEB.md`; los complementa con criterios de clasificacion.
 
@@ -121,6 +121,15 @@ No eleves a severidad alta algo que sea hardening, roadmap o cambio de preferenc
 - Causa probable del falso positivo: el click del agente no llego a impactar el boton (viewport/scroll). Sintomas que lo delatan: no hay toast de exito NI de error, y la barra de estado conserva el texto inicial ("Rellena tus datos y calcula"); es decir, el handler nunca se ejecuto, porque `__LF_applyValues` siempre deja rastro (exito: toast + cierre de modal; validacion fallida: toast de error + campos marcados `.err`).
 - Antes de reportar "el boton X no hace nada" desde un agente de navegador: comprueba toasts, clases `.err`, consola JS y que el elemento estaba visible en viewport al clicar; y reproduce con un segundo mecanismo de click antes de confirmarlo.
 - Los valores extraidos que muestra el modal se leen de los inputs `#val_p1`, `#val_p2`, `#val_dias`, `#val_consumoPunta/Llano/Valle`; el CUPS no se muestra en la UI por privacidad (no es un campo ausente).
+
+### Cargas Parciales, Watchdog Y Telemetria De QA
+
+- `error-bootstrap.js` se carga antes de `config.js` en home, solar y observatorio. Ademas de encolar errores first-party tempranos, actua como watchdog cuando falta por completo un coordinador que no podria ejecutar su propio guard.
+- El toast del watchdog no se cierra automaticamente por decision firme. En home, solar y observatorio hay tambien un estado persistente en la pagina; si faltan factura o `desglose-integration.js`, el toast es el unico aviso post-click. Clasificalo como decision UX, no como bug, salvo que demuestres que bloquea una accion recuperable concreta.
+- `init-incompleto/*` significa que una defensa ha detectado dependencias ausentes y ha degradado la UI de forma controlada. Debe correlacionarse con `error-script-load/*`, fichero, build y hora; por si solo no prueba que haya escapado una excepcion.
+- La auditoria E2E del build `20260722-121753` genero trafico sintetico en ambas familias durante la hora `2026-07-22T12:00:00Z`; la ultima prueba termino antes de `12:33Z`. Los exports de GoatCounter agregan por hora: al recibirlos, verifica primero los cubos donde aparecen ambas familias y amplia la exclusion si hay evidencia de QA posterior. No des por contaminado todo el build ni por organica una hora solo por heredar esta ventana declarada.
+- Una fuente de error `blob:` same-origin podria crear cardinalidad por UUID. Hoy no es alcanzable en tracking porque los unicos workers `blob:` son PDF.js/Tesseract dentro del modo privacidad de factura. Si aparece un worker `blob:` fuera de ese flujo, exigir allowlist de protocolos HTTP(S) en `sameOriginSource()` y tests; hasta entonces es hardening futuro.
+- Verificado el 22/07/2026 contra produccion con Chrome real: caminos felices de home/solar/observatorio, diez bloqueos individuales de scripts y offline cortando tambien la red del target del Service Worker. `tracking.js` se recupero desde Cache Storage; no hubo excepciones JS ni violaciones CSP.
 
 ### Formato Numerico: Coma En UI, Punto En Mocks De Tests
 

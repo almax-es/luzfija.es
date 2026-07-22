@@ -1,6 +1,6 @@
 # Analitica GoatCounter
 
-Ultima actualizacion: 2026-07-16
+Ultima actualizacion: 2026-07-22
 
 Este documento define como se mide el uso de LuzFija.es con GoatCounter. La regla principal es simple: la analitica debe servir para entender producto y errores, no para identificar personas ni reconstruir datos privados del usuario.
 
@@ -192,6 +192,7 @@ El path lleva fichero, linea y build:
 - `error-script-load/<fichero>/0/<build>` para fallos de carga de `<script src>`; el titulo indica ademas si el navegador estaba online y bajo control del service worker
 - `error-promise/<fichero-o-familia>/<linea>/<build>` (ej. `error-promise/pvpc/554/20260721-075326`). Si el navegador no aporta stack, el segundo segmento usa una familia cerrada y no sensible (`network`, `dynamic-import`, `not-a-function`, `property-access`, etc.) en vez de agrupar todo bajo `desconocido`.
 - `error-legacy-filtrado` (sin segmentos: es un cajon de ruido conocido)
+- `init-incompleto/<aplicacion>/<dependencia>` cuando un guard detecta que falta una dependencia esencial y deja la UI en estado degradado. Ejemplos: `init-incompleto/home/app-core`, `init-incompleto/home/factura-module`, `init-incompleto/home/desglose-integration`, `init-incompleto/solar/manual-ui` e `init-incompleto/estadisticas/stats-csv`. Esta familia no lleva build en el path; para atribuir QA sintetico se usa la hora del export.
 
 Por que el detalle va en el path y no solo en el title: GoatCounter agrupa por
 `path` y **solo sustituye el `title` de una ruta cuando el titulo nuevo se repite
@@ -215,6 +216,14 @@ Construccion del path (`buildErrorEventPath`, expuesto en `__LF_trackingUtils`):
 Al path NUNCA van: mensaje libre, URL completa, stack, query, CUPS, email ni
 ningun dato del usuario. El mensaje sanitizado sigue viajando en el `title`.
 
+Limite de hardening conocido: una URL `blob:` creada por el propio origen tiene
+origen same-origin y su UUID podria acabar como basename de error, aumentando la
+cardinalidad. Los unicos ejecutables `blob:` actuales son PDF.js/Tesseract dentro
+del flujo de factura, donde `__LF_PRIVACY_MODE`/`__LF_FACTURA_BUSY` bloquean el
+envio antes de llegar a GoatCounter. Si se introduce un worker `blob:` fuera de
+ese flujo, `sameOriginSource()` debe pasar a aceptar solo `http:` y `https:` y
+anadir tests de cardinalidad. Es hardening futuro, no un error emitible hoy.
+
 Las descripciones de error se sanitizan con `sanitizeErrorMessageForTracking()`:
 
 - CUPS -> `[cups]`
@@ -237,6 +246,10 @@ de home, factura, desglose, simulador solar y observatorio. Es necesario porque
 un fichero no puede ejecutar su propio guard cuando falla la descarga del
 fichero completo. En ese caso deshabilita los controles afectados o instala un
 aviso de recarga; el error de carga sigue viajando como `error-script-load`.
+El toast de este watchdog es deliberadamente persistente: representa una carga
+incompleta critica y, cuando faltan por completo factura o la integracion del
+desglose, es el unico aviso visible despues del click. En home, solar y
+observatorio se complementa con un estado persistente dentro de la pagina.
 
 Si el sender autoalojado `vendor/goatcounter/count.js` falla de forma transitoria,
 `tracking.js` retira el elemento fallido, conserva una cola acotada y realiza hasta
@@ -256,6 +269,16 @@ privacidad del path), `tests/tracking-privacy.test.js` (cola y reintento del sen
 coordinadores ausentes) y
 `tests/bv-ui-tooltip-textnode.test.js` (regresion del
 `e.target.closest is not a function` con target que no es Element).
+
+### 6.6 Trafico QA Sintetico Conocido
+
+La validacion E2E del build `20260722-121753` bloqueo intencionadamente scripts
+en produccion y genero tanto `error-script-load/*` como `init-incompleto/*`.
+GoatCounter exporta `hit_stats.jsonl` agregado por hora; para analizar ese build
+la ventana sintetica conocida es `2026-07-22T12:00:00Z` (la ultima prueba E2E
+termino antes de `12:33Z`). Al recibir el export hay que comprobar primero en que
+horas aparecen ambas familias y ampliar la exclusion si el dato muestra trafico
+QA posterior; no se debe asumir que todo el build esta contaminado.
 
 ## 7. Cobertura HTML Y CSP
 
@@ -282,15 +305,22 @@ Antes de anadir un evento:
 9. Si anades un HTML publico real, debe pasar `tests/tracking-html-coverage.test.js`.
 10. Anade o actualiza tests cuando el evento sea nuevo, sensible o compartido por varias paginas.
 
-## 9. Guard Legacy: wrapGoatCounterCount
+## 9. Guard Legacy: prepareGoatCounterGuard Y wrapGoatCounterCount
 
-`js/config.js` define `wrapGoatCounterCount`, que intercepta la funcion `goatcounter.count()` para filtrar ruido legacy (errores `currentYear is not defined` y ruido de `index-extra-compat`). Se activa automaticamente al cargar `config.js` mediante un setter en `window.goatcounter`.
+`js/config.js` define `prepareGoatCounterGuard` y `wrapGoatCounterCount`, que
+interceptan `goatcounter.count()` para filtrar ruido legacy (errores
+`currentYear is not defined` y ruido de `index-extra-compat`). El orden real es
+`config.js` -> `tracking.js` -> `count.js`: tracking puede crear primero
+`window.goatcounter = {}` y el sender anadir el metodo `.count` mas tarde sobre
+ese mismo objeto. Por eso el guard vigila tanto la asignacion de
+`window.goatcounter` como la primera asignacion tardia de `.count`.
 
 Mecanismo:
 
 - Cuando `goatcounter.count()` recibe un payload de error, `getLegacyGoatPayloadKind` comprueba si es ruido conocido.
 - Si es ruido, `remapLegacyGoatPayload` reescribe el path a `error-legacy-filtrado` y estructura el titulo con tipo, origen, evento original y build ID.
 - Si no es ruido, el payload pasa sin modificar.
+- Tras recibir una funcion `.count`, el accessor temporal se sustituye por una propiedad de datos normal y se envuelve una sola vez; los eventos ordinarios conservan su comportamiento.
 
 `isLegacyErrorPath` reconoce las rutas de error peladas y las variantes con
 segmentos (`error-javascript/...`, `error-script-load/...`, `error-promise/...`), para que el
@@ -305,6 +335,9 @@ Esto garantiza que el ruido de errores tempranos (antes de que `tracking.js` car
 - `tests/tracking-pageview-eager.test.js`: carga temprana, pageview canonico y referrer saneado.
 - `tests/tracking-html-coverage.test.js`: tracking/CSP en HTML publicos.
 - `tests/tracking-errors.test.js`: errores y ruido legacy.
+- `tests/config-legacy-rejection-filter.test.js`: orden real objeto-primero/metodo-despues del sender y transparencia para eventos normales.
+- `tests/error-bootstrap.test.js`: buffer temprano y watchdog de coordinadores ausentes.
+- `tests/sw-runtime-resilience.test.js`: recuperacion offline y precache con `cache: reload`.
 - `tests/guides-search.test.js`: buscador de guias y consistencia del indice.
 - `tests/security.test.js`: superficie general de seguridad.
 

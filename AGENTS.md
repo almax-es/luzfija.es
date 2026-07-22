@@ -50,7 +50,7 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
 | Modulo | Proposito |
 | --- | --- |
 | `js/config.js` | Guard global defensivo (define `currentYear` y globals legacy antes que el resto de scripts). No confundir con `lf-config.js`. |
-| `js/error-bootstrap.js` | Buffer efimero y sin mensajes para errores first-party ocurridos antes de que `tracking.js` este listo. |
+| `js/error-bootstrap.js` | Buffer efimero y sin mensajes para errores first-party tempranos + watchdog visual de ultimo recurso cuando no llega a cargar el coordinador completo de home, factura, desglose, solar u observatorio. Se carga antes de `config.js` en las tres aplicaciones. |
 | `js/theme.js` | Guard redundante + tema temprano para entradas legacy que cargan `theme.js` antes que nada. |
 | `js/shell-lite.js` | Tema + menu para paginas sin `lf-app`/`bv-ui` (guias, landings, legal, 404). |
 | `js/lf-sw-update.js` | Registro + auto-update + guard de recarga del service worker (`window.LF.initSwUpdate`), compartido por `lf-app.js` y `shell-lite.js`. Debe cargarse antes que ellos en el HTML. |
@@ -114,6 +114,8 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
 - Antes de reportar que el PVPC con CSV trata silenciosamente los precios ausentes, revisa la cobertura generada por `pvpc.js`: con huecos residuales (maximo 10% de horas y 10% de kWh) usa exacto+media solo para los huecos; si falta un mes completo, se supera algun umbral o no hay una media valida, cae a medias completas. Ambos casos se explican en el desglose y en `renderPvpcInfo`.
 - No confundas `resultadoPVPC[].explicacion` con copy visible: es un canal interno legacy que `parsearRespuestaPVPC` sigue parseando para recuperar P1/P2/P3. La UI de cobertura vive en `renderPvpcInfo()` y en `desglose-render.js`.
 - Antes de reportar race condition en `__LF_CALC_INFLIGHT`, recuerda que el navegador ejecuta los handlers JS en un unico hilo y el guard se asigna sin `await` entre lectura y escritura. Es deuda futura solo si se introduce concurrencia real/Workers en el calculo principal.
+- El toast que muestra `error-bootstrap.js` ante un coordinador ausente es persistente por decision deliberada: no es una notificacion ordinaria, sino el unico aviso post-click en los fallos completos de factura y desglose. Home, solar y observatorio mantienen ademas texto persistente en su propia UI.
+- Aceptar hoy una URL `blob:` same-origin en la normalizacion de errores no es un bug alcanzable: los workers `blob:` existentes pertenecen a PDF/OCR y se ejecutan bajo `__LF_PRIVACY_MODE`/`__LF_FACTURA_BUSY`, que impiden emitir tracking. Rechazar protocolos distintos de HTTP(S) queda como hardening obligatorio si se introduce un worker `blob:` fuera de factura.
 - Valida hallazgos contra tests, no solo contra intuicion.
 
 Tests especialmente utiles:
