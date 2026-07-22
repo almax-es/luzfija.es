@@ -272,13 +272,24 @@ coordinadores ausentes) y
 
 ### 6.6 Trafico QA Sintetico Conocido
 
-La validacion E2E del build `20260722-121753` bloqueo intencionadamente scripts
-en produccion y genero tanto `error-script-load/*` como `init-incompleto/*`.
-GoatCounter exporta `hit_stats.jsonl` agregado por hora; para analizar ese build
-la ventana sintetica conocida es `2026-07-22T12:00:00Z` (la ultima prueba E2E
-termino antes de `12:33Z`). Al recibir el export hay que comprobar primero en que
-horas aparecen ambas familias y ampliar la exclusion si el dato muestra trafico
-QA posterior; no se debe asumir que todo el build esta contaminado.
+Las validaciones E2E del 22/07/2026 bloquearon intencionadamente scripts en
+produccion y generaron tanto `error-script-load/*` como `init-incompleto/*`.
+GoatCounter exporta `hit_stats.jsonl` agregado por hora. Ventanas sinteticas
+CONFIRMADAS contra el export de `2026-07-22T12:57:08Z`:
+
+- `09:00Z`: bateria E2E completa sobre el build `20260722-091724` (cinco
+  `error-script-load` mas `init-incompleto` de solar, estadisticas y factura).
+- `11:00Z`: re-test sobre el build `20260722-103502` (`lf-utils` y
+  `pvpc-stats-csv`, mas `init-incompleto/home/app-core`).
+- `12:00Z`: sin eventos de error pese a tener 73 hits de trafico normal. La
+  auditoria final sobre `20260722-121753` no aparece en ese export; puede ser
+  retardo de agregacion, asi que conviene volver a mirar ese cubo en el
+  siguiente export antes de darlo por organico.
+
+La ventana declarada inicialmente para esa auditoria (`12:00:00Z`) resulto no
+coincidir con el dato: por eso la regla es comprobar en que horas aparecen ambas
+familias y ampliar o mover la exclusion segun el export, en vez de heredar una
+ventana anunciada. No se debe asumir que todo el build esta contaminado.
 
 ## 7. Cobertura HTML Y CSP
 
