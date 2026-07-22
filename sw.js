@@ -3,7 +3,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260722-103502";
+const CACHE_VERSION = "20260722-121753";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 // El build 20260620-051941 contenía un handler del simulador solar que podía
 // llamar `target.closest()` sobre un target no-Element. A diferencia de las
@@ -194,7 +194,12 @@ async function addToCacheWithRetry(cache, asset, attempts) {
   let lastError = null;
   for (let attempt = 1; attempt <= attempts; attempt++) {
     try {
-      await cache.add(new URL(asset, SCOPE));
+      // El nombre de cache identifica el build, pero los assets se guardan con
+      // URL estable (sin ?v=). Forzar `reload` evita que el HTTP cache del
+      // navegador (max-age=600 en producción) introduzca bytes de un deploy
+      // anterior dentro de la cache recién nombrada.
+      const request = new Request(new URL(asset, SCOPE), { cache: "reload" });
+      await cache.add(request);
       return;
     } catch (error) {
       lastError = error;

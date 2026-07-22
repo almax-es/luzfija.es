@@ -141,12 +141,42 @@ function wrapGoatCounterCount(goatcounterLike) {
   return true;
 }
 
+function prepareGoatCounterGuard(goatcounterLike) {
+  try {
+    if (!goatcounterLike || typeof goatcounterLike !== 'object') return false;
+    if (typeof goatcounterLike.count === 'function') return wrapGoatCounterCount(goatcounterLike);
+
+    // tracking crea primero `window.goatcounter = {}` y count.js añade el
+    // método más tarde sobre ESE MISMO objeto. Vigilar la primera asignación del
+    // método cierra el hueco que un setter solo sobre window.goatcounter no ve.
+    const desc = Object.getOwnPropertyDescriptor(goatcounterLike, 'count');
+    if (desc && desc.configurable === false) return false;
+    Object.defineProperty(goatcounterLike, 'count', {
+      configurable: true,
+      enumerable: true,
+      get: function() { return undefined; },
+      set: function(value) {
+        Object.defineProperty(goatcounterLike, 'count', {
+          configurable: true,
+          enumerable: true,
+          writable: true,
+          value
+        });
+        wrapGoatCounterCount(goatcounterLike);
+      }
+    });
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
 // Guard global de último recurso: filtra ruido legacy incluso si se ejecuta tracking antiguo.
 if (window.__LF_LEGACY_GOAT_GUARD_CONFIG !== true) {
   window.__LF_LEGACY_GOAT_GUARD_CONFIG = true;
 
   let goatRef = window.goatcounter;
-  wrapGoatCounterCount(goatRef);
+  prepareGoatCounterGuard(goatRef);
 
   try {
     const desc = Object.getOwnPropertyDescriptor(window, 'goatcounter');
@@ -157,13 +187,14 @@ if (window.__LF_LEGACY_GOAT_GUARD_CONFIG !== true) {
         get: function() { return goatRef; },
         set: function(value) {
           goatRef = value;
-          wrapGoatCounterCount(goatRef);
+          prepareGoatCounterGuard(goatRef);
         }
       });
     }
   } catch (_) {
     // Entornos donde no se puede redefinir window.goatcounter: best-effort sobre el valor actual.
   }
+
 }
 
 // Filtro temprano de ruido legacy antes de que tracking.js lo envíe a GoatCounter.

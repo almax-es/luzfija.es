@@ -199,6 +199,32 @@ describe('Config legacy rejection filter', () => {
     );
   });
 
+  it('envuelve count cuando el sender añade el método al objeto preexistente', () => {
+    bootstrapConfig();
+
+    const rawCount = vi.fn();
+    window.goatcounter = {};
+    window.goatcounter.count = rawCount;
+
+    const sender = document.createElement('script');
+    sender.src = '/vendor/goatcounter/count.js?v=build';
+    document.head.appendChild(sender);
+    sender.dispatchEvent(new Event('load'));
+
+    window.goatcounter.count({
+      path: 'error-javascript/app/10/20260722-103502',
+      title: 'currentYear is not defined'
+    });
+
+    expect(rawCount).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: 'error-legacy-filtrado',
+        event: true,
+        title: expect.stringContaining('tipo:currentyear-stale')
+      })
+    );
+  });
+
   it('permite eventos normales en goatcounter.count', () => {
     const rawCount = vi.fn();
     window.goatcounter = { count: rawCount };

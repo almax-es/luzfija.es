@@ -516,7 +516,7 @@ try {
     ]);
   }
 
-  const ERROR_DEDUP_KEY = 'lf_js_error_dedupe_v1';
+  const ERROR_DEDUP_KEY = 'lf_js_error_dedupe_v2';
   const ERROR_DEDUP_MAX = 30;
 
   function isSameOriginUrl(urlLike) {
@@ -569,6 +569,7 @@ try {
   function isDuplicateError(message, source, line, col, route) {
     try {
       const fingerprint = [
+        TRACK_BUILD_ID,
         safeText(message).substring(0, 90),
         safeText(source),
         String(line || 0),
@@ -1141,7 +1142,10 @@ try {
   // Capturar errores de Promises no manejadas (crítico para PVPC/PDF)
   window.addEventListener('unhandledrejection', function(e) {
     try {
-      const reason = e && e.reason ? e.reason : 'unknown';
+      // `reason` puede ser deliberadamente falsy (Promise.reject(), null, 0,
+      // false o ''). Con `e.reason ? ...` todos acababan convertidos en la
+      // cadena "unknown" y clasificados erróneamente como `string`.
+      const reason = e && 'reason' in e ? e.reason : undefined;
       const route = safeText(location && location.pathname ? location.pathname : '');
       const browser = getBrowserInfo();
 
@@ -1172,6 +1176,7 @@ try {
       } else {
         msg = sanitizeErrorMessageForTracking(reason);
       }
+      if (!msg) msg = 'unknown';
 
       // Filtrar ruido de cache viejo (código ya corregido, solo llega desde SW antiguo)
       if (isLegacyIndexExtraCompatNoise(msg) || isPromiseStaleNoise(msg)) {

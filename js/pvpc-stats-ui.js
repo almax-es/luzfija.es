@@ -231,6 +231,7 @@
     if (els.kpiAvg7Sub) els.kpiAvg7Sub.textContent = 'No disponible';
     if (els.kpiAvg30Sub) els.kpiAvg30Sub.textContent = 'No disponible';
     if (els.kpiAvg12mSub) els.kpiAvg12mSub.textContent = 'No disponible';
+    if (els.kpiYoYSub) els.kpiYoYSub.textContent = 'No disponible';
   }
 
   function buildMonthlyFromDaily(labels, dailyValues) {

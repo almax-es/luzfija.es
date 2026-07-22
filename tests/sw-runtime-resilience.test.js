@@ -122,9 +122,11 @@ describe('Service Worker runtime resilience', () => {
 
   it('reintenta un asset core transitorio antes de abortar la instalación', async () => {
     const attempts = new Map();
+    const requestCacheModes = [];
     const cache = {
-      async add(url) {
-        const assetPath = new URL(String(url)).pathname;
+      async add(request) {
+        const assetPath = new URL(request.url || String(request)).pathname;
+        requestCacheModes.push(request.cache);
         const next = (attempts.get(assetPath) || 0) + 1;
         attempts.set(assetPath, next);
         if (assetPath === '/index.html' && next < 3) throw new Error('transient');
@@ -138,13 +140,15 @@ describe('Service Worker runtime resilience', () => {
 
     await expect(installPromise).resolves.toBeUndefined();
     expect(attempts.get('/index.html')).toBe(3);
+    expect(requestCacheModes.length).toBeGreaterThan(0);
+    expect(requestCacheModes.every((mode) => mode === 'reload')).toBe(true);
     expect(worker.skipWaitingCalls).toBe(1);
   });
 
   it('no activa un build con el núcleo de una ruta precacheado a medias', async () => {
     const cache = {
-      async add(url) {
-        if (new URL(String(url)).pathname.endsWith('/js/bv/bv-sim-monthly.js')) {
+      async add(request) {
+        if (new URL(request.url || String(request)).pathname.endsWith('/js/bv/bv-sim-monthly.js')) {
           throw new Error('persistent');
         }
       },

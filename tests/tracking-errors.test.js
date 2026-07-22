@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
+import { JSDOM } from 'jsdom';
 
 /**
  * @vitest-environment jsdom
@@ -276,6 +277,19 @@ describe('Tracking error filtering and dedupe', () => {
     expect(promisePaths.join('|')).not.toContain('Failed');
   });
 
+  it('conserva motivos falsy para clasificarlos sin convertirlos en string', () => {
+    bootstrapTracking();
+
+    dispatchUnhandledRejection(null);
+    dispatchUnhandledRejection(0);
+
+    const promisePaths = window.goatcounter.count.mock.calls
+      .map((call) => call[0] && call[0].path)
+      .filter((value) => String(value || '').startsWith('error-promise/'));
+    expect(promisePaths).toContain('error-promise/desconocido/0/desconocido');
+    expect(promisePaths).toContain('error-promise/primitive/0/desconocido');
+  });
+
   it('no reclasifica mensajes parecidos sin firma legacy', () => {
     bootstrapTracking();
 
@@ -438,5 +452,44 @@ describe('buildErrorEventPath', () => {
     expect(p).not.toContain('@');
     expect(p).toBe('error-javascript/cups-email/42/20260721-075326');
     expect(p).toMatch(/^error-javascript\/[a-z0-9-]+\/42\/20260721-075326$/);
+  });
+});
+
+describe('Deduplicado de errores por build', () => {
+  function runPage(buildId, storedDedupe) {
+    const dom = new JSDOM('<!doctype html><title>Prueba</title>', {
+      url: 'https://luzfija.es/',
+      runScripts: 'outside-only'
+    });
+    const isolatedWindow = dom.window;
+    const sent = [];
+    isolatedWindow.__LF_BUILD_ID = buildId;
+    isolatedWindow.goatcounter = { count: (payload) => sent.push(payload) };
+    if (storedDedupe) {
+      isolatedWindow.sessionStorage.setItem('lf_js_error_dedupe_v2', storedDedupe);
+    }
+    isolatedWindow.eval(trackingCode);
+    isolatedWindow.dispatchEvent(new isolatedWindow.ErrorEvent('error', {
+      message: 'Mismo fallo',
+      filename: '/js/app.js',
+      lineno: 10,
+      colno: 2
+    }));
+    return {
+      sent,
+      storedDedupe: isolatedWindow.sessionStorage.getItem('lf_js_error_dedupe_v2')
+    };
+  }
+
+  it('no deja que un build anterior silencie el mismo error del build actual', () => {
+    const oldPage = runPage('20260722-091724');
+    const currentPage = runPage('20260722-103502', oldPage.storedDedupe);
+
+    expect(oldPage.sent.map((payload) => payload.path)).toContain(
+      'error-javascript/app/10/20260722-091724'
+    );
+    expect(currentPage.sent.map((payload) => payload.path)).toContain(
+      'error-javascript/app/10/20260722-103502'
+    );
   });
 });

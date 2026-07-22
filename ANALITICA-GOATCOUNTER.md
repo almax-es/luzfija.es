@@ -222,7 +222,9 @@ Las descripciones de error se sanitizan con `sanitizeErrorMessageForTracking()`:
 - URLs -> `[url]`
 - numeros largos -> `[num]`
 
-Los errores se deduplican por sesion para evitar ruido.
+Los errores se deduplican por sesion **y build** para evitar ruido sin permitir
+que la huella guardada por una version anterior silencie el mismo fallo tras un
+despliegue nuevo en la misma pestana.
 
 Las tres aplicaciones instalan `error-bootstrap.js` antes de `config.js`. Este
 buffer conserva en memoria como maximo 12 fallos first-party tempranos y solo
@@ -230,18 +232,28 @@ guarda tipo, pathname y posicion: nunca mensaje, stack ni datos del usuario.
 `tracking.js` lo vacia al arrancar y pasa las entradas por los mismos guardrails
 de opt-out, privacidad y saneo que el resto de eventos.
 
+El bootstrap tambien mantiene un watchdog visual acotado para los coordinadores
+de home, factura, desglose, simulador solar y observatorio. Es necesario porque
+un fichero no puede ejecutar su propio guard cuando falla la descarga del
+fichero completo. En ese caso deshabilita los controles afectados o instala un
+aviso de recarga; el error de carga sigue viajando como `error-script-load`.
+
 Si el sender autoalojado `vendor/goatcounter/count.js` falla de forma transitoria,
 `tracking.js` retira el elemento fallido, conserva una cola acotada y realiza hasta
 tres intentos con espera creciente. Un evento `online` abre una nueva oportunidad.
 El service worker mantiene el sender como network-only, pero permite recuperar
 `tracking.js` desde la cache del build activo para no perder la captura de errores.
+El precache fuerza `cache: reload` al descargar cada asset sin version en la URL,
+evitando que el HTTP cache (`max-age`) introduzca bytes de un deploy anterior en
+una cache cuyo nombre ya corresponde al build nuevo.
 
 Cardinalidad: el build multiplica rutas por despliegue, pero en errores el volumen
 es pequeno y es justo lo que permite distinguir codigo actual de cache antigua.
 
 Tests: `tests/tracking-errors.test.js` (separacion por fichero/linea/build/familia y
 privacidad del path), `tests/tracking-privacy.test.js` (cola y reintento del sender),
-`tests/error-bootstrap.test.js` (entrega de errores tempranos) y
+`tests/error-bootstrap.test.js` (entrega de errores tempranos y watchdog de
+coordinadores ausentes) y
 `tests/bv-ui-tooltip-textnode.test.js` (regresion del
 `e.target.closest is not a function` con target que no es Element).
 

@@ -153,6 +153,7 @@ describe('observatorio con dependencias parciales', () => {
     expect(document.getElementById('kpiLastSub').textContent).toContain('no terminó de cargarse');
     expect([...document.querySelectorAll('*')].some((node) => node.textContent.includes('Cargando')))
       .toBe(false);
+    expect(document.getElementById('kpiYoYSub').textContent).toBe('No disponible');
     expect(window.__LF_trackDetail).toHaveBeenCalledWith(
       'init-incompleto',
       ['estadisticas', 'stats-csv'],
