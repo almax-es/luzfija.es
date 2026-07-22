@@ -649,7 +649,7 @@
       "cValle": 0.12306,
       "p1": 0.105527,
       "p2": 0.04834,
-      "web": "https://spock.es/compra-colectiva-mercurio-27",
+      "web": "https://spock.es/compra-colectiva-mercurio-26",
       "tipo": "1P",
       "incluyeServiciosAjuste": true,
       "fv": {
@@ -2040,5 +2040,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-07-22T14:46:27.812Z"
+  "updatedAt": "2026-07-22T15:09:53.685Z"
 }
