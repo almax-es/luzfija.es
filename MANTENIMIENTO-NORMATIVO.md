@@ -1,6 +1,6 @@
 # Mantenimiento Normativo Y Operativo
 
-Ultima actualizacion: 2026-07-16
+Ultima actualizacion: 2026-07-23
 
 Este documento lista las piezas de LuzFija.es que dependen de normativa, fuentes oficiales o datos vivos. Sirve como checklist para que calculos, guias y mensajes publicos no queden desfasados.
 
@@ -19,7 +19,7 @@ Este documento lista las piezas de LuzFija.es que dependen de normativa, fuentes
 | IEE | Porcentaje vigente, minimo aplicable y duracion de reducciones temporales | Trimestral y cada BOE fiscal/energetico | BOE: Ley 38/1992 y reales decretos temporales | `js/lf-config.js`, desglose, PVPC, tests fiscales |
 | IGIC Canarias | Tipos para vivienda, otros usos y contador; umbral de potencia | Trimestral y cada cambio del Gobierno de Canarias | Ley 4/2012 y normativa canaria vigente | `js/lf-config.js`, `js/desglose-calculo.js`, `js/desglose-render.js`, tests fiscales, guia factura |
 | IPSI Ceuta/Melilla | Tipos de electricidad, contador y servicios | Trimestral y cada ordenanza/cambio local | Normativa local + Ley 8/1991 | `js/lf-config.js`, desglose, tests fiscales |
-| Bono social | Descuentos, limites de consumo bonificable, categorias y financiacion | Mensual si hay BOE energetico; obligatorio antes de fin de medidas temporales | BOE: RD 897/2017, RDL 7/2026, Orden TED/1524/2025 y posteriores | `js/lf-config.js`, `js/lf-utils.js`, PVPC, tests de bono social/fiscalidad |
+| Bono social | Descuentos, limites de consumo bonificable, categorias y financiacion | Mensual si hay BOE energetico; obligatorio antes de fin de medidas temporales | BOE: RD 897/2017, RDL 7/2026, Orden TED/634/2026 y posteriores | `js/lf-config.js`, `js/lf-utils.js`, PVPC, tests de bono social/fiscalidad |
 | PVPC regulado | Formula, elegibilidad por potencia, comercializadoras de referencia y metodologia CNMC | Trimestral y cuando CNMC/MITECO publiquen cambios | BOE, CNMC, REE/ESIOS | `js/pvpc.js`, `PVPC-SCHEMA.md`, guias PVPC, tests PVPC |
 | Peajes y cargos | Precios de potencia/energia por periodo, calendario y estructura 2.0TD | Anual y cada circular/resolucion CNMC/MITECO | CNMC, BOE, MITECO | `js/lf-config.js`, `js/pvpc.js`, calculo/desglose, guias de potencia |
 | Horarios P1/P2/P3 | Calendario peninsular/territorial, festivos nacionales y cambios de hora | Anual, al preparar datasets del nuevo ano | CNMC, BOE calendario laboral, REE | `js/lf-csv-utils.js`, `js/pvpc.js`, tests CSV/PVPC |
@@ -49,7 +49,7 @@ Este documento lista las piezas de LuzFija.es que dependen de normativa, fuentes
 ## Fechas Criticas Conocidas
 
 - 30/05/2026: confirmado el condicionante de IPC de abril de 2026; desde el 01/06/2026 se desactiva la rebaja temporal de IVA electrico e IEE en Peninsula/Baleares. `LF_CONFIG` queda preparado con IVA 21% e IEE 5,11269632%.
-- 29/06/2026: actualizada la financiacion del bono social a 9,011295 EUR/CUPS en `LF_CONFIG`.
+- 29/06/2026: actualizada la financiacion del bono social a 9,011295 EUR/CUPS en `LF_CONFIG`, conforme a la Orden TED/634/2026 (BOE-A-2026-13759).
 - Cada cambio de ano: revisar peajes/cargos, calendario de periodos, festivos nacionales, datasets PVPC/surplus y textos de guias que mencionen importes anuales.
 - Cada cambio de Excel de tarifas: ejecutar generador, revisar el informe del validador y confirmar que las inactivas no se publican pero siguen apareciendo en validacion.
 - Cada cambio energetico relevante: confirmar si requiere tocar guias, landings, datos estructurados o calculos. No limitar la revision a electricidad si la noticia trata TUR/gas u otro suministro.

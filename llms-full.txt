@@ -87,7 +87,7 @@ What it does:
 Important distinction:
 - this is not the same logic as the main comparator
 - the main comparator estimates one billing period or aggregate period
-- the simulator is month-by-month and annualized
+- the simulator is month-by-month over the available simulated period; it is described as annual only when 12 reasonably complete months are available
 
 ### 4. Editorial and regulatory layer
 

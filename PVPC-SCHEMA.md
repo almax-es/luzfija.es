@@ -3,14 +3,14 @@
 Documentación técnica precisa de la estructura de datos, actualización automática y procesos del **PVPC (Precio Voluntario del Pequeño Consumidor)** en luzfija.es.
 Para inventario funcional completo del sitio (incluyendo observatorio, comparador principal y simulador BV), ver `CAPACIDADES-WEB.md`.
 
-**Última actualización**: 2026-07-16
+**Última actualización**: 2026-07-23
 
 ---
 
 ## 1. Visión General
 
 ### ¿Qué es PVPC?
-- **PVPC**: Tarifa regulada de electricidad fijada por el Gobierno español
+- **PVPC**: Tarifa regulada de electricidad cuya metodología se fija normativamente
 - **Indicador ESIOS**: 1001 (Precio de mercado del PVPC)
 - **Fuente**: REE (Red Eléctrica de España) / ESIOS API
 - **Actualización**: Diariamente a las 20:00 UTC (21:00 CET / 22:00 CEST en Madrid)
@@ -476,7 +476,7 @@ node -e "
   });
 "
 
-# Validar rango de precios (0 < precio < 1 EUR/kWh)
+# Validar el guard operativo de precios (0 <= precio <= 1 EUR/kWh)
 node -e "
   const d = JSON.parse(require('fs').readFileSync('data/pvpc/8741/2025-01.json'));
   Object.values(d.days).forEach(hours => {
@@ -490,7 +490,7 @@ node -e "
 ### Validar Timestamps
 
 ```bash
-# Verificar que timestamps están en orden y separo de 3600s (1 hora)
+# Verificar que los timestamps están en orden y separados por 3600 s (1 hora)
 node -e "
   const d = JSON.parse(require('fs').readFileSync('data/pvpc/8741/2025-01.json'));
   const sample = Object.values(d.days)[0];
@@ -592,7 +592,7 @@ console.log('Correcto:', kwh === 0.18279);
 
 - **ESIOS API**: https://www.esios.ree.es/
 - **Indicador PVPC (1001)**: https://www.esios.ree.es/#/es/indicators/1001
-- **Periodificación 2.0 TD**: Orden TED/712/2019
+- **Periodificación 2.0 TD**: Circular 3/2020 de la CNMC (BOE-A-2020-1066)
 - **Festivos en España**: https://www.boe.es/
 
 ---

@@ -2,9 +2,9 @@
 
 Este directorio contiene librerías de terceros alojadas localmente para garantizar la privacidad (evitar peticiones a CDNs externos), la estabilidad y el funcionamiento offline.
 
-**Última actualización del inventario:** 16/07/2026
+**Última actualización del inventario:** 23/07/2026
 
-**Última revisión de versiones y vulnerabilidades:** 15/07/2026 — sin cambios: las 6 librerías siguen en su última versión estable, sin CVEs activas conocidas.
+**Última revisión documentada de versiones y vulnerabilidades:** 15/07/2026 — no se identificaron CVEs activas conocidas en ese momento. Es una comprobación fechada, no una garantía permanente ni una afirmación de que cada dependencia siga siendo la última versión estable.
 
 ---
 

@@ -52,9 +52,9 @@ Las tarifas con **batería virtual** acumulan los excedentes solares sobrantes (
   - Matriz horaria H01-H24 (Excel), con H25 opcional en el cambio horario de octubre
 - **Validaciones de seguridad**:
   - Tamaño máximo: 10 MB
-  - Validación de MIME type
+  - Extensión permitida (`.csv`, `.xlsx`, `.xls`); el MIME se trata de forma tolerante porque los navegadores y portales de distribuidoras no lo informan de manera uniforme
   - Validación de rangos (kWh, horas)
-- **Requisitos**: El archivo DEBE incluir columna de excedentes/generación
+- **Excedentes**: La columna de excedentes/generación es recomendable para una simulación solar automática fiel. Si no existe, el consumo se importa y los excedentes se inicializan a 0 para que el usuario pueda completarlos en la tabla manual.
 
 ### 🧮 Motor de Cálculo
 
@@ -86,7 +86,7 @@ El usuario puede elegir el mes desde el que empieza la simulación de la tarifa.
 - Solo se reordena el ciclo antes de llamar al motor mensual.
 - Ejemplo con 12 meses enero-diciembre y contrato en mayo: `may → jun → jul → ago → sep → oct → nov → dic → ene → feb → mar → abr`.
 - El simulador trata esos meses como un **patrón anual de consumo y producción**. Si el CSV original contiene enero-diciembre y el usuario empieza en mayo, los meses enero-abril del final representan el siguiente tramo del ciclo simulado, aunque los datos procedan del mismo CSV histórico.
-- El año concreto (`YYYY`) es metadato técnico para agrupar/enriquecer datos; la UI muestra el mes para evitar que el usuario interprete la rotación como una cronología histórica literal.
+- El año inicial (`YYYY`) permite agrupar y enriquecer los datos. Tras rotar, los meses situados después de diciembre reciben una clave del año siguiente para aplicar la fiscalidad en orden; la UI muestra el mes y no presenta esa clave técnica como una segunda lectura histórica.
 - La rotación se aplica después de enriquecer excedentes indexados por `YYYY-MM`, por lo que cada mes conserva su valor horario real cuando existe trazabilidad CSV.
 
 ### 📊 Ranking Inteligente
@@ -194,7 +194,7 @@ js/
 **Responsabilidades**:
 - Lazy loading de XLSX.js
 - Delegación del parsing de bajo nivel a `lf-csv-utils.js`
-- Validación específica para BV (existencia de columna de excedentes)
+- Detección de columna de excedentes y aviso con valor 0 cuando no existe
 - Construcción de metadatos del archivo
 
 **Funciones principales**:
@@ -237,7 +237,7 @@ getFestivosNacionales(year)
 **Funciones principales**:
 
 ```javascript
-window.BVSim.bucketizeByMonth(records)
+window.BVSim.bucketizeByMonth(records, zona = 'peninsula', opts = {})
 // Input: Array de registros horarios
 // Output: Array de meses con totales por periodo
 // {
@@ -261,7 +261,8 @@ window.BVSim.calcMonthForTarifa({
   potenciaP2,
   bvSaldoPrev,
   zonaFiscal,
-  esVivienda
+  esVivienda,
+  ssaaDataset
 })
 // Calcula factura de un mes para una tarifa
 // Devuelve objeto con todos los conceptos + saldo BV final
@@ -275,13 +276,14 @@ window.BVSim.simulateForTarifaDemo({
   potenciaP2,
   bvSaldoInicial,
   zonaFiscal,
-  esVivienda
+  esVivienda,
+  ssaaDataset
 })
 // Simula todos los meses de una tarifa
 // Devuelve: rows (mes a mes) + totals (pagado, real, bvFinal)
 ```
 
-El orden de `months` define el arrastre de saldo BV. La UI puede rotarlo con `window.BVSim.manualUi.rotateMonthsByStart(months, startKey)` antes de llamar al motor para representar un contrato iniciado en un mes concreto. La rotación no crea meses nuevos ni desplaza fechas reales: reordena el patrón anual disponible para que el saldo BV empiece en el mes seleccionado y se arrastre hasta completar la ventana simulada.
+El orden de `months` define el arrastre de saldo BV. La UI puede rotarlo con `window.BVSim.manualUi.rotateMonthsByStart(months, startKey)` antes de llamar al motor para representar un contrato iniciado en un mes concreto. La rotación reordena el patrón anual disponible y asigna al año siguiente las claves `YYYY-MM` que pasan detrás de diciembre, de modo que la fiscalidad conserve una cronología ascendente. No inventa consumos ni meses adicionales.
 
 ```javascript
 window.BVSim.simulateForAllTarifasBV({
@@ -291,9 +293,10 @@ window.BVSim.simulateForAllTarifasBV({
   potenciaP2,
   bvSaldoInicial,
   zonaFiscal,
-  esVivienda
+  esVivienda,
+  ssaaDataset
 })
-// Simula el conjunto de tarifas solares elegibles en paralelo
+// Simula de forma síncrona el conjunto de tarifas solares elegibles
 // Devuelve: { ok: true, results: [...] }
 ```
 
@@ -516,11 +519,13 @@ await window.BVSim.importFile(file)
 #### Agrupación Mensual
 
 ```javascript
-window.BVSim.bucketizeByMonth(records)
+window.BVSim.bucketizeByMonth(records, zona = 'peninsula', opts = {})
 ```
 
 **Parámetros**:
 - `records` (Array): Array de registros de `importFile`
+- `zona` (String): Zona CNMC usada para clasificar P1/P2/P3 (default: `"peninsula"`)
+- `opts.isDatadisMonthly` (Boolean): Trata cada registro mensual de Datadis como mes completo
 
 **Retorna**: `Array<Object>`
 ```javascript
@@ -555,7 +560,8 @@ window.BVSim.calcMonthForTarifa({
   potenciaP2,
   bvSaldoPrev,
   zonaFiscal,
-  esVivienda
+  esVivienda,
+  ssaaDataset
 })
 ```
 
@@ -567,6 +573,7 @@ window.BVSim.calcMonthForTarifa({
 - `bvSaldoPrev` (Number): Saldo BV del mes anterior en €
 - `zonaFiscal` (String): "Península" | "Canarias" | "CeutaMelilla"
 - `esVivienda` (Boolean): true si es vivienda (para IGIC Canarias)
+- `ssaaDataset` (Object|null): Dataset mensual de servicios de ajuste; default `null`
 
 **Retorna**: `Object`
 ```javascript
@@ -605,13 +612,15 @@ window.BVSim.simulateForTarifaDemo({
   potenciaP2,
   bvSaldoInicial,
   zonaFiscal,
-  esVivienda
+  esVivienda,
+  ssaaDataset
 })
 ```
 
 **Parámetros**: (similares a `calcMonthForTarifa`)
 - `months` (Array): Array de meses de `bucketizeByMonth`
 - `bvSaldoInicial` (Number): Saldo BV inicial en € (default: 0)
+- `ssaaDataset` (Object|null): Dataset mensual de servicios de ajuste; default `null`
 
 **Retorna**: `Object`
 ```javascript
@@ -647,12 +656,15 @@ window.BVSim.simulateForAllTarifasBV({
   potenciaP2,
   bvSaldoInicial,
   zonaFiscal,
-  esVivienda
+  esVivienda,
+  ssaaDataset
 })
 ```
 
 **Parámetros**:
 - `tarifasBV` (Array): Array de tarifas BV de `loadTarifasBV`
+- `bvSaldoInicial` (Number|Function): Saldo común o función `(tarifa) => saldo`, útil para no transferir la hucha entre comercializadoras
+- `ssaaDataset` (Object|null): Dataset mensual de servicios de ajuste; default `null`
 
 **Retorna**: `Object`
 ```javascript
@@ -682,7 +694,7 @@ await window.BVSim.loadTarifasBV()
 ```javascript
 {
   ok: false,
-  error: "No hay tarifas con excedentes remunerados disponibles actualmente."
+  error: "No hay tarifas remuneradas de excedentes disponibles actualmente."
 }
 ```
 
@@ -710,9 +722,9 @@ ES0000000000000000XX;01/01/2025;2;0,098;0,050;0,000;R
 **Columnas**:
 - `CUPS`: Código único del punto de suministro. Se reconoce para detectar formato/cabecera; sus valores no se guardan ni se renderizan.
 - `Fecha`: DD/MM/YYYY
-- `Hora`: 1-24 (hora final del periodo)
+- `Hora`: 1-24 (hora final del periodo); se admite 25 para la hora repetida del cambio de octubre
 - `AE_kWh`: Energía activa consumida (kWh)
-- `AS_kWh`: Energía activa exportada/excedentes (kWh) **[OBLIGATORIO]**
+- `AS_kWh`: Energía activa exportada/excedentes (kWh), opcional; sin ella se usa 0
 - `AE_Autocons_kWh`: Autoconsumo instantáneo (opcional)
 - `Estado`: R (real) o E (estimado)
 
@@ -730,9 +742,9 @@ ES0000000000000000XX;01/01/2025;1;0,123;0,045
 **Columnas principales**:
 - `CUPS`: Código único del punto de suministro. Se reconoce para detectar formato/cabecera; sus valores no se guardan ni se renderizan.
 - `Fecha`: DD/MM/YYYY
-- `Hora`: 1-24
+- `Hora`: 1-24; se admite 25 para la hora repetida del cambio de octubre
 - `EHCR` / `consumo`: Energía horaria consumida (kWh)
-- `EHEX` / `exportacion`: Energía horaria excedentaria (kWh) **[OBLIGATORIO]**
+- `EHEX` / `exportacion`: Energía horaria excedentaria (kWh), opcional; sin ella se usa 0
 - `INV/VER`: Marca de invierno/verano para el cambio horario (opcional)
 - Columnas unificadas `fecha_hora` soportadas como alternativa
 
@@ -752,7 +764,7 @@ Fecha y Hora;Dirección;Consumo Wh;Generación Wh
 - `Fecha y Hora`: DD/MM/YYYY HH:MM
 - `Dirección`: Siempre "Consumo"
 - `Consumo Wh`: Energía consumida en Wh (se convierte a kWh)
-- `Generación Wh`: Energía generada en Wh (se convierte a kWh) **[OBLIGATORIO]**
+- `Generación Wh`: Energía generada en Wh (se convierte a kWh), opcional; sin ella se usa 0
 
 **Separador**: Coma (`,`)
 
@@ -787,7 +799,7 @@ Fecha y Hora;Dirección;Consumo Wh;Generación Wh
 - `Fecha y Hora`: DD/MM/YYYY HH:MM
 - `Periodo Tarifario`: PUNTA/LLANO/VALLE (opcional)
 - `Consumo (Wh)`: Energía consumida en Wh
-- `Generación (Wh)`: Energía generada en Wh **[OBLIGATORIO]**
+- `Generación (Wh)`: Energía generada en Wh, opcional; sin ella se usa 0
 
 ---
 
@@ -803,31 +815,18 @@ if (file.size > 10 * 1024 * 1024) {
   return { ok: false, error: "Archivo demasiado grande (max 10 MB)" };
 }
 
-// MIME type (CSV)
-if (extension === 'csv') {
-  if (file.type && !file.type.includes('text/') && !file.type.includes('application/')) {
-    return { ok: false, error: "El archivo no parece ser un CSV válido" };
-  }
-}
-
-// MIME type (XLSX)
-if (extension === 'xlsx' || extension === 'xls') {
-  const validMimes = [
-    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-    'application/vnd.ms-excel',
-    'application/octet-stream'
-  ];
-  if (file.type && !validMimes.some(mime => file.type.includes(mime))) {
-    return { ok: false, error: "El archivo no parece ser un Excel válido" };
-  }
+// Extensión permitida. El MIME no bloquea la importación porque puede venir
+// vacío o variar según navegador, Excel y portal de la distribuidora.
+if (!['csv', 'xlsx', 'xls'].includes(extension)) {
+  return { ok: false, error: "Formato no soportado. Solo CSV y Excel (.xlsx, .xls)." };
 }
 ```
 
 #### 2. Datos CSV
 
 ```javascript
-// Validar hora (1-24)
-if (hora < 1 || hora > 24) continue;
+// Validar hora (1-25; H25 solo representa la hora repetida de octubre)
+if (hora < 1 || hora > 25) continue;
 
 // Validar kWh (0-10.000)
 if (isNaN(kwh) || kwh < 0 || kwh > 10000) continue;
@@ -844,12 +843,11 @@ if (!fecha) continue;
 
 ```javascript
 if (!parsed.hasExcedenteColumn) {
-  return {
-    ok: false,
-    error: 'El archivo no incluye excedentes/exportación; esta herramienta es solo para autoconsumo con BV.'
-  };
+  warnings.push('No se detectaron excedentes; se importará con excedentes=0.');
 }
 ```
+
+La ausencia de esa columna no invalida el archivo. Se conserva el consumo, se usan excedentes a cero y la tabla manual permite completar los valores solares.
 
 ### Sanitización HTML
 
@@ -884,7 +882,7 @@ function sanitizeUrl(url) {
 
 - **Sin backend**: Todos los cálculos en el navegador
 - **Sin uploads**: El archivo no se envía a un servidor de cálculo
-- **Sin persistencia**: El archivo CSV original **no se guarda** en el navegador. Solo se extraen los totales mensuales necesarios para la simulación.
+- **Sin persistencia del archivo**: El CSV/XLSX original **no se guarda**. Los registros horarios parseados se mantienen temporalmente en memoria para la trazabilidad y se agregan por mes; no se escriben en `localStorage`.
 - **Analítica sin datos personales**: la página carga la analítica común (`tracking.js` + GoatCounter) y emite eventos con la taxonomía `solar` documentada en `ANALITICA-GOATCOUNTER.md`. Los eventos solo contienen categorías, estados y nombres de tarifa del dataset; nunca kWh, importes, potencias, CUPS ni nombres de archivo. El usuario puede desactivar la analítica desde `privacidad.html`.
 - **Procesamiento local**: Tus datos de consumo se calculan en tu navegador
 
@@ -906,7 +904,7 @@ function sanitizeUrl(url) {
 - **Tarjetas**: Sin tablas, layout vertical con etiquetas
 - **Tooltips**: Modal táctil (bottom-sheet)
 
-### Accesibilidad (WCAG 2.1 AA)
+### Medidas de Accesibilidad (orientadas a WCAG 2.1 AA)
 
 #### ARIA Labels
 
@@ -997,7 +995,7 @@ showToast('Subiendo archivo...', 'info');  // Azul
 
 **Paso a paso**:
 1. Descarga tu CSV de consumos horarios de la web de tu distribuidora
-2. Asegúrate de que incluye la columna de excedentes
+2. Si es posible, descarga también la columna de excedentes; si falta, podrás completarla en la tabla manual
 3. Arrastra el CSV al simulador
 4. Introduce tus potencias P1/P2
 5. Selecciona tu zona fiscal
@@ -1106,22 +1104,6 @@ El simulador lee de `tarifas.json` automáticamente. Para añadir/actualizar tar
 
 ---
 
-## Comparación con Competencia
-
-| Característica | LuzFija BV | Otros Comparadores |
-|---|---|---|
-| **Datos reales** | ✅ CSV horarios | ❌ Estimaciones |
-| **Mes a mes** | ✅ Evolución completa | ❌ Cálculo único |
-| **BV simulada** | ✅ Acumulación mes a mes | ❌ o simplificada |
-| **Tarifas solares elegibles** | ✅ Ranking completo | ⚠️ Solo algunas |
-| **Privacidad** | ✅ Procesamiento local | ❌ Envía datos |
-| **Gratuito** | ✅ Sin coste | ⚠️ De pago |
-| **Código visible** | ✅ Source-available en GitHub | ❌ Cerrado |
-| **Tooltips detallados** | ✅ Cada concepto | ❌ Limitado |
-| **Responsive** | ✅ Desktop + móvil | ⚠️ Solo desktop |
-
----
-
 ## Preguntas Frecuentes (FAQ)
 
 ### ¿Por qué filtra tarifas sin precio de excedentes utilizable?
@@ -1134,7 +1116,7 @@ El mes no se acepta a ciegas. `js/lf-surplus-prices.js` mide la cobertura parcia
 
 ### ¿Qué hago si mi CSV no tiene excedentes?
 
-El simulador es específico para autoconsumo con batería virtual. Si no tienes placas solares o tu CSV no incluye excedentes, usa el **comparador principal** en lugar de este simulador.
+El archivo se importa con excedentes a cero y puedes completarlos en la tabla manual. Si no tienes instalación solar ni quieres simular excedentes, el **comparador principal** es la herramienta más adecuada.
 
 ### ¿Por qué el ranking es diferente al comparador principal?
 
@@ -1200,6 +1182,6 @@ Nota para auditorias de rendimiento: el parsing CSV/XLSX grande sigue siendo una
 
 ---
 
-**Última actualización**: 16 de julio de 2026
+**Última actualización**: 23 de julio de 2026
 **Versión**: 1.2.12
 **Autor**: aLMaX / LuzFija.es

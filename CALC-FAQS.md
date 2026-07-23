@@ -221,7 +221,7 @@ Si el usuario sube un año completo enero-diciembre y elige junio como mes de in
 jun → jul → ago → sep → oct → nov → dic → ene → feb → mar → abr → may
 ```
 
-Los datos de enero siguen siendo los datos de enero del CSV. En la simulación representan el siguiente enero del patrón anual, porque la BV depende del saldo acumulado en meses anteriores. Por eso el año concreto no debe interpretarse como cronología histórica literal en el desglose rotado.
+Los datos de enero siguen siendo los datos de enero del CSV. En la simulación representan el siguiente enero del patrón anual, porque la BV depende del saldo acumulado en meses anteriores. Su clave `YYYY-MM` se incrementa al año siguiente para que las reglas fiscales se apliquen en orden cronológico; no se inventan nuevos kWh ni excedentes.
 
 ---
 
@@ -306,8 +306,8 @@ if (esFestivoNacional(fecha) || esFinDeSemana(fecha)) {
 
 // PASO 2: Clasificar por hora según zona
 const horasPunta = esCeutaMelilla
-  ? [11,12,13,14,19,20,21,22]  // Ceuta/Melilla: +1h desplazado
-  : [10,11,12,13,18,19,20,21]; // Península/Canarias
+  ? [11,12,13,14,19,20,21,22]  // Horario específico de la Circular 3/2020
+  : [10,11,12,13,18,19,20,21]; // Península/Baleares/Canarias
 
 const horasValle = [0,1,2,3,4,5,6,7]; // Todas las zonas iguales
 
@@ -320,8 +320,8 @@ return 'P2'; // Resto = Llano
 
 | Zona | P1 (Punta) | P2 (Llano) | P3 (Valle) | Festivos |
 |------|-----------|----------|----------|----------|
-| Península/Canarias | 10-14, 18-22 | 8-10, 14-18, 22-0 | 0-8 | Todo P3 |
-| Ceuta/Melilla | 11-15, 19-23 | 9-11, 15-19, 23-1 | 1-9 | Todo P3 |
+| Península/Baleares/Canarias | 10-14, 18-22 | 8-10, 14-18, 22-24 | 0-8 | Todo P3 |
+| Ceuta/Melilla | 11-15, 19-23 | 8-11, 15-19, 23-24 | 0-8 | Todo P3 |
 
 **Validación**: Alineado con CNMC Circular 3/2020, BOE-A-2020-1066.
 
@@ -331,13 +331,9 @@ return 'P2'; // Resto = Llano
 
 **Respuesta**: Porque CNMC excluye los festivos móviles.
 
-**Normativa** (CNMC Circular 3/2020, BOE-A-2020-1066):
-```
-"Se aplicará todo el día periodo 3 (valle) a los días
-de carácter fijo (según Anexo I del RD 2822/1998)"
-```
+**Normativa**: La Circular 3/2020 (BOE-A-2020-1066) considera P3 todo el sábado, domingo, 6 de enero y festivo nacional, pero excluye los festivos sustituibles y los que no tienen fecha fija.
 
-**El Anexo I solo incluye** festivos de fecha FIJA:
+**La implementación mantiene estas fechas fijas**:
 - 1 enero
 - 6 enero
 - 1 mayo
@@ -369,23 +365,18 @@ const FESTIVOS_FIJOS = new Set([
 
 ## Zonas Geográficas
 
-### ¿Por qué Ceuta/Melilla tienen periodos horarios desplazados +1h?
+### ¿Por qué Ceuta/Melilla tienen periodos horarios distintos?
 
-**Respuesta**: Por diferencia de zona horaria.
-
-- Península/Canarias: UTC+1 (hora central)
-- Ceuta/Melilla: UTC+1 (pero próximas a Marruecos, UTC+0)
-
-El operador local (empresa marroquí) usa horas locales, por eso los periodos se desplazan.
+**Respuesta**: Porque la Circular 3/2020 define expresamente para Ceuta y Melilla un horario 2.0TD distinto al de Península, Baleares y Canarias. No se debe atribuir a una diferencia de huso horario: Ceuta, Melilla y la Península usan `Europe/Madrid`.
 
 **Implementación**:
 ```javascript
 const horasPunta = esCeutaMelilla
-  ? [11,12,13,14,19,20,21,22]  // +1 desplazado
-  : [10,11,12,13,18,19,20,21]; // Standard
+  ? [11,12,13,14,19,20,21,22]  // Horario específico CNMC
+  : [10,11,12,13,18,19,20,21];
 ```
 
-**Validación**: CNMC Circular 3/2020.
+**Validación**: artículo 7.3 de la CNMC Circular 3/2020.
 
 ---
 
@@ -464,7 +455,7 @@ if (tipoImpuesto === 'IGIC') {
 
 ### ✅ Antes de reportar un bug:
 
-- [ ] ¿Validé contra CNMC Simulador oficial (v2.1.2)?
+- [ ] ¿Validé contra CNMC Simulador oficial cuando el caso está cubierto por su versión vigente?
 - [ ] ¿Rastré todo el flujo (entrada → salida)?
 - [ ] ¿Probé con ejemplos numéricos concretos?
 - [ ] ¿Leí los comentarios `⚠️ CRÍTICO` en el código?
@@ -477,5 +468,5 @@ Si respondiste "no" a cualquiera, probablemente estés cometiendo un falso posit
 
 ---
 
-**Última actualización**: 16/07/2026
+**Última actualización**: 23/07/2026
 **Próxima revisión**: Cuando cambien normas CNMC/BOE

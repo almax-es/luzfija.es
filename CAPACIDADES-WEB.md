@@ -103,7 +103,6 @@ Si vas a hacer una auditoria tecnica, lee tambien `AUDITORIA-IA.md` antes de cla
 
 - PVPC calculado localmente desde `/data/pvpc/{geo}/{YYYY-MM}.json`.
 - Restriccion funcional: PVPC no se calcula cuando potencia contratada > 10 kW.
-- Widget rapido con precio actual, media, minimo y maximo del dia.
 - Modal horario Hoy/Manana:
 - Selector `PVPC` vs `Excedentes`.
 - Carga desde datasets estaticos (`/data/pvpc` y `/data/surplus`).
@@ -254,7 +253,7 @@ Si vas a hacer una auditoria tecnica, lee tambien `AUDITORIA-IA.md` antes de cla
 - Impuestos por zona.
 - BV (uso y acumulacion si la tarifa la soporta).
 - Mes de inicio: reordena los meses disponibles antes de simular, sin modificar consumos ni excedentes de cada mes.
-- Los meses se tratan como patron anual de consumo/produccion, no como una segunda cronologia historica. Por eso enero-mayo pueden aparecer despues de diciembre cuando el ciclo empieza en junio.
+- Los meses se tratan como patron anual de consumo/produccion. Por eso enero-mayo pueden aparecer despues de diciembre cuando el ciclo empieza en junio; sus claves `YYYY-MM` pasan al ano siguiente para conservar el orden fiscal, sin inventar energia ni meses.
 - Metricas:
 - `totalPagar`: coste facturado efectivo.
 - `totalReal`: metrica auxiliar mensual sin saldo BV previo.

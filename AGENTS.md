@@ -85,7 +85,7 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
 | `js/pvpc-stats-ui.js` | UI del observatorio (KPIs, charts, CSV de excedentes del usuario). |
 | `js/tracking.js` | GoatCounter: pageviews canonicos, eventos, opt-out, saneo de referrers. |
 | `js/aecc-banner.js` | Banner de donacion AECC (solo home, solo escritorio). |
-| `js/bv/bv-import.js` | Importacion CSV/XLSX del simulador solar (valida columna de excedentes). |
+| `js/bv/bv-import.js` | Importacion CSV/XLSX del simulador solar; detecta excedentes y, si no existen, importa el consumo con excedentes a cero. |
 | `js/bv/bv-sim-monthly.js` | Motor mensual del simulador BV (compensacion, hucha, impuestos por zona). |
 | `js/bv/bv-ui-helpers.js` | Helpers puros de UI manual (meses, saldo BV, coste neto y trazabilidad horaria). |
 | `js/bv/bv-ui.js` | UI del simulador solar (formulario, tabla manual, ranking, desglose, tooltips). |

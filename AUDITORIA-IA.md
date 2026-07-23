@@ -203,7 +203,7 @@ Antes de confirmar un hallazgo, revisa o ejecuta los tests relevantes:
 Audita LuzFija.es despues de leer AGENTS.md, AUDITORIA-IA.md y CAPACIDADES-WEB.md.
 
 No reportes como bug algo documentado como decision de implementacion o falso positivo conocido.
-Si encuentras algo que contradice una decision documentada, clasificalo como mejora, hardening o cambio de producto, no como bug.
+Si discrepas con una decision documentada pero el codigo la cumple, clasificalo como mejora, hardening o cambio de producto. Si el codigo contradice la decision documentada, puede ser un bug.
 Antes de hallazgos de fiscalidad/PVPC lee ARQUITECTURA-CALCULOS.md y CALC-FAQS.md.
 Antes de hallazgos BV/indexados lee SIMULADOR-BV.md.
 Antes de hallazgos CSP/privacidad distingue superficie sensible vs editorial.

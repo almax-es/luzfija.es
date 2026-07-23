@@ -163,7 +163,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - Dependencias autoalojadas en `vendor/`:
 - PDF.js (lazy),
 - Tesseract (lazy),
-- jsQR,
+- jsQR (lazy),
 - SheetJS/xlsx (lazy),
 - Chart.js.
 - Sin backend para calculos: todo se ejecuta en cliente.

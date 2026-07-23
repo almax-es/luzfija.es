@@ -186,7 +186,7 @@ Esta referencia y el modo horario estan documentados tambien en `JSON-SCHEMA.md`
 **Propósito**: Tarifa regulada con precios horarios
 
 **Características**:
-- ✅ Carga precios horarios de ESIOS/REE (indicador 1001)
+- ✅ Carga datasets horarios locales versionados, generados desde ESIOS/REE (indicador 1001)
 - ✅ Clasifica horas en P1/P2/P3 según CNMC
 - ✅ Con CSV y precios del periodo, cruza cada consumo con su precio horario
 - ✅ Si falta como máximo el 10% de horas y el 10% de kWh, conserva el cruce disponible y estima solo los huecos con la media P1/P2/P3 canónica
@@ -227,7 +227,7 @@ Con la rebaja temporal del RDL 7/2026 activa (22/03/2026-31/05/2026): IEE caso 0
 **Orden mensual y mes de inicio**:
 - El motor arrastra la BV siguiendo el orden del array `months` recibido.
 - La UI del simulador puede rotar ese array para modelar un contrato iniciado en un mes concreto.
-- Esa rotación trata los datos como patrón anual: no altera los kWh/excedentes de cada mes ni genera fechas futuras reales.
+- Esa rotación trata los datos como patrón anual: no altera los kWh/excedentes ni inventa meses. A los meses que pasan detrás de diciembre les asigna una clave `YYYY-MM` del año siguiente para mantener ascendente la cronología fiscal.
 
 **Punto crítico en `bv-sim-monthly.js`** (`hasBV` se define antes de aplicar la BV):
 ```javascript
@@ -261,7 +261,7 @@ const totalReal = totalBaseConCosteBV - (hasBV ? excedenteSobranteEur : 0);
 
 ### 📜 Normativa (RD 897/2017)
 
-**Tipos de Bono Social vigentes a 12/04/2026 (RDL 7/2026, con carácter excepcional para 2026)**:
+**Tipos de Bono Social vigentes a 23/07/2026 (RDL 7/2026, con carácter excepcional para 2026)**:
 - Vulnerable: **42,5%** descuento
 - Severo: **57,5%** descuento
 
@@ -271,8 +271,9 @@ const totalReal = totalBaseConCosteBV - (hasBV ? excedenteSobranteEur : 0);
 - Vulnerable: 1.587 kWh/año
 - Otros: Varían según tipo
 
-**Financiación anual (Orden TED/1524/2025)**:
+**Financiación anual (Orden TED/634/2026)**:
 - 9,011295 €/año (se prorratea a días del periodo)
+- Sustituye para este valor a la Orden TED/1524/2025 y se aplica desde la liquidación 7 de 2026.
 
 ### ✅ Implementación en `lf-utils.js` (función `calcPvpcBonoSocial`)
 
@@ -417,9 +418,9 @@ const totalReal = round2(Math.max(0, totalBaseConCosteBV - (hasBV ? excedenteSob
 
 ## Validaciones CNMC
 
-### 🔍 Casos de Prueba Oficiales
+### 🔍 Casos de Prueba Y Referencias Oficiales
 
-Todos estos casos están validados contra el **Simulador Oficial CNMC v2.1.2** (28/01/2026).
+Los importes históricos identificados como CNMC se contrastaron con el **Simulador Oficial CNMC v2.1.2** (28/01/2026). Las adaptaciones regulatorias posteriores de 2026 —como los descuentos del 42,5%/57,5% y el valor actualizado de financiación— se validan contra BOE y tests del repo; no se presentan como resultados del simulador CNMC mientras esa versión no las incorpore.
 
 > ⚠️ **Nota fiscal**: Los valores de IEE en los casos siguientes corresponden a la validación de enero 2026 (IEE al 5,11%). Desde el 01/06/2026 el motor vuelve al tipo general, por lo que estos importes vuelven a ser la referencia fiscal vigente para IEE. La lógica del **orden de operaciones** (descuento BS antes de IEE) sigue siendo válida.
 
@@ -481,7 +482,7 @@ const impuestoElectrico = C.calcularIEE(baseEnergia, consumoKwh);
 
 **Validación**:
 - Caso CNMC 221 kWh: Base IEE = 44,16€, IEE = 2,26€ ✅
-- **Coincide exactamente con CNMC Simulador oficial**
+- El orden de operaciones coincide con el caso histórico de CNMC; el porcentaje de descuento vigente se valida contra el RDL 7/2026.
 
 **Por qué la auditoría falló**:
 - Encontró el cálculo de IEE de `obtenerPVPC_LOCAL` en `js/pvpc.js` (hacia la línea 709), que no resta ningún descuento
@@ -603,11 +604,12 @@ Si eres una IA revisando este código:
 - **BOE-A-2019-5089**: RD 244/2019 (Autoconsumo y compensación)
 - **BOE-A-2020-1066**: CNMC Circular 3/2020 (Periodos horarios 2.0TD)
 - **BOE-A-2017-12382**: RD 897/2017 (Bono Social)
-- **BOE-A-2025-26705**: Orden TED/1524/2025 (Financiación Bono Social 2026)
+- **BOE-A-2025-26705**: Orden TED/1524/2025 (valor inicial de financiación del Bono Social 2026)
+- **BOE-A-2026-13759**: Orden TED/634/2026 (valor actualizado de financiación del Bono Social 2026)
 - **CNMC Simulador**: https://www.cnmc.es/consumidores/simulador (v2.1.2, 28/01/2026)
 
 ---
 
-**Última revisión**: 16/07/2026
+**Última revisión**: 23/07/2026
 **Próxima revisión**: Cuando cambien normativas (CNMC/BOE)
 **Mantenedor**: Equipo de LuzFija.es
