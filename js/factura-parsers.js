@@ -33,11 +33,11 @@
             s = s.replace(/,/g,'');
           }
         } else if (hasComma && !hasDot){
-          // Solo coma: normalmente decimal (12,34). Si parece miles US (1,234,567) -> quitar comas.
+          // Solo coma: normalmente decimal (12,34). Si parece miles US con múltiples grupos (1,234,567) -> quitar comas.
           // Heurística: si empieza por 0, (p.ej. "0,123"), es decimal (muy común en precios/kWh)
           if (/^-?0,\d+$/.test(s)) {
             s = s.replace(',', '.');
-          } else if (/^-?\d{1,3}(,\d{3})+$/.test(s)) {
+          } else if (/^-?\d{1,3}(,\d{3}){2,}$/.test(s)) {
             s = s.replace(/,/g,'');
           } else {
             s = s.replace(',', '.');

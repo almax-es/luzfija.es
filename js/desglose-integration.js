@@ -54,7 +54,7 @@
         s = s.slice(0, i).replace(new RegExp('\\' + decimalSep, 'g'), '') + '.' + s.slice(i + 1);
       }
     } else if (hasComma) {
-      if (/^\d{1,3}(,\d{3})+$/.test(s)) s = s.replace(/,/g, '');
+      if (/^-?\d{1,3}(,\d{3}){2,}$/.test(s)) s = s.replace(/,/g, '');
       else {
         const i = s.lastIndexOf(',');
         s = s.slice(0, i).replace(/,/g, '') + '.' + s.slice(i + 1);

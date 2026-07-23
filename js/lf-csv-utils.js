@@ -929,14 +929,6 @@
       const kwh = Math.max(importKwh - exportKwh, 0);
       const excedente = Math.max(exportKwh - importKwh, 0);
 
-      if (kwh > threshold && excedente > threshold) {
-        throw buildHeaderError(
-          'Se detectaron importación y excedentes simultáneos tras el neteo horario.',
-          headersNorm,
-          { separator }
-        );
-      }
-
       let esReal = true;
       if (mapping.realEstimadoIdx !== null) {
         const estado = String(row[mapping.realEstimadoIdx] ?? '').trim().toLowerCase();

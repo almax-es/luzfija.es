@@ -23,6 +23,12 @@ describe('Utilidades Base (lf-utils.js)', () => {
       expect(parse("12.345,67 €")).toBe(12345.67);
     });
 
+    it('Debe interpretar adecuadamente números decimales españoles con 3 dígitos (ej. potencia 3,450 kW)', () => {
+      expect(parse("3,450")).toBe(3.45);
+      expect(parse("4,600")).toBe(4.6);
+      expect(parse("123,456")).toBe(123.456);
+    });
+
     it('Debe manejar separadores de miles y decimales (formato EN)', () => {
       expect(parse("1,234.56")).toBe(1234.56);
     });
