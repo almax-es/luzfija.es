@@ -44,6 +44,15 @@ No eleves a severidad alta algo que sea hardening, roadmap o cambio de preferenc
 - No propongas insertar `await` directamente dentro de `parseEnergyTableRows` sin redisenar API async o Web Worker.
 - `SIMULADOR-BV.md` ya recoge `Progreso de carga para CSV grandes` y `Web Worker para procesamiento en background` como roadmap.
 
+### Carga Diferida Del JavaScript De La Home
+
+- Medicion local del 23/07/2026: `index.html` carga inicialmente 28 scripts first-party, unos 651 KB sin comprimir y 176 KB con gzip. Aproximadamente 306 KB / 77 KB gzip corresponden a `lf-csv-utils.js`, importacion CSV, factura PDF, desglose y tarifa personalizada, usados solo cuando el usuario entra en esos flujos.
+- Las dependencias pesadas (`PDF.js`, `Tesseract`, `jsQR` y `SheetJS`) ya se cargan bajo demanda. El margen pendiente afecta principalmente a modulos first-party relativamente pequenos.
+- No presentes esa separacion como un `quick win` ni como bug de rendimiento sin una degradacion reproducible en datos de campo. La instrumentacion INP propia solo esta activa en modo debug; para reabrir esta decision usa CrUX/Search Console u otra telemetria de campo equivalente, no una estimacion basada unicamente en bytes.
+- La home no usa hoy un grafo de modulos ESM: sus ficheros son IIFEs que publican y consumen APIs en `window.LF`, varios desestructuran dependencias al evaluarse y `lf-app.js` espera encontrarlas disponibles al inicializar. El orden de los `<script defer>` forma parte del contrato de arranque.
+- `sw.js` instala como `CORE_ASSETS` la cadena funcional completa de la home y cancela la instalacion si falta una pieza obligatoria. Esto demuestra el requisito atomico actual, pero no prueba por si solo la causa historica de una rotura anterior.
+- Cualquier intento futuro exige primero mapear el grafo de dependencias y redisenar explicitamente el contrato de inicializacion. Despues debe cubrir carga fallida/reintento, doble inicializacion, modo offline, clientes con HTML/SW antiguo, watchdogs y estados degradados antes de medir el resultado. Es roadmap de riesgo alto, no una optimizacion local de unas etiquetas `<script>`.
+
 ### PVPC Con CSV Y Precios Faltantes
 
 - Si el usuario activa PVPC con precios del periodo importado, `pvpc.js` intenta cruce exacto hora a hora.
