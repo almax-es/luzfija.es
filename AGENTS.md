@@ -54,7 +54,7 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
 | `js/theme.js` | Guard redundante + tema temprano para entradas legacy que cargan `theme.js` antes que nada. |
 | `js/shell-lite.js` | Tema + menu para paginas sin `lf-app`/`bv-ui` (guias, landings, legal, 404). |
 | `js/lf-sw-update.js` | Registro + auto-update + guard de recarga del service worker (`window.LF.initSwUpdate`), compartido por `lf-app.js` y `shell-lite.js`. Debe cargarse antes que ellos en el HTML. |
-| `js/index-extra.js` | Scripts de la home extraidos de `index.html` (widget/modal PVPC, instalacion PWA, compartir) para cacheo y CSP. |
+| `js/index-extra.js` | Scripts de la home extraidos de `index.html` (modal PVPC, instalacion PWA, compartir) para cacheo y CSP. |
 | `js/index-extra-loader.js` | Shim de compatibilidad para clientes con SW/HTML antiguos que aun piden ese fichero; retirable cuando dejen de solicitarlo. |
 | `js/inp-debug.js` | Instrumentacion INP, solo activa con `?debug=1` o `lf_debug=1`. |
 | `js/lf-config.js` | `LF_CONFIG`: valores regulados centralizados (IVA/IGIC/IPSI, IEE, bono social, alquiler contador). |

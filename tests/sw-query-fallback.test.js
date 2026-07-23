@@ -130,4 +130,35 @@ describe('Service Worker query fallback', () => {
     expect(sw).toMatch(/client\.navigate\(client\.url\)/);
     expect(sw).toMatch(/await reloadLegacySolarClients\(keys\)/);
   });
+
+  it('mantiene existentes y coherentes los recursos declarados para precache', () => {
+    const root = path.resolve(__dirname, '..');
+    const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
+
+    const assetsBlock = sw.match(/const ASSETS = \[([\s\S]*?)\n\];/);
+    const coreBlock = sw.match(/const CORE_ASSETS = \[([\s\S]*?)\n\];/);
+    const routeGroupsBlock = sw.match(/const REQUIRED_ROUTE_GROUPS = \{([\s\S]*?)\n\};/);
+
+    expect(assetsBlock).not.toBeNull();
+    expect(coreBlock).not.toBeNull();
+    expect(routeGroupsBlock).not.toBeNull();
+
+    const extractPaths = (block) => [...block.matchAll(/"([^"]+)"/g)].map((match) => match[1]);
+    const assets = extractPaths(assetsBlock[1]);
+    const coreAssets = extractPaths(coreBlock[1]);
+    const routeAssets = extractPaths(routeGroupsBlock[1]);
+    const assetSet = new Set(assets);
+
+    const missingFiles = assets.filter((asset) => {
+      const cleanAsset = asset.split(/[?#]/, 1)[0];
+      const resolved = path.resolve(root, cleanAsset);
+      return !resolved.startsWith(root) || !fs.existsSync(resolved);
+    });
+    const coreOutsideAssets = coreAssets.filter((asset) => !assetSet.has(asset));
+    const routeOutsideAssets = routeAssets.filter((asset) => !assetSet.has(asset));
+
+    expect(missingFiles, `Recursos de ASSETS inexistentes:\n${missingFiles.join('\n')}`).toEqual([]);
+    expect(coreOutsideAssets, `CORE_ASSETS fuera de ASSETS:\n${coreOutsideAssets.join('\n')}`).toEqual([]);
+    expect(routeOutsideAssets, `Recursos de rutas fuera de ASSETS:\n${routeOutsideAssets.join('\n')}`).toEqual([]);
+  });
 });

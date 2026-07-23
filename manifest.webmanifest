@@ -90,38 +90,9 @@
       ]
     }
   ],
-  "share_target": {
-    "action": "/",
-    "method": "GET",
-    "enctype": "application/x-www-form-urlencoded",
-    "params": {
-      "title": "title",
-      "text": "text",
-      "url": "url"
-    }
-  },
   "launch_handler": {
     "client_mode": "navigate-existing"
   },
-  "protocol_handlers": [
-    {
-      "protocol": "web+luzfija",
-      "url": "/?protocol=%s"
-    }
-  ],
-  "file_handlers": [
-    {
-      "action": "/",
-      "accept": {
-        "application/pdf": [
-          ".pdf"
-        ],
-        "text/csv": [
-          ".csv"
-        ]
-      }
-    }
-  ],
   "display_override": [
     "window-controls-overlay",
     "standalone"

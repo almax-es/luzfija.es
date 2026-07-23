@@ -13,23 +13,8 @@ function okJson(data) {
 }
 
 describe('index-extra PVPC month cache', () => {
-  // El módulo cuelga listeners anónimos de window/document en cada import;
-  // hay que desmontarlos entre tests para que un dispatch no dispare instancias previas.
-  let boundListeners = [];
-
   beforeEach(() => {
     vi.resetModules();
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-04-22T12:00:00Z'));
-
-    boundListeners = [];
-    [window, document].forEach((target) => {
-      const original = target.addEventListener.bind(target);
-      vi.spyOn(target, 'addEventListener').mockImplementation((type, handler, opts) => {
-        boundListeners.push([target, type, handler, opts]);
-        return original(type, handler, opts);
-      });
-    });
 
     document.body.innerHTML = `
       <select id="zonaFiscal">
@@ -37,37 +22,20 @@ describe('index-extra PVPC month cache', () => {
         <option value="Canarias">Canarias</option>
         <option value="CeutaMelilla">Ceuta y Melilla</option>
       </select>
-      <div id="pvpcInline" hidden>
-        <span id="pvpcNow"></span>
-        <span id="pvpcAvg"></span>
-        <span id="pvpcMin"></span>
-        <span id="pvpcMax"></span>
-        <span id="pvpcNowHour"></span>
-        <span id="pvpcMinHour"></span>
-        <span id="pvpcMaxHour"></span>
-      </div>
     `;
 
     localStorage.clear();
     delete window.LF;
-    delete window.__LF_indexExtraPvpcInlineRefreshBound;
   });
 
   afterEach(() => {
-    boundListeners.forEach(([target, type, handler, opts]) => target.removeEventListener(type, handler, opts));
-    boundListeners = [];
-    vi.useRealTimers();
     vi.restoreAllMocks();
     document.body.innerHTML = '';
     localStorage.clear();
     delete window.LF;
-    delete window.__LF_indexExtraPvpcInlineRefreshBound;
   });
 
-  it('purga la promesa rechazada: un fallo transitorio no deja el widget muerto hasta recargar', async () => {
-    vi.spyOn(console, 'error').mockImplementation(() => {});
-    document.getElementById('zonaFiscal').value = 'Península';
-
+  it('purga una promesa rechazada para permitir reintentos del modal', async () => {
     let calls = 0;
     global.fetch = vi.fn(async () => {
       calls += 1;
@@ -76,22 +44,17 @@ describe('index-extra PVPC month cache', () => {
     });
 
     await import('../js/index-extra.js');
-    await vi.runAllTimersAsync();
-
+    const helpers = window.LF.indexExtraPvpcHelpers;
+    const ctx = { geo: 8741, tz: 'Europe/Madrid' };
+    await expect(helpers.fetchDay('2026-04-22', ctx)).rejects.toThrow('network down');
     expect(global.fetch).toHaveBeenCalledTimes(1);
-    expect(document.getElementById('pvpcInline').hidden).toBe(true);
 
-    // Al volver el foco se reintenta y, con la entrada fallida purgada, refetchea y se recupera
-    window.dispatchEvent(new Event('focus'));
-    await vi.runAllTimersAsync();
-
+    const day = await helpers.fetchDay('2026-04-22', ctx);
     expect(global.fetch).toHaveBeenCalledTimes(2);
-    expect(document.getElementById('pvpcInline').hidden).toBe(false);
+    expect(day.entries).toHaveLength(24);
   });
 
-  it('refetchea el mes cacheado cuando el día pedido aún no existía (pestaña que cruza la medianoche)', async () => {
-    document.getElementById('zonaFiscal').value = 'Península';
-
+  it('refetchea el mes cacheado cuando el día pedido aún no existía', async () => {
     const monthDay22 = { days: { '2026-04-22': buildDayPairs('2026-04-22') } };
     const monthBothDays = {
       days: {
@@ -107,19 +70,14 @@ describe('index-extra PVPC month cache', () => {
     });
 
     await import('../js/index-extra.js');
-    await vi.runAllTimersAsync();
-
+    const helpers = window.LF.indexExtraPvpcHelpers;
+    const ctx = { geo: 8741, tz: 'Europe/Madrid' };
+    await helpers.fetchDay('2026-04-22', ctx);
     expect(global.fetch).toHaveBeenCalledTimes(1);
-    expect(document.getElementById('pvpcInline').hidden).toBe(false);
 
-    // Amanece el día 23: la clave diaria cambia, el mes cacheado no tiene el día → refetch
-    vi.setSystemTime(new Date('2026-04-23T10:00:00Z'));
-    window.dispatchEvent(new Event('focus'));
-    await vi.runAllTimersAsync();
-
+    const day23 = await helpers.fetchDay('2026-04-23', ctx);
     expect(global.fetch).toHaveBeenCalledTimes(2);
-    expect(document.getElementById('pvpcInline').hidden).toBe(false);
-    expect(document.getElementById('pvpcMin').textContent).toContain('0.500');
+    expect(day23.entries.every((entry) => entry.price === 0.5)).toBe(true);
   });
 
   it('precios de mañana: un solo refetch si aún no están publicados, y aparecen cuando el dataset se actualiza', async () => {
@@ -137,11 +95,10 @@ describe('index-extra PVPC month cache', () => {
     global.fetch = vi.fn(async () => okJson(publicado ? monthBothDays : monthDay22));
 
     await import('../js/index-extra.js');
-    await vi.runAllTimersAsync();
-    expect(global.fetch).toHaveBeenCalledTimes(1);
-
     const helpers = window.LF.indexExtraPvpcHelpers;
     const ctx = { geo: 8741, tz: 'Europe/Madrid' };
+    await helpers.fetchDay('2026-04-22', ctx);
+    expect(global.fetch).toHaveBeenCalledTimes(1);
 
     // Mañana aún no publicado: exactamente un refetch y error controlado, sin bucle
     await expect(helpers.fetchDay('2026-04-23', ctx)).rejects.toThrow('Sin datos');

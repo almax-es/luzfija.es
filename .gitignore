@@ -1,6 +1,8 @@
 # Claude Code configuration
 .claude/
 settings.local.json
+.agents/
+.antigravitycli/
 
 # Node modules
 node_modules/

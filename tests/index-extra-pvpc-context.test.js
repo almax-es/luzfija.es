@@ -12,11 +12,9 @@ function okJson(data) {
   };
 }
 
-describe('index-extra PVPC quick views', () => {
+describe('index-extra PVPC modal context', () => {
   beforeEach(() => {
     vi.resetModules();
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-04-22T12:00:00Z'));
 
     document.body.innerHTML = `
       <select id="zonaFiscal">
@@ -24,29 +22,17 @@ describe('index-extra PVPC quick views', () => {
         <option value="Canarias">Canarias</option>
         <option value="CeutaMelilla">Ceuta y Melilla</option>
       </select>
-      <div id="pvpcInline" hidden>
-        <span id="pvpcNow"></span>
-        <span id="pvpcAvg"></span>
-        <span id="pvpcMin"></span>
-        <span id="pvpcMax"></span>
-        <span id="pvpcNowHour"></span>
-        <span id="pvpcMinHour"></span>
-        <span id="pvpcMaxHour"></span>
-      </div>
     `;
 
     localStorage.clear();
     delete window.LF;
-    delete window.__LF_indexExtraPvpcInlineRefreshBound;
   });
 
   afterEach(() => {
-    vi.useRealTimers();
     vi.restoreAllMocks();
     document.body.innerHTML = '';
     localStorage.clear();
     delete window.LF;
-    delete window.__LF_indexExtraPvpcInlineRefreshBound;
   });
 
   it('prioriza la zona visible del formulario sobre el último localStorage guardado', async () => {
@@ -62,55 +48,17 @@ describe('index-extra PVPC quick views', () => {
     });
 
     await import('../js/index-extra.js');
-    await vi.runAllTimersAsync();
 
     const helpers = window.LF?.indexExtraPvpcHelpers;
     expect(helpers).toBeTruthy();
     expect(helpers.getUserContext()).toEqual({ geo: 8742, tz: 'Atlantic/Canary' });
+    await helpers.fetchDay('2026-04-22', helpers.getUserContext());
     expect(global.fetch).toHaveBeenCalledWith('/data/pvpc/8742/2026-04.json', { cache: 'no-cache' });
   });
 
-  it('refresca la tarjeta inline cuando cambia zonaFiscal sin esperar a guardar el cálculo', async () => {
-    localStorage.setItem('almax_comparador_v6_inputs', JSON.stringify({ zonaFiscal: 'Península' }));
-    document.getElementById('zonaFiscal').value = 'Península';
-
-    const fetchSpy = vi.fn(async (url) => {
-      const u = String(url);
-      if (u.endsWith('/data/pvpc/8741/2026-04.json')) {
-        return okJson({ days: { '2026-04-22': buildDayPairs('2026-04-22') } });
-      }
-      if (u.endsWith('/data/pvpc/8742/2026-04.json')) {
-        return okJson({ days: { '2026-04-22': buildDayPairs('2026-04-22') } });
-      }
-      throw new Error(`Unexpected fetch: ${u}`);
-    });
-    global.fetch = fetchSpy;
-
-    await import('../js/index-extra.js');
-    await vi.runAllTimersAsync();
-
-    expect(fetchSpy).toHaveBeenCalledWith('/data/pvpc/8741/2026-04.json', { cache: 'no-cache' });
-    expect(document.getElementById('pvpcInline').hidden).toBe(false);
-
-    document.getElementById('zonaFiscal').value = 'Canarias';
-    document.getElementById('zonaFiscal').dispatchEvent(new Event('change', { bubbles: true }));
-    await vi.runAllTimersAsync();
-
-    expect(fetchSpy).toHaveBeenCalledWith('/data/pvpc/8742/2026-04.json', { cache: 'no-cache' });
-  });
-
   it('genera una key distinta cuando cambia la zona o cambia el día', async () => {
-    global.fetch = vi.fn(async (url) => {
-      const u = String(url);
-      if (u.endsWith('/data/pvpc/8741/2026-04.json')) {
-        return okJson({ days: { '2026-04-22': buildDayPairs('2026-04-22') } });
-      }
-      throw new Error(`Unexpected fetch: ${u}`);
-    });
-
     document.getElementById('zonaFiscal').value = 'Península';
     await import('../js/index-extra.js');
-    await vi.runAllTimersAsync();
 
     const helpers = window.LF.indexExtraPvpcHelpers;
     const baseDate = new Date('2026-04-22T12:00:00Z');
