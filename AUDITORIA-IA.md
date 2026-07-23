@@ -1,6 +1,6 @@
 # Guia Para Auditorias IA De LuzFija.es
 
-Ultima actualizacion: 2026-07-22
+Ultima actualizacion: 2026-07-23
 
 Este documento existe para reducir falsos positivos en auditorias repetidas. No sustituye a `AGENTS.md` ni a `CAPACIDADES-WEB.md`; los complementa con criterios de clasificacion.
 
@@ -33,8 +33,9 @@ No eleves a severidad alta algo que sea hardening, roadmap o cambio de preferenc
 
 ### CSP Y Trusted Types
 
-- Las superficies sensibles usan CSP por pagina con `script-src` basado en hashes.
-- Las guias, paginas legales, 404 y paginas editoriales no procesan facturas, CSV ni datos sensibles; una CSP mas estricta ahi es hardening general, no hallazgo prioritario de privacidad.
+- Las superficies sensibles usan CSP por pagina con `script-src` basado en hashes. La unica pagina que procesa datos externos del usuario (factura PDF/OCR) es `index.html`, y YA esta endurecida con hashes. La superficie con riesgo real ya esta cubierta.
+- Las guias, paginas legales, 404 y paginas editoriales usan `script-src 'unsafe-inline'` por decision consciente; NO es un hallazgo. Endurecerlas a hashes no aporta seguridad porque no tienen vector de inyeccion: son HTML estatico sin input, y la unica con entrada de usuario (`guias.html`, buscador) renderiza tanto los resultados como el termino tecleado con `createElement`+`textContent`, nunca con `innerHTML` de datos (verificado el 2026-07-23; su fuente `data/guides-search-index.json` es del propio repo, mismo origen). Sin vector de XSS, una CSP estricta ahi protege contra un ataque que no puede ocurrir: es teatro, no privacidad.
+- Ademas, migrar esas paginas a hashes ANADE riesgo neto: el deploy de `?v=`/`CACHE_VERSION` es manual (un `.bat` local), asi que un hash desincronizado del build rompe una pagina en produccion sin que ningun test local lo detecte. No lo propongas como mejora "de minimo coste": cambia cero seguridad por un modo nuevo de romper produccion.
 - `require-trusted-types-for 'script'` no esta activado por decision consciente: requiere migrar/auditar usos legitimos de `innerHTML`. Clasificalo como hardening futuro, no bug.
 - Si recalculas los sha256 de la CSP veras hashes declarados que no coinciden con ningun `<script>` ejecutable: son los bloques `application/ld+json`. El script de deploy hashea todos los inline por uniformidad, incluidos los JSON-LD que no ejecutan. Es inerte y deliberado; verificado computacionalmente el 2026-07-09 que todos los scripts ejecutables SI estan cubiertos. No lo reportes como hash roto ni como script bloqueado.
 
@@ -64,6 +65,13 @@ No eleves a severidad alta algo que sea hardening, roadmap o cambio de preferenc
   - kWh de excedente sin valorar.
 - Si la cobertura perdida no es residual, ese mes cae a referencia orientativa con aviso.
 - Los tests cubren missing por horas, missing por kWh, borde exacto del umbral y precios negativos.
+
+### `tarifas.json` No Lleva Test De Esquema En El Repo (Deliberado)
+
+- `tarifas.json` es el unico dataset SIN test de integridad en `tests/`, a diferencia de PVPC/surplus (`pvpc-dataset-integrity.test.js`) y SSAA (`ssaa-dataset.test.js`). NO lo reportes como carencia.
+- La diferencia es legitima por origen: PVPC/surplus/SSAA los genera un script del repo en CI, sin humano en el bucle, por eso necesitan red de seguridad en el repo. `tarifas.json` NO se edita a mano ni lo genera CI: lo produce una herramienta de escritorio del autor ("Actualizador de JSON") a partir de una Excel privada.
+- Ademas el autor pasa a diario, varias veces, sus propios validadores de escritorio ("Validador tarifas", "Validador excedentes") que ya le han avisado de errores reales. Esa es la red de seguridad, y es MAS efectiva que un test de repo: sus validadores corren cuando trabaja los datos (cuando puede colarse el error), mientras que un test en `tests/` solo correria en CI al commitear, tarde y redundante.
+- Cualquier validacion de esquema de tarifas pertenece a esas herramientas externas, no a este repo. Decision FIRME (23/07/2026); no re-proponer `tests/tarifas-dataset.test.js`.
 
 ### Ranking Del Simulador Solar/BV
 
