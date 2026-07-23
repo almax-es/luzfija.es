@@ -3,6 +3,12 @@ import fs from 'fs';
 import path from 'path';
 import crypto from 'crypto';
 
+const FILE_PROCESSING_PAGES = [
+  'index.html',
+  'comparador-tarifas-solares.html',
+  'estadisticas/index.html'
+];
+
 function walkHtmlFiles(dir) {
   const out = [];
   const entries = fs.readdirSync(dir, { withFileTypes: true });
@@ -50,6 +56,28 @@ describe('CSP inline script hashes', () => {
       .map((file) => path.relative(root, file).replace(/\\/g, '/'));
 
     expect(pagesWithWasmEval).toEqual(['index.html']);
+  });
+
+  it('keeps file-processing pages on strict hashed script-src policies', () => {
+    const root = path.resolve(__dirname, '..');
+    const violations = [];
+
+    for (const relativePath of FILE_PROCESSING_PAGES) {
+      const html = fs.readFileSync(path.join(root, relativePath), 'utf8');
+      const csp = getCspContent(html);
+      const scriptSrc = getScriptSrcDirective(csp);
+
+      if (!csp) violations.push(`${relativePath}: missing CSP`);
+      if (!scriptSrc) violations.push(`${relativePath}: missing script-src`);
+      if (scriptSrc.includes("'unsafe-inline'")) {
+        violations.push(`${relativePath}: script-src allows unsafe-inline`);
+      }
+      if (!/'sha256-[^']+'/.test(scriptSrc)) {
+        violations.push(`${relativePath}: script-src has no sha256 hash`);
+      }
+    }
+
+    expect(violations).toEqual([]);
   });
 
   it('strict script-src pages keep CSP hashes aligned with inline scripts', () => {
