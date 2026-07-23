@@ -379,6 +379,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Esluz Fija 24h",
+      "cPunta": 0.115,
+      "cLlano": 0.115,
+      "cValle": 0.115,
+      "p1": 0.113,
+      "p2": 0.031,
+      "web": "https://esluz.es/tarifas-electricidad-hogares/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Niba Zen",
       "cPunta": 0.115,
       "cLlano": 0.115,
@@ -2040,5 +2060,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-07-23T20:00:57.095Z"
+  "updatedAt": "2026-07-23T20:16:54.238Z"
 }
