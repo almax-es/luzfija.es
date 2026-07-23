@@ -433,6 +433,58 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     expect(pvpc.esMejor).toBe(false);
   });
 
+  it('Marca como no computable un PVPC sin metaPvpc en vez de aproximarlo como mercado libre', async () => {
+    window.LF.cachedTarifas = [
+      {
+        nombre: 'PVPC incompleto',
+        tipo: 'PVPC',
+        esPVPC: true,
+        p1: 0.01,
+        p2: 0.01,
+        cPunta: 0.01,
+        cLlano: 0.01,
+        cValle: 0.01
+      },
+      {
+        nombre: 'Mercado libre válido',
+        tipo: '1P',
+        esPVPC: false,
+        p1: 0.1,
+        p2: 0.1,
+        cPunta: 0.1,
+        cLlano: 0.1,
+        cValle: 0.1
+      }
+    ];
+
+    await window.LF.calculateLocal({
+      p1: 4,
+      p2: 4,
+      dias: 30,
+      cPunta: 100,
+      cLlano: 0,
+      cValle: 0,
+      zonaFiscal: 'Península',
+      viviendaCanarias: false,
+      solarOn: false,
+      exTotal: 0,
+      bvSaldo: 0,
+      bonoSocialOn: true,
+      bonoSocialTipo: 'severo',
+      bonoSocialLimite: 9999,
+      fechaYmd: '2026-03-21'
+    });
+
+    const pvpc = window.LF.state.rows.find((row) => row.nombre === 'PVPC incompleto');
+    expect(pvpc.pvpcNotComputable).toBe(true);
+    expect(pvpc.pvpcNotComputableReason).toContain('faltan los metadatos');
+    expect(pvpc.total).toBe('—');
+    expect(pvpc.totalNum).toBe(Number.POSITIVE_INFINITY);
+    expect(pvpc.bonoSocialDescuentoEur).toBeUndefined();
+    expect(pvpc.esMejor).toBe(false);
+    expect(window.LF.state.rows[0].nombre).toBe('Mercado libre válido');
+  });
+
   it('Aplica bono social en PVPC desde calculateLocal()', async () => {
     window.LF.cachedTarifas = [{
       nombre: 'PVPC',

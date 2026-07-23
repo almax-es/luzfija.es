@@ -473,10 +473,11 @@
      */
     getBonoSocialDiscountRate: function(tipo = 'vulnerable') {
       const key = String(tipo || 'vulnerable').toLowerCase() === 'severo' ? 'severo' : 'vulnerable';
-      const descuentos = this.bonoSocial?.descuentos2026 || {};
-      return Number.isFinite(Number(descuentos[key]))
-        ? Number(descuentos[key])
-        : (key === 'severo' ? 0.575 : 0.425);
+      const rate = Number(this.bonoSocial?.descuentos2026?.[key]);
+      if (!Number.isFinite(rate)) {
+        throw new Error(`[LF_CONFIG] Falta el descuento regulado del bono social para "${key}"`);
+      }
+      return rate;
     },
 
     /**

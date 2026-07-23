@@ -319,9 +319,13 @@
     // Parámetros bono social (UI): tipo (% descuento) + límite anual (kWh)
     const bonoSocialOn = !!i.bonoSocialOn;
     const tipo = String(i.bonoSocialTipo || 'vulnerable');
-    const porcentaje = C.getBonoSocialDiscountRate
-      ? C.getBonoSocialDiscountRate(tipo)
-      : (tipo === 'severo' ? 0.575 : 0.425); // RDL 7/2026 vigente durante 2026
+    if (typeof C.getBonoSocialDiscountRate !== 'function') {
+      throw new Error('[PVPC] LF_CONFIG.getBonoSocialDiscountRate no está disponible');
+    }
+    const porcentaje = Number(C.getBonoSocialDiscountRate(tipo));
+    if (!Number.isFinite(porcentaje)) {
+      throw new Error(`[PVPC] Descuento del bono social inválido para "${tipo}"`);
+    }
     const limiteAnual = Number(i.bonoSocialLimite || 0);
     const limitePeriodo = limiteAnual > 0 ? (limiteAnual / 365) * dias : 0;
     // En el comparador no estimamos arrastres de kWh bonificables entre facturas (la CNMC tampoco lo permite en su simulador).

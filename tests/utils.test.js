@@ -155,6 +155,21 @@ describe('Utilidades Base (lf-utils.js)', () => {
       expect(res.meta.usoFiscal).toBe('vivienda');
       expect(res.meta.iva).toBe(0); // Vivienda en Canarias no paga IGIC energía
     });
+
+    it('Falla de forma explícita si no está disponible la configuración regulada del descuento', () => {
+      const meta = { terminoFijo: 10, terminoVariable: 20, bonoSocial: 1 };
+      const inputs = {
+        bonoSocialOn: true,
+        bonoSocialTipo: 'vulnerable',
+        bonoSocialLimite: 10000,
+        dias: 30,
+        cPunta: 100,
+        cLlano: 0,
+        cValle: 0
+      };
+
+      expect(() => calc(meta, inputs, {})).toThrow(/getBonoSocialDiscountRate/);
+    });
   });
 
 });

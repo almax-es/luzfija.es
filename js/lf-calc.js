@@ -82,23 +82,6 @@
       ? await window.LF.ssaa.loadDataset()
       : null;
 
-    // Bono Social: Preparar cálculo de descuento para PVPC
-    // Nota: bonoSocialLimite es ANUAL en kWh (1.587, 2.222, 2.698, o 4.761)
-    const bonoSocialDesc = {
-      enabled: bonoSocialOn,
-      tipo: bonoSocialTipo,
-      porcentaje: CFG.getBonoSocialDiscountRate
-        ? CFG.getBonoSocialDiscountRate(bonoSocialTipo)
-        : (bonoSocialTipo === 'severo' ? 0.575 : 0.425), // RDL 7/2026 vigente durante 2026
-      anualKwh: bonoSocialLimite,
-      periodico: (bonoSocialLimite / 365) * dias,  // Límite en el período de facturación
-      disponible: (bonoSocialLimite / 365) * dias,
-      consumoTotal: cPunta + cLlano + cValle
-    };
-    bonoSocialDesc.descuentoKwh = Math.min(bonoSocialDesc.consumoTotal, bonoSocialDesc.disponible);
-    bonoSocialDesc.sobrante = 0; // No estimamos arrastre de kWh bonificables en el comparador
-
-
     // ═══════════════════════════════════════════════════════════════════════════════
     // OPTIMIZACIÓN INP (Interaction to Next Paint): Evitar bloqueo del main thread
     // ═══════════════════════════════════════════════════════════════════════════════
@@ -130,9 +113,12 @@
         const fiscalBonoSocialOn = Boolean(t.esPVPC && bonoSocialOn);
         const fiscalBonoSocialTipo = fiscalBonoSocialOn ? bonoSocialTipo : '';
 
-        if (t.esPVPC && t.pvpcNotComputable) {
+        if (t.esPVPC && (t.pvpcNotComputable || !t.metaPvpc)) {
           resultados.push({
             ...t,
+            pvpcNotComputable: true,
+            pvpcNotComputableReason: t.pvpcNotComputableReason
+              || (!t.metaPvpc ? 'PVPC no disponible: faltan los metadatos del cálculo' : 'PVPC no disponible para esta configuración'),
             posicion: index + 1,
             potenciaNum: 0,
             potencia: '—',
@@ -241,17 +227,11 @@
         // Financiación del bono social: fórmula regulada centralizada en LF_CONFIG.
         const costeBonoSocial = round2(CFG.calcularBonoSocial(dias));
 
-        // Bono Social: Aplicar descuento en consumo para PVPC
-        let bonoSocialDescuento = 0;
-        let bonoSocialProximoMes = 0;
-        if (bonoSocialOn && t.esPVPC && bonoSocialDesc.consumoTotal > 0) {
-          const avgPrecioKwh = cons / bonoSocialDesc.consumoTotal;
-          const costoKwhConDescuento = round2(bonoSocialDesc.descuentoKwh * avgPrecioKwh);
-          bonoSocialDescuento = round2(costoKwhConDescuento * bonoSocialDesc.porcentaje);
-          bonoSocialProximoMes = 0;
-        }
-
-        let consAdj = bonoSocialOn && t.esPVPC ? round2(Math.max(0, cons - bonoSocialDescuento)) : cons;
+        // Esta rama solo procesa mercado libre: cualquier PVPC válido ya hizo
+        // continue con su metaPvpc y uno incompleto quedó marcado como no computable.
+        const bonoSocialDescuento = 0;
+        const bonoSocialProximoMes = 0;
+        let consAdj = cons;
         let tarifaAdj = costeBonoSocial;
         let credit1 = 0;
         let credit2 = 0;

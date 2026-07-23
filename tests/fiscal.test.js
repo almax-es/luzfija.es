@@ -210,6 +210,19 @@ describe('LF_CONFIG - Lógica Fiscal', () => {
     expect(result).toBeCloseTo(9.011295, 6);
   });
 
+  it('Bono Social: usa exclusivamente los descuentos centralizados y falla si falta uno', () => {
+    expect(window.LF_CONFIG.getBonoSocialDiscountRate('vulnerable')).toBe(
+      window.LF_CONFIG.bonoSocial.descuentos2026.vulnerable
+    );
+    expect(window.LF_CONFIG.getBonoSocialDiscountRate('severo')).toBe(
+      window.LF_CONFIG.bonoSocial.descuentos2026.severo
+    );
+
+    expect(() => window.LF_CONFIG.getBonoSocialDiscountRate.call({
+      bonoSocial: { descuentos2026: {} }
+    }, 'severo')).toThrow(/Falta el descuento regulado/);
+  });
+
   it('Guardrail: no mantiene configurada la rama temporal RDL 7/2026 retirada', () => {
     expect(window.LF_CONFIG.medidasTemporales).toBeUndefined();
   });

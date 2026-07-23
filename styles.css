@@ -1783,154 +1783,6 @@
         0 0 20px rgba(139, 92, 246, 0.3),
         0 4px 12px rgba(139, 92, 246, 0.2);
     }
-
-
-
-    /* === GUÍAS EDUCATIVAS === */
-    .guias-section {
-      margin-top: 32px;
-    }
-    
-    .guias-grid {
-      display: grid;
-      gap: 16px;
-      margin-top: 20px;
-    }
-    
-    .guia-card {
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      background: rgba(0,0,0,.14);
-      overflow: hidden;
-      transition: all 0.3s ease;
-    }
-    
-    .guia-card:hover {
-      border-color: rgba(139, 92, 246, 0.4);
-      box-shadow: 0 4px 20px rgba(139, 92, 246, 0.2);
-    }
-    
-    .guia-card summary {
-      padding: 20px;
-      cursor: pointer;
-      user-select: none;
-      display: flex;
-      align-items: center;
-      gap: 16px;
-      list-style: none;
-      transition: background 0.2s;
-    }
-    
-    .guia-card summary::-webkit-details-marker {
-      display: none;
-    }
-    
-    .guia-card summary:hover {
-      background: rgba(139, 92, 246, 0.05);
-    }
-    
-    .guia-icon {
-      font-size: 32px;
-      flex-shrink: 0;
-      width: 48px;
-      height: 48px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: linear-gradient(135deg, rgba(139,92,246,0.2), rgba(236,72,153,0.2));
-      border-radius: 12px;
-    }
-    
-    .guia-info {
-      flex: 1;
-      min-width: 0;
-    }
-    
-    .guia-title {
-      font-size: 18px;
-      font-weight: 900;
-      margin: 0 0 4px 0;
-      color: var(--text);
-    }
-    
-    .guia-desc {
-      font-size: 14px;
-      margin: 0;
-      color: var(--muted);
-    }
-    
-    .guia-toggle {
-      font-size: 24px;
-      font-weight: 700;
-      color: var(--accent);
-      flex-shrink: 0;
-      transition: transform 0.3s;
-    }
-    
-    .guia-card[open] .guia-toggle {
-      transform: rotate(45deg);
-    }
-    
-    .guia-content {
-      padding: 0 20px 24px 20px;
-      line-height: 1.7;
-      color: var(--muted);
-    }
-    
-    .guia-intro {
-      font-size: 16px;
-      font-weight: 600;
-      margin-bottom: 20px;
-      padding: 16px;
-      background: rgba(139, 92, 246, 0.1);
-      border-left: 3px solid var(--accent);
-      border-radius: 8px;
-      color: var(--text);
-    }
-    
-    .guia-content h4 {
-      font-size: 20px;
-      font-weight: 900;
-      margin: 32px 0 16px 0;
-      color: var(--text);
-    }
-    
-    .guia-content h5 {
-      font-size: 16px;
-      font-weight: 800;
-      margin: 20px 0 12px 0;
-      color: var(--text);
-    }
-    
-    .guia-content p {
-      margin: 12px 0;
-      font-size: 15px;
-    }
-    
-    .guia-content ul, .guia-content ol {
-      margin: 12px 0;
-      padding-left: 24px;
-    }
-    
-    .guia-content li {
-      margin: 8px 0;
-      font-size: 15px;
-    }
-    
-    .guia-content strong {
-      color: var(--text);
-      font-weight: 700;
-    }
-    
-    .guia-content code {
-      background: rgba(139, 92, 246, 0.15);
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-family: var(--mono);
-      font-size: 13px;
-      color: var(--accent);
-    }
-    
     .periodo-box {
       margin: 20px 0;
       padding: 16px;
@@ -1968,14 +1820,6 @@
     }
     
     /* Light mode adjustments */
-    html.light-mode .guia-card {
-      background: rgba(255,255,255,0.6);
-    }
-    
-    html.light-mode .guia-card summary:hover {
-      background: rgba(139, 92, 246, 0.05);
-    }
-    
     html.light-mode .periodo-box {
       background: rgba(139, 92, 246, 0.03);
     }
@@ -1987,28 +1831,6 @@
     
     /* Mobile optimizations */
     @media (max-width: 768px) {
-      .guia-icon {
-        width: 40px;
-        height: 40px;
-        font-size: 24px;
-      }
-      
-      .guia-title {
-        font-size: 16px;
-      }
-      
-      .guia-desc {
-        font-size: 13px;
-      }
-      
-      .guia-card summary {
-        padding: 16px;
-      }
-      
-      .guia-content {
-        padding: 0 16px 20px 16px;
-      }
-      
       .tabla-comparativa {
         font-size: 12px;
       }
