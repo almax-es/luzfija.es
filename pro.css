@@ -2,7 +2,17 @@
    LuzFija — Pro Polish Layer
    Objetivo: coherencia visual (desktop/móvil), dark/light,
    y cero desbordamientos sin romper el diseño existente.
-   Cargar SIEMPRE después de styles.css y CSS específicos.
+
+   ORDEN DE CARGA (contrato, no preferencia):
+       styles.css  →  pro.css  →  CSS específico de página
+   pro.css es la capa de corrección sobre styles.css, y el CSS
+   específico de cada aplicación (estadisticas*.css, bv-sim.css,
+   comparador-solar-mejorado.css, desglose-factura.css) es la capa
+   de identidad que va DESPUÉS de pro.css.
+   Varios solapamientos tienen especificidad idéntica, así que el
+   ganador lo decide solo el orden: invertirlo cambia el layout.
+   Detalle y casos concretos en ARRANQUE-CARGA.md (§4.4);
+   vigilado por tests/bootstrap-contract.test.js.
 
    SISTEMA DE BREAKPOINTS RECOMENDADO:
    - 480px:  Mobile pequeño

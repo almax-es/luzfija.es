@@ -17,17 +17,20 @@ Tambien es importante lo que no es: no monetiza el ranking, no vende leads y no 
 
 1. `CAPACIDADES-WEB.md`
 2. `AUDITORIA-IA.md` si vas a hacer revision, auditoria o threat modeling
-3. `README.md`
-4. `ARQUITECTURA-CALCULOS.md`
-5. `CALC-FAQS.md`
-6. `MANTENIMIENTO-NORMATIVO.md`
-7. `SIMULADOR-BV.md`
-8. `ANALITICA-GOATCOUNTER.md`
-9. `JSON-SCHEMA.md`
-10. `PVPC-SCHEMA.md`
-11. `llms.txt` y `llms-full.txt` para ver como se presenta la herramienta a asistentes externos
+3. `ARRANQUE-CARGA.md` **obligatorio antes de tocar el orden de carga**: etiquetas `<script>`, `defer`/`async`, hojas de estilo, preloads o el registro del service worker
+4. `README.md`
+5. `ARQUITECTURA-CALCULOS.md`
+6. `CALC-FAQS.md`
+7. `MANTENIMIENTO-NORMATIVO.md`
+8. `SIMULADOR-BV.md`
+9. `ANALITICA-GOATCOUNTER.md`
+10. `JSON-SCHEMA.md`
+11. `PVPC-SCHEMA.md`
+12. `llms.txt` y `llms-full.txt` para ver como se presenta la herramienta a asistentes externos
 
 `CAPACIDADES-WEB.md` es la fuente de verdad funcional. Si algo parece contradecir otra doc, parte de ahi.
+
+`ARRANQUE-CARGA.md` es la fuente de verdad del contrato de arranque. Varios modulos desestructuran sus dependencias en tiempo de evaluacion, asi que el orden de los recursos en el HTML es contrato de ejecucion, no formato. Dos de sus invariantes se rompen sin producir ningun sintoma observable (registro del service worker y cascada CSS); las vigila `tests/bootstrap-contract.test.js`.
 
 ## Mapa Rapido Del Codigo
 
