@@ -355,7 +355,7 @@ Si vas a hacer una auditoria tecnica, lee tambien `AUDITORIA-IA.md` antes de cla
 
 - Suite Vitest/JSDOM.
 - 71 archivos de test (`tests/*.test.js`).
-- 668 casos `it()/test()` en la ultima ejecucion local verificada.
+- 693 casos `it()/test()` en la ultima ejecucion local verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

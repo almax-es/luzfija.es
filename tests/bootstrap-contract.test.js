@@ -23,8 +23,9 @@ import path from 'path';
  * Por eso el orden de ejecucion de los <script> es parte del contrato.
  *
  * Estos tests vigilan RELACIONES entre ficheros, no una foto fija de la lista
- * completa de scripts, y no usan numeros de linea: mover un bloque dentro del
- * mismo documento no debe hacerlos fallar; invertir una dependencia si.
+ * completa de scripts, y no usan numeros de linea: un cambio que conserva las
+ * dependencias reales no debe hacerlos fallar; invertir una dependencia
+ * capturada en evaluacion si.
  *
  * El orden que comprueban es el de EJECUCION, no el del documento: ver
  * executionOrder() mas abajo y ARRANQUE-CARGA.md seccion 4.3.
@@ -44,6 +45,7 @@ const THEMED_PAGES = [
   '404.html',
   'aviso-legal.html',
   'calcular-factura-luz.html',
+  'como-funciona-luzfija.html',
   'comparador-tarifas-solares.html',
   'comparar-pvpc-tarifa-fija.html',
   'estadisticas/index.html',
@@ -54,6 +56,22 @@ const THEMED_PAGES = [
 
 function readPage(relativePath) {
   return fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
+}
+
+function discoverThemedPages() {
+  const roots = ['', 'estadisticas', 'guias'];
+  const pages = [];
+  for (const relativeDir of roots) {
+    const absoluteDir = path.join(ROOT, relativeDir);
+    for (const entry of fs.readdirSync(absoluteDir, { withFileTypes: true })) {
+      if (!entry.isFile() || !entry.name.endsWith('.html')) continue;
+      const relativePath = relativeDir
+        ? path.posix.join(relativeDir, entry.name)
+        : entry.name;
+      if (readPage(relativePath).includes('/js/theme.js')) pages.push(relativePath);
+    }
+  }
+  return pages.sort();
 }
 
 // Neutraliza el contenido de <noscript> conservando la longitud del documento,
@@ -131,8 +149,9 @@ function scriptPosition(scripts, assetPath) {
  *   productor con defer + consumidor sin defer -> INSEGURO SIEMPRE: el
  *     consumidor corre durante el parseo, antes que el productor diferido.
  *
- * `async` queda fuera de este modelo (su orden no es determinista) y por eso
- * esta prohibido en las tres aplicaciones; lo vigila un test aparte.
+ * `async` queda fuera de este modelo: no permite garantizar el orden entre
+ * productor y consumidor. Por eso esta prohibido en las tres aplicaciones; lo
+ * vigila un test aparte.
  */
 function executionOrder(scripts) {
   return scripts
@@ -160,13 +179,23 @@ function stylesheetPosition(sheets, assetPath) {
 }
 
 /**
- * Pares productor -> consumidor con acoplamiento real, por pagina.
+ * Pares productor -> consumidor que se leen en tiempo de EVALUACION.
+ * Para estos pares el orden real de ejecucion es una necesidad tecnica.
  * `rompe` describe la funcionalidad que se pierde si se invierte el orden.
  */
-const DEPENDENCY_PAIRS = {
+const EAGER_DEPENDENCY_PAIRS = {
   [HOME]: [
     ['js/lf-config.js', 'js/lf-calc.js',
       'window.LF_CONFIG: IVA/IGIC/IPSI, IEE y bono social del motor de calculo'],
+    ['js/lf-config.js', 'js/pvpc.js',
+      'window.LF_CONFIG.round2: redondeo monetario PVPC capturado en evaluacion; ' +
+      'el fallback no aplica Number.EPSILON'],
+    ['js/lf-config.js', 'js/desglose-calculo.js',
+      'window.LF_CONFIG.round2: redondeo del calculo de desglose capturado en ' +
+      'evaluacion; el fallback no aplica Number.EPSILON'],
+    ['js/lf-config.js', 'js/desglose-render.js',
+      'window.LF_CONFIG.round2: redondeo del render de desglose capturado en ' +
+      'evaluacion; el fallback no aplica Number.EPSILON'],
     ['js/lf-utils.js', 'js/lf-inputs.js',
       'parseNum/clampNonNeg/formatValueForDisplay: validacion y formato del formulario'],
     ['js/lf-utils.js', 'js/lf-calc.js',
@@ -175,6 +204,8 @@ const DEPENDENCY_PAIRS = {
       'escapeHtml/formatMoney/animateCounter: tabla de resultados y KPIs'],
     ['js/lf-utils.js', 'js/lf-tarifa-custom.js',
       'parseNum/esNumericoValido: tarifa personalizada "Mi tarifa"'],
+    ['js/lf-utils.js', 'js/lf-csv-import.js',
+      'round2: agregados y resumen del importador CSV/XLSX'],
     ['js/lf-state.js', 'js/lf-ui.js',
       'el/state/THEME_KEY: toast, barra de estado y tema'],
     ['js/lf-state.js', 'js/lf-tooltips.js',
@@ -185,6 +216,8 @@ const DEPENDENCY_PAIRS = {
       'el/state/DEFAULTS/LS_KEY: carga y guardado de inputs'],
     ['js/lf-state.js', 'js/lf-render.js',
       'el/state/$: render de la tabla de resultados'],
+    ['js/lf-state.js', 'js/lf-tarifa-custom.js',
+      '$: referencias DOM de la tarifa personalizada "Mi tarifa"'],
     ['js/lf-csv-utils.js', 'js/lf-csv-import.js',
       'window.LF.csvUtils: importacion CSV/XLSX de la home'],
     ['js/lf-ui.js', 'js/lf-cache.js',
@@ -195,6 +228,8 @@ const DEPENDENCY_PAIRS = {
       'toast: avisos del importador CSV'],
     ['js/lf-ui.js', 'js/lf-tarifa-custom.js',
       'toast/showError: validacion de "Mi tarifa"'],
+    ['js/lf-ui.js', 'js/lf-render.js',
+      'setStatus: estado durante el render de resultados'],
     ['js/lf-tooltips.js', 'js/lf-render.js',
       'initTooltips/bindTooltipElement: tooltips de la tabla'],
     ['js/lf-inputs.js', 'js/lf-calc.js',
@@ -203,40 +238,77 @@ const DEPENDENCY_PAIRS = {
       'window.__LF_FacturaParsers: extraccion de datos de la factura PDF'],
     ['js/lf-sw-update.js', 'js/lf-app.js',
       'window.LF.initSwUpdate: registro del service worker, PWA, offline y auto-update'],
-    // factura.js es el unico modulo que puede emitir init-incompleto/* durante su
-    // propia evaluacion (rama degradada sin factura-parsers). Los demas guards
-    // llaman a __LF_trackDetail mas tarde, ya en DOMContentLoaded o en un click.
+    ['js/lf-state.js', 'js/lf-app.js',
+      'estado, referencias DOM e initElements del coordinador de la home'],
+    ['js/lf-utils.js', 'js/lf-app.js',
+      'formato, portapapeles y efectos del coordinador de la home'],
+    ['js/lf-ui.js', 'js/lf-app.js',
+      'toast, estado, pendiente y controles de tema del coordinador'],
+    ['js/lf-tooltips.js', 'js/lf-app.js',
+      'inicializacion de tooltips del coordinador'],
+    ['js/lf-cache.js', 'js/lf-app.js',
+      'descarga de tarifas del coordinador'],
+    ['js/lf-inputs.js', 'js/lf-app.js',
+      'lectura, validacion y persistencia de inputs del coordinador'],
+    ['js/lf-calc.js', 'js/lf-app.js',
+      'motor de calculo principal invocado por el coordinador'],
+    ['js/lf-render.js', 'js/lf-app.js',
+      'tabla y ordenacion de resultados invocadas por el coordinador'],
+    ['js/lf-csv-import.js', 'js/lf-app.js',
+      'inicializacion del importador CSV/XLSX desde el coordinador'],
+    ['js/lf-tarifa-custom.js', 'js/lf-app.js',
+      'formulario y validacion de "Mi tarifa" desde el coordinador'],
+    // factura.js puede emitir init-incompleto/* durante su propia evaluacion
+    // (rama degradada sin factura-parsers), por lo que tracking debe haberse
+    // ejecutado antes. Los guards aqui revisados llaman a __LF_trackDetail mas
+    // tarde, ya en DOMContentLoaded o en un click.
     ['js/tracking.js', 'js/factura.js',
       'window.__LF_trackDetail: telemetria init-incompleto/home/factura-parsers ' +
       'emitida en la evaluacion de factura.js']
   ],
   [SOLAR]: [
+    ['js/lf-config.js', 'js/bv/bv-sim-monthly.js',
+      'window.LF_CONFIG.INDEXED_SURPLUS_REFERENCE_PRICE: referencia capturada ' +
+      'en evaluacion para excedentes indexados sin curva horaria'],
     ['js/lf-csv-utils.js', 'js/bv/bv-import.js',
       'window.LF.csvUtils: importacion CSV/XLSX del simulador solar'],
-    ['js/lf-csv-utils.js', 'js/bv/bv-sim-monthly.js',
-      'csvUtils.getPeriodoHorarioCSV: clasificacion P1/P2/P3 del motor mensual'],
-    ['js/bv/bv-ui-helpers.js', 'js/bv/bv-ui.js',
-      'window.BVSim.manualUi: tabla manual, saldo BV y coste neto'],
-    ['js/lf-surplus-prices.js', 'js/bv/bv-ui.js',
-      'window.LF.surplusPrices: excedentes indexados contra data/surplus/'],
     ['js/lf-sw-update.js', 'js/shell-lite.js',
       'window.LF.initSwUpdate: registro del service worker en la ruta solar']
   ],
   [STATS]: [
     ['js/pvpc-stats-csv.js', 'js/pvpc-stats-ui.js',
       'window.__LF_PvpcStatsCsv: CSV de excedentes del usuario'],
-    ['js/pvpc-stats-engine.js', 'js/pvpc-stats-ui.js',
-      'window.PVPC_STATS: carga y agregacion de datos del observatorio'],
-    ['vendor/chartjs/chart.umd.js', 'js/pvpc-stats-ui.js',
-      'window.Chart: graficos de evolucion, perfil horario y comparativa anual'],
-    ['js/lf-csv-utils.js', 'js/pvpc-stats-csv.js',
-      'window.LF.csvUtils: parseo del CSV de excedentes'],
     ['js/lf-sw-update.js', 'js/shell-lite.js',
       'window.LF.initSwUpdate: registro del service worker en el observatorio']
   ]
 };
 
-// Modulos que crean el namespace con `window.LF = window.LF || {}`.
+/**
+ * Dependencias resueltas en DOMContentLoaded o al usar una funcion.
+ * Su presencia es necesaria, pero no que el productor preceda a la etiqueta del
+ * consumidor: todos son scripts clasicos parser-inserted y `async` esta
+ * prohibido, por lo que terminan antes de DOMContentLoaded.
+ */
+const DEFERRED_USE_DEPENDENCIES = {
+  [HOME]: [
+    ['js/desglose-calculo.js', 'js/desglose-factura.js', 'uso perezoso'],
+    ['js/desglose-render.js', 'js/desglose-factura.js', 'uso perezoso'],
+    ['js/desglose-factura.js', 'js/desglose-integration.js', 'uso perezoso']
+  ],
+  [SOLAR]: [
+    ['js/lf-csv-utils.js', 'js/bv/bv-sim-monthly.js', 'uso perezoso'],
+    ['js/bv/bv-ui-helpers.js', 'js/bv/bv-ui.js', 'DOMContentLoaded'],
+    ['js/lf-surplus-prices.js', 'js/bv/bv-ui.js', 'uso perezoso']
+  ],
+  [STATS]: [
+    ['js/pvpc-stats-engine.js', 'js/pvpc-stats-ui.js', 'DOMContentLoaded'],
+    ['vendor/chartjs/chart.umd.js', 'js/pvpc-stats-ui.js', 'DOMContentLoaded'],
+    ['js/lf-csv-utils.js', 'js/pvpc-stats-csv.js', 'uso perezoso']
+  ]
+};
+
+// Modulos mas tempranos que crean `window.LF = window.LF || {}`. Otros lo
+// vuelven a asegurar despues, cuando ya han empezado los consumidores eager.
 const LF_NAMESPACE_CREATORS = [
   'js/lf-utils.js',
   'js/lf-ssaa.js',
@@ -267,6 +339,18 @@ const PAGE_SPECIFIC_CSS = {
 };
 
 describe('Contrato de arranque: cadena temprana del <head>', () => {
+  it.each(APP_PAGES)('%s instala error-bootstrap como primer script externo', (page) => {
+    const scripts = parseScripts(readPage(page));
+
+    expect(scripts.length, `${page}: no se han encontrado scripts externos`)
+      .toBeGreaterThan(0);
+    expect(
+      scripts[0]?.src,
+      `${page}: error-bootstrap.js debe ser el primer <script src>. Solo puede ` +
+      'capturar fallos de scripts que se carguen despues.'
+    ).toBe('js/error-bootstrap.js');
+  });
+
   it.each(APP_PAGES)('%s ejecuta error-bootstrap -> config -> theme en ese orden', (page) => {
     const scripts = parseScripts(readPage(page));
 
@@ -318,6 +402,10 @@ describe('Contrato de arranque: cadena temprana del <head>', () => {
 });
 
 describe('Contrato de arranque: tema antes del CSS', () => {
+  it('mantiene completo el inventario de paginas que cargan theme.js', () => {
+    expect([...THEMED_PAGES].sort()).toEqual(discoverThemedPages());
+  });
+
   it.each(THEMED_PAGES)('%s carga theme.js antes del primer stylesheet y sin diferir', (page) => {
     const html = readPage(page);
     const themeEntry = findScript(parseScripts(html), 'js/theme.js');
@@ -391,8 +479,8 @@ describe('Contrato de arranque: modelo de orden de ejecucion', () => {
   });
 });
 
-describe('Contrato de arranque: productores antes que consumidores', () => {
-  for (const [page, pairs] of Object.entries(DEPENDENCY_PAIRS)) {
+describe('Contrato de arranque: dependencias consumidas en evaluacion', () => {
+  for (const [page, pairs] of Object.entries(EAGER_DEPENDENCY_PAIRS)) {
     describe(page, () => {
       const scripts = parseScripts(readPage(page));
 
@@ -411,12 +499,31 @@ describe('Contrato de arranque: productores antes que consumidores', () => {
           `Se rompe: ${rompe}.\n` +
           `Estado actual -> ${producer}: ${describePlacement(scripts, producer)}; ` +
           `${consumer}: ${describePlacement(scripts, consumer)}.\n` +
-          'Recuerda que el orden de ejecucion no es el del documento: el navegador ' +
+          'Esta dependencia se captura al evaluar el fichero consumidor. El orden ' +
+          'de ejecucion no es siempre el del documento: el navegador ' +
           'ejecuta primero todos los scripts sin defer, en orden de documento, y ' +
           'despues todos los diferidos. La combinacion insegura es productor CON ' +
           'defer + consumidor SIN defer: el consumidor corre durante el parseo y lee ' +
           'un global que todavia no existe. Ver ARRANQUE-CARGA.md seccion 4.3.'
         ).toBe(true);
+      });
+    });
+  }
+});
+
+describe('Contrato de arranque: dependencias de DOM ready o uso perezoso', () => {
+  for (const [page, pairs] of Object.entries(DEFERRED_USE_DEPENDENCIES)) {
+    describe(page, () => {
+      const scripts = parseScripts(readPage(page));
+
+      it.each(pairs)('%s y %s estan presentes (%s)', (producer, consumer, phase) => {
+        expect(
+          findScript(scripts, producer),
+          `${page}: falta ${producer}, requerido por ${consumer} en ${phase}. ` +
+          'No se exige que su etiqueta vaya antes porque la dependencia no se ' +
+          'captura durante la evaluacion del fichero consumidor.'
+        ).not.toBeNull();
+        expect(findScript(scripts, consumer), `${page}: falta ${consumer}`).not.toBeNull();
       });
     });
   }
@@ -453,8 +560,8 @@ describe('Contrato de arranque: atributos defer', () => {
     expect(
       conAsync,
       `${page}: async detectado en ${conAsync.join(', ')}. async ejecuta en cuanto ` +
-      'termina la descarga, sin garantia de orden entre ficheros: rompe cualquier ' +
-      'dependencia productor -> consumidor de forma no determinista.'
+      'termina la descarga, sin garantia de orden entre ficheros: una dependencia ' +
+      'productor -> consumidor dejaria de estar garantizada.'
     ).toEqual([]);
   });
 });

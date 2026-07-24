@@ -6,6 +6,7 @@ const PAGES = [
   '404.html',
   'aviso-legal.html',
   'calcular-factura-luz.html',
+  'como-funciona-luzfija.html',
   'comparador-tarifas-solares.html',
   'comparar-pvpc-tarifa-fija.html',
   'estadisticas/index.html',

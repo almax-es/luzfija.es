@@ -22,9 +22,10 @@ ficheros, no posiciones concretas.
 
 ## 1. Por Que Existe Este Contrato
 
-La home no usa un grafo de modulos ESM. Sus ficheros son IIFEs que publican y
-consumen APIs sobre `window.LF` (y `window.BVSim`, `window.PVPC_STATS`,
-`window.__LF_DesgloseFactura`, `window.__LF_FacturaParsers`).
+La home no usa un grafo de modulos ESM. Sus scripts clasicos publican y consumen
+APIs sobre `window.LF` (y `window.BVSim`, `window.PVPC_STATS`,
+`window.__LF_DesgloseFactura`, `window.__LF_FacturaParsers`); muchos estan
+encapsulados en IIFEs, pero no todos.
 
 Varios modulos **desestructuran sus dependencias en tiempo de evaluacion**:
 
@@ -91,7 +92,7 @@ BODY (todos con defer, en orden de documento)
   js/lf-render.js                 [desestructura en eval]
   js/lf-csv-import.js             [desestructura en eval]
   js/lf-tarifa-custom.js          [desestructura en eval]
-  js/pvpc.js                      acceso perezoso, tolerante al orden
+  js/pvpc.js                      captura LF_CONFIG.round2 en eval; resto perezoso
   js/factura-parsers.js           window.__LF_FacturaParsers
   js/factura.js                   [lo consume en eval, con guard]
   js/desglose-calculo.js          \
@@ -99,14 +100,14 @@ BODY (todos con defer, en orden de documento)
   js/desglose-factura.js           | tolerantes entre si
   js/desglose-integration.js      /
   js/lf-sw-update.js              window.LF.initSwUpdate
-  js/lf-app.js                    [lo consume en eval] + destructuring de 26 simbolos
+  js/lf-app.js                    [consume en eval APIs de los modulos lf-*]
   js/index-extra.js               modal PVPC, autonomo
   js/aecc-banner.js
 
-DOMContentLoaded
+DOMContentLoaded (orden de listeners registrados)
+  error-bootstrap  applyFailedScriptFallbacks(); no-op si ningun <script> fallo
   lf-app.js        initElements(), listeners, fetchTarifas, auto-refresh
   index-extra.js   modal PVPC
-  error-bootstrap  applyFailedScriptFallbacks() si algun <script> fallo
 ```
 
 ### 2.2 `/comparador-tarifas-solares.html`
@@ -165,15 +166,18 @@ no la tomes como precedente para reordenar el resto.
 
 ## 3. Grafo Productor -> Consumidor
 
-Un consumidor "en eval" captura el valor al ejecutarse el fichero. Un consumidor
-"perezoso" lo resuelve mas tarde y puede avisar.
+Un consumidor "en eval" captura el valor al ejecutarse el fichero y exige que su
+productor ya se haya ejecutado. Un consumidor "DOM ready" o "perezoso" lo
+resuelve mas tarde: exige que la dependencia exista antes de ese punto de uso,
+pero no necesariamente que su etiqueta preceda a la etiqueta del consumidor.
 
 ### 3.1 Home
 
 | Productor | Consumidor | Simbolos | Momento | Se rompe |
 | --- | --- | --- | --- | --- |
 | `lf-config.js` | `lf-calc.js` | `window.LF_CONFIG` | eval | fiscalidad: IVA/IGIC/IPSI, IEE, bono social |
-| `lf-utils.js` | `lf-inputs.js`, `lf-calc.js`, `lf-render.js`, `lf-tarifa-custom.js` | `parseNum`, `clampNonNeg`, `round2`, `formatMoney`, `escapeHtml`, `esNumericoValido`, `animateCounter`, `createSuccessParticles`, `formatValueForDisplay` | eval | utilidades puras y formateo de toda la UI |
+| `lf-config.js` | `pvpc.js`, `desglose-calculo.js`, `desglose-render.js` | `window.LF_CONFIG.round2` | eval, con fallback no equivalente | redondeo monetario: el fallback omite `Number.EPSILON` y puede desviar un centimo en limites `x.xx5` |
+| `lf-utils.js` | `lf-inputs.js`, `lf-calc.js`, `lf-render.js`, `lf-csv-import.js`, `lf-tarifa-custom.js` | `parseNum`, `clampNonNeg`, `round2`, `formatMoney`, `escapeHtml`, `esNumericoValido`, `animateCounter`, `createSuccessParticles`, `formatValueForDisplay` | eval | utilidades puras y formateo de toda la UI |
 | `lf-state.js` | `lf-ui.js`, `lf-tooltips.js`, `lf-cache.js`, `lf-inputs.js`, `lf-render.js`, `lf-tarifa-custom.js` | `el`, `state`, `DEFAULTS`, `SERVER_PARAMS`, `LS_KEY`, `JSON_URL`, `THEME_KEY`, `$` | eval | referencias DOM y estado global del comparador |
 | `lf-csv-utils.js` | `lf-csv-import.js` | `window.LF.csvUtils` | eval | importacion CSV/XLSX y clasificacion P1/P2/P3 |
 | `lf-ui.js` | `lf-cache.js`, `lf-inputs.js`, `lf-render.js`, `lf-csv-import.js`, `lf-tarifa-custom.js` | `toast`, `setStatus`, `showError`, `clearErrorStyles`, `applyButtonState` | eval | avisos, estado de carga y marcado de errores |
@@ -181,7 +185,7 @@ Un consumidor "en eval" captura el valor al ejecutarse el fichero. Un consumidor
 | `lf-inputs.js` | `lf-calc.js` | `__LF_getFiscalContext`, `getInputValues` | eval | contexto fiscal del motor de calculo |
 | `factura-parsers.js` | `factura.js` | `window.__LF_FacturaParsers` | eval, con guard | extraccion de factura PDF |
 | `lf-sw-update.js` | `lf-app.js` | `window.LF.initSwUpdate` | eval, **sin aviso** | registro del SW, PWA, offline y auto-update |
-| todos los `lf-*` | `lf-app.js` | 26 simbolos | eval | coordinador completo de la home |
+| `lf-state`, `lf-utils`, `lf-ui`, `lf-tooltips`, `lf-cache`, `lf-inputs`, `lf-calc`, `lf-render`, `lf-csv-import`, `lf-tarifa-custom` | `lf-app.js` | APIs de estado, UI, calculo y render | eval | coordinador completo de la home |
 
 `lf-utils.js`, `lf-ssaa.js`, `lf-csv-utils.js` y `lf-state.js` ejecutan cada uno
 `window.LF = window.LF || {}`. Los cuatro preceden a `lf-ui.js`, que es el primer
@@ -199,6 +203,7 @@ motivo para hacerlo.
 
 | Productor | Consumidor | Simbolos | Momento | Se rompe |
 | --- | --- | --- | --- | --- |
+| `lf-config.js` | `bv/bv-sim-monthly.js` | `window.LF_CONFIG.INDEXED_SURPLUS_REFERENCE_PRICE` | eval, con fallback `0.02` | referencia para excedentes indexados sin curva horaria |
 | `lf-csv-utils.js` | `bv/bv-import.js` | `window.LF.csvUtils` | eval | importacion CSV del simulador |
 | `lf-csv-utils.js` | `bv/bv-sim-monthly.js` | `csvUtils.getPeriodoHorarioCSV` | perezoso, error explicito | clasificacion horaria del motor mensual |
 | `bv/bv-ui-helpers.js` | `bv/bv-ui.js` | `window.BVSim.manualUi` | DOM ready, con guard | tabla manual, saldo BV y coste neto |
@@ -231,8 +236,10 @@ motivo para hacerlo.
 - Ponerles `defer` los moveria detras del parseo completo: perderian la ventana
   de errores tempranos que existen para capturar.
 
-El script inline del `<head>` esta hasheado en la CSP. Moverlo o editarlo sin
-regenerar los hashes hace fallar `tests/csp-inline-hash.test.js`.
+El contenido del script inline del `<head>` esta hasheado en la CSP. Editarlo
+exige regenerar el hash y, si no se hace, falla
+`tests/csp-inline-hash.test.js`. Mover el bloque sin cambiar su contenido no
+altera el hash, aunque si puede romper las invariantes de posicion del bootstrap.
 
 ### 4.2 Tema antes del CSS
 
@@ -252,8 +259,12 @@ avisa y ninguna telemetria la registra. Si aparece, solo se detecta mirando.
 
 ### 4.3 Orden de ejecucion y `defer`
 
-La invariante real es una sola: **para cada par productor -> consumidor de la
-seccion 3, el productor debe EJECUTARSE antes que el consumidor.**
+Para las dependencias marcadas como **eval** en la seccion 3, la invariante es:
+**el productor debe EJECUTARSE antes que el fichero consumidor.** Las
+dependencias marcadas como **DOM ready** o **perezoso** se resuelven mas tarde y
+solo exigen que el productor exista antes de ese punto de uso. El orden
+productor -> consumidor que conserva hoy el HTML para estas ultimas es una
+politica conservadora, no una necesidad tecnica de evaluacion.
 
 El orden de ejecucion no es el orden del documento. Para scripts clasicos
 insertados por el parser, el navegador ejecuta:
@@ -263,7 +274,8 @@ insertados por el parser, el navegador ejecuta:
 2. despues **todos los diferidos**, en orden de documento, antes de
    `DOMContentLoaded`.
 
-De ahi salen cuatro combinaciones para un par, y **solo una es insegura**:
+Para un par con consumo en eval salen cuatro combinaciones, y **solo una es
+insegura independientemente del orden documental**:
 
 | Productor | Consumidor | Condicion de seguridad |
 | --- | --- | --- |
@@ -273,13 +285,14 @@ De ahi salen cuatro combinaciones para un par, y **solo una es insegura**:
 | con `defer` | sin `defer` | **inseguro siempre**: el consumidor corre durante el parseo, antes que el productor diferido, sin importar el orden en el HTML |
 
 La fila peligrosa es la ultima, y es contraintuitiva: el HTML puede leerse
-perfectamente ordenado y aun asi el consumidor gana. Regla operativa: **nunca
-dejes un productor diferido por delante de un consumidor no diferido.**
+perfectamente ordenado y aun asi el consumidor gana. Regla operativa para
+dependencias en eval: **nunca combines un productor diferido con un consumidor
+no diferido.**
 
 `async` queda fuera de este modelo. Un script `async` se ejecuta en cuanto
-termina su descarga, sin garantia de orden respecto a ningun otro, asi que rompe
-cualquier dependencia de forma no determinista. Esta prohibido en las tres
-aplicaciones y tiene test propio.
+termina su descarga, sin garantia de orden respecto a los demas; por tanto no
+permite garantizar una dependencia productor -> consumidor. Esta prohibido en
+las tres aplicaciones y tiene test propio.
 
 #### Contrato propio de la home (mas estricto que lo anterior)
 
@@ -322,8 +335,8 @@ verificado, no como propuesta de cambio.
 
 ### 4.5 Service Worker
 
-`lf-sw-update.js` debe preceder a sus dos consumidores: `lf-app.js` en la home y
-`shell-lite.js` en solar y observatorio.
+`lf-sw-update.js` debe ejecutarse antes que sus dos consumidores: `lf-app.js` en
+la home y `shell-lite.js` en solar y observatorio.
 
 Ambos consumidores hacen:
 
@@ -348,8 +361,8 @@ la primera visita ni en la superficie visible de la pagina. Salen a la luz en un
 segunda visita, sin red, o al desplegar una version nueva, y para entonces se
 atribuyen con facilidad a la red o a la cache del navegador.
 
-Por eso tiene test propio, y por eso el punto 6 de la seccion 7 es la unica
-comprobacion manual que la detecta.
+Por eso tiene test propio. El punto 6 de la seccion 7 es la comprobacion manual
+mas directa; los puntos 7 y 8 tambien la delatan de forma indirecta.
 
 ### 4.6 Privacidad durante el arranque
 
@@ -379,6 +392,8 @@ alguien se va a enterar.
 | `bv-ui.js` completo | watchdog: controles del simulador deshabilitados |
 | `pvpc-stats-csv.js` / Chart.js | `pvpc-stats-ui.js` retira los "Cargando..." y emite `init-incompleto/estadisticas/*` |
 | `pvpc-stats-ui.js` completo | watchdog: KPIs y selectores en estado degradado |
+| `lf-app.js` sin `defer` | `console.error`, `init-incompleto/home/app-core`, `statusText` y toast cuando llega `DOMContentLoaded` |
+| `index-extra.js` no se descarga | si `tracking.js` esta operativo, emite `error-script-load/index-extra/*`; no hay watchdog ni `init-incompleto/*` |
 
 ### 5.2 Silenciosos (sin senal diagnostica: ni excepcion, ni consola, ni telemetria)
 
@@ -390,8 +405,7 @@ una senal que lo delate. La columna "Como se nota" indica cuanto hay que buscar.
 | `lf-sw-update.js` despues de sus consumidores | **sin service worker**, sin PWA, sin offline, sin auto-update | solo comprobando: DevTools, segunda visita, offline o tras un despliegue |
 | `theme.js` con `defer` o detras del CSS | primer pintado posible con el tema predeterminado y flash de tema, segun el momento de carga y pintado | a simple vista, pero intermitente: una pasada limpia no lo descarta |
 | orden de CSS invertido | cambios de layout (seccion 4.4) | a simple vista, si se compara con una captura previa |
-| `index-extra.js` | el modal PVPC deja de abrirse; no hay watchdog ni evento | al pulsar el boton del modal |
-| un `<script>` de la home sin `defer` | se adelanta a todos los demas; puede matar la calculadora | a simple vista si es `lf-app.js`; puede pasar desapercibido si es otro |
+| `index-extra.js` carga pero faltan sus nodos requeridos | retorna sin inicializar el modal PVPC; en produccion no hay aviso ni evento | al pulsar el boton del modal |
 
 Los de la segunda tabla son los que justifican `tests/bootstrap-contract.test.js`:
 sin el, se rompen con la suite en verde.
@@ -400,18 +414,18 @@ sin el, se rompen con la suite en verde.
 
 Antes de tocar `<script>`, `<link>`, `defer`, `async` o `preload`:
 
-1. Identifica si el fichero es productor o consumidor en la seccion 3. Si es
-   productor, todos sus consumidores deben **ejecutarse** por detras (orden de
-   ejecucion, no de documento: ver la tabla de la seccion 4.3).
-2. Comprueba si el consumidor desestructura en eval. Si lo hace, no hay guard
-   posible: el orden es la unica defensa. Y comprueba si algun creador del
-   namespace corre antes: eso decide si el fallo sera un `undefined` silencioso
-   o un `TypeError` ruidoso.
-3. Si ambos comparten el mismo estado de `defer`, el productor debe aparecer
-   antes en el documento. Si el productor no lleva `defer` y el consumidor SI, la
-   dependencia se conserva independientemente de su orden documental. La
-   combinacion productor con `defer` + consumidor sin `defer` es siempre
-   insegura.
+1. Identifica el momento de consumo en la seccion 3: eval, DOM ready o perezoso.
+   Solo las dependencias en eval exigen que el fichero productor se ejecute antes
+   que el fichero consumidor; las demas exigen disponibilidad antes del punto de
+   uso real.
+2. Si el consumidor desestructura en eval, no hay reintento: comprueba tambien
+   si algun creador del namespace corre antes, porque eso decide si el fallo sera
+   un `undefined` silencioso o un `TypeError` ruidoso.
+3. Para dependencias en eval: si ambos comparten el mismo estado de `defer`, el
+   productor debe aparecer antes en el documento. Si el productor no lleva
+   `defer` y el consumidor SI, la dependencia se conserva independientemente de
+   su orden documental. La combinacion productor con `defer` + consumidor sin
+   `defer` es siempre insegura.
 4. Si anades un modulo a la home, ponle `defer` como el resto y decide si debe
    entrar en `CORE_ASSETS` de `sw.js` o quedarse en `ASSETS`.
 5. Si tocas el `<head>`, confirma que `theme.js` sigue delante del primer
@@ -440,7 +454,8 @@ Antes de tocar `<script>`, `<link>`, `defer`, `async` o `preload`:
 | 11 | Privacidad de factura | subir un PDF con Network filtrado por `goatcounter` | cero peticiones |
 | 12 | Errores tempranos | bloquear `/js/config.js` y recargar | `error-script-load/config/...` sin datos de usuario |
 
-El punto 6 es el unico que detecta la rotura de la invariante 4.5 en produccion.
+El punto 6 es la via mas directa para detectar la rotura de la invariante 4.5 en
+produccion; los puntos 7 y 8 tambien la revelan de forma indirecta.
 
 ## 8. Decision: No Reordenar Recursos Para Perseguir Lighthouse
 

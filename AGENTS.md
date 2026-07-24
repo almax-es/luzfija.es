@@ -30,7 +30,7 @@ Tambien es importante lo que no es: no monetiza el ranking, no vende leads y no 
 
 `CAPACIDADES-WEB.md` es la fuente de verdad funcional. Si algo parece contradecir otra doc, parte de ahi.
 
-`ARRANQUE-CARGA.md` es la fuente de verdad del contrato de arranque. Varios modulos desestructuran sus dependencias en tiempo de evaluacion, asi que el orden de los recursos en el HTML es contrato de ejecucion, no formato. Dos de sus invariantes se rompen sin producir ningun sintoma observable (registro del service worker y cascada CSS); las vigila `tests/bootstrap-contract.test.js`.
+`ARRANQUE-CARGA.md` es la fuente de verdad del contrato de arranque. Varios modulos desestructuran sus dependencias en tiempo de evaluacion, asi que el orden de los recursos en el HTML es contrato de ejecucion, no formato. Algunas regresiones de arranque no producen excepcion ni senal diagnostica automatica, aunque sus consecuencias funcionales si sean observables; las vigila `tests/bootstrap-contract.test.js`.
 
 ## Mapa Rapido Del Codigo
 
