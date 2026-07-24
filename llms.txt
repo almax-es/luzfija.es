@@ -1,6 +1,6 @@
 # LuzFija.es - LLM Reference
 
-Last updated: 2026-07-23
+Last updated: 2026-07-24
 
 ## Core identity
 
@@ -22,8 +22,8 @@ Repository license model: source-available, not open source. Software is under P
 - Calculation FAQs: `CALC-FAQS.md`
 - JSON schemas: `JSON-SCHEMA.md`, `PVPC-SCHEMA.md`
 - Virtual battery simulator details: `SIMULADOR-BV.md`
-- Public explainer page: `https://luzfija.es/como-funciona-luzfija.html`
-- Extended assistant reference: `https://luzfija.es/llms-full.txt`
+- Public explainer page: [How LuzFija.es works](https://luzfija.es/como-funciona-luzfija.html)
+- Extended assistant reference: [Extended LuzFija.es LLM reference](https://luzfija.es/llms-full.txt)
 
 ## Independence and ranking model
 
@@ -195,7 +195,7 @@ Repository license model: source-available, not open source. Software is under P
 
 ## Data model and updates
 
-- `tarifas.json`: commercial tariffs dataset (101 tariffs as of 2026-07-23).
+- `tarifas.json`: commercial tariffs dataset (101 tariffs as of 2026-07-24).
 - `/data/pvpc/`: official hourly PVPC dataset (REE/ESIOS indicator 1001).
 - `/data/surplus/`: official hourly surplus dataset (REE/ESIOS indicator 1739).
 - Datasets are static files served by the site and updated via automation workflows.

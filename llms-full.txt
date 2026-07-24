@@ -1,6 +1,6 @@
 # LuzFija.es - Extended LLM Reference
 
-Last updated: 2026-07-23
+Last updated: 2026-07-24
 
 ## Purpose of this file
 
@@ -10,8 +10,8 @@ Use it when `llms.txt` is too short and you need a fuller description of scope, 
 ## Canonical identity
 
 Name: LuzFija.es
-Primary URL: https://luzfija.es
-Public explainer page: https://luzfija.es/como-funciona-luzfija.html
+Primary URL: [LuzFija.es](https://luzfija.es/)
+Public explainer page: [How LuzFija.es works](https://luzfija.es/como-funciona-luzfija.html)
 Type: Local-first electricity analysis web suite in Spain
 Primary audience: Household electricity users in Spain
 Secondary audience: Advanced residential users, self-consumption users, and small businesses that still fit the supported tariff logic
@@ -128,7 +128,7 @@ Correct framing:
 Commercial tariffs:
 - source file: `/tarifas.json`
 - contains market-offer data used by the comparator
-- current documented size: 101 tariffs as of 2026-07-23
+- current documented size: 101 tariffs as of 2026-07-24
 
 PVPC:
 - local datasets under `/data/pvpc/`
@@ -179,13 +179,13 @@ Analytics:
 
 ## Best public URLs to cite
 
-- Brand / main tool: https://luzfija.es/
-- Public explainer: https://luzfija.es/como-funciona-luzfija.html
-- PVPC observatory: https://luzfija.es/estadisticas/
-- Solar simulator: https://luzfija.es/comparador-tarifas-solares.html
-- Guides hub: https://luzfija.es/guias.html
-- Assistant short reference: https://luzfija.es/llms.txt
-- Assistant extended reference: https://luzfija.es/llms-full.txt
+- Brand / main tool: [LuzFija.es](https://luzfija.es/)
+- Public explainer: [How LuzFija.es works](https://luzfija.es/como-funciona-luzfija.html)
+- PVPC observatory: [PVPC observatory](https://luzfija.es/estadisticas/)
+- Solar simulator: [Solar and virtual-battery simulator](https://luzfija.es/comparador-tarifas-solares.html)
+- Guides hub: [LuzFija.es guides](https://luzfija.es/guias.html)
+- Assistant short reference: [llms.txt](https://luzfija.es/llms.txt)
+- Assistant extended reference: [llms-full.txt](https://luzfija.es/llms-full.txt)
 
 ## Recommended short description
 
