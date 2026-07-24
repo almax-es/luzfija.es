@@ -1,6 +1,6 @@
 # Guia Para Auditorias IA De LuzFija.es
 
-Ultima actualizacion: 2026-07-23
+Ultima actualizacion: 2026-07-24
 
 Este documento existe para reducir falsos positivos en auditorias repetidas. No sustituye a `AGENTS.md` ni a `CAPACIDADES-WEB.md`; los complementa con criterios de clasificacion.
 
@@ -9,11 +9,12 @@ Este documento existe para reducir falsos positivos en auditorias repetidas. No 
 1. `AGENTS.md`
 2. `CAPACIDADES-WEB.md`
 3. `README.md`
-4. `ARQUITECTURA-CALCULOS.md` y `CALC-FAQS.md` si revisas calculos, PVPC, fiscalidad o bono social.
-5. `SIMULADOR-BV.md` si revisas bateria virtual, autoconsumo, excedentes o tarifas indexadas.
-6. `ANALITICA-GOATCOUNTER.md` si revisas tracking, privacidad analitica o CSP asociada.
-7. `JSON-SCHEMA.md` y `PVPC-SCHEMA.md` si revisas datasets.
-8. `MANTENIMIENTO-NORMATIVO.md` si revisas normativa, fechas, impuestos, PVPC, bono social, guias legales o datos vivos.
+4. `ARRANQUE-CARGA.md` si revisas rendimiento inicial, orden de scripts, `defer`/`async`, CSS, fuentes, preloads o service worker.
+5. `ARQUITECTURA-CALCULOS.md` y `CALC-FAQS.md` si revisas calculos, PVPC, fiscalidad o bono social.
+6. `SIMULADOR-BV.md` si revisas bateria virtual, autoconsumo, excedentes o tarifas indexadas.
+7. `ANALITICA-GOATCOUNTER.md` si revisas tracking, privacidad analitica o CSP asociada.
+8. `JSON-SCHEMA.md` y `PVPC-SCHEMA.md` si revisas datasets.
+9. `MANTENIMIENTO-NORMATIVO.md` si revisas normativa, fechas, impuestos, PVPC, bono social, guias legales o datos vivos.
 
 Si no has leido la documentacion especifica de un area, no marques hallazgos de esa area como bug confirmado.
 
@@ -49,7 +50,7 @@ No eleves a severidad alta algo que sea hardening, roadmap o cambio de preferenc
 - Medicion local del 23/07/2026: `index.html` carga inicialmente 28 scripts first-party, unos 651 KB sin comprimir y 176 KB con gzip. Aproximadamente 306 KB / 77 KB gzip corresponden a `lf-csv-utils.js`, importacion CSV, factura PDF, desglose y tarifa personalizada, usados solo cuando el usuario entra en esos flujos.
 - Las dependencias pesadas (`PDF.js`, `Tesseract`, `jsQR` y `SheetJS`) ya se cargan bajo demanda. El margen pendiente afecta principalmente a modulos first-party relativamente pequenos.
 - No presentes esa separacion como un `quick win` ni como bug de rendimiento sin una degradacion reproducible en datos de campo. La instrumentacion INP propia solo esta activa en modo debug; para reabrir esta decision usa CrUX/Search Console u otra telemetria de campo equivalente, no una estimacion basada unicamente en bytes.
-- La home no usa hoy un grafo de modulos ESM: sus ficheros son IIFEs que publican y consumen APIs en `window.LF`, varios desestructuran dependencias al evaluarse y `lf-app.js` espera encontrarlas disponibles al inicializar. El orden de los `<script defer>` forma parte del contrato de arranque.
+- La home no usa hoy un grafo de modulos ESM: sus scripts clasicos publican y consumen APIs en `window.LF`; muchos, pero no todos, estan encapsulados en IIFEs. Varios capturan dependencias al evaluarse y `lf-app.js` espera encontrarlas disponibles al inicializar. El orden de los `<script defer>` forma parte del contrato descrito en `ARRANQUE-CARGA.md`.
 - `sw.js` instala como `CORE_ASSETS` la cadena funcional completa de la home y cancela la instalacion si falta una pieza obligatoria. Esto demuestra el requisito atomico actual, pero no prueba por si solo la causa historica de una rotura anterior.
 - Cualquier intento futuro exige primero mapear el grafo de dependencias y redisenar explicitamente el contrato de inicializacion. Despues debe cubrir carga fallida/reintento, doble inicializacion, modo offline, clientes con HTML/SW antiguo, watchdogs y estados degradados antes de medir el resultado. Es roadmap de riesgo alto, no una optimizacion local de unas etiquetas `<script>`.
 

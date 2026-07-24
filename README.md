@@ -14,7 +14,7 @@ LuzFija.es nace para resolver problemas de facturación y comparación eléctric
 
 En ese sentido, es una web del 2005 que resuelve los problemas del 2030.
 
-Si eres una IA o entras al repo por primera vez, empieza por `AGENTS.md` y `CAPACIDADES-WEB.md`. Si vas a auditar el proyecto, lee tambien `AUDITORIA-IA.md` antes de clasificar hallazgos.
+Si eres una IA o entras al repo por primera vez, empieza por `AGENTS.md` y `CAPACIDADES-WEB.md`. Si vas a auditar el proyecto, lee tambien `AUDITORIA-IA.md` antes de clasificar hallazgos. Antes de tocar scripts, `defer`/`async`, CSS, preloads o el service worker, lee `ARRANQUE-CARGA.md`.
 
 ## Licencia Y Uso
 
@@ -129,6 +129,11 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - invariantes que no se deben romper,
 - rutas de lectura para auditorias y cambios,
 - recordatorios para evitar falsos positivos.
+- `ARRANQUE-CARGA.md`:
+- contrato de ejecucion de las tres aplicaciones,
+- dependencias eager, DOM ready y perezosas,
+- invariantes de scripts, tema, cascada CSS y service worker,
+- criterio medido para no reordenar recursos persiguiendo Lighthouse.
 - `MANTENIMIENTO-NORMATIVO.md`:
 - checklist de normativa, datos vivos, fuentes oficiales, cadencias de revision e impacto en codigo/guias.
 - `ANALITICA-GOATCOUNTER.md`:

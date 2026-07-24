@@ -335,6 +335,7 @@ Si vas a hacer una auditoria tecnica, lee tambien `AUDITORIA-IA.md` antes de cla
 - Los modulos principales tienen guards visibles ante dependencias incompletas: deshabilitan controles afectados, retiran estados `Cargando...` indefinidos y muestran una instruccion de recarga sin lanzar errores en cascada.
 - Si no llega a descargarse el coordinador completo de home, factura, desglose, solar u observatorio, el watchdog temprano aplica el estado degradado que ese fichero ya no podria ejecutar por si mismo.
 - Los fallos se distinguen en GoatCounter por fichero, linea y build (`error-*`) y por aplicacion/dependencia (`init-incompleto/*`), sin enviar mensajes libres, URLs completas, stacks ni datos del usuario.
+- El orden detallado, sus dependencias de evaluacion y las invariantes de scripts, CSS, tema y service worker se documentan en `ARRANQUE-CARGA.md`; es lectura obligatoria antes de modificar la carga inicial.
 
 ## 9. Privacidad Y Seguridad
 
