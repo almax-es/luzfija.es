@@ -37,12 +37,22 @@ const {
 ```
 
 Esa lectura ocurre UNA sola vez, cuando el navegador ejecuta el fichero. Si el
-productor todavia no se ha ejecutado, el consumidor captura `undefined` de forma
-permanente. No lanza excepcion, no hay reintento y no hay recuperacion posible
-sin recargar la pagina.
+productor todavia no se ha ejecutado hay dos desenlaces distintos, y conviene no
+confundirlos:
 
-Por eso el orden de las etiquetas `<script>` y el atributo `defer` son parte del
-contrato, no detalles cosmeticos.
+- **`window.LF` existe pero le falta la propiedad** (algun otro modulo ya creo el
+  namespace): el consumidor captura `undefined` de forma permanente. No lanza
+  excepcion, no hay reintento y no hay recuperacion posible sin recargar la
+  pagina. Es el caso silencioso, y el peligroso.
+- **`window.LF` no existe todavia**: `const { ... } = window.LF` lanza
+  `TypeError` y aborta el IIFE completo. Es ruidoso (queda en consola y en la
+  telemetria de errores), pero deja el modulo entero sin ejecutar.
+
+Cual de los dos ocurre depende de si algun creador del namespace ha corrido
+antes. En la home corren cuatro; ver seccion 3.1.
+
+Por eso el orden de ejecucion de las etiquetas `<script>` es parte del contrato,
+no un detalle cosmetico.
 
 ## 2. Orden Real De Arranque
 
@@ -60,7 +70,7 @@ HEAD (bloqueante, sin defer)
   [bloques application/ld+json]   inertes, tambien hasheados en la CSP
   js/theme.js                     aplica .light-mode a <html>
   styles.css                      \
-  pro.css                          | cascada estricta (ver seccion 5)
+  pro.css                          | cascada estricta (ver seccion 4.4)
   desglose-factura.css            /
   preload outfit-latin-400.woff2  peso del elemento LCP en movil
   preload outfit-latin-900.woff2  peso del elemento LCP en escritorio
@@ -240,21 +250,49 @@ descartar por observacion puntual, y el coste de mantener la invariante es cero.
 Es ademas una regresion puramente visual: ningun calculo falla, ninguna consola
 avisa y ninguna telemetria la registra. Si aparece, solo se detecta mirando.
 
-### 4.3 Coherencia de `defer`
+### 4.3 Orden de ejecucion y `defer`
 
-Para cada par productor -> consumidor de la seccion 3:
+La invariante real es una sola: **para cada par productor -> consumidor de la
+seccion 3, el productor debe EJECUTARSE antes que el consumidor.**
 
-1. el productor precede al consumidor en orden de documento, y
-2. **ambos tienen el mismo `defer`**.
+El orden de ejecucion no es el orden del documento. Para scripts clasicos
+insertados por el parser, el navegador ejecuta:
 
-La segunda condicion es la que se olvida. Los scripts diferidos se ejecutan todos
-despues de los no diferidos, sin importar su posicion en el HTML. Quitarle
-`defer` solo al consumidor lo adelanta por delante de su productor; ponerselo
-solo al productor lo atrasa por detras de su consumidor. En ambos casos el
-resultado es un `undefined` capturado en eval.
+1. primero **todos los que no llevan `defer`**, en orden de documento, durante el
+   parseo;
+2. despues **todos los diferidos**, en orden de documento, antes de
+   `DOMContentLoaded`.
 
-En la home, ademas, **todos** los `<script src>` del `<body>` llevan `defer`.
-Mezclar ahi un script sin `defer` lo adelantaria por delante de los 28 restantes.
+De ahi salen cuatro combinaciones para un par, y **solo una es insegura**:
+
+| Productor | Consumidor | Condicion de seguridad |
+| --- | --- | --- |
+| sin `defer` | sin `defer` | seguro **solo si** el productor aparece antes en el documento |
+| con `defer` | con `defer` | seguro **solo si** el productor aparece antes en el documento |
+| sin `defer` | con `defer` | seguro **aunque** el consumidor aparezca antes en el documento: el productor corre durante el parseo y el consumidor despues |
+| con `defer` | sin `defer` | **inseguro siempre**: el consumidor corre durante el parseo, antes que el productor diferido, sin importar el orden en el HTML |
+
+La fila peligrosa es la ultima, y es contraintuitiva: el HTML puede leerse
+perfectamente ordenado y aun asi el consumidor gana. Regla operativa: **nunca
+dejes un productor diferido por delante de un consumidor no diferido.**
+
+`async` queda fuera de este modelo. Un script `async` se ejecuta en cuanto
+termina su descarga, sin garantia de orden respecto a ningun otro, asi que rompe
+cualquier dependencia de forma no determinista. Esta prohibido en las tres
+aplicaciones y tiene test propio.
+
+#### Contrato propio de la home (mas estricto que lo anterior)
+
+Ademas de la regla general, **todos** los `<script src>` del `<body>` de
+`index.html` llevan `defer`. Es un contrato del repositorio, deliberadamente mas
+conservador que la necesidad tecnica: segun la tabla, algunas combinaciones
+mixtas conservarian correctamente una dependencia aislada, pero mantener el
+`<body>` homogeneo hace que el orden de ejecucion coincida con el orden de
+lectura del HTML y evita tener que razonar sobre colas diferidas en cada revision.
+
+Mezclar ahi un script sin `defer` lo adelantaria por delante de todos los demas.
+Si fuera `lf-app.js`, `window.LF` no existiria todavia y la calculadora quedaria
+deshabilitada.
 
 ### 4.4 Cascada CSS
 
@@ -294,12 +332,24 @@ if (window.LF && typeof window.LF.initSwUpdate === 'function') { ... }
 ```
 
 El `if` es correcto como defensa, pero convierte el error de orden en un no-op
-**absolutamente silencioso**: sin excepcion, sin consola, sin evento
-`init-incompleto/*`. El sitio se queda sin registro de SW, sin precache, sin
-modo offline y sin auto-update, y no hay ninguna senal de que haya pasado.
+sin **ninguna senal diagnostica**: no lanza excepcion, no escribe en consola y no
+emite `init-incompleto/*`.
 
-Es la unica invariante de esta lista cuyo incumplimiento no produce ningun
-sintoma observable en tiempo de ejecucion. Por eso tiene test propio.
+Conviene separar dos cosas que es facil mezclar:
+
+- **Sintoma funcional observable**: si lo hay. El sitio se queda sin registro de
+  service worker, sin precache, sin modo offline y sin auto-update de despliegue.
+  Todo eso se puede comprobar.
+- **Senal diagnostica inmediata**: no la hay. Nada avisa de que haya ocurrido.
+
+Lo que distingue a esta invariante de las demas de la seccion 5.2 no es que sea
+inobservable, sino **cuando y como se observa**: sus consecuencias no aparecen en
+la primera visita ni en la superficie visible de la pagina. Salen a la luz en una
+segunda visita, sin red, o al desplegar una version nueva, y para entonces se
+atribuyen con facilidad a la red o a la cache del navegador.
+
+Por eso tiene test propio, y por eso el punto 6 de la seccion 7 es la unica
+comprobacion manual que la detecta.
 
 ### 4.6 Privacidad durante el arranque
 
@@ -330,15 +380,18 @@ alguien se va a enterar.
 | `pvpc-stats-csv.js` / Chart.js | `pvpc-stats-ui.js` retira los "Cargando..." y emite `init-incompleto/estadisticas/*` |
 | `pvpc-stats-ui.js` completo | watchdog: KPIs y selectores en estado degradado |
 
-### 5.2 Silenciosos (no hay ninguna senal)
+### 5.2 Silenciosos (sin senal diagnostica: ni excepcion, ni consola, ni telemetria)
 
-| Que falta o se descoloca | Que ocurre |
-| --- | --- |
-| `lf-sw-update.js` despues de sus consumidores | **sin service worker**, sin PWA, sin offline, sin auto-update |
-| `theme.js` con `defer` o detras del CSS | primer pintado posible con el tema predeterminado y flash de tema, segun el momento de carga y pintado |
-| orden de CSS invertido | cambios de layout (seccion 4.4) |
-| `index-extra.js` | el modal PVPC deja de abrirse; no hay watchdog ni evento |
-| un `<script>` de la home sin `defer` | se adelanta a todos los demas; puede matar la calculadora |
+Varios de estos SI tienen sintoma funcional observable; lo que ninguno tiene es
+una senal que lo delate. La columna "Como se nota" indica cuanto hay que buscar.
+
+| Que falta o se descoloca | Que ocurre | Como se nota |
+| --- | --- | --- |
+| `lf-sw-update.js` despues de sus consumidores | **sin service worker**, sin PWA, sin offline, sin auto-update | solo comprobando: DevTools, segunda visita, offline o tras un despliegue |
+| `theme.js` con `defer` o detras del CSS | primer pintado posible con el tema predeterminado y flash de tema, segun el momento de carga y pintado | a simple vista, pero intermitente: una pasada limpia no lo descarta |
+| orden de CSS invertido | cambios de layout (seccion 4.4) | a simple vista, si se compara con una captura previa |
+| `index-extra.js` | el modal PVPC deja de abrirse; no hay watchdog ni evento | al pulsar el boton del modal |
+| un `<script>` de la home sin `defer` | se adelanta a todos los demas; puede matar la calculadora | a simple vista si es `lf-app.js`; puede pasar desapercibido si es otro |
 
 Los de la segunda tabla son los que justifican `tests/bootstrap-contract.test.js`:
 sin el, se rompen con la suite en verde.
@@ -348,10 +401,17 @@ sin el, se rompen con la suite en verde.
 Antes de tocar `<script>`, `<link>`, `defer`, `async` o `preload`:
 
 1. Identifica si el fichero es productor o consumidor en la seccion 3. Si es
-   productor, todos sus consumidores deben quedar por detras.
+   productor, todos sus consumidores deben **ejecutarse** por detras (orden de
+   ejecucion, no de documento: ver la tabla de la seccion 4.3).
 2. Comprueba si el consumidor desestructura en eval. Si lo hace, no hay guard
-   posible: el orden es la unica defensa.
-3. Verifica que productor y consumidor conservan el mismo `defer`.
+   posible: el orden es la unica defensa. Y comprueba si algun creador del
+   namespace corre antes: eso decide si el fallo sera un `undefined` silencioso
+   o un `TypeError` ruidoso.
+3. Si ambos comparten el mismo estado de `defer`, el productor debe aparecer
+   antes en el documento. Si el productor no lleva `defer` y el consumidor SI, la
+   dependencia se conserva independientemente de su orden documental. La
+   combinacion productor con `defer` + consumidor sin `defer` es siempre
+   insegura.
 4. Si anades un modulo a la home, ponle `defer` como el resto y decide si debe
    entrar en `CORE_ASSETS` de `sw.js` o quedarse en `ASSETS`.
 5. Si tocas el `<head>`, confirma que `theme.js` sigue delante del primer

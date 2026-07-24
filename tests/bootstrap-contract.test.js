@@ -11,14 +11,23 @@ import path from 'path';
  *
  *   const { el, state, THEME_KEY } = window.LF;
  *
- * Esa lectura ocurre una sola vez. Si el productor todavia no se ha ejecutado,
- * el consumidor captura `undefined` de forma permanente: no lanza excepcion, no
- * hay reintento y no hay recuperacion sin recargar. Por eso el orden de las
- * etiquetas <script> y el atributo `defer` son parte del contrato de ejecucion.
+ * Esa lectura ocurre una sola vez, al ejecutarse el fichero, y tiene dos
+ * desenlaces segun el estado del namespace:
+ *
+ *   - window.LF existe pero le falta la propiedad: el consumidor captura
+ *     `undefined` de forma permanente. No lanza, no hay reintento y no hay
+ *     recuperacion sin recargar. Es el caso silencioso.
+ *   - window.LF no existe todavia: `const { ... } = window.LF` lanza TypeError
+ *     y aborta el IIFE completo. Es ruidoso, pero deja el modulo sin ejecutar.
+ *
+ * Por eso el orden de ejecucion de los <script> es parte del contrato.
  *
  * Estos tests vigilan RELACIONES entre ficheros, no una foto fija de la lista
  * completa de scripts, y no usan numeros de linea: mover un bloque dentro del
  * mismo documento no debe hacerlos fallar; invertir una dependencia si.
+ *
+ * El orden que comprueban es el de EJECUCION, no el del documento: ver
+ * executionOrder() mas abajo y ARRANQUE-CARGA.md seccion 4.3.
  *
  * Documentacion completa: ARRANQUE-CARGA.md
  */
@@ -101,6 +110,49 @@ function findScript(scripts, assetPath) {
 
 function scriptPosition(scripts, assetPath) {
   return scripts.findIndex((entry) => entry.src === assetPath);
+}
+
+/**
+ * Orden de EJECUCION de scripts clasicos insertados por el parser.
+ *
+ * No coincide con el orden del documento: el navegador ejecuta primero TODOS los
+ * no diferidos, en orden de documento, durante el parseo; y despues TODOS los
+ * diferidos, en orden de documento, antes de DOMContentLoaded.
+ *
+ * De ahi salen las cuatro combinaciones de un par productor -> consumidor:
+ *
+ *   productor sin defer + consumidor sin defer -> seguro solo si el productor
+ *     aparece antes en el documento.
+ *   productor con defer + consumidor con defer -> seguro solo si el productor
+ *     aparece antes en el documento.
+ *   productor sin defer + consumidor con defer -> seguro AUNQUE el consumidor
+ *     aparezca antes en el documento: el productor corre durante el parseo y el
+ *     consumidor despues.
+ *   productor con defer + consumidor sin defer -> INSEGURO SIEMPRE: el
+ *     consumidor corre durante el parseo, antes que el productor diferido.
+ *
+ * `async` queda fuera de este modelo (su orden no es determinista) y por eso
+ * esta prohibido en las tres aplicaciones; lo vigila un test aparte.
+ */
+function executionOrder(scripts) {
+  return scripts
+    .map((entry, documentIndex) => ({ ...entry, documentIndex }))
+    .sort((a, b) => (a.defer === b.defer
+      ? a.documentIndex - b.documentIndex
+      : (a.defer ? 1 : -1)));
+}
+
+function executionPosition(scripts, assetPath) {
+  return executionOrder(scripts).findIndex((entry) => entry.src === assetPath);
+}
+
+// "con defer, #25 en el documento, #25 en ejecucion"
+function describePlacement(scripts, assetPath) {
+  const entry = findScript(scripts, assetPath);
+  if (!entry) return 'ausente';
+  return (entry.defer ? 'con defer' : 'sin defer') +
+    `, #${scriptPosition(scripts, assetPath)} en el documento` +
+    `, #${executionPosition(scripts, assetPath)} en ejecucion`;
 }
 
 function stylesheetPosition(sheets, assetPath) {
@@ -294,42 +346,76 @@ describe('Contrato de arranque: tema antes del CSS', () => {
   });
 });
 
+// Las aserciones por par dependen por completo de que executionOrder() modele
+// bien la semantica del navegador. Si el modelo estuviera mal, todas ellas
+// estarian mal a la vez y en verde. Estos cuatro casos fijan la tabla.
+describe('Contrato de arranque: modelo de orden de ejecucion', () => {
+  const ejecuta = (list) => executionOrder(list).map((entry) => entry.src);
+
+  it('sin defer: manda el orden del documento', () => {
+    expect(ejecuta([
+      { src: 'productor', defer: false },
+      { src: 'consumidor', defer: false }
+    ])).toEqual(['productor', 'consumidor']);
+
+    expect(ejecuta([
+      { src: 'consumidor', defer: false },
+      { src: 'productor', defer: false }
+    ])).toEqual(['consumidor', 'productor']);
+  });
+
+  it('ambos con defer: manda el orden del documento', () => {
+    expect(ejecuta([
+      { src: 'productor', defer: true },
+      { src: 'consumidor', defer: true }
+    ])).toEqual(['productor', 'consumidor']);
+
+    expect(ejecuta([
+      { src: 'consumidor', defer: true },
+      { src: 'productor', defer: true }
+    ])).toEqual(['consumidor', 'productor']);
+  });
+
+  it('productor sin defer + consumidor con defer: seguro aunque el consumidor vaya antes', () => {
+    expect(ejecuta([
+      { src: 'consumidor', defer: true },
+      { src: 'productor', defer: false }
+    ])).toEqual(['productor', 'consumidor']);
+  });
+
+  it('productor con defer + consumidor sin defer: inseguro aunque el productor vaya antes', () => {
+    expect(ejecuta([
+      { src: 'productor', defer: true },
+      { src: 'consumidor', defer: false }
+    ])).toEqual(['consumidor', 'productor']);
+  });
+});
+
 describe('Contrato de arranque: productores antes que consumidores', () => {
   for (const [page, pairs] of Object.entries(DEPENDENCY_PAIRS)) {
     describe(page, () => {
       const scripts = parseScripts(readPage(page));
 
-      it.each(pairs)('%s se carga antes que %s', (producer, consumer, rompe) => {
-        const producerPos = scriptPosition(scripts, producer);
-        const consumerPos = scriptPosition(scripts, consumer);
+      it.each(pairs)('%s se ejecuta antes que %s', (producer, consumer, rompe) => {
+        expect(findScript(scripts, producer), `${page}: falta el productor ${producer}`)
+          .not.toBeNull();
+        expect(findScript(scripts, consumer), `${page}: falta el consumidor ${consumer}`)
+          .not.toBeNull();
 
-        expect(producerPos, `${page}: falta el productor ${producer}`).toBeGreaterThanOrEqual(0);
-        expect(consumerPos, `${page}: falta el consumidor ${consumer}`).toBeGreaterThanOrEqual(0);
+        const producerPos = executionPosition(scripts, producer);
+        const consumerPos = executionPosition(scripts, consumer);
 
         expect(
           producerPos < consumerPos,
-          `${page}: ${producer} debe cargarse ANTES que ${consumer}.\n` +
+          `${page}: ${producer} debe EJECUTARSE antes que ${consumer}.\n` +
           `Se rompe: ${rompe}.\n` +
-          'El consumidor lee ese global al evaluarse; si llega antes, captura ' +
-          'undefined de forma permanente.'
-        ).toBe(true);
-      });
-
-      it.each(pairs)('%s y %s comparten el mismo defer', (producer, consumer, rompe) => {
-        const producerEntry = findScript(scripts, producer);
-        const consumerEntry = findScript(scripts, consumer);
-
-        expect(producerEntry, `${page}: falta ${producer}`).not.toBeNull();
-        expect(consumerEntry, `${page}: falta ${consumer}`).not.toBeNull();
-
-        expect(
-          producerEntry.defer === consumerEntry.defer,
-          `${page}: ${producer} (defer=${producerEntry.defer}) y ${consumer} ` +
-          `(defer=${consumerEntry.defer}) deben compartir el atributo defer.\n` +
-          `Se rompe: ${rompe}.\n` +
-          'Los scripts diferidos se ejecutan TODOS despues de los no diferidos, sin ' +
-          'importar su posicion en el HTML: un defer distinto invierte el orden real ' +
-          'de ejecucion aunque el orden en el documento parezca correcto.'
+          `Estado actual -> ${producer}: ${describePlacement(scripts, producer)}; ` +
+          `${consumer}: ${describePlacement(scripts, consumer)}.\n` +
+          'Recuerda que el orden de ejecucion no es el del documento: el navegador ' +
+          'ejecuta primero todos los scripts sin defer, en orden de documento, y ' +
+          'despues todos los diferidos. La combinacion insegura es productor CON ' +
+          'defer + consumidor SIN defer: el consumidor corre durante el parseo y lee ' +
+          'un global que todavia no existe. Ver ARRANQUE-CARGA.md seccion 4.3.'
         ).toBe(true);
       });
     });
@@ -337,7 +423,11 @@ describe('Contrato de arranque: productores antes que consumidores', () => {
 });
 
 describe('Contrato de arranque: atributos defer', () => {
-  it('index.html mantiene todos los scripts del <body> diferidos', () => {
+  // Invariante PROPIA de la home, mas estricta que la necesidad tecnica: hay
+  // combinaciones mixtas que conservarian una dependencia aislada, pero la home
+  // mantiene el body homogeneo para que el orden de ejecucion coincida con el
+  // orden de lectura del HTML y no haya que razonar sobre colas diferidas.
+  it('index.html mantiene todos los scripts del <body> diferidos (contrato propio)', () => {
     const bodyScripts = parseScripts(readPage(HOME)).filter((entry) => !entry.inHead);
 
     expect(bodyScripts.length, 'index.html: no se han encontrado scripts en el <body>')
@@ -348,9 +438,10 @@ describe('Contrato de arranque: atributos defer', () => {
     expect(
       sinDefer,
       'index.html: estos scripts del <body> han perdido defer: ' + sinDefer.join(', ') + '.\n' +
-      'En la home TODOS los scripts del body son diferidos y se ejecutan en orden de ' +
-      'documento. Uno sin defer se adelanta al resto: si es lf-app.js, window.LF no ' +
-      'existe todavia y la calculadora queda deshabilitada en cada carga.'
+      'En la home TODOS los scripts del body son diferidos: es un contrato propio y ' +
+      'conservador, no una necesidad tecnica de cada par por separado. Uno sin defer ' +
+      'se adelanta a todos los demas; si es lf-app.js, window.LF no existe todavia y ' +
+      'la calculadora queda deshabilitada. Ver ARRANQUE-CARGA.md seccion 4.3.'
     ).toEqual([]);
   });
 
