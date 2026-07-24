@@ -462,37 +462,160 @@ produccion; los puntos 7 y 8 tambien la revelan de forma indirecta.
 Decision firme (2026-07-24). No se reordenan scripts, hojas de estilo, fuentes ni
 preloads con el objetivo de mejorar una puntuacion de laboratorio.
 
-Estado medido: Lighthouse/PageSpeed movil 89-92, escritorio 100, con TBT 0 ms y
-CLS practicamente nulo. El punto debil observado es LCP, que es **texto** en
-ambos formatos: tagline en peso 400 en movil, `h1` en peso 900 en escritorio.
-Ambos pesos ya llevan `preload`.
+Las auditorias de PageSpeed que disparan esta discusion, por su nombre literal:
+`Solicitudes que bloquean el renderizado` (*Eliminate render-blocking
+resources*) y `Evita encadenar solicitudes criticas` (*Avoid chaining critical
+requests*, sin puntuar). Su aparicion es un dato para investigar, no una orden de
+cambio ni la prueba de que exista un defecto en el orden de carga.
 
-Razones para no mover nada:
+### 8.1 Datos de campo (CrUX, 2026-07-24)
+
+La captura de PageSpeed enlazada en esta revision muestra datos CrUX especificos
+de la URL para la ventana de 28 dias del 25/06 al 22/07/2026. Son percentiles 75
+agregados, no valores de todas las visitas ni una garantia para cada usuario.
+**La evaluacion de Metricas Web Principales se supera en movil y escritorio.**
+
+| Metrica | Movil | Escritorio |
+| --- | --- | --- |
+| LCP | 1,3 s | 1,2 s |
+| INP | 163 ms | 95 ms |
+| CLS | 0,01 | 0,01 |
+| FCP | 1,3 s | 1,2 s |
+| TTFB | 0,4 s | 0,3 s |
+
+Esto cierra el hueco que quedo abierto el 11/07/2026, cuando no habia forma de
+comparar laboratorio contra campo. No muestra una urgencia de rendimiento en la
+experiencia agregada: el umbral `Good` de LCP es 2,5 s y el percentil 75 movil es
+1,3 s. No demuestra que ninguna visita sufra condiciones lentas ni permite
+atribuir el resultado a un recurso concreto.
+
+INP movil, con 163 ms frente al umbral `Good` de 200 ms, es la metrica vital con
+menor margen relativo en esta captura. Si empeora, hay que medir las
+interacciones responsables antes de relacionarlo con el arranque: esta captura
+por si sola no predice que metrica se degradara primero ni que cambio la
+corregiria.
+
+### 8.2 Laboratorio: una ejecucion sintetica, no datos de usuario
+
+Informe conservado como referencia:
+`https://pagespeed.web.dev/analysis/http-luzfija-es/6b20tubb7z`.
+La pagina contiene dos ejecuciones Lighthouse independientes, movil y
+escritorio, realizadas el 24/07/2026 alrededor de las 08:18 UTC sobre el mismo
+despliegue. No son una unica captura y, ademas del perfil de dispositivo y red,
+puede existir variacion normal entre ejecuciones.
+
+| | Movil | Escritorio |
+| --- | --- | --- |
+| Puntuacion de rendimiento | 89 | **100** |
+| LCP de laboratorio | 3,4 s | **0,5 s** |
+| Ahorro estimado de render-blocking | 630 ms | **150 ms** |
+| TBT | 0 ms | 0 ms |
+
+La diferencia ilustra que el resultado sintetico es sensible al perfil y a las
+condiciones de la ejecucion. No prueba por si sola que haya un defecto de orden,
+pero tampoco que el escenario movil sea imposible para usuarios reales. Los
+datos se complementan: laboratorio sirve para reproducir y diagnosticar bajo
+condiciones controladas; CrUX describe la distribucion agregada observada en
+campo.
+
+La cifra de 50 ms registrada el 11/07/2026 pertenece a aquella ejecucion y no
+debe sustituirse retrospectivamente. Las estimaciones de auditorias distintas no
+son comparables sin conservar URL o informe, version de Lighthouse, despliegue y
+perfil. Para esta decision se usan los valores del informe enlazado arriba.
+
+### 8.3 Que permite concluir la cadena de dependencias
+
+El informe enlazado no reproduce la cadena de 1247 ms que figuraba antes en este
+documento. En esa ejecucion, el arbol movil indica una latencia maxima aproximada
+de 1115 ms y termina en `tarifas.json`; el de escritorio indica unos 1364 ms y
+termina en `outfit-latin-700.woff2` despues de `fonts.css`. Por tanto, no existe
+una unica cola que pueda atribuirse de forma general a scripts o fuentes.
+
+El arbol describe relaciones y tiempos observados en una ejecucion. Que una rama
+termine antes que otra no demuestra que modificarla sea incapaz de alterar el
+resultado total: las solicitudes pueden compartir ancho de banda y su evaluacion
+puede competir por el hilo principal. Del mismo modo, el ahorro de
+render-blocking es una estimacion de Lighthouse, no una medicion del resultado
+que tendria un cambio concreto en este proyecto.
+
+La conclusion operativa se apoya en riesgo y evidencia, no en una imposibilidad
+teorica:
+
+1. `error-bootstrap.js`, `config.js` y `theme.js` son bloqueantes, pero su orden y
+   su ejecucion temprana sostienen invariantes reales de errores, configuracion y
+   tema. Diferirlos sin redisenar el bootstrap rompe funcionalidad o degradacion.
+2. No consta en esta documentacion una medicion A/B que demuestre que una
+   alternativa segura reduzca LCP de forma reproducible.
+3. Con las metricas de campo dentro de `Good`, el beneficio hipotetico no
+   compensa el riesgo de tocar el contrato de arranque.
+
+### 8.4 Fuentes: que esta medido y que no
+
+El punto debil observado en laboratorio es LCP, que es **texto** en ambos
+formatos: tagline en peso 400 en movil, `h1` en peso 900 en escritorio. Ambos
+pesos ya llevan `preload`.
+
+La ausencia de 400 y 900 en una cadena concreta es compatible con que el
+`preload` adelante su descubrimiento, pero no demuestra por si sola cuanto mejora
+el LCP ni que esos recursos hayan dejado de influir en el camino de renderizado.
+
+Los pesos 600 y 700 no corresponden a los elementos LCP medidos. `font-display:
+swap` permite mostrar una fuente alternativa mientras llega Outfit, pero no
+garantiza que el intercambio posterior sea incapaz de afectar al layout o al
+LCP. El CLS de campo de 0,01 muestra buena estabilidad agregada en el percentil
+75; no permite atribuir o descartar saltos causados por una fuente concreta.
+
+Esta decision no anade precargas para 600 y 700: la captura no demuestra un
+beneficio y nuevas precargas pueden competir por ancho de banda con recursos mas
+prioritarios. Tampoco se adelanta `fonts.css`: aunque su cascada es sencilla y
+en `/estadisticas/` ya va primero, esta captura no demuestra que adelantarla
+produzca una mejora material. Ambas decisiones pueden reabrirse con una prueba
+controlada, no solo por su aparicion en el arbol.
+
+### 8.5 Razones de fondo
 
 - Los tres scripts bloqueantes del `<head>` suman unos 6,7 KB gzip y van por
   delante de cualquier hoja de estilo, asi que no sufren el bloqueo
-  script-tras-CSS. En las mediciones actuales tampoco aparecen como causa del
-  LCP.
+  script-tras-CSS. Lighthouse los identifica como render-blocking, pero en esta
+  documentacion no consta una alternativa segura que mejore el resultado.
 - Los navegadores modernos utilizan descubrimiento especulativo de recursos y,
   en las mediciones actuales, mover los preloads dentro del `<head>` no ha
   mostrado un beneficio demostrable. No se descarta como palanca por teoria,
   sino por ausencia de efecto medido: si alguien quiere reabrirlo, que traiga
   una medicion, no un razonamiento sobre como parsea el navegador.
-- El peso render-blocking real esta en el CSS, unos 34 KB gzip repartidos en
-  cuatro hojas. Las opciones sobre ese frente (CSS critico inline, `media=print`,
-  diferir `desglose-factura.css`, purgar CSS no usado) ya se evaluaron y
-  descartaron con datos; ver `AUDITORIA-IA.md`.
+- En la medicion documentada, el volumen transferido de CSS esta en torno a
+  34 KB gzip repartidos en cuatro hojas y domina el peso de los recursos
+  render-blocking. Las opciones sobre ese frente (CSS critico inline,
+  `media=print`, diferir `desglose-factura.css`, purgar CSS no usado) ya se
+  evaluaron y descartaron con datos; ver `AUDITORIA-IA.md`.
 - La separacion o carga diferida de los modulos JS de la home es roadmap de
   riesgo alto, no una optimizacion de etiquetas; ver la seccion dedicada de
   `AUDITORIA-IA.md`.
 
-Para reabrir la decision hace falta:
+### 8.6 Que haria falta para reabrirlo
 
-1. telemetria de campo (CrUX / Search Console), no una estimacion de bytes ni una
-   pasada suelta de Lighthouse;
-2. varias pasadas en frio contra una baseline equivalente;
-3. una estrategia de regresion completa que cubra carga fallida y reintento,
+La aparicion de una recomendacion de Lighthouse no basta. Para reabrir la
+decision hace falta:
+
+1. deterioro de campo en CrUX/Search Console o una regresion sintetica
+   reproducible bajo un perfil relevante;
+2. varias pasadas en frio contra una baseline equivalente, conservando informe,
+   despliegue, version y configuracion;
+3. una hipotesis que relacione el recurso con la metrica afectada y una mejora
+   material medida, no solo el ahorro estimado por la auditoria;
+4. una estrategia de regresion completa que cubra carga fallida y reintento,
    doble inicializacion, modo offline, clientes con HTML o SW antiguo, watchdogs
    y estados degradados.
 
 Un recurso render-blocking, por si solo, no es un hallazgo.
+
+### 8.7 Referencias primarias
+
+- Informe PageSpeed conservado:
+  `https://pagespeed.web.dev/analysis/http-luzfija-es/6b20tubb7z?form_factor=mobile`
+- Interpretacion de solicitudes render-blocking:
+  `https://developer.chrome.com/docs/performance/insights/render-blocking`
+- Comportamiento y compromisos de `font-display`:
+  `https://web.dev/articles/font-best-practices`
+- Diagnostico y atribucion de CLS:
+  `https://web.dev/articles/optimize-cls`
