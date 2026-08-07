@@ -1,0 +1,151 @@
+name: Tests
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: read
+
+
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          cache: 'npm'
+          
+      - name: Install dependencies
+        run: npm ci
+        
+      - name: Security Audit (informational)
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Run Tests
+        run: npm test
+
+      - name: Verify synchronized repo state
+        run: |
+          if ! git diff --quiet || ! git diff --cached --quiet; then
+            echo "::error::npm test modified tracked files. Run npm test locally and commit the resulting changes."
+            git status --short
+            echo "Changed tracked files:"
+            git diff --name-only
+            git diff --stat
+            exit 1
+          fi
+
+          UNTRACKED="$(git ls-files --others --exclude-standard)"
+          if [ -n "$UNTRACKED" ]; then
+            echo "::error::Unexpected untracked files generated during CI:"
+            echo "$UNTRACKED"
+            exit 1
+          fi
+
+  build_pages:
+    needs: test
+    if: ${{ needs.test.result == 'success' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch') && (github.ref_name == 'main' || github.ref_name == 'master') }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v6
+
+      - name: Construir artefacto publico
+        run: |
+          rm -rf _site
+          mkdir _site
+          rsync -a \
+            --exclude='_site/' \
+            --exclude='.*' \
+            --exclude='tests/' \
+            --exclude='scripts/' \
+            --exclude='node_modules/' \
+            --exclude='logs/' \
+            --exclude='*.md' \
+            --exclude='vendor/goatcounter/count.upstream.js' \
+            --exclude='vendor/goatcounter/count.local.patch' \
+            --exclude='package.json' \
+            --exclude='package-lock.json' \
+            --exclude='eslint.config.mjs' \
+            --exclude='vitest.config.js' \
+            ./ _site/
+
+          # Excepciones publicas deliberadas: contrato de Pages, well-known y
+          # licencia del contenido. LICENSE no tiene extension y ya entra por rsync.
+          cp -a .nojekyll .well-known _site/
+          cp -a CONTENT-LICENSE.md _site/
+
+          # Contrato minimo del sitio y guard contra documentacion interna.
+          test -f _site/index.html
+          test -f _site/sw.js
+          test -f _site/llms.txt
+          test -f _site/llms-full.txt
+          test -f _site/.nojekyll
+          test -f _site/.well-known/assetlinks.json
+          if find _site -type f -name '*.md' ! -name 'CONTENT-LICENSE.md' -print -quit | grep -q .; then
+            echo "::error::El artefacto publico contiene Markdown interno inesperado"
+            find _site -type f -name '*.md' -print
+            exit 1
+          fi
+
+          # La linea base de vendor y su parche golden son material de referencia
+          # para reaplicar los parches locales al actualizar: no se sirven nunca.
+          # Se comprueban por ruta explicita, no por patron global, para no ocultar
+          # en silencio un futuro fichero legitimo con un sufijo parecido.
+          if [ -e _site/vendor/goatcounter/count.upstream.js ] || [ -e _site/vendor/goatcounter/count.local.patch ]; then
+            echo "::error::El artefacto publico contiene material de referencia de vendor"
+            ls -la _site/vendor/goatcounter/
+            exit 1
+          fi
+          test -f _site/vendor/goatcounter/count.js
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: '_site'
+
+  deploy_pages:
+    needs: build_pages
+    if: ${{ needs.build_pages.result == 'success' }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: github-pages-${{ github.ref }}
+      cancel-in-progress: false
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      # NO anadir `with: timeout:` aqui. actions/deploy-pages lo recorta al maximo de
+      # 600000 ms (10 min) y avisa con "timeout value is greater than the allowed
+      # maximum". Probado el 06/08/2026 con 1800000: se ignoro y el job volvio a morir
+      # a los 10m10s. Cuando Pages tarda mas de 10 minutos en publicar no hay ajuste
+      # posible: el run sale rojo aunque el sitio acabe publicandose (ese dia el commit
+      # ff637fd figuraba como `failure` y era el que servia produccion). Verificar la
+      # publicacion real con el `updatedAt` de https://luzfija.es/tarifas.json.
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v5
