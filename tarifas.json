@@ -2041,26 +2041,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Lumisa 3P",
-      "cPunta": 0.210136,
-      "cLlano": 0.140644,
-      "cValle": 0.107595,
-      "p1": 0.118638,
-      "p2": 0.024595,
-      "web": "https://lumisa.es/es/tarifa-fija",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "CEA Estable 3P",
       "cPunta": 0.211843,
       "cLlano": 0.13673,
@@ -2287,6 +2267,27 @@
       "requiereFV": false
     },
     {
+      "nombre": "Lumisa 3P",
+      "cPunta": 0.247219,
+      "cLlano": 0.165464,
+      "cValle": 0.126582,
+      "p1": 0.118638,
+      "p2": 0.024595,
+      "web": "https://lumisa.es/es/tarifa-fija",
+      "tipo": "3P",
+      "requisitos": "15% descuento término energía durante 12 meses incluido en el precio.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Nufri 2a Residencia 3P",
       "cPunta": 0.24883,
       "cLlano": 0.167328,
@@ -2468,5 +2469,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-08-08T10:00:48.431Z"
+  "updatedAt": "2026-08-08T10:49:09.714Z"
 }
