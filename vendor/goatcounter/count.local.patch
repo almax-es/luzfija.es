@@ -1,0 +1,92 @@
+--- a/count.js
++++ b/count.js
+@@ -27,7 +27,7 @@
+ 			e: !!(vars.event || goatcounter.event),
+ 			s: window.screen.width,
+ 			b: is_bot(),
+-			q: location.search,
++			q: safe_query(),
+ 		}
+ 
+ 		var rcb, pcb, tcb  // Save callbacks to apply later.
+@@ -99,6 +99,29 @@
+ 		return (loc.pathname + loc.search) || '/'
+ 	}
+ 
++	// LuzFija: no enviar queries de configuración, búsquedas o consumos a GoatCounter.
++	// Solo conservamos parámetros de campaña explícitamente no personales.
++	var safe_query = function() {
++		var allow = {
++			utm_source: true,
++			utm_medium: true,
++			utm_campaign: true,
++			utm_content: true,
++			utm_term: true
++		}
++		var out = []
++		try {
++			var params = new URLSearchParams(location.search || '')
++			params.forEach(function(value, key) {
++				var k = String(key || '').toLowerCase()
++				if (!allow[k]) return
++				var v = String(value || '').replace(/[^\w .~:-]/g, '').substr(0, 80)
++				if (v) out.push(k + '=' + v)
++			})
++		} catch (e) {}
++		return out.length ? '?' + out.join('&') : ''
++	}
++
+ 	// Run function after DOM is loaded.
+ 	var on_load = function(f) {
+ 		if (document.body === null)
+@@ -138,14 +161,27 @@
+ 
+ 	// Count a hit.
+ 	window.goatcounter.count = function(vars) {
++		var on_sent = vars && typeof(vars.on_sent) === 'function' ? vars.on_sent : function() {}
++		var on_error = vars && typeof(vars.on_error) === 'function' ? vars.on_error : function() {}
+ 		var f = goatcounter.filter()
+-		if (f)
+-			return warn('not counting because of: ' + f)
++		if (f) {
++			try { on_error() } catch (e) {}
++			warn('not counting because of: ' + f)
++			return false
++		}
+ 		var url = goatcounter.url(vars)
+-		if (!url)
+-			return warn('not counting because path callback returned null')
++		if (!url) {
++			try { on_error() } catch (e) {}
++			warn('not counting because path callback returned null')
++			return false
++		}
++
++		if (!(vars && vars.force_image) && navigator && navigator.sendBeacon && navigator.sendBeacon(url)) {
++			try { on_sent() } catch (e) {}
++			return true
++		}
+ 
+-		if (!navigator || !navigator.sendBeacon || !navigator.sendBeacon(url)) {
++		{
+ 			// This mostly fails due to being blocked by CSP; try again with an
+ 			// image-based fallback.
+ 			var img = document.createElement('img')
+@@ -159,8 +195,16 @@
+ 			img.setAttribute('aria-hidden', 'true')
+ 
+ 			var rm = function() { if (img && img.parentNode) img.parentNode.removeChild(img) }
+-			img.addEventListener('load', rm, false)
++			img.addEventListener('load', function() {
++				rm()
++				try { on_sent() } catch (e) {}
++			}, false)
++			img.addEventListener('error', function() {
++				rm()
++				try { on_error() } catch (e) {}
++			}, false)
+ 			document.body.appendChild(img)
++			return false
+ 		}
+ 	}
+ 

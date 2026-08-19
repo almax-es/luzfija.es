@@ -1,0 +1,149 @@
+import { describe, expect, it } from 'vitest';
+import fs from 'fs';
+import path from 'path';
+
+const ROOT = path.resolve(__dirname, '..');
+const read = (relativePath) => fs.readFileSync(path.join(ROOT, relativePath), 'utf8');
+
+function relativeLuminance(hex) {
+  const channels = hex
+    .replace('#', '')
+    .match(/.{2}/g)
+    .map((channel) => parseInt(channel, 16) / 255)
+    .map((channel) => channel <= 0.04045
+      ? channel / 12.92
+      : ((channel + 0.055) / 1.055) ** 2.4);
+
+  return (0.2126 * channels[0]) + (0.7152 * channels[1]) + (0.0722 * channels[2]);
+}
+
+function contrastRatio(foreground, background) {
+  const lighter = Math.max(relativeLuminance(foreground), relativeLuminance(background));
+  const darker = Math.min(relativeLuminance(foreground), relativeLuminance(background));
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+describe('regresiones de accesibilidad detectadas en la auditoría', () => {
+  it('los fondos de CTA con texto blanco superan WCAG AA', () => {
+    expect(contrastRatio('#FFFFFF', '#7C3AED')).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio('#FFFFFF', '#6D28D9')).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio('#FFFFFF', '#15803D')).toBeGreaterThanOrEqual(4.5);
+  });
+
+  it('todas las guías usan el morado accesible en el CTA compartido', () => {
+    const guideFiles = fs.readdirSync(path.join(ROOT, 'guias'))
+      .filter((file) => file.endsWith('.html') && file !== 'index.html');
+
+    expect(guideFiles.length).toBeGreaterThan(0);
+    guideFiles.forEach((file) => {
+      const html = read(path.join('guias', file));
+      expect(html, file).toMatch(/\.action-btn\{[^}]*background:#7C3AED;color:white/);
+      expect(html, file).toMatch(/\.action-btn:hover\{background:#6D28D9;/);
+      expect(html, file).not.toMatch(/\.action-btn\{[^}]*background:var\(--accent\);color:white/);
+    });
+  });
+
+  it('los CTA editoriales aislados y el CTA verde conservan contraste accesible', () => {
+    expect(read('404.html')).toMatch(/\.back-button\{[^}]*background:#7C3AED;color:white/);
+    expect(read('como-funciona-luzfija.html')).toMatch(/\.btn-primary\{background:#7C3AED;color:white/);
+
+    const guideIndex = read('guias.html');
+    expect(guideIndex).toMatch(/\.category-btn\.active\s*\{[^}]*background:\s*#7C3AED;/);
+    expect(guideIndex).toMatch(/\.cta-button\s*\{[^}]*background:\s*#7C3AED;/);
+
+    const bonoSocial = read('guias/bono-social-electrico-quien-puede-pedirlo-y-como.html');
+    expect(bonoSocial).toMatch(/href="https:\/\/civio\.es\/bono-social\/"[^>]*background:#15803D;/);
+  });
+
+  it('el selector mensual reserva ARIA al botón y usa una clase para el estado visual', () => {
+    const ui = read('js/bv/bv-ui.js');
+    const css = read('bv-sim.css');
+
+    expect(ui).not.toMatch(/wrapperEl\.setAttribute\('aria-(?:disabled|expanded)'/);
+    expect(ui).toContain("wrapperEl.classList.add('is-open')");
+    expect(ui).toContain("wrapperEl.classList.remove('is-open')");
+    expect(css).toContain('.bv-cs.is-open .bv-cs-chevron');
+    expect(css).toContain('.bv-cs.is-open .bv-cs-list');
+    expect(css).not.toContain('.bv-cs[aria-expanded="true"]');
+  });
+
+  it('las opciones de compartir pueden envolver su explicación en móvil', () => {
+    const css = read('styles.css');
+    const bvCss = read('bv-sim.css');
+
+    expect(css).toMatch(/\.share-config-option\s*\{[^}]*white-space:\s*normal;[^}]*overflow:\s*visible;[^}]*text-overflow:\s*clip;/);
+    expect(css).toMatch(/\.share-config-option\s*>\s*span\s*\{[^}]*min-width:\s*0;[^}]*flex:\s*1;/);
+    expect(css).toMatch(/\.share-config-option small\s*\{[^}]*white-space:\s*normal;[^}]*overflow-wrap:\s*anywhere;/);
+    expect(bvCss).toMatch(/\.bv-share-option\s*\{[^}]*white-space:\s*normal;[^}]*overflow:\s*visible;[^}]*text-overflow:\s*clip;/);
+    expect(bvCss).toMatch(/\.bv-share-option\s*>\s*span\s*\{[^}]*min-width:\s*0;[^}]*flex:\s*1;/);
+    expect(bvCss).toMatch(/\.bv-share-option small\s*\{[^}]*white-space:\s*normal;[^}]*overflow-wrap:\s*anywhere;/);
+  });
+
+  it('los modales quedan por encima de controles flotantes', () => {
+    const proCss = read('pro.css');
+
+    expect(proCss).toMatch(/\.modal-overlay, \.desglose-overlay\s*\{\s*z-index:\s*10010;/);
+    expect(proCss).toMatch(/\.modal-content, \.desglose-modal\s*\{\s*z-index:\s*10011;/);
+  });
+
+  it('las acciones de compartir conservan botones completos en móvil', () => {
+    const css = read('styles.css');
+    const bvCss = read('bv-sim.css');
+
+    expect(css).toMatch(/\.share-config-actions\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) minmax\(0, 1fr\);[^}]*grid-template-areas:\s*"cancel share";/);
+    expect(css).toMatch(/\.share-config-actions \.btn\s*\{[^}]*width:\s*100%;[^}]*white-space:\s*nowrap;/);
+    expect(css).toMatch(/@media \(max-width: 520px\)\s*\{\s*\.share-config-actions\s*\{[^}]*grid-template-areas:\s*"share" "cancel";/);
+    expect(bvCss).toMatch(/\.bv-share-actions\s*\{[^}]*grid-template-columns:\s*minmax\(0, 1fr\) minmax\(0, 1fr\);[^}]*grid-template-areas:\s*"cancel share";/);
+    expect(bvCss).toMatch(/\.bv-share-actions \.btn\s*\{[^}]*width:\s*100%;[^}]*white-space:\s*nowrap;/);
+    expect(bvCss).toMatch(/@media \(max-width: 520px\)\s*\{[\s\S]*?\.bv-share-actions\s*\{[^}]*grid-template-areas:\s*"share" "cancel";/);
+  });
+
+  it('el diálogo de compartir de la home usa la misma jerarquía textual que el solar', () => {
+    const css = read('styles.css');
+
+    expect(css).toMatch(/\.share-config-modal \.modal-content\s*\{[^}]*padding:\s*24px;[^}]*border-radius:\s*24px;[^}]*background:\s*linear-gradient\(145deg, #0f172a, #1e293b\);/);
+    expect(css).toMatch(/\.share-config-modal \.modal-content \.head h2\s*\{[^}]*margin:\s*0 0 10px;[^}]*color:\s*var\(--accent\);[^}]*font-size:\s*1\.3rem;/);
+    expect(css).toMatch(/#shareConfigDescription\s*\{\s*margin:\s*0 0 16px;\s*line-height:\s*1\.5;/);
+    expect(css).toMatch(/html\.light-mode \.share-config-modal \.modal-content\s*\{[^}]*background:\s*linear-gradient\(145deg, #ffffff, #f8fafc\);/);
+  });
+
+  it('las guías permiten que la columna editorial encoja en viewports estrechos', () => {
+    const guideFiles = fs.readdirSync(path.join(ROOT, 'guias'))
+      .filter((file) => file.endsWith('.html') && file !== 'index.html');
+
+    guideFiles.forEach((file) => {
+      const html = read(path.join('guias', file));
+      expect(html, file).toContain(
+        '@media (max-width:1200px){.container{grid-template-columns:minmax(0,1fr)}' +
+        '.article{min-width:0}'
+      );
+    });
+  });
+
+  it('las tablas editoriales anchas se desplazan dentro de una región accesible', () => {
+    const tableGuides = [
+      'guias/diferencia-entre-comercializadora-y-distribuidora.html',
+      'guias/tarifas-indexadas-pool-cuota-cuando-interesan-y-cuando-no.html'
+    ];
+
+    tableGuides.forEach((file) => {
+      const html = read(file);
+      expect(html, file).toContain('.table-scroll{');
+      expect(html, file).toMatch(
+        /<div class="table-scroll" role="region" aria-label="[^"]+" tabindex="0">\s*<table class="tabla-comparativa">/
+      );
+      expect(html, file).toMatch(/<\/table>\s*<\/div>/);
+    });
+  });
+
+  it('la landing PVPC apila y envuelve su navegación en móvil', () => {
+    const html = read('comparar-pvpc-tarifa-fija.html');
+
+    expect(html).toContain(
+      '.header-container{padding:0 16px;flex-direction:column;justify-content:center;gap:12px}'
+    );
+    expect(html).toContain(
+      '.nav-buttons{width:100%;justify-content:center;flex-wrap:wrap;gap:8px}'
+    );
+  });
+});
