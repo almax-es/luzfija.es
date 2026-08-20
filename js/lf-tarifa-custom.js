@@ -364,8 +364,14 @@
         exc: excFinal,
         tipo: compensa ? (tieneBV ? 'SIMPLE + BV' : 'SIMPLE') : 'NO COMPENSA',
         tope: topeParcial ? 'ENERGIA_PARCIAL' : 'ENERGIA',
-        bv: tieneBV,
-        reglaBV: tieneBV ? 'BV MES ANTERIOR' : 'NO APLICA',
+        // INVARIANTE: fv.bv significa "BV aplicable", no "el checkbox estaba marcado".
+        // Sin compensacion no hay excedente remunerado que alimente la hucha, asi que
+        // marcar BV no puede activarla. Si se emitiera bv:true con tipo 'NO COMPENSA',
+        // lf-calc.js y desglose-calculo.js la desactivarian por tipo mientras
+        // bv-sim-monthly.js la activaria solo por fv.bv, dando importes distintos para
+        // la misma opcion del usuario. Mantener la condicion en los tres productores.
+        bv: tieneBV && compensa,
+        reglaBV: (tieneBV && compensa) ? 'BV MES ANTERIOR' : 'NO APLICA',
         precioBV: precioBV
       },
       requiereFV: false
@@ -530,6 +536,14 @@
       updateMtPrecioExcWrapVisibility();
 
       updateCustomTarifaIndicatorMain(null);
+
+      // Los .value/.checked de arriba son mutaciones programaticas: no disparan los listeners
+      // input/change de attachSaveListeners, que son los que normalmente marcan state.pending.
+      // Sin esto, el ranking anterior (con su fila "Mi tarifa") seguia figurando como vigente
+      // pese a que los datos que lo generaron acaban de borrarse. No recalcula: solo invalida.
+      if (typeof window.scheduleCalculateDebounced === 'function') {
+        window.scheduleCalculateDebounced();
+      }
 
       const clearBtn = document.getElementById('lf-clear-custom-tarifa');
       if (clearBtn) {

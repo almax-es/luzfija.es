@@ -293,6 +293,33 @@ describe('Simulador solar - "Mi tarifa": 0 explicito no se confunde con vacio (1
     expect(tarifa.cValle).toBe(0.12);
   });
 
+  it('BV marcada sin compensacion se normaliza a fv.bv=false', () => {
+    // INVARIANTE: fv.bv significa "BV aplicable", no "el checkbox estaba marcado". Este
+    // productor es el del simulador; bv-sim-monthly.js activa la BV mirando solo fv.bv,
+    // mientras lf-calc.js y desglose-calculo.js exigen ademas tipo === 'SIMPLE + BV'. Emitir
+    // bv:true sin compensacion cobraba la cuota mensual aqui y no en home, dando importes
+    // distintos para la misma configuracion del usuario.
+    bootSolarUi();
+    setCustomTarifa({ punta: '0,10', llano: '0,10', valle: '0,10', p1: '0,08', p2: '0,08', exc: '', bv: true, precioBV: '2,99' });
+
+    const tarifa = window.BVSim._getCustomTarifa();
+
+    expect(tarifa.fv.bv).toBe(false);
+    expect(tarifa.fv.reglaBV).toBe('NO APLICA');
+    expect(tarifa.fv.tipo).toBe('NO COMPENSA');
+  });
+
+  it('BV con compensacion indexada sigue activa (exc = -1 compensa)', () => {
+    bootSolarUi();
+    setCustomTarifa({ punta: '0,10', llano: '0,10', valle: '0,10', p1: '0,08', p2: '0,08', exc: '', bv: true, precioBV: '2,99', compensacionIndexada: true });
+
+    const tarifa = window.BVSim._getCustomTarifa();
+
+    expect(tarifa.fv.exc).toBe(-1);
+    expect(tarifa.fv.bv).toBe(true);
+    expect(tarifa.fv.tipo).toBe('SIMPLE + BV');
+  });
+
   it('todos los campos de energia vacios sigue devolviendo null (regresion)', () => {
     bootSolarUi();
     setCustomTarifa({ punta: '', llano: '', valle: '', p1: '0,08', p2: '' });

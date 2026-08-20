@@ -1923,8 +1923,12 @@ document.addEventListener('DOMContentLoaded', () => {
         exc: excFinal,
         tipo: compensa ? (hasBV ? 'SIMPLE + BV' : 'SIMPLE') : 'NO COMPENSA',
         tope: topeParcial ? 'ENERGIA_PARCIAL' : 'ENERGIA',
-        bv: hasBV,
-        reglaBV: hasBV ? 'BV MES ANTERIOR' : 'NO APLICA',
+        // INVARIANTE: fv.bv significa "BV aplicable", no "el checkbox estaba marcado".
+        // Ver la nota extensa en js/lf-tarifa-custom.js: sin compensacion, emitir bv:true
+        // divergiria entre bv-sim-monthly.js (activa por fv.bv) y home/desglose (exigen
+        // ademas tipo 'SIMPLE + BV'). Mantener la condicion en los tres productores.
+        bv: hasBV && compensa,
+        reglaBV: (hasBV && compensa) ? 'BV MES ANTERIOR' : 'NO APLICA',
         precioBV: precioBV
       },
       requiereFV: false

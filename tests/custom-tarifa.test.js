@@ -113,6 +113,50 @@ describe('Tarifa Personalizada (lf-tarifa-custom.js)', () => {
     expect(tarifa.fv.precioBV).toBe(2.99);
   });
 
+  it('agregarMiTarifa: BV marcada sin compensación se normaliza a fv.bv=false', () => {
+    // INVARIANTE: fv.bv significa "BV aplicable", no "el checkbox estaba marcado". Sin
+    // compensación no hay excedente remunerado que alimente la hucha. Emitir bv:true junto a
+    // tipo 'NO COMPENSA' divergía entre motores: lf-calc.js y desglose-calculo.js exigen
+    // tipo === 'SIMPLE + BV', pero bv-sim-monthly.js activa la BV solo por fv.bv, así que
+    // cobraba la cuota mensual en el simulador y no en home para la misma configuración.
+    document.getElementById('solarOn').checked = true;
+    document.getElementById('mtPrecioExc').value = ""; // sin compensación
+    document.getElementById('mtBV').checked = true;
+    document.getElementById('mtPrecioBV').value = "2,99";
+    document.getElementById('mtPunta').value = "0,10";
+    document.getElementById('mtLlano').value = "0,10";
+    document.getElementById('mtValle').value = "0,10";
+    document.getElementById('mtP1').value = "0,10";
+    document.getElementById('mtP2').value = "0,10";
+
+    const tarifa = window.LF.agregarMiTarifa();
+
+    expect(tarifa.fv.bv).toBe(false);
+    expect(tarifa.fv.reglaBV).toBe('NO APLICA');
+    expect(tarifa.fv.tipo).toBe('NO COMPENSA');
+  });
+
+  it('agregarMiTarifa: BV con compensación indexada sigue activa (exc = -1 compensa)', () => {
+    // El centinela fv.exc = -1 cuenta como compensación, así que la normalización del
+    // invariante anterior no debe desactivar la BV en la modalidad indexada.
+    document.getElementById('solarOn').checked = true;
+    document.getElementById('mtPrecioExc').value = "";
+    document.getElementById('mtCompensacionIndexada').checked = true;
+    document.getElementById('mtBV').checked = true;
+    document.getElementById('mtPrecioBV').value = "2,99";
+    document.getElementById('mtPunta').value = "0,10";
+    document.getElementById('mtLlano').value = "0,10";
+    document.getElementById('mtValle').value = "0,10";
+    document.getElementById('mtP1').value = "0,10";
+    document.getElementById('mtP2').value = "0,10";
+
+    const tarifa = window.LF.agregarMiTarifa();
+
+    expect(tarifa.fv.exc).toBe(-1);
+    expect(tarifa.fv.bv).toBe(true);
+    expect(tarifa.fv.tipo).toBe('SIMPLE + BV');
+  });
+
   it('agregarMiTarifa: con BV activa pero sin cuota rellenada, bloquea (14/08/2026)', () => {
     document.getElementById('solarOn').checked = true;
     document.getElementById('mtPrecioExc').value = "0,07";

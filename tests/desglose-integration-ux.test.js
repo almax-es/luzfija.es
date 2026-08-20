@@ -360,13 +360,42 @@ describe('Desglose integration UX guardrails', () => {
     document.getElementById('solarOn').checked = true;
     document.getElementById('mtBV').checked = true;
     document.getElementById('mtPrecioBV').value = '2,99';
+    // Sin precio de compensacion la BV no es aplicable (fv.bv se normaliza a false) y la
+    // cuota no viaja al desglose. Este test cubre la BV realmente activa, asi que necesita
+    // compensacion > 0; el caso sin compensacion se cubre en el test siguiente.
+    document.getElementById('mtPrecioExc').value = '0,05';
 
     bootstrapIntegration();
 
     await window.mostrarDesglose('Mi tarifa ⭐');
 
     expect(window.__LF_DesgloseFactura.abrir).toHaveBeenCalledWith(
-      expect.objectContaining({ precioBV: 2.99 })
+      expect.objectContaining({ precioBV: 2.99, tieneBV: true })
+    );
+  });
+
+  it('Mi tarifa con BV marcada pero sin compensacion no activa la BV ni su cuota', async () => {
+    // Invariante: fv.bv significa "BV aplicable", no "el checkbox estaba marcado". Sin
+    // compensacion no hay excedente remunerado que alimente la hucha. Si este productor
+    // emitiera bv:true con tipo 'NO COMPENSA', bv-sim-monthly.js activaria la BV solo por
+    // fv.bv mientras home y desglose la desactivan por tipo, cobrando la cuota en un motor
+    // y no en los otros para la misma opcion del usuario.
+    document.getElementById('mtPunta').value = '0,15';
+    document.getElementById('mtLlano').value = '0,10';
+    document.getElementById('mtValle').value = '0,05';
+    document.getElementById('mtP1').value = '0,08';
+    document.getElementById('mtP2').value = '0,08';
+    document.getElementById('solarOn').checked = true;
+    document.getElementById('mtBV').checked = true;
+    document.getElementById('mtPrecioBV').value = '2,99';
+    document.getElementById('mtPrecioExc').value = '';
+
+    bootstrapIntegration();
+
+    await window.mostrarDesglose('Mi tarifa ⭐');
+
+    expect(window.__LF_DesgloseFactura.abrir).toHaveBeenCalledWith(
+      expect.objectContaining({ tieneBV: false, precioBV: 0, tipoCompensacion: 'NO COMPENSA' })
     );
   });
 

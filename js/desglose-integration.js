@@ -291,8 +291,12 @@
           exc: mtPrecioExcFinal,
           tipo: mtCompensa ? (mtTieneBV ? 'SIMPLE + BV' : 'SIMPLE') : 'NO COMPENSA',
           tope: mtTopeParcial ? 'ENERGIA_PARCIAL' : 'ENERGIA',
-          bv: mtTieneBV,
-          reglaBV: mtTieneBV ? 'BV MES ANTERIOR' : 'NO APLICA',
+          // INVARIANTE: fv.bv significa "BV aplicable", no "el checkbox estaba marcado".
+          // Ver la nota extensa en js/lf-tarifa-custom.js. Este es el tercer productor
+          // independiente del mismo objeto: si diverge, el desglose reconstruiria un estado
+          // que el ranking ya no puede producir. Mantener la condicion en los tres.
+          bv: mtTieneBV && mtCompensa,
+          reglaBV: (mtTieneBV && mtCompensa) ? 'BV MES ANTERIOR' : 'NO APLICA',
           precioBV: mtPrecioBV
         }
       };
