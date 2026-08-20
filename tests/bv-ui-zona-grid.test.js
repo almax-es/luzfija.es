@@ -1027,6 +1027,30 @@ describe('BV UI: reset cancela trabajo y estado del contexto anterior', () => {
   });
 });
 
+describe('BV UI: sustituciones de contexto cancelan el autosave anterior', () => {
+  it('el commit de handleFile cancela un autosave pendiente antes de publicar el CSV', async () => {
+    vi.useFakeTimers();
+    bootSolarUi();
+    window.BVSim.simulateMonthly.mockImplementation((imported) => makeMonthlyResultFromImport(imported));
+
+    const setItem = vi.spyOn(Storage.prototype, 'setItem');
+    editGrid(0, 'p1', '111');
+
+    window.BVSim.importFile.mockResolvedValueOnce(importResult('CSV-nuevo', 29));
+    selectCsv('nuevo.csv');
+    await flushMicrotasks();
+
+    expect(gridValue(0, 'p1')).toBe('29');
+    const writesAfterCommit = setItem.mock.calls.filter(([key]) => key === 'bv_manual_data_v2').length;
+    expect(writesAfterCommit).toBeGreaterThan(0);
+
+    await vi.advanceTimersByTimeAsync(801);
+
+    expect(setItem.mock.calls.filter(([key]) => key === 'bv_manual_data_v2')).toHaveLength(writesAfterCommit);
+    expect(JSON.parse(localStorage.getItem('bv_manual_data_v2'))[0].p1).toBe('29');
+  });
+});
+
 // Un escenario recibido por `?bv=` es una PREVISUALIZACION. El aviso en pantalla promete que
 // no ha sustituido los datos guardados; si el autosave escribe en cuanto se toca un campo, esa
 // promesa deja de ser cierta y el usuario pierde su escenario sin haber confirmado nada.
@@ -1115,6 +1139,27 @@ describe('BV: escenario compartido como previsualizacion', () => {
   };
   const leido = () => JSON.parse(localStorage.getItem('bv_manual_data_v2') || 'null');
 
+  it('loadManualData cancela el autosave pendiente antes de publicar un respaldo restaurado', async () => {
+    bootConAutosaveControlado();
+    const setItem = vi.spyOn(Storage.prototype, 'setItem');
+    editGrid(0, 'p1', '111');
+
+    const controlled = controlBackupReads(['restaurado.json']);
+    controlled.start();
+    controlled.finish(0, {
+      version: 2,
+      data: { 0: { p1: '222', p2: '', p3: '', vert: '' } }
+    });
+
+    expect(gridValue(0, 'p1')).toBe('222');
+    const writesAfterLoad = setItem.mock.calls.filter(([key]) => key === 'bv_manual_data_v2').length;
+    expect(writesAfterLoad).toBeGreaterThan(0);
+
+    await esperarAutosave();
+
+    expect(setItem.mock.calls.filter(([key]) => key === 'bv_manual_data_v2')).toHaveLength(writesAfterLoad);
+    expect(leido()[0].p1).toBe('222');
+  });
 
   it('dos respaldos solapados publican solo el ultimo aunque el primero termine despues', () => {
     bootSolarUi();
