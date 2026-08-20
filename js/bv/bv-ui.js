@@ -154,6 +154,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!input) return;
     input.addEventListener('input', function () {
       validateInputFormat(input, 2);
+      invalidateVisibleSimulationResults();
       saveManualData();
     });
   });
@@ -226,6 +227,7 @@ document.addEventListener('DOMContentLoaded', () => {
       listEl.querySelectorAll('.bv-cs-item').forEach((li) => {
         li.setAttribute('aria-selected', String(li.dataset.value === _value));
       });
+      invalidateVisibleSimulationResults();
       saveManualData();
     }
 
@@ -318,6 +320,80 @@ document.addEventListener('DOMContentLoaded', () => {
   const canUseHourlyTrace = hourlyTraceControls.canUse;
   const buildIndexedFallbackMsg = hourlyTraceControls.buildIndexedFallbackMsg;
   const clearGridImportState = window.BVSim.manualUi.clearGridImportState;
+
+  // Varios trabajos asincronos pueden sobrevivir al contexto que los origino si no se invalidan:
+  // - importFile() puede seguir parseando un CSV/XLSX mientras el usuario selecciona otro;
+  // - FileReader puede seguir leyendo un respaldo JSON tras otra importacion o un reset;
+  // - el autosave de la tabla manual espera 800 ms tras el ultimo input.
+  // Todos se controlan en la frontera que PUBLICA/reemplaza estado, no en los consumidores.
+  let fileImportGeneration = 0;
+  let backupImportGeneration = 0;
+  let manualSaveTimer = null;
+  let resultRenderGeneration = 0;
+
+  function invalidatePendingFileImport() {
+    fileImportGeneration += 1;
+  }
+
+  function invalidatePendingBackupImport() {
+    backupImportGeneration += 1;
+  }
+
+  function cancelManualAutosave() {
+    if (manualSaveTimer !== null) {
+      clearTimeout(manualSaveTimer);
+      manualSaveTimer = null;
+    }
+  }
+
+  function clearActiveFileSelection() {
+    invalidatePendingFileImport();
+    window.BVSim.file = null;
+    window.BVSim._cachedImportResult = null;
+    if (fileInput) fileInput.value = '';
+    if (fileNameDisplay) fileNameDisplay.textContent = '';
+    if (fileSelectedMsg) fileSelectedMsg.style.display = 'none';
+  }
+
+  function clearManualGridInputs() {
+    if (!manualGrid) return;
+    manualGrid.querySelectorAll('input.manual-input').forEach((input) => {
+      input.value = '';
+      input.classList.remove('error', 'valid');
+    });
+  }
+
+  function clearRenderedSimulationOutput() {
+    // Cancela tambien el commit visual diferido (10 ms) del ultimo ranking: si un reset/edit
+    // ocurre en esa ventana, el timeout viejo no puede volver a marcar el contenedor como visible
+    // ni anunciar `lf:results-ready` para un resultado que ya fue invalidado.
+    resultRenderGeneration += 1;
+    if (resultsContainer) {
+      resultsContainer.classList.remove('show');
+      resultsContainer.style.display = 'none';
+    }
+    if (shareResultsWrap) shareResultsWrap.hidden = true;
+    if (statusContainer) statusContainer.style.display = 'none';
+    if (statusEl) statusEl.innerHTML = '';
+  }
+
+  function invalidateVisibleSimulationResults() {
+    // El contenedor empieza sin `display` inline y el CSS lo mantiene oculto. Solo `block`
+    // significa que esta instancia ha publicado algo; no mostrar un aviso de "resultado viejo"
+    // por el primer cambio del formulario antes de haber calculado nunca.
+    if (!resultsContainer || resultsContainer.style.display !== 'block') return;
+    clearRenderedSimulationOutput();
+    if (statusContainer && statusEl) {
+      statusContainer.style.display = 'block';
+      statusEl.textContent = 'Has cambiado datos del escenario. Pulsa Calcular de nuevo para actualizar la comparación.';
+    }
+  }
+
+  function clearSaveIndicator() {
+    if (!saveIndicator) return;
+    saveIndicator.className = 'bv-save-indicator';
+    saveIndicator.textContent = '';
+  }
 
   function dispatchResultsReady(rowsCount) {
     if (!Number.isFinite(rowsCount) || rowsCount <= 0) return;
@@ -442,6 +518,7 @@ document.addEventListener('DOMContentLoaded', () => {
   // Duplicado a propósito desde js/lf-tarifa-custom.js (misma constante) para
   // que home y solar acepten los mismos valores de factura (7-8 decimales).
   const MAX_DECIMALES_PRECIO = 8;
+  const mtMaxValues = { mtPunta: 1, mtLlano: 1, mtValle: 1, mtP1: 1, mtP2: 1, mtExc: 0.5 };
 
   // Validación de formato numérico para campos de entrada (no cuadrícula manual)
   // Marca con clase .error si el formato no es numérico válido, el valor es negativo
@@ -695,9 +772,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function applyScenarioConfig(config) {
     if (!config || typeof config !== 'object') return;
-    if (p1Input && typeof config.p1 === 'string') p1Input.value = config.p1;
-    if (p2Input && typeof config.p2 === 'string') p2Input.value = config.p2;
-    if (saldoInput && typeof config.saldoInicial === 'string') saldoInput.value = config.saldoInicial;
+    if (p1Input && typeof config.p1 === 'string') {
+      p1Input.value = config.p1;
+      validateInputFormat(p1Input, 2);
+    }
+    if (p2Input && typeof config.p2 === 'string') {
+      p2Input.value = config.p2;
+      validateInputFormat(p2Input, 2);
+    }
+    if (saldoInput && typeof config.saldoInicial === 'string') {
+      saldoInput.value = config.saldoInicial;
+      validateInputFormat(saldoInput, 2);
+    }
     const zona = typeof config.zonaFiscal === 'string' ? config.zonaFiscal : '';
     if (zonaFiscalInput && Array.from(zonaFiscalInput.options).some((option) => option.value === zona)) {
       zonaFiscalInput.value = zona;
@@ -792,6 +878,11 @@ document.addEventListener('DOMContentLoaded', () => {
   // Función para cargar datos manuales desde localStorage
   function loadManualData({ payload: suppliedPayload = null, notify = true } = {}) {
     if (!manualGrid) return false;
+    // Restaurar/importar un escenario reemplaza el contexto visible completo. Un CSV/respaldo
+    // que siga parseandose o un autosave pendiente del grid anterior no puede publicar despues.
+    cancelManualAutosave();
+    invalidatePendingBackupImport();
+    clearActiveFileSelection();
     let localStorageAttempted = false;
     try {
       const shared = suppliedPayload ? null : getSharedScenario();
@@ -862,10 +953,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
       if (!data) return false;
 
+      // Cargar/restaurar sustituye el escenario visible: cualquier ranking anterior deja de
+      // corresponder a lo que se va a pintar, aunque el payload sea valido.
+      invalidateVisibleSimulationResults();
       sharedScenarioConfig = shared?.config || data.config || null;
       sharedTarifasUpdatedAt = typeof shared?.tarifasUpdatedAt === 'string' ? shared.tarifasUpdatedAt : null;
       applyScenarioConfig(sharedScenarioConfig);
 
+      // El payload entrante SUSTITUYE al escenario visible. Si es disperso (por ejemplo un
+      // respaldo antiguo con solo enero), dejar sin tocar los meses ausentes mezclaria datos
+      // del escenario anterior y un autosave posterior los reintroduciria en el nuevo respaldo.
+      clearManualGridInputs();
       clearManualMonthMeta();
       let hasData = false;
       for (let i = 0; i < 12; i++) {
@@ -1043,8 +1141,18 @@ document.addEventListener('DOMContentLoaded', () => {
       const file = e.target.files[0];
       if (!file) return;
 
+      // Igual que CSV/XLSX, leer un respaldo es asincrono. Un segundo respaldo o un reset
+      // posterior deben invalidar este FileReader antes de que pueda persistir/publicar estado.
+      // La seleccion YA expresa una intencion mas nueva que cualquier CSV que siga parseandose;
+      // invalidarlo ahora evita que el CSV viejo haga un commit transitorio mientras se lee el JSON.
+      // Ese CSV nunca llego a publicarse: vaciar tambien el input permite re-seleccionarlo si el
+      // backup falla, sin tocar `window.BVSim.file`/cache de un fichero anterior ya publicado.
+      invalidatePendingFileImport();
+      if (fileInput) fileInput.value = '';
+      const importGeneration = ++backupImportGeneration;
       const reader = new FileReader();
       reader.onload = (event) => {
+        if (importGeneration !== backupImportGeneration) return;
         try {
           const importData = JSON.parse(event.target.result);
           const payload = normalizeImportedScenarioPayload(importData);
@@ -1078,6 +1186,7 @@ document.addEventListener('DOMContentLoaded', () => {
       };
 
       reader.onerror = () => {
+        if (importGeneration !== backupImportGeneration) return;
         showToast('Error al leer el archivo', 'err');
       };
 
@@ -1213,12 +1322,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // NO cargar datos automáticamente - solo al hacer clic en "Entrada manual"
 
-    // Debounce para guardar automáticamente
-    let saveTimer = null;
+    // Debounce para guardar automáticamente. El timer vive a nivel de modulo para que un
+    // reset/restauracion pueda cancelarlo antes de sustituir el contexto que lo origino.
     manualGrid.addEventListener('input', (e) => {
       if (e.target.classList.contains('manual-input')) {
         manualGridImportState.dirty = true;
         invalidateHourlyTrace('manual-edit');
+        invalidateVisibleSimulationResults();
 
         validateManualGridInput(e.target);
 
@@ -1227,8 +1337,9 @@ document.addEventListener('DOMContentLoaded', () => {
         updateMesInicioSelectorFromGrid();
 
         showSaveIndicator('saving');
-        clearTimeout(saveTimer);
-        saveTimer = setTimeout(() => {
+        cancelManualAutosave();
+        manualSaveTimer = setTimeout(() => {
+          manualSaveTimer = null;
           const saved = saveManualData();
           showSaveIndicator(saved || isSharedPreview ? 'saved' : 'error');
         }, 800);
@@ -1255,30 +1366,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (resetBtn && manualGrid) {
     resetBtn.addEventListener('click', () => {
-      if (!confirm('¿Borrar todos los valores guardados? Esta acción no se puede deshacer.')) return;
+      const resetQuestion = isSharedPreview
+        ? '¿Borrar los valores de esta vista previa? Tu escenario guardado no se modificará.'
+        : '¿Borrar todos los valores guardados? Esta acción no se puede deshacer.';
+      if (!confirm(resetQuestion)) return;
 
-      for (let i = 0; i < 12; i++) {
-        const p1In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p1"]`);
-        const p2In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p2"]`);
-        const p3In = manualGrid.querySelector(`input[data-month="${i}"][data-type="p3"]`);
-        const vIn = manualGrid.querySelector(`input[data-month="${i}"][data-type="vert"]`);
+      // El reset sustituye todo el contexto de entrada visible: invalida trabajo asincrono del
+      // contexto anterior ANTES de vaciarlo, para que nada pueda volver a publicarse despues.
+      cancelManualAutosave();
+      invalidatePendingBackupImport();
+      clearActiveFileSelection();
+      clearManualGridInputs();
 
-        if (p1In) { p1In.value = ''; p1In.classList.remove('error', 'valid'); }
-        if (p2In) { p2In.value = ''; p2In.classList.remove('error', 'valid'); }
-        if (p3In) { p3In.value = ''; p3In.classList.remove('error', 'valid'); }
-        if (vIn) { vIn.value = ''; vIn.classList.remove('error', 'valid'); }
+      // Una URL ?bv= es una previsualizacion. Borrar lo que se VE no puede borrar el escenario
+      // local oculto que el propio aviso promete no haber sustituido. Fuera de preview se
+      // conserva exactamente el borrado persistente historico.
+      if (!isSharedPreview) {
+        localStorage.removeItem('bv_manual_data_v2');
+        localStorage.removeItem('bv_manual_data');
+        localStorage.removeItem('bv_manual_data_timestamp');
       }
-
-      localStorage.removeItem('bv_manual_data_v2');
-      localStorage.removeItem('bv_manual_data');
-      localStorage.removeItem('bv_manual_data_timestamp');
       clearManualMonthMeta();
       clearHourlyTraceState();
       clearGridImportState(manualGridImportState);
+      clearRenderedSimulationOutput();
       updateManualTotals();
       updateMesInicioSelectorFromGrid();
-      updateDataStatus();
-      showToast('✓ Todos los datos han sido borrados', 'ok');
+      if (isSharedPreview) {
+        const dataStatus = document.getElementById('bv-data-status');
+        if (dataStatus) dataStatus.textContent = '';
+        showSaveIndicator('saved');
+        showToast('✓ Datos de la vista previa borrados. Tu escenario guardado sigue intacto.', 'ok');
+      } else {
+        updateDataStatus();
+        clearSaveIndicator();
+        showToast('✓ Todos los datos han sido borrados', 'ok');
+      }
     });
   }
 
@@ -1386,6 +1509,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (zonaFiscalInput) {
     zonaFiscalInput.addEventListener('change', () => {
+      invalidateVisibleSimulationResults();
       if (viviendaCanariasWrapper) {
         viviendaCanariasWrapper.style.display = zonaFiscalInput.value === 'Canarias' ? 'block' : 'none';
       }
@@ -1413,7 +1537,10 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  viviendaCanariasInput?.addEventListener('change', saveManualData);
+  viviendaCanariasInput?.addEventListener('change', () => {
+    invalidateVisibleSimulationResults();
+    saveManualData();
+  });
 
   // Formateadores ES
   const currencyFmt = new Intl.NumberFormat('es-ES', { style: 'currency', currency: 'EUR', minimumFractionDigits: 0, maximumFractionDigits: 2 });
@@ -1528,7 +1655,12 @@ document.addEventListener('DOMContentLoaded', () => {
     };
     Object.entries(fieldIds).forEach(([key, id]) => {
       const input = document.getElementById(id);
-      if (input && typeof data[key] === 'string') input.value = data[key];
+      if (input && typeof data[key] === 'string') {
+        input.value = data[key];
+        // Una restauracion/importacion es una sustitucion programatica del valor. Sin volver a
+        // sincronizar la clase, un .error del escenario anterior quedaba pegado a un valor nuevo.
+        validateInputFormat(input, MAX_DECIMALES_PRECIO, mtMaxValues[id]);
+      }
     });
     const mtBVEl = document.getElementById('mtBV');
     if (mtBVEl) mtBVEl.checked = data.bv;
@@ -1540,6 +1672,10 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     const mtTopeParcialEl = document.getElementById('mtTopeParcial');
     if (mtTopeParcialEl && typeof data.topeParcial === 'boolean') mtTopeParcialEl.checked = data.topeParcial;
+    // Los dos campos dejan de bloquear cuando su opcion los hace inactivos; la restauracion debe
+    // aplicar el mismo criterio visual que los listeners de cambio manual.
+    if (mtCompensacionIndexadaEl?.checked) document.getElementById('mtExc')?.classList.remove('error');
+    if (!mtBVEl?.checked) document.getElementById('mtPrecioBV')?.classList.remove('error');
     updateMtExcWrapVisibility();
     updateCustomTarifaIndicator(data);
     return true;
@@ -1655,6 +1791,10 @@ document.addEventListener('DOMContentLoaded', () => {
         showToast('No se pudieron borrar los datos guardados.', 'err');
         return;
       }
+      ['mtPunta', 'mtLlano', 'mtValle', 'mtP1', 'mtP2', 'mtExc', 'mtPrecioBV'].forEach((id) => {
+        document.getElementById(id)?.classList.remove('error');
+      });
+      invalidateVisibleSimulationResults();
       updateCustomTarifaIndicator(null);
 
       // Mostrar confirmación
@@ -1718,7 +1858,6 @@ document.addEventListener('DOMContentLoaded', () => {
   // Precio de compensación (mtExc): máx 0,5 €/kWh
   // mtPrecioBV NO tiene tope duro: no hay una regla de dominio real que justifique inventar un
   // máximo (las cuotas reales del dataset van de 1,65 a 4,00€/mes, pero eso no fija un límite).
-  const mtMaxValues = { mtPunta: 1, mtLlano: 1, mtValle: 1, mtP1: 1, mtP2: 1, mtExc: 0.5 };
   ['mtPunta', 'mtLlano', 'mtValle', 'mtP1', 'mtP2', 'mtExc', 'mtPrecioBV'].forEach(function (id) {
     const el = document.getElementById(id);
     if (el) {
@@ -1726,6 +1865,7 @@ document.addEventListener('DOMContentLoaded', () => {
       el.addEventListener('input', function () {
         validateInputFormat(el, MAX_DECIMALES_PRECIO, mtMaxValues[id]);
         if (id === 'mtExc') updateMtBVSinCompensacionAviso();
+        invalidateVisibleSimulationResults();
         clearTimeout(saveTimer);
         saveTimer = setTimeout(saveCustomTarifa, 800);
       });
@@ -1743,6 +1883,7 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('mtPrecioBV')?.classList.remove('error');
       }
       updateMtBVSinCompensacionAviso();
+      invalidateVisibleSimulationResults();
       saveCustomTarifa();
     });
   }
@@ -1752,7 +1893,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // mientras este marcada.
   ['mtSinSSAA', 'mtTopeParcial'].forEach(function (id) {
     const el = document.getElementById(id);
-    if (el) el.addEventListener('change', saveCustomTarifa);
+    if (el) el.addEventListener('change', function () {
+      invalidateVisibleSimulationResults();
+      saveCustomTarifa();
+    });
   });
   const mtCompensacionIndexadaEl = document.getElementById('mtCompensacionIndexada');
   if (mtCompensacionIndexadaEl) {
@@ -1764,6 +1908,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (mtCompensacionIndexadaEl.checked) {
         document.getElementById('mtExc')?.classList.remove('error');
       }
+      invalidateVisibleSimulationResults();
       saveCustomTarifa();
     });
   }
@@ -1846,28 +1991,30 @@ document.addEventListener('DOMContentLoaded', () => {
       showToast('Corrige los valores en rojo de la tabla mensual antes de compartir.', 'err');
       return false;
     }
+
+    // Snapshot del escenario en el instante en que el usuario confirma Compartir.
+    // loadTarifasBV() puede esperar red; capturar DESPUES permitiria que una edicion hecha
+    // durante esa espera entrase en el enlace sin haber pasado la validacion anterior.
+    const sharedData = options.includeMonthly ? collectManualGridData() : {};
+    if (options.includeMonthly && manualGridImportState.zonaFiscal) {
+      sharedData.zonaOrigen = manualGridImportState.zonaFiscal;
+    }
+    const sharedConfig = getSharedConfig(options);
+    const disclosure = getShareDisclosure(options);
+
     // Si se comparte antes del primer cálculo, obtenemos el sello del listado sin
     // bloquear el enlace si no hay red. Así el receptor puede saber con qué tarifas
     // se preparó el escenario cuando el dato esté disponible.
     if (!window.BVSim?.tarifasUpdatedAt && typeof window.BVSim?.loadTarifasBV === 'function') {
       try { await window.BVSim.loadTarifasBV(); } catch {}
     }
-    // Igual que buildManualScenarioPayload() (guardado/backup): sin zonaOrigen, el receptor no
-    // puede saber con que horario se genero el reparto P1/P2/P3 de la tabla y el guardrail de
-    // zona-mismatch queda desactivado en la previsualizacion, dejando pasar un reparto calculado
-    // con el eje horario equivocado (Peninsula vs Ceuta/Melilla) sin ningun aviso.
-    const sharedData = options.includeMonthly ? collectManualGridData() : {};
-    if (options.includeMonthly && manualGridImportState.zonaFiscal) {
-      sharedData.zonaOrigen = manualGridImportState.zonaFiscal;
-    }
     const payload = {
       version: 2,
       data: sharedData,
-      config: getSharedConfig(options),
+      config: sharedConfig,
       tarifasUpdatedAt: window.BVSim?.tarifasUpdatedAt || null
     };
     const url = `${window.location.origin}${window.location.pathname}?bv=${encodeURIComponent(encodeSharedScenario(payload))}`;
-    const disclosure = getShareDisclosure(options);
 
     if (navigator.share) {
       try {
@@ -2319,10 +2466,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
   async function handleFile(file) {
     if (!file) return;
-    window.BVSim.file = file;
-    window.BVSim._cachedImportResult = null; // Limpiar cache anterior
-    if (fileNameDisplay) fileNameDisplay.textContent = file.name;
-    if (fileSelectedMsg) fileSelectedMsg.style.display = 'flex';
+    // Elegir un CSV/XLSX nuevo sustituye tambien cualquier lectura de respaldo JSON que siguiera
+    // pendiente: ambos productores compiten por el mismo grid y la accion mas reciente debe ganar.
+    invalidatePendingBackupImport();
+    // La seleccion aun NO es estado publicado: el fichero actual sigue siendo el anterior hasta
+    // que este parseo termine bien. El contador impide que una importacion vieja haga commit
+    // despues de otra seleccion, un reset, quitar archivo o restaurar un respaldo.
+    const importGeneration = ++fileImportGeneration;
 
     // ⚠️ CRÍTICO: ZONA GEOGRAFICA - AISLAMIENTO DEL SIMULADOR BV
     // ===========================================================
@@ -2374,9 +2524,16 @@ document.addEventListener('DOMContentLoaded', () => {
       // Obtener zona seleccionada ANTES de importar para clasificar periodos correctamente
       const zonaVal = zonaFiscalInput ? zonaFiscalInput.value : 'Península';
       const result = await window.BVSim.importFile(file, zonaVal);
+      if (importGeneration !== fileImportGeneration) return;
       if (result && result.ok) {
-        // Cachear el resultado
+        // Commit atomico de la importacion vigente: hasta aqui el fichero anterior seguia siendo
+        // el activo. Un parseo fallido no cambia nombre, cache, grid ni traza.
+        cancelManualAutosave();
+        invalidateVisibleSimulationResults();
+        window.BVSim.file = file;
         window.BVSim._cachedImportResult = result;
+        if (fileNameDisplay) fileNameDisplay.textContent = file.name;
+        if (fileSelectedMsg) fileSelectedMsg.style.display = 'flex';
         setHourlyTraceFromImport(result, zonaVal);
         // Nota: Ya no necesitamos mapear porque getPeriodoHorarioCSV normaliza internamente
         populateManualGridFromCSV(result, zonaVal);
@@ -2394,6 +2551,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Scroll suave a la tabla para que vea los datos auto-rellenados
         setTimeout(() => {
+          if (importGeneration !== fileImportGeneration) return;
           const manualZone = document.getElementById('bv-manual-zone');
           if (manualZone) {
             manualZone.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -2406,9 +2564,15 @@ document.addEventListener('DOMContentLoaded', () => {
         // el mensaje (puede interpolar contenido del archivo del usuario).
         const errorCode = window.LF?.csvUtils?.csvErrorCodeForTracking?.(result.error) || 'otro';
         trackBvEvent('csv-import-error', ['solar', extension, errorCode], 'Error al procesar CSV/XLSX en solar');
+        // La seleccion fallida nunca se publico. Vaciar el input real permite volver a elegir el
+        // mismo fichero (los navegadores no garantizan `change` si el valor sigue siendo identico)
+        // sin tocar el fichero/cache anterior que continua siendo el contexto activo.
+        if (fileInput) fileInput.value = '';
         showToast(result.error, 'err');
       }
     } catch (e) {
+      if (importGeneration !== fileImportGeneration) return;
+      if (fileInput) fileInput.value = '';
       console.warn('Error procesando CSV:', e);
       const extension = window.LF?.csvUtils?.safeFileExtensionForTracking?.(file.name) || 'desconocido';
       const errorCode = window.LF?.csvUtils?.csvErrorCodeForTracking?.(e && e.message) || 'otro';
@@ -2432,18 +2596,14 @@ document.addEventListener('DOMContentLoaded', () => {
   if (removeFileBtn) {
     removeFileBtn.addEventListener('click', (e) => {
       e.stopPropagation();
-      window.BVSim.file = null;
-      window.BVSim._cachedImportResult = null;
+      clearActiveFileSelection();
       clearHourlyTraceState();
       // NO se limpia manualGridImportState: quitar el fichero retira la seleccion, pero el
       // grid conserva sus P1/P2/P3 y su localStorage. La procedencia de esos datos sigue
       // siendo valida y es lo unico que detecta un cambio de zona posterior. Si se limpiase
       // aqui, el grid quedaria con el reparto de la zona antigua sin recalculo ni bloqueo.
       // Los resets que SI deben limpiarla son los que sustituyen o vacian el grid.
-      fileInput.value = '';
-      if (fileSelectedMsg) fileSelectedMsg.style.display = 'none';
-      if (resultsContainer) resultsContainer.style.display = 'none';
-      if (statusContainer) statusContainer.style.display = 'none';
+      clearRenderedSimulationOutput();
     });
   }
 
@@ -2657,7 +2817,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     dispatchResultsRequested();
 
-    if (resultsContainer) { resultsContainer.classList.remove('show'); resultsContainer.style.display = 'none'; }
+    clearRenderedSimulationOutput();
     if (statusContainer) { statusContainer.style.display = 'block'; statusEl.innerHTML = '<span class="spinner"></span> Calculando...'; }
 
     const btnText = simulateButton.querySelector('.bv-btn-text');
@@ -2769,7 +2929,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const stats = await window.LF.surplusPrices.computeHourlyCompensation(hourlyTraceState.records, {
           zonaFiscal: zonaFiscalVal
         });
-        hourlyTraceState.stats = stats;
+        // computeHourlyCompensation es async. Si la traza se quito/cambio durante el await, el
+        // resultado local aun sirve para terminar este calculo (que sera descartado por el guard
+        // de stale), pero NO puede resucitar `stats` dentro del estado de la traza nueva/vacia.
+        if ((hourlyTraceState.rev || 0) === hourlyTraceRevAtCapture) {
+          hourlyTraceState.stats = stats;
+        }
         monthlyResult.months = window.LF.surplusPrices.applyMonthlyIndexedValues(monthlyResult.months, stats);
         indexedTraceMode = monthlyResult.months.some((month) => month.indexedSurplusSource === 'hourly-index-base')
           ? 'hourly-index-base'
@@ -3435,8 +3600,10 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
           button.setAttribute('aria-expanded', String(details.open));
         });
       });
+      const renderGeneration = ++resultRenderGeneration;
       resultsContainer.style.display = 'block';
       setTimeout(() => {
+        if (renderGeneration !== resultRenderGeneration) return;
         resultsContainer.classList.add('show');
         dispatchResultsReady(totalTarifas);
       }, 10);

@@ -1,6 +1,6 @@
 # Guia Para Auditorias IA De LuzFija.es
 
-Ultima actualizacion: 2026-08-16
+Ultima actualizacion: 2026-08-20
 
 Este documento existe para reducir falsos positivos en auditorias repetidas. No sustituye a
 `AGENTS.md` ni a `CAPACIDADES-WEB.md`; los complementa con criterios de clasificacion.
@@ -90,7 +90,7 @@ decision esta en la seccion siguiente.
 | Dominio 2.0TD y peajes | Auditado. Bloqueo fail-closed de 3.0TD/6.xTD con deteccion de auto-declaracion | `Peajes Fuera De 2.0TD` |
 | Importador CSV/XLSX | Auditado. Alias de cabecera, generacion frente a exportacion, duplicados, cambios de hora | `CSV: Generacion Frente A Exportacion`, `Duplicados En CSV/XLSX...` |
 | Observatorio PVPC (`/estadisticas/`) | Auditado. Ausencia de datos frente a cero, cobertura parcial, carrera de render | `Observatorio: Ausencia De Datos Frente A Cero` |
-| Simulador solar / bateria virtual | Auditado. Rotacion del patron anual, mes de inicio, orden del ranking, topes y arrastre de saldo | `Simulador Solar: Rotacion Del Patron Anual Y Ranking` |
+| Simulador solar / bateria virtual | Auditado. Motor economico cerrado (rotacion, ranking, topes y saldo) y UI auditada en estado, validaciones, ciclos de vida, importaciones y renderizado | `Simulador Solar: Rotacion Del Patron Anual Y Ranking`, `UI Del Simulador Solar: Estado, Ciclos De Vida Y Renderizado` |
 | Motor economico y fiscalidad | Auditado a fondo. Orden de operaciones, bono social, fiscalidad por zona, paridad entre home/BV/desglose y fronteras de redondeo IEEE-754 | `Fiscalidad Y Bono Social`, `Redondeo Exacto De Impuestos Indirectos...`, `ARQUITECTURA-CALCULOS.md` |
 | Arranque, carga parcial y service worker | Auditado. Watchdog, telemetria, recarga automatica | `Cargas Parciales, Watchdog Y Telemetria De QA` |
 | Privacidad y analitica | Auditado. Taxonomia de eventos y datos que nunca se envian | `ANALITICA-GOATCOUNTER.md` |
@@ -932,6 +932,97 @@ como su valor falso sin aplicar la migracion correspondiente; que una clave lega
 sucesora vigente; que un fallo de escritura/restauracion vuelva a presentarse al usuario como
 "guardado correctamente"; o que se adopte explicitamente una decision de producto para unificar las
 dos "Mi tarifa" con una clave canonica y semantica de borrado definida.
+
+### UI Del Simulador Solar: Estado, Ciclos De Vida Y Renderizado (RESUELTA 20/08/2026)
+
+Esta entrada cubre `js/bv/bv-ui.js` como capa de UI. NO reabre el motor economico de
+`bv-sim-monthly.js`: rotacion anual, ranking, topes, arrastre de saldo y fiscalidad siguen cerrados
+por sus entradas especificas.
+
+**Publicacion asincrona de importaciones.** CSV/XLSX y respaldos JSON son productores asincronos del
+mismo grid. Antes, una lectura A podia terminar despues de una seleccion B y publicar de nuevo
+fichero, tabla, procedencia o traza del contexto viejo. El mismo mecanismo permitia que un parseo
+terminase despues de "Quitar archivo" o "Borrar". Ademas, CSV/XLSX publicaba nombre/fichero antes de
+saber si el parseo era valido, de modo que un reemplazo invalido podia mostrar el nombre B mientras
+la tabla seguia siendo A. La correccion usa generaciones separadas para importacion de fichero y
+FileReader de backup, invalida productores incompatibles al sustituir/resetear y hace commit solo de
+la operacion vigente y exitosa. Seleccionar CSV invalida un backup pendiente y seleccionar backup
+invalida un CSV pendiente: la accion mas reciente gana. Si un CSV nuevo falla, no sustituye el
+fichero activo. La rama de error tambien limpia defensivamente el `<input type=file>` no publicado;
+el handler de `change` ya lo reseteaba de forma diferida, por lo que esa limpieza no se considera un
+invariante independiente del arreglo.
+
+**Autosave y reset.** El debounce de 800 ms de la tabla manual vivia dentro del listener y el reset no
+podia cancelarlo. Editar una celda y pulsar Borrar antes de vencer el timer eliminaba localStorage y,
+800 ms despues, el callback viejo volvia a guardar el escenario. El timer es ahora estado de modulo y
+todo reset/restauracion que reemplaza contexto lo cancela antes de mutar el grid.
+
+**Vista compartida.** `?bv=` es una previsualizacion hasta que el usuario pulsa "Guardar escenario".
+El autosave ya respetaba esa frontera, pero el boton Borrar eliminaba incondicionalmente las claves
+locales ocultas. En preview, Borrar limpia solo el estado visible y deja intactos
+`bv_manual_data_v2`, `bv_manual_data` y `bv_manual_data_timestamp`; fuera de preview conserva el
+borrado persistente historico.
+
+**Restaurar significa sustituir (hardening).** El loader acepta payloads con meses ausentes; si uno
+se aplica sobre un grid ya poblado, dejar esos indices intactos mezclaria dos escenarios y un
+autosave posterior podria persistir la mezcla. El repo actual no demuestra que su exportador actual
+o uno historico haya generado ese formato disperso, por lo que no se clasifica como bug confirmado.
+La frontera de carga se endurece vaciando primero tabla, metadata, traza/seleccion de fichero y
+trabajo pendiente, y despues aplicando el payload. Los primeros backups v2 sin `config` siguen
+conservando deliberadamente la configuracion visible, tal como documenta
+`normalizeImportedScenarioPayload()`; este hardening se refiere solo a la tabla mensual.
+
+**Validacion visual tras cambios programaticos.** Restaurar valores mediante `.value = ...` no dispara
+los listeners de `input`, por lo que una clase `.error` del escenario anterior podia quedar pegada a
+un valor restaurado valido. `applyScenarioConfig()` y `applyCustomTarifaData()` vuelven a ejecutar la
+validacion de formato, y el borrado correcto de "Mi tarifa" elimina las marcas de campos que ya no
+bloquean ningun dato. Esto es coherencia de UI; Calcular ya revalidaba y no se ha cambiado el modelo
+economico.
+
+**Resultados publicados y cambios posteriores.** Un ranking ya renderizado podia seguir visible como
+si fuese actual despues de editar potencia, tabla mensual, zona fiscal, mes de inicio o "Mi tarifa".
+Ahora todos los productores de escenario invalidan el resultado visible y muestran un aviso
+persistente para recalcular. No se inventa ese aviso antes del primer calculo: solo se considera
+publicado un contenedor que la propia instancia haya puesto en `display:block`. El commit visual
+diferido de 10 ms lleva generacion propia para que una edicion/reset en esa ventana no vuelva a
+mostrar el ranking ni emita `lf:results-ready` de un resultado invalidado.
+
+**Snapshot al compartir.** `shareScenario()` validaba y luego podia esperar red en
+`loadTarifasBV()` antes de leer el DOM. Una edicion hecha durante ese `await` entraba en el enlace
+aunque no perteneciese al estado que el usuario habia confirmado. Datos mensuales, configuracion y
+texto de disclosure se congelan ahora antes del primer `await`; el sello `tarifasUpdatedAt` puede
+completarse despues porque es metadata del catalogo, no una entrada del escenario.
+
+**Traza horaria indexada.** `computeHourlyCompensation()` es asincrono. Si la curva se quitaba o
+reemplazaba durante el `await`, el calculo viejo podia escribir sus `stats` en el estado de la traza
+nueva/vacia incluso aunque el resultado economico acabara descartado por el guard de stale. La
+escritura en `hourlyTraceState.stats` queda condicionada a la misma revision de traza capturada al
+iniciar el calculo.
+
+**Tests de regresion añadidos.** Cubren importaciones CSV/backup solapadas y cruzadas, reemplazo
+invalido, reset durante parse/FileReader, autosave pendiente, borrado en preview, backup mensual
+disperso, sincronizacion de `.error`, snapshot de Compartir, invalidacion del ranking por productores
+distintos, la ventana de 10 ms y stats horarios que terminan tarde. Estan planteados contra
+mutaciones plausibles (quitar la generacion, publicar antes del parseo, no cancelar el timer,
+borrar storage sin mirar preview, no vaciar el grid, capturar despues del `await`, escribir stats sin
+revision o quitar la invalidacion de un productor), no solo contra una reversion literal del bug.
+
+**No reportar como bugs:**
+- El motor `bv-sim-monthly.js` no se ha modificado en esta ronda; sus invariantes economicos siguen
+  gobernados por las entradas ya cerradas.
+- Los listeners de nodos reconstruidos por `innerHTML` se revisaron: la tabla manual y los resultados
+  usan delegacion donde corresponde, y los nodos transitorios restantes se enlazan al crearse. No se
+  encontro un listener duplicado alcanzable.
+- Los timers de "Mi tarifa" que puedan vencer despues de Borrar leen el DOM ya vacio; no conservan
+  una copia de los valores antiguos y por tanto no resucitan la tarifa eliminada.
+- `btn-edit-manual-shortcut` no existe en el HTML productivo actual; un problema hipotetico de su
+  animacion diferida no es una ruta de UI alcanzable.
+
+**Para reabrir:** demostrar un nuevo productor asincrono que pueda publicar estado despues de haber
+sido sustituido/resetado; un nuevo timer/debounce no cancelado que conserve y reinyecte estado viejo;
+un reset que limpie solo parte de los estados auxiliares; un cambio de entrada que deje visible como
+actual un ranking calculado con valores anteriores; o una restauracion programatica que deje
+validacion visual contradictoria con el valor efectivo.
 
 ### Ranking Del Simulador Solar/BV
 

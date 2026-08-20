@@ -264,6 +264,47 @@ async function importCsv() {
   await flush();
 }
 
+function selectCsv(name) {
+  const fileInput = document.getElementById('bv-file');
+  const file = new File(['fecha;hora;consumo'], name, { type: 'text/csv' });
+  Object.defineProperty(fileInput, 'files', { value: [file], configurable: true });
+  fileInput.dispatchEvent(new window.Event('change'));
+  return file;
+}
+
+function deferred() {
+  let resolve;
+  let reject;
+  const promise = new Promise((res, rej) => { resolve = res; reject = rej; });
+  return { promise, resolve, reject };
+}
+
+function importResult(tag, p1 = 10) {
+  return {
+    ok: true,
+    tag,
+    records: [{ fecha: new Date(2025, 0, 15), hora: 12, kwh: 1, excedente: 0.5, periodo: 'P1' }],
+    meta: {
+      rows: 1, start: '2025-01-15', end: '2025-01-15', months: 1,
+      hasExcedenteColumn: true, hasAutoconsumoColumn: false, isDatadisMonthly: false,
+      testP1: p1
+    },
+    warnings: []
+  };
+}
+
+function makeMonthlyResultFromImport(imported) {
+  const p1 = Number(imported?.meta?.testP1) || 0;
+  return {
+    ok: true,
+    months: [{
+      key: '2025-01', start: '2025-01-01', end: '2025-01-31', spanDays: 31,
+      daysWithData: 31, daysInMonth: 31, coveragePct: 100,
+      importByPeriod: { P1: p1, P2: 0, P3: 0 }, importTotalKWh: p1, exportTotalKWh: 5
+    }]
+  };
+}
+
 async function setZona(value) {
   const select = document.getElementById('bv-zona-fiscal');
   select.value = value;
@@ -284,6 +325,24 @@ function editGrid(monthIndex, type, value) {
   input.value = value;
   input.dispatchEvent(new window.Event('input', { bubbles: true }));
   return input;
+}
+
+function showFakePublishedResults() {
+  const container = document.getElementById('bv-results-container');
+  const results = document.getElementById('bv-results');
+  const status = document.getElementById('bv-status-container');
+  results.textContent = 'Ranking anterior';
+  container.style.display = 'block';
+  container.classList.add('show');
+  status.style.display = 'none';
+}
+
+function expectPublishedResultsInvalidated() {
+  const container = document.getElementById('bv-results-container');
+  expect(container.style.display).toBe('none');
+  expect(container.classList.contains('show')).toBe(false);
+  expect(document.getElementById('bv-status-container').style.display).toBe('block');
+  expect(document.getElementById('bv-status').textContent).toContain('Has cambiado datos del escenario');
 }
 
 function sharedPayload(shareMock) {
@@ -476,6 +535,94 @@ describe('Simulador solar - procedencia del grid frente al selector de zona', ()
     expect(window.BVSim._manualGridImportState.result).toBeTruthy();
   });
 
+  it('dos importaciones solapadas publican solo la ultima aunque la primera termine despues', async () => {
+    bootSolarUi();
+    window.BVSim.simulateMonthly.mockImplementation((imported) => makeMonthlyResultFromImport(imported));
+    const a = deferred();
+    const b = deferred();
+    window.BVSim.importFile.mockImplementation((file) => file.name === 'A.csv' ? a.promise : b.promise);
+
+    selectCsv('A.csv');
+    selectCsv('B.csv');
+
+    b.resolve(importResult('B', 22));
+    await flushMicrotasks();
+    expect(gridValue(0, 'p1')).toBe('22');
+    expect(window.BVSim._cachedImportResult?.tag).toBe('B');
+    expect(document.getElementById('file-name').textContent).toBe('B.csv');
+
+    a.resolve(importResult('A', 11));
+    await flushMicrotasks();
+
+    expect(gridValue(0, 'p1')).toBe('22');
+    expect(window.BVSim._cachedImportResult?.tag).toBe('B');
+    expect(window.BVSim._manualGridImportState.result?.tag).toBe('B');
+    expect(document.getElementById('file-name').textContent).toBe('B.csv');
+  });
+
+  it('un archivo de reemplazo invalido no se publica sobre el archivo anterior y deja reintentar el mismo fichero', async () => {
+    bootSolarUi();
+    window.BVSim.simulateMonthly.mockImplementation((imported) => makeMonthlyResultFromImport(imported));
+    window.BVSim.importFile.mockResolvedValueOnce(importResult('A', 17));
+
+    selectCsv('A.csv');
+    await flushMicrotasks();
+    expect(gridValue(0, 'p1')).toBe('17');
+
+    const fileInput = document.getElementById('bv-file');
+    window.BVSim.importFile.mockResolvedValueOnce({ ok: false, error: 'Archivo B invalido' });
+    selectCsv('B.csv');
+    // En un navegador real el input contiene C:\\fakepath\\B.csv. Simular ese valor permite
+    // blindar la limpieza necesaria para que elegir B otra vez vuelva a emitir `change`.
+    Object.defineProperty(fileInput, 'value', {
+      value: 'C:\\fakepath\\B.csv', writable: true, configurable: true
+    });
+    await flushMicrotasks();
+
+    expect(window.BVSim.file?.name).toBe('A.csv');
+    expect(window.BVSim._cachedImportResult?.tag).toBe('A');
+    expect(window.BVSim._manualGridImportState.result?.tag).toBe('A');
+    expect(document.getElementById('file-name').textContent).toBe('A.csv');
+    expect(fileInput.value).toBe('');
+    expect(gridValue(0, 'p1')).toBe('17');
+    expect(document.getElementById('toastText').textContent).toContain('Archivo B invalido');
+  });
+
+  it('una importacion nueva invalida un ranking ya publicado en cuanto hace commit', async () => {
+    bootSolarUi();
+    window.BVSim.simulateMonthly.mockImplementation((imported) => makeMonthlyResultFromImport(imported));
+    window.BVSim.importFile.mockResolvedValueOnce(importResult('nuevo', 33));
+    showFakePublishedResults();
+
+    selectCsv('nuevo.csv');
+    await flushMicrotasks();
+
+    expect(gridValue(0, 'p1')).toBe('33');
+    expectPublishedResultsInvalidated();
+  });
+
+  it('quitar el archivo cancela un reemplazo que aun se esta parseando', async () => {
+    bootSolarUi();
+    window.BVSim.simulateMonthly.mockImplementation((imported) => makeMonthlyResultFromImport(imported));
+    window.BVSim.importFile.mockResolvedValueOnce(importResult('A', 17));
+    selectCsv('A.csv');
+    await flushMicrotasks();
+
+    const b = deferred();
+    window.BVSim.importFile.mockImplementationOnce(() => b.promise);
+    selectCsv('B.csv');
+    document.getElementById('remove-file').click();
+
+    b.resolve(importResult('B', 29));
+    await flushMicrotasks();
+
+    expect(window.BVSim.file).toBeNull();
+    expect(window.BVSim._cachedImportResult).toBeNull();
+    expect(document.getElementById('file-selected-msg').style.display).toBe('none');
+    expect(gridValue(0, 'p1')).toBe('17');
+    expect(window.BVSim._manualGridImportState.result?.tag).toBe('A');
+  });
+
   it('quitar el archivo NO borra la procedencia: el grid conserva datos y el cambio de zona sigue recalculando', async () => {
     bootSolarUi();
     await importCsv();
@@ -629,6 +776,45 @@ describe('Simulador solar - procedencia del grid frente al selector de zona', ()
     expect(window.__LF_trackDetail).toHaveBeenCalledWith('url-compartida', ['solar', 'completo'], expect.any(Object));
   });
 
+  it('Compartir congela el escenario antes de esperar la carga de tarifas', async () => {
+    const shareMock = vi.fn(async () => {});
+    Object.defineProperty(window.navigator, 'share', { configurable: true, value: shareMock });
+    bootSolarUi();
+    editGrid(0, 'p1', '111');
+    document.getElementById('bv-saldo-inicial').value = '12';
+    document.getElementById('mtPunta').value = '0,15';
+
+    const gate = deferred();
+    window.BVSim.tarifasUpdatedAt = null;
+    window.BVSim.loadTarifasBV.mockImplementation(() => gate.promise.then(() => {
+      window.BVSim.tarifasUpdatedAt = '2026-08-20T00:00:00Z';
+      return { ok: true, updatedAt: window.BVSim.tarifasUpdatedAt, tarifasBV: [] };
+    }));
+
+    document.getElementById('btnShare').click();
+    document.getElementById('bv-share-include-monthly').checked = true;
+    document.getElementById('bv-share-include-private').checked = true;
+    document.getElementById('bv-share-confirm').click();
+    await flushMicrotasks();
+    expect(window.BVSim.loadTarifasBV).toHaveBeenCalled();
+    expect(shareMock).not.toHaveBeenCalled();
+
+    // Ediciones posteriores a Confirmar no pueden colarse en el enlace ni saltarse la
+    // validacion que se hizo antes del await.
+    editGrid(0, 'p1', '1,2,3');
+    document.getElementById('bv-saldo-inicial').value = '99';
+    document.getElementById('mtPunta').value = '0,99';
+
+    gate.resolve();
+    await flushMicrotasks();
+
+    const payload = sharedPayload(shareMock);
+    expect(payload.data[0].p1).toBe('111');
+    expect(payload.config.saldoInicial).toBe('12');
+    expect(payload.config.customTarifa.punta).toBe('0,15');
+    expect(payload.tarifasUpdatedAt).toBe('2026-08-20T00:00:00Z');
+  });
+
   it('compartir mensuales preserva zonaOrigen (14/08/2026): sin ella, el receptor pierde el guardrail de eje horario', async () => {
     const shareMock = vi.fn(async () => {});
     Object.defineProperty(window.navigator, 'share', { configurable: true, value: shareMock });
@@ -745,6 +931,102 @@ describe('Simulador solar - procedencia del grid frente al selector de zona', ()
   });
 });
 
+describe('BV UI: un resultado publicado no sobrevive a cambios del escenario', () => {
+  it('editar antes del primer calculo no inventa un aviso de resultado desactualizado', () => {
+    bootSolarUi();
+    const p1 = document.getElementById('bv-p1');
+    p1.value = '4,60';
+    p1.dispatchEvent(new window.Event('input', { bubbles: true }));
+
+    expect(document.getElementById('bv-results-container').style.display).not.toBe('block');
+    expect(document.getElementById('bv-status').textContent).not.toContain('Has cambiado datos del escenario');
+  });
+
+  it('editar potencia invalida inmediatamente el ranking visible', () => {
+    bootSolarUi();
+    showFakePublishedResults();
+    const p1 = document.getElementById('bv-p1');
+    p1.value = '4,60';
+    p1.dispatchEvent(new window.Event('input', { bubbles: true }));
+    expectPublishedResultsInvalidated();
+  });
+
+  it('editar la tabla manual invalida inmediatamente el ranking visible', () => {
+    bootSolarUi();
+    showFakePublishedResults();
+    editGrid(0, 'p1', '123');
+    expectPublishedResultsInvalidated();
+  });
+
+  it('editar Mi tarifa invalida inmediatamente el ranking visible', () => {
+    bootSolarUi();
+    showFakePublishedResults();
+    const mtPunta = document.getElementById('mtPunta');
+    mtPunta.value = '0,19';
+    mtPunta.dispatchEvent(new window.Event('input', { bubbles: true }));
+    expectPublishedResultsInvalidated();
+  });
+
+  it('cambiar una opcion discreta de zona invalida inmediatamente el ranking visible', () => {
+    bootSolarUi();
+    showFakePublishedResults();
+    const zona = document.getElementById('bv-zona-fiscal');
+    zona.value = 'Canarias';
+    zona.dispatchEvent(new window.Event('change', { bubbles: true }));
+    expectPublishedResultsInvalidated();
+  });
+});
+
+describe('BV UI: reset cancela trabajo y estado del contexto anterior', () => {
+  it('un autosave pendiente no recrea el escenario despues de Borrar', async () => {
+    vi.useFakeTimers();
+    bootSolarUi();
+    window.confirm = vi.fn(() => true);
+
+    editGrid(0, 'p1', '123');
+    expect(document.getElementById('bv-save-indicator').textContent).toContain('Editando');
+    document.getElementById('bv-reset-manual').click();
+
+    expect(localStorage.getItem('bv_manual_data_v2')).toBeNull();
+    expect(localStorage.getItem('bv_manual_data_timestamp')).toBeNull();
+    await vi.advanceTimersByTimeAsync(801);
+
+    expect(localStorage.getItem('bv_manual_data_v2')).toBeNull();
+    expect(localStorage.getItem('bv_manual_data_timestamp')).toBeNull();
+    expect(document.getElementById('bv-save-indicator').textContent).toBe('');
+  });
+
+  it('Borrar invalida un CSV pendiente y limpia la seleccion/resultados del contexto anterior', async () => {
+    bootSolarUi();
+    window.confirm = vi.fn(() => true);
+    window.BVSim.simulateMonthly.mockImplementation((imported) => makeMonthlyResultFromImport(imported));
+
+    window.BVSim.importFile.mockResolvedValueOnce(importResult('A', 17));
+    selectCsv('A.csv');
+    await flushMicrotasks();
+    const pending = deferred();
+    window.BVSim.importFile.mockImplementationOnce(() => pending.promise);
+    selectCsv('B.csv');
+
+    const resultsContainer = document.getElementById('bv-results-container');
+    resultsContainer.style.display = 'block';
+    resultsContainer.classList.add('show');
+    document.getElementById('bv-reset-manual').click();
+
+    pending.resolve(importResult('B', 29));
+    await flushMicrotasks();
+
+    expect(gridValue(0, 'p1')).toBe('');
+    expect(window.BVSim.file).toBeNull();
+    expect(window.BVSim._cachedImportResult).toBeNull();
+    expect(window.BVSim._manualGridImportState.result).toBeNull();
+    expect(window.BVSim._hourlyTraceState.records).toBeNull();
+    expect(document.getElementById('file-selected-msg').style.display).toBe('none');
+    expect(resultsContainer.style.display).toBe('none');
+    expect(resultsContainer.classList.contains('show')).toBe(false);
+  });
+});
+
 // Un escenario recibido por `?bv=` es una PREVISUALIZACION. El aviso en pantalla promete que
 // no ha sustituido los datos guardados; si el autosave escribe en cuanto se toca un campo, esa
 // promesa deja de ser cierta y el usuario pierde su escenario sin haber confirmado nada.
@@ -787,6 +1069,28 @@ describe('BV: escenario compartido como previsualizacion', () => {
     inputClick.mockRestore();
   }
 
+  function controlBackupReads(fileNames) {
+    const reads = [];
+    let nextFile = 0;
+    const readSpy = vi.spyOn(FileReader.prototype, 'readAsText').mockImplementation(function (file) {
+      reads.push({ reader: this, file });
+    });
+    const inputClick = vi.spyOn(HTMLInputElement.prototype, 'click').mockImplementation(function () {
+      if (this.type !== 'file' || !String(this.accept).includes('json')) return;
+      const name = fileNames[nextFile++] || `respaldo-${nextFile}.json`;
+      const file = new File(['pendiente'], name, { type: 'application/json' });
+      Object.defineProperty(this, 'files', { value: [file], configurable: true });
+      this.dispatchEvent(new window.Event('change'));
+    });
+    const start = () => document.getElementById('bv-import-manual').dispatchEvent(new window.Event('click'));
+    const finish = (index, backup) => {
+      const item = reads[index];
+      expect(item).toBeTruthy();
+      item.reader.onload({ target: { result: JSON.stringify(backup) } });
+    };
+    return { reads, start, finish, readSpy, inputClick };
+  }
+
   const snapshotStorage = () => Object.fromEntries([
     'bv_manual_data_v2',
     'bv_custom_tarifa',
@@ -811,6 +1115,174 @@ describe('BV: escenario compartido como previsualizacion', () => {
   };
   const leido = () => JSON.parse(localStorage.getItem('bv_manual_data_v2') || 'null');
 
+
+  it('dos respaldos solapados publican solo el ultimo aunque el primero termine despues', () => {
+    bootSolarUi();
+    const controlled = controlBackupReads(['A.json', 'B.json']);
+
+    controlled.start();
+    controlled.start();
+    expect(controlled.reads).toHaveLength(2);
+
+    controlled.finish(1, {
+      version: 2,
+      data: { 0: { p1: '222', p2: '', p3: '', vert: '' } }
+    });
+    expect(gridValue(0, 'p1')).toBe('222');
+    expect(JSON.parse(localStorage.getItem('bv_manual_data_v2'))[0].p1).toBe('222');
+
+    controlled.finish(0, {
+      version: 2,
+      data: { 0: { p1: '111', p2: '', p3: '', vert: '' } }
+    });
+
+    expect(gridValue(0, 'p1')).toBe('222');
+    expect(JSON.parse(localStorage.getItem('bv_manual_data_v2'))[0].p1).toBe('222');
+  });
+
+  it('Borrar invalida un respaldo cuyo FileReader sigue pendiente', () => {
+    bootSolarUi();
+    window.confirm = vi.fn(() => true);
+    const controlled = controlBackupReads(['pendiente.json']);
+    controlled.start();
+    expect(controlled.reads).toHaveLength(1);
+
+    document.getElementById('bv-reset-manual').click();
+    controlled.finish(0, {
+      version: 2,
+      data: { 0: { p1: '999', p2: '', p3: '', vert: '' } }
+    });
+
+    expect(gridValue(0, 'p1')).toBe('');
+    expect(localStorage.getItem('bv_manual_data_v2')).toBeNull();
+    expect(localStorage.getItem('bv_manual_data_timestamp')).toBeNull();
+  });
+
+  it('seleccionar un respaldo invalida un CSV pendiente para que la accion mas reciente gane', async () => {
+    bootSolarUi();
+    window.BVSim.simulateMonthly.mockImplementation((imported) => makeMonthlyResultFromImport(imported));
+    const csvGate = deferred();
+    window.BVSim.importFile.mockImplementationOnce(() => csvGate.promise);
+    selectCsv('viejo.csv');
+    const fileInput = document.getElementById('bv-file');
+    Object.defineProperty(fileInput, 'value', {
+      value: 'C:\\fakepath\\viejo.csv', writable: true, configurable: true
+    });
+
+    const controlled = controlBackupReads(['nuevo.json']);
+    controlled.start();
+    expect(controlled.reads).toHaveLength(1);
+    expect(fileInput.value).toBe('');
+
+    // El CSV viejo termina mientras el backup mas reciente aun se esta leyendo: no puede hacer
+    // ni siquiera un commit transitorio sobre el grid.
+    csvGate.resolve(importResult('CSV-viejo', 333));
+    await flushMicrotasks();
+    expect(gridValue(0, 'p1')).toBe('');
+    expect(window.BVSim._cachedImportResult).toBeNull();
+
+    controlled.finish(0, {
+      version: 2,
+      data: { 0: { p1: '444', p2: '', p3: '', vert: '' } }
+    });
+
+    expect(gridValue(0, 'p1')).toBe('444');
+    expect(JSON.parse(localStorage.getItem('bv_manual_data_v2'))[0].p1).toBe('444');
+  });
+
+  it('seleccionar CSV invalida un respaldo pendiente para que la accion mas reciente gane', async () => {
+    bootSolarUi();
+    const controlled = controlBackupReads(['viejo.json']);
+    controlled.start();
+    expect(controlled.reads).toHaveLength(1);
+
+    window.BVSim.simulateMonthly.mockImplementation((imported) => makeMonthlyResultFromImport(imported));
+    window.BVSim.importFile.mockResolvedValueOnce(importResult('CSV', 333));
+    selectCsv('nuevo.csv');
+    await flushMicrotasks();
+    expect(gridValue(0, 'p1')).toBe('333');
+
+    controlled.finish(0, {
+      version: 2,
+      data: { 0: { p1: '111', p2: '', p3: '', vert: '' } }
+    });
+
+    expect(gridValue(0, 'p1')).toBe('333');
+    expect(JSON.parse(localStorage.getItem('bv_manual_data_v2'))[0].p1).toBe('333');
+  });
+
+  it('Borrar una vista compartida limpia solo lo visible y conserva el escenario local oculto', () => {
+    const localV2 = JSON.stringify({ 0: { p1: '555', p2: '1', p3: '2', vert: '' } });
+    const legacy = JSON.stringify({ 0: { cons: '558', vert: '' } });
+    const timestamp = '2026-08-20T10:00:00.000Z';
+    localStorage.setItem('bv_manual_data_v2', localV2);
+    localStorage.setItem('bv_manual_data', legacy);
+    localStorage.setItem('bv_manual_data_timestamp', timestamp);
+    abrirEscenarioCompartido({ 0: { p1: '999', p2: '3', p3: '4', vert: '' } });
+
+    bootSolarUi();
+    window.confirm = vi.fn(() => true);
+    expect(gridValue(0, 'p1')).toBe('999');
+
+    document.getElementById('bv-reset-manual').click();
+
+    expect(window.confirm).toHaveBeenCalledWith(expect.stringContaining('vista previa'));
+    expect(gridValue(0, 'p1')).toBe('');
+    expect(localStorage.getItem('bv_manual_data_v2')).toBe(localV2);
+    expect(localStorage.getItem('bv_manual_data')).toBe(legacy);
+    expect(localStorage.getItem('bv_manual_data_timestamp')).toBe(timestamp);
+    expect(new URL(window.location.href).searchParams.get('bv')).toBeTruthy();
+    expect(document.getElementById('toastText').textContent).toContain('escenario guardado sigue intacto');
+  });
+
+  it('importar un respaldo disperso sustituye el grid en vez de mezclar meses del escenario anterior', async () => {
+    bootSolarUi();
+    editGrid(0, 'p1', '10');
+    editGrid(1, 'p1', '20');
+    showFakePublishedResults();
+
+    await importarBackup({
+      version: 2,
+      data: { 0: { p1: '321', p2: '1', p3: '2', vert: '' } }
+    });
+
+    expect(gridValue(0, 'p1')).toBe('321');
+    expect(gridValue(1, 'p1')).toBe('');
+    expectPublishedResultsInvalidated();
+    const persisted = JSON.parse(localStorage.getItem('bv_manual_data_v2'));
+    expect(persisted[1]).toBeUndefined();
+  });
+
+  it('restaurar valores validos sincroniza las marcas de error del escenario que reemplaza', async () => {
+    bootSolarUi();
+    const p1 = document.getElementById('bv-p1');
+    const mtPunta = document.getElementById('mtPunta');
+    p1.value = 'abc';
+    p1.dispatchEvent(new window.Event('input', { bubbles: true }));
+    mtPunta.value = 'abc';
+    mtPunta.dispatchEvent(new window.Event('input', { bubbles: true }));
+    expect(p1.classList.contains('error')).toBe(true);
+    expect(mtPunta.classList.contains('error')).toBe(true);
+
+    await importarBackup({
+      version: 2,
+      data: {
+        0: { p1: '100', p2: '', p3: '', vert: '' },
+        config: {
+          p1: '4,6', p2: '3,45', saldoInicial: '0', zonaFiscal: 'Península',
+          customTarifa: {
+            punta: '0,20', llano: '0,10', valle: '0,08', p1: '0,07', p2: '0,03',
+            exc: '0,05', bv: false, precioBV: ''
+          }
+        }
+      }
+    });
+
+    expect(p1.value).toBe('4,6');
+    expect(mtPunta.value).toBe('0,20');
+    expect(p1.classList.contains('error')).toBe(false);
+    expect(mtPunta.classList.contains('error')).toBe(false);
+  });
 
   it('migra bv_manual_data v1 solo cuando no existe bv_manual_data_v2', () => {
     localStorage.setItem('bv_manual_data', JSON.stringify({
@@ -1559,6 +2031,31 @@ describe('Simulador solar - "Mi tarifa": precioBV no bloquea el calculo con BV d
     expect(document.getElementById('toastText').textContent).toContain('cuota de batería virtual');
   });
 
+  it('Borrar Mi tarifa elimina marcas de error que ya no bloquean ningun dato', () => {
+    localStorage.setItem('bv_custom_tarifa', JSON.stringify({
+      punta: '0,15', llano: '0,10', valle: '0,05', p1: '0,08', p2: '0,08',
+      exc: '0,05', bv: true, precioBV: '2,99'
+    }));
+    bootSolarUi();
+    window.confirm = vi.fn(() => true);
+    const punta = document.getElementById('mtPunta');
+    const precioBV = document.getElementById('mtPrecioBV');
+    punta.value = 'abc';
+    punta.dispatchEvent(new window.Event('input'));
+    precioBV.value = 'abc';
+    precioBV.dispatchEvent(new window.Event('input'));
+    expect(punta.classList.contains('error')).toBe(true);
+    expect(precioBV.classList.contains('error')).toBe(true);
+    expect(document.getElementById('bv-clear-custom-tarifa').style.display).toBe('block');
+
+    document.getElementById('bv-clear-custom-tarifa').click();
+
+    expect(punta.value).toBe('');
+    expect(precioBV.value).toBe('');
+    expect(punta.classList.contains('error')).toBe(false);
+    expect(precioBV.classList.contains('error')).toBe(false);
+  });
+
   it('desactivar BV quita la marca de error de precioBV', async () => {
     bootSolarUi();
     fillMiTarifaValida();
@@ -1899,6 +2396,54 @@ describe('Simulador solar - Calcular no mezcla potencia/tabla/Mi tarifa de insta
     expect(document.getElementById('bv-results').textContent).toContain('Has cambiado datos mientras se calculaba');
   });
 
+  it('editar tras publicar el HTML pero antes del commit visual de 10 ms no resucita el ranking ni anuncia results-ready', async () => {
+    vi.useFakeTimers();
+    bootSolarUi();
+    window.BVSim.loadTarifasBV.mockResolvedValue({
+      ok: true, updatedAt: '2026-08-13T00:00:00Z', tarifasBV: [tarifaMinima]
+    });
+    window.BVSim.simulateForAllTarifasBV.mockImplementation((args) => ({
+      ok: true,
+      results: [{
+        tarifa: tarifaMinima,
+        totals: { pagado: 10, real: 10, bvFinal: 0, credit1Total: 0, credit2Total: 0 },
+        rows: [{
+          key: args.months[0].key,
+          dias: args.months[0].daysWithData,
+          importTotalKWh: args.months[0].importTotalKWh,
+          pot: 1, consEur: 9, credit1: 0, totalBase: 10, totalPagar: 10,
+          bvSaldoPrev: 0, bvSaldoFin: 0
+        }]
+      }]
+    }));
+    // Relleno directo: el objetivo no es probar el autosave del grid, sino aislar la ventana
+    // de 10 ms entre publicar el HTML y marcar el ranking como visible/listo.
+    document.querySelector('input[data-month="0"][data-type="p1"]').value = '100';
+    const readySpy = vi.fn();
+    document.addEventListener('lf:results-ready', readySpy);
+
+    document.getElementById('bv-simulate').click();
+    await vi.advanceTimersByTimeAsync(100);
+    await Promise.resolve();
+
+    const resultsContainer = document.getElementById('bv-results-container');
+    expect(resultsContainer.style.display).toBe('block');
+    expect(resultsContainer.classList.contains('show')).toBe(false);
+    expect(document.getElementById('bv-results').textContent).toContain('Ranking completo');
+
+    // El usuario cambia el escenario DURANTE la ventana del commit visual diferido.
+    const p1 = document.getElementById('bv-p1');
+    p1.value = '4,60';
+    p1.dispatchEvent(new window.Event('input', { bubbles: true }));
+    expectPublishedResultsInvalidated();
+
+    await vi.advanceTimersByTimeAsync(11);
+    expect(resultsContainer.style.display).toBe('none');
+    expect(resultsContainer.classList.contains('show')).toBe(false);
+    expect(readySpy).not.toHaveBeenCalled();
+  });
+
+
   it('la rama "no quedan tarifas compatibles" tambien respeta el aviso de desactualizado', async () => {
     bootSolarUi();
     const tarifaLimitada = { ...tarifaMinima, maxConsumoAnual: 50 };
@@ -2026,4 +2571,121 @@ describe('Simulador solar - Calcular no mezcla potencia/tabla/Mi tarifa de insta
     expect(document.getElementById('bv-results').textContent).toContain('Has cambiado datos mientras se calculaba');
     expect(document.getElementById('bv-results').textContent).not.toContain('Ranking completo');
   });
+
+  it('una compensacion horaria que termina tarde no resucita stats de una curva ya eliminada', async () => {
+    const previousSurplusPrices = window.LF.surplusPrices;
+    try {
+      bootSolarUi();
+      const indexedTariff = {
+        nombre: 'Indexada test', p1: 0.05, p2: 0.02,
+        cPunta: 0.15, cLlano: 0.12, cValle: 0.09,
+        web: 'https://example.com/indexada',
+        fv: { bv: false, exc: -1, tipo: 'SIMPLE', tope: 'ENERGIA' }
+      };
+      window.BVSim.loadTarifasBV.mockResolvedValue({
+        ok: true, updatedAt: '2026-08-20T00:00:00Z', tarifasBV: [indexedTariff]
+      });
+      window.BVSim.simulateForAllTarifasBV.mockImplementation(({ tarifasBV, months }) => ({
+        ok: true,
+        results: tarifasBV.map((tarifa) => ({
+          tarifa,
+          totals: { pagado: 100, real: 100, bvFinal: 0, credit1Total: 0, credit2Total: 0 },
+          rows: [{
+            key: months[0].key, dias: months[0].daysWithData, importTotalKWh: months[0].importTotalKWh,
+            pot: 10, consEur: 75, credit1: 0, totalBase: 100, totalPagar: 100,
+            bvSaldoPrev: 0, bvSaldoFin: 0
+          }]
+        }))
+      }));
+
+      await importCsv();
+      const statsGate = deferred();
+      window.LF.surplusPrices = {
+        computeHourlyCompensation: vi.fn(() => statsGate.promise),
+        applyMonthlyIndexedValues: vi.fn((months) => months.map((month) => ({
+          ...month, indexedSurplusSource: 'hourly-index-base'
+        })))
+      };
+
+      document.getElementById('bv-simulate').click();
+      await new Promise((resolve) => setTimeout(resolve, 130));
+      expect(window.LF.surplusPrices.computeHourlyCompensation).toHaveBeenCalled();
+
+      document.getElementById('remove-file').click();
+      expect(window.BVSim._hourlyTraceState.stats).toBeNull();
+      statsGate.resolve({
+        totalKwh: 5, missing: 0, partialCoverageRejected: true,
+        partialCoverageRejectedMonths: 1, partialCoverageTotalMonths: 1
+      });
+      await new Promise((resolve) => setTimeout(resolve, 80));
+
+      expect(window.BVSim._hourlyTraceState.records).toBeNull();
+      expect(window.BVSim._hourlyTraceState.stats).toBeNull();
+      expect(document.getElementById('bv-results').textContent).toContain('Has cambiado datos mientras se calculaba');
+
+      document.getElementById('bv-simulate').click();
+      await new Promise((resolve) => setTimeout(resolve, 180));
+      expect(document.getElementById('bv-results').textContent).toContain('Sin CSV con excedentes activo');
+      expect(document.getElementById('bv-results').textContent).not.toContain('histórico del índice no cubre');
+    } finally {
+      window.LF.surplusPrices = previousSurplusPrices;
+    }
+  });
+
+  it('una compensacion vieja no escribe stats sobre una curva nueva que la reemplazo', async () => {
+    const previousSurplusPrices = window.LF.surplusPrices;
+    try {
+      bootSolarUi();
+      const indexedTariff = {
+        nombre: 'Indexada test', p1: 0.05, p2: 0.02,
+        cPunta: 0.15, cLlano: 0.12, cValle: 0.09,
+        web: 'https://example.com/indexada',
+        fv: { bv: false, exc: -1, tipo: 'SIMPLE', tope: 'ENERGIA' }
+      };
+      window.BVSim.loadTarifasBV.mockResolvedValue({
+        ok: true, updatedAt: '2026-08-20T00:00:00Z', tarifasBV: [indexedTariff]
+      });
+      window.BVSim.simulateForAllTarifasBV.mockImplementation(({ tarifasBV, months }) => ({
+        ok: true,
+        results: tarifasBV.map((tarifa) => ({
+          tarifa,
+          totals: { pagado: 100, real: 100, bvFinal: 0, credit1Total: 0, credit2Total: 0 },
+          rows: [{
+            key: months[0].key, dias: months[0].daysWithData, importTotalKWh: months[0].importTotalKWh,
+            pot: 10, consEur: 75, credit1: 0, totalBase: 100, totalPagar: 100,
+            bvSaldoPrev: 0, bvSaldoFin: 0
+          }]
+        }))
+      }));
+
+      await importCsv();
+      const statsGate = deferred();
+      window.LF.surplusPrices = {
+        computeHourlyCompensation: vi.fn(() => statsGate.promise),
+        applyMonthlyIndexedValues: vi.fn((months) => months.map((month) => ({
+          ...month, indexedSurplusSource: 'hourly-index-base'
+        })))
+      };
+
+      document.getElementById('bv-simulate').click();
+      await new Promise((resolve) => setTimeout(resolve, 130));
+      expect(window.LF.surplusPrices.computeHourlyCompensation).toHaveBeenCalled();
+
+      window.BVSim.importFile.mockResolvedValueOnce(importResult('B', 29));
+      selectCsv('B.csv');
+      await flushMicrotasks();
+      expect(window.BVSim._cachedImportResult?.tag).toBe('B');
+      expect(window.BVSim._hourlyTraceState.stats).toBeNull();
+
+      statsGate.resolve({ totalKwh: 5, missing: 0, partialCoverageRejected: true });
+      await new Promise((resolve) => setTimeout(resolve, 80));
+
+      expect(window.BVSim._cachedImportResult?.tag).toBe('B');
+      expect(window.BVSim._hourlyTraceState.records).not.toBeNull();
+      expect(window.BVSim._hourlyTraceState.stats).toBeNull();
+    } finally {
+      window.LF.surplusPrices = previousSurplusPrices;
+    }
+  });
+
 });
