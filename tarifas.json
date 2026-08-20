@@ -343,6 +343,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Bassols Hogar Solar 24 horas",
+      "cPunta": 0.117,
+      "cLlano": 0.117,
+      "cValle": 0.117,
+      "p1": 0.158,
+      "p2": 0.084,
+      "web": "https://bassolsenergia.com/es/monedero-solar/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.039,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": true
+    },
+    {
       "nombre": "Imagina Base Sin Horas 8000",
       "cPunta": 0.11793,
       "cLlano": 0.11793,
@@ -1292,26 +1312,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Bassols Hogar Solar 24 horas",
-      "cPunta": 0.172,
-      "cLlano": 0.172,
-      "cValle": 0.172,
-      "p1": 0.079,
-      "p2": 0.005,
-      "web": "https://bassolsenergia.com/es/monedero-solar/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.039,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": true
-    },
-    {
       "nombre": "Nufri 2a Residencia",
       "cPunta": 0.178858,
       "cLlano": 0.178858,
@@ -2053,6 +2053,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Bassols Hogar Solar 3P",
+      "cPunta": 0.213,
+      "cLlano": 0.111,
+      "cValle": 0.057,
+      "p1": 0.159,
+      "p2": 0.085,
+      "web": "https://bassolsenergia.com/es/monedero-solar/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.039,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": true
+    },
+    {
       "nombre": "Atulado Discriminación Horaria 3P",
       "cPunta": 0.21342,
       "cLlano": 0.134353,
@@ -2380,26 +2400,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Bassols Hogar Solar 3P",
-      "cPunta": 0.264,
-      "cLlano": 0.152,
-      "cValle": 0.092,
-      "p1": 0.115,
-      "p2": 0.041,
-      "web": "https://bassolsenergia.com/es/monedero-solar/",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.039,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": true
-    },
-    {
       "nombre": "Seneo Tarifa 1 Autoconsumo 3P",
       "cPunta": 0.27,
       "cLlano": 0.188,
@@ -2460,5 +2460,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-08-20T13:01:39.604Z"
+  "updatedAt": "2026-08-20T13:36:15.919Z"
 }
