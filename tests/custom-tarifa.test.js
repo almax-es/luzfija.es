@@ -566,6 +566,60 @@ describe('Mi tarifa: no se pierden datos al activar/desactivar solar (14/08/2026
     vi.useRealTimers();
   });
 
+
+  it('un registro legacy sin bv conserva la BV implicita al editar con solar desactivado', async () => {
+    vi.useFakeTimers();
+    localStorage.setItem('lf_custom_tarifa', JSON.stringify({
+      punta: '0,10', llano: '0,10', valle: '0,10', p1: '0,08', p2: '0,04',
+      exc: '0,07', precioBV: '2,99'
+      // Sin `bv`: esquema anterior al checkbox, donde exc > 0 implicaba BV.
+    }));
+
+    document.getElementById('solarOn').checked = false;
+    construirFormulario();
+    await vi.advanceTimersByTimeAsync(60);
+    expect(document.getElementById('mtPrecioExc')).toBeNull();
+
+    document.getElementById('mtPunta').value = '0,11';
+    document.getElementById('mtPunta').dispatchEvent(new Event('input', { bubbles: true }));
+    await vi.advanceTimersByTimeAsync(801);
+
+    const guardado = JSON.parse(localStorage.getItem('lf_custom_tarifa'));
+    expect(guardado.exc).toBe('0,07');
+    expect(guardado.bv).toBe(true);
+
+    document.getElementById('solarOn').checked = true;
+    construirFormulario();
+    await vi.advanceTimersByTimeAsync(60);
+    expect(document.getElementById('mtBV').checked).toBe(true);
+
+    vi.useRealTimers();
+  });
+
+  it('la migracion legacy no resucita una BV false explicita aunque exc sea positivo', async () => {
+    vi.useFakeTimers();
+    localStorage.setItem('lf_custom_tarifa', JSON.stringify({
+      punta: '0,10', llano: '0,10', valle: '0,10', p1: '0,08', p2: '0,04',
+      exc: '0,07', bv: false, precioBV: '2,99'
+    }));
+
+    document.getElementById('solarOn').checked = false;
+    construirFormulario();
+    await vi.advanceTimersByTimeAsync(60);
+    document.getElementById('mtPunta').value = '0,11';
+    document.getElementById('mtPunta').dispatchEvent(new Event('input', { bubbles: true }));
+    await vi.advanceTimersByTimeAsync(801);
+
+    expect(JSON.parse(localStorage.getItem('lf_custom_tarifa')).bv).toBe(false);
+
+    document.getElementById('solarOn').checked = true;
+    construirFormulario();
+    await vi.advanceTimersByTimeAsync(60);
+    expect(document.getElementById('mtBV').checked).toBe(false);
+
+    vi.useRealTimers();
+  });
+
   it('editar con solar desactivado preserva compensacion/BV ya guardadas (no las vacia)', async () => {
     vi.useFakeTimers();
     document.getElementById('solarOn').checked = true;
@@ -613,6 +667,37 @@ describe('Mi tarifa: no se pierden datos al activar/desactivar solar (14/08/2026
     expect(document.getElementById('mtBV').checked).toBe(true);
     expect(document.getElementById('mtPrecioBV').value).toBe('2,99');
 
+    vi.useRealTimers();
+  });
+
+
+  it('avisa una sola vez si localStorage rechaza el autoguardado de Mi tarifa', async () => {
+    vi.useFakeTimers();
+    document.getElementById('solarOn').checked = true;
+    construirFormulario();
+    await vi.advanceTimersByTimeAsync(60);
+    window.LF.toast.mockClear();
+
+    const nativeSetItem = Storage.prototype.setItem;
+    const setItem = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(function (key, value) {
+      if (key === 'lf_custom_tarifa') {
+        throw new DOMException('cuota llena', 'QuotaExceededError');
+      }
+      return nativeSetItem.call(this, key, value);
+    });
+
+    window.LF.saveCustomTarifaMain();
+    window.LF.saveCustomTarifaMain();
+
+    expect(window.LF.toast).toHaveBeenCalledTimes(1);
+    expect(window.LF.toast).toHaveBeenCalledWith(
+      expect.stringContaining('podrían perderse al recargar'),
+      'err'
+    );
+
+    setItem.mockRestore();
+    // Restablecer tambien el flag interno de aviso para no contaminar los tests siguientes.
+    window.LF.saveCustomTarifaMain();
     vi.useRealTimers();
   });
 

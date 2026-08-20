@@ -338,11 +338,19 @@ reglaBV: (tieneBV && compensa) ? 'BV MES ANTERIOR' : 'NO APLICA',
 `lf-calc.js` y `desglose-calculo.js` exigen ademas `tipo === 'SIMPLE + BV'` y desactivaban la BV,
 mientras `bv-sim-monthly.js` la activaba solo por `fv.bv` y cobraba la cuota mensual. La misma
 configuracion del usuario daba importes distintos en la home y en el simulador. Normalizar en los
-tres productores elimina el estado imposible en origen, cubre tambien los datos ya guardados en
-`localStorage` (se reconstruyen normalizados, sin migracion) y no cambia el comportamiento de la UI.
+tres productores elimina el estado imposible en origen y no cambia el comportamiento de la UI.
+
+**Compatibilidad del estado persistido.** El `bv` guardado en `lf_custom_tarifa`,
+`bv_custom_tarifa` o en `config.customTarifa` pertenece al estado del formulario, no al `fv`
+economico. Los registros anteriores al checkbox BV no tenian ese campo: en aquel esquema una
+compensacion fija positiva implicaba BV. La compatibilidad se resuelve en la frontera de lectura
+(`js/lf-tarifa-custom.js` y `js/bv/bv-ui.js`): solo se infiere BV desde `exc > 0` cuando `bv` esta
+realmente ausente/null. Un `bv:false` explicito prevalece siempre, incluso si `exc` es positivo.
+Despues de restaurar el formulario, los tres productores aplican normalmente el invariante
+economico `checkbox && compensa`.
 
 **Consecuencia para este documento.** Con el invariante vigente, `hasBV = Boolean(tarifa?.fv?.bv)`
-en el motor mensual y "la cuota solo aplica con `fv.bv = true` y `fv.tipo = 'SIMPLE + BV'"` (ver
+en el motor mensual y "la cuota solo aplica con `fv.bv = true` y `fv.tipo = 'SIMPLE + BV'`" (ver
 seccion `precioBV`) dejan de ser dos criterios distintos: son equivalentes, porque los productores
 derivan tanto `fv.bv = true` como `fv.tipo = 'SIMPLE + BV'` de la misma condicion
 `checkbox && compensa`. Un `fv` construido a mano fuera de estos tres productores —por ejemplo en

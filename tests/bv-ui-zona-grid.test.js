@@ -811,6 +811,91 @@ describe('BV: escenario compartido como previsualizacion', () => {
   };
   const leido = () => JSON.parse(localStorage.getItem('bv_manual_data_v2') || 'null');
 
+
+  it('migra bv_manual_data v1 solo cuando no existe bv_manual_data_v2', () => {
+    localStorage.setItem('bv_manual_data', JSON.stringify({
+      0: { cons: '100', vert: '10' }
+    }));
+
+    bootSolarUi();
+
+    expect(gridValue(0, 'p1')).toBe('20');
+    expect(gridValue(0, 'p2')).toBe('25');
+    expect(gridValue(0, 'p3')).toBe('55');
+    expect(gridValue(0, 'vert')).toBe('10');
+  });
+
+  it('si conviven bv_manual_data_v2 y v1, v2 gana y el legacy no resucita', () => {
+    localStorage.setItem('bv_manual_data', JSON.stringify({
+      0: { cons: '100', vert: '10' }
+    }));
+    localStorage.setItem('bv_manual_data_v2', JSON.stringify({
+      0: { p1: '7', p2: '8', p3: '9', vert: '1' }
+    }));
+
+    bootSolarUi();
+
+    expect(gridValue(0, 'p1')).toBe('7');
+    expect(gridValue(0, 'p2')).toBe('8');
+    expect(gridValue(0, 'p3')).toBe('9');
+    expect(gridValue(0, 'vert')).toBe('1');
+  });
+
+  it.each([
+    ['JSON truncado', '{"0":'],
+    ['cadena vacia', '']
+  ])('un v2 corrupto (%s) no resucita bv_manual_data legacy y avisa sin borrar ninguna clave', (_caso, corruptV2) => {
+    const legacy = JSON.stringify({ 0: { cons: '100', vert: '10' } });
+    localStorage.setItem('bv_manual_data_v2', corruptV2);
+    localStorage.setItem('bv_manual_data', legacy);
+
+    bootSolarUi();
+
+    expect(gridValue(0, 'p1')).toBe('');
+    expect(gridValue(0, 'p2')).toBe('');
+    expect(gridValue(0, 'p3')).toBe('');
+    expect(document.getElementById('toastText').textContent).toContain('no he cargado una copia antigua');
+    expect(localStorage.getItem('bv_manual_data_v2')).toBe(corruptV2);
+    expect(localStorage.getItem('bv_manual_data')).toBe(legacy);
+  });
+
+  it('si localStorage no esta disponible, el simulador arranca y avisa que no pudo restaurar', () => {
+    const nativeGetItem = Storage.prototype.getItem;
+    const getItem = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(function (key) {
+      if (key === 'bv_manual_data_v2') throw new DOMException('bloqueado', 'SecurityError');
+      return nativeGetItem.call(this, key);
+    });
+
+    bootSolarUi();
+
+    expect(document.getElementById('toastText').textContent).toContain('No pude acceder al almacenamiento local');
+    expect(gridValue(0, 'p1')).toBe('');
+    getItem.mockRestore();
+  });
+
+  it('un timestamp corrupto no muestra una falsa ultima modificacion con NaN', () => {
+    localStorage.setItem('bv_manual_data_v2', JSON.stringify({
+      0: { p1: '7', p2: '8', p3: '9', vert: '1' }
+    }));
+    localStorage.setItem('bv_manual_data_timestamp', 'anterior');
+
+    bootSolarUi();
+
+    expect(document.getElementById('bv-data-status').textContent).toBe('');
+  });
+
+  it('tolera un timestamp numerico legacy almacenado como string', () => {
+    localStorage.setItem('bv_manual_data_v2', JSON.stringify({
+      0: { p1: '7', p2: '8', p3: '9', vert: '1' }
+    }));
+    localStorage.setItem('bv_manual_data_timestamp', String(Date.now() - 2 * 60 * 1000));
+
+    bootSolarUi();
+
+    expect(document.getElementById('bv-data-status').textContent).toContain('Última modificación:');
+    expect(document.getElementById('bv-data-status').textContent).not.toContain('NaN');
+  });
+
   it('editar un campo del escenario compartido NO pisa los datos locales', async () => {
     localStorage.setItem('bv_manual_data_v2', JSON.stringify(DATOS_LOCALES));
     abrirEscenarioCompartido({ 0: { p1: '999', p2: '999', p3: '999', vert: '' } });
@@ -888,6 +973,74 @@ describe('BV: escenario compartido como previsualizacion', () => {
     bootSolarUi();
 
     expect(document.getElementById('mtPunta').value).toBe('0,15');
+  });
+
+
+  it('migra bv_custom_tarifa legacy sin campo bv inferiendolo solo si estaba ausente', () => {
+    localStorage.setItem('bv_custom_tarifa', JSON.stringify({
+      punta: '0,15', llano: '0,12', valle: '0,10', p1: '0,08', p2: '0,04',
+      exc: '0,05', precioBV: '2,99', savedAt: '2026-08-01T10:00:00.000Z'
+    }));
+
+    bootSolarUi();
+
+    expect(document.getElementById('mtBV').checked).toBe(true);
+    expect(window.BVSim._getCustomTarifa()).toEqual(expect.objectContaining({
+      fv: expect.objectContaining({ bv: true, tipo: 'SIMPLE + BV' })
+    }));
+  });
+
+  it('un bv false explicito, incluso serializado como string, prevalece sobre exc positivo', () => {
+    localStorage.setItem('bv_custom_tarifa', JSON.stringify({
+      punta: '0,15', llano: '0,12', valle: '0,10', p1: '0,08', p2: '0,04',
+      exc: '0,05', bv: 'false', precioBV: '2,99', savedAt: '2026-08-01T10:00:00.000Z'
+    }));
+
+    bootSolarUi();
+
+    expect(document.getElementById('mtBV').checked).toBe(false);
+    expect(window.BVSim._getCustomTarifa()).toEqual(expect.objectContaining({
+      fv: expect.objectContaining({ bv: false, tipo: 'SIMPLE' })
+    }));
+  });
+
+  it('migra el customTarifa legacy embebido en bv_manual_data_v2', () => {
+    const customTarifa = {
+      punta: '0,15', llano: '0,12', valle: '0,10', p1: '0,08', p2: '0,04',
+      exc: '0,05', precioBV: '2,99'
+      // Sin `bv`: esquema anterior.
+    };
+    localStorage.setItem('bv_manual_data_v2', JSON.stringify({
+      0: { p1: '10', p2: '20', p3: '30', vert: '5' },
+      config: { customTarifa }
+    }));
+
+    bootSolarUi();
+
+    expect(document.getElementById('mtBV').checked).toBe(true);
+    expect(window.BVSim._getCustomTarifa()).toEqual(expect.objectContaining({
+      fv: expect.objectContaining({ bv: true, tipo: 'SIMPLE + BV' })
+    }));
+  });
+
+  it('una recarga actual conserva indicador y boton Borrar aunque customTarifa embebido no tenga savedAt', () => {
+    const savedAt = '2026-08-01T10:00:00.000Z';
+    const customTarifa = {
+      punta: '0,15', llano: '0,12', valle: '0,10', p1: '0,08', p2: '0,04',
+      exc: '0,05', bv: true, precioBV: '2,99'
+    };
+    localStorage.setItem('bv_manual_data_v2', JSON.stringify({
+      0: { p1: '10', p2: '20', p3: '30', vert: '5' },
+      config: { customTarifa }
+    }));
+    localStorage.setItem('bv_custom_tarifa', JSON.stringify({ ...customTarifa, savedAt }));
+    localStorage.setItem('bv_manual_data_timestamp', savedAt);
+
+    bootSolarUi();
+
+    expect(document.getElementById('bv-clear-custom-tarifa').style.display).toBe('block');
+    expect(document.getElementById('bv-custom-tarifa-indicator').textContent).toMatch(/^💾 /);
+    expect(document.getElementById('bv-custom-tarifa-indicator').style.display).toBe('inline-block');
   });
 
   it('sin enlace compartido, se sigue cargando la Mi tarifa local normalmente (regresion)', () => {
@@ -1009,6 +1162,28 @@ describe('BV: escenario compartido como previsualizacion', () => {
     expect(custom.savedAt).toBe(localStorage.getItem('bv_manual_data_timestamp'));
     expect(JSON.parse(localStorage.getItem('bv_manual_data_v2')).config.customTarifa)
       .not.toHaveProperty('savedAt');
+  });
+
+
+  it('importar un respaldo antiguo con customTarifa sin bv conserva la BV implicita', async () => {
+    bootSolarUi();
+    await importarBackup({
+      version: 2,
+      data: {
+        0: { p1: '12', p2: '13', p3: '14', vert: '15' },
+        config: {
+          customTarifa: {
+            punta: '0,20', llano: '0,21', valle: '0,22',
+            p1: '0,08', p2: '0,04', exc: '0,07', precioBV: '2,99'
+            // Sin `bv`: el normalizador del backup debe aplicar la misma migracion.
+          }
+        }
+      }
+    });
+
+    expect(document.getElementById('mtBV').checked).toBe(true);
+    expect(JSON.parse(localStorage.getItem('bv_custom_tarifa')).bv).toBe(true);
+    expect(JSON.parse(localStorage.getItem('bv_manual_data_v2')).config.customTarifa.bv).toBe(true);
   });
 
   it('migra respaldos v2 antiguos sin config sin borrar la configuracion visible', async () => {

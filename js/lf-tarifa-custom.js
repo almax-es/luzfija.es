@@ -385,6 +385,22 @@
   }
 
   // ===== GUARDAR Y CARGAR TARIFA PERSONALIZADA =====
+  // Compatibilidad con el esquema anterior al checkbox BV: en esos registros el campo `bv`
+  // no existia y la BV se inferia de una compensacion fija positiva. IMPORTANTE: solo se
+  // infiere cuando el campo esta realmente ausente; un `bv:false` explicito es una decision
+  // del usuario y debe sobrevivir aunque `exc` sea positivo.
+  function resolvePersistedCustomTarifaBv(data) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) return false;
+    if (data.bv !== undefined && data.bv !== null) {
+      return typeof window.LF?.asBool === 'function'
+        ? window.LF.asBool(data.bv, false)
+        : Boolean(data.bv);
+    }
+    return parseNum(data.exc || '') > 0;
+  }
+
+  let customTarifaStorageErrorNotified = false;
+
   function saveCustomTarifaMain() {
     try {
       // La presencia REAL del campo en el DOM decide si hay valores solares que leer, no el
@@ -407,7 +423,7 @@
           const previous = JSON.parse(localStorage.getItem('lf_custom_tarifa') || 'null');
           if (previous) {
             exc = previous.exc || '';
-            bv = previous.bv || false;
+            bv = resolvePersistedCustomTarifaBv(previous);
             precioBV = previous.precioBV || '';
             compensacionIndexada = previous.compensacionIndexada || false;
             topeParcial = previous.topeParcial || false;
@@ -431,9 +447,14 @@
         savedAt: new Date().getTime()
       };
       localStorage.setItem('lf_custom_tarifa', JSON.stringify(data));
+      customTarifaStorageErrorNotified = false;
       updateCustomTarifaIndicatorMain(data);
     } catch(e) {
       console.warn('No se pudo guardar tarifa personalizada:', e);
+      if (!customTarifaStorageErrorNotified && typeof toast === 'function') {
+        customTarifaStorageErrorNotified = true;
+        toast('No pude guardar "Mi tarifa" en este navegador. Los cambios siguen en pantalla, pero podrían perderse al recargar.', 'err');
+      }
     }
   }
 
@@ -485,11 +506,10 @@
       if (mtPrecioExcEl) mtPrecioExcEl.value = data.exc || '';
       if (mtPrecioBVEl) mtPrecioBVEl.value = data.precioBV || '';
       const mtBvEl = $('mtBV');
-      // Migración: datos guardados antes del checkbox BV no tienen campo `bv`;
-      // entonces BV se infería de exc > 0 — preservar ese comportamiento.
-      if (mtBvEl) {
-        mtBvEl.checked = (data.bv != null) ? Boolean(data.bv) : parseNum(data.exc || '') > 0;
-      }
+      // Migración: los registros anteriores al checkbox BV no tenían `bv`; usar el mismo
+      // resolver que el guardado evita que editar con solar desactivado materialice un false
+      // y destruya en silencio esa semántica legacy.
+      if (mtBvEl) mtBvEl.checked = resolvePersistedCustomTarifaBv(data);
       const mtSinSSAAEl = $('mtSinSSAA');
       if (mtSinSSAAEl) mtSinSSAAEl.checked = Boolean(data.sinSSAA);
       const mtCompensacionIndexadaEl = $('mtCompensacionIndexada');

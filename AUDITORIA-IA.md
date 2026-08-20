@@ -849,15 +849,17 @@ con `fv.bv === true` llevan todas compensacion (`>0` o el centinela `-1`) y `tip
 
 **Correccion.** Normalizacion en los **tres** productores del objeto (`js/lf-tarifa-custom.js`,
 `js/bv/bv-ui.js`, `js/desglose-integration.js`): `bv: <checkbox> && compensa`, con `reglaBV`
-acorde. Ver `ARQUITECTURA-CALCULOS.md`, seccion "Invariante de `fv.bv`".
+acorde. La compatibilidad de registros anteriores al checkbox BV se resuelve aparte, en la frontera
+de persistencia; ver la seccion "Persistencia Y Migracion De Estado Local" mas abajo y
+`ARQUITECTURA-CALCULOS.md`, seccion "Invariante de `fv.bv`".
 
 **Descartado a proposito: validar/bloquear en la UI.** Se evaluo anadir un gate que impidiera esa
 combinacion en los formularios y **se rechazo**. `js/lf-app.js` aborta el calculo COMPLETO si
 `validateMiTarifa()` falla, asi que un usuario con esa combinacion ya guardada en `localStorage`
 (`lf_custom_tarifa` / `bv_custom_tarifa`) habria dejado de ver el ranking entero —no solo su
-tarifa— hasta corregir el campo. Normalizar en el productor cubre tambien ese dato legado sin
-migracion ni bloqueo. Verificado en produccion con Chrome real: restaura el estado antiguo y
-calcula el ranking completo con normalidad.
+tarifa— hasta corregir el campo. La solucion correcta conserva el formulario legado, lo normaliza
+al reconstruir el estado economico y no bloquea el ranking. Verificado en produccion con Chrome
+real durante la ronda del invariante.
 
 **No reportar como bug**:
 - Que marcar BV sin compensacion no active la bateria virtual. Es el invariante, no un fallo.
@@ -868,6 +870,68 @@ calcula el ranking completo con normalidad.
 
 **Para reabrirlo** hace falta demostrar un CUARTO productor de ese `fv` que no imponga la
 condicion, o un consumidor que derive un importe de `fv.precioBV` sin comprobar antes la BV.
+
+### Persistencia Y Migracion De Estado Local (RESUELTA 20/08/2026)
+
+**`bv` ausente en "Mi tarifa" legacy.** Los registros anteriores al checkbox de bateria virtual no
+tenian campo `bv`: una compensacion fija positiva implicaba BV. La home ya inferia esa semantica al
+cargar, pero al volver a guardar con los campos solares desmontados trataba la ausencia como un
+booleano ordinario; podia materializarse como `false` y perder para siempre la informacion legacy.
+El simulador tampoco aplicaba la inferencia de forma uniforme a `bv_custom_tarifa`, al
+`customTarifa` embebido en `bv_manual_data_v2` ni a respaldos antiguos.
+
+**Correccion en la frontera de persistencia.** `js/lf-tarifa-custom.js` usa el mismo resolver al
+leer y al preservar/re-escribir. `js/bv/bv-ui.js` normaliza cualquier `customTarifa`
+persistido/importado antes de aplicarlo. Solo se infiere BV desde `exc > 0` cuando `bv` esta
+realmente ausente/null. Un `bv:false` explicito prevalece aunque `exc` sea positivo; booleanos
+antiguos serializados como string se interpretan con `LF.asBool`. Esto restaura la intencion del
+formulario; despues, los tres productores del `fv` siguen imponiendo `checkbox && compensa`.
+
+**Precedencia `bv_manual_data_v2` / `bv_manual_data`.** `bv_manual_data_v2` es la generacion actual y
+`bv_manual_data` solo es fallback legacy cuando la clave v2 NO existe. Si v2 existe pero contiene
+JSON invalido, una cadena vacia o un tipo incompatible, no se cae a v1: hacerlo podria resucitar un
+escenario antiguo que el usuario ya habia sustituido. Se informa del problema y las claves se
+dejan intactas para no destruir la unica copia recuperable.
+
+**Fallos de almacenamiento.** El autoguardado de `lf_custom_tarifa` avisa de forma no bloqueante si
+`localStorage` rechaza la escritura; el aviso se limita a una vez mientras persista el fallo y una
+escritura posterior correcta rearma el aviso. El simulador sigue funcionando en memoria si no puede
+acceder al almacenamiento y explica que los datos guardados no se restauraran. Un escenario v2
+corrupto tampoco se borra silenciosamente.
+
+**Metadata del escenario.** `config.customTarifa` viaja embebido en `bv_manual_data_v2` sin
+`savedAt` por diseno. La existencia del boton Borrar depende de que haya datos de "Mi tarifa", no de
+esa metadata; `bv_manual_data_timestamp` completa el indicador temporal. Timestamps invalidos no se
+representan como fechas `NaN` y se toleran epochs numericos legacy serializados como string.
+
+**Decision cerrada: `lf_custom_tarifa` y `bv_custom_tarifa` NO se unifican.** Aunque ambas pantallas
+llamen "Mi tarifa" a su formulario, son herramientas distintas y el simulador mantiene campos y
+semantica de escenario propios. La home conserva `lf_custom_tarifa`; el simulador conserva
+`bv_custom_tarifa` y su copia dentro del escenario. No hay migracion cruzada ni precedencia global a
+proposito. Un fallback del tipo "si falta A, cargar B" seria peligroso: la ausencia tambien puede
+significar que el usuario pulso Borrar, y el fallback resucitaria datos eliminados expresamente.
+Unificar exigiria una nueva clave canonica mas tombstones/semantica de borrado, sin un beneficio de
+producto solicitado.
+
+**No reportar como bugs:**
+- Que `bv_manual_data` siga existiendo fisicamente junto a v2: mientras v2 exista, v1 no gana.
+- Que la migracion v1 se haga en memoria y no se escriba inmediatamente: la siguiente persistencia
+  normal ya usa v2.
+- Que el reset del escenario no elimine `bv_custom_tarifa`: "Mi tarifa" del simulador tiene su
+  propio boton de borrado, decision ya documentada.
+- Que `lf_custom_tarifa` y `bv_custom_tarifa` puedan contener valores distintos: es la decision
+  cerrada anterior, no una desincronizacion que deba repararse automaticamente.
+- Que `pvpc_cache_v3:*` invalide generaciones de cache previas: es cache tecnica versionada, no
+  configuracion del usuario.
+- Que `luzfija_tarifas_v1` pueda quedar en un navegador antiguo: no tiene lector ni escritor
+  productivo actual.
+- `lf_err_rec_*` no pertenece a `localStorage`; la implementacion actual usa `sessionStorage`.
+
+**Para reabrir:** demostrar un nuevo lector/escritor que interprete la ausencia de un campo legacy
+como su valor falso sin aplicar la migracion correspondiente; que una clave legacy pueda ganar a su
+sucesora vigente; que un fallo de escritura/restauracion vuelva a presentarse al usuario como
+"guardado correctamente"; o que se adopte explicitamente una decision de producto para unificar las
+dos "Mi tarifa" con una clave canonica y semantica de borrado definida.
 
 ### Ranking Del Simulador Solar/BV
 

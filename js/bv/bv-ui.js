@@ -756,18 +756,19 @@ document.addEventListener('DOMContentLoaded', () => {
         normalizedConfig.viviendaCanarias = config.viviendaCanarias;
       }
       if (config.customTarifa && typeof config.customTarifa === 'object' && !Array.isArray(config.customTarifa)) {
+        const customTarifa = normalizePersistedCustomTarifa(config.customTarifa);
         normalizedConfig.customTarifa = {
-          punta: asText(config.customTarifa.punta),
-          llano: asText(config.customTarifa.llano),
-          valle: asText(config.customTarifa.valle),
-          p1: asText(config.customTarifa.p1),
-          p2: asText(config.customTarifa.p2),
-          exc: asText(config.customTarifa.exc),
-          bv: Boolean(config.customTarifa.bv),
-          precioBV: asText(config.customTarifa.precioBV),
-          sinSSAA: Boolean(config.customTarifa.sinSSAA),
-          compensacionIndexada: Boolean(config.customTarifa.compensacionIndexada),
-          topeParcial: Boolean(config.customTarifa.topeParcial)
+          punta: asText(customTarifa.punta),
+          llano: asText(customTarifa.llano),
+          valle: asText(customTarifa.valle),
+          p1: asText(customTarifa.p1),
+          p2: asText(customTarifa.p2),
+          exc: asText(customTarifa.exc),
+          bv: customTarifa.bv,
+          precioBV: asText(customTarifa.precioBV),
+          sinSSAA: Boolean(customTarifa.sinSSAA),
+          compensacionIndexada: Boolean(customTarifa.compensacionIndexada),
+          topeParcial: Boolean(customTarifa.topeParcial)
         };
       }
     }
@@ -791,29 +792,70 @@ document.addEventListener('DOMContentLoaded', () => {
   // Función para cargar datos manuales desde localStorage
   function loadManualData({ payload: suppliedPayload = null, notify = true } = {}) {
     if (!manualGrid) return false;
+    let localStorageAttempted = false;
     try {
       const shared = suppliedPayload ? null : getSharedScenario();
       isSharedPreview = Boolean(shared);
-      // Intentar cargar v2 (detallado)
-      let saved = shared || suppliedPayload ? null : localStorage.getItem('bv_manual_data_v2');
-      let data = suppliedPayload || (shared ? shared.data : (saved ? JSON.parse(saved) : null));
 
-      // Migración simple de v1 (agregado) a v2 (detallado) si no existe v2
-      if (!data) {
-        const oldSaved = localStorage.getItem('bv_manual_data');
-        if (oldSaved) {
-          const oldData = JSON.parse(oldSaved);
-          data = {};
-          for (let k in oldData) {
-            const c = parseInput(oldData[k].cons);
-            // Estimación simple para migración: 20/25/55
-            // Guardar como strings formateados en español
-            data[k] = {
-              p1: formatNumberES(Math.round(c * 0.20)),
-              p2: formatNumberES(Math.round(c * 0.25)),
-              p3: formatNumberES(Math.round(c * 0.55)),
-              vert: formatNumberES(parseInput(oldData[k].vert))
-            };
+      let data = suppliedPayload || (shared ? shared.data : null);
+      if (!data && !shared && !suppliedPayload) {
+        localStorageAttempted = true;
+        const saved = localStorage.getItem('bv_manual_data_v2');
+        // La existencia de la clave se decide por null, no por truthiness: una cadena vacia
+        // sigue siendo un registro presente pero corrupto y debe pasar por el manejo de error,
+        // no confundirse con "nunca hubo v2" ni permitir fallback al legacy.
+        if (saved !== null) {
+          try {
+            data = JSON.parse(saved);
+          } catch (parseError) {
+            console.warn('Datos v2 guardados corruptos; no se usa el legacy para evitar resucitar estado antiguo:', parseError);
+            if (notify) {
+              showToast('No pude interpretar el escenario guardado. Lo he dejado intacto y no he cargado una copia antigua para evitar sustituir tus datos.', 'err');
+            }
+            return false;
+          }
+          if (!data || typeof data !== 'object' || Array.isArray(data)) {
+            console.warn('Datos v2 guardados con tipo no soportado; no se usa el legacy.');
+            if (notify) {
+              showToast('El escenario guardado tiene un formato no compatible. Lo he dejado intacto y no he cargado una copia antigua.', 'err');
+            }
+            return false;
+          }
+        }
+
+        // Migración simple de v1 (agregado) a v2 (detallado) SOLO si la clave v2 no existe.
+        // Si v2 existe pero esta corrupta, no caer a v1: hacerlo podria resucitar un escenario
+        // anterior que el usuario ya habia sustituido.
+        if (!data && saved === null) {
+          const oldSaved = localStorage.getItem('bv_manual_data');
+          if (oldSaved) {
+            let oldData;
+            try {
+              oldData = JSON.parse(oldSaved);
+            } catch (parseError) {
+              console.warn('Datos legacy guardados corruptos:', parseError);
+              if (notify) showToast('No pude interpretar los datos guardados de una versión anterior. Se han dejado intactos.', 'err');
+              return false;
+            }
+            if (!oldData || typeof oldData !== 'object' || Array.isArray(oldData)) {
+              console.warn('Datos legacy guardados con tipo no soportado.');
+              if (notify) showToast('Los datos guardados de una versión anterior tienen un formato no compatible. Se han dejado intactos.', 'err');
+              return false;
+            }
+            data = {};
+            for (const k in oldData) {
+              const month = oldData[k];
+              if (!month || typeof month !== 'object' || Array.isArray(month)) continue;
+              const c = parseInput(month.cons);
+              // Estimación simple para migración: 20/25/55
+              // Guardar como strings formateados en español
+              data[k] = {
+                p1: formatNumberES(Math.round(c * 0.20)),
+                p2: formatNumberES(Math.round(c * 0.25)),
+                p3: formatNumberES(Math.round(c * 0.55)),
+                vert: formatNumberES(parseInput(month.vert))
+              };
+            }
           }
         }
       }
@@ -888,6 +930,9 @@ document.addEventListener('DOMContentLoaded', () => {
       return hasData;
     } catch(e) {
       console.warn('Error cargando datos:', e);
+      if (notify && localStorageAttempted) {
+        showToast('No pude acceder al almacenamiento local de este navegador. Puedes seguir usando el simulador, pero los datos guardados no se restaurarán en esta sesión.', 'err');
+      }
       return false;
     }
   }
@@ -911,7 +956,14 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const timestamp = localStorage.getItem('bv_manual_data_timestamp');
       if (timestamp) {
-        const date = new Date(timestamp);
+        const rawTimestamp = String(timestamp).trim();
+        const numericTimestamp = /^\d+$/.test(rawTimestamp) ? Number(rawTimestamp) : NaN;
+        const date = Number.isFinite(numericTimestamp) ? new Date(numericTimestamp) : new Date(rawTimestamp);
+        if (!Number.isFinite(date.getTime())) {
+          statusEl.textContent = '';
+          return;
+        }
+
         const now = new Date();
         const diffMinutes = Math.floor((now - date) / 60000);
 
@@ -1450,8 +1502,26 @@ document.addEventListener('DOMContentLoaded', () => {
     };
   }
 
+  // Frontera de compatibilidad para "Mi tarifa" persistida. Antes de existir el checkbox
+  // BV, los registros no incluian `bv` y una compensacion fija positiva implicaba BV. La
+  // ausencia se migra; un false explicito nunca se sobreescribe. Se acepta ademas el booleano
+  // serializado como string para no convertir "false" en true por truthiness.
+  function normalizePersistedCustomTarifa(data) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) return null;
+    const normalized = { ...data };
+    if (normalized.bv === undefined || normalized.bv === null) {
+      normalized.bv = parseInput(normalized.exc) > 0;
+    } else if (typeof normalized.bv !== 'boolean') {
+      normalized.bv = typeof window.LF?.asBool === 'function'
+        ? window.LF.asBool(normalized.bv, false)
+        : Boolean(normalized.bv);
+    }
+    return normalized;
+  }
+
   function applyCustomTarifaData(data) {
-    if (!data || typeof data !== 'object') return false;
+    data = normalizePersistedCustomTarifa(data);
+    if (!data) return false;
     const fieldIds = {
       punta: 'mtPunta', llano: 'mtLlano', valle: 'mtValle',
       p1: 'mtP1', p2: 'mtP2', exc: 'mtExc', precioBV: 'mtPrecioBV'
@@ -1461,7 +1531,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (input && typeof data[key] === 'string') input.value = data[key];
     });
     const mtBVEl = document.getElementById('mtBV');
-    if (mtBVEl && typeof data.bv === 'boolean') mtBVEl.checked = data.bv;
+    if (mtBVEl) mtBVEl.checked = data.bv;
     const mtSinSSAAEl = document.getElementById('mtSinSSAA');
     if (mtSinSSAAEl && typeof data.sinSSAA === 'boolean') mtSinSSAAEl.checked = data.sinSSAA;
     const mtCompensacionIndexadaEl = document.getElementById('mtCompensacionIndexada');
@@ -1526,19 +1596,29 @@ document.addEventListener('DOMContentLoaded', () => {
       const clearBtn = document.getElementById('bv-clear-custom-tarifa');
       if (!indicator || !clearBtn) return;
 
-      // Mostrar indicador solo si hay datos guardados
-      if (data && data.savedAt) {
-        const date = new Date(data.savedAt);
+      // `customTarifa` viaja embebida en bv_manual_data_v2 sin savedAt a proposito. En una
+      // recarga local eso no significa "no hay tarifa guardada": el timestamp hermano es
+      // bv_manual_data_timestamp. No ligar la existencia del boton Borrar a una metadata que
+      // el escenario deliberadamente no contiene. En previsualizacion compartida, en cambio,
+      // no hay nada local que borrar y el boton debe seguir oculto.
+      const hasStoredData = !isSharedPreview && hasCustomTarifaData(data);
+      clearBtn.style.display = hasStoredData ? 'block' : 'none';
+
+      let savedAt = data?.savedAt || null;
+      if (!savedAt && hasStoredData) {
+        try { savedAt = localStorage.getItem('bv_manual_data_timestamp'); } catch (_) {}
+      }
+      const date = savedAt ? new Date(savedAt) : null;
+      if (date && Number.isFinite(date.getTime())) {
         const day = String(date.getDate()).padStart(2, '0');
         const month = String(date.getMonth() + 1).padStart(2, '0');
         const hours = String(date.getHours()).padStart(2, '0');
         const mins = String(date.getMinutes()).padStart(2, '0');
         indicator.textContent = `💾 ${day}/${month} ${hours}:${mins}`;
         indicator.style.display = 'inline-block';
-        clearBtn.style.display = 'block';
       } else {
+        indicator.textContent = '';
         indicator.style.display = 'none';
-        clearBtn.style.display = 'none';
       }
     } catch(e) {
       console.warn('Error actualizando indicador:', e);
