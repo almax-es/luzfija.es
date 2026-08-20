@@ -130,6 +130,9 @@
           <label for="mtPrecioBV">Cuota batería virtual (€/mes; escribe 0 si es gratuita)</label>
           <input id="mtPrecioBV" class="input" type="text" inputmode="decimal" placeholder="Ej: 2,99">
         </div>
+        <p id="mtBVSinCompensacionAviso" role="status" style="display:none; margin: 8px 0 0; font-size: 12px; line-height: 1.45; color: var(--muted2);">
+          ⚠️ La batería virtual no se aplicará mientras la compensación sea 0 €/kWh: sin excedentes remunerados no hay nada que acumular en la hucha. Indica un precio de compensación o marca la compensación indexada.
+        </p>
       `;
     }
 
@@ -576,6 +579,7 @@
           // marca errores de formato/valor. El guard de calculate/agregarMiTarifa
           // sí marca los vacíos (marcarVacios por defecto true).
           validateMiTarifa({ silent: true, marcarVacios: false });
+          updateMtBVSinCompensacionAviso();
           if (typeof window.scheduleCalculateDebounced === 'function') {
             window.scheduleCalculateDebounced();
           }
@@ -589,6 +593,7 @@
     if (mtBvEl && !mtBvEl.hasAttribute('data-save-attached')) {
       mtBvEl.addEventListener('change', () => {
         saveCustomTarifaMain();
+        updateMtBVSinCompensacionAviso();
         if (typeof window.scheduleCalculateDebounced === 'function') {
           window.scheduleCalculateDebounced();
         }
@@ -642,6 +647,23 @@
     const wrap = $('mtPrecioExcWrap');
     if (!wrap) return;
     wrap.style.display = $('mtCompensacionIndexada')?.checked ? 'none' : '';
+    updateMtBVSinCompensacionAviso();
+  }
+
+  // Aviso NO bloqueante: sin compensacion no hay excedente remunerado que alimente la hucha, asi
+  // que fv.bv se normaliza a false y la BV no se aplica (ver ARQUITECTURA-CALCULOS.md). Sin este
+  // texto, marcar la casilla no produciria ningun efecto ni ninguna explicacion. Deliberadamente
+  // NO marca el campo en rojo, NO invalida el formulario y NO desmarca la casilla: el estado es
+  // legitimo y calculable, solo que la BV queda inactiva.
+  function updateMtBVSinCompensacionAviso() {
+    const aviso = $('mtBVSinCompensacionAviso');
+    if (!aviso) return;
+    const bvOn = $('mtBV')?.checked || false;
+    const indexada = $('mtCompensacionIndexada')?.checked || false;
+    const excVal = ($('mtPrecioExc')?.value || '').trim();
+    const excNum = excVal ? parseNum(excVal) : 0;
+    const inactiva = bvOn && !indexada && !(excNum > 0);
+    aviso.style.display = inactiva ? '' : 'none';
   }
 
   // Cargar al iniciar

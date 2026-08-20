@@ -833,6 +833,42 @@ Semantica de los campos en `JSON-SCHEMA.md`; pipeline del comparador en
  nulo pasaria a mostrarse como 0,00 en lugar de caer al coste de ranking. Si "simplificas" ese
  guard, `tests/render-bv-total.test.js` debe fallar; si no falla, el test se ha roto antes.
 
+### Invariante De `fv.bv` En "Mi Tarifa" (RESUELTA 20/08/2026)
+
+**Fallo original.** El checkbox "Tengo bateria virtual" y el campo "Precio compensacion" son
+controles independientes y contiguos. Marcando el primero y dejando el segundo vacio (o a `0`),
+los productores de "Mi tarifa" emitian `fv.bv = true` junto a `fv.tipo = 'NO COMPENSA'`. Ese
+objeto se interpretaba distinto en cada motor: `js/lf-calc.js` y `js/desglose-calculo.js` exigen
+ademas `tipo === 'SIMPLE + BV'` y desactivaban la BV, mientras `js/bv/bv-sim-monthly.js` la
+activaba solo por `fv.bv` y cobraba la cuota mensual mas su impuesto. La misma configuracion daba
+importes distintos en la home y en el simulador solar.
+
+**Alcance real.** Solo afectaba a "Mi tarifa" (tarifa introducida a mano). Las tarifas de
+`tarifas.json` nunca tuvieron el estado contradictorio: verificado sobre el catalogo, las entradas
+con `fv.bv === true` llevan todas compensacion (`>0` o el centinela `-1`) y `tipo = 'SIMPLE + BV'`.
+
+**Correccion.** Normalizacion en los **tres** productores del objeto (`js/lf-tarifa-custom.js`,
+`js/bv/bv-ui.js`, `js/desglose-integration.js`): `bv: <checkbox> && compensa`, con `reglaBV`
+acorde. Ver `ARQUITECTURA-CALCULOS.md`, seccion "Invariante de `fv.bv`".
+
+**Descartado a proposito: validar/bloquear en la UI.** Se evaluo anadir un gate que impidiera esa
+combinacion en los formularios y **se rechazo**. `js/lf-app.js` aborta el calculo COMPLETO si
+`validateMiTarifa()` falla, asi que un usuario con esa combinacion ya guardada en `localStorage`
+(`lf_custom_tarifa` / `bv_custom_tarifa`) habria dejado de ver el ranking entero —no solo su
+tarifa— hasta corregir el campo. Normalizar en el productor cubre tambien ese dato legado sin
+migracion ni bloqueo. Verificado en produccion con Chrome real: restaura el estado antiguo y
+calcula el ranking completo con normalidad.
+
+**No reportar como bug**:
+- Que marcar BV sin compensacion no active la bateria virtual. Es el invariante, no un fallo.
+- Que `fv.precioBV` conserve su valor cuando `fv.bv` queda en `false`. Los consumidores lo
+  protegen siempre tras `bv`/`hasBV`, asi que es un dato contractual latente, no un importe vivo.
+- Que `bv-sim-monthly.js` use `hasBV = Boolean(tarifa?.fv?.bv)` sin comprobar `tipo`. Es correcto
+  precisamente porque `fv.bv` llega normalizado.
+
+**Para reabrirlo** hace falta demostrar un CUARTO productor de ese `fv` que no imponga la
+condicion, o un consumidor que derive un importe de `fv.precioBV` sin comprobar antes la BV.
+
 ### Ranking Del Simulador Solar/BV
 
 - El filtro de limites de consumo (arriba) solo retira candidatas; NO altera el criterio de orden.

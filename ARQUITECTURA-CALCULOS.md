@@ -313,9 +313,47 @@ Con la rebaja temporal del RDL 7/2026 activa (22/03/2026-31/05/2026): IEE caso 0
   orden de simulacion que determina el arrastre del saldo BV. Asi SSAA y fiscalidad siguen usando
   el dato regulado realmente publicado para cada casilla mensual, sin proyectar un año inexistente.
 
+### Invariante de `fv.bv`: "BV aplicable", no "el usuario marcó la casilla" (20/08/2026)
+
+`fv.bv === true` significa que la bateria virtual es **economicamente aplicable**, no que el
+checkbox estuviera marcado. Sin compensacion no hay excedente remunerado que alimente la hucha,
+asi que marcar BV no puede activarla. Los tres productores del `fv` de "Mi tarifa" imponen la
+condicion en el punto donde se construye el objeto:
+
+| Productor | Fichero |
+|---|---|
+| Home / ranking | `js/lf-tarifa-custom.js` |
+| Simulador solar | `js/bv/bv-ui.js` |
+| Desglose | `js/desglose-integration.js` |
+
+```javascript
+// Los tres, con su propia variable de checkbox y de compensacion:
+bv: tieneBV && compensa,
+reglaBV: (tieneBV && compensa) ? 'BV MES ANTERIOR' : 'NO APLICA',
+// compensa = excFinal > 0 || excFinal === -1   (el centinela -1 es compensacion indexada)
+```
+
+**Por que en el productor y no en cada consumidor.** Antes, `bv: tieneBV` a secas podia emitir
+`bv:true` junto a `tipo:'NO COMPENSA'`. Ese objeto contradictorio se leia distinto en cada motor:
+`lf-calc.js` y `desglose-calculo.js` exigen ademas `tipo === 'SIMPLE + BV'` y desactivaban la BV,
+mientras `bv-sim-monthly.js` la activaba solo por `fv.bv` y cobraba la cuota mensual. La misma
+configuracion del usuario daba importes distintos en la home y en el simulador. Normalizar en los
+tres productores elimina el estado imposible en origen, cubre tambien los datos ya guardados en
+`localStorage` (se reconstruyen normalizados, sin migracion) y no cambia el comportamiento de la UI.
+
+**Consecuencia para este documento.** Con el invariante vigente, `hasBV = Boolean(tarifa?.fv?.bv)`
+en el motor mensual y "la cuota solo aplica con `fv.bv = true` y `fv.tipo = 'SIMPLE + BV'"` (ver
+seccion `precioBV`) dejan de ser dos criterios distintos: son equivalentes, porque `fv.bv` ya no
+puede ser `true` sin compensacion. Un `fv` construido a mano fuera de estos tres productores
+—por ejemplo en un fixture de test— debe respetar la misma coherencia.
+
+Nota: una BV **gratuita** (`precioBV = 0`) sigue siendo una BV activa. La cuota no es requisito de
+activacion; solo `checkbox && compensa` lo es.
+
 **Punto crítico en `bv-sim-monthly.js`** (`hasBV` se define antes de aplicar la BV):
 ```javascript
 // ⚠️ CRÍTICO: Aplicar BV SOLO si tarifa lo tiene
+// Correcto porque fv.bv ya llega normalizado como "BV aplicable" (ver invariante arriba).
 const hasBV = Boolean(tarifa?.fv?.bv);
 
 // Si NO tiene BV: los excedentes se pierden

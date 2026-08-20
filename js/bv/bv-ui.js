@@ -1482,6 +1482,21 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!wrap) return;
     const indexada = Boolean(document.getElementById('mtCompensacionIndexada')?.checked);
     wrap.style.display = indexada ? 'none' : '';
+    updateMtBVSinCompensacionAviso();
+  }
+
+  // Aviso NO bloqueante, gemelo del de js/lf-tarifa-custom.js: sin compensacion no hay excedente
+  // remunerado que alimente la hucha, asi que fv.bv se normaliza a false y la BV no se aplica.
+  // Sin este texto, marcar la casilla no produciria efecto ni explicacion. NO marca el campo en
+  // rojo, NO invalida el formulario y NO desmarca la casilla: el estado es legitimo y calculable.
+  function updateMtBVSinCompensacionAviso() {
+    const aviso = document.getElementById('mtBVSinCompensacionAviso');
+    if (!aviso) return;
+    const bvOn = Boolean(document.getElementById('mtBV')?.checked);
+    const indexada = Boolean(document.getElementById('mtCompensacionIndexada')?.checked);
+    const excRaw = String(document.getElementById('mtExc')?.value || '').trim();
+    const excNum = excRaw ? parseInput(excRaw) : 0;
+    aviso.style.display = (bvOn && !indexada && !(excNum > 0)) ? '' : 'none';
   }
 
   function saveCustomTarifa() {
@@ -1618,6 +1633,7 @@ document.addEventListener('DOMContentLoaded', () => {
       let saveTimer = null;
       el.addEventListener('input', function () {
         validateInputFormat(el, MAX_DECIMALES_PRECIO, mtMaxValues[id]);
+        if (id === 'mtExc') updateMtBVSinCompensacionAviso();
         clearTimeout(saveTimer);
         saveTimer = setTimeout(saveCustomTarifa, 800);
       });
@@ -1634,6 +1650,7 @@ document.addEventListener('DOMContentLoaded', () => {
       if (!mtBVEl.checked) {
         document.getElementById('mtPrecioBV')?.classList.remove('error');
       }
+      updateMtBVSinCompensacionAviso();
       saveCustomTarifa();
     });
   }
@@ -3289,7 +3306,10 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
       if (saldoAplicado) {
         saldoInicialNote = `<br><br><strong>Saldo BV inicial:</strong> los ${fEur(saldoVal)} indicados se aplican solo a <strong>Mi tarifa ⭐</strong>. Las demás tarifas empiezan con la hucha a 0 €: el saldo acumulado no se transfiere al cambiar de comercializadora.`;
       } else if (saldoSinDestino) {
-        saldoInicialNote = `<br><br><strong>⚠️ Saldo BV inicial no aplicado:</strong> has indicado ${fEur(saldoVal)}, pero no hay ninguna tarifa actual con batería virtual a la que aplicarlo. Rellena "Comparar con mi tarifa actual" y marca "Tiene batería virtual" si tu hucha está en tu contrato de ahora.`;
+        // No decir "marca Tiene batería virtual": desde la normalización de fv.bv (20/08/2026)
+        // la casilla puede estar YA marcada y aun así no haber BV aplicable, porque falta la
+        // compensación. Pedir lo que el usuario ya ha hecho induce a error.
+        saldoInicialNote = `<br><br><strong>⚠️ Saldo BV inicial no aplicado:</strong> has indicado ${fEur(saldoVal)}, pero no hay ninguna tarifa actual con batería virtual aplicable a la que asignarlo. Rellena "Comparar con mi tarifa actual" y configura ahí su batería virtual junto con la compensación de excedentes, si esa hucha es de tu contrato de ahora.`;
       }
       const rankingNote = `
         <div style="background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 24px; text-align: center;">
