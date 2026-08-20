@@ -388,12 +388,17 @@ describe('Desglose integration UX guardrails', () => {
     );
   });
 
-  it('Mi tarifa con BV marcada pero sin compensacion no activa la BV ni su cuota', async () => {
+  it.each([
+    ['compensacion vacia', ''],
+    ['compensacion cero explicito', '0']
+  ])('Mi tarifa con BV marcada y %s no activa la BV ni su cuota', async (_caso, excRaw) => {
     // Invariante: fv.bv significa "BV aplicable", no "el checkbox estaba marcado". Sin
     // compensacion no hay excedente remunerado que alimente la hucha. Si este productor
     // emitiera bv:true con tipo 'NO COMPENSA', bv-sim-monthly.js activaria la BV solo por
     // fv.bv mientras home y desglose la desactivan por tipo, cobrando la cuota en un motor
     // y no en los otros para la misma opcion del usuario.
+    // El cero explicito va aparte del vacio: `mtCompensacionIndexada || Boolean(mtPrecioExcVal)`
+    // pasaria el caso '' y fallaria con '0', porque Boolean('0') es true.
     document.getElementById('mtPunta').value = '0,15';
     document.getElementById('mtLlano').value = '0,10';
     document.getElementById('mtValle').value = '0,05';
@@ -402,7 +407,7 @@ describe('Desglose integration UX guardrails', () => {
     document.getElementById('solarOn').checked = true;
     document.getElementById('mtBV').checked = true;
     document.getElementById('mtPrecioBV').value = '2,99';
-    document.getElementById('mtPrecioExc').value = '';
+    document.getElementById('mtPrecioExc').value = excRaw;
 
     bootstrapIntegration();
 

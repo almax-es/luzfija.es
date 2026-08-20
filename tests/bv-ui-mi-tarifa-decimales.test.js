@@ -354,6 +354,11 @@ describe('Simulador solar - "Mi tarifa": cuota mensual de bateria virtual (14/08
     const tarifa = window.BVSim._getCustomTarifa();
 
     expect(tarifa.fv.bv).toBe(false);
+    // reglaBV se muta de forma independiente: con compensacion positiva y checkbox
+    // desmarcado, una regla que olvidase hasBV — `compensa ? 'BV MES ANTERIOR' : ...` —
+    // sobreviviria a los demas casos, porque el negativo tiene compensa=false y el
+    // indexado y la BV gratuita tienen el checkbox marcado.
+    expect(tarifa.fv.reglaBV).toBe('NO APLICA');
     expect(tarifa.fv.precioBV).toBe(0);
   });
 
