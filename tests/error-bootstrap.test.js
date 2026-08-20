@@ -105,6 +105,20 @@ describe('Early first-party error bootstrap', () => {
     }]);
   });
 
+  it('registra el fallo del banner AECC sin convertir una UI opcional en recuperación de página', () => {
+    const isolatedWindow = isolatedPage('');
+
+    failScript(isolatedWindow, '/js/aecc-banner.js?v=20260820-182729');
+
+    expect(isolatedWindow.__LF_PENDING_INIT_RECOVERY).toBeUndefined();
+    expect(isolatedWindow.__LF_EARLY_ERRORS).toEqual([{
+      kind: 'script-load',
+      source: '/js/aecc-banner.js',
+      line: 0,
+      col: 0
+    }]);
+  });
+
   it('no recarga la aplicación si falla tracking.js, que es observabilidad opcional', () => {
     const isolatedWindow = isolatedPage('');
 

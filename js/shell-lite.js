@@ -98,6 +98,17 @@
   function bindClearCache() {
     const btn = document.getElementById('btnClearCache');
     if (!btn || btn.dataset.shellBound === '1') return;
+
+    // En el simulador, bv-ui.js es el propietario de "Limpiar caché": usa un
+    // handler delegado con confirmación y semántica específica. Los botones de
+    // tema/menú ya llevan bvBound cuando ese coordinador terminó de enlazarse;
+    // usar esa misma señal evita registrar aquí un segundo handler directo que
+    // se ejecutaría ANTES que la confirmación del listener delegado.
+    const pageTheme = document.getElementById('btnTheme');
+    const pageMenu = document.getElementById('btnMenu');
+    const pageOwnsShell = pageTheme?.dataset.bvBound === '1' || pageMenu?.dataset.bvBound === '1';
+    if (pageOwnsShell) return;
+
     btn.dataset.shellBound = '1';
     btn.addEventListener('click', (e) => {
       e.preventDefault();

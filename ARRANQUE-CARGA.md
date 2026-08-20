@@ -132,7 +132,9 @@ BODY (con defer, despues de todo lo anterior)
 DOMContentLoaded
   bv-ui.js registra su listener durante el parseo, asi que corre PRIMERO.
   shell-lite.js corre despues y ademas difiere con setTimeout(0).
-  Doble garantia: shell-lite nunca pisa los bindings de bv-ui.
+  Los botones de tema y menu quedan marcados con `data-bv-bound`; shell-lite usa
+  esa misma senal para ceder tambien `btnClearCache` al simulador y no registrar
+  un segundo handler directo sobre el listener delegado de bv-ui.
 ```
 
 Esta pagina no lleva el guard inline de `currentYear` en el `<head>`; lo cubre
@@ -376,6 +378,14 @@ atribuyen con facilidad a la red o a la cache del navegador.
 Por eso tiene test propio. El punto 6 de la seccion 7 es la comprobacion manual
 mas directa; los puntos 7 y 8 tambien la delatan de forma indirecta.
 
+Un fallo transitorio del `register()` inicial tampoco deja ya la pestana sin SW
+hasta la siguiente navegacion. `requestSwUpdate()` conserva el throttle de 15 s,
+pero si en un trigger posterior (`online`, `focus`, `visible` o intervalo) no hay
+registro existente, vuelve a ejecutar `register(swUrl, { updateViaCache: 'none' })`
+y enlaza el mismo ciclo `waiting/updatefound` que en el registro inicial. Esto no
+cambia la politica de recarga automatica tras un arranque incompleto: solo recupera
+el registro normal del Service Worker dentro de la misma sesion.
+
 
 #### Política de fallback HTTP para datos runtime
 
@@ -420,7 +430,10 @@ y SW se presenta como pestana obsoleta. `phase` solo admite `initial` o
 dinamico que falla despues de completar el arranque conserva su diagnostico de
 carga, pero delega la recuperacion en su cargador especifico. `tracking.js`, el
 sender de GoatCounter y los vendors lazy de PDF/XLSX/OCR/QR se excluyen de la
-recuperacion de pagina: son opcionales o ya tienen reintento propio.
+recuperacion de pagina: son opcionales o ya tienen reintento propio. El banner
+`aecc-banner.js` tambien es UI opcional: su fallo conserva `error-script-load/*`
+para diagnostico, pero no convierte una calculadora plenamente operativa en un
+`init-incompleto` ni consume el unico auto-reload de la pestana.
 
 ## 5. Fallos Ruidosos Y Fallos Silenciosos
 
@@ -444,6 +457,7 @@ alguien se va a enterar.
 | `lf-app.js` sin `defer` | `console.error`, `init-incompleto/home/app-core`, `statusText` y toast cuando llega `DOMContentLoaded` |
 | `index-extra.js` no se descarga | si `tracking.js` esta operativo, emite `error-script-load/index-extra/*`; no hay watchdog ni `init-incompleto/*` |
 | `theme.js` no se descarga | `error-bootstrap.js` conserva el tema visual guardado antes del CSS y emite `error-script-load/theme/*` con la aplicacion en el titulo |
+| `aecc-banner.js` no se descarga | la home sigue operativa; se conserva `error-script-load/aecc-banner/*`, sin recuperacion ni recarga de pagina porque es UI opcional |
 
 Todo fallo de `<script>` esencial del arranque deja tambien una solicitud cerrada para
 `lf-sw-update.js`. El coordinador comprueba el SW, mantiene el aviso persistente

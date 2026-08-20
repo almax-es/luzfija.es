@@ -93,6 +93,7 @@ decision esta en la seccion siguiente.
 | Simulador solar / bateria virtual | Auditado. Motor economico cerrado (rotacion, ranking, topes y saldo) y UI auditada en estado, validaciones, ciclos de vida, importaciones y renderizado | `Simulador Solar: Rotacion Del Patron Anual Y Ranking`, `UI Del Simulador Solar: Estado, Ciclos De Vida Y Renderizado` |
 | Motor economico y fiscalidad | Auditado a fondo. Orden de operaciones, bono social, fiscalidad por zona, paridad entre home/BV/desglose y fronteras de redondeo IEEE-754 | `Fiscalidad Y Bono Social`, `Redondeo Exacto De Impuestos Indirectos...`, `ARQUITECTURA-CALCULOS.md` |
 | Arranque, carga parcial y service worker | Auditado. Watchdog, telemetria, recarga automatica | `Cargas Parciales, Watchdog Y Telemetria De QA` |
+| UI base y modulos auxiliares (`aecc-banner`, `shell-lite`, `theme`, `error-bootstrap`, `lf-sw-update`) | Auditada. Propiedad de listeners, timers de banner, clasificacion de recursos opcionales y recuperacion del registro SW | `Zonas Huerfanas: Banner AECC, Shell Lite Y Registro Del SW` |
 | Privacidad y analitica | Auditado. Taxonomia de eventos y datos que nunca se envian | `ANALITICA-GOATCOUNTER.md` |
 | SEO, datos estructurados y CWV | Auditado | `SEO, Datos Estructurados Y Core Web Vitals` |
 
@@ -1184,6 +1185,66 @@ carga productiva valida.
 - Las validaciones E2E del 22/07/2026 generaron trafico sintetico en ambas familias. Ventanas CONFIRMADAS: `09:00Z` (build `20260722-091724`) y `11:00Z` (build `20260722-103502`). El primer export mostraba 73 hits y cero eventos de error en `12:00Z`; el siguiente (`2026-07-22T14:53:53Z`) completo la agregacion hasta 83 hits y siguio con cero `error-*` y cero `init-incompleto/*`. La auditoria anunciada en esa hora no dejo senales de diagnostico y `12:00Z` no debe excluirse como ventana sintetica de esas familias. Moraleja practica: verifica en que cubos aparecen realmente los eventos; no heredes una ventana declarada ni des por contaminado todo el build.
 - La normalizacion de errores acepta exclusivamente fuentes same-origin con protocolo HTTP(S). `tracking.js` (`sameOriginHttpSource`) y el buffer de `error-bootstrap.js` rechazan `blob:`, `data:` y protocolos distintos aunque aparenten compartir origen; `tests/error-bootstrap.test.js` cubre expresamente el caso `blob:`. Reporta cualquier regresion de este contrato como bug de cardinalidad/privacidad, no como hardening futuro.
 - Verificado el 22/07/2026 contra produccion con Chrome real: caminos felices de home/solar/observatorio, diez bloqueos individuales de scripts y offline cortando tambien la red del target del Service Worker. `tracking.js` se recupero desde Cache Storage; no hubo excepciones JS ni violaciones CSP.
+
+### Zonas Huerfanas: Banner AECC, Shell Lite Y Registro Del SW (RESUELTA 20/08/2026)
+
+Esta pasada cubre la implementacion tecnica de `aecc-banner.js`, `shell-lite.js`, `theme.js`,
+`error-bootstrap.js` y el registro normal de `lf-sw-update.js`. NO reabre la politica ya cerrada de
+recarga automatica tras un arranque incompleto, el toast permanente ni el uso de `blob:` en los
+loaders que lo necesitan.
+
+- **Propiedad de `btnClearCache` en solar.** `bv-ui.js` ya era propietario de tema/menu y del
+  borrado de cache mediante un listener delegado con confirmacion. `shell-lite.js` se diferia para no
+  pisar tema/menu, pero registraba ademas un listener DIRECTO sobre `btnClearCache`. En el bubbling,
+  ese handler directo corria antes que el delegado: incluso si el usuario cancelaba el `confirm()` de
+  bv-ui, shell-lite ya habia empezado a borrar Cache Storage/desregistrar el SW y recargaba despues.
+  Corregido haciendo que shell-lite ceda tambien ese control cuando los marcadores `data-bv-bound`
+  demuestran que bv-ui termino de enlazar el shell. En Observatorio, donde no existen esos marcadores,
+  shell-lite conserva el control.
+- **Timer del banner ligado al calculo que lo origino.** Un `lf:results-ready` programa el banner a
+  2,8 s. Si antes vence ese plazo empieza un segundo calculo, las filas anteriores pueden seguir en el
+  DOM; el timer antiguo podia despertarse bajo el nuevo `requestedAt` y mostrar el banner antes de que
+  existiera `results-ready` del segundo calculo. `lf:results-requested` cancela ahora cualquier
+  show/retry pendiente y reinicia su contador. No cambia cooldown, texto, Bizum ni reglas de producto.
+- **AECC es UI opcional para el watchdog.** Un fallo de descarga de `aecc-banner.js` se sigue
+  registrando como `error-script-load`, pero ya no solicita `init-incompleto` ni recarga de pagina. La
+  calculadora no depende de ese modulo; tratarlo como esencial podia gastar el unico auto-reload de la
+  pestana y mostrar un aviso de carga incompleta por un complemento de donacion ausente.
+- **Registro SW tras fallo transitorio.** Si el `navigator.serviceWorker.register()` del `load`
+  fallaba y no existia registro previo, los triggers posteriores solo ejecutaban `getRegistration()` y
+  `update()`: al obtener `null` no volvian a registrar nada, asi que esa pestana quedaba sin SW hasta
+  otra navegacion. Los mismos triggers (`online`, `focus`, visible e intervalo) reintentan ahora
+  `register()` cuando no existe registro y enlazan el mismo lifecycle de actualizacion. Los fallos de
+  `update()` siguen siendo silenciosos y reintentables, como antes.
+- **`theme.js` revisado sin hallazgo accionable.** La preferencia solo acepta `light` de forma
+  explicita y cae a oscuro para ausencia/valor desconocido; los accesos a `localStorage` estan
+  encapsulados; el listener legacy de `currentYear` lleva guard global contra duplicacion y solo
+  intercepta las variantes documentadas de `not defined`; la carga de `inp-debug.js` esta limitada a
+  debug y evita inyeccion duplicada. No se cambia este modulo.
+
+**Tests de regresion y mutaciones plausibles:**
+
+- `tests/shell-lite.test.js`: quitar la cesion por `data-bv-bound` vuelve a ejecutar la limpieza del
+  shell en solar; el caso complementario impide arreglarlo deshabilitando `btnClearCache` tambien en
+  Observatorio.
+- `tests/aecc-banner.test.js`: quitar `clearTimeout(showTimer)` de `lf:results-requested` hace que el
+  timer del primer calculo publique el banner durante el segundo.
+- `tests/error-bootstrap.test.js`: retirar `aecc-banner.js` de la lista opcional vuelve a crear
+  `__LF_PENDING_INIT_RECOVERY` por ese fallo.
+- `tests/sw-update-timing.test.js`: volver a la implementacion que solo hace `getRegistration()` y no
+  re-registra cuando devuelve `null` deja el segundo `register()` sin ocurrir; el test aislado exige
+  ademas que el registro recuperado reciba su listener `updatefound`.
+
+**No reportar como bugs:** que el banner no exista en movil/tablet; el cooldown de siete dias; el
+texto/Bizum; que errores de AECC sigan apareciendo en telemetria; que los fallos ordinarios de
+`registration.update()` no muestren toast; ni las decisiones de recarga automatica ya documentadas en
+`Cargas Parciales, Watchdog Y Telemetria De QA`.
+
+**Para reabrir:** demostrar que una pagina vuelve a tener dos propietarios activos para el mismo
+control del shell; que un timer/retry del banner sobrevive a una nueva solicitud de resultados; que
+una UI opcional vuelve a disparar recuperacion de pagina; o que, tras un fallo inicial de registro y
+una oportunidad posterior real (`online`/focus/visible/interval), la pestana sigue sin intentar
+registrar el SW.
 
 ### Formato Numerico: Coma En UI, Punto En Mocks De Tests
 

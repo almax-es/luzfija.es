@@ -80,6 +80,27 @@ describe('AECC donation banner', () => {
     expect(document.getElementById('aecc-banner').classList.contains('aecc-banner--visible')).toBe(false);
   });
 
+  it('una nueva solicitud invalida el show pendiente de los resultados anteriores', () => {
+    document.body.innerHTML = `
+      <button id="btnCalc"></button>
+      <section id="seccionResultados" class="visible"></section>
+      <table><tbody id="tbody"><tr><td>Tarifa anterior</td></tr></tbody></table>
+    `;
+
+    loadAeccBanner();
+    document.dispatchEvent(new CustomEvent('lf:results-requested', { detail: { origin: 'home' } }));
+    document.dispatchEvent(new CustomEvent('lf:results-ready', { detail: { origin: 'home', rows: 1 } }));
+    vi.advanceTimersByTime(1000);
+
+    // Empieza un segundo cálculo antes de que venzan los 2,8 s del primero. Las
+    // filas anteriores siguen físicamente en el DOM hasta que el nuevo resultado
+    // se publique, así que un timer huérfano podría confundirlas con datos vigentes.
+    document.dispatchEvent(new CustomEvent('lf:results-requested', { detail: { origin: 'home' } }));
+    vi.advanceTimersByTime(5000);
+
+    expect(document.getElementById('aecc-banner').classList.contains('aecc-banner--visible')).toBe(false);
+  });
+
   it('se muestra tras resultados reales en home y guarda cooldown al cerrar', () => {
     document.body.innerHTML = `
       <button id="btnCalc"></button>

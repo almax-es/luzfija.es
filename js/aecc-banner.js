@@ -333,6 +333,16 @@
   function onResultsRequested(event) {
     var detail = event && event.detail ? event.detail : {};
     if (detail.origin !== pageOrigin) return;
+
+    // Una nueva petición invalida cualquier show/retry programado por el cálculo
+    // anterior. Si no se cancela aquí, el timer viejo puede despertarse mientras
+    // el segundo cálculo sigue en curso, ver todavía las filas anteriores y
+    // publicar el banner bajo un contexto que ya no es vigente.
+    if (showTimer) {
+      clearTimeout(showTimer);
+      showTimer = 0;
+    }
+    retryCount = 0;
     requestedAt = Date.now();
   }
 

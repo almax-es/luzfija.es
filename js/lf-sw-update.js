@@ -43,6 +43,7 @@
     const INIT_RECOVERY_SW_TIMEOUT_MS = 1500;
     const INIT_RECOVERY_AUTO_RELOAD_DELAY_MS = 750;
     let swReg = null;
+    const observedRegistrations = new WeakSet();
     let lastSwCheck = 0;
     let lastInteractionAt = 0;
     let hasInteracted = false;
@@ -412,6 +413,41 @@
       window.addEventListener(swInteractionEvents[i], noteInteraction, true);
     }
 
+    function bindRegistrationLifecycle(registration) {
+      if (!registration) return null;
+      swReg = registration;
+      if (observedRegistrations.has(registration)) return registration;
+      observedRegistrations.add(registration);
+
+      // Detectar cuando ya hay una actualización esperando.
+      if (registration.waiting) {
+        dbg('[SW] Update waiting already, auto-updating...');
+        try { registration.waiting.postMessage({ type: 'SKIP_WAITING' }); } catch (_) {}
+      }
+
+      registration.addEventListener('updatefound', function () {
+        // Si skipWaiting() corre durante el install del propio SW, el worker
+        // puede haber pasado ya de installing a waiting cuando llegamos aquí.
+        const newWorker = registration.installing || registration.waiting;
+        if (!newWorker) return;
+        dbg('[SW] New update found, installing...');
+
+        if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+          dbg('[SW] New update already installed, auto-updating...');
+          newWorker.postMessage({ type: 'SKIP_WAITING' });
+          return;
+        }
+
+        newWorker.addEventListener('statechange', function () {
+          if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+            dbg('[SW] New update installed, auto-updating...');
+            newWorker.postMessage({ type: 'SKIP_WAITING' });
+          }
+        });
+      });
+      return registration;
+    }
+
     async function requestSwUpdate(_reason) {
       if (!supportsServiceWorker) return;
       const now = Date.now();
@@ -419,11 +455,18 @@
       lastSwCheck = now;
       try {
         if (!swReg) {
-          swReg = await navigator.serviceWorker.getRegistration();
+          let registration = await navigator.serviceWorker.getRegistration();
+          // Un fallo transitorio del register inicial no debe condenar toda la
+          // sesión: focus/online/interval son oportunidades reales de recuperar
+          // el registro sin exigir al usuario una navegación manual.
+          if (!registration) {
+            registration = await navigator.serviceWorker.register(swUrl, { updateViaCache: 'none' });
+          }
+          bindRegistrationLifecycle(registration);
         }
         if (swReg) await swReg.update();
       } catch (_) {
-        // silencioso
+        // silencioso; los siguientes triggers pueden reintentarlo tras el throttle
       }
     }
 
@@ -439,35 +482,8 @@
       navigator.serviceWorker
         .register(swUrl, { updateViaCache: 'none' })
         .then(function (registration) {
-          swReg = registration;
+          bindRegistrationLifecycle(registration);
           dbg('[SW] Registered successfully');
-
-          // Detectar cuando hay una actualización disponible
-          if (registration.waiting) {
-            dbg('[SW] Update waiting already, auto-updating...');
-            registration.waiting.postMessage({ type: 'SKIP_WAITING' });
-          }
-
-          registration.addEventListener('updatefound', function () {
-            // Si skipWaiting() corre durante el install del propio SW, el worker
-            // puede haber pasado ya de installing a waiting cuando llegamos aquí.
-            const newWorker = registration.installing || registration.waiting;
-            if (!newWorker) return;
-            dbg('[SW] New update found, installing...');
-
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              dbg('[SW] New update already installed, auto-updating...');
-              newWorker.postMessage({ type: 'SKIP_WAITING' });
-              return;
-            }
-
-            newWorker.addEventListener('statechange', function () {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                dbg('[SW] New update installed, auto-updating...');
-                newWorker.postMessage({ type: 'SKIP_WAITING' });
-              }
-            });
-          });
 
           // Forzar comprobación inmediata tras registrar
           requestSwUpdate('load');

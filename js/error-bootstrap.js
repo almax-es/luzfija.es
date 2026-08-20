@@ -67,7 +67,13 @@
   window.__LF_requestInitRecovery = requestInitRecovery;
 
   function isOptionalOrSelfRecoveringScript(source) {
-    if (source === '/js/tracking.js' || source === '/vendor/goatcounter/count.js') return true;
+    // Observabilidad y UI no esencial no justifican recargar toda la aplicación.
+    // aecc-banner.js es un complemento de donación: su fallo se registra, pero la
+    // calculadora sigue plenamente operativa y no debe entrar en recuperación de
+    // arranque ni consumir el único auto-reload de la pestaña.
+    if (source === '/js/tracking.js' ||
+        source === '/vendor/goatcounter/count.js' ||
+        source === '/js/aecc-banner.js') return true;
     return source.startsWith('/vendor/pdfjs/') ||
       source.startsWith('/vendor/xlsx/') ||
       source.startsWith('/vendor/tesseract/') ||

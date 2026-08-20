@@ -359,6 +359,68 @@ describe('SW deferred reload timing', () => {
     dom.window.close();
   });
 
+  it('reintenta registrar el service worker al volver online tras un fallo inicial transitorio', async () => {
+    // DOM aislado: los listeners globales de otros casos del describe no pueden
+    // convertir un `online` en falsos registros adicionales.
+    const dom = new JSDOM('<!doctype html><body></body>', {
+      url: 'https://luzfija.es/',
+      runScripts: 'outside-only'
+    });
+    const isolatedWindow = dom.window;
+    Object.defineProperty(isolatedWindow.document, 'readyState', {
+      configurable: true,
+      value: 'interactive'
+    });
+    Object.defineProperty(isolatedWindow.document, 'visibilityState', {
+      configurable: true,
+      value: 'visible'
+    });
+    Object.defineProperty(isolatedWindow.navigator, 'onLine', {
+      configurable: true,
+      value: true
+    });
+    const update = vi.fn(async () => {});
+    const registration = { active: null, waiting: null, addEventListener: vi.fn(), update };
+    let resolveRecoveredRegistration;
+    const recoveredRegistrationPromise = new Promise((resolve) => {
+      resolveRecoveredRegistration = resolve;
+    });
+    const isolatedServiceWorker = {
+      controller: null,
+      addEventListener: vi.fn(),
+      getRegistration: vi.fn(async () => null),
+      register: vi.fn()
+        .mockRejectedValueOnce(new Error('fallo transitorio de registro'))
+        .mockImplementationOnce(() => recoveredRegistrationPromise)
+    };
+    Object.defineProperty(isolatedWindow.navigator, 'serviceWorker', {
+      configurable: true,
+      value: isolatedServiceWorker
+    });
+    isolatedWindow.setInterval = vi.fn();
+    isolatedWindow.eval(updateCode);
+
+    isolatedWindow.LF.initSwUpdate({ swUrl: '/sw.js', reloadPage: vi.fn() });
+    isolatedWindow.dispatchEvent(new isolatedWindow.Event('load'));
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(isolatedServiceWorker.register).toHaveBeenCalledTimes(1);
+
+    isolatedWindow.dispatchEvent(new isolatedWindow.Event('online'));
+    await vi.waitFor(() => expect(isolatedServiceWorker.register).toHaveBeenCalledTimes(2));
+    expect(isolatedServiceWorker.register).toHaveBeenLastCalledWith('/sw.js', { updateViaCache: 'none' });
+
+    // La segunda llamada devuelve una Promise controlada por el propio test. Al resolverla con
+    // ESTE registration sabemos exactamente que objeto recibe `await register(...)`; despues
+    // esperamos el efecto observable del bind, no una cantidad arbitraria de microtasks.
+    resolveRecoveredRegistration(registration);
+    await vi.waitFor(() => {
+      expect(registration.addEventListener).toHaveBeenCalledWith('updatefound', expect.any(Function));
+      expect(update).toHaveBeenCalledTimes(1);
+    });
+    dom.window.close();
+  });
+
   it('recupera la carga inicial aunque falle el registro del service worker', async () => {
     serviceWorker.register.mockRejectedValue(new Error('registro no disponible'));
     serviceWorker.getRegistration.mockResolvedValue(null);
