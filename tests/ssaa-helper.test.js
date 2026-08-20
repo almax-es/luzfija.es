@@ -4,6 +4,18 @@ import '../js/lf-csv-utils.js';
 import '../js/lf-ssaa.js';
 
 describe('LF SSAA helper', () => {
+  const persistedDataset = (overrides = {}) => ({
+    schema_version: 1,
+    indicator: 10328,
+    unit: 'EUR/kWh',
+    timezone: 'Europe/Madrid',
+    from: '2026-06',
+    to: '2026-06',
+    latest_complete_month: '2026-06',
+    latest_value: 0.02,
+    values: { '2026-06': 0.02 },
+    ...overrides
+  });
   const dataset = {
     latest_complete_month: '2026-04',
     latest_value: 0.02357,
@@ -105,11 +117,71 @@ describe('LF SSAA helper', () => {
       if (attempts === 1) return { ok: true, json: async () => ({ latest_complete_month: '2026-05', latest_value: null, values: { '2026-05': null } }) };
       return {
         ok: true,
-        json: async () => ({
-          latest_complete_month: '2026-06',
-          latest_value: 0.02,
-          values: { '2026-06': 0.02 }
+        json: async () => persistedDataset()
+      };
+    };
+
+    try {
+      expect(await window.LF.ssaa.loadDataset()).toBeNull();
+      const recovered = await window.LF.ssaa.loadDataset();
+      expect(attempts).toBe(2);
+      expect(recovered?.values?.['2026-06']).toBe(0.02);
+    } finally {
+      global.fetch = originalFetch;
+      window.LF.ssaa._setDatasetForTests(null);
+    }
+  });
+
+  it('rechaza como no disponible un valor SSAA fuera del rango plausible del propio dataset', () => {
+    const charge = window.LF.ssaa.calcCharge(
+      { nombre: 'Sin SSAA', incluyeServiciosAjuste: false },
+      300,
+      { latest_complete_month: '2026-06', latest_value: 0.5, values: { '2026-06': 0.5 } },
+      '2026-06'
+    );
+
+    expect(charge).toMatchObject({
+      aplica: true, available: false, rate: null, eur: null, reason: 'historical-month-unavailable'
+    });
+  });
+
+  it('no cachea el fichero SSAA si un mes histórico contiene un valor imposible aunque el último sea sano', async () => {
+    const originalFetch = global.fetch;
+    let attempts = 0;
+    window.LF.ssaa._setDatasetForTests(null);
+    global.fetch = async () => {
+      attempts += 1;
+      return {
+        ok: true,
+        json: async () => persistedDataset({
+          from: '2026-05',
+          values: { '2026-05': attempts === 1 ? 0.5 : 0.03, '2026-06': 0.02 }
         })
+      };
+    };
+
+    try {
+      expect(await window.LF.ssaa.loadDataset()).toBeNull();
+      const recovered = await window.LF.ssaa.loadDataset();
+      expect(attempts).toBe(2);
+      expect(recovered?.values?.['2026-05']).toBe(0.03);
+    } finally {
+      global.fetch = originalFetch;
+      window.LF.ssaa._setDatasetForTests(null);
+    }
+  });
+
+  it('no cachea un SSAA 200 con unidad incompatible y reintenta el fichero corregido', async () => {
+    const originalFetch = global.fetch;
+    let attempts = 0;
+    window.LF.ssaa._setDatasetForTests(null);
+    global.fetch = async () => {
+      attempts += 1;
+      return {
+        ok: true,
+        json: async () => attempts === 1
+          ? persistedDataset({ unit: 'EUR/MWh' })
+          : persistedDataset()
       };
     };
 

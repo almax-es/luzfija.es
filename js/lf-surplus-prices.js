@@ -155,9 +155,21 @@
   function getMonthCoverage(data, expectedMonth = null, geo = null) {
     const validator = window.LF?.csvUtils?.validatePvpcMonthCoverage;
     if (typeof validator !== 'function') return { ok: false, reason: 'validator-unavailable' };
-    const timeZone = typeof data.timezone === 'string' && data.timezone
+    // Separar identidad del fichero y reloj de cobertura. En excedentes, la metadata
+    // `timezone` no puede imponerse desde el geo: el contrato CCH-CONS ya auditado depende
+    // del reloj declarado por el dataset (Canarias pierde la 01:00 en marzo, no la 02:00).
+    // Sí se rechaza una identidad EXPLICITAMENTE contradictoria (geo/indicador/unidad/epoch).
+    const timeZone = typeof data?.timezone === 'string' && data.timezone
       ? data.timezone
       : (Number(geo) === 8742 ? 'Atlantic/Canary' : 'Europe/Madrid');
+    const identityValidator = window.LF?.csvUtils?.validateStaticPriceDatasetIdentity;
+    if (typeof identityValidator !== 'function') return { ok: false, reason: 'identity-validator-unavailable' };
+    const identity = identityValidator(data, {
+      expectedGeoId: Number(geo),
+      expectedIndicator: 1739,
+      allowMissingFields: true
+    });
+    if (!identity.ok) return identity;
     const todayLocal = window.LF?.csvUtils?.formatYmdInTimeZone?.(Date.now() / 1000, timeZone) || null;
     return validator(data, expectedMonth, timeZone, { todayLocal, freshnessDays: 2 });
   }
@@ -169,9 +181,8 @@
 
     const promise = (async () => {
       try {
-        const res = await window.LF.csvUtils.fetchWithTimeout(`/data/surplus/${geo}/${ym}.json`);
-        if (!res.ok) return null;
-        const data = await res.json();
+        const { response: res, data } = await window.LF.csvUtils.fetchJsonWithTimeout(`/data/surplus/${geo}/${ym}.json`);
+        if (!res || !res.ok) return null;
         const coverage = getMonthCoverage(data, ym, geo);
         if (!coverage.ok) return null;
         if (!coverage.provisionalDays.length) monthCache.set(key, data);

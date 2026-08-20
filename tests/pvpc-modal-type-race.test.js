@@ -44,10 +44,16 @@ function todayYmd(tz = 'Europe/Madrid') {
   return new Intl.DateTimeFormat('en-CA', { timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit' }).format(new Date());
 }
 
-function buildMonthPayload(flatPrice) {
+function buildMonthPayload(flatPrice, { indicator = 1001, geoId = 8741, timezone = 'Europe/Madrid' } = {}) {
   const hoy = todayYmd();
   const manana = addCalendarDay(hoy);
   return {
+    schema_version: 2,
+    geo_id: geoId,
+    timezone,
+    indicator,
+    unit: 'EUR/kWh',
+    epoch_unit: 's',
     days: {
       [hoy]: buildDayPairs(hoy, flatPrice),
       [manana]: buildDayPairs(manana, flatPrice)
@@ -117,6 +123,7 @@ describe('Modal PVPC/Excedentes: no mezcla datos de un tipo abandonado (14/08/20
       return p.then((data) => ({ ok: true, json: async () => data }));
     });
 
+    await import('../js/lf-csv-utils.js');
     await import('../js/index-extra.js');
     document.dispatchEvent(new Event('DOMContentLoaded'));
 
@@ -132,7 +139,7 @@ describe('Modal PVPC/Excedentes: no mezcla datos de un tipo abandonado (14/08/20
     await flush();
 
     // Resolver la peticion NUEVA (Excedentes) primero...
-    surplusMonth.resolve(buildMonthPayload(0.05));
+    surplusMonth.resolve(buildMonthPayload(0.05, { indicator: 1739 }));
     await flush();
 
     // ...y la VIEJA (PVPC, ya abandonada) despues.

@@ -11,6 +11,7 @@
   window.LF = window.LF || {};
 
   const DEFAULT_URL = '/data/ssaa/index.json';
+  const MAX_PLAUSIBLE_RATE_EUR_KWH = 0.1;
   let datasetPromise = null;
   let datasetCache = null;
 
@@ -19,7 +20,10 @@
   }
 
   function asPublishedRate(value) {
-    return typeof value === 'number' && Number.isFinite(value) && value >= 0 ? value : null;
+    return typeof value === 'number' && Number.isFinite(value)
+      && value >= 0 && value < MAX_PLAUSIBLE_RATE_EUR_KWH
+      ? value
+      : null;
   }
 
   function normalizeDataset(data) {
@@ -34,13 +38,24 @@
   }
 
   function hasUsableDatasetRate(dataset) {
-    const ds = normalizeDataset(dataset);
-    if (!ds) return false;
-    const latestMonth = String(ds.latest_complete_month || '');
+    if (!dataset || typeof dataset !== 'object' || Array.isArray(dataset)) return false;
+    if (dataset.schema_version !== 1 || dataset.indicator !== 10328
+      || dataset.unit !== 'EUR/kWh' || dataset.timezone !== 'Europe/Madrid') return false;
+    if (!dataset.values || typeof dataset.values !== 'object' || Array.isArray(dataset.values)) return false;
+
+    const entries = Object.entries(dataset.values);
+    if (!entries.length || entries.some(([month, rate]) => !/^\d{4}-\d{2}$/.test(month) || asPublishedRate(rate) === null)) {
+      return false;
+    }
+
+    const latestMonth = String(dataset.latest_complete_month || '');
     if (!/^\d{4}-\d{2}$/.test(latestMonth)) return false;
-    if (!Object.prototype.hasOwnProperty.call(ds.values || {}, latestMonth)) return false;
-    const latestDirect = asPublishedRate(ds.values[latestMonth]);
-    return latestDirect !== null;
+    if (!Object.prototype.hasOwnProperty.call(dataset.values, latestMonth)) return false;
+    const latestDirect = asPublishedRate(dataset.values[latestMonth]);
+    const latestValue = asPublishedRate(dataset.latest_value);
+    if (latestDirect === null || latestValue === null || latestDirect !== latestValue) return false;
+    if (dataset.to != null && dataset.to !== latestMonth) return false;
+    return true;
   }
 
   async function loadDataset() {
@@ -48,8 +63,8 @@
     if (datasetPromise) return datasetPromise;
 
     const url = window.SSAA_DATASET_URL || DEFAULT_URL;
-    datasetPromise = window.LF.csvUtils.fetchWithTimeout(url, { cache: 'no-store' })
-      .then((response) => (response && response.ok) ? response.json() : null)
+    datasetPromise = window.LF.csvUtils.fetchJsonWithTimeout(url, { cache: 'no-store' })
+      .then(({ response, data }) => (response && response.ok) ? data : null)
       .then((data) => {
         // Un HTTP 200 con JSON vacío/malformado tampoco es un dataset válido.
         // No se hace negative-cache: el siguiente cálculo puede reintentar cuando

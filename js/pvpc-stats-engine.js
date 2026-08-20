@@ -34,10 +34,16 @@ const PVPC_STATS = {
 
     getMonthCoverage(data, expectedMonth = null, options = {}) {
         const validator = window.LF?.csvUtils?.validatePvpcMonthCoverage;
+        const identityValidator = window.LF?.csvUtils?.validateStaticPriceDatasetIdentity;
         if (typeof validator !== 'function') return { ok: false, reason: 'validator-unavailable' };
-        const timeZone = typeof data.timezone === 'string' && data.timezone
-            ? data.timezone
-            : (options.timeZone || this.getDatasetTimeZone(options));
+        if (typeof identityValidator !== 'function') return { ok: false, reason: 'identity-validator-unavailable' };
+        const timeZone = options.timeZone || this.getDatasetTimeZone(options);
+        const identity = identityValidator(data, {
+            expectedGeoId: Number(options.geoId),
+            expectedIndicator: options.type === 'surplus' ? 1739 : 1001,
+            expectedTimeZone: timeZone
+        });
+        if (!identity.ok) return identity;
         const todayLocal = options.todayLocal || null;
         const freshnessDays = options.type === 'surplus' ? 2 : 1;
         return validator(data, expectedMonth, timeZone, { todayLocal, freshnessDays });
@@ -124,12 +130,12 @@ const PVPC_STATS = {
         }
 
         const loadPromise = (async () => {
-            const res = await window.LF.csvUtils.fetchWithTimeout(`/data/${type}/${geoId}/index.json`);
+            const { response: res, data: json } = await window.LF.csvUtils.fetchJsonWithTimeout(`/data/${type}/${geoId}/index.json`);
             if (!res || !res.ok) {
                 return null;
             }
 
-            const json = await res.json();
+            const expectedTimeZone = this.getDatasetTimeZone({ geoId, type });
             const files = Array.isArray(json?.files) ? json.files : null;
             if (!files || files.length === 0) return null;
 
@@ -148,7 +154,9 @@ const PVPC_STATS = {
             if (monthsByYear.size === 0) return null;
             const manifest = {
                 monthsByYear,
-                timezone: typeof json?.timezone === 'string' ? json.timezone : null
+                // El path/type/geo solicitado define la zona. El manifest solo descubre
+                // ficheros; metadata degradada no puede cambiar la interpretación horaria.
+                timezone: expectedTimeZone
             };
             this.manifestCache.set(key, manifest);
             return manifest;
@@ -165,10 +173,11 @@ const PVPC_STATS = {
     async buildYearData(geoId, year, type = 'pvpc', cacheKey = `${type}-${geoId}-${year}`) {
         const tasks = [];
         const monthLabels = [];
-        // Si existe índice por zona, usarlo para pedir solo los meses publicados
-        // y evitar ruido 404 en huecos históricos.
+        // El indice es una ayuda de descubrimiento/metadata, no la fuente de verdad de
+        // completitud anual. Si un deploy degrada `index.json` omitiendo un mes histórico,
+        // saltarselo convertiría un año incompleto en "completo" y cacheable. La expectativa
+        // se deriva del calendario conocido; cada mensual confirma después su disponibilidad.
         const manifest = await this.loadGeoIndex(type, geoId);
-        const availableMonths = manifest && manifest.monthsByYear ? manifest.monthsByYear.get(Number(year)) || new Set() : null;
         const now = new Date();
         const currentYear = now.getFullYear();
         const currentMonth = now.getMonth() + 1;
@@ -184,14 +193,12 @@ const PVPC_STATS = {
             if (Number(year) === 2021 && m < 6) continue;
 
             const monthStr = String(m).padStart(2, '0');
-            if (availableMonths && !availableMonths.has(monthStr)) continue;
             const url = `/data/${type}/${geoId}/${year}-${monthStr}.json`;
             monthLabels.push(monthStr);
             tasks.push(async () => {
                 try {
-                    const res = await window.LF.csvUtils.fetchWithTimeout(url);
+                    const { response: res, data: json } = await window.LF.csvUtils.fetchJsonWithTimeout(url);
                     if (!res || !res.ok) return null;
-                    const json = await res.json();
                     const coverage = this.getMonthCoverage(json, `${year}-${monthStr}`, { geoId, type, timeZone: buildTimeZone, todayLocal });
                     if (!coverage.ok) return null;
                     return { data: json, provisionalDays: coverage.provisionalDays };
@@ -209,7 +216,7 @@ const PVPC_STATS = {
                 geoId,
                 year,
                 type,
-                timezone: manifest?.timezone || this.getGeoTimeZone(geoId),
+                timezone: manifest?.timezone || this.getDatasetTimeZone({ geoId, type }),
                 monthsExpected: [...monthLabels],
                 monthsLoaded: [],
                 failedMonths: [],

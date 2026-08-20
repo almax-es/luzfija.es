@@ -36,6 +36,21 @@ function buildFullCivilDay(ymd, timeZone = 'Europe/Madrid', precio = 0.1) {
   return points;
 }
 
+function buildSurplusMonth(ym, { geoId = 8741, indicator = 1739 } = {}) {
+  const [year, month] = ym.split('-').map(Number);
+  const last = new Date(Date.UTC(year, month, 0)).getUTCDate();
+  const days = {};
+  for (let d = 1; d <= last; d += 1) {
+    const ymd = `${ym}-${String(d).padStart(2, '0')}`;
+    days[ymd] = buildFullCivilDay(ymd);
+  }
+  return {
+    schema_version: 2, geo_id: geoId, timezone: 'Europe/Madrid', indicator,
+    unit: 'EUR/kWh', epoch_unit: 's', from: `${ym}-01`,
+    to: `${ym}-${String(last).padStart(2, '0')}`, days
+  };
+}
+
 const GEO = '8741';
 const DIA_CON_PRECIO = '2025-10-01';
 const DIA_SIN_PRECIO = '2021-05-15';
@@ -72,20 +87,7 @@ describe('Observatorio (fallback sin lf-surplus-prices): cobertura parcial', () 
         status: 200,
         // La cobertura mensual es fail-closed: el validador exige el mes natural
         // completo, asi que un fixture con un solo dia se descartaria entero.
-        json: async () => {
-          const days = {};
-          for (let d = 1; d <= 31; d += 1) {
-            const ymd = `2025-10-${String(d).padStart(2, '0')}`;
-            days[ymd] = buildFullCivilDay(ymd);
-          }
-          return {
-            schema_version: 2,
-            timezone: 'Europe/Madrid',
-            from: '2025-10-01',
-            to: '2025-10-31',
-            days
-          };
-        }
+        json: async () => buildSurplusMonth('2025-10')
       };
     });
   });
@@ -112,6 +114,26 @@ describe('Observatorio (fallback sin lf-surplus-prices): cobertura parcial', () 
     expect(stats.worst.ym).toBe('2025-10');
     expect(stats.monthlyRows.map((r) => r.ym)).toEqual(['2025-10']);
     expect(stats.monthlyRows.every((r) => Number.isFinite(r.avg))).toBe(true);
+  });
+
+  it('rechaza un 200 completo de otro indicador y reintenta en la siguiente búsqueda', async () => {
+    let attempts = 0;
+    global.fetch = vi.fn(async () => {
+      attempts += 1;
+      return {
+        ok: true,
+        status: 200,
+        json: async () => buildSurplusMonth('2025-10', { indicator: attempts === 1 ? 1001 : 1739 })
+      };
+    });
+
+    const first = await computeCsvCompensation(registrosDe(DIA_CON_PRECIO, 0.2), GEO);
+    const second = await computeCsvCompensation(registrosDe(DIA_CON_PRECIO, 0.2), GEO);
+
+    expect(first.totalKwh).toBe(0);
+    expect(first.monthlyRows).toEqual([]);
+    expect(attempts).toBe(2);
+    expect(second.monthlyRows[0]?.pricedHours).toBe(24);
   });
 
   it('expone pricedHours para que la tabla muestre el importe y no un guion', async () => {

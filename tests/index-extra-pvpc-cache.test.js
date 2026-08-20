@@ -34,10 +34,19 @@ function buildDayPairs(dateStr, flatPrice = null, timeZone = 'Europe/Madrid') {
   return Array.from({ length: hours }, (_, i) => [baseTs + (i * 3600), flatPrice != null ? flatPrice : 0.1 + (i / 1000)]);
 }
 
-function okJson(data) {
+function okJson(data, { geoId = 8741, timezone = 'Europe/Madrid', indicator = 1001 } = {}) {
+  const payload = data && data.days ? {
+    schema_version: 2,
+    geo_id: geoId,
+    timezone,
+    indicator,
+    unit: 'EUR/kWh',
+    epoch_unit: 's',
+    ...data
+  } : data;
   return {
     ok: true,
-    json: async () => data
+    json: async () => payload
   };
 }
 
@@ -72,6 +81,7 @@ describe('index-extra PVPC month cache', () => {
       return okJson({ days: { '2026-04-22': buildDayPairs('2026-04-22') } });
     });
 
+    await import('../js/lf-csv-utils.js');
     await import('../js/index-extra.js');
     const helpers = window.LF.indexExtraPvpcHelpers;
     const ctx = { geo: 8741, tz: 'Europe/Madrid' };
@@ -98,6 +108,7 @@ describe('index-extra PVPC month cache', () => {
       return okJson(calls === 1 ? monthDay22 : monthBothDays);
     });
 
+    await import('../js/lf-csv-utils.js');
     await import('../js/index-extra.js');
     const helpers = window.LF.indexExtraPvpcHelpers;
     const ctx = { geo: 8741, tz: 'Europe/Madrid' };
@@ -123,6 +134,7 @@ describe('index-extra PVPC month cache', () => {
     let publicado = false;
     global.fetch = vi.fn(async () => okJson(publicado ? monthBothDays : monthDay22));
 
+    await import('../js/lf-csv-utils.js');
     await import('../js/index-extra.js');
     const helpers = window.LF.indexExtraPvpcHelpers;
     const ctx = { geo: 8741, tz: 'Europe/Madrid' };
@@ -157,12 +169,35 @@ describe('index-extra PVPC month cache', () => {
       });
     });
 
+    await import('../js/lf-csv-utils.js');
     await import('../js/index-extra.js');
     const helpers = window.LF.indexExtraPvpcHelpers;
     const day = await helpers.fetchDay('2026-04-22', { geo: 8741, tz: 'Europe/Madrid' });
 
     expect(global.fetch).toHaveBeenCalledTimes(2);
     expect(day.entries).toHaveLength(24);
+    expect(day.entries.every((entry) => entry.price === 0.2)).toBe(true);
+  });
+
+  it('refetchea un mes completo de otro indicador antes de publicar una cifra en la vista rápida', async () => {
+    let calls = 0;
+    global.fetch = vi.fn(async () => {
+      calls += 1;
+      if (calls === 1) {
+        return okJson({
+          indicator: 1739,
+          days: { '2026-04-22': buildDayPairs('2026-04-22', 9.99) }
+        });
+      }
+      return okJson({ days: { '2026-04-22': buildDayPairs('2026-04-22', 0.2) } });
+    });
+
+    await import('../js/lf-csv-utils.js');
+    await import('../js/index-extra.js');
+    const helpers = window.LF.indexExtraPvpcHelpers;
+    const day = await helpers.fetchDay('2026-04-22', { geo: 8741, tz: 'Europe/Madrid' });
+
+    expect(global.fetch).toHaveBeenCalledTimes(2);
     expect(day.entries.every((entry) => entry.price === 0.2)).toBe(true);
   });
 

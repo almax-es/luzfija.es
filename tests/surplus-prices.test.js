@@ -458,6 +458,29 @@ describe('LF surplus hourly prices', () => {
     expect(second.pricedHours).toBe(1);
   });
 
+  it('rechaza y reintenta un 200 completo de excedentes con identidad explicitamente contradictoria', async () => {
+    let attempts = 0;
+    global.fetch.mockImplementation(async () => {
+      attempts += 1;
+      const month = buildV2Month('2025-01', 'Europe/Madrid');
+      Object.assign(month, {
+        geo_id: 8741,
+        indicator: attempts === 1 ? 1001 : 1739,
+        unit: 'EUR/kWh',
+        epoch_unit: 's'
+      });
+      return { ok: true, json: async () => month };
+    });
+
+    const record = [{ fecha: new Date(2025, 0, 1), hora: 1, excedente: 1 }];
+    const first = await window.LF.surplusPrices.computeHourlyCompensation(record, { geo: '8741' });
+    const second = await window.LF.surplusPrices.computeHourlyCompensation(record, { geo: '8741' });
+
+    expect(first.pricedHours).toBe(0);
+    expect(attempts).toBe(2);
+    expect(second.pricedHours).toBe(1);
+  });
+
   it('calcula eur negativo en monthlyRows cuando los precios son negativos (el caller aplica Math.max)', async () => {
     const hours = Array.from({ length: 24 }, (_, h) => {
       const ts = Math.floor(Date.UTC(2024, 11, 31, 23 + h, 0, 0) / 1000);

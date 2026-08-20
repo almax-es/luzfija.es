@@ -81,14 +81,36 @@
     fetchDay: __pvpcFetchDay
   });
 
+  function __pvpcFetchJsonWithDeadline(url, options = {}, timeoutMs = 15000) {
+    // Esta vista rapida conserva el contrato historico de fetch(url, {cache:'no-cache'}):
+    // varios consumidores/tests observan esas opciones exactas. El deadline cubre fetch +
+    // response.json() mediante una carrera; no aborta el request subyacente, pero la UI deja
+    // de esperarlo y la promesa rechazada se purga de la cache para permitir reintento.
+    let timeoutId = null;
+    const timeout = new Promise((_, reject) => {
+      timeoutId = setTimeout(() => {
+        const error = new Error(`Dataset timeout: ${url}`);
+        error.name = 'AbortError';
+        reject(error);
+      }, timeoutMs);
+    });
+    const request = fetch(url, options).then(async (response) => {
+      if (!response || !response.ok) return { response, data: null };
+      return { response, data: await response.json() };
+    });
+    return Promise.race([request, timeout]).finally(() => clearTimeout(timeoutId));
+  }
+
   async function __pvpcLoadMonth(base, geo, yyyyMM, forceRefresh = false) {
     const key = `${base}/${geo}/${yyyyMM}`;
     if (!forceRefresh && __pvpcMonthCache.has(key)) return __pvpcMonthCache.get(key);
 
     const url = `${base}/${geo}/${yyyyMM}.json`;
-    const p = fetch(url, { cache: 'no-cache' }).then(async (r) => {
-      if (!r.ok) throw new Error(`Dataset no disponible: ${url} (${r.status})`);
-      return r.json();
+    const p = __pvpcFetchJsonWithDeadline(url, { cache: 'no-cache' }).then(({ response, data }) => {
+      if (!response || !response.ok) {
+        throw new Error(`Dataset no disponible: ${url} (${response ? response.status : 'unknown'})`);
+      }
+      return data;
     });
 
     // Purgar fallos de la cache para que el siguiente intento vuelva a pedir el fichero;
@@ -99,6 +121,32 @@
 
     __pvpcMonthCache.set(key, p);
     return p;
+  }
+
+  function __pvpcMonthIdentityUsable(month, base, geo, tz) {
+    if (!month || typeof month !== 'object' || Array.isArray(month)) return false;
+    const isSurplus = base === SURPLUS_DATASET_BASE;
+    const expectedIndicator = isSurplus ? 1739 : 1001;
+    const expectedTimeZone = isSurplus ? null : tz;
+    const validator = window.LF?.csvUtils?.validateStaticPriceDatasetIdentity;
+    if (typeof validator === 'function') {
+      return validator(month, {
+        expectedGeoId: Number(geo),
+        expectedIndicator,
+        expectedTimeZone,
+        allowMissingFields: true
+      }).ok;
+    }
+
+    // index-extra puede evaluarse antes que lf-csv-utils en pruebas/cargas parciales.
+    // En ese caso no se pierde el hardening principal: metadata presente y contradictoria
+    // se rechaza; campos ausentes conservan compatibilidad con payloads v2 ya aceptados.
+    if (month.geo_id != null && Number(month.geo_id) !== Number(geo)) return false;
+    if (month.indicator != null && Number(month.indicator) !== expectedIndicator) return false;
+    if (month.unit != null && month.unit !== 'EUR/kWh') return false;
+    if (month.epoch_unit != null && month.epoch_unit !== 's') return false;
+    if (expectedTimeZone && month.timezone != null && month.timezone !== expectedTimeZone) return false;
+    return true;
   }
 
   function __pvpcDayPairsUsable(dayPairs, dateStr, tz) {
@@ -167,16 +215,19 @@
 
     const yyyyMM = dateStr.slice(0, 7);
     let month = await __pvpcLoadMonth(base, geo, yyyyMM);
-    let dayPairs = (month && month.days) ? month.days[dateStr] : undefined;
-    if (!__pvpcDayPairsUsable(dayPairs, dateStr, tz)) {
+    let identityOk = __pvpcMonthIdentityUsable(month, base, geo, tz);
+    let dayPairs = identityOk && month?.days ? month.days[dateStr] : undefined;
+    if (!identityOk || !__pvpcDayPairsUsable(dayPairs, dateStr, tz)) {
       // El mes cacheado puede ser anterior a la publicación de este día (pestaña que
       // cruza la medianoche, precios de mañana ~20:15) o contener un payload 200
       // incompleto/malformado. Un único refetch evita convertir ese estado en una
-      // caché pegajosa del modal.
+      // caché pegajosa del modal. La identidad forma parte del mismo commit: un mes
+      // completo de otra zona/indicador nunca puede publicarse bajo la cabecera actual.
       month = await __pvpcLoadMonth(base, geo, yyyyMM, true);
-      dayPairs = (month && month.days) ? month.days[dateStr] : undefined;
+      identityOk = __pvpcMonthIdentityUsable(month, base, geo, tz);
+      dayPairs = identityOk && month?.days ? month.days[dateStr] : undefined;
     }
-    if (!__pvpcDayPairsUsable(dayPairs, dateStr, tz)) {
+    if (!identityOk || !__pvpcDayPairsUsable(dayPairs, dateStr, tz)) {
       throw new Error('Sin datos (dataset estático)');
     }
     const entries = __pvpcBuildEntries(dayPairs, tz);

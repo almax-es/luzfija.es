@@ -48,6 +48,7 @@ describe('cierre y reapertura de modales de la home', () => {
       </div>`;
 
     vi.resetModules();
+    await import('../js/lf-csv-utils.js');
     await import('../js/index-extra.js');
     document.dispatchEvent(new Event('DOMContentLoaded'));
 

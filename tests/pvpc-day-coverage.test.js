@@ -47,6 +47,62 @@ function dstFallbackDay() {
   return Array.from({ length: 25 }, (_, i) => [baseTs + i * 3600, 0.1]);
 }
 
+describe('validateStaticPriceDatasetIdentity (js/lf-csv-utils.js)', () => {
+  const base = {
+    schema_version: 2,
+    geo_id: 8741,
+    indicator: 1001,
+    unit: 'EUR/kWh',
+    epoch_unit: 's',
+    timezone: 'Europe/Madrid'
+  };
+  const validate = (data) => win.LF.csvUtils.validateStaticPriceDatasetIdentity(data, {
+    expectedGeoId: 8741,
+    expectedIndicator: 1001,
+    expectedTimeZone: 'Europe/Madrid'
+  });
+
+  it('acepta solo la identidad exacta del dataset solicitado', () => {
+    expect(validate(base)).toEqual({ ok: true });
+  });
+
+  it.each([
+    ['geo_id', 8742, 'geo-id-mismatch'],
+    ['indicator', 1739, 'indicator-mismatch'],
+    ['unit', 'EUR/MWh', 'unit-mismatch'],
+    ['epoch_unit', 'ms', 'epoch-unit-mismatch'],
+    ['timezone', 'Atlantic/Canary', 'timezone-mismatch']
+  ])('rechaza un 200 completo con %s incompatible', (field, value, reason) => {
+    expect(validate({ ...base, [field]: value })).toMatchObject({ ok: false, reason });
+  });
+
+  it.each(['geo_id', 'indicator', 'unit', 'epoch_unit', 'timezone'])('rechaza metadato obligatorio ausente: %s', (field) => {
+    const degraded = { ...base };
+    delete degraded[field];
+    expect(validate(degraded).ok).toBe(false);
+  });
+
+
+  it('el modo de compatibilidad tolera metadata ausente pero nunca una contradiccion explicita', () => {
+    const legacy = { ...base };
+    delete legacy.geo_id;
+    delete legacy.indicator;
+    delete legacy.unit;
+    delete legacy.epoch_unit;
+    delete legacy.timezone;
+
+    const compat = (data) => win.LF.csvUtils.validateStaticPriceDatasetIdentity(data, {
+      expectedGeoId: 8741,
+      expectedIndicator: 1001,
+      expectedTimeZone: 'Europe/Madrid',
+      allowMissingFields: true
+    });
+
+    expect(compat(legacy)).toEqual({ ok: true });
+    expect(compat({ ...legacy, indicator: 1739 })).toMatchObject({ ok: false, reason: 'indicator-mismatch' });
+  });
+});
+
 describe('validatePvpcDayCoverage / validateClosedPvpcDay (js/lf-csv-utils.js)', () => {
   it('acepta un día normal completo de 24 horas contiguas', () => {
     expect(validateClosedPvpcDay('2025-02-28', fullMadridDay('2025-02-28'), 'Europe/Madrid'))

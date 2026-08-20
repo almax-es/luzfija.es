@@ -1635,6 +1635,91 @@ nunca se mapeo como vertido. En los CSV reales, Datadis trae `Energia_vertida_kW
 `Energia_generada_kWh` como columnas distintas. El codigo ya modela esa distincion con
 `SOLAR_GENERATION_TOKENS`: si ya hay una exportacion mapeada, esas columnas son auxiliares.
 
+### Robustez Ante Datos Estaticos Degradados En `data/` (RESUELTA 20/08/2026)
+
+Esta entrada cubre la frontera runtime de `data/pvpc/`, `data/surplus/`, `data/ssaa/` y
+`data/guides-search-index.json`. NO reabre el modo hibrido PVPC, el contrato de disponibilidad SSAA,
+la ausencia frente a cero del Observatorio ni las reglas de dia/mes y DST ya documentadas.
+
+**Identidad antes de cobertura, con compatibilidad explicita.** Un mensual horario puede tener
+23/24/25 horas perfectas y aun ser el fichero equivocado. `validateStaticPriceDatasetIdentity`
+(`js/lf-csv-utils.js`) comprueba `schema_version:2` y, cuando corresponde, `geo_id`, indicador
+(1001 PVPC / 1739 excedentes), `EUR/kWh`, epoch en segundos y timezone. La politica NO es identica
+en todos los consumidores:
+- Las rutas PVPC primarias y el motor anual del Observatorio exigen metadata completa y coherente.
+- Las rutas que ya admitian payloads v2 sin toda esa metadata (`lf-surplus-prices.js`, el fallback
+  `pvpc-stats-csv.js` y la vista rapida de `index-extra.js`) conservan compatibilidad: un campo
+  AUSENTE no basta para invalidar el mensual, pero cualquier campo PRESENTE y contradictorio se
+  rechaza. Esto evita convertir fixtures/datasets historicamente aceptados en *negative-cache* y, a
+  la vez, impide utilizar como precio un fichero que se identifica explicitamente como otra zona,
+  indicador, unidad o epoch.
+
+**Timezone de excedentes y CCH-CONS son contratos distintos.** No imponer `Europe/Madrid` desde la
+identidad del indicador 1739 sobre la valoracion CCH-CONS. El loader normal de excedentes usa la
+`timezone` declarada por el dataset y solo recurre al geo si falta. Se mantiene cerrada la regla DST
+ya auditada: el dia corto de marzo tiene 23 horas; desaparece la 02:00 en Peninsula y la 01:00 en
+Canarias. El test preexistente de 23 horas en ambas zonas es parte del contrato y no debe adaptarse
+a futuras validaciones de metadata. El motor anual del Observatorio puede seguir exigiendo la
+metadata completa generada por sus artefactos; eso no redefine el reloj CCH-CONS.
+
+**Manifest del Observatorio.** Los `index.json` por zona descubren ficheros pero no definen la
+completitud anual. `monthsExpected` sale del calendario conocido (junio 2021 en adelante y sin meses
+futuros). Si un manifest degradado omite febrero de un ano cerrado, febrero se intenta igualmente;
+un 404/JSON invalido/mes no utilizable entra en `failedMonths`, deja `partial:true` y evita cachear
+el ano. NO re-proponer "pedir solo los meses del manifest" como optimizacion: vuelve a permitir que
+un indice incompleto esconda datos ausentes y publique KPIs anuales como completos.
+
+**SSAA.** La carga positiva exige identidad (`schema_version:1`, indicador 10328, `EUR/kWh`,
+`Europe/Madrid`), mapa `values` utilizable, coherencia entre `latest_complete_month`, `latest_value`
+y `to`, y que TODOS los rates publicados sean finitos y cumplan el rango de plausibilidad que ya
+protege `tests/ssaa-dataset.test.js`: `0 <= rate < 0.1 EUR/kWh`. Validar solo el ultimo mes no vale:
+un historico corrupto podria llegar despues a un calculo de ese periodo. **Cero es valido** y no debe
+confundirse con ausencia. Un mes historico ausente sigue devolviendo `historical-month-unavailable`;
+no se sustituye por el ultimo mes completo.
+
+**Red/body.** `fetchWithTimeout()` conserva su API para callers existentes. Los loaders JSON
+monetarios que pueden usar `lf-csv-utils.js` llaman a `fetchJsonWithTimeout()`: el mismo
+`AbortController` permanece vivo hasta terminar `response.json()`. Antes, el timer se limpiaba al
+recibir headers; un 200 cuyo body quedara abierto podia bloquear indefinidamente pese a "tener
+timeout". Hay dos excepciones deliberadas:
+- `index-extra.js` mantiene exactamente su contrato historico `fetch(url, {cache:'no-cache'})`, que
+  ya observan tests preexistentes. Usa un deadline local con `Promise.race` que deja de esperar
+  fetch+body y purga la Promise fallida para reintentar, pero NO aborta el request subyacente.
+- `guides-search.js`, que no carga `lf-csv-utils.js`, usa un `AbortController` local hasta consumir
+  el JSON; ante timeout/HTTP/JSON/esquema invalido cae a busqueda basica y una busqueda posterior
+  puede reintentar.
+
+**Valores y estructuras que NO son bugs:**
+- Precios PVPC o de excedentes negativos son validos en el mercado y NO deben rechazarse por signo.
+  `null`, strings, NaN/Infinity runtime o timestamps fuera del dia civil se rechazan por los
+  validadores existentes. No inventar un maximo arbitrario para PVPC/excedentes sin contrato nuevo.
+- Un 404/500/timeout nunca equivale a precio cero. Las rutas monetarias fallan cerradas o marcan
+  cobertura ausente segun el contrato ya documentado; los fallos no se guardan como cache positiva.
+- Metadata de identidad AUSENTE en las rutas de compatibilidad anteriores no es, por si sola, un
+  bug ni motivo de *negative-cache*. Metadata PRESENTE y contradictoria si invalida el payload.
+- Que el Observatorio intente un mensual que el manifest omitio es deliberado: el manifest no puede
+  rebajar la expectativa de completitud.
+- `data/guides-search-index.json` degradado no es una cifra economica: la UI usa busqueda basica y
+  permite reintento.
+- `js/config.js` solo publica las rutas base (`PVPC_DATASET_BASE`, `SSAA_DATASET_URL`); no parsea ni
+  normaliza datasets, por lo que no necesita una segunda validacion.
+
+**Criterio de reapertura:** demostrar un consumidor nuevo que publique/cachee un mensual con
+metadata explicitamente contradictoria; que una ruta estricta deje de exigir la identidad completa
+que su formato garantiza; que vuelva a usar el manifest como autoridad de meses esperados; que
+acepte SSAA fuera del contrato anterior; que transforme ausencia/error en cero; o que lea JSON
+estatico sin un deadline que cubra tambien el body. Un fallo que acaba honestamente en "dato no
+disponible" no se reclasifica como cifra incorrecta.
+
+**Regresiones de referencia nuevas:** `tests/pvpc-day-coverage.test.js`, `tests/pvpc.test.js`,
+`tests/index-extra-pvpc-cache.test.js`, `tests/surplus-prices.test.js`,
+`tests/pvpc-stats-csv-fallback.test.js`, `tests/pvpc-stats-engine.test.js`,
+`tests/ssaa-helper.test.js`, `tests/network-timeout-contract.test.js` y
+`tests/guides-search-resilience.test.js`. **Contratos preexistentes que tambien deben seguir verdes:**
+`tests/index-extra-pvpc-context.test.js` (opciones exactas de fetch),
+`tests/pvpc-stats-ui.test.js` (reintento 503/200 malformado) y el caso CCH-CONS 23h de
+`tests/surplus-prices.test.js`.
+
 ### SEO, Datos Estructurados Y Core Web Vitals
 
 - La ausencia de `<meta name="robots" content="index,follow">` no es una carencia: `index,follow` es el comportamiento por defecto. Solo reporta `robots` si una directiva concreta bloquea o limita una URL indebidamente.

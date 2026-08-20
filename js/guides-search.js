@@ -13,6 +13,7 @@
   root.LFGuideSearch = api;
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (root) {
   const DEFAULT_INDEX_URL = '/data/guides-search-index.json';
+  const DEFAULT_INDEX_TIMEOUT_MS = 15000;
   const STOP_WORDS = new Set([
     'a', 'al', 'algo', 'como', 'con', 'cual', 'cuales', 'cuanto', 'cuantos', 'de',
     'del', 'donde', 'el', 'en', 'es', 'esta', 'este', 'esto', 'hay', 'la', 'las',
@@ -42,6 +43,26 @@
     { key: 'faq', label: 'FAQ', token: 24, prefix: 18, contains: 14, stem: 10, phrase: 30, list: true },
     { key: 'content', label: 'contenido', token: 10, prefix: 8, contains: 6, stem: 5, phrase: 14 }
   ];
+
+  async function fetchJsonWithTimeout(resource, options = {}, timeoutMs = DEFAULT_INDEX_TIMEOUT_MS) {
+    if (typeof root.fetch !== 'function') throw new Error('Fetch unavailable');
+    const parsedTimeout = Number(timeoutMs);
+    const effectiveTimeout = Number.isFinite(parsedTimeout) && parsedTimeout > 0
+      ? parsedTimeout
+      : DEFAULT_INDEX_TIMEOUT_MS;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), effectiveTimeout);
+    try {
+      const response = await root.fetch(resource, { ...options, signal: controller.signal });
+      if (!response || !response.ok) {
+        throw new Error(`Index request failed with ${response ? response.status : 'unknown'}`);
+      }
+      const payload = await response.json();
+      return payload;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
 
   function normalizeWhitespace(value) {
     return String(value || '').replace(/\s+/g, ' ').trim();
@@ -522,13 +543,11 @@
     async function ensureIndex() {
       if (preparedGuides) return preparedGuides;
       if (!indexPromise) {
-        indexPromise = root.fetch(options?.indexUrl || DEFAULT_INDEX_URL, { cache: 'no-store' })
-          .then((response) => {
-            if (!response || !response.ok) {
-              throw new Error(`Index request failed with ${response ? response.status : 'unknown'}`);
-            }
-            return response.json();
-          })
+        indexPromise = fetchJsonWithTimeout(
+          options?.indexUrl || DEFAULT_INDEX_URL,
+          { cache: 'no-store' },
+          options?.indexTimeoutMs
+        )
           .then((payload) => {
             const guides = Array.isArray(payload?.guides) ? payload.guides : null;
             const usable = guides && guides.length > 0 && guides.every((entry) => (

@@ -682,19 +682,32 @@ const PEAJES_POT_DIA = window.LF_CONFIG?.peajesPotenciaPVPC ?? { p1: 0.075901, p
         let dataTimezone = (geoId === 8742) ? 'Atlantic/Canary' : 'Europe/Madrid';
         for (const monthKey of filesToRead) {
           const primaryUrl = `/data/pvpc/${geoId}/${monthKey}.json`;
-          let response = await window.LF.csvUtils.fetchWithTimeout(primaryUrl);
-          if ((!response || !response.ok) && geoFallbackId) {
+          let responseGeo = geoId;
+          let loaded = await window.LF.csvUtils.fetchJsonWithTimeout(primaryUrl);
+          if ((!loaded.response || !loaded.response.ok) && geoFallbackId) {
             const fallbackUrl = `/data/pvpc/${geoFallbackId}/${monthKey}.json`;
-            response = await window.LF.csvUtils.fetchWithTimeout(fallbackUrl);
+            responseGeo = geoFallbackId;
+            loaded = await window.LF.csvUtils.fetchJsonWithTimeout(fallbackUrl);
           }
-          if (!response || !response.ok) {
+          if (!loaded.response || !loaded.response.ok) {
             pvpcDbg(`[WARN] Datos PVPC faltantes para mes: ${monthKey} (geo: ${geoId})`);
             missingMonths.push(monthKey);
             continue;
           }
-          const data = await response.json();
-          if (data && typeof data.timezone === 'string' && data.timezone) dataTimezone = data.timezone;
-          Object.assign(allPrices, collectPvpcDays(data?.days));
+          const data = loaded.data;
+          const expectedTimezone = Number(responseGeo) === 8742 ? 'Atlantic/Canary' : 'Europe/Madrid';
+          const identity = window.LF?.csvUtils?.validateStaticPriceDatasetIdentity?.(data, {
+            expectedGeoId: responseGeo,
+            expectedIndicator: 1001,
+            expectedTimeZone: expectedTimezone
+          });
+          if (!identity?.ok) {
+            console.warn(`[PVPC] ⚠️ Dataset mensual incompatible (${monthKey}): ${identity?.reason || 'identity-validator-unavailable'}`);
+            missingMonths.push(monthKey);
+            continue;
+          }
+          dataTimezone = expectedTimezone;
+          Object.assign(allPrices, collectPvpcDays(data.days));
         }
         
         // En modo CSV se conserva la política de cobertura parcial documentada. En el

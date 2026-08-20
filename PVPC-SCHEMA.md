@@ -663,6 +663,36 @@ fallos parciales de CDN/red. Desde agosto de 2026 se aplican estas garantías ad
   se rechaza sin *negative-cache* y puede reintentarse en la misma sesión.
 - **Excedentes:** un fallo mensual no se hace *negative-cache*; la misma sesión puede reintentar
   al recuperarse la red.
+- **Identidad del fichero horario (20/08/2026):** la cobertura temporal no demuestra que el JSON
+  corresponda al recurso solicitado. `validateStaticPriceDatasetIdentity` es estricto por defecto:
+  las rutas PVPC primarias y el motor anual del Observatorio exigen `schema_version`, `geo_id`,
+  `indicator`, `unit`, `epoch_unit` y `timezone` coherentes. Las rutas que ya aceptaban payloads v2
+  sin toda esa metadata (excedentes normal/fallback y vista rapida) usan un modo de compatibilidad:
+  un campo AUSENTE se tolera, pero cualquier campo PRESENTE y contradictorio invalida el mensual.
+  Esa compatibilidad evita convertir metadata historicamente opcional en *negative-cache* sin volver
+  a aceptar un fichero que se identifica explicitamente como otra zona/indicador/unidad.
+- **Timezone de excedentes y CCH-CONS (20/08/2026):** el generador actual de artefactos 1739 sigue
+  publicando `Europe/Madrid` como se documenta arriba, pero el runtime no usa esa metadata como una
+  redefinicion del reloj CCH-CONS. En la valoracion horaria se usa la timezone declarada por el
+  dataset y, si falta, el geo como fallback. Se mantiene el contrato DST ya cerrado: en el dia corto
+  de marzo desaparece la 02:00 en Peninsula y la 01:00 en Canarias; ambos casos siguen teniendo 23h.
+- **Manifest del Observatorio (20/08/2026):** `index.json` es ayuda de descubrimiento, NO autoridad
+  de completitud. `monthsExpected` se deriva del calendario (desde junio de 2021, sin meses futuros).
+  Si el manifest omite un mes historico, el motor igualmente intenta ese mensual; si falta o falla,
+  el ano queda `partial:true` y no entra en cache positiva. Esto evita que un indice degradado
+  redefina silenciosamente un ano incompleto como completo.
+- **SSAA (20/08/2026):** `data/ssaa/index.json` solo entra en cache positiva si conserva su identidad
+  (`schema_version:1`, indicador 10328, `EUR/kWh`, `Europe/Madrid`), todos los valores publicados son
+  finitos y estan en el rango de plausibilidad ya exigido por el repositorio (`0 <= rate < 0.1`), y
+  `latest_complete_month`, `latest_value` y `to` son coherentes. El cero sigue siendo un dato valido;
+  un mes historico ausente sigue siendo `unavailable`, no cero ni sustitucion por el ultimo mes.
+- **Deadline de JSON completo (20/08/2026):** los loaders monetarios que usan `lf-csv-utils.js`
+  mantienen el `AbortController` hasta consumir/parsing de `response.json()`; recibir headers 200 no
+  cancela el deadline. La vista rapida `index-extra.js` conserva deliberadamente su llamada historica
+  `fetch(url, {cache:'no-cache'})` y aplica un deadline local con `Promise.race`: deja de esperar
+  fetch+body y permite reintento, aunque no aborta el request subyacente. La busqueda de guias usa
+  un `AbortController` local hasta terminar el JSON y, al fallar, cae a busqueda basica.
+
 
 ---
 

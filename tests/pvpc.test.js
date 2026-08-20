@@ -46,6 +46,17 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     delete global.window.LF.pvpcPeriodoCSV;
   });
 
+  function pvpcIdentity(geoId = 8741, timezone = 'Europe/Madrid') {
+    return {
+      schema_version: 2,
+      geo_id: Number(geoId),
+      timezone,
+      indicator: 1001,
+      unit: 'EUR/kWh',
+      epoch_unit: 's'
+    };
+  }
+
   function addCalendarDay(dateStr) {
     const [year, month, day] = dateStr.split('-').map(Number);
     return new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10);
@@ -160,7 +171,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
 
     // Mock del JSON mensual
     const mockJson = {
-      geo_id: 8741,
+      ...pvpcIdentity(8741, 'Europe/Madrid'),
       // Proveemos datos para varios dias por si la logica interna usa "ayer" o "hoy"
       days: {
         '2025-01-07': generateMockDayPrices(apiP1, apiP2, apiP3), // Ayer
@@ -211,6 +222,27 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     vi.useRealTimers();
   });
 
+  it('rechaza un HTTP 200 horario completo si pertenece a otro indicador', async () => {
+    vi.setSystemTime(new Date('2025-03-01T12:00:00Z'));
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ...pvpcIdentity(8741, 'Europe/Madrid'),
+        indicator: 1739,
+        days: { '2025-02-28': generateMadridDayPrices('2025-02-28', 9.99) }
+      })
+    });
+
+    const result = await global.window.LF.pvpc.obtenerPVPC_LOCAL({
+      zonaFiscal: 'Península', p1: 3.45, p2: 3.45, dias: 1,
+      cPunta: 10, cLlano: 10, cValle: 10
+    });
+
+    expect(result).toBeNull();
+    expect(global.window.localStorage.setItem).not.toHaveBeenCalled();
+    vi.useRealTimers();
+  });
+
   it('obtenerPVPC_LOCAL debe manejar errores de red', async () => {
     global.fetch.mockRejectedValue(new Error('Network fail'));
     
@@ -251,7 +283,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     global.fetch.mockResolvedValue({
       ok: true,
       json: async () => ({
-        timezone: 'Europe/Madrid',
+        ...pvpcIdentity(8741, 'Europe/Madrid'),
         days: {
           '2025-02-28': generateMadridDayPrices('2025-02-28', 0.10).slice(0, -1)
         }
@@ -270,7 +302,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     global.fetch.mockResolvedValue({
       ok: true,
       json: async () => ({
-        timezone: 'Europe/Madrid',
+        ...pvpcIdentity(8741, 'Europe/Madrid'),
         days: { '2025-02-28': validPlusCorrupt }
       })
     });
@@ -299,7 +331,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
       global.fetch.mockResolvedValue({
         ok: true,
         json: async () => ({
-          timezone: 'Europe/Madrid',
+          ...pvpcIdentity(8741, 'Europe/Madrid'),
           days: { '2025-02-28': diaConFilaCorrupta() }
         })
       });
@@ -360,7 +392,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
       pares.splice(11, 0, [pares[11][0], null]);
       global.fetch.mockResolvedValue({
         ok: true,
-        json: async () => ({ timezone: 'Europe/Madrid', days: { '2025-02-28': pares } })
+        json: async () => ({ ...pvpcIdentity(8741, 'Europe/Madrid'), days: { '2025-02-28': pares } })
       });
       global.window.LF.consumosHorarios = [
         { fecha: new Date(2025, 1, 28), hora: 12, kwh: 2 }
@@ -390,7 +422,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
       pares.splice(5, 0, [pares[5][0], null]); // corrupta en zona valle
       global.fetch.mockResolvedValue({
         ok: true,
-        json: async () => ({ timezone: 'Europe/Madrid', days: { '2025-02-28': pares } })
+        json: async () => ({ ...pvpcIdentity(8741, 'Europe/Madrid'), days: { '2025-02-28': pares } })
       });
       // La hora 25 no existe en un dia normal de 24 h: 1 de 2 horas sin precio supera
       // el umbral del 10%, asi que el calculo cae al modo MEDIAS. Ese modo si consume
@@ -427,7 +459,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
         return Promise.resolve({
           ok: true,
           json: async () => ({
-            timezone: 'Europe/Madrid',
+            ...pvpcIdentity(8741, 'Europe/Madrid'),
             days: { '2025-02-28': generateMadridDayPrices('2025-02-28', 0.10) }
           })
         });
@@ -466,7 +498,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     const apiP2 = 0.10;
     const apiP3 = 0.05;
     const mockJson = {
-      geo_id: 8741,
+      ...pvpcIdentity(8741, 'Europe/Madrid'),
       days: {
         '2026-03-20': generateMockDayPrices(apiP1, apiP2, apiP3, '2026-03-20')
       },
@@ -513,7 +545,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
 
   it('crearTarifaPVPC aplica IVA general con 10 kW exactos y separa la caché por bono social', async () => {
     const mockJson = {
-      geo_id: 8741,
+      ...pvpcIdentity(8741, 'Europe/Madrid'),
       days: {
         '2026-03-20': generateMockDayPrices(0.20, 0.10, 0.05, '2026-03-20')
       },
@@ -560,8 +592,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
 
   it('obtenerPVPC_LOCAL cruza correctamente la hora 25 del cambio horario en modo CSV exacto', async () => {
     const mockJson = {
-      geo_id: 8741,
-      timezone: 'Europe/Madrid',
+      ...pvpcIdentity(8741, 'Europe/Madrid'),
       days: {
         '2024-10-27': generateDstFallbackDayPrices()
       },
@@ -597,8 +628,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
 
   it('obtenerPVPC_LOCAL cruza el CCH-CONS 1-23 de marzo tras normalizarlo', async () => {
     const mockJson = {
-      geo_id: 8741,
-      timezone: 'Europe/Madrid',
+      ...pvpcIdentity(8741, 'Europe/Madrid'),
       days: {
         '2026-03-29': generateDstSpringForwardDayPrices()
       },
@@ -639,8 +669,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
 
   it('obtenerPVPC_LOCAL separa la hora 1 repetida de Canarias en octubre', async () => {
     const mockJson = {
-      geo_id: 8742,
-      timezone: 'Atlantic/Canary',
+      ...pvpcIdentity(8742, 'Atlantic/Canary'),
       days: {
         '2024-10-27': generateCanaryDstFallbackDayPrices()
       },
@@ -686,8 +715,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     global.fetch.mockResolvedValue({
       ok: true,
       json: async () => ({
-        geo_id: 8741,
-        timezone: 'Europe/Madrid',
+        ...pvpcIdentity(8741, 'Europe/Madrid'),
         days: {
           '2025-01-07': generateMockDayPrices(0.20, 0.10, 0.05)
         }
@@ -724,8 +752,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     global.fetch.mockResolvedValue({
       ok: true,
       json: async () => ({
-        geo_id: 8741,
-        timezone: 'Europe/Madrid',
+        ...pvpcIdentity(8741, 'Europe/Madrid'),
         days: {
           '2025-01-07': generateMockDayPrices(0.20, 0.10, 0.05)
         }
@@ -765,8 +792,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     global.fetch.mockResolvedValue({
       ok: true,
       json: async () => ({
-        geo_id: 8741,
-        timezone: 'Europe/Madrid',
+        ...pvpcIdentity(8741, 'Europe/Madrid'),
         days: { '2025-01-07': prices }
       })
     });
@@ -825,8 +851,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     global.fetch.mockResolvedValue({
       ok: true,
       json: async () => ({
-        geo_id: 8741,
-        timezone: 'Europe/Madrid',
+        ...pvpcIdentity(8741, 'Europe/Madrid'),
         days: { '2025-01-07': prices }
       })
     });
@@ -861,8 +886,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     global.fetch.mockResolvedValue({
       ok: true,
       json: async () => ({
-        geo_id: 8744,
-        timezone: 'Europe/Madrid',
+        ...pvpcIdentity(8744, 'Europe/Madrid'),
         days: { '2025-01-07': prices }
       })
     });
@@ -894,8 +918,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     global.fetch.mockResolvedValue({
       ok: true,
       json: async () => ({
-        geo_id: 8741,
-        timezone: 'Europe/Madrid',
+        ...pvpcIdentity(8741, 'Europe/Madrid'),
         days: { '2025-01-07': generateMockDayPrices(0.20, 0.10, 0.05) }
       })
     });
@@ -932,8 +955,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
         ? {
             ok: true,
             json: async () => ({
-              geo_id: 8741,
-              timezone: 'Europe/Madrid',
+              ...pvpcIdentity(8741, 'Europe/Madrid'),
               days: { '2025-01-31': januaryPrices }
             })
           }
@@ -971,8 +993,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     global.fetch.mockResolvedValue({
       ok: true,
       json: async () => ({
-        geo_id: 8741,
-        timezone: 'Europe/Madrid',
+        ...pvpcIdentity(8741, 'Europe/Madrid'),
         days: { '2025-01-07': prices }
       })
     });
@@ -1012,8 +1033,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     global.fetch.mockResolvedValue({
       ok: true,
       json: async () => ({
-        geo_id: 8741,
-        timezone: 'Europe/Madrid',
+        ...pvpcIdentity(8741, 'Europe/Madrid'),
         days: {
           '2025-01-07': generateMockDayPrices(0.20, 0.10, 0.05)
         }
@@ -1159,7 +1179,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
             return Promise.resolve({
               ok: true,
               json: async () => ({
-                timezone: 'Atlantic/Canary',
+                ...pvpcIdentity(8742, 'Atlantic/Canary'),
                 days: { '2026-08-12': dia12, '2026-08-13': dia13 }
               })
             });

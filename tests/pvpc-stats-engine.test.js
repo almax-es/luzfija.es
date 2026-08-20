@@ -36,7 +36,7 @@ function buildFullCivilDay(ymd, timeZone = 'Europe/Madrid', priceForHour = () =>
   return points;
 }
 
-function buildV2Month(ym, timeZone = 'Europe/Madrid', overrides = {}) {
+function buildV2Month(ym, timeZone = 'Europe/Madrid', overrides = {}, identity = {}) {
   const [year, month] = ym.split('-').map(Number);
   const last = new Date(Date.UTC(year, month, 0)).getUTCDate();
   const days = {};
@@ -45,7 +45,13 @@ function buildV2Month(ym, timeZone = 'Europe/Madrid', overrides = {}) {
     days[ymd] = buildFullCivilDay(ymd, timeZone);
   }
   Object.assign(days, overrides);
-  return { schema_version: 2, timezone: timeZone, from: `${ym}-01`, to: `${ym}-${String(last).padStart(2, '0')}`, days };
+  const geoId = identity.geoId ?? (timeZone === 'Atlantic/Canary' ? 8742 : 8741);
+  const indicator = identity.indicator ?? 1001;
+  return {
+    schema_version: 2, geo_id: geoId, timezone: timeZone, indicator,
+    unit: 'EUR/kWh', epoch_unit: 's',
+    from: `${ym}-01`, to: `${ym}-${String(last).padStart(2, '0')}`, days
+  };
 }
 
 function buildV2PublishedMonth(ym, lastPublishedDay, timeZone = 'Europe/Madrid', overrides = {}) {
@@ -284,7 +290,7 @@ describe('PVPC_STATS manifest-aware loading', () => {
     }
   });
 
-  it('loads only months listed in zone index manifest', async () => {
+  it('un manifest degradado no puede ocultar meses de un año histórico ni volverlo completo', async () => {
     const originalFetch = global.fetch;
     const calls = [];
     const ok = (data) => ({ ok: true, json: async () => data });
@@ -294,20 +300,12 @@ describe('PVPC_STATS manifest-aware loading', () => {
       calls.push(u);
 
       if (u.endsWith('/data/pvpc/8742/index.json')) {
-        return ok({
-          files: [
-            { file: '2024-01.json' },
-            { file: '2024-03.json' }
-          ]
-        });
+        // Febrero falta del manifest aunque pertenece a un año histórico cerrado.
+        return ok({ files: [{ file: '2024-01.json' }, { file: '2024-03.json' }] });
       }
-      if (u.endsWith('/data/pvpc/8742/2024-01.json')) {
-        return ok(buildV2Month('2024-01', 'Atlantic/Canary'));
-      }
-      if (u.endsWith('/data/pvpc/8742/2024-03.json')) {
-        return ok(buildV2Month('2024-03', 'Atlantic/Canary'));
-      }
-
+      if (u.endsWith('/data/pvpc/8742/2024-01.json')) return ok(buildV2Month('2024-01', 'Atlantic/Canary'));
+      if (u.endsWith('/data/pvpc/8742/2024-03.json')) return ok(buildV2Month('2024-03', 'Atlantic/Canary'));
+      if (/\/data\/pvpc\/8742\/2024-\d{2}\.json$/.test(u)) return { ok: false, status: 404 };
       throw new Error(`Unexpected fetch: ${u}`);
     };
 
@@ -316,16 +314,19 @@ describe('PVPC_STATS manifest-aware loading', () => {
       window.PVPC_STATS.manifestCache.clear();
 
       const yearData = await window.PVPC_STATS.loadYearData(8742, 2024, 'pvpc');
-      expect(Object.keys(yearData.days)).toHaveLength(62);
-      expect(yearData.days['2024-01-01']).toBeDefined();
-      expect(yearData.days['2024-03-01']).toBeDefined();
-      expect(calls.some((u) => u.endsWith('/data/pvpc/8742/2024-02.json'))).toBe(false);
+      expect(yearData.meta.monthsExpected).toEqual(['01','02','03','04','05','06','07','08','09','10','11','12']);
+      expect(yearData.meta.monthsLoaded).toEqual(['01', '03']);
+      expect(yearData.meta.failedMonths).toContain('02');
+      expect(yearData.meta.partial).toBe(true);
+      expect(calls.some((u) => u.endsWith('/data/pvpc/8742/2024-02.json'))).toBe(true);
+      expect(window.PVPC_STATS.cache.has('pvpc-8742-2024')).toBe(false);
     } finally {
       global.fetch = originalFetch;
       window.PVPC_STATS.cache.clear();
       window.PVPC_STATS.manifestCache.clear();
     }
   });
+
 
 
   it('marca un año parcial, no lo cachea y reintenta el mes fallido', async () => {
@@ -350,6 +351,8 @@ describe('PVPC_STATS manifest-aware loading', () => {
         if (febFails) return { ok: false, status: 503 };
         return ok(buildV2Month('2024-02', 'Europe/Madrid'));
       }
+      const monthMatch = u.match(/\/data\/pvpc\/8741\/(2024-\d{2})\.json$/);
+      if (monthMatch) return ok(buildV2Month(monthMatch[1], 'Europe/Madrid'));
       throw new Error(`Unexpected fetch: ${u}`);
     };
 
@@ -360,8 +363,8 @@ describe('PVPC_STATS manifest-aware loading', () => {
 
       const partial = await window.PVPC_STATS.loadYearData(8741, 2024, 'pvpc');
       expect(partial.meta).toMatchObject({
-        monthsExpected: ['01', '02'],
-        monthsLoaded: ['01'],
+        monthsExpected: ['01','02','03','04','05','06','07','08','09','10','11','12'],
+        monthsLoaded: ['01','03','04','05','06','07','08','09','10','11','12'],
         failedMonths: ['02'],
         partial: true
       });
@@ -371,7 +374,7 @@ describe('PVPC_STATS manifest-aware loading', () => {
       const complete = await window.PVPC_STATS.loadYearData(8741, 2024, 'pvpc');
       expect(complete.meta.partial).toBe(false);
       expect(complete.meta.failedMonths).toEqual([]);
-      expect(complete.meta.monthsLoaded).toEqual(['01', '02']);
+      expect(complete.meta.monthsLoaded).toEqual(['01','02','03','04','05','06','07','08','09','10','11','12']);
       expect(window.PVPC_STATS.cache.has('pvpc-8741-2024')).toBe(true);
       expect(calls.filter((u) => u.endsWith('/data/pvpc/8741/2024-02.json'))).toHaveLength(2);
     } finally {
@@ -443,6 +446,40 @@ describe('PVPC_STATS manifest-aware loading', () => {
     }
   });
 
+  it('marca parcial un mes horario completo si la identidad no corresponde al dataset pedido', async () => {
+    const originalFetch = global.fetch;
+    const ok = (data) => ({ ok: true, json: async () => data });
+    global.fetch = async (url) => {
+      const u = String(url);
+      if (u.endsWith('/data/pvpc/8741/index.json')) return ok({ files: [{ file: '2024-01.json' }] });
+      const monthMatch = u.match(/\/data\/pvpc\/8741\/(2024-\d{2})\.json$/);
+      if (monthMatch) {
+        const month = buildV2Month(monthMatch[1], 'Europe/Madrid');
+        if (monthMatch[1] === '2024-01') month.indicator = 1739;
+        return ok(month);
+      }
+      throw new Error(`Unexpected fetch: ${u}`);
+    };
+
+    try {
+      window.PVPC_STATS.cache.clear();
+      window.PVPC_STATS.manifestCache.clear();
+      window.PVPC_STATS.inFlightYearData.clear();
+
+      const yearData = await window.PVPC_STATS.loadYearData(8741, 2024, 'pvpc');
+      expect(yearData.meta.failedMonths).toEqual(['01']);
+      expect(yearData.meta.partial).toBe(true);
+      expect(yearData.days['2024-01-01']).toBeUndefined();
+      expect(yearData.days['2024-02-01']).toBeDefined();
+      expect(window.PVPC_STATS.cache.has('pvpc-8741-2024')).toBe(false);
+    } finally {
+      global.fetch = originalFetch;
+      window.PVPC_STATS.cache.clear();
+      window.PVPC_STATS.manifestCache.clear();
+      window.PVPC_STATS.inFlightYearData.clear();
+    }
+  });
+
   it('trata un mes HTTP 200 malformado como parcial y lo reintenta en la misma sesión', async () => {
     const originalFetch = global.fetch;
     let monthAttempts = 0;
@@ -460,6 +497,8 @@ describe('PVPC_STATS manifest-aware loading', () => {
         if (monthAttempts === 1) return ok({ days: { '2024-02-01': buildFullCivilDay('2024-02-01', 'Europe/Madrid') } });
         return ok(buildV2Month('2024-01', 'Europe/Madrid'));
       }
+      const monthMatch = u.match(/\/data\/pvpc\/8741\/(2024-\d{2})\.json$/);
+      if (monthMatch) return ok(buildV2Month(monthMatch[1], 'Europe/Madrid'));
       throw new Error(`Unexpected fetch: ${u}`);
     };
 
@@ -470,11 +509,13 @@ describe('PVPC_STATS manifest-aware loading', () => {
       window.PVPC_STATS.inFlightGeoIndexes.clear();
 
       const partial = await window.PVPC_STATS.loadYearData(8741, 2024, 'pvpc');
-      expect(partial.meta).toMatchObject({ monthsExpected: ['01'], monthsLoaded: [], failedMonths: ['01'], partial: true });
+      expect(partial.meta.failedMonths).toEqual(['01']);
+      expect(partial.meta.partial).toBe(true);
       expect(window.PVPC_STATS.cache.has('pvpc-8741-2024')).toBe(false);
 
       const recovered = await window.PVPC_STATS.loadYearData(8741, 2024, 'pvpc');
-      expect(recovered.meta).toMatchObject({ monthsLoaded: ['01'], failedMonths: [], partial: false });
+      expect(recovered.meta.failedMonths).toEqual([]);
+      expect(recovered.meta.partial).toBe(false);
       expect(monthAttempts).toBe(2);
       expect(window.PVPC_STATS.cache.has('pvpc-8741-2024')).toBe(true);
     } finally {
@@ -502,7 +543,7 @@ describe('PVPC_STATS manifest-aware loading', () => {
         });
       }
       if (u.endsWith('/data/surplus/8742/2024-04.json')) {
-        const month = buildV2Month('2024-04', 'Europe/Madrid');
+        const month = buildV2Month('2024-04', 'Europe/Madrid', {}, { geoId: 8742, indicator: 1739 });
         Object.keys(month.days).forEach((date) => {
           month.days[date] = buildFullCivilDay(date, 'Europe/Madrid', (h) => (h === 0 ? 1 : h === 1 ? 2 : 0));
         });
@@ -547,6 +588,8 @@ describe('PVPC_STATS manifest-aware loading', () => {
           '2024-01-15': buildFullCivilDay('2024-01-15', 'Europe/Madrid').slice(0, 10)
         }));
       }
+      const monthMatch = u.match(/\/data\/pvpc\/8741\/(2024-\d{2})\.json$/);
+      if (monthMatch) return ok(buildV2Month(monthMatch[1], 'Europe/Madrid'));
       throw new Error(`Unexpected fetch: ${u}`);
     };
 
@@ -558,7 +601,7 @@ describe('PVPC_STATS manifest-aware loading', () => {
       const yearData = await window.PVPC_STATS.loadYearData(8741, 2024, 'pvpc');
       expect(yearData.meta.partial).toBe(true);
       expect(yearData.meta.failedMonths).toEqual(['01']);
-      expect(yearData.days).toEqual({});
+      expect(yearData.days['2024-02-01']).toBeDefined();
       expect(window.PVPC_STATS.cache.has('pvpc-8741-2024')).toBe(false);
     } finally {
       global.fetch = originalFetch;
@@ -581,6 +624,8 @@ describe('PVPC_STATS manifest-aware loading', () => {
       if (u.endsWith('/data/pvpc/8741/2026-03.json')) {
         return ok(buildV2Month('2026-03', 'Europe/Madrid', { '2026-03-29': dstSpringForward }));
       }
+      const monthMatch = u.match(/\/data\/pvpc\/8741\/(2026-\d{2})\.json$/);
+      if (monthMatch) return ok(buildV2Month(monthMatch[1], 'Europe/Madrid'));
       throw new Error(`Unexpected fetch: ${u}`);
     };
 
@@ -625,6 +670,8 @@ describe('PVPC_STATS manifest-aware loading', () => {
           '2026-08-13': tomorrowPartial
         }));
       }
+      const monthMatch = u.match(/\/data\/pvpc\/8741\/(2026-\d{2})\.json$/);
+      if (monthMatch) return ok(buildV2Month(monthMatch[1], 'Europe/Madrid'));
       throw new Error(`Unexpected fetch: ${u}`);
     };
 

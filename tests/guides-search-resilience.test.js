@@ -93,6 +93,39 @@ describe('Guides search runtime resilience', () => {
     expect(status.dataset.state).toBe('ready');
     expect(document.querySelectorAll('#searchResults .search-result-card')).toHaveLength(1);
   });
+  it('abandona un 200 cuyo body no termina y cae a búsqueda básica en vez de quedar cargando', async () => {
+    global.fetch = vi.fn(async (_url, options) => ({
+      ok: true,
+      status: 200,
+      json: () => new Promise((_resolve, reject) => {
+        options.signal.addEventListener('abort', () => {
+          const error = new Error('aborted body');
+          error.name = 'AbortError';
+          reject(error);
+        }, { once: true });
+      })
+    }));
+
+    GuideSearch.init({
+      document,
+      indexUrl: '/data/guides-search-index.json',
+      indexTimeoutMs: 25
+    });
+    const input = document.getElementById('searchInput');
+    const status = document.getElementById('searchStatus');
+
+    input.value = 'ejemplo';
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+    await vi.advanceTimersByTimeAsync(81);
+    expect(status.dataset.state).toBe('loading');
+
+    await vi.advanceTimersByTimeAsync(25);
+    for (let i = 0; i < 20 && status.dataset.state === 'loading'; i += 1) await Promise.resolve();
+
+    expect(status.dataset.state).toBe('fallback');
+    expect(status.textContent).toContain('modo básico');
+  });
+
   it('reintenta un índice HTTP 200 malformado en vez de fijar el fallback hasta recargar', async () => {
     let attempts = 0;
     global.fetch = vi.fn(async () => {

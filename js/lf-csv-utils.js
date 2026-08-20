@@ -49,6 +49,44 @@
       });
   }
 
+  /**
+   * Variante para JSON estático: el deadline cubre también la lectura/parsing del body.
+   * `fetch()` puede resolver al recibir headers y dejar `response.json()` pendiente si la
+   * respuesta queda cortada a medias; limpiar el timer en ese punto dejaría el loader colgado.
+   * Para HTTP no-2xx no se consume el cuerpo: el caller conserva la Response para decidir
+   * su política de fallback/reintento.
+   * @returns {Promise<{response: Response, data: any}>}
+   */
+  async function fetchJsonWithTimeout(resource, options = {}, timeoutMs = DEFAULT_FETCH_TIMEOUT_MS) {
+    const init = options && typeof options === 'object' ? options : {};
+    const parsedTimeout = Number(timeoutMs);
+    const effectiveTimeout = Number.isFinite(parsedTimeout) && parsedTimeout > 0
+      ? parsedTimeout
+      : DEFAULT_FETCH_TIMEOUT_MS;
+    const controller = new AbortController();
+    const externalSignal = init.signal;
+    let externalAbortHandler = null;
+
+    if (externalSignal && typeof externalSignal.addEventListener === 'function') {
+      externalAbortHandler = () => controller.abort();
+      if (externalSignal.aborted) controller.abort();
+      else externalSignal.addEventListener('abort', externalAbortHandler, { once: true });
+    }
+
+    const timeoutId = setTimeout(() => controller.abort(), effectiveTimeout);
+    try {
+      const response = await fetch(resource, { ...init, signal: controller.signal });
+      if (!response || !response.ok) return { response, data: null };
+      const data = await response.json();
+      return { response, data };
+    } finally {
+      clearTimeout(timeoutId);
+      if (externalAbortHandler && typeof externalSignal?.removeEventListener === 'function') {
+        externalSignal.removeEventListener('abort', externalAbortHandler);
+      }
+    }
+  }
+
   // ===== NORMALIZACIÓN DE VALORES =====
 
   /**
@@ -2466,6 +2504,62 @@
     return new Date(Date.UTC(year, month, 0)).toISOString().slice(0, 10);
   }
 
+  // Identidad minima de los datasets horarios estaticos. La cobertura temporal no basta:
+  // un fichero completo pero servido bajo la ruta equivocada (otra zona/indicador/unidad)
+  // produciria una cifra economicamente falsa. Esta comprobacion vive en la frontera de
+  // lectura para que ningun consumidor tenga que reinterpretar los metadatos por su cuenta.
+  function validateStaticPriceDatasetIdentity(data, {
+    expectedGeoId = null,
+    expectedIndicator = null,
+    expectedTimeZone = null,
+    allowMissingFields = false
+  } = {}) {
+    if (!data || typeof data !== 'object' || Array.isArray(data)) {
+      return { ok: false, reason: 'invalid-dataset' };
+    }
+    if (data.schema_version !== 2) return { ok: false, reason: 'unsupported-schema' };
+
+    const missing = (value) => value === undefined || value === null;
+
+    if (missing(data.geo_id)) {
+      if (!allowMissingFields) return { ok: false, reason: 'missing-geo-id' };
+    } else if (typeof data.geo_id !== 'number' || !Number.isInteger(data.geo_id)) {
+      return { ok: false, reason: 'invalid-geo-id' };
+    } else if (expectedGeoId !== null && data.geo_id !== Number(expectedGeoId)) {
+      return { ok: false, reason: 'geo-id-mismatch' };
+    }
+
+    if (missing(data.indicator)) {
+      if (!allowMissingFields) return { ok: false, reason: 'missing-indicator' };
+    } else if (typeof data.indicator !== 'number' || !Number.isInteger(data.indicator)) {
+      return { ok: false, reason: 'invalid-indicator' };
+    } else if (expectedIndicator !== null && data.indicator !== Number(expectedIndicator)) {
+      return { ok: false, reason: 'indicator-mismatch' };
+    }
+
+    if (missing(data.unit)) {
+      if (!allowMissingFields) return { ok: false, reason: 'missing-unit' };
+    } else if (data.unit !== 'EUR/kWh') {
+      return { ok: false, reason: 'unit-mismatch' };
+    }
+
+    if (missing(data.epoch_unit)) {
+      if (!allowMissingFields) return { ok: false, reason: 'missing-epoch-unit' };
+    } else if (data.epoch_unit !== 's') {
+      return { ok: false, reason: 'epoch-unit-mismatch' };
+    }
+
+    if (missing(data.timezone)) {
+      if (!allowMissingFields) return { ok: false, reason: 'missing-timezone' };
+    } else if (typeof data.timezone !== 'string' || !data.timezone) {
+      return { ok: false, reason: 'invalid-timezone' };
+    } else if (expectedTimeZone !== null && data.timezone !== expectedTimeZone) {
+      return { ok: false, reason: 'timezone-mismatch' };
+    }
+
+    return { ok: true };
+  }
+
   // Un JSON mensual no es sano solo porque sus dias presentes lo sean: debe declarar un
   // intervalo real (`from`/`to`) y contener TODAS sus fechas consecutivas. Los meses ya
   // cerrados deben cubrir del dia 1 al ultimo natural; el mes vigente puede terminar en
@@ -2522,6 +2616,7 @@
   window.LF.csvUtils = {
     // Red
     fetchWithTimeout,
+    fetchJsonWithTimeout,
 
     // Normalización
     stripBomAndTrim,
@@ -2581,6 +2676,7 @@
     formatYmdInTimeZone,
     validatePvpcDayCoverage,
     validateClosedPvpcDay,
+    validateStaticPriceDatasetIdentity,
     validatePvpcMonthCoverage
   };
 
