@@ -1489,6 +1489,8 @@ document.addEventListener('DOMContentLoaded', () => {
   // remunerado que alimente la hucha, asi que fv.bv se normaliza a false y la BV no se aplica.
   // Sin este texto, marcar la casilla no produciria efecto ni explicacion. NO marca el campo en
   // rojo, NO invalida el formulario y NO desmarca la casilla: el estado es legitimo y calculable.
+  const MT_BV_SIN_COMPENSACION_MSG = 'La batería virtual no se aplicará mientras la compensación sea 0 €/kWh: sin excedentes remunerados no se genera nuevo saldo para la hucha. Indica un precio de compensación o marca la compensación indexada.';
+
   function updateMtBVSinCompensacionAviso() {
     const aviso = document.getElementById('mtBVSinCompensacionAviso');
     if (!aviso) return;
@@ -1496,7 +1498,17 @@ document.addEventListener('DOMContentLoaded', () => {
     const indexada = Boolean(document.getElementById('mtCompensacionIndexada')?.checked);
     const excRaw = String(document.getElementById('mtExc')?.value || '').trim();
     const excNum = excRaw ? parseInput(excRaw) : 0;
-    aviso.style.display = (bvOn && !indexada && !(excNum > 0)) ? '' : 'none';
+    const inactiva = bvOn && !indexada && !(excNum > 0);
+    aviso.style.display = inactiva ? '' : 'none';
+
+    // El <p> visible NO puede ser la live region: display:none lo saca del arbol de
+    // accesibilidad. La region vive aparte, siempre presente, y lo que cambia es su contenido.
+    // Solo se escribe en las transiciones para no re-anunciar mientras se teclea.
+    const live = document.getElementById('mtBVSinCompensacionLive');
+    if (!live) return;
+    const anunciado = live.textContent !== '';
+    if (inactiva && !anunciado) live.textContent = MT_BV_SIN_COMPENSACION_MSG;
+    else if (!inactiva && anunciado) live.textContent = '';
   }
 
   function saveCustomTarifa() {

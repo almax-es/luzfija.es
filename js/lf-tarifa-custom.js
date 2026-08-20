@@ -130,9 +130,10 @@
           <label for="mtPrecioBV">Cuota batería virtual (€/mes; escribe 0 si es gratuita)</label>
           <input id="mtPrecioBV" class="input" type="text" inputmode="decimal" placeholder="Ej: 2,99">
         </div>
-        <p id="mtBVSinCompensacionAviso" role="status" style="display:none; margin: 8px 0 0; font-size: 12px; line-height: 1.45; color: var(--muted2);">
+        <p id="mtBVSinCompensacionAviso" style="display:none; margin: 8px 0 0; font-size: 12px; line-height: 1.45; color: var(--muted2);">
           ⚠️ La batería virtual no se aplicará mientras la compensación sea 0 €/kWh: sin excedentes remunerados no se genera nuevo saldo para la hucha. Indica un precio de compensación o marca la compensación indexada.
         </p>
+        <span id="mtBVSinCompensacionLive" class="sr-only" role="status"></span>
       `;
     }
 
@@ -655,6 +656,8 @@
   // texto, marcar la casilla no produciria ningun efecto ni ninguna explicacion. Deliberadamente
   // NO marca el campo en rojo, NO invalida el formulario y NO desmarca la casilla: el estado es
   // legitimo y calculable, solo que la BV queda inactiva.
+  const MT_BV_SIN_COMPENSACION_MSG = 'La batería virtual no se aplicará mientras la compensación sea 0 €/kWh: sin excedentes remunerados no se genera nuevo saldo para la hucha. Indica un precio de compensación o marca la compensación indexada.';
+
   function updateMtBVSinCompensacionAviso() {
     const aviso = $('mtBVSinCompensacionAviso');
     if (!aviso) return;
@@ -664,6 +667,17 @@
     const excNum = excVal ? parseNum(excVal) : 0;
     const inactiva = bvOn && !indexada && !(excNum > 0);
     aviso.style.display = inactiva ? '' : 'none';
+
+    // El <p> visible NO puede ser la live region: display:none lo saca del arbol de
+    // accesibilidad, y volver a mostrarlo no es un cambio DENTRO de una region ya presente,
+    // que es lo que los lectores de pantalla anuncian de forma fiable. La region vive aparte,
+    // siempre en el DOM, y lo que cambia es su contenido. Solo se escribe en las transiciones
+    // para no re-anunciar mientras el usuario teclea 0 -> 0, -> 0,0.
+    const live = $('mtBVSinCompensacionLive');
+    if (!live) return;
+    const anunciado = live.textContent !== '';
+    if (inactiva && !anunciado) live.textContent = MT_BV_SIN_COMPENSACION_MSG;
+    else if (!inactiva && anunciado) live.textContent = '';
   }
 
   // Cargar al iniciar
