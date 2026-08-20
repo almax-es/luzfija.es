@@ -343,9 +343,10 @@ tres productores elimina el estado imposible en origen, cubre tambien los datos 
 
 **Consecuencia para este documento.** Con el invariante vigente, `hasBV = Boolean(tarifa?.fv?.bv)`
 en el motor mensual y "la cuota solo aplica con `fv.bv = true` y `fv.tipo = 'SIMPLE + BV'"` (ver
-seccion `precioBV`) dejan de ser dos criterios distintos: son equivalentes, porque `fv.bv` ya no
-puede ser `true` sin compensacion. Un `fv` construido a mano fuera de estos tres productores
-—por ejemplo en un fixture de test— debe respetar la misma coherencia.
+seccion `precioBV`) dejan de ser dos criterios distintos: son equivalentes, porque los productores
+derivan tanto `fv.bv = true` como `fv.tipo = 'SIMPLE + BV'` de la misma condicion
+`checkbox && compensa`. Un `fv` construido a mano fuera de estos tres productores —por ejemplo en
+un fixture de test— debe respetar la misma coherencia.
 
 Nota: una BV **gratuita** (`precioBV = 0`) sigue siendo una BV activa. La cuota no es requisito de
 activacion; solo `checkbox && compensa` lo es.

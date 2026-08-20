@@ -131,7 +131,7 @@
           <input id="mtPrecioBV" class="input" type="text" inputmode="decimal" placeholder="Ej: 2,99">
         </div>
         <p id="mtBVSinCompensacionAviso" role="status" style="display:none; margin: 8px 0 0; font-size: 12px; line-height: 1.45; color: var(--muted2);">
-          ⚠️ La batería virtual no se aplicará mientras la compensación sea 0 €/kWh: sin excedentes remunerados no hay nada que acumular en la hucha. Indica un precio de compensación o marca la compensación indexada.
+          ⚠️ La batería virtual no se aplicará mientras la compensación sea 0 €/kWh: sin excedentes remunerados no se genera nuevo saldo para la hucha. Indica un precio de compensación o marca la compensación indexada.
         </p>
       `;
     }
