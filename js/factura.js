@@ -91,6 +91,8 @@
       const __LF_MAX_PDF_SIZE_MB = 20;
       const __LF_MAX_PDF_SIZE_BYTES = __LF_MAX_PDF_SIZE_MB * 1024 * 1024;
       const __LF_MAX_PDF_TEXT_PAGES = 20;
+      const __LF_MAX_PDF_RENDER_PIXELS = 16 * 1024 * 1024;
+      const __LF_MAX_PDF_RENDER_DIMENSION = 8192;
 
       function __LF_beginOperation(){
         if (window.__LF_FACTURA_BUSY || __LF_activeOperation !== 0) return null;
@@ -148,6 +150,44 @@
         } catch(_){
           return 0;
         }
+      }
+
+      function __LF_getSafePdfViewport(page, requestedScale){
+        const scale = Number(requestedScale);
+        if (!page || typeof page.getViewport !== 'function' || !Number.isFinite(scale) || scale <= 0) {
+          throw new Error('Dimensiones de página PDF inválidas');
+        }
+
+        const baseViewport = page.getViewport({ scale: 1 });
+        const baseWidth = Number(baseViewport?.width);
+        const baseHeight = Number(baseViewport?.height);
+        if (!Number.isFinite(baseWidth) || !Number.isFinite(baseHeight) || baseWidth <= 0 || baseHeight <= 0) {
+          throw new Error('Dimensiones de página PDF inválidas');
+        }
+
+        const scaleByPixels = Math.sqrt(__LF_MAX_PDF_RENDER_PIXELS / (baseWidth * baseHeight));
+        const scaleByDimension = Math.min(
+          __LF_MAX_PDF_RENDER_DIMENSION / baseWidth,
+          __LF_MAX_PDF_RENDER_DIMENSION / baseHeight
+        );
+        const safeScale = Math.min(scale, scaleByPixels, scaleByDimension);
+        if (!Number.isFinite(safeScale) || safeScale <= 0) {
+          throw new Error('Dimensiones de página PDF inválidas');
+        }
+
+        const viewport = page.getViewport({ scale: safeScale });
+        const width = Math.max(1, Math.floor(Number(viewport.width)));
+        const height = Math.max(1, Math.floor(Number(viewport.height)));
+        if (
+          !Number.isFinite(width) || !Number.isFinite(height)
+          || width > __LF_MAX_PDF_RENDER_DIMENSION
+          || height > __LF_MAX_PDF_RENDER_DIMENSION
+          || width * height > __LF_MAX_PDF_RENDER_PIXELS
+        ) {
+          throw new Error('Dimensiones de página PDF demasiado grandes');
+        }
+
+        return { viewport, width, height, scale: safeScale };
       }
 
       function __LF_ensurePdfWorker(){
@@ -319,30 +359,40 @@
           for (const pageNum of pageOrder) {
             lfDbg(`[QR jsQR] Página ${pageNum}/${maxPages}...`);
             const page = await pdf.getPage(pageNum);
+            try {
+              for (const scale of scales) {
+                let canvas = null;
+                try {
+                  const safeViewport = __LF_getSafePdfViewport(page, scale);
+                  const viewport = safeViewport.viewport;
 
-            for (const scale of scales) {
-              const viewport = page.getViewport({ scale });
+                  canvas = document.createElement('canvas');
+                  const context = canvas.getContext('2d');
+                  if (!context) throw new Error('No se pudo crear el canvas para analizar el PDF');
+                  canvas.width = safeViewport.width;
+                  canvas.height = safeViewport.height;
 
-              const canvas = document.createElement('canvas');
-              const context = canvas.getContext('2d');
-              canvas.width = viewport.width;
-              canvas.height = viewport.height;
+                  await page.render({ canvasContext: context, viewport }).promise;
+                  const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 
-              await page.render({ canvasContext: context, viewport }).promise;
-              const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
+                  // Intentar con y sin inversión
+                  const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                    inversionAttempts: "attemptBoth"
+                  });
 
-              // Intentar con y sin inversión
-              const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                inversionAttempts: "attemptBoth"
-              });
-
-              if (code && code.data) {
-                lfDbg(`[QR jsQR] Código detectado (escala ${scale}) [contenido oculto]`);
-                if (__LF_isTrustedCnmcQrUrl(code.data)) {
-                  lfDbg(`[QR jsQR] ✅ QR CNMC válido encontrado en página ${pageNum} (escala ${scale})`);
-                  return code.data;
+                  if (code && code.data) {
+                    lfDbg(`[QR jsQR] Código detectado (escala ${safeViewport.scale}) [contenido oculto]`);
+                    if (__LF_isTrustedCnmcQrUrl(code.data)) {
+                      lfDbg(`[QR jsQR] ✅ QR CNMC válido encontrado en página ${pageNum} (escala ${safeViewport.scale})`);
+                      return code.data;
+                    }
+                  }
+                } finally {
+                  try{ if (canvas) { canvas.width = 0; canvas.height = 0; canvas.remove?.(); } }catch(_){}
                 }
               }
+            } finally {
+              try{ if (page && page.cleanup) await page.cleanup(); }catch(_){}
             }
           }
 
@@ -801,7 +851,9 @@
           const fi = __LF_q('fileInputFactura');
           if (fi) fi.value = '';
         }catch(_){/* noop */}
-        if (!file || file.type !== 'application/pdf'){
+        const fileType = String(file?.type || '').trim().toLowerCase();
+        const fileName = String(file?.name || '').trim();
+        if (!file || (fileType !== 'application/pdf' && !/\.pdf$/i.test(fileName))){
           if (typeof toast === 'function') toast('Sube un PDF válido', 'err');
           return;
         }
@@ -1085,27 +1137,32 @@
 
           for (let p=1; p<=pagesToScan; p++){
             const page = await pdf.getPage(p);
-            __LF_assertCurrentOperation(operationId);
-            const viewport = page.getViewport({ scale: 2.0 });
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d', { willReadFrequently:true });
-            canvas.width = viewport.width;
-            canvas.height = viewport.height;
-            await page.render({ canvasContext: ctx, viewport }).promise;
-            __LF_assertCurrentOperation(operationId);
+            let canvas = null;
+            try {
+              __LF_assertCurrentOperation(operationId);
+              const safeViewport = __LF_getSafePdfViewport(page, 2.0);
+              const viewport = safeViewport.viewport;
+              canvas = document.createElement('canvas');
+              const ctx = canvas.getContext('2d', { willReadFrequently:true });
+              if (!ctx) throw new Error('No se pudo crear el canvas para OCR');
+              canvas.width = safeViewport.width;
+              canvas.height = safeViewport.height;
+              await page.render({ canvasContext: ctx, viewport }).promise;
+              __LF_assertCurrentOperation(operationId);
 
-            const __LF_tessOpts = {
-              workerPath: __LF_assetUrl('vendor/tesseract/worker.min.js'),
-              corePath: __LF_assetUrl('vendor/tesseract-core/tesseract-core.wasm.js'),
-              langPath: __LF_assetUrl('vendor/tessdata/'),
-            };
-            const { data } = await T.recognize(canvas, 'spa', __LF_tessOpts);
-            __LF_assertCurrentOperation(operationId);
-            ocrText += (data.text || '') + '\n';
-
-            // Limpieza best-effort para reducir retención de datos en memoria
-            try{ if (page && page.cleanup) await page.cleanup(); }catch(_){}
-            try{ canvas.width = 0; canvas.height = 0; canvas.remove?.(); }catch(_){}
+              const __LF_tessOpts = {
+                workerPath: __LF_assetUrl('vendor/tesseract/worker.min.js'),
+                corePath: __LF_assetUrl('vendor/tesseract-core/tesseract-core.wasm.js'),
+                langPath: __LF_assetUrl('vendor/tessdata/'),
+              };
+              const { data } = await T.recognize(canvas, 'spa', __LF_tessOpts);
+              __LF_assertCurrentOperation(operationId);
+              ocrText += (data.text || '') + '\n';
+            } finally {
+              // Limpieza best-effort para reducir retención de datos en memoria incluso si render/OCR falla.
+              try{ if (page && page.cleanup) await page.cleanup(); }catch(_){}
+              try{ if (canvas) { canvas.width = 0; canvas.height = 0; canvas.remove?.(); } }catch(_){}
+            }
           }
 
           __LF_hide(__LF_q('loaderFactura'));

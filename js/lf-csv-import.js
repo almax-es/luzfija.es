@@ -479,6 +479,7 @@
     modal.setAttribute('role', 'dialog');
     modal.setAttribute('aria-modal', 'true');
     modal.setAttribute('aria-hidden', 'false');
+    modal.setAttribute('aria-labelledby', 'lfCsvPreviewTitle');
     modal.tabIndex = -1;
 
     // Accesibilidad: restaurar foco + focus trap
@@ -626,7 +627,7 @@
 
     content.innerHTML = `
       <button class="modal-x" id="btnCerrarCSVX" type="button" aria-label="Cerrar">✕</button>
-      <h3 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 900; color: var(--text);">
+      <h3 id="lfCsvPreviewTitle" style="margin: 0 0 16px 0; font-size: 18px; font-weight: 900; color: var(--text);">
         📊 Consumos detectados${resultado.tieneExcedentes ? ' ☀️' : ''}
       </h3>
       ${discontinuityHTML}
