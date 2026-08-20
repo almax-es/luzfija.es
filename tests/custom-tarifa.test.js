@@ -223,6 +223,11 @@ describe('Tarifa Personalizada (lf-tarifa-custom.js)', () => {
     const tarifa = window.LF.agregarMiTarifa();
 
     expect(tarifa).not.toBeNull();
+    // Una BV gratuita (0 €/mes) sigue siendo una BV activa: la cuota no es requisito de
+    // activación. Sin estos asserts, `bv: tieneBV && compensa && precioBV > 0` pasaría.
+    expect(tarifa.fv.bv).toBe(true);
+    expect(tarifa.fv.reglaBV).toBe('BV MES ANTERIOR');
+    expect(tarifa.fv.tipo).toBe('SIMPLE + BV');
     expect(tarifa.fv.precioBV).toBe(0);
   });
 
@@ -240,6 +245,11 @@ describe('Tarifa Personalizada (lf-tarifa-custom.js)', () => {
     const tarifa = window.LF.agregarMiTarifa();
 
     expect(tarifa).not.toBeNull();
+    // Simétrico del invariante: aquí hay compensación (0,07) pero el checkbox está
+    // desmarcado. Sin estos asserts, olvidar el operando del checkbox — `bv: compensa` —
+    // pasaría el test, porque precioBV ya se pone a 0 antes de construir fv.
+    expect(tarifa.fv.bv).toBe(false);
+    expect(tarifa.fv.reglaBV).toBe('NO APLICA');
     expect(tarifa.fv.precioBV).toBe(0);
   });
 

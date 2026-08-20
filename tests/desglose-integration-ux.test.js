@@ -355,7 +355,10 @@ describe('Desglose integration UX guardrails', () => {
   // Nota: abrir() esta mockeado, asi que esto prueba el cableado (que precioBV y tieneBV
   // llegan al desglose), no que la cuota acabe sumandose al total. Eso lo cubre el motor en
   // tests/desglose.test.js.
-  it('Mi tarifa con BV activa pasa precioBV y tieneBV al desglose', async () => {
+  it.each([
+    ['de pago', '2,99', 2.99],
+    ['gratuita', '0', 0]
+  ])('Mi tarifa con BV activa %s pasa precioBV y tieneBV al desglose', async (_caso, precioBVRaw, precioBVEsperado) => {
     document.getElementById('mtPunta').value = '0,15';
     document.getElementById('mtLlano').value = '0,10';
     document.getElementById('mtValle').value = '0,05';
@@ -363,7 +366,9 @@ describe('Desglose integration UX guardrails', () => {
     document.getElementById('mtP2').value = '0,08';
     document.getElementById('solarOn').checked = true;
     document.getElementById('mtBV').checked = true;
-    document.getElementById('mtPrecioBV').value = '2,99';
+    // La variante gratuita (0 EUR/mes) cubre que la activacion de la BV no dependa de que la
+    // cuota sea positiva: `bv: ... && precioBV > 0` es una confusion plausible.
+    document.getElementById('mtPrecioBV').value = precioBVRaw;
     // Sin precio de compensacion la BV no es aplicable (fv.bv se normaliza a false) y la
     // cuota no viaja al desglose. Este test cubre la BV realmente activa, asi que necesita
     // compensacion > 0; el caso sin compensacion se cubre en el test siguiente.
@@ -374,7 +379,12 @@ describe('Desglose integration UX guardrails', () => {
     await window.mostrarDesglose('Mi tarifa ⭐');
 
     expect(window.__LF_DesgloseFactura.abrir).toHaveBeenCalledWith(
-      expect.objectContaining({ precioBV: 2.99, tieneBV: true })
+      expect.objectContaining({
+        precioBV: precioBVEsperado,
+        tieneBV: true,
+        reglaBV: 'BV MES ANTERIOR',
+        tipoCompensacion: 'SIMPLE + BV'
+      })
     );
   });
 
@@ -399,7 +409,12 @@ describe('Desglose integration UX guardrails', () => {
     await window.mostrarDesglose('Mi tarifa ⭐');
 
     expect(window.__LF_DesgloseFactura.abrir).toHaveBeenCalledWith(
-      expect.objectContaining({ tieneBV: false, precioBV: 0, tipoCompensacion: 'NO COMPENSA' })
+      expect.objectContaining({
+        tieneBV: false,
+        reglaBV: 'NO APLICA',
+        precioBV: 0,
+        tipoCompensacion: 'NO COMPENSA'
+      })
     );
   });
 
@@ -439,6 +454,11 @@ describe('Desglose integration UX guardrails', () => {
     document.getElementById('mtValle').value = '0,05';
     document.getElementById('mtP1').value = '0,08';
     document.getElementById('mtP2').value = '0,08';
+    // Cuadrante simetrico del invariante: SI hay compensacion, pero el checkbox esta
+    // desmarcado. Sin solar ni compensacion, `bv: mtCompensa` daria false igual que el
+    // codigo correcto y la mutacion pasaria inadvertida.
+    document.getElementById('solarOn').checked = true;
+    document.getElementById('mtPrecioExc').value = '0,05';
     document.getElementById('mtBV').checked = false;
     document.getElementById('mtPrecioBV').value = '2,99';
 
@@ -447,7 +467,12 @@ describe('Desglose integration UX guardrails', () => {
     await window.mostrarDesglose('Mi tarifa ⭐');
 
     expect(window.__LF_DesgloseFactura.abrir).toHaveBeenCalledWith(
-      expect.objectContaining({ precioBV: 0 })
+      expect.objectContaining({
+        tieneBV: false,
+        reglaBV: 'NO APLICA',
+        precioBV: 0,
+        tipoCompensacion: 'SIMPLE'
+      })
     );
   });
 });

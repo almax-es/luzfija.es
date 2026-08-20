@@ -293,17 +293,24 @@ describe('Simulador solar - "Mi tarifa": 0 explicito no se confunde con vacio (1
     expect(tarifa.cValle).toBe(0.12);
   });
 
-  it('BV marcada sin compensacion se normaliza a fv.bv=false', () => {
+  it.each([
+    ['compensacion vacia', ''],
+    ['compensacion cero explicito', '0']
+  ])('BV marcada con %s se normaliza a fv.bv=false', (_caso, excRaw) => {
     // INVARIANTE: fv.bv significa "BV aplicable", no "el checkbox estaba marcado". Este
     // productor es el del simulador; bv-sim-monthly.js activa la BV mirando solo fv.bv,
     // mientras lf-calc.js y desglose-calculo.js exigen ademas tipo === 'SIMPLE + BV'. Emitir
     // bv:true sin compensacion cobraba la cuota mensual aqui y no en home, dando importes
     // distintos para la misma configuracion del usuario.
     bootSolarUi();
-    setCustomTarifa({ punta: '0,10', llano: '0,10', valle: '0,10', p1: '0,08', p2: '0,08', exc: '', bv: true, precioBV: '2,99' });
+    setCustomTarifa({ punta: '0,10', llano: '0,10', valle: '0,10', p1: '0,08', p2: '0,08', exc: excRaw, bv: true, precioBV: '2,99' });
 
     const tarifa = window.BVSim._getCustomTarifa();
 
+    // El cero explicito importa aparte del vacio: una implementacion por truthiness del
+    // valor crudo — `indexada || Boolean(rawExc)` — pasaria el caso '' y fallaria con '0',
+    // porque Boolean('0') es true.
+    expect(tarifa.fv.exc).toBe(0);
     expect(tarifa.fv.bv).toBe(false);
     expect(tarifa.fv.reglaBV).toBe('NO APLICA');
     expect(tarifa.fv.tipo).toBe('NO COMPENSA');
@@ -317,6 +324,7 @@ describe('Simulador solar - "Mi tarifa": 0 explicito no se confunde con vacio (1
 
     expect(tarifa.fv.exc).toBe(-1);
     expect(tarifa.fv.bv).toBe(true);
+    expect(tarifa.fv.reglaBV).toBe('BV MES ANTERIOR');
     expect(tarifa.fv.tipo).toBe('SIMPLE + BV');
   });
 
@@ -355,6 +363,11 @@ describe('Simulador solar - "Mi tarifa": cuota mensual de bateria virtual (14/08
 
     const tarifa = window.BVSim._getCustomTarifa();
 
+    // Una BV gratuita sigue activa: la cuota no es requisito de activacion. Sin estos
+    // asserts, `bv: hasBV && compensa && precioBV > 0` pasaria el test.
+    expect(tarifa.fv.bv).toBe(true);
+    expect(tarifa.fv.reglaBV).toBe('BV MES ANTERIOR');
+    expect(tarifa.fv.tipo).toBe('SIMPLE + BV');
     expect(tarifa.fv.precioBV).toBe(0);
   });
 });
