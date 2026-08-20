@@ -43,6 +43,16 @@ beforeAll(async () => {
 
 describe('Tarifa Personalizada (lf-tarifa-custom.js)', () => {
 
+  // Este describe encadena estado a proposito (cada test parte del DOM que dejo el
+  // anterior), pero la compensacion indexada NO puede filtrarse: con exc = -1 el
+  // constructor ignora el precio fijo, asi que un test posterior que escriba
+  // mtPrecioExc = "0,07" estaria midiendo un escenario distinto del que declara.
+  // Se resetea solo ese checkbox; el resto del encadenamiento se conserva.
+  beforeEach(() => {
+    const indexada = document.getElementById('mtCompensacionIndexada');
+    if (indexada) indexada.checked = false;
+  });
+
   it('agregarMiTarifa: Debe retornar null si el checkbox no está marcado', () => {
     document.getElementById('compararMiTarifa').checked = false;
     expect(window.LF.agregarMiTarifa()).toBeNull();
@@ -119,6 +129,7 @@ describe('Tarifa Personalizada (lf-tarifa-custom.js)', () => {
     // tipo 'NO COMPENSA' divergía entre motores: lf-calc.js y desglose-calculo.js exigen
     // tipo === 'SIMPLE + BV', pero bv-sim-monthly.js activa la BV solo por fv.bv, así que
     // cobraba la cuota mensual en el simulador y no en home para la misma configuración.
+    document.getElementById('compararMiTarifa').checked = true;
     document.getElementById('solarOn').checked = true;
     document.getElementById('mtPrecioExc').value = ""; // sin compensación
     document.getElementById('mtBV').checked = true;
@@ -136,9 +147,33 @@ describe('Tarifa Personalizada (lf-tarifa-custom.js)', () => {
     expect(tarifa.fv.tipo).toBe('NO COMPENSA');
   });
 
+  it('agregarMiTarifa: BV con compensación 0 explícito también se normaliza a fv.bv=false', () => {
+    // El vacío y el cero explícito son ramas distintas en este proyecto (AUDITORIA-IA.md
+    // dedica una sección al asunto). Una implementación futura basada en truthiness del
+    // valor crudo — Boolean(rawPrecioExc) — pasaría el caso "" y fallaría con "0".
+    document.getElementById('compararMiTarifa').checked = true;
+    document.getElementById('solarOn').checked = true;
+    document.getElementById('mtPrecioExc').value = "0";
+    document.getElementById('mtBV').checked = true;
+    document.getElementById('mtPrecioBV').value = "2,99";
+    document.getElementById('mtPunta').value = "0,10";
+    document.getElementById('mtLlano').value = "0,10";
+    document.getElementById('mtValle').value = "0,10";
+    document.getElementById('mtP1').value = "0,10";
+    document.getElementById('mtP2').value = "0,10";
+
+    const tarifa = window.LF.agregarMiTarifa();
+
+    expect(tarifa.fv.exc).toBe(0);
+    expect(tarifa.fv.bv).toBe(false);
+    expect(tarifa.fv.reglaBV).toBe('NO APLICA');
+    expect(tarifa.fv.tipo).toBe('NO COMPENSA');
+  });
+
   it('agregarMiTarifa: BV con compensación indexada sigue activa (exc = -1 compensa)', () => {
     // El centinela fv.exc = -1 cuenta como compensación, así que la normalización del
     // invariante anterior no debe desactivar la BV en la modalidad indexada.
+    document.getElementById('compararMiTarifa').checked = true;
     document.getElementById('solarOn').checked = true;
     document.getElementById('mtPrecioExc').value = "";
     document.getElementById('mtCompensacionIndexada').checked = true;
@@ -154,6 +189,7 @@ describe('Tarifa Personalizada (lf-tarifa-custom.js)', () => {
 
     expect(tarifa.fv.exc).toBe(-1);
     expect(tarifa.fv.bv).toBe(true);
+    expect(tarifa.fv.reglaBV).toBe('BV MES ANTERIOR');
     expect(tarifa.fv.tipo).toBe('SIMPLE + BV');
   });
 

@@ -33,6 +33,7 @@ function renderBaseDom() {
     <input id="mtPrecioExc" value="" />
     <input id="mtBV" type="checkbox" />
     <input id="mtPrecioBV" value="" />
+    <input id="mtCompensacionIndexada" type="checkbox" />
     <table><tbody id="tbody"></tbody></table>
   `;
 }
@@ -351,7 +352,10 @@ describe('Desglose integration UX guardrails', () => {
     expect(window.__LF_DesgloseFactura.abrir).toHaveBeenCalled();
   });
 
-  it('Mi tarifa con BV activa incluye la cuota mensual precioBV en el desglose', async () => {
+  // Nota: abrir() esta mockeado, asi que esto prueba el cableado (que precioBV y tieneBV
+  // llegan al desglose), no que la cuota acabe sumandose al total. Eso lo cubre el motor en
+  // tests/desglose.test.js.
+  it('Mi tarifa con BV activa pasa precioBV y tieneBV al desglose', async () => {
     document.getElementById('mtPunta').value = '0,15';
     document.getElementById('mtLlano').value = '0,10';
     document.getElementById('mtValle').value = '0,05';
@@ -396,6 +400,36 @@ describe('Desglose integration UX guardrails', () => {
 
     expect(window.__LF_DesgloseFactura.abrir).toHaveBeenCalledWith(
       expect.objectContaining({ tieneBV: false, precioBV: 0, tipoCompensacion: 'NO COMPENSA' })
+    );
+  });
+
+  it('Mi tarifa con BV y compensacion indexada mantiene la BV activa', async () => {
+    // Sin este caso, una normalizacion mal escrita como `bv: mtTieneBV && mtPrecioExc > 0`
+    // pasaria el test anterior (sin compensacion) y sin embargo romperia el centinela
+    // exc = -1, que tambien cuenta como compensacion. Mutar solo de vuelta al bug original
+    // no cubre esa variante plausible.
+    document.getElementById('mtPunta').value = '0,15';
+    document.getElementById('mtLlano').value = '0,10';
+    document.getElementById('mtValle').value = '0,05';
+    document.getElementById('mtP1').value = '0,08';
+    document.getElementById('mtP2').value = '0,08';
+    document.getElementById('solarOn').checked = true;
+    document.getElementById('mtBV').checked = true;
+    document.getElementById('mtPrecioBV').value = '2,99';
+    document.getElementById('mtPrecioExc').value = '';
+    document.getElementById('mtCompensacionIndexada').checked = true;
+
+    bootstrapIntegration();
+
+    await window.mostrarDesglose('Mi tarifa ⭐');
+
+    expect(window.__LF_DesgloseFactura.abrir).toHaveBeenCalledWith(
+      expect.objectContaining({
+        tieneBV: true,
+        reglaBV: 'BV MES ANTERIOR',
+        precioBV: 2.99,
+        tipoCompensacion: 'SIMPLE + BV'
+      })
     );
   });
 

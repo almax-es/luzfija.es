@@ -205,6 +205,36 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
     expect(res.excedenteSobranteEur).toBe(0);
   });
 
+  it('BV activa suma la cuota mensual precioBV prorrateada al total', () => {
+    // Home (tests/calc.test.js) y el motor mensual (tests/bv.test.js) ya cubren su propia
+    // cuota BV; el motor del desglose no tenia equivalente. El test de integracion del modal
+    // solo demuestra que precioBV viaja hasta abrir(), con abrir() mockeado: seguiria verde
+    // aunque este motor dejase de cobrar la cuota. No se fija el diferencial fiscal exacto
+    // para no acoplar este test a la ronda cerrada de redondeo.
+    const base = {
+      potenciaP1: 4, potenciaP2: 4, dias: 30,
+      precioP1: 0.1, precioP2: 0.1,
+      consumoPunta: 100,
+      precioPunta: 0.2,
+      excedentes: 0,
+      precioCompensacion: 0.05,
+      tipoCompensacion: 'SIMPLE + BV',
+      bateriaVirtual: 0,
+      tieneBV: true,
+      solarOn: true,
+      zonaFiscal: 'Península'
+    };
+
+    const sinCuota = Desglose.calcularDesglose({ ...base, precioBV: 0 });
+    const conCuota = Desglose.calcularDesglose({ ...base, precioBV: 2 });
+
+    expect(conCuota.precioBVMensual).toBe(2);
+    // Prorrateo anual documentado en ARQUITECTURA-CALCULOS.md: precioBV * dias * 12 / 365.
+    expect(conCuota.costeBV).toBeCloseTo(2 * 30 * 12 / 365, 2);
+    expect(sinCuota.costeBV).toBe(0);
+    expect(conCuota.totalBase).toBeGreaterThan(sinCuota.totalBase);
+  });
+
   it('Debe aplicar BATERÍA VIRTUAL (BV)', () => {
     const datos = {
       potenciaP1: 4, potenciaP2: 4, dias: 30,

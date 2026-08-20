@@ -147,12 +147,17 @@ describe('BVSim - Fiscalidad alineada con comparador principal', () => {
       cPunta: 0,
       cLlano: 0,
       cValle: 0,
-      fv: { exc: 0, bv: true, precioBV: 0 }
+      // exc/tipo coherentes con bv:true a proposito: fv.bv significa "BV aplicable", y sin
+      // compensacion los tres productores lo normalizan a false. El objetivo de este test es
+      // fiscal (la cuota BV tributa como servicio), no de compensacion: exportTotalKWh es 0,
+      // asi que el exc no altera la aritmetica, pero el fixture deja de afirmar que una BV
+      // sin compensacion sea una tarifa valida del dominio.
+      fv: { exc: 0.05, tipo: 'SIMPLE + BV', bv: true, precioBV: 0 }
     };
     const tarifaConCuota = {
       ...tarifaSinCuota,
       nombre: 'Con cuota',
-      fv: { exc: 0, bv: true, precioBV: 2 }
+      fv: { exc: 0.05, tipo: 'SIMPLE + BV', bv: true, precioBV: 2 }
     };
 
     const base = window.BVSim.calcMonthForTarifa({
