@@ -784,6 +784,41 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     expect(result.pvpcCoverage.fallbackReason).toContain('media P1/P2/P3 válida');
   });
 
+  it('obtenerPVPC_LOCAL falla cerrado si el fallback no tiene media del periodo consumido', async () => {
+    const pricesSinP3 = generateMockDayPrices(0.20, 0.10, 0.05).slice(8);
+
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ...pvpcIdentity(8741, 'Europe/Madrid'),
+        days: { '2025-01-07': pricesSinP3 }
+      })
+    });
+
+    global.window.LF.consumosHorarios = [
+      { fecha: new Date(2025, 0, 7), hora: 1, kwh: 1 }
+    ];
+    global.window.LF.pvpcPeriodoCSV = true;
+
+    const result = await global.window.LF.pvpc.obtenerPVPC_LOCAL({
+      zonaFiscal: 'Península',
+      p1: 3.45,
+      p2: 3.45,
+      dias: 1,
+      cPunta: 0,
+      cLlano: 0,
+      cValle: 1,
+      bonoSocialOn: false,
+      bonoSocialTipo: 'vulnerable'
+    });
+
+    expect(result).toBeNull();
+    expect(global.window.toast).toHaveBeenCalledWith(
+      'PVPC: No se pudieron cargar los datos de precios. Compara con tarifas comerciales.',
+      'err'
+    );
+  });
+
   it('obtenerPVPC_LOCAL combina precios exactos y medias con un 10% residual de horas y kWh', async () => {
     const prices = generateMockDayPrices(0.20, 0.10, 0.05);
     prices[0][1] = 0.50;

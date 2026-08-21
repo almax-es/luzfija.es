@@ -718,6 +718,22 @@ describe('parseEnergyTableRows - cambio de octubre en formato 0-23', () => {
   });
 });
 
+describe('parseEnergyTableRows - validez temporal de hora 25', () => {
+  it('descarta H25 fuera del último domingo de octubre y conserva las horas normales', () => {
+    const rows = [
+      ['FECHA', 'HORA', 'CONSUMO_KWH'],
+      ...Array.from({ length: 24 }, (_, i) => ['02/06/2025', String(i + 1), '1']),
+      ['02/06/2025', '25', '5']
+    ];
+
+    const result = window.LF.csvUtils.parseEnergyTableRows(rows, { headerRowIndex: 0 });
+
+    expect(result.records).toHaveLength(24);
+    expect(result.records.some((r) => r.hora === 25)).toBe(false);
+    expect(result.warnings.some((warning) => /hora 25.*cambio de hora de octubre/i.test(warning))).toBe(true);
+  });
+});
+
 describe('Deteccion de periodos duplicados (14/08/2026)', () => {
   let csvUtils;
   beforeAll(() => { csvUtils = window.LF.csvUtils; });

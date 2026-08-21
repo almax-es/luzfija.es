@@ -1436,6 +1436,7 @@
     let parsedRows = 0;
     let simultaneousCount = 0;
     let outOfRangeCount = 0;
+    let h25DiscardedCount = 0;
     const threshold = 1e-6;
 
     const isEmptyCell = isNoDataCellValue;
@@ -1452,6 +1453,13 @@
       if (!fecha || !Number.isFinite(hourNum)) continue;
       const hora = resolveHour(fecha, hourNum, mapping.invVerIdx !== null ? row[mapping.invVerIdx] : null);
       if (!Number.isFinite(hora) || hora < 1 || hora > 25) continue;
+      // Igual que en la matriz H01..H25: la clave CNMC 25 solo existe el último
+      // domingo de octubre. Aceptarla cualquier otro día crea una hora inexistente
+      // que no puede cruzarse con PVPC y distorsiona la curva importada.
+      if (hora === 25 && !esDiaCambioHorarioOctubre(fecha)) {
+        h25DiscardedCount++;
+        continue;
+      }
 
       let importRaw = parseNumber(row[mapping.importIdx]);
       if (!Number.isFinite(importRaw)) {
@@ -1565,6 +1573,9 @@
     }
     if (outOfRangeCount > 0) {
       warnings.push(`Se descartaron ${outOfRangeCount} filas con valores horarios superiores a 10.000 kWh.`);
+    }
+    if (h25DiscardedCount > 0) {
+      warnings.push(`Se descartaron ${h25DiscardedCount} filas con hora 25 en días que no son el cambio de hora de octubre.`);
     }
 
     return {

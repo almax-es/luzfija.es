@@ -866,6 +866,7 @@ const PEAJES_POT_DIA = window.LF_CONFIG?.peajesPotenciaPVPC ?? { p1: 0.075901, p
           let kwhConDatos = 0, kwhSinDatos = 0;
           let missingPeriodMean = false;
           let missingConsumptionMonth = false;
+          const missingMeanPeriods = new Set();
           const addMissingEstimate = (date, cnmcHour, kwh, dateStr) => {
             horasSinDatos++;
             kwhSinDatos += kwh;
@@ -879,8 +880,14 @@ const PEAJES_POT_DIA = window.LF_CONFIG?.peajesPotenciaPVPC ?? { p1: 0.075901, p
               : periodo === 'P2' && countLlano > 0 ? precioP2
                 : periodo === 'P3' && countValle > 0 ? precioP3
                   : null;
-            if (Number.isFinite(periodMean)) estimatedMissingCost += kwh * periodMean;
-            else missingPeriodMean = true;
+            if (Number.isFinite(periodMean)) {
+              estimatedMissingCost += kwh * periodMean;
+            } else {
+              missingPeriodMean = true;
+              if (periodo === 'P1' || periodo === 'P2' || periodo === 'P3') {
+                missingMeanPeriods.add(periodo);
+              }
+            }
           };
           let csvLoopCount = 0;
           for (const c of consumosHorarios) {
@@ -941,6 +948,12 @@ const PEAJES_POT_DIA = window.LF_CONFIG?.peajesPotenciaPVPC ?? { p1: 0.075901, p
             } else if (horasConDatos === 0) {
               motivoFallbackCSV = 'No hay ninguna hora con consumo y precio PVPC disponible para realizar el cruce.';
             }
+          }
+          // El fallback por medias solo es seguro si existe una media para cada periodo
+          // reconocido que contiene consumo sin precio. Usar 0 €/kWh para un periodo sin
+          // ninguna fila válida convertiría ausencia de datos en precio cero.
+          if (!modoExactoCSV && !modoHibridoCSV && missingMeanPeriods.size > 0) {
+            throw new Error(`PVPC incompleto: faltan medias válidas para ${Array.from(missingMeanPeriods).sort().join(', ')}`);
           }
         }
 
