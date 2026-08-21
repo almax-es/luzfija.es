@@ -628,6 +628,11 @@
       return reduce ? 0 : 300;
     };
 
+    const focusNoScroll = (el) => {
+      if (!el || typeof el.focus !== 'function') return;
+      try { el.focus({ preventScroll: true }); } catch (_) { el.focus(); }
+    };
+
     btnPVPCInfo.addEventListener('click', async (e) => {
       // Prevenir comportamiento por defecto y propagación
       e.preventDefault();
@@ -664,6 +669,10 @@
           }
           modalPVPCInfo.classList.add('show');
           __pvpcLock();
+          // El foco debe entrar en el diálogo al abrirse, sin depender de que
+          // terminen las cargas PVPC. Con red lenta/atascada, esperar a cargar
+          // dejaba el foco detrás de un aria-modal visible.
+          focusNoScroll(btnCerrarPVPCX || btnCerrarPVPCInfo);
 
         // Scroll a arriba
         modalPVPCInfo.scrollTop = 0;
@@ -696,19 +705,17 @@
           forceScroll();
           requestAnimationFrame(forceScroll);
 
-          // Dar focus sin provocar scroll
-          const focusNoScroll = (el) => {
-            if (!el || typeof el.focus !== 'function') return;
-            try { el.focus({ preventScroll: true }); } catch (_) { el.focus(); }
-          };
+          // Mantener la temporización histórica que habilita el cierre por
+          // backdrop y libera el estado "abriendo", pero sin volver a robar
+          // el foco si el usuario ya se movió dentro del diálogo.
           if (modalFocusTimer) clearTimeout(modalFocusTimer);
           modalFocusTimer = setTimeout(() => {
             modalFocusTimer = 0;
             if (myOpenSeq !== modalOpenSeq || !modalPVPCInfo.classList.contains('show')) return;
-            focusNoScroll(btnCerrarPVPCX || btnCerrarPVPCInfo);
             modalAbriendo = false;
             modalReadyToClose = true;
           }, 150);
+
         })();
       });
     });

@@ -61,6 +61,7 @@ describe('cierre y reapertura de modales de la home', () => {
 
     expect(modal.classList.contains('show')).toBe(true);
     expect(modal.getAttribute('aria-hidden')).toBe('false');
+    expect(document.activeElement).toBe(document.getElementById('btnCerrarPVPCX'));
     expect(document.documentElement.style.overflow).toBe('hidden');
     expect(document.body.style.overflow).toBe('hidden');
 

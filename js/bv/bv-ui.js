@@ -1418,6 +1418,41 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnMenu = document.getElementById('btnMenu');
   const menuPanel = document.getElementById('menuPanel');
 
+  const getMenuItems = () => menuPanel
+    ? Array.from(menuPanel.querySelectorAll('[role="menuitem"]'))
+    : [];
+
+  const focusMenuItem = (which = 'first') => {
+    const items = getMenuItems();
+    if (!items.length) return;
+    const target = which === 'last' ? items[items.length - 1] : items[0];
+    try { target.focus({ preventScroll: true }); } catch { target.focus(); }
+  };
+
+  const moveMenuFocus = (dir) => {
+    const items = getMenuItems();
+    if (!items.length) return;
+    let index = items.indexOf(document.activeElement);
+    if (index < 0) index = 0;
+    index = (index + dir + items.length) % items.length;
+    try { items[index].focus({ preventScroll: true }); } catch { items[index].focus(); }
+  };
+
+  const setMenuOpen = (open, options = {}) => {
+    if (!btnMenu || !menuPanel) return false;
+    const isOpen = Boolean(open);
+    menuPanel.classList.toggle('show', isOpen);
+    btnMenu.setAttribute('aria-expanded', String(isOpen));
+    menuPanel.setAttribute('aria-hidden', isOpen ? 'false' : 'true');
+    if (isOpen) {
+      if (options.focus === 'first') focusMenuItem('first');
+      if (options.focus === 'last') focusMenuItem('last');
+    } else if (options.returnFocus) {
+      try { btnMenu.focus({ preventScroll: true }); } catch { btnMenu.focus(); }
+    }
+    return isOpen;
+  };
+
   function updateThemeUI() {
     if (!btnTheme) return;
     // Usar icono universal día/noche para evitar confusión con el botón de tarifas solares
@@ -1448,9 +1483,34 @@ document.addEventListener('DOMContentLoaded', () => {
     btnMenu.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      const isShow = menuPanel.classList.toggle('show');
-      btnMenu.setAttribute('aria-expanded', String(isShow));
-      menuPanel.setAttribute('aria-hidden', isShow ? 'false' : 'true');
+      const isShow = setMenuOpen(!menuPanel.classList.contains('show'));
+      if (isShow && e.detail === 0) focusMenuItem('first');
+    });
+    btnMenu.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        e.stopPropagation();
+        setMenuOpen(true, { focus: e.key === 'ArrowUp' ? 'last' : 'first' });
+      } else if (e.key === 'Escape' && menuPanel.classList.contains('show')) {
+        e.preventDefault();
+        setMenuOpen(false, { returnFocus: true });
+      }
+    });
+    menuPanel.addEventListener('keydown', (e) => {
+      if (!menuPanel.classList.contains('show')) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); moveMenuFocus(1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); moveMenuFocus(-1); }
+      else if (e.key === 'Home') { e.preventDefault(); focusMenuItem('first'); }
+      else if (e.key === 'End') { e.preventDefault(); focusMenuItem('last'); }
+      else if (e.key === 'Escape') { e.preventDefault(); setMenuOpen(false, { returnFocus: true }); }
+      else if (e.key === 'Tab') { setMenuOpen(false); }
+    });
+    const menuRoot = document.getElementById('menuRoot');
+    menuRoot?.addEventListener('focusout', () => {
+      if (!menuPanel.classList.contains('show')) return;
+      setTimeout(() => {
+        if (!menuRoot.contains(document.activeElement)) setMenuOpen(false);
+      }, 0);
     });
   }
 
@@ -1492,18 +1552,15 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (menuPanel && menuPanel.classList.contains('show')) {
       if (!menuPanel.contains(e.target)) {
-        menuPanel.classList.remove('show');
-        if (btnMenu) btnMenu.setAttribute('aria-expanded', 'false');
-        menuPanel.setAttribute('aria-hidden', 'true');
+        setMenuOpen(false);
       }
     }
   });
 
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && menuPanel?.classList.contains('show')) {
-      menuPanel.classList.remove('show');
-      if (btnMenu) btnMenu.setAttribute('aria-expanded', 'false');
-      menuPanel.setAttribute('aria-hidden', 'true');
+      const shouldReturnFocus = Boolean(menuPanel.contains(document.activeElement));
+      setMenuOpen(false, { returnFocus: shouldReturnFocus });
     }
   });
 
@@ -2407,6 +2464,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (!fileInput || !simulateButton) return;
 
   resultsEl?.addEventListener('click', (event) => {
+    if (!(event.target instanceof Element)) return;
     const toggle = event.target.closest('[data-consumo-estimate-toggle]');
     if (!toggle || !resultsEl.contains(toggle)) return;
     useAnnualConsumptionEstimate = toggle.dataset.consumoEstimateToggle === 'true';

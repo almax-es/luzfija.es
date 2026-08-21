@@ -12,8 +12,13 @@ const shellCode = fs.readFileSync(path.resolve(__dirname, '../js/shell-lite.js')
 function makePage({ bvOwnsShell = false } = {}) {
   const dom = new JSDOM(`<!doctype html><body>
     <button id="btnTheme"></button>
-    <button id="btnMenu"></button>
-    <div id="menuPanel"></div>
+    <div id="menuRoot">
+      <button id="btnMenu" aria-haspopup="menu" aria-expanded="false"></button>
+      <div id="menuPanel" role="menu" aria-hidden="true">
+        <a id="menuFirst" role="menuitem" href="#first">Primero</a>
+        <button id="menuLast" role="menuitem">Último</button>
+      </div>
+    </div>
     <button id="btnClearCache"></button>
   </body>`, {
     url: 'https://luzfija.es/estadisticas/',
@@ -30,13 +35,18 @@ function makePage({ bvOwnsShell = false } = {}) {
     configurable: true,
     value: { keys: cacheKeys, delete: vi.fn() }
   });
+  const timers = [];
+  const runTimers = () => {
+    while (timers.length) timers.shift()();
+  };
   win.setTimeout = (cb) => {
-    cb();
-    return 1;
+    timers.push(cb);
+    return timers.length;
   };
   win.eval(shellCode);
   win.document.dispatchEvent(new win.Event('DOMContentLoaded'));
-  return { dom, win, cacheKeys };
+  runTimers();
+  return { dom, win, cacheKeys, runTimers };
 }
 
 describe('Shell lite ownership', () => {
@@ -55,6 +65,37 @@ describe('Shell lite ownership', () => {
     win.document.getElementById('btnClearCache').click();
 
     expect(cacheKeys).toHaveBeenCalledTimes(1);
+    dom.window.close();
+  });
+
+  it('permite recorrer el role=menu con teclado y devuelve el foco al cerrar con Escape', () => {
+    const { dom, win, runTimers } = makePage();
+    const btn = win.document.getElementById('btnMenu');
+    const panel = win.document.getElementById('menuPanel');
+    const first = win.document.getElementById('menuFirst');
+    const last = win.document.getElementById('menuLast');
+
+    btn.focus();
+    btn.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    expect(panel.classList.contains('show')).toBe(true);
+    expect(btn.getAttribute('aria-expanded')).toBe('true');
+    expect(win.document.activeElement).toBe(first);
+    runTimers();
+    expect(panel.classList.contains('show')).toBe(true);
+
+    panel.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'ArrowDown', bubbles: true }));
+    expect(win.document.activeElement).toBe(last);
+    panel.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Home', bubbles: true }));
+    expect(win.document.activeElement).toBe(first);
+    panel.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'End', bubbles: true }));
+    expect(win.document.activeElement).toBe(last);
+
+    panel.dispatchEvent(new win.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+    expect(panel.classList.contains('show')).toBe(false);
+    expect(panel.getAttribute('aria-hidden')).toBe('true');
+    expect(btn.getAttribute('aria-expanded')).toBe('false');
+    expect(win.document.activeElement).toBe(btn);
+
     dom.window.close();
   });
 });

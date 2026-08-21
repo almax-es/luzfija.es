@@ -35,7 +35,14 @@ function stubMatchMedia({ hover, coarse }) {
 }
 
 function bootDevice({ hover, coarse }) {
-  document.body.innerHTML = '<div id="host">texto suelto sin envoltorio</div>';
+  document.body.innerHTML = `
+    <div id="host">texto suelto sin envoltorio</div>
+    <input id="bv-file" type="file">
+    <button id="bv-simulate"><span class="bv-btn-text">Simular</span><span class="spinner"></span></button>
+    <div id="bv-results"></div>
+    <div id="bv-results-container"></div>
+    <div id="bv-status"></div>
+    <div id="bv-status-container"></div>`;
   stubMatchMedia({ hover, coarse });
   window.BVSim = {};
   window.LF = window.LF || {};
@@ -97,6 +104,20 @@ describe('bv-ui: eventos cuyo target no es un Element', () => {
     bootDevice({ hover: false, coarse: true });
 
     firstTextNode().dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
+
+    expect(listenerErrors).toEqual([]);
+  });
+
+  it('no revienta en el click delegado de resultados cuando el target es un nodo de texto', () => {
+    bootDevice({ hover: true, coarse: false });
+
+    const results = document.getElementById('bv-results');
+    results.innerHTML = '<span id="consumoToggle" data-consumo-estimate-toggle="true">Usar estimación</span>';
+    const textNode = document.getElementById('consumoToggle').firstChild;
+    expect(textNode.nodeType).toBe(3);
+    expect(textNode instanceof window.Element).toBe(false);
+
+    textNode.dispatchEvent(new window.MouseEvent('click', { bubbles: true }));
 
     expect(listenerErrors).toEqual([]);
   });

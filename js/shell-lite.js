@@ -50,16 +50,38 @@
     if (!btn || !panel || btn.dataset.shellBound === '1' || btn.dataset.bvBound === '1') return;
     btn.dataset.shellBound = '1';
 
-    const close = () => {
+    const items = () => Array.from(panel.querySelectorAll('[role="menuitem"]'));
+    const focusItem = (which = 'first') => {
+      const menuItems = items();
+      if (!menuItems.length) return;
+      const target = which === 'last' ? menuItems[menuItems.length - 1] : menuItems[0];
+      try { target.focus({ preventScroll: true }); } catch (_) { target.focus(); }
+    };
+    const moveFocus = (dir) => {
+      const menuItems = items();
+      if (!menuItems.length) return;
+      let index = menuItems.indexOf(document.activeElement);
+      if (index < 0) index = 0;
+      index = (index + dir + menuItems.length) % menuItems.length;
+      try { menuItems[index].focus({ preventScroll: true }); } catch (_) { menuItems[index].focus(); }
+    };
+
+    const close = (returnFocus = false) => {
       panel.classList.remove('show');
       btn.setAttribute('aria-expanded', 'false');
       panel.setAttribute('aria-hidden', 'true');
+      if (returnFocus) {
+        try { btn.focus({ preventScroll: true }); } catch (_) { btn.focus(); }
+      }
     };
-    const toggle = () => {
+    const toggle = (force, focus) => {
       const willOpen = !panel.classList.contains('show');
-      panel.classList.toggle('show', willOpen);
-      btn.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
-      panel.setAttribute('aria-hidden', willOpen ? 'false' : 'true');
+      const open = typeof force === 'boolean' ? force : willOpen;
+      panel.classList.toggle('show', open);
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+      panel.setAttribute('aria-hidden', open ? 'false' : 'true');
+      if (open && focus) focusItem(focus);
+      return open;
     };
 
     panel.setAttribute('aria-hidden', panel.classList.contains('show') ? 'false' : 'true');
@@ -67,7 +89,29 @@
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
-      toggle();
+      const opened = toggle();
+      if (opened && e.detail === 0) focusItem('first');
+    });
+
+    btn.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault();
+        e.stopPropagation();
+        toggle(true, e.key === 'ArrowUp' ? 'last' : 'first');
+      } else if (e.key === 'Escape' && panel.classList.contains('show')) {
+        e.preventDefault();
+        close(true);
+      }
+    });
+
+    panel.addEventListener('keydown', (e) => {
+      if (!panel.classList.contains('show')) return;
+      if (e.key === 'ArrowDown') { e.preventDefault(); moveFocus(1); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); moveFocus(-1); }
+      else if (e.key === 'Home') { e.preventDefault(); focusItem('first'); }
+      else if (e.key === 'End') { e.preventDefault(); focusItem('last'); }
+      else if (e.key === 'Escape') { e.preventDefault(); close(true); }
+      else if (e.key === 'Tab') { close(false); }
     });
 
     document.addEventListener('click', (e) => {
@@ -77,7 +121,17 @@
     });
 
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') close();
+      if (e.key === 'Escape' && panel.classList.contains('show')) {
+        close(panel.contains(document.activeElement));
+      }
+    });
+
+    const root = document.getElementById('menuRoot');
+    root?.addEventListener('focusout', () => {
+      if (!panel.classList.contains('show')) return;
+      setTimeout(() => {
+        if (!root.contains(document.activeElement)) close(false);
+      }, 0);
     });
   }
 
