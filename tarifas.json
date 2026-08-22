@@ -601,6 +601,7 @@
       "web": "https://ganaenergia.com/tarifas-luz/24-horas",
       "tipo": "1P",
       "requisitos": "Monedero virtual incluido durante las 12 primeras facturas; después, desde unos 2,13 €/mes",
+      "promo": "10 € de descuento en cada una de las 10 primeras facturas con el código DESC100 (IVA incluido). Algunos usuarios indican que no siempre se lo aplican al contratar: conviene solicitarlo expresamente y confirmarlo antes de firmar.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.06,
@@ -1606,6 +1607,7 @@
       "web": "https://ganaenergia.com/tarifas-luz/tramos-horarios",
       "tipo": "3P",
       "requisitos": "Monedero virtual incluido durante las 12 primeras facturas; después, desde unos 2,13 €/mes",
+      "promo": "10 € de descuento en cada una de las 10 primeras facturas con el código DESC100 (IVA incluido). Algunos usuarios indican que no siempre se lo aplican al contratar: conviene solicitarlo expresamente y confirmarlo antes de firmar.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.06,
@@ -2460,5 +2462,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-08-22T13:12:58.787Z"
+  "updatedAt": "2026-08-22T13:33:00.160Z"
 }
