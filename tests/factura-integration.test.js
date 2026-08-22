@@ -748,10 +748,89 @@ describe('Factura PDF Integration (Black Box)', () => {
     expect(window.runCalculation).not.toHaveBeenCalled();
   });
 
+  async function processFacturaPages(pages, filename) {
+    window.pdfjsLib.getDocument.mockReturnValue({
+      promise: Promise.resolve({
+        numPages: Object.keys(pages).length,
+        getPage: (pageNum) => Promise.resolve({
+          getTextContent: () => Promise.resolve({ items: pages[pageNum] }), getAnnotations: () => Promise.resolve([]), cleanup: () => {},
+          getViewport: () => ({ width: 100, height: 100 }), render: () => ({ promise: Promise.resolve() })
+        }), cleanup: () => {}
+      }), destroy: () => Promise.resolve()
+    });
+    await import('../js/factura-parsers.js');
+    await import('../js/factura.js');
+    window.__LF_bindFacturaParser?.();
+    const file = new File(['dummy'], filename, { type: 'application/pdf' });
+    file.arrayBuffer = async () => new ArrayBuffer(10);
+    const event = new Event('change', { bubbles: true });
+    Object.defineProperty(event, 'target', { value: { files: [file] } });
+    document.getElementById('fileInputFactura').dispatchEvent(event);
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+
+  function facturaValues() {
+    const form = document.getElementById('formValidacionFactura');
+    return (field) => form.querySelector(`.input-validacion[data-field="${field}"] input`)?.value ?? null;
+  }
+
+  it('LF-FAC-001b bloquea potencias de una factura con reparto completo de otra', async () => {
+    const padding = Array(6).fill({ str: 'relleno para superar el minimo de extraccion', transform: [0,0,0,0,0,0] });
+    await processFacturaPages({
+      1: [{ str: 'Periodo de facturación: del 01/01/2026 al 31/01/2026', transform: [0,0,0,0,0,0] }, { str: 'Potencia contratada P1: 3,45 kW', transform: [0,0,0,0,0,0] }, { str: 'Potencia contratada P2: 4,60 kW', transform: [0,0,0,0,0,0] }, ...padding],
+      2: [{ str: 'Periodo de facturación: del 01/02/2026 al 28/02/2026', transform: [0,0,0,0,0,0] }, { str: 'Consumo P1: 400 kWh', transform: [0,0,0,0,0,0] }, { str: 'Consumo P2: 500 kWh', transform: [0,0,0,0,0,0] }, { str: 'Consumo P3: 600 kWh', transform: [0,0,0,0,0,0] }, ...padding]
+    }, 'lf-fac-001b.pdf');
+    const get = facturaValues();
+    expect(get('p1')).toBe(''); expect(get('p2')).toBe(''); expect(get('dias')).toBe('');
+    expect(get('consumoPunta')).toBe(''); expect(get('consumoLlano')).toBe(''); expect(get('consumoValle')).toBe('');
+    expect(document.getElementById('confianzaBadge').textContent).toContain('0%');
+    expect(document.getElementById('avisoFactura').textContent).toContain('varias facturas');
+    document.getElementById('btnAplicarFactura').click();
+    expect(window.runCalculation).not.toHaveBeenCalled();
+  });
+
+  it('LF-FAC-001b bloquea el caso simétrico de reparto completo y potencias de periodos distintos', async () => {
+    const padding = Array(6).fill({ str: 'relleno para superar el minimo de extraccion', transform: [0,0,0,0,0,0] });
+    await processFacturaPages({
+      1: [{ str: 'Periodo de facturación: del 01/01/2026 al 31/01/2026', transform: [0,0,0,0,0,0] }, { str: 'Consumo P1: 400 kWh', transform: [0,0,0,0,0,0] }, { str: 'Consumo P2: 500 kWh', transform: [0,0,0,0,0,0] }, { str: 'Consumo P3: 600 kWh', transform: [0,0,0,0,0,0] }, ...padding],
+      2: [{ str: 'Periodo de facturación: del 01/02/2026 al 28/02/2026', transform: [0,0,0,0,0,0] }, { str: 'Potencia contratada P1: 3,45 kW', transform: [0,0,0,0,0,0] }, { str: 'Potencia contratada P2: 4,60 kW', transform: [0,0,0,0,0,0] }, ...padding]
+    }, 'lf-fac-001b-simetrico.pdf');
+    const get = facturaValues();
+    expect(get('p1')).toBe(''); expect(get('p2')).toBe(''); expect(get('dias')).toBe('');
+    expect(get('consumoPunta')).toBe(''); expect(get('consumoLlano')).toBe(''); expect(get('consumoValle')).toBe('');
+    expect(document.getElementById('confianzaBadge').textContent).toContain('0%');
+  });
+
+  it('LF-FAC-001b acepta piezas complementarias de una misma factura', async () => {
+    const padding = Array(6).fill({ str: 'relleno para superar el minimo de extraccion', transform: [0,0,0,0,0,0] });
+    await processFacturaPages({
+      1: [{ str: 'Periodo de facturación: del 01/01/2026 al 31/01/2026', transform: [0,0,0,0,0,0] }, { str: 'Potencia contratada P1: 3,45 kW', transform: [0,0,0,0,0,0] }, { str: 'Potencia contratada P2: 4,60 kW', transform: [0,0,0,0,0,0] }, ...padding],
+      2: [{ str: 'Periodo de facturación: del 01/01/2026 al 31/01/2026', transform: [0,0,0,0,0,0] }, { str: 'Consumo P1: 100 kWh', transform: [0,0,0,0,0,0] }, { str: 'Consumo P2: 50 kWh', transform: [0,0,0,0,0,0] }, { str: 'Consumo P3: 25 kWh', transform: [0,0,0,0,0,0] }, ...padding]
+    }, 'factura-mismo-periodo-piezas-complementarias.pdf');
+    const get = facturaValues();
+    expect(get('p1')).toBe('3,45'); expect(get('p2')).toBe('4,6');
+    expect(get('consumoPunta')).toBe('100'); expect(get('consumoLlano')).toBe('50'); expect(get('consumoValle')).toBe('25');
+    expect(document.getElementById('confianzaBadge').textContent).toContain('100%');
+    expect(document.getElementById('avisoFactura').textContent).not.toContain('varias facturas');
+  });
+
+  it('LF-FAC-001b no bloquea una página histórica incompleta de otro periodo', async () => {
+    const padding = Array(6).fill({ str: 'relleno para superar el minimo de extraccion', transform: [0,0,0,0,0,0] });
+    await processFacturaPages({
+      1: [{ str: 'Periodo de facturación: del 01/01/2026 al 31/01/2026', transform: [0,0,0,0,0,0] }, { str: 'Potencia contratada P1: 3,45 kW', transform: [0,0,0,0,0,0] }, { str: 'Potencia contratada P2: 4,60 kW', transform: [0,0,0,0,0,0] }, { str: 'Consumo P1: 100 kWh', transform: [0,0,0,0,0,0] }, { str: 'Consumo P2: 50 kWh', transform: [0,0,0,0,0,0] }, { str: 'Consumo P3: 25 kWh', transform: [0,0,0,0,0,0] }, ...padding],
+      2: [{ str: 'Periodo: del 01/12/2025 al 31/12/2025', transform: [0,0,0,0,0,0] }, { str: 'Consumo P1: 90 kWh', transform: [0,0,0,0,0,0] }, { str: 'Consumo P2: 40 kWh', transform: [0,0,0,0,0,0] }, ...padding]
+    }, 'factura-historico-incompleto.pdf');
+    const get = facturaValues();
+    expect(get('p1')).toBe('3,45'); expect(get('p2')).toBe('4,6');
+    expect(get('consumoPunta')).toBe('100'); expect(get('consumoLlano')).toBe('50'); expect(get('consumoValle')).toBe('25');
+    expect(document.getElementById('confianzaBadge').textContent).toContain('100%');
+    expect(document.getElementById('avisoFactura').textContent).not.toContain('varias facturas');
+  });
+
   it('OCR tampoco mezcla campos de dos facturas escaneadas en páginas distintas', async () => {
     const pages = {
       1: { text: ['FACTURA A', 'Periodo de facturacion: 01/01/2026 - 31/01/2026', 'Potencia contratada Punta: 3,45 kW', 'Potencia contratada Valle: 4,60 kW'].join('\n') },
-      2: { text: ['FACTURA B', 'Periodo de facturacion: 01/02/2026 - 28/02/2026', 'Potencia contratada Punta: 5,75 kW', 'Potencia contratada Valle: 6,90 kW', 'Consumo Punta: 400 kWh', 'Consumo Llano: 500 kWh', 'Consumo Valle: 600 kWh'].join('\n') }
+      2: { text: ['FACTURA B', 'Periodo de facturacion: 01/02/2026 - 28/02/2026', 'Consumo Punta: 400 kWh', 'Consumo Llano: 500 kWh', 'Consumo Valle: 600 kWh'].join('\n') }
     };
     const mockPage = () => ({
       getTextContent: () => Promise.resolve({ items: [] }), getAnnotations: () => Promise.resolve([]), cleanup: () => {},

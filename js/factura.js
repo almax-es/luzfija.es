@@ -437,18 +437,40 @@
       }
 
       function __LF_hasMultipleInvoicePagePeriods(pageTexts){
-        const periods = new Set();
+        const candidates = [];
         for (const pageText of Array.isArray(pageTexts) ? pageTexts : []) {
           const datosPagina = __LF_parsearDatos(pageText?.textLines || '', pageText?.textCompact || '');
           // Una pagina solo cuenta como factura candidata si contiene un periodo valido y
-          // las dos potencias contratadas. Asi no bloqueamos por tablas historicas o rangos
-          // auxiliares que puedan aparecer en paginas de una unica factura.
-          if (datosPagina?.p1 == null || datosPagina?.p2 == null) continue;
+          // una pieza estructural completa: las dos potencias o el reparto P1/P2/P3. Asi no
+          // bloqueamos por tablas historicas o rangos auxiliares incompletos.
+          const hasPowerPair = datosPagina?.p1 != null && datosPagina?.p2 != null;
+          const hasConsumptionSplit = datosPagina?.consumoPunta != null
+            && datosPagina?.consumoLlano != null
+            && datosPagina?.consumoValle != null;
+          if (!hasPowerPair && !hasConsumptionSplit) continue;
           const inicio = __LF_parsePeriodDate(datosPagina?._fechaInicio);
           const fin = __LF_parsePeriodDate(datosPagina?._fechaFin);
           if (!inicio || !fin) continue;
-          periods.add(`${inicio.toISOString().slice(0,10)}/${fin.toISOString().slice(0,10)}`);
-          if (periods.size > 1) return true;
+          candidates.push({
+            period: `${inicio.toISOString().slice(0,10)}/${fin.toISOString().slice(0,10)}`,
+            hasPowerPair,
+            hasConsumptionSplit
+          });
+        }
+
+        for (let i = 0; i < candidates.length; i++) {
+          for (let j = i + 1; j < candidates.length; j++) {
+            const a = candidates[i];
+            const b = candidates[j];
+            if (a.period === b.period) continue;
+            // Mantener el guard previo (potencias + potencias) y cerrar tambien la mezcla
+            // que puede completar una factura con potencias de un periodo y P1/P2/P3 de otro.
+            if (
+              (a.hasPowerPair && b.hasPowerPair)
+              || (a.hasPowerPair && b.hasConsumptionSplit)
+              || (a.hasConsumptionSplit && b.hasPowerPair)
+            ) return true;
+          }
         }
         return false;
       }
