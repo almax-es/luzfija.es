@@ -799,6 +799,9 @@ describe('Factura PDF Integration (Black Box)', () => {
     expect(get('p1')).toBe(''); expect(get('p2')).toBe(''); expect(get('dias')).toBe('');
     expect(get('consumoPunta')).toBe(''); expect(get('consumoLlano')).toBe(''); expect(get('consumoValle')).toBe('');
     expect(document.getElementById('confianzaBadge').textContent).toContain('0%');
+    expect(document.getElementById('avisoFactura').textContent).toContain('varias facturas');
+    document.getElementById('btnAplicarFactura').click();
+    expect(window.runCalculation).not.toHaveBeenCalled();
   });
 
   it('LF-FAC-001b acepta piezas complementarias de una misma factura', async () => {
