@@ -18,6 +18,8 @@ describe('Factura PDF Integration (Black Box)', () => {
         <button id="btnAplicarFactura"></button>
         <button id="btnCancelarFactura"></button>
         <button id="btnCerrarFacturaX"></button>
+        <button id="btnOcrFactura"></button>
+        <div id="ctaOcrFactura"></div>
         <div id="loaderFactura" tabindex="-1" style="display:none"></div>
         <div id="resultadoFactura" style="display:none"><h3 id="resultadoFacturaTitulo" tabindex="-1">Datos detectados</h3></div>
         <div id="confianzaBadge"></div>
@@ -42,6 +44,7 @@ describe('Factura PDF Integration (Black Box)', () => {
     window.__LF_DEBUG = true; // ACTIVAR DEBUG
     window.__LF_FACTURA_BUSY = false;
     window.__LF_PRIVACY_MODE = false;
+    delete window.Tesseract;
     
     // Mock PDF.js
     window.pdfjsLib = {
@@ -693,6 +696,140 @@ describe('Factura PDF Integration (Black Box)', () => {
     expect(getVal('dias')).toBe('28');
     expect(document.getElementById('confianzaBadge').textContent).toContain('75%');
     expect(document.getElementById('avisoFactura').textContent).toContain('no coincide con el periodo');
+  });
+
+  it('no mezcla campos de dos facturas textuales en páginas distintas ni permite autocálculo', async () => {
+    const padding = Array(6).fill({ str: 'relleno de texto para superar el minimo de extraccion', transform: [0,0,0,0, 0, 0] });
+    const pages = {
+      1: [
+        { str: 'Factura suministro A', transform: [0,0,0,0, 10, 100] },
+        { str: 'Periodo de facturación: del 01/01/2026 al 31/01/2026', transform: [0,0,0,0, 10, 90] },
+        { str: 'Potencia contratada P1: 3,45 kW', transform: [0,0,0,0, 10, 80] },
+        { str: 'Potencia contratada P2: 4,60 kW', transform: [0,0,0,0, 10, 70] },
+        ...padding
+      ],
+      2: [
+        { str: 'Factura suministro B', transform: [0,0,0,0, 10, 100] },
+        { str: 'Periodo de facturación: del 01/02/2026 al 28/02/2026', transform: [0,0,0,0, 10, 90] },
+        { str: 'Potencia contratada P1: 5,75 kW', transform: [0,0,0,0, 10, 80] },
+        { str: 'Potencia contratada P2: 6,90 kW', transform: [0,0,0,0, 10, 70] },
+        { str: 'Consumo P1: 400 kWh', transform: [0,0,0,0, 10, 60] },
+        { str: 'Consumo P2: 500 kWh', transform: [0,0,0,0, 10, 50] },
+        { str: 'Consumo P3: 600 kWh', transform: [0,0,0,0, 10, 40] },
+        ...padding
+      ]
+    };
+    window.pdfjsLib.getDocument.mockReturnValue({
+      promise: Promise.resolve({
+        numPages: 2,
+        getPage: (pageNum) => Promise.resolve({
+          getTextContent: () => Promise.resolve({ items: pages[pageNum] }),
+          getAnnotations: () => Promise.resolve([]), cleanup: () => {},
+          getViewport: () => ({ width: 100, height: 100 }), render: () => ({ promise: Promise.resolve() })
+        }), cleanup: () => {}
+      }), destroy: () => Promise.resolve()
+    });
+    await import('../js/factura-parsers.js');
+    await import('../js/factura.js');
+    window.__LF_bindFacturaParser?.();
+    const mockFile = new File(['dummy'], 'dos-facturas-texto.pdf', { type: 'application/pdf' });
+    mockFile.arrayBuffer = async () => new ArrayBuffer(10);
+    const event = new Event('change', { bubbles: true });
+    Object.defineProperty(event, 'target', { value: { files: [mockFile] } });
+    document.getElementById('fileInputFactura').dispatchEvent(event);
+    await new Promise(r => setTimeout(r, 500));
+    const form = document.getElementById('formValidacionFactura');
+    const getVal = (field) => form.querySelector(`.input-validacion[data-field="${field}"] input`)?.value ?? null;
+    expect(getVal('p1')).toBe(''); expect(getVal('p2')).toBe(''); expect(getVal('dias')).toBe('');
+    expect(getVal('consumoPunta')).toBe(''); expect(getVal('consumoLlano')).toBe(''); expect(getVal('consumoValle')).toBe('');
+    expect(document.getElementById('confianzaBadge').textContent).toContain('0%');
+    expect(document.getElementById('avisoFactura').textContent).toContain('varias facturas');
+    document.getElementById('btnAplicarFactura').click();
+    expect(window.runCalculation).not.toHaveBeenCalled();
+  });
+
+  it('OCR tampoco mezcla campos de dos facturas escaneadas en páginas distintas', async () => {
+    const pages = {
+      1: { text: ['FACTURA A', 'Periodo de facturacion: 01/01/2026 - 31/01/2026', 'Potencia contratada Punta: 3,45 kW', 'Potencia contratada Valle: 4,60 kW'].join('\n') },
+      2: { text: ['FACTURA B', 'Periodo de facturacion: 01/02/2026 - 28/02/2026', 'Potencia contratada Punta: 5,75 kW', 'Potencia contratada Valle: 6,90 kW', 'Consumo Punta: 400 kWh', 'Consumo Llano: 500 kWh', 'Consumo Valle: 600 kWh'].join('\n') }
+    };
+    const mockPage = () => ({
+      getTextContent: () => Promise.resolve({ items: [] }), getAnnotations: () => Promise.resolve([]), cleanup: () => {},
+      getViewport: ({ scale = 1 } = {}) => ({ width: 100 * scale, height: 100 * scale }), render: () => ({ promise: Promise.resolve() })
+    });
+    window.pdfjsLib.getDocument.mockImplementation(() => ({
+      promise: Promise.resolve({ numPages: 2, getPage: (pageNum) => Promise.resolve(mockPage(pageNum)), cleanup: () => {} }), destroy: () => Promise.resolve()
+    }));
+    window.Tesseract = { recognize: vi.fn().mockResolvedValueOnce({ data: { text: pages[1].text } }).mockResolvedValueOnce({ data: { text: pages[2].text } }) };
+    await import('../js/factura-parsers.js');
+    await import('../js/factura.js');
+    window.__LF_bindFacturaParser?.();
+    const mockFile = new File(['scan'], 'dos-facturas-ocr.pdf', { type: 'application/pdf' });
+    mockFile.arrayBuffer = async () => new ArrayBuffer(10);
+    const event = new Event('change', { bubbles: true });
+    Object.defineProperty(event, 'target', { value: { files: [mockFile] } });
+    document.getElementById('fileInputFactura').dispatchEvent(event);
+    await new Promise(r => setTimeout(r, 500));
+    document.getElementById('btnOcrFactura').click();
+    await new Promise(r => setTimeout(r, 500));
+    const form = document.getElementById('formValidacionFactura');
+    const getVal = (field) => form.querySelector(`.input-validacion[data-field="${field}"] input`)?.value ?? null;
+    expect(window.Tesseract.recognize).toHaveBeenCalledTimes(2);
+    expect(getVal('p1')).toBe(''); expect(getVal('p2')).toBe(''); expect(getVal('dias')).toBe('');
+    expect(getVal('consumoPunta')).toBe(''); expect(getVal('consumoLlano')).toBe(''); expect(getVal('consumoValle')).toBe('');
+    expect(document.getElementById('confianzaBadge').textContent).toContain('0%');
+    expect(document.getElementById('avisoFactura').textContent).toContain('varias facturas');
+    document.getElementById('btnAplicarFactura').click();
+    expect(window.runCalculation).not.toHaveBeenCalled();
+  });
+
+  it('no bloquea dos páginas de una misma factura cuando comparten periodo', async () => {
+    const padding = Array(6).fill({ str: 'relleno de texto para superar el minimo de extraccion', transform: [0,0,0,0, 0, 0] });
+    const pages = {
+      1: [
+        { str: 'Factura, página 1', transform: [0,0,0,0, 10, 100] },
+        { str: 'Periodo de facturación: del 01/01/2026 al 31/01/2026', transform: [0,0,0,0, 10, 90] },
+        { str: 'Potencia contratada P1: 3,45 kW', transform: [0,0,0,0, 10, 80] },
+        { str: 'Potencia contratada P2: 4,60 kW', transform: [0,0,0,0, 10, 70] },
+        ...padding
+      ],
+      2: [
+        { str: 'Factura, página 2', transform: [0,0,0,0, 10, 100] },
+        { str: 'Periodo de facturación: del 01/01/2026 al 31/01/2026', transform: [0,0,0,0, 10, 90] },
+        { str: 'Potencia contratada P1: 3,45 kW', transform: [0,0,0,0, 10, 80] },
+        { str: 'Potencia contratada P2: 4,60 kW', transform: [0,0,0,0, 10, 70] },
+        { str: 'Consumo P1: 100 kWh', transform: [0,0,0,0, 10, 60] },
+        { str: 'Consumo P2: 50 kWh', transform: [0,0,0,0, 10, 50] },
+        { str: 'Consumo P3: 25 kWh', transform: [0,0,0,0, 10, 40] },
+        ...padding
+      ]
+    };
+    window.pdfjsLib.getDocument.mockReturnValue({
+      promise: Promise.resolve({
+        numPages: 2,
+        getPage: (pageNum) => Promise.resolve({
+          getTextContent: () => Promise.resolve({ items: pages[pageNum] }), getAnnotations: () => Promise.resolve([]), cleanup: () => {},
+          getViewport: () => ({ width: 100, height: 100 }), render: () => ({ promise: Promise.resolve() })
+        }), cleanup: () => {}
+      }), destroy: () => Promise.resolve()
+    });
+    await import('../js/factura-parsers.js');
+    await import('../js/factura.js');
+    window.__LF_bindFacturaParser?.();
+    const mockFile = new File(['dummy'], 'una-factura-dos-paginas.pdf', { type: 'application/pdf' });
+    mockFile.arrayBuffer = async () => new ArrayBuffer(10);
+    const event = new Event('change', { bubbles: true });
+    Object.defineProperty(event, 'target', { value: { files: [mockFile] } });
+    document.getElementById('fileInputFactura').dispatchEvent(event);
+    await new Promise(r => setTimeout(r, 500));
+    const form = document.getElementById('formValidacionFactura');
+    const getVal = (field) => form.querySelector(`.input-validacion[data-field="${field}"] input`)?.value ?? null;
+    expect(getVal('p1')).toBe('3,45');
+    expect(getVal('p2')).toBe('4,6');
+    expect(getVal('consumoPunta')).toBe('100');
+    expect(getVal('consumoLlano')).toBe('50');
+    expect(getVal('consumoValle')).toBe('25');
+    expect(document.getElementById('avisoFactura').textContent).not.toContain('varias facturas');
   });
 
   it('Debe leer el QR por imagen aunque el PDF escaneado no tenga texto seleccionable', async () => {

@@ -250,6 +250,7 @@
           pdf = await loadingTask.promise;
           let lines = [];
           let compact = '';
+          const pageTexts = [];
           const qrHintPages = [];
           const qrHintRe = /\bqr\b|comparador|cnmc|qre\?/i;
           const pagesTotal = Number.isFinite(pdf.numPages) ? pdf.numPages : 0;
@@ -257,6 +258,7 @@
 
           for (let p=1; p<=pagesScanned; p++){
             const page = await pdf.getPage(p);
+            const pageLineStart = lines.length;
             let items = [];
             try{
               const tc = await page.getTextContent();
@@ -301,13 +303,16 @@
             } catch(_){}
 
             const pageCompact = items.map(i=>i.str).join(' ');
+            const pageTextLines = lines.slice(pageLineStart).join('\n');
+            const pageTextCompact = pageCompact.replace(/\s+/g,' ').trim();
+            pageTexts.push({ textLines: pageTextLines, textCompact: pageTextCompact });
             compact += pageCompact + '\n';
             if (qrHintRe.test(pageCompact)) qrHintPages.push(p);
           }
 
           const textLines = lines.join('\n');
           const textCompact = compact.replace(/\s+/g,' ').trim();
-          return { textLines, textCompact, textRawLen: (textCompact || '').length, qrHintPages, pagesTotal, pagesScanned };
+          return { textLines, textCompact, textRawLen: (textCompact || '').length, pageTexts, qrHintPages, pagesTotal, pagesScanned };
         } finally {
           try{ if (pdf && pdf.cleanup) await pdf.cleanup(); }catch(_){}
           // pdf.js 6.x elimina PDFDocumentProxy.destroy(); liberar via loadingTask
@@ -431,6 +436,37 @@
         return date;
       }
 
+      function __LF_hasMultipleInvoicePagePeriods(pageTexts){
+        const periods = new Set();
+        for (const pageText of Array.isArray(pageTexts) ? pageTexts : []) {
+          const datosPagina = __LF_parsearDatos(pageText?.textLines || '', pageText?.textCompact || '');
+          // Una pagina solo cuenta como factura candidata si contiene un periodo valido y
+          // las dos potencias contratadas. Asi no bloqueamos por tablas historicas o rangos
+          // auxiliares que puedan aparecer en paginas de una unica factura.
+          if (datosPagina?.p1 == null || datosPagina?.p2 == null) continue;
+          const inicio = __LF_parsePeriodDate(datosPagina?._fechaInicio);
+          const fin = __LF_parsePeriodDate(datosPagina?._fechaFin);
+          if (!inicio || !fin) continue;
+          periods.add(`${inicio.toISOString().slice(0,10)}/${fin.toISOString().slice(0,10)}`);
+          if (periods.size > 1) return true;
+        }
+        return false;
+      }
+
+      function __LF_failClosedMultipleInvoices(datos){
+        if (!datos) return datos;
+        datos.dias = null;
+        datos.p1 = null;
+        datos.p2 = null;
+        datos.consumoPunta = null;
+        datos.consumoLlano = null;
+        datos.consumoValle = null;
+        datos.consumoTotalDetectado = null;
+        datos.confianza = 0;
+        datos.multiplesFacturasDetectadas = true;
+        return datos;
+      }
+
       function __LF_qrPdfPeriodsCompatible(datosQR, datosPDF){
         const qrIni = __LF_parsePeriodDate(datosQR?._fechaInicio);
         const qrFin = __LF_parsePeriodDate(datosQR?._fechaFin);
@@ -450,6 +486,10 @@
 
         if (datos?.periodoQrPdfDiscrepante) {
           avisos.push('⚠️ El periodo del QR CNMC no coincide con el periodo detectado en el PDF. Se conservan los días del QR y se desactiva el autocálculo. Si el archivo contiene varias facturas o suministros, sube solo la factura que quieras comparar.');
+        }
+
+        if (datos?.multiplesFacturasDetectadas) {
+          avisos.push('⚠️ Se han detectado varias facturas con periodos distintos en el mismo PDF. No se ha rellenado ningún dato automáticamente para evitar mezclar importes de facturas diferentes. Sube solo la factura que quieras comparar o introduce manualmente los datos de una sola factura.');
         }
 
         if (datos?.peajeNoSoportado) {
@@ -496,7 +536,7 @@
         }
 
         // Verificar confianza
-        if (datos.confianza < 50){
+        if (datos.confianza < 50 && !datos?.multiplesFacturasDetectadas){
           avisos.push(`⚠️ Confianza baja (${datos.confianza}%). Revisa cuidadosamente todos los campos antes de aplicar. Si es un PDF escaneado, prueba a leerlo con OCR.`);
           __LF_show(__LF_q('btnOcrFactura'));
           __LF_show(__LF_q('ctaOcrFactura'));
@@ -890,7 +930,7 @@
         __LF_focusFacturaStage('loaderFactura');
 
         try{
-          const { textLines, textCompact, textRawLen, qrHintPages, pagesTotal, pagesScanned } = await __LF_extraerTextoPDF(file);
+          const { textLines, textCompact, textRawLen, pageTexts, qrHintPages, pagesTotal, pagesScanned } = await __LF_extraerTextoPDF(file);
           __LF_assertCurrentOperation(operationId);
           const pdfPageWarning = __LF_pdfPageLimitWarning({ pagesTotal, pagesScanned });
 
@@ -1049,6 +1089,9 @@
           lfDbg('[QR] QR no encontrado - usando parseo PDF');
           const datos = __LF_parsearDatos(textLines, textCompact);
           datos.fuenteDatos = 'PDF';
+          if (!datos.peajeNoSoportado && __LF_hasMultipleInvoicePagePeriods(pageTexts)) {
+            __LF_failClosedMultipleInvoices(datos);
+          }
 
           // AHORA SÍ: mostrar resultados con los datos completos
           __LF_hide(__LF_q('loaderFactura'));
@@ -1133,6 +1176,7 @@
             __LF_assertCurrentOperation(operationId);
 
             let ocrText = '';
+            const ocrPageTexts = [];
           const pagesToScan = Math.min(pdf.numPages, 2);
 
           for (let p=1; p<=pagesToScan; p++){
@@ -1157,7 +1201,12 @@
               };
               const { data } = await T.recognize(canvas, 'spa', __LF_tessOpts);
               __LF_assertCurrentOperation(operationId);
-              ocrText += (data.text || '') + '\n';
+              const pageOcrText = data.text || '';
+              ocrText += pageOcrText + '\n';
+              ocrPageTexts.push({
+                textLines: pageOcrText.split('\n').map(l=>l.trim()).filter(Boolean).join('\n'),
+                textCompact: pageOcrText.replace(/\s+/g,' ').trim()
+              });
             } finally {
               // Limpieza best-effort para reducir retención de datos en memoria incluso si render/OCR falla.
               try{ if (page && page.cleanup) await page.cleanup(); }catch(_){}
@@ -1174,6 +1223,9 @@
 
           const datos = __LF_parsearDatos(lines, compact);
           datos.fuenteDatos = 'OCR';
+          if (!datos.peajeNoSoportado && __LF_hasMultipleInvoicePagePeriods(ocrPageTexts)) {
+            __LF_failClosedMultipleInvoices(datos);
+          }
           __LF_setBadge(datos.confianza);
           __LF_renderForm(datos);
 
