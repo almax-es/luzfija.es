@@ -286,7 +286,7 @@ El dataset de origen puede incluir un campo interno `Activa` que no forma parte 
   equivalentes a "NO", pero esa rama es hoy inalcanzable en la práctica porque
   `validar_contrato_excel()` las rechaza antes por no ser exactamente `SI`/`NO`.
 
-- **Orden de precio ignorado**: las tarifas marcadas como inactivas están exentas de las validaciones estrictas de orden por precio que imponen los procesos de compilación. Esto permite agruparlas al final para limpiar visualmente las filas de trabajo sin que el generador bloquee el build.
+- **Orden de precio: las inactivas NO están exentas** (corregido 24/08/2026). Hasta esa fecha este apartado afirmaba lo contrario ("las tarifas marcadas como inactivas están exentas de las validaciones estrictas de orden por precio"), y el generador tampoco lo comprobaba: `validar_contrato_excel()` solo alimentaba su lista de orden con las filas `Activa=SI`. Los datos desmentían la exención — 17 de las 18 filas inactivas ya seguían el criterio correcto —, así que la documentación describía una exención que nunca se usó. Hoy el generador valida el orden en los **dos bloques por separado** (activas e inactivas), con la misma clave (1P antes que 3P, y dentro de cada tipo por precio ascendente con desempate por P1+P2), y aborta indicando en cuál de los dos está el fallo. Las inactivas siguen agrupadas al final de la hoja, pero ordenadas entre sí.
 - Se puede añadir libremente un campo extra **"Motivo Inactiva"** (o similar) para uso interno. Jamás se exportará a `tarifas.json`.
 
 ### `promo` vs `requisitos`: en qué se diferencian
@@ -345,6 +345,7 @@ de energía un 9% por encima de su tarifa hermana).
 
 ## Historial de Cambios
 
+- **2026-08-24**: Corregido el apartado del campo interno `Activa`, que afirmaba que las tarifas inactivas estaban exentas de la validación de orden por precio. Ni era cierto en los datos (17 de 18 ya lo cumplían) ni lo es en el código: `validar_contrato_excel()` valida ahora el orden de los dos bloques por separado y aborta si alguno está descolocado.
 - **2026-08-13**: Los periodos parciales muestran, solo cuando un máximo cambia candidatas, una estimación anual orientativa y reversible. Sigue desactivada por defecto; los máximos ya superados por kWh reales continúan siendo exclusiones obligatorias. `minConsumoAnualExclusivo` deja de filtrar en todos los alcances.
 - **2026-08-10**: Añadidos campos opcionales `minConsumoAnualExclusivo` y `maxConsumoAnual` (límites de consumo anual en kWh, columnas T/U del Excel). Desde el 13/08/2026, `assessConsumoAnualLimits` solo filtra por `maxConsumoAnual`; el mínimo se conserva como información comercial.
 - **2026-08-06**: Añadido campo opcional `promo` (ofertas temporales que se informan pero nunca se aplican al cálculo). Etiqueta "🎁 OFERTA" en el ranking (`lf-render.js`), nota en el modal de desglose (`desglose-render.js`) y en el simulador solar (`bv-ui.js`). Energya VM y Energya VM 3P pasan a precio base porque su descuento dura solo 3 meses.
