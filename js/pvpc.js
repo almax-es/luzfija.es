@@ -1,0 +1,1382 @@
+/**
+ * @license PolyForm-Shield-1.0.0
+ * Required Notice: Copyright (c) 2026 Luis Oscar Soler Bernal / LuzFija.es
+ * This software is licensed under the PolyForm Shield License 1.0.0.
+ * See the LICENSE file in the repository root for full terms.
+ */
+
+// ===== BEGIN PVPC MODULE =====
+    // Precios PVPC: Se cargan desde dataset estático en /data/pvpc/{geoId}/{YYYY-MM}.json
+    // Dataset actualizado diariamente por GitHub Actions (scripts/pvpc_auto_fill.py),
+    // que re-descarga una ventana de corrección de ESIOS. El guard del workflow detecta
+    // cualquier hueco histórico; los anteriores a la ventana requieren backfill manual.
+
+    const PVPC_CACHE_PREFIX = 'pvpc_cache_v3';
+    const PVPC_CACHE_LIMIT = 30;
+    const PVPC_HYBRID_MAX_MISSING_HOURS_SHARE = 0.10;
+    const PVPC_HYBRID_MAX_MISSING_KWH_SHARE = 0.10;
+    const pvpcCacheMemory = new Map();
+    const pvpcInFlight = new Map();
+    
+    // Exponer como variable global para que lf-render.js pueda acceder
+    window.pvpcLastMeta = null;
+    window.pvpcPotenciaExcedida = false;
+    
+    let pvpcErrorShown = false;
+
+    // Debug (no ensucia consola en producción)
+    const PVPC_DEBUG = (function(){
+      try{
+        const p = new URLSearchParams(location.search);
+        return p.get('debug') === '1' || localStorage.getItem('lf_debug') === '1' || window.__LF_DEBUG === true;
+      }catch(e){ return window.__LF_DEBUG === true; }
+    })();
+    const pvpcDbg = (...args) => {
+      if (PVPC_DEBUG && typeof console !== 'undefined' && typeof console.log === 'function') {
+        console.log('[PVPC]', ...args);
+      }
+    };
+
+    function pvpcToast(message, type = 'err') {
+      try {
+        const toastFn = (window.LF && typeof window.LF.toast === 'function')
+          ? window.LF.toast
+          : (typeof window.toast === 'function' ? window.toast : null);
+        if (toastFn) toastFn(message, type);
+      } catch (error) {
+        pvpcDbg('[WARN] No se pudo mostrar el aviso PVPC:', error?.message || error);
+      }
+    }
+
+    const round2 = (window.LF_CONFIG && typeof window.LF_CONFIG.round2 === 'function')
+      ? window.LF_CONFIG.round2
+      : (n) => Math.round(Number(n) * 100) / 100;
+
+
+    // Helper robusto: soporta número, "3.45", "3,45", "1.234,56", "1,234.56" y entradas con separadores repetidos
+    function asNumber(v, fallback = 0) {
+      if (typeof v === 'number' && Number.isFinite(v)) return v;
+
+      let s = String(v ?? '').trim();
+      if (!s) return fallback;
+
+      const hasComma = s.includes(',');
+      const hasDot = s.includes('.');
+
+      // Si hay coma y punto, el último separador suele ser el decimal
+      if (hasComma && hasDot) {
+        if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
+          // decimal = coma, miles = punto → "1.234,56"
+          s = s.replace(/\./g, '');
+          const parts = s.split(',');
+          const dec = parts.pop();
+          s = parts.join('') + '.' + dec;
+        } else {
+          // decimal = punto, miles = coma → "1,234.56"
+          s = s.replace(/,/g, '');
+        }
+      } else if (hasComma) {
+        // Solo comas: tratar la ÚLTIMA como decimal, las anteriores como miles
+        const parts = s.split(',');
+        const dec = parts.pop();
+        s = parts.join('') + '.' + dec;
+      } else if (hasDot) {
+        // Solo puntos: tratar el ÚLTIMO como decimal, los anteriores como miles
+        const parts = s.split('.');
+        const dec = parts.pop();
+        s = parts.join('') + '.' + dec;
+      }
+
+      // Limpia basura (mantiene solo números, punto y signo menos)
+      s = s.replace(/[^0-9.-]/g, '');
+      const n = Number(s);
+      return Number.isFinite(n) ? n : fallback;
+    }
+
+    function computePvpcFiscal(meta, fiscal) {
+      const CFG = window.LF_CONFIG;
+      const baseEnergia = (meta.terminoFijo || 0) + (meta.costeMargenPot || 0) + (meta.terminoVariable || 0) + (meta.bonoSocial || 0);
+      const baseContador = meta.equipoMedida || 0;
+      const impuestoElec = meta.impuestoElectrico || 0;
+      const isCanarias = fiscal?.esCanarias || fiscal?.zona === 'canarias';
+      const isCeutaMelilla = fiscal?.esCeutaMelilla || fiscal?.zona === 'ceutamelilla';
+      const usoFiscal = fiscal?.usoFiscal || 'otros';
+      const zonaFiscal = isCanarias ? 'Canarias' : isCeutaMelilla ? 'CeutaMelilla' : 'Península';
+      const taxCalc = (CFG && typeof CFG.calcularImpuestoIndirecto === 'function')
+        ? CFG.calcularImpuestoIndirecto({
+            zona: zonaFiscal,
+            usoFiscal,
+            baseEnergia,
+            impuestoElectrico: impuestoElec,
+            baseContador,
+            potenciaContratada: fiscal?.potenciaContratada,
+            viviendaCanarias: fiscal?.viviendaMarcada,
+            bonoSocialOn: fiscal?.bonoSocialOn,
+            bonoSocialTipo: fiscal?.bonoSocialTipo,
+            fechaYmd: fiscal?.fechaYmd
+          })
+        : null;
+
+      const impuestoEnergia = taxCalc ? taxCalc.impuestoEnergia : 0;
+      const impuestoContador = taxCalc ? taxCalc.impuestoContador : 0;
+      const ivaBase = taxCalc ? taxCalc.ivaBase : 0;
+      const baseIPSI = taxCalc ? taxCalc.baseIPSI : 0;
+      const iva = taxCalc ? taxCalc.iva : 0;
+      const totalFactura = round2(baseEnergia + impuestoElec + baseContador + impuestoEnergia + impuestoContador);
+      const impuestosTotal = round2((meta.bonoSocial || 0) + impuestoElec + baseContador + impuestoEnergia + impuestoContador);
+      const impuestoTipo = taxCalc ? taxCalc.tipo : (isCanarias ? 'IGIC' : isCeutaMelilla ? 'IPSI' : 'IVA');
+
+      return {
+        baseEnergia,
+        baseContador,
+        impuestoEnergia,
+        impuestoContador,
+        ivaBase,
+        baseIPSI,
+        iva,
+        totalFactura,
+        impuestosTotal,
+        impuestoTipo,
+        fechaYmd: taxCalc?.fechaYmd || fiscal?.fechaYmd || null,
+        usoFiscal,
+        isCanarias,
+        isCeutaMelilla
+      };
+    }
+
+
+    function startOfDayLocal(date){
+      const d=new Date(date.getFullYear(),date.getMonth(),date.getDate());
+      d.setHours(0,0,0,0);return d;
+    }
+
+    function formatYMD(date){
+      const y=date.getFullYear();
+      const m=String(date.getMonth()+1).padStart(2,'0');
+      const d=String(date.getDate()).padStart(2,'0');
+      return `${y}-${m}-${d}`;
+    }
+
+    // Un día PVPC cerrado debe cubrir exactamente todo el día civil local de la zona:
+    // 23/24/25 puntos consecutivos, sin huecos ni duplicados y sin omitir la primera
+    // o la última hora. Fuente única en lf-csv-utils.js: home, Observatorio y excedentes
+    // consumen la MISMA implementación para que no puedan divergir (bloqueante 2, 12/08/2026).
+    // Fallback defensivo: si csvUtils no está cargado (carga aislada en tests), falla
+    // cerrado en vez de lanzar — un día sin validador disponible no puede darse por bueno.
+    function validateClosedPvpcDay(dateStr, dayPrices, timeZone){
+      const shared = window.LF?.csvUtils?.validateClosedPvpcDay;
+      if (typeof shared !== 'function') return { ok: false, reason: 'validator-unavailable' };
+      return shared(dateStr, dayPrices, timeZone);
+    }
+
+    // Fila utilizable: par [epoch_segundos, precio] con ambos numéricos finitos.
+    function isUsablePvpcRow(entry){
+      return Array.isArray(entry)
+        && typeof entry[0] === 'number' && Number.isFinite(entry[0])
+        && typeof entry[1] === 'number' && Number.isFinite(entry[1]);
+    }
+
+    // Filtro POR FILA para los consumidores de precios. Descartar una fila corrupta no
+    // puede arrastrar consigo las horas válidas del mismo día: la ruta CSV tiene su
+    // propio contrato de cobertura (exacto/híbrido/medias) y debe poder usar las horas
+    // que sí existen. El PVPC estándar no depende de este filtro: valida el día CRUDO
+    // con validateClosedPvpcDay, que rechaza el día entero si hay cualquier fila
+    // corrupta (reason 'invalid-entry').
+    function usablePvpcRows(dayPrices){
+      return Array.isArray(dayPrices) ? dayPrices.filter(isUsablePvpcRow) : [];
+    }
+
+    // Recolección puramente ESTRUCTURAL de los días de un JSON mensual: se exige clave
+    // con forma de fecha y valor array, nada más.
+    //
+    // CRÍTICO: aquí no se elimina ninguna fila. Antes se descartaba el día completo si
+    // traía una sola fila corrupta, y eso ocurría ANTES de saber si el cálculo es CSV o
+    // estándar, así que un día con 24 horas válidas + 1 fila corrupta desaparecía
+    // también para CSV, que sí podía haber usado esas 24 horas. Los datos crudos tienen
+    // que llegar intactos a la bifurcación `if (!consumosHorarios)`; cada rama aplica
+    // después su propio contrato.
+    function collectPvpcDays(days){
+      if (!days || typeof days !== 'object' || Array.isArray(days)) return {};
+      const collected = {};
+      Object.entries(days).forEach(([dateStr, pairs]) => {
+        if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr) || !Array.isArray(pairs)) return;
+        collected[dateStr] = pairs;
+      });
+      return collected;
+    }
+
+    function validateClosedPvpcPeriod(allPrices, startDate, endDate, timeZone){
+      const invalidDays = [];
+      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+        const dateStr = formatYMD(d);
+        const check = validateClosedPvpcDay(dateStr, allPrices?.[dateStr], timeZone);
+        if (!check.ok) invalidDays.push({ date: dateStr, reason: check.reason });
+      }
+      return { ok: invalidDays.length === 0, invalidDays };
+    }
+
+    // ── Fecha civil de la zona ELECTRICA seleccionada (bug confirmado 13/08/2026, ver
+    // AUDITORIA-IA.md "Frontera Temporal Del Periodo PVPC Estandar") ──────────────────────
+    //
+    // El periodo PVPC estandar y el anchor de cache deben decidir "hoy"/"ayer" con la zona
+    // ELECTRICA elegida, nunca con la del navegador/host: son cosas distintas y pueden
+    // divergir en la franja de cruce de medianoche entre zonas. Usan Intl.DateTimeFormat
+    // (window.LF.csvUtils.formatYmdInTimeZone) para leer la fecha civil y aritmetica pura
+    // de calendario (window.LF.csvUtils.addDaysYmd) para restar dias; ninguna de las dos
+    // consulta Date.getFullYear/getMonth/getDate, que reflejan la zona del PROCESO que
+    // ejecuta el codigo, no la zona electrica pedida por el usuario.
+
+    // Timezone PVPC de una zona fiscal ya normalizada ('Canarias' | 'CeutaMelilla' |
+    // 'Península'). Misma correspondencia que el geoId (8742 -> Atlantic/Canary): fuente
+    // unica, no la dupliques con otro literal.
+    function pvpcElectricTimeZone(zonaFiscal){
+      return zonaFiscal === 'Canarias' ? 'Atlantic/Canary' : 'Europe/Madrid';
+    }
+
+    // Fecha civil "hoy" de `timeZone` a partir de un instante concreto (por defecto ahora).
+    // Fallo cerrado (null) si csvUtils no esta cargado: en produccion se carga siempre
+    // antes que pvpc.js (mismo contrato que validateClosedPvpcDay, ver arriba).
+    function pvpcCivilTodayYmd(timeZone, now){
+      const formatFn = window.LF?.csvUtils?.formatYmdInTimeZone;
+      if (typeof formatFn !== 'function') return null;
+      const instant = now instanceof Date ? now : new Date();
+      const ts = Math.floor(instant.getTime() / 1000);
+      return formatFn(ts, timeZone);
+    }
+
+    // Ultimo dia PVPC cerrado ("ayer" civil) de `timeZone`.
+    function getLastClosedPvpcDayYmd(timeZone, now){
+      const hoy = pvpcCivilTodayYmd(timeZone, now);
+      const addFn = window.LF?.csvUtils?.addDaysYmd;
+      if (!hoy || typeof addFn !== 'function') return null;
+      return addFn(hoy, -1);
+    }
+
+    // Periodo estandar (sin CSV): `dias` dias civiles CERRADOS y consecutivos de
+    // `timeZone`, terminando en el ultimo dia cerrado. Fuente UNICA para el calculo
+    // estandar (obtenerPVPC_LOCAL) y para el anchor de cache (getPvpcAnchorDate): si
+    // alguna vez divergen, el anchor puede servir el resultado de un periodo distinto
+    // al realmente calculado.
+    function getClosedPvpcPeriodYmd(timeZone, dias, now){
+      const endStr = getLastClosedPvpcDayYmd(timeZone, now);
+      if (!endStr) return null;
+      const diasSano = Math.max(1, Math.trunc(Number(dias)) || 1);
+      const startStr = diasSano > 1
+        ? window.LF.csvUtils.addDaysYmd(endStr, -(diasSano - 1))
+        : endStr;
+      return { startStr, endStr };
+    }
+
+    // YYYY-MM-DD YA RESUELTO -> Date a medianoche local del host, construido desde
+    // componentes. El round-trip con getFullYear/getMonth/getDate es estable en
+    // CUALQUIER timezone del host porque ambos lados leen/escriben la misma
+    // interpretacion local: solo sirve para llevar un dia civil ya decidido hasta el
+    // resto del pipeline (iteracion de meses, validateClosedPvpcPeriod...) sin volver a
+    // preguntarle "que dia es hoy" al host. NUNCA uses esto para resolver "hoy": eso
+    // exige Intl.DateTimeFormat con la timezone electrica (ver pvpcCivilTodayYmd).
+    function dateFromYmd(ymd){
+      const [y, m, d] = String(ymd).split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
+
+    function getPvpcAnchorDate(zonaFiscal, now){
+      return getLastClosedPvpcDayYmd(pvpcElectricTimeZone(zonaFiscal), now);
+    }
+
+    function buildPvpcCacheKey(values){
+      const {p1=0,p2=0,dias=0,cPunta=0,cLlano=0,cValle=0}=values||{};
+      const zonaRaw = values?.zonaFiscal || 'Península';
+      const zonaFiscal = zonaRaw === 'Canarias' ? 'Canarias' 
+                       : zonaRaw === 'CeutaMelilla' ? 'CeutaMelilla' 
+                       : 'Península';
+      const viviendaCanarias = zonaFiscal === 'Canarias' && Boolean(values?.viviendaCanarias);
+      const bonoSocialOn = values?.bonoSocialOn ? '1' : '0';
+      const bonoSocialTipo = String(values?.bonoSocialTipo || 'vulnerable');
+      const bonoSocialLimite = String(values?.bonoSocialLimite || '');
+      const codigoPostal = window.LF_CONFIG.getCodigoPostalAPI(zonaFiscal);
+      const csvSignature = (() => {
+        const consumosHorarios = Array.isArray(window.LF?.consumosHorarios) && window.LF.consumosHorarios.length > 0
+          && window.LF.pvpcPeriodoCSV === true
+          ? window.LF.consumosHorarios
+          : null;
+        if (!consumosHorarios) return 'nocsv';
+
+        let totalKwh = 0;
+        let firstToken = '';
+        let lastToken = '';
+        let hash = 2166136261;
+
+        const pushHash = (str) => {
+          for (let i = 0; i < str.length; i++) {
+            hash ^= str.charCodeAt(i);
+            hash = Math.imul(hash, 16777619) >>> 0;
+          }
+        };
+
+        consumosHorarios.forEach((entry, index) => {
+          const date = entry?.fecha instanceof Date ? entry.fecha : new Date(entry?.fecha);
+          const ymd = Number.isFinite(date.getTime()) ? formatYMD(date) : 'invalid';
+          const hora = Math.max(0, Number(entry?.hora || 0));
+          const kwh = asNumber(entry?.kwh, 0);
+          const token = `${ymd}:${hora}:${kwh.toFixed(6)}`;
+          totalKwh += kwh;
+          if (index === 0) firstToken = `${ymd}:${hora}`;
+          lastToken = `${ymd}:${hora}`;
+          pushHash(token);
+        });
+
+        return `csv:${consumosHorarios.length}:${Math.round(totalKwh * 1000)}:${firstToken}:${lastToken}:${hash.toString(36)}`;
+      })();
+
+      return `${PVPC_CACHE_PREFIX}:${getPvpcAnchorDate(zonaFiscal)}:${zonaFiscal}:${codigoPostal}:${viviendaCanarias?'1':'0'}:${p1}:${p2}:${dias}:${cPunta}:${cLlano}:${cValle}:${bonoSocialOn}:${bonoSocialTipo}:${bonoSocialLimite}:${csvSignature}`;
+    }
+
+    function readPvpcCacheEntry(key){
+      if(pvpcCacheMemory.has(key)) return pvpcCacheMemory.get(key);
+      try{
+        const raw=localStorage.getItem(key);
+        if(!raw) return null;
+        const parsed=JSON.parse(raw);
+        pvpcCacheMemory.set(key,parsed);
+        return parsed;
+      }catch(e){ return null; }
+    }
+
+    function persistPvpcCacheEntry(key, payload){
+      try{ localStorage.setItem(key, JSON.stringify(payload)); }catch(e){}
+      pvpcCacheMemory.set(key,payload);
+      enforcePvpcCacheLimit();
+    }
+
+    function stripHtml(str){ return String(str||'').replace(/<[^>]*>/g,''); }
+
+    // --- CORRECCIÓN DE PARSEO DE NÚMEROS ---
+    function parseEuro(val) {
+      if (val === null || val === undefined) return 0;
+      
+      // Si ya es un número, lo devolvemos tal cual
+      if (typeof val === 'number') return val;
+
+      let s = String(val).trim().replace(/\s/g, '');
+      
+      // Detectar formato español de miles: "1.234" o "1.234,56" o "123.456.789,12"
+      // Patrón: opcionalmente -, 1-3 dígitos, seguido de (punto + exactamente 3 dígitos) una o más veces
+      if (/^-?\d{1,3}(\.\d{3})+(,\d+)?$/.test(s)) {
+        // Es formato español: quitar puntos (separadores de miles), cambiar coma por punto
+        s = s.replace(/\./g, '').replace(',', '.');
+      }
+      // Si tiene coma pero NO tiene puntos, o los puntos no siguen patrón de miles
+      else if (s.includes(',')) {
+        // Cambiar coma por punto decimal
+        s = s.replace(',', '.');
+      }
+      
+      // Limpiar cualquier carácter que no sea número, punto o guion
+      s = s.replace(/[^0-9.-]/g, '');
+      
+      const n = parseFloat(s);
+      return Number.isFinite(n) ? n : 0;
+    }
+
+    function parsearRespuestaPVPC(data) {
+      const lista = Array.isArray(data) ? data : (data?.resultadoPVPC || []);
+      if (!lista || !lista.length) return null;
+
+      const meta = {
+        terminoFijo: 0,
+        costeMargenPot: 0,
+        terminoVariable: 0,
+        bonoSocial: 0,
+        impuestoElectrico: 0,
+        equipoMedida: 0,
+        iva: 0,
+        totalFactura: 0,
+        baseEnergia: 0,
+        baseContador: 0,
+        impuestoEnergia: 0,
+        impuestoContador: 0,
+        impuestosTotal: 0,
+        ivaBase: 0,
+        baseIPSI: 0,
+        usoFiscal: 'otros'
+      };
+
+      let rangoFechas = null;
+      let textoCompleto = '';
+
+      try {
+        const rangoTexto = stripHtml(lista[0]?.cabecera || lista[0]?.concepto || '');
+        const rangoMatch = /Periodo:\s*del\s*(\d{2}\/\d{2}\/\d{4})\s*al\s*(\d{2}\/\d{2}\/\d{4})/i.exec(rangoTexto);
+        if (rangoMatch) rangoFechas = { inicio: rangoMatch[1], fin: rangoMatch[2] };
+      } catch (e) {}
+
+      if (PVPC_DEBUG) console.group('PVPC parsearRespuestaPVPC (FIXED)');
+      try {
+        lista.forEach(item => {
+          const cabeceraRaw = stripHtml(item?.cabecera || item?.concepto || '').trim();
+          const cabecera = cabeceraRaw.toLowerCase();
+
+          const exp = stripHtml(item?.explicacion || item?.detalle || item?.descripcion || '');
+          textoCompleto += ` ${cabeceraRaw} ${exp} `;
+
+          const importe = parseEuro(item?.importe ?? item?.valor ?? item?.precio ?? item?.total);
+
+          pvpcDbg(`Concepto: ${cabecera} -> Importe: ${importe}`);
+
+          if (cabecera.includes('margen de comercialización') || cabecera.includes('margen de comercializacion')) {
+            meta.costeMargenPot += importe;
+          }
+          else if (cabecera.includes('término fijo') || cabecera.includes('termino fijo') || (cabecera.includes('potencia') && !cabecera.includes('margen'))) {
+            meta.terminoFijo += importe;
+          }
+          else if (cabecera.includes('término variable') || cabecera.includes('termino variable') || cabecera.includes('energía') || cabecera.includes('energia')) {
+            meta.terminoVariable += importe;
+          }
+          else if (cabecera.includes('financiación del bono social') || cabecera.includes('financiacion del bono social') || cabecera.includes('bono social')) {
+            meta.bonoSocial += importe;
+          }
+          else if (cabecera.includes('impuesto eléctrico') || cabecera.includes('impuesto electrico')) {
+            meta.impuestoElectrico += importe;
+          }
+          else if (cabecera.includes('equipo de medida') || cabecera.includes('alquiler')) {
+            meta.equipoMedida += importe;
+          }
+          else if (cabecera.includes('iva') || cabecera.includes('impuesto sobre el valor')) {
+            meta.iva += importe;
+          }
+          else if (cabecera.includes('igic') || cabecera.includes('ipsi')) {
+            meta.impuestoEnergia += importe;
+          }
+          else if (cabecera.includes('total factura')) {
+            meta.totalFactura = importe;
+          }
+        });
+      } finally {
+        if (PVPC_DEBUG) console.groupEnd();
+      }
+
+      if (meta.totalFactura <= 0) {
+        meta.totalFactura = meta.terminoFijo + meta.costeMargenPot + meta.terminoVariable + meta.bonoSocial + meta.impuestoElectrico + meta.equipoMedida + meta.iva;
+      }
+      if (meta.totalFactura <= 0) return null;
+
+      const texto = stripHtml(textoCompleto || '');
+
+      if (PVPC_DEBUG) {
+        pvpcDbg('Texto completo extraído:', texto.substring(0, 500) + '...');
+        pvpcDbg('Buscando precios por periodo...');
+      }
+
+      function extraerMaxPorPeriodo(periodo) {
+        // Patrón más flexible: busca "P1:", "P1 ", "P1=", etc seguido de número €/kWh
+        // Acepta espacios, paréntesis opcionales, y diferentes formatos
+        const patterns = [
+          // Formato 1: "P1: 0.123 €/kWh" o "P1 (descripción): 0.123 €/kWh"
+          periodo + '(?:\\s*\\([^)]*\\))?\\s*[:=]\\s*([0-9]+(?:[.,][0-9]+)?)\\s*€\\s*\\/\\s*kWh',
+          // Formato 2: "P1 0.123 €/kWh" (sin dos puntos)
+          periodo + '\\s+([0-9]+(?:[.,][0-9]+)?)\\s*€\\s*\\/\\s*kWh',
+          // Formato 3: más flexible con espacios
+          periodo + '[:\\s=]+([0-9]+(?:[.,][0-9]+)?)\\s*€\\s*\\/\\s*kWh'
+        ];
+
+        const vals = [];
+        
+        for (const pattern of patterns) {
+          const re = new RegExp(pattern, 'gi');
+          for (const m of texto.matchAll(re)) {
+            const v = parseEuro(m[1]);
+            if (v > 0) {
+              vals.push(v);
+              pvpcDbg(`  ✓ ${periodo} encontrado: ${v.toFixed(4)} €/kWh`);
+            }
+          }
+        }
+        
+        if (!vals.length) {
+          pvpcDbg(`  ✗ ${periodo} NO encontrado en el texto`);
+          return null;
+        }
+        
+        // Calcular el promedio en lugar del máximo
+        const sum = vals.reduce((acc, v) => acc + v, 0);
+        const avg = sum / vals.length;
+        pvpcDbg(`  → ${periodo} promedio: ${avg.toFixed(4)} €/kWh (de ${vals.length} valores)`);
+        return avg;
+      }
+
+      const precioPunta = extraerMaxPorPeriodo('P1');
+      const precioLlano = extraerMaxPorPeriodo('P2');
+      const precioValle = extraerMaxPorPeriodo('P3');
+
+      return {
+        ...meta,
+        precioPunta,
+        precioLlano,
+        precioValle,
+        rangoFechas,
+        pvpcCoverage: Array.isArray(data) ? null : (data?.pvpcCoverage || null)
+      };
+    }
+
+    // PVPC (tarifa regulada) calculado 100% en local a partir de precios horarios
+    // oficiales (REE/ESIOS, indicador 1001) previamente descargados en /data/pvpc.
+    // Nota: este cálculo usa medias horarias por periodo (aproximación neutral).
+    async function obtenerPVPC_LOCAL(values){
+      const dias = Math.min(Math.max(Math.trunc(values?.dias) || 0, 1), 370);
+      const p1 = Math.max(0, asNumber(values?.p1, 0));
+      const p2 = Math.max(0, asNumber(values?.p2, 0));
+      const cPunta = Math.max(0, asNumber(values?.cPunta, 0));
+      const cLlano = Math.max(0, asNumber(values?.cLlano, 0));
+      const cValle = Math.max(0, asNumber(values?.cValle, 0));
+
+      // MODO CSV EXACTO: activo si hay consumos horarios Y el usuario eligió usar precios del período
+      const consumosHorarios = Array.isArray(window.LF?.consumosHorarios) && window.LF.consumosHorarios.length > 0
+        && window.LF.pvpcPeriodoCSV === true
+        ? window.LF.consumosHorarios : null;
+
+      let fiscal = typeof __LF_getFiscalContext === 'function'
+        ? __LF_getFiscalContext(values)
+        : (() => {
+          const cfg = window.LF_CONFIG;
+          const _parseNum = window.LF?.parseNum || (v => Math.max(0, Number(v) || 0));
+          const _clampNonNeg = window.LF?.clampNonNeg || (n => Math.max(0, Number(n) || 0));
+          const potenciaContratada = Math.max(_clampNonNeg(_parseNum(values?.p1)), _clampNonNeg(_parseNum(values?.p2)));
+          if (cfg && typeof cfg.getFiscalContext === 'function') {
+            return cfg.getFiscalContext({
+              zona: values?.zonaFiscal,
+              potenciaContratada,
+              viviendaCanarias: values?.viviendaCanarias,
+              bonoSocialOn: values?.bonoSocialOn,
+              bonoSocialTipo: values?.bonoSocialTipo,
+              fechaYmd: values?.fechaYmd
+            });
+          }
+          const zonaRaw = (values?.zonaFiscal || '').toLowerCase();
+          const zona = zonaRaw === 'canarias' ? 'canarias'
+                     : zonaRaw === 'ceutamelilla' ? 'ceutamelilla'
+                     : 'península';
+          const esCanarias = zona === 'canarias';
+          const esCeutaMelilla = zona === 'ceutamelilla';
+          const viviendaMarcada = Boolean(values?.viviendaCanarias);
+          const esViviendaTipoCero = esCanarias && viviendaMarcada && potenciaContratada > 0 && potenciaContratada <= 10;
+          const usoFiscal = esViviendaTipoCero ? 'vivienda' : (esCeutaMelilla ? 'ipsi' : 'otros');
+          return { zona, viviendaMarcada, potenciaContratada, esViviendaTipoCero, usoFiscal, esCanarias, esCeutaMelilla, fechaYmd: values?.fechaYmd };
+        })();
+
+      const esCanarias = fiscal?.esCanarias || (fiscal?.zona === 'canarias');
+      const esCeutaMelilla = fiscal?.esCeutaMelilla || (fiscal?.zona === 'ceutamelilla');
+      const potenciaContratada = Number(fiscal?.potenciaContratada || 0);
+
+      // PVPC solo disponible para potencia ≤ 10 kW en toda España
+      window.pvpcPotenciaExcedida = potenciaContratada > 10;
+      if (window.pvpcPotenciaExcedida) {
+        return null;
+      }
+
+      // Festivo nacional (solo fecha fija MM-DD) según CNMC Circular 3/2020.
+      // EXCLUYE festivos móviles como Viernes Santo (BOE-A-2020-1066).
+      // La fuente única vive en lf-csv-utils.js (FESTIVOS_NACIONALES_MMDD) y
+      // se consume vía window.LF.csvUtils.esFestivoNacionalMmdd para que el
+      // motor PVPC y la clasificación CSV no puedan divergir.
+      // Fallback defensivo: si csvUtils no está cargado (carga aislada en
+      // tests), devolvemos false sin romper el cálculo.
+      const esFestivoNacional = (ymd) => {
+        const mmdd = String(ymd || '').slice(5, 10);
+        return window.LF?.csvUtils?.esFestivoNacionalMmdd?.(mmdd) === true;
+      };
+const PEAJES_POT_DIA = window.LF_CONFIG?.peajesPotenciaPVPC ?? { diasAnio: 365, anualP1: 0.075901 * 365, anualP2: 0.001987 * 365, anualMargen: 0.008529 * 365, p1: 0.075901, p2: 0.001987, margen: 0.008529 };
+
+      // GeoId para precios horarios (REE/ESIOS). En el UI Ceuta/Melilla viene combinado;
+      // usamos el geo_id de Ceuta (8744). Si por cualquier razón faltase, hacemos fallback a 8745.
+      const geoMap = { 'Península': 8741, 'Canarias': 8742, 'Baleares': 8743, 'CeutaMelilla': 8744 };
+      const zonaFiscal = esCanarias ? 'Canarias' : esCeutaMelilla ? 'CeutaMelilla' : 'Península';
+      const geoId = geoMap[zonaFiscal] || 8741;
+      const geoFallbackId = (zonaFiscal === 'CeutaMelilla') ? 8745 : null;
+      // Zona horaria PVPC de la zona ELECTRICA seleccionada (no la del host/navegador).
+      // Unica fuente de verdad para decidir el periodo estandar y el anchor de cache.
+      const pvpcTimeZone = pvpcElectricTimeZone(zonaFiscal);
+
+      // Periodo: si hay CSV, usar fechas del CSV; si no, últimos N días cerrados hasta AYER.
+      let startDate, endDate;
+      if (consumosHorarios) {
+        let minTs = Infinity, maxTs = -Infinity;
+        for (const c of consumosHorarios) {
+          if (!c.fecha) continue;
+          const ts = (c.fecha instanceof Date ? c.fecha : new Date(c.fecha)).getTime();
+          if (ts < minTs) minTs = ts;
+          if (ts > maxTs) maxTs = ts;
+        }
+        startDate = startOfDayLocal(new Date(minTs));
+        endDate = startOfDayLocal(new Date(maxTs));
+      } else {
+        // El periodo estandar se decide con el dia civil de la ZONA ELECTRICA
+        // seleccionada, nunca con la del navegador/host: pueden divergir en la franja
+        // de cruce de medianoche entre zonas (bug confirmado, ver AUDITORIA-IA.md
+        // "Frontera Temporal Del Periodo PVPC Estandar").
+        const periodoEstandar = getClosedPvpcPeriodYmd(pvpcTimeZone, dias);
+        if (!periodoEstandar) return null;
+        endDate = dateFromYmd(periodoEstandar.endStr);
+        startDate = dateFromYmd(periodoEstandar.startStr);
+      }
+
+      const startStr = formatYMD(startDate);
+      const endStr = formatYMD(endDate);
+      const fiscalDateYmd = (window.LF_CONFIG && typeof window.LF_CONFIG.getTodayYmd === 'function')
+        ? window.LF_CONFIG.getTodayYmd()
+        : (values?.fechaYmd || endStr);
+      if (typeof __LF_getFiscalContext === 'function') {
+        fiscal = __LF_getFiscalContext({ ...(values || {}), fechaYmd: fiscalDateYmd });
+      } else if (window.LF_CONFIG && typeof window.LF_CONFIG.getFiscalContext === 'function') {
+        fiscal = window.LF_CONFIG.getFiscalContext({
+          zona: values?.zonaFiscal,
+          potenciaContratada,
+          viviendaCanarias: values?.viviendaCanarias,
+          bonoSocialOn: values?.bonoSocialOn,
+          bonoSocialTipo: values?.bonoSocialTipo,
+          fechaYmd: fiscalDateYmd
+        });
+      } else if (fiscal && typeof fiscal === 'object') {
+        fiscal = { ...fiscal, fechaYmd: fiscalDateYmd };
+      }
+
+      const weekdayFromYMD = (ymd) => {
+        const parts = String(ymd || '').split('-').map(Number);
+        if (parts.length !== 3 || parts.some(n => !Number.isFinite(n))) return 0;
+        const [y, m, d] = parts;
+        return new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+      };
+
+      if (PVPC_DEBUG) console.group('PVPC obtenerPVPC_LOCAL');
+      pvpcDbg('Periodo:', startStr, 'al', endStr, `(${dias} días)`);
+      pvpcDbg('Zona:', zonaFiscal, `(geoId: ${geoId})`);
+      if (PVPC_DEBUG) console.groupEnd();
+
+      try {
+        const nowForYield = () => (
+          typeof performance !== 'undefined' && typeof performance.now === 'function'
+            ? performance.now()
+            : Date.now()
+        );
+        let lastYieldAt = nowForYield();
+        const maybeYield = async () => {
+          const yieldControl = window.LF && typeof window.LF.yieldControl === 'function'
+            ? window.LF.yieldControl
+            : null;
+          if (!yieldControl) return;
+          const now = nowForYield();
+          if (now - lastYieldAt < 16) return;
+          await yieldControl();
+          lastYieldAt = nowForYield();
+        };
+
+        const filesToRead = new Set();
+        for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
+          const year = d.getFullYear();
+          const month = String(d.getMonth() + 1).padStart(2, '0');
+          filesToRead.add(`${year}-${month}`);
+        }
+
+        const allPrices = {};
+        const missingMonths = [];
+        // Zona horaria por defecto según geo (se refuerza con el campo "timezone" de cada JSON)
+        let dataTimezone = (geoId === 8742) ? 'Atlantic/Canary' : 'Europe/Madrid';
+        for (const monthKey of filesToRead) {
+          const primaryUrl = `/data/pvpc/${geoId}/${monthKey}.json`;
+          let responseGeo = geoId;
+          let loaded = await window.LF.csvUtils.fetchJsonWithTimeout(primaryUrl);
+          if ((!loaded.response || !loaded.response.ok) && geoFallbackId) {
+            const fallbackUrl = `/data/pvpc/${geoFallbackId}/${monthKey}.json`;
+            responseGeo = geoFallbackId;
+            loaded = await window.LF.csvUtils.fetchJsonWithTimeout(fallbackUrl);
+          }
+          if (!loaded.response || !loaded.response.ok) {
+            pvpcDbg(`[WARN] Datos PVPC faltantes para mes: ${monthKey} (geo: ${geoId})`);
+            missingMonths.push(monthKey);
+            continue;
+          }
+          const data = loaded.data;
+          const expectedTimezone = Number(responseGeo) === 8742 ? 'Atlantic/Canary' : 'Europe/Madrid';
+          const identity = window.LF?.csvUtils?.validateStaticPriceDatasetIdentity?.(data, {
+            expectedGeoId: responseGeo,
+            expectedIndicator: 1001,
+            expectedTimeZone: expectedTimezone
+          });
+          if (!identity?.ok) {
+            console.warn(`[PVPC] ⚠️ Dataset mensual incompatible (${monthKey}): ${identity?.reason || 'identity-validator-unavailable'}`);
+            missingMonths.push(monthKey);
+            continue;
+          }
+          dataTimezone = expectedTimezone;
+          Object.assign(allPrices, collectPvpcDays(data.days));
+        }
+        
+        // En modo CSV se conserva la política de cobertura parcial documentada. En el
+        // cálculo estándar, en cambio, el periodo termina ayer: todos los días son
+        // cerrados y cualquier mes/día incompleto debe invalidar PVPC, nunca promediarse
+        // silenciosamente ni entrar en caché.
+        if (missingMonths.length > 0) {
+          const monthsStr = missingMonths.join(', ');
+          console.warn(`[PVPC] ⚠️ Datos incompletos. Faltan meses: ${monthsStr}`);
+          pvpcDbg(`[ERROR] Cálculo PVPC incompleto. Periodo solicitado: ${startStr} al ${endStr}, pero faltan datos para: ${monthsStr}`);
+          if (!consumosHorarios) {
+            throw new Error(`PVPC incompleto: faltan meses ${monthsStr}`);
+          }
+        }
+        if (!consumosHorarios) {
+          const coverage = validateClosedPvpcPeriod(allPrices, startDate, endDate, dataTimezone);
+          if (!coverage.ok) {
+            const detail = coverage.invalidDays.map((day) => `${day.date}:${day.reason}`).join(', ');
+            console.warn(`[PVPC] ⚠️ Periodo cerrado incompleto: ${detail}`);
+            throw new Error(`PVPC incompleto en días cerrados: ${detail}`);
+          }
+        }
+
+        // Extraer hora local (de la zona del geo) desde el epoch. Esto evita errores en días con cambio de hora.
+        const hourFormatter = new Intl.DateTimeFormat('es-ES', {
+          hour: '2-digit',
+          hour12: false,
+          timeZone: dataTimezone
+        });
+        const hourFromTs = (tsSeconds) => {
+          const hStr = hourFormatter.format(new Date(Number(tsSeconds) * 1000));
+          let h = parseInt(hStr, 10);
+          if (h === 24) h = 0;
+          return Number.isFinite(h) ? h : 0;
+        };
+        const buildCnmcHourEntries = (dayPrices) => {
+          const totalsByHour = new Map();
+          // Solo filas utilizables: una fila corrupta daría hora NaN, colisionaría con la
+          // hora 0 y corrompería la numeración CNMC de todo el día. Filtrarla conserva
+          // intactas las horas válidas, que es justo lo que la ruta CSV puede consumir.
+          const rawEntries = usablePvpcRows(dayPrices).map(([ts, precio]) => ({
+            ts,
+            precio,
+            hour: hourFromTs(ts)
+          }));
+
+          rawEntries.forEach((entry) => {
+            totalsByHour.set(entry.hour, (totalsByHour.get(entry.hour) || 0) + 1);
+          });
+
+          const seenByHour = new Map();
+          return rawEntries.map((entry) => {
+            const occurrence = (seenByHour.get(entry.hour) || 0) + 1;
+            seenByHour.set(entry.hour, occurrence);
+
+            return {
+              ...entry,
+              occurrence,
+              totalOccurrences: totalsByHour.get(entry.hour) || 1,
+              cnmcHour: (totalsByHour.get(entry.hour) || 0) > 1 && occurrence > 1
+                ? 25
+                : (entry.hour + 1)
+            };
+          });
+        };
+        const exactDayEntriesCache = new Map();
+        const getExactDayEntries = (dateStr, dayPrices) => {
+          if (exactDayEntriesCache.has(dateStr)) return exactDayEntriesCache.get(dateStr);
+          const byCnmcHour = new Map();
+          buildCnmcHourEntries(dayPrices).forEach((entry) => {
+            byCnmcHour.set(entry.cnmcHour, entry.precio);
+          });
+          exactDayEntriesCache.set(dateStr, byCnmcHour);
+          return byCnmcHour;
+        };
+
+        // Horarios según zona (CNMC Circular 3/2020)
+        // Península/Baleares/Canarias: iguales (10-14 y 18-22)
+        // Ceuta/Melilla: desplazados +1h (11-15 y 19-23)
+        const horasPunta = esCeutaMelilla ? [11,12,13,14,19,20,21,22] : [10,11,12,13,18,19,20,21];
+        const horasValle = [0,1,2,3,4,5,6,7]; // Igual para todas las zonas
+        
+        // Calcular precios medios por periodo (método de aproximación)
+        let sumPunta = 0, countPunta = 0;
+        let sumLlano = 0, countLlano = 0;
+        let sumValle = 0, countValle = 0;
+        
+        const curr = new Date(startDate);
+        while (curr <= endDate) {
+          const dateStr = formatYMD(curr);
+          const dayPrices = allPrices[dateStr];
+          
+          if (dayPrices && Array.isArray(dayPrices)) {
+            const dayOfWeek = weekdayFromYMD(dateStr);
+            const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+            const isFestivo = esFestivoNacional(dateStr);
+
+            // Mismo criterio por fila que en el cruce exacto: una fila corrupta metería
+            // un precio no numérico en las sumas y saldrian medias NaN.
+            usablePvpcRows(dayPrices).forEach(([ts, precio]) => {
+              const hora = hourFromTs(ts);
+              // FINES DE SEMANA Y FESTIVOS: TODO EL DÍA ES VALLE
+              if (isWeekend || isFestivo) {
+                sumValle += precio;
+                countValle++;
+              } else {
+                // Laborables normales
+                if (horasPunta.includes(hora)) {
+                  sumPunta += precio;
+                  countPunta++;
+                } else if (horasValle.includes(hora)) {
+                  sumValle += precio;
+                  countValle++;
+                } else {
+                  sumLlano += precio;
+                  countLlano++;
+                }
+              }
+            });
+          }
+          
+          curr.setDate(curr.getDate() + 1);
+          await maybeYield();
+        }
+        
+        if (countPunta === 0 && countLlano === 0 && countValle === 0) {
+          throw new Error('No hay datos para el periodo');
+        }
+        
+        const precioP1 = countPunta > 0 ? sumPunta / countPunta : 0;
+        const precioP2 = countLlano > 0 ? sumLlano / countLlano : 0;
+        const precioP3 = countValle > 0 ? sumValle / countValle : 0;
+        
+        pvpcErrorShown = false;
+        
+        // TÉRMINO FIJO (peajes + cargos de potencia). La regulación publica
+        // importes anuales; para la configuración 2026 se prorratean por días/365
+        // sin redondear previamente a un literal diario de seis decimales.
+        const diasAnioPot = Number(PEAJES_POT_DIA.diasAnio) || 365;
+        const anualP1 = Number.isFinite(Number(PEAJES_POT_DIA.anualP1)) ? Number(PEAJES_POT_DIA.anualP1) : (Number(PEAJES_POT_DIA.p1) * diasAnioPot);
+        const anualP2 = Number.isFinite(Number(PEAJES_POT_DIA.anualP2)) ? Number(PEAJES_POT_DIA.anualP2) : (Number(PEAJES_POT_DIA.p2) * diasAnioPot);
+        const anualMargen = Number.isFinite(Number(PEAJES_POT_DIA.anualMargen)) ? Number(PEAJES_POT_DIA.anualMargen) : (Number(PEAJES_POT_DIA.margen) * diasAnioPot);
+        const roundAnnualMoney = (products, fallback) => {
+          const helper = window.LF_CONFIG && window.LF_CONFIG.roundMoneyProductsDividedBy;
+          if (typeof helper !== 'function') return fallback;
+          const exact = helper(products, diasAnioPot);
+          return Number.isFinite(exact) ? exact : fallback;
+        };
+        const costePeajePotP1 = p1 * anualP1 * dias / diasAnioPot;
+        const costePeajePotP2 = p2 * anualP2 * dias / diasAnioPot;
+        const terminoFijo = costePeajePotP1 + costePeajePotP2;
+        const terminoFijoRedondeado = roundAnnualMoney(
+          [[p1, anualP1, dias], [p2, anualP2, dias]],
+          terminoFijo
+        );
+        const costePeajePotP1Redondeado = roundAnnualMoney([[p1, anualP1, dias]], costePeajePotP1);
+        const costePeajePotP2Redondeado = roundAnnualMoney([[p2, anualP2, dias]], costePeajePotP2);
+
+        // MARGEN DE COMERCIALIZACIÓN (separado)
+        const costeMargenPot = p1 * anualMargen * dias / diasAnioPot;
+        const costeMargenPotRedondeado = roundAnnualMoney([[p1, anualMargen, dias]], costeMargenPot);
+        
+        // TÉRMINO VARIABLE
+        let terminoVariable = cPunta * precioP1 + cLlano * precioP2 + cValle * precioP3;
+        let modoExactoCSV = false;
+        let modoHibridoCSV = false;
+        let horasCSVSinPrecioPVPC = 0;
+        let horasCSVConPrecioPVPC = 0;
+        let kwhCSVSinPrecioPVPC = 0;
+        let kwhCSVConPrecioPVPC = 0;
+        let motivoFallbackCSV = '';
+        if (consumosHorarios) {
+          let exactCost = 0, horasConDatos = 0, horasSinDatos = 0;
+          let estimatedMissingCost = 0;
+          let kwhConDatos = 0, kwhSinDatos = 0;
+          let missingPeriodMean = false;
+          let missingConsumptionMonth = false;
+          const missingMeanPeriods = new Set();
+          const addMissingEstimate = (date, cnmcHour, kwh, dateStr) => {
+            horasSinDatos++;
+            kwhSinDatos += kwh;
+            if (missingMonths.includes(dateStr.slice(0, 7))) missingConsumptionMonth = true;
+            const validDate = date instanceof Date && Number.isFinite(date.getTime());
+            const validHour = Number.isInteger(cnmcHour) && cnmcHour >= 1 && cnmcHour <= 25;
+            const periodo = validDate && validHour
+              ? window.LF?.csvUtils?.getPeriodoHorarioCSV?.(date, cnmcHour, zonaFiscal)
+              : null;
+            const periodMean = periodo === 'P1' && countPunta > 0 ? precioP1
+              : periodo === 'P2' && countLlano > 0 ? precioP2
+                : periodo === 'P3' && countValle > 0 ? precioP3
+                  : null;
+            if (Number.isFinite(periodMean)) {
+              estimatedMissingCost += kwh * periodMean;
+            } else {
+              missingPeriodMean = true;
+              if (periodo === 'P1' || periodo === 'P2' || periodo === 'P3') {
+                missingMeanPeriods.add(periodo);
+              }
+            }
+          };
+          let csvLoopCount = 0;
+          for (const c of consumosHorarios) {
+            csvLoopCount++;
+            if (csvLoopCount % 256 === 0) {
+              await maybeYield();
+            }
+            const kwh = Math.max(0, asNumber(c.kwh, 0));
+            if (kwh === 0) continue;
+            const d = c.fecha instanceof Date ? c.fecha : new Date(c.fecha);
+            const dateStr = formatYMD(d);
+            const dayPrices = allPrices[dateStr];
+            const cnmcHour = Number(c.hora || 0);
+            if (!dayPrices) {
+              addMissingEstimate(d, cnmcHour, kwh, dateStr);
+              continue;
+            }
+            const dayEntries = getExactDayEntries(dateStr, dayPrices);
+            const price = dayEntries.get(cnmcHour);
+            if (!dayEntries.has(cnmcHour) || !Number.isFinite(price)) {
+              addMissingEstimate(d, cnmcHour, kwh, dateStr);
+              continue;
+            }
+            exactCost += kwh * price;
+            kwhConDatos += kwh;
+            horasConDatos++;
+          }
+          horasCSVConPrecioPVPC = horasConDatos;
+          horasCSVSinPrecioPVPC = horasSinDatos;
+          kwhCSVConPrecioPVPC = kwhConDatos;
+          kwhCSVSinPrecioPVPC = kwhSinDatos;
+          if (horasConDatos > 0 && horasSinDatos === 0) {
+            terminoVariable = exactCost;
+            modoExactoCSV = true;
+          } else if (horasConDatos > 0 && horasSinDatos > 0) {
+            const totalHours = horasConDatos + horasSinDatos;
+            const totalCsvKwh = kwhConDatos + kwhSinDatos;
+            const missingHoursShare = totalHours > 0 ? horasSinDatos / totalHours : 1;
+            const missingKwhShare = totalCsvKwh > 0 ? kwhSinDatos / totalCsvKwh : 1;
+            const residualCoverage = missingHoursShare <= PVPC_HYBRID_MAX_MISSING_HOURS_SHARE
+              && missingKwhShare <= PVPC_HYBRID_MAX_MISSING_KWH_SHARE;
+            if (residualCoverage && !missingPeriodMean && !missingConsumptionMonth) {
+              terminoVariable = exactCost + estimatedMissingCost;
+              modoHibridoCSV = true;
+            } else if (missingConsumptionMonth) {
+              motivoFallbackCSV = 'Al menos un mes completo con consumo no está disponible en el histórico PVPC.';
+            } else if (missingPeriodMean) {
+              motivoFallbackCSV = 'No hay una media P1/P2/P3 válida para estimar todas las horas sin precio.';
+            } else {
+              motivoFallbackCSV = 'La parte sin precio supera el umbral máximo del 10% de horas o del 10% de energía.';
+            }
+          }
+          if (!modoExactoCSV && !modoHibridoCSV && horasSinDatos > 0 && !motivoFallbackCSV) {
+            if (missingConsumptionMonth) {
+              motivoFallbackCSV = 'Al menos un mes completo con consumo no está disponible en el histórico PVPC.';
+            } else if (missingPeriodMean) {
+              motivoFallbackCSV = 'No hay una media P1/P2/P3 válida para estimar todas las horas sin precio.';
+            } else if (horasConDatos === 0) {
+              motivoFallbackCSV = 'No hay ninguna hora con consumo y precio PVPC disponible para realizar el cruce.';
+            }
+          }
+          // El fallback por medias solo es seguro si existe una media para cada periodo
+          // reconocido que contiene consumo sin precio. Usar 0 €/kWh para un periodo sin
+          // ninguna fila válida convertiría ausencia de datos en precio cero.
+          if (!modoExactoCSV && !modoHibridoCSV && missingMeanPeriods.size > 0) {
+            throw new Error(`PVPC incompleto: faltan medias válidas para ${Array.from(missingMeanPeriods).sort().join(', ')}`);
+          }
+        }
+
+        const totalHorasCSVConConsumo = horasCSVConPrecioPVPC + horasCSVSinPrecioPVPC;
+        const totalKwhCSVConConsumo = kwhCSVConPrecioPVPC + kwhCSVSinPrecioPVPC;
+        const porcentajeHorasCSVSinPrecio = totalHorasCSVConConsumo > 0
+          ? horasCSVSinPrecioPVPC / totalHorasCSVConConsumo
+          : 0;
+        const porcentajeKwhCSVSinPrecio = totalKwhCSVConConsumo > 0
+          ? kwhCSVSinPrecioPVPC / totalKwhCSVConConsumo
+          : 0;
+        const pvpcCoverage = consumosHorarios ? {
+          mode: modoExactoCSV ? 'exact' : modoHibridoCSV ? 'hybrid' : 'average',
+          hoursWithPrice: horasCSVConPrecioPVPC,
+          hoursWithoutPrice: horasCSVSinPrecioPVPC,
+          kwhWithPrice: kwhCSVConPrecioPVPC,
+          kwhWithoutPrice: kwhCSVSinPrecioPVPC,
+          missingHoursShare: porcentajeHorasCSVSinPrecio,
+          missingKwhShare: porcentajeKwhCSVSinPrecio,
+          missingMonths: [...missingMonths],
+          fallbackReason: motivoFallbackCSV,
+          hasMissingPrices: horasCSVSinPrecioPVPC > 0
+        } : null;
+        
+        const consumoTotal = cPunta + cLlano + cValle;
+        const precioMedio = consumoTotal > 0 ? terminoVariable / consumoTotal : 0;
+        
+        // BONO SOCIAL
+        const bonoSocial = window.LF_CONFIG ? window.LF_CONFIG.calcularBonoSocial(dias) : (9.011295 / 365 * dias);
+        
+        // IMPUESTO ELÉCTRICO
+        const baseIEE = terminoFijo + costeMargenPot + terminoVariable + bonoSocial;
+        const impuestoElectrico = (window.LF_CONFIG && typeof window.LF_CONFIG.calcularIEE === 'function')
+          ? (typeof window.LF_CONFIG.calcularIEERedondeado === 'function'
+              ? window.LF_CONFIG.calcularIEERedondeado(baseIEE, consumoTotal, fiscal?.fechaYmd || fiscalDateYmd)
+              : round2(window.LF_CONFIG.calcularIEE(baseIEE, consumoTotal, fiscal?.fechaYmd || fiscalDateYmd)))
+          : round2(Math.max(
+              ((Number(window.LF_CONFIG?.iee?.porcentaje) || 0) / 100) * baseIEE,
+              consumoTotal * (Number(window.LF_CONFIG?.iee?.minimoEurosKwh) || 0)
+            ));
+        
+        // ALQUILER
+        const equipoMedida = window.LF_CONFIG ? window.LF_CONFIG.calcularAlquilerContador(dias) : (dias * 0.81 * 12 / 365);
+
+        const fiscalMeta = computePvpcFiscal({
+          terminoFijo,
+          costeMargenPot,
+          terminoVariable,
+          bonoSocial,
+          impuestoElectrico,
+          equipoMedida
+        }, fiscal);
+
+        const totalFactura = fiscalMeta.totalFactura;
+
+        const impuestoLineas = (() => {
+          if (fiscalMeta.isCanarias) {
+            return [
+              {
+                cabecera: 'IGIC energía',
+                importe: fiscalMeta.impuestoEnergia.toFixed(2)
+              },
+              {
+                cabecera: 'IGIC contador',
+                importe: fiscalMeta.impuestoContador.toFixed(2)
+              }
+            ];
+          }
+          if (fiscalMeta.isCeutaMelilla) {
+            return [
+              {
+                cabecera: 'IPSI energía',
+                importe: fiscalMeta.impuestoEnergia.toFixed(2)
+              },
+              {
+                cabecera: 'IPSI contador',
+                importe: fiscalMeta.impuestoContador.toFixed(2)
+              }
+            ];
+          }
+          return [
+            {
+              cabecera: 'IVA',
+              importe: fiscalMeta.iva.toFixed(2)
+            }
+          ];
+        })();
+        
+          return {
+          resultadoPVPC: [
+            {
+              cabecera: `Periodo: del ${startStr.split('-').reverse().join('/')} al ${endStr.split('-').reverse().join('/')}`,
+              importe: '0.00'
+            },
+            {
+              cabecera: 'Término de Potencia',
+              importe: terminoFijoRedondeado.toFixed(2),
+              explicacion: `Importe por peajes y cargos de potencia\nP1 (Punta): ${p1} kW × ${anualP1.toFixed(6)} €/kW·año × ${dias}/${diasAnioPot} = ${costePeajePotP1Redondeado.toFixed(2)} €\nP2 (Valle): ${p2} kW × ${anualP2.toFixed(6)} €/kW·año × ${dias}/${diasAnioPot} = ${costePeajePotP2Redondeado.toFixed(2)} €`
+            },
+            {
+              cabecera: 'Margen de comercialización',
+              importe: costeMargenPotRedondeado.toFixed(2),
+              explicacion: `Margen de comercialización fijo sobre P1: ${p1} kW × ${anualMargen.toFixed(3)} €/kW·año × ${dias}/${diasAnioPot} = ${costeMargenPotRedondeado.toFixed(2)} €`
+            },
+            {
+              cabecera: 'Término variable',
+              importe: terminoVariable.toFixed(2),
+              explicacion: modoExactoCSV
+                ? `Coste energía (cálculo exacto hora a hora): ${Math.round(consumoTotal)} kWh × ${precioMedio.toFixed(6)} €/kWh = ${terminoVariable.toFixed(2)} €\n\nPrecios PVPC oficiales (REE/ESIOS, indicador 1001) cruzados hora a hora con los consumos del CSV.\nPrecios medios por periodo para referencia:\n- P1 (Punta): ${precioP1.toFixed(4)} €/kWh\n- P2 (Llano): ${precioP2.toFixed(4)} €/kWh\n- P3 (Valle): ${precioP3.toFixed(4)} €/kWh`
+                : modoHibridoCSV
+                  ? `Coste energía (cálculo horario con cobertura parcial): ${Math.round(consumoTotal)} kWh × ${precioMedio.toFixed(6)} €/kWh = ${terminoVariable.toFixed(2)} €\n\nSe ha aplicado el precio PVPC horario a ${horasCSVConPrecioPVPC} de ${totalHorasCSVConConsumo} horas con consumo. Para las ${horasCSVSinPrecioPVPC} horas restantes (${(porcentajeKwhCSVSinPrecio * 100).toFixed(1)}% de la energía) se ha aplicado la media P1/P2/P3 del periodo correspondiente.\nPrecios medios por periodo usados como referencia:\n- P1 (Punta): ${precioP1.toFixed(4)} €/kWh\n- P2 (Llano): ${precioP2.toFixed(4)} €/kWh\n- P3 (Valle): ${precioP3.toFixed(4)} €/kWh`
+                  : `Coste energía: ${Math.round(consumoTotal)} kWh x ${precioMedio.toFixed(6)} €/kWh = ${terminoVariable.toFixed(2)} €\n\n${horasCSVSinPrecioPVPC > 0 ? `No hay cobertura horaria suficiente para cruzar el periodo: ${horasCSVSinPrecioPVPC} de ${totalHorasCSVConConsumo} horas con consumo (${(porcentajeKwhCSVSinPrecio * 100).toFixed(1)}% de la energía) no tenían precio PVPC disponible. Se valora todo el consumo con las medias P1/P2/P3 disponibles.${motivoFallbackCSV ? ` ${motivoFallbackCSV}` : ''}\n\n` : ''}Precios medios estimados del término variable por periodo (incluye peajes/cargos + coste de la energía):\n- P1 (Punta): ${precioP1.toFixed(4)} €/kWh\n- P2 (Llano): ${precioP2.toFixed(4)} €/kWh\n- P3 (Valle): ${precioP3.toFixed(4)} €/kWh\n\nPrecio medio estimado del término variable: ${precioMedio.toFixed(6)} €/kWh\n\nMetodología: media horaria por periodo sobre precios oficiales horarios REE/ESIOS (indicador 1001). El simulador de la CNMC puede diferir ligeramente al aplicar perfiles estadísticos de consumo.`
+            },
+            {
+              cabecera: 'Financiación del bono social',
+              importe: bonoSocial.toFixed(2)
+            },
+            {
+              cabecera: 'Impuesto eléctrico',
+              importe: impuestoElectrico.toFixed(2)
+            },
+            {
+              cabecera: 'Equipo de medida',
+              importe: equipoMedida.toFixed(2)
+            },
+            ...impuestoLineas,
+            {
+              cabecera: 'Total Factura',
+              importe: totalFactura.toFixed(2)
+            }
+          ],
+          // CAMPOS EXTRA PARA USO INTERNO (inyectados para evitar parseo de strings)
+          precioPunta: precioP1,
+          precioLlano: precioP2,
+          precioValle: precioP3,
+          totalFactura: totalFactura,
+          terminoFijo: terminoFijo,
+          terminoVariable: terminoVariable,
+          impuestoElectrico: impuestoElectrico,
+          bonoSocial: bonoSocial,
+          equipoMedida: equipoMedida,
+          costeMargenPot: costeMargenPot,
+          pvpcCoverage
+        };
+      } catch (err) {
+        pvpcDbg('[ERROR] PVPC lectura de datos locales falló:', err?.message || err);
+        if (!pvpcErrorShown) {
+          pvpcToast('PVPC: No se pudieron cargar los datos de precios. Compara con tarifas comerciales.', 'err');
+          pvpcErrorShown = true;
+        }
+        return null;
+      }
+    }
+
+
+    function pvpcSignatureFromValues(v){
+      const norm=n=>Number(Number(n||0).toFixed(4));
+      const zonaRaw = v?.zonaFiscal || 'Península';
+      const zonaFiscal = zonaRaw === 'Canarias' ? 'Canarias' 
+                       : zonaRaw === 'CeutaMelilla' ? 'CeutaMelilla' 
+                       : 'Península';
+      const values={
+        dias: Math.min(Math.max(Math.trunc(v?.dias)||0,1),370),
+        p1: norm(v?.p1),
+        p2: norm(v?.p2),
+        cPunta: norm(v?.cPunta),
+        cLlano: norm(v?.cLlano),
+        cValle: norm(v?.cValle),
+        zonaFiscal,
+        viviendaCanarias: zonaFiscal === 'Canarias' && Boolean(v?.viviendaCanarias),
+        bonoSocialOn: Boolean(v?.bonoSocialOn),
+        bonoSocialTipo: v?.bonoSocialTipo || 'vulnerable',
+        bonoSocialLimite: v?.bonoSocialLimite || ''
+      };
+      return buildPvpcCacheKey(values);
+    }
+
+    function enforcePvpcCacheLimit(){
+      try{
+        const entries=[];
+        for(let i=0;i<localStorage.length;i++){
+          const k=localStorage.key(i);
+          if(k && k.startsWith(`${PVPC_CACHE_PREFIX}:`)){
+            let ts=0;
+            try{ const parsed=JSON.parse(localStorage.getItem(k)); ts=parsed?.ts||0; }catch(e){}
+            entries.push({k,ts});
+          }
+        }
+        if(entries.length<=PVPC_CACHE_LIMIT) return;
+        entries.sort((a,b)=>a.ts-b.ts);
+        const remove=entries.length-PVPC_CACHE_LIMIT;
+        for(let i=0;i<remove;i++){
+          localStorage.removeItem(entries[i].k);
+          pvpcCacheMemory.delete(entries[i].k);
+        }
+      }catch(e){}
+    }
+
+    async function crearTarifaPVPC(values){
+      const fiscal = typeof __LF_getFiscalContext === 'function'
+        ? __LF_getFiscalContext(values)
+        : (() => {
+          const cfg = window.LF_CONFIG;
+          const _parseNum = window.LF?.parseNum || (v => Math.max(0, Number(v) || 0));
+          const _clampNonNeg = window.LF?.clampNonNeg || (n => Math.max(0, Number(n) || 0));
+          const potenciaContratada = Math.max(_clampNonNeg(_parseNum(values?.p1)), _clampNonNeg(_parseNum(values?.p2)));
+          if (cfg && typeof cfg.getFiscalContext === 'function') {
+            return cfg.getFiscalContext({
+              zona: values?.zonaFiscal,
+              potenciaContratada,
+              viviendaCanarias: values?.viviendaCanarias,
+              bonoSocialOn: values?.bonoSocialOn,
+              bonoSocialTipo: values?.bonoSocialTipo,
+              fechaYmd: values?.fechaYmd
+            });
+          }
+          const zonaRaw = (values?.zonaFiscal || '').toLowerCase();
+          const zona = zonaRaw === 'canarias' ? 'canarias'
+                     : zonaRaw === 'ceutamelilla' ? 'ceutamelilla'
+                     : 'península';
+          const esCanarias = zona === 'canarias';
+          const esCeutaMelilla = zona === 'ceutamelilla';
+          const viviendaMarcada = Boolean(values?.viviendaCanarias);
+          const esViviendaTipoCero = esCanarias && viviendaMarcada && potenciaContratada > 0 && potenciaContratada <= 10;
+          const usoFiscal = esViviendaTipoCero ? 'vivienda' : (esCeutaMelilla ? 'ipsi' : 'otros');
+          return { zona, viviendaMarcada, potenciaContratada, esViviendaTipoCero, usoFiscal, esCanarias, esCeutaMelilla, fechaYmd: values?.fechaYmd };
+        })();
+      const potenciaContratada = Number(fiscal?.potenciaContratada || 0);
+      // PVPC solo disponible para potencia ≤ 10 kW en toda España
+      window.pvpcPotenciaExcedida = potenciaContratada > 10;
+
+      if (window.pvpcPotenciaExcedida) {
+        window.pvpcLastMeta = null;
+        return {
+          nombre:'PVPC (Regulada) ⚡',
+          tipo:'3P',
+          p1:0, p2:0,
+          cPunta:0,
+          cLlano:0,
+          cValle:0,
+	          web:'https://www.esios.ree.es/',
+          esPVPC:true,
+          pvpcWarning: true,
+          pvpcNotComputable: true,
+          potenciaNum: 0,
+          potencia: '—',
+          consumoNum: 0,
+          consumo: '—',
+          impuestosNum: 0,
+          impuestos: '—',
+          totalNum: Number.POSITIVE_INFINITY,
+          total: '—',
+          metaPvpc: null
+        };
+      }
+
+      let signature=pvpcSignatureFromValues(values);
+      // Si hay CSV, incluir su rango de fechas en la firma para no servir caché incorrecto
+      const _csvSig = Array.isArray(window.LF?.consumosHorarios) && window.LF.consumosHorarios.length > 0
+        ? window.LF.consumosHorarios : null;
+      if (_csvSig) {
+        let _minYmd = '', _maxYmd = '';
+        for (const c of _csvSig) {
+          if (!c.fecha) continue;
+          const ymd = formatYMD(c.fecha instanceof Date ? c.fecha : new Date(c.fecha));
+          if (!_minYmd || ymd < _minYmd) _minYmd = ymd;
+          if (!_maxYmd || ymd > _maxYmd) _maxYmd = ymd;
+        }
+        if (_minYmd && _maxYmd) {
+          const periodoMode = window.LF?.pvpcPeriodoCSV === true ? 'periodo' : 'hoy';
+          signature = `${signature}|csv:${_minYmd}_${_maxYmd}:${periodoMode}`;
+        }
+      }
+      if(pvpcInFlight.has(signature)) return pvpcInFlight.get(signature);
+
+      const cached=readPvpcCacheEntry(signature);
+      if(cached && cached.tarifa){
+        window.pvpcLastMeta = window.pvpcPotenciaExcedida ? null : (cached.meta||null);
+        const tarifaCached = { ...cached.tarifa };
+        tarifaCached.pvpcWarning = window.pvpcPotenciaExcedida;
+        tarifaCached.pvpcNotComputable = window.pvpcPotenciaExcedida;
+        if(window.pvpcPotenciaExcedida){
+          tarifaCached.totalNum = Number.POSITIVE_INFINITY;
+          tarifaCached.total = '—';
+          tarifaCached.impuestos = '—';
+          tarifaCached.impuestosNum = 0;
+          tarifaCached.potencia = '—';
+          tarifaCached.consumo = '—';
+          tarifaCached.potenciaNum = 0;
+          tarifaCached.consumoNum = 0;
+        }
+        return tarifaCached;
+      }
+
+      const p=(async()=>{
+        try{
+	          const data=await obtenerPVPC_LOCAL(values);
+	          if(!data){ if(!pvpcErrorShown){pvpcToast('PVPC: Datos de precios no disponibles para tu zona/período.','err'); pvpcErrorShown=true;} return null; }
+          const parsed=parsearRespuestaPVPC(data);
+          if(!parsed){ if(!pvpcErrorShown){pvpcToast('PVPC: Error al procesar datos de precios.','err'); pvpcErrorShown=true;} return null; }
+
+          const fiscalFechaFinal = (window.LF_CONFIG && typeof window.LF_CONFIG.getTodayYmd === 'function')
+            ? window.LF_CONFIG.getTodayYmd()
+            : (values?.fechaYmd || parsed.rangoFechas?.fin || fiscal?.fechaYmd);
+          const fiscalResolved = typeof __LF_getFiscalContext === 'function'
+            ? __LF_getFiscalContext({ ...(values || {}), fechaYmd: fiscalFechaFinal })
+            : (window.LF_CONFIG && typeof window.LF_CONFIG.getFiscalContext === 'function')
+              ? window.LF_CONFIG.getFiscalContext({
+                  zona: values?.zonaFiscal,
+                  potenciaContratada: Math.max(asNumber(values?.p1, 0), asNumber(values?.p2, 0)),
+                  viviendaCanarias: values?.viviendaCanarias,
+                  bonoSocialOn: values?.bonoSocialOn,
+                  bonoSocialTipo: values?.bonoSocialTipo,
+                  fechaYmd: fiscalFechaFinal
+                })
+              : { ...(fiscal || {}), fechaYmd: fiscalFechaFinal };
+          const fiscalMeta = computePvpcFiscal(parsed, {
+            ...fiscalResolved,
+            bonoSocialOn: values?.bonoSocialOn,
+            bonoSocialTipo: values?.bonoSocialTipo,
+            fechaYmd: fiscalResolved?.fechaYmd || fiscalFechaFinal
+          });
+          const totalFactura = (Number.isFinite(fiscalMeta.totalFactura) && fiscalMeta.totalFactura > 0)
+            ? fiscalMeta.totalFactura
+            : parsed.totalFactura;
+
+          const tarifa={
+            nombre:'PVPC (Regulada) ⚡',
+            tipo:'3P',
+            p1:0, p2:0,
+            cPunta:parsed.precioPunta||0,
+            cLlano:parsed.precioLlano||0,
+            cValle:parsed.precioValle||0,
+	            web:'https://www.esios.ree.es/',
+            esPVPC:true,
+            pvpcWarning: window.pvpcPotenciaExcedida,
+            pvpcNotComputable: window.pvpcPotenciaExcedida,
+            metaPvpc:{
+              terminoFijo:parsed.terminoFijo,
+              costeMargenPot:parsed.costeMargenPot||0,
+              terminoVariable:parsed.terminoVariable,
+              bonoSocial:parsed.bonoSocial||0,
+              impuestoElectrico:parsed.impuestoElectrico,
+              equipoMedida:parsed.equipoMedida,
+              iva:fiscalMeta.iva,
+              totalFactura:totalFactura,
+              baseEnergia:fiscalMeta.baseEnergia,
+              baseContador:fiscalMeta.baseContador,
+              impuestoEnergia:fiscalMeta.impuestoEnergia,
+              impuestoContador:fiscalMeta.impuestoContador,
+              impuestosTotal:fiscalMeta.impuestosTotal,
+              ivaBase:fiscalMeta.ivaBase,
+              baseIPSI:fiscalMeta.baseIPSI,
+              usoFiscal:fiscalMeta.usoFiscal,
+              fechaYmd:fiscalMeta.fechaYmd || parsed.rangoFechas?.fin || null
+            }
+          };
+
+          if(window.pvpcPotenciaExcedida){
+            tarifa.totalNum = Number.POSITIVE_INFINITY;
+            tarifa.total = '—';
+            tarifa.impuestos = '—';
+            tarifa.impuestosNum = 0;
+            tarifa.potencia = '—';
+            tarifa.consumo = '—';
+            tarifa.potenciaNum = 0;
+            tarifa.consumoNum = 0;
+          }
+
+          window.pvpcLastMeta={
+            precioPunta:parsed.precioPunta,
+            precioLlano:parsed.precioLlano,
+            precioValle:parsed.precioValle,
+            rangoFechas:parsed.rangoFechas||null,
+            fechaConsulta:new Date().toISOString(),
+            pvpcCoverage:parsed.pvpcCoverage||null
+          };
+
+          const payload={tarifa, meta: window.pvpcLastMeta, ts: Date.now()};
+          if (!parsed.pvpcCoverage?.hasMissingPrices) {
+            persistPvpcCacheEntry(signature,payload);
+          }
+          return tarifa;
+        }catch(err){
+          pvpcDbg('[ERROR] Error procesando PVPC', err);
+          if(!pvpcErrorShown){pvpcToast('PVPC: Error inesperado. Compara con tarifas comerciales.','err'); pvpcErrorShown=true;}
+          return null;
+        }
+      })();
+
+      pvpcInFlight.set(signature,p);
+      return p.finally(()=>pvpcInFlight.delete(signature));
+    }
+
+    // ===== EXPORT FOR TESTING & MODERN USAGE =====
+    window.LF = window.LF || {};
+    window.LF.pvpc = {
+        crearTarifaPVPC,
+        obtenerPVPC_LOCAL,
+        parsearRespuestaPVPC,
+        validateClosedPvpcDay,
+        validateClosedPvpcPeriod,
+        getClosedPvpcPeriodYmd,
+        getPvpcAnchorDate
+    };
+
+    // ===== END PVPC MODULE =====

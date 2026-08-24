@@ -1,0 +1,1316 @@
+# 🔋 Comparador de Tarifas Solares - Documentación Técnica
+
+**URL**: [https://luzfija.es/comparador-tarifas-solares.html](https://luzfija.es/comparador-tarifas-solares.html)
+**Nota de alcance**: Este documento profundiza en el simulador BV. Para el inventario completo de toda la web, ver `CAPACIDADES-WEB.md`.
+
+## 📖 Índice
+
+1. [¿Qué es el Simulador BV?](#qué-es-el-simulador-bv)
+2. [Características Principales](#características-principales)
+3. [Arquitectura Técnica](#arquitectura-técnica)
+4. [Flujo de Cálculo](#flujo-de-cálculo)
+5. [API JavaScript](#api-javascript)
+6. [Formatos de Archivo Soportados](#formatos-de-archivo-soportados)
+7. [Seguridad y Validaciones](#seguridad-y-validaciones)
+8. [UX y Accesibilidad](#ux-y-accesibilidad)
+9. [Casos de Uso](#casos-de-uso)
+
+---
+
+## ¿Qué es el Simulador BV?
+
+El **Simulador de Batería Virtual** es una herramienta especializada que permite comparar tarifas con autoconsumo y compensación de excedentes (con y sin BV) utilizando tus **consumos reales mes a mes**.
+
+### Diferencia con el Comparador Principal
+
+| Característica | Comparador Principal | Simulador BV |
+|---|---|---|
+| **Input** | Datos agregados, factura PDF o curva horaria CSV/XLSX | Curva horaria CSV/XLSX o tabla mensual manual |
+| **Cálculo** | Un periodo único | Mes a mes (histórico) |
+| **Batería Virtual** | Estimación simplificada | Simulación mensual detallada |
+| **Ranking** | Mercado libre + PVPC integrado | Tarifas con excedentes remunerados |
+| **Output** | Factura estimada | Evolución mensual completa |
+
+### ¿Por qué es necesario?
+
+Las tarifas con **batería virtual** acumulan los excedentes solares sobrantes (que no se compensan en el mismo mes) en una "hucha" en euros para usarlos en meses futuros. Esta característica hace que:
+
+1. **El ahorro estimado dependa del histórico**: Un mes malo puede ser compensado por la BV acumulada en meses buenos
+2. **La comparación simple no funcione**: Necesitas simular mes a mes para ver el efecto acumulativo
+3. **El orden del ranking cambie**: La mejor tarifa con BV puede no ser la mejor sin BV
+
+---
+
+## Características Principales
+
+### ✅ Importación de Datos
+
+- **Formatos soportados**: CSV y XLSX/XLS
+- **Fuentes compatibles**:
+  - e-distribución (formato estándar)
+  - Iberdrola cliente (formato específico)
+  - Matriz horaria H01-H24 (Excel), con H25 opcional en el cambio horario de octubre
+- **Validaciones de seguridad**:
+  - Tamaño máximo: 10 MB
+  - Extensión permitida (`.csv`, `.xlsx`, `.xls`); el MIME se trata de forma tolerante porque los navegadores y portales de distribuidoras no lo informan de manera uniforme
+  - Validación de rangos (kWh, horas)
+  - En la matriz horaria: celda vacía o con marcador conocido se interpreta como 0 kWh conservando la hora; texto, negativo o >10.000 kWh descarta esa hora con aviso; si la mitad o más de las celdas no vacías son inválidas, o no hay ninguna numérica, se rechaza el archivo. Implementación compartida con la home en `lf-csv-utils.js` (`parseHourlyMatrixRows`), que el solar invoca con `computePeriodo:false` porque `bucketizeByMonth` respeta `record.periodo` si viene relleno y al importar todavía no se conoce la zona definitiva.
+- **Excedentes**: La columna de excedentes/generación es recomendable para una simulación solar automática fiel. Si no existe, el consumo se importa y los excedentes se inicializan a 0 para que el usuario pueda completarlos en la tabla manual.
+- **Centinela de columna solar sin reconocer**: un archivo de solo consumo se acepta deliberadamente (el usuario completa los excedentes a mano), pero si el archivo SÍ trae una columna que parece energía solar y no se ha sabido mapear, la importación se **bloquea** en vez de simular con excedentes = 0. Importar en silencio ahí falsearía el resultado entero. Si el vertido ya está mapeado, las columnas auxiliares de generación/producción no se tratan como otra exportación (formato Datadis `vertida + generada + autoconsumida`); sí se bloquea cualquier segunda medida de vertido que pueda ocultar los valores reales. El comparador de la home, donde los excedentes son opcionales, solo avisa.
+
+### 🧮 Motor de Cálculo
+
+Para **cada mes** de **cada tarifa**, calcula:
+
+1. **Potencia**: `P1 × días × precio_P1 + P2 × días × precio_P2`
+2. **Energía Bruta**: `kWh_P1 × precio_punta + kWh_P2 × precio_llano + kWh_P3 × precio_valle`
+3. **Compensación Excedentes**: `min(kWh_excedentes × precio_exc, base_compensable)`
+4. **Energía Neta**: `energía_bruta - compensación`
+5. **Cuota BV neta**: `fv.precioBV × días / días_del_mes` (solo si `fv.bv = true` y `fv.precioBV > 0`; prorrateado si el mes tiene datos parciales)
+6. **Impuestos y conceptos regulados**: IEE + IVA/IGIC/IPSI + financiación del bono social + alquiler contador. La cuota BV no entra en IEE, pero sí en IVA/IGIC/IPSI como servicio.
+7. **Subtotal**: `potencia + energía_neta + cuota_BV + impuestos`
+8. **Excedente Sobrante**: `(kWh_excedentes × precio_exc) - compensación` → **Acumula en BV**
+9. **Uso Hucha**: `min(saldo_BV_mes_anterior, subtotal)` (solo si tarifa tiene BV; puede cubrir también la cuota BV)
+10. **A Pagar Este Mes**: `subtotal - uso_hucha`
+11. **Saldo BV Final**: `excedente_sobrante + saldo_BV_anterior - uso_hucha`
+
+**Base compensable**:
+- En tarifas normales: `base_compensable = energía_bruta`.
+- En tarifas con compensación parcial (`fv.tope = "ENERGIA_PARCIAL"`): `base_compensable = energía_bruta - peajes_y_cargos_energía`.
+
+Si una tarifa con compensación parcial también tiene BV, el excedente no aplicado por el límite de peajes/cargos **no se marca como perdido**: forma parte de `excedente_sobrante` y pasa a BV para meses posteriores. Si la tarifa no tiene BV, ese sobrante sí se pierde.
+
+### 📅 Mes de Inicio del Contrato
+
+El usuario puede elegir el mes desde el que empieza la simulación de la tarifa. Esto modela el caso real de cambiar de comercializadora con la BV empezando desde el saldo inicial indicado (normalmente 0 €).
+
+- Los kWh y excedentes de cada mes no cambian.
+- Solo se reordena el ciclo antes de llamar al motor mensual.
+- Ejemplo con 12 meses enero-diciembre y contrato en mayo: `may → jun → jul → ago → sep → oct → nov → dic → ene → feb → mar → abr`.
+- El simulador trata esos meses como un **patrón anual de consumo y producción**. Si el CSV original contiene enero-diciembre y el usuario empieza en mayo, los meses enero-abril del final representan el siguiente tramo del ciclo simulado, aunque los datos procedan del mismo CSV histórico.
+- El año inicial (`YYYY`) identifica y permite enriquecer los datos del perfil. La rotación conserva cada clave `YYYY-MM` original: no reasigna al año siguiente los meses que pasan detrás de diciembre. El orden de simulación, no la clave, es el que determina el arrastre cronológico del saldo de BV.
+- La rotación se aplica después de enriquecer excedentes indexados por `YYYY-MM`, por lo que cada mes conserva su valor horario real cuando existe trazabilidad CSV.
+
+### 📊 Ranking Inteligente
+
+**Criterio de ordenación**: lo que **realmente pagas en el periodo simulado** (suma de `totalPagar`, con BV aplicada)
+
+```javascript
+// Ordena por totalPagar (con BV), en empate por mayor saldo BV final
+rankedResults.sort((a, b) => {
+  if (a.totals.pagado === b.totals.pagado) {
+    return b.totals.bvFinal - a.totals.bvFinal; // Mayor saldo = mejor
+  }
+  return a.totals.pagado - b.totals.pagado;
+});
+```
+
+**Diferencia clave**:
+- **`totalPagar`**: lo que pagas en esa fila mensual (con BV aplicada del mes anterior).
+- **`totalReal`**: métrica auxiliar de esa fila mensual (sin contar BV anterior).
+- **Coste neto del periodo**: métrica secundaria de UI para tarifas con BV, calculada como `totals.pagado - totals.bvFinal`.
+
+El ranking suma `totalPagar` en `totals.pagado` para el periodo simulado y desempata por `totals.bvFinal`. `totalReal` existe como métrica auxiliar, no como criterio principal de ordenación.
+
+El coste neto del periodo se muestra solo como dato secundario cuando hay BV y saldo final relevante. Corrige el artefacto de cerrar el ciclo con la hucha cargada, pero no cambia el ganador: el saldo final cuenta solo si el usuario sigue con esa comercializadora y puede consumirlo en facturas futuras. Si `totals.pagado - totals.bvFinal` es negativo, la UI lo presenta como **saldo a favor tras cubrir el periodo**.
+
+### 📉 Desglose Detallado
+
+Para cada mes muestra:
+
+| Columna | Descripción | Tooltip |
+|---|---|---|
+| **Mes** | YYYY-MM | - |
+| **Potencia** | Coste término potencia | P1: X kW × Y días × Z € |
+| **E. Bruta** | Energía antes de compensar | P1 + P2 + P3 con precios |
+| **Compensación** | Excedentes compensados este mes | Generado × precio, límite energía |
+| **E. Neta** | Energía después de compensar | Bruta - Compensación |
+| **Impuestos** | IEE + IVA + bono + alquiler | Desglose completo |
+| **Subtotal** | Factura sin BV | Potencia + E.Neta + Impuestos |
+| **Pagar** | Lo que pagas este mes | Subtotal - Uso Hucha |
+| **Uso Hucha** | BV usada este mes | Saldo anterior aplicado |
+| **Saldo Fin** | BV acumulada al final | Resto + Nuevo excedente |
+
+**Tooltips contextuales**: Cada concepto tiene un tooltip explicando el cálculo aplicado con los números reales.
+
+### 🌍 Zonas Fiscales
+
+Soporte para 3 zonas con impuestos diferenciados:
+
+| Zona | IVA/IGIC/IPSI | Alquiler Contador |
+|---|---|---|
+| **Península/Baleares** | IVA vigente (21% en agosto y septiembre de 2026: el IPC de julio no cumplio la condicion del RDL 18/2026) | mismo tipo IVA vigente |
+| **Canarias** | IGIC 0% (vivienda ≤10kW) o 3% | IGIC 7% |
+| **Ceuta/Melilla** | IPSI 1% | IPSI 4% |
+
+### 🎯 Filtrado Automático
+
+**Solo muestra tarifas con**:
+- ✅ Campo `fv` (autoconsumo fotovoltaico)
+- ✅ Precio de excedentes remunerado: `exc > 0` o `exc = -1` para indexado
+
+**Razón**: El simulador necesita un valor de excedentes utilizable para calcular la compensación. Las tarifas indexadas marcadas como `fv.exc = -1` se cargan siempre, pero el tratamiento depende de la trazabilidad:
+
+- Con CSV horario sin editar, `js/lf-surplus-prices.js` calcula el valor mes a mes contra `data/surplus/` segun el indice base disponible.
+- Si el indice mensual tiene huecos, el calculo horario solo se acepta cuando la cobertura parcial es residual tanto por horas como por kWh de excedente sin valorar; si falta demasiada cobertura, ese mes cae a la referencia orientativa para evitar un credito horario enganoso.
+- Si el usuario edita la tabla manual o introduce solo datos mensuales, se pierde la trazabilidad horaria y se usa 0,020 €/kWh solo como referencia orientativa.
+- Si el indice horario mensual resulta negativo, el simulador mantiene el modo horario pero limita el credito de excedentes a 0 EUR; no cae a la referencia de 0,020 €/kWh.
+
+**Además se excluyen las tarifas incompatibles con el consumo registrado**, con la misma utilidad
+que la home (`LF.assessConsumoAnualLimits`, `js/lf-utils.js`) y sobre los mismos campos de
+`tarifas.json` (`maxConsumoAnual`; `minConsumoAnualExclusivo` se informa pero no filtra). Detalle
+en el Paso 3.5 del flujo de cálculo. La llamada está protegida con `typeof ... === 'function'` y un
+fallback que deja pasar todas las tarifas: si `lf-utils.js` no cargara, el simulador no se rompe
+(ver `ARRANQUE-CARGA.md`).
+
+### 🔄 Modo Híbrido: CSV a Manual
+
+El comparador incluye una funcionalidad única de **"Edición sobre datos reales"**:
+
+1. El usuario sube su CSV.
+2. El sistema calcula internamente los totales mensuales (P1, P2, P3 y Excedentes).
+3. **Automáticamente rellena la tabla manual mensual** con estos datos.
+4. El usuario puede ajustar valores específicos en esa tabla visible (ej: "este mes estuve de vacaciones, pero el año que viene no").
+5. Permite realizar simulaciones "What-If" basadas en datos reales pero ajustados.
+
+### 💾 Persistencia Y Escenarios Compartidos
+
+- El autoguardado y el backup JSON contienen la tabla mensual y toda la configuración de simulación: potencias, saldo BV inicial, zona fiscal, vivienda Canarias, mes de inicio y tarifa personalizada. El mes de inicio se restaura por mes natural si una tabla manual sin metadatos se abre en otro año, para que el cambio de `YYYY` del fallback no borre la elección del usuario; si el mismo mes apareciera en dos años distintos no se adivina y queda el orden por defecto.
+- El enlace para compartir pide consentimiento previo: por defecto solo lleva ajustes generales. El usuario decide por separado si añade datos mensuales de consumo/excedentes y si añade "Mi tarifa" con saldo BV. Nunca incluye el CSV ni sus registros horarios; una tarifa indexada abierta desde un enlace con datos mensuales usa la referencia orientativa de excedentes.
+- Al abrirlo, el simulador no sobrescribe el guardado local: lo identifica como escenario compartido y ofrece guardarlo expresamente. Si el enlace conoce la fecha del listado de tarifas, la compara con la usada al recalcular y avisa cuando cambió.
+
+#### Ciclo de vida de un escenario abierto con `?bv=` (previsualización)
+
+Un escenario recibido por enlace es una **previsualización**: se puede editar en pantalla, pero no toca el almacenamiento local hasta que el usuario lo adopta expresamente. El estado lo marca `isSharedPreview` en `js/bv/bv-ui.js`.
+
+- **Autoguardado bloqueado.** Mientras dure la previsualización, `saveManualData()` y el autoguardado de "Mi tarifa" salen sin escribir. Son dos claves distintas (`bv_manual_data_v2` y `bv_custom_tarifa`) y ambas están protegidas: proteger solo la primera dejaba entrar el escenario ajeno por la segunda.
+- **El indicador no miente.** Al editar durante una previsualización muestra "Vista previa sin guardar" en vez de "✓ Guardado". Fuera de previsualización, si el almacenamiento falla, muestra "⚠️ No guardado" con estilo de error: nunca anuncia un guardado que no ha ocurrido.
+- **Exportar es independiente de la persistencia.** `exportManualData()` descarga el **estado visible** vía `buildManualScenarioPayload()`, sin leer ni escribir `localStorage`. Exportar desde una previsualización no la adopta, no cambia el timestamp y funciona aunque no exista ningún escenario local previo.
+- **Guardar las tres claves es una pseudo-transacción.** `persistManualScenario()` escribe `bv_manual_data_v2`, `bv_custom_tarifa` y `bv_manual_data_timestamp` con un **único `savedAt`**. Antes de escribir toma una instantánea que conserva el valor **y si la clave existía**; si falla cualquier paso, restaura las tres (con `setItem` o `removeItem` según correspondiera) y devuelve `false`. El `savedAt` vive solo en `bv_custom_tarifa`: no contamina el escenario lógico ni los respaldos.
+- **Solo una persistencia completa abandona la previsualización.** Tanto "Guardar escenario" como importar un respaldo construyen el payload, persisten y **solo si eso tiene éxito** llaman a `leaveSharedPreview()`, que retira exclusivamente el parámetro `bv` de la URL mediante `history.replaceState` y conserva el resto de parámetros y el hash. Si la escritura falla, se mantienen `?bv=`, el aviso y los datos anteriores, y no aparece mensaje de éxito.
+- **Importar aplica el respaldo directamente.** El flujo es parseo → normalización → persistencia → salida de la previsualización → aplicación del payload ya normalizado. No vuelve a leer `?bv=` después de importar, que era lo que antes dejaba en pantalla el escenario compartido en lugar del respaldo recién importado.
+- **Compatibilidad con respaldos antiguos.** Los primeros respaldos `version: 2` solo llevaban la tabla mensual, sin `config`. `normalizeImportedScenarioPayload()` completa lo ausente con la configuración visible actual, para no confundir "no viene" con "vaciar": importar uno de esos ficheros no borra potencia, zona ni "Mi tarifa". Si el respaldo moderno trae `config`/`customTarifa`, esos valores prevalecen.
+
+---
+
+## Arquitectura Técnica
+
+### Módulos JavaScript (5 archivos clave)
+
+```
+js/
+├── lf-csv-utils.js     - Utilidades de parsing CSV compartidas
+└── bv/
+    ├── bv-import.js        - Orquestación de importación para BV
+    ├── bv-sim-monthly.js   - Motor de cálculo mensual
+    ├── bv-ui-helpers.js    - Helpers puros de UI manual
+    └── bv-ui.js            - Interfaz de usuario y renderizado
+```
+
+#### 0. **lf-csv-utils.js** - Motor de Parsing Compartido
+
+**Responsabilidades**:
+- Detección inteligente de separadores (`;` vs `,`)
+- Parseo robusto de líneas CSV (manejo de comillas y caracteres escapados)
+- Normalización de números (formatos ES/US) y fechas
+- Cálculo de festivos nacionales y periodos tarifarios (P1/P2/P3)
+
+#### 1. **bv-import.js** - Importación de Datos (Capa BV)
+
+**Responsabilidades**:
+- Lazy loading de XLSX.js
+- Delegación del parsing de bajo nivel a `lf-csv-utils.js`
+- Detección de columna de excedentes y aviso con valor 0 cuando no existe
+- Construcción de metadatos del archivo
+
+**Funciones principales**:
+
+```javascript
+window.BVSim.importFile(file)
+// Input: File object (CSV o XLSX)
+// Output: { ok: true, records: [...], meta: {...} }
+//   records: Array de { fecha, hora, kwh, excedente, autoconsumo, esReal }
+//   meta: { rows, start, end, months, hasExcedenteColumn }
+```
+
+**Algoritmo de detección de separador**:
+```javascript
+// Cuenta separadores en el header (evita falsos positivos en decimales)
+const headerLine = stripBomAndTrim(lines[0]);
+const semi = (headerLine.match(/;/g) || []).length;
+const comma = (headerLine.match(/,/g) || []).length;
+separator = semi >= comma ? ';' : ',';
+```
+
+**Festivos nacionales**:
+```javascript
+getFestivosNacionales(year)
+// Devuelve Set con fechas YYYY-MM-DD de festivos nacionales
+// Incluye solo festivos de fecha fija (criterio CNMC):
+// 1 Ene, 6 Ene, 1 May, 15 Ago, 12 Oct, 1 Nov, 6 Dic, 8 Dic, 25 Dic
+// Excluye festivos móviles (como Viernes Santo)
+```
+
+#### 2. **bv-sim-monthly.js** - Motor de Cálculo
+
+**Responsabilidades**:
+- Agrupación de datos por mes
+- Cálculo económico mes a mes
+- Simulación de batería virtual (acumulación + uso)
+- Aplicación de impuestos por zona fiscal
+- Simulación masiva (tarifas con excedentes remunerados)
+
+**Funciones principales**:
+
+```javascript
+window.BVSim.bucketizeByMonth(records, zona = 'peninsula', opts = {})
+// Input: Array de registros horarios
+// Output: Array de meses con totales por periodo
+// {
+//   key: "2025-01",
+//   start: "2025-01-03",
+//   end: "2025-01-29",
+//   daysWithData: 27,
+//   daysInMonth: 31,
+//   coveragePct: 87.1,
+//   importByPeriod: { P1: 123.4, P2: 234.5, P3: 345.6 },
+//   importTotalKWh: 703.5,
+//   exportTotalKWh: 456.7
+// }
+```
+
+```javascript
+window.BVSim.calcMonthForTarifa({
+  month,
+  tarifa,
+  potenciaP1,
+  potenciaP2,
+  bvSaldoPrev,
+  zonaFiscal,
+  esVivienda,
+  ssaaDataset
+})
+// Calcula factura de un mes para una tarifa
+// Devuelve objeto con todos los conceptos + saldo BV final
+```
+
+```javascript
+window.BVSim.simulateForTarifaDemo({
+  months,
+  tarifa,
+  potenciaP1,
+  potenciaP2,
+  bvSaldoInicial,
+  zonaFiscal,
+  esVivienda,
+  ssaaDataset
+})
+// Simula todos los meses de una tarifa
+// Devuelve: rows (mes a mes) + totals (pagado, real, bvFinal)
+```
+
+El orden de `months` define el arrastre de saldo BV. La UI puede rotarlo con `window.BVSim.manualUi.rotateMonthsByStart(months, startKey)` antes de llamar al motor para representar un contrato iniciado en un mes concreto. La rotación reordena el patrón anual disponible, pero conserva las claves `YYYY-MM` de cada mes: no proyecta ni reasigna años civiles. No inventa consumos ni meses adicionales.
+
+```javascript
+window.BVSim.simulateForAllTarifasBV({
+  months,
+  tarifasBV,
+  potenciaP1,
+  potenciaP2,
+  bvSaldoInicial,
+  zonaFiscal,
+  esVivienda,
+  ssaaDataset
+})
+// Simula de forma síncrona el conjunto de tarifas solares elegibles
+// Devuelve: { ok: true, results: [...] }
+```
+
+```javascript
+window.BVSim.loadTarifasBV()
+// Carga tarifas.json y filtra tarifas con excedentes remunerados (fv.exc > 0 o fv.exc = -1)
+// Devuelve: { ok: true, tarifasBV: [...] }
+// Error si no hay tarifas con excedentes disponibles
+```
+
+#### 3. **bv-ui-helpers.js** - Helpers Puros De UI Manual
+
+**Responsabilidades**:
+- Normalización de metadatos mensuales y selección de los meses más recientes importados.
+- Construcción de los meses de simulación desde la tabla manual.
+- Resolución de saldo BV, coste neto y rotación del patrón anual desde el mes de inicio.
+- Controles de trazabilidad horaria usados por el desglose.
+
+Se publica en `window.BVSim.manualUi` y se carga antes de `bv-ui.js`.
+
+#### 4. **bv-ui.js** - Interfaz de Usuario
+
+**Responsabilidades**:
+- Drag & drop de archivos
+- Sistema de tooltips (desktop hover + móvil táctil)
+- Renderizado de resultados (ganador + ranking)
+- Responsive: tablas (desktop) vs tarjetas (móvil)
+- Accesibilidad: ARIA, focus management, escape key
+- Toast notifications
+
+**Sistema de tooltips**:
+
+```javascript
+// Desktop: tooltip flotante con posicionamiento automático
+updateTooltipPosition(target)
+// Calcula posición óptima (evita overflow)
+
+// Móvil: modal bottom-sheet con contenido completo
+openTipModal(text)
+closeTipModal()
+// Guarda/restaura foco para accesibilidad
+```
+
+**Renderizado responsive**:
+
+```javascript
+// Desktop: tabla con 10 columnas
+buildTable(resultItem)
+// <table class="bv-table">...</table>
+
+// Móvil: tarjetas mensuales (sin tablas, sin overflow)
+buildMobileCards(resultItem)
+// <section class="bv-month-card">
+//   <header>Mes</header>
+//   <div class="bv-month-body">
+//     <div class="bv-month-item">
+//       <div class="bv-month-label">POTENCIA</div>
+//       <span class="bv-month-value">X,XX €</span>
+//     </div>
+//     ...
+//   </div>
+// </section>
+```
+
+### CSS (`/bv-sim.css`)
+
+**Estructura**:
+- Grid layout (2 columnas desktop, 1 móvil)
+- Drag & drop zone con estados (hover, dragover)
+- Winner card con gradientes
+- KPI cards para métricas clave
+- Tooltips flotantes + modal móvil
+- Tablas responsive (desktop) + tarjetas (móvil)
+- Pills para indicar BV/No BV
+- Modo claro/oscuro
+
+**Media queries**:
+```css
+@media (max-width: 768px) {
+  /* Tablas → Tarjetas */
+  .bv-breakdown-desktop { display: none; }
+  .bv-breakdown-mobile { display: block; }
+}
+
+@media (max-width: 520px) {
+  /* Grid 2 cols → 1 col */
+  .bv-form-container .form {
+    grid-template-columns: 1fr !important;
+  }
+}
+```
+
+⚠️ **Trampa: cualquier `<details>` nuevo dentro de `#bv-results`**
+
+La regla `#bv-results details > summary` aplica el skin de acordeón de los desgloses (padding
+`18px 50px` con `!important`, 1,05rem, borde de 2px, degradado y una flecha `::after` morada). Un
+aviso compacto metido ahí sale 2,3× más alto de lo previsto. Dos detalles medidos en Chrome real
+(10/08/2026) que no son evidentes leyendo el CSS:
+
+1. **`::-webkit-details-marker { display: none }` ya no oculta nada.** Chrome usa
+   `summary::marker` desde hace años y el alias legacy dejó de aplicar en silencio, así que el
+   triángulo nativo se seguía pintando junto a la flecha morada. Para ocultarlo hay que usar
+   `list-style: none` — que es lo que hace hoy la regla genérica.
+2. **No fijes `list-style: disclosure-closed` a mano.** Pisa la regla del navegador
+   `details[open] > summary { list-style-type: disclosure-open }` y el triángulo se queda
+   congelado apuntando a la derecha con la lista ya abierta. Usa **`list-style: revert`**: vuelve
+   al valor del navegador (gira solo) y de paso descarta el `list-style: none` de la regla
+   genérica, sin necesidad de un selector extra para `[open]`.
+
+`#bv-results .consumo-limits-notice summary` es el ejemplo resuelto. Al añadir otro, verifica el
+marcador en **los dos estados**: el `list-style-type` calculado debe pasar de `disclosure-closed`
+a `disclosure-open` al abrir.
+
+---
+
+## Flujo de Cálculo
+
+### Paso 1: Importación
+
+```
+Usuario arrastra CSV/XLSX
+    ↓
+Validación (tamaño, MIME type, extensión)
+    ↓
+FileReader (readAsText o readAsArrayBuffer)
+    ↓
+Parseo (CSV o XLSX)
+    ↓
+Validación de datos (horas, kWh, fechas)
+    ↓
+Periodificación P1/P2/P3 (festivos + horarios)
+    ↓
+{ ok: true, records: [...], meta: {...} }
+```
+
+### Paso 2: Agrupación Mensual
+
+```
+Array de registros horarios (8.760 registros/año)
+    ↓
+Agrupar por mes (key: "YYYY-MM")
+    ↓
+Calcular para cada mes:
+  - daysWithData (días únicos en el CSV)
+  - importByPeriod (suma kWh por P1/P2/P3)
+  - exportTotalKWh (suma excedentes)
+    ↓
+Array de meses [ { key, daysWithData, importByPeriod, ... }, ... ]
+```
+
+### Paso 3: Simulación Económica
+
+```
+Para cada tarifa BV:
+  bvSaldo = saldoInicial
+
+  Para cada mes:
+    1. Calcular potencia (P1 + P2)
+    2. Calcular energía bruta (punta + llano + valle)
+    3. Calcular compensación excedentes
+       - límite normal: energía bruta
+       - límite parcial: energía bruta - peajes/cargos
+    4. Calcular energía neta (bruta - compensación)
+    5. Calcular impuestos (IEE + IVA/IGIC + bono + alquiler)
+    6. Calcular subtotal (potencia + energía_neta + impuestos)
+    7. Calcular excedente sobrante → acumular en BV si la tarifa la soporta
+    8. Usar saldo BV anterior para reducir factura
+    9. Actualizar saldo BV final
+
+  Acumular totales (pagado, real, bvFinal)
+```
+
+### Paso 3.5: Exclusión por requisitos de consumo
+
+Ocurre **antes de simular**, sobre `tarifasResult.tarifasBV`, y solo retira candidatas: no toca
+precios, ni saldos, ni el criterio de ranking.
+
+```
+consumoRegistradoKwh = suma de importTotalKWh de los meses simulados
+isAnnualConsumptionScope = hasFullAnnualConsumptionCoverage(simulationMonths)
+coveredDays = getConsumptionCoverageDays(simulationMonths)
+    ↓
+LF.assessConsumoAnualLimits(tarifasBV, {
+  consumoKwh, annualScope, coveredDays, useAnnualEstimate
+})
+    ↓
+{ compatibles, excluidas }  →  se simulan solo las compatibles
+                            →  las excluidas se listan en el aviso con su motivo
+```
+
+**`window.BVSim.manualUi.hasFullAnnualConsumptionCoverage(months)`** (`js/bv/bv-ui-helpers.js`)
+devuelve `true` solo si hay **12 meses consecutivos** (por ordinal `año*12+mes`), **sin claves
+duplicadas** y con **≥ 365 días reales cubiertos** (`daysWithData`, topado al calendario de cada
+mes). Así evita ofrecer una extrapolación cuando ya existe un año real de consumo.
+
+⚠️ **No confundir con `isAnnualPresentationScope`**, que sigue siendo 12 meses con ≥ 80% de
+cobertura cada uno y solo decide etiquetas ("Coste total anual" frente a "Coste periodo
+simulado"). La separación es deliberada: 12 meses al 80% son ~293 días, suficiente para titular
+un total pero no para considerar que existe un año real y omitir la estimación orientativa.
+
+Notas:
+
+- El máximo se comprueba **siempre** contra el consumo registrado, con cualquier número de meses.
+  En alcance parcial se calcula una estimación `consumo * 365 / coveredDays`, desactivada por
+  defecto y ofrecida solo si algún máximo cambia candidatas; el aviso advierte de la estacionalidad
+  solar y permite deshacerla. El mínimo nunca excluye.
+- `getConsumptionCoverageDays()` suma los días reales topados al calendario y no duplica una
+  misma clave `YYYY-MM`. La preferencia de estimación solo vive en memoria y no se comparte ni
+  persiste; si cambia el consumo o la cobertura que sirven de base, vuelve al modo prudente.
+- **Qué acota la suma y qué certifica que es un año son cosas distintas.** `buildSimulationMonths()`
+  corta en 12 casillas y `rotateMonthsByStart()` reordena sin duplicar ni inventar, así que
+  `consumoRegistradoKwh` nunca acumula más de doce meses de energía. Pero eso **no** garantiza que
+  esos doce meses sean un año real y seguido: podrían ser meses sueltos de un rango más amplio, o
+  llegar con claves repetidas desde metadatos de importación. Quien lo certifica es
+  `hasFullAnnualConsumptionCoverage` (consecutivos, sin duplicados, ≥ 365 días), para no extrapolar
+  un periodo que ya es anual.
+- El máximo no necesita esa garantía y por diseño no la pide: se contrasta contra los kWh
+  registrados sea cual sea el tramo cubierto.
+- **"Mi tarifa ⭐" nunca queda excluida**: `getCustomTarifa()` la construye sin campos de límite.
+- Si no quedara ninguna compatible, no se lanza error genérico: se pinta el aviso con las
+  excluidas y un mensaje explícito.
+
+### Paso 4: Ranking y Visualización
+
+```
+Array de resultados (tarifas solares elegibles simuladas)
+    ↓
+Ordenar por totalPagar (ASC)
+  - En empate, ordenar por bvFinal (DESC)
+    ↓
+Renderizar:
+  - Winner card (mejor tarifa)
+  - KPIs (pagado total, compensación, uso de hucha, saldo BV final)
+  - Coste neto secundario si hay saldo BV final relevante (pagado - bvFinal)
+  - Desglose mes a mes (con tooltips)
+  - Alternativas (resto del ranking)
+```
+
+---
+
+## API JavaScript
+
+### `window.BVSim` - Namespace Global
+
+Todos los métodos del simulador están bajo `window.BVSim`.
+
+#### Importación
+
+```javascript
+await window.BVSim.importFile(file)
+```
+
+**Parámetros**:
+- `file` (File): Objeto File del input/drag&drop
+
+**Retorna**: `Promise<Object>`
+```javascript
+{
+  ok: true,
+  records: [
+    {
+      fecha: Date,
+      hora: 1-24,
+      kwh: Number,
+      excedente: Number,
+      autoconsumo: Number,
+      periodo: "P1"|"P2"|"P3",
+      esReal: Boolean
+    },
+    ...
+  ],
+  meta: {
+    rows: Number,
+    start: "YYYY-MM-DD",
+    end: "YYYY-MM-DD",
+    months: Number,
+    hasExcedenteColumn: Boolean,
+    hasAutoconsumoColumn: Boolean
+  }
+}
+```
+
+**Errores**:
+```javascript
+{
+  ok: false,
+  error: "Mensaje de error"
+}
+```
+
+#### Agrupación Mensual
+
+```javascript
+window.BVSim.bucketizeByMonth(records, zona = 'peninsula', opts = {})
+```
+
+**Parámetros**:
+- `records` (Array): Array de registros de `importFile`
+- `zona` (String): Zona CNMC usada para clasificar P1/P2/P3 (default: `"peninsula"`)
+- `opts.isDatadisMonthly` (Boolean): Trata cada registro mensual de Datadis como mes completo
+
+**Retorna**: `Array<Object>`
+```javascript
+[
+  {
+    key: "2025-01",
+    start: "2025-01-03",
+    end: "2025-01-29",
+    spanDays: 27,
+    daysWithData: 27,
+    daysInMonth: 31,
+    coveragePct: 87.1,
+    importByPeriod: {
+      P1: 123.45,
+      P2: 234.56,
+      P3: 345.67
+    },
+    importTotalKWh: 703.68,
+    exportTotalKWh: 456.78
+  },
+  ...
+]
+```
+
+#### Cálculo Mensual Individual
+
+```javascript
+window.BVSim.calcMonthForTarifa({
+  month,
+  tarifa,
+  potenciaP1,
+  potenciaP2,
+  bvSaldoPrev,
+  zonaFiscal,
+  esVivienda,
+  ssaaDataset
+})
+```
+
+**Parámetros**:
+- `month` (Object): Objeto mes de `bucketizeByMonth`
+- `tarifa` (Object): Objeto tarifa de `tarifas.json`
+- `potenciaP1` (Number): Potencia contratada P1 en kW
+- `potenciaP2` (Number): Potencia contratada P2 en kW
+- `bvSaldoPrev` (Number): Saldo BV del mes anterior en €
+- `zonaFiscal` (String): "Península" | "Canarias" | "CeutaMelilla"
+- `esVivienda` (Boolean): true si es vivienda (para IGIC Canarias)
+- `ssaaDataset` (Object|null): Dataset mensual de servicios de ajuste; default `null`
+
+Si una tarifa declara `incluyeServiciosAjuste:false` y el mes histórico requerido no está
+disponible, el resultado mensual se marca `dataUnavailable` y no entra en el ranking. Esto no
+se confunde con una tasa SSAA publicada explícitamente a `0`, que sí es válida. Los fallos de
+red o payloads 200 malformados no se fijan como disponibilidad negativa y pueden reintentarse.
+
+**Retorna**: `Object`
+```javascript
+{
+  key: "2025-01",
+  dias: 27,
+  pot: 12.34,
+  consEur: 123.45,
+  costeBonoSocial: 0.52,
+  impuestoElec: 6.78,
+  alquilerContador: 0.72,
+  ivaCuota: 27.89,
+  precioBVMensual: 1.99,
+  costeBV: 1.74,
+  totalBase: 151.74,
+  exKwh: 456.78,
+  precioExc: 0.06,
+  credit1: 27.40,
+  excedenteSobranteEur: 0.01,
+  hasBV: true,
+  bvSaldoPrev: 10.00,
+  credit2: 10.00,
+  bvSaldoFin: 0.01,
+  totalPagar: 141.74,
+  totalReal: 151.73
+}
+```
+
+#### Simulación Completa Tarifa
+
+```javascript
+window.BVSim.simulateForTarifaDemo({
+  months,
+  tarifa,
+  potenciaP1,
+  potenciaP2,
+  bvSaldoInicial,
+  zonaFiscal,
+  esVivienda,
+  ssaaDataset
+})
+```
+
+**Parámetros**: (similares a `calcMonthForTarifa`)
+- `months` (Array): Array de meses de `bucketizeByMonth`
+- `bvSaldoInicial` (Number): Saldo BV inicial en € (default: 0)
+- `ssaaDataset` (Object|null): Dataset mensual de servicios de ajuste; default `null`
+
+**Retorna**: `Object`
+```javascript
+{
+  ok: true,
+  tarifa: { ...tarifa },
+  rows: [ ...calcMonthForTarifa por cada mes... ],
+  totals: {
+    pagado: 1234.56,
+    real: 1300.00,
+    bvFinal: 65.44,
+    credit1Total: 300.00,
+    credit2Total: 65.44
+  }
+}
+```
+
+La UI puede derivar de esos totales el coste neto secundario del periodo:
+
+```javascript
+costeNetoPeriodo = totals.pagado - totals.bvFinal
+```
+
+No se guarda como criterio de ordenación ni sustituye a `totals.pagado`.
+
+#### Simulación Masiva
+
+```javascript
+window.BVSim.simulateForAllTarifasBV({
+  months,
+  tarifasBV,
+  potenciaP1,
+  potenciaP2,
+  bvSaldoInicial,
+  zonaFiscal,
+  esVivienda,
+  ssaaDataset
+})
+```
+
+**Parámetros**:
+- `tarifasBV` (Array): Array de tarifas BV de `loadTarifasBV`
+- `bvSaldoInicial` (Number|Function): Saldo común o función `(tarifa) => saldo`, útil para no transferir la hucha entre comercializadoras
+- `ssaaDataset` (Object|null): Dataset mensual de servicios de ajuste; default `null`
+
+**Retorna**: `Object`
+```javascript
+{
+  ok: true,
+  results: [
+    ...simulateForTarifaDemo para cada tarifa...
+  ]
+}
+```
+
+#### Cargar Tarifas BV
+
+```javascript
+await window.BVSim.loadTarifasBV()
+```
+
+**Retorna**: `Promise<Object>`
+```javascript
+{
+  ok: true,
+  tarifasBV: [ ...tarifas filtradas... ]
+}
+```
+
+**Error si no hay tarifas**:
+```javascript
+{
+  ok: false,
+  error: "No hay tarifas remuneradas de excedentes disponibles actualmente."
+}
+```
+
+#### Utilidades
+
+```javascript
+window.BVSim.round2(number)
+```
+Redondea a 2 decimales (para cálculos monetarios).
+
+---
+
+## Formatos de Archivo Soportados
+
+### CSV - Formato e-distribución (Estándar)
+
+**Estructura**:
+```csv
+CUPS;Fecha;Hora;AE_kWh;AS_kWh;AE_Autocons_kWh;Estado
+ES0000000000000000XX;01/01/2025;1;0,123;0,045;0,000;R
+ES0000000000000000XX;01/01/2025;2;0,098;0,050;0,000;R
+...
+```
+
+**Columnas**:
+- `CUPS`: Código único del punto de suministro. Se reconoce para detectar formato/cabecera; sus valores no se guardan ni se renderizan.
+- `Fecha`: DD/MM/YYYY
+- `Hora`: 1-24 (hora final del periodo); se admite 25 para la hora repetida del cambio de octubre.
+  El CCH-CONS oficial `1-23` del cambio de marzo se expande internamente al reloj local real,
+  respetando que el salto ocurre una hora antes en Canarias. Si despues se cambia entre
+  Canarias y una zona `Europe/Madrid`, una traza que contenga un cambio horario exige
+  reimportacion para los precios indexados; no se reutiliza desplazada.
+- `AE_kWh`: Energía activa consumida (kWh)
+- `AS_kWh`: Energía activa exportada/excedentes (kWh), opcional; sin ella se usa 0
+- `AE_Autocons_kWh`: Autoconsumo instantáneo (opcional)
+- `Estado`: R (real) o E (estimado)
+
+**Separador**: Punto y coma (`;`) o coma (`,`) detectado automáticamente
+
+### CSV - Formato UFD (Naturgy)
+
+**Estructura**:
+```csv
+CUPS;Fecha;Hora;Consumo_kWh;Exportacion_kWh
+ES0000000000000000XX;01/01/2025;1;0,123;0,045
+...
+```
+
+**Columnas principales**:
+- `CUPS`: Código único del punto de suministro. Se reconoce para detectar formato/cabecera; sus valores no se guardan ni se renderizan.
+- `Fecha`: DD/MM/YYYY
+- `Hora`: 1-24; se admite 25 para la hora repetida del cambio de octubre. Los formatos 0-23
+  con `INV/VER` distinguen la repetida local 02:00 en Peninsula y la 01:00 en Canarias.
+- `EHCR` / `consumo`: Energía horaria consumida (kWh)
+- `EHEX` / `exportacion`: Energía horaria excedentaria (kWh), opcional; sin ella se usa 0
+- `INV/VER`: Marca de invierno/verano para el cambio horario (opcional)
+- Columnas unificadas `fecha_hora` soportadas como alternativa
+
+**Separador**: Punto y coma (`;`) o coma (`,`) detectado automáticamente
+
+### CSV - Formato Iberdrola Cliente
+
+**Estructura**:
+```csv
+Fecha y Hora;Dirección;Consumo Wh;Generación Wh
+01/01/2025 00:00;Consumo;123;45
+01/01/2025 01:00;Consumo;98;50
+...
+```
+
+**Columnas**:
+- `Fecha y Hora`: DD/MM/YYYY HH:MM
+- `Dirección`: Siempre "Consumo"
+- `Consumo Wh`: Energía consumida en Wh (se convierte a kWh)
+- `Generación Wh`: Energía generada en Wh (se convierte a kWh), opcional; sin ella se usa 0
+
+**Separador**: Coma (`,`)
+
+### XLSX - Formato Matriz Horaria
+
+**Estructura**:
+```
+| Fecha      | H01  | H02  | H03  | ... | H24  | H25 |
+|------------|------|------|------|-----|------|-----|
+| 01/01/2025 | 0.12 | 0.10 | 0.08 | ... | 0.15 |     |
+| 27/10/2024 | 0.13 | 0.11 | 0.09 | ... | 0.14 | 0.10 |
+```
+
+**Columnas**:
+- `Fecha`: DD/MM/YYYY o YYYY-MM-DD
+- `H01` a `H24`: Consumo en kWh para cada hora
+- `H25`: Hora repetida del cambio horario de octubre, opcional; si no existe o está vacía se ignora.
+  Desde el 25/07/2026 se exige que la **cabecera declare `H25` explícitamente** y que la fecha de la fila
+  sea el **último domingo de octubre**. Antes se leía cualquier 25.º valor de la fila, así que una columna
+  final de total diario entraba como consumo de la hora 25 en cualquier fecha. Si `H25` viene declarada pero
+  la fecha no es la del cambio horario, el valor se descarta con aviso.
+
+**Nota**: Este formato NO incluye excedentes, se asume 0.
+
+### XLSX - Formato Tabla (Iberdrola)
+
+**Estructura**:
+```
+| Fecha y Hora    | Periodo Tarifario | Consumo (Wh) | Generación (Wh) |
+|-----------------|-------------------|--------------|-----------------|
+| 01/01/2025 0:00 | VALLE             | 123          | 45              |
+| 01/01/2025 1:00 | VALLE             | 98           | 50              |
+```
+
+**Columnas**:
+- `Fecha y Hora`: DD/MM/YYYY HH:MM
+- `Periodo Tarifario`: PUNTA/LLANO/VALLE (opcional)
+- `Consumo (Wh)`: Energía consumida en Wh
+- `Generación (Wh)`: Energía generada en Wh, opcional; sin ella se usa 0
+
+---
+
+## Seguridad y Validaciones
+
+### Validaciones de Entrada
+
+#### 1. Archivo
+
+```javascript
+// Tamaño máximo: 10 MB
+if (file.size > 10 * 1024 * 1024) {
+  return { ok: false, error: "Archivo demasiado grande (max 10 MB)" };
+}
+
+// Extensión permitida. El MIME no bloquea la importación porque puede venir
+// vacío o variar según navegador, Excel y portal de la distribuidora.
+if (!['csv', 'xlsx', 'xls'].includes(extension)) {
+  return { ok: false, error: "Formato no soportado. Solo CSV y Excel (.xlsx, .xls)." };
+}
+```
+
+#### 2. Datos CSV
+
+```javascript
+// Validar hora (1-25; H25 solo representa la hora repetida de octubre)
+if (hora < 1 || hora > 25) continue;
+
+// Validar kWh (0-10.000)
+if (isNaN(kwh) || kwh < 0 || kwh > 10000) continue;
+
+// Validar consumo Wh (0-10.000.000)
+if (isNaN(consumoWh) || consumoWh < 0 || consumoWh > 10000000) continue;
+
+// Validar fecha
+const fecha = parseDateFlexible(fechaStr);
+if (!fecha) continue;
+```
+
+#### 3. Columna de Excedentes
+
+```javascript
+if (!parsed.hasExcedenteColumn) {
+  warnings.push('No se detectaron excedentes; se importará con excedentes=0.');
+}
+```
+
+La ausencia de esa columna no invalida el archivo. Se conserva el consumo, se usan excedentes a cero y la tabla manual permite completar los valores solares.
+
+### Sanitización HTML
+
+```javascript
+// Escapar HTML en tooltips y contenido dinámico
+const escapeHtml = (v) => String(v ?? '')
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#039;');
+
+// Escapar atributos (incluye saltos de línea)
+const escapeAttr = (v) => escapeHtml(v).replace(/\n/g, '&#10;');
+```
+
+### Sanitización URLs
+
+```javascript
+function sanitizeUrl(url) {
+  const lf = window.LF;
+  return (lf && typeof lf.safeUrl === 'function') ? lf.safeUrl(url) : '';
+}
+```
+
+El simulador no mantiene una politica URL propia: delega en el helper canonico
+`window.LF.safeUrl`, definido por `config.js`, para conservar el mismo contrato
+que el resto de la web.
+
+### Procesamiento local
+
+- **Sin backend**: Todos los cálculos en el navegador
+- **Sin uploads**: El archivo no se envía a un servidor de cálculo
+- **Sin persistencia del archivo**: El CSV/XLSX original **no se guarda**. Los registros horarios parseados se mantienen temporalmente en memoria para la trazabilidad y se agregan por mes; no se escriben en `localStorage`.
+- **Analítica sin datos personales**: la página carga la analítica común (`tracking.js` + GoatCounter) y emite eventos con la taxonomía `solar` documentada en `ANALITICA-GOATCOUNTER.md`. Los eventos solo contienen categorías, estados y nombres de tarifa del dataset; nunca kWh, importes, potencias, CUPS ni nombres de archivo. El usuario puede desactivar la analítica desde `privacidad.html`.
+- **Procesamiento local**: Tus datos de consumo se calculan en tu navegador
+
+---
+
+## UX y Accesibilidad
+
+### Responsive Design
+
+#### Desktop (>768px)
+
+- **Grid 2 columnas**: Upload + Formulario
+- **Tablas**: 10 columnas con scroll horizontal
+- **Tooltips**: Flotantes con hover
+
+#### Móvil (≤768px)
+
+- **Grid 1 columna**: Upload y formulario apilados
+- **Tarjetas**: Sin tablas, layout vertical con etiquetas
+- **Tooltips**: Modal táctil (bottom-sheet)
+
+### Medidas de Accesibilidad (orientadas a WCAG 2.1 AA)
+
+#### ARIA Labels
+
+```html
+<!-- Drop zone -->
+<div role="button" aria-label="Zona de carga de archivos" tabindex="0">
+
+<!-- Modal -->
+<div role="dialog" aria-modal="true" aria-label="Detalle del cálculo">
+
+<!-- Botón expandir -->
+<button aria-expanded="false" aria-controls="menu">
+```
+
+#### Focus Management
+
+```javascript
+// Guardar foco antes de abrir modal
+lastFocusedEl = document.activeElement;
+
+// Restaurar foco al cerrar modal
+if (lastFocusedEl && typeof lastFocusedEl.focus === 'function') {
+  lastFocusedEl.focus();
+}
+```
+
+#### Trampa de Foco
+
+```javascript
+// Solo permitir Tab dentro del modal
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Tab' && tipModalEl.classList.contains('show')) {
+    e.preventDefault();
+    if (tipCloseBtn) tipCloseBtn.focus();
+  }
+});
+```
+
+#### Escape Key
+
+```javascript
+// Cerrar modal con Escape
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && tipModalEl.classList.contains('show')) {
+    closeTipModal();
+  }
+});
+```
+
+#### Enter/Space en Drop Zone
+
+```javascript
+dropZone.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' || e.key === ' ') {
+    e.preventDefault();
+    fileInput.click();
+  }
+});
+```
+
+### Estados de Carga
+
+```javascript
+// Botón deshabilitado con spinner
+simulateButton.disabled = true;
+btnText.textContent = 'Calculando...';
+btnSpinner.style.display = 'inline-block';
+
+// Mensaje de estado
+statusEl.innerHTML = '<span class="spinner"></span> Leyendo archivo...';
+```
+
+### Toast Notifications
+
+```javascript
+showToast('Cálculo completado.', 'ok');   // Verde
+showToast('Error al leer archivo', 'err'); // Rojo
+showToast('Subiendo archivo...', 'info');  // Azul
+```
+
+---
+
+## Casos de Uso
+
+### Caso 1: Usuario con Placas Solares
+
+**Situación**: Tienes placas solares y quieres saber qué tarifa BV te conviene más.
+
+**Paso a paso**:
+1. Descarga tu CSV de consumos horarios de la web de tu distribuidora
+2. Si es posible, descarga también la columna de excedentes; si falta, podrás completarla en la tabla manual
+3. Arrastra el CSV al simulador
+4. Introduce tus potencias P1/P2
+5. Selecciona tu zona fiscal
+6. Haz clic en "Comparar Tarifas y Ver Ahorro →"
+7. El simulador te mostrará:
+   - **Ganador**: La tarifa que menos pagas en total
+   - **Saldo BV final**: Cuánto dinero acumulas al final
+   - **Coste neto si aprovechas el saldo final**: pagado menos saldo BV final; cuenta solo si sigues con la comercializadora (si sale negativo se muestra como "saldo a favor")
+   - **Desglose mes a mes**: Evolución mensual de cada tarifa
+
+**Resultado**: Sabrás qué tarifa BV reduce más el pago del periodo y qué saldo queda pendiente para facturas futuras.
+
+### Caso 2: Comparar con tu Tarifa Actual
+
+**Situación**: Tienes una tarifa BV pero quieres saber si hay algo mejor.
+
+**Paso a paso**:
+1. Sigue los pasos del Caso 1
+2. Busca tu tarifa actual en el ranking
+3. Compara con el ganador:
+   - ¿Cuánto te ahorrarías?
+   - ¿Qué saldo BV tendrías al final?
+4. Revisa el desglose mes a mes para ver diferencias estacionales
+
+**Resultado**: Decisión informada sobre si merece la pena cambiar de tarifa.
+
+### Caso 3: Estacionalidad y BV
+
+**Situación**: Generas mucho en verano pero poco en invierno. Quieres ver cómo la BV suaviza las diferencias y qué cambia si contratas la tarifa en un mes distinto.
+
+**Paso a paso**:
+1. Carga tu CSV anual completo
+2. Simula con el conjunto de tarifas solares elegibles
+3. Si quieres modelar una contratación nueva, elige el mes de inicio del contrato
+4. Abre el desglose mes a mes de varias tarifas
+5. Observa:
+   - **Verano**: Compensación alta, excedente sobrante → Acumula en BV
+   - **Invierno**: Compensación baja, pero usas BV acumulada → Pagas menos
+   - **Saldo BV**: Evolución a lo largo del año
+   - **Ciclo rotado**: si empiezas en junio, la simulación recorre junio-diciembre y después enero-mayo usando el mismo patrón anual de datos
+
+**Resultado**: Entiendes cómo la BV equilibra tu factura a lo largo del año.
+
+### Caso 4: Cambio de Instalación Solar
+
+**Situación**: Vas a ampliar tus placas y quieres simular el nuevo escenario.
+
+**Paso a paso**:
+1. Modifica tu CSV multiplicando los excedentes por un factor (ej: x1.5)
+2. Carga el CSV modificado
+3. Simula con las tarifas BV
+4. Compara el resultado con el escenario actual
+
+**Resultado**: Proyección de ahorro con la ampliación de la instalación.
+
+---
+
+## Mantenimiento y Actualización
+
+### Actualizar Tarifas
+
+El simulador lee de `tarifas.json` automáticamente. Para añadir/actualizar tarifas BV:
+
+1. Editar `tarifas.json` (ver `JSON-SCHEMA.md`)
+2. Asegurarse de que la tarifa tiene un bloque `fv` con excedentes remunerados:
+   ```json
+   {
+     "nombre": "Tarifa BV",
+     "tipo": "1P",
+     "fv": {
+       "exc": 0.06,
+       "tipo": "SIMPLE + BV",
+       "tope": "ENERGIA",
+       "bv": true,
+       "reglaBV": "BV MES ANTERIOR",
+       "precioBV": 0
+     }
+   }
+   ```
+   El simulador carga tarifas con `fv.exc > 0` o `fv.exc = -1` (indexada). Los valores permitidos de cada campo están en `JSON-SCHEMA.md`.
+3. El simulador la detectará automáticamente
+
+### Añadir Nuevo Formato CSV
+
+1. Editar el parser canonico compartido `js/lf-csv-utils.js`, normalmente la
+   deteccion/mapeo de cabeceras consumida por `parseEnergyTableRows()` o, para
+   matrices H01-H24/H25, `parseHourlyMatrixRows()`.
+2. Mantener el contrato sincronico de `parseEnergyTableRows`; no introducir
+   `await` ni yielding sin redisenar la API compartida.
+3. Añadir fixtures y tests del formato en `tests/csv-parsing.test.js` y/o
+   `tests/csv-import.test.js`, incluyendo home y solar cuando cambie el
+   comportamiento observable.
+4. Verificar los tres consumidores: home (`lf-csv-import.js`), solar
+   (`bv-import.js`) y observatorio (`pvpc-stats-csv.js`). `bv-import.js` debe
+   seguir siendo un adaptador del parser compartido, no una bifurcacion.
+
+### Añadir Zona Fiscal
+
+1. Verificar la norma y documentarla en `MANTENIMIENTO-NORMATIVO.md`.
+2. Añadir la zona y sus tipos en `js/lf-config.js`; la seleccion debe quedar
+   centralizada en `getFiscalContext()`, `getImpuestoInfo()` y
+   `calcularImpuestoIndirecto()`.
+3. Actualizar los selectores de zona de las interfaces que correspondan.
+4. Añadir casos de frontera en `tests/fiscal.test.js`,
+   `tests/fiscal-rounding-align.test.js`, `tests/bv-fiscal-align.test.js` y tests de
+   desglose. Incluye medios centimos comparados con una referencia decimal independiente:
+   la paridad entre dos motores no demuestra por si sola que ambos redondeen bien.
+5. No dupliques porcentajes ni vuelvas a `round2(base * tipo)` en la ruta normal de
+   `bv-sim-monthly.js`: el simulador consume la aritmetica fiscal comun de `LF_CONFIG`. El fallback
+   defensivo que queda si falta el helper no es la referencia canonica; cualquier impacto atribuido
+   a el debe demostrarse desde una carga parcial hasta un importe visible.
+
+---
+
+## Preguntas Frecuentes (FAQ)
+
+### ¿Por qué filtra tarifas sin precio de excedentes utilizable?
+
+El simulador necesita un valor de excedentes utilizable. Por eso carga tarifas con `fv.exc > 0` y tambien tarifas indexadas marcadas con `fv.exc = -1`. En estas ultimas, si conserva los registros horarios del CSV, valora los excedentes mes a mes con `data/surplus/`. Si el valor horario mensual es negativo, se limita el credito a 0 EUR. Si solo hay datos mensuales, usa 0,020 €/kWh como referencia orientativa y muestra una nota informativa en la UI.
+
+### ¿Qué pasa si faltan precios horarios del índice de excedentes?
+
+El mes no se acepta a ciegas. `js/lf-surplus-prices.js` mide la cobertura parcial por dos criterios: horas sin precio y kWh de excedente sin valorar. Si los huecos son residuales, conserva el calculo horario y muestra las horas/kWh sin valorar en el tooltip. Si falta demasiada cobertura por cualquiera de los dos criterios, ese mes se marca como `partial-coverage-rejected` y cae a la referencia orientativa de 0,020 €/kWh para evitar un credito horario parcial enganoso.
+
+
+Los fallos HTTP/red al cargar un fichero mensual no se guardan como `null` en caché de sesión:
+el siguiente cálculo puede reintentarlo. El Service Worker, además, reutiliza una copia sana del
+build activo ante 408/429/5xx; 404/410 se respetan como retirada/ausencia real del recurso.
+
+### ¿Qué pasa si faltan los Servicios de Ajuste (SSAA)?
+
+Para una tarifa que declara `incluyeServiciosAjuste: false`, el simulador **no puede asumir
+0 €/kWh**. Si el dataset SSAA o el mes histórico necesario no están disponibles, esa tarifa se
+marca como `dataUnavailable`, sus totales quedan no numéricos y se excluye del ranking con un
+aviso visible. Un consumo mensual igual a cero sí produce 0 € legítimos. Para meses futuros o
+todavía parciales se permite usar el último mes SSAA completo publicado; para meses históricos,
+no se sustituye nunca el dato ausente por un valor actual.
+
+### ¿Qué hago si mi CSV no tiene excedentes?
+
+El archivo se importa con excedentes a cero y puedes completarlos en la tabla manual. Si no tienes instalación solar ni quieres simular excedentes, el **comparador principal** es la herramienta más adecuada.
+
+### ¿Por qué el ranking es diferente al comparador principal?
+
+El comparador principal calcula un periodo único. El simulador BV calcula mes a mes y considera la acumulación de BV entre meses, lo que puede cambiar el orden del ranking.
+
+### ¿Puedo simular sin saldo BV inicial?
+
+Sí, deja el campo "Saldo BV inicial" en 0. El simulador empezará desde cero y acumulará lo que generes en cada mes.
+
+### ¿Por qué importa el mes de inicio del contrato?
+
+Porque la BV usa saldo de meses anteriores. Si empiezas en mayo, puedes acumular excedentes de verano para usarlos en invierno dentro de la misma ventana simulada; si empiezas en enero, parte de ese saldo puede quedar al final del periodo. El selector cambia el orden de simulación, no los datos energéticos de cada mes.
+
+Cuando hay 12 meses de datos, el simulador usa esos meses como un patrón anual. Por ejemplo, si el CSV contiene enero-diciembre y eliges junio, la ventana simulada será `jun → jul → ago → sep → oct → nov → dic → ene → feb → mar → abr → may`. Los meses enero-mayo del final representan la continuación del ciclo anual, no una segunda lectura del año histórico.
+
+### ¿Los datos de mi CSV se envían a algún servidor?
+
+**No**. El procesamiento se realiza localmente en tu navegador. Tu CSV no se sube a un servidor de cálculo.
+
+### ¿Qué son "días con datos" vs "días del mes"?
+
+- **Días con datos**: Días únicos que aparecen en tu CSV
+- **Días del mes**: Días totales del mes (28-31)
+
+El simulador usa **días con datos** para evitar inflar el coste si tu CSV tiene huecos.
+
+### ¿Por qué algunas tarifas no tienen columnas BV?
+
+Porque esas tarifas **no tienen batería virtual**. El desglose solo muestra "Uso Hucha" y "Saldo Fin" para tarifas con BV activa.
+
+---
+
+## Roadmap (Ideas No Comprometidas)
+
+Ideas abiertas, sin compromiso de implementación:
+
+- [ ] Exportar resultados a CSV
+- [ ] Tour inicial para nuevos usuarios
+- [ ] Ejemplo de CSV descargable
+- [ ] Filtros (min compensación, max BV, etc.)
+- [ ] Búsqueda de tarifas por nombre
+- [ ] Progreso de carga para CSV grandes
+- [ ] Web Worker para procesamiento en background
+- [ ] Comparación con/sin ampliación de placas
+- [ ] Exportar PDF con informe completo
+
+Descartado por decisión de producto (junio 2026): gráfico comparativo de evolución mensual, toggle de orden del ranking, simulación multi-año (24 meses) y desglose de SSAA en el simulador. El ranking por coste pagado del periodo es decisión firme.
+
+Nota para auditorias de rendimiento: el parsing CSV/XLSX grande sigue siendo una mejora abierta de UX/arquitectura. `parseEnergyTableRows` conserva contrato sincronico compartido; introducir yielding directo requiere disenar API async o mover el trabajo a Web Worker.
+
+---
+
+## Soporte y Contribuciones
+
+**Proyecto source-available**: [github.com/almax-es/luzfija.es](https://github.com/almax-es/luzfija.es)
+
+**Contacto**: hola@luzfija.es
+
+**Issues**: Si encuentras un bug o tienes una sugerencia, abre un issue en GitHub.
+
+**Pull Requests**: Bienvenidas bajo los términos de licencia vigentes. Por favor, sigue el estilo de código existente y añade tests si es posible.
+
+---
+
+**Última actualización**: 16 de agosto de 2026
+**Versión**: 1.2.12
+**Autor**: aLMaX / LuzFija.es
