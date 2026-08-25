@@ -480,3 +480,69 @@ describe('Observatorio: rolling 12m se ancla en el ano seleccionado', () => {
     expect(computeRolling12m(current, previous)).toBeCloseTo(0.20, 10);
   });
 });
+
+describe('Observatorio: el selector de anyo no se rompe al cruzar el anyo', () => {
+  it('el HTML no cablea anyos: la unica fuente del rango es el JS', () => {
+    const html = fs.readFileSync(path.resolve(__dirname, '../estadisticas/index.html'), 'utf8');
+    const select = html.match(/<select id="yearSelector"[^>]*>([\s\S]*?)<\/select>/);
+
+    expect(select).not.toBeNull();
+    expect(select[1]).not.toMatch(/<option/i);
+  });
+
+  it('genera las opciones desde DATASET_MIN_YEAR hasta el anyo en curso', () => {
+    const { getAvailableYearsDesc, DATASET_MIN_YEAR } = window.__LF_PvpcStatsUiHelpers;
+    const years = getAvailableYearsDesc(new Date('2026-08-25T10:00:00Z'));
+
+    expect(years[0]).toBe(2026);
+    expect(years[years.length - 1]).toBe(DATASET_MIN_YEAR);
+    expect(years).toEqual([...years].sort((a, b) => b - a));
+  });
+
+  it('un anyo futuro sigue siendo seleccionable cuando el reloj llega a el (rollover)', () => {
+    const { populateYearSelector } = window.__LF_PvpcStatsUiHelpers;
+    const select = document.createElement('select');
+
+    // 31/12/2026 a mediodia: 2027 no existe todavia y no debe ofrecerse.
+    // OJO con la hora elegida: el rango sale de getFullYear(), que es hora LOCAL, asi
+    // que a las 23:00Z del 31/12 en Europe/Madrid ya es 2027 y el test se volveria
+    // contradictorio consigo mismo.
+    populateYearSelector(select, new Date('2026-12-31T12:00:00Z'));
+    expect(Array.from(select.options).map((o) => o.value)).not.toContain('2027');
+
+    // 01/01/2027: el mismo control tiene que admitir el anyo nuevo. Sin esto, el
+    // <select> descarta el value y queda vacio mientras el estado ya usa 2027.
+    populateYearSelector(select, new Date('2027-01-01T12:00:00Z'));
+    select.value = '2027';
+    expect(select.value).toBe('2027');
+    expect(select.selectedIndex).toBe(0);
+  });
+
+  it('repoblar con el mismo rango no pierde la seleccion del usuario', () => {
+    const { populateYearSelector } = window.__LF_PvpcStatsUiHelpers;
+    const select = document.createElement('select');
+    const hoy = new Date('2026-08-25T10:00:00Z');
+
+    populateYearSelector(select, hoy);
+    select.value = '2023';
+    populateYearSelector(select, hoy);
+
+    expect(select.value).toBe('2023');
+  });
+
+
+  it('applyStateToControls puebla el selector ANTES de asignarle el valor', () => {
+    // Guardrail de cableado: el helper puede ser correcto y no servir de nada si nadie
+    // lo llama, o si se llama despues de asignar el value (el <select> ya lo habria
+    // descartado). Se comprueba sobre el cuerpo real de la funcion.
+    const cuerpo = uiCode.match(/function applyStateToControls\([\s\S]*?\n  \}/);
+    expect(cuerpo).not.toBeNull();
+
+    const posPoblar = cuerpo[0].indexOf('populateYearSelector(els.year)');
+    const posAsignar = cuerpo[0].indexOf('els.year.value = state.year');
+
+    expect(posPoblar).toBeGreaterThan(-1);
+    expect(posAsignar).toBeGreaterThan(-1);
+    expect(posPoblar).toBeLessThan(posAsignar);
+  });
+});

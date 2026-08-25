@@ -1904,6 +1904,53 @@ existe la regla editorial de no datarlas por hora. Perder un diagnostico es peor
 veces. No reportar como bug salvo que se demuestre impacto sobre un dato que el autor use como
 exacto.
 
+### Rango De Anyos Del Observatorio: Una Sola Fuente De Verdad (RESUELTA 25/08/2026)
+
+**Fallo original.** El rango de anyos vivia en TRES sitios sin relacion entre si: las
+`<option>` cableadas a mano en el `<select id="yearSelector">` de `estadisticas/index.html`
+(2021..2026), el `2021 <= year <= now.getFullYear()` de `parseParams()`, y el
+`minYear = 2021` de `normalizeSelectedYears()`. Los dos ultimos son dinamicos; el primero
+no.
+
+**Consecuencia, con fecha de activacion.** El 1 de enero de 2027, `parseParams()` devuelve
+`year: '2027'` (su default es `String(now.getFullYear())`), `applyStateToControls()` hace
+`els.year.value = '2027'`, y como esa `<option>` no existe **el navegador descarta la
+asignacion**: `value === ''` y `selectedIndex === -1`. El estado interno sigue trabajando
+con 2027 y los datos cargan bien, pero **el control aparece vacio para todos los
+visitantes**. Reproducido en jsdom antes de corregir:
+
+```
+select.value = '2027'  ->  value: ""     selectedIndex: -1     (opciones 2021..2026)
+select.value = '2026'  ->  value: "2026"  selectedIndex: 0
+```
+
+Hallazgo de Codex en la revision independiente de las rondas 11 y 12. No era alcanzable
+antes de que el reloj cruzara el anyo: hoy `?year=2027` se rechaza en `parseParams()` y cae
+al default, asi que nadie podia tropezar con el por accidente hasta que afectase a todo el
+mundo a la vez.
+
+**Correccion.** `DATASET_MIN_YEAR = 2021` (primer anyo del dataset, que arranca en
+`2021-06`) como **fuente unica**, con `getAvailableYearsDesc()` y `populateYearSelector()`.
+Las tres consumen la misma constante y el `<select>` del HTML se queda **sin opciones
+cableadas**: las genera el JS. `applyStateToControls()` puebla ANTES de asignar el valor,
+porque al reves el `<select>` ya habria descartado el `value`. `populateYearSelector()`
+solo reconstruye si el rango difiere, para no perder la seleccion en un re-render.
+
+**No cablear anyos en el HTML.** Es la regla que deja este fallo cerrado. Si vuelven a
+aparecer `<option>` de anyo en `estadisticas/index.html`, el guardrail
+`tests/pvpc-stats-ui.test.js` lo detecta.
+
+**Cobertura.** Cinco tests: HTML sin `<option>`, rango generado desde `DATASET_MIN_YEAR`,
+**rollover simulado** (31/12/2026 no ofrece 2027; 01/01/2027 si, y el `value` se acepta),
+repoblado que conserva la seleccion, y un guardrail de CABLEADO que comprueba sobre el
+cuerpo real de `applyStateToControls()` que se puebla antes de asignar. Este ultimo existe
+porque las tres primeras mutaciones (borrar la llamada, invertir el orden) pasaban en verde
+sin el: un helper correcto que nadie invoca no arregla nada.
+
+**Trampa al escribir tests de rollover**: el rango sale de `getFullYear()`, que es hora
+LOCAL. Una fecha como `2026-12-31T23:00:00Z` ya es 2027 en `Europe/Madrid`, y el test se
+vuelve contradictorio consigo mismo. Usar mediodia.
+
 ### SEO, Datos Estructurados Y Core Web Vitals
 
 - La ausencia de `<meta name="robots" content="index,follow">` no es una carencia: `index,follow` es el comportamiento por defecto. Solo reporta `robots` si una directiva concreta bloquea o limita una URL indebidamente.

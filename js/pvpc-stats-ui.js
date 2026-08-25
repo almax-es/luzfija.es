@@ -24,6 +24,38 @@
     } catch (_) {}
   }
 
+  // Primer anyo con datos en `data/pvpc/` (el dataset arranca en 2021-06).
+  // FUENTE UNICA del rango de anyos: la usan parseParams(), normalizeSelectedYears()
+  // y populateYearSelector(). El <select> del HTML NO lleva opciones cableadas: si el
+  // rango vive en dos sitios, al cruzar el anyo el control queda vacio mientras el
+  // estado interno ya trabaja con el anyo nuevo.
+  const DATASET_MIN_YEAR = 2021;
+
+  function getAvailableYearsDesc(today = new Date()) {
+    const currentYear = today.getFullYear();
+    const years = [];
+    for (let y = currentYear; y >= DATASET_MIN_YEAR; y--) years.push(y);
+    return years;
+  }
+
+  function populateYearSelector(select, today = new Date()) {
+    if (!select) return [];
+    const years = getAvailableYearsDesc(today);
+    const rendered = years.map(String);
+    const actual = Array.from(select.options).map((o) => o.value);
+    // Solo se reconstruye si difiere: evita perder la seleccion en un re-render.
+    if (actual.length !== rendered.length || actual.some((v, i) => v !== rendered[i])) {
+      select.textContent = '';
+      years.forEach((y) => {
+        const opt = document.createElement('option');
+        opt.value = String(y);
+        opt.textContent = String(y);
+        select.appendChild(opt);
+      });
+    }
+    return rendered;
+  }
+
   const geoNames = {
     '8741': 'Península',
     '8742': 'Canarias',
@@ -173,7 +205,7 @@
     return {
       type: rawType === 'surplus' || rawType === 'pvpc' ? rawType : defaults.type,
       geo: Object.prototype.hasOwnProperty.call(geoNames, rawGeo) ? rawGeo : defaults.geo,
-      year: Number.isInteger(yearNumber) && yearNumber >= 2021 && yearNumber <= now.getFullYear()
+      year: Number.isInteger(yearNumber) && yearNumber >= DATASET_MIN_YEAR && yearNumber <= now.getFullYear()
         ? String(yearNumber)
         : defaults.year,
       month: rawMonth === 'all' || /^(?:0[1-9]|1[0-2])$/.test(rawMonth || '') ? rawMonth : defaults.month,
@@ -724,6 +756,9 @@
   function applyStateToControls(state) {
     if (els.type) els.type.value = state.type;
     if (els.geo) els.geo.value = state.geo;
+    // Poblar antes de asignar: un <select> descarta un value que no exista entre sus
+    // opciones y se queda vacio (value === '', selectedIndex === -1).
+    populateYearSelector(els.year);
     if (els.year) els.year.value = state.year;
     if (els.month) els.month.value = state.month;
     setTrendMode(state);
@@ -757,7 +792,7 @@
   function normalizeSelectedYears(year, compareYearsParam) {
     const now = new Date();
     const currentYear = now.getFullYear();
-    const minYear = 2021;
+    const minYear = DATASET_MIN_YEAR;
 
     let selected = [];
     if (compareYearsParam) {
@@ -1296,7 +1331,10 @@
     computeMonthlyFromYearData,
     getMonthlyExtremes,
     getHourlyCoverageState,
-    computeRolling12m
+    computeRolling12m,
+    getAvailableYearsDesc,
+    populateYearSelector,
+    DATASET_MIN_YEAR
   };
 
   if (document.readyState === 'loading') {
