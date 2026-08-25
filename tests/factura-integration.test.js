@@ -78,6 +78,7 @@ describe('Factura PDF Integration (Black Box)', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    delete window.fetch;
     delete global.toast;
     delete window.toast;
     document.body.innerHTML = '';
@@ -625,14 +626,88 @@ describe('Factura PDF Integration (Black Box)', () => {
     // Potencias y consumos vienen del QR (prioridad)
     expect(getVal('p1')).toBe('3,45');
     expect(getVal('p2')).toBe('2,2');
-    // Días: QR dice 29 (iniF=01-01 NO incluida; finF=01-30 incluida, según CNMC),
-    // mientras el PDF dice 31 (del 01/01 al 31/01, inclusive). Si QR ≠ PDF → usar PDF.
-    // Las dos semanticas conviven a proposito: el QR es formato CNMC, el rango del PDF
-    // es lenguaje natural inclusivo.
-    expect(getVal('dias')).toBe('31');
+    // El QR válido es la fuente de verdad: iniF no está incluida y finF sí, luego
+    // el periodo estructurado son 29 días aunque el texto visible diga 31.
+    expect(getVal('dias')).toBe('29');
     expect(getVal('consumoPunta')).toBe('111');
     expect(getVal('consumoLlano')).toBe('222');
     expect(getVal('consumoValle')).toBe('333');
+  });
+
+  it('usa el QR Bonpreu como fuente de verdad y muestra la ficha CNMC sin datos personales', async () => {
+    const qrUrl = [
+      'https://comparador.cnmc.gob.es/comparador/QRE2?',
+      'pP1=3&pP2=3&cfP1=89&cfP2=59&cfP3=80',
+      '&iniF=2026-07-15&finF=2026-08-14&fFact=2026-08-25',
+      '&com=R2-796&tc=E0&tf=N&finContrato=2027-07-15&finPen=0000-00-00',
+      '&rev=0&verde=1&imp=45.04&impPot=14.4&impEner=19.54&impSA=0',
+      '&finBS=0.74&impOtrosSinIE=0.8&prP1=29.2&prP2=29.2',
+      '&prE1=0.0852&prE2=0.0852&prE3=0.0852&pmaxP1=2.748&pmaxP2=3.108',
+      '&cups=ES0021000000000000AA&cp=50420'
+    ].join('');
+    const padding = Array(8).fill({ str: 'relleno de texto de factura para superar el mínimo', transform: [0,0,0,0, 0, 0] });
+    const items = [
+      { str: 'Adreça de subministrament: Carrer Major 8 - 1ºD', transform: [0,0,0,0, 10, 100] },
+      { str: 'Període facturat. Dies: 30', transform: [0,0,0,0, 10, 90] },
+      ...padding
+    ];
+
+    window.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        commercializers: {
+          'R2-796': {
+            name: 'BON PREU, SAU',
+            phone: '900 500 005',
+            website: 'http://www.bonpreuesclat.cat/ingadjement_en'
+          }
+        }
+      })
+    });
+    window.pdfjsLib.getDocument.mockReturnValue({
+      promise: Promise.resolve({
+        numPages: 1,
+        getPage: () => Promise.resolve({
+          getTextContent: () => Promise.resolve({ items }),
+          getAnnotations: () => Promise.resolve([{ url: qrUrl }]),
+          cleanup: () => {},
+          getViewport: () => ({ width: 100, height: 100 }),
+          render: () => ({ promise: Promise.resolve() })
+        }),
+        cleanup: () => {},
+        destroy: () => {}
+      })
+    });
+
+    await import('../js/factura-parsers.js');
+    await import('../js/factura.js');
+    window.__LF_bindFacturaParser?.();
+
+    const mockFile = new File(['bonpreu'], 'factura-bonpreu.pdf', { type: 'application/pdf' });
+    mockFile.arrayBuffer = async () => new ArrayBuffer(10);
+    const event = new Event('change', { bubbles: true });
+    Object.defineProperty(event, 'target', { value: { files: [mockFile] } });
+    document.getElementById('fileInputFactura').dispatchEvent(event);
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const form = document.getElementById('formValidacionFactura');
+    const value = field => form.querySelector(`.input-validacion[data-field="${field}"] input`)?.value;
+    expect(value('dias')).toBe('30');
+    expect(value('p1')).toBe('3');
+    expect(value('consumoPunta')).toBe('89');
+    expect(document.getElementById('nombreCompania').textContent).toBe('BON PREU, SAU');
+
+    const card = form.querySelector('.qr-factura-info');
+    expect(card).not.toBeNull();
+    expect(card.textContent).toContain('Mercado libre · 3 precios de energía');
+    expect(card.textContent).toContain('15/07/2026 – 14/08/2026 · 30 días');
+    expect(card.textContent).toContain('45,04');
+    expect(card.textContent).toContain('PermanenciaNo');
+    expect(card.textContent).toContain('900 500 005');
+    expect(card.textContent).not.toContain('ES0021000000000000AA');
+    expect(card.textContent).not.toContain('50420');
+    expect(window.fetch).toHaveBeenCalledTimes(1);
+    expect(window.fetch.mock.calls[0][0]).toContain('data/cnmc-commercializers.json');
   });
 
   it('no mezcla días de una factura anterior con el QR CNMC de otra factura del mismo PDF', async () => {

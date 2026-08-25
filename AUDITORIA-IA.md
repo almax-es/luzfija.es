@@ -1557,17 +1557,34 @@ aceptan prefijos (`QRE20`), sufijos ni subrutas. Un host parecido
  conservan y `dias` queda `null` para que lo complete el PDF.
 - La semantica `iniF`/`finF` es inicio excluido, fin incluido, distinta del rango textual `del X al Y`
  de la factura, que es inclusivo. Ver la entrada de dias.
+- Decision de producto (25/08/2026): cuando el QR CNMC supera la validacion estricta, sus campos son
+  la fuente de verdad. El parser textual solo completa ausencias; ya no puede sobrescribir `dias`
+  ni otro campo estructurado por una discrepancia con el texto visible. El caso real que motivo el
+  cambio tenia `iniF=2026-07-15`, `finF=2026-08-14` (30 dias) y una direccion acabada en `1ºD` que
+  el fallback abreviado interpretaba como un dia. Ademas de la prioridad QR, el patron `N d` exige
+  ahora espacio y se reconocen `Dies: N` / `(N dies)` en catalan.
+- Los parametros contractuales/economicos opcionales se validan por tipo antes de mostrarse. Se
+  descartan deliberadamente `cups`, `cp` y la URL completa. `com=R2-XXX` se resuelve contra
+  `data/cnmc-commercializers.json`, copia local del censo publico CNMC regenerable con
+  `npm run sync:cnmc-commercializers`; el navegador no consulta a CNMC ni envia datos de factura.
+- Gate real del 25/08/2026: 11/11 facturas historicas procesadas por la interfaz en Chrome mantienen
+  confianza 100%, cero errores de navegador y los mismos campos que el commit limpio salvo
+  Plenitude, cuyo dia cambia intencionadamente de 32 a 31 al aplicar la semantica de su QR. Las dos
+  facturas Bonpreu verificadas devuelven 30 y 28 dias, `BON PREU, SAU` y ficha CNMC. La ficha se
+  reviso ademas en las cuatro combinaciones oscuro/claro por escritorio (1280x900) y movil
+  (390x844): sin overflow horizontal, con scroll vertical operativo y sin errores de consola.
 
 **PDF con varias facturas.** `__LF_extraerTextoPDF()` concatena todas las paginas. Si el PDF trae dos
 facturas y solo la segunda lleva QR, el rango textual encontrado puede ser el de la primera mientras
 los numeros vienen del QR de la segunda. `__LF_parseQRData()` conserva las fechas ya validadas del QR
-como metadatos internos (`_fechaInicio`/`_fechaFin`, ni se muestran ni se aplican) y `factura.js`
+como metadatos internos (`_fechaInicio`/`_fechaFin`) y en el modelo informativo saneado; `factura.js`
 compara ese rango con el que el parser dice haber usado, con **tolerancia de 2 dias**. Si no casan, se
 conservan los dias del QR, la confianza baja a 75% (por debajo del umbral de autocalculo) y se avisa.
 
-Esa tolerancia es la que evita el falso positivo que importa: una factura normal de una pagina cuyo
-QR dice 29 dias y cuyo texto dice 31 sigue dando 31 dias al 100%, porque la diferencia es la semantica
-CNMC ya documentada. No cambia la prioridad del QR para potencias y consumos.
+La tolerancia evita marcar como multifatura una factura normal con el pequeño desplazamiento entre
+lecturas y periodo impreso. Incluso si el texto visible expresa otro numero, un QR valido conserva
+sus dias por la semantica CNMC documentada; la tolerancia solo decide si se rebaja la confianza por
+posible mezcla de facturas, no que fuente sobrescribe el campo.
 
 **Ojo al construir un PDF de prueba:** una URL de QR en una sola linea a 9pt se sale del ancho de
 pagina y pdf.js no extrae el final de la cadena, asi que el QR llega truncado y el caso no se

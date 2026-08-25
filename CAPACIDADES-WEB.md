@@ -217,9 +217,15 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - Texto PDF.
 - QR CNMC en texto.
 - QR por imagen con jsQR (si no aparece en texto).
-- Combinacion QR+PDF para completar datos.
-- Deteccion de comercializadora y patrones especificos.
-- Campos extraidos: potencias, dias, consumos, CUPS y metadatos.
+- Combinacion QR+PDF con prioridad campo a campo del QR CNMC valido; el texto del PDF solo completa
+  campos ausentes. Una contradiccion del texto visible no sobrescribe el dato estructurado del QR.
+- Deteccion de comercializadora por patrones y, cuando hay QR, resolucion del codigo `com=R2-XXX`
+  contra el censo CNMC local versionado en `data/cnmc-commercializers.json`.
+- Campos aplicables extraidos: potencias, dias y consumos. El CUPS y el codigo postal del QR se
+  descartan y no llegan al modelo de interfaz.
+- Ficha informativa para QR CNMC con comercializadora, periodo y total, tipo de factura y contrato,
+  renovacion, permanencia, revision/promocion/cambio de precios, servicios, energia verde, precios
+  contratados, desglose declarado, maximas demandadas, consumo acumulado y contacto publico.
 - Indicador de confianza y avisos contextuales.
 - Si el PDF es escaneado (sin texto) o la confianza es baja (<50%), el aviso muestra un boton primario "Leer la factura escaneada (OCR)" junto al mensaje, ademas del boton OCR compacto de la cabecera.
 - Aplicacion a formulario con autocálculo solo cuando la confianza es plena (>= 99.5%).
@@ -242,6 +248,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - Privacidad reforzada:
 - Modo privacidad durante proceso.
 - No se trackean eventos de modal factura.
+- La resolucion de la comercializadora es same-origin y no envia la URL del QR ni datos de la factura.
 - Liberacion de referencia al archivo tras aplicar.
 
 ### 3.6 UX Operativa
@@ -432,7 +439,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 40 (`js/*.js` + `js/bv/*.js`).
-- Lineas JS aproximadas: 30.773.
+- Lineas JS aproximadas: 31.113.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (119 tarifas).
@@ -519,8 +526,8 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 ## 10. Testing Y Calidad
 
 - Suite Vitest/JSDOM.
-- 103 archivos de test (`tests/*.test.js`).
-- 1642 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 104 archivos de test (`tests/*.test.js`).
+- 1649 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

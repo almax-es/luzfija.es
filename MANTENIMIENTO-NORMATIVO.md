@@ -1,6 +1,6 @@
 # Mantenimiento Normativo Y Operativo
 
-Ultima actualizacion: 2026-08-13
+Ultima actualizacion: 2026-08-25
 
 Este documento lista las piezas de LuzFija.es que dependen de normativa, fuentes oficiales o datos vivos. Sirve como checklist para que calculos, guias y mensajes publicos no queden desfasados.
 
@@ -31,7 +31,7 @@ Este documento lista las piezas de LuzFija.es que dependen de normativa, fuentes
 | Tarifas de mercado libre | Precios, servicios obligatorios, permanencias, descuentos, indexadas, excedentes | Cada actualizacion de dataset | Webs oficiales de comercializadoras y condiciones PDF | `tarifas.json` |
 | Campo `Activa` | Que tarifas estan publicadas o retiradas temporalmente | En cada revision de tarifas | Dataset | `tarifas.json` |
 | Excedentes indexados `fv.exc=-1` | Si la estimacion operativa de 0,020 EUR/kWh sigue siendo razonable | Mensual o si cambia mucho el mercado | REE/ESIOS indicador 1739, OMIE y condiciones comerciales | `tarifas.json`, UI de aviso, JSON-SCHEMA, docs |
-| Factura PDF/QR CNMC | Formato de URL QR, campos y cambios en modelos de factura | Trimestral y cuando fallen facturas reales | CNMC y facturas reales anonimizadas | `js/factura-parsers.js`, tests de factura, guias de factura |
+| Factura PDF/QR CNMC y censo R2 | Formato de URL QR, campos, codigos de contrato/factura, cambios en modelos y altas/cambios de comercializadoras | Trimestral y cuando fallen facturas reales; regenerar el censo antes de publicar cambios del extractor | Resolucion CNMC publicada en BOE, censo publico CNMC y facturas reales anonimizadas | `js/factura-parsers.js`, `js/factura.js`, `data/cnmc-commercializers.json`, `scripts/sync-cnmc-commercializers.mjs`, tests de factura y guias |
 | Consumo horario y lecturas | Acceso a curva horaria, Datadis, portales de distribuidoras, lecturas reales/estimadas y formatos CSV/XLSX | Semestral y cuando cambien formatos de descarga | Datadis, distribuidoras, CNMC | `js/lf-csv-utils.js`, importadores, guias de consumo horario y lecturas |
 | Potencia contratada y maximetro | Derechos, excesos, tramos, maximetro y casos domesticos/no domesticos | Semestral y cada cambio regulatorio | BOE, CNMC, distribuidoras | Guia de potencia, calculadora, textos de ayuda |
 | Contratacion, cambios y atencion al cliente | Plazos de cambio de comercializadora, respuesta a reclamaciones, desistimiento, canales de atencion y obligaciones de empresa | Semestral y cada cambio de consumidores/energia | BOE, CNMC, RD 88/2026 y normativa posterior | Guias de cambio de compania, reclamaciones, estafas y servicios extra |

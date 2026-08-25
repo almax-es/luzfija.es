@@ -72,6 +72,58 @@
         const url = __LF_assetUrl(rel);
         return __LF_BUILD_VER ? url + '?v=' + encodeURIComponent(__LF_BUILD_VER) : url;
       };
+      let __LF_cnmcRegistryPromise = null;
+
+      function __LF_safeRegistryText(value, maxLength) {
+        const text = String(value ?? '').replace(/\s+/g, ' ').trim();
+        if (!text || text.length > maxLength) return null;
+        for (const char of text) {
+          const code = char.charCodeAt(0);
+          if (code <= 31 || code === 127) return null;
+        }
+        return text;
+      }
+
+      function __LF_safeRegistryWebsite(value) {
+        try {
+          const url = new URL(String(value || ''));
+          return /^https?:$/.test(url.protocol) ? url.toString() : null;
+        } catch (_) {
+          return null;
+        }
+      }
+
+      async function __LF_resolveCnmcCommercializer(code) {
+        const normalizedCode = String(code ?? '').trim().toUpperCase();
+        if (!/^R2-\d{3}$/.test(normalizedCode) || typeof window.fetch !== 'function') return null;
+
+        if (!__LF_cnmcRegistryPromise) {
+          __LF_cnmcRegistryPromise = window.fetch(
+            __LF_versionedUrl('data/cnmc-commercializers.json'),
+            { cache: 'force-cache', credentials: 'same-origin' }
+          ).then(async response => {
+            if (!response.ok) throw new Error(`Censo CNMC no disponible (${response.status})`);
+            const payload = await response.json();
+            return payload?.commercializers && typeof payload.commercializers === 'object'
+              ? payload.commercializers
+              : {};
+          }).catch(error => {
+            lfDbg('[QR] No se pudo cargar el censo CNMC:', error?.message || error);
+            return {};
+          });
+        }
+
+        const registry = await __LF_cnmcRegistryPromise;
+        const entry = registry[normalizedCode];
+        const name = __LF_safeRegistryText(entry?.name, 180);
+        if (!name) return null;
+        return {
+          code: normalizedCode,
+          name,
+          phone: __LF_safeRegistryText(entry?.phone, 80),
+          website: __LF_safeRegistryWebsite(entry?.website)
+        };
+      }
 
       window.__LF_restoreFocusEl = null;
       window.__LF_focusTrapCleanup = null;
@@ -630,6 +682,216 @@
         return wrap;
       }
 
+      function __LF_formatQrDate(value) {
+        const match = String(value ?? '').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+        return match ? `${match[3]}/${match[2]}/${match[1]}` : null;
+      }
+
+      function __LF_formatQrNumber(value, digits = 2) {
+        if (!Number.isFinite(value)) return null;
+        return new Intl.NumberFormat('es-ES', {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: digits
+        }).format(value);
+      }
+
+      function __LF_formatQrEuro(value) {
+        if (!Number.isFinite(value)) return null;
+        return new Intl.NumberFormat('es-ES', {
+          style: 'currency',
+          currency: 'EUR',
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2
+        }).format(value);
+      }
+
+      function __LF_contractTypeLabel(code) {
+        const labels = {
+          A: 'PVPC regulado',
+          B: 'Indexado al mercado horario',
+          C: 'Indexado con un precio de energía',
+          D: 'Indexado con 3 precios de energía',
+          E: 'Mercado libre · 3 precios de energía',
+          F: 'Mercado libre · un precio de energía',
+          G: 'Tarifa flexible',
+          H: 'Tarifa plana'
+        };
+        if (!/^[A-H][01]$/.test(String(code || ''))) return null;
+        const base = labels[code[0]];
+        return code[1] === '1' ? `${base} · cuota mensual acordada` : base;
+      }
+
+      function __LF_revisionLabel(code) {
+        return ({
+          0: 'Anual',
+          1: 'Semestral',
+          2: 'Trimestral',
+          3: 'Mensual',
+          4: 'Cada 3 años',
+          5: 'Cada 5 años'
+        })[code] || null;
+      }
+
+      function __LF_invoiceTypeLabel(code) {
+        return ({
+          A: 'Anuladora',
+          N: 'Normal',
+          R: 'Rectificadora',
+          C: 'Complementaria',
+          G: 'Regularizadora'
+        })[code] || null;
+      }
+
+      function __LF_priceChangeLabel(code) {
+        return ({
+          0: 'No indicado',
+          1: 'Cambio dentro de esta factura',
+          2: 'Cambio en la siguiente factura'
+        })[code] || null;
+      }
+
+      function __LF_appendQrInfoGroup(section, title, items) {
+        const validItems = items.filter(item => item.value != null && item.value !== '');
+        if (!validItems.length) return;
+
+        const group = document.createElement('div');
+        group.className = 'qr-factura-group';
+        const heading = document.createElement('h5');
+        heading.textContent = title;
+        group.appendChild(heading);
+
+        const grid = document.createElement('dl');
+        grid.className = 'qr-factura-grid';
+        for (const item of validItems) {
+          const fact = document.createElement('div');
+          fact.className = item.wide ? 'qr-factura-fact qr-factura-fact-wide' : 'qr-factura-fact';
+          const term = document.createElement('dt');
+          term.textContent = item.label;
+          const description = document.createElement('dd');
+          description.textContent = item.value;
+          fact.append(term, description);
+          grid.appendChild(fact);
+        }
+        group.appendChild(grid);
+        section.appendChild(group);
+      }
+
+      function __LF_renderQrInfo(datos) {
+        const info = datos?.qrInfo;
+        if (!info) return null;
+
+        const section = document.createElement('section');
+        section.className = 'qr-factura-info';
+        section.setAttribute('aria-label', 'Información declarada en el QR CNMC');
+
+        const header = document.createElement('div');
+        header.className = 'qr-factura-header';
+        const titleWrap = document.createElement('div');
+        const eyebrow = document.createElement('span');
+        eyebrow.className = 'qr-factura-eyebrow';
+        eyebrow.textContent = 'QR CNMC verificado';
+        const title = document.createElement('h4');
+        title.textContent = info.comercializadora?.name || 'Información de tu factura';
+        titleWrap.append(eyebrow, title);
+        const localBadge = document.createElement('span');
+        localBadge.className = 'qr-factura-local';
+        localBadge.textContent = 'Procesado localmente';
+        header.append(titleWrap, localBadge);
+        section.appendChild(header);
+
+        const periodStart = __LF_formatQrDate(info.fechaInicio);
+        const periodEnd = __LF_formatQrDate(info.fechaFin);
+        const period = periodStart && periodEnd
+          ? `${periodStart} – ${periodEnd}${Number.isInteger(datos.dias) ? ` · ${datos.dias} días` : ''}`
+          : null;
+        const permanence = info.permanencia === false
+          ? 'No'
+          : (info.permanencia === true
+            ? `Sí${__LF_formatQrDate(info.finPermanencia) ? `, hasta ${__LF_formatQrDate(info.finPermanencia)}` : ''}`
+            : null);
+        const services = Number.isFinite(info.importeServiciosAdicionales)
+          ? (info.importeServiciosAdicionales === 0 ? 'No' : `Sí · ${__LF_formatQrEuro(info.importeServiciosAdicionales)}`)
+          : null;
+
+        __LF_appendQrInfoGroup(section, 'Resumen', [
+          { label: 'Periodo facturado', value: period, wide: true },
+          { label: 'Fecha de factura', value: __LF_formatQrDate(info.fechaFactura) },
+          { label: 'Tipo de factura', value: __LF_invoiceTypeLabel(info.tipoFactura) },
+          { label: 'Total facturado', value: __LF_formatQrEuro(info.totalFacturado) },
+          { label: 'Tipo de contrato', value: __LF_contractTypeLabel(info.tipoContrato), wide: true },
+          { label: 'Renovación del contrato', value: __LF_formatQrDate(info.finContrato) },
+          { label: 'Permanencia', value: permanence },
+          { label: 'Revisión de precios', value: __LF_revisionLabel(info.revisionPrecios) },
+          { label: 'Cambio de precios', value: __LF_priceChangeLabel(info.cambioPrecios) },
+          { label: 'Promoción temporal', value: info.promocion == null ? null : (info.promocion ? 'Sí' : 'No') },
+          { label: 'Servicios adicionales', value: services },
+          { label: 'Oferta de energía verde', value: info.energiaVerde == null ? null : (info.energiaVerde ? 'Sí' : 'No') }
+        ]);
+
+        __LF_appendQrInfoGroup(section, 'Precios contratados', [
+          { label: 'Energía punta', value: Number.isFinite(info.precioEnergiaP1) ? `${__LF_formatQrNumber(info.precioEnergiaP1, 6)} €/kWh` : null },
+          { label: 'Energía llano', value: Number.isFinite(info.precioEnergiaP2) ? `${__LF_formatQrNumber(info.precioEnergiaP2, 6)} €/kWh` : null },
+          { label: 'Energía valle', value: Number.isFinite(info.precioEnergiaP3) ? `${__LF_formatQrNumber(info.precioEnergiaP3, 6)} €/kWh` : null },
+          { label: 'Potencia punta', value: Number.isFinite(info.precioPotenciaP1) ? `${__LF_formatQrNumber(info.precioPotenciaP1, 6)} €/kW/año` : null },
+          { label: 'Potencia valle', value: Number.isFinite(info.precioPotenciaP2) ? `${__LF_formatQrNumber(info.precioPotenciaP2, 6)} €/kW/año` : null }
+        ]);
+
+        __LF_appendQrInfoGroup(section, 'Desglose declarado', [
+          { label: 'Potencia', value: __LF_formatQrEuro(info.importePotencia) },
+          { label: 'Energía', value: __LF_formatQrEuro(info.importeEnergia) },
+          { label: 'Compensación de excedentes', value: __LF_formatQrEuro(info.compensacionExcedentes) },
+          { label: 'Descuento bono social', value: __LF_formatQrEuro(info.descuentoBonoSocial) },
+          { label: 'Financiación bono social', value: __LF_formatQrEuro(info.financiacionBonoSocial) },
+          { label: 'Otros con impuesto eléctrico', value: __LF_formatQrEuro(info.importeOtrosConIE) },
+          { label: 'Otros sin impuesto eléctrico', value: __LF_formatQrEuro(info.importeOtrosSinIE) },
+          { label: 'Descuento', value: __LF_formatQrEuro(info.descuento) },
+          { label: 'Ajuste', value: __LF_formatQrEuro(info.ajuste) }
+        ]);
+
+        __LF_appendQrInfoGroup(section, 'Potencia y consumo', [
+          { label: 'Potencia contratada punta', value: Number.isFinite(datos.p1) ? `${__LF_formatQrNumber(datos.p1, 3)} kW` : null },
+          { label: 'Potencia contratada valle', value: Number.isFinite(datos.p2) ? `${__LF_formatQrNumber(datos.p2, 3)} kW` : null },
+          { label: 'Máxima demandada punta', value: Number.isFinite(info.potenciaMaximaP1) ? `${__LF_formatQrNumber(info.potenciaMaximaP1, 3)} kW` : null },
+          { label: 'Máxima demandada valle', value: Number.isFinite(info.potenciaMaximaP2) ? `${__LF_formatQrNumber(info.potenciaMaximaP2, 3)} kW` : null },
+          { label: 'Consumo facturado P1 / P2 / P3', value: `${__LF_formatQrNumber(datos.consumoPunta, 3)} / ${__LF_formatQrNumber(datos.consumoLlano, 3)} / ${__LF_formatQrNumber(datos.consumoValle, 3)} kWh`, wide: true },
+          {
+            label: `Consumo acumulado desde ${__LF_formatQrDate(info.inicioConsumoAnual) || 'el inicio disponible'} · P1 / P2 / P3`,
+            value: [info.consumoAnualP1, info.consumoAnualP2, info.consumoAnualP3].every(Number.isFinite)
+              ? `${__LF_formatQrNumber(info.consumoAnualP1, 3)} / ${__LF_formatQrNumber(info.consumoAnualP2, 3)} / ${__LF_formatQrNumber(info.consumoAnualP3, 3)} kWh`
+              : null,
+            wide: true
+          }
+        ]);
+
+        if (info.comercializadora?.phone || info.comercializadora?.website) {
+          const contact = document.createElement('div');
+          contact.className = 'qr-factura-contact';
+          const label = document.createElement('strong');
+          label.textContent = 'Contacto de la comercializadora';
+          contact.appendChild(label);
+          if (info.comercializadora.phone) {
+            const phone = document.createElement('span');
+            phone.textContent = info.comercializadora.phone;
+            contact.appendChild(phone);
+          }
+          if (info.comercializadora.website) {
+            const website = document.createElement('a');
+            website.href = info.comercializadora.website;
+            website.target = '_blank';
+            website.rel = 'noopener noreferrer';
+            website.textContent = 'Web oficial';
+            contact.appendChild(website);
+          }
+          section.appendChild(contact);
+        }
+
+        const note = document.createElement('p');
+        note.className = 'qr-factura-note';
+        note.textContent = 'Información declarada por la comercializadora en el QR regulado. LuzFija no guarda el PDF, el CUPS ni la URL del QR.';
+        section.appendChild(note);
+        return section;
+      }
+
       function __LF_renderForm(datos) {
         const form = __LF_q('formValidacionFactura');
         if (!form) return;
@@ -647,6 +909,8 @@
         
         // ✅ Limpiar y añadir elementos DOM (no strings HTML)
         form.innerHTML = '';
+        const qrInfo = __LF_renderQrInfo(datos);
+        if (qrInfo) form.appendChild(qrInfo);
         form.appendChild(__LF_crearInputValidacion('p1', 'Potencia P1 (kW)', datos.p1));
         form.appendChild(__LF_crearInputValidacion('p2', 'Potencia P2 (kW)', datos.p2));
         form.appendChild(__LF_crearInputValidacion('dias', 'Días de facturación', datos.dias));
@@ -657,7 +921,10 @@
         // Mostrar compañía detectada si no es genérico
         const companiaEl = __LF_q('companiaDetectada');
         const nombreEl = __LF_q('nombreCompania');
-        if (companiaEl && nombreEl && datos.compania && datos.compania !== 'generico') {
+        if (companiaEl && nombreEl && datos.companiaNombre) {
+          nombreEl.textContent = datos.companiaNombre;
+          __LF_show(companiaEl);
+        } else if (companiaEl && nombreEl && datos.compania && datos.compania !== 'generico') {
           const nombres = {
             'endesa': 'Endesa Energía',
             'iberdrola': 'Iberdrola',
@@ -687,8 +954,8 @@
             fuenteBadge.textContent = '';
           } else {
             const fuenteMap = {
-              'QR+PDF':       { texto: 'QR + Parser',        bg: '#059669', color: '#fff' },
-              'LINK_CNMC+PDF':{ texto: 'Link CNMC + Parser', bg: '#059669', color: '#fff' },
+              'QR+PDF':       { texto: 'QR CNMC + respaldo PDF', bg: '#059669', color: '#fff' },
+              'LINK_CNMC+PDF':{ texto: 'QR CNMC + respaldo PDF', bg: '#059669', color: '#fff' },
               'PDF':          { texto: 'Parser PDF',          bg: '#3b82f6', color: '#fff' },
               'OCR':          { texto: 'OCR',                 bg: '#f59e0b', color: '#000' }
             };
@@ -1018,6 +1285,15 @@
           // ====================================================================
           if (datosQR) {
             lfDbg('[QR] ✅ QR encontrado - validando con datos del PDF');
+
+            // El QR identifica a la comercializadora mediante el código público R2.
+            // Lo resolvemos contra una copia local versionada del censo CNMC: no se
+            // consulta el QR ni se envía ningún dato de la factura a un tercero.
+            const commercializer = await __LF_resolveCnmcCommercializer(datosQR.codigoComercializadora);
+            __LF_assertCurrentOperation(operationId);
+            if (commercializer && datosQR.qrInfo) {
+              datosQR.qrInfo.comercializadora = commercializer;
+            }
             
             // Parsear PDF completo para tener datos de fallback y, sobre todo,
             // respetar una declaración explícita de peaje fuera de 2.0TD. Esa señal
@@ -1036,8 +1312,8 @@
               return;
             }
             
-            // COMBINAR: usar QR como base, completar/corregir con PDF. Antes de
-            // mezclar los días comprobamos que el rango textual pertenezca al mismo
+            // COMBINAR: usar QR como fuente principal y completar solo ausencias con
+            // PDF. Antes de mezclar cualquier fallback comprobamos que el rango pertenezca al mismo
             // periodo que el QR. En un PDF con varias facturas, el parser global puede
             // encontrar el primer rango del documento mientras el único QR CNMC está
             // en una factura posterior. Esa mezcla no puede conservar confianza 100.
@@ -1059,41 +1335,17 @@
               // "sin reparto" (ya viene estructurado), asi que en la practica esto vendra del PDF.
               consumoTotalDetectado: datosQR.consumoTotalDetectado != null ? datosQR.consumoTotalDetectado : datosPDF.consumoTotalDetectado,
               
-              // DÍAS: lógica especial
-              dias: (() => {
-                const diasQR = datosQR.dias;
-                const diasPDF = datosPDF.dias;
-
-                // Si NO hay días en PDF → usar QR
-                if (!diasPDF) {
-                  lfDbg('[DÍAS] PDF no tiene días, usando QR:', diasQR);
-                  return diasQR;
-                }
-
-                // Si QR y PDF coinciden → usar QR (fuente oficial)
-                if (diasQR === diasPDF) {
-                  lfDbg('[DÍAS] QR y PDF coinciden (' + diasQR + '), usando QR');
-                  return diasQR;
-                }
-
-                // Si los periodos no casan, no mezclar el QR de una factura con
-                // los días de otra. Conservamos el periodo autoconsistente del QR y
-                // bajamos la confianza más abajo para impedir el autocálculo.
-                if (discrepanciaPeriodo) {
-                  lfDbg('[DÍAS] QR y PDF parecen pertenecer a periodos distintos; usando QR:', diasQR);
-                  return diasQR;
-                }
-
-                // Diferencia pequeña/compatible: conservar la decisión de producto
-                // existente y usar el dato impreso en PDF (lo que cobran).
-                lfDbg('[DÍAS] QR (' + diasQR + ') ≠ PDF (' + diasPDF + '), usando PDF (lo que cobran)');
-                return diasPDF;
-              })(),
+              // DÍAS: el QR válido manda. El PDF solo completa el campo si las
+              // fechas estructuradas del QR faltan o son inválidas.
+              dias: datosQR.dias != null ? datosQR.dias : datosPDF.dias,
               
               confianza: discrepanciaPeriodo ? 75 : 100,
               periodoQrPdfDiscrepante: discrepanciaPeriodo,
               fuenteDatos: qrOrigen || 'QR+PDF',
-              compania: datosPDF.compania
+              compania: datosPDF.compania,
+              companiaNombre: commercializer?.name || null,
+              codigoComercializadora: datosQR.codigoComercializadora,
+              qrInfo: datosQR.qrInfo
             };
             
             lfDbg('[QR] ✅ Datos combinados:', datosCombinados);

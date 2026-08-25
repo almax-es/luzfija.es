@@ -6,6 +6,7 @@
   "private": true,
   "scripts": {
     "setup:hooks": "git config core.hooksPath .githooks",
+    "sync:cnmc-commercializers": "node scripts/sync-cnmc-commercializers.mjs",
     "sync:seo-docs": "node scripts/sync-seo-docs.mjs",
     "sync:repo-docs": "node scripts/sync-seo-docs.mjs --include-repo-docs",
     "lint": "eslint js",

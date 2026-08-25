@@ -744,6 +744,16 @@ describe('Motor de Extracción de Facturas (PDF Text)', () => {
       const texto = 'Detalle 30,5 días. Total días facturados: 31';
       expect(window.__LF_FacturaParsers.__LF_parsearDatos(texto, texto).dias).toBe(31);
     });
+
+    it('no interpreta el piso 1ºD de una dirección como un día', () => {
+      const texto = 'Adreça de subministrament: Carrer Major 8 - 1ºD';
+      expect(window.__LF_FacturaParsers.__LF_parsearDatos(texto, texto).dias).toBeNull();
+    });
+
+    it('reconoce el campo catalán Dies aunque la dirección contenga 1ºD', () => {
+      const texto = 'Adreça: Carrer Major 8 - 1ºD. Període facturat. Dies: 30';
+      expect(window.__LF_FacturaParsers.__LF_parsearDatos(texto, texto).dias).toBe(30);
+    });
   });
 
   describe('QR CNMC - validar origen y datos antes de dar confianza 100%', () => {
@@ -841,6 +851,56 @@ describe('Motor de Extracción de Facturas (PDF Text)', () => {
         dias: null,
         confianza: 100
       });
+    });
+
+    it('extrae la información contractual y económica sin conservar CUPS ni código postal', () => {
+      window.LF_CONFIG = { POTENCIA_MAX_KW: 15 };
+      const url = [
+        'https://comparador.cnmc.gob.es/comparador/QRE2?',
+        'pP1=3.45&pP2=3.45&cfP1=188&cfP2=157&cfP3=244',
+        '&iniF=2026-07-15&finF=2026-08-12&fFact=2026-08-25',
+        '&com=R2-796&tc=E0&tf=N&finContrato=2027-07-15&finPen=0000-00-00',
+        '&rev=0&verde=1&imp=85.38&impPot=15.46&impEner=50.3&impSA=0',
+        '&finBS=0.69&impOtrosSinIE=0.75&prP1=29.2&prP2=29.2',
+        '&prE1=0.0852&prE2=0.0852&prE3=0.0852&pmaxP1=4.344&pmaxP2=4.44',
+        '&cups=ES0021000000000000AA&cp=50420'
+      ].join('');
+      const parsed = window.__LF_FacturaParsers.__LF_parseQRData(url);
+
+      expect(parsed).toMatchObject({
+        dias: 28,
+        codigoComercializadora: 'R2-796',
+        qrInfo: {
+          codigoComercializadora: 'R2-796',
+          fechaFactura: '2026-08-25',
+          finContrato: '2027-07-15',
+          permanencia: false,
+          tipoContrato: 'E0',
+          revisionPrecios: 0,
+          energiaVerde: true,
+          totalFacturado: 85.38,
+          precioEnergiaP1: 0.0852,
+          potenciaMaximaP2: 4.44
+        }
+      });
+      expect(JSON.stringify(parsed).toLowerCase()).not.toContain('cups');
+      expect(JSON.stringify(parsed)).not.toContain('50420');
+      expect(JSON.stringify(parsed)).not.toContain('ES0021000000000000AA');
+    });
+
+    it('descarta campos informativos mal formados sin invalidar los consumos estructurales', () => {
+      const url = 'https://comparador.cnmc.gob.es/comparador/QRE?pP1=3.45&pP2=4.6&cfP1=10&cfP2=20&cfP3=30&imp=85.38texto&com=%3Cscript%3E&tc=E9';
+      const parsed = window.__LF_FacturaParsers.__LF_parseQRData(url);
+      expect(parsed).toMatchObject({
+        confianza: 100,
+        codigoComercializadora: null,
+        qrInfo: {
+          codigoComercializadora: null,
+          tipoContrato: null,
+          totalFacturado: null
+        }
+      });
+      expect(JSON.stringify(parsed)).not.toContain('<script>');
     });
   });
 

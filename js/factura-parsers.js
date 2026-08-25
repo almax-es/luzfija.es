@@ -1196,6 +1196,41 @@
             return Number.isFinite(n) ? n : null;
           };
 
+          // Los campos informativos del QR se aceptan solo si el valor completo es
+          // numérico. No usamos parseFloat: convertiría "85.38texto" en un importe
+          // aparentemente válido y terminaría mostrando contenido no estructurado.
+          const parseQrDecimal = (key, { min = -1000000000, max = 1000000000 } = {}) => {
+            const raw = getParam(key);
+            if (raw == null || String(raw).trim() === '') return null;
+            const m = String(raw).trim().match(/^[+-]?\d+(?:[.,]\d+)?$/);
+            if (!m) return null;
+            const n = Number(m[0].replace(',', '.'));
+            return Number.isFinite(n) && n >= min && n <= max ? n : null;
+          };
+
+          const parseQrDate = (raw) => {
+            const m = String(raw ?? '').trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
+            if (!m) return null;
+            const y = Number(m[1]);
+            const mo = Number(m[2]) - 1;
+            const d = Number(m[3]);
+            const date = new Date(Date.UTC(y, mo, d));
+            // Date normaliza fechas imposibles (2026-02-31 -> marzo). El QR no debe
+            // convertir silenciosamente una fecha inválida en días plausibles.
+            if (
+              !Number.isFinite(date.getTime())
+              || date.getUTCFullYear() !== y
+              || date.getUTCMonth() !== mo
+              || date.getUTCDate() !== d
+            ) return null;
+            return String(raw).trim();
+          };
+
+          const parseQrEnum = (key, allowed) => {
+            const value = String(getParam(key) ?? '').trim().toUpperCase();
+            return allowed.has(value) ? value : null;
+          };
+
           const p1 = parseQrNumber(getParam('pP1'), 'kw');
           const p2 = parseQrNumber(getParam('pP2'), 'kw');
           const cfP1 = parseQrNumber(getParam('cfP1'), 'kwh');
@@ -1222,35 +1257,84 @@
           let dias = null;
           let fechaInicioValida = null;
           let fechaFinValida = null;
-          const parseQrDate = (raw) => {
-            const m = String(raw ?? '').trim().match(/^(\d{4})-(\d{2})-(\d{2})$/);
-            if (!m) return null;
-            const y = Number(m[1]);
-            const mo = Number(m[2]) - 1;
-            const d = Number(m[3]);
-            const date = new Date(Date.UTC(y, mo, d));
-            // Date normaliza fechas imposibles (2026-02-31 -> marzo). El QR no debe
-            // convertir silenciosamente una fecha inválida en días plausibles.
-            if (
-              !Number.isFinite(date.getTime())
-              || date.getUTCFullYear() !== y
-              || date.getUTCMonth() !== mo
-              || date.getUTCDate() !== d
-            ) return null;
-            return date;
-          };
           if (fechaInicio && fechaFin) {
             const inicio = parseQrDate(fechaInicio);
             const fin = parseQrDate(fechaFin);
             if (inicio && fin) {
-              const calc = Math.floor((fin.getTime() - inicio.getTime()) / 86400000);
+              const calc = Math.floor((Date.parse(fin + 'T00:00:00Z') - Date.parse(inicio + 'T00:00:00Z')) / 86400000);
               if (Number.isFinite(calc) && calc > 0 && calc <= FACTURA_MAX_DIAS) {
                 dias = calc;
-                fechaInicioValida = fechaInicio;
-                fechaFinValida = fechaFin;
+                fechaInicioValida = inicio;
+                fechaFinValida = fin;
               }
             }
           }
+
+          const codigoComercializadoraRaw = String(getParam('com') ?? '').trim().toUpperCase();
+          const codigoComercializadora = /^R2-\d{3}$/.test(codigoComercializadoraRaw)
+            ? codigoComercializadoraRaw
+            : null;
+          const finPenRaw = String(getParam('finPen') ?? '').trim();
+          const finPermanencia = finPenRaw === '0000-00-00' ? null : parseQrDate(finPenRaw);
+          const permanencia = finPenRaw === '0000-00-00'
+            ? false
+            : (finPermanencia ? true : null);
+          const tipoContrato = parseQrEnum('tc', new Set([
+            'A0', 'A1', 'B0', 'B1', 'C0', 'C1', 'D0', 'D1',
+            'E0', 'E1', 'F0', 'F1', 'G0', 'G1', 'H0', 'H1'
+          ]));
+          const revisionRaw = parseQrDecimal('rev', { min: 0, max: 5 });
+          const revisionPrecios = Number.isInteger(revisionRaw) ? revisionRaw : null;
+
+          // Modelo informativo deliberadamente acotado. No se copia CUPS, código postal
+          // ni la URL completa del QR: la interfaz solo recibe datos contractuales y
+          // económicos necesarios para explicar la factura localmente.
+          const qrInfo = {
+            codigoComercializadora,
+            fechaInicio: fechaInicioValida,
+            fechaFin: fechaFinValida,
+            fechaFactura: parseQrDate(getParam('fFact')),
+            inicioConsumoAnual: parseQrDate(getParam('iniA')),
+            finContrato: parseQrDate(getParam('finContrato')),
+            permanencia,
+            finPermanencia,
+            tipoContrato,
+            tipoFactura: parseQrEnum('tf', new Set(['A', 'N', 'R', 'C', 'G'])),
+            revisionPrecios,
+            energiaVerde: (() => {
+              const value = parseQrEnum('verde', new Set(['0', '1']));
+              return value == null ? null : value === '1';
+            })(),
+            totalFacturado: parseQrDecimal('imp'),
+            importePotencia: parseQrDecimal('impPot'),
+            importeEnergia: parseQrDecimal('impEner'),
+            importeServiciosAdicionales: parseQrDecimal('impSA'),
+            importeOtrosConIE: parseQrDecimal('impOtrosConIE'),
+            importeOtrosSinIE: parseQrDecimal('impOtrosSinIE'),
+            compensacionExcedentes: parseQrDecimal('exc', { min: 0 }),
+            descuentoBonoSocial: parseQrDecimal('dtoBS', { min: 0 }),
+            financiacionBonoSocial: parseQrDecimal('finBS'),
+            descuento: parseQrDecimal('dto'),
+            ajuste: parseQrDecimal('ajuste'),
+            precioPotenciaP1: parseQrDecimal('prP1', { min: 0 }),
+            precioPotenciaP2: parseQrDecimal('prP2', { min: 0 }),
+            precioEnergiaP1: parseQrDecimal('prE1', { min: 0 }),
+            precioEnergiaP2: parseQrDecimal('prE2', { min: 0 }),
+            precioEnergiaP3: parseQrDecimal('prE3', { min: 0 }),
+            potenciaMaximaP1: parseQrDecimal('pmaxP1', { min: 0 }),
+            potenciaMaximaP2: parseQrDecimal('pmaxP2', { min: 0 }),
+            consumoAnualP1: parseQrDecimal('caP1', { min: 0 }),
+            consumoAnualP2: parseQrDecimal('caP2', { min: 0 }),
+            consumoAnualP3: parseQrDecimal('caP3', { min: 0 }),
+            cambioPrecios: (() => {
+              const value = parseQrDecimal('cambio', { min: 0, max: 2 });
+              return Number.isInteger(value) ? value : null;
+            })(),
+            promocion: (() => {
+              const value = parseQrEnum('promo', new Set(['0', '1']));
+              return value == null ? null : value === '1';
+            })()
+          };
           
           const datos = {
             p1,
@@ -1263,6 +1347,8 @@
             // al mismo documento antes de mezclar fuentes. No se muestran ni se aplican.
             _fechaInicio: fechaInicioValida,
             _fechaFin: fechaFinValida,
+            codigoComercializadora,
+            qrInfo,
             confianza: 100,
             fuenteDatos: 'QR'
           };
@@ -1361,12 +1447,14 @@
         if (dias == null) {
           dias = __LF_extraerNumero(tDias, [
           // Patrones base probados
+          /\bdies?\s*[:-]?\s*(\d{1,3})\b/i,  // Catalán: "Dies: 30"
           /d[i\u00ed\u00cc]as?\s*facturados?.{0,100}?(\d{1,3})\b/i,  // Iberdrola ultra-permisivo
           /d[ií]as\s*(?:facturables|facturados|de\s*facturaci[oó]n|de\s*periodo|del\s*periodo|total)\s*[:-]?\s*(\d{1,3})\b/i,
           /\btotal\s*d[ií]as\b[^0-9]{0,10}(\d{1,3})\b/i,
           /\b(\d{1,3})\s*d[ií]as\b\s*(?:de\s*facturaci[oó]n|facturados)\b/i,
           
           // Paréntesis y formato especial
+          /\(\s*(\d{1,3})\s*dies?\s*\)/i,  // Catalán: "(30 dies)"
           /\(\s*(\d{1,3})\s*d[ií]as?\s*\)/i,  // (31 días)
           /periodo[^)]{0,80}\(\s*(\d{1,3})\s*d[ií]as?\s*\)/i,
           /\b(\d{1,3})\s*d[ií]a\(s\)/i,  // 31 día(s)
@@ -1397,7 +1485,7 @@
           /desde[^\n]{0,100}hasta[^\n]{0,50}\(\s*(\d{1,3})\s*d[ií]as?\)/i,  // "desde X hasta Y (31 días)"
           /n[uú]mero\s*de\s*d[ií]as[:\s]*(\d{1,3})\b/i,  // "número de días: 31"
           /alquiler[^\d]{0,80}(\d{1,3})\s*d[ií]as?\b/i,  // "alquiler ... 31 días"
-          /\b(\d{1,3})\b[^\d]{0,5}d\b/i,  // "31 d" (días abreviado)
+          /\b(\d{1,3})\s+d\b/i,  // "31 d"; exige espacio para no leer "1ºD" de una dirección
           /vigencia[^\d]{0,40}(\d{1,3})\s*d[ií]as?\b/i  // "vigencia ... 31 días"
         ], 1, FACTURA_MAX_DIAS, 'DÍAS');  // ← ACTIVAR DEBUG
         }
