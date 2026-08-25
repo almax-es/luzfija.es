@@ -1637,6 +1637,21 @@ presenta al usuario como un precio real y puede llegar a recomendarse como el ma
  presentaban como un rango real `0,000-0,000 EUR/kWh`.
 - El `catch` de una carga antigua comprueba `_rerenderToken` antes de pintar el error, para que una
  peticion obsoleta no sustituya por `Error cargando dataset local.` una seleccion nueva ya correcta.
+- RESUELTA (25/08/2026): el mes natural en curso puede ser sano y fresco aunque solo llegue hasta el
+ ultimo dia publicado. La tendencia mensual conserva esa media hasta la fecha y la etiqueta como tal,
+ pero `Mejor/Peor mes` solo usa meses cerrados y la comparativa interanual deja hueco para el mes
+ abierto. Un `provisionalDays` impide considerarlo cerrado incluso si ya existe la ultima fecha natural:
+ una media MTD no se presenta como equivalente a un mes completo de otro anyo.
+- RESUELTA (25/08/2026): el perfil horario conserva la procedencia de cobertura. Un mes fallido en la
+ vista anual marca el consejo como parcial, y un dia `provisionalDays` se cuenta como provisional en
+ vez de como dia completo. Al seleccionar un mes concreto solo se conserva el fallo si corresponde a
+ ese mismo mes; no se heredan avisos de otros meses.
+- RESUELTA (25/08/2026): `computeRolling12m()` exige al menos una observacion del anyo seleccionado
+ para anclar la ventana. Si ese anyo falla por completo pero el anterior esta en cache, ya no puede
+ aparecer la media del anyo anterior bajo el KPI `Media 12 meses`.
+- RESUELTA (25/08/2026): los parametros del Observatorio se normalizan en la frontera de URL.
+ `type`, `geo`, `year`, `month` y `trendMode` solo aceptan estados representables; `compareYears`
+ elimina duplicados/no enteros/fuera de rango y queda limitado antes de cargar series.
 
 `js/pvpc-stats-csv.js` replica estos campos, pero conviene saber que **todo su cuerpo es un fallback**
 que solo corre si `js/lf-surplus-prices.js` no llego a cargarse. Para probarlo hay que forzar esa

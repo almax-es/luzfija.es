@@ -163,17 +163,21 @@
       compareYears: ''
     };
 
-    const type = p.get('type') || defaults.type;
-    const geo = p.get('geo') || defaults.geo;
-    const year = p.get('year') || defaults.year;
-    const month = p.get('month') || defaults.month;
+    const rawType = p.get('type');
+    const rawGeo = p.get('geo');
+    const rawYear = p.get('year');
+    const rawMonth = p.get('month');
+    const rawTrendMode = p.get('trendMode');
+    const yearNumber = Number(rawYear);
 
     return {
-      type,
-      geo,
-      year,
-      month,
-      trendMode: p.get('trendMode') || defaults.trendMode,
+      type: rawType === 'surplus' || rawType === 'pvpc' ? rawType : defaults.type,
+      geo: Object.prototype.hasOwnProperty.call(geoNames, rawGeo) ? rawGeo : defaults.geo,
+      year: Number.isInteger(yearNumber) && yearNumber >= 2021 && yearNumber <= now.getFullYear()
+        ? String(yearNumber)
+        : defaults.year,
+      month: rawMonth === 'all' || /^(?:0[1-9]|1[0-2])$/.test(rawMonth || '') ? rawMonth : defaults.month,
+      trendMode: rawTrendMode === 'monthly' || rawTrendMode === 'daily' ? rawTrendMode : defaults.trendMode,
       compareYears: p.get('compareYears') || defaults.compareYears
     };
   }
@@ -245,9 +249,35 @@
     if (els.kpiYoYSub) els.kpiYoYSub.textContent = 'No disponible';
   }
 
-  function buildMonthlyFromDaily(labels, dailyValues) {
+  function getMonthCoverage(dateStrings, provisionalDays = []) {
+    const dates = [...new Set((dateStrings || []).filter((d) => /^\d{4}-\d{2}-\d{2}$/.test(d)))].sort();
+    if (!dates.length) return { complete: false, end: null };
+
+    const [year, month] = dates[0].split('-').map(Number);
+    if (!Number.isInteger(year) || !Number.isInteger(month) || month < 1 || month > 12) {
+      return { complete: false, end: dates[dates.length - 1] };
+    }
+    const monthPrefix = `${year}-${String(month).padStart(2, '0')}-`;
+    if (dates.some((d) => !d.startsWith(monthPrefix))) {
+      return { complete: false, end: dates[dates.length - 1] };
+    }
+
+    const lastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+    const expectedStart = `${monthPrefix}01`;
+    const expectedEnd = `${monthPrefix}${String(lastDay).padStart(2, '0')}`;
+    return {
+      complete: dates.length === lastDay
+        && dates[0] === expectedStart
+        && dates[dates.length - 1] === expectedEnd
+        && !provisionalDays.some((d) => dates.includes(d)),
+      end: dates[dates.length - 1]
+    };
+  }
+
+  function buildMonthlyFromDaily(labels, dailyValues, provisionalDays = []) {
     const sums = new Array(12).fill(0);
     const counts = new Array(12).fill(0);
+    const datesByMonth = Array.from({ length: 12 }, () => []);
 
     labels.forEach((dateStr, i) => {
       const v = dailyValues[i];
@@ -258,20 +288,21 @@
       if (m < 0 || m > 11) return;
       sums[m] += v;
       counts[m] += 1;
+      datesByMonth[m].push(dateStr);
     });
 
     const months = [];
     const values = [];
+    const complete = [];
+    const coverageTo = [];
     for (let m = 0; m < 12; m++) {
-      if (counts[m]) {
-        months.push(fmtMonth(m));
-        values.push(sums[m] / counts[m]);
-      } else {
-        months.push(fmtMonth(m));
-        values.push(null);
-      }
+      const coverage = getMonthCoverage(datesByMonth[m], provisionalDays);
+      months.push(fmtMonth(m));
+      complete.push(coverage.complete);
+      coverageTo.push(coverage.end);
+      values.push(counts[m] ? (sums[m] / counts[m]) : null);
     }
-    return { labels: months, values, counts };
+    return { labels: months, values, counts, complete, coverageTo };
   }
 
   function computeWindowOptions(hourlyAvg, duration) {
@@ -298,8 +329,8 @@
   }
 
   function buildTrendDataset(daily, monthly, mode) {
-    if (mode === 'daily') return { labels: daily.labels, data: daily.data };
-    return { labels: monthly.labels, data: monthly.values };
+    if (mode === 'daily') return { labels: daily.labels, data: daily.data, complete: null, coverageTo: null };
+    return { labels: monthly.labels, data: monthly.values, complete: monthly.complete, coverageTo: monthly.coverageTo };
   }
 
   function destroyChart(key) {
@@ -360,7 +391,10 @@
             cornerRadius: 12,
             displayColors: false,
             callbacks: {
-              label: (ctx) => ` ${fmtCents(ctx.parsed.y)}`
+              label: (ctx) => {
+                const partialMonth = mode === 'monthly' && ds.complete?.[ctx.dataIndex] === false && ds.coverageTo?.[ctx.dataIndex];
+                return ` ${fmtCents(ctx.parsed.y)}${partialMonth ? ` · media hasta ${ds.coverageTo[ctx.dataIndex]}` : ''}`;
+              }
             }
           }
         },
@@ -525,7 +559,10 @@
         }
       }
       labels.push(fmtMonth(m - 1));
-      values.push(cnt ? (sum / cnt) : null);
+      // Una comparativa interanual solo enfrenta meses naturales cerrados. El mes
+      // vigente puede ser perfectamente sano y fresco aunque termine hoy: su media
+      // hasta la fecha no es equivalente a la media completa de agosto de otro año.
+      values.push(cnt && getMonthCoverage(dates, yearData.meta?.provisionalDays || []).complete ? (sum / cnt) : null);
     }
 
     return { labels, values };
@@ -556,9 +593,11 @@
     };
   }
 
-  function setInsights(monthly, isSurplus) {
-    const pairs = monthly.values.map((v, i) => ({ m: i, v })).filter(x => Number.isFinite(x.v));
-    if (!pairs.length) return;
+  function getMonthlyExtremes(monthly, isSurplus) {
+    const pairs = monthly.values
+      .map((v, i) => ({ m: i, v }))
+      .filter((x) => Number.isFinite(x.v) && monthly.complete?.[x.m] === true);
+    if (!pairs.length) return null;
 
     let min = pairs[0];
     let max = pairs[0];
@@ -567,11 +606,18 @@
       if (p.v > max.v) max = p;
     }
 
-    const best = isSurplus ? max : min;
-    const worst = isSurplus ? min : max;
+    return {
+      best: isSurplus ? max : min,
+      worst: isSurplus ? min : max
+    };
+  }
 
-    els.insightCheapest.textContent = `${fmtMonth(best.m)} · ${fmtCents(best.v)}`;
-    els.insightWorst.textContent = `${fmtMonth(worst.m)} · ${fmtCents(worst.v)}`;
+  function setInsights(monthly, isSurplus) {
+    const extremes = getMonthlyExtremes(monthly, isSurplus);
+    if (!extremes) return;
+
+    els.insightCheapest.textContent = `${fmtMonth(extremes.best.m)} · ${fmtCents(extremes.best.v)}`;
+    els.insightWorst.textContent = `${fmtMonth(extremes.worst.m)} · ${fmtCents(extremes.worst.v)}`;
   }
 
   function setRange(kpis) {
@@ -587,10 +633,10 @@
       els.trendTitle.textContent = isSurplus ? 'Tendencia de los excedentes' : 'Tendencia del año';
     }
     if (els.insightCheapestLabel) {
-      els.insightCheapestLabel.textContent = 'Mejor mes (media)';
+      els.insightCheapestLabel.textContent = 'Mejor mes cerrado (media)';
     }
     if (els.insightWorstLabel) {
-      els.insightWorstLabel.textContent = 'Peor mes (media)';
+      els.insightWorstLabel.textContent = 'Peor mes cerrado (media)';
     }
     if (els.insightRangeLabel) {
       els.insightRangeLabel.textContent = 'Rango (min–máx)';
@@ -715,17 +761,37 @@
 
     let selected = [];
     if (compareYearsParam) {
-      selected = compareYearsParam.split(',')
+      selected = [...new Set(compareYearsParam.split(',', 32)
         .map(s => Number(s.trim()))
-        .filter(y => Number.isFinite(y) && y >= minYear && y <= currentYear)
+        .filter(y => Number.isInteger(y) && y >= minYear && y <= currentYear))]
         .sort((a,b) => b-a);
     }
     if (!selected.length) {
-      const y = Number(year);
+      const requested = Number(year);
+      const y = Number.isInteger(requested) && requested >= minYear && requested <= currentYear
+        ? requested
+        : currentYear;
       selected = [y, y - 1, y - 2].filter(v => v >= minYear);
     }
     // Máximo 4 para legibilidad
     return selected.slice(0, 4);
+  }
+
+  function getHourlyCoverageState(status, hourlySource, month) {
+    const dates = Object.keys(hourlySource?.days || {});
+    const provisionalSet = new Set(status?.provisionalDays || []);
+    const provisionalDays = dates.filter((d) => provisionalSet.has(d));
+    const failedMonths = month === 'all'
+      ? [...(status?.failedMonths || [])]
+      : (status?.failedMonths || []).filter((m) => m === month);
+    return {
+      days: dates.length,
+      completeDays: Math.max(0, dates.length - provisionalDays.length),
+      provisionalDays,
+      failedMonths,
+      partial: failedMonths.length > 0,
+      provisional: provisionalDays.length > 0
+    };
   }
 
   function debounce(fn, ms) {
@@ -739,11 +805,15 @@
   function computeRolling12m(currentData, prevData) {
     if (!currentData || !currentData.days) return null;
 
+    // La ventana pertenece al año seleccionado y debe anclarse en SU ultima
+    // observacion. Si ese año no cargo ni un solo dia, usar la ultima fecha del
+    // año anterior convierte silenciosamente una media vieja en el KPI actual.
+    const currentDates = Object.keys(currentData.days).sort();
+    if (!currentDates.length) return null;
+
     const merged = { ...(prevData?.days || {}), ...currentData.days };
     const dates = Object.keys(merged).sort();
-    if (!dates.length) return null;
-
-    const lastDateStr = dates[dates.length - 1];
+    const lastDateStr = currentDates[currentDates.length - 1];
     if (!lastDateStr) return null;
 
     const parts = lastDateStr.split('-').map(Number);
@@ -1008,7 +1078,7 @@
       const prevStatus = prevYearData ? PVPC_STATS.getYearStatus(prevYearData) : null;
 
       const daily = PVPC_STATS.getDailyEvolution(yearData);
-      const monthly = buildMonthlyFromDaily(daily.labels, daily.data);
+      const monthly = buildMonthlyFromDaily(daily.labels, daily.data, status.provisionalDays);
       const kpis = PVPC_STATS.getKPIs(yearData);
       const isSurplus = state.type === 'surplus';
       updateCopyForType(isSurplus);
@@ -1143,15 +1213,23 @@
         isSurplus ? 'Excedentes por hora' : 'PVPC por hora'
       );
       const monthLabel = (state.month && state.month !== 'all') ? ` · ${fmtMonth(Number(state.month) - 1)}` : '';
-      const hourlyDays = Object.keys(hourlySource.days || {}).length;
-      els.hourlyMeta.textContent = `Perfil promedio${monthLabel} (${hourlyDays} días)`;
+      const hourlyCoverage = getHourlyCoverageState(status, hourlySource, state.month);
+      const dayLabel = hourlyCoverage.provisional
+        ? `${hourlyCoverage.completeDays} días completos + ${hourlyCoverage.provisionalDays.length} provisional${hourlyCoverage.provisionalDays.length === 1 ? '' : 'es'}`
+        : `${hourlyCoverage.days} días`;
+      const hourlyCoverageSuffix = hourlyCoverage.partial
+        ? ` · ⚠ cobertura parcial: faltan ${hourlyCoverage.failedMonths.join(', ')}`
+        : (hourlyCoverage.provisional ? ' · ⚠ datos provisionales' : '');
+      els.hourlyMeta.textContent = `Perfil promedio${monthLabel} (${dayLabel})${hourlyCoverageSuffix}`;
 
       // Consejito basado en mejor bloque 3h
       const windows3 = computeWindowOptions(hourlyAll.data, 3);
       const window3 = windows3.length ? (isSurplus ? windows3[windows3.length - 1] : windows3[0]) : null;
       if (window3) {
         const consejoPrefix = state.type === 'surplus' ? 'de media, el bloque de 3 horas donde mejor se pagan los excedentes' : 'de media, el bloque de 3 horas más barato';
-        els.hourlyCallout.innerHTML = `<strong>Consejo:</strong> ${consejoPrefix} suele ser <strong>${hourRangeLabel(window3.start, window3.end)}</strong> (${fmtCents(window3.avg)}).`;
+        const adviceState = hourlyCoverage.partial ? ' parcial' : (hourlyCoverage.provisional ? ' provisional' : '');
+        const coverageIntro = adviceState ? 'con la cobertura disponible, ' : '';
+        els.hourlyCallout.innerHTML = `<strong>Consejo${adviceState}:</strong> ${coverageIntro}${consejoPrefix} suele ser <strong>${hourRangeLabel(window3.start, window3.end)}</strong> (${fmtCents(window3.avg)}).`;
       } else {
         els.hourlyCallout.textContent = 'Consejo: sin datos suficientes.';
       }
@@ -1210,7 +1288,15 @@
 
   window.__LF_PvpcStatsUiHelpers = {
     getKpiPartialFlags,
-    computeWindowOptions
+    computeWindowOptions,
+    parseParams,
+    normalizeSelectedYears,
+    getMonthCoverage,
+    buildMonthlyFromDaily,
+    computeMonthlyFromYearData,
+    getMonthlyExtremes,
+    getHourlyCoverageState,
+    computeRolling12m
   };
 
   if (document.readyState === 'loading') {

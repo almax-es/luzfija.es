@@ -282,3 +282,201 @@ describe('Observatorio: una importación fallida invalida el CSV anterior', () =
     expect(uiCode).toMatch(/await refreshCsvStats\(\(\) => myToken === _rerenderToken\)/);
   });
 });
+
+// Ronda 12: la UI no puede presentar un mes natural abierto como equivalente a un
+// mes cerrado. El motor acepta correctamente el mes vigente hasta el ultimo dia
+// publicado; la frontera que decide como etiquetarlo/compararlo es esta UI.
+describe('Observatorio: cobertura de medias mensuales', () => {
+  it('conserva la media hasta la fecha para tendencia, pero marca el mes abierto', () => {
+    const { buildMonthlyFromDaily } = window.__LF_PvpcStatsUiHelpers;
+    const labels = Array.from({ length: 25 }, (_, i) => `2026-08-${String(i + 1).padStart(2, '0')}`);
+    const monthly = buildMonthlyFromDaily(labels, labels.map(() => 0.20));
+
+    expect(monthly.values[7]).toBeCloseTo(0.20, 10);
+    expect(monthly.complete[7]).toBe(false);
+    expect(monthly.coverageTo[7]).toBe('2026-08-25');
+    expect(uiCode).toContain('media hasta ${ds.coverageTo[ctx.dataIndex]}');
+  });
+
+  it('no usa el mes abierto para mejor/peor mes cerrado aunque sea el extremo numerico', () => {
+    const { buildMonthlyFromDaily, getMonthlyExtremes } = window.__LF_PvpcStatsUiHelpers;
+    const labels = [];
+    const values = [];
+    for (let d = 1; d <= 31; d += 1) {
+      labels.push(`2026-07-${String(d).padStart(2, '0')}`);
+      values.push(0.10);
+    }
+    for (let d = 1; d <= 25; d += 1) {
+      labels.push(`2026-08-${String(d).padStart(2, '0')}`);
+      values.push(0.50);
+    }
+
+    const monthly = buildMonthlyFromDaily(labels, values);
+    const pvpc = getMonthlyExtremes(monthly, false);
+    const surplus = getMonthlyExtremes(monthly, true);
+
+    // El mes es la asercion que discrimina (julio cerrado, no agosto abierto). El valor
+    // se compara con tolerancia: la media acumula error IEEE-754 al sumar 31 sumandos,
+    // igual que en el caso de cobertura parcial de mas arriba.
+    for (const extremo of [pvpc.best, pvpc.worst, surplus.best, surplus.worst]) {
+      expect(extremo.m).toBe(6);
+      expect(extremo.v).toBeCloseTo(0.10, 10);
+    }
+    expect(uiCode).toContain('Mejor mes cerrado (media)');
+  });
+
+  it('no da por cerrado el ultimo dia natural si el motor lo marca provisional', () => {
+    const { buildMonthlyFromDaily, computeMonthlyFromYearData } = window.__LF_PvpcStatsUiHelpers;
+    const labels = Array.from({ length: 31 }, (_, i) => `2026-08-${String(i + 1).padStart(2, '0')}`);
+    const monthly = buildMonthlyFromDaily(labels, labels.map(() => 0.20), ['2026-08-31']);
+    const days = Object.fromEntries(labels.map((d) => [d, [[1, 0.20]]]));
+    const comparison = computeMonthlyFromYearData({ meta: { year: 2026, provisionalDays: ['2026-08-31'] }, days });
+
+    expect(monthly.complete[7]).toBe(false);
+    expect(comparison.values[7]).toBeNull();
+  });
+
+  it('deja un hueco en la comparativa interanual para un mes natural aun abierto', () => {
+    const { computeMonthlyFromYearData } = window.__LF_PvpcStatsUiHelpers;
+    const days = {};
+    for (let d = 1; d <= 31; d += 1) days[`2026-07-${String(d).padStart(2, '0')}`] = [[d, 0.10]];
+    for (let d = 1; d <= 25; d += 1) days[`2026-08-${String(d).padStart(2, '0')}`] = [[100 + d, 0.50]];
+
+    const monthly = computeMonthlyFromYearData({ meta: { year: 2026 }, days });
+
+    expect(monthly.values[6]).toBeCloseTo(0.10, 10);
+    expect(monthly.values[7]).toBeNull();
+  });
+});
+
+// Ronda 12: un perfil agregado puede tener las 24 cubetas finitas aunque falte un
+// mes entero o el ultimo dia solo tenga algunas horas. La UI debe conservar esa
+// procedencia en el copy y no presentar el consejo como definitivo.
+describe('Observatorio: procedencia de la recomendacion horaria', () => {
+  it('distingue dias completos, dias provisionales y meses fallidos en vista anual', () => {
+    const { getHourlyCoverageState } = window.__LF_PvpcStatsUiHelpers;
+    const source = {
+      days: {
+        '2026-08-23': [],
+        '2026-08-24': [],
+        '2026-08-25': []
+      }
+    };
+    const coverage = getHourlyCoverageState({
+      failedMonths: ['02'],
+      provisionalDays: ['2026-08-25']
+    }, source, 'all');
+
+    expect(coverage).toEqual({
+      days: 3,
+      completeDays: 2,
+      provisionalDays: ['2026-08-25'],
+      failedMonths: ['02'],
+      partial: true,
+      provisional: true
+    });
+    expect(uiCode).toContain('Consejo${adviceState}:');
+    expect(uiCode).toContain('cobertura parcial');
+  });
+
+  it('mantiene el aviso si el mes seleccionado es precisamente el que fallo', () => {
+    const { getHourlyCoverageState } = window.__LF_PvpcStatsUiHelpers;
+    const coverage = getHourlyCoverageState({
+      failedMonths: ['02'],
+      provisionalDays: []
+    }, { days: {} }, '02');
+
+    expect(coverage.partial).toBe(true);
+    expect(coverage.failedMonths).toEqual(['02']);
+  });
+
+  it('no hereda el fallo de otro mes al mirar un mes concreto que si esta completo', () => {
+    const { getHourlyCoverageState } = window.__LF_PvpcStatsUiHelpers;
+    const coverage = getHourlyCoverageState({
+      failedMonths: ['02'],
+      provisionalDays: ['2026-08-25']
+    }, { days: { '2026-07-01': [], '2026-07-02': [] } }, '07');
+
+    expect(coverage.partial).toBe(false);
+    expect(coverage.provisional).toBe(false);
+    expect(coverage.completeDays).toBe(2);
+  });
+});
+
+// Ronda 12: los parametros son entrada hostil. Un enlace manipulado no puede dejar
+// selects sin opcion representable ni duplicar series de comparacion.
+describe('Observatorio: normalizacion del estado de URL', () => {
+  it('conserva los valores validos compartidos por enlace', () => {
+    const { parseParams } = window.__LF_PvpcStatsUiHelpers;
+    history.replaceState(null, '', '/estadisticas/?type=surplus&geo=8742&year=2025&month=03&trendMode=monthly');
+
+    expect(parseParams()).toMatchObject({
+      type: 'surplus',
+      geo: '8742',
+      year: '2025',
+      month: '03',
+      trendMode: 'monthly'
+    });
+  });
+
+  it('normaliza valores no representables antes de construir el estado', () => {
+    const { parseParams } = window.__LF_PvpcStatsUiHelpers;
+    const currentYear = String(new Date().getFullYear());
+    history.replaceState(null, '', '/estadisticas/?type=otro&geo=9999&year=9999&month=13&trendMode=otro');
+
+    const parsed = parseParams();
+
+    expect(parsed).toMatchObject({
+      type: 'pvpc',
+      geo: '8741',
+      year: currentYear,
+      month: 'all',
+      trendMode: 'daily'
+    });
+  });
+
+  it('deduplica, filtra y limita compareYears sin aceptar decimales ni anos futuros', () => {
+    const { normalizeSelectedYears } = window.__LF_PvpcStatsUiHelpers;
+    const currentYear = new Date().getFullYear();
+    const raw = `${currentYear},${currentYear},${currentYear - 1},2025.5,9999,2020,${currentYear - 2},${currentYear - 3},${currentYear - 4}`;
+
+    const selected = normalizeSelectedYears(String(currentYear), raw);
+
+    expect(selected.length).toBeLessThanOrEqual(4);
+    expect(new Set(selected).size).toBe(selected.length);
+    expect(selected.every((y) => Number.isInteger(y) && y >= 2021 && y <= currentYear)).toBe(true);
+    expect(selected[0]).toBe(currentYear);
+  });
+
+  it('usa un ano base valido si el fallback recibe tambien un year hostil', () => {
+    const { normalizeSelectedYears } = window.__LF_PvpcStatsUiHelpers;
+    const currentYear = new Date().getFullYear();
+
+    const selected = normalizeSelectedYears('9999', '');
+
+    expect(selected[0]).toBe(currentYear);
+    expect(selected.every((y) => y >= 2021 && y <= currentYear)).toBe(true);
+  });
+});
+
+describe('Observatorio: rolling 12m se ancla en el ano seleccionado', () => {
+  it('no muestra la media del ano anterior si el ano visible no cargo ninguna observacion', () => {
+    const { computeRolling12m } = window.__LF_PvpcStatsUiHelpers;
+    const previous = {
+      days: {
+        '2025-12-30': [[1, 0.10], [2, 0.20]],
+        '2025-12-31': [[3, 0.30], [4, 0.40]]
+      }
+    };
+
+    expect(computeRolling12m({ days: {} }, previous)).toBeNull();
+  });
+
+  it('sigue usando el ano anterior para completar la ventana cuando si existe ancla actual', () => {
+    const { computeRolling12m } = window.__LF_PvpcStatsUiHelpers;
+    const current = { days: { '2026-01-01': [[3, 0.30], [4, 0.30]] } };
+    const previous = { days: { '2025-12-31': [[1, 0.10], [2, 0.10]] } };
+
+    expect(computeRolling12m(current, previous)).toBeCloseTo(0.20, 10);
+  });
+});
