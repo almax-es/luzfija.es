@@ -9,7 +9,7 @@
  		}
  
  		var rcb, pcb, tcb  // Save callbacks to apply later.
-@@ -99,6 +99,29 @@
+@@ -99,6 +99,45 @@
  		return (loc.pathname + loc.search) || '/'
  	}
  
@@ -36,10 +36,26 @@
 +		return out.length ? '?' + out.join('&') : ''
 +	}
 +
++	// LuzFija: el getter de localStorage puede lanzar SecurityError por politica
++	// del navegador. skipgc es una comodidad del sender, no debe impedir contar.
++	var skipgc_enabled = function() {
++		try { return !!(window.localStorage && window.localStorage.getItem('skipgc') === 't') }
++		catch (e) { return false }
++	}
++
++	var set_skipgc_enabled = function(enabled) {
++		try {
++			if (!window.localStorage) return false
++			if (enabled) window.localStorage.setItem('skipgc', 't')
++			else window.localStorage.removeItem('skipgc')
++			return true
++		} catch (e) { return false }
++	}
++
  	// Run function after DOM is loaded.
  	var on_load = function(f) {
  		if (document.body === null)
-@@ -109,6 +132,8 @@
+@@ -109,6 +148,8 @@
  
  	// Filter some requests that we (probably) don't want to count.
  	window.goatcounter.filter = function() {
@@ -48,7 +64,16 @@
  		if ('visibilityState' in document && document.visibilityState === 'prerender')
  			return 'visibilityState'
  		if (!goatcounter.allow_frame && location !== parent.location)
-@@ -138,14 +163,27 @@
+@@ -117,7 +158,7 @@
+ 			return 'localhost'
+ 		if (!goatcounter.allow_local && location.protocol === 'file:')
+ 			return 'localfile'
+-		if (localStorage && localStorage.getItem('skipgc') === 't')
++		if (skipgc_enabled())
+ 			return 'disabled with #toggle-goatcounter'
+ 		return false
+ 	}
+@@ -138,14 +179,27 @@
  
  	// Count a hit.
  	window.goatcounter.count = function(vars) {
@@ -81,7 +106,7 @@
  			// This mostly fails due to being blocked by CSP; try again with an
  			// image-based fallback.
  			var img = document.createElement('img')
-@@ -159,8 +197,16 @@
+@@ -159,8 +213,16 @@
  			img.setAttribute('aria-hidden', 'true')
  
  			var rm = function() { if (img && img.parentNode) img.parentNode.removeChild(img) }
@@ -99,3 +124,22 @@
  		}
  	}
  
+@@ -236,14 +298,12 @@
+ 
+ 	// Make it easy to skip your own views.
+ 	if (location.hash === '#toggle-goatcounter') {
+-		if (localStorage.getItem('skipgc') === 't') {
+-			localStorage.removeItem('skipgc', 't')
+-			alert('GoatCounter tracking is now ENABLED in this browser.')
++		if (skipgc_enabled()) {
++			if (set_skipgc_enabled(false))
++				alert('GoatCounter tracking is now ENABLED in this browser.')
+ 		}
+-		else {
+-			localStorage.setItem('skipgc', 't')
++		else if (set_skipgc_enabled(true))
+ 			alert('GoatCounter tracking is now DISABLED in this browser until ' + location + ' is loaded again.')
+-		}
+ 	}
+ 
+ 	if (!goatcounter.no_onload)

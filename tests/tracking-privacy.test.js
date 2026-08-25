@@ -489,6 +489,39 @@ describe('Tracking privacy behavior', () => {
     });
   });
 
+  it('el sender sigue contando si el getter de window.localStorage lanza SecurityError', () => {
+    const originalSendBeacon = navigator.sendBeacon;
+    const originalStorage = Object.getOwnPropertyDescriptor(window, 'localStorage');
+    const beacon = vi.fn(() => true);
+    Object.defineProperty(navigator, 'sendBeacon', {
+      value: beacon,
+      configurable: true
+    });
+    Object.defineProperty(window, 'localStorage', {
+      configurable: true,
+      get() { throw new DOMException('bloqueado', 'SecurityError'); }
+    });
+
+    try {
+      window.goatcounter = {
+        no_onload: true,
+        allow_local: true,
+        endpoint: 'https://luzfija.goatcounter.com/count'
+      };
+      new Function(goatCounterCode)();
+
+      expect(window.goatcounter.filter()).toBe(false);
+      expect(window.goatcounter.count({ path: '/storage-denied' })).toBe(true);
+      expect(beacon).toHaveBeenCalledTimes(1);
+    } finally {
+      Object.defineProperty(window, 'localStorage', originalStorage);
+      Object.defineProperty(navigator, 'sendBeacon', {
+        value: originalSendBeacon,
+        configurable: true
+      });
+    }
+  });
+
   it('el sender confirma beacon y notifica el resultado del fallback de imagen', () => {
     const originalSendBeacon = navigator.sendBeacon;
     Object.defineProperty(navigator, 'sendBeacon', {

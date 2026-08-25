@@ -121,16 +121,17 @@ describe('Linea base de GoatCounter', () => {
     expect(patch).toMatch(/^@@ /m);
   });
 
-  it('la línea base es upstream puro: sin ninguno de los tres parches locales', () => {
+  it('la línea base es upstream puro: sin ninguno de los cuatro parches locales', () => {
     const code = fs.readFileSync(baselinePath, 'utf8');
     expect(code).not.toContain('safe_query');
     expect(code).not.toContain('force_image');
     expect(code).not.toContain('__LF_PRIVACY_MODE');
     expect(code).not.toContain('__LF_FACTURA_BUSY');
+    expect(code).not.toContain('skipgc_enabled');
     expect(code).toContain('q: location.search');
   });
 
-  it('el fichero servido conserva los TRES parches locales', () => {
+  it('el fichero servido conserva los CUATRO parches locales', () => {
     const code = fs.readFileSync(servedPath, 'utf8');
     // Parche 1: privacidad de la query.
     expect(code).toContain('q: safe_query()');
@@ -144,6 +145,9 @@ describe('Linea base de GoatCounter', () => {
     expect(code).toContain('__LF_PRIVACY_MODE');
     expect(code).toContain('__LF_FACTURA_BUSY');
     expect(code).toContain('LuzFija invoice privacy mode');
+    // Parche 4: skipgc no rompe el sender si localStorage esta denegado.
+    expect(code).toContain('skipgc_enabled');
+    expect(code).toContain('set_skipgc_enabled');
   });
 
   // ESTE es el test que cierra el hueco que dejaban los anteriores: se puede

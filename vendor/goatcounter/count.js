@@ -122,6 +122,22 @@
 		return out.length ? '?' + out.join('&') : ''
 	}
 
+	// LuzFija: el getter de localStorage puede lanzar SecurityError por politica
+	// del navegador. skipgc es una comodidad del sender, no debe impedir contar.
+	var skipgc_enabled = function() {
+		try { return !!(window.localStorage && window.localStorage.getItem('skipgc') === 't') }
+		catch (e) { return false }
+	}
+
+	var set_skipgc_enabled = function(enabled) {
+		try {
+			if (!window.localStorage) return false
+			if (enabled) window.localStorage.setItem('skipgc', 't')
+			else window.localStorage.removeItem('skipgc')
+			return true
+		} catch (e) { return false }
+	}
+
 	// Run function after DOM is loaded.
 	var on_load = function(f) {
 		if (document.body === null)
@@ -142,7 +158,7 @@
 			return 'localhost'
 		if (!goatcounter.allow_local && location.protocol === 'file:')
 			return 'localfile'
-		if (localStorage && localStorage.getItem('skipgc') === 't')
+		if (skipgc_enabled())
 			return 'disabled with #toggle-goatcounter'
 		return false
 	}
@@ -282,14 +298,12 @@
 
 	// Make it easy to skip your own views.
 	if (location.hash === '#toggle-goatcounter') {
-		if (localStorage.getItem('skipgc') === 't') {
-			localStorage.removeItem('skipgc', 't')
-			alert('GoatCounter tracking is now ENABLED in this browser.')
+		if (skipgc_enabled()) {
+			if (set_skipgc_enabled(false))
+				alert('GoatCounter tracking is now ENABLED in this browser.')
 		}
-		else {
-			localStorage.setItem('skipgc', 't')
+		else if (set_skipgc_enabled(true))
 			alert('GoatCounter tracking is now DISABLED in this browser until ' + location + ' is loaded again.')
-		}
 	}
 
 	if (!goatcounter.no_onload)

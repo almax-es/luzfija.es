@@ -28,7 +28,7 @@ Este directorio contiene librerías de terceros alojadas localmente para garanti
 | Tesseract.js (wrapper) | 7.0.0 | GitHub Advisory Database + repositorio upstream `naptha/tesseract.js` | ✅ no se localizó un advisory publicado que afecte a 7.0.0 en la revisión fechada |
 | Tesseract core | 7.0.0 | GitHub Advisory Database + repositorio upstream `naptha/tesseract.js-core` | ✅ no se localizó un advisory publicado que afecte a 7.0.0 en la revisión fechada |
 | jsQR | 1.4.0 | GitHub Advisory Database + repositorio upstream `cozmo/jsQR` | ✅ no se localizó un advisory publicado que afecte a 1.4.0 en la revisión fechada |
-| GoatCounter | snapshot upstream del 03/08/2026 + 3 parches locales | Repositorio upstream `arp242/goatcounter`; `count.js` no tiene paquete/versión npm propia | ✅ no se localizó un advisory publicado específico para el script vendorizado en la revisión fechada |
+| GoatCounter | snapshot upstream del 03/08/2026 + 4 parches locales | Repositorio upstream `arp242/goatcounter`; `count.js` no tiene paquete/versión npm propia | ✅ no se localizó un advisory publicado específico para el script vendorizado en la revisión fechada |
 
 > Alcance: esta tabla registra advisories publicados/localizados a fecha de revisión. No convierte issues sin advisory en CVE, no sustituye una auditoría del código vendorizado y no implica que una ausencia de resultados sea una garantía futura.
 
@@ -125,16 +125,17 @@ Lector de códigos QR en JavaScript puro.
 ## 🐐 GoatCounter
 Script de analítica respetuosa con la privacidad (sin cookies).
 
-- **Versión:** `count.js` upstream + **tres** parches locales (query saneada, confirmación de entrega y privacidad de factura). Línea base verificada contra upstream el **03/08/2026**.
+- **Versión:** `count.js` upstream + **cuatro** parches locales (query saneada, confirmación de entrega, privacidad de factura y robustez de `skipgc` ante almacenamiento denegado). Línea base verificada contra upstream el **03/08/2026**; parche local actualizado el **25/08/2026**.
 - **Upstream es una URL rodante** (`https://gc.zgo.at/count.js`): no publica número de versión ni tag. Por eso se conserva la línea base prístina en `goatcounter/count.upstream.js`, que es lo que convierte una actualización en un *merge* a tres bandas en vez de en arqueología.
-- **Parches locales (son TRES, hay que reaplicar LOS TRES):**
+- **Parches locales (son CUATRO, hay que reaplicar LOS CUATRO):**
   1. **Privacidad —** `safe_query()` sustituye el envío de la query completa: solo se conservan `utm_source/medium/campaign/content/term` (ver `ANALITICA-GOATCOUNTER.md`, sección 4).
   2. **Confirmación de entrega —** `count()` devuelve si `sendBeacon` aceptó el envío, admite la bandera exclusivamente local `force_image` y notifica el resultado del fallback de imagen mediante callbacks locales que `get_data()` no serializa. De esto depende que el outbox de diagnósticos conserve una aparición hasta confirmar su entrega: perder este parche rompe esa garantía **en silencio**.
   3. **Privacidad de factura —** `filter()` rechaza cualquier envío si `__LF_PRIVACY_MODE` o `__LF_FACTURA_BUSY` están activos. Cierra la carrera en la que el pageview automático del sender puede ejecutarse después de abrir el modal si `count.js` termina de cargar de forma asíncrona en ese intervalo.
+  4. **Robustez de `skipgc` —** las lecturas y escrituras de `localStorage` usadas por la comodidad `#toggle-goatcounter` están encapsuladas. Si el navegador deniega el almacenamiento y el getter `window.localStorage` lanza `SecurityError`, el sender sigue contando en vez de abortar `filter()` y perder el pageview automático.
 
   El resto del filtrado de ruido legacy vive en `js/tracking.js` y `js/config.js`, no aquí.
 - **Carga:** lazy desde `js/tracking.js` como `/vendor/goatcounter/count.js?v=<buildId>`.
-- **Los tres parches están congelados en `goatcounter/count.local.patch`** (diff unificado de la línea base al fichero servido). No es documentación decorativa: `tests/vendor-inventory.test.js` lo aplica sobre la línea base y exige que el resultado sea **byte a byte** el `count.js` servido. Mientras ese test pase, está demostrado que `count.js == count.upstream.js + parches`.
+- **Los cuatro parches están congelados en `goatcounter/count.local.patch`** (diff unificado de la línea base al fichero servido). No es documentación decorativa: `tests/vendor-inventory.test.js` lo aplica sobre la línea base y exige que el resultado sea **byte a byte** el `count.js` servido. Mientras ese test pase, está demostrado que `count.js == count.upstream.js + parches`.
 - **Actualizar (procedimiento completo):**
   1. `curl -sS https://gc.zgo.at/count.js -o /tmp/count.nuevo.js`
   2. Ver **solo** el delta de upstream: `diff -u vendor/goatcounter/count.upstream.js /tmp/count.nuevo.js`
@@ -152,18 +153,18 @@ Script de analítica respetuosa con la privacidad (sin cookies).
   6. Verificar: `npx vitest run tests/vendor-inventory.test.js tests/tracking-privacy.test.js`. No basta con que el script cargue.
 - **Red de seguridad (tests):**
   - `tests/vendor-inventory.test.js` — SHA-256 de cada fichero, que ningún fichero de `vendor/` se quede sin ficha, y sobre todo que **servido == base + parche**. Este último cierra el caso de actualizar `count.js` y su SHA olvidando la línea base: los ficheros seguirían siendo distintos y los parches presentes, pero la base ya no sería la de partida y el merge daría un resultado falso.
-  - `tests/tracking-privacy.test.js` — comportamiento real de los parches: `el count.js local no envía query completa con configuraciones o búsquedas` (parche 1), `el sender confirma beacon y notifica el resultado del fallback de imagen` y `force_image evita dar por entregado un diagnóstico solo porque beacon lo aceptó` (parche 2), y `el pageview automático del sender respeta la privacidad de factura aunque count.js termine de cargar después` (parche 3).
+  - `tests/tracking-privacy.test.js` — comportamiento real de los parches: `el count.js local no envía query completa con configuraciones o búsquedas` (parche 1), `el sender confirma beacon y notifica el resultado del fallback de imagen` y `force_image evita dar por entregado un diagnóstico solo porque beacon lo aceptó` (parche 2), `el pageview automático del sender respeta la privacidad de factura aunque count.js termine de cargar después` (parche 3), y `el sender sigue contando si el getter de window.localStorage lanza SecurityError` (parche 4).
 - **Licencia:** ISC
 - **Archivos:**
   - `goatcounter/count.js` (servido)
-    - **SHA-256:** `f143fe16053da209e135048b606e7467c7fd59a27670d258e481daa0f2cc3b90`
-    - **Tamaño:** 10.32 KB (10.571 bytes)
+    - **SHA-256:** `b9c33bc4f37484953e799e2107d004f3f6c10cc8e6bc4a7c3fb8d13abdb9ca0e`
+    - **Tamaño:** 10.80 KB (11.059 bytes)
   - `goatcounter/count.upstream.js` (línea base prístina, **no se sirve**)
     - **SHA-256:** `792b7abd26c1fb6ae62906833e09a301251e2641816e69e4f95aba518f3fe3f0`
     - **Tamaño:** 9.00 KB (9.213 bytes)
     - **Descargado:** 03/08/2026 de `https://gc.zgo.at/count.js`
-  - `goatcounter/count.local.patch` (los tres parches locales congelados, **no se sirve**)
-    - **SHA-256:** `651cf89479a1671c656234fb217914404a1a58ee919d35165db16b65661240fa`
-    - **Tamaño:** 3.08 KB (3.151 bytes)
+  - `goatcounter/count.local.patch` (los cuatro parches locales congelados, **no se sirve**)
+    - **SHA-256:** `dada2413e1a1f563c1f45ab56147cc364d7d92fbd2cd51d7a94b1fdf3b76ad62`
+    - **Tamaño:** 4.56 KB (4.666 bytes)
 
   Los dos últimos se excluyen del artefacto de Pages **por ruta explícita** (no por patrón global, para no ocultar en silencio un futuro fichero legítimo con sufijo parecido), con guard posterior en `.github/workflows/tests.yml` y asserts en `tests/deploy-artifact.test.js`.

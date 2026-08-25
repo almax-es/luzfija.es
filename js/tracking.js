@@ -914,6 +914,22 @@ try {
 
   // EJE 1 (objetivo): que recurso se bloqueo. Responde "es un recurso nuestro,
   // de una extension, o de un dominio externo -y cual-".
+  function isAnalyticsEndpointCspViolation(event) {
+    // Una violacion cuyo recurso bloqueado es el propio endpoint analitico no
+    // puede notificarse a traves de ese mismo endpoint: sendBeacon y el fallback
+    // de imagen pueden generar nuevas violaciones y autorrealimentar el handler.
+    // El criterio es el recurso, no la directiva (connect-src/img-src/default-src).
+    const rawBlocked = safeText(event && event.blockedURI);
+    if (!rawBlocked) return false;
+    try {
+      const blocked = new URL(rawBlocked, location.href);
+      const endpoint = new URL(getGoatEndpointFromPage(), location.href);
+      return blocked.origin === endpoint.origin;
+    } catch (_) {
+      return false;
+    }
+  }
+
   function cspTargetDiagnostic(event) {
     const raw = safeText(event && event.blockedURI);
     if (!raw) return ['sin-uri', 'sin-host'];
@@ -2186,6 +2202,7 @@ try {
         if (handledCspEvents.has(event)) return;
         handledCspEvents.add(event);
       }
+      if (isAnalyticsEndpointCspViolation(event)) return;
       const directive = eventSegment(
         event && (event.effectiveDirective || event.violatedDirective),
         'directiva-desconocida'

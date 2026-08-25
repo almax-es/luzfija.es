@@ -245,6 +245,13 @@ con dimensiones cerradas. El primario lleva fichero, linea y build:
   el iniciador es senal de triaje, no prueba: el navegador no rellena `sourceFile`
   en violaciones de recurso (`font-src`), y una extension puede provocar
   violaciones atribuidas al documento.
+
+  Excepcion de robustez: una violacion cuyo recurso bloqueado sea el propio
+  endpoint de GoatCounter NO se autorreporta, con independencia de que la
+  directiva efectiva sea `connect-src`, `img-src` o `default-src`. Intentar
+  registrar ese bloqueo mediante el mismo endpoint puede generar otra violacion
+  CSP y autorrealimentar el handler; ademas cada vuelta persistiria otro
+  `error-csp` en el outbox. Las violaciones de otros recursos se conservan.
 - `error-legacy-filtrado/<tipo>/<build>` para ruido conocido de cache antigua.
   `tipo` es `index-extra-compat` o `currentyear-stale`. Antes era un path sin
   segmentos y ambos tipos quedaban sumados en una sola fila, con el detalle solo
@@ -423,6 +430,12 @@ La cola en memoria admite 128 entradas: 64 para hidratar el maximo completo del
 outbox y otras 64 de holgura para la carga actual. Si llegara a llenarse, se
 expulsa primero el evento ordinario mas antiguo; un evento de producto no
 desplaza un diagnostico pendiente mientras quede alguno ordinario.
+
+El sender autoalojado trata `skipgc` como una preferencia opcional: sus lecturas y
+escrituras de `localStorage` estan encapsuladas porque el propio getter de
+`window.localStorage` puede lanzar `SecurityError`. Si el almacenamiento esta
+denegado, el sender continua como si `skipgc` no estuviera activado; esta defensa
+es independiente del opt-out principal `goatcounter_optout` de `tracking.js`.
 
 El `count.js` autoalojado expone el resultado de entrega sin alterar el payload
 que recibe GoatCounter: devuelve `true` si `sendBeacon` acepta, `false` mientras
@@ -673,7 +686,11 @@ asumir que todo el build esta contaminado.
 
 ## 7. Cobertura HTML Y CSP
 
-Toda pagina HTML publica real debe cargar `tracking.js` y permitir `connect-src https://luzfija.goatcounter.com` en CSP.
+Toda pagina HTML publica real debe cargar `tracking.js` y, si lo carga, permitir
+`https://luzfija.goatcounter.com` tanto en `img-src` como en `connect-src`. Si una
+de esas directivas no aparece, se aplica la herencia de `default-src`. El test
+`tests/tracking-html-coverage.test.js` cruza ambas condiciones para impedir que
+una pagina copie una CSP que bloquee la baliza y active tracking a la vez.
 
 Excepcion conocida:
 

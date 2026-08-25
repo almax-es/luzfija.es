@@ -396,6 +396,48 @@ describe('Tracking error filtering and occurrence counting', () => {
     expect(payload.title).not.toContain('usuario@example.com');
   });
 
+  it.each(['img-src', 'connect-src', 'default-src'])(
+    'no autorreporta el bloqueo CSP %s del propio endpoint de GoatCounter',
+    (directive) => {
+      bootstrapTracking();
+      const event = new Event('securitypolicyviolation');
+      Object.defineProperties(event, {
+        effectiveDirective: { value: directive },
+        disposition: { value: 'enforce' },
+        blockedURI: { value: 'https://luzfija.goatcounter.com/count?p=error-csp%2Fprueba' },
+        sourceFile: { value: window.location.origin + '/vendor/goatcounter/count.js' },
+        lineNumber: { value: 181 }
+      });
+
+      window.dispatchEvent(event);
+
+      const paths = window.goatcounter.count.mock.calls.map((call) => call[0]?.path);
+      expect(paths.some((value) => String(value || '').startsWith('error-csp/'))).toBe(false);
+      expect(localStorage.getItem('lf_error_outbox_v1')).toBeNull();
+    }
+  );
+
+  it('conserva una violación img-src ajena a GoatCounter', () => {
+    bootstrapTracking();
+    const event = new Event('securitypolicyviolation');
+    Object.defineProperties(event, {
+      effectiveDirective: { value: 'img-src' },
+      disposition: { value: 'enforce' },
+      blockedURI: { value: 'https://imagenes.example/foto.png' },
+      sourceFile: { value: window.location.origin + '/js/lf-render.js' },
+      lineNumber: { value: 10 }
+    });
+
+    window.dispatchEvent(event);
+
+    expect(window.goatcounter.count).toHaveBeenCalledWith(
+      expect.objectContaining({
+        path: expect.stringMatching(/^error-csp\/img-src\/cross-origin\/imagenes-example\//),
+        event: true
+      })
+    );
+  });
+
   it('recorta el subdominio del recurso bloqueado a los dos últimos labels', () => {
     bootstrapTracking();
     const event = new Event('securitypolicyviolation');
