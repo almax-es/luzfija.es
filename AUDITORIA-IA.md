@@ -1573,6 +1573,15 @@ aceptan prefijos (`QRE20`), sufijos ni subrutas. Un host parecido
   la activa y registra el duplicado. Las columnas se resuelven por encabezado, los codigos R2 con
   formato no contemplado hacen abortar y `_meta` conserva fecha/recuento/incidencias. La unica web
   invalida actual (`R2-1123`) se omite sin perder la razon social; una proporcion anomala abortaria.
+- El sync registra tambien los codigos cuyo estado seleccionado es `Baja`, para que una transicion
+  administrativa no quede oculta si nombre, telefono y web permanecen iguales. El sanity check es
+  una funcion exportada y probada contra la regresion exacta de 782 entradas sin codigos de cuatro
+  cifras. La Action mensual solo auto-publica hasta 20 altas puramente aditivas; cualquier baja,
+  eliminacion, modificacion de una entrada existente o cambio en duplicados/webs invalidas/estados
+  falla antes del commit y exige revision manual.
+- `data/cnmc-commercializers.json` sigue precacheado para disponibilidad offline, pero tiene ruta
+  `network-first` propia con fallback sano. Asi un commit mensual llega a un SW ya instalado sin
+  depender del siguiente cambio de `CACHE_VERSION`.
 - Gate real del 25/08/2026: 11/11 facturas historicas procesadas por la interfaz en Chrome mantienen
   confianza 100%, cero errores de navegador y los mismos campos que el commit limpio salvo
   Plenitude, cuyo dia cambia intencionadamente de 32 a 31 al aplicar la semantica de su QR. Las dos

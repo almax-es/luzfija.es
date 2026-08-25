@@ -119,6 +119,15 @@ describe('Service Worker query fallback', () => {
     expect(sw).toMatch(/fetch\(req,\s*\{\s*cache:\s*"no-store"\s*\}\)/);
   });
 
+  it('sirve el censo CNMC network-first aunque siga disponible en el precache offline', () => {
+    const root = path.resolve(__dirname, '..');
+    const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
+
+    expect(sw).toContain('new URL("data/cnmc-commercializers.json", SCOPE).pathname');
+    expect(sw).toContain('url.pathname === CNMC_COMMERCIALIZERS_PATH');
+    expect(sw).toContain('"data/cnmc-commercializers.json"');
+  });
+
   it('exposes CACHE_VERSION via GET_VERSION for the per-version reload guard', () => {
     const root = path.resolve(__dirname, '..');
     const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');

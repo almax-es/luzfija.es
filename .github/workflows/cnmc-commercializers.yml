@@ -1,0 +1,115 @@
+name: CNMC Commercializers Monthly Update
+
+on:
+  # Primer día de cada mes. El minuto no redondo reduce retrasos de la cola de cron.
+  schedule:
+    - cron: '23 7 1 * *'
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: write
+  actions: write
+
+concurrency:
+  group: cnmc-commercializers-update
+  cancel-in-progress: false
+
+jobs:
+  update-cnmc-commercializers:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: '22'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Preserve current census
+        run: cp data/cnmc-commercializers.json "$RUNNER_TEMP/cnmc-commercializers.before.json"
+
+      - name: Download and validate current CNMC census
+        run: npm run sync:cnmc-commercializers
+
+      - name: Classify census changes
+        id: classify
+        run: >-
+          node scripts/classify-cnmc-commercializers-update.mjs
+          --before "$RUNNER_TEMP/cnmc-commercializers.before.json"
+          --after data/cnmc-commercializers.json
+          --github-output "$GITHUB_OUTPUT"
+
+      - name: Write update summary
+        env:
+          UPDATE_STATUS: ${{ steps.classify.outputs.status }}
+          UPDATE_SUMMARY: ${{ steps.classify.outputs.summary }}
+          ADDED_CODES: ${{ steps.classify.outputs.added_codes }}
+          REMOVED_CODES: ${{ steps.classify.outputs.removed_codes }}
+          MODIFIED_CODES: ${{ steps.classify.outputs.modified_codes }}
+        run: |
+          echo "### Censo de comercializadoras CNMC" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Clasificación: $UPDATE_STATUS" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Resultado: $UPDATE_SUMMARY" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Altas: ${ADDED_CODES:-ninguna}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Bajas: ${REMOVED_CODES:-ninguna}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Modificadas: ${MODIFIED_CODES:-ninguna}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Stop changes that require manual review
+        if: steps.classify.outputs.status == 'manual_review'
+        env:
+          UPDATE_SUMMARY: ${{ steps.classify.outputs.summary }}
+        run: |
+          echo "::error::$UPDATE_SUMMARY"
+          exit 1
+
+      - name: Validate safe additive update
+        if: steps.classify.outputs.status == 'safe_additive'
+        run: >-
+          npx vitest run
+          tests/cnmc-commercializers.test.js
+          tests/cnmc-commercializers-update.test.js
+          tests/sw-query-fallback.test.js
+          tests/sw-runtime-resilience.test.js
+
+      - name: Commit and push safe additive update
+        if: steps.classify.outputs.status == 'safe_additive'
+        env:
+          ADDED_COUNT: ${{ steps.classify.outputs.added_count }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add data/cnmc-commercializers.json
+          git commit -m "chore: actualizar censo CNMC (+${ADDED_COUNT})"
+          git pull --rebase
+          git push
+
+      - name: Trigger tests and Pages deployment
+        if: steps.classify.outputs.status == 'safe_additive'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          if ! curl --fail-with-body -L \
+            --retry 3 \
+            --retry-delay 5 \
+            --retry-connrefused \
+            -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "Authorization: Bearer $GH_TOKEN" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "https://api.github.com/repos/$GH_REPO/actions/workflows/tests.yml/dispatches" \
+            -d '{"ref":"main"}'; then
+            echo "::error::El censo se publicó, pero no se pudo lanzar tests.yml y el despliegue de Pages."
+            exit 1
+          fi

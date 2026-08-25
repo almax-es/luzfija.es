@@ -415,8 +415,11 @@ garantizada y no debe resolverse inflando el precache preventivamente.
 
 #### Política de fallback HTTP para datos runtime
 
-`sw.js` usa *network-first* para `data/pvpc/`, `data/surplus/`, `data/ssaa/`, el índice de
-búsqueda de guías y las referencias de asistente. `fetch()` no rechaza una Promise por un 503,
+`sw.js` usa *network-first* para `data/pvpc/`, `data/surplus/`, `data/ssaa/`, el censo local
+de comercializadoras CNMC, el índice de búsqueda de guías y las referencias de asistente.
+El censo sigue además en el precache para que su primera consulta funcione offline, pero la ruta
+runtime permite recibir un commit de datos sin esperar a cambiar `CACHE_VERSION`. `fetch()` no
+rechaza una Promise por un 503,
 por lo que el worker distingue explícitamente estados HTTP:
 
 - **408, 429 y 5xx**: degradación transitoria. Si existe una respuesta `2xx` sana en Cache

@@ -8,6 +8,8 @@ const SCRIPT_PATH = fileURLToPath(import.meta.url);
 const ROOT = resolve(dirname(SCRIPT_PATH), '..');
 const OUTPUT = resolve(ROOT, 'data', 'cnmc-commercializers.json');
 const R2_CODE = /^R2-\d{3,4}$/;
+const MIN_CENSUS_COUNT = 900;
+const MIN_FOUR_DIGIT_CODES = 100;
 
 function clean(value) {
   return String(value ?? '').replace(/\s+/g, ' ').trim();
@@ -132,6 +134,7 @@ export function parseCnmcCommercializers(html) {
 
   const commercializers = {};
   const duplicateCodes = [];
+  const inactiveCodes = [];
   let sourceRows = 0;
   for (const [code, rows] of rowsByCode) {
     sourceRows += rows.length;
@@ -145,6 +148,7 @@ export function parseCnmcCommercializers(html) {
       selected = activeRows[0];
     }
     commercializers[code] = selected.entry;
+    if (selected.inactive) inactiveCodes.push(code);
   }
 
   const sorted = Object.fromEntries(
@@ -154,8 +158,55 @@ export function parseCnmcCommercializers(html) {
     commercializers: sorted,
     sourceRows,
     duplicateCodes: duplicateCodes.sort(),
-    invalidWebsiteCodes: uniqueInvalidWebsiteCodes
+    invalidWebsiteCodes: uniqueInvalidWebsiteCodes,
+    inactiveCodes: inactiveCodes.sort()
   };
+}
+
+export function assertCensusSane(parsed) {
+  if (!parsed || typeof parsed !== 'object' || !parsed.commercializers || typeof parsed.commercializers !== 'object') {
+    throw new Error('El censo descargado no contiene un mapa de comercializadoras');
+  }
+
+  const entries = Object.entries(parsed.commercializers);
+  const count = entries.length;
+  const metadataLists = ['duplicateCodes', 'invalidWebsiteCodes', 'inactiveCodes'];
+  for (const key of metadataLists) {
+    if (!Array.isArray(parsed[key])) throw new Error(`El censo descargado no contiene ${key}`);
+    if (new Set(parsed[key]).size !== parsed[key].length) {
+      throw new Error(`El censo descargado contiene duplicados en ${key}`);
+    }
+    if (parsed[key].some(code => !R2_CODE.test(code) || !parsed.commercializers[code])) {
+      throw new Error(`El censo descargado contiene códigos inválidos en ${key}`);
+    }
+  }
+
+  if (!Number.isInteger(parsed.sourceRows) || parsed.sourceRows < count + parsed.duplicateCodes.length) {
+    throw new Error('El recuento de filas del censo descargado es incoherente');
+  }
+  if (count < MIN_CENSUS_COUNT) {
+    throw new Error(`El censo descargado solo contiene ${count} comercializadoras`);
+  }
+
+  let fourDigitCount = 0;
+  for (const [code, entry] of entries) {
+    if (!R2_CODE.test(code)) throw new Error(`El censo descargado contiene un código inválido: ${code}`);
+    if (/^R2-\d{4}$/.test(code)) fourDigitCount += 1;
+    if (!entry || typeof entry !== 'object' || typeof entry.name !== 'string' || !entry.name.trim()) {
+      throw new Error(`El censo descargado contiene una entrada inválida para ${code}`);
+    }
+  }
+
+  if (fourDigitCount < MIN_FOUR_DIGIT_CODES) {
+    throw new Error(`El censo descargado solo contiene ${fourDigitCount} códigos R2 de cuatro cifras`);
+  }
+  for (const requiredCode of ['R2-796', 'R2-1000']) {
+    if (!parsed.commercializers[requiredCode]) {
+      throw new Error(`El censo descargado no contiene el código centinela ${requiredCode}`);
+    }
+  }
+
+  return { count, fourDigitCount };
 }
 
 function responseDate(response) {
@@ -164,18 +215,16 @@ function responseDate(response) {
   return Number.isNaN(date.getTime()) ? new Date().toISOString().slice(0, 10) : date.toISOString().slice(0, 10);
 }
 
-export async function syncCnmcCommercializers() {
-  const response = await fetch(SOURCE_URL, {
+export async function syncCnmcCommercializers(options = {}) {
+  const fetchImpl = options.fetchImpl ?? fetch;
+  const output = options.output ?? OUTPUT;
+  const response = await fetchImpl(SOURCE_URL, {
     headers: { 'user-agent': 'LuzFija.es CNMC registry sync' }
   });
   if (!response.ok) throw new Error(`CNMC respondió ${response.status}`);
 
   const parsed = parseCnmcCommercializers(await response.text());
-  const count = Object.keys(parsed.commercializers).length;
-  const fourDigitCount = Object.keys(parsed.commercializers).filter(code => /^R2-\d{4}$/.test(code)).length;
-  if (count < 500 || fourDigitCount === 0 || !parsed.commercializers['R2-796']) {
-    throw new Error('El censo descargado no supera las comprobaciones mínimas');
-  }
+  const { count } = assertCensusSane(parsed);
 
   const payload = {
     _meta: {
@@ -186,19 +235,20 @@ export async function syncCnmcCommercializers() {
       sourceRows: parsed.sourceRows,
       duplicateCodes: parsed.duplicateCodes,
       invalidWebsiteCodes: parsed.invalidWebsiteCodes,
+      inactiveCodes: parsed.inactiveCodes,
       description: 'Censo público de comercializadores de electricidad de la CNMC. No contiene datos de clientes.'
     },
     commercializers: parsed.commercializers
   };
 
-  await writeFile(OUTPUT, JSON.stringify(payload, null, 2) + '\n', 'utf8');
+  await writeFile(output, JSON.stringify(payload, null, 2) + '\n', 'utf8');
   if (parsed.duplicateCodes.length) {
     console.warn(`CNMC: duplicados resueltos mediante la fila activa: ${parsed.duplicateCodes.join(', ')}`);
   }
   if (parsed.invalidWebsiteCodes.length) {
     console.warn(`CNMC: webs inválidas omitidas: ${parsed.invalidWebsiteCodes.join(', ')}`);
   }
-  console.log(`CNMC: ${count} comercializadoras escritas en ${OUTPUT}`);
+  console.log(`CNMC: ${count} comercializadoras escritas en ${output}`);
 }
 
 if (process.argv[1] && resolve(process.argv[1]) === SCRIPT_PATH) {

@@ -305,6 +305,61 @@ describe('Service Worker runtime resilience', () => {
     expect(await response.json()).toEqual({ offline: true });
   });
 
+  it('actualiza el censo CNMC desde red y sustituye su copia cacheada sin cambiar de build', async () => {
+    const puts = [];
+    const fetched = [];
+    const cache = {
+      add: async () => {},
+      put: async (...args) => { puts.push(args); },
+      match: async () => new Response('{"_meta":{"count":782}}', { status: 200 })
+    };
+    const worker = loadWorker({
+      cache,
+      fetchImpl: async (request, init) => {
+        fetched.push({ request, init });
+        return new Response('{"_meta":{"count":936}}', {
+          status: 200,
+          headers: { 'content-type': 'application/json' }
+        });
+      }
+    });
+
+    const response = await dispatchFetch(worker.handlers.fetch, {
+      method: 'GET',
+      url: 'https://luzfija.es/data/cnmc-commercializers.json',
+      mode: 'cors',
+      destination: ''
+    });
+
+    expect(await response.json()).toEqual({ _meta: { count: 936 } });
+    expect(fetched[0].init).toEqual({ cache: 'no-store' });
+    expect(puts).toHaveLength(1);
+  });
+
+  it('mantiene disponible offline el último censo CNMC sano', async () => {
+    const cache = {
+      add: async () => {},
+      put: async () => {},
+      match: async () => new Response('{"_meta":{"count":936}}', {
+        status: 200,
+        headers: { 'content-type': 'application/json' }
+      })
+    };
+    const worker = loadWorker({
+      cache,
+      fetchImpl: async () => { throw new TypeError('offline'); }
+    });
+
+    const response = await dispatchFetch(worker.handlers.fetch, {
+      method: 'GET',
+      url: 'https://luzfija.es/data/cnmc-commercializers.json',
+      mode: 'cors',
+      destination: ''
+    });
+
+    expect(await response.json()).toEqual({ _meta: { count: 936 } });
+  });
+
   it.each([404, 410])('no resucita dataset cacheado ante HTTP %s definitivo', async (status) => {
     const cache = {
       add: async () => {},

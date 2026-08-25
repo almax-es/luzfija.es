@@ -25,6 +25,7 @@ describe('CI workflow hardening', () => {
   });
   it('fija todas las actions de GitHub a SHAs completos con versión legible', () => {
     const workflows = [
+      '.github/workflows/cnmc-commercializers.yml',
       '.github/workflows/pvpc.yml',
       '.github/workflows/tests.yml'
     ];
@@ -49,6 +50,25 @@ describe('CI workflow hardening', () => {
         expect(expectedPins.get(action), `Action no inventariada en el guard: ${action}`).toEqual([sha, version]);
       }
     }
+  });
+
+  it('automatiza el censo mensualmente y solo publica altas pequeñas ya clasificadas', () => {
+    const workflow = readRepoFile('.github/workflows/cnmc-commercializers.yml');
+    const classifyAt = workflow.indexOf('- name: Classify census changes');
+    const reviewAt = workflow.indexOf('- name: Stop changes that require manual review');
+    const commitAt = workflow.indexOf('- name: Commit and push safe additive update');
+
+    expect(workflow).toContain("cron: '23 7 1 * *'");
+    expect(workflow).toContain('scripts/classify-cnmc-commercializers-update.mjs');
+    expect(workflow).toContain("steps.classify.outputs.status == 'manual_review'");
+    expect(workflow).toContain("steps.classify.outputs.status == 'safe_additive'");
+    expect(workflow).toContain('git add data/cnmc-commercializers.json');
+    expect(workflow).toContain('/actions/workflows/tests.yml/dispatches');
+    expect(classifyAt).toBeGreaterThanOrEqual(0);
+    expect(reviewAt).toBeGreaterThan(classifyAt);
+    expect(commitAt).toBeGreaterThan(reviewAt);
+    expect(workflow).not.toMatch(/git add data\/(?:\s|$)/);
+    expect(workflow).not.toContain('git add .');
   });
 
 });

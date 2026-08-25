@@ -3,7 +3,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260825-145311";
+const CACHE_VERSION = "20260825-193407";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 // El build 20260620-051941 contenía un handler del simulador solar que podía
 // llamar `target.closest()` sobre un target no-Element. A diferencia de las
@@ -19,6 +19,7 @@ const SCOPE = self.registration.scope;
 const INDEX_PATH = new URL("index.html", SCOPE).pathname;
 const TARIFAS_PATH = new URL("tarifas.json", SCOPE).pathname;
 const GUIDES_SEARCH_INDEX_PATH = new URL("data/guides-search-index.json", SCOPE).pathname;
+const CNMC_COMMERCIALIZERS_PATH = new URL("data/cnmc-commercializers.json", SCOPE).pathname;
 const GOAT_SCRIPT_PATH = new URL("vendor/goatcounter/count.js", SCOPE).pathname;
 // Estos dos scripts forman la via de recuperacion de una pagina parcialmente
 // actualizada. Si un HTML nuevo sigue controlado unos instantes por el SW del
@@ -481,11 +482,11 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Datos PVPC, Excedentes y SSAA: network-first. Un 408/429/5xx es una
+  // Datos regulados y censo CNMC: network-first. Un 408/429/5xx es una
   // degradación transitoria, no una prueba de que el recurso haya desaparecido:
   // si existe una copia 200 del build activo, se usa como fallback. Los 404/410
   // se respetan para no resucitar datasets retirados o rutas inexistentes.
-  if (url.pathname.includes('/data/pvpc/') || url.pathname.includes('/data/surplus/') || url.pathname.includes('/data/ssaa/')) {
+  if (url.pathname === CNMC_COMMERCIALIZERS_PATH || url.pathname.includes('/data/pvpc/') || url.pathname.includes('/data/surplus/') || url.pathname.includes('/data/ssaa/')) {
     event.respondWith(
       (async () => {
         const cache = await caches.open(CACHE_NAME);

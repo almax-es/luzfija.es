@@ -36,7 +36,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - 40 modulos JavaScript en `js/` (incluye `js/bv/`).
 - 31.130 lineas JS aproximadas.
 - 119 tarifas en `tarifas.json`.
-- Suite de tests Vitest con 104 archivos y 1655 casos.
+- Suite de tests Vitest con 105 archivos y 1670 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 
@@ -206,7 +206,9 @@ Notas de tarifas:
   intentos fallan durante un calculo, solo puede reutilizar una lista valida ya
   descargada en memoria por esa misma pestaña; nunca una copia persistida.
 - JS/CSS: network-first (evita ejecutar codigo obsoleto durante horas).
-- datasets PVPC/surplus/SSAA e indice de busqueda de guias: network-first.
+- datasets PVPC/surplus/SSAA, censo CNMC e indice de busqueda de guias: network-first. El censo
+  sigue precacheado para funcionar offline, pero recibe actualizaciones de datos sin exigir un
+  cambio de `CACHE_VERSION`.
 - resto de recursos (imagenes y otros estaticos): stale-while-revalidate.
 - Cliente con actualizacion agresiva de SW para aplicar nuevas versiones rapidamente.
 - Una recarga diferida por actividad o por la ventana inicial programa su propio reintento al vencer el bloqueo; no espera al intervalo general de 15 minutos.
@@ -291,6 +293,13 @@ El sitio se publica en GitHub Pages en modo workflow desde `.github/workflows/te
 
 El workflow `pvpc.yml` (diario, 20:00 UTC) actualiza `data/pvpc/`, `data/surplus/` y `data/ssaa/`; antes de publicar verifica frescura e integridad temporal con `scripts/check_data_freshness.py` (incluido su self-test). Para PVPC/excedentes, cualquier dia anterior al dia local vigente en la zona horaria del fichero debe estar completo (23/24/25 puntos por DST), no puede faltar ningun dia intermedio y el dia local vigente/futuros ya publicados pueden estar parciales sin saltos, duplicados ni timestamps de otro dia local. Si los datos quedan rancios, incompletos o ilegibles, `pvpc.yml` falla antes del commit. Si hay cambios validos, los commitea y dispara `tests.yml` para publicarlos.
 
+El workflow `cnmc-commercializers.yml` consulta mensualmente el censo publico de la CNMC. El
+scraper valida columnas, formato R2, volumen, codigos centinela y metadatos; despues clasifica el
+diff frente al JSON versionado. Solo commitea y despliega automaticamente hasta 20 altas nuevas
+sin tocar entradas existentes ni los estados/anomalias conocidos. Bajas, renombrados, cambios de
+contacto, lotes grandes o incidencias del censo hacen fallar el workflow antes del commit para su
+revision manual.
+
 La suite normal de `tests.yml` no usa el reloj para decidir si el dataset vivo esta fresco: su test de integridad exige que el historico sea continuo y completo hasta el penultimo dia publicado y permite que solo el ultimo dia publicado este parcial. Asi una incidencia nocturna del pipeline de datos queda visible y bloqueante en `pvpc.yml`, pero no impide desplegar un cambio de codigo no relacionado mientras el ultimo snapshot del repo siga siendo internamente coherente.
 
 
@@ -309,7 +318,7 @@ Nota: ese mecanismo local de despliegue es una herramienta privada y no se distr
 
 ## Mantenimiento De Datos
 
-- Actualizaciones de datasets PVPC/surplus/SSAA via GitHub Actions.
+- Actualizaciones de datasets PVPC/surplus/SSAA y del censo CNMC via GitHub Actions.
 - Checklist completo de normativa, fuentes y cadencias en `MANTENIMIENTO-NORMATIVO.md`.
 - Recomendacion operativa:
 - mantener `tarifas.json` actualizado con fecha `updatedAt`,
