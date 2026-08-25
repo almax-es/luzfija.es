@@ -503,6 +503,58 @@ describe('Mi tarifa: precision decimal de los precios (issue #14)', () => {
   });
 });
 
+describe('Mi tarifa: importación opt-in desde el QR CNMC', () => {
+  it('activa, rellena y persiste los cinco precios sin arrastrar opciones anteriores', () => {
+    localStorage.setItem('lf_custom_tarifa', JSON.stringify({
+      punta: '0,99', llano: '0,99', valle: '0,99', p1: '0,99', p2: '0,99',
+      exc: '0,07', bv: true, precioBV: '2,99', sinSSAA: true,
+      compensacionIndexada: true, topeParcial: true
+    }));
+    document.getElementById('compararMiTarifa').checked = false;
+    document.getElementById('solarOn').checked = false;
+
+    expect(window.LF.applyCustomTarifaPrices({
+      punta: 0.0852,
+      llano: 0.0852,
+      valle: 0.0852,
+      p1: 27.704413 / 365,
+      p2: 0.725423 / 365
+    })).toBe(true);
+
+    expect(document.getElementById('compararMiTarifa').checked).toBe(true);
+    expect(document.getElementById('mtPunta').value).toBe('0,0852');
+    expect(document.getElementById('mtP1').value).toBe('0,0759025');
+    expect(document.getElementById('mtP2').value).toBe('0,00198746');
+    const saved = JSON.parse(localStorage.getItem('lf_custom_tarifa'));
+    expect(saved).toMatchObject({
+      punta: '0,0852',
+      p1: '0,0759025',
+      exc: '',
+      bv: false,
+      precioBV: '',
+      sinSSAA: false,
+      compensacionIndexada: false,
+      topeParcial: false
+    });
+  });
+
+  it('rechaza precios incompletos o fuera de rango sin sustituir la tarifa guardada', () => {
+    const previous = JSON.stringify({
+      punta: '0,12', llano: '0,11', valle: '0,10', p1: '0,08', p2: '0,02'
+    });
+    localStorage.setItem('lf_custom_tarifa', previous);
+
+    expect(window.LF.applyCustomTarifaPrices({
+      punta: 0.0852,
+      llano: 0.0852,
+      valle: null,
+      p1: 0.08,
+      p2: 0.02
+    })).toBe(false);
+    expect(localStorage.getItem('lf_custom_tarifa')).toBe(previous);
+  });
+});
+
 // El parser real de lf-utils.js, separado del flujo anterior porque el suite de
 // arriba mockea window.LF.parseNum. Aqui se comprueba que 8 decimales llegan al
 // calculo con su valor intacto.

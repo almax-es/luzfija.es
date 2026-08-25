@@ -757,6 +757,49 @@ describe('Motor de Extracción de Facturas (PDF Text)', () => {
   });
 
   describe('QR CNMC - validar origen y datos antes de dar confianza 100%', () => {
+    it('convierte la potencia anual a la base fija de 365 días del comparador', () => {
+      const annual = 27.704413;
+      const daily = window.__LF_FacturaParsers.__LF_qrAnnualPowerPriceToDaily(annual);
+
+      expect(daily).toBeCloseTo(annual / 365, 15);
+      expect(daily).not.toBeCloseTo(annual / 366, 8);
+      expect(new Intl.NumberFormat('es-ES', { maximumFractionDigits: 6 }).format(daily)).toBe('0,075903');
+    });
+
+    it('solo prepara Mi tarifa para contratos fijos sin cuota y con cinco precios válidos', () => {
+      const base = {
+        tipoContrato: 'E0',
+        precioEnergiaP1: 0.15,
+        precioEnergiaP2: 0.12,
+        precioEnergiaP3: 0.09,
+        precioPotenciaP1: 27.704413,
+        precioPotenciaP2: 0.725423
+      };
+      expect(window.__LF_FacturaParsers.__LF_qrInfoToCustomTarifaPrices(base)).toEqual({
+        punta: 0.15,
+        llano: 0.12,
+        valle: 0.09,
+        p1: 27.704413 / 365,
+        p2: 0.725423 / 365
+      });
+      expect(window.__LF_FacturaParsers.__LF_qrInfoToCustomTarifaPrices({
+        ...base,
+        tipoContrato: 'F0',
+        precioEnergiaP2: 0,
+        precioEnergiaP3: 0,
+        precioPotenciaP2: 0
+      })).toEqual({
+        punta: 0.15,
+        llano: 0.15,
+        valle: 0.15,
+        p1: 27.704413 / 365,
+        p2: 0
+      });
+      expect(window.__LF_FacturaParsers.__LF_qrInfoToCustomTarifaPrices({ ...base, tipoContrato: 'B0' })).toBeNull();
+      expect(window.__LF_FacturaParsers.__LF_qrInfoToCustomTarifaPrices({ ...base, tipoContrato: 'E1' })).toBeNull();
+      expect(window.__LF_FacturaParsers.__LF_qrInfoToCustomTarifaPrices({ ...base, precioEnergiaP3: null })).toBeNull();
+    });
+
     it('rechaza hosts que solo contienen el dominio CNMC como substring', () => {
       const url = 'https://comparador.cnmc.gob.es.ejemplo.com/comparador/QRE?pP1=3.45&pP2=4.6&cfP1=10&cfP2=20&cfP3=30';
       expect(window.__LF_FacturaParsers.__LF_isTrustedCnmcQrUrl(url)).toBe(false);

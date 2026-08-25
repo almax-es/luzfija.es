@@ -62,6 +62,39 @@
         return Number.isFinite(n) ? n : null;
       }
 
+      // El QR CNMC publica prP1/prP2 en €/kW·año, mientras que "Mi tarifa"
+      // y el motor principal usan €/kW·día. El proyecto anualiza y prorratea
+      // siempre sobre una base comercial fija de 365 días; no depende de que
+      // la fecha de factura caiga en un año bisiesto.
+      function __LF_qrAnnualPowerPriceToDaily(value){
+        return Number.isFinite(value) ? value / 365 : null;
+      }
+
+      function __LF_qrInfoToCustomTarifaPrices(info){
+        // "Mi tarifa" modela precios fijos sin cuota mensual. E0 es libre 3P
+        // y F0 libre 1P; indexadas, planas, flexibles y variantes con cuota
+        // necesitan conceptos que el formulario principal no puede representar.
+        if (!info || !['E0', 'F0'].includes(info.tipoContrato)) return null;
+        const singleEnergyPrice = info.tipoContrato === 'F0';
+        const prices = {
+          punta: info.precioEnergiaP1,
+          // F0 declara un único precio. Algunos emisores dejan prE2/prE3 a 0
+          // y otros los rellenan aunque el campo no sea aplicable; el código de
+          // contrato es la fuente que determina cómo debe modelarse la tarifa.
+          llano: singleEnergyPrice ? info.precioEnergiaP1 : info.precioEnergiaP2,
+          valle: singleEnergyPrice ? info.precioEnergiaP1 : info.precioEnergiaP3,
+          p1: __LF_qrAnnualPowerPriceToDaily(info.precioPotenciaP1),
+          p2: __LF_qrAnnualPowerPriceToDaily(info.precioPotenciaP2)
+        };
+        if (!Object.values(prices).every(Number.isFinite)) return null;
+        if (prices.punta < 0 || prices.punta > 1
+          || prices.llano < 0 || prices.llano > 1
+          || prices.valle < 0 || prices.valle > 1
+          || prices.p1 <= 0 || prices.p1 > 1
+          || prices.p2 < 0 || prices.p2 > 1) return null;
+        return prices;
+      }
+
 
 
       function __LF_daysInclusive(d1, d2){
@@ -1800,6 +1833,8 @@
 
   window.__LF_FacturaParsers = {
     __LF_normNum,
+    __LF_qrAnnualPowerPriceToDaily,
+    __LF_qrInfoToCustomTarifaPrices,
     __LF_daysInclusive,
     __LF_extraerNumero,
     __LF_extractPotenciasEndesa,

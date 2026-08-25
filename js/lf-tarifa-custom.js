@@ -384,6 +384,61 @@
     return tarifa;
   }
 
+  function formatImportedTarifaPrice(value) {
+    return Number(value).toFixed(MAX_DECIMALES_PRECIO)
+      .replace(/0+$/, '')
+      .replace(/\.$/, '')
+      .replace('.', ',');
+  }
+
+  function applyCustomTarifaPrices(prices) {
+    const values = {
+      mtPunta: prices?.punta,
+      mtLlano: prices?.llano,
+      mtValle: prices?.valle,
+      mtP1: prices?.p1,
+      mtP2: prices?.p2
+    };
+    if (!Object.values(values).every(value => typeof value === 'number' && Number.isFinite(value))) return false;
+    if (values.mtPunta < 0 || values.mtPunta > 1
+      || values.mtLlano < 0 || values.mtLlano > 1
+      || values.mtValle < 0 || values.mtValle > 1
+      || values.mtP1 <= 0 || values.mtP1 > 1
+      || values.mtP2 < 0 || values.mtP2 > 1) return false;
+
+    const checkbox = $('compararMiTarifa');
+    if (!checkbox) return false;
+    checkbox.checked = true;
+    const form = $('miTarifaForm');
+    if (form) form.style.display = 'block';
+    if (!['mtPunta', 'mtLlano', 'mtValle', 'mtP1', 'mtP2'].every(id => $(id))) {
+      updateMiTarifaForm();
+    }
+
+    const importedInputs = Object.fromEntries(
+      Object.keys(values).map(id => [id, $(id)])
+    );
+    if (!Object.values(importedInputs).every(Boolean)) return false;
+
+    // El usuario ha pedido sustituir su tarifa anterior. Borrar primero evita
+    // mezclar compensación, BV o SSAA persistidos de otra comercializadora.
+    try { localStorage.removeItem('lf_custom_tarifa'); } catch (_) {}
+    for (const [id, value] of Object.entries(values)) {
+      importedInputs[id].value = formatImportedTarifaPrice(value);
+    }
+    ['mtPrecioExc', 'mtPrecioBV'].forEach(id => { const input = $(id); if (input) input.value = ''; });
+    ['mtSinSSAA', 'mtCompensacionIndexada', 'mtTopeParcial', 'mtBV'].forEach(id => {
+      const input = $(id);
+      if (input) input.checked = false;
+    });
+    updateMtPrecioExcWrapVisibility();
+    clearMiTarifaErrorStyles();
+    if (!validateMiTarifa({ silent: true })) return false;
+    saveCustomTarifaMain();
+    attachSaveListeners();
+    return true;
+  }
+
   // ===== GUARDAR Y CARGAR TARIFA PERSONALIZADA =====
   // Compatibilidad con el esquema anterior al checkbox BV: en esos registros el campo `bv`
   // no existia y la BV se inferia de una compensacion fija positiva. IMPORTANTE: solo se
@@ -708,6 +763,7 @@
   Object.assign(window.LF, {
     updateMiTarifaForm,
     agregarMiTarifa,
+    applyCustomTarifaPrices,
     validateMiTarifa,
     clearMiTarifaErrorStyles,
     saveCustomTarifaMain,

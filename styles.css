@@ -1781,6 +1781,16 @@ body.lf-share-open { overflow: hidden; }
 .qr-factura-fact-wide{ grid-column:1 / -1; }
 .qr-factura-fact dt{ color:var(--muted); font-size:9px; font-weight:700; line-height:1.2; }
 .qr-factura-fact dd{ margin:3px 0 0; color:var(--text); font-size:12px; font-weight:800; line-height:1.3; overflow-wrap:anywhere; }
+.qr-factura-import-tarifa{
+  margin-top:10px;
+  padding:10px;
+  border:1px solid rgba(139,92,246,.4);
+  border-radius:10px;
+  background:rgba(139,92,246,.09);
+}
+.qr-factura-import-tarifa .fv-check{ align-items:flex-start; font-size:12px; font-weight:800; }
+.qr-factura-import-tarifa .fv-check input{ flex:0 0 auto; margin-top:2px; }
+.qr-factura-import-tarifa p{ margin:6px 0 0 24px; color:var(--muted); font-size:9px; line-height:1.4; }
 .qr-factura-contact{
   display:flex;
   align-items:center;
@@ -1796,6 +1806,7 @@ body.lf-share-open { overflow: hidden; }
 
 html.light-mode .qr-factura-info{ background:linear-gradient(145deg, rgba(34,197,94,.10), rgba(59,130,246,.06)); }
 html.light-mode .qr-factura-fact{ background:rgba(255,255,255,.72); }
+html.light-mode .qr-factura-import-tarifa{ background:rgba(139,92,246,.07); }
 
 @media (max-width:520px){
   .qr-factura-info{ padding:11px; }

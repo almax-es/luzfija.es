@@ -36,6 +36,8 @@
       window.__LF_facturaParserLoaded = true;
       const {
         __LF_normNum,
+        __LF_qrAnnualPowerPriceToDaily,
+        __LF_qrInfoToCustomTarifaPrices,
         __LF_extractQRUrl,
         __LF_isTrustedCnmcQrUrl,
         __LF_isCnmcCommercializerCode,
@@ -132,6 +134,7 @@
       let __LF_scrollLockToken = null;
       let __LF_scrollFallbackState = null;
       let __LF_lastParsedConfianza = 0;
+      let __LF_lastQrCustomTarifaPrices = null;
       let __LF_modalHideTimer = null;
       let __LF_lastFile = null;
 
@@ -710,16 +713,11 @@
         }).format(value);
       }
 
-      function __LF_formatQrPowerPrice(value, info) {
+      function __LF_formatQrPowerPrice(value) {
         if (!Number.isFinite(value)) return null;
-        const referenceDate = String(info?.fechaFin || info?.fechaFactura || '');
-        const yearMatch = referenceDate.match(/^(\d{4})-/);
         const annual = `${__LF_formatQrNumber(value, 6)} €/kW·año`;
-        if (!yearMatch) return annual;
-
-        const year = Number(yearMatch[1]);
-        const daysInYear = new Date(Date.UTC(year, 1, 29)).getUTCDate() === 29 ? 366 : 365;
-        const daily = value / daysInYear;
+        const daily = __LF_qrAnnualPowerPriceToDaily(value);
+        if (!Number.isFinite(daily)) return annual;
         return `${__LF_formatQrNumber(daily, 6)} €/kW·día (equivalente a ${annual} del QR CNMC)`;
       }
 
@@ -794,6 +792,27 @@
         section.appendChild(group);
       }
 
+      function __LF_appendQrCustomTarifaSelector(section, prices) {
+        if (!prices) return;
+        const wrap = document.createElement('div');
+        wrap.className = 'qr-factura-import-tarifa';
+
+        const label = document.createElement('label');
+        label.className = 'fv-check';
+        label.htmlFor = 'usarPreciosQrMiTarifa';
+        const checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.id = 'usarPreciosQrMiTarifa';
+        const title = document.createElement('span');
+        title.textContent = 'Usar estos precios para comparar como “Mi tarifa”';
+        label.append(checkbox, title);
+
+        const note = document.createElement('p');
+        note.textContent = 'Importa solo energía y potencia. No mezcla descuentos, servicios, autoconsumo ni batería virtual anteriores.';
+        wrap.append(label, note);
+        section.appendChild(wrap);
+      }
+
       function __LF_renderQrInfo(datos) {
         const info = datos?.qrInfo;
         if (!info) return null;
@@ -850,9 +869,11 @@
           { label: 'Energía punta', value: Number.isFinite(info.precioEnergiaP1) ? `${__LF_formatQrNumber(info.precioEnergiaP1, 6)} €/kWh` : null },
           { label: 'Energía llano', value: Number.isFinite(info.precioEnergiaP2) ? `${__LF_formatQrNumber(info.precioEnergiaP2, 6)} €/kWh` : null },
           { label: 'Energía valle', value: Number.isFinite(info.precioEnergiaP3) ? `${__LF_formatQrNumber(info.precioEnergiaP3, 6)} €/kWh` : null },
-          { label: 'Potencia punta', value: __LF_formatQrPowerPrice(info.precioPotenciaP1, info) },
-          { label: 'Potencia valle', value: __LF_formatQrPowerPrice(info.precioPotenciaP2, info) }
+          { label: 'Potencia punta', value: __LF_formatQrPowerPrice(info.precioPotenciaP1) },
+          { label: 'Potencia valle', value: __LF_formatQrPowerPrice(info.precioPotenciaP2) }
         ]);
+        __LF_lastQrCustomTarifaPrices = __LF_qrInfoToCustomTarifaPrices(info);
+        __LF_appendQrCustomTarifaSelector(section, __LF_lastQrCustomTarifaPrices);
 
         __LF_appendQrInfoGroup(section, 'Desglose declarado', [
           { label: 'Potencia', value: __LF_formatQrEuro(info.importePotencia) },
@@ -914,6 +935,7 @@
         const form = __LF_q('formValidacionFactura');
         if (!form) return;
         __LF_lastParsedConfianza = Number(datos?.confianza || 0);
+        __LF_lastQrCustomTarifaPrices = null;
         // El bloqueo por peaje se marca SOBRE EL FORMULARIO, no en una variable de modulo.
         // Con estado de modulo la marca sobrevivia al formulario que la origino: bastaba
         // procesar una 3.0TD para que una factura 2.0TD posterior siguiera sin poder
@@ -1640,10 +1662,24 @@
         try{ if (typeof validateInputs === 'function') validateInputs(); }catch(_){}
         try{ if (typeof saveInputs === 'function') saveInputs(); }catch(_){}
 
+        const importQrTarifaRequested = __LF_q('usarPreciosQrMiTarifa')?.checked === true;
+        const importQrTarifaApplied = importQrTarifaRequested
+          && Boolean(__LF_lastQrCustomTarifaPrices)
+          && typeof window.LF?.applyCustomTarifaPrices === 'function'
+          && window.LF.applyCustomTarifaPrices(__LF_lastQrCustomTarifaPrices);
+
         // Si "Comparar con mi tarifa actual" está marcado, avisar que debe rellenar precios
         const compararMiTarifa = document.getElementById('compararMiTarifa');
         
-        if (compararMiTarifa && compararMiTarifa.checked) {
+        if (importQrTarifaApplied) {
+          if (typeof toast === 'function') {
+            toast('✅ Datos y precios aplicados como “Mi tarifa”', 'ok');
+          }
+        } else if (importQrTarifaRequested) {
+          if (typeof toast === 'function') {
+            toast('Los datos se aplicaron, pero no pude trasladar los precios a “Mi tarifa”', 'err');
+          }
+        } else if (compararMiTarifa && compararMiTarifa.checked) {
           if (typeof toast === 'function') {
             toast('✅ Datos aplicados. Rellena los PRECIOS de tu tarifa manualmente', 'ok');
           }
@@ -1654,19 +1690,24 @@
 
         const confidencePct = Math.max(0, Math.min(100, Number(__LF_lastParsedConfianza || 0)));
 
-        // El parser de factura solo actualiza P1/P2/dias/consumos: si el usuario quiere
-        // comparar con "Mi tarifa" (marcada, con o sin precios ya rellenados) o hay
-        // excedentes/saldo BV de un periodo anterior todavia en el formulario, autocalcular
-        // podria calcular sin "Mi tarifa" (si aun esta vacia) o mezclar con datos nuevos sin
-        // que el usuario lo confirme (si ya tenia precios). El bloqueo depende del CHECKBOX,
-        // no de si ya hay contenido: el propio toast de mas arriba le pide rellenarla.
+        // Una "Mi tarifa" ya activa sigue requiriendo revisión para no mezclar precios
+        // manuales anteriores con la factura nueva. La única excepción es el opt-in del QR:
+        // sus cinco precios proceden del mismo documento y applyCustomTarifaPrices ya los
+        // ha validado, normalizado y persistido antes de llegar a este punto.
         const customTarifaActiva = Boolean(compararMiTarifa?.checked);
+        const customTarifaNeedsReview = importQrTarifaRequested
+          ? !importQrTarifaApplied
+          : customTarifaActiva;
         const exTotalVal = __LF_normNum(document.getElementById('exTotal')?.value);
         const bvSaldoVal = __LF_normNum(document.getElementById('bvSaldo')?.value);
         const solarStateNotParsed = Boolean(document.getElementById('solarOn')?.checked) &&
           ((exTotalVal != null && exTotalVal > 0) || (bvSaldoVal != null && bvSaldoVal > 0));
 
-        const shouldAutoCalc = confidencePct >= 99.5 && !customTarifaActiva && !solarStateNotParsed;
+        const importedSolarNeedsReview = importQrTarifaApplied && Boolean(document.getElementById('solarOn')?.checked);
+        const shouldAutoCalc = confidencePct >= 99.5
+          && !customTarifaNeedsReview
+          && !solarStateNotParsed
+          && !importedSolarNeedsReview;
 
         // ✅ PRIVACIDAD: una vez aplicados los datos, ya no necesitamos retener el PDF
         __LF_lastFile = null;
@@ -1680,7 +1721,9 @@
         if (shouldAutoCalc){
           setStatus('Calculando...', 'loading');
           runCalculation();
-        } else if (customTarifaActiva) {
+        } else if (importedSolarNeedsReview) {
+          setStatus('Hemos importado los precios de energía y potencia. Revisa la compensación solar y la batería virtual antes de calcular.', 'idle');
+        } else if (customTarifaNeedsReview) {
           setStatus('Hemos rellenado los datos de la factura. Revisa los precios de "Mi tarifa" antes de calcular.', 'idle');
         } else if (solarStateNotParsed) {
           setStatus('Hemos rellenado los datos de la factura. Revisa tus excedentes y saldo de batería virtual antes de calcular.', 'idle');

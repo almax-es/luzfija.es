@@ -230,8 +230,12 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
   renovacion, permanencia, revision/promocion/cambio de precios, servicios, energia verde, precios
   contratados, desglose declarado, maximas demandadas, consumo acumulado y contacto publico. Los
   precios de potencia se presentan primero en `€/kW·dia`, como el resto del comparador, y conservan
-  al lado el valor regulado original del QR en `€/kW·año`; la equivalencia usa 365 o 366 dias segun
-  el año de fin del periodo facturado (o, si falta, el de la fecha de factura).
+  al lado el valor regulado original del QR en `€/kW·año`; la equivalencia usa la base comercial
+  fija de 365 dias del motor principal, tambien cuando la factura cae en un año bisiesto.
+- En contratos fijos compatibles del QR (`E0` libre 3P y `F0` libre 1P, sin cuota mensual), una
+  casilla opt-in permite aplicar tambien los cinco precios a `Mi tarifa`. La importacion sustituye
+  la configuracion personalizada anterior y no inventa descuentos, servicios, compensacion solar
+  ni bateria virtual que el QR no permite trasladar al modelo del comparador.
 - Indicador de confianza y avisos contextuales.
 - El badge distingue si la URL CNMC se obtuvo como enlace del PDF o decodificando el QR rasterizado.
   Si QR y PDF corresponden al mismo periodo pero producen un numero de dias distinto, conserva la
@@ -449,10 +453,10 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 40 (`js/*.js` + `js/bv/*.js`).
-- Lineas JS aproximadas: 31.143.
+- Lineas JS aproximadas: 31.277.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
-- `tarifas.json` (119 tarifas).
+- `tarifas.json` (120 tarifas).
 - `/data/pvpc/` (indicador 1001).
 - `/data/surplus/` (indicador 1739).
 - `/data/ssaa/` (indicador 10328, servicios de ajuste medios mensuales).
@@ -539,7 +543,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Suite Vitest/JSDOM.
 - 105 archivos de test (`tests/*.test.js`).
-- 1672 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 1676 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

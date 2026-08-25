@@ -63,6 +63,7 @@ describe('Factura PDF Integration (Black Box)', () => {
     // factura.js, normalmente las define lf-app.js). Sin ellas, un test que llegue a esa rama
     // lanzaria ReferenceError en vez de probar la logica de autocalculo.
     window.LF = window.LF || {};
+    window.LF.applyCustomTarifaPrices = vi.fn(() => true);
     window.setStatus = vi.fn();
     window.runCalculation = vi.fn();
     window.markPending = vi.fn();
@@ -713,9 +714,24 @@ describe('Factura PDF Integration (Black Box)', () => {
     expect(card.textContent).toContain('900 500 005');
     expect(card.textContent).not.toContain('ES0021000000000000AA');
     expect(card.textContent).not.toContain('50420');
+    const importTarifa = card.querySelector('#usarPreciosQrMiTarifa');
+    expect(importTarifa).not.toBeNull();
+    expect(importTarifa.checked).toBe(false);
     expect(window.fetch).toHaveBeenCalledTimes(1);
     expect(window.fetch.mock.calls[0][0]).toContain('data/cnmc-commercializers.json');
     expect(document.getElementById('fuenteDatosBadge').textContent).toBe('Enlace CNMC + respaldo PDF');
+
+    importTarifa.checked = true;
+    document.getElementById('btnAplicarFactura').click();
+    expect(window.LF.applyCustomTarifaPrices).toHaveBeenCalledWith({
+      punta: 0.0852,
+      llano: 0.0852,
+      valle: 0.0852,
+      p1: 0.08,
+      p2: 0.08
+    });
+    expect(window.runCalculation).toHaveBeenCalledTimes(1);
+    expect(global.toast).toHaveBeenCalledWith('✅ Datos y precios aplicados como “Mi tarifa”', 'ok');
   });
 
   it('no mezcla días de una factura anterior con el QR CNMC de otra factura del mismo PDF', async () => {
