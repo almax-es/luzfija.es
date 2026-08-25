@@ -1993,6 +1993,103 @@ sin el: un helper correcto que nadie invoca no arregla nada.
 LOCAL. Una fecha como `2026-12-31T23:00:00Z` ya es 2027 en `Europe/Madrid`, y el test se
 vuelve contradictorio consigo mismo. Usar mediodia.
 
+### Precios Del QR Frente A Descuentos De La Factura (RESUELTA 25/08/2026)
+
+**El problema, que no es de calculo sino de significado.** La Resolucion de la CNMC
+(BOE-A-2022-16989) define `prE1/prE2/prE3` y `prP1/prP2` como precios **sin impuestos ni
+descuentos**, mientras que `impEner` e `impPot` SI incorporan los descuentos asociados a esos
+terminos. La casilla que vuelca esos precios a "Mi tarifa" vive bajo un rotulo que promete
+"Comparar con mi tarifa **actual**". Para quien tenga un descuento, importar el precio base
+haria parecer su tarifa mas cara de lo que paga y lo hundiria en el ranking, con confianza 100
+y sin un solo aviso. Detectado por ChatGPT en la revision cruzada del 25/08/2026.
+
+**Por que no basta con mirar `dto`.** La propia resolucion permite que el descuento venga ya
+incorporado al importe y NO aparezca en ese campo. Un guard del tipo `if (dto > 0) bloquear`
+dejaria pasar justo los casos que no declara.
+
+**Correccion: contrastar, no adivinar.** Los importes ya estaban en el modelo
+(`factura-parsers.js` extrae `impPot`, `impEner`, `dto` y `dtoBS`) pero solo se pintaban en la
+ficha. `__LF_qrPricesMatchDeclaredAmounts()` cruza lo que se va a importar contra lo que la
+factura dice haber cobrado:
+
+    energia:  SUM(consumo_i x precio_i)                 vs  impEner
+    potencia: SUM(kW_i x precio_i) x dias               vs  impPot
+
+Si alguno se desvia mas de la tolerancia, **no se ofrece la casilla** y se explica por que. La
+ficha completa se sigue mostrando y la confianza NO baja: los consumos, potencias y dias del QR
+siguen siendo validos; lo unico que se retira es el volcado de precios. Cuando el QR no trae el
+importe con el que contrastar, no se bloquea nada (se conserva el comportamiento anterior).
+
+**Tolerancia y por que ese numero.** 2% relativo o 0,15 EUR absolutos. Los consumos del QR
+(`cfP1/2/3`) llegan en kWh ENTEROS, asi que una parte del desvio es redondeo de la fuente, no
+descuento. Medido sobre facturas reales del banco de pruebas SIN descuento: la potencia cuadra
+al centimo (desvio 0,00%) y la energia se desvia ~0,2%, coherente con hasta 1,5 kWh de redondeo
+repartidos en tres periodos. Un descuento real es de otro orden de magnitud (el test de
+regresion usa uno del 25%).
+
+**HALLAZGO COLATERAL, y es el mas util a largo plazo: el QR confirma que el divisor es 365.**
+Al hacer ese contraste sale que `prP x kW x dias/365` reproduce `impPot` **exactamente**, al
+centimo, en las facturas reales. Con 366 no cuadra. Es decir, la base comercial de 365 dias que
+usa `__LF_qrAnnualPowerPriceToDaily()` — y con la que el motor prorratea peajes desde siempre —
+no es solo una convencion interna del proyecto: **la confirma la propia fuente normativa**. Ese
+mismo dia se habia cambiado de "dias reales del anyo" a 365 fijo por coherencia con
+`js/pvpc.js`; esta comprobacion lo cierra con evidencia externa.
+
+**Los cuatro bordes que costaron tres iteraciones** (revision cruzada con ChatGPT, 25/08/2026;
+cada uno era un falso positivo capaz de acusar de descuento a quien no lo tiene):
+
+1. **`cambio=1` (cambio de precios DENTRO del periodo facturado).** La resolucion dice que en
+   ese caso `prE*`/`prP*` traen el precio ACTUALIZADO mientras `impEner`/`impPot` suman los dos
+   tramos. El contraste no puede distinguir eso de un descuento, asi que se sale antes con
+   `motivo: 'cambio-precios-periodo'` y un aviso propio que **no menciona la palabra descuento**.
+2. **Procedencia de `dias`.** Cuando el QR no trae `iniF`/`finF` validos, la combinacion de
+   fuentes rellena `dias` desde el PDF. Validar el `impPot` DECLARADO POR EL QR con dias de otra
+   fuente no es un contraste homogeneo: la potencia solo se contrasta si `qrInfo.fechaInicio` y
+   `qrInfo.fechaFin` existen, que es la senal de que el periodo pasa la validacion estricta.
+3. **`Number(null) === 0`.** Tanto en las magnitudes de entrada como en los importes declarados.
+   Una ausencia convertida en cero, frente a un calculo positivo, se lee como descuento. Se usa
+   un `num()` que solo acepta numeros finitos ya presentes; ausencia -> `NaN` -> `null` -> no
+   bloquea. **La falta de evidencia no puede convertirse en evidencia.**
+4. **`declarado === 0` no es "incontrastable".** Un subtotal de 0 EUR con precios positivos es
+   justo el caso de una bonificacion del 100% sobre ese termino, y debe detectarse. Se separa
+   del caso "el importe no viene".
+
+**Politica ante lo no contrastable (deliberada).** Si un termino no se puede contrastar, NO se
+bloquea: se prefiere un falso negativo —dejar pasar un descuento que solo afecta a un termino sin
+importe declarado— antes que retirar la importacion a todo el que tenga un QR incompleto, que es
+mucho mas frecuente. Solo bloquea la evidencia POSITIVA de incoherencia.
+
+**Regresiones que fijan todo esto** (`tests/factura-integration.test.js`): caso limpio,
+`importeEnergia` a 0 con energia positiva, magnitudes ausentes sin convertir a cero, importe
+ausente que no se lee como descuento, periodo QR invalido con dias del PDF, `cambio=1`, y el
+umbral por los dos lados (1% pasa, 3% bloquea). La mutacion que las valida es devolver
+`num()` a `Number()`.
+
+**No reportar como bug**:
+- Que "Mi tarifa" no se rellene desde una factura con descuento. Es la decision: es preferible
+  no ofrecer la comparacion a ofrecerla falseada.
+- Que la ficha siga mostrando los precios declarados aunque no se puedan importar. Son el dato
+  oficial que el usuario puede cotejar con su contrato; el rotulo dice "antes de descuentos".
+
+**Para reabrirlo** hace falta una factura real donde el contraste marque descuento y NO lo haya
+(falso positivo), o al reves. Es el escenario que conviene vigilar cuando aparezcan facturas de
+comercializadoras con estructuras de descuento raras.
+
+### Cache Del Censo CNMC: Un Fallo De Red No Puede Durar Toda La Sesion (RESUELTA 25/08/2026)
+
+`__LF_resolveCnmcCommercializer()` cachea el censo en `__LF_cnmcRegistryPromise` para no
+descargarlo en cada factura. El `.catch()` devolvia `{}` y la promesa quedaba **resuelta para
+siempre**: un corte transitorio en la primera factura dejaba a todas las siguientes sin nombre
+ni contacto de comercializadora hasta recargar la pagina. Detectado por ChatGPT el 25/08/2026.
+
+Correccion: purgar la promesa fallida dentro del propio `catch`, con **check de identidad**
+(`if (__LF_cnmcRegistryPromise === intento)`) para no anular una carga posterior que ya este en
+vuelo. Es exactamente el mismo patron —y el mismo fix— que se aplico a `__pvpcLoadMonth` en
+`js/index-extra.js` tras la auditoria del 10/07/2026. **Si vuelve a aparecer una cache de
+promesa en este repositorio, esa es la forma correcta de escribirla.**
+
+Severidad BAJA: no afecta a calculos ni al QR, solo al nombre mostrado.
+
 ### SEO, Datos Estructurados Y Core Web Vitals
 
 - La ausencia de `<meta name="robots" content="index,follow">` no es una carencia: `index,follow` es el comportamiento por defecto. Solo reporta `robots` si una directiva concreta bloquea o limita una URL indebidamente.

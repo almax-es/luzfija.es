@@ -1791,6 +1791,19 @@ body.lf-share-open { overflow: hidden; }
 .qr-factura-import-tarifa .fv-check{ align-items:flex-start; font-size:12px; font-weight:800; }
 .qr-factura-import-tarifa .fv-check input{ flex:0 0 auto; margin-top:2px; }
 .qr-factura-import-tarifa p{ margin:6px 0 0 24px; color:var(--muted); font-size:9px; line-height:1.4; }
+/* Sustituye a la casilla de importacion cuando los precios declarados no cuadran
+   con el importe facturado (descuento no reflejado en el QR). Ambar, no rojo: no
+   es un error de lectura, es un dato que no se puede usar para comparar. */
+.qr-factura-import-aviso{
+  margin-top:10px;
+  padding:10px;
+  border:1px solid rgba(245,158,11,.45);
+  border-radius:10px;
+  background:rgba(245,158,11,.10);
+  color:var(--text);
+  font-size:10px;
+  line-height:1.45;
+}
 .qr-factura-contact{
   display:flex;
   align-items:center;

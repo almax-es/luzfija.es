@@ -734,6 +734,253 @@ describe('Factura PDF Integration (Black Box)', () => {
     expect(global.toast).toHaveBeenCalledWith('✅ Datos y precios aplicados como “Mi tarifa”', 'ok');
   });
 
+  // El QR declara prE*/prP* SIN descuentos, pero impEner/impPot SI los incorporan
+  // (Resolucion CNMC, BOE-A-2022-16989). Mirar solo el campo `dto` no basta: la
+  // resolucion permite que el descuento venga ya dentro del importe. Aqui el QR es
+  // identico al de Bonpreu salvo impEner, rebajado de 19,54 a 15,54: los precios
+  // declarados dan 19,43 EUR de energia, un 25% por encima de lo facturado.
+  it('no ofrece importar a "Mi tarifa" si la factura aplica un descuento que el QR no refleja', async () => {
+    const qrUrl = [
+      'https://comparador.cnmc.gob.es/comparador/QRE2?',
+      'pP1=3&pP2=3&cfP1=89&cfP2=59&cfP3=80',
+      '&iniF=2026-07-15&finF=2026-08-14&fFact=2026-08-25',
+      '&com=R2-796&tc=E0&tf=N&finContrato=2027-07-15&finPen=0000-00-00',
+      '&rev=0&verde=1&imp=41.04&impPot=14.4&impEner=15.54&impSA=0',
+      '&finBS=0.74&impOtrosSinIE=0.8&prP1=29.2&prP2=29.2',
+      '&prE1=0.0852&prE2=0.0852&prE3=0.0852&pmaxP1=2.748&pmaxP2=3.108'
+    ].join('');
+    const padding = Array(8).fill({ str: 'relleno de texto de factura para superar el mínimo', transform: [0,0,0,0, 0, 0] });
+    const items = [
+      { str: 'Adreça de subministrament: Carrer Major 8 - 1ºD', transform: [0,0,0,0, 10, 100] },
+      { str: 'Període facturat. Dies: 30', transform: [0,0,0,0, 10, 90] },
+      ...padding
+    ];
+
+    window.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ commercializers: { 'R2-796': { name: 'BON PREU, SAU' } } })
+    });
+    window.pdfjsLib.getDocument.mockReturnValue({
+      promise: Promise.resolve({
+        numPages: 1,
+        getPage: () => Promise.resolve({
+          getTextContent: () => Promise.resolve({ items }),
+          getAnnotations: () => Promise.resolve([{ url: qrUrl }]),
+          cleanup: () => {},
+          getViewport: () => ({ width: 100, height: 100 }),
+          render: () => ({ promise: Promise.resolve() })
+        }),
+        cleanup: () => {},
+        destroy: () => {}
+      })
+    });
+
+    await import('../js/factura-parsers.js');
+    await import('../js/factura.js');
+    window.__LF_bindFacturaParser?.();
+
+    const mockFile = new File(['descuento'], 'factura-con-descuento.pdf', { type: 'application/pdf' });
+    mockFile.arrayBuffer = async () => new ArrayBuffer(10);
+    const event = new Event('change', { bubbles: true });
+    Object.defineProperty(event, 'target', { value: { files: [mockFile] } });
+    document.getElementById('fileInputFactura').dispatchEvent(event);
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const card = document.getElementById('formValidacionFactura').querySelector('.qr-factura-info');
+    expect(card).not.toBeNull();
+    // La ficha sigue mostrandose entera: lo que se retira es solo la importacion.
+    expect(card.textContent).toContain('BON PREU, SAU');
+    expect(card.querySelector('#usarPreciosQrMiTarifa')).toBeNull();
+    expect(card.querySelector('.qr-factura-import-aviso')).not.toBeNull();
+    expect(card.textContent).toContain('aplica un descuento');
+    // Los datos de consumo/potencia del QR SI son validos: no se toca la confianza.
+    expect(document.getElementById('confianzaBadge').textContent).toContain('100%');
+  });
+
+  // Un corte transitorio de red no puede dejar la pestana sin censo hasta recargar:
+  // la promesa fallida se purga para que el siguiente procesamiento reintente.
+  // Mismo patron que __pvpcLoadMonth en index-extra.js (auditoria del 10/07/2026).
+  it('reintenta el censo CNMC en la siguiente factura si el primer fetch falla', async () => {
+    vi.resetModules();
+    const qrUrl = [
+      'https://comparador.cnmc.gob.es/comparador/QRE2?',
+      'pP1=3&pP2=3&cfP1=89&cfP2=59&cfP3=80',
+      '&iniF=2026-07-15&finF=2026-08-14&fFact=2026-08-25',
+      '&com=R2-796&tc=E0&tf=N&finContrato=2027-07-15&finPen=0000-00-00',
+      '&rev=0&verde=1&imp=45.04&impPot=14.4&impEner=19.54&impSA=0',
+      '&prP1=29.2&prP2=29.2&prE1=0.0852&prE2=0.0852&prE3=0.0852'
+    ].join('');
+    const padding = Array(8).fill({ str: 'relleno de texto de factura para superar el mínimo', transform: [0,0,0,0, 0, 0] });
+    const items = [
+      { str: 'Període facturat. Dies: 30', transform: [0,0,0,0, 10, 90] },
+      ...padding
+    ];
+
+    let llamadas = 0;
+    window.fetch = vi.fn().mockImplementation(() => {
+      llamadas += 1;
+      if (llamadas === 1) return Promise.reject(new Error('red caida'));
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({ commercializers: { 'R2-796': { name: 'BON PREU, SAU' } } })
+      });
+    });
+    window.pdfjsLib.getDocument.mockReturnValue({
+      promise: Promise.resolve({
+        numPages: 1,
+        getPage: () => Promise.resolve({
+          getTextContent: () => Promise.resolve({ items }),
+          getAnnotations: () => Promise.resolve([{ url: qrUrl }]),
+          cleanup: () => {},
+          getViewport: () => ({ width: 100, height: 100 }),
+          render: () => ({ promise: Promise.resolve() })
+        }),
+        cleanup: () => {},
+        destroy: () => {}
+      })
+    });
+
+    await import('../js/factura-parsers.js');
+    await import('../js/factura.js');
+    window.__LF_bindFacturaParser?.();
+
+    const procesar = async nombre => {
+      const file = new File([nombre], `${nombre}.pdf`, { type: 'application/pdf' });
+      file.arrayBuffer = async () => new ArrayBuffer(10);
+      const ev = new Event('change', { bubbles: true });
+      Object.defineProperty(ev, 'target', { value: { files: [file] } });
+      document.getElementById('fileInputFactura').dispatchEvent(ev);
+      await new Promise(r => setTimeout(r, 500));
+    };
+
+    await procesar('primera');
+    // Primer intento: el censo no carga, la ficha sale sin nombre de comercializadora.
+    expect(llamadas).toBe(1);
+    expect(document.getElementById('nombreCompania').textContent).not.toBe('BON PREU, SAU');
+
+    await procesar('segunda');
+    // Sin la purga del catch, aqui NO habria segundo fetch y el nombre no aparaceria nunca.
+    expect(llamadas).toBe(2);
+    expect(document.getElementById('nombreCompania').textContent).toBe('BON PREU, SAU');
+  });
+
+  // `cambio=1` = cambio de precios DENTRO del periodo facturado (Resolucion CNMC):
+  // prE*/prP* traen el precio actualizado, pero impEner/impPot suman los dos tramos.
+  // El contraste no puede distinguir eso de un descuento, asi que no debe acusar de
+  // descuento a quien solo cambio de precio. Detectado por ChatGPT el 25/08/2026.
+  it('no confunde un cambio de precios a mitad de periodo con un descuento', async () => {
+    const qrUrl = [
+      'https://comparador.cnmc.gob.es/comparador/QRE2?',
+      'pP1=3&pP2=3&cfP1=89&cfP2=59&cfP3=80',
+      '&iniF=2026-07-15&finF=2026-08-14&fFact=2026-08-25',
+      '&com=R2-796&tc=E0&tf=N&cambio=1',
+      '&rev=0&verde=1&imp=41.04&impPot=14.4&impEner=15.54&impSA=0',
+      '&prP1=29.2&prP2=29.2&prE1=0.0852&prE2=0.0852&prE3=0.0852'
+    ].join('');
+    const padding = Array(8).fill({ str: 'relleno de texto de factura para superar el mínimo', transform: [0,0,0,0, 0, 0] });
+    const items = [
+      { str: 'Període facturat. Dies: 30', transform: [0,0,0,0, 10, 90] },
+      ...padding
+    ];
+
+    window.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ commercializers: { 'R2-796': { name: 'BON PREU, SAU' } } })
+    });
+    window.pdfjsLib.getDocument.mockReturnValue({
+      promise: Promise.resolve({
+        numPages: 1,
+        getPage: () => Promise.resolve({
+          getTextContent: () => Promise.resolve({ items }),
+          getAnnotations: () => Promise.resolve([{ url: qrUrl }]),
+          cleanup: () => {},
+          getViewport: () => ({ width: 100, height: 100 }),
+          render: () => ({ promise: Promise.resolve() })
+        }),
+        cleanup: () => {},
+        destroy: () => {}
+      })
+    });
+
+    await import('../js/factura-parsers.js');
+    await import('../js/factura.js');
+    window.__LF_bindFacturaParser?.();
+
+    const mockFile = new File(['cambio'], 'factura-cambio-precios.pdf', { type: 'application/pdf' });
+    mockFile.arrayBuffer = async () => new ArrayBuffer(10);
+    const event = new Event('change', { bubbles: true });
+    Object.defineProperty(event, 'target', { value: { files: [mockFile] } });
+    document.getElementById('fileInputFactura').dispatchEvent(event);
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const card = document.getElementById('formValidacionFactura').querySelector('.qr-factura-info');
+    expect(card.querySelector('#usarPreciosQrMiTarifa')).toBeNull();
+    const aviso = card.querySelector('.qr-factura-import-aviso');
+    expect(aviso).not.toBeNull();
+    expect(aviso.textContent).toContain('cambio de precios a mitad del periodo');
+    // Lo importante: NO se le dice al usuario que tiene un descuento.
+    expect(aviso.textContent).not.toContain('descuento');
+  });
+
+  // Bordes del contraste QR/importes, cerrados el 25/08/2026 tras la revision cruzada.
+  // Se ejercita el helper directamente: montar un PDF por caso multiplicaria el tiempo
+  // de la suite sin anadir cobertura sobre la regla, que es lo que se quiere fijar.
+  describe('coherencia entre precios declarados e importes del QR (bordes)', () => {
+    const PRECIOS = { punta: 0.1, llano: 0.1, valle: 0.1, p1: 0.08, p2: 0.08 };
+    const base = extra => ({
+      consumoPunta: 100, consumoLlano: 100, consumoValle: 100,
+      p1: 3, p2: 3, dias: 30,
+      qrInfo: {
+        fechaInicio: '2026-07-15', fechaFin: '2026-08-14',
+        importeEnergia: 30, importePotencia: 14.4,
+        ...extra
+      }
+    });
+
+    const evaluar = datos => window.__LF_facturaQrHelpers.qrPricesMatchDeclaredAmounts(datos, PRECIOS);
+
+    it('acepta el caso limpio', () => {
+      expect(evaluar(base()).coherente).toBe(true);
+    });
+
+    it('un importe de energia a 0 con energia calculada positiva ES un descuento, no un dato incontrastable', () => {
+      const r = evaluar(base({ importeEnergia: 0 }));
+      expect(r.coherente).toBe(false);
+      expect(r.motivo).toBe('descuento-no-reflejado');
+    });
+
+    it('no convierte una magnitud ausente en cero', () => {
+      // Sin consumos no hay contraste de energia posible: null, no "0 EUR calculados".
+      const datos = { ...base(), consumoPunta: null, consumoLlano: null, consumoValle: null };
+      const r = evaluar(datos);
+      expect(r.energiaOk).toBeNull();
+      expect(r.coherente).toBe(true);
+    });
+
+    it('no valida la potencia con dias recuperados del PDF si el QR no trae periodo propio', () => {
+      // impPot declarado imposible (100 EUR): si se contrastara, bloquearia. Como el QR
+      // no aporta periodo, los dias son del PDF y ese termino queda sin contrastar.
+      const datos = base({ fechaInicio: null, fechaFin: null, importePotencia: 100 });
+      const r = evaluar(datos);
+      expect(r.potenciaOk).toBeNull();
+      expect(r.coherente).toBe(true);
+    });
+
+    it('un importe ausente no se lee como 0 ni, por tanto, como descuento', () => {
+      // Number(null) daria 0 y, frente a 30 EUR calculados, se leeria como descuento.
+      // La ausencia de evidencia no puede convertirse en evidencia de descuento.
+      const r = evaluar(base({ importeEnergia: null }));
+      expect(r.energiaOk).toBeNull();
+      expect(r.coherente).toBe(true);
+    });
+
+    it('fija el umbral: 1% pasa y 3% bloquea', () => {
+      // energia calculada = 30 EUR exactos
+      expect(evaluar(base({ importeEnergia: 30 / 1.01 })).coherente).toBe(true);
+      expect(evaluar(base({ importeEnergia: 30 / 1.03 })).coherente).toBe(false);
+    });
+  });
+
   it('no mezcla días de una factura anterior con el QR CNMC de otra factura del mismo PDF', async () => {
     const qrUrl = 'https://comparador.cnmc.gob.es/comparador/QRE?pP1=3.45kW&pP2=4.60kW&cfP1=100kWh&cfP2=200kWh&cfP3=300kWh&iniF=2026-02-01&finF=2026-03-01';
     const padding = Array(6).fill({ str: 'relleno de texto para superar el minimo de extraccion', transform: [0,0,0,0, 0, 0] });

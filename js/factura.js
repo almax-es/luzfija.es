@@ -101,7 +101,7 @@
         if (!__LF_isCnmcCommercializerCode(normalizedCode) || typeof window.fetch !== 'function') return null;
 
         if (!__LF_cnmcRegistryPromise) {
-          __LF_cnmcRegistryPromise = window.fetch(
+          const intento = window.fetch(
             __LF_versionedUrl('data/cnmc-commercializers.json'),
             { cache: 'force-cache', credentials: 'same-origin' }
           ).then(async response => {
@@ -112,8 +112,14 @@
               : {};
           }).catch(error => {
             lfDbg('[QR] No se pudo cargar el censo CNMC:', error?.message || error);
+            // Un corte transitorio no puede dejar la pestana sin censo hasta que se
+            // recargue: se purga la promesa fallida para que la siguiente factura
+            // reintente. El check de identidad evita anular una carga posterior que
+            // ya este en vuelo (mismo patron que __pvpcLoadMonth en index-extra.js).
+            if (__LF_cnmcRegistryPromise === intento) __LF_cnmcRegistryPromise = null;
             return {};
           });
+          __LF_cnmcRegistryPromise = intento;
         }
 
         const registry = await __LF_cnmcRegistryPromise;
@@ -792,8 +798,119 @@
         section.appendChild(group);
       }
 
-      function __LF_appendQrCustomTarifaSelector(section, prices) {
-        if (!prices) return;
+      // El QR declara prE*/prP* SIN impuestos NI descuentos (Resolucion CNMC,
+      // BOE-A-2022-16989), mientras impEner/impPot SI incorporan los descuentos
+      // asociados a esos terminos. Contrastarlos revela si la factura aplica un
+      // descuento que los precios declarados no reflejan. Mirar solo el campo `dto`
+      // NO basta: la resolucion permite que el descuento venga ya incorporado al
+      // importe y no aparezca ahi.
+      //
+      // Tolerancia: los consumos del QR (cfP1/2/3) llegan en kWh ENTEROS, asi que
+      // parte del desvio es redondeo de la propia fuente, no descuento. Medido sobre
+      // facturas reales sin descuento: la potencia cuadra al centimo (0,00%) y la
+      // energia desvia ~0,2%. Un descuento real es de otro orden de magnitud.
+      //
+      // De paso, esta comprobacion es la confirmacion normativa del divisor 365 que
+      // usa __LF_qrAnnualPowerPriceToDaily: prP x kW x dias/365 reproduce impPot
+      // EXACTAMENTE en las facturas del banco de pruebas; con 366 no cuadra.
+      const QR_COHERENCIA_TOLERANCIA = 0.02;
+      const QR_COHERENCIA_MINIMO_EUR = 0.15;
+
+      function __LF_qrPricesMatchDeclaredAmounts(datos, precios) {
+        if (!precios) return { coherente: false, precios: null, motivo: 'sin-precios' };
+
+        const info = datos?.qrInfo;
+
+        // `cambio=1` significa que hubo un cambio de precios DENTRO del periodo
+        // facturado: prE*/prP* traen el precio ACTUALIZADO mientras impEner/impPot
+        // son el subtotal de toda la factura, con los dos precios mezclados. El
+        // contraste no puede distinguir ahi un descuento de un cambio de tarifa, y
+        // acusar de descuento a quien solo cambio de precio seria peor que callar.
+        if (Number(info?.cambioPrecios) === 1) {
+          return { coherente: false, precios: null, motivo: 'cambio-precios-periodo' };
+        }
+
+        // Number(null) y Number('') son 0: una ausencia se convertiria en un cero
+        // que falsea el contraste. Solo valen numeros finitos ya presentes.
+        const num = valor => (typeof valor === 'number' && Number.isFinite(valor) ? valor : NaN);
+        const dias = num(datos?.dias);
+        const consumos = [datos?.consumoPunta, datos?.consumoLlano, datos?.consumoValle].map(num);
+        const potencias = [datos?.p1, datos?.p2].map(num);
+
+        const comparar = (calculado, declarado) => {
+          if (!Number.isFinite(calculado) || !Number.isFinite(declarado) || declarado < 0) return null;
+          const desvio = Math.abs(calculado - declarado);
+          // Un subtotal declarado de 0 con precios positivos NO es "incontrastable":
+          // es justo el caso de una promocion del 100% sobre ese termino.
+          if (declarado === 0) return desvio <= QR_COHERENCIA_MINIMO_EUR;
+          return desvio <= QR_COHERENCIA_MINIMO_EUR || desvio / declarado <= QR_COHERENCIA_TOLERANCIA;
+        };
+
+        const energiaCalculada = consumos.every(Number.isFinite)
+          ? consumos[0] * precios.punta + consumos[1] * precios.llano + consumos[2] * precios.valle
+          : NaN;
+        // `dias` puede venir del PDF cuando el QR no trae iniF/finF validos (ver la
+        // combinacion en el paso 3). Validar el impPot DECLARADO POR EL QR con dias
+        // de otra fuente no seria un contraste homogeneo, asi que la potencia solo se
+        // contrasta si el propio QR aporta el periodo. `fechaInicio`/`fechaFin` solo
+        // se rellenan cuando esas fechas pasan la validacion estricta.
+        const periodoDelQr = Boolean(info?.fechaInicio && info?.fechaFin);
+        const potenciaCalculada = periodoDelQr && potencias.every(Number.isFinite) && Number.isFinite(dias)
+          ? (potencias[0] * precios.p1 + potencias[1] * precios.p2) * dias
+          : NaN;
+
+        // num() y no Number(): un importe ausente (`null`) daria 0 y, frente a un
+        // calculo positivo, se leeria como descuento. La falta de evidencia no puede
+        // convertirse en evidencia.
+        const energiaOk = comparar(energiaCalculada, num(info?.importeEnergia));
+        const potenciaOk = comparar(potenciaCalculada, num(info?.importePotencia));
+
+        // `null` = ese termino no se puede contrastar (el QR no trae el importe, o el
+        // periodo no es suyo). DECISION DELIBERADA: no bloquea. Se prefiere un falso
+        // negativo —dejar pasar un descuento que solo afecta a un termino no
+        // contrastable— antes que retirar la importacion a todo el que tenga un QR
+        // incompleto, que es mucho mas frecuente. Si un termino SI se puede contrastar
+        // y falla, eso si bloquea.
+        if (energiaOk === false || potenciaOk === false) {
+          return {
+            coherente: false,
+            precios: null,
+            motivo: 'descuento-no-reflejado',
+            energiaOk,
+            potenciaOk
+          };
+        }
+        return { coherente: true, precios, motivo: 'ok', energiaOk, potenciaOk };
+      }
+
+      // Expuesto solo para pruebas: la regla de coherencia QR/importes tiene bordes
+      // (cambio de precios en el periodo, importes a 0, periodo ausente) que se fijan
+      // mejor contra la funcion que montando un PDF completo por caso.
+      window.__LF_facturaQrHelpers = {
+        qrPricesMatchDeclaredAmounts: __LF_qrPricesMatchDeclaredAmounts
+      };
+
+      function __LF_appendQrCustomTarifaSelector(section, prices, coherencia) {
+        if (!prices) {
+          const MOTIVOS = {
+            'descuento-no-reflejado': 'No se ofrecen estos precios para "Mi tarifa": el importe '
+              + 'facturado no cuadra con los precios declarados, señal de que tu factura aplica un '
+              + 'descuento que el QR no recoge. Importarlos haría parecer tu tarifa más cara de lo '
+              + 'que pagas.',
+            'cambio-precios-periodo': 'No se ofrecen estos precios para "Mi tarifa": esta factura '
+              + 'tuvo un cambio de precios a mitad del periodo, así que el QR declara el precio '
+              + 'nuevo mientras los importes suman los dos. Puedes introducirlos a mano si sabes '
+              + 'cuál es el que te aplica ahora.'
+          };
+          const texto = MOTIVOS[coherencia?.motivo];
+          if (texto) {
+            const aviso = document.createElement('p');
+            aviso.className = 'qr-factura-import-aviso';
+            aviso.textContent = texto;
+            section.appendChild(aviso);
+          }
+          return;
+        }
         const wrap = document.createElement('div');
         wrap.className = 'qr-factura-import-tarifa';
 
@@ -808,7 +925,7 @@
         label.append(checkbox, title);
 
         const note = document.createElement('p');
-        note.textContent = 'Importa solo energía y potencia. No mezcla descuentos, servicios, autoconsumo ni batería virtual anteriores.';
+        note.textContent = 'Son los precios base que tu comercializadora declara en el QR, antes de descuentos. Importa solo energía y potencia: no mezcla descuentos, servicios, autoconsumo ni batería virtual anteriores.';
         wrap.append(label, note);
         section.appendChild(wrap);
       }
@@ -865,15 +982,18 @@
           { label: 'Oferta de energía verde', value: info.energiaVerde == null ? null : (info.energiaVerde ? 'Sí' : 'No') }
         ]);
 
-        __LF_appendQrInfoGroup(section, 'Precios contratados', [
+        __LF_appendQrInfoGroup(section, 'Precios contratados (antes de descuentos)', [
           { label: 'Energía punta', value: Number.isFinite(info.precioEnergiaP1) ? `${__LF_formatQrNumber(info.precioEnergiaP1, 6)} €/kWh` : null },
           { label: 'Energía llano', value: Number.isFinite(info.precioEnergiaP2) ? `${__LF_formatQrNumber(info.precioEnergiaP2, 6)} €/kWh` : null },
           { label: 'Energía valle', value: Number.isFinite(info.precioEnergiaP3) ? `${__LF_formatQrNumber(info.precioEnergiaP3, 6)} €/kWh` : null },
           { label: 'Potencia punta', value: __LF_formatQrPowerPrice(info.precioPotenciaP1) },
           { label: 'Potencia valle', value: __LF_formatQrPowerPrice(info.precioPotenciaP2) }
         ]);
-        __LF_lastQrCustomTarifaPrices = __LF_qrInfoToCustomTarifaPrices(info);
-        __LF_appendQrCustomTarifaSelector(section, __LF_lastQrCustomTarifaPrices);
+        const coherencia = __LF_qrPricesMatchDeclaredAmounts(datos, __LF_qrInfoToCustomTarifaPrices(info));
+        // Si la factura aplica un descuento que los precios declarados no reflejan,
+        // importarlos haria parecer la tarifa del usuario mas cara de lo que paga.
+        __LF_lastQrCustomTarifaPrices = coherencia.coherente ? coherencia.precios : null;
+        __LF_appendQrCustomTarifaSelector(section, __LF_lastQrCustomTarifaPrices, coherencia);
 
         __LF_appendQrInfoGroup(section, 'Desglose declarado', [
           { label: 'Potencia', value: __LF_formatQrEuro(info.importePotencia) },
