@@ -2,6 +2,15 @@
   "_meta": {
     "schema": 1,
     "source": "https://sede.cnmc.gob.es/listado/censo/2",
+    "syncedAt": "2026-08-25",
+    "count": 936,
+    "sourceRows": 937,
+    "duplicateCodes": [
+      "R2-222"
+    ],
+    "invalidWebsiteCodes": [
+      "R2-1123"
+    ],
     "description": "Censo público de comercializadores de electricidad de la CNMC. No contiene datos de clientes."
   },
   "commercializers": {
@@ -115,19 +124,782 @@
     "R2-099": {
       "name": "E-COGENIA, S.L."
     },
+    "R2-1000": {
+      "name": "SERVICIOS ENERGETICOS AVANZADOS, S.L.",
+      "phone": "900 525 560",
+      "website": "http://seravanzados.com/"
+    },
+    "R2-1001": {
+      "name": "ENEX SOCIAL ENERGY, S.L.",
+      "phone": "900 978 062",
+      "website": "http://www.enex.es/"
+    },
+    "R2-1002": {
+      "name": "URANOSCOPIDAE VII, S.L.",
+      "phone": "900 377 503",
+      "website": "https://uranoscopidae-vii.com/"
+    },
+    "R2-1003": {
+      "name": "ACENHOL ENERGIA CANARIAS, S.L",
+      "phone": "900 103 178",
+      "website": "https://www.on510.es/"
+    },
+    "R2-1004": {
+      "name": "EVERSHINING ENERGY SOCIEDAD LIMITADA",
+      "phone": "900 732 890",
+      "website": "https://everenergy.es/"
+    },
+    "R2-1005": {
+      "name": "ENERMIA COMERCIALIZADORA ELECTRICA, S.L.",
+      "phone": "900 732 986",
+      "website": "http://www.enermia.es/"
+    },
+    "R2-1006": {
+      "name": "ENGEL COMERCIALIZADORA,S.L.",
+      "phone": "900 264 168",
+      "website": "https://engelenergy.es/es/tarifa-luz"
+    },
+    "R2-1007": {
+      "name": "KARMA ALIMUR, S.L.",
+      "phone": "900 877 818",
+      "website": "https://www.isoen.es/"
+    },
+    "R2-1008": {
+      "name": "HILLTECH DIGITAL, S.L. UNIPERSONAL",
+      "phone": "900 060 195",
+      "website": "http://silverenergia.com/"
+    },
+    "R2-1009": {
+      "name": "ESAVEN RE9 SOCIEDAD LIMITADA",
+      "phone": "900 877 315",
+      "website": "https://esaven.es/"
+    },
+    "R2-1010": {
+      "name": "APOLO BUSINESS, S.L.",
+      "phone": "900 801 215",
+      "website": "https://apoloenergies.es/"
+    },
+    "R2-1011": {
+      "name": "COLORS COMERCIALIZADORA, SL",
+      "phone": "900 802 836",
+      "website": "https://colorsenergy.es/"
+    },
+    "R2-1012": {
+      "name": "ENERTIA GROUP S.L.",
+      "phone": "900 670 799",
+      "website": "http://www.enertiaenergia.com/"
+    },
+    "R2-1013": {
+      "name": "HYDROEXERGY, S.L.",
+      "phone": "900 732 898",
+      "website": "https://libresoy.es/"
+    },
+    "R2-1014": {
+      "name": "ASSENN ENERGY, S.L.",
+      "phone": "900 101 661",
+      "website": "https://assenn.es/"
+    },
+    "R2-1015": {
+      "name": "ALMA LUZ Y GAS, S.L",
+      "phone": "900 802 837",
+      "website": "https://almaluzygas.es/"
+    },
+    "R2-1016": {
+      "name": "WIKU ENERGIA, S.L.",
+      "phone": "900 525 567",
+      "website": "https://wiku.es/"
+    },
+    "R2-1017": {
+      "name": "GUNVOR INTERNATIONAL B.V. (SUCURSAL EN SUIZA)"
+    },
+    "R2-1018": {
+      "name": "HERA ENERGÍA, S.L.",
+      "phone": "900 264 107",
+      "website": "http://www.hera-energia.com/"
+    },
+    "R2-1019": {
+      "name": "POWEN IBERIA, S.L. UNIPERSONAL",
+      "phone": "900 535 795",
+      "website": "http://www.powen.es/"
+    },
     "R2-102": {
       "name": "LA UNIÓN ELECTRO INDUSTRIAL, S.L.U",
       "phone": "900 103 314",
       "website": "http://www.enercoop.es/"
+    },
+    "R2-1020": {
+      "name": "SOCIEDAD MUNICIPAL DE GESTION URBANISTICA DE LAS PALMAS DE GRAN CANARIA, S.A.",
+      "phone": "900 701 071",
+      "website": "https://www.geursa.es/comercializadora/"
+    },
+    "R2-1021": {
+      "name": "DIRECT GREEN SL",
+      "phone": "900 525 522",
+      "website": "https://directgreen.invesyde.com/"
+    },
+    "R2-1022": {
+      "name": "LUCIFERASA-1 ENERGÍA, S.L.",
+      "phone": "900 377 617",
+      "website": "https://fluxaenergy.com/"
+    },
+    "R2-1023": {
+      "name": "IBAR ENERGIA, S.L.",
+      "phone": "900 670 793",
+      "website": "http://www.ibarenergia.com/"
+    },
+    "R2-1024": {
+      "name": "SPOCK P2P, S.L.",
+      "phone": "900 670 922",
+      "website": "https://spock.es/informacion-sobre-spock-p2p-sl"
+    },
+    "R2-1025": {
+      "name": "GRIBEN RENOVABLES, S.L.",
+      "phone": "900 903 749",
+      "website": "http://gribenrenovables.com/"
+    },
+    "R2-1026": {
+      "name": "PROACTIVA Y DESARROLLO EMPRESARIAL, S.L.",
+      "phone": "900 433 120",
+      "website": "https://proaso.es/"
+    },
+    "R2-1027": {
+      "name": "TH ELECTRICITY GAS, S.L.",
+      "phone": "900 104 423",
+      "website": "https://thelectricity.com/"
+    },
+    "R2-1028": {
+      "name": "AIZEN ENERGIA SOSTENIBLE Y RENOVABLE, S.L.",
+      "phone": "900 877 611",
+      "website": "https://www.aizenenergia.com/"
+    },
+    "R2-1029": {
+      "name": "POWER SOLAR TRADE SL",
+      "phone": "900 809 206",
+      "website": "https://powersolarsl.com/"
+    },
+    "R2-1030": {
+      "name": "MALAKA ENERGIA 2022, S.L.",
+      "phone": "900 433 065",
+      "website": "http://malakaenergia.com/"
+    },
+    "R2-1031": {
+      "name": "GREENSUNRISE ENERGY SL",
+      "phone": "900 056 090",
+      "website": "https://greensunriseenergy.com/"
+    },
+    "R2-1032": {
+      "name": "INDAREL KUDEAKETA, S.L.U.",
+      "phone": "900 377 210",
+      "website": "http://www.indarel.net/"
+    },
+    "R2-1033": {
+      "name": "ZETA ENERXÍA GALEGA, S.L.",
+      "phone": "900 645 007",
+      "website": "https://www.zetaenerxia.com/"
+    },
+    "R2-1034": {
+      "name": "VIMCOMEL SL",
+      "phone": "900 645 674",
+      "website": "http://www.vimcoenergia.es/"
+    },
+    "R2-1035": {
+      "name": "MOLALUZ ENERGIA, S.L.",
+      "phone": "900 877 216",
+      "website": "http://www.molaluzenergia.es/"
+    },
+    "R2-1036": {
+      "name": "IDES ENERGIA, S.L.",
+      "phone": "900 645 677",
+      "website": "https://www.idesenergia.com/"
+    },
+    "R2-1037": {
+      "name": "ATRIA INVERSIONES ENERGIA, S.L.",
+      "phone": "900 433 097",
+      "website": "https://www.atriacorp.com/"
+    },
+    "R2-1038": {
+      "name": "ISAE COMERCIALIZACION, S.L.",
+      "phone": "900 732 940",
+      "website": "https://www.isaecomercializacion.es/"
+    },
+    "R2-1039": {
+      "name": "SAMARA ENERGIA VPP, S.L.",
+      "phone": "900 431 929",
+      "website": "https://besanaenergia.com/"
+    },
+    "R2-1040": {
+      "name": "HAFESA MOBILITY ELC, S.L.",
+      "phone": "900 052 005",
+      "website": "https://aletteo.net/"
+    },
+    "R2-1041": {
+      "name": "AMPERE ENERGY COMERCIALIZADORA Y SERVICIOS ENERGETICOS, S.R.L.",
+      "phone": "900 101 305",
+      "website": "https://ampere-energy.es/es-es/comercializadora"
+    },
+    "R2-1042": {
+      "name": "A2J ENERGÍA, S.L.",
+      "phone": "900 907 713",
+      "website": "https://a2jenergia.es/"
+    },
+    "R2-1043": {
+      "name": "VESTA RENOVABLES, S.L.",
+      "phone": "900 701 312",
+      "website": "https://vestarenovables.com/"
+    },
+    "R2-1044": {
+      "name": "LEON COMERCIALIZADORA DE ENERGIA, S.L.",
+      "phone": "900 056 052",
+      "website": "https://leonenergia.com/"
+    },
+    "R2-1045": {
+      "name": "ENERGIA UNICA SOLUCIONES INTEGRALES, S.L.",
+      "phone": "900 834 948",
+      "website": "http://energiaunica.com/"
+    },
+    "R2-1046": {
+      "name": "KIRIN RENOVABLES,S.L.",
+      "phone": "900 877 348",
+      "website": "http://www.kirinrenovables.com/"
+    },
+    "R2-1047": {
+      "name": "POLAR COMERCIALIZADORA ELÉCTRICA, S.L.",
+      "phone": "900 433 102",
+      "website": "http://www.polarenergia.com/"
+    },
+    "R2-1048": {
+      "name": "ALIZA ENERGY, S.L.",
+      "phone": "900 060 214",
+      "website": "https://alizaenergy.es/"
+    },
+    "R2-1049": {
+      "name": "ENERSA ELECTRICIDAD, S.A.",
+      "phone": "900 001 792",
+      "website": "https://enersaenergia.com/"
+    },
+    "R2-1050": {
+      "name": "BEST OPTION ENERGY",
+      "phone": "900 834 476",
+      "website": "https://www.terra-enova.com/"
+    },
+    "R2-1051": {
+      "name": "SAMA2 ENERGY, S.L.",
+      "phone": "900 877 688",
+      "website": "https://samaenergy.es/"
+    },
+    "R2-1052": {
+      "name": "BESPIN ENERGÍA, S.L.",
+      "phone": "800 088 200",
+      "website": "https://bespinenergia.es/"
+    },
+    "R2-1053": {
+      "name": "KAIBI INVESTMENT, S.L.",
+      "phone": "900 809 384",
+      "website": "http://www.yourenergy.es/"
+    },
+    "R2-1054": {
+      "name": "TOMMI ENERGY, S.L.",
+      "phone": "900 101 860",
+      "website": "https://tommienergy.es/"
+    },
+    "R2-1055": {
+      "name": "SECOND FOUNDATION TRADING AG",
+      "phone": "900 525 510",
+      "website": "https://second-foundation.ch/"
+    },
+    "R2-1056": {
+      "name": "FASTLIGHT, S.L.",
+      "phone": "900 926 161",
+      "website": "http://www.niba.es/"
+    },
+    "R2-1057": {
+      "name": "CAPWATT COMERCIAL, S.L.U.",
+      "phone": "900 103 094",
+      "website": "https://www.capwatt.com/es/solucion-integrada-de-energia/comercializacion"
+    },
+    "R2-1058": {
+      "name": "ATP ENERGIA, S.L.",
+      "phone": "900 899 250",
+      "website": "https://atpenergia.com/"
+    },
+    "R2-1059": {
+      "name": "SAHKOA SMART ENERGY, S.L.",
+      "phone": "900 732 858",
+      "website": "http://www.sahkoa.es/"
+    },
+    "R2-1060": {
+      "name": "LUXIA ENERGIA Y CONSULTORES, S.L.",
+      "phone": "900 433 096",
+      "website": "https://luxiaenergia.es/"
+    },
+    "R2-1061": {
+      "name": "CHURCH ENERGY, S.L.",
+      "phone": "900 056 085",
+      "website": "https://www.churchenergia.com/"
+    },
+    "R2-1062": {
+      "name": "PISUERGA INFRAESTRUCTURAS ENERGETICAS, S.L.",
+      "phone": "900 053 752",
+      "website": "https://pisuergaenergia.com/"
+    },
+    "R2-1063": {
+      "name": "URANOSCOPIDAE ENERGIA VI, S.L.",
+      "phone": "900 680 730",
+      "website": "http://www.metclientes.com/"
+    },
+    "R2-1064": {
+      "name": "INARGY SPOT, S.L.U.",
+      "phone": "900 056 027",
+      "website": "http://www.inargy.com/"
+    },
+    "R2-1065": {
+      "name": "JOVE ENERGIA RENOVABLE, S.L.",
+      "phone": "900 877 303",
+      "website": "https://www.jovenergia.es/"
+    },
+    "R2-1066": {
+      "name": "RDG COMERCIALIZADORA GALEGA DE ENERXÍA, S.A.",
+      "phone": "900 700 505",
+      "website": "https://rdgcomercializadora.gal/"
+    },
+    "R2-1067": {
+      "name": "ENERGY INDEX, S.L.",
+      "phone": "900 801 229",
+      "website": "https://energyindex.es/"
+    },
+    "R2-1068": {
+      "name": "CUVER DESTELLA ENERGIA, S.L.",
+      "phone": "900 056 007",
+      "website": "https://www.destella.es/"
+    },
+    "R2-1069": {
+      "name": "ENERGREEN MOBILITY S.L",
+      "phone": "900 841 324",
+      "website": "http://www.energreenmobi.com/"
+    },
+    "R2-1070": {
+      "name": "NEXT ENERGY PLUS, S.L.",
+      "phone": "900 433 000",
+      "website": "http://www.nextenergyplus.com/"
+    },
+    "R2-1071": {
+      "name": "INICIATIVAS ENERGETICAS AXTRA ENERGY, S.L.",
+      "phone": "900 877 708",
+      "website": "https://axtraenergy.com/"
+    },
+    "R2-1072": {
+      "name": "BG SINERGY EUROPA, S.L.",
+      "phone": "900 056 095",
+      "website": "https://sinergye.wordpress.com/"
+    },
+    "R2-1073": {
+      "name": "LUZYGAS IBERIA, S.L.",
+      "phone": "900 433 118",
+      "website": "https://luzygasiberia.es/"
+    },
+    "R2-1074": {
+      "name": "MASNORTE GLOBAL POWER, S.L.",
+      "phone": "900 907 054",
+      "website": "http://www.masnorte.es/"
+    },
+    "R2-1075": {
+      "name": "LADYWARSAW INVESTMENT, S.L.",
+      "phone": "900 831 267",
+      "website": "http://www.enerlow.es/"
+    },
+    "R2-1076": {
+      "name": "NORDWESTEN ENERGIE, S.L.",
+      "phone": "900 670 915",
+      "website": "https://nwenergie.com/"
+    },
+    "R2-1077": {
+      "name": "GREEN ENERGY 360, S.L.",
+      "phone": "900 903 750",
+      "website": "https://www.greenenergygroup.es/"
+    },
+    "R2-1078": {
+      "name": "SIMPLIA ENERGIA, S.L",
+      "phone": "900 877 710",
+      "website": "http://www.simpliaenergia.com/"
+    },
+    "R2-1079": {
+      "name": "DON BELTRAN MARKET, S.L.",
+      "phone": "900 732 878",
+      "website": "https://energiaduero.com/"
+    },
+    "R2-1080": {
+      "name": "MAS ALLA PRODUCTOS ENERGETICOS, S.L.",
+      "phone": "900 264 200",
+      "website": "https://masalla-energia.com/"
+    },
+    "R2-1081": {
+      "name": "CAPTURA ENERGIA",
+      "phone": "900 056 040",
+      "website": "http://https//capturaenergia.com/"
+    },
+    "R2-1082": {
+      "name": "ENUCA COMERCIALIZADORA, S.L.",
+      "phone": "900 060 223",
+      "website": "https://enucaenergia.es/"
+    },
+    "R2-1083": {
+      "name": "IGNIS ELECTRICIDAD Y GAS, S.L.",
+      "phone": "900 802 801",
+      "website": "http://grandesconsumidores.ignisenergia.es/"
+    },
+    "R2-1084": {
+      "name": "GEO LUZ Y GAS SLU",
+      "phone": "900 834 921",
+      "website": "https://geoluzygas.com/"
+    },
+    "R2-1085": {
+      "name": "TORNADIZOS ENERGY, S.L.",
+      "phone": "900 056 024",
+      "website": "https://tornadizosenergy.com/"
+    },
+    "R2-1086": {
+      "name": "COMERCIALIZADORA ELECTRICA DE TENERIFE, S.L.",
+      "phone": "900 645 009",
+      "website": "https://comercializadoraelectricadetenerife.es/"
+    },
+    "R2-1087": {
+      "name": "SONESTA LUZ, S.L.",
+      "phone": "900 732 839",
+      "website": "http://www.sonestaluz.es/"
+    },
+    "R2-1088": {
+      "name": "TRICLINIUM INVERSIONES, S.L.",
+      "phone": "900 834 906",
+      "website": "http://polarysenergia.com/"
+    },
+    "R2-1089": {
+      "name": "SERVINERGIA ELECTRICA, S.L.",
+      "phone": "900 470 001",
+      "website": "https://servinergia.com/"
     },
     "R2-109": {
       "name": "FACTOR ENERGÍA, S.A.",
       "phone": "900 64 90 28",
       "website": "http://www.factorenergia.com/"
     },
+    "R2-1090": {
+      "name": "COMERCIALIZADORA DE ENERGIAS RENOVABLES Y DE SERVICIOS DE LUZ AMA Y GAS ZON, S.L.",
+      "phone": "900 264 923",
+      "website": "http://www.amazonenergy.es/"
+    },
+    "R2-1091": {
+      "name": "NOCTILUCA ENERGIA, S.L.",
+      "phone": "900 377 656",
+      "website": "http://www.noctienergia.com/"
+    },
+    "R2-1092": {
+      "name": "LUCKY LUZ ENERGIA, S.L.",
+      "phone": "900 877 183",
+      "website": "https://luckyluz.es/"
+    },
+    "R2-1093": {
+      "name": "AEQ W2M, S.A.",
+      "phone": "900 823 923",
+      "website": "http://www.aeqenergia.com/"
+    },
+    "R2-1094": {
+      "name": "POWER PULSE IBERIA, S.L..",
+      "phone": "900 264 727",
+      "website": "http://www.power-pulse-iberia.com/"
+    },
+    "R2-1095": {
+      "name": "INER MADRID, S.L.",
+      "phone": "900 848 402",
+      "website": "http://www.inerenergia.es/"
+    },
+    "R2-1096": {
+      "name": "INDALO ENERGÍA, S.L.",
+      "phone": "900 877 980",
+      "website": "https://indaloenergia.es/"
+    },
+    "R2-1097": {
+      "name": "COMERCIALIZADORA DE ENERGIA TRANSPARENTE, S.L.",
+      "phone": "900 732 868",
+      "website": "https://energiatransparente.eu/"
+    },
+    "R2-1098": {
+      "name": "ECOTHERMIC XXI, S.L.",
+      "phone": "900 800 893",
+      "website": "https://agustitogrupo.com/"
+    },
+    "R2-1099": {
+      "name": "MAZE ENERGY, S.L.",
+      "phone": "900 433 150",
+      "website": "http://www.maze.energy/"
+    },
+    "R2-1100": {
+      "name": "SOCIÉTÉ EUROPÉENNE DE GESTION DE L'ENERGIE",
+      "phone": "900 850 085",
+      "website": "https://www.airliquide.com/group/spain"
+    },
+    "R2-1101": {
+      "name": "SSE ENERGY SUPPLY LIMITED",
+      "website": "https://www.sse.com/"
+    },
+    "R2-1102": {
+      "name": "LOVILUZ ENERGIA, S.L.",
+      "phone": "900 732 938",
+      "website": "http://www.loviluz.com/"
+    },
+    "R2-1103": {
+      "name": "NUKIK ENERGY, S.L.",
+      "phone": "900 732 852",
+      "website": "http://www.nukik.es/"
+    },
+    "R2-1104": {
+      "name": "PRAETIUM ENERGY, S.L.",
+      "phone": "900 563 268",
+      "website": "http://https//praetium-energy.github.io/site/"
+    },
+    "R2-1105": {
+      "name": "ENERGYASSET COMERCIALIZADORA DE ENERGÍA, S.L.",
+      "phone": "900 103 254",
+      "website": "http://www.energyasset.es/"
+    },
+    "R2-1106": {
+      "name": "URUS ENERGY SORIA, S.L.",
+      "phone": "900 433 158",
+      "website": "http://www.urusenergy.com/"
+    },
+    "R2-1107": {
+      "name": "DUEROLUZ ENERGIA, S.L.",
+      "phone": "900 869 573",
+      "website": "http://https//dueroluzenergia.com/"
+    },
+    "R2-1108": {
+      "name": "DUFERCO ENERGIA SPA",
+      "phone": "900 499 048",
+      "website": "https://dufercoenergia.es/"
+    },
+    "R2-1109": {
+      "name": "MULTITELEC ENERGIAS RENOVABLES, S.L.",
+      "phone": "900 906 567",
+      "website": "https://multitelec.com/"
+    },
+    "R2-1110": {
+      "name": "ENERKORE, S.L.",
+      "phone": "900 908 619",
+      "website": "http://www.enerkore.es/"
+    },
+    "R2-1111": {
+      "name": "FUSE ENERGY IBERICA, S.L.",
+      "phone": "900 869 712",
+      "website": "https://www.fuseenergy.com/es"
+    },
+    "R2-1112": {
+      "name": "RESPIRA ENERGIA ATLANTICA, S.L.",
+      "phone": "900 732 016",
+      "website": "http://respiraenergia.com/"
+    },
+    "R2-1113": {
+      "name": "FUKAMI, S.L.",
+      "phone": "900 732 921",
+      "website": "http://www.fukami.es/"
+    },
+    "R2-1114": {
+      "name": "SMARTESTENERGY LIMITED",
+      "website": "http://www.smartestenergy.com/"
+    },
+    "R2-1115": {
+      "name": "ATENEA ENERGIA, S.L.",
+      "phone": "900 899 066",
+      "website": "http://www.ateneaenergia.com/"
+    },
+    "R2-1116": {
+      "name": "CHARGE ENERGY, S.L.",
+      "phone": "900 732 850",
+      "website": "http://chargeenergy.es/"
+    },
+    "R2-1117": {
+      "name": "KVASIR TECHNOLOGIES LIMITED",
+      "website": "https://kvasir.ai/"
+    },
+    "R2-1118": {
+      "name": "ZENON ENERGIA, S.L.",
+      "phone": "900 680 718",
+      "website": "https://zenonenergia.com/"
+    },
+    "R2-1119": {
+      "name": "SUMINISTROS PROPIOS ENERGIA, S.L.U.",
+      "phone": "900 052 605",
+      "website": "https://missuministros.es/"
+    },
+    "R2-1120": {
+      "name": "EFIRAM PATRIMONIO, S.L.",
+      "phone": "900 732 836",
+      "website": "https://caorzaenergy.com/"
+    },
+    "R2-1121": {
+      "name": "SUSTAINING AIR FOR EVERYONE, S.R.L.",
+      "phone": "900 103 011",
+      "website": "http://www.safe-forest.es/"
+    },
+    "R2-1122": {
+      "name": "TORMESH SOLUTIONS, S.L.",
+      "phone": "900 272 049",
+      "website": "https://energia.tormesh.com/"
+    },
+    "R2-1123": {
+      "name": "ARCELORMITTAL ENERGY S.C.A."
+    },
+    "R2-1124": {
+      "name": "3 SOLIMA, S.L.",
+      "phone": "900 680 715",
+      "website": "https://www.3solima.com/"
+    },
+    "R2-1125": {
+      "name": "OUR GREEN ENERGY, S.L.",
+      "phone": "900 732 877",
+      "website": "https://ourgreenenergy.es/"
+    },
+    "R2-1126": {
+      "name": "SOLUZIONA TU ENERGÍA, S.L.U.",
+      "phone": "900 899 020",
+      "website": "https://soluzionatuenergia.com/"
+    },
+    "R2-1127": {
+      "name": "FENERGAS ENERGIA, S.L.",
+      "phone": "900 433 098",
+      "website": "http://www.fenergas.com/"
+    },
+    "R2-1128": {
+      "name": "LAMPYRIS ENERGIA, S.L.",
+      "phone": "900 377 559",
+      "website": "https://www.lampyris-energia.com/"
+    },
+    "R2-1129": {
+      "name": "ENERGÍA GAS AL-ANDALUS, S.L.",
+      "phone": "900 831 253",
+      "website": "https://enalandalus.com/"
+    },
+    "R2-1130": {
+      "name": "ALTANO CONNECT, S.L.",
+      "phone": "900 377 665",
+      "website": "https://nexora-energia.com/"
+    },
+    "R2-1131": {
+      "name": "PANDORA ENERGIA, S.L.",
+      "phone": "900 433 051",
+      "website": "https://pandoraenergia.com/"
+    },
+    "R2-1132": {
+      "name": "SHIRYU ENERGIA, S.L.",
+      "phone": "900 377 565",
+      "website": "http://www.shiryu-energia.com/"
+    },
+    "R2-1133": {
+      "name": "ASTEN RENOVABLES, S.L.U.",
+      "phone": "900 001 707",
+      "website": "https://astenenergias.com/"
+    },
+    "R2-1134": {
+      "name": "LOCALUZ ENERGIA, S.L.",
+      "phone": "900 732 925",
+      "website": "http://www.localuz.com/"
+    },
+    "R2-1135": {
+      "name": "GWH COMERCIALIZADORA ELECTRICA, S.L.",
+      "phone": "900 877 175",
+      "website": "https://gwenergia.com/"
+    },
+    "R2-1136": {
+      "name": "ASEGE GESTIÓN, S.L",
+      "phone": "900 525 304",
+      "website": "http://www.asege.es/"
+    },
+    "R2-1137": {
+      "name": "GESTION INTEGRAL COMUNIDADES ENERGETICA EUROPA, S.L.",
+      "phone": "900 877 178",
+      "website": "https://wyluz.es/"
+    },
+    "R2-1138": {
+      "name": "TATANKA ENERGIA, S.L.",
+      "phone": "900 103 082",
+      "website": "http://www.tatankaenergia.com/"
+    },
+    "R2-1139": {
+      "name": "ENHER HECSA, S.A.",
+      "phone": "900 645 487",
+      "website": "http://www.enher.energy/"
+    },
+    "R2-1140": {
+      "name": "MERKAOÑA, S.L.",
+      "phone": "900 009 012",
+      "website": "http://www.onaro.eus/"
+    },
+    "R2-1141": {
+      "name": "SONNEDIX ESPAÑA COMERCIALIZADORA",
+      "phone": "900 601 560",
+      "website": "https://sonnedix.com/"
+    },
+    "R2-1142": {
+      "name": "DESMA SOLUCIONES, S.L.U.",
+      "phone": "900 433 071",
+      "website": "http://www.desma.es/"
+    },
+    "R2-1143": {
+      "name": "CEBIN ENERGY, S.L.",
+      "phone": "900 716 001",
+      "website": "http://www.cebinenergy.es/"
+    },
+    "R2-1144": {
+      "name": "COMERCIALIZADORA ELECTRICA INDUSTRIAL, S.A.",
+      "phone": "900 002 939",
+      "website": "https://www.ceienergia.com/"
+    },
+    "R2-1145": {
+      "name": "ENERGIA RESPONSABLE COMERCIALIZADORA, S.L.",
+      "phone": "900 838 452",
+      "website": "https://www.sheraenergia.es/"
+    },
+    "R2-1146": {
+      "name": "OCYENER, S.L.",
+      "phone": "900 732 788",
+      "website": "https://ocyener.com/"
+    },
+    "R2-1147": {
+      "name": "CINETICA SOLUCIONES ENERGETICAS, S.L.",
+      "phone": "900 901 058",
+      "website": "http://cineticaenergia.es/"
+    },
+    "R2-1148": {
+      "name": "UBORA ENERGIA SOCIAL, S.L.",
+      "phone": "900 767 626",
+      "website": "https://uborasolar.com/ubora-energy/"
+    },
+    "R2-1149": {
+      "name": "SEIYA ENERGIA, S.L.",
+      "phone": "900 377 057",
+      "website": "https://seiya-energia.com/"
+    },
     "R2-115": {
       "name": "ALPAPAT SL",
       "phone": "900 10 17 08"
+    },
+    "R2-1150": {
+      "name": "2026 CACI ENERGIA, S.L.",
+      "phone": "900 107 887",
+      "website": "https://www.cacienergia.com/"
+    },
+    "R2-1151": {
+      "name": "COMPAÑIA CASTELLANA DE COMERCIALIZACION ELECTRICA, S.L.",
+      "phone": "900 056 016",
+      "website": "https://comcasenergia.com/"
+    },
+    "R2-1152": {
+      "name": "LOCAL POWER ENERGY, S.L.",
+      "phone": "900 902 891",
+      "website": "https://localenergy.es/"
+    },
+    "R2-1153": {
+      "name": "EGNI SMART ENERGIES, S.L.",
+      "phone": "900 732 815",
+      "website": "http://www.egni.es/"
     },
     "R2-117": {
       "name": "ENGIE ESPAÑA, S.L",
@@ -137,7 +909,7 @@
     "R2-119": {
       "name": "ALPIQ ENERGIA ESPAÑA SAU",
       "phone": "900 80 20 76",
-      "website": "http://www.alpiq.com/alpiqgroup/%20group-companies/alpiq-energia-espana-sau.jsp"
+      "website": "http://www.alpiq.com/alpiqgroup/group-companies/alpiq-energia-espana-sau.jsp"
     },
     "R2-120": {
       "name": "UNION FENOSA COMERCIAL S.L. -EXTINGUIDA-"
@@ -1227,7 +1999,8 @@
     },
     "R2-496": {
       "name": "CORPORACIÓN ALIMENTARIA GUISSONA, S.A.",
-      "phone": "900 844 980"
+      "phone": "900 844 980",
+      "website": "http://xn--bonreaenergia-rdb/"
     },
     "R2-497": {
       "name": "NIEVES ENERGÍA , S.L.",

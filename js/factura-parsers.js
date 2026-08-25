@@ -1165,6 +1165,10 @@
         }
       }
 
+      function __LF_isCnmcCommercializerCode(value) {
+        return /^R2-\d{3,4}$/.test(String(value ?? '').trim().toUpperCase());
+      }
+
       function __LF_parseQRData(qrUrl) {
         if (!__LF_isTrustedCnmcQrUrl(qrUrl)) return null;
         
@@ -1271,7 +1275,9 @@
           }
 
           const codigoComercializadoraRaw = String(getParam('com') ?? '').trim().toUpperCase();
-          const codigoComercializadora = /^R2-\d{3}$/.test(codigoComercializadoraRaw)
+          // El formato regulado original era R2-XXX, pero el censo vivo de la
+          // CNMC ya asigna codigos de cuatro cifras (R2-1000 en adelante).
+          const codigoComercializadora = __LF_isCnmcCommercializerCode(codigoComercializadoraRaw)
             ? codigoComercializadoraRaw
             : null;
           const finPenRaw = String(getParam('finPen') ?? '').trim();
@@ -1807,6 +1813,7 @@
     __LF_extraerPotenciasCompania,
     __LF_extractQRUrl,
     __LF_isTrustedCnmcQrUrl,
+    __LF_isCnmcCommercializerCode,
     __LF_parseQRData,
     __LF_parsearDatos
   };

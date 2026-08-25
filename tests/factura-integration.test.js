@@ -23,6 +23,7 @@ describe('Factura PDF Integration (Black Box)', () => {
         <div id="loaderFactura" tabindex="-1" style="display:none"></div>
         <div id="resultadoFactura" style="display:none"><h3 id="resultadoFacturaTitulo" tabindex="-1">Datos detectados</h3></div>
         <div id="confianzaBadge"></div>
+        <div id="fuenteDatosBadge"></div>
         <div id="companiaDetectada"></div>
         <div id="nombreCompania"></div>
         <div id="avisoFactura"></div>
@@ -632,6 +633,10 @@ describe('Factura PDF Integration (Black Box)', () => {
     expect(getVal('consumoPunta')).toBe('111');
     expect(getVal('consumoLlano')).toBe('222');
     expect(getVal('consumoValle')).toBe('333');
+    expect(document.getElementById('confianzaBadge').textContent).toContain('100%');
+    expect(document.getElementById('avisoFactura').textContent).toContain('periodo detectado en el PDF equivale a 31 días');
+    expect(document.getElementById('avisoFactura').textContent).toContain('usamos 29 días');
+    expect(document.getElementById('fuenteDatosBadge').textContent).toBe('Enlace CNMC + respaldo PDF');
   });
 
   it('usa el QR Bonpreu como fuente de verdad y muestra la ficha CNMC sin datos personales', async () => {
@@ -708,6 +713,7 @@ describe('Factura PDF Integration (Black Box)', () => {
     expect(card.textContent).not.toContain('50420');
     expect(window.fetch).toHaveBeenCalledTimes(1);
     expect(window.fetch.mock.calls[0][0]).toContain('data/cnmc-commercializers.json');
+    expect(document.getElementById('fuenteDatosBadge').textContent).toBe('Enlace CNMC + respaldo PDF');
   });
 
   it('no mezcla días de una factura anterior con el QR CNMC de otra factura del mismo PDF', async () => {
@@ -1038,6 +1044,7 @@ describe('Factura PDF Integration (Black Box)', () => {
     expect(getVal('consumoLlano')).toBe('20');
     expect(getVal('consumoValle')).toBe('30');
     expect(document.getElementById('avisoFactura').textContent).not.toContain('No se ha detectado texto seleccionable');
+    expect(document.getElementById('fuenteDatosBadge').textContent).toBe('QR CNMC + respaldo PDF');
   });
 
   it('Debe renderizar avisos contextuales con marcado permitido sin mostrar etiquetas literales', async () => {

@@ -38,6 +38,7 @@
         __LF_normNum,
         __LF_extractQRUrl,
         __LF_isTrustedCnmcQrUrl,
+        __LF_isCnmcCommercializerCode,
         __LF_parseQRData,
         __LF_parsearDatos
       } = window.__LF_FacturaParsers;
@@ -95,7 +96,7 @@
 
       async function __LF_resolveCnmcCommercializer(code) {
         const normalizedCode = String(code ?? '').trim().toUpperCase();
-        if (!/^R2-\d{3}$/.test(normalizedCode) || typeof window.fetch !== 'function') return null;
+        if (!__LF_isCnmcCommercializerCode(normalizedCode) || typeof window.fetch !== 'function') return null;
 
         if (!__LF_cnmcRegistryPromise) {
           __LF_cnmcRegistryPromise = window.fetch(
@@ -562,6 +563,10 @@
           avisos.push('⚠️ El periodo del QR CNMC no coincide con el periodo detectado en el PDF. Se conservan los días del QR y se desactiva el autocálculo. Si el archivo contiene varias facturas o suministros, sube solo la factura que quieras comparar.');
         }
 
+        if (datos?.diasQrPdfDifieren && !datos?.periodoQrPdfDiscrepante) {
+          avisos.push(`ℹ️ El periodo detectado en el PDF equivale a <b>${datos.diasDetectadosPdf} días</b>; usamos <b>${datos.diasDeclaradosQr} días</b> calculados con las fechas del QR CNMC (inicio excluido y fin incluido).`);
+        }
+
         if (datos?.multiplesFacturasDetectadas) {
           avisos.push('⚠️ Se han detectado varias facturas con periodos distintos en el mismo PDF. No se ha rellenado ningún dato automáticamente para evitar mezclar importes de facturas diferentes. Sube solo la factura que quieras comparar o introduce manualmente los datos de una sola factura.');
         }
@@ -955,7 +960,7 @@
           } else {
             const fuenteMap = {
               'QR+PDF':       { texto: 'QR CNMC + respaldo PDF', bg: '#059669', color: '#fff' },
-              'LINK_CNMC+PDF':{ texto: 'QR CNMC + respaldo PDF', bg: '#059669', color: '#fff' },
+              'LINK_CNMC+PDF':{ texto: 'Enlace CNMC + respaldo PDF', bg: '#059669', color: '#fff' },
               'PDF':          { texto: 'Parser PDF',          bg: '#3b82f6', color: '#fff' },
               'OCR':          { texto: 'OCR',                 bg: '#f59e0b', color: '#000' }
             };
@@ -1341,6 +1346,9 @@
               
               confianza: discrepanciaPeriodo ? 75 : 100,
               periodoQrPdfDiscrepante: discrepanciaPeriodo,
+              diasQrPdfDifieren: diasDifieren,
+              diasDeclaradosQr: diasDifieren ? datosQR.dias : null,
+              diasDetectadosPdf: diasDifieren ? datosPDF.dias : null,
               fuenteDatos: qrOrigen || 'QR+PDF',
               compania: datosPDF.compania,
               companiaNombre: commercializer?.name || null,
@@ -1357,7 +1365,9 @@
             
             __LF_setBadge(datosCombinados.confianza);
             __LF_renderForm(datosCombinados);
-            if (datosCombinados.periodoQrPdfDiscrepante) __LF_showContextualWarnings(datosCombinados);
+            if (datosCombinados.periodoQrPdfDiscrepante || datosCombinados.diasQrPdfDifieren) {
+              __LF_showContextualWarnings(datosCombinados);
+            }
             if (pdfPageWarning) __LF_appendWarn(pdfPageWarning);
             return;
           }

@@ -219,14 +219,20 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - QR por imagen con jsQR (si no aparece en texto).
 - Combinacion QR+PDF con prioridad campo a campo del QR CNMC valido; el texto del PDF solo completa
   campos ausentes. Una contradiccion del texto visible no sobrescribe el dato estructurado del QR.
-- Deteccion de comercializadora por patrones y, cuando hay QR, resolucion del codigo `com=R2-XXX`
-  contra el censo CNMC local versionado en `data/cnmc-commercializers.json`.
+- Deteccion de comercializadora por patrones y, cuando hay QR, resolucion del codigo `com=R2-NNN`
+  o `com=R2-NNNN` contra el censo CNMC local versionado en
+  `data/cnmc-commercializers.json`. El sincronizador localiza columnas por encabezado, aborta ante
+  codigos R2 desconocidos y registra fecha, filas, entradas, duplicados y webs invalidas en `_meta`.
 - Campos aplicables extraidos: potencias, dias y consumos. El CUPS y el codigo postal del QR se
   descartan y no llegan al modelo de interfaz.
 - Ficha informativa para QR CNMC con comercializadora, periodo y total, tipo de factura y contrato,
   renovacion, permanencia, revision/promocion/cambio de precios, servicios, energia verde, precios
   contratados, desglose declarado, maximas demandadas, consumo acumulado y contacto publico.
 - Indicador de confianza y avisos contextuales.
+- El badge distingue si la URL CNMC se obtuvo como enlace del PDF o decodificando el QR rasterizado.
+  Si QR y PDF corresponden al mismo periodo pero producen un numero de dias distinto, conserva la
+  confianza y los dias QR-first, pero explica al usuario ambos valores y la semantica inicio
+  excluido/fin incluido.
 - Si el PDF es escaneado (sin texto) o la confianza es baja (<50%), el aviso muestra un boton primario "Leer la factura escaneada (OCR)" junto al mensaje, ademas del boton OCR compacto de la cabecera.
 - Aplicacion a formulario con autocálculo solo cuando la confianza es plena (>= 99.5%).
 - **PDF con varias facturas: se detecta y no autocalcula.** El texto de todas las paginas se
@@ -439,7 +445,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 40 (`js/*.js` + `js/bv/*.js`).
-- Lineas JS aproximadas: 31.113.
+- Lineas JS aproximadas: 31.130.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (119 tarifas).
@@ -527,7 +533,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Suite Vitest/JSDOM.
 - 104 archivos de test (`tests/*.test.js`).
-- 1649 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 1655 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

@@ -1564,15 +1564,27 @@ aceptan prefijos (`QRE20`), sufijos ni subrutas. Un host parecido
   el fallback abreviado interpretaba como un dia. Ademas de la prioridad QR, el patron `N d` exige
   ahora espacio y se reconocen `Dies: N` / `(N dies)` en catalan.
 - Los parametros contractuales/economicos opcionales se validan por tipo antes de mostrarse. Se
-  descartan deliberadamente `cups`, `cp` y la URL completa. `com=R2-XXX` se resuelve contra
-  `data/cnmc-commercializers.json`, copia local del censo publico CNMC regenerable con
+  descartan deliberadamente `cups`, `cp` y la URL completa. Aunque la resolucion de 2022 documenta
+  `com=R2-XXX`, el censo vivo ya contiene `R2-1000` y posteriores: parser, resolvedor y sincronizador
+  aceptan tres o cuatro cifras. `data/cnmc-commercializers.json` es una copia local regenerable con
   `npm run sync:cnmc-commercializers`; el navegador no consulta a CNMC ni envia datos de factura.
+- El censo del 25/08/2026 tiene 937 filas y 936 codigos unicos: 782 de tres cifras y 154 de cuatro.
+  `R2-222` aparece como sociedad historica de baja y sucesora activa; el sync elige explicitamente
+  la activa y registra el duplicado. Las columnas se resuelven por encabezado, los codigos R2 con
+  formato no contemplado hacen abortar y `_meta` conserva fecha/recuento/incidencias. La unica web
+  invalida actual (`R2-1123`) se omite sin perder la razon social; una proporcion anomala abortaria.
 - Gate real del 25/08/2026: 11/11 facturas historicas procesadas por la interfaz en Chrome mantienen
   confianza 100%, cero errores de navegador y los mismos campos que el commit limpio salvo
   Plenitude, cuyo dia cambia intencionadamente de 32 a 31 al aplicar la semantica de su QR. Las dos
   facturas Bonpreu verificadas devuelven 30 y 28 dias, `BON PREU, SAU` y ficha CNMC. La ficha se
   reviso ademas en las cuatro combinaciones oscuro/claro por escritorio (1280x900) y movil
   (390x844): sin overflow horizontal, con scroll vertical operativo y sin errores de consola.
+- Gate repetido tras ampliar el censo y separar procedencias: las 11/11 mantienen sin diferencias
+  confianza, comercializadora, potencias, dias y consumos. La distribucion real queda visible: 9
+  `Enlace CNMC + respaldo PDF`, 1 `QR CNMC + respaldo PDF` (Plenitude) y 1 `Parser PDF` (DISA).
+  Plenitude conserva 100% y muestra el aviso no bloqueante 32 -> 31. El aviso y el badge se revisaron
+  de nuevo en claro/oscuro y escritorio/movil: sin overflow, sin errores y con el scroll de `BODY`
+  moviendose en las cuatro combinaciones.
 
 **PDF con varias facturas.** `__LF_extraerTextoPDF()` concatena todas las paginas. Si el PDF trae dos
 facturas y solo la segunda lleva QR, el rango textual encontrado puede ser el de la primera mientras
@@ -1585,6 +1597,10 @@ La tolerancia evita marcar como multifatura una factura normal con el pequeño d
 lecturas y periodo impreso. Incluso si el texto visible expresa otro numero, un QR valido conserva
 sus dias por la semantica CNMC documentada; la tolerancia solo decide si se rebaja la confianza por
 posible mezcla de facturas, no que fuente sobrescribe el campo.
+Cuando los periodos siguen siendo compatibles pero los dias difieren, la confianza se mantiene y
+la UI muestra un aviso no bloqueante con los dias detectados en PDF, los usados desde QR y la
+semantica inicio excluido/fin incluido. El badge conserva ademas la procedencia: `Enlace CNMC` para
+la URL embebida en texto/anotacion y `QR CNMC` para la ruta rasterizada con jsQR.
 
 **Ojo al construir un PDF de prueba:** una URL de QR en una sola linea a 9pt se sale del ancho de
 pagina y pdf.js no extrae el final de la cadena, asi que el QR llega truncado y el caso no se

@@ -902,6 +902,16 @@ describe('Motor de Extracción de Facturas (PDF Text)', () => {
       });
       expect(JSON.stringify(parsed)).not.toContain('<script>');
     });
+
+    it('acepta los códigos R2 de cuatro cifras que ya publica el censo vivo de la CNMC', () => {
+      const url = 'https://comparador.cnmc.gob.es/comparador/QRE?pP1=3.45&pP2=4.6&cfP1=10&cfP2=20&cfP3=30&com=R2-1000';
+      expect(window.__LF_FacturaParsers.__LF_isCnmcCommercializerCode('r2-1000')).toBe(true);
+      expect(window.__LF_FacturaParsers.__LF_isCnmcCommercializerCode('R2-10000')).toBe(false);
+      expect(window.__LF_FacturaParsers.__LF_parseQRData(url)).toMatchObject({
+        codigoComercializadora: 'R2-1000',
+        qrInfo: { codigoComercializadora: 'R2-1000' }
+      });
+    });
   });
 
   describe('Octopus Energy - Potencias con formato X,XXX', () => {
