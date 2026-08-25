@@ -708,6 +708,8 @@ describe('Factura PDF Integration (Black Box)', () => {
     expect(card.textContent).toContain('15/07/2026 – 14/08/2026 · 30 días');
     expect(card.textContent).toContain('45,04');
     expect(card.textContent).toContain('PermanenciaNo');
+    expect(card.textContent).toContain('Potencia punta0,08 €/kW·día (equivalente a 29,2 €/kW·año del QR CNMC)');
+    expect(card.textContent).toContain('Potencia valle0,08 €/kW·día (equivalente a 29,2 €/kW·año del QR CNMC)');
     expect(card.textContent).toContain('900 500 005');
     expect(card.textContent).not.toContain('ES0021000000000000AA');
     expect(card.textContent).not.toContain('50420');

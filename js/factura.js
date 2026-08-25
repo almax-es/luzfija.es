@@ -710,6 +710,19 @@
         }).format(value);
       }
 
+      function __LF_formatQrPowerPrice(value, info) {
+        if (!Number.isFinite(value)) return null;
+        const referenceDate = String(info?.fechaFin || info?.fechaFactura || '');
+        const yearMatch = referenceDate.match(/^(\d{4})-/);
+        const annual = `${__LF_formatQrNumber(value, 6)} €/kW·año`;
+        if (!yearMatch) return annual;
+
+        const year = Number(yearMatch[1]);
+        const daysInYear = new Date(Date.UTC(year, 1, 29)).getUTCDate() === 29 ? 366 : 365;
+        const daily = value / daysInYear;
+        return `${__LF_formatQrNumber(daily, 6)} €/kW·día (equivalente a ${annual} del QR CNMC)`;
+      }
+
       function __LF_contractTypeLabel(code) {
         const labels = {
           A: 'PVPC regulado',
@@ -837,8 +850,8 @@
           { label: 'Energía punta', value: Number.isFinite(info.precioEnergiaP1) ? `${__LF_formatQrNumber(info.precioEnergiaP1, 6)} €/kWh` : null },
           { label: 'Energía llano', value: Number.isFinite(info.precioEnergiaP2) ? `${__LF_formatQrNumber(info.precioEnergiaP2, 6)} €/kWh` : null },
           { label: 'Energía valle', value: Number.isFinite(info.precioEnergiaP3) ? `${__LF_formatQrNumber(info.precioEnergiaP3, 6)} €/kWh` : null },
-          { label: 'Potencia punta', value: Number.isFinite(info.precioPotenciaP1) ? `${__LF_formatQrNumber(info.precioPotenciaP1, 6)} €/kW/año` : null },
-          { label: 'Potencia valle', value: Number.isFinite(info.precioPotenciaP2) ? `${__LF_formatQrNumber(info.precioPotenciaP2, 6)} €/kW/año` : null }
+          { label: 'Potencia punta', value: __LF_formatQrPowerPrice(info.precioPotenciaP1, info) },
+          { label: 'Potencia valle', value: __LF_formatQrPowerPrice(info.precioPotenciaP2, info) }
         ]);
 
         __LF_appendQrInfoGroup(section, 'Desglose declarado', [

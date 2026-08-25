@@ -12,6 +12,7 @@ env:
 permissions:
   contents: write
   actions: write
+  issues: write
 
 concurrency:
   group: cnmc-commercializers-update
@@ -64,6 +65,39 @@ jobs:
           echo "- Altas: ${ADDED_CODES:-ninguna}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Bajas: ${REMOVED_CODES:-ninguna}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Modificadas: ${MODIFIED_CODES:-ninguna}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Open or update manual review issue
+        if: steps.classify.outputs.status == 'manual_review'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          UPDATE_SUMMARY: ${{ steps.classify.outputs.summary }}
+          ADDED_CODES: ${{ steps.classify.outputs.added_codes }}
+          REMOVED_CODES: ${{ steps.classify.outputs.removed_codes }}
+          MODIFIED_CODES: ${{ steps.classify.outputs.modified_codes }}
+        run: |
+          ISSUE_TITLE="Revisar actualización del censo CNMC"
+          ISSUE_BODY="$RUNNER_TEMP/cnmc-manual-review.md"
+          {
+            echo "La sincronización mensual del censo CNMC necesita revisión manual."
+            echo
+            echo "- Resultado: $UPDATE_SUMMARY"
+            echo "- Altas: ${ADDED_CODES:-ninguna}"
+            echo "- Bajas: ${REMOVED_CODES:-ninguna}"
+            echo "- Modificadas: ${MODIFIED_CODES:-ninguna}"
+            echo "- Ejecución: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
+            echo
+            echo "El workflow no ha modificado ni publicado el censo."
+          } > "$ISSUE_BODY"
+
+          ISSUE_NUMBER="$(gh issue list --repo "$GH_REPO" --state open --limit 100 \
+            --json number,title \
+            --jq 'map(select(.title == "Revisar actualización del censo CNMC")) | first | .number // empty')"
+          if [ -n "$ISSUE_NUMBER" ]; then
+            gh issue comment "$ISSUE_NUMBER" --repo "$GH_REPO" --body-file "$ISSUE_BODY"
+          else
+            gh issue create --repo "$GH_REPO" --title "$ISSUE_TITLE" --body-file "$ISSUE_BODY"
+          fi
 
       - name: Stop changes that require manual review
         if: steps.classify.outputs.status == 'manual_review'

@@ -126,6 +126,24 @@ describe('Censo local de comercializadoras CNMC', () => {
     })).toThrow(/solo contiene 782 comercializadoras/);
   });
 
+  it('bloquea un censo grande que haya perdido casi todos los códigos de cuatro cifras', () => {
+    const mostlyThreeDigit = Object.fromEntries([
+      ...Array.from({ length: 900 }, (_value, index) => [
+        `R2-${String(index).padStart(3, '0')}`,
+        { name: `EMPRESA ${index}` }
+      ]),
+      ['R2-1000', { name: 'ÚNICA EMPRESA DE CUATRO CIFRAS' }]
+    ]);
+
+    expect(() => assertCensusSane({
+      commercializers: mostlyThreeDigit,
+      sourceRows: 901,
+      duplicateCodes: [],
+      invalidWebsiteCodes: [],
+      inactiveCodes: []
+    })).toThrow(/solo contiene 1 códigos R2 de cuatro cifras/);
+  });
+
   it('el flujo de sincronización invoca el sanity check antes de escribir', async () => {
     const html = `
       <table><tr>

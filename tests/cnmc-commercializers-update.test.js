@@ -85,4 +85,28 @@ describe('Clasificación de actualizaciones del censo CNMC', () => {
     next._meta.sourceRows += 1;
     expect(classifyCnmcCommercializersUpdate(registry, next).status).toBe('manual_review');
   });
+
+  it('no deja que una baja quede compensada por una fila duplicada nueva', () => {
+    const next = cloneRegistry();
+    addCommercializer(next, 'R2-9999');
+    const protectedCodes = new Set([
+      'R2-796',
+      'R2-1000',
+      ...next._meta.duplicateCodes,
+      ...next._meta.invalidWebsiteCodes,
+      ...next._meta.inactiveCodes
+    ]);
+    const removedCode = Object.keys(next.commercializers).find(code => !protectedCodes.has(code));
+    delete next.commercializers[removedCode];
+    next._meta.count -= 1;
+
+    // El alta suma una fila, la baja resta otra y una segunda fila para un código
+    // ya duplicado vuelve a sumarla. La variación final de sourceRows coincide con
+    // las altas aunque exista una eliminación real.
+    expect(next._meta.sourceRows - registry._meta.sourceRows).toBe(1);
+    expect(classifyCnmcCommercializersUpdate(registry, next)).toMatchObject({
+      status: 'manual_review',
+      removedCodes: [removedCode]
+    });
+  });
 });

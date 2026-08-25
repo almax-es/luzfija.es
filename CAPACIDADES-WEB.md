@@ -228,7 +228,10 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
   descartan y no llegan al modelo de interfaz.
 - Ficha informativa para QR CNMC con comercializadora, periodo y total, tipo de factura y contrato,
   renovacion, permanencia, revision/promocion/cambio de precios, servicios, energia verde, precios
-  contratados, desglose declarado, maximas demandadas, consumo acumulado y contacto publico.
+  contratados, desglose declarado, maximas demandadas, consumo acumulado y contacto publico. Los
+  precios de potencia se presentan primero en `€/kW·dia`, como el resto del comparador, y conservan
+  al lado el valor regulado original del QR en `€/kW·año`; la equivalencia usa 365 o 366 dias segun
+  el año de fin del periodo facturado (o, si falta, el de la fecha de factura).
 - Indicador de confianza y avisos contextuales.
 - El badge distingue si la URL CNMC se obtuvo como enlace del PDF o decodificando el QR rasterizado.
   Si QR y PDF corresponden al mismo periodo pero producen un numero de dias distinto, conserva la
@@ -446,7 +449,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 40 (`js/*.js` + `js/bv/*.js`).
-- Lineas JS aproximadas: 31.130.
+- Lineas JS aproximadas: 31.143.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (119 tarifas).
@@ -536,7 +539,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Suite Vitest/JSDOM.
 - 105 archivos de test (`tests/*.test.js`).
-- 1670 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 1672 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

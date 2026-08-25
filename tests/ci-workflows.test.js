@@ -55,6 +55,7 @@ describe('CI workflow hardening', () => {
   it('automatiza el censo mensualmente y solo publica altas pequeñas ya clasificadas', () => {
     const workflow = readRepoFile('.github/workflows/cnmc-commercializers.yml');
     const classifyAt = workflow.indexOf('- name: Classify census changes');
+    const issueAt = workflow.indexOf('- name: Open or update manual review issue');
     const reviewAt = workflow.indexOf('- name: Stop changes that require manual review');
     const commitAt = workflow.indexOf('- name: Commit and push safe additive update');
 
@@ -62,10 +63,15 @@ describe('CI workflow hardening', () => {
     expect(workflow).toContain('scripts/classify-cnmc-commercializers-update.mjs');
     expect(workflow).toContain("steps.classify.outputs.status == 'manual_review'");
     expect(workflow).toContain("steps.classify.outputs.status == 'safe_additive'");
+    expect(workflow).toContain('issues: write');
+    expect(workflow).toContain('gh issue create');
+    expect(workflow).toContain('gh issue comment');
     expect(workflow).toContain('git add data/cnmc-commercializers.json');
     expect(workflow).toContain('/actions/workflows/tests.yml/dispatches');
     expect(classifyAt).toBeGreaterThanOrEqual(0);
+    expect(issueAt).toBeGreaterThan(classifyAt);
     expect(reviewAt).toBeGreaterThan(classifyAt);
+    expect(reviewAt).toBeGreaterThan(issueAt);
     expect(commitAt).toBeGreaterThan(reviewAt);
     expect(workflow).not.toMatch(/git add data\/(?:\s|$)/);
     expect(workflow).not.toContain('git add .');
