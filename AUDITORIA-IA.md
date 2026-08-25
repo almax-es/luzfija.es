@@ -94,7 +94,7 @@ decision esta en la seccion siguiente.
 | Motor economico y fiscalidad | Auditado a fondo. Orden de operaciones, bono social, fiscalidad por zona, paridad entre home/BV/desglose y fronteras de redondeo IEEE-754 | `Fiscalidad Y Bono Social`, `Redondeo Exacto De Impuestos Indirectos...`, `ARQUITECTURA-CALCULOS.md` |
 | Arranque, carga parcial y service worker | Auditado. Watchdog, telemetria, recarga automatica | `Cargas Parciales, Watchdog Y Telemetria De QA` |
 | UI base y modulos auxiliares (`aecc-banner`, `shell-lite`, `theme`, `error-bootstrap`, `lf-sw-update`) | Auditada. Propiedad de listeners, timers de banner, clasificacion de recursos opcionales y recuperacion del registro SW | `Zonas Huerfanas: Banner AECC, Shell Lite Y Registro Del SW` |
-| Privacidad y analitica | Auditado. Taxonomia de eventos y datos que nunca se envian | `ANALITICA-GOATCOUNTER.md` |
+| Privacidad y analitica | Auditada la privacidad (taxonomia y datos que nunca se envian) y, en la ronda 11, la CORRECCION y ROBUSTEZ de la capa: autorreporte CSP, ciclo de vida del outbox, listeners/timers y el sender vendorizado | `ANALITICA-GOATCOUNTER.md`, `Autorreporte De Violaciones CSP Del Endpoint Analitico`, `Entrega Del Outbox De Diagnosticos` |
 | SEO, datos estructurados y CWV | Auditado | `SEO, Datos Estructurados Y Core Web Vitals` |
 
 ## Decisiones Que No Deben Reportarse Como Bugs
@@ -1796,6 +1796,98 @@ disponible" no se reclasifica como cifra incorrecta.
 `tests/index-extra-pvpc-context.test.js` (opciones exactas de fetch),
 `tests/pvpc-stats-ui.test.js` (reintento 503/200 malformado) y el caso CCH-CONS 23h de
 `tests/surplus-prices.test.js`.
+
+### Autorreporte De Violaciones CSP Del Endpoint Analitico (RESUELTA 25/08/2026)
+
+**Fallo original.** El listener de `securitypolicyviolation` de `js/tracking.js` construia un
+evento `error-csp` para CUALQUIER violacion, incluida la del propio endpoint de GoatCounter. Como
+`error-csp` es familia persistente (`isPersistentDiagnosticPath`), cada intento escribia ademas en
+el outbox `lf_error_outbox_v1`, y las entradas del outbox fuerzan `force_image = true`, asi que el
+reenvio creaba un `<img>` hacia el endpoint bloqueado. Esa imagen generaba otra violacion, con un
+objeto `Event` nuevo que el `WeakSet` `handledCspEvents` no podia reconocer: realimentacion sin
+freno. El comentario del propio upstream de GoatCounter lo anticipa ("This mostly fails due to
+being blocked by CSP").
+
+**Alcance real.** NO alcanzable con la CSP propia del sitio: las 35 paginas que cargan
+`tracking.js` permiten `https://luzfija.goatcounter.com` en `img-src` y en `connect-src`. La unica
+pagina sin esos permisos es `guias/index.html`, que no carga tracking. Un adblocker corriente
+tampoco lo dispara, porque bloquea por red (`webRequest`) y eso no emite `securitypolicyviolation`.
+Hace falta una CSP externa (proxy corporativo, politica inyectada) o una regresion futura del
+repositorio. Por eso la severidad es BAJA pese a la violencia del mecanismo.
+
+**Medicion real del mecanismo** (Chrome, laboratorio local con CSP hostil, 25/08/2026): sin el
+guard, **33.061 violaciones CSP en 10 segundos** (~3.300/s, crecimiento lineal sin freno) y el
+outbox saturado en su tope de 64 entradas, expulsando diagnosticos utiles. Con el guard, **1
+violacion estable y outbox 0**. Control negativo en el mismo laboratorio y repetido despues contra
+produccion: una imagen de dominio ajeno sigue generando `error-csp/img-src`.
+
+**Correccion.** `isAnalyticsEndpointCspViolation()` en `js/tracking.js` compara el `origin` de
+`blockedURI` con el del endpoint (`getGoatEndpointFromPage()`), y el handler corta antes de
+construir el evento y antes de tocar el outbox. El criterio es **el recurso bloqueado, no la
+directiva**.
+
+**Descartado a proposito: filtrar por directiva.** La primera propuesta externa descartaba
+`img-src`/`default-src` y conservaba `connect-src` "porque aun puede notificarse por imagen". Se
+**rechazo**: una CSP que no conoce el endpoint bloquea AMBAS directivas, asi que cada intento
+genera dos violaciones y el bucle sigue girando por el eje `connect-src`. La medicion lo confirma:
+en el laboratorio aparecen las dos directivas. Tambien se descarto un corte por "N violaciones en
+la misma carga": el guard por recurso es determinista y no sacrifica diagnosticos ajenos.
+
+**Guardrail de regresion.** `tests/tracking-html-coverage.test.js` cruza las dos condiciones: toda
+pagina que cargue `js/tracking.js` debe permitir el endpoint en `img-src` y `connect-src`,
+aplicando la herencia de `default-src` solo cuando falta la directiva especifica. Sustituye a la
+comprobacion anterior, que solo miraba `connect-src` y por regex sobre el HTML crudo. Validado
+mutando el DATO (quitando el endpoint de cada directiva en `index.html`): el test nombra la pagina
+y la directiva exactas.
+
+**No reportar como bug**:
+- Que una violacion CSP del endpoint analitico no aparezca en GoatCounter. Es el invariante: un
+  canal bloqueado no puede notificar su propio bloqueo. El guardrail estatico cubre el caso interno.
+- Que `handledCspEvents` no deduplique violaciones sucesivas. Es un `WeakSet` por objeto `Event`
+  para una reevaluacion del modulo, no un antirebote.
+
+**Para reabrirlo** hace falta demostrar una violacion de recurso NO analitico que el guard
+descarte, o un camino que vuelva a persistir `error-csp` en el outbox con el endpoint bloqueado.
+
+### `skipgc` Y El Getter De `localStorage` En El Sender (RESUELTA 25/08/2026)
+
+**Fallo original.** `vendor/goatcounter/count.js` leia `localStorage.getItem('skipgc')` dentro de
+`filter()` sin `try/catch`. Cuando la politica del navegador deniega el almacenamiento, el throw
+ocurre al ACCEDER a la propiedad `window.localStorage`, asi que el cortocircuito `localStorage &&`
+no protege nada: `filter()` lanzaba y el pageview automatico del sender no llegaba a enviarse. Los
+eventos explicitos no rompian la web porque `sendPayload()` envuelve la llamada, pero se perdian
+en silencio.
+
+**Correccion.** `skipgc_enabled()` y `set_skipgc_enabled()` encapsulan lectura y escritura; si el
+almacenamiento no es accesible, el sender continua como si `skipgc` no estuviera activado. De paso
+se corrige un fallo del upstream en el toggle (`removeItem('skipgc', 't')` con dos argumentos) y
+las alertas solo se muestran si la operacion tuvo exito.
+
+**Frontera y vendor.** El fix vive en el sender porque `skipgc` es una preferencia propia de
+GoatCounter y el pageview automatico se origina dentro de el. `vendor/goatcounter/` **si se puede
+tocar** para este fichero: el proyecto mantiene `count.local.patch` (ahora cuatro parches locales)
+sobre `count.upstream.js`. Comprobacion obligatoria tras cualquier cambio ahi: aplicar el parche
+sobre el upstream debe reproducir `count.js` byte a byte, y `tests/vendor-inventory.test.js` exige
+ademas SHA-256 y coherencia de inventario.
+
+**No reportar como bug**: que `skipgc` sea inoperante con almacenamiento denegado. Es la decision:
+una comodidad de depuracion no puede desactivar la analitica por una excepcion de plataforma. El
+opt-out real del proyecto es `goatcounter_optout`, independiente y con su propio `try/catch`.
+
+### Entrega Del Outbox De Diagnosticos: Al Menos Una Vez (DELIBERADO)
+
+`lf_error_outbox_v1` garantiza entrega **al menos una vez**, no exactamente una vez.
+`hydrateDiagnosticOutbox()` encola todas las entradas al evaluar el modulo y solo se borran en
+`on_sent`; no hay listener `storage` ni lease entre documentos. Una recarga entre el inicio del
+envio y su confirmacion (o una segunda pestana) puede reenviar la misma aparicion, sumando dos
+veces en el contador `/diferido`.
+
+**Se decide no corregirlo.** Coordinar exactamente entre pestanas exigiria estado compartido nuevo
+(lease, `BroadcastChannel`, evento `storage`) y abre el fallo inverso: dar por consumida una
+entrada cuya peticion nunca llego. El sufijo `/diferido` ya marca esas filas como aproximadas y
+existe la regla editorial de no datarlas por hora. Perder un diagnostico es peor que contarlo dos
+veces. No reportar como bug salvo que se demuestre impacto sobre un dato que el autor use como
+exacto.
 
 ### SEO, Datos Estructurados Y Core Web Vitals
 
