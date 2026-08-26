@@ -2175,6 +2175,26 @@ silenciosa, sino que llega al `catch` de `calculate()`. Antes un render roto pod
 
 Severidad BAJA: se perdia una accion, no se producia un ranking falso.
 
+**Residual cerrado el mismo dia (Codex).** La cola guardaba la peticion solo
+`if (state.pending)`, y eso deja una ventana: `renderAll()` pone `state.pending = false` en
+`lf-render.js:886` **antes** de `renderTable()`, y el `setStatus(..., 'ok')` de la linea
+siguiente rehabilita el boton. Durante el render por chunks queda
+`__LF_CALC_INFLIGHT === true`, `pending === false` y boton pulsable: ese click se perdia
+igual que antes del fix.
+
+La correccion propuesta —que `renderAll()` no toque `state.pending`— **no cierra el caso**,
+comprobado con un test: la peticion si se encola, pero el drenado del `finally` tambien
+exigia `state.pending`, y el commit acababa de ponerlo a `false`. Solo movia el punto de
+perdida. Lo que cierra la ventana es **encolar siempre durante inflight y drenar sin exigir
+`pending`**; la igualdad de `generation` sigue siendo quien impide aplicar ediciones
+posteriores que el usuario no pidio calcular, que es la garantia que importa.
+
+Contrapartida aceptada: un click durante el render sin cambios pendientes produce ahora un
+recalculo redundante en vez de descartarse. Es exactamente lo que el usuario pidio al pulsar.
+
+Test: `tests/lf-app-pending-race.test.js`, "un click durante el render (pending ya limpio) no
+se pierde".
+
 ### SEO, Datos Estructurados Y Core Web Vitals
 
 - La ausencia de `<meta name="robots" content="index,follow">` no es una carencia: `index,follow` es el comportamiento por defecto. Solo reporta `robots` si una directiva concreta bloquea o limita una URL indebidamente.

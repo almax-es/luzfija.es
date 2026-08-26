@@ -156,13 +156,17 @@
       // que el usuario aun no ha pedido calcular. `announceRequest` se conserva, pero
       // NO se emite todavia: el results-ready del calculo viejo debe cerrar su propio
       // lifecycle antes de abrir el de la peticion encolada.
-      if (state.pending) {
-        __lf_queuedCalculation = {
-          generation: state.generation || 0,
-          forceRefresh: Boolean(forceRefresh) || Boolean(__lf_queuedCalculation?.forceRefresh),
-          announceRequest: Boolean(announceRequest) || Boolean(__lf_queuedCalculation?.announceRequest)
-        };
-      }
+      // Se encola SIEMPRE, sin mirar state.pending: renderAll() lo pone a false en
+      // lf-render.js:886 ANTES de renderTable() y rehabilita el boton, asi que durante el
+      // render por chunks hay una ventana con calculo en vuelo y pending ya limpio en la
+      // que el click se perdia (residual detectado por Codex el 26/08/2026). Quien impide
+      // aplicar ediciones POSTERIORES a esta peticion es la igualdad de generation al
+      // drenar, no este guard.
+      __lf_queuedCalculation = {
+        generation: state.generation || 0,
+        forceRefresh: Boolean(forceRefresh) || Boolean(__lf_queuedCalculation?.forceRefresh),
+        announceRequest: Boolean(announceRequest) || Boolean(__lf_queuedCalculation?.announceRequest)
+      };
       return false;
     }
     if (announceRequest) dispatchResultsRequested();
@@ -419,7 +423,7 @@
 
       const queued = __lf_queuedCalculation;
       __lf_queuedCalculation = null;
-      if (queued && state.pending && (state.generation || 0) === queued.generation) {
+      if (queued && (state.generation || 0) === queued.generation) {
         runCalculation(queued.forceRefresh, queued.announceRequest);
       }
     }

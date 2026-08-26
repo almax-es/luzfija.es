@@ -364,4 +364,35 @@ describe('calculate(): editar durante un calculo en curso no borra el aviso de p
     document.removeEventListener('lf:results-requested', requested);
   });
 
+  // 26/08/2026, residual de la ronda 13 detectado por Codex: renderAll() pone
+  // state.pending = false en lf-render.js:886 ANTES de renderTable(), y setStatus(...,'ok')
+  // rehabilita el boton ahi mismo. Durante el render por chunks queda una ventana con
+  // __LF_CALC_INFLIGHT=true, pending=false y boton pulsable: la cola solo guardaba la
+  // peticion `if (state.pending)`, asi que ese click se perdia igual que antes del fix.
+  // Encolar SIEMPRE durante inflight; la igualdad de generation al drenar sigue siendo
+  // quien impide aplicar ediciones posteriores que el usuario no pidio calcular.
+  it('un click durante el render (pending ya limpio) no se pierde', async () => {
+    let abrirRender;
+    const renderGate = new Promise((res) => { abrirRender = res; });
+    const calculateLocal = vi.fn(async () => {
+      // Replica el orden real: renderAll limpia pending y DESPUES sigue renderizando.
+      window.LF.state.pending = false;
+      if (calculateLocal.mock.calls.length === 1) await renderGate;
+    });
+    const { state } = boot({ calculateLocal });
+
+    state.pending = true;
+    state.generation = 1;
+    window.runCalculation(false);
+    await vi.waitFor(() => expect(calculateLocal).toHaveBeenCalledTimes(1));
+    // La ventana: el calculo sigue en vuelo pero el aviso pendiente ya se limpio.
+    expect(state.pending).toBe(false);
+    expect(window.__LF_CALC_INFLIGHT).toBe(true);
+
+    window.runCalculation(false);
+    abrirRender();
+    await vi.waitFor(() => expect(window.__LF_CALC_INFLIGHT).toBe(false));
+    expect(calculateLocal).toHaveBeenCalledTimes(2);
+  });
+
 });
