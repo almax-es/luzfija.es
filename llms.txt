@@ -202,7 +202,7 @@ Published on https://luzfija.es/ and fetchable directly:
 
 ## Data model and updates
 
-- `tarifas.json`: commercial tariffs dataset (120 tariffs as of 2026-08-18).
+- `tarifas.json`: commercial tariffs dataset (122 tariffs as of 2026-08-18).
 - `/data/pvpc/`: official hourly PVPC dataset (REE/ESIOS indicator 1001).
 - `/data/surplus/`: official hourly surplus dataset (REE/ESIOS indicator 1739).
 - `/data/ssaa/`: official monthly system-adjustment cost dataset (REE/ESIOS indicator 10328), applied when a tariff price does not already include those services.

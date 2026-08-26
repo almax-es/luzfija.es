@@ -363,6 +363,26 @@
       "requiereFV": true
     },
     {
+      "nombre": "Bassols Hogar 24 horas",
+      "cPunta": 0.117,
+      "cLlano": 0.117,
+      "cValle": 0.117,
+      "p1": 0.158,
+      "p2": 0.084,
+      "web": "https://bassolsenergia.com/es/tarifas-de-luz/hogar-24-horas/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Imagina Base Sin Horas 8000",
       "cPunta": 0.11793,
       "cLlano": 0.11793,
@@ -2095,6 +2115,26 @@
       "requiereFV": true
     },
     {
+      "nombre": "Bassols Hogar Ahorro 3P",
+      "cPunta": 0.213,
+      "cLlano": 0.111,
+      "cValle": 0.057,
+      "p1": 0.159,
+      "p2": 0.085,
+      "web": "https://bassolsenergia.com/es/tarifas-de-luz/hogar-ahorro/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Atulado Discriminación Horaria 3P",
       "cPunta": 0.21342,
       "cLlano": 0.134353,
@@ -2482,5 +2522,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-08-26T11:33:22.667Z"
+  "updatedAt": "2026-08-26T12:05:44.015Z"
 }
