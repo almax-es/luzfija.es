@@ -219,4 +219,149 @@ describe('calculate(): editar durante un calculo en curso no borra el aviso de p
 
     expect(state.pending).toBe(true);
   });
+
+  // Ronda 13: `state.generation` solo cubre productores del formulario. El auto-refresh
+  // puede sustituir baseTarifasCache/__LF_tarifasMeta mientras calculateLocal sigue en un
+  // await posterior al snapshot. Si el commit solo mira generation, un ranking construido
+  // con la version anterior queda etiquetado como "Resultados actualizados".
+  it('un cambio de version del catalogo durante calculateLocal deja el resultado pendiente', async () => {
+    let resolveCalc;
+    const calcGate = new Promise((res) => { resolveCalc = res; });
+    const calculateLocal = vi.fn(async () => { await calcGate; });
+    const { state } = boot({
+      __LF_tarifasMeta: { updatedAt: '2026-08-01T00:00:00Z' },
+      baseTarifasCache: [{ nombre: 'Catalogo v1' }],
+      calculateLocal
+    });
+
+    const pending = window.calculate(true, false);
+    // No mutar la metadata hasta que calculate() haya copiado el catalogo y entrado
+    // realmente en el await posterior. Asi el test discrimina el hueco que se audita.
+    await vi.waitFor(() => expect(calculateLocal).toHaveBeenCalledTimes(1));
+
+    // Mismo productor real que el auto-refresh: lf-cache.js sustituye cache + metadata
+    // cuando termina una descarga valida. No hay edicion del formulario ni bump de generation.
+    window.LF.baseTarifasCache = [{ nombre: 'Catalogo v2' }];
+    window.LF.__LF_tarifasMeta = { updatedAt: '2026-08-26T00:00:00Z' };
+
+    resolveCalc();
+    await pending;
+
+    expect(state.pending).toBe(true);
+    expect(window.LF.setStatus).toHaveBeenLastCalledWith(
+      'Tarifas actualizadas. Pulsa Calcular para aplicar la nueva versión.',
+      'idle'
+    );
+  });
+
+  // Ronda 13: una edicion valida durante un calculo programa el debounce y vuelve a
+  // presentar "Pulsa Calcular". Antes, ese segundo click entraba en runCalculation(), veia
+  // __LF_CALC_INFLIGHT y se perdia. La peticion se serializa y se ejecuta al terminar la vieja.
+  it('una peticion de Calcular durante un calculo en vuelo se ejecuta despues si no hubo mas cambios', async () => {
+    let resolveFirst;
+    const firstGate = new Promise((res) => { resolveFirst = res; });
+    let callCount = 0;
+    const calculateLocal = vi.fn(async () => {
+      callCount += 1;
+      if (callCount === 1) await firstGate;
+    });
+    const { state } = boot({ calculateLocal });
+
+    window.runCalculation(false);
+    await vi.waitFor(() => expect(calculateLocal).toHaveBeenCalledTimes(1));
+
+    // Edit real: bump sincronico de pending/generation. El click siguiente ocurre mientras
+    // el primer calculo sigue en vuelo, asi que debe quedar en cola, no descartarse.
+    window.scheduleCalculateDebounced();
+    window.runCalculation(false);
+
+    resolveFirst();
+    await vi.waitFor(() => expect(calculateLocal).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() => expect(state.pending).toBe(false));
+  });
+
+  // La cola no autoriza a aplicar cambios hechos DESPUES del click que la creo. Si el usuario
+  // sigue editando mientras espera, generation cambia y el recalculo automatico debe abortarse;
+  // queda el aviso pendiente para que el usuario decida cuando volver a calcular.
+  it('una edicion posterior a la peticion encolada impide aplicar automaticamente ese estado nuevo', async () => {
+    let resolveFirst;
+    const firstGate = new Promise((res) => { resolveFirst = res; });
+    let callCount = 0;
+    const calculateLocal = vi.fn(async () => {
+      callCount += 1;
+      if (callCount === 1) await firstGate;
+    });
+    const { state } = boot({ calculateLocal });
+
+    window.runCalculation(false);
+    await vi.waitFor(() => expect(calculateLocal).toHaveBeenCalledTimes(1));
+
+    window.scheduleCalculateDebounced(); // cambio A
+    window.runCalculation(false);        // el usuario pide calcular A
+    window.scheduleCalculateDebounced(); // cambio B, posterior a esa peticion
+
+    resolveFirst();
+    await vi.waitFor(() => expect(window.__LF_CALC_INFLIGHT).toBe(false));
+
+    expect(calculateLocal).toHaveBeenCalledTimes(1);
+    expect(state.pending).toBe(true);
+  });
+
+
+  // Ronda 13: el evento de solicitud describe el inicio de un calculo aceptado, no un
+  // click que se queda esperando detras de otro. El results-ready viejo debe cerrar
+  // primero su lifecycle para que AECC/tracking no atribuyan esas filas a la peticion nueva.
+  it('una peticion encolada anuncia results-requested solo despues del results-ready anterior', async () => {
+    let resolveFirst;
+    const firstGate = new Promise((res) => { resolveFirst = res; });
+    let callCount = 0;
+    const events = [];
+    const onRequested = () => events.push('requested');
+    const onReady = () => events.push('ready');
+    document.addEventListener('lf:results-requested', onRequested);
+    document.addEventListener('lf:results-ready', onReady);
+
+    const calculateLocal = vi.fn(async () => {
+      callCount += 1;
+      if (callCount === 1) {
+        await firstGate;
+        document.dispatchEvent(new CustomEvent('lf:results-ready', {
+          detail: { origin: 'home', rows: 1 }
+        }));
+      }
+    });
+    boot({ calculateLocal });
+
+    window.runCalculation(false, true);
+    await vi.waitFor(() => expect(calculateLocal).toHaveBeenCalledTimes(1));
+
+    window.scheduleCalculateDebounced();
+    window.runCalculation(false, true);
+    expect(events).toEqual(['requested']);
+
+    resolveFirst();
+    await vi.waitFor(() => expect(calculateLocal).toHaveBeenCalledTimes(2));
+
+    expect(events).toEqual(['requested', 'ready', 'requested']);
+    document.removeEventListener('lf:results-requested', onRequested);
+    document.removeEventListener('lf:results-ready', onReady);
+  });
+
+  // Los recalculos internos (auto-refresh, factura/CSV) ya llamaban runCalculation sin
+  // lf:results-requested. El nuevo punto unico de emision no debe convertirlos en una
+  // accion de usuario ni inflar calculo-realizado/home.
+  it('runCalculation sin anuncio conserva silenciosos los recalculos internos', async () => {
+    const requested = vi.fn();
+    document.addEventListener('lf:results-requested', requested);
+    const calculateLocal = vi.fn(async () => {});
+    boot({ calculateLocal });
+
+    window.runCalculation(false);
+    await vi.waitFor(() => expect(calculateLocal).toHaveBeenCalledTimes(1));
+    await vi.waitFor(() => expect(window.__LF_CALC_INFLIGHT).toBe(false));
+
+    expect(requested).not.toHaveBeenCalled();
+    document.removeEventListener('lf:results-requested', requested);
+  });
+
 });

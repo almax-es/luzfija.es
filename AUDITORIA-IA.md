@@ -2126,6 +2126,55 @@ promesa en este repositorio, esa es la forma correcta de escribirla.**
 
 Severidad BAJA: no afecta a calculos ni al QR, solo al nombre mostrado.
 
+### Catalogo Sustituido Durante Un Calculo En Vuelo (RESUELTA 26/08/2026)
+
+`calculate()` copiaba `baseTarifasCache` y solo capturaba `state.generation`, que cubre las
+ediciones del formulario pero **no** el catalogo. Despues del snapshot quedan `await` reales
+(PVPC, `requestAnimationFrame`, `setTimeout`, `calculateLocal` con SSAA). Si el auto-refresh
+publicaba una version nueva en ese hueco, `lf-cache.js` sustituia el catalogo y
+`refreshTarifasAndMaybeRecalc()` adelantaba `__lf_lastTarifasUpdatedAt` **de inmediato**; el
+calculo viejo terminaba, limpiaba `pending` y dejaba en pantalla un ranking de la version
+anterior rotulado `Resultados actualizados`, sin que ningun refresh posterior volviera a
+considerar esa version una novedad. Detectado por ChatGPT el 26/08/2026 (ronda 13).
+
+Correccion: capturar `window.LF.__LF_tarifasMeta?.updatedAt` junto al snapshot y exigir en el
+commit que sigan iguales **generation Y version del catalogo**. Si cambio, se conserva el
+ranking ya pintado pero se restaura `pending` con aviso propio. `updatedAt` sirve como
+identidad porque `lf-cache.js` ya rechaza que el contenido cambie manteniendo la misma version;
+no se anade un segundo mecanismo de hash.
+
+Se restaura `state.pending = true` + `setStatus(...)` en lugar de `markPending()`, **a
+proposito**: aqui no hay un cambio nuevo que contar, y bumpear `generation` romperia la
+serializacion de peticiones. Mismo patron que ya existia en `scheduleCalculateDebounced()`.
+
+Severidad MEDIA: exige coincidencia de actualizacion de catalogo con un calculo largo, pero el
+dato mostrado puede ser incorrecto sin aviso.
+
+### Peticion De Calculo Perdida Durante `__LF_CALC_INFLIGHT` (RESUELTA 26/08/2026)
+
+`runCalculation()` hacia `if (window.__LF_CALC_INFLIGHT) return`. El debounce de inputs
+rehabilita el boton a los 200 ms aunque siga un calculo en vuelo (**verificado en Chrome real**:
+`btnCalc.disabled === false` con `__LF_CALC_INFLIGHT === true`), asi que el usuario podia pulsar
+un boton habilitado y perder el click en silencio, ademas de emitir un `lf:results-requested`
+sin calculo asociado. Detectado por ChatGPT el 26/08/2026 (ronda 13).
+
+Correccion: serializar **una sola** peticion pendiente, atada a la `generation` del instante en
+que se pidio, y drenarla en el `finally`. Una edicion posterior la invalida en vez de aplicarse
+sola. `lf:results-requested` se centraliza en el momento en que la peticion arranca de verdad.
+
+La trampa esta en el ORDEN de eventos: una cola ingenua emite el `requested` encolado antes de
+que el calculo anterior publique su `results-ready`, y `aecc-banner.js` reatribuye `requestedAt`.
+Por eso `calculateLocal()` devuelve la promesa de `renderAll()` y `renderAll()` la de
+`renderTable()`: asi `calculate()` no entra en su `finally` hasta que el `ready` anterior salio.
+**Es un unico cable de lifecycle sostenido desde dos ficheros; romper cualquiera de los dos
+extremos lo desactiva.** Verificado en Chrome real: `requested -> ready -> requested -> ready`.
+
+Efecto lateral deliberado: un rechazo de `renderTable()` ya no es una unhandled rejection
+silenciosa, sino que llega al `catch` de `calculate()`. Antes un render roto podia rotularse
+`Resultados actualizados`.
+
+Severidad BAJA: se perdia una accion, no se producia un ranking falso.
+
 ### SEO, Datos Estructurados Y Core Web Vitals
 
 - La ausencia de `<meta name="robots" content="index,follow">` no es una carencia: `index,follow` es el comportamiento por defecto. Solo reporta `robots` si una directiva concreta bloquea o limita una URL indebidamente.

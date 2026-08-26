@@ -926,7 +926,7 @@
 
     // Esperar a que la tabla termine de renderizarse antes de hacer scroll,
     // para evitar que el scroll salte al final mientras el DOM crece.
-    renderTable().then(() => {
+    const renderDone = renderTable().then(() => {
       announceResultsSummary(d);
       dispatchResultsReady(el.tbody ? el.tbody.querySelectorAll('tr').length : 0);
       if (seccionResultados) {
@@ -939,6 +939,8 @@
       sb.style.display = 'block';
       setTimeout(() => sb.style.display = 'none', 5000);
     }
+
+    return renderDone;
   }
 
   // ===== EXPORTAR =====

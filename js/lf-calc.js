@@ -628,7 +628,7 @@
     // se ejecuten en la misma long task (mejora INP)
     await window.LF.yieldControl();
 
-    window.LF.renderAll({
+    return window.LF.renderAll({
       success: true,
       // Modo del cálculo: el render lo usa para avisos que describen ESTOS
       // resultados (no el estado actual del formulario, que puede cambiar después)

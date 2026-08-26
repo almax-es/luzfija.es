@@ -145,9 +145,29 @@
   }
 
   // ===== RUN CALCULATION =====
-  function runCalculation(forceRefresh = false) {
-    if (window.__LF_CALC_INFLIGHT) return;
+  let __lf_queuedCalculation = null;
+
+  function runCalculation(forceRefresh = false, announceRequest = false) {
+    if (window.__LF_CALC_INFLIGHT) {
+      // No solapar calculos, pero tampoco perder una peticion que llega mientras el
+      // actual sigue en vuelo (p. ej. el usuario edita y pulsa Calcular cuando el
+      // debounce ya ha vuelto a habilitar el boton). Guardar la generation del
+      // instante de la peticion evita aplicar automaticamente ediciones POSTERIORES
+      // que el usuario aun no ha pedido calcular. `announceRequest` se conserva, pero
+      // NO se emite todavia: el results-ready del calculo viejo debe cerrar su propio
+      // lifecycle antes de abrir el de la peticion encolada.
+      if (state.pending) {
+        __lf_queuedCalculation = {
+          generation: state.generation || 0,
+          forceRefresh: Boolean(forceRefresh) || Boolean(__lf_queuedCalculation?.forceRefresh),
+          announceRequest: Boolean(announceRequest) || Boolean(__lf_queuedCalculation?.announceRequest)
+        };
+      }
+      return false;
+    }
+    if (announceRequest) dispatchResultsRequested();
     calculate(true, forceRefresh);
+    return true;
   }
 
   function dispatchResultsRequested() {
@@ -345,6 +365,11 @@
       // PVPC (viene de pvpc.js)
       const pvpc = typeof crearTarifaPVPC === 'function' ? await crearTarifaPVPC(values) : null;
       const base = Array.isArray(window.LF.baseTarifasCache) ? window.LF.baseTarifasCache.slice() : [];
+      // `updatedAt` identifica una generacion inmutable del catalogo (lf-cache.js
+      // rechaza que el contenido cambie manteniendo la misma version). Capturarlo
+      // junto a `base` permite comprobar al COMMIT del resultado que el auto-refresh
+      // no sustituyo las tarifas mientras este calculo seguia en vuelo.
+      const tarifasVersionAtSnapshot = window.LF.__LF_tarifasMeta?.updatedAt || null;
 
       // Añadir tarifa personalizada si está marcada
       const miTarifa = agregarMiTarifa();
@@ -361,19 +386,29 @@
       
       await calculateLocal(values);
       state.lastSignature = signature;
-      // Entre capturar `values` y llegar aqui ha habido varios `await` (red, PVPC, render
-      // por chunks): si el usuario edito el formulario durante ese hueco, el resultado que
-      // acaba de pintar renderAll() corresponde a los valores ANTERIORES, no a lo que el
-      // formulario muestra ahora. Limpiar `pending` aqui borraria en silencio el aviso
-      // "Cambios pendientes" que el propio edit ya habia activado, dejando en pantalla un
-      // "Resultados actualizados" que no es cierto para el estado actual del formulario.
-      if ((state.generation || 0) === startGeneration) {
+      // Entre capturar `values`/catalogo y llegar aqui ha habido varios `await` (red,
+      // PVPC, SSAA, render por chunks). El resultado solo puede declararse vigente si
+      // siguen iguales AMBOS productores del snapshot: los datos editables y la version
+      // de tarifas que se copio arriba. `generation` no cubre el auto-refresh porque
+      // este muta la cache, no el formulario.
+      const generationUnchanged = (state.generation || 0) === startGeneration;
+      const tarifasVersionNow = window.LF.__LF_tarifasMeta?.updatedAt || null;
+      const tarifasUnchanged = tarifasVersionNow === tarifasVersionAtSnapshot;
+      if (generationUnchanged && tarifasUnchanged) {
         state.pending = false;
       } else {
-        // markPending() ya se llamo cuando cambio (state.pending ya es true): se vuelve a
-        // llamar para refrescar el texto de estado, que renderAll() acaba de pisar con
-        // "Resultados actualizados".
-        markPending();
+        // renderAll() acaba de poner pending=false y "Resultados actualizados".
+        // Restaurar el estado sin markPending(): aqui no ha ocurrido un cambio NUEVO,
+        // solo estamos reafirmando uno ya contado. Mantener generation estable permite
+        // ademas decidir si una peticion de calculo encolada sigue correspondiendo al
+        // estado que el usuario tenia cuando la hizo.
+        state.pending = true;
+        setStatus(
+          tarifasUnchanged
+            ? 'Cambios pendientes. Pulsa Calcular para actualizar.'
+            : 'Tarifas actualizadas. Pulsa Calcular para aplicar la nueva versión.',
+          'idle'
+        );
       }
       
     } catch (err) {
@@ -381,6 +416,12 @@
       setStatus('No se ha podido calcular. Inténtalo de nuevo.', 'err');
     } finally {
       window.__LF_CALC_INFLIGHT = false;
+
+      const queued = __lf_queuedCalculation;
+      __lf_queuedCalculation = null;
+      if (queued && state.pending && (state.generation || 0) === queued.generation) {
+        runCalculation(queued.forceRefresh, queued.announceRequest);
+      }
     }
   }
 
@@ -536,9 +577,8 @@
     // Calculate button
     currentEl.btnCalc.addEventListener('click', (e) => {
       createRipple(currentEl.btnCalc, e);
-      dispatchResultsRequested();
       // Si el cálculo viene de un CSV ya aplicado, hay que preservar la curva horaria.
-      runCalculation(false);
+      runCalculation(false, true);
     });
 
     document.addEventListener('lf:annual-consumption-estimate-change', (event) => {
@@ -547,12 +587,12 @@
       state.focusAnnualConsumptionEstimateToggle = true;
       // 15/08/2026, residual detectado por ChatGPT (novena ronda, 4a revision): este toggle
       // muta state directamente (no un input con su propio listener), asi que sin este bump
-      // explicito state.generation no se enteraba del cambio. Si ya habia un calculo en vuelo,
-      // el nuevo runCalculation() de abajo se descarta por __LF_CALC_INFLIGHT, y el calculo
-      // viejo terminaba sin detectar que el filtrado por limite anual acababa de cambiar.
+      // explicito state.generation no se enteraba del cambio. Historicamente, si ya habia un
+      // calculo en vuelo, runCalculation() se descartaba y el calculo viejo no detectaba el
+      // cambio. El bump sigue siendo necesario: invalida el resultado viejo y permite que la
+      // serializacion de runCalculation() ate la peticion al estado exacto que el usuario pidio.
       markPending();
-      dispatchResultsRequested();
-      runCalculation(false);
+      runCalculation(false, true);
     });
 
     // Enter en cualquier input → Calcular
@@ -561,12 +601,11 @@
       input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
-          dispatchResultsRequested();
           createRipple(currentEl.btnCalc, {
             clientX: currentEl.btnCalc.offsetLeft + currentEl.btnCalc.offsetWidth / 2,
             clientY: currentEl.btnCalc.offsetTop + currentEl.btnCalc.offsetHeight / 2
           });
-          runCalculation(true);
+          runCalculation(true, true);
         }
       });
     });

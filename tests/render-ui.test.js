@@ -694,4 +694,21 @@ describe('Renderizado UI (lf-render.js)', () => {
     expect(tip).not.toContain('usando BV acumulada');
   });
 
+
+  // Ronda 13: el orquestador espera esta promesa antes de abrir el lifecycle de una
+  // peticion encolada. Devolverla es parte del contrato: si renderAll vuelve a fire-and-forget,
+  // lf:results-ready del calculo viejo puede llegar despues del requested del siguiente.
+  it('renderAll devuelve una promesa que resuelve al terminar el render de resultados', async () => {
+    const done = window.LF.renderAll({
+      success: true,
+      resumen: { mejor: 'Tarifa Barata', precio: '50,00 €' },
+      stats: null,
+      resultados: [...mockRows]
+    });
+
+    expect(done).toBeInstanceOf(Promise);
+    await done;
+    expect(document.querySelectorAll('#tbody tr').length).toBe(3);
+  });
+
 });

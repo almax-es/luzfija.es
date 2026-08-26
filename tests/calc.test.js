@@ -966,4 +966,44 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     expect(totalConBono).toBeCloseTo(totalSinBono, 2);
   });
 
+
+  // Ronda 13: calculate() serializa una peticion encolada cuando termina calculateLocal().
+  // Por eso calculateLocal no puede resolver al mero publicar renderAll(): debe adoptar la
+  // promesa del render de tabla, cuyo final emite lf:results-ready. Si se pierde este cable,
+  // una solicitud nueva puede abrir su lifecycle antes del ready de las filas anteriores.
+  it('no resuelve calculateLocal hasta que termina la promesa devuelta por renderAll', async () => {
+    window.LF.cachedTarifas = [{
+      nombre: 'Tarifa lifecycle',
+      p1: 0.10, p2: 0.10,
+      cPunta: 0.10, cLlano: 0.10, cValle: 0.10,
+      tipo: '1P', esPVPC: false
+    }];
+
+    let resolveRender;
+    const renderGate = new Promise((resolve) => { resolveRender = resolve; });
+    const renderCallsBefore = window.LF.renderAll.mock.calls.length;
+    window.LF.renderAll.mockImplementationOnce((data) => {
+      window.LF.state.rows = data.resultados;
+      return renderGate;
+    });
+
+    let settled = false;
+    const pending = window.LF.calculateLocal({
+      p1: 4, p2: 4, dias: 30,
+      cPunta: 100, cLlano: 0, cValle: 0,
+      zonaFiscal: 'Península', viviendaCanarias: false,
+      solarOn: false, exTotal: 0, bvSaldo: 0,
+      bonoSocialOn: false, bonoSocialTipo: 'vulnerable', bonoSocialLimite: 1587,
+      fechaYmd: '2026-03-20'
+    }).then(() => { settled = true; });
+
+    await vi.waitFor(() => expect(window.LF.renderAll.mock.calls.length).toBe(renderCallsBefore + 1));
+    await Promise.resolve();
+    expect(settled).toBe(false);
+
+    resolveRender();
+    await pending;
+    expect(settled).toBe(true);
+  });
+
 });
