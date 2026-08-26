@@ -70,11 +70,16 @@
         return Number.isFinite(value) ? value / 365 : null;
       }
 
-      function __LF_qrInfoToCustomTarifaPrices(info){
+      function __LF_qrCustomTarifaAvailability(info){
         // "Mi tarifa" modela precios fijos sin cuota mensual. E0 es libre 3P
         // y F0 libre 1P; indexadas, planas, flexibles y variantes con cuota
         // necesitan conceptos que el formulario principal no puede representar.
-        if (!info || !['E0', 'F0'].includes(info.tipoContrato)) return null;
+        if (!info || !info.tipoContrato) {
+          return { precios: null, motivo: 'qr-datos-incompletos' };
+        }
+        if (!['E0', 'F0'].includes(info.tipoContrato)) {
+          return { precios: null, motivo: 'tipo-no-representable' };
+        }
         const singleEnergyPrice = info.tipoContrato === 'F0';
         const prices = {
           punta: info.precioEnergiaP1,
@@ -86,13 +91,22 @@
           p1: __LF_qrAnnualPowerPriceToDaily(info.precioPotenciaP1),
           p2: __LF_qrAnnualPowerPriceToDaily(info.precioPotenciaP2)
         };
-        if (!Object.values(prices).every(Number.isFinite)) return null;
+        if (!Object.values(prices).every(Number.isFinite)) {
+          return { precios: null, motivo: 'qr-precios-incompletos' };
+        }
         if (prices.punta < 0 || prices.punta > 1
           || prices.llano < 0 || prices.llano > 1
           || prices.valle < 0 || prices.valle > 1
           || prices.p1 <= 0 || prices.p1 > 1
-          || prices.p2 < 0 || prices.p2 > 1) return null;
-        return prices;
+          || prices.p2 < 0 || prices.p2 > 1) {
+          return { precios: null, motivo: 'qr-precios-incompletos' };
+        }
+        return { precios: prices, motivo: 'ok' };
+      }
+
+      function __LF_qrInfoToCustomTarifaPrices(info){
+        // API historica conservada para consumidores y pruebas existentes.
+        return __LF_qrCustomTarifaAvailability(info).precios;
       }
 
 
@@ -1834,6 +1848,7 @@
   window.__LF_FacturaParsers = {
     __LF_normNum,
     __LF_qrAnnualPowerPriceToDaily,
+    __LF_qrCustomTarifaAvailability,
     __LF_qrInfoToCustomTarifaPrices,
     __LF_daysInclusive,
     __LF_extraerNumero,

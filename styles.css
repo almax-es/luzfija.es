@@ -1791,18 +1791,54 @@ body.lf-share-open { overflow: hidden; }
 .qr-factura-import-tarifa .fv-check{ align-items:flex-start; font-size:12px; font-weight:800; }
 .qr-factura-import-tarifa .fv-check input{ flex:0 0 auto; margin-top:2px; }
 .qr-factura-import-tarifa p{ margin:6px 0 0 24px; color:var(--muted); font-size:9px; line-height:1.4; }
-/* Sustituye a la casilla de importacion cuando los precios declarados no cuadran
-   con el importe facturado (descuento no reflejado en el QR). Ambar, no rojo: no
-   es un error de lectura, es un dato que no se puede usar para comparar. */
+/* Sustituye a la casilla de importacion y explica por que no aparece. Los casos
+   incompatibles/incompletos son informativos; los precios potencialmente
+   enganosos son ambar, no rojos, porque la factura se ha leido correctamente. */
 .qr-factura-import-aviso{
+  display:grid;
+  grid-template-columns:24px minmax(0, 1fr);
+  align-items:start;
+  gap:9px;
   margin-top:10px;
-  padding:10px;
-  border:1px solid rgba(245,158,11,.45);
+  padding:11px 12px;
+  border:1px solid transparent;
   border-radius:10px;
-  background:rgba(245,158,11,.10);
   color:var(--text);
-  font-size:10px;
-  line-height:1.45;
+  overflow-wrap:anywhere;
+}
+.qr-factura-import-aviso--info{
+  border-color:rgba(59,130,246,.42);
+  background:linear-gradient(135deg, rgba(59,130,246,.13), rgba(139,92,246,.07));
+}
+.qr-factura-import-aviso--warning{
+  border-color:rgba(245,158,11,.48);
+  background:linear-gradient(135deg, rgba(245,158,11,.14), rgba(245,158,11,.07));
+}
+.qr-factura-import-aviso-icono{
+  display:grid;
+  place-items:center;
+  width:22px;
+  height:22px;
+  border:1px solid currentColor;
+  border-radius:50%;
+  color:#93c5fd;
+  font-size:12px;
+  font-weight:900;
+  line-height:1;
+}
+.qr-factura-import-aviso--warning .qr-factura-import-aviso-icono{ color:#fbbf24; }
+.qr-factura-import-aviso-cuerpo{ min-width:0; }
+.qr-factura-import-aviso-cuerpo strong{
+  display:block;
+  font-size:12px;
+  font-weight:900;
+  line-height:1.35;
+}
+.qr-factura-import-aviso-cuerpo p{
+  margin:3px 0 0;
+  color:var(--muted);
+  font-size:11px;
+  line-height:1.5;
 }
 .qr-factura-contact{
   display:flex;
@@ -1820,6 +1856,10 @@ body.lf-share-open { overflow: hidden; }
 html.light-mode .qr-factura-info{ background:linear-gradient(145deg, rgba(34,197,94,.10), rgba(59,130,246,.06)); }
 html.light-mode .qr-factura-fact{ background:rgba(255,255,255,.72); }
 html.light-mode .qr-factura-import-tarifa{ background:rgba(139,92,246,.07); }
+html.light-mode .qr-factura-import-aviso--info{ background:linear-gradient(135deg, rgba(59,130,246,.10), rgba(139,92,246,.05)); }
+html.light-mode .qr-factura-import-aviso--warning{ background:linear-gradient(135deg, rgba(245,158,11,.12), rgba(245,158,11,.05)); }
+html.light-mode .qr-factura-import-aviso-icono{ color:#1d4ed8; }
+html.light-mode .qr-factura-import-aviso--warning .qr-factura-import-aviso-icono{ color:#92400e; }
 
 @media (max-width:520px){
   .qr-factura-info{ padding:11px; }
@@ -1827,6 +1867,7 @@ html.light-mode .qr-factura-import-tarifa{ background:rgba(139,92,246,.07); }
   .qr-factura-local{ align-self:flex-start; }
   .qr-factura-grid{ grid-template-columns:minmax(0, 1fr); }
   .qr-factura-fact-wide{ grid-column:auto; }
+  .qr-factura-import-aviso{ padding:10px; }
 }
 
 .input-validacion{ position:relative; margin-bottom:8px; }

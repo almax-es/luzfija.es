@@ -236,6 +236,10 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
   casilla opt-in permite aplicar tambien los cinco precios a `Mi tarifa`. La importacion sustituye
   la configuracion personalizada anterior y no inventa descuentos, servicios, compensacion solar
   ni bateria virtual que el QR no permite trasladar al modelo del comparador.
+- Cuando existe QR pero esa casilla no se puede ofrecer, la ficha explica el motivo: modalidad no
+  representable, tipo de contrato ausente, precios incompletos/no validos, descuento no reflejado,
+  cambio de precios dentro del periodo o incoherencia entre precios e importes. Si el PDF no tiene
+  QR no se muestra un aviso especial, porque no hay datos estructurados que evaluar.
 - Indicador de confianza y avisos contextuales.
 - El badge distingue si la URL CNMC se obtuvo como enlace del PDF o decodificando el QR rasterizado.
   Si QR y PDF corresponden al mismo periodo pero producen un numero de dias distinto, conserva la
@@ -453,7 +457,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 40 (`js/*.js` + `js/bv/*.js`).
-- Lineas JS aproximadas: 31.481.
+- Lineas JS aproximadas: 31.541.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (122 tarifas).
@@ -543,7 +547,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Suite Vitest/JSDOM.
 - 105 archivos de test (`tests/*.test.js`).
-- 1698 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 1700 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

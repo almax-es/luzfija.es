@@ -37,7 +37,7 @@
       const {
         __LF_normNum,
         __LF_qrAnnualPowerPriceToDaily,
-        __LF_qrInfoToCustomTarifaPrices,
+        __LF_qrCustomTarifaAvailability,
         __LF_extractQRUrl,
         __LF_isTrustedCnmcQrUrl,
         __LF_isCnmcCommercializerCode,
@@ -928,24 +928,66 @@
       function __LF_appendQrCustomTarifaSelector(section, prices, coherencia) {
         if (!prices) {
           const MOTIVOS = {
-            'descuento-no-reflejado': 'No se ofrecen estos precios para "Mi tarifa": el importe '
-              + 'facturado no cuadra con los precios declarados, señal de que tu factura aplica un '
-              + 'descuento que el QR no recoge. Importarlos haría parecer tu tarifa más cara de lo '
-              + 'que pagas.',
-            'cambio-precios-periodo': 'No se ofrecen estos precios para "Mi tarifa": esta factura '
-              + 'tuvo un cambio de precios a mitad del periodo, así que el QR declara el precio '
-              + 'nuevo mientras los importes suman los dos. Puedes introducirlos a mano si sabes '
-              + 'cuál es el que te aplica ahora.',
-            'qr-incoherente': 'No se ofrecen estos precios para "Mi tarifa": los precios y los '
-              + 'importes que declara el QR de esta factura no encajan entre sí, así que no se '
-              + 'puede garantizar que representen lo que pagas. Puedes introducirlos a mano '
-              + 'comprobándolos en tu contrato.'
+            'tipo-no-representable': {
+              tipo: 'info',
+              titulo: 'Esta modalidad no se puede importar como «Mi tarifa»',
+              texto: 'El QR indica un contrato que el comparador no puede representar fielmente. '
+                + 'Los consumos y las potencias de la factura sí se pueden aplicar al formulario.'
+            },
+            'qr-datos-incompletos': {
+              tipo: 'info',
+              titulo: 'El QR no incluye todos los datos necesarios',
+              texto: 'Falta la modalidad del contrato, así que no podemos saber si sus precios '
+                + 'encajan en «Mi tarifa». Puedes introducirlos manualmente si los conoces.'
+            },
+            'qr-precios-incompletos': {
+              tipo: 'info',
+              titulo: 'El QR no incluye todos los precios necesarios',
+              texto: 'Falta algún precio de energía o potencia, o contiene un valor que no se '
+                + 'puede usar con seguridad. Puedes completar «Mi tarifa» manualmente.'
+            },
+            'descuento-no-reflejado': {
+              tipo: 'warning',
+              titulo: 'Estos precios no reflejan lo que estás pagando',
+              texto: 'El importe facturado no cuadra con los precios declarados, señal de que tu '
+                + 'factura aplica un descuento que el QR no recoge. Importarlos haría parecer tu '
+                + 'tarifa más cara de lo que pagas.'
+            },
+            'cambio-precios-periodo': {
+              tipo: 'warning',
+              titulo: 'La factura mezcla dos precios distintos',
+              texto: 'Esta factura tuvo un cambio de precios a mitad del periodo: el QR declara el '
+                + 'precio nuevo, pero los importes suman ambos tramos. Puedes introducir a mano el '
+                + 'precio que te aplica ahora.'
+            },
+            'qr-incoherente': {
+              tipo: 'warning',
+              titulo: 'Los datos económicos del QR no son coherentes',
+              texto: 'Los precios y los importes declarados no encajan entre sí, así que no se '
+                + 'puede garantizar que representen lo que pagas. Puedes introducirlos a mano '
+                + 'comprobándolos en tu contrato.'
+            }
           };
-          const texto = MOTIVOS[coherencia?.motivo];
-          if (texto) {
-            const aviso = document.createElement('p');
-            aviso.className = 'qr-factura-import-aviso';
-            aviso.textContent = texto;
+          const contenido = MOTIVOS[coherencia?.motivo];
+          if (contenido) {
+            const aviso = document.createElement('div');
+            aviso.className = `qr-factura-import-aviso qr-factura-import-aviso--${contenido.tipo}`;
+            aviso.setAttribute('role', 'note');
+            aviso.dataset.motivo = coherencia.motivo;
+
+            const icono = document.createElement('span');
+            icono.className = 'qr-factura-import-aviso-icono';
+            icono.setAttribute('aria-hidden', 'true');
+            icono.textContent = contenido.tipo === 'warning' ? '!' : 'i';
+
+            const cuerpo = document.createElement('div');
+            cuerpo.className = 'qr-factura-import-aviso-cuerpo';
+            const titulo = document.createElement('strong');
+            titulo.textContent = contenido.titulo;
+            const texto = document.createElement('p');
+            texto.textContent = contenido.texto;
+            cuerpo.append(titulo, texto);
+            aviso.append(icono, cuerpo);
             section.appendChild(aviso);
           }
           return;
@@ -1028,7 +1070,10 @@
           { label: 'Potencia punta', value: __LF_formatQrPowerPrice(info.precioPotenciaP1) },
           { label: 'Potencia valle', value: __LF_formatQrPowerPrice(info.precioPotenciaP2) }
         ]);
-        const coherencia = __LF_qrPricesMatchDeclaredAmounts(datos, __LF_qrInfoToCustomTarifaPrices(info));
+        const disponibilidad = __LF_qrCustomTarifaAvailability(info);
+        const coherencia = disponibilidad.precios
+          ? __LF_qrPricesMatchDeclaredAmounts(datos, disponibilidad.precios)
+          : { coherente: false, precios: null, motivo: disponibilidad.motivo };
         // Si la factura aplica un descuento que los precios declarados no reflejan,
         // importarlos haria parecer la tarifa del usuario mas cara de lo que paga.
         __LF_lastQrCustomTarifaPrices = coherencia.coherente ? coherencia.precios : null;

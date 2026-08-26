@@ -800,6 +800,36 @@ describe('Motor de Extracción de Facturas (PDF Text)', () => {
       expect(window.__LF_FacturaParsers.__LF_qrInfoToCustomTarifaPrices({ ...base, precioEnergiaP3: null })).toBeNull();
     });
 
+    it('explica por qué un QR no puede alimentar Mi tarifa', () => {
+      const base = {
+        tipoContrato: 'E0',
+        precioEnergiaP1: 0.15,
+        precioEnergiaP2: 0.12,
+        precioEnergiaP3: 0.09,
+        precioPotenciaP1: 27.704413,
+        precioPotenciaP2: 0.725423
+      };
+      const evaluar = info => window.__LF_FacturaParsers.__LF_qrCustomTarifaAvailability(info);
+
+      expect(evaluar(base)).toMatchObject({ motivo: 'ok', precios: expect.any(Object) });
+      expect(evaluar({ ...base, tipoContrato: 'A0' })).toEqual({
+        motivo: 'tipo-no-representable',
+        precios: null
+      });
+      expect(evaluar({ ...base, tipoContrato: null })).toEqual({
+        motivo: 'qr-datos-incompletos',
+        precios: null
+      });
+      expect(evaluar({ ...base, precioEnergiaP3: null })).toEqual({
+        motivo: 'qr-precios-incompletos',
+        precios: null
+      });
+      expect(evaluar({ ...base, precioPotenciaP1: 500 })).toEqual({
+        motivo: 'qr-precios-incompletos',
+        precios: null
+      });
+    });
+
     it('rechaza hosts que solo contienen el dominio CNMC como substring', () => {
       const url = 'https://comparador.cnmc.gob.es.ejemplo.com/comparador/QRE?pP1=3.45&pP2=4.6&cfP1=10&cfP2=20&cfP3=30';
       expect(window.__LF_FacturaParsers.__LF_isTrustedCnmcQrUrl(url)).toBe(false);

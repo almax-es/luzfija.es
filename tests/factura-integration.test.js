@@ -735,6 +735,63 @@ describe('Factura PDF Integration (Black Box)', () => {
   });
 
   // El QR declara prE*/prP* SIN descuentos, pero impEner/impPot SI los incorporan
+  it('explica en la ficha por qué un contrato QR no representable no ofrece Mi tarifa', async () => {
+    const qrUrl = [
+      'https://comparador.cnmc.gob.es/comparador/QRE2?',
+      'pP1=3&pP2=3&cfP1=89&cfP2=59&cfP3=80',
+      '&iniF=2026-07-15&finF=2026-08-14&fFact=2026-08-25',
+      '&com=R2-796&tc=A0&tf=N&finContrato=2027-07-15&finPen=0000-00-00',
+      '&rev=0&verde=1&imp=45.04&impPot=14.4&impEner=19.54&impSA=0',
+      '&finBS=0.74&impOtrosSinIE=0.8&prP1=29.2&prP2=29.2',
+      '&prE1=0.0852&prE2=0.0852&prE3=0.0852'
+    ].join('');
+    const padding = Array(8).fill({ str: 'relleno de texto de factura para superar el mínimo', transform: [0,0,0,0, 0, 0] });
+    const items = [
+      { str: 'Període facturat. Dies: 30', transform: [0,0,0,0, 10, 90] },
+      ...padding
+    ];
+
+    window.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ commercializers: { 'R2-796': { name: 'BON PREU, SAU' } } })
+    });
+    window.pdfjsLib.getDocument.mockReturnValue({
+      promise: Promise.resolve({
+        numPages: 1,
+        getPage: () => Promise.resolve({
+          getTextContent: () => Promise.resolve({ items }),
+          getAnnotations: () => Promise.resolve([{ url: qrUrl }]),
+          cleanup: () => {},
+          getViewport: () => ({ width: 100, height: 100 }),
+          render: () => ({ promise: Promise.resolve() })
+        }),
+        cleanup: () => {},
+        destroy: () => {}
+      })
+    });
+
+    await import('../js/factura-parsers.js');
+    await import('../js/factura.js');
+    window.__LF_bindFacturaParser?.();
+
+    const mockFile = new File(['indexada'], 'factura-indexada.pdf', { type: 'application/pdf' });
+    mockFile.arrayBuffer = async () => new ArrayBuffer(10);
+    const event = new Event('change', { bubbles: true });
+    Object.defineProperty(event, 'target', { value: { files: [mockFile] } });
+    document.getElementById('fileInputFactura').dispatchEvent(event);
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const card = document.getElementById('formValidacionFactura').querySelector('.qr-factura-info');
+    expect(card.querySelector('#usarPreciosQrMiTarifa')).toBeNull();
+    const aviso = card.querySelector('.qr-factura-import-aviso');
+    expect(aviso).not.toBeNull();
+    expect(aviso.getAttribute('role')).toBe('note');
+    expect(aviso.dataset.motivo).toBe('tipo-no-representable');
+    expect(aviso.classList.contains('qr-factura-import-aviso--info')).toBe(true);
+    expect(aviso.textContent).toContain('Esta modalidad no se puede importar como «Mi tarifa»');
+    expect(aviso.textContent).toContain('Los consumos y las potencias de la factura sí se pueden aplicar');
+  });
+
   // (Resolucion CNMC, BOE-A-2022-16989). Mirar solo el campo `dto` no basta: la
   // resolucion permite que el descuento venga ya dentro del importe. Aqui el QR es
   // identico al de Bonpreu salvo impEner, rebajado de 19,54 a 15,54: los precios
