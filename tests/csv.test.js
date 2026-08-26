@@ -39,6 +39,37 @@ describe('Lógica CSV - Calendario y Festivos', () => {
       
       expect(periodo).toBe('P1');
     });
+
+    // 26/08/2026: `esFestivoNacionalMmdd` es la API publica que consume pvpc.js
+    // (pvpc.js:583-585) para decidir si un dia del PVPC es festivo. Los tests de festivos
+    // que ya existian entran por getFestivosNacionales()/getPeriodoHorarioCSV(), que leen
+    // el Set directamente, asi que esta funcion podia devolver SIEMPRE false con los 1700
+    // tests en verde: el CSV seguia clasificando bien y solo PVPC dejaba de reconocer los
+    // festivos. Verificado mutandola.
+    describe('esFestivoNacionalMmdd (API compartida con pvpc.js)', () => {
+      const esFestivo = (mmdd) => window.LF.csvUtils.esFestivoNacionalMmdd(mmdd);
+
+      it('reconoce los nueve festivos nacionales de fecha fija', () => {
+        const fijos = ['01-01', '01-06', '05-01', '08-15', '10-12', '11-01', '12-06', '12-08', '12-25'];
+        for (const mmdd of fijos) {
+          expect(esFestivo(mmdd), `${mmdd} deberia ser festivo`).toBe(true);
+        }
+      });
+
+      it('no marca como festivo un dia laborable', () => {
+        for (const mmdd of ['04-16', '07-04', '12-24', '12-31', '02-29']) {
+          expect(esFestivo(mmdd), `${mmdd} no deberia ser festivo`).toBe(false);
+        }
+      });
+
+      it('rechaza entradas que no son exactamente MM-DD', () => {
+        // Guard defensivo de la frontera publica: pvpc.js le pasa el resultado de trocear
+        // una fecha, y una entrada rara no debe colarse como festivo ni reventar.
+        for (const entrada of [null, undefined, 42, {}, [], '', '1-1', '01-1', '2026-12-25', '12-25 ', ' 12-25']) {
+          expect(esFestivo(entrada), `${JSON.stringify(entrada)} deberia rechazarse`).toBe(false);
+        }
+      });
+    });
   });
 
   describe('Clasificación Horaria (2.0TD)', () => {

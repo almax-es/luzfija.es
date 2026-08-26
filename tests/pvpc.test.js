@@ -233,6 +233,41 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     vi.useRealTimers();
   });
 
+  // 26/08/2026, residual senyalado por Codex: el test de `esFestivoNacionalMmdd` en
+  // csv.test.js cubre el helper, pero no que pvpc.js LO LLAME. Sustituir el resultado de
+  // `esFestivoNacional()` (js/pvpc.js:583-586) por un false constante dejaba aquella
+  // regresion en verde. Este caso entra por el recorrido productivo completo:
+  // 6 de enero de 2026 (Reyes) cae en MARTES, asi que si el motor no reconoce el festivo
+  // lo clasificara como laborable y repartira las horas en P1/P2/P3.
+  // Precios por franja 3/2/1: si TODO el dia es valle, la media de las 24 horas es 2,0;
+  // si se reparte por horario, el valle serian solo las horas < 8, es decir 1,0.
+  it('un festivo nacional entre semana clasifica TODO el dia como valle (recorrido PVPC)', async () => {
+    vi.setSystemTime(new Date('2026-01-07T12:00:00Z'));
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        ...pvpcIdentity(8741, 'Europe/Madrid'),
+        days: { '2026-01-06': generateMockDayPrices(3, 2, 1, '2026-01-06') }
+      })
+    });
+
+    const result = await global.window.LF.pvpc.obtenerPVPC_LOCAL({
+      zonaFiscal: 'Peninsula', p1: 3.45, p2: 3.45, dias: 1,
+      cPunta: 10, cLlano: 10, cValle: 10
+    });
+
+    expect(result).toBeDefined();
+    // Media de las 24 horas del dia completo, no solo de las nocturnas.
+    // "TODO el dia es valle" se fija exigiendo que punta y llano queden SIN muestras.
+    // Solo con la media del valle no bastaba: mover unicamente las 8 horas punta al valle
+    // y dejar las llano como P2 daria (8*1 + 8*3)/16 = 2,0 igualmente (Codex, 26/08/2026).
+    expect(result.precioPunta).toBe(0);
+    expect(result.precioLlano).toBe(0);
+    expect(result.precioValle).toBeCloseTo(2.0, 6);
+
+    vi.useRealTimers();
+  });
+
   it('rechaza un HTTP 200 horario completo si pertenece a otro indicador', async () => {
     vi.setSystemTime(new Date('2025-03-01T12:00:00Z'));
     global.fetch.mockResolvedValue({

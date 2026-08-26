@@ -131,6 +131,84 @@ describe('CSV Utils - Parsing Robusto', () => {
     });
   });
 
+  // 26/08/2026: los CSV reales de distribuidora traen metadatos (CUPS, fecha de
+  // generacion, lineas vacias) ANTES de la cabecera. detectHeaderRow escanea hasta 30
+  // filas para saltarselos, pero ningun test lo cubria: reducir maxRows a 1 dejaba la
+  // suite entera en verde. Sin esta capacidad, un CSV con preambulo se rechaza sin que
+  // el usuario entienda por que.
+  describe('detectHeaderRow con preambulo', () => {
+    const conPreambulo = [
+      'Informe de consumos horarios',
+      'CUPS: ES0000000000000000AB',
+      'Generado: 26/08/2026',
+      '',
+      'Fecha;Hora;Consumo_kWh;Metodo_obtencion',
+      '01/01/2026;1;0,345;R',
+      '01/01/2026;2;0,289;R'
+    ];
+
+    it('encuentra la cabecera aunque no sea la primera linea', () => {
+      const r = csvUtils.detectHeaderRow(conPreambulo, ';');
+      expect(r.index).toBe(4);
+      expect(r.headersNorm).toEqual(['fecha', 'hora', 'consumo_kwh', 'metodo_obtencion']);
+    });
+
+    it('deduce el separador con preambulo delante', () => {
+      expect(csvUtils.detectCSVSeparatorFromLines(conPreambulo)).toBe(';');
+    });
+
+    it('no encuentra cabecera si no se le deja mirar mas alla de la primera fila', () => {
+      // Fija el contrato del parametro: es lo que distingue "salta el preambulo" de
+      // "solo mira la primera linea".
+      expect(csvUtils.detectHeaderRow(conPreambulo, ';', 1).index).toBe(-1);
+    });
+  });
+
+  // 26/08/2026, residual senyalado por Codex: el bloque de arriba cubre detectHeaderRow()
+  // llamandola directamente, pero parseCSVToRows() le pasa `30` de forma EXPLICITA
+  // (lf-csv-utils.js:1918-1919). Cambiar ese 30 por 1 dejaba aquellos tests en verde
+  // mientras el importador real se rompia. Este caso entra por el recorrido productivo y
+  // cubre de una vez separador, cabecera y volcado de filas, ademas con coma como
+  // separador para no repetir el punto y coma del bloque anterior.
+  describe('parseCSVToRows con preambulo (recorrido del importador)', () => {
+    const csvConPreambulo = [
+      'Informe de consumos',
+      'CUPS: ES0000000000000000AB',
+      '',
+      'Fecha,Hora,Consumo_kWh,Metodo_obtencion',
+      '01/01/2026,1,0.345,R',
+      '01/01/2026,2,0.289,R'
+    ].join('\n');
+
+    it('salta el preambulo y deduce coma como separador', () => {
+      const r = csvUtils.parseCSVToRows(csvConPreambulo);
+      expect(r.separator).toBe(',');
+      // headerRowIndex es el indice DENTRO de rows (la cabecera ya volcada), no el de
+      // la linea original: lo que importa es que rows[0] sea la cabecera y no metadatos.
+      expect(r.headerRowIndex).toBe(0);
+      expect(r.rows[0][0]).toBe('Fecha');
+    });
+
+    it('devuelve la cabecera y las filas de datos, sin las lineas de metadatos', () => {
+      const r = csvUtils.parseCSVToRows(csvConPreambulo);
+      expect(r.rows[0]).toEqual(['Fecha', 'Hora', 'Consumo_kWh', 'Metodo_obtencion']);
+      expect(r.rows).toHaveLength(3);
+      expect(r.rows[1]).toEqual(['01/01/2026', '1', '0.345', 'R']);
+      // Ninguna linea del preambulo se cuela como dato.
+      const aplanado = JSON.stringify(r.rows);
+      expect(aplanado).not.toContain('CUPS');
+      expect(aplanado).not.toContain('Informe');
+    });
+
+    it('falla con un error de cabecera si el preambulo es mas largo que el escaneo', () => {
+      // Fija el contrato: el importador NO adivina, avisa. 40 lineas de ruido superan
+      // el maximo de 30 filas que se escanean.
+      const ruido = Array.from({ length: 40 }, (_, i) => `linea de relleno ${i}`);
+      const csv = [...ruido, 'Fecha,Hora,Consumo_kWh', '01/01/2026,1,0.345'].join('\n');
+      expect(() => csvUtils.parseCSVToRows(csv)).toThrow(/no se pudo detectar la cabecera/i);
+    });
+  });
+
   describe('parseEnergyTableRows privacy contract', () => {
     it('No incluye CUPS ni strings libres del CSV en los registros parseados', () => {
       const cups = 'ES0021000000000000AB';
