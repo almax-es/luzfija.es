@@ -837,13 +837,23 @@
         const consumos = [datos?.consumoPunta, datos?.consumoLlano, datos?.consumoValle].map(num);
         const potencias = [datos?.p1, datos?.p2].map(num);
 
+        // Devuelve null (incontrastable), 'ok', 'descuento' o 'incoherente'.
+        // LA DIRECCION IMPORTA: un descuento solo puede hacer que se facture MENOS de
+        // lo que los precios explican. Si se factura MAS, la causa es otra (unidades
+        // mal publicadas, periodo distinto, recargos) y acusar de descuento seria
+        // mentir al usuario. Casos reales que lo destaparon (25/08/2026): Endesa
+        // declara 10,11 EUR de energia frente a 9,854 calculados, y el QR de Octopus
+        // publica prP1/prP2 en EUR/kW/dia en vez de EUR/kW/anyo como exige la
+        // resolucion (0,093 x 365 = 33,95 EUR/kW/anyo, coherente; al reves, absurdo).
         const comparar = (calculado, declarado) => {
           if (!Number.isFinite(calculado) || !Number.isFinite(declarado) || declarado < 0) return null;
           const desvio = Math.abs(calculado - declarado);
+          if (desvio <= QR_COHERENCIA_MINIMO_EUR) return 'ok';
           // Un subtotal declarado de 0 con precios positivos NO es "incontrastable":
           // es justo el caso de una promocion del 100% sobre ese termino.
-          if (declarado === 0) return desvio <= QR_COHERENCIA_MINIMO_EUR;
-          return desvio <= QR_COHERENCIA_MINIMO_EUR || desvio / declarado <= QR_COHERENCIA_TOLERANCIA;
+          if (declarado === 0) return 'descuento';
+          if (desvio / declarado <= QR_COHERENCIA_TOLERANCIA) return 'ok';
+          return calculado > declarado ? 'descuento' : 'incoherente';
         };
 
         const energiaCalculada = consumos.every(Number.isFinite)
@@ -855,15 +865,37 @@
         // contrasta si el propio QR aporta el periodo. `fechaInicio`/`fechaFin` solo
         // se rellenan cuando esas fechas pasan la validacion estricta.
         const periodoDelQr = Boolean(info?.fechaInicio && info?.fechaFin);
-        const potenciaCalculada = periodoDelQr && potencias.every(Number.isFinite) && Number.isFinite(dias)
-          ? (potencias[0] * precios.p1 + potencias[1] * precios.p2) * dias
-          : NaN;
+        const potenciaPorDias = d => (potencias.every(Number.isFinite) && Number.isFinite(d)
+          ? (potencias[0] * precios.p1 + potencias[1] * precios.p2) * d
+          : NaN);
 
         // num() y no Number(): un importe ausente (`null`) daria 0 y, frente a un
         // calculo positivo, se leeria como descuento. La falta de evidencia no puede
         // convertirse en evidencia.
-        const energiaOk = comparar(energiaCalculada, num(info?.importeEnergia));
-        const potenciaOk = comparar(potenciaCalculada, num(info?.importePotencia));
+        const importeEnergia = num(info?.importeEnergia);
+        const importePotencia = num(info?.importePotencia);
+
+        const energiaOk = comparar(energiaCalculada, importeEnergia);
+
+        // El QR puede declarar sus dias y facturar la potencia con otro recuento: caso
+        // real de Plenitude (25/08/2026), donde impPot solo cuadra con los 32 dias del
+        // PDF y no con los 31 del QR. Si ambos recuentos son plausibles, basta con que
+        // UNO reproduzca el importe: es una discrepancia de dias ya conocida y avisada
+        // en otro sitio, no un descuento.
+        // Los dias del PDF solo valen como recuento alternativo si PDF y QR hablan del
+        // MISMO periodo. Con `periodoQrPdfDiscrepante` ya sabemos que no (tipico de un
+        // PDF con varias facturas), asi que esos dias son de otra factura y no pueden
+        // legitimar los precios de esta: seria la misma mezcla que el resto del codigo
+        // evita al combinar fuentes.
+        const diasAlternativos = [
+          dias,
+          datos?.periodoQrPdfDiscrepante ? NaN : num(datos?.diasDetectadosPdf)
+        ].filter(d => Number.isFinite(d) && d > 0);
+        let potenciaOk = periodoDelQr ? comparar(potenciaPorDias(dias), importePotencia) : null;
+        if (periodoDelQr && potenciaOk && potenciaOk !== 'ok') {
+          const alguno = diasAlternativos.some(d => comparar(potenciaPorDias(d), importePotencia) === 'ok');
+          if (alguno) potenciaOk = 'ok';
+        }
 
         // `null` = ese termino no se puede contrastar (el QR no trae el importe, o el
         // periodo no es suyo). DECISION DELIBERADA: no bloquea. Se prefiere un falso
@@ -871,11 +903,14 @@
         // contrastable— antes que retirar la importacion a todo el que tenga un QR
         // incompleto, que es mucho mas frecuente. Si un termino SI se puede contrastar
         // y falla, eso si bloquea.
-        if (energiaOk === false || potenciaOk === false) {
+        const veredictos = [energiaOk, potenciaOk];
+        if (veredictos.some(v => v && v !== 'ok')) {
           return {
             coherente: false,
             precios: null,
-            motivo: 'descuento-no-reflejado',
+            // Si alguno apunta a descuento, ese es el motivo util para el usuario;
+            // si solo hay incoherencias de otro signo, no se le acusa de descuento.
+            motivo: veredictos.includes('descuento') ? 'descuento-no-reflejado' : 'qr-incoherente',
             energiaOk,
             potenciaOk
           };
@@ -900,7 +935,11 @@
             'cambio-precios-periodo': 'No se ofrecen estos precios para "Mi tarifa": esta factura '
               + 'tuvo un cambio de precios a mitad del periodo, así que el QR declara el precio '
               + 'nuevo mientras los importes suman los dos. Puedes introducirlos a mano si sabes '
-              + 'cuál es el que te aplica ahora.'
+              + 'cuál es el que te aplica ahora.',
+            'qr-incoherente': 'No se ofrecen estos precios para "Mi tarifa": los precios y los '
+              + 'importes que declara el QR de esta factura no encajan entre sí, así que no se '
+              + 'puede garantizar que representen lo que pagas. Puedes introducirlos a mano '
+              + 'comprobándolos en tu contrato.'
           };
           const texto = MOTIVOS[coherencia?.motivo];
           if (texto) {

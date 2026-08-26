@@ -974,6 +974,54 @@ describe('Factura PDF Integration (Black Box)', () => {
       expect(r.coherente).toBe(true);
     });
 
+    // La DIRECCION del desvio importa: un descuento solo puede hacer que se facture
+    // MENOS de lo que los precios explican. Casos reales del 25/08/2026: Endesa
+    // declara mas energia de la calculada, y el QR de Octopus publica prP en
+    // EUR/kW/dia en vez de EUR/kW/anyo, lo que hunde el calculo.
+    it('no llama descuento a una factura que cobra MAS de lo que los precios explican', () => {
+      // calculado 30 EUR < declarado 40 EUR: un descuento haria justo lo contrario.
+      const r = evaluar(base({ importeEnergia: 40 }));
+      expect(r.coherente).toBe(false);
+      expect(r.motivo).toBe('qr-incoherente');
+      expect(r.energiaOk).toBe('incoherente');
+    });
+
+    it('sigue detectando el descuento cuando se factura MENOS de lo calculado', () => {
+      const r = evaluar(base({ importeEnergia: 20 }));
+      expect(r.motivo).toBe('descuento-no-reflejado');
+      expect(r.energiaOk).toBe('descuento');
+    });
+
+    // Plenitude (25/08/2026): impPot solo cuadra con los 32 dias del PDF, no con los
+    // 31 que declara el QR. Es la discrepancia de dias ya conocida y avisada aparte,
+    // no un descuento: si UNO de los dos recuentos reproduce el importe, vale.
+    it('acepta la potencia si cuadra con los dias del PDF aunque no con los del QR', () => {
+      // 3 kW x 2 x 0,08 EUR/kW/dia = 0,48 EUR/dia -> 30 dias = 14,4 ; 32 dias = 15,36
+      const datos = { ...base({ importePotencia: 15.36 }), dias: 30, diasDetectadosPdf: 32 };
+      const r = evaluar(datos);
+      expect(r.potenciaOk).toBe('ok');
+      expect(r.coherente).toBe(true);
+    });
+
+    // Si los periodos son incompatibles (PDF con varias facturas), los dias del PDF
+    // son de OTRA factura: no pueden legitimar los precios de esta.
+    it('no usa los dias del PDF como recuento alternativo si los periodos son incompatibles', () => {
+      const datos = {
+        ...base({ importePotencia: 15.36 }),
+        dias: 30,
+        diasDetectadosPdf: 32,
+        periodoQrPdfDiscrepante: true
+      };
+      const r = evaluar(datos);
+      expect(r.potenciaOk).not.toBe('ok');
+      expect(r.coherente).toBe(false);
+    });
+
+    it('si no cuadra con ninguno de los dos recuentos, sigue bloqueando', () => {
+      const datos = { ...base({ importePotencia: 40 }), dias: 30, diasDetectadosPdf: 32 };
+      expect(evaluar(datos).coherente).toBe(false);
+    });
+
     it('fija el umbral: 1% pasa y 3% bloquea', () => {
       // energia calculada = 30 EUR exactos
       expect(evaluar(base({ importeEnergia: 30 / 1.01 })).coherente).toBe(true);

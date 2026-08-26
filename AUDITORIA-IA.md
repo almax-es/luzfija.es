@@ -2054,6 +2054,28 @@ cada uno era un falso positivo capaz de acusar de descuento a quien no lo tiene)
    justo el caso de una bonificacion del 100% sobre ese termino, y debe detectarse. Se separa
    del caso "el importe no viene".
 
+**LA DIRECCION DEL DESVIO IMPORTA — corregido el 25/08/2026 con facturas reales.** La primera
+version usaba `Math.abs()` y llamaba "descuento" a cualquier desviacion. Es falso: un descuento
+solo puede hacer que se facture MENOS de lo que los precios explican. Si se factura MAS, la causa
+es otra. Tres casos reales lo destaparon, ninguno de ellos un descuento:
+  - **Endesa**: energia calculada 9,854 EUR frente a 10,11 declarados. Se facturaba mas de lo
+    calculado, asi que acusar de descuento era mentir.
+  - **Octopus**: su QR publica `prP1=0,093` y `prP2=0,025`, que son EUR/kW/**dia**, no EUR/kW/anyo
+    como exige la resolucion (0,093 x 365 = 33,95 EUR/kW/anyo es plausible; al reves da 0,000255,
+    absurdo). El bloqueo era correcto, el motivo no.
+  - **Plenitude**: `impPot` cuadra con los 32 dias impresos en el PDF, no con los 31 que declara
+    su propio QR. Es la discrepancia de dias ya conocida y avisada aparte.
+
+Ahora `comparar()` devuelve `'ok'` / `'descuento'` (calculado > declarado) / `'incoherente'`
+(calculado < declarado) / `null`, y solo se acusa de descuento cuando el signo lo respalda. El
+resto sale con motivo `qr-incoherente` y su propio aviso, que no menciona descuentos. Ademas, si
+el QR y el PDF discrepan en los dias, la potencia se valida con AMBOS recuentos y basta con que
+uno reproduzca `impPot`: eso recupera el selector en facturas tipo Plenitude, que antes se
+bloqueaban sin motivo. **Con una condicion: esos dias alternativos NO valen si
+`periodoQrPdfDiscrepante` es cierto.** En un PDF con varias facturas, los dias del texto son de
+OTRA factura y legitimarian los precios de esta por accidente; es la misma mezcla que el resto
+del codigo evita al combinar fuentes.
+
 **Politica ante lo no contrastable (deliberada).** Si un termino no se puede contrastar, NO se
 bloquea: se prefiere un falso negativo —dejar pasar un descuento que solo afecta a un termino sin
 importe declarado— antes que retirar la importacion a todo el que tenga un QR incompleto, que es
