@@ -406,26 +406,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Octopus Unicaja",
-      "cPunta": 0.118,
-      "cLlano": 0.118,
-      "cValle": 0.118,
-      "p1": 0.093,
-      "p2": 0.093,
-      "web": "https://octopusenergy.es/unicaja#tarifas",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.01,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Iner Tranquilidad",
       "cPunta": 0.1187,
       "cLlano": 0.1187,
@@ -695,26 +675,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Octopus Relax",
-      "cPunta": 0.124,
-      "cLlano": 0.124,
-      "cValle": 0.124,
-      "p1": 0.093,
-      "p2": 0.093,
-      "web": "https://octopusenergy.es/precios",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.01,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Nufri Sin Horarios",
       "cPunta": 0.124312,
       "cLlano": 0.124312,
@@ -812,6 +772,26 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Octopus Unicaja",
+      "cPunta": 0.127,
+      "cLlano": 0.127,
+      "cValle": 0.127,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://octopusenergy.es/unicaja#tarifas",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.01,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -935,6 +915,26 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Octopus Relax",
+      "cPunta": 0.133,
+      "cLlano": 0.133,
+      "cValle": 0.133,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://octopusenergy.es/precios",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.01,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -1413,26 +1413,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Octopus Unicaja 3P",
-      "cPunta": 0.136,
-      "cLlano": 0.118,
-      "cValle": 0.108,
-      "p1": 0.093,
-      "p2": 0.093,
-      "web": "https://octopusenergy.es/unicaja#tarifas",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.01,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Energya VM Fórmula Fija Noche y Findes 3P",
       "cPunta": 0.138015,
       "cLlano": 0.138015,
@@ -1453,26 +1433,6 @@
       },
       "requiereFV": false,
       "maxConsumoAnual": 6000.0
-    },
-    {
-      "nombre": "Octopus 3P",
-      "cPunta": 0.143,
-      "cLlano": 0.124,
-      "cValle": 0.114,
-      "p1": 0.093,
-      "p2": 0.093,
-      "web": "https://octopusenergy.es/precios",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.01,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
     },
     {
       "nombre": "Nordy V 3P",
@@ -1515,6 +1475,26 @@
       },
       "requiereFV": false,
       "maxConsumoAnual": 5000.0
+    },
+    {
+      "nombre": "Octopus Unicaja 3P",
+      "cPunta": 0.165,
+      "cLlano": 0.118,
+      "cValle": 0.108,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://octopusenergy.es/unicaja#tarifas",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.01,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Repsol 3P",
@@ -1631,6 +1611,26 @@
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Octopus 3P",
+      "cPunta": 0.174,
+      "cLlano": 0.124,
+      "cValle": 0.114,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://octopusenergy.es/precios",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.01,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -2180,26 +2180,6 @@
       "requiereFV": true
     },
     {
-      "nombre": "Octopus Solar 3P",
-      "cPunta": 0.223,
-      "cLlano": 0.134,
-      "cValle": 0.109,
-      "p1": 0.093,
-      "p2": 0.093,
-      "web": "https://octopusenergy.es/precios/tarifa-solar",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.035,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": true
-    },
-    {
       "nombre": "Imagina Vehículo Eléctrico 3P",
       "cPunta": 0.223415,
       "cLlano": 0.14935,
@@ -2301,6 +2281,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Octopus Solar 3P",
+      "cPunta": 0.243,
+      "cLlano": 0.148,
+      "cValle": 0.12,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://octopusenergy.es/precios/tarifa-solar",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.035,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": true
+    },
+    {
       "nombre": "Lumisa 3P",
       "cPunta": 0.247219,
       "cLlano": 0.165464,
@@ -2310,26 +2310,6 @@
       "web": "https://lumisa.es/es/tarifa-fija",
       "tipo": "3P",
       "requisitos": "15% descuento término energía durante 12 meses incluido en el precio.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Octopus Go 3P",
-      "cPunta": 0.251,
-      "cLlano": 0.251,
-      "cValle": 0.104,
-      "p1": 0.11,
-      "p2": 0.06,
-      "web": "https://octopusenergy.es/precios/tarifa-ev",
-      "tipo": "3P",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -2480,7 +2460,27 @@
         "precioBV": 0.0
       },
       "requiereFV": false
+    },
+    {
+      "nombre": "Octopus Go 3P",
+      "cPunta": 0.294,
+      "cLlano": 0.294,
+      "cValle": 0.104,
+      "p1": 0.11,
+      "p2": 0.06,
+      "web": "https://octopusenergy.es/precios/tarifa-ev",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     }
   ],
-  "updatedAt": "2026-08-25T21:13:11.557Z"
+  "updatedAt": "2026-08-26T11:33:22.667Z"
 }
