@@ -1147,6 +1147,20 @@ carga productiva valida.
 
 ### QA E2E Con Agentes De Navegador (Falsos Positivos De Interaccion)
 
+**AMPLIACION 26/08/2026 — la pestana automatizada corre OCULTA, y eso falsea tiempos.** Un agente
+de navegador trabaja con `document.visibilityState === 'hidden'`, y Chrome estrangula ahi el
+trabajo de render. Dos falsos positivos reales en un mismo dia:
+  - Los graficos Chart.js del Observatorio **no llegan a pintarse** (sin `requestAnimationFrame`),
+    aunque los KPI de texto si aparecen. Parece que el render esta roto y no lo esta.
+  - `Factura EP26` (DISA) parecia **colgada para siempre**: medido, 75 s sin terminar con la
+    pestana oculta, cuando en primer plano completa en unos segundos. DISA es la mas sensible
+    porque va por `Parser PDF` pero **recorre el bucle QR entero rasterizando paginas a canvas**
+    antes de descartar el resultado.
+**Regla: antes de reportar "se cuelga" o "no pinta" desde un agente, comprueba
+`document.visibilityState`.** Si es `hidden`, no es un hallazgo: reproducelo a mano en primer
+plano o pideselo al usuario. Lo que SI es fiable desde un agente: el DOM de texto, el estado de
+`localStorage`, los datos servidos y la logica ejecutada directamente.
+
 - Verificado el 14/07/2026: un agente QA con Chrome via MCP reporto que "Aplicar datos" del modal de factura no rellenaba la calculadora y arrastraba los valores de la factura anterior (3 casos, "reproducible"). Una reproduccion independiente con puppeteer-core y la misma secuencia exacta contra produccion demostro que el flujo funciona: modal correcto, inputs actualizados, toast de exito y autocalculo.
 - Causa probable del falso positivo: el click del agente no llego a impactar el boton (viewport/scroll). Sintomas que lo delatan: no hay toast de exito NI de error, y la barra de estado conserva el texto inicial ("Rellena tus datos y calcula"); es decir, el handler nunca se ejecuto, porque `__LF_applyValues` siempre deja rastro (exito: toast + cierre de modal; validacion fallida: toast de error + campos marcados `.err`).
 - Antes de reportar "el boton X no hace nada" desde un agente de navegador: comprueba toasts, clases `.err`, consola JS y que el elemento estaba visible en viewport al clicar; y reproduce con un segundo mecanismo de click antes de confirmarlo.
