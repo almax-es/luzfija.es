@@ -159,8 +159,8 @@
   }
 
   // ===== FESTIVOS Y PERIODOS =====
-  // NOTA: Las funciones calcularViernesSanto, getFestivosNacionales, getPeriodoHorarioCSV
-  // ahora se importan desde lf-csv-utils.js (con caché optimizado para festivos)
+  // NOTA: getFestivosNacionales y getPeriodoHorarioCSV ahora se importan desde
+  // lf-csv-utils.js (con caché optimizado para festivos)
 
   function ymdLocal(d) {
     const y = d.getFullYear();

@@ -1981,37 +1981,6 @@
   // ===== FESTIVOS Y PERIODOS TARIFARIOS =====
 
   /**
-   * Calcula la fecha de Viernes Santo para un año dado.
-   * Usa el algoritmo de Gauss para calcular la Pascua, luego resta 2 días.
-   * @param {number} year - Año
-   * @returns {string} Fecha en formato 'yyyy-mm-dd'
-   */
-  function calcularViernesSanto(year) {
-    const a = year % 19;
-    const b = Math.floor(year / 100);
-    const c = year % 100;
-    const d = Math.floor(b / 4);
-    const e = b % 4;
-    const f = Math.floor((b + 8) / 25);
-    const g = Math.floor((b - f + 1) / 3);
-    const h = (19 * a + b - d - g + 15) % 30;
-    const i = Math.floor(c / 4);
-    const k = c % 4;
-    const l = (32 + 2 * e + 2 * i - h - k) % 7;
-    const m = Math.floor((a + 11 * h + 22 * l) / 451);
-    const month = Math.floor((h + l - 7 * m + 114) / 31);
-    const day = ((h + l - 7 * m + 114) % 31) + 1;
-
-    const pascua = new Date(year, month - 1, day);
-    const viernesSanto = new Date(pascua);
-    viernesSanto.setDate(pascua.getDate() - 2);
-
-    const mes = String(viernesSanto.getMonth() + 1).padStart(2, '0');
-    const dia = String(viernesSanto.getDate()).padStart(2, '0');
-    return `${year}-${mes}-${dia}`;
-  }
-
-  /**
    * Fuente única de los festivos nacionales españoles de fecha FIJA (MM-DD)
    * según CNMC Circular 3/2020 (BOE-A-2020-1066). EXCLUYE festivos móviles
    * (Viernes Santo, Corpus Christi). También se consume desde pvpc.js para
@@ -2791,7 +2760,6 @@
     addDaysYmd,
 
     // Festivos y periodos
-    calcularViernesSanto,
     getFestivosNacionales,
     esFestivoNacionalMmdd,
     getPeriodoHorarioCSV,
