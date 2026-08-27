@@ -36,7 +36,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - 40 modulos JavaScript en `js/` (incluye `js/bv/`).
 - 31.532 lineas JS aproximadas.
 - 122 tarifas en `tarifas.json`.
-- Suite de tests Vitest con 108 archivos y 1737 casos.
+- Suite de tests Vitest con 108 archivos y 1738 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 
@@ -172,8 +172,9 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - SheetJS/xlsx (lazy),
 - Chart.js.
 - Inventario, versiones, SHA-256 y procedimiento de actualizacion de cada una: `vendor/README.md`.
-  Ojo con GoatCounter: su `count.js` NO es upstream limpio, lleva tres parches locales
-  (privacidad de la query, confirmacion de entrega y privacidad de factura). Se conserva la linea base pristina en
+  Ojo con GoatCounter: su `count.js` NO es upstream limpio, lleva cuatro parches locales
+  (privacidad de la query, confirmacion de entrega, privacidad de factura y robustez de `skipgc`
+  ante almacenamiento denegado). Se conserva la linea base pristina en
   `vendor/goatcounter/count.upstream.js` para poder reaplicarlos; nunca sobrescribir con un
   `curl` directo. `tests/vendor-inventory.test.js` vigila que el inventario no se desalinee.
 - Sin backend para calculos: todo se ejecuta en cliente.

@@ -233,7 +233,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
   al lado el valor regulado original del QR en `€/kW·año`; la equivalencia usa la base comercial
   fija de 365 dias del motor principal, tambien cuando la factura cae en un año bisiesto.
 - En contratos fijos compatibles del QR (`E0` libre 3P y `F0` libre 1P, sin cuota mensual), una
-  casilla opt-in permite aplicar tambien los cinco precios a `Mi tarifa`. La importacion sustituye
+  casilla opt-in permite aplicar tambien los precios del QR a los cinco campos de `Mi tarifa`. La importacion sustituye
   la configuracion personalizada anterior y no inventa descuentos, servicios, compensacion solar
   ni bateria virtual que el QR no permite trasladar al modelo del comparador.
 - Cuando existe QR pero esa casilla no se puede ofrecer, la ficha explica el motivo: modalidad no
@@ -547,7 +547,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Suite Vitest/JSDOM.
 - 108 archivos de test (`tests/*.test.js`).
-- 1737 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 1738 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

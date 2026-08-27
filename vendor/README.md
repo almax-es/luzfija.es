@@ -16,7 +16,7 @@ Este directorio contiene librerías de terceros alojadas localmente para garanti
 | Tesseract.js (wrapper) | 7.0.0 | 7.0.0 | ✅ al día |
 | Tesseract core | 7.0.0 | *ver nota* | ✅ correcta |
 | jsQR | 1.4.0 | 1.4.0 | ✅ al día |
-| GoatCounter | upstream + 3 parches | idéntico | ✅ al día |
+| GoatCounter | upstream + 4 parches | idéntico | ✅ al día |
 
 ### Revisión de advisories (17/08/2026)
 

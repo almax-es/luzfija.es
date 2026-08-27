@@ -99,6 +99,7 @@ decision esta en la seccion siguiente.
 | Contratos numericos por procedencia | Auditado en ronda 15 (27/08/2026). Contratos diferenciados para UI, CSV/XLSX y PDF/OCR; cero bugs con impacto demostrado | `Contratos Numericos Por Procedencia` |
 | SEO, datos estructurados y CWV | Auditado | `SEO, Datos Estructurados Y Core Web Vitals` |
 | Documentacion y vigencia editorial | Auditado 27/08/2026: 10 docs manuales, 7 generados y 25 guias. Corregidos la guia de factura (no reflejaba el import de precios QR a `Mi tarifa`) y 4 fechas de actualizacion desfasadas | `Documentacion Y Vigencia Editorial` |
+| Paginas legales (privacidad y aviso legal) | Auditado 27/08/2026, primera vez. Contrastadas todas las afirmaciones contra el codigo. Corregidos: fuente del PVPC (era CNMC, es ESIOS/REE), precios del QR no declarados, alcance del catalogo y fechas | `Paginas Legales Frente Al Comportamiento Real` |
 
 ## Decisiones Que No Deben Reportarse Como Bugs
 
@@ -2367,7 +2368,7 @@ interno o numeros ya normalizados; se empezo por las fronteras de confianza.
 - `unused-css-rules` de Lighthouse describe la cobertura de una pagina y estado concretos; no prueba que el CSS sea globalmente muerto. No ejecutes PurgeCSS ni borres reglas compartidas sin cubrir tema, responsive, modales y clases dinamicas.
 - Si GitHub Pages entrega estaticos con cache corta, una mejora de `Cache-Control` puede requerir CDN/infraestructura. Clasificala como decision operativa, no como cambio minimo de codigo ni como prioridad sin valorar visitas repetidas, DNS y riesgo de despliegue.
 
-## Documentacion Y Vigencia Editorial
+### Documentacion Y Vigencia Editorial
 
 Auditoria del 27/08/2026 sobre los 10 documentos manuales, los 7 generados y las 25 guias.
 
@@ -2381,7 +2382,7 @@ Que se verifico:
 
 Hallazgos corregidos:
 
-1. **La guia de la factura describia el lector QR como era antes del 25/08/2026.** Decia que rellena "potencia, consumos por periodo y fechas del ciclo" y no mencionaba en ningun punto la casilla que importa los cinco precios como `Mi tarifa`. Lo que afirmaba era cierto, pero omitia la capacidad mas util de la funcion. Anadido un parrafo en el Paso 2 con la casilla, su caracter opcional, que sustituye la tarifa personalizada guardada y que la ficha explica el motivo cuando no puede ofrecerse.
+1. **La guia de la factura describia el lector QR como era antes del 25/08/2026.** Decia que rellena "potencia, consumos por periodo y fechas del ciclo" y no mencionaba en ningun punto la casilla que traslada los precios del QR a los cinco campos de `Mi tarifa`. Lo que afirmaba era cierto, pero omitia la capacidad mas util de la funcion. Anadido un parrafo en el Paso 2 con la casilla, su caracter opcional, que sustituye la tarifa personalizada guardada y que la ficha explica el motivo cuando no puede ofrecerse.
 2. **Cuatro documentos declaraban una fecha de actualizacion anterior a su ultimo cambio real.** `CAPACIDADES-WEB.md` declaraba 2026-08-18 con cambios del 27; `AUDITORIA-IA.md`, 2026-08-20 con 59 lineas anadidas el 27; `ARRANQUE-CARGA.md`, 2026-08-24 con cambios del 27; `ANALITICA-GOATCOUNTER.md`, 2026-08-14 con 18 lineas del 25. Corregidas.
 
 Trampas de medicion encontradas al auditar, para no repetirlas:
@@ -2389,6 +2390,44 @@ Trampas de medicion encontradas al auditar, para no repetirlas:
 - **Medir longitudes bajo un locale que no interpreta UTF-8.** `${#var}` en Bash devuelve la longitud en CARACTERES, pero solo si el locale es UTF-8. En este entorno, sin `LANG` ni `LC_ALL` definidos, un `<title>` con tres acentos midio 66 y parecio superar el limite de 65 cuando mide 63; `LC_ALL=C.UTF-8` devuelve 63 y `LC_ALL=C` vuelve a devolver 66. Es el entorno, no Bash. El limite lo vigila `tests/seo-metadata.test.js`: si ese test pasa y una medicion manual dice lo contrario, sospecha de la medicion antes que del contenido.
 - **Buscar la cita normativa en vez de la afirmacion.** Once guias hablan de permanencia sin citar el RD 88/2026, pero varias explican correctamente la regla ("puede rescindirse sin penalizacion salvo la excepcion de un contrato a precio fijo antes de la primera renovacion") sin nombrar la norma. La ausencia de la referencia no prueba contenido desactualizado.
 - **`grep -moE` no hace lo que parece.** `-m` consume el token siguiente como su argumento numerico, el patron se pierde y todo sale como "no declara".
+
+### Paginas Legales Frente Al Comportamiento Real
+
+Auditoria del 27/08/2026 de `privacidad.html` y `aviso-legal.html`. Nunca se habian auditado.
+Metodo: medir primero el comportamiento en el codigo y contrastar despues cada afirmacion, para no
+leer el codigo buscando confirmacion de lo que el texto ya decia.
+
+Comportamiento medido (util como linea base para futuras revisiones):
+
+- Cero `document.cookie` en todo `js/`. La web no usa cookies.
+- `connect-src 'self' https://luzfija.goatcounter.com` confina a un unico destino externo de datos.
+- El script de GoatCounter se sirve desde `/vendor/goatcounter/count.js`, no desde un CDN.
+- PDF.js es local (`vendor/pdfjs/pdf.worker.min.mjs`): la factura se procesa en el navegador.
+- El unico `fetch` de `factura.js` va a `data/cnmc-commercializers.json`, same-origin.
+- La sonda de diagnostico de `tracking.js` rechaza cualquier destino que no sea `location.origin`.
+- `tracking.js` redacta el CUPS activamente (`/\bES[0-9A-Z]{16,24}\b/gi` a `[cups]`).
+- El CUPS del CSV solo aparece en ejemplos de docstring para detectar el separador; su valor no
+  viaja en el objeto de consumos.
+- Cero referencias a Google Fonts. Cero URLs con marcas de afiliacion en `tarifas.json`.
+- Constantes que el texto cita con exactitud: `ERROR_OUTBOX_MAX = 64`, TTL de `7 * 24 * 60 * 60 * 1000`,
+  y recorte de dominio con `labels.slice(-2)`.
+
+Hallazgos corregidos:
+
+1. **El aviso legal atribuia el PVPC a la CNMC.** La fuente real es ESIOS/REE: el workflow usa `ESIOS_API_KEY` e indicadores 1001/1739/10328, y `PVPC-SCHEMA.md` lo declara. El texto era ademas incoherente consigo mismo, porque nombraba a Red Electrica solo para declarar que no hay afiliacion. La CNMC si es fuente, pero del censo de comercializadoras (`sede.cnmc.gob.es/listado/censo/2`). Separadas las dos atribuciones.
+2. **La politica de privacidad no declaraba los precios importados del QR.** Decia que al pulsar Aplicar solo se guardan "potencias, dias y consumos", pero desde el 25/08/2026 `applyCustomTarifaPrices` llama a `saveCustomTarifaMain`, que persiste los cinco precios en `localStorage` bajo `lf_custom_tarifa`. Declarado en los dos puntos donde se enumeraba lo que se guarda.
+3. **El aviso legal no declaraba el alcance del catalogo.** Anadido que el listado es una seleccion revisada manualmente y no un censo exhaustivo del mercado, que es como funciona `tarifas.json`.
+4. **El aviso legal no tenia fecha de actualizacion** mientras que la politica si. Anadida, y la de privacidad actualizada del 05/08 al 27/08/2026. Cerrada ademas la causa: `sync-seo-docs.mjs` ya mantenia sola la fecha visible de `privacidad.html` mediante `replaceVisibleUpdatedDate`, y ahora cubre tambien `aviso-legal.html`, con su test en `tests/legal-pages.test.js`. Validado por mutacion en las dos direcciones: con una fecha de 2020 el generador la corrige al ejecutar el sync, y el test la detecta cuando el sync no ha corrido.
+
+Lo verificado que estaba bien: responsable y titular coincidentes con `LICENSE`, PolyForm Shield License 1.0.0, ausencia de cookies, autoalojamiento de tipografias y del script de analitica, procesamiento local de PDF y CSV, categorias cerradas en los diagnosticos, y las tres constantes numericas citadas en el texto.
+
+Trampa de redaccion, pisada dos veces el mismo dia:
+
+- **Confundir lo que el QR TRAE con lo que el comparador APLICA.** El QR declara cinco precios en `E0` y tres en `F0` (un unico precio de energia y dos de potencia). El comparador materializa y persiste siempre cinco campos, replicando en `F0` ese precio unico en punta, llano y valle (`singleEnergyPrice` en `factura-parsers.js`). Por tanto "se aplican" o "se persisten" cinco valores es correcto, y "el QR trae cinco precios" no lo es en general, ni siquiera en documentacion interna. Se colo primero en la guia de la factura y despues en `privacidad.html`.
+
+Trampa de medicion encontrada al auditar:
+
+- **`grep -c $'\r'` no sirve para detectar CRLF en este entorno**: devolvia el total de lineas en ficheros que son LF puro, y llevo a afirmar CRLF donde no lo habia. La comprobacion fiable es binaria: comparar `b.count(b'\r\n')` con `b.count(b'\n')`. `cat -A` tampoco es concluyente cuando `sed` normaliza por el camino. Antes de elegir el fin de linea de una insercion, medir en binario.
 
 ## Hallazgos Que Si Serian Relevantes
 

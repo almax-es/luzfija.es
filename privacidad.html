@@ -4,8 +4,8 @@
 <meta charset="utf-8"/>
 
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-IoKsBkXafHMLn2NIPKqy/VkSHU5W175k9uMzdgN9a+E='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; form-action 'self';">
-<script src="/js/config.js?v=20260827-204931"></script>
-<script src="/js/theme.js?v=20260827-204931"></script>
+<script src="/js/config.js?v=20260827-213430"></script>
+<script src="/js/theme.js?v=20260827-213430"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="color-scheme" content="dark light"/>
 <title>Privacidad | LuzFija.es</title>
@@ -137,7 +137,7 @@ html.light-mode .btn-small:hover{
 
 </style>
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/fonts.css?v=20260827-204931">
+  <link rel="stylesheet" href="/fonts.css?v=20260827-213430">
 
     <meta name="theme-color" content="#8B5CF6">
 </head>
@@ -169,7 +169,7 @@ html.light-mode .btn-small:hover{
   <li><strong>Datos de uso básicos</strong> (por ejemplo, página visitada y referrer) <strong>solo</strong> si está activa la analítica con GoatCounter.</li>
   <li><strong>Contenido de comunicaciones</strong> si nos escribes por email (tu dirección, asunto y mensaje).</li>
   <li><strong>Datos introducidos en el comparador</strong> (potencias, consumos, etc.): se procesan en tu navegador para realizar los cálculos y <strong>no se envían</strong> al servidor por defecto.</li>
-  <li><strong>Datos extraídos de facturas (PDF):</strong> El procesamiento es 100% local. El PDF, su texto y los datos personales sensibles (Titular, DNI, IBAN, CUPS completo) <strong>NO se guardan</strong> en ninguna base de datos ni de forma persistente en tu navegador; se usan para el cálculo y se descartan. Si pulsas Aplicar, solo se guardan localmente los valores numéricos que se copian a la calculadora (potencias, días y consumos).</li>
+  <li><strong>Datos extraídos de facturas (PDF):</strong> El procesamiento es 100% local. El PDF, su texto y los datos personales sensibles (Titular, DNI, IBAN, CUPS completo) <strong>NO se guardan</strong> en ninguna base de datos ni de forma persistente en tu navegador; se usan para el cálculo y se descartan. Si pulsas Aplicar, solo se guardan localmente los valores numéricos que se copian a la calculadora (potencias, días y consumos). Si además marcas la casilla para importar los precios del QR como «Mi tarifa», se guardan también localmente esos precios de energía y potencia, adaptados al modelo del comparador: en contratos con un solo precio de energía, ese precio se aplica internamente a los tres periodos.</li>
   <li><strong>Datos de ficheros CSV/XLSX:</strong> se procesan en local. El campo CUPS puede reconocerse como cabecera para detectar formato, pero sus valores no se guardan ni se renderizan; la interfaz usa agregados numéricos derivados (consumos, días, porcentajes e importes).</li>
   <li><strong>Datos en tu dispositivo</strong> (preferencias/estado/caché) mediante almacenamiento del navegador (localStorage y caché del Service Worker).</li>
 </ul>
@@ -243,7 +243,7 @@ html.light-mode .btn-small:hover{
   </p>
 <ul style="margin:12px 0;">
 <li>Recordar tus preferencias (tema claro/oscuro, datos introducidos).</li>
-<li>Tras pulsar Aplicar al importar una factura, conservar localmente potencias, días y consumos para rellenar la calculadora; no se conservan el PDF, su texto ni datos identificativos.</li>
+<li>Tras pulsar Aplicar al importar una factura, conservar localmente potencias, días y consumos para rellenar la calculadora y, si marcas la casilla correspondiente, los precios de energía y potencia obtenidos del QR y adaptados al modelo de «Mi tarifa»; no se conservan el PDF, su texto ni datos identificativos.</li>
 <li>Almacenar en caché recursos para uso offline (PWA).</li>
 <li>Conservar temporalmente, si falla la entrega a GoatCounter, hasta 64 apariciones con rutas técnicas saneadas de diagnóstico durante un máximo de 7 días. Cada entrada contiene solo la categoría del fallo y su fecha; las repeticiones se conservan por separado, se reintentan cuando vuelve la conexión y se eliminan individualmente al confirmar la entrega o todas al desactivar GoatCounter.</li>
 <li>Contar en <code>sessionStorage</code>, solo mientras la pestaña está abierta, cuántas veces se ha repetido un mismo fallo técnico. Es un contador numérico asociado a la categoría del fallo; no se genera ni se transmite ningún identificador, y desaparece al cerrar la pestaña.</li>
@@ -291,7 +291,7 @@ html.light-mode .btn-small:hover{
 <summary>Cambios en esta política</summary>
 <div class="accordion-content">
 <p>Esta política puede actualizarse para reflejar cambios técnicos o normativos.</p>
-<p style="color:var(--muted); font-size:14px;"><em>Última actualización: 5 de agosto de 2026</em></p>
+<p style="color:var(--muted); font-size:14px;"><em>Última actualización: 27 de agosto de 2026</em></p>
 <hr style="margin:40px 0; border:none; border-top:1px solid var(--border);"/>
 <p style="text-align:center; margin:30px 0;">
 <a href="/aviso-legal.html" style="color:var(--accent); margin:0 12px;">← Aviso legal</a>
@@ -379,6 +379,6 @@ html.light-mode .btn-small:hover{
   updateUI();
 })();
 </script>
-<script src="/js/tracking.js?v=20260827-204931" defer></script>
+<script src="/js/tracking.js?v=20260827-213430" defer></script>
 </body>
 </html>

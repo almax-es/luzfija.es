@@ -381,7 +381,7 @@ function syncHtmlDateMetadata() {
         next = replaceVisibleUpdatedBadge(next, expectedDate);
       }
 
-      if (normalizedRelPath === 'privacidad.html') {
+      if (normalizedRelPath === 'privacidad.html' || normalizedRelPath === 'aviso-legal.html') {
         next = replaceVisibleUpdatedDate(next, expectedDate);
       }
 

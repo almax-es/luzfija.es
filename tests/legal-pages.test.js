@@ -17,6 +17,8 @@ import {
 const REPO_ROOT = path.resolve(__dirname, '..');
 const PRIVACY_REL_PATH = 'privacidad.html';
 const PRIVACY_ABS_PATH = path.join(REPO_ROOT, PRIVACY_REL_PATH);
+const LEGAL_NOTICE_REL_PATH = 'aviso-legal.html';
+const LEGAL_NOTICE_ABS_PATH = path.join(REPO_ROOT, LEGAL_NOTICE_REL_PATH);
 
 function normalizeWhitespace(value) {
   return String(value || '').replace(/\s+/g, ' ').trim();
@@ -66,5 +68,15 @@ describe('Legal pages', () => {
 
     expect(match).toBeTruthy();
     expect(parseSpanishLongDate(match[1])).toBe(getExpectedDate(PRIVACY_REL_PATH));
+  });
+
+  // El aviso legal declara fuentes de datos y alcance del catalogo: una fecha visible
+  // congelada mientras el texto cambia es justo el fallo que se corrigio el 27/08/2026.
+  it('keeps the visible legal notice update date aligned with the file revision date', () => {
+    const html = fs.readFileSync(LEGAL_NOTICE_ABS_PATH, 'utf8');
+    const match = html.match(/Última actualización:\s*([^<]+)/i);
+
+    expect(match).toBeTruthy();
+    expect(parseSpanishLongDate(match[1])).toBe(getExpectedDate(LEGAL_NOTICE_REL_PATH));
   });
 });
