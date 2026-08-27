@@ -121,9 +121,16 @@
       const baseUrl = (window.LF && window.LF.JSON_URL) ? window.LF.JSON_URL : 'tarifas.json';
       const sep = baseUrl.includes('?') ? '&' : '?';
       const url = `${baseUrl}${sep}v=${Date.now()}`;
-      const response = await fetch(url, { cache: 'no-store' });
+      // Fallback de red: solo se llega aqui cuando window.LF.cachedTarifas aun no esta
+      // listo. Un fetch pendiente para siempre impediria incluso llegar al toast de
+      // error, asi que se usa el mismo deadline que el comparador (15 s).
+      const fetchJson = window.LF?.csvUtils?.fetchJsonWithTimeout;
+      if (typeof fetchJson !== 'function') {
+        lfDbg('csvUtils.fetchJsonWithTimeout no disponible; ¿lf-csv-utils.js cargó antes que desglose-integration.js?');
+        return [];
+      }
+      const { response, data } = await fetchJson(url, { cache: 'no-store' });
       if (!response || !response.ok) throw new Error('Error de red al cargar tarifas');
-      const data = await response.json();
       const tarifas = Array.isArray(data?.tarifas) ? data.tarifas : [];
       if (tarifas.length === 0) return [];
       // Todo o nada, igual que lf-cache.js: este fallback solo se usa cuando

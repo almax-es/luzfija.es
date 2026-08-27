@@ -2,6 +2,11 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import '../js/lf-utils.js';
+// 26/08/2026: el fallback de red de desglose-integration.js pasa por
+// window.LF.csvUtils.fetchJsonWithTimeout para tener deadline (antes era un fetch()
+// pelado que podia quedarse pendiente para siempre e impedir incluso llegar al toast).
+// El entorno del test debe cargar esa dependencia igual que lo hace index.html.
+import '../js/lf-csv-utils.js';
 
 /**
  * @vitest-environment jsdom
@@ -206,6 +211,32 @@ describe('Desglose integration UX guardrails', () => {
     expect(window.__LF_DesgloseFactura.abrir).toHaveBeenCalledWith(
       expect.objectContaining({ nombreTarifa: 'Tarifa Recuperada' })
     );
+  });
+
+  // 26/08/2026: el fallback de red era un fetch() pelado. Si la peticion no resolvia
+  // NUNCA (red que ni responde ni corta), no rechazaba, asi que no se llegaba siquiera al
+  // toast de error: el desglose se quedaba esperando en silencio. Ahora pasa por
+  // csvUtils.fetchJsonWithTimeout, que aborta, y el flujo termina avisando.
+  it('un timeout del fallback de red termina en el toast, no deja el desglose esperando', async () => {
+    const abort = Object.assign(new Error('The operation was aborted'), { name: 'AbortError' });
+    const fetchJson = vi.fn(async () => { throw abort; });
+    // window.LF NO se recrea en beforeEach (`window.LF = window.LF || {}`), asi que este
+    // mock hay que deshacerlo o contamina los tests siguientes.
+    const csvUtilsOriginal = window.LF.csvUtils;
+    window.LF.csvUtils = { ...window.LF.csvUtils, fetchJsonWithTimeout: fetchJson };
+    window.LF.cachedTarifas = null;   // fuerza el fallback de red
+    try {
+      bootstrapIntegration();
+
+      await window.mostrarDesglose('Tarifa Recuperada');
+
+      expect(fetchJson).toHaveBeenCalled();
+      expect(window.toast).toHaveBeenCalled();
+      // Y no se abre un desglose con datos que no existen.
+      expect(window.__LF_DesgloseFactura?.abrir).not.toHaveBeenCalled();
+    } finally {
+      window.LF.csvUtils = csvUtilsOriginal;
+    }
   });
 
   it('avisa y reporta si el modal de desglose no llegó a cargarse', async () => {

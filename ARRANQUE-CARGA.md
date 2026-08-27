@@ -183,6 +183,7 @@ pero no necesariamente que su etiqueta preceda a la etiqueta del consumidor.
 | `lf-utils.js` | `lf-inputs.js`, `lf-calc.js`, `lf-render.js`, `lf-csv-import.js`, `lf-tarifa-custom.js` | `parseNum`, `clampNonNeg`, `round2`, `formatMoney`, `escapeHtml`, `esNumericoValido`, `animateCounter`, `createSuccessParticles`, `formatValueForDisplay` | eval | utilidades puras y formateo de toda la UI |
 | `lf-state.js` | `lf-ui.js`, `lf-tooltips.js`, `lf-cache.js`, `lf-inputs.js`, `lf-render.js`, `lf-tarifa-custom.js` | `el`, `state`, `DEFAULTS`, `SERVER_PARAMS`, `LS_KEY`, `JSON_URL`, `THEME_KEY`, `$` | eval | referencias DOM y estado global del comparador |
 | `lf-csv-utils.js` | `lf-csv-import.js` | `window.LF.csvUtils` (`assertRelevantXlsxFormulasResolved` incluido) | eval | importacion CSV/XLSX, formulas XLSX sin cache y clasificacion P1/P2/P3 |
+| `lf-csv-utils.js` | `desglose-integration.js` | `window.LF.csvUtils.fetchJsonWithTimeout` | perezoso, fail-closed | deadline de la descarga de `tarifas.json`: sin el helper no se descarga, para no arriesgar un fetch que no resuelva nunca |
 | `lf-ui.js` | `lf-cache.js`, `lf-inputs.js`, `lf-render.js`, `lf-csv-import.js`, `lf-tarifa-custom.js` | `toast`, `setStatus`, `showError`, `clearErrorStyles`, `applyButtonState` | eval | avisos, estado de carga y marcado de errores |
 | `lf-tooltips.js` | `lf-render.js` | `initTooltips`, `bindTooltipElement` | eval | tooltips de la tabla de resultados |
 | `lf-inputs.js` | `lf-calc.js` | `__LF_getFiscalContext`, `getInputValues` | eval | contexto fiscal del motor de calculo |
@@ -210,6 +211,7 @@ motivo para hacerlo.
 | `lf-config.js` | `bv/bv-sim-monthly.js` | `window.LF_CONFIG.calcularImpuestoIndirecto` | perezoso, con fallback no equivalente | IVA/IGIC/IPSI: el fallback defensivo conserva la multiplicacion flotante y no es la ruta fiscal canonica |
 | `lf-csv-utils.js` | `bv/bv-import.js` | `window.LF.csvUtils` (`assertRelevantXlsxFormulasResolved` incluido) | eval | importacion CSV/XLSX del simulador y rechazo de formulas XLSX relevantes sin cache |
 | `lf-csv-utils.js` | `bv/bv-sim-monthly.js` | `csvUtils.getPeriodoHorarioCSV` | perezoso, error explicito | clasificacion horaria del motor mensual |
+| `lf-csv-utils.js` | `bv/bv-sim-monthly.js` | `csvUtils.fetchJsonWithTimeout` | perezoso, fail-closed | deadline de la descarga de `tarifas.json` en `loadTarifasBV()`: sin el helper no se descarga, para no dejar el simulador esperando a un fetch que no resuelva |
 | `bv/bv-ui-helpers.js` | `bv/bv-ui.js` | `window.BVSim.manualUi` | DOM ready, con guard | tabla manual, saldo BV y coste neto |
 | `lf-surplus-prices.js` | `bv/bv-ui.js` | `window.LF.surplusPrices` | perezoso | excedentes indexados contra `data/surplus/` |
 | `lf-sw-update.js` | `shell-lite.js` | `window.LF.initSwUpdate` | eval, **sin aviso** | registro del SW en la ruta solar |

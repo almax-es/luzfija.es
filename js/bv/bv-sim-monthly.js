@@ -603,12 +603,24 @@ window.BVSim.loadTarifasBV = async function () {
     const baseUrl = (window.LF && window.LF.JSON_URL) ? window.LF.JSON_URL : 'tarifas.json';
     const sep = baseUrl.includes('?') ? '&' : '?';
     const url = `${baseUrl}${sep}v=${Date.now()}`;
-    const response = await fetch(url, { cache: 'no-store' });
+    // El simulador ESPERA esta carga antes de calcular (bv-ui.js) y antes de sellar un
+    // escenario compartido: un fetch que no resuelve nunca deja el spinner eterno, y el
+    // `catch` de arriba solo cubre el rechazo. Se usa el helper compartido para que el
+    // deadline sea el mismo que el del comparador principal (15 s por defecto en
+    // DEFAULT_FETCH_TIMEOUT_MS) y para que el temporizador cubra tambien el `.json()`.
+    const fetchJson = window.LF?.csvUtils?.fetchJsonWithTimeout;
+    if (typeof fetchJson !== 'function') {
+      // Fail-closed, igual que con esTarifaUtilizable: sin deadline no se descarga.
+      const fn = window.LF?.lfDbg || window.lfDbg;
+      if (typeof fn === 'function') fn('[BVSim] csvUtils.fetchJsonWithTimeout no disponible; ¿lf-csv-utils.js cargó antes que bv-sim-monthly.js?');
+      return { ok: false, error: 'No se pudieron cargar las tarifas (dependencia de red no disponible).' };
+    }
+
+    const { response, data } = await fetchJson(url, { cache: 'no-store' });
     if (!response || !response.ok) {
       return { ok: false, error: `Error al cargar tarifas.json (${response ? response.status : 'desconocido'}).` };
     }
 
-    const data = await response.json();
     window.BVSim.tarifasUpdatedAt = typeof data?.updatedAt === 'string' ? data.updatedAt : null;
     const tarifas = Array.isArray(data?.tarifas) ? data.tarifas : [];
 
@@ -652,6 +664,11 @@ window.BVSim.loadTarifasBV = async function () {
 
     return { ok: true, tarifasBV, updatedAt: window.BVSim.tarifasUpdatedAt };
   } catch (error) {
+    // Un AbortError es el deadline, no un fallo de red cualquiera: su mensaje nativo
+    // ("The operation was aborted") no le dice nada al usuario y ademas esta en ingles.
+    if (error?.name === 'AbortError') {
+      return { ok: false, error: 'La carga de tarifas ha tardado demasiado. Comprueba tu conexión e inténtalo de nuevo.' };
+    }
     return { ok: false, error: error?.message || 'Error al cargar tarifas BV.' };
   }
 };

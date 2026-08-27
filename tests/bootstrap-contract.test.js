@@ -293,7 +293,10 @@ const DEFERRED_USE_DEPENDENCIES = {
   [HOME]: [
     ['js/desglose-calculo.js', 'js/desglose-factura.js', 'uso perezoso'],
     ['js/desglose-render.js', 'js/desglose-factura.js', 'uso perezoso'],
-    ['js/desglose-factura.js', 'js/desglose-integration.js', 'uso perezoso']
+    ['js/desglose-factura.js', 'js/desglose-integration.js', 'uso perezoso'],
+    // 26/08/2026: el fallback de red del desglose pasa por
+    // window.LF.csvUtils.fetchJsonWithTimeout para tener deadline.
+    ['js/lf-csv-utils.js', 'js/desglose-integration.js', 'uso perezoso']
   ],
   [SOLAR]: [
     ['js/lf-csv-utils.js', 'js/bv/bv-sim-monthly.js', 'uso perezoso'],

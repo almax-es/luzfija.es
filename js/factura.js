@@ -76,6 +76,10 @@
         return __LF_BUILD_VER ? url + '?v=' + encodeURIComponent(__LF_BUILD_VER) : url;
       };
       let __LF_cnmcRegistryPromise = null;
+      // Deadline del censo CNMC. Ver __LF_resolveCnmcCommercializer(): el censo se espera
+      // con await dentro del flujo del QR, asi que sin el la factura entera puede quedarse
+      // colgada. 5 s da margen a un movil en frio sin bloquear al usuario.
+      const CNMC_REGISTRY_TIMEOUT_MS = 5000;
 
       function __LF_safeRegistryText(value, maxLength) {
         const text = String(value ?? '').replace(/\s+/g, ' ').trim();
@@ -101,11 +105,34 @@
         if (!__LF_isCnmcCommercializerCode(normalizedCode) || typeof window.fetch !== 'function') return null;
 
         if (!__LF_cnmcRegistryPromise) {
+          // El censo se espera con `await` antes de seguir procesando la factura (mas
+          // abajo, en el flujo del QR): un fetch que no resuelve NUNCA no deja solo la
+          // ficha sin nombre de comercializadora, deja colgado el extractor entero. El
+          // `.catch()` de abajo solo cubre el RECHAZO, asi que hace falta un deadline.
+          // No se usa csvUtils.fetchJsonWithTimeout a proposito: cargar el censo no
+          // justifica acoplar factura.js al modulo de CSV, y `window.fetch` es ademas el
+          // punto que interceptan los tests de integracion.
+          // 5 s, no 1,5 s como la telemetria: un movil con arranque en frio necesita mas
+          // margen, y aqui el coste de rendirse pronto es perder el nombre de la
+          // comercializadora en una factura que si se habria podido resolver.
+          // Sin AbortController no hay forma de poner deadline. El nombre de la
+          // comercializadora es OPCIONAL, asi que se prefiere renunciar a el antes que
+          // lanzar un fetch que podria colgar el extractor entero en ese navegador.
+          if (typeof AbortController !== 'function') return null;
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), CNMC_REGISTRY_TIMEOUT_MS);
           const intento = window.fetch(
             __LF_versionedUrl('data/cnmc-commercializers.json'),
-            { cache: 'force-cache', credentials: 'same-origin' }
+            {
+              cache: 'force-cache',
+              credentials: 'same-origin',
+              signal: controller.signal
+            }
           ).then(async response => {
             if (!response.ok) throw new Error(`Censo CNMC no disponible (${response.status})`);
+            // El temporizador sigue vivo hasta que el cuerpo termina de leerse: `fetch`
+            // resuelve con las cabeceras y un `response.json()` atascado dejaria el
+            // mismo cuelgue que se quiere evitar.
             const payload = await response.json();
             return payload?.commercializers && typeof payload.commercializers === 'object'
               ? payload.commercializers
@@ -118,7 +145,7 @@
             // ya este en vuelo (mismo patron que __pvpcLoadMonth en index-extra.js).
             if (__LF_cnmcRegistryPromise === intento) __LF_cnmcRegistryPromise = null;
             return {};
-          });
+          }).finally(() => clearTimeout(timeoutId));
           __LF_cnmcRegistryPromise = intento;
         }
 
@@ -922,7 +949,11 @@
       // (cambio de precios en el periodo, importes a 0, periodo ausente) que se fijan
       // mejor contra la funcion que montando un PDF completo por caso.
       window.__LF_facturaQrHelpers = {
-        qrPricesMatchDeclaredAmounts: __LF_qrPricesMatchDeclaredAmounts
+        qrPricesMatchDeclaredAmounts: __LF_qrPricesMatchDeclaredAmounts,
+        // El deadline del censo se fija mejor aqui que montando un PDF completo: hace
+        // falta una red que ni responda ni corte, que es justo lo que no se puede
+        // reproducir con el flujo normal de subida.
+        resolveCnmcCommercializer: __LF_resolveCnmcCommercializer
       };
 
       function __LF_appendQrCustomTarifaSelector(section, prices, coherencia) {
