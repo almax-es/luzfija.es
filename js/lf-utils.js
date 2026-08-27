@@ -248,37 +248,6 @@
     return copied;
   }
 
-  // ===== RIPPLE EFFECT =====
-  // Captura coordenadas sync pero difiere DOM mutations a rAF (INP)
-  function createRipple(b, e) {
-    const cx = e.clientX, cy = e.clientY;
-    requestAnimationFrame(() => {
-      const rect = b.getBoundingClientRect();
-      const s = Math.max(rect.width, rect.height);
-      const x = cx - rect.left - s / 2;
-      const y = cy - rect.top - s / 2;
-      b.style.position = 'relative';
-      b.style.overflow = 'hidden';
-
-      const colors = [
-        'rgba(139, 92, 246, 0.4)',
-        'rgba(236, 72, 153, 0.3)',
-        'rgba(245, 158, 11, 0.2)'
-      ];
-      const delays = [0, 100, 200];
-
-      colors.forEach((color, i) => {
-        setTimeout(() => {
-          const r = document.createElement('span');
-          r.setAttribute('aria-hidden', 'true');
-          r.style.cssText = `position:absolute;width:${s}px;height:${s}px;border-radius:50%;background:${color};left:${x}px;top:${y}px;pointer-events:none;animation:rippleExpand 0.8s ease-out;`;
-          b.appendChild(r);
-          setTimeout(() => r.remove(), 800);
-        }, delays[i]);
-      });
-    });
-  }
-
   // ===== SUCCESS PARTICLES =====
   function createSuccessParticles(element) {
     const colors = ['#8B5CF6', '#EC4899', '#F59E0B', '#22C55E'];
@@ -814,7 +783,6 @@
     round2,
     asBool,
     copyText,
-    createRipple,
     createSuccessParticles,
     animateCounter,
     calcPvpcBonoSocial,

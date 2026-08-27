@@ -72,7 +72,7 @@
     $, el, state, initElements,
     // Utils
     formatValueForDisplay,
-    copyText, createRipple,
+    copyText,
     // UI
     toast, setStatus, markPending,
     applyThemeClass, updateThemeIcon, toggleTheme,
@@ -96,7 +96,7 @@
   } = window.LF;
 
   const requiredAppFunctions = {
-    $, initElements, formatValueForDisplay, copyText, createRipple,
+    $, initElements, formatValueForDisplay, copyText,
     toast, setStatus, markPending, applyThemeClass, updateThemeIcon, toggleTheme,
     initTooltips, fetchTarifas, getInputValues, signatureFromValues, validateInputs,
     loadInputs, saveInputs, updateKwhHint, updateZonaFiscalUI, updateSolarUI,
@@ -539,8 +539,7 @@
 
     // Theme button
     if (currentEl.btnTheme) {
-      currentEl.btnTheme.addEventListener('click', (e) => {
-        createRipple(currentEl.btnTheme, e);
+      currentEl.btnTheme.addEventListener('click', () => {
         toggleTheme();
       });
     }
@@ -550,8 +549,7 @@
       // Estado inicial accesible
       b.setAttribute('aria-pressed', b.classList.contains('active') ? 'true' : 'false');
 
-      b.addEventListener('click', (e) => {
-        createRipple(b, e);
+      b.addEventListener('click', () => {
         document.querySelectorAll('.fbtn').forEach(x => {
           x.classList.remove('active');
           x.setAttribute('aria-pressed', 'false');
@@ -579,8 +577,7 @@
     });
 
     // Calculate button
-    currentEl.btnCalc.addEventListener('click', (e) => {
-      createRipple(currentEl.btnCalc, e);
+    currentEl.btnCalc.addEventListener('click', () => {
       // Si el cálculo viene de un CSV ya aplicado, hay que preservar la curva horaria.
       runCalculation(false, true);
     });
@@ -605,10 +602,6 @@
       input.addEventListener('keypress', (e) => {
         if (e.key === 'Enter') {
           e.preventDefault();
-          createRipple(currentEl.btnCalc, {
-            clientX: currentEl.btnCalc.offsetLeft + currentEl.btnCalc.offsetWidth / 2,
-            clientY: currentEl.btnCalc.offsetTop + currentEl.btnCalc.offsetHeight / 2
-          });
           runCalculation(true, true);
         }
       });
@@ -616,7 +609,6 @@
 
     // Menu
     currentEl.btnMenu.addEventListener('click', (e) => {
-      createRipple(currentEl.btnMenu, e);
       e.stopPropagation();
       const opened = toggleMenu();
       if (opened && e.detail === 0) {
@@ -806,13 +798,11 @@
       setTimeout(() => shareCancel?.focus(), 0);
     }
 
-    currentEl.btnShare.addEventListener('click', (e) => {
-      createRipple(currentEl.btnShare, e);
+    currentEl.btnShare.addEventListener('click', () => {
       toggleMenu(false);
       openShareDialog();
     });
-    shareResultsButton?.addEventListener('click', (e) => {
-      createRipple(shareResultsButton, e);
+    shareResultsButton?.addEventListener('click', () => {
       openShareDialog();
     });
     document.addEventListener('lf:results-ready', (e) => {
@@ -851,8 +841,7 @@
     });
 
     // Clear cache
-    currentEl.btnClearCache?.addEventListener('click', async (e) => {
-      createRipple(currentEl.btnClearCache, e);
+    currentEl.btnClearCache?.addEventListener('click', async () => {
       toggleMenu(false);
 
       if (!confirm('¿Limpiar toda la caché? Esto forzará la recarga de todos los recursos.')) {

@@ -36,7 +36,6 @@ function boot(overrides = {}) {
     initElements: vi.fn(),
     formatValueForDisplay: (v) => v,
     copyText: vi.fn(),
-    createRipple: vi.fn(),
     toast: vi.fn(),
     setStatus: vi.fn(),
     // markPending real: pone pending a true e incrementa generation (mismo efecto que

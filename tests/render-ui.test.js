@@ -9,7 +9,6 @@ import path from 'path';
 // Mocks de utilidades
 const formatMoney = (n) => n + ' €';
 const escapeHtml = (s) => s;
-const createRipple = vi.fn();
 const lfDbg = vi.fn();
 
 const animateCounterSpy = vi.fn((element, text) => {
@@ -31,7 +30,6 @@ Object.assign(global.window, {
     el: {},
     formatMoney,
     escapeHtml,
-    createRipple,
     lfDbg,
     setStatus: vi.fn(),
     toast: vi.fn(),

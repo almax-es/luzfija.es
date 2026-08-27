@@ -272,7 +272,6 @@ describe('comparador principal ante un microcorte de tarifas', () => {
       initElements: noop,
       formatValueForDisplay: noop,
       copyText: noop,
-      createRipple: noop,
       toast,
       setStatus,
       markPending: noop,

@@ -25,7 +25,6 @@ Object.assign(global.window, {
     el: {},
     formatMoney,
     escapeHtml,
-    createRipple: vi.fn(),
     lfDbg: vi.fn(),
     setStatus: vi.fn(),
     toast: vi.fn(),

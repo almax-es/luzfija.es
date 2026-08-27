@@ -2223,6 +2223,44 @@ defensa, no como fallo observable**: `formatMoney()` no pone separador de millar
 Verificado en Chrome: antes el KPI mutaba 30 veces mostrando nombres falsos; ahora muta una vez
 con el nombre correcto, y el importe sigue animandose.
 
+### Ripple Retirado: Animaba Un Keyframe Inexistente (RESUELTA 27/08/2026)
+
+`createRipple()` (`lf-utils.js`) creaba tres `<span>` con `animation: rippleExpand 0.8s`.
+**`rippleExpand` no existia en ningun CSS del repositorio**; el unico parecido era
+`@keyframes ripple`. Verificado en Chrome contra produccion: los spans salian con
+`transform: none`, `opacity: 1` y **cero animaciones activas**. No era una onda, era un
+destello de tres discos estaticos de 316 px superpuestos al boton.
+
+Un nombre de animacion inexistente **no da error**: ni en consola, ni en tests, ni en lint.
+El navegador simplemente no anima. Por eso duro tanto sin detectarse.
+
+Decision (Codex, 27/08/2026): **retirar el efecto**, no encenderlo. Renombrar a `ripple`
+habria introducido movimiento nuevo en ocho puntos (tema, filtros, calcular, menu, compartir
+x2, limpiar cache, Enter), y los botones ya dan feedback con `:hover`, `:active` y la
+reduccion de escala en movil. El destello actual es un accidente tecnico, no un efecto
+disenyado. Coste que se elimina por clic: un `requestAnimationFrame`, tres nodos y **seis**
+`setTimeout` (tres para insertar y tres para retirar), que se ejecutaban igualmente con
+`prefers-reduced-motion`.
+
+Retirado: la funcion, su export, las dos desestructuraciones en `lf-app.js`, las ocho
+llamadas, el `@keyframes ripple` que quedaba huerfano y los mocks de cuatro ficheros de
+test (cinco lineas: `render-ui.test.js` tenia declaracion y asignacion).
+
+**Guard: `tests/animaciones-css-existentes.test.js`.** Toda `animation` escrita desde JS debe
+tener su `@keyframes` en algun CSS. Cubre las dos formas que conviven en el repo
+(`style.animation = 'nombre ...'` y `style.cssText = '...animation:nombre...'`) y la shorthand
+con varias animaciones separadas por comas. Al escribirlo comprobe que las dos primeras
+versiones del guard tenian huecos: una solo veia el primer nombre de la lista, y la siguiente
+dejo de ver el patron `cssText`, que era justo el del ripple.
+
+Si en el futuro se quieren ondas, la nota de Codex: disenyar UNA discreta para el CTA
+principal, no reactivar el efecto triple heredado en todos los botones.
+
+**Pendiente relacionado:** `js/bv/bv-ui.js:2458` declara
+`animation: 'slideInScale 0.35s ..., btnPulse 1.5s ...'`. `slideInScale` existe
+(`bv-sim.css:39`); **`btnPulse` no**. Mismo patron, sin reproducir aun en Chrome. Esta
+excluido a proposito en el guard (`PENDIENTES`) para que este entre en vigor ya.
+
 ### Accesibilidad: Lo Auditado Y Que Salio Bien (Parcial, 27/08/2026)
 
 Primera pasada sobre el area. **Estas comprobaciones concretas salieron correctas; no
