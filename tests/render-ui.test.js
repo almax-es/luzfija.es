@@ -12,6 +12,10 @@ const escapeHtml = (s) => s;
 const createRipple = vi.fn();
 const lfDbg = vi.fn();
 
+const animateCounterSpy = vi.fn((element, text) => {
+  if (element) element.textContent = text;
+});
+
 // Configuración del entorno global
 // Extendemos el window existente de JSDOM en lugar de reemplazarlo
 Object.assign(global.window, {
@@ -31,9 +35,10 @@ Object.assign(global.window, {
     lfDbg,
     setStatus: vi.fn(),
     toast: vi.fn(),
-    animateCounter: (element, text) => {
-      if (element) element.textContent = text;
-    },
+    // Espia con el MISMO comportamiento que antes (asignar el texto). Se declara aqui
+    // porque lf-render.js desestructura window.LF al cargarse: sustituirlo despues no
+    // intercepta nada.
+    animateCounter: animateCounterSpy,
     createSuccessParticles: vi.fn(),
     initTooltips: vi.fn(),
     parseNum: (value) => {
@@ -709,6 +714,25 @@ describe('Renderizado UI (lf-render.js)', () => {
     expect(done).toBeInstanceOf(Promise);
     await done;
     expect(document.querySelectorAll('#tbody tr').length).toBe(3);
+  });
+
+  // 27/08/2026: el nombre de la tarifa NO puede pasar por animateCounter(). El guard de
+  // la funcion solo mira si el texto EMPIEZA por cifra, asi que una tarifa futura como
+  // "3 Periodos Online" volveria a animarse mal. La frontera correcta es el caller.
+  it('el nombre de la tarifa se asigna directo; solo el importe pasa por animateCounter', async () => {
+    animateCounterSpy.mockClear();
+
+    window.LF.renderAll({
+      success: true,
+      rows: [{ nombre: '3 Periodos Online', total: 50, totalNum: 50 }],
+      resumen: { mejor: '3 Periodos Online', precio: '50,00 €' }
+    });
+    await new Promise((r) => setTimeout(r, 0));
+
+    const recibidos = animateCounterSpy.mock.calls.map((c) => c[1]);
+    expect(document.getElementById('kpiBest').textContent).toBe('3 Periodos Online');
+    expect(recibidos).not.toContain('3 Periodos Online');
+    expect(recibidos).toContain('50,00 €');
   });
 
 });

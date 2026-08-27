@@ -95,6 +95,7 @@ decision esta en la seccion siguiente.
 | Arranque, carga parcial y service worker | Auditado. Watchdog, telemetria, recarga automatica | `Cargas Parciales, Watchdog Y Telemetria De QA` |
 | UI base y modulos auxiliares (`aecc-banner`, `shell-lite`, `theme`, `error-bootstrap`, `lf-sw-update`) | Auditada. Propiedad de listeners, timers de banner, clasificacion de recursos opcionales y recuperacion del registro SW | `Zonas Huerfanas: Banner AECC, Shell Lite Y Registro Del SW` |
 | Privacidad y analitica | Auditada la privacidad (taxonomia y datos que nunca se envian) y, en la ronda 11, la CORRECCION y ROBUSTEZ de la capa: autorreporte CSP, ciclo de vida del outbox, listeners/timers y el sender vendorizado | `ANALITICA-GOATCOUNTER.md`, `Autorreporte De Violaciones CSP Del Endpoint Analitico`, `Entrega Del Outbox De Diagnosticos` |
+| Accesibilidad transversal | **Auditoria parcial** (27/08/2026). Verificados: anuncio de resultados, `aria-sort`, `aria-expanded`, foco y trampa de tabulacion en modales, validacion, y barrido estatico de las 36 paginas. NO es una evaluacion WCAG completa | `Accesibilidad: Lo Auditado Y Que Salio Bien`, `` `animateCounter` Sobre Una Etiqueta `` |
 | SEO, datos estructurados y CWV | Auditado | `SEO, Datos Estructurados Y Core Web Vitals` |
 
 ## Decisiones Que No Deben Reportarse Como Bugs
@@ -2194,6 +2195,51 @@ recalculo redundante en vez de descartarse. Es exactamente lo que el usuario pid
 
 Test: `tests/lf-app-pending-race.test.js`, "un click durante el render (pending ya limpio) no
 se pierde".
+
+### `animateCounter` Sobre Una Etiqueta, No Un Numero (RESUELTA 27/08/2026)
+
+`lf-render.js:891-892` pasa a `animateCounter()` dos cosas distintas: el importe (`kpiPrice`)
+y el **nombre** de la tarifa mas barata (`kpiBest`). La funcion estaba pensada solo para lo
+primero y buscaba el numero con `/[\d,.]+/`, que captura el primer digito que encuentre.
+
+Resultado: cualquier nombre con cifras se animaba desde cero durante 800 ms. `Visalia Fija 24h`
+se pintaba como **`Visalia Fija 2,32h`**, `Plenitude +5kW` como `Plenitude +1,35kW`. Afecta a
+**79 de las 122 tarifas** del catalogo (64%), que llevan digitos en el nombre. No es solo
+estetico: el nombre intermedio es una tarifa que no existe. Matiz de alcance: el KPI **no**
+es la region `aria-live`; el anuncio vive en un `role="status"` aparte que recibe el resumen
+YA terminado. Que un lector se topase con el nombre intermedio era posible al navegar, pero no
+esta demostrado que se anunciase 30 veces. Detectado el 27/08/2026.
+
+Correccion: anclar el numero al PRINCIPIO del texto (`/^\s*(\d[\d.]*(?:,\d+)?)/`). Un
+contador empieza por su cifra (`79,12 EUR`); una etiqueta con numeros dentro, no. Si no casa,
+se asigna el texto tal cual, que es lo correcto. Se anade tambien respeto a
+`prefers-reduced-motion`: son 30 escrituras de `textContent`, asi que el CSS no puede frenarlo
+(a diferencia del ripple y las particulas, que si son animacion CSS y ya estaban cubiertas).
+
+Se endurecio ademas el parseo de millares (`1.234,56` se leia como `1,234`), pero **como
+defensa, no como fallo observable**: `formatMoney()` no pone separador de millares hoy
+(`1080,24 EUR`), asi que ese texto no llega a la funcion.
+
+Verificado en Chrome: antes el KPI mutaba 30 veces mostrando nombres falsos; ahora muta una vez
+con el nombre correcto, y el importe sigue animandose.
+
+### Accesibilidad: Lo Auditado Y Que Salio Bien (Parcial, 27/08/2026)
+
+Primera pasada sobre el area. **Estas comprobaciones concretas salieron correctas; no
+equivalen a una evaluacion integral de conformidad WCAG.** NO se ha probado con un lector de
+pantalla real, ni zoom/reflow al 200-400 %, ni modo de colores forzados, ni visibilidad del
+foco, ni un recorrido completo por teclado de todo el sitio. Lo verificado, en Chrome:
+
+- `aria-live`/`role="status"`: el resumen se anuncia con nombre, numero de tarifas y coste.
+- `aria-sort` en la tabla: coincide con el orden real y solo marca una columna. El disparador
+  es un `<button>` dentro del `<th>`, no el `<th>`.
+- `aria-expanded` del menu, coherente al abrir y cerrar.
+- Modales: `aria-modal`, `aria-hidden` gestionado, el foco entra, **queda atrapado** (12
+  tabulaciones sin escapar), `Escape` cierra y el foco vuelve al disparador.
+- Validacion: `aria-invalid` + `aria-describedby` en el input, `role="alert"` en el error.
+- Barrido de las 36 paginas: cero IDs duplicados, cero referencias ARIA rotas
+  (`aria-controls`/`labelledby`/`describedby`), cero saltos de nivel de encabezado, todas con
+  `<main>` y `lang`.
 
 ### SEO, Datos Estructurados Y Core Web Vitals
 

@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from 'vitest';
+import { describe, it, expect, beforeAll, vi } from 'vitest';
 
 // Setup global window object for utils
 window.LF = window.LF || {};
@@ -374,6 +374,85 @@ describe('Utilidades Base (lf-utils.js)', () => {
       document.body.style.overflow = '';
       document.documentElement.style.overflow = '';
       document.body.scrollTop = 0;
+    });
+  });
+
+  // 27/08/2026: animateCounter recibe DOS cosas distintas desde lf-render.js:891-892,
+  // el importe (kpiPrice) y el NOMBRE de la tarifa mas barata (kpiBest). Estaba pensada
+  // solo para lo primero.
+  describe('animateCounter: solo anima contadores, no etiquetas', () => {
+    const animate = () => window.LF.animateCounter;
+
+    function nuevoElemento() {
+      const el = document.createElement('span');
+      document.body.appendChild(el);
+      return el;
+    }
+
+    it('no toca un nombre de tarifa que contiene digitos', () => {
+      // `/[\d,.]+/` capturaba el "24" y animaba desde cero: el usuario veia
+      // "Visalia Fija 2,32h" durante 800 ms. 79 de las 122 tarifas del catalogo llevan
+      // digitos en el nombre.
+      for (const nombre of ['Visalia Fija 24h', 'Plenitude +5kW', 'Octopus 3P',
+                            'Imagina Base Sin Horas 4000', 'Bassols Hogar 24 horas']) {
+        const el = nuevoElemento();
+        animate()(el, nombre);
+        expect(el.textContent, `${nombre} no debe alterarse`).toBe(nombre);
+        expect(el.__animateInterval, `${nombre} no debe programar animacion`).toBeUndefined();
+      }
+    });
+
+    // DEFENSA, no un fallo observable: formatMoney() del propio sitio NO pone separador
+    // de millares ("1080,24 €"), asi que hoy este texto no llega. Se fija el contrato por
+    // si ese formato cambia, porque el sintoma seria mudo: la cuenta subiria hasta 1,23 y
+    // saltaria al valor real.
+    it('un importe con separador de millares no se degrada a la unidad', () => {
+      // "1.234,56" pasaba por replace(',', '.') y quedaba en 1,234: la cuenta subia
+      // hasta 1,23 y saltaba de golpe al valor real.
+      vi.useFakeTimers();
+      try {
+        const el = nuevoElemento();
+        // 12.345,67 y no 1.234,56: a mitad de animacion el primero ya pasa de 10.000, asi
+        // que el paso intermedio NECESITA separador de millares. Con 1.234,56 el valor
+        // intermedio rondaba 617 y la asercion de formato no discriminaba nada
+        // (Codex, 27/08/2026).
+        animate()(el, '12.345,67 €');
+        expect(el.__animateInterval).toBeDefined();   // esto SI es un contador
+        vi.advanceTimersByTime(400);                  // mitad de la animacion
+        const intermedio = el.textContent;
+        clearInterval(el.__animateInterval);
+        // Si "12.345,67" se parseara como 12,345 el contador iria por unidades.
+        const num = parseFloat((intermedio.match(/[\d.,]+/) || ['0'])[0].replace(/\./g, '').replace(',', '.'));
+        expect(intermedio).toContain('€');
+        expect(num).toBeGreaterThan(5000);
+        // Y el paso intermedio conserva el formato es-ES: sin agrupacion, la cifra
+        // cambiaria de formato a media animacion.
+        expect(intermedio).toMatch(/\d{2}\.\d{3},\d{2}/);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('respeta prefers-reduced-motion', () => {
+      const original = window.matchMedia;
+      window.matchMedia = (q) => ({ matches: /reduced-motion/.test(q), media: q,
+        addEventListener() {}, removeEventListener() {} });
+      try {
+        const el = nuevoElemento();
+        animate()(el, '79,12 €');
+        expect(el.textContent).toBe('79,12 €');
+        expect(el.__animateInterval).toBeUndefined();
+      } finally {
+        window.matchMedia = original;
+      }
+    });
+
+    it('sigue animando un importe normal (regresion)', () => {
+      const el = nuevoElemento();
+      animate()(el, '79,12 €');
+      expect(el.__animateInterval).toBeDefined();
+      clearInterval(el.__animateInterval);
+      delete el.__animateInterval;
     });
   });
 

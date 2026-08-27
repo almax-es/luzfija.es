@@ -311,18 +311,33 @@
       delete element.__animateInterval;
     }
 
-    const match = finalText.match(/[\d,.]+/);
-    if (!match) {
+    // Un contador anima un NUMERO, y ese numero tiene que ser el principio del texto
+    // ("79,12 EUR", "4356 kWh/ano"). Una etiqueta que solo CONTIENE digitos no es un
+    // contador: `/[\d,.]+/` capturaba el primer numero que encontrase, asi que
+    // animateCounter(el, 'Visalia Fija 24h') pintaba "Visalia Fija 2,32h" durante 800 ms
+    // -- un nombre de tarifa que no existe. Afecta a 79 de las 122 tarifas del catalogo,
+    // que llevan digitos en el nombre ("Plenitude +5kW" -> "Plenitude +1,35kW").
+    const match = /^\s*(\d[\d.]*(?:,\d+)?)/.exec(finalText);
+    // Con `prefers-reduced-motion` el usuario ha pedido que no se anime. El CSS no puede
+    // frenar esto porque no es una animacion CSS: son 30 escrituras de textContent.
+    const reduceMotion = typeof window.matchMedia === 'function'
+      && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (!match || reduceMotion) {
       element.textContent = finalText;
       return;
     }
 
-    const numStr = match[0].replace(',', '.');
-    const finalNum = parseFloat(numStr);
-    if (isNaN(finalNum)) {
+    const rawNum = match[1];
+    // Formato es-ES: el punto separa MILLARES y la coma es el decimal. Un
+    // `replace(',', '.')` a secas convierte "1.234,56" en 1,234. DEFENSA, no un fallo
+    // observado: formatMoney() no pone separador de millares hoy ("1080,24 EUR"), asi
+    // que ese texto no llega aqui. Si algun dia lo pusiera, el sintoma seria mudo.
+    const finalNum = parseFloat(rawNum.replace(/\./g, '').replace(',', '.'));
+    if (!Number.isFinite(finalNum)) {
       element.textContent = finalText;
       return;
     }
+    const decimales = rawNum.includes(',') ? rawNum.split(',')[1].length : 0;
 
     const duration = 800;
     const steps = 30;
@@ -336,8 +351,11 @@
       const easeProgress = 1 - Math.pow(1 - progress, 3);
       const currentNum = finalNum * easeProgress;
 
-      const formatted = currentNum.toFixed(2).replace('.', ',');
-      element.textContent = finalText.replace(match[0], formatted);
+      const formatted = currentNum.toLocaleString('es-ES', {
+        minimumFractionDigits: decimales,
+        maximumFractionDigits: decimales
+      });
+      element.textContent = finalText.replace(rawNum, formatted);
 
       if (currentStep >= steps) {
         clearInterval(element.__animateInterval);

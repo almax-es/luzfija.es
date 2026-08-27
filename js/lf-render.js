@@ -888,7 +888,11 @@
     setStatus('Resultados actualizados', 'ok');
 
     const r = d.resumen || {};
-    if (r.mejor) animateCounter(el.kpiBest, r.mejor);
+    // El nombre de la tarifa NO es un contador: asignarlo directo es lo semanticamente
+    // correcto. animateCounter() conserva ademas su propio guard como defensa, pero la
+    // frontera esta aqui: el guard solo mira si el texto EMPIEZA por cifra, asi que una
+    // futura tarifa llamada "3 Periodos Online" volveria a animarse mal (Codex, 27/08/2026).
+    if (r.mejor) el.kpiBest.textContent = r.mejor;
     if (r.precio) animateCounter(el.kpiPrice, r.precio);
 
     const seoFold = document.getElementById('info');
