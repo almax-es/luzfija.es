@@ -96,6 +96,7 @@ decision esta en la seccion siguiente.
 | UI base y modulos auxiliares (`aecc-banner`, `shell-lite`, `theme`, `error-bootstrap`, `lf-sw-update`) | Auditada. Propiedad de listeners, timers de banner, clasificacion de recursos opcionales y recuperacion del registro SW | `Zonas Huerfanas: Banner AECC, Shell Lite Y Registro Del SW` |
 | Privacidad y analitica | Auditada la privacidad (taxonomia y datos que nunca se envian) y, en la ronda 11, la CORRECCION y ROBUSTEZ de la capa: autorreporte CSP, ciclo de vida del outbox, listeners/timers y el sender vendorizado | `ANALITICA-GOATCOUNTER.md`, `Autorreporte De Violaciones CSP Del Endpoint Analitico`, `Entrega Del Outbox De Diagnosticos` |
 | Accesibilidad transversal | **Auditoria parcial** (27/08/2026). Verificados: anuncio de resultados, `aria-sort`, `aria-expanded`, foco y trampa de tabulacion en modales, validacion, y barrido estatico de las 36 paginas. NO es una evaluacion WCAG completa | `Accesibilidad: Lo Auditado Y Que Salio Bien`, `` `animateCounter` Sobre Una Etiqueta `` |
+| Contratos numericos por procedencia | Auditado en ronda 15 (27/08/2026). Contratos diferenciados para UI, CSV/XLSX y PDF/OCR; cero bugs con impacto demostrado | `Contratos Numericos Por Procedencia` |
 | SEO, datos estructurados y CWV | Auditado | `SEO, Datos Estructurados Y Core Web Vitals` |
 
 ## Decisiones Que No Deben Reportarse Como Bugs
@@ -2289,6 +2290,64 @@ foco, ni un recorrido completo por teclado de todo el sitio. Lo verificado, en C
 - Barrido de las 36 paginas: cero IDs duplicados, cero referencias ARIA rotas
   (`aria-controls`/`labelledby`/`describedby`), cero saltos de nivel de encabezado, todas con
   `<main>` y `lang`.
+
+### Contratos Numericos Por Procedencia (Ronda 15, 27/08/2026)
+
+**Resultado: cero bugs con impacto demostrado.** Se auditaron las tres fronteras de parseo
+numerico con matriz comun + baterias por procedencia. Aparecieron divergencias, ninguna con
+consecuencia real. Lo que se entrega es el CONTRATO fijado con tests.
+
+Las tres fronteras tienen contratos **deliberadamente distintos** y NO deben unificarse. El
+`parseNum` de `desglose-integration.js` es un fallback del canonico, no un cuarto parser:
+
+| Frontera | Funcion | Ante lo ilegible | Nota |
+|---|---|---|---|
+| UI | `LF.parseNum` | **0** | permisivo a proposito; quien rechaza es `esNumericoValido` |
+| CSV/XLSX | `parseNumberFlexible(CSV)` | **NaN** ante vacio o texto no numerico ordinario | admite ES y US. La FINITUD no la garantiza el parser: `Infinity` sobrevive como `Infinity` y lo filtran los consumidores con `Number.isFinite` |
+| PDF/OCR | `__LF_normNum` | **null** | quita unidades. 22 call sites: 11 extracciones protegidas frente a `null`, 3 conversiones con `?? 0`, 6 lecturas del modal con validacion individual y 2 solares que solo influyen si son `> 0` |
+
+Una divergencia puede ser CORRECTA: `1.234` son 1234 en una factura espanola y 1,234 en un CSV
+con decimal de punto. Por eso NO se pidio "hacerlos coincidir" (matiz de Codex al plantear la
+ronda).
+
+**Descartado, con la evidencia que lo descarta:**
+- `Infinity` sobrevive al parser CSV/XLSX, pero los tres consumidores lo filtran
+  (`lf-csv-utils.js:597` y `parseHourlyMatrixRows:50`). Sin impacto.
+- El signo negativo se pierde con menos Unicode (U+2212), en/em dash, parentesis contables y
+  signo final. Se buscaron esos caracteres en las 13 facturas PDF de ejemplo: los 11 en-dash
+  encontrados son separadores tipograficos (direcciones, registro mercantil, incisos como
+  `-13,06%-`), NINGUNO es un signo. Los 15 importes negativos reales usan guion ASCII, que se
+  parsea bien. Sin impacto demostrado.
+- CSV rechaza `1.234.567` (NaN). Todos los CSV de ejemplo usan coma decimal y **ningun**
+  separador de miles, y el rechazo falla en alto con error explicito. Sin impacto.
+- `1e3`, `12abc34`, `Infinity`, `0x10` y digitos arabes en la UI: `esNumericoValido` los
+  rechaza todos antes de llegar al calculo.
+- Round-trip `formatValueForDisplay` -> `parseNum`: 0 rotos en 10 valores. El sitio no genera
+  separador de miles en ningun punto, lo que explica ademas por que el fallo de millares de
+  `animateCounter` era teorico.
+
+**Hueco real cerrado:** el contrato de `__LF_normNum` NO estaba fijado. Cambiar su `null` por
+`0` no rompia ningun test, y esa confusion si tiene consecuencia: `null` es "no pude leerlo" y
+`0` es "vale cero".
+
+Hay **22 call sites** y no todos reaccionarian igual. Clasificados sin solape (11+3+6+2):
+11 extracciones de PDF/OCR protegidas frente a `null`, 3 conversiones con `?? 0`, 6 lecturas
+del modal con validacion individual y 2 solares que solo influyen si son `> 0`.
+El impacto concreto esta en el **modal de validacion de la factura**: `p1` y los tres consumos
+aceptan **0 como valor VALIDO** (rechazan `< 0`; P1 puede ser 0 kW en un segundo suministro
+dedicado a recarga). Con `null -> 0`, un campo ilegible pasaria esos guards y se aplicaria al
+formulario un consumo de cero en silencio. `p2` y `dias` si lo rechazarian (`<= 0` y `< 1`).
+
+Fijado en dos niveles: `tests/contratos-numericos.test.js` (contrato de cada frontera) y un
+test de integracion en `tests/factura-integration.test.js` que llena el modal con todo valido
+salvo un consumo ilegible y exige que NO se copie ningun valor al formulario principal.
+Verificado mutando `__LF_normNum` por sus dos salidas (entrada nula y texto ilegible): ambas
+tumban la suite.
+
+**No auditado a proposito:** fechas, zonas horarias y DST. Estan cerrados con criterio
+explicito (CCH-CONS 12/08/2026) y reabrirlos sin evidencia nueva es rendimiento decreciente.
+Tampoco se recorrieron las 477 ocurrencias de `parseFloat`/`Number(`: la mayoria procesa JSON
+interno o numeros ya normalizados; se empezo por las fronteras de confianza.
 
 ### SEO, Datos Estructurados Y Core Web Vitals
 

@@ -1926,6 +1926,49 @@ describe('Factura PDF Integration (Black Box)', () => {
   });
 
   // Auditoría temática de importaciones 24/08/2026: integración PDF → formulario.
+  // Ronda 15 (27/08/2026): fija el contrato de `__LF_normNum` desde el consumidor, no desde
+  // el parser. El modal acepta 0 como valor VALIDO en p1 y en los tres consumos (`< 0` es lo
+  // que rechaza; P1 puede ser 0 kW en un segundo suministro). Si `__LF_normNum` devolviera 0
+  // en vez de null ante un texto ilegible, ese campo pasaria los guards y se aplicaria en
+  // silencio un consumo de cero. Con null, se marca en rojo y no se aplica nada.
+  it('un consumo ilegible en el modal marca error y no aplica ningun valor', async () => {
+    await processFacturaPages({ 1: [
+      { str: 'Potencia contratada P1 4,6 kW', transform: [0,0,0,0, 10, 100] },
+      { str: 'Potencia contratada P2 4,6 kW', transform: [0,0,0,0, 10, 90] },
+      { str: 'Periodo de facturacion: 30 dias', transform: [0,0,0,0, 10, 80] },
+      { str: 'Consumo P1 100 kWh', transform: [0,0,0,0, 10, 70] },
+      { str: 'Consumo P2 90 kWh', transform: [0,0,0,0, 10, 60] },
+      { str: 'Consumo P3 160 kWh', transform: [0,0,0,0, 10, 50] },
+      ...Array(6).fill({ str: 'relleno de texto para superar el minimo del extractor', transform: [0,0,0,0, 0, 0] })
+    ] }, 'factura-consumo-ilegible.pdf');
+
+    const form = document.getElementById('formValidacionFactura');
+    const campo = (f) => form.querySelector(`.input-validacion[data-field="${f}"] input`);
+    // Todo valido salvo el consumo punta, que queda ilegible.
+    campo('p1').value = '4,6';
+    campo('p2').value = '4,6';
+    campo('dias').value = '30';
+    campo('consumoPunta').value = 'abc';
+    campo('consumoLlano').value = '90';
+    campo('consumoValle').value = '160';
+
+    // El formulario principal esta vacio antes de aplicar.
+    const principal = (id) => document.getElementById(id).value;
+    expect(principal('cPunta')).toBe('');
+
+    document.getElementById('btnAplicarFactura').click();
+
+    // Lo observable es que NO se copia ningun valor al formulario principal: si
+    // __LF_normNum devolviera 0 ante "abc", ese campo pasaria los guards del modal
+    // (que aceptan 0 como valido) y se aplicaria un consumo de cero en silencio.
+    expect(principal('cPunta'), 'no debe copiarse el consumo ilegible').toBe('');
+    expect(principal('p1'), 'no debe copiarse NADA si un campo es invalido').toBe('');
+    expect(principal('cLlano')).toBe('');
+    // Y el campo queda marcado en rojo para que el usuario lo vea.
+    const marcado = form.querySelector('.input-validacion[data-field="consumoPunta"]');
+    expect(marcado?.className || '').toMatch(/err/i);
+  });
+
   it('una rectificativa deja vacíos los consumos negativos y muestra una advertencia explícita', async () => {
     const line = (str, y) => ({ str, transform: [0, 0, 0, 0, 10, y] });
     const items = [
