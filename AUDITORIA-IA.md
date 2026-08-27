@@ -1,6 +1,6 @@
 # Guia Para Auditorias IA De LuzFija.es
 
-Ultima actualizacion: 2026-08-20
+Ultima actualizacion: 2026-08-27
 
 Este documento existe para reducir falsos positivos en auditorias repetidas. No sustituye a
 `AGENTS.md` ni a `CAPACIDADES-WEB.md`; los complementa con criterios de clasificacion.
@@ -98,6 +98,7 @@ decision esta en la seccion siguiente.
 | Accesibilidad transversal | **Auditoria parcial** (27/08/2026). Verificados: anuncio de resultados, `aria-sort`, `aria-expanded`, foco y trampa de tabulacion en modales, validacion, y barrido estatico de las 36 paginas. NO es una evaluacion WCAG completa | `Accesibilidad: Lo Auditado Y Que Salio Bien`, `` `animateCounter` Sobre Una Etiqueta `` |
 | Contratos numericos por procedencia | Auditado en ronda 15 (27/08/2026). Contratos diferenciados para UI, CSV/XLSX y PDF/OCR; cero bugs con impacto demostrado | `Contratos Numericos Por Procedencia` |
 | SEO, datos estructurados y CWV | Auditado | `SEO, Datos Estructurados Y Core Web Vitals` |
+| Documentacion y vigencia editorial | Auditado 27/08/2026: 10 docs manuales, 7 generados y 25 guias. Corregidos la guia de factura (no reflejaba el import de precios QR a `Mi tarifa`) y 4 fechas de actualizacion desfasadas | `Documentacion Y Vigencia Editorial` |
 
 ## Decisiones Que No Deben Reportarse Como Bugs
 
@@ -2365,6 +2366,29 @@ interno o numeros ya normalizados; se empezo por las fronteras de confianza.
 - No propongas preloadar los pesos 600 y 700 de Outfit solo porque aparezcan encadenados tras `fonts.css`: no son los pesos del elemento LCP medido y esta captura no demuestra un beneficio; nuevas precargas pueden competir por ancho de banda. `font-display: swap` permite mostrar una fuente alternativa, pero no garantiza ausencia de cambios de layout o de efecto sobre LCP. El CLS de campo de 0,01 demuestra buena estabilidad agregada en el percentil 75, no la ausencia de saltos atribuibles a una fuente concreta.
 - `unused-css-rules` de Lighthouse describe la cobertura de una pagina y estado concretos; no prueba que el CSS sea globalmente muerto. No ejecutes PurgeCSS ni borres reglas compartidas sin cubrir tema, responsive, modales y clases dinamicas.
 - Si GitHub Pages entrega estaticos con cache corta, una mejora de `Cache-Control` puede requerir CDN/infraestructura. Clasificala como decision operativa, no como cambio minimo de codigo ni como prioridad sin valorar visitas repetidas, DNS y riesgo de despliegue.
+
+## Documentacion Y Vigencia Editorial
+
+Auditoria del 27/08/2026 sobre los 10 documentos manuales, los 7 generados y las 25 guias.
+
+Que se verifico:
+
+- Documentos generados (`README.md`, `CAPACIDADES-WEB.md`, `JSON-SCHEMA.md`, `llms.txt`, `llms-full.txt`, `sitemap.xml`, `data/guides-search-index.json`): `npm run check:repo-docs` regenera y compara contra el indice de Git. Los derivados son idempotentes: relanzar el sync no introduce cambios nuevos. El comando devuelve 1 mientras haya derivados regenerados sin preparar en el indice, y pasa una vez commiteados.
+- Rutas citadas en documentos manuales: todas existen. `tests/tarifas-dataset.test.js` aparece como inexistente, pero es correcto: la entrada dice justamente que no debe crearse.
+- Simbolos de codigo citados: sin referencias muertas. Los candidatos de un grep ingenuo son plantillas (`cNNN`, `x.xx5`, `{anchorDate}`), columnas CSV de Datadis (`AE_Autocons_kWh`), parametros de URL (`utm_*`) o advertencias de que algo NO se usa (`document.scrollingElement`).
+- Cifras: 122 tarifas en `tarifas.json`, 25 guias, 108 ficheros de test. Coinciden con lo declarado.
+- Vigencia de las guias: fechas, bono social (42,5/57,5), composicion del PVPC por anios, ayudas Auto+ acumuladas, plazos abiertos, precios orientativos contra el PVPC real del repo (media de agosto 0,1687 EUR/kWh), enlaces internos y limites SEO. Sin obsolescencias.
+
+Hallazgos corregidos:
+
+1. **La guia de la factura describia el lector QR como era antes del 25/08/2026.** Decia que rellena "potencia, consumos por periodo y fechas del ciclo" y no mencionaba en ningun punto la casilla que importa los cinco precios como `Mi tarifa`. Lo que afirmaba era cierto, pero omitia la capacidad mas util de la funcion. Anadido un parrafo en el Paso 2 con la casilla, su caracter opcional, que sustituye la tarifa personalizada guardada y que la ficha explica el motivo cuando no puede ofrecerse.
+2. **Cuatro documentos declaraban una fecha de actualizacion anterior a su ultimo cambio real.** `CAPACIDADES-WEB.md` declaraba 2026-08-18 con cambios del 27; `AUDITORIA-IA.md`, 2026-08-20 con 59 lineas anadidas el 27; `ARRANQUE-CARGA.md`, 2026-08-24 con cambios del 27; `ANALITICA-GOATCOUNTER.md`, 2026-08-14 con 18 lineas del 25. Corregidas.
+
+Trampas de medicion encontradas al auditar, para no repetirlas:
+
+- **Medir longitudes bajo un locale que no interpreta UTF-8.** `${#var}` en Bash devuelve la longitud en CARACTERES, pero solo si el locale es UTF-8. En este entorno, sin `LANG` ni `LC_ALL` definidos, un `<title>` con tres acentos midio 66 y parecio superar el limite de 65 cuando mide 63; `LC_ALL=C.UTF-8` devuelve 63 y `LC_ALL=C` vuelve a devolver 66. Es el entorno, no Bash. El limite lo vigila `tests/seo-metadata.test.js`: si ese test pasa y una medicion manual dice lo contrario, sospecha de la medicion antes que del contenido.
+- **Buscar la cita normativa en vez de la afirmacion.** Once guias hablan de permanencia sin citar el RD 88/2026, pero varias explican correctamente la regla ("puede rescindirse sin penalizacion salvo la excepcion de un contrato a precio fijo antes de la primera renovacion") sin nombrar la norma. La ausencia de la referencia no prueba contenido desactualizado.
+- **`grep -moE` no hace lo que parece.** `-m` consume el token siguiente como su argumento numerico, el patron se pierde y todo sale como "no declara".
 
 ## Hallazgos Que Si Serian Relevantes
 

@@ -1,6 +1,6 @@
 # Analitica GoatCounter
 
-Ultima actualizacion: 2026-08-14
+Ultima actualizacion: 2026-08-25
 
 Este documento define como se mide el uso de LuzFija.es con GoatCounter. La regla principal es simple: la analitica debe servir para entender producto y errores, no para identificar personas ni reconstruir datos privados del usuario.
 

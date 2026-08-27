@@ -1,6 +1,6 @@
 # Arranque Y Orden De Carga
 
-Ultima actualizacion: 2026-08-24
+Ultima actualizacion: 2026-08-27
 
 Contrato de arranque de las tres aplicaciones de LuzFija.es. Documenta QUE orden
 existe, POR QUE existe y QUE se rompe si se altera.
