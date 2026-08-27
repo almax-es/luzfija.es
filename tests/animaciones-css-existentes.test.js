@@ -8,11 +8,11 @@
  * Este guard ataca la CLASE de fallo, no el caso: una `animation` escrita desde JS debe
  * tener su `@keyframes` en algun CSS del repositorio.
  *
- * ALCANCE: cubre los dos patrones que existen HOY en el repo:
+ * ALCANCE: cubre los dos patrones que han existido en el repo:
  *     element.style.animation = 'nombre 1s'
  *     element.style.cssText   = '...;animation:nombre 1s;...'
  * incluida la shorthand con varias animaciones separadas por comas. NO detecta (hoy no se
- * usan; si alguien los introduce, hay que ampliar esto):
+ * usan; si alguien los introduce, hay que ampliar `extraerAnimaciones`):
  *     element.style.setProperty('animation', 'nombre 1s')
  *     Object.assign(element.style, { animation: 'nombre 1s' })
  *     element.style.animationName = 'nombre'
@@ -41,6 +41,26 @@ const PALABRAS_CSS = new Set([
   'cubic-bezier', 'steps', 'linear-gradient', 'var', 'calc'
 ]);
 
+/** Nombres de keyframes referenciados desde un fuente JavaScript. */
+export function extraerAnimaciones(texto) {
+  const valores = [
+    ...[...texto.matchAll(/animation\s*=\s*['"`]([^'"`]+)['"`]/g)].map((m) => m[1]),
+    ...[...texto.matchAll(/animation\s*:\s*([^;'"`\n}]+)/g)].map((m) => m[1])
+  ];
+  const nombres = [];
+  for (const valor of valores) {
+    for (const parte of valor.split(',')) {
+      for (const token of parte.trim().split(/\s+/)) {
+        // Descarta duraciones (0.35s), porcentajes, numeros y funciones de easing.
+        if (!/^[A-Za-z_][\w-]*$/.test(token)) continue;
+        if (PALABRAS_CSS.has(token)) continue;
+        nombres.push(token);
+      }
+    }
+  }
+  return nombres;
+}
+
 describe('Toda animacion referenciada desde JS existe en el CSS', () => {
   const keyframes = new Set();
   for (const css of listar(raiz, '.css')) {
@@ -48,43 +68,40 @@ describe('Toda animacion referenciada desde JS existe en el CSS', () => {
     for (const m of texto.matchAll(/@keyframes\s+([A-Za-z_][\w-]*)/g)) keyframes.add(m[1]);
   }
 
-  // Referencias vivas: `animation: ...` escrito desde JavaScript. Se procesa la
-  // declaracion ENTERA, no solo el primer nombre: la shorthand admite varias animaciones
-  // separadas por comas ("slideInScale 0.35s, btnPulse 1.5s") y quedarse con la primera
-  // deja ciegas a las demas.
   const referencias = [];
   for (const js of listar(path.join(raiz, 'js'), '.js')) {
     const texto = fs.readFileSync(js, 'utf8');
-    // Dos formas conviven en el repo y hay que cubrir las dos:
-    //   style.animation = 'slideInScale 0.35s, btnPulse 1.5s'   -> valor entre comillas
-    //   style.cssText  = '...;animation:rippleExpand 0.8s;...'  -> valor DENTRO de la cadena
-    // El ripple usaba la segunda: un patron que solo mirase la primera lo habria dejado pasar.
-    const valores = [
-      ...[...texto.matchAll(/animation\s*=\s*['"`]([^'"`]+)['"`]/g)].map((m) => m[1]),
-      ...[...texto.matchAll(/animation\s*:\s*([^;'"`\n}]+)/g)].map((m) => m[1])
-    ];
-    for (const valor of valores) {
-      for (const parte of valor.split(',')) {
-        for (const token of parte.trim().split(/\s+/)) {
-          // Descarta duraciones (0.35s), porcentajes, numeros y funciones de easing.
-          if (!/^[A-Za-z_][\w-]*$/.test(token)) continue;
-          if (PALABRAS_CSS.has(token)) continue;
-          referencias.push({ fichero: path.relative(raiz, js).split(path.sep).join('/'), nombre: token });
-        }
-      }
+    for (const nombre of extraerAnimaciones(texto)) {
+      referencias.push({ fichero: path.relative(raiz, js).split(path.sep).join('/'), nombre });
     }
   }
 
-  // Excepciones por PAREJA fichero:nombre, no por nombre suelto.
-  // btnPulse (js/bv/bv-ui.js:2458) esta PENDIENTE de decision: mismo patron que el ripple,
-  // detectado el 27/08/2026 y aun sin reproducir en Chrome. Se excluye para que el guard
-  // entre en vigor ya, en vez de esperar a esa decision.
-  const PENDIENTES = new Set(['js/bv/bv-ui.js:btnPulse']);
+  // Excepciones por PAREJA fichero:nombre, nunca por nombre suelto. Vacio a proposito:
+  // btnPulse era la unica y se retiro el 27/08/2026 al eliminar su bloque muerto.
+  const PENDIENTES = new Set();
   const clave = (r) => `${r.fichero}:${r.nombre}`;
 
-  it('hay keyframes y referencias que comprobar (el guard no esta vacio)', () => {
+  it('el extractor reconoce los patrones que se usan en el repo', () => {
+    // Autotest del parser. Sustituye al viejo centinela `referencias.length > 0`: hoy no
+    // queda ninguna animacion escrita desde JS, y no se conserva codigo muerto solo para
+    // mantener verde un guard. Asi el extractor sigue probado aunque el repo este limpio.
+    expect(extraerAnimaciones(`el.style.animation = 'fadeIn 1s ease-out';`)).toEqual(['fadeIn']);
+    expect(extraerAnimaciones(`el.style.cssText = 'width:10px;animation:ripple 0.8s ease-out;';`)).toEqual(['ripple']);
+    expect(extraerAnimaciones(`el.style.animation = 'slideInScale 0.35s ease-out, btnPulse 1.5s ease-in-out 0.5s';`))
+      .toEqual(['slideInScale', 'btnPulse']);
+    // Sin espacio tras la coma. Este es el caso que obliga a partir por comas: troceando
+    // solo por espacios, "1s,segunda" queda pegado, no casa el patron de identificador y la
+    // segunda animacion se pierde en silencio.
+    expect(extraerAnimaciones(`el.style.animation = 'primera 1s,segunda 2s';`))
+      .toEqual(['primera', 'segunda']);
+    // Ni duraciones, ni easings, ni `none` cuentan como nombre de keyframe.
+    expect(extraerAnimaciones(`el.style.animation = 'none';`)).toEqual([]);
+    expect(extraerAnimaciones(`el.style.animation = 'x 1s cubic-bezier(0.4, 0, 0.2, 1) infinite';`)).toEqual(['x']);
+    expect(extraerAnimaciones(`const t = 'sin animaciones aqui';`)).toEqual([]);
+  });
+
+  it('hay keyframes definidos que comprobar', () => {
     expect(keyframes.size).toBeGreaterThan(10);
-    expect(referencias.length).toBeGreaterThan(0);
   });
 
   it('ninguna animacion escrita desde JS apunta a un keyframe inexistente', () => {

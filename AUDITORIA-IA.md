@@ -2256,10 +2256,21 @@ dejo de ver el patron `cssText`, que era justo el del ripple.
 Si en el futuro se quieren ondas, la nota de Codex: disenyar UNA discreta para el CTA
 principal, no reactivar el efecto triple heredado en todos los botones.
 
-**Pendiente relacionado:** `js/bv/bv-ui.js:2458` declara
-`animation: 'slideInScale 0.35s ..., btnPulse 1.5s ...'`. `slideInScale` existe
-(`bv-sim.css:39`); **`btnPulse` no**. Mismo patron, sin reproducir aun en Chrome. Esta
-excluido a proposito en el guard (`PENDIENTES`) para que este entre en vigor ya.
+**Segundo caso, cerrado el mismo dia sin decision visual.** `js/bv/bv-ui.js` declaraba
+`animation: 'slideInScale 0.35s ..., btnPulse 1.5s ...'` sobre `btn-edit-manual-shortcut`.
+`slideInScale` existe (`bv-sim.css:39`), `btnPulse` NO. Pero no hacia falta decidir si
+disenyarla: **ese boton no existe en ningun HTML** y esta seccion ya lo documentaba mas
+arriba ("no existe en el HTML productivo actual; un problema hipotetico de su animacion
+diferida no es una ruta de UI alcanzable"). Era codigo inalcanzable, asi que se elimino el
+bloque entero, no solo la animacion. `@keyframes slideInScale` se conserva: sigue vivo en
+`bv-sim.css:403`.
+
+Al quedar el repo sin ninguna animacion escrita desde JS, el centinela del guard
+(`referencias.length > 0`) dejo de tener sentido. **No se conserva codigo muerto para
+mantener verde un test**: se sustituyo por un autotest de `extraerAnimaciones()` con
+ejemplos sinteticos de los tres patrones. Uno de ellos, `'primera 1s,segunda 2s'` SIN espacio
+tras la coma, es el unico que obliga a partir por comas: con espacio, el troceo por espacios
+ya separa los nombres y la mutacion resultaba equivalente.
 
 ### Accesibilidad: Lo Auditado Y Que Salio Bien (Parcial, 27/08/2026)
 

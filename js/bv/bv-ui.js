@@ -2436,8 +2436,8 @@ document.addEventListener('DOMContentLoaded', () => {
       saveManualData();
 
       // trackImport=false es un REPARTO del mismo fichero ya importado (recalculo por cambio
-      // de zona), no una importacion nueva: se omiten el aviso de "Datos importados" y el
-      // pulse del boton, que anunciarian algo que no ha ocurrido.
+      // de zona), no una importacion nueva: se omite el aviso de "Datos importados", que
+      // anunciaria algo que no ha ocurrido.
       if (!trackImport) return;
 
       // Mensaje informativo sobre múltiples años
@@ -2447,17 +2447,6 @@ document.addEventListener('DOMContentLoaded', () => {
         message += ` (años ${years.join(', ')} - se usa el más reciente por mes)`;
       }
       showToast(message, 'ok');
-
-      // Mostrar botón/enlace para ir a manual con animación
-      const editBtn = document.getElementById('btn-edit-manual-shortcut');
-      if (editBtn) {
-        editBtn.style.display = 'inline-flex';
-        // Pequeño pulse para llamar la atención
-        editBtn.style.animation = 'none';
-        setTimeout(() => {
-          editBtn.style.animation = 'slideInScale 0.35s ease-out, btnPulse 1.5s ease-in-out 0.5s';
-        }, 10);
-      }
     }
   }
 
