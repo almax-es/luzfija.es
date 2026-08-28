@@ -614,26 +614,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Enersa Relax",
-      "cPunta": 0.119,
-      "cLlano": 0.119,
-      "cValle": 0.119,
-      "p1": 0.093,
-      "p2": 0.093,
-      "web": "https://enersaenergia.com/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Nexus Estable",
       "cPunta": 0.1199,
       "cLlano": 0.1199,
@@ -688,6 +668,26 @@
         "exc": 0.04,
         "tipo": "SIMPLE",
         "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Enersa Relax",
+      "cPunta": 0.124,
+      "cLlano": 0.124,
+      "cValle": 0.124,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://enersaenergia.com/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
         "precioBV": 0.0
@@ -752,26 +752,6 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Enersa Relax 10",
-      "cPunta": 0.125,
-      "cLlano": 0.125,
-      "cValle": 0.125,
-      "p1": 0.109,
-      "p2": 0.039,
-      "web": "https://enersaenergia.com/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -969,6 +949,26 @@
       "web": "https://clientes.atuladoenergia.com/tarifas/",
       "tipo": "1P",
       "requisitos": "Precio revisable cada trimestre natural.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Enersa Relax 10",
+      "cPunta": 0.139,
+      "cLlano": 0.139,
+      "cValle": 0.139,
+      "p1": 0.119,
+      "p2": 0.039,
+      "web": "https://enersaenergia.com/",
+      "tipo": "1P",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -1660,6 +1660,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Enersa Confort 3P",
+      "cPunta": 0.174,
+      "cLlano": 0.129,
+      "cValle": 0.112,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://enersaenergia.com/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "El Corte Inglés Benefíciate 3P",
       "cPunta": 0.176875,
       "cLlano": 0.120975,
@@ -1754,26 +1774,6 @@
       "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz-3periodos",
       "tipo": "3P",
       "requisitos": "10% descuento término energía durante 12 meses incluido en el precio.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Enersa Confort 3P",
-      "cPunta": 0.187,
-      "cLlano": 0.107,
-      "cValle": 0.079,
-      "p1": 0.093,
-      "p2": 0.093,
-      "web": "https://enersaenergia.com/",
-      "tipo": "3P",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -2522,5 +2522,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-08-28T13:01:43.130Z"
+  "updatedAt": "2026-08-28T20:14:37.509Z"
 }
