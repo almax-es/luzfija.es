@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 
@@ -544,5 +544,74 @@ describe('Observatorio: el selector de anyo no se rompe al cruzar el anyo', () =
     expect(posPoblar).toBeGreaterThan(-1);
     expect(posAsignar).toBeGreaterThan(-1);
     expect(posPoblar).toBeLessThan(posAsignar);
+  });
+});
+
+describe('Observatorio: los canvas siguen el tema activo', () => {
+  beforeEach(() => {
+    document.body.innerHTML = '';
+    window.LF = {};
+    delete window.__LF_PvpcStatsUiHelpers;
+    Object.defineProperty(document, 'readyState', {
+      configurable: true,
+      get: () => 'loading'
+    });
+    loadPvpcStatsUi(window);
+  });
+
+  it('aplica a ejes, rejilla y leyenda la paleta recibida sin animar', () => {
+    const update = vi.fn();
+    const chart = {
+      options: {
+        scales: {
+          x: { ticks: { color: 'old' }, grid: { display: false } },
+          y: { ticks: { color: 'old' }, grid: { color: 'old-grid' } }
+        },
+        plugins: { legend: { labels: { color: 'old' } } }
+      },
+      update
+    };
+
+    const applied = window.__LF_PvpcStatsUiHelpers.applyChartTheme(
+      chart,
+      'rgba(0,0,0,.08)',
+      'rgba(0,0,0,.72)'
+    );
+
+    expect(applied).toBe(true);
+    expect(chart.options.scales.x.ticks.color).toBe('rgba(0,0,0,.72)');
+    expect(chart.options.scales.y.ticks.color).toBe('rgba(0,0,0,.72)');
+    expect(chart.options.scales.y.grid.color).toBe('rgba(0,0,0,.08)');
+    expect(chart.options.plugins.legend.labels.color).toBe('rgba(0,0,0,.72)');
+    expect(update).toHaveBeenCalledWith('none');
+  });
+
+  it('deriva la paleta del tema web y cablea el boton real del shell', () => {
+    const { getChartThemeColors } = window.__LF_PvpcStatsUiHelpers;
+    document.documentElement.classList.remove('light-mode');
+    expect(getChartThemeColors()).toEqual({
+      gridColor: 'rgba(255,255,255,.08)',
+      textColor: 'rgba(255,255,255,.78)'
+    });
+
+    document.documentElement.classList.add('light-mode');
+    expect(getChartThemeColors()).toEqual({
+      gridColor: 'rgba(0,0,0,.08)',
+      textColor: 'rgba(0,0,0,.72)'
+    });
+
+    const attachBody = uiCode.match(/function attachThemeToggle\(\)[\s\S]*?\n  \}/)?.[0] || '';
+    expect(attachBody).toContain("getElementById('btnTheme')");
+    expect(attachBody).toContain('setTimeout(syncChartTheme, 0)');
+  });
+
+  it('limita las fechas del grafico de tendencia cuando el canvas es estrecho', () => {
+    const { getTrendMaxTicksLimit } = window.__LF_PvpcStatsUiHelpers;
+
+    expect(getTrendMaxTicksLimit('daily', 390)).toBe(3);
+    expect(getTrendMaxTicksLimit('monthly', 390)).toBe(6);
+    expect(getTrendMaxTicksLimit('daily', 900)).toBe(8);
+    expect(getTrendMaxTicksLimit('monthly', 900)).toBe(12);
+    expect(uiCode).toContain('ticks.maxTicksLimit = getTrendMaxTicksLimit(mode, size?.width)');
   });
 });

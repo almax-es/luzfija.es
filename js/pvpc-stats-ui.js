@@ -381,6 +381,12 @@
     return gradient;
   }
 
+  function getTrendMaxTicksLimit(mode, width) {
+    const compact = Number.isFinite(Number(width)) && Number(width) < 520;
+    if (mode === 'daily') return compact ? 3 : 8;
+    return compact ? 6 : 12;
+  }
+
   function renderTrendChart(daily, monthly, mode, accent, gridColor, textColor, label) {
     const ds = buildTrendDataset(daily, monthly, mode);
     const ctx = canvases.trend.getContext('2d');
@@ -409,6 +415,10 @@
         animation: { duration: 0 },
         responsive: true,
         maintainAspectRatio: false,
+        onResize: (chart, size) => {
+          const ticks = chart.options?.scales?.x?.ticks;
+          if (ticks) ticks.maxTicksLimit = getTrendMaxTicksLimit(mode, size?.width);
+        },
         interaction: {
           mode: 'index',
           intersect: false,
@@ -432,7 +442,13 @@
         },
         scales: {
           x: {
-            ticks: { color: textColor, maxRotation: 0, autoSkip: true, maxTicksLimit: mode === 'daily' ? 8 : 12, font: { family: 'Outfit', weight: '600' } },
+            ticks: {
+              color: textColor,
+              maxRotation: 0,
+              autoSkip: true,
+              maxTicksLimit: getTrendMaxTicksLimit(mode, canvases.trend.parentElement?.clientWidth || window.innerWidth),
+              font: { family: 'Outfit', weight: '600' }
+            },
             grid: { display: false }
           },
           y: {
@@ -764,16 +780,40 @@
     setTrendMode(state);
   }
 
-  function attachThemeToggle() {
-    const btn = document.getElementById('themeToggle');
-    if (!btn) return;
-    const key = window.__ALMAX_THEME_KEY || 'almax_theme';
+  function getChartThemeColors() {
+    const isLight = document.documentElement.classList.contains('light-mode');
+    return {
+      gridColor: isLight ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.08)',
+      textColor: isLight ? 'rgba(0,0,0,.72)' : 'rgba(255,255,255,.78)'
+    };
+  }
 
+  function applyChartTheme(chart, gridColor, textColor) {
+    if (!chart?.options) return false;
+    const scales = chart.options.scales || {};
+    ['x', 'y'].forEach((axis) => {
+      if (scales[axis]?.ticks) scales[axis].ticks.color = textColor;
+    });
+    if (scales.y?.grid) scales.y.grid.color = gridColor;
+    const legendLabels = chart.options.plugins?.legend?.labels;
+    if (legendLabels) legendLabels.color = textColor;
+    if (typeof chart.update === 'function') chart.update('none');
+    return true;
+  }
+
+  function syncChartTheme() {
+    const { gridColor, textColor } = getChartThemeColors();
+    Object.values(charts).forEach((chart) => applyChartTheme(chart, gridColor, textColor));
+  }
+
+  function attachThemeToggle() {
+    const btn = document.getElementById('btnTheme');
+    if (!btn) return;
+    // shell-lite.js es el propietario del tema en esta pagina. Este listener se limita
+    // a repintar el contenido interno de los canvas DESPUES de que el shell cambie la
+    // clase; sin ello Chart.js conserva los colores del tema con el que fue construido.
     btn.addEventListener('click', () => {
-      const isLight = document.documentElement.classList.toggle('light-mode');
-      try {
-        localStorage.setItem(key, isLight ? 'light' : 'dark');
-      } catch (_) {}
+      setTimeout(syncChartTheme, 0);
     });
   }
 
@@ -1085,8 +1125,7 @@
       setTrendMode(state);
 
       const accent = getCssVar('--accent', '#8B5CF6');
-      const gridColor = document.documentElement.classList.contains('light-mode') ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.08)';
-      const textColor = document.documentElement.classList.contains('light-mode') ? 'rgba(0,0,0,.72)' : 'rgba(255,255,255,.78)';
+      const { gridColor, textColor } = getChartThemeColors();
 
       let yearData;
       try {
@@ -1334,6 +1373,9 @@
     computeRolling12m,
     getAvailableYearsDesc,
     populateYearSelector,
+    getTrendMaxTicksLimit,
+    getChartThemeColors,
+    applyChartTheme,
     DATASET_MIN_YEAR
   };
 

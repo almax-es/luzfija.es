@@ -57,6 +57,7 @@
   let __miTarifaObserver = null;
   let __miTarifaLastInfo = null; // para rehacer el chip al rotar o redimensionar
   let __miTarifaFlashTimer = 0;  // sin esto, dos clics seguidos se pisan el destello
+  let __lfScrollResultsTimer = 0; // cada render renueva los 5 s del aviso movil
 
   function miTarifaChipEls() {
     const chip = document.getElementById('miTarifaChip');
@@ -938,10 +939,20 @@
       }
     });
 
-    if (window.innerWidth < 1100) {
-      const sb = $('scrollToResults');
-      sb.style.display = 'block';
-      setTimeout(() => sb.style.display = 'none', 5000);
+    const scrollResultsButton = $('scrollToResults');
+    if (scrollResultsButton) {
+      if (__lfScrollResultsTimer) clearTimeout(__lfScrollResultsTimer);
+      __lfScrollResultsTimer = 0;
+
+      if (window.innerWidth < 1100) {
+        scrollResultsButton.style.display = 'block';
+        __lfScrollResultsTimer = setTimeout(() => {
+          scrollResultsButton.style.display = 'none';
+          __lfScrollResultsTimer = 0;
+        }, 5000);
+      } else {
+        scrollResultsButton.style.display = 'none';
+      }
     }
 
     return renderDone;

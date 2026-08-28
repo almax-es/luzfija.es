@@ -100,7 +100,10 @@ describe('Renderizado UI (lf-render.js)', () => {
         <tbody id="tbody"></tbody>
       </table>
       <div id="emptyBox" class="is-hidden"></div>
+      <section id="seccionResultados"></section>
+      <button id="scrollToResults" style="display:none"></button>
     `;
+    document.getElementById('seccionResultados').scrollIntoView = vi.fn();
 
     // Resetear estado
     window.LF.state.rows = [];
@@ -712,6 +715,35 @@ describe('Renderizado UI (lf-render.js)', () => {
     expect(done).toBeInstanceOf(Promise);
     await done;
     expect(document.querySelectorAll('#tbody tr').length).toBe(3);
+  });
+
+  it('cada render movil renueva los cinco segundos del boton para ir a resultados', async () => {
+    vi.useFakeTimers();
+    Object.defineProperty(window, 'innerWidth', { value: 390, configurable: true });
+    const payload = {
+      success: true,
+      resumen: { mejor: 'Tarifa Barata', precio: '50,00 €' },
+      stats: null,
+      resultados: [...mockRows]
+    };
+
+    try {
+      await window.LF.renderAll(payload);
+      expect(document.getElementById('scrollToResults').style.display).toBe('block');
+
+      await vi.advanceTimersByTimeAsync(3000);
+      await window.LF.renderAll(payload);
+      await vi.advanceTimersByTimeAsync(2001);
+
+      // Ya pasaron mas de 5 s desde el primer render, pero solo 2 s desde el segundo.
+      // Un timer viejo no puede acortar la ventana de visibilidad del aviso nuevo.
+      expect(document.getElementById('scrollToResults').style.display).toBe('block');
+
+      await vi.advanceTimersByTimeAsync(3000);
+      expect(document.getElementById('scrollToResults').style.display).toBe('none');
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   // 27/08/2026: el nombre de la tarifa NO puede pasar por animateCounter(). El guard de

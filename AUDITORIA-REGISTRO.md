@@ -2400,3 +2400,65 @@ Trampa de redaccion, pisada dos veces el mismo dia:
 Trampa de medicion encontrada al auditar:
 
 - **`grep -c $'\r'` no sirve para detectar CRLF en este entorno**: devolvia el total de lineas en ficheros que son LF puro, y llevo a afirmar CRLF donde no lo habia. La comprobacion fiable es binaria: comparar `b.count(b'\r\n')` con `b.count(b'\n')`. `cat -A` tampoco es concluyente cuando `sed` normaliza por el camino. Antes de elegir el fin de linea de una insercion, medir en binario.
+
+<a id="ciclo-de-vida-de-recursos-y-temas-dinamicos-ronda-16-28-08-2026"></a>
+### Ciclo De Vida De Recursos Y Temas Dinamicos (Ronda 16, 28/08/2026)
+
+Auditoria transversal del comportamiento al repetir operaciones y cambiar estado visual. Se
+probaron la home, el Observatorio y el simulador solar en Chrome real, sin service worker, para
+que el navegador sirviera el arbol de trabajo actual. Esta ronda no equivale a una prueba formal
+de ausencia de fugas ni a una evaluacion WCAG completa: fija los ciclos y combinaciones concretos
+que se ejercitaron.
+
+Hallazgos corregidos:
+
+1. **El aviso movil para saltar a resultados perdia su temporizador mas reciente.** Cada render de
+   la home creaba un `setTimeout` de cinco segundos sin cancelar el anterior. Si un segundo calculo
+   terminaba antes de que venciera el primer timer, ese timer ocultaba el aviso nuevo: en la
+   reproduccion, el segundo resultado quedo listo a los 3266 ms y el aviso desaparecio a los
+   5125 ms, tras solo 1,86 s visible. `lf-render.js` conserva ahora un unico timer propietario,
+   cancela el anterior y reinicia los cinco segundos en cada render. El test usa reloj falso y
+   demuestra que retirar el `clearTimeout` reintroduce la regresion.
+2. **Los canvas del Observatorio no seguian un cambio de tema.** La UI buscaba un ID inexistente
+   (`themeToggle`) y pretendia alternar una clase cuyo propietario real es `shell-lite.js` mediante
+   `btnTheme`. Chart.js conserva los colores con los que construye cada canvas: al pasar de oscuro
+   a claro, texto y rejilla seguian usando la paleta blanca. El Observatorio escucha ahora el boton
+   real despues del handler propietario y actualiza, sin animacion, ejes, rejilla y leyendas de los
+   tres graficos. Hay tests funcionales de la paleta y del cableado al ID real.
+3. **Las fechas del grafico de tendencia se solapaban en movil.** Aunque Chart.js aplicaba
+   `autoSkip`, cuatro fechas ISO completas no cabian en el ancho util de 390 px y se mostraban
+   concatenadas. El limite es ahora responsive (tres fechas diarias o seis etiquetas mensuales por
+   debajo de 520 px, ocho/doce en escritorio) y se recalcula tambien al redimensionar el canvas.
+   La captura real a 390 px confirma tres fechas separadas en ambos temas.
+
+Resistencia medida, sin crecimiento monotono en los ciclos ejercitados:
+
+- Home: siete calculos completos mantuvieron 560 listeners; tras el primer render, los nodos se
+  estabilizaron en 6020. Treinta aperturas/cierres del modal de factura no anadieron listeners ni
+  nodos.
+- Observatorio: dieciocho cambios rapidos de ano, mes y tipo conservaron 75 listeners, 1176 nodos,
+  tres `canvas` y tres instancias activas de Chart.js.
+- Simulador solar: siete rankings completos conservaron 179 listeners y 85.852 nodos, con 819 filas
+  de resultado en cada render. El volumen es propio del desglose mensual, pero no crecio entre
+  ejecuciones.
+- La lectura estatica del extractor PDF/OCR confirmo liberacion de pagina/canvas, destruccion de la
+  tarea PDF y guards de generacion. Los graficos destruyen la instancia anterior antes de
+  reemplazarla.
+
+Matriz visual y funcional ejecutada: home, Observatorio y solar; 1366 x 768 y 390 x 844; modo claro
+y oscuro. Las doce combinaciones terminaron sin overflow horizontal, errores de consola ni
+violaciones CSP. La home devolvio las mismas 103 filas y el mismo KPI en sus cuatro combinaciones;
+el Observatorio creo tres graficos con la paleta correcta; el solar completo su ranking y mostro
+resultados. Se inspeccionaron capturas del contenido inicial y de las zonas de resultados/graficos.
+
+Trampas de medicion encontradas durante la prueba:
+
+- Una captura tomada antes de terminar `animateCounter` compara estados intermedios, no importes
+  distintos. La matriz espero a que acabara la animacion antes de contrastar el KPI.
+- Que exista `BVSim` o que el boton solar este habilitado no demuestra que la tabla mensual haya
+  terminado de construirse; el gate correcto comprobo las 48 entradas de la rejilla.
+- En la home, un boton habilitado durante el arranque no basta para demostrar que el catalogo ya
+  esta disponible. La prueba espero `__LF_tarifasMeta.updatedAt` y ausencia de calculo en vuelo.
+- Los contadores de listeners del protocolo de depuracion incluyen infraestructura del navegador;
+  aqui se usan para detectar crecimiento entre estados equivalentes, no como inventario semantico
+  de listeners propios.
