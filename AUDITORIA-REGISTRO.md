@@ -2586,3 +2586,33 @@ pantalla real.
 
 El directorio entre `REGISTRO-INDICE:INICIO` y `REGISTRO-INDICE:FIN` y el resto de documentación
 derivada se regeneraron con el sincronizador del repositorio después de integrar los cambios.
+
+<a id="foco-y-colores-forzados-ronda-19-28-08-2026"></a>
+### Foco Y Colores Forzados (Ronda 19, 28/08/2026)
+
+Revisión posterior a la Ronda 18, limitada a hallazgos reproducidos mediante teclado, zoom real y
+`forced-colors: active`. Dos problemas eran reales y se corrigieron; un tercero se descartó como
+decisión responsive ya establecida.
+
+1. **Las tarjetas del índice de guías recibían foco, pero no lo mostraban.** El enlace
+   `.guide-card` alcanzaba `:focus-visible`, pero solo conservaba el anillo por defecto del
+   navegador, imperceptible sobre la tarjeta. Tiene ahora un `outline` explícito de 3 px, separado
+   del borde, y una variante con `Highlight` para colores forzados. Así el principal mecanismo de
+   navegación de `guias.html` conserva una referencia visible también con teclado.
+2. **El selector Mensual/Diaria y los gráficos del Observatorio perdían información en colores
+   forzados.** Al eliminarse los degradados, el botón activo no retenía señal visual. La regla de
+   alto contraste usa colores de sistema (`Highlight`/`HighlightText`) y borde propio, sin depender
+   del tema elegido en la web. Los `canvas` de Chart.js no heredan la paleta CSS forzada: el tema de
+   gráficos pasa a `CanvasText` y `GrayText` cuando `forced-colors` está activo, y se repinta si el
+   modo cambia durante la sesión.
+
+La ocultación de acciones de compartir de la barra lateral editorial por debajo de 1200 px se
+revisó por el mismo informe, pero **no se cambia**: son acciones secundarias deliberadamente
+ausentes en la composición estrecha, no parte del flujo de lectura ni del cálculo. Restaurarlas
+exigiría una decisión de producto y de diseño distinta, no un arreglo de accesibilidad mecánico.
+
+Los nuevos contratos de regresión comprueban el foco de las tarjetas y el estado visual del
+selector. El helper de gráficos se prueba además con `matchMedia('(forced-colors: active)')`;
+la restauración del mock se protege con `try/finally` para no contaminar pruebas posteriores. Las
+mutaciones de retirar el outline, borrar el fondo `Highlight` y sustituir el color de sistema del
+canvas vuelven rojo el contrato correspondiente.

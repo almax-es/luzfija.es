@@ -4,8 +4,8 @@
 <meta charset="utf-8"/>
 
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; form-action 'self';">
-<script src="/js/config.js?v=20260828-130336"></script>
-<script src="/js/theme.js?v=20260828-130336"></script>
+<script src="/js/config.js?v=20260828-214345"></script>
+<script src="/js/theme.js?v=20260828-214345"></script>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
 <meta content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1" name="robots"/>
 <link href="/manifest.webmanifest" rel="manifest"/>
@@ -374,6 +374,22 @@ body::before {
   box-shadow: 0 12px 40px rgba(139, 92, 246, 0.3);
 }
 
+/* Las tarjetas son el medio principal para abrir una guía: el foco no puede
+   depender del anillo por defecto del navegador, que no se aprecia sobre ellas. */
+.guide-card:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 6px rgba(139, 92, 246, .22);
+}
+
+@media (forced-colors: active) {
+  .guide-card:focus-visible {
+    outline-color: Highlight;
+    box-shadow: none;
+  }
+}
+
 .guide-header {
   display: flex;
   align-items: flex-start;
@@ -695,7 +711,7 @@ html.light-mode .btn-small:hover{
 </style>
   <meta name="color-scheme" content="dark light"/>
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/fonts.css?v=20260828-130336">
+  <link rel="stylesheet" href="/fonts.css?v=20260828-214345">
 
     <meta name="theme-color" content="#8B5CF6">
 </head>
@@ -1126,7 +1142,7 @@ html.light-mode .btn-small:hover{
   <a href="/privacidad.html">Política de privacidad</a>
 </footer>
 
-<script src="/js/guides-search.js?v=20260828-130336"></script>
+<script src="/js/guides-search.js?v=20260828-214345"></script>
 <script>
 if (window.LFGuideSearch) {
   window.LFGuideSearch.init({
@@ -1198,6 +1214,6 @@ if ('serviceWorker' in navigator) {
   });
 }
 </script>
-  <script src="/js/tracking.js?v=20260828-130336" defer></script>
+  <script src="/js/tracking.js?v=20260828-214345" defer></script>
 </body>
 </html>

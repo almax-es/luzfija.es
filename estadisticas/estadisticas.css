@@ -793,6 +793,29 @@
   box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3), inset 0 1px 0 rgba(255,255,255,0.2);
 }
 
+/* Los degradados no sobreviven a forced-colors: mantenemos una señal de estado
+   con colores de sistema, independiente del tema elegido dentro de la web. */
+@media (forced-colors: active) {
+  .segmented__btn {
+    border: 1px solid ButtonText;
+    background: ButtonFace;
+    color: ButtonText;
+    box-shadow: none;
+  }
+
+  .segmented__btn.is-active,
+  .segmented__btn[aria-pressed="true"] {
+    border: 2px solid Highlight;
+    background: Highlight;
+    color: HighlightText;
+  }
+
+  .segmented__btn:focus-visible {
+    outline: 3px solid Highlight;
+    outline-offset: 2px;
+  }
+}
+
 .chart-wrap {
   height: 380px;
   padding: 20px 0;

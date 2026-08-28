@@ -605,6 +605,25 @@ describe('Observatorio: los canvas siguen el tema activo', () => {
     expect(attachBody).toContain('setTimeout(syncChartTheme, 0)');
   });
 
+  it('usa colores de sistema para los canvas cuando el navegador fuerza su paleta', () => {
+    const { getChartThemeColors } = window.__LF_PvpcStatsUiHelpers;
+    const originalMatchMedia = Object.getOwnPropertyDescriptor(window, 'matchMedia');
+    try {
+      Object.defineProperty(window, 'matchMedia', {
+        configurable: true,
+        value: vi.fn(() => ({ matches: true, addEventListener: vi.fn() }))
+      });
+
+      expect(getChartThemeColors()).toEqual({ gridColor: 'GrayText', textColor: 'CanvasText' });
+    } finally {
+      if (originalMatchMedia) Object.defineProperty(window, 'matchMedia', originalMatchMedia);
+      else delete window.matchMedia;
+    }
+
+    expect(uiCode).toContain("window.matchMedia('(forced-colors: active)')");
+    expect(uiCode).toContain("forcedColors?.addEventListener?.('change', syncChartTheme)");
+  });
+
   it('limita las fechas del grafico de tendencia cuando el canvas es estrecho', () => {
     const { getTrendMaxTicksLimit } = window.__LF_PvpcStatsUiHelpers;
 

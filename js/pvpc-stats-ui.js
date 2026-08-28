@@ -781,6 +781,13 @@
   }
 
   function getChartThemeColors() {
+    const forcedColors = typeof window.matchMedia === 'function'
+      && window.matchMedia('(forced-colors: active)').matches;
+    if (forcedColors) {
+      // Los canvas no heredan la paleta forzada del CSS. Estos colores de sistema
+      // se resuelven por el motor gráfico conforme al esquema de alto contraste.
+      return { gridColor: 'GrayText', textColor: 'CanvasText' };
+    }
     const isLight = document.documentElement.classList.contains('light-mode');
     return {
       gridColor: isLight ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.08)',
@@ -808,13 +815,18 @@
 
   function attachThemeToggle() {
     const btn = document.getElementById('btnTheme');
-    if (!btn) return;
     // shell-lite.js es el propietario del tema en esta pagina. Este listener se limita
     // a repintar el contenido interno de los canvas DESPUES de que el shell cambie la
     // clase; sin ello Chart.js conserva los colores del tema con el que fue construido.
-    btn.addEventListener('click', () => {
-      setTimeout(syncChartTheme, 0);
-    });
+    if (btn) {
+      btn.addEventListener('click', () => {
+        setTimeout(syncChartTheme, 0);
+      });
+    }
+    const forcedColors = typeof window.matchMedia === 'function'
+      ? window.matchMedia('(forced-colors: active)')
+      : null;
+    forcedColors?.addEventListener?.('change', syncChartTheme);
   }
 
   function attachControlHandlers(state, rerender) {

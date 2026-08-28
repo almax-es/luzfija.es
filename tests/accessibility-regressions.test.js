@@ -212,4 +212,16 @@ describe('regresiones de accesibilidad detectadas en la auditoría', () => {
     expect(guideIndex).not.toContain('color: rgba(247,247,251,.4);');
   });
 
+  it('las tarjetas de guías tienen un foco explícito, también con colores forzados', () => {
+    const guideIndex = read('guias.html');
+    expect(guideIndex).toMatch(/\.guide-card:focus-visible\s*\{[\s\S]*?outline:\s*3px solid var\(--accent\)[\s\S]*?outline-offset:\s*3px/);
+    expect(guideIndex).toMatch(/@media \(forced-colors: active\)\s*\{[\s\S]*?\.guide-card:focus-visible\s*\{[\s\S]*?outline-color:\s*Highlight/);
+  });
+
+  it('el selector del Observatorio conserva un estado visual con colores forzados', () => {
+    const statsCss = read('estadisticas/estadisticas.css');
+    expect(statsCss).toMatch(/@media \(forced-colors: active\)\s*\{[\s\S]*?\.segmented__btn\s*\{[\s\S]*?border:\s*1px solid ButtonText/);
+    expect(statsCss).toMatch(/\.segmented__btn(?:\.is-active|\[aria-pressed="true"\])[\s\S]*?background:\s*Highlight[\s\S]*?color:\s*HighlightText/);
+  });
+
 });
