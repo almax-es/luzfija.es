@@ -241,9 +241,9 @@
   function setActive(elOn, elOff) {
     if (!elOn || !elOff) return;
     elOn.classList.add('is-active');
-    elOn.setAttribute('aria-selected', 'true');
+    elOn.setAttribute('aria-pressed', 'true');
     elOff.classList.remove('is-active');
-    elOff.setAttribute('aria-selected', 'false');
+    elOff.setAttribute('aria-pressed', 'false');
   }
 
   function setLoadingText() {
@@ -974,7 +974,14 @@
       return `${fmtMonth(mi)} ${y}`;
     };
 
-    const renderCsvStats = (stats) => {
+    const setCsvNote = (text) => {
+      if (!csvEls.note) return;
+      csvEls.note.hidden = false;
+      if (csvEls.note.textContent === text) return;
+      csvEls.note.textContent = text;
+    };
+
+    const renderCsvStats = (stats, { announceEmpty = true } = {}) => {
       if (!csvEls.kpis) return;
       const hasData = stats && Number.isFinite(stats.totalKwh) && stats.totalKwh > 0;
       csvEls.kpis.hidden = !hasData;
@@ -983,9 +990,7 @@
       if (csvEls.note) csvEls.note.hidden = false;
 
       if (!hasData) {
-        if (csvEls.note) {
-          csvEls.note.textContent = 'Sube un CSV/XLSX con excedentes horarios para ver el cálculo.';
-        }
+        if (announceEmpty) setCsvNote('Sube un CSV/XLSX con excedentes horarios para ver el cálculo.');
         return;
       }
 
@@ -1044,11 +1049,9 @@
         }).join('');
       }
 
-      if (csvEls.note) {
-        csvEls.note.textContent = stats.missing
-          ? `Nota: ${stats.missing} horas (${fmtKwh(stats.missingKwh || 0, 1)}) no encontraron precio horario en el histórico para la zona seleccionada. La compensación y el precio medio solo incluyen la energía con precio disponible.`
-          : ' ';
-      }
+      setCsvNote(stats.missing
+        ? `Nota: ${stats.missing} horas (${fmtKwh(stats.missingKwh || 0, 1)}) no encontraron precio horario en el histórico para la zona seleccionada. La compensación y el precio medio solo incluyen la energía con precio disponible.`
+        : 'Archivo procesado correctamente.');
     };
 
     const refreshCsvStats = async (isCurrent) => {
@@ -1061,10 +1064,8 @@
       const hasDstTransition = typeof hasDstTransitionRecords !== 'function'
         || hasDstTransitionRecords(records);
       if (crossesCanaryClock && hasDstTransition) {
-        renderCsvStats(null);
-        if (csvEls.note) {
-          csvEls.note.textContent = 'La curva contiene un cambio de hora que se numera de forma distinta en Canarias. Reimporta el archivo con la zona seleccionada.';
-        }
+        renderCsvStats(null, { announceEmpty: false });
+        setCsvNote('La curva contiene un cambio de hora que se numera de forma distinta en Canarias. Reimporta el archivo con la zona seleccionada.');
         return;
       }
       const stats = await computeCsvCompensation(records, geo);
@@ -1081,6 +1082,7 @@
         const extension = window.LF?.csvUtils?.safeFileExtensionForTracking?.(file.name) || 'desconocido';
         csvEls.btn.disabled = true;
         csvEls.btn.textContent = '⏳ Procesando...';
+        setCsvNote('Procesando archivo…');
         try {
           const importGeo = String(state.geo);
           const parsed = await parseCsvOrXlsx(file, geoNames[importGeo] || 'Península');
@@ -1101,11 +1103,8 @@
           // refreshCsvStats() y resucita silenciosamente los records del archivo previo.
           csvState.records = null;
           csvState.canaryClock = null;
-          renderCsvStats(null);
-          if (csvEls.note) {
-            csvEls.note.hidden = false;
-            csvEls.note.textContent = `Error: ${err?.message || 'No se pudo procesar el archivo.'}`;
-          }
+          renderCsvStats(null, { announceEmpty: false });
+          setCsvNote(`Error: ${err?.message || 'No se pudo procesar el archivo.'}`);
         } finally {
           csvEls.btn.disabled = false;
           csvEls.btn.textContent = '📤 Subir CSV/XLSX';

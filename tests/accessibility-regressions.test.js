@@ -146,4 +146,72 @@ describe('regresiones de accesibilidad detectadas en la auditoría', () => {
       '.nav-buttons{width:100%;justify-content:center;flex-wrap:wrap;gap:8px}'
     );
   });
+
+  it('Compartir devuelve el foco al disparador visible en Home y Solar', () => {
+    const home = read('js/lf-app.js');
+    const solar = read('js/bv/bv-ui.js');
+
+    expect(home).toContain('function openShareDialog(returnFocusEl = document.activeElement)');
+    expect(home).toContain('shareLastFocusedEl = returnFocusEl;');
+    expect(home).toMatch(/currentEl\.btnShare\.addEventListener\('click',[\s\S]*?toggleMenu\(false\);\s*openShareDialog\(currentEl\.btnMenu\);/);
+    expect(home).toMatch(/shareResultsButton\?\.addEventListener\('click',[\s\S]*?openShareDialog\(shareResultsButton\);/);
+
+    expect(solar).toContain('function openShareDialog(returnFocusEl = document.activeElement)');
+    expect(solar).toContain('shareLastFocusedEl = returnFocusEl;');
+    expect(solar).toMatch(/shareConfigButton\?\.addEventListener\('click',[\s\S]*?openShareDialog\(btnMenu\);/);
+    expect(solar).toContain("shareResultsButton?.addEventListener('click', () => openShareDialog(shareResultsButton));");
+  });
+
+  it('el selector diaria/mensual es un grupo de botones con aria-pressed, no tabs sin panel', () => {
+    const html = read('estadisticas/index.html');
+    const ui = read('js/pvpc-stats-ui.js');
+
+    expect(html).toMatch(/class="segmented" role="group" aria-label="Modo del gráfico"/);
+    expect(html).toMatch(/id="trendModeMonthly"[^>]*aria-pressed="false"/);
+    expect(html).toMatch(/id="trendModeDaily"[^>]*aria-pressed="true"/);
+    expect(html).not.toMatch(/trendMode(?:Monthly|Daily)[^>]*role="tab"/);
+    expect(ui).toContain("elOn.setAttribute('aria-pressed', 'true')");
+    expect(ui).toContain("elOff.setAttribute('aria-pressed', 'false')");
+    expect(ui).not.toContain("setAttribute('aria-selected'");
+  });
+
+  it('el Observatorio expone carga/resultado/error y estado CSV mediante regiones status', () => {
+    const html = read('estadisticas/index.html');
+    const ui = read('js/pvpc-stats-ui.js');
+
+    expect(html).toMatch(/id="trendMeta" role="status" aria-atomic="true"/);
+    expect(html).toMatch(/id="csvExcedentesNote" role="status" aria-atomic="true"/);
+    expect(ui).toContain("setCsvNote('Procesando archivo…')");
+    expect(ui).toContain("'Archivo procesado correctamente.'");
+    expect(ui).toMatch(/setCsvNote\(`Error: \$\{err\?\.message \|\| 'No se pudo procesar el archivo\.'\}`\)/);
+    expect(ui).toContain('renderCsvStats(null, { announceEmpty: false })');
+  });
+
+  it('todo texto editorial morado usa una variante de contraste por tema', () => {
+    const guideFiles = fs.readdirSync(path.join(ROOT, 'guias'))
+      .filter((file) => file.endsWith('.html') && file !== 'index.html');
+
+    // #2C2856 aproxima el peor fondo implicado: accent al 20 % sobre la superficie oscura.
+    expect(contrastRatio('#A78BFA', '#2C2856')).toBeGreaterThanOrEqual(4.5);
+    expect(contrastRatio('#6D28D9', '#FFFFFF')).toBeGreaterThanOrEqual(4.5);
+    guideFiles.forEach((file) => {
+      const html = read(path.join('guias', file));
+      expect(html, file).toContain('--accent:#8B5CF6;--accent-text:#A78BFA;');
+      expect(html, file).toContain('--accent:#6D28D9;--accent-text:#6D28D9; /* mejor contraste en modo claro */');
+      expect(html, file).toContain('color:var(--accent-text)');
+      expect(html, file).not.toMatch(/(?:^|[;{])color:\s*var\(--accent\)/m);
+      expect(html, file).toContain('border-color:var(--accent)');
+      expect(html, file).not.toContain('border-color:var(--accent-text)');
+      expect(html, file).not.toContain('border-left-color:var(--accent-text)');
+      expect(html, file).not.toContain('border-bottom-color:var(--accent-text)');
+      expect(html, file).not.toContain('html:not(.light-mode) .article-content a{color:#A78BFA}');
+    });
+  });
+
+  it('el placeholder del buscador usa el color muted adaptado al tema', () => {
+    const guideIndex = read('guias.html');
+    expect(guideIndex).toMatch(/\.search-box input::placeholder\s*\{\s*color:\s*var\(--muted\);\s*\}/);
+    expect(guideIndex).not.toContain('color: rgba(247,247,251,.4);');
+  });
+
 });

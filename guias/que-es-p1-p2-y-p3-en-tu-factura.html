@@ -61,7 +61,7 @@
     }
   },
   "datePublished": "2026-01-19",
-  "dateModified": "2026-08-16",
+  "dateModified": "2026-08-28",
   "mainEntityOfPage": {
     "@type": "WebPage",
     "@id": "https://luzfija.es/guias/que-es-p1-p2-y-p3-en-tu-factura.html"
@@ -134,7 +134,7 @@
 }
 </script>
 <style>
-:root{--bg:#0B1020;--surface:#141b2e;--card:rgba(255,255,255,.06);--border:rgba(255,255,255,.10);--text:#F7F7FB;--muted:rgba(247,247,251,.72);--accent:#8B5CF6;--accent2:#22C55E;--warn:#F59E0B}
+:root{--bg:#0B1020;--surface:#141b2e;--card:rgba(255,255,255,.06);--border:rgba(255,255,255,.10);--text:#F7F7FB;--muted:rgba(247,247,251,.72);--accent:#8B5CF6;--accent-text:#A78BFA;--accent2:#22C55E;--warn:#F59E0B}
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Outfit',-apple-system,system-ui,sans-serif;background:linear-gradient(135deg,var(--bg),var(--surface));color:var(--text);line-height:1.7;overflow-x:hidden}
 .progress-bar{position:fixed;top:0;left:0;width:100%;height:4px;background:rgba(255,255,255,.05);z-index:1000}
@@ -142,7 +142,7 @@ body{font-family:'Outfit',-apple-system,system-ui,sans-serif;background:linear-g
 .header{position:sticky;top:0;background:rgba(11,16,32,.95);backdrop-filter:blur(12px);border-bottom:1px solid var(--border);padding:16px 0;z-index:100}
 .header-container{max-width:1200px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:20px}
 .breadcrumbs{display:flex;align-items:center;gap:8px;font-size:14px;color:var(--muted);flex-wrap:wrap}
-.breadcrumbs a{color:var(--accent);text-decoration:none;transition:opacity .2s}
+.breadcrumbs a{color:var(--accent-text);text-decoration:none;transition:opacity .2s}
 .breadcrumbs a:hover{opacity:.8}
 .header-actions{display:flex;gap:12px}
 @media (max-width:480px){
@@ -159,10 +159,10 @@ body{font-family:'Outfit',-apple-system,system-ui,sans-serif;background:linear-g
 .toc-list li{margin-bottom:8px}
 .toc-list a{display:block;color:var(--muted);text-decoration:none;font-size:14px;padding:6px 12px;border-radius:6px;transition:all .2s;border-left:2px solid transparent}
 .toc-list a:hover{color:var(--text);background:rgba(255,255,255,.05);border-left-color:var(--accent)}
-.toc-list a.active{color:var(--accent);background:rgba(139,92,246,.15);border-left-color:var(--accent);font-weight:600}
+.toc-list a.active{color:var(--accent-text);background:rgba(139,92,246,.15);border-left-color:var(--accent);font-weight:600}
 .article{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:60px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
 .article-header{margin-bottom:40px;padding-bottom:30px;border-bottom:1px solid var(--border)}
-.article-category{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(139,92,246,.2);border:1px solid var(--accent);border-radius:100px;font-size:12px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:20px}
+.article-category{display:inline-flex;align-items:center;gap:6px;padding:6px 14px;background:rgba(139,92,246,.2);border:1px solid var(--accent);border-radius:100px;font-size:12px;font-weight:700;color:var(--accent-text);text-transform:uppercase;letter-spacing:.5px;margin-bottom:20px}
 .article h1{font-size:clamp(32px,5vw,48px);font-weight:900;line-height:1.1;margin-bottom:16px;background:linear-gradient(135deg,var(--text),var(--muted));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .article-intro{font-size:20px;color:var(--muted);line-height:1.6;margin-bottom:20px}
 .article-meta{display:flex;align-items:center;gap:20px;font-size:14px;color:var(--muted);flex-wrap:wrap}
@@ -174,14 +174,14 @@ body{font-family:'Outfit',-apple-system,system-ui,sans-serif;background:linear-g
 .article-content ul,.article-content ol{margin:20px 0 20px 24px}
 .article-content li{margin-bottom:12px;padding-left:8px}
 .article-content strong{color:var(--text);font-weight:700}
-.article-content a{color:var(--accent);text-decoration:none;border-bottom:1px solid rgba(139,92,246,.3);transition:all .2s}
+.article-content a{color:var(--accent-text);text-decoration:none;border-bottom:1px solid rgba(139,92,246,.3);transition:all .2s}
 .article-content a:hover{border-bottom-color:var(--accent)}
 .faq-section{margin-top:60px;padding-top:40px;border-top:1px solid var(--border)}
 .faq-section h2{font-size:32px;font-weight:800;margin-bottom:30px;text-align:center}
 .faq-item{background:rgba(255,255,255,.04);border:1px solid var(--border);border-radius:12px;margin-bottom:12px;overflow:hidden;transition:all .3s ease}
 .faq-item:hover{border-color:rgba(139,92,246,.5)}
 .faq-item summary{padding:18px 24px;font-weight:600;font-size:16px;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;user-select:none}
-.faq-item summary::after{content:'+';font-size:24px;color:var(--accent);transition:transform .3s}
+.faq-item summary::after{content:'+';font-size:24px;color:var(--accent-text);transition:transform .3s}
 .faq-item[open] summary::after{transform:rotate(45deg)}
 .faq-item p{padding:0 24px 20px;color:var(--muted);font-size:15px;line-height:1.7}
 .sidebar-actions{position:sticky;top:100px}
@@ -213,7 +213,7 @@ html.light-mode{
   --card2: rgba(15, 23, 42, .06);
   --border2: rgba(15, 23, 42, .16);
   --muted2: rgba(15, 23, 42, .58);
-  --accent:#6D28D9; /* mejor contraste en modo claro */
+  --accent:#6D28D9;--accent-text:#6D28D9; /* mejor contraste en modo claro */
   --accent2:#15803D; /* mejor contraste en modo claro */
   --warn:#B45309; /* mejor contraste en modo claro */
 }
@@ -277,14 +277,14 @@ html.light-mode .btn-small:hover{
   padding-left: 0;
 }
 .sources-list a {
-  color: var(--accent);
+  color: var(--accent-text);
   text-decoration: none;
   border-bottom: 1px solid rgba(139,92,246,.3);
   font-size: 14px;
   line-height: 1.6;
 }
 .sources-list a:hover {
-  border-bottom-color: var(--accent);
+  border-bottom-color: var(--accent-text);
   opacity: .8;
 }
 .updated-badge {
@@ -378,7 +378,7 @@ html.light-mode .btn-small:hover{
   line-height: 1.4;
 }
 .related-guide-arrow{
-  color: var(--accent);
+  color: var(--accent-text);
   font-weight: 900;
   flex-shrink: 0;
   margin-top: 1px;
@@ -477,7 +477,7 @@ html.light-mode .btn-small:hover{
 <span class="article-category">📚 Guía</span>
 <h1>Qué es P1, P2 y P3 en tu factura</h1>
 <p class="article-intro">Desde junio de 2021, la 2.0TD divide el término de energía en tres periodos horarios regulados: P1 (punta), P2 (llano) y P3 (valle). Esos periodos no obligan a tu comercializadora a cobrar tres precios distintos: el precio real depende de la tarifa que tengas.</p>
-<div class="article-meta"><span>Por <strong>aLMaX</strong></span><span>·</span><span>19 ene 2026</span><span>·</span><span>⏱️ 6 min</span><span>·</span><span class="updated-badge">🔄 Act. 16 ago 2026</span></div>
+<div class="article-meta"><span>Por <strong>aLMaX</strong></span><span>·</span><span>19 ene 2026</span><span>·</span><span>⏱️ 6 min</span><span>·</span><span class="updated-badge">🔄 Act. 28 ago 2026</span></div>
 </div>
 <div class="article-content">
 <p style="margin-top:10px;">Esto de los tres periodos solo va con la tarifa 2.0TD, que es la habitual en suministros de baja tensión con hasta 15 kW. Si tienes más de 15 kW en baja tensión, normalmente pasas a 3.0TD y ya hablas de seis periodos en vez de tres.</p>
@@ -703,7 +703,7 @@ function share(platform){
   }
   if(platform === 'copy'){
     const text = rawUrl;
-    const done = () => { const n = document.createElement('div'); n.textContent = '¡Link copiado! 📋'; n.setAttribute('style','position:fixed;left:50%;bottom:20px;transform:translateX(-50%);padding:10px 14px;border-radius:10px;background:rgba(11,16,32,.95);color:#fff;font:600 13px/1.2 system-ui;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.25)'); document.body.appendChild(n); setTimeout(() => n.remove(), 1400); };
+    const done = () => { const n = document.createElement('div'); n.setAttribute('role','status'); n.setAttribute('aria-atomic','true'); n.setAttribute('style','position:fixed;left:50%;bottom:20px;transform:translateX(-50%);padding:10px 14px;border-radius:10px;background:rgba(11,16,32,.95);color:#fff;font:600 13px/1.2 system-ui;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.25)'); document.body.appendChild(n); n.textContent = '¡Link copiado! 📋'; setTimeout(() => n.remove(), 1400); };
     if(navigator.clipboard && window.isSecureContext){
       navigator.clipboard.writeText(text).then(done).catch(() => fallbackCopy(text, done));
     } else {
@@ -714,6 +714,7 @@ function share(platform){
   return false;
 
   function fallbackCopy(text, done){
+    const returnFocus = document.activeElement;
     const ta = document.createElement('textarea');
     ta.value = text;
     ta.style.position = 'fixed';
@@ -724,10 +725,11 @@ function share(platform){
     ta.select();
     try{ document.execCommand('copy'); }catch(e){}
     document.body.removeChild(ta);
+    if(returnFocus && typeof returnFocus.focus === 'function'){ try{returnFocus.focus();}catch(e){} }
     done();
   }
 }
 </script>
-  <script src="/js/tracking.js?v=20260828-082627" defer></script>
+  <script src="/js/tracking.js?v=20260828-121824" defer></script>
 </body>
 </html>

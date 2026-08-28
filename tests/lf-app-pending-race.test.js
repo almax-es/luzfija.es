@@ -17,7 +17,14 @@ const code = fs.readFileSync(path.resolve(__dirname, '../js/lf-app.js'), 'utf8')
 function boot(overrides = {}) {
   document.body.innerHTML = `
     <span id="statusText"></span><button id="btnCalc"></button>
-    <button id="btnMenu"></button><div id="menuPanel"></div><button id="btnShare"></button>
+    <button id="btnMenu"></button><div id="menuPanel"><button id="btnShare"></button></div>
+    <div id="shareConfigDialog" hidden aria-hidden="true">
+      <input id="shareIncludeConsumption" type="checkbox">
+      <input id="shareIncludePrivate" type="checkbox">
+      <p id="shareConfigScope"></p>
+      <button id="shareConfigCancel"></button>
+      <button id="shareConfigConfirm"></button>
+    </div>
   `;
   const state = { pending: false, rows: [], lastSignature: null, debounce: null, generation: 0 };
   let values = { p1: '1' };
@@ -392,6 +399,25 @@ describe('calculate(): editar durante un calculo en curso no borra el aviso de p
     abrirRender();
     await vi.waitFor(() => expect(window.__LF_CALC_INFLIGHT).toBe(false));
     expect(calculateLocal).toHaveBeenCalledTimes(2);
+  });
+
+  it('Compartir abierto desde el menú devuelve el foco al botón de menú', async () => {
+    boot();
+    document.dispatchEvent(new window.Event('DOMContentLoaded'));
+    const btnMenu = document.getElementById('btnMenu');
+    const btnShare = document.getElementById('btnShare');
+    const dialog = document.getElementById('shareConfigDialog');
+
+    btnShare.focus();
+    btnShare.click();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(dialog.hidden).toBe(false);
+    expect(document.activeElement).toBe(document.getElementById('shareConfigCancel'));
+
+    document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
+    expect(dialog.hidden).toBe(true);
+    expect(document.activeElement).toBe(btnMenu);
   });
 
 });

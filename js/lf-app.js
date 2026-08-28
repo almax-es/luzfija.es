@@ -781,13 +781,13 @@
       return true;
     }
 
-    function openShareDialog() {
+    function openShareDialog(returnFocusEl = document.activeElement) {
       trackShareEvent('compartir-abierto');
       if (!shareDialog) {
         shareConfiguration({ includeConsumption: false, includePrivate: false });
         return;
       }
-      shareLastFocusedEl = document.activeElement;
+      shareLastFocusedEl = returnFocusEl;
       if (shareConsumptionInput) shareConsumptionInput.checked = false;
       if (sharePrivateInput) sharePrivateInput.checked = false;
       updateShareScope();
@@ -800,10 +800,10 @@
 
     currentEl.btnShare.addEventListener('click', () => {
       toggleMenu(false);
-      openShareDialog();
+      openShareDialog(currentEl.btnMenu);
     });
     shareResultsButton?.addEventListener('click', () => {
-      openShareDialog();
+      openShareDialog(shareResultsButton);
     });
     document.addEventListener('lf:results-ready', (e) => {
       if (e?.detail?.origin === 'home' && shareResultsWrap) shareResultsWrap.hidden = false;

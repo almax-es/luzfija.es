@@ -62,7 +62,8 @@ function bootSolarUi() {
     <input id="bv-p1" value="3,45">
     <input id="bv-p2" value="3,45">
     <input id="bv-saldo-inicial" value="0">
-    <button id="btnShare"></button>
+    <button id="btnMenu" aria-expanded="true"></button>
+    <div id="menuPanel" class="show" aria-hidden="false"><button id="btnShare"></button></div>
     <div class="bv-shared-scenario-notice" id="bv-shared-scenario-notice" role="status" hidden>
       <span id="bv-shared-scenario-text"></span>
       <button type="button" id="bv-save-shared-scenario">Guardar como mi configuración</button>
@@ -108,6 +109,7 @@ function bootSolarUi() {
     <div id="bv-status-container"></div>
     <div id="bv-status"></div>
     <span id="bv-save-indicator" class="bv-save-indicator"></span>
+    <span id="bv-manual-invalid-message">Valor inválido.</span>
     <div id="bv-manual-grid"></div>
     <div id="bv-manual-totals-row" style="display:none">
       <span id="bv-total-p1"></span><span id="bv-total-p2"></span>
@@ -774,6 +776,24 @@ describe('Simulador solar - procedencia del grid frente al selector de zona', ()
     expect(completo.config.saldoInicial).toBe('25');
     expect(completo.config.customTarifa.punta).toBe('0,15');
     expect(window.__LF_trackDetail).toHaveBeenCalledWith('url-compartida', ['solar', 'completo'], expect.any(Object));
+  });
+
+  it('Compartir abierto desde el menú devuelve el foco al botón de menú', async () => {
+    bootSolarUi();
+    const btnMenu = document.getElementById('btnMenu');
+    const btnShare = document.getElementById('btnShare');
+    const dialog = document.getElementById('bv-share-dialog');
+
+    btnShare.focus();
+    btnShare.click();
+    await new Promise((resolve) => setTimeout(resolve, 10));
+    expect(dialog.hidden).toBe(false);
+    expect(document.activeElement).toBe(document.getElementById('bv-share-cancel'));
+
+    document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));
+
+    expect(dialog.hidden).toBe(true);
+    expect(document.activeElement).toBe(btnMenu);
   });
 
   it('Compartir congela el escenario antes de esperar la carga de tarifas', async () => {
@@ -1847,18 +1867,35 @@ describe('Tabla manual: validacion estricta y cero explicito (14/08/2026)', () =
     await new Promise((resolve) => setTimeout(resolve, 180));
 
     expect(window.BVSim.loadTarifasBV).not.toHaveBeenCalled();
-    expect(document.getElementById('toastText').textContent).toContain('Corrige los valores en rojo');
+    expect(document.getElementById('toastText').textContent).toContain('Corrige los valores inválidos');
   });
 
-  it('"1,2,3" (formato ambiguo) tambien bloquea Calcular', async () => {
+  it('"1,2,3" (formato ambiguo) tambien bloquea Calcular y expone aria-invalid', async () => {
     bootSolarUi();
     editGrid(0, 'p1', '1,2,3');
+    const input = document.querySelector('#bv-manual-grid input[data-month="0"][data-type="p1"]');
+
+    expect(input.getAttribute('aria-invalid')).toBe('true');
+    expect(input.getAttribute('aria-describedby')).toBe('bv-manual-invalid-message');
 
     document.getElementById('bv-simulate').click();
     await new Promise((resolve) => setTimeout(resolve, 180));
 
     expect(window.BVSim.loadTarifasBV).not.toHaveBeenCalled();
-    expect(document.getElementById('toastText').textContent).toContain('Corrige los valores en rojo');
+    expect(document.getElementById('toastText').textContent).toContain('Corrige los valores inválidos');
+  });
+
+  it('al corregir un valor manual se retira el estado ARIA de error', () => {
+    bootSolarUi();
+    editGrid(0, 'p1', '1,2,3');
+    const input = document.querySelector('#bv-manual-grid input[data-month="0"][data-type="p1"]');
+    expect(input.getAttribute('aria-invalid')).toBe('true');
+
+    editGrid(0, 'p1', '123,45');
+
+    expect(input.hasAttribute('aria-invalid')).toBe(false);
+    expect(input.hasAttribute('aria-describedby')).toBe(false);
+    expect(input.classList.contains('error')).toBe(false);
   });
 
   it('un valor cargado desde un respaldo sin pasar por el evento input tambien se bloquea', async () => {
@@ -1872,7 +1909,7 @@ describe('Tabla manual: validacion estricta y cero explicito (14/08/2026)', () =
     await new Promise((resolve) => setTimeout(resolve, 180));
 
     expect(window.BVSim.loadTarifasBV).not.toHaveBeenCalled();
-    expect(document.getElementById('toastText').textContent).toContain('Corrige los valores en rojo');
+    expect(document.getElementById('toastText').textContent).toContain('Corrige los valores inválidos');
   });
 
   it('acepta potencia contratada P1 = 0 kW cuando P2 es positiva', async () => {
@@ -2156,7 +2193,7 @@ describe('Simulador solar - la tabla manual no "cura" valores invalidos al expor
     document.getElementById('bv-export-manual').dispatchEvent(new window.Event('click'));
 
     expect(createObjectUrl).not.toHaveBeenCalled();
-    expect(document.getElementById('toastText').textContent).toContain('Corrige los valores en rojo');
+    expect(document.getElementById('toastText').textContent).toContain('Corrige los valores inválidos');
     createObjectUrl.mockRestore();
   });
 
@@ -2172,7 +2209,7 @@ describe('Simulador solar - la tabla manual no "cura" valores invalidos al expor
     await flush();
 
     expect(shareMock).not.toHaveBeenCalled();
-    expect(document.getElementById('toastText').textContent).toContain('Corrige los valores en rojo');
+    expect(document.getElementById('toastText').textContent).toContain('Corrige los valores inválidos');
   });
 
   it('importar un backup con un valor invalido se rechaza y no toca los datos anteriores', async () => {

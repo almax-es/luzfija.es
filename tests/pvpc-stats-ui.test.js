@@ -270,7 +270,7 @@ describe('Observatorio: degradacion explicita por meses remotos fallidos', () =>
 describe('Observatorio: una importación fallida invalida el CSV anterior', () => {
   it('limpia records y reloj de zona antes de borrar la UI en el catch de importación', () => {
     expect(uiCode).toMatch(
-      /trackStatsEvent\(\s*'csv-import-error'[\s\S]*?csvState\.records\s*=\s*null;\s*csvState\.canaryClock\s*=\s*null;\s*renderCsvStats\(null\)/
+      /trackStatsEvent\(\s*'csv-import-error'[\s\S]*?csvState\.records\s*=\s*null;\s*csvState\.canaryClock\s*=\s*null;\s*renderCsvStats\(null, \{ announceEmpty: false \}\)/
     );
   });
 

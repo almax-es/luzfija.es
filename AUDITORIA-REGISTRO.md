@@ -2509,3 +2509,80 @@ maliciosa same-origin no equivale a una entrada publica controlada por un visita
 ya trata ese supuesto como integridad de datos/cadena de suministro, no como DOM XSS alcanzable.
 Endurecer adicionalmente cada consumidor de esos artefactos puede ser hardening futuro, pero no se
 registra como bug sin una ruta que cruce la confianza establecida.
+
+<a id="accesibilidad-funcional-y-responsive-ronda-18-28-08-2026"></a>
+### Accesibilidad Funcional Y Responsive (Ronda 18, 28/08/2026)
+
+Continuación acotada de la auditoría parcial de accesibilidad del 27/08/2026. Se reabrieron solo
+hallazgos nuevos ya reproducidos en Chromium, sin reinterpretar como regresión los casos previamente
+marcados como resueltos. La comprobación se hizo sobre la copia local del ZIP mediante un arnés
+efímero `about:blank`, porque la política administrada de Chromium bloquea la navegación incluso a
+`localhost` y `file:`. El arnés carga los mismos HTML/CSS/JS locales y no modifica el repositorio.
+La entrega externa no ejecutó Vitest ni ESLint; durante la integración, Codex sí validó el resultado
+con Node 22, la suite completa y el lint. No hubo prueba con lector de pantalla real; por tanto, el
+resultado no afirma conformidad WCAG completa.
+
+Hallazgos confirmados y corregidos:
+
+1. **Compartir perdía el foco al cerrarse desde el menú en Home y Solar.** El disparador guardado era
+   `btnShare`, pero ese control quedaba oculto al cerrar el menú. Tras `Escape`, Chromium terminaba
+   con foco en `body`. `openShareDialog` acepta ahora un retorno explícito: desde el menú usa
+   `btnMenu`, mientras que los CTA de resultados conservan su propio retorno. Se verificaron ambos
+   orígenes en las dos aplicaciones.
+2. **La tabla manual solar marcaba errores solo de forma visual.** `1,2,3` activaba `.error` pero no
+   `aria-invalid`; además los avisos pedían corregir los valores "en rojo". El validador mantiene
+   ahora `aria-invalid="true"` y `aria-describedby="bv-manual-invalid-message"` mientras el valor es
+   inválido, retira ambos atributos al corregirlo o limpiar la rejilla y los mensajes hablan de
+   "valores inválidos".
+3. **El selector Diaria/Mensual del Observatorio declaraba tabs sin paneles de pestaña.** Ambos
+   controles eran botones independientes que cambian el modo de un único gráfico. Se sustituyó
+   `tablist`/`tab`/`aria-selected` por un grupo de botones nativos con `aria-pressed`. Chromium
+   confirmó activación con Espacio y actualización mutuamente exclusiva del estado.
+4. **Los estados principales del Observatorio no tenían una vía de anuncio accesible.** `trendMeta`
+   expone ahora un único `role="status"` atómico para carga, resultado o error del render. La nota de
+   importación de excedentes usa otro `status`; el helper evita reescribir el mismo texto y los
+   caminos de error no insertan antes el mensaje genérico de estado vacío. Chromium registró en
+   `trendMeta` `Cargando…` seguido del resultado y, al sustituir solo en el arnés el loader por un
+   fallo sintético, `Cargando…` seguido de `Error cargando dataset local.`. Con un CSV sintético
+   demasiado grande se observaron solo `Procesando archivo…` y el error específico.
+5. **El fallback de Copiar en las guías dejaba el foco en `body` y la confirmación era solo visual.**
+   Las 25 guías afectadas compartían exactamente el mismo bloque. El fallback guarda el elemento
+   activo, elimina el textarea temporal y restaura el foco antes de mostrar la confirmación. El aviso
+   se inserta primero como `role="status"` atómico y después recibe el texto, para que el cambio se
+   produzca ya dentro del árbol accesible. WhatsApp y el resto de destinos no se modificaron.
+6. **El morado usado como texto editorial no alcanzaba contraste suficiente en oscuro.** Con el
+   fondo renderizado real se midieron aproximadamente 3,83–3,86:1 para enlaces de 16 px/400. No se
+   cambió `--accent`, que sigue gobernando fondos y bordes: se añadió `--accent-text`, con `#A78BFA`
+   en oscuro y `#6D28D9` en claro, y se aplicó a todos los usos del acento como primer plano en las
+   25 guías (artículo, migas, índice activo, categoría, fuentes y elementos equivalentes). El caso
+   medido del enlace queda en aproximadamente 5,95–6,01:1 en oscuro y 6,18:1 en claro; el guard usa
+   además el peor fondo morado compuesto implicado y conserva los bordes en `--accent`.
+7. **El placeholder del buscador de guías también fallaba contraste en ambos temas.** La medición
+   compuesta fue aproximadamente 3,36:1 en oscuro y 1,04:1 en claro. Se sustituyó el color fijo
+   translúcido por `var(--muted)`, ya definido por tema; Chromium midió aproximadamente 7,37:1 en
+   oscuro y 7,21:1 en claro.
+
+Pruebas de regresión añadidas y ejecutadas: contratos funcionales de retorno de foco Home/Solar,
+`aria-invalid` y limpieza del estado solar, semántica/estados del Observatorio, guard estructural de
+las 25 guías más un caso funcional representativo del fallback, y guards de contraste/placeholder.
+La integración terminó con Node 22, 110 ficheros y 1766/1766 tests, ESLint 0 y 9/9 mutaciones
+plausibles detectadas. La suite completa descubrió además que los HTML estrictos necesitaban
+regenerar sus hashes CSP tras cambiar contenido inline; se actualizaron y el guard CSP quedó verde.
+
+La revisión visual/reflow previa de la misma ronda cubrió 1366 x 768 y 390 x 844, claro/oscuro, zoom
+200 % y 400 % cuando Chromium lo permitió, y `forced-colors: active` cuando pudo activarse de forma
+fiable. No se demostró overflow horizontal global en esas pasadas. La política de navegación impidió
+validar service worker, instalación PWA y comportamientos que dependan de un origen navegable real.
+
+Durante la integración se repitió además el recorrido sobre un servidor HTTP local en Chrome 152,
+a 1366 x 768 y 390 x 844, en claro y oscuro. Se confirmó en el DOM real el retorno de foco a
+`btnMenu` en Home/Solar, la colocación y retirada de `aria-invalid`/`aria-describedby`, el grupo y
+los estados pulsados del Observatorio, sus dos regiones `status`, la restauración de foco y el aviso
+de copia en una guía representativa, los colores computados `#A78BFA`/`#6D28D9` y el placeholder
+dependiente del tema. Las capturas no mostraron roturas visuales, ninguna superficie medida tuvo
+overflow horizontal global y la consola quedó sin errores. Esta pasada tampoco se usó para afirmar
+que estén validados la instalación PWA, el ciclo de actualización del service worker o un lector de
+pantalla real.
+
+El directorio entre `REGISTRO-INDICE:INICIO` y `REGISTRO-INDICE:FIN` y el resto de documentación
+derivada se regeneraron con el sincronizador del repositorio después de integrar los cambios.

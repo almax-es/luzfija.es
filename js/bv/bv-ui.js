@@ -360,6 +360,8 @@ document.addEventListener('DOMContentLoaded', () => {
     manualGrid.querySelectorAll('input.manual-input').forEach((input) => {
       input.value = '';
       input.classList.remove('error', 'valid');
+      input.removeAttribute('aria-invalid');
+      input.removeAttribute('aria-describedby');
     });
   }
 
@@ -484,6 +486,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (input) {
       input.classList.toggle('error', !result.valid);
       input.classList.toggle('valid', result.valid && result.value > 0);
+      if (result.valid) {
+        input.removeAttribute('aria-invalid');
+        input.removeAttribute('aria-describedby');
+      } else {
+        input.setAttribute('aria-invalid', 'true');
+        input.setAttribute('aria-describedby', 'bv-manual-invalid-message');
+      }
     }
     return result;
   }
@@ -1096,7 +1105,7 @@ document.addEventListener('DOMContentLoaded', () => {
       // (ver parseManualGridRaw). Se revalida el DOM entero, no solo la clase .error, por si
       // el valor llego sin pasar por el listener de 'input' (backup/URL previos).
       if (manualGridHasInvalidInputs()) {
-        showToast('Corrige los valores en rojo de la tabla mensual antes de exportar.', 'err');
+        showToast('Corrige los valores inválidos de la tabla mensual antes de exportar.', 'err');
         return;
       }
       // Exportar es deliberadamente independiente de la persistencia: tambien desde una
@@ -2018,13 +2027,13 @@ document.addEventListener('DOMContentLoaded', () => {
     shareLastFocusedEl = null;
   }
 
-  function openShareDialog() {
+  function openShareDialog(returnFocusEl = document.activeElement) {
     trackShareEvent('compartir-abierto');
     if (!shareDialog) {
       shareScenario({ includeMonthly: false, includePrivate: false });
       return;
     }
-    shareLastFocusedEl = document.activeElement;
+    shareLastFocusedEl = returnFocusEl;
     if (shareMonthlyInput) shareMonthlyInput.checked = false;
     if (sharePrivateInput) sharePrivateInput.checked = false;
     updateShareScope();
@@ -2045,7 +2054,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // parseManualGridRaw). Solo aplica cuando se comparten los mensuales; los ajustes
     // generales no llevan la tabla.
     if (options.includeMonthly && manualGridHasInvalidInputs()) {
-      showToast('Corrige los valores en rojo de la tabla mensual antes de compartir.', 'err');
+      showToast('Corrige los valores inválidos de la tabla mensual antes de compartir.', 'err');
       return false;
     }
 
@@ -2103,9 +2112,9 @@ document.addEventListener('DOMContentLoaded', () => {
     menuPanel?.classList.remove('show');
     if (btnMenu) btnMenu.setAttribute('aria-expanded', 'false');
     if (menuPanel) menuPanel.setAttribute('aria-hidden', 'true');
-    openShareDialog();
+    openShareDialog(btnMenu);
   });
-  shareResultsButton?.addEventListener('click', () => openShareDialog());
+  shareResultsButton?.addEventListener('click', () => openShareDialog(shareResultsButton));
   document.addEventListener('lf:results-ready', (e) => {
     if (e?.detail?.origin === 'solar' && shareResultsWrap) shareResultsWrap.hidden = false;
   });
@@ -2123,7 +2132,7 @@ document.addEventListener('DOMContentLoaded', () => {
   });
   saveSharedScenarioButton?.addEventListener('click', () => {
     if (manualGridHasInvalidInputs()) {
-      showToast('Corrige los valores en rojo de la tabla mensual antes de guardar.', 'err');
+      showToast('Corrige los valores inválidos de la tabla mensual antes de guardar.', 'err');
       return;
     }
     const payload = buildManualScenarioPayload();
@@ -2385,6 +2394,8 @@ document.addEventListener('DOMContentLoaded', () => {
     inputs.forEach(input => {
       input.value = '';
       input.classList.remove('error', 'valid');
+      input.removeAttribute('aria-invalid');
+      input.removeAttribute('aria-describedby');
     });
     clearManualMonthMeta();
 
@@ -2858,7 +2869,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // evento 'input'). Antes, un valor invalido en pantalla no bloqueaba: se clampaba en
     // silencio (-50->0, 20000->10000) dentro de readManualEntriesFromGrid().
     if (manualGridHasInvalidInputs()) {
-      showToast('Corrige los valores en rojo de la tabla mensual antes de calcular.', 'err');
+      showToast('Corrige los valores inválidos de la tabla mensual antes de calcular.', 'err');
       return;
     }
 
