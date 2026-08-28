@@ -200,10 +200,8 @@ describe('regresiones de accesibilidad detectadas en la auditoría', () => {
       expect(html, file).toContain('--accent:#6D28D9;--accent-text:#6D28D9; /* mejor contraste en modo claro */');
       expect(html, file).toContain('color:var(--accent-text)');
       expect(html, file).not.toMatch(/(?:^|[;{])color:\s*var\(--accent\)/m);
-      expect(html, file).toContain('border-color:var(--accent)');
-      expect(html, file).not.toContain('border-color:var(--accent-text)');
-      expect(html, file).not.toContain('border-left-color:var(--accent-text)');
-      expect(html, file).not.toContain('border-bottom-color:var(--accent-text)');
+      expect(html, file).toMatch(/border-color\s*:\s*var\(--accent\)/);
+      expect(html, file).not.toMatch(/border(?:-(?:left|bottom))?-color\s*:\s*var\(--accent-text\)/);
       expect(html, file).not.toContain('html:not(.light-mode) .article-content a{color:#A78BFA}');
     });
   });
