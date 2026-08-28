@@ -2462,3 +2462,50 @@ Trampas de medicion encontradas durante la prueba:
 - Los contadores de listeners del protocolo de depuracion incluyen infraestructura del navegador;
   aqui se usan para detectar crecimiento entre estados equivalentes, no como inventario semantico
   de listeners propios.
+
+<a id="fronteras-de-renderizado-y-datos-ronda-17-28-08-2026"></a>
+### Fronteras De Renderizado Y Datos (Ronda 17, 28/08/2026)
+
+Auditoria de las rutas que reciben datos fuera de los literales de interfaz y terminan en el DOM o
+en un enlace navegable. Resultado: **cero bugs con impacto demostrado** en el modelo de amenaza
+actual; no se modifico codigo de produccion.
+
+Se inventariaron `innerHTML`, `outerHTML`, `insertAdjacentHTML`, `srcdoc`, `document.write`,
+`eval`, `Function`, asignaciones a `href`/`src` y aperturas de ventana. No hay sinks de ejecucion
+dinamica en el codigo de produccion. Los `innerHTML` restantes se separan en tres grupos:
+
+- Plantillas completamente constantes o construidas solo con numeros ya normalizados y formateados.
+- Render de catalogo/simulador, donde todo texto libre (`nombre`, `promo`, `requisitos`, razones y
+  tooltips) pasa por `escapeHtml`; las URLs de tarifas pasan por `safeUrl` antes de entrar en un
+  atributo `href`.
+- Avisos de factura, que escapan todo el texto y restauran unicamente las etiquetas `<b>` de una
+  allowlist cerrada. La ficha QR usa nodos y `textContent`; los valores de QR que se muestran son
+  campos tipados/rango-validos, nunca la URL ni el CUPS.
+
+Fronteras revisadas:
+
+- El texto de PDF/OCR no se renderiza como HTML. Los avisos pasan por `__LF_warnHtml`, y la prueba
+  de integracion cubre que un mensaje adverso no cree nodos ni manejadores mientras conserva el
+  marcado permitido.
+- CSV/XLSX solo entrega agregados numericos a las plantillas. Cabeceras, CUPS, nombres de fichero y
+  celdas libres se usan para detectar formato o construir errores, no se conservan como contenido
+  renderizado.
+- La busqueda de guias inserta consulta y contenido mediante `textContent`; las tarjetas normales
+  son clones del HTML editorial. Su indice es un artefacto same-origin generado desde esas guias,
+  no una entrada que aporte el visitante.
+- Los escenarios `?bv=`, `localStorage` y campos manuales terminan en inputs o valores normalizados;
+  no llevan strings libres a una plantilla HTML.
+- El censo CNMC se descarga antes de publicar, acepta solo webs HTTP(S) y el runtime las abre con
+  `noopener noreferrer`. Las URLs comerciales usan la validacion canonica, que rechaza esquemas
+  peligrosos, controles y barras invertidas antes de admitir rutas relativas.
+
+Validacion ejecutada con Node 22: `tests/utils.test.js`, `tests/security.test.js`,
+`tests/factura-integration.test.js`, `tests/csv-import.test.js`, `tests/csv-parsing.test.js`,
+`tests/guides-search-resilience.test.js`, `tests/guides-search.test.js` y
+`tests/link-hardening.test.js`: 8 ficheros, 221 tests, todos en verde.
+
+Limite deliberado: un indice de guias, `tarifas.json` o censo local alterado por una publicacion
+maliciosa same-origin no equivale a una entrada publica controlada por un visitante. El proyecto
+ya trata ese supuesto como integridad de datos/cadena de suministro, no como DOM XSS alcanzable.
+Endurecer adicionalmente cada consumidor de esos artefactos puede ser hardening futuro, pero no se
+registra como bug sin una ruta que cruce la confianza establecida.
