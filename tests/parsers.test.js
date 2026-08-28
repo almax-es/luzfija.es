@@ -1144,7 +1144,7 @@ describe('Motor de Extracción de Facturas (PDF Text)', () => {
 
       // "Periodo de facturacion 01/01 - 31/01" es un rango en lenguaje natural, inclusivo:
       // enero entero son 31 dias. La regla CNMC de lectura inicial excluida se aplica en la
-      // ruta del QR (iniF/finF), no aqui (ver AUDITORIA-IA.md, hallazgo rechazado 15/08/2026).
+      // ruta del QR (iniF/finF), no aqui (ver AUDITORIA-REGISTRO.md, hallazgo rechazado 15/08/2026).
       expect(datos.dias).toBe(31);
     });
   });

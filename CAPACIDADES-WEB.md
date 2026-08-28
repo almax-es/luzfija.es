@@ -4,7 +4,7 @@ Ultima actualizacion: 2026-08-27
 
 Este documento es la fuente de verdad funcional para describir todo lo que hace la web, pagina por pagina, sin omitir flujos relevantes para asistentes IA o documentacion de producto.
 Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y luego este documento para el inventario funcional completo.
-Si vas a hacer una auditoria tecnica, lee tambien `AUDITORIA-IA.md` antes de clasificar hallazgos: contiene decisiones de implementacion, falsos positivos conocidos y criterios de severidad.
+Si vas a hacer una auditoria tecnica, lee completo `AUDITORIA-IA.md` antes de clasificar hallazgos: contiene los criterios de severidad, el metodo y el indice. Consulta despues en `AUDITORIA-REGISTRO.md` solo las decisiones y falsos positivos del area relevante.
 
 ## 1. Alcance General
 
@@ -130,7 +130,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
   o los dias que forman la extrapolacion, tambien se desactiva antes de recalcular.
 - Utilidad compartida por ambos simuladores: `LF.assessConsumoAnualLimits` en `js/lf-utils.js`.
   Semantica de los campos y borde exacto de los limites en `JSON-SCHEMA.md`; motivo de las
-  decisiones en `AUDITORIA-IA.md`.
+  decisiones en `AUDITORIA-REGISTRO.md`.
 - Etiqueta "OFERTA" en las tarifas con promocion informada en el dataset (campo `promo`; no hay
   fecha de caducidad, la frescura la da el sello `updatedAt` que la web muestra): pastilla verde junto
   al nombre que al pulsarla muestra el texto de la oferta. La promocion se informa pero **nunca
@@ -546,8 +546,8 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 ## 10. Testing Y Calidad
 
 - Suite Vitest/JSDOM.
-- 108 archivos de test (`tests/*.test.js`).
-- 1738 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 109 archivos de test (`tests/*.test.js`).
+- 1752 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

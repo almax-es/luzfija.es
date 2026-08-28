@@ -1204,7 +1204,7 @@ describe('PVPC Engine (js/pvpc.js)', () => {
   });
 
   // Frontera temporal del periodo PVPC estandar (bug confirmado 13/08/2026, ver
-  // AUDITORIA-IA.md "Frontera Temporal Del Periodo PVPC Estandar"). El periodo debe
+  // AUDITORIA-REGISTRO.md "Frontera Temporal Del Periodo PVPC Estandar"). El periodo debe
   // decidirse con el dia civil de la ZONA ELECTRICA seleccionada, nunca con la del
   // host/navegador. `getClosedPvpcPeriodYmd`/`getPvpcAnchorDate` son funciones PURAS:
   // toman `now`+`timeZone` explicitos y no leen Date.getFullYear/getMonth/getDate del

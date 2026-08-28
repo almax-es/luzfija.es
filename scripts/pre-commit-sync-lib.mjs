@@ -5,7 +5,8 @@ const SYNC_OUTPUTS = new Set([
   'CAPACIDADES-WEB.md',
   'JSON-SCHEMA.md',
   'llms.txt',
-  'llms-full.txt'
+  'llms-full.txt',
+  'AUDITORIA-IA.md'
 ]);
 
 export function getSyncOutputs() {
@@ -22,7 +23,9 @@ export function isSyncInput(relPath) {
     relPath.endsWith('.webmanifest') ||
     relPath === 'tarifas.json' ||
     relPath === 'scripts/sync-seo-docs.mjs' ||
-    relPath === 'scripts/build-guides-search-index.mjs'
+    relPath === 'scripts/build-guides-search-index.mjs' ||
+    relPath === 'scripts/audit-registry-index.mjs' ||
+    relPath === 'AUDITORIA-REGISTRO.md'
   );
 }
 

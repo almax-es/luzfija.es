@@ -10,7 +10,7 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 **Ubicación**: `/tarifas.json`
 **Tamaño**: ~66 KB
 **Estructura**: Objeto raíz con aviso `_meta`, array de tarifas en `tarifas` y sello `updatedAt`
-**Última actualización**: 2026-08-27 (`updatedAt`: `2026-08-27T21:34:25.744Z`)
+**Última actualización**: 2026-08-28 (`updatedAt`: `2026-08-28T07:32:41.766Z`)
 **Total tarifas documentadas**: 122
 
 ### Esquema de Estructura
@@ -90,7 +90,7 @@ La diferencia es deliberada: **el máximo es monótono y el mínimo no**. Si el 
 4.001 kWh, ningún dato futuro lo devuelve por debajo de 4.000, así que excluir por máximo es seguro.
 El mínimo queda como información comercial y no interviene en el ranking. La validación preventiva
 de valores incoherentes corresponde al generador/Excel: este JSON no se edita a mano y el
-repositorio no lleva test de esquema (ver `AUDITORIA-IA.md`).
+repositorio no lleva test de esquema (ver `AUDITORIA-REGISTRO.md`).
 | `promo` | string | ❌ | — | "50 € de descuento repartidos en 5 facturas consecutivas." | Oferta temporal **NO incluida en el precio ni en el cálculo**. Su sola presencia marca la tarifa: el comparador pinta la etiqueta verde "🎁 OFERTA" en la fila y añade la nota en el desglose y en el simulador solar. Nunca se aplica al importe. Ver "Promoción vs Requisitos" más abajo |
 | `incluyeServiciosAjuste` | boolean | ❌ | `true` \| `false` | `true` | Campo recomendado internamente: `false` si el precio publicado no incluye SSAA. El comparador suma el valor mensual de `/data/ssaa/` como mayor coste de energía antes de IEE e IVA/IGIC/IPSI. Si falta, se trata como compatible legacy y no se aplica SSAA. |
 | `fv.exc` | number | ✅ | -1 o 0.00–0.30 | 0.02 | €/kWh por excedentes volcados a la red. `-1` marca precio indexado: sin curva horaria se usa 0,020 €/kWh como referencia orientativa; con CSV horario el simulador puede usar el indice horario disponible. |

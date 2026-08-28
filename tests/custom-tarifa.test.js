@@ -148,7 +148,7 @@ describe('Tarifa Personalizada (lf-tarifa-custom.js)', () => {
   });
 
   it('agregarMiTarifa: BV con compensación 0 explícito también se normaliza a fv.bv=false', () => {
-    // El vacío y el cero explícito son ramas distintas en este proyecto (AUDITORIA-IA.md
+    // El vacío y el cero explícito son ramas distintas en este proyecto (AUDITORIA-REGISTRO.md
     // dedica una sección al asunto). Una implementación futura basada en truthiness del
     // valor crudo — Boolean(rawPrecioExc) — pasaría el caso "" y fallaría con "0".
     document.getElementById('compararMiTarifa').checked = true;
@@ -273,7 +273,7 @@ describe('Tarifa Personalizada (lf-tarifa-custom.js)', () => {
 
   // 14/08/2026: sin estos tres, "Mi tarifa" no podia reproducir 17 de las 118 tarifas
   // activas que usan al menos una de estas condiciones economicas (SSAA aparte, tope
-  // ENERGIA_PARCIAL, compensacion indexada). Ver AUDITORIA-IA.md.
+  // ENERGIA_PARCIAL, compensacion indexada). Ver AUDITORIA-REGISTRO.md.
   describe('agregarMiTarifa: opciones avanzadas (14/08/2026)', () => {
     beforeEach(() => {
       document.getElementById('compararMiTarifa').checked = true;

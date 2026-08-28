@@ -9,11 +9,20 @@ import {
   resolvePageDate,
   resolveSitemapLastmod
 } from './seo-date-logic.mjs';
+import {
+  parseAuditRegistrySections,
+  renderAuditRegistryIndex
+} from './audit-registry-index.mjs';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const REPO_ROOT = path.resolve(__dirname, '..');
 const BASE_URL = 'https://luzfija.es';
+const AUDIT_GUIDE_PATH = 'AUDITORIA-IA.md';
+const AUDIT_REGISTRY_PATH = 'AUDITORIA-REGISTRO.md';
+const REGISTRY_INDEX_START = '<!-- REGISTRO-INDICE:INICIO -->';
+const REGISTRY_INDEX_END = '<!-- REGISTRO-INDICE:FIN -->';
+
 const INCLUDE_REPO_DOCS = process.argv.includes('--include-repo-docs');
 const HTML_SKIP_DIRS = new Set(['.git', 'node_modules', 'logs', 'scripts', 'vendor']);
 const VITEST_SUMMARY_PATH = path.join(REPO_ROOT, 'logs', 'vitest-summary.json');
@@ -675,6 +684,36 @@ function syncAssistantReferences() {
   });
 }
 
+// El indice de AUDITORIA-IA.md se genera con los titulos y anchors reales del registro y se
+// copian literalmente: asi el indice no puede desincronizarse del registro, que es el fallo
+// corregido el 27/08/2026 en cuatro fechas de actualizacion declaradas a mano.
+function syncAuditRegistryIndex() {
+  const sections = parseAuditRegistrySections(
+    readUtf8(AUDIT_REGISTRY_PATH),
+    AUDIT_REGISTRY_PATH
+  );
+
+  // Ruta literal a proposito: tests/pre-commit-sync-lib.test.js rastrea las llamadas de
+  // escritura de este script para exigir que cada salida este declarada en SYNC_OUTPUTS.
+  // Con una constante en su lugar, esa red no veria este fichero.
+  updateFile('AUDITORIA-IA.md', (content) => {
+    const starts = content.split(REGISTRY_INDEX_START).length - 1;
+    const ends = content.split(REGISTRY_INDEX_END).length - 1;
+    if (starts !== 1 || ends !== 1) {
+      throw new Error(
+        `${AUDIT_GUIDE_PATH}: marcadores del indice ausentes o duplicados (inicio=${starts}, fin=${ends})`
+      );
+    }
+    const startAt = content.indexOf(REGISTRY_INDEX_START) + REGISTRY_INDEX_START.length;
+    const endAt = content.indexOf(REGISTRY_INDEX_END);
+    if (endAt < startAt) {
+      throw new Error(`${AUDIT_GUIDE_PATH}: el marcador de fin del indice precede al de inicio`);
+    }
+    const body = renderAuditRegistryIndex(sections, AUDIT_REGISTRY_PATH);
+    return `${content.slice(0, startAt)}\n${body}\n${content.slice(endAt)}`;
+  });
+}
+
 function main() {
   ensureAuxDirs();
   syncHtmlDateMetadata();
@@ -683,6 +722,7 @@ function main() {
     syncReadmeAndCapacidades();
     syncJsonSchema();
     syncAssistantReferences();
+    syncAuditRegistryIndex();
   }
   syncSitemap();
 }

@@ -378,7 +378,7 @@ describe('Simulador solar - "Mi tarifa": cuota mensual de bateria virtual (14/08
 });
 
 // 14/08/2026: sin estos tres, "Mi tarifa" no podia reproducir 17 de las 118 tarifas activas
-// que usan al menos una de estas condiciones economicas. Ver AUDITORIA-IA.md.
+// que usan al menos una de estas condiciones economicas. Ver AUDITORIA-REGISTRO.md.
 describe('Simulador solar - "Mi tarifa": opciones avanzadas (14/08/2026)', () => {
   it('por defecto, incluyeServiciosAjuste es true (sin SSAA aparte)', () => {
     bootSolarUi();

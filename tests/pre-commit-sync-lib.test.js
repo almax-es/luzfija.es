@@ -21,6 +21,11 @@ describe('pre-commit sync guardrails', () => {
     expect(needsSync(['sitemap.xml'])).toBe(true);
   });
 
+  it('requires sync when the audit registry or its index helper changes', () => {
+    expect(needsSync(['AUDITORIA-REGISTRO.md'])).toBe(true);
+    expect(needsSync(['scripts/audit-registry-index.mjs'])).toBe(true);
+  });
+
   it('blocks partially staged managed files', () => {
     const result = getBlockingManagedFiles({
       stagedFiles: ['guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html'],
@@ -48,6 +53,17 @@ describe('pre-commit sync guardrails', () => {
     expect(result.hasBlocking).toBe(true);
   });
 
+  it('blocks an untracked audit registry until it is staged', () => {
+    const result = getBlockingManagedFiles({
+      stagedFiles: ['scripts/sync-seo-docs.mjs'],
+      unstagedFiles: [],
+      untrackedFiles: ['AUDITORIA-REGISTRO.md']
+    });
+
+    expect(result.untrackedManaged).toEqual(['AUDITORIA-REGISTRO.md']);
+    expect(result.hasBlocking).toBe(true);
+  });
+
   it('restages generated outputs and staged HTML pages', () => {
     expect(getFilesToRestage(['guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html'])).toEqual([
       'sitemap.xml',
@@ -57,6 +73,7 @@ describe('pre-commit sync guardrails', () => {
       'JSON-SCHEMA.md',
       'llms.txt',
       'llms-full.txt',
+      'AUDITORIA-IA.md',
       'guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html'
     ]);
   });

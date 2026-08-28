@@ -147,7 +147,7 @@
         // en la ruta del QR (iniF/finF), que calcula su diferencia SIN +1 unas lineas mas
         // abajo. Son dos rutas distintas con dos semanticas distintas, ambas correctas.
         // Quitar este +1 infravalora en 1 dia los costes fijos de toda factura leida por
-        // esta via (regresion propuesta y descartada el 15/08/2026; ver AUDITORIA-IA.md).
+        // esta via (regresion propuesta y descartada el 15/08/2026; ver AUDITORIA-REGISTRO.md).
         const days = Math.floor(ms / 86400000) + 1;
         if (!isFinite(days) || days <= 0 || days > FACTURA_MAX_DIAS) return null;
         return days;
@@ -1693,7 +1693,7 @@
         // (devuelve null sobre "30 dias P1 0,15 EUR/kWh P2 ... P3 ..."), mientras que
         // desactivar el fallback SI rompia un formato legitimo y frecuente en PDF: etiquetas
         // y valores en lineas alternas ("Punta\n100\nLlano\n200\nValle\n300"), que pasaba de
-        // 100/200/300 a no detectar nada. Ver AUDITORIA-IA.md.
+        // 100/200/300 a no detectar nada. Ver AUDITORIA-REGISTRO.md.
         const structuredTriple = __LF_extractTripleConsumo(textLines);
         const compactTriple = structuredTriple ? null : __LF_extractTripleConsumo(textCompact);
         const triple = octopusTriple || visaliaTriple || structuredTriple || compactTriple;

@@ -238,7 +238,7 @@ En periodos cortos se conserva el modo prudente por defecto: el máximo se contr
 ya registrados. Además se calcula una estimación orientativa `consumoKwh * 365 / coveredDays`;
 solo se ofrece si algún máximo cambiaría candidatas y solo filtra después de que el usuario la
 active. `minConsumoAnualExclusivo` no filtra nunca. Las exclusiones demostradas por superar un
-máximo real no se pueden desactivar. El razonamiento está en `JSON-SCHEMA.md` y `AUDITORIA-IA.md`.
+máximo real no se pueden desactivar. El razonamiento está en `JSON-SCHEMA.md` y `AUDITORIA-REGISTRO.md`.
 
 **Promociones: fuera del cálculo, siempre**
 

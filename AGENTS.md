@@ -16,7 +16,7 @@ Tambien es importante lo que no es: no monetiza el ranking, no vende leads y no 
 ## Orden Recomendado De Lectura
 
 1. `CAPACIDADES-WEB.md`
-2. `AUDITORIA-IA.md` si vas a hacer revision, auditoria o threat modeling
+2. `AUDITORIA-IA.md` si vas a hacer revision, auditoria o threat modeling. Lee completo `AUDITORIA-IA.md`; consulta `AUDITORIA-REGISTRO.md` unicamente por el area relevante, no de forma lineal.
 3. `ARRANQUE-CARGA.md` **obligatorio antes de tocar el orden de carga**: etiquetas `<script>`, `defer`/`async`, hojas de estilo, preloads o el registro del service worker
 4. `README.md`
 5. `ARQUITECTURA-CALCULOS.md`
@@ -43,7 +43,7 @@ Tambien es importante lo que no es: no monetiza el ranking, no vende leads y no 
 - `js/lf-csv-utils.js`: parser horario compartido y clasificacion P1/P2/P3 canonica.
 - `js/tracking.js` + `vendor/goatcounter/count.js`: analitica GoatCounter, pageviews canonicos, eventos, privacidad y saneo de referrers. Ver `ANALITICA-GOATCOUNTER.md`.
 - `sw.js`: cache/PWA/update flow.
-- `scripts/sync-seo-docs.mjs`: sincroniza sitemap e indice de busqueda y, con `--include-repo-docs`, tambien README/CAPACIDADES/JSON-SCHEMA.
+- `scripts/sync-seo-docs.mjs`: sincroniza sitemap e indice de busqueda y, con `--include-repo-docs`, tambien metricas/referencias de README, CAPACIDADES, JSON-SCHEMA y `llms*`, mas el indice de `AUDITORIA-IA.md` generado desde `AUDITORIA-REGISTRO.md`.
 - `scripts/check_data_freshness.py`: guardia de frescura de los datasets (pvpc/surplus/ssaa); `pvpc.yml` la ejecuta tras la descarga diaria e incluye self-test (`--self-test`). Detalle en `PVPC-SCHEMA.md`.
 
 ### Inventario Completo De Modulos JS
@@ -152,7 +152,7 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
 
 ## Reglas Para Revisiones Y Auditorias
 
-- Antes de cualquier auditoria general, lee `AUDITORIA-IA.md`; contiene la taxonomia de severidad, falsos positivos repetidos y decisiones de implementacion que no deben elevarse como bugs.
+- Antes de cualquier auditoria general, lee completo `AUDITORIA-IA.md`; contiene la taxonomia de severidad, el metodo y el indice. Consulta en `AUDITORIA-REGISTRO.md` solo las areas relevantes: ahi viven los falsos positivos repetidos y las decisiones de implementacion que no deben elevarse como bugs.
 - Antes de reportar bugs de fiscalidad o PVPC, lee `ARQUITECTURA-CALCULOS.md` y `CALC-FAQS.md`.
 - Antes de reportar bugs de BV, lee `SIMULADOR-BV.md` y revisa `js/bv/bv-ui.js` y `js/bv/bv-sim-monthly.js`.
 - Antes de reportar bugs de importacion horaria, revisa `js/lf-csv-utils.js`, `js/lf-csv-import.js` y los tests de CSV.
@@ -196,8 +196,8 @@ Falsos positivos ya conocidos y documentados:
 - "Los excedentes indexados aceptan meses con huecos sin controlar energia perdida." Falso desde julio 2026: `lf-surplus-prices.js` aplica doble umbral de cobertura parcial, por horas missing y por kWh de excedente sin valorar, y los tests cubren el borde exacto y la concentracion de kWh.
 - "El fallback fiscal de `month.key` en BV es una bomba silenciosa." Matizado: `bucketizeByMonth` genera `YYYY-MM`; si llega un formato inesperado, `bv-sim-monthly.js` emite `console.warn` antes de conservar el fallback centralizado.
 - "El limite por defecto del bono social esta duplicado." Falso desde julio 2026: `lf-inputs.js` usa `DEFAULTS.bonoSocialLimite` y `DEFAULTS.bonoSocialTipo`.
-- "El extractor de factura PDF redondea los consumos a enteros." Falso: los enteros vienen de la fuente (QR CNMC `cfP1/2/3` y tabla del contador en Octopus), no de un redondeo en codigo. Prioridad QR sobre parser es decision firme. Ver seccion dedicada en `AUDITORIA-IA.md`.
-- "Aplicar datos del modal de factura no rellena la calculadora / arrastra la factura anterior." No reproducible: refutado el 14/07/2026 con repro E2E real (puppeteer) tras reportarlo un agente de navegador cuyo click no impactaba el boton. Si no hay toast (ni de exito ni de error) y el status conserva el texto inicial, el handler nunca se ejecuto. Ver `AUDITORIA-IA.md`.
+- "El extractor de factura PDF redondea los consumos a enteros." Falso: los enteros vienen de la fuente (QR CNMC `cfP1/2/3` y tabla del contador en Octopus), no de un redondeo en codigo. Prioridad QR sobre parser es decision firme. Ver seccion dedicada en `AUDITORIA-REGISTRO.md`.
+- "Aplicar datos del modal de factura no rellena la calculadora / arrastra la factura anterior." No reproducible: refutado el 14/07/2026 con repro E2E real (puppeteer) tras reportarlo un agente de navegador cuyo click no impactaba el boton. Si no hay toast (ni de exito ni de error) y el status conserva el texto inicial, el handler nunca se ejecuto. Ver `AUDITORIA-REGISTRO.md`.
 
 ## Flujo De Trabajo Recomendado
 

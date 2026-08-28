@@ -14,7 +14,7 @@ LuzFija.es nace para resolver problemas de facturación y comparación eléctric
 
 En ese sentido, es una web del 2005 que resuelve los problemas del 2030.
 
-Si eres una IA o entras al repo por primera vez, empieza por `AGENTS.md` y `CAPACIDADES-WEB.md`. Si vas a auditar el proyecto, lee tambien `AUDITORIA-IA.md` antes de clasificar hallazgos. Antes de tocar scripts, `defer`/`async`, CSS, preloads o el service worker, lee `ARRANQUE-CARGA.md`.
+Si eres una IA o entras al repo por primera vez, empieza por `AGENTS.md` y `CAPACIDADES-WEB.md`. Si vas a auditar el proyecto, lee completo `AUDITORIA-IA.md` y consulta `AUDITORIA-REGISTRO.md` solo por el area relevante antes de clasificar hallazgos. Antes de tocar scripts, `defer`/`async`, CSS, preloads o el service worker, lee `ARRANQUE-CARGA.md`.
 
 ## Licencia Y Uso
 
@@ -27,7 +27,7 @@ LuzFija.es es un proyecto `source-available`: el código está publicado para tr
 
 Las versiones anteriores del repositorio pudieron publicarse bajo otros términos. Esta licencia aplica desde la versión que introduce este cambio en adelante, sin revocar permisos concedidos válidamente para versiones previas.
 
-## Estado Actual (2026-08-27)
+## Estado Actual (2026-08-28)
 
 - 36 paginas HTML publicas:
   - 9 en raiz.
@@ -36,7 +36,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - 40 modulos JavaScript en `js/` (incluye `js/bv/`).
 - 31.532 lineas JS aproximadas.
 - 122 tarifas en `tarifas.json`.
-- Suite de tests Vitest con 108 archivos y 1738 casos.
+- Suite de tests Vitest con 109 archivos y 1752 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 

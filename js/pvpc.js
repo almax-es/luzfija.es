@@ -216,7 +216,7 @@
     }
 
     // ── Fecha civil de la zona ELECTRICA seleccionada (bug confirmado 13/08/2026, ver
-    // AUDITORIA-IA.md "Frontera Temporal Del Periodo PVPC Estandar") ──────────────────────
+    // AUDITORIA-REGISTRO.md "Frontera Temporal Del Periodo PVPC Estandar") ──────────────
     //
     // El periodo PVPC estandar y el anchor de cache deben decidir "hoy"/"ayer" con la zona
     // ELECTRICA elegida, nunca con la del navegador/host: son cosas distintas y pueden
@@ -611,7 +611,7 @@ const PEAJES_POT_DIA = window.LF_CONFIG?.peajesPotenciaPVPC ?? { diasAnio: 365, 
       } else {
         // El periodo estandar se decide con el dia civil de la ZONA ELECTRICA
         // seleccionada, nunca con la del navegador/host: pueden divergir en la franja
-        // de cruce de medianoche entre zonas (bug confirmado, ver AUDITORIA-IA.md
+        // de cruce de medianoche entre zonas (bug confirmado, ver AUDITORIA-REGISTRO.md
         // "Frontera Temporal Del Periodo PVPC Estandar").
         const periodoEstandar = getClosedPvpcPeriodYmd(pvpcTimeZone, dias);
         if (!periodoEstandar) return null;

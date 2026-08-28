@@ -12,7 +12,7 @@ contrato de ejecucion, no del formato del fichero.
 Lectura relacionada:
 
 - `AGENTS.md`: mapa operativo e inventario de modulos.
-- `AUDITORIA-IA.md`: seccion `Carga Diferida Del JavaScript De La Home` y seccion
+- `AUDITORIA-REGISTRO.md`: seccion `Carga Diferida Del JavaScript De La Home` y seccion
   `SEO, Datos Estructurados Y Core Web Vitals`.
 - `CAPACIDADES-WEB.md` seccion 8: service worker y resiliencia ante cargas parciales.
 
@@ -698,10 +698,10 @@ controlada, no solo por su aparicion en el arbol.
   render-blocking. La auditoria no basta para justificar CSS critico inline,
   `media=print`, diferir `desglose-factura.css` o purgar CSS no usado: cada
   propuesta exige una medicion propia y revisar la cascada y los estados
-  dinamicos; ver `AUDITORIA-IA.md`.
+  dinamicos; ver `AUDITORIA-REGISTRO.md`.
 - La separacion o carga diferida de los modulos JS de la home es roadmap de
   riesgo alto, no una optimizacion de etiquetas; ver la seccion dedicada de
-  `AUDITORIA-IA.md`.
+  `AUDITORIA-REGISTRO.md`.
 
 ### 8.6 Que haria falta para reabrirlo
 
