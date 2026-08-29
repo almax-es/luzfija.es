@@ -20,7 +20,7 @@
     "@eslint/js": "^10.0.1",
     "eslint": "^10.8.0",
     "globals": "^17.9.0",
-    "jsdom": "^29.1.1",
+    "jsdom": "^30.0.1",
     "vitest": "^4.1.11"
   },
   "dependencies": {
