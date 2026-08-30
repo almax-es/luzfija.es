@@ -1,0 +1,1 @@
+{"schema_version":2,"geo_id":8745,"timezone":"Europe/Madrid","indicator":1001,"unit":"EUR/kWh","epoch_unit":"s","from":"2026-09-01","to":"2026-09-01","days":{},"meta":{"unit_from_api":[{"name":"Precio €/MWh","id":23}],"unit_suggests_mwh":true,"heuristic_applied":false,"max_after_conversion":0.0}}
