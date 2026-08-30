@@ -776,7 +776,7 @@
       if (!cell || typeof cell !== 'object' || !cell.f) continue;
       const pos = __LF_xlsxColumnIndexFromAddress(address);
       if (!pos || pos.row <= headerRowIndex || !relevant.has(pos.col)) continue;
-      const unresolved = cell.t === 'e'
+      const unresolved = cell.t === 'e' || cell.t === 'z'
         || cell.v === undefined || cell.v === null
         || (typeof cell.v === 'number' && !Number.isFinite(cell.v));
       if (!unresolved) continue;

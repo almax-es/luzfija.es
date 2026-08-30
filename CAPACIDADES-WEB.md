@@ -198,6 +198,9 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
   (conserva la hora); texto, negativo o >10.000 kWh -> se descarta esa hora con
   aviso; si la mitad o mas de las celdas no vacias son invalidas, o no hay ninguna
   numerica, se rechaza el fichero.
+- Las formulas XLSX solo se aceptan cuando el archivo trae un resultado materializado.
+  Los tres importadores leen los stubs de la primera hoja para distinguir una formula
+  sin cache de una celda realmente vacia; LuzFija no evalua formulas de Excel.
 - Validacion de rango temporal (hasta 370 dias; no exige 12 meses exactos).
 - Resultado:
 - Rellena dias y consumos P1/P2/P3.
@@ -547,7 +550,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Suite Vitest/JSDOM.
 - 110 archivos de test (`tests/*.test.js`).
-- 1779 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 1781 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

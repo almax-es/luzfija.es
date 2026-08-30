@@ -91,6 +91,37 @@ nuevo no cubierto por sus tests. Cada entrada explica que evidencia haria falta 
  octubre se resuelven a horas DISTINTAS (ej. 3 y 25) antes de la comprobacion, asi que nunca
  colisionan con este chequeo. No lo reportes como conflicto con el cambio de hora.
 
+<a id="xlsx-formula-sin-resultado-materializado-resuelta-30-08-2026"></a>
+### XLSX: Formula Sin Resultado Materializado (RESUELTA 30/08/2026)
+
+Auditoria focalizada de la importacion CSV/XLSX de home, con solar y observatorio como consumidores
+compartidos. Se confirmo un unico bug de severidad media: un XLSX podia contener en una columna
+economica una formula sin resultado cacheado y terminar importandola como celda vacia/0 kWh.
+
+- **Causa raiz.** SheetJS omite esa celda con la lectura anterior. Con `sheetStubs:true` la expone
+  como `{t:"z", f:"1/2", v:0}`: ese cero pertenece al stub y no es el resultado de la formula.
+  `assertRelevantXlsxFormulasResolved()` tampoco consideraba `t:"z"` no resuelto, por lo que el
+  archivo llegaba a preview con un consumo inferior al contenido logico.
+- **Correccion.** Home, solar y observatorio mantienen `sheets:0` y añaden `sheetStubs:true`; solo se
+  materializa la primera hoja. El guard compartido rechaza `t:"z"` cuando existe `f`. Un stub vacio
+  sin `f`, una formula con resultado numerico cacheado y una formula en columna irrelevante conservan
+  su comportamiento previo.
+- **Evidencia independiente.** El fixture sintetico sin cache fue aceptado antes con 1,00 kWh en vez
+  de 1,50 kWh. Tras el cambio, los tres consumidores lo rechazan antes de publicar datos; el fixture
+  cacheado se acepta en los tres con 1,50 kWh, `Notas` no produce falso positivo y la celda vacia
+  ordinaria sigue importandose como cero con aviso.
+- **Cobertura.** `tests/xlsx-formula-guard.test.js` fija el stub con formula, el stub sin `f`, el
+  resultado cacheado y el cableado de `sheetStubs:true` en los tres lectores. La prueba roja previa
+  fallo en las cuatro mutaciones productivas y quedo verde al aplicar cada contrato.
+
+**No reportar como bugs:** que LuzFija no evalue formulas; que solo consuma la primera hoja; que una
+celda realmente vacia se interprete como cero con aviso; o que una formula en una columna ajena al
+calculo no bloquee la importacion completa.
+
+**Para reabrir:** aportar un XLSX donde una formula relevante sin resultado materializado vuelva a
+publicarse como cero; donde `sheetStubs:true` materialice hojas distintas de la primera; o donde una
+formula cacheada, un stub ordinario sin `f` o una columna irrelevante queden bloqueados.
+
 <a id="contrato-de-cambios-pendientes-roto-por-auto-refresh-race-de-edicion-y"></a>
 ### Contrato De "Cambios Pendientes" Roto Por Auto-Refresh, Race De Edicion Y Modal PVPC (RESUELTA)
 

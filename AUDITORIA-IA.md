@@ -131,6 +131,7 @@ estes auditando; no hace falta leerlo entero.
 - [Escenario Compartido Del Simulador Solar (`?bv=`)](AUDITORIA-REGISTRO.md#escenario-compartido-del-simulador-solar-bv)
 - [Guard De Datos Frente A CI De Despliegue](AUDITORIA-REGISTRO.md#guard-de-datos-frente-a-ci-de-despliegue)
 - [Duplicados En CSV/XLSX Rechazados (RESUELTA)](AUDITORIA-REGISTRO.md#duplicados-en-csv-xlsx-rechazados-resuelta)
+- [XLSX: Formula Sin Resultado Materializado (RESUELTA 30/08/2026)](AUDITORIA-REGISTRO.md#xlsx-formula-sin-resultado-materializado-resuelta-30-08-2026)
 - [Contrato De "Cambios Pendientes" Roto Por Auto-Refresh, Race De Edicion Y Modal PVPC (RESUELTA)](AUDITORIA-REGISTRO.md#contrato-de-cambios-pendientes-roto-por-auto-refresh-race-de-edicion-y)
 - [Home "Mi Tarifa": Perdida De Datos, Desglose Con Cambios Pendientes Y Opciones Avanzadas (RESUELTA)](AUDITORIA-REGISTRO.md#home-mi-tarifa-perdida-de-datos-desglose-con-cambios-pendientes-y-opci)
 - [Factura, Tabla Manual Y "Mi Tarifa": Ceros Explicitos Y Continuidad (RESUELTA)](AUDITORIA-REGISTRO.md#factura-tabla-manual-y-mi-tarifa-ceros-explicitos-y-continuidad-resuel)
