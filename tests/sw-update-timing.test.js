@@ -162,6 +162,76 @@ describe('SW deferred reload timing', () => {
     expect(reloadPage).toHaveBeenCalledTimes(1);
   });
 
+  it('falla cerrado si no puede leer sessionStorage: mantiene aviso manual y no inicia auto-reload', async () => {
+    const dom = new JSDOM('<!doctype html><body></body>', {
+      url: 'https://luzfija.es/',
+      runScripts: 'outside-only'
+    });
+    const isolatedWindow = dom.window;
+    Object.defineProperty(isolatedWindow.document, 'readyState', { configurable: true, value: 'complete' });
+    Object.defineProperty(isolatedWindow.document, 'visibilityState', { configurable: true, value: 'visible' });
+    Object.defineProperty(isolatedWindow.navigator, 'onLine', { configurable: true, value: true });
+    let writes = 0;
+    Object.defineProperty(isolatedWindow, 'sessionStorage', {
+      configurable: true,
+      value: {
+        removeItem() {},
+        getItem() { throw new Error('storage read unavailable'); },
+        setItem() { writes += 1; }
+      }
+    });
+    isolatedWindow.__LF_PENDING_INIT_RECOVERY = [{
+      app: 'resource', dependency: 'lf-utils-js', build: '20260722-080441', phase: 'initial'
+    }];
+    isolatedWindow.eval(updateCode);
+    const isolatedReload = vi.fn();
+
+    isolatedWindow.LF.initSwUpdate({ swUrl: '/sw.js', reloadPage: isolatedReload });
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(isolatedWindow.document.getElementById('lf-init-recovery')).toBeTruthy();
+    expect(isolatedReload).not.toHaveBeenCalled();
+    expect(isolatedWindow.__LF_INIT_AUTO_RELOAD_PENDING).toBeUndefined();
+    expect(writes).toBe(0);
+    dom.window.close();
+  });
+
+  it('no programa auto-reload si sessionStorage no puede persistir el guard anti-bucle', async () => {
+    const dom = new JSDOM('<!doctype html><body></body>', {
+      url: 'https://luzfija.es/',
+      runScripts: 'outside-only'
+    });
+    const isolatedWindow = dom.window;
+    Object.defineProperty(isolatedWindow.document, 'readyState', { configurable: true, value: 'complete' });
+    Object.defineProperty(isolatedWindow.document, 'visibilityState', { configurable: true, value: 'visible' });
+    Object.defineProperty(isolatedWindow.navigator, 'onLine', { configurable: true, value: true });
+    Object.defineProperty(isolatedWindow, 'sessionStorage', {
+      configurable: true,
+      value: {
+        removeItem() {},
+        getItem() { return null; },
+        setItem() { throw new Error('storage write unavailable'); }
+      }
+    });
+    isolatedWindow.__LF_PENDING_INIT_RECOVERY = [{
+      app: 'resource', dependency: 'lf-utils-js', build: '20260722-080441', phase: 'initial'
+    }];
+    isolatedWindow.eval(updateCode);
+    const isolatedReload = vi.fn();
+
+    isolatedWindow.LF.initSwUpdate({ swUrl: '/sw.js', reloadPage: isolatedReload });
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(isolatedWindow.document.getElementById('lf-init-recovery')).toBeTruthy();
+    expect(isolatedReload).not.toHaveBeenCalled();
+    expect(isolatedWindow.__LF_INIT_AUTO_RELOAD_PENDING).toBeUndefined();
+    dom.window.close();
+  });
+
   it('no repite la recarga automática si el mismo arranque vuelve a fallar', async () => {
     const active = serviceWorker.controller;
     const registration = { active, waiting: null, addEventListener() {}, update: vi.fn(async () => {}) };

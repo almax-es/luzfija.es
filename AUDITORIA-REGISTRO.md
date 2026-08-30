@@ -1211,6 +1211,44 @@ una UI opcional vuelve a disparar recuperacion de pagina; o que, tras un fallo i
 una oportunidad posterior real (`online`/focus/visible/interval), la pestana sigue sin intentar
 registrar el SW.
 
+<a id="arranque-sw-cache-storage-e-index-extra-opcional-resuelta-30-08-2026"></a>
+### Arranque/SW: Cache Storage E `index-extra.js` Opcional (RESUELTA 30/08/2026)
+
+Auditoria focalizada sobre el contrato de arranque, los fallos parciales y el Service Worker. Los dos
+hallazgos se reprodujeron sobre el codigo vigente antes de integrar el parche externo; no se copiaron
+los ficheros completos del paquete porque pertenecian a un build anterior.
+
+- **Cache Storage no bloquea ya la red en runtime.** Las ramas de navegacion, scripts/estilos/workers,
+  referencias de guias/asistentes, datasets/CNMC y estaticos abrian `CACHE_NAME` antes de ejecutar
+  `fetch()`. Si `caches.open()` rechazaba por cuota, privacidad o indisponibilidad, la peticion
+  terminaba sin intentar siquiera la red. `openRuntimeCacheSafe()` degrada ahora a cache nula: se
+  conserva la estrategia de red y solo se omiten `match()`/`put()`. El `install` no usa este helper;
+  su precache obligatorio sigue fallando de forma atomica si Cache Storage no esta disponible.
+- **`index-extra.js` vuelve a respetar su contrato opcional.** `ARRANQUE-CARGA.md` ya documentaba que
+  una descarga fallida del complemento del modal PVPC solo debia emitir `error-script-load`. El
+  bootstrap, sin embargo, lo trataba como dependencia esencial: creaba una recuperacion inicial,
+  mostraba el aviso persistente y podia consumir el unico auto-reload de la pestana. Ahora comparte
+  la exclusion de recuperacion con `aecc-banner.js`; la telemetria temprana se conserva.
+- **Cobertura reforzada.** `tests/sw-runtime-resilience.test.js` demuestra que las cinco familias
+  runtime llegan a red aunque falle `caches.open()` y que `tarifas.json` sigue siendo network-only,
+  sin `match()` ni `put()`. `tests/sw-query-fallback.test.js` valida los recursos de solar y
+  observatorio dentro de `REQUIRED_ROUTE_GROUPS`, no solo en cualquier parte del worker.
+  `tests/sw-update-timing.test.js` cubre fallos de lectura y escritura de `sessionStorage` en el guard
+  de recarga automatica; `tests/error-bootstrap.test.js` fija la opcionalidad de `index-extra.js`.
+
+**Mutaciones comprobadas:** reintroducir la apertura estricta de cache corta cinco rutas antes de
+`fetch()`; volver esencial `index-extra.js` recrea la recuperacion pendiente; leer cache en la rama de
+`tarifas.json`, sacar un asset de su grupo obligatorio o abrir el guard cuando `sessionStorage` falla
+hace rojo su test especifico.
+
+**No reportar como bugs:** que una visita sin Cache Storage pierda cache/offline durante esa sesion;
+que el `install` del SW siga fallando cerrado; que el modal PVPC no este disponible si no se descarga
+`index-extra.js`; o que ese fallo opcional permanezca visible en telemetria.
+
+**Para reabrir:** demostrar una ruta runtime same-origin que no alcanza la red al rechazar
+`caches.open()`; que una UI opcional vuelve a solicitar recuperacion de pagina; que `tarifas.json`
+intenta leer/escribir Cache Storage; o que un fallo de persistencia permite un bucle de recarga.
+
 <a id="formato-numerico-coma-en-ui-punto-en-mocks-de-tests"></a>
 ### Formato Numerico: Coma En UI, Punto En Mocks De Tests
 

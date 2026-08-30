@@ -414,6 +414,13 @@ de una carga online completa sin abrir la puerta a ejecutar bytes de otro build.
 La primera carga offline de un vendor lazy que nunca se descargo sigue sin estar
 garantizada y no debe resolverse inflando el precache preventivamente.
 
+En los handlers runtime, Cache Storage es una mejora de resiliencia y no un
+requisito para llegar a la red. Si `caches.open(CACHE_NAME)` falla por cuota,
+privacidad o indisponibilidad de la API, navegaciones, scripts, estilos, workers,
+datos y estaticos same-origin continúan por `fetch()` sin lectura ni escritura de
+cache. Esta degradacion no se aplica a `install`: el precache obligatorio sigue
+siendo estricto y atomico, de modo que un worker incompleto no toma el control.
+
 
 #### Política de fallback HTTP para datos runtime
 
@@ -462,9 +469,10 @@ dinamico que falla despues de completar el arranque conserva su diagnostico de
 carga, pero delega la recuperacion en su cargador especifico. `tracking.js`, el
 sender de GoatCounter y los vendors lazy de PDF/XLSX/OCR/QR se excluyen de la
 recuperacion de pagina: son opcionales o ya tienen reintento propio. El banner
-`aecc-banner.js` tambien es UI opcional: su fallo conserva `error-script-load/*`
-para diagnostico, pero no convierte una calculadora plenamente operativa en un
-`init-incompleto` ni consume el unico auto-reload de la pestana.
+`index-extra.js` y `aecc-banner.js` tambien son UI opcional: su fallo conserva
+`error-script-load/*` para diagnostico, pero no convierte una calculadora
+plenamente operativa en un `init-incompleto` ni consume el unico auto-reload de
+la pestana.
 
 ## 5. Fallos Ruidosos Y Fallos Silenciosos
 

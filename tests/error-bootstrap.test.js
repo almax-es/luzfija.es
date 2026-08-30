@@ -119,6 +119,20 @@ describe('Early first-party error bootstrap', () => {
     }]);
   });
 
+  it('registra el fallo de index-extra sin convertir el complemento opcional en recuperación de página', () => {
+    const isolatedWindow = isolatedPage('');
+
+    failScript(isolatedWindow, '/js/index-extra.js?v=20260829-134956');
+
+    expect(isolatedWindow.__LF_PENDING_INIT_RECOVERY).toBeUndefined();
+    expect(isolatedWindow.__LF_EARLY_ERRORS).toEqual([{
+      kind: 'script-load',
+      source: '/js/index-extra.js',
+      line: 0,
+      col: 0
+    }]);
+  });
+
   it('no recarga la aplicación si falla tracking.js, que es observabilidad opcional', () => {
     const isolatedWindow = isolatedPage('');
 

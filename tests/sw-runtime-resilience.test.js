@@ -6,7 +6,7 @@ import vm from 'vm';
 const swCode = fs.readFileSync(path.resolve(__dirname, '../sw.js'), 'utf8');
 const activeCacheVersion = swCode.match(/CACHE_VERSION\s*=\s*"([^"]+)"/)?.[1];
 
-function loadWorker({ fetchImpl, cache, cacheKeys = [] }) {
+function loadWorker({ fetchImpl, cache, cacheKeys = [], openCacheImpl = null }) {
   const handlers = {};
   let skipWaitingCalls = 0;
   const deletedCaches = [];
@@ -22,7 +22,7 @@ function loadWorker({ fetchImpl, cache, cacheKeys = [] }) {
       skipWaiting: async () => { skipWaitingCalls += 1; }
     },
     caches: {
-      open: async () => cache,
+      open: openCacheImpl || (async () => cache),
       keys: async () => cacheKeys,
       delete: async (key) => { deletedCaches.push(key); return true; }
     },
@@ -79,6 +79,84 @@ describe('Service Worker runtime resilience', () => {
     expect(fetched).toHaveLength(1);
     expect(fetched[0].init).toEqual({ cache: 'no-store' });
     expect(cacheTouched).toBe(false);
+  });
+
+  it.each([
+    ['navegación', {
+      method: 'GET', url: 'https://luzfija.es/guias.html', mode: 'navigate', destination: 'document'
+    }, undefined],
+    ['script', {
+      method: 'GET', url: `https://luzfija.es/js/lf-utils.js?v=${activeCacheVersion}`, mode: 'cors', destination: 'script'
+    }, { cache: 'no-cache' }],
+    ['dataset', {
+      method: 'GET', url: 'https://luzfija.es/data/pvpc/8741/2026-08.json', mode: 'cors', destination: ''
+    }, { cache: 'no-store' }],
+    ['índice de guías', {
+      method: 'GET', url: 'https://luzfija.es/data/guides-search-index.json', mode: 'cors', destination: ''
+    }, { cache: 'no-store' }],
+    ['asset estático', {
+      method: 'GET', url: 'https://luzfija.es/logo-512.png', mode: 'cors', destination: 'image'
+    }, undefined]
+  ])('mantiene %s operativo por red aunque Cache Storage no esté disponible', async (_name, request, expectedInit) => {
+    const fetched = [];
+    const worker = loadWorker({
+      cache: null,
+      openCacheImpl: async () => { throw new Error('Cache Storage unavailable'); },
+      fetchImpl: async (req, init) => {
+        fetched.push({ req, init });
+        return new Response('fresh-network', { status: 200 });
+      }
+    });
+
+    const response = await dispatchFetch(worker.handlers.fetch, request);
+
+    expect(response.status).toBe(200);
+    expect(await response.text()).toBe('fresh-network');
+    expect(fetched).toHaveLength(1);
+    expect(fetched[0].init).toEqual(expectedInit);
+  });
+
+  it('mantiene tarifas.json estrictamente network-only sin leer ni escribir una copia cacheada', async () => {
+    const calls = { match: 0, put: 0, delete: 0 };
+    const fetched = [];
+    const waits = [];
+    const cache = {
+      add: async () => {},
+      match: async () => { calls.match += 1; return new Response('{"stale":true}', { status: 200 }); },
+      put: async () => { calls.put += 1; },
+      delete: async () => { calls.delete += 1; return true; }
+    };
+    const worker = loadWorker({
+      cache,
+      fetchImpl: async (request, init) => {
+        fetched.push({ request, init });
+        return new Response('{"tarifas":[]}', {
+          status: 200,
+          headers: { 'content-type': 'application/json' }
+        });
+      }
+    });
+    let responsePromise;
+    worker.handlers.fetch({
+      request: {
+        method: 'GET',
+        url: 'https://luzfija.es/tarifas.json?v=123',
+        mode: 'cors',
+        destination: ''
+      },
+      respondWith(value) { responsePromise = value; },
+      waitUntil(value) { waits.push(Promise.resolve(value)); }
+    });
+
+    const response = await responsePromise;
+    await Promise.all(waits);
+
+    expect(response.status).toBe(200);
+    expect(fetched).toHaveLength(1);
+    expect(fetched[0].init).toEqual({ cache: 'no-store' });
+    expect(calls.match).toBe(0);
+    expect(calls.put).toBe(0);
+    expect(calls.delete).toBe(1);
   });
 
   it('recupera tracking.js desde el build activo pero mantiene count.js network-only', async () => {
@@ -429,10 +507,13 @@ describe('Service Worker runtime resilience', () => {
     expect(worker.skipWaitingCalls).toBe(1);
   });
 
-  it('no activa un build con el núcleo de una ruta precacheado a medias', async () => {
+  it.each([
+    ['solar', '/js/bv/bv-sim-monthly.js'],
+    ['estadisticas', '/js/pvpc-stats-ui.js']
+  ])('no activa un build con el núcleo de %s precacheado a medias', async (routeName, failedPath) => {
     const cache = {
       async add(request) {
-        if (new URL(request.url || String(request)).pathname.endsWith('/js/bv/bv-sim-monthly.js')) {
+        if (new URL(request.url || String(request)).pathname.endsWith(failedPath)) {
           throw new Error('persistent');
         }
       },
@@ -443,7 +524,7 @@ describe('Service Worker runtime resilience', () => {
     let installPromise;
     worker.handlers.install({ waitUntil(value) { installPromise = value; } });
 
-    await expect(installPromise).rejects.toThrow(/solar/);
+    await expect(installPromise).rejects.toThrow(new RegExp(routeName));
     expect(worker.skipWaitingCalls).toBe(0);
   });
 });

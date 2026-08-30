@@ -74,18 +74,29 @@ describe('Service Worker query fallback', () => {
   it('mantiene atomicos los nucleos funcionales de solar y estadisticas', () => {
     const root = path.resolve(__dirname, '..');
     const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
+    const routeGroupsBlock = sw.match(/const REQUIRED_ROUTE_GROUPS = \{([\s\S]*?)\n\};/);
 
     expect(sw).toContain('REQUIRED_ROUTE_GROUPS');
     expect(sw).toContain('assertRequiredRouteGroups(optionalFailures)');
+    expect(routeGroupsBlock).not.toBeNull();
     for (const asset of [
+      'comparador-tarifas-solares.html',
+      'bv-sim.css',
+      'comparador-solar-mejorado.css',
+      'js/shell-lite.js',
+      'js/bv/bv-ui-helpers.js',
+      'js/bv/bv-ui.js',
       'js/bv/bv-sim-monthly.js',
       'js/bv/bv-import.js',
+      'estadisticas/index.html',
+      'estadisticas/estadisticas.css',
+      'estadisticas/estadisticas-mejorado.css',
       'js/pvpc-stats-engine.js',
       'js/pvpc-stats-csv.js',
       'js/pvpc-stats-ui.js',
       'vendor/chartjs/chart.umd.js'
     ]) {
-      expect(sw).toContain(`"${asset}"`);
+      expect(routeGroupsBlock[1]).toContain(`"${asset}"`);
     }
   });
 

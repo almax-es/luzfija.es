@@ -159,6 +159,7 @@ estes auditando; no hace falta leerlo entero.
 - [QA E2E Con Agentes De Navegador (Falsos Positivos De Interaccion)](AUDITORIA-REGISTRO.md#qa-e2e-con-agentes-de-navegador-falsos-positivos-de-interaccion)
 - [Cargas Parciales, Watchdog Y Telemetria De QA](AUDITORIA-REGISTRO.md#cargas-parciales-watchdog-y-telemetria-de-qa)
 - [Zonas Huerfanas: Banner AECC, Shell Lite Y Registro Del SW (RESUELTA 20/08/2026)](AUDITORIA-REGISTRO.md#zonas-huerfanas-banner-aecc-shell-lite-y-registro-del-sw-resuelta-20-0)
+- [Arranque/SW: Cache Storage E `index-extra.js` Opcional (RESUELTA 30/08/2026)](AUDITORIA-REGISTRO.md#arranque-sw-cache-storage-e-index-extra-opcional-resuelta-30-08-2026)
 - [Formato Numerico: Coma En UI, Punto En Mocks De Tests](AUDITORIA-REGISTRO.md#formato-numerico-coma-en-ui-punto-en-mocks-de-tests)
 - [Numeros Con Punto De Miles, Validador Asimetrico Y Bypass De `safeUrl` (RESUELTA)](AUDITORIA-REGISTRO.md#numeros-con-punto-de-miles-validador-asimetrico-y-bypass-de-safeurl-re)
 - [Dominio 2.0TD Y Validacion De Factura PDF (RESUELTA)](AUDITORIA-REGISTRO.md#dominio-2-0td-y-validacion-de-factura-pdf-resuelta)
