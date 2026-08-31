@@ -26,27 +26,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Plenitude",
-      "cPunta": 0.097296,
-      "cLlano": 0.097296,
-      "cValle": 0.097296,
-      "p1": 0.099984,
-      "p2": 0.099984,
-      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
-      "tipo": "1P",
-      "requisitos": "Precio válido para potencia ≤ 5 kW.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "TE A tu Aire Luz Siempre",
       "cPunta": 0.0999,
       "cLlano": 0.0999,
@@ -78,6 +57,27 @@
       "web": "https://esluz.es/tarifas-electricidad-hogares/",
       "tipo": "1P",
       "requisitos": "Precio garantizado durante 6 meses; al finalizar el periodo la comercializadora revisa el precio. Sujeta a estudio y validación del suministro.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Plenitude",
+      "cPunta": 0.107914,
+      "cLlano": 0.107914,
+      "cValle": 0.107914,
+      "p1": 0.099984,
+      "p2": 0.099984,
+      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
+      "tipo": "1P",
+      "requisitos": "Precio válido para potencia ≤ 5 kW.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -217,27 +217,6 @@
       },
       "requiereFV": false,
       "maxConsumoAnual": 5000.0
-    },
-    {
-      "nombre": "Plenitude +5kW",
-      "cPunta": 0.110227,
-      "cLlano": 0.110227,
-      "cValle": 0.110227,
-      "p1": 0.099984,
-      "p2": 0.099984,
-      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
-      "tipo": "1P",
-      "requisitos": "Precio válido para potencia > 5 kW.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
     },
     {
       "nombre": "Naturgy por uso",
@@ -628,6 +607,27 @@
         "exc": 0.04,
         "tipo": "SIMPLE",
         "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Plenitude +5kW",
+      "cPunta": 0.120419,
+      "cLlano": 0.120419,
+      "cValle": 0.120419,
+      "p1": 0.099984,
+      "p2": 0.099984,
+      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
+      "tipo": "1P",
+      "requisitos": "Precio válido para potencia > 5 kW.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
         "precioBV": 0.0
@@ -2522,5 +2522,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-08-31T13:21:15.708Z"
+  "updatedAt": "2026-08-31T22:04:54.139Z"
 }
