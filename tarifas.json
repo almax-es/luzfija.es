@@ -323,46 +323,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Bassols Hogar Solar 24 horas",
-      "cPunta": 0.117,
-      "cLlano": 0.117,
-      "cValle": 0.117,
-      "p1": 0.158,
-      "p2": 0.084,
-      "web": "https://bassolsenergia.com/es/monedero-solar/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.045,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": true
-    },
-    {
-      "nombre": "Bassols Hogar 24 horas",
-      "cPunta": 0.117,
-      "cLlano": 0.117,
-      "cValle": 0.117,
-      "p1": 0.158,
-      "p2": 0.084,
-      "web": "https://bassolsenergia.com/es/tarifas-de-luz/hogar-24-horas/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Imagina Base Sin Horas 8000",
       "cPunta": 0.11793,
       "cLlano": 0.11793,
@@ -668,6 +628,46 @@
         "exc": 0.04,
         "tipo": "SIMPLE",
         "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Bassols Hogar Solar 24 horas",
+      "cPunta": 0.122,
+      "cLlano": 0.122,
+      "cValle": 0.122,
+      "p1": 0.158,
+      "p2": 0.084,
+      "web": "https://bassolsenergia.com/es/monedero-solar/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.046,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": true
+    },
+    {
+      "nombre": "Bassols Hogar 24 horas",
+      "cPunta": 0.122,
+      "cLlano": 0.122,
+      "cValle": 0.122,
+      "p1": 0.158,
+      "p2": 0.084,
+      "web": "https://bassolsenergia.com/es/tarifas-de-luz/hogar-24-horas/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
         "precioBV": 0.0
@@ -1090,26 +1090,6 @@
       "maxConsumoAnual": 6000.0
     },
     {
-      "nombre": "Fenie Fijo Energético",
-      "cPunta": 0.139703,
-      "cLlano": 0.139703,
-      "cValle": 0.139703,
-      "p1": 0.123346,
-      "p2": 0.033103,
-      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-energetico-1p",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Repsol Tranquilísima",
       "cPunta": 0.1399,
       "cLlano": 0.1399,
@@ -1230,6 +1210,26 @@
         "precioBV": 2.0
       },
       "requiereFV": true
+    },
+    {
+      "nombre": "Fenie Fijo Energético",
+      "cPunta": 0.149426,
+      "cLlano": 0.149426,
+      "cValle": 0.149426,
+      "p1": 0.123346,
+      "p2": 0.033103,
+      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-energetico-1p",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Contigo Tarifa Fácil",
@@ -1414,9 +1414,9 @@
     },
     {
       "nombre": "Fenie Fijo Uniprecio",
-      "cPunta": 0.195703,
-      "cLlano": 0.195703,
-      "cValle": 0.195703,
+      "cPunta": 0.205426,
+      "cLlano": 0.205426,
+      "cValle": 0.205426,
       "p1": 0.075903,
       "p2": 0.001987,
       "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-uniprecio",
@@ -2013,26 +2013,6 @@
       "requiereFV": true
     },
     {
-      "nombre": "Fenie Fijo Energético 3P",
-      "cPunta": 0.20494,
-      "cLlano": 0.125465,
-      "cValle": 0.099545,
-      "p1": 0.123346,
-      "p2": 0.033103,
-      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-energetico-3p",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Bonpreu Noche y Día 3P",
       "cPunta": 0.205003,
       "cLlano": 0.128574,
@@ -2095,17 +2075,38 @@
       "requiereFV": false
     },
     {
+      "nombre": "Atulado Discriminación Horaria 3P",
+      "cPunta": 0.21342,
+      "cLlano": 0.134353,
+      "cValle": 0.109399,
+      "p1": 0.103717,
+      "p2": 0.033279,
+      "web": "https://clientes.atuladoenergia.com/tarifas/",
+      "tipo": "3P",
+      "requisitos": "Precio revisable cada trimestre natural.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Bassols Hogar Solar 3P",
-      "cPunta": 0.213,
-      "cLlano": 0.111,
-      "cValle": 0.057,
+      "cPunta": 0.217,
+      "cLlano": 0.116,
+      "cValle": 0.061,
       "p1": 0.159,
       "p2": 0.085,
       "web": "https://bassolsenergia.com/es/monedero-solar/",
       "tipo": "3P",
       "incluyeServiciosAjuste": true,
       "fv": {
-        "exc": 0.045,
+        "exc": 0.046,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -2116,9 +2117,9 @@
     },
     {
       "nombre": "Bassols Hogar Ahorro 3P",
-      "cPunta": 0.213,
-      "cLlano": 0.111,
-      "cValle": 0.057,
+      "cPunta": 0.217,
+      "cLlano": 0.116,
+      "cValle": 0.061,
       "p1": 0.159,
       "p2": 0.085,
       "web": "https://bassolsenergia.com/es/tarifas-de-luz/hogar-ahorro/",
@@ -2135,15 +2136,14 @@
       "requiereFV": false
     },
     {
-      "nombre": "Atulado Discriminación Horaria 3P",
-      "cPunta": 0.21342,
-      "cLlano": 0.134353,
-      "cValle": 0.109399,
-      "p1": 0.103717,
-      "p2": 0.033279,
-      "web": "https://clientes.atuladoenergia.com/tarifas/",
+      "nombre": "Fenie Fijo Energético 3P",
+      "cPunta": 0.218884,
+      "cLlano": 0.137616,
+      "cValle": 0.109322,
+      "p1": 0.123346,
+      "p2": 0.033103,
+      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-energetico-3p",
       "tipo": "3P",
-      "requisitos": "Precio revisable cada trimestre natural.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -2402,26 +2402,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Fenie Fijo 3P",
-      "cPunta": 0.26334,
-      "cLlano": 0.183865,
-      "cValle": 0.157945,
-      "p1": 0.075903,
-      "p2": 0.001987,
-      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-3-periodos",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Seneo Tarifa 1 Autoconsumo 3P",
       "cPunta": 0.27,
       "cLlano": 0.188,
@@ -2449,6 +2429,26 @@
       "p1": 0.095,
       "p2": 0.018,
       "web": "https://www.seneo.org/tarifa-trams-horaris/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Fenie Fijo 3P",
+      "cPunta": 0.274884,
+      "cLlano": 0.193616,
+      "cValle": 0.167322,
+      "p1": 0.075903,
+      "p2": 0.001987,
+      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-3-periodos",
       "tipo": "3P",
       "incluyeServiciosAjuste": true,
       "fv": {
@@ -2522,5 +2522,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-08-31T09:49:39.437Z"
+  "updatedAt": "2026-08-31T12:08:19.890Z"
 }
