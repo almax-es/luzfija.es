@@ -176,26 +176,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "DISA Tranquilidad",
-      "cPunta": 0.109,
-      "cLlano": 0.109,
-      "cValle": 0.109,
-      "p1": 0.099909,
-      "p2": 0.099909,
-      "web": "https://ahorracondisaelectricidad.com/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Bualá",
       "cPunta": 0.1098,
       "cLlano": 0.1098,
@@ -609,6 +589,26 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "DISA Tranquilidad",
+      "cPunta": 0.119,
+      "cLlano": 0.119,
+      "cValle": 0.119,
+      "p1": 0.099909,
+      "p2": 0.099909,
+      "web": "https://ahorracondisaelectricidad.com/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -2522,5 +2522,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-08-30T08:24:50.204Z"
+  "updatedAt": "2026-08-31T09:08:05.977Z"
 }
