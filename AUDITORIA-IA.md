@@ -195,6 +195,7 @@ estes auditando; no hace falta leerlo entero.
 - [Fronteras De Renderizado Y Datos (Ronda 17, 28/08/2026)](AUDITORIA-REGISTRO.md#fronteras-de-renderizado-y-datos-ronda-17-28-08-2026)
 - [Accesibilidad Funcional Y Responsive (Ronda 18, 28/08/2026)](AUDITORIA-REGISTRO.md#accesibilidad-funcional-y-responsive-ronda-18-28-08-2026)
 - [Foco Y Colores Forzados (Ronda 19, 28/08/2026)](AUDITORIA-REGISTRO.md#foco-y-colores-forzados-ronda-19-28-08-2026)
+- [Factura Lifecycle Y Export GoatCounter (31/08/2026)](AUDITORIA-REGISTRO.md#factura-lifecycle-y-export-goatcounter-31-08-2026)
 <!-- REGISTRO-INDICE:FIN -->
 
 ## Hallazgos Que Si Serian Relevantes

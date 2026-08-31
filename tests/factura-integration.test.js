@@ -193,6 +193,71 @@ describe('Factura PDF Integration (Black Box)', () => {
     expect(destroy).toHaveBeenCalledTimes(1);
   });
 
+  it('al cerrar cancela activamente una tarea PDF pendiente y libera privacidad', async () => {
+    let rejectLoading;
+    const loadingPromise = new Promise((_, reject) => { rejectLoading = reject; });
+    const destroy = vi.fn().mockImplementation(() => {
+      rejectLoading(new Error('Worker was destroyed'));
+      return Promise.resolve();
+    });
+    window.pdfjsLib.getDocument.mockReturnValue({ promise: loadingPromise, destroy });
+
+    await import('../js/factura-parsers.js');
+    await import('../js/factura.js');
+    window.__LF_bindFacturaParser?.();
+
+    const file = new File(['pendiente'], 'factura-pendiente.pdf', { type: 'application/pdf' });
+    file.arrayBuffer = async () => new ArrayBuffer(10);
+    const event = new Event('change', { bubbles: true });
+    Object.defineProperty(event, 'target', { value: { files: [file] } });
+    document.getElementById('fileInputFactura').dispatchEvent(event);
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    document.getElementById('btnCancelarFactura').click();
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    expect(destroy).toHaveBeenCalledTimes(1);
+    expect(window.__LF_FACTURA_BUSY).toBe(false);
+    expect(window.__LF_PRIVACY_MODE).toBe(false);
+  });
+
+  it('limpia la pagina si se cancela mientras getPage sigue pendiente', async () => {
+    let resolvePage;
+    const pageCleanup = vi.fn().mockResolvedValue();
+    const pagePromise = new Promise(resolve => { resolvePage = resolve; });
+    const page = {
+      getTextContent: vi.fn(),
+      getAnnotations: vi.fn(),
+      cleanup: pageCleanup
+    };
+    const destroy = vi.fn().mockImplementation(() => {
+      resolvePage(page);
+      return Promise.resolve();
+    });
+    window.pdfjsLib.getDocument.mockReturnValue({
+      promise: Promise.resolve({ numPages: 1, getPage: vi.fn(() => pagePromise), cleanup: vi.fn() }),
+      destroy
+    });
+
+    await import('../js/factura-parsers.js');
+    await import('../js/factura.js');
+    window.__LF_bindFacturaParser?.();
+
+    const file = new File(['pagina'], 'factura-pagina-pendiente.pdf', { type: 'application/pdf' });
+    file.arrayBuffer = async () => new ArrayBuffer(10);
+    const event = new Event('change', { bubbles: true });
+    Object.defineProperty(event, 'target', { value: { files: [file] } });
+    document.getElementById('fileInputFactura').dispatchEvent(event);
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    document.getElementById('btnCancelarFactura').click();
+    await new Promise(resolve => setTimeout(resolve, 10));
+
+    expect(pageCleanup).toHaveBeenCalledTimes(1);
+    expect(destroy).toHaveBeenCalledTimes(1);
+    expect(page.getTextContent).not.toHaveBeenCalled();
+  });
+
   it('Limpia datos y libera privacidad al cerrar el modal aunque haya trabajo pendiente', async () => {
     await import('../js/factura-parsers.js');
     await import('../js/factura.js');
@@ -1197,6 +1262,7 @@ describe('Factura PDF Integration (Black Box)', () => {
     expect(getVal('consumoPunta')).toBe(''); expect(getVal('consumoLlano')).toBe(''); expect(getVal('consumoValle')).toBe('');
     expect(document.getElementById('confianzaBadge').textContent).toContain('0%');
     expect(document.getElementById('avisoFactura').textContent).toContain('varias facturas');
+    expect(document.getElementById('avisoFactura').textContent).not.toContain('puedes leerlo con OCR');
     document.getElementById('btnAplicarFactura').click();
     expect(window.runCalculation).not.toHaveBeenCalled();
   });
@@ -1295,7 +1361,9 @@ describe('Factura PDF Integration (Black Box)', () => {
     window.pdfjsLib.getDocument.mockImplementation(() => ({
       promise: Promise.resolve({ numPages: 2, getPage: (pageNum) => Promise.resolve(mockPage(pageNum)), cleanup: () => {} }), destroy: () => Promise.resolve()
     }));
-    window.Tesseract = { recognize: vi.fn().mockResolvedValueOnce({ data: { text: pages[1].text } }).mockResolvedValueOnce({ data: { text: pages[2].text } }) };
+    const recognize = vi.fn().mockResolvedValueOnce({ data: { text: pages[1].text } }).mockResolvedValueOnce({ data: { text: pages[2].text } });
+    const terminate = vi.fn().mockResolvedValue();
+    window.Tesseract = { createWorker: vi.fn().mockResolvedValue({ recognize, terminate }) };
     await import('../js/factura-parsers.js');
     await import('../js/factura.js');
     window.__LF_bindFacturaParser?.();
@@ -1309,7 +1377,9 @@ describe('Factura PDF Integration (Black Box)', () => {
     await new Promise(r => setTimeout(r, 500));
     const form = document.getElementById('formValidacionFactura');
     const getVal = (field) => form.querySelector(`.input-validacion[data-field="${field}"] input`)?.value ?? null;
-    expect(window.Tesseract.recognize).toHaveBeenCalledTimes(2);
+    expect(window.Tesseract.createWorker).toHaveBeenCalledTimes(1);
+    expect(recognize).toHaveBeenCalledTimes(2);
+    expect(terminate).toHaveBeenCalledTimes(1);
     expect(getVal('p1')).toBe(''); expect(getVal('p2')).toBe(''); expect(getVal('dias')).toBe('');
     expect(getVal('consumoPunta')).toBe(''); expect(getVal('consumoLlano')).toBe(''); expect(getVal('consumoValle')).toBe('');
     expect(document.getElementById('confianzaBadge').textContent).toContain('0%');

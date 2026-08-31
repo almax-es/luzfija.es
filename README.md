@@ -29,14 +29,15 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 
 ## Estado Actual (2026-08-31)
 
-- 36 paginas HTML publicas:
-  - 9 en raiz.
+- 38 paginas HTML publicas:
+  - 10 en raiz.
   - 1 en `estadisticas/`.
   - 26 en `guias/` (indice + 25 guias).
-- 40 modulos JavaScript en `js/` (incluye `js/bv/`).
-- 31.608 lineas JS aproximadas.
+  - 1 en otras rutas de compatibilidad.
+- 41 modulos JavaScript en `js/` (incluye `js/bv/`).
+- 31.852 lineas JS aproximadas.
 - 122 tarifas en `tarifas.json`.
-- Suite de tests Vitest con 110 archivos y 1781 casos.
+- Suite de tests Vitest con 113 archivos y 1793 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 
@@ -63,7 +64,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - limpiar cache,
 - reset de formulario.
 - Boton de instalacion PWA cuando el navegador expone `beforeinstallprompt`.
-- Banner de donacion a la AECC (solo escritorio, tras calcular): muestra el codigo Bizum `11244` con boton de copia; LuzFija no recibe dinero, comision ni datos de la donacion. Detalle en `CAPACIDADES-WEB.md` seccion 3.6.
+- Banner de donacion a la AECC (solo escritorio, tras calcular): muestra el codigo Bizum `11244`; LuzFija no recibe dinero, comision ni datos de la donacion. Detalle en `CAPACIDADES-WEB.md` seccion 3.6.
 
 ### 2. Observatorio PVPC (`/estadisticas/`)
 

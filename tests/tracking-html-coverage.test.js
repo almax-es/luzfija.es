@@ -8,7 +8,9 @@ const __dirname = path.dirname(__filename);
 const root = path.resolve(__dirname, '..');
 
 const EXCLUDED_PUBLIC_HTML = new Set([
-  'guias/index.html'
+  'guias/index.html',
+  'simulador/index.html',
+  'simulador-bateria-virtual.html'
 ]);
 
 function collectHtml(dir, base = root, out = []) {

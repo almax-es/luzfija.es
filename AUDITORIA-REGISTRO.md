@@ -2685,3 +2685,48 @@ selector. El helper de gráficos se prueba además con `matchMedia('(forced-colo
 la restauración del mock se protege con `try/finally` para no contaminar pruebas posteriores. Las
 mutaciones de retirar el outline, borrar el fondo `Highlight` y sustituir el color de sistema del
 canvas vuelven rojo el contrato correspondiente.
+
+<a id="factura-lifecycle-y-export-goatcounter-31-08-2026"></a>
+### Factura Lifecycle Y Export GoatCounter (31/08/2026)
+
+Se revisó la entrega candidata externa
+`luzfija-auditoria-factura-lifecycle-CANDIDATA.zip` (SHA-256
+`1f05dc51c1c056b05bb8ebfd93f98007b2b2b6fdb1357c576af50dec989a9eca`). Sus hashes internos
+coincidían y los tres ficheros modificados partían exactamente del estado del repositorio. Los
+cuatro hallazgos se aceptaron conceptualmente: reintento de `import()` de PDF.js tras fallo,
+ausencia de `Map#getOrInsertComputed` en navegadores todavía relevantes, invitación a OCR obsoleta
+después de completarlo y falta de cancelación activa de recursos.
+
+La candidata no se aplicó literalmente. Usaba `factura.js` como `workerSrc`; eso funcionaba con un
+Worker real, pero su módulo no exportaba `WorkerMessageHandler` y rompía el fallback fake-worker que
+PDF.js activa si no puede construirlo. Además, dos checkpoints de cancelación quedaban antes del
+`try/finally` propietario de la página: si `getPage()` resolvía después de cerrar, `cleanup()` podía
+saltarse. La integración usa `js/pdfjs-worker-bootstrap.mjs`, instala el shim antes del vendor y
+reexporta el handler esperado; los checkpoints se movieron dentro de los `finally` propietarios.
+El vendor no se modificó. Tesseract usa un único worker por operación, `workerBlobURL:false` y
+`terminate()` tanto en salida normal como al cancelar.
+
+Los 21 PDF sintéticos, informes y evidencias del ZIP se conservaron como artefacto externo y no se
+incorporaron al repositorio (incluían una fixture artificial de más de 20 MB). Las regresiones
+integradas usan las fixtures sintéticas ya versionadas y pruebas de comportamiento propias. En
+Chrome 152 se comprobó tanto Worker real como fake-worker forzado con render PDF completo (2/2
+casos). ESLint terminó sin errores y la suite completa en Node 22.16.0 pasó 1.791 tests, con 2
+omisiones intencionadas y cero fallos (113 ficheros, 1.793 tests totales). La puerta real se cerró
+después con 13/13 PDFs del banco local —más de los 11 exigidos— procesados por la interfaz real en
+Chrome frente a producción: las huellas de fuente, confianza y campos funcionales fueron idénticas
+en todos los casos y no hubo errores de navegador. La comprobación no guardó ni registró datos de
+las facturas.
+
+En paralelo se analizó el export GoatCounter
+`goatcounter-export-luzfija-20260831T115117Z.zip` para el periodo 24-31/08/2026: 12.110 hits
+mezclados, de los que 1.881 eran pageviews y 10.229 eventos. No aparecieron queries, hashes, URLs
+completas, CUPS, IBAN, correos ni nombres de fichero en rutas, títulos o referrers activos. El build
+`20260831-094944` no mostraba errores first-party de script/promesas; solo una señal CSP atribuible
+a una extensión y una entrada descartada sin fichero.
+
+Once navegaciones posteriores llegaban desde la ruta antigua
+`/simulador-bateria-virtual.html` y una desde `/simulador`. Se añadieron aliases `noindex` sin
+tracking hacia `/comparador-tarifas-solares.html`, evitando pageviews duplicados. Las dimensiones
+opcionales de navegador/sistema/ancho, idioma y ubicación permanecen desactivadas por decisión de
+privacidad: el export no justifica activarlas. La documentación AECC se corrigió para reflejar el
+producto real: no existe botón de copia; solo se miden banner mostrado y cerrado.

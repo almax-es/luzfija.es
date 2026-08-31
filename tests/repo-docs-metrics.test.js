@@ -16,7 +16,7 @@ function walkJsFiles(dirPath) {
     const fullPath = path.join(dirPath, entry.name);
     if (entry.isDirectory()) {
       files.push(...walkJsFiles(fullPath));
-    } else if (entry.isFile() && entry.name.endsWith('.js')) {
+    } else if (entry.isFile() && /\.m?js$/.test(entry.name)) {
       files.push(fullPath);
     }
   }
@@ -31,7 +31,7 @@ describe('repo docs metrics', () => {
     const capacidades = fs.readFileSync(path.join(repoRoot, 'CAPACIDADES-WEB.md'), 'utf8');
 
     expect(readme).toContain(`- ${moduleCount} modulos JavaScript en \`js/\` (incluye \`js/bv/\`).`);
-    expect(capacidades).toContain(`- Modulos JS: ${moduleCount} (\`js/*.js\` + \`js/bv/*.js\`).`);
+    expect(capacidades).toContain(`- Modulos JS: ${moduleCount} (\`js/*.{js,mjs}\` + \`js/bv/*.js\`).`);
   });
 
   it('sync script updates CAPACIDADES-WEB module count automatically', () => {

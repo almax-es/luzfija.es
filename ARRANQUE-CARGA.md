@@ -414,6 +414,15 @@ de una carga online completa sin abrir la puerta a ejecutar bytes de otro build.
 La primera carga offline de un vendor lazy que nunca se descargo sigue sin estar
 garantizada y no debe resolverse inflando el precache preventivamente.
 
+`factura.js` carga el core de PDF.js bajo demanda y configura como `workerSrc`
+`js/pdfjs-worker-bootstrap.mjs?v=<build>`. El bootstrap instala la compatibilidad
+de `Map#getOrInsertComputed` dentro del realm del worker antes de importar
+`pdf.worker.min.mjs` con la misma query. Ademas reexporta `WorkerMessageHandler`:
+esa exportacion es contrato, porque PDF.js la usa como fallback cuando no puede
+crear un Worker dedicado. No sustituyas el bootstrap por un script sin exportar
+ni apuntes `workerSrc` de nuevo al vendor sin revalidar navegadores que carecen
+de esa API.
+
 En los handlers runtime, Cache Storage es una mejora de resiliencia y no un
 requisito para llegar a la red. Si `caches.open(CACHE_NAME)` falla por cuota,
 privacidad o indisponibilidad de la API, navegaciones, scripts, estilos, workers,
