@@ -2,6 +2,7 @@
  * @vitest-environment node
  */
 import { describe, it, expect, beforeAll } from 'vitest';
+import { spawnSync } from 'node:child_process';
 import fs from 'fs';
 import path from 'path';
 import { pathToFileURL } from 'url';
@@ -16,11 +17,11 @@ import { pathToFileURL } from 'url';
  * usa `js/factura.js`: getDocument -> getPage -> getViewport -> getTextContent
  * -> cleanup -> loadingTask.destroy().
  *
- * LIMITE CONOCIDO: se usa la build de navegador (la que se sirve), no la build
- * `legacy`, asi que en Node faltan dos APIs que cualquier navegador moderno si
- * tiene. Se instalan los shims MINIMOS necesarios y se documentan abajo. No se
- * cubre el renderizado a canvas: exigiria la dependencia nativa `canvas`, y se
- * ha preferido no anadirla. El render real se verifica manualmente en navegador.
+ * Se sirve la build `legacy`: PDF.js reserva la build moderna para los ultimos
+ * navegadores, mientras Safari 16.4+ solo figura soportado por la legacy. Esto
+ * importa especialmente en iPhone, donde todos los navegadores usan WebKit.
+ * No se cubre el renderizado a canvas: exigiria la dependencia nativa `canvas`,
+ * y se ha preferido no anadirla. El render real se verifica en navegador.
  */
 
 const repoRoot = path.resolve(__dirname, '..');
@@ -33,33 +34,14 @@ const FIXTURE = path.join(__dirname, 'fixtures', 'factura-sintetica.pdf');
 const EXPECTED_VERSION = '6.3.289';
 
 /**
- * Shims de APIs que los navegadores modernos SI tienen y le faltan a Node.
- * Deliberadamente minimos: si esta lista crece, conviene replantear el enfoque
- * en vez de seguir apilando parches.
- *
- * Son TRES, y la referencia es **Node 22, el que usa el CI** (`.github/workflows/
- * tests.yml`), no el Node local del desarrollador:
- * - `DOMMatrix`: existe en navegadores; PDF.js lo referencia al evaluar el modulo.
- * - `Uint8Array.prototype.toHex` / `.toBase64` y sus estaticos: propuesta reciente,
- *   ya en Chrome/Edge/Safari/Firefox actuales, todavia no en Node 24.
- * - `Promise.try`: lo usan tanto el core como el worker de PDF.js 6.3.289. Llego
- *   en **Node 23**, asi que existe en local con Node 24 pero NO en el CI con
- *   Node 22. Sin este shim la suite pasa en local y falla en remoto por timeout
- *   con `TypeError: Promise.try is not a function`, que fue exactamente lo que
- *   tumbo el despliegue del 03/08/2026.
- *
- * Al actualizar PDF.js o subir de version alguna API, comprobar la suite con la
- * MISMA version de Node que el CI antes de dar el cambio por bueno.
+ * DOMMatrix existe en navegadores, pero no en Node sin la dependencia nativa
+ * opcional de canvas. Es el unico shim que necesita esta prueba de extraccion.
+ * Las APIs recientes de JavaScript deben resolverlas los artefactos legacy que
+ * se sirven, no el test: abajo hay una regresion aislada que las elimina antes
+ * de importar tanto core como worker.
  */
 function installBrowserShims() {
   const g = globalThis;
-  if (typeof Promise.try !== 'function') {
-    Promise.try = function (fn, ...args) {
-      // `new Promise(resolve => resolve(...))` propaga como rechazo lo que `fn`
-      // lance de forma sincrona, que es la semantica de la propuesta.
-      return new Promise((resolve) => resolve(fn(...args)));
-    };
-  }
   if (typeof g.DOMMatrix === 'undefined') {
     g.DOMMatrix = class DOMMatrix {
       constructor(init) {
@@ -67,19 +49,6 @@ function installBrowserShims() {
         [this.a, this.b, this.c, this.d, this.e, this.f] = m;
       }
     };
-  }
-  const U = Uint8Array;
-  if (typeof U.prototype.toHex !== 'function') {
-    U.prototype.toHex = function () { return Buffer.from(this).toString('hex'); };
-  }
-  if (typeof U.fromHex !== 'function') {
-    U.fromHex = (s) => new U(Buffer.from(String(s), 'hex'));
-  }
-  if (typeof U.prototype.toBase64 !== 'function') {
-    U.prototype.toBase64 = function () { return Buffer.from(this).toString('base64'); };
-  }
-  if (typeof U.fromBase64 !== 'function') {
-    U.fromBase64 = (s) => new U(Buffer.from(String(s), 'base64'));
   }
 }
 
@@ -117,6 +86,85 @@ describe('PDF.js vendorizado: version del par core+worker', () => {
   it('el worker declara exactamente la misma versión que el core', () => {
     expect(readVersionFrom(WORKER)).toBe(EXPECTED_VERSION);
   });
+});
+
+describe('PDF.js vendorizado: compatibilidad WebKit no reciente', () => {
+  it('core y worker cargan sin APIs nuevas que faltan en iOS 17', () => {
+    const probe = String.raw`
+      function removeRecentApis() {
+        for (const [owner, key] of [
+          [Promise, 'try'],
+          [Promise, 'withResolvers'],
+          [URL, 'parse'],
+          [Map.prototype, 'getOrInsertComputed'],
+          [Uint8Array.prototype, 'toHex'],
+          [Uint8Array.prototype, 'toBase64'],
+          [Uint8Array, 'fromHex'],
+          [Uint8Array, 'fromBase64']
+        ]) {
+          try { delete owner[key]; } catch {}
+        }
+      }
+
+      globalThis.DOMMatrix = class DOMMatrix {
+        constructor(init) {
+          const matrix = Array.isArray(init) ? init : [1, 0, 0, 1, 0, 0];
+          [this.a, this.b, this.c, this.d, this.e, this.f] = matrix;
+        }
+      };
+
+      removeRecentApis();
+      const core = await import(process.argv[1]);
+      const afterCore = {
+        promiseTry: typeof Promise.try,
+        urlParse: typeof URL.parse,
+        mapInsert: typeof Map.prototype.getOrInsertComputed,
+        toHex: typeof Uint8Array.prototype.toHex
+      };
+
+      // El worker vive en otro realm en navegador. Borrar de nuevo evita que
+      // esta prueba le regale los polyfills instalados por el core.
+      removeRecentApis();
+      const worker = await import(process.argv[2]);
+      const afterWorker = {
+        promiseTry: typeof Promise.try,
+        urlParse: typeof URL.parse,
+        mapInsert: typeof Map.prototype.getOrInsertComputed,
+        toHex: typeof Uint8Array.prototype.toHex
+      };
+
+      process.stdout.write(JSON.stringify({
+        version: core.version,
+        workerHandler: typeof worker.WorkerMessageHandler,
+        afterCore,
+        afterWorker
+      }));
+    `;
+
+    const result = spawnSync(
+      process.execPath,
+      ['--input-type=module', '-e', probe, pathToFileURL(CORE).href, pathToFileURL(WORKER).href],
+      { encoding: 'utf8', timeout: 30000 }
+    );
+
+    expect(result.status, result.stderr || result.stdout).toBe(0);
+    expect(JSON.parse(result.stdout)).toEqual({
+      version: EXPECTED_VERSION,
+      workerHandler: 'function',
+      afterCore: {
+        promiseTry: 'function',
+        urlParse: 'function',
+        mapInsert: 'function',
+        toHex: 'function'
+      },
+      afterWorker: {
+        promiseTry: 'function',
+        urlParse: 'function',
+        mapInsert: 'function',
+        toHex: 'function'
+      }
+    });
+  }, 30000);
 });
 
 describe('PDF.js vendorizado: carga y extracción reales', () => {

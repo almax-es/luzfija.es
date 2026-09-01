@@ -53,23 +53,25 @@ Librería para la manipulación de hojas de cálculo (Excel, CSV).
 Renderizado y lectura de documentos PDF en el navegador.
 
 - **Versión:** 6.3.289 (actualizado 29/08/2026 desde 6.2.108; antes 6.1.200 -> 6.2.108 el 03/08/2026 y 5.7.284 -> 6.1.200 el 02/07/2026, cuando `factura.js` se migró al patrón `loadingTask.destroy()` porque 6.x elimina `PDFDocumentProxy.destroy()`)
-- **Origen:** tarball oficial de npm `pdfjs-dist@6.3.289`, integridad `sha512-ZHjSVpDa3D6izMq8/04lvkhkATUmL9px6ChPaXc1k6nU2Mrhlg1/7F0bdUqCwUjw3NsPTfPZsMDUU6ZIcRaeQw==` verificada contra el registro antes de extraer `build/pdf.min.mjs` y `build/pdf.worker.min.mjs`.
+- **Origen:** tarball oficial de npm `pdfjs-dist@6.3.289`, integridad `sha512-ZHjSVpDa3D6izMq8/04lvkhkATUmL9px6ChPaXc1k6nU2Mrhlg1/7F0bdUqCwUjw3NsPTfPZsMDUU6ZIcRaeQw==` verificada contra el registro antes de extraer `legacy/build/pdf.min.mjs` y `legacy/build/pdf.worker.min.mjs`.
 - **Compatibilidad de la 6.2 -> 6.3:** minor retrocompatible para el uso de LuzFija. Los cambios marcados `api-minor` convierten a `Map`/`Set` los retornos de `getJSActions`, `getFieldObjects`, `getPermissions`, los datos `Custom` de `documentInfo` y `markInfo`; este proyecto no consume esas APIs. La API realmente usada por `js/factura.js` sigue siendo `getDocument`, `getPage`, `getTextContent`, `getViewport`, `render`, `cleanup`, `GlobalWorkerOptions` y `loadingTask.destroy()`.
 - **Licencia:** Apache License 2.0 (Mozilla Foundation)
-- **Carga:** lazy desde `js/factura.js`. `pdf.min.mjs` se carga con el `?v=` del propio `factura.js`; el worker pasa por `js/pdfjs-worker-bootstrap.mjs` con esa misma query. El bootstrap instala en su realm la compatibilidad de `Map#getOrInsertComputed`, importa `pdf.worker.min.mjs` y reexporta `WorkerMessageHandler` para conservar el fallback fake-worker. El vendor permanece intacto.
+- **Compatibilidad de navegador:** se sirve la build oficial `legacy`, no la moderna. PDF.js documenta la build moderna para los ultimos navegadores y Safari 16.4+ solo bajo `legacy`; todos los navegadores de iPhone comparten WebKit. La build moderna 6.x usa APIs recientes (`Promise.try`, `Uint8Array#toHex`, entre otras) que dejan la carga PDF pendiente o rota en iOS 17. La build `legacy` incorpora la traduccion y los polyfills oficiales sin cambiar la API consumida por LuzFija.
+- **Carga:** lazy desde `js/factura.js`. `pdf.min.mjs` se carga con el `?v=` del propio `factura.js`; el worker pasa por `js/pdfjs-worker-bootstrap.mjs` con esa misma query. El bootstrap instala ademas la compatibilidad defensiva de `Map#getOrInsertComputed`, importa el worker `legacy` y reexporta `WorkerMessageHandler` para conservar el fallback fake-worker. El vendor permanece intacto.
 - **Core y worker deben ir SIEMPRE en la misma versión exacta.** PDF.js aborta si no coinciden, con un error poco evidente. `tests/pdfjs-real.test.js` lo verifica leyendo la versión de ambos ficheros.
 - **Red de seguridad (tests):** `tests/pdfjs-real.test.js` carga el `pdf.min.mjs` **real** de este directorio (no un mock) contra la fixture sintética `tests/fixtures/factura-sintetica.pdf` y recorre el mismo camino que `factura.js`: `getDocument` -> `getPage` -> `getViewport` -> `getTextContent` -> `cleanup` -> `loadingTask.destroy()`. El resto de la suite mockea PDF.js, así que sin este fichero se podría vendorizar una build rota y la suite seguiría en verde.
-  - *Límite conocido:* corre en Node con **tres** shims mínimos y documentados (`DOMMatrix`, `Uint8Array.prototype.toHex/toBase64` y `Promise.try`), porque se ejercita la build de navegador —la que se sirve— y no la `legacy`. **No cubre el renderizado a canvas**, que exigiría la dependencia nativa `canvas`.
-  - ⚠️ **Verificar SIEMPRE con la versión de Node del CI (hoy 22), no con la local.** `Promise.try` —que siguen usando el core y el worker de 6.3.289— llegó en Node 23: con Node 24 en local la suite pasaba y en el CI fallaban dos tests por timeout con `TypeError: Promise.try is not a function`, tumbando el despliegue del 03/08/2026. Para reproducir el entorno del CI sin instalar nada: descargar el zip de Node 22 de `https://nodejs.org/dist/` y lanzar `<node22>/node.exe ./node_modules/vitest/vitest.mjs run`.
+  - *Límite conocido:* `DOMMatrix` se simula porque Node no incluye el canvas del navegador. **No cubre el renderizado a canvas**, que exigiría la dependencia nativa `canvas`.
+  - La regresion elimina `Promise.try`, `Promise.withResolvers`, `URL.parse`, `Map#getOrInsertComputed` y los helpers hex/base64 de `Uint8Array` en un proceso aislado antes de importar core y worker. Ambos deben cargar y restaurar las APIs que realmente necesitan. Asi una sustitucion accidental por la build moderna vuelve a fallar tambien con Node local reciente.
+  - ⚠️ **Verificar SIEMPRE con la versión de Node del CI (hoy 22), no solo con la local.** El despliegue del 03/08/2026 ya demostro que una suite verde con Node 24 podia ocultar la dependencia de `Promise.try` de la build moderna.
   - *Renderizado verificado en Chrome real el 29/08/2026:* `pdf.min.mjs` 6.3.289 con worker real, sin peticiones externas: la fixture sintética se renderizó a escala 2 en un canvas de 1190×1684 px con **18.081 píxeles no blancos** y texto extraído. Como comprobación adicional, las **13 facturas locales de prueba** cargaron y renderizaron sus **53 páginas**, con texto extraído en los 13 documentos. Resultado: **cero errores de navegador**. No se conservaron nombres, contenido ni copias de esas facturas en el repo.
-- **Actualizar:** descargar el tarball de npm de la versión objetivo, verificar su `integrity`, copiar **ambos** ficheros de `package/build/`, actualizar aquí `EXPECTED_VERSION` de `tests/pdfjs-real.test.js`, los dos SHA-256 y los tamaños; después `npx vitest run tests/pdfjs-real.test.js`.
+- **Actualizar:** descargar el tarball de npm de la versión objetivo, verificar su `integrity`, copiar **ambos** ficheros de `package/legacy/build/`, actualizar aquí `EXPECTED_VERSION` de `tests/pdfjs-real.test.js`, los dos SHA-256 y los tamaños; después `npx vitest run tests/pdfjs-real.test.js`.
 - **Archivos:**
   - `pdfjs/pdf.min.mjs` (Core)
-    - **SHA-256:** `f80490490320511e5df18c580b9edd6b5db8058dceebaf6f161992e0a964b9e2`
-    - **Tamaño:** 447.95 KB (458.705 bytes)
+    - **SHA-256:** `f401927e692efc7735e0cd528c490d0dd31b7f0972c122b7040df805be45cce4`
+    - **Tamaño:** 506.40 KB (518.555 bytes)
   - `pdfjs/pdf.worker.min.mjs` (Worker)
-    - **SHA-256:** `8ab0e5e30031b4a06ecfddd5ae9562f0227f830ee7ec9ed1a968b134243d2386`
-    - **Tamaño:** 1.21 MB (1.265.413 bytes)
+    - **SHA-256:** `a33cfe728c584fdba4fcc1fd54bcdc2f9f2f13889ddbb5b2bd1d0f8cbe49b84e`
+    - **Tamaño:** 1.26 MB (1.317.034 bytes)
 
 ## 📈 Chart.js
 Librería de gráficos interactivos para visualización de datos.
