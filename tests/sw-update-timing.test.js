@@ -90,6 +90,15 @@ describe('SW deferred reload timing', () => {
     expect(serviceWorker.register).toHaveBeenCalledTimes(1);
   });
 
+  it('registra el SW si el coordinador se inicializa después de load', async () => {
+    window.LF.initSwUpdate({ swUrl: '/sw.js' });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(serviceWorker.register).toHaveBeenCalledTimes(1);
+    expect(serviceWorker.register).toHaveBeenCalledWith('/sw.js', { updateViaCache: 'none' });
+  });
+
   it('trata solo el primer controllerchange como instalación en una pestaña que arrancó sin SW', async () => {
     const firstController = serviceWorker.controller;
     serviceWorker.controller = null;

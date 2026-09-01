@@ -50,6 +50,7 @@
     const INIT_RECOVERY_SW_TIMEOUT_MS = 1500;
     const INIT_RECOVERY_AUTO_RELOAD_DELAY_MS = 750;
     let swReg = null;
+    let initialRegistrationStarted = false;
     const observedRegistrations = new WeakSet();
     let lastSwCheck = 0;
     let lastInteractionAt = 0;
@@ -477,6 +478,26 @@
       }
     }
 
+    function startInitialRegistration(reason) {
+      if (!supportsServiceWorker || initialRegistrationStarted) return;
+      initialRegistrationStarted = true;
+      navigator.serviceWorker
+        .register(swUrl, { updateViaCache: 'none' })
+        .then(function (registration) {
+          bindRegistrationLifecycle(registration);
+          dbg('[SW] Registered successfully');
+
+          // Forzar comprobación inmediata tras registrar.
+          requestSwUpdate(reason);
+        })
+        .catch(function (err) {
+          dbg('[ERROR] SW registration failed', err);
+          // La recuperación de una carga incompleta no depende de que el SW
+          // consiga registrarse. Los triggers posteriores reintentan mediante
+          // requestSwUpdate() sin volver a instalar el flujo inicial.
+        });
+    }
+
     window.addEventListener('load', function () {
       // La recuperación funcional no espera al registro del SW. getRegistration
       // y update llevan su propio límite para que una API bloqueada no deje la
@@ -486,21 +507,7 @@
       if (!supportsServiceWorker) {
         return;
       }
-      navigator.serviceWorker
-        .register(swUrl, { updateViaCache: 'none' })
-        .then(function (registration) {
-          bindRegistrationLifecycle(registration);
-          dbg('[SW] Registered successfully');
-
-          // Forzar comprobación inmediata tras registrar
-          requestSwUpdate('load');
-        })
-        .catch(function (err) {
-          dbg('[ERROR] SW registration failed', err);
-          // La recuperación de una carga incompleta no depende de que el SW
-          // consiga registrarse. En una red inestable este catch es justo donde
-          // más falta hace conservar el aviso y el reintento único de página.
-        });
+      startInitialRegistration('load');
     });
 
     // Un guard de dependencia puede haberse disparado después de que load ya
@@ -508,6 +515,10 @@
     if (document.readyState === 'complete') {
       clearAutomaticInitRecoveryAfterHealthyLoad();
       processPendingInitRecoveries();
+      // Un consumidor puede invocar el coordinador después de load (por una
+      // carga tardía o un bootstrap de recuperación). En ese caso el listener
+      // anterior ya no se disparará y hay que iniciar el registro directamente.
+      startInitialRegistration('late-init');
     }
 
     // Auto-check de updates del SW — diferido para no bloquear INP
