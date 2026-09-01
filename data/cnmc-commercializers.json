@@ -2,7 +2,7 @@
   "_meta": {
     "schema": 1,
     "source": "https://sede.cnmc.gob.es/listado/censo/2",
-    "syncedAt": "2026-08-25",
+    "syncedAt": "2026-09-01",
     "count": 936,
     "sourceRows": 937,
     "duplicateCodes": [
@@ -1040,7 +1040,7 @@
     "R2-1103": {
       "name": "NUKIK ENERGY, S.L.",
       "phone": "900 732 852",
-      "website": "http://www.nukik.es/"
+      "website": "https://oleenergia.eu/"
     },
     "R2-1104": {
       "name": "PRAETIUM ENERGY, S.L.",
