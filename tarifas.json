@@ -111,28 +111,6 @@
       "maxConsumoAnual": 4000.0
     },
     {
-      "nombre": "Visalia Fija 24h",
-      "cPunta": 0.109,
-      "cLlano": 0.109,
-      "cValle": 0.109,
-      "p1": 0.071233,
-      "p2": 0.071233,
-      "web": "https://visalia.es/luz/fijo24horas/",
-      "tipo": "1P",
-      "requisitos": "Consumo ≤ 7.000 kWh/año.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA_PARCIAL",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false,
-      "maxConsumoAnual": 7000.0
-    },
-    {
       "nombre": "Chippio Constante",
       "cPunta": 0.109,
       "cLlano": 0.109,
@@ -337,28 +315,6 @@
         "exc": 0.0,
         "tipo": "NO COMPENSA",
         "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Visalia Primer mes gratis",
-      "cPunta": 0.118995,
-      "cLlano": 0.118995,
-      "cValle": 0.118995,
-      "p1": 0.084932,
-      "p2": 0.084932,
-      "web": "https://visalia.es/luz/tarifas-flash/",
-      "tipo": "1P",
-      "requisitos": "Permanencia de 12 meses.",
-      "promo": "Primer mes gratis.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA_PARCIAL",
         "bv": false,
         "reglaBV": "NO APLICA",
         "precioBV": 0.0
@@ -613,6 +569,28 @@
       "requiereFV": false
     },
     {
+      "nombre": "Visalia Fija 24h",
+      "cPunta": 0.119995,
+      "cLlano": 0.119995,
+      "cValle": 0.119995,
+      "p1": 0.076712,
+      "p2": 0.076712,
+      "web": "https://visalia.es/luz/fijo24horas/",
+      "tipo": "1P",
+      "requisitos": "Consumo ≤ 7.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA_PARCIAL",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false,
+      "maxConsumoAnual": 7000.0
+    },
+    {
       "nombre": "Plenitude +5kW",
       "cPunta": 0.120419,
       "cLlano": 0.120419,
@@ -776,6 +754,28 @@
       "requiereFV": false
     },
     {
+      "nombre": "Visalia Primer mes gratis",
+      "cPunta": 0.128995,
+      "cLlano": 0.128995,
+      "cValle": 0.128995,
+      "p1": 0.093151,
+      "p2": 0.093151,
+      "web": "https://visalia.es/luz/tarifas-flash/",
+      "tipo": "1P",
+      "requisitos": "Permanencia de 12 meses.",
+      "promo": "Primer mes gratis.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA_PARCIAL",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "CEA Estable 24h",
       "cPunta": 0.1295,
       "cLlano": 0.1295,
@@ -793,27 +793,6 @@
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
         "precioBV": 1.65
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Visalia Plan Ahorro 3 meses",
-      "cPunta": 0.129695,
-      "cLlano": 0.129695,
-      "cValle": 0.129695,
-      "p1": 0.060274,
-      "p2": 0.060274,
-      "web": "https://visalia.es/luz/tarifas-flash/",
-      "tipo": "1P",
-      "promo": "6 € de descuento al mes durante los 3 primeros meses.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA_PARCIAL",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
       },
       "requiereFV": false
     },
@@ -1062,6 +1041,27 @@
         "exc": 0.0,
         "tipo": "NO COMPENSA",
         "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Visalia Plan Ahorro 3 meses",
+      "cPunta": 0.139995,
+      "cLlano": 0.139995,
+      "cValle": 0.139995,
+      "p1": 0.063014,
+      "p2": 0.063014,
+      "web": "https://visalia.es/luz/tarifas-flash/",
+      "tipo": "1P",
+      "promo": "6 € de descuento al mes durante los 3 primeros meses.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA_PARCIAL",
         "bv": false,
         "reglaBV": "NO APLICA",
         "precioBV": 0.0
@@ -2135,28 +2135,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Visalia 3P",
-      "cPunta": 0.219607,
-      "cLlano": 0.149931,
-      "cValle": 0.099899,
-      "p1": 0.075903,
-      "p2": 0.001987,
-      "web": "https://visalia.es/luz/luz-3-periodos/",
-      "tipo": "3P",
-      "requisitos": "Consumo ≤ 7.000 kWh/año.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA_PARCIAL",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false,
-      "maxConsumoAnual": 7000.0
-    },
-    {
       "nombre": "Iberdrola Solar 3P",
       "cPunta": 0.22,
       "cLlano": 0.145,
@@ -2278,6 +2256,28 @@
         "precioBV": 0.0
       },
       "requiereFV": false
+    },
+    {
+      "nombre": "Visalia 3P",
+      "cPunta": 0.23853,
+      "cLlano": 0.149464,
+      "cValle": 0.119806,
+      "p1": 0.075903,
+      "p2": 0.001987,
+      "web": "https://visalia.es/luz/luz-3-periodos/",
+      "tipo": "3P",
+      "requisitos": "Consumo ≤ 7.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA_PARCIAL",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false,
+      "maxConsumoAnual": 7000.0
     },
     {
       "nombre": "Octopus Solar 3P",
@@ -2481,5 +2481,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-01T10:38:59.798Z"
+  "updatedAt": "2026-09-01T20:21:02.261Z"
 }
