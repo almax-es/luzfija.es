@@ -6,6 +6,25 @@
  */
 
     (function(){
+      function __LF_installPromiseWithResolversShim(){
+        if (typeof Promise.withResolvers === 'function') return;
+
+        Object.defineProperty(Promise, 'withResolvers', {
+          configurable: true,
+          enumerable: false,
+          writable: true,
+          value: function withResolvers() {
+            let resolve;
+            let reject;
+            const promise = new this((resolvePromise, rejectPromise) => {
+              resolve = resolvePromise;
+              reject = rejectPromise;
+            });
+            return { promise, resolve, reject };
+          }
+        });
+      }
+
       function __LF_installMapGetOrInsertComputedShim(){
         if (typeof Map.prototype.getOrInsertComputed === 'function') return;
 
@@ -369,6 +388,7 @@
       }
 
       function __LF_ensurePdfRuntimeCompatibility(){
+        __LF_installPromiseWithResolversShim();
         __LF_installMapGetOrInsertComputedShim();
       }
 

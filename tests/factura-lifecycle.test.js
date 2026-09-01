@@ -22,6 +22,7 @@ function extractFunction(name) {
 }
 
 const shimSource = extractFunction('__LF_installMapGetOrInsertComputedShim');
+const promiseShimSource = extractFunction('__LF_installPromiseWithResolversShim');
 const readPageTextContentSource = extractFunction('__LF_readPageTextContent');
 const processingWatchdogSource = extractFunction('__LF_startProcessingWatchdog');
 const workerRetrySource = extractFunction('__LF_preparePdfWorkerRetry');
@@ -32,6 +33,39 @@ function probe(body) {
 }
 
 describe('compatibilidad de PDF.js', () => {
+  it('instala Promise.withResolvers sin sustituir una implementacion existente', async () => {
+    const result = await vm.runInNewContext(`(async () => {
+      ${promiseShimSource}
+      delete Promise.withResolvers;
+      __LF_installPromiseWithResolversShim();
+      const descriptor = Object.getOwnPropertyDescriptor(Promise, 'withResolvers');
+      const installed = descriptor.value;
+      const capability = Promise.withResolvers();
+      capability.resolve(42);
+      const resolved = await capability.promise;
+      __LF_installPromiseWithResolversShim();
+      return {
+        resolved,
+        same: installed === Promise.withResolvers,
+        enumerable: descriptor.enumerable,
+        writable: descriptor.writable,
+        configurable: descriptor.configurable,
+        resolveType: typeof capability.resolve,
+        rejectType: typeof capability.reject
+      };
+    })()`, Object.create(null));
+
+    expect(result).toEqual({
+      resolved: 42,
+      same: true,
+      enumerable: false,
+      writable: true,
+      configurable: true,
+      resolveType: 'function',
+      rejectType: 'function'
+    });
+  });
+
   it('consume el stream de texto con getReader sin depender del async iterator de Safari', async () => {
     const result = await vm.runInNewContext(`(async () => {
       ${readPageTextContentSource}
@@ -148,17 +182,20 @@ describe('compatibilidad de PDF.js', () => {
   });
 
   it('conserva el fallback fake-worker y la query de build en el bootstrap', () => {
-    const install = bootstrapCode.indexOf('installMapGetOrInsertComputedShim();');
+    const installPromise = bootstrapCode.indexOf('installPromiseWithResolversShim();');
+    const installMap = bootstrapCode.indexOf('installMapGetOrInsertComputedShim();');
     const vendorImport = bootstrapCode.indexOf('await import(vendorWorkerUrl.href)');
     const namedExport = bootstrapCode.indexOf('export const WorkerMessageHandler');
-    expect(install).toBeGreaterThan(0);
-    expect(vendorImport).toBeGreaterThan(install);
+    expect(installPromise).toBeGreaterThan(0);
+    expect(installMap).toBeGreaterThan(installPromise);
+    expect(vendorImport).toBeGreaterThan(installMap);
     expect(namedExport).toBeGreaterThan(vendorImport);
     expect(bootstrapCode).toContain('vendorWorkerUrl.search = bootstrapUrl.search;');
     expect(bootstrapCode).toContain("vendorWorkerUrl.hash = '';");
   });
 
   it('reintenta el import del core con fragmentos sin propagarlo al worker', () => {
+    expect(facturaCode).toMatch(/function __LF_ensurePdfRuntimeCompatibility\(\)\{\s*__LF_installPromiseWithResolversShim\(\);\s*__LF_installMapGetOrInsertComputedShim\(\);/);
     expect(facturaCode).toContain('const importUrl = new URL(baseSrc, document.baseURI);');
     expect(facturaCode).toContain('importUrl.hash = `lf-pdfjs-retry-${__LF_pdfjsImportFailures}`;');
     expect(facturaCode).toMatch(/catch \(error\) \{\s*__LF_pdfjsImportFailures\+\+;/);

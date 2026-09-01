@@ -27,11 +27,33 @@ import { pathToFileURL } from 'url';
 const repoRoot = path.resolve(__dirname, '..');
 const CORE = path.join(repoRoot, 'vendor', 'pdfjs', 'pdf.min.mjs');
 const WORKER = path.join(repoRoot, 'vendor', 'pdfjs', 'pdf.worker.min.mjs');
+const WORKER_BOOTSTRAP = path.join(repoRoot, 'js', 'pdfjs-worker-bootstrap.mjs');
+const FACTURA = path.join(repoRoot, 'js', 'factura.js');
 const FIXTURE = path.join(__dirname, 'fixtures', 'factura-sintetica.pdf');
 
 // Version que debe tener el par core+worker. PDF.js exige que ambos coincidan
 // EXACTAMENTE; una mezcla de versiones falla en runtime de forma confusa.
 const EXPECTED_VERSION = '6.3.289';
+
+function readFunctionSource(file, name) {
+  const source = fs.readFileSync(file, 'utf8');
+  const marker = `function ${name}(`;
+  const start = source.indexOf(marker);
+  if (start < 0) throw new Error(`No se encontro ${name} en ${file}`);
+  const parametersEnd = source.indexOf(')', start);
+  const brace = source.indexOf('{', parametersEnd);
+  let depth = 0;
+  for (let i = brace; i < source.length; i++) {
+    if (source[i] === '{') depth++;
+    if (source[i] === '}' && --depth === 0) return source.slice(start, i + 1);
+  }
+  throw new Error(`No se encontro el cierre de ${name} en ${file}`);
+}
+
+const PROMISE_WITH_RESOLVERS_SHIM = readFunctionSource(
+  FACTURA,
+  '__LF_installPromiseWithResolversShim'
+);
 
 /**
  * DOMMatrix existe en navegadores, pero no en Node sin la dependencia nativa
@@ -91,6 +113,9 @@ describe('PDF.js vendorizado: version del par core+worker', () => {
 describe('PDF.js vendorizado: compatibilidad WebKit no reciente', () => {
   it('core y worker cargan sin APIs nuevas que faltan en iOS 17', () => {
     const probe = String.raw`
+      ${PROMISE_WITH_RESOLVERS_SHIM}
+      const { readFileSync } = await import('node:fs');
+
       function removeRecentApis() {
         for (const [owner, key] of [
           [Promise, 'try'],
@@ -114,13 +139,24 @@ describe('PDF.js vendorizado: compatibilidad WebKit no reciente', () => {
       };
 
       removeRecentApis();
+      __LF_installPromiseWithResolversShim();
       const core = await import(process.argv[1]);
       const afterCore = {
         promiseTry: typeof Promise.try,
+        promiseWithResolvers: typeof Promise.withResolvers,
         urlParse: typeof URL.parse,
         mapInsert: typeof Map.prototype.getOrInsertComputed,
         toHex: typeof Uint8Array.prototype.toHex
       };
+
+      core.GlobalWorkerOptions.workerSrc = process.argv[3];
+      const loadingTask = core.getDocument({
+        data: new Uint8Array(readFileSync(process.argv[4])),
+        verbosity: 0
+      });
+      const pdf = await loadingTask.promise;
+      const openedPages = pdf.numPages;
+      await loadingTask.destroy();
 
       // El worker vive en otro realm en navegador. Borrar de nuevo evita que
       // esta prueba le regale los polyfills instalados por el core.
@@ -128,6 +164,7 @@ describe('PDF.js vendorizado: compatibilidad WebKit no reciente', () => {
       const worker = await import(process.argv[2]);
       const afterWorker = {
         promiseTry: typeof Promise.try,
+        promiseWithResolvers: typeof Promise.withResolvers,
         urlParse: typeof URL.parse,
         mapInsert: typeof Map.prototype.getOrInsertComputed,
         toHex: typeof Uint8Array.prototype.toHex
@@ -136,6 +173,7 @@ describe('PDF.js vendorizado: compatibilidad WebKit no reciente', () => {
       process.stdout.write(JSON.stringify({
         version: core.version,
         workerHandler: typeof worker.WorkerMessageHandler,
+        openedPages,
         afterCore,
         afterWorker
       }));
@@ -143,7 +181,15 @@ describe('PDF.js vendorizado: compatibilidad WebKit no reciente', () => {
 
     const result = spawnSync(
       process.execPath,
-      ['--input-type=module', '-e', probe, pathToFileURL(CORE).href, pathToFileURL(WORKER).href],
+      [
+        '--input-type=module',
+        '-e',
+        probe,
+        pathToFileURL(CORE).href,
+        `${pathToFileURL(WORKER_BOOTSTRAP).href}?lf-isolated-worker-probe=1`,
+        pathToFileURL(WORKER).href,
+        FIXTURE
+      ],
       { encoding: 'utf8', timeout: 30000 }
     );
 
@@ -151,14 +197,17 @@ describe('PDF.js vendorizado: compatibilidad WebKit no reciente', () => {
     expect(JSON.parse(result.stdout)).toEqual({
       version: EXPECTED_VERSION,
       workerHandler: 'function',
+      openedPages: 1,
       afterCore: {
         promiseTry: 'function',
+        promiseWithResolvers: 'function',
         urlParse: 'function',
         mapInsert: 'function',
         toHex: 'function'
       },
       afterWorker: {
         promiseTry: 'function',
+        promiseWithResolvers: 'function',
         urlParse: 'function',
         mapInsert: 'function',
         toHex: 'function'
