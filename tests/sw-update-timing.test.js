@@ -23,6 +23,7 @@ describe('SW deferred reload timing', () => {
     delete window.__LF_BUILD_ID;
     delete window.__LF_trackDetail;
     delete window.__LF_INIT_AUTO_RELOAD_PENDING;
+    delete window.__LF_SW_UPDATE_ACTIVE;
     swHandlers = {};
     reloadPage = vi.fn();
 
@@ -76,6 +77,38 @@ describe('SW deferred reload timing', () => {
     delete window.__LF_BUILD_ID;
     delete window.__LF_trackDetail;
     delete window.__LF_INIT_AUTO_RELOAD_PENDING;
+    delete window.__LF_SW_UPDATE_ACTIVE;
+  });
+
+  it('no duplica el coordinador si error-bootstrap y el consumidor normal lo inicializan', async () => {
+    window.LF.initSwUpdate({ swUrl: '/sw.js' });
+    window.LF.initSwUpdate({ swUrl: '/sw.js' });
+    window.dispatchEvent(new Event('load'));
+    await vi.advanceTimersByTimeAsync(0);
+    await Promise.resolve();
+
+    expect(serviceWorker.register).toHaveBeenCalledTimes(1);
+  });
+
+  it('trata solo el primer controllerchange como instalación en una pestaña que arrancó sin SW', async () => {
+    const firstController = serviceWorker.controller;
+    serviceWorker.controller = null;
+
+    window.LF.initSwUpdate({ swUrl: '/sw.js' });
+    serviceWorker.controller = firstController;
+    swHandlers.controllerchange();
+    await vi.advanceTimersByTimeAsync(10_100);
+
+    expect(reloadPage).not.toHaveBeenCalled();
+    expect(sessionStorage.getItem('__LF_SW_RELOADED_VERSION__:/')).toBeNull();
+
+    swHandlers.controllerchange();
+    await vi.advanceTimersByTimeAsync(0);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(reloadPage).toHaveBeenCalledTimes(1);
+    expect(sessionStorage.getItem('__LF_SW_RELOADED_VERSION__:/')).toBe('20260722-080441');
   });
 
   it('reintenta al acabar la supresión inicial sin esperar al intervalo de 15 minutos', async () => {

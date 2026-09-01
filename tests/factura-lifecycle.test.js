@@ -20,6 +20,8 @@ function extractFunction(name) {
 }
 
 const shimSource = extractFunction('__LF_installMapGetOrInsertComputedShim');
+const workerRetrySource = extractFunction('__LF_preparePdfWorkerRetry');
+const workerSrcSource = extractFunction('__LF_pdfWorkerSrc');
 
 function probe(body) {
   return vm.runInNewContext(`${shimSource}\n${body}`, Object.create(null));
@@ -88,6 +90,43 @@ describe('compatibilidad de PDF.js', () => {
     expect(facturaCode).toContain('importUrl.hash = `lf-pdfjs-retry-${__LF_pdfjsImportFailures}`;');
     expect(facturaCode).toMatch(/catch \(error\) \{\s*__LF_pdfjsImportFailures\+\+;/);
     expect(facturaCode).toContain('__LF_versionedUrl("js/pdfjs-worker-bootstrap.mjs")');
+  });
+
+  it('prepara el reintento del worker sin mutar internals de PDF.js y conserva ?v=', () => {
+    const result = vm.runInNewContext(`
+      let __LF_pdfjsImportFailures = 0;
+      let __LF_pdfWorkerRetryGeneration = 0;
+      function __LF_versionedUrl(path) { return 'https://luzfija.es/' + path + '?v=20260831-132123'; }
+      const originalPdfWorker = { sentinel: true };
+      const lib = { PDFWorker: originalPdfWorker, GlobalWorkerOptions: { workerSrc: 'initial' } };
+      const window = { pdfjsLib: lib };
+      const document = { baseURI: 'https://luzfija.es/' };
+      ${workerSrcSource}
+      ${workerRetrySource}
+      const changed = __LF_preparePdfWorkerRetry({ message: 'Setting up fake worker failed: synthetic failure' });
+      const url = new URL(__LF_pdfWorkerSrc());
+      ({
+        changed,
+        discardedNamespace: window.pdfjsLib === null,
+        pdfImportFailures: __LF_pdfjsImportFailures,
+        retryGeneration: __LF_pdfWorkerRetryGeneration,
+        pdfWorkerUnchanged: lib.PDFWorker === originalPdfWorker && lib.PDFWorker.sentinel === true,
+        search: url.search,
+        hash: url.hash,
+        pathname: url.pathname
+      });
+    `, { URL });
+
+    expect(result).toEqual({
+      changed: true,
+      discardedNamespace: true,
+      pdfImportFailures: 1,
+      retryGeneration: 1,
+      pdfWorkerUnchanged: true,
+      search: '?v=20260831-132123',
+      hash: '#lf-pdf-worker-retry-1',
+      pathname: '/js/pdfjs-worker-bootstrap.mjs'
+    });
   });
 });
 

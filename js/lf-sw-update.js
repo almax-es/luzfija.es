@@ -20,6 +20,12 @@
   // opts.dbg:   logger opcional (lfDbg en la home); por defecto no-op.
   // opts.reloadPage: inyección interna para tests; en producción usa location.reload().
   window.LF.initSwUpdate = function initSwUpdate(opts) {
+    // error-bootstrap puede iniciar este coordinador si un consumidor esencial
+    // no llega a ejecutarse. El consumidor normal puede haberlo hecho antes: en
+    // ese caso no dupliquemos registro, listeners, intervalos ni recargas.
+    if (window.__LF_SW_UPDATE_ACTIVE === true) return;
+    window.__LF_SW_UPDATE_ACTIVE = true;
+
     const swUrl = (opts && opts.swUrl) || '/sw.js';
     const dbg = (opts && typeof opts.dbg === 'function') ? opts.dbg : function () {};
     const reloadPage = (opts && typeof opts.reloadPage === 'function')
@@ -27,8 +33,9 @@
       : function () { window.location.reload(); };
     const supportsServiceWorker = 'serviceWorker' in navigator;
 
-    // Guardamos si ya había controlador al inicio para distinguir primera instalación de actualización
-    const hadController = supportsServiceWorker && !!navigator.serviceWorker.controller;
+    // Estado mutable: una pestaña puede arrancar sin controlador, recibir la
+    // primera instalación y, más tarde, otra actualización real sin recargarse.
+    let hasSeenController = supportsServiceWorker && !!navigator.serviceWorker.controller;
     const SW_UPDATE_INTERVAL_MS = 15 * 60 * 1000; // 15 min
     const SW_UPDATE_THROTTLE_MS = 15 * 1000; // evitar doble disparo (focus+visible)
     // Ventana tras la carga en la que NO auto-recargamos: la página acaba de venir
@@ -536,13 +543,16 @@
     // ahora (usuario activo, oculta, recién cargada), quedará pendiente y se
     // re-evaluará — nunca se bloquea de forma permanente.
     if (supportsServiceWorker) navigator.serviceWorker.addEventListener('controllerchange', function () {
-      // Si no había controlador previo, es la primera instalación (clients.claim).
-      // No recargamos porque la página ya está fresca y cargada de red.
-      if (!hadController) {
+      // El primer controllerchange de una pestaña que arrancó sin SW es la
+      // primera instalación (clients.claim): no hace falta recargar. A partir de
+      // ahí, cualquier controllerchange posterior sí representa una actualización.
+      if (!hasSeenController) {
+        hasSeenController = true;
         dbg('[SW] First installation active. No reload needed.');
         return;
       }
 
+      hasSeenController = true;
       pageIsStale = true;
       tryReloadOnStale('controllerchange');
     });

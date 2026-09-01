@@ -23,13 +23,27 @@
     ? window.__LF_EARLY_ERRORS
     : [];
   const failedScripts = new Set();
-  const bootstrapBuild = (() => {
+  const bootstrapSource = (() => {
     try {
       const source = document.currentScript && document.currentScript.src;
-      const value = source ? new URL(source, location.href).searchParams.get('v') : '';
+      return source ? new URL(source, location.href).href : '';
+    } catch (_) {
+      return '';
+    }
+  })();
+  const bootstrapBuild = (() => {
+    try {
+      const value = bootstrapSource ? new URL(bootstrapSource).searchParams.get('v') : '';
       return /^\d{8}-\d{6}$/.test(value || '') ? value : 'desconocido';
     } catch (_) {
       return 'desconocido';
+    }
+  })();
+  const bootstrapSwUrl = (() => {
+    try {
+      return bootstrapSource ? new URL('../sw.js', bootstrapSource).href : '/sw.js';
+    } catch (_) {
+      return '/sw.js';
     }
   })();
 
@@ -231,6 +245,56 @@
     if (hasFailedScript('/js/pvpc-stats-ui.js')) applyStatsCoordinatorFallback();
   }
 
+  function hasInitialRecoveryPending() {
+    const pending = window.__LF_PENDING_INIT_RECOVERY;
+    return Array.isArray(pending) && pending.some((entry) => entry && entry.phase === 'initial');
+  }
+
+  function showBootstrapRecoveryFallback() {
+    if (!hasInitialRecoveryPending()) return;
+    let banner = document.getElementById('lf-init-recovery');
+    if (!banner) {
+      banner = document.createElement('section');
+      banner.id = 'lf-init-recovery';
+      banner.className = 'lf-init-recovery';
+      banner.setAttribute('role', 'alert');
+      banner.setAttribute('aria-live', 'assertive');
+
+      const text = document.createElement('span');
+      text.className = 'lf-init-recovery__text';
+      text.textContent = 'La página no ha cargado todos sus componentes.';
+      banner.appendChild(text);
+
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'lf-init-recovery__button';
+      button.textContent = 'Recargar ahora';
+      button.addEventListener('click', function () { window.location.reload(); });
+      banner.appendChild(button);
+      (document.body || document.documentElement).appendChild(banner);
+    }
+    banner.hidden = false;
+  }
+
+  function ensureInitRecoveryCoordinator() {
+    if (!hasInitialRecoveryPending()) return;
+    const initSwUpdate = window.LF && window.LF.initSwUpdate;
+    if (typeof initSwUpdate === 'function') {
+      try {
+        initSwUpdate({ swUrl: bootstrapSwUrl });
+        return;
+      } catch (_) {}
+    }
+    // Si el propio helper del SW no cargó, no hay coordinador que pueda consumir
+    // la cola. Al menos dejamos una recuperación manual visible y sin bucle.
+    showBootstrapRecoveryFallback();
+  }
+
+  function finalizeBootstrapFallbacks() {
+    applyFailedScriptFallbacks();
+    ensureInitRecoveryCoordinator();
+  }
+
   function sameOriginSource(value) {
     const raw = typeof value === 'string' ? value.trim() : '';
     if (!raw) return '';
@@ -322,8 +386,8 @@
   }, true);
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', applyFailedScriptFallbacks);
+    document.addEventListener('DOMContentLoaded', finalizeBootstrapFallbacks);
   } else {
-    applyFailedScriptFallbacks();
+    finalizeBootstrapFallbacks();
   }
 })();

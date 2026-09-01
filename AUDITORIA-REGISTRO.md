@@ -2730,3 +2730,37 @@ tracking hacia `/comparador-tarifas-solares.html`, evitando pageviews duplicados
 opcionales de navegador/sistema/ancho, idioma y ubicación permanecen desactivadas por decisión de
 privacidad: el export no justifica activarlas. La documentación AECC se corrigió para reflejar el
 producto real: no existe botón de copia; solo se miden banner mostrado y cerrado.
+
+<a id="sw-cache-arranque-y-recuperacion-pdfjs-01-09-2026"></a>
+### SW, Cache, Arranque Y Recuperacion PDF.js (01/09/2026)
+
+Se revisó e integró selectivamente la entrega externa
+`LuzFija-auditoria-SW-cache-arranque-2026-09-01.zip` (SHA-256
+`e94455d2f43170ff30de7255cbcca26a6b4022caecffa479cb24e7a254fff199`). Sus hashes internos y
+el patch eran íntegros y este aplicaba limpiamente sobre el checkout. La entrega externa no ejecutó
+lint ni Vitest; tras la integración, ESLint quedó limpio y Node 22.16.0 pasó la suite completa:
+384 ficheros, 1.796 tests correctos, 2 omisiones intencionadas y cero fallos. Se comprobó además
+el worker PDF real y el fake-worker en Chrome 152 (2/2).
+
+Se corrigieron tres fallos reproducidos con Chromium y fixtures sintéticas:
+
+- Si un consumidor esencial de arranque no llegaba a invocar el coordinador del SW, la recuperación
+  inicial quedaba pendiente sin nadie que la consumiera. `error-bootstrap.js` inicia el coordinador
+  al terminar el DOM cuando está disponible; si falla el propio helper, ofrece el botón manual ya
+  estilizado y accesible. El coordinador es idempotente, evitando registros, listeners e intervalos
+  duplicados.
+- Una pestaña creada sin controlador ignoraba cualquier actualización posterior porque la marca de
+  primera instalación era inmutable. Ahora solo se ignora el primer `controllerchange`; una
+  actualización A→B recarga una vez y el mismo build no vuelve a hacerlo.
+- Un fallo transitorio del bootstrap de PDF.js envenenaba el reintento en la misma pestaña. Sin
+  tocar el internal `_setupFakeWorkerGlobal`, se descarta solo el namespace fallido y se usa una
+  identidad nueva por fragmento para core y bootstrap. El fragmento no viaja por HTTP y conserva
+  el `?v=`. El riesgo residual es que PDF.js 6.x cambie su mensaje de error de fake-worker; en ese
+  caso el reintento deja de activarse, pero no se corrompe su runtime.
+
+La matriz externa confirmó caché fría, offline, fallos de Cache Storage, rutas heredadas y ausencia
+de query/hash/nombre de fichero sintético en recuperación y analítica. No cambió `sw.js`,
+`CACHE_VERSION`, vendors, orden de scripts, fiscalidad, cálculos ni parsers.
+Como `factura.js` cambió, se ejecutó además el gate local contra producción con las 13 facturas del
+banco de pruebas: 13/13 huellas de fuente, confianza y campos funcionales coincidieron, sin errores
+de navegador ni persistencia de datos de factura.

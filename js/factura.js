@@ -204,6 +204,7 @@
 
       let __LF_pdfjsLoading = null;
       let __LF_pdfjsImportFailures = 0;
+      let __LF_pdfWorkerRetryGeneration = 0;
       if (typeof window.__LF_FACTURA_BUSY !== 'boolean') window.__LF_FACTURA_BUSY = false;
       let __LF_operationSeq = 0;
       let __LF_activeOperation = 0;
@@ -358,14 +359,39 @@
         __LF_installMapGetOrInsertComputedShim();
       }
 
+      function __LF_pdfWorkerSrc(){
+        const workerUrl = new URL(__LF_versionedUrl("js/pdfjs-worker-bootstrap.mjs"), document.baseURI);
+        if (__LF_pdfWorkerRetryGeneration > 0) {
+          // El fragmento cambia la identidad del modulo en Chromium, pero nunca
+          // forma parte de la peticion HTTP y conserva intacta la query ?v=.
+          workerUrl.hash = `lf-pdf-worker-retry-${__LF_pdfWorkerRetryGeneration}`;
+        }
+        return workerUrl.href;
+      }
+
       function __LF_ensurePdfWorker(){
         const lib = window.pdfjsLib;
         if (!lib) return false;
         if (!lib.GlobalWorkerOptions.workerSrc) {
           // Bootstrap propio: instala el shim en el realm Worker y reexporta
           // WorkerMessageHandler para conservar el fallback fake-worker de PDF.js.
-          lib.GlobalWorkerOptions.workerSrc = __LF_versionedUrl("js/pdfjs-worker-bootstrap.mjs");
+          lib.GlobalWorkerOptions.workerSrc = __LF_pdfWorkerSrc();
         }
+        return true;
+      }
+
+      function __LF_preparePdfWorkerRetry(error){
+        const message = String(error && error.message || '');
+        if (!message.includes('Setting up fake worker failed:')) return false;
+        if (!window.pdfjsLib) return false;
+
+        // PDF.js 6.x memoriza internamente el Promise rechazado del fake-worker.
+        // No mutamos esa API interna: descartamos este namespace ya fallido y
+        // hacemos que el proximo intento importe un namespace PDF.js nuevo. El
+        // bootstrap del worker recibe tambien una identidad nueva solo por hash.
+        __LF_pdfjsImportFailures++;
+        __LF_pdfWorkerRetryGeneration++;
+        window.pdfjsLib = null;
         return true;
       }
 
@@ -1825,6 +1851,7 @@
 
         }catch(err){
           if (!__LF_isCurrentOperation(operationId) || __LF_isCancelledOperation(err)) return;
+          __LF_preparePdfWorkerRetry(err);
           __LF_hide(__LF_q('loaderFactura'));
           __LF_show(__LF_q('uploadAreaFactura'));
           __LF_focusFacturaStage('uploadAreaFactura');

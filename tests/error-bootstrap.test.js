@@ -305,6 +305,31 @@ describe('Early first-party error bootstrap', () => {
     expect(isolatedWindow.document.getElementById('toast').classList.contains('show')).toBe(true);
   });
 
+  it('arranca el coordinador SW desde el bootstrap si lf-app no puede hacerlo', () => {
+    const isolatedWindow = isolatedPage('');
+    const initSwUpdate = vi.fn();
+    isolatedWindow.LF = { initSwUpdate };
+
+    failScript(isolatedWindow, '/js/lf-app.js?v=20260831-132123');
+    finishDom(isolatedWindow);
+
+    expect(initSwUpdate).toHaveBeenCalledTimes(1);
+    expect(initSwUpdate).toHaveBeenCalledWith({ swUrl: '/sw.js' });
+  });
+
+  it('muestra recuperación manual si falla el propio helper de actualización SW', () => {
+    const isolatedWindow = isolatedPage('');
+
+    failScript(isolatedWindow, '/js/lf-sw-update.js?v=20260831-132123');
+    finishDom(isolatedWindow);
+
+    const banner = isolatedWindow.document.getElementById('lf-init-recovery');
+    expect(banner).toBeTruthy();
+    expect(banner.getAttribute('role')).toBe('alert');
+    expect(banner.textContent).toContain('La página no ha cargado todos sus componentes.');
+    expect(banner.querySelector('button')?.textContent).toBe('Recargar ahora');
+  });
+
   it('convierte el botón de factura en un aviso si falta factura.js', () => {
     const isolatedWindow = isolatedPage(`
       <div id="toast"><span id="toastDot"></span><span id="toastText"></span></div>
