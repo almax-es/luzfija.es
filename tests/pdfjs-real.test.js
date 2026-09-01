@@ -14,7 +14,7 @@ import { pathToFileURL } from 'url';
  * verde, porque nadie llega a ejecutar la libreria real.
  *
  * Aqui se carga el `pdf.min.mjs` REAL del repo y se ejercita el mismo camino que
- * usa `js/factura.js`: getDocument -> getPage -> getViewport -> getTextContent
+ * usa `js/factura.js`: getDocument -> getPage -> getViewport -> streamTextContent
  * -> cleanup -> loadingTask.destroy().
  *
  * Se sirve la build `legacy`: PDF.js reserva la build moderna para los ultimos
@@ -188,8 +188,18 @@ describe('PDF.js vendorizado: carga y extracción reales', () => {
     expect(Math.round(viewport.width)).toBe(595);
     expect(Math.round(viewport.height)).toBe(842);
 
-    const textContent = await page.getTextContent();
-    const text = textContent.items.map((item) => item.str).join(' ');
+    const reader = page.streamTextContent().getReader();
+    const textItems = [];
+    try {
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+        textItems.push(...(value.items || []));
+      }
+    } finally {
+      reader.releaseLock();
+    }
+    const text = textItems.map((item) => item.str).join(' ');
 
     expect(text).toContain('FACTURA DE PRUEBA - DOCUMENTO SINTETICO');
     expect(text).toContain('Periodo de facturacion: 01/01/2026 - 31/01/2026');
@@ -222,7 +232,7 @@ describe('PDF.js vendorizado: carga y extracción reales', () => {
     const pdf = await loadingTask.promise;
     const page = await pdf.getPage(1);
 
-    for (const method of ['getViewport', 'getTextContent', 'render', 'cleanup']) {
+    for (const method of ['getViewport', 'streamTextContent', 'render', 'cleanup']) {
       expect(typeof page[method], `page.${method} deberia existir`).toBe('function');
     }
     expect(typeof pdf.cleanup, 'pdf.cleanup deberia existir').toBe('function');

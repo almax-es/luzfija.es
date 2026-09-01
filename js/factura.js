@@ -216,6 +216,7 @@
       const __LF_MAX_PDF_TEXT_PAGES = 20;
       const __LF_MAX_PDF_RENDER_PIXELS = 16 * 1024 * 1024;
       const __LF_MAX_PDF_RENDER_DIMENSION = 8192;
+      const __LF_MAX_PDF_PROCESSING_MS = 90 * 1000;
       const __LF_OCR_SCAN_INVITE = '⚠️ No se ha detectado texto seleccionable. Parece un PDF escaneado: puedes leerlo con OCR o introducir los datos manualmente.';
 
       function __LF_beginOperation(){
@@ -297,6 +298,18 @@
         if (operationId) __LF_cancelOperationResources(operationId);
       }
 
+      function __LF_startProcessingWatchdog(operationId, onTimeout, timeoutMs = __LF_MAX_PDF_PROCESSING_MS){
+        return setTimeout(() => {
+          if (!__LF_isCurrentOperation(operationId)) return;
+          // Mantener la operación en pending hasta que sus promesas terminen conserva
+          // el modo privacidad. Invalidarla impide que una resolución tardía escriba
+          // sobre el modal, y los aborters cancelan worker/render cuando es posible.
+          __LF_invalidateOperation();
+          window.__LF_FACTURA_BUSY = false;
+          try { onTimeout?.(); } catch (_) {}
+        }, timeoutMs);
+      }
+
       function __LF_syncPrivacyMode(){
         const modalOpen = __LF_q('modalFactura')?.classList.contains('show') === true;
         window.__LF_PRIVACY_MODE = modalOpen || __LF_pendingOperations.size > 0;
@@ -357,6 +370,43 @@
 
       function __LF_ensurePdfRuntimeCompatibility(){
         __LF_installMapGetOrInsertComputedShim();
+      }
+
+      async function __LF_readPageTextContent(page, params = {}){
+        if (!page || typeof page.streamTextContent !== 'function') {
+          // Compatibilidad defensiva con mocks/integraciones antiguas. La ruta
+          // productiva de PDF.js 6.x usa el reader de Web Streams: Safari hasta
+          // 26.5 no implementa ReadableStream[Symbol.asyncIterator], que es lo
+          // que getTextContent() intenta consumir internamente con `for await`.
+          return page.getTextContent(params);
+        }
+
+        const stream = page.streamTextContent(params);
+        const reader = stream?.getReader?.();
+        if (!reader || typeof reader.read !== 'function') {
+          return page.getTextContent(params);
+        }
+
+        const textContent = {
+          items: [],
+          styles: Object.create(null),
+          lang: null
+        };
+        try {
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            if (!value || typeof value !== 'object') continue;
+            textContent.lang ??= value.lang ?? null;
+            if (value.styles && typeof value.styles === 'object') {
+              Object.assign(textContent.styles, value.styles);
+            }
+            if (Array.isArray(value.items)) textContent.items.push(...value.items);
+          }
+        } finally {
+          try { reader.releaseLock?.(); } catch (_) {}
+        }
+        return textContent;
       }
 
       function __LF_pdfWorkerSrc(){
@@ -480,7 +530,7 @@
             let items = [];
             try{
               if (operationId) __LF_assertCurrentOperation(operationId);
-              const tc = await page.getTextContent();
+              const tc = await __LF_readPageTextContent(page);
               if (operationId) __LF_assertCurrentOperation(operationId);
               items = (tc.items || []).map(it => ({
                 str: (it.str || '').trim(),
@@ -1683,6 +1733,16 @@
         __LF_show(__LF_q('loaderFactura'));
         __LF_focusFacturaStage('loaderFactura');
 
+        const processingWatchdog = __LF_startProcessingWatchdog(operationId, () => {
+          __LF_hide(__LF_q('loaderFactura'));
+          __LF_show(__LF_q('uploadAreaFactura'));
+          __LF_focusFacturaStage('uploadAreaFactura');
+          if (typeof toast === 'function') {
+            toast('La factura está tardando demasiado. Inténtalo de nuevo o introduce los datos manualmente.', 'err');
+          }
+          lfDbg('[TIMEOUT] Procesamiento de factura PDF cancelado tras 90 segundos');
+        });
+
         try{
           const { textLines, textCompact, textRawLen, pageTexts, qrHintPages, pagesTotal, pagesScanned } = await __LF_extraerTextoPDF(file, operationId);
           __LF_assertCurrentOperation(operationId);
@@ -1858,6 +1918,7 @@
           if (typeof toast === 'function') toast('Error al procesar factura PDF', 'err');
           lfDbg('[ERROR] processPdf:', err);
         } finally {
+          clearTimeout(processingWatchdog);
           __LF_finishOperation(operationId);
         }
       }

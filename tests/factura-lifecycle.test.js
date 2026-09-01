@@ -8,9 +8,11 @@ const facturaCode = fs.readFileSync(path.join(repoRoot, 'js/factura.js'), 'utf8'
 const bootstrapCode = fs.readFileSync(path.join(repoRoot, 'js/pdfjs-worker-bootstrap.mjs'), 'utf8');
 
 function extractFunction(name) {
-  const start = facturaCode.indexOf(`function ${name}(`);
+  const asyncStart = facturaCode.indexOf(`async function ${name}(`);
+  const start = asyncStart >= 0 ? asyncStart : facturaCode.indexOf(`function ${name}(`);
   if (start < 0) throw new Error(`No se encontro ${name}`);
-  const brace = facturaCode.indexOf('{', start);
+  const parametersEnd = facturaCode.indexOf(')', start);
+  const brace = facturaCode.indexOf('{', parametersEnd);
   let depth = 0;
   for (let i = brace; i < facturaCode.length; i++) {
     if (facturaCode[i] === '{') depth++;
@@ -20,6 +22,8 @@ function extractFunction(name) {
 }
 
 const shimSource = extractFunction('__LF_installMapGetOrInsertComputedShim');
+const readPageTextContentSource = extractFunction('__LF_readPageTextContent');
+const processingWatchdogSource = extractFunction('__LF_startProcessingWatchdog');
 const workerRetrySource = extractFunction('__LF_preparePdfWorkerRetry');
 const workerSrcSource = extractFunction('__LF_pdfWorkerSrc');
 
@@ -28,6 +32,75 @@ function probe(body) {
 }
 
 describe('compatibilidad de PDF.js', () => {
+  it('consume el stream de texto con getReader sin depender del async iterator de Safari', async () => {
+    const result = await vm.runInNewContext(`(async () => {
+      ${readPageTextContentSource}
+      let fallbackCalls = 0;
+      let released = false;
+      const chunks = [
+        { lang: 'es', styles: { f1: { fontFamily: 'Arial' } }, items: [{ str: 'uno' }] },
+        { lang: null, styles: { f2: { fontFamily: 'Serif' } }, items: [{ str: 'dos' }] }
+      ];
+      const page = {
+        getTextContent() { fallbackCalls++; throw new Error('Safari no debe pasar por getTextContent'); },
+        streamTextContent() {
+          let index = 0;
+          return {
+            getReader() {
+              return {
+                async read() {
+                  if (index >= chunks.length) return { done: true, value: undefined };
+                  return { done: false, value: chunks[index++] };
+                },
+                releaseLock() { released = true; }
+              };
+            }
+          };
+        }
+      };
+      const text = await __LF_readPageTextContent(page);
+      return {
+        fallbackCalls,
+        released,
+        lang: text.lang,
+        itemText: text.items.map(item => item.str).join(','),
+        styleKeys: Object.keys(text.styles).sort().join(',')
+      };
+    })()`, Object.create(null));
+
+    expect(result).toEqual({
+      fallbackCalls: 0,
+      released: true,
+      lang: 'es',
+      itemText: 'uno,dos',
+      styleKeys: 'f1,f2'
+    });
+  });
+
+  it('libera el reader aunque falle una lectura del stream', async () => {
+    const result = await vm.runInNewContext(`(async () => {
+      ${readPageTextContentSource}
+      let released = false;
+      const page = {
+        streamTextContent() {
+          return {
+            getReader() {
+              return {
+                async read() { throw new Error('fallo sintetico'); },
+                releaseLock() { released = true; }
+              };
+            }
+          };
+        }
+      };
+      let message = '';
+      try { await __LF_readPageTextContent(page); } catch (error) { message = error.message; }
+      return { released, message };
+    })()`, Object.create(null));
+
+    expect(result).toEqual({ released: true, message: 'fallo sintetico' });
+  });
+
   it('instala Map#getOrInsertComputed sin sustituir una implementacion existente', () => {
     const result = probe(`(() => {
       delete Map.prototype.getOrInsertComputed;
@@ -131,6 +204,39 @@ describe('compatibilidad de PDF.js', () => {
 });
 
 describe('cancelacion y aviso OCR', () => {
+  it('el watchdog invalida y libera la UI solo si la operacion sigue activa', () => {
+    const result = vm.runInNewContext(`(() => {
+      let active = 7;
+      let invalidations = 0;
+      let callbacks = 0;
+      const window = { __LF_FACTURA_BUSY: true };
+      const __LF_isCurrentOperation = id => active === id;
+      const __LF_invalidateOperation = () => { invalidations++; active = 0; };
+      const setTimeout = callback => { callback(); return 123; };
+      ${processingWatchdogSource}
+      const timer = __LF_startProcessingWatchdog(7, () => { callbacks++; }, 1);
+      return { timer, invalidations, callbacks, busy: window.__LF_FACTURA_BUSY };
+    })()`, Object.create(null));
+
+    expect(result).toEqual({ timer: 123, invalidations: 1, callbacks: 1, busy: false });
+  });
+
+  it('el watchdog no altera una operacion que ya no es la activa', () => {
+    const result = vm.runInNewContext(`(() => {
+      let invalidations = 0;
+      let callbacks = 0;
+      const window = { __LF_FACTURA_BUSY: true };
+      const __LF_isCurrentOperation = () => false;
+      const __LF_invalidateOperation = () => { invalidations++; };
+      const setTimeout = callback => { callback(); return 456; };
+      ${processingWatchdogSource}
+      const timer = __LF_startProcessingWatchdog(7, () => { callbacks++; }, 1);
+      return { timer, invalidations, callbacks, busy: window.__LF_FACTURA_BUSY };
+    })()`, Object.create(null));
+
+    expect(result).toEqual({ timer: 456, invalidations: 0, callbacks: 0, busy: true });
+  });
+
   it('registra loadingTask, renderTask y worker Tesseract como recursos abortables', () => {
     expect(facturaCode).toContain('__LF_registerOperationAborter(operationId, destroyLoadingTask)');
     expect(facturaCode).toContain('renderTask.cancel?.()');
