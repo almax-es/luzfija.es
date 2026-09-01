@@ -2229,9 +2229,9 @@
       "tipo": "3P",
       "incluyeServiciosAjuste": true,
       "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
+        "exc": 0.03,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA_PARCIAL",
         "bv": false,
         "reglaBV": "NO APLICA",
         "precioBV": 0.0
@@ -2481,5 +2481,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-01T09:32:23.763Z"
+  "updatedAt": "2026-09-01T09:41:48.389Z"
 }
