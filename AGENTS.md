@@ -78,6 +78,7 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
 | `js/pvpc.js` | Motor PVPC de la home (datasets estaticos, cache localStorage, parseo QR CNMC legacy vivo). |
 | `js/factura-parsers.js` | Parsers puros de texto de factura y QR CNMC, publicados para el extractor. |
 | `js/factura.js` | Extractor de factura PDF (PDF.js + jsQR + OCR Tesseract, modo privacidad). |
+| `js/pdfjs-worker-bootstrap.mjs` | Bootstrap lazy del worker PDF.js: instala compatibilidad de `Map#getOrInsertComputed`, conserva la query de build y reexporta el handler del fallback sin editar el vendor. |
 | `js/desglose-calculo.js` | Calculo puro del desglose detallado de factura. |
 | `js/desglose-render.js` | Renderizado y formateo del desglose detallado de factura. |
 | `js/desglose-factura.js` | Ciclo de vida y accesibilidad del modal de desglose detallado de factura. |

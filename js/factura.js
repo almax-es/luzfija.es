@@ -6,6 +6,37 @@
  */
 
     (function(){
+      function __LF_installMapGetOrInsertComputedShim(){
+        if (typeof Map.prototype.getOrInsertComputed === 'function') return;
+
+        const mapHas = Map.prototype.has;
+        const mapGet = Map.prototype.get;
+        const mapSet = Map.prototype.set;
+        const brandCheckKey = Symbol('lf-map-brand-check');
+
+        Object.defineProperty(Map.prototype, 'getOrInsertComputed', {
+          configurable: true,
+          enumerable: false,
+          writable: true,
+          value: function getOrInsertComputed(key, callback) {
+            // Ejecutar primero el mismo brand check que el metodo nativo.
+            mapHas.call(this, brandCheckKey);
+            if (typeof callback !== 'function') {
+              throw new TypeError('callback must be callable');
+            }
+
+            const canonicalKey = key === 0 ? 0 : key;
+            if (mapHas.call(this, canonicalKey)) return mapGet.call(this, canonicalKey);
+
+            const value = Reflect.apply(callback, undefined, [canonicalKey]);
+            // El callback puede haber insertado la clave: el resultado calculado
+            // prevalece, conservando la posicion existente de la entrada.
+            mapSet.call(this, canonicalKey, value);
+            return value;
+          }
+        });
+      }
+
       if (window.__LF_facturaParserLoaded) return;
 
       if (!window.__LF_FacturaParsers) {
@@ -172,16 +203,20 @@
       let __LF_lastFile = null;
 
       let __LF_pdfjsLoading = null;
+      let __LF_pdfjsImportFailures = 0;
+      let __LF_pdfWorkerRetryGeneration = 0;
       if (typeof window.__LF_FACTURA_BUSY !== 'boolean') window.__LF_FACTURA_BUSY = false;
       let __LF_operationSeq = 0;
       let __LF_activeOperation = 0;
       const __LF_pendingOperations = new Set();
+      const __LF_operationAborters = new Map();
       const __LF_OPERATION_CANCELLED = 'LF_FACTURA_OPERATION_CANCELLED';
       const __LF_MAX_PDF_SIZE_MB = 20;
       const __LF_MAX_PDF_SIZE_BYTES = __LF_MAX_PDF_SIZE_MB * 1024 * 1024;
       const __LF_MAX_PDF_TEXT_PAGES = 20;
       const __LF_MAX_PDF_RENDER_PIXELS = 16 * 1024 * 1024;
       const __LF_MAX_PDF_RENDER_DIMENSION = 8192;
+      const __LF_OCR_SCAN_INVITE = '⚠️ No se ha detectado texto seleccionable. Parece un PDF escaneado: puedes leerlo con OCR o introducir los datos manualmente.';
 
       function __LF_beginOperation(){
         if (window.__LF_FACTURA_BUSY || __LF_activeOperation !== 0) return null;
@@ -207,8 +242,47 @@
         return error?.code === __LF_OPERATION_CANCELLED;
       }
 
+      function __LF_registerOperationAborter(operationId, aborter){
+        if (!operationId || typeof aborter !== 'function') return () => {};
+        let active = true;
+        const wrapped = () => {
+          if (!active) return undefined;
+          active = false;
+          const set = __LF_operationAborters.get(operationId);
+          set?.delete(wrapped);
+          if (set && set.size === 0) __LF_operationAborters.delete(operationId);
+          return aborter();
+        };
+        let set = __LF_operationAborters.get(operationId);
+        if (!set) {
+          set = new Set();
+          __LF_operationAborters.set(operationId, set);
+        }
+        set.add(wrapped);
+        if (!__LF_isCurrentOperation(operationId)) {
+          try { Promise.resolve(wrapped()).catch(()=>{}); } catch (_) {}
+        }
+        return () => {
+          if (!active) return;
+          active = false;
+          const current = __LF_operationAborters.get(operationId);
+          current?.delete(wrapped);
+          if (current && current.size === 0) __LF_operationAborters.delete(operationId);
+        };
+      }
+
+      function __LF_cancelOperationResources(operationId){
+        const set = __LF_operationAborters.get(operationId);
+        if (!set) return;
+        __LF_operationAborters.delete(operationId);
+        for (const abort of [...set]) {
+          try { Promise.resolve(abort()).catch(()=>{}); } catch (_) {}
+        }
+      }
+
       function __LF_finishOperation(operationId){
         __LF_pendingOperations.delete(operationId);
+        __LF_operationAborters.delete(operationId);
         if (__LF_isCurrentOperation(operationId)) {
           __LF_activeOperation = 0;
           window.__LF_FACTURA_BUSY = false;
@@ -217,8 +291,10 @@
       }
 
       function __LF_invalidateOperation(){
+        const operationId = __LF_activeOperation;
         __LF_activeOperation = 0;
         __LF_operationSeq++;
+        if (operationId) __LF_cancelOperationResources(operationId);
       }
 
       function __LF_syncPrivacyMode(){
@@ -279,16 +355,48 @@
         return { viewport, width, height, scale: safeScale };
       }
 
+      function __LF_ensurePdfRuntimeCompatibility(){
+        __LF_installMapGetOrInsertComputedShim();
+      }
+
+      function __LF_pdfWorkerSrc(){
+        const workerUrl = new URL(__LF_versionedUrl("js/pdfjs-worker-bootstrap.mjs"), document.baseURI);
+        if (__LF_pdfWorkerRetryGeneration > 0) {
+          // El fragmento cambia la identidad del modulo en Chromium, pero nunca
+          // forma parte de la peticion HTTP y conserva intacta la query ?v=.
+          workerUrl.hash = `lf-pdf-worker-retry-${__LF_pdfWorkerRetryGeneration}`;
+        }
+        return workerUrl.href;
+      }
+
       function __LF_ensurePdfWorker(){
         const lib = window.pdfjsLib;
         if (!lib) return false;
         if (!lib.GlobalWorkerOptions.workerSrc) {
-          lib.GlobalWorkerOptions.workerSrc = __LF_versionedUrl("vendor/pdfjs/pdf.worker.min.mjs");
+          // Bootstrap propio: instala el shim en el realm Worker y reexporta
+          // WorkerMessageHandler para conservar el fallback fake-worker de PDF.js.
+          lib.GlobalWorkerOptions.workerSrc = __LF_pdfWorkerSrc();
         }
         return true;
       }
 
+      function __LF_preparePdfWorkerRetry(error){
+        const message = String(error && error.message || '');
+        if (!message.includes('Setting up fake worker failed:')) return false;
+        if (!window.pdfjsLib) return false;
+
+        // PDF.js 6.x memoriza internamente el Promise rechazado del fake-worker.
+        // No mutamos esa API interna: descartamos este namespace ya fallido y
+        // hacemos que el proximo intento importe un namespace PDF.js nuevo. El
+        // bootstrap del worker recibe tambien una identidad nueva solo por hash.
+        __LF_pdfjsImportFailures++;
+        __LF_pdfWorkerRetryGeneration++;
+        window.pdfjsLib = null;
+        return true;
+      }
+
       async function __LF_ensurePdfJs(){
+        __LF_ensurePdfRuntimeCompatibility();
         if (window.pdfjsLib && __LF_ensurePdfWorker()) return window.pdfjsLib;
 
         if (__LF_pdfjsLoading){
@@ -297,26 +405,39 @@
           if (window.pdfjsLib && __LF_ensurePdfWorker()) return window.pdfjsLib;
         }
 
-        const src = __LF_versionedUrl("vendor/pdfjs/pdf.min.mjs");
+        const baseSrc = __LF_versionedUrl("vendor/pdfjs/pdf.min.mjs");
+        // Chromium conserva en el module map un import() fallido para la misma
+        // identidad. Un fragmento nuevo fuerza una evaluacion nueva sin alterar
+        // el pathname ni la query de build enviada por HTTP.
+        const importUrl = new URL(baseSrc, document.baseURI);
+        if (__LF_pdfjsImportFailures > 0) {
+          importUrl.hash = `lf-pdfjs-retry-${__LF_pdfjsImportFailures}`;
+        }
+        const src = importUrl.href;
         __LF_pdfjsLoading = (async()=>{
-          const mod = await import(src);
-          const lib = (mod && (mod.pdfjsLib || mod.default)) ? (mod.pdfjsLib || mod.default) : mod;
-          window.pdfjsLib = lib;
+          try {
+            const mod = await import(src);
+            const lib = (mod && (mod.pdfjsLib || mod.default)) ? (mod.pdfjsLib || mod.default) : mod;
+            window.pdfjsLib = lib;
 
-          // Reducir ruido: solo errores (sin warnings TT/TrueType, etc.)
-          try{
-            if (lib && lib.setVerbosityLevel && lib.VerbosityLevel){
-              lib.setVerbosityLevel(lib.VerbosityLevel.ERRORS);
-            }
-          } catch(_){}
-          try{
-            if (lib && lib.GlobalWorkerOptions && lib.VerbosityLevel){
-              lib.GlobalWorkerOptions.verbosity = lib.VerbosityLevel.ERRORS;
-            }
-          } catch(_){}
+            // Reducir ruido: solo errores (sin warnings TT/TrueType, etc.)
+            try{
+              if (lib && lib.setVerbosityLevel && lib.VerbosityLevel){
+                lib.setVerbosityLevel(lib.VerbosityLevel.ERRORS);
+              }
+            } catch(_){}
+            try{
+              if (lib && lib.GlobalWorkerOptions && lib.VerbosityLevel){
+                lib.GlobalWorkerOptions.verbosity = lib.VerbosityLevel.ERRORS;
+              }
+            } catch(_){}
 
-          __LF_ensurePdfWorker();
-          return lib;
+            __LF_ensurePdfWorker();
+            return lib;
+          } catch (error) {
+            __LF_pdfjsImportFailures++;
+            throw error;
+          }
         })();
 
         try { await __LF_pdfjsLoading; }
@@ -329,14 +450,22 @@
       }
 
 
-      async function __LF_extraerTextoPDF(file){
+      async function __LF_extraerTextoPDF(file, operationId){
         await __LF_ensurePdfJs();
         const ab = await file.arrayBuffer();
         const loadingTask = window.pdfjsLib.getDocument({ data: ab, verbosity: __LF_pdfVerbosityErrors() });
         let pdf;
+        let loadingTaskDestroyed = false;
+        const destroyLoadingTask = async () => {
+          if (loadingTaskDestroyed) return;
+          loadingTaskDestroyed = true;
+          try{ if (loadingTask && loadingTask.destroy) await loadingTask.destroy(); }catch(_){}
+        };
+        const unregisterLoadingTask = __LF_registerOperationAborter(operationId, destroyLoadingTask);
 
         try{
           pdf = await loadingTask.promise;
+          if (operationId) __LF_assertCurrentOperation(operationId);
           let lines = [];
           let compact = '';
           const pageTexts = [];
@@ -350,7 +479,9 @@
             const pageLineStart = lines.length;
             let items = [];
             try{
+              if (operationId) __LF_assertCurrentOperation(operationId);
               const tc = await page.getTextContent();
+              if (operationId) __LF_assertCurrentOperation(operationId);
               items = (tc.items || []).map(it => ({
                 str: (it.str || '').trim(),
                 x: it.transform?.[4] ?? 0,
@@ -403,9 +534,10 @@
           const textCompact = compact.replace(/\s+/g,' ').trim();
           return { textLines, textCompact, textRawLen: (textCompact || '').length, pageTexts, qrHintPages, pagesTotal, pagesScanned };
         } finally {
+          unregisterLoadingTask();
           try{ if (pdf && pdf.cleanup) await pdf.cleanup(); }catch(_){}
           // pdf.js 6.x elimina PDFDocumentProxy.destroy(); liberar via loadingTask
-          try{ if (loadingTask && loadingTask.destroy) await loadingTask.destroy(); }catch(_){}
+          await destroyLoadingTask();
         }
       }
 
@@ -434,9 +566,21 @@
           const jsQR = await __LF_loadJsQR();
           const pdfjsLib = await __LF_ensurePdfJs();
 
+          const operationId = options.operationId || null;
           const arrayBuffer = await pdfFile.arrayBuffer();
+          if (operationId) __LF_assertCurrentOperation(operationId);
           loadingTask = pdfjsLib.getDocument({ data: arrayBuffer, verbosity: __LF_pdfVerbosityErrors() });
-          const pdf = await loadingTask.promise;
+          let loadingTaskDestroyed = false;
+          const destroyLoadingTask = async () => {
+            if (loadingTaskDestroyed) return;
+            loadingTaskDestroyed = true;
+            try{ if (loadingTask && loadingTask.destroy) await loadingTask.destroy(); }catch(_){}
+          };
+          const unregisterLoadingTask = __LF_registerOperationAborter(operationId, destroyLoadingTask);
+          let pdf;
+          try {
+            pdf = await loadingTask.promise;
+            if (operationId) __LF_assertCurrentOperation(operationId);
 
           // Intentar con múltiples escalas para mejor detección
           const scales = [3.0, 2.5, 2.0, 1.5];
@@ -454,6 +598,7 @@
             lfDbg(`[QR jsQR] Página ${pageNum}/${maxPages}...`);
             const page = await pdf.getPage(pageNum);
             try {
+              if (operationId) __LF_assertCurrentOperation(operationId);
               for (const scale of scales) {
                 let canvas = null;
                 try {
@@ -466,7 +611,16 @@
                   canvas.width = safeViewport.width;
                   canvas.height = safeViewport.height;
 
-                  await page.render({ canvasContext: context, viewport }).promise;
+                  const renderTask = page.render({ canvasContext: context, viewport });
+                  const unregisterRenderTask = __LF_registerOperationAborter(operationId, () => {
+                    try{ renderTask.cancel?.(); }catch(_){}
+                  });
+                  try {
+                    await renderTask.promise;
+                  } finally {
+                    unregisterRenderTask();
+                  }
+                  if (operationId) __LF_assertCurrentOperation(operationId);
                   const imageData = context.getImageData(0, 0, canvas.width, canvas.height);
 
                   // Intentar con y sin inversión
@@ -490,13 +644,20 @@
             }
           }
 
-          lfDbg('[QR jsQR] ⚠️ No se detectó QR en ninguna página');
-          return null;
+            lfDbg('[QR jsQR] ⚠️ No se detectó QR en ninguna página');
+            return null;
+          } finally {
+            unregisterLoadingTask();
+            await destroyLoadingTask();
+          }
         } catch (error) {
+          if (options.operationId && !__LF_isCurrentOperation(options.operationId)) {
+            const cancelled = new Error('Operacion de factura cancelada');
+            cancelled.code = __LF_OPERATION_CANCELLED;
+            throw cancelled;
+          }
           lfDbg('[QR jsQR] ❌ Error:', error.message);
           return null;
-        } finally {
-          try{ if (loadingTask && loadingTask.destroy) await loadingTask.destroy(); }catch(_){}
         }
       }
       
@@ -1285,6 +1446,30 @@
         __LF_show(a);
       }
 
+      function __LF_removeExactWarning(msg){
+        const a = __LF_q('avisoFactura');
+        if (!a) return '';
+        const obsoleteHtml = __LF_warnHtml(msg).trim();
+        const retained = a.innerHTML
+          .split(/<br\s*\/?>(?:\s*<br\s*\/?>)+/i)
+          .map(part => part.trim())
+          .filter(part => part && part !== obsoleteHtml);
+        a.innerHTML = retained.join('<br><br>');
+        if (retained.length) __LF_show(a);
+        else __LF_hide(a);
+        return a.innerHTML;
+      }
+
+      function __LF_restoreWarningHtml(html){
+        const a = __LF_q('avisoFactura');
+        const retained = String(html || '').trim();
+        if (!a || !retained) return;
+        const current = a.innerHTML.trim();
+        if (current.includes(retained)) return;
+        a.innerHTML = current ? current + '<br><br>' + retained : retained;
+        __LF_show(a);
+      }
+
       function __LF_pdfPageLimitWarning(meta){
         const total = Number(meta?.pagesTotal);
         const scanned = Number(meta?.pagesScanned);
@@ -1499,7 +1684,7 @@
         __LF_focusFacturaStage('loaderFactura');
 
         try{
-          const { textLines, textCompact, textRawLen, pageTexts, qrHintPages, pagesTotal, pagesScanned } = await __LF_extraerTextoPDF(file);
+          const { textLines, textCompact, textRawLen, pageTexts, qrHintPages, pagesTotal, pagesScanned } = await __LF_extraerTextoPDF(file, operationId);
           __LF_assertCurrentOperation(operationId);
           const pdfPageWarning = __LF_pdfPageLimitWarning({ pagesTotal, pagesScanned });
 
@@ -1528,7 +1713,7 @@
           if (!datosQR) {
             lfDbg('[QR] Texto no tiene URL válida, intentando jsQR...');
             try {
-              const qrUrlImagen = await __LF_extractQRFromPDF(file, { qrHintPages });
+              const qrUrlImagen = await __LF_extractQRFromPDF(file, { qrHintPages, operationId });
               __LF_assertCurrentOperation(operationId);
               if (qrUrlImagen) {
                 datosQR = __LF_parseQRData(qrUrlImagen);
@@ -1546,7 +1731,7 @@
             __LF_hide(__LF_q('loaderFactura'));
             __LF_show(__LF_q('resultadoFactura'));
             __LF_focusFacturaStage('resultadoFacturaTitulo');
-            __LF_warn('⚠️ No se ha detectado texto seleccionable. Parece un PDF escaneado: puedes leerlo con OCR o introducir los datos manualmente.');
+            __LF_warn(__LF_OCR_SCAN_INVITE);
             if (pdfPageWarning) __LF_appendWarn(pdfPageWarning);
             __LF_show(__LF_q('btnOcrFactura'));
             __LF_show(__LF_q('ctaOcrFactura'));
@@ -1666,6 +1851,7 @@
 
         }catch(err){
           if (!__LF_isCurrentOperation(operationId) || __LF_isCancelledOperation(err)) return;
+          __LF_preparePdfWorkerRetry(err);
           __LF_hide(__LF_q('loaderFactura'));
           __LF_show(__LF_q('uploadAreaFactura'));
           __LF_focusFacturaStage('uploadAreaFactura');
@@ -1729,8 +1915,34 @@
           __LF_assertCurrentOperation(operationId);
           let pdf = null;
           let ocrLoadingTask = null;
+          let ocrLoadingTaskDestroyed = false;
+          let tessWorker = null;
+          let tessWorkerTerminated = false;
+          let unregisterPdfAbort = () => {};
+          let unregisterTessAbort = () => {};
+          const destroyOcrLoadingTask = async () => {
+            if (ocrLoadingTaskDestroyed) return;
+            ocrLoadingTaskDestroyed = true;
+            try{ if (ocrLoadingTask && ocrLoadingTask.destroy) await ocrLoadingTask.destroy(); }catch(_){}
+          };
+          const terminateTessWorker = async () => {
+            if (tessWorkerTerminated) return;
+            tessWorkerTerminated = true;
+            try{ if (tessWorker && tessWorker.terminate) await tessWorker.terminate(); }catch(_){}
+          };
           try{
+            const __LF_tessOpts = {
+              workerPath: __LF_assetUrl('vendor/tesseract/worker.min.js'),
+              corePath: __LF_assetUrl('vendor/tesseract-core/tesseract-core.wasm.js'),
+              langPath: __LF_assetUrl('vendor/tessdata/'),
+              workerBlobURL: false
+            };
+            tessWorker = await T.createWorker('spa', undefined, __LF_tessOpts);
+            unregisterTessAbort = __LF_registerOperationAborter(operationId, terminateTessWorker);
+            __LF_assertCurrentOperation(operationId);
+
             ocrLoadingTask = window.pdfjsLib.getDocument({ data: ab, verbosity: __LF_pdfVerbosityErrors() });
+            unregisterPdfAbort = __LF_registerOperationAborter(operationId, destroyOcrLoadingTask);
             pdf = await ocrLoadingTask.promise;
             __LF_assertCurrentOperation(operationId);
 
@@ -1750,15 +1962,18 @@
               if (!ctx) throw new Error('No se pudo crear el canvas para OCR');
               canvas.width = safeViewport.width;
               canvas.height = safeViewport.height;
-              await page.render({ canvasContext: ctx, viewport }).promise;
+              const renderTask = page.render({ canvasContext: ctx, viewport });
+              const unregisterRenderTask = __LF_registerOperationAborter(operationId, () => {
+                try{ renderTask.cancel?.(); }catch(_){}
+              });
+              try {
+                await renderTask.promise;
+              } finally {
+                unregisterRenderTask();
+              }
               __LF_assertCurrentOperation(operationId);
 
-              const __LF_tessOpts = {
-                workerPath: __LF_assetUrl('vendor/tesseract/worker.min.js'),
-                corePath: __LF_assetUrl('vendor/tesseract-core/tesseract-core.wasm.js'),
-                langPath: __LF_assetUrl('vendor/tessdata/'),
-              };
-              const { data } = await T.recognize(canvas, 'spa', __LF_tessOpts);
+              const { data } = await tessWorker.recognize(canvas);
               __LF_assertCurrentOperation(operationId);
               const pageOcrText = data.text || '';
               ocrText += pageOcrText + '\n';
@@ -1788,10 +2003,15 @@
           __LF_setBadge(datos.confianza);
           __LF_renderForm(datos);
 
+          // Retirar solo la invitacion que ya quedo obsoleta. Los avisos de
+          // paginas, peaje, ambiguedad o confianza se conservan.
+          const avisoOCR = __LF_q('avisoFactura');
+          const avisosPreviosConservados = __LF_removeExactWarning(__LF_OCR_SCAN_INVITE);
+
           // Mostrar advertencias contextuales + nota de OCR
           __LF_showContextualWarnings(datos);
+          __LF_restoreWarningHtml(avisosPreviosConservados);
           
-          const avisoOCR = __LF_q('avisoFactura');
           if (avisoOCR && avisoOCR.textContent){
             avisoOCR.textContent = '🧠 OCR aplicado. ' + avisoOCR.textContent;
           } else {
@@ -1800,9 +2020,12 @@
 
 
           } finally {
+            unregisterPdfAbort();
+            unregisterTessAbort();
             try{ if (pdf && pdf.cleanup) await pdf.cleanup(); }catch(_){/* noop */}
             // pdf.js 6.x elimina PDFDocumentProxy.destroy(); liberar via loadingTask
-            try{ if (ocrLoadingTask && ocrLoadingTask.destroy) await ocrLoadingTask.destroy(); }catch(_){/* noop */}
+            await destroyOcrLoadingTask();
+            await terminateTessWorker();
           }
         }catch(err){
           if (!__LF_isCurrentOperation(operationId) || __LF_isCancelledOperation(err)) return;

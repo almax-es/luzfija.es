@@ -90,7 +90,7 @@ jobs:
             --exclude='package.json' \
             --exclude='package-lock.json' \
             --exclude='eslint.config.mjs' \
-            --exclude='vitest.config.js' \
+            --exclude='vitest.config.mjs' \
             ./ _site/
 
           # Excepciones publicas deliberadas: contrato de Pages, well-known y

@@ -26,6 +26,30 @@ describe('XLSX: fórmulas sin valor cacheado en columnas relevantes', () => {
     expect(() => guard(sheet, rows, 0)).toThrow(/fórmula sin resultado calculado/i);
   });
 
+  it('rechaza el stub real t:"z" con fórmula y v:0 que SheetJS expone con sheetStubs:true', () => {
+    const rows = [
+      ['Fecha', 'Hora', 'Consumo_kWh'],
+      ['01/01/2026', '1']
+    ];
+    const sheet = {
+      C2: { t: 'z', f: '1/2', v: 0 }
+    };
+
+    expect(() => guard(sheet, rows, 0)).toThrow(/fórmula sin resultado calculado/i);
+  });
+
+  it('no confunde una celda vacía ordinaria t:"z" sin f con una fórmula sin cache', () => {
+    const rows = [
+      ['Fecha', 'Hora', 'Consumo_kWh'],
+      ['01/01/2026', '1']
+    ];
+    const sheet = {
+      C2: { t: 'z', v: 0 }
+    };
+
+    expect(() => guard(sheet, rows, 0)).not.toThrow();
+  });
+
   it('rechaza la fórmula tras escribir y releer un XLSX real con SheetJS', () => {
     const sourceSheet = XLSX.utils.aoa_to_sheet([
       ['Fecha', 'Hora', 'Consumo_kWh'],
@@ -46,13 +70,13 @@ describe('XLSX: fórmulas sin valor cacheado en columnas relevantes', () => {
     expect(() => guard(sheet, rows, 0)).toThrow(/fórmula sin resultado calculado/i);
   });
 
-  it('acepta la misma fórmula si el XLSX trae un resultado cacheado', () => {
+  it('acepta la misma fórmula si el XLSX trae un resultado cacheado 0,5', () => {
     const rows = [
       ['Fecha', 'Hora', 'Consumo_kWh'],
-      ['01/01/2026', '1', '2']
+      ['01/01/2026', '1', '0,5']
     ];
     const sheet = {
-      C2: { t: 'n', f: '1+1', v: 2 }
+      C2: { t: 'n', f: '1/2', v: 0.5 }
     };
 
     expect(() => guard(sheet, rows, 0)).not.toThrow();
@@ -109,15 +133,18 @@ describe('XLSX: fórmulas sin valor cacheado en columnas relevantes', () => {
 });
 
 describe('XLSX: el guard está cableado en los tres importadores productivos', () => {
-  it('home lo aplica a matriz y tabla', () => {
+  it('home lo aplica a matriz y tabla y materializa stubs', () => {
+    expect(homeImportCode).toMatch(/XLSX\.read\([^;]+sheetStubs:\s*true/);
     expect(homeImportCode.match(/assertRelevantXlsxFormulasResolved\(/g)?.length || 0).toBeGreaterThanOrEqual(2);
   });
 
-  it('solar lo aplica a matriz y tabla', () => {
+  it('solar lo aplica a matriz y tabla y materializa stubs', () => {
+    expect(solarImportCode).toMatch(/XLSX\.read\([^;]+sheetStubs:\s*true/);
     expect(solarImportCode.match(/assertRelevantXlsxFormulasResolved\(/g)?.length || 0).toBeGreaterThanOrEqual(2);
   });
 
-  it('Observatorio lo aplica antes del parser XLSX', () => {
+  it('Observatorio lo aplica antes del parser XLSX y materializa stubs', () => {
+    expect(statsImportCode).toMatch(/XLSX\.read\([^;]+sheetStubs:\s*true/);
     expect(statsImportCode).toMatch(/assertRelevantXlsxFormulasResolved\(sheet, data, headerRowIndex\)/);
   });
 });

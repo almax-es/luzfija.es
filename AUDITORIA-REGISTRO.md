@@ -91,6 +91,37 @@ nuevo no cubierto por sus tests. Cada entrada explica que evidencia haria falta 
  octubre se resuelven a horas DISTINTAS (ej. 3 y 25) antes de la comprobacion, asi que nunca
  colisionan con este chequeo. No lo reportes como conflicto con el cambio de hora.
 
+<a id="xlsx-formula-sin-resultado-materializado-resuelta-30-08-2026"></a>
+### XLSX: Formula Sin Resultado Materializado (RESUELTA 30/08/2026)
+
+Auditoria focalizada de la importacion CSV/XLSX de home, con solar y observatorio como consumidores
+compartidos. Se confirmo un unico bug de severidad media: un XLSX podia contener en una columna
+economica una formula sin resultado cacheado y terminar importandola como celda vacia/0 kWh.
+
+- **Causa raiz.** SheetJS omite esa celda con la lectura anterior. Con `sheetStubs:true` la expone
+  como `{t:"z", f:"1/2", v:0}`: ese cero pertenece al stub y no es el resultado de la formula.
+  `assertRelevantXlsxFormulasResolved()` tampoco consideraba `t:"z"` no resuelto, por lo que el
+  archivo llegaba a preview con un consumo inferior al contenido logico.
+- **Correccion.** Home, solar y observatorio mantienen `sheets:0` y añaden `sheetStubs:true`; solo se
+  materializa la primera hoja. El guard compartido rechaza `t:"z"` cuando existe `f`. Un stub vacio
+  sin `f`, una formula con resultado numerico cacheado y una formula en columna irrelevante conservan
+  su comportamiento previo.
+- **Evidencia independiente.** El fixture sintetico sin cache fue aceptado antes con 1,00 kWh en vez
+  de 1,50 kWh. Tras el cambio, los tres consumidores lo rechazan antes de publicar datos; el fixture
+  cacheado se acepta en los tres con 1,50 kWh, `Notas` no produce falso positivo y la celda vacia
+  ordinaria sigue importandose como cero con aviso.
+- **Cobertura.** `tests/xlsx-formula-guard.test.js` fija el stub con formula, el stub sin `f`, el
+  resultado cacheado y el cableado de `sheetStubs:true` en los tres lectores. La prueba roja previa
+  fallo en las cuatro mutaciones productivas y quedo verde al aplicar cada contrato.
+
+**No reportar como bugs:** que LuzFija no evalue formulas; que solo consuma la primera hoja; que una
+celda realmente vacia se interprete como cero con aviso; o que una formula en una columna ajena al
+calculo no bloquee la importacion completa.
+
+**Para reabrir:** aportar un XLSX donde una formula relevante sin resultado materializado vuelva a
+publicarse como cero; donde `sheetStubs:true` materialice hojas distintas de la primera; o donde una
+formula cacheada, un stub ordinario sin `f` o una columna irrelevante queden bloqueados.
+
 <a id="contrato-de-cambios-pendientes-roto-por-auto-refresh-race-de-edicion-y"></a>
 ### Contrato De "Cambios Pendientes" Roto Por Auto-Refresh, Race De Edicion Y Modal PVPC (RESUELTA)
 
@@ -1210,6 +1241,44 @@ control del shell; que un timer/retry del banner sobrevive a una nueva solicitud
 una UI opcional vuelve a disparar recuperacion de pagina; o que, tras un fallo inicial de registro y
 una oportunidad posterior real (`online`/focus/visible/interval), la pestana sigue sin intentar
 registrar el SW.
+
+<a id="arranque-sw-cache-storage-e-index-extra-opcional-resuelta-30-08-2026"></a>
+### Arranque/SW: Cache Storage E `index-extra.js` Opcional (RESUELTA 30/08/2026)
+
+Auditoria focalizada sobre el contrato de arranque, los fallos parciales y el Service Worker. Los dos
+hallazgos se reprodujeron sobre el codigo vigente antes de integrar el parche externo; no se copiaron
+los ficheros completos del paquete porque pertenecian a un build anterior.
+
+- **Cache Storage no bloquea ya la red en runtime.** Las ramas de navegacion, scripts/estilos/workers,
+  referencias de guias/asistentes, datasets/CNMC y estaticos abrian `CACHE_NAME` antes de ejecutar
+  `fetch()`. Si `caches.open()` rechazaba por cuota, privacidad o indisponibilidad, la peticion
+  terminaba sin intentar siquiera la red. `openRuntimeCacheSafe()` degrada ahora a cache nula: se
+  conserva la estrategia de red y solo se omiten `match()`/`put()`. El `install` no usa este helper;
+  su precache obligatorio sigue fallando de forma atomica si Cache Storage no esta disponible.
+- **`index-extra.js` vuelve a respetar su contrato opcional.** `ARRANQUE-CARGA.md` ya documentaba que
+  una descarga fallida del complemento del modal PVPC solo debia emitir `error-script-load`. El
+  bootstrap, sin embargo, lo trataba como dependencia esencial: creaba una recuperacion inicial,
+  mostraba el aviso persistente y podia consumir el unico auto-reload de la pestana. Ahora comparte
+  la exclusion de recuperacion con `aecc-banner.js`; la telemetria temprana se conserva.
+- **Cobertura reforzada.** `tests/sw-runtime-resilience.test.js` demuestra que las cinco familias
+  runtime llegan a red aunque falle `caches.open()` y que `tarifas.json` sigue siendo network-only,
+  sin `match()` ni `put()`. `tests/sw-query-fallback.test.js` valida los recursos de solar y
+  observatorio dentro de `REQUIRED_ROUTE_GROUPS`, no solo en cualquier parte del worker.
+  `tests/sw-update-timing.test.js` cubre fallos de lectura y escritura de `sessionStorage` en el guard
+  de recarga automatica; `tests/error-bootstrap.test.js` fija la opcionalidad de `index-extra.js`.
+
+**Mutaciones comprobadas:** reintroducir la apertura estricta de cache corta cinco rutas antes de
+`fetch()`; volver esencial `index-extra.js` recrea la recuperacion pendiente; leer cache en la rama de
+`tarifas.json`, sacar un asset de su grupo obligatorio o abrir el guard cuando `sessionStorage` falla
+hace rojo su test especifico.
+
+**No reportar como bugs:** que una visita sin Cache Storage pierda cache/offline durante esa sesion;
+que el `install` del SW siga fallando cerrado; que el modal PVPC no este disponible si no se descarga
+`index-extra.js`; o que ese fallo opcional permanezca visible en telemetria.
+
+**Para reabrir:** demostrar una ruta runtime same-origin que no alcanza la red al rechazar
+`caches.open()`; que una UI opcional vuelve a solicitar recuperacion de pagina; que `tarifas.json`
+intenta leer/escribir Cache Storage; o que un fallo de persistencia permite un bucle de recarga.
 
 <a id="formato-numerico-coma-en-ui-punto-en-mocks-de-tests"></a>
 ### Formato Numerico: Coma En UI, Punto En Mocks De Tests
@@ -2616,3 +2685,82 @@ selector. El helper de gráficos se prueba además con `matchMedia('(forced-colo
 la restauración del mock se protege con `try/finally` para no contaminar pruebas posteriores. Las
 mutaciones de retirar el outline, borrar el fondo `Highlight` y sustituir el color de sistema del
 canvas vuelven rojo el contrato correspondiente.
+
+<a id="factura-lifecycle-y-export-goatcounter-31-08-2026"></a>
+### Factura Lifecycle Y Export GoatCounter (31/08/2026)
+
+Se revisó la entrega candidata externa
+`luzfija-auditoria-factura-lifecycle-CANDIDATA.zip` (SHA-256
+`1f05dc51c1c056b05bb8ebfd93f98007b2b2b6fdb1357c576af50dec989a9eca`). Sus hashes internos
+coincidían y los tres ficheros modificados partían exactamente del estado del repositorio. Los
+cuatro hallazgos se aceptaron conceptualmente: reintento de `import()` de PDF.js tras fallo,
+ausencia de `Map#getOrInsertComputed` en navegadores todavía relevantes, invitación a OCR obsoleta
+después de completarlo y falta de cancelación activa de recursos.
+
+La candidata no se aplicó literalmente. Usaba `factura.js` como `workerSrc`; eso funcionaba con un
+Worker real, pero su módulo no exportaba `WorkerMessageHandler` y rompía el fallback fake-worker que
+PDF.js activa si no puede construirlo. Además, dos checkpoints de cancelación quedaban antes del
+`try/finally` propietario de la página: si `getPage()` resolvía después de cerrar, `cleanup()` podía
+saltarse. La integración usa `js/pdfjs-worker-bootstrap.mjs`, instala el shim antes del vendor y
+reexporta el handler esperado; los checkpoints se movieron dentro de los `finally` propietarios.
+El vendor no se modificó. Tesseract usa un único worker por operación, `workerBlobURL:false` y
+`terminate()` tanto en salida normal como al cancelar.
+
+Los 21 PDF sintéticos, informes y evidencias del ZIP se conservaron como artefacto externo y no se
+incorporaron al repositorio (incluían una fixture artificial de más de 20 MB). Las regresiones
+integradas usan las fixtures sintéticas ya versionadas y pruebas de comportamiento propias. En
+Chrome 152 se comprobó tanto Worker real como fake-worker forzado con render PDF completo (2/2
+casos). ESLint terminó sin errores y la suite completa en Node 22.16.0 pasó 1.791 tests, con 2
+omisiones intencionadas y cero fallos (113 ficheros, 1.793 tests totales). La puerta real se cerró
+después con 13/13 PDFs del banco local —más de los 11 exigidos— procesados por la interfaz real en
+Chrome frente a producción: las huellas de fuente, confianza y campos funcionales fueron idénticas
+en todos los casos y no hubo errores de navegador. La comprobación no guardó ni registró datos de
+las facturas.
+
+En paralelo se analizó el export GoatCounter
+`goatcounter-export-luzfija-20260831T115117Z.zip` para el periodo 24-31/08/2026: 12.110 hits
+mezclados, de los que 1.881 eran pageviews y 10.229 eventos. No aparecieron queries, hashes, URLs
+completas, CUPS, IBAN, correos ni nombres de fichero en rutas, títulos o referrers activos. El build
+`20260831-094944` no mostraba errores first-party de script/promesas; solo una señal CSP atribuible
+a una extensión y una entrada descartada sin fichero.
+
+Once navegaciones posteriores llegaban desde la ruta antigua
+`/simulador-bateria-virtual.html` y una desde `/simulador`. Se añadieron aliases `noindex` sin
+tracking hacia `/comparador-tarifas-solares.html`, evitando pageviews duplicados. Las dimensiones
+opcionales de navegador/sistema/ancho, idioma y ubicación permanecen desactivadas por decisión de
+privacidad: el export no justifica activarlas. La documentación AECC se corrigió para reflejar el
+producto real: no existe botón de copia; solo se miden banner mostrado y cerrado.
+
+<a id="sw-cache-arranque-y-recuperacion-pdfjs-01-09-2026"></a>
+### SW, Cache, Arranque Y Recuperacion PDF.js (01/09/2026)
+
+Se revisó e integró selectivamente la entrega externa
+`LuzFija-auditoria-SW-cache-arranque-2026-09-01.zip` (SHA-256
+`e94455d2f43170ff30de7255cbcca26a6b4022caecffa479cb24e7a254fff199`). Sus hashes internos y
+el patch eran íntegros y este aplicaba limpiamente sobre el checkout. La entrega externa no ejecutó
+lint ni Vitest; tras la integración, ESLint quedó limpio y Node 22.16.0 pasó la suite completa:
+384 ficheros, 1.796 tests correctos, 2 omisiones intencionadas y cero fallos. Se comprobó además
+el worker PDF real y el fake-worker en Chrome 152 (2/2).
+
+Se corrigieron tres fallos reproducidos con Chromium y fixtures sintéticas:
+
+- Si un consumidor esencial de arranque no llegaba a invocar el coordinador del SW, la recuperación
+  inicial quedaba pendiente sin nadie que la consumiera. `error-bootstrap.js` inicia el coordinador
+  al terminar el DOM cuando está disponible; si falla el propio helper, ofrece el botón manual ya
+  estilizado y accesible. El coordinador es idempotente, evitando registros, listeners e intervalos
+  duplicados.
+- Una pestaña creada sin controlador ignoraba cualquier actualización posterior porque la marca de
+  primera instalación era inmutable. Ahora solo se ignora el primer `controllerchange`; una
+  actualización A→B recarga una vez y el mismo build no vuelve a hacerlo.
+- Un fallo transitorio del bootstrap de PDF.js envenenaba el reintento en la misma pestaña. Sin
+  tocar el internal `_setupFakeWorkerGlobal`, se descarta solo el namespace fallido y se usa una
+  identidad nueva por fragmento para core y bootstrap. El fragmento no viaja por HTTP y conserva
+  el `?v=`. El riesgo residual es que PDF.js 6.x cambie su mensaje de error de fake-worker; en ese
+  caso el reintento deja de activarse, pero no se corrompe su runtime.
+
+La matriz externa confirmó caché fría, offline, fallos de Cache Storage, rutas heredadas y ausencia
+de query/hash/nombre de fichero sintético en recuperación y analítica. No cambió `sw.js`,
+`CACHE_VERSION`, vendors, orden de scripts, fiscalidad, cálculos ni parsers.
+Como `factura.js` cambió, se ejecutó además el gate local contra producción con las 13 facturas del
+banco de pruebas: 13/13 huellas de fuente, confianza y campos funcionales coincidieron, sin errores
+de navegador ni persistencia de datos de factura.

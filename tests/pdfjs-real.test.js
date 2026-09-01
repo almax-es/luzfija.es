@@ -30,7 +30,7 @@ const FIXTURE = path.join(__dirname, 'fixtures', 'factura-sintetica.pdf');
 
 // Version que debe tener el par core+worker. PDF.js exige que ambos coincidan
 // EXACTAMENTE; una mezcla de versiones falla en runtime de forma confusa.
-const EXPECTED_VERSION = '6.2.108';
+const EXPECTED_VERSION = '6.3.289';
 
 /**
  * Shims de APIs que los navegadores modernos SI tienen y le faltan a Node.
@@ -42,7 +42,7 @@ const EXPECTED_VERSION = '6.2.108';
  * - `DOMMatrix`: existe en navegadores; PDF.js lo referencia al evaluar el modulo.
  * - `Uint8Array.prototype.toHex` / `.toBase64` y sus estaticos: propuesta reciente,
  *   ya en Chrome/Edge/Safari/Firefox actuales, todavia no en Node 24.
- * - `Promise.try`: lo usan tanto el core como el worker de PDF.js 6.2.108. Llego
+ * - `Promise.try`: lo usan tanto el core como el worker de PDF.js 6.3.289. Llego
  *   en **Node 23**, asi que existe en local con Node 24 pero NO en el CI con
  *   Node 22. Sin este shim la suite pasa en local y falla en remoto por timeout
  *   con `TypeError: Promise.try is not a function`, que fue exactamente lo que
@@ -91,7 +91,7 @@ beforeAll(async () => {
   pdfjsLib.GlobalWorkerOptions.workerSrc = pathToFileURL(WORKER).href;
 });
 
-// Se lee el marcador explicito que emite la build (`pdfjsVersion = 6.2.108`, sin
+// Se lee el marcador explicito que emite la build (`pdfjsVersion = 6.3.289`, sin
 // comillas en el minificado) y no "el primer numero con pinta de version": hoy
 // solo hay uno por fichero, pero cualquier cadena futura con ese formato -una
 // dependencia embebida, un identificador- haria que el test validase otra cosa

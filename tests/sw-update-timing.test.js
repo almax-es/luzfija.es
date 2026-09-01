@@ -23,6 +23,7 @@ describe('SW deferred reload timing', () => {
     delete window.__LF_BUILD_ID;
     delete window.__LF_trackDetail;
     delete window.__LF_INIT_AUTO_RELOAD_PENDING;
+    delete window.__LF_SW_UPDATE_ACTIVE;
     swHandlers = {};
     reloadPage = vi.fn();
 
@@ -76,6 +77,47 @@ describe('SW deferred reload timing', () => {
     delete window.__LF_BUILD_ID;
     delete window.__LF_trackDetail;
     delete window.__LF_INIT_AUTO_RELOAD_PENDING;
+    delete window.__LF_SW_UPDATE_ACTIVE;
+  });
+
+  it('no duplica el coordinador si error-bootstrap y el consumidor normal lo inicializan', async () => {
+    window.LF.initSwUpdate({ swUrl: '/sw.js' });
+    window.LF.initSwUpdate({ swUrl: '/sw.js' });
+    window.dispatchEvent(new Event('load'));
+    await vi.advanceTimersByTimeAsync(0);
+    await Promise.resolve();
+
+    expect(serviceWorker.register).toHaveBeenCalledTimes(1);
+  });
+
+  it('registra el SW si el coordinador se inicializa después de load', async () => {
+    window.LF.initSwUpdate({ swUrl: '/sw.js' });
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(serviceWorker.register).toHaveBeenCalledTimes(1);
+    expect(serviceWorker.register).toHaveBeenCalledWith('/sw.js', { updateViaCache: 'none' });
+  });
+
+  it('trata solo el primer controllerchange como instalación en una pestaña que arrancó sin SW', async () => {
+    const firstController = serviceWorker.controller;
+    serviceWorker.controller = null;
+
+    window.LF.initSwUpdate({ swUrl: '/sw.js' });
+    serviceWorker.controller = firstController;
+    swHandlers.controllerchange();
+    await vi.advanceTimersByTimeAsync(10_100);
+
+    expect(reloadPage).not.toHaveBeenCalled();
+    expect(sessionStorage.getItem('__LF_SW_RELOADED_VERSION__:/')).toBeNull();
+
+    swHandlers.controllerchange();
+    await vi.advanceTimersByTimeAsync(0);
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(reloadPage).toHaveBeenCalledTimes(1);
+    expect(sessionStorage.getItem('__LF_SW_RELOADED_VERSION__:/')).toBe('20260722-080441');
   });
 
   it('reintenta al acabar la supresión inicial sin esperar al intervalo de 15 minutos', async () => {
@@ -160,6 +202,76 @@ describe('SW deferred reload timing', () => {
     );
     await vi.advanceTimersByTimeAsync(750);
     expect(reloadPage).toHaveBeenCalledTimes(1);
+  });
+
+  it('falla cerrado si no puede leer sessionStorage: mantiene aviso manual y no inicia auto-reload', async () => {
+    const dom = new JSDOM('<!doctype html><body></body>', {
+      url: 'https://luzfija.es/',
+      runScripts: 'outside-only'
+    });
+    const isolatedWindow = dom.window;
+    Object.defineProperty(isolatedWindow.document, 'readyState', { configurable: true, value: 'complete' });
+    Object.defineProperty(isolatedWindow.document, 'visibilityState', { configurable: true, value: 'visible' });
+    Object.defineProperty(isolatedWindow.navigator, 'onLine', { configurable: true, value: true });
+    let writes = 0;
+    Object.defineProperty(isolatedWindow, 'sessionStorage', {
+      configurable: true,
+      value: {
+        removeItem() {},
+        getItem() { throw new Error('storage read unavailable'); },
+        setItem() { writes += 1; }
+      }
+    });
+    isolatedWindow.__LF_PENDING_INIT_RECOVERY = [{
+      app: 'resource', dependency: 'lf-utils-js', build: '20260722-080441', phase: 'initial'
+    }];
+    isolatedWindow.eval(updateCode);
+    const isolatedReload = vi.fn();
+
+    isolatedWindow.LF.initSwUpdate({ swUrl: '/sw.js', reloadPage: isolatedReload });
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(isolatedWindow.document.getElementById('lf-init-recovery')).toBeTruthy();
+    expect(isolatedReload).not.toHaveBeenCalled();
+    expect(isolatedWindow.__LF_INIT_AUTO_RELOAD_PENDING).toBeUndefined();
+    expect(writes).toBe(0);
+    dom.window.close();
+  });
+
+  it('no programa auto-reload si sessionStorage no puede persistir el guard anti-bucle', async () => {
+    const dom = new JSDOM('<!doctype html><body></body>', {
+      url: 'https://luzfija.es/',
+      runScripts: 'outside-only'
+    });
+    const isolatedWindow = dom.window;
+    Object.defineProperty(isolatedWindow.document, 'readyState', { configurable: true, value: 'complete' });
+    Object.defineProperty(isolatedWindow.document, 'visibilityState', { configurable: true, value: 'visible' });
+    Object.defineProperty(isolatedWindow.navigator, 'onLine', { configurable: true, value: true });
+    Object.defineProperty(isolatedWindow, 'sessionStorage', {
+      configurable: true,
+      value: {
+        removeItem() {},
+        getItem() { return null; },
+        setItem() { throw new Error('storage write unavailable'); }
+      }
+    });
+    isolatedWindow.__LF_PENDING_INIT_RECOVERY = [{
+      app: 'resource', dependency: 'lf-utils-js', build: '20260722-080441', phase: 'initial'
+    }];
+    isolatedWindow.eval(updateCode);
+    const isolatedReload = vi.fn();
+
+    isolatedWindow.LF.initSwUpdate({ swUrl: '/sw.js', reloadPage: isolatedReload });
+    await Promise.resolve();
+    await Promise.resolve();
+    await Promise.resolve();
+
+    expect(isolatedWindow.document.getElementById('lf-init-recovery')).toBeTruthy();
+    expect(isolatedReload).not.toHaveBeenCalled();
+    expect(isolatedWindow.__LF_INIT_AUTO_RELOAD_PENDING).toBeUndefined();
+    dom.window.close();
   });
 
   it('no repite la recarga automática si el mismo arranque vuelve a fallar', async () => {

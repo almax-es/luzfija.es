@@ -99,7 +99,7 @@
     // codigo nunca va a leer: solo se consume la primera. Sin esto, una segunda hoja con
     // muchas celdas reales ya se ha parseado antes de que el guard de dimensiones pueda
     // rechazar nada.
-    const workbook = XLSX.read(fileBuffer, { type: 'array', sheets: 0 });
+    const workbook = XLSX.read(fileBuffer, { type: 'array', sheets: 0, sheetStubs: true });
     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
     // Fail-closed: si el guard de dimensiones no esta disponible (p. ej. un futuro error de
     // orden de scripts), no se procesa el XLSX sin haberlo comprobado.

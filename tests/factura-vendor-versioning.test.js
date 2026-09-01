@@ -7,12 +7,20 @@ const facturaCode = fs.readdirSync(path.resolve(__dirname, '../js'))
   .sort()
   .map((file) => fs.readFileSync(path.resolve(__dirname, '../js', file), 'utf8'))
   .join('\n');
+const workerBootstrapCode = fs.readFileSync(
+  path.resolve(__dirname, '../js/pdfjs-worker-bootstrap.mjs'),
+  'utf8'
+);
 
 describe('Factura vendor asset versioning', () => {
   it('versiona PDF.js y jsQR usando el build del script actual', () => {
     expect(facturaCode).toContain('searchParams.get(\'v\')');
     expect(facturaCode).toContain('__LF_versionedUrl("vendor/pdfjs/pdf.min.mjs")');
-    expect(facturaCode).toContain('__LF_versionedUrl("vendor/pdfjs/pdf.worker.min.mjs")');
+    expect(facturaCode).toContain('__LF_versionedUrl("js/pdfjs-worker-bootstrap.mjs")');
+    expect(workerBootstrapCode).toContain("new URL('../vendor/pdfjs/pdf.worker.min.mjs', bootstrapUrl)");
+    expect(workerBootstrapCode).toContain('vendorWorkerUrl.search = bootstrapUrl.search;');
+    expect(workerBootstrapCode).toContain("vendorWorkerUrl.hash = '';");
+    expect(workerBootstrapCode).toContain('export const WorkerMessageHandler = workerModule.WorkerMessageHandler;');
     expect(facturaCode).toContain("__LF_versionedUrl('vendor/jsqr/jsQR.js')");
   });
 

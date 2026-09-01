@@ -131,6 +131,7 @@ estes auditando; no hace falta leerlo entero.
 - [Escenario Compartido Del Simulador Solar (`?bv=`)](AUDITORIA-REGISTRO.md#escenario-compartido-del-simulador-solar-bv)
 - [Guard De Datos Frente A CI De Despliegue](AUDITORIA-REGISTRO.md#guard-de-datos-frente-a-ci-de-despliegue)
 - [Duplicados En CSV/XLSX Rechazados (RESUELTA)](AUDITORIA-REGISTRO.md#duplicados-en-csv-xlsx-rechazados-resuelta)
+- [XLSX: Formula Sin Resultado Materializado (RESUELTA 30/08/2026)](AUDITORIA-REGISTRO.md#xlsx-formula-sin-resultado-materializado-resuelta-30-08-2026)
 - [Contrato De "Cambios Pendientes" Roto Por Auto-Refresh, Race De Edicion Y Modal PVPC (RESUELTA)](AUDITORIA-REGISTRO.md#contrato-de-cambios-pendientes-roto-por-auto-refresh-race-de-edicion-y)
 - [Home "Mi Tarifa": Perdida De Datos, Desglose Con Cambios Pendientes Y Opciones Avanzadas (RESUELTA)](AUDITORIA-REGISTRO.md#home-mi-tarifa-perdida-de-datos-desglose-con-cambios-pendientes-y-opci)
 - [Factura, Tabla Manual Y "Mi Tarifa": Ceros Explicitos Y Continuidad (RESUELTA)](AUDITORIA-REGISTRO.md#factura-tabla-manual-y-mi-tarifa-ceros-explicitos-y-continuidad-resuel)
@@ -159,6 +160,7 @@ estes auditando; no hace falta leerlo entero.
 - [QA E2E Con Agentes De Navegador (Falsos Positivos De Interaccion)](AUDITORIA-REGISTRO.md#qa-e2e-con-agentes-de-navegador-falsos-positivos-de-interaccion)
 - [Cargas Parciales, Watchdog Y Telemetria De QA](AUDITORIA-REGISTRO.md#cargas-parciales-watchdog-y-telemetria-de-qa)
 - [Zonas Huerfanas: Banner AECC, Shell Lite Y Registro Del SW (RESUELTA 20/08/2026)](AUDITORIA-REGISTRO.md#zonas-huerfanas-banner-aecc-shell-lite-y-registro-del-sw-resuelta-20-0)
+- [Arranque/SW: Cache Storage E `index-extra.js` Opcional (RESUELTA 30/08/2026)](AUDITORIA-REGISTRO.md#arranque-sw-cache-storage-e-index-extra-opcional-resuelta-30-08-2026)
 - [Formato Numerico: Coma En UI, Punto En Mocks De Tests](AUDITORIA-REGISTRO.md#formato-numerico-coma-en-ui-punto-en-mocks-de-tests)
 - [Numeros Con Punto De Miles, Validador Asimetrico Y Bypass De `safeUrl` (RESUELTA)](AUDITORIA-REGISTRO.md#numeros-con-punto-de-miles-validador-asimetrico-y-bypass-de-safeurl-re)
 - [Dominio 2.0TD Y Validacion De Factura PDF (RESUELTA)](AUDITORIA-REGISTRO.md#dominio-2-0td-y-validacion-de-factura-pdf-resuelta)
@@ -193,6 +195,8 @@ estes auditando; no hace falta leerlo entero.
 - [Fronteras De Renderizado Y Datos (Ronda 17, 28/08/2026)](AUDITORIA-REGISTRO.md#fronteras-de-renderizado-y-datos-ronda-17-28-08-2026)
 - [Accesibilidad Funcional Y Responsive (Ronda 18, 28/08/2026)](AUDITORIA-REGISTRO.md#accesibilidad-funcional-y-responsive-ronda-18-28-08-2026)
 - [Foco Y Colores Forzados (Ronda 19, 28/08/2026)](AUDITORIA-REGISTRO.md#foco-y-colores-forzados-ronda-19-28-08-2026)
+- [Factura Lifecycle Y Export GoatCounter (31/08/2026)](AUDITORIA-REGISTRO.md#factura-lifecycle-y-export-goatcounter-31-08-2026)
+- [SW, Cache, Arranque Y Recuperacion PDF.js (01/09/2026)](AUDITORIA-REGISTRO.md#sw-cache-arranque-y-recuperacion-pdfjs-01-09-2026)
 <!-- REGISTRO-INDICE:FIN -->
 
 ## Hallazgos Que Si Serian Relevantes

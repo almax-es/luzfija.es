@@ -119,6 +119,20 @@ describe('Early first-party error bootstrap', () => {
     }]);
   });
 
+  it('registra el fallo de index-extra sin convertir el complemento opcional en recuperación de página', () => {
+    const isolatedWindow = isolatedPage('');
+
+    failScript(isolatedWindow, '/js/index-extra.js?v=20260829-134956');
+
+    expect(isolatedWindow.__LF_PENDING_INIT_RECOVERY).toBeUndefined();
+    expect(isolatedWindow.__LF_EARLY_ERRORS).toEqual([{
+      kind: 'script-load',
+      source: '/js/index-extra.js',
+      line: 0,
+      col: 0
+    }]);
+  });
+
   it('no recarga la aplicación si falla tracking.js, que es observabilidad opcional', () => {
     const isolatedWindow = isolatedPage('');
 
@@ -289,6 +303,31 @@ describe('Early first-party error bootstrap', () => {
     expect(isolatedWindow.document.getElementById('btnSubirFactura').disabled).toBe(true);
     expect(isolatedWindow.document.getElementById('statusText').textContent).toContain('no terminó');
     expect(isolatedWindow.document.getElementById('toast').classList.contains('show')).toBe(true);
+  });
+
+  it('arranca el coordinador SW desde el bootstrap si lf-app no puede hacerlo', () => {
+    const isolatedWindow = isolatedPage('');
+    const initSwUpdate = vi.fn();
+    isolatedWindow.LF = { initSwUpdate };
+
+    failScript(isolatedWindow, '/js/lf-app.js?v=20260831-132123');
+    finishDom(isolatedWindow);
+
+    expect(initSwUpdate).toHaveBeenCalledTimes(1);
+    expect(initSwUpdate).toHaveBeenCalledWith({ swUrl: '/sw.js' });
+  });
+
+  it('muestra recuperación manual si falla el propio helper de actualización SW', () => {
+    const isolatedWindow = isolatedPage('');
+
+    failScript(isolatedWindow, '/js/lf-sw-update.js?v=20260831-132123');
+    finishDom(isolatedWindow);
+
+    const banner = isolatedWindow.document.getElementById('lf-init-recovery');
+    expect(banner).toBeTruthy();
+    expect(banner.getAttribute('role')).toBe('alert');
+    expect(banner.textContent).toContain('La página no ha cargado todos sus componentes.');
+    expect(banner.querySelector('button')?.textContent).toBe('Recargar ahora');
   });
 
   it('convierte el botón de factura en un aviso si falta factura.js', () => {

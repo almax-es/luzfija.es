@@ -503,7 +503,7 @@ function syncSitemap() {
 }
 
 function countJsMetrics() {
-  const jsFiles = walkFiles(path.join(REPO_ROOT, 'js'), (_fullPath, name) => name.endsWith('.js'));
+  const jsFiles = walkFiles(path.join(REPO_ROOT, 'js'), (_fullPath, name) => /\.m?js$/.test(name));
 
   let lineCount = 0;
   for (const filePath of jsFiles) {
@@ -522,12 +522,14 @@ function countHtmlMetrics() {
     .length;
   const statsHtml = walkHtmlFiles(path.join(REPO_ROOT, 'estadisticas')).length;
   const guiasHtml = walkHtmlFiles(path.join(REPO_ROOT, 'guias')).length;
+  const totalPublic = walkHtmlFiles(REPO_ROOT).length;
 
   return {
     rootHtml,
     statsHtml,
     guiasHtml,
-    totalPublic: rootHtml + statsHtml + guiasHtml
+    otherHtml: totalPublic - rootHtml - statsHtml - guiasHtml,
+    totalPublic
   };
 }
 
@@ -561,7 +563,7 @@ function countTestMetrics() {
 
 function getSnapshotDate() {
   const trackedFiles = [
-    ...walkFiles(path.join(REPO_ROOT, 'js'), (_fullPath, name) => name.endsWith('.js')),
+    ...walkFiles(path.join(REPO_ROOT, 'js'), (_fullPath, name) => /\.m?js$/.test(name)),
     ...walkHtmlFiles(REPO_ROOT),
     ...walkFiles(REPO_ROOT, (_fullPath, name) => ['sw.js', 'styles.css', 'fonts.css'].includes(name)),
     ...walkFiles(REPO_ROOT, (_fullPath, name) => name.endsWith('.webmanifest')),
@@ -604,6 +606,7 @@ function syncReadmeAndCapacidades() {
         next = next.replace(/  - \d+ en raiz\./, `  - ${html.rootHtml} en raiz.`);
         next = next.replace(/  - \d+ en `estadisticas\/`\./, `  - ${html.statsHtml} en \`estadisticas/\`.`);
         next = next.replace(/  - \d+ en `guias\/` \(indice \+ \d+ guias\)\./, `  - ${html.guiasHtml} en \`guias/\` (indice + ${html.guiasHtml - 1} guias).`);
+        next = next.replace(/  - \d+ en otras rutas de compatibilidad\./, `  - ${html.otherHtml} en otras rutas de compatibilidad.`);
         next = next.replace(/- \d+ modulos JavaScript en `js\/` \(incluye `js\/bv\/`\)\./, `- ${js.moduleCount} modulos JavaScript en \`js/\` (incluye \`js/bv/\`).`);
         next = next.replace(/- [\d.]+ lineas JS aproximadas\./, `- ${js.lineCount.toLocaleString('de-DE')} lineas JS aproximadas.`);
         next = next.replace(/- \d+ tarifas en `tarifas\.json`\./, `- ${tarifas.tarifas.length} tarifas en \`tarifas.json\`.`);
@@ -623,7 +626,7 @@ function syncReadmeAndCapacidades() {
         let next = content;
         // La fecha de cabecera es editorial: no equivale al snapshot técnico
         // del repositorio ni se debe adelantar por una regeneración automática.
-        next = next.replace(/- Modulos JS: \d+ \(`js\/\*\.js` \+ `js\/bv\/\*\.js`\)\./, `- Modulos JS: ${js.moduleCount} (\`js/*.js\` + \`js/bv/*.js\`).`);
+        next = next.replace(/- Modulos JS: \d+ \(`js\/\*\.(?:js|\{js,mjs\})` \+ `js\/bv\/\*\.js`\)\./, `- Modulos JS: ${js.moduleCount} (\`js/*.{js,mjs}\` + \`js/bv/*.js\`).`);
         next = next.replace(/- Lineas JS aproximadas: [\d.]+\./, `- Lineas JS aproximadas: ${js.lineCount.toLocaleString('de-DE')}.`);
         next = next.replace(/- `tarifas\.json` \(\d+ tarifas\)\./, `- \`tarifas.json\` (${tarifas.tarifas.length} tarifas).`);
         next = next.replace(/- \d+ archivos de test \(`tests\/\*\.test\.js`\)\./, `- ${tests.fileCount} archivos de test (\`tests/*.test.js\`).`);

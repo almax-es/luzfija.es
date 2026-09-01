@@ -40,6 +40,7 @@ Si vas a hacer una auditoria tecnica, lee completo `AUDITORIA-IA.md` antes de cl
 - Selector de mes de inicio del contrato para ordenar el ciclo BV desde la contratacion.
 - La simulacion de 12 meses usa los datos como patron anual: si se empieza en junio, recorre junio-diciembre y despues enero-mayo sin cambiar los kWh/excedentes de cada mes.
 - Ranking por coste pagado del periodo simulado; se presenta como anual cuando hay 12 meses razonablemente completos (con desempate por saldo BV final).
+- Compatibilidad de enlaces antiguos: `/simulador-bateria-virtual.html` y `/simulador/` redirigen a esta ruta, sin indexacion ni pageview duplicado.
 - Metrica secundaria por tarifa con BV: coste neto (pagado menos saldo BV final), presentada como "saldo a favor" si sale negativa; no altera el orden del ranking.
 
 ### 2.2 Paginas De Apoyo
@@ -198,6 +199,9 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
   (conserva la hora); texto, negativo o >10.000 kWh -> se descarta esa hora con
   aviso; si la mitad o mas de las celdas no vacias son invalidas, o no hay ninguna
   numerica, se rechaza el fichero.
+- Las formulas XLSX solo se aceptan cuando el archivo trae un resultado materializado.
+  Los tres importadores leen los stubs de la primera hoja para distinguir una formula
+  sin cache de una celda realmente vacia; LuzFija no evalua formulas de Excel.
 - Validacion de rango temporal (hasta 370 dias; no exige 12 meses exactos).
 - Resultado:
 - Rellena dias y consumos P1/P2/P3.
@@ -282,10 +286,10 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - Auto-refresh de tarifas al volver foco/online/visibilidad y cada ~15 minutos.
 - Banner de donacion a la AECC (`js/aecc-banner.js`, solo home y solo escritorio >=1024px):
 - Aparece tras un calculo iniciado por el usuario con resultados visibles (eventos `lf:results-requested`/`lf:results-ready`); el auto-refresh no lo dispara.
-- Muestra el logo oficial de la AECC (`img/aecc-logo.svg`, autoalojado) y el codigo Bizum de donacion `11244` con boton de copia (clipboard + fallback `execCommand`).
+- Muestra el logo oficial de la AECC (`img/aecc-logo.svg`, autoalojado) y el codigo Bizum de donacion `11244`. No incluye boton de copia: se retiro por decision de producto al no resultar necesario.
 - Se aparta solo cuando el formulario entra en viewport, los resultados salen, o un campo/panel protegido cae bajo su zona (inputs numericos y el panel "Mi tarifa" `miTarifaForm`); se reevalua en scroll/resize y en eventos `change` (paneles que se despliegan sin scroll). No cuenta como cierre.
-- Cooldown de 7 dias en `lf_aecc_banner_dismissed_at` (se activa al cerrar o al copiar); la clave se preserva en el "Limpiar cache" del menu.
-- Eventos GoatCounter: `aecc-banner-mostrado`, `aecc-banner-copiado`, `aecc-banner-cerrado` (solo si no copio), `aecc-banner-copia-fallida`. Aceptacion = copiados/mostrados.
+- Cooldown de 7 dias en `lf_aecc_banner_dismissed_at` (se activa al cerrar); la clave se preserva en el "Limpiar cache" del menu.
+- Eventos GoatCounter: `aecc-banner-mostrado` y `aecc-banner-cerrado`.
 - LuzFija no interviene en la donacion: el usuario dona por Bizum desde su app bancaria directamente a la AECC.
 
 ### 3.7 Analitica Y Privacidad
@@ -456,11 +460,11 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 ## 7. Arquitectura Tecnica
 
 - Stack: HTML + CSS + Vanilla JS modular.
-- Modulos JS: 40 (`js/*.js` + `js/bv/*.js`).
-- Lineas JS aproximadas: 31.607.
+- Modulos JS: 41 (`js/*.{js,mjs}` + `js/bv/*.js`).
+- Lineas JS aproximadas: 31.964.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
-- `tarifas.json` (122 tarifas).
+- `tarifas.json` (120 tarifas).
 - `/data/pvpc/` (indicador 1001).
 - `/data/surplus/` (indicador 1739).
 - `/data/ssaa/` (indicador 10328, servicios de ajuste medios mensuales).
@@ -541,13 +545,13 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - Dependencias autoalojadas en `vendor/`.
 - Tracking con GoatCounter sin cookies de terceros.
 - Opt-out de analitica por usuario (`goatcounter_optout`).
-- El banner AECC no maneja datos personales: solo copia un codigo publico al portapapeles y guarda un timestamp local de descarte (`lf_aecc_banner_dismissed_at`).
+- El banner AECC no maneja datos personales: muestra un codigo publico y guarda un timestamp local de descarte (`lf_aecc_banner_dismissed_at`).
 
 ## 10. Testing Y Calidad
 
 - Suite Vitest/JSDOM.
-- 110 archivos de test (`tests/*.test.js`).
-- 1769 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 113 archivos de test (`tests/*.test.js`).
+- 1799 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

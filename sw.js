@@ -3,7 +3,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20260829-070558";
+const CACHE_VERSION = "20260901-103903";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 // El build 20260620-051941 contenía un handler del simulador solar que podía
 // llamar `target.closest()` sobre un target no-Element. A diferencia de las
@@ -74,6 +74,7 @@ const ASSETS = [
   "js/pvpc.js",
   "js/factura-parsers.js",
   "js/factura.js",
+  "js/pdfjs-worker-bootstrap.mjs",
   "js/index-extra.js",
   "js/index-extra-loader.js",
   "js/tracking.js",
@@ -94,6 +95,8 @@ const ASSETS = [
   "vendor/chartjs/chart.umd.js",
   // Simulador Batería Virtual
   "comparador-tarifas-solares.html",
+  "simulador-bateria-virtual.html",
+  "simulador/index.html",
   "bv-sim.css",
   "comparador-solar-mejorado.css",
   "js/bv/bv-ui-helpers.js",
@@ -314,9 +317,20 @@ self.addEventListener("message", (event) => {
 
 async function cachePutSafe(cache, req, res) {
   try {
-    if (res && res.ok) await cache.put(req, res.clone());
+    if (cache && res && res.ok) await cache.put(req, res.clone());
   } catch (_) {
     /* ignore */
+  }
+}
+
+async function openRuntimeCacheSafe() {
+  try {
+    return await caches.open(CACHE_NAME);
+  } catch (_) {
+    // Cache Storage es una mejora de disponibilidad, no un requisito para
+    // alcanzar la red. Un fallo de la API no debe convertir network-first en
+    // "cache-first-or-fail" para una pestaña que sigue online.
+    return null;
   }
 }
 
@@ -340,7 +354,7 @@ async function matchHealthyCache(cache, req) {
 // Se resuelve contra la URL de la peticion (no contra "/") para no asumir que el
 // worker vive en el dominio raiz: en un scope tipo "/sub/" sigue siendo correcto.
 async function matchDirectoryIndex(cache, url) {
-  if (!url.pathname.endsWith("/")) return undefined;
+  if (!cache || !url.pathname.endsWith("/")) return undefined;
   return cache.match(new URL("index.html", url).href, { ignoreSearch: true });
 }
 
@@ -369,23 +383,23 @@ self.addEventListener("fetch", (event) => {
   if (req.mode === "navigate" || req.destination === "document") {
     event.respondWith(
       (async () => {
-        const cache = await caches.open(CACHE_NAME);
+        const cache = await openRuntimeCacheSafe();
         try {
           const fresh = await fetch(req);
           // fetch() resuelve también ante HTTP 4xx/5xx. Para errores transitorios
           // del servidor o rate limiting, preferir una copia visitada y sana.
           // Los 404/410 reales se conservan para no revivir páginas retiradas.
           if (fresh.status === 408 || fresh.status === 429 || fresh.status >= 500) {
-            return (await cache.match(req, { ignoreSearch: true })) ||
+            return (cache && await cache.match(req, { ignoreSearch: true })) ||
               (await matchDirectoryIndex(cache, url)) ||
-              (await cache.match(INDEX_PATH)) || fresh;
+              (cache && await cache.match(INDEX_PATH)) || fresh;
           }
           await cachePutSafe(cache, req, fresh);
           return fresh;
         } catch (_) {
-          return (await cache.match(req, { ignoreSearch: true })) ||
+          return (cache && await cache.match(req, { ignoreSearch: true })) ||
             (await matchDirectoryIndex(cache, url)) ||
-            (await cache.match(INDEX_PATH)) || Response.error();
+            (cache && await cache.match(INDEX_PATH)) || Response.error();
         }
       })()
     );
@@ -397,7 +411,7 @@ self.addEventListener("fetch", (event) => {
   if (req.destination === "script" || req.destination === "style" || req.destination === "worker") {
     event.respondWith(
       (async () => {
-        const cache = await caches.open(CACHE_NAME);
+        const cache = await openRuntimeCacheSafe();
         try {
           const fresh = await fetch(req, { cache: "no-cache" });
           // fetch() no rechaza en HTTP 4xx/5xx. No entregar una respuesta de
@@ -466,7 +480,7 @@ self.addEventListener("fetch", (event) => {
   if (url.pathname === GUIDES_SEARCH_INDEX_PATH || ASSISTANT_REFERENCE_PATHS.has(url.pathname)) {
     event.respondWith(
       (async () => {
-        const cache = await caches.open(CACHE_NAME);
+        const cache = await openRuntimeCacheSafe();
         try {
           const fresh = await fetch(req, { cache: "no-store" });
           if (isTransientHttpFailure(fresh)) {
@@ -489,7 +503,7 @@ self.addEventListener("fetch", (event) => {
   if (url.pathname === CNMC_COMMERCIALIZERS_PATH || url.pathname.includes('/data/pvpc/') || url.pathname.includes('/data/surplus/') || url.pathname.includes('/data/ssaa/')) {
     event.respondWith(
       (async () => {
-        const cache = await caches.open(CACHE_NAME);
+        const cache = await openRuntimeCacheSafe();
         try {
           const fresh = await fetch(req, { cache: "no-store" });
           if (isTransientHttpFailure(fresh)) {
@@ -509,8 +523,8 @@ self.addEventListener("fetch", (event) => {
   // Se cachean "al vuelo" la primera vez que se visitan.
   event.respondWith(
     (async () => {
-      const cache = await caches.open(CACHE_NAME);
-      const cached = await cache.match(req, { ignoreSearch: true });
+      const cache = await openRuntimeCacheSafe();
+      const cached = cache ? await cache.match(req, { ignoreSearch: true }) : undefined;
       const fetchPromise = fetch(req).then(async (fresh) => {
         await cachePutSafe(cache, req, fresh);
         return fresh;

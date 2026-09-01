@@ -27,16 +27,17 @@ LuzFija.es es un proyecto `source-available`: el código está publicado para tr
 
 Las versiones anteriores del repositorio pudieron publicarse bajo otros términos. Esta licencia aplica desde la versión que introduce este cambio en adelante, sin revocar permisos concedidos válidamente para versiones previas.
 
-## Estado Actual (2026-08-29)
+## Estado Actual (2026-09-01)
 
-- 36 paginas HTML publicas:
-  - 9 en raiz.
+- 38 paginas HTML publicas:
+  - 10 en raiz.
   - 1 en `estadisticas/`.
   - 26 en `guias/` (indice + 25 guias).
-- 40 modulos JavaScript en `js/` (incluye `js/bv/`).
-- 31.607 lineas JS aproximadas.
-- 122 tarifas en `tarifas.json`.
-- Suite de tests Vitest con 110 archivos y 1769 casos.
+  - 1 en otras rutas de compatibilidad.
+- 41 modulos JavaScript en `js/` (incluye `js/bv/`).
+- 31.964 lineas JS aproximadas.
+- 120 tarifas en `tarifas.json`.
+- Suite de tests Vitest con 113 archivos y 1799 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 
@@ -63,7 +64,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - limpiar cache,
 - reset de formulario.
 - Boton de instalacion PWA cuando el navegador expone `beforeinstallprompt`.
-- Banner de donacion a la AECC (solo escritorio, tras calcular): muestra el codigo Bizum `11244` con boton de copia; LuzFija no recibe dinero, comision ni datos de la donacion. Detalle en `CAPACIDADES-WEB.md` seccion 3.6.
+- Banner de donacion a la AECC (solo escritorio, tras calcular): muestra el codigo Bizum `11244`; LuzFija no recibe dinero, comision ni datos de la donacion. Detalle en `CAPACIDADES-WEB.md` seccion 3.6.
 
 ### 2. Observatorio PVPC (`/estadisticas/`)
 
