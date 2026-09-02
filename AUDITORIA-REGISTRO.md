@@ -2757,6 +2757,10 @@ Se corrigieron tres fallos reproducidos con Chromium y fixtures sintéticas:
   identidad nueva por fragmento para core y bootstrap. El fragmento no viaja por HTTP y conserva
   el `?v=`. El riesgo residual es que PDF.js 6.x cambie su mensaje de error de fake-worker; en ese
   caso el reintento deja de activarse, pero no se corrompe su runtime.
+  **Actualizado el 02/09/2026:** esto sigue vigente para el bootstrap del worker, cuyo reintento
+  responde a un fallo de evaluacion. Para el CORE ya no: un fragmento no fuerza peticion HTTP nueva
+  y no servia cuando la descarga se colgaba a nivel de red, asi que pasa a `lf_retry` en la query.
+  Ver "Compatibilidad WebKit/iPhone Del Lector PDF".
 
 La matriz externa confirmó caché fría, offline, fallos de Cache Storage, rutas heredadas y ausencia
 de query/hash/nombre de fichero sintético en recuperación y analítica. No cambió `sw.js`,
@@ -2804,7 +2808,9 @@ instrumentaron.
 **Validacion de cierre:**
 
 - Instalacion limpia con npm 10, ESLint sin errores y suite completa con Node 22.23.2: 1.803 tests
-  correctos, 2 omisiones intencionadas y cero fallos (113 ficheros, 1.805 tests totales).
+  correctos, 2 omisiones intencionadas y cero fallos (113 ficheros, 1.805 tests totales). Tras el
+  hallazgo posterior de este mismo bloque la suite queda en 1.804 correctos y 1.806 totales, por la
+  regresion añadida para el deadline del import.
 - `tests/pdfjs-real.test.js` abre la fixture con los vendors reales, elimina APIs recientes antes
   de importar core y bootstrap y exige la superficie restaurada. `tests/factura-lifecycle.test.js`
   valida el shim extraido de la fuente, el orden anterior al vendor, la subclase de `Promise`, la

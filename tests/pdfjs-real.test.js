@@ -18,7 +18,8 @@ import { pathToFileURL } from 'url';
  * -> cleanup -> loadingTask.destroy().
  *
  * Se sirve la build `legacy`: PDF.js reserva la build moderna para los ultimos
- * navegadores y su matriz upstream actual solo incluye Safari bajo la legacy.
+ * navegadores y Safari solo figura cubierto bajo la legacy. No se fijan aqui
+ * versiones concretas de esa matriz: no se han contrastado.
  * LuzFija cubre ademas WebKit anterior con shims y el reader explicitos; eso no
  * equivale a ampliar formalmente la matriz de soporte de PDF.js.
  * No se cubre el renderizado a canvas: exigiria la dependencia nativa `canvas`,
@@ -112,7 +113,7 @@ describe('PDF.js vendorizado: version del par core+worker', () => {
 });
 
 describe('PDF.js vendorizado: compatibilidad WebKit no reciente', () => {
-  it('core y worker cargan sin APIs nuevas que faltan en iOS 17', () => {
+  it('core y worker cargan sin las APIs recientes que faltan en WebKit no reciente', () => {
     const probe = String.raw`
       ${PROMISE_WITH_RESOLVERS_SHIM}
       const { readFileSync } = await import('node:fs');
