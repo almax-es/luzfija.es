@@ -147,9 +147,19 @@
         : 0;
       const showAjusteHorario = Math.abs(ajusteHorario) > 0.05;
 
-      // Calcular precio medio por kWh (antes de impuestos y compensación de excedentes)
+      // Calcular precio medio por kWh (antes de impuestos y compensación de excedentes).
+      // Se calcula con los importes EXACTOS, no con consP1Disp/consP2Disp/consP3Disp: esos ya
+      // vienen redondeados a 2 decimales y reconciliados contra el total, y esa reconciliación
+      // se colaba en la media. Sintoma real (02/09/2026, tarifa 1P a 0,166129 y 300 kWh): las
+      // tres lineas mostraban el mismo precio pero la media salia 0,166133, porque dividia
+      // 49,84 (total ya redondeado) entre 300 en vez de 49,8387. En una tarifa de precio unico
+      // la media TIENE que coincidir con ese precio.
       const consumoTotalKwh = safeNum(datos.consumoPunta) + safeNum(datos.consumoLlano) + safeNum(datos.consumoValle);
-      const importeConsumoTotal = consP1Disp + consP2Disp + consP3Disp + ssaaImporte;
+      const importeConsumoTotal =
+        safeNum(datos.consumoPunta) * safeNum(datos.precioPunta) +
+        safeNum(datos.consumoLlano) * safeNum(datos.precioLlano) +
+        safeNum(datos.consumoValle) * safeNum(datos.precioValle) +
+        safeNum(d.ssaa);
       // En PVPC exacto/híbrido, d.cons ya contiene el término variable horario completo
       // (incluidos sus componentes regulados). Las líneas P1/P2/P3 son solo referencias.
       const precioMedioPorKwh = consumoTotalKwh > 0

@@ -132,4 +132,30 @@ describe('Propiedades matematicas del desglose (adversario)', () => {
     }));
     expect(Number.isFinite(r.totalFinal), `total=${r.totalFinal}`).toBe(true);
   });
+
+  // Regresion 02/09/2026: en una tarifa de precio unico el "Coste medio por kWh" salia
+  // 0,166133 con los tres periodos a 0,166129, porque la media se calculaba dividiendo el
+  // total YA redondeado y reconciliado (49,84) entre los kWh en vez del importe exacto
+  // (49,8387). Si los tres precios son iguales, la media tiene que ser ese mismo precio.
+  it('en tarifa de precio unico, el coste medio por kWh coincide con el precio', () => {
+    const precios = [0.166129, 0.1, 0.123456, 0.09];
+    for (const p of precios) {
+      const datos = base({
+        precioPunta: p, precioLlano: p, precioValle: p,
+        consumoPunta: 100, consumoLlano: 100, consumoValle: 100,
+        ssaaNum: 0, ssaaRate: 0
+      });
+      const modal = document.createElement('div');
+      modal.innerHTML = '<div class="desglose-tarifa"></div><div class="desglose-periodo"></div>'
+        + '<div class="desglose-requisitos"></div><div class="desglose-promo"></div>'
+        + '<div class="desglose-body"></div>';
+      D.modal = modal;
+      D.renderizar(D.calcularDesglose(datos), datos);
+      const html = modal.querySelector('.desglose-body').innerHTML;
+      const m = /Coste medio por kWh<\/span>\s*<span class="desglose-importe">([^<]+?)\s*€\/kWh/.exec(html);
+      expect(m, `precio=${p}: no se encontro la linea de coste medio`).toBeTruthy();
+      const medio = parseFloat(m[1].replace(/\./g, '').replace(',', '.'));
+      expect(Math.abs(medio - p), `precio=${p} medio=${m[1]}`).toBeLessThan(5e-7);
+    }
+  });
 });
