@@ -186,4 +186,33 @@ describe('Propiedades matematicas del desglose (adversario)', () => {
     const medio = parseFloat(m[1].replace(/\./g, '').replace(',', '.'));
     expect(Math.abs(medio - (p + rate)), `medio=${m[1]} esperado=${(p + rate).toFixed(6)}`).toBeLessThan(5e-7);
   });
+
+  // Borde del mismo caso: con consumo pequeño el importe SSAA redondea a 0,00 EUR, pero su
+  // tasa sigue siendo positiva y tiene que contar en la media. Condicionar por el importe
+  // redondeado (y no por la tasa) la omitia por completo.
+  it('cuenta el SSAA en la media aunque su importe redondee a 0,00 EUR', () => {
+    const p = 0.15;
+    const rate = 0.00008;   // 3 kWh x 0,00008 = 0,00024 EUR -> redondea a 0,00
+    const kwh = 1;
+    const datos = base({
+      precioPunta: p, precioLlano: p, precioValle: p,
+      consumoPunta: kwh, consumoLlano: kwh, consumoValle: kwh,
+      incluyeServiciosAjuste: false,
+      ssaaNum: 0,
+      ssaaRate: rate
+    });
+    const d = D.calcularDesglose(datos);
+    expect(d.ssaa, 'el importe SSAA deberia redondear a 0 en este caso').toBe(0);
+    const modal = document.createElement('div');
+    modal.innerHTML = '<div class="desglose-tarifa"></div><div class="desglose-periodo"></div>'
+      + '<div class="desglose-requisitos"></div><div class="desglose-promo"></div>'
+      + '<div class="desglose-body"></div>';
+    D.modal = modal;
+    D.renderizar(d, datos);
+    const html = modal.querySelector('.desglose-body').innerHTML;
+    const m = /Coste medio por kWh<\/span>\s*<span class="desglose-importe">([^<]+?)\s*€\/kWh/.exec(html);
+    expect(m, 'no se encontro la linea de coste medio').toBeTruthy();
+    const medio = parseFloat(m[1].replace(/\./g, '').replace(',', '.'));
+    expect(Math.abs(medio - (p + rate)), `medio=${m[1]} esperado=${(p + rate).toFixed(6)}`).toBeLessThan(5e-7);
+  });
 });

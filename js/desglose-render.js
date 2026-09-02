@@ -159,8 +159,13 @@
       // (`roundMoneyProduct(kwh, rate)` en js/lf-ssaa.js y `round2()` en js/lf-calc.js) y viaja
       // asi por el dataset del DOM. Su contribucion exacta se reconstruye desde la tarifa
       // horaria; `d.ssaa` se reserva para la linea monetaria, que si debe ir al centimo.
+      // La condicion mira SOLO la tarifa horaria, nunca el importe redondeado: si el SSAA de un
+      // consumo pequeño redondea a 0,00 EUR, su tasa sigue siendo positiva y debe contar en la
+      // media. Es seguro porque `calcCharge()` (js/lf-ssaa.js) devuelve `rate: 0` siempre que el
+      // SSAA no aplica —tarifa que ya lo incluye o PVPC—, asi que no puede colarse un SSAA
+      // fantasma. Si no hay tasa, se conserva `d.ssaa` como respaldo para no perder el importe.
       const ssaaRateNum = safeNum(d.ssaaRate);
-      const ssaaExacto = (ssaaImporte !== 0 && ssaaRateNum > 0)
+      const ssaaExacto = ssaaRateNum > 0
         ? consumoTotalKwh * ssaaRateNum
         : ssaaImporte;
       const importeConsumoTotal =
