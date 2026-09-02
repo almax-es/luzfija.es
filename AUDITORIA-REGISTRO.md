@@ -736,6 +736,34 @@ ellos, no por el mecanismo original ya corregido.
  reales del Excel maestro (118 activas + 18 inactivas) tienen 0 filas con esos valores.
  Documentados como reservados en `JSON-SCHEMA.md`, no como aceptados.
 
+<a id="compensacion-de-excedentes-igual-al-precio-de-energia-en-chc-plan-ahorro-solar-abierta-02-09-2026"></a>
+### Compensacion De Excedentes Igual Al Precio De Energia En `CHC Plan Ahorro Solar` (ABIERTA 02/09/2026)
+
+- Es la UNICA fila del dataset publicado donde `fv.exc` coincide exactamente con
+  `cPunta`/`cLlano`/`cValle` (los cuatro a `0.152352` el 02/09/2026), y ese `fv.exc` es ademas el
+  mas alto de todo el catalogo por un factor de 1,5x: el siguiente es `0.1` (`CHC BV`) y el rango
+  habitual del resto va de `0.03` a `0.07`. Un barrido de outliers, o una comparacion entre
+  columnas, lo marcara como copia-pega. NO lo es: no lo "corrijas" poniendo un valor plausible ni
+  aproximandolo a la media del dataset.
+- Origen, verificado el 02/09/2026 contra la fuente real: `chcenergia.es/solar/plan-ahorro-solar`
+  publica UN solo numero de ese orden de magnitud, dentro de una caja rotulada "Excedentes", y NO
+  publica bloque "Energia" (a diferencia del resto de paginas de CHC). Por eso el extractor de CHC
+  del validador externo construye su lista de energia buscando el bloque `["Energia",
+  "Excedentes"]` en la rama no-3P, y por eso las columnas de consumo y la columna J del Excel
+  maestro llevan historicamente ese mismo numero publicado.
+- Dato que complica la lectura y conviene conocer antes de opinar: al activar el conmutador de IVA
+  de esa pagina, esa caja escala x1,21 (solo IVA) mientras la potencia escala x1,2719 (IEE + IVA).
+  Es decir, CHC la trata FISCALMENTE como una compensacion, aunque el extractor la consuma como
+  precio de energia. Con la evidencia disponible las dos lecturas son defendibles, y por eso la
+  entrada queda abierta en lugar de cerrarse en un sentido u otro.
+- Impacto acotado: la fila lleva `fv.tope = "ENERGIA"`, asi que el simulador limita la
+  compensacion al coste de energia y un `exc` alto no puede generar saldo por encima de la
+  factura. Aun asi hace que esta tarifa se muestre muy favorable a un perfil con excedentes.
+- Estado: ABIERTA. El 02/09/2026 se decidio dejarla exactamente como esta y registrarla aqui, a
+  falta de decidir el modelado con el autor. Si algun dia se cambia, se toca el Excel maestro (no
+  el JSON, que es generado) y hay que revisar A LA VEZ las columnas de consumo y la J, porque hoy
+  salen del mismo numero publicado.
+
 <a id="limites-de-consumo-anual-maxconsumoanual-minconsumoanualexclusivo"></a>
 ### Limites De Consumo Anual (`maxConsumoAnual` / `minConsumoAnualExclusivo`)
 
