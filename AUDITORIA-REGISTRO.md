@@ -2827,6 +2827,33 @@ instrumentaron.
   del barrido QR/canvas queda como posible mejora de rendimiento, no como fallo funcional de este
   incidente, y la operacion comunicada termino antes del watchdog de 90 s.
 
+**Hallazgo posterior (02/09/2026): promesa de carga envenenada.** Al revisar la precarga
+oportunista del core se detecto un fallo PREVIO a ella y mas grave. `import()` no se puede
+cancelar; si la red deja la peticion de `pdf.min.mjs` pendiente para siempre, la promesa nunca
+se asienta. Como `__LF_pdfjsLoading` solo se limpia en un `finally` que exige que la promesa
+termine, quedaba envenenada: el watchdog recuperaba la interfaz a los 90 s, pero cualquier intento
+posterior del usuario volvia a esperar a esa misma promesa muerta, otros 90 s, indefinidamente.
+
+Se midio colgando la descarga en WebKit con perfil iPhone y el comportamiento resulto identico con
+y sin precarga, lo que descarto que la precarga lo introdujera: el fallo estaba en
+`__LF_ensurePdfJs`, que es el mismo codigo en ambos casos. Por eso NO se retiro la precarga, que
+habria dejado el bug intacto perdiendo una optimizacion medida.
+
+Correcciones: `__LF_importWithTimeout` acota el `import()` a 60 s
+(`__LF_PDFJS_LOAD_TIMEOUT_MS`), por debajo del watchdog para dar un error atribuible, limpiando
+siempre el temporizador; y el reintento pasa a cambiar la **query** (`lf_retry=N`) en lugar del
+`#fragment`. Este segundo punto no era teorico: medido en WebKit, tras un `import()` colgado a
+nivel de red el reintento por fragmento NO emitia peticion HTTP nueva y el segundo intento volvia
+a fallar aun con el deadline puesto. Verificado de punta a punta colgando la primera descarga:
+antes, recuperacion a los 91 s con el segundo intento atascado y una sola peticion HTTP; despues,
+recuperacion a los 61 s y segundo intento procesando en 0,7 s con dos peticiones, la segunda con
+`&lf_retry=1`. Las regresiones nuevas se validaron por mutacion. El hallazgo inicial y la revision
+del mecanismo son de ChatGPT; la atribucion a la precarga se descarto por medicion.
+
+Nota sobre entradas anteriores: la auditoria del 01/09/2026 describe el reintento por fragmento
+para core y bootstrap. Desde este hallazgo eso solo aplica al bootstrap del worker, cuyo reintento
+responde a un fallo de evaluacion y no de red. El core usa `lf_retry` en la query.
+
 **Contrato para actualizaciones futuras:** conservar el par `legacy` de la misma version, los shims
 en ambos realms y `streamTextContent().getReader()` hasta que la nueva version demuestre que puede
 prescindir de cada defensa. Ejecutar la suite con Node 22 y todo el banco real; con navegador
