@@ -475,6 +475,14 @@ no emite ninguna peticion HTTP nueva y el segundo intento vuelve a fallar. `v` s
 conserva intacto para no romper el guard de build del Service Worker, y la query
 extra solo aparece despues de un fallo.
 
+Limite conocido y deliberado: si la precarga sigue en vuelo cuando el usuario
+selecciona la factura y esa precarga acaba fallando, ese PRIMER procesamiento
+comparte la misma promesa y falla con ella; la peticion HTTP nueva llega en el
+intento siguiente. No se anade un `catch` que caiga a un import nuevo dentro del
+mismo intento porque sumaria hasta otros 60 s antes de mostrar nada y el watchdog
+saltaria igual a los 90 s. Lo que importa es que el estado ya no puede quedar
+envenenado indefinidamente: tras el error, el siguiente intento arranca limpio.
+
 En los handlers runtime, Cache Storage es una mejora de resiliencia y no un
 requisito para llegar a la red. Si `caches.open(CACHE_NAME)` falla por cuota,
 privacidad o indisponibilidad de la API, navegaciones, scripts, estilos, workers,
