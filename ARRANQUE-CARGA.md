@@ -432,6 +432,21 @@ internamente el stream mediante iteracion asincrona y falla en versiones de
 Safari/WebKit que tienen `getReader()` pero carecen de ese iterador. Este camino
 es tambien contrato de compatibilidad, no una preferencia de estilo.
 
+El procesado completo de una factura esta acotado por un watchdog duro de 90 s
+(`__LF_MAX_PDF_PROCESSING_MS` y `__LF_startProcessingWatchdog` en `js/factura.js`).
+Al vencer invalida la operacion, libera `window.__LF_FACTURA_BUSY`, oculta el
+loader, restaura el area de subida y avisa de que la factura tarda demasiado; los
+aborters registrados cancelan worker y render cuando es posible. Existe porque el
+pipeline de PDF (import del vendor, `getDocument`, `render`, lectura de texto) no
+tiene deadline propio: antes de este corte, cualquier promesa que quedara
+pendiente dejaba el spinner girando de forma indefinida y sin un solo mensaje,
+que es como se manifesto en iPhone la incompatibilidad de WebKit corregida el
+02/09/2026. No es un timeout arbitrario ni cosmetico: es la unica garantia de que
+un fallo nuevo se vea como aviso y no como cuelgue mudo, y su mensaje es lo que
+permite distinguir "se colgo" de "tardo demasiado" cuando alguien reporta un
+problema. Cubierto por `tests/factura-lifecycle.test.js`; si cambias el plazo o el
+texto del aviso, actualiza tambien esas regresiones.
+
 En los handlers runtime, Cache Storage es una mejora de resiliencia y no un
 requisito para llegar a la red. Si `caches.open(CACHE_NAME)` falla por cuota,
 privacidad o indisponibilidad de la API, navegaciones, scripts, estilos, workers,
