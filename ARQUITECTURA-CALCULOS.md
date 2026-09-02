@@ -171,6 +171,20 @@ No uses este helper para kWh, porcentajes de presentación, datos extraídos de 
 monetarias, ni para intentar reparar un `Number` que ya sea el producto binario de otros factores.
 La cobertura específica vive en `tests/monetary-product-rounding.test.js`.
 
+**Las métricas derivadas se calculan desde los importes exactos, nunca desde los ya redondeados.**
+Las líneas visibles del desglose se redondean al céntimo y además se reconcilian contra su total
+(`reconcileToTarget` en `js/desglose-render.js`), de modo que el residuo del redondeo cae en la
+última línea del grupo: por eso dos periodos con el mismo `kWh × €/kWh` pueden mostrar `16,61` y
+`16,62`. Eso es correcto y deliberado — la columna tiene que sumar el total —, pero **ese importe
+reconciliado no puede alimentar después un cociente**. Regresión real corregida el 02/09/2026: el
+"Coste medio por kWh" dividía entre los kWh la suma de las tres líneas ya reconciliadas, así que en
+una tarifa de precio único a `0,166129 €/kWh` con 300 kWh mostraba `0,166133` (dividía `49,84` en
+vez de `49,8387`). Invariante que debe cumplirse: **si los tres precios de periodo son iguales, el
+coste medio por kWh es exactamente ese precio**, protegida en `tests/desglose-properties.test.js`.
+Los otros dos consumidores de este patrón ya lo hacían bien y conviene no "uniformarlos" al revés:
+`js/lf-surplus-prices.js` y `js/pvpc-stats-csv.js` calculan su precio medio con la suma horaria
+cruda y reservan la suma normalizada para el KPI monetario.
+
 ### Potencia PVPC 2026: conservar magnitudes anuales
 
 Los componentes oficiales de potencia 2.0TD de 2026 se publican en €/kW·año. El motor conserva
