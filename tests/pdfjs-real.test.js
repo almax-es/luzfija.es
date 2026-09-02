@@ -18,8 +18,9 @@ import { pathToFileURL } from 'url';
  * -> cleanup -> loadingTask.destroy().
  *
  * Se sirve la build `legacy`: PDF.js reserva la build moderna para los ultimos
- * navegadores, mientras Safari 16.4+ solo figura soportado por la legacy. Esto
- * importa especialmente en iPhone, donde todos los navegadores usan WebKit.
+ * navegadores y su matriz upstream actual solo incluye Safari bajo la legacy.
+ * LuzFija cubre ademas WebKit anterior con shims y el reader explicitos; eso no
+ * equivale a ampliar formalmente la matriz de soporte de PDF.js.
  * No se cubre el renderizado a canvas: exigiria la dependencia nativa `canvas`,
  * y se ha preferido no anadirla. El render real se verifica en navegador.
  */
@@ -259,7 +260,7 @@ describe('PDF.js vendorizado: carga y extracción reales', () => {
 
     // Secuencia de liberacion EXACTA de js/factura.js: cleanup por pagina dentro
     // del bucle, luego cleanup del documento y por ultimo destroy del loadingTask
-    // (ver el bloque `finally` de __LF_extractPdfText).
+    // (ver el bloque `finally` de __LF_extraerTextoPDF).
     await page.cleanup();
 
     expect(typeof pdf.cleanup).toBe('function');

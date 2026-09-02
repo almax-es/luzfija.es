@@ -1,6 +1,6 @@
 # Registro De Auditorias De LuzFija.es
 
-Ultima actualizacion: 2026-08-28
+Ultima actualizacion: 2026-09-02
 
 Este fichero es de CONSULTA POR AREA, no de lectura lineal. La lectura obligatoria antes de
 auditar es `AUDITORIA-IA.md`: metodo, taxonomia de severidad, tabla de areas y prompt. Aqui
@@ -2764,3 +2764,72 @@ de query/hash/nombre de fichero sintético en recuperación y analítica. No cam
 Como `factura.js` cambió, se ejecutó además el gate local contra producción con las 13 facturas del
 banco de pruebas: 13/13 huellas de fuente, confianza y campos funcionales coincidieron, sin errores
 de navegador ni persistencia de datos de factura.
+
+<a id="compatibilidad-webkit-iphone-del-lector-pdf-resuelta-02-09-2026"></a>
+### Compatibilidad WebKit/iPhone Del Lector PDF (RESUELTA 02/09/2026)
+
+Dos usuarios comunicaron que la subida de una factura en iPhone quedaba pensando sin avanzar,
+tambien al cambiar entre navegadores habituales del dispositivo. La investigacion encontro tres
+incompatibilidades reales y complementarias en la ruta de PDF.js 6.3.289:
+
+- Se estaban sirviendo core y worker desde la build moderna. Se sustituyeron por el par exacto de
+  `pdfjs-dist/legacy/build/`, sin mezclar versiones ni editar los artefactos upstream.
+- La build `legacy` no cubre por si sola todos los runtimes objetivo: LuzFija instala
+  `Promise.withResolvers` y `Map#getOrInsertComputed` antes de evaluar tanto el core como el realm
+  del worker. `js/pdfjs-worker-bootstrap.mjs` conserva la query de build y reexporta
+  `WorkerMessageHandler` para no romper el fallback fake-worker.
+- `getTextContent()` seguia dependiendo internamente de la iteracion asincrona de
+  `ReadableStream`. La ruta productiva agrega ahora los chunks de
+  `streamTextContent().getReader()`; `getTextContent()` queda solo como fallback defensivo cuando
+  la API de stream no existe.
+
+Se añadió ademas un watchdog de 90 s al procesado PDF inicial. Cuando el bucle de eventos puede
+ejecutarlo, invalida la operacion, libera la UI, cancela los recursos PDF registrados y muestra un
+aviso en vez de mantener una espera asincrona muda. No cubre el OCR opcional y no puede interrumpir
+una llamada sincronica que ya este ocupando el hilo; por eso no debe describirse como un deadline
+absoluto de todo el extractor.
+
+**Alcance de la reproduccion.** El resultado del control negativo con el codigo anterior y las APIs
+retiradas depende del documento. Con la fixture sintetica —una pagina, sin QR— termino con un error
+visible en unos 0,5 s y recupero el area de subida. Con facturas reales del banco local reprodujo
+el sintoma comunicado: en WebKit con perfil iPhone el loader siguio visible durante los 45 s
+muestreados, sin toast, sin error de pagina y sin devolver el area de subida, tanto con la factura
+de 128 KB como con la de 5,7 MB. La diferencia esta en que las facturas reales entran al barrido QR
+por imagen, camino que el codigo anterior no completaba. Queda demostrado que las incompatibilidades
+eran reales, que el codigo nuevo las cubre y que con el codigo anterior una factura real producia
+exactamente la espera muda descrita. Lo que no puede demostrarse desde aqui es que la promesa
+pendiente concreta en los dispositivos de los usuarios fuese la misma: esos iPhone no se
+instrumentaron.
+
+**Validacion de cierre:**
+
+- Instalacion limpia con npm 10, ESLint sin errores y suite completa con Node 22.23.2: 1.803 tests
+  correctos, 2 omisiones intencionadas y cero fallos (113 ficheros, 1.805 tests totales).
+- `tests/pdfjs-real.test.js` abre la fixture con los vendors reales, elimina APIs recientes antes
+  de importar core y bootstrap y exige la superficie restaurada. `tests/factura-lifecycle.test.js`
+  valida el shim extraido de la fuente, el orden anterior al vendor, la subclase de `Promise`, la
+  lectura por `getReader()`, la liberacion del reader y el comportamiento del watchdog.
+- WebKit 26.5 con perfil iPhone proceso las 14 facturas del banco local por la interfaz real: 14/14
+  en el runtime nativo y 14/14 retirando las APIs afectadas en documento y worker. En ambos barridos
+  hubo cero spinners, cero errores de pagina, workers reales en los 14 casos y todos los campos
+  generados quedaron rellenos. El maximo fue 6,6 s en nativo y 6,3 s en compatibilidad. Esta prueba
+  verifica finalizacion y estado de UI; no sustituye una comparacion semantica campo a campo.
+- Tras añadirse a la version candidata la precarga oportunista del core al abrir el modal, se repitio
+  el barrido WebKit nativo sobre esa version exacta: 14/14 facturas procesadas, cero spinners, todos
+  los formularios creados y 5,4 s de maximo. La precarga queda fuera del arranque general, no toca
+  el archivo del usuario y conserva el reintento normal si su descarga anticipada falla.
+- Los SHA-256 de `js/factura.js`, `js/pdfjs-worker-bootstrap.mjs`, `pdf.min.mjs` y
+  `pdf.worker.min.mjs` servidos por produccion coincidieron con el checkout del build
+  `20260902-000510`.
+- Tras desplegar, un usuario confirmo que una factura que probo en un iPhone ya cargaba y leia los
+  datos. Estimo una espera inferior a un minuto y advirtio que era una factura especialmente
+  complicada; no es una medicion instrumentada ni permite fijar un tiempo representativo. El coste
+  del barrido QR/canvas queda como posible mejora de rendimiento, no como fallo funcional de este
+  incidente, y la operacion comunicada termino antes del watchdog de 90 s.
+
+**Contrato para actualizaciones futuras:** conservar el par `legacy` de la misma version, los shims
+en ambos realms y `streamTextContent().getReader()` hasta que la nueva version demuestre que puede
+prescindir de cada defensa. Ejecutar la suite con Node 22 y todo el banco real; con navegador
+disponible, comprobar worker real y fake-worker y repetir una prueba WebKit con las APIs objetivo
+retiradas. `reader.cancel()` ante error y un checkpoint dentro del bucle del reader son mejoras de
+liberacion/cancelacion pendientes, no bloqueos del arreglo desplegado.

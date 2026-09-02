@@ -1,6 +1,6 @@
 # Guia Para Auditorias IA De LuzFija.es
 
-Ultima actualizacion: 2026-08-28
+Ultima actualizacion: 2026-09-02
 
 Este documento existe para reducir falsos positivos en auditorias repetidas. No sustituye a
 `AGENTS.md` ni a `CAPACIDADES-WEB.md`; los complementa con criterios de clasificacion.
@@ -54,8 +54,10 @@ repetirlos.
  parser hay que contrastar ademas contra las facturas reales del banco de pruebas y contra los
  informes de QA historicos, que si registran los valores correctos.
 3. **Gate obligatorio de facturas reales.** Cualquier cambio que toque `js/factura-parsers.js` o
- `js/factura.js` debe pasar las 11 facturas reales por la interfaz real comparando candidato
- contra produccion. Se espera 11/11 identicas salvo el caso que se pretende arreglar.
+ `js/factura.js` debe pasar todas las facturas disponibles en el banco local —14 a 02/09/2026—
+ por la interfaz real comparando candidato contra produccion. Se espera identidad funcional en
+ todas salvo el caso que se pretende arreglar. No fijes el gate para siempre en 14: si crece el
+ banco, la obligacion crece con el.
 4. **Valida las regresiones nuevas por mutacion.** Un test que pasa no demuestra que detecte nada:
  hay que romper el arreglo a proposito y comprobar que el test falla. Si no falla, el test no
  cubre lo que dice cubrir (o el codigo es defensivo e inalcanzable, lo cual conviene documentar en
@@ -91,6 +93,7 @@ decision esta en el registro enlazado desde la ultima columna y desde el indice 
 | Area | Estado | Donde mirar antes de reportar |
 |---|---|---|
 | Extractor de factura PDF (texto) | Auditada a fondo y endurecida. Separacion dimensional kW/kWh/EUR/dias, lecturas de contador, maximas demandadas y asociaciones cruzadas al compactar lineas | Extractor De Factura PDF: [Consumos enteros del QR](AUDITORIA-REGISTRO.md#extractor-de-factura-pdf-consumos-enteros-del-qr-cnmc), [Lecturas de contador](AUDITORIA-REGISTRO.md#extractor-de-factura-pdf-lecturas-de-contador-frente-a-consumo-factura), [Potencia contratada](AUDITORIA-REGISTRO.md#extractor-de-factura-pdf-potencia-contratada-frente-a-maximas-demandad), [Separacion dimensional](AUDITORIA-REGISTRO.md#extractor-de-factura-pdf-separacion-dimensional-kw-kwh-eur-dias) |
+| Compatibilidad PDF.js / WebKit / iPhone | Regresion resuelta el 02/09/2026. Build `legacy`, shims en core y worker, lectura por `getReader()` y watchdog visible; validada con WebKit, las 14 facturas locales y un iPhone real. El mecanismo exacto del spinner original no se dio por demostrado | [Compatibilidad WebKit/iPhone Del Lector PDF](AUDITORIA-REGISTRO.md#compatibilidad-webkit-iphone-del-lector-pdf-resuelta-02-09-2026) |
 | QR CNMC | Auditado. Confianza, validacion de host/ruta/unidades, claves case-insensitive, fechas imposibles y PDF multi-factura | [QR CNMC: Confianza, Validacion Y PDF Multi-Factura](AUDITORIA-REGISTRO.md#qr-cnmc-confianza-validacion-y-pdf-multi-factura) |
 | Dominio 2.0TD y peajes | Auditado. Bloqueo fail-closed de 3.0TD/6.xTD con deteccion de auto-declaracion | [Peajes Fuera De 2.0TD](AUDITORIA-REGISTRO.md#peajes-fuera-de-2-0td) |
 | Importador CSV/XLSX | Auditado. Alias de cabecera, generacion frente a exportacion, duplicados, cambios de hora | [CSV: Generacion Frente A Exportacion](AUDITORIA-REGISTRO.md#csv-generacion-frente-a-exportacion), [Duplicados En CSV/XLSX Rechazados (RESUELTA)](AUDITORIA-REGISTRO.md#duplicados-en-csv-xlsx-rechazados-resuelta) |
@@ -197,6 +200,7 @@ estes auditando; no hace falta leerlo entero.
 - [Foco Y Colores Forzados (Ronda 19, 28/08/2026)](AUDITORIA-REGISTRO.md#foco-y-colores-forzados-ronda-19-28-08-2026)
 - [Factura Lifecycle Y Export GoatCounter (31/08/2026)](AUDITORIA-REGISTRO.md#factura-lifecycle-y-export-goatcounter-31-08-2026)
 - [SW, Cache, Arranque Y Recuperacion PDF.js (01/09/2026)](AUDITORIA-REGISTRO.md#sw-cache-arranque-y-recuperacion-pdfjs-01-09-2026)
+- [Compatibilidad WebKit/iPhone Del Lector PDF (RESUELTA 02/09/2026)](AUDITORIA-REGISTRO.md#compatibilidad-webkit-iphone-del-lector-pdf-resuelta-02-09-2026)
 <!-- REGISTRO-INDICE:FIN -->
 
 ## Hallazgos Que Si Serian Relevantes

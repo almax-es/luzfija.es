@@ -1,6 +1,6 @@
 # Arranque Y Orden De Carga
 
-Ultima actualizacion: 2026-08-27
+Ultima actualizacion: 2026-09-02
 
 Contrato de arranque de las tres aplicaciones de LuzFija.es. Documenta QUE orden
 existe, POR QUE existe y QUE se rompe si se altera.
@@ -414,11 +414,16 @@ de una carga online completa sin abrir la puerta a ejecutar bytes de otro build.
 La primera carga offline de un vendor lazy que nunca se descargo sigue sin estar
 garantizada y no debe resolverse inflando el precache preventivamente.
 
-`factura.js` carga el core de PDF.js bajo demanda y configura como `workerSrc`
-`js/pdfjs-worker-bootstrap.mjs?v=<build>`. Antes de evaluar el core,
-`factura.js` instala compatibilidad para `Promise.withResolvers` y
-`Map#getOrInsertComputed`; el bootstrap repite ambas dentro del realm del worker
-antes de importar `pdf.worker.min.mjs` con la misma query. Ademas reexporta
+`factura.js` mantiene PDF.js fuera del arranque general. Al abrir el modal inicia
+una precarga oportunista y no bloqueante del core para aprovechar el tiempo que
+el usuario tarda en elegir el archivo; al subir la factura vuelve a esperar esa
+misma carga o la reintenta si fallo. `__LF_pdfjsLoading` evita descargas duplicadas.
+Esta precarga solo pide codigo first-party: no accede a la factura ni activa OCR.
+Antes de evaluar el core, `factura.js` instala compatibilidad para
+`Promise.withResolvers` y `Map#getOrInsertComputed`. Tras cargarlo, configura como
+`workerSrc` `js/pdfjs-worker-bootstrap.mjs?v=<build>`; el bootstrap repite ambas
+dentro del realm del worker antes de importar `pdf.worker.min.mjs` con la misma
+query. Ademas reexporta
 `WorkerMessageHandler`: esa exportacion es contrato, porque PDF.js la usa como
 fallback cuando no puede crear un Worker dedicado. No sustituyas el bootstrap
 por un script sin exportar, no apuntes `workerSrc` de nuevo al vendor y no
@@ -432,20 +437,28 @@ internamente el stream mediante iteracion asincrona y falla en versiones de
 Safari/WebKit que tienen `getReader()` pero carecen de ese iterador. Este camino
 es tambien contrato de compatibilidad, no una preferencia de estilo.
 
-El procesado completo de una factura esta acotado por un watchdog duro de 90 s
-(`__LF_MAX_PDF_PROCESSING_MS` y `__LF_startProcessingWatchdog` en `js/factura.js`).
-Al vencer invalida la operacion, libera `window.__LF_FACTURA_BUSY`, oculta el
+El procesado PDF inicial que arranca al subir el archivo —no el OCR opcional—
+programa un watchdog de ultimo recurso a los 90 s (`__LF_MAX_PDF_PROCESSING_MS` y
+`__LF_startProcessingWatchdog` en `js/factura.js`). Cuando su callback puede
+ejecutarse, invalida la operacion, libera `window.__LF_FACTURA_BUSY`, oculta el
 loader, restaura el area de subida y avisa de que la factura tarda demasiado; los
-aborters registrados cancelan worker y render cuando es posible. Existe porque el
-pipeline de PDF (import del vendor, `getDocument`, `render`, lectura de texto) no
-tiene deadline propio: antes de este corte, cualquier promesa que quedara
-pendiente dejaba el spinner girando de forma indefinida y sin un solo mensaje,
-que es como se manifesto en iPhone la incompatibilidad de WebKit corregida el
-02/09/2026. No es un timeout arbitrario ni cosmetico: es la unica garantia de que
-un fallo nuevo se vea como aviso y no como cuelgue mudo, y su mensaje es lo que
-permite distinguir "se colgo" de "tardo demasiado" cuando alguien reporta un
-problema. Cubierto por `tests/factura-lifecycle.test.js`; si cambias el plazo o el
-texto del aviso, actualiza tambien esas regresiones.
+aborters registrados cancelan `loadingTask` y renders cuando es posible. Existe
+porque las promesas del pipeline PDF (`import()`, `getDocument`, `render` y lectura
+de texto) no traen un deadline comun.
+
+No es una interrupcion preventiva del hilo: un temporizador JavaScript no puede
+cortar una llamada sincronica que ya este ejecutandose —por ejemplo, una pasada de
+`jsQR`— y actuara al recuperar WebKit el bucle de eventos. Tampoco limita el OCR,
+que tiene su propio ciclo de cancelacion y puede necesitar mas tiempo. El watchdog
+se incorporo al atender los reportes de spinner en iPhone para que una espera
+asincrona futura termine en un estado visible. El control negativo con el codigo
+anterior reprodujo la incompatibilidad de WebKit y, con facturas reales, tambien la
+espera muda: el loader siguio visible durante los 45 s muestreados sin mostrar
+aviso alguno. Con la fixture sintetica, en cambio, fallaba rapido y con error
+visible, porque no entra al barrido QR por imagen. Lo que no se instrumento es el
+estado concreto de los dispositivos que reportaron el problema. El comportamiento del watchdog esta cubierto
+por `tests/factura-lifecycle.test.js`; si cambias el plazo, el alcance o el texto
+del aviso, actualiza tambien esas regresiones.
 
 En los handlers runtime, Cache Storage es una mejora de resiliencia y no un
 requisito para llegar a la red. Si `caches.open(CACHE_NAME)` falla por cuota,

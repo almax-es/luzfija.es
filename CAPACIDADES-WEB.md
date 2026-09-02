@@ -1,6 +1,6 @@
 # Capacidad Completa De LuzFija.es
 
-Ultima actualizacion: 2026-08-27
+Ultima actualizacion: 2026-09-02
 
 Este documento es la fuente de verdad funcional para describir todo lo que hace la web, pagina por pagina, sin omitir flujos relevantes para asistentes IA o documentacion de producto.
 Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y luego este documento para el inventario funcional completo.
@@ -216,7 +216,17 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 ### 3.5 Extractor De Factura PDF
 
 - Entrada por boton o drag&drop.
-- Carga lazy de PDF.js y, opcionalmente, OCR (Tesseract).
+- PDF.js queda fuera del arranque general y se precarga de forma oportunista al abrir el modal;
+  seleccionar el archivo espera esa misma carga y la reintenta si fallo. La precarga solo descarga
+  codigo first-party: no lee ninguna factura ni activa el OCR opcional (Tesseract).
+- Compatibilidad PDF en WebKit: core y worker proceden de la misma version de la build `legacy` de
+  PDF.js; antes de evaluarlos se instalan los shims runtime requeridos y la extraccion de texto usa
+  `streamTextContent().getReader()` para no depender del iterador asincrono ausente en versiones
+  afectadas de Safari.
+- La lectura PDF inicial programa un watchdog de 90 segundos. Si el trabajo asincrono no termina y
+  el navegador puede ejecutar el temporizador, invalida la operacion, cancela los recursos PDF
+  registrados, retira el loader, recupera el area de subida y muestra un aviso accionable. No es un
+  limite del OCR opcional ni puede interrumpir una llamada sincronica que ya este ocupando el hilo.
 - Extraccion en 3 capas:
 - Texto PDF.
 - QR CNMC en texto.
@@ -461,7 +471,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 41 (`js/*.{js,mjs}` + `js/bv/*.js`).
-- Lineas JS aproximadas: 32.065.
+- Lineas JS aproximadas: 32.072.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (120 tarifas).

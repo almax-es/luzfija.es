@@ -395,9 +395,9 @@
       async function __LF_readPageTextContent(page, params = {}){
         if (!page || typeof page.streamTextContent !== 'function') {
           // Compatibilidad defensiva con mocks/integraciones antiguas. La ruta
-          // productiva de PDF.js 6.x usa el reader de Web Streams: Safari hasta
-          // 26.5 no implementa ReadableStream[Symbol.asyncIterator], que es lo
-          // que getTextContent() intenta consumir internamente con `for await`.
+          // productiva de PDF.js 6.x usa el reader de Web Streams: hay versiones
+          // afectadas de Safari/WebKit sin ReadableStream[Symbol.asyncIterator],
+          // que es lo que getTextContent() intenta consumir con `for await`.
           return page.getTextContent(params);
         }
 
@@ -1641,6 +1641,13 @@
 
         __LF_focusTrapAttach(modal);
         setTimeout(()=>{ (__LF_q('uploadAreaFactura') || modal).focus?.(); }, 0);
+
+        // Precarga oportunista: entre abrir el modal y elegir el PDF en Archivos/
+        // iCloud suelen pasar varios segundos, tiempo que en red movil se puede
+        // aprovechar para descargar el lector antes de que haga falta. Es
+        // fire-and-forget: __LF_ensurePdfJs() es idempotente (__LF_pdfjsLoading
+        // evita duplicar la descarga) y si falla aqui, se reintenta igual al subir.
+        __LF_ensurePdfJs().catch(()=>{});
       }
 
       function __LF_closeModal(){
