@@ -415,13 +415,22 @@ La primera carga offline de un vendor lazy que nunca se descargo sigue sin estar
 garantizada y no debe resolverse inflando el precache preventivamente.
 
 `factura.js` carga el core de PDF.js bajo demanda y configura como `workerSrc`
-`js/pdfjs-worker-bootstrap.mjs?v=<build>`. El bootstrap instala la compatibilidad
-de `Map#getOrInsertComputed` dentro del realm del worker antes de importar
-`pdf.worker.min.mjs` con la misma query. Ademas reexporta `WorkerMessageHandler`:
-esa exportacion es contrato, porque PDF.js la usa como fallback cuando no puede
-crear un Worker dedicado. No sustituyas el bootstrap por un script sin exportar
-ni apuntes `workerSrc` de nuevo al vendor sin revalidar navegadores que carecen
-de esa API.
+`js/pdfjs-worker-bootstrap.mjs?v=<build>`. Antes de evaluar el core,
+`factura.js` instala compatibilidad para `Promise.withResolvers` y
+`Map#getOrInsertComputed`; el bootstrap repite ambas dentro del realm del worker
+antes de importar `pdf.worker.min.mjs` con la misma query. Ademas reexporta
+`WorkerMessageHandler`: esa exportacion es contrato, porque PDF.js la usa como
+fallback cuando no puede crear un Worker dedicado. No sustituyas el bootstrap
+por un script sin exportar, no apuntes `workerSrc` de nuevo al vendor y no
+retires ninguno de los shims sin demostrarlo contra la build real en
+`tests/pdfjs-real.test.js` y `tests/factura-lifecycle.test.js`.
+
+La build vendorizada debe proceder siempre de `pdfjs-dist/legacy/build/` y core
+y worker deben conservar la misma version exacta. La extraccion de texto usa
+`streamTextContent().getReader()` deliberadamente: `getTextContent()` consume
+internamente el stream mediante iteracion asincrona y falla en versiones de
+Safari/WebKit que tienen `getReader()` pero carecen de ese iterador. Este camino
+es tambien contrato de compatibilidad, no una preferencia de estilo.
 
 En los handlers runtime, Cache Storage es una mejora de resiliencia y no un
 requisito para llegar a la red. Si `caches.open(CACHE_NAME)` falla por cuota,
