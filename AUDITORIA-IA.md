@@ -147,7 +147,7 @@ estes auditando; no hace falta leerlo entero.
 - [Frontera Temporal Del Periodo PVPC Estandar (RESUELTA)](AUDITORIA-REGISTRO.md#frontera-temporal-del-periodo-pvpc-estandar-resuelta)
 - [PVPC Desaparece Del Ranking, SSAA `unavailable` Y Cache Del Service Worker](AUDITORIA-REGISTRO.md#pvpc-desaparece-del-ranking-ssaa-unavailable-y-cache-del-service-worke)
 - [`tarifas.json` No Lleva Test De Esquema En El Repo (Deliberado)](AUDITORIA-REGISTRO.md#tarifas-json-no-lleva-test-de-esquema-en-el-repo-deliberado)
-- [Compensacion De Excedentes Igual Al Precio De Energia En `CHC Plan Ahorro Solar` (ABIERTA 02/09/2026)](AUDITORIA-REGISTRO.md#compensacion-de-excedentes-igual-al-precio-de-energia-en-chc-plan-ahorro-solar-abierta-02-09-2026)
+- [Compensacion De Excedentes Inflada En `CHC Plan Ahorro Solar` (RESUELTA 02/09/2026)](AUDITORIA-REGISTRO.md#compensacion-de-excedentes-inflada-en-chc-plan-ahorro-solar-resuelta-02-09-2026)
 - [Limites De Consumo Anual (`maxConsumoAnual` / `minConsumoAnualExclusivo`)](AUDITORIA-REGISTRO.md#limites-de-consumo-anual-maxconsumoanual-minconsumoanualexclusivo)
 - [Cero Pagado Frente A Coste De Ranking En La Fila BV (Home)](AUDITORIA-REGISTRO.md#cero-pagado-frente-a-coste-de-ranking-en-la-fila-bv-home)
 - [Invariante De `fv.bv` En "Mi Tarifa" (RESUELTA 20/08/2026)](AUDITORIA-REGISTRO.md#invariante-de-fv-bv-en-mi-tarifa-resuelta-20-08-2026)
