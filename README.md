@@ -37,7 +37,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - 41 modulos JavaScript en `js/` (incluye `js/bv/`).
 - 32.103 lineas JS aproximadas.
 - 120 tarifas en `tarifas.json`.
-- Suite de tests Vitest con 113 archivos y 1805 casos.
+- Suite de tests Vitest con 113 archivos y 1806 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 
