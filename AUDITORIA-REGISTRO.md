@@ -736,39 +736,35 @@ ellos, no por el mecanismo original ya corregido.
  reales del Excel maestro (118 activas + 18 inactivas) tienen 0 filas con esos valores.
  Documentados como reservados en `JSON-SCHEMA.md`, no como aceptados.
 
-<a id="compensacion-de-excedentes-inflada-en-chc-plan-ahorro-solar-resuelta-02-09-2026"></a>
-### Compensacion De Excedentes Inflada En `CHC Plan Ahorro Solar` (RESUELTA 02/09/2026)
+<a id="fv-exc-igual-a-cpunta-en-chc-plan-ahorro-solar-compensacion-1-1-correcto"></a>
+### `fv.exc` Igual A `cPunta` En `CHC Plan Ahorro Solar`: Compensacion 1:1 (CORRECTO, NO TOCAR)
 
-- Sintoma: era la UNICA fila del dataset donde `fv.exc` coincidia exactamente con
-  `cPunta`/`cLlano`/`cValle` (los cuatro a `0.152352`), y ese `fv.exc` era el mas alto del catalogo
-  por un factor de 1,5x — el siguiente es `0.1` (`CHC BV`) y el rango habitual va de `0.03` a
-  `0.07`.
-- Causa raiz: `chcenergia.es/solar/plan-ahorro-solar` es la unica pagina de CHC **sin bloque
-  "Energia"**, y su CMS rotula "Excedentes" la caja que en realidad contiene el PRECIO DE ENERGIA.
-  El extractor de tarifas ya lo contemplaba (su rama no-3P busca la energia en
-  `["Energia", "Excedentes"]`), pero `_excedente_chc` del validador de excedentes leia esa misma
-  caja como si fuera la compensacion y la comparaba contra la columna J del Excel, que por eso
-  arrastraba el precio de energia en lugar de una compensacion.
-- Prueba que lo cierra (conmutador de IVA de la propia web, 02/09/2026): en
-  `/solar/bateria-virtual` la energia pasa de `0,159673` a `0,193204` (x1,21), la potencia de
-  `0,088956` a `0,113140` (x1,2719), la cuota de bateria de `2,99` a `3,62` (x1,21) y **los
-  excedentes se quedan en `0,10`, sin reescalar**. La compensacion es un abono y no se reescala
-  nunca; la caja de Ahorro Solar SI se reescala (`0,152352` -> `0,184346`), luego es energia.
-  **Criterio reutilizable: lo que identifica una compensacion es que NO cambia con el conmutador,
-  no el factor concreto** — el factor varia entre webs y aqui indujo primero a la conclusion
-  contraria.
-- Correccion aplicada: `fv.exc` pasa de `0.152352` a `0.04`, el valor que el dataset ya usa para
-  las otras tres tarifas de CHC sin compensacion publicada (`Plan Estrella Duo`, `Plan Ilumina Duo
-  Promo`, `CHC VE 3P`), siguiendo el criterio de copiar el bloque FV de quien sirve la tarifa. Las
-  columnas de consumo se quedan en `0.152352`: ese numero SI es su precio de energia y era
-  correcto. Ademas se anadio `CHC Plan Ahorro Solar` a `EXCEDENTES_PENDIENTES` en el validador
-  externo, para que deje de comparar el precio de energia contra J y quede en PENDIENTE junto a
-  sus tres hermanas.
-- Aviso para futuras auditorias: `fv.exc = 0.04` en esta fila **no esta verificado contra fuente
-  oficial** — CHC no publica la compensacion de este producto en ninguna pagina publica (revisado
-  el producto, `/solar` y las condiciones generales). Es un valor por precedente de
-  comercializadora, deliberado, y su estado PENDIENTE en el validador de excedentes es el
-  correcto, no un hueco por cerrar.
+- Es la UNICA fila del dataset donde `fv.exc` coincide exactamente con `cPunta`/`cLlano`/`cValle`
+  (los cuatro a `0.152352` el 02/09/2026), y ese `fv.exc` es ademas el mas alto del catalogo por un
+  factor de 1,5x: el siguiente es `0.1` (`CHC BV`) y el rango habitual va de `0.03` a `0.07`. Un
+  barrido de outliers, o una comparacion entre columnas, lo marcara como copia-pega. **NO lo es.**
+- Motivo: `Plan Ahorro Solar` **compensa los excedentes al mismo precio al que vende la energia**
+  (1:1). Es el gancho comercial del producto ("compensando tus excedentes al mejor precio"), y por
+  eso `chcenergia.es/solar/plan-ahorro-solar` y la tarjeta de `/solar` publican **un unico numero**,
+  rotulado "Excedentes", que sirve para las dos columnas del Excel. Comparalo con `CHC BV`, en la
+  misma pagina de listado: ahi CHC SI rotula dos bloques distintos, "Energia" (`0,159673`) y
+  "Excedentes" (`0,10`), porque en ese producto no coinciden.
+- Consecuencia sana: los DOS validadores externos leen ese mismo numero, cada uno para su columna,
+  y los dos dan OK. No es una casualidad ni un falso positivo.
+- **Dos defectos reales de la web de CHC que aparecen en esa pagina y NO deben confundirte:**
+  (a) la caja "Potencia" rotula sus valores en `€/kWh` cuando son `€/kW dia` (en el resto de
+  paginas de CHC lo rotula bien); (b) el conmutador de "precios con IVA" reescala ese numero de
+  excedentes x1,21 (`0,152352` -> `0,184346`), cuando la compensacion de `CHC BV` no se reescala
+  (`0,10` -> `0,10`). Son fallos de su plantilla, no informacion sobre el concepto.
+- Historial, para que no se repita: el 02/09/2026 se dedujo de (b) que la caja contenia en realidad
+  el precio de energia mal rotulado, se bajo `fv.exc` a `0.04` y se anadio la tarifa a
+  `EXCEDENTES_PENDIENTES`. Era **incorrecto** y se revirtio el mismo dia al revisar el marcado del
+  listado `/solar`, donde se ve que CHC rotula deliberadamente "Excedentes" en esta tarifa y
+  "Energia" en la de bateria virtual. Leccion: ante una anomalia asi, mira como rotula la MISMA web
+  un producto hermano donde ya conozcas la respuesta, antes de deducir nada de un detalle de
+  render.
+- Mantenimiento: las dos columnas van ATADAS. Si CHC cambia el precio de este plan, hay que mover
+  el consumo y la J a la vez, al mismo valor.
 
 <a id="limites-de-consumo-anual-maxconsumoanual-minconsumoanualexclusivo"></a>
 ### Limites De Consumo Anual (`maxConsumoAnual` / `minConsumoAnualExclusivo`)
