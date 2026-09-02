@@ -158,4 +158,32 @@ describe('Propiedades matematicas del desglose (adversario)', () => {
       expect(Math.abs(medio - p), `precio=${p} medio=${m[1]}`).toBeLessThan(5e-7);
     }
   });
+
+  // Segunda mitad de la misma regresion: el SSAA llega al desglose ya redondeado dos veces
+  // (roundMoneyProduct en lf-ssaa + round2 en lf-calc), asi que sumar `d.ssaa` a la media
+  // reintroducia el error aunque el resto fuese exacto. Con 300 kWh, 0,166129 y tarifa SSAA
+  // 0,01908 salia 0,185196 en vez de 0,185209.
+  it('el coste medio por kWh incluye el SSAA con su importe exacto, no el redondeado', () => {
+    const p = 0.166129;
+    const rate = 0.01908;
+    const kwh = 100;
+    const datos = base({
+      precioPunta: p, precioLlano: p, precioValle: p,
+      consumoPunta: kwh, consumoLlano: kwh, consumoValle: kwh,
+      incluyeServiciosAjuste: false,
+      ssaaNum: Number((3 * kwh * rate).toFixed(2)),
+      ssaaRate: rate
+    });
+    const modal = document.createElement('div');
+    modal.innerHTML = '<div class="desglose-tarifa"></div><div class="desglose-periodo"></div>'
+      + '<div class="desglose-requisitos"></div><div class="desglose-promo"></div>'
+      + '<div class="desglose-body"></div>';
+    D.modal = modal;
+    D.renderizar(D.calcularDesglose(datos), datos);
+    const html = modal.querySelector('.desglose-body').innerHTML;
+    const m = /Coste medio por kWh<\/span>\s*<span class="desglose-importe">([^<]+?)\s*€\/kWh/.exec(html);
+    expect(m, 'no se encontro la linea de coste medio').toBeTruthy();
+    const medio = parseFloat(m[1].replace(/\./g, '').replace(',', '.'));
+    expect(Math.abs(medio - (p + rate)), `medio=${m[1]} esperado=${(p + rate).toFixed(6)}`).toBeLessThan(5e-7);
+  });
 });

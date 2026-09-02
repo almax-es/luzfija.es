@@ -181,6 +181,15 @@ reconciliado no puede alimentar después un cociente**. Regresión real corregid
 una tarifa de precio único a `0,166129 €/kWh` con 300 kWh mostraba `0,166133` (dividía `49,84` en
 vez de `49,8387`). Invariante que debe cumplirse: **si los tres precios de periodo son iguales, el
 coste medio por kWh es exactamente ese precio**, protegida en `tests/desglose-properties.test.js`.
+
+El SSAA es la trampa fina del mismo cociente, porque su importe llega al desglose **redondeado dos
+veces**: `js/lf-ssaa.js` lo produce ya como `roundMoneyProduct(kwh, rate)` y `js/lf-calc.js` lo
+vuelve a pasar por `round2()` antes de publicarlo en el dataset del DOM. Sumar ese `d.ssaa` a la
+media reintroduce el error aunque el resto de sumandos sean exactos: con `300 kWh`, `0,166129 €/kWh`
+y tarifa SSAA `0,01908 €/kWh` daba `0,185196` en vez de `0,185209`. La contribución exacta se
+reconstruye desde la tarifa horaria (`kWh × ssaaRate`) y `d.ssaa` queda reservado para la línea
+monetaria, que sí debe ir al céntimo. Detectado por revisión cruzada de Codex sobre el primer
+arreglo, que solo cubría los tres periodos.
 Los otros dos consumidores de este patrón ya lo hacían bien y conviene no "uniformarlos" al revés:
 `js/lf-surplus-prices.js` y `js/pvpc-stats-csv.js` calculan su precio medio con la suma horaria
 cruda y reservan la suma normalizada para el KPI monetario.

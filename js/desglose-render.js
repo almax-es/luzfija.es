@@ -155,11 +155,19 @@
       // 49,84 (total ya redondeado) entre 300 en vez de 49,8387. En una tarifa de precio unico
       // la media TIENE que coincidir con ese precio.
       const consumoTotalKwh = safeNum(datos.consumoPunta) + safeNum(datos.consumoLlano) + safeNum(datos.consumoValle);
+      // El SSAA tampoco puede entrar por `d.ssaa`: ese importe ya viene redondeado dos veces
+      // (`roundMoneyProduct(kwh, rate)` en js/lf-ssaa.js y `round2()` en js/lf-calc.js) y viaja
+      // asi por el dataset del DOM. Su contribucion exacta se reconstruye desde la tarifa
+      // horaria; `d.ssaa` se reserva para la linea monetaria, que si debe ir al centimo.
+      const ssaaRateNum = safeNum(d.ssaaRate);
+      const ssaaExacto = (ssaaImporte !== 0 && ssaaRateNum > 0)
+        ? consumoTotalKwh * ssaaRateNum
+        : ssaaImporte;
       const importeConsumoTotal =
         safeNum(datos.consumoPunta) * safeNum(datos.precioPunta) +
         safeNum(datos.consumoLlano) * safeNum(datos.precioLlano) +
         safeNum(datos.consumoValle) * safeNum(datos.precioValle) +
-        safeNum(d.ssaa);
+        ssaaExacto;
       // En PVPC exacto/híbrido, d.cons ya contiene el término variable horario completo
       // (incluidos sus componentes regulados). Las líneas P1/P2/P3 son solo referencias.
       const precioMedioPorKwh = consumoTotalKwh > 0
