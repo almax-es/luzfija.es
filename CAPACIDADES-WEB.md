@@ -219,6 +219,11 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - PDF.js queda fuera del arranque general y se precarga de forma oportunista al abrir el modal;
   seleccionar el archivo espera esa misma carga y la reintenta si fallo. La precarga solo descarga
   codigo first-party: no lee ninguna factura ni activa el OCR opcional (Tesseract).
+- La descarga del lector tiene un deadline propio de 60 segundos, por debajo del watchdog para dar
+  un error atribuible en vez de que lo tape el corte general. Sin el, una peticion que nunca
+  responde dejaria la promesa de carga compartida sin asentar y todos los intentos posteriores del
+  usuario esperarian a esa promesa muerta. El reintento pide una URL HTTP distinta, no solo una
+  identidad de modulo nueva: un fragmento no viaja en la peticion y no forzaria descarga nueva.
 - Compatibilidad PDF en WebKit: core y worker proceden de la misma version de la build `legacy` de
   PDF.js; antes de evaluarlos se instalan los shims runtime requeridos y la extraccion de texto usa
   `streamTextContent().getReader()` para no depender del iterador asincrono ausente en versiones
