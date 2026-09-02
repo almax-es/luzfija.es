@@ -236,6 +236,10 @@
       const __LF_MAX_PDF_RENDER_PIXELS = 16 * 1024 * 1024;
       const __LF_MAX_PDF_RENDER_DIMENSION = 8192;
       const __LF_MAX_PDF_PROCESSING_MS = 90 * 1000;
+      // Deadline propio del import() del core. Debe quedar POR DEBAJO del watchdog
+      // para dar un error atribuible en vez de que lo tape el corte general, y muy
+      // por encima de cualquier descarga real: 518 KB en 60 s son menos de 70 kbps.
+      const __LF_PDFJS_LOAD_TIMEOUT_MS = 60 * 1000;
       const __LF_OCR_SCAN_INVITE = '⚠️ No se ha detectado texto seleccionable. Parece un PDF escaneado: puedes leerlo con OCR o introducir los datos manualmente.';
 
       function __LF_beginOperation(){
@@ -465,6 +469,27 @@
         return true;
       }
 
+      // import() no se puede cancelar y, si la red deja la peticion pendiente para
+      // siempre, la promesa nunca se asienta: sin este deadline __LF_pdfjsLoading
+      // quedaria envenenado y TODOS los intentos posteriores esperarian a un muerto.
+      // El timer se limpia al terminar para no dejar 60 s de temporizador vivo en
+      // cada carga normal.
+      async function __LF_importWithTimeout(src, timeoutMs){
+        let timeoutId = null;
+        try {
+          return await Promise.race([
+            import(src),
+            new Promise((_, reject) => {
+              timeoutId = setTimeout(() => {
+                reject(new Error('Tiempo de espera agotado cargando PDF.js'));
+              }, timeoutMs);
+            })
+          ]);
+        } finally {
+          if (timeoutId !== null) clearTimeout(timeoutId);
+        }
+      }
+
       async function __LF_ensurePdfJs(){
         __LF_ensurePdfRuntimeCompatibility();
         if (window.pdfjsLib && __LF_ensurePdfWorker()) return window.pdfjsLib;
@@ -481,12 +506,18 @@
         // el pathname ni la query de build enviada por HTTP.
         const importUrl = new URL(baseSrc, document.baseURI);
         if (__LF_pdfjsImportFailures > 0) {
-          importUrl.hash = `lf-pdfjs-retry-${__LF_pdfjsImportFailures}`;
+          // Tiene que cambiar la URL **HTTP**, no solo la identidad del modulo: un
+          // `#fragment` no viaja en la peticion y, medido en WebKit, tras un import()
+          // colgado a nivel de red el reintento NO emitia una peticion nueva y el
+          // segundo intento del usuario volvia a fallar. La query si fuerza descarga
+          // nueva. Solo se anade tras un fallo, asi que la carga normal no cambia, y
+          // `v` se conserva intacto para no romper el guard de build del SW.
+          importUrl.searchParams.set('lf_retry', String(__LF_pdfjsImportFailures));
         }
         const src = importUrl.href;
         __LF_pdfjsLoading = (async()=>{
           try {
-            const mod = await import(src);
+            const mod = await __LF_importWithTimeout(src, __LF_PDFJS_LOAD_TIMEOUT_MS);
             const lib = (mod && (mod.pdfjsLib || mod.default)) ? (mod.pdfjsLib || mod.default) : mod;
             window.pdfjsLib = lib;
 

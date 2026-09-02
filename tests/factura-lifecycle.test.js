@@ -194,12 +194,31 @@ describe('compatibilidad de PDF.js', () => {
     expect(bootstrapCode).toContain("vendorWorkerUrl.hash = '';");
   });
 
-  it('reintenta el import del core con fragmentos sin propagarlo al worker', () => {
+  it('reintenta el import del core cambiando la URL HTTP, sin propagarlo al worker', () => {
     expect(facturaCode).toMatch(/function __LF_ensurePdfRuntimeCompatibility\(\)\{\s*__LF_installPromiseWithResolversShim\(\);\s*__LF_installMapGetOrInsertComputedShim\(\);/);
     expect(facturaCode).toContain('const importUrl = new URL(baseSrc, document.baseURI);');
-    expect(facturaCode).toContain('importUrl.hash = `lf-pdfjs-retry-${__LF_pdfjsImportFailures}`;');
+    // El reintento DEBE alterar la query, no solo el fragmento: medido en WebKit,
+    // tras un import() colgado a nivel de red un `#fragment` nuevo no emite una
+    // peticion HTTP nueva y el siguiente intento del usuario vuelve a fallar.
+    expect(facturaCode).toContain("importUrl.searchParams.set('lf_retry', String(__LF_pdfjsImportFailures));");
+    expect(facturaCode).not.toContain('importUrl.hash =');
     expect(facturaCode).toMatch(/catch \(error\) \{\s*__LF_pdfjsImportFailures\+\+;/);
     expect(facturaCode).toContain('__LF_versionedUrl("js/pdfjs-worker-bootstrap.mjs")');
+  });
+
+  it('acota el import del core con un deadline por debajo del watchdog', () => {
+    // Sin deadline, un import() que nunca se asienta deja __LF_pdfjsLoading
+    // envenenado: el `finally` que lo limpia solo corre si la promesa termina,
+    // asi que TODOS los intentos posteriores esperarian a una promesa muerta.
+    expect(facturaCode).toContain('const __LF_PDFJS_LOAD_TIMEOUT_MS = 60 * 1000;');
+    expect(facturaCode).toContain('await __LF_importWithTimeout(src, __LF_PDFJS_LOAD_TIMEOUT_MS)');
+    expect(facturaCode).toMatch(/__LF_importWithTimeout[\s\S]{0,600}Promise\.race/);
+    // El timer se limpia siempre: si no, cada carga normal dejaria 60 s de
+    // temporizador vivo.
+    expect(facturaCode).toMatch(/__LF_importWithTimeout[\s\S]{0,600}finally\s*\{\s*if \(timeoutId !== null\) clearTimeout\(timeoutId\);/);
+    const deadline = Number(/__LF_PDFJS_LOAD_TIMEOUT_MS = (\d+) \* 1000;/.exec(facturaCode)[1]);
+    const watchdog = Number(/__LF_MAX_PDF_PROCESSING_MS = (\d+) \* 1000;/.exec(facturaCode)[1]);
+    expect(deadline).toBeLessThan(watchdog);
   });
 
   it('prepara el reintento del worker sin mutar internals de PDF.js y conserva ?v=', () => {

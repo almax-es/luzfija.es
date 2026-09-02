@@ -460,6 +460,21 @@ estado concreto de los dispositivos que reportaron el problema. El comportamient
 por `tests/factura-lifecycle.test.js`; si cambias el plazo, el alcance o el texto
 del aviso, actualiza tambien esas regresiones.
 
+El `import()` del core tiene ademas su propio deadline de 60 s
+(`__LF_PDFJS_LOAD_TIMEOUT_MS`), por debajo del watchdog para dar un error
+atribuible en vez de que lo tape el corte general. No es redundante: `import()`
+no se puede cancelar y, si la red deja la peticion pendiente para siempre, la
+promesa nunca se asienta. Como `__LF_pdfjsLoading` solo se limpia en un `finally`
+que exige que la promesa termine, sin deadline esa promesa queda envenenada y
+todos los intentos posteriores del usuario esperan a un muerto, incluso despues
+de que el watchdog haya recuperado la interfaz.
+
+Por eso el reintento cambia la **query** (`lf_retry=N`) y no solo el fragmento:
+medido en WebKit, tras un `import()` colgado a nivel de red un `#fragment` nuevo
+no emite ninguna peticion HTTP nueva y el segundo intento vuelve a fallar. `v` se
+conserva intacto para no romper el guard de build del Service Worker, y la query
+extra solo aparece despues de un fallo.
+
 En los handlers runtime, Cache Storage es una mejora de resiliencia y no un
 requisito para llegar a la red. Si `caches.open(CACHE_NAME)` falla por cuota,
 privacidad o indisponibilidad de la API, navegaciones, scripts, estilos, workers,
