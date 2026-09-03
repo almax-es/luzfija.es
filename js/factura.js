@@ -561,6 +561,14 @@
       }
 
 
+      // Sobre `enableScripting: false`, que se propone en cada auditoria: NO va aqui.
+      // En PDF.js 6.x ese flag pertenece a `AnnotationElement` (la capa de anotaciones
+      // del visor), no a `getDocument`; pasarlo seria un no-op que aparenta una
+      // proteccion inexistente. Lo que impide ejecutar JavaScript de un PDF en
+      // LuzFija es que no se monta el visor: sin `AnnotationLayer`, `getJSActions`,
+      // `annotationStorage` ni `renderForms`, no hay nada que lo ejecute. De las
+      // anotaciones solo se LEE la URL del QR con `page.getAnnotations()`.
+      // Detalle y advisory en AUDITORIA-REGISTRO.md.
       async function __LF_extraerTextoPDF(file, operationId){
         await __LF_ensurePdfJs();
         const ab = await file.arrayBuffer();

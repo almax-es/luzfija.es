@@ -97,6 +97,9 @@ Motor de reconocimiento óptico de caracteres (WASM + JS).
 - **Versión (Core):** 7.0.0 (actualizado 02/07/2026 desde 5.1.0; el wrapper 7.x requiere core `^7.0.0`)
 - **Licencia:** Apache License 2.0 (Ver `worker.min.js`)
 - **Carga:** lazy desde `js/factura.js` sin `?v=` en `workerPath`, `corePath` ni `langPath`; `langPath` es una URL de directorio que Tesseract usa para construir rutas internas.
+- ⚠️ **Punto ciego conocido de la revisión de advisories (03/09/2026):** `tesseract.js-core` **compila el Tesseract C/C++ original dentro del `.wasm`**. Consultar advisories del paquete npm y del repositorio `naptha/tesseract.js-core` —que es lo que se hizo el 17/08/2026— **NO cubre las vulnerabilidades de ese componente nativo**: una auditoría npm puede quedar en verde con un advisory abierto en el código C/C++ empaquetado. Upstream ha publicado vulnerabilidades en la carga de ficheros `.traineddata` (escrituras fuera de límites en versiones anteriores del motor), y su mitigación declarada es usar modelos de fuente confiable.
+  - **Por qué hoy no es explotable aquí:** el usuario aporta la imagen, nunca el modelo. `js/factura.js` fija `langPath` a `vendor/tessdata/`, el idioma a `spa` y `corePath` al fichero local; no hay ninguna ruta por la que un `.traineddata` de terceros llegue al motor. El vector documentado upstream exige justamente eso.
+  - **Qué hacer en la próxima revisión:** contrastar además la versión del motor Tesseract que empaqueta el `.wasm` vendorizado, no solo el paquete JS. Mientras el modelo siga siendo el nuestro y venga del repo, un advisory de `.traineddata` no cambia el riesgo de LuzFija, pero sí debe quedar registrado en vez de darse por cubierto por la consulta a npm.
 - **Archivos JS:**
   - `tesseract/tesseract.min.js`
     - **SHA-256:** `000c27d9cd0def655f77b36c72a389c0ab13793aa31cb4d7aab56d09c0afbc7e`
