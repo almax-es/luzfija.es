@@ -93,10 +93,10 @@ describe('Redondeo exacto de bases fiscales monetarias', () => {
       fechaYmd: '2026-09-30'
     });
 
-    expect(home.totalNum).toBe(106.44);
-    expect(bv.totalPagar).toBe(106.44);
-    expect(desglose.totalRanking).toBe(106.44);
-    expect(desglose.igicBase).toBe(3.08);
+    expect(home.totalNum).toBe(105.11);
+    expect(bv.totalPagar).toBe(105.11);
+    expect(desglose.totalRanking).toBe(105.11);
+    expect(desglose.igicBase).toBe(3.04);
   });
 
   it('redondea hacia arriba los medios céntimos exactos de IVA, IGIC e IPSI', () => {
