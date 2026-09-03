@@ -2,14 +2,19 @@
   "_meta": {
     "schema": 1,
     "source": "https://sede.cnmc.gob.es/listado/censo/2",
-    "syncedAt": "2026-09-01",
+    "syncedAt": "2026-09-03",
     "count": 936,
     "sourceRows": 937,
     "duplicateCodes": [
       "R2-222"
     ],
     "invalidWebsiteCodes": [
-      "R2-1123"
+      "R2-1081",
+      "R2-1104",
+      "R2-1107",
+      "R2-1123",
+      "R2-496",
+      "R2-870"
     ],
     "inactiveCodes": [
       "R2-002",
@@ -19,6 +24,7 @@
       "R2-059",
       "R2-084",
       "R2-099",
+      "R2-1002",
       "R2-1004",
       "R2-1006",
       "R2-1008",
@@ -28,17 +34,25 @@
       "R2-1018",
       "R2-1019",
       "R2-1020",
+      "R2-1021",
       "R2-1022",
       "R2-1023",
       "R2-1024",
       "R2-1025",
       "R2-1026",
       "R2-1030",
+      "R2-1031",
       "R2-1043",
       "R2-1051",
       "R2-1053",
+      "R2-1067",
+      "R2-1081",
+      "R2-1092",
+      "R2-1094",
+      "R2-1099",
       "R2-1112",
       "R2-1113",
+      "R2-1115",
       "R2-115",
       "R2-120",
       "R2-124",
@@ -348,6 +362,7 @@
       "R2-838",
       "R2-840",
       "R2-841",
+      "R2-843",
       "R2-844",
       "R2-845",
       "R2-846",
@@ -396,6 +411,7 @@
       "R2-973",
       "R2-975",
       "R2-977",
+      "R2-978",
       "R2-979",
       "R2-985",
       "R2-988",
@@ -925,8 +941,7 @@
     },
     "R2-1081": {
       "name": "CAPTURA ENERGIA",
-      "phone": "900 056 040",
-      "website": "http://https//capturaenergia.com/"
+      "phone": "900 056 040"
     },
     "R2-1082": {
       "name": "ENUCA COMERCIALIZADORA, S.L.",
@@ -1044,8 +1059,7 @@
     },
     "R2-1104": {
       "name": "PRAETIUM ENERGY, S.L.",
-      "phone": "900 563 268",
-      "website": "http://https//praetium-energy.github.io/site/"
+      "phone": "900 563 268"
     },
     "R2-1105": {
       "name": "ENERGYASSET COMERCIALIZADORA DE ENERGÍA, S.L.",
@@ -1059,8 +1073,7 @@
     },
     "R2-1107": {
       "name": "DUEROLUZ ENERGIA, S.L.",
-      "phone": "900 869 573",
-      "website": "http://https//dueroluzenergia.com/"
+      "phone": "900 869 573"
     },
     "R2-1108": {
       "name": "DUFERCO ENERGIA SPA",
@@ -1423,7 +1436,7 @@
       "website": "https://www.repsolluzygas.com/"
     },
     "R2-248": {
-      "name": "WIND TO MARKET S.A",
+      "name": "WIND TO MARKET, S.A.",
       "phone": "900 823 923",
       "website": "http://www.aeqenergia.com/"
     },
@@ -2390,8 +2403,7 @@
     },
     "R2-496": {
       "name": "CORPORACIÓN ALIMENTARIA GUISSONA, S.A.",
-      "phone": "900 844 980",
-      "website": "http://xn--bonreaenergia-rdb/"
+      "phone": "900 844 980"
     },
     "R2-497": {
       "name": "NIEVES ENERGÍA , S.L.",
@@ -3693,7 +3705,7 @@
       "website": "http://www.eleiaenergia.com/"
     },
     "R2-759": {
-      "name": "COLABORA ENERGIA ARGUS SL",
+      "name": "COLABORA ENERGIA ARGUS S.L.",
       "phone": "800 007 999",
       "website": "http://www.colaboraenergia.com/"
     },
@@ -4248,8 +4260,7 @@
     },
     "R2-870": {
       "name": "URANOSCOPIDAE III ENERGIA, S.L.",
-      "phone": "900 377 559",
-      "website": "http://https//:one-energy.es."
+      "phone": "900 377 559"
     },
     "R2-871": {
       "name": "IBERICA IMPULSA, S.L.",

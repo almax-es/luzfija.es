@@ -96,6 +96,33 @@ describe('Censo local de comercializadoras CNMC', () => {
     expect(parsed.invalidWebsiteCodes).toEqual(['R2-1000']);
   });
 
+  it('descarta una web con el esquema escrito dos veces', () => {
+    // Errata real del censo (R2-1081 el 03/09/2026): `new URL()` la acepta con
+    // protocolo http: y hostname "https", asi que un filtro que solo mire el
+    // protocolo la da por buena y publica un enlace que no lleva a ninguna parte.
+    const html = `
+      <table><tr>
+        <th>Nº de orden</th><th>Nombre empresa</th><th>Teléfono Att cliente gratuito</th>
+        <th>Página web</th><th>Estado</th>
+      </tr><tr><td>R2-1000</td><td>Empresa válida</td><td>900 123 456</td>
+        <td><a href="http://https//ejemplo.com/">https//ejemplo.com</a></td><td></td></tr></table>`;
+    const parsed = parseCnmcCommercializers(html);
+    expect(parsed.commercializers['R2-1000'].website).toBeUndefined();
+    expect(parsed.invalidWebsiteCodes).toEqual(['R2-1000']);
+  });
+
+  it('no publica ninguna web sin hostname resoluble en el censo versionado', () => {
+    // Guardrail sobre el dato real, no sobre una fixture: si una errata de la
+    // CNMC vuelve a colarse, el enlace "Web oficial" del extractor de facturas
+    // apuntaria a un host inexistente.
+    for (const [code, entry] of Object.entries(registry.commercializers || {})) {
+      if (!entry.website) continue;
+      const { hostname } = new URL(entry.website);
+      expect(hostname.includes('.'), `${code} publica un hostname sin punto: ${entry.website}`).toBe(true);
+      expect(hostname.split('.').every(Boolean), `${code} publica un hostname con etiqueta vacía: ${entry.website}`).toBe(true);
+    }
+  });
+
   it('aborta si desaparece o se duplica un encabezado obligatorio', () => {
     const html = `
       <table><tr><th>Nº de orden</th><th>Nombre empresa</th><th>Página web</th><th>Estado</th></tr>

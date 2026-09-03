@@ -476,7 +476,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 41 (`js/*.{js,mjs}` + `js/bv/*.js`).
-- Lineas JS aproximadas: 32.235.
+- Lineas JS aproximadas: 32.245.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (120 tarifas).
@@ -566,7 +566,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Suite Vitest/JSDOM.
 - 114 archivos de test (`tests/*.test.js`).
-- 1817 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 1821 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.
@@ -597,8 +597,9 @@ No se debe afirmar:
 - PVPC estándar valida cobertura completa de todos los días cerrados y falla cerrado ante meses/días ausentes; el modo CSV mantiene su política explícita exacta/híbrida/media. La caché de cálculo se versiona como `pvpc_cache_v3` para no reutilizar resultados `v2` previos a esta garantía.
 - SSAA requerido y no disponible nunca se convierte en 0 €: la tarifa queda no comparable tanto en home como en el simulador solar. Un `0` explícitamente publicado sí es válido, y un mes histórico ausente no usa un valor actual.
 - El Service Worker reutiliza una copia sana ante 408/429/5xx de PVPC, excedentes, SSAA, censo CNMC e índices auxiliares, pero respeta 404/410.
-- El workflow mensual del censo solo publica automaticamente un lote pequeño de altas puramente
-  aditivas. Bajas, renombrados, cambios de contacto, incidencias del scraper, cambios de estado o
-  más de 20 altas requieren revisión manual y dejan la Action fallida antes del commit.
+- El workflow mensual del censo funciona como espejo: replica lo que sirva la CNMC —altas, bajas,
+  renombrados, contactos y metadatos— sin revisión previa, porque lo que interesa es tener su
+  listado replicado. Lo único que detiene la publicación es un fallo propio: el parser aborta si
+  cambia el formato de la tabla y los tests del censo se ejecutan siempre antes del commit.
 - Un HTTP 200 no basta por sí solo: los cargadores endurecidos validan una estructura mínima útil y no fijan en caché JSON vacío/malformado; el siguiente intento puede recuperarse sin recargar la pestaña.
 - Observatorio etiqueta años parciales, enumera meses fallidos y no los deja en caché de sesión; excedentes y búsqueda de guías reintentan fallos transitorios dentro de la misma sesión.

@@ -52,27 +52,38 @@ describe('CI workflow hardening', () => {
     }
   });
 
-  it('automatiza el censo mensualmente y solo publica altas pequeñas ya clasificadas', () => {
+  it('replica el censo mensualmente sin frenar por el contenido del listado', () => {
     const workflow = readRepoFile('.github/workflows/cnmc-commercializers.yml');
-    const classifyAt = workflow.indexOf('- name: Classify census changes');
-    const issueAt = workflow.indexOf('- name: Open or update manual review issue');
-    const reviewAt = workflow.indexOf('- name: Stop changes that require manual review');
-    const commitAt = workflow.indexOf('- name: Commit and push safe additive update');
+    const describeAt = workflow.indexOf('- name: Describe census changes');
+    const validateAt = workflow.indexOf('- name: Validate mirrored census');
+    const commitAt = workflow.indexOf('- name: Commit and push mirrored census');
+    const deployAt = workflow.indexOf('- name: Trigger tests and Pages deployment');
 
     expect(workflow).toContain("cron: '23 7 1 * *'");
     expect(workflow).toContain('scripts/classify-cnmc-commercializers-update.mjs');
-    expect(workflow).toContain("steps.classify.outputs.status == 'manual_review'");
-    expect(workflow).toContain("steps.classify.outputs.status == 'safe_additive'");
-    expect(workflow).toContain('issues: write');
-    expect(workflow).toContain('gh issue create');
-    expect(workflow).toContain('gh issue comment');
     expect(workflow).toContain('git add data/cnmc-commercializers.json');
     expect(workflow).toContain('/actions/workflows/tests.yml/dispatches');
-    expect(classifyAt).toBeGreaterThanOrEqual(0);
-    expect(issueAt).toBeGreaterThan(classifyAt);
-    expect(reviewAt).toBeGreaterThan(classifyAt);
-    expect(reviewAt).toBeGreaterThan(issueAt);
-    expect(commitAt).toBeGreaterThan(reviewAt);
+
+    // La politica es espejo: bajas, modificaciones y cambios de metadatos se
+    // publican igual. Lo unico que puede detener la publicacion es un fallo
+    // propio (parser o tests), nunca lo que traiga el listado.
+    expect(workflow).not.toContain('manual_review');
+    expect(workflow).not.toContain('safe_additive');
+    expect(workflow).not.toContain('gh issue create');
+    expect(workflow).not.toContain('gh issue comment');
+    expect(workflow).not.toContain('issues: write');
+
+    // La validacion no puede quedar condicionada a un tipo de cambio: si se
+    // salta, un censo que rompe el contrato del extractor se publicaria solo.
+    expect(validateAt).toBeGreaterThan(describeAt);
+    expect(workflow.slice(validateAt, commitAt)).not.toContain('if:');
+    expect(commitAt).toBeGreaterThan(validateAt);
+    expect(deployAt).toBeGreaterThan(commitAt);
+
+    // Sin cambios no se commitea: evita un commit vacio cada primero de mes.
+    expect(workflow).toContain('git diff --quiet -- data/cnmc-commercializers.json');
+    expect(workflow).toContain("if: steps.publish.outputs.published == 'true'");
+
     expect(workflow).not.toMatch(/git add data\/(?:\s|$)/);
     expect(workflow).not.toContain('git add .');
   });

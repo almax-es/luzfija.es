@@ -919,6 +919,75 @@ describe('Factura PDF Integration (Black Box)', () => {
     expect(document.getElementById('confianzaBadge').textContent).toContain('100%');
   });
 
+  it('no publica el enlace "Web oficial" si el censo trae la web malformada', async () => {
+    // Errata real del censo CNMC (R2-1081 el 03/09/2026): el esquema escrito dos
+    // veces. `new URL('http://https//ejemplo.com/')` no lanza —da protocolo
+    // http: y hostname "https"—, asi que un filtro que solo mire el protocolo
+    // pinta un enlace que no lleva a ninguna parte. El resto de la ficha
+    // (nombre y telefono) debe seguir saliendo: solo se descarta el enlace.
+    // resetModules porque __LF_cnmcRegistryPromise memoriza el censo entre
+    // tests: sin esto se reutilizaria el del caso anterior y este no probaria nada.
+    vi.resetModules();
+    const qrUrl = [
+      'https://comparador.cnmc.gob.es/comparador/QRE2?',
+      'pP1=3&pP2=3&cfP1=89&cfP2=59&cfP3=80',
+      '&iniF=2026-07-15&finF=2026-08-14&fFact=2026-08-25',
+      '&com=R2-796&tc=E0&tf=N&finContrato=2027-07-15&finPen=0000-00-00',
+      '&rev=0&verde=1&imp=45.04&impPot=14.4&impEner=19.54&impSA=0',
+      '&finBS=0.74&impOtrosSinIE=0.8&prP1=29.2&prP2=29.2',
+      '&prE1=0.0852&prE2=0.0852&prE3=0.0852&pmaxP1=2.748&pmaxP2=3.108'
+    ].join('');
+    const items = [
+      { str: 'Període facturat. Dies: 30', transform: [0, 0, 0, 0, 10, 90] },
+      ...Array(8).fill({ str: 'relleno de texto de factura para superar el mínimo', transform: [0, 0, 0, 0, 0, 0] })
+    ];
+
+    window.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        commercializers: {
+          'R2-796': {
+            name: 'EMPRESA CON WEB ROTA, S.L.',
+            phone: '900 500 005',
+            website: 'http://https//empresa-con-web-rota.com/'
+          }
+        }
+      })
+    });
+    window.pdfjsLib.getDocument.mockReturnValue({
+      promise: Promise.resolve({
+        numPages: 1,
+        getPage: () => Promise.resolve({
+          getTextContent: () => Promise.resolve({ items }),
+          getAnnotations: () => Promise.resolve([{ url: qrUrl }]),
+          cleanup: () => {},
+          getViewport: () => ({ width: 100, height: 100 }),
+          render: () => ({ promise: Promise.resolve() })
+        }),
+        cleanup: () => {},
+        destroy: () => {}
+      })
+    });
+
+    await import('../js/factura-parsers.js');
+    await import('../js/factura.js');
+    window.__LF_bindFacturaParser?.();
+
+    const mockFile = new File(['web-rota'], 'factura-web-rota.pdf', { type: 'application/pdf' });
+    mockFile.arrayBuffer = async () => new ArrayBuffer(10);
+    const event = new Event('change', { bubbles: true });
+    Object.defineProperty(event, 'target', { value: { files: [mockFile] } });
+    document.getElementById('fileInputFactura').dispatchEvent(event);
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    const card = document.getElementById('formValidacionFactura').querySelector('.qr-factura-info');
+    expect(card).not.toBeNull();
+    expect(document.getElementById('nombreCompania').textContent).toBe('EMPRESA CON WEB ROTA, S.L.');
+    expect(card.textContent).toContain('900 500 005');
+    expect(card.textContent).not.toContain('Web oficial');
+    expect(card.querySelector('a[href*="empresa-con-web-rota"]')).toBeNull();
+  });
+
   // Un corte transitorio de red no puede dejar la pestana sin censo hasta recargar:
   // la promesa fallida se purga para que el siguiente procesamiento reintente.
   // Mismo patron que __pvpcLoadMonth en index-extra.js (auditoria del 10/07/2026).

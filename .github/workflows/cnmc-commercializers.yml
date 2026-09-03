@@ -12,7 +12,6 @@ env:
 permissions:
   contents: write
   actions: write
-  issues: write
 
 concurrency:
   group: cnmc-commercializers-update
@@ -43,7 +42,12 @@ jobs:
       - name: Download and validate current CNMC census
         run: npm run sync:cnmc-commercializers
 
-      - name: Classify census changes
+      # La clasificacion es INFORMATIVA: describe que ha cambiado para el resumen
+      # y el mensaje de commit, pero no decide si se publica. La politica es
+      # espejo: lo que sirva la CNMC es lo que se replica. Lo unico que puede
+      # detener la publicacion es un fallo propio (parseo incoherente o tests en
+      # rojo), nunca el contenido del listado.
+      - name: Describe census changes
         id: classify
         run: >-
           node scripts/classify-cnmc-commercializers-update.mjs
@@ -60,55 +64,17 @@ jobs:
           MODIFIED_CODES: ${{ steps.classify.outputs.modified_codes }}
         run: |
           echo "### Censo de comercializadoras CNMC" >> "$GITHUB_STEP_SUMMARY"
-          echo "- Clasificación: $UPDATE_STATUS" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Tipo de cambio (informativo): $UPDATE_STATUS" >> "$GITHUB_STEP_SUMMARY"
           echo "- Resultado: $UPDATE_SUMMARY" >> "$GITHUB_STEP_SUMMARY"
           echo "- Altas: ${ADDED_CODES:-ninguna}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Bajas: ${REMOVED_CODES:-ninguna}" >> "$GITHUB_STEP_SUMMARY"
           echo "- Modificadas: ${MODIFIED_CODES:-ninguna}" >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Open or update manual review issue
-        if: steps.classify.outputs.status == 'manual_review'
-        env:
-          GH_TOKEN: ${{ github.token }}
-          GH_REPO: ${{ github.repository }}
-          UPDATE_SUMMARY: ${{ steps.classify.outputs.summary }}
-          ADDED_CODES: ${{ steps.classify.outputs.added_codes }}
-          REMOVED_CODES: ${{ steps.classify.outputs.removed_codes }}
-          MODIFIED_CODES: ${{ steps.classify.outputs.modified_codes }}
-        run: |
-          ISSUE_TITLE="Revisar actualización del censo CNMC"
-          ISSUE_BODY="$RUNNER_TEMP/cnmc-manual-review.md"
-          {
-            echo "La sincronización mensual del censo CNMC necesita revisión manual."
-            echo
-            echo "- Resultado: $UPDATE_SUMMARY"
-            echo "- Altas: ${ADDED_CODES:-ninguna}"
-            echo "- Bajas: ${REMOVED_CODES:-ninguna}"
-            echo "- Modificadas: ${MODIFIED_CODES:-ninguna}"
-            echo "- Ejecución: $GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID"
-            echo
-            echo "El workflow no ha modificado ni publicado el censo."
-          } > "$ISSUE_BODY"
-
-          ISSUE_NUMBER="$(gh issue list --repo "$GH_REPO" --state open --limit 100 \
-            --json number,title \
-            --jq 'map(select(.title == "Revisar actualización del censo CNMC")) | first | .number // empty')"
-          if [ -n "$ISSUE_NUMBER" ]; then
-            gh issue comment "$ISSUE_NUMBER" --repo "$GH_REPO" --body-file "$ISSUE_BODY"
-          else
-            gh issue create --repo "$GH_REPO" --title "$ISSUE_TITLE" --body-file "$ISSUE_BODY"
-          fi
-
-      - name: Stop changes that require manual review
-        if: steps.classify.outputs.status == 'manual_review'
-        env:
-          UPDATE_SUMMARY: ${{ steps.classify.outputs.summary }}
-        run: |
-          echo "::error::$UPDATE_SUMMARY"
-          exit 1
-
-      - name: Validate safe additive update
-        if: steps.classify.outputs.status == 'safe_additive'
+      # Se valida SIEMPRE, no solo en un tipo de cambio: esto no filtra lo que
+      # publica la CNMC, comprueba que el censo replicado sigue cumpliendo el
+      # contrato que consume el extractor de facturas. Si falla, el fallo es
+      # nuestro (parser o esquema) y publicar seria peor que no publicar.
+      - name: Validate mirrored census
         run: >-
           npx vitest run
           tests/cnmc-commercializers.test.js
@@ -116,20 +82,26 @@ jobs:
           tests/sw-query-fallback.test.js
           tests/sw-runtime-resilience.test.js
 
-      - name: Commit and push safe additive update
-        if: steps.classify.outputs.status == 'safe_additive'
+      - name: Commit and push mirrored census
+        id: publish
         env:
-          ADDED_COUNT: ${{ steps.classify.outputs.added_count }}
+          UPDATE_SUMMARY: ${{ steps.classify.outputs.summary }}
         run: |
+          if git diff --quiet -- data/cnmc-commercializers.json; then
+            echo "El censo replicado no ha cambiado; no hay nada que publicar."
+            echo "published=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add data/cnmc-commercializers.json
-          git commit -m "chore: actualizar censo CNMC (+${ADDED_COUNT})"
+          git commit -m "chore: replicar censo CNMC" -m "$UPDATE_SUMMARY"
           git pull --rebase
           git push
+          echo "published=true" >> "$GITHUB_OUTPUT"
 
       - name: Trigger tests and Pages deployment
-        if: steps.classify.outputs.status == 'safe_additive'
+        if: steps.publish.outputs.published == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}

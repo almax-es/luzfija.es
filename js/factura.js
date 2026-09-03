@@ -144,7 +144,17 @@
       function __LF_safeRegistryWebsite(value) {
         try {
           const url = new URL(String(value || ''));
-          return /^https?:$/.test(url.protocol) ? url.toString() : null;
+          if (!/^https?:$/.test(url.protocol)) return null;
+          // Un hostname publicable tiene al menos un punto y ninguna etiqueta
+          // vacia. El censo trae erratas con el esquema escrito dos veces
+          // (`http://https//ejemplo.com/`): `new URL()` las acepta con hostname
+          // "https" y el enlace "Web oficial" no llevaria a ninguna parte. Misma
+          // regla que `hasPublishableHostname` de
+          // scripts/sync-cnmc-commercializers.mjs: si una se relaja sin la otra,
+          // vuelve a colarse aqui lo que alli ya se descarta.
+          const host = url.hostname;
+          if (!host.includes('.') || host.split('.').some(label => !label)) return null;
+          return url.toString();
         } catch (_) {
           return null;
         }

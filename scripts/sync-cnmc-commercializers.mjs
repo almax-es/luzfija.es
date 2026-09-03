@@ -24,6 +24,18 @@ function normalizeHeader(value) {
     .trim();
 }
 
+// Un hostname publicable tiene al menos un punto y ninguna etiqueta vacia.
+// Sin esto, `http://https//ejemplo.com/` (erratas reales del censo: el autor
+// escribio el esquema dos veces) parsea como hostname "https" y pasa por buena:
+// `new URL()` la acepta y el enlace resultante no lleva a ninguna parte.
+// Se comparte con `__LF_safeRegistryWebsite` de js/factura.js, que es quien
+// pinta el enlace "Web oficial": las dos validaciones deben decidir igual.
+function hasPublishableHostname(hostname) {
+  const host = String(hostname || '');
+  if (!host.includes('.')) return false;
+  return host.split('.').every(label => label.length > 0);
+}
+
 function safeWebsite(anchor) {
   if (!anchor) return null;
   try {
@@ -31,7 +43,8 @@ function safeWebsite(anchor) {
     // espacios no son significativos en un hostname y JSDOM no los corrige.
     const rawHref = String(anchor.getAttribute('href') ?? '').replace(/\s+/g, '');
     const url = new URL(rawHref);
-    return /^https?:$/.test(url.protocol) && url.hostname ? url.href : null;
+    if (!/^https?:$/.test(url.protocol)) return null;
+    return hasPublishableHostname(url.hostname) ? url.href : null;
   } catch (_) {
     return null;
   }

@@ -1,20 +1,22 @@
 import { describe, expect, it } from 'vitest';
+import { execFileSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
 const repoRoot = path.resolve(__dirname, '..');
-const ignoredDirs = new Set(['.git', '_site', 'node_modules', 'tests', 'scripts', 'logs']);
+const ignoredTrackedDirs = new Set(['_site', 'tests', 'scripts', 'logs']);
 const versionedAssetRe = /(?:src|href)\s*=\s*["'][^"'?#]+\.(?:js|mjs|css)\?v=([^"'&#]+)[^"']*["']/gi;
 
-function listPublishedHtml(dir = repoRoot) {
-  const result = [];
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    if (entry.isDirectory() && ignoredDirs.has(entry.name)) continue;
-    const fullPath = path.join(dir, entry.name);
-    if (entry.isDirectory()) result.push(...listPublishedHtml(fullPath));
-    else if (entry.isFile() && entry.name.endsWith('.html')) result.push(fullPath);
-  }
-  return result;
+function listPublishedHtml() {
+  const trackedHtml = execFileSync('git', ['ls-files', '-z', '--', '*.html'], {
+    cwd: repoRoot,
+    encoding: 'utf8'
+  });
+  return trackedHtml
+    .split('\0')
+    .filter(Boolean)
+    .filter((relativePath) => !ignoredTrackedDirs.has(relativePath.split('/')[0]))
+    .map((relativePath) => path.join(repoRoot, relativePath));
 }
 
 function collectVersionedAssets(html, relativePath) {
@@ -26,6 +28,16 @@ function collectVersionedAssets(html, relativePath) {
 }
 
 describe('versionado de assets publicables', () => {
+  it('ignora HTML locales no rastreados por Git', () => {
+    const untrackedPath = path.join(repoRoot, '.asset-version-untracked-test.html');
+    fs.writeFileSync(untrackedPath, '<script src="/js/local.js?v=otro-build"></script>', 'utf8');
+    try {
+      expect(listPublishedHtml()).not.toContain(untrackedPath);
+    } finally {
+      fs.rmSync(untrackedPath, { force: true });
+    }
+  });
+
   it('mantiene un único ?v= en todos los JS/CSS de HTML y lo iguala a CACHE_VERSION', () => {
     const assets = listPublishedHtml().flatMap((htmlPath) => {
       const relativePath = path.relative(repoRoot, htmlPath);
