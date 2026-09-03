@@ -803,10 +803,37 @@ document.addEventListener('DOMContentLoaded', () => {
     if (viviendaCanariasWrapper) {
       viviendaCanariasWrapper.style.display = zonaFiscalInput?.value === 'Canarias' ? 'block' : 'none';
     }
+    updatePeriodHelpText();
     if (mesInicioInput && typeof config.mesInicio === 'string') mesInicioInput.value = config.mesInicio;
     if (config.customTarifa && typeof config.customTarifa === 'object') {
       applyCustomTarifaData(config.customTarifa);
     }
+  }
+
+  function getPeriodHelpText() {
+    const isCeutaMelilla = zonaFiscalInput?.value === 'CeutaMelilla';
+    return {
+      p1: isCeutaMelilla ? '11h-15h y 19h-23h laborables' : '10h-14h y 18h-22h laborables',
+      p2: isCeutaMelilla ? '8h-11h, 15h-19h y 23h-24h laborables' : '8h-10h, 14h-18h y 22h-24h laborables',
+      p3: '0h-8h laborables; sábados, domingos y festivos nacionales aplicables: todo el día'
+    };
+  }
+
+  function updatePeriodHelpText() {
+    const help = getPeriodHelpText();
+    const labels = { p1: 'punta', p2: 'llano', p3: 'valle' };
+    document.querySelectorAll('[data-bv-period-help]').forEach((element) => {
+      const period = element.dataset.bvPeriodHelp;
+      if (help[period]) element.title = `Consumo en periodo ${labels[period]} (${help[period]})`;
+    });
+    document.querySelectorAll('[data-bv-period-schedule]').forEach((element) => {
+      const period = element.dataset.bvPeriodSchedule;
+      if (help[period]) element.textContent = help[period];
+    });
+    manualGrid?.querySelectorAll('input[data-type="p1"], input[data-type="p2"], input[data-type="p3"]').forEach((input) => {
+      const period = input.dataset.type;
+      input.title = `Consumo en ${labels[period]} (${help[period]})`;
+    });
   }
 
   function normalizeImportedScenarioPayload(importData) {
@@ -1328,6 +1355,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       </div>
     `).join('');
+    updatePeriodHelpText();
 
     // NO cargar datos automáticamente - solo al hacer clic en "Entrada manual"
 
@@ -1576,6 +1604,7 @@ document.addEventListener('DOMContentLoaded', () => {
   if (zonaFiscalInput) {
     zonaFiscalInput.addEventListener('change', () => {
       invalidateVisibleSimulationResults();
+      updatePeriodHelpText();
       if (viviendaCanariasWrapper) {
         viviendaCanariasWrapper.style.display = zonaFiscalInput.value === 'Canarias' ? 'block' : 'none';
       }

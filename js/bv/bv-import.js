@@ -28,13 +28,37 @@ window.BVSim = window.BVSim || {};
   // ===== LAZY LOAD XLSX =====
   let xlsxLoading = null;
 
+  // Misma cascada de identidad de build que js/tracking.js. Se resuelve en la
+  // evaluacion sincrona del script a proposito: dentro de ensureXLSX() (lazy,
+  // tras un gesto del usuario) document.currentScript ya vale null.
+  const XLSX_BUILD_ID = (() => {
+    try {
+      if (typeof window.__LF_BUILD_ID === 'string' && window.__LF_BUILD_ID.trim()) {
+        return window.__LF_BUILD_ID.trim();
+      }
+      const cs = document.currentScript && document.currentScript.src ? String(document.currentScript.src) : '';
+      if (cs) return new URL(cs, location.href).searchParams.get('v') || '';
+    } catch (_) {}
+    return '';
+  })();
+
+  // El vendor debe arrastrar el ?v= del build como el resto de assets: sin el,
+  // un cliente puede seguir ejecutando la copia anterior de SheetJS tras un
+  // despliegue que la actualice. La ruta relativa se conserva tal cual: `../../`
+  // sobre document.baseURI queda clampada a la raiz del sitio.
+  function xlsxVendorUrl() {
+    const url = new URL('../../vendor/xlsx/xlsx.full.min.js', document.baseURI);
+    if (XLSX_BUILD_ID) url.searchParams.set('v', XLSX_BUILD_ID);
+    return url.toString();
+  }
+
   async function ensureXLSX() {
     if (typeof XLSX !== 'undefined') return;
     if (xlsxLoading) return xlsxLoading;
 
     xlsxLoading = new Promise((resolve, reject) => {
       const script = document.createElement('script');
-      script.src = new URL('../../vendor/xlsx/xlsx.full.min.js', document.baseURI).toString();
+      script.src = xlsxVendorUrl();
       script.onload = () => resolve();
       script.onerror = () => reject(new Error('Error al cargar librería XLSX'));
       document.head.appendChild(script);

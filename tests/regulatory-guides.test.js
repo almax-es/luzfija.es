@@ -57,4 +57,15 @@ describe('Guide regulatory guardrails', () => {
     expect(periodosGuide).toContain('P1 agrupa las horas laborables de punta y llano');
     expect(periodosGuide).toContain('P2 coincide con el valle (0h a 8h, más sábados, domingos y festivos nacionales que computen como valle)');
   });
+
+  it('keeps complaint deadlines scoped by recipient, subject and contracted power', () => {
+    const complaintGuide = readGuideText('guias/como-reclamar-a-comercializadora-distribuidora.html');
+
+    expect(complaintGuide).toContain('artículo 55.3 del Reglamento aprobado por el RD 88/2026');
+    expect(complaintGuide).toContain('artículo 103.2.D del RD 1955/2000');
+    expect(complaintGuide).toContain('5 días hábiles si reclamas a la distribuidora por la medida del consumo, facturas emitidas o cortes indebidos y tienes menos de 15 kW contratados');
+    expect(complaintGuide).toContain('15 días hábiles en los demás casos');
+    expect(complaintGuide).toContain('Si no obtengo resolución satisfactoria dentro del plazo legal aplicable');
+    expect(complaintGuide).not.toContain('Las compañías tienen un plazo máximo de 15 días hábiles para responder');
+  });
 });

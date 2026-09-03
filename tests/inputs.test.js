@@ -18,6 +18,9 @@ document.body.innerHTML = `
       <option value="Canarias">Canarias</option>
       <option value="CeutaMelilla">CeutaMelilla</option>
     </select>
+    <span data-period-help="p1" data-tip=""></span>
+    <span data-period-help="p2" data-tip=""></span>
+    <span data-period-help="p3" data-tip=""></span>
     <div id="viviendaGroup"></div>
     <input id="viviendaCanarias" type="checkbox">
     <div id="kwhHint"></div>
@@ -132,6 +135,7 @@ describe('Inputs y Validación (lf-inputs.js)', () => {
     inputs.cPunta.value = "100";
     inputs.cLlano.value = "0";
     inputs.cValle.value = "0";
+    inputs.zonaFiscal.value = "Península";
     inputs.solarOn.checked = false;
     inputs.exTotal.value = "0";
     inputs.bvSaldo.value = "0";
@@ -319,6 +323,24 @@ describe('Inputs y Validación (lf-inputs.js)', () => {
     const ctx = window.LF.__LF_getFiscalContext();
     expect(ctx.esCanarias).toBe(true);
     expect(ctx.esViviendaTipoCero).toBe(true);
+  });
+
+  it('actualiza las ayudas horarias al seleccionar Ceuta y Melilla', () => {
+    const zona = window.LF.el.inputs.zonaFiscal;
+    zona.value = 'CeutaMelilla';
+    window.LF.updateZonaFiscalUI();
+
+    expect(document.querySelector('[data-period-help="p1"]').dataset.tip)
+      .toBe('11h-15h y 19h-23h laborables');
+    expect(document.querySelector('[data-period-help="p2"]').dataset.tip)
+      .toBe('8h-11h, 15h-19h y 23h-24h laborables');
+    expect(document.querySelector('[data-period-help="p3"]').dataset.tip)
+      .toBe('0h-8h laborables; sábados, domingos y festivos nacionales aplicables: todo el día');
+
+    zona.value = 'Canarias';
+    window.LF.updateZonaFiscalUI();
+    expect(document.querySelector('[data-period-help="p1"]').dataset.tip)
+      .toBe('10h-14h y 18h-22h laborables');
   });
 
   it('Normaliza la referencia de consumos importados desde CSV', () => {

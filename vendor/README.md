@@ -46,6 +46,8 @@ Librería para la manipulación de hojas de cálculo (Excel, CSV).
 - **Versión:** 0.20.3 (Versión CDN Secure)
   - *Nota:* Esta versión parchea la vulnerabilidad CVE-2023-30533 presente en versiones npm antiguas (0.18.x).
 - **Licencia:** SheetJS Community Edition
+- **Carga:** lazy desde tres puntos —`js/lf-csv-import.js`, `js/bv/bv-import.js` y `js/pvpc-stats-csv.js`—, los tres con el `?v=` del build. Cada uno resuelve el build con la misma cascada que `js/tracking.js` (`window.__LF_BUILD_ID`, y si no el `?v=` del propio script) **en la evaluacion sincrona del modulo**: dentro de `ensureXLSX()`, que corre tras un gesto del usuario, `document.currentScript` ya vale `null`. Hasta el 03/09/2026 los tres usaban URL estable sin `?v=`: era el unico vendor que no arrastraba la identidad del build, asi que un cliente podia seguir ejecutando la copia anterior tras una actualizacion de SheetJS y el SW no podia saber a que build pertenecia lo que servia.
+- **Red de seguridad (tests):** `tests/vendor-xlsx-versioning.test.js` ejecuta los tres modulos en jsdom y mira el `<script>` que **realmente** inyectan en el head, no el literal del fuente: un grep pasaria igual si alguien deja el helper definido pero vuelve a asignar `script.src` a mano en la ruta de carga. Cubre tambien la rama de fallback y que sin build identificable se cargue sin query en vez de romper. Verificado reintroduciendo el fallo en los tres ficheros: 3 de 3 detectados.
 - **Archivos:**
   - `xlsx/xlsx.full.min.js`
     - **SHA-256:** `cc015130aa8521e7f088f88898eba949ccdcbfb38df0bd129b44b7273c3a6f41`

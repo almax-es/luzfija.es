@@ -186,10 +186,21 @@
   function updateZonaFiscalUI() {
     const zonaRaw = el.inputs.zonaFiscal?.value || 'Península';
     const isCanarias = zonaRaw === 'Canarias';
+    const isCeutaMelilla = zonaRaw === 'CeutaMelilla';
     // El checkbox de vivienda solo aplica a Canarias (IGIC 0% vivienda ≤10kW)
     // En Ceuta/Melilla el IPSI es igual para todos (1%)
     if (el.viviendaGroup) {
       el.viviendaGroup.style.display = isCanarias ? 'flex' : 'none';
+    }
+
+    const periodHelp = {
+      p1: isCeutaMelilla ? '11h-15h y 19h-23h laborables' : '10h-14h y 18h-22h laborables',
+      p2: isCeutaMelilla ? '8h-11h, 15h-19h y 23h-24h laborables' : '8h-10h, 14h-18h y 22h-24h laborables',
+      p3: '0h-8h laborables; sábados, domingos y festivos nacionales aplicables: todo el día'
+    };
+    for (const [period, text] of Object.entries(periodHelp)) {
+      const tooltip = document.querySelector(`[data-period-help="${period}"]`);
+      if (tooltip) tooltip.dataset.tip = text;
     }
   }
 

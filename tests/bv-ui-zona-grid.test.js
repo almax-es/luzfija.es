@@ -88,6 +88,12 @@ function bootSolarUi() {
       <option value="Canarias">Canarias</option>
       <option value="CeutaMelilla">Ceuta y Melilla</option>
     </select>
+    <span data-bv-period-help="p1"></span>
+    <span data-bv-period-help="p2"></span>
+    <span data-bv-period-help="p3"></span>
+    <span data-bv-period-schedule="p1"></span>
+    <span data-bv-period-schedule="p2"></span>
+    <span data-bv-period-schedule="p3"></span>
     <div id="bv-vivienda-canarias-wrapper"></div>
     <input id="bv-vivienda-canarias" type="checkbox">
     <input id="mtPunta" value="">
@@ -401,6 +407,24 @@ afterEach(() => {
 });
 
 describe('Simulador solar - procedencia del grid frente al selector de zona', () => {
+  it('actualiza todas las ayudas horarias cuando cambia a Ceuta y Melilla', async () => {
+    bootSolarUi();
+    const eneroP1 = document.querySelector('#bv-manual-grid input[data-month="0"][data-type="p1"]');
+
+    expect(eneroP1.title).toContain('10h-14h y 18h-22h laborables');
+    await setZona('CeutaMelilla');
+
+    expect(document.querySelector('[data-bv-period-help="p1"]').title)
+      .toContain('11h-15h y 19h-23h laborables');
+    expect(document.querySelector('[data-bv-period-help="p2"]').title)
+      .toContain('8h-11h, 15h-19h y 23h-24h laborables');
+    expect(document.querySelector('[data-bv-period-schedule="p1"]').textContent)
+      .toBe('11h-15h y 19h-23h laborables');
+    expect(document.querySelector('[data-bv-period-schedule="p3"]').textContent)
+      .toBe('0h-8h laborables; sábados, domingos y festivos nacionales aplicables: todo el día');
+    expect(eneroP1.title).toContain('11h-15h y 19h-23h laborables');
+  });
+
   it('ofrece y aplica de forma reversible el filtro por estimación anual', async () => {
     bootSolarUi();
     const limitada = {
