@@ -6,7 +6,7 @@ import { assertCensusSane } from './sync-cnmc-commercializers.mjs';
 
 const SOURCE_URL = 'https://sede.cnmc.gob.es/listado/censo/2';
 const SCRIPT_PATH = fileURLToPath(import.meta.url);
-export const MAX_AUTOMATIC_ADDITIONS = 20;
+export const TYPICAL_ADDITIONS_BATCH = 20;
 const REVIEWED_META_LISTS = ['duplicateCodes', 'invalidWebsiteCodes', 'inactiveCodes'];
 
 function payloadToParsed(payload) {
@@ -45,7 +45,7 @@ export function classifyCnmcCommercializersUpdate(previous, next, options = {}) 
   assertCensusPayloadSane(previous);
   assertCensusPayloadSane(next);
 
-  const maxAdditions = options.maxAdditions ?? MAX_AUTOMATIC_ADDITIONS;
+  const additionsBatch = options.additionsBatch ?? TYPICAL_ADDITIONS_BATCH;
   const previousCodes = new Set(Object.keys(previous.commercializers));
   const nextCodes = new Set(Object.keys(next.commercializers));
   const addedCodes = sortedCodes([...nextCodes].filter(code => !previousCodes.has(code)));
@@ -69,22 +69,28 @@ export function classifyCnmcCommercializersUpdate(previous, next, options = {}) 
     };
   }
 
-  const reviewReasons = [];
-  if (removedCodes.length) reviewReasons.push(`${removedCodes.length} bajas o códigos eliminados`);
-  if (modifiedCodes.length) reviewReasons.push(`${modifiedCodes.length} entradas existentes modificadas`);
-  if (changedMeta.length) reviewReasons.push(`metadatos sensibles modificados: ${changedMeta.join(', ')}`);
-  if (addedCodes.length > maxAdditions) {
-    reviewReasons.push(`${addedCodes.length} altas superan el límite automático de ${maxAdditions}`);
+  // Desde el 03/09/2026 esto DESCRIBE el diff, no decide si se publica: la Action
+  // funciona como espejo del censo CNMC y su salida solo alimenta el resumen del
+  // run y el mensaje de commit. Por eso los estados se llaman por lo que son
+  // —`simple_additive` / `complex_change`— y no por una acción que ya nadie toma:
+  // `additionsBatch` señala un lote grande, no lo frena. Lo único que puede detener
+  // la publicación es un fallo propio (assertCensusPayloadSane, o los tests).
+  const changeNotes = [];
+  if (removedCodes.length) changeNotes.push(`${removedCodes.length} bajas o códigos eliminados`);
+  if (modifiedCodes.length) changeNotes.push(`${modifiedCodes.length} entradas existentes modificadas`);
+  if (changedMeta.length) changeNotes.push(`metadatos modificados: ${changedMeta.join(', ')}`);
+  if (addedCodes.length > additionsBatch) {
+    changeNotes.push(`${addedCodes.length} altas, por encima del lote habitual de ${additionsBatch}`);
   }
   if (sourceRowsDelta !== addedCodes.length) {
-    reviewReasons.push(`la variación de filas (${sourceRowsDelta}) no coincide con las altas (${addedCodes.length})`);
+    changeNotes.push(`la variación de filas (${sourceRowsDelta}) no coincide con las altas (${addedCodes.length})`);
   }
-  if (!addedCodes.length) reviewReasons.push('no es una actualización puramente aditiva');
+  if (!addedCodes.length) changeNotes.push('sin altas nuevas');
 
-  if (reviewReasons.length) {
+  if (changeNotes.length) {
     return {
-      status: 'manual_review',
-      summary: `Revisión manual necesaria: ${reviewReasons.join('; ')}.`,
+      status: 'complex_change',
+      summary: `Cambios más allá de altas simples: ${changeNotes.join('; ')}.`,
       addedCodes,
       removedCodes,
       modifiedCodes,
@@ -93,7 +99,7 @@ export function classifyCnmcCommercializersUpdate(previous, next, options = {}) 
   }
 
   return {
-    status: 'safe_additive',
+    status: 'simple_additive',
     summary: `${addedCodes.length} altas nuevas sin modificar entradas existentes.`,
     addedCodes,
     removedCodes,

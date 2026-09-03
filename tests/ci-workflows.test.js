@@ -67,8 +67,8 @@ describe('CI workflow hardening', () => {
     // La politica es espejo: bajas, modificaciones y cambios de metadatos se
     // publican igual. Lo unico que puede detener la publicacion es un fallo
     // propio (parser o tests), nunca lo que traiga el listado.
-    expect(workflow).not.toContain('manual_review');
-    expect(workflow).not.toContain('safe_additive');
+    expect(workflow).not.toContain('complex_change');
+    expect(workflow).not.toContain('simple_additive');
     expect(workflow).not.toContain('gh issue create');
     expect(workflow).not.toContain('gh issue comment');
     expect(workflow).not.toContain('issues: write');

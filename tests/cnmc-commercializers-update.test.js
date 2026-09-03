@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import fs from 'node:fs';
 import {
-  MAX_AUTOMATIC_ADDITIONS,
+  TYPICAL_ADDITIONS_BATCH,
   assertCensusPayloadSane,
   classifyCnmcCommercializersUpdate
 } from '../scripts/classify-cnmc-commercializers-update.mjs';
@@ -28,7 +28,7 @@ describe('Clasificación de actualizaciones del censo CNMC', () => {
     });
   });
 
-  it('autoriza únicamente un lote aditivo pequeño', () => {
+  it('etiqueta como aditivo simple un lote de altas sin tocar nada mas', () => {
     const next = cloneRegistry();
     addCommercializer(next, 'R2-9999', {
       name: 'EMPRESA NUEVA, S.L.',
@@ -36,7 +36,7 @@ describe('Clasificación de actualizaciones del censo CNMC', () => {
       website: 'https://nueva.example/'
     });
     expect(classifyCnmcCommercializersUpdate(registry, next)).toMatchObject({
-      status: 'safe_additive',
+      status: 'simple_additive',
       addedCodes: ['R2-9999'],
       removedCodes: [],
       modifiedCodes: []
@@ -56,20 +56,20 @@ describe('Clasificación de actualizaciones del censo CNMC', () => {
       next._meta.inactiveCodes = next._meta.inactiveCodes.filter(code => code !== removableCode);
       next._meta.invalidWebsiteCodes = next._meta.invalidWebsiteCodes.filter(code => code !== removableCode);
     }]
-  ])('exige revisión manual ante %s', (_label, mutate) => {
+  ])('etiqueta como cambio complejo %s', (_label, mutate) => {
     const next = cloneRegistry();
     addCommercializer(next, 'R2-9999');
     mutate(next);
-    expect(classifyCnmcCommercializersUpdate(registry, next).status).toBe('manual_review');
+    expect(classifyCnmcCommercializersUpdate(registry, next).status).toBe('complex_change');
   });
 
-  it('exige revisión manual cuando las altas superan el umbral', () => {
+  it('etiqueta como cambio complejo un lote de altas por encima del habitual', () => {
     const next = cloneRegistry();
-    for (let index = 0; index <= MAX_AUTOMATIC_ADDITIONS; index += 1) {
+    for (let index = 0; index <= TYPICAL_ADDITIONS_BATCH; index += 1) {
       addCommercializer(next, `R2-${9000 + index}`);
     }
     expect(classifyCnmcCommercializersUpdate(registry, next)).toMatchObject({
-      status: 'manual_review'
+      status: 'complex_change'
     });
   });
 
@@ -79,11 +79,11 @@ describe('Clasificación de actualizaciones del censo CNMC', () => {
     expect(() => assertCensusPayloadSane(next)).toThrow(/_meta.count/);
   });
 
-  it('exige revisión si el incremento de filas no coincide con las altas', () => {
+  it('etiqueta como cambio complejo un incremento de filas que no cuadra con las altas', () => {
     const next = cloneRegistry();
     addCommercializer(next, 'R2-9999');
     next._meta.sourceRows += 1;
-    expect(classifyCnmcCommercializersUpdate(registry, next).status).toBe('manual_review');
+    expect(classifyCnmcCommercializersUpdate(registry, next).status).toBe('complex_change');
   });
 
   it('no deja que una baja quede compensada por una fila duplicada nueva', () => {
@@ -105,7 +105,7 @@ describe('Clasificación de actualizaciones del censo CNMC', () => {
     // las altas aunque exista una eliminación real.
     expect(next._meta.sourceRows - registry._meta.sourceRows).toBe(1);
     expect(classifyCnmcCommercializersUpdate(registry, next)).toMatchObject({
-      status: 'manual_review',
+      status: 'complex_change',
       removedCodes: [removedCode]
     });
   });

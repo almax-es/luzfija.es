@@ -1,22 +1,29 @@
 import { describe, expect, it } from 'vitest';
 import { execFileSync } from 'child_process';
 import fs from 'fs';
+import os from 'os';
 import path from 'path';
 
 const repoRoot = path.resolve(__dirname, '..');
 const ignoredTrackedDirs = new Set(['_site', 'tests', 'scripts', 'logs']);
 const versionedAssetRe = /(?:src|href)\s*=\s*["'][^"'?#]+\.(?:js|mjs|css)\?v=([^"'&#]+)[^"']*["']/gi;
 
-function listPublishedHtml() {
+// Solo HTML rastreado por Git: una copia de trabajo local (`.codex-*`, un ZIP
+// descomprimido, un _site suelto) trae builds antiguos y haria fallar la suite
+// sin que haya nada roto en el repo.
+function listTrackedHtml(cwd) {
   const trackedHtml = execFileSync('git', ['ls-files', '-z', '--', '*.html'], {
-    cwd: repoRoot,
+    cwd,
     encoding: 'utf8'
   });
   return trackedHtml
     .split('\0')
     .filter(Boolean)
-    .filter((relativePath) => !ignoredTrackedDirs.has(relativePath.split('/')[0]))
-    .map((relativePath) => path.join(repoRoot, relativePath));
+    .filter((relativePath) => !ignoredTrackedDirs.has(relativePath.split('/')[0]));
+}
+
+function listPublishedHtml() {
+  return listTrackedHtml(repoRoot).map((relativePath) => path.join(repoRoot, relativePath));
 }
 
 function collectVersionedAssets(html, relativePath) {
@@ -28,13 +35,34 @@ function collectVersionedAssets(html, relativePath) {
 }
 
 describe('versionado de assets publicables', () => {
-  it('ignora HTML locales no rastreados por Git', () => {
-    const untrackedPath = path.join(repoRoot, '.asset-version-untracked-test.html');
-    fs.writeFileSync(untrackedPath, '<script src="/js/local.js?v=otro-build"></script>', 'utf8');
+  // Se prueba contra un repo temporal, NUNCA escribiendo en este: vitest ejecuta
+  // los ficheros de test en paralelo y otros recorren la raiz del proyecto
+  // (tracking-html-coverage exige que todo HTML cargue tracking.js), asi que un
+  // HTML de usar y tirar en la raiz los haria fallar de forma aleatoria.
+  it('solo devuelve HTML rastreado y fuera de los directorios de apoyo', () => {
+    const sandbox = fs.mkdtempSync(path.join(os.tmpdir(), 'lf-asset-version-'));
+    const escribir = (rel, contenido) => {
+      const destino = path.join(sandbox, rel);
+      fs.mkdirSync(path.dirname(destino), { recursive: true });
+      fs.writeFileSync(destino, contenido, 'utf8');
+    };
     try {
-      expect(listPublishedHtml()).not.toContain(untrackedPath);
+      execFileSync('git', ['init', '-q'], { cwd: sandbox });
+      // Publicables, y ademas en subdirectorio para cubrir el caso de guias/.
+      escribir('index.html', '<script src="/js/a.js?v=build"></script>');
+      escribir('guias/una.html', '<script src="/js/a.js?v=build"></script>');
+      // Rastreados pero de apoyo: no son paginas publicadas y arrastran builds
+      // de fixtures o de artefactos, asi que no deben entrar en la comparacion.
+      for (const apoyo of ['tests/fixture.html', 'scripts/plantilla.html', '_site/index.html', 'logs/informe.html']) {
+        escribir(apoyo, '<script src="/js/a.js?v=otro-build"></script>');
+      }
+      execFileSync('git', ['add', '-A'], { cwd: sandbox });
+      // Sin rastrear: la copia de trabajo local que motivo el cambio.
+      escribir('suelto.html', '<script src="/js/a.js?v=otro-build"></script>');
+
+      expect(listTrackedHtml(sandbox)).toEqual(['guias/una.html', 'index.html']);
     } finally {
-      fs.rmSync(untrackedPath, { force: true });
+      fs.rmSync(sandbox, { recursive: true, force: true });
     }
   });
 

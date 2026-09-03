@@ -1647,6 +1647,29 @@ aceptan prefijos (`QRE20`), sufijos ni subrutas. Un host parecido
   cifras. La Action mensual solo auto-publica hasta 20 altas puramente aditivas; cualquier baja,
   eliminacion, modificacion de una entrada existente o cambio en duplicados/webs invalidas/estados
   falla antes del commit y exige revision manual.
+- Decision de producto (03/09/2026): la regla anterior queda SUPERADA. La Action pasa a modo espejo
+  y replica lo que sirva la CNMC —altas, bajas, renombrados, contactos y metadatos— sin revision
+  previa. Motivo: en tres dias abrio dos issues de revision manual (#17 el 01/09 y #18 el 03/09) por
+  cambios que no afectaban a nada. El del 03/09 eran dos comas en la razon social (`WIND TO MARKET
+  S.A` -> `WIND TO MARKET, S.A.` y `COLABORA ENERGIA ARGUS SL` -> `COLABORA ENERGIA ARGUS S.L.`) mas
+  11 codigos que pasaban a `inactiveCodes`, un metadato que el frontend no consume; ninguna de las 13
+  aparecia en `tarifas.json`. Ese ruido recurrente enseña a ignorar los avisos que si importan, y lo
+  que interesa del censo es tener el listado replicado. Lo que NO cambia: el scraper sigue abortando
+  si cambia el formato de la tabla, el sanity check de volumen/centinelas sigue vigente y los tests
+  del censo se ejecutan SIEMPRE antes del commit, ahora sin condicionar al tipo de cambio. Es decir,
+  solo detiene la publicacion un fallo propio, nunca el contenido del listado.
+  `classify-cnmc-commercializers-update.mjs` se conserva como descripcion del diff para el resumen
+  del run y el mensaje de commit; ya no gobierna el flujo, y `TYPICAL_ADDITIONS_BATCH` (antes `MAX_AUTOMATIC_ADDITIONS`) deja de tener
+  efecto sobre lo que se publica.
+- Hallazgo del 03/09/2026 al revisar ese censo: la validacion de webs solo miraba el protocolo, y
+  `new URL('http://https//capturaenergia.com/')` no lanza —da protocolo `http:` y hostname `https`—,
+  asi que una errata de la CNMC con el esquema escrito dos veces pasaba el filtro del sync y el de
+  `js/factura.js`, y el extractor habria pintado un enlace "Web oficial" que no lleva a ninguna
+  parte. Ambos exigen ahora un hostname con al menos un punto y sin etiquetas vacias. Descarta 5
+  webs rotas sin perder ninguna legitima: `R2-1081`, `R2-1104`, `R2-1107` y `R2-870` traian el
+  esquema escrito dos veces, y `R2-496` un punycode sin TLD (`http://xn--bonreaenergia-rdb/`). Las
+  entradas con web pasan de 846 a 841. Cubierto en el parser, con un
+  guardrail sobre el censo real publicado y con un test de comportamiento sobre la ficha visible.
 - `data/cnmc-commercializers.json` sigue precacheado para disponibilidad offline, pero tiene ruta
   `network-first` propia con fallback sano. Asi un commit mensual llega a un SW ya instalado sin
   depender del siguiente cambio de `CACHE_VERSION`.
