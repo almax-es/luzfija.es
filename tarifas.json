@@ -6,6 +6,27 @@
   },
   "tarifas": [
     {
+      "nombre": "Seneo Tarifa 1",
+      "cPunta": 0.08,
+      "cLlano": 0.08,
+      "cValle": 0.08,
+      "p1": 0.186,
+      "p2": 0.112,
+      "web": "https://www.seneo.org/es/tarifa-fija-24h/",
+      "tipo": "1P",
+      "requisitos": "Precio válido para potencia contratada ≥ 4 kW.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Spock Tarifa Luz 24 Horas",
       "cPunta": 0.095,
       "cLlano": 0.095,
@@ -385,13 +406,13 @@
       "requiereFV": true
     },
     {
-      "nombre": "Seneo Tarifa 3",
+      "nombre": "Seneo Tarifa 2",
       "cPunta": 0.119,
       "cLlano": 0.119,
       "cValle": 0.119,
       "p1": 0.081,
       "p2": 0.081,
-      "web": "https://www.seneo.org/tarifa-fixa-24h/",
+      "web": "https://www.seneo.org/es/tarifa-fija-24h/",
       "tipo": "1P",
       "requisitos": "Consumo ≤ 4.000 kWh/año.",
       "incluyeServiciosAjuste": true,
@@ -433,7 +454,7 @@
       "cValle": 0.119,
       "p1": 0.089,
       "p2": 0.089,
-      "web": "https://www.seneo.org/tarifa-fixa-24h-amb-moneder-solar/",
+      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
       "tipo": "1P",
       "incluyeServiciosAjuste": true,
       "fv": {
@@ -447,13 +468,13 @@
       "requiereFV": true
     },
     {
-      "nombre": "Seneo Tarifa 4",
+      "nombre": "Seneo Tarifa 3",
       "cPunta": 0.119,
       "cLlano": 0.119,
       "cValle": 0.119,
       "p1": 0.089,
       "p2": 0.089,
-      "web": "https://www.seneo.org/tarifa-fixa-24h/",
+      "web": "https://www.seneo.org/es/tarifa-fija-24h/",
       "tipo": "1P",
       "incluyeServiciosAjuste": true,
       "fv": {
@@ -1069,26 +1090,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Seneo Tarifa 2",
-      "cPunta": 0.14,
-      "cLlano": 0.14,
-      "cValle": 0.14,
-      "p1": 0.121,
-      "p2": 0.029,
-      "web": "https://www.seneo.org/tarifa-fixa-24h/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Holaluz Clásica",
       "cPunta": 0.147,
       "cLlano": 0.147,
@@ -1358,7 +1359,7 @@
       "cValle": 0.193,
       "p1": 0.095,
       "p2": 0.018,
-      "web": "https://www.seneo.org/tarifa-fixa-24h-amb-moneder-solar/",
+      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
       "tipo": "1P",
       "incluyeServiciosAjuste": true,
       "fv": {
@@ -1370,26 +1371,6 @@
         "precioBV": 0.0
       },
       "requiereFV": true
-    },
-    {
-      "nombre": "Seneo Tarifa 1",
-      "cPunta": 0.193,
-      "cLlano": 0.193,
-      "cValle": 0.193,
-      "p1": 0.095,
-      "p2": 0.018,
-      "web": "https://www.seneo.org/tarifa-fixa-24h/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
     },
     {
       "nombre": "Fenie Fijo Uniprecio",
@@ -1563,7 +1544,7 @@
       "cValle": 0.08,
       "p1": 0.089,
       "p2": 0.089,
-      "web": "https://www.seneo.org/tarifa-trams-horaris-amb-moneder-solar/",
+      "web": "https://www.seneo.org/es/tarifa-tramos-horarios-con-monedero-solar/",
       "tipo": "3P",
       "incluyeServiciosAjuste": true,
       "fv": {
@@ -1583,7 +1564,7 @@
       "cValle": 0.08,
       "p1": 0.089,
       "p2": 0.089,
-      "web": "https://www.seneo.org/tarifa-trams-horaris/",
+      "web": "https://www.seneo.org/es/tarifa-tramos-horarios/",
       "tipo": "3P",
       "incluyeServiciosAjuste": true,
       "fv": {
@@ -2177,6 +2158,27 @@
       "requiereFV": true
     },
     {
+      "nombre": "CHC VE 3P",
+      "cPunta": 0.222874,
+      "cLlano": 0.21897,
+      "cValle": 0.05821,
+      "p1": 0.088956,
+      "p2": 0.088382,
+      "web": "https://chcenergia.es/luz/plan-vehiculo-electrico",
+      "tipo": "3P",
+      "promo": "50 € de descuento repartidos en 5 facturas consecutivas (10 € sobre el importe total de cada una).",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Imagina Vehículo Eléctrico 3P",
       "cPunta": 0.223415,
       "cLlano": 0.14935,
@@ -2210,27 +2212,6 @@
         "exc": 0.03,
         "tipo": "SIMPLE",
         "tope": "ENERGIA_PARCIAL",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "CHC VE 3P",
-      "cPunta": 0.225745,
-      "cLlano": 0.221841,
-      "cValle": 0.061081,
-      "p1": 0.088956,
-      "p2": 0.088382,
-      "web": "https://chcenergia.es/luz/plan-vehiculo-electrico",
-      "tipo": "3P",
-      "promo": "50 € de descuento repartidos en 5 facturas consecutivas (10 € sobre el importe total de cada una).",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.04,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA",
         "bv": false,
         "reglaBV": "NO APLICA",
         "precioBV": 0.0
@@ -2367,7 +2348,7 @@
       "cValle": 0.141,
       "p1": 0.095,
       "p2": 0.018,
-      "web": "https://www.seneo.org/tarifa-trams-horaris-amb-moneder-solar/",
+      "web": "https://www.seneo.org/es/tarifa-tramos-horarios-con-monedero-solar/",
       "tipo": "3P",
       "incluyeServiciosAjuste": true,
       "fv": {
@@ -2387,7 +2368,7 @@
       "cValle": 0.141,
       "p1": 0.095,
       "p2": 0.018,
-      "web": "https://www.seneo.org/tarifa-trams-horaris/",
+      "web": "https://www.seneo.org/es/tarifa-tramos-horarios/",
       "tipo": "3P",
       "incluyeServiciosAjuste": true,
       "fv": {
@@ -2481,5 +2462,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-03T10:48:31.615Z"
+  "updatedAt": "2026-09-03T13:01:32.929Z"
 }
