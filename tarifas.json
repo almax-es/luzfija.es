@@ -174,49 +174,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Bualá",
-      "cPunta": 0.1098,
-      "cLlano": 0.1098,
-      "cValle": 0.1098,
-      "p1": 0.092192,
-      "p2": 0.092192,
-      "web": "https://buala.es/luz/",
-      "tipo": "1P",
-      "requisitos": "10% descuento término energía durante 12 meses incluido en el precio. No incluye Servicios de Ajuste.",
-      "incluyeServiciosAjuste": false,
-      "fv": {
-        "exc": 0.04,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 4.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Loviluz Lov VERANO",
-      "cPunta": 0.1099,
-      "cLlano": 0.1099,
-      "cValle": 0.1099,
-      "p1": 0.0875,
-      "p2": 0.0875,
-      "web": "https://www.loviluz.com/tarifas.html",
-      "tipo": "1P",
-      "requisitos": "Consumo ≤ 5.000 kWh/año.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false,
-      "maxConsumoAnual": 5000.0
-    },
-    {
       "nombre": "Naturgy por uso",
       "cPunta": 0.112,
       "cLlano": 0.112,
@@ -838,7 +795,7 @@
       "requiereFV": true
     },
     {
-      "nombre": "Loviluz Lov US V1",
+      "nombre": "Loviluz Lov VERANO WEB",
       "cPunta": 0.1299,
       "cLlano": 0.1299,
       "cValle": 0.1299,
@@ -846,16 +803,18 @@
       "p2": 0.093,
       "web": "https://www.loviluz.com/tarifas.html",
       "tipo": "1P",
-      "incluyeServiciosAjuste": true,
+      "requisitos": "Consumo ≤ 5.000 kWh/año.",
+      "incluyeServiciosAjuste": false,
       "fv": {
-        "exc": 0.06,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
         "precioBV": 0.0
       },
-      "requiereFV": false
+      "requiereFV": false,
+      "maxConsumoAnual": 5000.0
     },
     {
       "nombre": "Bonpreu Hagámoslo Fácil",
@@ -1069,6 +1028,27 @@
       "requiereFV": false
     },
     {
+      "nombre": "Bualá",
+      "cPunta": 0.1399,
+      "cLlano": 0.1399,
+      "cValle": 0.1399,
+      "p1": 0.09589,
+      "p2": 0.09589,
+      "web": "https://buala.es/luz/",
+      "tipo": "1P",
+      "requisitos": "10% descuento término energía durante 12 meses incluido en el precio. No incluye Servicios de Ajuste.",
+      "incluyeServiciosAjuste": false,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 4.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Visalia Plan Ahorro 3 meses",
       "cPunta": 0.139995,
       "cLlano": 0.139995,
@@ -1207,6 +1187,26 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Loviluz Lov US V2",
+      "cPunta": 0.1499,
+      "cLlano": 0.1499,
+      "cValle": 0.1499,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://www.loviluz.com/tarifas.html",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": false,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -2462,5 +2462,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-03T13:20:37.424Z"
+  "updatedAt": "2026-09-03T17:46:27.350Z"
 }
