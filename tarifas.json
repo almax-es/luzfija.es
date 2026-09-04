@@ -1090,26 +1090,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Holaluz Clásica",
-      "cPunta": 0.147,
-      "cLlano": 0.147,
-      "cValle": 0.147,
-      "p1": 0.099,
-      "p2": 0.099,
-      "web": "https://www.holaluz.com/luz/tarifas-luz/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Endesa Solar Plus",
       "cPunta": 0.148707,
       "cLlano": 0.148707,
@@ -1331,6 +1311,26 @@
         "precioBV": 0.0
       },
       "requiereFV": true
+    },
+    {
+      "nombre": "Holaluz Clásica",
+      "cPunta": 0.171,
+      "cLlano": 0.171,
+      "cValle": 0.171,
+      "p1": 0.099,
+      "p2": 0.099,
+      "web": "https://www.holaluz.com/luz/tarifas-luz/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Repsol Ahorro Potencia",
@@ -1974,26 +1974,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Holaluz 3P",
-      "cPunta": 0.206,
-      "cLlano": 0.137,
-      "cValle": 0.113,
-      "p1": 0.099,
-      "p2": 0.099,
-      "web": "https://www.holaluz.com/luz/tarifas-luz/",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "BonArea Triple 3P",
       "cPunta": 0.209,
       "cLlano": 0.149,
@@ -2301,6 +2281,26 @@
       "maxConsumoAnual": 7000.0
     },
     {
+      "nombre": "Holaluz 3P",
+      "cPunta": 0.242,
+      "cLlano": 0.163,
+      "cValle": 0.134,
+      "p1": 0.099,
+      "p2": 0.099,
+      "web": "https://www.holaluz.com/luz/tarifas-luz/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Octopus Solar 3P",
       "cPunta": 0.243,
       "cLlano": 0.148,
@@ -2462,5 +2462,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-04T10:57:33.654Z"
+  "updatedAt": "2026-09-04T16:03:46.632Z"
 }
