@@ -6,6 +6,26 @@
   },
   "tarifas": [
     {
+      "nombre": "Seneo Tarifa 1 Autoconsumo",
+      "cPunta": 0.08,
+      "cLlano": 0.08,
+      "cValle": 0.08,
+      "p1": 0.112,
+      "p2": 0.018,
+      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.046,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": true
+    },
+    {
       "nombre": "Seneo Tarifa 1",
       "cPunta": 0.08,
       "cLlano": 0.08,
@@ -1353,26 +1373,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Seneo Tarifa 1 Autoconsumo",
-      "cPunta": 0.193,
-      "cLlano": 0.193,
-      "cValle": 0.193,
-      "p1": 0.095,
-      "p2": 0.018,
-      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.039,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": true
-    },
-    {
       "nombre": "Fenie Fijo Uniprecio",
       "cPunta": 0.205426,
       "cLlano": 0.205426,
@@ -2352,7 +2352,7 @@
       "tipo": "3P",
       "incluyeServiciosAjuste": true,
       "fv": {
-        "exc": 0.039,
+        "exc": 0.046,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -2462,5 +2462,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-03T18:03:15.276Z"
+  "updatedAt": "2026-09-04T10:27:33.483Z"
 }
