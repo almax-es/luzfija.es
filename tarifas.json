@@ -6,7 +6,7 @@
   },
   "tarifas": [
     {
-      "nombre": "Seneo Tarifa 1 Autoconsumo",
+      "nombre": "Seneo Tarifa 1 Fija 24h con Monedero Solar",
       "cPunta": 0.08,
       "cLlano": 0.08,
       "cValle": 0.08,
@@ -26,7 +26,7 @@
       "requiereFV": true
     },
     {
-      "nombre": "Seneo Tarifa 1",
+      "nombre": "Seneo Tarifa 1 Fija 24h",
       "cPunta": 0.08,
       "cLlano": 0.08,
       "cValle": 0.08,
@@ -383,7 +383,7 @@
       "requiereFV": true
     },
     {
-      "nombre": "Seneo Tarifa 2",
+      "nombre": "Seneo Tarifa 2 Fija 24h",
       "cPunta": 0.119,
       "cLlano": 0.119,
       "cValle": 0.119,
@@ -425,7 +425,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "Seneo Tarifa 2 Autoconsumo",
+      "nombre": "Seneo Tarifa 2 Fija 24h con Monedero Solar",
       "cPunta": 0.119,
       "cLlano": 0.119,
       "cValle": 0.119,
@@ -445,7 +445,7 @@
       "requiereFV": true
     },
     {
-      "nombre": "Seneo Tarifa 3",
+      "nombre": "Seneo Tarifa 3 Fija 24h",
       "cPunta": 0.119,
       "cLlano": 0.119,
       "cValle": 0.119,
@@ -1538,7 +1538,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "Seneo Tarifa 2 Autoconsumo 3P",
+      "nombre": "Seneo Tarifa 2 Tramos Horarios con Monedero Solar 3P",
       "cPunta": 0.171,
       "cLlano": 0.104,
       "cValle": 0.08,
@@ -1558,7 +1558,7 @@
       "requiereFV": true
     },
     {
-      "nombre": "Seneo Tarifa 2 3P",
+      "nombre": "Seneo Tarifa 2 Tramos Horarios 3P",
       "cPunta": 0.171,
       "cLlano": 0.104,
       "cValle": 0.08,
@@ -2219,7 +2219,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "Seneo Tarifa 1 Autoconsumo 3P",
+      "nombre": "Seneo Tarifa 1 Tramos Horarios con Monedero Solar 3P",
       "cPunta": 0.226,
       "cLlano": 0.113,
       "cValle": 0.054,
@@ -2239,7 +2239,7 @@
       "requiereFV": true
     },
     {
-      "nombre": "Seneo Tarifa 1 3P",
+      "nombre": "Seneo Tarifa 1 Tramos Horarios 3P",
       "cPunta": 0.226,
       "cLlano": 0.113,
       "cValle": 0.054,
@@ -2462,5 +2462,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-04T10:47:05.347Z"
+  "updatedAt": "2026-09-04T10:57:33.654Z"
 }
