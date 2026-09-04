@@ -6,26 +6,6 @@
   },
   "tarifas": [
     {
-      "nombre": "Seneo Tarifa 1 Fija 24h con Monedero Solar",
-      "cPunta": 0.08,
-      "cLlano": 0.08,
-      "cValle": 0.08,
-      "p1": 0.018,
-      "p2": 0.112,
-      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.046,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": true
-    },
-    {
       "nombre": "Seneo Tarifa 1 Fija 24h",
       "cPunta": 0.08,
       "cLlano": 0.08,
@@ -2462,5 +2442,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-04T16:03:46.632Z"
+  "updatedAt": "2026-09-04T16:17:00.593Z"
 }
