@@ -10,8 +10,8 @@
       "cPunta": 0.08,
       "cLlano": 0.08,
       "cValle": 0.08,
-      "p1": 0.112,
-      "p2": 0.018,
+      "p1": 0.018,
+      "p2": 0.112,
       "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
       "tipo": "1P",
       "incluyeServiciosAjuste": true,
@@ -2462,5 +2462,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-04T10:27:33.483Z"
+  "updatedAt": "2026-09-04T10:43:30.285Z"
 }
