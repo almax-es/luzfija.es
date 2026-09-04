@@ -2219,6 +2219,46 @@
       "requiereFV": false
     },
     {
+      "nombre": "Seneo Tarifa 1 Autoconsumo 3P",
+      "cPunta": 0.226,
+      "cLlano": 0.113,
+      "cValle": 0.054,
+      "p1": 0.198,
+      "p2": 0.123,
+      "web": "https://www.seneo.org/es/tarifa-tramos-horarios-con-monedero-solar/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.046,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": true
+    },
+    {
+      "nombre": "Seneo Tarifa 1 3P",
+      "cPunta": 0.226,
+      "cLlano": 0.113,
+      "cValle": 0.054,
+      "p1": 0.198,
+      "p2": 0.123,
+      "web": "https://www.seneo.org/es/tarifa-tramos-horarios/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Fortuluz A Contraluz 3P",
       "cPunta": 0.231,
       "cLlano": 0.182,
@@ -2342,46 +2382,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Seneo Tarifa 1 Autoconsumo 3P",
-      "cPunta": 0.27,
-      "cLlano": 0.188,
-      "cValle": 0.141,
-      "p1": 0.095,
-      "p2": 0.018,
-      "web": "https://www.seneo.org/es/tarifa-tramos-horarios-con-monedero-solar/",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.046,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": true
-    },
-    {
-      "nombre": "Seneo Tarifa 1 3P",
-      "cPunta": 0.27,
-      "cLlano": 0.188,
-      "cValle": 0.141,
-      "p1": 0.095,
-      "p2": 0.018,
-      "web": "https://www.seneo.org/es/tarifa-tramos-horarios/",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Fenie Fijo 3P",
       "cPunta": 0.274884,
       "cLlano": 0.193616,
@@ -2462,5 +2462,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-04T10:43:30.285Z"
+  "updatedAt": "2026-09-04T10:47:05.347Z"
 }
