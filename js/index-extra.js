@@ -228,7 +228,12 @@
       dayPairs = identityOk && month?.days ? month.days[dateStr] : undefined;
     }
     if (!identityOk || !__pvpcDayPairsUsable(dayPairs, dateStr, tz)) {
-      throw new Error('Sin datos (dataset estático)');
+      // Marcado explicito: "el dia no esta publicado" es un estado NORMAL (los precios de
+      // manhana salen sobre las 20:15). Sin esta marca, quien lo captura no puede separarlo
+      // de un fallo de red real, y ambos acababan ocultando la pestanha en silencio.
+      const sinDatos = new Error('Sin datos (dataset estático)');
+      sinDatos.__lfPvpcDiaNoPublicado = true;
+      throw sinDatos;
     }
     const entries = __pvpcBuildEntries(dayPairs, tz);
     return { entries, tz, geo };
@@ -392,6 +397,12 @@
           const cfg = getModalConfig(modalType);
           const tz = cfg.tzOverride || __ctx.tz;
 
+          const avisoPrevio = document.getElementById('pvpcMananaAviso');
+          if (avisoPrevio) {
+            avisoPrevio.textContent = '';
+            avisoPrevio.style.display = 'none';
+          }
+
           // Mañana en la TZ del usuario
           const hoyStr = __pvpcYmdInTZ(new Date(), tz);
           const fechaStr = __pvpcAddDaysYMD(hoyStr, 1);
@@ -422,8 +433,17 @@
         const tabManana = document.getElementById('tabManana');
         if (tabManana) tabManana.style.display = 'block';
       } catch (e) {
-        // Si aún no hay datos de mañana en el dataset, no hacemos nada.
-        if (window.__LF_DEBUG) console.log('[PVPC] Mañana no disponible todavía:', (e && e.message) || e);
+        // Dia aun no publicado: estado normal, sin aviso (la pestanha simplemente no aparece).
+        // Cualquier otro error (red, timeout, HTTP no-ok, dataset corrupto) SI se avisa: de lo
+        // contrario "manhana todavia no esta" y "no he podido cargarlo" se ven identicos.
+        if (window.__LF_DEBUG) console.log('[PVPC] Mañana no disponible:', (e && e.message) || e);
+        if (!(e && e.__lfPvpcDiaNoPublicado) && myTypeToken === __pvpcTypeToken) {
+          const aviso = document.getElementById('pvpcMananaAviso');
+          if (aviso) {
+            aviso.textContent = 'No he podido comprobar los precios de mañana. Cierra y vuelve a abrir para reintentarlo.';
+            aviso.style.display = 'block';
+          }
+        }
       }
     }
 

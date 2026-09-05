@@ -358,12 +358,21 @@
       if (!loaded) {
         const hasSessionTarifas = Array.isArray(window.LF.baseTarifasCache) &&
           window.LF.baseTarifasCache.length > 0;
+        // La llamada es `silent`, asi que fetchTarifas no ha pintado nada: el texto se decide
+        // aqui. Se reutiliza su clasificacion en vez de asumir "sin conexion", porque un 404 o
+        // un catalogo corrupto no son un fallo de red y culpar a la conexion manda al usuario
+        // a revisar su wifi por un problema del servidor.
+        const fallo = window.LF.__LF_ultimoFalloTarifas || {
+          status: 'Error conexión',
+          toast: 'Error cargando tarifas desde el servidor.',
+          toastConCache: 'Sin conexión con el servidor. Calculando con la última descarga de esta sesión.'
+        };
         if (!hasSessionTarifas) {
-          setStatus('Error conexión', 'err');
-          toast('Error cargando tarifas desde el servidor.', 'err');
+          setStatus(fallo.status, 'err');
+          toast(fallo.toast, 'err');
           return;
         }
-        toast('Sin conexión con el servidor. Calculando con la última descarga de esta sesión.', 'err');
+        toast(fallo.toastConCache, 'err');
       }
 
       // PVPC (viene de pvpc.js)

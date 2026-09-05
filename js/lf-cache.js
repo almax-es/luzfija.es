@@ -158,6 +158,40 @@
     });
   }
 
+  // ===== CLASIFICACION DEL FALLO DE CATALOGO =====
+  // La causa real ya se distingue al capturarla (__lfTarifasStatus / __lfTarifasFailureKind),
+  // pero durante mucho tiempo TODAS terminaban en el mismo "Error conexion". Un 404 o un JSON
+  // corrupto no son una caida de conectividad y el usuario no los arregla revisando su wifi.
+  // Este clasificador es la unica fuente del texto para los dos consumidores: el propio
+  // fetchTarifas (modo no silencioso) y el boton Calcular en lf-app.js (que llama en silent).
+  function describirFalloTarifas(error) {
+    const status = Number(error && error.__lfTarifasStatus) || 0;
+    const kind = error && error.__lfTarifasFailureKind;
+
+    if (kind === 'json-parse' || kind === 'json-invalid') {
+      return {
+        kind: 'datos',
+        status: 'Datos no válidos',
+        toast: 'El listado de tarifas descargado no es válido. Vuelve a intentarlo en unos minutos.',
+        toastConCache: 'El listado de tarifas descargado no es válido. Calculando con la última descarga de esta sesión.'
+      };
+    }
+    if (status >= 400) {
+      return {
+        kind: 'servidor',
+        status: 'Error del servidor',
+        toast: `El servidor respondió con un error (${status}) al pedir las tarifas.`,
+        toastConCache: `El servidor respondió con un error (${status}). Calculando con la última descarga de esta sesión.`
+      };
+    }
+    return {
+      kind: 'red',
+      status: 'Error conexión',
+      toast: 'Error cargando tarifas desde el servidor.',
+      toastConCache: 'Sin conexión con el servidor. Calculando con la última descarga de esta sesión.'
+    };
+  }
+
   // ===== FETCH TARIFAS =====
   async function fetchTarifas(_forceRefresh = false, opts) {
     const silent = Boolean(opts && opts.silent);
@@ -265,6 +299,7 @@
             throw error;
           }
 
+          window.LF.__LF_ultimoFalloTarifas = null;
           window.LF.baseTarifasCache = tarifas;
           window.LF.__LF_tarifasMeta = { updatedAt: data.updatedAt || null };
 
@@ -312,9 +347,14 @@
         trackTarifasFailureImpact(diagnosticReason);
       }
       debugLog('[ERROR] Error cargando tarifas JSON:', lastError);
+      // El consumidor silencioso (Calcular) no ve `lastError`: fetchTarifas devuelve un
+      // booleano por contrato y cambiarlo romperia el resto de llamadas. Se publica aqui
+      // para que lf-app.js pueda describir la MISMA causa sin repetir la clasificacion.
+      window.LF.__LF_ultimoFalloTarifas = describirFalloTarifas(lastError);
       if (!silent) {
-        setStatus('Error conexión', 'err');
-        toast('Error cargando tarifas desde el servidor.', 'err');
+        const fallo = window.LF.__LF_ultimoFalloTarifas;
+        setStatus(fallo.status, 'err');
+        toast(fallo.toast, 'err');
       }
       return false;
     })().finally(() => {
@@ -330,7 +370,8 @@
   window.LF = window.LF || {};
   Object.assign(window.LF, {
     renderTarifasUpdated,
-    fetchTarifas
+    fetchTarifas,
+    describirFalloTarifas
   });
 
   // Compatibilidad

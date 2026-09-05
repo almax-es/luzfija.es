@@ -89,6 +89,7 @@
     trendModeMonthly: document.getElementById('trendModeMonthly'),
     trendModeDaily: document.getElementById('trendModeDaily'),
     trendMeta: document.getElementById('trendMeta'),
+    compareMeta: document.getElementById('compareMeta'),
     insightCheapest: document.getElementById('insightCheapest'),
     insightWorst: document.getElementById('insightWorst'),
     insightRange: document.getElementById('insightRange'),
@@ -753,10 +754,30 @@
 
     if (isCurrent && !isCurrent()) return;
 
-    for (const r of results) {
-      if (!r || !r.d) continue;
+    // Los anhos con meses fallidos ya se marcan en KPI, tendencia y perfil horario cuando son
+    // el anho principal. Sin esto, la MISMA cobertura parcial entraba muda en la comparativa y
+    // su hueco se leia como una caracteristica del dataset en vez de como una descarga fallida.
+    const parciales = [];
+    const noCargados = [];
+    for (const [idx, r] of results.entries()) {
+      if (!r || !r.d) {
+        const anho = years[idx];
+        if (Number.isFinite(anho)) noCargados.push(String(anho));
+        continue;
+      }
       const monthly = computeMonthlyFromYearData(r.d);
+      if (r.d.meta && r.d.meta.partial) {
+        const meses = Array.isArray(r.d.meta.failedMonths) ? r.d.meta.failedMonths : [];
+        parciales.push(meses.length ? `${r.y} (falta ${meses.join(', ')})` : String(r.y));
+      }
       datasets.push({ label: String(r.y), data: monthly.values });
+    }
+
+    if (els.compareMeta) {
+      const avisos = [];
+      if (parciales.length) avisos.push(`⚠ datos parciales: ${parciales.join(' · ')}`);
+      if (noCargados.length) avisos.push(`⚠ no se pudo cargar: ${noCargados.join(', ')}`);
+      els.compareMeta.textContent = avisos.join(' · ');
     }
 
     // etiquetas (meses)

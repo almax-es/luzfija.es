@@ -3031,3 +3031,80 @@ se abre trabajo de correccion sin evidencia de un caso real.
 **Para reabrir** hace falta encontrar, en codigo o en un artefacto real (enlace, fichero de backup
 guardado por un usuario), un `payload.version: 1` cuyo `data` use un formato de mes distinto al
 `{p1, p2, p3, vert}` actual. Sin eso, no reabrir con el mismo argumento.
+
+<a id="mensajes-de-fallo-y-parcialidad-ronda-22-05-09-2026"></a>
+### Mensajes De Fallo Y Cobertura Parcial Frente A La Causa Real (Ronda 22, 05/09/2026)
+
+**Origen.** Ronda 22 de auditoria externa (ChatGPT, solo ZIP, sin ejecutar tests ni navegador).
+Angulo: si el texto o estado visual que ve el usuario ante un fallo, demora o dato parcial de una
+dependencia describe con precision la causa real. Libro de candidatos de mas de 45 mensajes en
+home, Observatorio, modal PVPC, simulador solar y factura. Tres hallazgos confirmados por trazado
+estatico linea a linea contra el codigo real; ninguno reproducido en navegador (Chromium no
+disponible en el entorno del auditor).
+
+**H-22-01: fallos de catalogo no relacionados con conectividad se presentan como "Error
+conexion".** `js/lf-cache.js:214-232` distingue perfectamente la causa real de cada fallo de
+`fetchTarifas()` -- HTTP 404/500 (`__lfTarifasStatus`), JSON no parseable
+(`__lfTarifasFailureKind = 'json-parse'`), JSON valido pero sin tarifas utilizables
+(`'json-invalid'`) -- pero todas esas causas colapsan en el mismo texto generico al agotar
+reintentos: `setStatus('Error conexion', 'err')` + `toast('Error cargando tarifas desde el
+servidor.', 'err')` en `lf-cache.js:315-317`, y la misma decision se duplica de forma
+independiente en `js/lf-app.js:358-366` para la llamada `silent: true` del boton Calcular (que
+por ser `silent` nunca pasa por el primer bloque). Un HTTP 404 no es una caida de conectividad
+del navegador ni el usuario puede arreglarlo revisando su red; el mensaje le atribuye la causa
+equivocada. `tests/dependencias-carga-parcial.test.js:337` fija el texto actual pero solo para el
+caso "sin tarifas de sesion con `fetchTarifas` devuelto `false`" -- no es una decision deliberada
+sobre unificar los mensajes por tipo de fallo, es cobertura incidental del comportamiento actual;
+hay que actualizar ese test si se corrige el texto.
+
+**H-22-02: la comparativa historica por anhos no advierte de anhos con cobertura parcial.** El
+motor SI conoce la parcialidad: `js/pvpc-stats-engine.js:222-250` construye
+`yearData.meta.failedMonths` y `yearData.meta.partial` por cada mes que falla al cargar. Ese
+mismo dato ya alimenta avisos explicitos en el KPI, la tendencia y el perfil horario del anho
+PRINCIPAL del Observatorio (el comentario de `pvpc-stats-ui.js:1180-1185` documenta exactamente
+por que hace falta ese aviso: "sin este aviso el KPI se ve identico a uno completo"). Pero
+`renderComparison()` (`js/pvpc-stats-ui.js:735-762`) descarta el objeto `meta` al construir los
+datasets del grafico -- solo usa `computeMonthlyFromYearData()`, que deja el mes fallido en
+`null` (`pvpc-stats-ui.js:585-614`) sin propagar ningun aviso a la tarjeta. Resultado: la tarjeta
+"Comparativa por anhos" puede mostrar un anho con un mes en blanco sin ningun `⚠ datos
+parciales`, mientras el MISMO anho, si es el principal, si lleva ese aviso en otras tres
+superficies de la misma pagina. Es la inconsistencia entre superficies del mismo dato, no una
+carencia aislada.
+
+**H-22-03: un fallo de red al cargar "Manhana" es indistinguible de "todavia no publicado".**
+`js/index-extra.js:400-423` solo muestra la pestanha `tabManana` si `cargarManana()` termina sin
+excepcion. El `catch` unico (`index-extra.js:424-426`) trata igual la ausencia real del dia
+(`__pvpcFetchDay` lanza `'Sin datos (dataset estatico)'` cuando el dia no esta publicado) que
+cualquier fallo de red o HTTP no-ok de `__pvpcLoadMonth` (`index-extra.js:104-122`, que lanza
+`Dataset no disponible: <url> (<status>)` o rechaza por timeout/red). En ambos casos la pestanha
+simplemente no aparece, sin mensaje en el DOM (el `console.log` es solo debug). Severidad baja:
+no bloquea "Hoy" ni el resto del comparador, y reabrir el modal reintenta la carga.
+
+**Correccion aplicada (05/09/2026), los tres.**
+- H-22-01: `describirFalloTarifas()` en `js/lf-cache.js` clasifica el fallo en `red`/`servidor`/
+  `datos` y es la UNICA fuente del texto. Como `fetchTarifas` devuelve un booleano por contrato y
+  el boton Calcular lo llama en `silent`, la clasificacion se publica en
+  `window.LF.__LF_ultimoFalloTarifas` para que `js/lf-app.js` describa la misma causa sin
+  duplicar la logica; se limpia al primer exito para no arrastrar una causa vieja. Sin
+  informacion de causa se conserva el texto historico de red: no se inventa una causa que no se
+  ha observado (por eso `tests/dependencias-carga-parcial.test.js`, que mockea `fetchTarifas`,
+  sigue pasando sin tocarlo).
+- H-22-02: nuevo `#compareMeta` bajo el grafico comparativo (mismo patron y clases que
+  `#trendMeta`), poblado desde `renderComparison()` con los anhos que traen `meta.partial` y los
+  meses que faltan. Se anhadio tambien el caso que el informe no cubria: un anho cuya carga
+  entera falla (`results` con `null`) ya no desaparece del grafico en silencio.
+- H-22-03: el "dia no publicado" de `__pvpcFetchDay` va marcado con `__lfPvpcDiaNoPublicado`; el
+  `catch` de `cargarManana()` solo calla ante esa marca y ante cualquier otro error escribe en
+  `#pvpcMananaAviso`. El aviso se limpia al empezar una carga nueva y respeta `__pvpcTypeToken`
+  para no pintar el resultado de un tipo abandonado.
+
+**Regresiones.** `tests/mensajes-causa-fallo.test.js`, 12 casos. Validadas por MUTACION, las tres:
+colapsar el clasificador a la rama generica tumba 4 tests; devolver el `catch` de manhana a
+"callar siempre" tumba 1; quitar la consulta de `meta.partial` en `renderComparison` tumba 1.
+Suite completa 1831/1833 en verde y `npm run lint` limpio.
+
+**Para reabrir** (si se corrige y se quiere volver a auditar esta zona): comprobar que
+`fetchTarifas()` distingue el texto mostrado por `error.__lfTarifasFailureKind`/`__lfTarifasStatus`
+en vez de colapsar a un unico mensaje; que `renderComparison()` marca visualmente los anhos con
+`meta.partial`; y que `cargarManana()` distingue "dia no publicado" de un fallo de red real en el
+`catch`.
