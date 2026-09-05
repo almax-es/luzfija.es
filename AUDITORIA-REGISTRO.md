@@ -2981,3 +2981,53 @@ sin errores de consola y su texto visible coincide byte a byte con el del JSON-L
 **Para reabrir** hace falta: que la columna deje de ser un residual (y entonces el rotulo deberia
 volver a ser literal), que el rotulo de escritorio y el `::before` de movil se separen otra vez, o
 que aparezca una tercera superficie con la misma agregacion sin declarar su composicion.
+
+<a id="reproducibilidad-de-enlaces-y-backups-ronda-21-05-09-2026"></a>
+### Reproducibilidad De Enlaces Compartidos Y Backups (Ronda 21, 05/09/2026)
+
+**Origen.** Ronda 21 de auditoria externa (ChatGPT, solo ZIP, sin ejecutar tests ni navegador).
+Angulo: si un enlace compartido o un backup exportado hoy reconstruye el mismo escenario al
+abrirse mas tarde. Barrido completo de `shareConfiguration()` (`js/lf-app.js`), `SERVER_PARAMS`/
+`DEFAULTS` (`js/lf-state.js`), y `getSharedScenario()`/`normalizeImportedScenarioPayload()`/
+`loadManualData()` (`js/bv/bv-ui.js`). El libro de candidatos (44 mecanismos y claves revisados)
+es correcto salvo el unico hallazgo que propuso, que se investigo aqui y se RECHAZO.
+
+**Hallazgo propuesto y rechazado.** El informe afirmaba que un `payload.version: 1` en un enlace
+`?bv=` o en un backup JSON usaba el formato antiguo agregado (`{cons, vert}`) y que el codigo
+actual, al aceptar `[1, 2].includes(payload.version)` sin migrarlo, perdia en silencio el consumo
+mensual (leia `p1/p2/p3` inexistentes como cadenas vacias). La premisa -- que `version: 1` alguna
+vez significo ese formato -- no esta soportada por nada en el repo: ninguna de las dos unicas
+escrituras de `payload.version` (`js/bv/bv-ui.js:1147` y `2107`) genera nunca `version: 1`, solo
+`2`; tras la comprobacion de rango en `js/bv/bv-ui.js:843` y `907` el codigo NO vuelve a mirar el
+numero de version para elegir formato, y lee `data[i].p1/p2/p3/vert` igual sea 1 o 2;
+`SIMULADOR-BV.md:192` documenta la unica diferencia conocida entre versiones (la aparicion del
+campo `config`, no un cambio de nombres de campo); y `git log -S "version: 1" -- js/bv/bv-ui.js`
+no encuentra ningun commit que lo haya escrito jamas dentro del historial visible (post-squash,
+ver [[project_history_squash_20260704]]).
+
+**La trampa real que produjo el falso positivo.** El repo tiene DOS sistemas de versionado que
+comparten vocabulario por casualidad y no tienen relacion entre si:
+- `localStorage['bv_manual_data']` (legacy, SIN campo de version -- se distingue solo por el
+  nombre de la clave, no por un numero dentro del dato) usa `{cons, vert}` por mes, y SI tiene
+  una migracion real al formato detallado (reparto 20/25/55) en `js/bv/bv-ui.js:953-982`. Esa
+  migracion solo se dispara al leer `localStorage`, nunca al leer un `payload.version` de una
+  URL o un backup.
+- `payload.version` (el numero `1` o `2` dentro de un enlace `?bv=` o un JSON de backup) usa
+  siempre `{p1, p2, p3, vert}` en ambos valores; el numero nunca selecciona una rama de parseo.
+
+El comentario en `js/bv/bv-ui.js:953` ("Migracion simple de v1 (agregado) a v2 (detallado)") usa
+"v1/v2" como apodo informal de ese PRIMER sistema (nombre de clave), no del campo `version` del
+segundo. Quien audite este area de nuevo: si un hallazgo depende de que `version: 1` tenga un
+formato de mes distinto a `version: 2`, hay que ENSEÑAR donde se escribe ese `version: 1` con ese
+formato antes de darlo por real -- no basta con que el comentario mencione "v1".
+
+**Riesgo teorico documentado, no hallazgo.** La comprobacion `[1, 2].includes(payload.version)`
+es vestigial: nunca se usa para elegir una rama de parseo, asi que si alguna vez existio (antes
+del squash del historial, sin evidencia accesible) un enlace o backup real con `version: 1` y un
+formato de mes distinto al actual, se romperia hoy en silencio. No hay ninguna prueba de que tal
+formato haya existido. Se documenta como riesgo teorico de bajisima probabilidad, no como bug: no
+se abre trabajo de correccion sin evidencia de un caso real.
+
+**Para reabrir** hace falta encontrar, en codigo o en un artefacto real (enlace, fichero de backup
+guardado por un usuario), un `payload.version: 1` cuyo `data` use un formato de mes distinto al
+`{p1, p2, p3, vert}` actual. Sin eso, no reabrir con el mismo argumento.

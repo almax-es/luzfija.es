@@ -113,6 +113,7 @@ decision esta en el registro enlazado desde la ultima columna y desde el indice 
 | Documentacion y vigencia editorial | Auditado 27/08/2026: 10 docs manuales, 7 generados y 25 guias. Corregidos la guia de factura (no reflejaba el import de precios QR a `Mi tarifa`) y 4 fechas de actualizacion desfasadas | [Documentacion Y Vigencia Editorial](AUDITORIA-REGISTRO.md#documentacion-y-vigencia-editorial) |
 | Paginas legales (privacidad y aviso legal) | Auditado 27/08/2026, primera vez. Contrastadas todas las afirmaciones contra el codigo. Corregidos: fuente del PVPC (era CNMC, es ESIOS/REE), precios del QR no declarados, alcance del catalogo y fechas | [Paginas Legales Frente Al Comportamiento Real](AUDITORIA-REGISTRO.md#paginas-legales-frente-al-comportamiento-real) |
 | Rotulacion de la UI frente al motor | Auditada 05/09/2026 (ronda 20), primera vez. Unidades, magnitudes, placeholders, tooltips, leyendas de tabla y mensajes de estado de las paginas de producto contrastados contra la capa de calculo. Un hallazgo: la columna del ranking rotulada Impuestos agrega conceptos no fiscales | [Rotulacion De La Columna Impuestos Frente Al Motor](AUDITORIA-REGISTRO.md#rotulacion-columna-impuestos-frente-al-motor-resuelta-05-09-2026) |
+| Reproducibilidad de enlaces y backups | Auditada 05/09/2026 (ronda 21), primera vez. Contrato serializador/deserializador de enlaces compartidos y backups del simulador solar, y migracion entre versiones de payload/localStorage. Cero hallazgos confirmados; el unico propuesto (perdida de datos en payload version 1) se rechazo por falta de evidencia de que ese formato haya existido nunca | [Reproducibilidad De Enlaces Compartidos Y Backups](AUDITORIA-REGISTRO.md#reproducibilidad-de-enlaces-y-backups-ronda-21-05-09-2026) |
 
 ## Directorio Del Registro De Auditorias
 
@@ -204,6 +205,7 @@ estes auditando; no hace falta leerlo entero.
 - [SW, Cache, Arranque Y Recuperacion PDF.js (01/09/2026)](AUDITORIA-REGISTRO.md#sw-cache-arranque-y-recuperacion-pdfjs-01-09-2026)
 - [Compatibilidad WebKit/iPhone Del Lector PDF (RESUELTA 02/09/2026)](AUDITORIA-REGISTRO.md#compatibilidad-webkit-iphone-del-lector-pdf-resuelta-02-09-2026)
 - [Rotulacion De La Columna "Impuestos" Frente Al Motor (RESUELTA 05/09/2026)](AUDITORIA-REGISTRO.md#rotulacion-columna-impuestos-frente-al-motor-resuelta-05-09-2026)
+- [Reproducibilidad De Enlaces Compartidos Y Backups (Ronda 21, 05/09/2026)](AUDITORIA-REGISTRO.md#reproducibilidad-de-enlaces-y-backups-ronda-21-05-09-2026)
 <!-- REGISTRO-INDICE:FIN -->
 
 ## Hallazgos Que Si Serian Relevantes
