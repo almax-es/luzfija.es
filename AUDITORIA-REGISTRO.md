@@ -3134,9 +3134,21 @@ pero p1 mantiene minimo positivo" -- mientras `getCustomTarifa()` solo exigia
 `filledPower.some(x => x.value > 0)`, que se satisface con P2. Reproducido en produccion: con
 Punta/Llano/Valle 0,12/0,10/0,08 y P1=0, P2=0,05 la home responde "Corrige los datos para
 calcular" y el simulador construia la tarifa con `p1: 0`. **Manda la home** (su regla es el
-contrato del dataset). Corregido anhadiendo el mismo minimo en el manejador de `bv-simulate`,
-ANTES de llamar a `getCustomTarifa()`. Un P1 vacio sigue siendo valido: hereda `powerFallback` de
-P2; lo que se rechaza es el 0 escrito a proposito.
+contrato del dataset). Un P1 vacio sigue siendo valido: hereda `powerFallback` de P2; lo que se
+rechaza es el 0 escrito a proposito.
+
+**Trampa del arreglo de H-23-01: no basta con el manejador del boton.** El primer intento puso el
+guard solo dentro del `click` de `bv-simulate`, y en produccion el aviso salia pero el campo NO
+quedaba marcado. Un `MutationObserver` sobre `mtP1` lo explico: la clase `error` se anhadia a los
+2 ms y desaparecia a los ~110 ms, porque la validacion en vivo (`validateInputFormat`) considera
+`0` un valor correcto y se reejecuta despues por otras rutas. El control con un error preexistente
+(`P1 = -1`) mantenia la marca, lo que confirmo que el defecto era del arreglo nuevo y no del
+formulario. Correccion definitiva: `validateInputFormat()` acepta un cuarto parametro
+`minExclusive`, la tabla `mtMinExclusive = { mtP1: 0 }` vive junto a `mtMaxValues`, y se propaga a
+los TRES puntos de llamada de "Mi tarifa" (listener de `input`, restauracion de escenario y
+validacion del boton). Asi el campo se marca al escribir y la marca persiste, igual que el resto
+de errores del formulario. Una regresion cuenta que las tres llamadas lleven el minimo: si una lo
+pierde, esa ruta vuelve a borrar la marca.
 
 **H-23-02 (P2, el importante): los tres precios de energia a 0 coronaban "Mi tarifa" en la home.**
 El simulador ya lo rechazaba con aviso explicito ("Los datos de 'Mi tarifa actual' estan
@@ -3153,9 +3165,10 @@ punta positiva sigue siendo valido (verificado: sigue calculando y entrando en e
 correcto es la home y en H-23-02 el simulador. "Alinearlos" sin decidir cual manda habria
 propagado el error en uno de los dos casos.
 
-**Regresiones.** `tests/mi-tarifa-paridad-productores.test.js`, 7 casos, validados por MUTACION:
-desactivar el guard de la home tumba 2 tests y desactivar el del simulador tumba otros 2. Suite
-1838/1840 en verde y `npm run lint` limpio.
+**Regresiones.** `tests/mi-tarifa-paridad-productores.test.js`, 8 casos, validados por MUTACION:
+desactivar el guard de la home tumba 2 tests, y quitar el minimo de una sola de las tres llamadas
+a `validateInputFormat` tumba el que vigila la propagacion. Suite 1839/1841 en verde y
+`npm run lint` limpio.
 
 **Verificacion en navegador (Chrome real, service worker puenteado).** Home: P1=0 bloquea con
 `mtP1` en rojo; energia 0/0/0 bloquea con los tres campos en rojo; valle=0 con punta positiva

@@ -28,23 +28,30 @@ describe('Mi tarifa: P1 = 0 se rechaza en los dos rankings', () => {
     expect(code).toMatch(/p1Val && p1 === 0/);
   });
 
-  it('el simulador solar aplica el mismo minimo antes de construir la tarifa', () => {
+  it('el simulador aplica el minimo en el validador compartido, no solo al pulsar Calcular', () => {
     const code = readJs('bv', 'bv-ui.js');
-    const idx = code.indexOf('const customTarifa = miTarifaError ? null : getCustomTarifa();');
-    expect(idx).toBeGreaterThan(-1);
-    // El guard tiene que estar ANTES de construir el objeto, no despues.
-    const antes = code.slice(Math.max(0, idx - 900), idx);
-    expect(antes).toContain('El precio de potencia P1 debe ser mayor que 0');
-    expect(antes).toMatch(/mtP1Raw && parseInput\(mtP1Raw\) === 0/);
+    // Vivir solo en el manejador del boton no basta: la validacion en vivo se reejecuta
+    // despues y borraba la marca roja a los ~110 ms (medido con MutationObserver).
+    expect(code).toMatch(/const mtMinExclusive = \{ mtP1: 0 \}/);
+    expect(code).toMatch(/function validateInputFormat\(input, maxDecimals, maxValue, minExclusive\)/);
+    expect(code).toMatch(/isAboveMin = minExclusive === undefined \|\| parsed > minExclusive/);
+    expect(code).toMatch(/isValid = .*&& isAboveMin/);
+  });
+
+  it('el minimo se propaga a los tres puntos de validacion de Mi tarifa', () => {
+    const code = readJs('bv', 'bv-ui.js');
+    const llamadas = code.match(/validateInputFormat\([^)]*mtMaxValues\[id\][^)]*\)/g) || [];
+    expect(llamadas.length).toBe(3);
+    // Ninguna puede quedarse sin el minimo: si una lo omite, esa ruta vuelve a borrar la marca.
+    llamadas.forEach((c) => expect(c).toContain('mtMinExclusive[id]'));
   });
 
   it('un P1 vacio sigue siendo valido en el simulador (hereda el fallback de P2)', () => {
     const code = readJs('bv', 'bv-ui.js');
-    const idx = code.indexOf('mtP1Raw && parseInput(mtP1Raw) === 0');
-    expect(idx).toBeGreaterThan(-1);
-    // La guarda exige contenido: sin `mtP1Raw &&` rechazaria tambien el campo vacio, que es
-    // un caso legitimo resuelto por powerFallback en getCustomTarifa().
-    expect(code.slice(idx - 60, idx + 60)).toContain('mtP1Raw &&');
+    // validateInputFormat sale antes con raw vacio, asi que el minimo no lo alcanza.
+    const idx = code.indexOf('function validateInputFormat');
+    const fn = code.slice(idx, idx + 1200);
+    expect(fn).toMatch(/if \(raw === ''\)[\s\S]{0,120}return true;/);
     expect(code).toContain('powerFallback');
   });
 });

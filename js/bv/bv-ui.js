@@ -528,12 +528,16 @@ document.addEventListener('DOMContentLoaded', () => {
   // que home y solar acepten los mismos valores de factura (7-8 decimales).
   const MAX_DECIMALES_PRECIO = 8;
   const mtMaxValues = { mtPunta: 1, mtLlano: 1, mtValle: 1, mtP1: 1, mtP2: 1, mtExc: 0.5 };
+  // El contrato del dataset permite P2=0 pero P1 mantiene minimo positivo (ver
+  // validateMiTarifa en js/lf-tarifa-custom.js). Solo aplica a un campo con contenido:
+  // P1 vacio sigue heredando el fallback de P2 en getCustomTarifa().
+  const mtMinExclusive = { mtP1: 0 };
 
   // Validación de formato numérico para campos de entrada (no cuadrícula manual)
   // Marca con clase .error si el formato no es numérico válido, el valor es negativo
   // o supera maxValue (si se proporciona).
   // NO usa clase .valid porque el CSS solo soporta .input.error (styles.css:726)
-  function validateInputFormat(input, maxDecimals, maxValue) {
+  function validateInputFormat(input, maxDecimals, maxValue, minExclusive) {
     maxDecimals = maxDecimals === undefined ? 2 : maxDecimals;
     if (!input) return true;
     const raw = String(input.value || '').trim();
@@ -547,7 +551,12 @@ document.addEventListener('DOMContentLoaded', () => {
       : /^[\d.,\s]+$/.test(raw);
     const parsed = parseInput(raw);
     const isInRange = maxValue === undefined || parsed <= maxValue;
-    const isValid = isValidFormat && Number.isFinite(parsed) && parsed >= 0 && isInRange;
+    // Minimo EXCLUSIVO opcional: P1 no admite 0 (contrato del dataset, igual que la home).
+    // Tiene que vivir aqui y no solo en el manejador de Calcular: la validacion en vivo se
+    // reejecuta despues (restauracion, listener de input) y borraba la marca roja a los ~110 ms,
+    // dejando el aviso sin campo senhalado. Medido con MutationObserver el 05/09/2026.
+    const isAboveMin = minExclusive === undefined || parsed > minExclusive;
+    const isValid = isValidFormat && Number.isFinite(parsed) && parsed >= 0 && isInRange && isAboveMin;
     input.classList.toggle('error', !isValid);
     return isValid;
   }
@@ -1754,7 +1763,7 @@ document.addEventListener('DOMContentLoaded', () => {
         input.value = data[key];
         // Una restauracion/importacion es una sustitucion programatica del valor. Sin volver a
         // sincronizar la clase, un .error del escenario anterior quedaba pegado a un valor nuevo.
-        validateInputFormat(input, MAX_DECIMALES_PRECIO, mtMaxValues[id]);
+        validateInputFormat(input, MAX_DECIMALES_PRECIO, mtMaxValues[id], mtMinExclusive[id]);
       }
     });
     const mtBVEl = document.getElementById('mtBV');
@@ -1958,7 +1967,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (el) {
       let saveTimer = null;
       el.addEventListener('input', function () {
-        validateInputFormat(el, MAX_DECIMALES_PRECIO, mtMaxValues[id]);
+        validateInputFormat(el, MAX_DECIMALES_PRECIO, mtMaxValues[id], mtMinExclusive[id]);
         if (id === 'mtExc') updateMtBVSinCompensacionAviso();
         invalidateVisibleSimulationResults();
         clearTimeout(saveTimer);
@@ -2818,7 +2827,7 @@ document.addEventListener('DOMContentLoaded', () => {
       miTarifaIds.forEach(function (id) {
         const el = document.getElementById(id);
         const raw = String(el?.value || '').trim();
-        const valid = validateInputFormat(el, MAX_DECIMALES_PRECIO, mtMaxValues[id]);
+        const valid = validateInputFormat(el, MAX_DECIMALES_PRECIO, mtMaxValues[id], mtMinExclusive[id]);
         if (!raw) return;
         if (valid || miTarifaError) return;
 
@@ -2827,6 +2836,8 @@ document.addEventListener('DOMContentLoaded', () => {
           miTarifaError = mtNegativeMessages[id];
         } else if (Number.isFinite(val) && val > mtMaxValues[id]) {
           miTarifaError = mtRangeMessages[id];
+        } else if (Number.isFinite(val) && mtMinExclusive[id] !== undefined && val <= mtMinExclusive[id]) {
+          miTarifaError = 'El precio de potencia P1 debe ser mayor que 0.';
         } else {
           miTarifaError = mtFormatMessages[id];
         }
@@ -2841,18 +2852,6 @@ document.addEventListener('DOMContentLoaded', () => {
           miTarifaError = 'Indica la cuota mensual de la batería virtual (escribe 0 si es gratuita).';
           const precioBVEl = document.getElementById('mtPrecioBV');
           if (precioBVEl) precioBVEl.classList.add('error');
-        }
-      }
-
-      // Paridad con la home (validateMiTarifa en lf-tarifa-custom.js): el contrato del dataset
-      // permite P2=0 pero P1 mantiene minimo positivo. Sin esto, la MISMA tarifa entraba en el
-      // ranking solar y era rechazada en el de la home. P1 vacio sigue siendo valido: hereda
-      // el fallback de P2 en getCustomTarifa(); lo que se rechaza es el 0 escrito a proposito.
-      if (!miTarifaError) {
-        const mtP1Raw = String(document.getElementById('mtP1')?.value || '').trim();
-        if (mtP1Raw && parseInput(mtP1Raw) === 0) {
-          miTarifaError = 'El precio de potencia P1 debe ser mayor que 0.';
-          document.getElementById('mtP1')?.classList.add('error');
         }
       }
 
