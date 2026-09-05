@@ -504,12 +504,17 @@ node -e "
   });
 "
 
-# Validar el guard operativo de precios (0 <= precio <= 1 EUR/kWh)
+# Validar el guard operativo de precios: fila [timestamp, precio] con precio
+# numérico y finito (mismo criterio que scripts/check_data_freshness.py::_price_from_row).
+# OJO: los precios negativos son VÁLIDOS (ocurren en mercado real). No se filtra
+# por signo ni existe tope superior.
 node -e "
   const d = JSON.parse(require('fs').readFileSync('data/pvpc/8741/2025-01.json'));
   Object.values(d.days).forEach(hours => {
-    hours.forEach(([ts, price]) => {
-      if (price < 0 || price > 1) console.warn('ALERTA: precio inválido', price);
+    hours.forEach((row) => {
+      const ok = Array.isArray(row) && row.length === 2
+        && typeof row[1] === 'number' && Number.isFinite(row[1]);
+      if (!ok) console.warn('ALERTA: fila inválida', row);
     });
   });
 "
