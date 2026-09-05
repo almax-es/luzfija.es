@@ -594,8 +594,8 @@
       "cPunta": 0.122,
       "cLlano": 0.122,
       "cValle": 0.122,
-      "p1": 0.158,
-      "p2": 0.084,
+      "p1": 0.12,
+      "p2": 0.122,
       "web": "https://bassolsenergia.com/es/monedero-solar/",
       "tipo": "1P",
       "incluyeServiciosAjuste": true,
@@ -614,8 +614,8 @@
       "cPunta": 0.122,
       "cLlano": 0.122,
       "cValle": 0.122,
-      "p1": 0.158,
-      "p2": 0.084,
+      "p1": 0.12,
+      "p2": 0.122,
       "web": "https://bassolsenergia.com/es/tarifas-de-luz/hogar-24-horas/",
       "tipo": "1P",
       "incluyeServiciosAjuste": true,
@@ -2442,5 +2442,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-04T21:04:42.243Z"
+  "updatedAt": "2026-09-05T11:06:44.813Z"
 }
