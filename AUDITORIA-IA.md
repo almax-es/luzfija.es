@@ -116,6 +116,7 @@ decision esta en el registro enlazado desde la ultima columna y desde el indice 
 | Reproducibilidad de enlaces y backups | Auditada 05/09/2026 (ronda 21), primera vez. Contrato serializador/deserializador de enlaces compartidos y backups del simulador solar, y migracion entre versiones de payload/localStorage. Cero hallazgos confirmados; el unico propuesto (perdida de datos en payload version 1) se rechazo por falta de evidencia de que ese formato haya existido nunca | [Reproducibilidad De Enlaces Compartidos Y Backups](AUDITORIA-REGISTRO.md#reproducibilidad-de-enlaces-y-backups-ronda-21-05-09-2026) |
 | Mensajes de fallo y cobertura parcial | Auditada 05/09/2026 (ronda 22), primera vez. Texto y estado visual ante fallos de red, timeouts y datos parciales en home, Observatorio, modal PVPC y simulador solar, contrastados contra la causa real capturada en el codigo. 3 hallazgos, los tres CORREGIDOS el 05/09/2026 con regresiones validadas por mutacion: mensaje "Error conexion" para fallos no relacionados con conectividad, comparativa historica sin aviso de anhos con cobertura parcial, y fallo de red indistinguible de "manhana no publicado todavia" | [Mensajes De Fallo Y Cobertura Parcial Frente A La Causa Real](AUDITORIA-REGISTRO.md#mensajes-de-fallo-y-parcialidad-ronda-22-05-09-2026) |
 | Paridad de "Mi tarifa" entre productores | Auditada 05/09/2026 (ronda 23), primera vez. Tabla de paridad propiedad a propiedad de los tres productores del objeto (home, desglose y simulador solar). 2 hallazgos CORREGIDOS con regresiones validadas por mutacion: P1=0 aceptado solo por el simulador, y energia 0/0/0 aceptada solo por la home (coronaba el ranking). La invariante fv.bv de la ronda 20 sigue intacta en los tres | [Paridad De "Mi Tarifa" Entre Sus Tres Productores](AUDITORIA-REGISTRO.md#mi-tarifa-paridad-entre-productores-ronda-23-05-09-2026) |
+| Buscador de guias (`js/guides-search.js`) | **Hueco deliberado, no auditado como area** (05/09/2026). Cubiertos por tests dedicados el indice y la resiliencia de red; sin auditar el comportamiento de la UI (orden de resultados, teclado, estados vacios). Techo de impacto cosmetico y sin superficie XSS (todo `textContent`). No lo reportes como zona huerfana sin leer la entrada | [Buscador De Guias: Hueco De Auditoria Deliberado](AUDITORIA-REGISTRO.md#buscador-de-guias-hueco-deliberado-05-09-2026) |
 
 ## Directorio Del Registro De Auditorias
 
@@ -210,6 +211,7 @@ estes auditando; no hace falta leerlo entero.
 - [Reproducibilidad De Enlaces Compartidos Y Backups (Ronda 21, 05/09/2026)](AUDITORIA-REGISTRO.md#reproducibilidad-de-enlaces-y-backups-ronda-21-05-09-2026)
 - [Mensajes De Fallo Y Cobertura Parcial Frente A La Causa Real (Ronda 22, 05/09/2026)](AUDITORIA-REGISTRO.md#mensajes-de-fallo-y-parcialidad-ronda-22-05-09-2026)
 - [Paridad De "Mi Tarifa" Entre Sus Tres Productores (Ronda 23, 05/09/2026)](AUDITORIA-REGISTRO.md#mi-tarifa-paridad-entre-productores-ronda-23-05-09-2026)
+- [Buscador De Guias: Hueco De Auditoria Deliberado (05/09/2026)](AUDITORIA-REGISTRO.md#buscador-de-guias-hueco-deliberado-05-09-2026)
 <!-- REGISTRO-INDICE:FIN -->
 
 ## Hallazgos Que Si Serian Relevantes

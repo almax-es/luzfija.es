@@ -3180,3 +3180,44 @@ calculando con "Mi tarifa" en resultados.
 reglas, o que se decida que una tarifa de cuota fija (energia 0 con cuota mensual) debe poder
 modelarse -- en cuyo caso el arreglo correcto NO es levantar el guard, sino anhadir el concepto de
 cuota al motor, que hoy no existe.
+
+<a id="buscador-de-guias-hueco-deliberado-05-09-2026"></a>
+### Buscador De Guias: Hueco De Auditoria Deliberado (05/09/2026)
+
+`js/guides-search.js` (692 lineas) es el unico modulo grande del repo que NO se ha auditado como
+area propia al cerrar la serie de rondas 20-23. **Es una decision, no un olvido**, y se documenta
+aqui para que nadie lo reporte como zona huerfana sin leer esto antes.
+
+**Que SI esta cubierto hoy.** Dos ficheros de test dedicados, y cubren las dos mitades que
+importan:
+- `tests/guides-search.test.js`: el INDICE (`data/guides-search-index.json`) -- sincronia con el
+  contenido real de las guias, cobertura de todos los documentos publicos, normalizacion de
+  acentos y puntuacion, no duplicar items de listas anidadas, encontrar por terminos de FAQ que no
+  aparecen en el resumen de la tarjeta, y variantes morfologicas (reclamacion / reclamar).
+- `tests/guides-search-resilience.test.js`: la RESILIENCIA de red -- reintento tras 503 en vez de
+  conservar una Promise rechazada, abandono de un 200 cuyo body no termina cayendo a busqueda
+  basica en vez de quedarse cargando, y reintento de un 200 malformado en vez de fijar el fallback
+  hasta recargar la pagina.
+
+**Que NO esta auditado.** El comportamiento de la interfaz: orden y relevancia de los resultados,
+navegacion por teclado, estados vacios del buscador y el tratamiento del parametro `q` de la URL
+mas alla de que se lea.
+
+**Por que se deja fuera.** El techo de impacto es cosmetico. Es el buscador de un indice
+editorial: no calcula importes, no toca el catalogo de tarifas ni los datasets de precios, y no
+participa en ninguna decision economica del usuario. El peor resultado observable es que un
+resultado no aparezca o aparezca en mal orden en `guias.html`. Comparado con las areas que si se
+auditaron en las rondas 20-23 (rotulos frente al motor, reproducibilidad de escenarios, mensajes
+de fallo y paridad de "Mi tarifa"), el coste/beneficio no lo justificaba.
+
+**Sobre la superficie XSS, ya resuelta y verificada.** La entrada del buscador nunca llega al DOM
+como HTML: los resultados se construyen con `textContent` (13 usos) -- incluido el eco del termino
+buscado en el contador -- y sus tres unicos `innerHTML` son `= ''` para vaciar el contenedor.
+Verificado leyendo el fichero el 03/09/2026 y de nuevo el 05/09/2026. No hay
+`insertAdjacentHTML`, `outerHTML`, `document.write` ni `eval`. Por eso la CSP de las paginas
+editoriales sigue siendo de baja prioridad.
+
+**Cuando dejaria de ser un hueco aceptable.** Si alguien introduce un render por `innerHTML` con
+contenido interpolado en este fichero, si el buscador pasa a filtrar o a ordenar algo que influya
+en una decision economica, o si se le anhade persistencia de estado del usuario. Cualquiera de las
+tres cosas convierte esta entrada en obsoleta y obliga a auditar el modulo como area.
