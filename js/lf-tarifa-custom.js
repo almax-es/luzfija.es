@@ -255,6 +255,18 @@
       // El contrato del dataset permite p2=0, pero p1 mantiene mínimo positivo.
       if (p1Val && p1 === 0) { markMiTarifaInvalid($('mtP1')); message = message || 'El precio de potencia P1 debe ser mayor que 0'; }
 
+      // Los tres periodos a 0 no son una tarifa: sin coste de energia "Mi tarifa" ganaba el
+      // ranking por construccion (medido: puesto 1 con 20,22 EUR por delante de 101 tarifas
+      // reales). El simulador solar ya lo rechazaba con un aviso explicito; la home lo
+      // aceptaba. Se alinea con el simulador, que es el lado correcto: quien tiene una tarifa
+      // de cuota fija no puede modelarla poniendo la energia a cero.
+      if (puntaVal && llanoVal && valleVal && punta === 0 && llano === 0 && valle === 0) {
+        markMiTarifaInvalid($('mtPunta'));
+        markMiTarifaInvalid($('mtLlano'));
+        markMiTarifaInvalid($('mtValle'));
+        message = message || 'Indica al menos un precio de energía mayor que 0';
+      }
+
       if (puntaVal && punta > 1) { markMiTarifaInvalid($('mtPunta')); message = message || 'Los precios de energía parecen muy altos (máximo: 1 €/kWh)'; }
       if (llanoVal && llano > 1) { markMiTarifaInvalid($('mtLlano')); message = message || 'Los precios de energía parecen muy altos (máximo: 1 €/kWh)'; }
       if (valleVal && valle > 1) { markMiTarifaInvalid($('mtValle')); message = message || 'Los precios de energía parecen muy altos (máximo: 1 €/kWh)'; }

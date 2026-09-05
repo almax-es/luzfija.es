@@ -3108,3 +3108,62 @@ Suite completa 1831/1833 en verde y `npm run lint` limpio.
 en vez de colapsar a un unico mensaje; que `renderComparison()` marca visualmente los anhos con
 `meta.partial`; y que `cargarManana()` distingue "dia no publicado" de un fallo de red real en el
 `catch`.
+
+<a id="mi-tarifa-paridad-entre-productores-ronda-23-05-09-2026"></a>
+### Paridad De "Mi Tarifa" Entre Sus Tres Productores (Ronda 23, 05/09/2026)
+
+**Origen.** Ronda 23 y ultima de la serie (ChatGPT, solo ZIP, sin navegador). Angulo: "Mi tarifa"
+la construyen TRES productores independientes que leen el DOM por su cuenta --
+`agregarMiTarifa()` (`js/lf-tarifa-custom.js`), la reconstruccion paralela de
+`js/desglose-integration.js` y `getCustomTarifa()` (`js/bv/bv-ui.js`) -- y la paridad se sostenia
+sobre comentarios en prosa, no sobre codigo compartido ni tests. El informe trajo la tabla de
+paridad propiedad a propiedad, que hasta ahora no existia en ningun sitio, y dos hallazgos.
+
+**Paridad confirmada.** `fv.exc`, `fv.tipo`, `fv.tope`, `fv.bv`, `fv.reglaBV`, `fv.precioBV`,
+`incluyeServiciosAjuste` y los cinco precios coinciden en los tres. En particular la invariante de
+la ronda 20 (`fv.bv` = "BV aplicable", no "el checkbox estaba marcado") sigue intacta en los tres:
+`tieneBV && compensa` / `mtTieneBV && mtCompensa` / `hasBV && compensa`. Divergencias
+estructurales descartadas por no llegar a pantalla: `web` (`'#'` / ausente / `''`),
+`esPersonalizada` y `requiereFV` ausentes en el desglose, y `tipo` 1P/3P decidido por igualdad de
+precios en home/desglose y por numero de campos rellenos en el simulador (alli `tarifa.tipo` no
+participa en calculo ni ranking).
+
+**H-23-01 (P2): `P1 = 0` se rechazaba en la home y se aceptaba en el simulador.** La home lo
+bloquea a proposito -- `validateMiTarifa()` documenta que "el contrato del dataset permite p2=0,
+pero p1 mantiene minimo positivo" -- mientras `getCustomTarifa()` solo exigia
+`filledPower.some(x => x.value > 0)`, que se satisface con P2. Reproducido en produccion: con
+Punta/Llano/Valle 0,12/0,10/0,08 y P1=0, P2=0,05 la home responde "Corrige los datos para
+calcular" y el simulador construia la tarifa con `p1: 0`. **Manda la home** (su regla es el
+contrato del dataset). Corregido anhadiendo el mismo minimo en el manejador de `bv-simulate`,
+ANTES de llamar a `getCustomTarifa()`. Un P1 vacio sigue siendo valido: hereda `powerFallback` de
+P2; lo que se rechaza es el 0 escrito a proposito.
+
+**H-23-02 (P2, el importante): los tres precios de energia a 0 coronaban "Mi tarifa" en la home.**
+El simulador ya lo rechazaba con aviso explicito ("Los datos de 'Mi tarifa actual' estan
+incompletos..."), pero la home no tenia ninguna comprobacion de energia positiva. Medido en
+produccion antes del arreglo: con Punta=Llano=Valle=0 y P1=0,08 / P2=0,04, "Mi tarifa" salia en el
+**puesto 1 con 20,22 EUR**, por delante de 101 tarifas reales. El informe lo planteo como simple
+"incoherencia de disponibilidad"; el problema real es que la superficie permisiva era la que
+muestra el ranking, y coronaba una tarifa imposible. **Manda el simulador.** Corregido en
+`validateMiTarifa()`: los tres periodos a cero bloquean el calculo con "Indica al menos un precio
+de energia mayor que 0". La condicion es conjuncion de los tres, no disyuncion: un valle a 0 con
+punta positiva sigue siendo valido (verificado: sigue calculando y entrando en el ranking).
+
+**Nota sobre la direccion del arreglo.** No es la misma en los dos hallazgos: en H-23-01 el lado
+correcto es la home y en H-23-02 el simulador. "Alinearlos" sin decidir cual manda habria
+propagado el error en uno de los dos casos.
+
+**Regresiones.** `tests/mi-tarifa-paridad-productores.test.js`, 7 casos, validados por MUTACION:
+desactivar el guard de la home tumba 2 tests y desactivar el del simulador tumba otros 2. Suite
+1838/1840 en verde y `npm run lint` limpio.
+
+**Verificacion en navegador (Chrome real, service worker puenteado).** Home: P1=0 bloquea con
+`mtP1` en rojo; energia 0/0/0 bloquea con los tres campos en rojo; valle=0 con punta positiva
+sigue calculando y "Mi tarifa" entra en el puesto 1. Simulador: P1=0 muestra el toast "El precio
+de potencia P1 debe ser mayor que 0." con el campo en rojo; P1 vacio y caso normal siguen
+calculando con "Mi tarifa" en resultados.
+
+**Para reabrir** hace falta: que un cuarto productor del objeto aparezca sin replicar estas dos
+reglas, o que se decida que una tarifa de cuota fija (energia 0 con cuota mensual) debe poder
+modelarse -- en cuyo caso el arreglo correcto NO es levantar el guard, sino anhadir el concepto de
+cuota al motor, que hoy no existe.

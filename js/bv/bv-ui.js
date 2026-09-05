@@ -2844,6 +2844,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       }
 
+      // Paridad con la home (validateMiTarifa en lf-tarifa-custom.js): el contrato del dataset
+      // permite P2=0 pero P1 mantiene minimo positivo. Sin esto, la MISMA tarifa entraba en el
+      // ranking solar y era rechazada en el de la home. P1 vacio sigue siendo valido: hereda
+      // el fallback de P2 en getCustomTarifa(); lo que se rechaza es el 0 escrito a proposito.
+      if (!miTarifaError) {
+        const mtP1Raw = String(document.getElementById('mtP1')?.value || '').trim();
+        if (mtP1Raw && parseInput(mtP1Raw) === 0) {
+          miTarifaError = 'El precio de potencia P1 debe ser mayor que 0.';
+          document.getElementById('mtP1')?.classList.add('error');
+        }
+      }
+
       const customTarifa = miTarifaError ? null : getCustomTarifa();
       if (!miTarifaError && !customTarifa) {
         miTarifaError = "Los datos de 'Mi tarifa actual' están incompletos. Introduce al menos un precio de energía (Punta, Llano o Valle) y uno de potencia (P1 o P2) para incluirla en la comparación.";
