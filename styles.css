@@ -1152,7 +1152,7 @@
       tbody td:nth-of-type(2)::before { content: "Compañía"; display:none; }
       tbody td:nth-of-type(3)::before { content: "Potencia"; font-weight:900; color:var(--muted); }
       tbody td:nth-of-type(4)::before { content: "Consumo"; font-weight:900; color:var(--muted); }
-      tbody td:nth-of-type(5)::before { content: "Impuestos"; font-weight:900; color:var(--muted); }
+      tbody td:nth-of-type(5)::before { content: "Impuestos*"; font-weight:900; color:var(--muted); }
       tbody td:nth-of-type(6)::before { content: "TOTAL"; font-weight:900; color:var(--accent); font-size:1.2em; }
       tbody td:nth-of-type(7)::before { content: "Diferencia"; font-weight:900; color:var(--muted); }
       tbody td:nth-of-type(8)::before { content: "Tipo"; font-weight:900; color:var(--muted); }

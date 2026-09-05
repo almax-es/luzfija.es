@@ -1,6 +1,6 @@
 # Registro De Auditorias De LuzFija.es
 
-Ultima actualizacion: 2026-09-02
+Ultima actualizacion: 2026-09-05
 
 Este fichero es de CONSULTA POR AREA, no de lectura lineal. La lectura obligatoria antes de
 auditar es `AUDITORIA-IA.md`: metodo, taxonomia de severidad, tabla de areas y prompt. Aqui
@@ -2921,3 +2921,63 @@ prescindir de cada defensa. Ejecutar la suite con Node 22 y todo el banco real; 
 disponible, comprobar worker real y fake-worker y repetir una prueba WebKit con las APIs objetivo
 retiradas. `reader.cancel()` ante error y un checkpoint dentro del bucle del reader son mejoras de
 liberacion/cancelacion pendientes, no bloqueos del arreglo desplegado.
+
+<a id="rotulacion-columna-impuestos-frente-al-motor-resuelta-05-09-2026"></a>
+### Rotulacion De La Columna "Impuestos" Frente Al Motor (RESUELTA 05/09/2026)
+
+**Origen.** Ronda 20 de auditoria externa (ChatGPT, solo ZIP, sin ejecutar tests ni navegador). Es
+el primer encargo que ataca el angulo "lo que la UI promete frente a lo que el motor calcula" sobre
+el copy de PRODUCTO; el mismo angulo aplicado a las paginas legales el 27/08/2026 ya habia dado
+cuatro correcciones reales. El informe llego con libro de candidatos (44 rotulos revisados) y un
+unico hallazgo, verificado despues aqui contra el codigo, el dataset y Chrome real.
+
+**Mecanismo.** La columna `impuestosNum` NO es la suma de los impuestos: es el residual de la fila.
+En Peninsula, `js/lf-calc.js` la construye como
+`tarifaAdj + impuestoElec + alquilerContador + ivaCuota + fvCosteBV`, y en la rama PVPC directamente
+como `totalNum - potenciaNum - consumoNum`. Eso es DELIBERADO y no se toca: el comentario del propio
+codigo lo llama "blindaje de redondeos (tabla)" porque garantiza que
+`Potencia + Consumo + Impuestos = Total` cuadre en pantalla en todas las filas. Recalcular la
+columna como IEE+IVA descuadraria las tres columnas frente al total. Lo unico incorrecto era el
+rotulo, que atribuia a fiscalidad la financiacion del bono social y el alquiler del contador.
+
+**Cifras verificadas** (4+4 kW, 30 dias, 300 kWh, Peninsula, `Seneo Tarifa 1 Fija 24h`):
+potencia 35,76 EUR; energia 24,00 EUR; bono social 0,74 EUR (`9,011295/365*30`); IEE 3,09 EUR
+(`60,50 x 5,11269632%`, el minimo de 0,001 EUR/kWh no manda); alquiler 0,80 EUR (`30 x 0,81 x 12/365`);
+IVA 13,52 EUR; total 77,91 EUR. La columna mostraba 18,15 EUR con 16,61 EUR de impuestos reales:
+1,54 EUR sobreatribuidos. Ni el total ni el ranking estaban afectados; el perjuicio era informativo.
+
+**Precedente interno que zanjo la discusion.** La columna homonima del simulador solar
+(`js/bv/bv-ui.js`, `buildTable`) YA declaraba la composicion en su `title`:
+"Bono social, IEE, contador e IVA/IGIC/IPSI". Misma agregacion, misma palabra, explicada en una
+pantalla y no en la otra. No era una cuestion de criterio sino una incoherencia entre superficies.
+
+**Correccion aplicada.** Rotulo `Impuestos*` en la cabecera de `index.html` con `aria-label`
+ampliado, nota al pie bajo la tabla con la composicion y remite al desglose (que si separa los
+conceptos), y reescritura de la FAQ de `calcular-factura-luz.html` que enumeraba alquiler de
+contador y peajes de acceso dentro de "todos los impuestos vigentes" -- dos conceptos mal
+clasificados, no uno. Ningun cambio de calculo.
+
+**Trampa metodologica principal: el rotulo vive en DOS sitios.** En movil (<=768px) `styles.css`
+aplica `thead { display: none; }` y la etiqueta de cada celda la pinta
+`tbody td:nth-of-type(5)::before { content: "Impuestos"; }`. Consecuencias para quien audite esta
+zona: (1) un `title`, un tooltip o cualquier elemento anadido al `<th>` NO existe en movil, porque
+la cabecera no se renderiza; (2) un `::before` no recibe foco ni clic, asi que no admite tooltip;
+(3) cambiar solo el HTML deja escritorio y movil diciendo cosas distintas. La primera propuesta de
+correccion (tooltip en el `<th>`, copiando el patron de `bv-ui.js`) se DESCARTO por esto.
+
+**Segunda trampa: `npm test` invalida el hash CSP al tocar `index.html`.** El `pretest` ejecuta
+`sync:seo-docs`, que sube el `dateModified` del JSON-LD de `index.html` al dia del cambio. Eso
+altera el cuerpo del script inline y tumba `tests/csp-inline-hash.test.js`. Hay que recalcular el
+`sha256` de la CSP en la misma tanda; el fallo no significa que el cambio editorial este mal.
+
+**Verificacion.** Suite 1819/1821 en verde, `npm run lint` limpio, finales de linea LF conservados.
+Chrome real (puppeteer-core, perfil limpio por combinacion) en las cuatro combinaciones
+tema x viewport: escritorio 1440 muestra `Impuestos*` sin salto de linea y la nota en 818x42 px;
+movil 390 oculta la cabecera y su `::before` computa `"Impuestos*"`, con la nota en 308x83 px.
+Desborde horizontal 0 px en las cuatro. El color de la nota cambia solo con el tema porque reutiliza
+`u-text-muted-13-16`, que tira de `var(--muted)`; no se introdujo ningun color nuevo. La FAQ carga
+sin errores de consola y su texto visible coincide byte a byte con el del JSON-LD.
+
+**Para reabrir** hace falta: que la columna deje de ser un residual (y entonces el rotulo deberia
+volver a ser literal), que el rotulo de escritorio y el `::before` de movil se separen otra vez, o
+que aparezca una tercera superficie con la misma agregacion sin declarar su composicion.

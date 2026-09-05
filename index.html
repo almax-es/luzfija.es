@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-fqJE+sAD8pDrFjp9FxILIm0TfTkE8rMtn8fRmdAlMI8=' 'sha256-oKNpq7b6ylWwSLDD5qzh0JovSIoI6fn+/ZBlDpxiScQ=' 'sha256-375H4RIVVu85w+tdCRXFSeoVketX59PT0dG3E9T37Fo=' 'sha256-AqedS0DDZ3spZ9sgaXw1wgEfApjkRkFoyIwCRQYGi28=' 'sha256-HlRlklWrqAL1b3evrPnnObtbb0gZudI9wrdc/35WeHk=' 'sha256-hBDg/pdmhWFBoHVw65iLTPjTklF3KW3oEZhcbpq1j8Q='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval' 'sha256-fqJE+sAD8pDrFjp9FxILIm0TfTkE8rMtn8fRmdAlMI8=' 'sha256-oKNpq7b6ylWwSLDD5qzh0JovSIoI6fn+/ZBlDpxiScQ=' 'sha256-375H4RIVVu85w+tdCRXFSeoVketX59PT0dG3E9T37Fo=' 'sha256-AqedS0DDZ3spZ9sgaXw1wgEfApjkRkFoyIwCRQYGi28=' 'sha256-HlRlklWrqAL1b3evrPnnObtbb0gZudI9wrdc/35WeHk=' 'sha256-/FmkiF53JQ+par0c75kYlQd/EDSafh4ReFZ37DJMj2I='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark light"/>
 <meta name="description" content="Compara tarifas de luz, PVPC y autoconsumo sin anuncios, sin registro y sin comisiones. Usa tu factura PDF o consumo horario y encuentra la más barata.">
@@ -48,8 +48,8 @@
     }, true);
   })();
   </script>
-  <script src="/js/error-bootstrap.js?v=20260905-114334"></script>
-  <script src="/js/config.js?v=20260905-114334"></script>
+  <script src="/js/error-bootstrap.js?v=20260905-130359"></script>
+  <script src="/js/config.js?v=20260905-130359"></script>
 
   <meta property="og:title" content="Comparador de Tarifas de Luz sin Registro ni Comisiones">
   <meta property="og:description" content="Compara tarifas de luz, PVPC y autoconsumo sin anuncios, sin registro y sin comisiones. Usa tu factura PDF o consumo horario y encuentra la más barata.">
@@ -131,7 +131,7 @@
     "operatingSystem": "Any",
     "image": "https://luzfija.es/og.png",
     "inLanguage": "es",
-    "dateModified": "2026-09-03",
+    "dateModified": "2026-09-05",
     "offers": {
       "@type": "Offer",
       "price": "0",
@@ -260,18 +260,18 @@
   }
   </script>
 
-  <script src="/js/theme.js?v=20260905-114334"></script>
+  <script src="/js/theme.js?v=20260905-130359"></script>
 
-    <link rel="stylesheet" href="/styles.css?v=20260905-114334">
-    <link rel="stylesheet" href="/pro.css?v=20260905-114334">
+    <link rel="stylesheet" href="/styles.css?v=20260905-130359">
+    <link rel="stylesheet" href="/pro.css?v=20260905-130359">
   <!-- CSS del desglose (solo se usa al abrir el modal) -->
-  <link rel="stylesheet" href="/desglose-factura.css?v=20260905-114334" media="all">
+  <link rel="stylesheet" href="/desglose-factura.css?v=20260905-130359" media="all">
 
 
   <!-- PDF.js se carga dinámicamente cuando el usuario sube una factura (ver factura.js) -->
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/outfit-latin-900-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/fonts.css?v=20260905-114334">
+  <link rel="stylesheet" href="/fonts.css?v=20260905-130359">
 
     <meta name="theme-color" content="#8B5CF6">
 </head>
@@ -643,8 +643,8 @@
                     </button>
                   </th>
                   <th scope="col" class="sort" data-sort="impuestosNum" role="columnheader" aria-sort="none">
-                    <button type="button" class="sort-button" aria-label="Ordenar por impuestos" aria-controls="table">
-                      Impuestos <span class="sortIcon" id="si_impuestosNum" aria-hidden="true"></span>
+                    <button type="button" class="sort-button" aria-label="Ordenar por impuestos y otros conceptos" aria-controls="table">
+                      Impuestos* <span class="sortIcon" id="si_impuestosNum" aria-hidden="true"></span>
                     </button>
                   </th>
                   <th scope="col" class="sort" data-sort="totalNum" role="columnheader" aria-sort="ascending">
@@ -664,6 +664,7 @@
               <tbody id="tbody"></tbody>
             </table>
             <div class="empty fade-container" id="emptyBox" role="status" aria-live="polite" aria-atomic="true">Aún no hay resultados. Pulsa ⚡ Calcular para ver el ranking.</div>
+            <p class="u-text-muted-13-16">* <strong>Impuestos</strong> agrupa el impuesto eléctrico (IEE), el IVA/IGIC/IPSI, la financiación del bono social y el alquiler del contador. Abre el desglose de una tarifa para ver cada concepto por separado.</p>
           </div>
 
         </div>
@@ -992,41 +993,41 @@
 
     <!-- LuzFija Modular Architecture -->
     <!-- Tracking primero para capturar errores de scripts posteriores -->
-    <script src="/js/tracking.js?v=20260905-114334" defer></script>
+    <script src="/js/tracking.js?v=20260905-130359" defer></script>
 
     <!-- 1. Módulos base (orden importante) -->
-    <script src="js/lf-config.js?v=20260905-114334" defer></script>
-    <script src="js/lf-utils.js?v=20260905-114334" defer></script>
-    <script src="js/lf-ssaa.js?v=20260905-114334" defer></script>
-    <script src="js/lf-csv-utils.js?v=20260905-114334" defer></script>
-    <script src="js/lf-state.js?v=20260905-114334" defer></script>
-    <script src="js/lf-ui.js?v=20260905-114334" defer></script>
-    <script src="js/lf-tooltips.js?v=20260905-114334" defer></script>
-    <script src="js/lf-cache.js?v=20260905-114334" defer></script>
-    <script src="js/lf-inputs.js?v=20260905-114334" defer></script>
-    <script src="js/lf-calc.js?v=20260905-114334" defer></script>
-    <script src="js/lf-render.js?v=20260905-114334" defer></script>
-    <script src="js/lf-csv-import.js?v=20260905-114334" defer></script>
-    <script src="js/lf-tarifa-custom.js?v=20260905-114334" defer></script>
+    <script src="js/lf-config.js?v=20260905-130359" defer></script>
+    <script src="js/lf-utils.js?v=20260905-130359" defer></script>
+    <script src="js/lf-ssaa.js?v=20260905-130359" defer></script>
+    <script src="js/lf-csv-utils.js?v=20260905-130359" defer></script>
+    <script src="js/lf-state.js?v=20260905-130359" defer></script>
+    <script src="js/lf-ui.js?v=20260905-130359" defer></script>
+    <script src="js/lf-tooltips.js?v=20260905-130359" defer></script>
+    <script src="js/lf-cache.js?v=20260905-130359" defer></script>
+    <script src="js/lf-inputs.js?v=20260905-130359" defer></script>
+    <script src="js/lf-calc.js?v=20260905-130359" defer></script>
+    <script src="js/lf-render.js?v=20260905-130359" defer></script>
+    <script src="js/lf-csv-import.js?v=20260905-130359" defer></script>
+    <script src="js/lf-tarifa-custom.js?v=20260905-130359" defer></script>
     
     <!-- 2. Módulos externos -->
-    <script src="js/pvpc.js?v=20260905-114334" defer></script>
-    <script src="js/factura-parsers.js?v=20260905-114334" defer></script>
-    <script src="js/factura.js?v=20260905-114334" defer></script>
+    <script src="js/pvpc.js?v=20260905-130359" defer></script>
+    <script src="js/factura-parsers.js?v=20260905-130359" defer></script>
+    <script src="js/factura.js?v=20260905-130359" defer></script>
     <!-- 2b. Sistema de desglose de factura -->
-    <script src="js/desglose-calculo.js?v=20260905-114334" defer></script>
-    <script src="js/desglose-render.js?v=20260905-114334" defer></script>
-    <script src="js/desglose-factura.js?v=20260905-114334" defer></script>
-    <script src="js/desglose-integration.js?v=20260905-114334" defer></script>
+    <script src="js/desglose-calculo.js?v=20260905-130359" defer></script>
+    <script src="js/desglose-render.js?v=20260905-130359" defer></script>
+    <script src="js/desglose-factura.js?v=20260905-130359" defer></script>
+    <script src="js/desglose-integration.js?v=20260905-130359" defer></script>
 
     <!-- 3. Coordinador principal -->
     <!-- XLSX se carga bajo demanda cuando se necesita -->
-    <script src="js/lf-sw-update.js?v=20260905-114334" defer></script>
-    <script src="js/lf-app.js?v=20260905-114334" defer></script>
+    <script src="js/lf-sw-update.js?v=20260905-130359" defer></script>
+    <script src="js/lf-app.js?v=20260905-130359" defer></script>
 
 
-    <script src="js/index-extra.js?v=20260905-114334" defer></script>
-    <script src="js/aecc-banner.js?v=20260905-114334" defer></script>
+    <script src="js/index-extra.js?v=20260905-130359" defer></script>
+    <script src="js/aecc-banner.js?v=20260905-130359" defer></script>
 
   <!-- Modal PVPC -->
   <div class="modal-overlay is-hidden" id="modalPVPCInfo" role="dialog" aria-modal="true" aria-label="Precios PVPC por hora" aria-hidden="true" tabindex="-1">
