@@ -3221,3 +3221,68 @@ editoriales sigue siendo de baja prioridad.
 contenido interpolado en este fichero, si el buscador pasa a filtrar o a ordenar algo que influya
 en una decision economica, o si se le anhade persistencia de estado del usuario. Cualquiera de las
 tres cosas convierte esta entrada en obsoleta y obliga a auditar el modulo como area.
+
+<a id="catalogo-frente-al-motor-ronda-24-06-09-2026"></a>
+### El Catalogo `tarifas.json` Frente Al Motor (Ronda 24, 06/09/2026)
+
+**Origen.** Ronda 24 (ChatGPT "luna" en modo pensar, solo ZIP: sin `.git`, sin navegador y sin
+poder instalar dependencias, asi que no ejecuto la suite y lo declaro). Angulo transversal que
+ninguna fila de la tabla de areas cubria: si cada campo del esquema documentado en
+`JSON-SCHEMA.md` llega igual a las cinco rutas que lo consumen -- puerta de entrada
+(`lf-cache.js` + `lf-utils.js`), home (`lf-calc.js`), desglose (`desglose-*.js`), simulador solar
+(`bv/*`) y "Mi tarifa" (`lf-tarifa-custom.js`). Se acoto a los 9 campos que pueden mover un
+importe, un orden o una exclusion, y se exigio cita literal por celda de la tabla.
+
+**Resultado: cero bugs observables y un unico cambio de codigo.** Las 118 filas publicadas son
+coherentes; verificado de forma independiente sobre `tarifas.json`: 0 filas con
+`fv.tipo = "NO COMPENSA"` y `exc != 0`, 0 con `fv.bv = true` fuera de `SIMPLE + BV`, y 0 con
+`fv.tope` fuera del enum.
+
+**El hueco real: el motor mensual solar no consultaba `fv.tipo`.** La home
+(`lf-calc.js`, `fv.tipo !== 'NO COMPENSA'`) y el desglose (`desglose-calculo.js`, mismo guard)
+bloquean la compensacion por MODALIDAD antes de mirar el precio. El simulador solar la derivaba
+solo del PRECIO: el filtro de `loadTarifasBV()` admitia cualquier fila con `exc > 0` o el sentinel
+`-1`. Comprobado con grep sobre `js/bv/` entero: `fv.tipo` solo se ESCRIBE alli
+(`bv-ui.js:2284`, al construir "Mi tarifa"), nunca se leia. La invariante
+"NO COMPENSA => exc = 0" la sostiene el generador local, no la web.
+
+**Clasificacion: alineacion defensiva entre rutas, NO un bug.** Con el catalogo publicado el
+resultado observable es nulo -- las 54 filas `NO COMPENSA` tienen `exc = 0` y el filtro por precio
+ya las dejaba fuera. Se corrigio igualmente porque el coste es una linea y cierra una divergencia
+entre motores que solo un dato externo mantenia a raya. Corregido en `bv-sim-monthly.js`:
+`if (tarifa.fv.tipo === 'NO COMPENSA') return false;` dentro del filtro. Un `fv.tipo` AUSENTE no
+excluye, a proposito: preferimos una fila de mas en el ranking solar a borrar en silencio una
+tarifa valida por un campo que falta.
+
+**Regresiones.** `tests/bv-sim-tipo-no-compensa.test.js`, 5 casos, validados por MUTACION:
+comentar el guard tumba 2 (la fila incoherente con precio fijo y la del sentinel `-1`, que esquiva
+la comprobacion numerica y necesita caso propio) y deja los otros 3 en verde, que es lo correcto
+porque no dependen de el. El caso 5 corre sobre el `tarifas.json` real y exige que el filtro siga
+siendo un no-op. Suite 1839 -> 1844 y `npm run lint` limpio.
+
+**Para reabrir** hace falta que el generador publique una fila `NO COMPENSA` con `exc != 0`: el
+caso 5 la caza al momento. Entonces la pregunta ya no es este guard, sino cual de los dos campos
+manda -- y la respuesta tendria que salir de las condiciones de la comercializadora, no del codigo.
+
+**Lo que se RECHAZO de esta ronda, y por que.** El informe presentaba otros cuatro puntos como
+"riesgo real reproducible", todos condicionados a un catalogo que incumple el esquema:
+- `fv.bv` interpretado por truthiness (`"false"` es truthy) frente al doble requisito de la home.
+ Es una **decision documentada**: `JSON-SCHEMA.md` linea 101 dice literalmente que el comparador
+ exige `fv.bv = true` Y `fv.tipo = "SIMPLE + BV"`, y que el simulador solar solo requiere
+ `fv.bv = true`. Falso positivo documentado, no riesgo.
+- `fv.exc = "-1"` (string) dejando de ser el sentinel indexado, un `fv.tope` desconocido cayendo
+ al tope completo, y `incluyeServiciosAjuste` mal tipado invirtiendo la semantica del SSAA:
+ **hardening**, no riesgo real. Requieren datos fuera de contrato.
+- Su recomendacion de rechazar el catalogo ante esos campos mal tipados se rechaza en firme: la
+ validacion de entrada es ATOMICA (una incoherencia descarta el dataset entero), asi que ampliar
+ esa puerta con campos opcionales convierte una errata del generador en la web sin ranking para
+ todo el mundo. Es la regla 6 del metodo del reves. `esTarifaUtilizable()` no se toca por esto, y
+ sigue vigente que la web NO replica los rangos comerciales del generador.
+El propio modelo reclasifico los cinco puntos al confrontarlo con la evidencia, sin resistirse.
+
+**Calibracion del auditor.** Los mecanismos que describio eran CIERTOS: verificadas las cinco
+citas contra el disco, con lineas correctas +-3, y el `costeBV = 3,87 EUR` que reporto sale exacto
+de `4 x 30/31` (`bv-sim-monthly.js:305`), asi que ejecuto de verdad lo que dijo ejecutar. El fallo
+no fue de lectura sino de SEVERIDAD -- el patron ya fichado de las auditorias externas -- mas no
+consultar `JSON-SCHEMA.md` antes de reportar una divergencia que ese mismo fichero declara
+deliberada.

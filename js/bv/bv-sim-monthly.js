@@ -648,8 +648,16 @@ window.BVSim.loadTarifasBV = async function () {
 
     // Solo tarifas con excedentes remunerados.
     // BV se decide en la UI por fv.bv; el precio de excedentes puede ser fijo o indexado (-1).
+    // `fv.tipo` manda sobre `fv.exc`: la home (lf-calc.js) y el desglose (desglose-calculo.js)
+    // bloquean la compensación con 'NO COMPENSA' antes de mirar el precio, y este motor la
+    // derivaba solo del precio, apoyándose en que el generador mantiene la invariante
+    // "NO COMPENSA ⇒ exc = 0". Hoy la cumplen las 118 filas, así que el filtro no cambia el
+    // ranking; existe para que una fila incoherente no compense aquí y no allí. Un `fv.tipo`
+    // ausente NO excluye: preferimos el falso negativo (una fila de más en el ranking solar)
+    // a dejar fuera en silencio una tarifa válida por un campo que falta.
     const tarifasBV = tarifas.filter((tarifa) => {
       if (!tarifa || !tarifa.fv) return false;
+      if (tarifa.fv.tipo === 'NO COMPENSA') return false;
       const rawExc = tarifa.fv.exc;
       const tieneExcRemunerado = (rawExc === -1) || (Number.isFinite(Number(rawExc)) && Number(rawExc) > 0);
       return tieneExcRemunerado;
