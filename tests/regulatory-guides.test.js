@@ -1,0 +1,71 @@
+/**
+ * @vitest-environment node
+ */
+
+import { describe, expect, it } from 'vitest';
+import fs from 'fs';
+import path from 'path';
+
+const REPO_ROOT = path.resolve(__dirname, '..');
+
+function normalizeWhitespace(value) {
+  return String(value || '').replace(/\s+/g, ' ').trim();
+}
+
+function stripHtml(value) {
+  return normalizeWhitespace(String(value || '').replace(/<[^>]+>/g, ' '));
+}
+
+function readGuideText(relPath) {
+  return stripHtml(fs.readFileSync(path.join(REPO_ROOT, relPath), 'utf8'));
+}
+
+describe('Guide regulatory guardrails', () => {
+  // El IPC definitivo de julio de 2026 (subclase 04.5.10 Electricidad, tabla 76128
+  // del INE) fue del 8,4% anual, por debajo del umbral de mas del 15% del RDL 18/2026:
+  // septiembre queda cerrado con los tipos generales, no pendiente de condicion.
+  it('documents the settled August and September tax rates after the July IPC', () => {
+    const facturaGuide = readGuideText('guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html');
+
+    expect(facturaGuide).toContain('ni el IPC anual de electricidad de junio (6,0%) ni el definitivo de julio (8,4%)');
+    expect(facturaGuide).toContain('por lo que en agosto y septiembre se mantiene el IVA general del 21%');
+    expect(facturaGuide).toContain('RDL 18/2026');
+    expect(facturaGuide).not.toContain('pendiente de la condición legal de IPC para septiembre');
+  });
+
+  it('keeps the PVPC eligibility requirements complete', () => {
+    const pvpcGuide = readGuideText('guias/pvpc-vs-mercado-libre-cuando-te-conviene-cada-uno.html');
+
+    expect(pvpcGuide).toContain('tensiones no superiores a 1 kV');
+    expect(pvpcGuide).toContain('potencia contratada menor o igual a 10 kW en cada uno de los periodos horarios existentes');
+    expect(pvpcGuide).toContain('volumen de negocio anual o balance general anual no supera los 2 millones');
+    expect(pvpcGuide).not.toContain('menos de 10 trabajadores Y facturación anual menor de 2 millones');
+  });
+
+  it('keeps the power guide aligned with the official P1/P2 structure in 2.0TD', () => {
+    const potenciaGuide = readGuideText('guias/que-potencia-contratar-segun-tu-casa-y-tus-habitos.html');
+
+    expect(potenciaGuide).toContain('P1 (punta+llano laborable)');
+    expect(potenciaGuide).toContain('P2 (valle): Coincide con 0h-8h y también con sábados, domingos y festivos nacionales que computen como valle');
+    expect(potenciaGuide).not.toContain('P1 (día):');
+    expect(potenciaGuide).not.toContain('P2 (resto + noche):');
+  });
+
+  it('keeps the P1/P2 FAQ aligned with the official valley period definition', () => {
+    const periodosGuide = readGuideText('guias/que-es-p1-p2-y-p3-en-tu-factura.html');
+
+    expect(periodosGuide).toContain('P1 agrupa las horas laborables de punta y llano');
+    expect(periodosGuide).toContain('P2 coincide con el valle (0h a 8h, más sábados, domingos y festivos nacionales que computen como valle)');
+  });
+
+  it('keeps complaint deadlines scoped by recipient, subject and contracted power', () => {
+    const complaintGuide = readGuideText('guias/como-reclamar-a-comercializadora-distribuidora.html');
+
+    expect(complaintGuide).toContain('artículo 55.3 del Reglamento aprobado por el RD 88/2026');
+    expect(complaintGuide).toContain('artículo 103.2.D del RD 1955/2000');
+    expect(complaintGuide).toContain('5 días hábiles si reclamas a la distribuidora por la medida del consumo, facturas emitidas o cortes indebidos y tienes menos de 15 kW contratados');
+    expect(complaintGuide).toContain('15 días hábiles en los demás casos');
+    expect(complaintGuide).toContain('Si no obtengo resolución satisfactoria dentro del plazo legal aplicable');
+    expect(complaintGuide).not.toContain('Las compañías tienen un plazo máximo de 15 días hábiles para responder');
+  });
+});

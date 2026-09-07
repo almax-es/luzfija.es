@@ -1,0 +1,23 @@
+version: 2
+
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "Europe/Madrid"
+    versioning-strategy: "increase"
+    open-pull-requests-limit: 5
+    groups:
+      development-minor-and-patch:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      # El frontend sirve la copia de vendor/chartjs, no node_modules. Una PR
+      # automatica solo actualizaria el ancla npm y daria una falsa sensacion de
+      # haber actualizado la libreria real. Seguir vendor/README.md para hacerlo.
+      - dependency-name: "chart.js"
