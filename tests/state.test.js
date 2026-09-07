@@ -18,9 +18,9 @@ global.window = {
 // Mock document.getElementById
 // Devuelve un objeto fake { id, value, textContent... } para que no falle al asignar
 const mockElement = (id) => ({ id, value: '', textContent: '', className: '', style: {} });
-global.document = {
+vi.stubGlobal('document', {
   getElementById: vi.fn((id) => mockElement(id))
-};
+});
 
 // 2. Cargar el script
 // lf-state.js es una IIFE que usa window y document directamente

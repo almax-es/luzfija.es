@@ -46,7 +46,7 @@ global.window = {
   lfDbg: vi.fn()
 };
 global.fetch = fetchMock;
-global.localStorage = localStorageMock;
+vi.stubGlobal('localStorage', localStorageMock);
 // Inyectar lfDbg tambien en el scope de la funcion por si acaso
 global.lfDbg = global.window.lfDbg;
 

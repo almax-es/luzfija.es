@@ -22,7 +22,7 @@ global.window = {
     baseURI: 'http://localhost'
   }
 };
-global.document = global.window.document;
+vi.stubGlobal('document', global.window.document);
 global.lfDbg = vi.fn();
 
 // 2. Mock FileReader

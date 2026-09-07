@@ -21,7 +21,7 @@ global.window = {
   }
 };
 
-global.document = global.window.document;
+vi.stubGlobal('document', global.window.document);
 global.lfDbg = vi.fn();
 
 class MockFileReader {

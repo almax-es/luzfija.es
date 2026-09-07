@@ -15,7 +15,6 @@ const facturaCode = fs.readdirSync(path.resolve(__dirname, '../js'))
 const csvUtilsCode = fs.readFileSync(path.resolve(__dirname, '../js/lf-csv-utils.js'), 'utf8');
 const bvImportCode = fs.readFileSync(path.resolve(__dirname, '../js/bv/bv-import.js'), 'utf8');
 
-const originalDocument = global.document;
 
 function buildMockDocument() {
   const appendedScripts = [];
@@ -37,7 +36,7 @@ function loadCsvImporterWithMockDocument(mockDocument) {
   const lfDbg = vi.fn();
   const FileReader = class {};
 
-  global.document = mockDocument;
+  vi.stubGlobal('document', mockDocument);
   const runner = new Function('window', 'lfDbg', 'FileReader', csvImportCode);
   runner(win, lfDbg, FileReader);
 
@@ -48,14 +47,14 @@ function loadBvImportWithMockDocument(mockDocument) {
   // bv-import.js destructura funciones reales de window.LF.csvUtils al cargar
   // (parseDateFlexible, etc.), así que necesita lf-csv-utils.js real, no un stub vacío.
   const win = { LF: {} };
-  global.document = mockDocument;
+  vi.stubGlobal('document', mockDocument);
   new Function('window', csvUtilsCode)(win);
   new Function('window', bvImportCode)(win);
   return win;
 }
 
 afterEach(() => {
-  global.document = originalDocument;
+  vi.unstubAllGlobals();
   delete global.XLSX;
 });
 
