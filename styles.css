@@ -1057,9 +1057,12 @@
       content: none !important;
     }
     tbody tr.best td:nth-child(2)::before{ content: ""; }
-    tbody tr:nth-child(1) td:first-child { color: #FFD700; font-weight: 900; font-size: 1.3em; text-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
-    tbody tr:nth-child(2) td:first-child { color: #C0C0C0; font-weight: 900; font-size: 1.2em; text-shadow: 0 0 10px rgba(192, 192, 192, 0.3); }
-    tbody tr:nth-child(3) td:first-child { color: #CD7F32; font-weight: 900; font-size: 1.2em; text-shadow: 0 0 10px rgba(205, 127, 50, 0.3); }
+    /* Las medallas siguen al PUESTO del ranking, no a la posicion en pantalla: las
+       clases las pone lf-render.js desde `posicion`. Con `tr:nth-child()` bastaba
+       ordenar por Potencia para que la 3a mas cara luciera el oro. */
+    tbody td.rank-1 { color: #FFD700; font-weight: 900; font-size: 1.3em; text-shadow: 0 0 15px rgba(255, 215, 0, 0.4); }
+    tbody td.rank-2 { color: #C0C0C0; font-weight: 900; font-size: 1.2em; text-shadow: 0 0 10px rgba(192, 192, 192, 0.3); }
+    tbody td.rank-3 { color: #CD7F32; font-weight: 900; font-size: 1.2em; text-shadow: 0 0 10px rgba(205, 127, 50, 0.3); }
     td.vs{white-space: nowrap; position:relative; padding-left: 24px;}
     .vs-text{ font-weight: 900; min-width: 40px; text-align: right; }
     .vs-text.pos{color: rgba(239,68,68,.95);}

@@ -1006,4 +1006,57 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     expect(settled).toBe(true);
   });
 
+  // ===== DESEMPATE DEL RANKING (ronda 27, 08/09/2026) =====
+  // En el catalogo publicado hay tarifas identicas en los cinco precios
+  // (Masmovil / Jazztel / Yoigo) y, en casi cualquier escenario, coincidencias al
+  // centimo entre comercializadoras distintas. Sin un desempate propio, el comparador
+  // devolvia 0 y el `sort` estable dejaba el puesto en manos del orden de tarifas.json:
+  // quien estuviera antes en el fichero se llevaba el numero mas bajo, y en cabeza,
+  // el cartel de tarifa mas barata.
+  describe('Empate absoluto: el puesto no puede depender del orden del catalogo', () => {
+    const gemela = (nombre) => ({
+      nombre, p1: 0.1334, p2: 0.0595,
+      cPunta: 0.139, cLlano: 0.139, cValle: 0.139,
+      tipo: '1P', esPVPC: false
+    });
+
+    const escenario = {
+      p1: 4, p2: 4, dias: 30,
+      cPunta: 100, cLlano: 80, cValle: 120,
+      zonaFiscal: 'Península', viviendaCanarias: false,
+      solarOn: false, exTotal: 0, bvSaldo: 0,
+      bonoSocialOn: false, bonoSocialTipo: 'vulnerable', bonoSocialLimite: 1587,
+      fechaYmd: '2026-03-20'
+    };
+
+    async function ordenCon(tarifas) {
+      window.LF.cachedTarifas = tarifas;
+      await window.LF.calculateLocal({ ...escenario });
+      return window.LF.state.rows.map((r) => r.nombre);
+    }
+
+    it('da el mismo orden con el catalogo en un sentido y en el contrario', async () => {
+      const directo = await ordenCon([gemela('Jazztel'), gemela('Masmovil'), gemela('Yoigo')]);
+      const inverso = await ordenCon([gemela('Yoigo'), gemela('Masmovil'), gemela('Jazztel')]);
+
+      expect(directo).toEqual(inverso);
+      expect(directo).toEqual(['Jazztel', 'Masmovil', 'Yoigo']);
+    });
+
+    it('los tres empatan realmente al centimo (si no, el test anterior no probaria nada)', async () => {
+      await ordenCon([gemela('Jazztel'), gemela('Masmovil'), gemela('Yoigo')]);
+      const totales = window.LF.state.rows.map((r) => r.totalNum);
+      expect(new Set(totales).size).toBe(1);
+    });
+
+    it('no privilegia a "Mi tarifa" por insertarse la primera del catalogo', async () => {
+      const orden = await ordenCon([
+        { ...gemela('Mi tarifa ⭐'), esPersonalizada: true },
+        gemela('Jazztel')
+      ]);
+      expect(orden).toEqual(['Jazztel', 'Mi tarifa ⭐']);
+    });
+
+  });
+
 });

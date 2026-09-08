@@ -3444,3 +3444,81 @@ usuario no lo ve, y se comporta igual en el build anterior. No lo reportes.
 `js/pvpc-stats-csv.js` vuelva a devolver importes sin normalizar. Los tests son
 `tests/bv-ui-dependencias-fiscales.test.js` y el bloque "el importe no depende de que ruta lo
 calcule" de `tests/pvpc-stats-csv-fallback.test.js`.
+
+
+<a id="puesto-del-ranking-ronda-27-08-09-2026"></a>
+### El Puesto Del Ranking Frente Al Orden De La Vista (Ronda 27, 08/09/2026)
+
+Auditoria de ChatGPT sobre el ORDEN y la POSICION de las filas del ranking de la home: que fila
+sale antes que cual, que numero se le pinta, contra que se mide su diferencia y donde acaban las
+filas sin total comparable. No es una ronda sobre importes.
+
+**2 bugs confirmados, los dos CORREGIDOS**, mas un tercer defecto encontrado por Claude al
+verificar en Chrome. Suite 1852 -> 1863, lint 0/0.
+
+**1. El puesto pintado era el indice de la vista, no el del ranking (RESUELTA).** `lf-calc.js:616`
+congela `posicion` al cerrar el ranking economico, pero **nadie la leia**: `lf-render.js` numeraba
+con `String(idx + 1)` sobre el array ya filtrado y ordenado. Reproducido contra produccion (build
+`20260908-112647`): al ordenar por Total descendente, la tarifa MAS CARA lucia `#1` junto a su
+propio `+45,95 EUR` respecto a la mejor, y ninguna fila visible llevaba ya la marca `.best`; con el
+filtro 1P, la primera fila era `#1` con `+6,49 EUR`. El chip movil de "Mi tarifa" heredaba el mismo
+numero, porque es un espejo de la fila. Corregido con `rankingNumber()` en `lf-render.js`, que lee
+`posicion` y cae al indice solo si falta. **La tabla sigue obedeciendo al usuario**: cambia el orden
+y el subconjunto visibles; lo que ya no cambia es el numero.
+
+**2. Empate absoluto resuelto por el orden de `tarifas.json` (RESUELTA).** Con el mismo importe y el
+mismo saldo BV, el comparador de `lf-calc.js:555` devolvia `0` y el `sort` estable dejaba el puesto
+en manos de la posicion en el fichero. **No es teorico:** el catalogo publicado tiene tres grupos
+identicos en los cinco precios (`Nordy 24H V` / `Seneo Tarifa 3 Fija 24h`, `Masmovil` / `Jazztel` /
+`Yoigo Tarifa de Luz`, y las dos `Endesa Solar Plus`), y en un escenario cualquiera de la home
+aparecen ademas cinco o mas coincidencias al centimo entre comercializadoras distintas que no
+comparten precios. En pantalla, los tres del grupo Masmovil salian en las filas 79-80-81, en el
+mismo orden que ocupan en `tarifas.json`. Corregido con desempate por nombre (`localeCompare`,
+`'es'`), que es estable, reproducible y no privilegia a "Mi tarifa" pese a entrar por `unshift()`.
+No se demostro un empate en el puesto 1; el riesgo de que el cartel de tarifa mas barata dependiera
+del orden del fichero queda como plausible, no reproducido.
+
+**3. Las medallas viajaban con la vista (defecto encontrado por Claude, no por el auditor).** El
+oro/plata/bronce de la celda de puesto salia de `tbody tr:nth-child(1..3)` en `styles.css`, que
+coincidia con el numero solo mientras el numero ERA el indice. Corregido el punto 1, la primera
+captura en Chrome mostro un `#101` dorado. Ahora `lf-render.js` pone `rank-1|2|3` desde `posicion`
+y el CSS estiliza esas clases. **Leccion:** al mover un dato de la vista a la fila hay que barrer
+tambien el CSS que lo decoraba por posicion; el selector no da error, simplemente miente.
+
+**NO son hallazgos, verificados durante esta ronda:**
+- **La tolerancia `< 0.01` del comparador frente a la comparacion en crudo de `applySort()`.** Fue
+ la sospecha que abrio la ronda y es un falso positivo: las cuatro rutas asignan `totalNum` via
+ `round2()` (`lf-calc.js:198`, `346/357`, `416/427`, `486/496`) y `round2` devuelve siempre
+ `Math.round(...)/100`, de modo que dos totales que se ven iguales son bit-identicos. La tolerancia
+ equivale a igualdad exacta y ambos ordenadores coinciden con Total ascendente.
+- **`Vs mejor` no se recalcula al filtrar.** Correcto: mide contra la mejor tarifa economica global
+ del calculo (`lf-calc.js:608-613`), no contra la primera fila visible. Lo que chirriaba era el
+ puesto, no la magnitud.
+- **El Top 5 del grafico ignora filtro y orden de la tabla.** Deliberado: reconstruye el Top 5
+ economico con `sort(totalNum)`, y los filtros declaran `aria-controls="table"`.
+- **Las filas no comparables al final.** `applySort()` las manda detras en ambos sentidos y
+ `tieneRankingPosition()` les pinta guion; siguen sin recibir numero ni medalla.
+
+**Verificacion.** 11 regresiones nuevas (`tests/ranking-posicion.test.js`, mas un caso en
+`tests/mi-tarifa-chip.test.js` y el bloque de empate en `tests/calc.test.js`). **4 mutaciones, 4
+detectadas**: volver a `idx + 1` en la celda, volverlo en el chip, devolver `0` en el empate y
+repartir medallas por indice de vista. QA en Chrome real (Puppeteer, viewport movil 390x844 y
+escritorio 1440x900) x claro/oscuro x tres estados de tabla (Total ascendente, Total descendente y
+filtro 3P): 12 combinaciones, numeracion correcta en todas, medallas solo en 1/2/3, badge movil
+alineado con la celda, sin overflow horizontal y sin NaN. El tema se siembra en
+`localStorage('almax_theme')` ANTES de cargar: `prefers-color-scheme` no decide el tema en este
+sitio, asi que emularlo da una matriz falsa con las cuatro capturas en oscuro.
+
+**Calibracion del auditor (ChatGPT "luna", 4a ronda).** Cinco citas verificadas, las cinco exactas.
+Declaro con precision que no ejecuto Vitest ni lint. Dos defectos repetidos: **severidad inflada**
+(clasifico los tres hallazgos como P1 apoyandose en una frase del propio encargo, cuando el peor
+resultado observable es una incoherencia de rotulo, no un importe falso) y **no contrastar contra
+los datos reales**: razono los tres sobre escenarios inventados sin abrir `tarifas.json` ni el
+sitio. Listar como hallazgo aparte el chip tambien infla el recuento: es la misma causa y se
+arregla con el mismo cambio.
+
+**Criterio de reapertura.** Que la celda de puesto, el badge de movil o el chip vuelvan a derivar
+el numero del indice del array renderizado, o que alguien anada un criterio de orden que dependa de
+la procedencia de la fila (orden del catalogo, insercion de "Mi tarifa") en vez de una magnitud
+economica. Los tests son `tests/ranking-posicion.test.js` y el bloque "Empate absoluto" de
+`tests/calc.test.js`.

@@ -566,7 +566,15 @@
       if (Math.abs(Math.round(diff * 100) / 100) < 0.01) {
         const bvA = Number(a.fvBvSaldoFin) || 0;
         const bvB = Number(b.fvBvSaldoFin) || 0;
-        return bvB - bvA;
+        if (bvA !== bvB) return bvB - bvA;
+        // Empate completo (mismo importe y mismo saldo BV). Sin criterio propio, el
+        // comparador devolvia 0 y el orden lo decidia la posicion en tarifas.json, que
+        // no es una magnitud economica: en el catalogo publicado hay tarifas identicas
+        // en los cinco precios (Masmovil/Jazztel/Yoigo) y coincidencias al centimo entre
+        // comercializadoras distintas en casi cualquier escenario, asi que el puesto
+        // dependia del orden del fichero. Se desempata por nombre, que es estable,
+        // reproducible y no privilegia a la tarifa propia (ronda 27, 08/09/2026).
+        return String(a.nombre || '').localeCompare(String(b.nombre || ''), 'es');
       }
       return diff;
     });

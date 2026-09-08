@@ -151,6 +151,26 @@ describe('mi-tarifa-chip: refleja la fila real', () => {
       .toBe('#' + row.querySelector('td').textContent.trim());
   });
 
+  it('con la tabla en Total descendente anuncia el puesto economico, no el de la vista', async () => {
+    // El chip es un espejo de la FILA: si copiara el indice de la vista, la tarifa
+    // propia mas cara se anunciaria como "#1" mientras su propia diferencia dice
+    // "+20,00 EUR respecto a la mejor" (ronda 27, 08/09/2026).
+    const { row } = await render([
+      fila({ nombre: 'Barata', posicion: 1, totalNum: 50, total: '50,00 €', vsMejor: '—' }),
+      fila({ nombre: 'Media', posicion: 2, totalNum: 60, total: '60,00 €', vsMejor: '+10,00 €' }),
+      fila({ nombre: 'Mi tarifa ⭐', posicion: 3, totalNum: 70, total: '70,00 €', vsMejor: '+20,00 €', esPersonalizada: true })
+    ]);
+    window.LF.state.sort = { key: 'totalNum', dir: 'desc' };
+    await window.LF.renderTable();
+    await new Promise((r) => requestAnimationFrame(() => r()));
+
+    void row;
+    const propia = document.querySelector('#tbody tr');
+    expect(propia.textContent).toContain('Mi tarifa');
+    expect(propia.querySelector('td').textContent.trim()).toBe('3');
+    expect(document.getElementById('miTarifaChipRank').textContent).toBe('#3');
+  });
+
   it('sin diferencia (posicion 1) no pinta un guion suelto', async () => {
     await render([fila({ nombre: 'Mi tarifa ⭐', vsMejor: '—', esPersonalizada: true })]);
     expect(document.getElementById('miTarifaChipDiff').textContent).toBe('');

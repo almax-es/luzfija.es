@@ -300,6 +300,19 @@
   // Una fila ocupa puesto en el ranking solo si su total es un numero real.
   // Criterio unico: lo usan la celda de posicion y el chip de "Mi tarifa", que
   // deben coincidir siempre.
+  // El puesto pertenece a la FILA, no a la vista: lo fija el ranking economico en
+  // lf-calc.js (`posicion`). Ordenar por otra columna o filtrar 1P/3P cambia que filas
+  // se ven y en que orden, no cual es la posicion de cada una en el ranking. Numerar
+  // por el indice de la vista hacia que, con Total descendente, la tarifa mas cara
+  // luciera "#1" junto a su propio "+45,95 EUR" respecto a la mejor, y que con el filtro
+  // 1P la primera fila fuese "#1" sin ser la mejor de nadie (ronda 27, 08/09/2026).
+  // El fallback al indice cubre filas sin `posicion` (ninguna ruta productiva las
+  // produce hoy) para no pintar un hueco donde antes habia un numero.
+  function rankingNumber(r, idx) {
+    const pos = Number(r?.posicion);
+    return Number.isFinite(pos) && pos > 0 ? String(pos) : String(idx + 1);
+  }
+
   function tieneRankingPosition(r) {
     return Number.isFinite(Number(r.totalNum))
       && !r.solarNoCalculable
@@ -369,7 +382,7 @@
       const r = s[idxMiTarifa];
       const conPuesto = tieneRankingPosition(r);
       return {
-        rank: conPuesto ? String(idxMiTarifa + 1) : '',
+        rank: conPuesto ? rankingNumber(r, idxMiTarifa) : '',
         total: conPuesto ? String(r.total || '') : '',
         vsMejor: r.vsMejor
       };
@@ -543,8 +556,16 @@
         const icons = `<span class="tarifa-icons">${fvIcon || ""}${compParcialIcon || ""}${requisitosTooltip || ""}${nombreWarn || ""}</span>`;
 
         const hasRankingPosition = tieneRankingPosition(r);
-        const rankCell = hasRankingPosition ? String(idx + 1) : '—';
-        const rankBadge = hasRankingPosition ? `#${idx + 1}` : '—';
+        const rankNumber = rankingNumber(r, idx);
+        const rankCell = hasRankingPosition ? rankNumber : '—';
+        // Oro/plata/bronce pertenecen al PUESTO, no a la fila que toque estar arriba.
+        // El CSS lo resolvia con `tbody tr:nth-child(1..3)`, que coincidia con el numero
+        // solo mientras el numero era el indice de la vista: al ordenar por otra columna
+        // el 1o, 2o y 3o de la pantalla se llevaban las medallas (ronda 27, 08/09/2026).
+        const rankMedal = hasRankingPosition && Number(rankNumber) <= 3
+          ? ` class="rank-${rankNumber}"`
+          : '';
+        const rankBadge = hasRankingPosition ? `#${rankNumber}` : '—';
         const badgeRow = `<div class="tarifa-badges" aria-hidden="true">` +
           `<span class="badge rank">${rankBadge}</span>` +
           `${rowTipoBadge(r.tipo)}` +
@@ -573,7 +594,7 @@
           : `<strong class="total-price js-total-amount"${totalAmountAttrs}>${escapeHtml(r.total)}</strong>`;
 
         tr.innerHTML =
-          `<td>${rankCell}</td>` +
+          `<td${rankMedal}>${rankCell}</td>` +
           `<td ${tarifaCellAttrs}>${nombreDisplay}</td>` +
           `<td>${escapeHtml(r.potencia)}</td>` +
           `<td>${escapeHtml(r.consumo)}</td>` +
