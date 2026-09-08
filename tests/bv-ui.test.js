@@ -1,6 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';
+// Modulos reales: bv-ui aborta el arranque si falta la configuracion fiscal
+// (lf-config.js) o el calculo de SSAA (lf-ssaa.js), porque sin ellos el motor
+// mensual calcularia importes menores que los reales sin avisar.
+import '../js/lf-config.js';
+import '../js/lf-ssaa.js';
 import '../js/lf-csv-utils.js';
 
 /**

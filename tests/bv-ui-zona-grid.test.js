@@ -2,9 +2,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 
-// Modulos reales, no mocks: bv-ui aborta el arranque si falta window.LF.parseNum, y la
+// Modulos reales, no mocks: bv-ui aborta el arranque si falta window.LF.parseNum, la
+// configuracion fiscal (lf-config.js) o el calculo de SSAA (lf-ssaa.js), y la
 // deteccion de cambio de zona usa la normalizacion canonica de lf-csv-utils.
+import '../js/lf-config.js';
 import '../js/lf-utils.js';
+import '../js/lf-ssaa.js';
 import '../js/lf-csv-utils.js';
 
 /**

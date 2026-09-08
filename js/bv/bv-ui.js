@@ -75,10 +75,21 @@ document.addEventListener('DOMContentLoaded', () => {
     'rotateMonthsByStart'
   ];
   const requiredSimulation = ['loadTarifasBV', 'simulateForAllTarifasBV', 'simulateMonthly'];
+  // El motor mensual (bv-sim-monthly.js) esta escrito a la defensiva: si falta
+  // lf-config.js sigue calculando con IEE e impuesto indirecto a cero, y si falta
+  // lf-ssaa.js trata "no se si aplica SSAA" como "no aplica". En ambos casos el
+  // resultado no es un dato ausente sino un importe MENOR que el real, sin marca
+  // alguna en la fila. Aqui es donde se decide que una carga incompleta no produce
+  // importes; por eso los dos proveedores fiscales entran como dependencia dura.
+  const fiscalConfigReady = !!window.LF_CONFIG &&
+    typeof window.LF_CONFIG.calcularImpuestoIndirecto === 'function' &&
+    typeof window.LF_CONFIG.calcularIEE === 'function';
   const missingSimulationDependency =
     requiredManualUi.some((name) => typeof window.BVSim.manualUi[name] !== 'function') ||
     requiredSimulation.some((name) => typeof window.BVSim[name] !== 'function') ||
-    !window.LF || typeof window.LF.parseNum !== 'function';
+    !window.LF || typeof window.LF.parseNum !== 'function' ||
+    !fiscalConfigReady ||
+    typeof window.LF?.ssaa?.calcCharge !== 'function';
 
   if (missingSimulationDependency) {
     markSolarUnavailable(['solar', 'simulation-core'], 'Simulador solar con dependencias incompletas');

@@ -1,6 +1,6 @@
 # Guia Para Auditorias IA De LuzFija.es
 
-Ultima actualizacion: 2026-09-07
+Ultima actualizacion: 2026-09-08
 
 Este documento existe para reducir falsos positivos en auditorias repetidas. No sustituye a
 `AGENTS.md` ni a `CAPACIDADES-WEB.md`; los complementa con criterios de clasificacion.
@@ -118,6 +118,7 @@ decision esta en el registro enlazado desde la ultima columna y desde el indice 
 | Paridad de "Mi tarifa" entre productores | Auditada 05/09/2026 (ronda 23), primera vez. Tabla de paridad propiedad a propiedad de los tres productores del objeto (home, desglose y simulador solar). 2 hallazgos CORREGIDOS con regresiones validadas por mutacion: P1=0 aceptado solo por el simulador, y energia 0/0/0 aceptada solo por la home (coronaba el ranking). La invariante fv.bv de la ronda 20 sigue intacta en los tres | [Paridad De "Mi Tarifa" Entre Sus Tres Productores](AUDITORIA-REGISTRO.md#mi-tarifa-paridad-entre-productores-ronda-23-05-09-2026) |
 | Catalogo `tarifas.json` frente al motor | Auditada 06/09/2026 (ronda 24), primera vez. Los 9 campos del esquema que mueven importe, orden o exclusion, contrastados celda a celda contra las cinco rutas que los consumen. Cero bugs observables: las 118 filas publicadas son coherentes. Un cambio, clasificado como alineacion defensiva y no como bug: el motor mensual solar no consultaba `fv.tipo` y derivaba la compensacion solo de `fv.exc`. Rechazado en firme endurecer `esTarifaUtilizable()` con campos opcionales: la validacion es ATOMICA y eso convertiria una errata del generador en la web sin ranking | [El Catalogo `tarifas.json` Frente Al Motor](AUDITORIA-REGISTRO.md#catalogo-frente-al-motor-ronda-24-06-09-2026) |
 | Dataset vivo -> importe (PVPC y excedentes indexados) | Auditada 07/09/2026 (ronda 25), primera vez. `js/pvpc.js` y `js/lf-surplus-prices.js` y sus cinco consumidores: cobertura parcial, referencia de 0,020 EUR/kWh, zona y reloj, firma de cache, datasets degradados y kWh sin valorar. **Cero hallazgos y cero cambios**. Rechazadas dos propuestas: quitar el ancla diaria de la clave de cache (la rompe la ventana de correccion de seis meses del workflow PVPC) y cambiar el rotulo del EUR/kWh medio | [De Un Dataset Vivo A Un Importe](AUDITORIA-REGISTRO.md#dataset-vivo-a-importe-ronda-25-07-09-2026) |
+| Capa comun frente a sus copias locales | Auditada 08/09/2026 (ronda 26), primera vez. Fallbacks ternarios, helpers duplicados y guards que degradan a no-hacer-nada, cruzados con los `<script src>` de cada pagina. 3 riesgos reales CORREGIDOS: sin `lf-config.js` el simulador solar seguia calculando con IEE e impuesto indirecto a 0 (17,81 -> 14,04 EUR), sin `lf-ssaa.js` SSAA desaparecia (20,85 -> 17,81 EUR) y el fallback del Observatorio perdia el redondeo monetario (8,08 -> 8,07 EUR). Ambos proveedores son ya dependencia dura del gate de `bv-ui.js`. NO los anadas a `requiredSimulation`: esa lista se indexa contra `window.BVSim` y mataria el simulador para todos. Los dos hardening (`parseNum` de desglose y los `round2` sin EPSILON) siguen sin ruta de activacion demostrada | [La Capa Comun Frente A Sus Copias Locales](AUDITORIA-REGISTRO.md#capa-comun-frente-a-copias-locales-ronda-26-08-09-2026) |
 | Buscador de guias (`js/guides-search.js`) | **Hueco deliberado, no auditado como area** (05/09/2026). Cubiertos por tests dedicados el indice y la resiliencia de red; sin auditar el comportamiento de la UI (orden de resultados, teclado, estados vacios). Techo de impacto cosmetico y sin superficie XSS (todo `textContent`). No lo reportes como zona huerfana sin leer la entrada | [Buscador De Guias: Hueco De Auditoria Deliberado](AUDITORIA-REGISTRO.md#buscador-de-guias-hueco-deliberado-05-09-2026) |
 
 ## Directorio Del Registro De Auditorias
@@ -216,6 +217,7 @@ estes auditando; no hace falta leerlo entero.
 - [Buscador De Guias: Hueco De Auditoria Deliberado (05/09/2026)](AUDITORIA-REGISTRO.md#buscador-de-guias-hueco-deliberado-05-09-2026)
 - [El Catalogo `tarifas.json` Frente Al Motor (Ronda 24, 06/09/2026)](AUDITORIA-REGISTRO.md#catalogo-frente-al-motor-ronda-24-06-09-2026)
 - [De Un Dataset Vivo A Un Importe: PVPC Y Excedentes Indexados (Ronda 25, 07/09/2026)](AUDITORIA-REGISTRO.md#dataset-vivo-a-importe-ronda-25-07-09-2026)
+- [La Capa Comun Frente A Sus Copias Locales (Ronda 26, 08/09/2026)](AUDITORIA-REGISTRO.md#capa-comun-frente-a-copias-locales-ronda-26-08-09-2026)
 <!-- REGISTRO-INDICE:FIN -->
 
 ## Hallazgos Que Si Serian Relevantes

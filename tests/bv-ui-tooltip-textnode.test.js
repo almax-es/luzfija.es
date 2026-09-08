@@ -1,6 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';
+// bv-ui aborta el arranque sin configuracion fiscal ni calculo de SSAA.
+import '../js/lf-config.js';
+import '../js/lf-ssaa.js';
 
 /**
  * @vitest-environment jsdom

@@ -6,6 +6,9 @@ import path from 'path';
 // limite de decimales si window.LF.esNumericoValido existe; sin el cae a una
 // regex de respaldo que acepta cualquier cifra y el test pasaria en falso.
 import '../js/lf-utils.js';
+// bv-ui tambien aborta el arranque sin configuracion fiscal ni calculo de SSAA.
+import '../js/lf-config.js';
+import '../js/lf-ssaa.js';
 
 /**
  * @vitest-environment jsdom

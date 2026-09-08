@@ -4,6 +4,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';
+// bv-ui aborta el arranque sin configuracion fiscal ni calculo de SSAA: aqui se
+// cargan los modulos reales porque un stub tendria que replicar su contrato.
+import '../js/lf-config.js';
+import '../js/lf-ssaa.js';
 
 const uiCode = fs.readdirSync(path.resolve(__dirname, '../js/bv'))
   .filter((file) => /^bv-ui.*\.js$/.test(file))
@@ -31,6 +35,8 @@ function bootMenu() {
   }));
   window.BVSim = {};
   window.LF = {
+    // Conserva lo que publicaron los modulos reales importados arriba (LF.ssaa).
+    ...window.LF,
     parseNum: (val) => (val === null || val === undefined ? 0 : parseFloat(String(val).replace(',', '.')))
   };
   window.BVSim.loadTarifasBV = vi.fn();

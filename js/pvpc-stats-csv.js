@@ -24,6 +24,17 @@
     return `${y}-${m}`;
   }
 
+  // Copia literal de js/lf-surplus-prices.js. Este fichero es el camino que corre
+  // cuando ese proveedor no llego a cargarse, asi que el importe mostrado no puede
+  // depender de cual de los dos calculo: sin esta normalizacion, 85 kWh x 0,095
+  // acumulaba 8,075 crudo y la tabla pintaba 8,07 EUR donde el motor comun da 8,08.
+  function roundMoneyProductsOrFallback(products, fallback) {
+    const helper = window.LF_CONFIG && window.LF_CONFIG.roundMoneyProducts;
+    if (typeof helper !== 'function') return fallback;
+    const value = helper(products);
+    return Number.isFinite(value) ? value : fallback;
+  }
+
   // Misma cascada de identidad de build que js/tracking.js. Se resuelve en la
   // evaluacion sincrona del script a proposito: dentro de ensureXLSX() (lazy,
   // tras un gesto del usuario) document.currentScript ya vale null.
@@ -444,9 +455,12 @@
       // `pricedHours` lo consume la tabla del Observatorio para decidir si muestra el
       // importe o un guion. Sin este contador, el fallback pintaba "—" en el importe de
       // un mes que SI tenia compensacion calculada.
-      if (!monthly[ym]) monthly[ym] = { kwh: 0, eur: 0, pricedHours: 0 };
+      if (!monthly[ym]) monthly[ym] = { kwh: 0, eur: 0, moneyProducts: [], pricedHours: 0 };
       monthly[ym].kwh += kwh;
       monthly[ym].eur += eur;
+      // `eur` crudo alimenta el precio medio ponderado; los operandos sin multiplicar
+      // alimentan el importe visible, igual que en el proveedor comun.
+      monthly[ym].moneyProducts.push([kwh, price]);
       monthly[ym].pricedHours += 1;
 
       if (!monthlyHourly[ym]) monthlyHourly[ym] = new Array(24).fill(0);
@@ -483,8 +497,9 @@
       return {
         ym,
         kwh: row.kwh,
-        eur: row.eur,
+        eur: roundMoneyProductsOrFallback(row.moneyProducts || [], row.eur),
         // Sin kWh valorados no hay precio medio ponderado; `0` seria un dato inventado.
+        // Se calcula sobre el acumulado crudo, no sobre el importe ya normalizado.
         avg: row.kwh ? row.eur / row.kwh : null,
         // Energia realmente aportada por el usuario en ese mes, valorada o no.
         inputKwh: row.kwh + (monthlyMissingKwh[ym] || 0),
@@ -494,7 +509,13 @@
       };
     });
 
+    // El precio medio conserva la suma horaria cruda; el KPI monetario suma las filas
+    // ya normalizadas para que cuadre con el detalle visible, igual que el proveedor comun.
     const avgPrice = totalKwh ? totalEur / totalKwh : 0;
+    const normalizedTotalEur = roundMoneyProductsOrFallback(
+      monthlyRows.map((row) => [row.eur]),
+      totalEur
+    );
     // Un mes sin una sola hora valorada no puede ser el mejor ni el peor: su `avg` no es
     // un precio real. Aqui el caso no llega a darse (un mes solo se crea cuando hubo al
     // menos una hora con precio), pero se filtra igual para no depender de esa sutileza
@@ -521,7 +542,7 @@
       totalKwh,
       // Informativo: energia aportada, valorada o no. `totalKwh` mantiene su semantica.
       inputKwh: totalKwh + missingKwh,
-      totalEur,
+      totalEur: normalizedTotalEur,
       avgPrice,
       best,
       worst,

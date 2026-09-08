@@ -1,4 +1,8 @@
 import { describe, it, expect, beforeAll, beforeEach, vi } from 'vitest';
+// lf-config.js aporta roundMoneyProducts, que es el contrato monetario que ambas rutas
+// deben respetar. Sin el, el fallback devolveria el acumulado crudo y la frontera de
+// medio centimo de mas abajo no se podria distinguir.
+import '../js/lf-config.js';
 import '../js/lf-utils.js';
 import '../js/lf-csv-utils.js';
 
@@ -144,5 +148,85 @@ describe('Observatorio (fallback sin lf-surplus-prices): cobertura parcial', () 
     // Sin cobertura ausente, la energia aportada coincide con la valorada.
     expect(fila.inputKwh).toBeCloseTo(fila.kwh, 6);
     expect(stats.inputKwh).toBeCloseTo(stats.totalKwh, 6);
+  });
+});
+
+/**
+ * Frontera monetaria entre las dos rutas (ronda 26, 08/09/2026).
+ *
+ * El fallback acumulaba `kwh * price` y devolvia el crudo, mientras el proveedor comun
+ * normaliza los operandos con `LF_CONFIG.roundMoneyProducts`. En una frontera de medio
+ * centimo eso separaba los dos caminos: 85 x 0,095 = 8,075 se pintaba como "8,07 EUR"
+ * por el fallback y como "8,08 EUR" por el modulo canonico, para el mismo CSV.
+ */
+describe('Observatorio: el importe no depende de que ruta lo calcule', () => {
+  const YM = '2025-10';
+  const FRONTERA_KWH = 85;
+  const FRONTERA_PRECIO = 0.095;
+  let computeCsvCompensation;
+  let computeHourlyCompensation;
+
+  // Una sola hora valorada: aisla el producto que cae en la frontera. Con 24 horas
+  // iguales la suma volveria a un valor exacto y la diferencia se esconderia.
+  const registroFrontera = [{
+    fecha: new Date(Date.UTC(2025, 9, 1, 12)),
+    hora: 13,
+    excedente: FRONTERA_KWH
+  }];
+
+  beforeAll(async () => {
+    await import('../js/pvpc-stats-csv.js');
+    await import('../js/lf-surplus-prices.js');
+    computeCsvCompensation = window.__LF_PvpcStatsCsv.computeCsvCompensation;
+    computeHourlyCompensation = window.LF.surplusPrices.computeHourlyCompensation;
+  });
+
+  beforeEach(() => {
+    window.__LF_PvpcStatsCsv.csvMonthCache?.clear?.();
+    window.PVPC_STATS = {
+      runWithConcurrency: async (tareas) => { for (const t of tareas) await t(); }
+    };
+    global.fetch = vi.fn(async (url) => {
+      const ym = String(url).match(/(\d{4}-\d{2})/)?.[1];
+      if (ym !== YM) return { ok: false, status: 404, json: async () => ({}) };
+      const mes = buildSurplusMonth(YM);
+      Object.keys(mes.days).forEach((ymd) => {
+        mes.days[ymd] = buildFullCivilDay(ymd, 'Europe/Madrid', FRONTERA_PRECIO);
+      });
+      return { ok: true, status: 200, json: async () => mes };
+    });
+  });
+
+  it('el fallback normaliza el importe del mes igual que el modulo canonico', async () => {
+    delete window.LF.surplusPrices;
+    const stats = await computeCsvCompensation(registroFrontera, GEO);
+
+    const fila = stats.monthlyRows.find((r) => r.ym === YM);
+    expect(fila.kwh).toBeCloseTo(FRONTERA_KWH, 6);
+    // 85 x 0,095 = 8,075 exacto en decimal. Sin normalizar, toFixed(2) lo baja a 8,07.
+    expect(fila.eur).toBe(8.08);
+    expect(fila.eur.toFixed(2)).toBe('8.08');
+    expect(stats.totalEur).toBe(8.08);
+  });
+
+  it('el precio medio sigue saliendo del acumulado crudo, no del importe redondeado', async () => {
+    delete window.LF.surplusPrices;
+    const stats = await computeCsvCompensation(registroFrontera, GEO);
+
+    const fila = stats.monthlyRows.find((r) => r.ym === YM);
+    // 8,08 / 85 daria 0,09505...: el redondeo del importe no puede contaminar el EUR/kWh.
+    expect(fila.avg).toBeCloseTo(FRONTERA_PRECIO, 10);
+    expect(stats.avgPrice).toBeCloseTo(FRONTERA_PRECIO, 10);
+  });
+
+  it('las dos rutas devuelven el mismo importe para el mismo CSV', async () => {
+    const canonico = await computeHourlyCompensation(registroFrontera, { geo: GEO });
+    delete window.LF.surplusPrices;
+    window.__LF_PvpcStatsCsv.csvMonthCache?.clear?.();
+    const fallback = await computeCsvCompensation(registroFrontera, GEO);
+
+    expect(fallback.totalEur).toBe(canonico.totalEur);
+    expect(fallback.monthlyRows.map((r) => [r.ym, r.eur]))
+      .toEqual(canonico.monthlyRows.map((r) => [r.ym, r.eur]));
   });
 });

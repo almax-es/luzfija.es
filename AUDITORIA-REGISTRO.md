@@ -3334,3 +3334,85 @@ bugs declarados como tales, y clasifico como hardening lo que era hardening -- j
 la ronda 24. Las citas volvieron a ser exactas. Su punto ciego sigue siendo el mismo: propone
 optimizaciones sin comprobar que garantia sostiene el codigo que quiere quitar (M1). Al verificar
 sus propuestas, buscar SIEMPRE que protege lo que sobra, no solo si sobra.
+
+<a id="capa-comun-frente-a-copias-locales-ronda-26-08-09-2026"></a>
+### La Capa Comun Frente A Sus Copias Locales (Ronda 26, 08/09/2026)
+
+**Origen.** Ronda 26 (ChatGPT "luna", solo ZIP; declara no haber ejecutado suite, lint ni
+navegador). Angulo nuevo: el proyecto es JS vanilla sin modulos, cada fichero publica y consume
+globals, y muchos consumidores llevan una via alternativa por si su proveedor no cargo. Se audito
+que ocurre cuando esa via se usa, en tres clases: fallback ternario, duplicacion permanente del
+helper, y guard que degrada a no-hacer-nada. Se le exigio separar la divergencia matematica de la
+ruta de activacion real, con el techo de Hardening si solo tenia la primera.
+
+**3 riesgos reales confirmados y CORREGIDOS, 2 hardening documentados.** Las divergencias
+numericas se reprodujeron con los ficheros reales del repo, y las dos primeras tambien en la
+pagina servida, con Chrome:
+
+1. **Sin `lf-config.js`, el simulador solar seguia dando importes.** `bv-sim-monthly.js` esta
+ escrito a la defensiva y con `CFG = window.LF_CONFIG || {}` cae a ramas locales que dejan IEE e
+ impuesto indirecto en 0,00. Medido por la API publica `simulateForAllTarifasBV()`: 125 kWh a
+ 0,10 EUR/kWh en 30 dias pasan de **17,81 EUR a 14,04 EUR**, sin marcar la fila.
+2. **Sin `lf-ssaa.js`, SSAA desaparecia.** El fallback devuelve
+ `{ aplica:false, available:true }`, que traduce "no se si aplica" por "no aplica", asi que
+ tampoco entra en la rama `dataUnavailable` que existe para eso. Una tarifa con
+ `incluyeServiciosAjuste:false` pasa de **20,85 EUR a 17,81 EUR** (0,01908 EUR/kWh de 2026-07).
+3. **El fallback del Observatorio perdia el redondeo monetario.** `pvpc-stats-csv.js` acumulaba
+ `kwh * price` crudo y devolvia `eur` y `totalEur` sin normalizar, mientras
+ `lf-surplus-prices.js` pasa por `roundMoneyProducts`. En frontera de medio centimo,
+ 85 x 0,095 = 8,075 se pintaba **8,07 EUR** por una ruta y **8,08 EUR** por la otra.
+
+**Lo que el gate de `bv-ui.js` NO comprobaba.** Los tres casos eran alcanzables porque
+`missingSimulationDependency` exigia `BVSim`, `BVSim.manualUi` y `LF.parseNum`, pero ni
+`LF_CONFIG` ni `LF.ssaa`; y ningun modulo revienta al cargar sin ellos, porque todos los accesos
+son `?.` o `|| {}`. `lf-config.js` es el unico proveedor de `LF_CONFIG` (`config.js` no lo
+define) y los 13 primeros scripts de `comparador-tarifas-solares.html` van sin `defer`.
+
+**La leccion, y es incomoda: la home NO estaba expuesta precisamente por ser menos defensiva.**
+`lf-calc.js:20` hace `const CFG = window.LF_CONFIG;` sin fallback y su linea 46 accede a
+`CFG.alquilerContador.eurosMes` en duro, asi que sin el proveedor lanza `TypeError` en vez de
+devolver un importe rebajado. Un `?.` de mas convierte un fallo ruidoso en un importe falso
+silencioso. Por eso el arreglo NO fue repartir fail-closed por el motor.
+
+**Correcciones aplicadas (08/09/2026).**
+- `bv-ui.js`: `LF_CONFIG` (con `calcularImpuestoIndirecto` y `calcularIEE`) y `LF.ssaa.calcCharge`
+ pasan a dependencia dura del gate ya existente, que llama a `markSolarUnavailable()`. Es el
+ mismo camino probado que cubre la falta de `bv-ui-helpers.js`. **Trampa evitada:** NO se pueden
+ anadir a `requiredSimulation`, porque esa lista se indexa contra `window.BVSim` y
+ `window.BVSim.LF_CONFIG` es `undefined` SIEMPRE: el simulador quedaria muerto para todo el
+ mundo. Hay un centinela positivo en los tests justo para esa mutacion.
+- `pvpc-stats-csv.js`: el fallback acumula `moneyProducts` y normaliza `monthlyRows[].eur` y
+ `totalEur` con la misma `roundMoneyProductsOrFallback` del proveedor comun. `avg` y `avgPrice`
+ siguen saliendo del acumulado CRUDO: el redondeo del importe no puede contaminar el EUR/kWh.
+ El fallback **no se toca por lo demas**: su razon de existir sigue vigente.
+- `styles.css`: el toast y el banner de recuperacion son los dos fijos al borde inferior y se
+ tapaban cuando coincidian. Defecto **preexistente** (se reproduce bloqueando
+ `bv-ui-helpers.js`), pero el cambio del gate lo hacia visible en dos escenarios mas. Se sube el
+ toast con `:has()`; sin soporte queda el solape de antes.
+
+**RECHAZADO: los dos hardening.** El fallback de `parseNum` en `desglose-integration.js` lee
+`"0.123"` como `123` (le falta la excepcion `/^-?0\.\d+$/` de `lf-utils.js:88`), y los `round2`
+locales de `pvpc.js`, `desglose-calculo.js` y `desglose-render.js` omiten `Number.EPSILON`
+(`1.005` da 1,00 en vez de 1,01). Las divergencias son ciertas, pero **nadie demostro una ruta
+productiva** que las alcance con la pagina en estado utilizable. No elevar sin esa ruta.
+
+**Verificacion.** Suite 1844 -> 1851 (7 regresiones nuevas), lint 0/0. **6 mutaciones, 6
+detectadas**, incluida la que rompe el simulador para todos. QA en Chrome real: 16 combinaciones
+(solar normal / sin `lf-config` / sin `lf-ssaa`, y Observatorio) x claro/oscuro x
+escritorio/movil, cero errores de consola, cero overflow horizontal, contraste 16,5:1 y 18,5:1
+del mensaje y 19,6:1 del banner. En la pagina servida, el motor da 17,81 EUR y 20,85 EUR, y las
+dos rutas del Observatorio devuelven identico importe con el dataset real.
+
+**Sobre la defensa de arranque, que el informe original daba por inexistente.** `error-bootstrap.js`
+detecta el `<script>` caido en fase `initial` y `lf-sw-update.js` pinta el banner y programa **una
+recarga automatica unica a 750 ms** (`sessionStorage`, por pestana). Verificado en Chrome: en un
+fallo transitorio la pagina se recupera sola antes de que nadie calcule. El escenario que sostenia
+el hallazgo es el **persistente**: tras gastarse esa recarga, el simulador seguia operativo
+calculando de menos. Al medir severidad en este repo hay que recorrer la recuperacion de arranque
+hasta ver que pasa DESPUES de que se agota.
+
+**Criterio de reapertura.** Que un consumidor de `js/bv/` vuelva a leer `window.LF_CONFIG` o
+`window.LF.ssaa` con fallback silencioso sin que el gate lo exija, o que
+`js/pvpc-stats-csv.js` vuelva a devolver importes sin normalizar. Los tests son
+`tests/bv-ui-dependencias-fiscales.test.js` y el bloque "el importe no depende de que ruta lo
+calcule" de `tests/pvpc-stats-csv-fallback.test.js`.
