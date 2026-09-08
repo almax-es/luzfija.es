@@ -3517,6 +3517,27 @@ los datos reales**: razono los tres sobre escenarios inventados sin abrir `tarif
 sitio. Listar como hallazgo aparte el chip tambien infla el recuento: es la misma causa y se
 arregla con el mismo cambio.
 
+**QA post-deploy en produccion (08/09/2026, build `20260908-193520`, commit `dfd1ea0`).** 28
+combinaciones de carga (7 paginas x claro/oscuro x movil 390x844/escritorio 1440x900): cero errores
+de consola, cero peticiones fallidas, cero overflow horizontal, cero NaN y el tema correcto en las
+28. El flujo del ranking en las 4 combinaciones de viewport y tema, con 101 filas reales: Total
+ascendente da `1/2/3` con sus medallas y la primera con `—` y `.best`; Total descendente da
+`101/100/99/98` sin medallas y la primera con `+50,71 EUR`; el filtro 3P conserva los puestos
+globales; y ordenando por Potencia salen `39/52/76/96`, que es la prueba de que el numero ya no
+sigue a la vista. El simulador solar sigue calculando sus 64 tarifas en las 4 combinaciones, sin
+NaN. Cero balizas a GoatCounter en toda la bateria (opt-out sembrado y trafico observado).
+
+**Tres trampas de esta bateria, por si se repite.** (1) `page.setRequestInterception(true)` para
+bloquear la analitica **rompe el sitio entero**: con el service worker registrado, Puppeteer no
+puede continuar las peticiones y todas acaban en `ERR_FAILED`; el opt-out se siembra en
+`localStorage('goatcounter_optout')` con el literal `'true'` (no `'1'`) y las balizas se OBSERVAN,
+no se interceptan. (2) Un solo navegador para 34 paginas se cae a mitad con
+`Target.createTarget: Session with given id not found`; hay que ir por bloques con
+`userDataDir` propio y guardar de forma incremental. (3) Pulsar `#bv-simulate` con el formulario
+vacio devuelve "Introduce datos para al menos un mes", que es el comportamiento CORRECTO: hay que
+rellenar `#bv-manual-grid` con eventos `input`/`change` reales antes de simular. Y sigue vigente lo
+ya sabido: contar el ranking solar por `tbody tr` da 780 porque suma los desgloses mensuales.
+
 **Criterio de reapertura.** Que la celda de puesto, el badge de movil o el chip vuelvan a derivar
 el numero del indice del array renderizado, o que alguien anada un criterio de orden que dependa de
 la procedencia de la fila (orden del catalogo, insercion de "Mi tarifa") en vez de una magnitud
