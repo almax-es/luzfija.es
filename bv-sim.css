@@ -2197,3 +2197,15 @@ html.light-mode .bv-cs-item--default {
   color: rgba(15,23,42,0.60);
   border-bottom-color: rgba(109,40,217,0.12);
 }
+
+/* En colores forzados el degradado desaparece y `border:none` deja el boton sin forma:
+   solo se veria el texto. Colores de sistema para devolverle el contorno; el
+   !important es necesario porque la regla base tambien lo lleva. */
+@media (forced-colors: active) {
+  .bv-upload-btn,
+  #bv-simulate {
+    border: 1px solid ButtonText !important;
+    background: ButtonFace !important;
+    color: ButtonText !important;
+  }
+}

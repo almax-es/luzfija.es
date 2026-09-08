@@ -3422,6 +3422,19 @@ build anterior devolvia `11.862597` por el fallback frente a `11,86` del canonic
 importe pintado coincidia por casualidad al truncar; en frontera de medio centimo no lo habria
 hecho.
 
+**Ampliacion del 08/09/2026: colores forzados.** Al repasar `forced-colors: active` sobre el
+estado degradado aparecio un defecto **preexistente** que la ronda 19 no cubrio (miro guias y
+Observatorio, no estos controles): al eliminarse degradados y bordes transparentes, tres botones
+quedaban como texto suelto, sin forma de boton -- "Recargar ahora" del banner (blanco sobre banner
+blanco), el CTA `#bv-simulate` del simulador y `.bv-upload-btn`. Corregido con colores de sistema
+(`ButtonText`/`ButtonFace`) en `styles.css` y `bv-sim.css`; el `!important` es obligatorio en los
+dos ultimos porque su regla base tambien lo lleva y va en una hoja posterior. Verificacion: barrido
+de las 9 paginas principales en `forced-colors` (de 3 controles sin forma a 0) y comparacion del
+estilo computado en modo normal contra produccion, identico en los 6 controles medidos por tema.
+**Metodo reutilizable:** detectar el defecto comparando `backgroundColor` del control con el de su
+padre y exigir borde u outline propio; sin eso, un boton sin forma pasa desapercibido porque su
+TEXTO si es legible y el contraste sale perfecto.
+
 **Falso positivo descartado durante ese QA:** tras calcular, `#bv-status` conserva el texto
 "Calculando...". No es un defecto: `#bv-status-container` queda con `display:none`, asi que el
 usuario no lo ve, y se comporta igual en el build anterior. No lo reportes.

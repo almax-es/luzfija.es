@@ -1129,6 +1129,16 @@
       cursor:pointer;
     }
     .lf-init-recovery__button:focus-visible{outline:3px solid var(--accent);outline-offset:2px;}
+    /* En colores forzados desaparecen degradados y bordes transparentes, asi que un boton
+       que apoyaba su forma en ellos queda como texto suelto: pasa con el banner (fondo
+       blanco sobre blanco) y con los CTA de degradado. Se les devuelve la forma con
+       colores de sistema, sin tocar el aspecto normal. Mismo criterio que el selector del
+       Observatorio en la ronda 19. */
+    @media (forced-colors: active){
+      .lf-init-recovery__button{ border:1px solid ButtonText; }
+      .btn{ border:1px solid ButtonText; }
+      .btn.primary{ background:ButtonFace; color:ButtonText; border:1px solid ButtonText; }
+    }
     /* El toast y el banner de recuperacion son los dos fijos al borde inferior, asi que
        cuando coinciden -- arranque incompleto que ademas avisa por toast -- el banner
        (z-index mayor) tapaba el mensaje del toast. Se sube el toast por encima. Los
