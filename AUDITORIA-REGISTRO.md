@@ -3527,6 +3527,15 @@ globales; y ordenando por Potencia salen `39/52/76/96`, que es la prueba de que 
 sigue a la vista. El simulador solar sigue calculando sus 64 tarifas en las 4 combinaciones, sin
 NaN. Cero balizas a GoatCounter en toda la bateria (opt-out sembrado y trafico observado).
 
+**Chip movil de "Mi tarifa" en produccion (08/09/2026), el hueco que faltaba.** La bateria
+anterior media el badge de las tarjetas, no el chip flotante, que solo aparece con "Comparar con mi
+tarifa" activo, en movil y con la fila propia fuera de pantalla. Verificado aparte en los dos temas
+con una tarifa propia cara a proposito (0,28/0,25/0,22 y 0,15/0,05): el chip anuncia `#102`,
+`123,63 EUR`, `+60,89 EUR` en los TRES ordenes (Total ascendente, Total descendente y Potencia),
+coincidiendo siempre con la celda y con el badge de su fila, mientras la primera fila de la vista
+pasa por `1`, `102` y `39`. Antes del arreglo, en Total descendente el chip habria anunciado `#1`
+para la tarifa mas cara del ranking. Cero errores de consola y cero balizas.
+
 **Tres trampas de esta bateria, por si se repite.** (1) `page.setRequestInterception(true)` para
 bloquear la analitica **rompe el sitio entero**: con el service worker registrado, Puppeteer no
 puede continuar las peticiones y todas acaban en `ERR_FAILED`; el opt-out se siembra en
