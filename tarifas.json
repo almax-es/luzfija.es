@@ -1230,26 +1230,6 @@
       "requiereFV": true
     },
     {
-      "nombre": "Catgas 2.0 TDL",
-      "cPunta": 0.1599,
-      "cLlano": 0.1599,
-      "cValle": 0.1599,
-      "p1": 0.093726,
-      "p2": 0.028027,
-      "web": "https://catgas.cat/es/tarifes-catllum-llar",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.04,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "CHC Plan Ilumina Dúo Promo",
       "cPunta": 0.166129,
       "cLlano": 0.166129,
@@ -1329,6 +1309,26 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Catgas 2.0 TDL",
+      "cPunta": 0.1799,
+      "cLlano": 0.1799,
+      "cValle": 0.1799,
+      "p1": 0.093726,
+      "p2": 0.028027,
+      "web": "https://catgas.cat/es/tarifes-catllum-llar",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -2463,5 +2463,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-08T11:25:26.513Z"
+  "updatedAt": "2026-09-08T12:29:27.815Z"
 }
