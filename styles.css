@@ -31,6 +31,12 @@
       --rowMobileBg: rgba(15, 23, 42, .03);
     }
     *{box-sizing:border-box; margin:0; padding:0}
+    /* Los controles de formulario NO heredan la tipografia del documento en ningun
+       navegador: sin esto, botones, campos y desplegables salen con la fuente por defecto
+       del sistema (Arial en Chrome, MS Shell Dlg / Helvetica en WebKit) mientras el resto
+       de la pagina usa Outfit. Se hereda solo la FAMILIA a proposito: `font: inherit`
+       arrastraria tambien tamano y peso, que cada control define por su cuenta. */
+    button, input, select, textarea{ font-family: inherit; }
     html,body{height:100%;}
     /* Color solido en el lienzo. Los degradados del body son background-IMAGE y
        quedan anclados a su caja, que mide exactamente una pantalla (height:100%);
