@@ -3411,6 +3411,21 @@ el hallazgo es el **persistente**: tras gastarse esa recarga, el simulador segui
 calculando de menos. Al medir severidad en este repo hay que recorrer la recuperacion de arranque
 hasta ver que pasa DESPUES de que se agota.
 
+**QA post-deploy en produccion (08/09/2026, build `20260908-084553`).** 20 combinaciones de carga
+(solar normal / sin `lf-config` / sin `lf-ssaa`, Observatorio y home) x claro/oscuro x
+escritorio/movil contra luzfija.es, con la analitica bloqueada para no contaminar GoatCounter:
+cero errores de consola, cero overflow, sin solape toast/banner, contraste 16,5:1 y 18,5:1.
+Flujos reales con clic y tecleo nativos: la home rankea 101 filas y el simulador solar calcula 64
+tarifas, ambos sin NaN. **La prueba que demuestra que el arreglo del Observatorio hace algo:** el
+mismo CSV de 744 registros (agosto 2026) da hoy `11,86` exacto por las dos rutas, mientras el
+build anterior devolvia `11.862597` por el fallback frente a `11,86` del canonico. En ESE CSV el
+importe pintado coincidia por casualidad al truncar; en frontera de medio centimo no lo habria
+hecho.
+
+**Falso positivo descartado durante ese QA:** tras calcular, `#bv-status` conserva el texto
+"Calculando...". No es un defecto: `#bv-status-container` queda con `display:none`, asi que el
+usuario no lo ve, y se comporta igual en el build anterior. No lo reportes.
+
 **Criterio de reapertura.** Que un consumidor de `js/bv/` vuelva a leer `window.LF_CONFIG` o
 `window.LF.ssaa` con fallback silencioso sin que el gate lo exija, o que
 `js/pvpc-stats-csv.js` vuelva a devolver importes sin normalizar. Los tests son
