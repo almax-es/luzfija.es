@@ -468,6 +468,18 @@
 
   let customTarifaStorageErrorNotified = false;
 
+  // Autoguardados en vuelo. El identificador del temporizador de cada campo es local a su
+  // listener, asi que sin este registro "Limpiar datos guardados" no puede cancelarlos: el
+  // que quedara pendiente escribia despues del borrado y resucitaba `lf_custom_tarifa` con
+  // todos los campos vacios, devolviendo el indicador de datos guardados a la pantalla.
+  // El debounce se conserva: su garantia es no escribir en localStorage en cada pulsacion.
+  const pendingSaveTimers = new Set();
+
+  function cancelPendingCustomTarifaSaves() {
+    pendingSaveTimers.forEach((timer) => clearTimeout(timer));
+    pendingSaveTimers.clear();
+  }
+
   function saveCustomTarifaMain() {
     try {
       // La presencia REAL del campo en el DOM decide si hay valores solares que leer, no el
@@ -600,6 +612,8 @@
     }
 
     try {
+      // Antes de borrar: un autoguardado pendiente escribiria despues y desharia esto.
+      cancelPendingCustomTarifaSaves();
       localStorage.removeItem('lf_custom_tarifa');
       const mtPuntaEl = $('mtPunta');
       const mtLlanoEl = $('mtLlano');
@@ -661,7 +675,12 @@
         let saveTimer = null;
         campo.addEventListener('input', () => {
           clearTimeout(saveTimer);
-          saveTimer = setTimeout(saveCustomTarifaMain, 800);
+          pendingSaveTimers.delete(saveTimer);
+          saveTimer = setTimeout(() => {
+            pendingSaveTimers.delete(saveTimer);
+            saveCustomTarifaMain();
+          }, 800);
+          pendingSaveTimers.add(saveTimer);
           // Validación sobre la marcha + recalculo pendiente (igual que lf-app.js).
           // marcarVacios: false → no pinta campos vacíos mientras escribes; solo
           // marca errores de formato/valor. El guard de calculate/agregarMiTarifa

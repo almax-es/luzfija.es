@@ -3834,3 +3834,51 @@ no existe ruta donde bono social y compensacion se resten a la vez sobre el mism
 **Criterio de reapertura.** Que aparezca una economia nueva que no compruebe su propia bandera, que un
 bloque deje de hacerse visible cuando su valor pasa a contar, o que `saveInputs()` deje de viajar con
 el calculo sin sustituir el contrato de cambios pendientes.
+
+
+<a id="mi-tarifa-como-formulario-ronda-33-09-09-2026"></a>
+### "Mi Tarifa" Como Formulario: Validar, Guardar Y Decir Que Se Ha Guardado (Ronda 33, 09/09/2026)
+
+Auditoria de ChatGPT sobre `js/lf-tarifa-custom.js` (801 lineas, el modulo peor cubierto del repo por
+numero de tests que lo referencian) como EDITOR, no como productor del objeto, que se cerro en la
+ronda 23. Se acoto fuera todo lo ya resuelto de este modulo, que son ocho entradas del registro.
+
+**1 bug confirmado y CORREGIDO.** Suite 1873 -> 1876, lint 0/0.
+
+**El autoguardado pendiente resucitaba la tarifa recien borrada (RESUELTA).** Cada campo programa su
+autoguardado con `setTimeout(..., 800)` y guarda el identificador en una variable LOCAL a su listener
+(`lf-tarifa-custom.js:662-665`), de modo que `clearCustomTarifaMain()` no podia cancelarlo. Secuencia:
+editar un precio, pulsar "Limpiar datos guardados" antes de que venzan los 800 ms, y aceptar el
+confirm. La clave `lf_custom_tarifa` se borra, los campos se vacian y el indicador desaparece; al
+vencer el temporizador, `saveCustomTarifaMain()` escribe de nuevo la clave con **todos los campos
+vacios** y `updateCustomTarifaIndicatorMain(data)` devuelve el `💾 fecha` a la pantalla. Corregido con
+un registro de temporizadores en vuelo (`pendingSaveTimers`) que `clearCustomTarifaMain()` cancela
+ANTES de borrar. El debounce se conserva: su garantia es no escribir en `localStorage` en cada
+pulsacion.
+
+**Severidad baja, y la clasificacion importa:** el registro resucitado esta vacio, asi que
+`validateMiTarifa()` lo rechaza y no llega a producir una fila ni un importe falso. El danho es de
+estado y de confianza: el usuario pulsa borrar, ve "✓ Datos eliminados" y un instante despues vuelve
+el indicador de datos guardados. El auditor lo clasifico asi por su cuenta, sin inflarlo.
+
+**Verificacion.** 3 regresiones nuevas en `tests/custom-tarifa.test.js` con temporizadores falsos, una
+de ellas roja antes del arreglo. **3 mutaciones, 3 detectadas**: quitar la cancelacion, no registrar
+el temporizador y vaciar el cuerpo del autoguardado. E2E en Chrome real (escritorio 1440x900 oscuro y
+movil 390x844 claro): escribir la tarifa, editar, limpiar antes del debounce aceptando el confirm, y
+comprobar a los 2 s que la clave sigue borrada y el indicador oculto; despues volver a escribir y ver
+que el autoguardado sigue vivo. Sin errores de consola ni overflow.
+
+**Lo demas salio limpio, comprobado con tablas de casos:** la puerta de validacion distingue vacio de
+cero explicito (P2=0 se acepta, P1=0 no, energia 0/0/0 no), rechaza negativos y mas de ocho decimales
+y acepta coma y punto; la carga de un registro legacy sin los campos nuevos no rompe nada; la
+importacion de precios desde el QR de la factura exige los cinco precios y limpia antes las opciones
+solares para no mezclar contratos; lo oculto deja de validarse; y "Mi tarifa" sigue fuera del
+escenario compartido.
+
+**Nota de la suite, sin explicar:** en una ejecucion completa fallo una vez
+`tests/pvpc-dataset-integrity.test.js` y volvio a pasar en aislado y en la siguiente ejecucion
+completa. No se reprodujo y no lo toca este cambio; queda anotado por si reaparece.
+
+**Criterio de reapertura.** Que alguien vuelva a programar un autoguardado sin registrarlo en
+`pendingSaveTimers`, o que aparezca otro escritor de `lf_custom_tarifa` que no pase por
+`saveCustomTarifaMain()`.

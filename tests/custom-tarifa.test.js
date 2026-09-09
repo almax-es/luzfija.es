@@ -790,3 +790,83 @@ describe('Mi tarifa: no se pierden datos al activar/desactivar solar (14/08/2026
     vi.useRealTimers();
   });
 });
+
+// Ronda 33: "Limpiar datos guardados" tiene que ser el ultimo escritor sobre
+// `lf_custom_tarifa`. El autoguardado de cada campo vive en un setTimeout de 800 ms cuyo
+// identificador es local al listener, asi que borrar sin cancelarlo dejaba que el temporizador
+// pendiente resucitara la clave con todos los campos vacios y devolviera el indicador de
+// "datos guardados" a la pantalla justo despues de que el usuario los eliminara.
+describe('Mi tarifa: limpiar frente al autoguardado pendiente', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    document.getElementById('lf-custom-tarifa-indicator')?.remove();
+    const ind = document.createElement('span');
+    ind.id = 'lf-custom-tarifa-indicator';
+    ind.style.display = 'none';
+    document.body.appendChild(ind);
+    for (const [id, valor] of [['mtPunta', '0,15'], ['mtLlano', '0,12'], ['mtValle', '0,08'], ['mtP1', '0,10'], ['mtP2', '0,05']]) {
+      document.getElementById(id).value = valor;
+    }
+    window.confirm = () => true;
+    window.LF.attachSaveListeners();
+  });
+
+  it('un autoguardado pendiente no resucita la tarifa borrada', () => {
+    vi.useFakeTimers();
+    try {
+      window.LF.saveCustomTarifaMain();
+      expect(localStorage.getItem('lf_custom_tarifa')).not.toBeNull();
+
+      const campo = document.getElementById('mtPunta');
+      campo.value = '0,16';
+      campo.dispatchEvent(new Event('input', { bubbles: true }));
+      vi.advanceTimersByTime(200);
+
+      window.LF.clearCustomTarifaMain();
+      expect(localStorage.getItem('lf_custom_tarifa')).toBeNull();
+
+      vi.advanceTimersByTime(2000);
+
+      expect(localStorage.getItem('lf_custom_tarifa')).toBeNull();
+      expect(document.getElementById('lf-custom-tarifa-indicator').style.display).toBe('none');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('el autoguardado sigue funcionando cuando no se ha limpiado', () => {
+    vi.useFakeTimers();
+    try {
+      const campo = document.getElementById('mtPunta');
+      campo.value = '0,17';
+      campo.dispatchEvent(new Event('input', { bubbles: true }));
+
+      expect(localStorage.getItem('lf_custom_tarifa')).toBeNull();
+      vi.advanceTimersByTime(900);
+
+      const guardado = JSON.parse(localStorage.getItem('lf_custom_tarifa'));
+      expect(guardado.punta).toBe('0,17');
+      expect(document.getElementById('lf-custom-tarifa-indicator').style.display).not.toBe('none');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('editar despues de limpiar vuelve a guardar', () => {
+    vi.useFakeTimers();
+    try {
+      window.LF.saveCustomTarifaMain();
+      window.LF.clearCustomTarifaMain();
+      expect(localStorage.getItem('lf_custom_tarifa')).toBeNull();
+
+      const campo = document.getElementById('mtP1');
+      campo.value = '0,11';
+      campo.dispatchEvent(new Event('input', { bubbles: true }));
+      vi.advanceTimersByTime(900);
+
+      expect(JSON.parse(localStorage.getItem('lf_custom_tarifa')).p1).toBe('0,11');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+});
