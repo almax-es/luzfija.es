@@ -3686,3 +3686,53 @@ importador y era el selector.
 **Criterio de reapertura.** Que aparezca un formato real de distribuidora con una columna de energia
 sin unidad en la cabecera y con valores legitimos por encima de 100, o que el sitio deje de estar
 limitado a 2.0TD. Cualquiera de las dos cosas devuelve el heuristico de magnitud a la vida.
+
+
+<a id="ciclo-de-vida-curva-importada-ronda-30-09-09-2026"></a>
+### El Ciclo De Vida De La Curva Importada (Ronda 30, 09/09/2026)
+
+Auditoria de ChatGPT sobre cuando nace, cuando muere y cuando se adapta la curva horaria del CSV, y
+si todos sus consumidores ven el mismo estado. El dato parte el calculo en dos: el PVPC se calcula
+hora a hora sobre la curva y el resto del ranking sobre los agregados del formulario, asi que una
+curva que sobreviva a un cambio que la invalida producira dos consumos distintos en la misma tabla.
+
+**CERO hallazgos y CERO cambios de codigo.** Es la segunda ronda que se cierra sin tocar nada, y se
+encargo sabiendolo: el prompt avisaba de que el area ya tenia guards y un test dedicado, y de que un
+cero bien documentado era un resultado valido.
+
+**Verificado de forma independiente por Claude, con cifras y no por lectura:**
+- La reclasificacion de zona sobre `tests/fixtures/1.csv` (7344 horas reales): Peninsula da P1
+ **394,698** / P2 **371,794** / P3 **1019,167**; Ceuta-Melilla da **491,111** / **275,381** /
+ **1019,167**; Canarias coincide con Peninsula. El total, **1785,659 kWh**, no cambia en ninguna:
+ cambia la atribucion, no la energia.
+- `hasDstTransitionRecords()` sobre esa curva devuelve `true`, que es lo que hace que un salto a
+ Canarias la retire en vez de conservarla.
+- Las cuatro dimensiones de `assessCsvConsumosRef` (`lf-inputs.js:130-152`) recorridas una a una:
+ los agregados son la primera frontera, luego el perfil de periodos y luego el reloj. Ninguna
+ combinacion se queda sin rama.
+- La clave de cache PVPC (`pvpc.js:286-332`) incluye zona, codigo postal, vivienda canaria,
+ agregados, bono social y la firma de la curva, y `calculate()` la construye DESPUES de reconciliar
+ (`lf-app.js:335-338`), asi que no hay ventana donde se firme el estado viejo.
+
+**Confirmado como decision deliberada, no como hallazgo:** al cruzar entre Canarias y una zona
+`Europe/Madrid`, la curva SOLO se retira si contiene un dia de cambio de hora; una curva sin esos
+dias se conserva y se reetiqueta la referencia. Esta escrito en `CAPACIDADES-WEB.md` y el comentario
+del codigo lo repite. Quien lo mire de nuevo llegara al mismo sitio: es el mismo eje que la ronda
+del 12/08/2026 cerro para la numeracion horaria.
+
+**Los duplicados de `clearCsvImportState` NO se unifican.** `lf-app.js:253-260` y `factura.js:2228-2234`
+repiten en linea las tres asignaciones como fallback. La garantia que sostiene el duplicado es poder
+invalidar el estado aunque el modulo que publica el helper no haya cargado, que es exactamente el
+escenario de carga parcial que defiende el resto del arranque. Unificarlos sin sustituir esa garantia
+seria una regresion. El auditor lo clasifico bien.
+
+**Tolerancia de redondeo en la referencia (hardening, no se toca).** `buildCsvConsumosRef`
+(`lf-inputs.js:110-127`) redondea los tres agregados a dos decimales, asi que una edicion manual por
+debajo de 0,005 kWh no invalida la curva. Medido: como mucho 0,015 kWh entre los tres periodos, que
+a precio PVPC no llega a la milesima de euro y muere en el `round2` del importe. Estrechar esa
+tolerancia haria que reescribir el mismo numero tirase la curva.
+
+**Criterio de reapertura.** Que aparezca una cuarta pieza de estado que acompanhe a la curva y no
+entre en `clearCsvImportState`, que `calculate()` deje de reconciliar antes de firmar, o que la
+clave de cache PVPC pierda la zona o la firma de la curva. El test vivo es
+`tests/imported-curve-regression.test.js`.
