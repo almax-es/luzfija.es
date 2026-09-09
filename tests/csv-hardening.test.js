@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeAll } from 'vitest';
+import fs from 'fs';
+import path from 'path';
 import '../js/lf-utils.js';
 import '../js/lf-csv-utils.js';
 
@@ -616,5 +618,69 @@ describe('Metadato estructurado unmappedSolarColumns', () => {
   it('buildUnmappedSolarError produce un mensaje que clasifica como columna-solar', () => {
     const err = u.buildUnmappedSolarError(['inyeccion_a_red_kwh'], ['fecha', 'hora']);
     expect(u.csvErrorCodeForTracking(err.message)).toBe('columna-solar');
+  });
+});
+
+// Ronda 29: la unidad de una columna la fija su contrato, no el tamanho de sus numeros.
+// `detectUnitFactor` deduce Wh cuando la cabecera no declara unidad y alguna muestra llega a
+// 100. Las unicas cabeceras mapeables sin unidad son EHCR y EHEX de UFD, que por contrato son
+// kWh, asi que para ellas esa deduccion solo podia equivocarse.
+describe('Unidad por contrato de cabecera (UFD EHCR/EHEX)', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  const parse = (contenido) => {
+    const { rows, separator, headerRowIndex } = u.parseCSVToRows(contenido);
+    return u.parseEnergyTableRows(rows, { separator, headerRowIndex, parseNumber: u.parseNumberFlexibleCSV });
+  };
+
+  it('no convierte a Wh un EHCR sin unidad en la cabecera', () => {
+    const res = parse('CUPS;FECHA;HORA;EHCR;EHEX\nES1;01/04/2026;10;128;0\nES1;01/04/2026;11;64;0');
+
+    expect(res.records.map(r => r.kwh)).toEqual([128, 64]);
+    expect((res.warnings || []).join(' ')).not.toContain('Wh detectados');
+  });
+
+  it('tampoco convierte la columna de excedentes EHEX sin unidad', () => {
+    const res = parse('CUPS;FECHA;HORA;EHCR;EHEX\nES1;01/04/2026;10;0;150\nES1;01/04/2026;11;0;120');
+
+    expect(res.records.map(r => r.excedente)).toEqual([150, 120]);
+  });
+
+  it('mantiene el comportamiento con la unidad declarada y con valores normales', () => {
+    const declarada = parse('CUPS;FECHA;HORA;EHCR (kWh);EHEX (kWh)\nES1;01/04/2026;10;128;0\nES1;01/04/2026;11;64;0');
+    const normales = parse('CUPS;FECHA;HORA;EHCR;EHEX\nES1;01/04/2026;10;1,5;0\nES1;01/04/2026;11;0,8;0');
+
+    expect(declarada.records.map(r => r.kwh)).toEqual([128, 64]);
+    expect(normales.records.map(r => r.kwh)).toEqual([1.5, 0.8]);
+  });
+
+  it('sigue convirtiendo a kWh una columna que declara Wh', () => {
+    const res = parse('CUPS;FechaHora;CONSUMO Wh;GENERACION Wh\nES1;01/04/2026 00:00;500;200\nES1;01/04/2026 01:00;100;400');
+
+    expect(res.records.map(r => r.kwh)).toEqual([0.3, 0]);
+    expect((res.warnings || []).join(' ')).toContain('Wh detectados');
+  });
+
+  it('avisa si alguien anhade un alias de energia sin unidad ni contrato', () => {
+    // La invariante que hace segura la lista de contrato: cualquier alias nuevo sin `wh`/`kwh`
+    // reviviria el heuristico de magnitud para esa cabecera. Si este test falla, decide la
+    // unidad de ese alias antes de anhadirlo.
+    const fuente = fs.readFileSync(path.resolve(__dirname, '../js/lf-csv-utils.js'), 'utf8');
+    const bloqueAlias = fuente.slice(fuente.indexOf('const HEADER_ALIASES'), fuente.indexOf('const HORA_PERIODO_AMBIGUOUS'));
+    const grupos = ['importacion', 'exportacion', 'autoconsumo'];
+    const contrato = new Set(['ehcr', 'ehex']);
+
+    for (const grupo of grupos) {
+      const inicio = bloqueAlias.indexOf(`${grupo}: [`);
+      expect(inicio).toBeGreaterThan(-1);
+      const lista = bloqueAlias.slice(inicio, bloqueAlias.indexOf(']', inicio));
+      const alias = [...lista.matchAll(/'([^']+)'/g)].map(m => m[1]);
+      expect(alias.length).toBeGreaterThan(0);
+      for (const nombre of alias) {
+        if (contrato.has(nombre)) continue;
+        expect(nombre).toMatch(/wh/);
+      }
+    }
   });
 });

@@ -1408,8 +1408,17 @@
     };
   }
 
+  // Cabeceras cuya unidad la fija el contrato de la distribuidora aunque el nombre no la
+  // lleve escrita: UFD publica EHCR y EHEX en kWh (SIMULADOR-BV.md). Son ademas las UNICAS
+  // entradas de HEADER_ALIASES sin marca de unidad, asi que sin esta lista el heuristico de
+  // magnitud de abajo es la unica regla que las mira, y para ellas solo puede acertar por
+  // casualidad: un valor >= 100 se dividiria por 1000. Con datos de 2.0TD no se alcanza
+  // (una hora no pasa de ~15 kWh), por eso es alineacion defensiva y no un bug observable.
+  const CONTRACT_KWH_HEADERS = new Set(['ehcr', 'ehex']);
+
   function detectUnitFactor(headerNorm, sampleRows, columnIdx, parseNumber) {
     if (headerNorm.includes('kwh')) return { factor: 1, converted: false };
+    if (CONTRACT_KWH_HEADERS.has(headerNorm)) return { factor: 1, converted: false };
     if (headerNorm.includes('wh')) {
       return { factor: 0.001, converted: true };
     }

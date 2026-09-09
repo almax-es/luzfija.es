@@ -3625,3 +3625,64 @@ activacion real por teclado (foco + Enter) si.
 mensual", o que el subtitulo del perfil horario deje de derivar del `state` que filtra el grafico.
 Los tests estan en `tests/pvpc-stats-ui.test.js`. Si el dataset pasa a admitir huecos internos de
 dias, hay que revisar las ventanas de 7 y 30 dias, que hoy cuentan dias disponibles.
+
+
+<a id="csv-a-p1-p2-p3-ronda-29-09-09-2026"></a>
+### De Un Fichero De Distribuidora A P1/P2/P3 Y A La Curva (Ronda 29, 09/09/2026)
+
+Auditoria de ChatGPT sobre el camino completo del importador: cabecera y preambulo, mapeo de
+columnas, numeros y unidades, base horaria, asignacion de periodo, agregacion y coherencia entre los
+tres agregados y la curva que consume el PVPC. Se acoto FUERA todo lo ya cerrado (cambios de hora,
+duplicados, formula XLSX, generacion frente a exportacion, limites de consumo, contratos numericos)
+y tambien la ronda 14, que fue de cobertura de tests y no de correccion.
+
+**Cero bugs observables. Un cambio, clasificado como ALINEACION DEFENSIVA**, igual que `fv.tipo` en
+la ronda 24. Suite 1868 -> 1873, lint 0/0.
+
+**1. La unidad de EHCR/EHEX la decidia el tamanho del numero (RESUELTA como alineacion).**
+`detectUnitFactor()` (`lf-csv-utils.js:1411`) deduce Wh cuando la cabecera no declara unidad y
+alguna de las 20 primeras muestras llega a 100. Las UNICAS cabeceras mapeables sin marca de unidad
+son `ehcr` y `ehex` de UFD, que `SIMULADOR-BV.md:853` define en kWh. Reproducido: con
+`CUPS;FECHA;HORA;EHCR;EHEX` y valores 128 y 64, el parser devuelve `0,128` y `0,064` kWh y avisa
+"Valores en Wh detectados". Es decir, para las dos unicas cabeceras que llegan a ese heuristico,
+**el heuristico solo puede equivocarse**. Corregido con `CONTRACT_KWH_HEADERS` (factor 1 para
+`ehcr`/`ehex`), sin tocar la deduccion para cabeceras que si carecen de contrato.
+
+**Por que NO es un bug, pese a que el auditor lo clasifico como P1 con un impacto de 24,63 EUR.**
+El disparador exige mas de 100 kWh en UNA hora. El sitio solo compara 2.0TD, cuyo tope de potencia
+es 15 kW, asi que una hora no puede pasar de ~15 kWh; en el fixture real de 7344 horas
+(`tests/fixtures/1.csv`) el maximo horario medido es **3,560 kWh**. El caso que construyo esta
+fuera del contrato del dominio, como los cinco "riesgos reales" de la ronda 24. Se corrige igual
+porque el coste es una linea y elimina una trampa, no porque hubiera un importe falso.
+
+**2. Redondeo por mes en Datadis mensual: RECHAZADO.** Propuso mover el `r2()` de
+`parseDatadisMonthlyRows` (`lf-csv-utils.js:646-648`) al momento de presentar. Su caso son 12 meses
+de 0,009 kWh, que no es un consumo domestico: un mes real de Datadis va en decenas o centenas de kWh
+con dos decimales en origen, asi que el redondeo pierde como mucho 0,005 kWh por mes sobre miles, y
+el formulario muestra dos decimales de todas formas. No se toca sin un fichero real que lo exija.
+
+**Verificado a mano y correcto (con cifras, no por lectura):** los seis fixtures reales dan los
+mismos agregados que reporto el auditor. En `1.csv`: P1 **394,698**, P2 **371,794**, P3
+**1019,167**, total **1785,659** kWh sobre 7344 filas, con **3056,543** kWh de excedente neto. La
+identidad del neteo cuadra: AE bruto 1793,077 menos 7,418 kWh de horas con importacion y
+exportacion simultaneas. Cabecera con dos lineas de preambulo, celdas vacias, base 0-23 de i-DE,
+alias duplicados y la coherencia curva/agregados salieron limpios.
+
+**Verificacion.** 5 regresiones nuevas en `tests/csv-hardening.test.js` (bloque "Unidad por
+contrato de cabecera"). **3 mutaciones, 3 detectadas**: quitar la lista de contrato, anhadir un
+alias de energia sin unidad y dejar de convertir una columna que declara Wh. Una de las cinco es un
+centinela sobre el propio fichero: si alguien anhade a `HEADER_ALIASES` un alias de energia sin
+`wh`/`kwh` ni entrada en la lista de contrato, el test falla, porque ese alias reviviria el
+heuristico de magnitud. E2E real en Chrome (Puppeteer): importacion de `1.csv` por el input de
+fichero y pulsacion real de `#btnAplicarCSV` en escritorio 1440x900 tema oscuro y movil 390x844
+tema claro; los tres campos quedan en 394,70 / 371,79 / 1019,17 y `window.LF.consumosHorarios`
+conserva 7344 registros, sin errores de consola ni overflow.
+
+**Trampa del E2E, para la proxima.** El boton de aplicar del CSV es `#btnAplicarCSV` ("Aplicar
+consumos"); buscar por texto /aplicar/ encuentra antes el "Aplicar datos" del extractor de factura
+PDF, que no hace nada con el CSV y deja los campos con sus valores por defecto. Parecia un fallo del
+importador y era el selector.
+
+**Criterio de reapertura.** Que aparezca un formato real de distribuidora con una columna de energia
+sin unidad en la cabecera y con valores legitimos por encima de 100, o que el sitio deje de estar
+limitado a 2.0TD. Cualquiera de las dos cosas devuelve el heuristico de magnitud a la vida.
