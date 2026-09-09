@@ -1,6 +1,6 @@
 # Registro De Auditorias De LuzFija.es
 
-Ultima actualizacion: 2026-09-05
+Ultima actualizacion: 2026-09-09
 
 Este fichero es de CONSULTA POR AREA, no de lectura lineal. La lectura obligatoria antes de
 auditar es `AUDITORIA-IA.md`: metodo, taxonomia de severidad, tabla de areas y prompt. Aqui
@@ -3882,3 +3882,60 @@ completa. No se reprodujo y no lo toca este cambio; queda anotado por si reapare
 **Criterio de reapertura.** Que alguien vuelva a programar un autoguardado sin registrarlo en
 `pendingSaveTimers`, o que aparezca otro escritor de `lf_custom_tarifa` que no pase por
 `saveCustomTarifaMain()`.
+
+
+<a id="vigencia-docs-y-guias-ronda-34-09-09-2026"></a>
+### Vigencia De Documentacion Y Guias Al 09/09/2026 (Ronda 34)
+
+Segunda auditoria de documentacion y guias, con el disparador que exige el metodo: NO se abrio por
+calendario, sino porque las rondas 24 y 28 a 33 del mismo dia cambiaron cinco comportamientos y habia
+que comprobar si algun texto los contradecia. Superficie: los 14 `.md` de la raiz, las 25 guias y su
+indice, y el copy verificable de las paginas de producto.
+
+**4 correcciones aplicadas, todas de copy o de fecha. Cero cambios funcionales.**
+
+**1. La calculadora prometia una factura, no una estimacion (RESUELTA).**
+`calcular-factura-luz.html` decia "El calculo incluye TODO: ... Es tu factura real completa", y dos
+parrafos mas abajo la misma pagina se describe como estimacion. Reescrito para decir que es una
+estimacion de lo que pagarias con cada tarifa y no la factura que emitira la comercializadora. Es el
+hallazgo con mas impacto de la ronda: afecta a como se debe usar el resultado para decidir un
+contrato.
+
+**2 y 3. "Desglose exacto" en dos guias (RESUELTAS).** En
+`pvpc-vs-mercado-libre-cuando-te-conviene-cada-uno.html` y en
+`tarifas-indexadas-pool-cuota-cuando-interesan-y-cuando-no.html`. "Exacto" es claim prohibido en copy
+publico. Sustituidos por "desglose estimado" y "desglose de conceptos".
+
+**4. Fecha de cabecera del registro (RESUELTA).** `AUDITORIA-REGISTRO.md` declaraba
+`Ultima actualizacion: 2026-09-05` conteniendo ya entradas del 09/09. Este fichero es ENTRADA del
+sincronizador, asi que su cabecera se edita a mano; `AUDITORIA-IA.md` si la lleva generada.
+
+**5. FAQ visible fuera del `FAQPage`: RECHAZADO como incidencia, resuelto de otra forma.** El auditor
+pidio anhadir al JSON-LD las dos preguntas que hay fuera del bloque `#faq` de la calculadora. No
+procede: el riesgo de Google es marcado que NO se ve, no contenido visible sin marcar, y una de las
+dos ("¿Es gratis calcular mi factura?") duplica una pregunta que el propio `FAQPage` ya tiene
+("¿Es gratis usar la calculadora?"), asi que anhadirla habria creado una entrada duplicada en datos
+estructurados. Lo que si era real es la redundancia: la pregunta duplicada se ha retirado de la
+pagina. `scripts/check-faq-jsonld-sync.mjs` sigue en 0 incidencias sobre 98 FAQ visibles y 37 HTML.
+
+**Barrido propio de claims prohibidos en TODO el sitio:** 17 apariciones de "exacto/exacta" ademas de
+las dos corregidas, todas lenguaje descriptivo legitimo ("los horarios exactos dependen del
+calendario", "300 kWh exactos todos los meses", "el tope es exacto para 200"). Ninguna es una promesa
+de precision del calculo. Cero apariciones problematicas de "tiempo real". Los usos de "oficial"
+atribuyen la fuente a BOE, REE/ESIOS o CNMC; ninguno se autoatribuye oficialidad.
+
+**Verificado y correcto, no tocar:** fiscalidad vigente (IVA 21% e IEE 5,11269632% desde el
+01/06/2026, sin activarse la excepcion de septiembre porque el IPC de electricidad de julio quedo en
+8,4%), bono social 42,5%/57,5% para todo 2026, rescision sin penalizacion del RD 88/2026, ayudas
+Auto+ del RD 609/2026, 119 tarifas, 25 guias, 38 paginas y las fechas visibles y estructuradas de las
+guias, que se mueven juntas por `scripts/seo-date-logic.mjs`.
+
+**Trampa de esta ronda, y se repite:** el ZIP del auditor era ANTERIOR al despliegue del mismo dia, y
+por eso reporto que el arreglo de "Mi tarifa" no estaba en el codigo y que faltaban las rondas 32 y 33
+en la tabla de areas. Ambas cosas ya estaban. **Con este auditor hay que fechar el ZIP: si el dia ha
+tenido despliegues, decirle contra que build audita.** Es el mismo patron del ZIP de agosto que
+parecia traer 41 ficheros modificados y solo cambiaba los finales de linea.
+
+**Criterio de reapertura.** El mismo de la entrada anterior: cambiar una funcion que la documentacion
+describa, no el calendario. Anhadido ahora: cualquier norma citada en `MANTENIMIENTO-NORMATIVO.md`
+que caduque el 31/12/2026, empezando por las deducciones de IRPF de movilidad electrica.
