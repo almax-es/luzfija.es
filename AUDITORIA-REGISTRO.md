@@ -3736,3 +3736,53 @@ tolerancia haria que reescribir el mismo numero tirase la curva.
 entre en `clearCsvImportState`, que `calculate()` deje de reconciliar antes de firmar, o que la
 clave de cache PVPC pierda la zona o la firma de la curva. El test vivo es
 `tests/imported-curve-regression.test.js`.
+
+
+<a id="desglose-frente-a-la-fila-ronda-31-09-09-2026"></a>
+### El Desglose De Factura Frente A La Fila Del Ranking (Ronda 31, 09/09/2026)
+
+Auditoria de ChatGPT sobre las cuatro piezas del desglose (`desglose-calculo.js`, `desglose-render.js`,
+`desglose-integration.js`, `desglose-factura.js`, unas 1700 lineas) frente a `lf-calc.js` y
+`lf-render.js`. La pregunta no era si el desglose calcula bien, que ya tiene tests adversarios de
+propiedades, sino si la fila y el desglose cuentan la MISMA historia concepto a concepto.
+
+**CERO hallazgos y CERO cambios de codigo.** Segunda ronda consecutiva en cero, y tambien esta se
+encargo avisando de que un cero documentado era resultado valido.
+
+**Lo que hizo el auditor:** barrido de las 119 tarifas publicadas por cinco escenarios dentro de
+2.0TD (Peninsula, Canarias, Ceuta-Melilla, con y sin solar, con BV con y sin saldo), 576
+comparaciones fila contra desglose con diferencia maxima de 0,00 EUR, y comprobacion de que la
+jerarquia de conceptos impresos suma el total impreso.
+
+**Lo que verifique yo, y es lo que el no podia hacer: la interfaz real.** Puppeteer sobre Chrome,
+cinco filas abiertas de verdad pulsando la celda de total, en escritorio 1440x900 tema oscuro con
+Peninsula y en movil 390x844 tema claro con Canarias. En las cinco, el importe de la fila y el
+`TOTAL FACTURA` del modal coinciden al centimo: `TE A tu Aire Luz Siempre` 62,74 EUR en Peninsula y
+51,91 EUR en Canarias, `Imagina Base Noche y Findes 4000 3P` 64,19 EUR, `Nexus Estable` 69,44 EUR.
+La seccion fiscal cambia de rotulo con la zona (`IVA` frente a `IMPUESTOS Y ALQUILER (IGIC)`) y el
+cuerpo del modal no desborda en horizontal en movil. Cero errores de consola y cero NaN.
+
+**Confirmado como contrato, no como incoherencia:** en bateria virtual conviven dos importes
+distintos a proposito, el coste de ranking y lo que se paga ese mes, y las dos vistas los separan
+igual. Comparar el total del desglose contra el importe pagado seria confundir dos contratos.
+
+**No se toca `reconcileToTarget()`** (`desglose-render.js:95-109`), que redondea cada sublinea,
+mide el desfase contra el subtotal y corrige la ultima linea cuando la diferencia no pasa de
+0,05 EUR. Es lo que hace que la suma de lo IMPRESO cuadre con el subtotal impreso; quitarlo
+devolveria el desglose que no suma.
+
+**Falsos positivos que conviene no repetir:** sumar literalmente todos los nodos de importe del
+modal cuenta dos veces los subtotales, el total y el precio medio, que es informativo y no una linea
+monetaria. La suma correcta es la jerarquia: potencia, consumo a pagar, otros conceptos y seccion
+fiscal.
+
+**Trampa del arnes, nueva y cara:** los campos de la home se rehidratan despues de `load`, asi que
+escribir con `page.type()` sin vaciar antes produce `3,453,45`, la validacion falla en silencio y la
+tabla se queda vacia. Parece que el calculo no funciona y es el arnes. Hay que hacer clic, Control+A,
+Backspace y entonces escribir. Ademas el modal solo abre con clic REAL sobre `.total-cell`: un
+`.click()` sintetico desde `page.evaluate` no lo abre, y su selector es `.desglose-modal`
+con `aria-hidden="false"`, creado en tiempo de ejecucion.
+
+**Criterio de reapertura.** Que aparezca una tercera magnitud monetaria en la fila sin su pareja en
+el desglose, que `totalRanking` deje de derivarse del mismo total que publica la fila, o que alguien
+retire la reconciliacion de redondeo de las sublineas.
