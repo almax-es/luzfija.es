@@ -723,6 +723,9 @@ año del que dependen está parcial (13/08/2026).
 - **Evolución**: Gráfica de tendencia anual (media diaria) para detectar patrones estacionales.
 - **Perfil Horario**: Promedio de precios por hora (0-23h) con consejo de mejor bloque 3h.
 - **Comparativa**: Superposición de años anteriores (2021-presente) para analizar la tendencia del mercado.
+  Mide cada mes con la MISMA unidad que la tendencia: media de las medias diarias, no media horaria
+  ponderada. Ponderar por horas da más peso al día de 25 horas de octubre y menos al de 23 de marzo, y
+  hacía que el mismo mes apareciera con dos importes distintos en la misma página (ronda 28, 09/09/2026).
 - **KPIs**: Tarjetas con precio medio del último día, semana, mes y año móvil.
 - **Selector PVPC/Excedentes** y **selector por mes** para filtrar el perfil horario.
 - **CSV Excedentes**: subida CSV/XLSX y cálculo real por mes y total anual (€/kWh, € y ventana 80% de vertido).
