@@ -3786,3 +3786,51 @@ con `aria-hidden="false"`, creado en tiempo de ejecucion.
 **Criterio de reapertura.** Que aparezca una tercera magnitud monetaria en la fila sin su pareja en
 el desglose, que `totalRanking` deje de derivarse del mismo total que publica la fila, o que alguien
 retire la reconciliacion de redondeo de las sublineas.
+
+
+<a id="opciones-de-la-home-cruzadas-ronda-32-09-09-2026"></a>
+### Las Opciones De La Home Cruzadas Entre Si (Ronda 32, 09/09/2026)
+
+Auditoria de ChatGPT sobre la combinatoria de opciones de la home, con un angulo concreto: la home
+oculta tres bloques segun otras opciones (vivienda canaria, solar y bono social) pero
+`getInputValues()` (`lf-inputs.js:63-82`) lee TODOS los campos sin mirar si estan visibles. La
+pregunta era si algun valor sigue contando cuando el usuario ya no puede verlo.
+
+**CERO hallazgos y CERO cambios de codigo.** Tercera ronda consecutiva en cero.
+
+**La distincion que deja la ronda, y que conviene citar si alguien vuelve a levantarlo:** valor
+oculto no es lo mismo que valor activo oculto. Los campos conservan su contenido, pero cada economia
+esta detras de su propia bandera (`solarOn && fv.bv && fv.tipo === 'SIMPLE + BV'` en
+`lf-calc.js:310`, `t.esPVPC && bonoSocialOn` en `lf-calc.js:118`), y cuando un valor pasa a ser
+economicamente relevante su control ya esta visible.
+
+**Verificado por Claude en Chrome real, que es lo que el auditor no podia hacer.** Recorrido completo
+de la vivienda canaria con `TE A tu Aire Luz Siempre` a 3,45 kW y 100/100/100 kWh:
+
+| Paso | Zona | Casilla | Visible | Importe |
+|---|---|---|---|---|
+| 1 | Peninsula | marcada | no | 62,74 EUR |
+| 2 | Canarias | marcada | **si** | 51,91 EUR |
+| 3 | Canarias | desmarcada | si | 53,44 EUR |
+| 4 | Peninsula | desmarcada | no | 62,74 EUR |
+| 5 | Canarias | desmarcada | si | 53,44 EUR |
+
+La casilla se hace visible en el mismo paso en que empieza a mover el importe, y su estado sobrevive
+al viaje de ida y vuelta. Los 1,53 EUR de diferencia nunca se aplican sin que el control este a la
+vista. Comprobado ademas que con solar apagado los 120 kWh de excedentes y los 50 EUR de saldo
+guardados NO tocan el importe (62,74 EUR con y sin ellos) y que al encender solar reaparecen
+(52,05 EUR). Cero errores de consola.
+
+**Observacion propia, deliberada y no defecto:** una opcion que se marca DESPUES del ultimo calculo y
+antes de recargar se pierde, porque `saveInputs()` viaja con el calculo (`lf-app.js:351`). Es
+coherente con el contrato de "cambios pendientes": lo que se guarda es el ultimo estado calculado, no
+cada pulsacion. Verificado en navegador: marcar solar y recargar sin calcular devuelve la casilla
+apagada, con los seis campos numericos intactos porque si estaban calculados.
+
+**Fronteras confirmadas, no reabrir:** el bono social solo toca filas PVPC y ninguna tarifa libre
+cambia de importe al activarlo; con solar encendido la fila PVPC queda fuera de comparacion, asi que
+no existe ruta donde bono social y compensacion se resten a la vez sobre el mismo importe.
+
+**Criterio de reapertura.** Que aparezca una economia nueva que no compruebe su propia bandera, que un
+bloque deje de hacerse visible cuando su valor pasa a contar, o que `saveInputs()` deje de viajar con
+el calculo sin sustituir el contrato de cambios pendientes.
