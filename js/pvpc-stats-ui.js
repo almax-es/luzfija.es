@@ -154,6 +154,11 @@
     return map[m] || '';
   }
 
+  function fmtMonthLong(m) {
+    const map = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    return map[m] || '';
+  }
+
   function fmtEur(value) {
     if (!Number.isFinite(value)) return '—';
     return `${toComma(value.toFixed(2))} €`;
@@ -597,15 +602,25 @@
         continue;
       }
 
+      // La comparativa mide el mes con la MISMA unidad que la tendencia, los KPIs, la media
+      // movil y el interanual: media de las medias diarias. Promediar aqui todas las horas
+      // del mes pesa mas el dia de 25 horas de octubre y menos el de 23 de marzo, y el mismo
+      // mes acababa con dos importes distintos en la misma pagina (PVPC de octubre de 2021
+      // en Ceuta y Melilla: 0,259 en tendencia y 0,258 en la comparativa).
       let sum = 0;
       let cnt = 0;
       for (const dateStr of dates) {
         const hours = yearData.days[dateStr] || [];
+        let daySum = 0;
+        let dayCount = 0;
         for (const [, price] of hours) {
           if (!Number.isFinite(price)) continue;
-          sum += price;
-          cnt += 1;
+          daySum += price;
+          dayCount += 1;
         }
+        if (!dayCount) continue;
+        sum += daySum / dayCount;
+        cnt += 1;
       }
       labels.push(fmtMonth(m - 1));
       // Una comparativa interanual solo enfrenta meses naturales cerrados. El mes
@@ -674,7 +689,21 @@
     els.insightRange.textContent = `${fmtCents(kpis.minPrice)} – ${fmtCents(kpis.maxPrice)}`;
   }
 
-  function updateCopyForType(isSurplus) {
+  // El grafico horario se filtra por `state.month`, pero el subtitulo se escribia una sola
+  // vez en funcion del tipo y seguia diciendo "del año" mientras el usuario miraba un unico
+  // mes. El numero era correcto; el texto describia otro universo.
+  function buildHourlySubtitle(isSurplus, state) {
+    const rawMonth = state && state.month;
+    const monthIdx = rawMonth && rawMonth !== 'all' ? Number(rawMonth) - 1 : null;
+    const periodo = Number.isInteger(monthIdx) && monthIdx >= 0 && monthIdx <= 11
+      ? `de ${fmtMonthLong(monthIdx)} de ${state.year}`
+      : 'del año';
+    return isSurplus
+      ? `Perfil horario promedio ${periodo}. Útil para estimar a qué horas se pagan mejor los excedentes.`
+      : `Perfil horario promedio ${periodo}. Útil para desplazar consumos: termo, lavadora, recarga, cocina, etc.`;
+  }
+
+  function updateCopyForType(isSurplus, state) {
     if (els.evolutionTitle) {
       els.evolutionTitle.textContent = isSurplus ? 'Evolución de los excedentes' : 'Evolución del PVPC';
     }
@@ -696,9 +725,7 @@
         : '¿A qué horas suele ser más barato?';
     }
     if (els.hourlySubtitle) {
-      els.hourlySubtitle.textContent = isSurplus
-        ? 'Perfil horario promedio del año. Útil para estimar a qué horas se pagan mejor los excedentes.'
-        : 'Perfil horario promedio del año. Útil para desplazar consumos: termo, lavadora, recarga, cocina, etc.';
+      els.hourlySubtitle.textContent = buildHourlySubtitle(isSurplus, state);
     }
     if (els.faqCheapestSummary) {
       els.faqCheapestSummary.textContent = isSurplus
@@ -1187,7 +1214,7 @@
       const monthly = buildMonthlyFromDaily(daily.labels, daily.data, status.provisionalDays);
       const kpis = PVPC_STATS.getKPIs(yearData);
       const isSurplus = state.type === 'surplus';
-      updateCopyForType(isSurplus);
+      updateCopyForType(isSurplus, state);
       if (csvSection) csvSection.hidden = !isSurplus;
 
       // KPIs principales
@@ -1395,6 +1422,7 @@
   window.__LF_PvpcStatsUiHelpers = {
     getKpiPartialFlags,
     computeWindowOptions,
+    buildHourlySubtitle,
     parseParams,
     normalizeSelectedYears,
     getMonthCoverage,

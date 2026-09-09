@@ -634,3 +634,76 @@ describe('Observatorio: los canvas siguen el tema activo', () => {
     expect(uiCode).toContain('ticks.maxTicksLimit = getTrendMaxTicksLimit(mode, size?.width)');
   });
 });
+
+// Ronda 28: las cifras del Observatorio. Dos productores distintos publicaban la media de
+// un mismo mes con unidades distintas (media de medias diarias frente a media horaria), y
+// el subtitulo del perfil horario seguia hablando del año cuando el grafico ya solo pintaba
+// un mes.
+describe('Observatorio: unidad de las medias y universo declarado', () => {
+  function buildOctober(hoursByDay) {
+    const days = {};
+    for (let d = 1; d <= 31; d += 1) {
+      const dateStr = `2021-10-${String(d).padStart(2, '0')}`;
+      const horas = hoursByDay(d);
+      days[dateStr] = Array.from({ length: horas.count }, (_, i) => [d * 100 + i, horas.price]);
+    }
+    return { meta: { year: 2021 }, days };
+  }
+
+  it('mide el mes en la comparativa con la misma unidad que la tendencia', () => {
+    const { buildMonthlyFromDaily, computeMonthlyFromYearData } = window.__LF_PvpcStatsUiHelpers;
+    // Octubre real: el dia del cambio de hora trae 25 horas. Ponderar por horas le da mas
+    // peso que a los demas dias y separa las dos medias del mismo mes.
+    const yearData = buildOctober((d) => (d === 31 ? { count: 25, price: 0.20 } : { count: 24, price: 0.10 }));
+    const labels = Object.keys(yearData.days);
+    const dailyValues = labels.map((dateStr) => {
+      const horas = yearData.days[dateStr];
+      return horas.reduce((acc, h) => acc + h[1], 0) / horas.length;
+    });
+
+    const tendencia = buildMonthlyFromDaily(labels, dailyValues);
+    const comparativa = computeMonthlyFromYearData(yearData);
+
+    expect(comparativa.values[9]).toBeCloseTo(tendencia.values[9], 12);
+    // Referencia explicita: 30 dias a 0,10 y uno a 0,20, promediados por dia.
+    expect(comparativa.values[9]).toBeCloseTo((30 * 0.10 + 0.20) / 31, 12);
+    // La media ponderada por horas de este mismo mes es OTRA cifra: si el test pasara con
+    // ella, no estaria discriminando nada.
+    expect(comparativa.values[9]).not.toBeCloseTo((30 * 24 * 0.10 + 25 * 0.20) / 745, 12);
+  });
+
+  it('no cambia la comparativa cuando todos los dias del mes tienen las mismas horas', () => {
+    const { computeMonthlyFromYearData } = window.__LF_PvpcStatsUiHelpers;
+    const yearData = buildOctober(() => ({ count: 24, price: 0.10 }));
+
+    expect(computeMonthlyFromYearData(yearData).values[9]).toBeCloseTo(0.10, 12);
+  });
+
+  it('describe el año solo cuando el perfil horario es del año', () => {
+    const { buildHourlySubtitle } = window.__LF_PvpcStatsUiHelpers;
+
+    expect(buildHourlySubtitle(false, { month: 'all', year: '2026' })).toContain('del año');
+    expect(buildHourlySubtitle(false, { month: '', year: '2026' })).toContain('del año');
+    expect(buildHourlySubtitle(false, {})).toContain('del año');
+  });
+
+  it('nombra el mes elegido en el subtitulo del perfil horario', () => {
+    const { buildHourlySubtitle } = window.__LF_PvpcStatsUiHelpers;
+    const pvpc = buildHourlySubtitle(false, { month: '08', year: '2026' });
+    const surplus = buildHourlySubtitle(true, { month: '10', year: '2025' });
+
+    expect(pvpc).toContain('de agosto de 2026');
+    expect(pvpc).not.toContain('del año');
+    expect(pvpc).toContain('termo, lavadora, recarga, cocina');
+    expect(surplus).toContain('de octubre de 2025');
+    expect(surplus).not.toContain('del año');
+    expect(surplus).toContain('se pagan mejor los excedentes');
+  });
+
+  it('mantiene el subtitulo enganchado al mes que filtra el grafico', () => {
+    // El universo del grafico y el texto que lo describe salen del mismo `state`: si alguien
+    // vuelve a fijar el texto, este contrato se rompe.
+    expect(uiCode).toContain('els.hourlySubtitle.textContent = buildHourlySubtitle(isSurplus, state);');
+    expect(uiCode).toContain('updateCopyForType(isSurplus, state);');
+  });
+});

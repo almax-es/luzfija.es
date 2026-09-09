@@ -3552,3 +3552,76 @@ el numero del indice del array renderizado, o que alguien anada un criterio de o
 la procedencia de la fila (orden del catalogo, insercion de "Mi tarifa") en vez de una magnitud
 economica. Los tests son `tests/ranking-posicion.test.js` y el bloque "Empate absoluto" de
 `tests/calc.test.js`.
+
+
+<a id="cifras-del-observatorio-ronda-28-09-09-2026"></a>
+### Las Cifras Del Observatorio: Que Promedia Cada Numero (Ronda 28, 09/09/2026)
+
+Auditoria de ChatGPT sobre la CORRECCION ARITMETICA de las cifras publicadas en `/estadisticas/`:
+que promedia cada una, sobre que universo, y si el rotulo que la acompana describe eso mismo. Es la
+continuacion natural de la ronda 22 (que audito los mensajes) y de la 12 (que audito la cobertura),
+sin solaparse con ninguna: aqui se miran los numeros.
+
+**1 hallazgo suyo y 1 mio, los dos CORREGIDOS.** Cero bugs aritmeticos: ninguna cifra publicada esta
+mal calculada. Suite 1863 -> 1868, lint 0/0.
+
+**1. El subtitulo del perfil horario seguia hablando del anho con un mes seleccionado (RESUELTA).**
+Con `state.month` distinto de `all`, `pvpc-stats-ui.js` filtra el universo del grafico a ese mes y
+`hourlyMeta` lo dice (`Perfil promedio · Ago (31 dias)`), pero el subtitulo de la seccion se
+escribia una sola vez en `updateCopyForType()` en funcion del TIPO y se quedaba en "Perfil horario
+promedio del anho". El numero era correcto; el texto describia otro universo, y ese texto es
+precisamente el que invita a mover consumos. Corregido con `buildHourlySubtitle(isSurplus, state)`,
+que nombra el mes ("Perfil horario promedio de agosto de 2026") y conserva las dos variantes de
+tipo. El HTML estatico sigue diciendo "del anho" porque la vista por defecto es anual.
+
+**2. Dos productores median el mismo mes con unidades distintas (RESUELTA, encontrada por Claude al
+verificar).** El auditor identifico el mecanismo pero lo clasifico como no observable: la tendencia
+mensual (`buildMonthlyFromDaily`) promedia medias diarias y la comparativa interanual
+(`computeMonthlyFromYearData`) promediaba todas las horas del mes. Barriendo las **640
+combinaciones de mes x zona x tipo del repositorio**, siete se muestran DISTINTAS con los tres
+decimales que usa `fmtCents`: PVPC de octubre de 2021 en Ceuta y Melilla (`0,259` en tendencia
+frente a `0,258` en la comparativa) y excedentes de octubre de 2023 en las cinco zonas (`0,089`
+frente a `0,088`). Todos son octubres: el dia de 25 horas pesa 25/745 al ponderar por horas y 1/31
+al promediar por dias. Los dos tooltips usan el mismo formateador, asi que son dos importes del
+mismo mes en la misma pagina. Unificado en la media de medias diarias, que es la unidad que ya
+usaban la tendencia, los KPIs, la media movil de 12 meses, el interanual y mejor/peor mes; la
+comparativa era la unica pieza que media distinto. La verificacion contra los siete casos reales
+da ahora un valor identico en ambos graficos (`0,25850692258064517` en el caso de 8744).
+
+**NO son hallazgos, verificados durante esta ronda:**
+- **Las medias de 7 y 30 dias recortan los ultimos N dias DISPONIBLES, no los N dias naturales.**
+ Semanticamente son cosas distintas, pero no hay ni un hueco interno de dias en los 320 ficheros
+ mensuales del repositorio, asi que no existe caso reproducible. Si algun dia el dataset admite
+ huecos internos, esto vuelve a ser una pregunta viva.
+- **La media movil de 12 meses no pondera por horas.** Diferencia medida sobre la ventana real
+ (2025-09-10 a 2026-09-09, 8760 horas): `2,58 x 10-6 EUR/kWh`, invisible a tres decimales. El
+ contrato del sitio es la media diaria y asi lo dice `PVPC-SCHEMA.md`.
+- **Las ventanas horarias no dan la vuelta a medianoche.** `computeWindowOptions()` corta en
+ `start <= 24 - L`, de modo que un bloque como 23:00-02:00 nunca es candidato. Comprobado sobre los
+ 60 perfiles anuales y los 640 mensuales de las cinco zonas en PVPC y excedentes: en NINGUNO existe
+ un bloque envolvente mejor que el que la pagina anuncia. No se toca.
+- **Percentiles, mapa de calor, perfil por dia de la semana, `getWindowStats()` y el eje canonico de
+ 366 posiciones no publican ninguna cifra.** No tienen consumidor en `/estadisticas/`: la pagina
+ calcula sus ventanas en la UI y su comparativa es mensual. No auditar como si se vieran.
+- **El rango min-max son extremos HORARIOS, no de medias diarias.** El rotulo dice "Rango
+ (min-max)" y no promete otra cosa.
+
+**Verificacion.** 5 regresiones nuevas en `tests/pvpc-stats-ui.test.js` (bloque "Observatorio:
+unidad de las medias y universo declarado"). **4 mutaciones, 4 detectadas**: volver a la media
+ponderada por horas en la comparativa, fijar el texto del subtitulo, dejar que el mes no llegue al
+texto y no pasar `state` a `updateCopyForType()`. QA en Chrome real (Puppeteer) con 12
+combinaciones: escritorio 1440x900 y movil 390x844, claro y oscuro, y tres escenarios (mes
+seleccionado, vista anual y excedentes con mes). Cero errores de consola, cero overflow horizontal,
+cero NaN y graficos con datos en todas. El cambio de mes se comprobo ademas con interaccion real de
+teclado sobre `#monthSelector`, no cambiando `.value`.
+
+**Trampa del arnes, nueva.** En esta pagina **el contenedor que scrollea es `body`**, no el
+documento: `window.scrollTo()` y `ctrl+Home` no mueven nada y `getBoundingClientRect()` devuelve
+coordenadas negativas para elementos que se ven en pantalla. Hay que usar `document.body.scrollTop`.
+Con la extension de Chrome, ademas, los clics por coordenada no llegaron al boton de tema; la
+activacion real por teclado (foco + Enter) si.
+
+**Criterio de reapertura.** Que alguien vuelva a introducir una segunda unidad para "media
+mensual", o que el subtitulo del perfil horario deje de derivar del `state` que filtra el grafico.
+Los tests estan en `tests/pvpc-stats-ui.test.js`. Si el dataset pasa a admitir huecos internos de
+dias, hay que revisar las ventanas de 7 y 30 dias, que hoy cuentan dias disponibles.
