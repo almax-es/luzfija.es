@@ -50,7 +50,7 @@ function buildDayPairs(dateStr, priceAt) {
   return Array.from({ length: hours }, (_, i) => [baseTs + (i * 3600), priceAt(i)]);
 }
 
-function mockMes(dateStr, pairs) {
+function mockMes(dias) {
   global.fetch = vi.fn(async () => ({
     ok: true,
     json: async () => ({
@@ -60,7 +60,7 @@ function mockMes(dateStr, pairs) {
       indicator: 1001,
       unit: 'EUR/kWh',
       epoch_unit: 's',
-      days: { [dateStr]: pairs }
+      days: dias
     })
   }));
 }
@@ -125,7 +125,7 @@ describe('Modal PVPC con el dia en curso incompleto (Canarias)', () => {
     const dia = '2026-09-10';
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date('2026-09-10T22:30:00Z')); // 23:30 en Canarias
-    mockMes(dia, buildDayPairs(dia, (i) => 0.1 + (i / 1000)).slice(0, 23));
+    mockMes({ [dia]: buildDayPairs(dia, (i) => 0.1 + (i / 1000)).slice(0, 23) });
 
     await abrirModal();
 
@@ -140,7 +140,7 @@ describe('Modal PVPC con el dia en curso incompleto (Canarias)', () => {
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date('2026-08-12T22:30:00Z')); // 23:30 en Canarias
     // Precio inconfundible en la ultima hora publicada (22:00 local, indice 22).
-    mockMes(dia, buildDayPairs(dia, (i) => (i === 22 ? 0.777 : 0.1)).slice(0, 23));
+    mockMes({ [dia]: buildDayPairs(dia, (i) => (i === 22 ? 0.777 : 0.1)).slice(0, 23) });
 
     await abrirModal();
 
@@ -156,7 +156,7 @@ describe('Modal PVPC con el dia en curso incompleto (Canarias)', () => {
     const dia = '2026-07-15';
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date('2026-07-15T19:30:00Z')); // 20:30 en Canarias
-    mockMes(dia, buildDayPairs(dia, (i) => (i === 20 ? 0.456 : 0.1)).slice(0, 23));
+    mockMes({ [dia]: buildDayPairs(dia, (i) => (i === 20 ? 0.456 : 0.1)).slice(0, 23) });
 
     await abrirModal();
 
@@ -165,11 +165,40 @@ describe('Modal PVPC con el dia en curso incompleto (Canarias)', () => {
     expect($('modalPVPCHoursList').innerHTML).toContain('AHORA');
   });
 
+  it('la pestana Manana aparece con el dia siguiente a medio publicar', async () => {
+    // Hoy esta cerrado y completo; manana ya se ha publicado pero le falta su ultima hora.
+    // Es el estado que tendria el dataset si la descarga corriera despues de las 20:15, y la
+    // razon de que `allowPartial` cubra `>= hoy` y no solo el dia de hoy. Sin este test esa
+    // rama del validador no tiene cobertura, porque hoy el fichero nunca trae el dia siguiente.
+    const hoy = '2026-05-20';
+    const manana = '2026-05-21';
+    vi.useFakeTimers({ toFake: ['Date'] });
+    vi.setSystemTime(new Date('2026-05-20T20:30:00Z')); // 21:30 en Canarias
+    mockMes({
+      [hoy]: buildDayPairs(hoy, (i) => 0.1 + (i / 1000)),
+      [manana]: buildDayPairs(manana, (i) => (i === 5 ? 0.999 : 0.2)).slice(0, 23)
+    });
+
+    await abrirModal();
+    expect(getComputedStyle($('tabManana')).display).not.toBe('none');
+
+    $('tabManana').click();
+    await flush();
+
+    const lista = $('modalPVPCHoursList');
+    expect(lista.querySelectorAll('[data-is-now]')).toHaveLength(23);
+    expect(lista.textContent).toMatch(/todav[ií]a no está completo/i);
+    expect($('modalPVPCLabel').textContent).toContain('Mañana');
+    expect($('modalPVPCMax').textContent).toContain('0,999');
+    // "Mañana" nunca tiene hora en curso: no debe marcarse ninguna fila.
+    expect(lista.innerHTML).not.toContain('AHORA');
+  });
+
   it('un dia completo no muestra el aviso de incompleto', async () => {
     const dia = '2026-06-18';
     vi.useFakeTimers({ toFake: ['Date'] });
     vi.setSystemTime(new Date('2026-06-18T19:30:00Z')); // 20:30 en Canarias
-    mockMes(dia, buildDayPairs(dia, (i) => 0.1 + (i / 1000)));
+    mockMes({ [dia]: buildDayPairs(dia, (i) => 0.1 + (i / 1000)) });
 
     await abrirModal();
 

@@ -3998,14 +3998,17 @@ Reproducido con la copia local del repositorio, que iba una ejecucion por detras
 101, sin panel de precios y con el toast de error. No se relaja el contrato de dia cerrado; lo que
 corresponde es que el dato se repare, como hace hoy.
 
-**Tests.** `tests/index-extra-dia-parcial.test.js` (7) y `tests/pvpc-modal-dia-parcial.test.js` (4).
+**Tests.** `tests/index-extra-dia-parcial.test.js` (7) y `tests/pvpc-modal-dia-parcial.test.js` (5).
 Cubren aceptar hoy sin la ultima hora y sin gastar el refetch, seguir rechazando un dia historico
 incompleto, un dia sin primera hora, un dia con hueco intermedio, la equivalencia de la copia local
-sin `lf-csv-utils`, y en el modal: lista pintada con aviso, no rotular como AHORA una hora pasada, y
-que un dia completo siga mostrando su precio actual. **Validados por mutacion, 5 mutantes, todos
-detectados**: `allowPartial` fijado a `false` (5 tests caen), fijado a `true` (3), `__pvpcFindNowIndex`
-sin la cota superior (1), bandera de dia parcial siempre `false` (4) y guard del precio actual
-siempre `true` (2).
+sin `lf-csv-utils`, y en el modal: lista pintada con aviso, no rotular como AHORA una hora pasada,
+que un dia completo siga mostrando su precio actual, y que la pestanha "Manana" aparezca con el dia
+siguiente a medio publicar. Este ultimo caso cubre la rama `>= hoy` del validador, que HOY no tiene
+recorrido real porque el fichero nunca trae el dia siguiente (ver mas abajo): sin el test, esa rama
+se estrenaria sin cobertura el dia que cambie la cadencia de la descarga. **Validados por mutacion,
+6 mutantes, todos detectados**: `allowPartial` fijado a `false` (5 tests caen), fijado a `true` (3),
+restringido a `=== hoy` (1), `__pvpcFindNowIndex` sin la cota superior (1), bandera de dia parcial
+siempre `false` (4) y guard del precio actual siempre `true` (2).
 
 **Trampas de esta ronda.**
 - **El service worker invalida la prueba local.** Sirve `/data/` desde `CacheStorage` y su script NO
@@ -4017,6 +4020,29 @@ siempre `true` (2).
   disparar el evento en cada test deja instancias VIEJAS escuchando, y cada una repinta el modal con
   el mes que tenga en su cache. Se detecto porque un test mostraba el precio del fixture del test
   anterior. Por eso el fichero del modal importa el modulo UNA vez y cada test usa un mes distinto.
+
+**Por que el dato no puede llegar completo, medido el 10/09/2026.** Las tres ultimas ejecuciones del
+workflow arrancaron a las 22:03, 22:06 y 22:21 UTC (el cron pide las 20:00 y GitHub lo retrasa unas
+dos horas). En ese instante en Canarias son las 23:0x, asi que cada ejecucion COMPLETA el dia que
+esta terminando y escribe el siguiente con 23 horas. La hora que le falta a ese dia siguiente
+(22:00Z) es la primera hora del dia PENINSULAR posterior, que REE publica sobre las 20:15 de la
+tarde de ese mismo dia: unas veinte horas despues de la ejecucion. Prueba de que aun no existe, sin
+necesitar la clave de ESIOS: el fichero de Peninsula de esa misma ejecucion tampoco trae el dia
+siguiente pese a que `auto_detect_range` lo pide (`end = today + 1`). Consecuencia: para un usuario
+canario, la ultima hora de SU dia solo puede existir a partir de las 18:15Z de ese mismo dia. No es
+un problema de horario del cron: es la ventana de publicacion.
+
+**Pendiente de decision (no es un bug): la pestanha "Manana" no aparece nunca.** Con la cadencia
+actual el fichero mensual termina siempre en el dia en curso, en las cinco zonas, asi que
+`cargarManana()` no encuentra datos y la pestanha queda oculta. Una segunda ejecucion del workflow
+sobre las 19:00 UTC la llenaria y, de paso, completaria el dia canario en sus ultimas horas. Ya
+verificado que el resto del sistema lo soporta: `check_data_freshness.py` solo exige exactitud a los
+dias `< hoy`; `tests/pvpc-dataset-integrity.test.js` solo permite que llegue corto el ULTIMO dia
+publicado (que pasaria a ser manana); el ranking valida unicamente el periodo cerrado que pide
+(`validateClosedPvpcPeriod`), asi que un dia futuro en el fichero no le afecta; y `merge_month_file`
+nunca sustituye un dia completo por uno mas corto, asi que correr dos veces al dia es seguro. Falta
+por medir una sola cosa antes de tocar el cron: el Observatorio marcaria el anho como provisional
+cada tarde (`provisionalDays` -> `getKpiPartialFlags`), y hay que decidir si ese aviso compensa.
 
 **Criterio de reapertura.** Que aparezca otro consumidor con su propia copia del validador de dia, o
 que el generador cambie el criterio de "dia en curso" del dataset. Si algun dia el workflow pasa a
