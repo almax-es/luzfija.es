@@ -345,26 +345,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Iner Tranquilidad",
-      "cPunta": 0.1187,
-      "cLlano": 0.1187,
-      "cValle": 0.1187,
-      "p1": 0.0889,
-      "p2": 0.0889,
-      "web": "https://inerenergia.es/luz/hogar",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Imagina Sin Horas",
       "cPunta": 0.119,
       "cLlano": 0.119,
@@ -1359,6 +1339,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Iner Tranquilidad",
+      "cPunta": 0.1797,
+      "cLlano": 0.1797,
+      "cValle": 0.1797,
+      "p1": 0.0889,
+      "p2": 0.0889,
+      "web": "https://inerenergia.es/luz/hogar",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Catgas 2.0 TDL",
       "cPunta": 0.1799,
       "cLlano": 0.1799,
@@ -1939,26 +1939,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Iner La Clásica 3P",
-      "cPunta": 0.1999,
-      "cLlano": 0.1323,
-      "cValle": 0.1034,
-      "p1": 0.0889,
-      "p2": 0.0889,
-      "web": "https://inerenergia.es/luz/hogar",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Repsol Vehículo Eléctrico 3P",
       "cPunta": 0.1999,
       "cLlano": 0.1999,
@@ -2453,6 +2433,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Iner La Clásica 3P",
+      "cPunta": 0.25636,
+      "cLlano": 0.17452,
+      "cValle": 0.13759,
+      "p1": 0.0889,
+      "p2": 0.0889,
+      "web": "https://inerenergia.es/luz/hogar",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Nufri 2a Residencia 3P",
       "cPunta": 0.262614,
       "cLlano": 0.179634,
@@ -2553,5 +2553,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-10T11:18:06.991Z"
+  "updatedAt": "2026-09-10T11:35:34.822Z"
 }
