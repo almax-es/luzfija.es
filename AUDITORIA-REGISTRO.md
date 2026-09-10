@@ -4060,9 +4060,23 @@ igual al dia siguiente.** Tampoco compensa la variante conservadora (ejecucion d
 topado a `--to <hoy>`, que no meteria dias futuros): solo ganaria un dia canario completo durante las
 ultimas tres horas y media de la jornada, a cambio de un commit diario mas.
 
-**Si algun dia se reabre**, el orden correcto es al reves: primero excluir los dias futuros de
-"ultimo dia", de las ventanas moviles y del interanual del Observatorio, y solo despues tocar el
-cron. No al reves.
+**OJO: esto puede volver solo, sin que nadie toque nada.** Que hoy el fichero termine en el dia en
+curso NO es una decision: es consecuencia de que GitHub esta sirviendo el cron con unas dos horas de
+retraso, lo que cruza la medianoche peninsular y desplaza la referencia de "manana" un dia entero.
+Antes NO era asi, y hay prueba en el propio repo: la entrada de "Validador De Dia Civil Compartido"
+documenta que el dia siguiente "ya puede aparecer en el fichero mensual sobre las 20:15", y el bug
+real del 12/08/2026 en `tests/pvpc-stats-engine.test.js` se encontro justamente porque el fichero
+contenia `2026-08-13` a las 22:50 del dia 12. Es decir, el escenario evaluado arriba es el
+comportamiento HISTORICO del sistema, no una novedad; la maquinaria de `provisionalDays` y
+`getKpiPartialFlags` se construyo para el. Si el retraso de GitHub desaparece, el fichero volvera a
+traer manana por si solo y el KPI de cabecera del Observatorio volvera a moverse cada tarde. No se
+puede medir cuando empezo el retraso: el historial de Actions solo conserva 28 ejecuciones desde el
+07/09/2026 y el historial de git esta aplastado a esa misma fecha.
+
+**Si algun dia se reabre** (o si vuelve solo), el orden correcto es al reves: primero decidir que
+hace el Observatorio con un dia futuro en "ultimo dia", en las ventanas moviles y en el interanual
+-en Peninsula llega COMPLETO, asi que no dispara ninguna marca de provisional-, y solo despues tocar
+el cron. No al reves.
 
 **Criterio de reapertura.** Que aparezca otro consumidor con su propia copia del validador de dia, o
 que el generador cambie el criterio de "dia en curso" del dataset. Si algun dia el workflow pasa a
