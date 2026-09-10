@@ -4032,17 +4032,37 @@ siguiente pese a que `auto_detect_range` lo pide (`end = today + 1`). Consecuenc
 canario, la ultima hora de SU dia solo puede existir a partir de las 18:15Z de ese mismo dia. No es
 un problema de horario del cron: es la ventana de publicacion.
 
-**Pendiente de decision (no es un bug): la pestanha "Manana" no aparece nunca.** Con la cadencia
+**Segunda ejecucion del workflow por la tarde: EVALUADA Y RECHAZADA (10/09/2026).** Con la cadencia
 actual el fichero mensual termina siempre en el dia en curso, en las cinco zonas, asi que
-`cargarManana()` no encuentra datos y la pestanha queda oculta. Una segunda ejecucion del workflow
-sobre las 19:00 UTC la llenaria y, de paso, completaria el dia canario en sus ultimas horas. Ya
-verificado que el resto del sistema lo soporta: `check_data_freshness.py` solo exige exactitud a los
+`cargarManana()` no encuentra datos y la pestanha "Manana" del modal no aparece NUNCA. Se estudio
+anhadir un `cron` vespertino (`30 19 * * *`) para llenarla y, de paso, completar el dia canario en
+sus ultimas horas. La parte de datos aguanta: `check_data_freshness.py` solo exige exactitud a los
 dias `< hoy`; `tests/pvpc-dataset-integrity.test.js` solo permite que llegue corto el ULTIMO dia
-publicado (que pasaria a ser manana); el ranking valida unicamente el periodo cerrado que pide
-(`validateClosedPvpcPeriod`), asi que un dia futuro en el fichero no le afecta; y `merge_month_file`
-nunca sustituye un dia completo por uno mas corto, asi que correr dos veces al dia es seguro. Falta
-por medir una sola cosa antes de tocar el cron: el Observatorio marcaria el anho como provisional
-cada tarde (`provisionalDays` -> `getKpiPartialFlags`), y hay que decidir si ese aviso compensa.
+publicado; el ranking valida unicamente el periodo cerrado que pide (`validateClosedPvpcPeriod`), asi
+que un dia futuro no le afecta; y `merge_month_file` nunca sustituye un dia completo por uno mas
+corto, de modo que correr dos veces al dia es seguro.
+
+**Lo que lo tumba es el Observatorio, medido con el dataset que dejaria esa ejecucion.** Al entrar
+manana en el fichero, el KPI de cabecera cambia de dia CADA TARDE:
+
+| Fichero | KPI "ULTIMO DIA" | Media 7 dias |
+|---|---|---|
+| Actual (sin manana) | `Media del dia - 2026-09-10`, 0,196 EUR/kWh | 0,189 EUR/kWh |
+| Con ejecucion de tarde | `Media del dia - 2026-09-11`, 0,162 EUR/kWh | 0,181 EUR/kWh |
+
+Es decir: el numero mas visible del Observatorio pasaria a describir un dia que todavia no ha
+ocurrido, y las ventanas moviles de 7 y 30 dias y el interanual lo incluirian. En Peninsula ademas
+SIN aviso ninguno, porque alli manana llega completo y no dispara `provisionalDays`; en Canarias
+salen cinco marcas de provisional/parcial. El rotulo lleva la fecha, asi que no miente, pero cambia
+lo que significa una cifra publicada segun la hora a la que se mire, justo la clase de incoherencia
+que cerro la ronda 28. **No compensa por una pestanha cuyo contenido son precios que el usuario ve
+igual al dia siguiente.** Tampoco compensa la variante conservadora (ejecucion de tarde con el rango
+topado a `--to <hoy>`, que no meteria dias futuros): solo ganaria un dia canario completo durante las
+ultimas tres horas y media de la jornada, a cambio de un commit diario mas.
+
+**Si algun dia se reabre**, el orden correcto es al reves: primero excluir los dias futuros de
+"ultimo dia", de las ventanas moviles y del interanual del Observatorio, y solo despues tocar el
+cron. No al reves.
 
 **Criterio de reapertura.** Que aparezca otro consumidor con su propia copia del validador de dia, o
 que el generador cambie el criterio de "dia en curso" del dataset. Si algun dia el workflow pasa a
