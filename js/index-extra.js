@@ -149,8 +149,30 @@
     return true;
   }
 
+  // Un dia `>= hoy` (en la zona horaria del DATASET, no la del navegador) puede llegar sin
+  // sus ultimas horas: ESIOS publica por dias peninsulares, asi que la ultima hora del dia
+  // civil canario pertenece al dia peninsular siguiente y no existe todavia cuando corre la
+  // descarga nocturna. Exigir el dia completo dejaba la vista rapida en "Error al cargar
+  // precios" TODOS los dias en Canarias. Es la misma excepcion `allowPartial` que ya aplican
+  // el Observatorio y el guard de frescura del repo; lo publicado sigue teniendo que ser
+  // correcto, contiguo y empezar en la medianoche del dia declarado.
+  function __pvpcDayIsToleratedPartial(dateStr, tz) {
+    const hoy = __pvpcYmdInTZ(new Date(), tz);
+    return typeof dateStr === 'string' && dateStr >= hoy;
+  }
+
   function __pvpcDayPairsUsable(dayPairs, dateStr, tz) {
-    if (!Array.isArray(dayPairs) || dayPairs.length < 23 || dayPairs.length > 25) return false;
+    const allowPartial = __pvpcDayIsToleratedPartial(dateStr, tz);
+    const shared = window.LF?.csvUtils?.validatePvpcDayCoverage;
+    if (typeof shared === 'function') {
+      return shared(dateStr, dayPairs, tz, { allowPartial }).ok === true;
+    }
+
+    // index-extra puede evaluarse antes que lf-csv-utils en pruebas/cargas parciales. Esta
+    // copia local tiene que decidir EXACTAMENTE lo mismo que el validador compartido: si
+    // divergen, el modal aceptaria o rechazaria dias distintos segun el orden de carga.
+    if (!Array.isArray(dayPairs) || dayPairs.length < 1 || dayPairs.length > 25) return false;
+    if (!allowPartial && dayPairs.length < 23) return false;
     let previousTs = null;
     for (const pair of dayPairs) {
       if (!Array.isArray(pair)) return false;
@@ -164,8 +186,17 @@
     const firstTs = dayPairs[0][0];
     const lastTs = dayPairs[dayPairs.length - 1][0];
     if (__pvpcYmdInTZ(new Date((firstTs - 3600) * 1000), tz) === dateStr) return false;
-    if (__pvpcYmdInTZ(new Date((lastTs + 3600) * 1000), tz) === dateStr) return false;
+    if (!allowPartial && __pvpcYmdInTZ(new Date((lastTs + 3600) * 1000), tz) === dateStr) return false;
     return true;
+  }
+
+  // Dia incompleto por el extremo final: quedan horas del dia civil sin publicar. Se calcula
+  // sobre lo ya validado, asi que un `true` significa siempre "faltan horas por publicar",
+  // nunca "el dato esta roto".
+  function __pvpcDayIsPartial(dayPairs, dateStr, tz) {
+    if (!Array.isArray(dayPairs) || !dayPairs.length) return false;
+    const lastTs = dayPairs[dayPairs.length - 1][0];
+    return __pvpcYmdInTZ(new Date((lastTs + 3600) * 1000), tz) === dateStr;
   }
 
   function __pvpcBuildEntries(dayPairs, tz) {
@@ -197,14 +228,20 @@
   }
 
   function __pvpcFindNowIndex(entries) {
-    // Devuelve el índice del periodo vigente (epoch <= now < next), robusto ante DST.
+    // Indice del periodo VIGENTE (epoch <= now < epoch+3600), robusto ante DST.
+    // Devuelve -1 cuando ninguna entrada cubre el instante actual. Ese caso existe de verdad
+    // desde que se aceptan dias en curso incompletos (ultima hora sin publicar en Canarias) y
+    // tambien con el modal abierto al cruzar la medianoche: quedarse con "la ultima entrada
+    // con epoch <= now" rotularia como precio de AHORA el de una hora que ya paso.
+    if (!Array.isArray(entries) || !entries.length) return -1;
     const now = Math.floor(Date.now() / 1000);
-    let idx = 0;
+    let idx = -1;
     for (let i = 0; i < entries.length; i++) {
       if (entries[i].epoch <= now) idx = i;
       else break;
     }
-    return idx;
+    if (idx < 0) return -1;
+    return now < entries[idx].epoch + 3600 ? idx : -1;
   }
 
   async function __pvpcFetchDay(dateStr, ctx, base = PVPC_DATASET_BASE) {
@@ -235,8 +272,12 @@
       sinDatos.__lfPvpcDiaNoPublicado = true;
       throw sinDatos;
     }
-    const entries = __pvpcBuildEntries(dayPairs, tz);
-    return { entries, tz, geo };
+    // El validador compartido ordena una copia antes de comprobar la continuidad, asi que
+    // podria aceptar un fichero con los pares desordenados. La lista y el indice de "ahora"
+    // se construyen sobre el orden del array: ordenar aqui evita depender de esa suerte.
+    const orderedPairs = dayPairs.slice().sort((a, b) => a[0] - b[0]);
+    const entries = __pvpcBuildEntries(orderedPairs, tz);
+    return { entries, tz, geo, partial: __pvpcDayIsPartial(orderedPairs, dateStr, tz) };
   }
 
   // Setup modal PVPC con tabs Hoy/Mañana y grid 2 columnas
@@ -377,8 +418,9 @@
           entries,
           tz: day.tz,
           geo: day.geo,
+          partial: day.partial === true,
           nowIdx,
-          precioActual: entries[nowIdx] ? entries[nowIdx].price : undefined,
+          precioActual: entries[nowIdx] ? entries[nowIdx].price : null,
           precioMin,
           precioMax,
           idxMin,
@@ -423,6 +465,7 @@
           entries,
           tz: day.tz,
           geo: day.geo,
+          partial: day.partial === true,
           precioMin,
           precioMax,
           idxMin,
@@ -479,8 +522,13 @@
       // Actualizar cabecera
       if (esHoy) {
         document.getElementById('modalPVPCLabel').textContent = 'Ahora';
-        document.getElementById('modalPVPCNow').textContent = `${precioActual.toFixed(3).replace('.', ',')} €/kWh`;
-        const labelNow = (entries && entries[nowIdx] && entries[nowIdx].label) || '--:--';
+        const hayPrecioActual = nowIdx >= 0 && typeof precioActual === 'number' && Number.isFinite(precioActual);
+        // Sin entrada que cubra el instante actual no se rotula ningun precio como "ahora":
+        // el de la ultima hora publicada seria el de una hora que ya paso.
+        document.getElementById('modalPVPCNow').textContent = hayPrecioActual
+          ? `${precioActual.toFixed(3).replace('.', ',')} €/kWh`
+          : (datos.partial ? 'Pendiente de publicar' : 'Sin dato para esta hora');
+        const labelNow = (hayPrecioActual && entries[nowIdx] && entries[nowIdx].label) || '--:--';
         document.getElementById('modalPVPCNowHour').textContent = `${labelNow}h`;
       } else {
         document.getElementById('modalPVPCLabel').textContent = 'Mañana';
@@ -499,6 +547,14 @@
       // Grid 2 columnas
       const rango = precioMax - precioMin;
       let col1 = '', col2 = '';
+
+      // Dia en curso al que todavia le faltan horas por publicar: sin este aviso, la lista y
+      // el minimo/maximo se leerian como la foto completa del dia.
+      const avisoParcial = datos.partial ? `
+        <div style="margin-bottom: 14px; padding: 10px 12px; border-radius: 10px; background: rgba(234,179,8,.10); border: 1px solid rgba(234,179,8,.35); color: var(--text); font-size: 12px; line-height: 1.4;">
+          ⏳ Este día todavía no está completo: faltan las últimas horas por publicar. El mínimo y el máximo son los de las horas ya publicadas.
+        </div>
+      ` : '';
 
       // === NUEVO LINK OBSERVATORIO (ARRIBA) ===
       const observatorioLink = `
@@ -555,6 +611,7 @@
       });
 
       const html = `
+        ${avisoParcial}
         ${observatorioLink}
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
           <div>${col1}</div>

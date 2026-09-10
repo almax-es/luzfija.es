@@ -1,6 +1,6 @@
 # Registro De Auditorias De LuzFija.es
 
-Ultima actualizacion: 2026-09-09
+Ultima actualizacion: 2026-09-10
 
 Este fichero es de CONSULTA POR AREA, no de lectura lineal. La lectura obligatoria antes de
 auditar es `AUDITORIA-IA.md`: metodo, taxonomia de severidad, tabla de areas y prompt. Aqui
@@ -3939,3 +3939,86 @@ parecia traer 41 ficheros modificados y solo cambiaba los finales de linea.
 **Criterio de reapertura.** El mismo de la entrada anterior: cambiar una funcion que la documentacion
 describa, no el calendario. Anhadido ahora: cualquier norma citada en `MANTENIMIENTO-NORMATIVO.md`
 que caduque el 31/12/2026, empezando por las deducciones de IRPF de movilidad electrica.
+
+
+<a id="vista-rapida-pvpc-dia-en-curso-ronda-35-10-09-2026"></a>
+### La Vista Rapida De PVPC Con El Dia En Curso Incompleto (Ronda 35, 10/09/2026)
+
+Primera auditoria del estado local compartido (dos pestanas, claves de `localStorage`, cache PVPC
+por zona y "Limpiar cache"): **cero hallazgos ahi**. El bug salio de un control cruzado que se hizo
+de paso, comparando el ranking de Peninsula con el de Canarias.
+
+**1 bug CORREGIDO, visible en produccion todos los dias para toda la zona Canarias.**
+
+**El defecto.** Con zona Canarias, la vista rapida de PVPC (boton de precios por hora de la home)
+respondia siempre `❌ Error al cargar precios. Inténtalo de nuevo.`, con `AHORA`, `Min` y `Max` a
+rayas y `[PVPC] Error hoy: Error: Sin datos (dataset estatico)` en consola. En Peninsula y en
+Ceuta/Melilla la misma vista funcionaba. Reproducido contra `https://luzfija.es/` en Chrome real el
+10/09/2026, con la analitica bloqueada.
+
+**Por que pasa, y por que pasa SIEMPRE.** La ultima hora del dia civil canario (23:00 local) cae en
+el dia PENINSULAR siguiente, que ESIOS publica sobre las 20:15. El workflow diario descarga hasta
+"manana" en la zona del geo, asi que cuando corre (commit sobre las 00:07 de Madrid) esa hora todavia
+no existe: el fichero de 8742 se publica cada dia con el dia en curso a 23 horas, y el propio fichero
+lo declara en `warnings: ["<dia>: unexpected points=23 expected=24 or 96"]`. Se completa en la
+descarga del dia siguiente. Comprobado en cuatro dias consecutivos (07, 08 y 09/09 en el historial de
+`git`, y 10/09 en el fichero servido en produccion) y solo en `data/pvpc/8742`: el resto de zonas
+comparte reloj con Peninsula y los ficheros de excedentes se guardan en hora peninsular por decision
+del generador (`timezone: Europe/Madrid` dentro de la carpeta del geo).
+
+**El dato no estaba mal; lo estaba el consumidor.** `scripts/check_data_freshness.py` (checks 9 y 10)
+y `tests/pvpc-dataset-integrity.test.js` aceptan a proposito que el ultimo dia publicado llegue
+corto, y `validatePvpcDayCoverage` (`js/lf-csv-utils.js`) tiene para eso la excepcion `allowPartial`
+de los dias `>= hoy`. Lo que fallaba es que `js/index-extra.js` conservaba una **copia privada** del
+validador de dia, `__pvpcDayPairsUsable`, que exigia el dia completo. La unificacion del 12/08/2026
+("Validador De Dia Civil Compartido") alcanzo a `pvpc.js`, `pvpc-stats-engine.js`,
+`pvpc-stats-csv.js` y `lf-surplus-prices.js`, pero **se dejo fuera este consumidor**. La entrada de
+aquel dia ya avisaba de que el Observatorio se rompio por lo mismo y cita el caso `8742/2026-08-13`.
+
+**Correccion.** `__pvpcDayPairsUsable` delega en el validador compartido con
+`allowPartial = dateStr >= hoy` en la zona horaria del DATASET, y conserva una copia local
+equivalente para cuando `lf-csv-utils` no ha cargado (hay test que fija esa equivalencia). Se sigue
+exigiendo continuidad, pertenencia al dia civil y primera hora presente: `allowPartial` solo tolera
+huecos por el extremo final.
+
+**Lo que NO podia quedar asi al aceptar dias parciales.** `__pvpcFindNowIndex` devolvia "la ultima
+entrada con `epoch <= now`", asi que entre las 23:00 y las 24:00 en Canarias habria rotulado el
+precio de las 22:00 como el de AHORA: un importe falso, peor que el error que se estaba arreglando.
+Ahora exige que la entrada cubra el instante (`epoch <= now < epoch+3600`) y devuelve `-1` si
+ninguna lo hace; la cabecera muestra entonces `Pendiente de publicar` (o `Sin dato para esta hora` si
+el dia esta completo, caso del modal abierto al cruzar la medianoche) y ninguna fila se marca como
+AHORA. Ademas la lista avisa de que el dia no esta completo y de que el minimo y el maximo son los de
+lo publicado.
+
+**Riesgo de segundo orden, documentado y NO corregido.** El ranking usa dias CERRADOS y un dia
+cerrado incompleto debe invalidar PVPC (fail-closed, decision firme). Como el hueco se repara en la
+descarga siguiente, el ranking canario solo se ve afectado si esa descarga falla o se retrasa: en ese
+caso el dia incompleto pasa a ser el ultimo dia cerrado y **PVPC desaparece entero del ranking**.
+Reproducido con la copia local del repositorio, que iba una ejecucion por detras: 100 filas en vez de
+101, sin panel de precios y con el toast de error. No se relaja el contrato de dia cerrado; lo que
+corresponde es que el dato se repare, como hace hoy.
+
+**Tests.** `tests/index-extra-dia-parcial.test.js` (7) y `tests/pvpc-modal-dia-parcial.test.js` (4).
+Cubren aceptar hoy sin la ultima hora y sin gastar el refetch, seguir rechazando un dia historico
+incompleto, un dia sin primera hora, un dia con hueco intermedio, la equivalencia de la copia local
+sin `lf-csv-utils`, y en el modal: lista pintada con aviso, no rotular como AHORA una hora pasada, y
+que un dia completo siga mostrando su precio actual. **Validados por mutacion, 5 mutantes, todos
+detectados**: `allowPartial` fijado a `false` (5 tests caen), fijado a `true` (3), `__pvpcFindNowIndex`
+sin la cota superior (1), bandera de dia parcial siempre `false` (4) y guard del precio actual
+siempre `true` (2).
+
+**Trampas de esta ronda.**
+- **El service worker invalida la prueba local.** Sirve `/data/` desde `CacheStorage` y su script NO
+  pasa por la interceptacion de peticiones de la pagina, asi que inyectar el fichero de produccion
+  parecia no tener efecto: la pagina media el dataset LOCAL cacheado. El sintoma fue un resultado
+  intermitente segun cuando activara el SW. Hay que desactivar `navigator.serviceWorker` en la
+  pagina antes de medir.
+- **`DOMContentLoaded` sobrevive a todo el fichero de test.** Reimportar `index-extra.js` y volver a
+  disparar el evento en cada test deja instancias VIEJAS escuchando, y cada una repinta el modal con
+  el mes que tenga en su cache. Se detecto porque un test mostraba el precio del fixture del test
+  anterior. Por eso el fichero del modal importa el modulo UNA vez y cada test usa un mes distinto.
+
+**Criterio de reapertura.** Que aparezca otro consumidor con su propia copia del validador de dia, o
+que el generador cambie el criterio de "dia en curso" del dataset. Si algun dia el workflow pasa a
+correr tambien despues de las 20:15, comprobar si el fichero de 8742 deja de salir corto: el arreglo
+sigue siendo correcto, pero el aviso de dia incompleto dejaria de verse a diario.
