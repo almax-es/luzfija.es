@@ -68,7 +68,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "TE A tu Aire Luz Siempre",
+      "nombre": "TE A tu Aire Luz Siempre 3500",
       "cPunta": 0.0999,
       "cLlano": 0.0999,
       "cValle": 0.0999,
@@ -76,7 +76,7 @@
       "p2": 0.086274,
       "web": "https://www.totalenergies.es/es/hogares/tarifas-luz/a-tu-aire-siempre",
       "tipo": "1P",
-      "requisitos": "Consumo ≤ 3.500 kWh/año. Si lo superas, TotalEnergies puede asignarte otra tarifa con precios más altos: revisa el contrato antes de firmar.",
+      "requisitos": "Consumo inferior a 3.500 kWh/año. Si lo superas, TotalEnergies te aplica un tramo de precio más caro: revisa el contrato antes de firmar.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.07,
@@ -193,6 +193,29 @@
         "precioBV": 0.0
       },
       "requiereFV": false
+    },
+    {
+      "nombre": "TE A tu Aire Luz Siempre 5000",
+      "cPunta": 0.1099,
+      "cLlano": 0.1099,
+      "cValle": 0.1099,
+      "p1": 0.10411,
+      "p2": 0.10411,
+      "web": "https://www.totalenergies.es/es/hogares/tarifas-luz/a-tu-aire-siempre",
+      "tipo": "1P",
+      "requisitos": "Consumo entre 3.500 y 5.000 kWh/año. Fuera de ese rango, TotalEnergies te aplica otro tramo de precio: revisa el contrato antes de firmar.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.07,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA_PARCIAL",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false,
+      "minConsumoAnualExclusivo": 3500.0,
+      "maxConsumoAnual": 5000.0
     },
     {
       "nombre": "Naturgy por uso",
@@ -1210,6 +1233,28 @@
       "requiereFV": true
     },
     {
+      "nombre": "TE A tu Aire Luz Siempre +5000",
+      "cPunta": 0.159,
+      "cLlano": 0.159,
+      "cValle": 0.159,
+      "p1": 0.078055,
+      "p2": 0.078055,
+      "web": "https://www.totalenergies.es/es/hogares/tarifas-luz/a-tu-aire-siempre",
+      "tipo": "1P",
+      "requisitos": "Consumo superior a 5.000 kWh/año. Por debajo, TotalEnergies te aplica otro tramo de precio: revisa el contrato antes de firmar.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.07,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA_PARCIAL",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false,
+      "minConsumoAnualExclusivo": 5000.0
+    },
+    {
       "nombre": "CHC BV",
       "cPunta": 0.159673,
       "cLlano": 0.159673,
@@ -1414,7 +1459,7 @@
       "requiereFV": false
     },
     {
-      "nombre": "TE A Tu Aire Programa Tu Ahorro 3P",
+      "nombre": "TE A Tu Aire Programa Tu Ahorro 3500 3P",
       "cPunta": 0.163572,
       "cLlano": 0.09393,
       "cValle": 0.066176,
@@ -1422,7 +1467,7 @@
       "p2": 0.086274,
       "web": "https://www.totalenergies.es/es/hogares/tarifas-luz/a-tu-aire-programa-tu-ahorro",
       "tipo": "3P",
-      "requisitos": "Consumo ≤ 3.500 kWh/año. Si lo superas, TotalEnergies puede asignarte otra tarifa con precios más altos: revisa el contrato antes de firmar.",
+      "requisitos": "Consumo inferior a 3.500 kWh/año. Si lo superas, TotalEnergies te aplica un tramo de precio más caro: revisa el contrato antes de firmar.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.07,
@@ -1599,6 +1644,29 @@
         "precioBV": 0.0
       },
       "requiereFV": false
+    },
+    {
+      "nombre": "TE A Tu Aire Programa Tu Ahorro 5000 3P",
+      "cPunta": 0.173572,
+      "cLlano": 0.10393,
+      "cValle": 0.076176,
+      "p1": 0.10411,
+      "p2": 0.10411,
+      "web": "https://www.totalenergies.es/es/hogares/tarifas-luz/a-tu-aire-programa-tu-ahorro",
+      "tipo": "3P",
+      "requisitos": "Consumo entre 3.500 y 5.000 kWh/año. Fuera de ese rango, TotalEnergies te aplica otro tramo de precio: revisa el contrato antes de firmar.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.07,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA_PARCIAL",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false,
+      "minConsumoAnualExclusivo": 3500.0,
+      "maxConsumoAnual": 5000.0
     },
     {
       "nombre": "Enersa Confort 3P",
@@ -2116,6 +2184,28 @@
       "requiereFV": true
     },
     {
+      "nombre": "TE A Tu Aire Programa Tu Ahorro +5000 3P",
+      "cPunta": 0.222672,
+      "cLlano": 0.15303,
+      "cValle": 0.125276,
+      "p1": 0.078055,
+      "p2": 0.078055,
+      "web": "https://www.totalenergies.es/es/hogares/tarifas-luz/a-tu-aire-programa-tu-ahorro",
+      "tipo": "3P",
+      "requisitos": "Consumo superior a 5.000 kWh/año. Por debajo, TotalEnergies te aplica otro tramo de precio: revisa el contrato antes de firmar.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.07,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA_PARCIAL",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false,
+      "minConsumoAnualExclusivo": 5000.0
+    },
+    {
       "nombre": "CHC VE 3P",
       "cPunta": 0.222874,
       "cLlano": 0.21897,
@@ -2463,5 +2553,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-10T10:23:23.666Z"
+  "updatedAt": "2026-09-10T11:18:06.991Z"
 }
