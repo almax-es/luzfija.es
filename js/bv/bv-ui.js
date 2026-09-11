@@ -21,9 +21,24 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     toastEl.classList.add('show');
     if (toastTimer) clearTimeout(toastTimer);
+    // La duracion depende de lo que hay que leer: ver getToastDurationMs. El fallback conserva
+    // los 4,2 s historicos si el helper no esta disponible (arranque parcial).
+    const duracion = typeof window.BVSim?.manualUi?.getToastDurationMs === 'function'
+      ? window.BVSim.manualUi.getToastDurationMs(message)
+      : 4200;
     toastTimer = setTimeout(() => {
       toastEl.classList.remove('show');
-    }, 4200);
+    }, duracion);
+  }
+
+  // Quien ya ha leido el aviso puede cerrarlo sin esperar. Importa ahora que los textos largos
+  // duran mas: un aviso de quince segundos tapando la pantalla sin forma de quitarlo seria peor
+  // que el problema que resuelve.
+  if (toastEl) {
+    toastEl.addEventListener('click', () => {
+      if (toastTimer) clearTimeout(toastTimer);
+      toastEl.classList.remove('show');
+    });
   }
 
   function trackBvEvent(eventName, detail, title) {

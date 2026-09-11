@@ -172,6 +172,26 @@ describe('BV UI manual month helpers', () => {
     expect(restored.segments.map((segment) => segment.kwh)).toEqual([120, 60]);
   });
 
+  it('getToastDurationMs da tiempo a leer los avisos largos sin acortar los cortos', () => {
+    const dur = window.BVSim.manualUi.getToastDurationMs;
+
+    // Un aviso corto conserva el comportamiento historico de 4,2 s.
+    expect(dur('Datos importados: 12 meses procesados')).toBe(4200);
+    expect(dur('')).toBe(4200);
+    expect(dur(null)).toBe(4200);
+
+    // El aviso del mes compuesto ronda las 60 palabras: con 4,2 s se borraba antes de poder
+    // leerlo, que era justo el texto que explica por que un mes tiene dos tramos.
+    const avisoCompuesto = '📊 CSV con 13 meses detectado (2025-09-11 → 2026-09-10). '
+      + '🧵 Tu año empieza a mitad de mes, así que septiembre llega partido en dos tramos. '
+      + 'Se componen en un solo mes para no perder días: 11-30 de septiembre 2025 + '
+      + '01-10 de septiembre 2026 = 30 de 30 días. Periodo simulado: octubre 2025 → septiembre 2026.';
+    expect(dur(avisoCompuesto)).toBeGreaterThan(10000);
+
+    // Y nunca se queda clavado: hay techo.
+    expect(dur('x'.repeat(5000))).toBe(15000);
+  });
+
   it('normalizeMonthMeta rechaza una clave que no corresponde a su casilla', () => {
     // Sin esto, un escenario compartido puede declarar en la fila de septiembre que su mes es
     // marzo: la tabla sigue rotulando "Septiembre" y el motor cobra los dias, la tasa regulada
@@ -893,5 +913,24 @@ describe('BV UI manual month helpers', () => {
     expect(accessibleNames.every((name) => name && name.includes('(kWh)'))).toBe(true);
     expect(accessibleNames).toContain('Enero: consumo en punta (kWh)');
     expect(accessibleNames).toContain('Diciembre: excedentes vertidos a la red (kWh)');
+  });
+});
+
+// El helper de duracion se prueba aparte como funcion pura, pero eso NO demuestra que el aviso
+// lo use: una mutacion que devolviera showToast a los 4200 ms fijos dejaba esos tests en verde.
+// Este contrato vigila la conexion entre las dos piezas, que es lo que el usuario nota.
+describe('BV UI - contrato del aviso flotante', () => {
+  const fuente = fs.readFileSync(path.resolve(__dirname, '../js/bv/bv-ui.js'), 'utf8');
+  const showToast = fuente.slice(fuente.indexOf('function showToast'), fuente.indexOf('function trackBvEvent'));
+
+  it('showToast calcula su duracion con getToastDurationMs', () => {
+    expect(showToast).toContain('getToastDurationMs(message)');
+    // El temporizador no puede volver a llevar un numero fijo escrito a mano.
+    expect(/setTimeout\([^)]*,\s*\d{3,}\s*\)/.test(showToast)).toBe(false);
+  });
+
+  it('el aviso se puede cerrar con un clic', () => {
+    // Sin esto, un texto largo tapa la pantalla hasta quince segundos sin salida.
+    expect(fuente).toContain("toastEl.addEventListener('click'");
   });
 });

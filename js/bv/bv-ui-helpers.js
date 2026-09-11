@@ -9,6 +9,22 @@ window.BVSim = window.BVSim || {};
 
 window.BVSim.manualUi = window.BVSim.manualUi || {};
 
+// Cuanto tiempo debe quedarse en pantalla un aviso. Estaba fijo en 4,2 s para todo, y por ese
+// mismo canal viajan textos de varias lineas: el motivo por el que se rechaza un CSV, o la
+// explicacion de que un mes se ha compuesto con dos tramos. Leer 60 palabras lleva unos 13
+// segundos, asi que el aviso se borraba antes de poder leerlo. Se escala con la longitud a
+// ritmo de lectura tranquila, conservando 4,2 s como minimo (los avisos cortos no cambian) y
+// con techo para que un texto largo no se quede clavado en la pantalla.
+window.BVSim.manualUi.getToastDurationMs = function getToastDurationMs(message) {
+  const MINIMO = 4200;
+  const MAXIMO = 15000;
+  const MS_POR_CARACTER = 60;
+  const texto = message === null || message === undefined ? '' : String(message);
+  const estimado = texto.length * MS_POR_CARACTER;
+  if (!Number.isFinite(estimado) || estimado <= MINIMO) return MINIMO;
+  return Math.min(MAXIMO, Math.round(estimado));
+};
+
 // `expectedMonthIndex` (0 = enero) ata la metadata a la casilla que la contiene. Sin eso, un
 // escenario compartido puede declarar en la fila de septiembre que su mes es marzo, y la tabla
 // seguiria rotulando "Septiembre" mientras el motor cobra los dias, la tasa regulada y —sobre
