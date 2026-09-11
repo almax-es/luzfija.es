@@ -182,12 +182,99 @@
     };
   }
 
+  /**
+   * Cargo de un mes COMPUESTO por tramos de meses naturales distintos (el simulador solar cose
+   * en una sola fila los dos trozos del mes que un historico de 365 dias parte por la mitad).
+   *
+   * Los SSAA son un dataset mensual historico: aplicar la clave de un solo tramo a todo el mes
+   * cobraria a los dias del otro año una tasa que no es la suya, y ademas puede descartar una
+   * tasa publicada en favor del valor de reserva (el caso real: 20 dias de septiembre de 2025,
+   * con tasa propia, cobrados al ultimo mes completo porque la fila lleva la clave de 2026).
+   *
+   * El consumo se reparte entre los tramos por su peso en kWh, y si esos kWh no estan (metadata
+   * guardada antes de existir este campo) por sus dias. Se reparte el consumo ACTUAL de la fila,
+   * no el importado, para que una edicion manual de la tabla siga repartiendose con la unica
+   * proporcion conocida en vez de contradecir el total que el usuario ve.
+   *
+   * @param {Array} segments - [{key:'YYYY-MM', kwh?, days?}, ...]
+   */
+  function calcChargeForSegments(tarifa, consumoKwh, dataset, segments) {
+    const tramos = (Array.isArray(segments) ? segments : [])
+      .filter((segment) => /^\d{4}-\d{2}$/.test(String(segment?.key || '')));
+    if (tramos.length < 2) {
+      return calcCharge(tarifa, consumoKwh, dataset, tramos[0]?.key ?? null);
+    }
+    if (!mustApply(tarifa)) {
+      return { aplica: false, available: true, rate: 0, eur: 0, month: null, reason: null };
+    }
+
+    const pesoDe = (segment, campo) => {
+      const valor = Number(segment?.[campo]);
+      return Number.isFinite(valor) && valor > 0 ? valor : 0;
+    };
+    const totalKwhTramos = tramos.reduce((acc, segment) => acc + pesoDe(segment, 'kwh'), 0);
+    const totalDiasTramos = tramos.reduce((acc, segment) => acc + pesoDe(segment, 'days'), 0);
+    const campoPeso = totalKwhTramos > 0 ? 'kwh' : 'days';
+    const totalPeso = totalKwhTramos > 0 ? totalKwhTramos : totalDiasTramos;
+
+    const resueltos = tramos.map((segment) => ({ segment, resolved: resolveRate(dataset, segment.key) }));
+    const meses = resueltos
+      .map(({ resolved, segment }) => resolved.month || segment.key)
+      .join(' + ');
+
+    const kwh = Number(consumoKwh);
+    // Fallo CERRADO, igual que con un solo mes: si a UN tramo le falta la tasa, no se valora el
+    // mes con la del otro. Omitir un coste regulado de media fila abarataria la tarifa en
+    // silencio, que es justo lo que este camino evita.
+    const sinTasa = resueltos.find(({ resolved }) => !resolved.available);
+    if (sinTasa && Number.isFinite(kwh) && kwh > 0) {
+      return {
+        aplica: true,
+        available: false,
+        rate: null,
+        eur: null,
+        month: null,
+        reason: sinTasa.resolved.reason,
+        requestedMonth: sinTasa.resolved.requestedMonth || sinTasa.segment.key
+      };
+    }
+    if (!Number.isFinite(kwh) || kwh <= 0) {
+      return {
+        aplica: true,
+        available: true,
+        rate: sinTasa ? 0 : (resueltos[0].resolved.rate || 0),
+        eur: 0,
+        month: sinTasa ? null : meses,
+        reason: null
+      };
+    }
+    if (totalPeso <= 0) {
+      return calcCharge(tarifa, consumoKwh, dataset, tramos[tramos.length - 1].key);
+    }
+
+    const eurCrudo = resueltos.reduce((acc, { segment, resolved }) => {
+      const parte = kwh * (pesoDe(segment, campoPeso) / totalPeso);
+      return acc + (parte * resolved.rate);
+    }, 0);
+    // La tasa devuelta es la media ponderada real: la UI muestra "kWh x tasa = eur" y con
+    // cualquier otra el producto no cuadraria con el importe cobrado.
+    return {
+      aplica: true,
+      available: true,
+      rate: eurCrudo / kwh,
+      eur: Math.round((eurCrudo + Number.EPSILON) * 100) / 100,
+      month: meses,
+      reason: null
+    };
+  }
+
   window.LF.ssaa = {
     loadDataset,
     getRateForMonth,
     resolveRate,
     mustApply,
     calcCharge,
+    calcChargeForSegments,
     _setDatasetForTests(data) {
       datasetCache = normalizeDataset(data);
       datasetPromise = null;

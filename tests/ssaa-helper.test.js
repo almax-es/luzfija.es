@@ -202,3 +202,100 @@ describe('LF SSAA helper', () => {
     expect(window.LF.ssaa.mustApply({})).toBe(false);
   });
 });
+
+// ===== MES COMPUESTO POR TRAMOS =====
+// El simulador solar cose en una sola fila los dos trozos del mes que un historico de 365 dias
+// parte por la mitad. Los SSAA son un dataset mensual historico, asi que cada tramo tiene que
+// pagar la tasa de SU mes: cobrar los 30 dias con la clave de un solo tramo aplica a los dias
+// del otro año una tasa que no es la suya, y puede descartar una tasa publicada por el valor de
+// reserva.
+describe('LF SSAA - mes compuesto por dos tramos', () => {
+  const tarifa = { incluyeServiciosAjuste: false };
+  const dataset = {
+    latest_complete_month: '2026-08',
+    latest_value: 0.01883,
+    values: { '2025-09': 0.01755, '2026-08': 0.01883 }
+  };
+  const segs = (over = {}) => [
+    Object.assign({ key: '2025-09', days: 20, kwh: 200 }, over.a || {}),
+    Object.assign({ key: '2026-09', days: 10, kwh: 100 }, over.b || {})
+  ];
+
+  it('reparte el consumo por tramos y aplica a cada uno la tasa de su mes', () => {
+    const charge = window.LF.ssaa.calcChargeForSegments(tarifa, 300, dataset, segs());
+
+    // 200 x 0,01755 + 100 x 0,01883 (2026-09 no publicado, cae a 2026-08) = 5,393
+    expect(charge.eur).toBeCloseTo(5.39, 10);
+    expect(charge.aplica).toBe(true);
+    expect(charge.available).toBe(true);
+    expect(charge.month).toBe('2025-09 + 2026-08');
+  });
+
+  it('NO cobra el mes entero a la tasa de un solo tramo', () => {
+    // Regresion del fallo: con la clave 2026-09 a secas serian 300 x 0,01883 = 5,65 EUR,
+    // y con la de 2025-09, 5,27. El reparto correcto cae entre las dos.
+    const charge = window.LF.ssaa.calcChargeForSegments(tarifa, 300, dataset, segs());
+
+    expect(charge.eur).not.toBeCloseTo(5.65, 2);
+    expect(charge.eur).not.toBeCloseTo(5.27, 2);
+  });
+
+  it('la tasa devuelta es la media ponderada, para que kWh x tasa cuadre con el importe', () => {
+    // La UI pinta "consumo x tasa = importe": con cualquier otra tasa el desglose mentiria.
+    const charge = window.LF.ssaa.calcChargeForSegments(tarifa, 300, dataset, segs());
+
+    expect(300 * charge.rate).toBeCloseTo(5.393, 9);
+    expect(charge.rate).toBeGreaterThan(0.01755);
+    expect(charge.rate).toBeLessThan(0.01883);
+  });
+
+  it('reparte por dias cuando los tramos no traen su consumo', () => {
+    // Metadata guardada antes de que el tramo llevase kWh: el reparto por dias es la mejor
+    // aproximacion disponible y evita volver al sesgo de una sola clave.
+    const sinKwh = [{ key: '2025-09', days: 20 }, { key: '2026-09', days: 10 }];
+    const charge = window.LF.ssaa.calcChargeForSegments(tarifa, 300, dataset, sinKwh);
+
+    expect(charge.eur).toBeCloseTo(5.39, 10);
+  });
+
+  it('respeta el peso real del consumo aunque los dias digan otra cosa', () => {
+    // Mismos dias, consumos muy distintos: manda el consumo.
+    const charge = window.LF.ssaa.calcChargeForSegments(tarifa, 300, dataset, [
+      { key: '2025-09', days: 15, kwh: 290 },
+      { key: '2026-09', days: 15, kwh: 10 }
+    ]);
+
+    expect(charge.eur).toBeCloseTo(5.28, 2);
+  });
+
+  it('falla CERRADO si a un tramo le falta la tasa, sin valorarlo con la del otro', () => {
+    const datasetCorto = { latest_complete_month: null, latest_value: null, values: { '2025-09': 0.01755 } };
+    const charge = window.LF.ssaa.calcChargeForSegments(tarifa, 300, datasetCorto, segs());
+
+    expect(charge.aplica).toBe(true);
+    expect(charge.available).toBe(false);
+    expect(charge.eur).toBeNull();
+    expect(charge.requestedMonth).toBe('2026-09');
+  });
+
+  it('no aplica nada a una tarifa que ya incluye los servicios de ajuste', () => {
+    const charge = window.LF.ssaa.calcChargeForSegments({ incluyeServiciosAjuste: true }, 300, dataset, segs());
+
+    expect(charge.aplica).toBe(false);
+    expect(charge.eur).toBe(0);
+  });
+
+  it('con un solo tramo se comporta exactamente como el calculo de un mes normal', () => {
+    const unTramo = window.LF.ssaa.calcChargeForSegments(tarifa, 300, dataset, [{ key: '2025-09', days: 30, kwh: 300 }]);
+    const normal = window.LF.ssaa.calcCharge(tarifa, 300, dataset, '2025-09');
+
+    expect(unTramo).toEqual(normal);
+  });
+
+  it('consumo cero no inventa coste ni oculta los meses de origen', () => {
+    const charge = window.LF.ssaa.calcChargeForSegments(tarifa, 0, dataset, segs());
+
+    expect(charge.eur).toBe(0);
+    expect(charge.available).toBe(true);
+  });
+});

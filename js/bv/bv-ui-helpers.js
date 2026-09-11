@@ -50,6 +50,8 @@ window.BVSim.manualUi.normalizeMonthMeta = function normalizeMonthMeta(meta) {
       entry.from = from;
       entry.to = to;
     }
+    const kwh = Number(segment?.kwh);
+    if (Number.isFinite(kwh) && kwh > 0) entry.kwh = Math.round(kwh * 100) / 100;
     acc.push(entry);
     return acc;
   }, []) : [];
@@ -85,8 +87,18 @@ window.BVSim.manualUi.pickLatestMonthData = function pickLatestMonthData(months)
     const days = Math.max(0, Math.round(Number(month?.daysWithData)) || 0);
     const from = dayOf(month?.start);
     const to = dayOf(month?.end);
+    // El consumo del tramo viaja con el: los SSAA son un dataset mensual historico y cada tramo
+    // debe pagar la tasa de SU mes, asi que hace falta saber cuanto consumo le toca a cada uno.
+    const kwhTramo = ['P1', 'P2', 'P3'].reduce((acc, periodo) => {
+      const valor = Number(month?.importByPeriod?.[periodo]);
+      return acc + (Number.isFinite(valor) ? Math.max(0, valor) : 0);
+    }, 0);
     const segment = days > 0
-      ? (from !== null && to !== null && to >= from ? { key, from, to, days } : { key, days })
+      ? Object.assign(
+        { key, days },
+        from !== null && to !== null && to >= from ? { from, to } : null,
+        kwhTramo > 0 ? { kwh: Math.round(kwhTramo * 100) / 100 } : null
+      )
       : null;
 
     const existing = monthDataMap.get(monthIndex);

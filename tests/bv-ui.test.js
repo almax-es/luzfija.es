@@ -130,8 +130,8 @@ describe('BV UI manual month helpers', () => {
     expect(septiembre.meta.key).toBe('2026-09');
     expect(septiembre.meta.daysWithData).toBe(30);
     expect(septiembre.meta.segments).toEqual([
-      { key: '2025-09', from: 11, to: 30, days: 20 },
-      { key: '2026-09', from: 1, to: 10, days: 10 }
+      { key: '2025-09', from: 11, to: 30, days: 20, kwh: 60 },
+      { key: '2026-09', from: 1, to: 10, days: 10, kwh: 6 }
     ]);
   });
 
@@ -144,8 +144,8 @@ describe('BV UI manual month helpers', () => {
     ]);
 
     expect(monthDataMap.get(8).meta.segments).toEqual([
-      { key: '2025-09', days: 20 },
-      { key: '2026-09', days: 10 }
+      { key: '2025-09', days: 20, kwh: 10 },
+      { key: '2026-09', days: 10, kwh: 1 }
     ]);
   });
 
@@ -158,8 +158,8 @@ describe('BV UI manual month helpers', () => {
       daysWithData: 30,
       daysInMonth: 30,
       segments: [
-        { key: '2025-09', from: 11, to: 30, days: 20 },
-        { key: '2026-09', from: 1, to: 10, days: 10 }
+        { key: '2025-09', from: 11, to: 30, days: 20, kwh: 120 },
+        { key: '2026-09', from: 1, to: 10, days: 10, kwh: 60 }
       ]
     });
 
@@ -167,6 +167,9 @@ describe('BV UI manual month helpers', () => {
 
     expect(restored).toEqual(original);
     expect(restored.segments).toHaveLength(2);
+    // El consumo por tramo tiene que sobrevivir tambien: es lo que reparte los servicios de
+    // ajuste entre los dos meses de origen tras recargar la pagina.
+    expect(restored.segments.map((segment) => segment.kwh)).toEqual([120, 60]);
   });
 
   it('normalizeMonthMeta descarta tramos que no incluyen el mes de la fila', () => {
@@ -181,6 +184,26 @@ describe('BV UI manual month helpers', () => {
     });
 
     expect(meta.segments).toBeUndefined();
+  });
+
+  it('pickLatestMonthData guarda el consumo de cada tramo para repartir los SSAA', () => {
+    // Sin el consumo por tramo, un mes compuesto solo podria repartir por dias, y los servicios
+    // de ajuste son un dataset mensual historico donde cada tramo debe pagar la tasa de SU mes.
+    const { monthDataMap } = window.BVSim.manualUi.pickLatestMonthData([
+      {
+        key: '2025-09', start: '2025-09-11', end: '2025-09-30', daysWithData: 20, daysInMonth: 30,
+        importByPeriod: { P1: 40, P2: 40, P3: 40 }, exportTotalKWh: 0
+      },
+      {
+        key: '2026-09', start: '2026-09-01', end: '2026-09-10', daysWithData: 10, daysInMonth: 30,
+        importByPeriod: { P1: 20, P2: 20, P3: 20 }, exportTotalKWh: 0
+      }
+    ]);
+
+    expect(monthDataMap.get(8).meta.segments).toEqual([
+      { key: '2025-09', days: 20, from: 11, to: 30, kwh: 120 },
+      { key: '2026-09', days: 10, from: 1, to: 10, kwh: 60 }
+    ]);
   });
 
   it('buildSimulationMonths deriva las claves de origen de los tramos', () => {

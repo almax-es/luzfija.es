@@ -241,8 +241,18 @@ window.BVSim.calcMonthForTarifa = function ({
     [month.importByPeriod.P3, tarifa.cValle]
   ]);
   const consumoTotalKwh = Number(month.importTotalKWh) || 0;
+  // Un mes compuesto por dos tramos de años distintos no puede pagar los SSAA de una sola de sus
+  // claves: cada tramo lleva la tasa historica de SU mes (ver calcChargeForSegments). El resto de
+  // la factura no es sensible al año dentro del mes — el IEE de hoy es un porcentaje plano, sin
+  // tramos por fecha — pero si algun dia vuelve un regimen fiscal con fechas, `fiscalDateYmd`
+  // (mas abajo, derivado tambien de month.key) tendra este mismo problema.
+  const ssaaSegments = Array.isArray(month?.segments) && month.segments.length > 1
+    ? month.segments
+    : null;
   const ssaa = (window.LF?.ssaa && typeof window.LF.ssaa.calcCharge === 'function')
-    ? window.LF.ssaa.calcCharge(tarifa, consumoTotalKwh, ssaaDataset, month.key)
+    ? (ssaaSegments && typeof window.LF.ssaa.calcChargeForSegments === 'function'
+      ? window.LF.ssaa.calcChargeForSegments(tarifa, consumoTotalKwh, ssaaDataset, ssaaSegments)
+      : window.LF.ssaa.calcCharge(tarifa, consumoTotalKwh, ssaaDataset, month.key))
     : { aplica: false, available: true, rate: 0, eur: 0, month: null };
   const hasBV = Boolean(tarifa?.fv?.bv);
   const bvPrev = hasBV ? Math.max(0, Number(bvSaldoPrev) || 0) : 0;
