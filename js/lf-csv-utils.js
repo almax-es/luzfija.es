@@ -2193,6 +2193,96 @@
   }
 
   /**
+   * Dias del mes (1..31) presentes en una clave YYYY-MM concreta.
+   */
+  function collectMonthDayNumbers(records, monthKey) {
+    const days = new Set();
+    (records || []).forEach((record) => {
+      const fecha = record && record.fecha;
+      if (!(fecha instanceof Date) || isNaN(fecha.getTime())) return;
+      const key = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+      if (key === monthKey) days.add(fecha.getDate());
+    });
+    return days;
+  }
+
+  /**
+   * Plan para coser los dos extremos de un CSV de 13 meses en un solo mes natural.
+   *
+   * Con 13 meses consecutivos el primero y el ultimo son SIEMPRE el mismo mes del año, es
+   * decir dos tramos del mismo mes partidos por el corte del archivo (un año que empieza a
+   * mitad de mes). Coserlos conserva todos los dias; descartar un extremo tiraba entre 9 y 20
+   * dias de datos reales y dejaba el periodo por debajo del año.
+   *
+   * El tramo reciente manda: si un dia del mes aparece en los dos años (archivos de 366 dias)
+   * o no cabe en el mes destino (febrero con un bisiesto por medio), se recorta del tramo
+   * antiguo. Asi el mes cosido nunca duplica un dia ni excede su mes natural, y el recorte se
+   * aplica sobre los registros horarios, que son la misma fuente que alimenta la traza usada
+   * para los excedentes indexados.
+   *
+   * @returns {Object|null} Plan de cosido, o null si los extremos no son el mismo mes del año
+   */
+  function buildEdgeStitchPlan(records, firstMonth, lastMonth) {
+    const firstKey = String(firstMonth || '');
+    const lastKey = String(lastMonth || '');
+    if (!/^\d{4}-\d{2}$/.test(firstKey) || !/^\d{4}-\d{2}$/.test(lastKey)) return null;
+    if (firstKey === lastKey || firstKey.slice(5) !== lastKey.slice(5)) return null;
+
+    const [targetYear, targetMonth] = lastKey.split('-').map(Number);
+    const daysInMonth = new Date(targetYear, targetMonth, 0).getDate();
+
+    const recentDays = collectMonthDayNumbers(records, lastKey);
+    const olderDays = collectMonthDayNumbers(records, firstKey);
+    if (recentDays.size === 0 || olderDays.size === 0) return null;
+
+    const olderDaysKept = [];
+    const olderDaysOverlap = [];   // el tramo reciente ya aporta ese dia del mes
+    const olderDaysOverflow = [];  // ese dia no existe en el mes destino (29/02 sin bisiesto)
+    [...olderDays].sort((a, b) => a - b).forEach((day) => {
+      if (day > daysInMonth) olderDaysOverflow.push(day);
+      else if (recentDays.has(day)) olderDaysOverlap.push(day);
+      else olderDaysKept.push(day);
+    });
+    const olderDaysDropped = [...olderDaysOverlap, ...olderDaysOverflow].sort((a, b) => a - b);
+
+    const recentDaysSorted = [...recentDays].sort((a, b) => a - b);
+
+    return {
+      targetKey: lastKey,
+      olderKey: firstKey,
+      sourceKeys: [firstKey, lastKey],
+      daysInMonth,
+      olderDaysKept,
+      olderDaysDropped,
+      olderDaysOverlap,
+      olderDaysOverflow,
+      olderRange: olderDaysKept.length > 0
+        ? { from: olderDaysKept[0], to: olderDaysKept[olderDaysKept.length - 1] }
+        : null,
+      recentRange: { from: recentDaysSorted[0], to: recentDaysSorted[recentDaysSorted.length - 1] },
+      stitchedDays: olderDaysKept.length + recentDaysSorted.length
+    };
+  }
+
+  /**
+   * Quita del tramo antiguo los dias que el plan de cosido no conserva (solape o desborde del
+   * mes natural). El resto de registros pasa intacto, con sus fechas reales: el cosido agrupa
+   * en una fila mensual, no reescribe el calendario de cada hora.
+   */
+  function applyEdgeStitchPlan(records, plan) {
+    if (!Array.isArray(records) || !plan) return records;
+    const dropped = new Set(plan.olderDaysDropped || []);
+    if (dropped.size === 0) return records;
+    return records.filter((record) => {
+      const fecha = record && record.fecha;
+      if (!(fecha instanceof Date) || isNaN(fecha.getTime())) return true;
+      const key = `${fecha.getFullYear()}-${String(fecha.getMonth() + 1).padStart(2, '0')}`;
+      if (key !== plan.olderKey) return true;
+      return !dropped.has(fecha.getDate());
+    });
+  }
+
+  /**
    * Formatea un mes-año legible (2025-01 → "enero 2025")
    */
   function formatMonthYear(monthKey) {
@@ -2373,12 +2463,60 @@
       };
     }
 
-    // ===== Caso especial: 13 meses → descartar inteligentemente =====
+    // ===== Caso especial: 13 meses → coser los dos extremos en un mes natural =====
 
     const monthCoverage = calculateMonthCoverage(records);
     const firstMonth = monthsSorted[0];
     const lastMonth = monthsSorted[monthsSorted.length - 1];
 
+    // En el formato mensual de Datadis cada registro es un mes entero fechado el dia 1, no un
+    // dia con datos: no hay dos tramos que componer, sino dos meses completos del mismo mes del
+    // año entre los que hay que elegir. Ahi se mantiene el descarte, que conserva el reciente.
+    const stitchPlan = options.isDatadisMonthly ? null : buildEdgeStitchPlan(records, firstMonth, lastMonth);
+    if (stitchPlan) {
+      monthsUsed = monthsSorted.slice(1);
+      const totalDays = monthsUsed.reduce((acc, key) => acc + (key === stitchPlan.targetKey
+        ? stitchPlan.stitchedDays
+        : (monthCoverage.get(key)?.daysWithData || 0)), 0);
+      const dd = (day) => String(day).padStart(2, '0');
+      const olderLabel = stitchPlan.olderRange
+        ? `${dd(stitchPlan.olderRange.from)}-${dd(stitchPlan.olderRange.to)} de ${formatMonthYear(stitchPlan.olderKey)}`
+        : '';
+      const recentLabel = `${dd(stitchPlan.recentRange.from)}-${dd(stitchPlan.recentRange.to)} de ${formatMonthYear(stitchPlan.targetKey)}`;
+      const overlapCount = stitchPlan.olderDaysOverlap.length;
+      const overflowCount = stitchPlan.olderDaysOverflow.length;
+      const overlapLine = overlapCount > 0
+        ? `   • ${overlapCount === 1 ? 'Se descarta el día' : 'Se descartan los días'} ` +
+          `${stitchPlan.olderDaysOverlap.map(dd).join(', ')} del tramo antiguo, que el tramo reciente ya aporta.\n`
+        : '';
+      const overflowLine = overflowCount > 0
+        ? `   • ${overflowCount === 1 ? 'Se descarta el día' : 'Se descartan los días'} ` +
+          `${stitchPlan.olderDaysOverflow.map(dd).join(', ')} del tramo antiguo, que no ${overflowCount === 1 ? 'existe' : 'existen'} ` +
+          `en ${formatMonthYear(stitchPlan.targetKey)}.\n`
+        : '';
+      const droppedLine = overlapLine + overflowLine;
+      return {
+        ok: true,
+        spanDays,
+        startYmd,
+        endYmd,
+        monthsDistinct,
+        monthsUsed,
+        monthsToDrop: [],
+        stitch: stitchPlan,
+        warning: `📊 CSV con 13 meses detectado (${startYmd} → ${endYmd}).\n\n` +
+                 `🧵 Tu año empieza a mitad de mes, así que ${formatMonthYear(stitchPlan.targetKey).split(' ')[0]} ` +
+                 `llega partido en dos tramos. Se componen en un solo mes para no perder días:\n` +
+                 (olderLabel ? `   • ${olderLabel} + ${recentLabel} = ${stitchPlan.stitchedDays} de ${stitchPlan.daysInMonth} días\n` : '') +
+                 droppedLine +
+                 `\n✓ Periodo simulado: ${formatMonthYear(monthsUsed[0])} → ${formatMonthYear(monthsUsed[monthsUsed.length - 1])}\n` +
+                 `   • Total: ${totalDays} días de datos`
+      };
+    }
+
+    // Fallback defensivo: si los extremos no son el mismo mes del año no hay nada que coser
+    // (no deberia ocurrir con 13 meses ya validados como consecutivos), asi que se mantiene
+    // el descarte por cobertura.
     const firstCoverage = monthCoverage.get(firstMonth);
     const lastCoverage = monthCoverage.get(lastMonth);
 
@@ -2765,6 +2903,8 @@
     validateCsvSpanFromRecords,
     monthsAreConsecutive,
     calculateMonthCoverage,
+    buildEdgeStitchPlan,
+    applyEdgeStitchPlan,
     formatMonthYear,
     addDaysYmd,
 

@@ -543,3 +543,173 @@ describe('LF surplus hourly prices', () => {
     expect(stats.missing).toBeGreaterThan(0);
   });
 });
+
+// ===== MES COMPUESTO POR DOS TRAMOS =====
+// Un historico de 365 dias que empieza a mitad de mes parte un mes natural en dos trozos de
+// años distintos, y la simulacion los cose en una sola fila. La traza horaria, en cambio, sigue
+// agregando por año+mes reales: si el emparejamiento usa una sola clave, la fila declara el
+// consumo y los dias de los dos tramos y cobra la compensacion de uno, sin aviso.
+describe('applyMonthlyIndexedValues - mes compuesto por dos tramos', () => {
+  const mes = (over = {}) => Object.assign({
+    key: '2026-09',
+    daysWithData: 30,
+    daysInMonth: 30,
+    exportTotalKWh: 300,
+    sourceKeys: ['2025-09', '2026-09']
+  }, over);
+
+  const filaTramo = (ym, over = {}) => Object.assign({
+    ym, kwh: 0, eur: 0, avg: 0, missing: 0, missingKwh: 0, pricedHours: 0, missingShare: 0, missingKwhShare: 0
+  }, over);
+
+  it('suma los euros y los kWh de los dos tramos de origen', () => {
+    const mapped = window.LF.surplusPrices.applyMonthlyIndexedValues([mes()], {
+      monthlyRows: [
+        filaTramo('2025-09', { kwh: 200, eur: 20, avg: 0.10, pricedHours: 400 }),
+        filaTramo('2026-09', { kwh: 100, eur: 5, avg: 0.05, pricedHours: 200 })
+      ]
+    });
+
+    expect(mapped[0].indexedSurplusEur).toBeCloseTo(25, 10);
+    expect(mapped[0].indexedPricedHours).toBe(600);
+    // Precio medio ponderado por kWh, no media de los dos precios medios (que daria 0,075).
+    expect(mapped[0].indexedAvgPrice).toBeCloseTo(25 / 300, 10);
+    expect(mapped[0].indexedSurplusSource).toBe('hourly-index-base');
+    expect(mapped[0].indexedSurplusWarning).toBe('');
+  });
+
+  it('NO se queda con la fila de una sola clave cuando el mes tiene dos tramos', () => {
+    // Test de regresion del fallo silencioso: con el emparejamiento por month.key a secas,
+    // el mes cobraria solo los 5 € del tramo reciente de 10 dias.
+    const mapped = window.LF.surplusPrices.applyMonthlyIndexedValues([mes()], {
+      monthlyRows: [
+        filaTramo('2025-09', { kwh: 200, eur: 20, avg: 0.10, pricedHours: 400 }),
+        filaTramo('2026-09', { kwh: 100, eur: 5, avg: 0.05, pricedHours: 200 })
+      ]
+    });
+
+    expect(mapped[0].indexedSurplusEur).not.toBeCloseTo(5, 10);
+    expect(mapped[0].indexedSurplusEur).not.toBeCloseTo(20, 10);
+  });
+
+  it('trata un tramo sin excedentes como cero y conserva la valoracion del otro', () => {
+    // computeHourlyCompensation crea fila para todo mes con algun excedente, valorado o
+    // marcado como hueco: si una clave no aparece es que ese tramo no vertio nada.
+    const mapped = window.LF.surplusPrices.applyMonthlyIndexedValues([mes()], {
+      monthlyRows: [filaTramo('2025-09', { kwh: 200, eur: 20, avg: 0.10, pricedHours: 400 })]
+    });
+
+    expect(mapped[0].indexedSurplusEur).toBeCloseTo(20, 10);
+    expect(mapped[0].indexedSurplusSource).toBe('hourly-index-base');
+  });
+
+  it('decide el rechazo por cobertura sobre los totales sumados, no tramo a tramo', () => {
+    // El tramo viejo esta limpio y el reciente tiene el 50 % de huecos. Sumados, los huecos
+    // quedan en el 9,1 % de las horas, por debajo del umbral: el mes se conserva.
+    const stats = {
+      monthlyRows: [
+        filaTramo('2025-09', { kwh: 200, eur: 20, avg: 0.10, pricedHours: 400 }),
+        filaTramo('2026-09', { kwh: 10, eur: 1, avg: 0.10, missing: 40, missingKwh: 5, pricedHours: 40, missingShare: 0.5, missingKwhShare: 0.33 })
+      ]
+    };
+    const mapped = window.LF.surplusPrices.applyMonthlyIndexedValues([mes()], stats);
+
+    expect(mapped[0].indexedSurplusSource).toBe('hourly-index-base');
+    expect(mapped[0].indexedSurplusWarning).toBe('partial');
+    expect(mapped[0].indexedMissingHours).toBe(40);
+    expect(stats.partialCoverageRejected).toBe(false);
+  });
+
+  it('rechaza el mes compuesto cuando los huecos sumados pasan del umbral', () => {
+    const stats = {
+      monthlyRows: [
+        filaTramo('2025-09', { kwh: 100, eur: 10, avg: 0.10, missing: 30, missingKwh: 30, pricedHours: 100 }),
+        filaTramo('2026-09', { kwh: 50, eur: 5, avg: 0.10, missing: 20, missingKwh: 20, pricedHours: 50 })
+      ]
+    };
+    const mapped = window.LF.surplusPrices.applyMonthlyIndexedValues([mes()], stats);
+
+    expect(mapped[0].indexedSurplusEur).toBeUndefined();
+    expect(mapped[0].indexedSurplusSource).toBe('hourly-index-partial-rejected');
+    expect(stats.partialCoverageRejected).toBe(true);
+  });
+
+  it('un mes de un solo tramo sigue emparejando por su propia clave', () => {
+    const mapped = window.LF.surplusPrices.applyMonthlyIndexedValues(
+      [mes({ sourceKeys: undefined })],
+      { monthlyRows: [filaTramo('2026-09', { kwh: 100, eur: 5, avg: 0.05, pricedHours: 200 })] }
+    );
+
+    expect(mapped[0].indexedSurplusEur).toBeCloseTo(5, 10);
+  });
+});
+
+// La premisa de la que depende tratar un tramo sin fila como cero: computeHourlyCompensation
+// distingue "este mes no vertio nada" (no hay fila) de "este mes vertio y no se pudo valorar"
+// (hay fila con huecos). Si un dia algo de esto cambia, el mes compuesto empezaria a dar por
+// cero un tramo que en realidad no tiene precios, y el test de arriba dejaria de proteger.
+describe('computeHourlyCompensation - ausencia de fila frente a hueco de precios', () => {
+  beforeEach(() => {
+    window.LF.surplusPrices._clearCaches();
+    global.fetch = vi.fn();
+  });
+
+  it('un mes sin ningun excedente no genera fila mensual', async () => {
+    global.fetch.mockResolvedValue({
+      ok: true,
+      json: async () => buildV2Month('2025-01', 'Europe/Madrid')
+    });
+
+    const stats = await window.LF.surplusPrices.computeHourlyCompensation([
+      { fecha: new Date(2025, 0, 1), hora: 11, excedente: 2 },
+      // Febrero aparece en la curva pero sin verter nada: no debe pedir su fichero de precios
+      // ni aparecer en monthlyRows.
+      { fecha: new Date(2025, 1, 1), hora: 11, excedente: 0 }
+    ], { geo: '8741' });
+
+    expect(stats.monthlyRows.map((row) => row.ym)).toEqual(['2025-01']);
+    expect(global.fetch.mock.calls.map((call) => call[0])).toEqual(['/data/surplus/8741/2025-01.json']);
+  });
+
+  it('un mes que vierte sin precios disponibles SI genera fila, marcada como hueco', async () => {
+    global.fetch.mockImplementation(async (url) => (String(url).includes('2025-02')
+      ? { ok: false, status: 404 }
+      : { ok: true, json: async () => buildV2Month('2025-01', 'Europe/Madrid') }));
+
+    const stats = await window.LF.surplusPrices.computeHourlyCompensation([
+      { fecha: new Date(2025, 0, 1), hora: 11, excedente: 2 },
+      { fecha: new Date(2025, 1, 1), hora: 11, excedente: 3 }
+    ], { geo: '8741' });
+
+    const febrero = stats.monthlyRows.find((row) => row.ym === '2025-02');
+    expect(febrero).toBeDefined();
+    expect(febrero.kwh).toBe(0);
+    expect(febrero.missing).toBe(1);
+    expect(febrero.missingKwh).toBe(3);
+  });
+
+  it('el mes compuesto rechaza el indexado si un tramo vertio sin precios, en vez de darlo por cero', async () => {
+    // Caminos opuestos con la misma forma aparente: aqui el tramo reciente SI tiene fila (con
+    // hueco), asi que el mes no puede tratarse como si ese tramo no hubiese vertido.
+    global.fetch.mockImplementation(async (url) => (String(url).includes('2026-09')
+      ? { ok: false, status: 404 }
+      : { ok: true, json: async () => buildV2Month('2025-09', 'Europe/Madrid') }));
+
+    const stats = await window.LF.surplusPrices.computeHourlyCompensation([
+      { fecha: new Date(2025, 8, 11), hora: 12, excedente: 1 },
+      { fecha: new Date(2026, 8, 1), hora: 12, excedente: 40 }
+    ], { geo: '8741' });
+
+    const mapped = window.LF.surplusPrices.applyMonthlyIndexedValues([{
+      key: '2026-09',
+      daysWithData: 30,
+      daysInMonth: 30,
+      exportTotalKWh: 41,
+      sourceKeys: ['2025-09', '2026-09']
+    }], stats);
+
+    expect(mapped[0].indexedSurplusEur).toBeUndefined();
+    expect(mapped[0].indexedSurplusSource).toBe('hourly-index-partial-rejected');
+    expect(mapped[0].indexedMissingKwh).toBe(40);
+  });
+});

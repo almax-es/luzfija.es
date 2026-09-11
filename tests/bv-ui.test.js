@@ -68,17 +68,12 @@ describe('BV UI manual month helpers', () => {
     window.BVSim = {};
   });
 
-  it('pickLatestMonthData conserva el mes más reciente y su metadata real', () => {
+  it('pickLatestMonthData conserva la metadata real de un mes que llega una sola vez', () => {
     const { monthDataMap, yearsFound } = window.BVSim.manualUi.pickLatestMonthData([
       {
-        key: '2024-01',
-        daysWithData: 31,
-        daysInMonth: 31,
-        importByPeriod: { P1: 1, P2: 2, P3: 3 },
-        exportTotalKWh: 4
-      },
-      {
         key: '2025-01',
+        start: '2025-01-01',
+        end: '2025-01-10',
         daysWithData: 10,
         daysInMonth: 31,
         importByPeriod: { P1: 12, P2: 8, P3: 5 },
@@ -86,8 +81,8 @@ describe('BV UI manual month helpers', () => {
       }
     ]);
 
-    expect(Array.from(yearsFound).sort()).toEqual([2024, 2025]);
-    expect(monthDataMap.get(0)).toEqual({
+    expect(Array.from(yearsFound)).toEqual([2025]);
+    expect(monthDataMap.get(0)).toMatchObject({
       year: 2025,
       p1: 12,
       p2: 8,
@@ -99,6 +94,118 @@ describe('BV UI manual month helpers', () => {
         daysInMonth: 31
       }
     });
+    // Un mes de un solo tramo no declara procedencia compuesta: sin eso,
+    // applyMonthlyIndexedValues buscaria claves de origen que no existen.
+    expect(monthDataMap.get(0).meta.segments).toBeUndefined();
+  });
+
+  it('pickLatestMonthData suma los dos tramos del mismo mes en vez de quedarse con el reciente', () => {
+    const { monthDataMap } = window.BVSim.manualUi.pickLatestMonthData([
+      {
+        key: '2025-09',
+        start: '2025-09-11',
+        end: '2025-09-30',
+        daysWithData: 20,
+        daysInMonth: 30,
+        importByPeriod: { P1: 10, P2: 20, P3: 30 },
+        exportTotalKWh: 40
+      },
+      {
+        key: '2026-09',
+        start: '2026-09-01',
+        end: '2026-09-10',
+        daysWithData: 10,
+        daysInMonth: 30,
+        importByPeriod: { P1: 1, P2: 2, P3: 3 },
+        exportTotalKWh: 4
+      }
+    ]);
+
+    const septiembre = monthDataMap.get(8);
+    expect(septiembre.p1).toBe(11);
+    expect(septiembre.p2).toBe(22);
+    expect(septiembre.p3).toBe(33);
+    expect(septiembre.vert).toBe(44);
+    // La clave es la del tramo reciente, pero los dias son los de los dos tramos.
+    expect(septiembre.meta.key).toBe('2026-09');
+    expect(septiembre.meta.daysWithData).toBe(30);
+    expect(septiembre.meta.segments).toEqual([
+      { key: '2025-09', from: 11, to: 30, days: 20 },
+      { key: '2026-09', from: 1, to: 10, days: 10 }
+    ]);
+  });
+
+  it('pickLatestMonthData registra los dos tramos aunque falte el rango de dias', () => {
+    // El rango solo alimenta la etiqueta. Si se exigiese, el tramo desapareceria de la lista y
+    // el mes sumaria el consumo de los dos tramos cobrando la compensacion indexada de uno.
+    const { monthDataMap } = window.BVSim.manualUi.pickLatestMonthData([
+      { key: '2025-09', daysWithData: 20, daysInMonth: 30, importByPeriod: { P1: 10, P2: 0, P3: 0 }, exportTotalKWh: 0 },
+      { key: '2026-09', daysWithData: 10, daysInMonth: 30, importByPeriod: { P1: 1, P2: 0, P3: 0 }, exportTotalKWh: 0 }
+    ]);
+
+    expect(monthDataMap.get(8).meta.segments).toEqual([
+      { key: '2025-09', days: 20 },
+      { key: '2026-09', days: 10 }
+    ]);
+  });
+
+  it('normalizeMonthMeta conserva los tramos al pasar por el guardado y la recarga', () => {
+    // La rejilla se persiste serializada. Si los tramos no sobreviven a la ida y vuelta, tras
+    // recargar la pagina el mes seguiria declarando 30 dias de consumo y el indexado volveria a
+    // valorar un solo tramo, justo el fallo silencioso que los tramos existen para evitar.
+    const original = window.BVSim.manualUi.normalizeMonthMeta({
+      key: '2026-09',
+      daysWithData: 30,
+      daysInMonth: 30,
+      segments: [
+        { key: '2025-09', from: 11, to: 30, days: 20 },
+        { key: '2026-09', from: 1, to: 10, days: 10 }
+      ]
+    });
+
+    const restored = window.BVSim.manualUi.normalizeMonthMeta(JSON.parse(JSON.stringify(original)));
+
+    expect(restored).toEqual(original);
+    expect(restored.segments).toHaveLength(2);
+  });
+
+  it('normalizeMonthMeta descarta tramos que no incluyen el mes de la fila', () => {
+    // Un tramo ajeno a la fila apuntaria el indexado a un mes que esta fila no representa.
+    const meta = window.BVSim.manualUi.normalizeMonthMeta({
+      key: '2026-09',
+      daysWithData: 30,
+      segments: [
+        { key: '2025-08', days: 20 },
+        { key: '2025-09', days: 10 }
+      ]
+    });
+
+    expect(meta.segments).toBeUndefined();
+  });
+
+  it('buildSimulationMonths deriva las claves de origen de los tramos', () => {
+    const months = window.BVSim.manualUi.buildSimulationMonths(
+      { 8: { p1: 11, p2: 22, p3: 33, vert: 44 } },
+      {
+        currentYear: 2026,
+        monthMetaByIndex: {
+          8: {
+            key: '2026-09',
+            daysWithData: 30,
+            daysInMonth: 30,
+            segments: [
+              { key: '2025-09', from: 11, to: 30, days: 20 },
+              { key: '2026-09', from: 1, to: 10, days: 10 }
+            ]
+          }
+        }
+      }
+    );
+
+    expect(months).toHaveLength(1);
+    expect(months[0].key).toBe('2026-09');
+    expect(months[0].daysWithData).toBe(30);
+    expect(months[0].sourceKeys).toEqual(['2025-09', '2026-09']);
   });
 
   const totalsOf = (over) => Object.assign(

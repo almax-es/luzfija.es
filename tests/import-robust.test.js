@@ -431,7 +431,7 @@ ES123;01/01/2024;1;1,0;R`;
     expect(resMain.monthsToDrop).toHaveLength(0); // NO descarta nada
     expect(resMain.monthsUsed).toHaveLength(13); // Usa TODOS los meses
 
-    // Caso 2: Comparador SOLAR (requireExactly12Months: true) -> SÍ descarta
+    // Caso 2: Comparador SOLAR (requireExactly12Months: true) -> cose los dos extremos
     const resSolar = validateCsvSpanFromRecords(records13, {
       maxDays: 400,
       requireExactly12Months: true
@@ -439,9 +439,27 @@ ES123;01/01/2024;1;1,0;R`;
 
     expect(resSolar.ok).toBe(true);
     expect(resSolar.warning).toBeDefined(); // Debe tener warning explicativo
-    expect(resSolar.monthsToDrop).toHaveLength(1); // Descarta 1 mes
-    expect(resSolar.monthsToDrop[0]).toBe('2024-01'); // Descarta el más antiguo
+    expect(resSolar.monthsToDrop).toHaveLength(0); // Ya no se descarta un mes entero
     expect(resSolar.monthsUsed).toHaveLength(12); // Usa 12 meses
+    expect(resSolar.monthsUsed[0]).toBe('2024-02'); // La fila cosida lleva la clave reciente
+    expect(resSolar.stitch.sourceKeys).toEqual(['2024-01', '2025-01']);
+    // Los dos extremos solo traen el dia 1: el tramo reciente manda y el antiguo no aporta
+    // ningun dia nuevo, asi que el mes cosido se queda con ese unico dia.
+    expect(resSolar.stitch.olderDaysOverlap).toEqual([1]);
+    expect(resSolar.stitch.stitchedDays).toBe(1);
+
+    // Caso 2b: el mismo CSV declarado como formato mensual de Datadis NO se cose, porque cada
+    // registro es un mes entero fechado el dia 1 y no un tramo de dias.
+    const resDatadisMensual = validateCsvSpanFromRecords(records13, {
+      maxDays: 400,
+      requireExactly12Months: true,
+      isDatadisMonthly: true
+    });
+
+    expect(resDatadisMensual.ok).toBe(true);
+    expect(resDatadisMensual.stitch).toBeUndefined();
+    expect(resDatadisMensual.monthsToDrop).toEqual(['2024-01']);
+    expect(resDatadisMensual.monthsUsed).toHaveLength(12);
 
     // Caso 3: 14 meses con requireExactly12Months: true -> Error
     const records14 = [];

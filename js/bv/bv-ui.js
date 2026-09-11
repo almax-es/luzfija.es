@@ -2500,11 +2500,18 @@ document.addEventListener('DOMContentLoaded', () => {
       // anunciaria algo que no ha ocurrido.
       if (!trackImport) return;
 
-      // Mensaje informativo sobre múltiples años
+      // Mensaje informativo sobre múltiples años. Un mes que llega en dos tramos se compone
+      // sumando los dos, asi que ya no se anuncia que "se usa el más reciente por mes".
+      const stitchedMonths = Array.from(monthDataMap.values())
+        .filter((data) => Array.isArray(data?.meta?.segments) && data.meta.segments.length > 1).length;
       let message = `✓ Datos importados: ${filledCount} meses procesados`;
-      if (yearsFound.size > 1) {
+      if (stitchedMonths > 0) {
+        message += stitchedMonths === 1
+          ? ' (un mes se ha compuesto con los dos tramos del archivo)'
+          : ` (${stitchedMonths} meses se han compuesto con dos tramos del archivo)`;
+      } else if (yearsFound.size > 1) {
         const years = Array.from(yearsFound).sort((a, b) => b - a);
-        message += ` (años ${years.join(', ')} - se usa el más reciente por mes)`;
+        message += ` (años ${years.join(', ')})`;
       }
       showToast(message, 'ok');
     }
@@ -3274,8 +3281,27 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
 💡 Disponible mes siguiente`
           : '❌ Sin saldo BV';
 
+        // Mes compuesto por dos tramos de años distintos: la tabla no puede presentar 30 dias
+        // como si fuesen un mes natural sin decir de donde vienen.
+        const segments = Array.isArray(m.segments) && m.segments.length > 1 ? m.segments : null;
+        const dd = (day) => String(day).padStart(2, '0');
+        const formatMonthYearLabel = (key) => (window.LF?.csvUtils?.formatMonthYear
+          ? window.LF.csvUtils.formatMonthYear(key)
+          : String(key || ''));
+        const tipMes = segments
+          ? `🧵 Mes compuesto con dos tramos de tu archivo:\n`
+            + segments.map((segment) => {
+              const rango = Number.isFinite(segment.from) && Number.isFinite(segment.to)
+                ? `${dd(segment.from)}-${dd(segment.to)} de `
+                : '';
+              return `• ${rango}${formatMonthYearLabel(segment.key)} (${segment.days} d)`;
+            }).join('\n')
+            + `\n💡 Tu histórico empieza a mitad de mes, así que este mes llegaba partido en dos.`
+          : '';
+
         return {
-          key: formatMonthKeyLabel(row.key),
+          key: formatMonthKeyLabel(row.key) + (segments ? ' ✳' : ''),
+          tipMes,
           hasBV,
           pot: row.pot,
           eBruta,
@@ -3322,7 +3348,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
 
           return `
             <tr>
-              <td data-label="Mes"><span class="bv-cell-value">${v.key}</span></td>
+              <td data-label="Mes"${v.tipMes ? ` class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tipMes)}"` : ''}><span class="bv-cell-value">${v.key}</span></td>
               <td data-label="Potencia" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.pot)}"><span class="bv-cell-value">${fEur(v.pot)}</span></td>
               <td data-label="E. Bruta" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.eBruta)}"><span class="bv-cell-value">${fEur(v.eBruta)}</span></td>
               <td data-label="Compensación" class="bv-tooltip-trigger" data-tip="${escapeAttr(v.tips.exc)}" style="color:var(--accent2);"><span class="bv-cell-value">${v.excMes > 0 ? `-${fEur(v.excMes)}` : fEur(0)}</span></td>
@@ -3356,6 +3382,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
             <section class="bv-month-card">
               <header class="bv-month-head">${escapeHtml(v.key)}</header>
               <div class="bv-month-body">
+                ${v.tipMes ? item('Composición', '2 tramos', v.tipMes) : ''}
                 ${item('Potencia', fEur(v.pot), v.tips.pot)}
                 ${item('E. Bruta', fEur(v.eBruta), v.tips.eBruta)}
                 ${item('Compensación', (v.excMes > 0 ? `-${fEur(v.excMes)}` : fEur(0)), v.tips.exc, (v.excMes > 0 ? 'bv-val-good' : ''))}

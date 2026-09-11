@@ -397,15 +397,61 @@
     return summarizeCompensation({ monthly, monthlyHourly, hourly, totalKwh, totalEur, missing, totalMissingKwh, totalPricedHours });
   }
 
+  // Un mes de la simulacion puede estar compuesto por dos tramos de años distintos (un
+  // historico que empieza a mitad de mes parte un mes natural en dos). La traza horaria agrega
+  // por año+mes reales, asi que hay que sumar las filas de todas las claves de origen: con una
+  // sola, la fila declararia el consumo y los dias de los dos tramos y cobraria la compensacion
+  // de uno, sin que nada lo avisase. Las cuotas de huecos se recalculan sobre los totales
+  // sumados, no se promedian, porque deciden si el indexado horario se rechaza por cobertura.
+  function mergeIndexedRows(rows) {
+    if (rows.length === 1) return rows[0];
+    const merged = rows.reduce((acc, row) => {
+      acc.kwh += Number(row.kwh) || 0;
+      acc.eur += Number(row.eur) || 0;
+      acc.missing += Number(row.missing) || 0;
+      acc.missingKwh += Number(row.missingKwh) || 0;
+      acc.pricedHours += Number(row.pricedHours) || 0;
+      return acc;
+    }, { kwh: 0, eur: 0, missing: 0, missingKwh: 0, pricedHours: 0 });
+    const totalHours = merged.pricedHours + merged.missing;
+    const totalMonthKwh = merged.kwh + merged.missingKwh;
+    return {
+      ym: rows.map((row) => row.ym).join('+'),
+      kwh: merged.kwh,
+      eur: merged.eur,
+      avg: merged.kwh ? merged.eur / merged.kwh : null,
+      missing: merged.missing,
+      missingKwh: merged.missingKwh,
+      inputKwh: totalMonthKwh,
+      pricedHours: merged.pricedHours,
+      missingShare: totalHours > 0 ? merged.missing / totalHours : 0,
+      missingKwhShare: totalMonthKwh > 0 ? merged.missingKwh / totalMonthKwh : 0
+    };
+  }
+
   function applyMonthlyIndexedValues(months, stats) {
     const byMonth = new Map((stats?.monthlyRows || []).map(row => [row.ym, row]));
+    const rowForMonth = (month) => {
+      const sourceKeys = Array.isArray(month?.sourceKeys) && month.sourceKeys.length > 1
+        ? month.sourceKeys
+        : null;
+      if (!sourceKeys) return byMonth.get(month.key);
+      const rows = sourceKeys.map((key) => byMonth.get(key)).filter(Boolean);
+      // Un tramo sin fila no es un hueco de datos: computeHourlyCompensation crea fila para
+      // todo mes con algun excedente, valorado o marcado como hueco, asi que la ausencia
+      // significa cero excedentes en ese tramo y sumar cero es exacto. Si ninguno de los dos
+      // tramos tiene fila, el mes cae al precio de referencia igual que cualquier otro mes sin
+      // excedentes.
+      if (rows.length === 0) return undefined;
+      return mergeIndexedRows(rows);
+    };
     if (stats && typeof stats === 'object') {
       stats.partialCoverageRejected = false;
       stats.partialCoverageRejectedMonths = 0;
       stats.partialCoverageTotalMonths = 0;
     }
     return (months || []).map((month) => {
-      const row = byMonth.get(month.key);
+      const row = rowForMonth(month);
       if (!row || !Number.isFinite(row.eur)) return month;
       if (row.kwh <= 0 && !(row.missing > 0)) return month;
       if (stats && typeof stats === 'object') stats.partialCoverageTotalMonths += 1;

@@ -886,3 +886,121 @@ describe('Deteccion de periodos duplicados (14/08/2026)', () => {
     expect(() => csvUtils.parseEnergyTableRows(rows)).toThrow(/inconsistentes/i);
   });
 });
+
+// ===== COSIDO DE LOS DOS EXTREMOS (13 MESES) =====
+// Un año que empieza a mitad de mes toca 13 meses naturales: el primero y el ultimo son el
+// mismo mes del año, partido en dos tramos. Antes se descartaba un extremo, lo que tiraba entre
+// 9 y 20 dias reales y dejaba el periodo por debajo del año.
+describe('validateCsvSpanFromRecords - mes partido en dos tramos', () => {
+  let csvUtils;
+  beforeAll(() => { csvUtils = window.LF.csvUtils; });
+
+  function buildHourlyRange(start, end) {
+    const records = [];
+    let cursor = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+    const last = new Date(end.getFullYear(), end.getMonth(), end.getDate());
+    while (cursor <= last) {
+      for (let hora = 1; hora <= 24; hora += 1) {
+        records.push({ fecha: new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate()), hora, kwh: 0.5 });
+      }
+      cursor = new Date(cursor.getFullYear(), cursor.getMonth(), cursor.getDate() + 1);
+    }
+    return records;
+  }
+
+  const solarOptions = { maxDays: 370, requireExactly12Months: true, coverageThreshold: 80 };
+  const diasCiviles = (records) => new Set(records.map((r) => r.fecha.toDateString())).size;
+
+  it('no descarta ningun mes en un año exacto que empieza a mitad de mes', () => {
+    const records = buildHourlyRange(new Date(2025, 8, 11), new Date(2026, 8, 10));
+    const result = csvUtils.validateCsvSpanFromRecords(records, solarOptions);
+
+    expect(result.ok).toBe(true);
+    expect(result.monthsDistinct).toBe(13);
+    expect(result.monthsToDrop).toEqual([]);
+    expect(result.stitch).toMatchObject({
+      targetKey: '2026-09',
+      olderKey: '2025-09',
+      sourceKeys: ['2025-09', '2026-09'],
+      stitchedDays: 30,
+      daysInMonth: 30
+    });
+    expect(result.stitch.olderDaysDropped).toEqual([]);
+    expect(result.warning).toContain('365 días de datos');
+  });
+
+  it('los dos tramos componen el mes natural completo sin solapar dias', () => {
+    const records = buildHourlyRange(new Date(2025, 8, 11), new Date(2026, 8, 10));
+    const result = csvUtils.validateCsvSpanFromRecords(records, solarOptions);
+    const kept = csvUtils.applyEdgeStitchPlan(records, result.stitch);
+
+    const diasDelMesCosido = kept
+      .filter((r) => result.stitch.sourceKeys.includes(`${r.fecha.getFullYear()}-${String(r.fecha.getMonth() + 1).padStart(2, '0')}`))
+      .map((r) => r.fecha.getDate());
+
+    expect(new Set(diasDelMesCosido).size).toBe(30);
+    expect(diasCiviles(kept)).toBe(365);
+  });
+
+  it('descarta del tramo antiguo el dia que el tramo reciente repite (archivo de 366 dias)', () => {
+    const records = buildHourlyRange(new Date(2025, 8, 11), new Date(2026, 8, 11));
+    const result = csvUtils.validateCsvSpanFromRecords(records, solarOptions);
+
+    expect(result.spanDays).toBe(366);
+    expect(result.stitch.olderDaysOverlap).toEqual([11]);
+    expect(result.stitch.olderDaysOverflow).toEqual([]);
+    expect(result.stitch.stitchedDays).toBe(30);
+
+    const kept = csvUtils.applyEdgeStitchPlan(records, result.stitch);
+    expect(diasCiviles(kept)).toBe(365);
+    // El dia repetido se quita del tramo ANTIGUO: el reciente manda.
+    expect(kept.some((r) => r.fecha.getFullYear() === 2025 && r.fecha.getMonth() === 8 && r.fecha.getDate() === 11)).toBe(false);
+    expect(kept.some((r) => r.fecha.getFullYear() === 2026 && r.fecha.getMonth() === 8 && r.fecha.getDate() === 11)).toBe(true);
+  });
+
+  it('descarta el 29 de febrero cuando el mes destino no es bisiesto', () => {
+    const records = buildHourlyRange(new Date(2024, 1, 13), new Date(2025, 1, 12));
+    const result = csvUtils.validateCsvSpanFromRecords(records, solarOptions);
+
+    expect(result.stitch).toMatchObject({ targetKey: '2025-02', daysInMonth: 28, stitchedDays: 28 });
+    expect(result.stitch.olderDaysOverflow).toEqual([29]);
+    expect(result.stitch.olderDaysOverlap).toEqual([]);
+    expect(result.warning).toContain('no existe en febrero 2025');
+
+    const kept = csvUtils.applyEdgeStitchPlan(records, result.stitch);
+    expect(kept.some((r) => r.fecha.getMonth() === 1 && r.fecha.getDate() === 29)).toBe(false);
+  });
+
+  it('12 meses o menos no generan plan de cosido', () => {
+    const records = buildHourlyRange(new Date(2025, 9, 1), new Date(2026, 8, 30));
+    const result = csvUtils.validateCsvSpanFromRecords(records, solarOptions);
+
+    expect(result.ok).toBe(true);
+    expect(result.monthsDistinct).toBe(12);
+    expect(result.stitch).toBeUndefined();
+    expect(result.monthsToDrop).toEqual([]);
+  });
+
+  it('buildEdgeStitchPlan devuelve null si los extremos no son el mismo mes del año', () => {
+    const records = buildHourlyRange(new Date(2025, 8, 11), new Date(2026, 7, 31));
+    expect(csvUtils.buildEdgeStitchPlan(records, '2025-09', '2026-08')).toBeNull();
+    expect(csvUtils.buildEdgeStitchPlan(records, '2025-09', '2025-09')).toBeNull();
+  });
+
+  it('applyEdgeStitchPlan deja los registros intactos sin dias que recortar', () => {
+    const records = buildHourlyRange(new Date(2025, 8, 11), new Date(2026, 8, 10));
+    const result = csvUtils.validateCsvSpanFromRecords(records, solarOptions);
+    expect(csvUtils.applyEdgeStitchPlan(records, result.stitch)).toBe(records);
+  });
+
+  it('el comparador principal sigue usando los 13 meses sin coser ni descartar', () => {
+    const records = buildHourlyRange(new Date(2025, 8, 11), new Date(2026, 8, 10));
+    const result = csvUtils.validateCsvSpanFromRecords(records, { maxDays: 370, requireExactly12Months: false });
+
+    expect(result.ok).toBe(true);
+    expect(result.monthsDistinct).toBe(13);
+    expect(result.monthsToDrop).toEqual([]);
+    expect(result.stitch).toBeUndefined();
+    expect(result.info).toContain('TODOS los datos');
+  });
+});

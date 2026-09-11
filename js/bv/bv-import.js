@@ -18,7 +18,8 @@ window.BVSim = window.BVSim || {};
     buildImportError,
     assertXlsxSheetWithinLimits,
     assertRelevantXlsxFormulasResolved,
-    validateCsvSpanFromRecords
+    validateCsvSpanFromRecords,
+    applyEdgeStitchPlan
   } = window.LF.csvUtils || {};
 
   // El simulador solar es el unico flujo donde una columna de excedentes sin reconocer
@@ -259,8 +260,9 @@ window.BVSim = window.BVSim || {};
       }
 
       const warnings = Array.isArray(parsed.warnings) ? parsed.warnings.slice() : [];
+      let stitchPlan = null;
       if (typeof validateCsvSpanFromRecords === 'function') {
-        // Comparador solar: acepta hasta 12 meses; si llegan 13, recorta a 12.
+        // Comparador solar: acepta hasta 12 meses; si llegan 13, cose los dos extremos.
         const spanCheck = validateCsvSpanFromRecords(records, {
           maxDays: 370,
           requireExactly12Months: true,  // ← Modo solar: máximo 13 meses, ajuste a 12 si procede
@@ -270,6 +272,23 @@ window.BVSim = window.BVSim || {};
 
         if (!spanCheck.ok) {
           return { ok: false, error: spanCheck.error };
+        }
+
+        // Cosido de los dos tramos del mismo mes natural (año que empieza a mitad de mes).
+        // El recorte se aplica aqui, sobre los registros horarios, porque este mismo array
+        // alimenta la traza que valora los excedentes indexados hora a hora: recortar solo al
+        // agregar por mes dejaria la traza con dias duplicados.
+        if (spanCheck.stitch && typeof applyEdgeStitchPlan === 'function') {
+          const stitched = applyEdgeStitchPlan(records, spanCheck.stitch);
+          if (!Array.isArray(stitched) || stitched.length === 0) {
+            return {
+              ok: false,
+              error: 'Tras componer el mes partido en dos tramos, no quedan registros válidos para procesar.'
+            };
+          }
+          parsed.records = stitched;
+          stitchPlan = spanCheck.stitch;
+          if (spanCheck.warning) warnings.push(spanCheck.warning);
         }
 
         // Aplicar filtro de meses si es necesario
@@ -293,6 +312,7 @@ window.BVSim = window.BVSim || {};
 
       const filteredRecords = Array.isArray(parsed.records) ? parsed.records : [];
       const meta = buildMeta(filteredRecords, parsed.hasExcedenteColumn, parsed.hasAutoconsumoColumn, parsed.isDatadisMonthly || false);
+      if (stitchPlan) meta.stitch = stitchPlan;
 
       return {
         ok: true,

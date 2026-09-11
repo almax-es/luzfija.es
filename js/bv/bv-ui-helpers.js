@@ -28,9 +28,44 @@ window.BVSim.manualUi.normalizeMonthMeta = function normalizeMonthMeta(meta) {
     normalized.daysInMonth = explicitDaysInMonth;
   }
 
+  // Tramos de origen de un mes compuesto (un año que empieza a mitad de mes parte un mes
+  // natural en dos trozos de años distintos). Es la unica fuente de esa procedencia: de aqui
+  // salen tanto la etiqueta que ve el usuario como las claves con las que
+  // applyMonthlyIndexedValues busca los excedentes valorados hora a hora. Sin ellas el mes
+  // declararia los dias de los dos tramos y cobraria la compensacion de uno solo.
+  // `from`/`to` son solo para la etiqueta y son opcionales a proposito: si se exigiesen, un
+  // tramo sin ellos desapareceria de la lista y el mes sumaria el consumo de dos tramos
+  // mientras el indexado valoraria uno. La clave y los dias son lo que no puede faltar.
+  const segments = Array.isArray(meta?.segments) ? meta.segments.reduce((acc, segment) => {
+    const segKey = typeof segment?.key === 'string' ? segment.key.trim() : '';
+    const days = Math.round(Number(segment?.days));
+    if (!/^\d{4}-\d{2}$/.test(segKey)) return acc;
+    if (!Number.isFinite(days) || days <= 0 || days > 31) return acc;
+    if (acc.some((item) => item.key === segKey)) return acc;
+    const entry = { key: segKey, days };
+    const from = Math.round(Number(segment?.from));
+    const to = Math.round(Number(segment?.to));
+    if (Number.isFinite(from) && from >= 1 && from <= 31
+      && Number.isFinite(to) && to >= from && to <= 31) {
+      entry.from = from;
+      entry.to = to;
+    }
+    acc.push(entry);
+    return acc;
+  }, []) : [];
+  if (segments.length > 1 && segments.some((segment) => segment.key === key)) {
+    normalized.segments = segments.sort((a, b) => a.key.localeCompare(b.key));
+  }
+
   return normalized;
 };
 
+// Reduce los meses del CSV a las doce filas de la rejilla. Cuando un mes del año llega en dos
+// tramos de años distintos (un histórico de 365 dias que empieza a mitad de mes parte en dos
+// su primer mes), los tramos se SUMAN en una sola fila en vez de quedarse con el mas reciente:
+// quedarse con uno tiraba entre 9 y 20 dias de datos reales y dejaba el periodo por debajo del
+// año. El recorte de dias solapados ya se hizo sobre los registros horarios al importar, asi
+// que aqui los dos tramos nunca describen el mismo dia del mes.
 window.BVSim.manualUi.pickLatestMonthData = function pickLatestMonthData(months) {
   const monthDataMap = new Map();
   const yearsFound = new Set();
@@ -43,19 +78,59 @@ window.BVSim.manualUi.pickLatestMonthData = function pickLatestMonthData(months)
     if (!Number.isFinite(year) || !Number.isInteger(monthIndex) || monthIndex < 0 || monthIndex > 11) return;
 
     yearsFound.add(year);
+    const dayOf = (dateStr) => {
+      const parsed = Math.round(Number(String(dateStr || '').slice(8, 10)));
+      return Number.isFinite(parsed) && parsed >= 1 && parsed <= 31 ? parsed : null;
+    };
+    const days = Math.max(0, Math.round(Number(month?.daysWithData)) || 0);
+    const from = dayOf(month?.start);
+    const to = dayOf(month?.end);
+    const segment = days > 0
+      ? (from !== null && to !== null && to >= from ? { key, from, to, days } : { key, days })
+      : null;
+
     const existing = monthDataMap.get(monthIndex);
-    if (existing && existing.year >= year) return;
+    if (!existing) {
+      monthDataMap.set(monthIndex, {
+        year,
+        p1: Number(month?.importByPeriod?.P1) || 0,
+        p2: Number(month?.importByPeriod?.P2) || 0,
+        p3: Number(month?.importByPeriod?.P3) || 0,
+        vert: Number(month?.exportTotalKWh) || 0,
+        segments: segment ? [segment] : [],
+        daysWithData: days,
+        meta: window.BVSim.manualUi.normalizeMonthMeta({
+          key,
+          daysWithData: month?.daysWithData,
+          daysInMonth: month?.daysInMonth
+        })
+      });
+      return;
+    }
+
+    // La fila conserva la clave del tramo mas reciente: es la que fija el mes natural de
+    // referencia (y sus dias) para el resto de la simulacion.
+    const newest = year > existing.year;
+    const mergedSegments = segment ? [...existing.segments, segment] : existing.segments;
+    const mergedDays = existing.daysWithData + days;
+    const targetKey = newest ? key : `${existing.year}-${String(monthIndex + 1).padStart(2, '0')}`;
+    const targetDaysInMonth = newest
+      ? (Number(month?.daysInMonth) || new Date(year, monthIndex + 1, 0).getDate())
+      : (Number(existing.meta?.daysInMonth) || new Date(existing.year, monthIndex + 1, 0).getDate());
 
     monthDataMap.set(monthIndex, {
-      year,
-      p1: Number(month?.importByPeriod?.P1) || 0,
-      p2: Number(month?.importByPeriod?.P2) || 0,
-      p3: Number(month?.importByPeriod?.P3) || 0,
-      vert: Number(month?.exportTotalKWh) || 0,
+      year: Math.max(existing.year, year),
+      p1: existing.p1 + (Number(month?.importByPeriod?.P1) || 0),
+      p2: existing.p2 + (Number(month?.importByPeriod?.P2) || 0),
+      p3: existing.p3 + (Number(month?.importByPeriod?.P3) || 0),
+      vert: existing.vert + (Number(month?.exportTotalKWh) || 0),
+      segments: mergedSegments,
+      daysWithData: mergedDays,
       meta: window.BVSim.manualUi.normalizeMonthMeta({
-        key,
-        daysWithData: month?.daysWithData,
-        daysInMonth: month?.daysInMonth
+        key: targetKey,
+        daysWithData: mergedDays,
+        daysInMonth: targetDaysInMonth,
+        segments: mergedSegments
       })
     });
   });
@@ -168,7 +243,7 @@ window.BVSim.manualUi.buildSimulationMonths = function buildSimulationMonths(ent
     const [year, month] = key.split('-').map(Number);
     const daysInMonth = new Date(year, month, 0).getDate();
 
-    months.push({
+    const row = {
       key,
       daysWithData: meta?.daysWithData || daysInMonth,
       daysInMonth,
@@ -179,7 +254,17 @@ window.BVSim.manualUi.buildSimulationMonths = function buildSimulationMonths(ent
         P2: p2,
         P3: p3
       }
-    });
+    };
+
+    // Mes compuesto por dos tramos: `sourceKeys` se deriva de los tramos, no se guarda aparte,
+    // para que no puedan contradecirse. Es lo que permite a applyMonthlyIndexedValues sumar los
+    // excedentes valorados de los dos meses de origen en esta unica fila.
+    if (Array.isArray(meta?.segments) && meta.segments.length > 1) {
+      row.segments = meta.segments;
+      row.sourceKeys = meta.segments.map((segment) => segment.key);
+    }
+
+    months.push(row);
   }
 
   return months;
