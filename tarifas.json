@@ -98,6 +98,7 @@
       "p2": 0.07733,
       "web": "https://www.energianufri.com/es/tarifas-luz",
       "tipo": "1P",
+      "requisitos": "Consumo inferior a 4.000 kWh/año.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.03,
@@ -107,7 +108,8 @@
         "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
-      "requiereFV": false
+      "requiereFV": false,
+      "maxConsumoAnual": 4000.0
     },
     {
       "nombre": "Plenitude",
@@ -157,8 +159,8 @@
       "cPunta": 0.109,
       "cLlano": 0.109,
       "cValle": 0.109,
-      "p1": 0.079,
-      "p2": 0.079,
+      "p1": 0.089,
+      "p2": 0.089,
       "web": "https://chippio.es/tarifa-constante",
       "tipo": "1P",
       "requisitos": "No incluye Servicios de Ajuste.",
@@ -1697,6 +1699,7 @@
       "p2": 0.07733,
       "web": "https://www.energianufri.com/es/tarifas-luz",
       "tipo": "3P",
+      "requisitos": "Consumo inferior a 4.000 kWh/año.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.03,
@@ -1706,7 +1709,8 @@
         "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
-      "requiereFV": false
+      "requiereFV": false,
+      "maxConsumoAnual": 4000.0
     },
     {
       "nombre": "El Corte Inglés Benefíciate 3P",
@@ -2553,5 +2557,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-10T11:35:34.822Z"
+  "updatedAt": "2026-09-11T08:47:37.164Z"
 }
