@@ -172,6 +172,50 @@ describe('BV UI manual month helpers', () => {
     expect(restored.segments.map((segment) => segment.kwh)).toEqual([120, 60]);
   });
 
+  it('normalizeMonthMeta rechaza un tramo de otro mes natural colado desde fuera', () => {
+    // Un escenario compartido llega por la URL y entra por aqui sin otra validacion. De estos
+    // tramos salen las claves con las que se suman los excedentes valorados hora a hora: un
+    // tramo ajeno traeria la compensacion de OTRO mes, que ademas seguiria cobrandola por su
+    // cuenta. Se descarta el conjunto entero y el mes vuelve a ser simple.
+    const meta = window.BVSim.manualUi.normalizeMonthMeta({
+      key: '2026-09',
+      daysWithData: 30,
+      segments: [
+        { key: '2025-09', days: 20, kwh: 480 },
+        { key: '2026-09', days: 10, kwh: 240 },
+        { key: '2026-07', days: 1, kwh: 5000 }
+      ]
+    });
+
+    expect(meta.segments).toBeUndefined();
+  });
+
+  it('normalizeMonthMeta rechaza dos tramos de meses naturales distintos', () => {
+    const meta = window.BVSim.manualUi.normalizeMonthMeta({
+      key: '2026-09',
+      daysWithData: 30,
+      segments: [
+        { key: '2026-09', days: 20, kwh: 480 },
+        { key: '2026-07', days: 10, kwh: 240 }
+      ]
+    });
+
+    expect(meta.segments).toBeUndefined();
+  });
+
+  it('pickLatestMonthData elige como clave el febrero que puede albergar los dias', () => {
+    // Con 29 y 28 dias naturales, quedarse con el reciente toparia a 28 una fila que aporta 29.
+    const { monthDataMap } = window.BVSim.manualUi.pickLatestMonthData([
+      { key: '2024-02', start: '2024-02-13', end: '2024-02-29', daysWithData: 17, daysInMonth: 29, importByPeriod: { P1: 17, P2: 0, P3: 0 }, exportTotalKWh: 0 },
+      { key: '2025-02', start: '2025-02-01', end: '2025-02-12', daysWithData: 12, daysInMonth: 28, importByPeriod: { P1: 12, P2: 0, P3: 0 }, exportTotalKWh: 0 }
+    ]);
+
+    const febrero = monthDataMap.get(1);
+    expect(febrero.meta.key).toBe('2024-02');
+    expect(febrero.meta.daysWithData).toBe(29);
+    expect(febrero.meta.segments.map((s) => s.key)).toEqual(['2024-02', '2025-02']);
+  });
+
   it('normalizeMonthMeta descarta tramos que no incluyen el mes de la fila', () => {
     // Un tramo ajeno a la fila apuntaria el indexado a un mes que esta fila no representa.
     const meta = window.BVSim.manualUi.normalizeMonthMeta({

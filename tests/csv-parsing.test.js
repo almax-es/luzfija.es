@@ -958,17 +958,45 @@ describe('validateCsvSpanFromRecords - mes partido en dos tramos', () => {
     expect(kept.some((r) => r.fecha.getFullYear() === 2026 && r.fecha.getMonth() === 8 && r.fecha.getDate() === 11)).toBe(true);
   });
 
-  it('descarta el 29 de febrero cuando el mes destino no es bisiesto', () => {
+  it('conserva el 29 de febrero eligiendo como destino el mes que puede albergarlo', () => {
+    // Regresion: tomar siempre el extremo reciente como destino hacia que el 29 de febrero no
+    // "cupiera" en un febrero de 28 dias y se tirase un dia legitimo.
     const records = buildHourlyRange(new Date(2024, 1, 13), new Date(2025, 1, 12));
     const result = csvUtils.validateCsvSpanFromRecords(records, solarOptions);
 
-    expect(result.stitch).toMatchObject({ targetKey: '2025-02', daysInMonth: 28, stitchedDays: 28 });
-    expect(result.stitch.olderDaysOverflow).toEqual([29]);
+    expect(result.stitch).toMatchObject({ targetKey: '2024-02', daysInMonth: 29, stitchedDays: 29 });
+    expect(result.stitch.olderDaysOverflow).toEqual([]);
     expect(result.stitch.olderDaysOverlap).toEqual([]);
-    expect(result.warning).toContain('no existe en febrero 2025');
+    expect(result.monthsUsed).toHaveLength(12);
+    expect(result.monthsUsed[0]).toBe('2024-02');
+    expect(result.monthsUsed[11]).toBe('2025-01');
 
     const kept = csvUtils.applyEdgeStitchPlan(records, result.stitch);
-    expect(kept.some((r) => r.fecha.getMonth() === 1 && r.fecha.getDate() === 29)).toBe(false);
+    expect(kept.some((r) => r.fecha.getMonth() === 1 && r.fecha.getDate() === 29)).toBe(true);
+    expect(diasCiviles(kept)).toBe(366);
+  });
+
+  it('un historico de 365 dias exactos que cruza un bisiesto sigue simulando 365 dias', () => {
+    // El caso que destapo el fallo: 13/02/2024 -> 11/02/2025 son 365 dias y quedaban en 364.
+    const records = buildHourlyRange(new Date(2024, 1, 13), new Date(2025, 1, 11));
+    expect(diasCiviles(records)).toBe(365);
+
+    const result = csvUtils.validateCsvSpanFromRecords(records, solarOptions);
+    const kept = csvUtils.applyEdgeStitchPlan(records, result.stitch);
+
+    expect(diasCiviles(kept)).toBe(365);
+    expect(result.stitch.targetKey).toBe('2024-02');
+  });
+
+  it('con meses de igual duracion el destino sigue siendo el tramo reciente', () => {
+    // El empate cubre todos los meses salvo febrero con bisiesto por medio: no debe cambiar el
+    // criterio anterior, que conserva la etiqueta del año mas reciente.
+    const records = buildHourlyRange(new Date(2025, 8, 11), new Date(2026, 8, 10));
+    const result = csvUtils.validateCsvSpanFromRecords(records, solarOptions);
+
+    expect(result.stitch.targetKey).toBe('2026-09');
+    expect(result.monthsUsed[0]).toBe('2025-10');
+    expect(result.monthsUsed[11]).toBe('2026-09');
   });
 
   it('12 meses o menos no generan plan de cosido', () => {

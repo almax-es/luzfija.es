@@ -2228,8 +2228,18 @@
     if (!/^\d{4}-\d{2}$/.test(firstKey) || !/^\d{4}-\d{2}$/.test(lastKey)) return null;
     if (firstKey === lastKey || firstKey.slice(5) !== lastKey.slice(5)) return null;
 
-    const [targetYear, targetMonth] = lastKey.split('-').map(Number);
-    const daysInMonth = new Date(targetYear, targetMonth, 0).getDate();
+    // El mes destino NO es siempre el reciente: es el de los dos que puede albergar mas dias.
+    // Solo difieren cuando el corte cae en febrero y hay un bisiesto por medio, y ahi elegir el
+    // corto obligaba a tirar el 29 de febrero, un dia legitimo, convirtiendo un historico de 365
+    // dias en 364. Con empate (todos los demas meses) gana el reciente, que era el criterio
+    // anterior. La regla de recencia en los solapes NO cambia: el dia repetido se quita siempre
+    // del tramo antiguo, lleve la fila la etiqueta que lleve.
+    const diasDe = (key) => {
+      const [year, month] = key.split('-').map(Number);
+      return new Date(year, month, 0).getDate();
+    };
+    const daysInMonth = Math.max(diasDe(firstKey), diasDe(lastKey));
+    const targetKey = diasDe(firstKey) > diasDe(lastKey) ? firstKey : lastKey;
 
     const recentDays = collectMonthDayNumbers(records, lastKey);
     const olderDays = collectMonthDayNumbers(records, firstKey);
@@ -2248,7 +2258,7 @@
     const recentDaysSorted = [...recentDays].sort((a, b) => a - b);
 
     return {
-      targetKey: lastKey,
+      targetKey,
       olderKey: firstKey,
       sourceKeys: [firstKey, lastKey],
       daysInMonth,
@@ -2474,7 +2484,11 @@
     // año entre los que hay que elegir. Ahi se mantiene el descarte, que conserva el reciente.
     const stitchPlan = options.isDatadisMonthly ? null : buildEdgeStitchPlan(records, firstMonth, lastMonth);
     if (stitchPlan) {
-      monthsUsed = monthsSorted.slice(1);
+      // Los 12 meses conservados son los que incluyen al destino: el extremo que NO es destino
+      // queda absorbido por la fila cosida.
+      monthsUsed = stitchPlan.targetKey === lastMonth
+        ? monthsSorted.slice(1)
+        : monthsSorted.slice(0, -1);
       const totalDays = monthsUsed.reduce((acc, key) => acc + (key === stitchPlan.targetKey
         ? stitchPlan.stitchedDays
         : (monthCoverage.get(key)?.daysWithData || 0)), 0);

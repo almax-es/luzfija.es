@@ -713,3 +713,48 @@ describe('computeHourlyCompensation - ausencia de fila frente a hueco de precios
     expect(mapped[0].indexedMissingKwh).toBe(40);
   });
 });
+
+describe('applyMonthlyIndexedValues - procedencia de los tramos', () => {
+  // Defensa en profundidad. La validacion principal vive en normalizeMonthMeta, pero esta suma
+  // es el consumidor con mas que perder: un tramo ajeno traeria la compensacion de otro mes,
+  // que ademas seguiria cobrandola por su cuenta.
+  const filas = {
+    monthlyRows: [
+      { ym: '2025-09', kwh: 200, eur: 20, avg: 0.1, missing: 0, missingKwh: 0, pricedHours: 100, missingShare: 0, missingKwhShare: 0 },
+      { ym: '2026-09', kwh: 100, eur: 5, avg: 0.05, missing: 0, missingKwh: 0, pricedHours: 100, missingShare: 0, missingKwhShare: 0 },
+      { ym: '2026-07', kwh: 300, eur: 40, avg: 0.13, missing: 0, missingKwh: 0, pricedHours: 100, missingShare: 0, missingKwhShare: 0 }
+    ]
+  };
+
+  it('ignora claves de origen de otro mes natural en vez de sumarlas', () => {
+    const mapped = window.LF.surplusPrices.applyMonthlyIndexedValues(
+      [{ key: '2026-09', exportTotalKWh: 300, sourceKeys: ['2025-09', '2026-09', '2026-07'] }],
+      filas
+    );
+
+    // 65 € seria la suma con el tramo inyectado; 5 € es la fila propia del mes.
+    expect(mapped[0].indexedSurplusEur).not.toBeCloseTo(65, 2);
+    expect(mapped[0].indexedSurplusEur).toBeCloseTo(5, 10);
+  });
+
+  it('ignora DOS claves cuando una es de otro mes natural, no solo cuando sobran', () => {
+    // Sin este caso el guard quedaba cubierto solo por el numero de tramos: una metadata con
+    // exactamente dos claves, una ajena, se colaba igual.
+    const mapped = window.LF.surplusPrices.applyMonthlyIndexedValues(
+      [{ key: '2026-09', exportTotalKWh: 300, sourceKeys: ['2026-07', '2026-09'] }],
+      filas
+    );
+
+    expect(mapped[0].indexedSurplusEur).not.toBeCloseTo(45, 2);
+    expect(mapped[0].indexedSurplusEur).toBeCloseTo(5, 10);
+  });
+
+  it('sigue sumando los dos tramos legitimos del mismo mes natural', () => {
+    const mapped = window.LF.surplusPrices.applyMonthlyIndexedValues(
+      [{ key: '2026-09', exportTotalKWh: 300, sourceKeys: ['2025-09', '2026-09'] }],
+      filas
+    );
+
+    expect(mapped[0].indexedSurplusEur).toBeCloseTo(25, 10);
+  });
+});

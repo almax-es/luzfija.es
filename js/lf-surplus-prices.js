@@ -432,8 +432,15 @@
   function applyMonthlyIndexedValues(months, stats) {
     const byMonth = new Map((stats?.monthlyRows || []).map(row => [row.ym, row]));
     const rowForMonth = (month) => {
-      const sourceKeys = Array.isArray(month?.sourceKeys) && month.sourceKeys.length > 1
-        ? month.sourceKeys
+      // Defensa en profundidad: la validacion de procedencia vive en normalizeMonthMeta, pero
+      // esta suma es el consumidor con mas que perder (un tramo ajeno traeria la compensacion
+      // de OTRO mes, que ademas seguiria cobrandola por su cuenta). Se exige aqui tambien que
+      // los tramos sean del mismo mes natural que la fila y que no pasen de dos.
+      const declaradas = Array.isArray(month?.sourceKeys) ? month.sourceKeys : null;
+      const sourceKeys = declaradas
+        && declaradas.length === 2
+        && declaradas.every((key) => /^\d{4}-\d{2}$/.test(String(key)) && String(key).slice(5) === String(month.key || '').slice(5))
+        ? declaradas
         : null;
       if (!sourceKeys) return byMonth.get(month.key);
       const rows = sourceKeys.map((key) => byMonth.get(key)).filter(Boolean);

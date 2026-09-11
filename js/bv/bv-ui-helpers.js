@@ -55,7 +55,19 @@ window.BVSim.manualUi.normalizeMonthMeta = function normalizeMonthMeta(meta) {
     acc.push(entry);
     return acc;
   }, []) : [];
-  if (segments.length > 1 && segments.some((segment) => segment.key === key)) {
+  // Procedencia, no solo forma. Un escenario compartido llega por la URL, se descodifica y
+  // entra aqui sin otra validacion, y de estos tramos salen DOS consumidores economicos: la
+  // tasa de servicios de ajuste de cada mes y las claves con las que se suman los excedentes
+  // valorados hora a hora. Un tramo ajeno inyectado a mano sumaria a este mes la compensacion
+  // de otro, que ademas seguiria cobrandola por su cuenta: duplicacion, no traspaso. Un mes
+  // compuesto legitimo solo puede tener dos tramos y ambos son el mismo mes natural que la
+  // fila. Si algo no encaja se descarta el conjunto entero y el mes vuelve a ser simple, que
+  // es el comportamiento conservador: cobra de mas en su tasa, nunca de menos.
+  const mismoMesNatural = segments.every((segment) => segment.key.slice(5) === key.slice(5));
+  const procedenciaValida = segments.length === 2
+    && mismoMesNatural
+    && segments.some((segment) => segment.key === key);
+  if (procedenciaValida) {
     normalized.segments = segments.sort((a, b) => a.key.localeCompare(b.key));
   }
 
@@ -120,15 +132,21 @@ window.BVSim.manualUi.pickLatestMonthData = function pickLatestMonthData(months)
       return;
     }
 
-    // La fila conserva la clave del tramo mas reciente: es la que fija el mes natural de
-    // referencia (y sus dias) para el resto de la simulacion.
-    const newest = year > existing.year;
+    // La clave de la fila es la del tramo que puede albergar mas dias, con el reciente ganando
+    // el empate. Misma regla que buildEdgeStitchPlan al recortar (lf-csv-utils.js), aplicada
+    // aqui por separado para no acoplar esta reduccion al plan de cosido. Solo cambia algo
+    // cuando el mes partido es febrero con un bisiesto por medio: elegir el febrero corto
+    // toparia a 28 dias una fila que aporta 29 y perderia un dia real de consumo.
+    const diasDelMes = (anyo) => new Date(anyo, monthIndex + 1, 0).getDate();
+    const diasNuevo = diasDelMes(year);
+    const diasExistente = Number(existing.meta?.daysInMonth) || diasDelMes(existing.year);
+    const nuevoEsDestino = diasNuevo > diasExistente || (diasNuevo === diasExistente && year > existing.year);
     const mergedSegments = segment ? [...existing.segments, segment] : existing.segments;
     const mergedDays = existing.daysWithData + days;
-    const targetKey = newest ? key : `${existing.year}-${String(monthIndex + 1).padStart(2, '0')}`;
-    const targetDaysInMonth = newest
-      ? (Number(month?.daysInMonth) || new Date(year, monthIndex + 1, 0).getDate())
-      : (Number(existing.meta?.daysInMonth) || new Date(existing.year, monthIndex + 1, 0).getDate());
+    const targetKey = nuevoEsDestino ? key : `${existing.year}-${String(monthIndex + 1).padStart(2, '0')}`;
+    const targetDaysInMonth = nuevoEsDestino
+      ? (Number(month?.daysInMonth) || diasNuevo)
+      : diasExistente;
 
     monthDataMap.set(monthIndex, {
       year: Math.max(existing.year, year),
