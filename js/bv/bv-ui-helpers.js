@@ -9,9 +9,18 @@ window.BVSim = window.BVSim || {};
 
 window.BVSim.manualUi = window.BVSim.manualUi || {};
 
-window.BVSim.manualUi.normalizeMonthMeta = function normalizeMonthMeta(meta) {
+// `expectedMonthIndex` (0 = enero) ata la metadata a la casilla que la contiene. Sin eso, un
+// escenario compartido puede declarar en la fila de septiembre que su mes es marzo, y la tabla
+// seguiria rotulando "Septiembre" mientras el motor cobra los dias, la tasa regulada y —sobre
+// todo— la compensacion indexada de marzo, que ademas la sigue cobrando su propia fila. Es la
+// misma duplicacion que cierra la validacion de procedencia de `segments`, por la otra puerta.
+window.BVSim.manualUi.normalizeMonthMeta = function normalizeMonthMeta(meta, expectedMonthIndex) {
   const key = typeof meta?.key === 'string' ? meta.key.trim() : '';
   if (!/^\d{4}-\d{2}$/.test(key)) return null;
+
+  if (Number.isInteger(expectedMonthIndex) && expectedMonthIndex >= 0 && expectedMonthIndex <= 11) {
+    if (Number(key.slice(5)) !== expectedMonthIndex + 1) return null;
+  }
 
   const daysWithData = Math.round(Number(meta?.daysWithData));
   if (!Number.isFinite(daysWithData) || daysWithData <= 0) return null;
@@ -127,7 +136,7 @@ window.BVSim.manualUi.pickLatestMonthData = function pickLatestMonthData(months)
           key,
           daysWithData: month?.daysWithData,
           daysInMonth: month?.daysInMonth
-        })
+        }, monthIndex)
       });
       return;
     }
@@ -161,7 +170,7 @@ window.BVSim.manualUi.pickLatestMonthData = function pickLatestMonthData(months)
         daysWithData: mergedDays,
         daysInMonth: targetDaysInMonth,
         segments: mergedSegments
-      })
+      }, monthIndex)
     });
   });
 
@@ -267,7 +276,7 @@ window.BVSim.manualUi.buildSimulationMonths = function buildSimulationMonths(ent
     const vert = Number(entry.vert) || 0;
 
     const rawMeta = monthMetaByIndex instanceof Map ? monthMetaByIndex.get(i) : monthMetaByIndex[i];
-    const meta = window.BVSim.manualUi.normalizeMonthMeta(rawMeta);
+    const meta = window.BVSim.manualUi.normalizeMonthMeta(rawMeta, i);
     const fallbackKey = `${currentYear}-${String(i + 1).padStart(2, '0')}`;
     const key = meta?.key || fallbackKey;
     const [year, month] = key.split('-').map(Number);

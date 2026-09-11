@@ -172,6 +172,25 @@ describe('BV UI manual month helpers', () => {
     expect(restored.segments.map((segment) => segment.kwh)).toEqual([120, 60]);
   });
 
+  it('normalizeMonthMeta rechaza una clave que no corresponde a su casilla', () => {
+    // Sin esto, un escenario compartido puede declarar en la fila de septiembre que su mes es
+    // marzo: la tabla sigue rotulando "Septiembre" y el motor cobra los dias, la tasa regulada
+    // y la compensacion indexada de marzo, que ademas la sigue cobrando su propia fila.
+    const septiembre = 8;
+    expect(window.BVSim.manualUi.normalizeMonthMeta({ key: '2026-03', daysWithData: 31 }, septiembre)).toBeNull();
+    expect(window.BVSim.manualUi.normalizeMonthMeta({ key: '2026-09', daysWithData: 30 }, septiembre)).toMatchObject({ key: '2026-09' });
+  });
+
+  it('buildSimulationMonths ignora una clave ajena a la casilla y usa la suya', () => {
+    const months = window.BVSim.manualUi.buildSimulationMonths(
+      { 8: { p1: 100, p2: 100, p3: 100, vert: 200 } },
+      { currentYear: 2026, monthMetaByIndex: { 8: { key: '2026-03', daysWithData: 31, daysInMonth: 31 } } }
+    );
+
+    expect(months[0].key).toBe('2026-09');
+    expect(months[0].daysInMonth).toBe(30);
+  });
+
   it('normalizeMonthMeta rechaza un tramo de otro mes natural colado desde fuera', () => {
     // Un escenario compartido llega por la URL y entra por aqui sin otra validacion. De estos
     // tramos salen las claves con las que se suman los excedentes valorados hora a hora: un

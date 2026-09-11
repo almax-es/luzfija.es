@@ -441,7 +441,12 @@ ES123;01/01/2024;1;1,0;R`;
     expect(resSolar.warning).toBeDefined(); // Debe tener warning explicativo
     expect(resSolar.monthsToDrop).toHaveLength(0); // Ya no se descarta un mes entero
     expect(resSolar.monthsUsed).toHaveLength(12); // Usa 12 meses
-    expect(resSolar.monthsUsed[0]).toBe('2024-02'); // La fila cosida lleva la clave reciente
+    // Enero y enero tienen los mismos dias naturales, asi que el empate lo gana el reciente y el
+    // mes destino es 2025-01. Por eso la ventana empieza en 2024-02: es el mes siguiente al
+    // extremo absorbido, no el destino.
+    expect(resSolar.stitch.targetKey).toBe('2025-01');
+    expect(resSolar.monthsUsed[0]).toBe('2024-02');
+    expect(resSolar.monthsUsed[11]).toBe('2025-01');
     expect(resSolar.stitch.sourceKeys).toEqual(['2024-01', '2025-01']);
     // Los dos extremos solo traen el dia 1: el tramo reciente manda y el antiguo no aporta
     // ningun dia nuevo, asi que el mes cosido se queda con ese unico dia.

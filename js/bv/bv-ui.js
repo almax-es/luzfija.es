@@ -435,7 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function setManualMonthMeta(monthIndex, meta) {
-    const normalized = window.BVSim.manualUi.normalizeMonthMeta(meta);
+    const normalized = window.BVSim.manualUi.normalizeMonthMeta(meta, monthIndex);
     if (normalized) {
       manualMonthMetaByIndex[monthIndex] = normalized;
     } else {
@@ -774,7 +774,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const vIn = manualGrid.querySelector(`input[data-month="${i}"][data-type="vert"]`);
 
       if (p1In && p2In && p3In && vIn) {
-        const meta = window.BVSim.manualUi.normalizeMonthMeta(manualMonthMetaByIndex[i]);
+        const meta = window.BVSim.manualUi.normalizeMonthMeta(manualMonthMetaByIndex[i], i);
         data[i] = {
           p1: p1In.value,
           p2: p2In.value,
@@ -879,7 +879,7 @@ document.addEventListener('DOMContentLoaded', () => {
         p3: asText(month.p3),
         vert: asText(month.vert)
       };
-      const meta = window.BVSim.manualUi.normalizeMonthMeta(month.meta);
+      const meta = window.BVSim.manualUi.normalizeMonthMeta(month.meta, i);
       if (meta) payload[i].meta = meta;
     }
 

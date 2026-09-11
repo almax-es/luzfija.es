@@ -634,26 +634,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Enersa Relax",
-      "cPunta": 0.124,
-      "cLlano": 0.124,
-      "cValle": 0.124,
-      "p1": 0.093,
-      "p2": 0.093,
-      "web": "https://enersaenergia.com/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Endesa 24h Online",
       "cPunta": 0.124571,
       "cLlano": 0.124571,
@@ -731,6 +711,26 @@
         "exc": 0.03,
         "tipo": "SIMPLE",
         "tope": "ENERGIA_PARCIAL",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Enersa Relax",
+      "cPunta": 0.129,
+      "cLlano": 0.129,
+      "cValle": 0.129,
+      "p1": 0.093,
+      "p2": 0.093,
+      "web": "https://enersaenergia.com/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
         "precioBV": 0.0
@@ -851,26 +851,6 @@
       "web": "https://clientes.atuladoenergia.com/tarifas/",
       "tipo": "1P",
       "requisitos": "Precio revisable cada trimestre natural.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Enersa Relax 10",
-      "cPunta": 0.139,
-      "cLlano": 0.139,
-      "cValle": 0.139,
-      "p1": 0.119,
-      "p2": 0.039,
-      "web": "https://enersaenergia.com/",
-      "tipo": "1P",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -1044,6 +1024,26 @@
         "exc": 0.03,
         "tipo": "SIMPLE",
         "tope": "ENERGIA_PARCIAL",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Enersa Relax 10",
+      "cPunta": 0.144,
+      "cLlano": 0.144,
+      "cValle": 0.144,
+      "p1": 0.119,
+      "p2": 0.039,
+      "web": "https://enersaenergia.com/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
         "precioBV": 0.0
@@ -2535,5 +2535,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-11T19:19:06.833Z"
+  "updatedAt": "2026-09-11T19:48:06.654Z"
 }
