@@ -3186,8 +3186,20 @@ document.addEventListener('DOMContentLoaded', () => {
           : r2((products || []).reduce((sum, factors) => sum + factors.reduce((prod, factor) => prod * Number(factor), 1), 0));
       };
       const totalCostLabel = isAnnualPresentationScope ? 'Coste total anual' : 'Coste periodo simulado';
+      // Dias naturales del periodo simulado (365 o 366). Si la cobertura real se queda corta, el
+      // subtitulo lo dice: "anual" con 12 meses al 80 % puede ser una suma de bastantes menos
+      // dias, y la cifra no debe presentarse como un año entero sin matizar.
+      const diasNaturalesPeriodo = simulatedMonths.reduce((total, month) => {
+        const declarado = Number(month?.daysInMonth);
+        if (Number.isFinite(declarado) && declarado > 0) return total + declarado;
+        const match = /^(\d{4})-(\d{2})$/.exec(String(month?.key || ''));
+        return total + (match ? new Date(Number(match[1]), Number(match[2]), 0).getDate() : 30);
+      }, 0);
+      const coberturaSufijo = isAnnualPresentationScope
+        ? window.BVSim.manualUi.getCoverageSuffix(consumptionCoverageDays, diasNaturalesPeriodo)
+        : '';
       const totalCostSub = isAnnualPresentationScope
-        ? (mesInicioActivo ? `Suma de 12 meses desde ${mesInicioLabel}` : 'Suma de todas tus facturas mensuales')
+        ? (mesInicioActivo ? `Suma de 12 meses desde ${mesInicioLabel}${coberturaSufijo}` : `Suma de todas tus facturas mensuales${coberturaSufijo}`)
         : `Suma de ${simulatedMonths.length} mes${simulatedMonths.length === 1 ? '' : 'es'} simulado${simulatedMonths.length === 1 ? '' : 's'}`;
       const totalCostNote = isAnnualPresentationScope
         ? (mesInicioActivo ? `durante 12 meses desde ${mesInicioLabel}` : 'durante el año')

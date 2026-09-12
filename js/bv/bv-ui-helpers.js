@@ -9,6 +9,19 @@ window.BVSim = window.BVSim || {};
 
 window.BVSim.manualUi = window.BVSim.manualUi || {};
 
+// Un periodo se presenta como anual con 12 meses al 80 % de cobertura, asi que el rotulo "Coste
+// total anual" puede acompañar a una suma de bastantes menos de 365 dias sin decirlo. El ranking
+// sigue siendo correcto (todas las tarifas se comparan sobre el mismo periodo), pero la CIFRA
+// queda por debajo de un año real y el usuario no tiene forma de saberlo. Esto no cambia ningun
+// calculo: solo declara la cobertura cuando no llega al año natural del periodo.
+window.BVSim.manualUi.getCoverageSuffix = function getCoverageSuffix(coveredDays, naturalDays) {
+  const cubiertos = Math.round(Number(coveredDays));
+  const naturales = Math.round(Number(naturalDays));
+  if (!Number.isFinite(cubiertos) || !Number.isFinite(naturales)) return '';
+  if (cubiertos <= 0 || naturales <= 0 || cubiertos >= naturales) return '';
+  return ` · ${cubiertos} de ${naturales} días con datos`;
+};
+
 // Cuanto tiempo debe quedarse en pantalla un aviso. Estaba fijo en 4,2 s para todo, y por ese
 // mismo canal viajan textos de varias lineas: el motivo por el que se rechaza un CSV, o la
 // explicacion de que un mes se ha compuesto con dos tramos. Leer 60 palabras lleva unos 13

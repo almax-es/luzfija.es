@@ -172,6 +172,26 @@ describe('BV UI manual month helpers', () => {
     expect(restored.segments.map((segment) => segment.kwh)).toEqual([120, 60]);
   });
 
+  it('getCoverageSuffix declara la cobertura solo cuando falta algun dia', () => {
+    const suf = window.BVSim.manualUi.getCoverageSuffix;
+
+    // Año completo: no se dice nada, el rotulo anual ya es exacto.
+    expect(suf(365, 365)).toBe('');
+    expect(suf(366, 366)).toBe('');
+    // Un año bisiesto cubierto de mas tampoco añade ruido.
+    expect(suf(370, 365)).toBe('');
+
+    // Con huecos, la cifra no puede presentarse como un año entero sin matizar: el periodo se
+    // rotula anual con 12 meses al 80 %, que pueden ser 292 dias.
+    expect(suf(359, 365)).toBe(' · 359 de 365 días con datos');
+    expect(suf(292, 365)).toBe(' · 292 de 365 días con datos');
+
+    // Datos ausentes o absurdos no inventan texto.
+    expect(suf(0, 365)).toBe('');
+    expect(suf(null, 365)).toBe('');
+    expect(suf(300, 0)).toBe('');
+  });
+
   it('getToastDurationMs da tiempo a leer los avisos largos sin acortar los cortos', () => {
     const dur = window.BVSim.manualUi.getToastDurationMs;
 
@@ -932,5 +952,17 @@ describe('BV UI - contrato del aviso flotante', () => {
   it('el aviso se puede cerrar con un clic', () => {
     // Sin esto, un texto largo tapa la pantalla hasta quince segundos sin salida.
     expect(fuente).toContain("toastEl.addEventListener('click'");
+  });
+});
+
+describe('BV UI - contrato del rotulo de coste anual', () => {
+  const fuente = fs.readFileSync(path.resolve(__dirname, '../js/bv/bv-ui.js'), 'utf8');
+
+  it('el subtitulo anual incorpora la cobertura real', () => {
+    // Probar getCoverageSuffix aislado no demuestra que el rotulo lo use: sin esto, una
+    // mutacion que dejara el subtitulo fijo pasaria desapercibida.
+    expect(fuente).toContain('getCoverageSuffix(consumptionCoverageDays, diasNaturalesPeriodo)');
+    expect(fuente).toContain('Suma de todas tus facturas mensuales${coberturaSufijo}');
+    expect(fuente).toContain('Suma de 12 meses desde ${mesInicioLabel}${coberturaSufijo}');
   });
 });

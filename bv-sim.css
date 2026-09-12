@@ -190,7 +190,10 @@
   .bv-month-head {
     padding: 16px 18px;
     font-weight: 900;
-    font-size: 1.1rem;
+    /* 1.17rem, no 1.1: en negrita a partir de 18.66px el criterio de contraste exigible baja de
+       4,5:1 a 3:1, y el violeta de acento sobre el fondo oscuro de la ficha se queda en 3,47:1.
+       Es la diferencia entre cumplir y no cumplir, y visualmente es un cambio imperceptible. */
+    font-size: 1.17rem;
     letter-spacing: 0.3px;
     background: linear-gradient(135deg, rgba(139, 92, 246, 0.15), rgba(139, 92, 246, 0.05));
     border-bottom: 2px solid rgba(139, 92, 246, 0.2);
