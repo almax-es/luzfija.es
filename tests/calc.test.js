@@ -445,7 +445,7 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     expect(filas[0].esMejor).toBe(true);
   });
 
-  it('Excluye del ranking una tarifa cuyo límite anual de consumo se supera', async () => {
+  it('Mantiene en el ranking una tarifa cuyo límite se supera, y la señala para que el usuario decida', async () => {
     window.LF.cachedTarifas = [
       { nombre: 'Limitada 4000', p1: 0.01, p2: 0.01, cPunta: 0.01, cLlano: 0.01, cValle: 0.01, tipo: '1P', maxConsumoAnual: 4000 },
       { nombre: 'Tramo 8000', p1: 0.01, p2: 0.01, cPunta: 0.01, cLlano: 0.01, cValle: 0.01, tipo: '1P', minConsumoAnualExclusivo: 4000, maxConsumoAnual: 8000 },
@@ -461,8 +461,30 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
       fechaYmd: '2026-08-10'
     });
 
-    expect(window.LF.state.rows.map((r) => r.nombre)).toEqual(['Tramo 8000', 'Sin límite']);
-    expect(window.LF.state.rows[0].esMejor).toBe(true);
+    // Ya no se cae sola del ranking: el tope es una condicion de la comercializadora, puede
+    // negociarse, y su requisito viaja visible en la propia fila. El motor la marca como
+    // afectada y la UI ofrece excluirla.
+    expect(window.LF.state.rows.map((r) => r.nombre)).toEqual(['Limitada 4000', 'Tramo 8000', 'Sin límite']);
+  });
+
+  it('Excluye esa misma tarifa en cuanto el usuario aplica los límites', async () => {
+    window.LF.cachedTarifas = [
+      { nombre: 'Limitada 4000', p1: 0.01, p2: 0.01, cPunta: 0.01, cLlano: 0.01, cValle: 0.01, tipo: '1P', maxConsumoAnual: 4000 },
+      { nombre: 'Sin límite', p1: 0.02, p2: 0.02, cPunta: 0.02, cLlano: 0.02, cValle: 0.02, tipo: '1P' }
+    ];
+    window.LF.state.useAnnualConsumptionEstimate = true;
+
+    await window.LF.calculateLocal({
+      p1: 3.45, p2: 3.45, dias: 365,
+      cPunta: 6512, cLlano: 0, cValle: 0,
+      zonaFiscal: 'Península', viviendaCanarias: false,
+      solarOn: false, exTotal: 0, bvSaldo: 0,
+      bonoSocialOn: false, bonoSocialTipo: 'vulnerable', bonoSocialLimite: 1587,
+      fechaYmd: '2026-08-10'
+    });
+
+    expect(window.LF.state.rows.map((r) => r.nombre)).toEqual(['Sin límite']);
+    window.LF.state.useAnnualConsumptionEstimate = false;
   });
 
   it('Mantiene las tarifas con mínimo aunque el año completo no lo alcance', async () => {

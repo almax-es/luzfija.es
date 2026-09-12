@@ -422,7 +422,11 @@ describe('Renderizado UI (lf-render.js)', () => {
     expect(notice.textContent).toContain('Imagina 4000');
     expect(notice.textContent).toMatch(/6\.?512 kWh/);
     expect(notice.textContent).toMatch(/como máximo 4\.?000 kWh/);
-    expect(notice.querySelector('.consumo-estimate-toggle')).toBeNull();
+    // Con datos firmes tambien se ofrece la salida: el tope lo pone la comercializadora y puede
+    // negociarse, asi que la tarifa sigue en el ranking hasta que el usuario decida excluirla.
+    const toggle = notice.querySelector('.consumo-estimate-toggle');
+    expect(toggle.textContent).toBe('Excluirlas del ranking');
+    expect(toggle.dataset.enabled).toBe('true');
   });
 
   it('Ofrece una estimación opt-in, explica su efecto y emite el cambio reversible', () => {

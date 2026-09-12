@@ -810,16 +810,29 @@
       && Number.isFinite(info?.estimatedAnnualKwh)
       && excludedEstimated.length
     );
+    // Si falta la bandera, el estado se deduce de la estimación aplicada: un botón que anuncie
+    // lo contrario de lo que hace es peor que no tener botón.
+    const limitsApplied = info?.limitsApplied !== undefined
+      ? Boolean(info.limitsApplied)
+      : Boolean(info?.estimateApplied);
     notice.replaceChildren();
     notice.hidden = excludedReal.length === 0 && !hasUsefulEstimate;
     if (notice.hidden) return;
 
     if (excludedReal.length) {
+      // Ya NO se excluyen solas: el usuario decide. Un tope de consumo es una condicion
+      // comercial que puede negociarse con la comercializadora, y su texto ("Consumo inferior a
+      // 4.000 kWh/año") viaja visible en la propia fila del ranking, asi que mostrarlas no
+      // engaña a nadie. Ocultarlas sin preguntar, en cambio, no dejaba ni saber cuales eran.
       const lead = document.createElement('p');
-      const countLabel = excludedReal.length === 1 ? 'tarifa incompatible' : 'tarifas incompatibles';
+      const plural = excludedReal.length === 1;
       const strong = document.createElement('strong');
-      strong.textContent = `⚠️ ${excludedReal.length} ${countLabel} excluida${excludedReal.length === 1 ? '' : 's'} del ranking.`;
-      lead.append(strong, ` Tus datos ya registran ${formatKwh(info.consumoKwh)} y no cumplen ${excludedReal.length === 1 ? 'su requisito' : 'sus requisitos'} de consumo.`);
+      strong.textContent = limitsApplied
+        ? `⚠️ ${excludedReal.length} ${plural ? 'tarifa excluida' : 'tarifas excluidas'} del ranking.`
+        : `⚠️ ${excludedReal.length} ${plural ? 'tarifa supera' : 'tarifas superan'} su límite de consumo.`;
+      lead.append(strong, limitsApplied
+        ? ` Tus datos registran ${formatKwh(info.consumoKwh)} y ${plural ? 'no cumple su requisito' : 'no cumplen sus requisitos'}.`
+        : ` Tus datos registran ${formatKwh(info.consumoKwh)}. ${plural ? 'Sigue' : 'Siguen'} en el ranking porque el tope lo pone la comercializadora y a veces se negocia; puedes excluirlas si prefieres.`);
       notice.appendChild(lead);
     }
 
@@ -846,28 +859,40 @@
         : `Es una aproximación. Si la activas, ${excludedEstimated.length} ${excludedEstimated.length === 1 ? 'tarifa dejará' : 'tarifas dejarán'} de mostrarse por sus límites anuales.`;
       help.textContent = `La época del año puede cambiar mucho tu consumo, especialmente si usas calefacción o aire acondicionado.${shortPeriodWarning} ${estimateEffect}`;
 
+      estimate.append(text, help);
+      notice.appendChild(estimate);
+    }
+
+    // Un solo interruptor para las dos situaciones: con un año completo aplica el consumo
+    // registrado, con un periodo parcial aplica ademas la proyeccion. Antes solo existia en el
+    // segundo caso, asi que quien tenia mejores datos se quedaba sin decidir.
+    // Si quien construye `info` no declara el campo (rutas antiguas o parciales), se deduce de lo
+    // que hay: el interruptor no puede desaparecer solo porque falte una bandera.
+    const choiceAvailable = info?.limitsChoiceAvailable !== undefined
+      ? Boolean(info.limitsChoiceAvailable)
+      : (excludedReal.length > 0 || hasUsefulEstimate);
+    if (choiceAvailable) {
       const toggle = document.createElement('button');
       toggle.type = 'button';
       toggle.className = 'consumo-estimate-toggle';
-      toggle.dataset.enabled = info.estimateApplied ? 'false' : 'true';
-      toggle.textContent = info.estimateApplied
+      toggle.dataset.enabled = limitsApplied ? 'false' : 'true';
+      toggle.textContent = limitsApplied
         ? 'Volver a mostrar esas tarifas'
-        : 'Aplicar límites con esta estimación';
+        : (hasUsefulEstimate ? 'Aplicar límites con esta estimación' : 'Excluirlas del ranking');
       toggle.addEventListener('click', () => {
         document.dispatchEvent(new CustomEvent('lf:annual-consumption-estimate-change', {
           detail: { enabled: toggle.dataset.enabled === 'true' }
         }));
       });
-      estimate.append(text, help, toggle);
-      notice.appendChild(estimate);
+      notice.appendChild(toggle);
     }
 
     const listed = [...excludedReal, ...excludedEstimated];
     const details = document.createElement('details');
     const summary = document.createElement('summary');
-    summary.textContent = info?.estimateApplied
+    summary.textContent = limitsApplied
       ? 'Ver tarifas excluidas y por qué'
-      : (excludedReal.length ? 'Ver tarifas excluidas o afectadas' : 'Ver qué tarifas cambiarían');
+      : (excludedReal.length ? 'Ver tarifas afectadas y su límite' : 'Ver qué tarifas cambiarían');
     const list = document.createElement('ul');
     listed.forEach((item) => {
       const entry = document.createElement('li');

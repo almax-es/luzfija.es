@@ -2555,14 +2555,14 @@ describe('Simulador solar - Calcular no mezcla potencia/tabla/Mi tarifa de insta
 
   it('la rama "no quedan tarifas compatibles" tambien respeta el aviso de desactualizado', async () => {
     bootSolarUi();
-    const tarifaLimitada = { ...tarifaMinima, maxConsumoAnual: 50 };
     let resolveTarifas;
     const tarifasGate = new Promise((res) => { resolveTarifas = res; });
     window.BVSim.loadTarifasBV.mockImplementation(() => tarifasGate);
     window.BVSim.simulateForAllTarifasBV.mockImplementation(() => ({ ok: true, results: [] }));
 
-    // Consumo capturado (100 kWh) SUPERA el limite de tarifaLimitada (50 kWh/año): sin el
-    // aviso, esto es justo lo que dispara la rama "no quedan tarifas compatibles".
+    // Antes esta rama se alcanzaba con una tarifa cuyo maximo superaba el consumo, porque el
+    // filtro la excluia solo. Desde que la exclusion es una decision del usuario eso ya no vacia
+    // la lista, asi que se llega igual pero por la via directa: cero tarifas que simular.
     editGrid(0, 'p1', '100');
     document.getElementById('bv-simulate').click();
     await new Promise((resolve) => setTimeout(resolve, 150));
@@ -2570,7 +2570,7 @@ describe('Simulador solar - Calcular no mezcla potencia/tabla/Mi tarifa de insta
     // Editar la tabla MIENTRAS loadTarifasBV() sigue en vuelo.
     editGrid(0, 'p1', '10');
 
-    resolveTarifas({ ok: true, updatedAt: '2026-08-13T00:00:00Z', tarifasBV: [tarifaLimitada] });
+    resolveTarifas({ ok: true, updatedAt: '2026-08-13T00:00:00Z', tarifasBV: [] });
     await new Promise((resolve) => setTimeout(resolve, 200));
 
     expect(document.getElementById('bv-results').textContent).toContain('Has cambiado datos mientras se calculaba');

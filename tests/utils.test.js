@@ -199,13 +199,41 @@ describe('Utilidades Base (lf-utils.js)', () => {
       { nombre: 'Sin límite' }
     ];
 
-    it('solo excluye el máximo cuando los kWh ya registrados lo superan', () => {
+    it('señala el máximo superado por los kWh registrados, pero NO excluye sin permiso', () => {
+      // La decision es del usuario tambien con datos firmes: el tope lo pone la comercializadora
+      // y puede negociarse, y el requisito viaja visible en la fila de la tarifa.
       const parcial = window.LF.assessConsumoAnualLimits(tarifas, { consumoKwh: 500, annualScope: false });
       expect(parcial.compatibles.map((t) => t.nombre)).toEqual(['Máximo 4000', 'Tramo 4000-8000', 'Sin límite']);
 
       const supera = window.LF.assessConsumoAnualLimits(tarifas, { consumoKwh: 4100, annualScope: false });
-      expect(supera.excluidas.map((item) => item.tarifa.nombre)).toEqual(['Máximo 4000']);
-      expect(supera.excluidas[0]).toMatchObject({ tipo: 'maximo', limiteKwh: 4000 });
+      expect(supera.excluidasReales.map((item) => item.tarifa.nombre)).toEqual(['Máximo 4000']);
+      expect(supera.excluidasReales[0]).toMatchObject({ tipo: 'maximo', limiteKwh: 4000, origen: 'registrado' });
+      expect(supera.excluidas).toEqual([]);
+      expect(supera.compatibles.map((t) => t.nombre)).toContain('Máximo 4000');
+      // Y hay algo que ofrecer, aunque no exista estimacion posible.
+      expect(supera.limitsChoiceAvailable).toBe(true);
+      expect(supera.limitsApplied).toBe(false);
+    });
+
+    it('excluye el máximo registrado en cuanto el usuario lo pide', () => {
+      const aplicado = window.LF.assessConsumoAnualLimits(tarifas, {
+        consumoKwh: 4100, annualScope: true, coveredDays: 365, applyLimits: true
+      });
+
+      expect(aplicado.limitsApplied).toBe(true);
+      expect(aplicado.excluidas.map((item) => item.tarifa.nombre)).toEqual(['Máximo 4000']);
+      expect(aplicado.excluidas[0].origen).toBe('registrado');
+      expect(aplicado.compatibles.map((t) => t.nombre)).not.toContain('Máximo 4000');
+    });
+
+    it('sin ninguna tarifa afectada no se ofrece nada que decidir', () => {
+      const holgado = window.LF.assessConsumoAnualLimits(tarifas, {
+        consumoKwh: 1000, annualScope: true, coveredDays: 365
+      });
+
+      expect(holgado.limitsChoiceAvailable).toBe(false);
+      expect(holgado.excluidasReales).toEqual([]);
+      expect(holgado.compatibles).toEqual(tarifas);
     });
 
     it('no excluye nunca por un mínimo de consumo, ni con año completo', () => {
@@ -250,13 +278,24 @@ describe('Utilidades Base (lf-utils.js)', () => {
       expect(estimadaBaja.excluidas).toEqual([]);
       expect(estimadaBaja.compatibles).toEqual(tarifas);
 
+      // Un maximo ya superado por los kWh registrados se señala, pero tampoco se aplica solo.
       const real = window.LF.assessConsumoAnualLimits(tarifas, {
         consumoKwh: 4100,
         coveredDays: 200,
         useAnnualEstimate: false
       });
-      expect(real.excluidas.map((item) => item.tarifa.nombre)).toEqual(['Máximo 4000']);
-      expect(real.excluidas[0].origen).toBe('registrado');
+      expect(real.excluidasReales.map((item) => item.tarifa.nombre)).toEqual(['Máximo 4000']);
+      expect(real.excluidasReales[0].origen).toBe('registrado');
+      expect(real.excluidas).toEqual([]);
+
+      // Con el interruptor puesto se van las dos vias a la vez, la registrada y la proyectada.
+      const conLimites = window.LF.assessConsumoAnualLimits(tarifas, {
+        consumoKwh: 4100,
+        coveredDays: 200,
+        useAnnualEstimate: true
+      });
+      expect(conLimites.excluidas.map((item) => item.tarifa.nombre)).toEqual(['Máximo 4000']);
+      expect(conLimites.excluidas[0].origen).toBe('registrado');
     });
   });
 

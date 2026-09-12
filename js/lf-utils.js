@@ -153,22 +153,32 @@
     return Math.max(0, Number(n) || 0);
   }
 
-  // Los límites son anuales. Los kWh ya registrados siempre pueden demostrar
-  // que se ha superado un máximo; en periodos parciales, una proyección solo se
-  // aplica si el usuario la activa expresamente.
+  // Los límites son anuales, y la decisión de aplicarlos es SIEMPRE del usuario, tenga un año
+  // completo o un periodo parcial. Antes, un consumo registrado que superaba el máximo excluía
+  // la tarifa sin preguntar, mientras que una proyección solo excluía si el usuario lo activaba.
+  // Eso invertía la lógica: cuanto mejor era el dato, menos veía y menos decidía. Y los dos
+  // errores posibles no pesan igual — enseñar una tarifa que quizá no pueda contratar es visible
+  // y reparable (su requisito se lee en la propia fila), mientras que ocultarla es mudo: nadie
+  // sabe lo que no vio ni puede ir a negociarlo con la comercializadora.
+  // `applyLimits` es el interruptor único; `useAnnualEstimate` se conserva como nombre heredado
+  // de cuando solo gobernaba la proyección.
   function assessConsumoAnualLimits(tarifas, {
     consumoKwh = 0,
     annualScope = false,
     coveredDays = 0,
-    useAnnualEstimate = false
+    useAnnualEstimate = false,
+    applyLimits
   } = {}) {
+    const aplicarLimites = applyLimits === undefined
+      ? Boolean(useAnnualEstimate)
+      : Boolean(applyLimits);
     const consumo = clampNonNeg(consumoKwh);
     const dias = clampNonNeg(coveredDays);
     const estimacionDisponible = !annualScope && dias > 0 && dias < 365;
     const consumoAnualEstimadoKwh = estimacionDisponible
       ? consumo * 365 / dias
       : null;
-    const aplicarEstimacion = Boolean(useAnnualEstimate && estimacionDisponible);
+    const aplicarEstimacion = Boolean(aplicarLimites && estimacionDisponible);
     const compatibles = [];
     const excluidas = [];
     const excluidasReales = [];
@@ -187,7 +197,8 @@
 
       if (exclusionReal) {
         excluidasReales.push(exclusionReal);
-        excluidas.push(exclusionReal);
+        if (aplicarLimites) excluidas.push(exclusionReal);
+        else compatibles.push(tarifa);
       } else {
         if (exclusionEstimada) excluidasEstimadas.push(exclusionEstimada);
         if (exclusionEstimada && aplicarEstimacion) excluidas.push(exclusionEstimada);
@@ -202,6 +213,10 @@
       estimatedAnnualKwh: consumoAnualEstimadoKwh,
       estimateAvailable: estimacionDisponible,
       estimateApplied: aplicarEstimacion,
+      // Hay algo que el usuario puede decidir, y si lo ha decidido ya. La UI usa estos dos para
+      // ofrecer el interruptor tambien cuando el periodo es un año completo.
+      limitsChoiceAvailable: excluidasReales.length > 0 || (estimacionDisponible && excluidasEstimadas.length > 0),
+      limitsApplied: aplicarLimites,
       compatibles,
       excluidas,
       excluidasReales,

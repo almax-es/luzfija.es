@@ -1700,15 +1700,34 @@ document.addEventListener('DOMContentLoaded', () => {
     );
     if (!excludedReal.length && !hasUsefulEstimate) return '';
 
+    // Ya NO se excluyen solas: decide el usuario, tenga un año completo o un periodo parcial.
+    // El tope lo pone la comercializadora y a veces se negocia, y el requisito viaja visible en
+    // la propia tarjeta de la tarifa, asi que mostrarlas no engaña; ocultarlas sin preguntar no
+    // dejaba ni saber cuales eran.
+    const limitsApplied = info?.limitsApplied !== undefined
+      ? Boolean(info.limitsApplied)
+      : Boolean(info?.estimateApplied);
+    const unaReal = excludedReal.length === 1;
     const realMessage = excludedReal.length
-      ? `<p><strong>⚠️ ${excludedReal.length} ${excludedReal.length === 1 ? 'tarifa incompatible excluida' : 'tarifas incompatibles excluidas'} del ranking.</strong> Tus datos ya registran ${fWholeKwh(info.consumoKwh)} y no cumplen ${excludedReal.length === 1 ? 'su requisito' : 'sus requisitos'} de consumo.</p>`
+      ? (limitsApplied
+        ? `<p><strong>⚠️ ${excludedReal.length} ${unaReal ? 'tarifa excluida' : 'tarifas excluidas'} del ranking.</strong> Tus datos registran ${fWholeKwh(info.consumoKwh)} y ${unaReal ? 'no cumple su requisito' : 'no cumplen sus requisitos'}.</p>`
+        : `<p><strong>⚠️ ${excludedReal.length} ${unaReal ? 'tarifa supera' : 'tarifas superan'} su límite de consumo.</strong> Tus datos registran ${fWholeKwh(info.consumoKwh)}. ${unaReal ? 'Sigue' : 'Siguen'} en el ranking porque el tope lo pone la comercializadora y a veces se negocia; puedes excluirlas si prefieres.</p>`)
       : '';
-    const estimateAction = info?.estimateApplied ? 'false' : 'true';
+    const estimateAction = limitsApplied ? 'false' : 'true';
     const shortPeriodWarning = Number(info?.coveredDays) < 28
       ? ' Con menos de 28 días, puede variar todavía más.'
       : '';
     const estimateMessage = hasUsefulEstimate
-      ? `<div class="consumo-estimate-choice"><p><strong>${info.estimateApplied ? 'Estimación anual aplicada' : 'Estimación anual orientativa'}: ${fWholeKwh(info.estimatedAnnualKwh)}/año.</strong> Se basa en ${fWholeKwh(info.consumoKwh)} registrados durante ${Math.round(info.coveredDays)} ${Math.round(info.coveredDays) === 1 ? 'día' : 'días'}.</p><p class="consumo-estimate-help">Es una aproximación: en autoconsumo, la época del año puede cambiar mucho el resultado.${shortPeriodWarning} ${info.estimateApplied ? `${excludedEstimated.length} ${excludedEstimated.length === 1 ? 'tarifa se ha excluido' : 'tarifas se han excluido'} por esta estimación.` : `Si la activas, ${excludedEstimated.length} ${excludedEstimated.length === 1 ? 'tarifa dejará' : 'tarifas dejarán'} de mostrarse por sus límites anuales.`}</p><button type="button" class="consumo-estimate-toggle" data-consumo-estimate-toggle="${estimateAction}">${info.estimateApplied ? 'Volver a mostrar esas tarifas' : 'Aplicar límites con esta estimación'}</button></div>`
+      ? `<div class="consumo-estimate-choice"><p><strong>${info.estimateApplied ? 'Estimación anual aplicada' : 'Estimación anual orientativa'}: ${fWholeKwh(info.estimatedAnnualKwh)}/año.</strong> Se basa en ${fWholeKwh(info.consumoKwh)} registrados durante ${Math.round(info.coveredDays)} ${Math.round(info.coveredDays) === 1 ? 'día' : 'días'}.</p><p class="consumo-estimate-help">Es una aproximación: en autoconsumo, la época del año puede cambiar mucho el resultado.${shortPeriodWarning} ${info.estimateApplied ? `${excludedEstimated.length} ${excludedEstimated.length === 1 ? 'tarifa se ha excluido' : 'tarifas se han excluido'} por esta estimación.` : `Si la activas, ${excludedEstimated.length} ${excludedEstimated.length === 1 ? 'tarifa dejará' : 'tarifas dejarán'} de mostrarse por sus límites anuales.`}</p></div>`
+      : '';
+    // Un solo interruptor para las dos situaciones. Antes vivia dentro del bloque de estimacion,
+    // asi que con un año completo no habia forma de elegir.
+    // Mismo criterio defensivo que en la home: si falta la bandera, se deduce.
+    const choiceAvailable = info?.limitsChoiceAvailable !== undefined
+      ? Boolean(info.limitsChoiceAvailable)
+      : (excludedReal.length > 0 || hasUsefulEstimate);
+    const toggleMessage = choiceAvailable
+      ? `<button type="button" class="consumo-estimate-toggle" data-consumo-estimate-toggle="${estimateAction}">${limitsApplied ? 'Volver a mostrar esas tarifas' : (hasUsefulEstimate ? 'Aplicar límites con esta estimación' : 'Excluirlas del ranking')}</button>`
       : '';
     const listed = [...excludedReal, ...excludedEstimated];
     const items = listed.map((item) => {
@@ -1717,10 +1736,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const source = item?.origen === 'estimacion' ? ' Según la estimación anual.' : '';
       return `<li>${name}: ${reason}.${source}</li>`;
     }).join('');
-    const detailsLabel = info?.estimateApplied
+    const detailsLabel = limitsApplied
       ? 'Ver tarifas excluidas y por qué'
-      : (excludedReal.length ? 'Ver tarifas excluidas o afectadas' : 'Ver qué tarifas cambiarían');
-    return `<div class="consumo-limits-notice" role="note" aria-label="Límites y estimación anual de consumo">${realMessage}${estimateMessage}<details><summary>${detailsLabel}</summary><ul>${items}</ul></details></div>`;
+      : (excludedReal.length ? 'Ver tarifas afectadas y su límite' : 'Ver qué tarifas cambiarían');
+    return `<div class="consumo-limits-notice" role="note" aria-label="Límites y estimación anual de consumo">${realMessage}${estimateMessage}${toggleMessage}<details><summary>${detailsLabel}</summary><ul>${items}</ul></details></div>`;
   }
 
   function focusConsumoEstimateToggle() {
@@ -3128,7 +3147,9 @@ document.addEventListener('DOMContentLoaded', () => {
           useAnnualEstimate: useAnnualConsumptionEstimate
         })
         : { consumoKwh: consumoRegistradoKwh, annualScope: isAnnualConsumptionScope, compatibles: tarifasResult.tarifasBV, excluidas: [] };
-      if (!limitesConsumo.estimateAvailable) {
+      // Se apaga cuando NO hay nada que decidir, no cuando falta la estimacion: con un año
+      // completo no hay proyeccion posible y aun asi el usuario puede aplicar o no los limites.
+      if (!limitesConsumo.limitsChoiceAvailable) {
         useAnnualConsumptionEstimate = false;
         annualConsumptionEstimateBasis = null;
       }

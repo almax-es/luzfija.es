@@ -604,7 +604,9 @@
       coveredDays: dias,
       useAnnualEstimate: Boolean(window.LF.state?.useAnnualConsumptionEstimate)
     });
-    if (!limitesConsumo.estimateAvailable) {
+    // Se apaga cuando NO hay nada que decidir, no cuando falta la estimacion: con un año
+    // completo no hay proyeccion posible y aun asi el usuario puede aplicar o no los limites.
+    if (!limitesConsumo.limitsChoiceAvailable) {
       window.LF.state.useAnnualConsumptionEstimate = false;
       window.LF.state.annualConsumptionEstimateBasis = null;
     }
