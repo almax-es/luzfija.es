@@ -507,7 +507,14 @@
       });
     }
 
+    // Testigo de la ultima accion del usuario. El indice de guias se pide por red, y hasta que
+    // llega el usuario puede haber hecho otra cosa: sin esto, una busqueda abandonada pintaba sus
+    // resultados encima de la categoria recien elegida, dejaba tarjetas en un contenedor oculto y
+    // anunciaba un recuento que no correspondia a lo que se veia.
+    let accionVigente = 0;
+
     function applyCategory(category) {
+      accionVigente += 1;
       setActiveCategory(category);
       updateUrlQuery('');
       searchInput.value = '';
@@ -613,6 +620,8 @@
     async function applySearch(term) {
       const rawQuery = normalizeWhitespace(term);
       const normalizedQuery = normalizeText(rawQuery);
+      accionVigente += 1;
+      const miTurno = accionVigente;
 
       setActiveCategory('todas');
 
@@ -635,10 +644,15 @@
 
       try {
         const guides = await ensureIndex();
+        // Si mientras viajaba el indice el usuario hizo otra cosa (otra busqueda, o pulsar una
+        // categoria), esta respuesta ya no describe la pantalla: se descarta entera, incluida la
+        // analitica, para no contar una busqueda que el usuario no llego a ver.
+        if (miTurno !== accionVigente) return;
         const results = searchGuides(guides, rawQuery);
         renderSearchResults(config, results, rawQuery);
         trackGuideEvent('guias-busqueda', ['index', resultBucket(results.length), queryLengthBucket(rawQuery)], 'Búsqueda guías: ' + resultBucket(results.length));
       } catch (_) {
+        if (miTurno !== accionVigente) return;
         fallbackSearch(rawQuery);
       }
     }
