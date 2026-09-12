@@ -907,6 +907,22 @@ describe('Columna de excedentes vacía: aviso proporcionado', () => {
     expect(res.warnings).not.toContain('No se detectaron excedentes; se importará con excedentes=0.');
   });
 
+  it('cuenta como vacía entera aunque haya más vacíos que filas útiles', () => {
+    // El contador de celdas vacias se incrementa ANTES de que la fila pueda descartarse por otro
+    // motivo, asi que puede superar al de filas parseadas. Con una comparacion de igualdad
+    // estricta este caso volveria al mensaje alarmista: la fila de 20.000 kWh se descarta por
+    // fuera de rango, quedan 2 registros y 3 celdas de excedentes vacias.
+    const res = parse([
+      ['ES1', '01/06/2026', '01:00', '0,5', ''],
+      ['ES1', '01/06/2026', '02:00', '20000', ''],
+      ['ES1', '01/06/2026', '03:00', '0,7', '']
+    ]);
+
+    expect(res.records).toHaveLength(2);
+    expect(res.warnings).toContain('No se detectaron excedentes; se importará con excedentes=0.');
+    expect(res.warnings.join(' ')).not.toMatch(/celdas vacías/);
+  });
+
   it('la excepción no se extiende al consumo: una columna de consumo vacía sigue avisando', () => {
     const res = parse([
       ['ES1', '01/06/2026', '01:00', '', '0,3'],
