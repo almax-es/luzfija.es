@@ -197,6 +197,26 @@ describe('BV UI manual month helpers', () => {
     expect(suf(300, 0)).toBe('');
   });
 
+  it('resolveCoverageNotice avisa solo cuando falta cobertura de verdad', () => {
+    const decide = window.BVSim.manualUi.resolveCoverageNotice;
+
+    // Historico movil de 365 dias sin un solo hueco que cruza un febrero bisiesto: la ventana
+    // suma 366 y ningun año movil puede llenarla, pero el simulador ya lo da por anual. No se
+    // puede acusar de que falta un dia.
+    expect(decide({ annualPresentation: true, annualConsumption: true, coveredDays: 365, naturalDays: 366 })).toBe('');
+
+    // Huecos reales: el criterio anual del simulador dice que no llega, y ahi si se declara.
+    expect(decide({ annualPresentation: true, annualConsumption: false, coveredDays: 359, naturalDays: 365 }))
+      .toBe(' · 359 de 365 días con datos');
+
+    // Un periodo que ni siquiera se presenta como anual ya lo dice en su propio rotulo.
+    expect(decide({ annualPresentation: false, annualConsumption: false, coveredDays: 200, naturalDays: 365 })).toBe('');
+
+    // Entrada ausente o incompleta no inventa texto.
+    expect(decide(null)).toBe('');
+    expect(decide({})).toBe('');
+  });
+
   it('getToastDurationMs da tiempo a leer los avisos largos sin acortar los cortos', () => {
     const dur = window.BVSim.manualUi.getToastDurationMs;
 
@@ -972,10 +992,7 @@ describe('BV UI - contrato del rotulo de coste anual', () => {
   it('el subtitulo anual incorpora la cobertura real', () => {
     // Probar getCoverageSuffix aislado no demuestra que el rotulo lo use: sin esto, una
     // mutacion que dejara el subtitulo fijo pasaria desapercibida.
-    expect(fuente).toContain('getCoverageSuffix(consumptionCoverageDays, diasNaturalesPeriodo)');
-    // Y solo cuando el periodo NO alcanza la cobertura anual real: sin esta condicion, un
-    // historico de 365 dias que cruza un bisiesto se acusaba de 'falta un dia' sin faltarle.
-    expect(fuente).toContain('isAnnualPresentationScope && !isAnnualConsumptionScope');
+    expect(fuente).toContain('resolveCoverageNotice({');
     expect(fuente).toContain('Suma de todas tus facturas mensuales${coberturaSufijo}');
     expect(fuente).toContain('Suma de 12 meses desde ${mesInicioLabel}${coberturaSufijo}');
   });

@@ -3203,9 +3203,12 @@ document.addEventListener('DOMContentLoaded', () => {
       // naturales de la ventana acusaba de "falta un dia" a un historico de 365 dias sin un solo
       // hueco: cuando el periodo cruza un febrero bisiesto, la ventana suma 366 y un año movil
       // completo nunca puede llenarla. El aviso contradecia asi al propio isAnnualConsumptionScope.
-      const coberturaSufijo = isAnnualPresentationScope && !isAnnualConsumptionScope
-        ? window.BVSim.manualUi.getCoverageSuffix(consumptionCoverageDays, diasNaturalesPeriodo)
-        : '';
+      const coberturaSufijo = window.BVSim.manualUi.resolveCoverageNotice({
+        annualPresentation: isAnnualPresentationScope,
+        annualConsumption: isAnnualConsumptionScope,
+        coveredDays: consumptionCoverageDays,
+        naturalDays: diasNaturalesPeriodo
+      });
       const totalCostSub = isAnnualPresentationScope
         ? (mesInicioActivo ? `Suma de 12 meses desde ${mesInicioLabel}${coberturaSufijo}` : `Suma de todas tus facturas mensuales${coberturaSufijo}`)
         : `Suma de ${simulatedMonths.length} mes${simulatedMonths.length === 1 ? '' : 'es'} simulado${simulatedMonths.length === 1 ? '' : 's'}`;

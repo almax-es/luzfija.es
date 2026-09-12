@@ -14,6 +14,16 @@ window.BVSim.manualUi = window.BVSim.manualUi || {};
 // sigue siendo correcto (todas las tarifas se comparan sobre el mismo periodo), pero la CIFRA
 // queda por debajo de un año real y el usuario no tiene forma de saberlo. Esto no cambia ningun
 // calculo: solo declara la cobertura cuando no llega al año natural del periodo.
+// Decide SI ese texto debe llegar al usuario. La regla vive aqui, y no repartida en el render,
+// para poder probarla por comportamiento: la anualidad la determina el criterio de cobertura del
+// propio simulador, y los dias naturales de la ventana solo contextualizan una falta real. Sin
+// esta separacion, un historico movil de 365 dias sin un solo hueco que cruza un febrero
+// bisiesto se acusaba de "365 de 366", porque esa ventana suma 366 y ningun año movil la llena.
+window.BVSim.manualUi.resolveCoverageNotice = function resolveCoverageNotice(scope) {
+  if (!scope || !scope.annualPresentation || scope.annualConsumption) return '';
+  return window.BVSim.manualUi.getCoverageSuffix(scope.coveredDays, scope.naturalDays);
+};
+
 window.BVSim.manualUi.getCoverageSuffix = function getCoverageSuffix(coveredDays, naturalDays) {
   const cubiertos = Math.round(Number(coveredDays));
   const naturales = Math.round(Number(naturalDays));
