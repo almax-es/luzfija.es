@@ -250,18 +250,22 @@ del `sort` y antes de construir `processed`, en este orden:
 1. `requiereFV`: si el usuario no tiene solar, fuera las que exigen autoconsumo.
 2. Límites de consumo: `LF.assessConsumoAnualLimits(candidatas, { consumoKwh, annualScope,
    coveredDays, useAnnualEstimate })` con `consumoKwh = cPunta + cLlano + cValle`,
-   `annualScope = dias >= 365` y `coveredDays = dias`.
+   `annualScope = dias >= 365` y `coveredDays = dias`. Este paso solo retira tarifas si el
+   usuario ha aplicado los límites; por defecto devuelve todas como compatibles.
 
 El orden importa. Al filtrar antes de `processed`, se recalculan sobre el conjunto compatible la
 `posicion`, el `esMejor`, el `vsMejor` y las `stats` (mínimo/máximo/medio), y `resumen.mejor` sale
 de `resultadosFiltrados`. Así ninguna tarifa excluida puede aparecer como "mejor opción" ni
 distorsionar el precio medio. El objeto `limitesConsumo` viaja a `renderAll` para pintar el aviso.
 
-En periodos cortos se conserva el modo prudente por defecto: el máximo se contrasta contra los kWh
-ya registrados. Además se calcula una estimación orientativa `consumoKwh * 365 / coveredDays`;
-solo se ofrece si algún máximo cambiaría candidatas y solo filtra después de que el usuario la
-active. `minConsumoAnualExclusivo` no filtra nunca. Las exclusiones demostradas por superar un
-máximo real no se pueden desactivar. El razonamiento está en `JSON-SCHEMA.md` y `AUDITORIA-REGISTRO.md`.
+**Aplicar los límites es decisión del usuario, siempre** (12/09/2026). El máximo se contrasta
+contra los kWh registrados con cualquier número de días, pero contrastarlo no excluye: por defecto
+entran todas las tarifas, con su requisito visible en la propia fila, y un único interruptor del
+aviso permite excluir las que lo superan. Es reversible en los dos sentidos. En periodos cortos se
+calcula además una estimación orientativa `consumoKwh * 365 / coveredDays`, que el mismo
+interruptor gobierna. `minConsumoAnualExclusivo` no filtra nunca ni propone filtrar. Antes las
+exclusiones por máximo real no se podían desactivar; esa frase ya no describe el producto. El
+razonamiento está en `JSON-SCHEMA.md` y `AUDITORIA-REGISTRO.md`.
 
 **Promociones: fuera del cálculo, siempre**
 

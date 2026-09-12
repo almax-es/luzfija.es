@@ -414,22 +414,31 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - Compensacion limitada por energia.
 - Impuestos por zona.
 - BV (uso y acumulacion si la tarifa la soporta).
-- Exclusion por `maxConsumoAnual`, antes del ranking: se suman los kWh importados de los meses
-  simulados y se aplica la misma utilidad que en la home (`LF.assessConsumoAnualLimits`). Las
-  tarifas que superan ese máximo se retiran antes de ordenar, con el mismo aviso desplegable. El
-  criterio de ranking NO cambia: sigue siendo importe pagado con desempate por saldo BV final;
-  esto solo quita candidatas.
+- `maxConsumoAnual`, antes del ranking: se suman los kWh importados de los meses simulados y se
+  aplica la misma utilidad que en la home (`LF.assessConsumoAnualLimits`). Superar el maximo NO
+  retira la tarifa por si solo; el aviso desplegable dice cuales lo superan y el usuario decide,
+  igual que en la home. Si aplica los limites, se retiran antes de ordenar. El criterio de ranking
+  NO cambia: sigue siendo importe pagado con desempate por saldo BV final; esto solo quita
+  candidatas.
 - Alcance anual en el simulador solar (`window.BVSim.manualUi.hasFullAnnualConsumptionCoverage`):
   12 meses consecutivos, sin duplicados y con al menos 365 dias reales cubiertos. Es mas estricto
   que el `dias >= 365` de la home y distinto del umbral de presentacion (ver siguiente punto).
 - Dos alcances anuales distintos y deliberados: `isAnnualPresentationScope` (12 meses con >= 80% de
   cobertura cada uno) decide etiquetas como "Coste total anual" frente a "Coste periodo simulado";
   `isAnnualConsumptionScope` exige 12 meses consecutivos y >= 365 dias para considerar que ya no
-  hace falta extrapolar. Ninguno excluye por consumo minimo.
+  hace falta extrapolar. Ninguno excluye por consumo minimo. Cuando el titulo dice "anual" pero no
+  hay ano de consumo, la etiqueta lo declara con un sufijo (`· 293 de 365 dias con datos`), que
+  solo se muestra si la falta es real: un historico movil de 365 dias sin huecos que cruza un
+  febrero bisiesto NO se acusa de "365 de 366".
 - En alcance parcial, `getConsumptionCoverageDays` suma los dias civiles realmente cubiertos (sin
-  duplicar una clave mensual) y permite mostrar una estimacion anual opt-in. Solo aparece si cambia
-  candidatas, nunca sustituye las exclusiones demostradas por kWh reales y advierte que la
-  estacionalidad del autoconsumo puede desviar la extrapolacion.
+  duplicar una clave mensual) y permite mostrar una estimacion anual opt-in, que advierte de que la
+  estacionalidad del autoconsumo puede desviar la extrapolacion. El mismo interruptor gobierna la
+  estimacion y las exclusiones por kWh registrados: desde el 12/09/2026 ninguna de las dos se
+  aplica sin que el usuario lo pida.
+- CSV de 13 meses (un ano descargado a mitad de mes): los dos tramos del mismo mes natural se
+  cosen en una sola fila en vez de descartar el extremo mas corto, conservando los 365 dias. Manda
+  el tramo reciente en los solapes y el mes destino es el que puede albergar mas dias. Detalle y
+  consumidores economicos de `segments` en `SIMULADOR-BV.md`.
 - "Mi tarifa" nunca puede quedar excluida: `getCustomTarifa()` la construye sin campos de limite.
   Es un dato del usuario, no una recomendacion.
 - Si no quedara ninguna tarifa compatible, no se lanza error generico: se muestra el aviso con las

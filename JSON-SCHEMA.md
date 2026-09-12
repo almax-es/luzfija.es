@@ -74,21 +74,29 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 | `tipo` | string | ✅ | "1P" \| "3P" | "1P" | 1P = precio uniforme, 3P = discriminación horaria |
 | `requisitos` | string | ❌ | — | "Consumo ≤8.000 kWh" | Condición o matiz **del precio que ya se muestra**. Solo si hay condiciones especiales |
 | `minConsumoAnualExclusivo` | number | ❌ | > 0 | 4000 | Mínimo anual comercial del tramo (`consumo > 4.000`). Se conserva como dato estructurado y debe acompañarse del texto explicativo en `requisitos`, pero **no excluye ni propone excluir tarifas** en la home ni en el simulador solar, tampoco con un año completo o una estimación activada. Un valor vacío se ignora (el campo no se incluye). Desde 14/08/2026, un valor relleno pero no numérico, no positivo, o sin el texto correspondiente en `requisitos`, aborta la generación de `tarifas.json` en vez de ignorarse en silencio. |
-| `maxConsumoAnual` | number | ❌ | > 0 | 4000 | Máximo anual de consumo admisible en kWh. Si los kWh ya introducidos lo superan, la tarifa queda fuera del ranking **en cualquier periodo**: el dato registrado por sí solo ya hace imposible cumplir el límite. En un periodo parcial que aún no lo supera, la proyección solo filtra si el usuario la activa. Un valor vacío se ignora (el campo no se incluye). Desde 14/08/2026, un valor relleno pero no numérico, no positivo, o sin el texto correspondiente en `requisitos`, aborta la generación de `tarifas.json` en vez de ignorarse en silencio (ver `minConsumoAnualExclusivo` para la misma regla; además, si ambos campos están rellenos, `minConsumoAnualExclusivo` debe ser estrictamente menor que `maxConsumoAnual`). |
+| `maxConsumoAnual` | number | ❌ | > 0 | 4000 | Máximo anual de consumo admisible en kWh. Superarlo **no excluye por sí solo**: desde el 12/09/2026 la tarifa sigue en el ranking con su requisito visible y es el usuario quien decide aplicar los límites, tanto si los kWh registrados ya superan el tope como si solo lo supera la proyección de un periodo parcial. Un valor vacío se ignora (el campo no se incluye). Desde 14/08/2026, un valor relleno pero no numérico, no positivo, o sin el texto correspondiente en `requisitos`, aborta la generación de `tarifas.json` en vez de ignorarse en silencio (ver `minConsumoAnualExclusivo` para la misma regla; además, si ambos campos están rellenos, `minConsumoAnualExclusivo` debe ser estrictamente menor que `maxConsumoAnual`). |
 
 **Cómo se usan los dos campos**
 
-`LF.assessConsumoAnualLimits(tarifas, { consumoKwh, annualScope, coveredDays,
-useAnnualEstimate })` evalúa exclusivamente `maxConsumoAnual` en
-`js/lf-utils.js`, compartida por el comparador (`js/lf-calc.js`) y el simulador solar
-(`js/bv/bv-ui.js`). Devuelve las compatibles, las exclusiones reales y las que produciría la
-estimación. Esta última es `consumoKwh * 365 / coveredDays`, no se aplica por defecto y la UI solo
-la ofrece si alteraría el conjunto. Las exclusiones efectivas no entran en ranking, KPIs ni
-gráfico, y la UI las lista con su motivo.
+`LF.assessConsumoAnualLimits(tarifas, { consumoKwh, annualScope, coveredDays, applyLimits })`
+evalúa exclusivamente `maxConsumoAnual` en `js/lf-utils.js`, compartida por el comparador
+(`js/lf-calc.js`) y el simulador solar (`js/bv/bv-ui.js`). `useAnnualEstimate` se conserva como
+alias heredado de `applyLimits`, de cuando el interruptor solo gobernaba la proyección. Devuelve
+las compatibles, las exclusiones reales y las que produciría la estimación, más
+`limitsChoiceAvailable` (hay algo que decidir) y `limitsApplied` (está decidido).
 
-La diferencia es deliberada: **el máximo es monótono y el mínimo no**. Si el usuario ya registró
-4.001 kWh, ningún dato futuro lo devuelve por debajo de 4.000, así que excluir por máximo es seguro.
-El mínimo queda como información comercial y no interviene en el ranking. La validación preventiva
+**Por defecto no se aplica ningún límite** y `compatibles` son todas. La UI ofrece un único
+interruptor cuando hay algo que decidir, con año completo igual que con periodo parcial; solo en
+el segundo caso existe además la estimación `consumoKwh * 365 / coveredDays`. Si el usuario lo
+activa, las exclusiones efectivas dejan de entrar en ranking, KPIs y gráfico, y la UI las lista
+con su motivo. `excluidasReales` se devuelve siempre, se apliquen o no, porque alimenta el aviso.
+
+El máximo y el mínimo siguen tratándose distinto: **el máximo es monótono y el mínimo no**. Si el
+usuario ya registró 4.001 kWh, ningún dato futuro lo devuelve por debajo de 4.000, así que la
+exclusión por máximo es un dato firme y por eso se ofrece. El mínimo queda como información
+comercial y ni excluye ni propone excluir. Lo que cambió el 12/09/2026 no es esa asimetría, sino
+quién decide: antes el dato firme excluía sin preguntar y la proyección se ofrecía, de modo que
+cuanto mejor era el dato del usuario menos veía y menos decidía. La validación preventiva
 de valores incoherentes corresponde al generador/Excel: este JSON no se edita a mano y el
 repositorio no lleva test de esquema (ver `AUDITORIA-REGISTRO.md`).
 | `promo` | string | ❌ | — | "50 € de descuento repartidos en 5 facturas consecutivas." | Oferta temporal **NO incluida en el precio ni en el cálculo**. Su sola presencia marca la tarifa: el comparador pinta la etiqueta verde "🎁 OFERTA" en la fila y añade la nota en el desglose y en el simulador solar. Nunca se aplica al importe. Ver "Promoción vs Requisitos" más abajo |
@@ -345,6 +353,7 @@ de energía un 9% por encima de su tarifa hermana).
 
 ## Historial de Cambios
 
+- **2026-09-12**: Aplicar `maxConsumoAnual` pasa a ser decisión del usuario en los dos alcances. Superar el máximo con kWh registrados ya no excluye por sí solo: la tarifa sigue en el ranking y un único interruptor la retira si el usuario quiere. `assessConsumoAnualLimits` acepta `applyLimits` (con `useAnnualEstimate` como alias heredado) y devuelve `limitsChoiceAvailable` y `limitsApplied`.
 - **2026-08-24**: Corregido el apartado del campo interno `Activa`, que afirmaba que las tarifas inactivas estaban exentas de la validación de orden por precio. Ni era cierto en los datos (17 de 18 ya lo cumplían) ni lo es en el código: `validar_contrato_excel()` valida ahora el orden de los dos bloques por separado y aborta si alguno está descolocado.
 - **2026-08-13**: Los periodos parciales muestran, solo cuando un máximo cambia candidatas, una estimación anual orientativa y reversible. Sigue desactivada por defecto; los máximos ya superados por kWh reales continúan siendo exclusiones obligatorias. `minConsumoAnualExclusivo` deja de filtrar en todos los alcances.
 - **2026-08-10**: Añadidos campos opcionales `minConsumoAnualExclusivo` y `maxConsumoAnual` (límites de consumo anual en kWh, columnas T/U del Excel). Desde el 13/08/2026, `assessConsumoAnualLimits` solo filtra por `maxConsumoAnual`; el mínimo se conserva como información comercial.

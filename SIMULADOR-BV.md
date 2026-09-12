@@ -546,6 +546,16 @@ cobertura cada uno y solo decide etiquetas ("Coste total anual" frente a "Coste 
 simulado"). La separación es deliberada: 12 meses al 80% son ~293 días, suficiente para titular
 un total pero no para considerar que existe un año real y omitir la estimación orientativa.
 
+**Cuando el título dice "anual" pero los datos no llegan al año**, la etiqueta lo declara con un
+sufijo: `· 293 de 365 días con datos`. No cambia ningún cálculo (todas las tarifas se comparan
+sobre el mismo periodo), solo evita que la CIFRA pase por un año completo sin que el usuario
+pueda saberlo. La decisión de mostrarlo vive en `resolveCoverageNotice(scope)`
+(`js/bv/bv-ui-helpers.js`), separada del formateo (`getCoverageSuffix`) para poder probarla por
+comportamiento: **solo aparece si el alcance es de presentación anual pero NO de consumo anual**.
+Sin esa separación, un histórico móvil de 365 días sin un solo hueco que cruza un febrero bisiesto
+se acusaba de "365 de 366", porque esa ventana suma 366 días naturales y ningún año móvil la
+llena. Es una falta real la que se declara, no la aritmética de la ventana.
+
 Notas:
 
 - El máximo se comprueba **siempre** contra el consumo registrado, con cualquier número de meses,
@@ -1138,6 +1148,17 @@ showToast('Cálculo completado.', 'ok');   // Verde
 showToast('Error al leer archivo', 'err'); // Rojo
 showToast('Subiendo archivo...', 'info');  // Azul
 ```
+
+**La duración se escala con el texto** (`getToastDurationMs`, `js/bv/bv-ui-helpers.js`): 60 ms por
+carácter, con un mínimo de 4,2 s y un techo de 15 s. Estaba fija en 4,2 s para todo, y por ese
+mismo canal viajan textos de varias líneas (el motivo por el que se rechaza un CSV, o la
+explicación de que un mes se ha compuesto con dos tramos), que se borraban antes de poder leerlos.
+Los avisos cortos no cambian.
+
+**El aviso no bloquea nada** (`styles.css`): lleva `pointer-events: none`, porque al alargarse
+tapaba el botón de calcular, y en pantallas de ≤480px ocupa el ancho útil, ya que si no se
+encogía a una columna de ~160px y crecía hacia arriba hasta cruzarse con el botón. Contrapartida
+aceptada: el toast permanente de arranque roto ya no se puede seleccionar con el ratón.
 
 ---
 

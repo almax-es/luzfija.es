@@ -784,6 +784,11 @@ ellos, no por el mecanismo original ya corregido.
 Filtro revisado el 13/08/2026. Las decisiones de abajo son FIRMES y ya fueron litigadas en
 revision tecnica; no las reportes como hallazgo.
 
+> **Actualizado el 12/09/2026.** Aplicar los limites paso a ser decision del usuario en TODOS los
+> alcances: superar el maximo con kWh registrados ya no excluye por si solo. Lee antes
+> [Limites De Consumo Como Decision Del Usuario (12-09-2026)](#limites-de-consumo-como-decision-del-usuario-12-09-2026),
+> que dice exactamente que puntos de esta entrada quedan superados y cuales siguen vigentes.
+
 - **Los periodos cortos no se anualizan automaticamente para excluir.** Se mantiene visible el
  conjunto prudente por defecto. La UI solo ofrece una estimacion `consumo * 365 / dias` cuando
  activarla cambiaria candidatas, explica su base y permite aplicarla o deshacerla. Asi un mes
@@ -4118,9 +4123,15 @@ sigue siendo correcto, pero el aviso de dia incompleto dejaria de verse a diario
  `annualConsumptionEstimateBasis` y reinicia el interruptor. Verificado en produccion el
  12/09/2026 con un año real: 7.182 kWh -> 104 tarifas; al aplicar -> 90; bajando a 4.766 kWh y
  recalculando -> 104 otra vez, con el aviso rehecho de 14 tarifas afectadas a 6.
-- **Cuidado con la nota antigua.** La entrada del 10/08/2026 justificaba la exclusion automatica
- diciendo que "una exclusion no es reversible desde la UI". Desde este cambio SI lo es; esa
- justificacion ya no describe el producto.
+- **Que queda superado de la entrada del 13/08/2026** (`Limites De Consumo Anual`), que sigue
+ marcada como FIRME y en su mayor parte lo es. Dejan de describir el producto dos cosas: que la
+ UI solo ofrezca el control "cuando activarla cambiaria candidatas" referido solo a la
+ estimacion, porque ahora el interruptor aparece tambien sin estimacion posible; y la asimetria
+ entre un maximo ya superado (que excluia solo) y una proyeccion (que se ofrecia). Lo que SIGUE
+ vigente de aquella entrada: el maximo se contrasta siempre contra los kWh registrados y es
+ monotono, el minimo no excluye nunca, cada simulador define "ano completo" a su manera, los dos
+ alcances anuales de solar no se fusionan, no se prorratean los periodos de 365 dias o mas, el
+ borde es `consumo > maximo` y un limite ausente o no numerico se ignora.
 - **Criterio de reapertura.** Que el ranking pase a ordenarse por algo distinto del coste, o que
  aparezca un limite que no sea una condicion comercial negociable (uno tecnico o regulatorio):
  ahi si tendria sentido volver a excluir sin preguntar.
@@ -4152,9 +4163,15 @@ sigue siendo correcto, pero el aviso de dia incompleto dejaria de verse a diario
  (`calcChargeForSegments`, `js/lf-ssaa.js`), que ponderan por kWh de cada tramo, caen a dias si no
  hay kWh y fallan CERRADO si a un tramo le falta tasa habiendo consumo; y los excedentes indexados
  (`js/lf-surplus-prices.js`), que valoran cada tramo contra su mes real y suman. Ambos validan la
- procedencia: exactamente dos claves, las dos del mismo mes natural que la clave de la fila. Sin
- esa validacion, una `sourceKeys` forjada duplicaba la compensacion indexada; fueron dos puertas
- distintas y las dos estan cerradas.
+ procedencia: exactamente dos claves, las dos del mismo mes natural que la clave de la fila.
+- **Dos puertas distintas hacia la misma duplicacion, las dos cerradas.** Un escenario compartido
+ (`?bv=`) puede traer metadata forjada. Por la primera puerta, una `sourceKeys` con una clave
+ ajena hacia que la fila cobrase la compensacion indexada de OTRO mes, que ademas seguia
+ cobrandola por su cuenta. Por la segunda, la fila de septiembre podia declarar que su mes era
+ marzo: la tabla seguia rotulando "Septiembre" mientras el motor cobraba los dias, la tasa
+ regulada y la compensacion indexada de marzo. La cierra `normalizeMonthMeta(meta,
+ expectedMonthIndex)` (`js/bv/bv-ui-helpers.js`), que ata la clave a la casilla que la contiene y
+ rechaza la metadata cuyo mes no coincide con su ranura.
 - **Un tramo sin fila de indice cuenta como cero, nunca como hueco de datos**:
  `computeHourlyCompensation` crea fila para todo mes con algun excedente, asi que su ausencia
  significa que ese tramo no tuvo excedentes.
