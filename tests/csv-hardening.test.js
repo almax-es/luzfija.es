@@ -684,3 +684,143 @@ describe('Unidad por contrato de cabecera (UFD EHCR/EHEX)', () => {
     }
   });
 });
+
+// El fichero que Datadis entrega para un año completo trae el dia en que se retrasa el reloj con
+// 25 filas REPITIENDO el numero de hora (…02:00, 03:00, 03:00, 04:00…) y sin ninguna columna que
+// distinga las dos. Se descubrio con un fichero real: el control de duplicados cancelaba la
+// importacion entera, asi que cualquier año descargado de Datadis que incluyese el ultimo domingo
+// de octubre era irrecuperable. Ningun caso sintetico lo detecto porque todos usaban una hora 25
+// explicita, que es la convencion CNMC y no la que exporta Datadis.
+describe('Octubre en base 1-24: hora repetida sin columna que la distinga', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  const CAB = ['cups', 'fecha', 'hora', 'consumo_kWh', 'metodoObtencion'];
+  const fila = (fecha, hora, kwh) => ['ES0031', fecha, hora, kwh, 'Real'];
+  const DST_OCT = '2025/10/26';
+
+  const parse = (filas) => u.parseEnergyTableRows([CAB, ...filas], {
+    headerRowIndex: 0, parseNumber: u.parseNumberFlexibleCSV, zonaFiscal: 'Península'
+  });
+
+  it('la segunda hora repetida pasa a ser la 25 en vez de romper la importacion', () => {
+    const res = parse([
+      fila(DST_OCT, '01:00', '0,1'), fila(DST_OCT, '02:00', '0,2'),
+      fila(DST_OCT, '03:00', '0,3'), fila(DST_OCT, '03:00', '0,4'),
+      fila(DST_OCT, '04:00', '0,5')
+    ]);
+
+    expect(res.records.map((r) => r.hora)).toEqual([1, 2, 3, 25, 4]);
+    // Y ninguna lectura se pierde por el camino.
+    expect(res.records.map((r) => r.kwh)).toEqual([0.1, 0.2, 0.3, 0.4, 0.5]);
+  });
+
+  it('un duplicado de verdad sigue cancelando la importacion', () => {
+    // La tolerancia es SOLO para la hora repetida del cambio de octubre: pegar dos veces el
+    // mismo periodo tiene que seguir siendo un error, que es para lo que existe el control.
+    expect(() => parse([
+      fila(DST_OCT, '05:00', '0,1'), fila(DST_OCT, '05:00', '0,2')
+    ])).toThrow(/duplicadas/i);
+  });
+
+  it('la hora repetida en un dia que NO es el cambio horario sigue siendo un duplicado', () => {
+    expect(() => parse([
+      fila('2026/04/01', '03:00', '0,1'), fila('2026/04/01', '03:00', '0,2')
+    ])).toThrow(/duplicadas/i);
+  });
+
+  it('una tercera repeticion tampoco pasa: solo hay una hora ganada', () => {
+    expect(() => parse([
+      fila(DST_OCT, '03:00', '0,1'), fila(DST_OCT, '03:00', '0,2'), fila(DST_OCT, '03:00', '0,3')
+    ])).toThrow(/duplicadas/i);
+  });
+
+  it('un fichero con hora 25 explicita sigue funcionando igual', () => {
+    // La convencion CNMC no se toca: aqui la 3 aparece una sola vez.
+    const res = parse([
+      fila(DST_OCT, '03:00', '0,3'), fila(DST_OCT, '04:00', '0,4'), fila(DST_OCT, '25:00', '0,9')
+    ]);
+
+    expect(res.records.map((r) => r.hora)).toEqual([3, 4, 25]);
+  });
+
+  it('la hora 25 se clasifica en valle, como las 02:00-03:00 que representa', () => {
+    const res = parse([fila(DST_OCT, '03:00', '0,3'), fila(DST_OCT, '03:00', '0,4')]);
+
+    expect(res.records[1].hora).toBe(25);
+    expect(res.records[1].periodo).toBe('P3');
+  });
+});
+
+// Integracion con la forma REAL de un año de Datadis, generada aqui en vez de guardar medio mega
+// de fixture. Reproduce lo que entrega la distribuidora: base 1-24, el dia de octubre con la hora
+// repetida y el de marzo con la hora que no existe. Es el contrato que fallaba en produccion.
+describe('Año completo con la forma real de Datadis', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  // 01/09/2025 a 31/08/2026: cruza el cambio de octubre (26/10/2025) y el de marzo (29/03/2026).
+  function anyoDatadis() {
+    const filas = [['cups', 'fecha', 'hora', 'consumo_kWh', 'metodoObtencion']];
+    const dos = (n) => String(n).padStart(2, '0');
+    let d = new Date(2025, 8, 1);
+    const fin = new Date(2026, 7, 31);
+    while (d <= fin) {
+      const fecha = `${d.getFullYear()}/${dos(d.getMonth() + 1)}/${dos(d.getDate())}`;
+      const esOctubre = fecha === '2025/10/26';
+      const esMarzo = fecha === '2026/03/29';
+      for (let h = 1; h <= 24; h += 1) {
+        if (esMarzo && h === 3) continue;            // la hora que no existe
+        filas.push(['ES0031', fecha, `${dos(h)}:00`, '0,500', 'Real']);
+        if (esOctubre && h === 3) {                  // la hora repetida, sin marca que la distinga
+          filas.push(['ES0031', fecha, `${dos(h)}:00`, '0,700', 'Real']);
+        }
+      }
+      d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
+    }
+    return filas;
+  }
+
+  it('importa el año entero: 365 dias, 12 meses y ninguna lectura perdida', () => {
+    const filas = anyoDatadis();
+    const res = u.parseEnergyTableRows(filas, {
+      headerRowIndex: 0, parseNumber: u.parseNumberFlexibleCSV, zonaFiscal: 'Península'
+    });
+
+    const dias = new Set(res.records.map((r) => u.ymdLocal(r.fecha)));
+    const meses = new Set(res.records.map((r) => u.ymdLocal(r.fecha).slice(0, 7)));
+    expect(dias.size).toBe(365);
+    expect(meses.size).toBe(12);
+    // Una fila del fichero, un registro: nada se descarta por el camino.
+    expect(res.records.length).toBe(filas.length - 1);
+  });
+
+  it('el dia de octubre queda con 25 horas y el de marzo con 23', () => {
+    const res = u.parseEnergyTableRows(anyoDatadis(), {
+      headerRowIndex: 0, parseNumber: u.parseNumberFlexibleCSV, zonaFiscal: 'Península'
+    });
+    const horasDe = (ymd) => res.records.filter((r) => u.ymdLocal(r.fecha) === ymd).map((r) => r.hora);
+
+    const octubre = horasDe('2025-10-26');
+    expect(octubre).toHaveLength(25);
+    expect(octubre).toContain(25);
+    expect(octubre.filter((h) => h === 3)).toHaveLength(1);
+
+    const marzo = horasDe('2026-03-29');
+    expect(marzo).toHaveLength(23);
+    expect(marzo).not.toContain(3);
+  });
+
+  it('el periodo declarado abarca los 12 meses sin coser (no son 13)', () => {
+    const res = u.parseEnergyTableRows(anyoDatadis(), {
+      headerRowIndex: 0, parseNumber: u.parseNumberFlexibleCSV, zonaFiscal: 'Península'
+    });
+    const span = u.validateCsvSpanFromRecords(res.records, {
+      maxDays: 370, requireExactly12Months: true, coverageThreshold: 80
+    });
+
+    expect(span.ok).toBe(true);
+    expect(span.monthsDistinct).toBe(12);
+    expect(span.stitch).toBeUndefined();
+  });
+});

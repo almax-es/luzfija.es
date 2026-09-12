@@ -1404,6 +1404,25 @@
         const firstCompressedHour = repeatedClockHour + 1;
         return hourNum >= firstCompressedHour ? hourNum + 1 : hourNum;
       }
+
+      // Octubre en base 1-24. Datadis exporta el dia que se retrasa el reloj con 25 filas
+      // REPITIENDO el numero de hora (…02:00, 03:00, 03:00, 04:00…) en vez de usar una hora 25,
+      // y sin ninguna columna que distinga las dos. Sin esto, las dos llegan como la misma hora
+      // y el control de duplicados cancelaba la importacion entera: cualquier año descargado de
+      // Datadis que incluya el ultimo domingo de octubre era irrecuperable. La segunda ocurrencia
+      // es la hora ganada, que es exactamente lo que representa la 25 (misma semantica que la
+      // rama 0-23 de arriba). La columna de inversion horaria, si el fichero la trae, sigue
+      // mandando sobre el conteo.
+      const horaRepetidaCnmc = repeatedClockHour + 1;
+      if (hourNum === horaRepetidaCnmc && esDiaCambioHorarioOctubre(fecha)) {
+        const key = `${ymdLocal(fecha)}|cnmc|${horaRepetidaCnmc}`;
+        const count = (seen.get(key) || 0) + 1;
+        seen.set(key, count);
+        const inv = stripOuterQuotes(invVerRaw).trim();
+        if (inv === '1') return horaRepetidaCnmc;
+        if (inv === '0') return 25;
+        return count >= 2 ? 25 : horaRepetidaCnmc;
+      }
       return hourNum;
     };
   }

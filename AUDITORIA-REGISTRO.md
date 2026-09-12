@@ -89,8 +89,19 @@ nuevo no cubierto por sus tests. Cada entrada explica que evidencia haria falta 
  primero contra `tests/csv-parsing.test.js`, describe "Deteccion de periodos duplicados".
 - La clave de duplicado en `parseEnergyTableRows` usa la hora YA RESUELTA (post-`resolveHour`),
  no la hora cruda del fichero: las dos ocurrencias legitimas de la hora repetida del cambio de
- octubre se resuelven a horas DISTINTAS (ej. 3 y 25) antes de la comprobacion, asi que nunca
- colisionan con este chequeo. No lo reportes como conflicto con el cambio de hora.
+ octubre se resuelven a horas DISTINTAS (3 y 25) antes de la comprobacion, asi que no colisionan
+ con este chequeo.
+- **CORREGIDO el 12/09/2026: esa garantia solo era cierta en base 0-23.** Hasta esa fecha
+ `buildHourResolver` resolvia la hora repetida de octubre UNICAMENTE cuando el fichero venia en
+ base 0-23; en base 1-24 devolvia el numero tal cual. Datadis exporta el año completo en base
+ 1-24 y REPITE el numero de hora ese dia (...02:00, 03:00, 03:00, 04:00...) sin ninguna columna
+ que las distinga, asi que las dos llegaban iguales al chequeo y la importacion se cancelaba
+ entera: cualquier año descargado de Datadis que incluyese el ultimo domingo de octubre era
+ irrecuperable. Lo detecto el autor con un fichero real suyo, no una auditoria. La frase anterior
+ de esta entrada terminaba con "no lo reportes como conflicto con el cambio de hora", y eso
+ probablemente desactivo la sospecha en rondas posteriores: cuidado con las notas que cierran una
+ linea de investigacion. Cubierto ahora por `tests/csv-hardening.test.js`, describe "Octubre en
+ base 1-24: hora repetida sin columna que la distinga".
 
 <a id="xlsx-formula-sin-resultado-materializado-resuelta-30-08-2026"></a>
 ### XLSX: Formula Sin Resultado Materializado (RESUELTA 30/08/2026)
