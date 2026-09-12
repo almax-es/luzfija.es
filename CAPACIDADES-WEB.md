@@ -111,18 +111,28 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - Modal de desglose detallado al pulsar nombre o total.
 - Enlaces de contratacion (URL saneada, solo `http|https` o rutas relativas seguras).
 - Aviso de requisitos en tarifas concretas: tooltip con el texto libre del campo `requisitos` del
-  dataset. Es informativo y no filtra nada; el unico limite que excluye es `maxConsumoAnual`,
-  descrito en el punto siguiente.
-- Exclusion transparente por el requisito estructurado `maxConsumoAnual` de `tarifas.json`: si
-  los kWh ya introducidos superan un maximo contractual, la tarifa no entra en ranking, KPIs ni
-  grafico, y un aviso propio
-  (`#consumoLimitsNotice`, `role="note"`) explica cuantas se han quitado y por que, con
-  desplegable de nombres y requisito incumplido. Reglas:
-- El maximo se contrasta SIEMPRE contra los kWh registrados. En un periodo parcial, la web calcula
-  ademas una estimacion orientativa (`consumo * 365 / dias`), pero no la aplica por defecto. Solo
-  ofrece el control si activarlo cambiaria alguna candidata; el usuario puede aplicar esos limites
-  y deshacer la decision desde el propio aviso. El copy advierte del sesgo estacional y refuerza
-  la cautela cuando la base no llega a 28 dias, sin imponer un minimo de uso.
+  dataset. Es informativo y no filtra nada; el unico limite que puede llegar a excluir es
+  `maxConsumoAnual`, descrito en el punto siguiente, y solo si el usuario lo activa.
+- Exclusion por el requisito estructurado `maxConsumoAnual` de `tarifas.json`, SIEMPRE como
+  decision del usuario (12/09/2026): ninguna tarifa se retira del ranking por si sola. Cuando el
+  consumo supera un maximo contractual, un aviso propio (`#consumoLimitsNotice`, `role="note"`)
+  ofrece un unico interruptor para aplicar esos limites, dice a cuantas tarifas afecta y despliega
+  sus nombres con el requisito incumplido. Reglas:
+- Por defecto NO se aplica ningun limite: la tarifa sigue en ranking, KPIs y grafico, con su
+  requisito visible en la propia fila. El motivo es que los dos errores posibles no pesan igual.
+  Ensenar una tarifa que quiza no pueda contratar es visible y reparable; ocultarla es mudo,
+  porque nadie sabe lo que no vio ni puede ir a preguntarlo a la comercializadora.
+- El mismo interruptor gobierna los dos casos, con ano completo y con periodo parcial. Antes el
+  comportamiento estaba invertido: el consumo registrado excluia sin preguntar y la proyeccion
+  solo excluia si el usuario lo pedia, de modo que cuanto mejor era el dato menos veia y menos
+  decidia.
+- Con periodo parcial la web calcula ademas una estimacion orientativa (`consumo * 365 / dias`).
+  El copy advierte del sesgo estacional y refuerza la cautela cuando la base no llega a 28 dias,
+  sin imponer un minimo de uso.
+- El aviso solo aparece si hay algo que decidir (`limitsChoiceAvailable`): alguna tarifa excluible
+  por el consumo registrado, o por la estimacion cuando la estimacion existe. `limitsApplied` dice
+  si el usuario ya lo ha activado. En `assessConsumoAnualLimits` el interruptor es `applyLimits`;
+  `useAnnualEstimate` se conserva como alias heredado de cuando solo gobernaba la proyeccion.
 - `minConsumoAnualExclusivo` no excluye ni propone excluir en ningun flujo. Las dos tarifas Imagina
   8000 permanecen visibles aunque el consumo quede por debajo de 4.000 kWh; su condicion sigue
   informada en `requisitos` y el orden por precio deja delante el tramo que resulte mas barato.
@@ -169,7 +179,11 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
   mientras que las curvas que ya declaran el hueco y las columnas `fecha_hora` se
   conservan. En octubre, los formatos 0-23 reconocen como repetida la hora local 2 en
   Peninsula/Baleares/Ceuta/Melilla y la 1 en Canarias y reservan la clave 25 para la
-  segunda ocurrencia.
+  segunda ocurrencia. Los ficheros en base 1-24 que REPITEN el numero de hora en vez de
+  declarar la 25, que es lo que exporta Datadis, tambien se resuelven: la segunda
+  ocurrencia del dia del cambio pasa a la 25 (o la manda `INV/VER` si viene la columna).
+  Solo la repeticion que no encaje en ese dia, o una tercera, sigue tratandose como
+  duplicado real y aborta la importacion.
 - Cambio de zona posterior a una importacion protegido en dos ejes independientes. Al
   entrar o salir de Ceuta/Melilla, la home recalcula P1/P2/P3 desde la curva y la zona
   nueva, ignorando el `record.periodo` antiguo, pero conserva fecha/hora para el PVPC

@@ -55,6 +55,27 @@ Las tarifas con **batería virtual** acumulan los excedentes solares sobrantes (
   - Extensión permitida (`.csv`, `.xlsx`, `.xls`); el MIME se trata de forma tolerante porque los navegadores y portales de distribuidoras no lo informan de manera uniforme
   - Validación de rangos (kWh, horas)
   - En la matriz horaria: celda vacía o con marcador conocido se interpreta como 0 kWh conservando la hora; texto, negativo o >10.000 kWh descarta esa hora con aviso; si la mitad o más de las celdas no vacías son inválidas, o no hay ninguna numérica, se rechaza el archivo. Implementación compartida con la home en `lf-csv-utils.js` (`parseHourlyMatrixRows`), que el solar invoca con `computePeriodo:false` porque `bucketizeByMonth` respeta `record.periodo` si viene relleno y al importar todavía no se conoce la zona definitiva.
+- **Mes cosido (13 meses, 11/09/2026)**: el simulador exige 12 meses, y un año descargado a mitad
+  de mes (11/09/2025 → 10/09/2026) llega partido en 13. Antes se descartaba el extremo con menos
+  cobertura, lo que tiraba entre 9 y 20 días reales y dejaba el periodo por debajo del año. Ahora
+  los dos tramos del mismo mes natural se **cosen en una sola fila mensual**. Reglas:
+  - **Manda el tramo reciente**: si un día del mes aparece en los dos años, o no cabe en el mes
+    destino, se recorta del tramo antiguo. El mes cosido nunca duplica un día ni excede su mes
+    natural.
+  - El recorte se aplica sobre los **registros horarios**, que son la misma fuente que alimenta la
+    traza de excedentes indexados, no sobre un agregado posterior.
+  - El **mes destino es el que puede albergar más días**, no siempre el reciente. Solo difieren
+    cuando el corte cae en febrero con un bisiesto por medio: elegir el corto obligaba a tirar el
+    29 de febrero y convertía un histórico de 365 días en 364. Con empate gana el reciente.
+  - La fila resultante lleva `segments` con los dos tramos (`{key, days, from, to, kwh}`), y de ahí
+    salen sus `sourceKeys`. Dos consumidores económicos los usan: los **SSAA**
+    (`calcChargeForSegments`, `js/lf-ssaa.js`), que ponderan por kWh de cada tramo y fallan cerrado
+    si a algún tramo le falta tarifa habiendo consumo; y los **excedentes indexados**
+    (`js/lf-surplus-prices.js`), que se agregan por año y mes REAL, no por la clave del mes cosido.
+    Ambos validan la procedencia: exactamente dos claves y las dos del mismo mes natural que la
+    clave del mes. Un mes sin fila de índice para un tramo cuenta como cero, nunca como hueco de
+    datos.
+  - El Datadis mensual nunca cose (`options.isDatadisMonthly`).
 - **Excedentes**: La columna de excedentes/generación es recomendable para una simulación solar automática fiel. Si no existe, el consumo se importa y los excedentes se inicializan a 0 para que el usuario pueda completarlos en la tabla manual.
 - **Centinela de columna solar sin reconocer**: un archivo de solo consumo se acepta deliberadamente (el usuario completa los excedentes a mano), pero si el archivo SÍ trae una columna que parece energía solar y no se ha sabido mapear, la importación se **bloquea** en vez de simular con excedentes = 0. Importar en silencio ahí falsearía el resultado entero. Si el vertido ya está mapeado, las columnas auxiliares de generación/producción no se tratan como otra exportación (formato Datadis `vertida + generada + autoconsumida`); sí se bloquea cualquier segunda medida de vertido que pueda ocultar los valores reales. El comparador de la home, donde los excedentes son opcionales, solo avisa.
 
@@ -156,10 +177,11 @@ Soporte para 3 zonas con impuestos diferenciados:
 - Si el usuario edita la tabla manual o introduce solo datos mensuales, se pierde la trazabilidad horaria y se usa 0,020 €/kWh solo como referencia orientativa.
 - Si el indice horario mensual resulta negativo, el simulador mantiene el modo horario pero limita el credito de excedentes a 0 EUR; no cae a la referencia de 0,020 €/kWh.
 
-**Además se excluyen las tarifas incompatibles con el consumo registrado**, con la misma utilidad
-que la home (`LF.assessConsumoAnualLimits`, `js/lf-utils.js`) y sobre los mismos campos de
-`tarifas.json` (`maxConsumoAnual`; `minConsumoAnualExclusivo` se informa pero no filtra). Detalle
-en el Paso 3.5 del flujo de cálculo. La llamada está protegida con `typeof ... === 'function'` y un
+**Las tarifas incompatibles con el consumo se detectan, pero no se excluyen solas** (12/09/2026):
+la decisión de aplicar los límites es siempre del usuario, tenga un año completo o un periodo
+parcial. Se usa la misma utilidad que la home (`LF.assessConsumoAnualLimits`, `js/lf-utils.js`) y
+los mismos campos de `tarifas.json` (`maxConsumoAnual`; `minConsumoAnualExclusivo` se informa pero
+no filtra). Detalle en el Paso 3.5 del flujo de cálculo. La llamada está protegida con `typeof ... === 'function'` y un
 fallback que deja pasar todas las tarifas: si `lf-utils.js` no cargara, el simulador no se rompe
 (ver `ARRANQUE-CARGA.md`).
 
@@ -506,11 +528,12 @@ isAnnualConsumptionScope = hasFullAnnualConsumptionCoverage(simulationMonths)
 coveredDays = getConsumptionCoverageDays(simulationMonths)
     ↓
 LF.assessConsumoAnualLimits(tarifasBV, {
-  consumoKwh, annualScope, coveredDays, useAnnualEstimate
+  consumoKwh, annualScope, coveredDays, useAnnualEstimate  // alias de applyLimits
 })
     ↓
-{ compatibles, excluidas }  →  se simulan solo las compatibles
-                            →  las excluidas se listan en el aviso con su motivo
+{ compatibles, excluidas, limitsChoiceAvailable, limitsApplied }
+    →  sin aplicar límites (por defecto): compatibles = todas
+    →  aplicándolos: se simulan solo las compatibles y las excluidas se listan con su motivo
 ```
 
 **`window.BVSim.manualUi.hasFullAnnualConsumptionCoverage(months)`** (`js/bv/bv-ui-helpers.js`)
@@ -525,10 +548,13 @@ un total pero no para considerar que existe un año real y omitir la estimación
 
 Notas:
 
-- El máximo se comprueba **siempre** contra el consumo registrado, con cualquier número de meses.
-  En alcance parcial se calcula una estimación `consumo * 365 / coveredDays`, desactivada por
-  defecto y ofrecida solo si algún máximo cambia candidatas; el aviso advierte de la estacionalidad
-  solar y permite deshacerla. El mínimo nunca excluye.
+- El máximo se comprueba **siempre** contra el consumo registrado, con cualquier número de meses,
+  pero comprobarlo no excluye: por defecto entran todas las tarifas y el usuario decide si aplica
+  los límites desde el aviso. El interruptor se ofrece igual con un año completo, donde no hay
+  proyección posible, que en alcance parcial, donde además se calcula la estimación
+  `consumo * 365 / coveredDays` y el aviso advierte de la estacionalidad solar. Se apaga cuando no
+  hay nada que decidir (`limitsChoiceAvailable === false`), no cuando falta la estimación. El
+  mínimo nunca excluye.
 - `getConsumptionCoverageDays()` suma los días reales topados al calendario y no duplica una
   misma clave `YYYY-MM`. La preferencia de estimación solo vive en memoria y no se comparte ni
   persiste; si cambia el consumo o la cobertura que sirven de base, vuelve al modo prudente.
@@ -850,6 +876,15 @@ ES0000000000000000XX;01/01/2025;1;0,123;0,045
 - `Fecha`: DD/MM/YYYY
 - `Hora`: 1-24; se admite 25 para la hora repetida del cambio de octubre. Los formatos 0-23
   con `INV/VER` distinguen la repetida local 02:00 en Peninsula y la 01:00 en Canarias.
+  **Tres convenciones conviven para el dia que se retrasa el reloj, y las tres se resuelven a la
+  hora 25** (corregido el 12/09/2026, ver `AUDITORIA-REGISTRO.md`): las distribuidoras exportan en
+  0-23 y la repetida se deduce con `INV/VER` o por orden de aparicion; e-distribucion entrega una
+  hora 25 explicita; y **Datadis exporta en 1-24 REPITIENDO el numero de hora** (...02:00, 03:00,
+  03:00, 04:00...) sin columna que distinga las dos. Esta ultima no estaba contemplada y el control
+  de duplicados cancelaba la importacion entera, asi que cualquier año de Datadis que incluyese el
+  ultimo domingo de octubre era irrecuperable. La segunda ocurrencia es la hora ganada; una tercera
+  repeticion, o una repeticion en un dia que no es el del cambio, siguen siendo un duplicado real y
+  abortan.
 - `EHCR` / `consumo`: Energía horaria consumida (kWh)
 - `EHEX` / `exportacion`: Energía horaria excedentaria (kWh), opcional; sin ella se usa 0
 - `INV/VER`: Marca de invierno/verano para el cambio horario (opcional)
@@ -959,6 +994,15 @@ if (!parsed.hasExcedenteColumn) {
 ```
 
 La ausencia de esa columna no invalida el archivo. Se conserva el consumo, se usan excedentes a cero y la tabla manual permite completar los valores solares.
+
+**Columna presente pero con huecos** (`lf-csv-utils.js`, corregido el 12/09/2026): el aviso
+distingue dos casos, y la condición mira **presencias, no ausencias**. Un contador
+(`exportValoresPresentes`) cuenta cuántos registros ACEPTADOS traen dato de excedentes; si son
+cero, el mensaje es el mismo que sin columna, y si hay alguno se avisa de cuántas celdas vacías o
+"Sin dato" se han interpretado como 0. Comparar el contador de vacíos contra el de filas parseadas
+engañaba en las dos direcciones, porque el de vacíos se incrementa antes de que la fila pueda
+descartarse: con `===` un archivo legítimo caía en el aviso alarmista, y con `>=` un archivo CON
+excedentes reales podía anunciar que no había ninguno.
 
 ### Sanitización HTML
 

@@ -4124,3 +4124,77 @@ sigue siendo correcto, pero el aviso de dia incompleto dejaria de verse a diario
 - **Criterio de reapertura.** Que el ranking pase a ordenarse por algo distinto del coste, o que
  aparezca un limite que no sea una condicion comercial negociable (uno tecnico o regulatorio):
  ahi si tendria sentido volver a excluir sin preguntar.
+
+<a id="mes-cosido-el-ano-que-empieza-a-mitad-de-mes-11-09-2026"></a>
+### Mes Cosido: El Ano Que Empieza A Mitad De Mes (11-09-2026)
+
+- **Cambio de comportamiento, no defecto. Si ves que un CSV de 13 meses acaba en 12 filas y que
+ una de ellas suma dias de DOS anos distintos, es deliberado: NO lo reportes como duplicado ni
+ como mes contado dos veces.** Origen: pregunta en nergiza. Un ano descargado del 11/09/2025 al
+ 10/09/2026 llega partido en 13 meses y septiembre se mostraba con 11 dias.
+- **Antes**: se descartaba el extremo con menos cobertura. Eso tiraba entre 9 y 20 dias de datos
+ reales y dejaba el periodo por debajo del ano, con el ranking calculado sobre menos consumo del
+ que el usuario habia subido. **Ahora**: los dos tramos del mismo mes natural se cosen en una
+ sola fila mensual y se conservan los 365 dias. Caso real medido: 910,47 EUR frente a los 863,23
+ EUR que salian descartando el tramo.
+- **Reglas del cosido** (`buildEdgeStitchPlan` / `applyEdgeStitchPlan`, `js/lf-csv-utils.js`):
+ manda el tramo reciente, asi que un dia presente en los dos anos se recorta del antiguo
+ (`olderDaysOverlap`); un dia que no cabe en el mes destino tambien se recorta
+ (`olderDaysOverflow`). El recorte se aplica sobre los REGISTROS HORARIOS, que son la misma
+ fuente que alimenta la traza de excedentes indexados, no sobre un agregado posterior. El
+ Datadis mensual nunca cose.
+- **El mes destino no es siempre el reciente**: es el que puede albergar mas dias. Solo difieren
+ cuando el corte cae en febrero con un bisiesto por medio, donde elegir el corto obligaba a tirar
+ el 29 de febrero y convertia un historico de 365 dias en 364. Con empate gana el reciente, que
+ era el criterio anterior.
+- **Trampa: los indexados se agregan por ano y mes REAL.** La fila cosida lleva `segments` con los
+ dos tramos y de ahi salen sus `sourceKeys`. Dos consumidores economicos los leen: los SSAA
+ (`calcChargeForSegments`, `js/lf-ssaa.js`), que ponderan por kWh de cada tramo, caen a dias si no
+ hay kWh y fallan CERRADO si a un tramo le falta tasa habiendo consumo; y los excedentes indexados
+ (`js/lf-surplus-prices.js`), que valoran cada tramo contra su mes real y suman. Ambos validan la
+ procedencia: exactamente dos claves, las dos del mismo mes natural que la clave de la fila. Sin
+ esa validacion, una `sourceKeys` forjada duplicaba la compensacion indexada; fueron dos puertas
+ distintas y las dos estan cerradas.
+- **Un tramo sin fila de indice cuenta como cero, nunca como hueco de datos**:
+ `computeHourlyCompensation` crea fila para todo mes con algun excedente, asi que su ausencia
+ significa que ese tramo no tuvo excedentes.
+- **Criterio de reapertura.** Que el importador acepte rangos de mas de 13 meses, o que aparezca un
+ tercer consumidor economico de `segments` sin la validacion de procedencia.
+
+<a id="buscador-de-guias-carrera-entre-busqueda-y-categoria-12-09-2026"></a>
+### Buscador De Guias: Carrera Entre Busqueda Y Categoria (12-09-2026)
+
+- **Defecto real, corregido.** Reportado en auditoria externa y reproducido. `applySearch()`
+ seguia adelante despues de `await ensureIndex()` sin comprobar si esa busqueda seguia siendo la
+ vigente. Si el usuario se cansaba de esperar y pulsaba una categoria mientras el indice viajaba,
+ la respuesta tardia pisaba el estado que habia dejado la categoria: dejaba tarjetas de resultados
+ en un contenedor oculto y anunciaba un recuento que no correspondia a lo que se veia.
+- **Arreglo**: un contador `accionVigente` que incrementan TANTO `applySearch()` como
+ `applyCategory()`. Cada busqueda guarda su turno y, al volver del `await`, se retira si ya no es
+ la vigente. El descarte cubre el render Y la baliza de analitica, y tambien la rama de error, que
+ si no caia al `fallbackSearch` de una busqueda ya abandonada.
+- **Por que el `AbortController` que ya existia no bastaba**: aborta la peticion de red, pero
+ `ensureIndex()` cachea la promesa, asi que una segunda espera sobre el mismo indice se resuelve
+ igual y el codigo posterior corre entero.
+- **El test va en fichero propio** (`tests/guides-search-race.test.js`) a proposito: el de
+ resiliencia usa temporizadores simulados en su `beforeEach`, y aqui hace falta tiempo real para
+ soltar la respuesta del indice a mitad. Mezclarlos colgo la suite. Lleva control positivo: sin el
+ segundo caso, cancelar SIEMPRE dejaria el primero en verde.
+
+<a id="columna-de-excedentes-vacia-contar-presencias-no-ausencias-12-09-2026"></a>
+### Columna De Excedentes Vacia: Contar Presencias, No Ausencias (12-09-2026)
+
+- **Defecto real, corregido, y el arreglo anterior estaba mal razonado.** El aviso de la columna
+ de excedentes elegia entre "no se detectaron excedentes" y "N celdas vacias interpretadas como 0"
+ comparando `emptyCells.export` con `parsedRows`. Son dos contadores que cuentan cosas distintas:
+ el de vacios se incrementa ANTES de que la fila pueda descartarse por rango o por dato invalido.
+- Con `===` un archivo legitimo caia en el aviso alarmista. Al cambiarlo a `>=` se abrio el fallo
+ contrario, mas grave: un archivo CON excedentes reales podia anunciar que no habia ninguno (fila
+ valida con 1,0 kWh + fila descartada por rango + fila vacia = 2 vacios y 2 parseadas). Yo defendi
+ el `>=` como necesario antes de que la auditoria lo desmontara; la leccion es que la comparacion
+ estaba mal planteada de raiz, no mal calibrada.
+- **Arreglo**: `exportValoresPresentes` cuenta cuantos registros ACEPTADOS traen dato de
+ excedentes, y el aviso alarmista solo sale si ese contador es cero habiendo filas parseadas. No
+ admite la ambiguedad porque las dos magnitudes se miden sobre el mismo conjunto.
+- **Criterio de reapertura.** Que aparezca otro aviso que compare un contador acumulado durante el
+ parseo contra uno que solo cuenta filas aceptadas.

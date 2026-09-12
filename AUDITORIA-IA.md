@@ -237,6 +237,9 @@ estes auditando; no hace falta leerlo entero.
 - [Vigencia De Documentacion Y Guias Al 09/09/2026 (Ronda 34)](AUDITORIA-REGISTRO.md#vigencia-docs-y-guias-ronda-34-09-09-2026)
 - [La Vista Rapida De PVPC Con El Dia En Curso Incompleto (Ronda 35, 10/09/2026)](AUDITORIA-REGISTRO.md#vista-rapida-pvpc-dia-en-curso-ronda-35-10-09-2026)
 - [Limites De Consumo Como Decision Del Usuario (12-09-2026)](AUDITORIA-REGISTRO.md#limites-de-consumo-como-decision-del-usuario-12-09-2026)
+- [Mes Cosido: El Ano Que Empieza A Mitad De Mes (11-09-2026)](AUDITORIA-REGISTRO.md#mes-cosido-el-ano-que-empieza-a-mitad-de-mes-11-09-2026)
+- [Buscador De Guias: Carrera Entre Busqueda Y Categoria (12-09-2026)](AUDITORIA-REGISTRO.md#buscador-de-guias-carrera-entre-busqueda-y-categoria-12-09-2026)
+- [Columna De Excedentes Vacia: Contar Presencias, No Ausencias (12-09-2026)](AUDITORIA-REGISTRO.md#columna-de-excedentes-vacia-contar-presencias-no-ausencias-12-09-2026)
 <!-- REGISTRO-INDICE:FIN -->
 
 ## Hallazgos Que Si Serian Relevantes
