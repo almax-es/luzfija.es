@@ -824,3 +824,52 @@ describe('Año completo con la forma real de Datadis', () => {
     expect(span.stitch).toBeUndefined();
   });
 });
+
+// Las otras convenciones de entrada del mismo parser, comprobadas a raiz del fallo de Datadis:
+// si una sola de ellas no resolviese la hora repetida, volveria a cancelar importaciones enteras.
+describe('Hora repetida de octubre en el resto de convenciones', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  const parse = (filas, zona) => u.parseEnergyTableRows(filas, {
+    headerRowIndex: 0, parseNumber: u.parseNumberFlexibleCSV, zonaFiscal: zona || 'Península'
+  });
+
+  it('fecha y hora en una sola columna (estilo i-DE), base 0-23', () => {
+    const res = parse([
+      ['CUPS', 'FechaHora', 'CONSUMO Wh'],
+      ['ES1', '26/10/2025 00:00', '500'], ['ES1', '26/10/2025 01:00', '500'],
+      ['ES1', '26/10/2025 02:00', '500'], ['ES1', '26/10/2025 02:00', '700'],
+      ['ES1', '26/10/2025 03:00', '500']
+    ]);
+
+    expect(res.records.map((r) => r.hora)).toEqual([1, 2, 3, 25, 4]);
+  });
+
+  it('fecha y hora en una sola columna, base 1-24', () => {
+    const res = parse([
+      ['CUPS', 'FechaHora', 'CONSUMO Wh'],
+      ['ES1', '26/10/2025 03:00', '500'], ['ES1', '26/10/2025 03:00', '700'],
+      ['ES1', '26/10/2025 24:00', '500']
+    ]);
+
+    expect(res.records.map((r) => r.hora)).toEqual([3, 25, 24]);
+  });
+
+  it('Canarias repite su propia hora, la 2 en base 1-24, no la 3', () => {
+    const res = parse([
+      ['CUPS', 'Fecha', 'Hora', 'Consumo_kWh'],
+      ['ES1', '26/10/2025', '01:00', '0,5'], ['ES1', '26/10/2025', '02:00', '0,5'],
+      ['ES1', '26/10/2025', '02:00', '0,7'], ['ES1', '26/10/2025', '03:00', '0,5']
+    ], 'Canarias');
+
+    expect(res.records.map((r) => r.hora)).toEqual([1, 2, 25, 3]);
+  });
+
+  it('en Canarias la hora 3 repetida NO es el cambio horario y sigue siendo duplicado', () => {
+    expect(() => parse([
+      ['CUPS', 'Fecha', 'Hora', 'Consumo_kWh'],
+      ['ES1', '26/10/2025', '03:00', '0,5'], ['ES1', '26/10/2025', '03:00', '0,7']
+    ], 'Canarias')).toThrow(/duplicadas/i);
+  });
+});
