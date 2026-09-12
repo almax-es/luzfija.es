@@ -949,9 +949,15 @@ describe('BV UI - contrato del aviso flotante', () => {
     expect(/setTimeout\([^)]*,\s*\d{3,}\s*\)/.test(showToast)).toBe(false);
   });
 
-  it('el aviso se puede cerrar con un clic', () => {
-    // Sin esto, un texto largo tapa la pantalla hasta quince segundos sin salida.
-    expect(fuente).toContain("toastEl.addEventListener('click'");
+  it('el aviso se cierra al tocar en cualquier parte, sin interceptar el toque', () => {
+    // Escuchar el clic SOBRE el aviso obligaba a que capturase eventos, y en pantallas estrechas
+    // el aviso se cruza con el boton de calcular: con textos de quince segundos el usuario se
+    // quedaba sin poder pulsarlo. El listener va en el documento y el aviso no captura nada.
+    expect(fuente).toContain("document.addEventListener('click'");
+    expect(fuente).not.toContain("toastEl.addEventListener('click'");
+    const css = fs.readFileSync(path.resolve(__dirname, '../styles.css'), 'utf8');
+    const regla = css.slice(css.indexOf('.toast{'), css.indexOf('.toast.show{'));
+    expect(regla).toContain('pointer-events: none');
   });
 });
 

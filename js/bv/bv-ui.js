@@ -31,14 +31,17 @@ document.addEventListener('DOMContentLoaded', () => {
     }, duracion);
   }
 
-  // Quien ya ha leido el aviso puede cerrarlo sin esperar. Importa ahora que los textos largos
-  // duran mas: un aviso de quince segundos tapando la pantalla sin forma de quitarlo seria peor
-  // que el problema que resuelve.
+  // El aviso se cierra al primer toque en CUALQUIER punto de la pagina, no solo sobre el.
+  // Escuchar el clic sobre el propio aviso exigia que capturase eventos, y en pantallas
+  // estrechas el aviso se cruza con el boton de calcular: con los textos largos durando quince
+  // segundos, el usuario se quedaba sin poder pulsarlo. Ahora el aviso no intercepta nada
+  // (pointer-events: none en styles.css) y desaparece en cuanto el usuario hace algo.
   if (toastEl) {
-    toastEl.addEventListener('click', () => {
+    document.addEventListener('click', () => {
+      if (!toastEl.classList.contains('show')) return;
       if (toastTimer) clearTimeout(toastTimer);
       toastEl.classList.remove('show');
-    });
+    }, true);
   }
 
   function trackBvEvent(eventName, detail, title) {

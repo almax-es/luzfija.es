@@ -1102,8 +1102,11 @@
     .mi-right{ opacity: .6; white-space: nowrap; flex: 0 0 auto; }
     .menuDivider{ height:1px; background: rgba(255,255,255,.08); margin: 6px 6px; }
     .menuHint{ padding: 8px 10px 6px 10px; color: var(--muted2); font-size: 11px; font-weight: 900; letter-spacing: .2px; }
-    .toast{ position: fixed; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); background: rgba(5,8,16,.92); border: 1px solid var(--border); color: var(--text); border-radius: 16px; box-shadow: var(--shadow2); padding: 12px 14px; display:none; gap: 10px; align-items:center; max-width: min(760px, calc(100vw - 24px)); backdrop-filter: blur(14px); z-index: 9999; font-size: 13px; will-change: transform, opacity; white-space: pre-line; }
+    .toast{ position: fixed; bottom: calc(20px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%); background: rgba(5,8,16,.92); border: 1px solid var(--border); color: var(--text); border-radius: 16px; box-shadow: var(--shadow2); padding: 12px 14px; display:none; gap: 10px; align-items:center; max-width: min(760px, calc(100vw - 24px)); backdrop-filter: blur(14px); z-index: 9999; font-size: 13px; will-change: transform, opacity; white-space: pre-line; pointer-events: none; }
     .toast.show{display:flex; animation: pop .22s ease;}
+    /* En pantallas estrechas el aviso se encogia a una columna de ~160px y crecia hacia arriba
+       hasta cruzarse con el boton de calcular. Con ancho util queda bajo y no invade nada. */
+    @media (max-width: 480px){ .toast{ width: calc(100vw - 24px); } }
 
     .lf-init-recovery{
       position:fixed;
