@@ -236,6 +236,7 @@ estes auditando; no hace falta leerlo entero.
 - ["Mi Tarifa" Como Formulario: Validar, Guardar Y Decir Que Se Ha Guardado (Ronda 33, 09/09/2026)](AUDITORIA-REGISTRO.md#mi-tarifa-como-formulario-ronda-33-09-09-2026)
 - [Vigencia De Documentacion Y Guias Al 09/09/2026 (Ronda 34)](AUDITORIA-REGISTRO.md#vigencia-docs-y-guias-ronda-34-09-09-2026)
 - [La Vista Rapida De PVPC Con El Dia En Curso Incompleto (Ronda 35, 10/09/2026)](AUDITORIA-REGISTRO.md#vista-rapida-pvpc-dia-en-curso-ronda-35-10-09-2026)
+- [Limites De Consumo Como Decision Del Usuario (12-09-2026)](AUDITORIA-REGISTRO.md#limites-de-consumo-como-decision-del-usuario-12-09-2026)
 <!-- REGISTRO-INDICE:FIN -->
 
 ## Hallazgos Que Si Serian Relevantes

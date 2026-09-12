@@ -4093,3 +4093,34 @@ el cron. No al reves.
 que el generador cambie el criterio de "dia en curso" del dataset. Si algun dia el workflow pasa a
 correr tambien despues de las 20:15, comprobar si el fichero de 8742 deja de salir corto: el arreglo
 sigue siendo correcto, pero el aviso de dia incompleto dejaria de verse a diario.
+
+<a id="limites-de-consumo-como-decision-del-usuario-12-09-2026"></a>
+### Limites De Consumo Como Decision Del Usuario (12-09-2026)
+
+- **Cambio de producto, no defecto. Si ves que una tarifa cuyo `maxConsumoAnual` es inferior al
+ consumo del usuario SIGUE en el ranking, es deliberado: NO lo reportes como filtro roto.**
+ Antes: limite anual superado por los kWh registrados -> exclusion automatica, sin opcion.
+ Ahora: la tarifa se muestra, el aviso dice cuantas estan en esa situacion y con que tope cada
+ una, y un unico interruptor permite excluirlas. Reversible en los dos sentidos.
+- **Motivo.** El comportamiento anterior invertia la logica: la proyeccion de un periodo parcial
+ se ofrecia como opcion, mientras que un dato firme excluia sin preguntar, asi que cuanto mejor
+ era el dato del usuario menos veia y menos decidia. Ademas los dos errores posibles no pesan
+ igual: enseñar una tarifa que quiza no pueda contratar es visible y reparable (su requisito,
+ "Consumo inferior a 4.000 kWh/año", viaja en la propia fila), mientras que ocultarla es mudo,
+ nadie sabe lo que no vio ni puede ir a negociarlo con la comercializadora. El tope es una
+ condicion comercial, no una imposibilidad tecnica.
+- **Contrato.** `assessConsumoAnualLimits` (`js/lf-utils.js`) acepta `applyLimits`, el interruptor
+ unico, y devuelve `limitsChoiceAvailable` (hay algo que decidir) y `limitsApplied` (esta
+ decidido). `excluidasReales` sigue listando las que superan el maximo aunque no se apliquen:
+ alimenta el aviso. `useAnnualEstimate` se conserva como nombre heredado de cuando solo gobernaba
+ la proyeccion; renombrarlo tocaria cinco ficheros y el estado persistido sin cambiar conducta.
+- **La eleccion no se arrastra entre escenarios**: cambiar consumo o dias invalida
+ `annualConsumptionEstimateBasis` y reinicia el interruptor. Verificado en produccion el
+ 12/09/2026 con un año real: 7.182 kWh -> 104 tarifas; al aplicar -> 90; bajando a 4.766 kWh y
+ recalculando -> 104 otra vez, con el aviso rehecho de 14 tarifas afectadas a 6.
+- **Cuidado con la nota antigua.** La entrada del 10/08/2026 justificaba la exclusion automatica
+ diciendo que "una exclusion no es reversible desde la UI". Desde este cambio SI lo es; esa
+ justificacion ya no describe el producto.
+- **Criterio de reapertura.** Que el ranking pase a ordenarse por algo distinto del coste, o que
+ aparezca un limite que no sea una condicion comercial negociable (uno tecnico o regulatorio):
+ ahi si tendria sentido volver a excluir sin preguntar.
