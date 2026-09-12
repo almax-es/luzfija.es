@@ -1706,7 +1706,17 @@
       warnings.push(`Se encontraron ${emptyCells.import} celdas vacías o "Sin dato" en la columna ${columnLabel(mapping.importIdx)}; interpretadas como 0.`);
     }
     if (mapping.exportIdx !== null && emptyCells.export > 0) {
-      warnings.push(`Se encontraron ${emptyCells.export} celdas vacías o "Sin dato" en la columna ${columnLabel(mapping.exportIdx)}; interpretadas como 0.`);
+      // Una columna de excedentes vacia DE ARRIBA A ABAJO no es un hueco de datos: es que el
+      // suministro no vierte, o que la distribuidora no informa esa magnitud. Avisar de "8757
+      // celdas vacias" con signo de alarma asusta por algo normal en cualquier casa sin placas.
+      // Se usa el mismo mensaje sereno que cuando la columna ni siquiera viene. Faltar ALGUNAS
+      // celdas si merece el aviso: ahi el total queda por debajo del real y conviene saberlo.
+      // Para el consumo no se hace esta excepcion: una columna de consumo vacia entera es un
+      // problema, no una situacion corriente.
+      const columnaVaciaEntera = parsedRows > 0 && emptyCells.export >= parsedRows;
+      warnings.push(columnaVaciaEntera
+        ? 'No se detectaron excedentes; se importará con excedentes=0.'
+        : `Se encontraron ${emptyCells.export} celdas vacías o "Sin dato" en la columna ${columnLabel(mapping.exportIdx)}; interpretadas como 0.`);
     }
     if (simultaneousCount > 0) {
       warnings.push(`Neteo horario aplicado en ${simultaneousCount} filas con consumo y excedentes simultáneos.`);

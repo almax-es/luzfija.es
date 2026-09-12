@@ -873,3 +873,46 @@ describe('Hora repetida de octubre en el resto de convenciones', () => {
     ], 'Canarias')).toThrow(/duplicadas/i);
   });
 });
+
+// Un fichero de una casa sin placas trae la columna de excedentes vacia de arriba a abajo, y el
+// aviso contaba las 8757 celdas con signo de alarma. Es correcto pero asusta por algo corriente.
+describe('Columna de excedentes vacía: aviso proporcionado', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  const CAB = ['CUPS', 'Fecha', 'Hora', 'AE_kWh', 'AS_KWh'];
+  const parse = (filas) => u.parseEnergyTableRows([CAB, ...filas], {
+    headerRowIndex: 0, parseNumber: u.parseNumberFlexibleCSV, zonaFiscal: 'Península'
+  });
+
+  it('vacía entera: lo dice sin contar celdas ni alarmar', () => {
+    const res = parse([
+      ['ES1', '01/06/2026', '01:00', '0,5', ''],
+      ['ES1', '01/06/2026', '02:00', '0,6', ''],
+      ['ES1', '01/06/2026', '03:00', '0,7', '']
+    ]);
+
+    expect(res.warnings).toContain('No se detectaron excedentes; se importará con excedentes=0.');
+    expect(res.warnings.join(' ')).not.toMatch(/celdas vacías/);
+  });
+
+  it('con solo algunas celdas vacías SÍ avisa, porque ahí falta un dato real', () => {
+    const res = parse([
+      ['ES1', '01/06/2026', '01:00', '0,5', '0,3'],
+      ['ES1', '01/06/2026', '02:00', '0,6', ''],
+      ['ES1', '01/06/2026', '03:00', '0,7', '0,2']
+    ]);
+
+    expect(res.warnings.join(' ')).toMatch(/1 celdas vacías/);
+    expect(res.warnings).not.toContain('No se detectaron excedentes; se importará con excedentes=0.');
+  });
+
+  it('la excepción no se extiende al consumo: una columna de consumo vacía sigue avisando', () => {
+    const res = parse([
+      ['ES1', '01/06/2026', '01:00', '', '0,3'],
+      ['ES1', '01/06/2026', '02:00', '', '0,4']
+    ]);
+
+    expect(res.warnings.join(' ')).toMatch(/2 celdas vacías/);
+  });
+});
