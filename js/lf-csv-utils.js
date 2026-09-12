@@ -1563,6 +1563,7 @@
     const seenDateHour = new Set();
     let totalRows = 0;
     let parsedRows = 0;
+    let exportValoresPresentes = 0;
     let simultaneousCount = 0;
     let outOfRangeCount = 0;
     let h25DiscardedCount = 0;
@@ -1605,11 +1606,13 @@
       }
 
       let exportRaw = 0;
+      let exportCeldaVacia = false;
       if (mapping.exportIdx !== null) {
         exportRaw = parseNumber(row[mapping.exportIdx]);
         if (!Number.isFinite(exportRaw)) {
           if (isEmptyCell(row[mapping.exportIdx])) {
             exportRaw = 0;
+            exportCeldaVacia = true;
             emptyCells.export += 1;
           } else {
             continue;
@@ -1692,6 +1695,9 @@
         esReal
       });
       parsedRows++;
+      // Solo cuenta lo que de verdad entra: una fila descartada despues (fuera de rango, formato)
+      // no puede opinar sobre si la columna de excedentes trae datos o no.
+      if (mapping.exportIdx !== null && !exportCeldaVacia) exportValoresPresentes++;
     }
 
     if (totalRows > 0 && parsedRows / totalRows < 0.5) {
@@ -1713,7 +1719,14 @@
       // celdas si merece el aviso: ahi el total queda por debajo del real y conviene saberlo.
       // Para el consumo no se hace esta excepcion: una columna de consumo vacia entera es un
       // problema, no una situacion corriente.
-      const columnaVaciaEntera = parsedRows > 0 && emptyCells.export >= parsedRows;
+      //
+      // La condicion mira PRESENCIAS, no ausencias. Comparar el contador de vacios contra el de
+      // filas parseadas era engañoso en las dos direcciones, porque el primero se incrementa
+      // antes de que la fila pueda descartarse: con `===` un fichero legitimo volvia al aviso
+      // alarmista, y con `>=` un fichero CON excedentes reales podia anunciar que no habia
+      // ninguno (fila valida con 1,0 kWh + fila descartada por rango + fila vacia = 2 vacios y 2
+      // parseadas). Contar cuantos registros ACEPTADOS traen dato no admite esa ambiguedad.
+      const columnaVaciaEntera = parsedRows > 0 && exportValoresPresentes === 0;
       warnings.push(columnaVaciaEntera
         ? 'No se detectaron excedentes; se importará con excedentes=0.'
         : `Se encontraron ${emptyCells.export} celdas vacías o "Sin dato" en la columna ${columnLabel(mapping.exportIdx)}; interpretadas como 0.`);

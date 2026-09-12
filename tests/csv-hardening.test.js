@@ -907,11 +907,11 @@ describe('Columna de excedentes vacía: aviso proporcionado', () => {
     expect(res.warnings).not.toContain('No se detectaron excedentes; se importará con excedentes=0.');
   });
 
-  it('cuenta como vacía entera aunque haya más vacíos que filas útiles', () => {
+  it('cuenta como vacía entera aunque una fila se descarte por el camino', () => {
     // El contador de celdas vacias se incrementa ANTES de que la fila pueda descartarse por otro
-    // motivo, asi que puede superar al de filas parseadas. Con una comparacion de igualdad
-    // estricta este caso volveria al mensaje alarmista: la fila de 20.000 kWh se descarta por
-    // fuera de rango, quedan 2 registros y 3 celdas de excedentes vacias.
+    // motivo, asi que no sirve para decidir esto comparandolo con las filas parseadas. Aqui la
+    // fila de 20.000 kWh se descarta por fuera de rango: quedan 2 registros, ninguno con dato de
+    // excedentes, y eso es lo que decide, no el recuento de vacios.
     const res = parse([
       ['ES1', '01/06/2026', '01:00', '0,5', ''],
       ['ES1', '01/06/2026', '02:00', '20000', ''],
@@ -930,5 +930,54 @@ describe('Columna de excedentes vacía: aviso proporcionado', () => {
     ]);
 
     expect(res.warnings.join(' ')).toMatch(/2 celdas vacías/);
+  });
+});
+
+// Reportado en auditoria el 12/09/2026: la condicion anterior comparaba el contador de celdas
+// vacias contra el de filas parseadas, y como el primero se incrementa antes de que la fila pueda
+// descartarse, un fichero CON excedentes reales podia anunciar que no habia ninguno.
+describe('Columna de excedentes con datos reales y filas descartadas', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  const CAB = ['CUPS', 'Fecha', 'Hora', 'AE_kWh', 'AS_KWh'];
+  const parse = (filas) => u.parseEnergyTableRows([CAB, ...filas], {
+    headerRowIndex: 0, parseNumber: u.parseNumberFlexibleCSV, zonaFiscal: 'Península'
+  });
+
+  it('NO anuncia ausencia de excedentes cuando hay uno válido', () => {
+    // 2 registros aceptados y 2 celdas vacias contadas (una de la fila descartada): con la
+    // comparacion antigua esto decia "No se detectaron excedentes" pese a conservar el vertido.
+    const res = parse([
+      ['ES1', '01/06/2026', '01:00', '0,5', '1,0'],
+      ['ES1', '01/06/2026', '02:00', '20000', ''],
+      ['ES1', '01/06/2026', '03:00', '0,7', '']
+    ]);
+
+    expect(res.records).toHaveLength(2);
+    expect(res.records.reduce((total, r) => total + (r.excedente || 0), 0)).toBeGreaterThan(0);
+    expect(res.warnings).not.toContain('No se detectaron excedentes; se importará con excedentes=0.');
+    expect(res.warnings.join(' ')).toMatch(/celdas vacías/);
+  });
+
+  it('un solo excedente válido basta para no declarar la columna vacía', () => {
+    const res = parse([
+      ['ES1', '01/06/2026', '01:00', '0,5', ''],
+      ['ES1', '01/06/2026', '02:00', '0,6', '0,1'],
+      ['ES1', '01/06/2026', '03:00', '0,7', '']
+    ]);
+
+    expect(res.warnings).not.toContain('No se detectaron excedentes; se importará con excedentes=0.');
+  });
+
+  it('un excedente de cero explícito tampoco es una columna vacía', () => {
+    // "0" es un dato: la distribuidora afirma que no se vertio esa hora. Distinto de no informar.
+    const res = parse([
+      ['ES1', '01/06/2026', '01:00', '0,5', '0'],
+      ['ES1', '01/06/2026', '02:00', '0,6', '0']
+    ]);
+
+    expect(res.warnings).not.toContain('No se detectaron excedentes; se importará con excedentes=0.');
+    expect(res.warnings.join(' ')).not.toMatch(/celdas vacías/);
   });
 });
