@@ -181,6 +181,11 @@ describe('BV UI manual month helpers', () => {
     // Un año bisiesto cubierto de mas tampoco añade ruido.
     expect(suf(370, 365)).toBe('');
 
+    // 365 de 366 SI produce texto aqui: el helper solo formatea. La decision de mostrarlo la
+    // toma el llamador con el criterio anual del simulador, porque un historico movil de 365
+    // dias sin un solo hueco jamas puede llenar una ventana que cruza un febrero bisiesto.
+    expect(suf(365, 366)).toBe(' · 365 de 366 días con datos');
+
     // Con huecos, la cifra no puede presentarse como un año entero sin matizar: el periodo se
     // rotula anual con 12 meses al 80 %, que pueden ser 292 dias.
     expect(suf(359, 365)).toBe(' · 359 de 365 días con datos');
@@ -968,6 +973,9 @@ describe('BV UI - contrato del rotulo de coste anual', () => {
     // Probar getCoverageSuffix aislado no demuestra que el rotulo lo use: sin esto, una
     // mutacion que dejara el subtitulo fijo pasaria desapercibida.
     expect(fuente).toContain('getCoverageSuffix(consumptionCoverageDays, diasNaturalesPeriodo)');
+    // Y solo cuando el periodo NO alcanza la cobertura anual real: sin esta condicion, un
+    // historico de 365 dias que cruza un bisiesto se acusaba de 'falta un dia' sin faltarle.
+    expect(fuente).toContain('isAnnualPresentationScope && !isAnnualConsumptionScope');
     expect(fuente).toContain('Suma de todas tus facturas mensuales${coberturaSufijo}');
     expect(fuente).toContain('Suma de 12 meses desde ${mesInicioLabel}${coberturaSufijo}');
   });

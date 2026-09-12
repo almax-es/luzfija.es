@@ -3198,7 +3198,12 @@ document.addEventListener('DOMContentLoaded', () => {
         const match = /^(\d{4})-(\d{2})$/.exec(String(month?.key || ''));
         return total + (match ? new Date(Number(match[1]), Number(match[2]), 0).getDate() : 30);
       }, 0);
-      const coberturaSufijo = isAnnualPresentationScope
+      // Solo se avisa si el periodo NO alcanza la cobertura anual segun el criterio del propio
+      // simulador (12 meses consecutivos y 365 dias reales). Comparar a secas contra los dias
+      // naturales de la ventana acusaba de "falta un dia" a un historico de 365 dias sin un solo
+      // hueco: cuando el periodo cruza un febrero bisiesto, la ventana suma 366 y un año movil
+      // completo nunca puede llenarla. El aviso contradecia asi al propio isAnnualConsumptionScope.
+      const coberturaSufijo = isAnnualPresentationScope && !isAnnualConsumptionScope
         ? window.BVSim.manualUi.getCoverageSuffix(consumptionCoverageDays, diasNaturalesPeriodo)
         : '';
       const totalCostSub = isAnnualPresentationScope
