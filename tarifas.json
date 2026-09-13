@@ -826,7 +826,7 @@
       "cPunta": 0.132,
       "cLlano": 0.132,
       "cValle": 0.132,
-      "p1": 0.085,
+      "p1": 0.117,
       "p2": 0.085,
       "web": "https://octopusenergy.es/unicaja#tarifas",
       "tipo": "1P",
@@ -858,26 +858,6 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Octopus Relax",
-      "cPunta": 0.139,
-      "cLlano": 0.139,
-      "cValle": 0.139,
-      "p1": 0.085,
-      "p2": 0.085,
-      "web": "https://octopusenergy.es/precios",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.01,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -957,6 +937,8 @@
       "p2": 0.099,
       "web": "https://fortuluz.es/ofertas/unico",
       "tipo": "1P",
+      "requisitos": "Revisión de precios semestral.",
+      "promo": "30€ de descuento (10€/mes durante 3 meses) desde la segunda factura, para nuevos clientes vía web.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -964,6 +946,26 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Octopus Relax",
+      "cPunta": 0.139,
+      "cLlano": 0.139,
+      "cValle": 0.139,
+      "p1": 0.117,
+      "p2": 0.085,
+      "web": "https://octopusenergy.es/precios",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.01,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -1570,7 +1572,7 @@
       "cPunta": 0.171,
       "cLlano": 0.124,
       "cValle": 0.114,
-      "p1": 0.085,
+      "p1": 0.117,
       "p2": 0.085,
       "web": "https://octopusenergy.es/unicaja#tarifas",
       "tipo": "3P",
@@ -1675,7 +1677,7 @@
       "cPunta": 0.18,
       "cLlano": 0.13,
       "cValle": 0.12,
-      "p1": 0.085,
+      "p1": 0.117,
       "p2": 0.085,
       "web": "https://octopusenergy.es/precios",
       "tipo": "3P",
@@ -2400,7 +2402,7 @@
       "cPunta": 0.244,
       "cLlano": 0.154,
       "cValle": 0.134,
-      "p1": 0.085,
+      "p1": 0.117,
       "p2": 0.085,
       "web": "https://octopusenergy.es/precios/tarifa-solar",
       "tipo": "3P",
@@ -2557,5 +2559,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-13T13:06:39.487Z"
+  "updatedAt": "2026-09-13T13:14:53.351Z"
 }
