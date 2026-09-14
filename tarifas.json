@@ -155,27 +155,6 @@
       "maxConsumoAnual": 4000.0
     },
     {
-      "nombre": "Chippio Constante",
-      "cPunta": 0.109,
-      "cLlano": 0.109,
-      "cValle": 0.109,
-      "p1": 0.089,
-      "p2": 0.089,
-      "web": "https://chippio.es/tarifa-constante",
-      "tipo": "1P",
-      "requisitos": "No incluye Servicios de Ajuste.",
-      "incluyeServiciosAjuste": false,
-      "fv": {
-        "exc": -1.0,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Endesa Conecta",
       "cPunta": 0.109,
       "cLlano": 0.109,
@@ -689,6 +668,27 @@
         "exc": 0.03,
         "tipo": "SIMPLE",
         "tope": "ENERGIA_PARCIAL",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Chippio Constante",
+      "cPunta": 0.129,
+      "cLlano": 0.129,
+      "cValle": 0.129,
+      "p1": 0.089,
+      "p2": 0.089,
+      "web": "https://chippio.es/tarifa-constante",
+      "tipo": "1P",
+      "requisitos": "No incluye Servicios de Ajuste.",
+      "incluyeServiciosAjuste": false,
+      "fv": {
+        "exc": -1.0,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
         "bv": false,
         "reglaBV": "NO APLICA",
         "precioBV": 0.0
@@ -2559,5 +2559,5 @@
       "requiereFV": true
     }
   ],
-  "updatedAt": "2026-09-14T13:31:03.550Z"
+  "updatedAt": "2026-09-14T15:08:53.034Z"
 }
