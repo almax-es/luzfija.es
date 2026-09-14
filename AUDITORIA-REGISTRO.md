@@ -4268,6 +4268,21 @@ paso a 14/09 tras comprobar cada vendor contra upstream (`3147238`).
  `sync-seo-docs.mjs` ata a proposito el "as of" a la fecha de revision editorial y ya mantiene el
  recuento. Moverla exige revisar `llms.txt` y `llms-full.txt` enteros.
 
+**Constantes reguladas de `js/lf-config.js`: reverificadas, sin cambios.** El auditor propuso mover
+`version: '2026.08'`, `ultimaActualizacion: '2026-08-19'` y el comentario "Referencias revisadas:
+19/08/2026" porque el fichero aparece en el commit del 07/09. Ese commit es el checkpoint que aplasto
+el historial y toca todo el repositorio, asi que no prueba ningun cambio. `version` y
+`ultimaActualizacion` no se consumen en produccion (solo `tests/fiscal.test.js` valida el formato de
+`version`) y fechan el ultimo cambio de VALORES, que sigue siendo el 19/08: moverlas sin cambiar un
+valor las haria falsas. Reverificado el 14/09/2026 contra el literal del BOE: peajes 2.0TD de energia
+y potencia (Resolucion CNMC, BOE-A-2025-26348), cargos (Orden TED/1524/2025), financiacion del bono
+social de 9,011295 EUR/CUPS (Orden TED/634/2026, aplicable desde la liquidacion 7 de 2026), IEE al
+5,11269632% con minimo de 1 EUR/MWh (art. 99 de la Ley 38/1992), descuentos del bono social (RDL
+7/2026), IVA al 21% y pesos del PVPC 55/45 (RD 446/2023). Los diez importes de peajes y cargos
+coinciden al decimal. NO se reverificaron IGIC, IPSI, alquiler del contador ni CCF, y por eso el
+comentario "Referencias revisadas" tampoco se mueve: certificaria esos cuatro. No se toca el JS: un
+cambio solo de comentario obligaria a desplegar sin efecto funcional.
+
 **Rechazado sin evidencia de error:** rebajar las cifras orientativas de aerotermia, potencia y
 servicios extra. Son juicios editoriales, no afirmaciones normativas.
 
