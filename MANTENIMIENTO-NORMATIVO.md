@@ -1,6 +1,6 @@
 # Mantenimiento Normativo Y Operativo
 
-Ultima actualizacion: 2026-08-25
+Ultima actualizacion: 2026-09-03
 
 Este documento lista las piezas de LuzFija.es que dependen de normativa, fuentes oficiales o datos vivos. Sirve como checklist para que calculos, guias y mensajes publicos no queden desfasados.
 

@@ -390,7 +390,7 @@ const horasPunta = esCeutaMelilla
 
 | Zona | Impuesto | Potencia | Energía | Contador |
 |------|----------|----------|---------|----------|
-| Península/Baleares | IVA | 21% a 01/08/2026 | 21% a 01/08/2026 | 21% a 01/08/2026 |
+| Península/Baleares | IVA | 21% desde 01/06/2026 | 21% desde 01/06/2026 | 21% desde 01/06/2026 |
 | Canarias | IGIC | — | 0% (vivienda) / 3% (otros) | 7% |
 | Ceuta/Melilla | IPSI | — | 1% | 4% |
 
@@ -492,5 +492,5 @@ Si respondiste "no" a cualquiera, probablemente estés cometiendo un falso posit
 
 ---
 
-**Última actualización**: 16/08/2026
+**Última actualización**: 14/09/2026
 **Próxima revisión**: Cuando cambien normas CNMC/BOE

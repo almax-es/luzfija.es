@@ -1,6 +1,6 @@
 # Registro De Auditorias De LuzFija.es
 
-Ultima actualizacion: 2026-09-10
+Ultima actualizacion: 2026-09-14
 
 Este fichero es de CONSULTA POR AREA, no de lectura lineal. La lectura obligatoria antes de
 auditar es `AUDITORIA-IA.md`: metodo, taxonomia de severidad, tabla de areas y prompt. Aqui
@@ -4215,3 +4215,68 @@ sigue siendo correcto, pero el aviso de dia incompleto dejaria de verse a diario
  admite la ambiguedad porque las dos magnitudes se miden sobre el mismo conjunto.
 - **Criterio de reapertura.** Que aparezca otro aviso que compare un contador acumulado durante el
  parseo contra uno que solo cuenta filas aceptadas.
+
+<a id="vigencia-normativa-guias-ronda-36-14-09-2026"></a>
+### Vigencia Normativa De Guias Y Documentacion Al 14/09/2026 (Ronda 36)
+
+Tercera pasada de vigencia, centrada en la normativa que citan las 25 guias tras el RD 88/2026. La
+dirigio un auditor externo en varias iteraciones y cada hallazgo se contrasto contra el literal del
+BOE antes de tocar nada. Superficie: las 25 guias, los docs de la raiz y `vendor/README.md`.
+
+**Correcciones de guias (5 guias).**
+
+- **Sellos de fecha de bono social y coche electrico** (`7cdd384`). Pasaron a 14/09/2026. Se movieron
+ primero sin reverificar el bloque y se reverifico despues: todo resulto vigente. RDL 7/2026
+ convalidado el 26/03/2026 (BOE-A-2026-7125), 42,5%/57,5% hasta el 31/12/2026, DA 58 LIRPF (15% por
+ vehiculo y por punto de recarga) hasta el 31/12/2026 pese a haber caido dos veces en 2026, y las
+ cifras de Auto+ contra el anexo II del RD 609/2026. Un sello "revisada a" certifica todo lo que
+ cubre su parrafo: no se mueve sin releer cada afirmacion.
+- **FAQ de `errores-tipicos`** (`62e8c9b`). Solo remitia a Consumo/Industria tras 15 dias, cuando el
+ cuerpo ya citaba Junta Arbitral y ADR. Alineada con los arts. 55.3, 57 y 58 del Reglamento.
+- **Art. 32.4 en `servicios-extra`** (`b211c53`, `e3d2bee`). Los servicios adicionales contratados
+ junto con el suministro deben rescindirse con el, salvo indicacion expresa del consumidor en el
+ momento de la finalizacion. La primera redaccion decia "se rescinden automaticamente": la norma
+ impone un deber a la empresa, no produce el efecto por si sola. Corregido el mismo dia.
+- **Arts. 18.5, 18.7 y 6.1.añ en `estafas`** (`4ad1dea`). La guia decia que la comercializadora esta
+ "obligada a exhibir" la acreditacion del consentimiento, y eso no figura en la norma. Reescrito
+ sobre el literal: consentimiento expreso en soporte duradero conservado cinco anhos (18.5), ningun
+ pago sin acreditacion documental de la solicitud (18.7) y acceso a la grabacion integra en veinte
+ dias (6.1.añ, con efectos desde el 12/06/2026 por la DF 9.4).
+
+**Documentacion.** La tabla fiscal de `CALC-FAQS.md` decia "21% a 01/08/2026"; pasa a "21% desde
+01/06/2026", ya confirmado para agosto y septiembre (IPC de electricidad de julio 8,4%, INE). Cuatro
+cabeceras eran anteriores a su propio contenido y se llevan a la fecha de su ultima edicion real:
+`ARQUITECTURA-CALCULOS.md` y `CAPACIDADES-WEB.md` al 12/09 (`ccb7b29`), `PVPC-SCHEMA.md` al 09/09
+(`13432a1`) y `MANTENIMIENTO-NORMATIVO.md` al 03/09, fecha de su entrada mas reciente, porque su
+historial esta aplastado en el checkpoint del 07/09 y no permite afinar mas. El auditor solo senhalo
+esta ultima; las otras tres salieron de un barrido propio de cabecera frente a fecha maxima del
+contenido. Tambien dijo que este registro terminaba en la ronda 35: tiene cuatro entradas
+posteriores del 11 y 12/09 sin numero de ronda, y lo atrasado era su cabecera. `vendor/README.md`
+paso a 14/09 tras comprobar cada vendor contra upstream (`3147238`).
+
+**Errores del auditor, descartados.**
+
+- Citar el RDL 2/2026 como base del 42,5%/57,5%: lo derogo el Congreso el 26/02/2026, y la guia ya
+ citaba el RDL 7/2026.
+- "Art. 6.5 del RD 88/2026" para el consentimiento en soporte duradero: el art. 6 solo tiene
+ apartados 1 y 2; es el 18.5.
+- Afirmar que la guia de bono social explica la caida del RDL 2/2026: no lo menciona; las
+ coincidencias de "2/2026" eran la fecha 31/12/2026.
+- Atribuir a GoatCounter la version 2.7.0: es la del servidor. `count.js` es una URL rodante y se
+ compara byte a byte contra la linea base (sin delta el 14/09).
+- Mover el `Last updated` de `llms.txt` porque "123 tariffs as of 2026-08-28" parece viejo:
+ `sync-seo-docs.mjs` ata a proposito el "as of" a la fecha de revision editorial y ya mantiene el
+ recuento. Moverla exige revisar `llms.txt` y `llms-full.txt` enteros.
+
+**Rechazado sin evidencia de error:** rebajar las cifras orientativas de aerotermia, potencia y
+servicios extra. Son juicios editoriales, no afirmaciones normativas.
+
+**Trampa de esta ronda.** WebFetch sobre la web del BOE corta el RD 88/2026 hacia el art. 6-10
+aunque se pida un ancla. El literal se obtiene descargando el PDF y extrayendo con
+`pdftotext -layout` e `iconv` desde latin1; sin `iconv`, un grep de "Articulo 32" con tilde no
+encuentra nada.
+
+**Criterio de reapertura.** El de las rondas anteriores, cambiar una funcion que la documentacion
+describa y no el calendario, mas dos disparadores: cualquier modificacion del RD 88/2026 y el
+31/12/2026, cuando vencen el bono social excepcional, las deducciones de IRPF y la convocatoria de
+Auto+.

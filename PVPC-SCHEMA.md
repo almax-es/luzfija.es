@@ -3,7 +3,7 @@
 Documentación técnica precisa de la estructura de datos, actualización automática y procesos del **PVPC (Precio Voluntario del Pequeño Consumidor)** en luzfija.es.
 Para inventario funcional completo del sitio (incluyendo observatorio, comparador principal y simulador BV), ver `CAPACIDADES-WEB.md`.
 
-**Última actualización**: 2026-08-16
+**Última actualización**: 2026-09-09
 
 ---
 
