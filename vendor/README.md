@@ -4,11 +4,11 @@ Este directorio contiene librerías de terceros alojadas localmente para garanti
 
 **Última actualización del inventario:** 02/09/2026
 
-**Última comprobación de versiones upstream:** 02/09/2026
+**Última comprobación de versiones upstream:** 14/09/2026
 
 **Última revisión general documentada de vulnerabilidades:** 17/08/2026 — comprobación de GitHub Advisory Database para las versiones exactas vendorizadas cuando existe paquete versionado, más revisión del repositorio upstream para GoatCounter. PDF.js se volvió a contrastar específicamente con GitHub Advisory Database el 29/08/2026 al actualizarlo. Es una comprobación fechada, no una garantía permanente.
 
-### Estado frente a upstream (02/09/2026)
+### Estado frente a upstream (14/09/2026)
 
 | Librería | Vendorizada | Upstream | Estado |
 |---|---|---|---|
@@ -136,7 +136,7 @@ Lector de códigos QR en JavaScript puro.
 ## 🐐 GoatCounter
 Script de analítica respetuosa con la privacidad (sin cookies).
 
-- **Versión:** `count.js` upstream + **cuatro** parches locales (query saneada, confirmación de entrega, privacidad de factura y robustez de `skipgc` ante almacenamiento denegado). Línea base descargada el **03/08/2026** y verificada de nuevo, byte a byte, contra upstream el **02/09/2026**; parche local actualizado el **25/08/2026**. Reaplicar `count.local.patch` sobre la descarga actual reproduce exactamente el `count.js` servido.
+- **Versión:** `count.js` upstream + **cuatro** parches locales (query saneada, confirmación de entrega, privacidad de factura y robustez de `skipgc` ante almacenamiento denegado). Línea base descargada el **03/08/2026** y verificada de nuevo, byte a byte, contra upstream el **14/09/2026**; parche local actualizado el **25/08/2026**. Reaplicar `count.local.patch` sobre la descarga actual reproduce exactamente el `count.js` servido.
 - **Upstream es una URL rodante** (`https://gc.zgo.at/count.js`): no publica número de versión ni tag. Por eso se conserva la línea base prístina en `goatcounter/count.upstream.js`, que es lo que convierte una actualización en un *merge* a tres bandas en vez de en arqueología.
 - **Parches locales (son CUATRO, hay que reaplicar LOS CUATRO):**
   1. **Privacidad —** `safe_query()` sustituye el envío de la query completa: solo se conservan `utm_source/medium/campaign/content/term` (ver `ANALITICA-GOATCOUNTER.md`, sección 4).
