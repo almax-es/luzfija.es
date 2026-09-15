@@ -4497,5 +4497,30 @@ vendorizada que carga la web.
 que garantia sostenia `raw:false`. No comprobo que el Observatorio necesita excedentes (C39-04) ni vio
 que el formato por defecto de Excel salia bien por una casualidad de V8.
 
+**Revision del auditor sobre `c70a926` (15/09/2026).** Sin objeciones a C39-01, 02 y 03 ni al descarte
+de C39-04, y dos defectos del clasificador de formatos de `excelDateCellText`, los dos CORREGIDOS:
+- C39-05: `mmm`, `mmmm` o `[$-es-ES]mmmm` (solo mes) caian en la rama de hora, porque bastaba con no
+ tener dia ni anho: la serie 45748 salia como `"1097952:00"`. Sin impacto observable, porque antes
+ llegaba `"Apr"` y ambos textos se rechazan como fecha, pero la semantica era falsa. Ahora es un mes
+ (`"2025/04"`).
+- C39-06, el que importaba: una duracion `[mm]:ss` de 60 minutos se plegaba a `"01:00"`. Antes
+ llegaba `"60:00"` y el parser la rechazaba; el primer arreglo la convertia en una hora 1 valida
+ aceptada en silencio, justo lo contrario de la regla 6. El auditor la clasifico como hardening; su
+ efecto era un rechazo convertido en dato falso. Ahora la rama de hora exige `h` o `[h]`; sin dia,
+ anho ni hora solo es un mes si no hay segundos, y el resto (`mm:ss`, `[mm]:ss`, `[ss]`) conserva el
+ texto de Excel.
+- Un primer guard especifico para `[mm]`/`[ss]` sobrevivio a su mutacion: la rama siguiente ya lo
+ cubria. Se RETIRO en vez de dejar codigo que ningun test puede distinguir.
+- Anhadidos tres casos: formato solo de mes, duraciones frente a `hh:mm:ss`, y alineacion con celdas
+ vacias materializadas (`t:'z'`) y combinadas, la laguna que senhalo. Mutaciones de las dos
+ correcciones cazadas (volver al clasificador antiguo y tratar `mm:ss` como mes). Tests del fichero
+ 10 -> 13; suite 1998 -> 2001.
+- **NO se cambio el fallback** a `sheet_to_json raw:false` cuando falta `xlsxRowsFromSheet`, que el
+ auditor proponia volver fail-closed. El helper vive en el mismo fichero que los guards de dimensiones
+ y formulas, todos los scripts llevan el mismo `?v=` de build y el service worker cachea por URL: no
+ hay mezcla de versiones realista en la que falte solo el helper. Fallar cerrado convertiria ese caso
+ hipotetico en "la importacion de Excel no funciona" para todos, y el comportamiento degradado es el
+ que tuvo produccion durante meses.
+
 **Criterio de reapertura.** Actualizar SheetJS (cambios en `SSF` o `sheet_to_json`), pasar a leer mas
 de una hoja, o aparecer un fichero real con fechas de texto de dos cifras de anho.

@@ -152,6 +152,51 @@ describe('xlsxRowsFromSheet', () => {
     expect(filas(sheet)[1]).toEqual(['2026/01', '24:00']);
   });
 
+  // Revision de la ronda 39: el primer clasificador trataba como hora todo formato sin dia ni anho.
+  it('un formato solo de mes (mmm, [$-es-ES]mmmm) es un mes, no una hora', () => {
+    const sheet = {
+      '!ref': 'A1:B2',
+      A1: { t: 's', v: 'Mes' }, B1: { t: 's', v: 'Mes largo' },
+      A2: { t: 'n', v: serie(2025, 4, 1), z: 'mmm' },
+      B2: { t: 'n', v: serie(2025, 4, 1), z: '[$-es-ES]mmmm' }
+    };
+    expect(filas(sheet)[1]).toEqual(['2025/04', '2025/04']);
+  });
+
+  it('una duracion en minutos o segundos acumulados conserva el texto de Excel, no se pliega a un reloj', () => {
+    const sheet = {
+      '!ref': 'A1:C2',
+      A1: { t: 's', v: 'Duracion' }, B1: { t: 's', v: 'Minutos' }, C1: { t: 's', v: 'Hora' },
+      A2: { t: 'n', v: 1 / 24, z: '[mm]:ss' },
+      B2: { t: 'n', v: 1 / 24, z: 'mm:ss' },
+      C2: { t: 'n', v: 13 / 24, z: 'hh:mm:ss' }
+    };
+    const formateado = X.utils.sheet_to_json(sheet, { header: 1, raw: false })[1];
+    const resultado = filas(sheet)[1];
+    // 60 minutos seguirian siendo "60:00" (rechazado por el parser), no una hora 01 valida.
+    expect(resultado[0]).toBe(formateado[0]);
+    expect(resultado[0]).not.toBe('01:00');
+    expect(resultado[1]).toBe(formateado[1]);
+    expect(resultado[2]).toBe('13:00');
+  });
+
+  it('las celdas vacias materializadas (stubs) y las combinadas no desplazan ni cambian nada', () => {
+    const sheet = {
+      '!ref': 'A1:C3',
+      '!merges': [{ s: { r: 1, c: 0 }, e: { r: 2, c: 0 } }],
+      A1: { t: 's', v: 'Fecha' }, B1: { t: 's', v: 'Hora' }, C1: { t: 's', v: 'Consumo' },
+      A2: { t: 'n', v: serie(2025, 4, 1), z: 'd/m/yy' },
+      B2: { t: 'z' },
+      C2: { t: 'n', v: 1.2349, z: '0.0' },
+      B3: { t: 'n', v: 2 },
+      C3: { t: 'z' }
+    };
+    const esperado = X.utils.sheet_to_json(sheet, { header: 1, raw: false });
+    esperado[1][0] = '01/04/2025';
+    esperado[1][2] = '1.2349';
+    expect(filas(sheet)).toEqual(esperado);
+  });
+
   it('con una libreria sin utilidades de celda (mocks) devuelve lo mismo que raw:false', () => {
     const datos = [['Fecha', 'Hora', 'Consumo'], ['01/01/2026', '1', '0,5']];
     const falso = { utils: { sheet_to_json: () => datos } };

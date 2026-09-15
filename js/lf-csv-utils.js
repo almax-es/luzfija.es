@@ -800,18 +800,27 @@
   function excelDateCellText(serial, format, date1904, SSF) {
     if (!Number.isFinite(serial) || serial < 0) return null;
     const dos = (n) => String(n).padStart(2, '0');
-    // Tokens fuera de corchetes ([$-es-ES], [h]) y de literales entre comillas o escapados.
-    const tokens = String(format).replace(/\[[^\]]*\]|"[^"]*"|\\./g, '').toLowerCase();
+    const original = String(format);
+    // Tokens fuera de corchetes ([$-es-ES], [h], [mm]) y de literales entre comillas o escapados.
+    const tokens = original.replace(/\[[^\]]*\]|"[^"]*"|\\./g, '').toLowerCase();
     const tieneDia = tokens.includes('d');
     const tieneAnyo = tokens.includes('y');
+    const tieneHora = tokens.includes('h') || /\[h+\]/i.test(original);
     if (!tieneDia && !tieneAnyo) {
-      // Solo hora (h:mm, h:mm AM/PM, [h]:mm): fraccion de dia, en reloj de 24 horas.
-      const minutos = Math.round(serial * 1440);
-      return `${dos(Math.floor(minutos / 60))}:${dos(minutos % 60)}`;
+      if (tieneHora) {
+        // Solo hora (h:mm, hh:mm:ss, h:mm AM/PM, [h]:mm): fraccion de dia, en reloj de 24 horas.
+        const minutos = Math.round(serial * 1440);
+        return `${dos(Math.floor(minutos / 60))}:${dos(minutos % 60)}`;
+      }
+      // Sin dia, anho ni hora: "mmm" o "mmmm" son un mes. "mm:ss", "[mm]:ss" o "[ss]" son minutos
+      // y segundos, a veces acumulados, y se dejan con el texto de Excel ("60:00", que el parser
+      // rechaza). Plegarlos a un reloj daba "01:00", una hora valida aceptada en silencio donde
+      // antes habia un rechazo (revision de la ronda 39).
+      if (!tokens.includes('m') || tokens.includes('s')) return null;
     }
     const code = SSF.parse_date_code(serial, { date1904: Boolean(date1904) });
     if (!code || !Number.isFinite(code.y)) return null;
-    // Sin dia (mmm-yy, yyyy/mm) es un mes: se entrega con la forma del Datadis mensual.
+    // Sin dia (mmm, mmmm, mmm-yy, yyyy/mm) es un mes: se entrega con la forma del Datadis mensual.
     if (!tieneDia) return `${code.y}/${dos(code.m)}`;
     const fecha = `${dos(code.d)}/${dos(code.m)}/${code.y}`;
     return tokens.includes('h') ? `${fecha} ${dos(code.H)}:${dos(code.M)}` : fecha;
