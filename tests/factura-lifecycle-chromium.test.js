@@ -135,9 +135,17 @@ suite('factura PDF en Chromium real', () => {
   }, 30000);
 
   afterAll(async () => {
+    const sigueVivo = () => chromium && chromium.exitCode === null && chromium.signalCode === null;
+    // Cierre ordenado: Browser.close deja que Chromium termine sus procesos hijos y suelte el perfil.
+    // Con solo kill() el proceso principal sale antes que los hijos, y en Windows el borrado del
+    // perfil fallaba con EPERM aunque todos los tests hubieran pasado, lo que paraba el .bat de
+    // despliegue (15/09/2026).
+    if (browserCdp && sigueVivo()) {
+      await Promise.race([browserCdp.send('Browser.close').catch(() => {}), wait(2000)]);
+    }
     pageCdp?.close();
     browserCdp?.close();
-    if (chromium && chromium.exitCode === null) {
+    if (sigueVivo()) {
       await new Promise(resolve => {
         const timeout = setTimeout(resolve, 5000);
         chromium.once('exit', () => { clearTimeout(timeout); resolve(); });
@@ -145,7 +153,17 @@ suite('factura PDF en Chromium real', () => {
       });
     }
     await new Promise(resolve => server?.close(resolve));
-    if (profile) rmSync(profile, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    if (profile) {
+      try {
+        rmSync(profile, { recursive: true, force: true, maxRetries: 20, retryDelay: 250 });
+      } catch (error) {
+        // El perfil vive en el directorio temporal del sistema. Si Windows aun lo tiene bloqueado,
+        // dejarlo ahi no cambia ningun resultado; convertirlo en un fallo del suite si. Cualquier
+        // otro error sigue fallando.
+        if (error?.code !== 'EPERM' && error?.code !== 'EBUSY') throw error;
+        console.warn(`[factura-lifecycle-chromium] Perfil temporal no borrado (${error.code}): ${profile}`);
+      }
+    }
   });
 
   async function evaluate(expression) {
