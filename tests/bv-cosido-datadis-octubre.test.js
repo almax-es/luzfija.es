@@ -11,7 +11,10 @@ import { beforeEach, describe, it, expect, vi } from 'vitest';
 // Los datos se generan aqui a proposito: ningun fixture real sirve. `1.csv` no llega a 13 meses
 // y numera octubre con hora 25 explicita (CNMC), no con la hora repetida de Datadis.
 import '../js/lf-config.js';
+// lf-csv-import.js toma round2 de lf-utils.js al cargarse, igual que en produccion.
+import '../js/lf-utils.js';
 import '../js/lf-csv-utils.js';
+import '../js/lf-csv-import.js';
 import '../js/lf-ssaa.js';
 import '../js/lf-surplus-prices.js';
 import '../js/bv/bv-sim-monthly.js';
@@ -153,19 +156,21 @@ describe('Mes cosido con el dia de 23 horas de marzo', () => {
 });
 
 describe('El mismo fichero en la home y en el simulador solar', () => {
-  it('la home usa los 366 dias sin coser; el solar descuenta exactamente el dia recortado', () => {
+  it('la home procesa los 366 dias sin coser; el solar descuenta exactamente el dia recortado', async () => {
     const filas = datadis(new Date(2025, 9, 26), new Date(2026, 9, 26));
-    const parsed = parsear(filas);
-    // Opciones de lf-csv-import.js (applySpanValidation).
-    const home = window.LF.csvUtils.validateCsvSpanFromRecords(parsed.records, {
-      maxDays: 370, requireExactly12Months: false, staleWarningMonths: 18, today: new Date(2026, 10, 1)
-    });
+    const texto = filas.map((fila) => fila.join(';')).join('\n');
+    // Flujo real de la home, no solo su frontera: lectura del fichero, validacion del periodo,
+    // descarte de meses si lo hubiera y reparto P1/P2/P3 (procesarCSVConsumos, lf-csv-import.js).
+    const home = await window.LF.procesarCSVConsumos(new File([texto], 'datadis.csv', { type: 'text/csv' }));
     const solar = cadena(filas);
+    const aNumero = (valor) => Number(String(valor).replace(',', '.'));
 
+    expect(home.error).toBeUndefined();
     expect(home.ok).toBe(true);
-    expect(home.stitch).toBeUndefined();
-    expect(home.monthsToDrop || []).toEqual([]);
-    expect(home.monthsDistinct).toBe(13);
+    expect(home.dias).toBe(366);
+    expect(home.consumosHorarios).toHaveLength(8785);
+    expect(aNumero(home.totalKwh)).toBeCloseTo(solar.energiaFichero, 2);
+    expect(aNumero(home.punta) + aNumero(home.llano) + aNumero(home.valle)).toBeCloseTo(solar.energiaFichero, 1);
     // La diferencia entre las dos herramientas es el dia repetido y nada mas.
     expect(solar.energiaFichero - solar.energiaFilas).toBeCloseTo(24 * 0.5 + 0.7, 2);
   });

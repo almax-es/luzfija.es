@@ -9,6 +9,8 @@ import '../js/lf-config.js';
 import '../js/lf-utils.js';
 import '../js/lf-ssaa.js';
 import '../js/lf-csv-utils.js';
+import '../js/bv/bv-sim-monthly.js';
+import '../js/bv/bv-import.js';
 
 /**
  * @vitest-environment jsdom
@@ -29,6 +31,14 @@ const uiCode = fs.readdirSync(path.resolve(__dirname, '../js/bv'))
   .map((file) => fs.readFileSync(path.resolve(__dirname, '../js/bv', file), 'utf8'))
   .join('\n');
 const loadBvUi = new Function('window', uiCode);
+
+// Importador y agrupacion mensual REALES, capturados aqui porque bootSolarUi sustituye
+// window.BVSim por mocks en cada arranque. Solo los usa el recorrido unico del mes cosido.
+const REAL_BV = {
+  importFile: window.BVSim.importFile,
+  simulateMonthly: window.BVSim.simulateMonthly,
+  bucketizeByMonth: window.BVSim.bucketizeByMonth
+};
 
 // Repartos distintos por zona: es lo que permite demostrar que el recalculo ha ocurrido de
 // verdad mirando el grid, en vez de fiarse de un toast.
@@ -1840,6 +1850,63 @@ describe('BV: escenario compartido como previsualizacion', () => {
     });
     const results = document.getElementById('bv-results');
     expect(results.textContent).toContain('Solar máximo 3000');
+  });
+
+  it('recorrido unico: fichero Datadis -> cosido real -> rejilla -> respaldo -> otro navegador -> recarga', async () => {
+    bootSolarUi();
+    Object.assign(window.BVSim, REAL_BV);
+
+    // 26/10/2025-26/10/2026 con la forma real de Datadis: el dia de 25 horas de 2025 cae en el
+    // solape y el importador tiene que recortarlo entero antes de que la rejilla lo vea.
+    const dos = (n) => String(n).padStart(2, '0');
+    const filas = [['cups', 'fecha', 'hora', 'consumo_kWh', 'metodoObtencion']];
+    for (let d = new Date(2025, 9, 26); d <= new Date(2026, 9, 26); d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1)) {
+      const fecha = `${d.getFullYear()}/${dos(d.getMonth() + 1)}/${dos(d.getDate())}`;
+      const kwh = d.getFullYear() === 2025 ? '0,500' : '0,400';
+      for (let h = 1; h <= 24; h += 1) {
+        if (fecha === '2026/03/29' && h === 3) continue;
+        filas.push(['ES0031', fecha, `${dos(h)}:00`, kwh, 'Real']);
+        if ((fecha === '2025/10/26' || fecha === '2026/10/25') && h === 3) {
+          filas.push(['ES0031', fecha, `${dos(h)}:00`, '0,700', 'Real']);
+        }
+      }
+    }
+    const fileInput = document.getElementById('bv-file');
+    const file = new File([filas.map((fila) => fila.join(';')).join('\n')], 'datadis.csv', { type: 'text/csv' });
+    Object.defineProperty(fileInput, 'files', { value: [file], configurable: true });
+    fileInput.dispatchEvent(new window.Event('change'));
+    for (let i = 0; i < 60 && !tramosVisibles(); i++) await flush();
+
+    // Octubre nace del cosido real: dias 27-31 de 2025 y 1-26 de 2026, sin el 26/10/2025 repetido.
+    const TRAMOS_REALES = [
+      { key: '2025-10', days: 5, from: 27, to: 31, kwh: 60 },
+      { key: '2026-10', days: 26, from: 1, to: 26, kwh: 250.3 }
+    ];
+    const energiaOctubre = () => ['p1', 'p2', 'p3'].reduce(
+      (acc, type) => acc + Number(gridValue(9, type).replace(/\./g, '').replace(',', '.')), 0
+    );
+    expect(tramosVisibles()).toEqual(TRAMOS_REALES);
+    // Con el dia repetido dentro serian 323 kWh.
+    expect(energiaOctubre()).toBeCloseTo(310.3, 0);
+
+    let exportedBlob = null;
+    vi.spyOn(URL, 'createObjectURL').mockImplementation((blob) => { exportedBlob = blob; return 'blob:respaldo'; });
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    document.getElementById('bv-export-manual').dispatchEvent(new window.Event('click'));
+    const exported = JSON.parse(await readBlobText(exportedBlob));
+    expect(exported.data[9].meta.segments).toEqual(TRAMOS_REALES);
+
+    window.history.replaceState({}, '', '/comparador-tarifas-solares.html');
+    localStorage.clear();
+    reboot();
+    await importarBackup(exported);
+    expect(tramosVisibles()).toEqual(TRAMOS_REALES);
+    expect(energiaOctubre()).toBeCloseTo(310.3, 0);
+
+    reboot();
+    expect(tramosVisibles()).toEqual(TRAMOS_REALES);
+    expect(energiaOctubre()).toBeCloseTo(310.3, 0);
   });
 
   it('importar un respaldo antiguo con customTarifa sin bv conserva la BV implicita', async () => {
