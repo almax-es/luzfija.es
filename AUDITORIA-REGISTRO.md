@@ -1,6 +1,6 @@
 # Registro De Auditorias De LuzFija.es
 
-Ultima actualizacion: 2026-09-14
+Ultima actualizacion: 2026-09-15
 
 Este fichero es de CONSULTA POR AREA, no de lectura lineal. La lectura obligatoria antes de
 auditar es `AUDITORIA-IA.md`: metodo, taxonomia de severidad, tabla de areas y prompt. Aqui
@@ -4295,3 +4295,45 @@ encuentra nada.
 describa y no el calendario, mas dos disparadores: cualquier modificacion del RD 88/2026 y el
 31/12/2026, cuando vencen el bono social excepcional, las deducciones de IRPF y la convocatoria de
 Auto+.
+
+<a id="cosido-datadis-octubre-ronda-37-15-09-2026"></a>
+### El Mes Cosido Con La Hora Repetida De Octubre De Datadis (Ronda 37, 15/09/2026)
+
+Disparada por cambio de codigo, no por calendario: entre el 11 y el 12/09 entraron 725 lineas en 11
+ficheros (mes cosido, octubre de Datadis en base 1-24, SSAA e indexados por tramos, `normalizeMonthMeta`,
+limites de consumo) probadas pieza a pieza pero nunca cruzadas. Angulo: un historico real de ~365 dias
+que combina varias de esas condiciones, hasta las doce filas del simulador solar.
+
+**Resultado: cero bugs, cero cambios de codigo, una regresion nueva.**
+
+- **El auditor externo no pudo ejecutar nada** (su entorno no resolvia `github.com`) y lo declaro con
+ precision: entrego una lectura estatica del `main` y se nego a dar la ronda por cerrada sin ejecucion.
+ Es lo que pide la regla 10. Sus afirmaciones sobre el codigo son correctas: el recorte del cosido es
+ por dia civil completo sobre los registros horarios (`applyEdgeStitchPlan`), la hora repetida se
+ resuelve a 25 antes del control de duplicados, y SSAA e indexados valoran cada tramo contra su mes
+ real con sus tests.
+- **La ejecucion la hizo Claude** con la cadena real del importador solar (`parseEnergyTableRows` ->
+ `validateCsvSpanFromRecords` -> `applyEdgeStitchPlan` -> `bucketizeByMonth` -> `pickLatestMonthData`
+ -> `buildSimulationMonths`) sobre ficheros con la forma de Datadis y kWh distinto por anho civil:
+ - 15/10/2025-14/10/2026: el 26/10/2025 (25 h) cae en el tramo antiguo conservado. 8760 registros,
+   365 dias, octubre de 31 dias con `sourceKeys` `2025-10`/`2026-10`.
+ - 26/10/2025-26/10/2026 (366 dias): el dia de 25 horas cae JUSTO en el solape. Sale entero, con sus
+   25 filas: 8785 -> 8760 registros, y la energia de las filas baja exactamente 24 x 0,500 + 0,700.
+ - 25/10/2025-25/10/2026 (366 dias): el solape es un dia normal y el octubre cosido lleva DOS dias de
+   25 horas (26/10/2025 y 25/10/2026). 8761 registros. **No es un duplicado ni un bug**: son dos dias
+   distintos que tuvieron 25 horas cada uno. No lo reportes.
+ En los tres, la energia de las doce filas coincide con la de los registros conservados y la
+ cobertura anual es 365.
+- **Por que merecia test propio.** Mutacion: conservar la hora 25 de un dia recortado
+ (`|| record.hora === 25` en el filtro de `applyEdgeStitchPlan`). **Los 1975 tests existentes
+ siguieron en verde**; el nuevo `tests/bv-cosido-datadis-octubre.test.js` la detecta (8761 frente a
+ 8760). Los tests de Datadis empiezan el dia 1 y no cosen, y los del cosido usan curvas de 24 horas:
+ ninguno ponia el cambio de hora dentro del solape. Suite 1975 -> 1978.
+- **Sin ejecutar en esta ronda, cubierto por tests previos**: SSAA por tramos
+ (`tests/ssaa-helper.test.js`), compensacion indexada por `sourceKeys` (`tests/surplus-prices.test.js`),
+ febrero bisiesto de punta a punta (`tests/bv-mes-compuesto-integracion.test.js`) y persistencia de
+ `segments` a traves de JSON. La diferencia home (13 meses sin coser) frente a solar (12 cosidos) es
+ de diseno.
+
+**Criterio de reapertura.** El de la entrada del mes cosido, mas cualquier cambio en `buildHourResolver`
+o en la granularidad del recorte (si pasara a ser por hora en vez de por dia).
