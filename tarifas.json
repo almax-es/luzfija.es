@@ -448,26 +448,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "DISA Tranquilidad",
-      "cPunta": 0.119,
-      "cLlano": 0.119,
-      "cValle": 0.119,
-      "p1": 0.099909,
-      "p2": 0.099909,
-      "web": "https://ahorracondisaelectricidad.com/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Nexus Estable",
       "cPunta": 0.1199,
       "cLlano": 0.1199,
@@ -801,6 +781,26 @@
       "maxConsumoAnual": 5000.0
     },
     {
+      "nombre": "DISA Tranquilidad",
+      "cPunta": 0.129906,
+      "cLlano": 0.129906,
+      "cValle": 0.129906,
+      "p1": 0.099607,
+      "p2": 0.099606,
+      "web": "https://ahorracondisaelectricidad.com/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Bonpreu Hagámoslo Fácil",
       "cPunta": 0.131737,
       "cLlano": 0.131737,
@@ -991,27 +991,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Bualá",
-      "cPunta": 0.1399,
-      "cLlano": 0.1399,
-      "cValle": 0.1399,
-      "p1": 0.09589,
-      "p2": 0.09589,
-      "web": "https://buala.es/luz/",
-      "tipo": "1P",
-      "requisitos": "10% descuento término energía durante 12 meses incluido en el precio. No incluye Servicios de Ajuste.",
-      "incluyeServiciosAjuste": false,
-      "fv": {
-        "exc": 0.04,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 4.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Visalia Plan Ahorro 3 meses",
       "cPunta": 0.139995,
       "cLlano": 0.139995,
@@ -1151,6 +1130,27 @@
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Bualá",
+      "cPunta": 0.1499,
+      "cLlano": 0.1499,
+      "cValle": 0.1499,
+      "p1": 0.106849,
+      "p2": 0.106849,
+      "web": "https://buala.es/luz/",
+      "tipo": "1P",
+      "requisitos": "10% descuento término energía durante 12 meses incluido en el precio. No incluye Servicios de Ajuste.",
+      "incluyeServiciosAjuste": false,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 4.0
       },
       "requiereFV": false
     },
@@ -2559,5 +2559,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-15T05:36:27.048Z"
+  "updatedAt": "2026-09-15T11:35:01.551Z"
 }
