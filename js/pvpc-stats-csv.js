@@ -114,7 +114,9 @@
       // codigo nunca va a leer: solo se consume la primera. Sin esto, una segunda hoja con
       // muchas celdas reales ya se ha parseado antes de que el guard de dimensiones pueda
       // rechazar nada.
-      const workbook = XLSX.read(buffer, { type: 'array', sheets: 0, sheetStubs: true });
+      // cellNF: true conserva el formato de cada celda; sin el, xlsxRowsFromSheet no puede
+      // distinguir una fecha de un numero (ronda 39, lf-csv-utils.js).
+      const workbook = XLSX.read(buffer, { type: 'array', sheets: 0, sheetStubs: true, cellNF: true });
       const sheet = workbook.Sheets[workbook.SheetNames[0]];
       // Fail-closed: si el guard de dimensiones no esta disponible (p. ej. un futuro error de
       // orden de scripts), no se procesa el XLSX sin haberlo comprobado.
@@ -125,7 +127,9 @@
         throw new Error('No se pudo validar las fórmulas del archivo Excel; inténtalo de nuevo.');
       }
       assertXlsxSheetWithinLimits(sheet, XLSX);
-      const data = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
+      const data = typeof csvUtils.xlsxRowsFromSheet === 'function'
+        ? csvUtils.xlsxRowsFromSheet(sheet, XLSX, { date1904: Boolean(workbook.Workbook?.WBProps?.date1904) })
+        : XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
       const headerRowIndexRaw = guessEnergyHeaderRow ? guessEnergyHeaderRow(data) : 0;
       const headerRowIndex = headerRowIndexRaw >= 0 ? headerRowIndexRaw : 0;
       assertRelevantXlsxFormulasResolved(sheet, data, headerRowIndex);

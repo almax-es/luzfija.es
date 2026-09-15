@@ -4441,3 +4441,61 @@ tambien para Canarias es deliberado.
 **Criterio de reapertura.** Cualquier cambio en `merge_month_file`, en la fusion SSAA o en
 `--months-back`; que un consumidor necesite mas de 13 meses de SSAA; o que ESIOS pase a publicar el
 1001 o el 1739 en cuartos de hora.
+
+<a id="excel-formato-de-celda-ronda-39-15-09-2026"></a>
+### Del Excel Al Registro Horario: El Valor De La Celda, No Su Formato (Ronda 39, 15/09/2026)
+
+Primera auditoria como area de la lectura de hojas XLSX en los tres importadores (home, simulador
+solar y Observatorio). El auditor externo no ejecutaba (repositorio en GitHub y documentacion de
+SheetJS); Claude ejecuto cada candidato con la libreria real (`vendor/xlsx`, 0.20.3), escribiendo y
+releyendo XLSX de verdad y pasandolos por los tres importadores.
+
+**Resultado: 3 bugs CONFIRMADOS y CORREGIDOS, 1 candidato descartado por diseno.** No hay en el
+banco de pruebas ningun fichero real de distribuidora con esos formatos: son formatos normales de
+Excel, no los de un export concreto.
+
+- **Causa comun.** `sheet_to_json(sheet, { header: 1, raw: false })` entrega el texto FORMATEADO de
+ cada celda, con convencion en-US. En las celdas de texto es lo correcto; en las numericas el formato
+ es presentacion y pasaba a ser el dato. Los tres casos, en los tres importadores y sin aviso:
+ - C39-01, fechas: una celda con formato `d/m/yy` llegaba como `"1/4/25"`, no casaba con
+   `dd/mm/yyyy` y caia en `new Date()`, que la lee como 4 de enero. Igual con fecha y hora
+   `d/m/yy h:mm`. El formato de fecha por defecto de Excel (`m/d/yy`, integrado 14) salia bien, pero
+   solo porque V8 interpreta `"4/1/25"` al estilo americano.
+ - C39-02, horas: `h:mm AM/PM` llegaba como `"1:00 PM"` y `extractHourNumber` tomaba el 1. Las 13:00
+   entraban como la hora 1.
+ - C39-03, consumos: 1,2349 kWh con formato `0.0` entraba como 1,2, y 1,6 con formato `0` como 2.
+- **Correccion.** `xlsxRowsFromSheet` (`js/lf-csv-utils.js`) conserva la forma de las filas de
+ `raw:false` y reescribe solo las celdas numericas desde su valor. Las de fecha u hora pasan a texto
+ canonico con `SSF.parse_date_code`, respetando el sistema 1904: `dd/mm/yyyy`, `dd/mm/yyyy HH:MM`,
+ `HH:MM` en 24 horas, o `yyyy/mm` si el formato no tiene dia. El resto pasa a `String(v)` con
+ precision completa. Las celdas de TEXTO no se tocan: `"1,25"` o `"01/04/2025"` escritos a mano
+ siguen llegando tal cual, que era la garantia de `raw:false`. Los tres importadores leen ahora con
+ `cellNF: true` (sin el no hay formato que mirar). Si la libreria no expone `decode_range`,
+ `decode_cell` o `SSF` (mocks de tests), el helper devuelve lo mismo que `raw:false`.
+- **Descartado `rawNumbers`/`raw:true`:** con `cellNF: true`, SheetJS convierte las celdas de fecha en
+ cadenas ISO en UTC (`2025-03-31T22:00:00.000Z` para el 1 de abril en Madrid). Cambiaba un fallo por
+ otro.
+- **C39-04, descartado por diseno:** el Observatorio rechaza la matriz `Fecha + H01..H24` con un
+ mensaje claro ("No se identifico la columna obligatoria de hora"). La matriz solo trae consumo y el
+ Observatorio valora EXCEDENTES (`pvpc-stats-csv.js`: "los excedentes SON la carga util"), asi que
+ aceptarla no le daria nada que calcular.
+- **Tests.** `tests/xlsx-formato-celdas.test.js` (10 casos): los tres importadores con XLSX escritos y
+ releidos (`d/m/yy`, `m/d/yy`, `d/m/yy h:mm`, sistema 1904, AM/PM, `0.0` y `0`, texto intacto) y el
+ helper (rango que no empieza en A1 con una fila vacia, mes sin dia, `[h]:mm` con las 24:00 y la
+ degradacion con mocks). Siete mutaciones, las siete cazadas: helper sin reescribir, dia y mes
+ cambiados, 1904 ignorado, desplazamiento del rango ignorado, reloj de 12 horas, numeros con el texto
+ formateado y la home leyendo sin `cellNF`. Suite 1988 -> 1998.
+
+**Queda sin tocar, a proposito.** Una fecha escrita como TEXTO `d/m/yy` (en un CSV o en una celda de
+texto) sigue cayendo en `new Date()`, cuyo resultado depende del navegador. No hay ningun fichero real
+con ese formato, y decidir dia y mes de un texto ambiguo sin evidencia seria cambiar un fallo por otro
+(regla 6 del metodo). Tampoco se probo en un navegador real: los tests usan la misma libreria
+vendorizada que carga la web.
+
+**El auditor.** Las trazas eran exactas y sus predicciones a mano coincidieron con la ejecucion
+(`"1/4/25"` -> 4 de enero, `"1:00 PM"` -> hora 1, `"1.2"`). Acerto al no proponer `raw:true` sin saber
+que garantia sostenia `raw:false`. No comprobo que el Observatorio necesita excedentes (C39-04) ni vio
+que el formato por defecto de Excel salia bien por una casualidad de V8.
+
+**Criterio de reapertura.** Actualizar SheetJS (cambios en `SSF` o `sheet_to_json`), pasar a leer mas
+de una hoja, o aparecer un fichero real con fechas de texto de dos cifras de anho.

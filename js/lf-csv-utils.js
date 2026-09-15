@@ -789,6 +789,71 @@
     }
   }
 
+  // ===== XLSX: EL VALOR DE LA CELDA, NO SU FORMATO (ronda 39) =====
+  // sheet_to_json con raw:false entrega el texto FORMATEADO de cada celda. En las celdas de texto
+  // es lo correcto: "1,25" o "01/04/2025" escritos a mano llegan tal cual. En las numericas no,
+  // porque el formato es presentacion y SheetJS lo aplica con convencion en-US. Verificado con la
+  // libreria real en los tres importadores: una fecha con formato d/m/yy llegaba como "1/4/25" y
+  // Date.parse la leia como 4 de enero; "1:00 PM" se importaba como la hora 1; y 1,2349 kWh con
+  // formato "0.0" entraba como 1,2 (con "0", como 1). Todo sin aviso. Aqui se conserva la forma de
+  // las filas de raw:false y solo se reescriben las celdas numericas desde su valor.
+  function excelDateCellText(serial, format, date1904, SSF) {
+    if (!Number.isFinite(serial) || serial < 0) return null;
+    const dos = (n) => String(n).padStart(2, '0');
+    // Tokens fuera de corchetes ([$-es-ES], [h]) y de literales entre comillas o escapados.
+    const tokens = String(format).replace(/\[[^\]]*\]|"[^"]*"|\\./g, '').toLowerCase();
+    const tieneDia = tokens.includes('d');
+    const tieneAnyo = tokens.includes('y');
+    if (!tieneDia && !tieneAnyo) {
+      // Solo hora (h:mm, h:mm AM/PM, [h]:mm): fraccion de dia, en reloj de 24 horas.
+      const minutos = Math.round(serial * 1440);
+      return `${dos(Math.floor(minutos / 60))}:${dos(minutos % 60)}`;
+    }
+    const code = SSF.parse_date_code(serial, { date1904: Boolean(date1904) });
+    if (!code || !Number.isFinite(code.y)) return null;
+    // Sin dia (mmm-yy, yyyy/mm) es un mes: se entrega con la forma del Datadis mensual.
+    if (!tieneDia) return `${code.y}/${dos(code.m)}`;
+    const fecha = `${dos(code.d)}/${dos(code.m)}/${code.y}`;
+    return tokens.includes('h') ? `${fecha} ${dos(code.H)}:${dos(code.M)}` : fecha;
+  }
+
+  /**
+   * Filas de una hoja XLSX para los parsers de energia, con el valor real de cada celda numerica.
+   * Necesita que el libro se haya leido con `cellNF: true` para conocer el formato de la celda.
+   * Si la libreria no expone lo necesario (mocks de tests), devuelve lo mismo que raw:false.
+   */
+  function xlsxRowsFromSheet(sheet, XLSXLib, options = {}) {
+    const rows = XLSXLib.utils.sheet_to_json(sheet, { header: 1, raw: false });
+    const utils = XLSXLib.utils;
+    const SSF = XLSXLib.SSF;
+    const ref = sheet && sheet['!ref'];
+    if (!Array.isArray(rows) || !ref
+      || typeof utils.decode_range !== 'function' || typeof utils.decode_cell !== 'function'
+      || typeof SSF?.is_date !== 'function' || typeof SSF?.parse_date_code !== 'function') {
+      return rows;
+    }
+    // raw:false numera las filas desde la primera del rango (incluidas las vacias, como []) y las
+    // columnas desde su primera columna: es la misma cuenta que se usa aqui.
+    const range = utils.decode_range(ref);
+    for (const [address, cell] of Object.entries(sheet)) {
+      if (address.charAt(0) === '!' || !cell || cell.t !== 'n') continue;
+      if (typeof cell.v !== 'number' || !Number.isFinite(cell.v)) continue;
+      const pos = utils.decode_cell(address);
+      const row = rows[pos.r - range.s.r];
+      const col = pos.c - range.s.c;
+      if (!Array.isArray(row) || col < 0) continue;
+      const format = typeof cell.z === 'string' ? cell.z : '';
+      if (format && SSF.is_date(format)) {
+        const texto = excelDateCellText(cell.v, format, options.date1904, SSF);
+        if (texto !== null) row[col] = texto;
+      } else {
+        // Precision completa con punto decimal: parseNumberFlexible lo lee sin ambiguedad.
+        row[col] = String(cell.v);
+      }
+    }
+    return rows;
+  }
+
   // Clasifica un mensaje de error de importación en un código estable para analítica.
   // Garantía de privacidad: solo devuelve slugs de esta lista fija, nunca texto del
   // archivo del usuario. Clasifica sobre la primera línea porque buildHeaderError
@@ -2926,6 +2991,7 @@
     buildImportError,
     assertXlsxSheetWithinLimits,
     assertRelevantXlsxFormulasResolved,
+    xlsxRowsFromSheet,
     csvErrorCodeForTracking,
     safeFileExtensionForTracking,
     detectHeaderRow,
