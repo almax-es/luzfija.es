@@ -1135,26 +1135,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Contigo Tarifa Fácil",
-      "cPunta": 0.1499,
-      "cLlano": 0.1499,
-      "cValle": 0.1499,
-      "p1": 0.069082,
-      "p2": 0.069082,
-      "web": "https://contigoenergia.com/tarifas/tarifa-de-luz-facil/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Loviluz Lov US V2",
       "cPunta": 0.1499,
       "cLlano": 0.1499,
@@ -1235,6 +1215,26 @@
         "precioBV": 2.99
       },
       "requiereFV": true
+    },
+    {
+      "nombre": "Contigo Tarifa Fácil",
+      "cPunta": 0.1599,
+      "cLlano": 0.1599,
+      "cValle": 0.1599,
+      "p1": 0.069082,
+      "p2": 0.069082,
+      "web": "https://contigoenergia.com/tarifas/tarifa-de-luz-facil/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     },
     {
       "nombre": "CHC Plan Ilumina Dúo Promo",
@@ -2519,26 +2519,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Contigo Tarifa Horas 3P",
-      "cPunta": 0.297217,
-      "cLlano": 0.190575,
-      "cValle": 0.164474,
-      "p1": 0.084122,
-      "p2": 0.010207,
-      "web": "https://contigoenergia.com/tarifas/tarifa-luz-horas/",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Nufri Solar 3P",
       "cPunta": 0.300042,
       "cLlano": 0.213166,
@@ -2557,7 +2537,27 @@
         "precioBV": 0.0
       },
       "requiereFV": true
+    },
+    {
+      "nombre": "Contigo Tarifa Horas 3P",
+      "cPunta": 0.322684,
+      "cLlano": 0.207337,
+      "cValle": 0.180604,
+      "p1": 0.084122,
+      "p2": 0.010207,
+      "web": "https://contigoenergia.com/tarifas/tarifa-luz-horas/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-14T15:08:53.034Z"
+  "updatedAt": "2026-09-15T05:36:27.048Z"
 }
