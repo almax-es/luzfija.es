@@ -1729,6 +1729,119 @@ describe('BV: escenario compartido como previsualizacion', () => {
   });
 
 
+  // Ronda 37 (15/09/2026): el mes cosido tiene que sobrevivir a TODAS las salidas y entradas del
+  // escenario, no solo a un JSON.stringify del helper. Si una de ellas pierde `segments`, el mes
+  // sigue declarando los dias de los dos tramos pero paga los servicios de ajuste con la tasa de
+  // uno solo, y nada lo avisa. Ventana del 25/10/2025 al 25/10/2026, octubre cosido.
+  const TRAMOS_OCTUBRE = [
+    { key: '2025-10', days: 6, from: 26, to: 31, kwh: 72.7 },
+    { key: '2026-10', days: 25, from: 1, to: 25, kwh: 240.7 }
+  ];
+  const escenarioCosido = () => {
+    const data = {};
+    for (let i = 0; i < 12; i++) {
+      const year = i >= 10 ? 2025 : 2026;
+      const key = `${year}-${String(i + 1).padStart(2, '0')}`;
+      const daysInMonth = new Date(year, i + 1, 0).getDate();
+      data[i] = {
+        p1: '100', p2: '100', p3: '100', vert: '',
+        meta: i === 9
+          ? { key, daysWithData: 31, daysInMonth: 31, segments: TRAMOS_OCTUBRE }
+          : { key, daysWithData: daysInMonth, daysInMonth }
+      };
+    }
+    return data;
+  };
+  const tramosVisibles = () => window.BVSim._manualMonthMeta[9]?.segments;
+
+  it('un mes cosido conserva sus dos tramos al abrir ?bv=, exportar, importar y recargar', async () => {
+    abrirEscenarioCompartido(escenarioCosido());
+    bootSolarUi();
+    expect(tramosVisibles()).toEqual(TRAMOS_OCTUBRE);
+
+    let exportedBlob = null;
+    vi.spyOn(URL, 'createObjectURL').mockImplementation((blob) => { exportedBlob = blob; return 'blob:respaldo'; });
+    vi.spyOn(URL, 'revokeObjectURL').mockImplementation(() => {});
+    vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    document.getElementById('bv-export-manual').dispatchEvent(new window.Event('click'));
+    const exported = JSON.parse(await readBlobText(exportedBlob));
+    expect(exported.data[9].meta.segments).toEqual(TRAMOS_OCTUBRE);
+
+    // Otro navegador, sin enlace: el respaldo es la unica fuente.
+    window.history.replaceState({}, '', '/comparador-tarifas-solares.html');
+    localStorage.clear();
+    reboot();
+    expect(tramosVisibles()).toBeUndefined();
+    await importarBackup(exported);
+    expect(tramosVisibles()).toEqual(TRAMOS_OCTUBRE);
+    expect(JSON.parse(localStorage.getItem('bv_manual_data_v2'))[9].meta.segments).toEqual(TRAMOS_OCTUBRE);
+
+    reboot();
+    expect(tramosVisibles()).toEqual(TRAMOS_OCTUBRE);
+  });
+
+  it('un mes cosido viaja con sus dos tramos en el enlace compartido con mensuales', async () => {
+    const shareMock = vi.fn(async () => {});
+    Object.defineProperty(window.navigator, 'share', { configurable: true, value: shareMock });
+    localStorage.setItem('bv_manual_data_v2', JSON.stringify(escenarioCosido()));
+    bootSolarUi();
+
+    document.getElementById('btnShare').click();
+    document.getElementById('bv-share-include-monthly').checked = true;
+    document.getElementById('bv-share-confirm').click();
+    await flush();
+
+    const enlace = sharedPayload(shareMock);
+    expect(enlace.data[9].meta.segments).toEqual(TRAMOS_OCTUBRE);
+
+    // Y quien abre ese enlace ve el mismo mes cosido.
+    localStorage.clear();
+    abrirEscenarioCompartido(enlace.data);
+    reboot();
+    expect(tramosVisibles()).toEqual(TRAMOS_OCTUBRE);
+  });
+
+  it('con un mes cosido, el limite de consumo se contrasta contra 365 dias y la energia de los dos tramos', async () => {
+    localStorage.setItem('bv_manual_data_v2', JSON.stringify(escenarioCosido()));
+    bootSolarUi();
+    const limitada = {
+      nombre: 'Solar máximo 3000',
+      p1: 0.05, p2: 0.02,
+      cPunta: 0.15, cLlano: 0.12, cValle: 0.09,
+      web: 'https://example.com/limitada',
+      maxConsumoAnual: 3000,
+      fv: { bv: false, exc: 0.05, tipo: 'SIMPLE', tope: 'ENERGIA' }
+    };
+    window.BVSim.loadTarifasBV.mockImplementation(async () => ({
+      ok: true, updatedAt: '2026-09-15T00:00:00Z', tarifasBV: [limitada]
+    }));
+    window.BVSim.simulateForAllTarifasBV.mockImplementation(({ tarifasBV, months }) => ({
+      ok: true,
+      results: tarifasBV.map((tarifa) => ({
+        tarifa,
+        totals: { pagado: 100, real: 100, bvFinal: 0, credit1Total: 0, credit2Total: 0 },
+        rows: months.map((month) => ({
+          key: month.key, dias: month.daysWithData, importTotalKWh: month.importTotalKWh,
+          pot: 10, consEur: 75, credit1: 0, totalBase: 100, totalPagar: 100, bvSaldoPrev: 0, bvSaldoFin: 0
+        }))
+      }))
+    }));
+    const limites = vi.spyOn(window.LF, 'assessConsumoAnualLimits');
+
+    document.getElementById('bv-simulate').click();
+    await new Promise((resolve) => setTimeout(resolve, 180));
+
+    expect(limites).toHaveBeenCalled();
+    // 12 filas x 300 kWh; octubre cuenta los 31 dias de sus dos tramos, no los 25 del reciente.
+    expect(limites.mock.calls.at(-1)[1]).toMatchObject({
+      consumoKwh: 3600,
+      annualScope: true,
+      coveredDays: 365
+    });
+    const results = document.getElementById('bv-results');
+    expect(results.textContent).toContain('Solar máximo 3000');
+  });
+
   it('importar un respaldo antiguo con customTarifa sin bv conserva la BV implicita', async () => {
     bootSolarUi();
     await importarBackup({

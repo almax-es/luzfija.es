@@ -4304,7 +4304,7 @@ ficheros (mes cosido, octubre de Datadis en base 1-24, SSAA e indexados por tram
 limites de consumo) probadas pieza a pieza pero nunca cruzadas. Angulo: un historico real de ~365 dias
 que combina varias de esas condiciones, hasta las doce filas del simulador solar.
 
-**Resultado: cero bugs, cero cambios de codigo, una regresion nueva.**
+**Resultado: cero bugs, cero cambios de codigo, once regresiones nuevas.**
 
 - **El auditor externo no pudo ejecutar nada** (su entorno no resolvia `github.com`) y lo declaro con
  precision: entrego una lectura estatica del `main` y se nego a dar la ronda por cerrada sin ejecucion.
@@ -4328,24 +4328,39 @@ que combina varias de esas condiciones, hasta las doce filas del simulador solar
  (`|| record.hora === 25` en el filtro de `applyEdgeStitchPlan`). **Los 1975 tests existentes
  siguieron en verde**; el nuevo `tests/bv-cosido-datadis-octubre.test.js` la detecta (8761 frente a
  8760). Los tests de Datadis empiezan el dia 1 y no cosen, y los del cosido usan curvas de 24 horas:
- ninguno ponia el cambio de hora dentro del solape. Suite 1975 -> 1978.
-- **Alcance real del test nuevo, caso por caso del encargo (a-g).** No se debe leer como prueba de
- toda la ronda:
- - a (octubre en el tramo cosido) y c (366 dias con octubre en el solape): cubiertos por
-   `tests/bv-cosido-datadis-octubre.test.js`, ejecutados.
- - b (febrero bisiesto): cubierto por `tests/bv-mes-compuesto-integracion.test.js`, previo. Marzo de
-   23 horas dentro de un mes cosido no tiene test propio; el caso a lo atraviesa fuera del cosido.
- - d (SSAA por tramos e indexado por `sourceKeys`): cubiertos por `tests/ssaa-helper.test.js`,
-   `tests/bv-mes-compuesto-ssaa.test.js` y `tests/surplus-prices.test.js`, previos, con curvas
-   sinteticas y no con el cruce de octubre.
- - e: el viaje JSON de `segments` esta cubierto (`tests/bv-ui.test.js`, `normalizeMonthMeta` tras
-   `JSON.stringify`/`JSON.parse`) y la metadata se revalida al releerla (`bv-ui.js`, lectura de la
-   rejilla). **Reabrir un `?bv=` o un backup reales con una fila cosida NO lo prueba ningun test.**
- - f: diferencia home (13 meses sin coser) frente a solar (12 cosidos) de diseno; no se comparo el
-   mismo fichero en las dos herramientas.
- - g: el consumo que se contrasta con `maxConsumoAnual` es la suma de `importTotalKWh` de las filas
-   (`bv-ui.js`, antes de `assessConsumoAnualLimits`), que es la cifra cuya conservacion comprueba el
-   test nuevo. La llamada en si no tiene test con meses cosidos.
+ ninguno ponia el cambio de hora dentro del solape. Fue el primer paso (1975 -> 1978); el cierre
+ completo de la ronda esta mas abajo.
+- **Cierre de los siete casos del encargo (a-g).** El auditor senhalo, con razon, que el primer
+ test solo cubria parte de la ronda. Se completo el mismo dia: once regresiones ejecutadas con la
+ cadena real del importador o con el DOM real de `bv-ui.js`.
+ - `tests/bv-cosido-datadis-octubre.test.js` (cadena real): a y c, octubre en tres casos; b, marzo
+   de 23 horas en el tramo conservado y en el solape (8783 -> 8760 registros); f, la home valida el
+   mismo fichero de 366 dias sin coser, con 13 meses y ninguno descartado, y la unica diferencia con
+   el solar es el dia recortado (12,7 kWh); d-SSAA sobre la fila que sale de la cadena, con tramos
+   de 60 y 250,3 kWh (60 x 0,02 + 250,3 x 0,01 = 3,70 EUR, frente a 3,10 con la clave de la fila
+   sola); y d-indexado con traza horaria real y dataset con cambio de hora (120 + 625 horas
+   valoradas, cero huecos, 6,85 EUR; con el dia recortado dentro saldria 6,975 y sin la hora 25,
+   6,84).
+ - `tests/bv-ui-zona-grid.test.js` (DOM real): e, una fila cosida abierta por `?bv=`, exportada,
+   importada en un navegador limpio, persistida y recargada conserva sus dos tramos, y viaja en el
+   enlace compartido con mensuales; g, `assessConsumoAnualLimits` recibe 3600 kWh, `annualScope`
+   true y 365 dias cubiertos.
+- **Mutaciones, seis de seis cazadas por los tests nuevos.** "Suite previa" son los 1978 tests
+ anteriores a este cierre.
+
+| Mutacion | Tests nuevos | Suite previa |
+|---|---|---|
+| Compartir y exportar sin `meta` (`collectManualGridData`) | 2 fallan | **0** |
+| Importar respaldo sin `meta` (`normalizeImportedScenarioPayload`) | 1 falla | **0** |
+| Dias del mes cosido = solo los del tramo reciente (`buildSimulationMonths`) | 6 fallan | 3 |
+| SSAA sin tramos (`calcMonthForTarifa`) | 1 falla | 3 |
+| Recorte que deja sueltas la hora 25 y las horas 1-2 (`applyEdgeStitchPlan`) | 6 fallan | 1 |
+| Indexado con un solo tramo (`mergeIndexedRows`) | 1 falla | 5 |
+
+ Las dos primeras eran el hueco real: si compartir o restaurar un respaldo perdiese los tramos, el
+ mes seguiria declarando los dias de los dos tramos y pagaria los SSAA a la tasa de uno solo, sin
+ que ningun test lo viese. La variante de recorte que solo deja suelta la hora 25 tampoco la cazaba
+ la suite previa (0 fallos, medido antes del cierre). Suite 1975 -> 1986.
 - **Datos generados en el test, no sacados de `tests/fixtures/`, a proposito.** Ningun fixture real
  sirve: `1.csv` abarca 11/02-13/12/2025 (unos 306 dias, sin 13 meses que coser) y numera octubre con
  hora 25 explicita, convencion CNMC, no con la hora repetida de Datadis. Es el mismo criterio del test
