@@ -4329,11 +4329,27 @@ que combina varias de esas condiciones, hasta las doce filas del simulador solar
  siguieron en verde**; el nuevo `tests/bv-cosido-datadis-octubre.test.js` la detecta (8761 frente a
  8760). Los tests de Datadis empiezan el dia 1 y no cosen, y los del cosido usan curvas de 24 horas:
  ninguno ponia el cambio de hora dentro del solape. Suite 1975 -> 1978.
-- **Sin ejecutar en esta ronda, cubierto por tests previos**: SSAA por tramos
- (`tests/ssaa-helper.test.js`), compensacion indexada por `sourceKeys` (`tests/surplus-prices.test.js`),
- febrero bisiesto de punta a punta (`tests/bv-mes-compuesto-integracion.test.js`) y persistencia de
- `segments` a traves de JSON. La diferencia home (13 meses sin coser) frente a solar (12 cosidos) es
- de diseno.
+- **Alcance real del test nuevo, caso por caso del encargo (a-g).** No se debe leer como prueba de
+ toda la ronda:
+ - a (octubre en el tramo cosido) y c (366 dias con octubre en el solape): cubiertos por
+   `tests/bv-cosido-datadis-octubre.test.js`, ejecutados.
+ - b (febrero bisiesto): cubierto por `tests/bv-mes-compuesto-integracion.test.js`, previo. Marzo de
+   23 horas dentro de un mes cosido no tiene test propio; el caso a lo atraviesa fuera del cosido.
+ - d (SSAA por tramos e indexado por `sourceKeys`): cubiertos por `tests/ssaa-helper.test.js`,
+   `tests/bv-mes-compuesto-ssaa.test.js` y `tests/surplus-prices.test.js`, previos, con curvas
+   sinteticas y no con el cruce de octubre.
+ - e: el viaje JSON de `segments` esta cubierto (`tests/bv-ui.test.js`, `normalizeMonthMeta` tras
+   `JSON.stringify`/`JSON.parse`) y la metadata se revalida al releerla (`bv-ui.js`, lectura de la
+   rejilla). **Reabrir un `?bv=` o un backup reales con una fila cosida NO lo prueba ningun test.**
+ - f: diferencia home (13 meses sin coser) frente a solar (12 cosidos) de diseno; no se comparo el
+   mismo fichero en las dos herramientas.
+ - g: el consumo que se contrasta con `maxConsumoAnual` es la suma de `importTotalKWh` de las filas
+   (`bv-ui.js`, antes de `assessConsumoAnualLimits`), que es la cifra cuya conservacion comprueba el
+   test nuevo. La llamada en si no tiene test con meses cosidos.
+- **Datos generados en el test, no sacados de `tests/fixtures/`, a proposito.** Ningun fixture real
+ sirve: `1.csv` abarca 11/02-13/12/2025 (unos 306 dias, sin 13 meses que coser) y numera octubre con
+ hora 25 explicita, convencion CNMC, no con la hora repetida de Datadis. Es el mismo criterio del test
+ "Año completo con la forma real de Datadis" de `tests/csv-hardening.test.js`.
 
 **Criterio de reapertura.** El de la entrada del mes cosido, mas cualquier cambio en `buildHourResolver`
 o en la granularidad del recorte (si pasara a ser por hora en vez de por dia).
