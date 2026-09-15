@@ -39,6 +39,11 @@ jobs:
         with:
           python-version: '3.14'
 
+      - name: Probar los productores de datos (sin red)
+        # Merge diario de PVPC/excedentes y fusion del historico SSAA con ESIOS simulado. Si
+        # falla, no se descarga nada ni se toca data/.
+        run: python scripts/test_auto_fill.py
+
       - name: Download PVPC data (six-month correction window)
         env:
           ESIOS_API_KEY: ${{ secrets.ESIOS_API_KEY }}

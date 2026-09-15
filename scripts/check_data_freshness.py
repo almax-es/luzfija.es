@@ -43,6 +43,9 @@ GEOS = ["8741", "8742", "8743", "8744", "8745"]
 PVPC_MAX_LAG_DAYS = 1
 SURPLUS_MAX_LAG_DAYS = 2
 SSAA_MAX_LAG_MONTHS = 2
+# Un CSV de un ano en el simulador solar pide la tasa de 13 meses naturales (el mes partido por
+# el corte del fichero aparece dos veces). Menos que eso deja meses sin valorar.
+SSAA_MIN_MONTHS = 13
 
 
 def today_madrid():
@@ -282,6 +285,24 @@ def run_checks(root, geos=GEOS, hoy=None, reference_utc=None):
                     errores.append(f"ssaa/{ym}: valor no numerico")
                 elif not math.isfinite(v):
                     errores.append(f"ssaa/{ym}: valor no finito")
+            # Frescura y valores no bastan: un historico truncado con el ultimo mes al dia pasaba
+            # entero (ronda 38). El simulador solar pide la tasa de cada mes de un CSV de un ano,
+            # y un mes historico ausente deja sin valorar las tarifas que repercuten SSAA.
+            meses = sorted(str(ym) for ym in ssaa_values)
+            ordinales = []
+            for ym in meses:
+                if len(ym) == 7 and ym[4] == "-" and ym[:4].isdigit() and ym[5:].isdigit() and 1 <= int(ym[5:]) <= 12:
+                    ordinales.append(int(ym[:4]) * 12 + int(ym[5:]) - 1)
+                else:
+                    errores.append(f"ssaa: clave de mes invalida {ym!r}")
+            for anterior, siguiente in zip(ordinales, ordinales[1:]):
+                if siguiente != anterior + 1:
+                    hueco = anterior + 1
+                    errores.append(f"ssaa: falta el mes {hueco // 12:04d}-{hueco % 12 + 1:02d}")
+            if len(meses) < SSAA_MIN_MONTHS:
+                errores.append(f"ssaa: solo {len(meses)} meses publicados (minimo {SSAA_MIN_MONTHS})")
+            if meses and to_str != meses[-1]:
+                errores.append(f"ssaa: 'to' {to_str} no es el ultimo mes publicado {meses[-1]}")
     except Exception as exc:
         errores.append(f"ssaa: error leyendo index.json ({exc})")
 
@@ -322,11 +343,22 @@ def _write_month(root, dataset, geo, day_iso, *, count=None, timezone_name="Euro
     month_path.write_text(json.dumps(payload, allow_nan=True), encoding="utf-8")
 
 
-def _write_ssaa(root, to_ym, value=0.001):
+def _write_ssaa(root, to_ym, value=0.001, months=SSAA_MIN_MONTHS, skip=None):
+    """Historico SSAA continuo de `months` meses que termina en `to_ym`; `value` va en el ultimo.
+
+    `skip` quita un mes intermedio para simular un hueco.
+    """
     ssaa_dir = Path(root) / "data" / "ssaa"
     ssaa_dir.mkdir(parents=True, exist_ok=True)
+    ultimo = int(to_ym[:4]) * 12 + int(to_ym[5:7]) - 1
+    values = {}
+    for ordinal in range(ultimo - months + 1, ultimo + 1):
+        ym = f"{ordinal // 12:04d}-{ordinal % 12 + 1:02d}"
+        if ym != skip:
+            values[ym] = 0.02
+    values[to_ym] = value
     with open(ssaa_dir / "index.json", "w", encoding="utf-8") as fh:
-        json.dump({"to": to_ym, "values": {to_ym: value}}, fh, allow_nan=True)
+        json.dump({"to": to_ym, "values": values}, fh, allow_nan=True)
 
 
 def self_test():
@@ -476,6 +508,29 @@ def self_test():
         base_fresca(tmp)
         _write_ssaa(tmp, hoy.strftime("%Y-%m"), value=float("nan"))
     check("ssaa valor no finito detectado", ["valor no finito"], ssaa_valor_no_finito)
+
+    # 16b. Ronda 38: un historico SSAA truncado con el ultimo mes al dia se detecta. Antes pasaba
+    # la guardia entero, porque solo se miraba la frescura de 'to' y que los valores fueran numeros.
+    def ssaa_truncado(tmp):
+        base_fresca(tmp)
+        _write_ssaa(tmp, hoy.strftime("%Y-%m"), months=1)
+    check("ssaa historico truncado detectado", ["ssaa: solo 1 meses"], ssaa_truncado)
+
+    # 16c. Un mes ausente en medio del historico SSAA se detecta.
+    def ssaa_con_hueco(tmp):
+        base_fresca(tmp)
+        _write_ssaa(tmp, hoy.strftime("%Y-%m"), months=SSAA_MIN_MONTHS + 1,
+                    skip=months_ago(hoy, 5).strftime("%Y-%m"))
+    check("ssaa con un mes ausente detectado", ["ssaa: falta el mes"], ssaa_con_hueco)
+
+    # 16d. 'to' distinto del ultimo mes publicado se detecta.
+    def ssaa_to_incoherente(tmp):
+        base_fresca(tmp)
+        ssaa_path = Path(tmp) / "data" / "ssaa" / "index.json"
+        payload = json.loads(ssaa_path.read_text(encoding="utf-8"))
+        payload["to"] = months_ago(hoy, 1).strftime("%Y-%m")
+        ssaa_path.write_text(json.dumps(payload), encoding="utf-8")
+    check("ssaa 'to' incoherente detectado", ["no es el ultimo mes publicado"], ssaa_to_incoherente)
 
     # 17. La logica de completitud respeta los dias DST de 23 y 25 horas.
     total_checks += 1

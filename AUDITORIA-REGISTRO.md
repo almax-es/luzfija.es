@@ -4378,3 +4378,66 @@ que combina varias de esas condiciones, hasta las doce filas del simulador solar
 
 **Criterio de reapertura.** El de la entrada del mes cosido, mas cualquier cambio en `buildHourResolver`
 o en la granularidad del recorte (si pasara a ser por hora en vez de por dia).
+
+<a id="productores-de-datos-ronda-38-15-09-2026"></a>
+### Los Productores De Datos: De ESIOS A `data/` (Ronda 38, 15/09/2026)
+
+Primera auditoria de `scripts/pvpc_auto_fill.py` (indicadores 1001 y 1739) y
+`scripts/ssaa_auto_fill.py` (10328) como productores; la ronda 25 audito a sus consumidores. El
+auditor externo NO podia ejecutar (solo leer el repositorio en GitHub), y el prompt se diseno para
+eso: candidatos con traza y la prueba que los confirmaria. Claude ejecuto cada candidato con los
+scripts reales y ESIOS simulado.
+
+**Resultado: 2 candidatos, los 2 CONFIRMADOS y CORREGIDOS. Ningun dato publicado estaba mal.**
+
+- **C38-02, el importante: una respuesta parcial de ESIOS borraba el historico SSAA y se
+ publicaba.** `ssaa_auto_fill.py` reescribia `data/ssaa/index.json` solo con la respuesta. Ejecutado
+ con el `main()` real y un HTTP 200 de un unico mes: codigo de salida 0, 24 meses -> 1,
+ `check_data_freshness.py` en OK y `tests/ssaa-dataset.test.js` en verde, asi que `pvpc.yml` lo
+ habria commiteado. Efecto: el simulador solar pide la tasa de cada mes del CSV y un mes historico
+ ausente devuelve `historical-month-unavailable`, que deja fuera del ranking, con el motivo visible,
+ las tarifas con `incluyeServiciosAjuste: false`. La home no se ve afectada: pide la tasa sin mes y
+ usa el ultimo mes completo. La misma reescritura tiraba ademas CADA MES el mes mas antiguo de la
+ ventana de 24 meses, y un backfill con `--from` solo duraba hasta la ejecucion siguiente.
+ - Correccion: `read_published_values` + `merge_monthly_values`. Cada mes descargado sustituye al
+   publicado (las rectificaciones de REE siguen entrando) y los que no llegan se conservan. Se
+   fusiona DESPUES de comprobar la respuesta: vacia sigue siendo error y no escribe. Un fichero
+   ilegible, de otro indicador o de otra unidad se ignora y manda la respuesta.
+ - Guardia: `check_data_freshness.py` exige ahora claves de mes validas, historico sin huecos, al
+   menos 13 meses (`SSAA_MIN_MONTHS`: un CSV de un anho pide 13 meses naturales porque el mes
+   partido aparece dos veces) y `to` igual al ultimo mes publicado. `tests/ssaa-dataset.test.js`
+   exige lo mismo sobre el dataset real.
+- **C38-01: un dia malformado de 24 puntos sustituia a uno bueno.** La condicion de
+ `merge_month_file` era `new_is_complete or not old_is_complete or len(new) >= len(old)`, y la
+ tercera rama ignoraba si el nuevo era valido. Ejecutado con el `main()` real sobre una copia de
+ `data/`: un 20/10/2025 de 24 puntos con un timestamp duplicado, o con un salto de 7200 s,
+ sustituia al dia correcto. La guardia si lo paraba (`salto horario=0s`) y no se publicaba, pero el
+ workflow quedaba en rojo cada noche mientras ESIOS lo devolviera, sin actualizar ningun dataset y
+ con el dato bueno ya en el repositorio. Corregido a
+ `new_is_complete or (not old_is_complete and len(new) >= len(old))`: un dia completo solo lo
+ sustituye otro completo. Cambio de conducta asumido: entre dos versiones incompletas ya no gana
+ una mas corta.
+- **Tras corregir, las mismas reproducciones:** el dia bueno se conserva y la guardia pasa; SSAA
+ conserva sus 24 meses y actualiza el que llega. Guardia sobre el `data/` real: OK.
+- **Tests nuevos.** `scripts/test_auto_fill.py` (12 pruebas sin red, solo biblioteca estandar) se
+ ejecuta en `pvpc.yml` ANTES de descargar y en `tests.yml` en cada push, junto con el self-test de la
+ guardia, que hasta ahora solo corria de noche. Self-test 17 -> 20 casos. Suite JS 1987 -> 1988.
+- **Mutaciones, seis de seis cazadas:** volver a la condicion antigua (3 pruebas fallan), quitar la
+ fusion SSAA (2), quitar de la guardia el minimo de meses, la deteccion de huecos o la coherencia de
+ `to` (1 cada una), y el dataset truncado real contra `ssaa-dataset.test.js` (falla el test nuevo; el
+ antiguo seguia en verde).
+
+**El auditor.** Las dos trazas eran exactas y la severidad correcta: puso C38-02 por encima de C38-01
+porque no encontro una barrera que lo parase, y la ejecucion le dio la razon. Declaro que no pudo
+contrastar con ESIOS (bloque C) y no dedujo valores. No vio que la ventana movil de 24 meses borraba
+meses aunque ESIOS respondiera bien, ni que la home no depende del historico SSAA. Clasifico como
+hardening que `validate_days` acepte dias cuartohorarios que la guardia rechaza: correcto, y NO se
+toca, porque la barrera de publicacion es la guardia.
+
+**Limpio:** los datos publicados (dias de 23 y 25 horas en Peninsula y Canarias con pasos de 3600 s,
+`heuristic_applied` en false y SSAA entre 0,011 y 0,029 EUR/kWh). El 1739 con la zona de Madrid
+tambien para Canarias es deliberado.
+
+**Criterio de reapertura.** Cualquier cambio en `merge_month_file`, en la fusion SSAA o en
+`--months-back`; que un consumidor necesite mas de 13 meses de SSAA; o que ESIOS pase a publicar el
+1001 o el 1739 en cuartos de hora.

@@ -29,4 +29,23 @@ describe('SSAA dataset', () => {
       expect(value).toBeLessThan(0.1);
     });
   });
+
+  // Ronda 38: el productor reescribia el fichero solo con la respuesta de ESIOS, y un HTTP 200
+  // con un unico mes dejaba 1 mes publicado con este test en verde. El simulador solar necesita
+  // la tasa de cada mes de un historico de un ano; un mes ausente deja sin valorar las tarifas
+  // que repercuten SSAA.
+  it('publica un historico continuo de al menos 13 meses, con from/to en sus extremos', () => {
+    const datasetPath = path.join(repoRoot, 'data', 'ssaa', 'index.json');
+    const data = JSON.parse(fs.readFileSync(datasetPath, 'utf8'));
+    const months = Object.keys(data.values).sort();
+
+    expect(months.length).toBeGreaterThanOrEqual(13);
+    expect(data.from).toBe(months[0]);
+    expect(data.to).toBe(months[months.length - 1]);
+    for (let i = 1; i < months.length; i += 1) {
+      const [year, month] = months[i - 1].split('-').map(Number);
+      const siguiente = month === 12 ? `${year + 1}-01` : `${year}-${String(month + 1).padStart(2, '0')}`;
+      expect(months[i]).toBe(siguiente);
+    }
+  });
 });

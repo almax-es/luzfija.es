@@ -3,7 +3,7 @@
 Documentación técnica precisa de la estructura de datos, actualización automática y procesos del **PVPC (Precio Voluntario del Pequeño Consumidor)** en luzfija.es.
 Para inventario funcional completo del sitio (incluyendo observatorio, comparador principal y simulador BV), ver `CAPACIDADES-WEB.md`.
 
-**Última actualización**: 2026-09-09
+**Última actualización**: 2026-09-15
 
 ---
 
@@ -326,7 +326,9 @@ Flujo (modo automatico):
       si aparecen fuera de la ventana, el workflow falla y se requiere backfill manual
    c. Descargar de ESIOS API, convertir EUR/MWh → EUR/kWh
    d. Merge con fichero mensual existente: sobreescribe el dia si el dato nuevo
-      es estructuralmente completo (24/23/25 puntos segun cambio horario)
+      es estructuralmente completo (24/23/25 puntos segun cambio horario). Un dia
+      completo nunca lo sustituye uno incompleto o malformado, aunque tenga los mismos
+      puntos (duplicado o salto); entre dos versiones incompletas gana la mas larga
    e. Guardar en /data/{pvpc|surplus}/{geoId}/{YYYY-MM}.json
    f. Actualizar indices (index.json)
 3. Si hay cambios, el workflow los commitea y hace push
@@ -341,14 +343,18 @@ Flujo (backfill manual con --from 2021-06-01):
 
 ```
 Descarga siempre los ultimos 24 meses en una sola peticion HTTP (dato mensual).
-Sobreescribe data/ssaa/index.json completo en cada ejecucion.
-Cualquier correccion de REE queda recogida automaticamente.
+Fusiona la respuesta con data/ssaa/index.json: cada mes descargado sustituye al publicado
+(asi entran las correcciones de REE) y los meses que no llegan se conservan.
+Hasta la ronda 38 (15/09/2026) reescribia el fichero solo con la respuesta: un HTTP 200 con
+menos meses borraba el historico y la ventana movil tiraba cada mes el mas antiguo.
+Una respuesta vacia es un error y no escribe nada.
 ```
 
 **`scripts/check_data_freshness.py`** — Guardia de frescura e integridad temporal (los tres datasets)
 
 ```
 Frescura: PVPC ultimo dia con datos >= hoy-1 · Excedentes >= hoy-2 · SSAA mes 'to' >= mes actual-2.
+Integridad SSAA: historico continuo de al menos 13 meses y 'to' igual al ultimo mes publicado.
 Integridad PVPC/excedentes: todo dia anterior al dia local vigente en la zona del fichero
 debe contener exactamente las horas civiles esperadas (23/24/25 por DST), no puede faltar
 ningun dia intermedio y los timestamps deben ser horarios, continuos y del mismo dia local.

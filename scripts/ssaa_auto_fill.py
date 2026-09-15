@@ -172,6 +172,53 @@ def latest_complete_month(values: Dict[str, float], tz: ZoneInfo, now: dt.dateti
     return max(complete_months) if complete_months else None
 
 
+def is_month_key(value) -> bool:
+    text = str(value)
+    return (len(text) == 7 and text[4] == "-" and text[:4].isdigit() and text[5:].isdigit()
+            and 1 <= int(text[5:]) <= 12)
+
+
+def read_published_values(path: str, indicator: int) -> Dict[str, float]:
+    """Meses ya publicados en el fichero de salida, si es un dataset SSAA compatible.
+
+    Cualquier problema (fichero ausente, JSON roto, otro indicador u otra unidad) devuelve {}:
+    en ese caso manda la respuesta de ESIOS, igual que antes de fusionar.
+    """
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            previous = json.load(f)
+    except (OSError, ValueError):
+        return {}
+    if not isinstance(previous, dict) or previous.get("schema_version") != 1:
+        return {}
+    if previous.get("indicator") != indicator or previous.get("unit") != "EUR/kWh":
+        return {}
+    raw_values = previous.get("values")
+    if not isinstance(raw_values, dict):
+        return {}
+    published: Dict[str, float] = {}
+    for ym, value in raw_values.items():
+        if not is_month_key(ym) or isinstance(value, bool) or not isinstance(value, (int, float)):
+            continue
+        if math.isfinite(value):
+            published[str(ym)] = float(value)
+    return published
+
+
+def merge_monthly_values(published: Dict[str, float], fresh: Dict[str, float]) -> Dict[str, float]:
+    """Fusiona lo publicado con lo recien descargado; lo descargado manda en cada mes que trae.
+
+    Antes el fichero se reescribia solo con la respuesta. Un HTTP 200 con menos meses de los
+    pedidos borraba el historico, y ni la guardia de frescura ni el test del dataset lo veian:
+    verificado en la ronda 38, 24 meses -> 1 con codigo de salida 0. Ademas la ventana movil de
+    24 meses tiraba cada mes el mas antiguo, que el simulador solar necesita para un CSV antiguo.
+    Las rectificaciones de REE siguen entrando: el mes que llega sustituye al publicado.
+    """
+    merged = dict(published)
+    merged.update(fresh)
+    return dict(sorted(merged.items()))
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--out-file", default="data/ssaa/index.json", help="Output JSON file")
@@ -215,6 +262,10 @@ def main() -> int:
     if not values:
         print("ERROR: no SSAA values returned by ESIOS", file=sys.stderr)
         return 1
+
+    # Se fusiona DESPUES de comprobar la respuesta: una respuesta vacia sigue siendo un error y no
+    # escribe nada, en vez de republicar lo que ya habia como si se hubiera actualizado.
+    values = merge_monthly_values(read_published_values(args.out_file, args.indicator), values)
 
     latest_month = latest_complete_month(values, tz)
     latest_value = values.get(latest_month) if latest_month else None

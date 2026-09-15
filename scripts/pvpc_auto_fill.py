@@ -290,7 +290,13 @@ def merge_month_file(out_path: str, new_obj: dict, tz: ZoneInfo) -> dict:
         old_is_complete = not old_warnings
         new_is_complete = not new_warnings
 
-        if new_is_complete or not old_is_complete or len(new_arr) >= len(old_arr):
+        # Un dia completo solo lo sustituye otro completo: asi entran las rectificaciones de REE.
+        # La longitud desempata solo entre dos versiones incompletas (el dia en curso crece de una
+        # ejecucion a otra). Antes bastaba con igualar la longitud, y un dia de 24 puntos con un
+        # timestamp duplicado o un salto sustituia al dia bueno: la guardia lo paraba, pero el
+        # workflow quedaba en rojo cada noche mientras ESIOS lo siguiera devolviendo, y con el
+        # dato correcto ya en el repositorio (ronda 38).
+        if new_is_complete or (not old_is_complete and len(new_arr) >= len(old_arr)):
             old_days[day] = new_arr
 
     keys = sorted(old_days.keys())

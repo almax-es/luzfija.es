@@ -31,7 +31,19 @@ jobs:
           
       - name: Install dependencies
         run: npm ci
-        
+
+      - name: Setup Python
+        uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6.3.0
+        with:
+          python-version: '3.14'
+
+      - name: Test data producers and freshness guard (sin red)
+        # pvpc.yml los ejecuta cada noche antes de descargar; aqui se ven en cada push, antes de
+        # que un cambio en los productores llegue a la ejecucion nocturna.
+        run: |
+          python scripts/test_auto_fill.py
+          python scripts/check_data_freshness.py --self-test
+
       - name: Security Audit (production HIGH/CRITICAL)
         # Solo audita dependencias de produccion. Un advisory HIGH/CRITICAL
         # bloquea el job y, por tanto, el despliegue hasta resolverlo o documentar
