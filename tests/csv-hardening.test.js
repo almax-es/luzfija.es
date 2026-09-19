@@ -1,0 +1,1123 @@
+import { describe, it, expect, beforeAll } from 'vitest';
+import fs from 'fs';
+import path from 'path';
+import '../js/lf-utils.js';
+import '../js/lf-csv-utils.js';
+
+/**
+ * Endurecimiento del importador CSV/XLSX (25/07/2026).
+ *
+ * Origen: 5 eventos `csv-import-error/solar/{csv,xlsx}/cabecera` el 25/07/2026 con cero
+ * importaciones completadas. La investigacion destapo tres fallos de integridad
+ * silenciosa y varios falsos rechazos. Estos tests fijan el comportamiento acordado.
+ */
+
+describe('Desambiguacion hora / periodo tarifario por contenido', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  const parse = (header, ...rows) =>
+    u.parseEnergyTableRows([header.split(';'), ...rows.map(r => r.split(';'))], { headerRowIndex: 0 });
+
+  it.each(['Periodo', 'Período', 'Periodo horario', 'Tramo', 'Intervalo'])(
+    'acepta Hora junto a "%s": antes se rechazaba por ambiguedad', (nombre) => {
+      const res = parse(`Fecha;Hora;${nombre};Consumo_kWh`,
+        '01/04/2026;10;P1;1,0', '01/04/2026;18;P1;2,0');
+      expect(res.records.length).toBe(2);
+      expect(res.records.map(r => r.periodo)).toEqual(['P1', 'P1']);
+    }
+  );
+
+  it('la columna de periodo ya puede usarse para inferir la base horaria 0-23', () => {
+    // Esta es la consecuencia util de arreglar la colision: inferHourBaseFromPeriods
+    // existia desde siempre, pero con la columna llamada "Periodo" a secas el fichero se
+    // rechazaba por ambiguedad antes de llegar a ella. P1 en CNMC es 10-14h y 18-22h, asi
+    // que unas horas crudas 10 y 18 solo son coherentes si el fichero es 0-23 -> 11 y 19.
+    const res = parse('Fecha;Hora;Periodo;Consumo_kWh',
+      '01/04/2026;10;P1;1,0', '01/04/2026;18;P1;2,0');
+    expect(res.records.map(r => r.hora)).toEqual([11, 19]);
+    expect(res.warnings.some(w => /periodo tarifario/i.test(w))).toBe(true);
+  });
+
+  it('usa Periodo como hora cuando trae valores numericos y no hay columna Hora', () => {
+    const res = parse('Fecha;Periodo;Consumo_kWh',
+      '01/04/2026;1;1,0', '01/04/2026;2;2,0', '01/04/2026;24;3,0');
+    expect(res.records.map(r => r.hora)).toEqual([1, 2, 24]);
+  });
+
+  it('RECHAZA un agregado por periodo tarifario sin hora en vez de fabricar horas 1,2,3', () => {
+    expect(() => parse('Fecha;Periodo;Consumo_kWh',
+      '01/04/2026;P1;10,0', '01/04/2026;P2;20,0', '01/04/2026;P3;30,0'))
+      .toThrow(/agregado por periodo tarifario/i);
+  });
+
+  it('el agregado por periodo se clasifica como agregado-por-periodo en analitica', () => {
+    let lanzado = null;
+    try {
+      parse('Fecha;Periodo;Consumo_kWh', '01/04/2026;P1;10,0', '01/04/2026;P3;30,0');
+    } catch (e) { lanzado = e; }
+    expect(lanzado).not.toBeNull();
+    expect(u.csvErrorCodeForTracking(lanzado.message)).toBe('agregado-por-periodo');
+  });
+
+  it('nunca asigna la misma columna a hora y a periodo a la vez', () => {
+    // El 24 es el discriminador horario: sin ningun valor 0 o >3 la columna se considera
+    // indistinguible de P1/P2/P3 y se rechaza (ver test siguiente).
+    const res = parse('Fecha;Periodo;Consumo_kWh', '01/04/2026;1;1,0', '01/04/2026;24;2,0');
+    // 'Periodo' se ha usado como hora, asi que el periodo se recalcula, no se lee de ahi.
+    expect(res.records.every(r => ['P1', 'P2', 'P3'].includes(r.periodo))).toBe(true);
+  });
+
+  it('RECHAZA una columna ambigua con solo 1/2/3: es indistinguible de P1/P2/P3', () => {
+    // Sin discriminador horario (un 0 o algun valor 4..25) no hay forma de saber si son
+    // horas o periodos escritos sin la P. Antes se tomaba por hora en silencio.
+    expect(() => parse('Fecha;Periodo;Consumo_kWh',
+      '01/04/2026;1;10,0', '01/04/2026;2;20,0', '01/04/2026;3;30,0'))
+      .toThrow(/no se pudo interpretar/i);
+  });
+
+  it('acepta la hora escrita como HH:00 o como entero con decimal cero', () => {
+    const conReloj = parse('Fecha;Intervalo;Consumo_kWh', '01/04/2026;08:00;1,0', '01/04/2026;19:00;2,0');
+    expect(conReloj.records.map(r => r.hora)).toEqual([8, 19]);
+    const conDecimal = parse('Fecha;Intervalo;Consumo_kWh', '01/04/2026;8,0;1,0', '01/04/2026;19,0;2,0');
+    expect(conDecimal.records.map(r => r.hora)).toEqual([8, 19]);
+  });
+
+  it('RECHAZA una columna ambigua con contenido heterogeneo en vez de descartar filas', () => {
+    // Antes: se clasificaba como hora, la fila con "foo" se descartaba y al quedar
+    // exactamente el 50% no se activaba el rechazo por mayoria de filas invalidas.
+    expect(() => parse('Fecha;Intervalo;Consumo_kWh', '01/04/2026;7;1,0', '01/04/2026;foo;2,0'))
+      .toThrow(/no se pudo interpretar/i);
+  });
+
+  it('RECHAZA dos columnas ambiguas que las dos parecen hora', () => {
+    expect(() => parse('Fecha;Intervalo;Tramo;Consumo_kWh',
+      '01/04/2026;7;7;1,0', '01/04/2026;19;19;2,0'))
+      .toThrow(/dos columnas que podrían ser la hora/i);
+  });
+
+  it('con una columna de hora explicita, la ambigua se ignora sin lanzar', () => {
+    const res = parse('Fecha;Hora;Tramo;Consumo_kWh', '01/04/2026;7;7;1,0', '01/04/2026;19;19;2,0');
+    expect(res.records.length).toBe(2);
+    expect(res.warnings.some(w => /ya hay una columna de hora explícita/i.test(w))).toBe(true);
+  });
+
+  it('mantiene el contrato de Periodo_tarifario para inferir 0-23', () => {
+    const res = parse('CUPS;Fecha;Hora;Periodo_tarifario;Consumo_kWh',
+      'ES1;01/04/2026;10;P1;1,0', 'ES1;01/04/2026;18;P1;1,0');
+    expect(res.records.map(r => r.hora)).toEqual([11, 19]);
+  });
+});
+
+describe('Ceuta/Melilla: no fiarse de la columna Periodo (14/08/2026)', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  // Los limites P1/P2/P3 de Ceuta/Melilla estan desplazados respecto a Peninsula. Si el CSV
+  // trae un Periodo calculado para otra zona, inferir la base horaria (0-23 vs 1-24) contra
+  // esa columna puede casar por coincidencia con la interpretacion equivocada y desplazar
+  // todas las horas una posicion. Verificado contra el codigo real (14/08/2026): sin este fix,
+  // este mismo caso infería 0-23 y desplazaba horas 10,18 -> 11,19.
+  it('con horas ambiguas 1-23 y Periodo peninsular, NO infiere 0-23: conserva la hora original', () => {
+    const rows = [
+      ['Fecha', 'Hora', 'Periodo', 'Consumo_kWh'],
+      ['01/04/2026', '10', 'P1', '1,0'],
+      ['01/04/2026', '18', 'P1', '2,0']
+    ];
+    const res = u.parseEnergyTableRows(rows, { headerRowIndex: 0, zonaFiscal: 'CeutaMelilla' });
+    expect(res.records.map(r => r.hora)).toEqual([10, 18]);
+    expect(res.warnings.some(w => /formato horario ambiguo/i.test(w))).toBe(true);
+  });
+
+  it('ignora el Periodo del fichero y recalcula por fecha/hora con reglas de Ceuta/Melilla', () => {
+    const rows = [
+      ['Fecha', 'Hora', 'Periodo', 'Consumo_kWh'],
+      ['01/04/2026', '10', 'P1', '1,0'],
+      ['01/04/2026', '18', 'P1', '2,0']
+    ];
+    const res = u.parseEnergyTableRows(rows, { headerRowIndex: 0, zonaFiscal: 'CeutaMelilla' });
+    // El fichero dice P1 en ambas filas; recalculado con reglas Ceuta ambas dan P2.
+    expect(res.records.map(r => r.periodo)).toEqual(['P2', 'P2']);
+  });
+
+  it('una senal fuerte (hora 0 explicita) sigue detectando la base 0-23 igual en Ceuta/Melilla', () => {
+    const rows = [
+      ['Fecha', 'Hora', 'Periodo', 'Consumo_kWh'],
+      ['01/04/2026', '0', 'P1', '1,0'],
+      ['01/04/2026', '17', 'P1', '2,0']
+    ];
+    const res = u.parseEnergyTableRows(rows, { headerRowIndex: 0, zonaFiscal: 'CeutaMelilla' });
+    expect(res.records.map(r => r.hora)).toEqual([1, 18]);
+  });
+
+  it('Peninsula sigue respetando el Periodo del fichero (regresion, sin cambios de comportamiento)', () => {
+    const rows = [
+      ['Fecha', 'Hora', 'Periodo', 'Consumo_kWh'],
+      ['01/04/2026', '10', 'P1', '1,0'],
+      ['01/04/2026', '18', 'P1', '2,0']
+    ];
+    const res = u.parseEnergyTableRows(rows, { headerRowIndex: 0, zonaFiscal: 'Península' });
+    expect(res.records.map(r => r.hora)).toEqual([11, 19]);
+    expect(res.records.map(r => r.periodo)).toEqual(['P1', 'P1']);
+  });
+});
+
+describe('Centinela de columna solar sin reconocer', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  const rows = (header, ...data) => [header.split(';'), ...data.map(r => r.split(';'))];
+  const SOSPECHOSA = 'Fecha;Hora;Inyección a red (kWh);Consumo (kWh)';
+  const datos = ['01/04/2026;1;0,2;0,5', '01/04/2026;2;0,3;0,6'];
+
+  it('con politica error bloquea en vez de importar excedentes=0 en silencio', () => {
+    expect(() => u.parseEnergyTableRows(rows(SOSPECHOSA, ...datos), {
+      headerRowIndex: 0, unmappedSolarPolicy: 'error'
+    })).toThrow(/parece representar energía solar/i);
+  });
+
+  it('con politica warn importa el consumo pero avisa de la columna ignorada', () => {
+    const res = u.parseEnergyTableRows(rows(SOSPECHOSA, ...datos), {
+      headerRowIndex: 0, unmappedSolarPolicy: 'warn'
+    });
+    expect(res.records.map(r => r.kwh)).toEqual([0.5, 0.6]);
+    expect(res.warnings.some(w => /no se ha usado en el cálculo/i.test(w))).toBe(true);
+  });
+
+  it('el bloqueo se clasifica como columna-solar en analitica', () => {
+    let lanzado = null;
+    try {
+      u.parseEnergyTableRows(rows(SOSPECHOSA, ...datos), {
+        headerRowIndex: 0, unmappedSolarPolicy: 'error'
+      });
+    } catch (e) { lanzado = e; }
+    expect(lanzado).not.toBeNull();
+    expect(u.csvErrorCodeForTracking(lanzado.message)).toBe('columna-solar');
+  });
+
+  it('detecta tambien energiaGenerada_kWh (el lexema es "genera", no "generac")', () => {
+    expect(() => u.parseEnergyTableRows(
+      rows('CUPS;Fecha;Hora;consumo_kWh;energiaGenerada_kWh', 'ES1;01/04/2026;1;0,5;0,2'),
+      { headerRowIndex: 0, unmappedSolarPolicy: 'error' }
+    )).toThrow(/parece representar energía solar/i);
+  });
+
+  it('el token "id" no puede entrar en las exclusiones: romperia vertida/vertidos', () => {
+    // Regresion explicita: 'energia_vertida_kwh'.includes('id') es true, asi que si 'id'
+    // estuviera en SOLAR_METADATA_TOKENS el centinela nunca saltaria con esas columnas.
+    expect(() => u.parseEnergyTableRows(
+      rows('Fecha;Hora;Consumo_kWh;Excedentes vertidos totales', '01/04/2026;1;0,5;0,2', '01/04/2026;2;0,6;0,3'),
+      { headerRowIndex: 0, unmappedSolarPolicy: 'error' }
+    )).toThrow(/parece representar energía solar/i);
+  });
+
+  it.each([
+    ['Precio excedentes (€/kWh)', '0,05'],
+    ['Potencia de generación (kW)', '3,5'],
+    ['Coeficiente de autoconsumo', '0,8'],
+    ['Tarifa de exportación', '0,06'],
+    ['Export price (€/kWh)', '0,06'],
+    ['Feed-in tariff', '0,05'],
+    ['ID exportación', '123']
+  ])('no salta con el metadato "%s" (las exclusiones tienen precedencia)', (nombre, valor) => {
+    const res = u.parseEnergyTableRows(
+      rows(`Fecha;Hora;Consumo_kWh;${nombre}`, `01/04/2026;1;0,5;${valor}`, `01/04/2026;2;0,6;${valor}`),
+      { headerRowIndex: 0, unmappedSolarPolicy: 'error' }
+    );
+    expect(res.records.length).toBe(2);
+  });
+
+  it('no salta si la columna sospechosa no contiene numeros', () => {
+    const res = u.parseEnergyTableRows(
+      rows('Fecha;Hora;Consumo_kWh;Observaciones vertido', '01/04/2026;1;0,5;revisado', '01/04/2026;2;0,6;pendiente'),
+      { headerRowIndex: 0, unmappedSolarPolicy: 'error' }
+    );
+    expect(res.records.length).toBe(2);
+  });
+
+  it('no salta cuando los excedentes SI se reconocen', () => {
+    const res = u.parseEnergyTableRows(
+      rows('CUPS;Fecha;Hora;AE_kWh;AS_kWh', 'ES1;01/04/2026;1;0,5;0,1'),
+      { headerRowIndex: 0, unmappedSolarPolicy: 'error' }
+    );
+    expect(res.hasExcedenteColumn).toBe(true);
+  });
+
+  it('la politica por defecto es warn, nunca bloquear', () => {
+    const res = u.parseEnergyTableRows(rows(SOSPECHOSA, ...datos), { headerRowIndex: 0 });
+    expect(res.records.length).toBe(2);
+  });
+});
+
+describe('Matriz horaria compartida: politica de celdas', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  const HDR = ['Fecha', ...Array.from({ length: 24 }, (_, i) => 'H' + String(i + 1).padStart(2, '0'))];
+  const matriz = (valores, opts) => u.parseHourlyMatrixRows([HDR, ['01/04/2026', ...valores]], 0, opts);
+  const v24 = (x) => Array(24).fill(x);
+
+  it('descarta negativos en vez de conservarlos', () => {
+    const valores = v24('1,0');
+    valores[20] = '-5';
+    valores[21] = '-5';
+    const res = matriz(valores);
+    expect(res.records.every(r => r.kwh >= 0)).toBe(true);
+    expect(res.records.length).toBe(22);
+    expect(res.warnings.some(w => /negativo/i.test(w))).toBe(true);
+  });
+
+  it('descarta valores por encima de 10.000 kWh', () => {
+    const valores = v24('1,0');
+    valores[23] = '20000';
+    const res = matriz(valores);
+    expect(res.records.length).toBe(23);
+    expect(res.warnings.some(w => /10\.000/.test(w))).toBe(true);
+  });
+
+  it('descarta texto arbitrario y avisa', () => {
+    const valores = v24('1,0');
+    valores[23] = 'texto';
+    const res = matriz(valores);
+    expect(res.records.length).toBe(23);
+    expect(res.warnings.some(w => /no numéricos/i.test(w))).toBe(true);
+  });
+
+  it('interpreta la celda vacia como 0 y conserva la hora', () => {
+    const valores = v24('1,0');
+    valores[23] = '';
+    const res = matriz(valores);
+    expect(res.records.length).toBe(24);
+    expect(res.records[23].kwh).toBe(0);
+    expect(res.warnings.some(w => /sin dato/i.test(w))).toBe(true);
+  });
+
+  it('rechaza una matriz entera de texto en vez de fabricar 24 ceros', () => {
+    expect(() => matriz(v24('texto'))).toThrow(/no contiene ningún valor numérico/i);
+  });
+
+  it('rechaza cuando la mitad o mas de las celdas no vacias son invalidas', () => {
+    const valores = [...v24('1,0').slice(0, 12), ...Array(12).fill('-1')];
+    expect(() => matriz(valores)).toThrow(/no interpretables/i);
+  });
+
+  it('descartar una hora no desplaza las demas', () => {
+    const valores = v24('1,0');
+    valores[4] = '-3'; // corresponde a H05 -> hora 5
+    const res = matriz(valores);
+    expect(res.records.find(r => r.hora === 4)).toBeDefined();
+    expect(res.records.find(r => r.hora === 5)).toBeUndefined();
+    expect(res.records.find(r => r.hora === 6)).toBeDefined();
+  });
+
+  it('computePeriodo:false deja el periodo a null (lo necesita el solar)', () => {
+    const res = matriz(v24('1,0'), { computePeriodo: false });
+    expect(res.records.every(r => r.periodo === null)).toBe(true);
+  });
+
+  it('por defecto calcula el periodo (lo necesita la home)', () => {
+    const res = matriz(v24('1,0'));
+    expect(res.records.every(r => ['P1', 'P2', 'P3'].includes(r.periodo))).toBe(true);
+  });
+
+  it('busca la cabecera de matriz hasta 30 filas, no 10', () => {
+    const preambulo = Array.from({ length: 12 }, (_, i) => ['aviso ' + i]);
+    expect(u.findHourlyMatrixHeaderRow([...preambulo, HDR])).toBe(12);
+  });
+
+  it('los fallos de matriz se clasifican en slugs distinguibles', () => {
+    // La cabecera H01..H24 SI se detecto, asi que el diagnostico es de datos, no de cabecera.
+    let sinNumeros = null;
+    try { matriz(v24('texto')); } catch (e) { sinNumeros = e; }
+    expect(u.csvErrorCodeForTracking(sinNumeros.message)).toBe('filas-invalidas');
+
+    let mayoriaInvalida = null;
+    try { matriz([...v24('1,0').slice(0, 12), ...Array(12).fill('-1')]); } catch (e) { mayoriaInvalida = e; }
+    expect(u.csvErrorCodeForTracking(mayoriaInvalida.message)).toBe('filas-invalidas');
+  });
+});
+
+describe('Ancho minimo de cabecera: fecha_hora + consumo', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  it('acepta dos columnas cuando son fecha_hora + consumo exactos', () => {
+    const { rows } = u.parseCSVToRows('FechaHora;Consumo_kWh\n01/04/2026 01:00;0,5\n01/04/2026 02:00;0,6');
+    const res = u.parseEnergyTableRows(rows, { headerRowIndex: 0 });
+    expect(res.records.map(r => r.kwh)).toEqual([0.5, 0.6]);
+  });
+
+  it('sigue rechazando dos columnas que no son fecha_hora + consumo', () => {
+    expect(() => u.parseCSVToRows('Fecha;Consumo_kWh\n01/04/2026;0,5\n02/04/2026;0,6'))
+      .toThrow(/no se pudo detectar la cabecera/i);
+  });
+});
+
+describe('Mejor fila candidata para el error de XLSX', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  it('devuelve las cabeceras vistas para que el mensaje no diga "(sin cabeceras)"', () => {
+    const data = [['Informe'], ['CUPS', 'Fecha', 'Hora', 'Energía (kWh)'], ['ES1', '01/04/2026', '1', '0,5']];
+    expect(u.guessEnergyHeaderRow(data)).toBe(-1);
+    const candidata = u.bestEnergyHeaderCandidate(data);
+    expect(candidata).toContain('fecha');
+    expect(candidata).toContain('energia_kwh');
+  });
+});
+
+describe('No regresion: formatos reales que ya funcionaban', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  const ok = (contenido) => {
+    const { rows, separator, headerRowIndex } = u.parseCSVToRows(contenido);
+    return u.parseEnergyTableRows(rows, { separator, headerRowIndex, parseNumber: u.parseNumberFlexibleCSV });
+  };
+
+  it.each([
+    ['Datadis autoconsumo', 'CUPS;Fecha;Hora;AE_kWh;AS_KWh;AE_AUTOCONS_kWh;REAL/ESTIMADO\nES1;11/02/2026;1;0,875;0;;R\nES1;11/02/2026;2;0,503;0;;R'],
+    ['Datadis solo consumo', 'CUPS;Fecha;Hora;Consumo_kWh;Metodo_obtencion\nES1;01/04/2026;1;0,5;R\nES1;01/04/2026;2;0,6;R'],
+    ['Datadis con parentesis', 'CUPS;Fecha;Hora;Consumo (kWh);Método obtención\nES1;01/04/2026;1;0,5;R\nES1;01/04/2026;2;0,6;R'],
+    ['UFD EHCR/EHEX', 'CUPS;FECHA;HORA;EHCR (kWh);EHEX (kWh)\nES1;01/04/2026;1;0,5;0,1\nES1;01/04/2026;2;0,6;0,2'],
+    ['i-DE bruto Wh', 'CUPS;FechaHora;CONSUMO Wh;GENERACION Wh\nES1;01/04/2026 00:00;500;200\nES1;01/04/2026 01:00;100;400']
+  ])('%s sigue importando', (_nombre, contenido) => {
+    const res = ok(contenido);
+    expect(res.records.length).toBeGreaterThan(0);
+  });
+});
+
+describe('Tokens del centinela: falsos positivos y negativos', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  const rows = (header, ...data) => [header.split(';'), ...data.map(r => r.split(';'))];
+  const conPolitica = (header, ...data) => u.parseEnergyTableRows(
+    rows(header, ...data), { headerRowIndex: 0, unmappedSolarPolicy: 'error' }
+  );
+
+  it.each([
+    'Energía entregada a la red (kWh)',
+    'Energía cedida a la red (kWh)',
+    'Energía devuelta a la red (kWh)'
+  ])('detecta el compuesto "%s" (raiz + red, no una sola subcadena)', (nombre) => {
+    expect(() => conPolitica(`Fecha;Hora;Consumo_kWh;${nombre}`,
+      '01/04/2026;1;0,5;0,2', '01/04/2026;2;0,6;0,3'))
+      .toThrow(/parece representar energía solar/i);
+  });
+
+  it.each([
+    ['ID generador', '17'],
+    ['Número de generadores', '2'],
+    ['Rendimiento generador', '0,92']
+  ])('NO bloquea "%s": "genera" es token debil y necesita contexto energetico', (nombre, valor) => {
+    const res = conPolitica(`Fecha;Hora;Consumo_kWh;${nombre}`,
+      `01/04/2026;1;0,5;${valor}`, `01/04/2026;2;0,6;${valor}`);
+    expect(res.records.length).toBe(2);
+  });
+
+  it('un marcador "Sin dato" ya no desactiva el centinela', () => {
+    // Antes se exigia numeric === seen, asi que un solo "Sin dato" en la columna la dejaba
+    // pasar y los excedentes entraban como cero.
+    expect(() => conPolitica('Fecha;Hora;Inyección a red (kWh);Consumo (kWh)',
+      '01/04/2026;1;0,2;0,5', '01/04/2026;2;Sin dato;0,6', '01/04/2026;3;0,3;0,7'))
+      .toThrow(/parece representar energía solar/i);
+  });
+
+  it('una columna de texto con un numero suelto no bloquea', () => {
+    const res = conPolitica('Fecha;Hora;Consumo_kWh;Observaciones vertido',
+      '01/04/2026;1;0,5;revisado', '01/04/2026;2;0,6;123', '01/04/2026;3;0,7;pendiente');
+    expect(res.records.length).toBe(3);
+  });
+});
+
+describe('Matriz horaria: hora 25 solo con cabecera H25 y en el cambio de octubre', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  const H24 = ['Fecha', ...Array.from({ length: 24 }, (_, i) => 'H' + String(i + 1).padStart(2, '0'))];
+  const H25 = [...H24, 'H25'];
+  const v24 = () => Array(24).fill('1,0');
+  const DST_OCT = '26/10/2025';   // ultimo domingo de octubre de 2025
+  const NO_DST = '01/04/2026';
+
+  it('acepta H25 cuando la cabecera la declara y la fecha es el cambio horario', () => {
+    const res = u.parseHourlyMatrixRows([H25, [DST_OCT, ...v24(), '5']], 0);
+    expect(res.records).toHaveLength(25);
+    expect(res.records.find(r => r.hora === 25).kwh).toBe(5);
+  });
+
+  it('IGNORA un 25 valor si la cabecera no declara H25 (columna de total diario)', () => {
+    const res = u.parseHourlyMatrixRows([H24, [DST_OCT, ...v24(), '999']], 0);
+    expect(res.records).toHaveLength(24);
+    expect(res.records.some(r => r.hora === 25)).toBe(false);
+  });
+
+  it('una cabecera "Total" en la posicion 25 no se convierte en hora', () => {
+    const res = u.parseHourlyMatrixRows([[...H24, 'Total'], [DST_OCT, ...v24(), '24']], 0);
+    expect(res.records).toHaveLength(24);
+    expect(res.records.some(r => r.hora === 25)).toBe(false);
+  });
+
+  it('descarta H25 con aviso cuando la fecha NO es el cambio horario de octubre', () => {
+    const res = u.parseHourlyMatrixRows([H25, [NO_DST, ...v24(), '5']], 0);
+    expect(res.records).toHaveLength(24);
+    expect(res.warnings.some(w => /H25/.test(w))).toBe(true);
+  });
+
+  it('reconoce el ultimo domingo de octubre y no otro domingo del mes', () => {
+    // 19/10/2025 es domingo pero NO el ultimo; 26/10/2025 si lo es.
+    const noUltimo = u.parseHourlyMatrixRows([H25, ['19/10/2025', ...v24(), '5']], 0);
+    expect(noUltimo.records.some(r => r.hora === 25)).toBe(false);
+    const ultimo = u.parseHourlyMatrixRows([H25, ['26/10/2025', ...v24(), '5']], 0);
+    expect(ultimo.records.some(r => r.hora === 25)).toBe(true);
+  });
+});
+
+describe('Contexto energetico por token completo, no por subcadena', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  const rows = (header, ...data) => [header.split(';'), ...data.map(r => r.split(';'))];
+  const conPolitica = (header, ...data) => u.parseEnergyTableRows(
+    rows(header, ...data), { headerRowIndex: 0, unmappedSolarPolicy: 'error' }
+  );
+
+  it.each([
+    ['Capacidad generador KW', '5'],
+    ['Producción instantánea KW', '3,2'],
+    ['Producto wholesale', '12'],
+    ['Export when', '7']
+  ])('NO bloquea "%s"', (nombre, valor) => {
+    // 'kw' es potencia y se ha quitado del contexto; 'wh' ya no casa dentro de
+    // 'wholesale' ni de 'when' porque la comparacion es por token completo.
+    const res = conPolitica(`Fecha;Hora;Consumo_kWh;${nombre}`,
+      `01/04/2026;1;0,5;${valor}`, `01/04/2026;2;0,6;${valor}`);
+    expect(res.records.length).toBe(2);
+  });
+
+  it('detecta "Exported energy": el contexto en ingles cuenta', () => {
+    expect(() => conPolitica('Fecha;Hora;Consumo_kWh;Exported energy',
+      '01/04/2026;1;0,5;0,2', '01/04/2026;2;0,6;0,3'))
+      .toThrow(/parece representar energía solar/i);
+  });
+});
+
+describe('Umbral de muestras del centinela', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  const rows = (header, ...data) => [header.split(';'), ...data.map(r => r.split(';'))];
+  const conPolitica = (header, ...data) => u.parseEnergyTableRows(
+    rows(header, ...data), { headerRowIndex: 0, unmappedSolarPolicy: 'error' }
+  );
+
+  it('con unidad en la cabecera basta UNA muestra numerica (antes 3/4 = 75% no saltaba)', () => {
+    expect(() => conPolitica('Fecha;Hora;Consumo_kWh;Inyección a red (kWh)',
+      '01/04/2026;1;0,5;1', '01/04/2026;2;0,6;2',
+      '01/04/2026;3;0,7;3', '01/04/2026;4;0,8;texto'))
+      .toThrow(/parece representar energía solar/i);
+  });
+
+  it('con unidad en la cabecera salta incluso con una sola celda numerica entre muchas', () => {
+    expect(() => conPolitica('Fecha;Hora;Consumo_kWh;Inyección a red (kWh)',
+      '01/04/2026;1;0,5;0,2', '01/04/2026;2;0,6;n', '01/04/2026;3;0,7;n', '01/04/2026;4;0,8;n'))
+      .toThrow(/parece representar energía solar/i);
+  });
+
+  it('sin contexto energetico en el nombre se sigue exigiendo mayoria: 3/4 = 75% no basta', () => {
+    const res = conPolitica('Fecha;Hora;Consumo_kWh;Excedentes vertidos totales',
+      '01/04/2026;1;0,5;1', '01/04/2026;2;0,6;2',
+      '01/04/2026;3;0,7;3', '01/04/2026;4;0,8;texto');
+    expect(res.records.length).toBe(4);
+  });
+
+  it('sin contexto energetico, 4/5 = 80% si basta (borde)', () => {
+    expect(() => conPolitica('Fecha;Hora;Consumo_kWh;Excedentes vertidos totales',
+      '01/04/2026;1;0,5;1', '01/04/2026;2;0,6;2', '01/04/2026;3;0,7;3',
+      '01/04/2026;4;0,8;4', '01/04/2026;5;0,9;texto'))
+      .toThrow(/parece representar energía solar/i);
+  });
+
+  it('los marcadores sin dato no cuentan para el porcentaje', () => {
+    // 3 numeros + 1 "Sin dato" (ignorado) = 100% de las significativas.
+    expect(() => conPolitica('Fecha;Hora;Consumo_kWh;Excedentes vertidos totales',
+      '01/04/2026;1;0,5;1', '01/04/2026;2;0,6;Sin dato',
+      '01/04/2026;3;0,7;3', '01/04/2026;4;0,8;4'))
+      .toThrow(/parece representar energía solar/i);
+  });
+});
+
+describe('Metadato estructurado unmappedSolarColumns', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  it('con politica warn expone las columnas sospechosas para el llamante', () => {
+    const res = u.parseEnergyTableRows(
+      [['Fecha', 'Hora', 'Consumo (kWh)', 'Inyección a red (kWh)'],
+       ['01/04/2026', '1', '0,5', '0,2'],
+       ['01/04/2026', '2', '0,6', '0,3']],
+      { headerRowIndex: 0, unmappedSolarPolicy: 'warn' }
+    );
+    expect(res.unmappedSolarColumns).toEqual(['inyeccion_a_red_kwh']);
+    expect(res.unmappedSolarIndices).toEqual([3]);
+    expect(res.unmappedSolarFallbackExportIndices).toEqual([]);
+    expect(Array.isArray(res.headersNorm)).toBe(true);
+  });
+
+  it('marca por indice una exportacion que el fallback puede consumir con seguridad', () => {
+    const res = u.parseEnergyTableRows(
+      [['Fecha', 'Hora', 'Consumo (kWh)', 'Exportación total'],
+       ['01/04/2026', '1', '0,5', '0,2'],
+       ['01/04/2026', '2', '0,6', '0,3']],
+      { headerRowIndex: 0, unmappedSolarPolicy: 'warn' }
+    );
+    expect(res.unmappedSolarColumns).toEqual(['exportacion_total']);
+    expect(res.unmappedSolarIndices).toEqual([3]);
+    expect(res.unmappedSolarFallbackExportIndices).toEqual([3]);
+  });
+
+  it.each([
+    'Inyección a red (kWh)',
+    'Energía entregada a la red (kWh)',
+    'Energía cedida a la red (kWh)',
+    'Energía devuelta a la red (kWh)',
+    'Exportación total',
+    'Excedentes vertidos totales'
+  ])('detecta otra medida de exportacion "%s" aunque ya exista AS_kWh', (nombre) => {
+    expect(() => u.parseEnergyTableRows(
+      [['Fecha', 'Hora', 'Consumo (kWh)', 'AS_kWh', nombre],
+       ['01/04/2026', '1', '0,5', '0', '0,2'],
+       ['01/04/2026', '2', '0,6', '0', '0,3']],
+      { headerRowIndex: 0, unmappedSolarPolicy: 'error' }
+    )).toThrow(/parece representar energía solar/i);
+  });
+
+  it.each([
+    'Energía generada (kWh)',
+    'Producción solar (kWh)'
+  ])('no trata "%s" como otra exportacion cuando AS_kWh ya esta mapeada', (nombre) => {
+    const res = u.parseEnergyTableRows(
+      [['Fecha', 'Hora', 'Consumo (kWh)', 'AS_kWh', nombre],
+       ['01/04/2026', '1', '0,5', '0,1', '0,4'],
+       ['01/04/2026', '2', '0,6', '0,2', '0,5']],
+      { headerRowIndex: 0, unmappedSolarPolicy: 'error' }
+    );
+    expect(res.unmappedSolarColumns).toEqual([]);
+    expect(res.hasExcedenteColumn).toBe(true);
+  });
+
+  it('esta vacio cuando los excedentes se reconocen', () => {
+    const res = u.parseEnergyTableRows(
+      [['CUPS', 'Fecha', 'Hora', 'AE_kWh', 'AS_kWh'], ['ES1', '01/04/2026', '1', '0,5', '0,1']],
+      { headerRowIndex: 0, unmappedSolarPolicy: 'warn' }
+    );
+    expect(res.unmappedSolarColumns).toEqual([]);
+  });
+
+  it('buildUnmappedSolarError produce un mensaje que clasifica como columna-solar', () => {
+    const err = u.buildUnmappedSolarError(['inyeccion_a_red_kwh'], ['fecha', 'hora']);
+    expect(u.csvErrorCodeForTracking(err.message)).toBe('columna-solar');
+  });
+});
+
+// Ronda 29: la unidad de una columna la fija su contrato, no el tamanho de sus numeros.
+// `detectUnitFactor` deduce Wh cuando la cabecera no declara unidad y alguna muestra llega a
+// 100. Las unicas cabeceras mapeables sin unidad son EHCR y EHEX de UFD, que por contrato son
+// kWh, asi que para ellas esa deduccion solo podia equivocarse.
+describe('Unidad por contrato de cabecera (UFD EHCR/EHEX)', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  const parse = (contenido) => {
+    const { rows, separator, headerRowIndex } = u.parseCSVToRows(contenido);
+    return u.parseEnergyTableRows(rows, { separator, headerRowIndex, parseNumber: u.parseNumberFlexibleCSV });
+  };
+
+  it('no convierte a Wh un EHCR sin unidad en la cabecera', () => {
+    const res = parse('CUPS;FECHA;HORA;EHCR;EHEX\nES1;01/04/2026;10;128;0\nES1;01/04/2026;11;64;0');
+
+    expect(res.records.map(r => r.kwh)).toEqual([128, 64]);
+    expect((res.warnings || []).join(' ')).not.toContain('Wh detectados');
+  });
+
+  it('tampoco convierte la columna de excedentes EHEX sin unidad', () => {
+    const res = parse('CUPS;FECHA;HORA;EHCR;EHEX\nES1;01/04/2026;10;0;150\nES1;01/04/2026;11;0;120');
+
+    expect(res.records.map(r => r.excedente)).toEqual([150, 120]);
+  });
+
+  it('mantiene el comportamiento con la unidad declarada y con valores normales', () => {
+    const declarada = parse('CUPS;FECHA;HORA;EHCR (kWh);EHEX (kWh)\nES1;01/04/2026;10;128;0\nES1;01/04/2026;11;64;0');
+    const normales = parse('CUPS;FECHA;HORA;EHCR;EHEX\nES1;01/04/2026;10;1,5;0\nES1;01/04/2026;11;0,8;0');
+
+    expect(declarada.records.map(r => r.kwh)).toEqual([128, 64]);
+    expect(normales.records.map(r => r.kwh)).toEqual([1.5, 0.8]);
+  });
+
+  it('sigue convirtiendo a kWh una columna que declara Wh', () => {
+    const res = parse('CUPS;FechaHora;CONSUMO Wh;GENERACION Wh\nES1;01/04/2026 00:00;500;200\nES1;01/04/2026 01:00;100;400');
+
+    expect(res.records.map(r => r.kwh)).toEqual([0.3, 0]);
+    expect((res.warnings || []).join(' ')).toContain('Wh detectados');
+  });
+
+  it('avisa si alguien anhade un alias de energia sin unidad ni contrato', () => {
+    // La invariante que hace segura la lista de contrato: cualquier alias nuevo sin `wh`/`kwh`
+    // reviviria el heuristico de magnitud para esa cabecera. Si este test falla, decide la
+    // unidad de ese alias antes de anhadirlo.
+    const fuente = fs.readFileSync(path.resolve(__dirname, '../js/lf-csv-utils.js'), 'utf8');
+    const bloqueAlias = fuente.slice(fuente.indexOf('const HEADER_ALIASES'), fuente.indexOf('const HORA_PERIODO_AMBIGUOUS'));
+    const grupos = ['importacion', 'exportacion', 'autoconsumo'];
+    const contrato = new Set(['ehcr', 'ehex']);
+
+    for (const grupo of grupos) {
+      const inicio = bloqueAlias.indexOf(`${grupo}: [`);
+      expect(inicio).toBeGreaterThan(-1);
+      const lista = bloqueAlias.slice(inicio, bloqueAlias.indexOf(']', inicio));
+      const alias = [...lista.matchAll(/'([^']+)'/g)].map(m => m[1]);
+      expect(alias.length).toBeGreaterThan(0);
+      for (const nombre of alias) {
+        if (contrato.has(nombre)) continue;
+        expect(nombre).toMatch(/wh/);
+      }
+    }
+  });
+});
+
+// El fichero que Datadis entrega para un año completo trae el dia en que se retrasa el reloj con
+// 25 filas REPITIENDO el numero de hora (…02:00, 03:00, 03:00, 04:00…) y sin ninguna columna que
+// distinga las dos. Se descubrio con un fichero real: el control de duplicados cancelaba la
+// importacion entera, asi que cualquier año descargado de Datadis que incluyese el ultimo domingo
+// de octubre era irrecuperable. Ningun caso sintetico lo detecto porque todos usaban una hora 25
+// explicita, que es la convencion CNMC y no la que exporta Datadis.
+describe('Octubre en base 1-24: hora repetida sin columna que la distinga', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  const CAB = ['cups', 'fecha', 'hora', 'consumo_kWh', 'metodoObtencion'];
+  const fila = (fecha, hora, kwh) => ['ES0031', fecha, hora, kwh, 'Real'];
+  const DST_OCT = '2025/10/26';
+
+  const parse = (filas) => u.parseEnergyTableRows([CAB, ...filas], {
+    headerRowIndex: 0, parseNumber: u.parseNumberFlexibleCSV, zonaFiscal: 'Península'
+  });
+
+  it('la segunda hora repetida pasa a ser la 25 en vez de romper la importacion', () => {
+    const res = parse([
+      fila(DST_OCT, '01:00', '0,1'), fila(DST_OCT, '02:00', '0,2'),
+      fila(DST_OCT, '03:00', '0,3'), fila(DST_OCT, '03:00', '0,4'),
+      fila(DST_OCT, '04:00', '0,5')
+    ]);
+
+    expect(res.records.map((r) => r.hora)).toEqual([1, 2, 3, 25, 4]);
+    // Y ninguna lectura se pierde por el camino.
+    expect(res.records.map((r) => r.kwh)).toEqual([0.1, 0.2, 0.3, 0.4, 0.5]);
+  });
+
+  it('un duplicado de verdad sigue cancelando la importacion', () => {
+    // La tolerancia es SOLO para la hora repetida del cambio de octubre: pegar dos veces el
+    // mismo periodo tiene que seguir siendo un error, que es para lo que existe el control.
+    expect(() => parse([
+      fila(DST_OCT, '05:00', '0,1'), fila(DST_OCT, '05:00', '0,2')
+    ])).toThrow(/duplicadas/i);
+  });
+
+  it('la hora repetida en un dia que NO es el cambio horario sigue siendo un duplicado', () => {
+    expect(() => parse([
+      fila('2026/04/01', '03:00', '0,1'), fila('2026/04/01', '03:00', '0,2')
+    ])).toThrow(/duplicadas/i);
+  });
+
+  it('una tercera repeticion tampoco pasa: solo hay una hora ganada', () => {
+    expect(() => parse([
+      fila(DST_OCT, '03:00', '0,1'), fila(DST_OCT, '03:00', '0,2'), fila(DST_OCT, '03:00', '0,3')
+    ])).toThrow(/duplicadas/i);
+  });
+
+  it('un fichero con hora 25 explicita sigue funcionando igual', () => {
+    // La convencion CNMC no se toca: aqui la 3 aparece una sola vez.
+    const res = parse([
+      fila(DST_OCT, '03:00', '0,3'), fila(DST_OCT, '04:00', '0,4'), fila(DST_OCT, '25:00', '0,9')
+    ]);
+
+    expect(res.records.map((r) => r.hora)).toEqual([3, 4, 25]);
+  });
+
+  it('la hora 25 se clasifica en valle, como las 02:00-03:00 que representa', () => {
+    const res = parse([fila(DST_OCT, '03:00', '0,3'), fila(DST_OCT, '03:00', '0,4')]);
+
+    expect(res.records[1].hora).toBe(25);
+    expect(res.records[1].periodo).toBe('P3');
+  });
+});
+
+// Integracion con la forma REAL de un año de Datadis, generada aqui en vez de guardar medio mega
+// de fixture. Reproduce lo que entrega la distribuidora: base 1-24, el dia de octubre con la hora
+// repetida y el de marzo con la hora que no existe. Es el contrato que fallaba en produccion.
+describe('Año completo con la forma real de Datadis', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  // 01/09/2025 a 31/08/2026: cruza el cambio de octubre (26/10/2025) y el de marzo (29/03/2026).
+  function anyoDatadis() {
+    const filas = [['cups', 'fecha', 'hora', 'consumo_kWh', 'metodoObtencion']];
+    const dos = (n) => String(n).padStart(2, '0');
+    let d = new Date(2025, 8, 1);
+    const fin = new Date(2026, 7, 31);
+    while (d <= fin) {
+      const fecha = `${d.getFullYear()}/${dos(d.getMonth() + 1)}/${dos(d.getDate())}`;
+      const esOctubre = fecha === '2025/10/26';
+      const esMarzo = fecha === '2026/03/29';
+      for (let h = 1; h <= 24; h += 1) {
+        if (esMarzo && h === 3) continue;            // la hora que no existe
+        filas.push(['ES0031', fecha, `${dos(h)}:00`, '0,500', 'Real']);
+        if (esOctubre && h === 3) {                  // la hora repetida, sin marca que la distinga
+          filas.push(['ES0031', fecha, `${dos(h)}:00`, '0,700', 'Real']);
+        }
+      }
+      d = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 1);
+    }
+    return filas;
+  }
+
+  it('importa el año entero: 365 dias, 12 meses y ninguna lectura perdida', () => {
+    const filas = anyoDatadis();
+    const res = u.parseEnergyTableRows(filas, {
+      headerRowIndex: 0, parseNumber: u.parseNumberFlexibleCSV, zonaFiscal: 'Península'
+    });
+
+    const dias = new Set(res.records.map((r) => u.ymdLocal(r.fecha)));
+    const meses = new Set(res.records.map((r) => u.ymdLocal(r.fecha).slice(0, 7)));
+    expect(dias.size).toBe(365);
+    expect(meses.size).toBe(12);
+    // Una fila del fichero, un registro: nada se descarta por el camino.
+    expect(res.records.length).toBe(filas.length - 1);
+  });
+
+  it('el dia de octubre queda con 25 horas y el de marzo con 23', () => {
+    const res = u.parseEnergyTableRows(anyoDatadis(), {
+      headerRowIndex: 0, parseNumber: u.parseNumberFlexibleCSV, zonaFiscal: 'Península'
+    });
+    const horasDe = (ymd) => res.records.filter((r) => u.ymdLocal(r.fecha) === ymd).map((r) => r.hora);
+
+    const octubre = horasDe('2025-10-26');
+    expect(octubre).toHaveLength(25);
+    expect(octubre).toContain(25);
+    expect(octubre.filter((h) => h === 3)).toHaveLength(1);
+
+    const marzo = horasDe('2026-03-29');
+    expect(marzo).toHaveLength(23);
+    expect(marzo).not.toContain(3);
+  });
+
+  it('el periodo declarado abarca los 12 meses sin coser (no son 13)', () => {
+    const res = u.parseEnergyTableRows(anyoDatadis(), {
+      headerRowIndex: 0, parseNumber: u.parseNumberFlexibleCSV, zonaFiscal: 'Península'
+    });
+    const span = u.validateCsvSpanFromRecords(res.records, {
+      maxDays: 370, requireExactly12Months: true, coverageThreshold: 80
+    });
+
+    expect(span.ok).toBe(true);
+    expect(span.monthsDistinct).toBe(12);
+    expect(span.stitch).toBeUndefined();
+  });
+});
+
+// Las otras convenciones de entrada del mismo parser, comprobadas a raiz del fallo de Datadis:
+// si una sola de ellas no resolviese la hora repetida, volveria a cancelar importaciones enteras.
+describe('Hora repetida de octubre en el resto de convenciones', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  const parse = (filas, zona) => u.parseEnergyTableRows(filas, {
+    headerRowIndex: 0, parseNumber: u.parseNumberFlexibleCSV, zonaFiscal: zona || 'Península'
+  });
+
+  it('fecha y hora en una sola columna (estilo i-DE), base 0-23', () => {
+    const res = parse([
+      ['CUPS', 'FechaHora', 'CONSUMO Wh'],
+      ['ES1', '26/10/2025 00:00', '500'], ['ES1', '26/10/2025 01:00', '500'],
+      ['ES1', '26/10/2025 02:00', '500'], ['ES1', '26/10/2025 02:00', '700'],
+      ['ES1', '26/10/2025 03:00', '500']
+    ]);
+
+    expect(res.records.map((r) => r.hora)).toEqual([1, 2, 3, 25, 4]);
+  });
+
+  it('fecha y hora en una sola columna, base 1-24', () => {
+    const res = parse([
+      ['CUPS', 'FechaHora', 'CONSUMO Wh'],
+      ['ES1', '26/10/2025 03:00', '500'], ['ES1', '26/10/2025 03:00', '700'],
+      ['ES1', '26/10/2025 24:00', '500']
+    ]);
+
+    expect(res.records.map((r) => r.hora)).toEqual([3, 25, 24]);
+  });
+
+  it('Canarias repite su propia hora, la 2 en base 1-24, no la 3', () => {
+    const res = parse([
+      ['CUPS', 'Fecha', 'Hora', 'Consumo_kWh'],
+      ['ES1', '26/10/2025', '01:00', '0,5'], ['ES1', '26/10/2025', '02:00', '0,5'],
+      ['ES1', '26/10/2025', '02:00', '0,7'], ['ES1', '26/10/2025', '03:00', '0,5']
+    ], 'Canarias');
+
+    expect(res.records.map((r) => r.hora)).toEqual([1, 2, 25, 3]);
+  });
+
+  it('en Canarias la hora 3 repetida NO es el cambio horario y sigue siendo duplicado', () => {
+    expect(() => parse([
+      ['CUPS', 'Fecha', 'Hora', 'Consumo_kWh'],
+      ['ES1', '26/10/2025', '03:00', '0,5'], ['ES1', '26/10/2025', '03:00', '0,7']
+    ], 'Canarias')).toThrow(/duplicadas/i);
+  });
+});
+
+// Un fichero de una casa sin placas trae la columna de excedentes vacia de arriba a abajo, y el
+// aviso contaba las 8757 celdas con signo de alarma. Es correcto pero asusta por algo corriente.
+describe('Columna de excedentes vacía: aviso proporcionado', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  const CAB = ['CUPS', 'Fecha', 'Hora', 'AE_kWh', 'AS_KWh'];
+  const parse = (filas) => u.parseEnergyTableRows([CAB, ...filas], {
+    headerRowIndex: 0, parseNumber: u.parseNumberFlexibleCSV, zonaFiscal: 'Península'
+  });
+
+  it('vacía entera: lo dice sin contar celdas ni alarmar', () => {
+    const res = parse([
+      ['ES1', '01/06/2026', '01:00', '0,5', ''],
+      ['ES1', '01/06/2026', '02:00', '0,6', ''],
+      ['ES1', '01/06/2026', '03:00', '0,7', '']
+    ]);
+
+    expect(res.warnings).toContain('No se detectaron excedentes; se importará con excedentes=0.');
+    expect(res.warnings.join(' ')).not.toMatch(/celdas vacías/);
+  });
+
+  it('con solo algunas celdas vacías SÍ avisa, porque ahí falta un dato real', () => {
+    const res = parse([
+      ['ES1', '01/06/2026', '01:00', '0,5', '0,3'],
+      ['ES1', '01/06/2026', '02:00', '0,6', ''],
+      ['ES1', '01/06/2026', '03:00', '0,7', '0,2']
+    ]);
+
+    expect(res.warnings.join(' ')).toMatch(/1 celdas vacías/);
+    expect(res.warnings).not.toContain('No se detectaron excedentes; se importará con excedentes=0.');
+  });
+
+  it('cuenta como vacía entera aunque una fila se descarte por el camino', () => {
+    // El contador de celdas vacias se incrementa ANTES de que la fila pueda descartarse por otro
+    // motivo, asi que no sirve para decidir esto comparandolo con las filas parseadas. Aqui la
+    // fila de 20.000 kWh se descarta por fuera de rango: quedan 2 registros, ninguno con dato de
+    // excedentes, y eso es lo que decide, no el recuento de vacios.
+    const res = parse([
+      ['ES1', '01/06/2026', '01:00', '0,5', ''],
+      ['ES1', '01/06/2026', '02:00', '20000', ''],
+      ['ES1', '01/06/2026', '03:00', '0,7', '']
+    ]);
+
+    expect(res.records).toHaveLength(2);
+    expect(res.warnings).toContain('No se detectaron excedentes; se importará con excedentes=0.');
+    expect(res.warnings.join(' ')).not.toMatch(/celdas vacías/);
+  });
+
+  it('la excepción no se extiende al consumo: una columna de consumo vacía sigue avisando', () => {
+    const res = parse([
+      ['ES1', '01/06/2026', '01:00', '', '0,3'],
+      ['ES1', '01/06/2026', '02:00', '', '0,4']
+    ]);
+
+    expect(res.warnings.join(' ')).toMatch(/2 celdas vacías/);
+  });
+});
+
+// Reportado en auditoria el 12/09/2026: la condicion anterior comparaba el contador de celdas
+// vacias contra el de filas parseadas, y como el primero se incrementa antes de que la fila pueda
+// descartarse, un fichero CON excedentes reales podia anunciar que no habia ninguno.
+describe('Columna de excedentes con datos reales y filas descartadas', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  const CAB = ['CUPS', 'Fecha', 'Hora', 'AE_kWh', 'AS_KWh'];
+  const parse = (filas) => u.parseEnergyTableRows([CAB, ...filas], {
+    headerRowIndex: 0, parseNumber: u.parseNumberFlexibleCSV, zonaFiscal: 'Península'
+  });
+
+  it('NO anuncia ausencia de excedentes cuando hay uno válido', () => {
+    // 2 registros aceptados y 2 celdas vacias contadas (una de la fila descartada): con la
+    // comparacion antigua esto decia "No se detectaron excedentes" pese a conservar el vertido.
+    const res = parse([
+      ['ES1', '01/06/2026', '01:00', '0,5', '1,0'],
+      ['ES1', '01/06/2026', '02:00', '20000', ''],
+      ['ES1', '01/06/2026', '03:00', '0,7', '']
+    ]);
+
+    expect(res.records).toHaveLength(2);
+    expect(res.records.reduce((total, r) => total + (r.excedente || 0), 0)).toBeGreaterThan(0);
+    expect(res.warnings).not.toContain('No se detectaron excedentes; se importará con excedentes=0.');
+    expect(res.warnings.join(' ')).toMatch(/celdas vacías/);
+  });
+
+  it('un solo excedente válido basta para no declarar la columna vacía', () => {
+    const res = parse([
+      ['ES1', '01/06/2026', '01:00', '0,5', ''],
+      ['ES1', '01/06/2026', '02:00', '0,6', '0,1'],
+      ['ES1', '01/06/2026', '03:00', '0,7', '']
+    ]);
+
+    expect(res.warnings).not.toContain('No se detectaron excedentes; se importará con excedentes=0.');
+  });
+
+  it('un excedente de cero explícito tampoco es una columna vacía', () => {
+    // "0" es un dato: la distribuidora afirma que no se vertio esa hora. Distinto de no informar.
+    const res = parse([
+      ['ES1', '01/06/2026', '01:00', '0,5', '0'],
+      ['ES1', '01/06/2026', '02:00', '0,6', '0']
+    ]);
+
+    expect(res.warnings).not.toContain('No se detectaron excedentes; se importará con excedentes=0.');
+    expect(res.warnings.join(' ')).not.toMatch(/celdas vacías/);
+  });
+});
+
+describe('Filas descartadas por su contenido: se avisa, como en la matriz (ronda 43)', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  // Por debajo del umbral del 50 % estas filas se descartaban sin aviso: el fichero entraba
+  // con menos consumo del que traia y el resultado no lo decia en ningun sitio.
+  const parse = (contenido) => {
+    const { rows, separator, headerRowIndex } = u.parseCSVToRows(contenido);
+    return u.parseEnergyTableRows(rows, {
+      separator, headerRowIndex, zonaFiscal: 'Península', parseNumber: u.parseNumberFlexibleCSV
+    });
+  };
+  const cabecera = 'CUPS;Fecha;Hora;AE_kWh;AS_kWh';
+  const buenas = ['ES1;01/04/2026;1;0,5;0', 'ES1;01/04/2026;2;0,5;0', 'ES1;01/04/2026;3;0,5;0'];
+  const conFila = (fila) => [cabecera, ...buenas, fila].join('\n');
+
+  it('avisa de una fila con fecha que no se reconoce', () => {
+    const res = parse(conFila('ES1;01/04/26x;4;0,5;0'));
+    expect(res.records).toHaveLength(3);
+    expect(res.warnings).toContain('Se descartaron 1 filas con fecha u hora no reconocidas.');
+  });
+
+  it('avisa de una fila con hora vacia o fuera de rango', () => {
+    expect(parse(conFila('ES1;01/04/2026;;0,5;0')).warnings)
+      .toContain('Se descartaron 1 filas con fecha u hora no reconocidas.');
+    expect(parse(conFila('ES1;01/04/2026;26;0,5;0')).warnings)
+      .toContain('Se descartaron 1 filas con fecha u hora no reconocidas.');
+  });
+
+  it('avisa de un consumo o un excedente no numerico', () => {
+    expect(parse(conFila('ES1;01/04/2026;4;abc;0')).warnings)
+      .toContain('Se descartaron 1 filas con valores no numéricos.');
+    expect(parse(conFila('ES1;01/04/2026;4;0,5;abc')).warnings)
+      .toContain('Se descartaron 1 filas con valores no numéricos.');
+  });
+
+  it('avisa de un consumo o un excedente negativo', () => {
+    expect(parse(conFila('ES1;01/04/2026;4;-0,5;0')).warnings)
+      .toContain('Se descartaron 1 filas con valores negativos.');
+    expect(parse(conFila('ES1;01/04/2026;4;0,5;-0,5')).warnings)
+      .toContain('Se descartaron 1 filas con valores negativos.');
+  });
+
+  it('un pie sin fecha ni hora no se cuenta como dato perdido', () => {
+    const res = parse(conFila('Total;;;1,5;0'));
+    expect(res.records).toHaveLength(3);
+    expect(res.warnings.join(' ')).not.toMatch(/Se descartaron/);
+  });
+
+  it('con una columna FechaHora tambien avisa, y el pie sin fecha sigue sin contar', () => {
+    const base = ['FechaHora;Consumo_kWh', '2026-04-01 00:00;0,5', '2026-04-01 01:00;0,5', '2026-04-01 02:00;0,5'];
+    expect(parse([...base, '2026-04-01 xx;0,5'].join('\n')).warnings)
+      .toContain('Se descartaron 1 filas con fecha u hora no reconocidas.');
+    expect(parse([...base, ';1,5'].join('\n')).warnings.join(' ')).not.toMatch(/Se descartaron/);
+  });
+
+  // Propuesto por el auditor al revisar la ronda 43: hoy es imposible por el `continue` de cada
+  // rama, pero nada lo fija como invariante y un refactor podria contar la misma fila dos veces.
+  it('una fila con dos motivos a la vez se cuenta una sola vez', () => {
+    const horaYValor = parse(conFila('ES1;01/04/2026;99;abc;0'));
+    expect(horaYValor.warnings.filter((w) => /Se descartaron/.test(w)))
+      .toEqual(['Se descartaron 1 filas con fecha u hora no reconocidas.']);
+
+    const h25YNegativo = parse(conFila('ES1;01/04/2026;25;-1,0;0'));
+    expect(h25YNegativo.warnings.filter((w) => /Se descartaron/.test(w)))
+      .toEqual(['Se descartaron 1 filas con hora 25 en días que no son el cambio de hora de octubre.']);
+  });
+
+  it('con la mitad justa de filas descartadas se acepta el archivo, con su aviso', () => {
+    const filas = [cabecera];
+    for (let i = 0; i < 10; i++) filas.push(`ES1;0${(i % 9) + 1}/04/2026;1;${i < 5 ? '-1,0' : '0,5'};0`);
+    const res = parse(filas.join('\n'));
+
+    expect(res.records).toHaveLength(5);
+    expect(res.warnings).toContain('Se descartaron 5 filas con valores negativos.');
+  });
+
+  it('si se rechaza por mayoria, el mensaje dice la causa y la analitica sigue en filas-invalidas', () => {
+    const filas = [cabecera];
+    for (let h = 1; h <= 24; h++) filas.push(`ES1;01/04/2026;${h};${h <= 20 ? '-0,5' : '0,5'};0`);
+    filas.push('ES1;02/04/2026;1;abc;0', 'ES1;02/04/2026;2;0,5;0');
+    let error;
+    try { parse(filas.join('\n')); } catch (e) { error = e; }
+    const primera = error.message.split('\n')[0];
+    expect(primera).toBe('La mayoría de filas no se pudo interpretar: 1 con un consumo o excedente que no es un número, 20 con valores negativos.');
+    expect(u.csvErrorCodeForTracking(error.message)).toBe('filas-invalidas');
+    expect(u.csvErrorCodeForTracking('La mayoría de filas no se pudo interpretar: 3 con fecha u hora no reconocidas, 2 con valores superiores a 10.000 kWh, 1 con hora 25 fuera del cambio de hora de octubre.')).toBe('filas-invalidas');
+  });
+
+  it('si los contadores no explican el rechazo, conserva el mensaje generico', () => {
+    // Filas con datos pero sin fecha ni hora: no cuentan como descarte (pie, notas).
+    const filas = [cabecera, 'ES1;01/04/2026;1;0,5;0'];
+    for (let i = 0; i < 5; i++) filas.push(`ES1;;;0,5;0`);
+    let error;
+    try { parse(filas.join('\n')); } catch (e) { error = e; }
+    expect(error.message.split('\n')[0]).toBe('La mayoría de filas no se pudo interpretar; probable separador o cabecera incorrecta.');
+  });
+
+  // El Observatorio conserva un parser alternativo propio para su columna solar, pero hoy no se
+  // ejecuta nunca: con UNA candidata la resuelve el parser comun (y entonces cuenta lo que
+  // descarta), y con dos su guard cancela la importacion. Si esto cambia, vuelve a haber un
+  // parser paralelo que puede perder filas: que salte este test (ronda 43, 17/09/2026).
+  it('la columna solar del Observatorio la resuelve el parser comun, con sus recuentos', () => {
+    const filas = ['Fecha;Hora;Consumo_kWh;Energia exportada total'];
+    for (let h = 1; h <= 24; h++) filas.push(`01/04/2026;${h};0,5;${h === 4 ? 'N/D' : '0,3'}`);
+    filas.push('xx/04/2026;5;0,5;0,3');
+    const { rows, separator, headerRowIndex } = u.parseCSVToRows(filas.join('\n'));
+    const res = u.parseEnergyTableRows(rows, {
+      separator, headerRowIndex, zonaFiscal: 'Península', parseNumber: u.parseNumberFlexibleCSV,
+      unmappedSolarPolicy: 'warn', mapSafeFallbackSolarExport: true
+    });
+
+    expect(res.warnings).toContain('Importación XLSX: aplicado parser alternativo para excedentes.');
+    expect(res.warnings).toContain('Se descartaron 1 filas con fecha u hora no reconocidas.');
+    expect(res.warnings).toContain('Se descartaron 1 filas con valores no numéricos.');
+    expect(res.records.reduce((total, r) => total + r.excedente, 0)).toBeCloseTo(6.9, 6);
+  });
+
+  it('con dos columnas solares candidatas el parser comun NO elige, y quedan para el guard', () => {
+    const filas = ['Fecha;Hora;Consumo_kWh;Energia exportada total;Vertido a red total'];
+    for (let h = 1; h <= 24; h++) filas.push(`01/04/2026;${h};0,5;0,3;0,2`);
+    const { rows, separator, headerRowIndex } = u.parseCSVToRows(filas.join('\n'));
+    const res = u.parseEnergyTableRows(rows, {
+      separator, headerRowIndex, zonaFiscal: 'Península', parseNumber: u.parseNumberFlexibleCSV,
+      unmappedSolarPolicy: 'warn', mapSafeFallbackSolarExport: true
+    });
+
+    expect(res.unmappedSolarFallbackExportIndices).toHaveLength(2);
+    expect(res.records.every((r) => r.excedente === 0)).toBe(true);
+    expect(res.warnings.join(' ')).not.toContain('parser alternativo');
+  });
+
+  it('el fichero real de 7344 horas sigue sin descartar nada', () => {
+    const contenido = fs.readFileSync(path.join(__dirname, 'fixtures', '1.csv'), 'utf8');
+    const res = parse(contenido);
+    expect(res.records).toHaveLength(7344);
+    expect(res.warnings.join(' ')).not.toMatch(/Se descartaron/);
+  });
+});
