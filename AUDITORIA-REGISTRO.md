@@ -4971,3 +4971,36 @@ misma rama), cazada. No reviso `2a721f2` porque es posterior a su encargo.
 (debe contar o justificar por que no avisa), aparecer un fichero real con avisos de descarte, o con
 fechas de texto `dd.mm.aaaa` o de dos cifras de anho. Para la home: volver a mostrar avisos de
 importacion fuera del modal.
+
+<a id="csp-esquema-recortado-mismo-origen-22-09-2026"></a>
+### Violaciones CSP Con El Esquema Recortado Atribuidas Al Origen Propio (RESUELTA 22/09/2026)
+
+Encontrado leyendo el export de GoatCounter del 10-22/09/2026. La fila mas ruidosa era
+`error-csp/script-src/eval/sin-host/same-origin/blob/1/enforce/home/20260919-195217/firefox-156`:
+274 eventos de una sola pestaña (un unico `error-recurrencia ... ge10`) el 21/09/2026.
+
+- **Causa.** CSP3 ("strip URL for use in reports") entrega en `sourceFile`/`blockedURI` SOLO EL
+ ESQUEMA cuando la URL no es HTTP(S). Firefox manda `"blob"`, `"moz-extension"` y
+ `"sandbox eval code"`. `cspSourceDiagnostic` hacia `new URL(raw, location.href)`, asi que la palabra
+ se resolvia como ruta relativa (`https://luzfija.es/blob`) y salia `same-origin/<palabra>`: ruido
+ de extensiones y userscripts rotulado como codigo propio. Mismo patron en el export:
+ `same-origin/moz-extension/5033`, `same-origin/chrome-extension/18`,
+ `same-origin/sandbox-20eval-20cod/17`. `cspTargetDiagnostic` ya reconocia `blob`/`data`/`eval`
+ sueltos, pero no `moz-extension`/`chrome-extension`.
+- **No es codigo propio.** Ningun vendor evalua desde un `blob:`: el `new Function` de
+ `pdf.worker.min.mjs` es un falso match (`new FunctionBasedShading`), el de `tesseract/worker.min.js`
+ es un fallback de `globalThis` inalcanzable y Tesseract corre con `workerBlobURL: false`.
+- **Severidad.** Solo telemetria: ni importe ni privacidad (solo viajan categorias cerradas). El
+ dano era de triaje: contradecia el contrato de `ANALITICA-GOATCOUNTER.md` (el iniciador distingue
+ `extension` y otros protocolos) y apuntaba al codigo propio.
+- **Arreglo.** `cspNonAbsoluteKind()` en `js/tracking.js`: un informe CSP de un recurso HTTP(S) trae
+ siempre URL absoluta, asi que lo que no lo es no puede ser first-party. Esquema de extension ->
+ `extension`; cualquier otro -> `other-protocol`. 7 regresiones en `tests/tracking-errors.test.js`
+ (4 de `sourceFile`, 3 de `blockedURI`), las 7 validadas por mutacion restaurando el codigo previo.
+ Suite 2059, lint 0/0.
+- **Fuera de alcance, deliberado.** El evento primario sigue sin tope por carga: conservar todas las
+ apariciones en un path es el diseno de la recurrencia, y el companero `ge10` ya delata la pestaña
+ ruidosa. Con la clasificacion corregida ese ruido se lee como `other-protocol`/`extension`.
+
+**Criterio de reapertura.** Un `error-csp` con `same-origin/<fichero>` cuyo basename no exista en
+el repo.

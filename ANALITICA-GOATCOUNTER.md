@@ -237,7 +237,12 @@ con dimensiones cerradas. El primario lleva fichero, linea y build:
     pidio. Distingue `same-origin`, `cross-origin`, `extension`, otros protocolos
     o ausencia. Si `sourceFile` es first-party se conserva exclusivamente su
     basename saneado y linea; para terceros/extensiones no se conserva ruta ni
-    identificador.
+    identificador. CSP3 recorta a SOLO EL ESQUEMA las URL no HTTP(S) de los
+    informes (Firefox manda `sourceFile: "blob"`, `"moz-extension"` o
+    `"sandbox eval code"`): un valor que no es URL absoluta nunca se resuelve
+    contra la pagina, porque saldria `same-origin`. Va a `extension` si es un
+    esquema de extension y a `other-protocol` en otro caso; lo mismo en el
+    objetivo tras las palabras clave (22/09/2026).
 
   NO colapsar ambos ejes en un unico veredicto "propio/ajeno": un CSS PROPIO
   puede pedir por error una fuente EXTERNA (iniciador propio, objetivo externo) y

@@ -878,6 +878,24 @@ try {
 
   const EXTENSION_PROTOCOL_RE = /^(?:chrome|moz|safari|safari-web|ms-browser)-extension:$/;
 
+  // CSP3 ("strip URL for use in reports") entrega SOLO EL ESQUEMA cuando la URL no
+  // es HTTP(S): Firefox manda `sourceFile: "blob"`, `"moz-extension"` o incluso
+  // `"sandbox eval code"`. Resuelto contra location.href, cualquiera de ellos se
+  // convierte en `https://luzfija.es/blob` y se archivaria como `same-origin`,
+  // atribuyendo al codigo propio el ruido de extensiones y userscripts (medido en
+  // produccion el 21/09/2026: 274 eventos de una sola pestaña). Un informe CSP de
+  // un recurso HTTP(S) trae siempre URL absoluta, asi que lo que no lo es no puede
+  // ser first-party. Devuelve 'extension', 'other-protocol' o '' si es absoluta.
+  function cspNonAbsoluteKind(raw) {
+    try {
+      new URL(raw);
+      return '';
+    } catch (_) {
+      const scheme = raw.toLowerCase().replace(/:$/, '') + ':';
+      return EXTENSION_PROTOCOL_RE.test(scheme) ? 'extension' : 'other-protocol';
+    }
+  }
+
   // Hosts propios o de infraestructura conocida. Se reportan por categoria
   // cerrada en vez de por dominio para que el path no dependa de subdominios.
   const CSP_KNOWN_HOST_CATEGORIES = [
@@ -939,6 +957,8 @@ try {
       'trusted-types-policy', 'trusted-types-sink'
     ]);
     if (cspBlockedKeywords.has(keyword)) return [keyword, 'sin-host'];
+    const nonAbsolute = cspNonAbsoluteKind(raw);
+    if (nonAbsolute) return [nonAbsolute, 'sin-host'];
     try {
       const url = new URL(raw, location.href);
       if (EXTENSION_PROTOCOL_RE.test(url.protocol)) return ['extension', 'sin-host'];
@@ -962,6 +982,9 @@ try {
     const raw = safeText(event && event.sourceFile);
     const line = errorLineSegment(event && event.lineNumber);
     if (!raw) return ['sin-source', 'sin-source', '0'];
+    const nonAbsolute = cspNonAbsoluteKind(raw);
+    if (nonAbsolute === 'extension') return ['extension', 'extension', '0'];
+    if (nonAbsolute) return ['other-protocol', 'otro-protocolo', '0'];
     try {
       const url = new URL(raw, location.href);
       if (EXTENSION_PROTOCOL_RE.test(url.protocol)) {

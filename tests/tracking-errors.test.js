@@ -396,6 +396,60 @@ describe('Tracking error filtering and occurrence counting', () => {
     expect(payload.title).not.toContain('usuario@example.com');
   });
 
+  // CSP3 recorta a SOLO EL ESQUEMA las URL no HTTP(S) de los informes. Firefox 156
+  // mando en produccion `sourceFile: "blob"` (274 eventos de una pestaña el
+  // 21/09/2026), `"moz-extension"` y `"sandbox eval code"`; resueltos contra la
+  // pagina se archivaban como `same-origin/<palabra>`, es decir, como codigo propio.
+  it.each([
+    ['blob', 'other-protocol/otro-protocolo/0'],
+    ['sandbox eval code', 'other-protocol/otro-protocolo/0'],
+    ['moz-extension', 'extension/extension/0'],
+    ['chrome-extension', 'extension/extension/0']
+  ])('no atribuye al origen propio un sourceFile CSP recortado a esquema (%s)', (sourceFile, expected) => {
+    bootstrapTracking();
+    const event = new Event('securitypolicyviolation');
+    Object.defineProperties(event, {
+      effectiveDirective: { value: 'script-src' },
+      disposition: { value: 'enforce' },
+      blockedURI: { value: 'eval' },
+      sourceFile: { value: sourceFile },
+      lineNumber: { value: 1 }
+    });
+
+    window.dispatchEvent(event);
+
+    const payload = window.goatcounter.count.mock.calls.map((call) => call[0]).find((item) =>
+      String(item?.path || '').startsWith('error-csp/')
+    );
+    expect(payload.path).toBe(
+      `error-csp/script-src/eval/sin-host/${expected}/enforce/home/desconocido/other`
+    );
+  });
+
+  it.each([
+    ['moz-extension', 'extension'],
+    ['chrome-extension', 'extension'],
+    ['about', 'other-protocol']
+  ])('no atribuye al origen propio un blockedURI CSP recortado a esquema (%s)', (blockedURI, expected) => {
+    bootstrapTracking();
+    const event = new Event('securitypolicyviolation');
+    Object.defineProperties(event, {
+      effectiveDirective: { value: 'img-src' },
+      disposition: { value: 'enforce' },
+      blockedURI: { value: blockedURI },
+      sourceFile: { value: '' }
+    });
+
+    window.dispatchEvent(event);
+
+    const payload = window.goatcounter.count.mock.calls.map((call) => call[0]).find((item) =>
+      String(item?.path || '').startsWith('error-csp/')
+    );
+    expect(payload.path).toBe(
+      `error-csp/img-src/${expected}/sin-host/sin-source/sin-source/0/enforce/home/desconocido/other`
+    );
+  });
+
   it.each(['img-src', 'connect-src', 'default-src'])(
     'no autorreporta el bloqueo CSP %s del propio endpoint de GoatCounter',
     (directive) => {

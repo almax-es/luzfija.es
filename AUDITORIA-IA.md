@@ -259,6 +259,7 @@ estes auditando; no hace falta leerlo entero.
 - [El Reintento Del Worker De PDF.js En Modo Fake-Worker (RESUELTA 17/09/2026)](AUDITORIA-REGISTRO.md#reintento-worker-pdfjs-fake-worker-17-09-2026)
 - [Una Pagina Con Codigo De Dos Despliegues (Ronda 42, 17/09/2026)](AUDITORIA-REGISTRO.md#mezcla-de-builds-ronda-42-17-09-2026)
 - [La Capa Comun Del Importador CSV Como Area (Ronda 43, 17/09/2026)](AUDITORIA-REGISTRO.md#capa-comun-csv-ronda-43-17-09-2026)
+- [Violaciones CSP Con El Esquema Recortado Atribuidas Al Origen Propio (RESUELTA 22/09/2026)](AUDITORIA-REGISTRO.md#csp-esquema-recortado-mismo-origen-22-09-2026)
 <!-- REGISTRO-INDICE:FIN -->
 
 ## Hallazgos Que Si Serian Relevantes
