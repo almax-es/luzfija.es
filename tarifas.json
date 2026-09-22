@@ -2257,6 +2257,27 @@
       "requiereFV": false
     },
     {
+      "nombre": "Lumisa 3P",
+      "cPunta": 0.2388,
+      "cLlano": 0.1588,
+      "cValle": 0.1188,
+      "p1": 0.08888,
+      "p2": 0.08888,
+      "web": "https://lumisa.es/es/tarifa-fija",
+      "tipo": "3P",
+      "requisitos": "15% descuento término energía durante 12 meses incluido en el precio.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Holaluz 3P",
       "cPunta": 0.242,
       "cLlano": 0.163,
@@ -2360,27 +2381,6 @@
       "maxConsumoAnual": 7000.0
     },
     {
-      "nombre": "Lumisa 3P",
-      "cPunta": 0.27462,
-      "cLlano": 0.18262,
-      "cValle": 0.13662,
-      "p1": 0.08888,
-      "p2": 0.08888,
-      "web": "https://lumisa.es/es/tarifa-fija",
-      "tipo": "3P",
-      "requisitos": "15% descuento término energía durante 12 meses incluido en el precio.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Fenie Fijo 3P",
       "cPunta": 0.274884,
       "cLlano": 0.193616,
@@ -2481,5 +2481,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-22T11:26:16.964Z"
+  "updatedAt": "2026-09-22T11:40:20.820Z"
 }
