@@ -4986,7 +4986,10 @@ Encontrado leyendo el export de GoatCounter del 10-22/09/2026. La fila mas ruido
  de extensiones y userscripts rotulado como codigo propio. Mismo patron en el export:
  `same-origin/moz-extension/5033`, `same-origin/chrome-extension/18`,
  `same-origin/sandbox-20eval-20cod/17`. `cspTargetDiagnostic` ya reconocia `blob`/`data`/`eval`
- sueltos, pero no `moz-extension`/`chrome-extension`.
+ sueltos, pero no `moz-extension`/`chrome-extension`. Por ese lado salian los 36
+ `font-src/same-origin/propio` de Firefox 155/156 y el `manifest-src/same-origin/propio` de Edge
+ 139: con `font-src 'self'` y `default-src 'self'` una URL de verdad same-origin NO puede violar la
+ CSP, asi que esa fila es imposible como recurso propio y solo puede ser un esquema recortado.
 - **No es codigo propio.** Ningun vendor evalua desde un `blob:`: el `new Function` de
  `pdf.worker.min.mjs` es un falso match (`new FunctionBasedShading`), el de `tesseract/worker.min.js`
  es un fallback de `globalThis` inalcanzable y Tesseract corre con `workerBlobURL: false`.
