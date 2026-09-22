@@ -28,48 +28,6 @@
       "maxConsumoAnual": 3500.0
     },
     {
-      "nombre": "Seneo Tarifa 1 Fija 24h",
-      "cPunta": 0.101,
-      "cLlano": 0.101,
-      "cValle": 0.101,
-      "p1": 0.213,
-      "p2": 0.139,
-      "web": "https://www.seneo.org/es/tarifa-fija-24h/",
-      "tipo": "1P",
-      "requisitos": "Precio válido para potencia contratada ≥ 4 kW.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Seneo Tarifa 1 Fija 24h con Monedero Solar",
-      "cPunta": 0.101,
-      "cLlano": 0.101,
-      "cValle": 0.101,
-      "p1": 0.213,
-      "p2": 0.139,
-      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
-      "tipo": "1P",
-      "requisitos": "Precio válido para potencia contratada ≥ 4 kW.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.046,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": true
-    },
-    {
       "nombre": "Nufri Sin Horarios",
       "cPunta": 0.107634,
       "cLlano": 0.107634,
@@ -257,26 +215,6 @@
         "precioBV": 2.99
       },
       "requiereFV": false
-    },
-    {
-      "nombre": "Seneo Tarifa 2 Fija 24h con Monedero Solar",
-      "cPunta": 0.119,
-      "cLlano": 0.119,
-      "cValle": 0.119,
-      "p1": 0.089,
-      "p2": 0.089,
-      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.06,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": true
     },
     {
       "nombre": "Seneo Tarifa 3 Fija 24h 4000",
@@ -546,6 +484,26 @@
       },
       "requiereFV": true,
       "minConsumoAnualExclusivo": 4000.0
+    },
+    {
+      "nombre": "Seneo Tarifa 2 Fija 24h con Monedero Solar",
+      "cPunta": 0.129,
+      "cLlano": 0.129,
+      "cValle": 0.129,
+      "p1": 0.089,
+      "p2": 0.089,
+      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": true
     },
     {
       "nombre": "Gana Energía 24h",
@@ -2256,46 +2214,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Seneo Tarifa 1 Tramos Horarios con Monedero Solar 3P",
-      "cPunta": 0.226,
-      "cLlano": 0.113,
-      "cValle": 0.054,
-      "p1": 0.198,
-      "p2": 0.123,
-      "web": "https://www.seneo.org/es/tarifa-tramos-horarios-con-monedero-solar/",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.046,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": true
-    },
-    {
-      "nombre": "Seneo Tarifa 1 Tramos Horarios 3P",
-      "cPunta": 0.226,
-      "cLlano": 0.113,
-      "cValle": 0.054,
-      "p1": 0.198,
-      "p2": 0.123,
-      "web": "https://www.seneo.org/es/tarifa-tramos-horarios/",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Energya VM Fórmula Fija 3P",
       "cPunta": 0.229,
       "cLlano": 0.189,
@@ -2563,5 +2481,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-22T07:54:25.697Z"
+  "updatedAt": "2026-09-22T11:26:16.964Z"
 }
