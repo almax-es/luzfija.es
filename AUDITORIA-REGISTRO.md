@@ -5293,3 +5293,34 @@ resto (sin efecto observable: en el flujo real el geo llega como texto).
 **Criterio de reapertura.** Un dataset nuevo o un lector nuevo de `data/`: contrastar zona, reloj y
 unidades por instante contra los existentes antes de publicarlo.
 
+<a id="flecos-de-centimos-resueltos-ronda-49-23-09-2026"></a>
+### Flecos De Centimos De Las Rondas 45 Y 46, Resueltos (Ronda 49, 23/09/2026)
+
+Los dos redondeos que las rondas 45 y 46 dejaron anotados "sin cambio". Un error conocido no se
+deja por pequeno si se puede corregir con la misma verificacion.
+
+**1. Base unica de servicios en IGIC e IPSI.** Contador y cuota BV van al mismo tipo (IGIC 7%, IPSI
+4%) y `calcularImpuestoIndirecto` los redondeaba por separado; el IVA ya usaba una sola base.
+- `lf-config.js`: `repartirCuotaServicios()` calcula la cuota sobre la base conjunta y la reparte
+  para quien la muestre por conceptos (el contador conserva su redondeo; los servicios, el resto).
+  Home, desglose y simulador suman los dos campos, asi que todos pasan a la cuota unica.
+- `desglose-render.js`: con cuota BV se muestra una sola linea "IGIC/IPSI contador y cuota BV"
+  sobre la base conjunta, en vez de dos lineas cuyo importe ya no saldria de su propio porcentaje.
+- Tests en `tests/fiscal.test.js` (Canarias 0,83 + 1,65 al 7% -> 0,17; IPSI 0,81 + 1,62 al 4% ->
+  0,10; sin cuota BV el contador no cambia). Fallan con el codigo anterior. `fiscal-rounding-align`,
+  `bv-fiscal-align`, calculo y desglose en verde. Bateria de la ronda 45 en local: solo cambian 10
+  resultados (CEA Estable 24h y 3P, las de cuota BV, en los escenarios de Canarias), que pasan a
+  coincidir con el oraculo.
+
+**2. Suma de kWh horarios.** `BVSim.bucketizeByMonth` y el importador de la home
+(`lf-csv-import.js`, totales por periodo) sumaban en coma flotante y redondeaban con `round2`:
+`19.104999999999997` -> 19,10 (exacto 19,105), y ni siquiera la suma limpia se salvaba, porque
+`311.525 * 100 = 31152.499999999996`. Ahora se redondea en millonesimas de kWh con aritmetica entera
+(mitad hacia arriba). Tests en `tests/bv-kwh-suma-exacta.test.js` y `tests/csv-import.test.js`
+(2,725 -> 2,73 y 311,525 -> 311,53), que fallan con el codigo anterior. Curvas reales de la ronda
+46 en local: de 18 diferencias de 0,01 kWh queda 1, en la que acierta la web (Ceuta, P1 de
+diciembre: el contador marca 19,815 -> 19,82; el oraculo sumaba los restos de coma flotante de la
+curva importada y daba 19,81499...). Bateria sintetica sin cambios.
+
+Suite 2086, lint 0/0.
+

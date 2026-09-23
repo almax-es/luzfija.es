@@ -148,6 +148,17 @@ window.BVSim.bucketizeByMonth = function (records, zona = 'peninsula', opts = {}
     }
   });
 
+  // Sumar miles de horas en coma flotante deja restos (19.104999999999997 frente a 19,105
+  // exacto) y round2 tampoco basta con la suma limpia (311.525 * 100 = 31152.499999999996), asi
+  // que se redondeaba al centesimo de kWh inferior (ronda 46). Se pasa a millonesimas de kWh,
+  // muy por debajo de la resolucion de cualquier contador, y se redondea la mitad hacia arriba
+  // (alejandose de cero) en aritmetica entera.
+  const kwh2 = (value) => {
+    const micro = Math.round(Number(value) * 1e6);
+    if (!Number.isFinite(micro)) return 0;
+    const centesimas = Math.floor((Math.abs(micro) + 5000) / 10000);
+    return (micro < 0 ? -centesimas : centesimas) / 100;
+  };
   const months = Array.from(monthsMap.values())
     .sort((a, b) => a.key.localeCompare(b.key))
     .map((month) => {
@@ -173,12 +184,12 @@ window.BVSim.bucketizeByMonth = function (records, zona = 'peninsula', opts = {}
         daysInMonth: month.daysInMonth,
         coveragePct,
         importByPeriod: {
-          P1: round2(month.importByPeriod.P1),
-          P2: round2(month.importByPeriod.P2),
-          P3: round2(month.importByPeriod.P3)
+          P1: kwh2(month.importByPeriod.P1),
+          P2: kwh2(month.importByPeriod.P2),
+          P3: kwh2(month.importByPeriod.P3)
         },
-        importTotalKWh: round2(month.importTotalKWh),
-        exportTotalKWh: round2(month.exportTotalKWh)
+        importTotalKWh: kwh2(month.importTotalKWh),
+        exportTotalKWh: kwh2(month.exportTotalKWh)
       };
     });
 

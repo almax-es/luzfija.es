@@ -83,6 +83,27 @@ ES12345;01/01/2024;2;2,456;R`;
       expect(result.formato).toBe('CSV');
     });
 
+    // Ronda 46: la suma en coma flotante de 0,128 + 0,835 + 0,545 + 0,255 + 0,962 da
+    // 2.7249999999999996 y se redondeaba a 2,72; la suma decimal exacta es 2,725 -> 2,73.
+    it('redondea la suma exacta de kWh, no el resto de la coma flotante', async () => {
+      const csvContent = `CUPS;Fecha;Hora;Consumo_kWh;Método
+ES12345;15/01/2025;11;0,128;R
+ES12345;15/01/2025;12;0,835;R
+ES12345;15/01/2025;13;0,545;R
+ES12345;15/01/2025;20;0,255;R
+ES12345;15/01/2025;21;0,962;R`;
+      const result = await procesarCSVConsumos({ name: 'suma-exacta.csv', _content: csvContent });
+      expect(result.punta).toBe('2,73');
+      expect(result.totalKwh).toBe('2,73');
+    });
+
+    it('redondea bien una suma exacta que round2 no sabe (311,525 kWh)', async () => {
+      const csvContent = `CUPS;Fecha;Hora;Consumo_kWh;Método
+ES12345;15/01/2025;12;311,525;R`;
+      const result = await procesarCSVConsumos({ name: 'suma-311.csv', _content: csvContent });
+      expect(result.punta).toBe('311,53');
+    });
+
     it('No debe conservar ni exponer valores CUPS del CSV en el resultado importado', async () => {
       const cups = 'ES0021000000000000AB';
       const csvContent = `CUPS;Fecha;Hora;Consumo_kWh;Método

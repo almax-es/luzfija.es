@@ -531,6 +531,17 @@
      * @returns {Object} Detalle fiscal reutilizable por todos los módulos
      */
     calcularImpuestoIndirecto: function(params = {}) {
+      // Contador y cuota BV tributan al mismo tipo (IGIC 7%, IPSI 4%): una sola base y una sola
+      // cuota, como hace el IVA con todo lo que va al 21%. Redondearlas por separado sumaba a
+      // veces 1 centimo de mas (0,0581 + 0,1155 -> 0,06 + 0,12 frente a 0,17). La cuota se
+      // reparte para quien la muestre por conceptos: el contador conserva su redondeo propio y
+      // los servicios se llevan el resto, de modo que la suma es la cuota de la base unica.
+      const repartirCuotaServicios = (baseContador, baseServicios, rate) => {
+        const cuotaContador = roundMoneyRate(baseContador, rate);
+        if (!baseServicios) return [cuotaContador, 0];
+        const cuotaTotal = roundMoneyRate(baseContador + baseServicios, rate);
+        return [cuotaContador, round2(cuotaTotal - cuotaContador)];
+      };
       const {
         zona,
         baseEnergia = 0,
@@ -566,13 +577,11 @@
         impuestoEnergia = info.usoFiscal === 'vivienda'
           ? 0
           : roundMoneyRate(baseEnergiaNum + impuestoElectricoNum, info.energiaRate);
-        impuestoContador = roundMoneyRate(baseContadorNum, info.contadorRate);
-        impuestoServicios = roundMoneyRate(baseServiciosNum, info.contadorRate);
+        [impuestoContador, impuestoServicios] = repartirCuotaServicios(baseContadorNum, baseServiciosNum, info.contadorRate);
       } else if (info.tipo === 'IPSI') {
         baseIPSI = round2(baseEnergiaNum + impuestoElectricoNum);
         impuestoEnergia = roundMoneyRate(baseIPSI, info.energiaRate);
-        impuestoContador = roundMoneyRate(baseContadorNum, info.contadorRate);
-        impuestoServicios = roundMoneyRate(baseServiciosNum, info.contadorRate);
+        [impuestoContador, impuestoServicios] = repartirCuotaServicios(baseContadorNum, baseServiciosNum, info.contadorRate);
       } else {
         ivaBase = round2(baseEnergiaNum + impuestoElectricoNum + baseContadorNum + baseServiciosNum);
         iva = roundMoneyRate(ivaBase, info.energiaRate);

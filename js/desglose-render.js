@@ -521,16 +521,15 @@
             <span class="desglose-detalle">Prorrateado a ${datos.dias} días</span>
             <span class="desglose-importe">${this.fmt(igicAlqDisp)}</span>
           </div>
-          <div class="desglose-linea">
+          ${d.costeBV > 0 ? `<div class="desglose-linea">
+            <span class="desglose-concepto">IGIC contador y cuota BV (${igicContadorPct})</span>
+            <span class="desglose-detalle">${igicContadorPct} de ${this.fmt(d.alquilerContador + d.costeBV)}</span>
+            <span class="desglose-importe">${this.fmt(round2(igicContDisp + igicServDisp))}</span>
+          </div>` : `<div class="desglose-linea">
             <span class="desglose-concepto">${igicContadorLabel} (${igicContadorPct})</span>
             <span class="desglose-detalle">${igicContadorPct} de ${this.fmt(d.alquilerContador)}</span>
             <span class="desglose-importe">${this.fmt(igicContDisp)}</span>
-          </div>
-          ${d.costeBV > 0 ? `<div class="desglose-linea">
-            <span class="desglose-concepto">IGIC servicios (${igicContadorPct})</span>
-            <span class="desglose-detalle">${igicContadorPct} de ${this.fmt(d.costeBV)}</span>
-            <span class="desglose-importe">${this.fmt(igicServDisp)}</span>
-          </div>` : ''}
+          </div>`}
         </div>`;
       } else if (d.isCeutaMelilla) {
         // ═══════════════════════════════════════════════════════════════
@@ -555,16 +554,15 @@
             <span class="desglose-detalle">Prorrateado a ${datos.dias} días</span>
             <span class="desglose-importe">${this.fmt(ipsiAlqDisp)}</span>
           </div>
-          <div class="desglose-linea">
+          ${d.costeBV > 0 ? `<div class="desglose-linea">
+            <span class="desglose-concepto">IPSI contador y cuota BV (${ipsiContadorPct})</span>
+            <span class="desglose-detalle">${ipsiContadorPct} de ${this.fmt(d.alquilerContador + d.costeBV)}</span>
+            <span class="desglose-importe">${this.fmt(round2(ipsiContDisp + ipsiServDisp))}</span>
+          </div>` : `<div class="desglose-linea">
             <span class="desglose-concepto">${ipsiContadorLabel} (${ipsiContadorPct})</span>
             <span class="desglose-detalle">${ipsiContadorPct} de ${this.fmt(d.alquilerContador)}</span>
             <span class="desglose-importe">${this.fmt(ipsiContDisp)}</span>
-          </div>
-          ${d.costeBV > 0 ? `<div class="desglose-linea">
-            <span class="desglose-concepto">IPSI servicios (${ipsiContadorPct})</span>
-            <span class="desglose-detalle">${ipsiContadorPct} de ${this.fmt(d.costeBV)}</span>
-            <span class="desglose-importe">${this.fmt(ipsiServDisp)}</span>
-          </div>` : ''}
+          </div>`}
         </div>`;
       } else {
         // ═══════════════════════════════════════════════════════════════

@@ -285,6 +285,17 @@
     const totalExcedentes = totales.excedentesP1 + totales.excedentesP2 + totales.excedentesP3;
     const totalAutoconsumo = totales.autoconsumoP1 + totales.autoconsumoP2 + totales.autoconsumoP3;
     const tieneExcedentes = totalExcedentes > 0;
+    // Sumar miles de horas en coma flotante deja restos (19.104999999999997 frente a 19,105
+    // exacto) y round2 tampoco basta con la suma limpia (311.525 * 100 = 31152.499999999996), asi
+    // que se redondeaba al centesimo de kWh inferior (ronda 46). Se pasa a millonesimas de kWh,
+    // muy por debajo de la resolucion de cualquier contador, y se redondea la mitad hacia arriba
+    // (alejandose de cero) en aritmetica entera.
+    const kwh2 = (value) => {
+      const micro = Math.round(Number(value) * 1e6);
+      if (!Number.isFinite(micro)) return 0;
+      const centesimas = Math.floor((Math.abs(micro) + 5000) / 10000);
+      return (micro < 0 ? -centesimas : centesimas) / 100;
+    };
     const formatPercent = (value) => {
       if (totalKwh <= 0) return '0,0';
       return round2(value / totalKwh * 100).toFixed(1).replace('.', ',');
@@ -292,19 +303,19 @@
 
     return {
       ok: true,
-      punta: round2(totales.P1).toFixed(2).replace('.', ','),
-      llano: round2(totales.P2).toFixed(2).replace('.', ','),
-      valle: round2(totales.P3).toFixed(2).replace('.', ','),
-      excedentesPunta: round2(totales.excedentesP1).toFixed(2).replace('.', ','),
-      excedentesLlano: round2(totales.excedentesP2).toFixed(2).replace('.', ','),
-      excedentesValle: round2(totales.excedentesP3).toFixed(2).replace('.', ','),
-      autoconsumoPunta: round2(totales.autoconsumoP1).toFixed(2).replace('.', ','),
-      autoconsumoLlano: round2(totales.autoconsumoP2).toFixed(2).replace('.', ','),
-      autoconsumoValle: round2(totales.autoconsumoP3).toFixed(2).replace('.', ','),
+      punta: kwh2(totales.P1).toFixed(2).replace('.', ','),
+      llano: kwh2(totales.P2).toFixed(2).replace('.', ','),
+      valle: kwh2(totales.P3).toFixed(2).replace('.', ','),
+      excedentesPunta: kwh2(totales.excedentesP1).toFixed(2).replace('.', ','),
+      excedentesLlano: kwh2(totales.excedentesP2).toFixed(2).replace('.', ','),
+      excedentesValle: kwh2(totales.excedentesP3).toFixed(2).replace('.', ','),
+      autoconsumoPunta: kwh2(totales.autoconsumoP1).toFixed(2).replace('.', ','),
+      autoconsumoLlano: kwh2(totales.autoconsumoP2).toFixed(2).replace('.', ','),
+      autoconsumoValle: kwh2(totales.autoconsumoP3).toFixed(2).replace('.', ','),
       dias: diasUnicos.size,
-      totalKwh: round2(totalKwh).toFixed(2).replace('.', ','),
-      totalExcedentes: round2(totalExcedentes).toFixed(2).replace('.', ','),
-      totalAutoconsumo: round2(totalAutoconsumo).toFixed(2).replace('.', ','),
+      totalKwh: kwh2(totalKwh).toFixed(2).replace('.', ','),
+      totalExcedentes: kwh2(totalExcedentes).toFixed(2).replace('.', ','),
+      totalAutoconsumo: kwh2(totalAutoconsumo).toFixed(2).replace('.', ','),
       tieneExcedentes,
       datosReales,
       datosEstimados,

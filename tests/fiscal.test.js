@@ -104,6 +104,36 @@ describe('LF_CONFIG - Lógica Fiscal', () => {
     expect(tax.impuestoTotal).toBe(0.21);
   });
 
+  // Ronda 45: contador y cuota BV van al mismo tipo y se redondeaban por separado. Una base unica
+  // por tipo, como el IVA: la suma de los dos campos es la cuota de la base conjunta.
+  it.each([
+    ['Canarias', { usoFiscal: 'otros', viviendaCanarias: false }, 0.83, 1.65, 0.07, 0.06, 0.17],
+    ['CeutaMelilla', {}, 0.81, 1.62, 0.04, 0.03, 0.10]
+  ])('%s: contador y cuota BV tributan sobre una sola base', (zona, extra, contador, cuota, tipo, cuotaContador, cuotaConjunta) => {
+    const tax = window.LF_CONFIG.calcularImpuestoIndirecto({
+      zona,
+      baseEnergia: 50,
+      impuestoElectrico: 2.5,
+      baseContador: contador,
+      baseServicios: cuota,
+      potenciaContratada: 4,
+      ...extra
+    });
+    // Por separado sumaban un centimo distinto: 0,06 + 0,12 = 0,18 (Canarias) y 0,03 + 0,06 = 0,09 (IPSI).
+    expect(tax.impuestoContador).toBe(cuotaContador);
+    expect(Math.round((tax.impuestoContador + tax.impuestoServicios) * 100) / 100).toBe(cuotaConjunta);
+    expect(Math.round((contador + cuota) * tipo * 100) / 100).toBe(cuotaConjunta);
+  });
+
+  it('sin cuota BV, el contador conserva su cuota propia', () => {
+    const tax = window.LF_CONFIG.calcularImpuestoIndirecto({
+      zona: 'Canarias', usoFiscal: 'otros', baseEnergia: 50, impuestoElectrico: 2.5,
+      baseContador: 0.83, baseServicios: 0, potenciaContratada: 4, viviendaCanarias: false
+    });
+    expect(tax.impuestoContador).toBe(0.06);
+    expect(tax.impuestoServicios).toBe(0);
+  });
+
   it('Canarias: calcularImpuestoIndirecto resuelve vivienda 0% aunque no se pase usoFiscal', () => {
     const tax = window.LF_CONFIG.calcularImpuestoIndirecto({
       zona: 'Canarias',
