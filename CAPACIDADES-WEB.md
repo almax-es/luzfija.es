@@ -516,7 +516,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 41 (`js/*.{js,mjs}` + `js/bv/*.js`).
-- Lineas JS aproximadas: 33.666.
+- Lineas JS aproximadas: 33.694.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (119 tarifas).
