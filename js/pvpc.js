@@ -379,6 +379,37 @@
     }
 
     function parsearRespuestaPVPC(data) {
+      const importes = !Array.isArray(data) && data?.importesFactura && typeof data.importesFactura === 'object'
+        ? data.importesFactura
+        : null;
+      if (importes) {
+        if (!(Number(importes.totalFactura) > 0)) return null;
+        return {
+          terminoFijo: importes.terminoFijo,
+          costeMargenPot: importes.costeMargenPot,
+          terminoVariable: importes.terminoVariable,
+          bonoSocial: importes.bonoSocial,
+          impuestoElectrico: importes.impuestoElectrico,
+          equipoMedida: importes.equipoMedida,
+          iva: importes.iva,
+          totalFactura: importes.totalFactura,
+          baseEnergia: 0,
+          baseContador: 0,
+          impuestoEnergia: importes.impuestoEnergia,
+          impuestoContador: 0,
+          impuestosTotal: 0,
+          ivaBase: 0,
+          baseIPSI: 0,
+          usoFiscal: 'otros',
+          precioPunta: importes.precioPunta,
+          precioLlano: importes.precioLlano,
+          precioValle: importes.precioValle,
+          rangoFechas: importes.rangoFechas || null,
+          pvpcCoverage: data?.pvpcCoverage || null
+        };
+      }
+
+      // Respaldo: reconstruir desde las lineas de texto (respuestas sin importesFactura).
       const lista = Array.isArray(data) ? data : (data?.resultadoPVPC || []);
       if (!lista || !lista.length) return null;
 
@@ -1030,6 +1061,34 @@ const PEAJES_POT_DIA = window.LF_CONFIG?.peajesPotenciaPVPC ?? { diasAnio: 365, 
 
         const totalFactura = fiscalMeta.totalFactura;
 
+        // Importes de la factura como numeros, con el mismo redondeo que las lineas de
+        // `resultadoPVPC` (importes a 2 decimales y precios por periodo a 4). crearTarifaPVPC
+        // los usa en vez de reconstruirlos leyendo las etiquetas del texto: ese viaje de ida y
+        // vuelta metio el IGIC/IPSI en el termino variable (ronda 44). Un precio medio sin horas
+        // o no positivo queda en null, igual que cuando el parser no lo encontraba en el texto.
+        const aImporte = (n) => Number(Number(n).toFixed(2));
+        const aPrecio = (n) => (Number.isFinite(n) && n > 0 ? Number(n.toFixed(4)) : null);
+        const importesFactura = {
+          terminoFijo: aImporte(terminoFijoRedondeado),
+          costeMargenPot: aImporte(costeMargenPotRedondeado),
+          terminoVariable: aImporte(terminoVariable),
+          bonoSocial: aImporte(bonoSocial),
+          impuestoElectrico: aImporte(impuestoElectrico),
+          equipoMedida: aImporte(equipoMedida),
+          iva: fiscalMeta.isCanarias || fiscalMeta.isCeutaMelilla ? 0 : aImporte(fiscalMeta.iva),
+          impuestoEnergia: fiscalMeta.isCanarias || fiscalMeta.isCeutaMelilla
+            ? aImporte(fiscalMeta.impuestoEnergia) + aImporte(fiscalMeta.impuestoContador)
+            : 0,
+          totalFactura: aImporte(totalFactura),
+          precioPunta: countPunta > 0 ? aPrecio(precioP1) : null,
+          precioLlano: countLlano > 0 ? aPrecio(precioP2) : null,
+          precioValle: countValle > 0 ? aPrecio(precioP3) : null,
+          rangoFechas: {
+            inicio: startStr.split('-').reverse().join('/'),
+            fin: endStr.split('-').reverse().join('/')
+          }
+        };
+
         const impuestoLineas = (() => {
           if (fiscalMeta.isCanarias) {
             return [
@@ -1106,6 +1165,8 @@ const PEAJES_POT_DIA = window.LF_CONFIG?.peajesPotenciaPVPC ?? { diasAnio: 365, 
               importe: totalFactura.toFixed(2)
             }
           ],
+          // Fuente de verdad para crearTarifaPVPC (ver importesFactura arriba).
+          importesFactura,
           // CAMPOS EXTRA PARA USO INTERNO (inyectados para evitar parseo de strings)
           precioPunta: precioP1,
           precioLlano: precioP2,

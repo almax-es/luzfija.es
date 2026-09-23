@@ -1343,6 +1343,77 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     });
   });
 
+  // Ronda 47: crearTarifaPVPC ya no reconstruye los importes leyendo las etiquetas del texto
+  // (`resultadoPVPC`), sino `importesFactura`. Los dos caminos tienen que dar lo mismo en todo lo
+  // que consume crearTarifaPVPC; el texto sigue siendo el respaldo del parser.
+  describe('importesFactura equivale a leer las lineas de resultadoPVPC', () => {
+    const CAMPOS = ['terminoFijo', 'costeMargenPot', 'terminoVariable', 'bonoSocial', 'impuestoElectrico',
+      'equipoMedida', 'totalFactura', 'precioPunta', 'precioLlano', 'precioValle', 'rangoFechas'];
+    const diaVariable = (ymd, timeZone) => {
+      const baseTs = localMidnightEpoch(ymd, timeZone);
+      const nextTs = localMidnightEpoch(addCalendarDay(ymd), timeZone);
+      const prices = [];
+      for (let ts = baseTs, i = 0; ts < nextTs; ts += 3600, i += 1) prices.push([ts, 0.05 + (i * 7 % 24) / 1000]);
+      return prices;
+    };
+
+    it.each([
+      ['Península', 8741, 'Europe/Madrid', {}],
+      ['Canarias', 8742, 'Atlantic/Canary', { viviendaCanarias: true }],
+      ['Canarias', 8742, 'Atlantic/Canary', { viviendaCanarias: false }],
+      ['CeutaMelilla', 8744, 'Europe/Madrid', {}]
+    ])('%s (geo %s) %j', async (zonaFiscal, geoId, timeZone, extra) => {
+      vi.setSystemTime(new Date('2026-08-20T12:00:00Z'));
+      try {
+        const days = {};
+        for (let d = 10; d <= 19; d += 1) {
+          const ymd = `2026-08-${String(d).padStart(2, '0')}`;
+          days[ymd] = diaVariable(ymd, timeZone);
+        }
+        global.fetch.mockImplementation((url) => {
+          if (String(url).includes(`/data/pvpc/${geoId}/2026-08.json`)) {
+            return Promise.resolve({ ok: true, json: async () => ({ ...pvpcIdentity(geoId, timeZone), days }) });
+          }
+          throw new Error(`URL inesperada: ${url}`);
+        });
+        const values = { zonaFiscal, p1: 4.6, p2: 3.3, dias: 7, cPunta: 123.4, cLlano: 87.6, cValle: 210.9, ...extra };
+        const data = await global.window.LF.pvpc.obtenerPVPC_LOCAL(values);
+        expect(data.importesFactura).toBeTruthy();
+
+        const estructurado = global.window.LF.pvpc.parsearRespuestaPVPC(data);
+        const texto = global.window.LF.pvpc.parsearRespuestaPVPC({ ...data, importesFactura: undefined });
+        for (const campo of CAMPOS) expect(estructurado[campo], campo).toEqual(texto[campo]);
+        expect(estructurado.precioPunta).not.toBe(estructurado.precioValle);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('con curva CSV en modo exacto', async () => {
+      vi.setSystemTime(new Date('2026-08-20T12:00:00Z'));
+      try {
+        const days = { '2026-08-12': diaVariable('2026-08-12', 'Europe/Madrid') };
+        global.fetch.mockImplementation(() => Promise.resolve({
+          ok: true, json: async () => ({ ...pvpcIdentity(8741, 'Europe/Madrid'), days })
+        }));
+        global.window.LF.consumosHorarios = Array.from({ length: 24 }, (_, h) => ({
+          fecha: new Date(2026, 7, 12), hora: h + 1, kwh: 0.2 + h / 50
+        }));
+        global.window.LF.pvpcPeriodoCSV = true;
+        const data = await global.window.LF.pvpc.obtenerPVPC_LOCAL({
+          zonaFiscal: 'Península', p1: 4.6, p2: 4.6, dias: 1, cPunta: 3, cLlano: 4, cValle: 5
+        });
+        expect(data.pvpcCoverage.mode).toBe('exact');
+        const estructurado = global.window.LF.pvpc.parsearRespuestaPVPC(data);
+        const texto = global.window.LF.pvpc.parsearRespuestaPVPC({ ...data, importesFactura: undefined });
+        for (const campo of CAMPOS) expect(estructurado[campo], campo).toEqual(texto[campo]);
+      } finally {
+        delete global.window.LF.pvpcPeriodoCSV;
+        vi.useRealTimers();
+      }
+    });
+  });
+
   // Ronda 44 (oraculo independiente): obtenerPVPC_LOCAL emite la linea 'IGIC energía' /
   // 'IPSI energía' y parsearRespuestaPVPC la clasificaba como termino variable porque la
   // rama de energia ('energía') se evaluaba antes que la de IGIC/IPSI. El impuesto

@@ -5221,3 +5221,30 @@ el precio de la hora anterior.**
 **Criterio de reapertura.** Cualquier cambio en el reloj de `data/surplus` o en el cruce de horas
 de `lf-surplus-prices.js`/`pvpc-stats-csv.js`; una curva canaria cuyo valor indexado no coincida
 con el cruce por instante.
+
+<a id="pvpc-importes-estructurados-ronda-47-23-09-2026"></a>
+### PVPC: Importes Estructurados En Vez De Leer Etiquetas (Ronda 47, 23/09/2026)
+
+Refuerzo de la causa de fondo del bug de la ronda 44. `obtenerPVPC_LOCAL` convertia sus importes
+en lineas de texto (`resultadoPVPC`) y `crearTarifaPVPC` los reconstruia leyendo las etiquetas con
+`parsearRespuestaPVPC`, y los precios por periodo con una expresion regular sobre la explicacion.
+Cualquier etiqueta nueva que contuviera una palabra de otra rama podia volver a clasificarse mal.
+
+- `obtenerPVPC_LOCAL` devuelve ahora `importesFactura`: los MISMOS numeros que imprime en las lineas
+  (importes a 2 decimales con el redondeo de cada linea, precios por periodo a 4, `null` si un
+  periodo no tiene horas o su media no es positiva, y el rango de fechas).
+- `parsearRespuestaPVPC` usa `importesFactura` cuando existe; leer el texto queda como respaldo
+  para respuestas sin ese objeto. `crearTarifaPVPC` no cambia. La cache (`pvpc_cache_v3`) guarda la
+  tarifa ya construida, no el texto, asi que no le afecta.
+- `resultadoPVPC` se conserva: lo consumen tests y es el formato historico del canal.
+- Equivalencia: 5 tests comparan campo a campo el camino estructurado con el de texto en
+  Peninsula, Canarias vivienda y no vivienda, Ceuta/Melilla y curva CSV exacta, con precios
+  distintos por hora; una mutacion (precios sin redondear a 4 decimales) los tumba. La bateria de
+  la ronda 44 contra el sitio servido en local da 5.240 filas IDENTICAS a produccion (totales,
+  columnas, descuento del bono social y `metaPvpc` completo), y los precios por periodo y el rango
+  del PVPC coinciden en cuatro variantes. Suite 2078, lint 0/0.
+
+**Criterio de reapertura.** Un campo nuevo que `crearTarifaPVPC` lea del resultado del parser debe
+anadirse a `importesFactura` y al test de equivalencia; si solo existe en el texto, el camino
+estructurado lo perderia.
+
