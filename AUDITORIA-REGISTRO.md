@@ -5119,3 +5119,55 @@ una factura real de autoconsumo en ese caso para decidir que kWh cuentan.
 **Criterio de reapertura.** Cambio en la ordenanza del IPSI de Ceuta o Melilla; una consulta DGT o
 factura real que fije los kWh del minimo del IEE con compensacion; o unificar la base de servicios
 en `calcularImpuestoIndirecto` (debe conservar `tests/fiscal-rounding-align.test.js`).
+
+<a id="oraculo-independiente-camino-horario-ronda-46-23-09-2026"></a>
+### Oraculo Independiente Del Camino Horario (Ronda 46, 23/09/2026)
+
+Mismo metodo que las rondas 44 y 45, sobre la curva horaria: M1 `BVSim.bucketizeByMonth` (P1/P2/P3
+por mes), M2 `pvpc.obtenerPVPC_LOCAL` con `LF.consumosHorarios` (modos exacto, hibrido y medias) y
+M3 `surplusPrices.computeHourlyCompensation` + `applyMonthlyIndexedValues`. ChatGPT escribio el
+oraculo y un generador determinista sin leer el codigo. Claude lo ejecuto contra los motores reales
+de produccion (las ausencias de precios simuladas se reprodujeron interceptando `/data/pvpc` y
+`/data/surplus`) con 52 escenarios sinteticos (56.668 horas) y con las 8 curvas horarias reales del
+banco local leidas por `BVSim.importFile`, en las tres zonas (24 escenarios mas).
+
+**Cuadra.** M1 al completo en los sinteticos: periodos por zona incluida la punta desplazada de
+Ceuta/Melilla con consumo distinto en cada hora (la ronda 44 no la llego a probar: con consumo
+igual por periodo ambas reglas daban lo mismo), festivos nacionales de fecha fija, Jueves y Viernes
+Santo como dias ordinarios, y los cuatro cambios de hora de 2025-2026 en Peninsula y Canarias con la
+hora 25. M2 en los tres modos y en los bordes del 10%, con medias identicas. M3 en todo lo que el
+prompt podia comparar.
+
+**1 bug CONFIRMADO fuera del alcance del oraculo: excedentes indexados de Canarias valorados con
+el precio de la hora anterior.**
+- `data/surplus/8742` guarda el indicador 1739 con reloj `Europe/Madrid` (decision deliberada de
+  `scripts/pvpc_auto_fill.py` para indicadores nacionales; la serie es identica a la de 8741). Los
+  dos consumidores (`js/lf-surplus-prices.js` y `js/pvpc-stats-csv.js:461`) cruzan la hora CNMC del
+  CSV, que en Canarias es hora local canaria, con la ETIQUETA horaria del fichero en ese reloj. La
+  hora canaria de 12:00 a 13:00 se valora con el precio de 11:00 a 12:00 canarias.
+- Referencia correcta: cruzar por instante. El PVPC de Canarias (1001, geo 8742) es identico al
+  peninsular en el MISMO instante (743/743 horas de julio de 2025) y su fichero ya esta reetiquetado
+  con hora canaria.
+- Medido en produccion: hora 13 del 15/07/2025 en Canarias -> 0,04655 EUR/kWh (instante 10:00Z) en
+  vez de 0,04542 (11:00Z). Con una curva real de 3.056 kWh vertidos en 11 meses tratada como
+  canaria: 62,37 EUR frente a 67,57 EUR, un 7,7% menos, y por debajo en los 11 meses.
+- Alcance: simulador solar con curva horaria en Canarias y tarifas de excedente indexado
+  (`fv.exc = -1`), y la calculadora de compensacion del Observatorio para Canarias. No afecta a
+  Peninsula, Ceuta/Melilla ni al PVPC.
+- Por que el oraculo no lo vio: el prompt le dio como convencion "usa el `timezone` del propio
+  fichero", que es lo que hace la web. Leccion: una convencion de producto que se da cerrada no se
+  puede auditar con el oraculo; hay que revisarla aparte.
+- Estado: pendiente de decidir el arreglo (dato reetiquetado en hora canaria frente a cruce por
+  instante en los dos consumidores).
+
+**Menores, sin cambio:**
+- M1 suma kWh en coma flotante y redondea con `round2`: `19.104999999999997` -> 19,10 cuando la
+  suma decimal exacta es 19,105 -> 19,11. 18 diferencias de 0,01 kWh en las curvas reales.
+- M2 con consumo cero: la web lo etiqueta `average` (no hay ninguna hora con consumo) y el oraculo
+  `exacto`. Termino 0 en ambos.
+- M3 del mes en curso: la web solo acepta dias parciales recortados por el final
+  (`missing-first-hour` invalida el mes); el prompt decia "pueden estar incompletos" sin precisarlo.
+
+**Criterio de reapertura.** Cualquier cambio en el reloj de `data/surplus` o en el cruce de horas
+de `lf-surplus-prices.js`/`pvpc-stats-csv.js`; una curva canaria cuyo valor indexado no coincida
+con el cruce por instante.
