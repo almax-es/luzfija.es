@@ -661,23 +661,6 @@
       return round2(detalle.porPorcentaje);
     },
 
-    /**
-     * kWh sobre los que se aplica la cuota minima del IEE (1 EUR/MWh, Ley 38/1992 art. 99.2).
-     * La energia suministrada objeto de compensacion con excedentes esta exenta (art. 94.9) y el
-     * modelo 560 la declara aparte: el minimo solo alcanza a la cantidad "objeto de liquidacion".
-     * La compensacion simplificada es economica, asi que los kWh compensados se aproximan como
-     * los kWh de excedente cuyo valor se ha aplicado (credito / precio), con el consumo como tope.
-     * Ninguna norma fija esa conversion; es la lectura mas directa (ronda 50, AUDITORIA-REGISTRO).
-     */
-    kwhSujetosMinimoIEE: function(consumoKwh, creditoAplicadoEur = 0, precioExcedenteEurKwh = 0) {
-      const consumo = Math.max(0, Number(consumoKwh) || 0);
-      const credito = Number(creditoAplicadoEur);
-      const precio = Number(precioExcedenteEurKwh);
-      if (!(credito > 0) || !(precio > 0)) return consumo;
-      const compensados = Math.min(consumo, credito / precio);
-      return Math.max(0, consumo - compensados);
-    },
-
     calcularIEE: function(base, consumoKwh, fechaYmd) {
       return this.desglosarIEE(base, consumoKwh, fechaYmd).importe;
     }

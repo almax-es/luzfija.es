@@ -5324,3 +5324,36 @@ curva importada y daba 19,81499...). Bateria sintetica sin cambios.
 
 Suite 2086, lint 0/0.
 
+<a id="minimo-iee-compensacion-revertido-ronda-50-23-09-2026"></a>
+### Minimo Del IEE Con Energia Compensada: Cambio Revertido (Ronda 50, 23/09/2026)
+
+**Lo que esta demostrado.** Ley 38/1992 art. 94.9 exime "la energia electrica suministrada que sea
+objeto de compensacion con la energia horaria excedentaria", y las instrucciones del modelo 560
+(Orden HAC/1433/2024) declaran esa energia en una linea propia ("Exento articulo 94.9 LIE") y calculan
+la cuota integra minima sobre la "Cantidad total de energia electrica suministrada o consumida que
+sea objeto de liquidacion conforme a lo dispuesto en el apartado 2 del articulo 99". La energia
+exenta no deberia entrar en el minimo de 1 EUR/MWh. La web lo aplica sobre todos los kWh de red.
+
+**Lo que NO esta resuelto.** Ninguna norma ni consulta de la DGT fija como se convierte la
+compensacion simplificada, que es economica y mensual (RD 244/2019 art. 14), en kWh de suministro
+exentos. La V1146-24 solo aclara que la exencion no se traslada a periodos posteriores.
+
+**Cambio probado y revertido el mismo dia.** Se implemento `kwhSujetosMinimoIEE` con kWh exentos =
+credito aplicado / precio del excedente (tope: el consumo). Una revision externa (ChatGPT) mostro
+que es conceptualmente erroneo: mide el lado del EXCEDENTE, y la exencion es del SUMINISTRO.
+Contraejemplo: 300 kWh a 0,20 EUR (60 EUR) y 400 kWh de excedente a 0,05 EUR (20 EUR compensados):
+la formula daba los 300 kWh por exentos cuando solo se compensa un tercio del valor. Con excedente
+indexado usa la referencia orientativa de 0,020 EUR/kWh, que no puede decidir un dato fiscal; en la
+bateria de la ronda 44 el escenario S35 bajaba 1,42 EUR. Se restauraron los cinco ficheros al estado
+de `fe03dc7`; la bateria de la ronda 44 en local vuelve a coincidir con produccion salvo las 6 filas
+de la base unica de IGIC (ronda 49).
+
+**Incidente de proceso.** El cambio estaba a medio verificar en el arbol de trabajo cuando el usuario
+relanzo el `.bat` de despliegue para otro arreglo; el `.bat` hace `git add -A` y lo publico en
+`e82eaa5` sin sus tests. No se debe dejar trabajo en curso en el arbol del repo mientras pueda
+correr un despliegue.
+
+**Estado.** Se mantiene el minimo sobre todos los kWh de red: puede sobrestimar el IEE en meses con
+mucha compensacion y base pequena, y es la opcion que no inventa una regla. Se reabre solo con una
+fuente que fije la conversion (consulta DGT o factura real con el desglose de la cantidad exenta).
+

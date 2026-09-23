@@ -372,21 +372,16 @@ window.BVSim.calcMonthForTarifa = function ({
   // Base para IEE: potencia + energía neta + bono social (financiación)
   const sumaBase = round2(pot + consAdj + costeBonoSocial);
 
-  // Minimo del IEE solo sobre los kWh no compensados (art. 94.9; ver kwhSujetosMinimoIEE).
-  const kwhSujetosIEE = CFG && typeof CFG.kwhSujetosMinimoIEE === 'function'
-    ? CFG.kwhSujetosMinimoIEE(consumoTotalKwh, credit1, precioExc)
-    : consumoTotalKwh;
-
   let impuestoElec;
   if (CFG && typeof CFG.calcularIEE === 'function') {
     impuestoElec = typeof CFG.calcularIEERedondeado === 'function'
-      ? CFG.calcularIEERedondeado(sumaBase, kwhSujetosIEE, fiscalDateYmd)
-      : round2(CFG.calcularIEE(sumaBase, kwhSujetosIEE, fiscalDateYmd));
+      ? CFG.calcularIEERedondeado(sumaBase, consumoTotalKwh, fiscalDateYmd)
+      : round2(CFG.calcularIEE(sumaBase, consumoTotalKwh, fiscalDateYmd));
   } else {
     // Fallback derivado de la config si faltase la helper central.
     const ieePct = Number(CFG?.iee?.porcentaje) || 0;
     const ieeMin = Number(CFG?.iee?.minimoEurosKwh) || 0;
-    impuestoElec = round2(Math.max((ieePct / 100) * sumaBase, kwhSujetosIEE * ieeMin));
+    impuestoElec = round2(Math.max((ieePct / 100) * sumaBase, consumoTotalKwh * ieeMin));
   }
 
   // Alquiler

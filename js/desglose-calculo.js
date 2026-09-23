@@ -187,13 +187,9 @@
 
       const sumaBase = pot + consAdj + tarifaAdj;
       const consumoTotalKwh = consumoPunta + consumoLlano + consumoValle;
-      // Minimo del IEE solo sobre los kWh no compensados (art. 94.9; ver kwhSujetosMinimoIEE).
-      const kwhSujetosIEE = typeof CFG.kwhSujetosMinimoIEE === 'function'
-        ? CFG.kwhSujetosMinimoIEE(consumoTotalKwh, credit1, precioCompensacion)
-        : consumoTotalKwh;
       const impuestoElec = (typeof CFG.calcularIEERedondeado === 'function')
-        ? CFG.calcularIEERedondeado(sumaBase, kwhSujetosIEE, fiscal?.fechaYmd || datos.fechaYmd || datos.fechaFin || datos.fechaInicio)
-        : round2(CFG.calcularIEE(sumaBase, kwhSujetosIEE, fiscal?.fechaYmd || datos.fechaYmd || datos.fechaFin || datos.fechaInicio));
+        ? CFG.calcularIEERedondeado(sumaBase, consumoTotalKwh, fiscal?.fechaYmd || datos.fechaYmd || datos.fechaFin || datos.fechaInicio)
+        : round2(CFG.calcularIEE(sumaBase, consumoTotalKwh, fiscal?.fechaYmd || datos.fechaYmd || datos.fechaFin || datos.fechaInicio));
       const alquilerContador = round2(dias * CFG.alquilerContador.eurosMes * 12 / 365);
       const bvActivaSimple = Boolean(solarOn && tieneBV && tipoCompensacion === 'SIMPLE + BV');
       const precioBVMensual = Math.max(0, safeNum(precioBV));
@@ -304,7 +300,6 @@
       }
 
       resultado.consumoTotalKwh = round2(consumoTotalKwh);
-      resultado.kwhSujetosIEE = round2(kwhSujetosIEE);
       resultado.fechaYmd = fiscal?.fechaYmd || (CFG && typeof CFG.resolveFiscalDateYmd === 'function'
         ? CFG.resolveFiscalDateYmd(datos.fechaYmd || datos.fechaFin || datos.fechaInicio)
         : undefined);

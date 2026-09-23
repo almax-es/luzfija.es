@@ -314,14 +314,10 @@
         // por mes natural (dias/daysInMonth) porque allí sí se conoce el mes concreto.
         // Para 30 días: aquí 0,986 × cuota mensual; en el simulador 1,000. No es un bug.
         fvCosteBV = fvPrecioBV > 0 ? round2(fvPrecioBV * dias * 12 / 365) : 0;
-        // Minimo del IEE solo sobre los kWh no compensados (art. 94.9; ver kwhSujetosMinimoIEE).
-        const kwhSujetosIEE = typeof CFG.kwhSujetosMinimoIEE === 'function'
-          ? CFG.kwhSujetosMinimoIEE(consumoTotalKwh, credit1, precioExc)
-          : consumoTotalKwh;
         const impuestosAplicados = __LF_aplicarImpuestos({
           fiscal,
           sumaBase,
-          consumoTotalKwh: kwhSujetosIEE,
+          consumoTotalKwh,
           dias,
           baseServicios: fvCosteBV,
           zona: zonaFiscal,

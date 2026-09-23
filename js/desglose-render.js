@@ -84,11 +84,11 @@
           })
         : null;
       const ieeInfo = (window.LF_CONFIG && typeof window.LF_CONFIG.desglosarIEE === 'function')
-        ? window.LF_CONFIG.desglosarIEE(d.sumaBase, (Number.isFinite(d.kwhSujetosIEE) ? d.kwhSujetosIEE : d.consumoTotalKwh) || 0, d.fechaYmd || datos.fechaYmd || datos.fechaFin || datos.fechaInicio)
+        ? window.LF_CONFIG.desglosarIEE(d.sumaBase, d.consumoTotalKwh || 0, d.fechaYmd || datos.fechaYmd || datos.fechaFin || datos.fechaInicio)
         : null;
       const ieeDetalle = ieeInfo
         ? (ieeInfo.aplicaMinimo
-          ? `${this.fmtNum(ieeInfo.minimoEurosKwh, 3)} €/kWh × ${this.fmtNum(ieeInfo.consumoKwh)} kWh${Number.isFinite(d.kwhSujetosIEE) && d.kwhSujetosIEE < (d.consumoTotalKwh || 0) ? ' no compensados' : ''}`
+          ? `${this.fmtNum(ieeInfo.minimoEurosKwh, 3)} €/kWh × ${this.fmtNum(ieeInfo.consumoKwh)} kWh`
           : `${this.fmtNum(ieeInfo.porcentaje, 2)}% de ${this.fmt(d.sumaBase)}`)
         : `${this.fmtNum(window.LF_CONFIG.iee.porcentaje, 2)}% de ${this.fmt(d.sumaBase)}`;
 
