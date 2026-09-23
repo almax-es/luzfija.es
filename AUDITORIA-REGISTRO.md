@@ -3262,8 +3262,25 @@ token de 4 letras o mas, a 3 como maximo de la consulta y que no sea stopword
 tipicas: ninguna guia principal pierde su primer puesto. Consecuencia aceptada: "tarifa nocturna"
 pasa de 23 resultados sin relacion a 0 (el indice solo tiene "nocturno"; no se anhaden sufijos
 de genero al stemmer porque desalinearian singular y plural, "tarifa"/"tarifas"). Regresiones en
-el mismo fichero, validadas por mutacion de las tres condiciones. Siguen sin auditar como area el
-teclado y los estados vacios.
+el mismo fichero, validadas por mutacion de las tres condiciones.
+
+**Tercer hallazgo, el texto "Coincide en contenido" (mismo dia, tras el despliegue 988cadb).**
+`formatMatch` recortaba el cuerpo entero de la guia desde el principio (117 caracteres), asi que
+el fragmento casi nunca contenia la palabra: en un barrido de 35 consultas, 219 de las 240
+tarjetas que coincidian por contenido (el 70 % de todas las tarjetas) ensenhaban texto sin
+relacion ("maximetro" mostraba una frase sobre el ICP). CORREGIDO: `snippetAround` muestra
+~120 caracteres alrededor de la primera aparicion literal de algun termino, sin distinguir
+tildes; si el termino solo coincide por raiz, se muestra "Coincide en el contenido de la guia"
+sin fragmento. Resultado del mismo barrido: 222 con la palabra, 18 genericos, 0 sin relacion.
+Regresiones validadas por mutacion (pintado sin terminos, fallback al recorte antiguo y rama
+desactivada). Revisado sin hallazgos: categorias como botones con `aria-pressed`, resultados como
+enlaces, foco estable en el campo y estado vacio visible. Candidato NO verificado con lector de
+pantalla real: el contador `aria-live` se actualiza en cada busqueda pintada (cada 80 ms).
+
+**Fallo intermitente del deploy del 23/09/2026.** El primer intento de desplegar la ronda 51 se
+paro en `npm test` por 4 tests ajenos al buscador (modal PVPC, cosido Datadis y dos de zona del
+simulador) que agotaron el limite por defecto de 5 s con la maquina cargada, sin ninguna asercion
+rota; solos pasaban 116/116. Llevan ahora `SLOW_TEST_TIMEOUT_MS` (20 s), como otros tests pesados.
 
 <a id="catalogo-frente-al-motor-ronda-24-06-09-2026"></a>
 ### El Catalogo `tarifas.json` Frente Al Motor (Ronda 24, 06/09/2026)

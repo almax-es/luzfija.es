@@ -20,6 +20,10 @@ import '../js/lf-surplus-prices.js';
 import '../js/bv/bv-sim-monthly.js';
 import '../js/bv/bv-ui-helpers.js';
 
+// Test pesado: con la suite completa en una maquina cargada rozaba el limite por defecto de 5 s
+// (fallo intermitente del deploy del 23/09/2026 sin ninguna asercion rota).
+const SLOW_TEST_TIMEOUT_MS = 20000;
+
 const dos = (n) => String(n).padStart(2, '0');
 const CAMBIO_OCTUBRE = new Set(['2025/10/26', '2026/10/25']);
 const CAMBIO_MARZO = new Set(['2025/03/30', '2026/03/29']);
@@ -269,6 +273,6 @@ describe('Consumidores economicos de los tramos sobre la fila de la cadena real'
       // 120 x 0,1 x 0,05 + 625 x 0,1 x 0,10 = 0,60 + 6,25. Con el dia recortado dentro saldria
       // 6,975; sin la hora 25, 6,84.
       expect(octubre.indexedSurplusEur).toBeCloseTo(6.85, 2);
-    });
+    }, SLOW_TEST_TIMEOUT_MS);
   });
 });

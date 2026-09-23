@@ -12,6 +12,10 @@ import '../js/lf-csv-utils.js';
 import '../js/bv/bv-sim-monthly.js';
 import '../js/bv/bv-import.js';
 
+// Test pesado: con la suite completa en una maquina cargada rozaba el limite por defecto de 5 s
+// (fallo intermitente del deploy del 23/09/2026 sin ninguna asercion rota).
+const SLOW_TEST_TIMEOUT_MS = 20000;
+
 /**
  * @vitest-environment jsdom
  */
@@ -949,7 +953,7 @@ describe('Simulador solar - procedencia del grid frente al selector de zona', ()
 
     expect(document.getElementById('bv-status').textContent)
       .not.toContain('no se ha podido rehacer el reparto');
-  });
+  }, SLOW_TEST_TIMEOUT_MS);
 
   it('los avisos usan la etiqueta visible de la zona, nunca el valor interno', async () => {
     bootSolarUi();
@@ -968,7 +972,7 @@ describe('Simulador solar - procedencia del grid frente al selector de zona', ()
     expect(document.getElementById('bv-zona-confirm').textContent).toContain('Ceuta y Melilla');
     // Ningun valor interno debe asomar en el texto que se lee.
     expect(status.textContent).not.toContain('CeutaMelilla');
-  });
+  }, SLOW_TEST_TIMEOUT_MS);
 
   it('cancelar la confirmacion deja el bloqueo intacto', async () => {
     bootSolarUi();

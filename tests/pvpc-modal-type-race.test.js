@@ -3,6 +3,10 @@
  */
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
+// Test pesado: con la suite completa en una maquina cargada rozaba el limite por defecto de 5 s
+// (fallo intermitente del deploy del 23/09/2026 sin ninguna asercion rota).
+const SLOW_TEST_TIMEOUT_MS = 20000;
+
 // 14/08/2026 (novena ronda): cambiar el selector PVPC/Excedentes antes de que la carga
 // anterior termine podia dejar pvpcHoy/pvpcManana con datos del tipo abandonado, porque
 // cargarHoy()/cargarManana() no tenian ningun token que descartara una respuesta vieja.
@@ -152,7 +156,7 @@ describe('Modal PVPC/Excedentes: no mezcla datos de un tipo abandonado (14/08/20
     // (0,200) que resolvio despues pero es de un tipo ya abandonado.
     expect(document.getElementById('modalPVPCNow').textContent).toContain('0,050');
     expect(document.getElementById('modalPVPCNow').textContent).not.toContain('0,200');
-  });
+  }, SLOW_TEST_TIMEOUT_MS);
 });
 
 // Ronda 46: data/surplus/8742 pasa a hora canaria. El modal forzaba Europe/Madrid para los

@@ -316,8 +316,55 @@
     });
   }
 
-  function formatMatch(match) {
+  const ACCENT_CLASSES = {
+    a: '[aáàäâ]', e: '[eéèëê]', i: '[iíìïî]', o: '[oóòöô]', u: '[uúùüû]', n: '[nñ]', c: '[cç]'
+  };
+
+  // Los terminos ya vienen normalizados (solo [a-z0-9]): basta con admitir las tildes del texto.
+  function accentInsensitiveRegex(term) {
+    return new RegExp(term.split('').map((ch) => ACCENT_CLASSES[ch] || ch).join(''), 'i');
+  }
+
+  // Ventana del texto alrededor de la primera aparicion literal de algun termino, cortada en
+  // espacios. Devuelve null si ningun termino aparece tal cual (coincidencia solo por raiz).
+  function snippetAround(raw, terms, maxLength = 120) {
+    const text = normalizeWhitespace(raw);
+    let index = -1;
+    let length = 0;
+    for (const term of terms || []) {
+      if (!term) continue;
+      const found = accentInsensitiveRegex(term).exec(text);
+      if (found && (index < 0 || found.index < index)) {
+        index = found.index;
+        length = found[0].length;
+      }
+    }
+    if (index < 0) return null;
+
+    let start = Math.max(0, index - 45);
+    let end = Math.min(text.length, start + maxLength);
+    if (end - start < maxLength) start = Math.max(0, end - maxLength);
+    if (start > 0) {
+      const space = text.indexOf(' ', start);
+      if (space >= 0 && space < index) start = space + 1;
+    }
+    if (end < text.length) {
+      const space = text.lastIndexOf(' ', end);
+      if (space > index + length) end = space;
+    }
+    return `${start > 0 ? '…' : ''}${text.slice(start, end).trim()}${end < text.length ? '…' : ''}`;
+  }
+
+  function formatMatch(match, queryTerms) {
     if (!match) return 'Coincide en el contenido de la guía';
+
+    // El contenido es el cuerpo entero de la guia: recortarlo desde el principio mostraba texto
+    // sin la palabra buscada en 219 de 240 tarjetas (23/09/2026). Se muestra la zona donde
+    // aparece y, si solo coincide por raiz, ningun fragmento antes que uno sin relacion.
+    if (match.label === 'contenido' && Array.isArray(queryTerms)) {
+      const around = snippetAround(match.snippet, queryTerms);
+      return around ? `Coincide en contenido: ${around}` : 'Coincide en el contenido de la guía';
+    }
 
     if (match.label === 'título') {
       return 'Coincide en el título';
@@ -415,6 +462,7 @@
 
     noResults.classList.remove('show');
 
+    const queryTerms = tokenizeQuery(rawQuery);
     for (const result of results) {
       const template = templateMap.get(result.entry.path);
       const card = template ? template.cloneNode(true) : buildFallbackCard(documentRef, result.entry);
@@ -424,7 +472,7 @@
 
       const match = documentRef.createElement('div');
       match.className = 'search-match';
-      match.textContent = formatMatch(result.primaryMatch);
+      match.textContent = formatMatch(result.primaryMatch, queryTerms);
 
       const paragraph = card.querySelector('p');
       if (paragraph) {

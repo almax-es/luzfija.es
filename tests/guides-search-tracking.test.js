@@ -158,3 +158,53 @@ describe('Buscador de guías: relevancia con el índice real', () => {
     expect(GuideSearch.scoreGuideEntry(sintetica, 'cuotas')).not.toBeNull();
   });
 });
+
+// Texto "Coincide en contenido", auditado el 23/09/2026: recortaba el cuerpo de la guia desde el
+// principio y en 219 de 240 tarjetas el fragmento no contenia la palabra buscada.
+describe('Buscador de guías: el fragmento de contenido muestra la palabra buscada', () => {
+  const guias = GuideSearch.prepareGuidesIndex(indiceReal.guides);
+  const GENERICO = 'Coincide en el contenido de la guía';
+
+  it.each(['maximetro', 'nocturno', 'datadis', 'icp', 'contador', 'precio', 'horas valle', 'facturas'])(
+    '"%s": cada fragmento de contenido contiene la palabra o no enseña fragmento',
+    (consulta) => {
+      const terminos = GuideSearch.tokenizeQuery(consulta);
+      const deContenido = GuideSearch.searchGuides(guias, consulta)
+        .filter((r) => r.primaryMatch.label === 'contenido');
+      expect(deContenido.length).toBeGreaterThan(0);
+      for (const resultado of deContenido) {
+        const texto = GuideSearch.formatMatch(resultado.primaryMatch, terminos);
+        if (texto === GENERICO) continue;
+        const visible = GuideSearch.normalizeText(texto);
+        expect(terminos.some((t) => visible.includes(t))).toBe(true);
+        expect(texto.length).toBeLessThanOrEqual(150);
+      }
+    }
+  );
+
+  it('sin aparición literal (solo por raíz) no enseña un fragmento sin relación', () => {
+    const match = { label: 'contenido', snippet: 'Texto que habla de otra cosa distinta', score: 1 };
+    expect(GuideSearch.formatMatch(match, ['reclamaciones'])).toBe(GENERICO);
+  });
+
+  it('la tarjeta pintada lleva el fragmento con la palabra, tildes incluidas', async () => {
+    vi.useFakeTimers();
+    try {
+      window.history.replaceState({}, '', '/guias.html');
+      renderGuidesDom();
+      global.fetch = vi.fn(async () => ({ ok: true, json: async () => indiceReal }));
+      GuideSearch.init({ document, indexUrl: '/data/guides-search-index.json' });
+      const input = document.getElementById('searchInput');
+      input.value = 'maximetro';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      await vi.advanceTimersByTimeAsync(200);
+      const textos = [...document.querySelectorAll('#searchResults .search-match')].map((n) => n.textContent);
+      expect(textos.some((t) => t.includes('maxímetro'))).toBe(true);
+    } finally {
+      window.dispatchEvent(new Event('pagehide'));
+      vi.useRealTimers();
+      document.body.innerHTML = '';
+      delete global.fetch;
+    }
+  });
+});
