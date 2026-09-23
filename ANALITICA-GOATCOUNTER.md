@@ -197,6 +197,14 @@ La busqueda de guias se mide por buckets:
 
 No se envia la busqueda literal. Tampoco debe viajar por referrer gracias al saneo de `window.goatcounter.referrer`.
 
+Se envia UN evento por busqueda, no uno por tecla. La UI pinta resultados con un debounce de
+80 ms, pero el evento espera a que la consulta se asiente (1,5 s sin cambios) o a que el usuario
+actue sobre ella: pulsar un resultado, elegir una categoria o abandonar la pagina lo envian al
+momento, y borrar la consulta antes de asentarse lo descarta. Antes del 23/09/2026 cada prefijo
+pintado contaba (11 eventos al escribir "reclamacion" a 200 ms por tecla), asi que los datos
+historicos de `guias-busqueda` estan inflados y sesgados hacia `1-3`/`4-8` y `10-plus`. Lo vigila
+`tests/guides-search-tracking.test.js`.
+
 ### 6.5 Errores
 
 Cada fallo de codigo conserva un evento primario estable para no romper el

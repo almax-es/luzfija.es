@@ -3238,6 +3238,33 @@ contenido interpolado en este fichero, si el buscador pasa a filtrar o a ordenar
 en una decision economica, o si se le anhade persistencia de estado del usuario. Cualquiera de las
 tres cosas convierte esta entrada en obsoleta y obliga a auditar el modulo como area.
 
+**Actualizacion 23/09/2026 (ronda 51): primer hallazgo en la capa de UI del buscador.** Con el
+indice real en jsdom, escribir "reclamacion" a 200 ms por tecla enviaba 11 eventos
+`guias-busqueda` en vez de 1: el debounce de 80 ms pinta cada prefijo y cada busqueda pintada
+contaba. 8 de los 11 caian en `1-3`/`4-8` con `10-plus` resultados, asi que el reparto de buckets
+de GoatCounter describia prefijos a medio escribir y no busquedas. Clasificacion: bug de la capa
+de analitica (dato publicado falso), no de producto; la UI era correcta. CORREGIDO: el evento sale
+una vez al asentarse la consulta (1,5 s), y al momento si el usuario pulsa un resultado, elige una
+categoria o abandona la pagina; se descarta si borra la consulta antes. El pintado sigue a 80 ms.
+Regresion en `tests/guides-search-tracking.test.js`, validada por mutacion (envio inmediato, sin
+descarte, sin envio al pulsar, sin envio en categoria/pagehide: las cuatro la rompen).
+
+**Segundo hallazgo, relevancia (mismo dia).** El prefijo inverso de `matchScalarField`
+(`term.startsWith(token)`, pensado para que "facturas" encuentre "factura") aceptaba tokens de
+cualquier longitud: "aerotermia" casaba con la palabra "a" del contenido, "alquiler" con "al",
+"autoconsumo" con "a" y "estafa" con la stopword "esta". Las cuatro devolvian las 25 guias (el
+contador anunciaba "25 resultados" y el estado vacio no podia salir nunca); con el arreglo quedan
+en 5, 7, 4 y 3, y cada resultado contiene la palabra. Ademas el bonus de frase se sumaba tambien
+con una sola palabra, en cada campo que contuviera el literal, y premiaba la forma exacta
+tecleada: "facturas" ponia primero la guia de aerotermia. CORREGIDO: prefijo inverso solo con
+token de 4 letras o mas, a 3 como maximo de la consulta y que no sea stopword
+(`isShorterFormOf`); bonus de frase solo con dos palabras o mas. Barrido de 34 consultas
+tipicas: ninguna guia principal pierde su primer puesto. Consecuencia aceptada: "tarifa nocturna"
+pasa de 23 resultados sin relacion a 0 (el indice solo tiene "nocturno"; no se anhaden sufijos
+de genero al stemmer porque desalinearian singular y plural, "tarifa"/"tarifas"). Regresiones en
+el mismo fichero, validadas por mutacion de las tres condiciones. Siguen sin auditar como area el
+teclado y los estados vacios.
+
 <a id="catalogo-frente-al-motor-ronda-24-06-09-2026"></a>
 ### El Catalogo `tarifas.json` Frente Al Motor (Ronda 24, 06/09/2026)
 

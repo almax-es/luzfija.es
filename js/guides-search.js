@@ -14,6 +14,10 @@
 })(typeof globalThis !== 'undefined' ? globalThis : this, function (root) {
   const DEFAULT_INDEX_URL = '/data/guides-search-index.json';
   const DEFAULT_INDEX_TIMEOUT_MS = 15000;
+  // La busqueda se pinta con un debounce de 80 ms, asi que tecleando a ritmo normal cada letra es
+  // una busqueda completa. La analitica no debe contar esos prefijos a medio escribir: el evento
+  // espera a que la consulta se asiente (o a que el usuario actue sobre ella) y sale una sola vez.
+  const DEFAULT_SEARCH_TRACK_SETTLE_MS = 1500;
   const STOP_WORDS = new Set([
     'a', 'al', 'algo', 'como', 'con', 'cual', 'cuales', 'cuanto', 'cuantos', 'de',
     'del', 'donde', 'el', 'en', 'es', 'esta', 'este', 'esto', 'hay', 'la', 'las',
@@ -159,6 +163,18 @@
     return (guides || []).map((entry) => prepareGuideEntry(entry));
   }
 
+  // Prefijo inverso: "facturas" encuentra "factura" y "reclamaciones" encuentra "reclamacion".
+  // Solo vale para una forma algo mas corta de la misma palabra. Sin los limites, cualquier token
+  // de una o dos letras del contenido era prefijo de la consulta: "aerotermia" casaba con "a",
+  // "alquiler" con "al" y "estafa" con la stopword "esta", y las tres devolvian las 25 guias.
+  function isShorterFormOf(term, token) {
+    return term.length >= 5
+      && token.length >= 4
+      && term.length - token.length <= 3
+      && !STOP_WORDS.has(token)
+      && term.startsWith(token);
+  }
+
   function matchScalarField(fieldValue, term, stem, rule) {
     if (!fieldValue || !fieldValue.normalized) return null;
 
@@ -166,7 +182,7 @@
       return { score: rule.token + Math.min(term.length, 8), snippet: fieldValue.raw };
     }
 
-    if (fieldValue.tokens.some((token) => token.startsWith(term) || (term.length >= 5 && term.startsWith(token)))) {
+    if (fieldValue.tokens.some((token) => token.startsWith(term) || isShorterFormOf(term, token))) {
       return { score: rule.prefix + Math.min(term.length, 6), snippet: fieldValue.raw };
     }
 
@@ -246,7 +262,11 @@
       }
     }
 
-    for (const rule of FIELD_RULES) {
+    // El bonus de frase premia que varias palabras aparezcan juntas. Con una sola palabra no hay
+    // frase: sumarlo en cada campo que contiene el literal primaba a la guia que repite la forma
+    // exacta tecleada, y "facturas" ponia la de aerotermia por delante de las guias de factura.
+    const phraseRules = queryTokens.length > 1 ? FIELD_RULES : [];
+    for (const rule of phraseRules) {
       const fieldValue = preparedEntry._fields[rule.key];
       if (!fieldValue) continue;
 
@@ -513,6 +533,36 @@
     // anunciaba un recuento que no correspondia a lo que se veia.
     let accionVigente = 0;
 
+    // Evento de busqueda pendiente de enviar. Medido el 23/09/2026 con el indice real: escribir
+    // "reclamacion" a 200 ms por tecla mandaba 11 eventos (8 de ellos en los buckets 1-3 y 4-8
+    // con "10-plus" resultados) en vez de uno. Se envia al asentarse la consulta, al pulsar un
+    // resultado o una categoria, o al abandonar la pagina; se descarta si el usuario la borra.
+    const trackSettleMs = Number.isFinite(Number(options?.searchTrackSettleMs))
+      ? Math.max(0, Number(options.searchTrackSettleMs))
+      : DEFAULT_SEARCH_TRACK_SETTLE_MS;
+    let pendingSearchTrack = null;
+    let searchTrackTimer = null;
+
+    function flushSearchTrack() {
+      root.clearTimeout(searchTrackTimer);
+      searchTrackTimer = null;
+      const pending = pendingSearchTrack;
+      pendingSearchTrack = null;
+      if (pending) trackGuideEvent('guias-busqueda', pending.detail, pending.title);
+    }
+
+    function discardSearchTrack() {
+      root.clearTimeout(searchTrackTimer);
+      searchTrackTimer = null;
+      pendingSearchTrack = null;
+    }
+
+    function scheduleSearchTrack(detail, title) {
+      root.clearTimeout(searchTrackTimer);
+      pendingSearchTrack = { detail, title };
+      searchTrackTimer = root.setTimeout(flushSearchTrack, trackSettleMs);
+    }
+
     function applyCategory(category) {
       accionVigente += 1;
       setActiveCategory(category);
@@ -579,6 +629,7 @@
     function fallbackSearch(term) {
       const normalizedTerm = normalizeText(term);
       if (!normalizedTerm) {
+        discardSearchTrack();
         applyCategory('todas');
         return;
       }
@@ -614,7 +665,7 @@
 
       noResults.classList.toggle('show', visibleCount === 0);
       updateUrlQuery(term);
-      trackGuideEvent('guias-busqueda', ['fallback', resultBucket(visibleCount), queryLengthBucket(term)], 'Búsqueda guías fallback: ' + resultBucket(visibleCount));
+      scheduleSearchTrack(['fallback', resultBucket(visibleCount), queryLengthBucket(term)], 'Búsqueda guías fallback: ' + resultBucket(visibleCount));
     }
 
     async function applySearch(term) {
@@ -626,6 +677,8 @@
       setActiveCategory('todas');
 
       if (!normalizedQuery) {
+        // Consulta borrada antes de asentarse: el usuario no llego a buscar eso.
+        discardSearchTrack();
         applyCategory('todas');
         return;
       }
@@ -650,7 +703,7 @@
         if (miTurno !== accionVigente) return;
         const results = searchGuides(guides, rawQuery);
         renderSearchResults(config, results, rawQuery);
-        trackGuideEvent('guias-busqueda', ['index', resultBucket(results.length), queryLengthBucket(rawQuery)], 'Búsqueda guías: ' + resultBucket(results.length));
+        scheduleSearchTrack(['index', resultBucket(results.length), queryLengthBucket(rawQuery)], 'Búsqueda guías: ' + resultBucket(results.length));
       } catch (_) {
         if (miTurno !== accionVigente) return;
         fallbackSearch(rawQuery);
@@ -669,10 +722,20 @@
     categoryButtons.forEach((button) => {
       button.addEventListener('click', () => {
         const category = button.dataset.category || 'todas';
+        // Los resultados ya estaban a la vista: la busqueda cuenta antes de pasar a la categoria.
+        flushSearchTrack();
         applyCategory(category);
         trackGuideEvent('guias-categoria', category, 'Categoría guías: ' + category);
       });
     });
+
+    // Abrir un resultado o salir de la pagina antes del asentamiento no debe perder la busqueda.
+    documentRef.addEventListener('click', (event) => {
+      if (pendingSearchTrack && event.target?.closest?.('a[href]')) flushSearchTrack();
+    }, true);
+    if (typeof root.addEventListener === 'function') {
+      root.addEventListener('pagehide', flushSearchTrack);
+    }
 
     const initialQuery = new URLSearchParams(root.location?.search || '').get('q');
     if (initialQuery) {
