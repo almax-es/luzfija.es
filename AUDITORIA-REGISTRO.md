@@ -5198,6 +5198,17 @@ el precio de la hora anterior.**
   energia compensada en el MISMO periodo de facturacion y que el saldo de BV aplicado en periodos
   posteriores no reduce la base del IEE. Confirma que la web aplique la hucha despues de impuestos.
   No dice nada del minimo de 1 EUR/MWh del art. 99.2: ese punto (ronda 45) sigue abierto.
+- **Revision externa de los tres commits (ChatGPT, 23/09/2026): sin regresiones.** Barrio por ruta
+  todos los lectores de `/data/surplus` y de 8742, los llamantes de `parsearRespuestaPVPC`, las
+  carreras del modal y la fusion del generador. Su unico hallazgo, verificado: `scripts/test_auto_fill.py`
+  solo probaba `merge_month_file` en `Europe/Madrid`. Ademas, el paso del workflow que valida los
+  datos ANTES de publicarlos no ejecutaba la guardia del reloj, que solo corria despues del push.
+  Cerrado: `target_timezone()` en el generador fija el reloj por geo con independencia del
+  indicador; 5 pruebas en hora canaria (reloj por geo, agrupacion por dia canario, dias de 23 y 25
+  horas, fusion del dia en curso con el siguiente y rechazo de un fichero con otro reloj), dos
+  mutaciones cazadas; y `tests/surplus-dataset-clock.test.js` se ejecuta ahora en `pvpc.yml` antes
+  del commit de datos. Una ejecucion forzada del workflow con el generador nuevo (run 35843661098)
+  reprodujo byte a byte los ficheros de 8742 ya publicados.
 
 **Menores, sin cambio:**
 - M1 suma kWh en coma flotante y redondea con `round2`: `19.104999999999997` -> 19,10 cuando la

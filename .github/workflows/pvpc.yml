@@ -113,7 +113,7 @@ jobs:
         # queremos justo antes de un commit/push de datos. tests.yml ya vuelve a
         # correr la suite completa tras el push como segunda comprobacion.
         if: steps.check_changes.outputs.has_changes == 'true'
-        run: npx vitest run tests/pvpc-dataset-integrity.test.js tests/ssaa-dataset.test.js
+        run: npx vitest run tests/pvpc-dataset-integrity.test.js tests/ssaa-dataset.test.js tests/surplus-dataset-clock.test.js
 
       - name: Commit and push if there are changes
         if: steps.check_changes.outputs.has_changes == 'true'

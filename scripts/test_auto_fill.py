@@ -79,6 +79,79 @@ class MergeMonthFile(unittest.TestCase):
         self.assertEqual(self.fusionar(dia_horario(20), dia_horario(10)), dia_horario(20))
 
 
+CANARIAS = ZoneInfo("Atlantic/Canary")
+
+
+def dia_local(fecha, tz, precio=0.1):
+    """Todas las horas del dia civil `fecha` en `tz` (23, 24 o 25 segun el cambio de hora)."""
+    d = dt.date.fromisoformat(fecha)
+    inicio = int(dt.datetime(d.year, d.month, d.day, tzinfo=tz).timestamp())
+    siguiente = d + dt.timedelta(days=1)
+    fin = int(dt.datetime(siguiente.year, siguiente.month, siguiente.day, tzinfo=tz).timestamp())
+    return [[ts, precio] for ts in range(inicio, fin, 3600)]
+
+
+class ProduccionEnHoraCanaria(unittest.TestCase):
+    """Ronda 46: data/surplus/8742 (indicador nacional 1739) se guarda en hora canaria."""
+
+    def test_el_reloj_de_cada_geo_no_depende_del_indicador(self):
+        for indicador in (1001, 1739):
+            self.assertEqual(pvpc.target_timezone(8742, indicador), "Atlantic/Canary")
+            self.assertEqual(pvpc.target_timezone(8741, indicador), "Europe/Madrid")
+
+    def test_build_days_agrupa_por_dia_canario(self):
+        # La serie nacional de ESIOS llega por instante UTC. La primera hora del dia peninsular
+        # (00:00 en Madrid) es la ultima del dia canario anterior.
+        serie = dia_local("2025-07-14", TZ) + dia_local("2025-07-15", TZ) + dia_local("2025-07-16", TZ)
+        payload = {"indicator": {"unit": "€/kWh", "values": [
+            {"geo_id": 3, "datetime_utc": dt.datetime.fromtimestamp(ts, dt.timezone.utc).isoformat(), "value": 0.05}
+            for ts, _ in serie
+        ]}}
+        dias, _ = pvpc.build_days(payload, CANARIAS, dt.date(2025, 7, 15), dt.date(2025, 7, 15), filter_geo_id=3)
+        self.assertEqual(list(dias), ["2025-07-15"])
+        self.assertEqual([ts for ts, _ in dias["2025-07-15"]], [ts for ts, _ in dia_local("2025-07-15", CANARIAS)])
+
+    def test_los_dias_de_cambio_de_hora_canarios_son_completos(self):
+        # Canarias pierde y repite la 01:00, no la 02:00.
+        for fecha, horas in (("2026-03-29", 23), ("2025-10-26", 25)):
+            dia = dia_local(fecha, CANARIAS)
+            self.assertEqual(len(dia), horas)
+            self.assertEqual(pvpc.validate_days({fecha: dia}, CANARIAS), [])
+
+    def fichero_canario(self, days):
+        return {
+            "schema_version": 2, "geo_id": 8742, "timezone": "Atlantic/Canary", "indicator": 1739,
+            "unit": "EUR/kWh", "epoch_unit": "s", "from": min(days), "to": max(days),
+            "days": days, "meta": {},
+        }
+
+    def test_la_fusion_completa_el_dia_canario_en_curso_y_anade_el_siguiente(self):
+        # El dia canario en curso se publica con 23 horas: su ultima hora es del dia peninsular
+        # siguiente. La descarga posterior lo completa y abre el dia nuevo, tambien parcial.
+        hoy, manana = dia_local("2026-09-23", CANARIAS), dia_local("2026-09-24", CANARIAS)
+        with tempfile.TemporaryDirectory() as tmp:
+            ruta = os.path.join(tmp, "2026-09.json")
+            with open(ruta, "w", encoding="utf-8") as f:
+                json.dump(self.fichero_canario({"2026-09-23": hoy[:23]}), f)
+            nuevo = self.fichero_canario({"2026-09-23": hoy, "2026-09-24": manana[:23]})
+            fusion = pvpc.merge_month_file(ruta, nuevo, CANARIAS)
+        self.assertEqual(fusion["days"]["2026-09-23"], hoy)
+        self.assertEqual(fusion["days"]["2026-09-24"], manana[:23])
+        self.assertEqual((fusion["from"], fusion["to"]), ("2026-09-23", "2026-09-24"))
+        self.assertEqual(fusion["timezone"], "Atlantic/Canary")
+
+    def test_no_fusiona_un_fichero_guardado_con_otro_reloj(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            ruta = os.path.join(tmp, "2026-09.json")
+            viejo = self.fichero_canario({"2026-09-23": dia_local("2026-09-23", TZ)})
+            viejo["timezone"] = "Europe/Madrid"
+            with open(ruta, "w", encoding="utf-8") as f:
+                json.dump(viejo, f)
+            nuevo = self.fichero_canario({"2026-09-23": dia_local("2026-09-23", CANARIAS)})
+            with self.assertRaises(RuntimeError):
+                pvpc.merge_month_file(ruta, nuevo, CANARIAS)
+
+
 def meses(desde, cuantos, valor=0.02):
     year, month = map(int, desde.split("-"))
     salida = {}

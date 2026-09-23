@@ -53,6 +53,17 @@ NATIONAL_INDICATORS = {
 
 MONTH_RE = re.compile(r"^\d{4}-\d{2}\.json$")
 
+
+def target_timezone(geo: int, indicator: int) -> str:
+    """Reloj civil con el que se guarda un geo, sea cual sea el indicador.
+
+    Tambien los nacionales (1739): el consumidor cruza la hora LOCAL de la curva del usuario con
+    la etiqueta horaria del fichero, asi que 8742 va en hora canaria como su PVPC (ronda 46).
+    `indicator` se recibe a proposito para que un reloj forzado por indicador tenga que pasar por
+    aqui y lo vea `scripts/test_auto_fill.py`.
+    """
+    return GEO_TZ.get(geo, DEFAULT_TZ)
+
 @dataclass(frozen=True)
 class MonthRange:
     year: int
@@ -404,7 +415,7 @@ def main() -> int:
         # del usuario (en Canarias, hora canaria) con la etiqueta horaria del fichero. Guardar
         # 8742 en reloj de Madrid hacía valorar cada hora canaria con el precio de la anterior
         # (ronda 46, AUDITORIA-REGISTRO.md). Mismo criterio que el PVPC de 8742.
-        target_tz_name = GEO_TZ.get(geo, DEFAULT_TZ)
+        target_tz_name = target_timezone(geo, args.indicator)
         tz = ZoneInfo(target_tz_name)
 
         geo_dir = os.path.join(out_root, str(geo))
