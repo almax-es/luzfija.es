@@ -154,3 +154,140 @@ describe('Modal PVPC/Excedentes: no mezcla datos de un tipo abandonado (14/08/20
     expect(document.getElementById('modalPVPCNow').textContent).not.toContain('0,200');
   });
 });
+
+// Ronda 46: data/surplus/8742 pasa a hora canaria. El modal forzaba Europe/Madrid para los
+// excedentes de todas las zonas: en Canarias buscaba el dia peninsular en un fichero con dias
+// canarios, lo validaba con el reloj equivocado y mostraba "Sin datos".
+describe('Modal Excedentes en Canarias usa la hora canaria del dataset', () => {
+  it('muestra los precios de excedentes de hoy con zona Canarias', async () => {
+    document.body.innerHTML = `
+      <select id="zonaFiscal"><option value="Canarias" selected>Canarias</option></select>
+      <button id="btnPVPCInfo">Abrir</button>
+      <div id="modalPVPCInfo" aria-hidden="true" style="display:none">
+        <select id="pvpcTypeSelector">
+          <option value="pvpc" selected>PVPC</option>
+          <option value="surplus">Excedentes</option>
+        </select>
+        <span id="modalPVPCTitleText"></span>
+        <span id="modalPVPCTypeIcon"></span>
+        <span id="modalPVPCHeadline"></span>
+        <button id="tabHoy">Hoy</button>
+        <button id="tabManana" style="display:none">Mañana</button>
+        <span id="modalPVPCLabel"></span>
+        <span id="modalPVPCNow"></span>
+        <span id="modalPVPCNowHour"></span>
+        <span id="modalPVPCMin"></span>
+        <span id="modalPVPCMinHour"></span>
+        <span id="modalPVPCMax"></span>
+        <span id="modalPVPCMaxHour"></span>
+        <div id="modalPVPCHoursList"></div>
+        <button id="btnCerrarPVPCX">X</button>
+        <button id="btnCerrarPVPCInfo">Cerrar</button>
+      </div>
+    `;
+
+    window.scrollTo = vi.fn();
+    window.requestAnimationFrame = (cb) => { cb(0); return 1; };
+    window.LF = { el: { inputs: {} } };
+    localStorage.clear();
+
+    const tz = 'Atlantic/Canary';
+    const hoy = todayYmd(tz);
+    const manana = addCalendarDay(hoy);
+    const canaryMonth = (flatPrice, indicator, geoId) => ({
+      schema_version: 2,
+      geo_id: geoId,
+      timezone: tz,
+      indicator,
+      unit: 'EUR/kWh',
+      epoch_unit: 's',
+      days: {
+        [hoy]: buildDayPairs(hoy, flatPrice, tz),
+        [manana]: buildDayPairs(manana, flatPrice, tz)
+      }
+    });
+    global.fetch = vi.fn(async (url) => {
+      const isSurplus = String(url).includes('/data/surplus/');
+      const data = isSurplus ? canaryMonth(0.05, 1739, 8742) : canaryMonth(0.2, 1001, 8742);
+      return { ok: true, json: async () => data };
+    });
+
+    await import('../js/lf-csv-utils.js');
+    await import('../js/index-extra.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+
+    document.getElementById('btnPVPCInfo').click();
+    await flush();
+    const selector = document.getElementById('pvpcTypeSelector');
+    selector.value = 'surplus';
+    selector.dispatchEvent(new Event('change'));
+    await flush();
+
+    expect(global.fetch.mock.calls.some(([url]) => String(url).includes('/data/surplus/8742/'))).toBe(true);
+    expect(document.getElementById('modalPVPCHeadline').textContent).toContain('excedentes');
+    expect(document.getElementById('modalPVPCNow').textContent).toContain('0,050');
+  });
+});
+
+// Ronda 46: si la carga de Excedentes falla despues de haber mostrado el PVPC, el modal
+// conservaba en el resumen el precio del PVPC bajo la cabecera de Excedentes y la lista se
+// quedaba en "Cargando..." para siempre.
+describe('Modal: una carga fallida al cambiar de tipo no deja precios del tipo anterior', () => {
+  it('limpia el resumen y muestra el error si Excedentes no carga', async () => {
+    document.body.innerHTML = `
+      <select id="zonaFiscal"><option value="Península" selected>Península</option></select>
+      <button id="btnPVPCInfo">Abrir</button>
+      <div id="modalPVPCInfo" aria-hidden="true" style="display:none">
+        <select id="pvpcTypeSelector">
+          <option value="pvpc" selected>PVPC</option>
+          <option value="surplus">Excedentes</option>
+        </select>
+        <span id="modalPVPCTitleText"></span>
+        <span id="modalPVPCTypeIcon"></span>
+        <span id="modalPVPCHeadline"></span>
+        <button id="tabHoy">Hoy</button>
+        <button id="tabManana" style="display:none">Mañana</button>
+        <span id="modalPVPCLabel"></span>
+        <span id="modalPVPCNow"></span>
+        <span id="modalPVPCNowHour"></span>
+        <span id="modalPVPCMin"></span>
+        <span id="modalPVPCMinHour"></span>
+        <span id="modalPVPCMax"></span>
+        <span id="modalPVPCMaxHour"></span>
+        <div id="modalPVPCHoursList"></div>
+        <button id="btnCerrarPVPCX">X</button>
+        <button id="btnCerrarPVPCInfo">Cerrar</button>
+      </div>
+    `;
+
+    window.scrollTo = vi.fn();
+    window.requestAnimationFrame = (cb) => { cb(0); return 1; };
+    window.LF = { el: { inputs: {} } };
+    localStorage.clear();
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+
+    global.fetch = vi.fn(async (url) => {
+      if (String(url).includes('/data/surplus/')) return { ok: false, status: 503, json: async () => null };
+      return { ok: true, json: async () => buildMonthPayload(0.2) };
+    });
+
+    await import('../js/lf-csv-utils.js');
+    await import('../js/index-extra.js');
+    document.dispatchEvent(new Event('DOMContentLoaded'));
+
+    document.getElementById('btnPVPCInfo').click();
+    await flush();
+    expect(document.getElementById('modalPVPCNow').textContent).toContain('0,200');
+
+    const selector = document.getElementById('pvpcTypeSelector');
+    selector.value = 'surplus';
+    selector.dispatchEvent(new Event('change'));
+    await flush();
+
+    expect(document.getElementById('modalPVPCHeadline').textContent).toContain('excedentes');
+    for (const id of ['modalPVPCNow', 'modalPVPCMin', 'modalPVPCMax']) {
+      expect(document.getElementById(id).textContent).not.toContain('0,200');
+    }
+    expect(document.getElementById('modalPVPCHoursList').textContent).toContain('Error al cargar precios');
+  });
+});

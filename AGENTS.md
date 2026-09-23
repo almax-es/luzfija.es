@@ -135,6 +135,13 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   y restaurar el scroll: el helper guarda `document.body.scrollTop`, preserva los `overflow`
   inline previos de BODY/HTML y mantiene el bloqueo hasta liberar el ultimo modal activo. No
   reintroduzcas locks locales basados en `window.scrollY`/`window.scrollTo()`.
+- **Cada geo de `data/pvpc` y `data/surplus` va en la hora civil de su zona** (`8742` en
+  `Atlantic/Canary`; el resto en `Europe/Madrid`), tambien el indicador 1739 aunque sea una serie
+  nacional. Los consumidores cruzan la hora LOCAL de la curva del usuario con la etiqueta horaria
+  del fichero: guardar Canarias en hora peninsular valoraba cada hora canaria con el precio de la
+  anterior (ronda 46). No reintroduzcas relojes forzados por tipo en el generador ni en los lectores
+  (`lf-surplus-prices.js`, `pvpc-stats-*`, `index-extra.js`); lo vigila
+  `tests/surplus-dataset-clock.test.js`.
 - **El lienzo necesita `background-color` propio en `html`.** Los degradados del `body` son
   `background-image` y quedan anclados a su caja, que mide una pantalla exacta por el
   `height:100%`. Sin un color de fondo solido, el area que se descubre al replegarse la

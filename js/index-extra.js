@@ -68,7 +68,9 @@
 
   function __pvpcBuildQuickViewKey(type = 'pvpc', now = new Date()) {
     const ctx = __pvpcGetUserContext();
-    const tz = type === 'surplus' ? 'Europe/Madrid' : ctx.tz;
+    // PVPC y excedentes comparten reloj por zona: data/surplus/8742 va en hora canaria desde
+    // la ronda 46 (antes en hora peninsular), igual que data/pvpc/8742.
+    const tz = ctx.tz;
     return [type, ctx.geo, tz, __pvpcYmdInTZ(now, tz)].join('|');
   }
 
@@ -340,7 +342,9 @@
             icon: '☀️',
             headline: 'Precio de excedentes (autoconsumo)',
             showComments: false,
-            tzOverride: 'Europe/Madrid'
+            // Sin reloj propio: el dia y las horas de excedentes van en la hora civil de la
+            // zona, como el PVPC (data/surplus/8742 en hora canaria desde la ronda 46).
+            tzOverride: null
           };
         }
         return {
@@ -361,10 +365,25 @@
         if (modalPVPCHeadline) modalPVPCHeadline.textContent = cfg.headline;
       }
 
+      // Los precios del resumen (ahora, minimo y maximo) solo los reescribe cambiarTab() cuando
+      // hay datos. Sin vaciarlos al cambiar de estado, una carga fallida de Excedentes dejaba a la
+      // vista los precios del PVPC bajo la cabecera de Excedentes (ronda 46, Canarias).
+      function limpiarResumen() {
+        ['modalPVPCNow', 'modalPVPCMin', 'modalPVPCMax'].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = '—';
+        });
+        ['modalPVPCNowHour', 'modalPVPCMinHour', 'modalPVPCMaxHour'].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) el.textContent = '';
+        });
+      }
+
       function resetModalData() {
         pvpcHoy = null;
         pvpcManana = null;
         diaActivo = 'hoy';
+        limpiarResumen();
         // El boton "Mañana" solo se muestra cuando cargarManana() tiene datos (mas abajo);
         // sin este reset, cambiar de tipo/zona a un estado que TODAVIA no tiene "mañana"
         // dejaba el boton visible de la carga anterior, aunque pvpcManana ya sea null.
@@ -676,9 +695,17 @@
           resetModalData();
           pvpcCacheKey = null;
           document.getElementById('modalPVPCHoursList').innerHTML = '<p class="u-loading-text">⏳ Cargando...</p>';
+          const myTypeToken = __pvpcTypeToken;
           await cargarHoy();
           await cargarManana();
-          if (pvpcHoy) cambiarTab('hoy');
+          // Otro cambio posterior ya gobierna el modal: que pinte el suyo.
+          if (myTypeToken !== __pvpcTypeToken) return;
+          if (pvpcHoy) {
+            cambiarTab('hoy');
+          } else {
+            // Sin este else la lista se quedaba en "Cargando..." para siempre.
+            document.getElementById('modalPVPCHoursList').innerHTML = '<p class="u-loading-text">❌ Error al cargar precios. Inténtalo de nuevo.</p>';
+          }
         });
         applyModalType(pvpcTypeSelector.value || 'pvpc');
       }

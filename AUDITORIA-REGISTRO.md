@@ -5071,6 +5071,8 @@ PVPC peninsular coincide (energia al centimo: valida ventana, periodos y festivo
   servicios 3%; y ambas dicen que la distribuidora repercute el impuesto sobre el "importe total
   facturado", lectura que llevaria el contador al 1% (la del oraculo). Diferencia de 1-2 centimos;
   habria que contrastar la ordenanza de Ceuta vigente y una factura real antes de tocar nada.
+  **Resuelto en la ronda 45:** la ordenanza de Ceuta vigente (reformada) fija servicios al 4%, como
+  Melilla; el 4% de la web es correcto.
 - Base del IEE del PVPC: se calcula sobre componentes SIN redondear (`terminoFijo`, margen y
   financiacion), mientras el mercado libre usa las lineas ya redondeadas. Diferencias de +-1 centimo
   en 4 escenarios. El caso CNMC documentado en ARQUITECTURA-CALCULOS.md cuadra con la ruta actual.
@@ -5177,6 +5179,25 @@ el precio de la hora anterior.**
   sin cambios; la bateria de 52 escenarios sigue con las mismas 4 diferencias explicadas; el
   Observatorio carga los excedentes canarios de 2025 (8.760 horas) y de 2026 con el dia en curso
   parcial.
+- **Regresion propia detectada al documentar y corregida el mismo dia.** El barrido de consumidores
+  no incluyo la vista rapida de la home (`js/index-extra.js`), que forzaba `Europe/Madrid` para los
+  excedentes de todas las zonas (`tzOverride` y la clave de `__pvpcBuildQuickViewKey`). Con el dato
+  ya en hora canaria, la pestanya Excedentes del modal quedo "Sin datos" en Canarias en produccion
+  (build `v20260923-090153`). Corregido: el modal usa el reloj de la zona para los dos tipos.
+  Leccion: barrer TODOS los lectores de `/data/surplus` (grep de la ruta en `js/` y `sw.js`), no
+  solo los conocidos.
+- **Bug previo destapado por esa regresion (corregido):** si la carga de Excedentes fallaba tras
+  mostrar el PVPC, el resumen del modal conservaba el precio del PVPC bajo la cabecera de Excedentes
+  y la lista se quedaba en "Cargando..." para siempre (se vio en produccion: 0,150 EUR/kWh del PVPC
+  como "Excedentes"). `resetModalData()` vacia ahora el resumen y el cambio de tipo muestra el error.
+  2 regresiones en `tests/pvpc-modal-type-race.test.js` (Canarias en hora canaria y carga fallida),
+  ambas cazadas por mutacion. Verificado en Chrome real con clics: Canarias Excedentes 0,064 EUR/kWh a
+  las 10:00 canarias, igual que la Peninsula a las 11:00 (mismo instante).
+- **Investigacion DGT del art. 94.9 (encargo al oraculo, verificada).** La consulta vinculante
+  V1146-24 (23/05/2024, bateria virtual) dice que la exencion del art. 94.9 solo alcanza a la
+  energia compensada en el MISMO periodo de facturacion y que el saldo de BV aplicado en periodos
+  posteriores no reduce la base del IEE. Confirma que la web aplique la hucha despues de impuestos.
+  No dice nada del minimo de 1 EUR/MWh del art. 99.2: ese punto (ronda 45) sigue abierto.
 
 **Menores, sin cambio:**
 - M1 suma kWh en coma flotante y redondea con `round2`: `19.104999999999997` -> 19,10 cuando la

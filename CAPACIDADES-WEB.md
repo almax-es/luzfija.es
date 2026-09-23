@@ -156,6 +156,9 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - Modal horario Hoy/Manana:
 - Selector `PVPC` vs `Excedentes`.
 - Carga desde datasets estaticos (`/data/pvpc` y `/data/surplus`).
+- Los dos tipos se muestran en la hora civil de la zona (Canarias en hora canaria).
+- Si la carga falla, el modal muestra el error y vacia el resumen: nunca deja precios del tipo
+  anterior bajo la cabecera del nuevo.
 - Soporte de pestanas Hoy/Manana (manana puede no estar disponible hasta publicacion del dataset).
 - Manejo de dias de 23/24/25 horas y hora repetida en cambio horario.
 - Enlace directo al observatorio desde el modal.
@@ -345,6 +348,8 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Selector de tipo: `pvpc` o `surplus`.
 - Selector geografico: 8741..8745 (Peninsula, Canarias, Baleares, Ceuta, Melilla).
+- Cada zona se presenta en su hora civil para PVPC y excedentes: en Canarias el dia, las horas del
+  perfil y el anyo vigente van en hora canaria.
 - Selector de ano y mes (mes aplicado al perfil horario).
 - Modo de tendencia diaria vs mensual.
 - Chips de anos para comparativa multianual.
@@ -363,6 +368,9 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - Comparativa por anos en chart dedicado.
 
 ### 4.3 CSV De Excedentes Del Usuario
+
+- Cada hora de la curva se valora con el precio de excedentes de ese mismo instante: la curva
+  va en hora local de la zona y `data/surplus/{geo}` se guarda en ese mismo reloj.
 
 - Seccion visible cuando el tipo seleccionado es `surplus`.
 - Importa CSV/XLSX local del usuario.
@@ -508,7 +516,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 41 (`js/*.{js,mjs}` + `js/bv/*.js`).
-- Lineas JS aproximadas: 33.543.
+- Lineas JS aproximadas: 33.570.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (119 tarifas).
@@ -599,7 +607,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Suite Vitest/JSDOM.
 - 129 archivos de test (`tests/*.test.js`).
-- 2071 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 2073 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.
