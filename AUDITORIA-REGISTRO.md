@@ -5076,3 +5076,46 @@ PVPC peninsular coincide (energia al centimo: valida ventana, periodos y festivo
 **Criterio de reapertura.** Cualquier cambio en las cabeceras del canal `resultadoPVPC` o en el
 orden de ramas de `parsearRespuestaPVPC`; un PVPC fuera de Peninsula cuyo termino de energia varie
 con un flag fiscal; o una factura real de Ceuta/Melilla que contradiga el 4% del contador.
+
+<a id="oraculo-independiente-simulador-solar-ronda-45-23-09-2026"></a>
+### Oraculo Independiente Del Simulador Solar (Ronda 45, 23/09/2026)
+
+Mismo metodo que la ronda 44, sobre `js/bv/bv-sim-monthly.js`: ChatGPT escribio `oraculo_solar.py`
+desde la norma sin leer el codigo (solo `tarifas.json` y `data/ssaa/index.json`), con las
+convenciones de producto dadas cerradas (C1-C14, contrastadas antes con el codigo: valores
+regulados de hoy para todos los meses salvo SSAA por mes, dias con datos, cuota BV por dias
+naturales, BV por `fv.bv`, hucha tras impuestos, ranking por `pagado` y desempate por `bvFinal`).
+Claude lo ejecuto contra `window.BVSim.simulateForAllTarifasBV` en produccion con sus 57
+escenarios (3.933 resultados tarifa-escenario, 69 tarifas del universo solar).
+
+**Resultado: cero bugs en el motor.** Tras igualar una convencion de redondeo, todas las tarifas
+de Peninsula cuadran al centimo en `pagado`, `real` y `bvFinal` en todos los escenarios (un mes,
+ano completo desde enero y desde julio, hucha que se llena y se vacia, saldo inicial, dias
+parciales, topes ENERGIA y ENERGIA_PARCIAL en y por encima del tope, excedente indexado, cuota BV,
+SSAA con dato, posterior al ultimo mes y anterior sin dato). Los rankings coinciden salvo el orden
+dentro de empates exactos.
+
+**Diferencias resueltas sin cambio en la web:**
+- Redondeo por periodo: el oraculo redondea cada linea de potencia y de energia por periodo; la
+  web redondea la suma. Hasta 4 centimos por mes. Convencion, el prompt no la fijaba.
+- IPSI de los servicios (contador y cuota BV) en Ceuta: el oraculo aplico el 3% de la ordenanza de
+  Ceuta de 2007. La ordenanza reformada (texto de 2024, art. 33) dice "Las prestaciones de servicios
+  tributaran al tipo general del 4%" y "El consumo de energia electrica tributara al tipo del 1%".
+  Melilla (BOME 5625, 2019) coincide: servicios 4%, electricidad 1%. La web (4%) es correcta.
+
+**Inconsistencia menor de la web (BAJO, sin cambio por ahora).** En Canarias y Ceuta/Melilla el
+IGIC/IPSI del contador y el de la cuota BV van al mismo tipo (7% / 4%) pero se redondean por
+separado (`impuestoContador` + `impuestoServicios`); en Peninsula el IVA usa una sola base. Solo
+afecta a tarifas con `precioBV > 0` en esas zonas: 1 centimo por mes (p. ej. 0,0581 + 0,1155 ->
+0,06 + 0,12 frente a 0,17 con base unica). Afecta igual a la home.
+
+**Punto normativo abierto: minimo del IEE con compensacion.** Ley 38/1992 art. 94.9 declara exenta
+"la energia electrica suministrada que sea objeto de compensacion con la energia horaria
+excedentaria" (RD 244/2019). Web y oraculo calculan el minimo de 1 EUR/MWh (art. 99.2.b) sobre
+todos los kWh importados de la red, incluidos los compensados. Solo muerde cuando la compensacion
+deja una base muy baja (5,11% de la base < 0,001 EUR x kWh), y son centimos. Falta doctrina DGT o
+una factura real de autoconsumo en ese caso para decidir que kWh cuentan.
+
+**Criterio de reapertura.** Cambio en la ordenanza del IPSI de Ceuta o Melilla; una consulta DGT o
+factura real que fije los kWh del minimo del IEE con compensacion; o unificar la base de servicios
+en `calcularImpuestoIndirecto` (debe conservar `tests/fiscal-rounding-align.test.js`).
