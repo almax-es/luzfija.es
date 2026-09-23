@@ -5144,7 +5144,7 @@ prompt podia comparar.
 
 **1 bug CONFIRMADO fuera del alcance del oraculo: excedentes indexados de Canarias valorados con
 el precio de la hora anterior.**
-- `data/surplus/8742` guarda el indicador 1739 con reloj `Europe/Madrid` (decision deliberada de
+- `data/surplus/8742` guardaba el indicador 1739 con reloj `Europe/Madrid` (decision deliberada de
   `scripts/pvpc_auto_fill.py` para indicadores nacionales; la serie es identica a la de 8741). Los
   dos consumidores (`js/lf-surplus-prices.js` y `js/pvpc-stats-csv.js:461`) cruzan la hora CNMC del
   CSV, que en Canarias es hora local canaria, con la ETIQUETA horaria del fichero en ese reloj. La
