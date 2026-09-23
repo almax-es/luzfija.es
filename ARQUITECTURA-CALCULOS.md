@@ -112,6 +112,9 @@ const sumaBase = potencia + energiaConSsaa + financiacion - descuentoBS;
 // Ref: Ley 38/1992 + RDL 7/2026
 const iee = C.calcularIEE(sumaBase, consumoTotal, fechaFactura);
 // Implementación interna: Math.max(sumaBase × (tasa/100), consumoTotal × 0,001 €/kWh)
+// consumoTotal = todos los kWh de red, tambien con autoconsumo compensado. Decision
+// deliberada: no hay regla oficial para convertir la compensacion (en euros) en kWh
+// exentos del art. 94.9. Ver CALC-FAQS.md y AUDITORIA-REGISTRO.md ronda 50.
 
 // PASO 7: Alquiler contador
 const alquiler = dias * 0.81 * 12 / 365;

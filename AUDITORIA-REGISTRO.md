@@ -5357,3 +5357,52 @@ correr un despliegue.
 mucha compensacion y base pequena, y es la opcion que no inventa una regla. Se reabre solo con una
 fuente que fije la conversion (consulta DGT o factura real con el desglose de la cantidad exenta).
 
+**Investigacion de fuentes primarias (23/09/2026, tras la reversion).** Se separan las dos preguntas:
+
+1. *La energia exenta del 94.9, lleva minimo?* **No. Resuelto con fuente oficial.** Instrucciones del
+   modelo 560 en la Orden HAC/172/2021 (BOE-A-2021-3101), redaccion de la Orden HAC/1433/2024
+   (BOE-A-2024-26485, periodos desde 01/01/2025). En el cuadro "Desglose de cuotas y cantidades
+   declaradas", fila propia "Exento articulo 94.9 LIE", la columna "Cuota integra minima (10)" dice
+   literalmente: "Este dato debe cumplimentarse con el importe autoliquidado. Por consiguiente, no
+   debe cumplimentarse por los suministros o consumos exentos ni por los que se hayan autoliquidado
+   por el importe de cuota integra". La casilla (4) "Cantidad" del cuadro de liquidacion es la
+   "que sea objeto de liquidacion conforme a lo dispuesto en el apartado 2 del articulo 99". Las
+   instrucciones forales de Bizkaia (560CastInst.pdf) repiten el mismo texto. Es una orden
+   ministerial publicada en el BOE, no una consulta vinculante, pero no deja margen: el minimo de 1
+   EUR/MWh se aplica solo sobre los kWh NO exentos.
+2. *Cuantos kWh de una factura son "objeto de compensacion"?* **Sin respuesta en ninguna fuente.**
+   Revisado sin resultado:
+   - RD 244/2019 art. 14.3 (BOE-A-2019-5089): la compensacion es "un saldo en terminos economicos
+     de la energia consumida en el periodo de facturacion". Valora la energia en euros y no define
+     kWh compensados.
+   - Reglamento de los Impuestos Especiales (RD 1165/1995, BOE-A-1995-16761): no desarrolla el 94.9.
+   - Modelo de factura de la COR (Resolucion DGPEM 28/04/2021, BOE-A-2021-7120): una sola linea
+     "Impuesto de la electricidad", sin regla para el autoconsumo.
+   - Consultas de la DGT: V1146-24 (el 94.9 no pasa a periodos posteriores); V0878-25 (quien
+     controla el minimo si distribuidor y comercializador no coinciden); V1187-20, V1328-20,
+     V1629-20, V3003-20, V3006-20 y V3922-20, todas anteriores a la entrada en vigor del 94.9
+     (01/01/2021) o limitadas a "sujeta y exenta".
+   - Preguntas frecuentes de la AEAT sobre exenciones del IEE: solo inscripcion registral.
+   - Guias de IDAE y CNMC y blogs de comercializadoras (EDP, Som Energia): nada sobre el IEE.
+   - Articulos de despacho (Bird & Bird, Mendo, Lopez-Ibor): citan el 94.9 sin cuantificarlo.
+
+   Cada comercializadora puede usar un criterio distinto: minimo horario entre consumo y
+   excedente, total mensual, parte proporcional al importe compensado... Ninguna lo publica. Una
+   factura en Scribd (Geoatlanter) aplicaba el minimo sobre 0,15 MWh con unos 378 kWh de consumo y
+   235 de excedente, pero no se pudo verificar ni sirve como regla.
+
+**Decision (23/09/2026).** Se mantiene el minimo sobre todos los kWh de red. La pregunta 1 daria la
+razon a excluir la energia exenta, pero aplicarla exige elegir una conversion de la pregunta 2, y
+esa regla seria de LuzFija, no de la norma. Magnitud acotada:
+- Solo cambia algo cuando el 5,11269632% de la base queda por debajo de 0,001 EUR x kWh, es
+  decir, cuando la compensacion vacia el termino de energia y la potencia es baja.
+- La sobrestimacion maxima es 0,001 EUR por kWh exento. Ejemplo: base 4,00 EUR (0,20 EUR por
+  porcentaje) con 300 kWh de red da 0,30 EUR en la web, frente a 0,20-0,30 EUR segun la
+  conversion, es decir, como mucho 0,10 EUR al mes.
+- El error, si existe, es conservador: la web nunca infravalora el IEE.
+
+**No reportar como bug** "el minimo del IEE deberia excluir la energia compensada" salvo que se
+aporte la regla de conversion con fuente primaria: consulta DGT, orden o factura real con la
+cantidad exenta desglosada y su criterio. La mera cita del 94.9 o del modelo 560 ya esta evaluada
+aqui.
+

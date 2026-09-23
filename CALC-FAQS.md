@@ -159,6 +159,29 @@ return Math.max(
 
 ---
 
+### ¿Y con autoconsumo compensado? ¿El mínimo excluye la energía compensada?
+
+**Respuesta**: la web aplica el mínimo sobre **todos los kWh consumidos de la red**. Es una decisión
+deliberada, no un olvido.
+
+- La ley 38/1992 (art. 94.9) exime la energía "objeto de compensación con la energía horaria
+  excedentaria". Las instrucciones oficiales del modelo 560 (Orden HAC/172/2021, en la redacción de la
+  Orden HAC/1433/2024) dicen que la "Cuota íntegra mínima" *"no debe cumplimentarse por los suministros
+  o consumos exentos"*. Así que, en teoría, la energía compensada no debería llevar mínimo.
+- Pero ninguna norma, consulta de la DGT ni modelo oficial dice **cuántos kWh** son "objeto de
+  compensación". La compensación simplificada es un saldo **en euros** (RD 244/2019, art. 14.3), no en
+  kWh. Elegir una conversión (horaria, mensual, proporcional al importe…) sería inventar la regla.
+- Impacto acotado. Solo influye cuando el 5,11269632 % de la base queda por debajo de 0,001 €/kWh, y
+  el exceso máximo es 0,001 € por kWh compensado. Ejemplo: base 4,00 € y 300 kWh de red → la web
+  cobra 0,30 €; con la energía exenta excluida saldría entre 0,20 € y 0,30 €. El error, si existe, es
+  conservador: nunca se infravalora el IEE.
+
+Se probó un cambio y se revirtió el 23/09/2026: medía los kWh exentos por el lado del excedente. El
+detalle, las fuentes revisadas y el criterio para reabrirlo están en `AUDITORIA-REGISTRO.md`
+(ronda 50, "Minimo Del IEE Con Energia Compensada").
+
+---
+
 ## Batería Virtual
 
 ### ¿Cuál es la diferencia entre `totalPagar` y `totalReal`?
