@@ -5283,6 +5283,13 @@ sin cambios. Suite 2079, lint 0/0.
 
 **Sin hallazgos:** censo CNMC (auditado en la ronda 40) e indice de guias (sin importes).
 
+**Revision externa de las rondas 47 y 48 (ChatGPT, 23/09/2026): sin regresiones.** Confirmo que
+`parsearRespuestaPVPC` solo tiene un llamante funcional, que el calculo fiscal posterior no depende
+de los campos fiscales del parser, que ningun 8742 historico declara otro reloj y que el service
+worker queda cubierto. Unico apunte, aplicado: los respaldos de reloj de `pvpc-stats-csv.js` y
+`lf-surplus-prices.js` comparaban el geo como texto (`=== '8742'`); ahora usan `Number(geo)` como el
+resto (sin efecto observable: en el flujo real el geo llega como texto).
+
 **Criterio de reapertura.** Un dataset nuevo o un lector nuevo de `data/`: contrastar zona, reloj y
 unidades por instante contra los existentes antes de publicarlo.
 

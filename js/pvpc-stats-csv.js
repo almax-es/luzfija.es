@@ -460,7 +460,7 @@
       const dayHours = data?.days?.[dateKey];
       if (!dayHours) { sinPrecio(); return; }
 
-      const timeZone = data?.timezone || (geo === '8742' ? 'Atlantic/Canary' : 'Europe/Madrid');
+      const timeZone = data?.timezone || (Number(geo) === 8742 ? 'Atlantic/Canary' : 'Europe/Madrid');
       const hourIdx = getHourIndex(r.hora, r.fecha, dayHours, timeZone);
       if (hourIdx === null || !dayHours[hourIdx]) { sinPrecio(); return; }
 

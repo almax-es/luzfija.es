@@ -369,7 +369,7 @@
 
       // La hora de la curva es hora civil de la zona; el fichero debe ir en ese mismo reloj
       // (data/surplus/8742 en hora canaria desde la ronda 46) para cruzar el mismo instante.
-      const timeZone = data?.timezone || (selected?.geo === '8742' ? 'Atlantic/Canary' : 'Europe/Madrid');
+      const timeZone = data?.timezone || (Number(selected?.geo) === 8742 ? 'Atlantic/Canary' : 'Europe/Madrid');
       const hourIdx = getHourIndex(Number(r.hora), r.fecha, dayHours, timeZone);
       if (hourIdx === null || !dayHours[hourIdx]) { markMissing(ym, r.excedente); return; }
 
