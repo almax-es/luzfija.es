@@ -155,18 +155,20 @@
   function getMonthCoverage(data, expectedMonth = null, geo = null) {
     const validator = window.LF?.csvUtils?.validatePvpcMonthCoverage;
     if (typeof validator !== 'function') return { ok: false, reason: 'validator-unavailable' };
-    // Separar identidad del fichero y reloj de cobertura. En excedentes, la metadata
-    // `timezone` no puede imponerse desde el geo: el contrato CCH-CONS ya auditado depende
-    // del reloj declarado por el dataset (Canarias pierde la 01:00 en marzo, no la 02:00).
-    // Sí se rechaza una identidad EXPLICITAMENTE contradictoria (geo/indicador/unidad/epoch).
-    const timeZone = typeof data?.timezone === 'string' && data.timezone
-      ? data.timezone
-      : (Number(geo) === 8742 ? 'Atlantic/Canary' : 'Europe/Madrid');
+    // Cada geo se publica en su hora civil (8742 en hora canaria desde la ronda 46), y la
+    // curva del usuario se cruza por la etiqueta horaria del fichero. Un fichero que DECLARA
+    // otro reloj (p. ej. una copia antigua de 8742 en hora peninsular servida desde la cache
+    // del service worker) se rechaza: aceptarlo valoraria cada hora con el precio de otra. Sin
+    // campo `timezone` se asume el reloj del geo. Tambien se rechaza cualquier otra identidad
+    // EXPLICITAMENTE contradictoria (geo/indicador/unidad/epoch).
+    const geoTimeZone = Number(geo) === 8742 ? 'Atlantic/Canary' : 'Europe/Madrid';
+    const timeZone = typeof data?.timezone === 'string' && data.timezone ? data.timezone : geoTimeZone;
     const identityValidator = window.LF?.csvUtils?.validateStaticPriceDatasetIdentity;
     if (typeof identityValidator !== 'function') return { ok: false, reason: 'identity-validator-unavailable' };
     const identity = identityValidator(data, {
       expectedGeoId: Number(geo),
       expectedIndicator: 1739,
+      expectedTimeZone: geoTimeZone,
       allowMissingFields: true
     });
     if (!identity.ok) return identity;

@@ -129,7 +129,9 @@
     if (!month || typeof month !== 'object' || Array.isArray(month)) return false;
     const isSurplus = base === SURPLUS_DATASET_BASE;
     const expectedIndicator = isSurplus ? 1739 : 1001;
-    const expectedTimeZone = isSurplus ? null : tz;
+    // PVPC y excedentes van en la hora civil de su zona (ronda 46): un fichero que declare otro
+    // reloj es de otra zona o una copia antigua, y no se usa.
+    const expectedTimeZone = tz;
     const validator = window.LF?.csvUtils?.validateStaticPriceDatasetIdentity;
     if (typeof validator === 'function') {
       return validator(month, {

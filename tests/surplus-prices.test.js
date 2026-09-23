@@ -209,6 +209,18 @@ describe('LF surplus hourly prices', () => {
       expect(stats.totalEur).toBeCloseTo(0.22, 10);
     });
 
+    it('rechaza una copia de 8742 que declara la hora peninsular (p. ej. cache antigua del SW)', async () => {
+      const antigua = buildV2Month('2025-07', 'Europe/Madrid');
+      for (const [day, points] of Object.entries(antigua.days)) {
+        antigua.days[day] = points.map(([ts]) => [ts, precioPorInstante(ts)]);
+      }
+      global.fetch.mockResolvedValue({ ok: true, json: async () => antigua });
+      const stats = await window.LF.surplusPrices.computeHourlyCompensation(curva, { zonaFiscal: 'Canarias' });
+      // Hueco, no el precio de la hora anterior (0,10 por kWh -> 0,20).
+      expect(stats.missing).toBe(1);
+      expect(stats.totalEur).toBe(0);
+    });
+
     it('sin campo timezone, el reloj de 8742 es el canario', async () => {
       global.fetch.mockResolvedValue({ ok: true, json: async () => mesCanario(true) });
       const stats = await window.LF.surplusPrices.computeHourlyCompensation(curva, { zonaFiscal: 'Canarias' });

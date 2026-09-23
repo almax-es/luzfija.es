@@ -5248,3 +5248,41 @@ Cualquier etiqueta nueva que contuviera una palabra de otra rama podia volver a 
 anadirse a `importesFactura` y al test de equivalencia; si solo existe en el texto, el camino
 estructurado lo perderia.
 
+<a id="contratos-de-datos-productor-consumidor-ronda-48-23-09-2026"></a>
+### Contratos De Datos Entre Productores Y Consumidores (Ronda 48, 23/09/2026)
+
+Auditoria transversal disparada por el bug de la ronda 46, que era un desacuerdo entre quien
+genera `data/surplus` y quien lo lee. Para cada dataset se contrasto lo que declara el fichero con
+lo que supone cada lector: zona, reloj, unidades, dias parciales, respaldos y copias en cache.
+
+**Zonas (medido sobre todo el historico, 46.584 horas por geo, comparando por instante):**
+- PVPC (1001): Canarias (8742) y Baleares (8743) son identicos a Peninsula (8741). Ceuta (8744) y
+  Melilla (8745) son identicos entre si y difieren de Peninsula en 5.416 horas (11,6%), las de su
+  horario de periodos desplazado. Excedentes (1739): identicos en las cinco zonas.
+- Todos los lectores eligen el mismo geo para cada zona de la web: "Peninsula y Baleares" 8741,
+  Canarias 8742, Ceuta/Melilla 8744 (`pvpc.js` y `lf-surplus-prices.js` recurren a 8745 si falta;
+  el modal no, sin efecto porque los ficheros son identicos). Usar 8744 para Melilla es correcto.
+
+**Reloj:** cada geo en su hora civil en productor, datos publicados y todos los lectores (ronda 46).
+El dia canario en curso llega con 23 horas en PVPC y excedentes; el Observatorio lo trata como
+provisional y los demas lectores lo aceptan solo para dias >= hoy.
+
+**Unidades y rangos:** SSAA bien blindado (identidad estricta, rango plausible en el lector, tests
+del productor y de los datos publicados). PVPC y excedentes validan identidad (geo, indicador,
+unidad, epoch) al leer.
+
+**Unico hueco, CORREGIDO:** `lf-surplus-prices.js`, su copia en `pvpc-stats-csv.js` y el modal de la
+home (`index-extra.js`) no exigian el reloj de la zona a los excedentes. Una copia antigua de
+`data/surplus/8742` en hora peninsular, servida por el service worker solo cuando falla la red,
+se habria aceptado y valorado cada hora canaria con el precio de la anterior (el Observatorio ya la
+rechazaba). Ahora los tres exigen `expectedTimeZone` del geo (sin campo `timezone` se asume el del
+geo). Regresion en `tests/surplus-prices.test.js`: una copia de 8742 en hora peninsular produce un
+hueco, no un precio ajeno; falla con el codigo anterior. Verificado en Chrome real contra el sitio
+servido en local: curva canaria 67,57 EUR y peninsular 62,37 EUR sin huecos, modal y Observatorio
+sin cambios. Suite 2079, lint 0/0.
+
+**Sin hallazgos:** censo CNMC (auditado en la ronda 40) e indice de guias (sin importes).
+
+**Criterio de reapertura.** Un dataset nuevo o un lector nuevo de `data/`: contrastar zona, reloj y
+unidades por instante contra los existentes antes de publicarlo.
+
