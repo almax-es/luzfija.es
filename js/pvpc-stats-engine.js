@@ -56,7 +56,8 @@ const PVPC_STATS = {
     getDatasetTimeZone(context) {
         if (context && typeof context === 'object') {
             if (typeof context.timezone === 'string' && context.timezone) return context.timezone;
-            if (context.type === 'surplus') return 'Europe/Madrid';
+            // PVPC y excedentes comparten reloj por zona: data/surplus/8742 se guarda en hora
+            // canaria desde la ronda 46 (antes iba en hora peninsular).
             return this.getGeoTimeZone(context.geoId);
         }
 

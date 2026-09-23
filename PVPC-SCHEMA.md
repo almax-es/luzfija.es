@@ -240,8 +240,15 @@ La lista de `geos` refleja exactamente lo publicado en el último build del data
 ### `/data/surplus/index.json`
 
 Mismo formato que el índice PVPC, pero para excedentes (indicador 1739).
-El indicador 1739 es un dato nacional en ESIOS; por eso el generador lo procesa con
-`Europe/Madrid` para todas las zonas y evita desplazar los buckets diarios de excedentes.
+El indicador 1739 es un dato nacional en ESIOS (la misma serie para todas las zonas), pero cada
+geo se guarda en su hora civil, igual que el PVPC: `8742` en `Atlantic/Canary` y el resto en
+`Europe/Madrid`. Los consumidores cruzan la hora local de la curva del usuario con la etiqueta horaria
+del fichero, asi que el reloj del fichero tiene que ser el de la zona. Hasta el 23/09/2026 `8742` iba
+en `Europe/Madrid` y cada hora canaria se valoraba con el precio de la anterior (ronda 46,
+`AUDITORIA-REGISTRO.md`). Como en `data/pvpc/8742`, el dia canario en curso se publica con 23 horas y
+su aviso en `warnings`: su ultima hora cae en el dia peninsular siguiente.
+`tests/surplus-dataset-clock.test.js` vigila el reloj de cada geo y que `8742` coincida con `8741`
+en el mismo instante.
 
 ```json
 {

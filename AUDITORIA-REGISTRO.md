@@ -3979,8 +3979,9 @@ no existe: el fichero de 8742 se publica cada dia con el dia en curso a 23 horas
 lo declara en `warnings: ["<dia>: unexpected points=23 expected=24 or 96"]`. Se completa en la
 descarga del dia siguiente. Comprobado en cuatro dias consecutivos (07, 08 y 09/09 en el historial de
 `git`, y 10/09 en el fichero servido en produccion) y solo en `data/pvpc/8742`: el resto de zonas
-comparte reloj con Peninsula y los ficheros de excedentes se guardan en hora peninsular por decision
-del generador (`timezone: Europe/Madrid` dentro de la carpeta del geo).
+comparte reloj con Peninsula y los ficheros de excedentes se guardaban entonces en hora peninsular por
+decision del generador. **Superado el 23/09/2026 (ronda 46):** `data/surplus/8742` va ahora en hora
+canaria y su dia en curso tambien se publica con 23 horas.
 
 **El dato no estaba mal; lo estaba el consumidor.** `scripts/check_data_freshness.py` (checks 9 y 10)
 y `tests/pvpc-dataset-integrity.test.js` aceptan a proposito que el ultimo dia publicado llegue
@@ -4436,7 +4437,8 @@ toca, porque la barrera de publicacion es la guardia.
 
 **Limpio:** los datos publicados (dias de 23 y 25 horas en Peninsula y Canarias con pasos de 3600 s,
 `heuristic_applied` en false y SSAA entre 0,011 y 0,029 EUR/kWh). El 1739 con la zona de Madrid
-tambien para Canarias es deliberado.
+tambien para Canarias era deliberado; **revertido en la ronda 46 (23/09/2026)** porque hacia valorar
+cada hora canaria con el precio de la anterior.
 
 **Criterio de reapertura.** Cualquier cambio en `merge_month_file`, en la fusion SSAA o en
 `--months-back`; que un consumidor necesite mas de 13 meses de SSAA; o que ESIOS pase a publicar el
@@ -5157,8 +5159,24 @@ el precio de la hora anterior.**
 - Por que el oraculo no lo vio: el prompt le dio como convencion "usa el `timezone` del propio
   fichero", que es lo que hace la web. Leccion: una convencion de producto que se da cerrada no se
   puede auditar con el oraculo; hay que revisarla aparte.
-- Estado: pendiente de decidir el arreglo (dato reetiquetado en hora canaria frente a cruce por
-  instante en los dos consumidores).
+- **CORREGIDO el 23/09/2026 reetiquetando el dato.** `scripts/pvpc_auto_fill.py` guarda cada geo en
+  su hora civil tambien para indicadores nacionales, y el historico de `data/surplus/8742` se
+  reagrupo una vez en hora canaria desde sus propios ficheros (mismos 46.583 pares
+  instante-precio, cero alterados; solo se descarta la hora suelta del 31/05/2021, que en hora
+  canaria era un dia de un punto). Se descarto cruzar por instante en los dos consumidores porque
+  dejaba al Observatorio mostrando las horas de excedentes de Canarias en hora peninsular.
+- Consumidores alineados: `pvpc-stats-engine.js` ya no fuerza Madrid para excedentes (antes
+  rechazaria el fichero canario por identidad) y los respaldos de reloj de `pvpc-stats-ui.js` y
+  `lf-surplus-prices.js` siguen al geo. 5 tests que codificaban la hora peninsular reescritos al
+  nuevo contrato, mas 2 de cruce por instante, 1 de rechazo de un fichero canario en hora de Madrid
+  y 7 de guardia sobre los datos publicados (`tests/surplus-dataset-clock.test.js`). Mutaciones: los
+  datos antiguos, el respaldo Madrid en `lf-surplus-prices.js` y el caso especial del motor tumban
+  2, 1 y 5 tests. Suite 2071, lint 0/0, `test_auto_fill.py` y `check_data_freshness.py` en verde.
+- Verificado en Chrome real con el sitio servido en local: la curva real tratada como canaria pasa
+  de 62,37 a 67,57 EUR, identico al calculo independiente por instante; Peninsula y Ceuta/Melilla
+  sin cambios; la bateria de 52 escenarios sigue con las mismas 4 diferencias explicadas; el
+  Observatorio carga los excedentes canarios de 2025 (8.760 horas) y de 2026 con el dia en curso
+  parcial.
 
 **Menores, sin cambio:**
 - M1 suma kWh en coma flotante y redondea con `round2`: `19.104999999999997` -> 19,10 cuando la

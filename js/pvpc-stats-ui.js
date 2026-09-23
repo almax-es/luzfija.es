@@ -39,7 +39,7 @@
     const type = context.type === 'surplus' ? 'surplus' : 'pvpc';
     const geo = context.geo ?? '8741';
     const timeZone = window.PVPC_STATS?.getDatasetTimeZone?.({ geoId: geo, type })
-      || (type !== 'surplus' && Number(geo) === 8742 ? 'Atlantic/Canary' : 'Europe/Madrid');
+      || (Number(geo) === 8742 ? 'Atlantic/Canary' : 'Europe/Madrid');
     const ymd = window.LF?.csvUtils?.formatYmdInTimeZone?.(now.getTime() / 1000, timeZone);
     const year = /^(\d{4})-\d{2}-\d{2}$/.exec(ymd || '')?.[1];
     return year ? Number(year) : now.getFullYear();

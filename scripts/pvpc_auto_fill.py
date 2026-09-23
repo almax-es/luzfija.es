@@ -399,10 +399,12 @@ def main() -> int:
     filter_geo_id = NATIONAL_INDICATORS[args.indicator]["esios_geo_id"] if is_national else None
 
     for geo in args.geos:
-        # Si es nacional, forzamos la TZ por defecto (Madrid) para alinear los días
-        # y evitar desplazamientos en Canarias que rompan el bucket diario.
-        # Si es regional (PVPC normal), usamos la TZ específica del geo.
-        target_tz_name = DEFAULT_TZ if is_national else GEO_TZ.get(geo, DEFAULT_TZ)
+        # Cada geo se guarda en su hora civil, también los indicadores nacionales: la serie
+        # 1739 es la misma en todas las zonas, pero el consumidor cruza la hora LOCAL de la curva
+        # del usuario (en Canarias, hora canaria) con la etiqueta horaria del fichero. Guardar
+        # 8742 en reloj de Madrid hacía valorar cada hora canaria con el precio de la anterior
+        # (ronda 46, AUDITORIA-REGISTRO.md). Mismo criterio que el PVPC de 8742.
+        target_tz_name = GEO_TZ.get(geo, DEFAULT_TZ)
         tz = ZoneInfo(target_tz_name)
 
         geo_dir = os.path.join(out_root, str(geo))

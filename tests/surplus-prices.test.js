@@ -185,6 +185,38 @@ describe('LF surplus hourly prices', () => {
     expect(stats.missing).toBe(0);
   });
 
+  // Ronda 46: data/surplus/8742 iba en hora peninsular y la curva canaria se cruzaba por la
+  // etiqueta horaria, asi que cada hora canaria cobraba el precio de la anterior. El precio
+  // de cada punto es aqui su hora UTC: el cruce correcto es el del mismo instante.
+  describe('Canarias: la hora canaria de la curva se valora en su mismo instante', () => {
+    const precioPorInstante = (ts) => new Date(ts * 1000).getUTCHours() / 100;
+    const mesCanario = (sinZona = false) => {
+      const month = buildV2Month('2025-07', 'Atlantic/Canary');
+      for (const [day, points] of Object.entries(month.days)) {
+        month.days[day] = points.map(([ts]) => [ts, precioPorInstante(ts)]);
+      }
+      if (sinZona) delete month.timezone;
+      return month;
+    };
+    // 15/07/2025, hora CNMC 13 en Canarias = de 12:00 a 13:00 WEST = 11:00Z.
+    const curva = [{ fecha: new Date(2025, 6, 15), hora: 13, kwh: 0, excedente: 2 }];
+
+    it('con el fichero declarado en Atlantic/Canary', async () => {
+      global.fetch.mockResolvedValue({ ok: true, json: async () => mesCanario() });
+      const stats = await window.LF.surplusPrices.computeHourlyCompensation(curva, { zonaFiscal: 'Canarias' });
+      expect(global.fetch.mock.calls[0][0]).toBe('/data/surplus/8742/2025-07.json');
+      expect(stats.missing).toBe(0);
+      expect(stats.totalEur).toBeCloseTo(0.22, 10);
+    });
+
+    it('sin campo timezone, el reloj de 8742 es el canario', async () => {
+      global.fetch.mockResolvedValue({ ok: true, json: async () => mesCanario(true) });
+      const stats = await window.LF.surplusPrices.computeHourlyCompensation(curva, { zonaFiscal: 'Canarias' });
+      expect(stats.missing).toBe(0);
+      expect(stats.totalEur).toBeCloseTo(0.22, 10);
+    });
+  });
+
   it('_clearCaches invalida también el índice horario aunque el array clave siga referenciado', () => {
     const hours = Array.from({ length: 24 }, (_, h) => [
       Math.floor(Date.UTC(2024, 11, 31, 23 + h, 0, 0) / 1000),

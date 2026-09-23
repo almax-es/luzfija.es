@@ -527,7 +527,53 @@ describe('PVPC_STATS manifest-aware loading', () => {
     }
   });
 
-  it('preserves manifest timezone when loading Canary surplus data', async () => {
+  // Ronda 46: data/surplus/8742 va en hora canaria, igual que data/pvpc/8742. La curva del
+  // usuario viene en hora canaria y se cruza por la etiqueta horaria del fichero.
+  it('loads Canary surplus data in Canary local time', async () => {
+    const originalFetch = global.fetch;
+    const ok = (data) => ({ ok: true, json: async () => data });
+
+    global.fetch = async (url) => {
+      const u = String(url);
+
+      if (u.endsWith('/data/surplus/8742/index.json')) {
+        return ok({
+          timezone: 'Atlantic/Canary',
+          files: [
+            { file: '2024-04.json' }
+          ]
+        });
+      }
+      if (u.endsWith('/data/surplus/8742/2024-04.json')) {
+        const month = buildV2Month('2024-04', 'Atlantic/Canary', {}, { geoId: 8742, indicator: 1739 });
+        Object.keys(month.days).forEach((date) => {
+          month.days[date] = buildFullCivilDay(date, 'Atlantic/Canary', (h) => (h === 0 ? 1 : h === 1 ? 2 : 0));
+        });
+        return ok(month);
+      }
+
+      throw new Error(`Unexpected fetch: ${u}`);
+    };
+
+    try {
+      window.PVPC_STATS.cache.clear();
+      window.PVPC_STATS.manifestCache.clear();
+
+      const yearData = await window.PVPC_STATS.loadYearData(8742, 2024, 'surplus');
+      expect(yearData.meta.type).toBe('surplus');
+      expect(yearData.meta.timezone).toBe('Atlantic/Canary');
+
+      const profile = window.PVPC_STATS.getHourlyProfile(yearData);
+      expect(profile.data[0]).toBe(1);
+      expect(profile.data[1]).toBe(2);
+    } finally {
+      global.fetch = originalFetch;
+      window.PVPC_STATS.cache.clear();
+      window.PVPC_STATS.manifestCache.clear();
+    }
+  });
+
+  it('rejects a Canary surplus file still labelled in Madrid time', async () => {
     const originalFetch = global.fetch;
     const ok = (data) => ({ ok: true, json: async () => data });
 
@@ -557,13 +603,11 @@ describe('PVPC_STATS manifest-aware loading', () => {
       window.PVPC_STATS.cache.clear();
       window.PVPC_STATS.manifestCache.clear();
 
+      // Un fichero canario de excedentes que siga en hora peninsular (copia antigua en cache,
+      // regresion del generador) no se acepta: su etiqueta horaria cruzaria la hora anterior.
       const yearData = await window.PVPC_STATS.loadYearData(8742, 2024, 'surplus');
-      expect(yearData.meta.type).toBe('surplus');
-      expect(yearData.meta.timezone).toBe('Europe/Madrid');
-
-      const profile = window.PVPC_STATS.getHourlyProfile(yearData);
-      expect(profile.data[0]).toBe(1);
-      expect(profile.data[1]).toBe(2);
+      const horas = Object.values(yearData?.days || {}).reduce((n, d) => n + d.length, 0);
+      expect(horas).toBe(0);
     } finally {
       global.fetch = originalFetch;
       window.PVPC_STATS.cache.clear();

@@ -761,8 +761,9 @@ describe('Observatorio: el anyo vigente es el del dataset, no el del navegador (
 
     expect(getAvailableYearsDesc(new Date(), { geo: '8741', type: 'pvpc' })[0]).toBe(2027);
     expect(getAvailableYearsDesc(new Date(), { geo: '8742', type: 'pvpc' })[0]).toBe(2026);
-    // Los excedentes se publican en hora peninsular para todas las zonas.
-    expect(getAvailableYearsDesc(new Date(), { geo: '8742', type: 'surplus' })[0]).toBe(2027);
+    // Los excedentes de Canarias van en hora canaria, como su PVPC (ronda 46).
+    expect(getAvailableYearsDesc(new Date(), { geo: '8742', type: 'surplus' })[0]).toBe(2026);
+    expect(getAvailableYearsDesc(new Date(), { geo: '8741', type: 'surplus' })[0]).toBe(2027);
     history.replaceState(null, '', '/estadisticas/?geo=8742&year=2027');
     expect(parseParams().year).toBe('2026');
   });
@@ -804,7 +805,8 @@ describe('Observatorio: el anyo sigue al dataset cuando cambian zona o tipo (ron
   it('usa la zona que declara el motor para cada tipo y zona', () => {
     const { getDatasetCurrentYear } = window.__LF_PvpcStatsUiHelpers;
     expect(getDatasetCurrentYear({ geo: '8742', type: 'pvpc' })).toBe(2026);
-    expect(getDatasetCurrentYear({ geo: '8742', type: 'surplus' })).toBe(2027);
+    expect(getDatasetCurrentYear({ geo: '8742', type: 'surplus' })).toBe(2026);
+    expect(getDatasetCurrentYear({ geo: '8741', type: 'surplus' })).toBe(2027);
     expect(getDatasetCurrentYear({ geo: '8741', type: 'pvpc' })).toBe(2027);
 
     // Delegacion efectiva: si el motor declara otra zona, manda la del motor.
@@ -816,6 +818,8 @@ describe('Observatorio: el anyo sigue al dataset cuando cambian zona o tipo (ron
   it('parseParams distingue excedentes y PVPC de Canarias en la frontera de anyo', () => {
     const { parseParams } = window.__LF_PvpcStatsUiHelpers;
     history.replaceState(null, '', '/estadisticas/?type=surplus&geo=8742&year=2027');
+    expect(parseParams().year).toBe('2026');
+    history.replaceState(null, '', '/estadisticas/?type=surplus&geo=8741&year=2027');
     expect(parseParams().year).toBe('2027');
     history.replaceState(null, '', '/estadisticas/?type=pvpc&geo=8742&year=2027');
     expect(parseParams().year).toBe('2026');
@@ -830,10 +834,14 @@ describe('Observatorio: el anyo sigue al dataset cuando cambian zona o tipo (ron
     const soloFuturo = alignStateToDataset({ type: 'pvpc', geo: '8742', year: '2027', compareYears: [2027] });
     expect(soloFuturo.compareYears).toEqual([2026, 2025, 2024]);
 
-    // Excedentes de Canarias van en hora peninsular: 2027 sigue siendo valido.
+    // Excedentes de Canarias van en hora canaria (ronda 46): 2027 aun no ha empezado.
     const excedentes = alignStateToDataset({ type: 'surplus', geo: '8742', year: '2027', compareYears: [2027, 2026] });
-    expect(excedentes.year).toBe('2027');
-    expect(excedentes.compareYears).toEqual([2027, 2026]);
+    expect(excedentes.year).toBe('2026');
+    expect(excedentes.compareYears).toEqual([2026]);
+    // En hora peninsular, 2027 si es valido.
+    const excedentesPen = alignStateToDataset({ type: 'surplus', geo: '8741', year: '2027', compareYears: [2027, 2026] });
+    expect(excedentesPen.year).toBe('2027');
+    expect(excedentesPen.compareYears).toEqual([2027, 2026]);
 
     // Un anyo pasado no se toca.
     const pasado = alignStateToDataset({ type: 'pvpc', geo: '8742', year: '2024', compareYears: [2024, 2023] });
