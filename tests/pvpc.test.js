@@ -1343,4 +1343,78 @@ describe('PVPC Engine (js/pvpc.js)', () => {
     });
   });
 
+  // Ronda 44 (oraculo independiente): obtenerPVPC_LOCAL emite la linea 'IGIC energía' /
+  // 'IPSI energía' y parsearRespuestaPVPC la clasificaba como termino variable porque la
+  // rama de energia ('energía') se evaluaba antes que la de IGIC/IPSI. El impuesto
+  // indirecto de la energia entraba en terminoVariable y crearTarifaPVPC lo volvia a
+  // gravar. En Peninsula la linea se llama 'IVA' y no se veia; con Canarias vivienda al 0%
+  // la linea vale 0,00 y tampoco. Solo Canarias no-vivienda y Ceuta/Melilla.
+  describe('Impuesto indirecto de la energia PVPC fuera de Peninsula', () => {
+    const flatDay = (ymd, timeZone, price) => {
+      const baseTs = localMidnightEpoch(ymd, timeZone);
+      const nextTs = localMidnightEpoch(addCalendarDay(ymd), timeZone);
+      const prices = [];
+      for (let ts = baseTs; ts < nextTs; ts += 3600) prices.push([ts, price]);
+      return prices;
+    };
+
+    async function tarifaZona(zonaFiscal, geoId, timeZone, extra = {}) {
+      global.fetch.mockImplementation((url) => {
+        const u = String(url);
+        if (u.includes(`/data/pvpc/${geoId}/2026-08.json`)) {
+          return Promise.resolve({
+            ok: true,
+            json: async () => ({
+              ...pvpcIdentity(geoId, timeZone),
+              days: { '2026-08-12': flatDay('2026-08-12', timeZone, 0.10) }
+            })
+          });
+        }
+        throw new Error(`URL inesperada: ${u}`);
+      });
+      return global.window.LF.pvpc.crearTarifaPVPC({
+        zonaFiscal,
+        p1: 4.6, p2: 4.6, dias: 1,
+        cPunta: 100, cLlano: 100, cValle: 100,
+        bonoSocialOn: false, bonoSocialTipo: 'vulnerable', bonoSocialLimite: 1587,
+        ...extra
+      });
+    }
+
+    const baseSinContador = (m) => Math.round((m.terminoFijo + m.costeMargenPot + m.terminoVariable
+      + m.bonoSocial + m.impuestoElectrico) * 100) / 100;
+
+    it('Canarias no-vivienda: el IGIC no entra en el termino variable ni se grava dos veces', async () => {
+      vi.setSystemTime(new Date('2026-08-13T12:00:00Z'));
+      try {
+        const otros = await tarifaZona('Canarias', 8742, 'Atlantic/Canary', { viviendaCanarias: false });
+        const vivienda = await tarifaZona('Canarias', 8742, 'Atlantic/Canary', { viviendaCanarias: true });
+
+        expect(otros.metaPvpc.usoFiscal).toBe('otros');
+        expect(vivienda.metaPvpc.usoFiscal).toBe('vivienda');
+        // 300 kWh a 0,10 €/kWh: la energia no depende del regimen fiscal.
+        expect(otros.metaPvpc.terminoVariable).toBeCloseTo(30, 10);
+        expect(vivienda.metaPvpc.terminoVariable).toBeCloseTo(30, 10);
+        const igicEsperado = Math.round(baseSinContador(otros.metaPvpc) * 3) / 100;
+        expect(otros.metaPvpc.impuestoEnergia).toBeCloseTo(igicEsperado, 10);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+
+    it('Ceuta/Melilla: el IPSI no entra en el termino variable ni se grava dos veces', async () => {
+      vi.setSystemTime(new Date('2026-08-13T12:00:00Z'));
+      try {
+        const t = await tarifaZona('CeutaMelilla', 8744, 'Europe/Madrid');
+
+        expect(t.metaPvpc.usoFiscal).toBe('ipsi');
+        expect(t.metaPvpc.terminoVariable).toBeCloseTo(30, 10);
+        const ipsiEsperado = Math.round(baseSinContador(t.metaPvpc)) / 100;
+        expect(t.metaPvpc.impuestoEnergia).toBeCloseTo(ipsiEsperado, 10);
+      } finally {
+        vi.useRealTimers();
+      }
+    });
+  });
+
 });

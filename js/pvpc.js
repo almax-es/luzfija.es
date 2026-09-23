@@ -426,6 +426,11 @@
           if (cabecera.includes('margen de comercialización') || cabecera.includes('margen de comercializacion')) {
             meta.costeMargenPot += importe;
           }
+          // Antes que la rama de energia: las lineas 'IGIC energía' / 'IPSI energía' contienen
+          // 'energía' y se sumaban al termino variable, que luego se volvia a gravar.
+          else if (cabecera.includes('igic') || cabecera.includes('ipsi')) {
+            meta.impuestoEnergia += importe;
+          }
           else if (cabecera.includes('término fijo') || cabecera.includes('termino fijo') || (cabecera.includes('potencia') && !cabecera.includes('margen'))) {
             meta.terminoFijo += importe;
           }
@@ -443,9 +448,6 @@
           }
           else if (cabecera.includes('iva') || cabecera.includes('impuesto sobre el valor')) {
             meta.iva += importe;
-          }
-          else if (cabecera.includes('igic') || cabecera.includes('ipsi')) {
-            meta.impuestoEnergia += importe;
           }
           else if (cabecera.includes('total factura')) {
             meta.totalFactura = importe;

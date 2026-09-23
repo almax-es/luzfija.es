@@ -5007,3 +5007,72 @@ Encontrado leyendo el export de GoatCounter del 10-22/09/2026. La fila mas ruido
 
 **Criterio de reapertura.** Un `error-csp` con `same-origin/<fichero>` cuyo basename no exista en
 el repo.
+
+<a id="oraculo-independiente-factura-ronda-44-23-09-2026"></a>
+### Oraculo Independiente De La Factura De La Home (Ronda 44, 23/09/2026)
+
+Primera re-auditoria de un area ya auditada con un angulo nuevo: caja negra. Todas las rondas
+anteriores del motor leyeron el codigo y lo contrastaron consigo mismo y con la documentacion, un
+metodo que no puede ver un error que codigo y docs compartan. ChatGPT escribio `oraculo.py`
+(Python, `Decimal`, stdlib) desde el BOE SIN leer `js/`, `tests/` ni ningun `.md` (declaro haber
+abierto por error JSON-SCHEMA, CAPACIDADES-WEB y PVPC-SCHEMA; sus decisiones divergentes muestran
+que no calco el motor). Las convenciones de producto se le dieron cerradas (C1-C12); lo normativo lo
+derivo el. Claude ejecuto su oraculo y la web de produccion (Chrome real, entradas por URL, lectura
+de `window.LF.state.rows`) sobre sus 50 escenarios con los datos del mismo dia, y resolvio cada
+diferencia contra el BOE, no contra el codigo.
+
+**1 bug CONFIRMADO y CORREGIDO: IGIC/IPSI de la energia del PVPC cobrado dos veces.**
+- **Mecanismo.** `obtenerPVPC_LOCAL` emite una linea `'IGIC energía'` / `'IPSI energía'` en el canal
+  interno `resultadoPVPC`. `parsearRespuestaPVPC` la clasificaba en la rama del termino variable
+  (`cabecera.includes('energía')`), evaluada antes que la de IGIC/IPSI. El impuesto entraba en
+  `terminoVariable` y `crearTarifaPVPC` -> `computePvpcFiscal` lo volvia a gravar sobre esa base.
+- **Alcance.** Solo PVPC en Canarias no-vivienda (IGIC 3%) y Ceuta/Melilla (IPSI 1%). En Peninsula
+  la linea se llama `'IVA'`; en Canarias vivienda vale 0,00. Afecta a ranking, desglose y descuento
+  del bono social (todos leen `metaPvpc`).
+- **Medido en produccion (23/09/2026, 3,45 kW, 30 dias, 300 kWh).** Canarias no-vivienda: 71,91 EUR
+  frente a 69,84 (energia 56,04 en vez de 54,03, +2,07 EUR, ~3%). Ceuta/Melilla: 69,58 frente a
+  68,90 (energia 55,11 en vez de 54,44). La senal que lo delato: el termino de ENERGIA cambiaba con
+  el flag `viviendaCanarias`, que solo es fiscal.
+- **Arreglo.** Rama `igic`/`ipsi` antes que la de energia en `parsearRespuestaPVPC`. 2 regresiones
+  en `tests/pvpc.test.js` (Canarias no-vivienda y Ceuta/Melilla, precio plano: terminoVariable debe
+  ser exactamente 30,00 y el impuesto indirecto una sola vez); ambas fallan con el codigo previo
+  (30,96 en vez de 30). Verificado en Chrome real con el sitio servido en local: Canarias 69,84,
+  identico al oraculo; Peninsula, Canarias vivienda y bono social sin cambios. Suite 2061, lint 0/0.
+
+**Todo lo demas cuadra.** Tras corregir en una copia del oraculo SOLO sus errores demostrados contra
+norma, las 119 tarifas de mercado libre coinciden al centimo en todos los escenarios fuera de
+Ceuta/Melilla (energia, potencia, SSAA, financiacion del bono social, contador, IEE, IVA/IGIC,
+compensacion con topes ENERGIA y ENERGIA_PARCIAL, excedente indexado, BV con saldo y cuota) y el
+PVPC peninsular coincide (energia al centimo: valida ventana, periodos y festivos).
+
+**Errores del oraculo, resueltos contra el BOE (NO son bugs de la web; no reabrir):**
+- Margen fijo del PVPC aplicado tambien a P2. RD 216/2014, termino FPU: "termino fijo de los costes
+  de comercializacion multiplicado por la potencia del periodo horario punta". La web lo aplica solo
+  a P1.
+- IEE omitido en Canarias, Ceuta y Melilla. Ley 38/1992 art. 91.1: "El impuesto se aplicara en todo
+  el territorio espanol". (Ademas cito la Ley 38/1992 con el identificador de la Ley del IVA,
+  BOE-A-1992-28740; el correcto es BOE-A-1992-28741.)
+- Financiacion del bono social fuera de la base del descuento. RD 216/2014 art. 8: la facturacion
+  del PVPC es la suma de potencia, energia activa y "facturacion de financiacion del bono social";
+  RD 897/2017 art. 6.3 aplica el descuento "en todos los terminos que componen el PVPC". La web la
+  incluye.
+- IVA en dos lineas redondeadas por separado (electricidad y contador al mismo 21%): 875 descuadres
+  de 1 centimo que desaparecen con una base por tipo, que es lo que hace la web.
+- Convenciones de producto no seguidas: calculo el PVPC con autoconsumo activo (C8 lo excluye) y
+  cobro la cuota BV sin placas (la web solo la cobra con `solarOn`; el prompt no lo precisaba).
+
+**Ambiguedades que quedan, sin cambio (impacto <= 0,03 EUR):**
+- Prorrateo del contador: la web usa `0,81 x 12/365` por dia (practica habitual de facturacion);
+  el oraculo eligio `/30`. Ninguna norma recuperada fija la formula.
+- IPSI del contador en Ceuta/Melilla: la web aplica 4%. Ordenanza de Melilla (BOME 5625, 2019):
+  electricidad 1%, servicios 4%. Ordenanza de Ceuta (version 2007 consultada): electricidad 1%,
+  servicios 3%; y ambas dicen que la distribuidora repercute el impuesto sobre el "importe total
+  facturado", lectura que llevaria el contador al 1% (la del oraculo). Diferencia de 1-2 centimos;
+  habria que contrastar la ordenanza de Ceuta vigente y una factura real antes de tocar nada.
+- Base del IEE del PVPC: se calcula sobre componentes SIN redondear (`terminoFijo`, margen y
+  financiacion), mientras el mercado libre usa las lineas ya redondeadas. Diferencias de +-1 centimo
+  en 4 escenarios. El caso CNMC documentado en ARQUITECTURA-CALCULOS.md cuadra con la ruta actual.
+
+**Criterio de reapertura.** Cualquier cambio en las cabeceras del canal `resultadoPVPC` o en el
+orden de ramas de `parsearRespuestaPVPC`; un PVPC fuera de Peninsula cuyo termino de energia varie
+con un flag fiscal; o una factura real de Ceuta/Melilla que contradiga el 4% del contador.
