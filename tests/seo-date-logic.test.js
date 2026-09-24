@@ -37,6 +37,27 @@ describe('SEO date policy', () => {
     })).toBe(true);
   });
 
+  it('treats accessibility-only markup as non-editorial, but not new visible text', () => {
+    const committed = [
+      '<div class="topbar">',
+      '<nav class="breadcrumbs"><a href="/">Inicio</a></nav>',
+      '<h3 class="u-h3-strong-10">Sobre el Comparador</h3>',
+      '<table><tr><th></th><th>PVPC</th></tr></table>'
+    ].join('\n');
+    const a11yOnly = committed
+      .replace('<div class="topbar">', '<div class="topbar" role="banner">')
+      .replace('<nav class="breadcrumbs">', '<nav class="breadcrumbs" aria-label="Ruta de navegación">')
+      .replace('<h3 class="u-h3-strong-10">Sobre el Comparador</h3>', '<h2 class="u-h3-strong-10">Sobre el Comparador</h2>');
+    expect(isSignificantlyDirty({ status: ' M guias/x.html', currentContent: a11yOnly, committedContent: committed })).toBe(false);
+
+    // Un rotulo visible nuevo SI es un cambio de contenido y debe sellar fecha.
+    const visibleText = a11yOnly.replace('<th></th>', '<th>Aspecto</th>');
+    expect(isSignificantlyDirty({ status: ' M guias/x.html', currentContent: visibleText, committedContent: committed })).toBe(true);
+    // Y cambiar el texto de un encabezado tambien, aunque cambie su nivel.
+    const newHeading = a11yOnly.replace('Sobre el Comparador</h2>', 'Sobre LuzFija</h2>');
+    expect(isSignificantlyDirty({ status: ' M guias/x.html', currentContent: newHeading, committedContent: committed })).toBe(true);
+  });
+
   it('treats robots directives and Article image metadata as non-editorial', () => {
     const base = [
       '<meta name="viewport" content="width=device-width, initial-scale=1.0"/>',

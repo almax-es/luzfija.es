@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <!-- CSP con hashes para JSON-LD inline; el script de deploy los recalcula al publicar. -->
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-GDdiOWCegw0ObPOUX/uwtHr211aPXBwN/Cvawb5Q8qY=' 'sha256-HeJurbBK84t4X/fFRNa0BRm9LAjNtBTV2DVcLO7w30U=' 'sha256-Kl/YzpsPll/bIZ0pjoB9TMFMk4YyYah1tpgz9DvPQRY=' 'sha256-W/BG55VjRBlOIf80T6p50n1z3HgjGGKGAVN825YxUwI='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-GDdiOWCegw0ObPOUX/uwtHr211aPXBwN/Cvawb5Q8qY=' 'sha256-HeJurbBK84t4X/fFRNa0BRm9LAjNtBTV2DVcLO7w30U=' 'sha256-MIilWP7uLb6MIFDF8IK1a+2NHgnMSC6X4of0w4lCbfc=' 'sha256-B4OiQh+aQgOhM9dvUqzo+AphrR8Wx6j/m23YwxXeTzI='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; worker-src 'self' blob:; form-action 'self';">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="color-scheme" content="dark light"/>
 <meta name="description" content="Compara tarifas solares con excedentes y batería virtual mes a mes. Simulador independiente: sin registro, sin comisiones y sin ofertas patrocinadas.">
@@ -69,7 +69,7 @@
     "browserRequirements": "Requires JavaScript. HTML5 compatible browser.",
     "softwareVersion": "2.0",
     "datePublished": "2024-01-15",
-    "dateModified": "2026-09-03",
+    "dateModified": "2026-09-24",
     "offers": {
       "@type": "Offer",
       "price": "0",
@@ -161,7 +161,7 @@
     "description": "Guía completa para usuarios de autoconsumo fotovoltaico: cómo comparar tarifas, calcular compensación de excedentes y maximizar el ahorro con batería virtual.",
     "image": "https://luzfija.es/og.png",
     "datePublished": "2024-01-15T08:00:00+01:00",
-    "dateModified": "2026-09-03T15:30:00+02:00",
+    "dateModified": "2026-09-24T15:30:00+02:00",
     "author": {
       "@type": "Person",
       "name": "aLMaX",
@@ -202,7 +202,7 @@
 <body class="solar-pro">
   <a class="skip-link" href="#main">Saltar al contenido</a>
 <div class="container">
-    <div class="topbar">
+    <div class="topbar" role="banner">
       <div class="brand">
         <span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span><span class="particle" aria-hidden="true"></span>
         <a class="logo" href="/" aria-label="Inicio">
@@ -626,18 +626,18 @@
               <footer class="footer-container">
                 <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:30px; margin-bottom:30px;">
                           <div>
-                            <h3 class="u-h3-strong-10">Sobre el Comparador</h3>
+                            <h2 class="u-h3-strong-10">Sobre el Comparador</h2>
                             <p style="color:var(--muted); font-size:12px; line-height:1.6; margin:0 0 12px 0;">
                               Herramienta avanzada para <strong>comparar tarifas solares</strong> usando tus datos reales de autoconsumo y excedentes.
                             </p>
                             <p class="u-m-0">
-                              <a href="/guias.html" style="color:var(--accent); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; transition: opacity 0.2s;">
+                              <a href="/guias.html" style="color:var(--accent); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; transition: opacity 0.2s; padding-block:4px;">
                                 📚 Guías sobre tarifas eléctricas
                                 <span style="font-size:10px;">→</span>
                               </a>
                             </p>
                             <p class="u-m-0" style="margin-top:10px;">
-                              <a href="/como-funciona-luzfija.html" style="color:var(--accent2); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; transition: opacity 0.2s;">
+                              <a href="/como-funciona-luzfija.html" style="color:var(--accent2); font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:13px; transition: opacity 0.2s; padding-block:4px;">
                                 🧭 Qué hace LuzFija.es y cómo funciona
                                 <span style="font-size:10px;">→</span>
                               </a>
@@ -645,7 +645,7 @@
                           </div>
 
                           <div>
-                            <h3 class="u-h3-strong-10">Horarios Discriminación</h3>
+                            <h2 class="u-h3-strong-10">Horarios Discriminación</h2>
                             <ul class="u-list-muted-12">
                               <li><strong style="color:var(--danger);">Punta:</strong> <span data-bv-period-schedule="p1">10h-14h y 18h-22h laborables</span></li>
                               <li><strong style="color:var(--warn);">Llano:</strong> <span data-bv-period-schedule="p2">8h-10h, 14h-18h y 22h-24h laborables</span></li>
@@ -654,7 +654,7 @@
                           </div>
 
                           <div>
-                            <h3 class="u-h3-strong-10">¿Qué Analizamos?</h3>
+                            <h2 class="u-h3-strong-10">¿Qué Analizamos?</h2>
                             <ul class="u-list-muted-12">
                               <li>✓ Tarifas con excedentes remunerados</li>
                               <li>✓ Compensación de excedentes (€)</li>
@@ -665,7 +665,7 @@
                           </div>
 
                           <div id="contacto">
-                            <h3 class="u-h3-strong-10">Contacto</h3>
+                            <h2 class="u-h3-strong-10">Contacto</h2>
                             <div class="contact-box">
                               <div class="u-label-xs">✉️ Email</div>
                               <a href="mailto:hola@luzfija.es" class="u-color-accent u-fw-900 u-text-13" style="text-decoration:underline;">hola@luzfija.es</a>

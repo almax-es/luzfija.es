@@ -5520,3 +5520,38 @@ base emitida con nombre literal aparezca en la doc como `base` o `base/...`. Los
 primer argumento es un detalle (`trackStatsInitIncomplete`, `trackErrorRecurrence`) se excluyen
 por nombre y sus bases reales se comprueban aparte. Validado por mutacion: borrar `pagina-404` de
 la doc o reintroducir el listener muerto rompe el test correspondiente.
+
+<a id="escaneo-wcag-axe-ronda-53-24-09-2026"></a>
+### Escaneo WCAG Automatico Con axe-core (Ronda 53, 24/09/2026)
+
+**Origen.** La accesibilidad figuraba como auditoria parcial: nunca se habia pasado un escaner
+estandar por todo el sitio. axe-core 4.13 en Chrome real sobre las 32 paginas HTML del sitemap mas
+la 404, en movil (390 px) y escritorio (1366 px) y en tema claro y oscuro: 132 escaneos, reglas
+WCAG 2.0/2.1/2.2 A y AA mas best-practice. Servidor local que imita Pages y GoatCounter bloqueado.
+
+**Limpio desde el principio:** cero fallos de contraste, nombres accesibles, etiquetas de
+formulario, ARIA invalido, idioma o titulos en las 132 combinaciones.
+
+**Cinco reglas, todas CORREGIDAS (escaneo final: cero violaciones):**
+- `target-size` (unico criterio WCAG, 2.5.8 AA): los dos enlaces sueltos del pie del simulador
+  solar median 17 px de alto. La home ya tenia `padding-block:4px` en ese enlace (25 px); el
+  arreglo no se habia llevado al simulador. Ahora 25 px en ambos.
+- `heading-order`: en el simulador los `h2` del contenido estan ocultos al cargar y el pie
+  saltaba de `h1` a `h3`. Los titulos de columna del pie son `h2` en home y simulador; la clase
+  `.u-h3-strong-10` fija el estilo y se midio en Chrome que el estilo calculado es identico.
+- `empty-table-header`: la esquina de las tablas comparativas de dos guias era `<th></th>`. axe no
+  acepta `aria-label` en su lugar (probado); pasa a `<th>Aspecto</th>`, que rotula la columna de
+  aspectos comparados y conserva el fondo de cabecera.
+- `landmark-unique`: las 25 guias tenian dos `<nav>` sin nombre. Ahora `Ruta de navegacion` y
+  `Navegacion entre guias`.
+- `region`: la cabecera de home, simulador y Observatorio quedaba fuera de cualquier landmark.
+  `role="banner"` en `.topbar` (atributo, sin efecto en el CSS; cajas medidas iguales).
+
+**Fechas SEO.** La sincronizacion habria sellado como actualizadas 25 guias y las 3 aplicaciones
+por cambios que no cambian el texto. `maskVolatileSeoChanges` ignora ahora `aria-label`, `role` y
+el nivel de un encabezado cuyo texto no cambia; un texto nuevo sigue sellando fecha. Solo cambian
+de fecha las dos guias con el rotulo visible nuevo y el simulador (sus enlaces crecen 8 px).
+
+**Vigilancia.** `tests/a11y-axe-regressions.test.js` (estatico, validado por mutacion) y los casos
+nuevos de `tests/seo-date-logic.test.js`. No sustituye al escaneo: repetirlo al anadir paginas o
+componentes. Sigue sin haberse probado con un lector de pantalla real ni con zoom al 400 %.

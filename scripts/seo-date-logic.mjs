@@ -47,6 +47,12 @@ export function maskVolatileSeoChanges(text) {
     // que no estan enmascarados: el fichero seguiria contando como sucio.
     .replace(/[ \t]*<meta\b[^>]*\bname=["']robots["'][^>]*>[ \t]*\n?/gi, '')
     .replace(/("image"\s*:\s*\{\s*"@type"\s*:\s*"ImageObject")[^}]*\}/g, '$1X}')
+    // Semantica de accesibilidad: nombres de landmarks, roles y el NIVEL de un encabezado cuyo
+    // texto no cambia. Afectan a como se navega con lector de pantalla, no a lo que se lee: la
+    // pasada axe del 24/09/2026 los toco en 25 guias y 3 aplicaciones y, sin esto, las habria
+    // fechado todas como actualizadas. Un texto nuevo (p. ej. un rotulo de tabla) sigue contando.
+    .replace(/\s(?:aria-label|role)="[^"]*"/g, '')
+    .replace(/<(\/?)h[1-6](?=[\s>])/g, '<$1hX')
     .trim();
 }
 
