@@ -864,6 +864,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Nufri Universal Sin Horarios",
+      "cPunta": 0.143394,
+      "cLlano": 0.143394,
+      "cValle": 0.143394,
+      "p1": 0.075903,
+      "p2": 0.029385,
+      "web": "https://www.energianufri.com/es/landing/2a-luz",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Enersa Relax 10",
       "cPunta": 0.144,
       "cLlano": 0.144,
@@ -1315,26 +1335,6 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Nufri 2a Residencia",
-      "cPunta": 0.204582,
-      "cLlano": 0.204582,
-      "cValle": 0.204582,
-      "p1": 0.08373,
-      "p2": 0.009815,
-      "web": "https://www.energianufri.com/es/landing/2a-luz",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.04,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -1983,6 +1983,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Nufri Universal Con Horarios 3P",
+      "cPunta": 0.210915,
+      "cLlano": 0.132778,
+      "cValle": 0.098638,
+      "p1": 0.075903,
+      "p2": 0.029385,
+      "web": "https://www.energianufri.com/es/landing/2a-luz",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "CEA Estable 3P",
       "cPunta": 0.211843,
       "cLlano": 0.13673,
@@ -2357,26 +2377,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Nufri 2a Residencia 3P",
-      "cPunta": 0.279089,
-      "cLlano": 0.194054,
-      "cValle": 0.1544,
-      "p1": 0.08373,
-      "p2": 0.009815,
-      "web": "https://www.energianufri.com/es/landing/2a-luz",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.04,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Octopus Go 3P",
       "cPunta": 0.289,
       "cLlano": 0.289,
@@ -2437,5 +2437,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-24T15:41:37.941Z"
+  "updatedAt": "2026-09-24T15:52:43.029Z"
 }
