@@ -84,6 +84,7 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
 | `js/desglose-factura.js` | Ciclo de vida y accesibilidad del modal de desglose detallado de factura. |
 | `js/desglose-integration.js` | Integracion del desglose con el comparador. |
 | `js/guides-search.js` | Buscador de guias sobre `data/guides-search-index.json`. |
+| `js/not-found.js` | Pagina 404: sugiere la pagina real mas parecida (candidatas de `/sitemap.xml`) y envia `pagina-404/<pagina existente>` sin la ruta tecleada. |
 | `js/pvpc-stats-engine.js` | Motor de datos del observatorio (carga, agregacion, cache en memoria). |
 | `js/pvpc-stats-csv.js` | Parser CSV/XLSX e indexado horario CNMC para la compensacion de excedentes del observatorio. |
 | `js/pvpc-stats-ui.js` | UI del observatorio (KPIs, charts, CSV de excedentes del usuario). |

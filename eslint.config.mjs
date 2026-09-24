@@ -85,7 +85,7 @@ export default [
   },
   {
     // Guard UMD: usa module.exports si existe (entorno CommonJS/tests)
-    files: ['js/guides-search.js'],
+    files: ['js/guides-search.js', 'js/not-found.js'],
     languageOptions: {
       globals: { module: 'readonly' },
     },

@@ -205,6 +205,17 @@ pintado contaba (11 eventos al escribir "reclamacion" a 200 ms por tecla), asi q
 historicos de `guias-busqueda` estan inflados y sesgados hacia `1-3`/`4-8` y `10-plus`. Lo vigila
 `tests/guides-search-tracking.test.js`.
 
+### 6.4.1 Paginas 404
+
+El pageview de una URL inexistente se cuenta como `/404.html` (su canonical). Para saber que
+enlaces rotos llegan, `js/not-found.js` envia ademas `pagina-404/<seccion>/<pagina>` con la
+pagina EXISTENTE mas parecida a la ruta pedida (candidatas de `/sitemap.xml`), por ejemplo
+`pagina-404/guias/cups-que-es-y-donde-encontrarlo`. Sin parecido suficiente, o si varias
+paginas encajan por igual, envia `pagina-404/desconocida`; `pagina-404/directa` es una visita a
+`/404.html` y `pagina-404/sin-sitemap` un fallo al leer el sitemap. La ruta tecleada NUNCA
+viaja: el detalle solo puede ser una pagina del sitemap o una de esas palabras fijas (lo vigila
+`tests/not-found.test.js` con rutas que contienen DNI, CUPS, email y telefono).
+
 ### 6.5 Errores
 
 Cada fallo de codigo conserva un evento primario estable para no romper el

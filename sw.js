@@ -81,6 +81,7 @@ const ASSETS = [
   "js/aecc-banner.js",
   "js/shell-lite.js",
   "js/guides-search.js",
+  "js/not-found.js",
   "js/desglose-calculo.js",
   "js/desglose-render.js",
   "js/desglose-factura.js",

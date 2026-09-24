@@ -45,6 +45,8 @@ body{font-family:'Outfit',-apple-system,system-ui,sans-serif;background:linear-g
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-20px)}}
 .error-title{font-size:clamp(24px,4vw,36px);font-weight:800;margin-bottom:16px;color:var(--text)}
 .error-subtitle{font-size:clamp(16px,2vw,20px);color:var(--muted);margin-bottom:48px;line-height:1.6}
+.not-found-suggestion{font-size:clamp(16px,2vw,19px);margin:-24px 0 40px}
+.not-found-suggestion a{color:var(--text);font-weight:700;text-decoration:underline;text-decoration-color:var(--accent);text-decoration-thickness:2px;text-underline-offset:3px}
 .search-box{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:24px;margin-bottom:40px;box-shadow:0 8px 30px rgba(0,0,0,.3)}
 .search-input{width:100%;padding:16px 20px;background:rgba(255,255,255,.08);border:1px solid var(--border);border-radius:12px;color:var(--text);font-size:16px;font-family:inherit;transition:all .3s}
 .search-input:focus{outline:none;border-color:var(--accent);background:rgba(255,255,255,.12);box-shadow:0 0 0 3px rgba(139,92,246,.2)}
@@ -132,6 +134,8 @@ html.light-mode .btn-small:hover{
 <h1 class="error-title">Ups, esta página se fue de ruta</h1>
 <p class="error-subtitle">Como una factura de luz sin discriminación horaria: no la encuentras por ningún lado</p>
 
+<div class="not-found-suggestion" id="notFoundSuggestion" aria-live="polite" hidden></div>
+
 <div class="search-box">
 <input type="text" class="search-input" placeholder="Busca lo que necesitas..." id="searchInput" aria-label="Buscar contenido" onkeyup="searchContent(event)"/>
 </div>
@@ -188,5 +192,6 @@ function searchContent(e) {
 }
 </script>
 <script src="/js/tracking.js?v=20260923-203355" defer></script>
+<script src="/js/not-found.js?v=20260923-203355" defer></script>
 </body>
 </html>

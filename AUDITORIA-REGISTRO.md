@@ -5450,3 +5450,31 @@ aporte la regla de conversion con fuente primaria: consulta DGT, orden o factura
 cantidad exenta desglosada y su criterio. La mera cita del 94.9 o del modelo 560 ya esta evaluada
 aqui.
 
+<a id="pagina-404-y-urls-antiguas-ronda-52-24-09-2026"></a>
+### Pagina 404 Y URLs Antiguas (Ronda 52, 24/09/2026)
+
+**Origen.** Primera auditoria de la 404 y de las URLs antiguas como area. El historial de git
+esta aplastado desde el 19/09/2026, asi que no hay registro de que URLs existieron.
+
+**Verificado sin hallazgos (produccion, curl).** Una URL inexistente devuelve un 404 real en
+cualquier profundidad (`/no-existe`, `/guias/no/existe/profundo`); las variantes sin `.html` y sin
+barra final llegan a su pagina (`/estadisticas` -> 301 a `/estadisticas/`); `/Guias.html` da 404
+(Pages distingue mayusculas); los alias del simulador (`/simulador/`,
+`/simulador-bateria-virtual.html`) redirigen con `noindex`. `404.html` solo usa rutas absolutas,
+asi que se pinta bien servida en cualquier profundidad. El service worker conserva los 404/410
+reales (ya auditado).
+
+**Hallazgo: los enlaces rotos no eran medibles.** Pages sirve `404.html` en la URL pedida, pero el
+pageview usa el canonical y toda 404 se contaba como `/404.html`. Enviar la ruta literal chocaba
+con la politica de no mandar texto libre. CORREGIDO con `js/not-found.js`: busca en
+`/sitemap.xml` la pagina existente mas parecida (slug exacto, distancia de edicion, solape de
+palabras y, para rutas cortas, palabras contenidas en UNA sola pagina), envia
+`pagina-404/<seccion>/<pagina>` o `pagina-404/desconocida` y muestra "Buscabas ...?" con el
+titulo real de la pagina. Rutas genericas que encajan en varias (`/tarifas`, `/pvpc`, `/factura`,
+`/comparador`) no sugieren nada a proposito. Verificado en Chrome real con un servidor que imita
+Pages (status 404, sin errores JS, sin scroll horizontal en movil, enlace legible en ambos temas).
+26 tests en `tests/not-found.test.js`, validados por mutacion (ambiguedad, privacidad del detalle,
+palabras de la home y stopwords `guia`/`guias`).
+
+**Para reabrir:** demostrar un detalle de evento que no sea una pagina del sitemap ni una de las
+palabras fijas, o una sugerencia equivocada para una ruta real que llegue a produccion.
