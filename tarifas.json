@@ -811,7 +811,6 @@
       "web": "https://fortuluz.es/ofertas/unico",
       "tipo": "1P",
       "requisitos": "Revisión de precios semestral.",
-      "promo": "30€ de descuento (10€/mes durante 3 meses) desde la segunda factura, para nuevos clientes vía web.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -2159,7 +2158,6 @@
       "p2": 0.088382,
       "web": "https://chcenergia.es/luz/plan-vehiculo-electrico",
       "tipo": "3P",
-      "promo": "50 € de descuento repartidos en 5 facturas consecutivas (10 € sobre el importe total de cada una).",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.04,
@@ -2439,5 +2437,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-24T16:42:24.118Z"
+  "updatedAt": "2026-09-24T17:40:08.447Z"
 }
