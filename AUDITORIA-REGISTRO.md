@@ -4798,6 +4798,18 @@ el `.bat` de despliegue.
 failed" o memorizacion del fake worker), cambiar la rama de scripts del service worker, o que el E2E
 de Chromium vuelva a necesitar reintentos de forma habitual.
 
+**Actualizacion 24/09/2026: el fallo intermitente del E2E era una carrera DEL TEST.** Paro el
+.bat dos veces (23 y 24/09) fallando en sus tres intentos; aislado lo reproducia 1 de cada 2-4
+veces. Causa medida en una copia instrumentada: en las ejecuciones fallidas el PRIMER intento no
+cargaba ningun recurso de PDF.js. El test esperaba solo `__LF_facturaModuleReady`, que `factura.js`
+fija al evaluarse, pero los listeners del modal (incluido el `change` del input) los engancha
+despues `lf-app.js` via `__LF_bindFacturaParser`. Si el test llegaba antes, el `change` no tenia
+oyente, el corte de red simulado le caia al segundo intento y este fallaba (el reintento SI quedaba
+preparado: `window.pdfjsLib === null`). No afecta a usuarios: el boton que abre el modal se
+engancha en esa misma funcion. CORREGIDO esperando tambien a `btnSubirFactura.__LF_BOUND`
+(`FACTURA_LISTA`): 10/10 en la copia instrumentada, 8/8 el test real y dos suites completas en
+verde. Queda sin efecto la nota de que los cortes transitorios "no se aislaron".
+
 <a id="mezcla-de-builds-ronda-42-17-09-2026"></a>
 ### Una Pagina Con Codigo De Dos Despliegues (Ronda 42, 17/09/2026)
 

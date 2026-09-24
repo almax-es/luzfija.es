@@ -27,6 +27,15 @@ const MIME = new Map([
 
 function wait(ms) { return new Promise(resolve => setTimeout(resolve, ms)); }
 
+// La pagina esta lista para procesar un PDF cuando factura.js se ha evaluado Y lf-app.js ya ha
+// enganchado los listeners del modal (__LF_bindFacturaParser marca el boton con __LF_BOUND).
+// Esperar solo a __LF_facturaModuleReady dejaba una carrera: el test llama directamente a
+// __LF_openFacturaModal, y si lf-app.js no habia llegado a enganchar el `change` del input, el
+// primer intento no procesaba nada y el corte de red simulado le caia al segundo. Fallaba 1 de
+// cada 2-4 ejecuciones y paro el .bat de despliegue dos veces el 23-24/09/2026. Un usuario no
+// puede verse en esto: el boton que abre el modal se engancha en esa misma funcion.
+const FACTURA_LISTA = "Boolean(window.__LF_facturaModuleReady) && Boolean(document.getElementById('btnSubirFactura')?.__LF_BOUND)";
+
 async function waitFor(fn, timeout = 20000) {
   const end = Date.now() + timeout;
   while (Date.now() < end) {
@@ -143,7 +152,7 @@ suite('factura PDF en Chromium real', { retry: 2 }, () => {
     });
     pageCdp = new Cdp(page.webSocketDebuggerUrl);
     await pageCdp.send('Runtime.enable');
-    await waitFor(async () => (await evaluate('Boolean(window.__LF_facturaModuleReady)')).value);
+    await waitFor(async () => (await evaluate(FACTURA_LISTA)).value);
   }, 30000);
 
   afterAll(async () => {
@@ -258,7 +267,7 @@ suite('factura PDF en Chromium real', { retry: 2 }, () => {
     await evaluate('window.__lfBeforeReload = true; setTimeout(() => location.reload(), 0); true');
     await waitFor(async () => {
       try {
-        return (await evaluate('!window.__lfBeforeReload && Boolean(window.__LF_facturaModuleReady)')).value;
+        return (await evaluate('!window.__lfBeforeReload && ' + FACTURA_LISTA)).value;
       } catch (_) {
         return false;
       }
