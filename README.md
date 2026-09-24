@@ -110,7 +110,8 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - `como-funciona-luzfija.html`
 - `calcular-factura-luz.html`
 - `comparar-pvpc-tarifa-fija.html`
-- `404.html` con enlaces rapidos y buscador hacia guias.
+- `404.html` con enlaces rapidos, buscador hacia guias y sugerencia de la pagina existente mas
+  parecida a la URL rota.
 - `aviso-legal.html` y `privacidad.html` (incluye opt-out de analitica GoatCounter).
 
 ## Documentacion De Referencia

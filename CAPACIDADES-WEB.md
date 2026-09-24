@@ -70,7 +70,8 @@ Si vas a hacer una auditoria tecnica, lee completo `AUDITORIA-IA.md` antes de cl
 - Opt-out de analitica GoatCounter (localStorage `goatcounter_optout=true`).
 
 11. `/404.html`
-- Pagina de error con enlaces rapidos, buscador que redirige a guias y bloque de "fun fact".
+- Pagina de error con enlaces rapidos, buscador que redirige a guias, sugerencia de la pagina
+  existente mas parecida a la URL pedida y bloque de datos curiosos verificables.
 
 ## 3. Funcionalidades Del Comparador Principal (`/`)
 
@@ -503,11 +504,18 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 ## 6. Guias, Landings, 404 Y Legal
 
 - `guias.html`:
-- Busqueda en vivo sobre titulo/descripción.
+- Busqueda en vivo sobre `data/guides-search-index.json`: titulo, resumen, alias, secciones, FAQ y
+  contenido, sin distinguir tildes. Exige todas las palabras; algunos sinonimos de consulta
+  (nocturno -> noche, denunciar/queja -> reclamar). Con varias palabras y menos de 3 guias
+  completas anade hasta 5 "relacionadas" detras, separadas en el contador. Muestra el fragmento
+  donde aparece la palabra. Sin indice disponible cae a busqueda basica sobre las tarjetas.
 - Filtros por categoria (`todas`, `basico`, `factura`, `tarifa`, `solar`, `ahorro`, `gestion`).
 - `404.html`:
 - Buscador con redireccion a `guias.html?q=...`.
-- Bloque de datos curiosos rotatorio.
+- Sugerencia "Buscabas ...?" con la pagina de `/sitemap.xml` mas parecida a la URL pedida
+  (`js/not-found.js`); rutas ambiguas no sugieren nada. Envia `pagina-404/<pagina existente>` sin
+  la ruta tecleada (ver `ANALITICA-GOATCOUNTER.md` 6.4.1).
+- Bloque de datos curiosos rotatorio, solo con datos que las guias ya verifican.
 - `privacidad.html`:
 - Explica hosting, analitica, procesamiento local y almacenamiento local.
 - Incluye opt-out de GoatCounter.
