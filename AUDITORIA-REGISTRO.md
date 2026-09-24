@@ -5496,6 +5496,16 @@ IGIC/IPSI, tope de la compensacion simplificada, publicacion del PVPC); el texto
 "Cargar..." pasa a ser un dato real para quien no ejecute JavaScript. Lo vigila
 `tests/not-found.test.js`.
 
+**Revision externa del 24/09/2026 (ChatGPT con acceso al repo, sin ejecucion: lo declaro).**
+Veredicto: ningun bug funcional ni de privacidad en los 7 commits del dia. Dos observaciones de
+copy, verificadas y CORREGIDAS: el dato de la 404 "los fines de semana todo es P3" omitia el 6 de
+enero y los festivos nacionales de fecha fija no sustituibles (la guia de P1/P2/P3 ya lo decia),
+y la guia de P1/P2/P3 conservaba un "hasta un 50 % mas que por la noche" sin fuente (y corto: en
+una 3P tipica la punta dobla el valle). Al barrer la afirmacion aparecio otra cifra sin fuente
+("el consumo fantasma puede suponer hasta un 10 % de tu factura anual"), reformulada sin numero.
+La cifra "hasta un 25 %" de Auto+ se conserva: es del RD 609/2026. Tercera observacion: jsdom
+30.1.1 (22/09) ya existia; actualizado con npm 10 y suite completa en verde.
+
 **Para reabrir:** demostrar un detalle de evento que no sea una pagina del sitemap ni una de las
 palabras fijas, o una sugerencia equivocada para una ruta real que llegue a produccion.
 
