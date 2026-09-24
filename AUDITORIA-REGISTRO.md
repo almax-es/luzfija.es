@@ -3264,6 +3264,19 @@ pasa de 23 resultados sin relacion a 0 (el indice solo tiene "nocturno"; no se a
 de genero al stemmer porque desalinearian singular y plural, "tarifa"/"tarifas"). Regresiones en
 el mismo fichero, validadas por mutacion de las tres condiciones.
 
+**Revision externa del 24/09/2026 (ChatGPT, ejecutando el algoritmo de antes y despues con el
+indice real): dos regresiones REALES, CORREGIDAS.** "horario nocturno" pasaba de 17 resultados
+(consumo horario, adaptar horarios) a 1 tangencial, y "denunciar comercializadora" de 23 (reclamar
+primero) a 1. Barrido propio de 56 consultas: tambien "consumo nocturno", "denuncia compania",
+"darse de baja" (0) y "vender excedentes". Causa: con Y logico, una palabra que ninguna guia usa
+deja la busqueda vacia; antes "funcionaba" por accidente porque esa palabra casaba con "no" o "de".
+Arreglo sin reabrir el ruido: `QUERY_SYNONYMS` (nocturno -> noche, denunciar/queja -> reclamar,
+vender -> venta/compensacion; peso 0,85) y, solo en consultas de varias palabras con menos de 3
+guias completas, resultados parciales DETRAS, ordenados por palabras encontradas. Las busquedas de
+una palabra no cambian. Tambien `init()` idempotente por campo de busqueda (no duplica listeners ni
+eventos si se llama dos veces; hoy no era observable). Tests en `guides-search-tracking.test.js`,
+validados por mutacion de las tres piezas.
+
 **Tercer hallazgo, el texto "Coincide en contenido" (mismo dia, tras el despliegue 988cadb).**
 `formatMatch` recortaba el cuerpo entero de la guia desde el principio (117 caracteres), asi que
 el fragmento casi nunca contenia la palabra: en un barrido de 35 consultas, 219 de las 240

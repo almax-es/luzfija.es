@@ -208,3 +208,69 @@ describe('Buscador de guías: el fragmento de contenido muestra la palabra busca
     }
   });
 });
+
+// Revision externa del 24/09/2026 sobre la ronda 51: al quitar el ruido del prefijo inverso,
+// consultas con una palabra que las guias no usan se quedaron en un solo resultado tangencial.
+describe('Buscador de guías: sinónimos de consulta y resultados parciales', () => {
+  const guias = GuideSearch.prepareGuidesIndex(indiceReal.guides);
+  const primeros = (consulta, n = 2) => GuideSearch.searchGuides(guias, consulta).slice(0, n).map((r) => r.entry.path);
+
+  it.each([
+    ['horario nocturno', '/guias/como-ver-tu-consumo-horario-real-el-del-contador-no-el-estimado.html'],
+    ['horarios nocturnos', '/guias/como-adaptar-tus-horarios-para-pagar-menos-luz.html'],
+    ['denunciar comercializadora', '/guias/como-reclamar-a-comercializadora-distribuidora.html'],
+    ['denuncia compañía', '/guias/como-reclamar-a-comercializadora-distribuidora.html']
+  ])('"%s" vuelve a encontrar la guía que busca el usuario', (consulta, esperada) => {
+    expect(primeros(consulta)).toContain(esperada);
+    expect(GuideSearch.searchGuides(guias, consulta).length).toBeGreaterThanOrEqual(3);
+  });
+
+  it('una palabra que no usa ninguna guía no deja la búsqueda vacía, y lo parcial va detrás', () => {
+    const resultados = GuideSearch.searchGuides(guias, 'darse de baja');
+    expect(resultados.length).toBeGreaterThan(0);
+    expect(resultados[0].entry.path).toBe('/guias/mudanza-y-alquiler-cambio-de-titular-alta-baja-y-cosas-que-nadie-te-dice.html');
+    for (let i = 1; i < resultados.length; i += 1) {
+      expect(resultados[i - 1].matchedTerms).toBeGreaterThanOrEqual(resultados[i].matchedTerms);
+    }
+  });
+
+  it('una búsqueda con suficientes resultados completos no recibe relleno parcial', () => {
+    const resultados = GuideSearch.searchGuides(guias, 'placas solares');
+    expect(resultados.every((r) => r.matchedTerms === r.totalTerms)).toBe(true);
+  });
+
+  it('el fragmento de contenido encuentra también el sinónimo', () => {
+    const [primero] = GuideSearch.searchGuides(guias, 'horario nocturno')
+      .filter((r) => r.primaryMatch.label === 'contenido');
+    if (primero) {
+      const texto = GuideSearch.formatMatch(primero.primaryMatch, ['horario', 'nocturno', 'noche']);
+      expect(texto === 'Coincide en el contenido de la guía' || /noche|horario/i.test(texto)).toBe(true);
+    }
+  });
+});
+
+describe('Buscador de guías: init() idempotente', () => {
+  it('un segundo init() sobre el mismo buscador no duplica el evento de analítica', async () => {
+    vi.useFakeTimers();
+    try {
+      window.history.replaceState({}, '', '/guias.html');
+      renderGuidesDom();
+      const eventos = [];
+      window.__LF_trackDetail = (nombre) => eventos.push(nombre);
+      global.fetch = vi.fn(async () => ({ ok: true, json: async () => indiceReal }));
+      GuideSearch.init({ document, indexUrl: '/data/guides-search-index.json' });
+      GuideSearch.init({ document, indexUrl: '/data/guides-search-index.json' });
+      const input = document.getElementById('searchInput');
+      input.value = 'bono';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      await vi.advanceTimersByTimeAsync(3000);
+      expect(eventos.filter((e) => e === 'guias-busqueda')).toHaveLength(1);
+    } finally {
+      window.dispatchEvent(new Event('pagehide'));
+      vi.useRealTimers();
+      document.body.innerHTML = '';
+      delete window.__LF_trackDetail;
+      delete global.fetch;
+    }
+  });
+});

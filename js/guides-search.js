@@ -25,6 +25,23 @@
     'su', 'sus', 'te', 'tu', 'tus', 'un', 'una', 'uno', 'unos', 'unas', 'y'
   ]);
 
+  // Sinonimos de CONSULTA: palabras que la gente teclea y las guias no usan. Sin ellos, al exigir
+  // todas las palabras, "horario nocturno" o "denunciar comercializadora" se quedaban en un solo
+  // resultado tangencial (revision externa del 24/09/2026). Hasta la ronda 51 "funcionaban" por
+  // accidente: "nocturno" y "denunciar" casaban con las palabras "no" y "de" de cualquier guia.
+  // Claves y valores normalizados (sin tildes, minusculas).
+  const QUERY_SYNONYMS = {
+    nocturno: ['noche'], nocturna: ['noche'], nocturnos: ['noche'], nocturnas: ['noche'],
+    denunciar: ['reclamar', 'reclamacion'], denuncia: ['reclamar', 'reclamacion'], denuncias: ['reclamar', 'reclamacion'],
+    queja: ['reclamar', 'reclamacion'], quejas: ['reclamar', 'reclamacion'], quejarse: ['reclamar', 'reclamacion'],
+    vender: ['venta', 'compensacion']
+  };
+  // Un sinonimo cuenta algo menos que la palabra tecleada.
+  const SYNONYM_WEIGHT = 0.85;
+  // Por debajo de este numero de guias con TODAS las palabras, se anaden detras las parciales.
+  const PARTIAL_FALLBACK_BELOW = 3;
+  const INITIALIZED_INPUTS = new WeakSet();
+
   const STEM_SUFFIXES = [
     'aciones', 'uciones', 'imiento', 'imientos', 'amiento', 'amientos', 'adoras',
     'adores', 'adora', 'ador', 'ancias', 'ancia', 'logias', 'logia', 'mente',
@@ -209,7 +226,7 @@
     return bestMatch;
   }
 
-  function scoreGuideEntry(preparedEntry, query) {
+  function scoreGuideEntry(preparedEntry, query, options) {
     const normalizedQuery = normalizeText(query);
     if (!normalizedQuery) return null;
 
@@ -221,31 +238,42 @@
     const reasons = [];
     let primaryMatch = null;
 
+    let matchedTerms = 0;
     for (let index = 0; index < queryTokens.length; index += 1) {
       const term = queryTokens[index];
       const stem = queryStems[index];
       let bestTermMatch = null;
 
-      for (const rule of FIELD_RULES) {
-        const fieldValue = preparedEntry._fields[rule.key];
-        const match = rule.list
-          ? matchListField(fieldValue, term, stem, rule)
-          : matchScalarField(fieldValue, term, stem, rule);
+      // El termino tal cual y, con algo menos de peso, sus sinonimos de consulta.
+      const variants = [{ term, stem, weight: 1 }]
+        .concat((QUERY_SYNONYMS[term] || []).map((syn) => ({ term: syn, stem: stemToken(syn), weight: SYNONYM_WEIGHT })));
 
-        if (!match) continue;
+      for (const variant of variants) {
+        for (const rule of FIELD_RULES) {
+          const fieldValue = preparedEntry._fields[rule.key];
+          const match = rule.list
+            ? matchListField(fieldValue, variant.term, variant.stem, rule)
+            : matchScalarField(fieldValue, variant.term, variant.stem, rule);
 
-        const candidate = {
-          score: match.score,
-          label: rule.label,
-          snippet: match.snippet
-        };
+          if (!match) continue;
 
-        if (!bestTermMatch || candidate.score > bestTermMatch.score) {
-          bestTermMatch = candidate;
+          const candidate = {
+            score: match.score * variant.weight,
+            label: rule.label,
+            snippet: match.snippet
+          };
+
+          if (!bestTermMatch || candidate.score > bestTermMatch.score) {
+            bestTermMatch = candidate;
+          }
         }
       }
 
-      if (!bestTermMatch) return null;
+      if (!bestTermMatch) {
+        if (!options?.allowPartial) return null;
+        continue;
+      }
+      matchedTerms += 1;
 
       score += bestTermMatch.score;
       if (!primaryMatch || bestTermMatch.score > primaryMatch.score) {
@@ -297,23 +325,52 @@
       }
     }
 
+    if (!matchedTerms) return null;
+
     return {
       entry: preparedEntry,
       score,
       primaryMatch,
-      reasons: reasons.slice(0, 3)
+      reasons: reasons.slice(0, 3),
+      matchedTerms,
+      totalTerms: queryTokens.length
     };
   }
 
-  function searchGuides(preparedGuides, query) {
-    const results = (preparedGuides || [])
-      .map((entry) => scoreGuideEntry(entry, query))
-      .filter(Boolean);
-
+  function sortResults(results) {
     return results.sort((left, right) => {
       if (right.score !== left.score) return right.score - left.score;
       return String(left.entry.title || '').localeCompare(String(right.entry.title || ''), 'es');
     });
+  }
+
+  function searchGuides(preparedGuides, query) {
+    const guides = preparedGuides || [];
+    const full = sortResults(guides.map((entry) => scoreGuideEntry(entry, query)).filter(Boolean));
+    if (full.length >= PARTIAL_FALLBACK_BELOW || tokenizeQuery(query).length < 2) return full;
+
+    // Busqueda de varias palabras con casi ningun resultado completo: una palabra que las guias
+    // no usan ("horario nocturno", "darse de baja") no debe dejar al usuario sin nada. Se anaden
+    // DETRAS las guias que contienen parte de la consulta, mas palabras primero. Una busqueda que
+    // ya encuentra guias con todas sus palabras no cambia.
+    const fullPaths = new Set(full.map((result) => result.entry.path));
+    const partial = guides
+      .filter((entry) => !fullPaths.has(entry.path))
+      .map((entry) => scoreGuideEntry(entry, query, { allowPartial: true }))
+      .filter(Boolean);
+    const byMatched = new Map();
+    for (const result of partial) {
+      if (!byMatched.has(result.matchedTerms)) byMatched.set(result.matchedTerms, []);
+      byMatched.get(result.matchedTerms).push(result);
+    }
+    const ordered = [...byMatched.keys()].sort((a, b) => b - a).flatMap((k) => sortResults(byMatched.get(k)));
+    return full.concat(ordered);
+  }
+
+  // Terminos de la consulta mas sus sinonimos, para localizar el fragmento de contenido.
+  function expandQueryTerms(query) {
+    const terms = tokenizeQuery(query);
+    return unique(terms.concat(terms.flatMap((term) => QUERY_SYNONYMS[term] || [])));
   }
 
   const ACCENT_CLASSES = {
@@ -462,7 +519,7 @@
 
     noResults.classList.remove('show');
 
-    const queryTerms = tokenizeQuery(rawQuery);
+    const queryTerms = expandQueryTerms(rawQuery);
     for (const result of results) {
       const template = templateMap.get(result.entry.path);
       const card = template ? template.cloneNode(true) : buildFallbackCard(documentRef, result.entry);
@@ -534,6 +591,11 @@
     const statusElement = options?.statusElement || documentRef.getElementById('searchStatus');
     const categoryButtons = options?.categoryButtons || [...documentRef.querySelectorAll('.category-btn')];
     if (!searchInput || !guidesGrid || !noResults || !resultsContainer) return;
+    // Idempotente por campo de busqueda: un segundo init() sobre el mismo buscador duplicaba los
+    // listeners de input, click y pagehide, y cada instancia podia enviar su propio evento de
+    // analitica. Hoy guias.html lo llama una vez; esto evita que un cambio futuro lo rompa.
+    if (INITIALIZED_INPUTS.has(searchInput)) return;
+    INITIALIZED_INPUTS.add(searchInput);
 
     const allCards = [...documentRef.querySelectorAll('.guide-card[href]')];
     const gridCards = [...guidesGrid.querySelectorAll('.guide-card[href]')];
