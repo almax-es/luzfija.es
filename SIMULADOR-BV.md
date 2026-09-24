@@ -181,8 +181,8 @@ Soporte para 3 zonas con impuestos diferenciados:
 **Las tarifas incompatibles con el consumo se detectan, pero no se excluyen solas** (12/09/2026):
 la decisión de aplicar los límites es siempre del usuario, tenga un año completo o un periodo
 parcial. Se usa la misma utilidad que la home (`LF.assessConsumoAnualLimits`, `js/lf-utils.js`) y
-los mismos campos de `tarifas.json` (`maxConsumoAnual`; `minConsumoAnualExclusivo` se informa pero
-no filtra). Detalle en el Paso 3.5 del flujo de cálculo. La llamada está protegida con `typeof ... === 'function'` y un
+los mismos campos de `tarifas.json` (`maxConsumoAnual` y `maxConsumoAnualPorKw`, este con la menor
+de las potencias P1/P2 del formulario; `minConsumoAnualExclusivo` se informa pero no filtra). Detalle en el Paso 3.5 del flujo de cálculo. La llamada está protegida con `typeof ... === 'function'` y un
 fallback que deja pasar todas las tarifas: si `lf-utils.js` no cargara, el simulador no se rompe
 (ver `ARRANQUE-CARGA.md`).
 

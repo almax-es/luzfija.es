@@ -299,6 +299,81 @@ describe('Utilidades Base (lf-utils.js)', () => {
     });
   });
 
+  describe('assessConsumoAnualLimits: máximo proporcional a la potencia (maxConsumoAnualPorKw)', () => {
+    const porKw = { nombre: 'Por kW 1200', maxConsumoAnualPorKw: 1200 };
+
+    it('multiplica el tope por la potencia contratada y lo redondea a kWh con céntimos', () => {
+      // 3,45 x 1200 = 4140.000000000001 en coma flotante.
+      const dentro = window.LF.assessConsumoAnualLimits([porKw], {
+        consumoKwh: 4140, annualScope: true, coveredDays: 365, potenciaP1Kw: 3.45, potenciaP2Kw: 3.45
+      });
+      expect(dentro.excluidasReales).toEqual([]);
+
+      const fuera = window.LF.assessConsumoAnualLimits([porKw], {
+        consumoKwh: 4141, annualScope: true, coveredDays: 365, potenciaP1Kw: 3.45, potenciaP2Kw: 3.45
+      });
+      expect(fuera.excluidasReales[0]).toEqual({
+        tarifa: porKw,
+        tipo: 'maximo_por_kw',
+        limiteKwh: 4140,
+        porKwKwh: 1200,
+        potenciaKw: 3.45,
+        potenciasDistintas: false,
+        origen: 'registrado'
+      });
+      // Igual que el tope fijo: se señala, pero no sale del ranking sin permiso.
+      expect(fuera.compatibles).toEqual([porKw]);
+      expect(fuera.limitsChoiceAvailable).toBe(true);
+    });
+
+    it('con P1 y P2 distintas toma la menor y lo marca', () => {
+      // P1=5, P2=2: con la P1 el tope seria 6.000 kWh; con la menor, 2.400.
+      const r = window.LF.assessConsumoAnualLimits([porKw], {
+        consumoKwh: 3000, annualScope: true, coveredDays: 365, potenciaP1Kw: 5, potenciaP2Kw: 2
+      });
+      expect(r.excluidasReales[0]).toMatchObject({
+        tipo: 'maximo_por_kw', limiteKwh: 2400, potenciaKw: 2, potenciasDistintas: true
+      });
+
+      const aplicado = window.LF.assessConsumoAnualLimits([porKw], {
+        consumoKwh: 3000, annualScope: true, coveredDays: 365, potenciaP1Kw: 5, potenciaP2Kw: 2, applyLimits: true
+      });
+      expect(aplicado.compatibles).toEqual([]);
+    });
+
+    it('sin potencia utilizable no inventa un tope', () => {
+      for (const potencias of [{}, { potenciaP1Kw: 0, potenciaP2Kw: 0 }, { potenciaP1Kw: 'x', potenciaP2Kw: null }]) {
+        const r = window.LF.assessConsumoAnualLimits([porKw], {
+          consumoKwh: 99999, annualScope: true, coveredDays: 365, ...potencias
+        });
+        expect(r.excluidasReales).toEqual([]);
+        expect(r.limitsChoiceAvailable).toBe(false);
+      }
+    });
+
+    it('con tope fijo y tope por kW manda el más restrictivo', () => {
+      const ambos = { nombre: 'Ambos', maxConsumoAnual: 4000, maxConsumoAnualPorKw: 1200 };
+      const potenciaBaja = window.LF.assessConsumoAnualLimits([ambos], {
+        consumoKwh: 3000, annualScope: true, coveredDays: 365, potenciaP1Kw: 2.3, potenciaP2Kw: 2.3
+      });
+      expect(potenciaBaja.excluidasReales[0]).toMatchObject({ tipo: 'maximo_por_kw', limiteKwh: 2760 });
+
+      const potenciaAlta = window.LF.assessConsumoAnualLimits([ambos], {
+        consumoKwh: 4500, annualScope: true, coveredDays: 365, potenciaP1Kw: 5.75, potenciaP2Kw: 5.75
+      });
+      expect(potenciaAlta.excluidasReales[0]).toMatchObject({ tipo: 'maximo', limiteKwh: 4000 });
+    });
+
+    it('la estimación anual de un periodo parcial se contrasta también con el tope por kW', () => {
+      const r = window.LF.assessConsumoAnualLimits([porKw], {
+        consumoKwh: 500, coveredDays: 30, potenciaP1Kw: 4.6, potenciaP2Kw: 4.6
+      });
+      // 500 x 365 / 30 = 6.083 kWh > 4,6 x 1200 = 5.520
+      expect(r.excluidasEstimadas[0]).toMatchObject({ tipo: 'maximo_por_kw', limiteKwh: 5520, origen: 'estimacion' });
+      expect(r.excluidas).toEqual([]);
+    });
+  });
+
   describe('calcPvpcBonoSocial: Lógica Fiscal PVPC', () => {
     const calc = window.LF.calcPvpcBonoSocial;
 

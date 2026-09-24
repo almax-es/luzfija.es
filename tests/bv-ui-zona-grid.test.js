@@ -1856,6 +1856,46 @@ describe('BV: escenario compartido como previsualizacion', () => {
     expect(results.textContent).toContain('Solar máximo 3000');
   });
 
+  it('el tope por kW del simulador solar usa la menor de las potencias del formulario', async () => {
+    localStorage.setItem('bv_manual_data_v2', JSON.stringify(escenarioCosido()));
+    bootSolarUi();
+    document.getElementById('bv-p1').value = '5';
+    document.getElementById('bv-p2').value = '2';
+    const porKw = {
+      nombre: 'Solar por kW 1200',
+      p1: 0.05, p2: 0.02,
+      cPunta: 0.15, cLlano: 0.12, cValle: 0.09,
+      web: 'https://example.com/por-kw',
+      maxConsumoAnualPorKw: 1200,
+      fv: { bv: false, exc: 0.05, tipo: 'SIMPLE', tope: 'ENERGIA' }
+    };
+    window.BVSim.loadTarifasBV.mockImplementation(async () => ({
+      ok: true, updatedAt: '2026-09-15T00:00:00Z', tarifasBV: [porKw]
+    }));
+    window.BVSim.simulateForAllTarifasBV.mockImplementation(({ tarifasBV, months }) => ({
+      ok: true,
+      results: tarifasBV.map((tarifa) => ({
+        tarifa,
+        totals: { pagado: 100, real: 100, bvFinal: 0, credit1Total: 0, credit2Total: 0 },
+        rows: months.map((month) => ({
+          key: month.key, dias: month.daysWithData, importTotalKWh: month.importTotalKWh,
+          pot: 10, consEur: 75, credit1: 0, totalBase: 100, totalPagar: 100, bvSaldoPrev: 0, bvSaldoFin: 0
+        }))
+      }))
+    }));
+    const limites = vi.spyOn(window.LF, 'assessConsumoAnualLimits');
+
+    document.getElementById('bv-simulate').click();
+    await new Promise((resolve) => setTimeout(resolve, 180));
+
+    expect(limites.mock.calls.at(-1)[1]).toMatchObject({ consumoKwh: 3600, potenciaP1Kw: 5, potenciaP2Kw: 2 });
+    // 3.600 kWh superan 2 kW x 1.200 = 2.400: la tarifa sigue, pero con su aviso y la cuenta.
+    const results = document.getElementById('bv-results');
+    expect(results.textContent).toContain('Solar por kW 1200');
+    expect(results.textContent).toContain('por kW contratado');
+    expect(results.textContent).toContain('tu potencia más baja');
+  });
+
   it('recorrido unico: fichero Datadis -> cosido real -> rejilla -> respaldo -> otro navegador -> recarga', async () => {
     bootSolarUi();
     Object.assign(window.BVSim, REAL_BV);

@@ -1687,6 +1687,18 @@ document.addEventListener('DOMContentLoaded', () => {
   const fWholeKwh = (v) => Math.round(Number(v) || 0).toLocaleString('es-ES') + ' kWh';
   const fPrice = (v) => priceFmt.format(Number(v) || 0);
 
+  // Mismo texto que la home: un tope por kW solo se entiende con la cuenta delante, y si P1 y P2
+  // difieren se dice que se ha tomado la menor. Los valores son numericos, no requieren escape.
+  function describeConsumoLimit(item) {
+    if (item?.tipo !== 'maximo_por_kw') {
+      return `admite como máximo ${fWholeKwh(item?.limiteKwh)} al año`;
+    }
+    const base = `admite como máximo ${fWholeKwh(item.porKwKwh)} al año por kW contratado: ${fWholeKwh(item.limiteKwh)} con ${fKw(item.potenciaKw)} kW`;
+    return item.potenciasDistintas
+      ? `${base} (tu potencia más baja, porque la comercializadora no aclara cuál toma)`
+      : base;
+  }
+
   function buildConsumoLimitsMessage(info) {
     const excluded = Array.isArray(info?.excluidas) ? info.excluidas : [];
     const excludedReal = Array.isArray(info?.excluidasReales)
@@ -1732,7 +1744,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const listed = [...excludedReal, ...excludedEstimated];
     const items = listed.map((item) => {
       const name = escapeHtml(item?.tarifa?.nombre || 'Tarifa sin nombre');
-      const reason = `admite como máximo ${fWholeKwh(item.limiteKwh)} al año`;
+      const reason = describeConsumoLimit(item);
       const source = item?.origen === 'estimacion' ? ' Según la estimación anual.' : '';
       return `<li>${name}: ${reason}.${source}</li>`;
     }).join('');
@@ -3144,7 +3156,9 @@ document.addEventListener('DOMContentLoaded', () => {
           consumoKwh: consumoRegistradoKwh,
           annualScope: isAnnualConsumptionScope,
           coveredDays: consumptionCoverageDays,
-          useAnnualEstimate: useAnnualConsumptionEstimate
+          useAnnualEstimate: useAnnualConsumptionEstimate,
+          potenciaP1Kw: p1Val,
+          potenciaP2Kw: p2Val
         })
         : { consumoKwh: consumoRegistradoKwh, annualScope: isAnnualConsumptionScope, compatibles: tarifasResult.tarifasBV, excluidas: [] };
       // Se apaga cuando NO hay nada que decidir, no cuando falta la estimacion: con un año

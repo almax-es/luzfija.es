@@ -429,6 +429,28 @@ describe('Renderizado UI (lf-render.js)', () => {
     expect(toggle.dataset.enabled).toBe('true');
   });
 
+  it('Explica un tope por kW con la cuenta y avisa si se tomó la menor de dos potencias', () => {
+    window.LF.renderAll({
+      success: true,
+      resumen: { mejor: 'Tarifa Barata', precio: '50,00 €' },
+      stats: null,
+      resultados: [...mockRows],
+      limitesConsumo: {
+        consumoKwh: 3000,
+        excluidasReales: [
+          { tarifa: { nombre: 'Por kW iguales' }, tipo: 'maximo_por_kw', limiteKwh: 4140, porKwKwh: 1200, potenciaKw: 3.45, potenciasDistintas: false, origen: 'registrado' },
+          { tarifa: { nombre: 'Por kW distintas' }, tipo: 'maximo_por_kw', limiteKwh: 2400, porKwKwh: 1200, potenciaKw: 2, potenciasDistintas: true, origen: 'registrado' }
+        ],
+        limitsChoiceAvailable: true
+      }
+    });
+
+    const items = [...document.querySelectorAll('#consumoLimitsNotice li')].map((li) => li.textContent);
+    expect(items[0]).toMatch(/Por kW iguales: admite como máximo 1\.?200 kWh al año por kW contratado: 4\.?140 kWh con 3,45 kW\.$/);
+    expect(items[0]).not.toContain('potencia más baja');
+    expect(items[1]).toMatch(/2\.?400 kWh con 2 kW \(tu potencia más baja, porque la comercializadora no aclara cuál toma\)\.$/);
+  });
+
   it('Ofrece una estimación opt-in, explica su efecto y emite el cambio reversible', () => {
     const changeSpy = vi.fn();
     document.addEventListener('lf:annual-consumption-estimate-change', changeSpy, { once: true });

@@ -793,6 +793,22 @@
     return Math.round(Number(n) || 0).toLocaleString('es-ES') + ' kWh';
   }
 
+  function formatKw(n) {
+    return (Number(n) || 0).toLocaleString('es-ES', { maximumFractionDigits: 3 }) + ' kW';
+  }
+
+  // Un tope por kW solo se entiende con la cuenta delante; si P1 y P2 difieren, se dice que se
+  // ha tomado la menor, porque ninguna comercializadora aclara cual usa.
+  function describeConsumoLimit(item) {
+    if (item?.tipo !== 'maximo_por_kw') {
+      return `admite como máximo ${formatKwh(item?.limiteKwh)} al año`;
+    }
+    const base = `admite como máximo ${formatKwh(item.porKwKwh)} al año por kW contratado: ${formatKwh(item.limiteKwh)} con ${formatKw(item.potenciaKw)}`;
+    return item.potenciasDistintas
+      ? `${base} (tu potencia más baja, porque la comercializadora no aclara cuál toma)`
+      : base;
+  }
+
   function renderConsumoLimitsNotice(info) {
     const notice = document.getElementById('consumoLimitsNotice');
     if (!notice) return;
@@ -897,7 +913,7 @@
     listed.forEach((item) => {
       const entry = document.createElement('li');
       const name = String(item?.tarifa?.nombre || 'Tarifa sin nombre');
-      const requirement = `admite como máximo ${formatKwh(item.limiteKwh)} al año`;
+      const requirement = describeConsumoLimit(item);
       const source = item?.origen === 'estimacion' ? ' Según la estimación anual.' : '';
       entry.textContent = `${name}: ${requirement}.${source}`;
       list.appendChild(entry);

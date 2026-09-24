@@ -602,7 +602,9 @@
       consumoKwh: consumoTotalKwh,
       annualScope: alcanceAnual,
       coveredDays: dias,
-      useAnnualEstimate: Boolean(window.LF.state?.useAnnualConsumptionEstimate)
+      useAnnualEstimate: Boolean(window.LF.state?.useAnnualConsumptionEstimate),
+      potenciaP1Kw: p1,
+      potenciaP2Kw: p2
     });
     // Se apaga cuando NO hay nada que decidir, no cuando falta la estimacion: con un año
     // completo no hay proyeccion posible y aun asi el usuario puede aplicar o no los limites.

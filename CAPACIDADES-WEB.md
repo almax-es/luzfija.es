@@ -112,9 +112,12 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - Modal de desglose detallado al pulsar nombre o total.
 - Enlaces de contratacion (URL saneada, solo `http|https` o rutas relativas seguras).
 - Aviso de requisitos en tarifas concretas: tooltip con el texto libre del campo `requisitos` del
-  dataset. Es informativo y no filtra nada; el unico limite que puede llegar a excluir es
-  `maxConsumoAnual`, descrito en el punto siguiente, y solo si el usuario lo activa.
-- Exclusion por el requisito estructurado `maxConsumoAnual` de `tarifas.json`, SIEMPRE como
+  dataset. Es informativo y no filtra nada; los unicos limites que pueden llegar a excluir son
+  `maxConsumoAnual` y `maxConsumoAnualPorKw`, descritos en el punto siguiente, y solo si el
+  usuario lo activa.
+- Exclusion por los requisitos estructurados `maxConsumoAnual` (tope fijo en kWh/ano) y
+  `maxConsumoAnualPorKw` (kWh/ano por kW contratado, calculado con la MENOR de P1 y P2 porque la
+  comercializadora no aclara cual usa; 24/09/2026) de `tarifas.json`, SIEMPRE como
   decision del usuario (12/09/2026): ninguna tarifa se retira del ranking por si sola. Cuando el
   consumo supera un maximo contractual, un aviso propio (`#consumoLimitsNotice`, `role="note"`)
   ofrece un unico interruptor para aplicar esos limites, dice a cuantas tarifas afecta y despliega
@@ -432,8 +435,9 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - Compensacion limitada por energia.
 - Impuestos por zona.
 - BV (uso y acumulacion si la tarifa la soporta).
-- `maxConsumoAnual`, antes del ranking: se suman los kWh importados de los meses simulados y se
-  aplica la misma utilidad que en la home (`LF.assessConsumoAnualLimits`). Superar el maximo NO
+- `maxConsumoAnual` y `maxConsumoAnualPorKw`, antes del ranking: se suman los kWh importados de
+  los meses simulados y se aplica la misma utilidad que en la home (`LF.assessConsumoAnualLimits`),
+  con la menor de las potencias P1/P2 del formulario para el tope por kW. Superar el maximo NO
   retira la tarifa por si solo; el aviso desplegable dice cuales lo superan y el usuario decide,
   igual que en la home. Si aplica los limites, se retiran antes de ordenar. El criterio de ranking
   NO cambia: sigue siendo importe pagado con desempate por saldo BV final; esto solo quita
@@ -524,7 +528,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 42 (`js/*.{js,mjs}` + `js/bv/*.js`).
-- Lineas JS aproximadas: 34.078.
+- Lineas JS aproximadas: 34.147.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (117 tarifas).
@@ -615,7 +619,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Suite Vitest/JSDOM.
 - 134 archivos de test (`tests/*.test.js`).
-- 2190 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 2198 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

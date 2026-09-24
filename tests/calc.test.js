@@ -487,6 +487,43 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
     window.LF.state.useAnnualConsumptionEstimate = false;
   });
 
+  it('Contrasta el tope por kW con la menor de las potencias introducidas', async () => {
+    window.LF.cachedTarifas = [
+      { nombre: 'Por kW 1200', p1: 0.01, p2: 0.01, cPunta: 0.01, cLlano: 0.01, cValle: 0.01, tipo: '1P', maxConsumoAnualPorKw: 1200 },
+      { nombre: 'Sin límite', p1: 0.02, p2: 0.02, cPunta: 0.02, cLlano: 0.02, cValle: 0.02, tipo: '1P' }
+    ];
+
+    await window.LF.calculateLocal({
+      p1: 5, p2: 2, dias: 365,
+      cPunta: 3000, cLlano: 0, cValle: 0,
+      zonaFiscal: 'Península', viviendaCanarias: false,
+      solarOn: false, exTotal: 0, bvSaldo: 0,
+      bonoSocialOn: false, bonoSocialTipo: 'vulnerable', bonoSocialLimite: 1587,
+      fechaYmd: '2026-08-10'
+    });
+
+    // Con P1=5 el tope seria 6.000 kWh y no avisaria; con la menor (2 kW) es 2.400.
+    expect(window.LF.state.rows.map((r) => r.nombre)).toEqual(['Por kW 1200', 'Sin límite']);
+    expect(window.LF.renderAll.mock.calls.at(-1)?.[0].limitesConsumo.excluidasReales[0]).toMatchObject({
+      tarifa: expect.objectContaining({ nombre: 'Por kW 1200' }),
+      tipo: 'maximo_por_kw',
+      limiteKwh: 2400,
+      potenciasDistintas: true
+    });
+
+    window.LF.state.useAnnualConsumptionEstimate = true;
+    await window.LF.calculateLocal({
+      p1: 5, p2: 2, dias: 365,
+      cPunta: 3000, cLlano: 0, cValle: 0,
+      zonaFiscal: 'Península', viviendaCanarias: false,
+      solarOn: false, exTotal: 0, bvSaldo: 0,
+      bonoSocialOn: false, bonoSocialTipo: 'vulnerable', bonoSocialLimite: 1587,
+      fechaYmd: '2026-08-10'
+    });
+    expect(window.LF.state.rows.map((r) => r.nombre)).toEqual(['Sin límite']);
+    window.LF.state.useAnnualConsumptionEstimate = false;
+  });
+
   it('Mantiene las tarifas con mínimo aunque el año completo no lo alcance', async () => {
     window.LF.cachedTarifas = [
       { nombre: 'Tramo 4000', p1: 0.01, p2: 0.01, cPunta: 0.01, cLlano: 0.01, cValle: 0.01, tipo: '1P', maxConsumoAnual: 4000 },

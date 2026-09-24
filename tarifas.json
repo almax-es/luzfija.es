@@ -46,7 +46,8 @@
         "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
-      "requiereFV": false
+      "requiereFV": false,
+      "maxConsumoAnualPorKw": 1200.0
     },
     {
       "nombre": "TE A tu Aire Luz Siempre 5000",
@@ -1586,7 +1587,8 @@
         "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
-      "requiereFV": false
+      "requiereFV": false,
+      "maxConsumoAnualPorKw": 1200.0
     },
     {
       "nombre": "Bassols Hogar Solar 3P",
@@ -2437,5 +2439,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-24T15:52:43.029Z"
+  "updatedAt": "2026-09-24T16:17:32.999Z"
 }

@@ -121,7 +121,7 @@
 
   const CAMPOS_VERSION_RELEVANTES = [
     'tipo', 'p1', 'p2', 'cPunta', 'cLlano', 'cValle', 'fv', 'requiereFV',
-    'maxConsumoAnual', 'minConsumoAnualExclusivo', 'incluyeServiciosAjuste'
+    'maxConsumoAnual', 'maxConsumoAnualPorKw', 'minConsumoAnualExclusivo', 'incluyeServiciosAjuste'
   ];
 
   function valoresEquivalentes(a, b) {

@@ -162,18 +162,55 @@
   // sabe lo que no vio ni puede ir a negociarlo con la comercializadora.
   // `applyLimits` es el interruptor único; `useAnnualEstimate` se conserva como nombre heredado
   // de cuando solo gobernaba la proyección.
+  // `maxConsumoAnualPorKw` es un tope proporcional a la potencia ("1.200 kWh por cada kW
+  // contratado"). Ninguna fuente aclara que potencia usar cuando P1 y P2 difieren, asi que se
+  // toma la MENOR: avisar de mas deja la tarifa en el ranking con su aviso, mientras que avisar de
+  // menos manda al usuario a una tarifa que quiza no pueda contratar (decision 24/09/2026).
+  function potenciaReferenciaPorKw(p1, p2) {
+    const validas = [Number(p1), Number(p2)].filter((kw) => Number.isFinite(kw) && kw > 0);
+    return validas.length ? Math.min(...validas) : null;
+  }
+
+  function limiteMaximoTarifa(tarifa, potenciaKw, potenciasDistintas) {
+    const fijo = Number(tarifa?.maxConsumoAnual);
+    const porKw = Number(tarifa?.maxConsumoAnualPorKw);
+    const candidatos = [];
+    if (Number.isFinite(fijo) && fijo > 0) {
+      candidatos.push({ tipo: 'maximo', limiteKwh: fijo });
+    }
+    if (Number.isFinite(porKw) && porKw > 0 && potenciaKw !== null) {
+      candidatos.push({
+        tipo: 'maximo_por_kw',
+        // 3,45 x 1200 da 4140.000000000001 en coma flotante; el tope es un dato en kWh.
+        limiteKwh: Math.round(porKw * potenciaKw * 100) / 100,
+        porKwKwh: porKw,
+        potenciaKw,
+        potenciasDistintas
+      });
+    }
+    if (!candidatos.length) return null;
+    return candidatos.reduce((menor, actual) => (actual.limiteKwh < menor.limiteKwh ? actual : menor));
+  }
+
   function assessConsumoAnualLimits(tarifas, {
     consumoKwh = 0,
     annualScope = false,
     coveredDays = 0,
     useAnnualEstimate = false,
-    applyLimits
+    applyLimits,
+    potenciaP1Kw,
+    potenciaP2Kw
   } = {}) {
     const aplicarLimites = applyLimits === undefined
       ? Boolean(useAnnualEstimate)
       : Boolean(applyLimits);
     const consumo = clampNonNeg(consumoKwh);
     const dias = clampNonNeg(coveredDays);
+    const potenciaKw = potenciaReferenciaPorKw(potenciaP1Kw, potenciaP2Kw);
+    const potenciasDistintas = potenciaKw !== null
+      && Number.isFinite(Number(potenciaP1Kw)) && Number.isFinite(Number(potenciaP2Kw))
+      && Number(potenciaP1Kw) > 0 && Number(potenciaP2Kw) > 0
+      && Number(potenciaP1Kw) !== Number(potenciaP2Kw);
     const estimacionDisponible = !annualScope && dias > 0 && dias < 365;
     const consumoAnualEstimadoKwh = estimacionDisponible
       ? consumo * 365 / dias
@@ -185,14 +222,14 @@
     const excluidasEstimadas = [];
 
     (Array.isArray(tarifas) ? tarifas : []).forEach((tarifa) => {
-      const maximo = Number(tarifa?.maxConsumoAnual);
+      const limite = limiteMaximoTarifa(tarifa, potenciaKw, potenciasDistintas);
       let exclusionReal = null;
       let exclusionEstimada = null;
 
-      if (Number.isFinite(maximo) && maximo > 0 && consumo > maximo) {
-        exclusionReal = { tarifa, tipo: 'maximo', limiteKwh: maximo, origen: 'registrado' };
-      } else if (estimacionDisponible && Number.isFinite(maximo) && maximo > 0 && consumoAnualEstimadoKwh > maximo) {
-        exclusionEstimada = { tarifa, tipo: 'maximo', limiteKwh: maximo, origen: 'estimacion' };
+      if (limite && consumo > limite.limiteKwh) {
+        exclusionReal = { tarifa, ...limite, origen: 'registrado' };
+      } else if (limite && estimacionDisponible && consumoAnualEstimadoKwh > limite.limiteKwh) {
+        exclusionEstimada = { tarifa, ...limite, origen: 'estimacion' };
       }
 
       if (exclusionReal) {
