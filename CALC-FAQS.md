@@ -418,7 +418,7 @@ const horasPunta = esCeutaMelilla
 | Ceuta/Melilla | IPSI | — | 1% | 4% |
 
 **Normativa**:
-- Península: IVA estándar (Ley 37/1992). La rebaja temporal se desactivo el 01/06/2026. El IPC anual de electricidad de junio fue 6,0% y el definitivo de julio 8,4%: ninguno supera el umbral de mas del 15% del RDL 18/2026, asi que no se activa la reduccion ni en agosto ni en septiembre. Solo si ese umbral se superase tributarian al 10% los suministros contemplados por el articulo 11 y bajaria el IEE al 0,5% con minimo legal durante el mes afectado.
+- Península: IVA estándar (Ley 37/1992). La rebaja temporal se desactivo el 01/06/2026. El IPC anual de electricidad de junio fue 6,0% y el definitivo de julio 8,4%: ninguno supera el umbral de mas del 15% del RDL 18/2026, asi que no se activa la reduccion ni en agosto ni en septiembre. El RDL 18/2026 no regula octubre: desde el 01/10/2026 siguen los tipos generales salvo norma posterior (comprobado a 24/09/2026). Solo si ese umbral se superase tributarian al 10% los suministros contemplados por el articulo 11 y bajaria el IEE al 0,5% con minimo legal durante el mes afectado.
 - Canarias: IGIC Ley 20/1991, reducción vivienda
 - Ceuta/Melilla: IPSI Ley 8/1991
 

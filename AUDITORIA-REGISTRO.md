@@ -5596,3 +5596,32 @@ de fecha las dos guias con el rotulo visible nuevo y el simulador (sus enlaces c
 **Vigilancia.** `tests/a11y-axe-regressions.test.js` (estatico, validado por mutacion) y los casos
 nuevos de `tests/seo-date-logic.test.js`. No sustituye al escaneo: repetirlo al anadir paginas o
 componentes. Sigue sin haberse probado con un lector de pantalla real ni con zoom al 400 %.
+
+<a id="vigencia-normativa-ronda-54-24-09-2026"></a>
+### Vigencia Normativa A 24/09/2026 (Ronda 54)
+
+**Origen.** Revision externa (ChatGPT con acceso al repo e internet; declaro que no hizo lectura
+literal frase por frase de las 25 guias, sino pasada dirigida a las areas de riesgo) sobre
+valores regulados, reglas de calculo, textos publicos y vencimientos. Contraste propio en BOE.
+
+**Fiscalidad de octubre: sin cambios.** El RDL 18/2026 solo regula agosto y septiembre; no se ha
+localizado norma posterior. Desde el 01/10/2026 siguen IVA 21 % e IEE 5,11269632 %. Valores de
+`lf-config.js` confirmados: IGIC 0/3/7 % y umbral 10 kW, IPSI 1/4 %, IEE y minimo 1 EUR/MWh,
+bono social 42,5/57,5 % hasta 31/12/2026 (RDL 7/2026), financiacion 9,011295 EUR/CUPS/ano hasta
+la orden de 2027 (Orden TED/634/2026), contador 0,81 EUR/mes, peajes y cargos 2026, margen PVPC
+3,113 EUR/kW ano, limites de 10 y 15 kW. Compensacion simplificada y bateria virtual (comercial,
+no regulada) correctas. RD 88/2026 alineado en las guias revisadas.
+
+**Unico cambio: Auto+ Linea 2**, convocada en el BOE de 24/09/2026 (BOE-B-2026-30841, BDNS 931088;
+leido el extracto): empresas y autonomos, sin concesionarios, 50 M EUR, solicitudes del
+01/10/2026 10:00 al 31/12/2026 14:00. Anadido a la guia de coche electrico como actualizacion
+FECHADA propia, sin mover el sello "revisada a 14/09/2026" del resto del bloque (moverlo exigiria
+reverificar todos sus porcentajes y condiciones). Actualizado `MANTENIMIENTO-NORMATIVO.md`.
+
+**Anotado, no elevado:** `calcularBonoSocial` usa la financiacion vigente (9,011295) para
+cualquier periodo, tambien una curva CSV anterior al 01/07/2026. Para tratarlo como error haria
+falta fijar el valor anterior y el alcance temporal que pretende simular el comparador.
+
+**Vencimientos a vigilar:** 31/12/2026 fin de plazo Auto+ (ambas lineas), fin de los porcentajes
+2026 del bono social y de las deducciones IRPF de movilidad electrica; 01/01/2027 peajes, cargos
+y financiacion del bono social.
