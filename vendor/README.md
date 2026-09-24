@@ -4,11 +4,11 @@ Este directorio contiene librerías de terceros alojadas localmente para garanti
 
 **Última actualización del inventario:** 02/09/2026
 
-**Última comprobación de versiones upstream:** 14/09/2026
+**Última comprobación de versiones upstream:** 24/09/2026
 
-**Última revisión general documentada de vulnerabilidades:** 17/08/2026 — comprobación de GitHub Advisory Database para las versiones exactas vendorizadas cuando existe paquete versionado, más revisión del repositorio upstream para GoatCounter. PDF.js se volvió a contrastar específicamente con GitHub Advisory Database el 29/08/2026 al actualizarlo. Es una comprobación fechada, no una garantía permanente.
+**Última revisión general documentada de vulnerabilidades:** 24/09/2026 (GitHub Advisory Database por paquete npm: ningún advisory publicado afecta a las versiones vendorizadas; todos los existentes son de rangos anteriores). Revisión completa anterior: 17/08/2026 — comprobación de GitHub Advisory Database para las versiones exactas vendorizadas cuando existe paquete versionado, más revisión del repositorio upstream para GoatCounter. PDF.js se volvió a contrastar específicamente con GitHub Advisory Database el 29/08/2026 al actualizarlo. Es una comprobación fechada, no una garantía permanente.
 
-### Estado frente a upstream (14/09/2026)
+### Estado frente a upstream (24/09/2026)
 
 | Librería | Vendorizada | Upstream | Estado |
 |---|---|---|---|
@@ -99,7 +99,7 @@ Motor de reconocimiento óptico de caracteres (WASM + JS).
 - **Carga:** lazy desde `js/factura.js` sin `?v=` en `workerPath`, `corePath` ni `langPath`; `langPath` es una URL de directorio que Tesseract usa para construir rutas internas.
 - ⚠️ **Punto ciego conocido de la revisión de advisories (03/09/2026):** `tesseract.js-core` **compila el Tesseract C/C++ original dentro del `.wasm`**. Consultar advisories del paquete npm y del repositorio `naptha/tesseract.js-core` —que es lo que se hizo el 17/08/2026— **NO cubre las vulnerabilidades de ese componente nativo**: una auditoría npm puede quedar en verde con un advisory abierto en el código C/C++ empaquetado. Upstream ha publicado vulnerabilidades en la carga de ficheros `.traineddata` (escrituras fuera de límites en versiones anteriores del motor), y su mitigación declarada es usar modelos de fuente confiable.
   - **Por qué hoy no es explotable aquí:** el usuario aporta la imagen, nunca el modelo. `js/factura.js` fija `langPath` a `vendor/tessdata/`, el idioma a `spa` y `corePath` al fichero local; no hay ninguna ruta por la que un `.traineddata` de terceros llegue al motor. El vector documentado upstream exige justamente eso.
-  - **Qué hacer en la próxima revisión:** contrastar además la versión del motor Tesseract que empaqueta el `.wasm` vendorizado, no solo el paquete JS. Mientras el modelo siga siendo el nuestro y venga del repo, un advisory de `.traineddata` no cambia el riesgo de LuzFija, pero sí debe quedar registrado en vez de darse por cubierto por la consulta a npm.
+  - **Versión del motor, contrastada el 24/09/2026:** el `.wasm` vendorizado (idéntico byte a byte al de `tesseract.js-core@7.0.0` de npm) incrusta la cadena `5.1.0-288-g2a9c1`: un fork de Tesseract 5.1.0 con 288 commits encima, que es el que compila el propio proyecto (su README declara el fork y sus cambios). No existe un core posterior compatible con el wrapper 7.0.0, así que no hay actualización disponible; el riesgo sigue acotado por lo del punto anterior (modelo propio, nunca de terceros). En la próxima revisión, repetir esta lectura sobre el `.wasm` nuevo si cambia.
 - **Archivos JS:**
   - `tesseract/tesseract.min.js`
     - **SHA-256:** `000c27d9cd0def655f77b36c72a389c0ab13793aa31cb4d7aab56d09c0afbc7e`
