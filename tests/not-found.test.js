@@ -133,3 +133,25 @@ describe('404: integración', () => {
     expect(fs.readFileSync(path.join(root, 'sw.js'), 'utf8')).toContain('"js/not-found.js"');
   });
 });
+
+// El "Sabias que..." de la 404 llevaba un mito (la habitacion 404 del CERN, desmentido por el
+// propio CERN), un PVPC que "se actualiza cada hora" (se publica la vispera) y cifras sin fuente
+// ("hasta un 50 %", "hasta un 70 %", "mas de 350 comercializadoras"). 24/09/2026: sustituidos por
+// datos que las guias ya verifican.
+describe('404: el "Sabías que..." solo afirma datos verificables', () => {
+  const html = fs.readFileSync(path.join(root, '404.html'), 'utf8');
+  const bloque = html.slice(html.indexOf('const facts = ['), html.indexOf('];', html.indexOf('const facts = [')));
+
+  it('no repite el mito del CERN ni cifras de ahorro sin fuente', () => {
+    expect(bloque).not.toMatch(/CERN/i);
+    expect(bloque).not.toMatch(/hasta un \d+ ?%/i);
+    expect(bloque).not.toMatch(/cada hora/i);
+    expect(bloque).not.toMatch(/más de \d+ comercializadoras/i);
+  });
+
+  it('muestra un dato real aunque no se ejecute JavaScript', () => {
+    expect(html).not.toContain('>Cargar...<');
+    expect(html).toMatch(/id="funFact">[^<]{20,}</);
+  });
+});
+

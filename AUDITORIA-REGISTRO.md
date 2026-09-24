@@ -5476,5 +5476,13 @@ Pages (status 404, sin errores JS, sin scroll horizontal en movil, enlace legibl
 26 tests en `tests/not-found.test.js`, validados por mutacion (ambiguedad, privacidad del detalle,
 palabras de la home y stopwords `guia`/`guias`).
 
+**Copy de la 404 (mismo dia).** El "Sabias que..." afirmaba que el 404 viene de una habitacion
+del CERN (mito que el propio CERN desmiente), que el PVPC "se actualiza cada hora" (se publica la
+vispera, hacia las 20:15) y cifras sin fuente ("hasta un 50 %", "hasta un 70 % en verano", "mas de
+350 comercializadoras"). Sustituido por datos que las guias ya verifican (horarios de P1/P3, CUPS,
+IGIC/IPSI, tope de la compensacion simplificada, publicacion del PVPC); el texto inicial
+"Cargar..." pasa a ser un dato real para quien no ejecute JavaScript. Lo vigila
+`tests/not-found.test.js`.
+
 **Para reabrir:** demostrar un detalle de evento que no sea una pagina del sitemap ni una de las
 palabras fijas, o una sugerencia equivocada para una ruta real que llegue a produccion.

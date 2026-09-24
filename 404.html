@@ -166,19 +166,20 @@ html.light-mode .btn-small:hover{
 
 <div class="fun-fact">
 <div class="fun-fact-title">💡 Sabías que...</div>
-<div class="fun-fact-text" id="funFact">Cargar...</div>
+<div class="fun-fact-text" id="funFact">En la tarifa 2.0TD la punta (P1) va de lunes a viernes de 10 a 14 h y de 18 a 22 h</div>
 </div>
 </div>
 
 </main>
 <script>
 const facts = [
-  "El código 404 viene de la habitación 404 del CERN donde estaba el primer servidor web",
-  "La tarifa valle de discriminación horaria puede ahorrarte hasta un 50% en consumo nocturno",
-  "En España hay más de 350 comercializadoras de luz diferentes",
-  "El PVPC se actualiza cada hora con los precios del mercado mayorista",
-  "Un coche eléctrico consume unos 15-20 kWh cada 100 km",
-  "Las placas solares pueden reducir tu factura hasta un 70% en verano"
+  "Un error 404 significa que el servidor responde pero no encuentra la dirección pedida: la web funciona, el enlace no",
+  "En la tarifa 2.0TD la punta (P1) va de lunes a viernes de 10 a 14 h y de 18 a 22 h",
+  "Los fines de semana no hay punta ni llano: todo el día cuenta como valle (P3)",
+  "Los precios del PVPC de cada día se publican la tarde anterior: por la noche ya puedes consultar los de mañana",
+  "El CUPS tiene 20 o 22 caracteres, empieza por ES y normalmente no cambia aunque cambies de comercializadora",
+  "En Canarias la factura de la luz no lleva IVA sino IGIC, y en Ceuta y Melilla, IPSI",
+  "Con compensación simplificada, lo que te descuentan por excedentes no puede superar lo que pagas por la energía de la red en esa factura"
 ];
 document.getElementById('funFact').textContent = facts[Math.floor(Math.random() * facts.length)];
 
