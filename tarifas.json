@@ -36,7 +36,7 @@
       "p2": 0.07733,
       "web": "https://www.energianufri.com/es/tarifas-luz",
       "tipo": "1P",
-      "requisitos": "Consumo inferior a 4.000 kWh/año.",
+      "requisitos": "Consumo máximo de 1.200 kWh/año por cada kW de potencia contratada.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.03,
@@ -46,8 +46,7 @@
         "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
-      "requiereFV": false,
-      "maxConsumoAnual": 4000.0
+      "requiereFV": false
     },
     {
       "nombre": "TE A tu Aire Luz Siempre 5000",
@@ -1577,7 +1576,7 @@
       "p2": 0.07733,
       "web": "https://www.energianufri.com/es/tarifas-luz",
       "tipo": "3P",
-      "requisitos": "Consumo inferior a 4.000 kWh/año.",
+      "requisitos": "Consumo máximo de 1.200 kWh/año por cada kW de potencia contratada.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.03,
@@ -1587,8 +1586,7 @@
         "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
-      "requiereFV": false,
-      "maxConsumoAnual": 4000.0
+      "requiereFV": false
     },
     {
       "nombre": "Bassols Hogar Solar 3P",
@@ -2439,5 +2437,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-24T15:06:11.579Z"
+  "updatedAt": "2026-09-24T15:41:37.941Z"
 }
