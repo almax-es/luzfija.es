@@ -5506,6 +5506,15 @@ una 3P tipica la punta dobla el valle). Al barrer la afirmacion aparecio otra ci
 La cifra "hasta un 25 %" de Auto+ se conserva: es del RD 609/2026. Tercera observacion: jsdom
 30.1.1 (22/09) ya existia; actualizado con npm 10 y suite completa en verde.
 
+**Segunda revision externa (mismo dia, sobre 79603a2).** Confirmo sin hallazgo: la frase de P3
+frente a la Circular 3/2020; "la punta es la franja mas cara" en las 52 tarifas 3P de
+`tarifas.json` (ninguna con `cPunta` menor que llano o valle); el churn del lockfile (metadatos
+`libc` que npm 10 no escribe) y las fechas. CORREGIDO: el pie del consumo fantasma que escribi en
+79603a2 era demasiado absoluto ("todas las horas", "nunca baja"); en aerotermia, "ahorras 20-30
+EUR/mes" y "burletes: cuesta 50 EUR y ahorra 15-20 EUR/mes" sin condicion ni calculo; los rangos de
+servicios extra se rotulan como orientativos. NO se toca "400-800 EUR/ano" de placas: ya se
+presenta como orden de magnitud, condicionado y con fecha.
+
 **Para reabrir:** demostrar un detalle de evento que no sea una pagina del sitemap ni una de las
 palabras fijas, o una sugerencia equivocada para una ruta real que llegue a produccion.
 
