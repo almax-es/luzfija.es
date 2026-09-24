@@ -252,8 +252,10 @@ del `sort` y antes de construir `processed`, en este orden:
 
 1. `requiereFV`: si el usuario no tiene solar, fuera las que exigen autoconsumo.
 2. Límites de consumo: `LF.assessConsumoAnualLimits(candidatas, { consumoKwh, annualScope,
-   coveredDays, useAnnualEstimate })` con `consumoKwh = cPunta + cLlano + cValle`,
-   `annualScope = dias >= 365` y `coveredDays = dias`. Este paso solo retira tarifas si el
+   coveredDays, useAnnualEstimate, potenciaP1Kw, potenciaP2Kw })` con
+   `consumoKwh = cPunta + cLlano + cValle`, `annualScope = dias >= 365`, `coveredDays = dias` y las
+   potencias P1/P2 del formulario, que solo usa `maxConsumoAnualPorKw` (tope por kW, con la menor
+   de las dos; ver `JSON-SCHEMA.md`). Este paso solo retira tarifas si el
    usuario ha aplicado los límites; por defecto devuelve todas como compatibles.
 
 El orden importa. Al filtrar antes de `processed`, se recalculan sobre el conjunto compatible la

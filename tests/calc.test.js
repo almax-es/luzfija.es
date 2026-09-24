@@ -521,6 +521,19 @@ describe('Motor de Cálculo (lf-calc.js)', () => {
       fechaYmd: '2026-08-10'
     });
     expect(window.LF.state.rows.map((r) => r.nombre)).toEqual(['Sin límite']);
+
+    // Cambiar la potencia es otro escenario: la exclusion decidida con 2 kW no se arrastra, aunque
+    // con 2,3 kW (tope 2.760) la tarifa siga superando su limite.
+    await window.LF.calculateLocal({
+      p1: 5, p2: 2.3, dias: 365,
+      cPunta: 3000, cLlano: 0, cValle: 0,
+      zonaFiscal: 'Península', viviendaCanarias: false,
+      solarOn: false, exTotal: 0, bvSaldo: 0,
+      bonoSocialOn: false, bonoSocialTipo: 'vulnerable', bonoSocialLimite: 1587,
+      fechaYmd: '2026-08-10'
+    });
+    expect(window.LF.state.useAnnualConsumptionEstimate).toBe(false);
+    expect(window.LF.state.rows.map((r) => r.nombre)).toEqual(['Por kW 1200', 'Sin límite']);
     window.LF.state.useAnnualConsumptionEstimate = false;
   });
 

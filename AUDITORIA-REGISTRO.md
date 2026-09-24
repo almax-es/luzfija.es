@@ -737,8 +737,8 @@ ellos, no por el mecanismo original ya corregido.
  nunca deje el fichero real a medias. Esto es evidencia adicional de que la validacion "fuera del
  repositorio" de este apartado es real y se mantiene al dia, no solo una afirmacion de intencion.
 - Reforzado de nuevo el mismo dia (14/08/2026, segunda tanda de la misma auditoria cruzada): el
- contrato tambien exige, si `minConsumoAnualExclusivo`/`maxConsumoAnual` (columnas T/U) tienen
- contenido, que sean numeros finitos positivos, que `T < U` cuando ambos existan, y que
+ contrato tambien exige, si `minConsumoAnualExclusivo`/`maxConsumoAnual` (columnas T/U, y desde
+ el 24/09/2026 `maxConsumoAnualPorKw` en la W) tienen contenido, que sean numeros finitos positivos, que `T < U` cuando ambos existan, y que
  `Requisitos` no este vacio — antes de esto, `parse_float_any()` convertia un valor invalido
  (ej. "4000 aprox") a `0.0` y lo descartaba en silencio sin abortar la generacion.
 - Reforzado una tercera vez el mismo dia (14/08/2026, tercera tanda de la misma auditoria
@@ -796,7 +796,7 @@ revision tecnica; no las reportes como hallazgo.
  advierte que calefaccion, aire acondicionado y la epoca del ano pueden desviarla; con menos de
  28 dias se refuerza el aviso, pero no se oculta porque la entrada admite cualquier periodo.
 - **La estimacion es estado efimero.** No se persiste en `localStorage`, no viaja en enlaces
- compartidos y vuelve a desactivada al recargar o al cambiar los kWh/dias que la sustentan. En
+ compartidos y vuelve a desactivada al recargar o al cambiar los kWh/dias (o P1/P2) que la sustentan. En
  solar se avisa ademas del sesgo estacional.
 - **El maximo se contrasta siempre contra los kWh registrados, con cualquier periodo.** No es una
  estimacion: es monotono. Si ya hay 4.001 kWh registrados, ningun dato futuro baja de 4.000.
@@ -4186,8 +4186,9 @@ sigue siendo correcto, pero el aviso de dia incompleto dejaria de verse a diario
  decidido). `excluidasReales` sigue listando las que superan el maximo aunque no se apliquen:
  alimenta el aviso. `useAnnualEstimate` se conserva como nombre heredado de cuando solo gobernaba
  la proyeccion; renombrarlo tocaria cinco ficheros y el estado persistido sin cambiar conducta.
-- **La eleccion no se arrastra entre escenarios**: cambiar consumo o dias invalida
- `annualConsumptionEstimateBasis` y reinicia el interruptor. Verificado en produccion el
+- **La eleccion no se arrastra entre escenarios**: cambiar consumo o dias (y desde el 24/09/2026
+ tambien P1/P2, por el tope por kW) invalida `annualConsumptionEstimateBasis` y reinicia el
+ interruptor. Verificado en produccion el
  12/09/2026 con un año real: 7.182 kWh -> 104 tarifas; al aplicar -> 90; bajando a 4.766 kWh y
  recalculando -> 104 otra vez, con el aviso rehecho de 14 tarifas afectadas a 6.
 - **Que queda superado de la entrada del 13/08/2026** (`Limites De Consumo Anual`), que sigue
@@ -5625,3 +5626,28 @@ falta fijar el valor anterior y el alcance temporal que pretende simular el comp
 **Vencimientos a vigilar:** 31/12/2026 fin de plazo Auto+ (ambas lineas), fin de los porcentajes
 2026 del bono social y de las deducciones IRPF de movilidad electrica; 01/01/2027 peajes, cargos
 y financiacion del bono social.
+
+<a id="tope-de-consumo-por-kw-24-09-2026"></a>
+### Tope De Consumo Por kW Contratado (24/09/2026)
+
+- **Decision de producto, no defecto.** `maxConsumoAnualPorKw` (columna W del Excel) modela
+ condiciones del tipo "Para puntos con un consumo de 1200 kWh por cada kW de potencia contratada"
+ (Nufri Sin Horarios y Nufri Con Horarios 3P). `assessConsumoAnualLimits` lo multiplica por la
+ potencia y lo trata igual que `maxConsumoAnual`: aviso siempre, exclusion solo con el
+ interruptor, en la home y en el simulador solar. Si una tarifa trae los dos, manda el mas bajo.
+- **Se usa la MENOR de P1 y P2, y es FIRME. NO lo reportes como bug ni propongas P1, la mayor o
+ la suma.** La comercializadora no aclara que potencia toma ni responde de forma fiable. Los dos
+ errores no pesan igual: avisar de mas deja la tarifa en el ranking con su aviso; avisar de menos
+ manda al usuario a una tarifa que quiza no pueda contratar. Cuando P1 != P2 el aviso lo dice.
+- **Es un MAXIMO, no un minimo.** La frase no lleva "hasta", pero el autor lo lee como tope (las
+ tarifas mas baratas se reservan a consumos bajos, y antes Nufri publicaba un maximo de 4.000
+ kWh). No se reabre por la ambiguedad del texto.
+- **Por que no bastaba el texto en `requisitos`.** Con solo el texto, Nufri salia primera a gente
+ que no puede contratarla sin ningun aviso personalizado; con el campo, cada usuario ve si su
+ consumo supera SU tope y con que potencia se ha calculado.
+- **Sin potencia utilizable (> 0) no se aplica**, igual que un limite ausente se ignora.
+- **P1/P2 entran en `annualConsumptionEstimateBasis`** en `lf-calc.js` y `bv-ui.js`: cambiar la
+ potencia cambia que tarifas superan su tope, y una exclusion decidida para otro escenario no
+ debe arrastrarse (test en `tests/calc.test.js`, validado por mutacion).
+- Tests: `tests/utils.test.js` (logica), `tests/calc.test.js` (home), `tests/render-ui.test.js`
+ (texto del aviso) y `tests/bv-ui-zona-grid.test.js` (solar). Semantica en `JSON-SCHEMA.md`.

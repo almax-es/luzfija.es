@@ -584,7 +584,9 @@
     // parcial, la estimación anual solo filtra si el usuario la activa.
     const consumoTotalKwh = cPunta + cLlano + cValle;
     const alcanceAnual = dias >= 365;
-    const estimateBasis = `${dias}|${consumoTotalKwh}`;
+    // La potencia entra en la base desde que existe el tope por kW: cambiarla cambia que tarifas
+    // superan su limite, y una exclusion decidida para otro escenario no debe arrastrarse.
+    const estimateBasis = `${dias}|${consumoTotalKwh}|${p1}|${p2}`;
     if (window.LF.state?.useAnnualConsumptionEstimate) {
       if (window.LF.state.annualConsumptionEstimateBasis === null) {
         window.LF.state.annualConsumptionEstimateBasis = estimateBasis;

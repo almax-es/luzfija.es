@@ -3142,7 +3142,8 @@ document.addEventListener('DOMContentLoaded', () => {
           + (Number(month.importByPeriod?.P3) || 0);
         return total + (Number.isFinite(direct) ? Math.max(0, direct) : byPeriod);
       }, 0);
-      const estimateBasis = `${consumptionCoverageDays}|${consumoRegistradoKwh}`;
+      // La potencia entra en la base por el tope por kW: cambiarla cambia las tarifas afectadas.
+      const estimateBasis = `${consumptionCoverageDays}|${consumoRegistradoKwh}|${p1Val}|${p2Val}`;
       if (useAnnualConsumptionEstimate) {
         if (annualConsumptionEstimateBasis === null) {
           annualConsumptionEstimateBasis = estimateBasis;
