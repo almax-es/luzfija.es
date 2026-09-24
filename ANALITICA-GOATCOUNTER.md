@@ -115,6 +115,10 @@ Ejemplos:
 - `comparador-bono-social-tipo/vulnerable`
 - `comparador-bono-social-limite/nivel-4`
 - `comparador-zona-fiscal/canarias`
+- `comparador-vivienda-canarias/activado` o `/desactivado`
+- `csv-opcion/home/excedentes/activado` y `csv-opcion/home/pvpc-periodo/desactivado` (opciones del modal de importacion)
+- `modal-info-abierto/home/solar` (boton de informacion de autoconsumo)
+- `pvpc-modal-abierto/pvpc` o `/surplus` y `pvpc-modal-tipo/pvpc` o `/surplus` (vista rapida de precios; el valor sale del selector, nunca de texto libre)
 - `csv-import-iniciado/home`
 - `csv-import-preview/home/csv`
 - `csv-import-aplicado/home/consumos-excedentes/pvpc-periodo`
@@ -150,6 +154,7 @@ Ejemplos:
 - `accion-solar/borrar-datos`
 - `simulador-solar-mes-inicio/6`
 - `simulador-solar-zona-fiscal/peninsula`
+- `simulador-solar-vivienda-canarias/activado` o `/desactivado`
 - `simulador-solar-mi-tarifa-bv/activado`
 
 Los enlaces de tarifa generados por el simulador llevan `data-lf-track-context="solar"` y `data-lf-track-tarifa="..."` para evitar inferencias fragiles desde el DOM.
@@ -736,6 +741,9 @@ Antes de anadir un evento:
 8. Si la pagina nueva carga tracking, actualiza CSP.
 9. Si anades un HTML publico real, debe pasar `tests/tracking-html-coverage.test.js`.
 10. Anade o actualiza tests cuando el evento sea nuevo, sensible o compartido por varias paginas.
+
+`tests/tracking-taxonomy-docs.test.js` falla si el codigo emite una base de evento que no
+aparece en este documento: documentar el evento es parte de anadirlo, no un paso opcional.
 
 ## 9. Guard Legacy: prepareGoatCounterGuard Y wrapGoatCounterCount
 

@@ -5486,3 +5486,25 @@ IGIC/IPSI, tope de la compensacion simplificada, publicacion del PVPC); el texto
 
 **Para reabrir:** demostrar un detalle de evento que no sea una pagina del sitemap ni una de las
 palabras fijas, o una sugerencia equivocada para una ruta real que llegue a produccion.
+
+<a id="taxonomia-analitica-documentada-24-09-2026"></a>
+### Taxonomia De Analitica Frente A Su Documentacion (24/09/2026)
+
+**Origen.** Pregunta del usuario tras las rondas 51 y 52: si los cambios de analitica estaban
+controlados. `vendor/goatcounter/` y `js/tracking.js` no se tocaron en esas rondas (verificado
+con `git log`); los unicos cambios fueron dos emisores sobre la API existente (`guias-busqueda`,
+que solo cambia de momento de envio, y `pagina-404`, nuevo), ambos documentados.
+
+**Hallazgo.** No habia ningun test que atara el codigo a `ANALITICA-GOATCOUNTER.md`, y 7 bases
+emitidas desde `tracking.js` no aparecian en la doc. Seis son legitimas y de valores cerrados
+(`comparador-vivienda-canarias`, `simulador-solar-vivienda-canarias`, `csv-opcion`,
+`modal-info-abierto`, `pvpc-modal-abierto`, `pvpc-modal-tipo`): documentadas. La septima,
+`csv-exportado`, era codigo muerto: escuchaba `#btnExport`, un boton retirado que no existe en
+ninguna pagina (el propio `cleanup-regression` ya lo vigilaba en `lf-state.js`). Retirado el
+listener y extendida esa regresion a `tracking.js`.
+
+**Guard nuevo.** `tests/tracking-taxonomy-docs.test.js` recorre `js/` y los HTML y exige que toda
+base emitida con nombre literal aparezca en la doc como `base` o `base/...`. Los envoltorios cuyo
+primer argumento es un detalle (`trackStatsInitIncomplete`, `trackErrorRecurrence`) se excluyen
+por nombre y sus bases reales se comprueban aparte. Validado por mutacion: borrar `pagina-404` de
+la doc o reintroducir el listener muerto rompe el test correspondiente.

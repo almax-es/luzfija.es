@@ -276,6 +276,7 @@ estes auditando; no hace falta leerlo entero.
 - [Flecos De Centimos De Las Rondas 45 Y 46, Resueltos (Ronda 49, 23/09/2026)](AUDITORIA-REGISTRO.md#flecos-de-centimos-resueltos-ronda-49-23-09-2026)
 - [Minimo Del IEE Con Energia Compensada: Cambio Revertido (Ronda 50, 23/09/2026)](AUDITORIA-REGISTRO.md#minimo-iee-compensacion-revertido-ronda-50-23-09-2026)
 - [Pagina 404 Y URLs Antiguas (Ronda 52, 24/09/2026)](AUDITORIA-REGISTRO.md#pagina-404-y-urls-antiguas-ronda-52-24-09-2026)
+- [Taxonomia De Analitica Frente A Su Documentacion (24/09/2026)](AUDITORIA-REGISTRO.md#taxonomia-analitica-documentada-24-09-2026)
 <!-- REGISTRO-INDICE:FIN -->
 
 ## Hallazgos Que Si Serian Relevantes

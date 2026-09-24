@@ -1795,13 +1795,6 @@ try {
       });
     });
 
-    // 2. Trackear exportación de CSV legacy si el botón existe
-    const btnExport = document.getElementById('btnExport');
-    if (btnExport) {
-      btnExport.addEventListener('click', function() {
-        trackDetailedEvent('csv-exportado', currentPageKey(), { title: 'Usuario descargó CSV' });
-      });
-    }
 
     // NOTA: Los botones del modal de factura NO se trackean por privacidad
     // El modal activa __LF_PRIVACY_MODE automáticamente al abrirse

@@ -35,9 +35,9 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
   - 26 en `guias/` (indice + 25 guias).
   - 1 en otras rutas de compatibilidad.
 - 42 modulos JavaScript en `js/` (incluye `js/bv/`).
-- 34.002 lineas JS aproximadas.
+- 33.995 lineas JS aproximadas.
 - 117 tarifas en `tarifas.json`.
-- Suite de tests Vitest con 132 archivos y 2136 casos.
+- Suite de tests Vitest con 133 archivos y 2136 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 

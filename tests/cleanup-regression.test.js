@@ -43,8 +43,10 @@ describe('Cleanup regressions', () => {
     expect(reloadBlock).toMatch(/\breloadPage\s*\(/);
   });
 
-  it('lf-state.js no mantiene referencia obsoleta a btnExport', () => {
-    const code = fs.readFileSync(path.resolve(__dirname, '../js/lf-state.js'), 'utf8');
+  // tracking.js conservo hasta el 24/09/2026 un listener de `csv-exportado` sobre este boton
+  // retirado: nunca se ejecutaba y el evento no llego a enviarse.
+  it.each(['lf-state.js', 'tracking.js'])('%s no mantiene referencia obsoleta a btnExport', (fichero) => {
+    const code = fs.readFileSync(path.resolve(__dirname, '../js/' + fichero), 'utf8');
     expect(code).not.toMatch(/\bbtnExport\b/);
   });
 
