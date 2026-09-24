@@ -197,7 +197,9 @@ Ejemplos:
 
 La busqueda de guias se mide por buckets:
 
-- Resultados: `0`, `1`, `2-5`, `6-10`, `10-plus`.
+- Resultados: `0`, `1`, `2-5`, `6-10`, `10-plus`. Cuenta solo las guias que contienen TODAS las
+  palabras de la consulta; las "relacionadas" que el buscador anade detras (varias palabras y
+  menos de 3 completas, maximo 5) no son aciertos y no suman. Desde el 24/09/2026.
 - Longitud de busqueda: `vacia`, `1-3`, `4-8`, `9-16`, `17-plus`.
 
 No se envia la busqueda literal. Tampoco debe viajar por referrer gracias al saneo de `window.goatcounter.referrer`.

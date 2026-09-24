@@ -40,6 +40,11 @@
   const SYNONYM_WEIGHT = 0.85;
   // Por debajo de este numero de guias con TODAS las palabras, se anaden detras las parciales.
   const PARTIAL_FALLBACK_BELOW = 3;
+  // Como mucho estas guias parciales ("relacionadas") detras de las completas.
+  const MAX_PARTIAL_RESULTS = 5;
+  // Palabras que salen en casi todas las guias: validas en una busqueda completa, pero por si
+  // solas no hacen "relacionada" a una guia ("precio luz hoy" colaba cualquier titulo con "luz").
+  const GENERIC_TERMS = new Set(['luz', 'tarifa', 'tarifas', 'factura', 'facturas', 'precio', 'precios', 'energia', 'electricidad']);
   const INITIALIZED_INPUTS = new WeakSet();
 
   const STEM_SUFFIXES = [
@@ -239,6 +244,7 @@
     let primaryMatch = null;
 
     let matchedTerms = 0;
+    const termMatches = [];
     for (let index = 0; index < queryTokens.length; index += 1) {
       const term = queryTokens[index];
       const stem = queryStems[index];
@@ -274,6 +280,7 @@
         continue;
       }
       matchedTerms += 1;
+      termMatches.push({ term, label: bestTermMatch.label });
 
       score += bestTermMatch.score;
       if (!primaryMatch || bestTermMatch.score > primaryMatch.score) {
@@ -333,7 +340,8 @@
       primaryMatch,
       reasons: reasons.slice(0, 3),
       matchedTerms,
-      totalTerms: queryTokens.length
+      totalTerms: queryTokens.length,
+      termMatches
     };
   }
 
@@ -357,14 +365,22 @@
     const partial = guides
       .filter((entry) => !fullPaths.has(entry.path))
       .map((entry) => scoreGuideEntry(entry, query, { allowPartial: true }))
-      .filter(Boolean);
+      // Solo parciales con alguna coincidencia en un campo fuerte (titulo, resumen, alias,
+      // seccion, FAQ...). Coincidir unicamente en el cuerpo de la guia no basta: "baja" o
+      // "servicio" sueltos en el texto llenaban la lista de relleno (revision del 24/09/2026).
+      // Y esa coincidencia fuerte tiene que ser de una palabra distintiva, no de "luz" o "tarifa".
+      .filter((result) => result && result.termMatches.some((m) => m.label !== 'contenido' && !GENERIC_TERMS.has(m.term)));
     const byMatched = new Map();
     for (const result of partial) {
       if (!byMatched.has(result.matchedTerms)) byMatched.set(result.matchedTerms, []);
       byMatched.get(result.matchedTerms).push(result);
     }
     const ordered = [...byMatched.keys()].sort((a, b) => b - a).flatMap((k) => sortResults(byMatched.get(k)));
-    return full.concat(ordered);
+    return full.concat(ordered.slice(0, MAX_PARTIAL_RESULTS));
+  }
+
+  function countCompleteResults(results) {
+    return (results || []).filter((result) => !result.totalTerms || result.matchedTerms === result.totalTerms).length;
   }
 
   // Terminos de la consulta mas sus sinonimos, para localizar el fragmento de contenido.
@@ -513,7 +529,10 @@
 
     if (statusElement) {
       statusElement.hidden = false;
-      statusElement.textContent = `${results.length} resultado${results.length === 1 ? '' : 's'} para "${normalizeWhitespace(rawQuery)}"`;
+      const completos = countCompleteResults(results);
+      const relacionados = results.length - completos;
+      statusElement.textContent = `${completos} resultado${completos === 1 ? '' : 's'} para "${normalizeWhitespace(rawQuery)}"`
+        + (relacionados ? ` · ${relacionados} relacionado${relacionados === 1 ? '' : 's'}` : '');
       statusElement.dataset.state = 'ready';
     }
 
@@ -813,7 +832,9 @@
         if (miTurno !== accionVigente) return;
         const results = searchGuides(guides, rawQuery);
         renderSearchResults(config, results, rawQuery);
-        scheduleSearchTrack(['index', resultBucket(results.length), queryLengthBucket(rawQuery)], 'Búsqueda guías: ' + resultBucket(results.length));
+        // El bucket cuenta solo guias con TODAS las palabras: las relacionadas no son aciertos.
+        const completos = countCompleteResults(results);
+        scheduleSearchTrack(['index', resultBucket(completos), queryLengthBucket(rawQuery)], 'Búsqueda guías: ' + resultBucket(completos));
       } catch (_) {
         if (miTurno !== accionVigente) return;
         fallbackSearch(rawQuery);

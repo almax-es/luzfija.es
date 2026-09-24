@@ -274,3 +274,52 @@ describe('Buscador de guías: init() idempotente', () => {
     }
   });
 });
+
+// Segunda revision externa del 24/09/2026: el relleno parcial sin limites devolvia 20 tarjetas
+// para "darse de baja" (ninguna con las dos palabras) y las contaba como resultados en el
+// contador y en la analitica.
+describe('Buscador de guías: los relacionados no son relleno', () => {
+  const guias = GuideSearch.prepareGuidesIndex(indiceReal.guides);
+  const relacionados = (consulta) => GuideSearch.searchGuides(guias, consulta)
+    .filter((r) => r.matchedTerms !== r.totalTerms);
+
+  it.each(['darse de baja', 'cancelar servicio', 'precio luz hoy', 'luz cara invierno', 'potencia maxima'])(
+    '"%s": como mucho 5 relacionados, cada uno por una palabra distintiva fuera del cuerpo',
+    (consulta) => {
+      const lista = relacionados(consulta);
+      expect(lista.length).toBeLessThanOrEqual(5);
+      for (const r of lista) {
+        expect(r.termMatches.some((m) => m.label !== 'contenido'
+          && !['luz', 'tarifa', 'tarifas', 'factura', 'facturas', 'precio', 'precios', 'energia', 'electricidad'].includes(m.term))).toBe(true);
+      }
+    }
+  );
+
+  it('"precio luz hoy" no rellena con guías que solo llevan "luz" en el título', () => {
+    expect(relacionados('precio luz hoy')).toEqual([]);
+  });
+
+  it('el contador separa resultados y relacionados, y la analítica cuenta solo los completos', async () => {
+    vi.useFakeTimers();
+    try {
+      window.history.replaceState({}, '', '/guias.html');
+      renderGuidesDom();
+      const eventos = [];
+      window.__LF_trackDetail = (nombre, detalle) => eventos.push([nombre, ...[].concat(detalle)].join('/'));
+      global.fetch = vi.fn(async () => ({ ok: true, json: async () => indiceReal }));
+      GuideSearch.init({ document, indexUrl: '/data/guides-search-index.json' });
+      const input = document.getElementById('searchInput');
+      input.value = 'darse de baja';
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      await vi.advanceTimersByTimeAsync(3000);
+      expect(document.getElementById('searchStatus').textContent).toMatch(/^0 resultados para "darse de baja" · \d relacionados?$/);
+      expect(eventos).toEqual(['guias-busqueda/index/0/9-16']);
+    } finally {
+      window.dispatchEvent(new Event('pagehide'));
+      vi.useRealTimers();
+      document.body.innerHTML = '';
+      delete window.__LF_trackDetail;
+      delete global.fetch;
+    }
+  });
+});

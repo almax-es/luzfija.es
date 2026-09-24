@@ -3277,6 +3277,15 @@ una palabra no cambian. Tambien `init()` idempotente por campo de busqueda (no d
 eventos si se llama dos veces; hoy no era observable). Tests en `guides-search-tracking.test.js`,
 validados por mutacion de las tres piezas.
 
+**Segunda revision externa (mismo dia, sobre 3ca31ca): el relleno parcial era ruido. CORREGIDO.**
+Error mio: el barrido ya mostraba "darse de baja" con 20 resultados y 0 completos, y lo di por
+bueno porque el primero era el correcto. El contador decia "20 resultados" y la analitica lo
+contaba en `10-plus`. Ahora los relacionados exigen una coincidencia de una palabra DISTINTIVA
+(no "luz", "tarifa", "factura", "precio", "energia", "electricidad") en un campo fuerte (no el
+cuerpo de la guia), son como mucho 5, el contador dice "N resultados · M relacionados" y el
+bucket de `guias-busqueda` cuenta solo los completos. "darse de baja": 20 -> 4 relacionados;
+"cancelar servicio": 14 -> 2; "precio luz hoy": 5 -> 0. Validado por mutacion de las cuatro reglas.
+
 **Tercer hallazgo, el texto "Coincide en contenido" (mismo dia, tras el despliegue 988cadb).**
 `formatMatch` recortaba el cuerpo entero de la guia desde el principio (117 caracteres), asi que
 el fragmento casi nunca contenia la palabra: en un barrido de 35 consultas, 219 de las 240
