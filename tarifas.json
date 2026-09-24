@@ -1321,6 +1321,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Nufri 2a Residencia",
+      "cPunta": 0.204582,
+      "cLlano": 0.204582,
+      "cValle": 0.204582,
+      "p1": 0.08373,
+      "p2": 0.009815,
+      "web": "https://www.energianufri.com/es/landing/2a-luz",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Fenie Fijo Uniprecio",
       "cPunta": 0.205426,
       "cLlano": 0.205426,
@@ -1336,26 +1356,6 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Nufri 2a Residencia",
-      "cPunta": 0.20971,
-      "cLlano": 0.20971,
-      "cValle": 0.20971,
-      "p1": 0.08373,
-      "p2": 0.009815,
-      "web": "https://www.energianufri.com/es/landing/2a-luz",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.04,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -2360,9 +2360,9 @@
     },
     {
       "nombre": "Nufri 2a Residencia 3P",
-      "cPunta": 0.285781,
-      "cLlano": 0.198904,
-      "cValle": 0.158512,
+      "cPunta": 0.279089,
+      "cLlano": 0.194054,
+      "cValle": 0.1544,
       "p1": 0.08373,
       "p2": 0.009815,
       "web": "https://www.energianufri.com/es/landing/2a-luz",
@@ -2400,9 +2400,9 @@
     },
     {
       "nombre": "Nufri Solar 3P",
-      "cPunta": 0.300042,
-      "cLlano": 0.213166,
-      "cValle": 0.172773,
+      "cPunta": 0.29335,
+      "cLlano": 0.208315,
+      "cValle": 0.168661,
       "p1": 0.111519,
       "p2": 0.037604,
       "web": "https://www.energianufri.com/es/tarifas-luz",
@@ -2439,5 +2439,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-24T08:57:00.112Z"
+  "updatedAt": "2026-09-24T15:06:11.579Z"
 }
