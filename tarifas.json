@@ -2294,27 +2294,6 @@
       "requiereFV": true
     },
     {
-      "nombre": "Iberdrola Solar 3P",
-      "cPunta": 0.249,
-      "cLlano": 0.1699,
-      "cValle": 0.1249,
-      "p1": 0.091781,
-      "p2": 0.047945,
-      "web": "https://www.iberdrola.es/luz/plan-ahorro-solar",
-      "tipo": "3P",
-      "requisitos": "Potencia > 10 kW ->Permanencia 1 año.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.04,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": true
-    },
-    {
       "nombre": "Iner La Clásica 3P",
       "cPunta": 0.25636,
       "cLlano": 0.17452,
@@ -2437,5 +2416,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-25T12:48:52.444Z"
+  "updatedAt": "2026-09-25T13:11:03.401Z"
 }
