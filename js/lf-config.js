@@ -19,8 +19,8 @@
  * - IVA: Ley 37/1992 + RDL 7/2026, RDL 10/2026 y RDL 18/2026 (agosto y septiembre al 21%, mismo mecanismo
  *   y meses de referencia que el IEE: junio determina agosto, julio determina septiembre — el de julio
  *   fue del 8,4% anual, por debajo del umbral que activaría la reducción)
- * - IGIC: Ley 4/2012 Art. 52 (0% vivienda ≤10kW, 3% otros, 7% contador)
- * - IPSI: Ley 8/1991 Art. 18 (1% electricidad, 4% servicios)
+ * - IGIC: Ley 4/2012 (0% vivienda ≤10kW: art. 52.r; 3% otros: art. 54; 7% contador: tipo general, art. 51)
+ * - IPSI: Ley 8/1991 Art. 18 solo fija la horquilla 0,5-10%; el 1% electricidad y el 4% servicios/contador salen de las ordenanzas de Ceuta y Melilla
  * - Alquiler contador: Orden ITC/3860/2007 (0,81 €/mes)
  */
 
@@ -274,7 +274,7 @@
         codigoPostalAPI: '35001',
         impuestos: {
           tipo: 'IGIC',
-          energiaVivienda: 0,      // 0% vivienda ≤10kW (Ley 4/2012 Art. 52)
+          energiaVivienda: 0,      // 0% vivienda ≤10kW (Ley 4/2012 Art. 52.r)
           energiaOtros: 0.03,      // 3% resto
           contador: 0.07,          // 7% tipo general
         },
@@ -288,7 +288,7 @@
         codigoPostalAPI: '51001',
         impuestos: {
           tipo: 'IPSI',
-          energia: 0.01,           // 1% consumo eléctrico (Ley 8/1991 Art. 18)
+          energia: 0.01,           // 1% consumo eléctrico (ordenanzas Ceuta/Melilla; Ley 8/1991 Art. 18 solo da la horquilla)
           contador: 0.04,          // 4% servicios (alquiler)
         },
         requiereCheckboxVivienda: false

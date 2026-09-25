@@ -5651,3 +5651,33 @@ y financiacion del bono social.
  debe arrastrarse (test en `tests/calc.test.js`, validado por mutacion).
 - Tests: `tests/utils.test.js` (logica), `tests/calc.test.js` (home), `tests/render-ui.test.js`
  (texto del aviso) y `tests/bv-ui-zona-grid.test.js` (solar). Semantica en `JSON-SCHEMA.md`.
+
+<a id="ciclo-de-vida-del-navegador-ronda-55-25-09-2026"></a>
+### Ciclo De Vida Del Navegador (Ronda 55, 25/09/2026)
+
+Auditoria externa (ChatGPT, solo lectura de codigo, sin navegador) de bfcache, varias pestanas,
+reanudacion tras suspension y session restore. Primera vez que se mira este angulo. Verificado
+por Claude contra el codigo; no se reprodujo en Chrome. **Sin cambios de codigo: ambos hallazgos
+son decisiones.**
+
+- **Resultado PVPC tras cruzar medianoche (el informe lo daba como ALTA; aqui BAJA, NO REABRIR).**
+ Es cierto que `refreshTarifasAndMaybeRecalc` (`js/lf-app.js`) solo recalcula si cambia
+ `tarifas.json.updatedAt`, y que `getPvpcAnchorDate` (`js/pvpc.js`) si depende del dia. Con la
+ pestana abierta de un dia para otro, el ranking conserva el PVPC de la ventana anterior. No es
+ silencioso: `renderPvpcInfo` (`js/lf-render.js`) muestra el "Periodo oficial" y la fecha de
+ consulta, y la ventana solo se desplaza un dia de unos 30 (efecto de centimos). Recalcular solo
+ por cambio de dia contradiria el contrato de "Cambios pendientes. Pulsa Calcular" y un toast
+ seria ruido. Pulsar Calcular lo resuelve.
+- **Dos pestanas editando a la vez (BAJA, NO REABRIR).** `lf_custom_tarifa`
+ (`js/lf-tarifa-custom.js`, autosave a 800 ms) y `bv_manual_data_v2` (`js/bv/bv-ui.js`,
+ `persistManualScenario`) siguen "gana la ultima escritura" y no hay listener de `storage` en
+ `js/`. Exige editar el mismo dato en dos pestanas simultaneas; sincronizar pestanas anade
+ superficie de bugs para un caso casi inexistente.
+- **Sin defecto:** estado en memoria, modales y `modalScrollLock` tras bfcache; timers sin
+ duplicar; `pvpc_cache_v3` con el dia en la clave; `sessionStorage` aislado por pestana;
+ migracion v1/v2 del simulador; precedencia `localStorage` sobre el autocompletado en session
+ restore; comparacion de build del SW (ronda 42).
+- **Anotado sin medir:** `tracking.js` registra `beforeunload` (solo cambia un estado interno) y,
+ segun MDN, Firefox puede excluir del bfcache esas paginas; `lf-app.js` y `lf-sw-update.js` no
+ escuchan `pageshow`. El Observatorio abierto de un dia para otro no se rerenderiza, pero
+ muestra la fecha del ultimo dato. Ninguno produce un importe erroneo.
