@@ -30,6 +30,7 @@ describe('Guide regulatory guardrails', () => {
     expect(facturaGuide).toContain('ni el IPC anual de electricidad de junio (6,0%) ni el definitivo de julio (8,4%)');
     expect(facturaGuide).toContain('por lo que en agosto y septiembre se mantiene el IVA general del 21%');
     expect(facturaGuide).toContain('RDL 18/2026');
+    expect(facturaGuide).toContain('no regula octubre, así que desde el 01/10/2026 sigue el 21%');
     expect(facturaGuide).not.toContain('pendiente de la condición legal de IPC para septiembre');
   });
 
