@@ -486,26 +486,6 @@
       "minConsumoAnualExclusivo": 4000.0
     },
     {
-      "nombre": "Seneo Tarifa 2 Fija 24h con Monedero Solar",
-      "cPunta": 0.129,
-      "cLlano": 0.129,
-      "cValle": 0.129,
-      "p1": 0.089,
-      "p2": 0.089,
-      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.06,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": true
-    },
-    {
       "nombre": "Gana Energía 24h",
       "cPunta": 0.129,
       "cLlano": 0.129,
@@ -546,6 +526,26 @@
         "precioBV": 0.0
       },
       "requiereFV": false
+    },
+    {
+      "nombre": "Seneo Tarifa 2 Fija 24h con Monedero Solar",
+      "cPunta": 0.129,
+      "cLlano": 0.129,
+      "cValle": 0.129,
+      "p1": 0.099,
+      "p2": 0.099,
+      "web": "https://www.seneo.org/es/tarifa-fija-24h-con-monedero-solar/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": true
     },
     {
       "nombre": "Octopus Relax",
@@ -1650,12 +1650,34 @@
       "requiereFV": false
     },
     {
+      "nombre": "Gana Energía Tramos Horarios 3P",
+      "cPunta": 0.181,
+      "cLlano": 0.114,
+      "cValle": 0.09,
+      "p1": 0.089434,
+      "p2": 0.089434,
+      "web": "https://ganaenergia.com/tarifas-luz/tramos-horarios",
+      "tipo": "3P",
+      "requisitos": "Monedero virtual incluido durante las 12 primeras facturas; después, desde unos 2,13 €/mes",
+      "promo": "10 € de descuento en cada una de las 10 primeras facturas con el código DESC100 (IVA incluido). Algunos usuarios indican que no siempre se lo aplican al contratar: conviene solicitarlo expresamente y confirmarlo antes de firmar.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Seneo Tarifa 2 Tramos Horarios con Monedero Solar 3P",
       "cPunta": 0.181,
       "cLlano": 0.114,
       "cValle": 0.09,
-      "p1": 0.089,
-      "p2": 0.089,
+      "p1": 0.099,
+      "p2": 0.099,
       "web": "https://www.seneo.org/es/tarifa-tramos-horarios-con-monedero-solar/",
       "tipo": "3P",
       "incluyeServiciosAjuste": true,
@@ -1674,8 +1696,8 @@
       "cPunta": 0.181,
       "cLlano": 0.114,
       "cValle": 0.09,
-      "p1": 0.089,
-      "p2": 0.089,
+      "p1": 0.099,
+      "p2": 0.099,
       "web": "https://www.seneo.org/es/tarifa-tramos-horarios/",
       "tipo": "3P",
       "incluyeServiciosAjuste": true,
@@ -1685,28 +1707,6 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Gana Energía Tramos Horarios 3P",
-      "cPunta": 0.181,
-      "cLlano": 0.114,
-      "cValle": 0.09,
-      "p1": 0.089434,
-      "p2": 0.089434,
-      "web": "https://ganaenergia.com/tarifas-luz/tramos-horarios",
-      "tipo": "3P",
-      "requisitos": "Monedero virtual incluido durante las 12 primeras facturas; después, desde unos 2,13 €/mes",
-      "promo": "10 € de descuento en cada una de las 10 primeras facturas con el código DESC100 (IVA incluido). Algunos usuarios indican que no siempre se lo aplican al contratar: conviene solicitarlo expresamente y confirmarlo antes de firmar.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.06,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -2437,5 +2437,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-25T09:22:20.816Z"
+  "updatedAt": "2026-09-25T12:48:52.444Z"
 }
