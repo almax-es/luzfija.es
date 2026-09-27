@@ -5681,3 +5681,44 @@ son decisiones.**
  segun MDN, Firefox puede excluir del bfcache esas paginas; `lf-app.js` y `lf-sw-update.js` no
  escuchan `pageshow`. El Observatorio abierto de un dia para otro no se rerenderiza, pero
  muestra la fecha del ultimo dato. Ninguno produce un importe erroneo.
+
+<a id="export-goatcounter-25-27-09-2026"></a>
+### Export GoatCounter 25-27/09/2026: Triaje De Errores
+
+Revision exhaustiva, pedida por el usuario, de todos los `error-*`, `init-incompleto/*` y
+`csv-import-error/*` del export `2026-09-27T16:04:29Z` filtrado a `hour >= 2026-09-25`, cruzando
+cada familia con los dos meses de historico del mismo export. Deduplicado por incidente (hora,
+build, navegador y companeros), separando los `/diferido`, que no se pueden datar.
+
+**Unico cambio: `error-descartado/fetch-ajeno` (telemetria, sin impacto para el usuario).** La
+extension SafeSearch llamaba a `fetch()` hacia `safesearchinc.com` desde la pagina (guias, Chrome
+153). La peticion pasaba por la envoltura de `installFetchDiagnostics` (`js/tracking.js`), la
+bloqueaba `connect-src` y su rechazo no capturado llegaba con `tracking.js:1726` (`nativeFetch.call`)
+como unico frame con URL: salia como `error-promise/tracking/1726`, un falso error propio. Ahora la
+envoltura marca en un `WeakSet` los rechazos de `fetch` HTTP(S) a otro origen, y el manejador de
+promesas los descarta como `fetch-ajeno` despues de los filtros `extension`/`stack-cross-origin`.
+Es seguro porque `connect-src` solo permite `'self'` y GoatCounter, y ningun modulo propio pide otro
+origen por `fetch`. Dos tests en ventana JSDOM aislada (caso ajeno y control same-origin que debe
+seguir saliendo como `error-promise`); validado por mutacion. La violacion CSP companera sigue
+mostrando `same-origin/tracking/1726` como iniciador: lo rellena el navegador y el eje objetivo
+(`safesearchinc-com`) ya la identifica como ajena.
+
+**Sin accion (NO REABRIR con este mismo patron):**
+- Cascadas de `error-script-load` en la home (25/09 13h Chrome 153: 4 scripts; 27/09 06h Chrome
+ 152: scripts 10 a 20 del HTML, contiguos, primera visita sin SW, sonda `p200j`). Es el corte de
+ red a mitad de carga que se repite cada pocos dias en todos los builds desde agosto; el watchdog
+ y la recarga automatica (`client-recovery-auto`) actuaron.
+- `error-network/tarifas` + `fetch-terminal`: pestana oculta al arrancar, sonda con timeout o sin
+ red, o navegador offline. Dos se recuperaron en `a2` (`network-recovered`). Los
+ `sin-datos-iniciales` son de builds anteriores y llegaron diferidos.
+- CSP de extensiones: `eval` en Firefox (113 en una sola pestana, `ge10`), `simplycodes-com`
+ (38, una pestana Safari), `megabonus-com`, `safesearchinc-com`, `inline` con iniciador
+ `extension`. `font-src` a `gstatic` en la home aparece en casi todos los builds desde el 04/08, 2
+ por pestana y con iniciador `chrome-extension` cuando existe; ningun HTML, CSS ni JS propio
+ referencia `gstatic` ni `fonts.googleapis`. Tampoco es nuevo `script-src-elem/inline/sin-source`:
+ pocas pestanas por build desde el 06/08; un hash roto afectaria a todos los visitantes.
+- `csv-import-error/*`: ficheros del usuario no validos, por diseno.
+- `fetch-terminal/tarifas/failed/calculate/a1/20260924-164228` sin su `tarifas-impacto`
+ companero (tambien en `20260821-104221`): ambos se emiten seguidos y sincronos
+ (`js/lf-cache.js`, bloque final de `fetchTarifas`), asi que es perdida o retraso de entrega del
+ outbox, no un camino de codigo. Limite ya documentado en `ANALITICA-GOATCOUNTER.md` 6.5.1.

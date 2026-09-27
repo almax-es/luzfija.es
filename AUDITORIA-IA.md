@@ -284,6 +284,7 @@ estes auditando; no hace falta leerlo entero.
 - [Vigencia Normativa A 24/09/2026 (Ronda 54)](AUDITORIA-REGISTRO.md#vigencia-normativa-ronda-54-24-09-2026)
 - [Tope De Consumo Por kW Contratado (24/09/2026)](AUDITORIA-REGISTRO.md#tope-de-consumo-por-kw-24-09-2026)
 - [Ciclo De Vida Del Navegador (Ronda 55, 25/09/2026)](AUDITORIA-REGISTRO.md#ciclo-de-vida-del-navegador-ronda-55-25-09-2026)
+- [Export GoatCounter 25-27/09/2026: Triaje De Errores](AUDITORIA-REGISTRO.md#export-goatcounter-25-27-09-2026)
 <!-- REGISTRO-INDICE:FIN -->
 
 ## Hallazgos Que Si Serian Relevantes

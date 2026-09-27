@@ -1006,6 +1006,62 @@ describe('Tracking error filtering and occurrence counting', () => {
     }
   });
 
+  // Export 27/09/2026: la extension SafeSearch llamaba a fetch() desde la pagina y su
+  // rechazo salia como error-promise/tracking/1726, la linea de nativeFetch.call.
+  function runRejectedFetchInIsolatedWindow(url) {
+    const dom = new JSDOM('<!doctype html><title>Guias</title>', {
+      url: 'https://luzfija.es/guias.html',
+      runScripts: 'outside-only'
+    });
+    const isolatedWindow = dom.window;
+    const sent = [];
+    isolatedWindow.__LF_BUILD_ID = '20260925-082129';
+    isolatedWindow.goatcounter = { count: (payload) => sent.push(payload) };
+    isolatedWindow.fetch = vi.fn((input) => {
+      if (String(input).includes('__lfprobe=1')) {
+        return Promise.resolve({ status: 200, headers: { get: () => 'application/json' } });
+      }
+      const error = new isolatedWindow.TypeError('Failed to fetch');
+      error.stack = 'TypeError: Failed to fetch\n' +
+        '    at wrappedFetch (https://luzfija.es/js/tracking.js:1726:30)\n' +
+        '    at <anonymous>:3:5';
+      return Promise.reject(error);
+    });
+    return { dom, isolatedWindow, sent, async reject() {
+      isolatedWindow.eval(trackingCode);
+      let reason;
+      await isolatedWindow.fetch(url).catch((error) => { reason = error; });
+      const evt = new isolatedWindow.Event('unhandledrejection');
+      Object.defineProperty(evt, 'reason', { value: reason, configurable: true });
+      isolatedWindow.dispatchEvent(evt);
+      await new Promise((resolve) => isolatedWindow.setTimeout(resolve, 0));
+      return sent.map((payload) => String(payload.path));
+    } };
+  }
+
+  it('descarta como fetch-ajeno el rechazo de un fetch cross-origin hecho por una extension', async () => {
+    const run = runRejectedFetchInIsolatedWindow('https://api.safesearchinc.com/v1/check');
+    try {
+      const paths = await run.reject();
+      expect(paths.some((p) => p.startsWith('error-promise/'))).toBe(false);
+      expect(paths.some((p) => p.startsWith('error-network/'))).toBe(false);
+      expect(paths).toContain('error-descartado/fetch-ajeno/20260925-082129');
+    } finally {
+      run.dom.window.close();
+    }
+  });
+
+  it('sigue registrando el rechazo no capturado de un fetch propio', async () => {
+    const run = runRejectedFetchInIsolatedWindow('/tarifas.json');
+    try {
+      const paths = await run.reject();
+      expect(paths).toContain('error-promise/tracking/1726/20260925-082129');
+      expect(paths.some((p) => p.startsWith('error-descartado/fetch-ajeno'))).toBe(false);
+    } finally {
+      run.dom.window.close();
+    }
+  });
+
   it('no reclasifica mensajes parecidos sin firma legacy', () => {
     bootstrapTracking();
 

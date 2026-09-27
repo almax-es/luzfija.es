@@ -1698,6 +1698,21 @@ try {
     } catch (_) {}
   }
 
+  // Una extension que llama a fetch() desde la pagina pasa por esta envoltura y su
+  // rechazo llegaria con tracking.js como unico frame con URL. Con connect-src
+  // 'self' ningun modulo propio pide otro origen: ese rechazo es siempre ajeno.
+  const foreignFetchRejections = new WeakSet();
+
+  function markForeignFetchRejection(rawUrl, error) {
+    if (!error || typeof error !== 'object') return;
+    try {
+      const url = new URL(rawUrl, location.href);
+      if ((url.protocol === 'http:' || url.protocol === 'https:') && url.origin !== location.origin) {
+        foreignFetchRejections.add(error);
+      }
+    } catch (_) {}
+  }
+
   function installFetchDiagnostics() {
     if (typeof window.fetch !== 'function' || window.fetch.__lfDiagnosticWrapped === true) return;
     const nativeFetch = window.fetch;
@@ -1725,6 +1740,7 @@ try {
       try {
         result = nativeFetch.call(this, input, nativeInit);
       } catch (error) {
+        markForeignFetchRejection(rawUrl, error);
         if (!isProbe && (trackAbort || !error || error.name !== 'AbortError')) {
           reportFetchFailure(rawUrl, 0, trackAbort && error && error.name === 'AbortError' ? 'timeout' : 'throw', {
             reason,
@@ -1747,6 +1763,7 @@ try {
         }
         return response;
       }, (error) => {
+        markForeignFetchRejection(rawUrl, error);
         if (!isProbe && (trackAbort || !error || error.name !== 'AbortError')) {
           reportFetchFailure(rawUrl, 0, trackAbort && error && error.name === 'AbortError' ? 'timeout' : 'rejected', {
             reason,
@@ -2354,6 +2371,12 @@ try {
       if (originKind === 'extension' || originKind === 'cross-origin') {
         if (DEBUG) dbg('Promise rejection de tercero ignorada:', msg, originKind);
         trackDiscardedError(originKind === 'extension' ? 'extension' : 'stack-cross-origin');
+        return;
+      }
+
+      if (foreignFetchRejections.has(reason)) {
+        if (DEBUG) dbg('Promise rejection de fetch ajeno ignorada:', msg);
+        trackDiscardedError('fetch-ajeno');
         return;
       }
 

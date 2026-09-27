@@ -292,8 +292,14 @@ con dimensiones cerradas. El primario lleva fichero, linea y build:
   descartando, solo queda constancia de por que, para poder afirmar con datos que
   el ruido no es nuestro. Motivos con PRECEDENCIA FIJA (se solapan entre si, ver
   `discardReasonFor`): `linea-imposible`, `sin-filename`, `sin-posicion`,
-  `inline-sin-origen`, `origen-no-fiable`; desde promesas, `extension` y
-  `stack-cross-origin`. Tope determinista, no muestreo: un motivo por carga de
+  `inline-sin-origen`, `origen-no-fiable`; desde promesas, `extension`,
+  `stack-cross-origin` y `fetch-ajeno`. Este ultimo cubre el rechazo de un
+  `fetch` HTTP(S) a otro origen que pasa por la envoltura de diagnostico: una
+  extension que llama a `fetch()` desde la pagina deja `tracking.js` como unico
+  frame con URL y antes salia como `error-promise/tracking/<linea>` (export del
+  27/09/2026, SafeSearch). Es seguro porque `connect-src` solo permite `'self'` y
+  GoatCounter, y ningun modulo propio pide otro origen por `fetch`; los fallos
+  same-origin siguen saliendo como `error-promise`. Tope determinista, no muestreo: un motivo por carga de
   documento y 4 motivos como maximo, asi que el contador se lee como "cargas
   afectadas por este ruido", no como "numero de excepciones". No se persiste en
   el outbox.
