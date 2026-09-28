@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeAll, beforeEach } from 'vitest';
+import fs from 'fs';
+import path from 'path';
 
 // 1. Setup del entorno JSDOM simulado
 document.body.innerHTML = '<div></div>';
@@ -445,6 +447,76 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
     expect(bodyText).toContain('índice base');
     expect(bodyText).toContain('Cálculo según índice base');
     expect(bodyText).not.toContain('(est.)');
+  });
+
+  it('el precio indexado sale igual en la etiqueta y en la nota que lo cita', () => {
+    // Antes la etiqueta usaba 2 decimales (0,04) y la nota "el precio mostrado" 4 (0,0375).
+    Desglose.init();
+    const datos = {
+      potenciaP1: 4, potenciaP2: 4, dias: 30,
+      precioP1: 0.1, precioP2: 0.1,
+      consumoPunta: 100, precioPunta: 0.2,
+      excedentes: 50,
+      precioCompensacion: 0.037494,
+      precioCompensacionIndexada: true,
+      precioCompensacionSource: 'hourly-index-base',
+      tipoCompensacion: 'SIMPLE', topeCompensacion: 'ENERGIA',
+      solarOn: true, zonaFiscal: 'Península', fechaFin: '20/03/2026'
+    };
+    Desglose.renderizar(Desglose.calcularDesglose(datos), datos);
+
+    const bodyText = Desglose.modal.querySelector('.desglose-body').textContent;
+    expect(bodyText).toContain('0,037494 €/kWh (índice base)');
+    expect(bodyText).toContain('el precio mostrado (0,037494 €/kWh)');
+    expect(bodyText).not.toMatch(/0,04 €\/kWh|0,0375 €\/kWh/);
+  });
+
+  it('nunca muestra más kWh compensados que los excedentes vertidos', () => {
+    // 3,00 € redondeado / 0,037494 €/kWh = 80,013 kWh: antes salía "80,01 kWh" de 80 generados.
+    Desglose.init();
+    const datos = {
+      potenciaP1: 4, potenciaP2: 4, dias: 30,
+      precioP1: 0.1, precioP2: 0.1,
+      consumoPunta: 100, consumoLlano: 100, consumoValle: 100,
+      precioPunta: 0.2, precioLlano: 0.12, precioValle: 0.08,
+      excedentes: 80, precioCompensacion: 0.037494,
+      tipoCompensacion: 'SIMPLE', topeCompensacion: 'ENERGIA',
+      solarOn: true, zonaFiscal: 'Península', fechaYmd: '2026-09-30'
+    };
+    Desglose.renderizar(Desglose.calcularDesglose(datos), datos);
+
+    const text = Desglose.modal.querySelector('.desglose-body').textContent;
+    expect(text).toContain('Compensados hoy: 80,00 kWh');
+    expect(text).not.toContain('80,01 kWh');
+  });
+
+  it('en móvil la línea de compensación se apila como el resto del desglose', () => {
+    // La regla propia de 3 columnas iba después de la general de <=768px y la pisaba:
+    // en 390 px el detalle y el importe de la compensación quedaban cortados.
+    const css = fs.readFileSync(path.resolve(__dirname, '../desglose-factura.css'), 'utf8');
+    const bloques = [...css.matchAll(/@media\s*\(max-width:\s*(\d+)px\)\s*\{([\s\S]*?)\n\}/g)];
+    const reglaMovil = bloques.find(([, ancho, cuerpo]) =>
+      Number(ancho) === 768 && /\.desglose-linea--hl-green\s*\{\s*grid-template-columns:\s*1fr;/.test(cuerpo));
+    expect(reglaMovil).toBeTruthy();
+    // Ninguna regla posterior para anchos de móvil puede volver a darle varias columnas.
+    const idx = css.indexOf(reglaMovil[0]) + reglaMovil[0].length;
+    expect(css.slice(idx)).not.toMatch(/\.desglose-linea--hl-green\s*\{[^}]*grid-template-columns:\s*[^;]*fr\s+[^;]*fr/);
+  });
+
+  it('muestra la financiación del bono social diaria con su precio completo y unidad', () => {
+    Desglose.init();
+    const datos = {
+      potenciaP1: 4, potenciaP2: 4, dias: 30,
+      precioP1: 0.1, precioP2: 0.1,
+      consumoPunta: 100, precioPunta: 0.2,
+      zonaFiscal: 'Península', fechaYmd: '2026-09-30', solarOn: false
+    };
+    Desglose.renderizar(Desglose.calcularDesglose(datos), datos);
+
+    const diario = (window.LF_CONFIG.bonoSocial.eurosAnuales / 365).toFixed(6).replace(/0+$/, '').replace('.', ',');
+    const detalles = [...Desglose.modal.querySelectorAll('.desglose-detalle')].map((el) => el.textContent);
+    expect(detalles).toContain(`${diario} €/día × 30 días`);
+    expect(diario).toBe('0,024688');
   });
 
   it('Muestra cobertura PVPC híbrida y calcula el precio medio desde el término horario real', () => {

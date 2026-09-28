@@ -572,10 +572,19 @@ html:not(.light-mode) .desglose-ayuda{
   white-space: nowrap;
 }
 
-@media (max-width: 520px){
+/* En movil la linea se apila como el resto del desglose (regla general de <=768px).
+   Esta regla va despues y la sobrescribia con 3 columnas: en 390px el detalle y el
+   importe de la compensacion quedaban cortados por la derecha. */
+@media (max-width: 768px){
   .desglose-linea--hl-green{
-    grid-template-columns: 1.3fr 2.7fr 1fr;
+    grid-template-columns: 1fr;
   }
+  .desglose-detalle--exced{
+    min-width: 0;
+  }
+}
+
+@media (max-width: 520px){
   .desglose-detalle--exced{
     flex-direction: column;
     align-items: flex-start;

@@ -187,11 +187,12 @@ describe('Total BV: cero pagado frente a coste de ranking (lf-render.js)', () =>
       .toContain('Precio compensación: 0,068795 €/kWh');
   });
 
-  it('El precio indexado de referencia conserva 3 decimales', async () => {
-    window.LF.state.rows = [filaBvCubierta({ fvPriceUsed: 0.02, fvExcRaw: -1 })];
+  it('El precio indexado usa el mismo formato sin truncar', async () => {
+    window.LF.state.rows = [filaBvCubierta({ fvPriceUsed: 0.037494, fvExcRaw: -1 })];
     await window.LF.renderTable();
-    expect(document.querySelector('.fv-icon').getAttribute('data-tip'))
-      .toContain('Precio compensación: 0,020 €/kWh');
+    const tip = document.querySelector('.fv-icon').getAttribute('data-tip');
+    expect(tip).toContain('Precio compensación: 0,037494 €/kWh');
+    expect(tip).toContain('Referencia orientativa');
   });
 
 });

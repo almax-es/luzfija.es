@@ -535,7 +535,7 @@
           }
           
           parts.push(`☀️ Excedentes vertidos: ${numComa(exKwh)} kWh`);
-          parts.push(`💰 Precio compensación: ${r.fvExcRaw === -1 ? numComa(precioExc, 3) : precioComa(precioExc)} €/kWh`);
+          parts.push(`💰 Precio compensación: ${precioComa(precioExc)} €/kWh`);
           if (r.fvExcRaw === -1) parts.push(`ℹ️ Referencia orientativa: el precio real varía según las horas exactas de vertido`);
           parts.push(`✅ Compensado este mes: ${numComa(credit1)} € (descontado de tu consumo de energía)`);
           if (fvCosteBV > 0) parts.push(`🔋 Cuota BV: ${numComa(fvCosteBV)} € incluida en el total`);

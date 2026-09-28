@@ -216,9 +216,17 @@
       const precioComp = Number(datos.precioCompensacion || 0);
       const compensa = (solarOn && exKwh > 0 && precioComp > 0 && tipoComp !== 'NO COMPENSA');
       const creditoPotencial = compensa ? roundMoneyProducts([[exKwh, precioComp]]) : 0;
-      // kWh de excedentes realmente usados vs sobrantes (más intuitivo que solo €)
-      const kwhExUsados = (solarOn && precioComp > 0 && d.credit1 > 0) ? clampNonNeg(d.credit1 / precioComp) : 0;
-      const kwhExBv = (solarOn && precioComp > 0 && d.excedenteSobranteEur > 0) ? clampNonNeg(d.excedenteSobranteEur / precioComp) : 0;
+      // kWh de excedentes realmente usados vs sobrantes (más intuitivo que solo €).
+      // Se reconstruyen desde euros ya redondeados al céntimo, así que se acotan a los kWh
+      // vertidos: sin tope, 3,00 € / 0,037494 €/kWh daba "80,01 kWh compensados" de 80 generados.
+      const kwhExUsados = (solarOn && precioComp > 0 && d.credit1 > 0)
+        ? (d.credit1 >= creditoPotencial && creditoPotencial > 0 ? exKwh : Math.min(exKwh, clampNonNeg(d.credit1 / precioComp)))
+        : 0;
+      const kwhExBv = (solarOn && precioComp > 0 && d.excedenteSobranteEur > 0)
+        ? (round2(d.credit1 + d.excedenteSobranteEur) >= creditoPotencial && creditoPotencial > 0
+          ? clampNonNeg(exKwh - kwhExUsados)
+          : Math.min(clampNonNeg(exKwh - kwhExUsados), clampNonNeg(d.excedenteSobranteEur / precioComp)))
+        : 0;
       const kwhExSobrantes = (solarOn && precioComp > 0 && exKwh > 0) ? clampNonNeg(exKwh - kwhExUsados) : 0;
       // Detectar compensación parcial (solo término de energía, sin peajes ni cargos)
       const esCompParcial = String(datos.topeCompensacion || '') === 'ENERGIA_PARCIAL';
@@ -231,12 +239,13 @@
       const tarifaData = window.LF_CONFIG?.tarifas?.find(t => t.nombre === datos.nombreTarifa);
       const esIndexada = Boolean(datos.precioCompensacionIndexada) || tarifaData?.fv?.exc === -1;
       const esIndiceBase = esIndexada && datos.precioCompensacionSource === 'hourly-index-base';
-      // El precio fijo se muestra como lo publica la comercializadora (hasta 6 decimales):
-      // con 2, Octopus 0,035 aparecia como 0,04 y CEA 0,068795 como 0,07. El indexado es una
-      // estimacion y conserva 2 decimales junto a su etiqueta.
+      // Los precios unitarios se muestran con hasta 6 decimales y sin ceros finales, como los
+      // publica la comercializadora: con 2, Octopus 0,035 aparecia como 0,04 y CEA 0,068795
+      // como 0,07. El indexado usa el mismo formato que su nota explicativa de mas abajo.
+      const precioCompLabel = this.fmtPrecio(datos.precioCompensacion);
       const precioLabel = esIndexada
-        ? `${this.fmtNum(datos.precioCompensacion, 2)} €/kWh <span style="color:${esIndiceBase ? '#22c55e' : '#f59e0b'}">(${esIndiceBase ? 'índice base' : 'est.'})</span>`
-        : `${this.fmtPrecio(datos.precioCompensacion)} €/kWh`;
+        ? `${precioCompLabel} €/kWh <span style="color:${esIndiceBase ? '#22c55e' : '#f59e0b'}">(${esIndiceBase ? 'índice base' : 'est.'})</span>`
+        : `${precioCompLabel} €/kWh`;
 
       html += `<div class="desglose-resumen">
         <div class="desglose-resumen-grid">
@@ -272,8 +281,8 @@
         </div>` : ''}
         ${esIndexada && solarOn ? `<div class="desglose-resumen-note desglose-resumen-note--nufri">
           ${esIndiceBase
-            ? `ℹ️ <strong>Cálculo según índice base:</strong> el precio mostrado (${this.fmtNum(datos.precioCompensacion, 4)} €/kWh) sale de la curva horaria disponible. Es exacto solo si la fórmula comercial coincide con ese índice; si hay ajustes o costes de gestión, puede variar.`
-            : `⚠️ <strong>Referencia orientativa:</strong> Esta tarifa paga excedentes a precio <strong>indexado</strong>. Sin curva horaria de vertido, el valor mostrado (${this.fmtNum(datos.precioCompensacion, 4)} €/kWh) no es un cálculo real; el importe depende de las horas exactas de vertido y de la fórmula comercial.`
+            ? `ℹ️ <strong>Cálculo según índice base:</strong> el precio mostrado (${precioCompLabel} €/kWh) sale de la curva horaria disponible. Es exacto solo si la fórmula comercial coincide con ese índice; si hay ajustes o costes de gestión, puede variar.`
+            : `⚠️ <strong>Referencia orientativa:</strong> Esta tarifa paga excedentes a precio <strong>indexado</strong>. Sin curva horaria de vertido, el valor mostrado (${precioCompLabel} €/kWh) no es un cálculo real; el importe depende de las horas exactas de vertido y de la fórmula comercial.`
           }
         </div>` : ''}
         ${esCompParcial && compensa ? (() => {
@@ -459,7 +468,7 @@
         <div class="desglose-seccion-header"><h3>📝 OTROS CONCEPTOS</h3><span class="desglose-importe-header">${this.fmt(otrosTarget)}</span></div>
         <div class="desglose-linea">
           <span class="desglose-concepto">Financiación Bono Social</span>
-          <span class="desglose-detalle">${this.fmtNum(window.LF_CONFIG.bonoSocial.eurosAnuales/365, 4)}/día × ${datos.dias} días</span>
+          <span class="desglose-detalle">${this.fmtPrecio(window.LF_CONFIG.bonoSocial.eurosAnuales/365)} €/día × ${datos.dias} días</span>
           <span class="desglose-importe">${this.fmt(otrosFinDisp)}</span>
         </div>
         ${hayCompEnBonoSocial ? `<div class="desglose-linea desglose-linea--hl-green">

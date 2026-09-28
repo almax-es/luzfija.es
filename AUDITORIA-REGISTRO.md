@@ -1,6 +1,6 @@
 # Registro De Auditorias De LuzFija.es
 
-Ultima actualizacion: 2026-09-17
+Ultima actualizacion: 2026-09-28
 
 Este fichero es de CONSULTA POR AREA, no de lectura lineal. La lectura obligatoria antes de
 auditar es `AUDITORIA-IA.md`: metodo, taxonomia de severidad, tabla de areas y prompt. Aqui
@@ -5722,3 +5722,50 @@ mostrando `same-origin/tracking/1726` como iniciador: lo rellena el navegador y 
  companero (tambien en `20260821-104221`): ambos se emiten seguidos y sincronos
  (`js/lf-cache.js`, bloque final de `fetchTarifas`), asi que es perdida o retraso de entrega del
  outbox, no un camino de codigo. Limite ya documentado en `ANALITICA-GOATCOUNTER.md` 6.5.1.
+
+<a id="precision-de-precios-unitarios-mostrados-28-09-2026"></a>
+### Precision De Los Precios Unitarios Mostrados (RESUELTA 28/09/2026)
+
+Origen: un usuario de ForoCoches afirmo que LuzFija tenia mal la potencia de Nufri porque el
+desglose mostraba `0,0773 EUR/kW dia` y la web publica `0,077272` / `0,077330`. Los datos eran
+correctos y el motor siempre calculo con el precio completo (`lf-calc.js`, `desglose-calculo.js`:
+kW x dias x precio y redondeo solo del importe final); solo fallaba el texto.
+
+**Regla, desde esta fecha:** todo precio unitario que se muestra (energia, potencia, compensacion
+de excedentes fija o indexada, financiacion diaria del bono social) sale con **hasta 6 decimales y
+sin ceros finales** (`fmtPrecio` en `desglose-render.js`, `precioComa` en `lf-render.js`, `fPrice`
+en `bv-ui.js`). Nunca con menos decimales de los que tiene el dato: un redondeo "por claridad"
+hace que una cifra correcta parezca otro precio al compararla con la web de la comercializadora.
+
+**Corregido (commits del 28/09/2026):**
+- Desglose, potencia de mercado libre y "Mi tarifa": 4 decimales -> 6.
+- Desglose, compensacion fija: 2 decimales ("para mayor claridad"); Octopus Solar 3P 0,035 salia
+ 0,04, CEA Estable 0,068795 salia 0,07 y CHC Plan Ahorro Solar 0,152352 salia 0,15. Ranking
+ (tooltip): 3 decimales (0,069 / 0,152).
+- Desglose, compensacion indexada: la etiqueta usaba 2 decimales y la nota que la cita ("el
+ precio mostrado") 4; ahora ambas y el ranking muestran el mismo numero.
+- Desglose, financiacion del bono social: `0,0247/dia` sin simbolo de euro -> `0,024688 EUR/dia`.
+- Desglose, kWh compensados: se reconstruian dividiendo euros ya redondeados entre el precio y
+ podian superar lo vertido (3,00 / 0,037494 = "80,01 kWh" de 80). Ahora se acotan a los kWh
+ vertidos y, si se compensa todo el credito, son exactamente los vertidos.
+- `desglose-factura.css`: en <=768px la linea de compensacion recuperaba 3 columnas porque su
+ regla propia iba despues de la general de una columna; en 390px se cortaban el detalle y el
+ importe. Ahora se apila como el resto (medido en Chrome real a 360/390/700/1280 px).
+
+Tests: `tests/desglose.test.js` (potencia, compensacion fija e indexada, bono social, kWh
+compensados, regla CSS) y `tests/render-bv-total.test.js` (tooltip fijo e indexado). Todos
+validados por mutacion contra el codigo anterior.
+
+**Revisado y correcto (NO REABRIR sin un caso nuevo):**
+- Minimo del IEE `0,001 EUR/kWh` (3 decimales): es el valor legal exacto.
+- Cuota BV `EUR/mes` a 2 decimales: ningun `precioBV` del dataset tiene mas.
+- Referencia indexada `0,020 EUR/kWh` en el simulador solar: valor exacto.
+- Precios horarios PVPC del modal de la home (3 decimales) y medias del Observatorio (3-4):
+ son promedios de mercado informativos, no un precio publicado que el usuario coteje, y el
+ Observatorio fijo su formato en la ronda 28.
+- `aPrecio` (4 decimales) en `pvpc.js`: precios medios de referencia; el total PVPC sale del
+ termino variable exacto (`desglose-calculo.js`). `pvpcSignatureFromValues`: solo clave de cache.
+- El texto `explicacion` de `resultadoPVPC` (4 decimales): canal interno, no se muestra.
+
+Reabrir solo con un precio unitario visible que muestre menos decimales que su dato de origen, o
+con un importe que no salga del precio completo.
