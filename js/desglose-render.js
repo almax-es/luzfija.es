@@ -328,12 +328,12 @@
         ` : `
           <div class="desglose-linea">
             <span class="desglose-concepto">Potencia punta (P1)</span>
-            <span class="desglose-detalle">${this.fmtNum(datos.potenciaP1)} kW × ${datos.dias} días × ${this.fmtNum(datos.precioP1, 4)} €/kW·día</span>
+            <span class="desglose-detalle">${this.fmtNum(datos.potenciaP1)} kW × ${datos.dias} días × ${this.fmtPrecio(datos.precioP1)} €/kW·día</span>
             <span class="desglose-importe">${this.fmt(showPotRounding ? potRoundedRaw[0] : potP1Disp)}</span>
           </div>
           <div class="desglose-linea">
             <span class="desglose-concepto">Potencia valle (P2)</span>
-            <span class="desglose-detalle">${this.fmtNum(datos.potenciaP2)} kW × ${datos.dias} días × ${this.fmtNum(datos.precioP2, 4)} €/kW·día</span>
+            <span class="desglose-detalle">${this.fmtNum(datos.potenciaP2)} kW × ${datos.dias} días × ${this.fmtPrecio(datos.precioP2)} €/kW·día</span>
             <span class="desglose-importe">${this.fmt(showPotRounding ? potRoundedRaw[1] : potP2Disp)}</span>
           </div>
           ${showPotRounding ? `<div class="desglose-linea desglose-linea-sub">

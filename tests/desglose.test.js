@@ -157,6 +157,27 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
     expect(res.cons).toBe(8.08);
   });
 
+  it('muestra el precio de potencia de mercado libre con la misma precisión que la tarifa publicada', () => {
+    // Caso real (Nufri Sin Horarios, 28/09/2026): con 4 decimales el desglose enseñaba
+    // 0,0773 y un usuario lo tomó por un precio distinto al 0,077272 / 0,077330 de la web.
+    Desglose.init();
+    const datos = {
+      nombreTarifa: 'Nufri Sin Horarios',
+      potenciaP1: 2, potenciaP2: 2, dias: 30,
+      precioP1: 0.077272, precioP2: 0.07733,
+      consumoPunta: 100, consumoLlano: 100, consumoValle: 100,
+      precioPunta: 0.107634, precioLlano: 0.107634, precioValle: 0.107634,
+      zonaFiscal: 'Península', fechaYmd: '2026-09-30', solarOn: false
+    };
+    const res = Desglose.calcularDesglose(datos);
+    Desglose.renderizar(res, datos);
+
+    const detalles = [...Desglose.modal.querySelectorAll('.desglose-detalle')].map((el) => el.textContent);
+    expect(detalles).toContain('2,00 kW × 30 días × 0,077272 €/kW·día');
+    expect(detalles).toContain('2,00 kW × 30 días × 0,07733 €/kW·día');
+    expect(detalles.join(' ')).not.toContain('0,0773 €/kW·día');
+  });
+
   it('Debe mantener IVA 21% e IEE general aunque cambie la fecha del periodo en Península <10kW', () => {
     const datos = {
       potenciaP1: 4.6, potenciaP2: 4.6, dias: 30,
