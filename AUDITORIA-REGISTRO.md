@@ -5767,8 +5767,12 @@ validados por mutacion contra el codigo anterior.
  termino variable exacto (`desglose-calculo.js`). `pvpcSignatureFromValues`: solo clave de cache.
 - El texto `explicacion` de `resultadoPVPC` (4 decimales): canal interno, no se muestra.
 
-Reabrir solo con un precio unitario visible que muestre menos decimales que su dato de origen, o
-con un importe que no salga del precio completo.
+Regla general desde el cierre de la ronda externa: una cifra visible que representa un dato
+medido o calculado (precio, kWh, consumo frente a un tope) no puede perder precision de forma que
+cambie su interpretacion o contradiga a otra cifra visible. Excepcion: las representaciones
+deliberadamente aproximadas, como la estimacion anual (proyeccion, en entero).
+Reabrir solo con una cifra visible que incumpla esa regla, o con un importe que no salga del dato
+completo.
 
 **Contraste del desglose en modo claro (mismo dia, a peticion del usuario).** Barrido de TODO texto
 del modal en 8 combinaciones (tema web claro/oscuro x tema SO claro/oscuro x 390/1280 px) y 6
