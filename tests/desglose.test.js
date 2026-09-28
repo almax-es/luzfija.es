@@ -245,6 +245,26 @@ describe('Desglose de Factura (desglose-factura.js)', () => {
     expect(res.excedenteSobranteEur).toBe(0);
   });
 
+  it('muestra el precio fijo de compensacion con los decimales publicados, no redondeado a 2', () => {
+    // Caso real (28/09/2026): Octopus Solar 3P compensa a 0,035 y el desglose mostraba 0,04.
+    Desglose.init();
+    const datos = {
+      nombreTarifa: 'Octopus Solar 3P',
+      potenciaP1: 4, potenciaP2: 4, dias: 30,
+      precioP1: 0.1, precioP2: 0.1,
+      consumoPunta: 100, consumoLlano: 0, consumoValle: 0,
+      precioPunta: 0.2, precioLlano: 0.2, precioValle: 0.2,
+      excedentes: 50, precioCompensacion: 0.035, tipoCompensacion: 'SIMPLE',
+      zonaFiscal: 'Península', fechaYmd: '2026-09-30', solarOn: true
+    };
+    const res = Desglose.calcularDesglose(datos);
+    Desglose.renderizar(res, datos);
+
+    const text = Desglose.modal.querySelector('.desglose-body').textContent;
+    expect(text).toContain('0,035 €/kWh');
+    expect(text).not.toContain('0,04 €/kWh');
+  });
+
   it('BV activa suma la cuota mensual precioBV prorrateada al total', () => {
     // Home (tests/calc.test.js) y el motor mensual (tests/bv.test.js) ya cubren su propia
     // cuota BV; el motor del desglose no tenia equivalente. El test de integracion del modal

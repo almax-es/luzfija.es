@@ -179,4 +179,19 @@ describe('Total BV: cero pagado frente a coste de ranking (lf-render.js)', () =>
     expect(totalCellTitle).toContain('Pagas: 19,69 €');
   });
 
+  // Caso real (28/09/2026): con 3 decimales fijos CEA Estable (0,068795) salia como 0,069.
+  it('El precio fijo de compensacion se muestra como lo publica la comercializadora', async () => {
+    window.LF.state.rows = [filaBvCubierta({ fvPriceUsed: 0.068795, fvExcRaw: 0.068795 })];
+    await window.LF.renderTable();
+    expect(document.querySelector('.fv-icon').getAttribute('data-tip'))
+      .toContain('Precio compensación: 0,068795 €/kWh');
+  });
+
+  it('El precio indexado de referencia conserva 3 decimales', async () => {
+    window.LF.state.rows = [filaBvCubierta({ fvPriceUsed: 0.02, fvExcRaw: -1 })];
+    await window.LF.renderTable();
+    expect(document.querySelector('.fv-icon').getAttribute('data-tip'))
+      .toContain('Precio compensación: 0,020 €/kWh');
+  });
+
 });

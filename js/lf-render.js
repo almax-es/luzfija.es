@@ -20,6 +20,8 @@
   } = window.LF;
 
   const numComa = (n, dec = 2) => Number(n).toFixed(dec).replace('.', ',');
+  // Precio unitario tal como lo publica la comercializadora: hasta 6 decimales, sin ceros finales.
+  const precioComa = (n) => Number(n).toFixed(6).replace(/0+$/, '').replace(/\.$/, '').replace('.', ',');
 
   // ===== URL SAFE =====
   // Delegación perezosa en el sanitizador canónico window.LF.safeUrl (js/lf-utils.js).
@@ -533,7 +535,7 @@
           }
           
           parts.push(`☀️ Excedentes vertidos: ${numComa(exKwh)} kWh`);
-          parts.push(`💰 Precio compensación: ${numComa(precioExc, 3)} €/kWh`);
+          parts.push(`💰 Precio compensación: ${r.fvExcRaw === -1 ? numComa(precioExc, 3) : precioComa(precioExc)} €/kWh`);
           if (r.fvExcRaw === -1) parts.push(`ℹ️ Referencia orientativa: el precio real varía según las horas exactas de vertido`);
           parts.push(`✅ Compensado este mes: ${numComa(credit1)} € (descontado de tu consumo de energía)`);
           if (fvCosteBV > 0) parts.push(`🔋 Cuota BV: ${numComa(fvCosteBV)} € incluida en el total`);

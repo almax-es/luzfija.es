@@ -231,10 +231,12 @@
       const tarifaData = window.LF_CONFIG?.tarifas?.find(t => t.nombre === datos.nombreTarifa);
       const esIndexada = Boolean(datos.precioCompensacionIndexada) || tarifaData?.fv?.exc === -1;
       const esIndiceBase = esIndexada && datos.precioCompensacionSource === 'hourly-index-base';
-      // Mostrar precio con menos decimales para mayor claridad (2 en lugar de 6)
+      // El precio fijo se muestra como lo publica la comercializadora (hasta 6 decimales):
+      // con 2, Octopus 0,035 aparecia como 0,04 y CEA 0,068795 como 0,07. El indexado es una
+      // estimacion y conserva 2 decimales junto a su etiqueta.
       const precioLabel = esIndexada
         ? `${this.fmtNum(datos.precioCompensacion, 2)} €/kWh <span style="color:${esIndiceBase ? '#22c55e' : '#f59e0b'}">(${esIndiceBase ? 'índice base' : 'est.'})</span>`
-        : `${this.fmtNum(datos.precioCompensacion, 2)} €/kWh`;
+        : `${this.fmtPrecio(datos.precioCompensacion)} €/kWh`;
 
       html += `<div class="desglose-resumen">
         <div class="desglose-resumen-grid">
