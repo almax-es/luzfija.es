@@ -792,6 +792,13 @@
   }
 
   function formatKwh(n) {
+    // Hasta 2 decimales: redondeado a entero, un consumo de 4.000,4 kWh junto a un tope de
+    // 4.000 se leia "registran 4.000 kWh" con la tarifa ya fuera de su limite.
+    return (Number(n) || 0).toLocaleString('es-ES', { maximumFractionDigits: 2 }) + ' kWh';
+  }
+
+  // La estimacion anual es una proyeccion: decimales ahi serian precision inventada.
+  function formatKwhEstimado(n) {
     return Math.round(Number(n) || 0).toLocaleString('es-ES') + ' kWh';
   }
 
@@ -860,8 +867,8 @@
       const text = document.createElement('p');
       const strong = document.createElement('strong');
       strong.textContent = info.estimateApplied
-        ? `Estimación anual aplicada: ${formatKwh(info.estimatedAnnualKwh)}/año.`
-        : `Estimación anual orientativa: ${formatKwh(info.estimatedAnnualKwh)}/año.`;
+        ? `Estimación anual aplicada: ${formatKwhEstimado(info.estimatedAnnualKwh)}/año.`
+        : `Estimación anual orientativa: ${formatKwhEstimado(info.estimatedAnnualKwh)}/año.`;
       text.append(
         strong,
         ` Se basa en ${formatKwh(info.consumoKwh)} registrados durante ${Math.round(info.coveredDays)} ${Math.round(info.coveredDays) === 1 ? 'día' : 'días'}.`

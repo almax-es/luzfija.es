@@ -2198,6 +2198,22 @@ describe('Tabla manual: validacion estricta y cero explicito (14/08/2026)', () =
     expect(document.getElementById('bv-total-consumo').textContent).toBe('0');
     expect(document.getElementById('bv-total-excedentes').textContent).toBe('0');
   });
+  it('los totales de la tabla conservan los decimales de las celdas', () => {
+    // 28/09/2026: con Math.round, 100,40 + 80,2 en P1 mostraban "181" (y consumo "231")
+    // mientras el calculo usaba 180,6 y 230,95.
+    bootSolarUi();
+    editGrid(0, 'p1', '100,40');
+    editGrid(0, 'p2', '50,35');
+    editGrid(1, 'p1', '80,2');
+    editGrid(1, 'vert', '30,45');
+
+    expect(document.getElementById('bv-total-p1').textContent).toBe('180,6');
+    expect(document.getElementById('bv-total-p2').textContent).toBe('50,35');
+    expect(document.getElementById('bv-total-vert').textContent).toBe('30,45');
+    expect(document.getElementById('bv-total-consumo').textContent).toBe('230,95');
+    expect(document.getElementById('bv-total-excedentes').textContent).toBe('30,45');
+  });
+
   it('un valor valido normal sigue calculando sin bloqueo (regresion)', async () => {
     bootSolarUi();
     window.BVSim.loadTarifasBV.mockImplementation(async () => ({

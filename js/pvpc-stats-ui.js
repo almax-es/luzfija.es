@@ -178,7 +178,7 @@
     return `${toComma(value.toFixed(2))} €`;
   }
 
-  function fmtKwh(value, decimals = 1) {
+  function fmtKwh(value, decimals = 2) {
     if (!Number.isFinite(value)) return '—';
     // NBSP para que el espacio entre número y unidad no se "coma" visualmente
     // y para evitar saltos de línea raros en móvil.
@@ -1094,7 +1094,7 @@
 
       if (csvEls.totalKwh) {
         const inputKwh = Number.isFinite(stats.inputKwh) ? stats.inputKwh : stats.totalKwh;
-        csvEls.totalKwh.textContent = fmtKwh(inputKwh, 1);
+        csvEls.totalKwh.textContent = fmtKwh(inputKwh);
       }
       if (csvEls.totalEur) csvEls.totalEur.textContent = fmtEur(stats.totalEur);
       if (csvEls.avgEurKwh) csvEls.avgEurKwh.textContent = fmtCents(stats.avgPrice, 4);
@@ -1137,7 +1137,7 @@
           return `
             <tr>
               <td data-label="Mes">${formatYmLabel(row.ym)}</td>
-              <td data-label="Energía vertida"><span class="csv-td-value">${fmtKwh(Number.isFinite(row.inputKwh) ? row.inputKwh : row.kwh, 1)}</span></td>
+              <td data-label="Energía vertida"><span class="csv-td-value">${fmtKwh(Number.isFinite(row.inputKwh) ? row.inputKwh : row.kwh)}</span></td>
               <td data-label="Precio medio"><span class="csv-td-value">${fmtCents(row.avg, 4)}</span></td>
               <td data-label="Importe"><span class="csv-td-value">${row.pricedHours > 0 ? fmtEur(row.eur) : '—'}</span></td>
               <td data-label="Tramo principal (80%)"><span class="csv-td-value">${winLabel}</span></td>
@@ -1148,7 +1148,7 @@
       }
 
       const baseNote = stats.missing
-        ? `Nota: ${stats.missing} horas (${fmtKwh(stats.missingKwh || 0, 1)}) no encontraron precio horario en el histórico para la zona seleccionada. La compensación y el precio medio solo incluyen la energía con precio disponible.`
+        ? `Nota: ${stats.missing} horas (${fmtKwh(stats.missingKwh || 0)}) no encontraron precio horario en el histórico para la zona seleccionada. La compensación y el precio medio solo incluyen la energía con precio disponible.`
         : 'Archivo procesado correctamente.';
       setCsvNote(csvState.discardNotice ? `${baseNote} ${csvState.discardNotice}` : baseNote);
     };
@@ -1488,6 +1488,7 @@
     getTrendMaxTicksLimit,
     getChartThemeColors,
     applyChartTheme,
+    fmtKwh,
     DATASET_MIN_YEAR
   };
 

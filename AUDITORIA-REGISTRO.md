@@ -5783,3 +5783,23 @@ del precio indexado, que deja de ser estilo inline y pasa a `.desglose-precio-ta
 totales (2,3-2,7:1) es "TU DISENO ORIGINAL EXACTO (NO TOCAR)" en `styles.css`; el rojo/azul de BV
 (3,7-4,1:1) y el enlace ambar "Simulador Solar" en claro (4,31:1) se leen bien y son la paleta
 decidida en la auditoria de contraste del 25/07/2026; el separador "·" es decorativo.
+
+**Ronda externa (ChatGPT, mismo dia) sobre el resto de superficies: 2 hallazgos, ambos CONFIRMADOS
+por Claude en Chrome real contra produccion y CORREGIDOS**, mas uno que salio al verificarlos:
+- Simulador solar, totales de la tabla manual (`js/bv/bv-ui.js`): `Math.round` hacia que 100,40 +
+ 80,2 en P1 sumasen "181" (y el consumo "231" en vez de 230,95). Ahora hasta 2 decimales, la misma
+ precision con que la tabla escribe sus celdas (`formatNumberES`). En movil la fila TOTAL se oculta a
+ proposito (`bv-sim.css`) y se ve el resumen; los dos usan el mismo formato.
+- Observatorio, kWh del CSV de excedentes (`js/pvpc-stats-ui.js`): `fmtKwh` a 1 decimal mostraba
+ 10,04 kWh como 10,0 mientras el importe usa el valor completo. Ahora 2 decimales, como la vista
+ previa CSV de la home y el desglose.
+- Avisos de limite de consumo (home `lf-render.js` y simulador): el consumo registrado se redondeaba a
+ entero y junto al tope podia leerse "registran 4.000 kWh" con 4.000,4 kWh y la tarifa ya fuera de
+ su limite. Ahora hasta 2 decimales. La ESTIMACION anual sigue en entero a proposito: es una
+ proyeccion y los decimales serian precision inventada.
+Verificado en Chrome real (tema web x SO x 360/390/1280 px) con el CSV real del banco con
+excedentes y con 12 meses tecleados. Las celdas de la tabla del Observatorio que exceden unos px
+en 1280 (mes y tramo principal) ya lo hacian antes y solo invaden su propio relleno: no se corta
+texto. Tests en `tests/bv-ui-zona-grid.test.js`, `tests/pvpc-stats-ui.test.js` y
+`tests/render-ui.test.js`, validados por mutacion. Descartados por ChatGPT y confirmado: factura
+PDF/QR, "Mi tarifa", importadores CSV/XLSX y modal PVPC no tienen este patron.

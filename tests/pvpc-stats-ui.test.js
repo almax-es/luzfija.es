@@ -220,6 +220,17 @@ describe('Observatorio: cobertura parcial del CSV de excedentes', () => {
 });
 
 
+describe('Observatorio: kWh del CSV con la precision que usa el calculo', () => {
+  it('no redondea a una decima la energia aportada (10,04 kWh no puede verse como 10,0)', () => {
+    const { fmtKwh } = window.__LF_PvpcStatsUiHelpers;
+    expect(fmtKwh(10.04)).toBe('10,04\u00a0kWh');
+    expect(fmtKwh(10.04)).not.toContain('10,0\u00a0');
+    // Ninguna ruta del CSV de excedentes vuelve a forzar un decimal.
+    expect(uiCode).not.toMatch(/fmtKwh\([^)]*,\s*1\)/);
+  });
+});
+
+
 describe('Observatorio: recomendaciones horarias con cobertura parcial', () => {
   it('no crea un bloque de 3 horas si alguna de sus horas todavía no tiene datos', () => {
     const { computeWindowOptions } = window.__LF_PvpcStatsUiHelpers;

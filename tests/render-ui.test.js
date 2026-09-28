@@ -429,6 +429,22 @@ describe('Renderizado UI (lf-render.js)', () => {
     expect(toggle.dataset.enabled).toBe('true');
   });
 
+  it('No redondea el consumo registrado junto al tope (4.000,4 kWh no puede leerse "4.000")', () => {
+    window.LF.renderAll({
+      success: true,
+      resumen: { mejor: 'Tarifa Barata', precio: '50,00 €' },
+      stats: null,
+      resultados: [...mockRows],
+      limitesConsumo: {
+        consumoKwh: 4000.4,
+        excluidas: [{ tarifa: { nombre: 'Imagina 4000' }, tipo: 'maximo', limiteKwh: 4000 }]
+      }
+    });
+    const text = document.getElementById('consumoLimitsNotice').textContent;
+    expect(text).toMatch(/registran 4\.?000,4 kWh/);
+    expect(text).toMatch(/como máximo 4\.?000 kWh/);
+  });
+
   it('Explica un tope por kW con la cuenta y avisa si se tomó la menor de dos potencias', () => {
     window.LF.renderAll({
       success: true,

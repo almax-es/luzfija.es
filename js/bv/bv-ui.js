@@ -1347,12 +1347,16 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
 
+    // Los totales usan la misma precision que las celdas (hasta 2 decimales): redondeados a
+    // entero, 100,40 + 80,2 en la tabla sumaban "181" cuando el calculo usa 180,6.
+    const fmtTotalKwh = (v) => (Number(v) || 0).toLocaleString('es-ES', { maximumFractionDigits: 2 });
+
     // Actualizar fila de totales detallados
     if (hasAnyData && totalsRow && totalP1Span && totalP2Span && totalP3Span && totalVertSpan) {
-      totalP1Span.textContent = Math.round(totalP1).toLocaleString('es-ES');
-      totalP2Span.textContent = Math.round(totalP2).toLocaleString('es-ES');
-      totalP3Span.textContent = Math.round(totalP3).toLocaleString('es-ES');
-      totalVertSpan.textContent = Math.round(totalVert).toLocaleString('es-ES');
+      totalP1Span.textContent = fmtTotalKwh(totalP1);
+      totalP2Span.textContent = fmtTotalKwh(totalP2);
+      totalP3Span.textContent = fmtTotalKwh(totalP3);
+      totalVertSpan.textContent = fmtTotalKwh(totalVert);
       totalsRow.style.display = 'grid';
     } else if (totalsRow) {
       totalsRow.style.display = 'none';
@@ -1361,8 +1365,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Actualizar resumen general
     const totalConsumo = totalP1 + totalP2 + totalP3;
     if (hasAnyData && totalsSummary && totalConsumoSpan && totalExcedentesSpan) {
-      totalConsumoSpan.textContent = Math.round(totalConsumo).toLocaleString('es-ES');
-      totalExcedentesSpan.textContent = Math.round(totalVert).toLocaleString('es-ES');
+      totalConsumoSpan.textContent = fmtTotalKwh(totalConsumo);
+      totalExcedentesSpan.textContent = fmtTotalKwh(totalVert);
       totalsSummary.style.display = 'block';
     } else if (totalsSummary) {
       totalsSummary.style.display = 'none';
@@ -1684,16 +1688,20 @@ document.addEventListener('DOMContentLoaded', () => {
   const fEur = (v) => currencyFmt.format(Number(v) || 0);
   const fKw = (v) => kwFmt.format(Number(v) || 0);
   const fKwh = (v) => kwhFmt.format(Number(v) || 0);
-  const fWholeKwh = (v) => Math.round(Number(v) || 0).toLocaleString('es-ES') + ' kWh';
+  // Consumos y topes de los avisos de limite: sin redondear a entero, que junto al tope podia
+  // mostrar "registran 4.000 kWh" con 4.000,4 kWh reales y la tarifa ya fuera de su limite.
+  const fKwhUnidad = (v) => kwhFmt.format(Number(v) || 0) + ' kWh';
+  // La estimacion anual es una proyeccion: decimales ahi serian precision inventada.
+  const fKwhEstimado = (v) => Math.round(Number(v) || 0).toLocaleString('es-ES') + ' kWh';
   const fPrice = (v) => priceFmt.format(Number(v) || 0);
 
   // Mismo texto que la home: un tope por kW solo se entiende con la cuenta delante, y si P1 y P2
   // difieren se dice que se ha tomado la menor. Los valores son numericos, no requieren escape.
   function describeConsumoLimit(item) {
     if (item?.tipo !== 'maximo_por_kw') {
-      return `admite como máximo ${fWholeKwh(item?.limiteKwh)} al año`;
+      return `admite como máximo ${fKwhUnidad(item?.limiteKwh)} al año`;
     }
-    const base = `admite como máximo ${fWholeKwh(item.porKwKwh)} al año por kW contratado: ${fWholeKwh(item.limiteKwh)} con ${fKw(item.potenciaKw)} kW`;
+    const base = `admite como máximo ${fKwhUnidad(item.porKwKwh)} al año por kW contratado: ${fKwhUnidad(item.limiteKwh)} con ${fKw(item.potenciaKw)} kW`;
     return item.potenciasDistintas
       ? `${base} (tu potencia más baja, porque la comercializadora no aclara cuál toma)`
       : base;
@@ -1722,15 +1730,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const unaReal = excludedReal.length === 1;
     const realMessage = excludedReal.length
       ? (limitsApplied
-        ? `<p><strong>⚠️ ${excludedReal.length} ${unaReal ? 'tarifa excluida' : 'tarifas excluidas'} del ranking.</strong> Tus datos registran ${fWholeKwh(info.consumoKwh)} y ${unaReal ? 'no cumple su requisito' : 'no cumplen sus requisitos'}.</p>`
-        : `<p><strong>⚠️ ${excludedReal.length} ${unaReal ? 'tarifa supera' : 'tarifas superan'} su límite de consumo.</strong> Tus datos registran ${fWholeKwh(info.consumoKwh)}. ${unaReal ? 'Sigue' : 'Siguen'} en el ranking porque el tope lo pone la comercializadora y a veces se negocia; puedes excluirlas si prefieres.</p>`)
+        ? `<p><strong>⚠️ ${excludedReal.length} ${unaReal ? 'tarifa excluida' : 'tarifas excluidas'} del ranking.</strong> Tus datos registran ${fKwhUnidad(info.consumoKwh)} y ${unaReal ? 'no cumple su requisito' : 'no cumplen sus requisitos'}.</p>`
+        : `<p><strong>⚠️ ${excludedReal.length} ${unaReal ? 'tarifa supera' : 'tarifas superan'} su límite de consumo.</strong> Tus datos registran ${fKwhUnidad(info.consumoKwh)}. ${unaReal ? 'Sigue' : 'Siguen'} en el ranking porque el tope lo pone la comercializadora y a veces se negocia; puedes excluirlas si prefieres.</p>`)
       : '';
     const estimateAction = limitsApplied ? 'false' : 'true';
     const shortPeriodWarning = Number(info?.coveredDays) < 28
       ? ' Con menos de 28 días, puede variar todavía más.'
       : '';
     const estimateMessage = hasUsefulEstimate
-      ? `<div class="consumo-estimate-choice"><p><strong>${info.estimateApplied ? 'Estimación anual aplicada' : 'Estimación anual orientativa'}: ${fWholeKwh(info.estimatedAnnualKwh)}/año.</strong> Se basa en ${fWholeKwh(info.consumoKwh)} registrados durante ${Math.round(info.coveredDays)} ${Math.round(info.coveredDays) === 1 ? 'día' : 'días'}.</p><p class="consumo-estimate-help">Es una aproximación: en autoconsumo, la época del año puede cambiar mucho el resultado.${shortPeriodWarning} ${info.estimateApplied ? `${excludedEstimated.length} ${excludedEstimated.length === 1 ? 'tarifa se ha excluido' : 'tarifas se han excluido'} por esta estimación.` : `Si la activas, ${excludedEstimated.length} ${excludedEstimated.length === 1 ? 'tarifa dejará' : 'tarifas dejarán'} de mostrarse por sus límites anuales.`}</p></div>`
+      ? `<div class="consumo-estimate-choice"><p><strong>${info.estimateApplied ? 'Estimación anual aplicada' : 'Estimación anual orientativa'}: ${fKwhEstimado(info.estimatedAnnualKwh)}/año.</strong> Se basa en ${fKwhUnidad(info.consumoKwh)} registrados durante ${Math.round(info.coveredDays)} ${Math.round(info.coveredDays) === 1 ? 'día' : 'días'}.</p><p class="consumo-estimate-help">Es una aproximación: en autoconsumo, la época del año puede cambiar mucho el resultado.${shortPeriodWarning} ${info.estimateApplied ? `${excludedEstimated.length} ${excludedEstimated.length === 1 ? 'tarifa se ha excluido' : 'tarifas se han excluido'} por esta estimación.` : `Si la activas, ${excludedEstimated.length} ${excludedEstimated.length === 1 ? 'tarifa dejará' : 'tarifas dejarán'} de mostrarse por sus límites anuales.`}</p></div>`
       : '';
     // Un solo interruptor para las dos situaciones. Antes vivia dentro del bloque de estimacion,
     // asi que con un año completo no habia forma de elegir.
