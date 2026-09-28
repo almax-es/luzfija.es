@@ -55,6 +55,28 @@ describe('regresiones de accesibilidad detectadas en la auditoría', () => {
     expect(bonoSocial).toMatch(/href="https:\/\/civio\.es\/bono-social\/"[^>]*background:#15803D;/);
   });
 
+  it('en modo claro los importes y etiquetas de color del desglose superan WCAG AA', () => {
+    // 28/09/2026: el "-1,60 EUR" verde (1,89:1) y el "(est.)" ambar (1,78:1) casi desaparecian
+    // sobre los fondos claros tintados. #DDE3EF es el fondo tintado mas oscuro medido en claro.
+    const css = read('desglose-factura.css');
+    const esperados = {
+      'desglose-importe--pos': '#166534',
+      'desglose-importe--neg': '#B91C1C',
+      'desglose-importe--blue': '#1D4ED8',
+      'desglose-precio-tag--indice': '#166534',
+      'desglose-precio-tag--est': '#92400E'
+    };
+    for (const [clase, hex] of Object.entries(esperados)) {
+      const regla = new RegExp(`html\\.light-mode \\.${clase}\\{\\s*color:\\s*${hex};\\s*\\}`, 'i');
+      expect(css, clase).toMatch(regla);
+      expect(contrastRatio(hex, '#DDE3EF'), clase).toBeGreaterThanOrEqual(4.5);
+    }
+    // La etiqueta del precio indexado usa clase, no estilo inline (no la alcanzaria el modo claro).
+    const render = read('js/desglose-render.js');
+    expect(render).toMatch(/desglose-precio-tag--indice/);
+    expect(render).not.toMatch(/<span style="color:\$\{esIndiceBase/);
+  });
+
   it('el selector mensual reserva ARIA al botón y usa una clase para el estado visual', () => {
     const ui = read('js/bv/bv-ui.js');
     const css = read('bv-sim.css');

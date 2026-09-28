@@ -244,7 +244,7 @@
       // como 0,07. El indexado usa el mismo formato que su nota explicativa de mas abajo.
       const precioCompLabel = this.fmtPrecio(datos.precioCompensacion);
       const precioLabel = esIndexada
-        ? `${precioCompLabel} €/kWh <span style="color:${esIndiceBase ? '#22c55e' : '#f59e0b'}">(${esIndiceBase ? 'índice base' : 'est.'})</span>`
+        ? `${precioCompLabel} €/kWh <span class="${esIndiceBase ? 'desglose-precio-tag--indice' : 'desglose-precio-tag--est'}">(${esIndiceBase ? 'índice base' : 'est.'})</span>`
         : `${precioCompLabel} €/kWh`;
 
       html += `<div class="desglose-resumen">

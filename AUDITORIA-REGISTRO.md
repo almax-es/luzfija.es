@@ -5769,3 +5769,17 @@ validados por mutacion contra el codigo anterior.
 
 Reabrir solo con un precio unitario visible que muestre menos decimales que su dato de origen, o
 con un importe que no salga del precio completo.
+
+**Contraste del desglose en modo claro (mismo dia, a peticion del usuario).** Barrido de TODO texto
+del modal en 8 combinaciones (tema web claro/oscuro x tema SO claro/oscuro x 390/1280 px) y 6
+escenarios (normal, compensacion fija, indexada estimada, indice base, BV con saldo y excedentes
+perdidos). En claro, los importes y etiquetas de color quedaban a 1,78-3,37:1 sobre fondos
+tintados; el "-1,60 EUR" verde y el "(est.)" ambar casi desaparecian (medido y visto en captura).
+Corregido SOLO en modo claro: `html.light-mode .desglose-importe--pos/--neg/--blue` y la etiqueta
+del precio indexado, que deja de ser estilo inline y pasa a `.desglose-precio-tag--indice/--est`
+(verde #166534, rojo #B91C1C, azul #1D4ED8, ambar #92400E; >= 5,4:1). Test en
+`tests/accessibility-regressions.test.js`, validado por mutacion.
+**Conservado a proposito (NO REABRIR):** en oscuro, el violeta `--accent #7C3AED` de cabeceras y
+totales (2,3-2,7:1) es "TU DISENO ORIGINAL EXACTO (NO TOCAR)" en `styles.css`; el rojo/azul de BV
+(3,7-4,1:1) y el enlace ambar "Simulador Solar" en claro (4,31:1) se leen bien y son la paleta
+decidida en la auditoria de contraste del 25/07/2026; el separador "·" es decorativo.
