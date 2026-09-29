@@ -6132,3 +6132,7 @@ con el resto de espaciados; si se prefiere el aire anterior habria que anadirlo 
 **Trampa del propio metodo:** vaciar el input con `click({clickCount:3})` + Backspace NO lo vacia y la
 consulta se concatena; una primera pasada dio resultados absurdos por eso. Vaciar con Ctrl+A y
 comprobar el valor antes de teclear.
+**Barrido del mismo patron en todo el sitio (paginas autonomas sin `styles.css` y sin regla `[hidden]`
+con elementos `hidden`):** solo `guias.html` estaba afectada. `404.html` tiene un `hidden`
+(`#notFoundSuggestion`) pero ninguna regla `display` sobre el, asi que el atributo funciona por el
+estilo del navegador; home, simulador solar y Observatorio cargan `styles.css` y estan cubiertos.
