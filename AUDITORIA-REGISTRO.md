@@ -5913,3 +5913,25 @@ edita. Verificado con dos peticiones independientes y curl.
 **Offline y PWA:** revisado y ya cubierto (matrices del 22/07 y de la ronda externa, ronda 42);
 la carga offline inicial de vendors lazy (XLSX, PDF.js, OCR) es decision documentada en
 `ARRANQUE-CARGA.md`. No se abre ronda.
+
+**Lectura literal de afirmaciones de las guias (29/09/2026, ampliacion de la ronda 58):** cierra el
+hueco que dejo la ronda 54 ("no fue lectura literal de las 25 guias"). Se extrajeron las 453
+lineas con norma, plazo, cifra o fecha de las 25 guias mas `calcular-factura-luz`,
+`comparar-pvpc-tarifa-fija` y `como-funciona-luzfija`, y se leyeron enteras.
+- **Corregido (1):** la guia del bono social titulaba su aviso "Situacion vigente a 25/09/2026" pero
+  el cuerpo decia "referencia valida a fecha 14 de septiembre de 2026". La revision del 25/09
+  (`MANTENIMIENTO-NORMATIVO.md`) actualizo el sello y dejo esa frase; ahora ambas dicen 25/09. Las
+  cifras (42,5% / 57,5%) no cambian y son las verificadas ese dia. Es la unica guia con dos fechas
+  distintas en su texto visible (barrido por expresion regular de todas las guias).
+- **Aritmetica de los ejemplos, comprobada uno a uno, sin errores:** costes de aerotermia y termo,
+  coche electrico (kWh/100 km, anuales, mensuales, gasolina), bateria virtual (18 EUR de saldo,
+  52 - 18 = 34), letra pequena (200 x 0,10 + 100 x 0,20 = 40; 5 EUR/150 kWh = 0,033 = 27,8%;
+  0,18 x 0,8 = 0,144; 0,12 x 1,03 = 0,1236), servicios extra (5,90/200 = 0,0295) e indexadas
+  (38,50; 53,50; 42,50). Los rangos de standby y de potencia (18,4 kWh con 2,3 kW x 8 h) cuadran.
+- **Normativa ya contrastada el 25/09 y por tanto NO reabrir:** 10 dias habiles del bono social
+  (RD 897/2017 art. 8.2), rango 400 operativo el 17/10/2026 (Resolucion BOE-A-2026-8409, 6 meses),
+  deducciones IRPF de movilidad hasta 31/12/2026 (RDL 7/2026), Ley 10/2025 sobre llamadas no
+  solicitadas y PVPC 55/45 en 2026.
+- **Observacion editorial, NO tocar:** `autoconsumo-avanzado` dice "amortizacion 8-12 anos tipico,
+  no 4-5" y `autoconsumo-y-placas-solares-lo-basico` da "6-10 anos sin ayudas y 4-6 con ayudas".
+  Son rangos orientativos que se solapan y cada uno lleva su cautela; no hay contradiccion de dato.
