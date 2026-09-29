@@ -5879,3 +5879,37 @@ llame a `goatcounter.count` directamente dara un falso positivo.
 en la home (solo se probo CSV); el resto del banco de facturas (solo una, Endesa, que no depende de
 `requestAnimationFrame`); OCR de Tesseract (la muestra no lo activo). La pestana de la extension
 corre oculta (`visibilityState` hidden): los flujos que dependen de rAF quedarian congelados.
+
+<a id="enlaces-externos-y-coherencia-de-datos-ronda-58-29-09-2026"></a>
+### Enlaces Externos Y Coherencia De Datos (Ronda 58, 29/09/2026)
+
+Barrido propio de Claude con scripts (fuera del repo), sin IA externa. Ficheros versionados
+unicamente: un primer intento recorrio las carpetas ignoradas `.codex-*` y dio 538 falsos "enlaces
+rotos"; no repetir sin `git ls-files`.
+
+**Corregido (1):** la guia del bono social enlazaba a Teramelcor (Melilla) con
+`https://www.teramelcor.es/bonosocial.html`, que devuelve **404** (la home responde 200; la web
+migro a `/bono-social/` y `/solicitud/`). Ahora apunta al tramite directo
+`https://teramelcor.es/solicitud/` (200), coherente con "enlaces directos a sus tramites". Unica
+aparicion fuera del censo CNMC, que es un espejo generado (`data/cnmc-commercializers.json`) y no se
+edita. Verificado con dos peticiones independientes y curl.
+
+**Limpio (NO REPETIR salvo cambio):**
+- 105 URLs externas unicas (guias, paginas editoriales y `web` de las 117 tarifas): 98 OK, 6 con
+  403/429 (anti-bot, no cuentan como rotura) y ninguna redirige a la raiz.
+- 38 HTML versionados: 0 enlaces internos rotos, 112 bloques `ld+json` parseables, sitemap sin
+  entradas huerfanas. Las 3 paginas fuera del sitemap (`aviso-legal`, `privacidad`, `guias/index`)
+  son `noindex` a proposito.
+- Datasets: `check_data_freshness.py` OK en pvpc y surplus de los 5 geos (ultimo dia 29/09/2026) y
+  ssaa a 2026-08. Los dias de cambio de hora (26/10/2025 y 29/03/2026) traen 25 y 23 entradas con
+  saltos de 3600 s en todos los geos; el modal PVPC ya etiqueta la hora repetida (`02:00 (2)`).
+- `tarifas.json` (117): sin nombres duplicados, 1P con energia uniforme, `web` https, BV coherente
+  con `reglaBV`/`precioBV`, `requisitos` coherente con los topes numericos. Las 13 rarezas de
+  rango son legitimas: `p2` de 0,001987 a 0,0134 es el peaje regulado de valle; `p1 < p2` en Nufri
+  (0,077272 / 0,07733) es lo que publica la comercializadora (caso ForoCoches del 28/09); Nordy
+  0,089/0,09 y el excedente 0,07 de TotalEnergies 3P sobre una energia minima de 0,066176 son
+  precios publicados, no errores.
+
+**Offline y PWA:** revisado y ya cubierto (matrices del 22/07 y de la ronda externa, ronda 42);
+la carga offline inicial de vendors lazy (XLSX, PDF.js, OCR) es decision documentada en
+`ARRANQUE-CARGA.md`. No se abre ronda.
