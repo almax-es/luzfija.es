@@ -1,6 +1,6 @@
 # Guia Para Auditorias IA De LuzFija.es
 
-Ultima actualizacion: 2026-09-15
+Ultima actualizacion: 2026-09-29
 
 Este documento existe para reducir falsos positivos en auditorias repetidas. No sustituye a
 `AGENTS.md` ni a `CAPACIDADES-WEB.md`; los complementa con criterios de clasificacion.

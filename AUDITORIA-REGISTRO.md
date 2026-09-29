@@ -1,6 +1,6 @@
 # Registro De Auditorias De LuzFija.es
 
-Ultima actualizacion: 2026-09-28
+Ultima actualizacion: 2026-09-29
 
 Este fichero es de CONSULTA POR AREA, no de lectura lineal. La lectura obligatoria antes de
 auditar es `AUDITORIA-IA.md`: metodo, taxonomia de severidad, tabla de areas y prompt. Aqui
