@@ -6083,3 +6083,52 @@ no); perfiles `iPhone 15` (393 px), `iPhone SE` (320 px) y `Desktop Safari` (128
   la del 02/09/2026 (compatibilidad PDF.js). No se hizo control negativo con la version vieja de
   `factura.js`: se mide que funciona, no que la prueba detecte el bug historico (eso lo cubren
   `tests/factura-lifecycle*.test.js`). Muestra de 3 facturas, no las 14 del banco.
+
+<a id="buscador-de-guias-hidden-sin-efecto-29-09-2026"></a>
+### Buscador De Guias: `hidden` Sin Efecto En `guias.html` (29/09/2026)
+
+Primera auditoria de la INTERFAZ del buscador en navegador real (Chrome y WebKit iPhone 15/SE),
+que la seccion "Buscador De Guias: Hueco De Auditoria Deliberado" dejaba pendiente: orden de
+resultados, teclado, estados vacios y parametro `q`. La sugerencia vino de una auditoria externa
+que solo notaba el hueco; el defecto se encontro midiendo, no leyendo.
+
+**Defecto real, corregido.** `guias.html` es una pagina autonoma: no carga `styles.css`, que es donde
+vive la regla global `[hidden]{display:none !important}`, y no tenia ninguna equivalente. Su propio
+`.guides-grid{display:grid}` ganaba al atributo `hidden` (la hoja del autor pesa mas que la del
+navegador), asi que `guidesGrid.hidden = true` de `js/guides-search.js` no ocultaba nada. Medido en
+produccion en Chrome real sobre `#guidesGrid`: con 5 resultados (`aerotermia`) la pagina media 3.718 px
+y las 22 guias seguian renderizadas debajo de los resultados; con 0 resultados el aviso "No encontramos
+nada" salia a 2.747 px, DESPUES de toda la lista. Los tests de comportamiento no podian verlo: jsdom
+no aplica CSS y comprueban el atributo, no la visibilidad real. Las dos rondas previas sobre el buscador
+(race de categoria, relevancia) razonaron sobre el atributo `hidden` como si fuera efectivo.
+
+**Correccion:** `[hidden] { display: none !important; }` en el `<style>` de `guias.html`, junto a
+`.guides-grid` (la misma regla que ya trae `styles.css`; el CSP de esa pagina permite estilos en
+linea sin hashes). Test nuevo `tests/guias-hidden-css.test.js`, validado por mutacion (sin la regla
+fallan 2 de 3). **Validacion en navegador, produccion frente a local con el arreglo:** con 5
+resultados la pagina pasa de 3.718 a 1.734 px y las tarjetas de la rejilla visibles de 22 a 0; con 0
+resultados el aviso pasa de 2.747 px a 763 px, justo bajo el buscador; categoria Solar, vaciar y
+estado inicial se comportan igual. Igual en WebKit iPhone 15 y iPhone SE (393 y 320 px), sin desbordes
+ni errores de pagina.
+
+**Efecto lateral visible, deliberado:** en el estado inicial el bloque "Si vas con prisa" sube 60 px
+(separacion con los botones de categoria: de 110 a 50 px). Los 60 px eran el `margin-bottom` del
+contenedor de resultados vacio y oculto, que seguia ocupando sitio por el mismo fallo. Se ve coherente
+con el resto de espaciados; si se prefiere el aire anterior habria que anadirlo como margen explicito.
+
+**Auditado y correcto (NO REPETIR salvo cambio):**
+- Relevancia: 19 consultas, 16 con la guia esperada en primer lugar. Las 3 restantes son criterio y no
+  fallo: `factura` aparece en 24 de 25 guias (la de leer la factura sale 2.a), `datadis` y `tarifa
+  nocturna` ponen la guia dedicada en 2.a posicion.
+- Parametro `q`: `<img onerror>` y `"><script>` se muestran como texto literal sin ejecutarse (todo
+  `textContent`), una consulta de 5.000 caracteres y `%00` no dan errores, el emoji se ignora y la
+  consulta solo de espacios no busca. `history.replaceState` actualiza la URL sin recargar.
+- Teclado: `Enter` en el buscador no navega ni recarga; el orden de Tab es buscador, botones de
+  categoria y tarjetas; `aria-live="polite"` anuncia el recuento. No hay manejador de `Escape` ni
+  `type="search"`: no hay boton de borrar, mejora opcional y no defecto.
+- Eventos: 10 pulsaciones sueltan UN solo evento (`guias-busqueda/index/2-5/9-16`).
+- Buscar reinicia la categoria a "Todas" (`setActiveCategory('todas')`): por diseno.
+- Movil 360 y 320 px: sin desbordes.
+**Trampa del propio metodo:** vaciar el input con `click({clickCount:3})` + Backspace NO lo vacia y la
+consulta se concatena; una primera pasada dio resultados absurdos por eso. Vaciar con Ctrl+A y
+comprobar el valor antes de teclear.

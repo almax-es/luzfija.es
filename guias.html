@@ -62,7 +62,7 @@
   "name": "Guías sobre Tarifas de Luz",
   "description": "Guías prácticas sobre electricidad en España: factura de la luz, tarifas, autoconsumo solar, coche eléctrico, PVPC y ahorro energético.",
   "url": "https://luzfija.es/guias.html",
-  "dateModified": "2026-09-14",
+  "dateModified": "2026-09-29",
   "inLanguage": "es",
   "isPartOf": {
     "@type": "WebSite",
@@ -335,6 +335,12 @@ body::before {
   gap: 20px;
   margin-bottom: 60px;
 }
+
+/* Esta pagina es autonoma y no carga styles.css, que es donde vive esta regla global. Sin ella,
+   el `display:grid` de .guides-grid gana al atributo `hidden` y guides-search.js no podia ocultar
+   la rejilla completa: con resultados quedaban las 22 guias debajo, y sin resultados el aviso
+   "No encontramos nada" aparecia despues de toda la lista. */
+[hidden] { display: none !important; }
 
 /* === CARD DE GUÍA === */
 .guide-card {
