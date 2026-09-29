@@ -5841,3 +5841,41 @@ cobertura de las superficies con cita, no de las que solo se enumeran.
 simulador solar (totales y tooltip), Observatorio (CSV y KPIs), modal de factura, modal PVPC,
 `README`, `CAPACIDADES-WEB.md`, `JSON-SCHEMA.md`, `llms*.txt`. No repetir este barrido salvo que
 aparezca una superficie nueva que muestre precios o kWh.
+
+<a id="privacidad-de-red-navegador-real-ronda-57-29-09-2026"></a>
+### Privacidad De Red Con Navegador Real (Ronda 57, 29/09/2026)
+
+Primera prueba de trafico saliente medida en produccion (`luzfija.es`) con Chrome real, hecha por
+Claude. Un intento previo de auditoria externa (ChatGPT) quedo INCONCLUSO por
+`ERR_BLOCKED_BY_ADMINISTRATOR` en su entorno y no se registra como ronda: no aporto ninguna
+peticion. **Resultado: cero hallazgos. Sin cambios de codigo.**
+
+Metodo: envolver `navigator.sendBeacon` (devuelve true sin reenviar: cero trafico artificial a
+GoatCounter), `fetch`, `XMLHttpRequest.open` y el setter de `Image.src`, instalados tras la carga de
+cada pagina (no capturan el pageview inicial ni los recursos previos al hook; estos ultimos se
+leyeron de `performance.getEntriesByType('resource')`). Muestra de 5 flujos con ficheros del banco
+local: CSV horario en la home, factura PDF (Endesa) en la home, XLSX en el simulador solar, XLSX en
+el Observatorio, y opt-out.
+
+| Flujo | Peticiones salientes observadas |
+| --- | --- |
+| Carga de la home (41 recursos) y del simulador (20) | Solo `luzfija.es`. Ningun tercero |
+| CSV horario: importar, aplicar, calcular | Balizas `csv-import-preview/home/csv` y `csv-import-aplicado/home/consumos/pvpc-periodo` (solo rutas categoricas, sin kWh, sin nombre de fichero, sin referrer). `GET` de `tarifas.json` y de `data/pvpc/8741/<mes>.json` sin cuerpo |
+| Factura PDF: abrir modal, extraer, aplicar | **Cero balizas** con el modal abierto y la extraccion en curso (`__LF_PRIVACY_MODE` true, `__LF_FACTURA_BUSY` false al terminar). Solo `GET` de `data/cnmc-commercializers.json`. PDF.js se sirve desde `/vendor/pdfjs`. Al aplicar: `GET` de datasets estaticos y ninguna baliza |
+| XLSX en el simulador solar + comparar | `csv-import-completado/solar/xlsx/con-excedentes`, `calculo-realizado/solar`, `simulador-solar-resultados/parcial/sin-mi-tarifa/indexado-horario` y `calculo-resultados/solar` con `filas:67` (recuento de tarifas del ranking, no dato del usuario) |
+| XLSX en el Observatorio | Solo `GET` de `data/surplus/8741/<mes>.json`. Ninguna baliza |
+| Opt-out (`goatcounter_optout`) | Con la clave puesta y recarga: `count.js` no se carga, `window.goatcounter` es `undefined`, ningun recurso hacia el host de analitica. `__LF_track` deja de emitir |
+
+Ninguna peticion `POST` ni con cuerpo en ninguno de los flujos. Ningun tercero en ningun flujo.
+
+**Trampa del propio metodo (NO es un fallo):** llamar directamente a `window.goatcounter.count()`
+con el opt-out activado SI emite baliza, porque el opt-out lo aplica `tracking.js` (a la carga y en
+cada llamada de `__LF_track`), no `count.js`. Ningun codigo de la app llama a `goatcounter.count`
+por fuera de `tracking.js`; la accion real de "Comparar" con opt-out no emitio nada. Un test que
+llame a `goatcounter.count` directamente dara un falso positivo.
+
+**No cubierto (no afirmar lo contrario):** el pageview inicial de carga y su parametro de referrer
+(el hook se instala despues); referrer entrante desde un sitio externo y saliente al salir; XLSX/CSV
+en la home (solo se probo CSV); el resto del banco de facturas (solo una, Endesa, que no depende de
+`requestAnimationFrame`); OCR de Tesseract (la muestra no lo activo). La pestana de la extension
+corre oculta (`visibilityState` hidden): los flujos que dependen de rAF quedarian congelados.
