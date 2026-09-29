@@ -6144,3 +6144,47 @@ resultados 0 tarjetas de la rejilla visibles y la pagina de 1.734 px; con 0 resu
 al vaciar vuelven las 22 guias (3.442 px). Movil 390 px: 2.598 px con 5 resultados, aviso a 804 px con 0,
 7.488 px al vaciar, sin desbordes. Sin errores de pagina. Integridad de ficheros publicos: 826 de 828
 identicos, 0 distintos, y los 2 no servidos son la linea base de GoatCounter (a proposito).
+
+<a id="vigencia-normativa-ronda-62-29-09-2026"></a>
+### Vigencia Normativa A 29/09/2026 (Ronda 62)
+
+Auditoria externa (ChatGPT, acotada a vigencia, con el prompt de la ronda 54 ampliado con peajes 2027 y
+novedades de octubre) y verificacion propia de lo comprobable. **Resultado: cero errores vigentes y un
+unico hallazgo de caducidad, ya seguido en la documentacion. Sin cambios de codigo ni de guias.**
+
+**Hallazgo (b) CADUCA PRONTO, NO ES ERROR:** `LF_CONFIG.peajesCargosEnergia` (`js/lf-config.js`,
+P1 0,097553 / P2 0,029267 / P3 0,003292 EUR/kWh) son los peajes de la Resolucion CNMC 18/12/2025
+(BOE-A-2025-26348) mas los cargos de la Orden TED/1524/2025 (BOE-A-2025-26705), vigentes en 2026. A
+29/09 no hay resolucion de peajes electricos 2027 publicada, asi que no hay valor que sustituir. La
+revision anual ya esta en `MANTENIMIENTO-NORMATIVO.md` (fila "Peajes y cargos": anual y con cada
+circular CNMC/MITECO; "cada cambio de ano: revisar peajes/cargos"). **No se anade centinela por fecha**
+(decision firme: el promotor rastrea el BOE). Revisar cuando salgan la resolucion y la orden de 2027.
+
+**Verificado por Claude, de forma independiente (no solo por el informe):**
+- **Sumarios del BOE del 24 al 29/09/2026** (24, 25, 26, 28 y 29; el 27 no hay BOE): 1.347
+  disposiciones, filtradas por titulo (electricidad, energia, IVA, impuesto, bono social, peajes,
+  autoconsumo, comercializacion, consumidor, precio, real decreto-ley). Ninguna norma nueva sobre
+  tipos de IVA/IEE, bono social, peajes al consumidor, autoconsumo ni comercializacion.
+- **RDL 22/2026** (BOE-A-2026-18429, 02/09; convalidado 16/09): apoyo economico a Ceuta (ayudas a
+  empresas, IRPF de autonomos, Impuesto sobre Sociedades, avales, ICEX). Leido entero: **cero menciones**
+  de electricidad, IPSI, IVA, bono social, tarifa, peaje, comercializadora ni autoconsumo. No afecta a
+  las guias ni al IPSI de `lf-config.js`.
+- **RDL 23/2026** (convalidado 25/09, BOE-A-2026-19845): medidas fiscales y financieras para La Palma. No
+  afecta a la electricidad. La Resolucion CNMC BOE-A-2026-19941 (25/09) es la retribucion de la
+  distribucion de 2023: no toca los peajes al consumidor.
+- **RD 724/2026** (BOE-A-2026-18902, DF 3.a, 09/09): solo reescribe el art. 4.2 del RD 609/2026 (el
+  beneficiario debe estar al corriente con Hacienda y la Seguridad Social al conceder la ayuda, sin
+  reintegros pendientes ni orden de recuperacion de la Comision). Las guias de Auto+ no dicen nada sobre
+  ese requisito, asi que ninguna frase queda falsa.
+
+**Aceptado del informe sin contraste propio (verificado en la ronda 54 del 24-25/09, sin cambios
+posteriores segun el informe):** bono social 42,5 %/57,5 % y 10 dias habiles, financiacion 9,011295
+EUR/CUPS/ano (Orden TED/634/2026), limites de energia bonificable, Auto+ Linea 1 y 2, deducciones IRPF
+hasta 31/12/2026, rango 400 el 17/10/2026, articulos del RD 88/2026, PVPC 55/45 y 10 kW, contador 0,81
+EUR, IGIC e IPSI. No se repite su lectura literal.
+
+**Lo unico con fecha:** el BOE del 30/09 y del 01/10/2026 (no publicados a fecha de esta ronda). Si sale
+una prorroga del IVA/IEE para octubre u otra norma, la guia de factura y `lf-config.js` la necesitarian.
+Hasta entonces las guias ya dicen que desde el 01/10 sigue el 21 % mientras no se publique una prorroga.
+Repetir el escaneo del sumario del BOE (mismo metodo: `/datosabiertos/api/boe/sumario/AAAAMMDD`, cabecera
+`Accept: application/json`, filtro por titulo) el 01-02/10.
