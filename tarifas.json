@@ -852,7 +852,7 @@
       "cValle": 0.143394,
       "p1": 0.075903,
       "p2": 0.029385,
-      "web": "https://www.energianufri.com/es/landing/2a-luz",
+      "web": "https://www.energianufri.com/es/tarifas-luz",
       "tipo": "1P",
       "incluyeServiciosAjuste": true,
       "fv": {
@@ -1972,7 +1972,7 @@
       "cValle": 0.098638,
       "p1": 0.075903,
       "p2": 0.029385,
-      "web": "https://www.energianufri.com/es/landing/2a-luz",
+      "web": "https://www.energianufri.com/es/tarifas-luz",
       "tipo": "3P",
       "incluyeServiciosAjuste": true,
       "fv": {
@@ -2438,5 +2438,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-29T11:21:16.790Z"
+  "updatedAt": "2026-09-29T16:00:33.948Z"
 }
