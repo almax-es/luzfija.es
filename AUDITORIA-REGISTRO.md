@@ -5956,5 +5956,13 @@ comprueba propiedades que deben cumplirse siempre, sin necesidad de conocer el i
 - **Control negativo:** invirtiendo la direccion de la invariante de consumo saltan 294 de 294
   comparaciones; la prueba es sensible. Tarda unos 9 minutos con 500 escenarios: no es candidata a
   test permanente del repo sin reducirla mucho.
+- **Simulador solar mes a mes (`BVSim.simulateForTarifaDemo`)**, 1.500 escenarios de 12 meses
+  sinteticos con saldo BV arrastrado x 67 tarifas con compensacion (~100.000 simulaciones, 96.000
+  comparaciones; 4.500 filas marcadas `dataUnavailable` por el SSAA del dataset de prueba y omitidas):
+  **cero violaciones.** Total y saldo finitos y no negativos; **mas excedente en un mes nunca sube el
+  coste neto (`pagado - bvFinal`) ni lo pagado**; **mas saldo inicial nunca sube ni lo pagado ni el
+  coste neto**; en tarifas sin BV el saldo inicial no influye. Control negativo (invertir la
+  direccion de la invariante de excedente): salta 1.248 veces. Solo 5 segundos por cada 60 escenarios,
+  asi que esta si seria viable como test permanente reducido si algun dia se quiere.
 - **No cubre:** PVPC (necesita datasets), importes absolutos correctos (rondas 44-46), la ruta
-  horaria con CSV ni el simulador solar mes a mes (`bv-sim-monthly.js`).
+  horaria con CSV, el SSAA real por mes (se uso un dataset de prueba) ni la UI del simulador.
