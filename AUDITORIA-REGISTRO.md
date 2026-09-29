@@ -5966,3 +5966,21 @@ comprueba propiedades que deben cumplirse siempre, sin necesidad de conocer el i
   asi que esta si seria viable como test permanente reducido si algun dia se quiere.
 - **No cubre:** PVPC (necesita datasets), importes absolutos correctos (rondas 44-46), la ruta
   horaria con CSV, el SSAA real por mes (se uso un dataset de prueba) ni la UI del simulador.
+
+**Cruce home frente a simulador solar sobre CSV reales (29/09/2026, ampliacion de la ronda 58):**
+mismo fichero por los dos caminos de agregacion, por zona (Peninsula, Canarias, Ceuta/Melilla). La
+home clasifica cada registro con la zona del usuario (`clasificarConsumosPorPeriodo` /
+`reclasificarConsumosHorarios`); el simulador agrupa por mes (`BVSim.bucketizeByMonth`). Prueba fuera
+del repo con 6 CSV del banco local (7.344, 480, 8.757, 7.368, 745 y 696 registros). **Cero
+diferencias** en kWh por periodo P1/P2/P3, excedentes, kWh totales, dias con datos y numero de
+registros, dentro de la tolerancia del redondeo mensual del simulador (`kwh2` por mes: hasta 0,006
+kWh por mes). Ceuta/Melilla mueve correctamente kWh de P2 a P1 en los dos motores (por ejemplo
+394,7/371,8 pasa a 491,1/275,4 con 1.019,2 en P3 en `1.csv`) y P3 no cambia.
+- **Salida esperable, NO es un bug:** el fichero peninsular `Consumo_149053...csv` (26/10/2025 con 25
+  horas) interpretado como zona Canarias falla en el simulador con "filas duplicadas para la misma
+  fecha y hora (2025-10-26, hora 3)". Es un cruce incoherente (fichero peninsular, zona canaria): la
+  hora repetida de octubre cae en 02:00 en Peninsula y en 01:00 en Canarias (ver la regla de zona
+  del cambio de hora, ronda 37/41). Un usuario canario trae un fichero canario. La home no lo
+  rechaza porque parsea sin zona y reclasifica despues.
+- **No cubre:** XLSX (comparten `xlsxRowsFromSheet`, ronda 39), Datadis mensual ni el importe final
+  de cada tarifa, que dependen de rondas 44-46.
