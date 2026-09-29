@@ -6035,3 +6035,13 @@ abierto. Sin causa demostrada: es un test contra Chromium real dentro de una sui
 en paralelo (jsdom concentra ~73% del tiempo), asi que la carga es la hipotesis, no un hecho. El CI
 lleva 59 ejecuciones en verde de las ultimas 60 (el unico rojo, el 26/09, no muestra este test).
 Si aparece en el CI, medir tiempos de arranque de Chromium antes de subir ningun timeout.
+
+**Verificado en produccion tras el despliegue `c152ddc` (build `20260929-110803`, 29/09/2026):**
+`https://luzfija.es/.well-known/assetlinks.json` responde 200 con `application/json`, byte a byte
+igual al del repo y con `es.luzfija.twa`. El CI paso entero, incluido el paso nuevo `Verificar que el
+artefacto empaquetado conserva .well-known`. Integridad: 826 de 828 ficheros identicos, 0 distintos y
+solo 2 no servidos, los dos de la linea base de GoatCounter excluidos a proposito (`.nojekyll` y
+`.well-known` ya se publican). `sw.js` y las paginas muestreadas llevan el mismo build, el SW responde
+`GET_VERSION` igual, el precache tiene 83 entradas sin faltantes y sin red arrancan las mismas cinco
+paginas. El unico `ERR_FAILED` de consola del script de prueba viene de dejar su pestana principal sin
+red al final del guion; con dos cargas limpias no hay fallos de red.
