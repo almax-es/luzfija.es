@@ -6136,3 +6136,11 @@ comprobar el valor antes de teclear.
 con elementos `hidden`):** solo `guias.html` estaba afectada. `404.html` tiene un `hidden`
 (`#notFoundSuggestion`) pero ninguna regla `display` sobre el, asi que el atributo funciona por el
 estilo del navegador; home, simulador solar y Observatorio cargan `styles.css` y estan cubiertos.
+
+**Verificado en produccion tras el despliegue `c0059d2` (build `20260929-133020`, 29/09/2026):** el CI
+paso entero; `guias.html` en vivo lleva la regla `[hidden]`; y el buscador, probado con el service worker
+ACTIVO como lo ve un usuario que ya visito la web, se comporta como en local. Escritorio: con 5
+resultados 0 tarjetas de la rejilla visibles y la pagina de 1.734 px; con 0 resultados el aviso a 763 px;
+al vaciar vuelven las 22 guias (3.442 px). Movil 390 px: 2.598 px con 5 resultados, aviso a 804 px con 0,
+7.488 px al vaciar, sin desbordes. Sin errores de pagina. Integridad de ficheros publicos: 826 de 828
+identicos, 0 distintos, y los 2 no servidos son la linea base de GoatCounter (a proposito).
