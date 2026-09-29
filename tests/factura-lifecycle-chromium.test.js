@@ -185,7 +185,12 @@ suite('factura PDF en Chromium real', { retry: 2 }, () => {
         console.warn(`[factura-lifecycle-chromium] Perfil temporal no borrado (${error.code}): ${profile}`);
       }
     }
-  });
+    // 29/09/2026: sin timeout propio este hook heredaba los 10000 ms por defecto de vitest, pero
+    // su presupuesto interno suma hasta ~12 s (2 s de Browser.close + 5 s esperando la salida de
+    // Chromium + hasta 5 s de reintentos al borrar el perfil en Windows). Tras la suite completa,
+    // con Chromium lento en soltar el perfil, fallaba "Hook timed out in 10000ms" con los 2.213
+    // tests pasando (2 de 4 corridas completas con Node 22). Mismo margen que el beforeAll.
+  }, 30000);
 
   async function evaluate(expression) {
     const result = await pageCdp.send('Runtime.evaluate', {

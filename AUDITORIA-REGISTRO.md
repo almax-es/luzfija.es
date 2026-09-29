@@ -6027,14 +6027,18 @@ que el artefacto no habria llevado el fichero.
   (`INDEX_PATH`). El texto del propio SW lo describe asi. Precachear las 25 guias o anadir una pagina
   "sin conexion" seria un cambio de producto, no una correccion.
 
-**Intermitencia local de `tests/factura-lifecycle-chromium.test.js` (29/09/2026):** fallo en 2 de unas 9
-corridas completas locales (una vez un test del corte de red del worker en fake-worker; otra vez
-solo a nivel de fichero, con 2.213 tests pasando). Suelto pasa 3 de 3 (Node 24) y 4 de 4 (Node 22),
-y las dos corridas completas siguientes con Node 22 pasan 134/134. No quedaba ningun Chrome mio
-abierto. Sin causa demostrada: es un test contra Chromium real dentro de una suite con 134 ficheros
-en paralelo (jsdom concentra ~73% del tiempo), asi que la carga es la hipotesis, no un hecho. El CI
-lleva 59 ejecuciones en verde de las ultimas 60 (el unico rojo, el 26/09, no muestra este test).
-Si aparece en el CI, medir tiempos de arranque de Chromium antes de subir ningun timeout.
+**Intermitencia de `tests/factura-lifecycle-chromium.test.js` (29/09/2026, RESUELTA):** fallaba a
+nivel de fichero con `Hook timed out in 10000ms` en el `afterAll` mientras los 2.213 tests pasaban:
+2 de 4 corridas completas con Node 22 (y antes 2 de unas 9 en Node 24). Suelto pasaba siempre, y
+tampoco fallaba con los 12 hilos saturados (6 de 6), asi que **no era la carga de CPU**: la primera
+hipotesis quedo refutada. **Causa demostrada:** el `afterAll` no declaraba timeout y heredaba los 10.000
+ms por defecto de vitest, pero su presupuesto interno suma hasta ~12 s (2 s de `Browser.close` + 5 s
+esperando la salida de Chromium + hasta 5 s de reintentos `maxRetries: 20 x 250 ms` al borrar el perfil
+en Windows), mientras el `beforeAll` si tenia 30.000 ms. **Correccion:** `}, 30000);` en el `afterAll`,
+mismo margen que el `beforeAll`. Cambio solo de test. **Validacion:** 6 de 6 corridas completas en verde
+con el arreglo (134 ficheros y 2.213 tests), frente a 2 de 4 rojas sin el (probabilidad de 0 de 6 por
+azar con esa tasa: menos del 2 %). Este fallo paraba el `.bat` de despliegue ya el 15/09 y el 23-24/09;
+ahora tiene margen. Si volviera, mirar primero cuanto tarda el borrado del perfil, no subir mas.
 
 **Verificado en produccion tras el despliegue `c152ddc` (build `20260929-110803`, 29/09/2026):**
 `https://luzfija.es/.well-known/assetlinks.json` responde 200 con `application/json`, byte a byte
