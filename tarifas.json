@@ -383,46 +383,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Bassols Hogar Solar 24 horas",
-      "cPunta": 0.122,
-      "cLlano": 0.122,
-      "cValle": 0.122,
-      "p1": 0.158,
-      "p2": 0.158,
-      "web": "https://bassolsenergia.com/es/monedero-solar/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.057,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": true
-    },
-    {
-      "nombre": "Bassols Hogar 24 horas",
-      "cPunta": 0.122,
-      "cLlano": 0.122,
-      "cValle": 0.122,
-      "p1": 0.158,
-      "p2": 0.158,
-      "web": "https://bassolsenergia.com/es/tarifas-de-luz/hogar-24-horas/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Octopus Unicaja",
       "cPunta": 0.123,
       "cLlano": 0.123,
@@ -1302,6 +1262,46 @@
       "requiereFV": false
     },
     {
+      "nombre": "Bassols Hogar Solar 24 horas",
+      "cPunta": 0.172,
+      "cLlano": 0.172,
+      "cValle": 0.172,
+      "p1": 0.127,
+      "p2": 0.127,
+      "web": "https://bassolsenergia.com/es/monedero-solar/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.057,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": true
+    },
+    {
+      "nombre": "Bassols Hogar 24 horas",
+      "cPunta": 0.172,
+      "cLlano": 0.172,
+      "cValle": 0.172,
+      "p1": 0.127,
+      "p2": 0.127,
+      "web": "https://bassolsenergia.com/es/tarifas-de-luz/hogar-24-horas/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Iner Tranquilidad",
       "cPunta": 0.1797,
       "cLlano": 0.1797,
@@ -1610,46 +1610,6 @@
       },
       "requiereFV": false,
       "maxConsumoAnualPorKw": 1200.0
-    },
-    {
-      "nombre": "Bassols Hogar Solar 3P",
-      "cPunta": 0.176,
-      "cLlano": 0.105,
-      "cValle": 0.071,
-      "p1": 0.168,
-      "p2": 0.168,
-      "web": "https://bassolsenergia.com/es/monedero-solar/",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.057,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": true
-    },
-    {
-      "nombre": "Bassols Hogar Ahorro 3P",
-      "cPunta": 0.176,
-      "cLlano": 0.105,
-      "cValle": 0.071,
-      "p1": 0.168,
-      "p2": 0.168,
-      "web": "https://bassolsenergia.com/es/tarifas-de-luz/hogar-ahorro/",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
     },
     {
       "nombre": "El Corte Inglés Benefíciate 3P",
@@ -2316,6 +2276,46 @@
       "requiereFV": true
     },
     {
+      "nombre": "Bassols Hogar Solar 3P",
+      "cPunta": 0.243,
+      "cLlano": 0.172,
+      "cValle": 0.138,
+      "p1": 0.122,
+      "p2": 0.094,
+      "web": "https://bassolsenergia.com/es/monedero-solar/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.057,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": true
+    },
+    {
+      "nombre": "Bassols Hogar Ahorro 3P",
+      "cPunta": 0.243,
+      "cLlano": 0.172,
+      "cValle": 0.138,
+      "p1": 0.122,
+      "p2": 0.094,
+      "web": "https://bassolsenergia.com/es/tarifas-de-luz/hogar-ahorro/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Iner La Clásica 3P",
       "cPunta": 0.25636,
       "cLlano": 0.17452,
@@ -2438,5 +2438,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-09-29T07:01:31.586Z"
+  "updatedAt": "2026-09-29T11:21:16.790Z"
 }
