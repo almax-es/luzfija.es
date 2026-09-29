@@ -6045,3 +6045,37 @@ solo 2 no servidos, los dos de la linea base de GoatCounter excluidos a proposit
 `GET_VERSION` igual, el precache tiene 83 entradas sin faltantes y sin red arrancan las mismas cinco
 paginas. El unico `ERR_FAILED` de consola del script de prueba viene de dejar su pestana principal sin
 red al final del guion; con dos cargas limpias no hay fallos de red.
+
+<a id="simulacion-webkit-iphone-ronda-60-29-09-2026"></a>
+### Simulacion Webkit E Iphone (Ronda 60, 29/09/2026)
+
+Cierra la limitacion que quedo abierta en la ronda 59 ("iPhone real: no probado"): con el montaje de
+`reference-playwright-webkit-validacion` (Playwright con WebKit 26.6, fuera del repo) se ejecuto la
+matriz de flujos sobre el repo servido en local con `python -m http.server 8099` (identico a
+produccion: 826 de 828 ficheros iguales tras el despliegue `c152ddc`, los otros 2 excluidos a
+proposito). **Resultado: cero fallos en los tres perfiles.**
+
+Metodo y trampas aplicadas: contexto sin service worker para la matriz; `ReadableStream.prototype
+[Symbol.asyncIterator]` borrado con `addInitScript` (el WebKit de Playwright lo expone y Safari de iOS
+no); perfiles `iPhone 15` (393 px), `iPhone SE` (320 px) y `Desktop Safari` (1280 px).
+- **Paginas:** home, simulador solar, Observatorio, indice de guias, una guia y "como funciona": sin
+  errores de pagina ni de consola, sin peticiones fallidas y sin desbordes horizontales ni a 320 px.
+- **Flujos:** CSV horario en la home (previsualizar, aplicar, calcular: ranking de 99 filas); tres
+  facturas PDF reales (Endesa, Iberdrola, Octopus) extraidas y aplicadas en unos 5 s con el modal
+  cerrando y `p1`/`dias` rellenados; XLSX en el simulador solar (ranking completo de 67 tarifas);
+  XLSX en el Observatorio.
+- **Facturas entre motores:** el texto completo del modal de extraccion es IDENTICO caracter a
+  caracter en WebKit y en Chrome para las tres facturas (sha256 iguales: Endesa 2.205 caracteres,
+  Iberdrola 1.367, Octopus 2.146).
+- **Service worker en WebKit (permitido):** se registra y se activa en home, Observatorio e indice de
+  guias, sin avisos.
+- **Trampa del propio metodo, NO es bug:** con `serviceWorkers: 'block'` Playwright hace que
+  `navigator.serviceWorker.register()` resuelva `undefined`, y `/guias.html` registra en consola
+  `SW registration failed ... 'reg.waiting'`. Con el SW permitido el aviso desaparece; el mensaje
+  contiguo dice "blocked by Playwright". Un `register()` real nunca resuelve `undefined`.
+- **No cubre (no afirmar lo contrario):** esto NO es un iPhone fisico ni iOS Safari: es el motor WebKit
+  26.6 con el perfil de un iPhone 15 (UA de iOS 17.5). No prueba iOS antiguos, el teclado tactil, los
+  gestos, la barra de direcciones que se repliega ni Lockdown Mode. La validacion en un iPhone real es
+  la del 02/09/2026 (compatibilidad PDF.js). No se hizo control negativo con la version vieja de
+  `factura.js`: se mide que funciona, no que la prueba detecte el bug historico (eso lo cubren
+  `tests/factura-lifecycle*.test.js`). Muestra de 3 facturas, no las 14 del banco.
