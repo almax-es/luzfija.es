@@ -5807,3 +5807,37 @@ en 1280 (mes y tramo principal) ya lo hacian antes y solo invaden su propio rell
 texto. Tests en `tests/bv-ui-zona-grid.test.js`, `tests/pvpc-stats-ui.test.js` y
 `tests/render-ui.test.js`, validados por mutacion. Descartados por ChatGPT y confirmado: factura
 PDF/QR, "Mi tarifa", importadores CSV/XLSX y modal PVPC no tienen este patron.
+
+<a id="precision-y-paridad-texto-motor-ronda-56-29-09-2026"></a>
+### Precision De Cifras Y Paridad Texto-Motor (Ronda 56, 29/09/2026)
+
+Auditoria externa (ChatGPT, lectura del `main` tras `bbf9b25`) con dos prompts separados: (A) barrido
+de precision de cifras mostradas en TODA superficie y (B) paridad entre cifras/reglas citadas en
+texto publico y las fuentes de verdad (`lf-config.js`, `tarifas.json`, motores). **Resultado: cero
+hallazgos confirmados en ambos. Sin cambios de codigo.**
+
+Verificado por Claude contra el repo (muestra, no barrido): `precioComa` (`js/lf-render.js:24`, 6
+decimales sin ceros finales), `formatKwh`/`formatKwhEstimado` (`js/lf-render.js:794/801`), `fmtKwh`
+(`js/pvpc-stats-ui.js:181`), los precios de Nufri en `tarifas.json` (0,107634 / 0,077272 / 0,07733),
+la guarda PVPC > 10 kW (`js/pvpc.js:603` y `:1267`), `INDEXED_SURPLUS_REFERENCE_PRICE` 0,02
+(`js/lf-config.js:176`), el tope de 1.200 kWh/kW (`js/lf-utils.js:165`) y las 117 tarifas (README,
+CAPACIDADES, `llms*.txt`, estos ultimos fechados). **No contrastado por Claude:** los porcentajes
+fiscales y de bono social de la tabla B, las lineas de `desglose-render.js`/`factura.js`/
+`lf-csv-import.js` y el barrido de guias y JSON-LD (el informe los lista como revisados sin citar
+linea). Un "cero hallazgos" amplio prueba lo que se miro, no la ausencia de defectos: cuenta como
+cobertura de las superficies con cita, no de las que solo se enumeran.
+
+**Decisiones confirmadas (NO REABRIR sin una cifra visible nueva que incumpla la regla):**
+- Modal PVPC de la home con 3 decimales (`js/index-extra.js`, `toFixed(3)` en precio actual, minimo y
+ maximo): promedios de mercado informativos, ya clasificados asi en la seccion "Precision De Los
+ Precios Unitarios Mostrados". No es un precio publicado que el usuario coteje.
+- Preview del importador CSV a 2 decimales (`js/lf-csv-import.js`): el contrato de esa superficie
+ normaliza los agregados a centesimas de kWh antes de mostrarlos; el motor recibe el mismo valor.
+- Factura/QR con hasta 3 decimales en consumos: contrato de datos distinto (ronda 15); el QR CNMC
+ trae enteros.
+- Cifras 117/118/119 tarifas en `AUDITORIA-*`: historicas o fechadas, no divergencias de producto.
+
+**Superficies con cita en el informe, sin hallazgos:** ranking, tooltips y desglose de la home,
+simulador solar (totales y tooltip), Observatorio (CSV y KPIs), modal de factura, modal PVPC,
+`README`, `CAPACIDADES-WEB.md`, `JSON-SCHEMA.md`, `llms*.txt`. No repetir este barrido salvo que
+aparezca una superficie nueva que muestre precios o kWh.
