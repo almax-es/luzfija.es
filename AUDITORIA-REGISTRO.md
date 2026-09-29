@@ -5935,3 +5935,26 @@ lineas con norma, plazo, cifra o fecha de las 25 guias mas `calcular-factura-luz
 - **Observacion editorial, NO tocar:** `autoconsumo-avanzado` dice "amortizacion 8-12 anos tipico,
   no 4-5" y `autoconsumo-y-placas-solares-lo-basico` da "6-10 anos sin ayudas y 4-6 con ayudas".
   Son rangos orientativos que se solapan y cada uno lleva su cautela; no hay contradiccion de dato.
+
+**Invariantes metamorficas del motor de la home (29/09/2026, ampliacion de la ronda 58):** prueba
+aleatoria reproducible (semilla fija) ejecutada FUERA del repo contra `LF.calculateLocal` con las 117
+tarifas reales de `tarifas.json` (98 filas por escenario; el resto no aplica por requisitos), en
+las cuatro zonas fiscales. **Cero violaciones.** Es un complemento de los oraculos independientes
+de las rondas 44-46: aquellos comprueban importes concretos contra una referencia decimal; esta
+comprueba propiedades que deben cumplirse siempre, sin necesidad de conocer el importe correcto.
+- Mercado libre, 500 escenarios x 98 tarifas (~245.000 comprobaciones): el total es finito y no
+  negativo; **mas kWh, mas dias o mas potencia nunca abaratan**; en tarifas 1P el total no depende
+  de como se reparta el consumo entre P1/P2/P3 (tolerancia de 1 centimo).
+- Solar, 60 escenarios x 117 tarifas (7.020 comparaciones): total finito y no negativo; **mas
+  excedente nunca encarece** y **mas saldo BV nunca encarece**.
+- Una regla aparentemente violada NO es un bug: con `solarOn` y cero excedente el total supera al
+  de la misma tarifa sin solar en las tarifas con `fv.bv` y `precioBV > 0`, porque se cobra la cuota
+  mensual de la BV prorrateada por dias y con su impuesto (Nordy: 2,99 EUR/mes x 12 dias = 1,18 EUR,
+  1,43 EUR con IVA). 200 de 200 casos explicados por esa causa y ninguno sin explicar; ninguna
+  tarifa con cuota BV quedo sin diferencia. La cuota BV no cuenta como "cuota fija que inactiva la
+  tarifa" (`feedback_tarifas_con_cuota_se_inactivan`).
+- **Control negativo:** invirtiendo la direccion de la invariante de consumo saltan 294 de 294
+  comparaciones; la prueba es sensible. Tarda unos 9 minutos con 500 escenarios: no es candidata a
+  test permanente del repo sin reducirla mucho.
+- **No cubre:** PVPC (necesita datasets), importes absolutos correctos (rondas 44-46), la ruta
+  horaria con CSV ni el simulador solar mes a mes (`bv-sim-monthly.js`).
