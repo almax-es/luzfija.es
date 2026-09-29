@@ -5984,3 +5984,54 @@ kWh por mes). Ceuta/Melilla mueve correctamente kWh de P2 a P1 en los dos motore
   rechaza porque parsea sin zona y reclasifica despues.
 - **No cubre:** XLSX (comparten `xlsxRowsFromSheet`, ronda 39), Datadis mensual ni el importe final
   de cada tarifa, que dependen de rondas 44-46.
+
+<a id="verificacion-de-produccion-y-assetlinks-ronda-59-29-09-2026"></a>
+### Verificacion De Produccion Y Assetlinks (Ronda 59, 29/09/2026)
+
+Revision de lo desplegado (`8de6ddd`, build `20260929-093237`) contra el repo. **Un defecto real
+encontrado: `https://luzfija.es/.well-known/assetlinks.json` respondia 404.**
+
+**Causa demostrada:** `actions/upload-pages-artifact` (fijada en `fc324d3`, v5.0.0) empaqueta con
+`tar --exclude=.[^/]*` salvo que se pase `include-hidden-files: true` (leido en su `action.yml` a ese
+SHA). El paso `Construir artefacto publico` copiaba `.well-known` y `.nojekyll` a `_site/` y hasta
+comprobaba `test -f _site/.well-known/assetlinks.json`, pero esa comprobacion corre ANTES de empaquetar:
+el tar subido a Pages no los llevaba. Reproducido en local con el mismo `tar`: sin el flag no entra
+ninguno de los dos; con el flag entran solo esos dos (el `rsync` ya excluye cualquier otro fichero con
+punto). El README declara la app Android TWA `es.luzfija.twa` y el fichero solo sirve si es publico.
+No se puede fechar desde cuando (historial aplastado); la 404 es del 29/09/2026 y se midio con
+`curl` sobre `luzfija.es` y `www.luzfija.es` (301 al dominio raiz, luego 404).
+
+**Correccion (`.github/workflows/tests.yml`):** `include-hidden-files: true` en el paso `Upload
+artifact` y un paso nuevo, `Verificar que el artefacto empaquetado conserva .well-known`, que lista
+`$RUNNER_TEMP/artifact.tar` (el tar real que sube la accion) y falla el build si no aparece
+`.well-known/assetlinks.json`, antes de `deploy_pages`. Test nuevo en
+`tests/deploy-artifact.test.js`, validado por mutacion (sin el flag y sin el guard falla) y el guard
+contra dos tar de prueba: falla con el comportamiento anterior y pasa con el flag.
+**Verificar tras el push:** `curl -s https://luzfija.es/.well-known/assetlinks.json` debe devolver el
+JSON con `es.luzfija.twa`. Un rojo en el paso nuevo NO significa que el sitio se haya roto: significa
+que el artefacto no habria llevado el fichero.
+
+**Verificado limpio en produccion (NO REPETIR salvo cambio de despliegue):**
+- Coherencia de build: `sw.js` y las 11 paginas muestreadas llevan `?v=20260929-093237`; el SW
+  responde `GET_VERSION` con el mismo build que `window.__LF_BUILD_ID`.
+- Integridad byte a byte: 828 ficheros versionados publicos comparados con el repo: 824 identicos,
+  0 distintos, 4 no servidos (`.nojekyll`, `.well-known/assetlinks.json`, y los dos ficheros de la
+  linea base de GoatCounter excluidos a proposito). El 404 de `.well-known` es el defecto de arriba.
+- Service worker en Chrome real: se instala, `caches` contiene 83 entradas, ninguno de los 37
+  `CORE_ASSETS` ni de los 83 `ASSETS` declarados falta, y sin red arrancan la home, el simulador, el
+  Observatorio, el indice de guias y "como funciona" (target del SW tambien sin red).
+- `tarifas.json` vivo identico al del repo (117 tarifas, mismo `updatedAt`). Suite completa con Node 22
+  (el del CI): 134 ficheros y 2.212 tests.
+- **Observacion, NO es bug:** sin red, una guia que el usuario nunca visito online (no esta en el
+  precache; solo se guardan al visitarlas) se sirve como la home por el fallback de `sw.js`
+  (`INDEX_PATH`). El texto del propio SW lo describe asi. Precachear las 25 guias o anadir una pagina
+  "sin conexion" seria un cambio de producto, no una correccion.
+
+**Intermitencia local de `tests/factura-lifecycle-chromium.test.js` (29/09/2026):** fallo en 2 de unas 9
+corridas completas locales (una vez un test del corte de red del worker en fake-worker; otra vez
+solo a nivel de fichero, con 2.213 tests pasando). Suelto pasa 3 de 3 (Node 24) y 4 de 4 (Node 22),
+y las dos corridas completas siguientes con Node 22 pasan 134/134. No quedaba ningun Chrome mio
+abierto. Sin causa demostrada: es un test contra Chromium real dentro de una suite con 134 ficheros
+en paralelo (jsdom concentra ~73% del tiempo), asi que la carga es la hipotesis, no un hecho. El CI
+lleva 59 ejecuciones en verde de las ultimas 60 (el unico rojo, el 26/09, no muestra este test).
+Si aparece en el CI, medir tiempos de arranque de Chromium antes de subir ningun timeout.
