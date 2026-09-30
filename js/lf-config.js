@@ -9,16 +9,16 @@
  * lf-config.js - Configuración centralizada de valores regulados
  * 
  * Este archivo contiene todos los valores que pueden cambiar por legislación.
- * Referencias revisadas: 19/08/2026
- * 
+ * Referencias revisadas: 30/09/2026
+ *
  * Referencias legales:
  * - Bono social: RD 897/2017 + RDL 7/2026 (financiación: 9,011295 EUR/CUPS/año vigente desde 01/07/2026)
- * - IEE: Ley 38/1992 Art. 99 + RDL 7/2026 + RDL 18/2026 (mecanismo de salvaguarda: agosto depende del IPC
- *   anual de Electricidad de junio, septiembre del de julio; el de julio (subclase 04.5.10) fue del 8,4%
- *   — ninguno de los dos meses supera el umbral de >15% que activaría la reducción)
- * - IVA: Ley 37/1992 + RDL 7/2026, RDL 10/2026 y RDL 18/2026 (agosto y septiembre al 21%, mismo mecanismo
- *   y meses de referencia que el IEE: junio determina agosto, julio determina septiembre — el de julio
- *   fue del 8,4% anual, por debajo del umbral que activaría la reducción)
+ * - IEE: Ley 38/1992 Art. 99 + RDL 7/2026, RDL 18/2026 y RDL 25/2026. Agosto y septiembre (RDL 18/2026) y
+ *   octubre (sin medida en el RDL 25/2026) al tipo general. RDL 25/2026 arts. 20-21: noviembre al 0,5% si
+ *   la variacion anual del IPC de Electricidad (subclase 04.5.1.0) de septiembre supera el 15%; diciembre,
+ *   igual con el de octubre. Agosto de 2026: 9,2%.
+ * - IVA: Ley 37/1992 + RDL 7/2026, RDL 10/2026, RDL 18/2026 y RDL 25/2026 (arts. 18-19: 10% en noviembre
+ *   o diciembre para contratos <= 10 kW y vulnerables severos, con la misma condicion de IPC que el IEE)
  * - IGIC: Ley 4/2012 (0% vivienda ≤10kW: art. 52.r; 3% otros: art. 54; 7% contador: tipo general, art. 51)
  * - IPSI: Ley 8/1991 Art. 18 solo fija la horquilla 0,5-10%; el 1% electricidad y el 4% servicios/contador salen de las ordenanzas de Ceuta y Melilla
  * - Alquiler contador: Orden ITC/3860/2007 (0,81 €/mes)

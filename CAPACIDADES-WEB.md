@@ -537,7 +537,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - `/data/ssaa/` (indicador 10328, servicios de ajuste medios mensuales).
 - Origen de tarifas: dataset curado en `tarifas.json`. El campo interno `Activa` no se exporta: el generador acepta solo `SI` o `NO` tras `trim`; `NO` excluye la tarifa y cualquier otro valor detiene la generación para no publicar un dataset ambiguo. Ver `JSON-SCHEMA.md`.
 - Campo interno recomendado: `incluyeServiciosAjuste` (`SI`/`NO`) para distinguir tarifas cuyo precio publicado ya incluye SSAA frente a las que requieren aplicar el dataset `/data/ssaa/`. En el calculo, SSAA se suma al termino de energia antes de IEE e IVA/IGIC/IPSI.
-- Fiscalidad Peninsula/Baleares: a 13/08/2026, ni el IPC anual de electricidad de junio (6,0%) ni el definitivo de julio (8,4%, tabla 76128 del INE, subclase 04.5.10) superan el umbral de mas del 15% del RDL 18/2026. En agosto y septiembre siguen IVA 21% e IEE 5,11269632%. Proximas revisiones segun `MANTENIMIENTO-NORMATIVO.md`.
+- Fiscalidad Peninsula/Baleares: a 30/09/2026, IVA 21% e IEE 5,11269632% en agosto y septiembre (el IPC anual de electricidad de junio, 6,0%, y el de julio, 8,4%, tabla 76128 del INE, subclase 04.5.10, no superaron el umbral de mas del 15% del RDL 18/2026) y en octubre (el RDL 25/2026 no preve rebaja). Noviembre y diciembre dependen de la salvaguarda del RDL 25/2026 (IPC de septiembre y de octubre). Proximas revisiones segun `MANTENIMIENTO-NORMATIVO.md`.
 - En las rutas productivas normales, IVA, IGIC e IPSI se calculan de forma comun en `LF_CONFIG.calcularImpuestoIndirecto()` desde bases monetarias normalizadas a centimos y tipos expresados en puntos basicos. `lf-utils.js` y `bv-sim-monthly.js` conservan fallbacks defensivos no equivalentes si falta el helper; el orden de carga normal evita esa degradacion. La regresion de fronteras de medio centimo y paridad home/BV/desglose vive en `tests/fiscal-rounding-align.test.js`.
 - Inventario de mantenimiento normativo, fuentes oficiales, cadencias e impacto tecnico: `MANTENIMIENTO-NORMATIVO.md`.
 
@@ -619,7 +619,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Suite Vitest/JSDOM.
 - 135 archivos de test (`tests/*.test.js`).
-- 2216 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 2219 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

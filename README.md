@@ -37,7 +37,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - 42 modulos JavaScript en `js/` (incluye `js/bv/`).
 - 34.202 lineas JS aproximadas.
 - 117 tarifas en `tarifas.json`.
-- Suite de tests Vitest con 135 archivos y 2216 casos.
+- Suite de tests Vitest con 135 archivos y 2219 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 
@@ -327,5 +327,5 @@ Nota: ese mecanismo local de despliegue es una herramienta privada y no se distr
 - Recomendacion operativa:
 - mantener `tarifas.json` actualizado con fecha `updatedAt`,
 - usar un flag de inactividad interno para retirar temporalmente tarifas sin borrar su registro completo,
-- revisar cambios fiscales electricos: a 13/08/2026 ni el IPC de electricidad de junio (6,0%) ni el definitivo de julio (8,4%) alcanzan el umbral de mas del 15% del RDL 18/2026, asi que el comparador sigue en IVA 21% e IEE 5,11269632% en agosto y septiembre,
+- revisar cambios fiscales electricos: a 30/09/2026 el comparador aplica IVA 21% e IEE 5,11269632% de agosto a octubre (RDL 18/2026 sin activar; el RDL 25/2026 no preve rebaja en octubre); noviembre y diciembre dependen del IPC de electricidad de septiembre y octubre (salvaguarda del RDL 25/2026, umbral de mas del 15%);
 - validar cambios con `npm run lint` y `npm test` antes de publicar.

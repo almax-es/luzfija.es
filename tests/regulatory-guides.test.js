@@ -21,17 +21,50 @@ function readGuideText(relPath) {
 }
 
 describe('Guide regulatory guardrails', () => {
-  // El IPC definitivo de julio de 2026 (subclase 04.5.10 Electricidad, tabla 76128
-  // del INE) fue del 8,4% anual, por debajo del umbral de mas del 15% del RDL 18/2026:
-  // septiembre queda cerrado con los tipos generales, no pendiente de condicion.
-  it('documents the settled August and September tax rates after the July IPC', () => {
+  // RDL 25/2026 (BOE-A-2026-20265, 30/09/2026): octubre sin rebaja; arts. 18-21 dejan una
+  // salvaguarda para noviembre (IPC de electricidad de septiembre) y diciembre (IPC de
+  // octubre): IVA 10% e IEE 0,5% solo si la variacion anual supera el 15%.
+  it('documents October at the general rates and the November/December safeguard', () => {
     const facturaGuide = readGuideText('guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html');
 
-    expect(facturaGuide).toContain('ni el IPC anual de electricidad de junio (6,0%) ni el definitivo de julio (8,4%)');
-    expect(facturaGuide).toContain('por lo que en agosto y septiembre se mantiene el IVA general del 21%');
-    expect(facturaGuide).toContain('RDL 18/2026');
-    expect(facturaGuide).toContain('no regula octubre, así que desde el 01/10/2026 sigue el 21%');
+    expect(facturaGuide).toContain('el IVA de la luz es el general del 21% y lo sigue siendo en octubre');
+    expect(facturaGuide).toContain('el RDL 25/2026 (BOE de 30/09/2026) no prevé rebaja para octubre');
+    expect(facturaGuide).toContain('supera el 15% en septiembre (para noviembre) o en octubre (para diciembre)');
+    expect(facturaGuide).toContain('21% de agosto a octubre de 2026');
+    expect(facturaGuide).not.toContain('mientras no se publique una prórroga');
+    expect(facturaGuide).not.toContain('21% en agosto y septiembre de 2026)');
     expect(facturaGuide).not.toContain('pendiente de la condición legal de IPC para septiembre');
+  });
+
+  // RD 897/2017 art. 6.3: el descuento se aplica a todos los terminos del PVPC.
+  it('does not describe the bono social discount as energy-only', () => {
+    const facturaGuide = readGuideText('guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html');
+
+    expect(facturaGuide).toContain('se aplica al término de potencia y al de energía');
+    expect(facturaGuide).not.toContain('línea de descuento sobre la energía');
+  });
+
+  // RD 88/2026 art. 28.3: penalizacion solo "cuando esta cause danos al comercializador", tope del 5%.
+  // El "directo" y la carga de la prueba son de la Directiva 2019/944 art. 12.3, que el RD incorpora
+  // (DF 6.a): se citan con esa atribucion, no como texto del RD.
+  it('attributes each termination penalty limit to its own source', () => {
+    for (const rel of [
+      'guias/como-cambiar-de-compania-sin-cortes-y-sin-que-te-li-en.html',
+      'guias/la-letra-pequena-topes-de-kwh-cuotas-descuentos-y-permanencias.html',
+    ]) {
+      const guide = readGuideText(rel);
+      expect(guide).toContain('causa daños a la comercializadora');
+      expect(guide).toContain('pérdida económica directa');
+      expect(guide).toContain('Directiva europea que incorpora esa regla');
+      expect(guide).not.toContain('daño económico directo');
+    }
+  });
+
+  // DA 58.3 LIRPF: sistemas de recarga instalados "en un inmueble de su propiedad".
+  it('states the ownership requirement of the charging point IRPF deduction', () => {
+    const recargaGuide = readGuideText('guias/instalar-punto-recarga-garaje-comunitario.html');
+
+    expect(recargaGuide).toContain('instalados en un inmueble de tu propiedad');
   });
 
   it('keeps the PVPC eligibility requirements complete', () => {
@@ -41,6 +74,8 @@ describe('Guide regulatory guardrails', () => {
     expect(pvpcGuide).toContain('potencia contratada menor o igual a 10 kW en cada uno de los periodos horarios existentes');
     expect(pvpcGuide).toContain('volumen de negocio anual o balance general anual no supera los 2 millones');
     expect(pvpcGuide).not.toContain('menos de 10 trabajadores Y facturación anual menor de 2 millones');
+    // La COR que fue de EDP (Baser) pertenece hoy a TotalEnergies, como lista la guia del bono social.
+    expect(pvpcGuide).not.toMatch(/comercializadoras de referencia \([^)]*\bEDP\b/);
   });
 
   it('keeps the power guide aligned with the official P1/P2 structure in 2.0TD', () => {

@@ -161,7 +161,7 @@ Soporte para 3 zonas con impuestos diferenciados:
 
 | Zona | IVA/IGIC/IPSI | Alquiler Contador |
 |---|---|---|
-| **Península/Baleares** | IVA vigente (21% en agosto y septiembre de 2026: el IPC de julio no cumplio la condicion del RDL 18/2026) | mismo tipo IVA vigente |
+| **Península/Baleares** | IVA vigente (21% de agosto a octubre de 2026: el RDL 18/2026 no se activo y el RDL 25/2026 no preve rebaja en octubre; noviembre y diciembre, segun su salvaguarda de IPC) | mismo tipo IVA vigente |
 | **Canarias** | IGIC 0% (vivienda ≤10kW) o 3% | IGIC 7% |
 | **Ceuta/Melilla** | IPSI 1% | IPSI 4% |
 
