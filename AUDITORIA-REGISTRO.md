@@ -1,6 +1,6 @@
 # Registro De Auditorias De LuzFija.es
 
-Ultima actualizacion: 2026-09-29
+Ultima actualizacion: 2026-09-30
 
 Este fichero es de CONSULTA POR AREA, no de lectura lineal. La lectura obligatoria antes de
 auditar es `AUDITORIA-IA.md`: metodo, taxonomia de severidad, tabla de areas y prompt. Aqui
@@ -6188,3 +6188,92 @@ una prorroga del IVA/IEE para octubre u otra norma, la guia de factura y `lf-con
 Hasta entonces las guias ya dicen que desde el 01/10 sigue el 21 % mientras no se publique una prorroga.
 Repetir el escaneo del sumario del BOE (mismo metodo: `/datosabiertos/api/boe/sumario/AAAAMMDD`, cabecera
 `Accept: application/json`, filtro por titulo) el 01-02/10.
+
+<a id="vigencia-normativa-ronda-63-30-09-2026"></a>
+### Vigencia Normativa A 30/09/2026: RDL 25/2026 Y Lectura Literal De Las 25 Guias (Ronda 63)
+
+Revision propia (sin auditor externo) pedida por el promotor: todas las guias y todos los parametros de
+`lf-config.js` desde el punto de vista normativo a 30/09/2026. Cierra el pendiente con fecha de la ronda 62.
+
+**Hallazgo principal, CORREGIDO: RDL 25/2026** (BOE-A-2026-20265, BOE de 30/09/2026, en vigor el 01/10).
+Octubre no tiene articulo de rebaja: IVA 21 % e IEE 5,11269632 %, asi que `LF_CONFIG` NO cambia. Pero la
+guia de factura decia "desde el 01/10/2026 sigue el 21 % mientras no se publique una prorroga", y la norma
+ya se ha publicado con una salvaguarda nueva: arts. 18-19 (IVA 10 % para contratos <= 10 kW y perceptores
+del bono social vulnerables severos) y 20-21 (IEE 0,5 % con minimos de 0,5/1 EUR/MWh) en **noviembre** si la
+variacion anual del IPC subclase 04.5.1.0 Electricidad de **septiembre** supera el 15 %, y en **diciembre**
+con el de **octubre**. INE, tabla 76128: junio 6,0 %, julio 8,4 %, agosto 9,2 %. Corregidos la guia de
+factura (IEE, IVA y la linea de comprobacion "21 % en agosto y septiembre"), su test en
+`tests/regulatory-guides.test.js` (fijaba la frase antigua), los comentarios de `js/lf-config.js`,
+`MANTENIMIENTO-NORMATIVO.md` (fecha critica con los tres pendientes: IPC de septiembre, IPC de octubre y
+convalidacion) y el estado fiscal de CALC-FAQS, CAPACIDADES-WEB, README, SIMULADOR-BV y ARQUITECTURA-CALCULOS.
+
+**Trampa del propio metodo (leccion):** el primer escaneo del sumario del 30/09 filtro los titulos y SI
+saco el RDL 25/2026, pero se descarto por el titulo ("Plan Integral de Respuesta a la Crisis en Oriente
+Medio") sin leerlo. Ese plan es justo donde viven las medidas fiscales electricas de 2026 (RDL 7, 18 y 25).
+Regla: todo real decreto-ley que salga del filtro se lee por su articulado, no por su titulo.
+
+**Resto del BOE del 30/09:** RDL 24/2026 (DANA) sin mencion electrica. RDL 26/2026 (vivienda): en IRPF solo
+reordena la aplicacion de las deducciones de las DA 50 y 58 respecto al nuevo art. 68.6 y mantiene las
+ayudas al autoconsumo (RD 477/2021) fuera de la base imponible; no toca plazos ni importes que citen las
+guias (la deduccion del 15 % de vehiculo y punto de recarga sigue hasta el 31/12/2026).
+
+**Parametros contrastados contra la fuente primaria (no heredados de rondas previas):** peajes 2.0TD de
+potencia 23,324952 / 0,443770 y de energia 0,033261 / 0,016409 / 0,000077 (BOE-A-2025-26348); cargos de
+potencia 4,379461 / 0,281653 y de energia 0,064292 / 0,012858 / 0,003215 (BOE-A-2025-26705); financiacion
+del bono social 9,011295 EUR/CUPS (BOE-A-2026-13759); descuentos 42,5 % / 57,5 % hasta el 31/12/2026 (RDL
+7/2026 art. 1.1, consolidado actualizado el 30/09); limites de energia bonificable 1.587 / 2.222 / 2.698 /
+4.761 kWh (RD 897/2017 anexo I) y el calculo del descuento sobre todos los terminos del PVPC (art. 6.3), que
+coincide con `calcPvpcBonoSocial`. RD 88/2026: art. 38 (un cambio de potencia cada 12 meses, que la guia de
+aerotermia cita bien) y potencia en multiplos de 0,1 kW hasta 15 kW con contador telegestionado.
+
+**Lectura literal de las 25 guias. Otras correcciones:**
+- Factura: el bono social "debe aparecer como linea de descuento sobre la energia" -> sobre el PVPC,
+  potencia y energia (esta con limite de kWh), segun el art. 6.3 del RD 897/2017. Con test.
+- PVPC vs mercado libre: listaba "EDP" entre las comercializadoras de referencia; su COR (Baser) es hoy de
+  TotalEnergies, como ya decia la guia del bono social. Con test.
+- Aerotermia: "300-450 kWh = 36-54 EUR/mes en P3" con su propio precio de ejemplo de 0,08 EUR/kWh son
+  24-36 EUR (36-54 es a 0,12); ahorro del termo unificado a 7-14 EUR/mes (cuerpo decia 7-15 y resumen
+  8-15; lo exacto es 7,20-14,40) y "pierdes unos 8 EUR" -> 7,20.
+- Servicios extra: 5,90 EUR / 200 kWh = 0,0295 EUR/kWh (decia 0,029) y precio real 0,1395 (decia 0,139).
+- Autoconsumo avanzado: la compensacion simplificada no es "a precio de mercado" en mercado libre (es el
+  precio pactado) y su checklist ("amortizacion 8-12 anos tipico, no 4-5") contradecia la guia basica,
+  fechada a agosto de 2026 (6-10 sin ayudas, 4-6 con ayudas); alineada con esta.
+- Punto de recarga: "Te ensenamos en como adaptar horarios para pagar la mitad" prometia una cifra que la
+  propia guia de horarios dice que no existe; reescrita sin cifra.
+- Rescision (cambio de compania y letra pequena, incluida la FAQ con su JSON-LD): atribuian al RD 88/2026
+  un "dano economico directo acreditable". El art. 28.3 dice "cuando esta cause danos al comercializador" y
+  fija el tope del 5 %, sin "directo" (tampoco la Ley 24/2013). El "directo" y la carga de la prueba son del
+  art. 12.3 de la Directiva (UE) 2019/944 ("no sobrepasaran la perdida economica directa [...] La carga de
+  la prueba [...] recaera siempre sobre el suministrador"), leido en el DOUE L 158 que aloja el BOE
+  (`/doue/2019/158/L00125-00199.pdf`; EUR-Lex bloquea la descarga automatica). El RD 88/2026 incorpora ese
+  art. 12 (DF 6.a). Las guias citan ahora cada limite con su fuente. NO quitar la parte de la Directiva:
+  el contenido original era correcto, solo estaba mal atribuido.
+- Punto de recarga: la deduccion del 15 % exige instalar el punto "en un inmueble de su propiedad" (DA 58.3
+  LIRPF); la guia lo omitia pese a hablar de plazas alquiladas. Anadido.
+
+**Revisado y correcto (NO REABRIR sin norma nueva):** bono social, estafas, reclamaciones, cambio de
+compania y letra pequena salvo la frase del dano "directo", errores tipicos, servicios extra (art. 32.4),
+mudanza, CUPS, comercializadora/distribuidora, lecturas, potencia, P1/P2/P3 (Ceuta y Melilla incluidas),
+horarios, consumo horario, indexadas, coche electrico (Auto+ lineas 1 y 2), punto de recarga (art. 17.5
+LPH y 553-36.3 CCCat),
+autoconsumo basico y "tengo placas" (tope del art. 14.3 del RD 244/2019). Las paginas que no son guias no
+contienen afirmaciones fiscales con fecha.
+
+**No cambiado, a decidir por el promotor:** (1) ninguna guia menciona la modificacion TEMPORAL de potencia
+del art. 38.5 del RD 88/2026 (trimestral, mensual, diaria u horaria, con 5 dias habiles de antelacion; la
+CNMC debe fijar precios y condiciones): candidata a anadirse en la guia de potencia cuando se pueda
+contratar. (2) La guia de estafas dice que el rango 400 "debe estar plenamente operativo el 17 de octubre de
+2026": a partir de esa fecha hay que pasarla a pasado.
+
+**Verificacion completada para mover el sello de `guias.html` ("25 guias verificadas a 30 sep 2026"):**
+ademas de lo anterior, releidos hoy RD 88/2026 arts. 6.1.añ (grabacion en 20 dias), 18.5, 18.7, 28.3 (5 %),
+32.4 y 55.3 (consolidado sin modificaciones desde su publicacion, 12/02/2026); DA 58 LIRPF (15 % vehiculo y
+punto de recarga hasta el 31/12/2026); art. 553-36.3 CCCat (sin cambios desde el 03/07/2026); Orden
+TDF/149/2025 (art. 9, prohibicion de numeracion movil, efectos a los tres meses de su entrada en vigor del
+07/03/2025) y Resolucion BOE-A-2026-8409 (rango 400 plenamente operativo en seis meses; despues, solo por
+ese rango). RD 244/2019, LPH, TRLGDCU y REBT: consolidados sin cambios posteriores a su ultima verificacion.
+Directiva 2019/944 art. 12.3: verificada en el DOUE via BOE (ver la entrada de rescision). Lista de COR de
+la guia del bono social: son exactamente las 8 comercializadoras de referencia del censo CNMC del repo
+(`data/cnmc-commercializers.json`, sync 03/09/2026), todas activas (R2-284, 290, 292, 329, 356, 530, 532 y
+540). Baser tiene el mismo domicilio social que TotalEnergies Clientes, S.A.U. (Plaza de los Ferroviarios
+Asturianos 1, Oviedo), segun los avisos legales de basercor.es y totalenergies.es.
