@@ -136,27 +136,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "CHC Plan Estrella Dúo",
-      "cPunta": 0.11704,
-      "cLlano": 0.11704,
-      "cValle": 0.11704,
-      "p1": 0.078144,
-      "p2": 0.059938,
-      "web": "https://chcenergia.es/luz/plan-estrella-duo",
-      "tipo": "1P",
-      "promo": "50 € de descuento repartidos en 5 facturas consecutivas (10 € sobre el importe total de cada una).",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.04,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "El Corte Inglés Despreocúpate",
       "cPunta": 0.117983,
       "cLlano": 0.117983,
@@ -717,6 +696,27 @@
       "maxConsumoAnual": 8000.0
     },
     {
+      "nombre": "CHC Plan Estrella Dúo",
+      "cPunta": 0.139,
+      "cLlano": 0.139,
+      "cValle": 0.139,
+      "p1": 0.078144,
+      "p2": 0.059938,
+      "web": "https://chcenergia.es/luz/plan-estrella-duo",
+      "tipo": "1P",
+      "promo": "50 € de descuento repartidos en 5 facturas consecutivas (10 € sobre el importe total de cada una).",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Fortuluz Precio Único",
       "cPunta": 0.139,
       "cLlano": 0.139,
@@ -1156,27 +1156,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "CHC Plan Ilumina Dúo Promo",
-      "cPunta": 0.166129,
-      "cLlano": 0.166129,
-      "cValle": 0.166129,
-      "p1": 0.077569,
-      "p2": 0.010403,
-      "web": "https://chcenergia.es/luz/plan-ilumina-duo-promo",
-      "tipo": "1P",
-      "promo": "50 € de descuento repartidos en 5 facturas consecutivas (10 € sobre el importe total de cada una).",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.04,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Energya VM Fórmula Fija 24h",
       "cPunta": 0.169,
       "cLlano": 0.169,
@@ -1274,6 +1253,27 @@
         "exc": 0.0,
         "tipo": "NO COMPENSA",
         "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "CHC Plan Ilumina Dúo Promo",
+      "cPunta": 0.179,
+      "cLlano": 0.179,
+      "cValle": 0.179,
+      "p1": 0.077569,
+      "p2": 0.031745,
+      "web": "https://chcenergia.es/luz/plan-ilumina-duo-promo",
+      "tipo": "1P",
+      "promo": "50 € de descuento repartidos en 5 facturas consecutivas (10 € sobre el importe total de cada una).",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
         "bv": false,
         "reglaBV": "NO APLICA",
         "precioBV": 0.0
@@ -2438,5 +2438,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-01T06:03:54.779Z"
+  "updatedAt": "2026-10-01T06:31:43.017Z"
 }
