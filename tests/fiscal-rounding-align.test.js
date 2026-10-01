@@ -1,5 +1,21 @@
 import { describe, it, expect, vi } from 'vitest';
-import { readFileSync } from 'node:fs';
+
+// Precios de CHC VE 3P hasta el 30/09/2026, congelados a proposito: con estos
+// consumos la base del IGIC cae en la frontera de medio centimo. Leerlos de
+// tarifas.json rompia la regresion cada vez que CHC revisaba precios (01/10/2026).
+const TARIFA_FRONTERA_IGIC = {
+  nombre: 'CHC VE 3P',
+  cPunta: 0.222874,
+  cLlano: 0.21897,
+  cValle: 0.05821,
+  p1: 0.088956,
+  p2: 0.088382,
+  web: 'https://chcenergia.es/luz/plan-vehiculo-electrico',
+  tipo: '3P',
+  incluyeServiciosAjuste: true,
+  fv: { exc: 0.04, tipo: 'SIMPLE', tope: 'ENERGIA', bv: false, reglaBV: 'NO APLICA', precioBV: 0.0 },
+  requiereFV: false
+};
 
 document.body.innerHTML = '<div></div>';
 window.lfDbg = () => {};
@@ -17,8 +33,7 @@ await import('../js/bv/bv-sim-monthly.js');
 
 describe('Redondeo exacto de bases fiscales monetarias', () => {
   it('alinea home, simulador BV y desglose en la frontera IGIC de CHC VE 3P', async () => {
-    const tarifas = JSON.parse(readFileSync('tarifas.json', 'utf8')).tarifas;
-    const tarifa = tarifas.find((item) => item.nombre === 'CHC VE 3P');
+    const tarifa = structuredClone(TARIFA_FRONTERA_IGIC);
     let payload;
     window.LF.cachedTarifas = [tarifa];
     window.LF.ssaa._setDatasetForTests({
