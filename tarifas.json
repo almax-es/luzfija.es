@@ -2091,26 +2091,6 @@
       "minConsumoAnualExclusivo": 5000.0
     },
     {
-      "nombre": "CHC VE 3P",
-      "cPunta": 0.222874,
-      "cLlano": 0.21897,
-      "cValle": 0.05821,
-      "p1": 0.088956,
-      "p2": 0.088382,
-      "web": "https://chcenergia.es/luz/plan-vehiculo-electrico",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.04,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Imagina Vehículo Eléctrico 3P",
       "cPunta": 0.223415,
       "cLlano": 0.14935,
@@ -2295,6 +2275,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "CHC VE 3P",
+      "cPunta": 0.248745,
+      "cLlano": 0.248745,
+      "cValle": 0.084081,
+      "p1": 0.088956,
+      "p2": 0.091122,
+      "web": "https://chcenergia.es/luz/plan-vehiculo-electrico",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Iner La Clásica 3P",
       "cPunta": 0.25636,
       "cLlano": 0.17452,
@@ -2438,5 +2438,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-01T06:31:43.017Z"
+  "updatedAt": "2026-10-01T06:47:56.022Z"
 }
