@@ -308,7 +308,7 @@
       "p2": 0.093666,
       "web": "https://www.endesa.com/es/luz-y-gas/luz/conecta-de-endesa",
       "tipo": "1P",
-      "requisitos": "10% descuento término energía durante 12 meses incluido en el precio.",
+      "requisitos": "30% descuento término energía durante 12 meses incluido en el precio.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -390,7 +390,7 @@
       "p2": 0.093666,
       "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz",
       "tipo": "1P",
-      "requisitos": "20% descuento término energía durante 12 meses incluido en el precio.",
+      "requisitos": "25% descuento término energía durante 12 meses incluido en el precio.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -1114,26 +1114,6 @@
       "requiereFV": true
     },
     {
-      "nombre": "CHC BV",
-      "cPunta": 0.159673,
-      "cLlano": 0.159673,
-      "cValle": 0.159673,
-      "p1": 0.088956,
-      "p2": 0.088382,
-      "web": "https://chcenergia.es/index.php/solar/bateria-virtual",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.1,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 2.99
-      },
-      "requiereFV": true
-    },
-    {
       "nombre": "Visalia Primer mes gratis",
       "cPunta": 0.162875,
       "cLlano": 0.162875,
@@ -1216,6 +1196,26 @@
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
+      },
+      "requiereFV": true
+    },
+    {
+      "nombre": "CHC BV",
+      "cPunta": 0.173673,
+      "cLlano": 0.173673,
+      "cValle": 0.173673,
+      "p1": 0.088956,
+      "p2": 0.088382,
+      "web": "https://chcenergia.es/index.php/solar/bateria-virtual",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.1,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 2.99
       },
       "requiereFV": true
     },
@@ -2398,5 +2398,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-01T07:47:14.100Z"
+  "updatedAt": "2026-10-01T10:45:31.638Z"
 }
