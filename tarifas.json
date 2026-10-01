@@ -1220,26 +1220,6 @@
       "requiereFV": true
     },
     {
-      "nombre": "Bassols Hogar 24 horas",
-      "cPunta": 0.172,
-      "cLlano": 0.172,
-      "cValle": 0.172,
-      "p1": 0.127,
-      "p2": 0.127,
-      "web": "https://bassolsenergia.com/es/tarifas-de-luz/hogar-24-horas/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "CHC Plan Ilumina Dúo Promo",
       "cPunta": 0.179,
       "cLlano": 0.179,
@@ -1310,6 +1290,26 @@
       "web": "https://clientes.atuladoenergia.com/tarifas/",
       "tipo": "1P",
       "requisitos": "Precio revisable cada trimestre natural.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Bassols Hogar 24 horas",
+      "cPunta": 0.186,
+      "cLlano": 0.186,
+      "cValle": 0.186,
+      "p1": 0.099,
+      "p2": 0.099,
+      "web": "https://bassolsenergia.com/es/tarifas-de-luz/hogar-24-horas/",
+      "tipo": "1P",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -2398,5 +2398,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-01T07:38:43.383Z"
+  "updatedAt": "2026-10-01T07:47:14.100Z"
 }
