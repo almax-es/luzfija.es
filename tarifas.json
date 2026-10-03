@@ -508,28 +508,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Imagina Base Sin Horas 4000",
-      "cPunta": 0.12974,
-      "cLlano": 0.12974,
-      "cValle": 0.12974,
-      "p1": 0.108533,
-      "p2": 0.049717,
-      "web": "https://imaginaenergia.com/plan-base-imagina/",
-      "tipo": "1P",
-      "requisitos": "Consumo ≤ 4.000 kWh/año.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false,
-      "maxConsumoAnual": 4000.0
-    },
-    {
       "nombre": "Loviluz Tarifa 2.0TD",
       "cPunta": 0.1299,
       "cLlano": 0.1299,
@@ -611,29 +589,6 @@
         "precioBV": 0.0
       },
       "requiereFV": false
-    },
-    {
-      "nombre": "Imagina Base Sin Horas 8000",
-      "cPunta": 0.13893,
-      "cLlano": 0.13893,
-      "cValle": 0.13893,
-      "p1": 0.108533,
-      "p2": 0.049717,
-      "web": "https://imaginaenergia.com/plan-base-imagina/",
-      "tipo": "1P",
-      "requisitos": "Consumo >4000 y ≤ 8.000 kWh/año.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false,
-      "minConsumoAnualExclusivo": 4000.0,
-      "maxConsumoAnual": 8000.0
     },
     {
       "nombre": "CHC Plan Estrella Dúo",
@@ -1800,29 +1755,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Imagina Base Noche y Findes 8000 3P",
-      "cPunta": 0.196211,
-      "cLlano": 0.12239,
-      "cValle": 0.087993,
-      "p1": 0.10543,
-      "p2": 0.023291,
-      "web": "https://imaginaenergia.com/plan-base-imagina/",
-      "tipo": "3P",
-      "requisitos": "Consumo >4000 y ≤ 8.000 kWh/año.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false,
-      "minConsumoAnualExclusivo": 4000.0,
-      "maxConsumoAnual": 8000.0
-    },
-    {
       "nombre": "Fenie Fijo Energético 3P",
       "cPunta": 0.196884,
       "cLlano": 0.115616,
@@ -1861,28 +1793,6 @@
         "precioBV": 0.0
       },
       "requiereFV": false
-    },
-    {
-      "nombre": "Imagina Base Noche y Findes 4000 3P",
-      "cPunta": 0.202021,
-      "cLlano": 0.1282,
-      "cValle": 0.093803,
-      "p1": 0.10543,
-      "p2": 0.023291,
-      "web": "https://imaginaenergia.com/plan-base-imagina/",
-      "tipo": "3P",
-      "requisitos": "Consumo ≤ 4.000 kWh/año.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false,
-      "maxConsumoAnual": 4000.0
     },
     {
       "nombre": "Iner Solar 3P",
@@ -2398,5 +2308,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-03T06:33:24.775Z"
+  "updatedAt": "2026-10-03T06:53:51.353Z"
 }
