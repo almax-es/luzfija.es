@@ -900,6 +900,9 @@
       // 'dia' sin tilde a proposito: firstLine ya paso por normalize('NFD') + strip de
       // diacriticos (linea 608), pero estos fragmentos de 'rules' NO se normalizan, asi que
       // un fragmento con tilde nunca haria match contra el mensaje ya normalizado.
+      // Antes que 'periodo-duplicado': hasta 04/10/2026 una curva cuartohoraria salia con el
+      // mensaje y el slug de un periodo duplicado, y en GoatCounter no se podian separar.
+      ['datos-subhorarios',    ['varias lecturas dentro de la misma hora']],
       ['periodo-duplicado',    ['fecha y hora', 'dia duplicado en la matriz', 'mes duplicado en el formato mensual']],
       ['valor-invalido',       ['no contiene un numero valido', 'valores no numericos', 'fecha no reconocida', 'pero sin fecha']],
       ['columnas',             ['columna']],
@@ -1309,6 +1312,20 @@
     return Number.isFinite(num) ? num : null;
   }
 
+  // Minutos explicitos de la celda de hora o de fecha_hora ("00:15" -> "15"), o null si la
+  // celda no los trae. Solo sirve para diagnosticar: la hora se sigue tomando de los primeros
+  // digitos (ronda 43, 43-03). Dos filas que caen en la misma hora con minutos DISTINTOS no son
+  // un periodo exportado dos veces, sino una curva cuartohoraria o semihoraria, y el usuario
+  // necesita saberlo para descargar la horaria en vez de reintentar con el mismo fichero.
+  function extractMinuteLabel(raw) {
+    if (raw instanceof Date && !isNaN(raw.getTime())) {
+      return String(raw.getMinutes()).padStart(2, '0');
+    }
+    if (raw == null || typeof raw === 'number') return null;
+    const match = stripOuterQuotes(raw).match(/\d{1,2}:(\d{2})/);
+    return match ? match[1] : null;
+  }
+
   function mapPeriodoLabel(raw) {
     const p = String(raw ?? '').trim().toUpperCase();
     if (!p) return null;
@@ -1644,7 +1661,9 @@
 
     const resolveHour = buildHourResolver(mapping, hourBase, { zonaFiscal, compressedSpringDates });
     const records = [];
-    const seenDateHour = new Set();
+    // fecha|hora -> minutos explicitos de la primera fila (o null), para distinguir un
+    // periodo duplicado de una curva con varias lecturas por hora.
+    const seenDateHour = new Map();
     let totalRows = 0;
     let parsedRows = 0;
     let exportValoresPresentes = 0;
@@ -1783,7 +1802,23 @@
       }
 
       const dateHourKey = `${ymdLocal(fecha)}|${hora}`;
+      const minuteLabel = extractMinuteLabel(
+        mapping.fechaHoraIdx !== null && mapping.fechaHoraIdx !== undefined
+          ? row[mapping.fechaHoraIdx]
+          : row[mapping.horaIdx]
+      );
       if (seenDateHour.has(dateHourKey)) {
+        const previousMinuteLabel = seenDateHour.get(dateHourKey);
+        if (previousMinuteLabel !== null && minuteLabel !== null && previousMinuteLabel !== minuteLabel) {
+          throw buildImportError(
+            `Hay varias lecturas dentro de la misma hora (${ymdLocal(fecha)}, hora ${hora}: ` +
+            `minutos ${previousMinuteLabel} y ${minuteLabel}). El archivo parece una curva ` +
+            'cuartohoraria o semihoraria y aquí se necesita la curva horaria (una fila por hora). ' +
+            'La importación se ha cancelado; no se ha incorporado ningún dato de este archivo. ' +
+            'Vuelve a descargar el consumo eligiendo datos horarios.',
+            { headersNorm, separator }
+          );
+        }
         throw buildImportError(
           `Hay filas duplicadas para la misma fecha y hora (${ymdLocal(fecha)}, hora ${hora}). ` +
           'La importación se ha cancelado; no se ha incorporado ningún dato de este archivo. ' +
@@ -1791,7 +1826,7 @@
           { headersNorm, separator }
         );
       }
-      seenDateHour.add(dateHourKey);
+      seenDateHour.set(dateHourKey, minuteLabel);
 
       records.push({
         fecha,

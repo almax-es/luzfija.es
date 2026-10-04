@@ -147,6 +147,9 @@ describe('csvErrorCodeForTracking - códigos de error para analítica', () => {
     expect(codeFor('Hay filas duplicadas para la misma fecha y hora (2026-06-01, hora 5). La importación se ha cancelado; no se ha incorporado ningún dato de este archivo.')).toBe('periodo-duplicado');
     expect(codeFor('Hay un día duplicado en la matriz horaria (2026-06-01). La importación se ha cancelado; no se ha incorporado ningún dato de este archivo.')).toBe('periodo-duplicado');
     expect(codeFor('Hay un mes duplicado en el formato mensual de Datadis (2025-01). La importación se ha cancelado; no se ha incorporado ningún dato de este archivo.')).toBe('periodo-duplicado');
+    // datos-subhorarios (04/10/2026): varias lecturas por hora con minutos distintos. Antes
+    // compartia slug con periodo-duplicado y en GoatCounter no se podian separar.
+    expect(codeFor('Hay varias lecturas dentro de la misma hora (2026-09-01, hora 1: minutos 00 y 15). El archivo parece una curva cuartohoraria o semihoraria y aquí se necesita la curva horaria (una fila por hora).')).toBe('datos-subhorarios');
   });
 
   it('el sufijo de cabeceras que añade buildHeaderError no contamina la clasificación', () => {

@@ -1121,3 +1121,72 @@ describe('Filas descartadas por su contenido: se avisa, como en la matriz (ronda
     expect(res.warnings.join(' ')).not.toMatch(/Se descartaron/);
   });
 });
+
+describe('Curva cuartohoraria o semihoraria: mensaje propio, no "periodo duplicado" (04/10/2026)', () => {
+  // La ronda 43 (43-03) decidio no leer los minutos: un fichero con varias filas por hora se
+  // sigue rechazando. Lo que cambia es el diagnostico. Hasta esta fecha salia con el mensaje de
+  // un periodo exportado dos veces y el slug `periodo-duplicado`, asi que el usuario reintentaba
+  // con el mismo fichero y GoatCounter no podia separar los dos casos.
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+
+  const parse = (cab, filas) => u.parseEnergyTableRows([cab, ...filas], {
+    headerRowIndex: 0, parseNumber: u.parseNumberFlexibleCSV, zonaFiscal: 'Península'
+  });
+  const cuartos = (dia, horas, marcas) => {
+    const filas = [];
+    for (let h = 0; h < horas; h++) {
+      for (const m of marcas) filas.push([dia, `${String(h).padStart(2, '0')}:${m}`, '0,1']);
+    }
+    return filas;
+  };
+  const SUBHORARIO = /varias lecturas dentro de la misma hora/i;
+
+  it('columna Hora en HH:MM cada 15 minutos', () => {
+    let error = null;
+    try {
+      parse(['Fecha', 'Hora', 'Consumo_kWh'], cuartos('01/09/2026', 2, ['00', '15', '30', '45']));
+    } catch (e) { error = e; }
+    expect(error && error.message).toMatch(SUBHORARIO);
+    expect(error.message).not.toMatch(/exportó o se pegó dos veces/);
+    expect(u.csvErrorCodeForTracking(error.message)).toBe('datos-subhorarios');
+  });
+
+  it('convencion de fin de intervalo (00:15, 00:30, 00:45, 01:00)', () => {
+    expect(() => parse(['Fecha', 'Hora', 'Consumo_kWh'],
+      cuartos('01/09/2026', 2, ['15', '30', '45']))).toThrow(SUBHORARIO);
+  });
+
+  it('columna fecha_hora cada 30 minutos', () => {
+    const filas = cuartos('01/09/2026', 2, ['00', '30']).map(([d, h, v]) => [`${d} ${h}`, v]);
+    expect(() => parse(['Fecha_Hora', 'Consumo_kWh'], filas)).toThrow(SUBHORARIO);
+  });
+
+  it('celdas Date (ruta XLSX) con minutos distintos', () => {
+    const filas = [
+      [new Date(2026, 8, 1, 0, 0), '0,1'],
+      [new Date(2026, 8, 1, 0, 15), '0,1']
+    ];
+    expect(() => parse(['Fecha_Hora', 'Consumo_kWh'], filas)).toThrow(SUBHORARIO);
+  });
+
+  it('un duplicado de verdad con los mismos minutos conserva su mensaje y su slug', () => {
+    let error = null;
+    try {
+      parse(['Fecha', 'Hora', 'Consumo_kWh'], [['01/09/2026', '05:00', '0,1'], ['01/09/2026', '05:00', '0,2']]);
+    } catch (e) { error = e; }
+    expect(error && error.message).toMatch(/filas duplicadas/i);
+    expect(u.csvErrorCodeForTracking(error.message)).toBe('periodo-duplicado');
+  });
+
+  it('sin minutos explicitos (hora numerica) sigue siendo un periodo duplicado', () => {
+    expect(() => parse(['Fecha', 'Hora', 'Consumo_kWh'],
+      [['01/09/2026', '5', '0,1'], ['01/09/2026', '5', '0,2']])).toThrow(/filas duplicadas/i);
+  });
+
+  it('un fichero horario rotulado con :30 sigue entrando entero', () => {
+    const res = parse(['Fecha', 'Hora', 'Consumo_kWh'],
+      [['01/09/2026', '00:30', '0,1'], ['01/09/2026', '01:30', '0,2'], ['01/09/2026', '02:30', '0,3']]);
+    expect(res.records).toHaveLength(3);
+  });
+});

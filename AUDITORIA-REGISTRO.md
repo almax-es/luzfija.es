@@ -4995,6 +4995,15 @@ zona fiscal por defecto y codigos de error. Se dejo fuera todo lo cerrado en las
   hora 1. Un fichero cuartohorario o semihorario real (varias filas por hora) ya se cancela por el
   guard de duplicados; solo pasaria un fichero horario rotulado con `:30`, y su hora de inicio es
   justo la que se toma.
+  **Matiz del 04/10/2026 (la decision se mantiene):** ese rechazo salia con el mensaje de un
+  periodo exportado dos veces y el slug `periodo-duplicado`, asi que el usuario reintentaba con el
+  mismo fichero y GoatCounter no distinguia los dos casos (export del 29/09-04/10: rafagas de 2-3
+  `periodo-duplicado` seguidos en solar, uno en el Observatorio y cero en home desde el arreglo del
+  12/09; no prueba que fueran curvas subhorarias, pero con el slug comun no habia forma de saberlo).
+  Ahora, si las dos filas que chocan traen minutos explicitos distintos, el mensaje pide la curva
+  horaria y el slug es `datos-subhorarios`. No se leen los minutos para calcular: sigue sin
+  importarse. Regresiones en `tests/csv-hardening.test.js` (bloque "Curva cuartohoraria o
+  semihoraria"); 3 mutaciones, 3 cazadas.
 - **Comprobado y correcto:** CR suelto (rechazo con mensaje), celda entrecomillada con salto de
   linea (la fila rota no produce registro) y pie de totales (se ignora).
 

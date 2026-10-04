@@ -514,6 +514,15 @@ asi que el orden es parte del contrato:
   porque el mensaje del centinela nombra la columna sospechosa y, si esa columna se
   llama `energia_generada_kwh`, casaria con el fragmento `energia_generada`.
 - `filas-invalidas` y `cabecera-no-detectada` van antes del cajon `cabecera`.
+- `datos-subhorarios` va antes de `periodo-duplicado`.
+
+Cambio del 04/10/2026: `datos-subhorarios` separa de `periodo-duplicado` el fichero
+con varias lecturas por hora (curva cuartohoraria o semihoraria): dos filas que caen
+en la misma fecha y hora con minutos explicitos DISTINTOS (`00:15` y `00:30`). El
+fichero se sigue rechazando (ronda 43, 43-03); cambian el mensaje, que pide la curva
+horaria en vez de sugerir un periodo exportado dos veces, y el slug. Antes de esa
+fecha los dos casos compartian slug: los `periodo-duplicado` anteriores pueden incluir
+curvas subhorarias y no se pueden repartir retroactivamente.
 
 Cambio del 25/07/2026: hasta esa fecha `cabecera` agrupaba tres causas distintas
 (no se encontro fila de cabecera en CSV, idem en Excel, y "la mayoria de filas no se
