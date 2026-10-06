@@ -1,0 +1,145 @@
+--- a/count.js
++++ b/count.js
+@@ -27,7 +27,7 @@
+ 			e: !!(vars.event || goatcounter.event),
+ 			s: window.screen.width,
+ 			b: is_bot(),
+-			q: location.search,
++			q: safe_query(),
+ 		}
+ 
+ 		var rcb, pcb, tcb  // Save callbacks to apply later.
+@@ -99,6 +99,45 @@
+ 		return (loc.pathname + loc.search) || '/'
+ 	}
+ 
++	// LuzFija: no enviar queries de configuración, búsquedas o consumos a GoatCounter.
++	// Solo conservamos parámetros de campaña explícitamente no personales.
++	var safe_query = function() {
++		var allow = {
++			utm_source: true,
++			utm_medium: true,
++			utm_campaign: true,
++			utm_content: true,
++			utm_term: true
++		}
++		var out = []
++		try {
++			var params = new URLSearchParams(location.search || '')
++			params.forEach(function(value, key) {
++				var k = String(key || '').toLowerCase()
++				if (!allow[k]) return
++				var v = String(value || '').replace(/[^\w .~:-]/g, '').substr(0, 80)
++				if (v) out.push(k + '=' + v)
++			})
++		} catch (e) {}
++		return out.length ? '?' + out.join('&') : ''
++	}
++
++	// LuzFija: el getter de localStorage puede lanzar SecurityError por politica
++	// del navegador. skipgc es una comodidad del sender, no debe impedir contar.
++	var skipgc_enabled = function() {
++		try { return !!(window.localStorage && window.localStorage.getItem('skipgc') === 't') }
++		catch (e) { return false }
++	}
++
++	var set_skipgc_enabled = function(enabled) {
++		try {
++			if (!window.localStorage) return false
++			if (enabled) window.localStorage.setItem('skipgc', 't')
++			else window.localStorage.removeItem('skipgc')
++			return true
++		} catch (e) { return false }
++	}
++
+ 	// Run function after DOM is loaded.
+ 	var on_load = function(f) {
+ 		if (document.body === null)
+@@ -109,6 +148,8 @@
+ 
+ 	// Filter some requests that we (probably) don't want to count.
+ 	window.goatcounter.filter = function() {
++		if (window.__LF_PRIVACY_MODE === true || window.__LF_FACTURA_BUSY === true)
++			return 'LuzFija invoice privacy mode'
+ 		if ('visibilityState' in document && document.visibilityState === 'prerender')
+ 			return 'visibilityState'
+ 		if (!goatcounter.allow_frame && location !== parent.location)
+@@ -117,7 +158,7 @@
+ 			return 'localhost'
+ 		if (!goatcounter.allow_local && location.protocol === 'file:')
+ 			return 'localfile'
+-		if (localStorage && localStorage.getItem('skipgc') === 't')
++		if (skipgc_enabled())
+ 			return 'disabled with #toggle-goatcounter'
+ 		return false
+ 	}
+@@ -138,14 +179,27 @@
+ 
+ 	// Count a hit.
+ 	window.goatcounter.count = function(vars) {
++		var on_sent = vars && typeof(vars.on_sent) === 'function' ? vars.on_sent : function() {}
++		var on_error = vars && typeof(vars.on_error) === 'function' ? vars.on_error : function() {}
+ 		var f = goatcounter.filter()
+-		if (f)
+-			return warn('not counting because of: ' + f)
++		if (f) {
++			try { on_error() } catch (e) {}
++			warn('not counting because of: ' + f)
++			return false
++		}
+ 		var url = goatcounter.url(vars)
+-		if (!url)
+-			return warn('not counting because path callback returned null')
++		if (!url) {
++			try { on_error() } catch (e) {}
++			warn('not counting because path callback returned null')
++			return false
++		}
++
++		if (!(vars && vars.force_image) && navigator && navigator.sendBeacon && navigator.sendBeacon(url)) {
++			try { on_sent() } catch (e) {}
++			return true
++		}
+ 
+-		if (!navigator || !navigator.sendBeacon || !navigator.sendBeacon(url)) {
++		{
+ 			// This mostly fails due to being blocked by CSP; try again with an
+ 			// image-based fallback.
+ 			var img = document.createElement('img')
+@@ -159,8 +213,16 @@
+ 			img.setAttribute('aria-hidden', 'true')
+ 
+ 			var rm = function() { if (img && img.parentNode) img.parentNode.removeChild(img) }
+-			img.addEventListener('load', rm, false)
++			img.addEventListener('load', function() {
++				rm()
++				try { on_sent() } catch (e) {}
++			}, false)
++			img.addEventListener('error', function() {
++				rm()
++				try { on_error() } catch (e) {}
++			}, false)
+ 			document.body.appendChild(img)
++			return false
+ 		}
+ 	}
+ 
+@@ -236,14 +298,12 @@
+ 
+ 	// Make it easy to skip your own views.
+ 	if (location.hash === '#toggle-goatcounter') {
+-		if (localStorage.getItem('skipgc') === 't') {
+-			localStorage.removeItem('skipgc', 't')
+-			alert('GoatCounter tracking is now ENABLED in this browser.')
++		if (skipgc_enabled()) {
++			if (set_skipgc_enabled(false))
++				alert('GoatCounter tracking is now ENABLED in this browser.')
+ 		}
+-		else {
+-			localStorage.setItem('skipgc', 't')
++		else if (set_skipgc_enabled(true))
+ 			alert('GoatCounter tracking is now DISABLED in this browser until ' + location + ' is loaded again.')
+-		}
+ 	}
+ 
+ 	if (!goatcounter.no_onload)
