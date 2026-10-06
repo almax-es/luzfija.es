@@ -2,30 +2,30 @@
 
 Este directorio contiene librerías de terceros alojadas localmente para garantizar la privacidad (evitar peticiones a CDNs externos), la estabilidad y el funcionamiento offline.
 
-**Última actualización del inventario:** 02/09/2026
+**Última actualización del inventario:** 06/10/2026
 
-**Última comprobación de versiones upstream:** 24/09/2026
+**Última comprobación de versiones upstream:** 06/10/2026 (npm y CDN de SheetJS; además, comparación byte a byte contra los tarballs oficiales de Tesseract wrapper/core/`spa`, Chart.js y jsQR, y contra `gc.zgo.at/count.js` para GoatCounter)
 
-**Última revisión general documentada de vulnerabilidades:** 24/09/2026 (GitHub Advisory Database por paquete npm: ningún advisory publicado afecta a las versiones vendorizadas; todos los existentes son de rangos anteriores). Revisión completa anterior: 17/08/2026 — comprobación de GitHub Advisory Database para las versiones exactas vendorizadas cuando existe paquete versionado, más revisión del repositorio upstream para GoatCounter. PDF.js se volvió a contrastar específicamente con GitHub Advisory Database el 29/08/2026 al actualizarlo. Es una comprobación fechada, no una garantía permanente.
+**Última revisión general documentada de vulnerabilidades:** 06/10/2026 (GitHub Advisory Database por paquete npm y versión exacta: ningún advisory publicado afecta a las versiones vendorizadas; todos los existentes son de rangos anteriores). Revisiones anteriores: 24/09/2026 y, completa, 17/08/2026 — comprobación de GitHub Advisory Database para las versiones exactas vendorizadas cuando existe paquete versionado, más revisión del repositorio upstream para GoatCounter. PDF.js se volvió a contrastar específicamente con GitHub Advisory Database el 29/08/2026 y el 06/10/2026 al actualizarlo. Es una comprobación fechada, no una garantía permanente.
 
-### Estado frente a upstream (24/09/2026)
+### Estado frente a upstream (06/10/2026)
 
 | Librería | Vendorizada | Upstream | Estado |
 |---|---|---|---|
 | SheetJS / xlsx | 0.20.3 | 0.20.3 | ✅ al día |
-| PDF.js (`pdfjs-dist`) | 6.3.289 | 6.3.289 | ✅ al día (actualizada 29/08/2026) |
+| PDF.js (`pdfjs-dist`) | 6.4.299 | 6.4.299 | ✅ al día (actualizada 06/10/2026) |
 | Chart.js | 4.5.1 | 4.5.1 | ✅ al día |
 | Tesseract.js (wrapper) | 7.0.0 | 7.0.0 | ✅ al día |
 | Tesseract core | 7.0.0 | *ver nota* | ✅ correcta |
 | jsQR | 1.4.0 | 1.4.0 | ✅ al día |
 | GoatCounter | upstream + 4 parches | idéntico | ✅ al día |
 
-### Revisión de advisories (17/08/2026; PDF.js revalidado 29/08/2026)
+### Revisión de advisories (17/08/2026; todas revalidadas 06/10/2026)
 
 | Librería | Versión revisada | Fuente / criterio | Resultado |
 |---|---|---|---|
 | SheetJS / xlsx | 0.20.3 | GitHub Advisory Database; revisión de los advisories publicados para `xlsx` | ✅ no afectada por GHSA-4r6h-8v6p-xvw6 (`<0.19.3`) ni GHSA-5pgg-2g8v-p4x9 (`<0.20.2`) |
-| PDF.js (`pdfjs-dist`) | 6.3.289 | GitHub Advisory Database; paquete `pdfjs-dist`, revalidado 29/08/2026 | ✅ no afectada por GHSA-wgrm-67xf-hhpq (`<=4.1.392`) ni por GHSA-hq66-cqwq-w95j / CVE-2026-16633 (rango `>=5.6.83, <6.2.108`); la consulta por la versión exacta 6.3.289 no devolvió advisories aplicables |
+| PDF.js (`pdfjs-dist`) | 6.4.299 | GitHub Advisory Database; paquete `pdfjs-dist`, revalidado 06/10/2026 | ✅ no afectada por GHSA-wgrm-67xf-hhpq (`<=4.1.392`) ni por GHSA-hq66-cqwq-w95j / CVE-2026-16633 (rango `>=5.6.83, <6.2.108`); la consulta por la versión exacta 6.4.299 no devolvió advisories aplicables |
 | Chart.js | 4.5.1 | GitHub Advisory Database; paquete `chart.js` | ✅ no se localizó un advisory publicado que afecte a 4.5.1 en la revisión fechada |
 | Tesseract.js (wrapper) | 7.0.0 | GitHub Advisory Database + repositorio upstream `naptha/tesseract.js` | ✅ no se localizó un advisory publicado que afecte a 7.0.0 en la revisión fechada |
 | Tesseract core | 7.0.0 | GitHub Advisory Database + repositorio upstream `naptha/tesseract.js-core` | ✅ no se localizó un advisory publicado que afecte a 7.0.0 en la revisión fechada |
@@ -56,12 +56,13 @@ Librería para la manipulación de hojas de cálculo (Excel, CSV).
 ## 📄 PDF.js
 Renderizado y lectura de documentos PDF en el navegador.
 
-- **Versión:** 6.3.289 (actualizado 29/08/2026 desde 6.2.108; antes 6.1.200 -> 6.2.108 el 03/08/2026 y 5.7.284 -> 6.1.200 el 02/07/2026, cuando `factura.js` se migró al patrón `loadingTask.destroy()` porque 6.x elimina `PDFDocumentProxy.destroy()`)
-- **Origen:** tarball oficial de npm `pdfjs-dist@6.3.289`, integridad `sha512-ZHjSVpDa3D6izMq8/04lvkhkATUmL9px6ChPaXc1k6nU2Mrhlg1/7F0bdUqCwUjw3NsPTfPZsMDUU6ZIcRaeQw==` verificada contra el registro antes de extraer `legacy/build/pdf.min.mjs` y `legacy/build/pdf.worker.min.mjs`.
+- **Versión:** 6.4.299 (actualizado 06/10/2026 desde 6.3.289; antes 6.2.108 -> 6.3.289 el 29/08/2026, 6.1.200 -> 6.2.108 el 03/08/2026 y 5.7.284 -> 6.1.200 el 02/07/2026, cuando `factura.js` se migró al patrón `loadingTask.destroy()` porque 6.x elimina `PDFDocumentProxy.destroy()`)
+- **Origen:** tarball oficial de npm `pdfjs-dist@6.4.299`, integridad `sha512-AVl138zALtfaAPvADulE0PZThbYzCBS79nL4pOSL/6Sm/4AH5A21BD9VHt97OlCuzJuCpmeZtAtkinisF4Vb1g==` verificada contra el registro antes de extraer `legacy/build/pdf.min.mjs` y `legacy/build/pdf.worker.min.mjs`.
+- **Compatibilidad de la 6.3 -> 6.4:** minor retrocompatible para el uso de LuzFija. Sus dos cambios `api-minor` son exponer `operatorList` al callback `operationsFilter` (no se usa aqui) y dejar de enviar un mensaje "test" separado durante la carga del worker; este ultimo toca justo la ruta del bootstrap, y por eso se valido con worker real y con fake-worker en Chromium y WebKit (ver abajo). Tambien enruta los mensajes del worker por identificadores estables de pagina, sin cambio de API publica.
 - **Compatibilidad de la 6.2 -> 6.3:** minor retrocompatible para el uso de LuzFija. Los cambios marcados `api-minor` convierten a `Map`/`Set` los retornos de `getJSActions`, `getFieldObjects`, `getPermissions`, los datos `Custom` de `documentInfo` y `markInfo`; este proyecto no consume esas APIs. La API realmente usada por `js/factura.js` sigue siendo `getDocument`, `getPage`, `streamTextContent`, `getViewport`, `render`, `cleanup`, `GlobalWorkerOptions` y `loadingTask.destroy()`.
 - **Licencia:** Apache License 2.0 (Mozilla Foundation)
 - **Compatibilidad de navegador:** se sirve la build oficial `legacy`, no la moderna. PDF.js reserva la build moderna para los navegadores mas recientes y publica la `legacy` para el resto; Safari solo figura cubierto bajo `legacy`. **No se citan aqui versiones concretas de su matriz de soporte porque no se han contrastado**: lo que si esta verificado en este repo es que APIs necesita la build vendorizada, y eso lo fija `tests/pdfjs-real.test.js`. LuzFija no convierte la matriz upstream en una garantia para versiones anteriores: amplia la compatibilidad practica con shims propios, el workaround de texto y pruebas de regresion sobre WebKit. La build moderna 6.x usa APIs recientes (`Promise.try`, `Uint8Array#toHex`, entre otras) que pueden romper la carga en versiones de iOS/WebKit que no las incluyen.
-- **Texto en Safari:** incluso la build `legacy` 6.3.289 implementa `getTextContent()` con `for await...of` sobre un `ReadableStream`. Hay versiones afectadas de Safari/WebKit que exponen `getReader()` pero no el iterador asíncrono de Web Streams. `js/factura.js` agrega directamente los chunks de `streamTextContent().getReader()` y conserva `getTextContent()` solo como fallback de compatibilidad; no retirar ese workaround hasta que la versión vendorizada deje de depender del iterador ausente y la regresión lo demuestre.
+- **Texto en Safari:** incluso la build `legacy` 6.4.299 (revisado al actualizar, igual que 6.3.289) implementa `getTextContent()` con `for await...of` sobre un `ReadableStream`. Hay versiones afectadas de Safari/WebKit que exponen `getReader()` pero no el iterador asíncrono de Web Streams. `js/factura.js` agrega directamente los chunks de `streamTextContent().getReader()` y conserva `getTextContent()` solo como fallback de compatibilidad; no retirar ese workaround hasta que la versión vendorizada deje de depender del iterador ausente y la regresión lo demuestre.
 - **Carga:** queda fuera del arranque general y `js/factura.js` inicia una precarga oportunista, no bloqueante, al abrir el modal. La seleccion del archivo espera la misma promesa y, si la precarga fallo, reintenta con una URL HTTP nueva (`lf_retry=N`, conservando `v`); desde el 17/09/2026 el bootstrap del worker aplica lo mismo a `pdf.worker.min.mjs` en cada reintento, porque en modo fake-worker un `import()` fallido queda memorizado para su URL; `__LF_pdfjsLoading` evita solicitudes duplicadas y un deadline de 60 s impide que una descarga colgada deje esa promesa compartida sin asentar. `pdf.min.mjs` usa el `?v=` del propio `factura.js`; el worker pasa por `js/pdfjs-worker-bootstrap.mjs` con esa misma query. Antes de evaluar cada realm se instalan compatibilidades defensivas para `Promise.withResolvers` y `Map#getOrInsertComputed`, ausentes en versiones de WebKit todavia en uso (no se fija aqui a partir de que version aparecen: no se ha contrastado, y los shims se autodesactivan donde la API ya existe); el bootstrap importa despues el worker `legacy` y reexporta `WorkerMessageHandler` para conservar el fallback fake-worker. El vendor permanece intacto.
 - **Core y worker deben ir SIEMPRE en la misma versión exacta.** PDF.js aborta si no coinciden, con un error poco evidente. `tests/pdfjs-real.test.js` lo verifica leyendo la versión de ambos ficheros.
 - **Red de seguridad (tests):** `tests/pdfjs-real.test.js` carga el `pdf.min.mjs` **real** de este directorio (no un mock) contra la fixture sintética `tests/fixtures/factura-sintetica.pdf` y recorre el mismo camino que `factura.js`: `getDocument` -> `getPage` -> `getViewport` -> `streamTextContent().getReader()` -> `cleanup` -> `loadingTask.destroy()`. El resto de la suite mockea PDF.js, así que sin este fichero se podría vendorizar una build rota y la suite seguiría en verde.
@@ -69,15 +70,16 @@ Renderizado y lectura de documentos PDF en el navegador.
   - La regresion elimina `Promise.try`, `Promise.withResolvers`, `URL.parse`, `Map#getOrInsertComputed` y los helpers hex/base64 de `Uint8Array` en un proceso aislado antes de importar core y worker. La aplicación instala explícitamente `Promise.withResolvers` en core y worker; la build `legacy` restaura las demás APIs que necesita. El test exige todas ellas, incluida `Promise.withResolvers`, para que una sustitución accidental por la build moderna o la retirada de un shim vuelva a fallar también con Node local reciente.
   - ⚠️ **Verificar SIEMPRE con la versión de Node del CI (hoy 22), no solo con la local.** El despliegue del 03/08/2026 ya demostro que una suite verde con Node 24 podia ocultar la dependencia de `Promise.try` de la build moderna.
   - *Renderizado verificado en Chrome real el 29/08/2026:* `pdf.min.mjs` 6.3.289 con worker real, sin peticiones externas: la fixture sintética se renderizó a escala 2 en un canvas de 1190×1684 px con **18.081 píxeles no blancos** y texto extraído. Como comprobación adicional, las **13 facturas locales de prueba** cargaron y renderizaron sus **53 páginas**, con texto extraído en los 13 documentos. Resultado: **cero errores de navegador**. No se conservaron nombres, contenido ni copias de esas facturas en el repo.
+  - *Validacion de la 6.4.299 (06/10/2026), candidata contra produccion 6.3.289 sobre las 14 facturas del banco local (57 paginas):* para cada pagina se compararon el hash del texto extraido por `streamTextContent().getReader()`, los pixeles no blancos del render a escala 2 y el QR leido con el `jsQR` vendorizado. **Chrome con worker real:** 14/14 identicas en texto, QR y pixeles, cero `pageerror`. **WebKit 26.6 con perfil iPhone 15**, retirando `Promise.withResolvers`, `Promise.try`, `Map#getOrInsertComputed`, `URL.parse`, el iterador asincrono de `ReadableStream` y los helpers hex/base64 de `Uint8Array` del documento y del realm del worker (bootstrap servido con la retirada antepuesta): 14/14 identicas en texto y QR, con worker real (14 `Worker` construidos por version) y tambien en modo hilo principal; la unica diferencia fue 1 pixel sobre 358.930 en una pagina (antialiasing). Control negativo: sin el shim de documento, la 6.4.299 falla con `Promise.withResolvers is not a function`, lo que prueba que la retirada era efectiva y que los shims siguen siendo necesarios. `tests/factura-lifecycle-chromium.test.js` (worker real, fake-worker y corte de red) en verde con Node 22. No se imprimieron ni conservaron nombres, contenido ni valores de las facturas.
   - *Validacion WebKit del 02/09/2026:* WebKit 26.5 con perfil iPhone proceso por la interfaz real las **14 facturas disponibles**: 14/14 en el runtime nativo y 14/14 retirando las APIs objetivo del documento y del worker antes de cargar el bootstrap real. No hubo spinners ni errores de pagina y todos los casos crearon worker. Esta comprobacion valida compatibilidad y finalizacion, no la exactitud semantica de cada campo; un iPhone fisico confirmo despues que una factura descrita por el usuario como complicada completaba la lectura en menos de un minuto. Es una estimacion, no una medicion instrumentada. No se imprimieron ni conservaron nombres, contenido o valores de las facturas.
 - **Actualizar:** descargar el tarball de npm de la versión objetivo, verificar su `integrity` y copiar **ambos** ficheros de `package/legacy/build/` —nunca mezclar versiones ni sustituirlos por `package/build/`—. Actualizar aquí la version, el origen/integrity, los dos SHA-256 y tamaños, y `EXPECTED_VERSION` de `tests/pdfjs-real.test.js`. Conservar los shims de core/worker y `streamTextContent().getReader()` salvo que la nueva build demuestre que ya no son necesarios. Ejecutar `npx vitest run tests/pdfjs-real.test.js tests/factura-lifecycle.test.js`, `npm run lint` y la suite completa con Node 22; con navegador disponible, ejecutar también `tests/factura-lifecycle-chromium.test.js` con worker real y fake-worker.
 - **Archivos:**
   - `pdfjs/pdf.min.mjs` (Core)
-    - **SHA-256:** `f401927e692efc7735e0cd528c490d0dd31b7f0972c122b7040df805be45cce4`
-    - **Tamaño:** 506.40 KB (518.555 bytes)
+    - **SHA-256:** `bccc24ea711db8e44503629519904a5292d73b9daaa214bbe7cdcc282b0f4259`
+    - **Tamaño:** 511.50 KB (523.774 bytes)
   - `pdfjs/pdf.worker.min.mjs` (Worker)
-    - **SHA-256:** `a33cfe728c584fdba4fcc1fd54bcdc2f9f2f13889ddbb5b2bd1d0f8cbe49b84e`
-    - **Tamaño:** 1.26 MB (1.317.034 bytes)
+    - **SHA-256:** `145d2dd3ab0c86151011dba95acfa2d5336e2accd59388ea43dbee0efddaaec6`
+    - **Tamaño:** 1.26 MB (1.321.307 bytes)
 
 ## 📈 Chart.js
 Librería de gráficos interactivos para visualización de datos.
@@ -136,7 +138,7 @@ Lector de códigos QR en JavaScript puro.
 ## 🐐 GoatCounter
 Script de analítica respetuosa con la privacidad (sin cookies).
 
-- **Versión:** `count.js` upstream + **cuatro** parches locales (query saneada, confirmación de entrega, privacidad de factura y robustez de `skipgc` ante almacenamiento denegado). Línea base descargada el **03/08/2026** y verificada de nuevo, byte a byte, contra upstream el **14/09/2026**; parche local actualizado el **25/08/2026**. Reaplicar `count.local.patch` sobre la descarga actual reproduce exactamente el `count.js` servido.
+- **Versión:** `count.js` upstream + **cuatro** parches locales (query saneada, confirmación de entrega, privacidad de factura y robustez de `skipgc` ante almacenamiento denegado). Línea base descargada el **03/08/2026** y verificada de nuevo, byte a byte, contra upstream el **14/09/2026** y el **06/10/2026**; parche local actualizado el **25/08/2026**. Reaplicar `count.local.patch` sobre la descarga actual reproduce exactamente el `count.js` servido.
 - **Upstream es una URL rodante** (`https://gc.zgo.at/count.js`): no publica número de versión ni tag. Por eso se conserva la línea base prístina en `goatcounter/count.upstream.js`, que es lo que convierte una actualización en un *merge* a tres bandas en vez de en arqueología.
 - **Parches locales (son CUATRO, hay que reaplicar LOS CUATRO):**
   1. **Privacidad —** `safe_query()` sustituye el envío de la query completa: solo se conservan `utm_source/medium/campaign/content/term` (ver `ANALITICA-GOATCOUNTER.md`, sección 4).

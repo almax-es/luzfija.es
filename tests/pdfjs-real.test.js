@@ -35,7 +35,7 @@ const FIXTURE = path.join(__dirname, 'fixtures', 'factura-sintetica.pdf');
 
 // Version que debe tener el par core+worker. PDF.js exige que ambos coincidan
 // EXACTAMENTE; una mezcla de versiones falla en runtime de forma confusa.
-const EXPECTED_VERSION = '6.3.289';
+const EXPECTED_VERSION = '6.4.299';
 
 function readFunctionSource(file, name) {
   const source = fs.readFileSync(file, 'utf8');
@@ -84,7 +84,7 @@ beforeAll(async () => {
   pdfjsLib.GlobalWorkerOptions.workerSrc = pathToFileURL(WORKER).href;
 });
 
-// Se lee el marcador explicito que emite la build (`pdfjsVersion = 6.3.289`, sin
+// Se lee el marcador explicito que emite la build (`pdfjsVersion = 6.4.299`, sin
 // comillas en el minificado) y no "el primer numero con pinta de version": hoy
 // solo hay uno por fichero, pero cualquier cadena futura con ese formato -una
 // dependencia embebida, un identificador- haria que el test validase otra cosa
