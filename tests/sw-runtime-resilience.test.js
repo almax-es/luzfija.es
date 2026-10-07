@@ -716,3 +716,105 @@ describe('Service Worker: navegacion offline a rutas de directorio', () => {
     expect(asked).toContain('/guias/index.html');
   });
 });
+
+describe('Service Worker: cuerpo cortado fuera de scripts y estilos (07/10/2026)', () => {
+  // Mismo fenomeno que el arreglo del 06/10 en otras ramas: fetch() resuelve con un 200 y el
+  // corte llega al leer. Reproducido en WebKit y Chromium con un servidor que corta el cuerpo:
+  // la navegacion quedaba en blanco (Chromium) o el enlace no navegaba (WebKit), y un JSON de
+  // datos cortado sacaba al PVPC del ranking, en ambos casos con una copia sana en cache.
+  const cutBody = (status = 200) => new Response(new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode('<!DOCTYPE html><html><he'));
+      controller.error(new TypeError('The network connection was lost.'));
+    }
+  }), { status });
+
+  function makeCache(entries) {
+    const puts = [];
+    return {
+      puts,
+      add: async () => {},
+      put: async (request, response) => { puts.push(request); await response.arrayBuffer(); },
+      async match(request) {
+        const raw = typeof request === 'string' ? request : request.url;
+        const pathname = new URL(raw, 'https://luzfija.es/').pathname;
+        return Object.prototype.hasOwnProperty.call(entries, pathname)
+          ? new Response(entries[pathname], { status: 200 })
+          : undefined;
+      }
+    };
+  }
+  const navigate = (url) => ({ method: 'GET', url, mode: 'navigate', destination: 'document' });
+  const dataRequest = (url) => ({ method: 'GET', url, mode: 'cors', destination: '' });
+  const PRECACHE = { '/index.html': 'home', '/guias/index.html': 'indice-guias' };
+
+  it('sirve la copia de la pagina visitada en vez del HTML cortado', async () => {
+    const cache = makeCache({ ...PRECACHE, '/guias/cups.html': 'guia-sana' });
+    const worker = loadWorker({ cache, fetchImpl: async () => cutBody() });
+    const res = await dispatchFetch(worker.handlers.fetch, navigate('https://luzfija.es/guias/cups.html'));
+    expect(res.status).toBe(200);
+    expect(await res.text()).toBe('guia-sana');
+    expect(cache.puts).toHaveLength(0);
+  });
+
+  it('resuelve la ruta de directorio a su index.html precacheado', async () => {
+    const cache = makeCache(PRECACHE);
+    const worker = loadWorker({ cache, fetchImpl: async () => cutBody() });
+    const res = await dispatchFetch(worker.handlers.fetch, navigate('https://luzfija.es/'));
+    expect(await res.text()).toBe('home');
+  });
+
+  it('sin copia propia falla cerrado: no sirve la home bajo la URL de una guia', async () => {
+    // La home tiene rutas relativas (js/...): servida en /guias/x.html sale rota, con el aviso
+    // de recuperacion. Medido en Chromium con el primer parche propuesto, que caia a INDEX_PATH.
+    const cache = makeCache(PRECACHE);
+    const worker = loadWorker({ cache, fetchImpl: async () => cutBody() });
+    const res = await dispatchFetch(worker.handlers.fetch, navigate('https://luzfija.es/guias/no-visitada.html'));
+    expect(res.type).toBe('error');
+  });
+
+  it('no convierte un 404 en una copia antigua aunque su cuerpo llegue cortado', async () => {
+    const cache = makeCache({ ...PRECACHE, '/retirada.html': 'stale-page' });
+    const worker = loadWorker({ cache, fetchImpl: async () => cutBody(404) });
+    const res = await dispatchFetch(worker.handlers.fetch, navigate('https://luzfija.es/retirada.html'));
+    expect(res.status).toBe(404);
+  });
+
+  it('con el HTML completo entrega la red y la cachea', async () => {
+    const cache = makeCache(PRECACHE);
+    const worker = loadWorker({ cache, fetchImpl: async () => new Response('guia-nueva', { status: 200 }) });
+    const res = await dispatchFetch(worker.handlers.fetch, navigate('https://luzfija.es/guias/cups.html'));
+    expect(await res.text()).toBe('guia-nueva');
+    expect(cache.puts).toHaveLength(1);
+  });
+
+  it.each([
+    '/data/pvpc/8741/2026-10.json',
+    '/data/surplus/8741/2026-10.json',
+    '/data/ssaa/index.json',
+    '/data/cnmc-commercializers.json',
+    '/data/guides-search-index.json'
+  ])('sirve la copia sana de %s en vez del JSON cortado', async (pathname) => {
+    const cache = makeCache({ [pathname]: '{"sano":true}' });
+    const worker = loadWorker({ cache, fetchImpl: async () => cutBody() });
+    const res = await dispatchFetch(worker.handlers.fetch, dataRequest(`https://luzfija.es${pathname}`));
+    expect(res.status).toBe(200);
+    expect(await res.json()).toEqual({ sano: true });
+    expect(cache.puts).toHaveLength(0);
+  });
+
+  it('sin copia sana devuelve error de red en vez del JSON cortado', async () => {
+    const cache = makeCache({});
+    const worker = loadWorker({ cache, fetchImpl: async () => cutBody() });
+    const res = await dispatchFetch(worker.handlers.fetch, dataRequest('https://luzfija.es/data/pvpc/8741/2026-10.json'));
+    expect(res.type).toBe('error');
+  });
+
+  it('con el JSON completo entrega la red y la cachea', async () => {
+    const cache = makeCache({ '/data/ssaa/index.json': '{"viejo":true}' });
+    const worker = loadWorker({ cache, fetchImpl: async () => new Response('{"nuevo":true}', { status: 200 }) });
+    const res = await dispatchFetch(worker.handlers.fetch, dataRequest('https://luzfija.es/data/ssaa/index.json'));
+    expect(await res.json()).toEqual({ nuevo: true });
+    expect(cache.puts).toHaveLength(1);
+  });
+});

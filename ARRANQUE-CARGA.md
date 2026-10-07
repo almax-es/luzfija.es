@@ -441,6 +441,18 @@ cuerpo, con control negativo contra el `sw.js` anterior. No anade latencia: el
 `cache.put` del clon ya obligaba a esperar el cuerpo completo antes de responder.
 Regresiones en `tests/sw-runtime-resilience.test.js`.
 
+Desde el 07/10/2026 (ronda 64) la misma lectura (`bodyArrivesWhole`) protege tambien la
+navegacion HTML, los datos regulados (`data/pvpc`, `data/surplus`, `data/ssaa`, censo
+CNMC) y el indice de guias con `llms*.txt`. Solo se lee un 2xx: un 404/410 se entrega
+tal cual y nunca se cambia por una copia antigua. En navegacion, un HTML cortado solo se
+sustituye por la copia de ESA pagina o por el `index.html` de su directorio; nunca cae a
+`INDEX_PATH`, porque la home servida bajo `/guias/...` resuelve sus `js/...` relativos
+contra el directorio equivocado y sale rota. Sin copia propia, `Response.error()`. Sin
+el arreglo, Chromium dejaba la pagina en blanco, en WebKit el enlace no navegaba y un
+JSON de PVPC cortado sacaba al PVPC del ranking, todo con copia sana en cache.
+`tarifas.json`, la sonda `__lfprobe` y el stale-while-revalidate de estaticos quedan
+fuera a proposito (network-only por contrato, o ya sirven la copia cacheada primero).
+
 Dentro del mismo build, el fallback usa `ignoreSearch: true`: el precache guarda
 los first-party con URL estable (sin `?v=`), mientras un vendor lazy como PDF.js
 puede quedar guardado en runtime con la query de build. Ambas claves son sanas

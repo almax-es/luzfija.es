@@ -324,6 +324,20 @@ async function cachePutSafe(cache, req, res) {
   }
 }
 
+// fetch() resuelve con las cabeceras: un 200 cuyo cuerpo se corta a mitad no rechaza
+// hasta que alguien lo lee. Leer un clon entero distingue ese caso antes de entregar la
+// respuesta (ver la rama de scripts). Solo se mira un 2xx: un 404/410 se entrega tal cual
+// y no debe convertirse en fallback a una copia antigua.
+async function bodyArrivesWhole(res) {
+  if (!res || !res.ok) return true;
+  try {
+    await res.clone().arrayBuffer();
+    return true;
+  } catch (_) {
+    return false;
+  }
+}
+
 async function openRuntimeCacheSafe() {
   try {
     return await caches.open(CACHE_NAME);
@@ -394,6 +408,16 @@ self.addEventListener("fetch", (event) => {
             return (cache && await cache.match(req, { ignoreSearch: true })) ||
               (await matchDirectoryIndex(cache, url)) ||
               (cache && await cache.match(INDEX_PATH)) || fresh;
+          }
+          // Cuerpo cortado a mitad: la pagina quedaba en blanco (Chromium) o el enlace no
+          // navegaba (WebKit) aunque hubiera copia sana. Solo vale la copia de ESA pagina:
+          // el fallback a INDEX_PATH serviria la home bajo otra URL, con sus rutas
+          // relativas rotas. Sin copia propia, error de red del navegador mejor que media
+          // pagina. Con cache disponible no anade latencia: cachePutSafe ya esperaba el
+          // cuerpo completo antes de responder.
+          if (!(await bodyArrivesWhole(fresh))) {
+            return (cache && await cache.match(req, { ignoreSearch: true })) ||
+              (await matchDirectoryIndex(cache, url)) || Response.error();
           }
           await cachePutSafe(cache, req, fresh);
           return fresh;
@@ -495,6 +519,8 @@ self.addEventListener("fetch", (event) => {
           if (isTransientHttpFailure(fresh)) {
             return (await matchHealthyCache(cache, req)) || fresh;
           }
+          // Cuerpo cortado: al catch, con la misma copia sana que un fallo de red.
+          if (!(await bodyArrivesWhole(fresh))) throw new Error("cuerpo cortado");
           await cachePutSafe(cache, req, fresh);
           return fresh;
         } catch (_) {
@@ -518,6 +544,8 @@ self.addEventListener("fetch", (event) => {
           if (isTransientHttpFailure(fresh)) {
             return (await matchHealthyCache(cache, req)) || fresh;
           }
+          // Cuerpo cortado: al catch, con la misma copia sana que un fallo de red.
+          if (!(await bodyArrivesWhole(fresh))) throw new Error("cuerpo cortado");
           await cachePutSafe(cache, req, fresh);
           return fresh;
         } catch (_) {

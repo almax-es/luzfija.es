@@ -6324,3 +6324,64 @@ se cachea); la mutacion que retira la lectura la cazan 3 tests.
 no hay de donde sacar los bytes; tampoco un cuerpo que se queda colgado sin cerrarse, que ya colgaba
 antes por el mismo `cache.put`. Los fallos de JS de la telemetria son casi todos de visitantes sin
 SW (`sw0`), a los que esto no afecta.
+
+<a id="service-worker-cuerpo-cortado-resto-de-ramas-ronda-64-07-10-2026"></a>
+### Service Worker: Cuerpo Cortado En Navegacion Y Datos (Ronda 64, 07/10/2026)
+
+Origen: auditoria externa (ChatGPT, lectura estatica; declaro no haber ejecutado tests ni
+navegador) encargada a raiz del arreglo del 06/10, que solo cubria scripts/estilos/workers. El
+informe recorrio todas las ramas de `sw.js`. Claude ejecuto cada candidato con el arnes del 06/10
+(servidor Node que manda cabeceras 200 completas, medio cuerpo y cierra el socket) en Chromium/Edge
+y WebKit 26.6, con control contra el `sw.js` desplegado.
+
+**Confirmado y CORREGIDO, navegacion HTML.** Con la home precacheada y el SW activo, cortar
+`index.html`: en Chromium el documento queda vacio (pagina en blanco, `content()` de longitud 0)
+tanto al recargar como al llegar por enlace; en WebKit la navegacion aborta ("Transferred a partial
+file") y el usuario se queda en la pagina anterior. Habia copia sana: la rama solo la consultaba ante
+excepcion de `fetch()` o 408/429/5xx.
+
+**Confirmado y CORREGIDO, datos regulados e indice de guias.** Con copia del mismo build en cache,
+cortar `data/pvpc/8741/2026-10.json`, `data/ssaa/index.json`, `data/cnmc-commercializers.json` o
+`data/guides-search-index.json`: en Chromium llega un 200 cuyo `json()` falla y en WebKit el
+`fetch()` de la pagina rechaza. Efecto visible medido en la home (cache local de PVPC vaciada): la
+fila del PVPC desaparece del ranking (93 -> 92 filas) con el toast "PVPC: No se pudieron cargar los
+datos de precios", aunque el SW tenia los dos meses sanos. No hay cifra falsa: los consumidores
+fallan cerrado; el defecto es de disponibilidad.
+
+**Correccion.** `bodyArrivesWhole(res)` lee un clon entero de un 2xx (un 404/410 no se lee y se
+entrega tal cual). Datos e indice de guias: si falla, al `catch` existente (`matchHealthyCache` o
+`Response.error()`). Navegacion: copia de esa pagina (`ignoreSearch`) o `index.html` de su
+directorio; si no hay, `Response.error()`.
+
+**El parche propuesto por el informe se rechazo tal cual.** Proponia leer el clon y caer al `catch`
+existente, que termina en `INDEX_PATH`. Medido en Chromium con una guia no visitada y cortada:
+servia la home bajo `/guias/...`, con sus `js/...` relativos resueltos contra `/guias/js/` y el aviso
+"La pagina no ha cargado todos sus componentes". Por eso el caso de cuerpo cortado no comparte el
+fallback a la home.
+
+**Verificacion.** Con el `sw.js` final, en ambos motores: home cortada al recargar y por enlace ->
+home sana desde cache; guia visitada y cortada -> su copia; guia no visitada y cortada -> error de
+red del navegador (Chromium `chrome-error://`; WebKit se queda en la pagina anterior, igual que
+antes); los cuatro JSON -> copia sana; calculo con los dos meses de PVPC cortados -> 93 filas con
+PVPC y sin toast. 11 regresiones nuevas en `tests/sw-runtime-resilience.test.js`, 5 mutaciones
+cazadas (quitar la guarda de navegacion, 3 tests; volver a caer a `INDEX_PATH`, 1; quitar la de
+datos, 5; quitar la del indice de guias, 1; leer tambien los 404, 1). Suite 2.242/2.242, lint 0 y el
+fichero del SW tambien con Node 22.
+
+**Descartado del informe, con motivo:**
+- Stale-while-revalidate de estaticos: con copia en cache ya se entrega la copia primero; sin copia
+  no hay de donde sacar los bytes. Nada que corregir.
+- Precache de `install` con un CORE cortado: medido en ambos motores con `js/lf-calc.js`, 3
+  intentos, el SW no se activa y no queda copia rota. Correcto.
+- Cuerpo que nunca termina: ya colgaba antes por el `cache.put` del clon (lo dice la entrada del
+  06/10) y sin SW colgaria igual. No es especifico del SW; sin cambio.
+- `tarifas.json`, `__lfprobe` y `count.js`: network-only por contrato. Falso positivo si se propone
+  cache.
+
+**Evidencia nueva sobre la observacion de la ronda 59 (NO cambiada, decision del promotor).** La
+ronda 59 dejo como "no es bug" que sin red una guia nunca visitada se sirva como la home. Medido hoy
+en Chromium sin red: esa home NO funciona (rutas relativas bajo `/guias/`, aviso de recuperacion).
+WebKit falla la navegacion. Opciones si se reabre: limitar el fallback a `INDEX_PATH` a rutas del
+mismo directorio que la home y devolver `Response.error()` en las demas, o una pagina "sin
+conexion". El test `conserva el fallback a la home cuando la ruta no tiene copia propia` fija hoy el
+comportamiento actual.
