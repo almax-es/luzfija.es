@@ -45,7 +45,7 @@ Librería para la manipulación de hojas de cálculo (Excel, CSV).
 
 - **Versión:** 0.20.3 (Versión CDN Secure)
   - *Nota:* Esta versión parchea la vulnerabilidad CVE-2023-30533 presente en versiones npm antiguas (0.18.x).
-- **Licencia:** SheetJS Community Edition
+- **Licencia:** Apache License 2.0 (SheetJS Community Edition)
 - **Carga:** lazy desde tres puntos —`js/lf-csv-import.js`, `js/bv/bv-import.js` y `js/pvpc-stats-csv.js`—, los tres con el `?v=` del build. Cada uno resuelve el build con la misma cascada que `js/tracking.js` (`window.__LF_BUILD_ID`, y si no el `?v=` del propio script) **en la evaluacion sincrona del modulo**: dentro de `ensureXLSX()`, que corre tras un gesto del usuario, `document.currentScript` ya vale `null`. Hasta el 03/09/2026 los tres usaban URL estable sin `?v=`: era el unico vendor que no arrastraba la identidad del build, asi que un cliente podia seguir ejecutando la copia anterior tras una actualizacion de SheetJS y el SW no podia saber a que build pertenecia lo que servia.
 - **Red de seguridad (tests):** `tests/vendor-xlsx-versioning.test.js` ejecuta los tres modulos en jsdom y mira el `<script>` que **realmente** inyectan en el head, no el literal del fuente: un grep pasaria igual si alguien deja el helper definido pero vuelve a asignar `script.src` a mano en la ruta de carga. Cubre tambien la rama de fallback y que sin build identificable se cargue sin query en vez de romper. Verificado reintroduciendo el fallo en los tres ficheros: 3 de 3 detectados.
 - **Archivos:**
@@ -97,7 +97,7 @@ Motor de reconocimiento óptico de caracteres (WASM + JS).
 
 - **Versión (Wrapper):** 7.0.0
 - **Versión (Core):** 7.0.0 (actualizado 02/07/2026 desde 5.1.0; el wrapper 7.x requiere core `^7.0.0`)
-- **Licencia:** Apache License 2.0 (Ver `worker.min.js`)
+- **Licencia:** Apache License 2.0. Los componentes empaquetados (MIT, BSD-3-Clause) estan en los `.LICENSE.txt` que citan las cabeceras de `tesseract.min.js` y `worker.min.js`, copiados del mismo tarball `tesseract.js@7.0.0`
 - **Carga:** lazy desde `js/factura.js` sin `?v=` en `workerPath`, `corePath` ni `langPath`; `langPath` es una URL de directorio que Tesseract usa para construir rutas internas.
 - ⚠️ **Punto ciego conocido de la revisión de advisories (03/09/2026):** `tesseract.js-core` **compila el Tesseract C/C++ original dentro del `.wasm`**. Consultar advisories del paquete npm y del repositorio `naptha/tesseract.js-core` —que es lo que se hizo el 17/08/2026— **NO cubre las vulnerabilidades de ese componente nativo**: una auditoría npm puede quedar en verde con un advisory abierto en el código C/C++ empaquetado. Upstream ha publicado vulnerabilidades en la carga de ficheros `.traineddata` (escrituras fuera de límites en versiones anteriores del motor), y su mitigación declarada es usar modelos de fuente confiable.
   - **Por qué hoy no es explotable aquí:** el usuario aporta la imagen, nunca el modelo. `js/factura.js` fija `langPath` a `vendor/tessdata/`, el idioma a `spa` y `corePath` al fichero local; no hay ninguna ruta por la que un `.traineddata` de terceros llegue al motor. El vector documentado upstream exige justamente eso.
@@ -181,3 +181,24 @@ Script de analítica respetuosa con la privacidad (sin cookies).
     - **Tamaño:** 4.56 KB (4.666 bytes)
 
   Los dos últimos se excluyen del artefacto de Pages **por ruta explícita** (no por patrón global, para no ocultar en silencio un futuro fichero legítimo con sufijo parecido), con guard posterior en `.github/workflows/tests.yml` y asserts en `tests/deploy-artifact.test.js`.
+
+## 📜 Licencias de terceros
+
+Los ficheros de `vendor/` son software de terceros con su propia licencia: la PolyForm Shield de
+`LICENSE` no se les aplica. Apache 2.0, MIT e ISC exigen acompanar las copias redistribuidas con el
+texto de la licencia y el aviso de copyright, y `vendor/` se publica en la web, asi que los textos
+viajan con los ficheros. Anadido el 07/10/2026: hasta entonces solo PDF.js llevaba su aviso dentro del
+fichero. Los textos se tomaron de los tarballs oficiales de npm de cada version (Apache 2.0 identico en
+todos salvo el apendice, MIT de `chart.js@4.5.1`); el ISC de `count.js` con el titular del repositorio
+de GoatCounter. **Al anadir o actualizar una libreria, actualizar tambien este fichero.**
+
+- **Archivos:**
+  - `THIRD-PARTY-LICENSES.txt`
+    - **SHA-256:** `ba9b751ab48b0bf960486f68eae3295896be352cc6020ebefc9760769015014a`
+    - **Tamaño:** 15.58 KB
+  - `tesseract/tesseract.min.js.LICENSE.txt`
+    - **SHA-256:** `cdf963ced7d25a0f98901a547647b4d6e2dbe0197fd78c87a059a87b0e542fe2`
+    - **Tamaño:** 149 bytes
+  - `tesseract/worker.min.js.LICENSE.txt`
+    - **SHA-256:** `45f54171aeaa1d10c0c1a66f374b7bba1f02472b1487fbe892eec04f840002ac`
+    - **Tamaño:** 466 bytes
