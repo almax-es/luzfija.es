@@ -265,16 +265,44 @@ describe('Observatorio: degradacion explicita por meses remotos fallidos', () =>
   });
 
   it('marca rolling 12m y YoY si el año previo es parcial aunque el visible esté completo', () => {
-    const { getKpiPartialFlags } = window.__LF_PvpcStatsUiHelpers;
+    const { getKpiCoverageSuffixes } = window.__LF_PvpcStatsUiHelpers;
+    const P = ' · ⚠ parcial';
 
-    expect(getKpiPartialFlags({ partial: false }, { partial: true }, { partial: true }))
-      .toEqual({ current: false, rolling12m: true, yoy: true });
-    expect(getKpiPartialFlags({ partial: false }, { partial: true }, { partial: false }))
-      .toEqual({ current: false, rolling12m: true, yoy: false });
-    expect(getKpiPartialFlags({ partial: true }, { partial: false }, { partial: false }))
-      .toEqual({ current: true, rolling12m: true, yoy: true });
-    expect(getKpiPartialFlags({ partial: false, provisional: true }, { partial: false }, { partial: false }))
-      .toEqual({ current: true, rolling12m: true, yoy: true });
+    expect(getKpiCoverageSuffixes({ partial: false }, { partial: true }, { partial: true }))
+      .toEqual({ current: '', rolling12m: P, yoy: P });
+    expect(getKpiCoverageSuffixes({ partial: false }, { partial: true }, { partial: false }))
+      .toEqual({ current: '', rolling12m: P, yoy: '' });
+    expect(getKpiCoverageSuffixes({ partial: true }, { partial: false }, { partial: false }))
+      .toEqual({ current: P, rolling12m: P, yoy: P });
+    expect(getKpiCoverageSuffixes({ partial: false }, { partial: false }, { partial: false }))
+      .toEqual({ current: '', rolling12m: '', yoy: '' });
+  });
+
+  // Ronda 67: en Canarias el dia en curso llega cada dia con 23 horas (provisional) y los años
+  // estan completos. Los KPI 1-3 decian "provisional" y la media de 12 meses y la interanual
+  // "parcial" por la misma causa, como si faltaran datos.
+  // Ronda 67: el Observatorio solo mostraba los avisos "Se descartaron...". El neteo horario
+  // cambia los kWh vertidos respecto al fichero (1.csv: diciembre 88,50 -> 81,08 kWh) y su aviso
+  // se perdia, con un "Archivo procesado correctamente" como unica explicacion.
+  it('muestra todos los avisos del importador, tambien el neteo y el cambio de hora', () => {
+    const { buildCsvImportNotice } = window.__LF_PvpcStatsUiHelpers;
+    const neteo = 'Neteo horario aplicado en 82 filas con consumo y excedentes simultáneos.';
+    const dst = 'Ajustado cambio horario de marzo (CCH-CONS 1-23 → horas reales).';
+    const descarte = 'Se descartaron 3 filas sin fecha válida.';
+    expect(buildCsvImportNotice([dst, neteo, descarte])).toBe(`${dst} ${neteo} ${descarte}`);
+    expect(buildCsvImportNotice(undefined)).toBe('');
+    expect(buildCsvImportNotice(['  ', ''])).toBe('');
+    expect(uiCode).toContain('csvState.importNotice = buildCsvImportNotice(parsed.warnings);');
+  });
+
+  it('rotula igual un dia en curso provisional en todos los KPI, sin llamarlo parcial', () => {
+    const { getKpiCoverageSuffixes } = window.__LF_PvpcStatsUiHelpers;
+    const V = ' · ⚠ provisional';
+    expect(getKpiCoverageSuffixes({ partial: false, provisional: true }, { partial: false }, { partial: false }))
+      .toEqual({ current: V, rolling12m: V, yoy: V });
+    // Si ademas falta un mes del año anterior, la ventana SI es parcial y manda sobre provisional.
+    expect(getKpiCoverageSuffixes({ partial: false, provisional: true }, { partial: true }, { partial: true }))
+      .toEqual({ current: V, rolling12m: ' · ⚠ parcial', yoy: ' · ⚠ parcial' });
   });
 });
 

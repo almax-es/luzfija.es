@@ -6454,3 +6454,39 @@ canonical e `index,follow`; `/404.html` lleva `noindex` a proposito.
 `Last updated` de ambos ficheros pasa a 2026-10-07: el informe contrasto cada fila con evidencia y
 Claude comprobo las correcciones, las omisiones y que las afirmaciones tecnicas restantes tienen
 respaldo en `CAPACIDADES-WEB.md`.
+
+<a id="oraculo-observatorio-ronda-67-07-10-2026"></a>
+### Oraculo Independiente Del Observatorio (Ronda 67, 07/10/2026)
+
+Primera caja negra del Observatorio (la ronda 28 lo audito leyendo el codigo). ChatGPT calculo
+desde los JSON crudos y los rotulos visibles, sin leer `js/` (su script no pudo ejecutarse contra el
+repo por DNS; uso un arnes propio sobre los mismos datos). Claude leyo la web real con Chromium
+(repo servido en local, mismo commit que produccion) en Peninsula, Canarias, Ceuta, excedentes, 2025
+y la subida de `tests/fixtures/1.csv`, y recalculo de forma independiente los KPI discrepantes.
+
+**Cuadran:** ultimo dia, medias de 7 y 30 dias, media de 12 meses (ventana movil de 365 dias, mismo
+peso por dia: 0,14367 EUR/kWh en Peninsula a 07/10/2026), interanual (acumulado del ano hasta la
+misma fecha, +7,02 %), mejor y peor mes cerrado y los meses del CSV salvo diciembre.
+
+**2 hallazgos CORREGIDOS (rotulacion y avisos, ninguna cifra mal):**
+- **El neteo horario no se explicaba en el Observatorio.** `1.csv` trae 82 horas de diciembre con
+  consumo y vertido a la vez; la web compensa hora a hora (`CAPACIDADES-WEB.md`: neteo horario) y
+  muestra 81,08 kWh frente a 88,50 del fichero, con "Archivo procesado correctamente": el handler
+  solo pasaba los avisos "Se descartaron..." (ronda 43). Ahora `buildCsvImportNotice` pasa todos,
+  como la home. El calculo era correcto; el oraculo no neteaba.
+- **"parcial" donde era "provisional".** En Canarias el dia en curso llega cada dia con 23 horas
+  (ronda 48). Los KPI 1-3 decian "⚠ provisional" y la media de 12 meses y la interanual "⚠ parcial"
+  por la misma causa, como si faltaran datos de un ano completo. `getKpiCoverageSuffixes` sustituye
+  a `getKpiPartialFlags`: "parcial" solo si falta un mes (ano visible, anterior o ventana de YoY),
+  "provisional" si solo esta pendiente el dia en curso.
+- 3 regresiones en `tests/pvpc-stats-ui.test.js`; 4 mutaciones, 4 cazadas (solo descartes, handler
+  sin aviso, 12 meses y YoY volviendo a "parcial"). Verificado en Chromium: Canarias "provisional"
+  en los cinco KPI, Peninsula/Ceuta/excedentes sin aviso, y la nota del CSV con el neteo.
+
+**Falsos positivos del informe (NO reabrir):**
+- "`A mismas fechas` es ambiguo (+97 % frente a -12 %)": es el texto mientras carga; renderizado dice
+  "Hasta 2026-10-07 vs 2025-10-07" (acumulado). El auditor solo veia el HTML estatico.
+- "Media 12 meses ambigua": el KPI usa 365 dias moviles con mismo peso por dia; las variantes del
+  oraculo difieren de esa en menos de medio centimo de EUR/kWh y la web la rotula "Ultimos 12 meses".
+- Sus "mejor/peor mes" (mayo 2026, enero 2025) y su interanual de Peninsula (+8,18 %) contradicen sus
+  propias tablas; la web (febrero 2026, febrero 2025, +7 %) cuadra con el recalculo de Claude.

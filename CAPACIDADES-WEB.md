@@ -228,7 +228,8 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - En la home, los avisos de la importacion (descartes, celdas vacias, neteo, Wh, cambio de
   hora, rango) se muestran dentro de la vista previa (`#csvImportNotices`), escapados. Antes
   eran un toast que el overlay del modal tapaba. En el simulador solar siguen siendo toast (no
-  hay modal). El Observatorio solo muestra los descartes, en su nota de resultado.
+  hay modal). El Observatorio los muestra todos en su nota de resultado (desde el 07/10/2026; antes
+  solo los descartes, y el neteo horario cambiaba los kWh sin explicarlo).
 - Las formulas XLSX solo se aceptan cuando el archivo trae un resultado materializado.
   Los tres importadores leen los stubs de la primera hoja para distinguir una formula
   sin cache de una celda realmente vacia; LuzFija no evalua formulas de Excel.
@@ -528,7 +529,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 42 (`js/*.{js,mjs}` + `js/bv/*.js`).
-- Lineas JS aproximadas: 34.237.
+- Lineas JS aproximadas: 34.258.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (110 tarifas).
@@ -624,7 +625,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Suite Vitest/JSDOM.
 - 135 archivos de test (`tests/*.test.js`).
-- 2249 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 2251 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

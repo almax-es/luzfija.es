@@ -193,12 +193,31 @@
 
   // Los KPIs no dependen todos del mismo año: rolling 12m y YoY también leen el
   // anterior. No basta con mirar la parcialidad del año visible.
-  function getKpiPartialFlags(currentStatus, previousStatus, yoy) {
-    const current = Boolean(currentStatus?.partial || currentStatus?.provisional);
+  // Un mismo motivo debe rotularse igual en todos los KPI. "parcial" solo cuando falta algun mes
+  // (del año visible, o del que entra en la ventana de 12 meses o en la interanual); si lo unico
+  // pendiente es el dia en curso (p. ej. Canarias, cuya ultima hora se publica al dia siguiente),
+  // "provisional". Antes los KPI 1-3 decian "provisional" y la media de 12 meses y la interanual
+  // "parcial" por esa misma causa, como si faltaran datos del año (ronda 67).
+  function kpiCoverageSuffix(isPartial, isProvisional) {
+    if (isPartial) return ' · ⚠ parcial';
+    if (isProvisional) return ' · ⚠ provisional';
+    return '';
+  }
+
+  function buildCsvImportNotice(warnings) {
+    return (Array.isArray(warnings) ? warnings : [])
+      .map((w) => String(w).trim())
+      .filter(Boolean)
+      .join(' ');
+  }
+
+  function getKpiCoverageSuffixes(currentStatus, previousStatus, yoy) {
+    const partial = Boolean(currentStatus?.partial);
+    const provisional = Boolean(currentStatus?.provisional);
     return {
-      current,
-      rolling12m: current || Boolean(previousStatus?.partial),
-      yoy: current || Boolean(yoy?.partial)
+      current: kpiCoverageSuffix(partial, provisional),
+      rolling12m: kpiCoverageSuffix(partial || Boolean(previousStatus?.partial), provisional),
+      yoy: kpiCoverageSuffix(partial || Boolean(yoy?.partial), provisional)
     };
   }
 
@@ -1063,7 +1082,7 @@
       canaryClock: null,
       // Filas que el parser descarto (ronda 43). El Observatorio no muestra el resto de
       // avisos, pero una perdida de datos si debe verse junto al resultado.
-      discardNotice: ''
+      importNotice: ''
     };
 
     const formatYmLabel = (ym) => {
@@ -1150,7 +1169,7 @@
       const baseNote = stats.missing
         ? `Nota: ${stats.missing} horas (${fmtKwh(stats.missingKwh || 0)}) no encontraron precio horario en el histórico para la zona seleccionada. La compensación y el precio medio solo incluyen la energía con precio disponible.`
         : 'Archivo procesado correctamente.';
-      setCsvNote(csvState.discardNotice ? `${baseNote} ${csvState.discardNotice}` : baseNote);
+      setCsvNote(csvState.importNotice ? `${baseNote} ${csvState.importNotice}` : baseNote);
     };
 
     const refreshCsvStats = async (isCurrent) => {
@@ -1188,9 +1207,11 @@
           const records = Array.isArray(parsed.records) ? parsed.records : [];
           csvState.records = records;
           csvState.canaryClock = importGeo === '8742';
-          csvState.discardNotice = (Array.isArray(parsed.warnings) ? parsed.warnings : [])
-            .filter((w) => /^Se descartaron /.test(String(w)))
-            .join(' ');
+          // Todos los avisos del importador, como en la home (#csvImportNotices), no solo los
+          // descartes: el neteo horario cambia los kWh vertidos respecto a los del fichero, y sin
+          // su aviso el usuario veia menos energia de la que subio con un "procesado
+          // correctamente" (ronda 67, 1.csv: diciembre 88,50 kWh en el fichero, 81,08 netos).
+          csvState.importNotice = buildCsvImportNotice(parsed.warnings);
           await refreshCsvStats();
           trackStatsEvent('csv-import-completado', ['estadisticas', extension], 'CSV/XLSX de excedentes importado en observatorio');
         } catch (err) {
@@ -1206,7 +1227,7 @@
           csvState.records = null;
           csvState.canaryClock = null;
           renderCsvStats(null, { announceEmpty: false });
-          csvState.discardNotice = '';
+          csvState.importNotice = '';
           setCsvNote(`Error: ${err?.message || 'No se pudo procesar el archivo.'}`);
         } finally {
           csvEls.btn.disabled = false;
@@ -1273,8 +1294,7 @@
       // identico a uno completo. Antes solo el pie del grafico de tendencia lo señalaba
       // (bloqueante 2, 12/08/2026): rolling 7/30 dias, cierre/YoY y anual quedaban en
       // silencio aunque su ventana de calculo estuviera incompleta.
-      const partialFlags = getKpiPartialFlags(status, prevStatus, null);
-      const kpiPartialSuffix = partialFlags.current ? ` · ⚠ ${status.provisional && !status.partial ? 'provisional' : 'parcial'}` : '';
+      const kpiPartialSuffix = getKpiCoverageSuffixes(status, prevStatus, null).current;
 
       // Kpi 1: Último día (o Cierre año)
       els.kpiLast.textContent = fmtCents(lastVal);
@@ -1325,7 +1345,7 @@
       // Kpi 4: 12 meses / Anual
       const rolling12m = computeRolling12m(yearData, prevYearData);
       els.kpiAvg12m.textContent = fmtCents(rolling12m);
-      const rollingPartialSuffix = partialFlags.rolling12m ? ' · ⚠ parcial' : '';
+      const rollingPartialSuffix = getKpiCoverageSuffixes(status, prevStatus, null).rolling12m;
       const historicalAvgLabel = Number(state.year) === 2021 ? 'Media Jun–Dic' : 'Media anual';
       els.kpiAvg12mSub.textContent = lastDate ? `${isCurrentYear ? 'Últimos 12 meses' : historicalAvgLabel}${rollingPartialSuffix}` : '—';
 
@@ -1334,7 +1354,7 @@
         const yoy = await computeYoY(state.type, state.geo, state.year, lastDate, ytdAvg);
         if (myToken !== _rerenderToken) return;
         if (yoy) {
-          const yoyPartialSuffix = getKpiPartialFlags(status, prevStatus, yoy).yoy ? ' · ⚠ parcial' : '';
+          const yoyPartialSuffix = getKpiCoverageSuffixes(status, prevStatus, yoy).yoy;
           els.kpiYoY.textContent = fmtPct(yoy.pct, 0);
           els.kpiYoYSub.textContent = `Hasta ${lastDate} vs ${yoy.prevEnd}${yoyPartialSuffix}`;
         } else {
@@ -1470,7 +1490,8 @@
   }
 
   window.__LF_PvpcStatsUiHelpers = {
-    getKpiPartialFlags,
+    getKpiCoverageSuffixes,
+    buildCsvImportNotice,
     computeWindowOptions,
     buildHourlySubtitle,
     parseParams,
