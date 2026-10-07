@@ -69,7 +69,7 @@ Published on https://luzfija.es/ and fetchable directly:
 - Optional: solar surplus, virtual battery balance, social bonus.
 - Supports PDF bill extraction and CSV/XLSX import.
 - If an hourly CSV is imported, the user can choose between:
-- PVPC with prices from the imported billing period (hourly when price coverage is sufficient; residual gaps are estimated and larger gaps fall back to period averages, explained in the breakdown),
+- PVPC with prices from the imported billing period (hourly when price coverage is sufficient; residual missing coverage (within documented thresholds) is estimated, while insufficient coverage falls back to period averages; both cases are explained in the breakdown),
 - or current/recent PVPC for present-day comparison.
 - Includes custom "my tariff" comparison.
 

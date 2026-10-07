@@ -59,7 +59,7 @@ What it does:
 - supports shareable URL state
 
 Important detail:
-- if the user imports hourly data, the comparator can optionally cross that real hourly curve with PVPC prices from the imported billing period instead of current/recent PVPC (hourly when price coverage is sufficient; residual gaps are estimated and larger gaps fall back to period averages, explained in the breakdown)
+- if the user imports hourly data, the comparator can optionally cross that real hourly curve with PVPC prices from the imported billing period instead of current/recent PVPC (hourly when price coverage is sufficient; residual missing coverage (within documented thresholds) is estimated, while insufficient coverage falls back to period averages; both cases are explained in the breakdown)
 
 ### 2. PVPC and surplus observatory
 
