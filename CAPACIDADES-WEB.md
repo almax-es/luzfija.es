@@ -548,7 +548,12 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - `CORE_ASSETS` obligatorios.
 - `ASSETS` opcionales best-effort, con nucleos atomicos para las rutas solar y estadisticas. Los recursos se reintentan y un build que deje incompleta una cadena funcional no llega a activarse.
 - Estrategias:
-- `network-first` para navegacion HTML, usando una copia sana ante 408/429/5xx sin ocultar 404/410 reales.
+- `network-first` para navegacion HTML, usando una copia sana ante 408/429/5xx, cuerpo cortado o
+  falta de red, sin ocultar 404/410 reales. Orden: copia de esa pagina, `index.html` de su
+  directorio y la home solo para paginas de su mismo directorio; una guia nunca visitada abierta sin
+  red muestra el error "sin conexion" del navegador.
+- Un 200 cuyo cuerpo se corta a mitad se trata como fallo de red (lectura completa de un clon) en
+  navegacion, JS/CSS/workers, datasets, censo CNMC e indice de guias.
 - `network-only` para `tarifas.json` (sin cache para evitar desactualizados).
 - `tarifas.json` tiene un unico reintento acotado ante fallos transitorios. Si
   falla tambien y la pestaña ya habia descargado una lista valida durante esa
@@ -619,7 +624,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Suite Vitest/JSDOM.
 - 135 archivos de test (`tests/*.test.js`).
-- 2242 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 2246 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

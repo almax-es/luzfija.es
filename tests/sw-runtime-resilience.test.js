@@ -658,9 +658,39 @@ describe('Service Worker: navegacion offline a rutas de directorio', () => {
     expect(await res.text()).toBe('indice-guias');
   });
 
-  it('conserva el fallback a la home cuando la ruta no tiene copia propia', async () => {
+  it('conserva el fallback a la home para una pagina de su mismo directorio sin copia propia', async () => {
     const worker = loadWorker({ cache: makeCache(PRECACHE), fetchImpl: offline });
-    const res = await dispatchFetch(worker.handlers.fetch, navigate('https://luzfija.es/inexistente/'));
+    const res = await dispatchFetch(worker.handlers.fetch, navigate('https://luzfija.es/inexistente.html'));
+    expect(await res.text()).toBe('home');
+  });
+
+  // La home carga js/... y styles.css con rutas relativas: servida bajo /guias/x.html los
+  // pedia en /guias/js/ y salia rota con el aviso de recuperacion (Chromium sin red, ronda 64).
+  it.each([
+    'https://luzfija.es/guias/no-visitada.html',
+    'https://luzfija.es/inexistente/'
+  ])('sin red no sirve la home rota en otro directorio (%s)', async (url) => {
+    const worker = loadWorker({ cache: makeCache(PRECACHE), fetchImpl: offline });
+    const res = await dispatchFetch(worker.handlers.fetch, navigate(url));
+    expect(res.type).toBe('error');
+  });
+
+  it('ante un 5xx en otro directorio sin copia propia entrega el 5xx, no la home', async () => {
+    const worker = loadWorker({
+      cache: makeCache(PRECACHE),
+      fetchImpl: async () => new Response('origin transient', { status: 503 })
+    });
+    const res = await dispatchFetch(worker.handlers.fetch, navigate('https://luzfija.es/guias/no-visitada.html'));
+    expect(res.status).toBe(503);
+    expect(await res.text()).toBe('origin transient');
+  });
+
+  it('ante un 5xx en el directorio de la home sin copia propia sirve la home', async () => {
+    const worker = loadWorker({
+      cache: makeCache(PRECACHE),
+      fetchImpl: async () => new Response('origin transient', { status: 503 })
+    });
+    const res = await dispatchFetch(worker.handlers.fetch, navigate('https://luzfija.es/inexistente.html'));
     expect(await res.text()).toBe('home');
   });
 

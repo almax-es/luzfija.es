@@ -37,7 +37,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - 42 modulos JavaScript en `js/` (incluye `js/bv/`).
 - 34.237 lineas JS aproximadas.
 - 111 tarifas en `tarifas.json`.
-- Suite de tests Vitest con 135 archivos y 2242 casos.
+- Suite de tests Vitest con 135 archivos y 2246 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 
@@ -203,7 +203,7 @@ Notas de tarifas:
 - `ASSETS` opcionales best-effort, con nucleos atomicos por ruta para solar y estadisticas: un build no se activa si deja una de esas herramientas a medias.
 - Los recursos obligatorios se reintentan antes de abortar; si persiste el fallo, queda activo el SW anterior.
 - Estrategias de cache:
-- HTML: network-first, con fallback a una copia sana ante 408/429/5xx (los 404/410 reales se respetan).
+- HTML: network-first, con fallback a una copia sana ante 408/429/5xx, cuerpo cortado o falta de red (los 404/410 reales se respetan). La home solo sustituye paginas de su mismo directorio; una guia nunca visitada abierta sin red muestra el error "sin conexion" del navegador.
 - `tarifas.json`: network-only (sin cache para evitar datos obsoletos).
 - La descarga de tarifas reintenta una vez los fallos transitorios. Si ambos
   intentos fallan durante un calculo, solo puede reutilizar una lista valida ya

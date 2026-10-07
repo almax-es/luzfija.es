@@ -16,7 +16,8 @@ const LEGACY_SOLAR_CLOSEST_CACHE = "luzfija-static-20260620-051941";
 
 // Scope (para que funcione igual en dominio raíz y en subcarpetas de GitHub Pages)
 const SCOPE = self.registration.scope;
-const INDEX_PATH = new URL("index.html", SCOPE).pathname;
+const INDEX_PATH_URL = new URL("index.html", SCOPE);
+const INDEX_PATH = INDEX_PATH_URL.pathname;
 const TARIFAS_PATH = new URL("tarifas.json", SCOPE).pathname;
 const GUIDES_SEARCH_INDEX_PATH = new URL("data/guides-search-index.json", SCOPE).pathname;
 const CNMC_COMMERCIALIZERS_PATH = new URL("data/cnmc-commercializers.json", SCOPE).pathname;
@@ -373,6 +374,21 @@ async function matchDirectoryIndex(cache, url) {
   return cache.match(new URL("index.html", url).href, { ignoreSearch: true });
 }
 
+// Copia con la que sustituir una navegacion que no ha llegado sana: la de ESA pagina, la
+// del index.html de su directorio o, como ultimo recurso, la home. La home solo vale para
+// paginas de su mismo directorio: sus recursos son relativos (js/..., styles.css) y
+// servida bajo /guias/... los resuelve contra /guias/js/ y sale rota, con el aviso de
+// recuperacion (medido en Chromium el 07/10/2026, ronda 64). En otro directorio, mejor el
+// error de red del navegador, que al menos dice que falta conexion.
+async function matchNavigationFallback(cache, req, url) {
+  if (!cache) return undefined;
+  return (await cache.match(req, { ignoreSearch: true })) ||
+    (await matchDirectoryIndex(cache, url)) ||
+    (new URL(".", url).pathname === new URL(".", INDEX_PATH_URL).pathname
+      ? await cache.match(INDEX_PATH)
+      : undefined);
+}
+
 self.addEventListener("fetch", (event) => {
   const req = event.request;
   if (req.method !== "GET") return;
@@ -405,26 +421,17 @@ self.addEventListener("fetch", (event) => {
           // del servidor o rate limiting, preferir una copia visitada y sana.
           // Los 404/410 reales se conservan para no revivir páginas retiradas.
           if (fresh.status === 408 || fresh.status === 429 || fresh.status >= 500) {
-            return (cache && await cache.match(req, { ignoreSearch: true })) ||
-              (await matchDirectoryIndex(cache, url)) ||
-              (cache && await cache.match(INDEX_PATH)) || fresh;
+            return (await matchNavigationFallback(cache, req, url)) || fresh;
           }
           // Cuerpo cortado a mitad: la pagina quedaba en blanco (Chromium) o el enlace no
-          // navegaba (WebKit) aunque hubiera copia sana. Solo vale la copia de ESA pagina:
-          // el fallback a INDEX_PATH serviria la home bajo otra URL, con sus rutas
-          // relativas rotas. Sin copia propia, error de red del navegador mejor que media
-          // pagina. Con cache disponible no anade latencia: cachePutSafe ya esperaba el
+          // navegaba (WebKit) aunque hubiera copia sana. Al catch, con el mismo fallback que
+          // sin red. Con cache disponible no anade latencia: cachePutSafe ya esperaba el
           // cuerpo completo antes de responder.
-          if (!(await bodyArrivesWhole(fresh))) {
-            return (cache && await cache.match(req, { ignoreSearch: true })) ||
-              (await matchDirectoryIndex(cache, url)) || Response.error();
-          }
+          if (!(await bodyArrivesWhole(fresh))) throw new Error("cuerpo cortado");
           await cachePutSafe(cache, req, fresh);
           return fresh;
         } catch (_) {
-          return (cache && await cache.match(req, { ignoreSearch: true })) ||
-            (await matchDirectoryIndex(cache, url)) ||
-            (cache && await cache.match(INDEX_PATH)) || Response.error();
+          return (await matchNavigationFallback(cache, req, url)) || Response.error();
         }
       })()
     );

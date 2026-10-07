@@ -6031,7 +6031,8 @@ que el artefacto no habria llevado el fichero.
   Observatorio, el indice de guias y "como funciona" (target del SW tambien sin red).
 - `tarifas.json` vivo identico al del repo (117 tarifas, mismo `updatedAt`). Suite completa con Node 22
   (el del CI): 134 ficheros y 2.212 tests.
-- **Observacion, NO es bug:** sin red, una guia que el usuario nunca visito online (no esta en el
+- **Observacion, NO es bug (SUPERADA el 07/10/2026, ronda 64: la home servida ahi salia rota y ya no
+  se ofrece fuera de su directorio):** sin red, una guia que el usuario nunca visito online (no esta en el
   precache; solo se guardan al visitarlas) se sirve como la home por el fallback de `sw.js`
   (`INDEX_PATH`). El texto del propio SW lo describe asi. Precachear las 25 guias o anadir una pagina
   "sin conexion" seria un cambio de producto, no una correccion.
@@ -6378,10 +6379,20 @@ fichero del SW tambien con Node 22.
 - `tarifas.json`, `__lfprobe` y `count.js`: network-only por contrato. Falso positivo si se propone
   cache.
 
-**Evidencia nueva sobre la observacion de la ronda 59 (NO cambiada, decision del promotor).** La
-ronda 59 dejo como "no es bug" que sin red una guia nunca visitada se sirva como la home. Medido hoy
-en Chromium sin red: esa home NO funciona (rutas relativas bajo `/guias/`, aviso de recuperacion).
-WebKit falla la navegacion. Opciones si se reabre: limitar el fallback a `INDEX_PATH` a rutas del
-mismo directorio que la home y devolver `Response.error()` en las demas, o una pagina "sin
-conexion". El test `conserva el fallback a la home cuando la ruta no tiene copia propia` fija hoy el
-comportamiento actual.
+**Reabierta y CORREGIDA la observacion de la ronda 59 (07/10/2026, mismo dia, build posterior a
+`20261007-075826`).** La ronda 59 dejo como "no es bug" que sin red una guia nunca visitada se sirva
+como la home, suponiendo una home util. Medido sin red con el `sw.js` desplegado, en Chromium y en
+WebKit: esa home NO funciona (pide `/guias/js/...` y sale el aviso de recuperacion; recargar sin red
+no lo arregla). Decision: `matchNavigationFallback()` unifica las tres salidas de la navegacion (5xx,
+cuerpo cortado y sin red) en copia propia -> `index.html` del directorio -> home, y la home solo se
+ofrece a paginas de SU MISMO directorio (comparado contra el scope, no contra `/`). En otro
+directorio: el 5xx tal cual o `Response.error()`, es decir, la pagina "sin conexion" del navegador,
+que dice la verdad. Descartado precachear las 25 guias: ~900 KB mas en la instalacion de todo
+visitante para un caso que solo se da sin red y con una guia nunca abierta.
+Verificado con el servidor caido (`setOffline` de Playwright en WebKit falla TODAS las navegaciones,
+incluida la home precacheada, y no sirve para esto): guia no visitada -> error de red en ambos
+motores; guia visitada, home, `calcular-factura-luz.html` y `/estadisticas/` -> su pagina sana.
+Control con el `sw.js` desplegado: home rota con aviso de recuperacion en ambos. 4 tests nuevos (el
+que fijaba la home en `/inexistente/` pasa a `/inexistente.html`) y 4 mutaciones cazadas (home en
+cualquier directorio, 4 tests; home nunca, 2; sin la guarda de cuerpo en navegacion, 3; sin el index
+del directorio, 4).

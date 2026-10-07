@@ -453,6 +453,12 @@ JSON de PVPC cortado sacaba al PVPC del ranking, todo con copia sana en cache.
 `tarifas.json`, la sonda `__lfprobe` y el stale-while-revalidate de estaticos quedan
 fuera a proposito (network-only por contrato, o ya sirven la copia cacheada primero).
 
+La misma regla vale para TODA navegacion que no llega sana (5xx, cuerpo cortado o sin red):
+`matchNavigationFallback()` prueba la copia de esa pagina, el `index.html` de su
+directorio y, solo para paginas del mismo directorio que la home, `INDEX_PATH`. Una guia
+nunca visitada abierta sin red muestra la pagina "sin conexion" del navegador en vez de
+una home rota bajo `/guias/` (decidido el 07/10/2026, ronda 64).
+
 Dentro del mismo build, el fallback usa `ignoreSearch: true`: el precache guarda
 los first-party con URL estable (sin `?v=`), mientras un vendor lazy como PDF.js
 puede quedar guardado en runtime con la query de build. Ambas claves son sanas
