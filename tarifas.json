@@ -58,7 +58,6 @@
       "p2": 0.099909,
       "web": "https://ahorracondisaelectricidad.com/",
       "tipo": "1P",
-      "promo": "25 € de descuento en la primera factura para nuevos clientes (si la factura es menor, el resto se descuenta en las siguientes).",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -187,6 +186,7 @@
       "p2": 0.099699,
       "web": "https://tarifas.energiaelcorteingles.es/",
       "tipo": "1P",
+      "promo": "60 € de descuento en la factura (máximo 10 € por factura) para nuevos contratos online. No válido en Canarias, Ceuta y Melilla.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -962,7 +962,7 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
+        "precioBV": 3.446281
       },
       "requiereFV": false
     },
@@ -1183,7 +1183,6 @@
       "p2": 0.031745,
       "web": "https://chcenergia.es/luz/plan-ilumina-duo-promo",
       "tipo": "1P",
-      "promo": "50 € de descuento repartidos en 5 facturas consecutivas (10 € sobre el importe total de cada una).",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.04,
@@ -1515,6 +1514,7 @@
       "p2": 0.073323,
       "web": "https://tarifas.energiaelcorteingles.es/",
       "tipo": "3P",
+      "promo": "60 € de descuento en la factura (máximo 10 € por factura) para nuevos contratos online. No válido en Canarias, Ceuta y Melilla.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -1893,7 +1893,7 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
+        "precioBV": 3.446281
       },
       "requiereFV": false
     },
@@ -2285,5 +2285,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-07T11:29:51.900Z"
+  "updatedAt": "2026-10-07T12:52:16.788Z"
 }
