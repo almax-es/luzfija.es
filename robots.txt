@@ -1,17 +1,3 @@
-# Buscadores y asistentes que citan y enlazan LuzFija.es al responder: permitidos.
 User-agent: *
 Allow: /
-
-# Rastreadores dedicados a entrenar modelos de IA: reserva de mineria de textos y
-# datos (art. 4.3 de la Directiva (UE) 2019/790). Ver CONTENT-LICENSE.md.
-User-agent: GPTBot
-User-agent: ClaudeBot
-User-agent: anthropic-ai
-User-agent: CCBot
-User-agent: Applebot-Extended
-User-agent: meta-externalagent
-User-agent: Bytespider
-User-agent: cohere-training-data-crawler
-Disallow: /
-
 Sitemap: https://luzfija.es/sitemap.xml

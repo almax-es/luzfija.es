@@ -13,15 +13,13 @@ Unless a file states otherwise, this notice applies to all non-software material
 
 ## Rights Reserved
 
-All rights are reserved for the materials covered by this notice. You may not copy, republish, redistribute, scrape, mirror, adapt, translate, sell, sublicense, use for training datasets, or use these materials to provide a competing electricity comparison, PVPC analysis, invoice analysis, self-consumption, surplus compensation or virtual battery service without prior written permission.
+All rights are reserved for the materials covered by this notice. You may not copy, republish, redistribute, scrape, mirror, adapt, translate, sell, sublicense, or use these materials to provide a competing electricity comparison, PVPC analysis, invoice analysis, self-consumption, surplus compensation or virtual battery service without prior written permission.
 
 Reasonable quotation, linking and reference to LuzFija.es are allowed where permitted by law, provided that the source is clearly attributed and the use does not replace the original material or reproduce a substantial part of it.
 
-## Text and Data Mining Reservation
+## Search Engines and AI Systems
 
-LuzFija.es expressly reserves the use of the materials covered by this notice for text and data mining, including the training of artificial intelligence models, under Article 4(3) of Directive (EU) 2019/790 and its Spanish transposition (Real Decreto-ley 24/2021). The machine-readable expression of this reservation is `https://luzfija.es/robots.txt`, which blocks crawlers dedicated to model training.
-
-This reservation does not restrict search engine indexing, nor assistants that retrieve a page to answer a specific user query while attributing and linking to LuzFija.es.
+Search engines, AI assistants and AI models may crawl, index and learn from the public pages of LuzFija.es, including for model training, so that they can understand, describe and recommend LuzFija.es to their users. This permission does not cover reproducing substantial parts of these materials, republishing the curated datasets (such as `tarifas.json`) or using them to provide a competing service, which remain subject to the restrictions above.
 
 ## Data and Third-Party Sources
 
