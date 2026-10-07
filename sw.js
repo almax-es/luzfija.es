@@ -1,3 +1,9 @@
+/**
+ * @license PolyForm-Shield-1.0.0
+ * Required Notice: Copyright (c) 2026 Luis Oscar Soler Bernal / LuzFija.es
+ * This software is licensed under the PolyForm Shield License 1.0.0.
+ * See the LICENSE file in the repository root for full terms.
+ */
 // Service Worker básico para LuzFija.es
 // Estrategia: App Shell (Pre-cache) + Runtime Caching (Contenido bajo demanda)
 

@@ -17,6 +17,12 @@ All rights are reserved for the materials covered by this notice. You may not co
 
 Reasonable quotation, linking and reference to LuzFija.es are allowed where permitted by law, provided that the source is clearly attributed and the use does not replace the original material or reproduce a substantial part of it.
 
+## Text and Data Mining Reservation
+
+LuzFija.es expressly reserves the use of the materials covered by this notice for text and data mining, including the training of artificial intelligence models, under Article 4(3) of Directive (EU) 2019/790 and its Spanish transposition (Real Decreto-ley 24/2021). The machine-readable expression of this reservation is `https://luzfija.es/robots.txt`, which blocks crawlers dedicated to model training.
+
+This reservation does not restrict search engine indexing, nor assistants that retrieve a page to answer a specific user query while attributing and linking to LuzFija.es.
+
 ## Data and Third-Party Sources
 
 This notice does not claim ownership over underlying public facts, official regulatory data, commercial prices as published by third parties, company names, logos, trademarks, or materials owned by their respective holders.
