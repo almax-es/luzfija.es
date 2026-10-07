@@ -318,7 +318,7 @@ Dos matices para los casos que parecen caber en las dos columnas:
 **Si el descuento es incorporable al término de energía, la duración decide qué precio se publica.**
 Si cubre los 12 meses del horizonte de comparación, se publica el precio ya descontado y su condición
 va en `requisitos` (Imagina, Endesa, Bualá). Si se agota antes, se publica el precio base y el
-beneficio va en `promo` (Energya VM). Ojo: esto vale solo para descuentos que se pueden meter en el
+beneficio va en `promo` (caso de referencia: Energya VM, de agosto a octubre de 2026). Ojo: esto vale solo para descuentos que se pueden meter en el
 precio; no convierte la duración en criterio universal, porque un regalo o un descuento en euros
 sigue yendo a `promo` aunque dure un año.
 
@@ -336,8 +336,9 @@ Consecuencias prácticas de la regla:
   el descuento aplicado, así que marcarlas como oferta afirmaría que hay algo pendiente de
   conseguir cuando ya se está cobrando descontado.
 - **Un descuento de menos de 12 meses obliga a poner el precio base**, porque el precio con
-  descuento deja de ser cierto antes de que acabe el año y falsea el ranking. Es el caso de
-  Energya VM (25% durante 3 meses): el dataset guarda 0,1391 €/kWh y la oferta se cuenta en `promo`.
+  descuento deja de ser cierto antes de que acabe el año y falsea el ranking. Caso de referencia:
+  Energya VM, que entre agosto y el 07/10/2026 ofrecía un 25% durante 3 meses; el dataset guardaba
+  el precio base y la oferta iba en `promo`. Cuando retiró ese descuento, se borró `promo`.
 - **No hay campo de caducidad.** El usuario rara vez conoce la fecha de fin. La frescura del
   dato la da la fecha de `updatedAt`, que la web ya muestra como "Actualizado el …", junto al
   enlace a la comercializadora que lleva cada fila.
