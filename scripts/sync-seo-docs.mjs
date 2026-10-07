@@ -663,28 +663,24 @@ function syncJsonSchema() {
 function syncAssistantReferences() {
   const tarifas = JSON.parse(readUtf8('tarifas.json'));
   const count = tarifas.tarifas.length;
+  // El recuento lleva la fecha del propio dataset, no el "Last updated" del fichero: esa
+  // linea certifica una revision editorial completa y no avanza con cada tarifa, asi que
+  // "110 tariffs as of <Last updated>" afirmaba un recuento que en esa fecha no era cierto.
+  // Estas referencias se revisan editorialmente; el hook solo mantiene
+  // métricas mecánicas y no puede certificar una revisión completa.
+  const datasetDate = /^\d{4}-\d{2}-\d{2}/.test(String(tarifas.updatedAt || ''))
+    ? String(tarifas.updatedAt).slice(0, 10)
+    : 'sin fecha';
 
-  updateFile('llms.txt', (content) => {
-    let next = content;
-    const declaredDate = next.match(/^Last updated:\s*(\d{4}-\d{2}-\d{2})\s*$/m)?.[1] || 'sin fecha';
-    // Estas referencias se revisan editorialmente; el hook solo mantiene
-    // métricas mecánicas y no puede certificar una revisión completa.
-    next = next.replace(
-      /`tarifas\.json`: commercial tariffs dataset \(\d+ tariffs as of \d{4}-\d{2}-\d{2}\)\./,
-      `\`tarifas.json\`: commercial tariffs dataset (${count} tariffs as of ${declaredDate}).`
-    );
-    return next;
-  });
+  updateFile('llms.txt', (content) => content.replace(
+    /`tarifas\.json`: commercial tariffs dataset \(\d+ tariffs(?: as of|; dataset updated) [\w-]+\)\./,
+    `\`tarifas.json\`: commercial tariffs dataset (${count} tariffs; dataset updated ${datasetDate}).`
+  ));
 
-  updateFile('llms-full.txt', (content) => {
-    let next = content;
-    const declaredDate = next.match(/^Last updated:\s*(\d{4}-\d{2}-\d{2})\s*$/m)?.[1] || 'sin fecha';
-    next = next.replace(
-      /current documented size: \d+ tariffs as of \d{4}-\d{2}-\d{2}/,
-      `current documented size: ${count} tariffs as of ${declaredDate}`
-    );
-    return next;
-  });
+  updateFile('llms-full.txt', (content) => content.replace(
+    /current documented size: \d+ tariffs(?: as of|; dataset updated) [\w-]+/,
+    `current documented size: ${count} tariffs; dataset updated ${datasetDate}`
+  ));
 }
 
 // El indice de AUDITORIA-IA.md se genera con los titulos y anchors reales del registro y se

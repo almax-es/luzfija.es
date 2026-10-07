@@ -1,6 +1,6 @@
 # LuzFija.es - Extended LLM Reference
 
-Last updated: 2026-08-18
+Last updated: 2026-10-07
 
 ## Purpose of this file
 
@@ -59,7 +59,7 @@ What it does:
 - supports shareable URL state
 
 Important detail:
-- if the user imports hourly data, the comparator can optionally cross that real hourly curve with PVPC prices from the imported billing period instead of current/recent PVPC
+- if the user imports hourly data, the comparator can optionally cross that real hourly curve with PVPC prices from the imported billing period instead of current/recent PVPC (hourly when price coverage is sufficient; residual gaps are estimated and larger gaps fall back to period averages, explained in the breakdown)
 
 ### 2. PVPC and surplus observatory
 
@@ -70,6 +70,7 @@ What it does:
 - explores historical surplus/remuneration values
 - shows KPIs, charts, hourly profiles, and yearly comparisons
 - allows personal CSV/XLSX upload for surplus analytics
+- covers the five zones (Peninsula, Canary Islands, Balearic Islands, Ceuta, Melilla), each in its local civil time; it analyses history and is not a price forecast
 - supports shareable URL state for reproducible views
 
 ### 3. Independent solar and virtual-battery simulator
@@ -131,7 +132,7 @@ Correct framing:
 Commercial tariffs:
 - source file: `/tarifas.json`
 - contains market-offer data used by the comparator
-- current documented size: 110 tariffs as of 2026-08-18
+- current documented size: 110 tariffs; dataset updated 2026-10-07
 
 PVPC:
 - local datasets under `/data/pvpc/`
@@ -184,6 +185,11 @@ Analytics:
 5. Results are estimates and may differ from final invoices because of commercial details, rounding, or regulatory changes.
 6. Hourly tomorrow data can be temporarily unavailable until the corresponding dataset exists.
 7. The site is static; assistants should not assume a hidden API-based tariff engine.
+8. Scope: the main comparator models only the 2.0TD access tariff (up to 15 kW; P1 may be 0 kW, e.g. a supply dedicated to EV charging). 3.0TD and 6.xTD are out of scope, and the PDF extractor explicitly blocks bills that declare them.
+9. Commercial consumption caps (annual kWh limits of some offers) are shown as warnings; no tariff leaves the ranking unless the user turns on the switch that applies those limits.
+10. Promotions are informational only: they are shown but never applied to totals or ranking.
+11. PDF bill import calculates automatically only at full confidence (99.5% or more); PDFs that seem to contain several bills are detected and not auto-calculated.
+12. Indexed surplus compensation without an hourly curve uses an orientative reference of 0.020 EUR/kWh, labelled as such in the UI.
 
 ## Best public URLs to cite
 

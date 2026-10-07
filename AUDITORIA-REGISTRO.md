@@ -6421,3 +6421,36 @@ consecutivos antes de comparar Canarias. La API rechaza rangos de mas de un mes.
 **No cubierto:** excedentes (`data/surplus`, indicador 1739) y SSAA (10328), y el historico anterior
 a 2025-10. Reabrir con un barrido completo solo si cambia el productor (`pvpc_auto_fill.py`) o su
 mapeo de zonas.
+
+<a id="superficie-ia-llms-ronda-66-07-10-2026"></a>
+### Superficie Que Leen Las IA: llms.txt Y llms-full.txt (Ronda 66, 07/10/2026)
+
+Disparador: varias IA empiezan a recomendar LuzFija.es, y `llms-full.txt` (revisado el 18/08) y
+`llms.txt` (28/08) llevaban unas 30 rondas sin revision. Auditoria externa (ChatGPT, repo y web viva)
+afirmacion por afirmacion; Claude verifico cada correccion y omision contra `CAPACIDADES-WEB.md`, el
+codigo y produccion.
+
+**Corregido:**
+- `llms.txt` decia "exact hourly crossing" para el PVPC del periodo importado: el calculo horario solo
+  se conserva con cobertura suficiente (huecos residuales estimados; si no, medias del periodo). Ahora
+  lo dice, en ambos ficheros, y "exact" choca ademas con los criterios editoriales.
+- **Causa de fondo en `scripts/sync-seo-docs.mjs`:** el recuento de tarifas se escribia con la fecha
+  "Last updated" del fichero ("110 tariffs as of 2026-08-28"), que certifica la revision editorial y no
+  avanza con el dataset, asi que afirmaba un recuento que en esa fecha no era cierto. Ahora usa
+  `tarifas.json.updatedAt` ("110 tariffs; dataset updated 2026-10-07") y acepta ambos formatos.
+- **Home, texto visible y FAQ JSON-LD:** "coste para ranking (que considera tu ahorro acumulado)"
+  contradecia "sin que tu ahorro del pasado influya". El ranking resta el excedente de ESTE mes que va
+  a la BV, no el saldo previo (`ARQUITECTURA-CALCULOS.md:434`). Corregido en ambas copias con el hash
+  CSP del bloque realineado; el "Ranking ajustado" de la linea anterior era correcto y no se toco.
+- **Omisiones anadidas** (verificadas en `CAPACIDADES-WEB.md`): solo 2.0TD hasta 15 kW con P1 = 0
+  admitido y bloqueo de facturas 3.0TD/6.xTD; topes de consumo como aviso, sin sacar tarifas del
+  ranking salvo que el usuario lo active; promociones informativas; autocalculo PDF solo con confianza
+  de 99,5 % y deteccion de PDF con varias facturas; referencia de 0,020 EUR/kWh para excedente indexado
+  sin curva; Observatorio en cinco zonas, cada una en su hora civil, historico y no prediccion.
+
+**Verificado en produccion** (lo que el auditor no pudo): las 8 URLs citadas dan 200 con su
+canonical e `index,follow`; `/404.html` lleva `noindex` a proposito.
+
+`Last updated` de ambos ficheros pasa a 2026-10-07: el informe contrasto cada fila con evidencia y
+Claude comprobo las correcciones, las omisiones y que las afirmaciones tecnicas restantes tienen
+respaldo en `CAPACIDADES-WEB.md`.
