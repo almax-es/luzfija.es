@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 import { JSDOM } from 'jsdom';
@@ -44,7 +44,20 @@ describe('Early first-party error bootstrap', () => {
     window.goatcounter = { count: vi.fn() };
   });
 
-  it('entrega a tracking los fallos ocurridos antes de que tracking.js cargue', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it('entrega a tracking los fallos ocurridos antes de que tracking.js cargue', async () => {
+    // El fallo de un recurso dispara en tracking.js un diagnostico ASINCRONO (version del SW,
+    // cache y una sonda fetch con timeout de 1,5 s). Sin red simulada la sonda salia de verdad
+    // a luzfija.es y, sin esperarla, el diagnostico podia terminar con jsdom ya desmontado:
+    // "ReferenceError: location is not defined" como error no capturado, que tumbo el CI del
+    // despliegue del 07/10/2026 con todos los tests en verde.
+    vi.stubGlobal('fetch', vi.fn(async () => new Response('', {
+      status: 200,
+      headers: { 'content-type': 'text/javascript' }
+    })));
     new Function(bootstrapCode)();
 
     const script = document.createElement('script');
@@ -75,6 +88,12 @@ describe('Early first-party error bootstrap', () => {
     expect(earlyThemeTitle).toContain('sw:no');
     expect(window.__LF_EARLY_ERRORS).toHaveLength(0);
     expect(window.__LF_TRACKING_ERROR_READY).toBe(true);
+
+    // El test no termina hasta que el diagnostico asincrono se haya emitido.
+    await vi.waitFor(() => {
+      const paths = window.goatcounter.count.mock.calls.map((call) => call[0].path);
+      expect(paths.some((p) => p.startsWith('error-context/') && p.includes('/theme/'))).toBe(true);
+    });
   });
 
   it('deja una recuperación funcional pendiente aunque tracking.js todavía no exista', () => {
