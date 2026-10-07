@@ -552,26 +552,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Lumisa Simple 24h",
-      "cPunta": 0.1388,
-      "cLlano": 0.1388,
-      "cValle": 0.1388,
-      "p1": 0.08888,
-      "p2": 0.08888,
-      "web": "https://lumisa.es/es/tarifa-fija",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "CHC Plan Estrella Dúo",
       "cPunta": 0.139,
       "cLlano": 0.139,
@@ -725,6 +705,26 @@
       "p1": 0.119,
       "p2": 0.039,
       "web": "https://enersaenergia.com/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Lumisa Simple 24h",
+      "cPunta": 0.1488,
+      "cLlano": 0.1488,
+      "cValle": 0.1488,
+      "p1": 0.108888,
+      "p2": 0.108888,
+      "web": "https://lumisa.es/es/tarifa-fija",
       "tipo": "1P",
       "incluyeServiciosAjuste": true,
       "fv": {
@@ -1755,6 +1755,27 @@
       "requiereFV": false
     },
     {
+      "nombre": "Lumisa 3P",
+      "cPunta": 0.1988,
+      "cLlano": 0.1588,
+      "cValle": 0.1288,
+      "p1": 0.108888,
+      "p2": 0.108888,
+      "web": "https://lumisa.es/es/tarifa-fija",
+      "tipo": "3P",
+      "requisitos": "15% descuento término energía durante 12 meses incluido en el precio.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Iner Coche Eléctrico 3P",
       "cPunta": 0.19984,
       "cLlano": 0.19984,
@@ -2101,27 +2122,6 @@
       "requiereFV": true
     },
     {
-      "nombre": "Lumisa 3P",
-      "cPunta": 0.2388,
-      "cLlano": 0.1588,
-      "cValle": 0.1188,
-      "p1": 0.08888,
-      "p2": 0.08888,
-      "web": "https://lumisa.es/es/tarifa-fija",
-      "tipo": "3P",
-      "requisitos": "15% descuento término energía durante 12 meses incluido en el precio.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "CHC VE 3P",
       "cPunta": 0.248745,
       "cLlano": 0.248745,
@@ -2285,5 +2285,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-07T13:12:07.836Z"
+  "updatedAt": "2026-10-07T17:25:20.906Z"
 }
