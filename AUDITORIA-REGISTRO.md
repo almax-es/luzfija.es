@@ -6396,3 +6396,28 @@ Control con el `sw.js` desplegado: home rota con aviso de recuperacion en ambos.
 que fijaba la home en `/inexistente/` pasa a `/inexistente.html`) y 4 mutaciones cazadas (home en
 cualquier directorio, 4 tests; home nunca, 2; sin la guarda de cuerpo en navegacion, 3; sin el index
 del directorio, 4).
+
+<a id="dataset-pvpc-frente-a-ree-ronda-65-07-10-2026"></a>
+### Dataset PVPC Frente A La Fuente Externa REE (Ronda 65, 07/10/2026)
+
+Hueco cerrado: hasta ahora ninguna ronda contrastaba los VALORES publicados en `data/pvpc` contra una
+fuente externa; los oraculos 44-46 daban el dataset por bueno, y el bug de la ronda 46 (Canarias una
+hora desplazada) era de esa clase. Fuente: API publica de REE sin clave,
+`apidatos.ree.es/es/datos/mercados/precios-mercados-tiempo-real?time_trunc=hour&geo_ids=<geo>`,
+serie `1001` (PVPC) en EUR/MWh. Comparacion por INSTANTE (epoch), no por hora de reloj.
+
+**Muestra (no barrido, por coste):** Peninsula 2026-01 a 2026-10 y 2025-10; Canarias, Baleares,
+Ceuta y Melilla 2025-10 (cambio de hora de otono), 2026-03 (primavera) y 2026-09. 16.293 horas comparadas:
+**0 diferencias de valor** (tolerancia 5e-6 EUR/kWh, diferencia maxima 0) y ninguna hora sobrante o
+ausente fuera de lo explicado abajo.
+
+**Trampa del metodo, NO es bug.** En Canarias cada mes sale con 1 hora "solo local" al final y 1
+"solo REE" al principio. La API corta `start_date`/`end_date` en hora PENINSULAR y nuestro fichero de
+8742 cubre el mes CIVIL canario (ronda 46), asi que las ventanas difieren una hora. Las dos horas
+frontera (2025-09-30T22:00Z y 2025-10-31T23:00Z) estan en el fichero del mes vecino con el valor
+exacto de REE (96 horas comparadas, 0 distintas). Quien repita el contraste debe unir meses
+consecutivos antes de comparar Canarias. La API rechaza rangos de mas de un mes.
+
+**No cubierto:** excedentes (`data/surplus`, indicador 1739) y SSAA (10328), y el historico anterior
+a 2025-10. Reabrir con un barrido completo solo si cambia el productor (`pvpc_auto_fill.py`) o su
+mapeo de zonas.
