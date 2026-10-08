@@ -807,6 +807,91 @@ describe('Factura PDF Integration (Black Box)', () => {
     expect(document.getElementById('fuenteDatosBadge').textContent).toBe('Enlace CNMC + respaldo PDF');
   });
 
+  // Ronda 68, reserva del auditor: al probar todas las candidatas, la URL cortada de una
+  // factura puede ceder el paso a la URL completa de OTRA factura del mismo PDF. El periodo del
+  // QR ya no casa con el del texto y el detector de varias facturas debe bajar a 75 % sin
+  // autocalculo, como cuando el QR llega por imagen.
+  it('si la URL que se lee es de otra factura del PDF, baja la confianza y avisa', async () => {
+    const padding = Array(10).fill({ str: "relleno de texto para validacion de longitud minima", transform: [0,0,0,0, 0, 0] });
+    // Reproducción del formato real: QRE2 llega como anotación/enlace embebido del PDF,
+    // no necesariamente como un fragmento visible de su contenido de texto.
+    const qrUrl = "https://comparador.cnmc.gob.es/comparador/QRE2?pP1=3.450&pP2=2.200&cfP1=111&cfP2=222&cfP3=333&iniF=2025-03-01&finF=2025-03-31";
+
+    const mockTextItems = [
+      { str: "Factura", transform: [0,0,0,0, 10, 100] },
+      { str: "https://comparador.cnmc.gob.es/comparador/QRE2?pP1=3.450&pP2=2.200", transform: [0,0,0,0, 10, 95] },
+      { str: "Endesa Energía S.A.", transform: [0,0,0,0, 60, 100] },
+
+      // Datos PDF deliberadamente distintos para asegurar prioridad QR
+      { str: "Periodo de facturación:", transform: [0,0,0,0, 10, 80] },
+      { str: "del", transform: [0,0,0,0, 50, 80] },
+      { str: "01/01/2025", transform: [0,0,0,0, 70, 80] },
+      { str: "al", transform: [0,0,0,0, 120, 80] },
+      { str: "31/01/2025", transform: [0,0,0,0, 140, 80] },
+
+      { str: "Potencia contratada", transform: [0,0,0,0, 10, 60] },
+      { str: "Punta", transform: [0,0,0,0, 60, 60] },
+      { str: "9,99", transform: [0,0,0,0, 100, 60] },
+      { str: "kW", transform: [0,0,0,0, 140, 60] },
+      { str: "Valle", transform: [0,0,0,0, 160, 60] },
+      { str: "8,88", transform: [0,0,0,0, 200, 60] },
+      { str: "kW", transform: [0,0,0,0, 240, 60] },
+
+      { str: "Energía consumida", transform: [0,0,0,0, 10, 40] },
+      { str: "Punta", transform: [0,0,0,0, 50, 40] },
+      { str: "999", transform: [0,0,0,0, 100, 40] },
+      { str: "kWh", transform: [0,0,0,0, 140, 40] },
+
+      ...padding
+    ];
+
+    window.pdfjsLib.getDocument.mockReturnValue({
+      promise: Promise.resolve({
+        numPages: 1,
+        getPage: () => Promise.resolve({
+          getTextContent: () => Promise.resolve({ items: mockTextItems }),
+          getAnnotations: () => Promise.resolve([{ url: qrUrl }]),
+          cleanup: () => {},
+          getViewport: () => ({ width: 100, height: 100 }),
+          render: () => ({ promise: Promise.resolve() })
+        }),
+        cleanup: () => {},
+        destroy: () => {}
+      })
+    });
+
+    await import('../js/factura-parsers.js');
+    await import('../js/factura.js');
+    if (window.__LF_bindFacturaParser) {
+      window.__LF_bindFacturaParser();
+    }
+
+    const fileInput = document.getElementById('fileInputFactura');
+    const mockFile = new File(['dummy content'], 'factura-qr.pdf', { type: 'application/pdf' });
+    mockFile.arrayBuffer = async () => new ArrayBuffer(10);
+
+    const event = new Event('change', { bubbles: true });
+    Object.defineProperty(event, 'target', { value: { files: [mockFile] } });
+    fileInput.dispatchEvent(event);
+
+    await waitForFacturaIdle();
+
+    const form = document.getElementById('formValidacionFactura');
+    const getVal = (field) => {
+      const wrap = form.querySelector(`.input-validacion[data-field="${field}"]`);
+      if (!wrap) return null;
+      const input = wrap.querySelector('input');
+      return input ? input.value : null;
+    };
+
+    // Se conservan los datos del QR leido, pero sin dar la factura por buena.
+    expect(getVal('consumoPunta')).toBe('111');
+    expect(getVal('dias')).toBe('30');
+    expect(document.getElementById('confianzaBadge').textContent).toContain('75%');
+    expect(document.getElementById('avisoFactura').textContent).toContain('no coincide con el periodo detectado en el PDF');
+    expect(document.getElementById('fuenteDatosBadge').textContent).toBe('Enlace CNMC + respaldo PDF');
+  });
+
   it('usa el QR Bonpreu como fuente de verdad y muestra la ficha CNMC sin datos personales', async () => {
     const qrUrl = [
       'https://comparador.cnmc.gob.es/comparador/QRE2?',

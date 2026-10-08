@@ -6512,7 +6512,12 @@ prueba las candidatas hasta la primera que se lee; `__LF_extractQRUrl` queda com
   14/14 identicas. En los sinteticos cambian SOLO los 4 de enlace (pasan a "Enlace CNMC + respaldo PDF"
   con los 30 dias del QR); los otros 11, identicos.
 - Regresiones: integracion en `tests/factura-integration.test.js` (URL cortada visible + completa en
-  la anotacion) y unidad en `tests/parsers.test.js`. 2 mutaciones, 2 cazadas (solo la primera
+  la anotacion) y unidad en `tests/parsers.test.js`.
+- Reserva del auditor tras el arreglo (PDF con dos URL validas de facturas distintas): con dos URL
+  validas nada cambia (gana la primera, como antes). El camino NUEVO es que la URL cortada de una
+  factura ceda el paso a la completa de OTRA; entonces el periodo del QR no casa con el del texto y el
+  detector de varias facturas baja a 75 % sin autocalculo. Fijado con un test de integracion; al
+  anular `discrepanciaPeriodo` fallan ese y el preexistente de varias facturas. 2 mutaciones, 2 cazadas (solo la primera
   candidata; regex sin bandera global). Suite 2253, lint 0, ficheros del lector tambien en Node 22.
 
 **El resto cuadra.** De las 60 URLs, donde la web lee el QR coinciden potencias, dias, consumos y tipo
