@@ -6490,3 +6490,47 @@ misma fecha, +7,02 %), mejor y peor mes cerrado y los meses del CSV salvo diciem
   oraculo difieren de esa en menos de medio centimo de EUR/kWh y la web la rotula "Ultimos 12 meses".
 - Sus "mejor/peor mes" (mayo 2026, enero 2025) y su interanual de Peninsula (+8,18 %) contradicen sus
   propias tablas; la web (febrero 2026, febrero 2025, +7 %) cuadra con el recalculo de Claude.
+
+<a id="oraculo-lector-factura-qr-ronda-68-08-10-2026"></a>
+### Oraculo Independiente Del Lector De Facturas Y Del QR CNMC (Ronda 68, 08/10/2026)
+
+Primera caja negra del lector (antes: lectura de codigo y banco de 14 facturas reales). ChatGPT
+construyo, sin leer `js/`, 60 URLs QR con su resultado esperado segun la Resolucion CNMC de
+06/10/2022 (INF/DE/060/21; Claude leyo el PDF oficial: Tabla 1, `iniF` "NO incluida", `finF`
+incluida, orden y mayusculas indiferentes) y 15 PDF sinteticos. Claude paso las 60 URLs por las
+funciones de produccion dentro de la home real y los 15 PDF por la interfaz (Chromium, subida real).
+
+**1 bug CONFIRMADO y CORREGIDO: la URL visible cortada tapaba a la completa del enlace.**
+`__LF_extractQRUrl` devolvia solo la PRIMERA URL CNMC del texto, y las URL de las anotaciones
+(`page.getAnnotations()`) se anaden al final de cada pagina. Cuando la URL visible no cabe en la
+linea llega cortada (sin `cfP*` ni fechas), `__LF_parseQRData` la rechaza y la completa del enlace no
+se probaba: el lector caia al texto del PDF y perdia el dato estructurado (solo lo rescataba un QR
+raster legible). Reproducido con los 4 PDF sinteticos de enlace (PDF01/03/13/15: "Parser PDF", 31 dias
+en vez de los 30 del QR). Arreglo: `__LF_extractQRUrls` (todas, en orden, sin repetir) y `factura.js`
+prueba las candidatas hasta la primera que se lee; `__LF_extractQRUrl` queda como la primera.
+- Gate de facturas reales: las 14 del banco local por la interfaz, candidato frente a produccion:
+  14/14 identicas. En los sinteticos cambian SOLO los 4 de enlace (pasan a "Enlace CNMC + respaldo PDF"
+  con los 30 dias del QR); los otros 11, identicos.
+- Regresiones: integracion en `tests/factura-integration.test.js` (URL cortada visible + completa en
+  la anotacion) y unidad en `tests/parsers.test.js`. 2 mutaciones, 2 cazadas (solo la primera
+  candidata; regex sin bandera global). Suite 2253, lint 0, ficheros del lector tambien en Node 22.
+
+**El resto cuadra.** De las 60 URLs, donde la web lee el QR coinciden potencias, dias, consumos y tipo
+de contrato; los 15 casos "aplicar a Mi tarifa", rehechos con importes coherentes, dan 13 SI con la
+conversion EUR/kW-ano / 365 exacta (bisiesto, cambios de hora, mayusculas, orden invertido); los otros
+2 se rechazan con motivo (99,999 kW fuera de 2.0TD; precios de 9,99 EUR/kWh fuera de rango). Los 31
+casos que la especificacion no decide acaban todos en conducta segura: QR rechazado (sin potencias,
+potencia negativa o > 15 kW, host o ruta no oficial), dias vacios ante fecha imposible o invertida, o
+"no aplicable" a Mi tarifa; ninguno inventa datos ni autocalcula. PDF 3.0TD bloqueado; 2.0TD que solo
+menciona 3.0TD, no; PDF con dos facturas al 75 % sin autocalculo.
+
+**Errores del oraculo (NO son bugs; no reabrir):**
+- Su QR "base valido" declaraba importes incoherentes con sus precios (potencia 98,63 EUR frente a
+  15,12; energia 77 frente a 69): la web lo rechazaba con razon ("qr-incoherente") en los casos que el
+  esperaba "aplicar SI". Rehechos con importes coherentes, se aplican.
+- Sus PDF imprimen `iniF` como primer dia del periodo; en facturas reales el texto ya excluye ese dia,
+  de ahi los 31 frente a 30 dias del parser de texto. La web avisa y usa los del QR, como documenta.
+- PDF02 y PDF03 llevan en el QR potencias y consumos de otro caso: la web aplica la prioridad del QR
+  (regla de producto) y, en PDF02, cuyo periodo tampoco casa, baja a 75 % y no autocalcula.
+- Coma decimal y sufijo de unidad coincidente ("4.6kW") se aceptan a proposito (comentado en el codigo):
+  mismo valor; una unidad distinta o texto pegado se rechaza.

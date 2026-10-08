@@ -842,6 +842,16 @@ describe('Motor de Extracción de Facturas (PDF Text)', () => {
       expect(window.__LF_FacturaParsers.__LF_parseQRData(url)).toBeNull();
     });
 
+    it('devuelve todas las URL CNMC en orden y sin repetir (cortada visible + completa del enlace)', () => {
+      const cortada = 'https://comparador.cnmc.gob.es/comparador/QRE?pP1=4.6&pP2=4.6';
+      const completa = cortada + '&cfP1=100&cfP2=200&cfP3=300&iniF=2026-09-01&finF=2026-10-01';
+      const texto = `Factura ${cortada}
+mas texto ${completa} ${completa}`;
+      expect(window.__LF_FacturaParsers.__LF_extractQRUrls(texto)).toEqual([cortada, completa]);
+      expect(window.__LF_FacturaParsers.__LF_extractQRUrl(texto)).toBe(cortada);
+      expect(window.__LF_FacturaParsers.__LF_extractQRUrls('')).toEqual([]);
+    });
+
     it('acepta las rutas oficiales QRE y QRE2, pero no variantes por prefijo', () => {
       window.LF_CONFIG = { POTENCIA_MAX_KW: 15 };
       const query = 'pP1=3.45kW&pP2=4.6kW&cfP1=101kWh&cfP2=202kWh&cfP3=303kWh&iniF=2026-01-01&finF=2026-01-31';

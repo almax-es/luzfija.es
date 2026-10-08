@@ -1187,15 +1187,21 @@
        */
 
 
+      // Todas las URL CNMC del texto, en orden y sin repetir. Un PDF puede llevar la misma URL
+      // dos veces: la visible, que a menudo no cabe en la linea y llega CORTADA (le faltan
+      // consumos y fechas), y la del enlace clicable, completa, que factura.js anade al final de
+      // cada pagina. Quedarse solo con la primera hacia que la cortada tapase a la buena y el
+      // lector perdiera el QR (ronda 68). El llamador prueba las candidatas en orden.
+      function __LF_extractQRUrls(texto) {
+        if (!texto) return [];
+        const urlPattern = /https:\/\/comparador\.cnmc\.gob\.es\/comparador\/QRE(?:2)?\?[^\s"'\n]+/g;
+        const urls = [...new Set(String(texto).match(urlPattern) || [])];
+        if (urls.length) lfDbg('[QR TEXTO] ✓ URL encontrada en texto:', urls.length);
+        return urls;
+      }
+
       function __LF_extractQRUrl(texto) {
-        if (!texto) return null;
-        const urlPattern = /https:\/\/comparador\.cnmc\.gob\.es\/comparador\/QRE(?:2)?\?[^\s"'\n]+/;
-        const match = texto.match(urlPattern);
-        if (match) {
-          lfDbg('[QR TEXTO] ✓ URL encontrada en texto');
-          return match[0];
-        }
-        return null;
+        return __LF_extractQRUrls(texto)[0] || null;
       }
 
 
@@ -1862,6 +1868,7 @@
     __LF_extraerDiasCompania,
     __LF_extraerPotenciasCompania,
     __LF_extractQRUrl,
+    __LF_extractQRUrls,
     __LF_isTrustedCnmcQrUrl,
     __LF_isCnmcCommercializerCode,
     __LF_parseQRData,

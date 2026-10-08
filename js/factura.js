@@ -88,7 +88,7 @@
         __LF_normNum,
         __LF_qrAnnualPowerPriceToDaily,
         __LF_qrCustomTarifaAvailability,
-        __LF_extractQRUrl,
+        __LF_extractQRUrls,
         __LF_isTrustedCnmcQrUrl,
         __LF_isCnmcCommercializerCode,
         __LF_parseQRData,
@@ -1836,10 +1836,11 @@
           let qrOrigen = null; // 'LINK_CNMC+PDF' o 'QR+PDF'
           if (hasSelectableText) {
             const tAll = (textLines + '\n' + textCompact).replace(/[\u00A0\t]/g,' ').replace(/\s+/g,' ').trim();
-            const qrUrlTexto = __LF_extractQRUrl(tAll);
-            if (qrUrlTexto) {
+            // Se prueban TODAS las URL candidatas: la visible puede llegar cortada y la buena
+            // ser la del enlace clicable, que va despues (ronda 68).
+            for (const qrUrlTexto of __LF_extractQRUrls(tAll)) {
               datosQR = __LF_parseQRData(qrUrlTexto);
-              if (datosQR) qrOrigen = 'LINK_CNMC+PDF';
+              if (datosQR) { qrOrigen = 'LINK_CNMC+PDF'; break; }
             }
           }
 

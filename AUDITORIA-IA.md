@@ -162,6 +162,7 @@ decision esta en el registro enlazado desde la ultima columna y desde el indice 
 | Dataset PVPC frente a REE (ronda 65) | Contrastado 07/10/2026 por primera vez contra una fuente externa (API publica de REE, serie 1001, por instante). Muestra de 16.293 horas en las cinco zonas, incluidos los dos cambios de hora: 0 diferencias. Las horas frontera de Canarias son un artefacto de ventana (REE corta el mes en hora peninsular), no un desfase. Sin cubrir: excedentes 1739, SSAA e historico anterior a 2025-10 | [Dataset PVPC Frente A La Fuente Externa REE (Ronda 65)](AUDITORIA-REGISTRO.md#dataset-pvpc-frente-a-ree-ronda-65-07-10-2026) |
 | Superficie que leen las IA (ronda 66) | Auditada 07/10/2026: `llms.txt` y `llms-full.txt` afirmacion por afirmacion contra el repo y la web viva. Corregidos el "exact hourly crossing" del PVPC importado, el recuento de tarifas fechado con la revision editorial (causa en `sync-seo-docs.mjs`) y una frase de la home que decia que el ranking considera el ahorro acumulado. Anadidos los limites que un asistente necesita para recomendar bien | [Superficie Que Leen Las IA (Ronda 66)](AUDITORIA-REGISTRO.md#superficie-ia-llms-ronda-66-07-10-2026) |
 | Oraculo independiente del Observatorio (ronda 67) | Auditado 07/10/2026 en caja negra: KPI, meses, perfil y CSV de excedentes calculados desde los JSON crudos y contrastados con la web real. Cifras correctas. 2 hallazgos CORREGIDOS de avisos: el neteo horario del CSV no se explicaba (solo se mostraban descartes) y Canarias decia "parcial" en 12 meses e interanual cuando solo el dia en curso era provisional | [Oraculo Independiente Del Observatorio (Ronda 67)](AUDITORIA-REGISTRO.md#oraculo-observatorio-ronda-67-07-10-2026) |
+| Oraculo independiente del lector de facturas y del QR CNMC (ronda 68) | Auditado 08/10/2026 en caja negra: 60 URLs QR construidas desde la Resolucion CNMC de 06/10/2022 y 15 PDF sinteticos, por las funciones de produccion y la interfaz real. **1 bug CORREGIDO**: una URL visible cortada tapaba a la completa del enlace del PDF y se perdia el QR. Gate 14/14 facturas reales identicas. Todo lo demas cuadra y los casos no regulados acaban en conducta segura | [Oraculo Independiente Del Lector De Facturas (Ronda 68)](AUDITORIA-REGISTRO.md#oraculo-lector-factura-qr-ronda-68-08-10-2026) |
 
 ## Directorio Del Registro De Auditorias
 
@@ -312,6 +313,7 @@ estes auditando; no hace falta leerlo entero.
 - [Dataset PVPC Frente A La Fuente Externa REE (Ronda 65, 07/10/2026)](AUDITORIA-REGISTRO.md#dataset-pvpc-frente-a-ree-ronda-65-07-10-2026)
 - [Superficie Que Leen Las IA: llms.txt Y llms-full.txt (Ronda 66, 07/10/2026)](AUDITORIA-REGISTRO.md#superficie-ia-llms-ronda-66-07-10-2026)
 - [Oraculo Independiente Del Observatorio (Ronda 67, 07/10/2026)](AUDITORIA-REGISTRO.md#oraculo-observatorio-ronda-67-07-10-2026)
+- [Oraculo Independiente Del Lector De Facturas Y Del QR CNMC (Ronda 68, 08/10/2026)](AUDITORIA-REGISTRO.md#oraculo-lector-factura-qr-ronda-68-08-10-2026)
 <!-- REGISTRO-INDICE:FIN -->
 
 ## Hallazgos Que Si Serian Relevantes
