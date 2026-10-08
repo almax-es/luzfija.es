@@ -458,15 +458,16 @@
     //   2. Restar descuento de la base
     //   3. LUEGO calcular IEE sobre base reducida
     //
-    // Validación CNMC (221 kWh + BS):
-    //   Base CON descuento: 44,16€
-    //   IEE (5,11% × 44,16€): 2,26€ ✅
+    // Validación CNMC (221 kWh + BS, 1.587 kWh/año, 31 días):
+    //   Base CON descuento: 30,70€
+    //   IEE (5,11% × 30,70€): 1,57€ ✅
     //
     // Si hicieras al revés:
-    //   Base SIN descuento: 56,97€
-    //   IEE (5,11% × 56,97€): 2,91€ ❌ INCORRECTO
+    //   Base SIN descuento: 43,66€
+    //   IEE (5,11% × 43,66€): 2,23€ ❌ INCORRECTO
     //
-    // Ref: RD 897/2017, validado contra CNMC v2.1.2
+    // Ref: RD 897/2017, validado contra el simulador CNMC v2.1.3 (08/10/2026);
+    // fijado en tests/scenarios.test.js ("Paridad con el simulador oficial CNMC").
     const baseEnergia = round2(terminoFijoTotal + terminoVariable + financiacionBono - descuentoEur);
 
     const fiscalContext = (typeof C.getFiscalContext === 'function')

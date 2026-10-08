@@ -2,7 +2,7 @@
 
 **Última actualización**: 08/10/2026
 **Estado**: ✅ Validado contra normativa CNMC/BOE
-**Referencia CNMC**: v2.1.2 (28/01/2026) — fiscalidad revisada a 30/09/2026: de agosto a octubre siguen IVA 21% e IEE 5,11269632% (el RDL 18/2026 no se activo: IPC de electricidad de junio 6,0% y de julio 8,4%; el RDL 25/2026 no preve rebaja en octubre). Noviembre y diciembre, segun la salvaguarda de IPC del RDL 25/2026 (ver `MANTENIMIENTO-NORMATIVO.md`)
+**Referencia CNMC**: v2.1.3 (02/10/2026; casos reconfirmados el 08/10/2026) — fiscalidad revisada a 30/09/2026: de agosto a octubre siguen IVA 21% e IEE 5,11269632% (el RDL 18/2026 no se activo: IPC de electricidad de junio 6,0% y de julio 8,4%; el RDL 25/2026 no preve rebaja en octubre). Noviembre y diciembre, segun la salvaguarda de IPC del RDL 25/2026 (ver `MANTENIMIENTO-NORMATIVO.md`)
 **Nota de alcance**: Este documento cubre el motor de cálculo. Para inventario funcional completo de la web (todas las páginas y flujos), ver `CAPACIDADES-WEB.md`.
 
 ---
@@ -210,29 +210,34 @@ periodos históricos que crucen ejercicios con términos regulados distintos sin
 
 ### ✅ Validación: Caso CNMC (221 kWh con Bono Social)
 
+Simulador oficial CNMC v2.1.3, consultado el 08/10/2026: 3,5 kW, 29/12/2025-29/01/2026 (31 días),
+64/54/103 kWh, vulnerable, unidad de convivencia de 1-2 personas (1.587 kWh/año).
+
 ```
-Potencia fija: 8,94 € (peajes + margen)
-Energía: 47,46 €
-Financiación: 0,57 €
+Potencia fija: 9,36 € (peajes y cargos 8,43 + margen 0,93)
+Energía: 33,72 €
+Financiación: 0,58 €
 ─────────────────
-Subtotal antes descuento: 56,97 €
+Subtotal antes descuento: 43,66 €
 
-Descuento BS (42,5% sobre base limitada): -12,81 € (RDL 7/2026, vigente durante 2026)
+Energía bonificable: 1.587 / 365 × 31 = 134,79 kWh de 221 → 60,99 %
+Descuento BS: 42,5% × (9,36 + 0,58 + 60,99% × 33,72) = -12,96 € (RDL 7/2026, vigente durante 2026)
 ─────────────────
-Base para IEE: 44,16 € ✅
+Base para IEE: 30,70 € ✅
 
-IEE con regimen general desde 01/06/2026: max(44,16 × 5,11269632%, 221 × 0,001) = max(2,26€, 0,22€) = 2,26 € ✅
+IEE: max(30,70 × 5,11269632%, 221 × 0,001) = max(1,57€, 0,22€) = 1,57 € ✅
 Alquiler: 0,83 €
 
-Base para IVA: 44,16 + 2,26 + 0,83 = 47,25 €
-IVA vigente: calculado por `lf-config.js`
+Base para IVA: 30,70 + 1,57 + 0,83 = 33,10 €
+IVA 21%: 6,95 €
 
-TOTAL: base + IVA vigente ✅
-(Calculado con el descuento excepcional del bono social del RDL 7/2026 vigente durante 2026; pendiente de verificar contra CNMC cuando actualice su simulador)
+TOTAL: 40,05 € ✅ (idéntico al de la CNMC)
 ```
 
-La fracción bonificable de este caso (43,48 %) procede del caso CNMC histórico, no del límite por
-defecto de la web: ver la nota del Caso 2 en `Validaciones CNMC`.
+`calcPvpcBonoSocial` reproduce al céntimo descuento, IEE y total con esas entradas; lo fija
+`tests/scenarios.test.js` ("Paridad con el simulador oficial CNMC"). Hasta el 08/10/2026 este
+apartado citaba otro caso (fijo 8,94 €, energía 47,46 €, base IEE 44,16 €) con una fracción
+bonificable del 43,48 % que el simulador de la CNMC no aplica; ver `AUDITORIA-REGISTRO.md`.
 
 ---
 
@@ -348,7 +353,7 @@ const impuestoElectrico = (C.calcularIEE && Number.isFinite(consumoKwh))
 
 **Validación** (histórica, CNMC 28/01/2026, IEE al 5,11%):
 - Caso CNMC (0 kWh): IEE = 0,51€, Total = 13,65€ ✅
-- Caso CNMC (221 kWh + BS): Base IEE = 44,16€, IEE = 2,26€ ✅
+- Caso CNMC (221 kWh + BS): Base IEE = 30,70€, IEE = 1,57€, Total = 40,05€ ✅ (reconfirmado con el simulador v2.1.3 el 08/10/2026)
 
 Con la rebaja temporal del RDL 7/2026 activa (22/03/2026-31/05/2026): IEE caso 0 kWh ≈ 0,05€; caso 221 kWh ≈ 0,22€.
 
@@ -613,7 +618,12 @@ const totalReal = round2(Math.max(0, totalBaseConCosteBV - (hasBV ? excedenteSob
 
 ### 🔍 Casos de Prueba Y Referencias Oficiales
 
-Los importes históricos identificados como CNMC se contrastaron con el **Simulador Oficial CNMC v2.1.2** (28/01/2026). Las adaptaciones regulatorias posteriores de 2026 —como los descuentos del 42,5%/57,5% y el valor actualizado de financiación— se validan contra BOE y tests del repo; no se presentan como resultados del simulador CNMC mientras esa versión no las incorpore.
+Los dos casos siguientes se reprodujeron el 08/10/2026 con el **Simulador Oficial CNMC v2.1.3**
+(02/10/2026, `comparador.cnmc.gob.es/facturaluz`), que ya aplica el descuento del 42,5 % del RDL 7/2026.
+Las entradas de importe (término fijo, variable y financiación) son las que devuelve la CNMC para
+ese periodo; la financiación es la de entonces (6,979247 €/año), no la vigente desde el 01/07/2026
+(9,011295 €/año). Ambos casos están fijados en `tests/scenarios.test.js` ("Paridad con el
+simulador oficial CNMC") y validados por mutación.
 
 > ⚠️ **Nota fiscal**: Los valores de IEE en los casos siguientes corresponden a la validación de enero 2026 (IEE al 5,11%). Desde el 01/06/2026 el motor vuelve al tipo general, por lo que estos importes vuelven a ser la referencia fiscal vigente para IEE. La lógica del **orden de operaciones** (descuento BS antes de IEE) sigue siendo válida.
 
@@ -625,8 +635,9 @@ Inputs:
 - Días: 31
 - Bono Social: NO
 
-Histórico CNMC 28/01/2026 (IEE al 5,11%):
+CNMC (v2.1.2 el 28/01/2026; reconfirmado con v2.1.3 el 08/10/2026), IEE al 5,11%:
 - Término fijo: 9,36 €
+- Financiación bono social: 0,58 €
 - IEE: 0,51 € (a 5,11%; durante la rebaja temporal del RDL 7/2026 ≈ 0,05 €)
 - Total: 13,65 €
 
@@ -640,27 +651,23 @@ Inputs:
 - Potencia: 3,5 kW
 - Consumo: 221 kWh (64 P1, 54 P2, 103 P3)
 - Días: 31
-- Bono Social: Vulnerable (42,5%, RDL 7/2026, vigente durante 2026)
+- Bono Social: Vulnerable (42,5%, RDL 7/2026, vigente durante 2026), 1.587 kWh/año
 
-Descuento BS:
-- Base: 8,94 + 0,57 + (47,46 × 43,48%) = 30,15 €
-- Descuento: 30,15 × 42,5% = 12,81 €
-
-Con fiscalidad configurada desde 01/06/2026 (IEE al 5,11269632%):
-- Base IEE: 8,94 + 47,46 + 0,57 - 12,81 = 44,16 € ✅
-- IEE: max(44,16 × 5,11269632%, 221 × 0,001) = max(2,26€, 0,22€) = 2,26 € ✅
+CNMC v2.1.3 (08/10/2026):
+- Término fijo 9,36 € · Término variable 33,72 € · Financiación 0,58 €
+- Energía bonificable: 1.587 / 365 × 31 = 134,79 kWh → 60,99 % de 221 kWh
+- Descuento: 42,5% × (9,36 + 0,58 + 60,99% × 33,72) = 12,96 €
+- Base IEE: 9,36 + 33,72 + 0,58 - 12,96 = 30,70 € ✅
+- IEE: max(30,70 × 5,11269632%, 221 × 0,001) = max(1,57€, 0,22€) = 1,57 € ✅
+- Total: 40,05 € ✅
 
 Referencia: RDL 7/2026 + RD 897/2017
 ```
 
-> ⚠️ **Lo que este caso valida y lo que no (comprobado el 08/10/2026).** Valida el **orden**:
-> el descuento se resta antes del IEE. **No** valida el límite bonificable: el 43,48 % de energía
-> bonificable (~96 kWh de 221) es el del caso CNMC histórico y no sale del límite por defecto de la
-> web. `calcPvpcBonoSocial` (`js/lf-utils.js`), con las mismas entradas (fijo 8,94 €, energía
-> 47,46 €, financiación 0,57 €, 221 kWh en 31 días) y 1.587 kWh/año, da 134,79 kWh bonificables
-> (60,99 %), base de descuento 38,46 €, descuento 16,34 €, base IEE 40,63 € e IEE 2,08 €. Solo
-> reproduce 44,16 € con un límite de ~1.131 kWh/año, que no es ninguno de los cuatro tramos
-> vigentes. El límite que usó ese caso CNMC no consta en este repositorio.
+Hasta el 08/10/2026 este caso figuraba con otros importes (fijo 8,94 €, energía 47,46 €,
+financiación 0,57 €) y una fracción bonificable del 43,48 %, de la que salían base IEE 44,16 € e
+IEE 2,26 €. El simulador de la CNMC no los reproduce: con 1.587 kWh/año aplica el 60,99 %, igual
+que `calcPvpcBonoSocial`.
 
 ---
 
@@ -683,7 +690,7 @@ const impuestoElectrico = C.calcularIEE(baseEnergia, consumoKwh);
 ```
 
 **Validación**:
-- Caso CNMC 221 kWh: Base IEE = 44,16€, IEE = 2,26€ ✅
+- Caso CNMC 221 kWh: Base IEE = 30,70€, IEE = 1,57€, Total = 40,05€ ✅
 - El orden de operaciones coincide con el caso histórico de CNMC; el porcentaje de descuento vigente se valida contra el RDL 7/2026.
 
 **Por qué la auditoría falló**:
@@ -770,7 +777,7 @@ Si eres una IA revisando este código:
 
 ### ✅ CHECKS OBLIGATORIOS
 
-1. **Valida contra CNMC Simulador Oficial** (v2.1.2 o posterior)
+1. **Valida contra CNMC Simulador Oficial** (v2.1.3 o posterior; su API pública `comparador.cnmc.gob.es/api/publico/ofertas/pvpc` devuelve el desglose completo)
    - Usa como referencia `tests/pvpc.test.js`, `tests/fiscal.test.js` y `tests/bv-fiscal-align.test.js`
    - Compara números exactos
 
@@ -808,7 +815,7 @@ Si eres una IA revisando este código:
 - **BOE-A-2017-12382**: RD 897/2017 (Bono Social)
 - **BOE-A-2025-26705**: Orden TED/1524/2025 (valor inicial de financiación del Bono Social 2026)
 - **BOE-A-2026-13759**: Orden TED/634/2026 (valor actualizado de financiación del Bono Social 2026)
-- **CNMC Simulador**: https://www.cnmc.es/consumidores/simulador (v2.1.2, 28/01/2026)
+- **CNMC Simulador de la factura de la luz**: https://comparador.cnmc.gob.es/facturaluz/inicio (v2.1.3, 02/10/2026; casos reconfirmados el 08/10/2026). La URL antigua `cnmc.es/consumidores/simulador` da 404.
 
 ---
 

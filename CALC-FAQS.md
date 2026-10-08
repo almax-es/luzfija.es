@@ -27,19 +27,20 @@ const impuestoElectrico = (C.calcularIEE && Number.isFinite(consumoKwh))
   : 0;
 ```
 
-**Validación numérica** (régimen general desde 01/06/2026, IEE al 5,11269632%):
-- Consumo: 221 kWh
-- Bono Social: 42,5% (vulnerable, RDL 7/2026)
-- Base después descuento: ~44,16 €
-- IEE: max(44,16 × 5,11269632%, 221 × 0,001) = max(2,26€, 0,22€) = 2,26 € ✅
+**Validación numérica** (caso del simulador oficial CNMC v2.1.3, reproducido el 08/10/2026:
+3,5 kW, 31 días, 221 kWh, vulnerable, 1.587 kWh/año; fijado en `tests/scenarios.test.js`):
+- Término fijo 9,36 € + variable 33,72 € + financiación 0,58 € = 43,66 €
+- Descuento bono social: 12,96 €
+- Base después descuento: 30,70 €
+- IEE: max(30,70 × 5,11269632%, 221 × 0,001) = max(1,57€, 0,22€) = 1,57 € ✅ (CNMC: 1,57 €)
 
   *La relación de orden (descuento ANTES de IEE) se mantiene independientemente de la tasa.*
 
 **Si lo hicieras al revés** (IEE antes de descuento, tasa general):
-- Base SIN descuento: 56,97 €
-- IEE (incorrecto): 56,97 × 5,11269632% = 2,91 € ❌
-- IEE (correcto):   44,16 × 5,11269632% = 2,26 €
-- Sobrecargo: +0,65€
+- Base SIN descuento: 43,66 €
+- IEE (incorrecto): 43,66 × 5,11269632% = 2,23 € ❌
+- IEE (correcto):   30,70 × 5,11269632% = 1,57 €
+- Sobrecargo: +0,66€
 
 **Conclusión**: El orden importa. DESCUENTO primero, IEE después.
 
@@ -71,8 +72,8 @@ const ratioBonificable = consumoKwh > 0 ? (kwhBonificable / consumoKwh) : 0;
 // - Término variable: SOLO la parte bonificable (ratioBonificable × energia)
 ```
 
-**Ejemplo** (salida real de `calcPvpcBonoSocial` con las entradas del caso CNMC: fijo 8,94 €,
-energía 47,46 €, financiación 0,57 €, 221 kWh en 31 días, vulnerable, límite 1.587 kWh/año):
+**Ejemplo** (simulador oficial CNMC v2.1.3, reproducido el 08/10/2026; `calcPvpcBonoSocial` da
+lo mismo al céntimo):
 ```
 Consumo total: 221 kWh
 Límite anual: 1.587 kWh
@@ -82,20 +83,16 @@ kWh bonificable: min(221, 134,79) = 134,79 kWh
 Ratio: 134,79 / 221 = 60,99%
 
 Base descuento:
-- Fijo: 8,94€ (completo)
-- Financ: 0,57€ (completo)
-- Variable bonif: 47,46 × 60,99% = 28,95€ (solo esta parte)
-= 38,46€
+- Fijo: 9,36€ (completo)
+- Financ: 0,58€ (completo)
+- Variable bonif: 33,72 × 60,99% = 20,57€ (solo esta parte)
+= 30,51€
 
-Descuento: 38,46 × 42,5% = 16,34€ (RDL 7/2026, vigente durante 2026)
-Base IEE: 56,97 - 16,34 = 40,63€ → IEE 2,08€
+Descuento: 30,51 × 42,5% = 12,96€ ✅ (CNMC: "42,5% de (9,36 € + 0,58 € + 60,99 % de 33,72 €) = -12,96 €")
 ```
 
-El caso CNMC histórico de la pregunta anterior (base IEE 44,16 €) trae una fracción bonificable
-del 43,48 % (~96 kWh), que no sale de ninguno de los cuatro límites vigentes; el límite que usó
-no consta en el repositorio. Sirve para validar el **orden** (descuento antes del IEE), no el
-límite. Hasta el 08/10/2026 este ejemplo afirmaba "130,44 / 221 = 43,48 %", que es aritmética
-falsa (da 59,02 %).
+Hasta el 08/10/2026 este ejemplo citaba otro caso (fijo 8,94 €, energía 47,46 €) con
+"130,44 / 221 = 43,48 %", que es aritmética falsa (da 59,02 %) y que la CNMC no aplica.
 
 ---
 
@@ -479,8 +476,7 @@ las fronteras y una factura real que recorre home, BV y desglose.
 
 **Por qué está mal**:
 - Código real en `lf-utils.js` (función `calcPvpcBonoSocial`) SÍ aplica descuento antes
-- Validación: 44,16€ base → 2,26€ IEE (régimen general desde 01/06/2026) ✅
-  ← Histórico CNMC 28/01/2026 (5,11%): 2,26€
+- Validación: 30,70€ base → 1,57€ IEE ✅ (simulador CNMC v2.1.3, 08/10/2026; `tests/scenarios.test.js`)
 - La auditoría confundió código encontrado con código ejecutado
 
 **Cómo verificar**: Rastrea el flujo desde entrada hasta salida, no asumas.

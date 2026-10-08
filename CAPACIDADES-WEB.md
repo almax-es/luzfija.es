@@ -530,7 +530,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 42 (`js/*.{js,mjs}` + `js/bv/*.js`).
-- Lineas JS aproximadas: 34.266.
+- Lineas JS aproximadas: 34.267.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (110 tarifas).
@@ -626,7 +626,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Suite Vitest/JSDOM.
 - 135 archivos de test (`tests/*.test.js`).
-- 2254 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 2256 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

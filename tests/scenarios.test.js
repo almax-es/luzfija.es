@@ -176,3 +176,39 @@ describe('Escenarios de Negocio (Integración Fiscal y Bono Social)', () => {
   });
 
 });
+
+// Casos reproducidos contra el simulador oficial de la CNMC (comparador.cnmc.gob.es/facturaluz,
+// version 2.1.3, consultado el 08/10/2026): 3,5 kW, 29/12/2025-29/01/2026 (31 dias), Peninsula.
+// Los importes de entrada (termino fijo, variable y financiacion) son los que devuelve la CNMC
+// para ese periodo; los esperados, los de su factura. Hasta el 08/10/2026 la documentacion citaba
+// para este caso una fraccion bonificable del 43,48 % que la CNMC no aplica: con el limite de
+// 1.587 kWh/ano aplica el 60,99 %, igual que este motor.
+describe('Paridad con el simulador oficial CNMC (PVPC, bono social)', () => {
+  const { calcPvpcBonoSocial } = global.window.LF;
+  const base = { dias: 31, zonaFiscal: 'Península', p1: 3.5, p2: 3.5, fechaYmd: '2026-01-29' };
+
+  it('221 kWh con bono social vulnerable y limite 1.587 kWh: descuento, IEE y total al centimo', () => {
+    const meta = { terminoFijo: 9.36, costeMargenPot: 0, terminoVariable: 33.72, bonoSocial: 0.58, equipoMedida: 0.83 };
+    const res = calcPvpcBonoSocial(meta, {
+      ...base,
+      cPunta: 64, cLlano: 54, cValle: 103,
+      bonoSocialOn: true, bonoSocialTipo: 'vulnerable', bonoSocialLimite: '1587'
+    }, global.window.LF_CONFIG);
+
+    // CNMC: "42,5% de (9,36 € + 0,58 € + 60,99 % de 33,72 €) = -12,96 €"
+    expect(res.ratioBonificable).toBeCloseTo(0.6099, 4);
+    expect(res.descuentoEur).toBe(12.96);
+    // CNMC: "5,11% x (9,36 € + 33,72 € + 0,58 € - 12,96 €) = 1,57 €" (descuento ANTES del IEE)
+    expect(res.meta.baseEnergia).toBe(30.70);
+    expect(res.meta.impuestoElectrico).toBe(1.57);
+    expect(res.meta.totalFactura).toBe(40.05);
+  });
+
+  it('0 kWh sin bono social: el IEE sigue existiendo sobre la potencia', () => {
+    const meta = { terminoFijo: 9.36, costeMargenPot: 0, terminoVariable: 0, bonoSocial: 0.58, equipoMedida: 0.83 };
+    const res = calcPvpcBonoSocial(meta, { ...base, bonoSocialOn: false }, global.window.LF_CONFIG);
+
+    expect(res.meta.impuestoElectrico).toBe(0.51);
+    expect(res.meta.totalFactura).toBe(13.65);
+  });
+});

@@ -6557,15 +6557,24 @@ cada identificador de codigo citado con el codigo; inventario de modulos de `AGE
 estructura real de `data/pvpc`, `data/surplus`, `data/ssaa` e indice de guias contra los esquemas;
 y `calcPvpcBonoSocial` ejecutada en Node con las entradas del caso CNMC.
 
-Hallazgos corregidos (todos de documentacion; cero cambios de codigo):
+Hallazgos corregidos (todos de documentacion; en codigo solo un comentario de `js/lf-utils.js` y
+un test nuevo):
 
-1. **Caso de bono social con aritmetica falsa.** `CALC-FAQS.md` derivaba el 43,48 % bonificable
-   del caso CNMC como "130,44 / 221" (da 59,02 %) con 30 dias en un caso de 31. Ejecutada la
-   funcion real con 1.587 kWh/ano y 31 dias: 134,79 kWh (60,99 %), descuento 16,34 EUR, base IEE
-   40,63 EUR, IEE 2,08 EUR. Los 44,16 EUR documentados solo salen con un limite de ~1.131 kWh/ano,
-   que no es ninguno de los cuatro tramos; el limite que uso ese caso no consta. El ejemplo se
-   rehizo con la salida real y `ARQUITECTURA-CALCULOS.md` aclara que el caso valida el ORDEN
-   (descuento antes del IEE), no el limite. No se toco el calculo: no hay fuente para cambiarlo.
+1. **El "caso CNMC" de bono social no era de la CNMC.** `CALC-FAQS.md` derivaba un 43,48 %
+   bonificable como "130,44 / 221" (da 59,02 %) con 30 dias en un caso de 31, y de ahi la base IEE
+   44,16 EUR e IEE 2,26 EUR que `ARQUITECTURA-CALCULOS.md`, `CALC-FAQS.md` y un comentario de
+   `js/lf-utils.js` daban por validados. La funcion real, con 1.587 kWh/ano, aplica el 60,99 %; los
+   44,16 EUR solo salian con un limite de ~1.131 kWh/ano. **Resuelto contra la fuente:** el
+   simulador oficial (v2.1.3, `comparador.cnmc.gob.es/facturaluz`, API publica
+   `/api/publico/ofertas/pvpc`) con el mismo caso (3,5 kW, 29/12/2025-29/01/2026, 64/54/103 kWh,
+   vulnerable, categoria 1 = 1.587 kWh) devuelve "42,5% de (9,36 + 0,58 + 60,99 % de 33,72) =
+   -12,96 EUR", IEE 1,57 EUR y total 40,05 EUR. `calcPvpcBonoSocial` con esas entradas da los tres
+   importes al centimo, y tambien el caso de 0 kWh (IEE 0,51 EUR, total 13,65 EUR). Los importes de
+   entrada documentados (8,94 / 47,46 / 0,57) no eran los de la CNMC. El calculo era correcto;
+   la documentacion, no. Sustituido el caso en los tres sitios y fijado en
+   `tests/scenarios.test.js` ("Paridad con el simulador oficial CNMC"), validado por mutacion: un
+   limite efectivo de ~1.131 kWh y el IEE antes del descuento hacen fallar el test. Ademas, la URL
+   del simulador citada (`cnmc.es/consumidores/simulador`) daba 404.
 2. **Limite bonificable atribuido al tipo de bono.** Los dos documentos decian "Vulnerable: 1.587
    kWh/ano; otros: varian". El limite depende de la composicion del hogar (1.587, 2.222, 2.698 y
    4.761 kWh, los cuatro de la home), no de vulnerable/severo.
