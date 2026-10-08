@@ -299,6 +299,8 @@ on:
 
 En la ejecución programada (y en dispatch con `automatico`) `RANGO` queda vacío y el script usa el modo automático. Solo cuando se elige `2021-06-01` se pasa `--from 2021-06-01` al script.
 
+Antes de descargar, el paso `Probar los productores de datos (sin red)` ejecuta `scripts/test_auto_fill.py`, pruebas sin red con datos sintéticos de la fusión de `pvpc_auto_fill.py` (un día completo solo lo sustituye otro completo) y de `ssaa_auto_fill.py` (el histórico se fusiona, no se reescribe): si un cambio en los productores rompe ese contrato, el workflow falla antes de descargar.
+
 Tras la descarga, el paso `Verificar frescura e integridad temporal de datos` ejecuta `scripts/check_data_freshness.py` (primero su self-test con fixtures sintéticos, después el chequeo real): si el dato más reciente de PVPC supera 1 día de antigüedad, el de Excedentes 2 días o el de SSAA 2 meses, si falta un día intermedio o si un día ya cerrado está incompleto/malformado, el workflow falla y GitHub notifica al propietario, en vez de terminar en verde con datos degradados.
 
 La comprobación de salud operativa basada en la fecha actual vive deliberadamente en `pvpc.yml`. El test Vitest del repositorio (`tests/pvpc-dataset-integrity.test.js`) es independiente del reloj: exige continuidad y completitud de todos los días anteriores al último día publicado de cada zona y permite que únicamente ese último día esté parcial. Esto evita que una incidencia temporal del refresco nocturno bloquee despliegues de código ajenos a los datos, sin relajar la integridad del histórico versionado.
@@ -306,7 +308,8 @@ La comprobación de salud operativa basada en la fecha actual vive deliberadamen
 Después, si hay cambios en `data/` (14/08/2026):
 - Se instala Node 22 (`actions/setup-node@v6`, misma versión que `tests.yml`) y se ejecuta
   `npm ci`, solo cuando hubo cambios — no en ejecuciones sin novedades.
-- Se corren específicamente `tests/pvpc-dataset-integrity.test.js` y `tests/ssaa-dataset.test.js`
+- Se corren específicamente `tests/pvpc-dataset-integrity.test.js`, `tests/ssaa-dataset.test.js` y
+  `tests/surplus-dataset-clock.test.js` (reloj civil de cada geo de excedentes, ronda 46)
   (no `npm test` completo: su `pretest` dispara `sync:seo-docs`, que puede tocar el working tree
   justo antes de un commit de datos) — si fallan, el job aborta antes de comprometer nada en `main`.
 - Se hace commit con `git add data/pvpc/ data/surplus/ data/ssaa/`

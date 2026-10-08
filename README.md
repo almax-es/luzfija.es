@@ -291,7 +291,7 @@ npm run check:repo-docs
 
 El sitio se publica en GitHub Pages en modo workflow desde `.github/workflows/tests.yml`:
 
-1. Cada push a `main` (o `workflow_dispatch`) ejecuta el job `test`: `npm ci`, audit bloqueante de dependencias de produccion HIGH/CRITICAL, lint, tests, una segunda pasada de la suite con `TZ=America/Los_Angeles` (el runner va en UTC y los equipos en Madrid; ninguno ve fechas desplazadas por un desfase negativo) y verificacion de repo sincronizado.
+1. Cada push a `main` (o `workflow_dispatch`) ejecuta el job `test`: `npm ci`, tests sin red de los productores de datos y de la guardia de frescura (`scripts/test_auto_fill.py` y el self-test de `scripts/check_data_freshness.py`), audit bloqueante de dependencias de produccion HIGH/CRITICAL, lint, tests, una segunda pasada de la suite con `TZ=America/Los_Angeles` (el runner va en UTC y los equipos en Madrid; ninguno ve fechas desplazadas por un desfase negativo) y verificacion de repo sincronizado.
 2. Si `test` pasa, `build_pages` construye `_site` con recursos publicos. Excluye por defecto Markdown interno, tests, scripts, configuracion y metadatos del repositorio; conserva deliberadamente `llms.txt`, `llms-full.txt`, `LICENSE`, `CONTENT-LICENSE.md`, `.well-known` y los assets/runtime de la web.
 3. `deploy_pages` publica el artefacto con un grupo de concurrencia serializado (`cancel-in-progress: false`): los despliegues no se pisan y, con varios push seguidos, solo queda en cola el ultimo.
 4. Si el audit de produccion, lint o tests fallan, no se publica nada: produccion conserva la version anterior.
