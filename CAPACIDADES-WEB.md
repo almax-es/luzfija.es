@@ -492,6 +492,8 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - Tarifa ganadora.
 - Ranking completo.
 - KPIs de pagado, compensacion, uso de hucha, saldo BV final y coste neto secundario cuando aplica.
+- Si "Mi tarifa" esta rellena y no gana, un KPI "Frente a tu tarifa actual" con lo que se ahorraria
+  (o "Empate" si el puesto lo decide el saldo BV final) y el puesto que ocupa "Mi tarifa" en el ranking.
 - Desglose por mes (desktop tabla + movil tarjetas).
 
 ### 5.4 Tarifa Personalizada Del Simulador

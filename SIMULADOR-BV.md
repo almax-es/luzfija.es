@@ -146,16 +146,20 @@ Para cada mes muestra:
 
 | Columna | Descripción | Tooltip |
 |---|---|---|
-| **Mes** | YYYY-MM | - |
+| **Mes** | Nombre del mes (con ✳ si es un mes cosido de dos tramos) | - |
 | **Potencia** | Coste término potencia | P1: X kW × Y días × Z € |
 | **E. Bruta** | Energía antes de compensar | P1 + P2 + P3 con precios |
 | **Compensación** | Excedentes compensados este mes | Generado × precio, límite energía |
 | **E. Neta** | Energía después de compensar | Bruta - Compensación |
-| **Impuestos** | IEE + IVA + bono + alquiler | Desglose completo |
-| **Subtotal** | Factura sin BV | Potencia + E.Neta + Impuestos |
-| **Pagar** | Lo que pagas este mes | Subtotal - Uso Hucha |
-| **Uso Hucha** | BV usada este mes | Saldo anterior aplicado |
-| **Saldo Fin** | BV acumulada al final | Resto + Nuevo excedente |
+| **Impuestos** | Bono social, IEE, contador e IVA/IGIC/IPSI | Desglose completo |
+| **Cuota BV** | Cuota fija mensual de la batería virtual (solo si la tarifa la cobra) | Cuota prorrateada |
+| **Subtotal** | Factura antes de aplicar la BV | Potencia + E.Neta + Impuestos (+ cuota BV) |
+| **A Pagar** | Lo que pagas este mes | Subtotal - Uso BV |
+| **Uso BV** | Saldo BV usado este mes (solo con BV) | Saldo anterior aplicado |
+| **Saldo BV** | Saldo BV acumulado al final (solo con BV) | Resto + nuevo excedente |
+
+Una tarifa sin batería virtual muestra 8 columnas (sin Cuota BV, Uso BV ni Saldo BV); con BV,
+10, y 11 si además cobra cuota.
 
 **Tooltips contextuales**: Cada concepto tiene un tooltip explicando el cálculo aplicado con los números reales.
 
@@ -402,7 +406,7 @@ closeTipModal()
 **Renderizado responsive**:
 
 ```javascript
-// Desktop: tabla con 10 columnas
+// Desktop: tabla de 8 columnas (sin BV), 10 (con BV) u 11 (BV con cuota)
 buildTable(resultItem)
 // <table class="bv-table">...</table>
 
@@ -1081,7 +1085,7 @@ que el resto de la web (la tabla de la home lo usa igual desde `lf-render.js`).
 #### Desktop (>768px)
 
 - **Grid 2 columnas**: Upload + Formulario
-- **Tablas**: 10 columnas con scroll horizontal
+- **Tablas**: 8 a 11 columnas según la tarifa, con scroll horizontal
 - **Tooltips**: Flotantes con hover
 
 #### Móvil (≤768px)
@@ -1362,7 +1366,7 @@ El simulador usa **días con datos** para evitar inflar el coste si tu CSV tiene
 
 ### ¿Por qué algunas tarifas no tienen columnas BV?
 
-Porque esas tarifas **no tienen batería virtual**. El desglose solo muestra "Uso Hucha" y "Saldo Fin" para tarifas con BV activa.
+Porque esas tarifas **no tienen batería virtual**. El desglose solo muestra las columnas "Uso BV" y "Saldo BV" para tarifas con BV activa.
 
 ---
 

@@ -6654,6 +6654,14 @@ paginas publicas que describen la web (`como-funciona-luzfija.html`, `calcular-f
     legal omitia ESIOS como fuente del SSAA. La 404 daba la punta sin decir que en Ceuta y Melilla
     es otra.
 
+15. **Pasos reales de los workflows y columnas del simulador.** README y `PVPC-SCHEMA.md` omitian
+    los tests sin red de los productores (`scripts/test_auto_fill.py`), que corren en `tests.yml`
+    y en `pvpc.yml` antes de descargar, y `PVPC-SCHEMA.md` listaba dos tests de datasets tras la
+    descarga cuando son tres (`surplus-dataset-clock`). `SIMULADOR-BV.md` daba siempre 10
+    columnas al desglose con cabeceras antiguas ("Pagar", "Uso Hucha", "Saldo Fin") y el mes como
+    `YYYY-MM`: son 8 sin BV, 10 con BV y 11 con cuota, rotuladas "A Pagar", "Uso BV" y "Saldo BV",
+    y el mes se pinta por su nombre (con ✳ si esta cosido).
+
 Verificado sin cambios en esta vuelta: extractor de factura (tolerancia de 2 dias, 75 %, 99,5 %,
 OCR < 50 %, E0/F0, base 365), validacion de "Mi tarifa", 28 dias, `#consumoLimitsNotice`, etiqueta
 OFERTA, banner AECC, grupos atomicos del SW, cada segmento de cada evento de ejemplo de la
