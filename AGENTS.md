@@ -122,7 +122,8 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   un calculo, solo se permite continuar con `baseTarifasCache` si contiene una
   descarga valida de esa misma carga de pagina; no se persiste en disco. Una
   descarga solo cuenta como valida si supera la comprobacion estructural de
-  `esTarifaUtilizable` (`js/lf-cache.js`), que es atomica: una sola tarifa rota
+  `esTarifaUtilizable` (definida en `js/lf-utils.js`, aplicada por `js/lf-cache.js`),
+  que es atomica: una sola tarifa rota
   invalida el dataset completo y preserva la copia sana anterior.
 - **El scroll de la home vive en `BODY`, no en el elemento raiz.** `html,body{height:100%}`
   junto con `body{overflow-x:hidden}` (que fuerza `overflow-y:auto` computado) hace que el

@@ -1,6 +1,6 @@
 # LuzFija.es
 
-Suite frontend avanzada para analizar la factura electrica en Espana: comparador principal, observatorio PVPC, simulador solar/BV, guias y alertas regulatorias. Gratis, sin registro, con calculo local en navegador y sin monetizacion del ranking: no hay referidos, comisiones, publicidad, lead gen ni acuerdos comerciales que alteren resultados.
+Suite frontend avanzada para analizar la factura electrica en Espana: comparador principal, observatorio PVPC, simulador solar/BV y guias. Gratis, sin registro, con calculo local en navegador y sin monetizacion del ranking: no hay referidos, comisiones, publicidad, lead gen ni acuerdos comerciales que alteren resultados.
 
 - Web: `https://luzfija.es`
 - Comparador principal: `https://luzfija.es/`

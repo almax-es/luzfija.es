@@ -1,6 +1,6 @@
 # 🧮 Arquitectura de Cálculos - LuzFija.es
 
-**Última actualización**: 12/09/2026
+**Última actualización**: 08/10/2026
 **Estado**: ✅ Validado contra normativa CNMC/BOE
 **Referencia CNMC**: v2.1.2 (28/01/2026) — fiscalidad revisada a 30/09/2026: de agosto a octubre siguen IVA 21% e IEE 5,11269632% (el RDL 18/2026 no se activo: IPC de electricidad de junio 6,0% y de julio 8,4%; el RDL 25/2026 no preve rebaja en octubre). Noviembre y diciembre, segun la salvaguarda de IPC del RDL 25/2026 (ver `MANTENIMIENTO-NORMATIVO.md`)
 **Nota de alcance**: Este documento cubre el motor de cálculo. Para inventario funcional completo de la web (todas las páginas y flujos), ver `CAPACIDADES-WEB.md`.
@@ -76,7 +76,7 @@ const energia = (kwhP1 * precioP1) + (kwhP2 * precioP2) + (kwhP3 * precioP3);
 // Entran en base del IEE y después en base del IVA/IGIC/IPSI.
 const ssaa = tarifa.incluyeServiciosAjuste === false ? consumoTotal * ssaaMensualEurKwh : 0;
 const energiaConSsaa = energia + ssaa;
-
+```
 
 **Contrato de disponibilidad SSAA (agosto 2026):** `0 €` solo significa coste cero cuando
 los SSAA no aplican a la tarifa, el consumo es cero o el dataset publica explícitamente una
@@ -87,6 +87,7 @@ Un HTTP 200 vacío/malformado no queda cacheado como dataset. Un mes histórico 
 sustituye por el último valor publicado. El último mes completo solo se usa como fallback
 deliberado para un mes futuro o todavía parcial.
 
+```javascript
 // PASO 3: Calcular financiación Bono Social
 const financiacion = 9.011295 / 365 * dias;
 
@@ -229,6 +230,9 @@ IVA vigente: calculado por `lf-config.js`
 TOTAL: base + IVA vigente ✅
 (Calculado con el descuento excepcional del bono social del RDL 7/2026 vigente durante 2026; pendiente de verificar contra CNMC cuando actualice su simulador)
 ```
+
+La fracción bonificable de este caso (43,48 %) procede del caso CNMC histórico, no del límite por
+defecto de la web: ver la nota del Caso 2 en `Validaciones CNMC`.
 
 ---
 
@@ -453,9 +457,12 @@ const totalReal = totalBaseConCosteBV - (hasBV ? excedenteSobranteEur : 0);
 
 **Nota**: Tras la caída del RDL 2/2026 el 26/02/2026 volvió temporalmente el régimen base del RD 897/2017, pero el RDL 7/2026 restauró para todo 2026 el 42,5%/57,5% y ordenó regularizar las facturas afectadas.
 
-**Límite anual bonificable**:
-- Vulnerable: 1.587 kWh/año
-- Otros: Varían según tipo
+**Límite anual bonificable** (depende de la composición de la unidad de convivencia, no del tipo
+vulnerable/severo; la home ofrece los cuatro y usa 1.587 por defecto, `DEFAULTS.bonoSocialLimite`):
+- 1.587 kWh/año: 1 persona o 2 adultos
+- 2.222 kWh/año: 3 personas con 0-1 menores, pensionistas con pensión mínima o 2 personas siendo 1 menor
+- 2.698 kWh/año: 4 personas con 0-2 menores o 3 personas siendo 2 menores
+- 4.761 kWh/año: 5 o más personas, 4 personas siendo 3 menores o familia numerosa
 
 **Financiación anual (Orden TED/634/2026)**:
 - 9,011295 €/año (se prorratea a días del periodo)
@@ -646,6 +653,15 @@ Con fiscalidad configurada desde 01/06/2026 (IEE al 5,11269632%):
 Referencia: RDL 7/2026 + RD 897/2017
 ```
 
+> ⚠️ **Lo que este caso valida y lo que no (comprobado el 08/10/2026).** Valida el **orden**:
+> el descuento se resta antes del IEE. **No** valida el límite bonificable: el 43,48 % de energía
+> bonificable (~96 kWh de 221) es el del caso CNMC histórico y no sale del límite por defecto de la
+> web. `calcPvpcBonoSocial` (`js/lf-utils.js`), con las mismas entradas (fijo 8,94 €, energía
+> 47,46 €, financiación 0,57 €, 221 kWh en 31 días) y 1.587 kWh/año, da 134,79 kWh bonificables
+> (60,99 %), base de descuento 38,46 €, descuento 16,34 €, base IEE 40,63 € e IEE 2,08 €. Solo
+> reproduce 44,16 € con un límite de ~1.131 kWh/año, que no es ninguno de los cuatro tramos
+> vigentes. El límite que usó ese caso CNMC no consta en este repositorio.
+
 ---
 
 ## Falsos Positivos Conocidos
@@ -671,7 +687,7 @@ const impuestoElectrico = C.calcularIEE(baseEnergia, consumoKwh);
 - El orden de operaciones coincide con el caso histórico de CNMC; el porcentaje de descuento vigente se valida contra el RDL 7/2026.
 
 **Por qué la auditoría falló**:
-- Encontró el cálculo de IEE de `obtenerPVPC_LOCAL` en `js/pvpc.js` (hacia la línea 805), que no resta ningún descuento
+- Encontró el cálculo de IEE de `obtenerPVPC_LOCAL` en `js/pvpc.js` (la llamada a `calcularIEERedondeado` sobre `baseIEE`), que no resta ningún descuento
 - No verificó que esa ruta solo produce la factura PVPC **sin** bono social: ahí el descuento es 0 y la base es correcta
 - Cuando el usuario activa el bono social, `lf-calc.js` recalcula la factura PVPC con `LF.calcPvpcBonoSocial` en `lf-utils.js`, que sí resta el descuento antes del IEE
 
@@ -796,6 +812,6 @@ Si eres una IA revisando este código:
 
 ---
 
-**Última revisión**: 10/08/2026
+**Última revisión**: 08/10/2026
 **Próxima revisión**: Cuando cambien normativas (CNMC/BOE)
 **Mantenedor**: Equipo de LuzFija.es

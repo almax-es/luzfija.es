@@ -2,7 +2,7 @@
 
 Este directorio contiene librerías de terceros alojadas localmente para garantizar la privacidad (evitar peticiones a CDNs externos), la estabilidad y el funcionamiento offline.
 
-**Última actualización del inventario:** 06/10/2026
+**Última actualización del inventario:** 07/10/2026 (textos de licencia de terceros; versiones sin cambios desde el 06/10/2026)
 
 **Última comprobación de versiones upstream:** 06/10/2026 (npm y CDN de SheetJS; además, comparación byte a byte contra los tarballs oficiales de Tesseract wrapper/core/`spa`, Chart.js y jsQR, y contra `gc.zgo.at/count.js` para GoatCounter)
 

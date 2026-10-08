@@ -76,8 +76,16 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 | `requisitos` | string | ❌ | — | "Consumo ≤8.000 kWh" | Condición o matiz **del precio que ya se muestra**. Solo si hay condiciones especiales |
 | `minConsumoAnualExclusivo` | number | ❌ | > 0 | 4000 | Mínimo anual comercial del tramo (`consumo > 4.000`). Se conserva como dato estructurado y debe acompañarse del texto explicativo en `requisitos`, pero **no excluye ni propone excluir tarifas** en la home ni en el simulador solar, tampoco con un año completo o una estimación activada. Un valor vacío se ignora (el campo no se incluye). Desde 14/08/2026, un valor relleno pero no numérico, no positivo, o sin el texto correspondiente en `requisitos`, aborta la generación de `tarifas.json` en vez de ignorarse en silencio. |
 | `maxConsumoAnual` | number | ❌ | > 0 | 4000 | Máximo anual de consumo admisible en kWh. Superarlo **no excluye por sí solo**: desde el 12/09/2026 la tarifa sigue en el ranking con su requisito visible y es el usuario quien decide aplicar los límites, tanto si los kWh registrados ya superan el tope como si solo lo supera la proyección de un periodo parcial. Un valor vacío se ignora (el campo no se incluye). Desde 14/08/2026, un valor relleno pero no numérico, no positivo, o sin el texto correspondiente en `requisitos`, aborta la generación de `tarifas.json` en vez de ignorarse en silencio (ver `minConsumoAnualExclusivo` para la misma regla; además, si ambos campos están rellenos, `minConsumoAnualExclusivo` debe ser estrictamente menor que `maxConsumoAnual`). |
-
 | `maxConsumoAnualPorKw` | number | ❌ | > 0 | 1200 | Máximo anual proporcional a la potencia: "1.200 kWh al año por cada kW contratado". El tope efectivo es `maxConsumoAnualPorKw × potencia` y se trata exactamente igual que `maxConsumoAnual` (aviso siempre, exclusión solo si el usuario la activa). **Potencia de referencia: la MENOR de P1 y P2** (decisión 24/09/2026): la comercializadora no aclara cuál usa, y avisar de más deja la tarifa en el ranking con su aviso mientras que avisar de menos manda al usuario a una tarifa que quizá no pueda contratar. Sin potencia utilizable (> 0) no se aplica. Si la tarifa trae también `maxConsumoAnual`, manda el tope más bajo. Mismas reglas de generación que `maxConsumoAnual`: relleno exige número finito > 0 y texto en `requisitos`. |
+| `promo` | string | ❌ | — | "50 € de descuento repartidos en 5 facturas consecutivas." | Oferta temporal **NO incluida en el precio ni en el cálculo**. Su sola presencia marca la tarifa: el comparador pinta la etiqueta verde "🎁 OFERTA" en la fila y añade la nota en el desglose y en el simulador solar. Nunca se aplica al importe. Ver "Promoción vs Requisitos" más abajo |
+| `incluyeServiciosAjuste` | boolean | ❌ | `true` \| `false` | `true` | Campo recomendado internamente: `false` si el precio publicado no incluye SSAA. El comparador suma el valor mensual de `/data/ssaa/` como mayor coste de energía antes de IEE e IVA/IGIC/IPSI. Si falta, se trata como compatible legacy y no se aplica SSAA. |
+| `fv.exc` | number | ✅ | -1 o 0.00–0.30 | 0.02 | €/kWh por excedentes volcados a la red. `-1` marca precio indexado: sin curva horaria se usa 0,020 €/kWh como referencia orientativa; con CSV horario el simulador puede usar el indice horario disponible. |
+| `fv.tipo` | string | ✅ | Ver notas | "SIMPLE + BV" | Tipo de compensación: cómo se retribuyen excedentes |
+| `fv.tope` | string | ✅ | "ENERGIA" \| "ENERGIA_PARCIAL" \| "—" | "ENERGIA" | Límite de compensación (si aplica) |
+| `fv.bv` | boolean | ✅ | true \| false | true | ¿Permite acumular excedentes en batería virtual? |
+| `fv.reglaBV` | string | ✅ | Ver notas | "BV MES ANTERIOR" | Cómo se aplica la BV acumulada |
+| `fv.precioBV` | number | ✅ | ≥ 0 | 0 | €/mes cuota fija mensual neta por el servicio de batería virtual, antes de IVA/IGIC/IPSI. Se prorratea al período de facturación y tributa como servicio. Si una fuente comercial publica un precio final con impuestos incluidos, debe convertirse previamente a neto o verificarse con la comercializadora. Tarifas sin cuota usan `0`. El comparador principal lo aplica cuando `fv.bv = true` y `fv.tipo = "SIMPLE + BV"`; el simulador solar solo requiere `fv.bv = true`. En el dataset actual ambas condiciones coinciden. |
+| `requiereFV` | boolean | ✅ | true \| false | false | ¿La tarifa requiere obligatoriamente placas solares? |
 
 **Cómo se usan los campos de máximo**
 
@@ -105,15 +113,6 @@ quién decide: antes el dato firme excluía sin preguntar y la proyección se of
 cuanto mejor era el dato del usuario menos veía y menos decidía. La validación preventiva
 de valores incoherentes corresponde al generador/Excel: este JSON no se edita a mano y el
 repositorio no lleva test de esquema (ver `AUDITORIA-REGISTRO.md`).
-| `promo` | string | ❌ | — | "50 € de descuento repartidos en 5 facturas consecutivas." | Oferta temporal **NO incluida en el precio ni en el cálculo**. Su sola presencia marca la tarifa: el comparador pinta la etiqueta verde "🎁 OFERTA" en la fila y añade la nota en el desglose y en el simulador solar. Nunca se aplica al importe. Ver "Promoción vs Requisitos" más abajo |
-| `incluyeServiciosAjuste` | boolean | ❌ | `true` \| `false` | `true` | Campo recomendado internamente: `false` si el precio publicado no incluye SSAA. El comparador suma el valor mensual de `/data/ssaa/` como mayor coste de energía antes de IEE e IVA/IGIC/IPSI. Si falta, se trata como compatible legacy y no se aplica SSAA. |
-| `fv.exc` | number | ✅ | -1 o 0.00–0.30 | 0.02 | €/kWh por excedentes volcados a la red. `-1` marca precio indexado: sin curva horaria se usa 0,020 €/kWh como referencia orientativa; con CSV horario el simulador puede usar el indice horario disponible. |
-| `fv.tipo` | string | ✅ | Ver notas | "SIMPLE + BV" | Tipo de compensación: cómo se retribuyen excedentes |
-| `fv.tope` | string | ✅ | "ENERGIA" \| "ENERGIA_PARCIAL" \| "—" | "ENERGIA" | Límite de compensación (si aplica) |
-| `fv.bv` | boolean | ✅ | true \| false | true | ¿Permite acumular excedentes en batería virtual? |
-| `fv.reglaBV` | string | ✅ | Ver notas | "BV MES ANTERIOR" | Cómo se aplica la BV acumulada |
-| `fv.precioBV` | number | ✅ | ≥ 0 | 0 | €/mes cuota fija mensual neta por el servicio de batería virtual, antes de IVA/IGIC/IPSI. Se prorratea al período de facturación y tributa como servicio. Si una fuente comercial publica un precio final con impuestos incluidos, debe convertirse previamente a neto o verificarse con la comercializadora. Tarifas sin cuota usan `0`. El comparador principal lo aplica cuando `fv.bv = true` y `fv.tipo = "SIMPLE + BV"`; el simulador solar solo requiere `fv.bv = true`. En el dataset actual ambas condiciones coinciden. |
-| `requiereFV` | boolean | ✅ | true \| false | false | ¿La tarifa requiere obligatoriamente placas solares? |
 
 ### Valores Permitidos
 
@@ -155,7 +154,11 @@ repositorio no lleva test de esquema (ver `AUDITORIA-REGISTRO.md`).
   exactamente el mismo resultado numérico si el contrato la aceptara, lo cual sería incorrecto.
   Antes de aceptarla hay que implementar la semántica real Y ampliar el contrato a la vez.
 
-### Ejemplo Completo (Tarifa Solar)
+### Ejemplo Completo (Tarifa Con Compensación Y BV)
+
+Ejemplo ilustrativo de la forma de una fila: los precios no corresponden a ninguna tarifa vigente
+(los actuales están en `tarifas.json`) y `requiereFV: false` indica que compensa excedentes pero
+también admite clientes sin placas.
 
 ```json
 {
@@ -187,7 +190,7 @@ repositorio no lleva test de esquema (ver `AUDITORIA-REGISTRO.md`).
 **Ubicaciones**:
 - `/data/pvpc/{geoId}/{YYYY-MM}.json` (PVPC, indicador 1001)
 - `/data/surplus/{geoId}/{YYYY-MM}.json` (Excedentes, indicador 1739)
-**Tamaño**: ~20-30 KB por mes
+**Tamaño**: ~18 KB por mes completo (el mes en curso, menos)
 **Total de zonas**: 5 (8741, 8742, 8743, 8744, 8745)
 **Rango de datos**: 2021-06 a presente
 
@@ -360,6 +363,7 @@ de energía un 9% por encima de su tarifa hermana).
 
 ## Historial de Cambios
 
+- **2026-10-08**: Revisión del documento contra el código. Reparada la tabla "Campos Detallados" (una línea en blanco y el bloque "Cómo se usan los campos de máximo" la partían, y las filas de `promo` a `requiereFV` se renderizaban como texto suelto), el ejemplo de tarifa queda marcado como ilustrativo y el tamaño mensual de PVPC/excedentes pasa a ~18 KB, el medido.
 - **2026-09-24**: Añadido `maxConsumoAnualPorKw` (columna W del Excel, "Máximo consumo anual por kW (kWh/kW)"): tope anual proporcional a la potencia, con la menor de P1/P2 como referencia. `assessConsumoAnualLimits` acepta `potenciaP1Kw`/`potenciaP2Kw` y lo aplica en la home y en el simulador solar con la misma regla que `maxConsumoAnual`. Primer uso: Nufri Sin Horarios y Nufri Con Horarios 3P (1.200 kWh/kW).
 - **2026-09-12**: Aplicar `maxConsumoAnual` pasa a ser decisión del usuario en los dos alcances. Superar el máximo con kWh registrados ya no excluye por sí solo: la tarifa sigue en el ranking y un único interruptor la retira si el usuario quiere. `assessConsumoAnualLimits` acepta `applyLimits` (con `useAnnualEstimate` como alias heredado) y devuelve `limitsChoiceAvailable` y `limitsApplied`.
 - **2026-08-24**: Corregido el apartado del campo interno `Activa`, que afirmaba que las tarifas inactivas estaban exentas de la validación de orden por precio. Ni era cierto en los datos (17 de 18 ya lo cumplían) ni lo es en el código: `validar_contrato_excel()` valida ahora el orden de los dos bloques por separado y aborta si alguno está descolocado.

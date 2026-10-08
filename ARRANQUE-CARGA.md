@@ -1,6 +1,6 @@
 # Arranque Y Orden De Carga
 
-Ultima actualizacion: 2026-09-17
+Ultima actualizacion: 2026-10-08
 
 Contrato de arranque de las tres aplicaciones de LuzFija.es. Documenta QUE orden
 existe, POR QUE existe y QUE se rompe si se altera.
@@ -73,8 +73,8 @@ HEAD (bloqueante, sin defer)
   styles.css                      \
   pro.css                          | cascada estricta (ver seccion 4.4)
   desglose-factura.css            /
-  preload outfit-latin-400.woff2  peso del elemento LCP en movil
-  preload outfit-latin-900.woff2  peso del elemento LCP en escritorio
+  preload outfit-latin-400-normal.woff2  peso del elemento LCP en movil
+  preload outfit-latin-900-normal.woff2  peso del elemento LCP en escritorio
   fonts.css
 
 BODY (todos con defer, en orden de documento)
@@ -117,9 +117,13 @@ orden real de ejecucion mezcla parseo y cola diferida.
 
 ```
 HEAD
-  <meta CSP> -> error-bootstrap.js -> config.js -> [JSON-LD] -> theme.js
-  -> styles.css -> pro.css -> desglose-factura.css -> preload woff2 400
-  -> fonts.css -> bv-sim.css -> comparador-solar-mejorado.css
+  <meta CSP> -> error-bootstrap.js -> config.js -> [JSON-LD x3] -> theme.js
+  -> [JSON-LD] -> styles.css -> pro.css -> preload desglose-factura.css
+  -> desglose-factura.css -> preload woff2 400 -> fonts.css -> bv-sim.css
+  -> comparador-solar-mejorado.css
+
+  Los bloques JSON-LD son inertes (no ejecutan), asi que el que queda detras de
+  `theme.js` no altera el contrato de tema antes del CSS.
 
 BODY (sin defer, durante el parseo)
   tracking.js -> lf-config.js -> lf-utils.js -> lf-ssaa.js -> lf-csv-utils.js
@@ -774,7 +778,7 @@ los valores del informe enlazado arriba.
 El informe enlazado no reproduce la cadena de 1247 ms que figuraba antes en este
 documento. En esa ejecucion, el arbol movil indica una latencia maxima aproximada
 de 1115 ms y termina en `tarifas.json`; el de escritorio indica unos 1364 ms y
-termina en `outfit-latin-700.woff2` despues de `fonts.css`. Por tanto, no existe
+termina en `outfit-latin-700-normal.woff2` despues de `fonts.css`. Por tanto, no existe
 una unica cola que pueda atribuirse de forma general a scripts o fuentes.
 
 El arbol describe relaciones y tiempos observados en una ejecucion. Que una rama

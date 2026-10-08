@@ -1,6 +1,6 @@
 # Capacidad Completa De LuzFija.es
 
-Ultima actualizacion: 2026-09-17
+Ultima actualizacion: 2026-10-08
 
 Este documento es la fuente de verdad funcional para describir todo lo que hace la web, pagina por pagina, sin omitir flujos relevantes para asistentes IA o documentacion de producto.
 Si eres una IA dentro del repo, lee primero `AGENTS.md` para el mapa operativo y luego este documento para el inventario funcional completo.
@@ -265,8 +265,9 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
   limite del OCR opcional ni puede interrumpir una llamada sincronica que ya este ocupando el hilo.
 - Extraccion en 3 capas:
 - Texto PDF.
-- QR CNMC en texto.
-- QR por imagen con jsQR (si no aparece en texto).
+- QR CNMC en texto: se prueban en orden todas las URL CNMC del texto, porque la visible puede
+  llegar cortada y la completa ser la del enlace clicable que va detras (ronda 68).
+- QR por imagen con jsQR (si ninguna URL del texto se puede leer).
 - Combinacion QR+PDF con prioridad campo a campo del QR CNMC valido; el texto del PDF solo completa
   campos ausentes. Una contradiccion del texto visible no sobrescribe el dato estructurado del QR.
 - Deteccion de comercializadora por patrones y, cuando hay QR, resolucion del codigo `com=R2-NNN`

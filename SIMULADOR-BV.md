@@ -118,13 +118,17 @@ El usuario puede elegir el mes desde el que empieza la simulación de la tarifa.
 **Criterio de ordenación**: lo que **realmente pagas en el periodo simulado** (suma de `totalPagar`, con BV aplicada)
 
 ```javascript
-// Ordena por totalPagar (con BV), en empate por mayor saldo BV final
-rankedResults.sort((a, b) => {
-  if (a.totals.pagado === b.totals.pagado) {
-    return b.totals.bvFinal - a.totals.bvFinal; // Mayor saldo = mejor
+// js/bv/bv-ui-helpers.js — window.BVSim.manualUi.compareRankedResultsByPaid,
+// que bv-ui.js pasa a rankableResults.sort(...)
+// Ordena por totals.pagado (con BV), en empate por mayor saldo BV final
+function compareRankedResultsByPaid(a, b) {
+  const pagadoA = Number(a?.totals?.pagado);
+  const pagadoB = Number(b?.totals?.pagado);
+  if (pagadoA === pagadoB) {
+    return Number(b?.totals?.bvFinal) - Number(a?.totals?.bvFinal); // Mayor saldo = mejor
   }
-  return a.totals.pagado - b.totals.pagado;
-});
+  return pagadoA - pagadoB;
+}
 ```
 
 **Diferencia clave**:
@@ -249,20 +253,26 @@ js/
 **Funciones principales**:
 
 ```javascript
-window.BVSim.importFile(file)
-// Input: File object (CSV o XLSX)
+window.BVSim.importFile(file, zona = null)
+// Input: File object (CSV o XLSX) y, opcional, la zona para clasificar periodos
 // Output: { ok: true, records: [...], meta: {...} }
-//   records: Array de { fecha, hora, kwh, excedente, autoconsumo, esReal }
-//   meta: { rows, start, end, months, hasExcedenteColumn }
+//   records: Array de { fecha, hora, kwh, excedente, autoconsumo, periodo, esReal }
+//   meta: { rows, start, end, months, hasExcedenteColumn, hasAutoconsumoColumn, isDatadisMonthly }
 ```
 
-**Algoritmo de detección de separador**:
+**Algoritmo de detección de separador** (`detectCSVSeparatorFromLines` en `lf-csv-utils.js`):
 ```javascript
-// Cuenta separadores en el header (evita falsos positivos en decimales)
-const headerLine = stripBomAndTrim(lines[0]);
-const semi = (headerLine.match(/;/g) || []).length;
-const comma = (headerLine.match(/,/g) || []).length;
-separator = semi >= comma ? ';' : ',';
+// Prueba ';' y ',' buscando una fila de cabecera reconocible en las primeras 30 filas
+// (los ficheros reales traen preambulos antes de la cabecera) y se queda con el
+// separador cuya cabecera puntua mejor.
+const scores = [';', ','].map((separator) => {
+  const result = detectHeaderRow(lines, separator, maxRows);   // maxRows = 30
+  return { separator, score: result.headersNorm.length ? scoreHeaderRow(result.headersNorm).score : 0 };
+});
+const best = scores.sort((a, b) => b.score - a.score)[0];
+if (best.score > 0) return best.separator;
+// Ultimo recurso: contar ';' frente a ',' en la primera linea no vacia (empate -> ';')
+return detectCSVSeparator(stripBomAndTrim(firstNonEmpty || ''));
 ```
 
 **Festivos nacionales**:
@@ -529,7 +539,8 @@ isAnnualConsumptionScope = hasFullAnnualConsumptionCoverage(simulationMonths)
 coveredDays = getConsumptionCoverageDays(simulationMonths)
     ↓
 LF.assessConsumoAnualLimits(tarifasBV, {
-  consumoKwh, annualScope, coveredDays, useAnnualEstimate  // alias de applyLimits
+  consumoKwh, annualScope, coveredDays, useAnnualEstimate,  // alias de applyLimits
+  potenciaP1Kw, potenciaP2Kw                                // tope por kW: la menor de las dos
 })
     ↓
 { compatibles, excluidas, limitsChoiceAvailable, limitsApplied }
@@ -609,11 +620,12 @@ Todos los métodos del simulador están bajo `window.BVSim`.
 #### Importación
 
 ```javascript
-await window.BVSim.importFile(file)
+await window.BVSim.importFile(file, zona = null)
 ```
 
 **Parámetros**:
 - `file` (File): Objeto File del input/drag&drop
+- `zona` (String|null): zona CNMC (`'Península'|'Canarias'|'CeutaMelilla'`) con la que se clasifica el periodo de cada registro; opcional
 
 **Retorna**: `Promise<Object>`
 ```javascript
@@ -626,7 +638,7 @@ await window.BVSim.importFile(file)
       kwh: Number,
       excedente: Number,
       autoconsumo: Number,
-      periodo: "P1"|"P2"|"P3",
+      periodo: "P1"|"P2"|"P3"|null,  // null en la matriz H01..H24: lo resuelve bucketizeByMonth con la zona de la simulacion
       esReal: Boolean
     },
     ...
@@ -637,7 +649,8 @@ await window.BVSim.importFile(file)
     end: "YYYY-MM-DD",
     months: Number,
     hasExcedenteColumn: Boolean,
-    hasAutoconsumoColumn: Boolean
+    hasAutoconsumoColumn: Boolean,
+    isDatadisMonthly: Boolean
   }
 }
 ```
@@ -741,6 +754,12 @@ red o payloads 200 malformados no se fijan como disponibilidad negativa y pueden
 }
 ```
 
+Es un subconjunto ilustrativo. El objeto real añade, entre otros: `sumaBase`,
+`impuestoIndirectoTipo`, `precioExcSource`, `creditoPotencial`, los campos `indexed*` de la
+valoración horaria de excedentes indexados, `excedenteNoCompensableEur`, `baseCompensable`,
+`peajesTotal`, `consBaseEur`, `importTotalKWh`, los campos `ssaa*` y `dataUnavailable` /
+`dataUnavailableReason`.
+
 #### Simulación Completa Tarifa
 
 ```javascript
@@ -767,6 +786,8 @@ window.BVSim.simulateForTarifaDemo({
   ok: true,
   tarifa: { ...tarifa },
   rows: [ ...calcMonthForTarifa por cada mes... ],
+  dataUnavailable: false,          // true si algun mes no tiene el dato regulado necesario (SSAA)
+  dataUnavailableReason: null,
   totals: {
     pagado: 1234.56,
     real: 1300.00,
@@ -968,8 +989,9 @@ Fecha y Hora;Dirección;Consumo Wh;Generación Wh
 
 ```javascript
 // Tamaño máximo: 10 MB
-if (file.size > 10 * 1024 * 1024) {
-  return { ok: false, error: "Archivo demasiado grande (max 10 MB)" };
+const MAX_FILE_SIZE = 10 * 1024 * 1024;
+if (file.size > MAX_FILE_SIZE) {
+  return { ok: false, error: `El archivo es demasiado grande (${sizeMB} MB). El tamaño máximo permitido es 10 MB.` };
 }
 
 // Extensión permitida. El MIME no bloquea la importación porque puede venir
@@ -981,20 +1003,17 @@ if (!['csv', 'xlsx', 'xls'].includes(extension)) {
 
 #### 2. Datos CSV
 
-```javascript
-// Validar hora (1-25; H25 solo representa la hora repetida de octubre)
-if (hora < 1 || hora > 25) continue;
+Lo aplica el parser compartido (`parseEnergyTableRows` en `lf-csv-utils.js`). Ninguna fila se
+descarta en silencio desde la ronda 43 (17/09/2026): cada causa tiene su contador y su aviso.
 
-// Validar kWh (0-10.000)
-if (isNaN(kwh) || kwh < 0 || kwh > 10000) continue;
-
-// Validar consumo Wh (0-10.000.000)
-if (isNaN(consumoWh) || consumoWh < 0 || consumoWh > 10000000) continue;
-
-// Validar fecha
-const fecha = parseDateFlexible(fechaStr);
-if (!fecha) continue;
-```
+- Fecha u hora no reconocidas, u hora fuera de 1-25 → se descarta la fila ("Se descartaron N filas con fecha u hora no reconocidas.").
+- Hora 25 en un día que no es el último domingo de octubre → se descarta con su propio aviso.
+- Consumo o excedente no numérico → descartada; negativo → descartada (avisos separados).
+- Valor horario superior a 10.000 kWh → descartada. Las columnas en Wh se convierten a kWh antes,
+  así que el mismo tope se aplica después de la conversión; no existe un tope propio en Wh.
+- Fila sin fecha ni hora (pie con totales, notas) → se ignora sin aviso.
+- Si se descarta la mitad o más de las filas con datos, se rechaza el fichero entero, y el mensaje
+  nombra la causa si los recuentos la explican.
 
 #### 3. Columna de Excedentes
 
@@ -1040,8 +1059,8 @@ function sanitizeUrl(url) {
 ```
 
 El simulador no mantiene una politica URL propia: delega en el helper canonico
-`window.LF.safeUrl`, definido por `config.js`, para conservar el mismo contrato
-que el resto de la web.
+`window.LF.safeUrl`, definido en `js/lf-utils.js`, para conservar el mismo contrato
+que el resto de la web (la tabla de la home lo usa igual desde `lf-render.js`).
 
 ### Procesamiento local
 
@@ -1377,6 +1396,6 @@ Nota para auditorias de rendimiento: el parsing CSV/XLSX grande sigue siendo una
 
 ---
 
-**Última actualización**: 16 de agosto de 2026
+**Última actualización**: 8 de octubre de 2026
 **Versión**: 1.2.12
 **Autor**: aLMaX / LuzFija.es

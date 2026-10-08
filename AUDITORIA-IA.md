@@ -1,6 +1,6 @@
 # Guia Para Auditorias IA De LuzFija.es
 
-Ultima actualizacion: 2026-09-30
+Ultima actualizacion: 2026-10-08
 
 Este documento existe para reducir falsos positivos en auditorias repetidas. No sustituye a
 `AGENTS.md` ni a `CAPACIDADES-WEB.md`; los complementa con criterios de clasificacion.
@@ -112,7 +112,7 @@ decision esta en el registro enlazado desde la ultima columna y desde el indice 
 | Fronteras de renderizado y datos | Auditado en ronda 17 (28/08/2026). PDF/OCR/QR, CSV/XLSX, URL, almacenamiento, catalogos y enlaces externos hasta sus sinks DOM. Cero bugs con impacto demostrado en el modelo de amenaza actual | [Fronteras De Renderizado Y Datos](AUDITORIA-REGISTRO.md#fronteras-de-renderizado-y-datos-ronda-17-28-08-2026) |
 | SEO, datos estructurados y CWV | Auditado | [SEO, Datos Estructurados Y Core Web Vitals](AUDITORIA-REGISTRO.md#seo-datos-estructurados-y-core-web-vitals) |
 | Vigencia de documentacion y guias (09/09/2026) | Segunda pasada, ronda 34, disparada por los cinco cambios funcionales del mismo dia. 14 docs, 25 guias y el copy verificable de producto. 4 correcciones de copy y fecha, cero funcionales: la calculadora prometia "tu factura real completa", dos guias decian "desglose exacto" y la cabecera del registro iba atrasada. RECHAZADO anhadir al `FAQPage` preguntas visibles fuera del bloque FAQ: el riesgo es marcado invisible, no lo contrario, y duplicaba una entrada. Fiscalidad, bono social, RD 88/2026 y Auto+ verificados vigentes | [Vigencia De Documentacion Y Guias](AUDITORIA-REGISTRO.md#vigencia-docs-y-guias-ronda-34-09-09-2026) |
-| Documentacion y vigencia editorial | Auditado 27/08/2026: 10 docs manuales, 7 generados y 25 guias. Corregidos la guia de factura (no reflejaba el import de precios QR a `Mi tarifa`) y 4 fechas de actualizacion desfasadas | [Documentacion Y Vigencia Editorial](AUDITORIA-REGISTRO.md#documentacion-y-vigencia-editorial) |
+| Documentacion y vigencia editorial | Auditado 27/08/2026: 10 docs manuales, 7 generados y 25 guias. Corregidos la guia de factura (no reflejaba el import de precios QR a `Mi tarifa`) y 4 fechas de actualizacion desfasadas. Tercera pasada 08/10/2026, los 16 documentos contra el codigo: cero cambios de codigo; corregidos un ejemplo de bono social con aritmetica falsa (la funcion real no reproduce los 44,16 EUR con 1.587 kWh), la hora canaria de excedentes contradicha en `PVPC-SCHEMA.md`, validaciones CSV anteriores a la ronda 43 en `SIMULADOR-BV.md`, nombres de funcion caducados, dos tablas o bloques rotos, la promesa de unas "alertas regulatorias" inexistentes y 9 fechas de cabecera | [Documentacion Y Vigencia Editorial](AUDITORIA-REGISTRO.md#documentacion-y-vigencia-editorial), [Documentacion Contra El Codigo, Tercera Pasada](AUDITORIA-REGISTRO.md#documentacion-contra-codigo-08-10-2026) |
 | Paginas legales (privacidad y aviso legal) | Auditado 27/08/2026, primera vez. Contrastadas todas las afirmaciones contra el codigo. Corregidos: fuente del PVPC (era CNMC, es ESIOS/REE), precios del QR no declarados, alcance del catalogo y fechas | [Paginas Legales Frente Al Comportamiento Real](AUDITORIA-REGISTRO.md#paginas-legales-frente-al-comportamiento-real) |
 | Rotulacion de la UI frente al motor | Auditada 05/09/2026 (ronda 20), primera vez. Unidades, magnitudes, placeholders, tooltips, leyendas de tabla y mensajes de estado de las paginas de producto contrastados contra la capa de calculo. Un hallazgo: la columna del ranking rotulada Impuestos agrega conceptos no fiscales | [Rotulacion De La Columna Impuestos Frente Al Motor](AUDITORIA-REGISTRO.md#rotulacion-columna-impuestos-frente-al-motor-resuelta-05-09-2026) |
 | Reproducibilidad de enlaces y backups | Auditada 05/09/2026 (ronda 21), primera vez. Contrato serializador/deserializador de enlaces compartidos y backups del simulador solar, y migracion entre versiones de payload/localStorage. Cero hallazgos confirmados; el unico propuesto (perdida de datos en payload version 1) se rechazo por falta de evidencia de que ese formato haya existido nunca | [Reproducibilidad De Enlaces Compartidos Y Backups](AUDITORIA-REGISTRO.md#reproducibilidad-de-enlaces-y-backups-ronda-21-05-09-2026) |
@@ -314,6 +314,7 @@ estes auditando; no hace falta leerlo entero.
 - [Superficie Que Leen Las IA: llms.txt Y llms-full.txt (Ronda 66, 07/10/2026)](AUDITORIA-REGISTRO.md#superficie-ia-llms-ronda-66-07-10-2026)
 - [Oraculo Independiente Del Observatorio (Ronda 67, 07/10/2026)](AUDITORIA-REGISTRO.md#oraculo-observatorio-ronda-67-07-10-2026)
 - [Oraculo Independiente Del Lector De Facturas Y Del QR CNMC (Ronda 68, 08/10/2026)](AUDITORIA-REGISTRO.md#oraculo-lector-factura-qr-ronda-68-08-10-2026)
+- [Documentacion Contra El Codigo, Tercera Pasada (08/10/2026)](AUDITORIA-REGISTRO.md#documentacion-contra-codigo-08-10-2026)
 <!-- REGISTRO-INDICE:FIN -->
 
 ## Hallazgos Que Si Serian Relevantes

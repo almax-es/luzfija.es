@@ -1,6 +1,6 @@
 # Registro De Auditorias De LuzFija.es
 
-Ultima actualizacion: 2026-09-30
+Ultima actualizacion: 2026-10-08
 
 Este fichero es de CONSULTA POR AREA, no de lectura lineal. La lectura obligatoria antes de
 auditar es `AUDITORIA-IA.md`: metodo, taxonomia de severidad, tabla de areas y prompt. Aqui
@@ -6539,3 +6539,70 @@ menciona 3.0TD, no; PDF con dos facturas al 75 % sin autocalculo.
   (regla de producto) y, en PDF02, cuyo periodo tampoco casa, baja a 75 % y no autocalcula.
 - Coma decimal y sufijo de unidad coincidente ("4.6kW") se aceptan a proposito (comentado en el codigo):
   mismo valor; una unidad distinta o texto pegado se rechaza.
+
+<a id="documentacion-contra-codigo-08-10-2026"></a>
+### Documentacion Contra El Codigo, Tercera Pasada (08/10/2026)
+
+Pedida por el usuario ("comprueba que toda la documentacion ... refleje el codigo tal como es").
+Hecha por Claude, sin auditor externo. Alcance: los 16 documentos manuales y derivados del repo
+(`AGENTS.md`, `README.md`, `CAPACIDADES-WEB.md`, `ARRANQUE-CARGA.md`, `ARQUITECTURA-CALCULOS.md`,
+`CALC-FAQS.md`, `MANTENIMIENTO-NORMATIVO.md`, `SIMULADOR-BV.md`, `ANALITICA-GOATCOUNTER.md`,
+`JSON-SCHEMA.md`, `PVPC-SCHEMA.md`, `AUDITORIA-IA.md`, `vendor/README.md`, `llms.txt`,
+`llms-full.txt`, `tests/README-HORA25.md`). De este registro solo la cabecera: es historico.
+
+Metodo: `npm run check:repo-docs` limpio; script que cruza cada ruta citada con `git ls-files` y
+cada identificador de codigo citado con el codigo; inventario de modulos de `AGENTS.md` contra
+`js/` (42 de 42, exacto); orden real de `<script>`/`<link>` de las tres aplicaciones contra
+`ARRANQUE-CARGA.md` 2.1-2.3; cifras (timeouts, topes, colas, umbrales) contra sus constantes;
+estructura real de `data/pvpc`, `data/surplus`, `data/ssaa` e indice de guias contra los esquemas;
+y `calcPvpcBonoSocial` ejecutada en Node con las entradas del caso CNMC.
+
+Hallazgos corregidos (todos de documentacion; cero cambios de codigo):
+
+1. **Caso de bono social con aritmetica falsa.** `CALC-FAQS.md` derivaba el 43,48 % bonificable
+   del caso CNMC como "130,44 / 221" (da 59,02 %) con 30 dias en un caso de 31. Ejecutada la
+   funcion real con 1.587 kWh/ano y 31 dias: 134,79 kWh (60,99 %), descuento 16,34 EUR, base IEE
+   40,63 EUR, IEE 2,08 EUR. Los 44,16 EUR documentados solo salen con un limite de ~1.131 kWh/ano,
+   que no es ninguno de los cuatro tramos; el limite que uso ese caso no consta. El ejemplo se
+   rehizo con la salida real y `ARQUITECTURA-CALCULOS.md` aclara que el caso valida el ORDEN
+   (descuento antes del IEE), no el limite. No se toco el calculo: no hay fuente para cambiarlo.
+2. **Limite bonificable atribuido al tipo de bono.** Los dos documentos decian "Vulnerable: 1.587
+   kWh/ano; otros: varian". El limite depende de la composicion del hogar (1.587, 2.222, 2.698 y
+   4.761 kWh, los cuatro de la home), no de vulnerable/severo.
+3. **`PVPC-SCHEMA.md` se contradecia sobre la hora canaria de excedentes.** El texto (ronda 46)
+   dice que `data/surplus/8742` va en `Atlantic/Canary`; el JSON de ejemplo de debajo y la seccion
+   11.1 seguian con `Europe/Madrid`. Los ficheros reales van en hora canaria.
+4. **Nombres de funcion caducados.** `getKpiPartialFlags()` (renombrada en la ronda 67 a
+   `getKpiCoverageSuffixes`, que ademas rotula "provisional"); `anchorDate` sin decir que lo da
+   `getPvpcAnchorDate`; `FESTIVOS_FIJOS` (es `FESTIVOS_NACIONALES_MMDD`); `safeUrl` "definido por
+   `config.js`" (vive en `lf-utils.js`); `esTarifaUtilizable` situada en `lf-cache.js` (se define
+   en `lf-utils.js`); "linea 805" de `pvpc.js` (hoy la 1041).
+5. **`SIMULADOR-BV.md` describia validaciones anteriores a la ronda 43**: descartes mudos con
+   `continue`, un tope de 10.000.000 Wh que no existe (los Wh se convierten y se aplica el de
+   10.000 kWh) y un detector de separador que solo contaba la primera linea (hoy puntua la
+   cabecera en las 30 primeras filas). Ademas faltaban `zona` en `importFile`, `isDatadisMonthly`
+   en `meta`, `dataUnavailable*` en los totales y las potencias en la llamada de limites.
+6. **Formato roto.** En `JSON-SCHEMA.md` una linea en blanco y un bloque de prosa partian la tabla
+   de campos, y las filas de `promo` a `requiereFV` salian como texto suelto. En
+   `ARQUITECTURA-CALCULOS.md` el parrafo del contrato SSAA estaba dentro del bloque `javascript`.
+7. **Promesa de una funcion inexistente.** `README.md` ("guias y alertas regulatorias") y los
+   `llms*` ("regulatory/news layer/content") anunciaban alertas o noticias que la web no tiene.
+   La fecha `Last updated` de los `llms*` pasa a 08/10/2026 porque se revisaron enteros.
+8. **Detalles.** Nombres de fuente sin `-normal` en `ARRANQUE-CARGA.md`; el `<head>` del simulador
+   solar no recogia el JSON-LD tras `theme.js` ni el preload de `desglose-factura.css`; tamano de
+   los mensuales de PVPC (~18 KB medidos, no 20-30); ejemplo `Nufri Calma` (no existe) marcado como
+   ilustrativo; `tests/README-HORA25.md` con el mapeo de la hora 25 anterior a Canarias; lista de
+   fechas criticas de `MANTENIMIENTO-NORMATIVO.md` desordenada.
+9. **Fechas de cabecera.** Por cuarta vez, la causa mas comun: `CAPACIDADES-WEB.md`,
+   `ARRANQUE-CARGA.md`, `ANALITICA-GOATCOUNTER.md`, `ARQUITECTURA-CALCULOS.md` (cabecera y pie se
+   contradecian), `CALC-FAQS.md`, `SIMULADOR-BV.md`, `PVPC-SCHEMA.md`, `vendor/README.md` y este
+   registro declaraban fechas anteriores a su propio contenido.
+
+Verificado sin cambios: `ANALITICA-GOATCOUNTER.md` (todas las familias de evento existen en el
+codigo y todas sus cifras coinciden con las constantes), `AGENTS.md` salvo el punto 4,
+`MANTENIMIENTO-NORMATIVO.md` salvo el orden (el RDL 25/2026 sigue sin convalidar a 08/10/2026),
+hashes y versiones de `vendor/README.md`, y el estado/cifras de `README.md`.
+
+Trampa: el historial se aplasto el 06/10/2026, asi que `git log` da esa fecha a casi todos los
+documentos y no sirve para detectar cabeceras desfasadas. Lo que funciono fue comparar la fecha
+declarada con la fecha mas reciente citada DENTRO del propio documento.

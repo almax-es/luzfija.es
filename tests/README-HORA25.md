@@ -12,9 +12,16 @@ Verificar que el cálculo de periodos horarios maneja correctamente la **hora 25
 - Podía clasificarse como **P2** en lugar de **P3**
 
 **Después del fix:**
-- Implementación canónica en `lf-csv-utils.js`: `horaInicio = (hora === 25) ? 2 : (hora - 1)`
-- Para hora 25: `horaInicio = 2` → 02:00-03:00 → **P3 (valle)** ✅
+- Implementación canónica en `lf-csv-utils.js` (`getPeriodoHorarioCSV`): la hora 25 es la hora
+  local repetida, así que `horaInicio = hora === 25 ? (Canarias ? 1 : 2) : (hora - 1)`
+- Para hora 25: 02:00-03:00 en Península/Baleares/Ceuta/Melilla y 01:00-02:00 en Canarias → **P3 (valle)** ✅
 - BV y Home usan la misma implementación (consistencia garantizada)
+
+**Nota (08/10/2026):** este script es una comprobación manual antigua. La cobertura automática de
+la hora 25 vive en la suite Vitest (`tests/csv-parsing.test.js`, `tests/csv-import.test.js`,
+`tests/bv-cosido-datadis-octubre.test.js`, entre otros). Además, el cambio de octubre cae siempre
+en domingo, que es P3 entero, así que el Test 2 de abajo pasaría aunque la hora 25 se mapease mal:
+lo que de verdad vigila el mapeo es la suite automática.
 
 ## 🧪 Cómo Ejecutar el Test
 

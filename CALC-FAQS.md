@@ -51,9 +51,12 @@ const impuestoElectrico = (C.calcularIEE && Number.isFinite(consumoKwh))
 
 **Normativa** (RD 897/2017):
 ```
-Límite anual bonificable (2026):
-- Vulnerable: 1.587 kWh/año
-- Otros: Varían
+Límite anual bonificable (2026), según la composición de la unidad de convivencia
+(no según el tipo vulnerable/severo):
+- 1.587 kWh/año: 1 persona o 2 adultos (valor por defecto de la home)
+- 2.222 kWh/año: 3 personas con 0-1 menores, pensionistas con pensión mínima o 2 personas siendo 1 menor
+- 2.698 kWh/año: 4 personas con 0-2 menores o 3 personas siendo 2 menores
+- 4.761 kWh/año: 5 o más personas, 4 personas siendo 3 menores o familia numerosa
 ```
 
 **Implementación** (`lf-utils.js`, función `calcPvpcBonoSocial`):
@@ -68,23 +71,31 @@ const ratioBonificable = consumoKwh > 0 ? (kwhBonificable / consumoKwh) : 0;
 // - Término variable: SOLO la parte bonificable (ratioBonificable × energia)
 ```
 
-**Ejemplo** (CNMC oficial):
+**Ejemplo** (salida real de `calcPvpcBonoSocial` con las entradas del caso CNMC: fijo 8,94 €,
+energía 47,46 €, financiación 0,57 €, 221 kWh en 31 días, vulnerable, límite 1.587 kWh/año):
 ```
 Consumo total: 221 kWh
 Límite anual: 1.587 kWh
-Límite periodo (30 días): 1.587 / 365 × 30 = 130,44 kWh
+Límite periodo (31 días): 1.587 / 365 × 31 = 134,79 kWh
 
-kWh bonificable: min(221, 130,44) = 130,44 kWh
-Ratio: 130,44 / 221 = 43,48%
+kWh bonificable: min(221, 134,79) = 134,79 kWh
+Ratio: 134,79 / 221 = 60,99%
 
 Base descuento:
 - Fijo: 8,94€ (completo)
 - Financ: 0,57€ (completo)
-- Variable bonif: 47,46 × 43,48% = 20,64€ (solo esta parte)
-= 30,15€
+- Variable bonif: 47,46 × 60,99% = 28,95€ (solo esta parte)
+= 38,46€
 
-Descuento: 30,15 × 42,5% = 12,81€ ✅ (RDL 7/2026, vigente durante 2026)
+Descuento: 38,46 × 42,5% = 16,34€ (RDL 7/2026, vigente durante 2026)
+Base IEE: 56,97 - 16,34 = 40,63€ → IEE 2,08€
 ```
+
+El caso CNMC histórico de la pregunta anterior (base IEE 44,16 €) trae una fracción bonificable
+del 43,48 % (~96 kWh), que no sale de ninguno de los cuatro límites vigentes; el límite que usó
+no consta en el repositorio. Sirve para validar el **orden** (descuento antes del IEE), no el
+límite. Hasta el 08/10/2026 este ejemplo afirmaba "130,44 / 221 = 43,48 %", que es aritmética
+falsa (da 59,02 %).
 
 ---
 
@@ -375,12 +386,13 @@ return 'P2'; // Resto = Llano
 - ❌ Viernes Santo (varía según año)
 - ❌ Corpus Christi (varía según año)
 
-**Implementación** (`lf-csv-utils.js:getFestivosNacionales`):
+**Implementación** (`lf-csv-utils.js`: conjunto `FESTIVOS_NACIONALES_MMDD`, que usan
+`getFestivosNacionales(year)` y la comprobación por fecha):
 ```javascript
-const FESTIVOS_FIJOS = new Set([
+const FESTIVOS_NACIONALES_MMDD = Object.freeze(new Set([
   '01-01', '01-06', '05-01', '08-15',
   '10-12', '11-01', '12-06', '12-08', '12-25'
-]);
+]));
 // Viernes Santo NO está aquí
 ```
 
@@ -515,5 +527,5 @@ Si respondiste "no" a cualquiera, probablemente estés cometiendo un falso posit
 
 ---
 
-**Última actualización**: 14/09/2026
+**Última actualización**: 08/10/2026
 **Próxima revisión**: Cuando cambien normas CNMC/BOE

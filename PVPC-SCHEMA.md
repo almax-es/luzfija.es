@@ -3,7 +3,7 @@
 Documentación técnica precisa de la estructura de datos, actualización automática y procesos del **PVPC (Precio Voluntario del Pequeño Consumidor)** en luzfija.es.
 Para inventario funcional completo del sitio (incluyendo observatorio, comparador principal y simulador BV), ver `CAPACIDADES-WEB.md`.
 
-**Última actualización**: 2026-09-15
+**Última actualización**: 2026-10-08
 
 ---
 
@@ -237,6 +237,10 @@ Ejemplo:
 **Propósito**: Punto de entrada para descubrimiento de zonas geográficas disponibles.
 La lista de `geos` refleja exactamente lo publicado en el último build del dataset.
 
+Cada `{geoId}/index.json` de zona lleva `schema_version`, `geo_id`, `timezone`, `indicator`,
+`unit`, `epoch_unit`, `generated_at_utc`, `files` (lista de `{file, from, to}` por mes) y
+`warnings` (avisos del generador, p. ej. el día canario en curso publicado con 23 horas).
+
 ### `/data/surplus/index.json`
 
 Mismo formato que el índice PVPC, pero para excedentes (indicador 1739).
@@ -259,7 +263,7 @@ en el mismo instante.
   "epoch_unit": "s",
   "geos": [
     { "geo_id": 8741, "timezone": "Europe/Madrid", "path": "8741/index.json" },
-    { "geo_id": 8742, "timezone": "Europe/Madrid", "path": "8742/index.json" },
+    { "geo_id": 8742, "timezone": "Atlantic/Canary", "path": "8742/index.json" },
     { "geo_id": 8743, "timezone": "Europe/Madrid", "path": "8743/index.json" },
     { "geo_id": 8744, "timezone": "Europe/Madrid", "path": "8744/index.json" },
     { "geo_id": 8745, "timezone": "Europe/Madrid", "path": "8745/index.json" }
@@ -472,8 +476,10 @@ Payload típico:
 ```
 
 **Control de antigüedad**:
-- Se usa `anchorDate` (ayer) para invalidez diaria natural.
-- Limpieza LRU por prefijo con límite de 30 entradas.
+- `{anchorDate}` lo da `getPvpcAnchorDate(zonaFiscal)`: el último día PVPC cerrado en la zona
+  horaria eléctrica de la zona (normalmente ayer). Al cambiar de día la clave cambia y la entrada
+  anterior deja de leerse: invalidez diaria natural.
+- Limpieza LRU por prefijo con límite de 30 entradas (`PVPC_CACHE_LIMIT`).
 
 ---
 
@@ -571,7 +577,7 @@ fetch(`/data/pvpc/${geoId}/${month}.json`)
 **Cambios vs v1**:
 - Timestamps en segundos (antes: milisegundos)
 - Conversión automática €/MWh → €/kWh
-- Metadatos mejorados (max_price, heuristic_applied)
+- Metadatos mejorados (`max_after_conversion`, `heuristic_applied`)
 - Soporte completo para todas las zonas
 
 ### Schema v1 (Obsoleto)
@@ -613,8 +619,8 @@ location.reload();
 # Comprobar timestamp de último cambio
 git log --oneline data/pvpc/8741/2026-01.json | head -1
 
-# Comprobar última actualización
-head -1 data/pvpc/8741/2026-01.json | grep generated_at
+# Comprobar última actualización (los mensuales no llevan sello; el índice de la zona sí)
+grep -o '"generated_at_utc": *"[^"]*"' data/pvpc/8741/index.json
 ```
 
 ### Problema: Precios muy altos o muy bajos (outliers)
@@ -689,10 +695,11 @@ fallos parciales de CDN/red. Desde agosto de 2026 se aplican estas garantías ad
   un campo AUSENTE se tolera, pero cualquier campo PRESENTE y contradictorio invalida el mensual.
   Esa compatibilidad evita convertir metadata historicamente opcional en *negative-cache* sin volver
   a aceptar un fichero que se identifica explicitamente como otra zona/indicador/unidad.
-- **Timezone de excedentes y CCH-CONS (20/08/2026):** el generador actual de artefactos 1739 sigue
-  publicando `Europe/Madrid` como se documenta arriba, pero el runtime no usa esa metadata como una
-  redefinicion del reloj CCH-CONS. En la valoracion horaria se usa la timezone declarada por el
-  dataset y, si falta, el geo como fallback. Se mantiene el contrato DST ya cerrado: en el dia corto
+- **Timezone de excedentes y CCH-CONS (20/08/2026; actualizado 08/10/2026):** desde el 23/09/2026
+  (ronda 46) el generador publica cada geo de 1739 en su hora civil, `Atlantic/Canary` para `8742`
+  (ver seccion 4); hasta entonces `8742` salia en `Europe/Madrid`. El runtime no usa esa metadata
+  como una redefinicion del reloj CCH-CONS. En la valoracion horaria se usa la timezone declarada
+  por el dataset y, si falta, el geo como fallback. Se mantiene el contrato DST ya cerrado: en el dia corto
   de marzo desaparece la 02:00 en Peninsula y la 01:00 en Canarias; ambos casos siguen teniendo 23h.
 - **Manifest del Observatorio (20/08/2026):** `index.json` es ayuda de descubrimiento, NO autoridad
   de completitud. `monthsExpected` se deriva del calendario (desde junio de 2021, sin meses futuros).
@@ -726,11 +733,15 @@ meses fallidos. Ese resultado parcial **no entra en la caché de sesión**: una 
 a intentar el mes. El propio manifiesto tampoco se guarda como fallo (`null`) tras un error
 transitorio.
 
-El aviso "⚠ parcial" no se limita al pie del gráfico de tendencia: `getKpiPartialFlags()`
+El aviso "⚠ parcial" no se limita al pie del gráfico de tendencia: `getKpiCoverageSuffixes()`
 (`js/pvpc-stats-ui.js`) lo propaga a los 5 KPIs. Los que dependen solo del año visible (cierre,
 media 7 días, media 30 días) se marcan si ese año es parcial; el rolling 12 meses y el YoY leen
 además el año anterior (o el año de comparación de YoY), así que se marcan si el año visible O el
-año del que dependen está parcial (13/08/2026).
+año del que dependen está parcial (13/08/2026). Si lo único pendiente es el día en curso (un día
+`provisionalDays`, p. ej. Canarias, cuya última hora se publica al día siguiente), los cinco KPI
+dicen "⚠ provisional" en lugar de "⚠ parcial": "parcial" queda para cuando falta algún mes
+(ronda 67, 07/10/2026; antes ese caso mezclaba "provisional" en los KPI 1-3 y "parcial" en los
+otros dos).
 
 ### Funcionalidades
 - **Evolución**: Gráfica de tendencia anual (media diaria) para detectar patrones estacionales.
