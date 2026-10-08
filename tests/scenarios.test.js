@@ -204,6 +204,37 @@ describe('Paridad con el simulador oficial CNMC (PVPC, bono social)', () => {
     expect(res.meta.totalFactura).toBe(40.05);
   });
 
+  it('mismo caso con vulnerable severo: 57,5% sobre la misma base', () => {
+    const meta = { terminoFijo: 9.36, costeMargenPot: 0, terminoVariable: 33.72, bonoSocial: 0.58, equipoMedida: 0.83 };
+    const res = calcPvpcBonoSocial(meta, {
+      ...base,
+      cPunta: 64, cLlano: 54, cValle: 103,
+      bonoSocialOn: true, bonoSocialTipo: 'severo', bonoSocialLimite: '1587'
+    }, global.window.LF_CONFIG);
+
+    // CNMC: "57,5% de (9,36 € + 0,58 € + 60,99 % de 33,72 €) = -17,54 €", IEE 1,34 €, total 34,23 €
+    expect(res.descuentoEur).toBe(17.54);
+    expect(res.meta.impuestoElectrico).toBe(1.34);
+    expect(res.meta.totalFactura).toBe(34.23);
+  });
+
+  it('septiembre de 2026 con la financiacion vigente de LF_CONFIG (9,011295 EUR/ano)', () => {
+    // 31/08-30/09/2026, 4,6 kW, 90/80/150 kWh, vulnerable, 1.587 kWh. La financiacion NO se
+    // pasa: la calcula LF_CONFIG, y la CNMC da 0,74 € para 30 dias con el mismo valor anual.
+    const meta = { terminoFijo: 11.92, costeMargenPot: 0, terminoVariable: 59.81, equipoMedida: 0.80 };
+    const res = calcPvpcBonoSocial(meta, {
+      dias: 30, zonaFiscal: 'Península', p1: 4.6, p2: 4.6, fechaYmd: '2026-09-30',
+      cPunta: 90, cLlano: 80, cValle: 150,
+      bonoSocialOn: true, bonoSocialTipo: 'vulnerable', bonoSocialLimite: '1587'
+    }, global.window.LF_CONFIG);
+
+    // CNMC: "42,5% de (11,92 € + 0,74 € + 40,76 % de 59,81 €) = -15,74 €", IEE 2,90 €, total 73,12 €
+    expect(res.meta.bonoSocial).toBe(0.74);
+    expect(res.descuentoEur).toBe(15.74);
+    expect(res.meta.impuestoElectrico).toBe(2.90);
+    expect(res.meta.totalFactura).toBe(73.12);
+  });
+
   it('0 kWh sin bono social: el IEE sigue existiendo sobre la potencia', () => {
     const meta = { terminoFijo: 9.36, costeMargenPot: 0, terminoVariable: 0, bonoSocial: 0.58, equipoMedida: 0.83 };
     const res = calcPvpcBonoSocial(meta, { ...base, bonoSocialOn: false }, global.window.LF_CONFIG);

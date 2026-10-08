@@ -6575,6 +6575,12 @@ un test nuevo):
    `tests/scenarios.test.js` ("Paridad con el simulador oficial CNMC"), validado por mutacion: un
    limite efectivo de ~1.131 kWh y el IEE antes del descuento hacen fallar el test. Ademas, la URL
    del simulador citada (`cnmc.es/consumidores/simulador`) daba 404.
+   Ampliado a peticion del usuario ("lo del pvpc vulnerables, esta todo bien?"): 7 casos contra la
+   API de la CNMC (vulnerable y severo, las cuatro categorias 1.587/2.222/2.698/4.761 kWh, consumo
+   por debajo del limite y un periodo de septiembre de 2026 con la financiacion vigente de 9,011295
+   EUR/ano), los 7 identicos al centimo en descuento, IEE y total. El test fija 4 (vulnerable,
+   severo, 0 kWh y septiembre de 2026 calculando la financiacion con `LF_CONFIG`); mutar el 57,5 %
+   o volver a la financiacion antigua lo hace fallar.
 2. **Limite bonificable atribuido al tipo de bono.** Los dos documentos decian "Vulnerable: 1.587
    kWh/ano; otros: varian". El limite depende de la composicion del hogar (1.587, 2.222, 2.698 y
    4.761 kWh, los cuatro de la home), no de vulnerable/severo.
