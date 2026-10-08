@@ -128,11 +128,11 @@ Published on https://luzfija.es/ and fetchable directly:
 - top-5 visual chart,
 - detailed bill breakdown modal,
 - provider links (sanitized URLs).
-- Utility menu:
+- Options menu:
 - share configuration URL,
-- refresh tariffs,
-- clear cache,
-- full reset.
+- how it works, community and contact links,
+- clear cache (technical cache only; never deletes user settings or saved data).
+- Tariffs refresh automatically (on tab focus/visibility and about every 15 minutes); there is no manual refresh or form-reset button.
 - PWA install CTA appears when browser exposes install prompt.
 - PVPC quick modal supports `PVPC` and `surplus` hourly views with Today/Tomorrow tabs.
 

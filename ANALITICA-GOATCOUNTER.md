@@ -126,7 +126,7 @@ Ejemplos:
 - `compartir-abierto/home`
 - `url-compartida/home/minimo` (solo tras compartir o copiar con éxito)
 - `url-compartida/home/consumo`, `url-compartida/home/privado` o `url-compartida/home/completo` según el alcance confirmado
-- `accion-interfaz/home/refrescar-tarifas`
+- `accion-interfaz/home/limpiar-cache`, `accion-interfaz/home/ir-a-resultados` y `accion-interfaz/home/instalar-pwa` (las tres unicas acciones que emite; no existe boton de refrescar tarifas)
 - `tema-cambiado/claro`
 
 No se envian importes, consumos, potencias ni valores introducidos. Las opciones se reducen a categorias o estados.
@@ -539,9 +539,11 @@ En GoatCounter no habia forma de distinguir un formato no reconocido de un separ
 mal detectado. Ahora:
 
 - `cabecera-no-detectada`: no se identifico ninguna fila de cabecera en las primeras
-  30 filas, o la matriz horaria no traia ningun valor numerico.
-- `filas-invalidas`: la cabecera si se reconocio, pero mas de la mitad de las filas
-  (o de las celdas de la matriz) no se pudieron interpretar.
+  30 filas.
+- `filas-invalidas`: la cabecera si se reconocio, pero en el formato por filas se importo
+  menos de la mitad de las filas con contenido, o en la matriz horaria la mitad o mas de las
+  celdas no vacias son invalidas o no hay ningun valor numerico (los dos mensajes empiezan por
+  "La mayoria de filas", ver `tests/csv.test.js`).
 - `columna-solar`: el fichero trae una columna que parece energia solar sin reconocer
   y el flujo exige excedentes (solar y observatorio). Ver seccion siguiente.
 - `agregado-por-periodo`: el fichero esta agregado por P1/P2/P3 y no trae hora, asi

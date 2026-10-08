@@ -223,8 +223,9 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - CSV/XLSX por filas: una fila con fecha u hora no reconocidas, hora fuera de 1-25,
   consumo o excedente no numerico o negativo se descarta con aviso y su recuento, igual
   que en la matriz. Una fila sin fecha ni hora (pie con totales, notas) se ignora sin
-  aviso. Si se descarta la mitad o mas de las filas con datos, se rechaza el fichero; si los
-  descartes contados lo explican, el mensaje nombra la causa con su recuento.
+  aviso. Si se importa menos de la mitad de las filas con contenido (cuentan tambien esos pies),
+  se rechaza el fichero; si los descartes contados explican al menos la mitad de lo perdido, el
+  mensaje nombra la causa con su recuento.
 - En la home, los avisos de la importacion (descartes, celdas vacias, neteo, Wh, cambio de
   hora, rango) se muestran dentro de la vista previa (`#csvImportNotices`), escapados. Antes
   eran un toast que el overlay del modal tapaba. En el simulador solar siguen siendo toast (no
@@ -324,10 +325,12 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Compartir configuracion por URL (`btnShare`, Web Share API + fallback portapapeles) con consentimiento previo: por defecto solo ajustes generales; consumo/excedentes/dias y saldo BV/bono social se marcan por separado antes de compartir.
 - Al abrir la home, solo se interpretan como configuracion compartida las claves de `SHAREABLE_INPUT_KEYS` (`js/lf-state.js`), derivadas de `DEFAULTS` para que no se desincronicen al anadir campos al formulario. Los parametros de seguimiento y diagnostico (`utm_*`, `fbclid`, `gclid`, `ref`, `debug`) son invisibles para el sistema de configuracion. Es deliberado y critico: la presencia de parametros compartidos hace que `loadInputs()` ignore `localStorage`, asi que si entrara cualquier parametro, un enlace de newsletter mostraria los valores por defecto y al calcular se guardarian encima de la configuracion del usuario.
-- Menu de mantenimiento:
-- Refrescar tarifas.
-- Limpiar cache/localStorage/service workers.
-- Reset completo de valores.
+- Menu de opciones: compartir configuracion, "Como funciona", comunidad de Facebook, contacto y
+  "Limpiar cache". Este ultimo borra solo cache tecnica (`pvpc_cache_v3:*` de `localStorage`,
+  `sessionStorage`, Cache Storage y el registro del service worker) y recarga; nunca toca
+  configuracion ni datos del usuario (inputs, "Mi tarifa", tema, escenario solar). No hay boton
+  de refresco manual de tarifas (se refrescan solas, ver mas abajo) ni de reset del formulario
+  en la home.
 - Tema claro/oscuro con persistencia local.
 - Boton de instalacion PWA (`beforeinstallprompt`) con fallback de instrucciones por plataforma.
 - Auto-refresh de tarifas al volver foco/online/visibilidad y cada ~15 minutos.
@@ -564,7 +567,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - "Lista valida" tiene criterio estructural explicito: un HTTP 200 solo sustituye la copia en
   memoria si el root es el objeto esperado y TODAS sus tarifas traen nombre comercial unico,
   `tipo` 1P/3P y los cinco precios numericos finitos y no negativos. El cero sigue siendo valido
-  (incluido `p2 = 0`); no se replican en runtime los rangos comerciales maximos del generador.
+  (incluido `p2 = 0`); no se aplican rangos comerciales maximos (tampoco el generador los valida).
   Ademas, si la respuesta declara el mismo `updatedAt` que una copia sana de la sesion, debe
   conservar el mismo conjunto de nombres y el mismo contenido relevante para calculo/ranking
   (independientemente del orden de filas o propiedades): una misma generacion es inmutable.

@@ -283,7 +283,7 @@
           // que no puede cambiar el catalogo respecto a una copia sana de esa misma version.
           const estructuraValida = tarifas && tarifas.length > 0 && tarifas.every(esTarifaUtilizable);
           const nombresDuplicados = estructuraValida && tieneNombresDuplicados(tarifas);
-          // No se replican aqui los rangos comerciales del generador. Solo se impide que
+          // No se aplican rangos comerciales (el generador tampoco los valida). Solo se impide que
           // un coeficiente base negativo, aunque sea finito, llegue a producir importes
           // negativos o artificialmente baratos. El cero sigue siendo valido.
           const preciosNegativos = estructuraValida && !nombresDuplicados &&

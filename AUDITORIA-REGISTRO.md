@@ -6615,3 +6615,51 @@ hashes y versiones de `vendor/README.md`, y el estado/cifras de `README.md`.
 Trampa: el historial se aplasto el 06/10/2026, asi que `git log` da esa fecha a casi todos los
 documentos y no sirve para detectar cabeceras desfasadas. Lo que funciono fue comparar la fecha
 declarada con la fecha mas reciente citada DENTRO del propio documento.
+
+**Segunda vuelta del mismo dia, frase a frase y paginas publicas.** Pedida por el usuario tras
+preguntar si estaba "todo perfecto al 100 %". Metodo: cada afirmacion verificable contrastada
+con su codigo (no solo cifras y nombres), revision critica de los diffs de la primera vuelta,
+generador privado (`generar_tarifas_rutas_fijas.py`) contra `JSON-SCHEMA.md`, y lectura de las
+paginas publicas que describen la web (`como-funciona-luzfija.html`, `calcular-factura-luz.html`,
+`comparar-pvpc-tarifa-fija.html`, preguntas de la home, `privacidad.html`, `aviso-legal.html`,
+404 y las 25 guias). Hallazgos, todos corregidos:
+
+10. **Un error de la primera vuelta.** Escribi en `SIMULADOR-BV.md` "ninguna fila se descarta en
+    silencio" y dos lineas despues que los pies sin fecha ni hora se ignoran sin aviso.
+11. **Umbral de rechazo mal descrito en tres documentos.** Por filas el importador rechaza si se
+    importa MENOS de la mitad de las filas con contenido (`parsedRows / totalRows < 0.5`; el
+    denominador incluye los pies ignorados), no "si se descarta la mitad o mas". En la matriz si
+    es "la mitad o mas de las celdas" (`>= 0.5`). Y `ANALITICA-GOATCOUNTER.md` clasificaba la
+    matriz sin valores numericos como `cabecera-no-detectada`; el codigo (y `tests/csv.test.js`)
+    da `filas-invalidas`.
+12. **Funciones de la home que no existen.** CAPACIDADES, README, `llms.txt` y la taxonomia de
+    analitica anunciaban "Refrescar tarifas" y "Reset completo" en el menu, y un evento
+    `accion-interfaz/home/refrescar-tarifas` imposible de emitir. El menu real tiene compartir,
+    "Como funciona", comunidad, contacto y "Limpiar cache", que solo borra cache tecnica
+    (`pvpc_cache_v3:*`, sessionStorage, Cache Storage y el SW) y nunca datos del usuario; CAPACIDADES
+    decia que limpiaba "localStorage". Las tarifas se refrescan solas.
+13. **Rangos de precios "del generador" que no existen.** El generador solo exige formulas con
+    cache numerica finita; ni el ni la web validan rangos como 0,01-0,50. La columna "Rango" de
+    `JSON-SCHEMA.md` queda marcada como orientativa, con lo que si se valida y los rangos reales
+    observados; corregidos tambien CAPACIDADES y un comentario de `js/lf-cache.js`.
+    `incluyeServiciosAjuste` es obligatorio en el generador (siempre se exporta), opcional solo en
+    la web. `AGENTS.md` omitia los guards de catalogo de `lf-cache.js` (nombres unicos, precios no
+    negativos, generacion inmutable).
+14. **Paginas publicas.** La guia del coche electrico enlazaba un "Comparador de tarifas (filtra por
+    precio valle)": no hay filtro ni orden por valle. La calculadora invitaba a introducir
+    "caracteristicas (solar, coche electrico...)": no hay opcion de vehiculo electrico. La guia de
+    aerotermia rotulaba "COP 3" unas cifras que implican ~2,7 (800 -> 300 kWh). La politica de
+    privacidad no declaraba que la analitica registra uso de herramientas en categorias cerradas
+    (filtro, zona fiscal, tramo del bono social, resultado de un CSV, tarifa pulsada). El aviso
+    legal omitia ESIOS como fuente del SSAA. La 404 daba la punta sin decir que en Ceuta y Melilla
+    es otra.
+
+Verificado sin cambios en esta vuelta: extractor de factura (tolerancia de 2 dias, 75 %, 99,5 %,
+OCR < 50 %, E0/F0, base 365), validacion de "Mi tarifa", 28 dias, `#consumoLimitsNotice`, etiqueta
+OFERTA, banner AECC, grupos atomicos del SW, cada segmento de cada evento de ejemplo de la
+analitica, las 8 COR del bono social, los 23 enlaces externos de las paginas publicas (Curenergia
+da 403 anti-bot) y la aritmetica de todos los ejemplos con resultado de las guias.
+
+Leccion: la primera vuelta comprobo cifras y nombres; los fallos que quedaban estaban en verbos
+("descarta", "limpia", "filtra") y en listas de opciones. Para eso hay que abrir el manejador real
+o el HTML del control, no buscar el identificador.

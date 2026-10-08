@@ -60,11 +60,11 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - Modal de aplicacion CSV con opcion de aplicar solo consumos o consumos+excedentes.
 - Opcion de comparar PVPC usando precios horarios del periodo importado.
 - Tabla con filtros, ordenacion por columnas, top 5 visual y modal de desglose.
-- Menu de utilidades:
+- Menu de opciones:
 - compartir configuracion por URL,
-- refrescar tarifas,
-- limpiar cache,
-- reset de formulario.
+- como funciona, comunidad y contacto,
+- limpiar cache (solo cache tecnica: nunca borra configuracion ni datos del usuario).
+- Las tarifas se refrescan solas al volver a la pestana y cada ~15 minutos; no hay boton manual.
 - Boton de instalacion PWA cuando el navegador expone `beforeinstallprompt`.
 - Banner de donacion a la AECC (solo escritorio, tras calcular): muestra el codigo Bizum `11244`; LuzFija no recibe dinero, comision ni datos de la donacion. Detalle en `CAPACIDADES-WEB.md` seccion 3.6.
 

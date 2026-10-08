@@ -55,7 +55,7 @@ Las tarifas con **batería virtual** acumulan los excedentes solares sobrantes (
   - Extensión permitida (`.csv`, `.xlsx`, `.xls`); el MIME se trata de forma tolerante porque los navegadores y portales de distribuidoras no lo informan de manera uniforme
   - Validación de rangos (kWh, horas)
   - En la matriz horaria: celda vacía o con marcador conocido se interpreta como 0 kWh conservando la hora; texto, negativo o >10.000 kWh descarta esa hora con aviso; si la mitad o más de las celdas no vacías son inválidas, o no hay ninguna numérica, se rechaza el archivo. Implementación compartida con la home en `lf-csv-utils.js` (`parseHourlyMatrixRows`), que el solar invoca con `computePeriodo:false` porque `bucketizeByMonth` respeta `record.periodo` si viene relleno y al importar todavía no se conoce la zona definitiva.
-  - En CSV/XLSX por filas: una fila con fecha u hora no reconocidas, hora fuera de 1-25, o consumo/excedente no numérico o negativo se descarta con aviso y su recuento (ronda 43, 17/09/2026); una fila sin fecha ni hora (pie de totales) se ignora sin aviso. Si se descarta la mitad o más, se rechaza el archivo, y el mensaje nombra la causa si los recuentos la explican. En el simulador los avisos salen en el toast (visible: no hay modal delante); en la home van dentro de la vista previa.
+  - En CSV/XLSX por filas: una fila con fecha u hora no reconocidas, hora fuera de 1-25, o consumo/excedente no numérico o negativo se descarta con aviso y su recuento (ronda 43, 17/09/2026); una fila sin fecha ni hora (pie de totales) se ignora sin aviso. Si se importa menos de la mitad de las filas con contenido, se rechaza el archivo, y el mensaje nombra la causa si los recuentos la explican. En el simulador los avisos salen en el toast (visible: no hay modal delante); en la home van dentro de la vista previa.
 - **Mes cosido (13 meses, 11/09/2026)**: el simulador exige 12 meses, y un año descargado a mitad
   de mes (11/09/2025 → 10/09/2026) llega partido en 13. Antes se descartaba el extremo con menos
   cobertura, lo que tiraba entre 9 y 20 días reales y dejaba el periodo por debajo del año. Ahora
@@ -1003,8 +1003,9 @@ if (!['csv', 'xlsx', 'xls'].includes(extension)) {
 
 #### 2. Datos CSV
 
-Lo aplica el parser compartido (`parseEnergyTableRows` en `lf-csv-utils.js`). Ninguna fila se
-descarta en silencio desde la ronda 43 (17/09/2026): cada causa tiene su contador y su aviso.
+Lo aplica el parser compartido (`parseEnergyTableRows` en `lf-csv-utils.js`). Desde la ronda 43
+(17/09/2026) ninguna fila con datos se descarta en silencio: cada causa tiene su contador y su
+aviso. La única excepción deliberada es la fila sin fecha ni hora (último punto).
 
 - Fecha u hora no reconocidas, u hora fuera de 1-25 → se descarta la fila ("Se descartaron N filas con fecha u hora no reconocidas.").
 - Hora 25 en un día que no es el último domingo de octubre → se descarta con su propio aviso.
@@ -1012,8 +1013,9 @@ descarta en silencio desde la ronda 43 (17/09/2026): cada causa tiene su contado
 - Valor horario superior a 10.000 kWh → descartada. Las columnas en Wh se convierten a kWh antes,
   así que el mismo tope se aplica después de la conversión; no existe un tope propio en Wh.
 - Fila sin fecha ni hora (pie con totales, notas) → se ignora sin aviso.
-- Si se descarta la mitad o más de las filas con datos, se rechaza el fichero entero, y el mensaje
-  nombra la causa si los recuentos la explican.
+- Si se importa menos de la mitad de las filas con contenido (`parsedRows / totalRows < 0.5`; el
+  denominador incluye esos pies), se rechaza el fichero entero, y el mensaje nombra la causa si
+  los recuentos explican al menos la mitad de lo perdido.
 
 #### 3. Columna de Excedentes
 

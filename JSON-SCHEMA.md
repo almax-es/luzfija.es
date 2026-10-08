@@ -63,6 +63,14 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 
 ### Campos Detallados
 
+La columna "Rango" es **orientativa**: describe valores comerciales razonables, pero ni el
+generador ni la web la validan. Lo que de verdad se comprueba es esto: el generador exige que
+B-F sean fórmulas con caché numérica finita, nombres únicos (sin distinguir mayúsculas), URL no
+vacía, 1P con los tres precios iguales y 3P sin ellos iguales; la web (`esTarifaUtilizable` +
+`lf-cache.js`) exige nombre, `tipo` 1P/3P, los cinco precios numéricos finitos y no negativos y
+nombres únicos. Rangos observados en el dataset a 08/10/2026: energía 0,063–0,319 €/kWh, potencia
+0,0020–0,137 €/kW·día, `fv.exc` hasta 0,152 €/kWh y `fv.precioBV` hasta 4 €/mes.
+
 | Campo | Tipo | Obligatorio | Rango | Ejemplo | Notas |
 |-------|------|-------------|-------|---------|-------|
 | `nombre` | string | ✅ | — | "Endesa Conecta" | Nombre comercial único |
@@ -71,14 +79,14 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 | `cValle` | number | ✅ | 0.01–0.40 | 0.0988 | €/kWh (0h-8h laborables + todo fin de semana) |
 | `p1` | number | ✅ | 0.01–0.50 | 0.090227 | €/kW·día (potencia contratada P1) |
 | `p2` | number | ✅ | 0.00–0.50 | 0.090227 | €/kW·día (potencia contratada P2, puede ser 0) |
-| `web` | string | ✅ | URL válida | https://endesa.com/... | Enlace a la tarifa (se abre en nueva pestaña) |
+| `web` | string | ✅ | URL no vacía | https://endesa.com/... | Enlace a la tarifa (se abre en nueva pestaña). El generador solo exige que no esté vacía; la web la pasa por `safeUrl` y solo enlaza `http`/`https` o rutas relativas seguras |
 | `tipo` | string | ✅ | "1P" \| "3P" | "1P" | 1P = precio uniforme, 3P = discriminación horaria |
 | `requisitos` | string | ❌ | — | "Consumo ≤8.000 kWh" | Condición o matiz **del precio que ya se muestra**. Solo si hay condiciones especiales |
 | `minConsumoAnualExclusivo` | number | ❌ | > 0 | 4000 | Mínimo anual comercial del tramo (`consumo > 4.000`). Se conserva como dato estructurado y debe acompañarse del texto explicativo en `requisitos`, pero **no excluye ni propone excluir tarifas** en la home ni en el simulador solar, tampoco con un año completo o una estimación activada. Un valor vacío se ignora (el campo no se incluye). Desde 14/08/2026, un valor relleno pero no numérico, no positivo, o sin el texto correspondiente en `requisitos`, aborta la generación de `tarifas.json` en vez de ignorarse en silencio. |
 | `maxConsumoAnual` | number | ❌ | > 0 | 4000 | Máximo anual de consumo admisible en kWh. Superarlo **no excluye por sí solo**: desde el 12/09/2026 la tarifa sigue en el ranking con su requisito visible y es el usuario quien decide aplicar los límites, tanto si los kWh registrados ya superan el tope como si solo lo supera la proyección de un periodo parcial. Un valor vacío se ignora (el campo no se incluye). Desde 14/08/2026, un valor relleno pero no numérico, no positivo, o sin el texto correspondiente en `requisitos`, aborta la generación de `tarifas.json` en vez de ignorarse en silencio (ver `minConsumoAnualExclusivo` para la misma regla; además, si ambos campos están rellenos, `minConsumoAnualExclusivo` debe ser estrictamente menor que `maxConsumoAnual`). |
 | `maxConsumoAnualPorKw` | number | ❌ | > 0 | 1200 | Máximo anual proporcional a la potencia: "1.200 kWh al año por cada kW contratado". El tope efectivo es `maxConsumoAnualPorKw × potencia` y se trata exactamente igual que `maxConsumoAnual` (aviso siempre, exclusión solo si el usuario la activa). **Potencia de referencia: la MENOR de P1 y P2** (decisión 24/09/2026): la comercializadora no aclara cuál usa, y avisar de más deja la tarifa en el ranking con su aviso mientras que avisar de menos manda al usuario a una tarifa que quizá no pueda contratar. Sin potencia utilizable (> 0) no se aplica. Si la tarifa trae también `maxConsumoAnual`, manda el tope más bajo. Mismas reglas de generación que `maxConsumoAnual`: relleno exige número finito > 0 y texto en `requisitos`. |
 | `promo` | string | ❌ | — | "50 € de descuento repartidos en 5 facturas consecutivas." | Oferta temporal **NO incluida en el precio ni en el cálculo**. Su sola presencia marca la tarifa: el comparador pinta la etiqueta verde "🎁 OFERTA" en la fila y añade la nota en el desglose y en el simulador solar. Nunca se aplica al importe. Ver "Promoción vs Requisitos" más abajo |
-| `incluyeServiciosAjuste` | boolean | ❌ | `true` \| `false` | `true` | Campo recomendado internamente: `false` si el precio publicado no incluye SSAA. El comparador suma el valor mensual de `/data/ssaa/` como mayor coste de energía antes de IEE e IVA/IGIC/IPSI. Si falta, se trata como compatible legacy y no se aplica SSAA. |
+| `incluyeServiciosAjuste` | boolean | ✅ en el generador actual (❌ para la web) | `true` \| `false` | `true` | `false` si el precio publicado no incluye SSAA: el comparador suma el valor mensual de `/data/ssaa/` como mayor coste de energía antes de IEE e IVA/IGIC/IPSI. El generador exige `SI`/`NO` explícito y lo exporta en todas las tarifas; la web lo sigue tratando como opcional por compatibilidad (si faltara, no aplica SSAA). |
 | `fv.exc` | number | ✅ | -1 o 0.00–0.30 | 0.02 | €/kWh por excedentes volcados a la red. `-1` marca precio indexado: sin curva horaria se usa 0,020 €/kWh como referencia orientativa; con CSV horario el simulador puede usar el indice horario disponible. |
 | `fv.tipo` | string | ✅ | Ver notas | "SIMPLE + BV" | Tipo de compensación: cómo se retribuyen excedentes |
 | `fv.tope` | string | ✅ | "ENERGIA" \| "ENERGIA_PARCIAL" \| "—" | "ENERGIA" | Límite de compensación (si aplica) |
