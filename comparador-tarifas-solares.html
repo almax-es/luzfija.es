@@ -80,7 +80,7 @@
       "Comparación de tarifas con excedentes remunerados",
       "Cálculo de compensación de excedentes fotovoltaicos",
       "Análisis de batería virtual mes a mes",
-      "Importación de datos desde CSV (Datadis, distribuidoras, Iberdrola)",
+      "Importación de datos desde CSV y Excel (Datadis, distribuidoras, Iberdrola)",
       "Entrada manual de consumos por periodos",
       "Procesamiento local: datos de consumo en tu navegador",
       "Ranking automático por coste del periodo simulado",
@@ -265,7 +265,7 @@
                             <button class="btn" id="btnMenu" type="button" aria-haspopup="menu" aria-controls="menuPanel" aria-expanded="false" title="Opciones" aria-label="Abrir menú de opciones">⚙️</button>
                             <div class="menuPanel" id="menuPanel" role="menu" aria-label="Opciones" aria-orientation="vertical" aria-hidden="true">
                               <div class="menuHint">Opciones</div>
-                              <button class="menuItem" id="btnShare" type="button" role="menuitem" aria-label="Compartir configuración por URL" title="Incluye datos mensuales y ajustes; no el CSV ni su detalle horario">
+                              <button class="menuItem" id="btnShare" type="button" role="menuitem" aria-label="Compartir configuración por URL" title="Incluye datos mensuales y ajustes; no el archivo importado ni su detalle horario">
                                 <span class="mi-left">🔗 Compartir configuración</span>
                                 <span class="mi-right">URL</span>
                               </button>
@@ -297,7 +297,7 @@
                   </div>
                   <div class="body">
                     <p style="margin-bottom: 24px; color:var(--muted); font-size: 0.95rem;">
-                      Sube tu CSV de consumo para auto-rellenar la tabla o introduce los datos manualmente mes a mes. Compara tarifas con excedentes remunerados y descubre cuál te ahorra más dinero con compensación de excedentes y batería virtual.
+                      Sube tu archivo CSV o Excel para auto-rellenar la tabla o introduce los datos manualmente mes a mes. Compara tarifas con excedentes remunerados y descubre cuál te ahorra más dinero con compensación de excedentes y batería virtual.
                     </p>
 
                     <div class="bv-form-container">
@@ -482,13 +482,13 @@
                           <div class="bv-upload-header">
                             <div class="bv-upload-title">
                               <span class="bv-upload-icon-small">📄</span>
-                              <span>Subir CSV para auto-rellenar</span>
+                              <span>Subir consumos desde CSV o Excel</span>
                             </div>
                             <div class="bv-upload-hint">Soporta Datadis, Distribuidoras, Iberdrola y Excel</div>
                           </div>
 
                           <button type="button" class="btn bv-upload-btn" id="upload-csv-btn">
-                            <span>📁 Seleccionar archivo CSV</span>
+                            <span>📁 Seleccionar CSV o Excel</span>
                           </button>
 
                           <div class="bv-file-selected-inline" id="file-selected-msg" style="display:none">
@@ -498,7 +498,7 @@
                           </div>
 
                           <div class="bv-observatorio-cta" role="note" aria-label="Compensación real PVPC">
-                            <div class="bv-observatorio-title">🔎 Compensación real en PVPC (tu CSV)</div>
+                            <div class="bv-observatorio-title">🔎 Compensación real en PVPC (tus datos horarios)</div>
                             <div class="bv-observatorio-text">
                               Calcula cuánto te habrían compensado los excedentes con el <strong>histórico oficial PVPC</strong> (REE/ESIOS).
                             </div>
@@ -703,7 +703,7 @@
                   <span><strong>Incluir Mi tarifa y saldo BV</strong><small>Comparte precios de tu contrato actual y el saldo de batería virtual.</small></span>
                 </label>
                 <p class="bv-share-scope" id="bv-share-scope" role="status" aria-live="polite"></p>
-                <p class="bv-share-note">Nunca se incluye tu CSV ni su detalle horario. Si compartes datos mensuales, las indexadas usarán la referencia orientativa.</p>
+                <p class="bv-share-note">Nunca se incluye el archivo importado ni su detalle horario. Si compartes datos mensuales, las indexadas usarán la referencia orientativa.</p>
                 <div class="bv-share-actions">
                   <button class="btn" id="bv-share-cancel" type="button">Cancelar</button>
                   <button class="btn primary" id="bv-share-confirm" type="button">Compartir enlace</button>
