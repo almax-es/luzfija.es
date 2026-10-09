@@ -1431,6 +1431,35 @@
     return { base: 'end', reason: 'periodEnd' };
   }
 
+  // Ceuta y Melilla: su horario de periodos es el peninsular desplazado una hora, asi que la
+  // columna PERIODO no distingue "hora final con horario de Ceuta" de "hora inicial con horario
+  // peninsular". Ahi se decide por la FORMA del fichero, que no depende de los periodos: con marcas
+  // de hora final la lectura mas antigua es la 01:00 de su dia y la mas reciente, una 00:00 (ultima
+  // hora del dia anterior). Con hora inicial serian 00:00 y 23:00. Un fichero que empiece o termine
+  // a mitad de dia no da esa senal y conserva la lectura historica.
+  function inferHourEndFromShape(dataRows, mapping) {
+    if (mapping.fechaHoraIdx === null || mapping.fechaHoraIdx === undefined) return null;
+    let first = null;
+    let last = null;
+    let total = 0;
+    const fechas = new Set();
+    for (const row of dataRows || []) {
+      const { fecha, hourNum } = getRowDateHour(row, mapping);
+      if (!(fecha instanceof Date) || isNaN(fecha.getTime()) || !Number.isInteger(hourNum)) continue;
+      if (hourNum < 0 || hourNum > 23) continue;
+      // Orden de calendario (dia y hora de reloj), no milisegundos: un dia de 23 horas haria
+      // coincidir su 23:00 con la 00:00 del dia siguiente.
+      const orden = ((fecha.getFullYear() * 100 + fecha.getMonth() + 1) * 100 + fecha.getDate()) * 100 + hourNum;
+      if (!first || orden < first.orden) first = { orden, hourNum };
+      if (!last || orden > last.orden) last = { orden, hourNum };
+      fechas.add(ymdLocal(fecha));
+      total++;
+    }
+    if (total < 24 || fechas.size < 2 || !first || !last) return null;
+    if (first.hourNum !== 1 || last.hourNum !== 0) return null;
+    return { base: 'end', reason: 'shapeEnd' };
+  }
+
   function detectHourBase(dataRows, mapping, options = {}) {
     const rows = dataRows || [];
     let foundZero = false;
@@ -1445,7 +1474,9 @@
     }
     if (foundZero) {
       const esCeutaMelillaZona = getCsvZoneProfiles(options.zonaFiscal).perfilPeriodos === 'ceuta-melilla';
-      const hourEnd = esCeutaMelillaZona ? null : inferHourEndFromPeriods(rows, mapping, options.zonaFiscal);
+      const hourEnd = esCeutaMelillaZona
+        ? inferHourEndFromShape(rows, mapping)
+        : inferHourEndFromPeriods(rows, mapping, options.zonaFiscal);
       if (hourEnd) return hourEnd;
       return { base: 'zero', reason: 'explicitZero' };
     }

@@ -6602,8 +6602,8 @@ comparables fuera de los dias de cambio de hora, 98 % de coincidencia con la lec
 ventaja de al menos 4 filas sobre la de hora inicial; ante la duda se conserva la lectura historica. La
 00:00 viaja como hora 24 del dia anterior, la repeticion de octubre da 2, 3, 25, 4 y el dia de primavera la
 marca que cierra la lectura anterior al salto (03:00 en Peninsula, 02:00 en Canarias, porque la intermedia
-no existe) vuelve a la hora 2 (1 en Canarias). Aviso visible al importar. Excluido Ceuta/Melilla (su periodo
-se recalcula, la columna no es fiable).
+no existe) vuelve a la hora 2 (1 en Canarias). Aviso visible al importar. En Ceuta/Melilla la columna
+PERIODO no sirve (ver la cuarta vuelta) y se decide por la forma del fichero.
 - **Segunda vuelta el mismo dia (fallo propio, CORREGIDO):** el primer arreglo asignaba esa lectura de
   primavera a la hora 3. Lo destapo un barrido que escribe cada mes de 2024 a 2026 en las dos convenciones,
   con reloj real de Madrid y de Canarias, y exige registros identicos (dia, hora CNMC, kWh, periodo): 36
@@ -6616,11 +6616,22 @@ se recalcula, la columna no es fiable).
   repeticion se calculan antes de recorrer las filas, igual que los de marzo; en orden descendente con
   INV/VER los registros son identicos a los del orden ascendente. Sin INV/VER las dos lecturas repetidas
   se reparten por orden de aparicion, como ya hacia la lectura de hora inicial.
+- **Cuarta vuelta, Ceuta y Melilla (CORREGIDO):** la primera version los excluia y ahi el fallo seguia,
+  agravado: su periodo se recalcula con su horario, asi que ademas del dia de mas se desplazaba el reparto
+  (noviembre: 31 dias y 9,90/13,12/271,82 kWh frente a 30 dias y 16,30/12,87/265,66 correctos). La columna
+  PERIODO no puede decidir alli: su horario es el peninsular desplazado una hora, y "hora final con horario
+  de Ceuta" es indistinguible de "hora inicial con horario peninsular". Se decide por la FORMA
+  (`inferHourEndFromShape`): la lectura mas antigua es la 01:00 de su dia y la mas reciente una 00:00. Un
+  fichero que empieza o acaba a mitad de dia no da la senal y conserva la lectura historica. Trampa
+  encontrada al barrer: ordenar por milisegundos empataba el 31/03/2024 (dia de 23 horas) su 23:00 con la
+  00:00 del 1/04; se ordena por fecha y hora de calendario. Con zona Ceuta y Melilla, los 7 CSV del banco
+  siguen identicos a produccion y los 2 XLSX dan exactamente el oraculo (30 y 31 dias).
 - Gate: los otros 7 ficheros del banco, identicos a produccion celda a celda; suite completa (136
-  ficheros) y lint en verde, tambien con Node 22 y `TZ=America/Los_Angeles`. 15 regresiones en
+  ficheros) y lint en verde, tambien con Node 22 y `TZ=America/Los_Angeles`. 26 regresiones en
   `tests/csv-hora-final.test.js` (noviembre completo, octubre con cambio de hora, orden descendente,
-  control negativo de hora inicial, salvaguarda de fin de semana y equivalencia de convenciones en
-  Peninsula y Canarias, incluidos los dos cambios de hora), validadas por mutacion: retirado el arreglo
+  control negativo de hora inicial, salvaguarda de fin de semana, equivalencia de convenciones en
+  Peninsula, Canarias y Ceuta/Melilla con los dos cambios de hora y Ceuta/Melilla por forma con sus
+  dos salvaguardas), validadas por mutacion: retirado el arreglo
   caen las 2 positivas; relajado el umbral cae la salvaguarda; decidiendo la hora 25 sobre la marcha cae
   la de orden descendente.
 - Validado ademas en WebKit (Playwright, iPhone 15 y Desktop Safari, repo servido en local): home 30 dias
@@ -6638,8 +6649,9 @@ se recalcula, la columna no es fiable).
 **Limites:** una sola muestra real del formato de hora final (los dos XLSX comparten distribuidora; no se
 encontro documentacion publica del formato, la convencion se deduce de la columna de periodo y del patron
 INV/VER de los propios ficheros); el cambio de hora de marzo en hora final esta probado con un generador de
-reloj real, no con un fichero real; Ceuta/Melilla sigue con la lectura anterior; no se auditaron las 8
-tarifas con excedente indexado en importes (dependen del dataset horario, ronda 46/69).
+reloj real, no con un fichero real; Ceuta/Melilla, con la misma muestra peninsular en esa zona (no hay
+ficheros de sus distribuidoras); no se auditaron las 8 tarifas con excedente indexado en importes
+(dependen del dataset horario, ronda 46/69).
 
 <a id="documentacion-contra-codigo-08-10-2026"></a>
 ### Documentacion Contra El Codigo, Tercera Pasada (08/10/2026)

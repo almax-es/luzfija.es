@@ -929,7 +929,10 @@ ES0000000000000000XX;01/01/2025;1;0,123;0,045
   cada lectura por el final de la hora (primera 01:00, ultima 00:00 del dia siguiente). Si el periodo del
   propio fichero encaja con esa lectura en al menos el 98 % de las filas y le saca 4 o mas a la de hora
   inicial, la 00:00 se asigna como hora 24 del dia anterior y se avisa al importar. Sin evidencia
-  suficiente se conserva la lectura de hora inicial. No aplica en Ceuta/Melilla. En los cambios de hora:
+  suficiente se conserva la lectura de hora inicial. En Ceuta/Melilla la columna PERIODO no distingue (su
+  horario es el peninsular desplazado una hora) y se decide por la forma: la lectura mas antigua es la 01:00
+  de su dia y la mas reciente una 00:00; si el fichero empieza o acaba a mitad de dia, no se toca. En los
+  cambios de hora:
   la marca repetida de octubre (02:00 Peninsula, 01:00 Canarias) da las horas 2 y 3 (1 y 2) y la siguiente
   es la 25; en marzo, la marca que cierra la lectura anterior al salto (03:00, 02:00 en Canarias) es la
   hora 2 (1). Ambos dias se deciden antes de recorrer las filas, asi que el orden del fichero no importa.

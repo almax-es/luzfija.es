@@ -160,12 +160,16 @@ const inicioMes = (tz, y, m) => {
   throw new Error('inicio de mes no encontrado');
 };
 
-describe('Misma curva en marca final e inicial (Peninsula y Canarias)', () => {
+describe('Misma curva en marca final e inicial (Peninsula, Canarias y Ceuta/Melilla)', () => {
   let u;
   beforeAll(() => { u = window.LF.csvUtils; });
   const casos = [];
-  for (const [zona, tz] of [['Península', 'Europe/Madrid'], ['Canarias', 'Atlantic/Canary']]) {
-    for (const [y, m] of [[2025, 3], [2025, 4], [2025, 10], [2025, 11], [2026, 3]]) casos.push([zona, tz, y, m]);
+  // Ceuta y Melilla comparten reloj con la Peninsula; su periodo se recalcula y la hora final se
+  // detecta por la forma del fichero, no por la columna PERIODO.
+  for (const [zona, tz] of [['Península', 'Europe/Madrid'], ['Canarias', 'Atlantic/Canary'], ['CeutaMelilla', 'Europe/Madrid']]) {
+    // 2024-03: el cambio de hora cae el ultimo dia del mes (31/03), y su 23:00 coincide en tiempo real
+    // con la 00:00 del 1/04.
+    for (const [y, m] of [[2024, 3], [2025, 3], [2025, 4], [2025, 10], [2025, 11], [2026, 3]]) casos.push([zona, tz, y, m]);
   }
   it.each(casos)('%s %s %i-%i', (zona, tz, y, m) => {
     const loc = reloj(tz);
@@ -189,5 +193,36 @@ describe('Misma curva en marca final e inicial (Peninsula y Canarias)', () => {
     expect(fin.records.length).toBe(ini.records.length);
     expect(clave(fin)).toEqual(clave(ini));
     expect(new Set(fin.records.map(r => r.fecha.getMonth() + 1))).toEqual(new Set([m]));
+  });
+});
+
+describe('Ceuta y Melilla: hora final por la forma del fichero', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+  const parseCM = (rows) => u.parseEnergyTableRows(rows, { headerRowIndex: 0, zonaFiscal: 'CeutaMelilla' });
+  const hayAviso = (res) => res.warnings.some(w => /hora final/i.test(w));
+
+  it('noviembre en hora final: 30 dias y periodos con el horario de Ceuta', () => {
+    const res = parseCM(buildRows(Date.UTC(2025, 9, 31, 23), Date.UTC(2025, 10, 30, 23), 'end'));
+    expect(hayAviso(res)).toBe(true);
+    expect(res.records.some(r => r.fecha.getMonth() === 11)).toBe(false);
+    expect(new Set(res.records.map(r => r.fecha.getDate())).size).toBe(30);
+    // Lunes 03/11/2025: la lectura 10:00-11:00 (marca 11:00) es llano en Ceuta y la 11:00-12:00 punta.
+    const lunes = (h) => res.records.find(r => r.fecha.getDate() === 3 && r.hora === h);
+    expect(lunes(11).periodo).toBe('P2');
+    expect(lunes(12).periodo).toBe('P1');
+  });
+
+  it('SALVAGUARDA: hora inicial con la primera lectura perdida (01:00 ... 23:00) no se toca', () => {
+    const rows = buildRows(Date.UTC(2025, 9, 31, 23), Date.UTC(2025, 10, 30, 23), 'start');
+    rows.splice(1, 1); // fuera la 00:00 del dia 1: ahora empieza a las 01:00 y acaba a las 23:00
+    expect(rows[1][1]).toBe('2025/11/01 01:00');
+    expect(hayAviso(parseCM(rows))).toBe(false);
+  });
+
+  it('SALVAGUARDA: un fichero que empieza a mitad de dia no da la senal', () => {
+    const rows = buildRows(Date.UTC(2025, 10, 1, 13), Date.UTC(2025, 10, 30, 23), 'end');
+    expect(rows[1][1]).toBe('2025/11/01 15:00');
+    expect(hayAviso(parseCM(rows))).toBe(false);
   });
 });
