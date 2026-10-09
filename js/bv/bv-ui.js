@@ -2729,7 +2729,7 @@ document.addEventListener('DOMContentLoaded', () => {
           }
         }, 300);
       } else if (result && result.error) {
-        console.info('Info: No se pudo pre-procesar CSV:', result.error);
+        console.info('Info: No se pudo preprocesar el archivo:', result.error);
         const extension = window.LF?.csvUtils?.safeFileExtensionForTracking?.(file.name) || 'desconocido';
         // Privacidad: a analítica solo viaja un código de error normalizado, nunca
         // el mensaje (puede interpolar contenido del archivo del usuario).
@@ -2744,15 +2744,23 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (e) {
       if (importGeneration !== fileImportGeneration) return;
       if (fileInput) fileInput.value = '';
-      console.warn('Error procesando CSV:', e);
+      console.warn('Error procesando archivo horario:', e);
       const extension = window.LF?.csvUtils?.safeFileExtensionForTracking?.(file.name) || 'desconocido';
       const errorCode = window.LF?.csvUtils?.csvErrorCodeForTracking?.(e && e.message) || 'otro';
       trackBvEvent('csv-import-error', ['solar', extension, errorCode], 'Error al procesar CSV/XLSX en solar');
-      showToast('Error al procesar el archivo CSV', 'err');
+      const formatoArchivo = extension === 'xlsx' || extension === 'xls'
+        ? 'Excel'
+        : extension === 'csv' ? 'CSV' : null;
+      showToast(
+        formatoArchivo
+          ? `Error al procesar el archivo ${formatoArchivo}.`
+          : 'Error al procesar el archivo seleccionado.',
+        'err'
+      );
     }
   }
 
-  // Botón de subir CSV
+  // Botón de importar consumos horarios
   if (uploadCsvBtn) {
     uploadCsvBtn.addEventListener('click', () => fileInput.click());
   }
