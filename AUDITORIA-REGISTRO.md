@@ -6609,12 +6609,20 @@ se recalcula, la columna no es fiable).
   con reloj real de Madrid y de Canarias, y exige registros identicos (dia, hora CNMC, kWh, periodo): 36
   meses x 2 zonas, y solo marzo fallaba. Ahora coinciden todos. Dos mutaciones cazadas (sin el ajuste de
   marzo caen 4, sin la hora 25 caen 3).
+- **Tercera vuelta, revision a fondo del mismo dia (fallo propio, CORREGIDO):** la hora 25 de octubre se
+  decidia sobre la marcha, contando las marcas repetidas ya vistas. Con las filas en orden descendente la
+  marca siguiente llegaba antes que la repeticion, chocaba con la hora 3 y la importacion se cancelaba por
+  "filas duplicadas" (reproducido; el codigo anterior al arreglo si importaba ese caso). Ahora los dias con
+  repeticion se calculan antes de recorrer las filas, igual que los de marzo; en orden descendente con
+  INV/VER los registros son identicos a los del orden ascendente. Sin INV/VER las dos lecturas repetidas
+  se reparten por orden de aparicion, como ya hacia la lectura de hora inicial.
 - Gate: los otros 7 ficheros del banco, identicos a produccion celda a celda; suite completa (136
-  ficheros) y lint en verde, tambien con Node 22 y `TZ=America/Los_Angeles`. 14 regresiones en
-  `tests/csv-hora-final.test.js` (noviembre completo, octubre con cambio de hora, control negativo de hora
-  inicial, salvaguarda de fin de semana y equivalencia de convenciones en Peninsula y Canarias, incluidos
-  los dos cambios de hora), validadas por mutacion: retirado el arreglo caen las 2 positivas; relajado el
-  umbral cae la salvaguarda.
+  ficheros) y lint en verde, tambien con Node 22 y `TZ=America/Los_Angeles`. 15 regresiones en
+  `tests/csv-hora-final.test.js` (noviembre completo, octubre con cambio de hora, orden descendente,
+  control negativo de hora inicial, salvaguarda de fin de semana y equivalencia de convenciones en
+  Peninsula y Canarias, incluidos los dos cambios de hora), validadas por mutacion: retirado el arreglo
+  caen las 2 positivas; relajado el umbral cae la salvaguarda; decidiendo la hora 25 sobre la marcha cae
+  la de orden descendente.
 - Validado ademas en WebKit (Playwright, iPhone 15 y Desktop Safari, repo servido en local): home 30 dias
   para noviembre y 31 para octubre; simulador "Suma de 1 mes simulado". No es un iPhone fisico.
 

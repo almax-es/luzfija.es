@@ -1544,6 +1544,25 @@
     return out;
   }
 
+  // Marcas de hora final el dia que se retrasa el reloj: la marca del reloj de otono (02:00 en
+  // Peninsula, 01:00 en Canarias) aparece dos veces y la siguiente cierra la hora repetida (25).
+  // Se decide antes de recorrer las filas para no depender de su orden: un fichero en orden
+  // descendente veria la marca siguiente antes que la repeticion.
+  function detectAutumnEndRepeatDates(dataRows, mapping, zonaFiscal) {
+    const rep = isCanariasFiscalZone(zonaFiscal) ? 1 : 2;
+    const repeticiones = new Map();
+    for (const row of dataRows || []) {
+      const { fecha, hourNum } = getRowDateHour(row, mapping);
+      if (!(fecha instanceof Date) || isNaN(fecha.getTime()) || hourNum !== rep) continue;
+      if (!esDiaCambioHorarioOctubre(fecha)) continue;
+      const key = ymdLocal(fecha);
+      repeticiones.set(key, (repeticiones.get(key) || 0) + 1);
+    }
+    const out = new Set();
+    repeticiones.forEach((count, key) => { if (count >= 2) out.add(key); });
+    return out;
+  }
+
   function buildHourResolver(mapping, hourBase, options = {}) {
     const seen = new Map();
     const zonaFiscal = options.zonaFiscal || 'Península';
@@ -1553,6 +1572,9 @@
       : new Set();
     const springEndShiftDates = options.springEndShiftDates instanceof Set
       ? options.springEndShiftDates
+      : new Set();
+    const autumnEndRepeatDates = options.autumnEndRepeatDates instanceof Set
+      ? options.autumnEndRepeatDates
       : new Set();
 
     return function resolveHour(fecha, hourNum, invVerRaw) {
@@ -1573,7 +1595,7 @@
             if (inv === '0') return repeatedClockHour + 1;
             return count >= 2 ? repeatedClockHour + 1 : repeatedClockHour;
           }
-          if ((seen.get(repKey) || 0) >= 2) return 25;
+          if (autumnEndRepeatDates.has(dayKey)) return 25;
         }
         // Dia que se adelanta el reloj: la marca que cierra la lectura anterior al salto lleva ya la
         // hora saltada (03:00 en Peninsula, 02:00 en Canarias), porque la intermedia no existe.
@@ -1756,7 +1778,10 @@
     const springEndShiftDates = hourBase === 'end'
       ? detectSpringEndShiftDates(dataRows, mapping, zonaFiscal)
       : new Set();
-    const resolveHour = buildHourResolver(mapping, hourBase, { zonaFiscal, compressedSpringDates, springEndShiftDates });
+    const autumnEndRepeatDates = hourBase === 'end'
+      ? detectAutumnEndRepeatDates(dataRows, mapping, zonaFiscal)
+      : new Set();
+    const resolveHour = buildHourResolver(mapping, hourBase, { zonaFiscal, compressedSpringDates, springEndShiftDates, autumnEndRepeatDates });
     const records = [];
     // fecha|hora -> minutos explicitos de la primera fila (o null), para distinguir un
     // periodo duplicado de una curva con varias lecturas por hora.

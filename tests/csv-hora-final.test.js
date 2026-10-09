@@ -94,6 +94,27 @@ describe('Marcas de hora final en ficheros fecha-hora con PERIODO', () => {
     expect(horas26).toEqual(Array.from({ length: 25 }, (_, i) => i + 1));
   });
 
+  it('el resultado no depende del orden de las filas (fichero descendente)', () => {
+    // La hora 25 se decide antes de recorrer las filas: en orden descendente la marca 03:00 del
+    // 26/10 llega antes que las dos 02:00 y, si se decidiera sobre la marcha, chocaria con la
+    // hora 3 y cancelaria la importacion por "filas duplicadas".
+    const rows = buildRows(Date.UTC(2025, 8, 30, 22), Date.UTC(2025, 9, 31, 23), 'end');
+    const desc = [rows[0], ...rows.slice(1).reverse()];
+    const clave = (res) => res.records.map(r => `${r.fecha.getMonth()}|${r.fecha.getDate()}|${r.hora}|${r.periodo}`).sort();
+    const asc = parse(rows);
+    const inv = parse(desc);
+    expect(inv.records.length).toBe(745);
+    expect(clave(inv)).toEqual(clave(asc));
+
+    // Sin INV/VER tampoco se cancela; las dos lecturas repetidas se reparten por orden de aparicion,
+    // como en la lectura de hora inicial.
+    const sinInv = desc.map(r => r.filter((_, k) => k !== 2));
+    const res = parse(sinInv);
+    expect(res.records.length).toBe(745);
+    const horas26 = res.records.filter(r => r.fecha.getMonth() === 9 && r.fecha.getDate() === 26).map(r => r.hora).sort((a, b) => a - b);
+    expect(horas26).toEqual(Array.from({ length: 25 }, (_, i) => i + 1));
+  });
+
   it('CONTROL NEGATIVO: el mismo fichero con marcas de hora INICIAL no se toca', () => {
     const rows = buildRows(Date.UTC(2025, 9, 31, 23), Date.UTC(2025, 10, 30, 23), 'start');
     expect(rows[1][1]).toBe('2025/11/01 00:00');
