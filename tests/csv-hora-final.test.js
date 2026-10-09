@@ -112,3 +112,61 @@ describe('Marcas de hora final en ficheros fecha-hora con PERIODO', () => {
     expect(res.warnings.some(w => /hora final/i.test(w))).toBe(false);
   });
 });
+
+/**
+ * Equivalencia entre convenciones, con reloj real en Peninsula y en Canarias. La misma lectura
+ * horaria escrita con marca inicial o final debe producir el mismo registro (dia, hora CNMC,
+ * kWh, periodo). Cubre los dos cambios de hora: en primavera la lectura anterior al salto se
+ * rotula con la hora saltada (03:00 en Peninsula, 02:00 en Canarias) porque la intermedia no
+ * existe, y en otono la marca repetida cambia de hora en cada zona.
+ */
+const reloj = (tz) => (ms) => {
+  const f = new Intl.DateTimeFormat('en-GB', {
+    timeZone: tz, year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', hourCycle: 'h23', timeZoneName: 'longOffset'
+  });
+  const o = {};
+  for (const p of f.formatToParts(new Date(ms))) o[p.type] = p.value;
+  const off = (o.timeZoneName.match(/([+-]\d\d)/) || [])[1];
+  return { y: +o.year, m: +o.month, d: +o.day, h: +o.hour, verano: tz === 'Europe/Madrid' ? off === '+02' : off === '+01' };
+};
+const inicioMes = (tz, y, m) => {
+  const loc = reloj(tz);
+  for (let t = Date.UTC(y, m - 1, 1) - 3 * HOUR; t < Date.UTC(y, m - 1, 1) + 3 * HOUR; t += HOUR) {
+    const p = loc(t);
+    if (p.y === y && p.m === m && p.d === 1 && p.h === 0) return t;
+  }
+  throw new Error('inicio de mes no encontrado');
+};
+
+describe('Misma curva en marca final e inicial (Peninsula y Canarias)', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+  const casos = [];
+  for (const [zona, tz] of [['Península', 'Europe/Madrid'], ['Canarias', 'Atlantic/Canary']]) {
+    for (const [y, m] of [[2025, 3], [2025, 4], [2025, 10], [2025, 11], [2026, 3]]) casos.push([zona, tz, y, m]);
+  }
+  it.each(casos)('%s %s %i-%i', (zona, tz, y, m) => {
+    const loc = reloj(tz);
+    const t0 = inicioMes(tz, y, m);
+    const t1 = inicioMes(tz, m === 12 ? y + 1 : y, m === 12 ? 1 : m + 1);
+    const build = (conv) => {
+      const rows = [HEADER];
+      let i = 0;
+      for (let t = t0; t < t1; t += HOUR, i++) {
+        const ini = loc(t);
+        const marca = conv === 'end' ? loc(t + HOUR) : ini;
+        rows.push(['test', stamp(marca), marca.verano ? '1' : '0', periodoDe(ini), String(1000 + i), '0']);
+      }
+      return rows;
+    };
+    const clave = (res) => res.records.map(r => `${r.fecha.getDate()}|${r.hora}|${r.kwh.toFixed(3)}|${r.periodo}`).sort();
+    const fin = u.parseEnergyTableRows(build('end'), { headerRowIndex: 0, zonaFiscal: zona });
+    const ini = u.parseEnergyTableRows(build('start'), { headerRowIndex: 0, zonaFiscal: zona });
+    expect(fin.warnings.some(w => /hora final/i.test(w))).toBe(true);
+    expect(ini.warnings.some(w => /hora final/i.test(w))).toBe(false);
+    expect(fin.records.length).toBe(ini.records.length);
+    expect(clave(fin)).toEqual(clave(ini));
+    expect(new Set(fin.records.map(r => r.fecha.getMonth() + 1))).toEqual(new Set([m]));
+  });
+});

@@ -1523,12 +1523,36 @@
     return compressedDates;
   }
 
+  // Marcas de hora final el dia que se adelanta el reloj: con hora local real, la marca de la
+  // hora que se salta (02:00 en Peninsula, 01:00 en Canarias) no aparece y la siguiente cierra la
+  // lectura anterior al salto. Si aparecen las dos, la numeracion es otra y no se toca.
+  function detectSpringEndShiftDates(dataRows, mapping, zonaFiscal) {
+    const rep = isCanariasFiscalZone(zonaFiscal) ? 1 : 2;
+    const horasPorFecha = new Map();
+    for (const row of dataRows || []) {
+      const { fecha, hourNum } = getRowDateHour(row, mapping);
+      if (!(fecha instanceof Date) || isNaN(fecha.getTime()) || !Number.isInteger(hourNum)) continue;
+      if (!esDiaCambioHorarioMarzo(fecha)) continue;
+      const key = ymdLocal(fecha);
+      if (!horasPorFecha.has(key)) horasPorFecha.set(key, new Set());
+      horasPorFecha.get(key).add(hourNum);
+    }
+    const out = new Set();
+    horasPorFecha.forEach((horas, key) => {
+      if (!horas.has(rep) && horas.has(rep + 1)) out.add(key);
+    });
+    return out;
+  }
+
   function buildHourResolver(mapping, hourBase, options = {}) {
     const seen = new Map();
     const zonaFiscal = options.zonaFiscal || 'Península';
     const repeatedClockHour = isCanariasFiscalZone(zonaFiscal) ? 1 : 2;
     const compressedSpringDates = options.compressedSpringDates instanceof Set
       ? options.compressedSpringDates
+      : new Set();
+    const springEndShiftDates = options.springEndShiftDates instanceof Set
+      ? options.springEndShiftDates
       : new Set();
 
     return function resolveHour(fecha, hourNum, invVerRaw) {
@@ -1551,6 +1575,9 @@
           }
           if ((seen.get(repKey) || 0) >= 2) return 25;
         }
+        // Dia que se adelanta el reloj: la marca que cierra la lectura anterior al salto lleva ya la
+        // hora saltada (03:00 en Peninsula, 02:00 en Canarias), porque la intermedia no existe.
+        if (hourNum === repeatedClockHour + 1 && springEndShiftDates.has(ymdLocal(fecha))) return repeatedClockHour;
         return hourNum;
       }
       if (hourBase === 'zero') {
@@ -1726,7 +1753,10 @@
       warnings.push(`Valores en Wh detectados (${convertedFields.join(', ')}); convertidos a kWh.`);
     }
 
-    const resolveHour = buildHourResolver(mapping, hourBase, { zonaFiscal, compressedSpringDates });
+    const springEndShiftDates = hourBase === 'end'
+      ? detectSpringEndShiftDates(dataRows, mapping, zonaFiscal)
+      : new Set();
+    const resolveHour = buildHourResolver(mapping, hourBase, { zonaFiscal, compressedSpringDates, springEndShiftDates });
     const records = [];
     // fecha|hora -> minutos explicitos de la primera fila (o null), para distinguir un
     // periodo duplicado de una curva con varias lecturas por hora.

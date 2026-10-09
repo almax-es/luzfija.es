@@ -6600,12 +6600,23 @@ P1/P2/P3 no cambiaba porque sale de la columna del fichero. Arreglo en `inferHou
 `detectHourBase` / `buildHourResolver`: solo con columna fecha-hora y columna de periodo, al menos 24 filas
 comparables fuera de los dias de cambio de hora, 98 % de coincidencia con la lectura de hora final y una
 ventaja de al menos 4 filas sobre la de hora inicial; ante la duda se conserva la lectura historica. La
-00:00 viaja como hora 24 del dia anterior y la repeticion de octubre da 2, 3, 25, 4. Aviso visible al
-importar. Excluido Ceuta/Melilla (su periodo se recalcula, la columna no es fiable).
+00:00 viaja como hora 24 del dia anterior, la repeticion de octubre da 2, 3, 25, 4 y el dia de primavera la
+marca que cierra la lectura anterior al salto (03:00 en Peninsula, 02:00 en Canarias, porque la intermedia
+no existe) vuelve a la hora 2 (1 en Canarias). Aviso visible al importar. Excluido Ceuta/Melilla (su periodo
+se recalcula, la columna no es fiable).
+- **Segunda vuelta el mismo dia (fallo propio, CORREGIDO):** el primer arreglo asignaba esa lectura de
+  primavera a la hora 3. Lo destapo un barrido que escribe cada mes de 2024 a 2026 en las dos convenciones,
+  con reloj real de Madrid y de Canarias, y exige registros identicos (dia, hora CNMC, kWh, periodo): 36
+  meses x 2 zonas, y solo marzo fallaba. Ahora coinciden todos. Dos mutaciones cazadas (sin el ajuste de
+  marzo caen 4, sin la hora 25 caen 3).
 - Gate: los otros 7 ficheros del banco, identicos a produccion celda a celda; suite completa (136
-  ficheros) y lint en verde. 4 regresiones en `tests/csv-hora-final.test.js` (noviembre completo, octubre
-  con cambio de hora, control negativo de hora inicial y salvaguarda de fin de semana), validadas por
-  mutacion: retirado el arreglo caen las 2 positivas; relajado el umbral cae la salvaguarda.
+  ficheros) y lint en verde, tambien con Node 22 y `TZ=America/Los_Angeles`. 14 regresiones en
+  `tests/csv-hora-final.test.js` (noviembre completo, octubre con cambio de hora, control negativo de hora
+  inicial, salvaguarda de fin de semana y equivalencia de convenciones en Peninsula y Canarias, incluidos
+  los dos cambios de hora), validadas por mutacion: retirado el arreglo caen las 2 positivas; relajado el
+  umbral cae la salvaguarda.
+- Validado ademas en WebKit (Playwright, iPhone 15 y Desktop Safari, repo servido en local): home 30 dias
+  para noviembre y 31 para octubre; simulador "Suma de 1 mes simulado". No es un iPhone fisico.
 
 **No son hallazgos (NO reabrir):**
 - El ganador de un ranking de 7.163 kWh puede ser una tarifa de tramo 3500: ninguna tarifa se excluye sin
@@ -6616,9 +6627,11 @@ importar. Excluido Ceuta/Melilla (su periodo se recalcula, la columna no es fiab
 - Las celdas se muestran con 2 decimales: la suma de las celdas puede diferir 0,02 kWh de la suma exacta
   del fichero (7.163,89 frente a 7.163,87); sin efecto en importes.
 
-**Limites:** una sola muestra real de cada formato (los dos XLSX comparten distribuidora); el cambio de
-hora de marzo en formato de hora final no se pudo probar con un fichero real; no se auditaron las 8 tarifas
-con excedente indexado en importes (dependen del dataset horario, ronda 46/69).
+**Limites:** una sola muestra real del formato de hora final (los dos XLSX comparten distribuidora; no se
+encontro documentacion publica del formato, la convencion se deduce de la columna de periodo y del patron
+INV/VER de los propios ficheros); el cambio de hora de marzo en hora final esta probado con un generador de
+reloj real, no con un fichero real; Ceuta/Melilla sigue con la lectura anterior; no se auditaron las 8
+tarifas con excedente indexado en importes (dependen del dataset horario, ronda 46/69).
 
 <a id="documentacion-contra-codigo-08-10-2026"></a>
 ### Documentacion Contra El Codigo, Tercera Pasada (08/10/2026)
