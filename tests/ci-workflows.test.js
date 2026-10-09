@@ -27,7 +27,8 @@ describe('CI workflow hardening', () => {
     const workflows = [
       '.github/workflows/cnmc-commercializers.yml',
       '.github/workflows/pvpc.yml',
-      '.github/workflows/tests.yml'
+      '.github/workflows/tests.yml',
+      '.github/workflows/factura-e2e.yml'
     ];
     const expectedPins = new Map([
       ['actions/checkout', ['d23441a48e516b6c34aea4fa41551a30e30af803', 'v6.1.0']],
@@ -35,21 +36,35 @@ describe('CI workflow hardening', () => {
       ['actions/setup-python', ['ece7cb06caefa5fff74198d8649806c4678c61a1', 'v6.3.0']],
       ['actions/configure-pages', ['45bfe0192ca1faeb007ade9deae92b16b8254a0d', 'v6.0.0']],
       ['actions/upload-pages-artifact', ['fc324d3547104276b827a68afc52ff2a11cc49c9', 'v5.0.0']],
-      ['actions/deploy-pages', ['cd2ce8fcbc39b97be8ca5fce6e763baed58fa128', 'v5.0.0']]
+      ['actions/deploy-pages', ['cd2ce8fcbc39b97be8ca5fce6e763baed58fa128', 'v5.0.0']],
+      ['browser-actions/setup-chrome', ['2e1d749697dd1612b833dba4a722266286fbefcd', 'v2.1.2']]
     ]);
 
     for (const relativePath of workflows) {
       const workflow = readRepoFile(relativePath);
-      const actionLines = workflow.split('\n').filter((line) => line.includes('uses: actions/'));
+      const actionLines = workflow.split('\n').filter((line) => line.includes('uses: '));
       expect(actionLines.length).toBeGreaterThan(0);
 
       for (const line of actionLines) {
-        const match = line.match(/uses:\s+(actions\/[^@\s]+)@([0-9a-f]{40})\s+#\s+(v\d+\.\d+\.\d+)\s*$/);
+        const match = line.match(/uses:\s+([^@\s]+)@([0-9a-f]{40})\s+#\s+(v\d+\.\d+\.\d+)\s*$/);
         expect(match, `Referencia mutable o sin comentario de versión en ${relativePath}: ${line.trim()}`).not.toBeNull();
         const [, action, sha, version] = match;
         expect(expectedPins.get(action), `Action no inventariada en el guard: ${action}`).toEqual([sha, version]);
       }
     }
+  });
+
+  it('ejecuta el E2E real de factura en Chromium bajo demanda y en cambios de runtime', () => {
+    const workflow = readRepoFile('.github/workflows/factura-e2e.yml');
+
+    expect(workflow).toContain('workflow_dispatch:');
+    expect(workflow).toContain('pull_request:');
+    expect(workflow).toContain('LF_RUN_CHROMIUM_E2E: "1"');
+    expect(workflow).toContain('CHROMIUM_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}');
+    expect(workflow).toContain('npx vitest run tests/factura-lifecycle-chromium.test.js');
+    expect(workflow).toContain('vendor/pdfjs/**');
+    expect(workflow).toContain('tests/fixtures/**');
+    expect(workflow).toContain('timeout-minutes: 15');
   });
 
   it('replica el censo mensualmente sin frenar por el contenido del listado', () => {
