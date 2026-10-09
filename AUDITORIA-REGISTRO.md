@@ -6626,12 +6626,17 @@ PERIODO no sirve (ver la cuarta vuelta) y se decide por la forma del fichero.
   encontrada al barrer: ordenar por milisegundos empataba el 31/03/2024 (dia de 23 horas) su 23:00 con la
   00:00 del 1/04; se ordena por fecha y hora de calendario. Con zona Ceuta y Melilla, los 7 CSV del banco
   siguen identicos a produccion y los 2 XLSX dan exactamente el oraculo (30 y 31 dias).
+- **Mensaje de duplicados el dia del cambio de octubre (mejora, no bug):** un fichero peninsular importado
+  con la zona Canarias (o al reves) se rechaza por "filas duplicadas" el 26/10, porque cada zona repite una
+  hora distinta; ya ocurria antes de esta ronda (comprobado con el codigo previo) y es fail-closed. El aviso
+  decia "probablemente se exporto dos veces"; ahora, si el duplicado cae ese dia, sugiere revisar la zona. La
+  categoria de analitica no cambia (`periodo-duplicado`). Un fichero canario real se importa bien.
 - Gate: los otros 7 ficheros del banco, identicos a produccion celda a celda; suite completa (136
-  ficheros) y lint en verde, tambien con Node 22 y `TZ=America/Los_Angeles`. 26 regresiones en
+  ficheros) y lint en verde, tambien con Node 22 y `TZ=America/Los_Angeles`. 28 regresiones en
   `tests/csv-hora-final.test.js` (noviembre completo, octubre con cambio de hora, orden descendente,
   control negativo de hora inicial, salvaguarda de fin de semana, equivalencia de convenciones en
   Peninsula, Canarias y Ceuta/Melilla con los dos cambios de hora y Ceuta/Melilla por forma con sus
-  dos salvaguardas), validadas por mutacion: retirado el arreglo
+  dos salvaguardas, mas el aviso de duplicados el dia del cambio de octubre), validadas por mutacion: retirado el arreglo
   caen las 2 positivas; relajado el umbral cae la salvaguarda; decidiendo la hora 25 sobre la marcha cae
   la de orden descendente.
 - Validado ademas en WebKit (Playwright, iPhone 15 y Desktop Safari, repo servido en local): home 30 dias

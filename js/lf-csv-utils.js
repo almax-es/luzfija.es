@@ -1976,10 +1976,18 @@
             { headersNorm, separator }
           );
         }
+        // El dia del cambio de hora de octubre la hora repetida no es la misma en la Peninsula
+        // (02:00) que en Canarias (01:00): un fichero de una zona importado con la otra choca aqui
+        // aunque no tenga ninguna fila repetida de verdad.
+        const consejoDuplicado = esDiaCambioHorarioOctubre(fecha)
+          ? 'Ese día es el cambio de hora de octubre, que repite una hora distinta en la Península y en ' +
+            'Canarias: si el archivo es de una zona y has elegido la otra, cambia la zona y vuelve a ' +
+            'importarlo. Si la zona es la correcta, revisa que no se exportara dos veces el mismo periodo.'
+          : 'Revisa el archivo: probablemente se exportó o se pegó dos veces el mismo periodo.';
         throw buildImportError(
           `Hay filas duplicadas para la misma fecha y hora (${ymdLocal(fecha)}, hora ${hora}). ` +
           'La importación se ha cancelado; no se ha incorporado ningún dato de este archivo. ' +
-          'Revisa el archivo: probablemente se exportó o se pegó dos veces el mismo periodo.',
+          consejoDuplicado,
           { headersNorm, separator }
         );
       }

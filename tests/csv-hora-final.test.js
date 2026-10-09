@@ -226,3 +226,29 @@ describe('Ceuta y Melilla: hora final por la forma del fichero', () => {
     expect(hayAviso(parseCM(rows))).toBe(false);
   });
 });
+
+describe('Aviso de duplicados el dia del cambio de hora de octubre', () => {
+  let u;
+  beforeAll(() => { u = window.LF.csvUtils; });
+  const mensaje = (rows, zona) => {
+    try { u.parseEnergyTableRows(rows, { headerRowIndex: 0, zonaFiscal: zona }); return null; } catch (e) { return e.message; }
+  };
+
+  it('un fichero peninsular importado con Canarias sugiere revisar la zona', () => {
+    const msg = mensaje(buildRows(Date.UTC(2025, 8, 30, 22), Date.UTC(2025, 9, 31, 23), 'end'), 'Canarias');
+    expect(msg).toMatch(/filas duplicadas para la misma fecha y hora \(2025-10-26/);
+    expect(msg).toMatch(/cambio de hora de octubre/);
+    expect(msg).toMatch(/cambia la zona/);
+    // La categoria de analitica sigue siendo la misma.
+    expect(u.csvErrorCodeForTracking(msg)).toBe('periodo-duplicado');
+  });
+
+  it('un duplicado en un dia normal conserva el consejo de siempre', () => {
+    const rows = buildRows(Date.UTC(2025, 9, 31, 23), Date.UTC(2025, 10, 30, 23), 'end');
+    rows.push([...rows[100]]);
+    const msg = mensaje(rows, 'Península');
+    expect(msg).toMatch(/filas duplicadas/);
+    expect(msg).not.toMatch(/cambio de hora/);
+    expect(msg).toMatch(/se exportó o se pegó dos veces/);
+  });
+});
