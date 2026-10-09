@@ -1,0 +1,8 @@
+[{
+      "relation": ["delegate_permission/common.handle_all_urls"],
+      "target": {
+        "namespace": "android_app",
+        "package_name": "es.luzfija.twa",
+        "sha256_cert_fingerprints": ["FD:BB:76:EA:BA:77:EB:38:97:72:AE:FD:1D:F1:B3:12:9C:60:07:ED:39:A3:5B:5A:78:7F:C9:37:9C:95:3F:AC"]
+      }
+    }]
