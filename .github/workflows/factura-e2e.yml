@@ -1,0 +1,72 @@
+name: Factura PDF E2E (Chromium)
+
+on:
+  push:
+    branches: ["main", "master"]
+    paths:
+      - ".github/workflows/factura-e2e.yml"
+      - "index.html"
+      - "sw.js"
+      - "js/**"
+      - "vendor/pdfjs/**"
+      - "tests/factura-lifecycle-chromium.test.js"
+      - "tests/factura-lifecycle.test.js"
+      - "tests/fixtures/**"
+      - "package.json"
+      - "package-lock.json"
+  pull_request:
+    branches: ["main", "master"]
+    paths:
+      - ".github/workflows/factura-e2e.yml"
+      - "index.html"
+      - "sw.js"
+      - "js/**"
+      - "vendor/pdfjs/**"
+      - "tests/factura-lifecycle-chromium.test.js"
+      - "tests/factura-lifecycle.test.js"
+      - "tests/fixtures/**"
+      - "package.json"
+      - "package-lock.json"
+  workflow_dispatch:
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+permissions:
+  contents: read
+
+jobs:
+  factura-pdf-chromium:
+    name: Factura PDF en Chromium real
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38 # v6.5.0
+        with:
+          node-version: "22.22.2"
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chrome for Testing
+        id: setup-chrome
+        uses: browser-actions/setup-chrome@2e1d749697dd1612b833dba4a722266286fbefcd # v2.1.2
+        with:
+          install-dependencies: true
+
+      - name: Confirm browser runtime
+        env:
+          CHROME_PATH: ${{ steps.setup-chrome.outputs.chrome-path }}
+        run: |
+          test -x "$CHROME_PATH"
+          "$CHROME_PATH" --version
+
+      - name: Run real-browser invoice lifecycle tests
+        env:
+          LF_RUN_CHROMIUM_E2E: "1"
+          CHROMIUM_BIN: ${{ steps.setup-chrome.outputs.chrome-path }}
+        run: npx vitest run tests/factura-lifecycle-chromium.test.js --reporter=default
