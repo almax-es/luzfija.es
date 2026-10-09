@@ -6569,6 +6569,57 @@ si cambia `pvpc_auto_fill.py` o su mapeo de zonas, o si REE publica el 1739 en `
 **Trampa del metodo (NO es bug):** `time_trunc=quarter-hour` da 400; hay que pedir `hour` y promediar
 los cuatro tramos de 15 minutos de cada hora. El spot de REE trae 96 puntos/dia desde la MTU de 15 min.
 
+<a id="oraculo-solar-web-ronda-70-09-10-2026"></a>
+### Oraculo Independiente Del Simulador Solar En La Web Real (Ronda 70, 09/10/2026)
+
+Pedida por el usuario y hecha por Claude con Chrome real contra produccion (puppeteer-core, fuera del
+repo), sin auditor externo: la ronda 45 cubrio el MOTOR por su API; esta cubre el camino completo
+FICHERO -> tabla mensual -> ranking visible. Oraculo propio, escrito sin leer `js/`: agregacion mensual
+desde el CSV/XLSX crudo (periodos 2.0TD, neteo horario, dias con datos) e importes por tarifa desde
+`tarifas.json`, `data/ssaa/index.json` y los valores regulados de `LF_CONFIG`.
+
+**Cuadran:**
+- Importacion de los 9 ficheros reales del banco (Datadis horario anual y mensual, CCH-CONS con y sin
+  excedentes, `consumo.csv`, horaria CNMC y los dos XLSX en Wh): celdas P1/P2/P3/vertido iguales al
+  oraculo. El neteo horario de `1.csv` (82 horas, 3.056 kWh de vertido) es exactamente el hora a hora.
+- Ranking visible frente al oraculo en 57 tarifas de precio fijo y 65 filas del universo: Datadis anual
+  (Peninsula, Canarias con IGIC de vivienda y Ceuta/Melilla con IPSI), `1.csv` con excedentes y BV, y
+  tras editar tres celdas a mano (flujo hibrido): diferencia maxima 0,10 EUR en el ano, de redondeo
+  (la web redondea cada concepto y suma; es la convencion de la ronda 45). Potencia y energia, al centimo.
+- Universo de 65 tarifas y las 11 que superan su limite para 7.163,89 kWh y 4,6 kW, recalculados desde
+  `tarifas.json`. Enlace `?bv=` con datos mensuales: 65/65 filas identicas al abrirlo.
+
+**1 hallazgo CORREGIDO (importador, afecta a la home y al simulador):** los XLSX fecha-hora con marcas de
+HORA FINAL (01:00 ... 00:00 del dia siguiente; el PERIODO TARIFARIO del fichero lo prueba y la repeticion
+del 26/10 con INV/VER tambien) se leian como hora inicial. Efectos medidos en produccion: la lectura de las
+00:00 pasaba al dia siguiente, asi que un fichero de noviembre llegaba con un 1 de diciembre (home: 31 dias
+en vez de 30, simulador: "Suma de 2 meses" con una fila Diciembre de 1 dia y 1,21 EUR; octubre: 32 dias y
+una fila Noviembre fantasma aunque su ultima lectura era cero) y el cruce con precios horarios usaba el de
+la hora vecina: excedentes indexados de octubre 8,13 EUR frente a 6,60 EUR reales (+23 %). El reparto
+P1/P2/P3 no cambiaba porque sale de la columna del fichero. Arreglo en `inferHourEndFromPeriods` /
+`detectHourBase` / `buildHourResolver`: solo con columna fecha-hora y columna de periodo, al menos 24 filas
+comparables fuera de los dias de cambio de hora, 98 % de coincidencia con la lectura de hora final y una
+ventaja de al menos 4 filas sobre la de hora inicial; ante la duda se conserva la lectura historica. La
+00:00 viaja como hora 24 del dia anterior y la repeticion de octubre da 2, 3, 25, 4. Aviso visible al
+importar. Excluido Ceuta/Melilla (su periodo se recalcula, la columna no es fiable).
+- Gate: los otros 7 ficheros del banco, identicos a produccion celda a celda; suite completa (136
+  ficheros) y lint en verde. 4 regresiones en `tests/csv-hora-final.test.js` (noviembre completo, octubre
+  con cambio de hora, control negativo de hora inicial y salvaguarda de fin de semana), validadas por
+  mutacion: retirado el arreglo caen las 2 positivas; relajado el umbral cae la salvaguarda.
+
+**No son hallazgos (NO reabrir):**
+- El ganador de un ranking de 7.163 kWh puede ser una tarifa de tramo 3500: ninguna tarifa se excluye sin
+  permiso (decision del 12/09/2026) y el aviso "11 tarifas superan su limite" lo dice en la propia pagina.
+- Un Datadis peninsular importado con la zona Canarias seleccionada se rechaza por duplicado en la hora 3
+  del 26/10 con un mensaje explicito: la hora repetida de Canarias es otra. Fail-closed, no importa mal.
+- El enlace `?bv=` sin datos privados exige introducir el saldo BV (aviso propio).
+- Las celdas se muestran con 2 decimales: la suma de las celdas puede diferir 0,02 kWh de la suma exacta
+  del fichero (7.163,89 frente a 7.163,87); sin efecto en importes.
+
+**Limites:** una sola muestra real de cada formato (los dos XLSX comparten distribuidora); el cambio de
+hora de marzo en formato de hora final no se pudo probar con un fichero real; no se auditaron las 8 tarifas
+con excedente indexado en importes (dependen del dataset horario, ronda 46/69).
+
 <a id="documentacion-contra-codigo-08-10-2026"></a>
 ### Documentacion Contra El Codigo, Tercera Pasada (08/10/2026)
 

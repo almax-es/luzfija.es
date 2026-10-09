@@ -925,6 +925,11 @@ ES0000000000000000XX;01/01/2025;1;0,123;0,045
 - `EHEX` / `exportacion`: Energía horaria excedentaria (kWh), opcional; sin ella se usa 0
 - `INV/VER`: Marca de invierno/verano para el cambio horario (opcional)
 - Columnas unificadas `fecha_hora` soportadas como alternativa
+- **Marcas de hora final (ronda 70)**: algunos XLSX fecha-hora con columna `PERIODO TARIFARIO` marcan
+  cada lectura por el final de la hora (primera 01:00, ultima 00:00 del dia siguiente). Si el periodo del
+  propio fichero encaja con esa lectura en al menos el 98 % de las filas y le saca 4 o mas a la de hora
+  inicial, la 00:00 se asigna como hora 24 del dia anterior y se avisa al importar. Sin evidencia
+  suficiente se conserva la lectura de hora inicial. No aplica en Ceuta/Melilla.
 
 **Separador**: Punto y coma (`;`) o coma (`,`) detectado automáticamente
 

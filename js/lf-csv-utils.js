@@ -1391,6 +1391,46 @@
     return null;
   }
 
+  // Algunas distribuidoras exportan una columna fecha-hora con marcas de HORA FINAL: la primera
+  // lectura del dia lleva 01:00 y la ultima, 00:00 del dia siguiente (aqui el PERIODO TARIFARIO
+  // del propio fichero lo demuestra: punta empieza en la marca 11:00, no en la 10:00). Leerlas como
+  // hora inicial desplaza cada lectura una hora: el registro de las 00:00 cae en el dia (y a fin de
+  // mes, en el mes) siguiente y el cruce con precios horarios usa el precio de la hora vecina.
+  // Solo se decide con evidencia fuerte y en todas las filas con periodo del fichero; ante la duda
+  // se conserva la lectura historica (falso negativo antes que falso positivo).
+  function inferHourEndFromPeriods(dataRows, mapping, zonaFiscal) {
+    if (mapping.fechaHoraIdx === null || mapping.fechaHoraIdx === undefined) return null;
+    if (mapping.periodoIdx === null || mapping.periodoIdx === undefined) return null;
+
+    let total = 0;
+    let startMatches = 0;
+    let endMatches = 0;
+
+    for (const row of dataRows || []) {
+      const expected = mapPeriodoLabel(row && row[mapping.periodoIdx]);
+      if (!expected) continue;
+      const { fecha, hourNum } = getRowDateHour(row, mapping);
+      if (!(fecha instanceof Date) || isNaN(fecha.getTime()) || !Number.isInteger(hourNum)) continue;
+      if (hourNum < 0 || hourNum > 23) continue;
+      // Los dias de cambio de hora repiten o saltan marcas y son domingo (todo valle): no
+      // distinguen una lectura de otra.
+      if (esDiaCambioHorarioOctubre(fecha) || esDiaCambioHorarioMarzo(fecha)) continue;
+
+      total++;
+      if (getPeriodoHorarioCSV(fecha, hourNum + 1, zonaFiscal) === expected) startMatches++;
+      const endDate = hourNum === 0
+        ? new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate() - 1)
+        : fecha;
+      const endHour = hourNum === 0 ? 24 : hourNum;
+      if (getPeriodoHorarioCSV(endDate, endHour, zonaFiscal) === expected) endMatches++;
+    }
+
+    if (total < 24) return null;
+    if (endMatches < total * 0.98) return null;
+    if (endMatches - startMatches < 4) return null;
+    return { base: 'end', reason: 'periodEnd' };
+  }
+
   function detectHourBase(dataRows, mapping, options = {}) {
     const rows = dataRows || [];
     let foundZero = false;
@@ -1403,7 +1443,12 @@
       if (hourNum === 0) foundZero = true;
       if (hourNum === 24 || hourNum === 25) found24 = true;
     }
-    if (foundZero) return { base: 'zero', reason: 'explicitZero' };
+    if (foundZero) {
+      const esCeutaMelillaZona = getCsvZoneProfiles(options.zonaFiscal).perfilPeriodos === 'ceuta-melilla';
+      const hourEnd = esCeutaMelillaZona ? null : inferHourEndFromPeriods(rows, mapping, options.zonaFiscal);
+      if (hourEnd) return hourEnd;
+      return { base: 'zero', reason: 'explicitZero' };
+    }
     if (found24) return { base: 'cnmc', reason: 'explicitCnmc' };
 
     if (mapping.fechaHoraIdx !== null && mapping.fechaHoraIdx !== undefined) {
@@ -1488,6 +1533,26 @@
 
     return function resolveHour(fecha, hourNum, invVerRaw) {
       if (!Number.isFinite(hourNum)) return null;
+      if (hourBase === 'end') {
+        // Marcas de hora final ya normalizadas a 1-24 (la 00:00 viaja como hora 24 del dia
+        // anterior). El dia que se retrasa el reloj la marca repetida es la del reloj de otono
+        // (02:00 en Peninsula, 01:00 en Canarias): la primera es la hora `repetida`, la segunda la
+        // siguiente, y la marca posterior a la repeticion es la hora 25 (…2, 3, 25, 4…).
+        if (esDiaCambioHorarioOctubre(fecha) && (hourNum === repeatedClockHour || hourNum === repeatedClockHour + 1)) {
+          const dayKey = ymdLocal(fecha);
+          const repKey = `${dayKey}|end|${repeatedClockHour}`;
+          if (hourNum === repeatedClockHour) {
+            const count = (seen.get(repKey) || 0) + 1;
+            seen.set(repKey, count);
+            const inv = stripOuterQuotes(invVerRaw).trim();
+            if (inv === '1') return repeatedClockHour;
+            if (inv === '0') return repeatedClockHour + 1;
+            return count >= 2 ? repeatedClockHour + 1 : repeatedClockHour;
+          }
+          if ((seen.get(repKey) || 0) >= 2) return 25;
+        }
+        return hourNum;
+      }
       if (hourBase === 'zero') {
         if (hourNum === repeatedClockHour && esDiaCambioHorarioOctubre(fecha)) {
           const key = `${ymdLocal(fecha)}|${String(repeatedClockHour).padStart(2, '0')}`;
@@ -1628,7 +1693,9 @@
     const hourBaseInfo = detectHourBase(dataRows, mapping, { zonaFiscal });
     const hourBase = hourBaseInfo.base;
     const compressedSpringDates = detectCompressedSpringDates(dataRows, mapping, hourBase);
-    if (hourBase === 'zero' && hourBaseInfo.reason === 'explicitZero') {
+    if (hourBase === 'end') {
+      warnings.push('Marcas horarias interpretadas como hora final (la lectura de las 00:00 pertenece al día anterior).');
+    } else if (hourBase === 'zero' && hourBaseInfo.reason === 'explicitZero') {
       warnings.push('Ajustado formato de hora (0-23 → 1-24).');
     } else if (hourBase === 'zero' && hourBaseInfo.reason === 'periodMatch') {
       warnings.push('Formato horario inferido como 0-23 por coherencia con el periodo tarifario.');
@@ -1687,7 +1754,11 @@
       if (!hasData) continue;
       totalRows++;
 
-      const { fecha, hourNum } = getRowDateHour(row, mapping);
+      let { fecha, hourNum } = getRowDateHour(row, mapping);
+      if (hourBase === 'end' && fecha instanceof Date && hourNum === 0) {
+        fecha = new Date(fecha.getFullYear(), fecha.getMonth(), fecha.getDate() - 1);
+        hourNum = 24;
+      }
 
       if (!fecha || !Number.isFinite(hourNum)) {
         // Una fila sin fecha ni hora (pie con totales, notas) no es un dato perdido.
