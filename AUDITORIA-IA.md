@@ -163,6 +163,7 @@ decision esta en el registro enlazado desde la ultima columna y desde el indice 
 | Superficie que leen las IA (ronda 66) | Auditada 07/10/2026: `llms.txt` y `llms-full.txt` afirmacion por afirmacion contra el repo y la web viva. Corregidos el "exact hourly crossing" del PVPC importado, el recuento de tarifas fechado con la revision editorial (causa en `sync-seo-docs.mjs`) y una frase de la home que decia que el ranking considera el ahorro acumulado. Anadidos los limites que un asistente necesita para recomendar bien | [Superficie Que Leen Las IA (Ronda 66)](AUDITORIA-REGISTRO.md#superficie-ia-llms-ronda-66-07-10-2026) |
 | Oraculo independiente del Observatorio (ronda 67) | Auditado 07/10/2026 en caja negra: KPI, meses, perfil y CSV de excedentes calculados desde los JSON crudos y contrastados con la web real. Cifras correctas. 2 hallazgos CORREGIDOS de avisos: el neteo horario del CSV no se explicaba (solo se mostraban descartes) y Canarias decia "parcial" en 12 meses e interanual cuando solo el dia en curso era provisional | [Oraculo Independiente Del Observatorio (Ronda 67)](AUDITORIA-REGISTRO.md#oraculo-observatorio-ronda-67-07-10-2026) |
 | Oraculo independiente del lector de facturas y del QR CNMC (ronda 68) | Auditado 08/10/2026 en caja negra: 60 URLs QR construidas desde la Resolucion CNMC de 06/10/2022 y 15 PDF sinteticos, por las funciones de produccion y la interfaz real. **1 bug CORREGIDO**: una URL visible cortada tapaba a la completa del enlace del PDF y se perdia el QR. Gate 14/14 facturas reales identicas. Todo lo demas cuadra y los casos no regulados acaban en conducta segura | [Oraculo Independiente Del Lector De Facturas (Ronda 68)](AUDITORIA-REGISTRO.md#oraculo-lector-factura-qr-ronda-68-08-10-2026) |
+| Excedentes 1739 frente al spot de REE (ronda 69) | Contrastado 09/10/2026 contra la serie spot de REE (la API publica no trae el 1739), por instante, en 2.400 horas y las cinco zonas, incluidos los dos cambios de hora. Sin desfase horario (error 10-20 veces menor que con +-1 h) y las zonas identicas a la Peninsula. El valor exacto (spot mas ajustes) solo existe en ESIOS: sin contraste externo posible. [Excedentes 1739 Frente Al Spot De REE (Ronda 69)](AUDITORIA-REGISTRO.md#excedentes-1739-frente-spot-ronda-69-09-10-2026) |
 
 ## Directorio Del Registro De Auditorias
 
@@ -314,6 +315,7 @@ estes auditando; no hace falta leerlo entero.
 - [Superficie Que Leen Las IA: llms.txt Y llms-full.txt (Ronda 66, 07/10/2026)](AUDITORIA-REGISTRO.md#superficie-ia-llms-ronda-66-07-10-2026)
 - [Oraculo Independiente Del Observatorio (Ronda 67, 07/10/2026)](AUDITORIA-REGISTRO.md#oraculo-observatorio-ronda-67-07-10-2026)
 - [Oraculo Independiente Del Lector De Facturas Y Del QR CNMC (Ronda 68, 08/10/2026)](AUDITORIA-REGISTRO.md#oraculo-lector-factura-qr-ronda-68-08-10-2026)
+- [Excedentes 1739 Frente Al Spot De REE (Ronda 69, 09/10/2026)](AUDITORIA-REGISTRO.md#excedentes-1739-frente-spot-ronda-69-09-10-2026)
 - [Documentacion Contra El Codigo, Tercera Pasada (08/10/2026)](AUDITORIA-REGISTRO.md#documentacion-contra-codigo-08-10-2026)
 <!-- REGISTRO-INDICE:FIN -->
 

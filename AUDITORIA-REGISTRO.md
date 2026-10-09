@@ -6418,7 +6418,7 @@ frontera (2025-09-30T22:00Z y 2025-10-31T23:00Z) estan en el fichero del mes vec
 exacto de REE (96 horas comparadas, 0 distintas). Quien repita el contraste debe unir meses
 consecutivos antes de comparar Canarias. La API rechaza rangos de mas de un mes.
 
-**No cubierto:** excedentes (`data/surplus`, indicador 1739) y SSAA (10328), y el historico anterior
+**No cubierto:** excedentes (`data/surplus`, indicador 1739; ver la ronda 69 para la comprobacion parcial) y SSAA (10328), y el historico anterior
 a 2025-10. Reabrir con un barrido completo solo si cambia el productor (`pvpc_auto_fill.py`) o su
 mapeo de zonas.
 
@@ -6539,6 +6539,35 @@ menciona 3.0TD, no; PDF con dos facturas al 75 % sin autocalculo.
   (regla de producto) y, en PDF02, cuyo periodo tampoco casa, baja a 75 % y no autocalcula.
 - Coma decimal y sufijo de unidad coincidente ("4.6kW") se aceptan a proposito (comentado en el codigo):
   mismo valor; una unidad distinta o texto pegado se rechaza.
+
+<a id="excedentes-1739-frente-spot-ronda-69-09-10-2026"></a>
+### Excedentes 1739 Frente Al Spot De REE (Ronda 69, 09/10/2026)
+
+Cierra a medias el "No cubierto" de la ronda 65 (excedentes). Pedida por el usuario tras una auditoria
+externa que senalaba el hueco (H-01); hecha por Claude. La API publica de REE
+(`apidatos.ree.es`, `precios-mercados-tiempo-real`) solo publica el PVPC (1001), NO el 1739, asi que
+no existe oraculo exacto independiente del generador: el valor exacto solo esta en ESIOS, la misma
+fuente que usa `pvpc_auto_fill.py`. Referencia usada: la serie `600` (precio mercado spot), media
+horaria de sus tramos de 15 minutos, comparada por INSTANTE (epoch) con `data/surplus/8741`.
+
+**Muestra (no barrido):** 2026-10, 2026-09, 2026-03 (cambio de hora de primavera) y 2025-10 (cambio
+de otono), unas 2.400 horas, y las cinco zonas.
+
+**Resultado: sin desfase horario ni de reloj.**
+- Error medio spot-1739 con el reloj correcto: 0,0008 a 0,0013 EUR/kWh. Desplazando la serie +-1 h
+  sube a 0,011-0,022: de 10 a 20 veces mas. Un desfase como el de Canarias en la ronda 46 se veria.
+- El 1739 queda de mediana unos 0,0007-0,0008 EUR/kWh por debajo del spot (rango -0,003 a +0,0086),
+  coherente con un precio de excedentes (spot menos ajustes). Los excesos ocasionales sobre el spot
+  (hasta unos 0,003) no se han podido explicar sin ESIOS; no se tratan como bug.
+- Las cuatro zonas restantes (8742-8745) valen exactamente lo mismo que la Peninsula en cada
+  instante (0 diferencias). Canarias solo trae 1 hora de frontera propia, la de la ronda 46.
+
+**Limite que NO se cierra:** el VALOR exacto del 1739 (spot mas ajustes) no tiene contraste externo.
+Un fallo de valor menor que ese margen, pero constante, no se detectaria con este metodo. Reabrir solo
+si cambia `pvpc_auto_fill.py` o su mapeo de zonas, o si REE publica el 1739 en `apidatos`.
+
+**Trampa del metodo (NO es bug):** `time_trunc=quarter-hour` da 400; hay que pedir `hour` y promediar
+los cuatro tramos de 15 minutos de cada hora. El spot de REE trae 96 puntos/dia desde la MTU de 15 min.
 
 <a id="documentacion-contra-codigo-08-10-2026"></a>
 ### Documentacion Contra El Codigo, Tercera Pasada (08/10/2026)
