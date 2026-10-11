@@ -738,6 +738,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Lumisa Solar",
+      "cPunta": 0.1488,
+      "cLlano": 0.1488,
+      "cValle": 0.1488,
+      "p1": 0.108888,
+      "p2": 0.108888,
+      "web": "https://lumisa.es/es/tarifas-solar-bateria-virtual",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.045,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": true
+    },
+    {
       "nombre": "BonArea Relax",
       "cPunta": 0.149,
       "cLlano": 0.149,
@@ -2285,5 +2305,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-11T09:42:32.613Z"
+  "updatedAt": "2026-10-11T17:23:59.486Z"
 }
