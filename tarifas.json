@@ -28,28 +28,6 @@
       "maxConsumoAnual": 3500.0
     },
     {
-      "nombre": "Nufri Sin Horarios",
-      "cPunta": 0.107634,
-      "cLlano": 0.107634,
-      "cValle": 0.107634,
-      "p1": 0.077272,
-      "p2": 0.07733,
-      "web": "https://www.energianufri.com/es/tarifas-luz",
-      "tipo": "1P",
-      "requisitos": "Consumo máximo de 1.200 kWh/año por cada kW de potencia contratada.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false,
-      "maxConsumoAnualPorKw": 1200.0
-    },
-    {
       "nombre": "DISA Tranquilidad",
       "cPunta": 0.109,
       "cLlano": 0.109,
@@ -279,6 +257,28 @@
         "precioBV": 0.0
       },
       "requiereFV": true
+    },
+    {
+      "nombre": "Nufri Sin Horarios",
+      "cPunta": 0.119146,
+      "cLlano": 0.119146,
+      "cValle": 0.119146,
+      "p1": 0.078642,
+      "p2": 0.078618,
+      "web": "https://www.energianufri.com/es/tarifas-luz",
+      "tipo": "1P",
+      "requisitos": "Consumo máximo de 1.200 kWh/año por cada kW de potencia contratada.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false,
+      "maxConsumoAnualPorKw": 1200.0
     },
     {
       "nombre": "Endesa Conecta",
@@ -679,11 +679,11 @@
     },
     {
       "nombre": "Nufri Universal Sin Horarios",
-      "cPunta": 0.143394,
-      "cLlano": 0.143394,
-      "cValle": 0.143394,
+      "cPunta": 0.143594,
+      "cLlano": 0.143594,
+      "cValle": 0.143594,
       "p1": 0.075903,
-      "p2": 0.029385,
+      "p2": 0.034864,
       "web": "https://www.energianufri.com/es/tarifas-luz",
       "tipo": "1P",
       "incluyeServiciosAjuste": true,
@@ -1504,28 +1504,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Nufri Con Horarios 3P",
-      "cPunta": 0.175484,
-      "cLlano": 0.096446,
-      "cValle": 0.06301,
-      "p1": 0.077272,
-      "p2": 0.07733,
-      "web": "https://www.energianufri.com/es/tarifas-luz",
-      "tipo": "3P",
-      "requisitos": "Consumo máximo de 1.200 kWh/año por cada kW de potencia contratada.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false,
-      "maxConsumoAnualPorKw": 1200.0
-    },
-    {
       "nombre": "El Corte Inglés Benefíciate 3P",
       "cPunta": 0.176875,
       "cLlano": 0.120975,
@@ -1627,6 +1605,28 @@
         "precioBV": 0.0
       },
       "requiereFV": false
+    },
+    {
+      "nombre": "Nufri Con Horarios 3P",
+      "cPunta": 0.187103,
+      "cLlano": 0.108331,
+      "cValle": 0.07419,
+      "p1": 0.078642,
+      "p2": 0.078618,
+      "web": "https://www.energianufri.com/es/tarifas-luz",
+      "tipo": "3P",
+      "requisitos": "Consumo máximo de 1.200 kWh/año por cada kW de potencia contratada.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false,
+      "maxConsumoAnualPorKw": 1200.0
     },
     {
       "nombre": "Gana Energía Tramos Horarios 3P",
@@ -1858,11 +1858,11 @@
     },
     {
       "nombre": "Nufri Universal Con Horarios 3P",
-      "cPunta": 0.210915,
+      "cPunta": 0.211551,
       "cLlano": 0.132778,
       "cValle": 0.098638,
       "p1": 0.075903,
-      "p2": 0.029385,
+      "p2": 0.034864,
       "web": "https://www.energianufri.com/es/tarifas-luz",
       "tipo": "3P",
       "incluyeServiciosAjuste": true,
@@ -2246,9 +2246,9 @@
     },
     {
       "nombre": "Nufri Solar 3P",
-      "cPunta": 0.307384,
-      "cLlano": 0.220941,
-      "cValle": 0.180048,
+      "cPunta": 0.315803,
+      "cLlano": 0.228516,
+      "cValle": 0.186879,
       "p1": 0.111519,
       "p2": 0.037604,
       "web": "https://www.energianufri.com/es/tarifas-luz",
@@ -2305,5 +2305,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-12T08:27:15.205Z"
+  "updatedAt": "2026-10-13T08:43:17.763Z"
 }
