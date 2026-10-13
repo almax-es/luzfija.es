@@ -1588,9 +1588,9 @@
     },
     {
       "nombre": "Esluz Fija 3P",
-      "cPunta": 0.187014,
-      "cLlano": 0.135066,
-      "cValle": 0.085298,
+      "cPunta": 0.187,
+      "cLlano": 0.135,
+      "cValle": 0.087,
       "p1": 0.0839,
       "p2": 0.035,
       "web": "https://esluz.es/tarifas-electricidad-hogares/",
@@ -2305,5 +2305,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-13T11:56:58.601Z"
+  "updatedAt": "2026-10-13T15:22:15.254Z"
 }
