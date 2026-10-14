@@ -343,6 +343,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Spock Tarifa Luz 24 Horas",
+      "cPunta": 0.123,
+      "cLlano": 0.123,
+      "cValle": 0.123,
+      "p1": 0.091,
+      "p2": 0.091,
+      "web": "https://spock.es/compra-colectiva-urano-2026",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Naturgy por uso",
       "cPunta": 0.123,
       "cLlano": 0.123,
@@ -1775,6 +1795,46 @@
       "requiereFV": false
     },
     {
+      "nombre": "Spock Tarifa Luz 3 Periodos 3P",
+      "cPunta": 0.197,
+      "cLlano": 0.147,
+      "cValle": 0.087,
+      "p1": 0.077,
+      "p2": 0.077,
+      "web": "https://spock.es/compra-colectiva-urano-2026",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Spock Tarifa Luz Con Excedentes 3P",
+      "cPunta": 0.197,
+      "cLlano": 0.147,
+      "cValle": 0.087,
+      "p1": 0.077,
+      "p2": 0.077,
+      "web": "https://spock.es/compra-colectiva-urano-2026",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": true
+    },
+    {
       "nombre": "Lumisa 3P",
       "cPunta": 0.1988,
       "cLlano": 0.1588,
@@ -2305,5 +2365,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-13T15:22:15.254Z"
+  "updatedAt": "2026-10-14T13:00:25.758Z"
 }
