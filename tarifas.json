@@ -738,6 +738,50 @@
       "requiereFV": false
     },
     {
+      "nombre": "Visalia Fija 24h",
+      "cPunta": 0.144757,
+      "cLlano": 0.144757,
+      "cValle": 0.144757,
+      "p1": 0.076712,
+      "p2": 0.076712,
+      "web": "https://visalia.es/luz/fijo24horas/",
+      "tipo": "1P",
+      "requisitos": "Consumo ≤ 7.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA_PARCIAL",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false,
+      "maxConsumoAnual": 7000.0
+    },
+    {
+      "nombre": "Visalia Primer mes gratis",
+      "cPunta": 0.147075,
+      "cLlano": 0.147075,
+      "cValle": 0.147075,
+      "p1": 0.090411,
+      "p2": 0.090411,
+      "web": "https://visalia.es/luz/tarifas-flash/",
+      "tipo": "1P",
+      "requisitos": "Permanencia de 12 meses.",
+      "promo": "Primer mes gratis.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA_PARCIAL",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Lumisa Simple 24h",
       "cPunta": 0.1488,
       "cLlano": 0.1488,
@@ -902,28 +946,6 @@
         "precioBV": 0.0
       },
       "requiereFV": false
-    },
-    {
-      "nombre": "Visalia Fija 24h",
-      "cPunta": 0.149757,
-      "cLlano": 0.149757,
-      "cValle": 0.149757,
-      "p1": 0.076712,
-      "p2": 0.076712,
-      "web": "https://visalia.es/luz/fijo24horas/",
-      "tipo": "1P",
-      "requisitos": "Consumo ≤ 7.000 kWh/año.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA_PARCIAL",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false,
-      "maxConsumoAnual": 7000.0
     },
     {
       "nombre": "Contigo Tarifa Fácil",
@@ -1112,16 +1134,15 @@
       "requiereFV": true
     },
     {
-      "nombre": "Visalia Primer mes gratis",
-      "cPunta": 0.162875,
-      "cLlano": 0.162875,
-      "cValle": 0.162875,
-      "p1": 0.093151,
-      "p2": 0.093151,
+      "nombre": "Visalia Plan Ahorro 3 meses",
+      "cPunta": 0.159875,
+      "cLlano": 0.159875,
+      "cValle": 0.159875,
+      "p1": 0.063014,
+      "p2": 0.063014,
       "web": "https://visalia.es/luz/tarifas-flash/",
       "tipo": "1P",
-      "requisitos": "Permanencia de 12 meses.",
-      "promo": "Primer mes gratis.",
+      "promo": "6 € de descuento al mes durante los 3 primeros meses.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.03,
@@ -1152,27 +1173,6 @@
         "precioBV": 0.0
       },
       "requiereFV": true
-    },
-    {
-      "nombre": "Visalia Plan Ahorro 3 meses",
-      "cPunta": 0.169875,
-      "cLlano": 0.169875,
-      "cValle": 0.169875,
-      "p1": 0.063014,
-      "p2": 0.063014,
-      "web": "https://visalia.es/luz/tarifas-flash/",
-      "tipo": "1P",
-      "promo": "6 € de descuento al mes durante los 3 primeros meses.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA_PARCIAL",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
     },
     {
       "nombre": "CHC BV",
@@ -2243,9 +2243,9 @@
     },
     {
       "nombre": "Visalia 3P",
-      "cPunta": 0.271865,
-      "cLlano": 0.175973,
-      "cValle": 0.147488,
+      "cPunta": 0.260402,
+      "cLlano": 0.170417,
+      "cValle": 0.142047,
       "p1": 0.075903,
       "p2": 0.001987,
       "web": "https://visalia.es/luz/luz-3-periodos/",
@@ -2365,5 +2365,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-15T07:27:52.361Z"
+  "updatedAt": "2026-10-15T09:24:09.612Z"
 }
