@@ -497,6 +497,7 @@
       "web": "https://www.endesa.com/es/luz-y-gas/luz/conecta-de-endesa",
       "tipo": "1P",
       "requisitos": "10% descuento término energía durante 12 meses incluido en el precio.",
+      "promo": "25 € en puntos del programa PARA TI.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -1142,6 +1143,7 @@
       "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz",
       "tipo": "1P",
       "requisitos": "10% descuento término energía durante 12 meses incluido en el precio.",
+      "promo": "100 € en puntos del programa PARA TI.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -2365,5 +2367,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-15T13:06:25.488Z"
+  "updatedAt": "2026-10-15T17:21:04.624Z"
 }
