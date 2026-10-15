@@ -1586,27 +1586,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Endesa Conecta 3P",
-      "cPunta": 0.18621,
-      "cLlano": 0.11781,
-      "cValle": 0.09441,
-      "p1": 0.073644,
-      "p2": 0.073644,
-      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz-3periodos",
-      "tipo": "3P",
-      "requisitos": "10% descuento término energía durante 12 meses incluido en el precio.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Esluz Fija 3P",
       "cPunta": 0.187,
       "cLlano": 0.135,
@@ -1864,6 +1843,27 @@
       "p2": 0.08826,
       "web": "https://inerenergia.es/luz/hogar",
       "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Endesa Conecta 3P",
+      "cPunta": 0.20241,
+      "cLlano": 0.13401,
+      "cValle": 0.11061,
+      "p1": 0.073644,
+      "p2": 0.073644,
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz-3periodos",
+      "tipo": "3P",
+      "requisitos": "10% descuento término energía durante 12 meses incluido en el precio.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -2365,5 +2365,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-15T09:55:46.264Z"
+  "updatedAt": "2026-10-15T11:21:19.989Z"
 }
