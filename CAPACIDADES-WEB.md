@@ -538,13 +538,13 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - Lineas JS aproximadas: 34.443.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
-- `tarifas.json` (111 tarifas).
+- `tarifas.json` (114 tarifas).
 - `/data/pvpc/` (indicador 1001).
 - `/data/surplus/` (indicador 1739).
 - `/data/ssaa/` (indicador 10328, servicios de ajuste medios mensuales).
 - Origen de tarifas: dataset curado en `tarifas.json`. El campo interno `Activa` no se exporta: el generador acepta solo `SI` o `NO` tras `trim`; `NO` excluye la tarifa y cualquier otro valor detiene la generación para no publicar un dataset ambiguo. Ver `JSON-SCHEMA.md`.
 - Campo interno recomendado: `incluyeServiciosAjuste` (`SI`/`NO`) para distinguir tarifas cuyo precio publicado ya incluye SSAA frente a las que requieren aplicar el dataset `/data/ssaa/`. En el calculo, SSAA se suma al termino de energia antes de IEE e IVA/IGIC/IPSI.
-- Fiscalidad Peninsula/Baleares: a 30/09/2026, IVA 21% e IEE 5,11269632% en agosto y septiembre (el IPC anual de electricidad de junio, 6,0%, y el de julio, 8,4%, tabla 76128 del INE, subclase 04.5.10, no superaron el umbral de mas del 15% del RDL 18/2026) y en octubre (el RDL 25/2026 no preve rebaja). Noviembre y diciembre dependen de la salvaguarda del RDL 25/2026 (IPC de septiembre y de octubre). Proximas revisiones segun `MANTENIMIENTO-NORMATIVO.md`.
+- Fiscalidad Peninsula/Baleares: a 30/09/2026, IVA 21% e IEE 5,11269632% en agosto y septiembre (el IPC anual de electricidad de junio, 6,0%, y el de julio, 8,4%, tabla 76128 del INE, subclase 04.5.10, no superaron el umbral de mas del 15% del RDL 18/2026) y en octubre (el RDL 25/2026 no preve rebaja). Noviembre tambien queda al tipo general: el IPC de electricidad de septiembre (INE, 14/10/2026) fue 11,4%, por debajo del umbral de la salvaguarda del RDL 25/2026. Diciembre depende del IPC de octubre. Proximas revisiones segun `MANTENIMIENTO-NORMATIVO.md`.
 - En las rutas productivas normales, IVA, IGIC e IPSI se calculan de forma comun en `LF_CONFIG.calcularImpuestoIndirecto()` desde bases monetarias normalizadas a centimos y tipos expresados en puntos basicos. `lf-utils.js` y `bv-sim-monthly.js` conservan fallbacks defensivos no equivalentes si falta el helper; el orden de carga normal evita esa degradacion. La regresion de fronteras de medio centimo y paridad home/BV/desglose vive en `tests/fiscal-rounding-align.test.js`.
 - Inventario de mantenimiento normativo, fuentes oficiales, cadencias e impacto tecnico: `MANTENIMIENTO-NORMATIVO.md`.
 

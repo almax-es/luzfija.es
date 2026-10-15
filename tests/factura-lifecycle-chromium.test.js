@@ -137,7 +137,13 @@ suite('factura PDF en Chromium real', { retry: 2 }, () => {
       '--remote-debugging-port=0',
       `--user-data-dir=${profile}`,
       `${origin}/`
-    ], { stdio: 'ignore' });
+    ], {
+      stdio: 'ignore',
+      // En POSIX, Chromium encabeza su propio grupo de procesos para que el afterAll pueda matar
+      // tambien a los hijos (renderer, GPU, utilidades). Matando solo el principal, los hijos
+      // seguian escribiendo en el perfil y el borrado fallaba con ENOTEMPTY (CI, 15/10/2026).
+      detached: process.platform !== 'win32'
+    });
 
     const portFile = path.join(profile, 'DevToolsActivePort');
     const port = await waitFor(() => {
@@ -173,23 +179,36 @@ suite('factura PDF en Chromium real', { retry: 2 }, () => {
         try { chromium.kill(); } catch (_) { clearTimeout(timeout); resolve(); }
       });
     }
-    await new Promise(resolve => server?.close(resolve));
+    // Aunque el principal ya haya salido, sus hijos pueden seguir vivos: en POSIX se mata el grupo
+    // entero (pid negativo). ESRCH = el grupo ya no existe, que es el caso bueno.
+    if (chromium?.pid && process.platform !== 'win32') {
+      try { process.kill(-chromium.pid, 'SIGKILL'); } catch (_) { /* ESRCH */ }
+      await wait(300);
+    }
+    // Un hijo de Chromium vivo podia retener conexiones keep-alive y dejar server.close() sin
+    // resolver; se cortan antes y se acota la espera.
+    server?.closeAllConnections?.();
+    await Promise.race([new Promise(resolve => server?.close(resolve)), wait(2000)]);
     if (profile) {
       try {
-        rmSync(profile, { recursive: true, force: true, maxRetries: 20, retryDelay: 250 });
+        // OJO: Node reintenta con espera LINEAL creciente (retryDelay x intento). Con 20 x 250 ms
+        // el peor caso eran ~52 s, no 5: superaba el timeout del hook (CI, 15/10/2026). 8 x 100 ms
+        // acota el peor caso en ~3,6 s.
+        rmSync(profile, { recursive: true, force: true, maxRetries: 8, retryDelay: 100 });
       } catch (error) {
         // El perfil vive en el directorio temporal del sistema. Si Windows aun lo tiene bloqueado,
         // dejarlo ahi no cambia ningun resultado; convertirlo en un fallo del suite si. Cualquier
         // otro error sigue fallando.
-        if (error?.code !== 'EPERM' && error?.code !== 'EBUSY') throw error;
+        // 15/10/2026: ENOTEMPTY es el equivalente en Linux (un hijo de Chromium aun escribiendo en
+        // `Default/`). Con el grupo de procesos ya muerto no deberia darse; se tolera igualmente.
+        if (error?.code !== 'EPERM' && error?.code !== 'EBUSY' && error?.code !== 'ENOTEMPTY') throw error;
         console.warn(`[factura-lifecycle-chromium] Perfil temporal no borrado (${error.code}): ${profile}`);
       }
     }
-    // 29/09/2026: sin timeout propio este hook heredaba los 10000 ms por defecto de vitest, pero
-    // su presupuesto interno suma hasta ~12 s (2 s de Browser.close + 5 s esperando la salida de
-    // Chromium + hasta 5 s de reintentos al borrar el perfil en Windows). Tras la suite completa,
-    // con Chromium lento en soltar el perfil, fallaba "Hook timed out in 10000ms" con los 2.213
-    // tests pasando (2 de 4 corridas completas con Node 22). Mismo margen que el beforeAll.
+    // 29/09/2026: sin timeout propio este hook heredaba los 10000 ms por defecto de vitest.
+    // Presupuesto interno actual en el peor caso: 2 s de Browser.close + 5 s esperando la salida
+    // de Chromium + 0,3 s tras matar el grupo + 2 s de server.close + ~3,6 s de reintentos al
+    // borrar el perfil = ~13 s, con margen frente a los 30 s. Mismo margen que el beforeAll.
   }, 30000);
 
   async function evaluate(expression) {

@@ -7166,3 +7166,45 @@ HTML); una potencia con texto no numerico ya no se trata como "vacia" y queda en
 Excel); minimo de Python 3.11 en los `.bat` (numpy 2.4.1 lo exige). No aplicado: `EXCEPCION` no bloquea (por
 diseno: excepciones declaradas), `in host` (las URLs salen del Excel propio) y el codigo de salida (nadie lo
 consume). Regresion con el Excel real sin cambios. Detalle en la guia de las IA.
+
+<a id="historico-pvpc-ree-y-recheck-catalogo-ronda-82-15-10-2026"></a>
+### Historico PVPC Completo Frente A REE Y Re-Verificacion Del Catalogo (Ronda 82, 15/10/2026)
+
+Auditoria propia de Claude, elegida por cerrar huecos que el registro declaraba "no cubiertos".
+
+**1. Historico PVPC anterior a 2025-10 (hueco abierto por la ronda 65): CERRADO, cero diferencias.** Mismo metodo
+que la 65 (API publica `apidatos.ree.es`, serie 1001, comparacion por instante, tolerancia 5e-6 EUR/kWh), ahora en
+barrido y no en muestra: Peninsula (8741) y Ceuta (8744) completos de 2021-06 a 2025-09, **37.992 horas cada uno**,
+0 valores distintos, 0 horas que REE tenga y nosotros no, 0 horas nuestras que REE no tenga; mas 13 meses de
+Canarias (8742) contrastados directamente (9.506 horas, 0 distintas). Baleares, Canarias y Melilla se cubren por
+igualdad local por instante en todo el historico (47.112 horas: 8743 == 8741, 8742 == 8741 salvo la ultima hora
+aun no publicada en Canarias, 8745 == 8744), coherente con la ronda 48. Con la ronda 65, el dataset `data/pvpc`
+queda verificado entero frente a REE. Trampa operativa: la API responde 403 (cortafuegos) tras unas decenas de
+peticiones seguidas; el script tiene que tolerar fallos y repetir solo los meses que falten. Repetirlo solo si
+cambia el productor o su mapeo de zonas.
+
+**2. SSAA (10328): sigue sin fuente externa accesible.** ESIOS exige token y el desglose de componentes de
+`apidatos.ree.es` (`mercados/componentes-precio`) devolvio 500 y despues 403. No se ha contrastado ningun valor.
+
+**3. Re-verificacion de precios del catalogo contra las webs (5 dias despues del barrido del 10/10).** Lectura
+independiente (HTML estatico mas Chrome renderizado, numeros en cualquier formato, con y sin impuestos, potencia
+por dia/mes/ano) de las 114 filas, incluidas las altas posteriores al 10/10 (Lumisa Solar, Spock x3).
+Coinciden todas las comprobables salvo **Contigo Tarifa Facil: potencia 0,077301 EUR/kW dia en la web frente a
+0,077274 en el catalogo** (P1 y P2; energia 0,149900 igual). Efecto ~0,09 EUR/ano con 4,6 kW: sin impacto
+practico, pero el dato ya no es el de la web. No verificables desde aqui: potencia P1 de Nufri Solar 3P (PDF) y
+Repsol Sin Horarios (precio tras un interruptor; su gemela Repsol Bateria Virtual coincide).
+- **Falso positivo para no repetir: Chippio.** La ficha `tarifa-constante` rotula "Con impuestos 0,139" y su HTML
+  lleva `prices-taxes="0,1150"`, lo que sugiere que 0,139 lleva IVA. Es un fallo de su web: en la portada el mismo
+  script cambia 0,139 a 0,1753 con impuestos, asi que **0,139 es sin impuestos** y el catalogo esta bien. El
+  bloque con "Servicios de Ajuste incluidos" de esa web es contenido de 2023 sin retirar (tope del gas, IVA 5 %);
+  el "No incluye Servicios de Ajuste" del catalogo no se toca por eso.
+- `incluyeServiciosAjuste` contrastado donde la web lo dice: Bonpreu x3, Loviluz y Chippio (false) y Nordy (true)
+  coinciden. Endesa incluye SSAA pero su contrato permite revisar el precio si el coste de SSAA sale de una banda
+  sobre 17 EUR/MWh; no cambia el calculo.
+- **Condiciones de acceso que no constan en `requisitos` (decision del promotor, no aplicadas):** Octopus Unicaja
+  x2 ("descuentos exclusivos para clientes de Unicaja"; el precio publicado ya lleva el 5 %) y Spock x3 (solo
+  contratables a traves de la compra colectiva de Spock, hasta el 10/11/2026).
+- Precios de compensacion (`fv.exc`): ninguna web publica un valor distinto al nuestro; las que no lo muestran en
+  HTML no se pudieron contrastar por este metodo.
+- Enlaces externos de las paginas publicas (25 URLs): todos 200 en navegador real; los 403 de `curl` (GitHub,
+  Corenergetico, Curenergia) son anti-bot.
