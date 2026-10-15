@@ -261,27 +261,6 @@
       "maxConsumoAnualPorKw": 1200.0
     },
     {
-      "nombre": "Endesa Conecta",
-      "cPunta": 0.11999,
-      "cLlano": 0.11999,
-      "cValle": 0.11999,
-      "p1": 0.093666,
-      "p2": 0.093666,
-      "web": "https://www.endesa.com/es/luz-y-gas/luz/conecta-de-endesa",
-      "tipo": "1P",
-      "requisitos": "30% descuento término energía durante 12 meses incluido en el precio.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Plenitude",
       "cPunta": 0.11999,
       "cLlano": 0.11999,
@@ -425,27 +404,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Endesa 24h Online",
-      "cPunta": 0.128561,
-      "cLlano": 0.128561,
-      "cValle": 0.128561,
-      "p1": 0.093666,
-      "p2": 0.093666,
-      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz",
-      "tipo": "1P",
-      "requisitos": "25% descuento término energía durante 12 meses incluido en el precio.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Seneo Tarifa 3 Fija 24h +4000",
       "cPunta": 0.129,
       "cLlano": 0.129,
@@ -549,6 +507,27 @@
       },
       "requiereFV": false,
       "maxConsumoAnual": 5000.0
+    },
+    {
+      "nombre": "Endesa Conecta",
+      "cPunta": 0.12999,
+      "cLlano": 0.12999,
+      "cValle": 0.12999,
+      "p1": 0.093666,
+      "p2": 0.093666,
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/conecta-de-endesa",
+      "tipo": "1P",
+      "requisitos": "10% descuento término energía durante 12 meses incluido en el precio.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Bonpreu Hagámoslo Fácil",
@@ -1173,6 +1152,27 @@
         "precioBV": 0.0
       },
       "requiereFV": true
+    },
+    {
+      "nombre": "Endesa 24h Online",
+      "cPunta": 0.16699,
+      "cLlano": 0.16699,
+      "cValle": 0.16699,
+      "p1": 0.093666,
+      "p2": 0.093666,
+      "web": "https://www.endesa.com/es/luz-y-gas/luz/one/tarifa-one-luz",
+      "tipo": "1P",
+      "requisitos": "10% descuento término energía durante 12 meses incluido en el precio.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     },
     {
       "nombre": "CHC BV",
@@ -2365,5 +2365,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-15T09:24:09.612Z"
+  "updatedAt": "2026-10-15T09:55:46.264Z"
 }
