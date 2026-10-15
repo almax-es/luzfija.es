@@ -427,7 +427,7 @@ const horasPunta = esCeutaMelilla
 | Ceuta/Melilla | IPSI | — | 1% | 4% |
 
 **Normativa**:
-- Península: IVA estándar (Ley 37/1992). La rebaja temporal se desactivo el 01/06/2026. El IPC anual de electricidad de junio fue 6,0% y el definitivo de julio 8,4%: ninguno supera el umbral de mas del 15% del RDL 18/2026, asi que no se activa la reduccion ni en agosto ni en septiembre. Octubre sigue con los tipos generales: el RDL 25/2026 (BOE-A-2026-20265, 30/09/2026) no le asigna rebaja. Ese RDL solo la reactivaria en noviembre (IPC de electricidad de septiembre) o diciembre (IPC de octubre) si la variacion anual supera el 15%: tributarian al 10% los suministros de su articulo 18.1/19.1 (<= 10 kW y vulnerables severos) y el IEE bajaria al 0,5% con minimo legal durante el mes afectado (comprobado a 30/09/2026; agosto: 9,2%).
+- Península: IVA estándar (Ley 37/1992). La rebaja temporal se desactivo el 01/06/2026. El IPC anual de electricidad de junio fue 6,0% y el definitivo de julio 8,4%: ninguno supera el umbral de mas del 15% del RDL 18/2026, asi que no se activa la reduccion ni en agosto ni en septiembre. Octubre sigue con los tipos generales: el RDL 25/2026 (BOE-A-2026-20265, 30/09/2026) no le asigna rebaja. Ese RDL solo la reactivaria en noviembre (IPC de electricidad de septiembre) o diciembre (IPC de octubre) si la variacion anual supera el 15%: tributarian al 10% los suministros de su articulo 18.1/19.1 (<= 10 kW y vulnerables severos) y el IEE bajaria al 0,5% con minimo legal durante el mes afectado. Noviembre no se activa: el IPC de electricidad de septiembre fue 11,4% (INE, 14/10/2026). Diciembre depende del IPC de octubre.
 - Canarias: IGIC Ley 20/1991, reducción vivienda
 - Ceuta/Melilla: IPSI Ley 8/1991
 

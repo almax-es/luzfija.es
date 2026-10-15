@@ -329,5 +329,5 @@ Nota: ese mecanismo local de despliegue es una herramienta privada y no se distr
 - Recomendacion operativa:
 - mantener `tarifas.json` actualizado con fecha `updatedAt`,
 - usar un flag de inactividad interno para retirar temporalmente tarifas sin borrar su registro completo,
-- revisar cambios fiscales electricos: a 30/09/2026 el comparador aplica IVA 21% e IEE 5,11269632% de agosto a octubre (RDL 18/2026 sin activar; el RDL 25/2026 no preve rebaja en octubre); noviembre y diciembre dependen del IPC de electricidad de septiembre y octubre (salvaguarda del RDL 25/2026, umbral de mas del 15%);
+- revisar cambios fiscales electricos: a 30/09/2026 el comparador aplica IVA 21% e IEE 5,11269632% de agosto a octubre (RDL 18/2026 sin activar; el RDL 25/2026 no preve rebaja en octubre); noviembre tambien al tipo general (IPC de electricidad de septiembre 11,4%, INE 14/10/2026) y diciembre depende del IPC de octubre (salvaguarda del RDL 25/2026, umbral de mas del 15%);
 - validar cambios con `npm run lint` y `npm test` antes de publicar.
