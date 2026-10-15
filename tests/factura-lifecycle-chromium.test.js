@@ -181,7 +181,10 @@ suite('factura PDF en Chromium real', { retry: 2 }, () => {
         // El perfil vive en el directorio temporal del sistema. Si Windows aun lo tiene bloqueado,
         // dejarlo ahi no cambia ningun resultado; convertirlo en un fallo del suite si. Cualquier
         // otro error sigue fallando.
-        if (error?.code !== 'EPERM' && error?.code !== 'EBUSY') throw error;
+        // 15/10/2026: ENOTEMPTY es el equivalente en Linux. En el CI del PR #29 un proceso hijo de
+        // Chromium seguia escribiendo en `Default/` durante los 5 s de reintentos y el job fallo con
+        // los 3 tests en verde (`rmdir '/tmp/lf-factura-chromium-*/Default'`).
+        if (error?.code !== 'EPERM' && error?.code !== 'EBUSY' && error?.code !== 'ENOTEMPTY') throw error;
         console.warn(`[factura-lifecycle-chromium] Perfil temporal no borrado (${error.code}): ${profile}`);
       }
     }
