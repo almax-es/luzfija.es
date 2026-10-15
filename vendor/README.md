@@ -4,11 +4,11 @@ Este directorio contiene librerías de terceros alojadas localmente para garanti
 
 **Última actualización del inventario:** 07/10/2026 (textos de licencia de terceros; versiones sin cambios desde el 06/10/2026)
 
-**Última comprobación de versiones upstream:** 06/10/2026 (npm y CDN de SheetJS; además, comparación byte a byte contra los tarballs oficiales de Tesseract wrapper/core/`spa`, Chart.js y jsQR, y contra `gc.zgo.at/count.js` para GoatCounter)
+**Última comprobación de versiones upstream:** 15/10/2026 (npm y CDN de SheetJS: todas al día, sin ninguna 7.x de `tesseract.js-core` posterior a 7.0.0; `gc.zgo.at/count.js` idéntico byte a byte a `count.upstream.js`; SHA-256 de PDF.js core y worker, SheetJS, Chart.js, jsQR y `tesseract-core.wasm` iguales a los de este inventario). La anterior, del 06/10/2026, comparó además byte a byte contra los tarballs oficiales de Tesseract wrapper/core/`spa`, Chart.js y jsQR
 
-**Última revisión general documentada de vulnerabilidades:** 06/10/2026 (GitHub Advisory Database por paquete npm y versión exacta: ningún advisory publicado afecta a las versiones vendorizadas; todos los existentes son de rangos anteriores). Revisiones anteriores: 24/09/2026 y, completa, 17/08/2026 — comprobación de GitHub Advisory Database para las versiones exactas vendorizadas cuando existe paquete versionado, más revisión del repositorio upstream para GoatCounter. PDF.js se volvió a contrastar específicamente con GitHub Advisory Database el 29/08/2026 y el 06/10/2026 al actualizarlo. Es una comprobación fechada, no una garantía permanente.
+**Última revisión general documentada de vulnerabilidades:** 15/10/2026 (endpoint `security/advisories/bulk` del registro npm, que sirve los datos de GitHub Advisory Database, con las versiones exactas `pdfjs-dist@6.4.299`, `chart.js@4.5.1`, `tesseract.js@7.0.0`, `tesseract.js-core@7.0.0`, `jsqr@1.4.0` y `xlsx@0.20.3`: cero advisories. Control positivo en la misma consulta: `xlsx@0.18.5` devuelve GHSA-4r6h-8v6p-xvw6 y GHSA-5pgg-2g8v-p4x9, así que una respuesta vacía no es un fallo del método). Revisiones anteriores: 06/10/2026, 24/09/2026 y, completa, 17/08/2026 — comprobación de GitHub Advisory Database para las versiones exactas vendorizadas cuando existe paquete versionado, más revisión del repositorio upstream para GoatCounter. PDF.js se volvió a contrastar específicamente con GitHub Advisory Database el 29/08/2026 y el 06/10/2026 al actualizarlo. Es una comprobación fechada, no una garantía permanente.
 
-### Estado frente a upstream (06/10/2026)
+### Estado frente a upstream (15/10/2026)
 
 | Librería | Vendorizada | Upstream | Estado |
 |---|---|---|---|
