@@ -7272,3 +7272,11 @@ exactitud:** la guia de P1/P2/P3 daba los horarios sin decir que son los de la P
 anade los de Ceuta y Melilla (una hora mas tarde: P1 11-15 y 19-23, P2 8-11, 15-19 y 23-24), contrastados con
 `getPeriodoHorarioCSV`. Las guias no usan CSP con hashes, asi que el cambio de `dateModified` no obliga a
 recalcular nada. Medir en Search Console a partir de noviembre.
+
+**6. Portada y observatorio (mismo export).** Dos familias de busquedas cerca de la primera pagina que la portada
+no cubria: "comparador de precios de luz" (~1.640 impresiones, posiciones 9-15) y "comparador de companias
+electricas" (~930, posiciones 17-25). El titulo de la portada NO se toca (posicion 5-9 en "comparador tarifas
+luz", la busqueda principal); cambian la descripcion ("precios de luz de las principales companias") y una frase
+del parrafo de "Como funciona el comparador" que Google usa como snippet. Observatorio: descripcion con la fuente
+oficial ("REE (ESIOS)") para "esios pvpc" (posicion 8) y "pvpc historico" (11); su CSP fija el hash del JSON-LD,
+recalculado. Las busquedas de simulador/calculadora (21-31) se dejan hasta medir el cambio de la calculadora.
