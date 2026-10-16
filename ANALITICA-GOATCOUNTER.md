@@ -1,6 +1,6 @@
 # Analitica GoatCounter
 
-Ultima actualizacion: 2026-10-06
+Ultima actualizacion: 2026-10-16
 
 Este documento define como se mide el uso de LuzFija.es con GoatCounter. La regla principal es simple: la analitica debe servir para entender producto y errores, no para identificar personas ni reconstruir datos privados del usuario.
 
@@ -125,6 +125,7 @@ Ejemplos:
 - `csv-import-preview/home/csv`
 - `csv-import-aplicado/home/consumos-excedentes/pvpc-periodo`
 - `csv-import-error/home/xlsx/valor-invalido` (tercer segmento: codigo de error normalizado de `csvErrorCodeForTracking`, nunca el mensaje literal)
+- `csv-import-formato/home/csv/texto/pyc/c5/dmy/t-fe-ho-co-kw` (solo tras un error de formato; firma de categorias cerradas, ver 6.5.3)
 - `compartir-abierto/home`
 - `url-compartida/home/minimo` (solo tras compartir o copiar con éxito)
 - `url-compartida/home/consumo`, `url-compartida/home/privado` o `url-compartida/home/completo` según el alcance confirmado
@@ -149,6 +150,7 @@ Ejemplos:
 - `csv-import-completado/solar/csv/con-excedentes`
 - `csv-import-completado/solar/xlsx/sin-excedentes`
 - `csv-import-error/solar/csv/cabecera-no-detectada` (tercer segmento: codigo de error normalizado)
+- `csv-import-formato/solar/xls/html/na/na/na/sin-tokens` (solo tras un error de formato, ver 6.5.3)
 - `compartir-abierto/solar`
 - `url-compartida/solar/minimo` (solo tras compartir o copiar con éxito)
 - `url-compartida/solar/consumo`, `url-compartida/solar/privado` o `url-compartida/solar/completo` según el alcance confirmado
@@ -179,6 +181,8 @@ Ejemplos:
 - `csv-import-error/estadisticas/xlsx/columna-solar` (tercer segmento: codigo de error
   normalizado, igual que home y solar. Hasta el 25/07/2026 este emisor NO lo incluia y en
   analitica no se podia saber por que fallaba una importacion en el observatorio)
+- `csv-import-formato/estadisticas/csv/texto/coma/c3/iso/sin-tokens` (solo tras un error de
+  formato, ver 6.5.3)
 
 El CSV del observatorio solo emite extension y estado. No emite energia, precios, importes ni nombres de archivo.
 
@@ -557,6 +561,48 @@ mal detectado. Ahora:
 Los slugs nuevos no llevan sello de build, igual que el resto de errores CSV.
 `isLegacyErrorPath()` (`js/config.js`) no afecta a `csv-import-error`: solo filtra
 `error-javascript`, `error-script-load` y `error-promise`.
+
+### 6.5.3 Firma de formato de ficheros no reconocidos (`csv-import-formato`)
+
+Añadida el 16/10/2026. El export de GoatCounter del 16/07 al 16/10/2026 mostraba unas 370
+importaciones fallidas (entre el 15 % y el 21 % de las iniciadas, segun el mes), de ellas 111
+`cabecera-no-detectada`. El codigo dice QUE paso, pero no con QUE formato: sin el fichero no se
+puede saber que distribuidora o exportacion falta por soportar, y la web no recibe ficheros.
+
+Tras un `csv-import-error` cuyo codigo sea de FORMATO (`cabecera-no-detectada`, `cabecera`,
+`filas-invalidas`, `columnas`, `formato-no-soportado` o `archivo-vacio`; lista en
+`shouldTrackFormatSignature`), los tres importadores (home, solar y observatorio) emiten un
+segundo evento:
+
+```text
+csv-import-formato/<contexto>/<extension>/<tipo>/<separador>/<columnas>/<fecha>/<tokens>
+```
+
+`csvFormatSignatureFromFile()` lee solo los primeros 64 KiB del fichero, en local, y
+`csvFormatSignatureForTracking()` (`js/lf-csv-utils.js`, funcion pura) devuelve cinco segmentos,
+TODOS de listas cerradas:
+
+- **tipo**: `texto`, `texto-no-utf8`, `html` (Excel exportado como HTML), `xml`, `json`, `pdf`,
+  `zip` (XLSX real), `ole` (XLS binario antiguo), `utf16`, `binario` o `vacio`. Si no es texto, los
+  tres siguientes valen `na` y no se analiza nada mas.
+- **separador**: `pyc` (`;`), `coma`, `tab`, `barra` (`|`) o `ninguno`.
+- **columnas**: tramo del ancho mas frecuente en las primeras 30 lineas: `c1`…`c6`, `c7-10`,
+  `c11-23`, `c24-30` (matrices horarias) o `c31-mas`.
+- **fecha**: forma dominante de las fechas: `iso`, `dmy`, `serial` (numero de serie de Excel) o
+  `sin-fecha`.
+- **tokens**: `t-` y las abreviaturas, en orden fijo, de las palabras clave de una lista cerrada
+  que aparecen en alguna celda de las primeras 30 lineas (`fe` fecha, `ho` hora, `co` consumo,
+  `kw` kWh, `wh` Wh, `ae`/`as` activa entrante/saliente, `cu` CUPS, `pe` periodo, `en` energia,
+  `ex` excedente/vertido, `ge` generacion, `ra` reactiva, `mt` metodo real/estimado, `le`
+  lectura, `po` potencia/maximetro, `me` mes, `pn` P1-P6 y `hm` matriz H01..H24), o
+  `sin-tokens`.
+
+Garantia de privacidad: no viaja ningun texto, numero, nombre de columna ni valor del fichero.
+Una cabecera desconocida solo se manifiesta como AUSENCIA de tokens; `cu` dice que existe una
+columna CUPS, nunca su valor. Cardinalidad acotada por construccion. No se sella con build, igual
+que el resto de `csv-import-*`: el eje es el fichero, no la version del codigo. Lo cubre
+`tests/csv-format-signature.test.js` (vocabulario cerrado, ficheros con CUPS, nombres, emails y
+direcciones, deteccion de HTML/XLSX/XLS/PDF/UTF-16 y el importador real de la home).
 
 Por que el detalle va en el path y no solo en el title: GoatCounter agrupa por
 `path` y **solo sustituye el `title` de una ruta cuando el titulo nuevo se repite

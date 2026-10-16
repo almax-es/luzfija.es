@@ -34,8 +34,21 @@
     assertRelevantXlsxFormulasResolved,
     csvErrorCodeForTracking,
     safeFileExtensionForTracking,
+    shouldTrackFormatSignature,
+    csvFormatSignatureFromFile,
     validateCsvSpanFromRecords
   } = window.LF.csvUtils || {};
+
+  // Firma de formato de los ficheros no reconocidos: solo categorias cerradas, nunca contenido
+  // (ver csvFormatSignatureForTracking en lf-csv-utils.js y ANALITICA-GOATCOUNTER.md 6.5.3).
+  function trackCsvFormatSignature(file, errorCode) {
+    if (typeof shouldTrackFormatSignature !== 'function' || !shouldTrackFormatSignature(errorCode)) return;
+    if (typeof csvFormatSignatureFromFile !== 'function') return;
+    csvFormatSignatureFromFile(file).then((signature) => {
+      if (!signature) return;
+      trackCsvEvent('csv-import-formato', ['home', trackSafeExt(file.name), ...signature], 'Formato de CSV/XLSX no reconocido en home');
+    }).catch(() => {});
+  }
 
   // En el comparador de la home los excedentes son opcionales: un fichero de solo consumo
   // es perfectamente valido. Una columna solar sin reconocer se avisa, nunca bloquea.
@@ -958,6 +971,7 @@
             const errorCode = typeof csvErrorCodeForTracking === 'function'
               ? csvErrorCodeForTracking(resultado.error) : 'otro';
             trackCsvEvent('csv-import-error', ['home', trackSafeExt(file.name), errorCode], 'Error al procesar CSV/XLSX en home');
+            trackCsvFormatSignature(file, errorCode);
             toast(resultado.error || 'Error al procesar el archivo', 'err');
             btnCSV.disabled = false;
             btnCSV.innerHTML = '<span>📊</span><span class="btn-text">Importar CSV</span>';
@@ -974,6 +988,7 @@
           const errorCode = typeof csvErrorCodeForTracking === 'function'
             ? csvErrorCodeForTracking(error && error.message) : 'otro';
           trackCsvEvent('csv-import-error', ['home', trackSafeExt(file.name), errorCode], 'Error al procesar CSV/XLSX en home');
+          trackCsvFormatSignature(file, errorCode);
           toast(error.message || 'Error al procesar el archivo', 'err');
           btnCSV.disabled = false;
           btnCSV.innerHTML = '<span>📊</span><span class="btn-text">Importar CSV</span>';

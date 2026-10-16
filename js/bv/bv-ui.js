@@ -52,6 +52,18 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (_) {}
   }
 
+  // Firma de formato de los ficheros no reconocidos: solo categorias cerradas, nunca contenido
+  // (ver csvFormatSignatureForTracking en lf-csv-utils.js y ANALITICA-GOATCOUNTER.md 6.5.3).
+  function trackBvCsvFormatSignature(file, extension, errorCode) {
+    const csvUtils = window.LF?.csvUtils;
+    if (!csvUtils?.shouldTrackFormatSignature?.(errorCode)) return;
+    if (typeof csvUtils.csvFormatSignatureFromFile !== 'function') return;
+    csvUtils.csvFormatSignatureFromFile(file).then((signature) => {
+      if (!signature) return;
+      trackBvEvent('csv-import-formato', ['solar', extension, ...signature], 'Formato de CSV/XLSX no reconocido en solar');
+    }).catch(() => {});
+  }
+
   function markSolarUnavailable(detail, title) {
     const message = 'La página no terminó de cargarse. Recárgala para usar el simulador.';
     showToast(message, 'err');
@@ -2735,6 +2747,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // el mensaje (puede interpolar contenido del archivo del usuario).
         const errorCode = window.LF?.csvUtils?.csvErrorCodeForTracking?.(result.error) || 'otro';
         trackBvEvent('csv-import-error', ['solar', extension, errorCode], 'Error al procesar CSV/XLSX en solar');
+        trackBvCsvFormatSignature(file, extension, errorCode);
         // La seleccion fallida nunca se publico. Vaciar el input real permite volver a elegir el
         // mismo fichero (los navegadores no garantizan `change` si el valor sigue siendo identico)
         // sin tocar el fichero/cache anterior que continua siendo el contexto activo.
@@ -2748,6 +2761,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const extension = window.LF?.csvUtils?.safeFileExtensionForTracking?.(file.name) || 'desconocido';
       const errorCode = window.LF?.csvUtils?.csvErrorCodeForTracking?.(e && e.message) || 'otro';
       trackBvEvent('csv-import-error', ['solar', extension, errorCode], 'Error al procesar CSV/XLSX en solar');
+      trackBvCsvFormatSignature(file, extension, errorCode);
       showToast('Error al procesar el archivo CSV', 'err');
     }
   }

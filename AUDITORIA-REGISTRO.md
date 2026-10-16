@@ -7208,3 +7208,39 @@ Repsol Sin Horarios (precio tras un interruptor; su gemela Repsol Bateria Virtua
   HTML no se pudieron contrastar por este metodo.
 - Enlaces externos de las paginas publicas (25 URLs): todos 200 en navegador real; los 403 de `curl` (GitHub,
   Corenergetico, Curenergia) son anti-bot.
+
+<a id="telemetria-errores-produccion-ronda-83-16-10-2026"></a>
+### Errores Reales De Produccion En La Telemetria (Ronda 83, 16/10/2026)
+
+Auditoria propia de Claude sobre el export de GoatCounter del 16/07 al 16/10/2026 (1.753 paths de error
+distintos) y el de Search Console, a peticion del promotor.
+
+**1. Importacion CSV/XLSX: CORREGIDO el punto ciego, no el parser.** Entre el 15 % y el 21 % de las importaciones
+iniciadas acaban en `csv-import-error` (julio 19 %, agosto 21 %, septiembre 17 %, octubre 15 %). Los codigos mas
+frecuentes son `cabecera-no-detectada` (111), `rango-fechas` (54) y `periodo-duplicado` (52). El codigo dice que
+paso, pero no con que formato, y la web no recibe ficheros: no habia forma de saber que exportacion falta por
+soportar. Nuevo evento `csv-import-formato/*` tras los errores de FORMATO, con una firma de categorias cerradas
+(tipo de contenido, separador, tramo de columnas, formato de fecha y tokens de una lista fija) calculada en local
+sobre los primeros 64 KiB. Detalle y garantias en `ANALITICA-GOATCOUNTER.md` 6.5.3, politica de privacidad
+actualizada y `tests/csv-format-signature.test.js`. Primera revision util: cuando se acumulen unas semanas de
+`csv-import-formato`, agrupar por firma y anadir soporte a las mas repetidas. Trampa encontrada al escribirla:
+`input instanceof Uint8Array` falla con buffers de otro realm (en Vitest, los de `TextEncoder`) y trataba el
+fichero como vacio; se usa `ArrayBuffer.isView`.
+
+**2. Falso positivo para no repetir: "PDF.js provoca las violaciones CSP de `eval` y de fuentes `data:`; anadir
+`isEvalSupported: false` y `disableFontFace: true` a `getDocument`".** Refutado con evidencia, sin tocar
+`js/factura.js`:
+- PDF.js 6.4.299 (el vendorizado) no contiene `isEvalSupported` ni `new Function`; la opcion seria un no-op.
+- PDF.js carga las fuentes del PDF con `FontFace` desde binario, que no pasa por `font-src`. Medido en Chromium
+  con la CSP exacta de produccion: una factura generada con 3 fuentes TrueType incrustadas, renderizada a canvas
+  (la ruta del QR y del OCR) con y sin `disableFontFace`: **0 violaciones** en ambos casos y mismo texto extraido.
+- Las violaciones `font-src data:` aparecen tambien en paginas sin PDF (`pvpc-vs-fija`, `calcular-factura`), y las
+  274 de `script-src eval` desde un `blob` son una unica sesion de Firefox 156 (21/09): extensiones (gestores de
+  userscripts, inyectores de fuentes). Solo se reabre con una violacion reproducida durante el procesado de un PDF.
+
+**3. Sin accion (comprobado):** violaciones CSP cross-origin de extensiones (`gstatic`, `cloudflare`,
+`simplycodes`, el adware `safesearchinc`); `error-script-load/count` (bloqueadores de GoatCounter, por eso las
+visitas reales son mas que las contadas); `e.target.closest` de `bv-ui.js` (56 en julio, cero desde el 21/07);
+timeouts de `tarifas.json` en Safari 27 (el reintento y la copia de la sesion los recuperan, "Carga de tarifas
+recuperada tras reintento"); fallos sueltos de fuentes y CSS y un HTTP 500 transitorio de GitHub Pages en
+`data/surplus/*/2025-03.json`, que existe.

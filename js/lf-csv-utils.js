@@ -932,6 +932,185 @@
     return ['csv', 'xlsx', 'xls'].includes(ext) ? ext : 'desconocido';
   }
 
+  // ===== FIRMA DE FORMATO PARA ANALITICA =====
+  // Cuando un fichero no se reconoce, `csv-import-error/*/cabecera-no-detectada` dice QUE paso
+  // pero no con QUE formato, y sin el fichero no hay forma de anadir soporte. La firma describe
+  // la forma del fichero solo con categorias de listas cerradas: tipo de contenido, separador,
+  // tramo de columnas, formato de fecha y que palabras clave de una lista fija aparecen en las
+  // primeras filas. Nunca viaja texto, numeros, nombres de columna ni valores del fichero: una
+  // cabecera desconocida solo se manifiesta como ausencia de tokens.
+  const FORMAT_SIGNATURE_ERROR_CODES = new Set([
+    'cabecera-no-detectada', 'cabecera', 'filas-invalidas', 'columnas',
+    'formato-no-soportado', 'archivo-vacio'
+  ]);
+  const FORMAT_SIGNATURE_MAX_BYTES = 65536;
+  const FORMAT_SIGNATURE_MAX_LINES = 30;
+  // Orden fijo: el segmento de tokens se construye siempre en este orden.
+  const FORMAT_SIGNATURE_TOKENS = [
+    ['fe', (c) => /(^|_)(fecha|date)(_|$)/.test(c) || c === 'dia' || c === 'fechahora'],
+    ['ho', (c) => /(^|_)(hora|hour|horas)(_|$)/.test(c) || c === 'fechahora'],
+    ['co', (c) => c.includes('consum')],
+    ['kw', (c) => c.includes('kwh')],
+    ['wh', (c) => /(^|_)wh(_|$)/.test(c)],
+    ['ae', (c) => /^(ae|ai)(_|$)/.test(c)],
+    ['as', (c) => /^as(_|$)/.test(c)],
+    ['cu', (c) => c.includes('cups')],
+    ['pe', (c) => c.includes('periodo') || c === 'period'],
+    ['en', (c) => c.includes('energia') || c.includes('energy')],
+    ['ex', (c) => /excedent|vertid|vertido|export|inyecc|ehex/.test(c)],
+    ['ge', (c) => /generac|generad|produc|solar/.test(c)],
+    ['ra', (c) => c.includes('reactiva')],
+    ['mt', (c) => /metodo|real_estimad|estimad/.test(c)],
+    ['le', (c) => c.includes('lectura')],
+    ['po', (c) => c.includes('potencia') || c.includes('maximetro')],
+    ['me', (c) => c === 'mes' || c === 'month' || c.startsWith('mes_')],
+    ['pn', (c) => /^p[1-6]$/.test(c)]
+  ];
+  const FORMAT_SIGNATURE_SEPARATORS = [[';', 'pyc'], [',', 'coma'], ['\t', 'tab'], ['|', 'barra']];
+
+  function shouldTrackFormatSignature(errorCode) {
+    return FORMAT_SIGNATURE_ERROR_CODES.has(String(errorCode || ''));
+  }
+
+  function formatSignatureContentKind(bytes, text) {
+    if (!bytes.length) return 'vacio';
+    const b = bytes;
+    if (b[0] === 0x25 && b[1] === 0x50 && b[2] === 0x44 && b[3] === 0x46) return 'pdf';
+    if (b[0] === 0x50 && b[1] === 0x4b && b[2] === 0x03 && b[3] === 0x04) return 'zip';
+    if (b[0] === 0xd0 && b[1] === 0xcf && b[2] === 0x11 && b[3] === 0xe0) return 'ole';
+    if ((b[0] === 0xff && b[1] === 0xfe) || (b[0] === 0xfe && b[1] === 0xff)) return 'utf16';
+    let zeros = 0;
+    for (let i = 0; i < b.length; i++) if (b[i] === 0) zeros++;
+    if (zeros / b.length > 0.1) return 'utf16';
+    const head = text.replace(/^\uFEFF/, '').trimStart();
+    if (head.startsWith('<')) return /^<(!doctype\s+html|html|table|meta|head|body)/i.test(head) ? 'html' : 'xml';
+    if (head.startsWith('{') || head.startsWith('[')) return 'json';
+    let control = 0;
+    for (let i = 0; i < text.length; i++) {
+      const code = text.charCodeAt(i);
+      if (code < 32 && code !== 9 && code !== 10 && code !== 13) control++;
+    }
+    if (text.length && control / text.length > 0.05) return 'binario';
+    const replacements = (text.match(/\uFFFD/g) || []).length;
+    return replacements > 0 ? 'texto-no-utf8' : 'texto';
+  }
+
+  function formatSignatureColumnsBucket(count) {
+    if (count <= 6) return 'c' + Math.max(1, count);
+    if (count <= 10) return 'c7-10';
+    if (count <= 23) return 'c11-23';
+    if (count <= 30) return 'c24-30';
+    return 'c31-mas';
+  }
+
+  function formatSignatureDateKind(cells) {
+    let iso = 0, dmy = 0, serial = 0;
+    cells.forEach((raw) => {
+      const v = stripOuterQuotes(raw).trim();
+      if (/^\d{4}[-/.]\d{1,2}[-/.]\d{1,2}/.test(v)) iso++;
+      else if (/^\d{1,2}[-/.]\d{1,2}[-/.]\d{2,4}/.test(v)) dmy++;
+      else if (/^\d{5}(\.\d+)?$/.test(v) && Number(v) > 30000 && Number(v) < 80000) serial++;
+    });
+    const best = Math.max(iso, dmy, serial);
+    if (!best) return 'sin-fecha';
+    if (best === iso) return 'iso';
+    if (best === dmy) return 'dmy';
+    return 'serial';
+  }
+
+  // Funcion pura: recibe los primeros bytes del fichero y devuelve segmentos de path, todos
+  // de listas cerradas. Lo cubre tests/csv-format-signature.test.js.
+  function csvFormatSignatureForTracking(input) {
+    // Sin instanceof: un Uint8Array/ArrayBuffer de otro realm (iframe, worker, TextEncoder de
+    // otro entorno) no pasa `instanceof` y se habria tratado como fichero vacio.
+    let bytes;
+    if (ArrayBuffer.isView(input)) bytes = new Uint8Array(input.buffer, input.byteOffset, input.byteLength);
+    else if (Object.prototype.toString.call(input) === '[object ArrayBuffer]') bytes = new Uint8Array(input);
+    else bytes = new Uint8Array(0);
+    bytes = bytes.subarray(0, FORMAT_SIGNATURE_MAX_BYTES);
+
+    let text;
+    try {
+      text = new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+    } catch (_) {
+      text = '';
+    }
+    const kind = formatSignatureContentKind(bytes, text);
+    if (!['texto', 'texto-no-utf8'].includes(kind)) {
+      return [kind, 'na', 'na', 'na', 'sin-tokens'];
+    }
+
+    // Una ultima linea cortada por el limite de bytes no se analiza.
+    const rawLines = text.split(/\r?\n/);
+    if (bytes.length >= FORMAT_SIGNATURE_MAX_BYTES) rawLines.pop();
+    const lines = rawLines.filter((line) => stripBomAndTrim(line)).slice(0, FORMAT_SIGNATURE_MAX_LINES);
+    if (!lines.length) return ['vacio', 'na', 'na', 'na', 'sin-tokens'];
+
+    let sepChar = null;
+    let sepSlug = 'ninguno';
+    let bestLinesWithSep = 0;
+    FORMAT_SIGNATURE_SEPARATORS.forEach(([char, slug]) => {
+      const linesWithSep = lines.filter((line) => line.includes(char)).length;
+      if (linesWithSep > bestLinesWithSep) {
+        bestLinesWithSep = linesWithSep;
+        sepChar = char;
+        sepSlug = slug;
+      }
+    });
+
+    const rows = lines.map((line) => (sepChar ? splitCSVLine(line, sepChar) : [line]));
+    const widthCounts = new Map();
+    rows.forEach((row) => widthCounts.set(row.length, (widthCounts.get(row.length) || 0) + 1));
+    const modeWidth = [...widthCounts.entries()].sort((a, b) => b[1] - a[1] || b[0] - a[0])[0][0];
+
+    const cellsNorm = [];
+    const allCells = [];
+    rows.forEach((row) => row.forEach((cell) => {
+      allCells.push(cell);
+      const norm = normalizeHeaderName(cell);
+      if (norm) cellsNorm.push(norm);
+    }));
+
+    const found = FORMAT_SIGNATURE_TOKENS
+      .filter(([, test]) => cellsNorm.some((cell) => test(cell)))
+      .map(([slug]) => slug);
+    // Matriz horaria (H01..H24): se marca aparte en vez de como 24 tokens sueltos.
+    const hourCols = new Set(cellsNorm.filter((c) => /^h_?0?([1-9]|1\d|2[0-5])$/.test(c)));
+    if (hourCols.size >= 12) found.push('hm');
+
+    return [
+      kind,
+      sepSlug,
+      formatSignatureColumnsBucket(modeWidth),
+      formatSignatureDateKind(allCells),
+      found.length ? 't-' + found.join('-') : 'sin-tokens'
+    ];
+  }
+
+  // Lee solo el principio del fichero (64 KiB) y devuelve la firma, o null si no se puede leer.
+  async function csvFormatSignatureFromFile(file) {
+    try {
+      if (!file || typeof file.slice !== 'function') return null;
+      const blob = file.slice(0, FORMAT_SIGNATURE_MAX_BYTES);
+      let buffer;
+      if (typeof blob.arrayBuffer === 'function') {
+        buffer = await blob.arrayBuffer();
+      } else if (typeof FileReader === 'function') {
+        buffer = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = () => reject(reader.error);
+          reader.readAsArrayBuffer(blob);
+        });
+      } else {
+        return null;
+      }
+      return csvFormatSignatureForTracking(new Uint8Array(buffer));
+    } catch (_) {
+      return null;
+    }
+  }
+
   // Celda sin dato: vacia o con uno de los marcadores literales que usan algunas
   // distribuidoras (UFD escribe "Sin dato" en vez de dejarla vacia).
   function isNoDataCellValue(value) {
@@ -3256,6 +3435,9 @@
     xlsxRowsFromSheet,
     csvErrorCodeForTracking,
     safeFileExtensionForTracking,
+    shouldTrackFormatSignature,
+    csvFormatSignatureForTracking,
+    csvFormatSignatureFromFile,
     detectHeaderRow,
 
     // Parsing CSV

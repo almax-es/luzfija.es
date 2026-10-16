@@ -1,6 +1,6 @@
 # Guia Para Auditorias IA De LuzFija.es
 
-Ultima actualizacion: 2026-10-15
+Ultima actualizacion: 2026-10-16
 
 Este documento existe para reducir falsos positivos en auditorias repetidas. No sustituye a
 `AGENTS.md` ni a `CAPACIDADES-WEB.md`; los complementa con criterios de clasificacion.
@@ -169,6 +169,7 @@ decision esta en el registro enlazado desde la ultima columna y desde el indice 
 | Excedentes 1739 frente al spot de REE (ronda 69) | Contrastado 09/10/2026 contra la serie spot de REE (la API publica no trae el 1739), por instante, en 2.400 horas y las cinco zonas, incluidos los dos cambios de hora. Sin desfase horario (error 10-20 veces menor que con +-1 h) y las zonas identicas a la Peninsula. El valor exacto (spot mas ajustes) solo existe en ESIOS: sin contraste externo posible. [Excedentes 1739 Frente Al Spot De REE (Ronda 69)](AUDITORIA-REGISTRO.md#excedentes-1739-frente-spot-ronda-69-09-10-2026) |
 | Oraculo independiente del simulador solar en la web real (ronda 70) | Auditado 09/10/2026 con Chrome real: los 9 ficheros reales del banco, 57 tarifas de precio fijo en Peninsula, Canarias y Ceuta/Melilla, excedentes con BV, edicion manual y enlace `?bv=` cuadran con un oraculo propio (maximo 0,10 EUR/ano, redondeo). **1 bug CORREGIDO**: los XLSX fecha-hora con marcas de hora final se leian como hora inicial (mes fantasma de 1 dia, 31 dias en vez de 30 en la home, excedentes indexados +23 %). Gate: 7 ficheros identicos a produccion, barrido de 36 meses en Peninsula y Canarias (hora final == hora inicial, que destapo y corrigio el cambio de hora de primavera), independencia del orden de las filas (corregida en la revision a fondo) y Ceuta/Melilla por la forma del fichero (alli la columna PERIODO no distingue), WebKit, suite y lint en verde con Node 22, regresiones validadas por mutacion | [Oraculo Independiente Del Simulador Solar En La Web Real (Ronda 70)](AUDITORIA-REGISTRO.md#oraculo-solar-web-ronda-70-09-10-2026) |
 | Historico PVPC completo y re-verificacion del catalogo (ronda 82) | 15/10/2026. Peninsula y Ceuta de 2021-06 a 2025-09 frente a REE por instante (37.992 horas cada una) y 13 meses de Canarias: 0 diferencias; Baleares, Canarias y Melilla por igualdad local por instante. Con la ronda 65, `data/pvpc` queda verificado entero. SSAA sigue sin fuente externa accesible. Re-verificacion de las 114 tarifas contra su web: solo Contigo Tarifa Facil tiene la potencia desfasada (0,077301 en la web, 0,077274 en el catalogo). Chippio 0,139 es SIN impuestos pese al rotulo de su ficha (falso positivo documentado). Condiciones de acceso sin `requisitos` (Octopus Unicaja, Spock) quedan a decision del promotor | [Historico PVPC Completo Frente A REE Y Re-Verificacion Del Catalogo (Ronda 82)](AUDITORIA-REGISTRO.md#historico-pvpc-ree-y-recheck-catalogo-ronda-82-15-10-2026) |
+| Errores reales de produccion en la telemetria (ronda 83) | 16/10/2026, export de GoatCounter de 3 meses. CORREGIDO el punto ciego de la importacion CSV/XLSX (15-21 % de importaciones fallidas sin saber con que formato): nuevo `csv-import-formato/*` con firma de categorias cerradas. Falso positivo documentado: PDF.js 6.4.299 no provoca las violaciones CSP de `eval` ni de fuentes `data:` (0 violaciones medidas en Chromium con la CSP de produccion); son extensiones. Sin accion: extensiones, bloqueadores, timeouts recuperados de `tarifas.json` | [Errores Reales De Produccion En La Telemetria (Ronda 83)](AUDITORIA-REGISTRO.md#telemetria-errores-produccion-ronda-83-16-10-2026) |
 
 ## Directorio Del Registro De Auditorias
 
@@ -335,6 +336,7 @@ estes auditando; no hace falta leerlo entero.
 - [Autocalculo Con Datos De OCR (Ronda 81, 10/10/2026)](AUDITORIA-REGISTRO.md#ocr-autocalculo-ronda-81-10-10-2026)
 - [Naturgy Por Uso: Tabla De Potencia Equivocada (10/10/2026)](AUDITORIA-REGISTRO.md#naturgy-por-uso-precio-10-10-2026)
 - [Historico PVPC Completo Frente A REE Y Re-Verificacion Del Catalogo (Ronda 82, 15/10/2026)](AUDITORIA-REGISTRO.md#historico-pvpc-ree-y-recheck-catalogo-ronda-82-15-10-2026)
+- [Errores Reales De Produccion En La Telemetria (Ronda 83, 16/10/2026)](AUDITORIA-REGISTRO.md#telemetria-errores-produccion-ronda-83-16-10-2026)
 <!-- REGISTRO-INDICE:FIN -->
 
 ## Hallazgos Que Si Serian Relevantes

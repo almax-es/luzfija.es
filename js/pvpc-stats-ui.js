@@ -140,6 +140,18 @@
     } catch (_) {}
   }
 
+  // Firma de formato de los ficheros no reconocidos: solo categorias cerradas, nunca contenido
+  // (ver csvFormatSignatureForTracking en lf-csv-utils.js y ANALITICA-GOATCOUNTER.md 6.5.3).
+  function trackStatsCsvFormatSignature(file, extension, errorCode) {
+    const csvUtils = window.LF?.csvUtils;
+    if (!csvUtils?.shouldTrackFormatSignature?.(errorCode)) return;
+    if (typeof csvUtils.csvFormatSignatureFromFile !== 'function') return;
+    csvUtils.csvFormatSignatureFromFile(file).then((signature) => {
+      if (!signature) return;
+      trackStatsEvent('csv-import-formato', ['estadisticas', extension, ...signature], 'Formato de CSV/XLSX no reconocido en observatorio');
+    }).catch(() => {});
+  }
+
   function getCssVar(name, fallback = '') {
     try {
       return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback;
@@ -1221,6 +1233,7 @@
           // lista cerrada: nunca viaja texto del archivo del usuario.
           const errorCode = window.LF?.csvUtils?.csvErrorCodeForTracking?.(err?.message || '') || 'otro';
           trackStatsEvent('csv-import-error', ['estadisticas', extension, errorCode], 'Error importando CSV/XLSX en observatorio');
+          trackStatsCsvFormatSignature(file, extension, errorCode);
           // La selección nueva sustituye conceptualmente a la anterior aunque falle. Si se
           // limpia solo la UI, un cambio posterior de año/zona vuelve a ejecutar
           // refreshCsvStats() y resucita silenciosamente los records del archivo previo.
