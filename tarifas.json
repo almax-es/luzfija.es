@@ -885,26 +885,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Holaluz Clásica",
-      "cPunta": 0.149,
-      "cLlano": 0.149,
-      "cValle": 0.149,
-      "p1": 0.12,
-      "p2": 0.12,
-      "web": "https://www.holaluz.com/luz/tarifas-luz/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Contigo Tarifa Fácil",
       "cPunta": 0.1499,
       "cLlano": 0.1499,
@@ -1003,6 +983,26 @@
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
         "precioBV": 4.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Holaluz Clásica",
+      "cPunta": 0.154,
+      "cLlano": 0.154,
+      "cValle": 0.154,
+      "p1": 0.12,
+      "p2": 0.12,
+      "web": "https://www.holaluz.com/luz/tarifas-luz/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
       },
       "requiereFV": false
     },
@@ -2016,26 +2016,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Holaluz 3P",
-      "cPunta": 0.232,
-      "cLlano": 0.153,
-      "cValle": 0.134,
-      "p1": 0.12,
-      "p2": 0.12,
-      "web": "https://www.holaluz.com/luz/tarifas-luz/",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Octopus Solar 3P",
       "cPunta": 0.233,
       "cLlano": 0.177,
@@ -2134,6 +2114,26 @@
         "precioBV": 0.0
       },
       "requiereFV": true
+    },
+    {
+      "nombre": "Holaluz 3P",
+      "cPunta": 0.248,
+      "cLlano": 0.17,
+      "cValle": 0.146,
+      "p1": 0.12,
+      "p2": 0.12,
+      "web": "https://www.holaluz.com/luz/tarifas-luz/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     },
     {
       "nombre": "CHC VE 3P",
@@ -2321,5 +2321,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-16T08:26:10.921Z"
+  "updatedAt": "2026-10-16T12:14:44.281Z"
 }
