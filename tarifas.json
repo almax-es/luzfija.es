@@ -320,26 +320,6 @@
       "maxConsumoAnual": 10000.0
     },
     {
-      "nombre": "Octopus Unicaja",
-      "cPunta": 0.123,
-      "cLlano": 0.123,
-      "cValle": 0.123,
-      "p1": 0.12,
-      "p2": 0.12,
-      "web": "https://octopusenergy.es/unicaja#tarifas",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.01,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Fenie Fijo Energético",
       "cPunta": 0.126926,
       "cLlano": 0.126926,
@@ -397,26 +377,6 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Octopus Relax",
-      "cPunta": 0.129,
-      "cLlano": 0.129,
-      "cValle": 0.129,
-      "p1": 0.12,
-      "p2": 0.12,
-      "web": "https://octopusenergy.es/precios",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.01,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -503,6 +463,26 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Octopus Unicaja",
+      "cPunta": 0.137,
+      "cLlano": 0.137,
+      "cValle": 0.137,
+      "p1": 0.12,
+      "p2": 0.12,
+      "web": "https://octopusenergy.es/unicaja#tarifas",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.01,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -669,6 +649,26 @@
         "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Octopus Relax",
+      "cPunta": 0.144,
+      "cLlano": 0.144,
+      "cValle": 0.144,
+      "p1": 0.12,
+      "p2": 0.12,
+      "web": "https://octopusenergy.es/precios",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.01,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -1335,46 +1335,6 @@
       "requiereFV": true
     },
     {
-      "nombre": "Octopus 3P",
-      "cPunta": 0.14,
-      "cLlano": 0.131,
-      "cValle": 0.119,
-      "p1": 0.12,
-      "p2": 0.12,
-      "web": "https://octopusenergy.es/precios",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.01,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Octopus Unicaja 3P",
-      "cPunta": 0.157,
-      "cLlano": 0.119,
-      "cValle": 0.106,
-      "p1": 0.12,
-      "p2": 0.12,
-      "web": "https://octopusenergy.es/unicaja#tarifas",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.01,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Nordy V 3P",
       "cPunta": 0.159,
       "cLlano": 0.129,
@@ -1437,6 +1397,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Octopus Unicaja 3P",
+      "cPunta": 0.176,
+      "cLlano": 0.127,
+      "cValle": 0.123,
+      "p1": 0.12,
+      "p2": 0.12,
+      "web": "https://octopusenergy.es/unicaja#tarifas",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.01,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "El Corte Inglés Benefíciate 3P",
       "cPunta": 0.176875,
       "cLlano": 0.120975,
@@ -1492,6 +1472,26 @@
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Octopus 3P",
+      "cPunta": 0.185,
+      "cLlano": 0.134,
+      "cValle": 0.129,
+      "p1": 0.12,
+      "p2": 0.12,
+      "web": "https://octopusenergy.es/precios",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.01,
         "tipo": "SIMPLE + BV",
         "tope": "ENERGIA",
         "bv": true,
@@ -1893,26 +1893,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Octopus Solar 3P",
-      "cPunta": 0.214,
-      "cLlano": 0.144,
-      "cValle": 0.124,
-      "p1": 0.12,
-      "p2": 0.12,
-      "web": "https://octopusenergy.es/precios/tarifa-solar",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.035,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": true
-    },
-    {
       "nombre": "Iberdrola Online 3P",
       "cPunta": 0.217,
       "cLlano": 0.162,
@@ -2054,6 +2034,26 @@
         "precioBV": 0.0
       },
       "requiereFV": false
+    },
+    {
+      "nombre": "Octopus Solar 3P",
+      "cPunta": 0.233,
+      "cLlano": 0.177,
+      "cValle": 0.137,
+      "p1": 0.12,
+      "p2": 0.12,
+      "web": "https://octopusenergy.es/precios/tarifa-solar",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.035,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": true
     },
     {
       "nombre": "Bassols Hogar Solar 3P",
@@ -2302,9 +2302,9 @@
     },
     {
       "nombre": "Octopus Go 3P",
-      "cPunta": 0.351,
-      "cLlano": 0.351,
-      "cValle": 0.109,
+      "cPunta": 0.392,
+      "cLlano": 0.392,
+      "cValle": 0.119,
       "p1": 0.12,
       "p2": 0.1,
       "web": "https://octopusenergy.es/precios/tarifa-ev",
@@ -2321,5 +2321,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-16T07:52:06.624Z"
+  "updatedAt": "2026-10-16T08:26:10.921Z"
 }
