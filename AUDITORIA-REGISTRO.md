@@ -7259,3 +7259,16 @@ recuperada tras reintento"); fallos sueltos de fuentes y CSS y un HTTP 500 trans
 - Trampa operativa: al cambiar el contenido, `sync-seo-docs.mjs` actualiza `dateModified` dentro del JSON-LD y eso
   cambia el hash de ese bloque inline, que la CSP de la home y del simulador solar tambien fija. Hay que recalcular
   esos hashes (lo vigila `tests/csp-inline-hash.test.js`). Medir el efecto con Search Console a partir de noviembre.
+
+**5. Guias guiadas por Search Console (mismo export).** Las guias salen en posiciones 3-7 en preguntas largas
+(respuestas de IA, sin clics) pero en 25-60 en las busquedas cortas reales. Ajustados titulo, descripciones (meta,
+Open Graph, Twitter) y `headline` de 7 guias hacia esas busquedas, sin cambiar su contenido ni su H1: P1/P2/P3
+("horarios p1 p2 p3", 10-37), PVPC ("pvpc o mercado libre", 25,6), coche electrico ("tarifa coche electrico mas
+barata", 27), potencia ("que potencia de luz contratar", 35), bono social ("bono social electrico", 39),
+comercializadora/distribuidora ("diferencia entre distribuidora y comercializadora", 62) y aerotermia ("consumo
+aerotermia", 40-44). En cuatro de ellas la entradilla anade una respuesta directa sacada del propio cuerpo de la
+guia (horarios, potencias orientativas, quien es quien, kWh de referencia). **Corregido de paso un hueco de
+exactitud:** la guia de P1/P2/P3 daba los horarios sin decir que son los de la Peninsula, Baleares y Canarias; ahora
+anade los de Ceuta y Melilla (una hora mas tarde: P1 11-15 y 19-23, P2 8-11, 15-19 y 23-24), contrastados con
+`getPeriodoHorarioCSV`. Las guias no usan CSP con hashes, asi que el cambio de `dateModified` no obliga a
+recalcular nada. Medir en Search Console a partir de noviembre.
