@@ -7244,3 +7244,18 @@ visitas reales son mas que las contadas); `e.target.closest` de `bv-ui.js` (56 e
 timeouts de `tarifas.json` en Safari 27 (el reintento y la copia de la sesion los recuperan, "Carga de tarifas
 recuperada tras reintento"); fallos sueltos de fuentes y CSS y un HTTP 500 transitorio de GitHub Pages en
 `data/surplus/*/2025-03.json`, que existe.
+
+**4. Titulos y descripciones guiados por Search Console (3 meses, 16/07-16/10/2026).** Las busquedas sin marca dan
+349 clics de 53.405 impresiones (0,65 %). Cambios solo de texto, sin tocar calculo ni funcionamiento:
+- `comparador-tarifas-solares.html`: "comparador tarifas luz autoconsumo" tenia 270 impresiones, posicion 13,8 y
+  0 clics, y el titulo no contenia "tarifas de luz" ni "autoconsumo". Nuevo titulo "Comparador de Tarifas de Luz
+  con Autoconsumo y Bateria Virtual" y descripcion que nombra el tope de compensacion mes a mes.
+- `calcular-factura-luz.html` (5.801 impresiones, 0,45 % de clics, posicion 14): titulo "Calcular Factura de Luz:
+  Simulador Gratis y sin Registro" con los terminos de busqueda ("calcular", "simulador").
+- Portada: titulo y descripcion intactos. Google mostraba como snippet de "comparador tarifas luz" el primer parrafo
+  del desplegable "Como funciona el comparador" en vez de la meta description; ese parrafo dice ahora "comparador de
+  tarifas de luz", "sin registro, sin anuncios y sin comisiones" y que la factura y los consumos no salen del
+  dispositivo (no "tus datos", porque existe analitica de categorias cerradas).
+- Trampa operativa: al cambiar el contenido, `sync-seo-docs.mjs` actualiza `dateModified` dentro del JSON-LD y eso
+  cambia el hash de ese bloque inline, que la CSP de la home y del simulador solar tambien fija. Hay que recalcular
+  esos hashes (lo vigila `tests/csp-inline-hash.test.js`). Medir el efecto con Search Console a partir de noviembre.
