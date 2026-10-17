@@ -551,27 +551,6 @@
       "requiereFV": true
     },
     {
-      "nombre": "Fortuluz Precio Único",
-      "cPunta": 0.139,
-      "cLlano": 0.139,
-      "cValle": 0.139,
-      "p1": 0.099,
-      "p2": 0.099,
-      "web": "https://fortuluz.es/ofertas/unico",
-      "tipo": "1P",
-      "requisitos": "Revisión de precios semestral.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Chippio Constante",
       "cPunta": 0.139,
       "cLlano": 0.139,
@@ -694,6 +673,27 @@
       },
       "requiereFV": false,
       "maxConsumoAnual": 7000.0
+    },
+    {
+      "nombre": "Fortuluz Precio Único",
+      "cPunta": 0.145,
+      "cLlano": 0.145,
+      "cValle": 0.145,
+      "p1": 0.077,
+      "p2": 0.05,
+      "web": "https://fortuluz.es/ofertas/unico",
+      "tipo": "1P",
+      "requisitos": "Revisión de precios semestral.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     },
     {
       "nombre": "EnergyAsset Tarifa Plana",
@@ -2321,5 +2321,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-17T07:07:37.440Z"
+  "updatedAt": "2026-10-17T09:51:59.158Z"
 }
