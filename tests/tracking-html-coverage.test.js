@@ -9,6 +9,8 @@ const root = path.resolve(__dirname, '..');
 
 const EXCLUDED_PUBLIC_HTML = new Set([
   'guias/index.html',
+  // Aviso de js/frame-guard.js para iframes de otras webs: no carga la app ni la analitica.
+  'pagina-incrustada.html',
   'simulador/index.html',
   'simulador-bateria-virtual.html'
 ]);

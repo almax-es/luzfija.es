@@ -85,7 +85,10 @@
     // index-extra.js y aecc-banner.js son complementos de UI: su fallo se registra,
     // pero la calculadora sigue plenamente operativa y no debe entrar en
     // recuperación de arranque ni consumir el único auto-reload de la pestaña.
+    // frame-guard.js solo actúa dentro de iframes ajenos: sin él la página
+    // abierta normalmente funciona igual, así que tampoco justifica recargar.
     if (source === '/js/tracking.js' ||
+        source === '/js/frame-guard.js' ||
         source === '/js/index-extra.js' ||
         source === '/vendor/goatcounter/count.js' ||
         source === '/js/aecc-banner.js') return true;

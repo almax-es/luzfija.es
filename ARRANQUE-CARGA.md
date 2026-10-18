@@ -1,6 +1,6 @@
 # Arranque Y Orden De Carga
 
-Ultima actualizacion: 2026-10-08
+Ultima actualizacion: 2026-10-18
 
 Contrato de arranque de las tres aplicaciones de LuzFija.es. Documenta QUE orden
 existe, POR QUE existe y QUE se rompe si se altera.
@@ -67,6 +67,7 @@ HEAD (bloqueante, sin defer)
   <meta CSP>                      script-src 'self' + sha256 (inline + JSON-LD)
   <script inline>                 currentYear + filtro unhandledrejection legacy
   js/error-bootstrap.js           buffer + watchdog + fallback visual de tema
+  js/frame-guard.js               antiincrustacion: en iframe ajeno para y va al aviso (4.7)
   js/config.js                    currentYear, guard GoatCounter, PVPC_DATASET_BASE
   [bloques application/ld+json]   inertes, tambien hasheados en la CSP
   js/theme.js                     aplica .light-mode a <html>
@@ -117,7 +118,7 @@ orden real de ejecucion mezcla parseo y cola diferida.
 
 ```
 HEAD
-  <meta CSP> -> error-bootstrap.js -> config.js -> [JSON-LD x3] -> theme.js
+  <meta CSP> -> error-bootstrap.js -> frame-guard.js -> config.js -> [JSON-LD x3] -> theme.js
   -> [JSON-LD] -> styles.css -> pro.css -> preload desglose-factura.css
   -> desglose-factura.css -> preload woff2 400 -> fonts.css -> bv-sim.css
   -> comparador-solar-mejorado.css
@@ -148,7 +149,7 @@ Esta pagina no lleva el guard inline de `currentYear` en el `<head>`; lo cubre
 
 ```
 HEAD
-  <meta CSP> -> <script inline> -> error-bootstrap.js -> config.js -> theme.js
+  <meta CSP> -> <script inline> -> error-bootstrap.js -> frame-guard.js -> config.js -> theme.js
   -> fonts.css -> styles.css -> pro.css
   -> estadisticas/estadisticas.css -> estadisticas/estadisticas-mejorado.css
 
@@ -248,6 +249,9 @@ motivo para hacerlo.
   envuelve `goatcounter.count` antes de que `tracking.js` cree ese objeto.
 - Ponerles `defer` los moveria detras del parseo completo: perderian la ventana
   de errores tempranos que existen para capturar.
+- `frame-guard.js` va entre `error-bootstrap.js` y `config.js`, tambien sin `defer` ni
+  `async`: detras del bootstrap para que un fallo de su descarga quede registrado, y delante
+  de todo lo demas para que en un iframe ajeno no llegue a ejecutarse nada mas. Ver 4.7.
 
 El contenido del script inline del `<head>` esta hasheado en la CSP. Editarlo
 exige regenerar el hash y, si no se hace, falla
@@ -606,6 +610,39 @@ recuperacion de pagina: son opcionales o ya tienen reintento propio. El banner
 plenamente operativa en un `init-incompleto` ni consume el unico auto-reload de
 la pestana.
 
+### 4.7 Antiincrustacion (`frame-guard.js`)
+
+LuzFija.es no funciona dentro de un iframe de otra web. GitHub Pages no deja enviar
+`X-Frame-Options` ni `frame-ancestors`, y esa directiva se ignora en una CSP de `<meta>`, asi
+que la defensa es `js/frame-guard.js`:
+
+- **Donde**: en las 36 paginas con scripts, sincrono en el `<head>` y antes de la primera hoja de
+  estilo. En las tres aplicaciones va justo detras de `error-bootstrap.js`; en el resto es el
+  primer `<script>` del documento. Las dos redirecciones del simulador (`script-src 'none'`) no lo
+  llevan: llevan a la pagina solar, que si. Lo fija `tests/frame-guard.test.js`, que tambien
+  obliga a cualquier pagina nueva.
+- **Que hace**: si algun ancestro es de otro origen (`location.ancestorOrigins` en
+  Chromium/WebKit; en Firefox, leer `top.location` lanza `SecurityError`), llama a
+  `window.stop()` y lleva el iframe a `/pagina-incrustada.html?desde=<ruta>`. No se ejecuta
+  ningun script posterior: ni la app, ni `tracking.js` (no se cuenta visita), ni descargas de
+  `tarifas.json` o `data/`. Abierta normalmente o en un iframe del propio origen no hace nada.
+- **Pagina de aviso**: estatica, `noindex`, sin app, sin analitica y sin fuentes propias (en un
+  iframe con sandbox el origen es opaco y las fuentes fallarian por CORS). Su boton lleva a la
+  pagina original: navega la ventana superior y, si el sandbox lo impide, abre una pestana nueva.
+  `desde` solo se acepta si resuelve al propio origen (no es una redireccion abierta). Abierta
+  fuera de un iframe ajeno, redirige a la pagina pedida.
+- **Por que no se pinta el aviso en el mismo documento**: medido el 18/10/2026, tras
+  `window.stop()` Chrome no vuelve a pintar el iframe (sin frames de `requestAnimationFrame`,
+  queda en blanco) y en WebKit el iframe no dispara `load`, de modo que la pagina que incrusta
+  se queda cargando. Navegar a un documento normal funciona en los tres motores.
+- **Fallo de descarga**: `error-bootstrap.js` lo trata como opcional (como `tracking.js`): queda
+  `error-script-load/frame-guard/*` y no hay recuperacion ni recarga, porque la pagina abierta
+  normalmente funciona igual sin el.
+- **Fechas SEO**: `maskVolatileSeoChanges` ignora la linea del guard; darlo de alta no puede
+  sellar como "actualizadas" las paginas.
+- **Limites**: un iframe con `sandbox` sin `allow-scripts` no ejecuta el guard, pero tampoco la
+  app. Copiar el codigo a otro dominio no lo para el guard, lo cubre la licencia.
+
 ## 5. Fallos Ruidosos Y Fallos Silenciosos
 
 Distincion util al revisar un cambio de carga: si algo se rompe, hay que saber si
@@ -628,6 +665,7 @@ alguien se va a enterar.
 | `lf-app.js` sin `defer` | `console.error`, `init-incompleto/home/app-core`, `statusText` y toast cuando llega `DOMContentLoaded` |
 | `index-extra.js` no se descarga | si `tracking.js` esta operativo, emite `error-script-load/index-extra/*`; no hay watchdog ni `init-incompleto/*` |
 | `theme.js` no se descarga | `error-bootstrap.js` conserva el tema visual guardado antes del CSS y emite `error-script-load/theme/*` con la aplicacion en el titulo |
+| `frame-guard.js` no se descarga | la pagina abierta normalmente funciona igual; se conserva `error-script-load/frame-guard/*`, sin recuperacion ni recarga; dentro de un iframe ajeno no habria bloqueo en esa carga |
 | `aecc-banner.js` no se descarga | la home sigue operativa; se conserva `error-script-load/aecc-banner/*`, sin recuperacion ni recarga de pagina porque es UI opcional |
 
 Todo fallo de `<script>` esencial del arranque deja tambien una solicitud cerrada para
@@ -681,6 +719,8 @@ Antes de tocar `<script>`, `<link>`, `defer`, `async` o `preload`:
 6. Si tocas CSS, confirma la cadena `styles.css -> pro.css -> especifico`.
 7. Si tocas el script inline del `<head>`, regenera los hashes de la CSP con el
    script de despliegue.
+7b. Si anades una pagina HTML con scripts, carga `js/frame-guard.js` como en la
+   seccion 4.7 (`tests/frame-guard.test.js` lo exige).
 8. Ejecuta `npm run lint` y `npm test`.
 9. Pasa la lista manual de la seccion 7. Los tests cubren relaciones en el HTML;
    no cubren el resultado visual ni el registro real del service worker.
@@ -704,6 +744,7 @@ Antes de tocar `<script>`, `<link>`, `defer`, `async` o `preload`:
 | 12 | Errores tempranos | bloquear `/js/config.js` y recargar | `error-script-load/config/...` sin datos de usuario |
 | 13 | Fallback de tema temprano | guardar modo claro, bloquear `/js/theme.js` y recargar | primer pintado claro + `error-script-load/theme/...` con origen, online, SW y navegador |
 | 14 | Recuperacion automatica acotada | bloquear un modulo base, cargar visible y online, y dejar que recargue | una sola recarga; si se mantiene el bloqueo, aviso persistente y boton manual sin segundo reload |
+| 15 | Antiincrustacion | desde otro origen (p. ej. `localhost` frente a `127.0.0.1`), una pagina con `<iframe src="<web>/">` | el iframe muestra `/pagina-incrustada.html`, sin peticiones a `tarifas.json` ni a GoatCounter; el boton lleva a la web en la ventana superior. Abierta normal, la app arranca |
 
 El punto 6 es la via mas directa para detectar la rotura de la invariante 4.5 en
 produccion; los puntos 7 y 8 tambien la revelan de forma indirecta.

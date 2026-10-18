@@ -54,6 +54,7 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
 | --- | --- |
 | `js/config.js` | Guard global defensivo (define `currentYear` y globals legacy antes que el resto de scripts). No confundir con `lf-config.js`. |
 | `js/error-bootstrap.js` | Buffer efimero y sin mensajes para errores first-party tempranos + watchdog visual de ultimo recurso cuando no llega a cargar el coordinador completo de home, factura, desglose, solar u observatorio. Deja ademas una solicitud cerrada de recuperacion para que el coordinador del SW ofrezca recarga aunque falle tracking. Se carga antes de `config.js` en las tres aplicaciones. |
+| `js/frame-guard.js` | Antiincrustacion: dentro de un iframe de otro origen para la carga (`window.stop()`) y lleva el iframe a `/pagina-incrustada.html`. Sincrono en el `<head>` de todas las paginas con scripts; en las tres aplicaciones justo detras de `error-bootstrap.js`. Ver `ARRANQUE-CARGA.md` 4.7. |
 | `js/theme.js` | Guard redundante + tema temprano para entradas legacy que cargan `theme.js` antes que nada. |
 | `js/shell-lite.js` | Tema + menu para paginas sin `lf-app`/`bv-ui` (guias, landings, legal, 404). |
 | `js/lf-sw-update.js` | Registro + auto-update + guard de recarga del service worker (`window.LF.initSwUpdate`), compartido por `lf-app.js` y `shell-lite.js`; ante una dependencia esencial ausente fuerza `update()`, compara builds y ofrece recarga explicita. Debe cargarse antes que ellos en el HTML. |
@@ -138,6 +139,12 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   y restaurar el scroll: el helper guarda `document.body.scrollTop`, preserva los `overflow`
   inline previos de BODY/HTML y mantiene el bloqueo hasta liberar el ultimo modal activo. No
   reintroduzcas locks locales basados en `window.scrollY`/`window.scrollTo()`.
+- **LuzFija.es no funciona dentro de un iframe de otra web** (`js/frame-guard.js`, desde el
+  18/10/2026). GitHub Pages no permite `frame-ancestors`/`X-Frame-Options` y en `<meta>` se
+  ignoran, asi que la defensa es ese script. No lo sustituyas por un aviso pintado en el mismo
+  documento tras `window.stop()` (Chrome deja el iframe en blanco y WebKit no dispara `load`)
+  ni lo quites de `maskVolatileSeoChanges`. Toda pagina nueva con scripts debe cargarlo; lo
+  vigila `tests/frame-guard.test.js`. Detalle en `ARRANQUE-CARGA.md` 4.7.
 - **Cada geo de `data/pvpc` y `data/surplus` va en la hora civil de su zona** (`8742` en
   `Atlantic/Canary`; el resto en `Europe/Madrid`), tambien el indicador 1739 aunque sea una serie
   nacional. Los consumidores cruzan la hora LOCAL de la curva del usuario con la etiqueta horaria

@@ -120,6 +120,41 @@ describe('SEO date policy', () => {
     })).toBe(true);
   });
 
+  it('treats the anti-framing loader as infrastructure, but not other new scripts', () => {
+    const committed = [
+      '<meta charset="utf-8"/>',
+      '<meta name="color-scheme" content="dark light"/>',
+      '<script>',
+      '    (function(){ /* tema */ })();',
+      '</script>',
+      '<p>Texto de la guia que lee el usuario.</p>'
+    ].join('\n');
+    // Alta del 18/10/2026: una linea con el guard justo antes del primer script.
+    const withGuard = committed.replace(
+      '<script>\n',
+      '<script src="/js/frame-guard.js?v=20261016-092957"></script>\n<script>\n'
+    );
+    expect(isSignificantlyDirty({
+      status: ' M guias/x.html', currentContent: withGuard, committedContent: committed
+    })).toBe(false);
+    // Con sangria, como en las aplicaciones, tampoco.
+    const indented = `  ${committed.replace('<script>\n', '<script src="/js/frame-guard.js?v=20261016-092957"></script>\n  <script>\n')}`;
+    expect(maskVolatileSeoChanges(indented)).toBe(maskVolatileSeoChanges(`  ${committed.replace('<script>\n', '  <script>\n')}`));
+
+    // Un texto visible nuevo junto al guard SI sella fecha.
+    expect(isSignificantlyDirty({
+      status: ' M guias/x.html',
+      currentContent: withGuard.replace('Texto de la guia', 'Texto reescrito de la guia'),
+      committedContent: committed
+    })).toBe(true);
+    // Y la excepcion es solo para el guard: otro script nuevo sigue contando.
+    expect(isSignificantlyDirty({
+      status: ' M guias/x.html',
+      currentContent: committed.replace('<script>\n', '<script src="/js/otro.js?v=20261016-092957"></script>\n<script>\n'),
+      committedContent: committed
+    })).toBe(true);
+  });
+
   it('preserves the self-stamped date across pre-commit and CI git fallbacks', () => {
     const content = '<script type="application/ld+json">{"dateModified":"2026-07-18T12:00:00+02:00"}</script>';
 

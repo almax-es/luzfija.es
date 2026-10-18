@@ -9,7 +9,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20261016-092957";
+const CACHE_VERSION = "20261018-185728";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 // El build 20260620-051941 contenía un handler del simulador solar que podía
 // llamar `target.closest()` sobre un target no-Element. A diferencia de las
@@ -61,6 +61,7 @@ const ASSETS = [
   "js/theme.js",
   "js/config.js",
   "js/error-bootstrap.js",
+  "js/frame-guard.js",
   "js/lf-config.js",
   // Módulos LuzFija (Core)
   "js/lf-utils.js",
@@ -122,6 +123,7 @@ const ASSETS = [
   "aviso-legal.html",
   "como-funciona-luzfija.html",
   "404.html",
+  "pagina-incrustada.html", // Aviso de js/frame-guard.js para iframes de otras webs
   // Recursos base
   "manifest.webmanifest",
   "logo-512.png",
@@ -144,6 +146,7 @@ const CORE_ASSETS = [
   "fonts.css",
   "fonts/outfit-latin-400-normal.woff2",
   "js/error-bootstrap.js",
+  "js/frame-guard.js",
   "js/theme.js",
   "js/config.js",
   "js/lf-config.js",

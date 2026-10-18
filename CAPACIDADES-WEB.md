@@ -73,6 +73,11 @@ Si vas a hacer una auditoria tecnica, lee completo `AUDITORIA-IA.md` antes de cl
 - Pagina de error con enlaces rapidos, buscador que redirige a guias, sugerencia de la pagina
   existente mas parecida a la URL pedida y bloque de datos curiosos verificables.
 
+12. `/pagina-incrustada.html`
+- Aviso estatico (`noindex`, sin app ni analitica) al que `js/frame-guard.js` lleva cualquier
+  pagina abierta dentro de un iframe de otra web, con enlace a la pagina original. Abierta fuera de
+  un iframe ajeno redirige sola a esa pagina.
+
 ## 3. Funcionalidades Del Comparador Principal (`/`)
 
 ### 3.1 Entrada De Datos Y Contexto Fiscal
@@ -534,8 +539,8 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 ## 7. Arquitectura Tecnica
 
 - Stack: HTML + CSS + Vanilla JS modular.
-- Modulos JS: 42 (`js/*.{js,mjs}` + `js/bv/*.js`).
-- Lineas JS aproximadas: 34.667.
+- Modulos JS: 43 (`js/*.{js,mjs}` + `js/bv/*.js`).
+- Lineas JS aproximadas: 34.796.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (112 tarifas).
@@ -625,13 +630,18 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - Dependencias autoalojadas en `vendor/`.
 - Tracking con GoatCounter sin cookies de terceros.
 - Opt-out de analitica por usuario (`goatcounter_optout`).
+- Antiincrustacion: LuzFija.es no funciona dentro de un iframe de otra web. GitHub Pages no permite
+  la cabecera `X-Frame-Options`/`frame-ancestors` (y en `<meta>` se ignora), asi que
+  `js/frame-guard.js`, sincrono en el `<head>` de todas las paginas con scripts, detiene la carga
+  y lleva el iframe a `/pagina-incrustada.html`. Los iframes del propio origen siguen permitidos.
+  Detalle en `ARRANQUE-CARGA.md` 4.7.
 - El banner AECC no maneja datos personales: muestra un codigo publico y guarda un timestamp local de descarte (`lf_aecc_banner_dismissed_at`).
 
 ## 10. Testing Y Calidad
 
 - Suite Vitest/JSDOM.
-- 139 archivos de test (`tests/*.test.js`).
-- 2322 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 140 archivos de test (`tests/*.test.js`).
+- 2383 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

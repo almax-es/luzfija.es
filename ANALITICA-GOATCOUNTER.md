@@ -799,6 +799,9 @@ una pagina copie una CSP que bloquee la baliza y active tracking a la vez.
 Excepcion conocida:
 
 - `guias/index.html`: redirect inmediato, `noindex`, sin tracking para evitar ruido.
+- `pagina-incrustada.html`: aviso de `js/frame-guard.js` para iframes de otras webs, `noindex`,
+  sin tracking. Una pagina abierta dentro de un iframe de otro origen tampoco cuenta visita:
+  el guard para la carga antes de que se ejecute `tracking.js` (`ARRANQUE-CARGA.md` 4.7).
 
 La cobertura se valida con `tests/tracking-html-coverage.test.js`.
 
