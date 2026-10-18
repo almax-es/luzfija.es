@@ -9,7 +9,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20261018-185728";
+const CACHE_VERSION = "20261018-191338";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 // El build 20260620-051941 contenía un handler del simulador solar que podía
 // llamar `target.closest()` sobre un target no-Element. A diferencia de las
@@ -147,6 +147,10 @@ const CORE_ASSETS = [
   "fonts/outfit-latin-400-normal.woff2",
   "js/error-bootstrap.js",
   "js/frame-guard.js",
+  // El aviso al que frame-guard.js lleva los iframes ajenos. Obligatorio: si faltara sin red,
+  // la navegacion caeria a index.html servido en esa ruta, donde el guard NO para la carga
+  // (cree estar en el aviso) y la app arrancaria dentro del iframe ajeno.
+  "pagina-incrustada.html",
   "js/theme.js",
   "js/config.js",
   "js/lf-config.js",

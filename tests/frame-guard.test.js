@@ -295,11 +295,14 @@ describe('frame-guard: contrato de carga en el HTML', () => {
     }
   );
 
-  it('el service worker precachea el guard como nucleo y la pagina de aviso', () => {
+  it('el service worker precachea como nucleo el guard y la pagina de aviso', () => {
+    // Sin red y sin el aviso en cache, la navegacion caeria a index.html servido en la ruta
+    // del aviso; ahi el guard no para la carga y la app arrancaria en el iframe ajeno.
     const sw = fs.readFileSync(path.join(root, 'sw.js'), 'utf8');
     const core = sw.match(/const CORE_ASSETS = \[([\s\S]*?)\n\];/)[1];
     const assets = sw.match(/const ASSETS = \[([\s\S]*?)\n\];/)[1];
     expect(core).toContain('"js/frame-guard.js"');
+    expect(core).toContain(`"${NOTICE}"`);
     expect(assets).toContain(`"${NOTICE}"`);
   });
 });

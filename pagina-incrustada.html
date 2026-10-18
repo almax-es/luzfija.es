@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:; connect-src 'self'; form-action 'none';">
-<script src="/js/frame-guard.js?v=20261018-185728"></script>
+<script src="/js/frame-guard.js?v=20261018-191338"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Abre esta página en LuzFija.es</title>
 <meta name="description" content="LuzFija.es no funciona dentro de otras webs. Abre la página directamente en luzfija.es."/>
@@ -26,6 +26,24 @@
   .boton:hover{ filter:brightness(1.1); }
   .boton:focus-visible{ outline:3px solid var(--brand); outline-offset:3px; }
   .ayuda{ margin:16px 0 0; font-size:.875rem; color:var(--muted); }
+  /* Iframes bajos (p. ej. un hueco de 260 px en el movil): el boton tiene que verse sin
+     hacer scroll dentro del iframe. La marca sobra, ya esta en el titulo. */
+  @media (max-height: 480px){
+    body{ padding:8px 12px; }
+    main{ padding:14px 16px; }
+    .marca{ display:none; }
+    h1{ margin-bottom:6px; font-size:1.1rem; }
+    .texto{ font-size:.875rem; line-height:1.4; }
+    .boton{ margin-top:10px; padding:10px 18px; }
+    .ayuda{ margin-top:8px; font-size:.8rem; }
+  }
+  /* Muy bajos: el boton sube justo detras del titulo y la ayuda se oculta. */
+  @media (max-height: 320px){
+    main{ display:flex; flex-direction:column; align-items:center; }
+    .boton{ order:1; margin:4px 0 0; }
+    .texto{ order:2; margin-top:10px; }
+    .ayuda{ display:none; }
+  }
 </style>
 </head>
 <body>

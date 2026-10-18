@@ -635,6 +635,10 @@ que la defensa es `js/frame-guard.js`:
   `window.stop()` Chrome no vuelve a pintar el iframe (sin frames de `requestAnimationFrame`,
   queda en blanco) y en WebKit el iframe no dispara `load`, de modo que la pagina que incrusta
   se queda cargando. Navegar a un documento normal funciona en los tres motores.
+- **Service worker**: `frame-guard.js` y `pagina-incrustada.html` van en `CORE_ASSETS`. El aviso
+  tiene que estar garantizado: sin red y sin el aviso en cache, la navegacion caeria a
+  `index.html` servido en la ruta del aviso, donde el guard no para la carga (cree estar en el
+  aviso) y la app arrancaria dentro del iframe ajeno. Senalado en revision externa el 18/10/2026.
 - **Fallo de descarga**: `error-bootstrap.js` lo trata como opcional (como `tracking.js`): queda
   `error-script-load/frame-guard/*` y no hay recuperacion ni recarga, porque la pagina abierta
   normalmente funciona igual sin el.
