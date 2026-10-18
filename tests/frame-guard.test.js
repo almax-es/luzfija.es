@@ -34,11 +34,13 @@ async function loadedDocument(html) {
 }
 
 /**
- * Ventana simulada. `ancestors` imita location.ancestorOrigins (Chromium/WebKit);
- * sin `ancestors`, el guard cae a leer top.location (Firefox), que lanza
- * SecurityError si `topOrigin` es de otro origen.
+ * Ventana simulada. `ancestors` imita location.ancestorOrigins (Chromium/WebKit).
+ * Sin `ancestors`, el guard sube por la cadena de padres: `parents` son los
+ * origenes de los ancestros, del padre a la ventana superior (por defecto solo
+ * `topOrigin`). Leer `location.origin` de un ancestro de otro origen lanza
+ * SecurityError, como en el navegador.
  */
-function makeWindow({ url = `${ORIGIN}/`, framed = false, ancestors, topOrigin = ORIGIN, topNavigationThrows = false, storage = {} } = {}) {
+function makeWindow({ url = `${ORIGIN}/`, framed = false, ancestors, topOrigin = ORIGIN, parents, topNavigationThrows = false, storage = {} } = {}) {
   const parsed = new URL(url);
   const topNavigations = [];
   const win = {
@@ -57,18 +59,31 @@ function makeWindow({ url = `${ORIGIN}/`, framed = false, ancestors, topOrigin =
   win.self = win;
   if (!framed) {
     win.top = win;
+    win.parent = win;
   } else {
-    const topLocation = {
-      get origin() {
-        if (topOrigin !== parsed.origin) throw new Error('SecurityError: cross-origin');
-        return topOrigin;
-      },
-      set href(value) {
+    const chain = (parents || [topOrigin]).map((origin) => ({
+      location: {
+        get origin() {
+          if (origin !== parsed.origin) throw new Error('SecurityError: cross-origin');
+          return origin;
+        }
+      }
+    }));
+    const top = chain[chain.length - 1];
+    Object.defineProperty(top.location, 'href', {
+      set(value) {
         if (topNavigationThrows) throw new Error('SecurityError: sandboxed');
         topNavigations.push(value);
       }
-    };
-    win.top = { location: topLocation };
+    });
+    let child = win;
+    for (const ancestor of chain) {
+      child.parent = ancestor;
+      ancestor.top = top;
+      child = ancestor;
+    }
+    top.parent = top;
+    win.top = top;
   }
   return { win, topNavigations };
 }
@@ -125,6 +140,19 @@ describe('frame-guard: deteccion de iframe ajeno', () => {
 
   it('sin ancestorOrigins (Firefox) permite el iframe del mismo origen', () => {
     const { win } = makeWindow({ framed: true, topOrigin: ORIGIN });
+    runGuard(win);
+    expect(win.location.replace).not.toHaveBeenCalled();
+  });
+
+  it('sin ancestorOrigins bloquea un ancestro ajeno intermedio aunque la ventana superior sea propia', () => {
+    // propia -> ajena -> propia: mirando solo la ventana superior pasaria (revision externa 18/10/2026).
+    const { win } = makeWindow({ framed: true, parents: ['https://ajena.example', ORIGIN] });
+    runGuard(win);
+    expect(win.location.replace).toHaveBeenCalledTimes(1);
+  });
+
+  it('sin ancestorOrigins permite varios niveles de iframes propios', () => {
+    const { win } = makeWindow({ framed: true, parents: [ORIGIN, ORIGIN, ORIGIN] });
     runGuard(win);
     expect(win.location.replace).not.toHaveBeenCalled();
   });

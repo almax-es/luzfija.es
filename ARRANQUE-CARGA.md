@@ -621,8 +621,9 @@ que la defensa es `js/frame-guard.js`:
   primer `<script>` del documento. Las dos redirecciones del simulador (`script-src 'none'`) no lo
   llevan: llevan a la pagina solar, que si. Lo fija `tests/frame-guard.test.js`, que tambien
   obliga a cualquier pagina nueva.
-- **Que hace**: si algun ancestro es de otro origen (`location.ancestorOrigins` en
-  Chromium/WebKit; en Firefox, leer `top.location` lanza `SecurityError`), llama a
+- **Que hace**: si algun ancestro es de otro origen (`location.ancestorOrigins`; sin
+  ella, en navegadores antiguos, sube por la cadena de padres y leer la ubicacion de uno de otro
+  origen lanza `SecurityError`, asi que tambien bloquea un ancestro ajeno intermedio), llama a
   `window.stop()` y lleva el iframe a `/pagina-incrustada.html?desde=<ruta>`. No se ejecuta
   ningun script posterior: ni la app, ni `tracking.js` (no se cuenta visita), ni descargas de
   `tarifas.json` o `data/`. Abierta normalmente o en un iframe del propio origen no hace nada.

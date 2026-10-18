@@ -43,9 +43,19 @@
       return false;
     }
 
-    // Firefox: leer la ubicación de una ventana de otro origen lanza SecurityError.
+    // Sin ancestorOrigins se sube eslabón a eslabón: leer la ubicación de una
+    // ventana de otro origen lanza SecurityError, así que cualquier ancestro
+    // ajeno bloquea, también uno intermedio (propia -> ajena -> propia), que
+    // mirando solo la ventana superior pasaría.
     try {
-      return top.location.origin !== ownOrigin;
+      let current = win;
+      while (current !== top) {
+        const parent = current.parent;
+        if (!parent || parent === current) return false;
+        if (parent.location.origin !== ownOrigin) return true;
+        current = parent;
+      }
+      return false;
     } catch (_) {
       return true;
     }
