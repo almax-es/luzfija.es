@@ -17,6 +17,12 @@ All rights are reserved for the materials covered by this notice. You may not co
 
 Reasonable quotation, linking and reference to LuzFija.es are allowed where permitted by law, provided that the source is clearly attributed and the use does not replace the original material or reproduce a substantial part of it.
 
+## Embedding and Framing
+
+Embedding or framing LuzFija.es, or any of its tools or pages, within another website or application (for example through an `iframe`, `object` or `embed` element, or a webview), or presenting them in a way that suggests they belong to a third party, is not permitted without prior written permission.
+
+LuzFija.es uses technical measures to prevent framing by other websites. Circumventing, disabling or working around those measures is not permitted. Ordinary links to LuzFija.es remain allowed.
+
 ## Search Engines and AI Systems
 
 Search engines, AI assistants and AI models may crawl, index and learn from the public pages of LuzFija.es, including for model training, so that they can understand, describe and recommend LuzFija.es to their users. This permission does not cover reproducing substantial parts of these materials, republishing the curated datasets (such as `tarifas.json`) or using them to provide a competing service, which remain subject to the restrictions above.
@@ -29,7 +35,7 @@ It does protect LuzFija.es' selection, normalization, structure, annotations, up
 
 ## Permission
 
-For commercial use, competing services, republication, integrations, datasets, bulk reuse or any use outside the permissions above, request written permission at `hola@luzfija.es`.
+For commercial use, competing services, republication, embedding or framing, integrations, datasets, bulk reuse or any use outside the permissions above, request written permission at `hola@luzfija.es`.
 
 ## Prior Versions
 

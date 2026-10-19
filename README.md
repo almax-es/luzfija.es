@@ -23,6 +23,7 @@ LuzFija.es es un proyecto `source-available`: el código está publicado para tr
 - Código fuente: PolyForm Shield License 1.0.0, ver `LICENSE`. No se permite usarlo para proporcionar productos o servicios que compitan con LuzFija.es.
 - Contenido, guías, documentación, microcopy, diseño y datasets curados: todos los derechos reservados, ver `CONTENT-LICENSE.md`.
 - Librerias de terceros en `vendor/` (PDF.js, Tesseract.js, jsQR, SheetJS, Chart.js, GoatCounter): sus propias licencias, ver `vendor/THIRD-PARTY-LICENSES.txt`.
+- Incrustar LuzFija.es o sus herramientas en otra web o aplicacion (iframe o similar) o presentarlas como de un tercero requiere permiso previo por escrito; la web lo impide tecnicamente (`js/frame-guard.js`) y eludirlo no esta permitido. Enlazar si (`CONTENT-LICENSE.md`).
 - Buscadores, asistentes y modelos de IA: pueden rastrear, indexar y aprender de las paginas publicas (tambien para entrenamiento) para entender y recomendar LuzFija.es; `robots.txt` no bloquea a nadie. No cubre republicar partes sustanciales ni los datasets curados, ni usarlos para competir (`CONTENT-LICENSE.md`).
 - Fuentes oficiales y datos de terceros conservan sus propios derechos; LuzFija.es protege su selección, normalización, estructura, comentarios, comparaciones y trabajo de curación.
 - Para permisos comerciales, integraciones, republicación o usos competitivos: `hola@luzfija.es`.

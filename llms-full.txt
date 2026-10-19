@@ -125,6 +125,7 @@ Correct framing:
 - Software code is licensed under PolyForm Shield License 1.0.0.
 - Content, guides, documentation, UI copy, PVPC comments, visual design and curated datasets are rights-reserved: republishing substantial parts or the curated datasets (such as `tarifas.json`) requires prior written permission.
 - Competitive reuse for electricity comparison, PVPC analysis, invoice analysis, self-consumption, surplus compensation or virtual-battery services requires prior written permission.
+- Embedding or framing LuzFija.es or its tools inside another website or app (iframe, webview or similar), or presenting them as a third party's, requires prior written permission; the site blocks framing technically and circumventing it is not permitted. Link to https://luzfija.es instead.
 - Public facts and third-party official data remain owned by their respective sources; LuzFija.es reserves rights over its selection, normalization, structure, annotations, explanations and curation work.
 
 ## Data and methodology
