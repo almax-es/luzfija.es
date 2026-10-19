@@ -174,9 +174,9 @@
     },
     {
       "nombre": "Nufri Sin Horarios",
-      "cPunta": 0.119146,
-      "cLlano": 0.119146,
-      "cValle": 0.119146,
+      "cPunta": 0.119144,
+      "cLlano": 0.119144,
+      "cValle": 0.119144,
       "p1": 0.078642,
       "p2": 0.078618,
       "web": "https://www.energianufri.com/es/tarifas-luz",
@@ -321,9 +321,9 @@
     },
     {
       "nombre": "Fenie Fijo Energético",
-      "cPunta": 0.126926,
-      "cLlano": 0.126926,
-      "cValle": 0.126926,
+      "cPunta": 0.126925,
+      "cLlano": 0.126925,
+      "cValle": 0.126925,
       "p1": 0.113699,
       "p2": 0.113699,
       "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-energetico-1p",
@@ -448,9 +448,9 @@
     },
     {
       "nombre": "Bonpreu Hagámoslo Fácil",
-      "cPunta": 0.131737,
-      "cLlano": 0.131737,
-      "cValle": 0.131737,
+      "cPunta": 0.131732,
+      "cLlano": 0.131732,
+      "cValle": 0.131732,
       "p1": 0.079999,
       "p2": 0.079999,
       "web": "https://www.bonpreuesclat.cat/es/web/bonpreu/planes-energia-bonpreu",
@@ -573,9 +573,9 @@
     },
     {
       "nombre": "Plenitude +5kW",
-      "cPunta": 0.140318,
-      "cLlano": 0.140318,
-      "cValle": 0.140318,
+      "cPunta": 0.140311,
+      "cLlano": 0.140311,
+      "cValle": 0.140311,
       "p1": 0.112498,
       "p2": 0.112497,
       "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
@@ -594,9 +594,9 @@
     },
     {
       "nombre": "Nufri Universal Sin Horarios",
-      "cPunta": 0.143594,
-      "cLlano": 0.143594,
-      "cValle": 0.143594,
+      "cPunta": 0.143596,
+      "cLlano": 0.143596,
+      "cValle": 0.143596,
       "p1": 0.075903,
       "p2": 0.034864,
       "web": "https://www.energianufri.com/es/tarifas-luz",
@@ -654,9 +654,9 @@
     },
     {
       "nombre": "Visalia Fija 24h",
-      "cPunta": 0.144757,
-      "cLlano": 0.144757,
-      "cValle": 0.144757,
+      "cPunta": 0.144752,
+      "cLlano": 0.144752,
+      "cValle": 0.144752,
       "p1": 0.076712,
       "p2": 0.076712,
       "web": "https://visalia.es/luz/fijo24horas/",
@@ -718,9 +718,9 @@
     },
     {
       "nombre": "Visalia Primer mes gratis",
-      "cPunta": 0.147075,
-      "cLlano": 0.147075,
-      "cValle": 0.147075,
+      "cPunta": 0.147077,
+      "cLlano": 0.147077,
+      "cValle": 0.147077,
       "p1": 0.090411,
       "p2": 0.090411,
       "web": "https://visalia.es/luz/tarifas-flash/",
@@ -1028,9 +1028,9 @@
     },
     {
       "nombre": "Visalia Plan Ahorro 3 meses",
-      "cPunta": 0.159875,
-      "cLlano": 0.159875,
-      "cValle": 0.159875,
+      "cPunta": 0.159872,
+      "cLlano": 0.159872,
+      "cValle": 0.159872,
       "p1": 0.063014,
       "p2": 0.063014,
       "web": "https://visalia.es/luz/tarifas-flash/",
@@ -1091,9 +1091,9 @@
     },
     {
       "nombre": "Endesa Solar Plus & Batería Virtual",
-      "cPunta": 0.171957,
-      "cLlano": 0.171957,
-      "cValle": 0.171957,
+      "cPunta": 0.171958,
+      "cLlano": 0.171958,
+      "cValle": 0.171958,
       "p1": 0.093666,
       "p2": 0.093666,
       "web": "https://www.endesa.com/es/luz-y-gas/catalogo-solar/endesa-solar-plus-bateria-virtual",
@@ -1112,9 +1112,9 @@
     },
     {
       "nombre": "Endesa Solar Plus",
-      "cPunta": 0.171957,
-      "cLlano": 0.171957,
-      "cValle": 0.171957,
+      "cPunta": 0.171958,
+      "cLlano": 0.171958,
+      "cValle": 0.171958,
       "p1": 0.093666,
       "p2": 0.093666,
       "web": "https://www.endesa.com/es/luz-y-gas/catalogo-solar/endesa-solar-plus",
@@ -1296,9 +1296,9 @@
     },
     {
       "nombre": "Fenie Fijo Uniprecio",
-      "cPunta": 0.208926,
-      "cLlano": 0.208926,
-      "cValle": 0.208926,
+      "cPunta": 0.208927,
+      "cLlano": 0.208927,
+      "cValle": 0.208927,
       "p1": 0.075903,
       "p2": 0.001987,
       "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-uniprecio",
@@ -1439,7 +1439,7 @@
     },
     {
       "nombre": "TE A Tu Aire Programa Tu Ahorro 4000 3P",
-      "cPunta": 0.183572,
+      "cPunta": 0.183577,
       "cLlano": 0.11393,
       "cValle": 0.086176,
       "p1": 0.094493,
@@ -1461,7 +1461,7 @@
     },
     {
       "nombre": "Imagina Noche y Findes 3P",
-      "cPunta": 0.184808,
+      "cPunta": 0.184807,
       "cLlano": 0.124127,
       "cValle": 0.099427,
       "p1": 0.121158,
@@ -1542,7 +1542,7 @@
     },
     {
       "nombre": "Nufri Con Horarios 3P",
-      "cPunta": 0.187103,
+      "cPunta": 0.187108,
       "cLlano": 0.108331,
       "cValle": 0.07419,
       "p1": 0.078642,
@@ -1670,7 +1670,7 @@
     },
     {
       "nombre": "Fenie Fijo Energético 3P",
-      "cPunta": 0.196884,
+      "cPunta": 0.196888,
       "cLlano": 0.115616,
       "cValle": 0.089322,
       "p1": 0.113699,
@@ -1832,7 +1832,7 @@
     },
     {
       "nombre": "Bonpreu Noche y Día 3P",
-      "cPunta": 0.205003,
+      "cPunta": 0.205006,
       "cLlano": 0.128574,
       "cValle": 0.098753,
       "p1": 0.079999,
@@ -1853,7 +1853,7 @@
     },
     {
       "nombre": "Nufri Universal Con Horarios 3P",
-      "cPunta": 0.211551,
+      "cPunta": 0.211559,
       "cLlano": 0.132778,
       "cValle": 0.098638,
       "p1": 0.075903,
@@ -1956,7 +1956,7 @@
     },
     {
       "nombre": "Bonpreu Solar 3P",
-      "cPunta": 0.220034,
+      "cPunta": 0.220035,
       "cLlano": 0.141385,
       "cValle": 0.096693,
       "p1": 0.079999,
@@ -1977,7 +1977,7 @@
     },
     {
       "nombre": "Imagina Vehículo Eléctrico 3P",
-      "cPunta": 0.223415,
+      "cPunta": 0.223414,
       "cLlano": 0.14935,
       "cValle": 0.084332,
       "p1": 0.111164,
@@ -2157,7 +2157,7 @@
     },
     {
       "nombre": "TE A Tu Aire Programa Tu Ahorro +4000 3P",
-      "cPunta": 0.252672,
+      "cPunta": 0.252674,
       "cLlano": 0.18303,
       "cValle": 0.155276,
       "p1": 0.078055,
@@ -2199,7 +2199,7 @@
     },
     {
       "nombre": "Visalia 3P",
-      "cPunta": 0.260402,
+      "cPunta": 0.260403,
       "cLlano": 0.170417,
       "cValle": 0.142047,
       "p1": 0.075903,
@@ -2242,7 +2242,7 @@
     },
     {
       "nombre": "Fenie Fijo 3P",
-      "cPunta": 0.278884,
+      "cPunta": 0.278889,
       "cLlano": 0.197616,
       "cValle": 0.171322,
       "p1": 0.075903,
@@ -2262,7 +2262,7 @@
     },
     {
       "nombre": "Nufri Solar 3P",
-      "cPunta": 0.315803,
+      "cPunta": 0.315808,
       "cLlano": 0.228516,
       "cValle": 0.186879,
       "p1": 0.111519,
@@ -2282,7 +2282,7 @@
     },
     {
       "nombre": "Contigo Tarifa Horas 3P",
-      "cPunta": 0.331346,
+      "cPunta": 0.331342,
       "cLlano": 0.213513,
       "cValle": 0.185854,
       "p1": 0.084122,
@@ -2321,5 +2321,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-18T19:13:33.572Z"
+  "updatedAt": "2026-10-19T06:33:07.912Z"
 }
