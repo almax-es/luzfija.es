@@ -543,7 +543,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - Lineas JS aproximadas: 34.806.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
-- `tarifas.json` (110 tarifas).
+- `tarifas.json` (112 tarifas).
 - `/data/pvpc/` (indicador 1001).
 - `/data/surplus/` (indicador 1739).
 - `/data/ssaa/` (indicador 10328, servicios de ajuste medios mensuales).

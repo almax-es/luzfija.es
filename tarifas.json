@@ -109,6 +109,26 @@
       "requiereFV": true
     },
     {
+      "nombre": "Seneo Tarifa 2 Fija 24h",
+      "cPunta": 0.119008,
+      "cLlano": 0.119008,
+      "cValle": 0.119008,
+      "p1": 0.089,
+      "p2": 0.089,
+      "web": "https://www.seneo.org/es/domestica-24h/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.05,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Imagina Sin Horas",
       "cPunta": 0.119008,
       "cLlano": 0.119008,
@@ -1331,6 +1351,26 @@
       "requiereFV": true
     },
     {
+      "nombre": "Seneo Tarifa 2 Tramos Horarios 3P",
+      "cPunta": 0.159004,
+      "cLlano": 0.129,
+      "cValle": 0.099,
+      "p1": 0.089,
+      "p2": 0.089,
+      "web": "https://www.seneo.org/es/domestica-tramos/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.05,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Energya VM Fórmula Fija 3P",
       "cPunta": 0.169006,
       "cLlano": 0.129,
@@ -2277,5 +2317,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-19T13:38:55.133Z"
+  "updatedAt": "2026-10-19T14:02:19.479Z"
 }
