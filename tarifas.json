@@ -10,8 +10,8 @@
       "cPunta": 0.109006,
       "cLlano": 0.109006,
       "cValle": 0.109006,
-      "p1": 0.099909,
-      "p2": 0.099909,
+      "p1": 0.109,
+      "p2": 0.109,
       "web": "https://ahorracondisaelectricidad.com/",
       "tipo": "1P",
       "incluyeServiciosAjuste": true,
@@ -2262,9 +2262,9 @@
     },
     {
       "nombre": "Nufri Solar 3P",
-      "cPunta": 0.315808,
-      "cLlano": 0.228516,
-      "cValle": 0.186879,
+      "cPunta": 0.326121,
+      "cLlano": 0.237855,
+      "cValle": 0.195351,
       "p1": 0.111519,
       "p2": 0.037604,
       "web": "https://www.energianufri.com/es/tarifas-luz",
@@ -2321,5 +2321,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-19T06:33:07.912Z"
+  "updatedAt": "2026-10-19T08:37:13.161Z"
 }
