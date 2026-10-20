@@ -715,46 +715,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Lumisa Simple 24h",
-      "cPunta": 0.148806,
-      "cLlano": 0.148806,
-      "cValle": 0.148806,
-      "p1": 0.108888,
-      "p2": 0.108888,
-      "web": "https://lumisa.es/es/tarifa-fija",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
-      "nombre": "Lumisa Solar",
-      "cPunta": 0.148806,
-      "cLlano": 0.148806,
-      "cValle": 0.148806,
-      "p1": 0.108888,
-      "p2": 0.108888,
-      "web": "https://lumisa.es/es/tarifas-solar-bateria-virtual",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.045,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": true
-    },
-    {
       "nombre": "BonArea Relax",
       "cPunta": 0.149003,
       "cLlano": 0.149003,
@@ -1189,6 +1149,26 @@
       "requiereFV": false
     },
     {
+      "nombre": "Lumisa Simple 24h",
+      "cPunta": 0.188881,
+      "cLlano": 0.188881,
+      "cValle": 0.188881,
+      "p1": 0.108888,
+      "p2": 0.108888,
+      "web": "https://lumisa.es/es/tarifa-fija",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "TE A tu Aire Luz Siempre +4000",
       "cPunta": 0.189008,
       "cLlano": 0.189008,
@@ -1269,6 +1249,26 @@
         "precioBV": 0.0
       },
       "requiereFV": false
+    },
+    {
+      "nombre": "Lumisa Solar",
+      "cPunta": 0.208806,
+      "cLlano": 0.208806,
+      "cValle": 0.208806,
+      "p1": 0.108888,
+      "p2": 0.108888,
+      "web": "https://lumisa.es/es/tarifas-solar-bateria-virtual",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.045,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": true
     },
     {
       "nombre": "Fenie Fijo Uniprecio",
@@ -1745,27 +1745,6 @@
       "requiereFV": true
     },
     {
-      "nombre": "Lumisa 3P",
-      "cPunta": 0.198808,
-      "cLlano": 0.1588,
-      "cValle": 0.1288,
-      "p1": 0.108888,
-      "p2": 0.108888,
-      "web": "https://lumisa.es/es/tarifa-fija",
-      "tipo": "3P",
-      "requisitos": "15% descuento término energía durante 12 meses incluido en el precio.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Iner Coche Eléctrico 3P",
       "cPunta": 0.199847,
       "cLlano": 0.19984,
@@ -1987,6 +1966,27 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Lumisa 3P",
+      "cPunta": 0.228884,
+      "cLlano": 0.18888,
+      "cValle": 0.14888,
+      "p1": 0.108888,
+      "p2": 0.108888,
+      "web": "https://lumisa.es/es/tarifa-fija",
+      "tipo": "3P",
+      "requisitos": "15% descuento término energía durante 12 meses incluido en el precio.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -2317,5 +2317,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-20T07:32:11.943Z"
+  "updatedAt": "2026-10-20T10:41:10.554Z"
 }
