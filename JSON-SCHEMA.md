@@ -20,7 +20,7 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
   "_meta": {
     "copyright": "string (titular de derechos)",
     "license": "string (aviso de derechos reservados para selección, normalización, estructura, anotaciones y curación, y derecho sui generis sobre la base de datos)",
-    "usage": "string (prohibición de extracción sustancial o sistemática, de usar sus valores para actualizar o comprobar precios de otro servicio, y de reutilización comercial o competidora)"
+    "usage": "string (condiciones de uso del dataset: sin permiso no se permite la extracción o reutilización sustancial ni la repetida o sistemática en las condiciones legales, por ejemplo usarlo como fuente para mantener los precios de otro servicio; reconoce el derecho del usuario legítimo a partes no sustanciales y el rastreo por buscadores e IA)"
   },
   "tarifas": [
     {
