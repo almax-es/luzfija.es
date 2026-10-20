@@ -30,13 +30,13 @@ In addition to any copyright, these databases are protected by the sui generis d
 
 ## Specific Prohibited Uses
 
-Without limiting the sections above, the following uses are expressly not permitted without prior written permission, whether carried out manually or automatically, once or periodically, and whether they affect the whole dataset or only part of it:
+In particular, the following uses amount to the extraction or re-utilization of a substantial part of the databases, or to the repeated or systematic extraction or re-utilization of insubstantial parts that conflicts with their normal exploitation, and are not permitted without prior written permission, whether carried out manually or automatically:
 
-- using values taken from `tarifas.json` or from LuzFija.es (energy and power prices, discounts, surplus compensation, commercial conditions or the selection of tariffs itself) to create, populate, update, check, complete or correct the prices or tariffs of another database, comparator, website, application, feed, API or service;
-- using LuzFija.es or its datasets as a reference to detect price changes or new tariffs for another service;
-- downloading `tarifas.json` automatically or periodically for any purpose other than the normal use of LuzFija.es in a user's browser, search engine indexing or the uses permitted in "Search Engines and AI Systems".
+- using values taken from `tarifas.json` or from LuzFija.es (energy and power prices, discounts, surplus compensation, commercial conditions or the selection of tariffs itself) as a source to create, populate, keep updated, check, complete or correct the prices or tariffs of another database, comparator, website, application, feed, API or service, including by consulting them periodically or on an ongoing basis;
+- using LuzFija.es or its datasets as a systematic reference to detect price changes or new tariffs for another service;
+- downloading `tarifas.json` automatically or periodically for any of the purposes above.
 
-Obtaining the same public facts independently and directly from their original sources (for example, retailers' websites or official regulatory data) is not restricted by this notice.
+This notice does not restrict the rights that the law grants to lawful users, in particular to extract or re-utilize insubstantial parts of the databases for any purpose (Article 134 of the Spanish Intellectual Property Law; Article 8 of Directive 96/9/EC), for example quoting an individual price, provided that it is not done repeatedly or systematically in a way that conflicts with the normal exploitation of the databases or unreasonably prejudices the legitimate interests of their maker. Nor does it restrict obtaining the same public facts independently and directly from their original sources (for example, retailers' websites or official regulatory data).
 
 ## Embedding and Framing
 
@@ -100,13 +100,13 @@ Además de los derechos de autor que correspondan, estas bases de datos están p
 
 ## Usos prohibidos específicos
 
-Sin perjuicio de los apartados anteriores, sin autorización previa por escrito quedan expresamente prohibidos los siguientes usos, tanto si se hacen de forma manual como automática, una sola vez o periódicamente, y tanto si afectan a todo el dataset como a una parte:
+En particular, los siguientes usos constituyen extracción o reutilización de una parte sustancial de las bases de datos, o extracción o reutilización repetida o sistemática de partes no sustanciales contraria a su explotación normal, y no se permiten sin autorización previa por escrito, tanto si se hacen de forma manual como automática:
 
-- usar valores tomados de `tarifas.json` o de LuzFija.es (precios de energía y potencia, descuentos, compensación de excedentes, condiciones comerciales o la propia selección de tarifas) para crear, rellenar, actualizar, comprobar, completar o corregir los precios o tarifas de otra base de datos, comparador, web, aplicación, *feed*, API o servicio;
-- usar LuzFija.es o sus datasets como referencia para detectar cambios de precio o tarifas nuevas para otro servicio;
-- descargar `tarifas.json` de forma automática o periódica con cualquier fin distinto del uso normal de LuzFija.es en el navegador de un usuario, la indexación por buscadores o los usos permitidos en «Buscadores y sistemas de IA».
+- usar valores tomados de `tarifas.json` o de LuzFija.es (precios de energía y potencia, descuentos, compensación de excedentes, condiciones comerciales o la propia selección de tarifas) como fuente para crear, rellenar, mantener actualizados, comprobar, completar o corregir los precios o tarifas de otra base de datos, comparador, web, aplicación, *feed*, API o servicio, incluso consultándolos de forma periódica o continuada;
+- usar LuzFija.es o sus datasets como referencia sistemática para detectar cambios de precio o tarifas nuevas para otro servicio;
+- descargar `tarifas.json` de forma automática o periódica para cualquiera de los fines anteriores.
 
-Obtener los mismos hechos públicos de forma independiente y directamente de sus fuentes originales (por ejemplo, las webs de las comercializadoras o los datos regulatorios oficiales) no está restringido por este aviso.
+Este aviso no limita los derechos que la ley reconoce al usuario legítimo, en particular el de extraer o reutilizar partes no sustanciales de las bases de datos con cualquier fin (artículo 134 del Texto Refundido de la Ley de Propiedad Intelectual; artículo 8 de la Directiva 96/9/CE), por ejemplo citar un precio concreto, siempre que no se haga de forma repetida o sistemática contraria a la explotación normal de las bases de datos o que cause un perjuicio injustificado a los intereses legítimos de su fabricante. Tampoco limita obtener los mismos hechos públicos de forma independiente y directamente de sus fuentes originales (por ejemplo, las webs de las comercializadoras o los datos regulatorios oficiales).
 
 ## Incrustación y enmarcado
 
