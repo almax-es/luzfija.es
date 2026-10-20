@@ -25,7 +25,7 @@ As regards the contents of the tariff datasets (individual prices and other publ
 
 The tariff datasets of LuzFija.es, in particular `tarifas.json` and the tariff data shown on the website, are databases whose maker has made a substantial investment in obtaining, verifying and presenting their contents: continuous monitoring of the official sources of every listed retailer, automated and manual verification of each value, normalization into a common structure, and frequent updates.
 
-In addition to any copyright, these databases are protected by the sui generis database right (Directive 96/9/EC, Article 7; Spanish Intellectual Property Law, Royal Legislative Decree 1/1996, Articles 133 to 137). Without prior written permission, it is not permitted:
+In addition to any copyright, these databases are protected by the sui generis database right (Directive 96/9/EC, Article 7; Spanish Intellectual Property Law, Royal Legislative Decree 1/1996, Articles 133 to 137). Without prior written permission, and without prejudice to the exceptions provided by law (in particular Article 135 of the Spanish Intellectual Property Law and Article 9 of Directive 96/9/EC), it is not permitted:
 
 - to extract or re-utilize the whole or a substantial part, evaluated qualitatively or quantitatively, of their contents;
 - to repeatedly or systematically extract or re-utilize insubstantial parts of their contents where this conflicts with the normal exploitation of the database or unreasonably prejudices the legitimate interests of its maker.
@@ -97,7 +97,7 @@ En lo que respecta al contenido de los datasets de tarifas (precios individuales
 
 Los datasets de tarifas de LuzFija.es, en particular `tarifas.json` y los datos de tarifas que se muestran en la web, son bases de datos en cuya obtención, verificación y presentación su fabricante ha realizado una inversión sustancial: seguimiento continuo de las fuentes oficiales de cada comercializadora incluida, verificación automática y manual de cada valor, normalización en una estructura común y actualización frecuente.
 
-Además de los derechos de autor que correspondan, estas bases de datos están protegidas por el derecho *sui generis* sobre las bases de datos (Directiva 96/9/CE, artículo 7; Texto Refundido de la Ley de Propiedad Intelectual, Real Decreto Legislativo 1/1996, artículos 133 a 137). Sin autorización previa por escrito no se permite:
+Además de los derechos de autor que correspondan, estas bases de datos están protegidas por el derecho *sui generis* sobre las bases de datos (Directiva 96/9/CE, artículo 7; Texto Refundido de la Ley de Propiedad Intelectual, Real Decreto Legislativo 1/1996, artículos 133 a 137). Sin autorización previa por escrito, y sin perjuicio de las excepciones previstas legalmente (en particular, las del artículo 135 del Texto Refundido de la Ley de Propiedad Intelectual y el artículo 9 de la Directiva 96/9/CE), no se permite:
 
 - extraer o reutilizar la totalidad o una parte sustancial, evaluada cualitativa o cuantitativamente, de su contenido;
 - extraer o reutilizar de forma repetida o sistemática partes no sustanciales de su contenido cuando ello sea contrario a la explotación normal de la base de datos o cause un perjuicio injustificado a los intereses legítimos de su fabricante.
