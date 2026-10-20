@@ -2,9 +2,9 @@
   "_meta": {
     "schema": 1,
     "source": "https://sede.cnmc.gob.es/listado/censo/2",
-    "syncedAt": "2026-10-10",
-    "count": 946,
-    "sourceRows": 947,
+    "syncedAt": "2026-10-20",
+    "count": 948,
+    "sourceRows": 949,
     "duplicateCodes": [
       "R2-222"
     ],
@@ -45,6 +45,7 @@
       "R2-1043",
       "R2-1051",
       "R2-1053",
+      "R2-1060",
       "R2-1067",
       "R2-1072",
       "R2-1081",
@@ -201,6 +202,7 @@
       "R2-495",
       "R2-498",
       "R2-499",
+      "R2-503",
       "R2-504",
       "R2-507",
       "R2-508",
@@ -729,7 +731,7 @@
       "website": "https://www.isaecomercializacion.es/"
     },
     "R2-1039": {
-      "name": "SAMARA ENERGIA VPP, S.L.",
+      "name": "GREEN PROPERTY VPP, S.L.U.",
       "phone": "900 431 929",
       "website": "https://besanaenergia.com/"
     },
@@ -1372,6 +1374,16 @@
       "name": "SPOCK P2P, S.L.",
       "phone": "900 670 922",
       "website": "https://spock.es/informacion-sobre-spock-p2p-sl"
+    },
+    "R2-1168": {
+      "name": "NUREVIA ENERGÍA, S.L.U.",
+      "phone": "900 225 999",
+      "website": "http://www.nurevia.es/"
+    },
+    "R2-1169": {
+      "name": "EQUANIMITYENERGY TO GO S.L.",
+      "phone": "900 525 524",
+      "website": "https://equanimity.energy/es/comercializadora/"
     },
     "R2-117": {
       "name": "ENGIE ESPAÑA, S.L",
@@ -3614,7 +3626,7 @@
       "website": "http://www.coop-vinalesa.com/"
     },
     "R2-729": {
-      "name": "WOMBBAT ENERGY S.L",
+      "name": "NEOWATIO, S.L.",
       "phone": "900 105 295",
       "website": "https://www.womwatt.com/"
     },
