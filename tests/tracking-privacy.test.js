@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect, vi, beforeEach, afterEach, beforeAll, afterAll } from 'vitest';
 import fs from 'fs';
 import path from 'path';
 
@@ -19,6 +19,23 @@ function bootstrapTracking() {
   const fn = new Function(trackingCode);
   fn();
 }
+
+// Los errores de carga de <script> que provocan estos tests llegan al listener
+// global de tracking.js, que lanza una sonda asincrona (`probeFailedResource`)
+// con fetch real contra http://localhost:3000. Con la CI cargada esa sonda podia
+// resolverse despues de desmontar jsdom y `currentPageKey()` reventaba con
+// "ReferenceError: location is not defined" (20/10/2026, rompio un despliegue).
+// Sin red, la cadena de diagnostico termina en microtareas dentro del fichero.
+const realFetch = globalThis.fetch;
+
+beforeAll(() => {
+  globalThis.fetch = () => Promise.reject(new TypeError('red desactivada en tests'));
+});
+
+afterAll(async () => {
+  await new Promise((resolve) => setTimeout(resolve, 0));
+  globalThis.fetch = realFetch;
+});
 
 beforeEach(() => {
   document.head.innerHTML = '';
