@@ -1,8 +1,8 @@
 {
   "_meta": {
     "copyright": "Copyright (c) 2026 Luis Oscar Soler Bernal / LuzFija.es",
-    "license": "All rights reserved for LuzFija.es' selection, normalization, structure, annotations and curation. See CONTENT-LICENSE.md at https://github.com/almax-es/luzfija.es/blob/main/CONTENT-LICENSE.md",
-    "usage": "Commercial reuse, scraping or use for competing electricity comparison, PVPC analysis, invoice analysis, self-consumption, surplus compensation or virtual-battery services requires prior written permission."
+    "license": "All rights reserved for LuzFija.es' selection, normalization, structure, annotations and curation. This dataset is also protected as a database by the sui generis database right (Directive 96/9/EC, Article 7; Spanish Intellectual Property Law, Articles 133-137). See CONTENT-LICENSE.md at https://github.com/almax-es/luzfija.es/blob/main/CONTENT-LICENSE.md",
+    "usage": "Without prior written permission it is not permitted to extract or re-use the whole or a substantial part of this dataset, to repeatedly or systematically extract or re-use insubstantial parts of it, or to use its values (wholly or partly, manually or automatically, once or periodically) to create, update, check or complete the prices or tariffs of another database, comparator, website, app, feed or service, or to detect price changes for it. Commercial reuse, scraping or use for competing electricity comparison, PVPC analysis, invoice analysis, self-consumption, surplus compensation or virtual-battery services also requires prior written permission."
   },
   "tarifas": [
     {

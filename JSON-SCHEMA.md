@@ -19,8 +19,8 @@ Para inventario funcional completo de producto (todas las páginas y flujos), ve
 {
   "_meta": {
     "copyright": "string (titular de derechos)",
-    "license": "string (aviso de derechos reservados para selección, normalización, estructura, anotaciones y curación)",
-    "usage": "string (restricciones de reutilización comercial y servicios competidores)"
+    "license": "string (aviso de derechos reservados para selección, normalización, estructura, anotaciones y curación, y derecho sui generis sobre la base de datos)",
+    "usage": "string (prohibición de extracción sustancial o sistemática, de usar sus valores para actualizar o comprobar precios de otro servicio, y de reutilización comercial o competidora)"
   },
   "tarifas": [
     {
@@ -371,6 +371,7 @@ de energía un 9% por encima de su tarifa hermana).
 
 ## Historial de Cambios
 
+- **2026-10-20**: El aviso `_meta` de `tarifas.json` invoca también el derecho *sui generis* sobre bases de datos y prohíbe expresamente usar sus valores para crear, actualizar o comprobar los precios de otro servicio (ver `CONTENT-LICENSE.md`). Las tarifas no cambian.
 - **2026-10-08**: Revisión del documento contra el código. Reparada la tabla "Campos Detallados" (una línea en blanco y el bloque "Cómo se usan los campos de máximo" la partían, y las filas de `promo` a `requiereFV` se renderizaban como texto suelto), el ejemplo de tarifa queda marcado como ilustrativo y el tamaño mensual de PVPC/excedentes pasa a ~18 KB, el medido.
 - **2026-09-24**: Añadido `maxConsumoAnualPorKw` (columna W del Excel, "Máximo consumo anual por kW (kWh/kW)"): tope anual proporcional a la potencia, con la menor de P1/P2 como referencia. `assessConsumoAnualLimits` acepta `potenciaP1Kw`/`potenciaP2Kw` y lo aplica en la home y en el simulador solar con la misma regla que `maxConsumoAnual`. Primer uso: Nufri Sin Horarios y Nufri Con Horarios 3P (1.200 kWh/kW).
 - **2026-09-12**: Aplicar `maxConsumoAnual` pasa a ser decisión del usuario en los dos alcances. Superar el máximo con kWh registrados ya no excluye por sí solo: la tarifa sigue en el ranking y un único interruptor la retira si el usuario quiere. `assessConsumoAnualLimits` acepta `applyLimits` (con `useAnnualEstimate` como alias heredado) y devuelve `limitsChoiceAvailable` y `limitsApplied`.
