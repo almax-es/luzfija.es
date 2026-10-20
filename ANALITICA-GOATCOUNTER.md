@@ -126,6 +126,7 @@ Ejemplos:
 - `csv-import-aplicado/home/consumos-excedentes/pvpc-periodo`
 - `csv-import-error/home/xlsx/valor-invalido` (tercer segmento: codigo de error normalizado de `csvErrorCodeForTracking`, nunca el mensaje literal)
 - `csv-import-formato/home/csv/texto/pyc/c5/dmy/t-fe-ho-co-kw` (solo tras un error de formato; firma de categorias cerradas, ver 6.5.3)
+- `csv-reporte/home/mostrado/cabecera-no-detectada`, `csv-reporte/home/origen/distribuidora/ide`, `csv-reporte/home/enviar/inversor/huawei`, `csv-reporte/home/copiar/datadis` y `csv-reporte/home/cerrado` (aviso persistente de importacion fallida y reporte del archivo; ver 6.5.4)
 - `compartir-abierto/home`
 - `url-compartida/home/minimo` (solo tras compartir o copiar con éxito)
 - `url-compartida/home/consumo`, `url-compartida/home/privado` o `url-compartida/home/completo` según el alcance confirmado
@@ -151,6 +152,7 @@ Ejemplos:
 - `csv-import-completado/solar/xlsx/sin-excedentes`
 - `csv-import-error/solar/csv/cabecera-no-detectada` (tercer segmento: codigo de error normalizado)
 - `csv-import-formato/solar/xls/html/na/na/na/sin-tokens` (solo tras un error de formato, ver 6.5.3)
+- `csv-reporte/solar/mostrado/<codigo>`, `csv-reporte/solar/origen/<tipo>[/<detalle>]`, `csv-reporte/solar/enviar/...`, `csv-reporte/solar/copiar/...` y `csv-reporte/solar/cerrado` (ver 6.5.4)
 - `compartir-abierto/solar`
 - `url-compartida/solar/minimo` (solo tras compartir o copiar con éxito)
 - `url-compartida/solar/consumo`, `url-compartida/solar/privado` o `url-compartida/solar/completo` según el alcance confirmado
@@ -183,6 +185,7 @@ Ejemplos:
   analitica no se podia saber por que fallaba una importacion en el observatorio)
 - `csv-import-formato/estadisticas/csv/texto/coma/c3/iso/sin-tokens` (solo tras un error de
   formato, ver 6.5.3)
+- `csv-reporte/estadisticas/mostrado/<codigo>` y el resto de `csv-reporte/estadisticas/...` (ver 6.5.4)
 
 El CSV del observatorio solo emite extension y estado. No emite energia, precios, importes ni nombres de archivo.
 
@@ -763,6 +766,43 @@ el test falla hasta actualizar la politica publicada),
 coordinadores ausentes) y
 `tests/bv-ui-tooltip-textnode.test.js` (regresion del
 `e.target.closest is not a function` con target que no es Element).
+
+
+### 6.5.4 Aviso persistente y reporte del archivo (`csv-reporte`)
+
+Añadido el 20/10/2026 (`js/lf-csv-report.js`, compartido por home, solar y observatorio). Hasta
+entonces el error de importacion era un toast que se cerraba solo y pedia escribir a mano a
+hola@luzfija.es; nadie lo hacia, y la firma de 6.5.3 dice la forma del fichero pero no de donde
+sale. Ahora el error es un bloque fijo que explica que fichero hace falta, pregunta el origen del
+archivo (obligatorio para enviar; "No lo sé" cuenta) y arma un `mailto:` a hola@luzfija.es con una
+muestra anonimizada que el usuario ve y edita. **Nada sale solo**: lo envia el usuario desde su
+correo. El contenido del correo (muestra, nombre de comercializadora, texto libre) NUNCA va a
+GoatCounter.
+
+```text
+csv-reporte/<contexto>/mostrado/<codigo de csvErrorCodeForTracking>
+csv-reporte/<contexto>/origen/<tipo>[/<detalle>]
+csv-reporte/<contexto>/enviar/<tipo>[/<detalle>]
+csv-reporte/<contexto>/copiar/<tipo>[/<detalle>]
+csv-reporte/<contexto>/cerrado
+```
+
+- **contexto**: `home`, `solar` o `estadisticas`.
+- **tipo** (lista cerrada `ORIGINS`): `distribuidora`, `datadis`, `comercializadora`, `inversor`,
+  `otro`, `no-se`; `sin-origen` si no se eligio (solo posible en `copiar`).
+- **detalle**, solo para listas cerradas: distribuidora (`ide`, `edistribucion`, `ufd`, `eredes`,
+  `viesgo`, `otra`, `no-se`) o marca de inversor (`huawei`, `sma`, `fronius`, `goodwe`, `growatt`,
+  `solaredge`, `enphase`, `sungrow`, `solis`, `victron`, `ingeteam`, `shelly`, `otra`);
+  `sin-detalle` si aun no se ha elegido. `comercializadora` y `otro` no llevan detalle: su texto es
+  libre y solo viaja en el correo.
+
+`origen/...` se emite al elegir aunque el usuario no llegue a enviar: es la forma de saber de donde
+salen los ficheros que fallan sin depender del correo. `mostrado` se emite con cualquier error;
+con `archivo-grande`, `sin-archivo` y `rango-fechas` el bloque explica el error pero no pide el
+archivo (no hay nada que analizar), y tampoco lo pide si es un PDF (seria la factura). El enlace "Enviar" lleva `data-lf-no-generic-track` para no contarse ademas
+como `enlace-externo/<pagina>/email`. Lo cubre `tests/csv-report.test.js` (listas cerradas, texto
+libre fuera de analitica, anonimizado de CUPS/DNI/NIE/IBAN/emails/telefonos/direcciones/fichas y
+columnas personales, recorte del mailto a 1.900 caracteres e importador real de la home).
 
 ### 6.6 Trafico QA Sintetico Conocido
 

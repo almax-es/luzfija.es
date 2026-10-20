@@ -84,6 +84,7 @@ BODY (todos con defer, en orden de documento)
   js/lf-utils.js                  crea window.LF; utilidades puras
   js/lf-ssaa.js
   js/lf-csv-utils.js              window.LF.csvUtils
+  js/lf-csv-report.js             window.LF.csvReport (uso perezoso, ver 3.1)
   js/lf-state.js                  el, state, DEFAULTS, JSON_URL, LS_KEY, THEME_KEY, $
   js/lf-ui.js                     [desestructura en eval]
   js/lf-tooltips.js               [desestructura en eval]
@@ -128,7 +129,7 @@ HEAD
 
 BODY (sin defer, durante el parseo)
   tracking.js -> lf-config.js -> lf-utils.js -> lf-ssaa.js -> lf-csv-utils.js
-  -> lf-surplus-prices.js -> bv/bv-import.js -> bv/bv-sim-monthly.js
+  -> lf-csv-report.js -> lf-surplus-prices.js -> bv/bv-import.js -> bv/bv-sim-monthly.js
   -> bv/bv-ui-helpers.js -> bv/bv-ui.js
 
 BODY (con defer, despues de todo lo anterior)
@@ -158,11 +159,11 @@ BODY
   lf-sw-update.js (defer)
   shell-lite.js (defer)
   vendor/chartjs/chart.umd.js (sin defer)
-  lf-config.js, lf-csv-utils.js, lf-surplus-prices.js,
+  lf-config.js, lf-csv-utils.js, lf-csv-report.js, lf-surplus-prices.js,
   pvpc-stats-engine.js, pvpc-stats-csv.js, pvpc-stats-ui.js (sin defer)
 
 Orden REAL de ejecucion
-  tracking -> chart -> lf-config -> lf-csv-utils -> lf-surplus-prices -> pvpc-stats-engine
+  tracking -> chart -> lf-config -> lf-csv-utils -> lf-csv-report -> lf-surplus-prices -> pvpc-stats-engine
   -> pvpc-stats-csv -> pvpc-stats-ui -> [cola defer] lf-sw-update -> shell-lite
 ```
 
@@ -189,6 +190,7 @@ pero no necesariamente que su etiqueta preceda a la etiqueta del consumidor.
 | `lf-state.js` | `lf-ui.js`, `lf-tooltips.js`, `lf-cache.js`, `lf-inputs.js`, `lf-render.js`, `lf-tarifa-custom.js` | `el`, `state`, `DEFAULTS`, `SERVER_PARAMS`, `LS_KEY`, `JSON_URL`, `THEME_KEY`, `$` | eval | referencias DOM y estado global del comparador |
 | `lf-csv-utils.js` | `lf-csv-import.js` | `window.LF.csvUtils` (`assertRelevantXlsxFormulasResolved` incluido) | eval | importacion CSV/XLSX, formulas XLSX sin cache y clasificacion P1/P2/P3 |
 | `lf-csv-utils.js` | `desglose-integration.js` | `window.LF.csvUtils.fetchJsonWithTimeout` | perezoso, fail-closed | deadline de la descarga de `tarifas.json`: sin el helper no se descarga, para no arriesgar un fetch que no resuelva nunca |
+| `lf-csv-report.js` | `lf-csv-import.js` | `window.LF.csvReport` | perezoso, con fallback | aviso persistente de importacion fallida y reporte del archivo; sin el modulo vuelve el toast de siempre |
 | `lf-ui.js` | `lf-cache.js`, `lf-inputs.js`, `lf-render.js`, `lf-csv-import.js`, `lf-tarifa-custom.js` | `toast`, `setStatus`, `showError`, `clearErrorStyles`, `applyButtonState` | eval | avisos, estado de carga y marcado de errores |
 | `lf-tooltips.js` | `lf-render.js` | `initTooltips`, `bindTooltipElement` | eval | tooltips de la tabla de resultados |
 | `lf-inputs.js` | `lf-calc.js` | `__LF_getFiscalContext`, `getInputValues` | eval | contexto fiscal del motor de calculo |
@@ -219,6 +221,7 @@ motivo para hacerlo.
 | `lf-csv-utils.js` | `bv/bv-sim-monthly.js` | `csvUtils.fetchJsonWithTimeout` | perezoso, fail-closed | deadline de la descarga de `tarifas.json` en `loadTarifasBV()`: sin el helper no se descarga, para no dejar el simulador esperando a un fetch que no resuelva |
 | `bv/bv-ui-helpers.js` | `bv/bv-ui.js` | `window.BVSim.manualUi` | DOM ready, con guard | tabla manual, saldo BV y coste neto |
 | `lf-surplus-prices.js` | `bv/bv-ui.js` | `window.LF.surplusPrices` | perezoso | excedentes indexados contra `data/surplus/` |
+| `lf-csv-report.js` | `bv/bv-ui.js` | `window.LF.csvReport` | perezoso, con fallback | aviso persistente de importacion fallida; sin el modulo vuelve el toast |
 | `lf-sw-update.js` | `shell-lite.js` | `window.LF.initSwUpdate` | eval, **sin aviso** | registro del SW en la ruta solar |
 
 ### 3.3 Observatorio
@@ -230,6 +233,7 @@ motivo para hacerlo.
 | `vendor/chartjs/chart.umd.js` | `pvpc-stats-ui.js` | `window.Chart` | perezoso, con guard | graficos de evolucion y perfil horario |
 | `lf-config.js` | `lf-surplus-prices.js` | `window.LF_CONFIG.roundMoneyProducts` | perezoso, con fallback no equivalente | valor monetario exacto de excedentes mensuales y del periodo |
 | `lf-csv-utils.js` | `pvpc-stats-csv.js` | `window.LF.csvUtils` (`assertRelevantXlsxFormulasResolved` incluido) | perezoso, error explicito | parseo CSV/XLSX de excedentes, normalizacion horaria y formulas relevantes sin cache |
+| `lf-csv-report.js` | `pvpc-stats-ui.js` | `window.LF.csvReport` | perezoso, con fallback | aviso persistente de importacion fallida; sin el modulo la nota conserva el mensaje completo |
 | `lf-sw-update.js` | `shell-lite.js` | `window.LF.initSwUpdate` | eval, **sin aviso** | registro del SW en el observatorio |
 
 ## 4. Invariantes

@@ -205,7 +205,10 @@ describe('regresiones de accesibilidad detectadas en la auditoría', () => {
     expect(html).toMatch(/id="csvExcedentesNote" role="status" aria-atomic="true"/);
     expect(ui).toContain("setCsvNote('Procesando archivo…')");
     expect(ui).toContain("'Archivo procesado correctamente.'");
-    expect(ui).toMatch(/setCsvNote\(`Error: \$\{err\?\.message \|\| 'No se pudo procesar el archivo\.'\}`\)/);
+    // El error se anuncia siempre en la region status: con el bloque persistente de
+    // js/lf-csv-report.js la nota remite a el; sin ese modulo conserva el mensaje completo.
+    expect(ui).toContain("'No se pudo procesar el archivo: tienes los detalles justo debajo.'");
+    expect(ui).toMatch(/`Error: \$\{err\?\.message \|\| 'No se pudo procesar el archivo\.'\}`/);
     expect(ui).toContain('renderCsvStats(null, { announceEmpty: false })');
   });
 

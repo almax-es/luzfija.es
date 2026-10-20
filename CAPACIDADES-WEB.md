@@ -175,6 +175,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 ### 3.4 Importador CSV/XLSX En Home
 
 - Acepta CSV y Excel (`.csv`, `.xlsx`, `.xls`).
+- Si la importacion falla (aqui, en el simulador solar y en el observatorio), el error ya no es un toast: es un aviso persistente (`js/lf-csv-report.js`) que explica que fichero hace falta (la curva horaria del contador, de la distribuidora o de Datadis), pregunta de donde sale el archivo (distribuidora concreta, Datadis, comercializadora, marca de inversor...) y ofrece mandarlo a hola@luzfija.es con una muestra anonimizada que el usuario revisa y edita. Sin ese modulo, cada importador vuelve a su aviso anterior.
 - Parsing robusto compartido (`lf-csv-utils.js`):
 - Deteccion automatica de separador (`;` o `,`).
 - Deteccion de cabecera en las primeras 30 filas.
@@ -539,8 +540,8 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 ## 7. Arquitectura Tecnica
 
 - Stack: HTML + CSS + Vanilla JS modular.
-- Modulos JS: 43 (`js/*.{js,mjs}` + `js/bv/*.js`).
-- Lineas JS aproximadas: 34.806.
+- Modulos JS: 44 (`js/*.{js,mjs}` + `js/bv/*.js`).
+- Lineas JS aproximadas: 35.634.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (112 tarifas).
@@ -621,7 +622,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Calculos, importaciones CSV y parseo PDF se ejecutan en local.
 - Datos sensibles de factura no se persisten como perfil remoto.
-- En importaciones CSV/XLSX, `CUPS` puede reconocerse como cabecera para detectar formato/separador, pero sus valores no se guardan ni se renderizan. La UI solo muestra agregados numericos derivados (kWh, dias, porcentajes e importes), no strings libres del fichero.
+- En importaciones CSV/XLSX, `CUPS` puede reconocerse como cabecera para detectar formato/separador, pero sus valores no se guardan ni se renderizan. La UI solo muestra agregados numericos derivados (kWh, dias, porcentajes e importes), no strings libres del fichero, con una excepcion acotada: si la importacion falla, el aviso persistente (`js/lf-csv-report.js`) ensena una muestra de las primeras lineas con CUPS, DNI/NIE, IBAN, emails, telefonos, direcciones y fichas personales ocultos, como texto plano (`textarea.value`, nunca HTML), para que el usuario la revise antes de decidir mandarla por su propio correo a hola@luzfija.es. Nada se envia sin su accion; a analitica solo van categorias cerradas (`ANALITICA-GOATCOUNTER.md` 6.5.4).
 - La superficie sensible de datos personales es el extractor de factura PDF de la home (`/`); esa pagina usa CSP con hashes en `script-src`, modo privacidad y bloqueo de tracking del modal de factura.
 - Guias, paginas legales, 404 y `como-funciona-luzfija.html` no procesan facturas/CSV ni datos sensibles del usuario; endurecer su CSP puede ser hardening general, pero no debe tratarse como hallazgo prioritario de privacidad por si solo.
 - CSP definida por pagina.
@@ -640,8 +641,8 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 ## 10. Testing Y Calidad
 
 - Suite Vitest/JSDOM.
-- 140 archivos de test (`tests/*.test.js`).
-- 2385 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 141 archivos de test (`tests/*.test.js`).
+- 2417 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

@@ -9,7 +9,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20261019-185705";
+const CACHE_VERSION = "20261020-102837";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 // El build 20260620-051941 contenía un handler del simulador solar que podía
 // llamar `target.closest()` sobre un target no-Element. A diferencia de las
@@ -67,6 +67,10 @@ const ASSETS = [
   "js/lf-utils.js",
   "js/lf-ssaa.js",
   "js/lf-csv-utils.js",
+  // Aviso persistente + reporte de importaciones fallidas (home, solar y observatorio).
+  // Fuera de CORE_ASSETS y de REQUIRED_ROUTE_GROUPS a proposito: si falta, los tres
+  // importadores vuelven a su aviso anterior y la importacion sigue funcionando.
+  "js/lf-csv-report.js",
   "js/lf-surplus-prices.js",
   "js/lf-state.js",
   "js/lf-ui.js",

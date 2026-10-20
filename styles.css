@@ -4104,3 +4104,43 @@ body:has(.modal-overlay.show) .mi-tarifa-chip { display: none !important; }
   .mi-tarifa-chip:not([hidden]).is-visible { transform: none; }
   .custom-tariff-highlight.mi-tarifa-flash { animation: none; }
 }
+
+/* ===== Aviso persistente de importacion CSV/XLSX fallida + reporte del archivo =====
+   js/lf-csv-report.js, compartido por home (al principio de <main>), simulador solar (bajo
+   el boton de subida) y observatorio (bajo la nota del CSV). Sustituye al toast, que se
+   cerraba solo y no dejaba pulsar ni copiar nada. Solo variables de tema: funciona igual
+   en claro y oscuro. */
+.lf-csv-report{ box-sizing:border-box; max-width:880px; margin:12px auto 16px; padding:14px 16px; border:1px solid color-mix(in srgb, var(--danger) 40%, var(--border)); border-left:4px solid var(--danger); border-radius:14px; background:color-mix(in srgb, var(--danger) 6%, var(--bg1)); color:var(--text); font-size:14px; line-height:1.55; text-align:left; box-shadow:var(--shadow2); }
+.lf-csv-report__head{ display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.lf-csv-report__title{ margin:0; font-size:16px; font-weight:800; line-height:1.35; }
+/* El titulo recibe el foco por script (tabindex=-1, para que el lector de pantalla lo anuncie);
+   no es alcanzable con el teclado, asi que no lleva anillo de foco. */
+.lf-csv-report__title:focus, .lf-csv-report__title:focus-visible{ outline:none; }
+.lf-csv-report__close{ flex:0 0 auto; min-width:36px; min-height:36px; border:1px solid var(--border); border-radius:10px; background:var(--card); color:var(--muted); font:inherit; font-size:14px; cursor:pointer; }
+.lf-csv-report__close:hover{ border-color:var(--border2); color:var(--text); }
+.lf-csv-report__msg{ margin:8px 0 0; white-space:pre-line; overflow-wrap:anywhere; }
+.lf-csv-report__hint{ margin:8px 0 0; color:var(--muted); }
+.lf-csv-report__ask{ margin-top:14px; padding:14px; border:1px solid color-mix(in srgb, var(--accent) 45%, var(--border)); border-radius:12px; background:color-mix(in srgb, var(--accent) 7%, var(--bg1)); }
+.lf-csv-report__ask-title{ margin:0 0 6px; font-size:15px; font-weight:800; }
+.lf-csv-report__pitch{ margin:0 0 12px; }
+.lf-csv-report__label{ display:block; margin:10px 0 6px; font-weight:700; }
+.lf-csv-report__select, .lf-csv-report__input{ box-sizing:border-box; width:100%; max-width:460px; min-height:42px; padding:8px 10px; border:1px solid var(--border2); border-radius:10px; background:var(--bg1); color:var(--text); font:inherit; }
+.lf-csv-report__select option{ color:#0F172A; background:#FFFFFF; }
+.lf-csv-report__detail[hidden]{ display:none; }
+.lf-csv-report__preview{ margin-top:12px; }
+.lf-csv-report__preview > summary{ cursor:pointer; font-weight:700; padding:4px 0; }
+.lf-csv-report__text{ display:block; box-sizing:border-box; width:100%; min-height:150px; margin-top:6px; padding:10px; border:1px solid var(--border2); border-radius:10px; background:var(--bg1); color:var(--text); font-family:var(--mono); font-size:12px; line-height:1.45; resize:vertical; -webkit-hyphens:manual; hyphens:manual; overflow-wrap:anywhere; }
+.lf-csv-report__actions{ display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+.lf-csv-report__actions .btn{ text-decoration:none; }
+.lf-csv-report__send{ border-color:color-mix(in srgb, var(--accent) 70%, var(--border)); background:color-mix(in srgb, var(--accent) 22%, var(--card)); }
+.lf-csv-report__send.is-disabled{ opacity:.6; }
+.lf-csv-report__status{ margin:8px 0 0; font-weight:700; }
+.lf-csv-report__status:empty{ display:none; }
+.lf-csv-report__fine{ margin:8px 0 0; color:var(--muted2); font-size:12px; }
+@media (max-width: 480px){
+  /* En solar el bloque va dentro de dos tarjetas con su propio padding: se recorta el interior
+     para no dejar una columna de texto de 200 px. */
+  .lf-csv-report{ padding:12px 10px; }
+  .lf-csv-report__ask{ padding:12px 10px; }
+  .lf-csv-report__actions .btn{ flex:1 1 100%; justify-content:center; }
+}

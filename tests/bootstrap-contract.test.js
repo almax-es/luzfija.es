@@ -296,7 +296,10 @@ const DEFERRED_USE_DEPENDENCIES = {
     ['js/desglose-factura.js', 'js/desglose-integration.js', 'uso perezoso'],
     // 26/08/2026: el fallback de red del desglose pasa por
     // window.LF.csvUtils.fetchJsonWithTimeout para tener deadline.
-    ['js/lf-csv-utils.js', 'js/desglose-integration.js', 'uso perezoso']
+    ['js/lf-csv-utils.js', 'js/desglose-integration.js', 'uso perezoso'],
+    // 20/10/2026: window.LF.csvReport (aviso persistente + reporte del archivo) solo se lee
+    // al fallar una importacion; sin el, lf-csv-import.js vuelve al toast.
+    ['js/lf-csv-report.js', 'js/lf-csv-import.js', 'uso perezoso']
   ],
   [SOLAR]: [
     ['js/lf-csv-utils.js', 'js/bv/bv-sim-monthly.js', 'uso perezoso'],
@@ -305,7 +308,8 @@ const DEFERRED_USE_DEPENDENCIES = {
     // Observatorio.
     ['js/lf-csv-utils.js', 'js/lf-surplus-prices.js', 'uso perezoso'],
     ['js/bv/bv-ui-helpers.js', 'js/bv/bv-ui.js', 'DOMContentLoaded'],
-    ['js/lf-surplus-prices.js', 'js/bv/bv-ui.js', 'uso perezoso']
+    ['js/lf-surplus-prices.js', 'js/bv/bv-ui.js', 'uso perezoso'],
+    ['js/lf-csv-report.js', 'js/bv/bv-ui.js', 'uso perezoso']
   ],
   [STATS]: [
     ['js/pvpc-stats-engine.js', 'js/pvpc-stats-ui.js', 'DOMContentLoaded'],
@@ -315,7 +319,8 @@ const DEFERRED_USE_DEPENDENCIES = {
     // Mismo validador compartido de dia civil, ahora tambien consumido por el motor de
     // anios del Observatorio y por excedentes (bloqueante 2, 12/08/2026).
     ['js/lf-csv-utils.js', 'js/pvpc-stats-engine.js', 'uso perezoso'],
-    ['js/lf-csv-utils.js', 'js/lf-surplus-prices.js', 'uso perezoso']
+    ['js/lf-csv-utils.js', 'js/lf-surplus-prices.js', 'uso perezoso'],
+    ['js/lf-csv-report.js', 'js/pvpc-stats-ui.js', 'uso perezoso']
   ]
 };
 

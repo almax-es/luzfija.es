@@ -238,6 +238,23 @@ describe('Tracking event taxonomy', () => {
     expect(window.goatcounter.count.mock.calls.length).toBe(countBeforePrivateModal);
   });
 
+  it('no cuenta como enlace-externo los enlaces que emiten su propio evento (reporte de CSV)', () => {
+    document.body.innerHTML = `
+      <a id="generic" href="mailto:hola@luzfija.es">Email</a>
+      <a id="report" href="mailto:hola@luzfija.es?subject=x&body=y" data-lf-no-generic-track>Enviar</a>
+    `;
+
+    bootstrapTracking();
+    fireDOMContentLoaded();
+    const before = window.goatcounter.count.mock.calls.length;
+    click(document.getElementById('report'));
+    expect(window.goatcounter.count.mock.calls.length).toBe(before);
+
+    click(document.getElementById('generic'));
+    const paths = window.goatcounter.count.mock.calls.map((call) => call[0]?.path);
+    expect(paths).toContain('enlace-externo/home/email');
+  });
+
   it('trackea compartir guía sin confundir enlaces hash con clicks a guía', () => {
     window.history.replaceState({}, '', '/guias/como-leer-tu-factura-de-la-luz-paso-a-paso.html');
     document.body.innerHTML = `

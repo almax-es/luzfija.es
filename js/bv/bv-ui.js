@@ -64,6 +64,30 @@ document.addEventListener('DOMContentLoaded', () => {
     }).catch(() => {});
   }
 
+  // Error de importacion: bloque persistente con la explicacion y la peticion del archivo
+  // (js/lf-csv-report.js), justo bajo el boton de subida. Antes era un toast que se cerraba
+  // al primer toque en la pagina. Si ese modulo no cargo, se conserva el toast.
+  function showBvImportError(file, message, errorCode) {
+    try {
+      const report = window.LF?.csvReport;
+      if (report && typeof report.showImportError === 'function') {
+        const panel = report.showImportError({
+          context: 'solar',
+          file,
+          message,
+          errorCode,
+          anchor: document.getElementById('file-selected-msg') || document.getElementById('upload-csv-btn')
+        });
+        if (panel) return;
+      }
+    } catch (_) {}
+    showToast(message, 'err');
+  }
+
+  function dismissBvImportError() {
+    try { window.LF?.csvReport?.dismiss?.('solar'); } catch (_) {}
+  }
+
   function markSolarUnavailable(detail, title) {
     const message = 'La página no terminó de cargarse. Recárgala para usar el simulador.';
     showToast(message, 'err');
@@ -2656,6 +2680,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // que este parseo termine bien. El contador impide que una importacion vieja haga commit
     // despues de otra seleccion, un reset, quitar archivo o restaurar un respaldo.
     const importGeneration = ++fileImportGeneration;
+    // Un aviso de un archivo anterior no debe quedarse junto al resultado del nuevo.
+    dismissBvImportError();
 
     // ⚠️ CRÍTICO: ZONA GEOGRAFICA - AISLAMIENTO DEL SIMULADOR BV
     // ===========================================================
@@ -2752,7 +2778,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // mismo fichero (los navegadores no garantizan `change` si el valor sigue siendo identico)
         // sin tocar el fichero/cache anterior que continua siendo el contexto activo.
         if (fileInput) fileInput.value = '';
-        showToast(result.error, 'err');
+        showBvImportError(file, result.error, errorCode);
       }
     } catch (e) {
       if (importGeneration !== fileImportGeneration) return;
@@ -2762,7 +2788,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const errorCode = window.LF?.csvUtils?.csvErrorCodeForTracking?.(e && e.message) || 'otro';
       trackBvEvent('csv-import-error', ['solar', extension, errorCode], 'Error al procesar CSV/XLSX en solar');
       trackBvCsvFormatSignature(file, extension, errorCode);
-      showToast('Error al procesar el archivo CSV', 'err');
+      showBvImportError(file, 'Error al procesar el archivo CSV', errorCode);
     }
   }
 

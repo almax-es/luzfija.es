@@ -1213,6 +1213,8 @@
         csvEls.btn.disabled = true;
         csvEls.btn.textContent = '⏳ Procesando...';
         setCsvNote('Procesando archivo…');
+        // Un aviso de un archivo anterior no debe quedarse junto al resultado del nuevo.
+        try { window.LF?.csvReport?.dismiss?.('estadisticas'); } catch (_) {}
         try {
           const importGeo = String(state.geo);
           const parsed = await parseCsvOrXlsx(file, geoNames[importGeo] || 'Península');
@@ -1241,7 +1243,24 @@
           csvState.canaryClock = null;
           renderCsvStats(null, { announceEmpty: false });
           csvState.importNotice = '';
-          setCsvNote(`Error: ${err?.message || 'No se pudo procesar el archivo.'}`);
+          // Bloque persistente con la explicacion y la peticion del archivo
+          // (js/lf-csv-report.js). Si ese modulo no cargo, la nota conserva el mensaje completo.
+          let reportShown = false;
+          try {
+            const report = window.LF?.csvReport;
+            if (report && typeof report.showImportError === 'function') {
+              reportShown = Boolean(report.showImportError({
+                context: 'estadisticas',
+                file,
+                message: err?.message || 'No se pudo procesar el archivo.',
+                errorCode,
+                anchor: csvEls.note
+              }));
+            }
+          } catch (_) {}
+          setCsvNote(reportShown
+            ? 'No se pudo procesar el archivo: tienes los detalles justo debajo.'
+            : `Error: ${err?.message || 'No se pudo procesar el archivo.'}`);
         } finally {
           csvEls.btn.disabled = false;
           csvEls.btn.textContent = '📤 Subir CSV/XLSX';

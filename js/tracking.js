@@ -2017,6 +2017,10 @@ try {
 
       const path = canonicalPathFromHref(rawHref);
       if (!path) {
+        // Enlaces que ya emiten su propio evento (p. ej. "Enviar" del reporte de CSV,
+        // csv-reporte/<ctx>/enviar/...): contarlos tambien como enlace-externo/email
+        // duplicaria el envio en analitica.
+        if (a.hasAttribute('data-lf-no-generic-track')) return;
         const externalTarget = externalTargetFromHref(rawHref);
         if (externalTarget) {
           trackDetailedEvent('enlace-externo', [currentPageKey(), externalTarget], {

@@ -50,6 +50,31 @@
     }).catch(() => {});
   }
 
+  // Error de importacion: bloque persistente con la explicacion y la peticion del archivo
+  // (js/lf-csv-report.js), bajo la barra de acciones. Se resuelve en el momento de usarlo:
+  // si ese modulo no cargo, se conserva el toast de siempre y la importacion no se rompe.
+  function showImportError(file, message, errorCode) {
+    try {
+      const report = window.LF && window.LF.csvReport;
+      if (report && typeof report.showImportError === 'function') {
+        const panel = report.showImportError({
+          context: 'home',
+          file,
+          message,
+          errorCode,
+          prependTo: document.getElementById('main'),
+          anchor: document.querySelector('.actions')
+        });
+        if (panel) return;
+      }
+    } catch (_) {}
+    toast(message || 'Error al procesar el archivo', 'err');
+  }
+
+  function dismissImportError() {
+    try { window.LF?.csvReport?.dismiss?.('home'); } catch (_) {}
+  }
+
   // En el comparador de la home los excedentes son opcionales: un fichero de solo consumo
   // es perfectamente valido. Una columna solar sin reconocer se avisa, nunca bloquea.
   const UNMAPPED_SOLAR_POLICY = 'warn';
@@ -952,6 +977,8 @@
 
         btnCSV.disabled = true;
         btnCSV.innerHTML = '⏳ Procesando...';
+        // Un aviso de un archivo anterior no debe quedarse junto al resultado del nuevo.
+        dismissImportError();
 
         try {
           let resultado;
@@ -972,7 +999,7 @@
               ? csvErrorCodeForTracking(resultado.error) : 'otro';
             trackCsvEvent('csv-import-error', ['home', trackSafeExt(file.name), errorCode], 'Error al procesar CSV/XLSX en home');
             trackCsvFormatSignature(file, errorCode);
-            toast(resultado.error || 'Error al procesar el archivo', 'err');
+            showImportError(file, resultado.error || 'Error al procesar el archivo', errorCode);
             btnCSV.disabled = false;
             btnCSV.innerHTML = '<span>📊</span><span class="btn-text">Importar CSV</span>';
             fileInput.value = '';
@@ -989,7 +1016,7 @@
             ? csvErrorCodeForTracking(error && error.message) : 'otro';
           trackCsvEvent('csv-import-error', ['home', trackSafeExt(file.name), errorCode], 'Error al procesar CSV/XLSX en home');
           trackCsvFormatSignature(file, errorCode);
-          toast(error.message || 'Error al procesar el archivo', 'err');
+          showImportError(file, error.message || 'Error al procesar el archivo', errorCode);
           btnCSV.disabled = false;
           btnCSV.innerHTML = '<span>📊</span><span class="btn-text">Importar CSV</span>';
           fileInput.value = '';
