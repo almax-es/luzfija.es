@@ -715,6 +715,46 @@
       "requiereFV": false
     },
     {
+      "nombre": "Lumisa Simple 24h",
+      "cPunta": 0.148806,
+      "cLlano": 0.148806,
+      "cValle": 0.148806,
+      "p1": 0.108888,
+      "p2": 0.108888,
+      "web": "https://lumisa.es/es/tarifa-fija",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Lumisa Solar",
+      "cPunta": 0.148806,
+      "cLlano": 0.148806,
+      "cValle": 0.148806,
+      "p1": 0.108888,
+      "p2": 0.108888,
+      "web": "https://lumisa.es/es/tarifas-solar-bateria-virtual",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.045,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": true
+    },
+    {
       "nombre": "BonArea Relax",
       "cPunta": 0.149003,
       "cLlano": 0.149003,
@@ -1006,26 +1046,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Lumisa Simple 24h",
-      "cPunta": 0.168803,
-      "cLlano": 0.168803,
-      "cValle": 0.168803,
-      "p1": 0.108888,
-      "p2": 0.108888,
-      "web": "https://lumisa.es/es/tarifa-fija",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Endesa Solar Plus & Batería Virtual",
       "cPunta": 0.171958,
       "cLlano": 0.171958,
@@ -1167,26 +1187,6 @@
         "precioBV": 0.0
       },
       "requiereFV": false
-    },
-    {
-      "nombre": "Lumisa Solar",
-      "cPunta": 0.188802,
-      "cLlano": 0.188802,
-      "cValle": 0.188802,
-      "p1": 0.108888,
-      "p2": 0.108888,
-      "web": "https://lumisa.es/es/tarifas-solar-bateria-virtual",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.045,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": true
     },
     {
       "nombre": "TE A tu Aire Luz Siempre +4000",
@@ -2317,5 +2317,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-20T07:25:20.075Z"
+  "updatedAt": "2026-10-20T07:32:11.943Z"
 }
