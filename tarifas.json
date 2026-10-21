@@ -108,27 +108,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Imagina Sin Horas",
-      "cPunta": 0.119008,
-      "cLlano": 0.119008,
-      "cValle": 0.119008,
-      "p1": 0.122438,
-      "p2": 0.056087,
-      "web": "https://imaginaenergia.com/tarifa-luz-sin-horas/",
-      "tipo": "1P",
-      "requisitos": "20% descuento término energía durante 12 meses incluido en el precio.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.04,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Imagina Energía Solar",
       "cPunta": 0.119008,
       "cLlano": 0.119008,
@@ -148,6 +127,27 @@
         "precioBV": 0.0
       },
       "requiereFV": true
+    },
+    {
+      "nombre": "Imagina Sin Horas",
+      "cPunta": 0.119008,
+      "cLlano": 0.119008,
+      "cValle": 0.119008,
+      "p1": 0.136137,
+      "p2": 0.086224,
+      "web": "https://imaginaenergia.com/tarifa-luz-sin-horas/",
+      "tipo": "1P",
+      "requisitos": "20% descuento término energía durante 12 meses incluido en el precio.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Nufri Sin Horarios",
@@ -1481,7 +1481,7 @@
       "cLlano": 0.124127,
       "cValle": 0.099427,
       "p1": 0.121158,
-      "p2": 0.034464,
+      "p2": 0.0783,
       "web": "https://imaginaenergia.com/tarifa-luz-noche-y-findes/",
       "tipo": "3P",
       "requisitos": "20% descuento término energía durante 12 meses incluido en el precio.",
@@ -2317,5 +2317,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-20T10:41:10.554Z"
+  "updatedAt": "2026-10-21T07:25:24.392Z"
 }
