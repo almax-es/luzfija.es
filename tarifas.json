@@ -56,6 +56,7 @@
       "p2": 0.089,
       "web": "https://nordy.es/tarifas",
       "tipo": "1P",
+      "requisitos": "Revisión de precios trimestral.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.05,
@@ -1319,6 +1320,7 @@
       "p2": 0.089,
       "web": "https://nordy.es/tarifas",
       "tipo": "3P",
+      "requisitos": "Revisión de precios trimestral.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.05,
@@ -2317,5 +2319,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-21T12:57:53.150Z"
+  "updatedAt": "2026-10-21T14:57:28.185Z"
 }
