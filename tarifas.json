@@ -112,8 +112,8 @@
       "cPunta": 0.119008,
       "cLlano": 0.119008,
       "cValle": 0.119008,
-      "p1": 0.122438,
-      "p2": 0.056087,
+      "p1": 0.136137,
+      "p2": 0.086224,
       "web": "https://imaginaenergia.com/tarifa-luz-solar/",
       "tipo": "1P",
       "requisitos": "20% descuento término energía durante 12 meses incluido en el precio.",
@@ -2317,5 +2317,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-21T09:16:25.910Z"
+  "updatedAt": "2026-10-21T12:57:53.150Z"
 }
