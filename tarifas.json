@@ -69,46 +69,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Seneo Tarifa 2 Fija 24h con Monedero Solar",
-      "cPunta": 0.119008,
-      "cLlano": 0.119008,
-      "cValle": 0.119008,
-      "p1": 0.089,
-      "p2": 0.089,
-      "web": "https://www.seneo.org/es/domestica-24h/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.05,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 2.99
-      },
-      "requiereFV": true
-    },
-    {
-      "nombre": "Seneo Tarifa 2 Fija 24h",
-      "cPunta": 0.119008,
-      "cLlano": 0.119008,
-      "cValle": 0.119008,
-      "p1": 0.089,
-      "p2": 0.089,
-      "web": "https://www.seneo.org/es/domestica-24h/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.05,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Imagina Energía Solar",
       "cPunta": 0.119008,
       "cLlano": 0.119008,
@@ -477,6 +437,46 @@
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.04,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Seneo Tarifa 2 Fija 24h con Monedero Solar",
+      "cPunta": 0.139006,
+      "cLlano": 0.139006,
+      "cValle": 0.139006,
+      "p1": 0.089,
+      "p2": 0.089,
+      "web": "https://www.seneo.org/es/domestica-24h/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.05,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 2.99
+      },
+      "requiereFV": true
+    },
+    {
+      "nombre": "Seneo Tarifa 2 Fija 24h",
+      "cPunta": 0.139006,
+      "cLlano": 0.139006,
+      "cValle": 0.139006,
+      "p1": 0.089,
+      "p2": 0.089,
+      "web": "https://www.seneo.org/es/domestica-24h/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.05,
         "tipo": "SIMPLE",
         "tope": "ENERGIA",
         "bv": false,
@@ -1333,46 +1333,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Seneo Tarifa 2 Tramos Horarios con Monedero Solar 3P",
-      "cPunta": 0.159004,
-      "cLlano": 0.129,
-      "cValle": 0.099,
-      "p1": 0.089,
-      "p2": 0.089,
-      "web": "https://www.seneo.org/es/domestica-tramos/",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.05,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 2.99
-      },
-      "requiereFV": true
-    },
-    {
-      "nombre": "Seneo Tarifa 2 Tramos Horarios 3P",
-      "cPunta": 0.159004,
-      "cLlano": 0.129,
-      "cValle": 0.099,
-      "p1": 0.089,
-      "p2": 0.089,
-      "web": "https://www.seneo.org/es/domestica-tramos/",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.05,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Energya VM Fórmula Fija 3P",
       "cPunta": 0.169006,
       "cLlano": 0.129,
@@ -1393,6 +1353,46 @@
       },
       "requiereFV": false,
       "maxConsumoAnual": 5000.0
+    },
+    {
+      "nombre": "Seneo Tarifa 2 Tramos Horarios con Monedero Solar 3P",
+      "cPunta": 0.169006,
+      "cLlano": 0.149,
+      "cValle": 0.119,
+      "p1": 0.089,
+      "p2": 0.089,
+      "web": "https://www.seneo.org/es/domestica-tramos/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.05,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 2.99
+      },
+      "requiereFV": true
+    },
+    {
+      "nombre": "Seneo Tarifa 2 Tramos Horarios 3P",
+      "cPunta": 0.169006,
+      "cLlano": 0.149,
+      "cValle": 0.119,
+      "p1": 0.089,
+      "p2": 0.089,
+      "web": "https://www.seneo.org/es/domestica-tramos/",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.05,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Enersa Confort 3P",
@@ -2319,5 +2319,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-21T16:44:41.740Z"
+  "updatedAt": "2026-10-21T18:53:55.742Z"
 }
