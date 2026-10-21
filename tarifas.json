@@ -405,6 +405,28 @@
       "requiereFV": false
     },
     {
+      "nombre": "Imagina Base Sin Horas 4000",
+      "cPunta": 0.134813,
+      "cLlano": 0.134813,
+      "cValle": 0.134813,
+      "p1": 0.108533,
+      "p2": 0.055196,
+      "web": "https://imaginaenergia.com/plan-base-imagina/",
+      "tipo": "1P",
+      "requisitos": "Consumo ≤ 4.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false,
+      "maxConsumoAnual": 4000.0
+    },
+    {
       "nombre": "Octopus Unicaja",
       "cPunta": 0.137005,
       "cLlano": 0.137005,
@@ -608,6 +630,29 @@
         "precioBV": 0.0
       },
       "requiereFV": false
+    },
+    {
+      "nombre": "Imagina Base Sin Horas 8000",
+      "cPunta": 0.144001,
+      "cLlano": 0.144001,
+      "cValle": 0.144001,
+      "p1": 0.108533,
+      "p2": 0.055196,
+      "web": "https://imaginaenergia.com/plan-base-imagina/",
+      "tipo": "1P",
+      "requisitos": "Consumo >4000 y ≤ 8.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false,
+      "minConsumoAnualExclusivo": 4000.0,
+      "maxConsumoAnual": 8000.0
     },
     {
       "nombre": "Octopus Relax",
@@ -1767,6 +1812,29 @@
       "requiereFV": false
     },
     {
+      "nombre": "Imagina Base Noche y Findes 8000 3P",
+      "cPunta": 0.201287,
+      "cLlano": 0.127465,
+      "cValle": 0.093068,
+      "p1": 0.108533,
+      "p2": 0.055196,
+      "web": "https://imaginaenergia.com/plan-base-imagina/",
+      "tipo": "3P",
+      "requisitos": "Consumo >4000 y ≤ 8.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false,
+      "minConsumoAnualExclusivo": 4000.0,
+      "maxConsumoAnual": 8000.0
+    },
+    {
       "nombre": "Endesa Conecta 3P",
       "cPunta": 0.202419,
       "cLlano": 0.13401,
@@ -1827,6 +1895,28 @@
         "precioBV": 0.0
       },
       "requiereFV": false
+    },
+    {
+      "nombre": "Imagina Base Noche y Findes 4000 3P",
+      "cPunta": 0.207094,
+      "cLlano": 0.133275,
+      "cValle": 0.098878,
+      "p1": 0.108533,
+      "p2": 0.055196,
+      "web": "https://imaginaenergia.com/plan-base-imagina/",
+      "tipo": "3P",
+      "requisitos": "Consumo ≤ 4.000 kWh/año.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false,
+      "maxConsumoAnual": 4000.0
     },
     {
       "nombre": "Nufri Universal Con Horarios 3P",
@@ -2319,5 +2409,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-21T18:53:55.742Z"
+  "updatedAt": "2026-10-21T19:50:00.103Z"
 }
