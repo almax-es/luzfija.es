@@ -48,7 +48,7 @@
       "maxConsumoAnual": 5000.0
     },
     {
-      "nombre": "Nordy 24H V",
+      "nombre": "Nordy 24H",
       "cPunta": 0.119008,
       "cLlano": 0.119008,
       "cValle": 0.119008,
@@ -1312,7 +1312,7 @@
       "requiereFV": true
     },
     {
-      "nombre": "Nordy V 3P",
+      "nombre": "Nordy 3P",
       "cPunta": 0.159004,
       "cLlano": 0.129,
       "cValle": 0.099,
@@ -2319,5 +2319,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-21T14:57:28.185Z"
+  "updatedAt": "2026-10-21T16:44:41.740Z"
 }
