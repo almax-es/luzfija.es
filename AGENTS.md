@@ -178,6 +178,11 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   deteccion 16/10/2026). No lo quites por "limpieza" ni lo sustituyas por ocultar el footer
   (esconde privacidad y aviso legal). Si lo reduces, mide antes con clic real y el footer
   asomando. Solo la home usa `.grid`. Lo vigila `tests/cls-footer-hueco.test.js`.
+  **LIMITE CONOCIDO (medido el 22/10/2026, ventana de 855 px):** el hueco solo protege a quien
+  calcula con la pagina cerca del inicio (scroll hasta ~230 px; 3 mediciones de 0,0176). Con la
+  pagina scrolleada 500 px (footer asomando 272 px) el CLS sigue en 0,22 (0,43 sin la regla), asi
+  que NO es una solucion completa. Cubrir tambien eso exigiria reservar ~100vh + 600 px de hueco;
+  decision de producto pendiente, no se ha hecho.
 - **Como medir CLS aqui sin enganarte** (aprendido el 22/10/2026): (1) un `.click()` por script
   NO cuenta como entrada del usuario, asi que sus saltos salen como CLS aunque un clic real los
   excluya; usa un clic real. (2) Una ventana alta no cambia `innerHeight` en automatizacion:
