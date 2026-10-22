@@ -948,27 +948,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Bualá",
-      "cPunta": 0.149903,
-      "cLlano": 0.149903,
-      "cValle": 0.149903,
-      "p1": 0.106849,
-      "p2": 0.106849,
-      "web": "https://buala.es/luz/",
-      "tipo": "1P",
-      "requisitos": "10% descuento término energía durante 12 meses incluido en el precio. No incluye Servicios de Ajuste.",
-      "incluyeServiciosAjuste": false,
-      "fv": {
-        "exc": 0.04,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 4.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Holaluz Clásica",
       "cPunta": 0.154001,
       "cLlano": 0.154001,
@@ -1048,6 +1027,27 @@
         "bv": false,
         "reglaBV": "NO APLICA",
         "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Bualá",
+      "cPunta": 0.169906,
+      "cLlano": 0.169906,
+      "cValle": 0.169906,
+      "p1": 0.106849,
+      "p2": 0.106849,
+      "web": "https://buala.es/luz/",
+      "tipo": "1P",
+      "requisitos": "10% descuento término energía durante 12 meses incluido en el precio. No incluye Servicios de Ajuste.",
+      "incluyeServiciosAjuste": false,
+      "fv": {
+        "exc": 0.04,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 4.0
       },
       "requiereFV": false
     },
@@ -2409,5 +2409,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-21T19:50:00.103Z"
+  "updatedAt": "2026-10-22T08:06:00.843Z"
 }
