@@ -168,6 +168,23 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   la causa raiz de la clase de bugs "SO != tema web" ya vista en la auditoria del
   28/07/2026. Medido en las cuatro combinaciones el 07/08/2026. En tema web claro si
   computa `light` limpio; la asimetria es solo del modo oscuro.
+- **El hueco bajo el formulario de la home antes de calcular es deliberado.** `styles.css`
+  declara `.grid:not(.has-results){min-height:100vh}` (solo `min-width:769px`) y excluye
+  `min-height` de la transicion de `.grid.has-results`. Sin el, el footer queda a ~920 px del
+  inicio, visible en monitores altos o con algo de scroll; al calcular, la tabla (99 filas) lo
+  empuja fuera de pantalla y Chrome lo cuenta como CLS si pasa pasados 500 ms del clic. Medido
+  con clic real el 22/10/2026: 0,155 sin la regla y 0,019 con ella (0 si el salto cae dentro de
+  los 500 ms); en campo, 0,16 > 0,1 en las 18 URLs (Search Console, "CLS ordenador", primera
+  deteccion 16/10/2026). No lo quites por "limpieza" ni lo sustituyas por ocultar el footer
+  (esconde privacidad y aviso legal). Si lo reduces, mide antes con clic real y el footer
+  asomando. Solo la home usa `.grid`. Lo vigila `tests/cls-footer-hueco.test.js`.
+- **Como medir CLS aqui sin enganarte** (aprendido el 22/10/2026): (1) un `.click()` por script
+  NO cuenta como entrada del usuario, asi que sus saltos salen como CLS aunque un clic real los
+  excluya; usa un clic real. (2) Una ventana alta no cambia `innerHeight` en automatizacion:
+  emula un monitor alto con scroll para que el footer asome. (3) Mide con un
+  `PerformanceObserver` de `layout-shift` y descarta `hadRecentInput`. (4) El laboratorio de
+  PageSpeed no ve este salto (da ~0,003): solo aparece al interactuar, y el campo (CrUX)
+  tarda unas 4 semanas en reflejar un arreglo.
 
 ## Reglas Para Revisiones Y Auditorias
 
