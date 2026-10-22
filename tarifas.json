@@ -48,27 +48,6 @@
       "maxConsumoAnual": 5000.0
     },
     {
-      "nombre": "Nordy 24H",
-      "cPunta": 0.119008,
-      "cLlano": 0.119008,
-      "cValle": 0.119008,
-      "p1": 0.089,
-      "p2": 0.089,
-      "web": "https://nordy.es/tarifas",
-      "tipo": "1P",
-      "requisitos": "Revisión de precios trimestral.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.05,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 2.99
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Imagina Energía Solar",
       "cPunta": 0.119008,
       "cLlano": 0.119008,
@@ -464,6 +443,27 @@
         "bv": false,
         "reglaBV": "NO APLICA",
         "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Nordy 24H",
+      "cPunta": 0.139006,
+      "cLlano": 0.139006,
+      "cValle": 0.139006,
+      "p1": 0.089,
+      "p2": 0.089,
+      "web": "https://nordy.es/tarifas",
+      "tipo": "1P",
+      "requisitos": "Revisión de precios trimestral.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.05,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 2.99
       },
       "requiereFV": false
     },
@@ -1357,27 +1357,6 @@
       "requiereFV": true
     },
     {
-      "nombre": "Nordy 3P",
-      "cPunta": 0.159004,
-      "cLlano": 0.129,
-      "cValle": 0.099,
-      "p1": 0.089,
-      "p2": 0.089,
-      "web": "https://nordy.es/tarifas",
-      "tipo": "3P",
-      "requisitos": "Revisión de precios trimestral.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.05,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 2.99
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Energya VM Fórmula Fija 3P",
       "cPunta": 0.169006,
       "cLlano": 0.129,
@@ -1398,6 +1377,27 @@
       },
       "requiereFV": false,
       "maxConsumoAnual": 5000.0
+    },
+    {
+      "nombre": "Nordy 3P",
+      "cPunta": 0.169006,
+      "cLlano": 0.149,
+      "cValle": 0.119,
+      "p1": 0.089,
+      "p2": 0.089,
+      "web": "https://nordy.es/tarifas",
+      "tipo": "3P",
+      "requisitos": "Revisión de precios trimestral.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.05,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 2.99
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Seneo Tarifa 2 Tramos Horarios con Monedero Solar 3P",
@@ -2409,5 +2409,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-22T08:06:00.843Z"
+  "updatedAt": "2026-10-22T09:49:27.737Z"
 }
