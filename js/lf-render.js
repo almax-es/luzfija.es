@@ -974,14 +974,28 @@
     seccion.style.setProperty('--lf-aviso-top', Math.min(Math.round(y), limite) + 'px');
   }
 
+  // Altura minima para que el final de la seccion (y con el, el footer) quede 160 px por debajo
+  // del borde inferior de la ventana desde la posicion ACTUAL. Nunca reduce una reserva ya
+  // hecha: solo la amplia si hace falta.
+  function reservarAltura(seccion) {
+    const top = seccion.getBoundingClientRect().top;
+    const necesaria = Math.ceil((window.innerHeight || 0) - top + RESERVA_MARGEN_PX);
+    const actual = parseFloat(seccion.style.minHeight) || 0;
+    if (necesaria > actual) seccion.style.minHeight = necesaria + 'px';
+  }
+
   function reserveResultsSpace() {
     const seccion = document.getElementById('seccionResultados');
     if (!seccion) return false;
-    // Reintento tras un fallo (ver releaseResultsSpace): la seccion sigue abierta y con su
-    // altura; solo cambia el aviso de "error" a "Calculando…". Nada se mueve.
+    // Reintento tras un fallo (ver releaseResultsSpace): la seccion sigue abierta y el aviso
+    // pasa de "error" a "Calculando…". La altura se recalcula para la posicion actual: si el
+    // usuario bajo la pagina despues del fallo, la reserva del primer intento ya no deja el
+    // footer fuera de la vista (revision de ChatGPT, 23/10/2026). Ampliarla aqui, en el tick
+    // del clic, no cuenta como CLS.
     if (seccion.classList.contains('is-error')) {
       seccion.classList.remove('is-error');
       seccion.classList.add('is-reserving');
+      reservarAltura(seccion);
       colocarAviso(seccion);
       return true;
     }
@@ -991,9 +1005,7 @@
     if (grid) grid.classList.add('has-results');
     // Se mide DESPUES de abrirla: en escritorio queda en la columna derecha; en movil, debajo
     // del formulario, y si ya cae fuera de la ventana no hace falta reservar nada.
-    const top = seccion.getBoundingClientRect().top;
-    const alto = Math.ceil((window.innerHeight || 0) - top + RESERVA_MARGEN_PX);
-    if (alto > 0) seccion.style.minHeight = alto + 'px';
+    reservarAltura(seccion);
     colocarAviso(seccion);
     return true;
   }

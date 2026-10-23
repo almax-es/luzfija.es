@@ -195,8 +195,7 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
     setGeometry(seccion, { top: 188, innerHeight: 900 });
     window.LF.releaseResultsSpace(window.LF.reserveResultsSpace()); // primer intento: falla
 
-    // Segundo Calcular: misma altura, el aviso pasa a "Calculando…".
-    setGeometry(seccion, { top: -500, innerHeight: 900 });
+    // Segundo Calcular sin mover la pagina: misma altura, el aviso pasa a "Calculando…".
     const abierta = window.LF.reserveResultsSpace();
     expect(abierta).toBe(true);
     expect(seccion.classList.contains('is-error')).toBe(false);
@@ -209,6 +208,30 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
     expect(seccion.classList.contains('visible')).toBe(true);
     expect(seccion.classList.contains('is-error')).toBe(false);
     expect(seccion.style.minHeight).toBe('');
+  });
+
+  // Revision de ChatGPT, 23/10/2026: si tras el fallo el usuario baja la pagina, la reserva del
+  // primer intento (872) ya no deja el footer fuera de la vista; al reintentar hay que ampliarla.
+  it('reintentar tras bajar la pagina AMPLIA la reserva a la posicion actual', () => {
+    const { seccion } = bootRender();
+    setGeometry(seccion, { top: 188, innerHeight: 900 });
+    window.LF.releaseResultsSpace(window.LF.reserveResultsSpace());
+    expect(seccion.style.minHeight).toBe('872px');
+
+    setGeometry(seccion, { top: -500, innerHeight: 900 });
+    window.LF.reserveResultsSpace();
+    expect(seccion.style.minHeight).toBe('1560px'); // 900 + 500 + 160
+  });
+
+  it('reintentar tras subir la pagina NO reduce la reserva (encogerla moveria el footer)', () => {
+    const { seccion } = bootRender();
+    setGeometry(seccion, { top: -500, innerHeight: 900 });
+    window.LF.releaseResultsSpace(window.LF.reserveResultsSpace());
+    expect(seccion.style.minHeight).toBe('1560px');
+
+    setGeometry(seccion, { top: 188, innerHeight: 900 });
+    window.LF.reserveResultsSpace();
+    expect(seccion.style.minHeight).toBe('1560px');
   });
 
   it('dos fallos seguidos: el segundo vuelve a dejar el aviso de error', () => {

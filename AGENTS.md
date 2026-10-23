@@ -174,7 +174,10 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   `min-height` hasta 160 px por debajo del borde inferior de la ventana. En el `finally` llama a
   `releaseResultsSpace()`, que quita esa altura; si el calculo no llego a pintar resultados
   (sin red, error), NO cierra la seccion: la deja abierta con su altura y `.is-error` (aviso de
-  error fuera de flujo) hasta el siguiente Calcular, que la reutiliza. Cerrarla devolvia el
+  error fuera de flujo) hasta el siguiente Calcular, que la reutiliza recalculando la altura
+  con `reservarAltura()` (solo la amplia, nunca la reduce): sin eso, si el usuario bajaba la
+  pagina tras el fallo, el reintento dejaba el footer a la vista y contaba 0,0682 (medido en
+  produccion el 23/10/2026; arreglado, 0,0009; tambien senalado por ChatGPT). Cerrarla devolvia el
   footer a la vista ~4 s despues del clic: 0,0646 medido el 23/10/2026 con la pagina a 500 px
   (detectado en una revision de ChatGPT); con la seccion abierta, 0,0001. Ambos avisos se colocan
   96 px por debajo de lo visible de la tarjeta (variable `--lf-aviso-top`, `colocarAviso()`),
