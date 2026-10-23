@@ -203,6 +203,7 @@
       "p2": 0.091,
       "web": "https://spock.es/compra-colectiva-urano-2026",
       "tipo": "1P",
+      "promo": "70 € de regalo de Niba a los 90 días de la activación. Solo si no eres cliente de Niba.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -1781,6 +1782,7 @@
       "p2": 0.077,
       "web": "https://spock.es/compra-colectiva-urano-2026",
       "tipo": "3P",
+      "promo": "70 € de regalo de Niba a los 90 días de la activación. Solo si no eres cliente de Niba.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.06,
@@ -1801,6 +1803,7 @@
       "p2": 0.077,
       "web": "https://spock.es/compra-colectiva-urano-2026",
       "tipo": "3P",
+      "promo": "70 € de regalo de Niba a los 90 días de la activación. Solo si no eres cliente de Niba.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.06,
@@ -2430,5 +2433,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-23T07:26:08.841Z"
+  "updatedAt": "2026-10-23T18:26:13.745Z"
 }
