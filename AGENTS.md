@@ -172,9 +172,15 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   reservado.** `calculate()` (`js/lf-app.js`) llama a `reserveResultsSpace()` (`js/lf-render.js`)
   ANTES de su primer `await`: abre `#seccionResultados`, pasa `.grid` a dos columnas y fija un
   `min-height` hasta 160 px por debajo del borde inferior de la ventana. En el `finally` llama a
-  `releaseResultsSpace()`, que quita esa altura y, si el calculo no llego a pintar resultados
-  (sin red, error), deshace la apertura. Mientras dura, `.is-reserving` muestra "Calculando…"
-  fuera de flujo y oculta con `visibility` la nota de impuestos. Motivo: si la seccion se abria
+  `releaseResultsSpace()`, que quita esa altura; si el calculo no llego a pintar resultados
+  (sin red, error), NO cierra la seccion: la deja abierta con su altura y `.is-error` (aviso de
+  error fuera de flujo) hasta el siguiente Calcular, que la reutiliza. Cerrarla devolvia el
+  footer a la vista ~4 s despues del clic: 0,0646 medido el 23/10/2026 con la pagina a 500 px
+  (detectado en una revision de ChatGPT); con la seccion abierta, 0,0001. Ambos avisos se colocan
+  96 px por debajo de lo visible de la tarjeta (variable `--lf-aviso-top`, `colocarAviso()`),
+  para que con la pagina bajada no parezca una tarjeta vacia. Mientras se calcula,
+  `.is-reserving` muestra "Calculando…" fuera de flujo y oculta con `visibility` la nota de
+  impuestos. Motivo: si la seccion se abria
   al terminar la red (lo habitual, >500 ms tras el clic), la tabla (99 filas) empujaba el footer
   y, si estaba a la vista (monitor alto o pagina scrolleada), Chrome lo contaba como CLS. Search
   Console lo marco el 16/10/2026 ("CLS > 0,1 (ordenador)", 18 URLs, 0,16 en campo). Chrome no

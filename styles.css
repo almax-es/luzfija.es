@@ -2397,13 +2397,15 @@ html.light-mode .custom-tariff-highlight {
    js/lf-render.js) la tarjeta aun no tiene contenido. El aviso va fuera de flujo
    (absolute) para que retirarlo no desplace nada: un salto ahi, pasados los 500 ms
    del clic, volveria a contar como CLS. */
-#seccionResultados.is-reserving {
+#seccionResultados.is-reserving,
+#seccionResultados.is-error {
   position: relative;
 }
-#seccionResultados.is-reserving::after {
+#seccionResultados.is-reserving::after,
+#seccionResultados.is-error::after {
   content: "Calculando…";
   position: absolute;
-  top: 96px;
+  top: var(--lf-aviso-top, 96px);
   left: 0;
   right: 0;
   text-align: center;
@@ -2411,9 +2413,18 @@ html.light-mode .custom-tariff-highlight {
   font-size: 14px;
   font-weight: 700;
 }
+/* Si el calculo falla, la tarjeta se queda abierta con su altura (cerrarla devolveria el
+   footer a la vista tarde y contaria como CLS) y el aviso cambia; el detalle del fallo ya
+   lo dan el estado y el toast. */
+#seccionResultados.is-error::after {
+  content: "No se han podido cargar los resultados. Pulsa ⚡ Calcular para reintentar.";
+  color: var(--warn, #f59e0b);
+  padding: 0 24px;
+}
 /* La nota "* Impuestos…" bajo la tabla no es fade-container: sin esto quedaria sola en la
    tarjeta vacia. visibility (no display) para que reaparecer no mueva nada. */
-#seccionResultados.is-reserving .tableWrap > p {
+#seccionResultados.is-reserving .tableWrap > p,
+#seccionResultados.is-error .tableWrap > p {
   visibility: hidden;
 }
 

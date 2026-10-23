@@ -94,10 +94,12 @@ function bootRender() {
   return { seccion, grid: document.querySelector('.grid') };
 }
 
-function setGeometry(seccion, { top, innerHeight }) {
+function setGeometry(seccion, { top, innerHeight, height = 2000 }) {
   Object.defineProperty(window, 'innerHeight', { value: innerHeight, configurable: true });
-  seccion.getBoundingClientRect = () => ({ top, bottom: top, left: 0, right: 0, width: 0, height: 0 });
+  seccion.getBoundingClientRect = () => ({ top, bottom: top + height, left: 0, right: 0, width: 0, height });
 }
+
+const avisoTop = (seccion) => seccion.style.getPropertyValue('--lf-aviso-top');
 
 describe('reserva de espacio para resultados (lf-render.js)', () => {
   beforeEach(() => {
@@ -128,6 +130,34 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
     expect(seccion.style.minHeight).toBe('1372px');
   });
 
+  // Revision de ChatGPT, 23/10/2026: con el aviso siempre arriba, a pagina bajada la tarjeta
+  // se veia vacia. Se coloca 96 px por debajo de lo visible de la tarjeta.
+  it('coloca el aviso donde se ve: bajo la cabecera si esta a la vista, bajo el borde de la ventana si no', () => {
+    const arriba = bootRender();
+    setGeometry(arriba.seccion, { top: 188, innerHeight: 900 });
+    window.LF.reserveResultsSpace();
+    expect(avisoTop(arriba.seccion)).toBe('96px');
+
+    const bajada = bootRender();
+    setGeometry(bajada.seccion, { top: -312, innerHeight: 900 });
+    window.LF.reserveResultsSpace();
+    expect(avisoTop(bajada.seccion)).toBe('408px');
+  });
+
+  it('al fallar recoloca el aviso de error por si el usuario scrolleo durante la espera, y al acertar lo limpia', async () => {
+    const { seccion } = bootRender();
+    setGeometry(seccion, { top: 188, innerHeight: 900 });
+    window.LF.releaseResultsSpace(window.LF.reserveResultsSpace());
+    setGeometry(seccion, { top: -600, innerHeight: 900 });
+    window.LF.releaseResultsSpace(window.LF.reserveResultsSpace()); // segundo fallo, ya bajado
+    expect(avisoTop(seccion)).toBe('696px');
+
+    const abierta = window.LF.reserveResultsSpace();
+    await window.LF.renderAll({ success: true, resumen: {}, stats: null, resultados: [] });
+    window.LF.releaseResultsSpace(abierta);
+    expect(avisoTop(seccion)).toBe('');
+  });
+
   it('si la seccion ya cae por debajo de la ventana (movil) no fija altura', () => {
     const { seccion } = bootRender();
     setGeometry(seccion, { top: 1200, innerHeight: 700 });
@@ -144,17 +174,51 @@ describe('reserva de espacio para resultados (lf-render.js)', () => {
     expect(seccion.style.minHeight).toBe('');
   });
 
-  it('si el calculo termina sin pintar resultados, deshace la apertura (no deja un ranking vacio)', () => {
+  // 23/10/2026: cerrar la seccion al fallar devolvia el footer a la vista ~4 s despues del clic
+  // y Chrome lo contaba (0,0646 con la pagina a 500 px). Se queda abierta con su altura.
+  it('si el calculo termina sin pintar resultados, NO cierra la seccion: aviso de error y misma altura', () => {
     const { seccion, grid } = bootRender();
     setGeometry(seccion, { top: 188, innerHeight: 900 });
     const abierta = window.LF.reserveResultsSpace();
 
     window.LF.releaseResultsSpace(abierta);
 
-    expect(seccion.classList.contains('visible')).toBe(false);
+    expect(seccion.classList.contains('visible')).toBe(true);
+    expect(grid.classList.contains('has-results')).toBe(true);
     expect(seccion.classList.contains('is-reserving')).toBe(false);
-    expect(grid.classList.contains('has-results')).toBe(false);
+    expect(seccion.classList.contains('is-error')).toBe(true);
+    expect(seccion.style.minHeight).toBe('872px');
+  });
+
+  it('el reintento tras un fallo reutiliza la seccion sin moverla y libera todo si sale bien', async () => {
+    const { seccion } = bootRender();
+    setGeometry(seccion, { top: 188, innerHeight: 900 });
+    window.LF.releaseResultsSpace(window.LF.reserveResultsSpace()); // primer intento: falla
+
+    // Segundo Calcular: misma altura, el aviso pasa a "Calculando…".
+    setGeometry(seccion, { top: -500, innerHeight: 900 });
+    const abierta = window.LF.reserveResultsSpace();
+    expect(abierta).toBe(true);
+    expect(seccion.classList.contains('is-error')).toBe(false);
+    expect(seccion.classList.contains('is-reserving')).toBe(true);
+    expect(seccion.style.minHeight).toBe('872px');
+
+    await window.LF.renderAll({ success: true, resumen: {}, stats: null, resultados: [] });
+    window.LF.releaseResultsSpace(abierta);
+
+    expect(seccion.classList.contains('visible')).toBe(true);
+    expect(seccion.classList.contains('is-error')).toBe(false);
     expect(seccion.style.minHeight).toBe('');
+  });
+
+  it('dos fallos seguidos: el segundo vuelve a dejar el aviso de error', () => {
+    const { seccion } = bootRender();
+    setGeometry(seccion, { top: 188, innerHeight: 900 });
+    window.LF.releaseResultsSpace(window.LF.reserveResultsSpace());
+    window.LF.releaseResultsSpace(window.LF.reserveResultsSpace());
+    expect(seccion.classList.contains('is-error')).toBe(true);
+    expect(seccion.classList.contains('is-reserving')).toBe(false);
+    expect(seccion.style.minHeight).toBe('872px');
   });
 
   it('tras un renderAll correcto, liberar solo quita la altura y deja los resultados', async () => {
@@ -267,7 +331,7 @@ describe('calculate() y la reserva de espacio (lf-app.js)', () => {
       .toBeGreaterThan(window.LF.calculateLocal.mock.invocationCallOrder[0]);
   });
 
-  it('tambien libera (y por tanto deshace) cuando falla la descarga sin catalogo de sesion', async () => {
+  it('tambien libera (pasa a aviso de error) cuando falla la descarga sin catalogo de sesion', async () => {
     bootApp({ fetchTarifas: vi.fn(async () => false), baseTarifasCache: [] });
     await window.calculate(true, false);
     expect(window.LF.calculateLocal).not.toHaveBeenCalled();
@@ -304,14 +368,19 @@ describe('CSS de la reserva (styles.css)', () => {
     expect(css).not.toMatch(/\.grid:not\(\.has-results\)\s*\{[^}]*min-height/);
   });
 
-  it('el aviso "Calculando…" va fuera de flujo: retirarlo no puede desplazar nada', () => {
-    const regla = css.match(/#seccionResultados\.is-reserving::after\s*\{([^}]*)\}/);
+  it('los avisos "Calculando…" y de error van fuera de flujo: cambiarlos no puede desplazar nada', () => {
+    const regla = css.match(/#seccionResultados\.is-reserving::after,\s*#seccionResultados\.is-error::after\s*\{([^}]*)\}/);
     expect(regla).not.toBeNull();
     expect(regla[1]).toMatch(/position:\s*absolute/);
+    expect(regla[1]).toMatch(/top:\s*var\(--lf-aviso-top,\s*96px\)/);
+    // La regla propia del error solo cambia texto y color, nunca la posicion.
+    const error = css.match(/#seccionResultados\.is-error::after\s*\{([^}]*)\}/);
+    expect(error).not.toBeNull();
+    expect(error[1]).not.toMatch(/position:\s*(static|relative)/);
   });
 
   it('la nota de impuestos se oculta con visibility, no con display (reaparecer no mueve nada)', () => {
-    const regla = css.match(/#seccionResultados\.is-reserving \.tableWrap > p\s*\{([^}]*)\}/);
+    const regla = css.match(/#seccionResultados\.is-reserving \.tableWrap > p,\s*#seccionResultados\.is-error \.tableWrap > p\s*\{([^}]*)\}/);
     expect(regla).not.toBeNull();
     expect(regla[1]).toMatch(/visibility:\s*hidden/);
     expect(regla[1]).not.toMatch(/display:/);

@@ -959,11 +959,33 @@
   // ya no mueve nada visible. Sustituye al hueco permanente bajo el formulario
   // (`.grid:not(.has-results){min-height:100vh}`, 22/10/2026), que no cubria a quien scrollea.
   const RESERVA_MARGEN_PX = 160;
+  const AVISO_TOP_PX = 96;
   let __lfResultadosPintados = false;
+
+  // Coloca el aviso ("Calculando…" o el de error) 96 px por debajo de lo que se ve de la
+  // tarjeta: su cabecera si esta a la vista, o el borde superior de la ventana si la pagina
+  // esta bajada. Siempre arriba quedaba fuera de la vista con scroll y la tarjeta parecia vacia
+  // (revision de ChatGPT, 23/10/2026). Es la variable `top` de un ::after absolute: moverlo no
+  // desplaza nada ni cuenta como CLS.
+  function colocarAviso(seccion) {
+    const rect = seccion.getBoundingClientRect();
+    const y = Math.max(0, -rect.top) + AVISO_TOP_PX;
+    const limite = Math.max(AVISO_TOP_PX, Math.round(rect.height - 60));
+    seccion.style.setProperty('--lf-aviso-top', Math.min(Math.round(y), limite) + 'px');
+  }
 
   function reserveResultsSpace() {
     const seccion = document.getElementById('seccionResultados');
-    if (!seccion || seccion.classList.contains('visible')) return false;
+    if (!seccion) return false;
+    // Reintento tras un fallo (ver releaseResultsSpace): la seccion sigue abierta y con su
+    // altura; solo cambia el aviso de "error" a "Calculando…". Nada se mueve.
+    if (seccion.classList.contains('is-error')) {
+      seccion.classList.remove('is-error');
+      seccion.classList.add('is-reserving');
+      colocarAviso(seccion);
+      return true;
+    }
+    if (seccion.classList.contains('visible')) return false;
     seccion.classList.add('visible', 'is-reserving');
     const grid = document.querySelector('.grid');
     if (grid) grid.classList.add('has-results');
@@ -972,22 +994,28 @@
     const top = seccion.getBoundingClientRect().top;
     const alto = Math.ceil((window.innerHeight || 0) - top + RESERVA_MARGEN_PX);
     if (alto > 0) seccion.style.minHeight = alto + 'px';
+    colocarAviso(seccion);
     return true;
   }
 
   // `abiertaPorEsteCalculo` es lo que devolvio reserveResultsSpace() en ese mismo calculate().
-  // Si el calculo termino sin pintar resultados (sin red, error), se deshace la apertura para
-  // no dejar un "Ranking de tarifas" vacio en pantalla.
+  // Si el calculo termino sin pintar resultados (sin red, error), la seccion NO se cierra:
+  // cerrarla devolvia el footer a la vista varios segundos despues del clic y Chrome lo
+  // contaba (0,0646 medido el 23/10/2026 con la pagina a 500 px; lo detecto la revision de
+  // ChatGPT). Se queda abierta, con su altura y un aviso de error fuera de flujo
+  // (`.is-error`), hasta el siguiente Calcular, que la reutiliza (reserveResultsSpace).
   function releaseResultsSpace(abiertaPorEsteCalculo) {
     const seccion = document.getElementById('seccionResultados');
     if (!seccion) return;
     seccion.classList.remove('is-reserving');
-    seccion.style.minHeight = '';
     if (abiertaPorEsteCalculo && !__lfResultadosPintados) {
-      seccion.classList.remove('visible');
-      const grid = document.querySelector('.grid');
-      if (grid) grid.classList.remove('has-results');
+      seccion.classList.add('is-error');
+      colocarAviso(seccion); // el usuario puede haber scrolleado durante la espera
+      return;
     }
+    seccion.classList.remove('is-error');
+    seccion.style.minHeight = '';
+    seccion.style.removeProperty('--lf-aviso-top');
   }
 
   function renderAll(d) {
