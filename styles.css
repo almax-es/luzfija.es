@@ -494,23 +494,11 @@
       max-width: none;
     }
 
-    /* CLS en escritorio (Core Web Vitals, 22/10/2026): al calcular por primera vez la tabla
-       de resultados crece y empuja el footer. Si el footer ya estaba a la vista (monitores
-       altos, o con algo de scroll) Chrome lo cuenta como salto: CLS 0,155 medido con un clic
-       real; en campo 0,16 > 0,1 en las 18 URLs. Antes de calcular, el bloque ocupa al menos
-       una pantalla para que el footer nazca por debajo del primer pantallazo y su
-       desplazamiento no se contabilice (0,019 con el mismo caso). Solo escritorio: en móvil
-       la tarjeta de datos ya llena el viewport. min-height no se anima al pasar a
-       .has-results (por el `transition: all` de .grid): animarlo movería el footer a cada
-       fotograma. */
-    @media (min-width: 769px){
-      .grid:not(.has-results){
-        min-height: 100vh;
-      }
-      .grid.has-results{
-        transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1), min-height 0s;
-      }
-    }
+    /* CLS en escritorio (Core Web Vitals, 22-23/10/2026): el salto del footer al calcular
+       se evita en JS, abriendo los resultados con espacio reservado en el mismo tick del
+       clic (reserveResultsSpace() en js/lf-render.js). No hace falta, ni conviene, un hueco
+       permanente bajo el formulario: el del 22/10 no cubria a quien scrollea antes de
+       calcular. */
 
     .grid.has-results > .card:nth-child(2) {
       display: block;
@@ -2403,6 +2391,30 @@ html.light-mode .custom-tariff-highlight {
 
 #seccionResultados.visible {
   display: block;
+}
+
+/* Mientras se reserva su espacio al pulsar Calcular (reserveResultsSpace() en
+   js/lf-render.js) la tarjeta aun no tiene contenido. El aviso va fuera de flujo
+   (absolute) para que retirarlo no desplace nada: un salto ahi, pasados los 500 ms
+   del clic, volveria a contar como CLS. */
+#seccionResultados.is-reserving {
+  position: relative;
+}
+#seccionResultados.is-reserving::after {
+  content: "Calculando…";
+  position: absolute;
+  top: 96px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 700;
+}
+/* La nota "* Impuestos…" bajo la tabla no es fade-container: sin esto quedaria sola en la
+   tarjeta vacia. visibility (no display) para que reaparecer no mueva nada. */
+#seccionResultados.is-reserving .tableWrap > p {
+  visibility: hidden;
 }
 
 

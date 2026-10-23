@@ -346,7 +346,11 @@
 
     if (window.__LF_CALC_INFLIGHT) return;
     window.__LF_CALC_INFLIGHT = true;
-    
+    // CLS: abrir el bloque de resultados en este mismo tick (antes del primer await), dentro
+    // de los 500 ms del clic que Chrome no cuenta. Detalle en reserveResultsSpace(), lf-render.js.
+    // Acceso opcional y en tiempo de llamada: no cambia el contrato de carga de este modulo.
+    const resultadosAbiertos = Boolean(window.LF.reserveResultsSpace?.());
+
     try {
       saveInputs();
       setStatus('Calculando...', 'loading');
@@ -429,6 +433,7 @@
       setStatus('No se ha podido calcular. Inténtalo de nuevo.', 'err');
     } finally {
       window.__LF_CALC_INFLIGHT = false;
+      window.LF.releaseResultsSpace?.(resultadosAbiertos);
 
       const queued = __lf_queuedCalculation;
       __lf_queuedCalculation = null;

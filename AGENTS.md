@@ -168,28 +168,36 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   la causa raiz de la clase de bugs "SO != tema web" ya vista en la auditoria del
   28/07/2026. Medido en las cuatro combinaciones el 07/08/2026. En tema web claro si
   computa `light` limpio; la asimetria es solo del modo oscuro.
-- **El hueco bajo el formulario de la home antes de calcular es deliberado.** `styles.css`
-  declara `.grid:not(.has-results){min-height:100vh}` (solo `min-width:769px`) y excluye
-  `min-height` de la transicion de `.grid.has-results`. Sin el, el footer queda a ~920 px del
-  inicio, visible en monitores altos o con algo de scroll; al calcular, la tabla (99 filas) lo
-  empuja fuera de pantalla y Chrome lo cuenta como CLS si pasa pasados 500 ms del clic. Medido
-  con clic real el 22/10/2026: 0,155 sin la regla y 0,019 con ella (0 si el salto cae dentro de
-  los 500 ms); en campo, 0,16 > 0,1 en las 18 URLs (Search Console, "CLS ordenador", primera
-  deteccion 16/10/2026). No lo quites por "limpieza" ni lo sustituyas por ocultar el footer
-  (esconde privacidad y aviso legal). Si lo reduces, mide antes con clic real y el footer
-  asomando. Solo la home usa `.grid`. Lo vigila `tests/cls-footer-hueco.test.js`.
-  **LIMITE CONOCIDO (medido el 22/10/2026, ventana de 855 px):** el hueco solo protege a quien
-  calcula con la pagina cerca del inicio (scroll hasta ~230 px; 3 mediciones de 0,0176). Con la
-  pagina scrolleada 500 px (footer asomando 272 px) el CLS sigue en 0,22 (0,43 sin la regla), asi
-  que NO es una solucion completa. Cubrir tambien eso exigiria reservar ~100vh + 600 px de hueco;
-  decision de producto pendiente, no se ha hecho.
+- **Los resultados de la home se abren en el mismo tick del clic en Calcular, con espacio
+  reservado.** `calculate()` (`js/lf-app.js`) llama a `reserveResultsSpace()` (`js/lf-render.js`)
+  ANTES de su primer `await`: abre `#seccionResultados`, pasa `.grid` a dos columnas y fija un
+  `min-height` hasta 160 px por debajo del borde inferior de la ventana. En el `finally` llama a
+  `releaseResultsSpace()`, que quita esa altura y, si el calculo no llego a pintar resultados
+  (sin red, error), deshace la apertura. Mientras dura, `.is-reserving` muestra "Calculando…"
+  fuera de flujo y oculta con `visibility` la nota de impuestos. Motivo: si la seccion se abria
+  al terminar la red (lo habitual, >500 ms tras el clic), la tabla (99 filas) empujaba el footer
+  y, si estaba a la vista (monitor alto o pagina scrolleada), Chrome lo contaba como CLS. Search
+  Console lo marco el 16/10/2026 ("CLS > 0,1 (ordenador)", 18 URLs, 0,16 en campo). Chrome no
+  cuenta los saltos de los 500 ms posteriores a una entrada del usuario: al abrir en el acto,
+  el footer se mueve dentro de esa ventana y lo que crece despues ya no se ve. Medido el
+  23/10/2026 con clic real y 1,5 s de red simulada: 0,0001 con la pagina a 500 px y al fondo
+  (control sin el arreglo: 0,3906) y 0,001 arriba. No muevas la llamada detras de un `await`
+  ni dentro de `renderAll()`, no quites el `finally` y no conviertas el aviso en un elemento en
+  flujo: cualquiera de las tres reintroduce el salto. Sustituye al hueco permanente
+  `.grid:not(.has-results){min-height:100vh}` del 22/10, que no cubria a quien scrollea antes
+  de calcular (0,22 con scroll 500); no lo reintroduzcas. Tampoco ocultes el footer hasta
+  calcular (esconde privacidad y aviso legal). Lo vigila `tests/cls-reserva-resultados.test.js`.
 - **Como medir CLS aqui sin enganarte** (aprendido el 22/10/2026): (1) un `.click()` por script
   NO cuenta como entrada del usuario, asi que sus saltos salen como CLS aunque un clic real los
   excluya; usa un clic real. (2) Una ventana alta no cambia `innerHeight` en automatizacion:
   emula un monitor alto con scroll para que el footer asome. (3) Mide con un
   `PerformanceObserver` de `layout-shift` y descarta `hadRecentInput`. (4) El laboratorio de
   PageSpeed no ve este salto (da ~0,003): solo aparece al interactuar, y el campo (CrUX)
-  tarda unas 4 semanas en reflejar un arreglo.
+  tarda unas 4 semanas en reflejar un arreglo. (5) Probando en local (`python -m http.server`)
+  la red es instantanea y esconde el problema: retrasa `fetch` ~1,5 s antes de medir. (6) Mira
+  la pantalla antes de pulsar: el 22/10 dos clics por coordenadas cayeron en la casilla
+  "Comparar con mi tarifa actual", justo encima del boton, y el calculo no arranco ("Corrige
+  los datos"), lo que parecia un fallo del arreglo y no lo era.
 
 ## Reglas Para Revisiones Y Auditorias
 

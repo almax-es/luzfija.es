@@ -948,6 +948,48 @@
     } catch (_) {}
   }
 
+  // ===== RESERVA DE ESPACIO AL CALCULAR (CLS de escritorio) =====
+  // Core Web Vitals, 22-23/10/2026: renderAll() abria #seccionResultados cuando terminaba la
+  // red (tarifas + PVPC), casi siempre mas de 500 ms despues del clic. La tabla (99 filas)
+  // empujaba entonces el footer y, si estaba a la vista (monitor alto o pagina scrolleada),
+  // Chrome lo contaba como salto de layout: 0,155 con el footer asomando 182 px y 0,43 con 488
+  // px, medidos con clic real. Chrome NO cuenta los saltos de los 500 ms posteriores a una
+  // entrada del usuario, asi que calculate() abre la seccion en el mismo tick del clic con una
+  // altura minima que deja el footer por debajo del borde de la ventana: lo que crezca despues
+  // ya no mueve nada visible. Sustituye al hueco permanente bajo el formulario
+  // (`.grid:not(.has-results){min-height:100vh}`, 22/10/2026), que no cubria a quien scrollea.
+  const RESERVA_MARGEN_PX = 160;
+  let __lfResultadosPintados = false;
+
+  function reserveResultsSpace() {
+    const seccion = document.getElementById('seccionResultados');
+    if (!seccion || seccion.classList.contains('visible')) return false;
+    seccion.classList.add('visible', 'is-reserving');
+    const grid = document.querySelector('.grid');
+    if (grid) grid.classList.add('has-results');
+    // Se mide DESPUES de abrirla: en escritorio queda en la columna derecha; en movil, debajo
+    // del formulario, y si ya cae fuera de la ventana no hace falta reservar nada.
+    const top = seccion.getBoundingClientRect().top;
+    const alto = Math.ceil((window.innerHeight || 0) - top + RESERVA_MARGEN_PX);
+    if (alto > 0) seccion.style.minHeight = alto + 'px';
+    return true;
+  }
+
+  // `abiertaPorEsteCalculo` es lo que devolvio reserveResultsSpace() en ese mismo calculate().
+  // Si el calculo termino sin pintar resultados (sin red, error), se deshace la apertura para
+  // no dejar un "Ranking de tarifas" vacio en pantalla.
+  function releaseResultsSpace(abiertaPorEsteCalculo) {
+    const seccion = document.getElementById('seccionResultados');
+    if (!seccion) return;
+    seccion.classList.remove('is-reserving');
+    seccion.style.minHeight = '';
+    if (abiertaPorEsteCalculo && !__lfResultadosPintados) {
+      seccion.classList.remove('visible');
+      const grid = document.querySelector('.grid');
+      if (grid) grid.classList.remove('has-results');
+    }
+  }
+
   function renderAll(d) {
     if (!d || !d.success) {
       setStatus('Error de cálculo', 'err');
@@ -955,6 +997,10 @@
       return;
     }
 
+    __lfResultadosPintados = true;
+    // Retira el aviso "Calculando…" de la reserva; la altura minima la libera calculate()
+    // cuando la tabla termina de pintarse (releaseResultsSpace).
+    document.getElementById('seccionResultados')?.classList.remove('is-reserving');
     state.pending = false;
     state.lastRenderSolarOn = Boolean(d.solarOn);
     setStatus('Resultados actualizados', 'ok');
@@ -1042,6 +1088,8 @@
     renderPvpcInfo,
     renderSolarHomeNotice,
     renderAll,
+    reserveResultsSpace,
+    releaseResultsSpace,
     initMiTarifaChip,
     hideMiTarifaChip,
     resetMiTarifaChip,
