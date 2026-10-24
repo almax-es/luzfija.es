@@ -241,6 +241,20 @@ describe('CSV Utils - Parsing Robusto', () => {
     });
   });
 
+  describe('Visalia: curva de facturas date;hour;kwh', () => {
+    it('Importa un CSV con la columna de energia llamada solo "kwh"', () => {
+      const lineas = ['date;hour;kwh'];
+      for (let h = 1; h <= 24; h++) lineas.push(`2026-08-11;${h};0,${String(h).padStart(2, '0')}5227144134425264`);
+      const { rows, separator, headerRowIndex } = csvUtils.parseCSVToRows(lineas.join('\r\n'));
+      expect(separator).toBe(';');
+
+      const result = csvUtils.parseEnergyTableRows(rows, { headerRowIndex, separator });
+      expect(result.records).toHaveLength(24);
+      expect(result.records[0]).toMatchObject({ hora: 1, kwh: 0.015227144134425264, excedente: 0 });
+      expect(result.records[23]).toMatchObject({ hora: 24 });
+    });
+  });
+
   describe('parseDateFlexible', () => {
     it('Debe parsear formato dd/mm/yyyy', () => {
       const date = csvUtils.parseDateFlexible('25/12/2024');

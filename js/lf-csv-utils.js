@@ -334,7 +334,9 @@
       'import_kwh', 'importacion_kwh', 'energia_importada_kwh', 'consumo_wh',
       'energia_consumida_wh', 'energia_consumo_wh', 'consumo_energia_kwh', 'consumo_energia_wh',
       // UFD (España): EHCR (kWh) = energía horaria consumida / importación
-      'ehcr_kwh', 'ehcr'
+      'ehcr_kwh', 'ehcr',
+      // Visalia (curva de facturas, "invoice-load-profile"): date;hour;kwh, sin mas columnas
+      'kwh'
     ],
     exportacion: [
       'as_kwh', 'energia_vertida_kwh', 'vertido_kwh', 'export_kwh', 'exportacion_kwh',
