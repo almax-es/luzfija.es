@@ -2,7 +2,7 @@
   "_meta": {
     "schema": 1,
     "source": "https://sede.cnmc.gob.es/listado/censo/2",
-    "syncedAt": "2026-10-20",
+    "syncedAt": "2026-10-24",
     "count": 948,
     "sourceRows": 949,
     "duplicateCodes": [
@@ -583,7 +583,7 @@
       "website": "http://silverenergia.com/"
     },
     "R2-1009": {
-      "name": "ESAVEN RE9 SOCIEDAD LIMITADA",
+      "name": "ESAVEN RE9, S.L",
       "phone": "900 877 315",
       "website": "https://esaven.es/"
     },
@@ -1590,7 +1590,7 @@
       "website": "https://www.regsiti.com/"
     },
     "R2-291": {
-      "name": "CIDE HCENERGÍA S.A.U",
+      "name": "CIDE HCENERGÍA S.A",
       "phone": "900 373 272",
       "website": "http://www.chcenergia.es/"
     },
