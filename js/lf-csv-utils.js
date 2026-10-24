@@ -315,6 +315,15 @@
 
   // ===== NORMALIZACIÓN DE CABECERAS Y COLUMNAS =====
 
+  // CATALOGO DE FORMATOS. Cada formato nuevo que llegue por el aviso de importacion fallida
+  // (lf-csv-report.js) se registra aqui al anadir su alias o regla, junto al test que lo cubre:
+  // origen (distribuidora o comercializadora), tipo (lectura real o curva de facturacion),
+  // cabecera exacta y particularidades. Los alias anteriores a esta convencion no tienen
+  // procedencia documentada: no la inventes, anotala cuando aparezca un fichero real.
+  //
+  //   UFD (distribuidora)        EHCR/EHEX en kWh.         Ver SIMULADOR-BV.md.
+  //   Datadis mensual            Fecha;Valle;Llano;Punta.   isDatadisMonthlyFormat().
+  //   Visalia (comercializadora) date;hour;kwh.             tests/csv-parsing.test.js.
   const HEADER_ALIASES = {
     fecha: [
       'fecha', 'date', 'dia', 'fecha_lectura', 'fecha_consumo', 'dia_lectura'
@@ -335,7 +344,10 @@
       'energia_consumida_wh', 'energia_consumo_wh', 'consumo_energia_kwh', 'consumo_energia_wh',
       // UFD (España): EHCR (kWh) = energía horaria consumida / importación
       'ehcr_kwh', 'ehcr',
-      // Visalia (curva de facturas, "invoice-load-profile"): date;hour;kwh, sin mas columnas
+      // Visalia (comercializadora, no distribuidora): "invoice-load-profile-*.csv" del apartado
+      // facturas de su web. date;hour;kwh, hora 1-24, decimal con coma, sin CUPS. Es una curva
+      // de FACTURACION: los totales por periodo salen redondos (24/10/2026: 72/56/103 kWh en
+      // 30 dias), asi que no se espera que cuadre hora a hora con una lectura del contador.
       'kwh'
     ],
     exportacion: [
