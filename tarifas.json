@@ -239,9 +239,9 @@
     },
     {
       "nombre": "El Corte Inglés Despreocúpate",
-      "cPunta": 0.124572,
-      "cLlano": 0.124572,
-      "cValle": 0.124572,
+      "cPunta": 0.124579,
+      "cLlano": 0.124579,
+      "cValle": 0.124579,
       "p1": 0.113397,
       "p2": 0.113397,
       "web": "https://tarifas.energiaelcorteingles.es/",
@@ -1117,9 +1117,9 @@
     },
     {
       "nombre": "CHC BV",
-      "cPunta": 0.173673,
-      "cLlano": 0.173673,
-      "cValle": 0.173673,
+      "cPunta": 0.173677,
+      "cLlano": 0.173677,
+      "cValle": 0.173677,
       "p1": 0.088956,
       "p2": 0.088382,
       "web": "https://chcenergia.es/index.php/solar/bateria-virtual",
@@ -1197,9 +1197,9 @@
     },
     {
       "nombre": "Atulado Milenial",
-      "cPunta": 0.181775,
-      "cLlano": 0.181775,
-      "cValle": 0.181775,
+      "cPunta": 0.181773,
+      "cLlano": 0.181773,
+      "cValle": 0.181773,
       "p1": 0.103717,
       "p2": 0.041623,
       "web": "https://clientes.atuladoenergia.com/tarifas/",
@@ -1525,7 +1525,7 @@
     },
     {
       "nombre": "El Corte Inglés Benefíciate 3P",
-      "cPunta": 0.183578,
+      "cPunta": 0.183577,
       "cLlano": 0.127963,
       "cValle": 0.089616,
       "p1": 0.137369,
@@ -1944,7 +1944,7 @@
     },
     {
       "nombre": "CEA Estable 3P",
-      "cPunta": 0.211843,
+      "cPunta": 0.211841,
       "cLlano": 0.13673,
       "cValle": 0.105516,
       "p1": 0.101929,
@@ -2209,7 +2209,7 @@
     },
     {
       "nombre": "CHC VE 3P",
-      "cPunta": 0.248745,
+      "cPunta": 0.248744,
       "cLlano": 0.248745,
       "cValle": 0.084081,
       "p1": 0.088956,
@@ -2433,5 +2433,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-24T09:55:59.338Z"
+  "updatedAt": "2026-10-24T10:04:07.105Z"
 }
