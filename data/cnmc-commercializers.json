@@ -2,7 +2,7 @@
   "_meta": {
     "schema": 1,
     "source": "https://sede.cnmc.gob.es/listado/censo/2",
-    "syncedAt": "2026-10-24",
+    "syncedAt": "2026-10-25",
     "count": 948,
     "sourceRows": 949,
     "duplicateCodes": [
