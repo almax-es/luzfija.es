@@ -2010,7 +2010,7 @@
       "cLlano": 0.1661,
       "cValle": 0.0956,
       "p1": 0.112899,
-      "p2": 0.077293,
+      "p2": 0.112899,
       "web": "https://www.nexusenergia.com/hogar/tarifas-luz/",
       "tipo": "3P",
       "incluyeServiciosAjuste": true,
@@ -2433,5 +2433,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-26T08:58:54.050Z"
+  "updatedAt": "2026-10-26T12:45:27.130Z"
 }
