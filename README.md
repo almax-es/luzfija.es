@@ -300,7 +300,7 @@ El sitio se publica en GitHub Pages en modo workflow desde `.github/workflows/te
 
 El workflow `pvpc.yml` (diario, 20:00 UTC) actualiza `data/pvpc/`, `data/surplus/` y `data/ssaa/`; antes de publicar verifica frescura e integridad temporal con `scripts/check_data_freshness.py` (incluido su self-test). Para PVPC/excedentes, cualquier dia anterior al dia local vigente en la zona horaria del fichero debe estar completo (23/24/25 puntos por DST), no puede faltar ningun dia intermedio y el dia local vigente/futuros ya publicados pueden estar parciales sin saltos, duplicados ni timestamps de otro dia local. Si los datos quedan rancios, incompletos o ilegibles, `pvpc.yml` falla antes del commit. Si hay cambios validos, los commitea y dispara `tests.yml` para publicarlos.
 
-El workflow `cnmc-commercializers.yml` consulta mensualmente el censo publico de la CNMC y funciona
+El workflow `cnmc-commercializers.yml` consulta semanalmente el censo publico de la CNMC y funciona
 como espejo: replica lo que sirva la CNMC —altas, bajas, renombrados, contactos y metadatos— sin
 revision previa, porque lo que interesa es tener su listado replicado. El scraper sigue validando
 columnas, formato R2, volumen, codigos centinela (`R2-999` cierra la tabla, asi que un listado cortado por el final no pasa) y metadatos; una fila con datos y sin codigo R2 aborta en vez de perderse, y los tests del censo se ejecutan

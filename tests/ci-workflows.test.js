@@ -69,14 +69,14 @@ describe('CI workflow hardening', () => {
     expect(workflow).toContain('timeout-minutes: 15');
   });
 
-  it('replica el censo mensualmente sin frenar por el contenido del listado', () => {
+  it('replica el censo semanalmente sin frenar por el contenido del listado', () => {
     const workflow = readRepoFile('.github/workflows/cnmc-commercializers.yml');
     const describeAt = workflow.indexOf('- name: Describe census changes');
     const validateAt = workflow.indexOf('- name: Validate mirrored census');
     const commitAt = workflow.indexOf('- name: Commit and push mirrored census');
     const deployAt = workflow.indexOf('- name: Trigger tests and Pages deployment');
 
-    expect(workflow).toContain("cron: '23 7 1 * *'");
+    expect(workflow).toContain("cron: '23 7 * * 1'");
     expect(workflow).toContain('scripts/classify-cnmc-commercializers-update.mjs');
     expect(workflow).toContain('git add data/cnmc-commercializers.json');
     expect(workflow).toContain('/actions/workflows/tests.yml/dispatches');

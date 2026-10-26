@@ -1,9 +1,9 @@
-name: CNMC Commercializers Monthly Update
+name: CNMC Commercializers Weekly Update
 
 on:
-  # Primer día de cada mes. El minuto no redondo reduce retrasos de la cola de cron.
+  # Cada lunes. El minuto no redondo reduce retrasos de la cola de cron.
   schedule:
-    - cron: '23 7 1 * *'
+    - cron: '23 7 * * 1'
   workflow_dispatch:
 
 env:

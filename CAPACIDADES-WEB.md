@@ -673,7 +673,7 @@ No se debe afirmar:
 - PVPC estándar valida cobertura completa de todos los días cerrados y falla cerrado ante meses/días ausentes; el modo CSV mantiene su política explícita exacta/híbrida/media. La caché de cálculo se versiona como `pvpc_cache_v3` para no reutilizar resultados `v2` previos a esta garantía.
 - SSAA requerido y no disponible nunca se convierte en 0 €: la tarifa queda no comparable tanto en home como en el simulador solar. Un `0` explícitamente publicado sí es válido, y un mes histórico ausente no usa un valor actual.
 - El Service Worker reutiliza una copia sana ante 408/429/5xx de PVPC, excedentes, SSAA, censo CNMC e índices auxiliares, pero respeta 404/410.
-- El workflow mensual del censo funciona como espejo: replica lo que sirva la CNMC —altas, bajas,
+- El workflow semanal del censo funciona como espejo: replica lo que sirva la CNMC —altas, bajas,
   renombrados, contactos y metadatos— sin revisión previa, porque lo que interesa es tener su
   listado replicado. Lo único que detiene la publicación es un fallo propio: el parser aborta si
   cambia el formato de la tabla y los tests del censo se ejecutan siempre antes del commit.
