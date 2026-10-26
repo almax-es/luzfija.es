@@ -2394,9 +2394,9 @@
     },
     {
       "nombre": "Nufri Solar 3P",
-      "cPunta": 0.333146,
-      "cLlano": 0.244168,
-      "cValle": 0.201045,
+      "cPunta": 0.354197,
+      "cLlano": 0.263106,
+      "cValle": 0.218122,
       "p1": 0.111519,
       "p2": 0.037604,
       "web": "https://www.energianufri.com/es/tarifas-luz",
@@ -2433,5 +2433,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-26T12:45:27.130Z"
+  "updatedAt": "2026-10-26T14:29:29.390Z"
 }
