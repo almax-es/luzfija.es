@@ -1816,26 +1816,6 @@
       "requiereFV": true
     },
     {
-      "nombre": "Iner Coche Eléctrico 3P",
-      "cPunta": 0.199847,
-      "cLlano": 0.19984,
-      "cValle": 0.0713,
-      "p1": 0.08826,
-      "p2": 0.08826,
-      "web": "https://inerenergia.es/luz/hogar",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Imagina Base Noche y Findes 8000 3P",
       "cPunta": 0.201287,
       "cLlano": 0.127465,
@@ -2433,5 +2413,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-26T14:29:29.390Z"
+  "updatedAt": "2026-10-26T16:33:44.458Z"
 }
