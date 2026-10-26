@@ -2,7 +2,7 @@
   "_meta": {
     "schema": 1,
     "source": "https://sede.cnmc.gob.es/listado/censo/2",
-    "syncedAt": "2026-10-25",
+    "syncedAt": "2026-10-26",
     "count": 948,
     "sourceRows": 949,
     "duplicateCodes": [
@@ -296,6 +296,7 @@
       "R2-680",
       "R2-683",
       "R2-685",
+      "R2-687",
       "R2-688",
       "R2-689",
       "R2-690",
@@ -902,7 +903,7 @@
     },
     "R2-1073": {
       "name": "LUZYGAS IBERIA, S.L.",
-      "phone": "900 433 118",
+      "phone": "900 333 900",
       "website": "https://luzygasiberia.es/"
     },
     "R2-1074": {
