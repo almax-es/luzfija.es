@@ -783,26 +783,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Nexus Estable",
-      "cPunta": 0.149003,
-      "cLlano": 0.149003,
-      "cValle": 0.149003,
-      "p1": 0.112899,
-      "p2": 0.077293,
-      "web": "https://www.nexusenergia.com/hogar/tarifas-luz/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Masmovil Tarifa de Luz",
       "cPunta": 0.149003,
       "cLlano": 0.149003,
@@ -862,6 +842,26 @@
         "exc": -1.0,
         "tipo": "SIMPLE",
         "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Nexus Estable",
+      "cPunta": 0.149003,
+      "cLlano": 0.149003,
+      "cValle": 0.149003,
+      "p1": 0.112899,
+      "p2": 0.112899,
+      "web": "https://www.nexusenergia.com/hogar/tarifas-luz/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
         "bv": false,
         "reglaBV": "NO APLICA",
         "precioBV": 0.0
@@ -2433,5 +2433,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-25T15:00:38.079Z"
+  "updatedAt": "2026-10-26T08:58:54.050Z"
 }
