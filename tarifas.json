@@ -552,27 +552,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Chippio Constante",
-      "cPunta": 0.139006,
-      "cLlano": 0.139006,
-      "cValle": 0.139006,
-      "p1": 0.099,
-      "p2": 0.099,
-      "web": "https://chippio.es/tarifa-constante",
-      "tipo": "1P",
-      "requisitos": "No incluye Servicios de Ajuste.",
-      "incluyeServiciosAjuste": false,
-      "fv": {
-        "exc": -1.0,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Plenitude +5kW",
       "cPunta": 0.140311,
       "cLlano": 0.140311,
@@ -1256,6 +1235,27 @@
       },
       "requiereFV": false,
       "minConsumoAnualExclusivo": 4000.0
+    },
+    {
+      "nombre": "Chippio Constante",
+      "cPunta": 0.189008,
+      "cLlano": 0.189008,
+      "cValle": 0.189008,
+      "p1": 0.099,
+      "p2": 0.099,
+      "web": "https://chippio.es/tarifa-constante",
+      "tipo": "1P",
+      "requisitos": "No incluye Servicios de Ajuste.",
+      "incluyeServiciosAjuste": false,
+      "fv": {
+        "exc": -1.0,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Bassols Hogar Solar 24 horas",
@@ -2431,5 +2431,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-27T11:23:25.821Z"
+  "updatedAt": "2026-10-27T14:23:38.365Z"
 }
