@@ -2199,7 +2199,7 @@
         // no arregla nada, aunque el primer choque caiga en el cambio de hora: se dice la causa.
         const reinicios = contarReinicioHorasMismaFecha(dataRows, mapping, fecha);
         const consejoDuplicado = reinicios >= 2
-          ? `La fecha no avanza: ${ymdLocal(fecha)} se repite en ${reinicios + 1} jornadas completas, con las ` +
+          ? `La fecha no avanza: ${ymdLocal(fecha)} se repite en al menos ${reinicios + 1} jornadas completas, con las ` +
             'horas empezando de nuevo sin que cambie el día. No parece una curva horaria real (una fila ' +
             'por hora y día) y cambiar la zona no lo arregla. Vuelve a descargar el consumo horario.'
           : esDiaCambioHorarioOctubre(fecha)
