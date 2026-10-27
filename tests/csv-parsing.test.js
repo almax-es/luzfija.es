@@ -255,6 +255,40 @@ describe('CSV Utils - Parsing Robusto', () => {
     });
   });
 
+  describe('Fecha que no avanza (UFD, 27/10/2026)', () => {
+    const cabecera = ['Fecha', 'Hora', 'Consumo kWh'];
+    const jornada = (fecha, repetirHora2) => {
+      const filas = [];
+      for (let h = 1; h <= 24; h++) {
+        filas.push([fecha, String(h), '0,25']);
+        if (repetirHora2 && h === 2) filas.push([fecha, '2', '0,38']);
+      }
+      return filas;
+    };
+
+    it('Explica que la fecha no avanza en vez de mandar a cambiar la zona', () => {
+      // Misma fecha en tres jornadas completas, la primera con 25 filas como el fichero real
+      const rows = [cabecera, ...jornada('27/10/2024', true), ...jornada('27/10/2024', true), ...jornada('27/10/2024', true)];
+      let error;
+      try { csvUtils.parseEnergyTableRows(rows, { headerRowIndex: 0, zonaFiscal: 'Canarias' }); } catch (e) { error = e; }
+      expect(error).toBeDefined();
+      expect(error.message).toContain('Hay filas duplicadas para la misma fecha y hora');
+      expect(error.message).toContain('La fecha no avanza');
+      expect(error.message).not.toContain('cambia la zona y vuelve a importarlo');
+      // El slug de analitica no cambia: sigue siendo periodo-duplicado
+      expect(csvUtils.csvErrorCodeForTracking(error)).toBe('periodo-duplicado');
+    });
+
+    it('Un cambio de hora legitimo conserva su consejo de zona', () => {
+      const rows = [cabecera, ...jornada('27/10/2024', true), ...jornada('28/10/2024', false)];
+      let error;
+      try { csvUtils.parseEnergyTableRows(rows, { headerRowIndex: 0, zonaFiscal: 'Península' }); } catch (e) { error = e; }
+      expect(error).toBeDefined();
+      expect(error.message).toContain('cambia la zona y vuelve a importarlo');
+      expect(error.message).not.toContain('La fecha no avanza');
+    });
+  });
+
   describe('parseDateFlexible', () => {
     it('Debe parsear formato dd/mm/yyyy', () => {
       const date = csvUtils.parseDateFlexible('25/12/2024');

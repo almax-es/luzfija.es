@@ -324,6 +324,9 @@
   //   UFD (distribuidora)        EHCR/EHEX en kWh.         Ver SIMULADOR-BV.md.
   //   Datadis mensual            Fecha;Valle;Llano;Punta.   isDatadisMonthlyFormat().
   //   Visalia (comercializadora) date;hour;kwh.             tests/csv-parsing.test.js.
+  //   RECHAZADO a proposito: UFD (Naturgy) "consumptions.xlsx" (27/10/2026), Fecha;Hora;Consumo
+  //   kWh con solo 4 fechas repetidas en ~34.000 filas y 4 perfiles diarios: no es curva real.
+  //   El error lo dice (contarReinicioHorasMismaFecha); no se importa ni se "arregla".
   const HEADER_ALIASES = {
     fecha: [
       'fecha', 'date', 'dia', 'fecha_lectura', 'fecha_consumo', 'dia_lectura'
@@ -1896,6 +1899,26 @@
     return { factor: 1, converted: false };
   }
 
+  // Cuantas veces vuelve a empezar el ciclo de horas sin que cambie la fecha (la hora baja entre
+  // dos filas consecutivas con la MISMA fecha). Un fichero real no lo hace nunca, y un periodo
+  // exportado dos veces tampoco (repite fechas, pero no seguidas). Solo se llama al rechazar un
+  // duplicado: es lo que distingue una fecha que no avanza (UFD, 27/10/2026: cuatro fechas
+  // repetidas durante ~34.000 filas) de un cambio de hora, para no mandar al usuario a cambiar
+  // de zona cuando la zona no es el problema.
+  function contarReinicioHorasMismaFecha(dataRows, mapping, fecha) {
+    const objetivo = ymdLocal(fecha);
+    let previa = null;
+    let reinicios = 0;
+    for (const row of dataRows || []) {
+      const { fecha: f, hourNum } = getRowDateHour(row, mapping);
+      if (!(f instanceof Date) || isNaN(f.getTime()) || !Number.isFinite(hourNum)) continue;
+      const clave = ymdLocal(f);
+      if (previa && clave === objetivo && previa.clave === clave && hourNum < previa.hourNum) reinicios++;
+      previa = { clave, hourNum };
+    }
+    return reinicios;
+  }
+
   function parseEnergyTableRows(rows, options = {}) {
     const parseNumber = options.parseNumber || parseNumberFlexible;
     const headerRowIndex = Number.isFinite(options.headerRowIndex) ? options.headerRowIndex : 0;
@@ -2172,7 +2195,14 @@
         // El dia del cambio de hora de octubre la hora repetida no es la misma en la Peninsula
         // (02:00) que en Canarias (01:00): un fichero de una zona importado con la otra choca aqui
         // aunque no tenga ninguna fila repetida de verdad.
-        const consejoDuplicado = esDiaCambioHorarioOctubre(fecha)
+        // Con la fecha sin avanzar (varias jornadas completas bajo el mismo dia) cambiar la zona
+        // no arregla nada, aunque el primer choque caiga en el cambio de hora: se dice la causa.
+        const reinicios = contarReinicioHorasMismaFecha(dataRows, mapping, fecha);
+        const consejoDuplicado = reinicios >= 2
+          ? `La fecha no avanza: ${ymdLocal(fecha)} se repite en ${reinicios + 1} jornadas completas, con las ` +
+            'horas empezando de nuevo sin que cambie el día. No parece una curva horaria real (una fila ' +
+            'por hora y día) y cambiar la zona no lo arregla. Vuelve a descargar el consumo horario.'
+          : esDiaCambioHorarioOctubre(fecha)
           ? 'Ese día es el cambio de hora de octubre, que repite una hora distinta en la Península y en ' +
             'Canarias: si el archivo es de una zona y has elegido la otra, cambia la zona y vuelve a ' +
             'importarlo. Si la zona es la correcta, revisa que no se exportara dos veces el mismo periodo.'
