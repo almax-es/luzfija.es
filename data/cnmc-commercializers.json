@@ -2,7 +2,7 @@
   "_meta": {
     "schema": 1,
     "source": "https://sede.cnmc.gob.es/listado/censo/2",
-    "syncedAt": "2026-10-26",
+    "syncedAt": "2026-10-27",
     "count": 948,
     "sourceRows": 949,
     "duplicateCodes": [
@@ -4947,7 +4947,7 @@
       "website": "https://www.energeticahotelera.com/"
     },
     "R2-995": {
-      "name": "REPRESENTANTES DE CONSUMIDORES EN EL MERCADO ELÉCTRICO, S.L.",
+      "name": "EMECE ENERGIA Y MERCADOS, S.L.",
       "phone": "900 909 137",
       "website": "http://www.emececuadrado.com/"
     },
