@@ -937,7 +937,6 @@
       "p2": 0.078055,
       "web": "https://www.iberdrola.es/luz/plan-online",
       "tipo": "1P",
-      "requisitos": "Potencia > 10 kW: permanencia de 1 año.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.03,
@@ -1972,7 +1971,6 @@
       "p2": 0.013483,
       "web": "https://www.iberdrola.es/luz/plan-online-tres-periodos",
       "tipo": "3P",
-      "requisitos": "Potencia > 10 kW: permanencia de 1 año.",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.03,
@@ -2413,5 +2411,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-27T10:52:29.674Z"
+  "updatedAt": "2026-10-27T10:57:10.816Z"
 }
