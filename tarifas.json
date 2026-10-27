@@ -1859,26 +1859,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Iner Solar 3P",
-      "cPunta": 0.204849,
-      "cLlano": 0.12939,
-      "cValle": 0.0913,
-      "p1": 0.08826,
-      "p2": 0.08826,
-      "web": "https://inerenergia.es/luz/hogar",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.03,
-        "tipo": "SIMPLE",
-        "tope": "ENERGIA",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": true
-    },
-    {
       "nombre": "Bonpreu Noche y Día 3P",
       "cPunta": 0.205006,
       "cLlano": 0.128574,
@@ -2290,6 +2270,26 @@
       "maxConsumoAnual": 7000.0
     },
     {
+      "nombre": "Iner Solar 3P",
+      "cPunta": 0.264846,
+      "cLlano": 0.18939,
+      "cValle": 0.1513,
+      "p1": 0.08826,
+      "p2": 0.08826,
+      "web": "https://inerenergia.es/luz/hogar",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.03,
+        "tipo": "SIMPLE",
+        "tope": "ENERGIA",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": true
+    },
+    {
       "nombre": "Octopus Solar 3P",
       "cPunta": 0.273008,
       "cLlano": 0.17,
@@ -2411,5 +2411,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-27T11:07:25.979Z"
+  "updatedAt": "2026-10-27T11:18:10.301Z"
 }
