@@ -2391,6 +2391,48 @@
       "requiereFV": false
     },
     {
+      "nombre": "Plenitude Plus 3P",
+      "cPunta": 0.280591,
+      "cLlano": 0.214031,
+      "cValle": 0.108853,
+      "p1": 0.099984,
+      "p2": 0.099984,
+      "web": "https://eniplenitude.es/hogar/tarifas-luz/plus-3-periodos",
+      "tipo": "3P",
+      "requisitos": "Precio válido para potencia ≤ 5 kW.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Plenitude Plus +5kW 3P",
+      "cPunta": 0.287708,
+      "cLlano": 0.219106,
+      "cValle": 0.126108,
+      "p1": 0.099984,
+      "p2": 0.099984,
+      "web": "https://eniplenitude.es/hogar/tarifas-luz/plus-3-periodos",
+      "tipo": "3P",
+      "requisitos": "Precio válido para potencia > 5 kW.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Iner Coche Eléctrico 3P",
       "cPunta": 0.289842,
       "cLlano": 0.28984,
@@ -2471,5 +2513,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-28T10:38:40.439Z"
+  "updatedAt": "2026-10-28T13:50:32.779Z"
 }
