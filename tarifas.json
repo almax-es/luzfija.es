@@ -112,27 +112,6 @@
       "maxConsumoAnual": 4000.0
     },
     {
-      "nombre": "Plenitude",
-      "cPunta": 0.119993,
-      "cLlano": 0.119993,
-      "cValle": 0.119993,
-      "p1": 0.112498,
-      "p2": 0.112497,
-      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
-      "tipo": "1P",
-      "requisitos": "Precio válido para potencia ≤ 5 kW.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Esluz Fija 24h",
       "cPunta": 0.120004,
       "cLlano": 0.120004,
@@ -552,27 +531,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Plenitude +5kW",
-      "cPunta": 0.140311,
-      "cLlano": 0.140311,
-      "cValle": 0.140311,
-      "p1": 0.112498,
-      "p2": 0.112497,
-      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
-      "tipo": "1P",
-      "requisitos": "Precio válido para potencia > 5 kW.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Enersa Relax 10",
       "cPunta": 0.144001,
       "cLlano": 0.144001,
@@ -695,6 +653,27 @@
         "tope": "ENERGIA",
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Plenitude",
+      "cPunta": 0.146555,
+      "cLlano": 0.146555,
+      "cValle": 0.146555,
+      "p1": 0.112498,
+      "p2": 0.112497,
+      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
+      "tipo": "1P",
+      "requisitos": "Precio válido para potencia ≤ 5 kW.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -1027,6 +1006,27 @@
         "precioBV": 0.0
       },
       "requiereFV": true
+    },
+    {
+      "nombre": "Plenitude +5kW",
+      "cPunta": 0.166881,
+      "cLlano": 0.166881,
+      "cValle": 0.166881,
+      "p1": 0.112498,
+      "p2": 0.112497,
+      "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
+      "tipo": "1P",
+      "requisitos": "Precio válido para potencia > 5 kW.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Endesa 24h Online",
@@ -2471,5 +2471,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-27T19:15:44.504Z"
+  "updatedAt": "2026-10-28T07:46:45.497Z"
 }
