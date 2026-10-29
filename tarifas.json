@@ -428,28 +428,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Gana Energía 24h",
-      "cPunta": 0.139006,
-      "cLlano": 0.139006,
-      "cValle": 0.139006,
-      "p1": 0.099,
-      "p2": 0.099,
-      "web": "https://ganaenergia.com/tarifas-luz/24-horas",
-      "tipo": "1P",
-      "requisitos": "Monedero virtual incluido durante las 12 primeras facturas; después, desde unos 2,13 €/mes",
-      "promo": "10 € de descuento en cada una de las 10 primeras facturas con el código DESC100 (IVA incluido). Algunos usuarios indican que no siempre se lo aplican al contratar: conviene solicitarlo expresamente y confirmarlo antes de firmar.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.06,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Enersa Relax 10",
       "cPunta": 0.144001,
       "cLlano": 0.144001,
@@ -701,6 +679,28 @@
         "tope": "ENERGIA",
         "bv": false,
         "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Gana Energía 24h",
+      "cPunta": 0.149003,
+      "cLlano": 0.149003,
+      "cValle": 0.149003,
+      "p1": 0.099,
+      "p2": 0.099,
+      "web": "https://ganaenergia.com/tarifas-luz/24-horas",
+      "tipo": "1P",
+      "requisitos": "Monedero virtual incluido durante las 12 primeras facturas; después, desde unos 2,13 €/mes",
+      "promo": "10 € de descuento en cada una de las 10 primeras facturas con el código DESC100 (IVA incluido). Algunos usuarios indican que no siempre se lo aplican al contratar: conviene solicitarlo expresamente y confirmarlo antes de firmar.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
         "precioBV": 0.0
       },
       "requiereFV": false
@@ -1524,28 +1524,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Gana Energía Tramos Horarios 3P",
-      "cPunta": 0.191008,
-      "cLlano": 0.124,
-      "cValle": 0.1,
-      "p1": 0.099,
-      "p2": 0.099,
-      "web": "https://ganaenergia.com/tarifas-luz/tramos-horarios",
-      "tipo": "3P",
-      "requisitos": "Monedero virtual incluido durante las 12 primeras facturas; después, desde unos 2,13 €/mes",
-      "promo": "10 € de descuento en cada una de las 10 primeras facturas con el código DESC100 (IVA incluido). Algunos usuarios indican que no siempre se lo aplican al contratar: conviene solicitarlo expresamente y confirmarlo antes de firmar.",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.06,
-        "tipo": "SIMPLE + BV",
-        "tope": "ENERGIA",
-        "bv": true,
-        "reglaBV": "BV MES ANTERIOR",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Naturgy noche 3P",
       "cPunta": 0.193007,
       "cLlano": 0.1201,
@@ -1712,6 +1690,28 @@
       },
       "requiereFV": false,
       "maxConsumoAnualPorKw": 1200.0
+    },
+    {
+      "nombre": "Gana Energía Tramos Horarios 3P",
+      "cPunta": 0.201003,
+      "cLlano": 0.134,
+      "cValle": 0.11,
+      "p1": 0.099,
+      "p2": 0.099,
+      "web": "https://ganaenergia.com/tarifas-luz/tramos-horarios",
+      "tipo": "3P",
+      "requisitos": "Monedero virtual incluido durante las 12 primeras facturas; después, desde unos 2,13 €/mes",
+      "promo": "10 € de descuento en cada una de las 10 primeras facturas con el código DESC100 (IVA incluido). Algunos usuarios indican que no siempre se lo aplican al contratar: conviene solicitarlo expresamente y confirmarlo antes de firmar.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.06,
+        "tipo": "SIMPLE + BV",
+        "tope": "ENERGIA",
+        "bv": true,
+        "reglaBV": "BV MES ANTERIOR",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Seneo Tarifa 1 Tramos Horarios 3P",
@@ -2433,5 +2433,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-28T20:06:14.120Z"
+  "updatedAt": "2026-10-29T08:49:07.514Z"
 }
