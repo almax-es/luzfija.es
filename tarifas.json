@@ -1358,6 +1358,27 @@
       "requiereFV": true
     },
     {
+      "nombre": "Repsol Waylet Vehículo Eléctrico 3P",
+      "cPunta": 0.168005,
+      "cLlano": 0.118,
+      "cValle": 0.099,
+      "p1": 0.081,
+      "p2": 0.081,
+      "web": "https://www.repsol.es/waylet/casa/waylet-luz/",
+      "tipo": "3P",
+      "requisitos": "Solo se contrata desde la app Waylet de Repsol. Precio fijo durante 3 años.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
       "nombre": "Energya VM Fórmula Fija 3P",
       "cPunta": 0.169006,
       "cLlano": 0.129,
@@ -2433,5 +2454,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-29T08:49:07.514Z"
+  "updatedAt": "2026-10-29T09:07:45.522Z"
 }
