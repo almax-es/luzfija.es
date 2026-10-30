@@ -287,3 +287,5 @@ Falsos positivos ya conocidos y documentados:
 Resumen corto recomendado:
 
 "LuzFija.es es una suite web local-first para el mercado electrico domestico en Espana: compara tarifas de mercado libre con PVPC, importa facturas PDF y curvas horarias CSV/XLSX, analiza historicos PVPC/excedentes y simula autoconsumo con bateria virtual mes a mes."
+
+- **30/10/2026 (Cambio 50_):** Nufri actualiza al alza la energía, potencias y excedentes (a 0,04 €/kWh) de sus 4 tarifas domésticas (Sin Horarios, Con Horarios 3P, Universal Sin Horarios y Universal Con Horarios 3P), y reduce el límite de consumo de 1.200 a 900 kWh/año por kW en las dos estándar. Nufri Solar 3P permanece intacta. 28 celdas modificadas en Excel, reordenadas las 118 filas activas; cebos tanda 2 `B001-r3`, `B005-r3`, `B014-r3`, `B017-r3`. `tarifas.json` regenerado (commit `ec15dd2`). Validadores en serie sin VPN: tarifas 115 OK, excedentes 54 OK. Fase B acreditada en producción (`eb5cc5c5...`). Captura posterior de Luzómetro 0 cebos (NO nos copian). Sellos RFC 3161 Fase A y Fase B verificados con FreeTSA.
