@@ -431,6 +431,55 @@ describe('importar (fetch simulado)', () => {
     expect(D.textoError({ code: 'credenciales' })).toContain('no seguimos intentándolo');
   });
 
+  it('un contador viejo que no se pudo borrar no sobrevive a un login correcto', async () => {
+    storage.set('lf_datadis_fallos', JSON.stringify({ n: 1, t: Date.now() - 1000 }));
+    vi.stubGlobal('localStorage', {
+      getItem: almacen.getItem,
+      setItem: () => { throw new Error('QuotaExceeded'); },
+      removeItem: () => { throw new Error('SecurityError'); }
+    });
+    await ejecutar(); // login correcto: reinicio que no se puede escribir
+    respuestas.login = () => json(500, { message: 'Bad credentials' });
+    await expect(ejecutar()).rejects.toMatchObject({ code: 'credenciales' });
+    // Con el dato viejo contado serian 2 (agotado); debe ser 1
+    expect(D.textoError({ code: 'credenciales' })).toContain('Te queda un intento');
+  });
+
+  it('vuelve a leer el contador justo antes del login: si otra pestana ya agoto los intentos, no envia nada', async () => {
+    // Web Locks: este login espera turno mientras la otra pestana termina el suyo
+    vi.stubGlobal('navigator', { locks: { request: async (_nombre, fn) => { await Promise.resolve(); return fn(); } } });
+    const peticion = {
+      nif: '12345678Z', clave: 'x', conPotencia: false,
+      senal: new AbortController().signal, onProgreso: () => {}, elegirSuministro: async (l) => l[0]
+    };
+    const promesa = D.importar(peticion);
+    // otra pestana registra el segundo fallo mientras esta espera turno
+    storage.set('lf_datadis_fallos', JSON.stringify({ n: 2, t: Date.now() }));
+    await expect(promesa).rejects.toMatchObject({ code: 'agotado' });
+    expect(llamadas.length).toBe(0);
+    expect(D.textoError({ code: 'agotado' })).toContain('otra pestaña');
+  });
+
+  it('serializa el login entre pestanas con Web Locks y nunca lo repite si ya empezo', async () => {
+    const nombres = [];
+    vi.stubGlobal('navigator', { locks: { request: async (nombre, fn) => { nombres.push(nombre); return fn(); } } });
+    await ejecutar();
+    expect(nombres).toEqual(['lf-datadis-login']);
+
+    // El login empieza dentro del bloqueo y falla con un error inesperado: no se reintenta fuera
+    llamadas = [];
+    respuestas.login = () => { throw new TypeError('rotura inesperada'); };
+    await expect(ejecutar()).rejects.toBeTruthy();
+    expect(llamadas.filter((l) => l.url.includes('login')).length).toBe(1);
+
+    // El API de bloqueos falla ANTES de empezar: se hace el login una sola vez, sin el
+    llamadas = [];
+    respuestas.login = () => json(200, 'aaaa.bbbb.cccc');
+    vi.stubGlobal('navigator', { locks: { request: async () => { throw new Error('locks no disponible'); } } });
+    await ejecutar();
+    expect(llamadas.filter((l) => l.url.includes('login')).length).toBe(1);
+  });
+
   it('suelta la contrasena nada mas usarla en el login', async () => {
     const peticion = {
       nif: '12345678Z', clave: 'secreta', conPotencia: false,
@@ -499,7 +548,9 @@ describe('contratos estaticos de lf-datadis.js', () => {
     const usos = sourceDatadis.match(/localStorage\.\w+\(([^)]*)\)/g) || [];
     expect(usos.length).toBeGreaterThan(0);
     for (const u of usos) expect(u).toContain('FALLOS_KEY');
-    expect(sourceDatadis).toContain('JSON.stringify({ n, t: Date.now() })');
+    expect(sourceDatadis).toContain('JSON.stringify({ n, t: ahora })');
+    // La referencia local a la contrasena se suelta al terminar el login, pase lo que pase
+    expect(sourceDatadis).toMatch(/finally \{\s*claveLogin = '';\s*\}/);
   });
 
   it('tracking.js no escucha clics ni cambios dentro del modal de Datadis', () => {

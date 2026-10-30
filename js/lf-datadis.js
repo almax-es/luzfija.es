@@ -233,11 +233,14 @@
   // Es una precaucion: no conoce los fallos hechos en la web de Datadis ni en otros dispositivos.
 
   let fallosMemoria = { n: 0, t: 0 };
+  // Momento del ultimo reinicio (login correcto): un dato guardado ANTES se ignora aunque no se
+  // haya podido borrar (removeItem que falla con getItem que si funciona).
+  let ultimoReinicio = 0;
 
   function fallosVigentes(o) {
     const n = Math.max(0, Math.floor(Number(o && o.n)) || 0);
     const t = Number(o && o.t);
-    return n > 0 && t > 0 && Date.now() - t <= FALLOS_TTL_MS ? n : 0;
+    return n > 0 && t > 0 && t > ultimoReinicio && Date.now() - t <= FALLOS_TTL_MS ? n : 0;
   }
 
   function leerFallos() {
@@ -252,11 +255,39 @@
     return Math.max(enAlmacen, fallosVigentes(fallosMemoria));
   }
   function guardarFallos(n) {
-    fallosMemoria = n > 0 ? { n, t: Date.now() } : { n: 0, t: 0 };
+    const ahora = Math.max(Date.now(), ultimoReinicio + 1);
+    if (n > 0) {
+      fallosMemoria = { n, t: ahora };
+      try { localStorage.setItem(FALLOS_KEY, JSON.stringify({ n, t: ahora })); } catch { /* queda la copia en memoria */ }
+      return;
+    }
+    fallosMemoria = { n: 0, t: 0 };
+    ultimoReinicio = ahora;
     try {
-      if (n > 0) localStorage.setItem(FALLOS_KEY, JSON.stringify({ n, t: Date.now() }));
-      else localStorage.removeItem(FALLOS_KEY);
-    } catch { /* sin almacenamiento: queda la copia en memoria de esta pagina */ }
+      localStorage.removeItem(FALLOS_KEY);
+    } catch {
+      try { localStorage.setItem(FALLOS_KEY, JSON.stringify({ n: 0, t: ahora })); } catch { /* ultimoReinicio ya lo cubre */ }
+    }
+  }
+
+  /**
+   * Serializa los logins entre pestanas (Web Locks) y, ya dentro del bloqueo, vuelve a leer el
+   * contador: si otra pestana acaba de registrar un fallo, este intento no se envia. Sin soporte de
+   * Web Locks se ejecuta directamente; la relectura del contador sigue aplicando.
+   */
+  async function conBloqueoLogin(fn) {
+    const locks = typeof navigator !== 'undefined' && navigator && navigator.locks;
+    if (locks && typeof locks.request === 'function') {
+      let iniciada = false;
+      try {
+        return await locks.request('lf-datadis-login', () => { iniciada = true; return fn(); });
+      } catch (e) {
+        // Si el login ya empezo, NUNCA se repite (seria otro intento contra Datadis).
+        if (iniciada) throw e;
+        // Fallo el propio API de bloqueos antes de empezar: se intenta sin el
+      }
+    }
+    return fn();
   }
 
   // ===== Flujo de importacion =====
@@ -276,18 +307,28 @@
     }
 
     o.onProgreso('login');
-    let token;
-    const claveLogin = o.clave;
-    // La contrasena solo hace falta para el login: se suelta ya, para que no quede referenciada si
-    // la descarga de consumos sigue en segundo plano tras cerrar el modal.
+    // La contrasena solo hace falta para el login. Se suelta del objeto recibido ya y de esta
+    // variable en cuanto termina (el marco de una funcion async vive mientras dura toda la
+    // importacion, incluida una descarga que siga en segundo plano tras cerrar el modal).
+    // JavaScript no permite borrar fisicamente una cadena: se eliminan las referencias.
+    let claveLogin = o.clave;
     o.clave = '';
+    let token;
     try {
-      token = await hacerLogin(nif, claveLogin, o.senal);
-    } catch (e) {
-      if (e && e.code === 'credenciales') guardarFallos(leerFallos() + 1);
-      throw e;
+      token = await conBloqueoLogin(async () => {
+        if (leerFallos() >= MAX_FALLOS_LOGIN) throw new DatadisError('agotado');
+        try {
+          const t = await hacerLogin(nif, claveLogin, o.senal);
+          guardarFallos(0);
+          return t;
+        } catch (e) {
+          if (e && e.code === 'credenciales') guardarFallos(leerFallos() + 1);
+          throw e;
+        }
+      });
+    } finally {
+      claveLogin = '';
     }
-    guardarFallos(0);
 
     o.onProgreso('suministros');
     // get-supplies (v1) a proposito: devuelve los suministros de TODAS las distribuidoras en una
@@ -380,6 +421,8 @@
         return fallos >= MAX_FALLOS_LOGIN
           ? 'Usuario o contraseña incorrectos. Para no bloquear tu cuenta de Datadis no seguimos intentándolo. Comprueba tu contraseña entrando en datadis.es y después pulsa «Ya he entrado bien en datadis.es».'
           : 'Usuario o contraseña incorrectos. Te queda un intento: si vuelves a fallar, dejaremos de intentarlo para no bloquear tu cuenta de Datadis.';
+      case 'agotado':
+        return 'Ya se han producido dos intentos fallidos (quizá en otra pestaña). Para no bloquear tu cuenta de Datadis no seguimos intentándolo. Comprueba tu contraseña entrando en datadis.es y después pulsa «Ya he entrado bien en datadis.es».';
       case 'documento':
         return err.detalle === 'sinletra'
           ? 'Falta la letra de tu NIF. No lo hemos enviado a Datadis, así que no has gastado ningún intento.'
