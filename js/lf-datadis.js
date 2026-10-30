@@ -48,6 +48,10 @@
   const T_CONTRATO = 60000;
   const T_CONSUMO = 300000;
   const T_CONSUMO_MES = 120000;
+  // Tope de TODO el reintento mes a mes (hasta 15 meses en serie): sin el, en el peor caso la
+  // espera llegaba a ~28 min. Al agotarse se sigue con los meses ya recibidos (los mas
+  // recientes) y la cobertura decide; si no llego ninguno, error de tiempo agotado.
+  const T_MES_A_MES_TOTAL = 360000;
 
   // Lo ya descargado en esta pagina (solo memoria). Evita repetir una consulta que Datadis
   // rechazaria durante 24 h si el usuario vuelve a abrir el modal.
@@ -148,7 +152,10 @@
 
   /** Hora de la etiqueta de Datadis ('01:00'..'24:00'). */
   function horaEtiqueta(f) {
-    return parseInt(String(f && f.time), 10);
+    // Solo 'HH:MM' o 'HH:MM:SS' en punto: cualquier otra cosa ('99:00' da 99 con parseInt, 'abc'
+    // da NaN) es una hora no valida y no debe contar para la cobertura ni entrar en el CSV.
+    const m = /^(\d{1,2}):00(?::00)?$/.exec(String(f && f.time).trim());
+    return m ? Number(m[1]) : NaN;
   }
 
   /**
@@ -157,7 +164,47 @@
    * contador; contarla convertiria ese dia en uno de 25 h y desplazaria todas sus horas.
    */
   function filaUtil(f) {
-    return !!f && typeof f.date === 'string' && /^\d{4}\/\d{2}\/\d{2}$/.test(f.date) && horaEtiqueta(f) !== 0;
+    if (!f || typeof f.date !== 'string' || !/^\d{4}\/\d{2}\/\d{2}$/.test(f.date)) return false;
+    const h = horaEtiqueta(f);
+    // 25 solo el dia del cambio de hora de octubre (hay distribuidoras que numeran ese dia 1..25).
+    return Number.isInteger(h) && h >= 1 && (h <= 24 || (h === 25 && esDiaCambioOtono(f.date)));
+  }
+
+  /** El dia del cambio de hora de octubre (ultimo domingo): el unico con una hora repetida. */
+  function esDiaCambioOtono(ymd) {
+    const [y, m, d] = ymd.split('/').map(Number);
+    if (m !== 10) return false;
+    const dias = new Date(y, 10, 0).getDate();
+    return d === dias - new Date(y, 9, dias).getDay();
+  }
+
+  /**
+   * Quita horas repetidas: solo el dia del cambio de hora de octubre puede traer UNA etiqueta
+   * repetida (la hora que se vive dos veces). En otro dia, una repetida hacia que el dia sumara
+   * horas de mas (la cobertura no veria el hueco) o, con 25 filas, que se numerara como el del
+   * cambio de hora y se desplazaran todas sus horas. Se queda la primera aparicion.
+   */
+  function quitarHorasRepetidas(filas) {
+    const vistas = new Map();
+    const repetidaPorDia = new Map();
+    let descartadas = 0;
+    const salida = [];
+    for (const f of filas) {
+      if (!filaUtil(f)) { salida.push(f); continue; }
+      const clave = `${f.date}|${horaEtiqueta(f)}`;
+      if (vistas.has(clave)) {
+        if (esDiaCambioOtono(f.date) && !repetidaPorDia.has(f.date)) {
+          repetidaPorDia.set(f.date, true);
+          salida.push(f);
+        } else {
+          descartadas++;
+        }
+        continue;
+      }
+      vistas.set(clave, true);
+      salida.push(f);
+    }
+    return { filas: salida, descartadas };
   }
 
   function tieneConsumo(f) {
@@ -783,7 +830,7 @@
     const suministro = suministros.length === 1 ? suministros[0] : await o.elegirSuministro(suministros);
     if (!suministro) throw new DatadisError('cancelado');
     diag.distribuidora = {
-      nombre: String(suministro.distributor || '').slice(0, 60),
+      nombre: textoTecnicoLimpio(suministro.distributor).slice(0, 60),
       codigo: String(suministro.distributorCode),
       pointType: suministro.pointType == null ? '' : String(suministro.pointType),
       suministros: suministros.length,
@@ -856,7 +903,7 @@
         // distribuidora (no "no hay datos") y pedir mes a mes solo multiplicaria consultas fallidas.
         if (r && Array.isArray(r.distributorError) && r.distributorError.length) {
           diag.erroresDistribuidora = r.distributorError.slice(0, 4).map((x) => [x && x.distributorCode, x && x.distributorName, x && x.errorCode, x && x.errorDescription]
-            .map((v) => String(v == null ? '' : v).replace(/\s+/g, ' ').trim().slice(0, 80)).join(' · '));
+            .map((v) => textoTecnicoLimpio(v).slice(0, 80)).join(' · '));
         }
         if (!recibidas.length) {
           const err = errorDeDistribuidora(r, params.distributorCode);
@@ -882,9 +929,13 @@
         progreso('consumos-mes');
         const trozos = [];
         diag.mesAMes = [];
+        const limite = Date.now() + T_MES_A_MES_TOTAL;
+        let agotado = false;
         for (const mes of mesesDelRango(rangoPedido).reverse()) {
+          const queda = limite - Date.now();
+          if (queda < 5000) { agotado = true; diag.mesAMes.push(`${mes} sin pedir (tiempo total agotado)`); continue; }
           try {
-            const trozo = await pedir(mes, mes, T_CONSUMO_MES);
+            const trozo = await pedir(mes, mes, Math.min(T_CONSUMO_MES, queda));
             diag.mesAMes.push(`${mes} ${trozo.length ? `${trozo.length} filas` : 'vacío'}`);
             trozos.unshift(trozo);
           } catch (e) {
@@ -894,12 +945,16 @@
           }
         }
         filas = trozos.flat();
+        if (!filas.length && agotado) throw new DatadisError('timeout');
         if (!filas.length && errorPeriodo) throw errorPeriodo;
       }
       return filas;
     }
     if (o.senal && o.senal.aborted) throw new DatadisError('cancelado');
     diag.respuesta = resumenFilas(filas);
+    const sinRepetidas = quitarHorasRepetidas(filas);
+    filas = sinRepetidas.filas;
+    diag.respuesta.repetidas = sinRepetidas.descartadas;
     filas = marcarExcedentesSinPublicar(filas);
 
     if (solar) {
@@ -1085,9 +1140,9 @@
     if (!c) return 'sin contrato en la respuesta';
     const n = respuesta && Array.isArray(respuesta.contract) ? respuesta.contract.length : 1;
     const campos = 'selfConsumptionTypeCode' in c ? 'presentes' : 'ausentes';
-    const codigo = c.selfConsumptionTypeCode == null ? '-' : String(c.selfConsumptionTypeCode).slice(0, 8);
-    const desc = c.selfConsumptionTypeDesc ? ` «${String(c.selfConsumptionTypeDesc).slice(0, 70)}»` : '';
-    return `autoconsumo ${codigo}${desc} · campos ${campos} · contratos ${n} · tarifa ${String(c.codeFare || '-').slice(0, 8)}`;
+    const codigo = c.selfConsumptionTypeCode == null ? '-' : textoTecnicoLimpio(c.selfConsumptionTypeCode).slice(0, 8);
+    const desc = c.selfConsumptionTypeDesc ? ` «${textoTecnicoLimpio(c.selfConsumptionTypeDesc).slice(0, 70)}»` : '';
+    return `autoconsumo ${codigo}${desc} · campos ${campos} · contratos ${n} · tarifa ${textoTecnicoLimpio(c.codeFare || '-').slice(0, 8)}`;
   }
 
   /** Que llego de Datadis, por mes y sin valores de energia. */
@@ -1101,8 +1156,9 @@
     const fechasEjemplo = new Set();
     let ceros = 0;
     let fechasRaras = 0;
+    let horasNoValidas = 0;
     for (const f of lista) {
-      if (f && typeof f === 'object') Object.keys(f).forEach((k) => { if (campos.size < 16) campos.add(k); });
+      if (f && typeof f === 'object') Object.keys(f).forEach((k) => { if (campos.size < 16) campos.add(textoTecnicoLimpio(k).slice(0, 30)); });
       if (f && typeof f.time === 'string' && !/^\d{2}:\d{2}$/.test(f.time) && horasRaras.size < 3) horasRaras.add(textoTecnicoLimpio(f.time).slice(0, 12));
       if (f) {
         const v = f.consumptionKWh;
@@ -1115,7 +1171,8 @@
         continue;
       }
       if (horaEtiqueta(f) === 0) { ceros++; continue; }
-      metodos.add(typeof f.obtainMethod === 'string' ? (f.obtainMethod.trim() || '(vacío)').slice(0, 16) : '(sin campo)');
+      if (!filaUtil(f)) { horasNoValidas++; continue; }
+      metodos.add(typeof f.obtainMethod === 'string' ? (textoTecnicoLimpio(f.obtainMethod) || '(vacío)').slice(0, 16) : '(sin campo)');
       const k = f.date.slice(0, 7);
       const m = meses.get(k) || { horas: 0, consumo: 0, excNum: 0, excPos: 0, excNull: 0, gen: 0 };
       m.horas++;
@@ -1132,6 +1189,7 @@
       hasta: claves[claves.length - 1] || '',
       ceros,
       fechasRaras,
+      horasNoValidas,
       fechasEjemplo: [...fechasEjemplo],
       horasRaras: [...horasRaras],
       campos: [...campos],
@@ -1158,7 +1216,7 @@
         `${d.inicioPaso ? ` (tras ${segundos(ahora.getTime() - d.inicioPaso)})` : ''}`,
       ...(err && err.servidor ? [`Respuesta de Datadis: ${err.servidor}`] : []),
       ...(err && !(err instanceof DatadisError) ? [`Excepción: ${textoTecnicoLimpio(`${err.name || 'Error'}: ${err.message || ''}`)}${lugarExcepcion(err)}`] : []),
-      `Mensaje: ${String(mensaje || '').slice(0, 200)}`,
+      `Mensaje: ${textoTecnicoLimpio(mensaje)}`,
       `Navegador: ${navegadorBasico(typeof navigator !== 'undefined' ? navigator.userAgent : '')}`,
       ...(d.tiempos && d.tiempos.length ? [`Tiempos: ${d.tiempos.join(' · ')}`] : []),
       `Periodo pedido: ${d.periodo || '?'}`,
@@ -1172,7 +1230,8 @@
     if (r) {
       lineas.push(`Respuesta: ${r.filas} filas · ${r.desde || '-'} a ${r.hasta || '-'} · horas 00:00: ${r.ceros} · fechas no reconocidas: ${r.fechasRaras}` +
         `${r.fechasEjemplo.length ? ` (${r.fechasEjemplo.join(' | ')})` : ''} · métodos: ${r.metodos.join(', ') || '-'}`);
-      lineas.push(`Forma: campos ${r.campos.join(',') || '-'} · consumo ${r.tiposConsumo || '-'}${r.horasRaras.length ? ` · horas con otro formato: ${r.horasRaras.join(' | ')}` : ''}`);
+      lineas.push(`Forma: campos ${r.campos.join(',') || '-'} · consumo ${r.tiposConsumo || '-'}${r.horasRaras.length ? ` · horas con otro formato: ${r.horasRaras.join(' | ')}` : ''}` +
+        ` · horas no válidas: ${r.horasNoValidas} · repetidas descartadas: ${r.repetidas || 0}`);
       if (r.meses.length) {
         lineas.push('Por mes (horas con consumo/esperadas · excedentes con valor/nulos/positivos · generación):');
         lineas.push(...r.meses);
@@ -1353,7 +1412,7 @@
     suministros: 'Buscando tus suministros… Datadis puede tardar hasta un par de minutos.',
     contrato: 'Leyendo tu contrato…',
     consumos: 'Descargando tus consumos… Datadis puede tardar un poco.',
-    'consumos-mes': 'Datadis no ha devuelto el periodo de una vez: lo pedimos mes a mes. Puede tardar un par de minutos.'
+    'consumos-mes': 'Datadis no ha devuelto el periodo de una vez: lo pedimos mes a mes. Puede tardar unos minutos (como mucho, seis).'
   };
 
   // ===== Interfaz =====
@@ -1805,6 +1864,8 @@
     inicioMasAntiguo,
     contratoVigente,
     marcarExcedentesSinPublicar,
+    quitarHorasRepetidas,
+    filaUtil,
     contratoDeclaraSinAutoconsumo,
     errorDeDistribuidora,
     resumenFilas,

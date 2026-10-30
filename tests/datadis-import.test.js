@@ -718,6 +718,71 @@ describe('importar (fetch simulado)', () => {
     expect(D.formaRespuesta({ supplies: [{ cups: 'x', address: 'y' }], distributorError: [] }, 'supplies')).toBe('objeto {supplies,distributorError} · supplies: lista de 1 · campos cups,address');
   });
 
+  it('informe: los textos que vienen de Datadis tambien se limpian (errorDescription, autoconsumo, distribuidora, metodo)', async () => {
+    const sucio = 'ES0021000000000001AB 12345678Z 600 123 456 pepe@correo.es';
+    respuestas.supplies = () => json(200, [{ ...SUM, distributor: `EDIST ${sucio}` }]);
+    respuestas.contract = () => json(200, { contract: [{ contractedPowerkW: [4.6, 4.6], selfConsumptionTypeCode: '41', selfConsumptionTypeDesc: `Con excedentes ${sucio}`, codeFare: '2T' }] });
+    respuestas.consumo = () => json(200, { timeCurve: [], distributorError: [{ distributorCode: '2', distributorName: `EDIST ${sucio}`, errorCode: '10', errorDescription: `Fallo ${sucio}` }] });
+    const diagnostico = {};
+    const e = await ejecutar({ conPotencia: true, diagnostico }).catch((x) => x);
+    const texto = D.construirInforme(diagnostico, e, D.textoError(e));
+    for (const dato of ['ES0021000000000001AB', '12345678Z', '600 123 456', 'pepe@correo.es']) expect(texto).not.toContain(dato);
+    expect(texto).toContain('[CUPS]');
+    // y el metodo de obtencion de las filas
+    const r = D.resumenFilas([{ date: '2026/05/01', time: '01:00', consumptionKWh: 0.1, obtainMethod: 'a@b.es' }]);
+    expect(r.metodos.join(' ')).not.toContain('a@b.es');
+  });
+
+  it('horas: solo HH:00 entre 1 y 24 (25 solo el dia del cambio de hora de octubre); repetidas fuera salvo una ese dia', () => {
+    const f = (date, time) => ({ date, time, consumptionKWh: 0.1 });
+    expect(D.filaUtil(f('2026/05/01', '01:00'))).toBe(true);
+    expect(D.filaUtil(f('2026/05/01', '24:00'))).toBe(true);
+    expect(D.filaUtil(f('2026/05/01', '01:00:00'))).toBe(true);
+    for (const malo of ['99:00', 'abc', '01:30', '00:00', '25:00', '']) expect(D.filaUtil(f('2026/05/01', malo))).toBe(false);
+    expect(D.filaUtil(f('2026/10/25', '25:00'))).toBe(true); // ultimo domingo de octubre de 2026
+    // repetidas: en un dia normal se queda la primera; el dia del cambio, UNA repetida se admite
+    const normal = D.quitarHorasRepetidas([f('2026/05/01', '03:00'), f('2026/05/01', '03:00'), f('2026/05/01', '04:00')]);
+    expect(normal.filas).toHaveLength(2);
+    expect(normal.descartadas).toBe(1);
+    const otono = D.quitarHorasRepetidas([f('2026/10/25', '03:00'), f('2026/10/25', '03:00'), f('2026/10/25', '03:00')]);
+    expect(otono.filas).toHaveLength(2);
+    expect(otono.descartadas).toBe(1);
+  });
+
+  it('un dia normal con una hora repetida no se cuenta como completo ni se desplaza', async () => {
+    const rango = D.rangoPersonalizado('2026-05-01', '2026-05-01', new Date(2026, 9, 30)).rango;
+    const dia = Array.from({ length: 24 }, (_, i) => ({ cups: 'x', date: '2026/05/01', time: `${pad(i + 1)}:00`, consumptionKWh: i + 1, obtainMethod: 'Real' }));
+    dia[5] = { ...dia[4] }; // la hora 05 llega dos veces y falta la 06
+    respuestas.consumo = () => json(200, { timeCurve: dia });
+    await ejecutar({ rango, conPotencia: false }).catch(() => {});
+    const horas = textoCsv.split(/\r?\n/).slice(1).filter(Boolean).map((l) => Number(l.split(';')[2]));
+    expect(horas).toHaveLength(23);
+    expect(horas).not.toContain(6);
+    expect(new Set(horas).size).toBe(23);
+  });
+
+  it('el reintento mes a mes tiene un tope total: no pide mas meses al agotarse y sigue con lo recibido', async () => {
+    let reloj = Date.now();
+    const espia = vi.spyOn(Date, 'now').mockImplementation(() => reloj);
+    try {
+      const rango = D.rangoUltimosDias(new Date());
+      const todas = añoCompleto(rango);
+      respuestas.consumo = (u) => {
+        const q = new URL(u).searchParams;
+        if (q.get('startDate') !== q.get('endDate')) return json(500, { message: 'Internal Server Error' });
+        reloj += 400000; // cada mes tarda mas que todo el tope
+        return json(200, { timeCurve: todas.filter((x) => x.date.startsWith(q.get('startDate'))) });
+      };
+      const diagnostico = {};
+      const r = await ejecutar({ conPotencia: false, diagnostico });
+      expect(r.ok).toBe(true);
+      expect(llamadas.filter((l) => l.url.includes('get-consumption-data'))).toHaveLength(2); // periodo + 1 mes
+      expect(diagnostico.mesAMes.some((x) => x.includes('sin pedir (tiempo total agotado)'))).toBe(true);
+    } finally {
+      espia.mockRestore();
+    }
+  });
+
   it('el informe solo se ofrece en errores que pueden destapar una rareza (no en contrasena, red, bloqueo...)', () => {
     for (const c of ['http', 'parseo', 'sindatos', 'solar', 'distribuidora', 'timeout', 'sinsuministros']) expect(D.codigoInforme(new D.DatadisError(c))).toBe(c);
     for (const c of ['credenciales', 'bloqueado', 'agotado', 'red', 'sesion', 'repeticion', 'documento', 'periodo', 'baja', 'cancelado']) expect(D.codigoInforme(new D.DatadisError(c))).toBe(null);

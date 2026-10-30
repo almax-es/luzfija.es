@@ -3845,6 +3845,12 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
         : '';
       let saldoInicialNote = '';
       let saldoSinDestinoMsg = '';
+      // Sin saldo para "Mi tarifa", todas empiezan con la hucha vacia: dicho en la nota. Caso real
+      // (30/10/2026): un usuario comparaba con su ano real, que arrastraba el saldo del verano
+      // anterior y una regularizacion, y creia que el simulador "no sumaba los meses del ano pasado".
+      const huchaCeroNote = saldoAplicado
+        ? ''
+        : ' Todas las tarifas empiezan el periodo con la hucha a 0 €, como al cambiar de compañía: el saldo acumulado no se traslada, así que no cuenta la hucha que traigas de meses anteriores. Si tu tarifa actual tiene saldo, indícalo en «Saldo en Hucha» y rellena «Comparar con mi tarifa actual».';
       if (saldoAplicado) {
         saldoInicialNote = `<br><br><strong>Saldo BV inicial:</strong> los ${fEur(saldoVal)} indicados se aplican solo a <strong>Mi tarifa ⭐</strong>. Las demás tarifas empiezan con la hucha a 0 €: el saldo acumulado no se transfiere al cambiar de comercializadora.`;
       } else if (saldoSinDestino) {
@@ -3864,7 +3870,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
             ${hasIndexedTariffs && indexedTraceMode === 'hourly-index-base' ? '<br><br><strong>Indexadas:</strong> se han calculado con tu CSV horario según el índice base disponible.' : ''}
             ${indexedFallbackMsg ? '<br><br><strong>Indexadas:</strong> ' + indexedFallbackMsg : ''}
             ${invalidRankingMsg}
-            <br><br><strong>Batería virtual:</strong> el simulador modela una BV amplia: el excedente sobrante se acumula en euros y se aplica a facturas posteriores, sin caducidad. Las condiciones reales (caducidad del saldo, qué parte de la factura cubre) varían según cada comercializadora.
+            <br><br><strong>Batería virtual:</strong> el simulador modela una BV amplia: el excedente sobrante se acumula en euros y se aplica a facturas posteriores, sin caducidad. Las condiciones reales (caducidad del saldo, qué parte de la factura cubre) varían según cada comercializadora.${huchaCeroNote}
             ${mesInicioNote}
             ${saldoInicialNote}
           </div>

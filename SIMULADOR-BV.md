@@ -1358,7 +1358,7 @@ El comparador principal calcula un periodo único. El simulador BV calcula mes a
 
 Sí, deja el campo "Saldo BV inicial" en 0. El simulador empezará desde cero y acumulará lo que generes en cada mes.
 
-El saldo inicial solo se aplica a "Mi tarifa ⭐" con batería virtual (la hucha no se transfiere al cambiar de comercializadora); el resto del ranking empieza a 0. Si se indica saldo sin una "Mi tarifa" con BV aplicable, el resultado lo avisa en un bloque visible ENCIMA del ganador (`saldoSinDestinoMsg` en `js/bv/bv-ui.js`), ademas del toast. Antes iba dentro de la nota "¿Como se calcula el ranking?" y un usuario real (30/10/2026) leyo "Uso de hucha" y "Saldo BV final 0 €" del ganador como un calculo que no cuadraba con su hucha. Lo vigila `tests/bv-saldo-sin-destino.test.js`.
+El saldo inicial solo se aplica a "Mi tarifa ⭐" con batería virtual (la hucha no se transfiere al cambiar de comercializadora); el resto del ranking empieza a 0. Si se indica saldo sin una "Mi tarifa" con BV aplicable, el resultado lo avisa en un bloque visible ENCIMA del ganador (`saldoSinDestinoMsg` en `js/bv/bv-ui.js`), ademas del toast. Antes iba dentro de la nota "¿Como se calcula el ranking?" y un usuario real (30/10/2026) leyo "Uso de hucha" y "Saldo BV final 0 €" del ganador como un calculo que no cuadraba con su hucha. Sin saldo para "Mi tarifa", la nota "¿Como se calcula el ranking?" dice ademas que todas las tarifas empiezan con la hucha a 0 (como al cambiar de compania) y como indicar el saldo actual: el mismo usuario comparaba con su ano real, que arrastraba el saldo del verano anterior y una regularizacion. Lo vigila `tests/bv-saldo-sin-destino.test.js`.
 
 ### ¿Por qué importa el mes de inicio del contrato?
 

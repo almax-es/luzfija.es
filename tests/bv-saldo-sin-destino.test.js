@@ -32,6 +32,11 @@ describe('saldo BV inicial no aplicado', () => {
     expect(def[1]).toContain('hucha a 0 €');
   });
 
+  it('sin saldo para Mi tarifa, la nota del ranking dice que todas empiezan con la hucha a 0', () => {
+    expect(src).toMatch(/const huchaCeroNote = saldoAplicado\s*\?\s*''\s*:\s*' Todas las tarifas empiezan el periodo con la hucha a 0 €/);
+    expect(src).toMatch(/varían según cada comercializadora\.\$\{huchaCeroNote\}/);
+  });
+
   it('el toast de error sigue acompanando al aviso', () => {
     expect(src).toContain('El saldo BV inicial no se ha aplicado: no hay tarifa actual con batería virtual.');
   });
