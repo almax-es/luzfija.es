@@ -668,6 +668,19 @@ describe('importar (fetch simulado)', () => {
     expect(avisos).toContain('Si tienes placas');
   });
 
+  it('periodo elegido a mano dentro del mes sin publicar (forma real: excedente 0, produccion vacia): orienta a meses anteriores', async () => {
+    // Prueba real del 30/10/2026: octubre elegido a mano, contrato con excedentes, todo el periodo
+    // con excedente 0 y generacion/autoconsumo en null. No hay meses publicados con que comparar.
+    const rango = D.rangoUltimosDias(new Date(), 20);
+    const filas = mesesConGeneracion(rango.iniMes, mesesEntre(rango.iniMes, rango.finMes), false)
+      .map((f) => ({ ...f, surplusEnergyKWh: 0, generationEnergyKWh: null, selfConsumptionEnergyKWh: null }));
+    respuestas.contract = () => json(200, { contract: [{ contractedPowerkW: [4.6, 4.6], selfConsumptionTypeCode: '43' }] });
+    respuestas.consumo = () => json(200, { timeCurve: filas });
+    const avisos = (await ejecutar({ rango, conPotencia: true })).warnings.join('\n');
+    expect(avisos).toContain('Tu contrato tiene autoconsumo con excedentes, pero Datadis no ha enviado ningún excedente');
+    expect(avisos).toContain('usa «Últimos 12 meses», que termina en el último día publicado');
+  });
+
   it('con un periodo antiguo, el aviso de antiguedad habla del periodo y no de un "CSV" o un "archivo"', async () => {
     const rango = { iniYmd: '2024/11/01', finYmd: '2024/11/30', iniMes: '2024/11', finMes: '2024/11' };
     respuestas.consumo = () => json(200, { timeCurve: añoCompleto(rango) });

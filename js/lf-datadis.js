@@ -865,7 +865,12 @@
       if (/^No se detectaron excedentes/.test(w)) {
         if (autoconsumo === 'no' || autoconsumo === 'sin') return null;
         if (autoconsumo === 'con') {
-          return `Tu contrato tiene autoconsumo con excedentes, pero Datadis no ha enviado ningún excedente de este periodo, así que se importa solo el consumo. Puede que tu distribuidora aún no los haya publicado o no los publique en Datadis: ${remedio}`;
+          // Caso real (30/10/2026): un periodo elegido dentro del mes en curso llega con el
+          // excedente a 0 y la produccion vacia porque la distribuidora aun no lo ha publicado.
+          const reciente = o.rango
+            ? ' Si el periodo es reciente, lo más probable es que aún no estén publicados (suele tardar unas semanas): elige meses anteriores o usa «Últimos 12 meses», que termina en el último día publicado. Si no,'
+            : ' Puede que tu distribuidora aún no los haya publicado o no los publique en Datadis:';
+          return `Tu contrato tiene autoconsumo con excedentes, pero Datadis no ha enviado ningún excedente de este periodo, así que se importa solo el consumo y el cálculo no incluye lo que vertiste.${reciente} ${remedio}`;
         }
         return `Datadis no ha enviado excedentes, así que se importa solo el consumo. Si tienes placas, puede que tu distribuidora no los esté publicando en Datadis: ${remedio}`;
       }
