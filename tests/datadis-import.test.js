@@ -601,6 +601,16 @@ describe('importar (fetch simulado)', () => {
     expect(avisos).toContain('Si tienes placas');
   });
 
+  it('con un periodo antiguo, el aviso de antiguedad habla del periodo y no de un "CSV" o un "archivo"', async () => {
+    const rango = { iniYmd: '2024/11/01', finYmd: '2024/11/30', iniMes: '2024/11', finMes: '2024/11' };
+    respuestas.consumo = () => json(200, { timeCurve: añoCompleto(rango) });
+    const r = await ejecutar({ rango, conPotencia: false });
+    const avisos = r.warnings.join('\n');
+    expect(avisos).toContain('⚠️ Datos antiguos:');
+    expect(avisos).toContain('comprueba que el periodo elegido es el que querías');
+    expect(avisos).not.toMatch(/CSV antiguo|archivo correcto/);
+  });
+
   it('el CSV intermedio no lleva el CUPS ni la direccion', async () => {
     await ejecutar();
     expect(textoCsv).not.toContain(SUM.cups);

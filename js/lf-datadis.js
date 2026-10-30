@@ -758,7 +758,9 @@
       if (/^No se detectaron excedentes/.test(w)) {
         return 'Datadis no ha enviado excedentes, así que se importa solo el consumo. Si tienes placas, puede que tu distribuidora no los esté publicando en Datadis: descarga el CSV desde Datadis o desde tu distribuidora o, si sabes cuántos kWh vertiste en este mismo periodo (sumando tus facturas), introdúcelos a mano después de aplicar, activando «Tengo placas solares» en las opciones avanzadas.';
       }
-      return w.replace(/^✓ CSV procesado:/, '✓ Datos de Datadis procesados:');
+      return w.replace(/^✓ CSV procesado:/, '✓ Datos de Datadis procesados:')
+        .replace(/^⚠️ CSV antiguo:/, '⚠️ Datos antiguos:')
+        .replace('revisa que estás importando el archivo correcto.', 'comprueba que el periodo elegido es el que querías.');
     });
     // Hay excedentes, pero no de todos los meses: en la home cuentan como 0 (estimacion rapida),
     // asi que se dice expresamente cuales faltan.
