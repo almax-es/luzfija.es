@@ -299,7 +299,12 @@ const DEFERRED_USE_DEPENDENCIES = {
     ['js/lf-csv-utils.js', 'js/desglose-integration.js', 'uso perezoso'],
     // 20/10/2026: window.LF.csvReport (aviso persistente + reporte del archivo) solo se lee
     // al fallar una importacion; sin el, lf-csv-import.js vuelve al toast.
-    ['js/lf-csv-report.js', 'js/lf-csv-import.js', 'uso perezoso']
+    ['js/lf-csv-report.js', 'js/lf-csv-import.js', 'uso perezoso'],
+    // 30/10/2026: la importacion opcional desde Datadis reutiliza el importador de la home
+    // (procesarCSVConsumos/mostrarPreviewCSV) al crear el boton, y lf-app.js la inicia justo despues
+    // del importador CSV. Ambos usos son perezosos y con guard: sin el modulo no hay boton.
+    ['js/lf-csv-import.js', 'js/lf-datadis.js', 'uso perezoso'],
+    ['js/lf-datadis.js', 'js/lf-app.js', 'uso perezoso']
   ],
   [SOLAR]: [
     ['js/lf-csv-utils.js', 'js/bv/bv-sim-monthly.js', 'uso perezoso'],

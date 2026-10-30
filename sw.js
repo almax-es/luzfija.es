@@ -9,7 +9,7 @@
 
 // IMPORTANTE: Al hacer deploy, actualiza CACHE_VERSION con la fecha/hora actual para forzar actualización.
 // Bump this on every deploy to force clients to pick up the latest precache.
-const CACHE_VERSION = "20261027-154027";
+const CACHE_VERSION = "20261030-074712";
 const CACHE_NAME = `luzfija-static-${CACHE_VERSION}`;
 // El build 20260620-051941 contenía un handler del simulador solar que podía
 // llamar `target.closest()` sobre un target no-Element. A diferencia de las
@@ -80,6 +80,8 @@ const ASSETS = [
   "js/lf-calc.js",
   "js/lf-render.js",
   "js/lf-csv-import.js",
+  // Importacion opcional desde Datadis: uso perezoso, fuera de CORE_ASSETS. Sin el, no aparece el boton.
+  "js/lf-datadis.js",
   "js/lf-tarifa-custom.js",
   "js/lf-sw-update.js",
   "js/lf-app.js",

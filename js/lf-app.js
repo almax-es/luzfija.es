@@ -919,6 +919,14 @@
       lfDbg('[ERROR] Error inicializando CSV importer:', e);
     }
 
+    // Importacion directa desde Datadis (opcional; uso perezoso, ver ARRANQUE-CARGA.md 3.1).
+    // Va despues del CSV: el boton se coloca junto a "Importar CSV".
+    try {
+      if (typeof window.LF.initDatadisImport === 'function') window.LF.initDatadisImport();
+    } catch (e) {
+      lfDbg('[ERROR] Error inicializando importacion Datadis:', e);
+    }
+
     // Scroll to results
     $('scrollToResults')?.addEventListener('click', () => {
       $('heroKpis')?.scrollIntoView({ behavior: 'smooth', block: 'start' });

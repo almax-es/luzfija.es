@@ -4185,3 +4185,58 @@ body:has(.modal-overlay.show) .mi-tarifa-chip { display: none !important; }
   .lf-csv-report__ask{ padding:12px 10px; }
   .lf-csv-report__actions .btn{ flex:1 1 100%; justify-content:center; }
 }
+
+/* ===== Importar desde Datadis (js/lf-datadis.js) =====
+   Solo variables del tema: vale en claro y oscuro sin reglas por tema. */
+.modal-content.lf-dd-modal{ max-width:min(520px, calc(100vw - 32px)); width:100%; padding:24px; box-sizing:border-box; }
+/* La X del modal va en la esquina superior derecha: el titulo y el parrafo no deben quedar debajo. */
+.lf-dd-title, .lf-dd-lead{ padding-right:44px; }
+.lf-dd-title{ margin:0 0 8px; font-size:18px; font-weight:900; color:var(--text); }
+.lf-dd-lead{ margin:0 0 14px; font-size:13px; line-height:1.5; color:var(--muted); }
+.lf-dd-box{
+  margin:0 0 12px; padding:12px 14px; border:1px solid var(--border); border-radius:10px;
+  background:var(--card); color:var(--text); font-size:12px; line-height:1.5;
+}
+.lf-dd-box ul{ margin:6px 0 0; padding-left:18px; }
+.lf-dd-box li{ margin:0 0 4px; }
+.lf-dd-box a{ color:var(--accent); font-weight:700; }
+.lf-dd-warn{ border-color:var(--warn); background:rgba(245,158,11,.10); }
+.lf-dd-error{ border-color:var(--danger); background:rgba(220,38,38,.10); font-size:13px; }
+.lf-dd-error:focus{ outline:2px solid var(--danger); outline-offset:2px; }
+.lf-dd-form{ display:grid; gap:12px; margin-top:14px; }
+.lf-dd-modal .input{ font-size:16px; }
+/* La regla global `label` es de una sola linea con elipsis y pro.css fija las casillas en
+   `width:auto`: aqui las etiquetas deben poder ajustarse a varias lineas. */
+.lf-dd-modal label{ font-size:13px; font-weight:700; color:var(--text); white-space:normal; overflow:visible; text-overflow:clip; }
+.lf-dd-modal .lf-dd-check{ display:flex; align-items:flex-start; gap:10px; cursor:pointer; user-select:none; }
+.lf-dd-check span{ font-weight:600; line-height:1.4; }
+.lf-dd-check input[type="checkbox"]{ flex:0 0 auto; width:20px; height:20px; margin:1px 0 0; accent-color:var(--accent); cursor:pointer; }
+.lf-dd-check input[type="checkbox"]:disabled{ cursor:not-allowed; }
+.lf-dd-actions{ display:grid; gap:8px; margin-top:16px; }
+.lf-dd-actions .btn{ width:100%; justify-content:center; }
+.lf-dd-progreso{ text-align:center; padding:28px 8px 8px; }
+.lf-dd-progreso p{ margin:14px 0 0; font-size:14px; line-height:1.5; color:var(--text); }
+.lf-dd-modal .spinner{
+  display:inline-block; width:32px; height:32px; border-radius:50%;
+  border:3px solid var(--border2); border-top-color:var(--accent);
+  animation:spin .8s linear infinite;
+}
+@media (prefers-reduced-motion: reduce){
+  .lf-dd-modal .spinner{ animation-duration:2.4s; }
+}
+@media (max-width: 480px){
+  .modal-content.lf-dd-modal{ padding:18px 14px; }
+}
+
+/* Con el boton de Datadis la barra de .actions-center tiene seis botones de 64px: en pantallas
+   estrechas ya no caben en una fila (el primero quedaba cortado). Se reparten en dos filas de tres.
+   Acotado con :has() a la barra que tiene el boton: solar y observatorio tambien usan
+   .actions-center, con menos botones, y no deben cambiar. */
+@media (max-width: 440px){
+  .actions-center:has(#btnImportarDatadis){ flex-shrink:1; min-width:0; justify-content:center; max-width:216px; }
+}
+/* Etiqueta larga solo en escritorio; en movil basta "Datadis" bajo el icono de 64px. */
+@media (max-width: 768px){
+  .btn .btn-text .lf-dd-solo-desktop{ display:none; }
+}
+.lf-dd-solo-desktop{ font-style:normal; }

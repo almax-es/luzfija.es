@@ -838,6 +838,17 @@
         if (llanoInput) { llanoInput.value = resultado.llano; llanoInput.dispatchEvent(new Event('input', { bubbles: true })); }
         if (valleInput) { valleInput.value = resultado.valle; valleInput.dispatchEvent(new Event('input', { bubbles: true })); }
 
+        // Importacion directa desde Datadis: el contrato aporta la potencia contratada.
+        const potencia = resultado.potenciaContratada;
+        if (potencia && Number.isFinite(potencia.p1) && Number.isFinite(potencia.p2)) {
+          [['p1', potencia.p1], ['p2', potencia.p2]].forEach(([id, kw]) => {
+            const campo = document.getElementById(id);
+            if (!campo) return;
+            campo.value = String(kw).replace('.', ',');
+            campo.dispatchEvent(new Event('input', { bubbles: true }));
+          });
+        }
+
         const solarCheckbox = document.getElementById('solarOn');
         let debeAplicarExcedentes = false;
         if (resultado.tieneExcedentes) {
@@ -1045,6 +1056,7 @@
     initCSVImporter,
     procesarCSVConsumos,
     procesarXLSXConsumos,
+    mostrarPreviewCSV,
     reclasificarConsumosHorarios
   });
 

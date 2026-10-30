@@ -251,6 +251,17 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - El cruce PVPC conserva el calculo horario cuando la cobertura ausente es residual (maximo 10% de horas y 10% de kWh) y estima solo esos huecos con su media P1/P2/P3.
 - Si falta un mes completo o se supera algun umbral, vuelve al calculo completo por medias y muestra el motivo tanto en el resumen PVPC como en el desglose.
 
+### 3.4b Importacion Directa Desde Datadis (opcional, solo home)
+
+- Boton "Importar de Datadis" junto a "Importar CSV" (`js/lf-datadis.js`). Pide NIF/NIE/CIF y contrasena de Datadis en un modal; el navegador habla DIRECTAMENTE con `datadis.es` (login, `get-supplies`, `get-contract-detail-v2`, `get-consumption-data-v2`). No hay backend: credenciales, token y consumos no pasan por ningun servidor propio y no se guardan (el unico dato persistido es el contador de fallos de login, ver abajo).
+- Pide los ultimos 365 dias (hasta AYER) en una sola consulta y los convierte a un CSV con la cabecera del propio Datadis que pasa por `procesarCSVConsumos` + `mostrarPreviewCSV`: la clasificacion P1/P2/P3, festivos, cambios de hora y avisos son los del importador de ficheros. El modulo no duplica logica horaria.
+- Casilla opcional "rellenar potencia contratada": lee P1/P2 del contrato y las aplica al pulsar "Aplicar" en la vista previa (`resultado.potenciaContratada`). Si el contrato falla se importan igualmente los consumos.
+- Datadis bloquea el usuario tras 3 logins fallidos TAMBIEN por API (medido el 29/10/2026). La web deja solo 2 fallos y no reintenta nunca. El contador va en `localStorage` (clave `lf_datadis_fallos`, `{ n, t }`, caduca a las 24 h, se borra con un login correcto): con `sessionStorage` otra pestana permitia el tercer fallo. Agotados los dos, el boton "Ya he entrado bien en datadis.es" lo pone a cero. Antes de llamar a Datadis se normaliza el documento (mayusculas, sin espacios/puntos/guiones) y se rechaza un DNI/NIE con la letra de control mal o un DNI sin letra, sin gastar intento. Los errores de login llegan como HTTP 500 con `message` (`Bad credentials` / `User blocked`), no como 401.
+- Datadis no admite repetir la misma consulta de consumo en 24 h: lo ya descargado se conserva en memoria durante la pagina y no hay reintentos automaticos. Cancelar (o cerrar el modal) NO aborta una descarga de consumos ya pedida: termina en segundo plano y queda en memoria, porque Datadis ya la cuenta. Mientras importa, un toque fuera del modal no lo cierra. `get-supplies` puede tardar mas de un minuto (timeouts de 3 min).
+- Excedentes: solo `surplusEnergyKWh`; se anade la columna al CSV solo si hay valores > 0. Datadis los devuelve de forma intermitente segun distribuidora (issues #9/#16/#17 de tusconsumos), asi que no se promete. El simulador solar y el observatorio NO tienen esta importacion.
+- Interruptor de apagado: `DATADIS_IMPORT_ENABLED` en `js/lf-datadis.js`. A `false` el boton desaparece y queda el importador de CSV. Es opcional: si Datadis cambia su API o su CORS, se retira en un despliegue.
+- CSP: `connect-src` de la home admite `https://datadis.es`. Estado de permiso de Datadis: sin autorizacion expresa publicada y sin prohibicion en sus textos accesibles; ver `privacidad.html` (apartado 7) y `ARRANQUE-CARGA.md`.
+
 ### 3.5 Extractor De Factura PDF
 
 - Entrada por boton o drag&drop.
@@ -540,8 +551,8 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 ## 7. Arquitectura Tecnica
 
 - Stack: HTML + CSS + Vanilla JS modular.
-- Modulos JS: 44 (`js/*.{js,mjs}` + `js/bv/*.js`).
-- Lineas JS aproximadas: 35.771.
+- Modulos JS: 45 (`js/*.{js,mjs}` + `js/bv/*.js`).
+- Lineas JS aproximadas: 36.450.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (118 tarifas).
@@ -641,8 +652,8 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 ## 10. Testing Y Calidad
 
 - Suite Vitest/JSDOM.
-- 142 archivos de test (`tests/*.test.js`).
-- 2441 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 143 archivos de test (`tests/*.test.js`).
+- 2486 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.

@@ -339,6 +339,7 @@ html.light-mode :where(input, select, textarea)::placeholder{
      mantienen etiqueta visible bajo el icono para que sean descubribles */
   #btnSubirFactura,
   #btnSubirCSV,
+  #btnImportarDatadis,
   #btnPVPCInfo,
   .actions-center .btn-feature{
     flex-direction: column;
@@ -352,6 +353,7 @@ html.light-mode :where(input, select, textarea)::placeholder{
 
   #btnSubirFactura .btn-text,
   #btnSubirCSV .btn-text,
+  #btnImportarDatadis .btn-text,
   #btnPVPCInfo .btn-text,
   .actions-center .btn-feature .btn-text{
     display: block;

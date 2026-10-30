@@ -93,6 +93,7 @@ BODY (todos con defer, en orden de documento)
   js/lf-calc.js                   [desestructura en eval]
   js/lf-render.js                 [desestructura en eval]
   js/lf-csv-import.js             [desestructura en eval]
+  js/lf-datadis.js                importacion opcional desde Datadis (uso perezoso)
   js/lf-tarifa-custom.js          [desestructura en eval]
   js/pvpc.js                      captura LF_CONFIG.round2 en eval; resto perezoso
   js/factura-parsers.js           window.__LF_FacturaParsers
@@ -191,6 +192,8 @@ pero no necesariamente que su etiqueta preceda a la etiqueta del consumidor.
 | `lf-csv-utils.js` | `lf-csv-import.js` | `window.LF.csvUtils` (`assertRelevantXlsxFormulasResolved` incluido) | eval | importacion CSV/XLSX, formulas XLSX sin cache y clasificacion P1/P2/P3 |
 | `lf-csv-utils.js` | `desglose-integration.js` | `window.LF.csvUtils.fetchJsonWithTimeout` | perezoso, fail-closed | deadline de la descarga de `tarifas.json`: sin el helper no se descarga, para no arriesgar un fetch que no resuelva nunca |
 | `lf-csv-report.js` | `lf-csv-import.js` | `window.LF.csvReport` | perezoso, con fallback | aviso persistente de importacion fallida y reporte del archivo; sin el modulo vuelve el toast de siempre |
+| `lf-csv-import.js` | `lf-datadis.js` | `window.LF.procesarCSVConsumos`, `window.LF.mostrarPreviewCSV` | perezoso, con guard | importacion directa desde Datadis; sin ellas `initDatadisImport` no crea el boton y queda el importador de CSV |
+| `lf-datadis.js` | `lf-app.js` | `window.LF.initDatadisImport` | perezoso, con guard | boton "Importar de Datadis"; sin el modulo (offline, SW antiguo) simplemente no aparece |
 | `lf-ui.js` | `lf-cache.js`, `lf-inputs.js`, `lf-render.js`, `lf-csv-import.js`, `lf-tarifa-custom.js` | `toast`, `setStatus`, `showError`, `clearErrorStyles`, `applyButtonState` | eval | avisos, estado de carga y marcado de errores |
 | `lf-tooltips.js` | `lf-render.js` | `initTooltips`, `bindTooltipElement` | eval | tooltips de la tabla de resultados |
 | `lf-inputs.js` | `lf-calc.js` | `__LF_getFiscalContext`, `getInputValues` | eval | contexto fiscal del motor de calculo |
