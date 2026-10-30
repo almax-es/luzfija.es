@@ -398,7 +398,7 @@
     resultado.warnings = (resultado.warnings || []).map((w) => {
       if (typeof w !== 'string') return w;
       if (/^No se detectaron excedentes/.test(w)) {
-        return 'Datadis no ha enviado excedentes, así que se importa solo el consumo. Si tienes placas, puede que tu distribuidora no los esté publicando en Datadis: en ese caso descarga el CSV desde Datadis o desde tu distribuidora.';
+        return 'Datadis no ha enviado excedentes, así que se importa solo el consumo. Si tienes placas, puede que tu distribuidora no los esté publicando en Datadis: descarga el CSV desde Datadis o desde tu distribuidora o, si sabes cuántos kWh vertiste en este mismo periodo (sumando tus facturas), introdúcelos a mano después de aplicar, activando «Tengo placas solares» en las opciones avanzadas.';
       }
       return w.replace(/^✓ CSV procesado:/, '✓ Datos de Datadis procesados:');
     });
