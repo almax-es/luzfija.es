@@ -228,26 +228,35 @@
   // ===== Contador de fallos de login =====
   // Solo un numero y una fecha: ni usuario ni nada del suministro. localStorage (no sessionStorage)
   // para que valga en todas las pestanas y tras cerrar el navegador; caduca a las 24 h.
+  // Copia en memoria como respaldo: si el navegador bloquea el almacenamiento (o solo la escritura),
+  // el limite de 2 sigue valiendo al menos en esta pagina en vez de volver a 0 en cada intento.
+  // Es una precaucion: no conoce los fallos hechos en la web de Datadis ni en otros dispositivos.
+
+  let fallosMemoria = { n: 0, t: 0 };
+
+  function fallosVigentes(o) {
+    const n = Math.max(0, Math.floor(Number(o && o.n)) || 0);
+    const t = Number(o && o.t);
+    return n > 0 && t > 0 && Date.now() - t <= FALLOS_TTL_MS ? n : 0;
+  }
 
   function leerFallos() {
+    let enAlmacen = 0;
     try {
       const raw = localStorage.getItem(FALLOS_KEY);
-      if (!raw) return 0;
-      const o = JSON.parse(raw);
-      const n = Math.max(0, Math.floor(Number(o && o.n)) || 0);
-      const t = Number(o && o.t);
-      if (!n || !(t > 0) || Date.now() - t > FALLOS_TTL_MS) {
-        localStorage.removeItem(FALLOS_KEY);
-        return 0;
+      if (raw) {
+        enAlmacen = fallosVigentes(JSON.parse(raw));
+        if (!enAlmacen) localStorage.removeItem(FALLOS_KEY);
       }
-      return n;
-    } catch { return 0; }
+    } catch { /* almacenamiento bloqueado o dato corrupto: manda la copia en memoria */ }
+    return Math.max(enAlmacen, fallosVigentes(fallosMemoria));
   }
   function guardarFallos(n) {
+    fallosMemoria = n > 0 ? { n, t: Date.now() } : { n: 0, t: 0 };
     try {
       if (n > 0) localStorage.setItem(FALLOS_KEY, JSON.stringify({ n, t: Date.now() }));
       else localStorage.removeItem(FALLOS_KEY);
-    } catch { /* sin almacenamiento: el contador solo vive mientras el modal sigue abierto */ }
+    } catch { /* sin almacenamiento: queda la copia en memoria de esta pagina */ }
   }
 
   // ===== Flujo de importacion =====
@@ -268,8 +277,12 @@
 
     o.onProgreso('login');
     let token;
+    const claveLogin = o.clave;
+    // La contrasena solo hace falta para el login: se suelta ya, para que no quede referenciada si
+    // la descarga de consumos sigue en segundo plano tras cerrar el modal.
+    o.clave = '';
     try {
-      token = await hacerLogin(nif, o.clave, o.senal);
+      token = await hacerLogin(nif, claveLogin, o.senal);
     } catch (e) {
       if (e && e.code === 'credenciales') guardarFallos(leerFallos() + 1);
       throw e;
@@ -277,6 +290,9 @@
     guardarFallos(0);
 
     o.onProgreso('suministros');
+    // get-supplies (v1) a proposito: devuelve los suministros de TODAS las distribuidoras en una
+    // llamada. La v2 exige distributorCode y obliga a pedir antes get-distributors-with-supplies-v2,
+    // que en la prueba real del 29/10/2026 agoto 60 s sin responder.
     const suministros = normalizarSuministros(await consultar('/api-private/api/get-supplies', {}, token, T_SUMINISTROS, o.senal));
     if (!suministros.length) throw new DatadisError('sinsuministros');
     const suministro = suministros.length === 1 ? suministros[0] : await o.elegirSuministro(suministros);
@@ -470,7 +486,7 @@
 
     const cabecera = '<button class="modal-x" type="button" aria-label="Cerrar">✕</button>';
 
-    function vistaFormulario(mensajeError) {
+    function vistaFormulario(mensajeError, aviso) {
       const fallos = leerFallos();
       const agotado = fallos >= MAX_FALLOS_LOGIN;
       const bloqueado = mensajeError && /^Datadis ha bloqueado/.test(mensajeError);
@@ -480,6 +496,7 @@
         <h3 id="lfDdTitulo" class="lf-dd-title">📥 Importar desde Datadis</h3>
         <p class="lf-dd-lead">Descarga tus últimos ${DIAS_HISTORICO} días de consumo horario directamente desde tu cuenta de Datadis, sin tener que bajar el CSV a mano.</p>
         ${mensajeError ? `<div id="lfDdError" class="lf-dd-box lf-dd-error" role="alert" tabindex="-1">${esc(mensajeError)}</div>` : ''}
+        ${aviso ? `<div id="lfDdAviso" class="lf-dd-box lf-dd-warn" role="status" tabindex="-1">${esc(aviso)}</div>` : ''}
         ${agotado && !bloqueado ? `<div class="lf-dd-box">
           Cuando hayas comprobado tu contraseña entrando en <a href="https://datadis.es" target="_blank" rel="noopener noreferrer">datadis.es</a>, puedes volver a intentarlo aquí.
           <div class="lf-dd-actions"><button id="lfDdReintentar" class="btn" type="button"><span>Ya he entrado bien en datadis.es</span></button></div>
@@ -488,12 +505,12 @@
           <strong>🔒 Cómo se protegen tus datos</strong>
           <ul>
             <li>Tu usuario y contraseña van <strong>directamente de tu navegador a datadis.es</strong>. LuzFija.es no tiene servidor que los reciba y no los guarda.</li>
-            <li>Se olvidan al cerrar esta ventana. Nada de esto se envía a analítica.</li>
+            <li>Solo se usan para esta importación: la contraseña, para iniciar sesión, y el permiso de Datadis, mientras se descargan tus datos. No se guardan y nada de esto se envía a analítica.</li>
             <li>LuzFija.es es independiente de Datadis y no es una pasarela oficial. Si prefieres no usar tu contraseña, descarga el CSV desde Datadis y usa «Importar CSV».</li>
           </ul>
         </div>
         <div class="lf-dd-box lf-dd-warn">
-          ⚠️ Datadis <strong>bloquea tu cuenta tras 3 intentos fallidos</strong> (también cuentan los que falles en su web). Por eso aquí solo te dejamos dos. ¿Entras en Datadis con Cl@ve? Necesitas una contraseña propia: puedes crearla en <a href="https://datadis.es" target="_blank" rel="noopener noreferrer">datadis.es</a>.
+          ⚠️ Datadis <strong>bloquea tu cuenta tras 3 intentos fallidos</strong> (también cuentan los que falles en su web o en otro dispositivo). Por eso aquí solo te dejamos dos, como precaución: no podemos saber si ya has fallado en otro sitio. ¿Entras en Datadis con Cl@ve? Necesitas una contraseña propia: puedes crearla en <a href="https://datadis.es" target="_blank" rel="noopener noreferrer">datadis.es</a>.
         </div>
         <form id="lfDdForm" class="lf-dd-form" autocomplete="on" novalidate>
           <div class="group">
@@ -510,7 +527,7 @@
             <button id="lfDdEnviar" class="btn primary" type="submit" ${deshabilitado ? 'disabled' : ''}><span>Importar mis consumos</span></button>
           </div>
         </form>
-      `, mensajeError ? '#lfDdError' : (tactil ? null : '#lfDdNif'));
+      `, mensajeError ? '#lfDdError' : (aviso ? '#lfDdAviso' : (tactil ? null : '#lfDdNif')));
 
       const form = content.querySelector('#lfDdForm');
       const nif = content.querySelector('#lfDdNif');
@@ -519,14 +536,18 @@
       ver.addEventListener('change', () => { clave.type = ver.checked ? 'text' : 'password'; });
       form.addEventListener('submit', (e) => { e.preventDefault(); lanzar(); });
       const reintentar = content.querySelector('#lfDdReintentar');
-      if (reintentar) reintentar.addEventListener('click', () => { guardarFallos(0); vistaFormulario(''); });
+      // No se puede comprobar que de verdad haya entrado en datadis.es: por eso se concede UN solo
+      // intento mas, no dos. Si vuelve a fallar, el formulario se detiene otra vez.
+      if (reintentar) reintentar.addEventListener('click', () => {
+        guardarFallos(MAX_FALLOS_LOGIN - 1);
+        vistaFormulario('', 'Tienes un intento más. Si vuelve a fallar, dejaremos de intentarlo para no bloquear tu cuenta de Datadis.');
+      });
 
       async function lanzar() {
         if (ocupado || leerFallos() >= MAX_FALLOS_LOGIN) return;
         const nifValor = normalizarDocumento(nif.value);
-        const claveValor = clave.value;
         const formato = errorDocumento(nifValor);
-        if (!nifValor || !claveValor || formato) {
+        if (!nifValor || !clave.value || formato) {
           vistaFormulario(formato && formato !== 'vacio'
             ? textoError({ code: 'documento', detalle: formato })
             : 'Introduce tu NIF/NIE/CIF y tu contraseña de Datadis.');
@@ -534,15 +555,17 @@
           if (n) n.value = nifValor;
           return;
         }
-        const conPotencia = content.querySelector('#lfDdPotencia').checked;
+        // La contrasena pasa del campo al objeto de la peticion y de ahi solo al login: importar()
+        // la suelta nada mas usarla, y esta funcion no guarda otra copia.
+        const peticionDatadis = { nif: nifValor, clave: clave.value };
         clave.value = '';
+        const conPotencia = content.querySelector('#lfDdPotencia').checked;
         ocupado = true;
         controlador = new AbortController();
         vistaProgreso(TEXTO_PROGRESO.login);
         try {
-          const resultado = await importar({
-            nif: nifValor,
-            clave: claveValor,
+          // Mismo objeto (no una copia): asi importar() puede soltar la contrasena de verdad.
+          const resultado = await importar(Object.assign(peticionDatadis, {
             conPotencia,
             senal: controlador.signal,
             onProgreso: (paso) => { if (!cerrado) vistaProgreso(TEXTO_PROGRESO[paso] || TEXTO_PROGRESO.login); },
@@ -551,7 +574,7 @@
               resolverSuministro = resolve;
               vistaSuministros(lista);
             })
-          });
+          }));
           ocupado = false;
           if (cerrado) return;
           cerrar();

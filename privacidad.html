@@ -4,9 +4,9 @@
 <meta charset="utf-8"/>
 
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'sha256-IoKsBkXafHMLn2NIPKqy/VkSHU5W175k9uMzdgN9a+E='; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; form-action 'self';">
-<script src="/js/frame-guard.js?v=20261030-074712"></script>
-<script src="/js/config.js?v=20261030-074712"></script>
-<script src="/js/theme.js?v=20261030-074712"></script>
+<script src="/js/frame-guard.js?v=20261030-075848"></script>
+<script src="/js/config.js?v=20261030-075848"></script>
+<script src="/js/theme.js?v=20261030-075848"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <meta name="color-scheme" content="dark light"/>
 <title>Privacidad | LuzFija.es</title>
@@ -138,7 +138,7 @@ html.light-mode .btn-small:hover{
 
 </style>
   <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-  <link rel="stylesheet" href="/fonts.css?v=20261030-074712">
+  <link rel="stylesheet" href="/fonts.css?v=20261030-075848">
 
     <meta name="theme-color" content="#8B5CF6">
 </head>
@@ -249,7 +249,7 @@ html.light-mode .btn-small:hover{
 <li>Tras pulsar Aplicar al importar una factura, conservar localmente potencias, días y consumos para rellenar la calculadora y, si marcas la casilla correspondiente, los precios de energía y potencia obtenidos del QR y adaptados al modelo de «Mi tarifa»; no se conservan el PDF, su texto ni datos identificativos.</li>
 <li>Almacenar en caché recursos para uso offline (PWA).</li>
 <li>Conservar temporalmente, si falla la entrega a GoatCounter, hasta 64 apariciones con rutas técnicas saneadas de diagnóstico durante un máximo de 7 días. Cada entrada contiene solo esa ruta técnica (familia del fallo y, según el tipo, detalles técnicos como fichero, línea, build, navegador o estado de conexión) y su fecha; las repeticiones se conservan por separado, se reintentan cuando vuelve la conexión y se eliminan individualmente al confirmar la entrega o todas al desactivar GoatCounter.</li>
-<li>Contar en <code>localStorage</code> cuántos intentos fallidos de acceso a Datadis llevas, para dejar de intentarlo antes de que Datadis bloquee tu cuenta. Es solo un número con su fecha: no se guarda el usuario, la contraseña ni ningún dato de tu suministro; se borra al acceder correctamente y caduca a las 24 horas.</li>
+<li>Contar en <code>localStorage</code> cuántos intentos fallidos de acceso a Datadis llevas, para dejar de intentarlo antes de que Datadis bloquee tu cuenta. Es solo un número con su fecha: no se guarda el usuario, la contraseña ni ningún dato de tu suministro; se borra al acceder correctamente y caduca a las 24 horas. Si tu navegador no permite este almacenamiento, el contador solo se mantiene mientras la página siga abierta.</li>
 <li>Contar en <code>sessionStorage</code>, solo mientras la pestaña está abierta, cuántas veces se ha repetido un mismo fallo técnico. Es un contador numérico asociado a la categoría del fallo; no se genera ni se transmite ningún identificador, y desaparece al cerrar la pestaña.</li>
 </ul>
 <p>
@@ -260,13 +260,13 @@ html.light-mode .btn-small:hover{
 <h3>7) Importación directa desde Datadis (opcional)</h3>
 <p>
     Si pulsas «Importar de Datadis» e introduces tu NIF/NIE/CIF y tu contraseña de Datadis, <strong>tu navegador se conecta directamente con datadis.es</strong> para iniciar sesión, listar tus suministros, leer tu potencia contratada (si lo marcas) y descargar el consumo horario de los últimos 365 días.
-    LuzFija.es no tiene servidor que reciba esos datos: ni tus credenciales, ni el token de sesión, ni tus consumos pasan por nosotros, y esta web no los guarda en tu navegador (ni en localStorage ni en sessionStorage). La contraseña y el token solo existen mientras dura la importación y se olvidan al cerrar la ventana. Tu navegador puede ofrecerte guardar la contraseña en su gestor de contraseñas: eso lo decides tú y queda en tu navegador, no en LuzFija.es.
+    LuzFija.es no tiene servidor que reciba esos datos: ni tus credenciales, ni el token de sesión, ni tus consumos pasan por nosotros, y esta web no los guarda en tu navegador (ni en localStorage ni en sessionStorage). Solo están en la memoria de la página: la contraseña se usa solo para iniciar sesión y, en ese momento, la web deja de conservarla; el permiso de acceso (token) que devuelve Datadis se usa mientras se descargan tus datos y la web deja de conservarlo al terminar. Liberar esa memoria lo hace después el propio navegador, en un momento que la web no controla. Si cierras la ventana con la descarga de consumos ya en marcha, esa descarga termina en segundo plano (Datadis no permite repetir la misma consulta durante 24 horas) y después se descarta igualmente. Tu navegador puede ofrecerte guardar la contraseña en su gestor de contraseñas: eso lo decides tú y queda en tu navegador, no en LuzFija.es.
   </p>
 <p>
     Con los consumos recibidos ocurre lo mismo que al importar un CSV: se calculan agregados (consumo por periodo y días) para rellenar la calculadora. El CUPS y la dirección de tus suministros solo se muestran en pantalla para que elijas uno y no se guardan ni se envían a ningún sitio. Esta función no envía a la analítica credenciales, datos del suministro ni consumos; si aplicas el resultado, se registra solo la misma categoría cerrada que al aplicar un CSV, sin importes ni valores.
   </p>
 <p>
-    LuzFija.es es independiente de Datadis y no es un canal de acceso oficial a su plataforma. Datadis trata tus datos según sus propias condiciones (<a href="https://datadis.es" rel="noopener noreferrer" target="_blank">datadis.es</a>). Datadis bloquea el usuario tras tres intentos de acceso fallidos; por eso la web solo permite dos fallos seguidos, los recuerda durante 24 horas (ver el apartado 6) y comprueba la letra del NIF/NIE antes de enviarlo. Si prefieres no escribir tu contraseña en esta web, puedes descargar el CSV desde Datadis y usar «Importar CSV».
+    LuzFija.es es independiente de Datadis y no es un canal de acceso oficial a su plataforma. Datadis trata tus datos según sus propias condiciones (<a href="https://datadis.es" rel="noopener noreferrer" target="_blank">datadis.es</a>). Datadis bloquea el usuario tras tres intentos de acceso fallidos; por eso la web, como precaución, solo permite dos fallos seguidos, los recuerda durante 24 horas (ver el apartado 6) y comprueba la letra del NIF/NIE antes de enviarlo. No puede conocer los fallos que hayas tenido en la web de Datadis o en otro dispositivo. Si prefieres no escribir tu contraseña en esta web, puedes descargar el CSV desde Datadis y usar «Importar CSV».
   </p>
 <p><strong>Finalidad:</strong> importar tu consumo para compararlo con las tarifas.</p>
 <p><strong>Base jurídica:</strong> ejecución de la funcionalidad que solicitas (tratamiento local en tu navegador) y tu consentimiento al introducir voluntariamente tus credenciales.</p>
@@ -396,6 +396,6 @@ html.light-mode .btn-small:hover{
   updateUI();
 })();
 </script>
-<script src="/js/tracking.js?v=20261030-074712" defer></script>
+<script src="/js/tracking.js?v=20261030-075848" defer></script>
 </body>
 </html>

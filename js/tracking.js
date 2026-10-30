@@ -1833,7 +1833,8 @@ try {
     document.addEventListener('click', function(e) {
       const target = e && e.target;
       if (!target || !target.closest) return;
-      if (target.closest('#modalFactura')) return;
+      // Ni la factura PDF ni el modal de Datadis (credenciales) emiten eventos de interaccion.
+      if (target.closest('#modalFactura, .lf-dd-modal')) return;
 
       const tarifaLink = target.closest('a[data-lf-track-tarifa], #tbody a.web, a.bv-link-tarifa, a.bv-alt-btn-info');
       if (tarifaLink) {
@@ -2073,7 +2074,7 @@ try {
     document.addEventListener('change', function(e) {
       const target = e && e.target;
       if (!target || !target.id) return;
-      if (target.closest && target.closest('#modalFactura')) return;
+      if (target.closest && target.closest('#modalFactura, .lf-dd-modal')) return;
 
       if (target.id === 'pvpcTypeSelector') {
         trackDetailedEvent('pvpc-modal-tipo', target.value || 'pvpc', {

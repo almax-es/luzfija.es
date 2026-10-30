@@ -413,6 +413,35 @@ describe('importar (fetch simulado)', () => {
     expect(llamadas[0].init.body.startsWith('username=12345678Z&')).toBe(true);
   });
 
+  it('con el almacenamiento bloqueado el contador sigue funcionando en memoria', async () => {
+    const roto = () => { throw new Error('SecurityError'); };
+    vi.stubGlobal('localStorage', { getItem: roto, setItem: roto, removeItem: roto });
+    respuestas.login = () => json(500, { message: 'Bad credentials' });
+    await expect(ejecutar()).rejects.toMatchObject({ code: 'credenciales' });
+    expect(D.textoError({ code: 'credenciales' })).toContain('Te queda un intento');
+    await expect(ejecutar()).rejects.toMatchObject({ code: 'credenciales' });
+    expect(D.textoError({ code: 'credenciales' })).toContain('no seguimos intentándolo');
+  });
+
+  it('si solo falla la escritura (getItem funciona y devuelve null) tampoco vuelve a 0', async () => {
+    vi.stubGlobal('localStorage', { getItem: () => null, setItem: () => { throw new Error('QuotaExceeded'); }, removeItem: () => {} });
+    respuestas.login = () => json(500, { message: 'Bad credentials' });
+    await expect(ejecutar()).rejects.toMatchObject({ code: 'credenciales' });
+    await expect(ejecutar()).rejects.toMatchObject({ code: 'credenciales' });
+    expect(D.textoError({ code: 'credenciales' })).toContain('no seguimos intentándolo');
+  });
+
+  it('suelta la contrasena nada mas usarla en el login', async () => {
+    const peticion = {
+      nif: '12345678Z', clave: 'secreta', conPotencia: false,
+      senal: new AbortController().signal, onProgreso: () => {}, elegirSuministro: async (l) => l[0]
+    };
+    const promesa = D.importar(peticion);
+    expect(peticion.clave).toBe('');
+    await promesa;
+    expect(llamadas[0].init.body).toContain('password=secreta');
+  });
+
   it('el contador de fallos caduca a las 24 horas', () => {
     storage.set('lf_datadis_fallos', JSON.stringify({ n: 2, t: Date.now() - 25 * 60 * 60 * 1000 }));
     expect(D.textoError({ code: 'credenciales' })).toContain('Te queda un intento');
@@ -471,6 +500,16 @@ describe('contratos estaticos de lf-datadis.js', () => {
     expect(usos.length).toBeGreaterThan(0);
     for (const u of usos) expect(u).toContain('FALLOS_KEY');
     expect(sourceDatadis).toContain('JSON.stringify({ n, t: Date.now() })');
+  });
+
+  it('tracking.js no escucha clics ni cambios dentro del modal de Datadis', () => {
+    const tracking = fs.readFileSync(path.join(root, 'js/tracking.js'), 'utf8');
+    for (const evento of ['click', 'change']) {
+      const i = tracking.indexOf(`document.addEventListener('${evento}', function(e) {`);
+      expect(i, `listener global de ${evento}`).toBeGreaterThan(-1);
+      expect(tracking.slice(i, i + 400)).toContain(".closest('#modalFactura, .lf-dd-modal')");
+    }
+    expect(sourceDatadis).toContain("'modal-content card lf-dd-modal'");
   });
 
   it('el unico host al que se conecta es datadis.es', () => {
