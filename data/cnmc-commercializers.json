@@ -2,7 +2,7 @@
   "_meta": {
     "schema": 1,
     "source": "https://sede.cnmc.gob.es/listado/censo/2",
-    "syncedAt": "2026-10-29",
+    "syncedAt": "2026-10-30",
     "count": 948,
     "sourceRows": 949,
     "duplicateCodes": [
@@ -4963,7 +4963,7 @@
     },
     "R2-998": {
       "name": "FRANK ENERGIA IBERIA, S.L.",
-      "phone": "900 732 949",
+      "phone": "900 431 134",
       "website": "https://www.frankenergia.es/es"
     },
     "R2-999": {
