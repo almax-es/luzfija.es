@@ -1741,43 +1741,57 @@
    * bv-ui.js ha publicado BVSim.importarFichero); en la home, junto a "Importar CSV" (si
    * lf-csv-import.js ha publicado procesarCSVConsumos y mostrarPreviewCSV).
    */
+  /**
+   * Conecta el boton de Datadis. Viene en el HTML (no se crea aqui) para que la pagina no se
+   * recoloque al arrancar (CLS); solo se crea si una pagina antigua no lo trae. Si la importacion
+   * no puede funcionar en esta pagina, se OCULTA: nunca un boton que no hace nada.
+   * Id distinto en cada pagina: el de la home lleva reglas propias de la barra de botones en
+   * movil (pro.css) que no deben alcanzar al boton del simulador solar.
+   */
   function initDatadisImport() {
-    if (!DATADIS_IMPORT_ENABLED) return;
+    const ocultar = (b) => { if (b) b.hidden = true; };
     try {
-      // Id distinto en cada pagina: el de la home lleva reglas propias de la barra de botones en
-      // movil (pro.css) que no deben alcanzar al boton del simulador solar.
-      if (document.getElementById('btnImportarDatadis') || document.getElementById('bvImportarDatadis')) return;
-
       const subirSolar = document.getElementById('upload-csv-btn');
       if (subirSolar) {
-        if (!window.BVSim || typeof window.BVSim.importarFichero !== 'function') return;
-        const boton = document.createElement('button');
-        boton.type = 'button';
-        boton.className = 'btn lf-dd-solar-btn';
-        boton.id = 'bvImportarDatadis';
-        boton.innerHTML = '<span>📥 Importar desde Datadis</span>';
-        boton.title = 'Importa hasta 12 meses completos de consumo y excedentes desde tu cuenta de Datadis';
+        let boton = document.getElementById('bvImportarDatadis');
+        if (!DATADIS_IMPORT_ENABLED || !window.BVSim || typeof window.BVSim.importarFichero !== 'function') { ocultar(boton); return; }
+        if (boton && boton.dataset.lfListo) return;
+        if (!boton) {
+          boton = document.createElement('button');
+          boton.type = 'button';
+          boton.className = 'btn lf-dd-solar-btn';
+          boton.id = 'bvImportarDatadis';
+          boton.innerHTML = '<span>📥 Importar desde Datadis</span>';
+          boton.title = 'Importa hasta 12 meses completos de consumo y excedentes desde tu cuenta de Datadis';
+          subirSolar.after(boton);
+        }
         boton.addEventListener('click', () => abrirModal('solar'));
-        subirSolar.after(boton);
+        boton.dataset.lfListo = '1';
         return;
       }
 
-      if (typeof window.LF.procesarCSVConsumos !== 'function' || typeof window.LF.mostrarPreviewCSV !== 'function') return;
+      let boton = document.getElementById('btnImportarDatadis');
+      if (!DATADIS_IMPORT_ENABLED || typeof window.LF.procesarCSVConsumos !== 'function' || typeof window.LF.mostrarPreviewCSV !== 'function') { ocultar(boton); return; }
+      if (boton && boton.dataset.lfListo) return;
       const contenedor = document.querySelector('.actions-center');
-      if (!contenedor) return;
-
-      const boton = document.createElement('button');
-      boton.type = 'button';
-      boton.className = 'btn';
-      boton.id = 'btnImportarDatadis';
-      boton.innerHTML = '<span>📥</span><span class="btn-text"><em class="lf-dd-solo-desktop">Importar de </em>Datadis</span>';
-      boton.title = 'Importa hasta un año de consumo horario directamente desde tu cuenta de Datadis';
+      if (!boton) {
+        if (!contenedor) return;
+        boton = document.createElement('button');
+        boton.type = 'button';
+        boton.className = 'btn';
+        boton.id = 'btnImportarDatadis';
+        boton.innerHTML = '<span>📥</span><span class="btn-text"><em class="lf-dd-solo-desktop">Importar de </em>Datadis</span>';
+        boton.title = 'Importa hasta un año de consumo horario directamente desde tu cuenta de Datadis';
+        const csv = document.getElementById('btnSubirCSV');
+        if (csv) csv.after(boton);
+        else contenedor.appendChild(boton);
+      }
       boton.addEventListener('click', () => abrirModal('home'));
-
-      const csv = document.getElementById('btnSubirCSV');
-      if (csv) csv.after(boton);
-      else contenedor.appendChild(boton);
-    } catch { /* la funcion es opcional: si algo falla, queda el importador de CSV */ }
+      boton.dataset.lfListo = '1';
+    } catch {
+      // la funcion es opcional: si algo falla, queda el importador de CSV (y el boton, oculto)
+      ocultar(document.getElementById('btnImportarDatadis') || document.getElementById('bvImportarDatadis'));
+    }
   }
 
   Object.assign(window.LF, { initDatadisImport });

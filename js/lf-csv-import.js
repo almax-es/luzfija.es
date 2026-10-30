@@ -975,12 +975,16 @@
       fileInput.style.display = 'none';
       fileInput.id = 'csvConsumoInput';
 
-      const btnCSV = document.createElement('button');
-      btnCSV.type = 'button';
-      btnCSV.className = 'btn';
-      btnCSV.id = 'btnSubirCSV';
-      btnCSV.innerHTML = '<span>📊</span><span class="btn-text">Importar CSV</span>';
-      btnCSV.title = 'Subir consumo horario (CSV/Excel de tu distribuidora)';
+      // El boton viene en el HTML (evita el salto de la barra al arrancar); se crea solo si falta.
+      const existente = document.getElementById('btnSubirCSV');
+      const btnCSV = existente || document.createElement('button');
+      if (!existente) {
+        btnCSV.type = 'button';
+        btnCSV.className = 'btn';
+        btnCSV.id = 'btnSubirCSV';
+        btnCSV.innerHTML = '<span>📊</span><span class="btn-text">Importar CSV</span>';
+        btnCSV.title = 'Subir consumo horario (CSV/Excel de tu distribuidora)';
+      }
 
       btnCSV.addEventListener('click', () => fileInput.click());
 
@@ -1038,12 +1042,15 @@
 
       document.body.appendChild(fileInput);
 
-      const btnSubirFactura = document.getElementById('btnSubirFactura');
-      if (btnSubirFactura) {
-        btnSubirFactura.after(btnCSV);
-      } else {
-        actionsCenterContainer.appendChild(btnCSV);
+      if (!existente) {
+        const btnSubirFactura = document.getElementById('btnSubirFactura');
+        if (btnSubirFactura) {
+          btnSubirFactura.after(btnCSV);
+        } else {
+          actionsCenterContainer.appendChild(btnCSV);
+        }
       }
+      btnCSV.dataset.lfListo = '1';
 
       lfDbg('[CSV] Botón de importar CSV añadido');
     } catch (error) {

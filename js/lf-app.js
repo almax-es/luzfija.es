@@ -918,6 +918,13 @@
     } catch (e) {
       lfDbg('[ERROR] Error inicializando CSV importer:', e);
     }
+    // Los botones de importar vienen en el HTML (sin salto al arrancar): si su modulo no ha
+    // llegado a conectarlos, se ocultan en vez de quedar como botones que no hacen nada.
+    const ocultarSiInerte = (id) => {
+      const b = document.getElementById(id);
+      if (b && !b.dataset.lfListo) b.hidden = true;
+    };
+    ocultarSiInerte('btnSubirCSV');
 
     // Importacion directa desde Datadis (opcional; uso perezoso, ver ARRANQUE-CARGA.md 3.1).
     // Va despues del CSV: el boton se coloca junto a "Importar CSV".
@@ -926,6 +933,7 @@
     } catch (e) {
       lfDbg('[ERROR] Error inicializando importacion Datadis:', e);
     }
+    ocultarSiInerte('btnImportarDatadis');
 
     // Scroll to results
     $('scrollToResults')?.addEventListener('click', () => {

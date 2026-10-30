@@ -1453,6 +1453,48 @@ describe('contratos estaticos de lf-datadis.js', () => {
     expect(css).toMatch(/\.lf-dd-suministro-info\{[^}]*overflow-wrap:anywhere/);
   });
 
+  it('los botones de importar vienen en el HTML (sin salto al arrancar; medido 30/10/2026: hasta 0,29 de CLS en 769-1180 px cuando los creaba el JS)', () => {
+    const home = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+    const solarHtml = fs.readFileSync(path.join(root, 'comparador-tarifas-solares.html'), 'utf8');
+    // Home: Factura -> CSV -> Datadis -> PVPC, dentro de .actions-center
+    const centro = home.slice(home.indexOf('<div class="actions-center">'), home.indexOf('<div class="actions-right">'));
+    const orden = ['id="btnSubirFactura"', 'id="btnSubirCSV"', 'id="btnImportarDatadis"', 'id="btnPVPCInfo"'].map((s) => centro.indexOf(s));
+    expect(orden.every((i) => i > -1)).toBe(true);
+    expect([...orden].sort((a, b) => a - b)).toEqual(orden);
+    // Solar: justo despues de "Seleccionar archivo CSV"
+    expect(solarHtml).toMatch(/id="upload-csv-btn">[\s\S]{0,400}<button type="button" class="btn lf-dd-solar-btn" id="bvImportarDatadis"/);
+    // y si su modulo no los conecta, se ocultan (nunca un boton que no hace nada)
+    const app = fs.readFileSync(path.join(root, 'js/lf-app.js'), 'utf8');
+    expect(app).toContain("ocultarSiInerte('btnSubirCSV')");
+    expect(app).toContain("ocultarSiInerte('btnImportarDatadis')");
+    const bvUi = fs.readFileSync(path.join(root, 'js/bv/bv-ui.js'), 'utf8');
+    expect(bvUi).toMatch(/typeof window\.LF\?\.initDatadisImport !== 'function'[\s\S]{0,200}botonDatadis\.hidden = true/);
+  });
+
+  it('initDatadisImport conecta el boton del HTML sin crear otro, y lo oculta si no puede funcionar', () => {
+    const boton = (id) => ({ id, hidden: false, dataset: {}, clicks: 0, addEventListener(t) { if (t === 'click') this.clicks++; } });
+    const montar = (els, extra) => {
+      const doc = { readyState: 'complete', getElementById: (id) => els[id] || null, querySelector: (q) => (q === '.actions-center' ? { appendChild() { throw new Error('no debe crear'); } } : null), createElement() { throw new Error('no debe crear'); } };
+      const win = { ...global.window, LF: { ...global.window.LF, ...extra.LF }, BVSim: extra.BVSim };
+      new Function('window', 'document', sourceDatadis)(win, doc);
+      win.LF.initDatadisImport();
+      win.LF.initDatadisImport(); // una segunda llamada no duplica el listener
+      return els;
+    };
+    // home conectada
+    let els = montar({ btnImportarDatadis: boton('btnImportarDatadis') }, { LF: {} });
+    expect(els.btnImportarDatadis).toMatchObject({ hidden: false, clicks: 1, dataset: { lfListo: '1' } });
+    // home sin el importador de CSV: oculto
+    els = montar({ btnImportarDatadis: boton('btnImportarDatadis') }, { LF: { procesarCSVConsumos: undefined } });
+    expect(els.btnImportarDatadis.hidden).toBe(true);
+    // solar conectada / sin BVSim
+    els = montar({ 'upload-csv-btn': boton('upload-csv-btn'), bvImportarDatadis: boton('bvImportarDatadis') }, { LF: {}, BVSim: { importarFichero() {} } });
+    expect(els.bvImportarDatadis).toMatchObject({ hidden: false, dataset: { lfListo: '1' } });
+    expect(els.bvImportarDatadis.clicks).toBe(1);
+    els = montar({ 'upload-csv-btn': boton('upload-csv-btn'), bvImportarDatadis: boton('bvImportarDatadis') }, { LF: {} });
+    expect(els.bvImportarDatadis.hidden).toBe(true);
+  });
+
   it('informe de fallo: enlace de envio legible (no hereda el color de enlace sobre fondo de boton) y sin analitica', () => {
     const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
     expect(sourceDatadis).toContain('<a id="lfDdInformeEnviar" class="btn lf-dd-informe-enviar"');

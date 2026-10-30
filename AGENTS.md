@@ -197,6 +197,12 @@ Una linea por modulo para no confundir ficheros con nombres parecidos (`config.j
   `.grid:not(.has-results){min-height:100vh}` del 22/10, que no cubria a quien scrollea antes
   de calcular (0,22 con scroll 500); no lo reintroduzcas. Tampoco ocultes el footer hasta
   calcular (esconde privacidad y aviso legal). Lo vigila `tests/cls-reserva-resultados.test.js`.
+- **Los botones de importar van en el HTML, no los crea el JS.** "Importar CSV" y "Datadis" en
+  la home y "Importar desde Datadis" en el simulador solar: cuando los insertaba el JS al arrancar,
+  la barra de la home se recolocaba o se partia en dos filas y el CLS de carga era 0,13-0,29
+  entre 769 y 1.180 px (medido en produccion el 30/10/2026); en el HTML, 0 en todos los anchos.
+  Los modulos solo les conectan el comportamiento y, si no llegan a hacerlo, el boton se oculta.
+  No los vuelvas a crear por JS. Ver `ARRANQUE-CARGA.md` (nota tras la tabla de dependencias).
 - **Como medir CLS aqui sin enganarte** (aprendido el 22/10/2026): (1) un `.click()` por script
   NO cuenta como entrada del usuario, asi que sus saltos salen como CLS aunque un clic real los
   excluya; usa un clic real. (2) Una ventana alta no cambia `innerHeight` en automatizacion:

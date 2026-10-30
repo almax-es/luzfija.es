@@ -3,9 +3,9 @@
 <head>
 <meta charset="utf-8"/>
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; base-uri 'self'; object-src 'none'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; font-src 'self'; img-src 'self' data: https://luzfija.goatcounter.com; connect-src 'self' https://luzfija.goatcounter.com; form-action 'self';">
-<script src="/js/frame-guard.js?v=20261030-144628"></script>
-<script src="/js/config.js?v=20261030-144628"></script>
-<script src="/js/theme.js?v=20261030-144628"></script>
+<script src="/js/frame-guard.js?v=20261030-150408"></script>
+<script src="/js/config.js?v=20261030-150408"></script>
+<script src="/js/theme.js?v=20261030-150408"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <meta name="robots" content="index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1"/>
 <meta name="color-scheme" content="dark light"/>
@@ -62,7 +62,7 @@
   "name": "Qué hace LuzFija.es y cómo funciona",
   "description": "Explicación pública de las herramientas, métodos, datos, independencia y límites de LuzFija.es.",
   "url": "https://luzfija.es/como-funciona-luzfija.html",
-  "dateModified": "2026-08-16",
+  "dateModified": "2026-10-30",
   "inLanguage": "es",
   "isPartOf": {
     "@type": "WebSite",
@@ -168,7 +168,7 @@
 </script>
 
 <link rel="preload" href="/fonts/outfit-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="/fonts.css?v=20261030-144628">
+<link rel="stylesheet" href="/fonts.css?v=20261030-150408">
 
 <style>
 :root{--bg:#0B1020;--surface:#141b2e;--card:rgba(255,255,255,.06);--border:rgba(255,255,255,.10);--text:#F7F7FB;--muted:rgba(247,247,251,.72);--accent:#8B5CF6;--accent2:#22C55E;--warn:#F59E0B;--danger:#EF4444;--gradient:linear-gradient(135deg,#8B5CF6,#EC4899,#22C55E);color-scheme:dark}
@@ -323,6 +323,7 @@ html.light-mode .footer{background:rgba(255,255,255,.92)}
             <li>El parser CSV/XLSX detecta cabeceras, separadores, formatos ES/US, conversión Wh a kWh y casos de hora 25 por cambio horario.</li>
             <li>Clasifica el consumo por P1, P2 y P3 según calendario y zona.</li>
             <li>En la home puede cruzar la curva importada con precios PVPC del periodo para una comparación más fiel.</li>
+            <li>De forma opcional, el consumo horario se puede importar directamente desde tu cuenta de Datadis, sin descargar el CSV: hasta un año en el comparador y los 12 últimos meses completos con excedentes en el simulador solar. Tu navegador se conecta con datadis.es sin pasar por ningún servidor de LuzFija.es.</li>
           </ul>
         </div>
         <div>
@@ -344,7 +345,7 @@ html.light-mode .footer{background:rgba(255,255,255,.92)}
       <div class="signals-grid">
         <article class="signal-card">
           <h3>Procesamiento local</h3>
-          <p>Los cálculos, el parsing de CSV, el tratamiento de facturas PDF, el QR y el OCR ocurren en el navegador del usuario. No hay backend propio para esos flujos.</p>
+          <p>Los cálculos, el parsing de CSV, el tratamiento de facturas PDF, el QR y el OCR ocurren en el navegador del usuario. No hay backend propio para esos flujos. La importación opcional desde Datadis también: tu usuario, tu contraseña y tus consumos van de tu navegador a datadis.es y no se guardan.</p>
         </article>
         <article class="signal-card">
           <h3>Sin cuenta obligatoria</h3>
@@ -438,6 +439,6 @@ html.light-mode .footer{background:rgba(255,255,255,.92)}
     <p>LuzFija.es explica, compara y simula tarifas de luz en España con cálculo local en navegador.</p>
   </div>
 </footer>
-<script src="/js/tracking.js?v=20261030-144628" defer></script>
+<script src="/js/tracking.js?v=20261030-150408" defer></script>
 </body>
 </html>

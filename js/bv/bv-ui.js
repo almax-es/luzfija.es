@@ -2803,6 +2803,12 @@ document.addEventListener('DOMContentLoaded', () => {
   // Importacion directa desde Datadis (js/lf-datadis.js): entrega un CSV generado que sigue
   // exactamente el mismo camino que uno elegido a mano.
   window.BVSim.importarFichero = (file, opciones) => handleFile(file, opciones);
+  // El boton "Importar desde Datadis" viene en el HTML (sin salto al arrancar). lf-datadis.js va
+  // detras, sin defer: a estas alturas ya se ha evaluado. Si no llego a cargar, se oculta.
+  if (typeof window.LF?.initDatadisImport !== 'function') {
+    const botonDatadis = document.getElementById('bvImportarDatadis');
+    if (botonDatadis) botonDatadis.hidden = true;
+  }
 
   // Botón de subir CSV
   if (uploadCsvBtn) {

@@ -39,9 +39,9 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
   - 26 en `guias/` (indice + 25 guias).
   - 1 en otras rutas de compatibilidad.
 - 45 modulos JavaScript en `js/` (incluye `js/bv/`).
-- 37.639 lineas JS aproximadas.
+- 37.674 lineas JS aproximadas.
 - 118 tarifas en `tarifas.json`.
-- Suite de tests Vitest con 144 archivos y 2596 casos.
+- Suite de tests Vitest con 144 archivos y 2598 casos.
 
 ## Que Incluye La Web (Inventario Completo)
 
@@ -59,6 +59,7 @@ Las versiones anteriores del repositorio pudieron publicarse bajo otros término
 - tarifa personalizada del usuario.
 - Extrae datos de factura PDF (texto + QR + OCR opcional).
 - Importa consumos desde CSV/XLSX (incluye clasificacion P1/P2/P3 y soporte formatos distribuidoras).
+- Importacion opcional directa desde la cuenta de Datadis del usuario (navegador -> datadis.es, sin servidor propio): hasta un ano en la home y los 12 ultimos meses completos con excedentes en el simulador solar. Ver `CAPACIDADES-WEB.md` 3.4b.
 - Modal de aplicacion CSV con opcion de aplicar solo consumos o consumos+excedentes.
 - Opcion de comparar PVPC usando precios horarios del periodo importado.
 - Tabla con filtros, ordenacion por columnas, top 5 visual y modal de desglose.

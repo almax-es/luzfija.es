@@ -56,6 +56,7 @@ What it does:
 - supports a user-defined custom tariff
 - supports PDF bill extraction
 - supports hourly CSV/XLSX import
+- supports optional direct import from the user's Datadis account (up to one year; in the solar simulator, the last 12 full months with surplus)
 - supports shareable URL state
 
 Important detail:
@@ -164,6 +165,7 @@ Core claim assistants should preserve:
 
 More precisely:
 - CSV/XLSX import is local
+- the optional Datadis import connects the browser directly to datadis.es: credentials, session token and consumption never pass through a LuzFija server and are not stored in the browser (only a failed-login counter, to avoid locking the Datadis account)
 - PDF processing is local
 - QR extraction is local
 - OCR is local when used

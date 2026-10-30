@@ -192,8 +192,8 @@ pero no necesariamente que su etiqueta preceda a la etiqueta del consumidor.
 | `lf-csv-utils.js` | `lf-csv-import.js` | `window.LF.csvUtils` (`assertRelevantXlsxFormulasResolved` incluido) | eval | importacion CSV/XLSX, formulas XLSX sin cache y clasificacion P1/P2/P3 |
 | `lf-csv-utils.js` | `desglose-integration.js` | `window.LF.csvUtils.fetchJsonWithTimeout` | perezoso, fail-closed | deadline de la descarga de `tarifas.json`: sin el helper no se descarga, para no arriesgar un fetch que no resuelva nunca |
 | `lf-csv-report.js` | `lf-csv-import.js` | `window.LF.csvReport` | perezoso, con fallback | aviso persistente de importacion fallida y reporte del archivo; sin el modulo vuelve el toast de siempre |
-| `lf-csv-import.js` | `lf-datadis.js` | `window.LF.procesarCSVConsumos`, `window.LF.mostrarPreviewCSV` | perezoso, con guard | importacion directa desde Datadis; sin ellas `initDatadisImport` no crea el boton y queda el importador de CSV |
-| `lf-datadis.js` | `lf-app.js` | `window.LF.initDatadisImport` | perezoso, con guard | boton "Importar de Datadis"; sin el modulo (offline, SW antiguo) simplemente no aparece |
+| `lf-csv-import.js` | `lf-datadis.js` | `window.LF.procesarCSVConsumos`, `window.LF.mostrarPreviewCSV` | perezoso, con guard | importacion directa desde Datadis; sin ellas `initDatadisImport` OCULTA el boton (que viene en el HTML) y queda el importador de CSV |
+| `lf-datadis.js` | `lf-app.js` | `window.LF.initDatadisImport` | perezoso, con guard | boton "Importar de Datadis" (en el HTML, ver la nota tras esta tabla); sin el modulo (offline, SW antiguo) `lf-app.js` lo oculta (`ocultarSiInerte`) |
 | `lf-ui.js` | `lf-cache.js`, `lf-inputs.js`, `lf-render.js`, `lf-csv-import.js`, `lf-tarifa-custom.js` | `toast`, `setStatus`, `showError`, `clearErrorStyles`, `applyButtonState` | eval | avisos, estado de carga y marcado de errores |
 | `lf-tooltips.js` | `lf-render.js` | `initTooltips`, `bindTooltipElement` | eval | tooltips de la tabla de resultados |
 | `lf-inputs.js` | `lf-calc.js` | `__LF_getFiscalContext`, `getInputValues` | eval | contexto fiscal del motor de calculo |
@@ -225,8 +225,18 @@ motivo para hacerlo.
 | `bv/bv-ui-helpers.js` | `bv/bv-ui.js` | `window.BVSim.manualUi` | DOM ready, con guard | tabla manual, saldo BV y coste neto |
 | `lf-surplus-prices.js` | `bv/bv-ui.js` | `window.LF.surplusPrices` | perezoso | excedentes indexados contra `data/surplus/` |
 | `lf-csv-report.js` | `bv/bv-ui.js` | `window.LF.csvReport` | perezoso, con fallback | aviso persistente de importacion fallida; sin el modulo vuelve el toast |
-| `bv/bv-ui.js` | `lf-datadis.js` | `window.BVSim.importarFichero` | DOM ready, con guard | boton "Importar desde Datadis" del simulador: bv-ui lo publica en su DOMContentLoaded, registrado antes que el de lf-datadis (va detras, sin defer); sin el no aparece el boton |
+| `bv/bv-ui.js` | `lf-datadis.js` | `window.BVSim.importarFichero` | DOM ready, con guard | boton "Importar desde Datadis" del simulador (en el HTML): bv-ui publica `importarFichero` en su DOMContentLoaded, registrado antes que el de lf-datadis (va detras, sin defer); sin el, `initDatadisImport` oculta el boton, y si falta `lf-datadis.js` lo oculta bv-ui |
 | `lf-sw-update.js` | `shell-lite.js` | `window.LF.initSwUpdate` | eval, **sin aviso** | registro del SW en la ruta solar |
+
+**Botones de importar en el HTML, no creados por JS (30/10/2026).** "Importar CSV" y "Datadis" en
+la home (`#btnSubirCSV`, `#btnImportarDatadis`, dentro de `.actions-center`) e "Importar desde
+Datadis" en el simulador (`#bvImportarDatadis`) vienen en el HTML; `lf-csv-import.js` y
+`lf-datadis.js` solo les conectan el comportamiento (marcan `data-lf-listo`). Cuando los creaba
+el JS al arrancar, la barra de la home se recolocaba o partia en dos filas: CLS de carga 0,13-0,29
+entre 769 y 1.180 px de ancho (medido en produccion el 30/10/2026, el del CSV ya de antes y el de
+Datadis ampliando el rango); en el HTML, 0 en todos los anchos. Si su modulo no los conecta se
+OCULTAN (`lf-app.js` `ocultarSiInerte`, `bv-ui.js` e `initDatadisImport`): nunca un boton que no
+hace nada. No vuelvas a crearlos por JS. Lo vigila `tests/datadis-import.test.js`.
 
 ### 3.3 Observatorio
 
