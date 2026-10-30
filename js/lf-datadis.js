@@ -124,13 +124,77 @@
     return f && f.consumptionKWh !== null && f.consumptionKWh !== undefined && Number.isFinite(Number(f.consumptionKWh));
   }
 
+  const UMBRAL_COBERTURA = 0.98;
+
+  function mesesDelRango(rango) {
+    const [y0, m0] = rango.iniMes.split('/').map(Number);
+    const [y1, m1] = rango.finMes.split('/').map(Number);
+    const meses = [];
+    for (let y = y0, m = m0; y < y1 || (y === y1 && m <= m1);) {
+      meses.push(`${y}/${pad2(m)}`);
+      if (++m > 12) { m = 1; y++; }
+    }
+    return meses;
+  }
+
   /**
-   * Cobertura de excedentes MES A MES. Distingue tres cosas que no son lo mismo:
-   *  - dato positivo,
-   *  - cero (dato real: ese mes no se vertio),
-   *  - ausente (null: Datadis/distribuidora no lo ha publicado; NO es un cero).
-   * Un mes es 'completo' si al menos el 97 % de sus horas trae dato, 'sin' si no trae ninguno y
-   * 'parcial' en otro caso. Solo cuentan las horas con consumo dentro del rango.
+   * Horas que DEBERIAN existir en ese mes dentro del rango: dias x 24, menos una el ultimo
+   * domingo de marzo y mas una el ultimo de octubre (cambios de hora, tambien en Canarias).
+   */
+  function horasEsperadasMes(mes, rango) {
+    const [y, m] = mes.split('/').map(Number);
+    const dias = new Date(y, m, 0).getDate();
+    const ini = rango.iniYmd.slice(0, 7) === mes ? Number(rango.iniYmd.slice(8)) : 1;
+    const fin = rango.finYmd.slice(0, 7) === mes ? Number(rango.finYmd.slice(8)) : dias;
+    let horas = Math.max(0, fin - ini + 1) * 24;
+    if (m === 3 || m === 10) {
+      const ultimoDomingo = dias - new Date(y, m - 1, dias).getDay();
+      if (ultimoDomingo >= ini && ultimoDomingo <= fin) horas += m === 3 ? -1 : 1;
+    }
+    return horas;
+  }
+
+  /**
+   * Cobertura del CONSUMO contra lo que deberia llegar (no contra lo que llega): un mes o unos
+   * dias que Datadis omite por completo tambien cuentan como hueco.
+   *  - Meses vacios al PRINCIPIO (suministro dado de alta hace menos de un ano), mas un primer mes
+   *    parcial si lo hay (alta a mitad de mes): se omiten y se importan los meses siguientes.
+   *  - Cualquier otro mes por debajo del 98 % (vacio en medio o al final, o con dias de menos):
+   *    fallo; el simulador infravaloraria el consumo.
+   *  - Entre el 98 % y el 100 %: se acepta y se avisa de las horas que faltan.
+   */
+  function evaluarCobertura(filas, rango) {
+    const horas = new Map();
+    for (const f of Array.isArray(filas) ? filas : []) {
+      if (!f || typeof f.date !== 'string' || !/^\d{4}\/\d{2}\/\d{2}$/.test(f.date) || !tieneConsumo(f)) continue;
+      if (f.date < rango.iniYmd || f.date > rango.finYmd) continue;
+      const mes = f.date.slice(0, 7);
+      horas.set(mes, (horas.get(mes) || 0) + 1);
+    }
+    const meses = mesesDelRango(rango).map((mes) => {
+      const esperadas = horasEsperadasMes(mes, rango);
+      const h = Math.min(horas.get(mes) || 0, esperadas);
+      return { mes, esperadas, horas: h, cobertura: esperadas ? h / esperadas : 0 };
+    });
+    let i = 0;
+    while (i < meses.length && meses[i].horas === 0) i++;
+    if (i < meses.length && meses[i].cobertura < UMBRAL_COBERTURA) i++;
+    const usados = meses.slice(i);
+    return {
+      meses,
+      omitidos: meses.slice(0, i).map((m) => m.mes),
+      usados: usados.map((m) => m.mes),
+      fallos: usados.filter((m) => m.cobertura < UMBRAL_COBERTURA),
+      huecos: usados.filter((m) => m.cobertura >= UMBRAL_COBERTURA && m.horas < m.esperadas)
+    };
+  }
+
+  /**
+   * Excedentes MES A MES. Un mes trae dato si alguna de sus horas trae un numero; sus horas en
+   * null se toman como 0 kWh: Datadis no obliga a las distribuidoras a enviar el excedente
+   * cuando es 0, asi que dentro de un mes con datos un null es casi siempre un cero no enviado.
+   * Un mes ENTERO sin ningun dato es otra cosa: puede ser un cero no enviado o un hueco, y
+   * decidirSolar lo trata segun la epoca del ano.
    */
   function evaluarExcedentes(filas, rango) {
     const meses = new Map();
@@ -148,26 +212,28 @@
       }
     }
     const lista = [...meses.values()].sort((a, b) => a.mes.localeCompare(b.mes));
-    for (const m of lista) m.estado = m.conDato === 0 ? 'sin' : (m.conDato / m.horas >= 0.97 ? 'completo' : 'parcial');
+    for (const m of lista) m.estado = m.conDato === 0 ? 'sin' : 'con';
     const estado = !lista.length ? 'ausente'
-      : lista.every((m) => m.estado === 'completo') ? 'completo'
+      : lista.every((m) => m.estado === 'con') ? 'completo'
         : lista.every((m) => m.estado === 'sin') ? 'ausente' : 'parcial';
     const hayPositivos = lista.some((m) => m.positivos > 0);
     return {
       meses: lista,
       estado,
       hayPositivos,
-      horasSinDato: lista.filter((m) => m.estado === 'completo').reduce((s, m) => s + (m.horas - m.conDato), 0),
-      mesesIncompletos: lista.filter((m) => m.estado !== 'completo').map((m) => m.mes),
-      mesesACero: hayPositivos ? lista.filter((m) => m.estado === 'completo' && m.positivos === 0).map((m) => m.mes) : []
+      horasSinDato: lista.filter((m) => m.estado === 'con').reduce((s, m) => s + (m.horas - m.conDato), 0),
+      mesesSinDato: lista.filter((m) => m.estado === 'sin').map((m) => m.mes),
+      mesesACero: hayPositivos ? lista.filter((m) => m.estado === 'con' && m.positivos === 0).map((m) => m.mes) : []
     };
   }
 
   /**
    * Que dice el contrato sobre autoconsumo: 'con' | 'sin' (excedentes) | 'si' (autoconsumo de
-   * tipo no identificable) | 'no' | null (sin contrato). Se basa en la DESCRIPCION y en indicios
+   * tipo no identificable) | 'no' | null (no se sabe). Se basa en la DESCRIPCION y en indicios
    * (codigo distinto de 0, potencia instalada, CAU), no en una tabla de codigos concreta: no se
    * ha podido contrastar con la fuente oficial cual corresponde a cada modalidad.
+   * 'no' exige una prueba POSITIVA (codigo 0 o "sin autoconsumo"): si el contrato no dice nada,
+   * es "no se sabe", nunca "no hay placas".
    */
   function leerAutoconsumo(respuestaContrato) {
     const c = respuestaContrato && Array.isArray(respuestaContrato.contract) ? respuestaContrato.contract[0] : null;
@@ -179,7 +245,14 @@
     const code = String(c.selfConsumptionTypeCode == null ? '' : c.selfConsumptionTypeCode).trim();
     const cap = Number(c.installedCapacityKW != null ? c.installedCapacityKW : c.installedCapacity);
     if ((code && !/^0+$/.test(code)) || (Number.isFinite(cap) && cap > 0) || (typeof c.cau === 'string' && c.cau.trim())) return 'si';
-    return 'no';
+    if (/^0+$/.test(code)) return 'no';
+    return null;
+  }
+
+  /** Abril a septiembre: con placas es muy improbable un mes entero sin verter nada. */
+  function esMesDeSol(mes) {
+    const m = Number(String(mes).slice(5, 7));
+    return m >= 4 && m <= 9;
   }
 
   /**
@@ -190,13 +263,24 @@
     if (!ev.hayPositivos && (autoconsumo === 'no' || autoconsumo === 'sin')) {
       return { accion: 'importar', excedentes: 'sin', motivo: autoconsumo };
     }
-    if (ev.estado === 'parcial') return { accion: 'bloquear', motivo: 'parcial' };
-    if (ev.estado === 'completo') {
-      if (ev.hayPositivos) return { accion: 'importar', excedentes: 'con', motivo: 'completo' };
-      if (autoconsumo === 'con') return { accion: 'confirmar', excedentes: 'con', motivo: 'ceros' };
-      return { accion: 'confirmar', excedentes: 'sin', motivo: 'desconocido' };
+    if (ev.hayPositivos) {
+      if (ev.estado === 'parcial') {
+        // Meses enteros sin dato de excedentes mientras otros si traen: en un mes de sol es casi
+        // seguro un hueco; en invierno puede ser un cero que la distribuidora no envia.
+        if (ev.mesesSinDato.some(esMesDeSol)) return { accion: 'bloquear', motivo: 'parcial' };
+        return { accion: 'confirmar', excedentes: 'con', motivo: 'meses-sin-dato' };
+      }
+      // Un mes entero a 0 kWh mientras otros vierten: puede ser real (instalacion posterior,
+      // averia) o un hueco publicado como 0. No se puede distinguir: se pregunta.
+      if (ev.mesesACero.length) return { accion: 'confirmar', excedentes: 'con', motivo: 'meses-cero' };
+      return { accion: 'importar', excedentes: 'con', motivo: 'completo' };
     }
-    if (autoconsumo === 'con') return { accion: 'bloquear', motivo: 'ausente-con' };
+    // Ni un kWh vertido en todo el periodo (todo null, todo 0 o una mezcla).
+    if (autoconsumo === 'con') {
+      return ev.estado === 'completo'
+        ? { accion: 'confirmar', excedentes: 'con', motivo: 'ceros' }
+        : { accion: 'bloquear', motivo: 'ausente-con' };
+    }
     return { accion: 'confirmar', excedentes: 'sin', motivo: 'desconocido' };
   }
 
@@ -214,8 +298,8 @@
    * - Filas sin consumo se omiten (hueco honesto) en vez de inventar un 0.
    * - El CSV no lleva CUPS ni direccion: solo fecha, hora, kWh y metodo.
    * - Excedentes: 'auto' (home) anade la columna si hay algun valor > 0; 'con' la anade siempre y
-   *   'sin' nunca (simulador solar, segun decidirSolar). Con columna, una hora sin dato va a 0: la
-   *   home lo avisa y el solar solo llega aqui si cada mes tiene dato en >= 97 % de sus horas.
+   *   'sin' nunca (simulador solar, segun decidirSolar). Con columna, una hora sin dato va a 0
+   *   (ver evaluarExcedentes); un mes ENTERO sin dato lo avisa la home y lo decide el solar.
    */
   function construirCsv(filas, rango, modoExcedentes) {
     const lista = Array.isArray(filas) ? filas : [];
@@ -226,9 +310,11 @@
       if (!porDia.has(f.date)) porDia.set(f.date, []);
       porDia.get(f.date).push(f);
     }
+    // Solo con las filas DEL RANGO: excedentes de dias que el usuario ha dejado fuera no deben
+    // crear la columna (sus horas saldrian como ceros que nadie ha medido).
     const hayExcedentes = modoExcedentes === 'con' ? true
       : modoExcedentes === 'sin' ? false
-        : lista.some((f) => f && Number(f.surplusEnergyKWh) > 0);
+        : [...porDia.values()].some((arr) => arr.some((f) => tieneConsumo(f) && Number(f.surplusEnergyKWh) > 0));
     const cab = ['CUPS', 'Fecha', 'Hora', 'Consumo_kWh', 'Metodo_obtencion'];
     if (hayExcedentes) cab.push('Energia_vertida_kWh');
     const out = [cab.join(';')];
@@ -520,30 +606,44 @@
     }
     if (o.senal && o.senal.aborted) throw new DatadisError('cancelado');
 
-    const ev = evaluarExcedentes(filas, rango);
-
     if (solar) {
-      if (!ev.meses.length) throw new DatadisError('sindatos');
-      const decision = decidirSolar(leerAutoconsumo(contrato), ev);
+      // 1) Consumo: contra las horas que DEBERIAN llegar, no contra las que llegan.
+      const cob = evaluarCobertura(filas, rango);
+      if (!cob.usados.length) throw new DatadisError('sindatos');
+      if (cob.fallos.length) {
+        const err = new DatadisError('solar');
+        err.detalle = textoCoberturaSolar(cob);
+        throw err;
+      }
+      const rangoUsado = cob.omitidos.length
+        ? Object.assign({}, rango, { iniYmd: `${cob.usados[0]}/01`, iniMes: cob.usados[0] })
+        : rango;
+      // 2) Excedentes, solo en los meses que se importan.
+      const evSolar = evaluarExcedentes(filas, rangoUsado);
+      const decision = decidirSolar(leerAutoconsumo(contrato), evSolar);
       if (decision.accion === 'bloquear') {
         const err = new DatadisError('solar');
-        err.detalle = textoBloqueoSolar(decision, ev);
+        err.detalle = textoBloqueoSolar(decision, evSolar);
         throw err;
       }
       if (decision.accion === 'confirmar') {
-        const ok = await o.confirmar(textoConfirmacionSolar(decision), decision.motivo === 'ceros'
-          ? 'Importar con excedentes a 0' : 'No vierto excedentes: importar solo el consumo');
+        const textoSi = decision.motivo === 'ceros' ? 'Importar con excedentes a 0'
+          : decision.motivo === 'meses-cero' || decision.motivo === 'meses-sin-dato' ? 'Importar con esos meses a 0'
+            : 'No vierto excedentes: importar solo el consumo';
+        const ok = await o.confirmar(textoConfirmacionSolar(decision, evSolar), textoSi);
         if (!ok) throw new DatadisError('cancelado');
       }
-      const { csv: csvSolar, filasUsadas: usadasSolar } = construirCsv(filas, rango, decision.excedentes);
+      const { csv: csvSolar, filasUsadas: usadasSolar } = construirCsv(filas, rangoUsado, decision.excedentes);
       if (!usadasSolar) throw new DatadisError('sindatos');
       return {
         destino: 'solar',
-        fichero: new File([csvSolar], 'datadis-12-meses.csv', { type: 'text/csv' }),
-        avisos: avisosSolar(decision, ev, rango),
+        fichero: new File([csvSolar], `datadis-${cob.usados.length}-meses.csv`, { type: 'text/csv' }),
+        avisos: avisosSolar(decision, evSolar, rangoUsado, cob),
         potencias
       };
     }
+
+    const ev = evaluarExcedentes(filas, rango);
 
     const { csv, filasUsadas } = construirCsv(filas, rango);
     if (!filasUsadas) throw new DatadisError('sindatos');
@@ -567,8 +667,8 @@
     });
     // Hay excedentes, pero no de todos los meses: en la home cuentan como 0 (estimacion rapida),
     // asi que se dice expresamente cuales faltan.
-    if (ev.hayPositivos && ev.mesesIncompletos.length) {
-      resultado.warnings.push(`Datadis no ha enviado todos los excedentes de ${listaMeses(ev.mesesIncompletos)}: las horas sin dato cuentan como 0 kWh vertidos. Revisa el total de excedentes después de aplicar.`);
+    if (ev.hayPositivos && ev.mesesSinDato.length) {
+      resultado.warnings.push(`Datadis no ha enviado ningún dato de excedentes de ${listaMeses(ev.mesesSinDato)}: esos meses cuentan como 0 kWh vertidos. Revisa el total de excedentes después de aplicar.`);
     }
     if (potencias) {
       resultado.potenciaContratada = potencias;
@@ -588,20 +688,38 @@
     return e.length <= 1 ? (e[0] || '') : `${e.slice(0, -1).join(', ')} y ${e[e.length - 1]}`;
   }
 
+  function textoCoberturaSolar(cob) {
+    const lista = cob.fallos.map((m) => `${etiquetaMes(m.mes)} (${Math.floor(m.cobertura * 100)} %)`);
+    const texto = lista.length <= 1 ? (lista[0] || '') : `${lista.slice(0, -1).join(', ')} y ${lista[lista.length - 1]}`;
+    return `Datadis no ha enviado completos los consumos de ${texto}. ` +
+      'Con meses incompletos el simulador infravaloraría tu consumo, así que no importamos. ' +
+      'Suele ser un retraso de tu distribuidora: vuelve a probar dentro de unos días, o descarga el CSV desde Datadis o desde tu distribuidora y usa «Seleccionar archivo CSV».';
+  }
+
   function textoBloqueoSolar(decision, ev) {
     if (decision.motivo === 'parcial') {
-      return `Datadis no ha enviado los excedentes de todos los meses (faltan total o parcialmente: ${listaMeses(ev.mesesIncompletos)}). ` +
-        'Con meses sin dato el simulador calcularía como si no hubieras vertido nada, así que no importamos. ' +
+      return `Datadis no ha enviado ningún dato de excedentes de ${listaMeses(ev.mesesSinDato)}, aunque sí de otros meses. ` +
+        'En meses de tanto sol es muy improbable que no vertieras nada, y el simulador calcularía como si no lo hubieras hecho, así que no importamos. ' +
         'Descarga el CSV desde Datadis o desde tu distribuidora y usa «Seleccionar archivo CSV», o rellena los excedentes a mano en la tabla mensual.';
     }
-    return 'Tu contrato figura en Datadis con autoconsumo con excedentes, pero Datadis no ha enviado ningún dato de excedentes. ' +
+    return 'Tu contrato figura en Datadis con autoconsumo con excedentes, pero Datadis no ha enviado ni un kWh vertido en todo el periodo. ' +
       'Si importáramos solo el consumo, el simulador calcularía como si no vertieras nada, así que no importamos. ' +
       'Descarga el CSV desde Datadis o desde tu distribuidora y usa «Seleccionar archivo CSV», o rellena los excedentes a mano en la tabla mensual.';
   }
 
-  function textoConfirmacionSolar(decision) {
+  function textoConfirmacionSolar(decision, ev) {
+    if (decision.motivo === 'meses-sin-dato') {
+      return `Datadis no ha enviado ningún dato de excedentes de ${listaMeses(ev.mesesSinDato)}, aunque sí de otros meses. ` +
+        'Son meses de poco sol y algunas distribuidoras no envían el dato cuando no hay vertido, así que puede ser correcto. ' +
+        'Si en esos meses vertiste algo, no importes: el simulador calcularía como si no lo hubieras hecho. Usa el CSV o corrige la tabla a mano.';
+    }
+    if (decision.motivo === 'meses-cero') {
+      return `Datadis indica 0 kWh vertidos en ${listaMeses(ev.mesesACero)}, mientras que el resto de meses sí vertiste. ` +
+        'Puede ser correcto (por ejemplo, si la instalación es posterior o estuvo parada) o que tu distribuidora no haya publicado esos meses. ' +
+        'Si en esos meses produjiste, no importes: el simulador calcularía como si no hubieras vertido nada. Usa el CSV o corrige la tabla a mano.';
+    }
     if (decision.motivo === 'ceros') {
-      return 'Tu contrato figura con autoconsumo con excedentes, pero Datadis indica 0 kWh vertidos en los 12 meses. ' +
+      return 'Tu contrato figura con autoconsumo con excedentes, pero Datadis indica 0 kWh vertidos en todo el periodo. ' +
         'Puede ser correcto (por ejemplo, si la instalación es muy reciente) o un fallo de tu distribuidora. ' +
         'Si en este año sí vertiste, no importes: usa el CSV o rellena los excedentes a mano.';
     }
@@ -610,14 +728,22 @@
       'Si sí viertes, no importes: el simulador calcularía como si no vertieras nada. Usa el CSV o rellena los excedentes a mano.';
   }
 
-  function avisosSolar(decision, ev, rango) {
+  function avisosSolar(decision, ev, rango, cob) {
     const avisos = [`Datos de Datadis: ${etiquetaMes(rango.iniMes)} a ${etiquetaMes(rango.finMes)}.`];
+    if (cob && cob.omitidos.length) {
+      avisos.push(`Datadis no tiene datos completos anteriores a ${etiquetaMes(rango.iniMes)} (suministro reciente o cambio de titular): se simulan ${cob.usados.length} meses.`);
+    }
+    if (cob && cob.huecos.length) {
+      const faltan = cob.huecos.reduce((suma, m) => suma + (m.esperadas - m.horas), 0);
+      avisos.push(`${faltan === 1 ? 'Falta 1 hora' : `Faltan ${faltan} horas`} de consumo en ${listaMeses(cob.huecos.map((m) => m.mes))} (menos del 2 % de cada mes).`);
+    }
     if (decision.excedentes === 'con') {
       if (ev.horasSinDato > 0) {
-        avisos.push(`${ev.horasSinDato} horas sin dato de excedentes en Datadis (menos del 3 % de cada mes) se han tomado como 0 kWh.`);
+        avisos.push(`En ${ev.horasSinDato === 1 ? '1 hora' : `${ev.horasSinDato} horas`} Datadis no envió el dato de excedentes y se han tomado como 0 kWh (algunas distribuidoras no lo envían cuando no hay vertido).`);
       }
-      if (ev.mesesACero.length) {
-        avisos.push(`Datadis indica 0 kWh vertidos en ${listaMeses(ev.mesesACero)}. Si esos meses produjiste, compruébalo en tu factura y corrige la tabla.`);
+      const aCero = ev.mesesSinDato.concat(ev.mesesACero).sort();
+      if (aCero.length) {
+        avisos.push(`Importado con 0 kWh vertidos en ${listaMeses(aCero)}, como has confirmado.`);
       }
     } else if (decision.motivo === 'sin') {
       avisos.push('Tu contrato es de autoconsumo sin excedentes: se importa el consumo y los excedentes quedan a 0.');
@@ -1068,6 +1194,8 @@
     rangoPersonalizado,
     etiquetaMes,
     construirCsv,
+    horasEsperadasMes,
+    evaluarCobertura,
     evaluarExcedentes,
     leerAutoconsumo,
     decidirSolar,

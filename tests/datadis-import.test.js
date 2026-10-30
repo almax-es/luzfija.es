@@ -296,7 +296,7 @@ describe('evaluarExcedentes', () => {
     expect(ev.estado).toBe('completo');
     expect(ev.hayPositivos).toBe(true);
     expect(ev.meses.length).toBe(12);
-    expect(ev.mesesIncompletos).toEqual([]);
+    expect(ev.mesesSinDato).toEqual([]);
   });
 
   it('null en todo el año: ausente (no es un cero)', () => {
@@ -314,10 +314,18 @@ describe('evaluarExcedentes', () => {
   it('meses sin dato entre meses con dato: parcial, y dice cuales', () => {
     const ev = D.evaluarExcedentes(mesesSolar(rango, (mes) => (mes === '2026/07' || mes === '2026/08' ? null : 0.3)), rango);
     expect(ev.estado).toBe('parcial');
-    expect(ev.mesesIncompletos).toEqual(['2026/07', '2026/08']);
+    expect(ev.mesesSinDato).toEqual(['2026/07', '2026/08']);
   });
 
-  it('unas pocas horas sueltas sin dato (< 3 %) no rompen el mes, pero se cuentan', () => {
+  it('distribuidoras que no envian el cero: noches en null y dias con valor siguen siendo meses con dato', () => {
+    const filas = mesesSolar(rango, 0.3).map((f) => (Number(f.time.slice(0, 2)) >= 11 && Number(f.time.slice(0, 2)) <= 16 ? f : { ...f, surplusEnergyKWh: null }));
+    const ev = D.evaluarExcedentes(filas, rango);
+    expect(ev.estado).toBe('completo');
+    expect(ev.mesesSinDato).toEqual([]);
+    expect(ev.horasSinDato).toBeGreaterThan(5000);
+  });
+
+  it('unas pocas horas sueltas sin dato no rompen el mes, pero se cuentan', () => {
     const filas = mesesSolar(rango, 0.3);
     filas[100].surplusEnergyKWh = null;
     filas[101].surplusEnergyKWh = null;
@@ -345,22 +353,22 @@ describe('leerAutoconsumo', () => {
     expect(D.leerAutoconsumo(c({ installedCapacityKW: 4.1 }))).toBe('si');
     expect(D.leerAutoconsumo(c({ cau: 'ES0031300000000000AA1A000' }))).toBe('si');
   });
-  it('sin indicios: no hay autoconsumo; sin contrato: no se sabe', () => {
-    expect(D.leerAutoconsumo(c({ selfConsumptionTypeCode: null }))).toBe('no');
+  it('"no hay autoconsumo" exige prueba positiva (codigo 0); si el contrato no dice nada, no se sabe', () => {
     expect(D.leerAutoconsumo(c({ selfConsumptionTypeCode: '00' }))).toBe('no');
+    expect(D.leerAutoconsumo(c({ selfConsumptionTypeCode: null }))).toBeNull();
+    expect(D.leerAutoconsumo(c({}))).toBeNull();
     expect(D.leerAutoconsumo(null)).toBeNull();
   });
 });
 
 describe('decidirSolar: nunca un ranking como si no hubiera excedentes cuando puede haberlos', () => {
-  const ev = (estado, hayPositivos) => ({ estado, hayPositivos, meses: [], mesesIncompletos: [], mesesACero: [], horasSinDato: 0 });
+  const ev = (estado, hayPositivos, extra = {}) => ({ estado, hayPositivos, meses: [], mesesSinDato: [], mesesACero: [], horasSinDato: 0, ...extra });
   it.each([
     // [autoconsumo, estado, positivos, accion, excedentes]
     ['con', 'completo', true, 'importar', 'con'],
     [null, 'completo', true, 'importar', 'con'],
     ['con', 'ausente', false, 'bloquear', undefined],
-    ['con', 'parcial', true, 'bloquear', undefined],
-    [null, 'parcial', true, 'bloquear', undefined],
+    ['con', 'parcial', false, 'bloquear', undefined],
     ['sin', 'ausente', false, 'importar', 'sin'],
     ['no', 'ausente', false, 'importar', 'sin'],
     ['no', 'parcial', false, 'importar', 'sin'],
@@ -371,6 +379,64 @@ describe('decidirSolar: nunca un ranking como si no hubiera excedentes cuando pu
     const d = D.decidirSolar(auto, ev(estado, pos));
     expect(d.accion).toBe(accion);
     if (excedentes) expect(d.excedentes).toBe(excedentes);
+  });
+
+  it('un mes de sol entero sin dato mientras otros vierten: BLOQUEA', () => {
+    expect(D.decidirSolar('con', ev('parcial', true, { mesesSinDato: ['2026/07'] }))).toMatchObject({ accion: 'bloquear', motivo: 'parcial' });
+    expect(D.decidirSolar(null, ev('parcial', true, { mesesSinDato: ['2025/12', '2026/04'] }))).toMatchObject({ accion: 'bloquear' });
+  });
+
+  it('solo meses de invierno sin dato: pregunta (puede ser un cero que la distribuidora no envia)', () => {
+    expect(D.decidirSolar('con', ev('parcial', true, { mesesSinDato: ['2025/12', '2026/01'] }))).toMatchObject({ accion: 'confirmar', excedentes: 'con', motivo: 'meses-sin-dato' });
+  });
+
+  it('un mes entero a 0 mientras otros vierten: pregunta (puede ser un hueco publicado como 0)', () => {
+    expect(D.decidirSolar('con', ev('completo', true, { mesesACero: ['2026/07'] }))).toMatchObject({ accion: 'confirmar', excedentes: 'con', motivo: 'meses-cero' });
+  });
+});
+
+describe('cobertura del consumo contra lo que deberia llegar', () => {
+  const rango = { iniYmd: '2025/10/01', finYmd: '2026/09/30', iniMes: '2025/10', finMes: '2026/09' };
+
+  it('horas esperadas con cambios de hora y rangos parciales', () => {
+    expect(D.horasEsperadasMes('2026/03', rango)).toBe(31 * 24 - 1);
+    expect(D.horasEsperadasMes('2025/10', rango)).toBe(31 * 24 + 1);
+    expect(D.horasEsperadasMes('2026/02', rango)).toBe(28 * 24);
+    expect(D.horasEsperadasMes('2026/09', { ...rango, finYmd: '2026/09/10' })).toBe(10 * 24);
+  });
+
+  it('año completo: 12 meses usados, sin fallos ni huecos', () => {
+    const c = D.evaluarCobertura(mesesSolar(rango, 0.3), rango);
+    expect(c.usados.length).toBe(12);
+    expect(c.fallos).toEqual([]);
+    expect(c.huecos).toEqual([]);
+  });
+
+  it('falta el ultimo mes entero: es un fallo (no basta con que los otros 11 esten completos)', () => {
+    const c = D.evaluarCobertura(mesesSolar(rango, 0.3).filter((f) => !f.date.startsWith('2026/09')), rango);
+    expect(c.fallos.map((m) => m.mes)).toEqual(['2026/09']);
+  });
+
+  it('faltan dias enteros en medio: cuentan contra las horas que deberian existir', () => {
+    const c = D.evaluarCobertura(mesesSolar(rango, 0.3).filter((f) => !/^2026\/05\/(0[1-3])$/.test(f.date)), rango);
+    expect(c.fallos.map((m) => m.mes)).toEqual(['2026/05']);
+    expect(c.fallos[0].cobertura).toBeCloseTo(28 / 31, 3);
+  });
+
+  it('meses vacios al principio (suministro reciente) y un primer mes a medias: se omiten', () => {
+    const filas = mesesSolar(rango, 0.3).filter((f) => f.date >= '2025/12/15');
+    const c = D.evaluarCobertura(filas, rango);
+    expect(c.omitidos).toEqual(['2025/10', '2025/11', '2025/12']);
+    expect(c.usados[0]).toBe('2026/01');
+    expect(c.fallos).toEqual([]);
+  });
+
+  it('una hora suelta de menos: se acepta como hueco y se avisa', () => {
+    const filas = mesesSolar(rango, 0.3);
+    filas.splice(500, 1);
+    const c = D.evaluarCobertura(filas, rango);
+    expect(c.fallos).toEqual([]);
+    expect(c.huecos.length).toBe(1);
   });
 });
 
@@ -697,11 +763,23 @@ describe('importar (fetch simulado)', () => {
     expect(q.get('endDate')).toBe(rango.finMes);
   });
 
+  it('home: excedentes solo en dias FUERA del periodo elegido no crean la columna de excedentes', async () => {
+    const rango = { iniYmd: '2026/09/15', finYmd: '2026/10/14', iniMes: '2026/09', finMes: '2026/10' };
+    const filas = [];
+    for (let d = new Date(2026, 8, 1); d <= new Date(2026, 9, 31); d.setDate(d.getDate() + 1)) {
+      const f = ymd(d);
+      filas.push(...diaDatadis(f, { tipo: f.endsWith('/10/25') ? 'otono' : 'normal', surplus: f <= '2026/09/14' ? 0.4 : null }));
+    }
+    respuestas.consumo = () => json(200, { timeCurve: filas });
+    await ejecutar({ rango, conPotencia: false });
+    expect(textoCsv.split('\r\n')[0]).not.toContain('Energia_vertida_kWh');
+  });
+
   it('home: si faltan excedentes de algunos meses lo dice expresamente', async () => {
     const rango = D.rangoUltimosDias(new Date());
     respuestas.consumo = () => json(200, { timeCurve: añoCompleto(rango).map((f) => ({ ...f, surplusEnergyKWh: f.date.slice(5, 7) === '07' ? null : 0.2 })) });
     const r = await ejecutar({ conPotencia: false });
-    expect(r.warnings.join('\n')).toMatch(/no ha enviado todos los excedentes de julio de \d{4}/);
+    expect(r.warnings.join('\n')).toMatch(/no ha enviado ningún dato de excedentes de julio de \d{4}/);
   });
 
   // ---- Simulador solar ----
@@ -737,14 +815,67 @@ describe('importar (fetch simulado)', () => {
       respuestas.consumo = () => json(200, { timeCurve: mesesSolar(rangoSolar(), null) });
       const e = await ejecutarSolar().catch((x) => x);
       expect(e).toMatchObject({ code: 'solar' });
-      expect(D.textoError(e)).toContain('no ha enviado ningún dato de excedentes');
+      expect(D.textoError(e)).toContain('ni un kWh vertido en todo el periodo');
     });
 
-    it('excedentes solo de algunos meses: BLOQUEA y nombra los meses', async () => {
-      respuestas.consumo = () => json(200, { timeCurve: mesesSolar(rangoSolar(), (_mes, i) => (i === 5 ? null : 0.3)) });
+    it('un mes de sol entero sin excedentes: BLOQUEA y nombra el mes', async () => {
+      respuestas.consumo = () => json(200, { timeCurve: mesesSolar(rangoSolar(), (mes) => (mes.endsWith('/07') ? null : 0.3)) });
       const e = await ejecutarSolar().catch((x) => x);
       expect(e).toMatchObject({ code: 'solar' });
-      expect(D.textoError(e)).toContain(D.etiquetaMes(D.evaluarExcedentes(mesesSolar(rangoSolar(), (_m, i) => (i === 5 ? null : 0.3)), rangoSolar()).mesesIncompletos[0]));
+      expect(D.textoError(e)).toMatch(/ningún dato de excedentes de julio de \d{4}/);
+    });
+
+    it('solo un mes de invierno sin excedentes: pregunta y, si se confirma, lo importa a 0 diciendolo', async () => {
+      respuestas.consumo = () => json(200, { timeCurve: mesesSolar(rangoSolar(), (mes) => (mes.endsWith('/12') ? null : 0.3)) });
+      const confirmar = vi.fn(async () => true);
+      const r = await ejecutarSolar({ confirmar });
+      expect(confirmar.mock.calls[0][0]).toMatch(/diciembre de \d{4}/);
+      expect(confirmar.mock.calls[0][1]).toBe('Importar con esos meses a 0');
+      expect(r.avisos.join(' ')).toMatch(/Importado con 0 kWh vertidos en diciembre de \d{4}, como has confirmado/);
+    });
+
+    it('distribuidora que no envia el cero (noches en null): importa sin preguntar y lo explica', async () => {
+      const filas = mesesSolar(rangoSolar(), 0.3).map((f) => {
+        const h = Number(f.time.slice(0, 2));
+        return h >= 11 && h <= 16 ? f : { ...f, surplusEnergyKWh: null };
+      });
+      respuestas.consumo = () => json(200, { timeCurve: filas });
+      const confirmar = vi.fn(async () => true);
+      const r = await ejecutarSolar({ confirmar });
+      expect(confirmar).not.toHaveBeenCalled();
+      expect(r.avisos.join(' ')).toContain('no envió el dato de excedentes y se han tomado como 0 kWh');
+    });
+
+    it('falta el ultimo mes entero: BLOQUEA (no se aceptan 11 de 12)', async () => {
+      const ultimo = rangoSolar().finMes;
+      respuestas.consumo = () => json(200, { timeCurve: mesesSolar(rangoSolar(), 0.3).filter((f) => !f.date.startsWith(ultimo)) });
+      const e = await ejecutarSolar().catch((x) => x);
+      expect(e).toMatchObject({ code: 'solar' });
+      expect(D.textoError(e)).toContain(`${D.etiquetaMes(ultimo)} (0 %)`);
+    });
+
+    it('faltan dias en medio del año: BLOQUEA con la cobertura del mes', async () => {
+      const mes = rangoSolar().iniMes;
+      const medio = new Date(Number(mes.slice(0, 4)), Number(mes.slice(5, 7)) - 1 + 6, 1);
+      const mesMedio = `${medio.getFullYear()}/${pad(medio.getMonth() + 1)}`;
+      respuestas.consumo = () => json(200, { timeCurve: mesesSolar(rangoSolar(), 0.3).filter((f) => !(f.date.startsWith(mesMedio) && Number(f.date.slice(8)) <= 3)) });
+      const e = await ejecutarSolar().catch((x) => x);
+      expect(e).toMatchObject({ code: 'solar' });
+      expect(D.textoError(e)).toContain(D.etiquetaMes(mesMedio));
+      expect(D.textoError(e)).toContain('infravaloraría tu consumo');
+    });
+
+    it('suministro reciente (sin los primeros meses): importa los que hay y lo dice', async () => {
+      const r0 = rangoSolar();
+      const inicio = new Date(Number(r0.iniMes.slice(0, 4)), Number(r0.iniMes.slice(5, 7)) - 1 + 3, 1);
+      const desde = `${inicio.getFullYear()}/${pad(inicio.getMonth() + 1)}/01`;
+      respuestas.consumo = () => json(200, { timeCurve: mesesSolar(r0, 0.3).filter((f) => f.date >= desde) });
+      const r = await ejecutarSolar();
+      expect(r.fichero.name).toBe('datadis-9-meses.csv');
+      expect(r.avisos.join(' ')).toContain('se simulan 9 meses');
+      const csv = await r.fichero.text();
+      const [y, m] = desde.split('/');
+      expect(csv.split('\r\n')[1]).toContain(`01/${m}/${y}`);
     });
 
     it('autoconsumo sin excedentes: importa el consumo con excedentes a 0 sin preguntar', async () => {
@@ -758,7 +889,7 @@ describe('importar (fetch simulado)', () => {
     });
 
     it('sin autoconsumo: importa solo el consumo', async () => {
-      respuestas.contract = contrato({ selfConsumptionTypeCode: null });
+      respuestas.contract = contrato({ selfConsumptionTypeCode: '00' });
       respuestas.consumo = () => json(200, { timeCurve: mesesSolar(rangoSolar(), null) });
       const r = await ejecutarSolar();
       expect(await r.fichero.text()).not.toContain('Energia_vertida_kWh');
@@ -781,6 +912,17 @@ describe('importar (fetch simulado)', () => {
       const r = await ejecutarSolar({ confirmar });
       expect(confirmar.mock.calls[0][1]).toBe('Importar con excedentes a 0');
       expect(await r.fichero.text()).toContain('Energia_vertida_kWh');
+    });
+
+    it('un mes a 0 kWh entre meses que vierten: pregunta nombrando el mes; si no confirma, no importa', async () => {
+      respuestas.contract = contrato({ selfConsumptionTypeDesc: 'Con excedentes y compensación Individual - Consumo' });
+      const filas = mesesSolar(rangoSolar(), (_mes, i) => (i === 9 ? 0 : 0.3));
+      respuestas.consumo = () => json(200, { timeCurve: filas });
+      const confirmar = vi.fn(async () => false);
+      await expect(ejecutarSolar({ confirmar })).rejects.toMatchObject({ code: 'cancelado' });
+      const mesCero = D.evaluarExcedentes(filas, rangoSolar()).mesesACero[0];
+      expect(confirmar.mock.calls[0][0]).toContain(D.etiquetaMes(mesCero));
+      expect(confirmar.mock.calls[0][1]).toBe('Importar con esos meses a 0');
     });
 
     it('la potencia del contrato solo se devuelve si se pide', async () => {
