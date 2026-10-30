@@ -43,6 +43,7 @@
   const T_SUMINISTROS = 180000;
   const T_CONTRATO = 60000;
   const T_CONSUMO = 300000;
+  const T_CONSUMO_MES = 120000;
 
   // Lo ya descargado en esta pagina (solo memoria). Evita repetir una consulta que Datadis
   // rechazaria durante 24 h si el usuario vuelve a abrir el modal.
@@ -106,12 +107,23 @@
     if (!ini || !fin) return { error: 'formato' };
     const hoy = hoyLocal(now);
     const ayer = new Date(hoy.getFullYear(), hoy.getMonth(), hoy.getDate() - 1);
-    const minimo = new Date(hoy.getFullYear() - 2, hoy.getMonth(), hoy.getDate());
     if (ini > fin) return { error: 'orden' };
     if (fin > ayer) return { error: 'futuro' };
-    if (ini < minimo) return { error: 'antiguo' };
+    if (ini < inicioMasAntiguo(hoy)) return { error: 'antiguo' };
     if (Math.round((fin - ini) / 86400000) + 1 > DIAS_HISTORICO) return { error: 'largo' };
     return { rango: { iniYmd: fmtYmd(ini), finYmd: fmtYmd(fin), iniMes: fmtYm(ini), finMes: fmtYm(fin) } };
+  }
+
+  /**
+   * Primer dia que se puede pedir. Datadis rechaza (HTTP 400) una consulta cuyo mes de inicio
+   * empiece hace mas de 2 anos, y las consultas son por mes: vale el primer mes cuyo dia 1 este
+   * dentro de esos 2 anos (no basta con que lo este el dia elegido).
+   */
+  function inicioMasAntiguo(now) {
+    const hoy = hoyLocal(now);
+    const limite = new Date(hoy.getFullYear() - 2, hoy.getMonth(), hoy.getDate());
+    const mes = new Date(limite.getFullYear(), limite.getMonth(), 1);
+    return mes >= limite ? mes : new Date(limite.getFullYear(), limite.getMonth() + 1, 1);
   }
 
   /** '2025/10' -> 'octubre de 2025' */
@@ -120,8 +132,32 @@
     return m ? `${MESES[Number(m[2]) - 1]} de ${m[1]}` : String(ym || '');
   }
 
+  /**
+   * Valor numerico de un campo de Datadis o NaN si no hay dato. Una cadena vacia NO es 0: Datadis
+   * deja vacias las horas sin lectura (por ejemplo, el primer dia de alta del contador).
+   */
+  function numero(v) {
+    if (typeof v === 'number') return Number.isFinite(v) ? v : NaN;
+    if (typeof v !== 'string' || !v.trim()) return NaN;
+    return Number(v.trim().replace(',', '.'));
+  }
+
+  /** Hora de la etiqueta de Datadis ('01:00'..'24:00'). */
+  function horaEtiqueta(f) {
+    return parseInt(String(f && f.time), 10);
+  }
+
+  /**
+   * Fila util: fecha valida y hora distinta de 00:00. Algunas distribuidoras anaden una fila
+   * "00:00" (vacia) en dias que ya traen sus 24 horas, sobre todo el primer dia de alta del
+   * contador; contarla convertiria ese dia en uno de 25 h y desplazaria todas sus horas.
+   */
+  function filaUtil(f) {
+    return !!f && typeof f.date === 'string' && /^\d{4}\/\d{2}\/\d{2}$/.test(f.date) && horaEtiqueta(f) !== 0;
+  }
+
   function tieneConsumo(f) {
-    return f && f.consumptionKWh !== null && f.consumptionKWh !== undefined && Number.isFinite(Number(f.consumptionKWh));
+    return filaUtil(f) && Number.isFinite(numero(f.consumptionKWh));
   }
 
   const UMBRAL_COBERTURA = 0.98;
@@ -205,10 +241,10 @@
       if (!meses.has(mes)) meses.set(mes, { mes, horas: 0, conDato: 0, positivos: 0, kwh: 0 });
       const m = meses.get(mes);
       m.horas++;
-      const v = f.surplusEnergyKWh;
-      if (v !== null && v !== undefined && v !== '' && Number.isFinite(Number(v))) {
+      const v = numero(f.surplusEnergyKWh);
+      if (Number.isFinite(v)) {
         m.conDato++;
-        if (Number(v) > 0) { m.positivos++; m.kwh += Number(v); }
+        if (v > 0) { m.positivos++; m.kwh += v; }
       }
     }
     const lista = [...meses.values()].sort((a, b) => a.mes.localeCompare(b.mes));
@@ -227,22 +263,31 @@
     };
   }
 
+  // Tipo de autoconsumo (tabla 113 de los formatos CNMC). Conviven dos codificaciones oficiales:
+  // la antigua (31-33 sin excedentes; 41-43, 51-58, 61-64 y 71-74 con excedentes) y la nueva
+  // (11 sin excedentes, 12 con excedentes). 00 = sin autoconsumo. 0C (baja de un autoconsumo
+  // colectivo) y los tipos del regimen anterior (01, 2A, 2B, 2G) no se clasifican: "no se sabe".
+  const AUTOCONSUMO_SIN_EXCEDENTES = ['11', '31', '32', '33'];
+  const AUTOCONSUMO_CON_EXCEDENTES = ['12', '41', '42', '43', '51', '52', '53', '54', '55', '56', '57', '58',
+    '61', '62', '63', '64', '71', '72', '73', '74'];
+
   /**
    * Que dice el contrato sobre autoconsumo: 'con' | 'sin' (excedentes) | 'si' (autoconsumo de
-   * tipo no identificable) | 'no' | null (no se sabe). Se basa en la DESCRIPCION y en indicios
-   * (codigo distinto de 0, potencia instalada, CAU), no en una tabla de codigos concreta: no se
-   * ha podido contrastar con la fuente oficial cual corresponde a cada modalidad.
-   * 'no' exige una prueba POSITIVA (codigo 0 o "sin autoconsumo"): si el contrato no dice nada,
+   * tipo no identificable) | 'no' | null (no se sabe). Primero la DESCRIPCION, despues el CODIGO
+   * de la tabla 113 y por ultimo indicios (potencia instalada, CAU).
+   * 'no' exige una prueba POSITIVA (codigo 00 o "sin autoconsumo"): si el contrato no dice nada,
    * es "no se sabe", nunca "no hay placas".
    */
   function leerAutoconsumo(respuestaContrato) {
-    const c = respuestaContrato && Array.isArray(respuestaContrato.contract) ? respuestaContrato.contract[0] : null;
+    const c = contratoVigente(respuestaContrato);
     if (!c) return null;
     const desc = String(c.selfConsumptionTypeDesc || '');
     if (/sin\s+autoconsumo/i.test(desc)) return 'no';
     if (/sin\s+excedentes/i.test(desc)) return 'sin';
     if (/con\s+excedentes/i.test(desc)) return 'con';
-    const code = String(c.selfConsumptionTypeCode == null ? '' : c.selfConsumptionTypeCode).trim();
+    const code = String(c.selfConsumptionTypeCode == null ? '' : c.selfConsumptionTypeCode).trim().toUpperCase();
+    if (AUTOCONSUMO_SIN_EXCEDENTES.includes(code)) return 'sin';
+    if (AUTOCONSUMO_CON_EXCEDENTES.includes(code)) return 'con';
     const cap = Number(c.installedCapacityKW != null ? c.installedCapacityKW : c.installedCapacity);
     if ((code && !/^0+$/.test(code)) || (Number.isFinite(cap) && cap > 0) || (typeof c.cau === 'string' && c.cau.trim())) return 'si';
     if (/^0+$/.test(code)) return 'no';
@@ -305,7 +350,7 @@
     const lista = Array.isArray(filas) ? filas : [];
     const porDia = new Map();
     for (const f of lista) {
-      if (!f || typeof f.date !== 'string' || !/^\d{4}\/\d{2}\/\d{2}$/.test(f.date)) continue;
+      if (!filaUtil(f)) continue; // incluida la fila 00:00 de mas: no cuenta para las 24/25 h
       if (rango && (f.date < rango.iniYmd || f.date > rango.finYmd)) continue;
       if (!porDia.has(f.date)) porDia.set(f.date, []);
       porDia.get(f.date).push(f);
@@ -314,7 +359,7 @@
     // crear la columna (sus horas saldrian como ceros que nadie ha medido).
     const hayExcedentes = modoExcedentes === 'con' ? true
       : modoExcedentes === 'sin' ? false
-        : [...porDia.values()].some((arr) => arr.some((f) => tieneConsumo(f) && Number(f.surplusEnergyKWh) > 0));
+        : [...porDia.values()].some((arr) => arr.some((f) => tieneConsumo(f) && numero(f.surplusEnergyKWh) > 0));
     const cab = ['CUPS', 'Fecha', 'Hora', 'Consumo_kWh', 'Metodo_obtencion'];
     if (hayExcedentes) cab.push('Energia_vertida_kWh');
     const out = [cab.join(';')];
@@ -323,12 +368,13 @@
       const arr = porDia.get(dia);
       const [y, m, d] = dia.split('/');
       arr.forEach((f, i) => {
-        if (f.consumptionKWh === null || f.consumptionKWh === undefined || !Number.isFinite(Number(f.consumptionKWh))) return;
-        const hora = arr.length === 25 ? i + 1 : parseInt(String(f.time), 10);
+        if (!tieneConsumo(f)) return;
+        const hora = arr.length === 25 ? i + 1 : horaEtiqueta(f);
         if (!Number.isFinite(hora) || hora < 1 || hora > 25) return;
         const metodo = /^real$/i.test(String(f.obtainMethod || '').trim()) ? 'Real' : 'Estimada';
-        const fila = ['CUPS', `${d}/${m}/${y}`, hora, decimalEs(f.consumptionKWh), metodo];
-        if (hayExcedentes) fila.push(Number(f.surplusEnergyKWh) > 0 ? decimalEs(f.surplusEnergyKWh) : '0');
+        const fila = ['CUPS', `${d}/${m}/${y}`, hora, decimalEs(numero(f.consumptionKWh)), metodo];
+        const vertido = numero(f.surplusEnergyKWh);
+        if (hayExcedentes) fila.push(vertido > 0 ? decimalEs(vertido) : '0');
         out.push(fila.join(';'));
         filasUsadas++;
       });
@@ -336,9 +382,23 @@
     return { csv: out.join('\r\n') + '\r\n', filasUsadas, diasConDatos: porDia.size, hayExcedentes };
   }
 
-  /** Potencias del contrato (kW) o null si no son creibles. */
+  /**
+   * El contrato VIGENTE de la respuesta. get-contract-detail puede devolver varios (cambio de
+   * potencia, de titular o de modalidad de autoconsumo): el que no tiene fecha de fin y, si hay
+   * varios o ninguno, el de inicio mas reciente.
+   */
+  function contratoVigente(respuestaContrato) {
+    const lista = respuestaContrato && Array.isArray(respuestaContrato.contract)
+      ? respuestaContrato.contract.filter((c) => c && typeof c === 'object') : [];
+    if (lista.length <= 1) return lista[0] || null;
+    const abiertos = lista.filter((c) => !c.endDate);
+    const candidatos = abiertos.length ? abiertos : lista;
+    return candidatos.slice().sort((a, b) => String(b.startDate || '').localeCompare(String(a.startDate || '')))[0];
+  }
+
+  /** Potencias del contrato vigente (kW) o null si no son creibles. */
   function leerPotencias(respuestaContrato) {
-    const c = respuestaContrato && Array.isArray(respuestaContrato.contract) ? respuestaContrato.contract[0] : null;
+    const c = contratoVigente(respuestaContrato);
     const p = c && Array.isArray(c.contractedPowerkW) ? c.contractedPowerkW : null;
     if (!p) return null;
     const ok = (v) => typeof v === 'number' && Number.isFinite(v) && v >= 0.1 && v <= 100;
@@ -417,13 +477,18 @@
       body: new URLSearchParams({ username: nif, password: clave }).toString()
     }, T_LOGIN, senal);
     if (r.ok) {
-      const t = r.text.trim();
+      // El token llega como texto plano; se acepta tambien entre comillas o dentro de { token }.
+      let t = r.text.trim();
+      if (t.startsWith('{')) {
+        try { t = String(JSON.parse(t).token || ''); } catch { t = ''; }
+      }
+      t = t.replace(/^"|"$/g, '').trim();
       if (!/^[\w-]+\.[\w-]+\.[\w-]*$/.test(t)) throw new DatadisError('http', r.status);
       return t;
     }
     const m = mensajeServidor(r.text);
     if (/user blocked/i.test(m)) throw new DatadisError('bloqueado', r.status);
-    if (r.status === 401 || /bad credentials/i.test(m)) throw new DatadisError('credenciales', r.status);
+    if (r.status === 401 || r.status === 403 || /bad credentials/i.test(m)) throw new DatadisError('credenciales', r.status);
     throw new DatadisError('http', r.status);
   }
 
@@ -436,12 +501,18 @@
     if (r.status === 401) throw new DatadisError('sesion', r.status);
     if (r.status === 429) throw new DatadisError('repeticion', r.status);
     if (!r.ok) {
-      if (/24 ?h|repet|repeat|identical|misma consulta|already/i.test(mensajeServidor(r.text))) {
+      // El aviso de consulta repetida puede venir como JSON { message } o como texto plano.
+      const aviso = mensajeServidor(r.text) || String(r.text || '').slice(0, 300);
+      if (/24 ?h|repet|repeat|identical|misma consulta|already/i.test(aviso)) {
         throw new DatadisError('repeticion', r.status);
       }
       throw new DatadisError('http', r.status);
     }
-    try { return JSON.parse(r.text); } catch { throw new DatadisError('http', r.status); }
+    // Una respuesta vacia (o el literal null) es "sin datos", no un error: asi, en consumos, se
+    // pasa a pedir mes a mes como cuando el periodo llega vacio.
+    const cuerpo = String(r.text || '').trim();
+    if (!cuerpo || cuerpo === 'null') return [];
+    try { return JSON.parse(cuerpo); } catch { throw new DatadisError('http', r.status); }
   }
 
   // ===== Contador de fallos de login =====
@@ -591,17 +662,41 @@
       if (suministro.pointType !== undefined && suministro.pointType !== null && suministro.pointType !== '') {
         params.pointType = String(suministro.pointType);
       }
-      let r;
+      // Sin la senal del usuario A PROPOSITO: una vez pedida, Datadis cuenta la consulta aunque se
+      // cancele, y repetirla daria error 24 h. Se deja terminar y se guarda en memoria, asi un
+      // segundo intento en esta pagina no vuelve a pedirla.
+      const pedir = async (ini, fin, ms) => {
+        const r = await consultar('/api-private/api/get-consumption-data-v2',
+          Object.assign({}, params, { startDate: ini, endDate: fin }), token, ms, null);
+        return Array.isArray(r) ? r : (r && Array.isArray(r.timeCurve) ? r.timeCurve : []);
+      };
+      let errorPeriodo = null;
       try {
-        // Sin la senal del usuario A PROPOSITO: una vez pedida, Datadis cuenta la consulta aunque
-        // se cancele, y repetirla daria error 24 h. Se deja terminar y se guarda en memoria, asi
-        // un segundo intento en esta pagina no vuelve a pedirla.
-        r = await consultar('/api-private/api/get-consumption-data-v2', params, token, T_CONSUMO, null);
+        filas = await pedir(rango.iniMes, rango.finMes, T_CONSUMO);
       } catch (e) {
         if (e && e.code === 'http') e.paso = 'consumos';
-        throw e;
+        // Sesion caducada, red caida, tiempo agotado o consulta repetida: pedir mes a mes no lo arregla.
+        if (!e || e.code !== 'http') throw e;
+        errorPeriodo = e;
+        filas = [];
       }
-      filas = Array.isArray(r) ? r : (r && Array.isArray(r.timeCurve) ? r.timeCurve : []);
+      // Algunas distribuidoras rechazan (error 500) o devuelven vacia cualquier consulta que
+      // incluya el primer mes de un contrato, y se perderia el periodo entero. Mes a mes, del mas
+      // reciente al mas antiguo, un mes roto solo se pierde a si mismo; la cobertura lo detecta.
+      if (!filas.length && rango.iniMes !== rango.finMes) {
+        o.onProgreso('consumos-mes');
+        const trozos = [];
+        for (const mes of mesesDelRango(rango).reverse()) {
+          try {
+            trozos.unshift(await pedir(mes, mes, T_CONSUMO_MES));
+          } catch (e) {
+            if (e && (e.code === 'sesion' || e.code === 'red')) throw e;
+            // un mes que falla (500, vacio, repetido) se deja fuera
+          }
+        }
+        filas = trozos.flat();
+        if (!filas.length && errorPeriodo) throw errorPeriodo;
+      }
       cacheConsumos.set(clave, filas);
     }
     if (o.senal && o.senal.aborted) throw new DatadisError('cancelado');
@@ -811,7 +906,8 @@
     login: 'Conectando con Datadis…',
     suministros: 'Buscando tus suministros… Datadis puede tardar hasta un par de minutos.',
     contrato: 'Leyendo tu contrato…',
-    consumos: 'Descargando tus consumos… Datadis puede tardar un poco.'
+    consumos: 'Descargando tus consumos… Datadis puede tardar un poco.',
+    'consumos-mes': 'Datadis no ha devuelto el periodo de una vez: lo pedimos mes a mes. Puede tardar un par de minutos.'
   };
 
   // ===== Interfaz =====
@@ -846,7 +942,7 @@
       desde: iso(new Date(ayer.getFullYear(), ayer.getMonth(), ayer.getDate() - 29)),
       hasta: iso(ayer)
     };
-    const fechaMin = iso(new Date(hoy.getFullYear() - 2, hoy.getMonth(), hoy.getDate()));
+    const fechaMin = iso(inicioMasAntiguo(hoy));
     const fechaMax = iso(ayer);
     const rangoSolar = rangoMesesCompletos();
 
@@ -908,7 +1004,7 @@
       const bloqueado = mensajeError && /^Datadis ha bloqueado/.test(mensajeError);
       const off = agotado || bloqueado ? 'disabled' : '';
       const lead = solar
-        ? `Descarga los 12 últimos meses completos (${etiquetaMes(rangoSolar.iniMes)} a ${etiquetaMes(rangoSolar.finMes)}) de consumo y excedentes directamente desde tu cuenta de Datadis para rellenar la tabla mensual.`
+        ? `Consulta en tu cuenta de Datadis los 12 últimos meses completos (${etiquetaMes(rangoSolar.iniMes)} a ${etiquetaMes(rangoSolar.finMes)}) de consumo y excedentes para rellenar la tabla mensual. Si tu suministro tiene menos historial, se usan los meses completos que haya.`
         : 'Descarga tu consumo horario (hasta un año) directamente desde tu cuenta de Datadis, sin tener que bajar el CSV a mano.';
       const periodo = solar ? '' : `
           <fieldset class="lf-dd-periodo" ${off}>
@@ -1163,7 +1259,7 @@
         boton.className = 'btn lf-dd-solar-btn';
         boton.id = 'bvImportarDatadis';
         boton.innerHTML = '<span>📥 Importar desde Datadis</span>';
-        boton.title = 'Importa los 12 últimos meses completos de consumo y excedentes desde tu cuenta de Datadis';
+        boton.title = 'Importa hasta 12 meses completos de consumo y excedentes desde tu cuenta de Datadis';
         boton.addEventListener('click', () => abrirModal('solar'));
         subirSolar.after(boton);
         return;
@@ -1195,6 +1291,8 @@
     etiquetaMes,
     construirCsv,
     horasEsperadasMes,
+    inicioMasAntiguo,
+    contratoVigente,
     evaluarCobertura,
     evaluarExcedentes,
     leerAutoconsumo,

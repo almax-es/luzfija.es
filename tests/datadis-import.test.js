@@ -54,6 +54,19 @@ let D = cargarModulo();
 const pad = (n) => String(n).padStart(2, '0');
 const ymd = (d) => `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())}`;
 
+/** Ultimo domingo de marzo/octubre de ese ano (cambios de hora, Orden PCM/186/2022 y siguientes). */
+function ultimoDomingo(y, mes) {
+  const d = new Date(y, mes, 0);
+  return d.getDate() - d.getDay();
+}
+/** 'primavera' (23 h) | 'otono' (25 h) | 'normal', con la fecha REAL del cambio de cada ano. */
+function tipoDia(f) {
+  const [y, m, d] = f.split('/').map(Number);
+  if (m === 3 && d === ultimoDomingo(y, 3)) return 'primavera';
+  if (m === 10 && d === ultimoDomingo(y, 10)) return 'otono';
+  return 'normal';
+}
+
 /** timeCurve de un dia con las etiquetas reales de Datadis. */
 function diaDatadis(fecha, { kwh = 0.5, tipo = 'normal', surplus = null } = {}) {
   let etiquetas = Array.from({ length: 24 }, (_, i) => i + 1);
@@ -77,7 +90,7 @@ function añoCompleto(rango, opciones = {}) {
   const filas = [];
   for (let d = new Date(y0, m0 - 1, d0); d <= new Date(y1, m1 - 1, d1); d.setDate(d.getDate() + 1)) {
     const f = ymd(d);
-    const tipo = f.endsWith('/03/29') ? 'primavera' : f.endsWith('/10/25') ? 'otono' : 'normal';
+    const tipo = tipoDia(f);
     filas.push(...diaDatadis(f, { tipo, ...opciones }));
   }
   return filas;
@@ -165,6 +178,55 @@ describe('construirCsv', () => {
     const csv = D.construirCsv(filas).csv;
     expect(csv).not.toContain('DROP');
     expect(csv.split('\r\n')[1].endsWith(';Estimada')).toBe(true);
+  });
+});
+
+describe('rarezas de distribuidoras', () => {
+  it('fila 00:00 de mas en un dia que ya trae sus 24 horas: se descarta SIN renumerar el dia', () => {
+    const filas = [{ ...diaDatadis('2026/05/10')[0], time: '00:00', consumptionKWh: '' }, ...diaDatadis('2026/05/10', { kwh: 0.7 })];
+    const { csv, filasUsadas } = D.construirCsv(filas);
+    const horas = csv.trim().split('\r\n').slice(1).map((l) => Number(l.split(';')[2]));
+    expect(filasUsadas).toBe(24);
+    expect(horas).toEqual(Array.from({ length: 24 }, (_, i) => i + 1));
+  });
+
+  it('fila 00:00 de mas el dia del cambio de hora de octubre: sigue siendo un dia de 25 h', () => {
+    const filas = [{ ...diaDatadis('2026/10/25')[0], time: '00:00' }, ...diaDatadis('2026/10/25', { tipo: 'otono' })];
+    const horas = D.construirCsv(filas).csv.trim().split('\r\n').slice(1).map((l) => Number(l.split(';')[2]));
+    expect(horas).toEqual(Array.from({ length: 25 }, (_, i) => i + 1));
+  });
+
+  it('consumo vacio ("") es "sin dato", no 0 kWh; un numero en texto con coma si vale', () => {
+    const filas = diaDatadis('2026/05/10');
+    filas[0].consumptionKWh = '';
+    filas[1].consumptionKWh = '0,125';
+    const { csv, filasUsadas } = D.construirCsv(filas);
+    expect(filasUsadas).toBe(23);
+    expect(csv).toContain('CUPS;10/05/2026;2;0,125;Real');
+    const rango = { iniYmd: '2026/05/10', finYmd: '2026/05/10', iniMes: '2026/05', finMes: '2026/05' };
+    expect(D.evaluarCobertura(filas, rango).meses[0].horas).toBe(23);
+  });
+
+  it('Datadis rechaza consultas que empiezan hace mas de 2 anos POR MES', () => {
+    const hoy = new Date(2026, 9, 30);
+    expect(D.inicioMasAntiguo(hoy)).toEqual(new Date(2024, 10, 1));
+    expect(D.inicioMasAntiguo(new Date(2026, 9, 1))).toEqual(new Date(2024, 9, 1));
+    expect(D.rangoPersonalizado('2024-10-31', '2025-10-30', hoy).error).toBe('antiguo');
+    expect(D.rangoPersonalizado('2024-11-01', '2025-10-31', hoy).rango).toBeTruthy();
+  });
+
+  it('con varios contratos usa el vigente (sin fecha de fin o el mas reciente)', () => {
+    const resp = { contract: [
+      { startDate: '2026/07/16', endDate: '', contractedPowerkW: [4.6, 4.6], selfConsumptionTypeDesc: 'Con excedentes y compensación Individual - Consumo' },
+      { startDate: '2020/01/01', endDate: '2026/07/15', contractedPowerkW: [3.3, 3.3], selfConsumptionTypeCode: '00' }
+    ] };
+    expect(D.leerPotencias(resp)).toEqual({ p1: 4.6, p2: 4.6 });
+    expect(D.leerAutoconsumo(resp)).toBe('con');
+    const cerrados = { contract: [
+      { startDate: '2021/01/01', endDate: '2022/01/01', contractedPowerkW: [3.3] },
+      { startDate: '2023/05/01', endDate: '2024/01/01', contractedPowerkW: [5.75] }
+    ] };
+    expect(D.leerPotencias(cerrados)).toEqual({ p1: 5.75, p2: 5.75 });
   });
 });
 
@@ -281,7 +343,7 @@ function mesesSolar(rango, surplusPorMes) {
     const surplus = typeof surplusPorMes === 'function' ? surplusPorMes(mes, i) : surplusPorMes;
     for (let d = new Date(inicio); d.getMonth() === inicio.getMonth(); d.setDate(d.getDate() + 1)) {
       const f = ymd(d);
-      const tipo = f.endsWith('/03/29') ? 'primavera' : f.endsWith('/10/25') ? 'otono' : 'normal';
+      const tipo = tipoDia(f);
       filas.push(...diaDatadis(f, { tipo, surplus }));
     }
   }
@@ -349,10 +411,16 @@ describe('leerAutoconsumo', () => {
     expect(D.leerAutoconsumo(c({ selfConsumptionTypeCode: '00', selfConsumptionTypeDesc: 'Sin Autoconsumo' }))).toBe('no');
   });
   it('sin descripcion: indicios de autoconsumo de tipo desconocido', () => {
-    expect(D.leerAutoconsumo(c({ selfConsumptionTypeCode: '41' }))).toBe('si');
+    expect(D.leerAutoconsumo(c({ selfConsumptionTypeCode: '99' }))).toBe('si');
     expect(D.leerAutoconsumo(c({ installedCapacityKW: 4.1 }))).toBe('si');
     expect(D.leerAutoconsumo(c({ cau: 'ES0031300000000000AA1A000' }))).toBe('si');
   });
+  it('por el codigo de la tabla 113 (codificacion antigua y nueva) cuando no hay descripcion', () => {
+    for (const code of ['11', '31', '32', '33']) expect(D.leerAutoconsumo(c({ selfConsumptionTypeCode: code }))).toBe('sin');
+    for (const code of ['12', '41', '43', '51', '58', '64', '74']) expect(D.leerAutoconsumo(c({ selfConsumptionTypeCode: code }))).toBe('con');
+    for (const code of ['0C', '01', '2A', '2G']) expect(D.leerAutoconsumo(c({ selfConsumptionTypeCode: code }))).toBe('si');
+  });
+
   it('"no hay autoconsumo" exige prueba positiva (codigo 0); si el contrato no dice nada, no se sabe', () => {
     expect(D.leerAutoconsumo(c({ selfConsumptionTypeCode: '00' }))).toBe('no');
     expect(D.leerAutoconsumo(c({ selfConsumptionTypeCode: null }))).toBeNull();
@@ -481,7 +549,7 @@ describe('importar (fetch simulado)', () => {
       if (u.includes('/nikola-auth/tokens/login')) return respuestas.login();
       if (u.includes('get-supplies')) return respuestas.supplies();
       if (u.includes('get-contract-detail')) return respuestas.contract();
-      if (u.includes('get-consumption-data')) return respuestas.consumo();
+      if (u.includes('get-consumption-data')) return respuestas.consumo(u);
       throw new Error('URL inesperada ' + u);
     }));
     global.window.LF.procesarCSVConsumos = async (file) => {
@@ -574,6 +642,75 @@ describe('importar (fetch simulado)', () => {
     storage.set('lf_datadis_fallos', JSON.stringify({ n: 1, t: Date.now() }));
     await ejecutar();
     expect(storage.has('lf_datadis_fallos')).toBe(false);
+  });
+
+  it('el token se acepta tambien entre comillas o dentro de { token }', async () => {
+    respuestas.login = () => json(200, '"aaaa.bbbb.cccc"');
+    expect((await ejecutar({ conPotencia: false })).ok).toBe(true);
+    D = cargarModulo();
+    respuestas.login = () => json(200, { token: 'aaaa.bbbb.cccc' });
+    expect((await ejecutar({ conPotencia: false })).ok).toBe(true);
+    for (const l of llamadas.filter((x) => !x.url.includes('login'))) expect(l.init.headers.Authorization).toBe('Bearer aaaa.bbbb.cccc');
+  });
+
+  it('respuesta vacia o "null" al pedir el periodo: se trata como sin datos y se pide mes a mes', async () => {
+    const rango = D.rangoUltimosDias(new Date());
+    const todas = añoCompleto(rango);
+    respuestas.consumo = (u) => {
+      const q = new URL(u).searchParams;
+      return q.get('startDate') === q.get('endDate') ? json(200, { timeCurve: todas.filter((f) => f.date.startsWith(q.get('startDate'))) }) : json(200, 'null');
+    };
+    expect((await ejecutar({ conPotencia: false })).dias).toBe(365);
+  });
+
+  it('el aviso de consulta repetida en texto plano tambien se reconoce', async () => {
+    respuestas.consumo = () => json(500, 'Consulta repetida: espere 24h');
+    await expect(ejecutar({ conPotencia: false })).rejects.toMatchObject({ code: 'repeticion' });
+  });
+
+  it('credenciales rechazadas con 401 o 403 tambien cuentan como fallo de contraseña', async () => {
+    respuestas.login = () => json(403, '');
+    await expect(ejecutar()).rejects.toMatchObject({ code: 'credenciales' });
+    expect(fallosGuardados()).toBe(1);
+  });
+
+  it('si la consulta del periodo falla con 500, pide mes a mes y se queda con lo que llegue', async () => {
+    const rango = D.rangoUltimosDias(new Date());
+    const todas = añoCompleto(rango);
+    respuestas.consumo = (u) => {
+      const q = new URL(u).searchParams;
+      if (q.get('startDate') !== q.get('endDate')) return json(500, { message: 'Internal Server Error' });
+      return json(200, { timeCurve: todas.filter((f) => f.date.startsWith(q.get('startDate'))) });
+    };
+    const r = await ejecutar({ conPotencia: false });
+    expect(r.ok).toBe(true);
+    expect(r.dias).toBe(365);
+    const consultas = llamadas.filter((l) => l.url.includes('get-consumption-data'));
+    expect(consultas.length).toBe(1 + 13);
+    // del mas reciente al mas antiguo
+    expect(new URL(consultas[1].url).searchParams.get('startDate')).toBe(rango.finMes);
+  });
+
+  it('si la consulta del periodo llega vacia tambien prueba mes a mes', async () => {
+    const rango = D.rangoUltimosDias(new Date());
+    const todas = añoCompleto(rango);
+    respuestas.consumo = (u) => {
+      const q = new URL(u).searchParams;
+      return json(200, { timeCurve: q.get('startDate') === q.get('endDate') ? todas.filter((f) => f.date.startsWith(q.get('startDate'))) : [] });
+    };
+    const r = await ejecutar({ conPotencia: false });
+    expect(r.dias).toBe(365);
+  });
+
+  it('si fallan el periodo y todos los meses, devuelve el error original', async () => {
+    respuestas.consumo = () => json(500, { message: 'Internal Server Error' });
+    await expect(ejecutar({ conPotencia: false })).rejects.toMatchObject({ code: 'http', paso: 'consumos' });
+  });
+
+  it('una consulta repetida (429) no dispara las consultas mes a mes', async () => {
+    respuestas.consumo = () => json(429, '');
+    await expect(ejecutar({ conPotencia: false })).rejects.toMatchObject({ code: 'repeticion' });
+    expect(llamadas.filter((l) => l.url.includes('get-consumption-data')).length).toBe(1);
   });
 
   it('usuario bloqueado: lo distingue y explica como desbloquearlo', async () => {
@@ -768,7 +905,7 @@ describe('importar (fetch simulado)', () => {
     const filas = [];
     for (let d = new Date(2026, 8, 1); d <= new Date(2026, 9, 31); d.setDate(d.getDate() + 1)) {
       const f = ymd(d);
-      filas.push(...diaDatadis(f, { tipo: f.endsWith('/10/25') ? 'otono' : 'normal', surplus: f <= '2026/09/14' ? 0.4 : null }));
+      filas.push(...diaDatadis(f, { tipo: tipoDia(f), surplus: f <= '2026/09/14' ? 0.4 : null }));
     }
     respuestas.consumo = () => json(200, { timeCurve: filas });
     await ejecutar({ rango, conPotencia: false });
@@ -863,6 +1000,19 @@ describe('importar (fetch simulado)', () => {
       expect(e).toMatchObject({ code: 'solar' });
       expect(D.textoError(e)).toContain(D.etiquetaMes(mesMedio));
       expect(D.textoError(e)).toContain('infravaloraría tu consumo');
+    });
+
+    it('distribuidora que rechaza el primer mes del contrato: mes a mes, y ese mes queda fuera avisando', async () => {
+      const r0 = rangoSolar();
+      const todas = mesesSolar(r0, 0.3);
+      respuestas.consumo = (u) => {
+        const q = new URL(u).searchParams;
+        if (q.get('startDate') !== q.get('endDate') || q.get('startDate') === r0.iniMes) return json(500, { message: 'Internal Server Error' });
+        return json(200, { timeCurve: todas.filter((f) => f.date.startsWith(q.get('startDate'))) });
+      };
+      const r = await ejecutarSolar();
+      expect(r.fichero.name).toBe('datadis-11-meses.csv');
+      expect(r.avisos.join(' ')).toContain('se simulan 11 meses');
     });
 
     it('suministro reciente (sin los primeros meses): importa los que hay y lo dice', async () => {

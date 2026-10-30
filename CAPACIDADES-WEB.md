@@ -261,9 +261,17 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 - Excedentes: solo `surplusEnergyKWh`. Datadis los devuelve de forma intermitente segun distribuidora (lo reportan usuarios de otras herramientas), asi que no se promete. Datadis NO obliga a la distribuidora a enviar el excedente cuando es 0: un mismo suministro con placas puede traer las horas sin vertido en `0` o en `null`. Por eso `evaluarExcedentes` decide por MES: un mes con algun valor numerico trae dato (sus horas en null cuentan como 0 y se avisa de cuantas); un mes ENTERO sin ningun numero es "sin dato". En la home la columna de excedentes se decide solo con las filas DEL PERIODO elegido (excedentes de dias excluidos no la crean) y, si hay excedentes pero algun mes entero no trae dato, el aviso lo nombra (alli cuenta como 0). El observatorio NO tiene esta importacion.
 - Simulador solar (`comparador-tarifas-solares.html`, boton secundario `#bvImportarDatadis` bajo "Seleccionar archivo CSV"): pide los 12 ultimos meses naturales COMPLETOS y SIEMPRE el contrato. El CSV generado entra por `BVSim.importarFichero` (= `handleFile` de `bv-ui.js`, el mismo camino que un fichero elegido a mano). Regla: nunca un ranking como si no hubiera excedentes cuando puede haberlos, ni con un ano incompleto sin decirlo.
   - Consumo (`evaluarCobertura`): se compara con las horas que DEBERIAN existir (dias x 24, -1 h el ultimo domingo de marzo, +1 h el de octubre), no con las que llegan. Meses vacios al PRINCIPIO (suministro dado de alta hace menos de un ano), mas un primer mes parcial, se omiten y se simulan los meses restantes avisando; el validador del simulador acepta a proposito menos de 12 meses consecutivos. Cualquier otro mes por debajo del 98 % (vacio en medio o al final, o con dias de menos) BLOQUEA nombrando mes y porcentaje; entre el 98 % y el 100 % se importa avisando de las horas que faltan.
-  - Contrato (`leerAutoconsumo`): usa la DESCRIPCION ("con/sin excedentes", "sin autoconsumo") e indicios (codigo distinto de 0, `installedCapacityKW`, CAU), NO una tabla de codigos (no se pudo contrastar con la fuente oficial). "Sin autoconsumo" exige prueba positiva (codigo 0 o descripcion); un contrato que no dice nada es "no se sabe", nunca "sin placas".
+  - Contrato (`leerAutoconsumo`, sobre el contrato VIGENTE): primero la DESCRIPCION ("con/sin excedentes", "sin autoconsumo"); despues el CODIGO de la tabla 113 de los formatos CNMC, con sus dos codificaciones oficiales en vigor (antigua: 31-33 sin excedentes, 41-43/51-58/61-64/71-74 con excedentes; nueva: 11 sin excedentes, 12 con excedentes; 00 sin autoconsumo en ambas; 0C y los tipos del regimen anterior 01/2A/2B/2G quedan como "no se sabe"); por ultimo indicios (`installedCapacityKW`, CAU). "Sin autoconsumo" exige prueba positiva (codigo 0 o descripcion); un contrato que no dice nada es "no se sabe", nunca "sin placas".
   - Decision (`decidirSolar`): excedentes en todos los meses -> importa con ellos; algun mes entero sin dato entre abril y septiembre -> BLOQUEA (con placas es muy improbable no verter nada); solo meses de octubre a marzo sin dato -> PREGUNTA (puede ser un cero no enviado); un mes entero a 0 mientras otros vierten -> PREGUNTA; contrato "con excedentes" sin un solo kWh vertido -> BLOQUEA (o PREGUNTA si llegan ceros explicitos todo el ano); "sin excedentes" o sin autoconsumo -> importa solo el consumo; no se sabe -> PREGUNTA. Todo lo importado a 0 por confirmacion se repite en los avisos.
   - Con autoconsumo, `consumptionKWh` es la energia IMPORTADA de la red (lo que espera el simulador); `generationEnergyKWh` no es fiable y no se usa. `obtainMethod` puede llegar vacio: se trata como estimado.
+- Diferencias entre distribuidoras que el modulo absorbe (una cuenta de prueba solo cubre la suya; se contrastaron con integraciones publicas consolidadas que usan la misma API con usuarios de todas las distribuidoras):
+  - Fila "00:00" de mas (vacia) en dias que ya traen 01:00..24:00, sobre todo el primer dia de alta del contador (visto en i-DE): se descarta ANTES de contar las horas del dia; si no, el dia pareceria de 25 h y se desplazarian todas sus horas.
+  - Horas sin lectura con el consumo vacio (""): son "sin dato", nunca 0 kWh. Numeros en texto con coma se aceptan.
+  - Algunas distribuidoras devuelven error 500 o una respuesta vacia en cualquier consulta que incluya el primer mes de un contrato: se reintenta MES A MES (del mas reciente al mas antiguo) y el mes roto solo se pierde a si mismo (la cobertura lo trata como mes omitido o como hueco). No se reintenta ante 429, sesion caducada, red caida ni tiempo agotado.
+  - Datadis rechaza (400) consultas cuyo mes de inicio empiece hace mas de 2 anos: el primer dia elegible es el primer mes cuyo dia 1 este dentro de ese plazo (`inicioMasAntiguo`).
+  - Credenciales incorrectas: HTTP 500 con "Bad credentials" (medido), y tambien 401/403 por si cambia.
+  - Respuestas: el token se acepta en texto plano, entre comillas o dentro de `{ token }`; un cuerpo vacio o el literal `null` es "sin datos" (dispara el reintento mes a mes), no un error; el aviso de consulta repetida se reconoce en JSON (`message`) o en texto plano.
+  - `get-contract-detail` puede traer VARIOS contratos (cambio de potencia, titular o autoconsumo): se usa el vigente (sin fecha de fin; si no, el de inicio mas reciente) para la potencia y el autoconsumo.
   - Sin prueba real con una instalacion fotovoltaica a 30/10/2026: validado con datos simulados (incluidos noches en null, meses sin dato, meses ausentes y dias de menos) y E2E.
 - Interruptor de apagado: `DATADIS_IMPORT_ENABLED` en `js/lf-datadis.js`. A `false` el boton desaparece y queda el importador de CSV. Es opcional: si Datadis cambia su API o su CORS, se retira en un despliegue.
 - CSP: `connect-src` de la home admite `https://datadis.es`. Estado de permiso de Datadis: sin autorizacion expresa publicada y sin prohibicion en sus textos accesibles; ver `privacidad.html` (apartado 7) y `ARRANQUE-CARGA.md`.
@@ -558,7 +566,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Stack: HTML + CSS + Vanilla JS modular.
 - Modulos JS: 45 (`js/*.{js,mjs}` + `js/bv/*.js`).
-- Lineas JS aproximadas: 37.025.
+- Lineas JS aproximadas: 37.123.
 - Sitio estatico en GitHub Pages.
 - Datasets versionados en repo:
 - `tarifas.json` (118 tarifas).
@@ -659,7 +667,7 @@ limites de entrada derivan de ese ambito y estan centralizados en `js/lf-config.
 
 - Suite Vitest/JSDOM.
 - 143 archivos de test (`tests/*.test.js`).
-- 2549 casos `it()/test()` en la ultima ejecucion completa verificada.
+- 2564 casos `it()/test()` en la ultima ejecucion completa verificada.
 - ESLint (`eslint.config.mjs`, reglas de deteccion de bugs sin estilo) sobre `js/`; se ejecuta en CI antes de los tests.
 - Cobertura de:
 - Calculo fiscal y de energia.
