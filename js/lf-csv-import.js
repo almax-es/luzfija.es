@@ -902,11 +902,22 @@
           ? (pvpcPeriodoCheckbox ? pvpcPeriodoCheckbox.checked : true)
           : false;
 
-        trackCsvEvent('csv-import-aplicado', [
-          'home',
-          debeAplicarExcedentes ? 'consumos-excedentes' : 'consumos',
-          window.LF.pvpcPeriodoCSV ? 'pvpc-periodo' : 'pvpc-reciente'
-        ], 'CSV aplicado en home: ' + (debeAplicarExcedentes ? 'consumos+excedentes' : 'consumos'));
+        // Mismo evento y mismo momento; solo cambia la etiqueta si los datos vienen de Datadis, para
+        // saber cuanto se usa esa importacion sin enviar nada nuevo (ANALITICA-GOATCOUNTER.md).
+        if (resultado.formato === 'Datadis') {
+          trackCsvEvent('datadis-import', [
+            'home',
+            'aplicado',
+            debeAplicarExcedentes ? 'consumos-excedentes' : 'consumos',
+            window.LF.pvpcPeriodoCSV ? 'pvpc-periodo' : 'pvpc-reciente'
+          ], 'Importación de Datadis aplicada en home: ' + (debeAplicarExcedentes ? 'consumos+excedentes' : 'consumos'));
+        } else {
+          trackCsvEvent('csv-import-aplicado', [
+            'home',
+            debeAplicarExcedentes ? 'consumos-excedentes' : 'consumos',
+            window.LF.pvpcPeriodoCSV ? 'pvpc-periodo' : 'pvpc-reciente'
+          ], 'CSV aplicado en home: ' + (debeAplicarExcedentes ? 'consumos+excedentes' : 'consumos'));
+        }
 
         closeCSVModal();
 

@@ -796,7 +796,7 @@ describe('importar (fetch simulado)', () => {
         return json(200, { timeCurve: todas.filter((x) => x.date.startsWith(q.get('startDate'))) });
       };
       const r = await ejecutar({ conPotencia: false });
-      expect(r.warnings.join('\n')).toMatch(/no ha dado tiempo a pedir .*: esos días faltan en el análisis \(no es que no tengas consumo\)/);
+      expect(r.warnings.join('\n')).toMatch(/No hemos podido descargar .*: esos días faltan en el análisis, no es que no tengas consumo/);
     } finally {
       espia.mockRestore();
     }
@@ -1437,11 +1437,39 @@ describe('importar (fetch simulado)', () => {
         };
         const e = await ejecutarSolar().catch((x) => x);
         expect(e.code).toBe('solar');
-        expect(D.textoError(e)).toContain('no ha dado tiempo a pedir');
+        expect(D.textoError(e)).toContain('No hemos podido descargar');
         expect(D.textoError(e)).toContain('No simulamos un año incompleto por un retraso de Datadis');
       } finally {
         espia.mockRestore();
       }
+    });
+
+    it('mes a mes: un mes con tiempo agotado o consulta repetida cuenta como no descargado; un 500 no (primer mes de contrato)', async () => {
+      const desde = mesAnterior(mesAnterior(rangoSolar().iniMes));
+      const todas = mesesConGeneracion(desde, mesesEntreTop(desde, rangoSolar().finMes), false);
+      const primero = rangoSolar().iniMes;
+      respuestas.contract = contrato({ selfConsumptionTypeCode: '41' });
+      // a) el primer mes del ano da 429 (repetida): no se simula y se dice por que
+      respuestas.consumo = (u) => {
+        const q = new URL(u).searchParams;
+        if (q.get('startDate') !== q.get('endDate')) return json(500, { message: 'Internal Server Error' });
+        if (q.get('startDate') === primero) return json(429, 'Too many requests');
+        return json(200, { timeCurve: todas.filter((x) => x.date.startsWith(q.get('startDate'))) });
+      };
+      let e = await ejecutarSolar().catch((x) => x);
+      expect(e.code).toBe('solar');
+      expect(D.textoError(e)).toContain(`No hemos podido descargar ${D.etiquetaMes(primero)}`);
+      // b) ese mes (y los anteriores) dan 500, como el primer mes de un contrato: se omiten como de antes del alta
+      D = cargarModulo();
+      respuestas.consumo = (u) => {
+        const q = new URL(u).searchParams;
+        if (q.get('startDate') !== q.get('endDate')) return json(500, { message: 'Internal Server Error' });
+        if (q.get('startDate') <= primero) return json(500, { message: 'Internal Server Error' });
+        return json(200, { timeCurve: todas.filter((x) => x.date.startsWith(q.get('startDate'))) });
+      };
+      e = await ejecutarSolar().catch((x) => x);
+      expect(e.code).toBeUndefined();
+      expect(e.fichero.name).toBe('datadis-11-meses.csv');
     });
 
     it('ultimo mes cerrado sin excedentes publicados: simula los 12 meses anteriores y lo dice', async () => {
@@ -1622,6 +1650,19 @@ describe('contratos estaticos de lf-datadis.js', () => {
     expect(els.bvImportarDatadis.hidden).toBe(true);
   });
 
+  it('analitica: al terminar bien, el evento que ya se enviaba lleva la etiqueta datadis-import (no se suma ningun envio)', () => {
+    const imp = fs.readFileSync(path.join(root, 'js/lf-csv-import.js'), 'utf8');
+    expect(imp).toMatch(/if \(resultado\.formato === 'Datadis'\) \{\s*trackCsvEvent\('datadis-import', \[\s*'home',\s*'aplicado',/);
+    expect(imp).toMatch(/\} else \{\s*trackCsvEvent\('csv-import-aplicado'/);
+    const bvUi = fs.readFileSync(path.join(root, 'js/bv/bv-ui.js'), 'utf8');
+    expect(bvUi).toMatch(/if \(opciones\.origen === 'datadis'\) \{\s*trackBvEvent\('datadis-import', \['solar', 'completado', conExcedentes\]/);
+    expect(bvUi).toMatch(/\} else \{[\s\S]{0,200}trackBvEvent\('csv-import-completado'/);
+    expect(sourceDatadis).toContain("importarFichero(r.fichero, { avisos, origen: 'datadis' })");
+    // los segmentos son solo categorias cerradas: nada derivado de la cuenta o del suministro
+    const llamadaHome = imp.slice(imp.indexOf("trackCsvEvent('datadis-import'"), imp.indexOf("trackCsvEvent('datadis-import'") + 400);
+    expect(llamadaHome).not.toMatch(/cups|nif|potencia|kwh|dias|periodo/i);
+  });
+
   it('informe de fallo: enlace de envio legible (no hereda el color de enlace sobre fondo de boton) y sin analitica', () => {
     const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
     expect(sourceDatadis).toContain('<a id="lfDdInformeEnviar" class="btn lf-dd-informe-enviar"');
@@ -1689,7 +1730,7 @@ describe('contratos estaticos de lf-datadis.js', () => {
     const ui = fs.readFileSync(path.join(root, 'js/bv/bv-ui.js'), 'utf8');
     expect(ui).toContain('window.BVSim.importarFichero = (file, opciones) => handleFile(file, opciones);');
     expect(ui).toMatch(/async function handleFile\(file, opciones = \{\}\)/);
-    expect(sourceDatadis).toContain('window.BVSim.importarFichero(r.fichero, { avisos })');
+    expect(sourceDatadis).toContain("window.BVSim.importarFichero(r.fichero, { avisos, origen: 'datadis' })");
   });
 
   it('el Service Worker lo precachea como opcional (fuera de CORE_ASSETS)', () => {

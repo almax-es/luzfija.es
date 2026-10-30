@@ -951,7 +951,10 @@
           } catch (e) {
             diag.mesAMes.push(`${mes} ${(e && e.code) || 'error'}${e && e.status ? ` ${e.status}` : ''}`);
             if (e && (e.code === 'sesion' || e.code === 'red')) throw e;
-            // un mes que falla (500, vacio, repetido) se deja fuera
+            // Tiempo agotado o consulta repetida: el mes existe pero no se ha podido descargar, igual
+            // que uno sin pedir. Un 500 o un mes vacio se dejan fuera sin mas: es justo el caso del
+            // primer mes de un contrato que algunas distribuidoras rechazan (de antes del alta).
+            if (e && (e.code === 'timeout' || e.code === 'repeticion')) sinPedir.push(mes);
           }
         }
         filas = trozos.flat();
@@ -996,7 +999,7 @@
       const sinPedirSolar = mesesSinPedir.filter((m) => m >= rangoSolar.iniMes && m <= rangoSolar.finMes);
       if (sinPedirSolar.length) {
         const err = new DatadisError('solar');
-        err.detalle = `Datadis ha tardado demasiado en responder y no ha dado tiempo a pedir ${listaMeses(sinPedirSolar)}. ` +
+        err.detalle = `No hemos podido descargar ${listaMeses(sinPedirSolar)}: Datadis ha tardado demasiado en responder o no deja repetir hoy esa consulta. ` +
           'No simulamos un año incompleto por un retraso de Datadis. Prueba mañana (Datadis no deja repetir hoy las mismas consultas) o descarga el CSV desde Datadis y usa «Seleccionar archivo CSV».';
         throw err;
       }
@@ -1083,7 +1086,7 @@
     }
     const sinPedirHome = mesesSinPedir.filter((m) => m >= rango.iniMes && m <= rango.finMes);
     if (sinPedirHome.length) {
-      resultado.warnings.push(`Datadis ha tardado demasiado en responder y no ha dado tiempo a pedir ${listaMeses(sinPedirHome)}: esos días faltan en el análisis (no es que no tengas consumo). Si necesitas el periodo completo, prueba mañana o usa el CSV descargado desde Datadis.`);
+      resultado.warnings.push(`No hemos podido descargar ${listaMeses(sinPedirHome)} (Datadis ha tardado demasiado en responder o no deja repetir hoy esa consulta): esos días faltan en el análisis, no es que no tengas consumo. Si necesitas el periodo completo, prueba mañana o usa el CSV descargado desde Datadis.`);
     }
     // Hay excedentes, pero no de todos los meses: en la home cuentan como 0 (estimacion rapida),
     // asi que se dice expresamente cuales faltan.
@@ -1564,7 +1567,7 @@
         ${mensajeError && informe ? `<div class="lf-dd-box lf-dd-informe">
           <strong>🛠️ ¿Me ayudas a que funcione?</strong>
           <p>Soy aLMaX y hago LuzFija yo solo. Cada distribuidora envía los datos a Datadis a su manera y no puedo probarlas todas: con este informe puedo ver qué ha pasado con la tuya y arreglarlo.</p>
-          <p>No incluimos tu NIF, tu contraseña, tu CUPS, tu dirección ni tus consumos, y ocultamos lo que se les parezca en los textos que manda Datadis: solo van datos técnicos, como el error, tu navegador, tu distribuidora y cuántas horas y excedentes llegaron cada mes. Revísalo antes de enviarlo.</p>
+          <p>Lleva solo datos técnicos: el error, tu navegador, tu distribuidora y cuántas horas y excedentes llegaron cada mes. No incluimos tu NIF, tu contraseña, tu CUPS, tu dirección ni tus consumos. Sí van los textos que devuelve Datadis (por ejemplo, sus mensajes de error), en los que ocultamos automáticamente lo que parezca un CUPS, un documento, un correo o un teléfono; un nombre o una dirección no se pueden detectar así, de modo que revísalo antes de enviarlo.</p>
           <details>
             <summary>Revisa el informe (puedes editarlo)</summary>
             <textarea id="lfDdInforme" class="lf-dd-informe-texto" rows="8" spellcheck="false" aria-label="Informe que se enviará"></textarea>
@@ -1802,7 +1805,8 @@
       const fmt = (n) => String(n).replace('.', ',');
       const avisos = (r.avisos || []).slice();
       if (r.potencias) avisos.push(`Potencia de tu contrato aplicada: P1 ${fmt(r.potencias.p1)} kW · P2 ${fmt(r.potencias.p2)} kW.`);
-      const ok = await window.BVSim.importarFichero(r.fichero, { avisos });
+      // `origen` solo cambia la etiqueta del evento que bv-ui ya envia al completar una importacion.
+      const ok = await window.BVSim.importarFichero(r.fichero, { avisos, origen: 'datadis' });
       if (!ok || !r.potencias) return;
       [['bv-p1', r.potencias.p1], ['bv-p2', r.potencias.p2]].forEach(([id, kw]) => {
         const campo = document.getElementById(id);

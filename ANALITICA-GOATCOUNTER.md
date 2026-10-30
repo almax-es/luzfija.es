@@ -124,6 +124,7 @@ Ejemplos:
 - `csv-import-iniciado/home`
 - `csv-import-preview/home/csv`
 - `csv-import-aplicado/home/consumos-excedentes/pvpc-periodo`
+- `datadis-import/home/aplicado/consumos-excedentes/pvpc-periodo` (misma categoria cerrada y mismo momento que `csv-import-aplicado`, cuando los datos vienen de la importacion directa desde Datadis: sustituye a aquel evento, no se suma. Nada del usuario, de su cuenta ni de su suministro)
 - `csv-import-error/home/xlsx/valor-invalido` (tercer segmento: codigo de error normalizado de `csvErrorCodeForTracking`, nunca el mensaje literal)
 - `csv-import-formato/home/csv/texto/pyc/c5/dmy/t-fe-ho-co-kw` (solo tras un error de formato; firma de categorias cerradas, ver 6.5.3)
 - `csv-reporte/home/mostrado/cabecera-no-detectada`, `csv-reporte/home/origen/distribuidora/ide`, `csv-reporte/home/enviar/inversor/huawei`, `csv-reporte/home/copiar/datadis` y `csv-reporte/home/cerrado` (aviso persistente de importacion fallida y reporte del archivo; ver 6.5.4)
@@ -150,6 +151,7 @@ Ejemplos:
 - `csv-import-iniciado/solar`
 - `csv-import-completado/solar/csv/con-excedentes`
 - `csv-import-completado/solar/xlsx/sin-excedentes`
+- `datadis-import/solar/completado/con-excedentes` (en lugar de `csv-import-completado` cuando la importacion viene de Datadis; sin extension de fichero porque no hay fichero del usuario)
 - `csv-import-error/solar/csv/cabecera-no-detectada` (tercer segmento: codigo de error normalizado)
 - `csv-import-formato/solar/xls/html/na/na/na/sin-tokens` (solo tras un error de formato, ver 6.5.3)
 - `csv-reporte/solar/mostrado/<codigo>`, `csv-reporte/solar/origen/<tipo>[/<detalle>]`, `csv-reporte/solar/enviar/...`, `csv-reporte/solar/copiar/...` y `csv-reporte/solar/cerrado` (ver 6.5.4)

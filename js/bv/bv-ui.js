@@ -2756,12 +2756,14 @@ document.addEventListener('DOMContentLoaded', () => {
           showToast(`⚠️ ${result.warnings.join('\n')}`, 'ok');
         }
 
-        const extension = window.LF?.csvUtils?.safeFileExtensionForTracking?.(file.name) || 'desconocido';
-        trackBvEvent('csv-import-completado', [
-          'solar',
-          extension,
-          result?.meta?.hasExcedenteColumn === false ? 'sin-excedentes' : 'con-excedentes'
-        ], 'CSV/XLSX importado en simulador solar');
+        const conExcedentes = result?.meta?.hasExcedenteColumn === false ? 'sin-excedentes' : 'con-excedentes';
+        // Mismo evento; solo cambia la etiqueta si los datos vienen de Datadis (ANALITICA-GOATCOUNTER.md).
+        if (opciones.origen === 'datadis') {
+          trackBvEvent('datadis-import', ['solar', 'completado', conExcedentes], 'Importación de Datadis completada en simulador solar');
+        } else {
+          const extension = window.LF?.csvUtils?.safeFileExtensionForTracking?.(file.name) || 'desconocido';
+          trackBvEvent('csv-import-completado', ['solar', extension, conExcedentes], 'CSV/XLSX importado en simulador solar');
+        }
 
         // Scroll suave a la tabla para que vea los datos auto-rellenados
         setTimeout(() => {
