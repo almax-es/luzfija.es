@@ -812,7 +812,7 @@ describe('importar (fetch simulado)', () => {
       return json(200, { timeCurve: todas.filter((x) => x.date.startsWith(q.get('startDate'))) });
     };
     const r = await ejecutar({ conPotencia: false });
-    expect(r.warnings.join('\n')).toMatch(/Datadis solo ha devuelto consumos del \d{2}\/\d{2}\/\d{4} al \d{2}\/\d{2}\/\d{4}, y pediste del/);
+    expect(r.warnings.join('\n')).toMatch(/Datadis solo ha devuelto consumos del \d{2}\/\d{2}\/\d{4} al \d{2}\/\d{2}\/\d{4}, dentro de un periodo del \d{2}\/\d{2}\/\d{4} al/);
   });
 
   it('home: un retraso normal de un par de dias al final NO genera ese aviso', async () => {

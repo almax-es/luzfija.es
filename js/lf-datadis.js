@@ -1095,7 +1095,7 @@
       const primero = conConsumo[0];
       const ultimo = conConsumo[conConsumo.length - 1];
       if (dias(rango.iniYmd, primero) > 7 || dias(ultimo, rango.finYmd) > 7) {
-        resultado.warnings.push(`Datadis solo ha devuelto consumos del ${fechaEs(primero)} al ${fechaEs(ultimo)}, y pediste del ${fechaEs(rango.iniYmd)} al ${fechaEs(rango.finYmd)}. ` +
+        resultado.warnings.push(`Datadis solo ha devuelto consumos del ${fechaEs(primero)} al ${fechaEs(ultimo)}, dentro de un periodo del ${fechaEs(rango.iniYmd)} al ${fechaEs(rango.finYmd)}. ` +
           'Puede ser un suministro reciente, un retraso de tu distribuidora o un mes que Datadis no ha podido servir: el análisis usa solo los días recibidos.');
       }
     }
