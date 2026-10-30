@@ -866,26 +866,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Holaluz Clásica",
-      "cPunta": 0.154001,
-      "cLlano": 0.154001,
-      "cValle": 0.154001,
-      "p1": 0.12,
-      "p2": 0.12,
-      "web": "https://www.holaluz.com/luz/tarifas-luz/",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "BonArea Solar Relax",
       "cPunta": 0.159004,
       "cLlano": 0.159004,
@@ -904,6 +884,26 @@
         "precioBV": 0.0
       },
       "requiereFV": true
+    },
+    {
+      "nombre": "Holaluz Clásica",
+      "cPunta": 0.159004,
+      "cLlano": 0.159004,
+      "cValle": 0.159004,
+      "p1": 0.12,
+      "p2": 0.12,
+      "web": "https://www.holaluz.com/luz/tarifas-luz/",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Visalia Plan Ahorro 3 meses",
@@ -2067,8 +2067,8 @@
     {
       "nombre": "Holaluz 3P",
       "cPunta": 0.248004,
-      "cLlano": 0.17,
-      "cValle": 0.146,
+      "cLlano": 0.175,
+      "cValle": 0.149,
       "p1": 0.12,
       "p2": 0.12,
       "web": "https://www.holaluz.com/luz/tarifas-luz/",
@@ -2454,5 +2454,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-30T07:47:03.727Z"
+  "updatedAt": "2026-10-30T10:13:22.301Z"
 }
