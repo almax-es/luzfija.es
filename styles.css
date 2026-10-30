@@ -4228,6 +4228,11 @@ body:has(.modal-overlay.show) .mi-tarifa-chip { display: none !important; }
 html.light-mode .lf-dd-modal input[type="date"],
 html.light-mode .lf-dd-modal input[type="checkbox"],
 html.light-mode .lf-dd-modal input[type="radio"]{ color-scheme:light; }
+/* Opciones del selector de suministro: mismo patron que #zonaFiscal. Sin fondo propio, con la web
+   en oscuro y el sistema en claro la lista nativa salia blanco sobre blanco (medido 30/10/2026). */
+.lf-dd-modal select option{ color:var(--text); background-color:var(--bg1); }
+/* Descripcion completa del suministro elegido: en movil el <select> corta la direccion. */
+.lf-dd-suministro-info{ margin:6px 0 0; font-size:12px; line-height:1.45; color:var(--muted); overflow-wrap:anywhere; }
 /* Simulador solar: boton secundario bajo "Seleccionar archivo CSV" (el principal sigue siendo el CSV). */
 .btn.lf-dd-solar-btn{ width:100%; margin-top:10px; justify-content:center; padding:14px 18px; border-radius:14px; border:1px solid var(--accent); background:var(--card); color:var(--text); font-size:1rem; font-weight:800; }
 .btn.lf-dd-solar-btn:hover{ background:var(--card2); border-color:var(--accent); }

@@ -34,6 +34,10 @@
 
   const BASE = 'https://datadis.es';
   const DIAS_HISTORICO = 365;
+  // Meses de margen que se piden de mas (misma consulta) por si los ultimos no tienen aun los
+  // excedentes publicados. Medido en real: el mes en curso llega sin publicar; dos de margen cubren
+  // los primeros dias de mes, cuando el anterior tampoco lo esta.
+  const MESES_MARGEN = 2;
   const MAX_FALLOS_LOGIN = 2;
   const FALLOS_KEY = 'lf_datadis_fallos';
   const FALLOS_TTL_MS = 24 * 60 * 60 * 1000;
@@ -281,10 +285,19 @@
   }
 
   /** El mismo rango empezando un mes antes. */
-  function conMesAnterior(rango) {
+  /** El mismo rango empezando `n` meses antes (1 por defecto). */
+  function conMesAnterior(rango, n) {
     const [y, m] = rango.iniMes.split('/').map(Number);
-    const ini = new Date(y, m - 2, 1);
+    const ini = new Date(y, m - 1 - (Number.isFinite(n) ? n : 1), 1);
     return Object.assign({}, rango, { iniYmd: fmtYmd(ini), iniMes: fmtYm(ini) });
+  }
+
+  /** Los 12 meses naturales completos que terminan en `finMes` ('2026/08'). */
+  function anoHastaMes(finMes) {
+    const [y, m] = finMes.split('/').map(Number);
+    const ini = new Date(y, m - 12, 1);
+    const fin = new Date(y, m, 0);
+    return { iniYmd: fmtYmd(ini), finYmd: fmtYmd(fin), iniMes: fmtYm(ini), finMes: fmtYm(fin) };
   }
 
   /**
@@ -663,10 +676,11 @@
   async function importar(o) {
     const solar = o.destino === 'solar';
     let rango = solar ? rangoMesesCompletos(new Date()) : (o.rango || rangoUltimosDias(new Date()));
-    // El simulador solar y los "ultimos 12 meses" de la home piden un mes mas al principio: si los
-    // ultimos dias aun no tienen los excedentes publicados (la distribuidora tarda semanas), se
-    // analiza el ano que termina en el ultimo dia publicado. Un periodo elegido a mano no se mueve.
-    const rangoPedido = solar || !o.rango ? conMesAnterior(rango) : rango;
+    // El simulador solar y los "ultimos 12 meses" de la home piden MESES_MARGEN meses mas al
+    // principio (en la misma consulta): si los ultimos dias aun no tienen los excedentes publicados
+    // (la distribuidora tarda semanas), se analiza el ano que termina en lo ultimo publicado. Un
+    // periodo elegido a mano no se mueve.
+    const rangoPedido = solar || !o.rango ? conMesAnterior(rango, MESES_MARGEN) : rango;
     const nif = normalizarDocumento(o.nif);
     const fallo = errorDocumento(nif);
     if (fallo) {
@@ -736,8 +750,19 @@
     if (o.senal && o.senal.aborted) throw new DatadisError('cancelado');
     o.onProgreso('consumos');
     const clave = [suministro.cups, suministro.distributorCode, rangoPedido.iniMes, rangoPedido.finMes].join('|');
-    let filas = cacheConsumos.get(clave);
-    if (!filas) {
+    // En la cache van las filas o, mientras se descargan, la PROMESA: si el usuario cancela (la
+    // descarga sigue, ver abajo) y reintenta antes de que acabe, espera a la misma descarga en vez
+    // de lanzar otra consulta identica, que Datadis rechazaria durante 24 h.
+    let descarga = cacheConsumos.get(clave);
+    if (!descarga) {
+      descarga = descargarConsumos();
+      cacheConsumos.set(clave, descarga);
+      descarga.then((f) => cacheConsumos.set(clave, f), () => cacheConsumos.delete(clave));
+    }
+    let filas = await descarga;
+
+    async function descargarConsumos() {
+      let filas;
       const params = {
         cups: suministro.cups,
         distributorCode: String(suministro.distributorCode),
@@ -783,22 +808,28 @@
         filas = trozos.flat();
         if (!filas.length && errorPeriodo) throw errorPeriodo;
       }
-      cacheConsumos.set(clave, filas);
+      return filas;
     }
     if (o.senal && o.senal.aborted) throw new DatadisError('cancelado');
     filas = marcarExcedentesSinPublicar(filas);
 
     if (solar) {
-      // 0) Ultimo mes cerrado sin excedentes publicados mientras los anteriores si los tienen:
-      //    se simulan los 12 meses anteriores en vez de bloquear o importar ceros.
+      // 0) Ultimos meses cerrados (hasta MESES_MARGEN) sin excedentes publicados mientras los
+      //    anteriores si los tienen: se simulan los 12 meses que terminan en el ultimo publicado,
+      //    en vez de bloquear o importar ceros.
       let rangoSolar = rango;
-      let mesSinPublicar = null;
-      const evUltimo = evaluarExcedentes(filas, rangoDeMes(rango.finMes));
-      const finPrevio = new Date(Number(rango.finMes.slice(0, 4)), Number(rango.finMes.slice(5, 7)) - 1, 0);
-      const evPrevios = evaluarExcedentes(filas, { iniYmd: rangoPedido.iniYmd, finYmd: fmtYmd(finPrevio), iniMes: rangoPedido.iniMes, finMes: fmtYm(finPrevio) });
-      if (evUltimo.meses.length && evUltimo.estado === 'ausente' && evPrevios.hayPositivos) {
-        mesSinPublicar = rango.finMes;
-        rangoSolar = { iniYmd: rangoPedido.iniYmd, finYmd: fmtYmd(finPrevio), iniMes: rangoPedido.iniMes, finMes: fmtYm(finPrevio) };
+      let mesesSinPublicar = [];
+      let finSolar = rango.finMes;
+      for (let k = 0; k < MESES_MARGEN; k++) {
+        const ev = evaluarExcedentes(filas, rangoDeMes(finSolar));
+        if (!ev.meses.length || ev.estado !== 'ausente') break;
+        mesesSinPublicar.unshift(finSolar);
+        finSolar = fmtYm(new Date(Number(finSolar.slice(0, 4)), Number(finSolar.slice(5, 7)) - 2, 1)); // mes anterior
+      }
+      if (mesesSinPublicar.length) {
+        const candidato = anoHastaMes(finSolar);
+        if (evaluarExcedentes(filas, candidato).hayPositivos) rangoSolar = candidato;
+        else mesesSinPublicar = [];
       }
       // 1) Consumo: contra las horas que DEBERIAN llegar, no contra las que llegan.
       const cob = evaluarCobertura(filas, rangoSolar);
@@ -831,7 +862,7 @@
       return {
         destino: 'solar',
         fichero: new File([csvSolar], `datadis-${cob.usados.length}-meses.csv`, { type: 'text/csv' }),
-        avisos: avisosSolar(decision, evSolar, rangoUsado, cob, mesSinPublicar),
+        avisos: avisosSolar(decision, evSolar, rangoUsado, cob, mesesSinPublicar),
         potencias
       };
     }
@@ -944,10 +975,10 @@
       'Si sí viertes, no importes: el simulador calcularía como si no vertieras nada. Usa el CSV o rellena los excedentes a mano.';
   }
 
-  function avisosSolar(decision, ev, rango, cob, mesSinPublicar) {
+  function avisosSolar(decision, ev, rango, cob, mesesSinPublicar) {
     const avisos = [`Datos de Datadis: ${etiquetaMes(rango.iniMes)} a ${etiquetaMes(rango.finMes)}.`];
-    if (mesSinPublicar) {
-      avisos.push(`Tu distribuidora aún no ha publicado los excedentes de ${etiquetaMes(mesSinPublicar)} (suele tardar unas semanas): se simulan los 12 meses anteriores.`);
+    if (mesesSinPublicar && mesesSinPublicar.length) {
+      avisos.push(`Tu distribuidora aún no ha publicado los excedentes de ${listaMeses(mesesSinPublicar)} (suele tardar unas semanas): se simulan los 12 meses anteriores.`);
     }
     if (cob && cob.omitidos.length) {
       avisos.push(`Datadis no tiene datos completos anteriores a ${etiquetaMes(rango.iniMes)} (suministro reciente o cambio de titular): se simulan ${cob.usados.length} meses.`);
@@ -1301,24 +1332,31 @@
     function vistaSuministros(lista, responder) {
       const activos = lista.filter((s) => !s.validDateTo);
       const preferido = (activos[0] || lista[0]);
-      const opciones = lista.map((s) => {
+      const describir = (s) => {
         const etiqueta = [s.address, s.municipality, s.province].filter(Boolean).join(', ') || 'Suministro';
         const baja = fechaBaja(s) ? ` (de baja desde el ${fechaEs(fechaBaja(s))})` : (s.validDateTo ? ' (de baja)' : '');
-        return `<option value="${esc(s.cups)}"${s === preferido ? ' selected' : ''}>${esc(etiqueta)} · ${esc(cupsEnmascarado(s.cups))}${esc(baja)}</option>`;
-      }).join('');
+        return `${etiqueta} · ${cupsEnmascarado(s.cups)}${baja}`;
+      };
+      const opciones = lista.map((s) => `<option value="${esc(s.cups)}"${s === preferido ? ' selected' : ''}>${esc(describir(s))}</option>`).join('');
       pintar(`
         ${cabecera}
         <h3 id="lfDdTitulo" class="lf-dd-title">📥 Elige tu suministro</h3>
         <p class="lf-dd-lead">Tu cuenta de Datadis tiene ${lista.length} suministros. ¿Cuál quieres importar?</p>
         <div class="group">
           <label for="lfDdSuministro">Suministro</label>
-          <select id="lfDdSuministro" class="input">${opciones}</select>
+          <select id="lfDdSuministro" class="input" aria-describedby="lfDdSuministroInfo">${opciones}</select>
+          <p id="lfDdSuministroInfo" class="lf-dd-suministro-info">${esc(describir(preferido))}</p>
         </div>
         <div class="lf-dd-actions">
           <button id="lfDdElegir" class="btn primary" type="button"><span>Importar este suministro</span></button>
           <button id="lfDdCancelar" class="btn" type="button"><span>Cancelar</span></button>
         </div>
       `, '#lfDdSuministro');
+      const selector = content.querySelector('#lfDdSuministro');
+      selector.addEventListener('change', () => {
+        const s = lista.find((x) => x.cups === selector.value);
+        if (s) content.querySelector('#lfDdSuministroInfo').textContent = describir(s);
+      });
       content.querySelector('#lfDdElegir').addEventListener('click', () => {
         const cups = content.querySelector('#lfDdSuministro').value;
         responder(lista.find((s) => s.cups === cups) || null);

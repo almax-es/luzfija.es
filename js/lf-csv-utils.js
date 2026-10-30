@@ -2996,10 +2996,12 @@
     if (!requireExactly12Months) {
       monthsUsed = monthsSorted;
 
+      const resumen = `✓ CSV procesado: ${spanDays} ${spanDays === 1 ? 'día' : 'días'} en ` +
+        `${monthsDistinct} ${monthsDistinct === 1 ? 'mes' : 'meses'} (${startYmd} → ${endYmd}).`;
       const message = monthsDistinct === 13
-        ? `✓ CSV procesado: ${spanDays} días en ${monthsDistinct} meses (${startYmd} → ${endYmd}).\n\n` +
+        ? `${resumen}\n\n` +
           `Se utilizan TODOS los datos sin descartar ningún mes.`
-        : `✓ CSV procesado: ${spanDays} días en ${monthsDistinct} meses (${startYmd} → ${endYmd}).`;
+        : resumen;
 
       return {
         ok: true,

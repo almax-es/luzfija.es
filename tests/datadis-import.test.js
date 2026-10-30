@@ -52,6 +52,8 @@ let D = cargarModulo();
 
 // ---- Fixtures ----
 const pad = (n) => String(n).padStart(2, '0');
+/** Meses entre dos 'YYYY/MM', ambos incluidos. */
+const mesesEntreTop = (a, b) => (Number(b.slice(0, 4)) - Number(a.slice(0, 4))) * 12 + Number(b.slice(5, 7)) - Number(a.slice(5, 7)) + 1;
 /** '2026/01' -> '2025/12' */
 const mesAnterior = (mes) => { const d = new Date(Number(mes.slice(0, 4)), Number(mes.slice(5, 7)) - 2, 1); return `${d.getFullYear()}/${pad(d.getMonth() + 1)}`; };
 const ymd = (d) => `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())}`;
@@ -604,6 +606,41 @@ describe('importar (fetch simulado)', () => {
     senal: new AbortController().signal, onProgreso: () => {}, elegirSuministro: async (l) => l[0], ...extra
   });
 
+  it('cancelar durante la descarga y reintentar antes de que acabe: espera a la misma descarga, sin repetir la consulta', async () => {
+    // Datadis rechaza 24 h una consulta identica. La descarga de consumos sigue aunque se cancele
+    // (ya contaba para Datadis); un segundo intento mientras sigue en marcha debe engancharse a ella.
+    let soltar;
+    const pendiente = new Promise((r) => { soltar = r; });
+    const lenta = respuestas.consumo;
+    respuestas.consumo = async (u) => { await pendiente; return lenta(u); };
+    const cancelar = new AbortController();
+    let enConsumos;
+    const llegaAConsumos = new Promise((r) => { enConsumos = r; });
+    const primero = ejecutar({ senal: cancelar.signal, conPotencia: false, onProgreso: (paso) => { if (paso === 'consumos') enConsumos(); } });
+    await llegaAConsumos;
+    await new Promise((r) => setTimeout(r, 0));
+    cancelar.abort(); // el usuario cierra la ventana: la descarga sigue
+    const segundo = ejecutar({ conPotencia: false });
+    await new Promise((r) => setTimeout(r, 0));
+    soltar();
+    await expect(primero).rejects.toMatchObject({ code: 'cancelado' });
+    const r = await segundo;
+    expect(r.ok).toBe(true);
+    expect(llamadas.filter((l) => l.url.includes('get-consumption-data'))).toHaveLength(1);
+    // y un tercer intento en la misma pagina usa lo ya descargado
+    await ejecutar({ conPotencia: false });
+    expect(llamadas.filter((l) => l.url.includes('get-consumption-data'))).toHaveLength(1);
+  });
+
+  it('si la descarga en curso falla, se puede volver a intentar (no se queda una promesa rota en memoria)', async () => {
+    let n = 0;
+    const buena = respuestas.consumo;
+    respuestas.consumo = (u) => (++n === 1 ? Promise.reject(new TypeError('Failed to fetch')) : buena(u));
+    await expect(ejecutar({ conPotencia: false })).rejects.toMatchObject({ code: 'red' });
+    const r = await ejecutar({ conPotencia: false });
+    expect(r.ok).toBe(true);
+  });
+
   it('flujo feliz: solo habla con datadis.es, no filtra la clave en ninguna URL y codifica bien &, % y !', async () => {
     const r = await ejecutar();
     expect(r.ok).toBe(true);
@@ -628,9 +665,9 @@ describe('importar (fetch simulado)', () => {
     expect(q.get('pointType')).toBe('5');
     expect(q.get('distributorCode')).toBe('2');
     const rango = D.rangoUltimosDias(new Date());
-    // "Ultimos 12 meses" pide un mes mas al principio, por si los ultimos dias no tienen
+    // "Ultimos 12 meses" pide dos meses mas al principio, por si los ultimos dias no tienen
     // excedentes publicados todavia (misma consulta, sin coste extra).
-    expect(q.get('startDate')).toBe(mesAnterior(rango.iniMes));
+    expect(q.get('startDate')).toBe(mesAnterior(mesAnterior(rango.iniMes)));
     expect(q.get('endDate')).toBe(rango.finMes);
   });
 
@@ -776,7 +813,7 @@ describe('importar (fetch simulado)', () => {
     expect(r.ok).toBe(true);
     expect(r.dias).toBe(365);
     const consultas = llamadas.filter((l) => l.url.includes('get-consumption-data'));
-    expect(consultas.length).toBe(1 + 14); // 13 meses del ano + el mes extra del principio
+    expect(consultas.length).toBe(1 + 15); // 13 meses del ano + los 2 de margen del principio
     // del mas reciente al mas antiguo
     expect(new URL(consultas[1].url).searchParams.get('startDate')).toBe(rango.finMes);
   });
@@ -1062,12 +1099,12 @@ describe('importar (fetch simulado)', () => {
     const ejecutarSolar = (extra = {}) => ejecutar({ destino: 'solar', conPotencia: false, confirmar: vi.fn(async () => true), ...extra });
     const contrato = (campos) => () => json(200, { contract: [{ contractedPowerkW: [4.6, 4.6], ...campos }] });
 
-    it('pide los 12 meses completos (mas uno antes, por si el ultimo no esta publicado) y SIEMPRE el contrato', async () => {
+    it('pide los 12 meses completos (mas dos antes, por si los ultimos no estan publicados) y SIEMPRE el contrato', async () => {
       respuestas.consumo = () => json(200, { timeCurve: mesesSolar(rangoSolar(), 0.3) });
       await ejecutarSolar();
       const q = new URL(llamadas.find((l) => l.url.includes('get-consumption-data')).url).searchParams;
       const [y, m] = rangoSolar().iniMes.split('/').map(Number);
-      const antes = new Date(y, m - 2, 1);
+      const antes = new Date(y, m - 3, 1);
       expect(q.get('startDate')).toBe(`${antes.getFullYear()}/${pad(antes.getMonth() + 1)}`);
       expect(q.get('endDate')).toBe(rangoSolar().finMes);
       expect(llamadas.some((l) => l.url.includes('get-contract-detail'))).toBe(true);
@@ -1168,6 +1205,25 @@ describe('importar (fetch simulado)', () => {
       expect(csv).not.toContain(`/${rangoSolar().finMes.slice(5)}/${rangoSolar().finMes.slice(0, 4)};`);
     });
 
+    it('los DOS ultimos meses cerrados sin excedentes publicados: simula los 12 que terminan en el ultimo publicado', async () => {
+      const desde = mesAnterior(mesAnterior(rangoSolar().iniMes));
+      const n = mesesEntreTop(desde, rangoSolar().finMes);
+      const filas = mesesConGeneracion(desde, n, true);
+      const penultimo = mesAnterior(rangoSolar().finMes);
+      const sinPublicar = filas.map((f) => (f.date.startsWith(penultimo)
+        ? { ...f, surplusEnergyKWh: 0, generationEnergyKWh: null, selfConsumptionEnergyKWh: null } : f));
+      respuestas.contract = contrato({ selfConsumptionTypeCode: '43' });
+      respuestas.consumo = () => json(200, { timeCurve: sinPublicar });
+      const confirmar = vi.fn(async () => true);
+      const r = await ejecutarSolar({ confirmar });
+      expect(confirmar).not.toHaveBeenCalled();
+      expect(r.fichero.name).toBe('datadis-12-meses.csv');
+      expect(r.avisos.join(' ')).toContain(`aún no ha publicado los excedentes de ${D.etiquetaMes(penultimo)} y ${D.etiquetaMes(rangoSolar().finMes)}`);
+      const csv = await r.fichero.text();
+      expect(csv.split('\r\n')[1]).toContain(`01/${desde.slice(5)}/${desde.slice(0, 4)}`);
+      expect(csv).not.toContain(`/${penultimo.slice(5)}/${penultimo.slice(0, 4)};`);
+    });
+
     it('con todos los meses publicados usa los 12 ultimos (el mes extra no entra)', async () => {
       const pedido = (() => { const [y, m] = rangoSolar().iniMes.split('/').map(Number); const d = new Date(y, m - 2, 1); return `${d.getFullYear()}/${pad(d.getMonth() + 1)}`; })();
       respuestas.consumo = () => json(200, { timeCurve: mesesConGeneracion(pedido, 13, false) });
@@ -1260,6 +1316,21 @@ describe('importar (fetch simulado)', () => {
 describe('contratos estaticos de lf-datadis.js', () => {
   const root = path.resolve(__dirname, '..');
   const html = fs.readFileSync(path.join(root, 'index.html'), 'utf8');
+
+  it('selector de suministros: descripcion completa bajo el select (en movil se corta) y opciones legibles en ambos temas', () => {
+    expect(sourceDatadis).toContain('<p id="lfDdSuministroInfo" class="lf-dd-suministro-info">');
+    expect(sourceDatadis).toContain('aria-describedby="lfDdSuministroInfo"');
+    expect(sourceDatadis).toMatch(/selector\.addEventListener\('change'[\s\S]{0,200}lfDdSuministroInfo'\)\.textContent = describir\(s\)/);
+    const css = fs.readFileSync(path.join(root, 'styles.css'), 'utf8');
+    // Sin fondo propio, web en oscuro + sistema en claro = lista nativa blanco sobre blanco.
+    expect(css).toMatch(/\.lf-dd-modal select option\{ color:var\(--text\); background-color:var\(--bg1\); \}/);
+    expect(css).toMatch(/\.lf-dd-suministro-info\{[^}]*overflow-wrap:anywhere/);
+  });
+
+  it('la vista previa de la home no habla de "este mismo archivo" cuando los datos vienen de Datadis', () => {
+    const imp = fs.readFileSync(path.join(root, 'js/lf-csv-import.js'), 'utf8');
+    expect(imp).toMatch(/resultado\.formato === 'Datadis'\s*\?\s*'💡 Para la simulación mes a mes, el <a href="\/comparador-tarifas-solares\.html"[^']*también importa desde Datadis/);
+  });
 
   it('no persiste datos personales ni los manda a analitica o a la consola', () => {
     expect(sourceDatadis).not.toMatch(/sessionStorage\.|indexedDB|document\.cookie/);

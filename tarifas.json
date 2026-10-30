@@ -216,26 +216,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Fenie Fijo Energético",
-      "cPunta": 0.126925,
-      "cLlano": 0.126925,
-      "cValle": 0.126925,
-      "p1": 0.113699,
-      "p2": 0.113699,
-      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-energetico-1p",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Repsol Waylet Luz Precio Fijo",
       "cPunta": 0.129004,
       "cLlano": 0.129004,
@@ -538,10 +518,30 @@
       "cLlano": 0.146555,
       "cValle": 0.146555,
       "p1": 0.112498,
-      "p2": 0.112497,
+      "p2": 0.112498,
       "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
       "tipo": "1P",
       "requisitos": "Precio válido para potencia ≤ 5 kW.",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Fenie Fijo Energético",
+      "cPunta": 0.146928,
+      "cLlano": 0.146928,
+      "cValle": 0.146928,
+      "p1": 0.113699,
+      "p2": 0.113699,
+      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-energetico-1p",
+      "tipo": "1P",
       "incluyeServiciosAjuste": true,
       "fv": {
         "exc": 0.0,
@@ -910,7 +910,7 @@
       "cLlano": 0.166881,
       "cValle": 0.166881,
       "p1": 0.112498,
-      "p2": 0.112497,
+      "p2": 0.112498,
       "web": "https://eniplenitude.es/hogar/tarifas-luz/facil/",
       "tipo": "1P",
       "requisitos": "Precio válido para potencia > 5 kW.",
@@ -1215,26 +1215,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Fenie Fijo Uniprecio",
-      "cPunta": 0.208927,
-      "cLlano": 0.208927,
-      "cValle": 0.208927,
-      "p1": 0.075903,
-      "p2": 0.001987,
-      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-uniprecio",
-      "tipo": "1P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Catgas 2.0 TDL",
       "cPunta": 0.209904,
       "cLlano": 0.209904,
@@ -1275,6 +1255,26 @@
       },
       "requiereFV": false,
       "maxConsumoAnualPorKw": 900.0
+    },
+    {
+      "nombre": "Fenie Fijo Uniprecio",
+      "cPunta": 0.228928,
+      "cLlano": 0.228928,
+      "cValle": 0.228928,
+      "p1": 0.075903,
+      "p2": 0.001987,
+      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-uniprecio",
+      "tipo": "1P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
     },
     {
       "nombre": "Nordy 24H",
@@ -1609,26 +1609,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Fenie Fijo Energético 3P",
-      "cPunta": 0.196888,
-      "cLlano": 0.115616,
-      "cValle": 0.089322,
-      "p1": 0.113699,
-      "p2": 0.113699,
-      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-energetico-3p",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Niba Tres 3P",
       "cPunta": 0.197008,
       "cLlano": 0.147,
@@ -1857,6 +1837,26 @@
         "bv": true,
         "reglaBV": "BV MES ANTERIOR",
         "precioBV": 1.65
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Fenie Fijo Energético 3P",
+      "cPunta": 0.216889,
+      "cLlano": 0.135616,
+      "cValle": 0.109322,
+      "p1": 0.113699,
+      "p2": 0.113699,
+      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-energetico-3p",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
       },
       "requiereFV": false
     },
@@ -2270,26 +2270,6 @@
       "requiereFV": false
     },
     {
-      "nombre": "Fenie Fijo 3P",
-      "cPunta": 0.278889,
-      "cLlano": 0.197616,
-      "cValle": 0.171322,
-      "p1": 0.075903,
-      "p2": 0.001987,
-      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-3-periodos",
-      "tipo": "3P",
-      "incluyeServiciosAjuste": true,
-      "fv": {
-        "exc": 0.0,
-        "tipo": "NO COMPENSA",
-        "tope": "—",
-        "bv": false,
-        "reglaBV": "NO APLICA",
-        "precioBV": 0.0
-      },
-      "requiereFV": false
-    },
-    {
       "nombre": "Plenitude Plus 3P",
       "cPunta": 0.280591,
       "cLlano": 0.214031,
@@ -2339,6 +2319,26 @@
       "p1": 0.08826,
       "p2": 0.08826,
       "web": "https://inerenergia.es/luz/hogar",
+      "tipo": "3P",
+      "incluyeServiciosAjuste": true,
+      "fv": {
+        "exc": 0.0,
+        "tipo": "NO COMPENSA",
+        "tope": "—",
+        "bv": false,
+        "reglaBV": "NO APLICA",
+        "precioBV": 0.0
+      },
+      "requiereFV": false
+    },
+    {
+      "nombre": "Fenie Fijo 3P",
+      "cPunta": 0.298886,
+      "cLlano": 0.217616,
+      "cValle": 0.191322,
+      "p1": 0.075901,
+      "p2": 0.001987,
+      "web": "https://www.fenieenergia.es/es/hogar/tarifas-de-luz/fijo-3-periodos",
       "tipo": "3P",
       "incluyeServiciosAjuste": true,
       "fv": {
@@ -2454,5 +2454,5 @@
       "requiereFV": false
     }
   ],
-  "updatedAt": "2026-10-30T11:44:58.899Z"
+  "updatedAt": "2026-10-30T13:56:38.905Z"
 }

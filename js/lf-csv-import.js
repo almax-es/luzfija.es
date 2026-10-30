@@ -717,7 +717,9 @@
             <span style="font-size: 13px; color: var(--text); font-weight: 600;">☀️ Incluir excedentes en el cálculo</span>
           </label>
           <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--border); font-size: 12px; color: var(--muted); line-height: 1.5;">
-            💡 Con este mismo archivo puedes hacer la simulación mes a mes en el <a href="/comparador-tarifas-solares.html" style="color: var(--warn); font-weight: 700;">Simulador Solar</a>, la herramienta recomendada para autoconsumo.
+            ${resultado.formato === 'Datadis'
+              ? '💡 Para la simulación mes a mes, el <a href="/comparador-tarifas-solares.html" style="color: var(--warn); font-weight: 700;">Simulador Solar</a> también importa desde Datadis (tus 12 últimos meses completos). Es la herramienta recomendada para autoconsumo.'
+              : '💡 Con este mismo archivo puedes hacer la simulación mes a mes en el <a href="/comparador-tarifas-solares.html" style="color: var(--warn); font-weight: 700;">Simulador Solar</a>, la herramienta recomendada para autoconsumo.'}
           </div>
         </div>
       `;
