@@ -243,6 +243,37 @@
       : f));
   }
 
+  /**
+   * "Ultimos 12 meses" de la home con los ultimos dias sin excedentes publicados (ya marcados en
+   * null): devuelve los 365 dias que terminan en el ultimo dia publicado, o null si no hace falta
+   * (sin excedentes, nada pendiente) o no se puede (no hay consumos tan antiguos).
+   */
+  function anoHastaUltimoPublicado(filas, rango, rangoPedido) {
+    let ultimoPublicado = '';
+    let ultimoConsumo = '';
+    let primerConsumo = '';
+    let hayPositivos = false;
+    for (const f of filas) {
+      if (!filaUtil(f) || f.date < rangoPedido.iniYmd || f.date > rango.finYmd) continue;
+      const exc = numero(f.surplusEnergyKWh);
+      if (Number.isFinite(exc)) {
+        if (f.date > ultimoPublicado) ultimoPublicado = f.date;
+        if (exc > 0) hayPositivos = true;
+      }
+      if (tieneConsumo(f)) {
+        if (f.date > ultimoConsumo) ultimoConsumo = f.date;
+        if (!primerConsumo || f.date < primerConsumo) primerConsumo = f.date;
+      }
+    }
+    if (!hayPositivos || !ultimoPublicado || ultimoConsumo <= ultimoPublicado) return null;
+    const [y, m, d] = ultimoPublicado.split('/').map(Number);
+    const fin = new Date(y, m - 1, d);
+    const ini = new Date(y, m - 1, d - (DIAS_HISTORICO - 1));
+    const iniYmd = fmtYmd(ini);
+    if (iniYmd < rangoPedido.iniYmd || primerConsumo > iniYmd) return null;
+    return { iniYmd, finYmd: fmtYmd(fin), iniMes: fmtYm(ini), finMes: fmtYm(fin) };
+  }
+
   /** Rango de un mes completo ('2026/09'). */
   function rangoDeMes(mes) {
     const [y, m] = mes.split('/').map(Number);
@@ -631,10 +662,11 @@
    */
   async function importar(o) {
     const solar = o.destino === 'solar';
-    const rango = solar ? rangoMesesCompletos(new Date()) : (o.rango || rangoUltimosDias(new Date()));
-    // El simulador solar pide un mes mas al principio: si el ultimo mes cerrado aun no tiene los
-    // excedentes publicados (lo normal en las primeras semanas del mes), simula los 12 anteriores.
-    const rangoPedido = solar ? conMesAnterior(rango) : rango;
+    let rango = solar ? rangoMesesCompletos(new Date()) : (o.rango || rangoUltimosDias(new Date()));
+    // El simulador solar y los "ultimos 12 meses" de la home piden un mes mas al principio: si los
+    // ultimos dias aun no tienen los excedentes publicados (la distribuidora tarda semanas), se
+    // analiza el ano que termina en el ultimo dia publicado. Un periodo elegido a mano no se mueve.
+    const rangoPedido = solar || !o.rango ? conMesAnterior(rango) : rango;
     const nif = normalizarDocumento(o.nif);
     const fallo = errorDocumento(nif);
     if (fallo) {
@@ -804,6 +836,11 @@
       };
     }
 
+    let excedentesHasta = '';
+    if (!o.rango) {
+      const desplazado = anoHastaUltimoPublicado(filas, rango, rangoPedido);
+      if (desplazado) { rango = desplazado; excedentesHasta = desplazado.finYmd; }
+    }
     const ev = evaluarExcedentes(filas, rango);
 
     const { csv, filasUsadas } = construirCsv(filas, rango);
@@ -828,6 +865,9 @@
         .replace(/^⚠️ CSV antiguo:/, '⚠️ Datos antiguos:')
         .replace('revisa que estás importando el archivo correcto.', 'comprueba que el periodo elegido es el que querías.');
     });
+    if (excedentesHasta) {
+      resultado.warnings.push(`Tu distribuidora aún no ha publicado en Datadis los excedentes posteriores al ${fechaEs(excedentesHasta)}: para no contarlos como 0 kWh, se analizan los 365 días que terminan ese día.`);
+    }
     // Hay excedentes, pero no de todos los meses: en la home cuentan como 0 (estimacion rapida),
     // asi que se dice expresamente cuales faltan.
     if (ev.hayPositivos && ev.mesesSinDato.length) {

@@ -3838,13 +3838,17 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
         ? `<br><br><strong>Mes de inicio:</strong> simulación desde ${escapeHtml(mesInicioLabel)}. La hucha se arrastra en el orden mostrado en los desgloses.`
         : '';
       let saldoInicialNote = '';
+      let saldoSinDestinoMsg = '';
       if (saldoAplicado) {
         saldoInicialNote = `<br><br><strong>Saldo BV inicial:</strong> los ${fEur(saldoVal)} indicados se aplican solo a <strong>Mi tarifa ⭐</strong>. Las demás tarifas empiezan con la hucha a 0 €: el saldo acumulado no se transfiere al cambiar de comercializadora.`;
       } else if (saldoSinDestino) {
         // No decir "marca Tiene batería virtual": desde la normalización de fv.bv (20/08/2026)
         // la casilla puede estar YA marcada y aun así no haber BV aplicable, porque falta la
         // compensación. Pedir lo que el usuario ya ha hecho induce a error.
-        saldoInicialNote = `<br><br><strong>⚠️ Saldo BV inicial no aplicado:</strong> has indicado ${fEur(saldoVal)}, pero no hay ninguna tarifa actual con batería virtual aplicable a la que asignarlo. Rellena "Comparar con mi tarifa actual" y configura ahí su batería virtual junto con la compensación de excedentes, si esa hucha es de tu contrato de ahora.`;
+        // Aviso visible encima del ganador, no dentro de la nota: escondido ahi, quien habia
+        // escrito su hucha veia "Uso de hucha" y "Saldo BV final 0 €" y creia que no cuadraba
+        // (caso real del 30/10/2026).
+        saldoSinDestinoMsg = `<div class="consumo-limits-notice" role="note" aria-label="Saldo BV inicial no aplicado"><p><strong>⚠️ Los ${fEur(saldoVal)} de tu hucha no se han aplicado.</strong> El saldo solo cuenta si sigues en tu tarifa actual: rellena «Comparar con mi tarifa actual» con su batería virtual y su compensación de excedentes. Todas las tarifas del ranking empiezan con la hucha a 0 €, porque el saldo no se transfiere al cambiar de comercializadora.</p></div>`;
       }
       const rankingNote = `
         <div style="background: var(--card2); border: 1px solid var(--border); border-radius: 12px; padding: 16px; margin-bottom: 24px; text-align: center;">
@@ -3866,7 +3870,7 @@ ${costeBV > 0 ? `🔋 Cuota BV: ${fEur(costeBV)}\n` : ''}💶 ${taxLabel}: ${fEu
       // resultado de la comprobacion sigue siendo valido y no hace falta repetirla.
       if (staleAtThisPoint) { renderStaleWarning(); return; }
 
-      resultsEl.innerHTML = `<h2 style="text-align:center; font-size:1.8rem; font-weight:900; margin-bottom:2rem; color:var(--text);">Resultados de la Simulación</h2>${consumoLimitsMsg}${rankingNote}${winnerHTML}<h3 style="text-align:center; margin-bottom: 24px; margin-top: 40px; color:var(--text);">Ranking completo (${totalTarifasLabel})</h3>${alternativesHTML}`;
+      resultsEl.innerHTML = `<h2 style="text-align:center; font-size:1.8rem; font-weight:900; margin-bottom:2rem; color:var(--text);">Resultados de la Simulación</h2>${saldoSinDestinoMsg}${consumoLimitsMsg}${rankingNote}${winnerHTML}<h3 style="text-align:center; margin-bottom: 24px; margin-top: 40px; color:var(--text);">Ranking completo (${totalTarifasLabel})</h3>${alternativesHTML}`;
       focusConsumoEstimateToggle();
       resultsEl.querySelectorAll('.bv-alt-btn-toggle').forEach((button) => {
         button.addEventListener('click', () => {

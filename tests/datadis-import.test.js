@@ -52,6 +52,8 @@ let D = cargarModulo();
 
 // ---- Fixtures ----
 const pad = (n) => String(n).padStart(2, '0');
+/** '2026/01' -> '2025/12' */
+const mesAnterior = (mes) => { const d = new Date(Number(mes.slice(0, 4)), Number(mes.slice(5, 7)) - 2, 1); return `${d.getFullYear()}/${pad(d.getMonth() + 1)}`; };
 const ymd = (d) => `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())}`;
 
 /** Ultimo domingo de marzo/octubre de ese ano (cambios de hora, Orden PCM/186/2022 y siguientes). */
@@ -626,6 +628,16 @@ describe('importar (fetch simulado)', () => {
     expect(q.get('pointType')).toBe('5');
     expect(q.get('distributorCode')).toBe('2');
     const rango = D.rangoUltimosDias(new Date());
+    // "Ultimos 12 meses" pide un mes mas al principio, por si los ultimos dias no tienen
+    // excedentes publicados todavia (misma consulta, sin coste extra).
+    expect(q.get('startDate')).toBe(mesAnterior(rango.iniMes));
+    expect(q.get('endDate')).toBe(rango.finMes);
+  });
+
+  it('un periodo elegido a mano se pide tal cual, sin mes extra', async () => {
+    const rango = D.rangoUltimosDias(new Date(), 60);
+    await ejecutar({ rango, conPotencia: false }).catch(() => {});
+    const q = new URL(llamadas.find((l) => l.url.includes('get-consumption-data')).url).searchParams;
     expect(q.get('startDate')).toBe(rango.iniMes);
     expect(q.get('endDate')).toBe(rango.finMes);
   });
@@ -733,7 +745,7 @@ describe('importar (fetch simulado)', () => {
     expect(r.ok).toBe(true);
     expect(r.dias).toBe(365);
     const consultas = llamadas.filter((l) => l.url.includes('get-consumption-data'));
-    expect(consultas.length).toBe(1 + 13);
+    expect(consultas.length).toBe(1 + 14); // 13 meses del ano + el mes extra del principio
     // del mas reciente al mas antiguo
     expect(new URL(consultas[1].url).searchParams.get('startDate')).toBe(rango.finMes);
   });
@@ -959,13 +971,51 @@ describe('importar (fetch simulado)', () => {
     expect(textoCsv.split('\r\n')[0]).not.toContain('Energia_vertida_kWh');
   });
 
-  it('home: el mes en curso sin excedentes publicados (generacion vacia, excedente 0) se avisa, no se toma como 0 en silencio', async () => {
+  /** Meses entre dos 'YYYY/MM', ambos incluidos. */
+  const mesesEntre = (a, b) => (Number(b.slice(0, 4)) - Number(a.slice(0, 4))) * 12 + Number(b.slice(5, 7)) - Number(a.slice(5, 7)) + 1;
+  /** Ultimo dia del mes anterior a 'YYYY/MM', como 'YYYY/MM/DD'. */
+  const finMesAnterior = (mes) => { const d = new Date(Number(mes.slice(0, 4)), Number(mes.slice(5, 7)) - 1, 0); return `${d.getFullYear()}/${pad(d.getMonth() + 1)}/${pad(d.getDate())}`; };
+
+  it('home, ultimos 12 meses con el mes en curso sin excedentes publicados: analiza los 365 dias hasta el ultimo dia publicado', async () => {
     const rango = D.rangoUltimosDias(new Date());
-    const [y, m] = rango.iniMes.split('/').map(Number);
-    const meses = (Number(rango.finMes.slice(0, 4)) - y) * 12 + Number(rango.finMes.slice(5, 7)) - m + 1;
-    respuestas.consumo = () => json(200, { timeCurve: mesesConGeneracion(rango.iniMes, meses, true) });
+    const desde = mesAnterior(rango.iniMes);
+    respuestas.consumo = () => json(200, { timeCurve: mesesConGeneracion(desde, mesesEntre(desde, rango.finMes), true) });
     const r = await ejecutar({ conPotencia: false });
-    expect(r.warnings.join('\n')).toContain(`todavía no ha publicado (o no ha enviado) los excedentes de ${D.etiquetaMes(rango.finMes)}`);
+    const fin = finMesAnterior(rango.finMes);
+    const avisos = r.warnings.join('\n');
+    expect(avisos).toContain(`excedentes posteriores al ${fin.slice(8)}/${fin.slice(5, 7)}/${fin.slice(0, 4)}`);
+    expect(avisos).not.toContain('todavía no ha publicado (o no ha enviado)');
+    expect(r.dias).toBe(365);
+    expect(textoCsv.split(/\r?\n/).filter(Boolean).at(-1).split(';')[1]).toBe(`${fin.slice(8)}/${fin.slice(5, 7)}/${fin.slice(0, 4)}`);
+  });
+
+  it('home, periodo elegido a mano con el ultimo mes sin publicar: NO se mueve y se avisa', async () => {
+    const rango = D.rangoUltimosDias(new Date());
+    respuestas.consumo = () => json(200, { timeCurve: mesesConGeneracion(rango.iniMes, mesesEntre(rango.iniMes, rango.finMes), true) });
+    const r = await ejecutar({ rango, conPotencia: false });
+    const avisos = r.warnings.join('\n');
+    expect(avisos).toContain(`todavía no ha publicado (o no ha enviado) los excedentes de ${D.etiquetaMes(rango.finMes)}`);
+    expect(avisos).not.toContain('excedentes posteriores al');
+  });
+
+  it('home, ultimos 12 meses sin historial suficiente para moverse: no se mueve y se avisa', async () => {
+    const rango = D.rangoUltimosDias(new Date());
+    const filas = mesesConGeneracion(rango.iniMes, mesesEntre(rango.iniMes, rango.finMes), true).filter((f) => f.date >= rango.iniYmd);
+    respuestas.consumo = () => json(200, { timeCurve: filas });
+    const r = await ejecutar({ conPotencia: false });
+    const avisos = r.warnings.join('\n');
+    expect(avisos).toContain(`todavía no ha publicado (o no ha enviado) los excedentes de ${D.etiquetaMes(rango.finMes)}`);
+    expect(avisos).not.toContain('excedentes posteriores al');
+  });
+
+  it('home, ultimos 12 meses con todo publicado: el periodo no cambia', async () => {
+    const rango = D.rangoUltimosDias(new Date());
+    const desde = mesAnterior(rango.iniMes);
+    respuestas.consumo = () => json(200, { timeCurve: mesesConGeneracion(desde, mesesEntre(desde, rango.finMes), false) });
+    const r = await ejecutar({ conPotencia: false });
+    expect(r.warnings.join('\n')).not.toContain('excedentes posteriores al');
+    const fin = rango.finYmd;
+    expect(textoCsv.split(/\r?\n/).filter(Boolean).at(-1).split(';')[1]).toBe(`${fin.slice(8)}/${fin.slice(5, 7)}/${fin.slice(0, 4)}`);
   });
 
   it('home: si faltan excedentes de algunos meses lo dice expresamente', async () => {
