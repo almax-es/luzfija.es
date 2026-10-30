@@ -226,6 +226,37 @@
   }
 
   /**
+   * Excedentes que la distribuidora AUN NO HA PUBLICADO. Medido con datos reales (e-distribucion,
+   * autoconsumo colectivo, 30/10/2026): en los meses ya publicados generacion = autoconsumo +
+   * excedentes cuadra al 0,0, y en el mes en curso llegan generacion y autoconsumo en null pero el
+   * excedente en 0. Ese 0 no es un dato: si el suministro informa de generacion o autoconsumo en
+   * otras horas, una hora con excedente 0 y ambos campos vacios se trata como SIN DATO (null).
+   * En suministros que nunca informan de generacion no se toca nada.
+   */
+  function marcarExcedentesSinPublicar(filas) {
+    const lista = Array.isArray(filas) ? filas : [];
+    const informaGeneracion = lista.some((f) => f && (Number.isFinite(numero(f.generationEnergyKWh)) || Number.isFinite(numero(f.selfConsumptionEnergyKWh))));
+    if (!informaGeneracion) return lista;
+    return lista.map((f) => (f && numero(f.surplusEnergyKWh) === 0
+      && !Number.isFinite(numero(f.generationEnergyKWh)) && !Number.isFinite(numero(f.selfConsumptionEnergyKWh))
+      ? Object.assign({}, f, { surplusEnergyKWh: null })
+      : f));
+  }
+
+  /** Rango de un mes completo ('2026/09'). */
+  function rangoDeMes(mes) {
+    const [y, m] = mes.split('/').map(Number);
+    return { iniYmd: `${mes}/01`, finYmd: fmtYmd(new Date(y, m, 0)), iniMes: mes, finMes: mes };
+  }
+
+  /** El mismo rango empezando un mes antes. */
+  function conMesAnterior(rango) {
+    const [y, m] = rango.iniMes.split('/').map(Number);
+    const ini = new Date(y, m - 2, 1);
+    return Object.assign({}, rango, { iniYmd: fmtYmd(ini), iniMes: fmtYm(ini) });
+  }
+
+  /**
    * Excedentes MES A MES. Un mes trae dato si alguna de sus horas trae un numero; sus horas en
    * null se toman como 0 kWh: Datadis no obliga a las distribuidoras a enviar el excedente
    * cuando es 0, asi que dentro de un mes con datos un null es casi siempre un cero no enviado.
@@ -433,6 +464,18 @@
     return '';
   }
 
+  /** Fecha de baja del suministro ('2025/07/02') o '' si sigue activo o el formato no es el esperado. */
+  function fechaBaja(suministro) {
+    const v = suministro && typeof suministro.validDateTo === 'string' ? suministro.validDateTo.trim() : '';
+    return /^\d{4}\/\d{2}\/\d{2}$/.test(v) ? v : '';
+  }
+
+  /** '2025/07/02' -> '02/07/2025'. */
+  function fechaEs(ymd) {
+    const [y, m, d] = ymd.split('/');
+    return `${d}/${m}/${y}`;
+  }
+
   function cupsEnmascarado(cups) {
     const c = String(cups || '');
     return c.length > 12 ? `${c.slice(0, 6)}…${c.slice(-4)}` : '…';
@@ -589,6 +632,9 @@
   async function importar(o) {
     const solar = o.destino === 'solar';
     const rango = solar ? rangoMesesCompletos(new Date()) : (o.rango || rangoUltimosDias(new Date()));
+    // El simulador solar pide un mes mas al principio: si el ultimo mes cerrado aun no tiene los
+    // excedentes publicados (lo normal en las primeras semanas del mes), simula los 12 anteriores.
+    const rangoPedido = solar ? conMesAnterior(rango) : rango;
     const nif = normalizarDocumento(o.nif);
     const fallo = errorDocumento(nif);
     if (fallo) {
@@ -629,6 +675,14 @@
     if (!suministros.length) throw new DatadisError('sinsuministros');
     const suministro = suministros.length === 1 ? suministros[0] : await o.elegirSuministro(suministros);
     if (!suministro) throw new DatadisError('cancelado');
+    // Suministro dado de baja antes del periodo: no hay nada que pedir. Se corta aqui para no
+    // gastar consultas (que Datadis no deja repetir en 24 h) en una respuesta vacia segura.
+    const baja = fechaBaja(suministro);
+    if (baja && baja < rango.iniYmd) {
+      const err = new DatadisError('baja');
+      err.detalle = { fecha: baja, solar };
+      throw err;
+    }
 
     // El contrato da la potencia (si se pide) y, en el simulador solar, si hay autoconsumo y de que
     // tipo: ahi se pide siempre. Si falla, se sigue: la potencia es un extra y la falta de dato
@@ -649,14 +703,14 @@
 
     if (o.senal && o.senal.aborted) throw new DatadisError('cancelado');
     o.onProgreso('consumos');
-    const clave = [suministro.cups, suministro.distributorCode, rango.iniMes, rango.finMes].join('|');
+    const clave = [suministro.cups, suministro.distributorCode, rangoPedido.iniMes, rangoPedido.finMes].join('|');
     let filas = cacheConsumos.get(clave);
     if (!filas) {
       const params = {
         cups: suministro.cups,
         distributorCode: String(suministro.distributorCode),
-        startDate: rango.iniMes,
-        endDate: rango.finMes,
+        startDate: rangoPedido.iniMes,
+        endDate: rangoPedido.finMes,
         measurementType: '0'
       };
       if (suministro.pointType !== undefined && suministro.pointType !== null && suministro.pointType !== '') {
@@ -672,7 +726,7 @@
       };
       let errorPeriodo = null;
       try {
-        filas = await pedir(rango.iniMes, rango.finMes, T_CONSUMO);
+        filas = await pedir(rangoPedido.iniMes, rangoPedido.finMes, T_CONSUMO);
       } catch (e) {
         if (e && e.code === 'http') e.paso = 'consumos';
         // Sesion caducada, red caida, tiempo agotado o consulta repetida: pedir mes a mes no lo arregla.
@@ -683,10 +737,10 @@
       // Algunas distribuidoras rechazan (error 500) o devuelven vacia cualquier consulta que
       // incluya el primer mes de un contrato, y se perderia el periodo entero. Mes a mes, del mas
       // reciente al mas antiguo, un mes roto solo se pierde a si mismo; la cobertura lo detecta.
-      if (!filas.length && rango.iniMes !== rango.finMes) {
+      if (!filas.length && rangoPedido.iniMes !== rangoPedido.finMes) {
         o.onProgreso('consumos-mes');
         const trozos = [];
-        for (const mes of mesesDelRango(rango).reverse()) {
+        for (const mes of mesesDelRango(rangoPedido).reverse()) {
           try {
             trozos.unshift(await pedir(mes, mes, T_CONSUMO_MES));
           } catch (e) {
@@ -700,10 +754,22 @@
       cacheConsumos.set(clave, filas);
     }
     if (o.senal && o.senal.aborted) throw new DatadisError('cancelado');
+    filas = marcarExcedentesSinPublicar(filas);
 
     if (solar) {
+      // 0) Ultimo mes cerrado sin excedentes publicados mientras los anteriores si los tienen:
+      //    se simulan los 12 meses anteriores en vez de bloquear o importar ceros.
+      let rangoSolar = rango;
+      let mesSinPublicar = null;
+      const evUltimo = evaluarExcedentes(filas, rangoDeMes(rango.finMes));
+      const finPrevio = new Date(Number(rango.finMes.slice(0, 4)), Number(rango.finMes.slice(5, 7)) - 1, 0);
+      const evPrevios = evaluarExcedentes(filas, { iniYmd: rangoPedido.iniYmd, finYmd: fmtYmd(finPrevio), iniMes: rangoPedido.iniMes, finMes: fmtYm(finPrevio) });
+      if (evUltimo.meses.length && evUltimo.estado === 'ausente' && evPrevios.hayPositivos) {
+        mesSinPublicar = rango.finMes;
+        rangoSolar = { iniYmd: rangoPedido.iniYmd, finYmd: fmtYmd(finPrevio), iniMes: rangoPedido.iniMes, finMes: fmtYm(finPrevio) };
+      }
       // 1) Consumo: contra las horas que DEBERIAN llegar, no contra las que llegan.
-      const cob = evaluarCobertura(filas, rango);
+      const cob = evaluarCobertura(filas, rangoSolar);
       if (!cob.usados.length) throw new DatadisError('sindatos');
       if (cob.fallos.length) {
         const err = new DatadisError('solar');
@@ -711,8 +777,8 @@
         throw err;
       }
       const rangoUsado = cob.omitidos.length
-        ? Object.assign({}, rango, { iniYmd: `${cob.usados[0]}/01`, iniMes: cob.usados[0] })
-        : rango;
+        ? Object.assign({}, rangoSolar, { iniYmd: `${cob.usados[0]}/01`, iniMes: cob.usados[0] })
+        : rangoSolar;
       // 2) Excedentes, solo en los meses que se importan.
       const evSolar = evaluarExcedentes(filas, rangoUsado);
       const decision = decidirSolar(leerAutoconsumo(contrato), evSolar);
@@ -733,7 +799,7 @@
       return {
         destino: 'solar',
         fichero: new File([csvSolar], `datadis-${cob.usados.length}-meses.csv`, { type: 'text/csv' }),
-        avisos: avisosSolar(decision, evSolar, rangoUsado, cob),
+        avisos: avisosSolar(decision, evSolar, rangoUsado, cob, mesSinPublicar),
         potencias
       };
     }
@@ -765,7 +831,7 @@
     // Hay excedentes, pero no de todos los meses: en la home cuentan como 0 (estimacion rapida),
     // asi que se dice expresamente cuales faltan.
     if (ev.hayPositivos && ev.mesesSinDato.length) {
-      resultado.warnings.push(`Datadis no ha enviado ningún dato de excedentes de ${listaMeses(ev.mesesSinDato)}: esos meses cuentan como 0 kWh vertidos. Revisa el total de excedentes después de aplicar.`);
+      resultado.warnings.push(`Datadis todavía no ha publicado (o no ha enviado) los excedentes de ${listaMeses(ev.mesesSinDato)}: aquí cuentan como 0 kWh vertidos. Las distribuidoras suelen publicarlos unas semanas después del consumo; para no infravalorarlos, elige «Otro periodo» terminando antes de ese mes.`);
     }
     if (potencias) {
       resultado.potenciaContratada = potencias;
@@ -795,7 +861,7 @@
 
   function textoBloqueoSolar(decision, ev) {
     if (decision.motivo === 'parcial') {
-      return `Datadis no ha enviado ningún dato de excedentes de ${listaMeses(ev.mesesSinDato)}, aunque sí de otros meses. ` +
+      return `Datadis no ha publicado (o no ha enviado) los excedentes de ${listaMeses(ev.mesesSinDato)}, aunque sí los de otros meses. ` +
         'En meses de tanto sol es muy improbable que no vertieras nada, y el simulador calcularía como si no lo hubieras hecho, así que no importamos. ' +
         'Descarga el CSV desde Datadis o desde tu distribuidora y usa «Seleccionar archivo CSV», o rellena los excedentes a mano en la tabla mensual.';
     }
@@ -806,7 +872,7 @@
 
   function textoConfirmacionSolar(decision, ev) {
     if (decision.motivo === 'meses-sin-dato') {
-      return `Datadis no ha enviado ningún dato de excedentes de ${listaMeses(ev.mesesSinDato)}, aunque sí de otros meses. ` +
+      return `Datadis no ha publicado (o no ha enviado) los excedentes de ${listaMeses(ev.mesesSinDato)}, aunque sí los de otros meses. ` +
         'Son meses de poco sol y algunas distribuidoras no envían el dato cuando no hay vertido, así que puede ser correcto. ' +
         'Si en esos meses vertiste algo, no importes: el simulador calcularía como si no lo hubieras hecho. Usa el CSV o corrige la tabla a mano.';
     }
@@ -825,8 +891,11 @@
       'Si sí viertes, no importes: el simulador calcularía como si no vertieras nada. Usa el CSV o rellena los excedentes a mano.';
   }
 
-  function avisosSolar(decision, ev, rango, cob) {
+  function avisosSolar(decision, ev, rango, cob, mesSinPublicar) {
     const avisos = [`Datos de Datadis: ${etiquetaMes(rango.iniMes)} a ${etiquetaMes(rango.finMes)}.`];
+    if (mesSinPublicar) {
+      avisos.push(`Tu distribuidora aún no ha publicado los excedentes de ${etiquetaMes(mesSinPublicar)} (suele tardar unas semanas): se simulan los 12 meses anteriores.`);
+    }
     if (cob && cob.omitidos.length) {
       avisos.push(`Datadis no tiene datos completos anteriores a ${etiquetaMes(rango.iniMes)} (suministro reciente o cambio de titular): se simulan ${cob.usados.length} meses.`);
     }
@@ -883,10 +952,15 @@
         return 'Datadis no permite repetir la misma consulta durante 24 horas. Si ya la hiciste hoy, espera o usa el CSV descargado desde Datadis.';
       case 'sesion':
         return 'Tu sesión de Datadis ha caducado. Vuelve a intentarlo.';
+      case 'baja':
+        return `Ese suministro está dado de baja desde el ${fechaEs(err.detalle.fecha)}, así que Datadis no tiene consumos suyos en el periodo elegido. No hemos pedido los consumos. ` +
+          (err.detalle.solar
+            ? 'El simulador solar necesita los últimos 12 meses completos de un suministro activo.'
+            : 'Si quieres analizarlo, elige «Otro periodo» anterior a esa fecha.');
       case 'sinsuministros':
         return 'No hemos encontrado suministros en tu cuenta de Datadis.';
       case 'sindatos':
-        return 'Datadis no ha devuelto consumos para ese periodo. Puede ser un suministro nuevo, un periodo anterior a tu contrato o un retraso de tu distribuidora.';
+        return 'Datadis no ha devuelto consumos para ese periodo. Puede ser un suministro nuevo o dado de baja, un periodo fuera de tu contrato o un retraso de tu distribuidora.';
       case 'periodo':
         return (TEXTO_PERIODO[err.detalle] || TEXTO_PERIODO.formato) + ' No hemos llamado a Datadis.';
       case 'solar':
@@ -1176,7 +1250,7 @@
       const preferido = (activos[0] || lista[0]);
       const opciones = lista.map((s) => {
         const etiqueta = [s.address, s.municipality, s.province].filter(Boolean).join(', ') || 'Suministro';
-        const baja = s.validDateTo ? ` (baja ${s.validDateTo})` : '';
+        const baja = fechaBaja(s) ? ` (de baja desde el ${fechaEs(fechaBaja(s))})` : (s.validDateTo ? ' (de baja)' : '');
         return `<option value="${esc(s.cups)}"${s === preferido ? ' selected' : ''}>${esc(etiqueta)} · ${esc(cupsEnmascarado(s.cups))}${esc(baja)}</option>`;
       }).join('');
       pintar(`
@@ -1295,6 +1369,7 @@
     horasEsperadasMes,
     inicioMasAntiguo,
     contratoVigente,
+    marcarExcedentesSinPublicar,
     evaluarCobertura,
     evaluarExcedentes,
     leerAutoconsumo,

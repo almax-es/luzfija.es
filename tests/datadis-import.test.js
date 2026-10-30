@@ -350,6 +350,43 @@ function mesesSolar(rango, surplusPorMes) {
   return filas;
 }
 
+/** 13 meses desde iniMes con generacion y autoconsumo informados; el ultimo, sin publicar (gen null, exc 0). */
+function mesesConGeneracion(iniMes, n, ultimoSinPublicar) {
+  const filas = [];
+  const [y0, m0] = iniMes.split('/').map(Number);
+  for (let i = 0; i < n; i++) {
+    const inicio = new Date(y0, m0 - 1 + i, 1);
+    const sinPublicar = ultimoSinPublicar && i === n - 1;
+    for (let d = new Date(inicio); d.getMonth() === inicio.getMonth(); d.setDate(d.getDate() + 1)) {
+      const f = ymd(d);
+      for (const x of diaDatadis(f, { tipo: tipoDia(f) })) {
+        const h = Number(x.time.slice(0, 2));
+        const sol = h >= 11 && h <= 16;
+        filas.push(sinPublicar
+          ? { ...x, surplusEnergyKWh: 0, generationEnergyKWh: null, selfConsumptionEnergyKWh: null }
+          : { ...x, surplusEnergyKWh: sol ? 0.6 : 0, generationEnergyKWh: sol ? 0.9 : 0, selfConsumptionEnergyKWh: sol ? 0.3 : 0 });
+      }
+    }
+  }
+  return filas;
+}
+
+describe('excedentes aun no publicados (forma real: generacion y autoconsumo en null, excedente en 0)', () => {
+  it('se marcan como sin dato solo si el suministro informa de generacion en otras horas', () => {
+    const filas = mesesConGeneracion('2026/08', 3, true);
+    const m = D.marcarExcedentesSinPublicar(filas);
+    const oct = m.filter((f) => f.date.startsWith('2026/10'));
+    expect(oct.every((f) => f.surplusEnergyKWh === null)).toBe(true);
+    expect(m.filter((f) => f.date.startsWith('2026/09')).some((f) => f.surplusEnergyKWh === 0)).toBe(true); // ceros reales intactos
+    // sin generacion informada en ninguna hora: no se toca nada
+    const sinGen = diaDatadis('2026/05/10', { surplus: 0 });
+    expect(D.marcarExcedentesSinPublicar(sinGen)).toEqual(sinGen);
+    // un excedente positivo con generacion vacia no se toca
+    const raro = [{ ...filas[300], surplusEnergyKWh: 0.4, generationEnergyKWh: null, selfConsumptionEnergyKWh: null }, filas[301]];
+    expect(D.marcarExcedentesSinPublicar(raro)[0].surplusEnergyKWh).toBe(0.4);
+  });
+});
+
 describe('evaluarExcedentes', () => {
   const rango = D.rangoMesesCompletos(new Date(2026, 9, 30));
 
@@ -922,11 +959,20 @@ describe('importar (fetch simulado)', () => {
     expect(textoCsv.split('\r\n')[0]).not.toContain('Energia_vertida_kWh');
   });
 
+  it('home: el mes en curso sin excedentes publicados (generacion vacia, excedente 0) se avisa, no se toma como 0 en silencio', async () => {
+    const rango = D.rangoUltimosDias(new Date());
+    const [y, m] = rango.iniMes.split('/').map(Number);
+    const meses = (Number(rango.finMes.slice(0, 4)) - y) * 12 + Number(rango.finMes.slice(5, 7)) - m + 1;
+    respuestas.consumo = () => json(200, { timeCurve: mesesConGeneracion(rango.iniMes, meses, true) });
+    const r = await ejecutar({ conPotencia: false });
+    expect(r.warnings.join('\n')).toContain(`todavía no ha publicado (o no ha enviado) los excedentes de ${D.etiquetaMes(rango.finMes)}`);
+  });
+
   it('home: si faltan excedentes de algunos meses lo dice expresamente', async () => {
     const rango = D.rangoUltimosDias(new Date());
     respuestas.consumo = () => json(200, { timeCurve: añoCompleto(rango).map((f) => ({ ...f, surplusEnergyKWh: f.date.slice(5, 7) === '07' ? null : 0.2 })) });
     const r = await ejecutar({ conPotencia: false });
-    expect(r.warnings.join('\n')).toMatch(/no ha enviado ningún dato de excedentes de julio de \d{4}/);
+    expect(r.warnings.join('\n')).toMatch(/todavía no ha publicado \(o no ha enviado\) los excedentes de julio de \d{4}/);
   });
 
   // ---- Simulador solar ----
@@ -935,11 +981,13 @@ describe('importar (fetch simulado)', () => {
     const ejecutarSolar = (extra = {}) => ejecutar({ destino: 'solar', conPotencia: false, confirmar: vi.fn(async () => true), ...extra });
     const contrato = (campos) => () => json(200, { contract: [{ contractedPowerkW: [4.6, 4.6], ...campos }] });
 
-    it('pide los 12 meses completos y SIEMPRE el contrato (para saber si hay autoconsumo)', async () => {
+    it('pide los 12 meses completos (mas uno antes, por si el ultimo no esta publicado) y SIEMPRE el contrato', async () => {
       respuestas.consumo = () => json(200, { timeCurve: mesesSolar(rangoSolar(), 0.3) });
       await ejecutarSolar();
       const q = new URL(llamadas.find((l) => l.url.includes('get-consumption-data')).url).searchParams;
-      expect(q.get('startDate')).toBe(rangoSolar().iniMes);
+      const [y, m] = rangoSolar().iniMes.split('/').map(Number);
+      const antes = new Date(y, m - 2, 1);
+      expect(q.get('startDate')).toBe(`${antes.getFullYear()}/${pad(antes.getMonth() + 1)}`);
       expect(q.get('endDate')).toBe(rangoSolar().finMes);
       expect(llamadas.some((l) => l.url.includes('get-contract-detail'))).toBe(true);
     });
@@ -969,7 +1017,7 @@ describe('importar (fetch simulado)', () => {
       respuestas.consumo = () => json(200, { timeCurve: mesesSolar(rangoSolar(), (mes) => (mes.endsWith('/07') ? null : 0.3)) });
       const e = await ejecutarSolar().catch((x) => x);
       expect(e).toMatchObject({ code: 'solar' });
-      expect(D.textoError(e)).toMatch(/ningún dato de excedentes de julio de \d{4}/);
+      expect(D.textoError(e)).toMatch(/no ha publicado \(o no ha enviado\) los excedentes de julio de \d{4}/);
     });
 
     it('solo un mes de invierno sin excedentes: pregunta y, si se confirma, lo importa a 0 diciendolo', async () => {
@@ -1023,6 +1071,39 @@ describe('importar (fetch simulado)', () => {
       const r = await ejecutarSolar();
       expect(r.fichero.name).toBe('datadis-11-meses.csv');
       expect(r.avisos.join(' ')).toContain('se simulan 11 meses');
+    });
+
+    it('ultimo mes cerrado sin excedentes publicados: simula los 12 meses anteriores y lo dice', async () => {
+      const pedido = (() => { const [y, m] = rangoSolar().iniMes.split('/').map(Number); const d = new Date(y, m - 2, 1); return `${d.getFullYear()}/${pad(d.getMonth() + 1)}`; })();
+      respuestas.contract = contrato({ selfConsumptionTypeCode: '43' });
+      respuestas.consumo = () => json(200, { timeCurve: mesesConGeneracion(pedido, 13, true) });
+      const confirmar = vi.fn(async () => true);
+      const r = await ejecutarSolar({ confirmar });
+      expect(confirmar).not.toHaveBeenCalled();
+      expect(r.fichero.name).toBe('datadis-12-meses.csv');
+      expect(r.avisos.join(' ')).toContain(`aún no ha publicado los excedentes de ${D.etiquetaMes(rangoSolar().finMes)}`);
+      const csv = await r.fichero.text();
+      expect(csv.split('\r\n')[1]).toContain(`01/${pedido.slice(5)}/${pedido.slice(0, 4)}`);
+      expect(csv).not.toContain(`/${rangoSolar().finMes.slice(5)}/${rangoSolar().finMes.slice(0, 4)};`);
+    });
+
+    it('con todos los meses publicados usa los 12 ultimos (el mes extra no entra)', async () => {
+      const pedido = (() => { const [y, m] = rangoSolar().iniMes.split('/').map(Number); const d = new Date(y, m - 2, 1); return `${d.getFullYear()}/${pad(d.getMonth() + 1)}`; })();
+      respuestas.consumo = () => json(200, { timeCurve: mesesConGeneracion(pedido, 13, false) });
+      const r = await ejecutarSolar();
+      expect(r.avisos.join(' ')).not.toContain('aún no ha publicado');
+      const csv = await r.fichero.text();
+      const ini = rangoSolar().iniMes;
+      expect(csv.split('\r\n')[1]).toContain(`01/${ini.slice(5)}/${ini.slice(0, 4)}`);
+    });
+
+    it('suministro dado de baja antes del periodo: no pide consumos y lo explica', async () => {
+      respuestas.supplies = () => json(200, [{ ...SUM, validDateTo: '2025/07/02' }]);
+      const e = await ejecutarSolar().catch((x) => x);
+      expect(e.code).toBe('baja');
+      expect(llamadas.some((l) => l.url.includes('get-consumption-data'))).toBe(false);
+      expect(D.textoError(e)).toContain('dado de baja desde el 02/07/2025');
+      expect(D.textoError(e)).toContain('12 meses completos');
     });
 
     it('suministro reciente (sin los primeros meses): importa los que hay y lo dice', async () => {
