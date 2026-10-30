@@ -650,6 +650,24 @@ describe('importar (fetch simulado)', () => {
     expect(avisos).toContain('Si tienes placas');
   });
 
+  it('sin excedentes, el aviso depende de lo que diga el contrato', async () => {
+    const conContrato = async (campos) => {
+      respuestas.contract = () => json(200, { contract: [{ contractedPowerkW: [4.6, 4.6], ...campos }] });
+      return (await ejecutar({ conPotencia: true })).warnings.join('\n');
+    };
+    // sin autoconsumo o sin excedentes (prueba positiva): nada que avisar
+    let avisos = await conContrato({ selfConsumptionTypeCode: '00' });
+    expect(avisos).not.toMatch(/excedentes, así que se importa solo el consumo|excedentes=0/);
+    avisos = await conContrato({ selfConsumptionTypeCode: '31' });
+    expect(avisos).not.toMatch(/excedentes, así que se importa solo el consumo|excedentes=0/);
+    // con excedentes segun el contrato: se dice claro
+    avisos = await conContrato({ selfConsumptionTypeCode: '41' });
+    expect(avisos).toContain('Tu contrato tiene autoconsumo con excedentes, pero Datadis no ha enviado ningún excedente');
+    // contrato que no dice nada: el aviso condicional de siempre
+    avisos = await conContrato({});
+    expect(avisos).toContain('Si tienes placas');
+  });
+
   it('con un periodo antiguo, el aviso de antiguedad habla del periodo y no de un "CSV" o un "archivo"', async () => {
     const rango = { iniYmd: '2024/11/01', finYmd: '2024/11/30', iniMes: '2024/11', finMes: '2024/11' };
     respuestas.consumo = () => json(200, { timeCurve: añoCompleto(rango) });

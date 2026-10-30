@@ -856,15 +856,23 @@
     }
     resultado.formato = 'Datadis';
     // Los avisos del importador hablan de "CSV" y de columnas; aqui el origen es Datadis.
+    // Sin excedentes: si el contrato (cuando se ha pedido) dice que no hay autoconsumo o que es
+    // sin excedentes, no hay nada que avisar; si dice que vierte, el aviso lo dice claro.
+    const autoconsumo = contrato ? leerAutoconsumo(contrato) : null;
+    const remedio = 'descarga el CSV desde Datadis o desde tu distribuidora o, si sabes cuántos kWh vertiste en este mismo periodo (sumando tus facturas), introdúcelos a mano después de aplicar, activando «Tengo placas solares» en las opciones avanzadas.';
     resultado.warnings = (resultado.warnings || []).map((w) => {
       if (typeof w !== 'string') return w;
       if (/^No se detectaron excedentes/.test(w)) {
-        return 'Datadis no ha enviado excedentes, así que se importa solo el consumo. Si tienes placas, puede que tu distribuidora no los esté publicando en Datadis: descarga el CSV desde Datadis o desde tu distribuidora o, si sabes cuántos kWh vertiste en este mismo periodo (sumando tus facturas), introdúcelos a mano después de aplicar, activando «Tengo placas solares» en las opciones avanzadas.';
+        if (autoconsumo === 'no' || autoconsumo === 'sin') return null;
+        if (autoconsumo === 'con') {
+          return `Tu contrato tiene autoconsumo con excedentes, pero Datadis no ha enviado ningún excedente de este periodo, así que se importa solo el consumo. Puede que tu distribuidora aún no los haya publicado o no los publique en Datadis: ${remedio}`;
+        }
+        return `Datadis no ha enviado excedentes, así que se importa solo el consumo. Si tienes placas, puede que tu distribuidora no los esté publicando en Datadis: ${remedio}`;
       }
       return w.replace(/^✓ CSV procesado:/, '✓ Datos de Datadis procesados:')
         .replace(/^⚠️ CSV antiguo:/, '⚠️ Datos antiguos:')
         .replace('revisa que estás importando el archivo correcto.', 'comprueba que el periodo elegido es el que querías.');
-    });
+    }).filter((w) => w !== null);
     if (excedentesHasta) {
       resultado.warnings.push(`Tu distribuidora aún no ha publicado en Datadis los excedentes posteriores al ${fechaEs(excedentesHasta)}: para no contarlos como 0 kWh, se analizan los 365 días que terminan ese día.`);
     }
